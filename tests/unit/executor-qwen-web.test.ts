@@ -301,7 +301,7 @@ describe("QwenWebExecutor (v2 migration)", () => {
     assert.deepEqual(qwen38, {
       id: "qwen3.8-max-preview",
       name: "Qwen3.8 Max Preview",
-      toolCalling: true,
+      toolCalling: false,
       supportsReasoning: true,
       supportsVision: true,
       contextLength: 1_000_000,

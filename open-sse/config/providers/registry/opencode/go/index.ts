@@ -106,10 +106,25 @@ export const opencode_goProvider: RegistryEntry = {
     },
     { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude", supportsVision: false },
     // #8353: hy3 is the Go-tier base id (distinct from hy3-preview / hy3-free).
-    { id: "hy3", name: "Hunyuan3", supportsReasoning: true },
-    { id: "hy3-none", name: "Hunyuan3 (none effort)", supportsReasoning: true },
-    { id: "hy3-low", name: "Hunyuan3 (low effort)", supportsReasoning: true },
-    { id: "hy3-high", name: "Hunyuan3 (high effort)", supportsReasoning: true },
+    { id: "hy3", name: "Hunyuan3", contextLength: 256000, supportsReasoning: true },
+    {
+      id: "hy3-none",
+      name: "Hunyuan3 (none effort)",
+      contextLength: 256000,
+      supportsReasoning: true,
+    },
+    {
+      id: "hy3-low",
+      name: "Hunyuan3 (low effort)",
+      contextLength: 256000,
+      supportsReasoning: true,
+    },
+    {
+      id: "hy3-high",
+      name: "Hunyuan3 (high effort)",
+      contextLength: 256000,
+      supportsReasoning: true,
+    },
     { id: "hy3-preview", name: "Hunyuan3 Preview" },
     // #8353: Grok 4.5 + effort tiers from the OpenCode Go registry.
     { id: "grok-4.5", name: "Grok 4.5", supportsReasoning: true },

@@ -966,7 +966,7 @@ test("OpenAI -> Kiro serializes non-string role:tool content to non-empty text (
 });
 
 // Only Claude models support images in Kiro. Non-Claude Kiro models
-// (deepseek-3.2, minimax-m2.5, glm-5, qwen3-coder-next, auto-kiro) must NOT
+// (deepseek-3.2, minimax-m2.5, glm-5, qwen3-coder-next) must NOT
 // receive image attachments — attaching them is wrong for those models.
 const PNG_DATA_URL = "data:image/png;base64,aGVsbG8=";
 
@@ -1016,8 +1016,8 @@ test("OpenAI -> Kiro drops images for non-Claude models (deepseek)", () => {
   );
 });
 
-test("OpenAI -> Kiro drops images for non-Claude models (glm / auto-kiro)", () => {
-  for (const model of ["glm-5", "minimax-m2.5", "qwen3-coder-next", "auto-kiro"]) {
+test("OpenAI -> Kiro drops images for other non-Claude Kiro models", () => {
+  for (const model of ["glm-5", "minimax-m2.5", "qwen3-coder-next"]) {
     const result = buildImageRequest(model);
     const images = result.conversationState.currentMessage.userInputMessage.images;
     assert.ok(
@@ -1031,7 +1031,7 @@ test("buildKiroPayload rejects the Anthropic-only [1m] context suffix before Bed
   const body = { messages: [{ role: "user", content: "Hello" }] };
 
   assert.throws(
-    () => buildKiroPayload("claude-opus-4.7-thinking-agentic[1m]", body, true, {}),
+    () => buildKiroPayload("claude-sonnet-5-thinking[1m]", body, true, {}),
     /\[1m\]' suffix is not supported by Kiro upstream/,
     "kr/* model ids carrying [1m] must be rejected, not forwarded to AWS Bedrock"
   );
@@ -1046,27 +1046,20 @@ test("buildKiroPayload accepts kr/* model ids without the [1m] suffix", () => {
   );
 });
 
-test("buildKiroPayload strips local Kiro selector suffixes before upstream", () => {
+test("buildKiroPayload strips the supported Thinking selector before upstream", () => {
   const body = { messages: [{ role: "user", content: "Hello" }] };
 
-  const result = buildKiroPayload("claude-sonnet-5-thinking-agentic", body, true, {});
+  const result = buildKiroPayload("claude-sonnet-5-thinking", body, true, {});
   assert.equal(
     result.conversationState.currentMessage.userInputMessage.modelId,
     "claude-sonnet-5",
-    "local -thinking/-agentic aliases must not be forwarded to Kiro"
+    "the local -thinking alias must not be forwarded to Kiro"
   );
   assert.equal(
     result.additionalModelRequestFields?.output_config?.effort,
     "high",
     "the -thinking selector should still request Kiro adaptive thinking"
   );
-});
-
-test("buildKiroPayload maps auto-kiro selector to Kiro auto upstream id", () => {
-  const body = { messages: [{ role: "user", content: "Hello" }] };
-
-  const result = buildKiroPayload("auto-kiro", body, true, {});
-  assert.equal(result.conversationState.currentMessage.userInputMessage.modelId, "auto");
 });
 
 // Regression for upstream decolua/9router PR #2270: the dash->dot normalization's

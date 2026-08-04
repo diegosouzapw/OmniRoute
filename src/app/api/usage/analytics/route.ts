@@ -590,7 +590,10 @@ export async function GET(request: Request) {
         normalizeModelName,
         computeCostFromPricing
       );
-      const key = `${provider}::${short}`;
+      // Keyed by model name alone (not provider) — the table renders one row per
+      // model, so the same model served via multiple provider connections/accounts
+      // must be merged here rather than producing duplicate `key={m.model}` rows.
+      const key = short;
       const existing = modelMap.get(key) || {
         model: short,
         provider,

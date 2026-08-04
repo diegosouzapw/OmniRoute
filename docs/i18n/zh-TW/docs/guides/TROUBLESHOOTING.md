@@ -18,17 +18,17 @@ OmniRoute 的常見問題與解決方案。
 
 **剛接觸 OmniRoute？** 從這裡開始 — 這些能解決 90% 的問題：
 
-| 我看見這個              | 代表什麼                         | 該怎麼做                                                                                     |
-| ----------------------- | -------------------------------- | -------------------------------------------------------------------------------------------- |
-| 「無法連線」            | OmniRoute 未在執行               | 執行 `omniroute` 或 `docker restart omniroute`                                                  |
-| 「API 金鑰無效」        | 金鑰錯誤或已過期                 | 從供應商網站重新複製金鑰                                                                        |
-| 「超出速率限制」        | 請求傳送過於頻繁                 | 等待 1 分鐘，或使用 `model: "auto"` 自動切換                                                    |
-| 「超出配額」            | 免費/付費配額已用完              | 連接更多供應商，或使用免費供應商（Kiro, Pollinations）                                            |
-| 「回應緩慢」            | 供應商忙碌或距離較遠             | 使用 `model: "auto/fast"` 或連接較快的供應商（Groq, Cerebras）                                  |
-| 「使用了錯誤的供應商」  | `auto` 選了不同的供應商          | 這是正常的！`auto` 會選最好的。使用 `model: "openai/gpt-4o"` 來強制指定供應商                    |
-| 「502 Bad Gateway」     | 供應商故障                       | 等待後重試，或使用 `model: "auto"` 切換供應商                                                   |
-| 「401 Unauthorized」    | 憑證錯誤                         | 檢查 API 金鑰或重新透過 OAuth 認證                                                               |
-| 「429 Too Many Requests」| 已達速率限制                      | 等待 1 分鐘，或連接更多供應商                                                                    |
+| 我看見這個                | 代表什麼                | 該怎麼做                                                                      |
+| ------------------------- | ----------------------- | ----------------------------------------------------------------------------- |
+| 「無法連線」              | OmniRoute 未在執行      | 執行 `omniroute` 或 `docker restart omniroute`                                |
+| 「API 金鑰無效」          | 金鑰錯誤或已過期        | 從提供者網站重新複製金鑰                                                      |
+| 「超出速率限制」          | 請求傳送過於頻繁        | 等待 1 分鐘，或使用 `model: "auto"` 自動切換                                  |
+| 「超出配額」              | 免費/付費配額已用完     | 連接更多提供者，或使用免費提供者（Kiro, Pollinations）                        |
+| 「回應緩慢」              | 提供者忙碌或距離較遠    | 使用 `model: "auto/fast"` 或連接較快的提供者（Groq, Cerebras）                |
+| 「使用了錯誤的提供者」    | `auto` 選了不同的提供者 | 這是正常的！`auto` 會選最好的。使用 `model: "openai/gpt-4o"` 來強制指定提供者 |
+| 「502 Bad Gateway」       | 提供者故障              | 等待後重試，或使用 `model: "auto"` 切換提供者                                 |
+| 「401 Unauthorized」      | 憑證錯誤                | 檢查 API 金鑰或重新透過 OAuth 認證                                            |
+| 「429 Too Many Requests」 | 已達速率限制            | 等待 1 分鐘，或連接更多提供者                                                 |
 
 **還是卡住了？** 請參考下方的[詳細疑難排解](#詳細疑難排解)，或在 [Discord](https://discord.gg/U47eFqAXCn) 上提問。
 
@@ -40,18 +40,18 @@ OmniRoute 的常見問題與解決方案。
 
 ## 快速修復
 
-| 問題                                                | 解決方案                                                                                                                                                   |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 首次登入無法運作                                     | 在 `.env` 中設定 `INITIAL_PASSWORD`（無硬編碼預設值）                                                                                                         |
-| 儀表板開啟在錯誤的連接埠                             | 設定 `PORT=20128` 和 `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                            |
-| 沒有日誌寫入磁碟                                     | 設定 `APP_LOG_TO_FILE=true`，並確認呼叫記錄捕捉功能已啟用                                                                                                      |
-| EACCES：權限被拒                                     | 設定 `DATA_DIR=/path/to/writable/dir` 以覆蓋 `~/.omniroute`                                                                                                   |
-| 路由策略未儲存                                       | 更新至最新的 v3.x 版本（早期版本已修復 Zod schema 以確保設定持續性）                                                                                            |
-| 登入崩潰／空白頁面                                   | 檢查 Node.js 版本 — 請參閱下方的 [Node.js 相容性](#nodejs-相容性)                                                                                              |
-| `dlopen` / `slice is not valid mach-o file`（macOS）| 執行 `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — 請參閱下方的 [macOS 原生模組重建](#macos-原生模組重建)                    |
-| Proxy「fetch 失敗」                                  | 確保 Proxy 設定在正確的層級 — 請參閱下方的 [Proxy 問題](#proxy-問題)                                                                                          |
-| 防毒軟體隔離 `README.md`                             | 誤判 — 請參閱下方的[防毒軟體誤判](#防毒軟體誤判)                                                                                                              |
-| Kaspersky 將桌面應用程式標記為木馬                    | 未簽署安裝程式的行為分析誤判 — 請參閱下方的[防毒軟體誤判](#防毒軟體誤判)                                                                                      |
+| 問題                                                 | 解決方案                                                                                                                                   |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 首次登入無法運作                                     | 在 `.env` 中設定 `INITIAL_PASSWORD`（無硬編碼預設值）                                                                                      |
+| 儀表板開啟在錯誤的連接埠                             | 設定 `PORT=20128` 和 `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                         |
+| 沒有日誌寫入磁碟                                     | 設定 `APP_LOG_TO_FILE=true`，並確認呼叫記錄捕捉功能已啟用                                                                                  |
+| EACCES：權限被拒                                     | 設定 `DATA_DIR=/path/to/writable/dir` 以覆蓋 `~/.omniroute`                                                                                |
+| 路由策略未儲存                                       | 更新至最新的 v3.x 版本（早期版本已修復 Zod schema 以確保設定持續性）                                                                       |
+| 登入崩潰／空白頁面                                   | 檢查 Node.js 版本 — 請參閱下方的 [Node.js 相容性](#nodejs-相容性)                                                                          |
+| `dlopen` / `slice is not valid mach-o file`（macOS） | 執行 `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — 請參閱下方的 [macOS 原生模組重建](#macos-原生模組重建) |
+| Proxy「fetch 失敗」                                  | 確保 Proxy 設定在正確的層級 — 請參閱下方的 [Proxy 問題](#proxy-問題)                                                                       |
+| 防毒軟體隔離 `README.md`                             | 誤判 — 請參閱下方的[防毒軟體誤判](#防毒軟體誤判)                                                                                           |
+| Kaspersky 將桌面應用程式標記為木馬                   | 未簽署安裝程式的行為分析誤判 — 請參閱下方的[防毒軟體誤判](#防毒軟體誤判)                                                                   |
 
 ---
 
@@ -72,7 +72,7 @@ Avast 和 AVG 執行啟發式掃描，會將包含大量類似 HTTP 請求連結
 **該怎麼做：**
 
 1. **停止通知** — 在防毒軟體中排除安裝目錄（Avast：設定 → 例外），加入您的全域 `node_modules` 路徑和/或 OmniRoute 資料目錄（`~/.omniroute/`）。
-2. **回報誤判** — <https://www.avast.com/false-positive-file-form.php>，附上被隔離的 `README.md`。這能幫助所有人，因為這是供應商的啟發式掃描對文字檔案的過度反應。
+2. **回報誤判** — <https://www.avast.com/false-positive-file-form.php>，附上被隔離的 `README.md`。這能幫助所有人，因為這是提供者的啟發式掃描對文字檔案的過度反應。
 
 **為什麼我們不在這邊「修復」這個問題：** 範例全都是 `http://localhost`，而 localhost 若要使用 `https` 會需要自簽憑證，增加使用摩擦。為了避開某家廠商的啟發式掃描而修改文件，會損害所有讀者的閱讀體驗，只為了一個掃描器的錯誤。
 
@@ -82,8 +82,8 @@ Avast 和 AVG 執行啟發式掃描，會將包含大量類似 HTTP 請求連結
 
 被標記的檔案是桌面應用程式所捆綁的、已聲明的開源依賴的標準組件，例如：
 
-- `resources/app/.build/next/node_modules/playwright-<hash>/lib/…/agentParser.js` 和 `workerProcessEntry.js` — [Playwright](https://playwright.dev)，用於應用程式內供應商登入和瀏覽器支援聊天的瀏覽器自動化函式庫。
-- `resources/app/.build/next/node_modules/tls-client-node-<hash>/bin/tls-client-windows-64-<ver>.dll` — 來自 `tls-client-node` 的原生二進位檔案，用於某些網路供應商的 Cloudflare 相容 HTTP。
+- `resources/app/.build/next/node_modules/playwright-<hash>/lib/…/agentParser.js` 和 `workerProcessEntry.js` — [Playwright](https://playwright.dev)，用於應用程式內提供者登入和瀏覽器支援聊天的瀏覽器自動化函式庫。
+- `resources/app/.build/next/node_modules/tls-client-node-<hash>/bin/tls-client-windows-64-<ver>.dll` — 來自 `tls-client-node` 的原生二進位檔案，用於某些網路提供者的 Cloudflare 相容 HTTP。
 
 **為什麼會觸發：** Windows 安裝程式**尚未進行程式碼簽署**，因此未簽署的 NSIS 安裝程式沒有信譽，行為啟發式掃描會以最大強度執行。加上捆綁的原生 DLL 和數百個寫入 `%LOCALAPPDATA%\Programs\OmniRoute` 的 `.js` 檔案（包括 Next.js 獨立建置的雜湊後綴套件目錄），這就足以觸發啟發式掃描。程式碼簽署已規劃中；在完成之前，新版本可能會重複觸發此問題。
 
@@ -160,11 +160,11 @@ omniroute
 
 <a name="proxy-問題"></a>
 
-### 供應商驗證顯示「fetch 失敗」
+### 提供者驗證顯示「fetch 失敗」
 
 **原因：** API 金鑰驗證端點（`POST /api/providers/validate`）先前會繞過 Proxy 設定，導致在需要 Proxy 路由的環境中失敗。
 
-**修復方式（v3.5.5+）：** 此問題現已修復。供應商驗證會透過 `runWithProxyContext` 路由，自動遵循供應商層級和全域的 Proxy 設定。
+**修復方式（v3.5.5+）：** 此問題現已修復。提供者驗證會透過 `runWithProxyContext` 路由，自動遵循提供者層級和全域的 Proxy 設定。
 
 ### Token 健康狀態檢查失敗，顯示「fetch 失敗」
 
@@ -186,11 +186,11 @@ omniroute
 
 ---
 
-## 供應商問題
+## 提供者問題
 
 ###「Language model did not provide messages」
 
-**原因：** 供應商配額已用完。
+**原因：** 提供者配額已用完。
 
 **修復方式：**
 
@@ -211,8 +211,8 @@ omniroute
 
 OmniRoute 會自動刷新 Token。如果問題持續存在：
 
-1. 儀表板 → 供應商 → 重新連線
-2. 刪除並重新加入供應商連線
+1. 儀表板 → 提供者 → 重新連線
+2. 刪除並重新加入提供者連線
 
 ### Kiro 多帳號：第二個帳號使第一個帳號失效
 
@@ -220,7 +220,7 @@ OmniRoute 會自動刷新 Token。如果問題持續存在：
 
 **修復方式（v3.8.0+）：** 重新匯入受影響的連線。從 v3.8.0 開始，每個透過**匯入 Token**、**Google/GitHub 社群登入**或**自動匯入**建立的新 Kiro 連線，都會自動註冊其專屬的 OIDC 用戶端。因此該連線完全隔離，刷新一個帳號不會影響任何其他帳號。
 
-在 v3.8.0 *之前*匯入的連線不帶有每個連線的用戶端註冊。這些連線會繼續使用共用的社群登入刷新端點。若要獲得隔離，請從儀表板 → 供應商刪除舊連線，並透過三種匯入流程之一重新加入。
+在 v3.8.0 *之前*匯入的連線不帶有每個連線的用戶端註冊。這些連線會繼續使用共用的社群登入刷新端點。若要獲得隔離，請從儀表板 → 提供者刪除舊連線，並透過三種匯入流程之一重新加入。
 
 如需完整詳細資訊和逐步新增兩個 Kiro 帳號的說明，請參閱 [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md)。
 
@@ -288,7 +288,7 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 請求工件會在啟用呼叫記錄管線時儲存在 `${DATA_DIR}/call_logs/` 目錄下。
 啟用管線捕捉時，設定 `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false` 可省略串流區塊負載，或調整 `CALL_LOG_PIPELINE_MAX_SIZE_KB` 來變更工件大小上限（KB）。
 
-### 檢查供應商健康狀態
+### 檢查提供者健康狀態
 
 ```bash
 # 健康狀態儀表板
@@ -300,7 +300,7 @@ curl http://localhost:20128/api/monitoring/health
 
 ### 執行環境儲存
 
-- 主要狀態：`${DATA_DIR}/storage.sqlite`（供應商、組合、別名、金鑰、設定）
+- 主要狀態：`${DATA_DIR}/storage.sqlite`（提供者、組合、別名、金鑰、設定）
 - 使用量：`storage.sqlite` 中的 SQLite 表格（`usage_history`、`call_logs`、`proxy_logs`）+ 選用的 `${DATA_DIR}/call_logs/`
 - 應用程式日誌：`<repo>/logs/...`（當 `APP_LOG_TO_FILE=true` 時）
 - 呼叫記錄工件：啟用呼叫記錄管線時在 `${DATA_DIR}/call_logs/YYYY-MM-DD/...` 下
@@ -311,24 +311,24 @@ curl http://localhost:20128/api/monitoring/health
 
 ## 斷路器問題
 
-### 供應商卡在 OPEN 狀態
+### 提供者卡在 OPEN 狀態
 
-當供應商的斷路器處於 OPEN 狀態時，請求將被阻擋直到冷卻時間結束。
+當提供者的斷路器處於 OPEN 狀態時，請求將被阻擋直到冷卻時間結束。
 
 **修復方式：**
 
 1. 前往**儀表板 → 設定 → 備援**
-2. 檢查受影響供應商的斷路器卡片
+2. 檢查受影響提供者的斷路器卡片
 3. 點擊**全部重設**以清除所有斷路器，或等待冷卻時間結束
-4. 在重設前確認供應商確實可用
+4. 在重設前確認提供者確實可用
 
-### 供應商持續觸發斷路器
+### 提供者持續觸發斷路器
 
-如果供應商反覆進入 OPEN 狀態：
+如果提供者反覆進入 OPEN 狀態：
 
-1. 檢查**儀表板 → 健康狀態 → 供應商健康狀態**以了解失敗模式
-2. 前往**設定 → 備援 → 供應商設定檔**並提高失敗閾值
-3. 檢查供應商是否變更了 API 限制或需要重新認證
+1. 檢查**儀表板 → 健康狀態 → 提供者健康狀態**以了解失敗模式
+2. 前往**設定 → 備援 → 提供者設定檔**並提高失敗閾值
+3. 檢查提供者是否變更了 API 限制或需要重新認證
 4. 檢閱延遲遙測資料 — 高延遲可能導致基於超時的失敗
 
 ---
@@ -338,13 +338,13 @@ curl http://localhost:20128/api/monitoring/health
 ###「Unsupported model」錯誤
 
 - 確保使用正確的前綴：`deepgram/nova-3` 或 `assemblyai/best`
-- 確認該供應商已在**儀表板 → 供應商**中連線
+- 確認該提供者已在**儀表板 → 提供者**中連線
 
 ### 轉錄回傳空值或失敗
 
 - 檢查支援的音訊格式：`mp3`、`wav`、`m4a`、`flac`、`ogg`、`webm`
-- 確認檔案大小在供應商限制內（通常 < 25MB）
-- 在供應商卡片中檢查供應商 API 金鑰的有效性
+- 確認檔案大小在提供者限制內（通常 < 25MB）
+- 在提供者卡片中檢查提供者 API 金鑰的有效性
 
 ---
 
@@ -352,21 +352,21 @@ curl http://localhost:20128/api/monitoring/health
 
 使用**儀表板 → 翻譯器**來除錯格式翻譯問題：
 
-| 模式             | 使用時機                                                                                        |
-| ---------------- | ----------------------------------------------------------------------------------------------- |
-| **遊樂場**       | 並排比較輸入/輸出格式 — 貼上失敗的請求以查看翻譯結果                                              |
-| **聊天測試器**   | 發送即時訊息並檢查完整的請求/回應負載，包括標頭                                                    |
-| **測試平台**     | 跨格式組合執行批次測試，找出哪些翻譯有問題                                                         |
-| **即時監控器**   | 監控即時請求流程，捕捉間歇性的翻譯問題                                                             |
+| 模式           | 使用時機                                             |
+| -------------- | ---------------------------------------------------- |
+| **遊樂場**     | 並排比較輸入/輸出格式 — 貼上失敗的請求以查看翻譯結果 |
+| **聊天測試器** | 發送即時訊息並檢查完整的請求/回應負載，包括標頭      |
+| **測試平台**   | 跨格式組合執行批次測試，找出哪些翻譯有問題           |
+| **即時監控器** | 監控即時請求流程，捕捉間歇性的翻譯問題               |
 
 ### 常見格式問題
 
-- **思考標籤未顯示** — 檢查目標供應商是否支援思考功能以及思考預算設定
+- **思考標籤未顯示** — 檢查目標提供者是否支援思考功能以及思考預算設定
 - **工具呼叫被遺漏** — 某些格式翻譯可能會移除不支援的欄位；請在遊樂場模式中驗證
 - **系統提示詞遺失** — Claude 和 Gemini 處理系統提示詞的方式不同；請檢查翻譯輸出
 - **SDK 回傳原始字串而非物件** — 已在 v1.x 中解決；回應清理器會移除導致 OpenAI SDK Pydantic 驗證失敗的非標準欄位（`x_groq`、`usage_breakdown` 等）。如果您在 v3.x+ 仍看到此問題，請提交 issue。
 - **GLM/ERNIE 拒絕 `system` 角色** — 已在 v1.x 中解決；角色正規化器會自動將系統訊息合併到使用者訊息中，以相容不相容的模型。如果您在 v3.x+ 仍看到此問題，請提交 issue。
-- **`developer` 角色不被辨識** — 已在 v1.x 中解決；對非 OpenAI 供應商會自動轉換為 `system`。如果您在 v3.x+ 仍看到此問題，請提交 issue。
+- **`developer` 角色不被辨識** — 已在 v1.x 中解決；對非 OpenAI 提供者會自動轉換為 `system`。如果您在 v3.x+ 仍看到此問題，請提交 issue。
 - **`json_schema` 在 Gemini 上無法使用** — 已在 v1.x 中解決；`response_format` 現在會轉換為 Gemini 的 `responseMimeType` + `responseSchema`。如果您在 v3.x+ 仍看到此問題，請提交 issue。
 
 ---
@@ -375,13 +375,13 @@ curl http://localhost:20128/api/monitoring/health
 
 ### 自動速率限制未觸發
 
-- 自動速率限制僅適用於 API 金鑰供應商（不適用於 OAuth/訂閱）
-- 確認**設定 → 備援 → 供應商設定檔**已啟用自動速率限制
-- 檢查供應商是否回傳 `429` 狀態碼或 `Retry-After` 標頭
+- 自動速率限制僅適用於 API 金鑰提供者（不適用於 OAuth/訂閱）
+- 確認**設定 → 備援 → 提供者設定檔**已啟用自動速率限制
+- 檢查提供者是否回傳 `429` 狀態碼或 `Retry-After` 標頭
 
 ### 調整指數退避
 
-供應商設定檔支援以下設定：
+提供者設定檔支援以下設定：
 
 - **基本延遲** — 首次失敗後的初始等待時間（預設：1 秒）
 - **最大延遲** — 等待時間上限（預設：30 秒）
@@ -389,13 +389,13 @@ curl http://localhost:20128/api/monitoring/health
 
 ### 防止驚群效應
 
-當大量並發請求湧入一個已達速率限制的供應商時，OmniRoute 會使用互斥鎖 + 自動速率限制來序列化請求，防止連鎖失敗。這對 API 金鑰供應商是自動生效的。
+當大量並發請求湧入一個已達速率限制的提供者時，OmniRoute 會使用互斥鎖 + 自動速率限制來序列化請求，防止連鎖失敗。這對 API 金鑰提供者是自動生效的。
 
 ---
 
 ## 選用：RAG / LLM 失敗分類（16 種問題）
 
-部分 OmniRoute 使用者將閘道器部署在 RAG 或 Agent 堆疊之前。在這些設定中，常會看到一種奇怪的現象：OmniRoute 看起來正常（供應商正常、路由設定檔無誤、無速率限制警示），但最終答案仍然錯誤。
+部分 OmniRoute 使用者將閘道器部署在 RAG 或 Agent 堆疊之前。在這些設定中，常會看到一種奇怪的現象：OmniRoute 看起來正常（提供者正常、路由設定檔無誤、無速率限制警示），但最終答案仍然錯誤。
 
 實際上，這些問題通常來自下游的 RAG 管線，而非閘道器本身。
 
@@ -414,7 +414,7 @@ curl http://localhost:20128/api/monitoring/health
 
 1. 當您調查一個錯誤回應時，記錄：
    - 使用者的任務與請求
-   - OmniRoute 中的路由或供應商組合
+   - OmniRoute 中的路由或提供者組合
    - 下游使用的任何 RAG 上下文（檢索的文件、工具呼叫等）
 2. 將事件對應到一或兩個 WFGY ProblemMap 編號（`No.1` … `No.16`）。
 3. 將編號儲存在您自己的儀表板、Runbook 或事件追蹤器中，放在 OmniRoute 日誌旁邊。
@@ -437,7 +437,7 @@ v3.8.0 版本特有的問題及其目前的解決方法。如果後續修補版�
 **症狀：**
 
 - 從儀表板完成 Windsurf OAuth 流程時出現「401 unauthorized」
-- 回呼後 Windsurf 供應商卡片仍停留在「需要重新連線」狀態
+- 回呼後 Windsurf 提供者卡片仍停留在「需要重新連線」狀態
 
 **原因：**
 
@@ -449,7 +449,7 @@ v3.8.0 版本特有的問題及其目前的解決方法。如果後續修補版�
 
 1. 確認 `.env` 中已設定 `WINDSURF_FIREBASE_API_KEY` 和 `WINDSURF_API_KEY`
 2. 重新啟動 OmniRoute 以載入新的環境變數值
-3. 從**儀表板 → 供應商 → Windsurf → 重新連線**重新執行 OAuth 流程
+3. 從**儀表板 → 提供者 → Windsurf → 重新連線**重新執行 OAuth 流程
 
 ### Devin CLI 認證失敗
 
@@ -481,19 +481,19 @@ v3.8.0 版本特有的問題及其目前的解決方法。如果後續修補版�
 - **儀表板：** **設定 → 模型冷卻** → 點擊受影響卡片上的**重新啟用**
 - **API：** 使用管理認證標頭呼叫 `DELETE /api/resilience/model-cooldowns`
 
-### Command Code 供應商連線失敗，顯示 403
+### Command Code 提供者連線失敗，顯示 403
 
 **症狀：**
 
-- 測試 Command Code 供應商連線時出現 403
-- 剛新增後供應商卡片顯示「unauthorized」
+- 測試 Command Code 提供者連線時出現 403
+- 剛新增後提供者卡片顯示「unauthorized」
 
 **原因：** OAuth 流程未完成（回呼未收到或 Token 未持久化）。
 
 **修復方式：**
 
 - 從 CLI 執行 `omniroute providers` 以重新觸發 OAuth 流程，或
-- 從**儀表板 → 供應商 → Command Code → 重新連線**重新執行 OAuth
+- 從**儀表板 → 提供者 → Command Code → 重新連線**重新執行 OAuth
 
 ### ModelScope 回傳積極的 429 冷卻
 
@@ -502,7 +502,7 @@ v3.8.0 版本特有的問題及其目前的解決方法。如果後續修補版�
 - 在 ModelScope 上，少量請求突發後出現非常短或立即的冷卻
 - 組合路由比預期更早跳過 ModelScope
 
-**原因：** ModelScope 會發出供應商特定的 `Retry-After` 標頭。v3.8.0 提供了專門處理這些標頭的功能，因此較舊的版本會將其誤讀為一般的速率限制提示。
+**原因：** ModelScope 會發出提供者特定的 `Retry-After` 標頭。v3.8.0 提供了專門處理這些標頭的功能，因此較舊的版本會將其誤讀為一般的速率限制提示。
 
 **修復方式：**
 

@@ -32,6 +32,7 @@ import { sleep } from "../utils/sleep.ts";
 import {
   getKieErrorMessage,
   getKieErrorStatus,
+  getKieTaskId,
   isJsonObject,
   parseKieResultJson,
 } from "../utils/kieTask.ts";
@@ -758,7 +759,7 @@ async function handleKieImageGeneration({
       payload,
       endpoint,
     });
-    const taskId = createData?.data?.taskId || createData?.taskId;
+    const taskId = getKieTaskId(createData);
 
     if (!taskId) {
       const errorMessage =

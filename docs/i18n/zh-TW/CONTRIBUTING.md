@@ -35,22 +35,22 @@ echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 
 開發用的關鍵變數：
 
-| 變數                   | 開發環境預設值          | 說明               |
-| ---------------------- | ----------------------- | ------------------ |
-| `PORT`                 | `20128`                 | 伺服器埠號         |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | 前端的基礎 URL     |
-| `JWT_SECRET`           | （上方產生）             | JWT 簽章密鑰       |
-| `INITIAL_PASSWORD`     | `CHANGEME`              | 首次登入密碼       |
-| `APP_LOG_LEVEL`        | `info`                  | 日誌詳細程度       |
+| 變數                   | 開發環境預設值           | 說明           |
+| ---------------------- | ------------------------ | -------------- |
+| `PORT`                 | `20128`                  | 伺服器埠號     |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | 前端的基礎 URL |
+| `JWT_SECRET`           | （上方產生）             | JWT 簽章密鑰   |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | 首次登入密碼   |
+| `APP_LOG_LEVEL`        | `info`                   | 日誌詳細程度   |
 
 ### 儀表板設定
 
 儀表板提供 UI 開關，可設定也能透過環境變數配置的功能：
 
-| 設定位置           | 開關           | 說明                         |
-| ------------------ | -------------- | ---------------------------- |
-| 設定 → 進階        | 除錯模式       | 啟用除錯請求日誌（UI）       |
-| 設定 → 一般        | 側邊欄可見性   | 顯示/隱藏側邊欄區塊          |
+| 設定位置    | 開關         | 說明                   |
+| ----------- | ------------ | ---------------------- |
+| 設定 → 進階 | 除錯模式     | 啟用除錯請求日誌（UI） |
+| 設定 → 一般 | 側邊欄可見性 | 顯示/隱藏側邊欄區塊    |
 
 這些設定儲存在資料庫中，重新啟動後仍會保留，設定後會覆蓋環境變數的預設值。
 
@@ -73,11 +73,11 @@ PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 
 ### 建置輸出結構
 
-| 目錄       | 內容                                               | 版本追蹤 |
-| ---------- | -------------------------------------------------- | -------- |
-| `src/`     | 應用程式原始碼（TypeScript / TSX）                  | 是       |
-| `.build/`  | 中間產物 — `next build` 輸出（gitignored，`distDir = .build/next`） | 否 |
-| `dist/`    | 可發佈套件 — 由 `assembleStandalone` 組裝（gitignored） | 否 |
+| 目錄      | 內容                                                                | 版本追蹤 |
+| --------- | ------------------------------------------------------------------- | -------- |
+| `src/`    | 應用程式原始碼（TypeScript / TSX）                                  | 是       |
+| `.build/` | 中間產物 — `next build` 輸出（gitignored，`distDir = .build/next`） | 否       |
+| `dist/`   | 可發佈套件 — 由 `assembleStandalone` 組裝（gitignored）             | 否       |
 
 建置管線為單次傳遞：
 
@@ -113,14 +113,14 @@ git push -u origin feat/your-feature-name
 
 ### 分支命名
 
-| 前綴         | 用途                   |
-| ------------ | ---------------------- |
-| `feat/`      | 新功能                 |
-| `fix/`       | 錯誤修正               |
-| `refactor/`  | 程式碼重構             |
-| `docs/`      | 文件變更               |
-| `test/`      | 測試新增/修正           |
-| `chore/`     | 工具、CI、依賴項目      |
+| 前綴        | 用途               |
+| ----------- | ------------------ |
+| `feat/`     | 新功能             |
+| `fix/`      | 錯誤修正           |
+| `refactor/` | 程式碼重構         |
+| `docs/`     | 文件變更           |
+| `test/`     | 測試新增/修正      |
+| `chore/`    | 工具、CI、依賴項目 |
 
 ### 提交訊息
 
@@ -167,17 +167,17 @@ npm run coverage:report
 npm run lint
 npm run check
 
-# 實際上游 combo 冒煙測試（需要 VPS 存取 + 實際提供商額度）
-# 會打到真實提供商 — 會花一點錢。絕對不會在 CI 中執行。沒有閘道時會乾淨地跳過。
+# 實際上游 combo 冒煙測試（需要 VPS 存取 + 實際提供者額度）
+# 會打到真實提供者 — 會花一點錢。絕對不會在 CI 中執行。沒有閘道時會乾淨地跳過。
 # 需要：ssh root@192.168.0.15 存取（從 VPS 讀取唯讀資料庫快照）。
 RUN_COMBO_LIVE=1 npm run test:combo:live
 
 # Phase-3 VPS 實戰冒煙測試 — 純 Node ESM 腳本，直接打到 .15 伺服器。
 # 需要：ssh root@192.168.0.15 存取（combo 透過 SSH sqlite 建立/刪除）。
-# 會打到真實提供商（少量費用）。只會建立/刪除 __live_test__* combo。絕對不會在 CI 中執行。
+# 會打到真實提供者（少量費用）。只會建立/刪除 __live_test__* combo。絕對不會在 CI 中執行。
 # REQUIRE_API_KEY=false on .15 所以不需要 API 金鑰，但如果設定了 COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY 則會遵循。
 npm run test:combo:live:vps              # 7 個 HTTP 情境（priority/round-robin/weighted/cost/fusion/auto + health）
-npm run test:combo:live:vps:failover     # 增加實際跨提供商容錯情境（共 8 個）
+npm run test:combo:live:vps:failover     # 增加實際跨提供者容錯情境（共 8 個）
 ```
 
 覆蓋率注意事項：
@@ -201,7 +201,7 @@ npm run test:combo:live:vps:failover     # 增加實際跨提供商容錯情境�
 
 目前測試狀態：**122 個單元測試檔案** 涵蓋：
 
-- 提供商轉換器與格式轉換
+- 提供者轉換器與格式轉換
 - 速率限制、斷路器與彈性
 - 語意快取、冪等性、進度追蹤
 - 資料庫操作與結構（21 個 DB 模組）
@@ -238,7 +238,7 @@ src/                        # TypeScript (.ts / .tsx)
 │   ├── compliance/         # 合規政策引擎
 │   ├── db/                 # SQLite 資料庫層（21 個模組 + 16 個遷移）
 │   ├── memory/             # 持久對話記憶
-│   ├── oauth/              # OAuth 提供商、服務與工具
+│   ├── oauth/              # OAuth 提供者、服務與工具
 │   ├── skills/             # 可擴展技能框架
 │   ├── usage/              # 用量追蹤與成本計算
 │   └── localDb.ts          # 僅作為重新匯出層 — 永遠不要在此新增邏輯
@@ -246,13 +246,13 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM 代理（憑證、DNS、目標路由）
 ├── shared/
 │   ├── components/         # React 元件 (.tsx)
-│   ├── constants/          # 提供商定義（177）、MCP 範圍、14 種路由策略
+│   ├── constants/          # 提供者定義（177）、MCP 範圍、14 種路由策略
 │   ├── utils/              # 斷路器、清理工具、認證輔助
 │   └── validation/         # Zod v4 結構
 └── sse/                    # SSE 代理管線
 
 open-sse/                   # @omniroute/open-sse 工作區
-├── executors/              # 14 個提供商專用請求執行器
+├── executors/              # 14 個提供者專用請求執行器
 ├── handlers/               # 11 個請求處理器（聊天、回應、嵌入、圖片等）
 ├── mcp-server/             # MCP 伺服器（25 個工具、3 種傳輸、10 個範圍）
 ├── services/               # 36+ 服務（combo、autoCombo、rateLimitManager 等）
@@ -282,7 +282,7 @@ docs/
 ├── i18n/                    # 國際化 README 翻譯
 ├── marketing/               # 行銷素材
 ├── ops/                     # 部署、代理、覆蓋率、發布
-├── providers/               # 提供商專用文件
+├── providers/               # 提供者專用文件
 ├── reference/               # API 參考、環境變數、CLI 工具、免費方案
 ├── releases/                # 版本說明
 ├── routing/                 # Auto-combo 引擎、推理重播
@@ -293,9 +293,9 @@ docs/
 
 ---
 
-## 新增提供商
+## 新增提供者
 
-### 步驟 1：註冊提供商常數
+### 步驟 1：註冊提供者常數
 
 新增至 `src/shared/constants/providers.ts` — 在模組載入時以 Zod 驗證。
 
@@ -311,7 +311,7 @@ docs/
 
 在 `src/lib/oauth/constants/oauth.ts` 中新增 OAuth 憑證，並在 `src/lib/oauth/services/` 中新增服務。
 
-如果上游提供商在其公開 CLI / 瀏覽器套件中分發了公開的 OAuth client_id/secret 或 Firebase Web API 金鑰，**請勿**將其嵌入為字串字面值。請使用 `open-sse/utils/publicCreds.ts` 中的 `resolvePublicCred()`，並在 `EMBEDDED_DEFAULTS` 中新增一個遮罩位元組條目。完整的強制性工作流程記錄於 [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)。
+如果上游提供者在其公開 CLI / 瀏覽器套件中分發了公開的 OAuth client_id/secret 或 Firebase Web API 金鑰，**請勿**將其嵌入為字串字面值。請使用 `open-sse/utils/publicCreds.ts` 中的 `resolvePublicCred()`，並在 `EMBEDDED_DEFAULTS` 中新增一個遮罩位元組條目。完整的強制性工作流程記錄於 [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)。
 
 在處理器/執行器內部，傳送到客戶端的錯誤訊息必須通過 `open-sse/utils/error.ts` 的 `buildErrorBody()` / `sanitizeErrorMessage()` — 絕對不要將原始 `err.stack` 或 `err.message` 放入回應主體。請參閱 [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md)。
 
@@ -323,7 +323,7 @@ docs/
 
 在 `tests/unit/` 中撰寫單元測試，至少涵蓋：
 
-- 提供商註冊
+- 提供者註冊
 - 請求/回應轉換
 - 錯誤處理
 

@@ -272,6 +272,43 @@ test("isModelAllowedForKey wildcard match", async () => {
   assert.equal(await apiKeys.isModelAllowedForKey(created.key, "gpt-4"), false);
 });
 
+test("isModelAllowedForKey treats cx and codex provider prefixes as equivalent (allowed cx, request codex)", async () => {
+  await resetStorage();
+  const created = await apiKeys.createApiKey("Codex Alias Allow Cx", "ma-cx-001");
+  await apiKeys.updateApiKeyPermissions(created.id, { allowedModels: ["cx/gpt-5.6-terra"] });
+  apiKeys.resetApiKeyState();
+  assert.equal(await apiKeys.isModelAllowedForKey(created.key, "codex/gpt-5.6-terra"), true);
+});
+
+test("isModelAllowedForKey treats cx and codex provider prefixes as equivalent (allowed codex, request cx)", async () => {
+  await resetStorage();
+  const created = await apiKeys.createApiKey("Codex Alias Allow Codex", "ma-cx-002");
+  await apiKeys.updateApiKeyPermissions(created.id, { allowedModels: ["codex/gpt-5.6-terra"] });
+  apiKeys.resetApiKeyState();
+  assert.equal(await apiKeys.isModelAllowedForKey(created.key, "cx/gpt-5.6-terra"), true);
+});
+
+test("isModelAllowedForKey cx wildcard allows codex-prefixed model variants", async () => {
+  await resetStorage();
+  const created = await apiKeys.createApiKey("Codex Wildcard", "ma-cx-003");
+  await apiKeys.updateApiKeyPermissions(created.id, { allowedModels: ["cx/gpt-5.6-terra*"] });
+  apiKeys.resetApiKeyState();
+  assert.equal(await apiKeys.isModelAllowedForKey(created.key, "codex/gpt-5.6-terra-high"), true);
+  assert.equal(await apiKeys.isModelAllowedForKey(created.key, "openai/gpt-5.6-terra"), false);
+});
+
+test("isModelAllowedForKey blockedModels treats cx and codex provider prefixes as equivalent", async () => {
+  await resetStorage();
+  const created = await apiKeys.createApiKey("Codex Block Alias", "ma-cx-004");
+  await apiKeys.updateApiKeyPermissions(created.id, {
+    allowedModels: ["codex/*"],
+    blockedModels: ["cx/gpt-5.6-terra"],
+  });
+  apiKeys.resetApiKeyState();
+  assert.equal(await apiKeys.isModelAllowedForKey(created.key, "codex/gpt-5.6-terra"), false);
+  assert.equal(await apiKeys.isModelAllowedForKey(created.key, "codex/gpt-5.6-other"), true);
+});
+
 // ──────────────── updateApiKeyPermissions ────────────────
 
 test("updateApiKeyPermissions updates name", async () => {

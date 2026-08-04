@@ -77,6 +77,7 @@ export const kiro = {
       _clientId: clientInfo.clientId,
       _clientSecret: clientInfo.clientSecret,
       _region: resolvedRegion,
+      _authMethod: config.skipIssuerUrlForRegistration ? "idc" : "builder-id",
     };
   },
   pollToken: async (config, deviceCode, codeVerifier, extraData) => {
@@ -116,6 +117,7 @@ export const kiro = {
           _clientId: extraData?._clientId,
           _clientSecret: extraData?._clientSecret,
           _region: tokenRegion,
+          _authMethod: extraData?._authMethod || "builder-id",
         },
       };
     }
@@ -140,6 +142,7 @@ export const kiro = {
   postExchange: async (tokenData) => {
     const accessToken = tokenData?.access_token;
     if (!accessToken) return null;
+    if (tokenData?._authMethod === "builder-id") return null;
     const storedRegion = typeof tokenData?._region === "string" ? tokenData._region : undefined;
     const arn = await discoverKiroProfileArnAcrossRegions(accessToken, storedRegion);
     return arn ? { profileArn: arn } : null;
@@ -152,6 +155,7 @@ export const kiro = {
       clientId: tokens._clientId,
       clientSecret: tokens._clientSecret,
       region: tokens._region,
+      authMethod: tokens._authMethod || (extra?.profileArn ? "idc" : "builder-id"),
       ...(extra?.profileArn ? { profileArn: extra.profileArn } : {}),
     },
   }),

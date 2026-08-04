@@ -743,9 +743,11 @@ test("usage service covers Codex, Kiro and Kimi usage parsing and error branches
   const kiroNoArn: any = await usageService.getUsageForProvider({
     provider: "kiro",
     accessToken: "kiro-token",
-    providerSpecificData: {},
+    providerSpecificData: { authMethod: "builder-id", region: "us-east-1" },
   });
-  assert.match(kiroNoArn.message, /Profile ARN not available/i);
+  assert.equal(kiroNoArn.plan, "Kiro Pro");
+  assert.equal(kiroNoArn.quotas.agentic_request.used, 12);
+  assert.equal(kiroNoArn.quotas.agentic_request_freetrial.remaining, 3);
 
   const kiro: any = await usageService.getUsageForProvider({
     provider: "kiro",

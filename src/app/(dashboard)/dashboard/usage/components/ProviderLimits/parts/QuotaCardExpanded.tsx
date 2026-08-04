@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { buildGrokBillingCardRows, type GrokBillingStatus } from "@/shared/utils/grokBilling";
 import {
   formatCountdown,
   formatQuotaLabel,
@@ -25,6 +26,47 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 };
 
 const DEFAULT_VISIBLE_ROWS = 3;
+
+function GrokBillingDetails({ billing }: { billing: GrokBillingStatus }) {
+  const t = useTranslations("usage");
+  const locale = useLocale();
+  const rows = buildGrokBillingCardRows(billing, locale, (key, fallback) =>
+    translateUsageOrFallback(t, key, fallback)
+  );
+
+  return (
+    <div className="flex flex-col gap-1.5 border-t border-border/40 pt-2 text-[11px] text-text-main">
+      {rows.map((row) =>
+        row.kind === "link" ? (
+          <a
+            key={row.kind}
+            href={row.href}
+            target={row.target}
+            rel={row.rel}
+            className="inline-flex w-fit items-center gap-1 font-medium text-primary hover:underline"
+          >
+            {row.label}
+            <span className="material-symbols-outlined text-[12px]">open_in_new</span>
+          </a>
+        ) : (
+          <div
+            key={row.kind}
+            className={`flex justify-between gap-2 ${
+              row.kind === "status" ? "items-start" : "items-center"
+            }`}
+          >
+            <span>{row.label}</span>
+            <span
+              className={`font-semibold ${row.kind === "status" ? "text-right" : "tabular-nums"}`}
+            >
+              {row.value}
+            </span>
+          </div>
+        )
+      )}
+    </div>
+  );
+}
 
 /** Pure helper — sorts quotas by remaining percentage, highest first. */
 export function sortQuotasByRemaining(quotas: any[]): any[] {
@@ -73,6 +115,7 @@ interface Props {
   loading: boolean;
   error: string | null;
   message?: string | null;
+  billing?: GrokBillingStatus | null;
   refreshedAt?: string;
   hasStaleData: boolean;
   onRefresh: () => void;
@@ -240,6 +283,7 @@ export default function QuotaCardExpanded({
   loading,
   error,
   message,
+  billing,
   refreshedAt,
   hasStaleData,
   onRefresh,
@@ -312,6 +356,8 @@ export default function QuotaCardExpanded({
           ))}
         </div>
       )}
+
+      {providerId === "grok-cli" && billing && <GrokBillingDetails billing={billing} />}
 
       {hiddenQuotaRows.length > 0 && (
         <div className="flex flex-wrap items-center gap-1 border-t border-border/40 pt-1.5 text-[10px] text-text-muted">

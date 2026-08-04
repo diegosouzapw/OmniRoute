@@ -101,7 +101,7 @@ describe("recordModelLockoutFailure — exactCooldownMs cap against maxCooldownM
       429,
       120_000,
       null,
-      // No exactCooldownVerified flag — mirrors an un-provenanced/estimated exact
+      // No exactCooldownIsUpstreamReset flag — mirrors an un-provenanced/estimated exact
       // cooldown, which must still respect the operator's maxCooldownMs cap.
       { exactCooldownMs: RESET_6863_MS, maxCooldownMs: CAP_7940_MS }
     );
@@ -127,7 +127,7 @@ describe("recordModelLockoutFailure — exactCooldownMs cap against maxCooldownM
       {
         exactCooldownMs: RESET_6863_MS,
         maxCooldownMs: CAP_7940_MS,
-        exactCooldownVerified: true,
+        exactCooldownIsUpstreamReset: true,
       }
     );
 

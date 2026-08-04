@@ -209,14 +209,13 @@ on). Without a `max_concurrent` cap the behavior is unchanged.
 
 ### Combo cooldown-aware retry
 
-For quota-share and `auto` combos, a request that would crystallize a 429 for a
-SHORT transient cooldown waits it out and re-dispatches instead of returning
-the 429 — this covers Gemini-class TPM/RPM windows (~60s retry-after) on a
-multi-model `auto` combo, e.g. both targets of a 2-model combo hitting a
-per-model rate limit. Bounded by `comboCooldownWait` (`enabled`, `maxWaitMs`
-65s, `maxAttempts` 2, `budgetMs` 130s, hard ceiling 90s) in **Settings →
-Resilience**. It never waits on `quota_exhausted` (locked until midnight) or
-auth/not-found reasons.
+For every combo strategy (when enabled), a request that would crystallize a 429
+for a SHORT transient cooldown waits it out and re-dispatches instead of
+returning the 429 — this covers Gemini-class TPM/RPM windows (~60s retry-after)
+on multi-model combos, e.g. both targets of a 2-model combo hitting a per-model
+rate limit. Bounded by `comboCooldownWait` (`enabled`, `maxWaitMs`, `maxAttempts`,
+`budgetMs`) in **Settings → Resilience**. It never waits on `quota_exhausted`
+(locked until midnight) or auth/not-found reasons.
 
 ---
 
@@ -263,7 +262,7 @@ it is unit-testable without a real Bottleneck limiter.
 
 ## Other Resilience Features
 
-- **18 routing strategies** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, fusion, pipeline) — see [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **19 routing strategies** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — see [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Reset-aware routing** (v3.8.0) — prioritizes connections by quota reset time.
 - **Background mode degradation** — Responses API `background: true` degraded to sync with warning.
 - **Dynamic tool limit detection** — backs off providers when tool count limits hit.

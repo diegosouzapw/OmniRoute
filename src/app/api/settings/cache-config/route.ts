@@ -39,7 +39,9 @@ const DEFAULTS = {
   promptCacheStrategy: "auto",
   alwaysPreserveClientCache: "auto",
   idempotencyWindowMs: 5000,
-  modelCatalogCacheTtlMs: 1500,
+  // Mirrors DEFAULT_DATABASE_SETTINGS.cache.modelCatalogCacheTtlMs so the value this
+  // endpoint reports matches the one the catalog actually uses.
+  modelCatalogCacheTtlMs: 60_000,
 };
 
 export async function GET(request: NextRequest) {

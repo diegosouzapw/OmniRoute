@@ -5,8 +5,11 @@ import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import Button from "./Button";
 import Input from "./Input";
-import LinkifiedText from "./LinkifiedText";
-import { OAuthDeviceCodePanel, OAuthManualInputPanel } from "./OAuthModalPanels";
+import {
+  OAuthDeviceCodePanel,
+  OAuthLoopbackMismatchPanel,
+  OAuthManualInputPanel,
+} from "./OAuthModalPanels";
 import { parseResponseBody, getErrorMessage } from "@/shared/utils/api";
 import { isCredentialBlob, submitCredentialBlob } from "@/shared/components/oauthBlobSubmit";
 import {
@@ -14,8 +17,15 @@ import {
   parseCodexSessionJson,
 } from "@/lib/oauth/utils/codexSessionImport";
 import GheConfigStep from "@/shared/components/oauthModal/GheConfigStep";
+import GitlabDuoSetupStep from "@/shared/components/oauthModal/GitlabDuoSetupStep";
+import OAuthErrorStep from "@/shared/components/oauthModal/OAuthErrorStep";
+import OAuthWaitingStep from "@/shared/components/oauthModal/OAuthWaitingStep";
 import { parseGrokCliPasteToken } from "@/lib/oauth/utils/grokCliAuthJson";
-import { buildPkceLoopbackMismatchWarning } from "@/lib/oauth/utils/pkceLoopbackWarning";
+import { buildGoogleLoopbackHint } from "@/lib/oauth/utils/googleLoopbackHint";
+import {
+  buildPkceLoopbackMismatchHint,
+  type PkceLoopbackMismatchHint,
+} from "@/lib/oauth/utils/pkceLoopbackWarning";
 
 export { formatDeviceCodeRemaining } from "./OAuthModalPanels";
 
@@ -147,6 +157,9 @@ export default function OAuthModal({
   // DEVICE_CODE_PROVIDERS); flipping this to true routes startOAuthFlow through
   // the browser PKCE / PKCE_CALLBACK_SERVER_PROVIDERS branch instead.
   const [grokBrowserMode, setGrokBrowserMode] = useState(false);
+  // #8046 follow-up: structured diagnosis for the LAN-IP loopback mismatch, rendered
+  // by its own step instead of as prose inside the generic red error step.
+  const [loopbackHint, setLoopbackHint] = useState<PkceLoopbackMismatchHint | null>(null);
 
   const supportsTokenPaste = TOKEN_PASTE_PROVIDERS.has(provider);
   const importTokenOnly = IMPORT_TOKEN_ONLY_PROVIDERS.has(provider);
@@ -162,6 +175,7 @@ export default function OAuthModal({
         isLocalhost: false,
         isTrueLocalhost: false,
         placeholderUrl: "/callback?code=...",
+        loopbackLocation: { hostname: "", port: "", protocol: "http:" },
       };
     }
 
@@ -178,10 +192,15 @@ export default function OAuthModal({
       isLocalhost: isLocal,
       isTrueLocalhost: isTrulyLocal,
       placeholderUrl: `${window.location.origin}/callback?code=...`,
+      loopbackLocation: {
+        hostname,
+        port: window.location.port,
+        protocol: window.location.protocol,
+      },
     };
   }, []);
 
-  const { isLocalhost, isTrueLocalhost, placeholderUrl } = runtimeLocation;
+  const { isLocalhost, isTrueLocalhost, placeholderUrl, loopbackLocation } = runtimeLocation;
   const callbackProcessedRef = useRef(false);
   const flowStartedRef = useRef(false);
 
@@ -508,8 +527,8 @@ export default function OAuthModal({
               forceManual = true;
             }
           } else if (isLocalhost) {
-            setError(buildPkceLoopbackMismatchWarning(provider));
-            setStep("error");
+            setLoopbackHint(buildPkceLoopbackMismatchHint(provider, loopbackLocation));
+            setStep("loopback-mismatch");
             return;
           }
           // Remote (non-LAN): fall through to standard auth code flow below
@@ -598,6 +617,7 @@ export default function OAuthModal({
       provider,
       isLocalhost,
       isTrueLocalhost,
+      loopbackLocation,
       startPolling,
       onSuccess,
       reauthConnection,
@@ -649,6 +669,8 @@ export default function OAuthModal({
     if (!isOpen || !provider || flowStartedRef.current) return;
     flowStartedRef.current = true;
     const startsInPasteMode = IMPORT_TOKEN_ONLY_PROVIDERS.has(provider);
+    // #8688: show GitLab Duo OAuth app / env setup before authorize error.
+    const startsInGitlabDuoSetup = provider === "gitlab-duo";
     setShowPasteToken(startsInPasteMode);
     setGrokBrowserMode(false);
     setAuthData(null);
@@ -657,6 +679,10 @@ export default function OAuthModal({
     setIsDeviceCode(false);
     setDeviceData(null);
     setPolling(false);
+    if (startsInGitlabDuoSetup) {
+      setStep("gitlab-duo-setup");
+      return;
+    }
     if (!startsInPasteMode) startOAuthFlow();
   }, [isOpen, provider, startOAuthFlow]);
 
@@ -1010,21 +1036,18 @@ export default function OAuthModal({
               />
             )}
 
-            {/* Waiting Step (Localhost - popup mode) */}
+            {provider === "gitlab-duo" && step === "gitlab-duo-setup" && (
+              <GitlabDuoSetupStep onContinue={() => void startOAuthFlow()} onClose={handleClose} />
+            )}
+
             {step === "waiting" && !isDeviceCode && (
-              <div className="text-center py-6">
-                <div className="size-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-3xl text-primary animate-spin">
-                    progress_activity
-                  </span>
-                </div>
-                <h3 className="text-lg font-semibold mb-2">{t("waiting")}</h3>
-                <p className="text-sm text-text-muted mb-2">{t("completeAuthInPopup")}</p>
-                <p className="text-xs text-text-muted mb-4 opacity-70">{t("popupClosedHint")}</p>
-                <Button variant="ghost" onClick={() => setStep("input")}>
-                  {t("popupBlocked")}
-                </Button>
-              </div>
+              <OAuthWaitingStep
+                waitingLabel={t("waiting")}
+                completeAuthLabel={t("completeAuthInPopup")}
+                popupClosedHint={t("popupClosedHint")}
+                popupBlockedLabel={t("popupBlocked")}
+                onManualInput={() => setStep("input")}
+              />
             )}
 
             {/* Device Code Flow - Waiting */}
@@ -1043,6 +1066,11 @@ export default function OAuthModal({
                 provider={provider}
                 isGoogleOAuth={GOOGLE_OAUTH_PROVIDERS.has(provider)}
                 isTrueLocalhost={isTrueLocalhost}
+                googleHint={
+                  GOOGLE_OAUTH_PROVIDERS.has(provider)
+                    ? buildGoogleLoopbackHint(provider, loopbackLocation)
+                    : null
+                }
                 authUrl={typeof authData?.authUrl === "string" ? authData.authUrl : ""}
                 callbackUrl={callbackUrl}
                 placeholderUrl={placeholderUrl}
@@ -1073,25 +1101,29 @@ export default function OAuthModal({
           </div>
         )}
 
-        {/* Error Step — OAuth errors only; paste-token errors shown inline */}
+        {/* LAN-IP loopback mismatch (#8046) — dedicated panel; retrying this origin cannot succeed. */}
+        {step === "loopback-mismatch" && loopbackHint && !showPasteToken && (
+          <OAuthLoopbackMismatchPanel
+            providerName={providerInfo.name}
+            hint={loopbackHint}
+            onClose={handleClose}
+          />
+        )}
+
         {step === "error" && !showPasteToken && (
-          <div className="text-center py-6">
-            <div className="size-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-              <span className="material-symbols-outlined text-3xl text-red-600">error</span>
-            </div>
-            <h3 className="text-lg font-semibold mb-2">{t("error")}</h3>
-            <p className="text-sm text-red-600 mb-4">
-              <LinkifiedText text={error} />
-            </p>
-            <div className="flex gap-2">
-              <Button onClick={() => startOAuthFlow()} variant="secondary" fullWidth>
-                {t("tryAgain")}
-              </Button>
-              <Button onClick={handleClose} variant="ghost" fullWidth>
-                {t("cancel")}
-              </Button>
-            </div>
-          </div>
+          <OAuthErrorStep
+            error={error}
+            errorTitle={t("error")}
+            tryAgainLabel={t("tryAgain")}
+            cancelLabel={t("cancel")}
+            returnToGitlabDuoSetup={provider === "gitlab-duo"}
+            onReturnToGitlabDuoSetup={() => {
+              setError(null);
+              setStep("gitlab-duo-setup");
+            }}
+            onTryAgain={() => void startOAuthFlow()}
+            onClose={handleClose}
+          />
         )}
       </div>
     </Modal>

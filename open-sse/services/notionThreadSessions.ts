@@ -7,7 +7,7 @@
  * `executors/notion-web.ts` for the upstream transcript/response translation
  * that consumes this module.
  *
- * - History-keyed in-memory session cache (spaceId + conversation prefix hash),
+ * - Space-keyed sticky root cache plus history-prefix fallbacks,
  *   backed by an on-disk snapshot under DATA_DIR so continuity survives restarts.
  * - Sticky root binding written *before* the upstream call so error retries never
  *   mint a second Notion chat for the same conversation.
@@ -54,7 +54,7 @@ export function extractNotionMessageText(content: unknown): string {
   return parts.join("\n");
 }
 
-const THREAD_SESSION_MAX_AGE_MS = 6 * 3600_000; // 6h — agent tool loops can be long
+const THREAD_SESSION_MAX_AGE_MS = 7 * 24 * 3600_000; // 7d — agent/browser-web sessions can span long workflows
 const THREAD_SESSION_MAX_ENTRIES = 500;
 
 interface ThreadSessionEntry {
@@ -78,6 +78,8 @@ function getThreadStorePath(): string | null {
       process.env.DATA_DIR ||
       process.env.OMNIROUTE_DATA_DIR ||
       process.env.VIBEPROXY_DATA_DIR ||
+      (process.env.USERPROFILE ? join(process.env.USERPROFILE, ".omniroute") : "") ||
+      (process.env.HOME ? join(process.env.HOME, ".omniroute") : "") ||
       "";
     if (!dataDir) return null;
     return join(dataDir, "notion-web-thread-sessions.json");
@@ -260,18 +262,36 @@ function putThreadSession(
   scheduleThreadStoreFlush();
 }
 
-/** Root sticky key for a conversation (space/agent + first user turn). */
+/** Root sticky key for web-provider continuity.
+ *
+ * Some clients (Claude extension, Codex-like agents, local automation gateways)
+ * call Notion Web as stateless single-turn requests but expect one visible web
+ * session. Keying the optimistic create binding by the first user prompt causes
+ * every new request to mint another Notion sidebar chat ("No user query
+ * provided", auto-generated titles, etc.). Scope the root binding to the caller
+ * namespace prepared by the executor (`caller:<cookieHash>|<spaceId>|wf:<id>`)
+ * so normal prompts reuse one active Notion thread unless the client explicitly
+ * pins a different `notion_thread_id` / `X-Notion-Thread-Id`.
+ */
 export function notionThreadRootKey(spaceKey: string, messages: NotionMessage[]): string | null {
-  const first = firstUserMessage(messages);
-  if (!first) return null;
-  return `root:${hashNotionConversation(spaceKey, [first])}`;
+  void messages;
+  return spaceKey ? `root:space:${spaceKey}` : null;
 }
 
 /**
  * Resolve which Notion thread to use and whether to mint a new one.
- * - Sticky root binding is written *before* the upstream call so errors/retries
- *   never open a second Notion chat for the same conversation.
- * - Any prior assistant history forces createThread:false when a sticky id exists.
+ *
+ * Continuity rules (order matters):
+ * 1. Client-supplied thread id (body/header pin) → always follow-up.
+ * 2. Exact conversation-prefix hash → multi-turn OpenAI history (most specific).
+ * 3. Sticky root (first-user-message key):
+ *    - Multi-turn history present → reuse (UREW-resilient when prefix hash misses).
+ *    - First turn + createAttempted && !confirmed → error-retry stickiness
+ *      (never mint a second Notion chat for the same failed first request).
+ *    - First turn + confirmed → NEW session with the same opener text (e.g.
+ *      Claude Code “new session” + “hi” again). Must mint a fresh threadId —
+ *      reusing the confirmed sticky forks the previous Notion chat.
+ * 4. Otherwise mint createThread:true and bind optimistically.
  */
 export function resolveNotionThreadBinding(
   spaceKey: string,
@@ -288,33 +308,71 @@ export function resolveNotionThreadBinding(
     return { threadId: id, createThread: false, rootKey };
   }
 
-  // Prefer sticky root (survives UREW rewrites + error retries)
-  if (rootKey) {
-    const sticky = readThreadSessionEntry(rootKey);
-    if (sticky?.threadId) {
-      // Touch TTL
-      putThreadSession(rootKey, sticky.threadId, {
-        confirmed: sticky.confirmed,
-        createAttempted: sticky.createAttempted,
-      });
-      // If we already attempted create for this root, never create again
-      // (even when the first reply failed — Notion may already have the thread).
-      const createThread = !sticky.createAttempted && !sticky.confirmed && !hasHistory;
-      return {
-        threadId: sticky.threadId,
-        createThread,
-        rootKey,
-      };
-    }
-  }
-
-  // Exact prefix match (full history before last user)
+  // Exact prefix match first (full history before last user) — most specific
+  // multi-turn continuity. Prefer this over sticky root so two independent
+  // sessions that share the same first-user opener do not steal each other's
+  // sticky binding when both are multi-turn.
   const prefix = conversationPrefixBeforeLastUser(messages);
   if (prefix.length > 0) {
     const exactId = readThreadSession(hashNotionConversation(spaceKey, prefix));
     if (exactId) {
       if (rootKey) putThreadSession(rootKey, exactId, { createAttempted: true, confirmed: true });
       return { threadId: exactId, createThread: false, rootKey };
+    }
+  }
+
+  // Sticky root (first user turn hash) — UREW + error-retry continuity
+  if (rootKey) {
+    const sticky = readThreadSessionEntry(rootKey);
+    if (sticky?.threadId) {
+      // Multi-turn OpenAI history → continue the sticky Notion chat
+      // (covers UREW rewrites where prefix hash may not match turn-1 store).
+      if (hasHistory) {
+        putThreadSession(rootKey, sticky.threadId, {
+          confirmed: sticky.confirmed,
+          createAttempted: sticky.createAttempted,
+        });
+        return {
+          threadId: sticky.threadId,
+          createThread: false,
+          rootKey,
+        };
+      }
+
+      // First-turn error retry: we already issued createThread:true for this
+      // root but never got a successful reply. Keep the same threadId so Notion
+      // is not spam-created; do not create again (Notion may already have it).
+      if (sticky.createAttempted && !sticky.confirmed) {
+        putThreadSession(rootKey, sticky.threadId, {
+          confirmed: false,
+          createAttempted: true,
+        });
+        return {
+          threadId: sticky.threadId,
+          createThread: false,
+          rootKey,
+        };
+      }
+
+      // First-turn + confirmed sticky: a *new* client session that happens to
+      // start with the same first user text (Claude Code “New session” + “hi”).
+      // Fall through and mint — never fork the previous Notion thread.
+      //
+      // Optimistic pre-bind (createAttempted false, confirmed false) also falls
+      // through only when no sticky exists; if sticky exists without either flag
+      // it is mid-flight first bind — reuse with createThread:true once.
+      if (!sticky.createAttempted && !sticky.confirmed) {
+        putThreadSession(rootKey, sticky.threadId, {
+          confirmed: false,
+          createAttempted: false,
+        });
+        return {
+          threadId: sticky.threadId,
+          createThread: true,
+          rootKey,
+        };
+      }
+      // sticky.confirmed on first-turn → mint below (rebind root to new id)
     }
   }
 
@@ -342,14 +400,6 @@ export function notionThreadMarkCreateAttempted(rootKey: string | null, threadId
 export function notionThreadMarkConfirmed(rootKey: string | null, threadId: string): void {
   if (!rootKey || !threadId) return;
   putThreadSession(rootKey, threadId, { createAttempted: true, confirmed: true });
-}
-
-function firstUserMessage(messages: NotionMessage[]): NotionMessage | null {
-  for (const m of messages) {
-    const role = (m?.role || "").toLowerCase();
-    if (role === "user" || role === "human") return m;
-  }
-  return null;
 }
 
 function conversationHasAssistant(messages: NotionMessage[]): boolean {

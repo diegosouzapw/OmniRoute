@@ -1,1 +1,0 @@
-- fix(db): register SIGHUP handler and stop force-killing the server on win32 stop paths so storage.sqlite's WAL gets checkpointed on shutdown (#8045)

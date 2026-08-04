@@ -1,1 +1,0 @@
-- fix(api): stop leaking the internal provider UUID in /v1/models and honor the configured prefix (#8327)

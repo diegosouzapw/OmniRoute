@@ -62,11 +62,11 @@ alignment signal (we didn't copy a checklist; we converged on the right practice
 
 ### Honest weaknesses (real gaps)
 
-1. **🔴 The fast-gates split is a structural hole.** `quality.yml` (PR→`release/**`) runs **only
-   filesystem gates** — no typecheck, no tests, no build, no coverage. A typecheck/test regression
-   passes in a release PR and only blows up on the forward-merge to `main`. The motivation
-   (speed) is valid, but the gate should be where the merge happens (shift-left). **Largest
-   pending structural fix.**
+1. **🔴 The fast-gates split still leaves a structural hole.** `quality.yml` (PR→`release/**`)
+   now runs typecheck, fast deterministic tests, and an advisory production build for code PRs,
+   but it still does not run the full release-PR surface from `ci.yml` (coverage ratchets,
+   package artifact, integration, E2E, SonarQube). The motivation (speed) is valid, but the gate
+   should be where the merge happens (shift-left). **Largest pending structural fix.**
 2. **🟠 Gate sprawl/fatigue risk.** ~46 gates + 25 jobs is A LOT. Sonar itself warns:
    too many conditions cause "gate fatigue" and priority debates, with risk of a gate being
    ignored. DORA warns that heavy gates cost lead-time. We mitigate with advisory tiers and
@@ -236,7 +236,8 @@ gates (for AI: injection red-team). _Output: structural rot and domain failures 
 **P0 — highest ROI, almost ready**
 
 1. **Mutation score ratchet** (after the 1st nightly Stryker produces values). Key antidote against coverage-Goodhart; ~90% done.
-2. **Close the fast-gates hole** — add typecheck + impacted tests to `quality.yml` (PR→release).
+2. **Close the remaining fast-gates hole** — promote the `quality.yml` production build after its
+   advisory week and keep moving deterministic release-PR-only checks into the PR→release path.
 3. **Branch-protection on `main`** (owner setting) — boosts Scorecard, closes the DSOMM gap.
 
 **P1 — valuable** 4. **osv/oasdiff → blocking with the right scope** — osv only CRITICAL+fixable (two-step like Trivy); oasdiff blocks breaking-changes. 5. **`require-tighten` → blocking** (end of cycle) — locks in metric gains. 6. **ROI/timing review per-gate** in `ci-summary` — find and prune slow/low-value gates.

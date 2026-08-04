@@ -24,7 +24,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const callLogs = await import("../../src/lib/usage/callLogs.ts");
-const { recordRejectedRequestUsage, summarizeComboAttemptedModels } =
+const { recordRejectedRequestUsage, summarizeComboAttemptedModels, resolveRejectedComboProvider } =
   await import("../../src/sse/handlers/rejectedRequestUsage.ts");
 
 test.beforeEach(() => {
@@ -174,4 +174,25 @@ test("summarizeComboAttemptedModels falls back to '-' for empty, missing, or inv
   assert.equal(summarizeComboAttemptedModels(null), "-");
   assert.equal(summarizeComboAttemptedModels("not-an-array"), "-");
   assert.equal(summarizeComboAttemptedModels([{ kind: "combo-ref" }, { foo: "bar" }]), "-");
+});
+
+test("#8867: resolveRejectedComboProvider keeps the provider label short for auto/* failures", () => {
+  // The logs page builds quick-filter pills from call_logs.provider — a failed
+  // auto/<family> used to write every attempted model there and flood the filter row.
+  assert.equal(resolveRejectedComboProvider("auto/gemma", "my-combo"), "auto");
+  assert.equal(resolveRejectedComboProvider("auto/gemini", null), "auto");
+  assert.equal(resolveRejectedComboProvider("auto/anything-at-all", undefined), "auto");
+});
+
+test("#8867: a non-auto combo failure is labelled with the combo name", () => {
+  assert.equal(resolveRejectedComboProvider("gpt-5.6-sol", "balanced-load"), "balanced-load");
+  assert.equal(resolveRejectedComboProvider(null, "balanced-load"), "balanced-load");
+});
+
+test("#8867: falls back to 'combo' when there is no name, and 'auto' never leaks into it", () => {
+  assert.equal(resolveRejectedComboProvider("gpt-5.6-sol", null), "combo");
+  assert.equal(resolveRejectedComboProvider(undefined, undefined), "combo");
+  assert.equal(resolveRejectedComboProvider("", ""), "combo");
+  // bare "auto" (no slash) is NOT a family request — it must not be collapsed
+  assert.equal(resolveRejectedComboProvider("auto", "named-combo"), "named-combo");
 });

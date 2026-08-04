@@ -104,6 +104,12 @@ function mergeUpdateStep(steps: UpdateStep[], nextStep: UpdateStep) {
   return next;
 }
 
+// Quick-start link classes, extracted so each <Link> still fits on one line with
+// prefetch={false} (#8281) — this file is size-frozen.
+const INLINE_LINK = "text-primary hover:underline";
+const DOCS_LINK =
+  "hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors";
+
 export default function HomePageClient({ machineId }: HomePageClientProps) {
   const router = useRouter();
   const isElectron = useIsElectron();
@@ -1088,10 +1094,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                 <h2 className="text-lg font-semibold">{t("quickStart")}</h2>
                 <p className="text-sm text-text-muted">{t("quickStartDesc")}</p>
               </div>
-              <Link
-                href="/docs"
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
-              >
+              <Link href="/docs" prefetch={false} className={DOCS_LINK}>
                 <span className="material-symbols-outlined text-[14px]">menu_book</span>
                 {t("fullDocs")}
               </Link>
@@ -1109,7 +1112,8 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                       endpoint: (chunks) => (
                         <Link
                           href="/dashboard/api-manager"
-                          className="text-primary hover:underline"
+                          prefetch={false}
+                          className={INLINE_LINK}
                         >
                           {chunks}
                         </Link>
@@ -1127,7 +1131,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                   <p className="text-text-muted mt-0.5">
                     {t.rich("step2Desc", {
                       providers: (chunks) => (
-                        <Link href="/dashboard/providers" className="text-primary hover:underline">
+                        <Link href="/dashboard/providers" prefetch={false} className={INLINE_LINK}>
                           {chunks}
                         </Link>
                       ),
@@ -1155,12 +1159,12 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                   <p className="text-text-muted mt-0.5">
                     {t.rich("step4Desc", {
                       logs: (chunks) => (
-                        <Link href="/dashboard/logs" className="text-primary hover:underline">
+                        <Link href="/dashboard/logs" prefetch={false} className={INLINE_LINK}>
                           {chunks}
                         </Link>
                       ),
                       analytics: (chunks) => (
-                        <Link href="/dashboard/analytics" className="text-primary hover:underline">
+                        <Link href="/dashboard/analytics" prefetch={false} className={INLINE_LINK}>
                           {chunks}
                         </Link>
                       ),

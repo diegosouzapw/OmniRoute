@@ -143,7 +143,8 @@ jobs:
             MODE="--with-build --full-ci"
           fi
           echo "[release-green] mode: $MODE (event: $EVENT_NAME)"
-          # shellcheck disable=SC2086 — MODE is an intentional flag list
+          # MODE is an intentional flag list, so word-splitting is wanted here
+          # shellcheck disable=SC2086
           node scripts/quality/validate-release-green.mjs --json --hermetic $MODE \
             1> release-green.json 2> release-green.log
           echo "exit=$?" >> "$GITHUB_OUTPUT"
@@ -248,7 +249,8 @@ jobs:
             MODE="--with-build --full-ci"
           fi
           echo "[main-green] mode: $MODE (event: $EVENT_NAME)"
-          # shellcheck disable=SC2086 — MODE is an intentional flag list
+          # MODE is an intentional flag list, so word-splitting is wanted here
+          # shellcheck disable=SC2086
           node scripts/quality/validate-release-green.mjs --json --hermetic $MODE \
             1> main-green.json 2> main-green.log
           echo "exit=$?" >> "$GITHUB_OUTPUT"
@@ -301,3 +303,145 @@ jobs:
             main-green.json
             main-green.log
           if-no-files-found: ignore
+
+  # ── Banking lane (#8584) ──────────────────────────────────────────────────
+  # The ratchet is asymmetric: RAISING a cap is a ten-second manual JSON edit made
+  # under merge pressure, LOWERING one requires someone to run `--update` and commit
+  # — which no workflow does. Grep `.github/workflows/` for `--update`: only
+  # wiki-sync.yml (unrelated) and ci.yml's check-quality-ratchet.mjs --require-tighten
+  # (a different script, a different metric). So a cap outlives the code that earned
+  # it and every completed decomposition silently becomes a growth allowance for
+  # whoever touches the file next. Measured on 2026-07-25: 18 frozen files already at
+  # or under the 800-line new-file cap, up to 132x (schemas.ts, 19 lines / 2523 cap),
+  # and 31 unfulfilled "tighten via --update next cycle" notes honoured exactly once
+  # (-1 unit) in six weeks.
+  #
+  # This job closes that loop by making the DOWNWARD direction as automatic as the
+  # upward one is easy. It measures the active release branch, runs the shrink-only
+  # `--update` paths, and opens ONE always-current PR with the result. It never
+  # pushes to release/* — a human still merges, so a bad measurement cannot land
+  # unreviewed. verify-ratchet-bank.mjs is the hard guarantee that the automation can
+  # only ever write in the shrink direction; if anything was raised, added, or a
+  # rebaseline note was touched, the job aborts and opens nothing.
+  #
+  # Schedule/dispatch only, deliberately NOT on push: banking has no latency
+  # requirement (a shrink banked within 8h is fine) and a per-merge run would rebuild
+  # the PR branch repeatedly during merge campaigns while paying for a full ESLint
+  # walk each time. Detection stays on push (release-green above); banking is batched.
+  bank-ratchet-shrinks:
+    name: Bank ratchet shrinks
+    if: ${{ github.event_name != 'push' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Resolve active release branch
+        id: branch
+        env:
+          INPUT_BRANCH: ${{ github.event.inputs.branch }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_BRANCH:-}" ]; then
+            TARGET="$INPUT_BRANCH"
+          else
+            TARGET=$(git for-each-ref --format='%(refname:short)' 'refs/remotes/origin/release/v*' \
+              | sed 's#origin/##' \
+              | sort -t/ -k2 -V \
+              | tail -1)
+          fi
+          if [ -z "$TARGET" ]; then echo "No release/v* branch found"; exit 1; fi
+          # Same strict guard as the validation job — blocks ref/command injection
+          # through the workflow_dispatch input.
+          if ! printf '%s' "$TARGET" | grep -qE '^release/v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Refusing non-canonical branch name: $TARGET"; exit 1
+          fi
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+          echo "bank_branch=chore/bank-ratchet-${TARGET#release/}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout the release branch
+        env:
+          TARGET: ${{ steps.branch.outputs.target }}
+        run: |
+          set -euo pipefail
+          git checkout "$TARGET"
+          git log -1 --oneline
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - uses: ./.github/actions/npm-ci-retry
+
+      - name: Ratchet the baselines down
+        run: |
+          # Both --update paths are shrink-only by construction (file-size writes only
+          # on `improvements`, complexity-ratchets only when `.improved`), and both exit
+          # non-zero while the branch is over baseline — which is exactly when there is
+          # nothing to bank. Their exit code is not the signal; the verifier below is.
+          set +e
+          node scripts/check/check-file-size.mjs --update
+          node scripts/check/check-complexity-ratchets.mjs --update
+          exit 0
+
+      - name: Verify the write only went downward
+        id: verify
+        run: |
+          set -euo pipefail
+          # Exits 1 if ANYTHING was raised/added or a rebaseline note was touched.
+          # `set -e` then aborts the job before a commit exists — no PR is opened.
+          node scripts/quality/verify-ratchet-bank.mjs > bank-summary.md
+          if [ -n "$(git status --porcelain config/quality/)" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Nothing to bank — baselines already match the code."
+          fi
+
+      - name: Open / update the banking PR
+        if: steps.verify.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET: ${{ steps.branch.outputs.target }}
+          BANK_BRANCH: ${{ steps.branch.outputs.bank_branch }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BANK_BRANCH"
+          git add config/quality/
+          git commit -m "chore(quality): bank ratchet shrinks measured on ${TARGET}"
+          git push --force origin "$BANK_BRANCH"
+
+          {
+            echo "Automated banking of quality-ratchet **shrinks** already present in"
+            echo "\`${TARGET}\` — the downward half of the ratchet, which nothing else runs (#8584)."
+            echo ""
+            echo "Produced by \`check:file-size --update\` + \`check:complexity-ratchets --update\`,"
+            echo "then verified by \`scripts/quality/verify-ratchet-bank.mjs\`: **nothing was raised,"
+            echo "nothing was added, no rebaseline note was touched** — the job aborts without"
+            echo "opening a PR if any of those is violated."
+            echo ""
+            echo "No product code changes. Merging retires growth allowances that the code no"
+            echo "longer needs; not merging leaves them available to whoever edits those files next."
+            echo ""
+            cat bank-summary.md
+            echo ""
+            echo "**Run:** ${RUN_URL}"
+          } > pr-body.md
+
+          EXISTING=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BANK_BRANCH" \
+            --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ -n "$EXISTING" ]; then
+            gh pr edit "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file pr-body.md
+            echo "Updated existing PR #$EXISTING"
+          else
+            gh pr create --repo "$GITHUB_REPOSITORY" --base "$TARGET" --head "$BANK_BRANCH" \
+              --title "chore(quality): bank ratchet shrinks (${TARGET})" --body-file pr-body.md
+          fi

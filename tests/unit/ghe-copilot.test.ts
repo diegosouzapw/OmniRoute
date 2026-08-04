@@ -49,7 +49,33 @@ test("buildUrl uses gheUrl for responses endpoint with codex model", () => {
     providerSpecificData: { gheUrl: "https://ghe.company.com" },
   };
   const url = executor.buildUrl("gpt-4o-codex", true, 0, credentials);
-  assert.strictEqual(url, "https://ghe.company.com/chat/completions");
+  assert.strictEqual(url, "https://ghe.company.com/responses");
+});
+
+test("buildUrl uses responses endpoint for gpt-5.4-mini and gpt-5.6-sol", () => {
+  const executor = new GheCopilotExecutor({
+    gheUrl: "https://ghe.company.com",
+    clientId: "test-client",
+    clientSecret: "test-secret",
+  });
+  const credentials: ProviderCredentials = {
+    providerSpecificData: { gheUrl: "https://ghe.company.com" },
+  };
+  assert.strictEqual(executor.buildUrl("gpt-5.4-mini", true, 0, credentials), "https://ghe.company.com/responses");
+  assert.strictEqual(executor.buildUrl("ghe-copilot/gpt-5.6-sol", true, 0, credentials), "https://ghe.company.com/responses");
+});
+
+test("buildUrl uses chat/completions endpoint for claude and gemini models", () => {
+  const executor = new GheCopilotExecutor({
+    gheUrl: "https://ghe.company.com",
+    clientId: "test-client",
+    clientSecret: "test-secret",
+  });
+  const credentials: ProviderCredentials = {
+    providerSpecificData: { gheUrl: "https://ghe.company.com" },
+  };
+  assert.strictEqual(executor.buildUrl("claude-opus-5", true, 0, credentials), "https://ghe.company.com/chat/completions");
+  assert.strictEqual(executor.buildUrl("gemini-3.5-flash", true, 0, credentials), "https://ghe.company.com/chat/completions");
 });
 
 test("buildUrl handles gheUrl with trailing slash", () => {

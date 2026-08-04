@@ -117,8 +117,18 @@ function createErrorChunk(model: string, message: string): Record<string, unknow
   };
 }
 
+/**
+ * The single controller capability these SSE helpers use. They only ever enqueue —
+ * never `close()`, never read `desiredSize` — so typing them by that one method lets
+ * the same code serve both stream kinds. The wider
+ * `ReadableStreamDefaultController` annotation rejected every call site, because the
+ * helpers are driven from a TransformStream and `TransformStreamDefaultController`
+ * has no `close()`.
+ */
+type SseEnqueueTarget = Pick<ReadableStreamDefaultController<Uint8Array>, "enqueue">;
+
 function enqueueSseObject(
-  controller: ReadableStreamDefaultController<Uint8Array>,
+  controller: SseEnqueueTarget,
   encoder: TextEncoder,
   chunk: unknown
 ): void {
@@ -202,7 +212,7 @@ function wrapZedCompletionStream(
   let buffer = "";
   let done = false;
 
-  const finish = (controller: ReadableStreamDefaultController<Uint8Array>) => {
+  const finish = (controller: SseEnqueueTarget) => {
     if (done) return;
     const finalChunk = convertProviderEvent(provider, null, state);
     enqueueSseObject(controller, encoder, finalChunk);
@@ -210,7 +220,7 @@ function wrapZedCompletionStream(
     done = true;
   };
 
-  const processLine = (line: string, controller: ReadableStreamDefaultController<Uint8Array>) => {
+  const processLine = (line: string, controller: SseEnqueueTarget) => {
     if (done) return;
     const payload = unwrapZedLine(line);
     if (!payload) return;

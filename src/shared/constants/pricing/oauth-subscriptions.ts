@@ -450,13 +450,6 @@ export const DEFAULT_PRICING_OAUTH = {
     },
   },
   kiro: {
-    "claude-fable-5": {
-      input: 15.0,
-      output: 75.0,
-      cached: 7.5,
-      reasoning: 112.5,
-      cache_creation: 15.0,
-    },
     "claude-sonnet-4.5": {
       input: 3.0,
       output: 15.0,
@@ -470,42 +463,6 @@ export const DEFAULT_PRICING_OAUTH = {
       cached: 0.25,
       reasoning: 2.5,
       cache_creation: 0.5,
-    },
-    // Models from issue #334
-    "claude-sonnet-4": {
-      input: 3.0,
-      output: 15.0,
-      cached: 1.5,
-      reasoning: 15.0,
-      cache_creation: 3.0,
-    },
-    "claude-opus-4.8": {
-      input: 15.0,
-      output: 75.0,
-      cached: 7.5,
-      reasoning: 75.0,
-      cache_creation: 15.0,
-    },
-    "claude-opus-4.7": {
-      input: 15.0,
-      output: 75.0,
-      cached: 7.5,
-      reasoning: 75.0,
-      cache_creation: 15.0,
-    },
-    "claude-opus-4.6": {
-      input: 15.0,
-      output: 75.0,
-      cached: 7.5,
-      reasoning: 75.0,
-      cache_creation: 15.0,
-    },
-    "claude-sonnet-4.6": {
-      input: 3.0,
-      output: 15.0,
-      cached: 1.5,
-      reasoning: 15.0,
-      cache_creation: 3.0,
     },
     "claude-sonnet-5": {
       input: 3.0,
@@ -557,22 +514,6 @@ export const DEFAULT_PRICING_OAUTH = {
       cached: 0.5,
       reasoning: 8.0,
       cache_creation: 2.0,
-    },
-    // Kiro "Auto" pricing — retained for both the upstream "auto" id and the
-    // local "auto-kiro" selector. The translator maps auto-kiro back to auto.
-    auto: {
-      input: 3.0,
-      output: 15.0,
-      cached: 1.5,
-      reasoning: 15.0,
-      cache_creation: 3.0,
-    },
-    "auto-kiro": {
-      input: 3.0,
-      output: 15.0,
-      cached: 1.5,
-      reasoning: 15.0,
-      cache_creation: 3.0,
     },
     // Kiro's GPT-5.6 family (kiro.dev/changelog/models, 2026-07-14) — same
     // per-tier rates the codex/openai aliases already bill at.

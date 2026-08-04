@@ -212,6 +212,36 @@ export async function warmModelCatalogCache(): Promise<void> {
   }
 }
 
+/**
+ * #8530: enumerate existing combos whose name shadows a real model id and
+ * log a startup warning. Never rejects/throws — #6940 documents a combo
+ * named after a bare model id as the supported mechanism for per-model
+ * provider fallback, so a collision here is expected in some deployments;
+ * this only gives operators who hit it accidentally a signal.
+ *
+ * Exported (rather than left inline in registerNodejs()) so it can be unit
+ * tested directly without exercising the rest of the startup sequence.
+ */
+export async function scanComboModelNameCollisionsAtBoot(): Promise<void> {
+  try {
+    const [{ getCombos }, { scanCombosForModelCollisions }] = await Promise.all([
+      import("@/lib/db/combos"),
+      import("@/lib/combos/modelNameCollision"),
+    ]);
+    const collisions = scanCombosForModelCollisions(await getCombos());
+    if (collisions.length > 0) {
+      console.warn(
+        `[STARTUP] ${collisions.length} combo(s) share a name with a real model id (#8530) — ` +
+          "intentional per #6940 bare-model-id fallback, but confirm each is expected: " +
+          collisions.map((c) => `${c.comboName}→${c.providerId}/${c.modelId}`).join(", ")
+      );
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Could not scan combos for model-name collisions (non-fatal):", msg);
+  }
+}
+
 export async function registerNodejs(): Promise<void> {
   markServerStarting();
 
@@ -263,6 +293,8 @@ export async function registerNodejs(): Promise<void> {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn("[STARTUP] Could not clear stale crash cooldowns (non-fatal):", msg);
   }
+
+  await scanComboModelNameCollisionsAtBoot();
 
   const [
     { initGracefulShutdown },
@@ -368,6 +400,17 @@ export async function registerNodejs(): Promise<void> {
       await import("@omniroute/open-sse/services/thinkingBudget.ts");
     if (hydrateThinkingBudgetConfig(settings)) {
       console.log("[STARTUP] Thinking-Budget config restored from settings");
+    }
+
+    // Restore the Task-Aware Smart Routing config (#8601). It lives in
+    // `settings.taskRouting` (written as a JSON string by PUT /api/settings/task-routing)
+    // and is NOT covered by applyRuntimeSettings, so without this the feature silently
+    // reverts to disabled + the default model map on every restart. Same shape as the
+    // Thinking-Budget restore above; must live here, not in the unused server-init.ts.
+    const { hydrateTaskRoutingConfig } =
+      await import("@omniroute/open-sse/services/taskAwareRouter.ts");
+    if (hydrateTaskRoutingConfig(settings)) {
+      console.log("[STARTUP] Task-Aware Routing config restored from settings");
     }
 
     const seededModelAliases = await seedDefaultModelAliases();
@@ -535,6 +578,17 @@ export async function registerNodejs(): Promise<void> {
         .catch((err: unknown) => {
           const msg = err instanceof Error ? err.message : String(err);
           console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
+        }),
+
+      // Backup schedule (#8513): execute `backup-schedule.json` cron server-side.
+      // Reads the schedule written by `omniroute backup auto enable` and fires
+      // `runBackupCommand` when the cron expression matches. Self-gated: no-op
+      // when no schedule file exists or the schedule is disabled. Never fatal.
+      import("@/lib/jobs/backupScheduleJob")
+        .then((m) => m.startBackupScheduleJob())
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn("[STARTUP] backup schedule job failed to start (non-fatal):", msg);
         }),
 
       // Real-time dashboard WebSocket daemon (port 20132): powers Combo Studio Live,

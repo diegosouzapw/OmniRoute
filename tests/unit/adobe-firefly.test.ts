@@ -190,6 +190,157 @@ test("buildAdobeImagePayload produces nano and gpt-image shapes", () => {
   assert.equal((gpt.modelSpecificPayload as Record<string, unknown>).size, "auto");
   assert.equal(gpt.size, undefined);
   assert.equal(gpt.outputResolution, undefined);
+
+  // Missing / auto quality → maximal detail (5). Explicit low/medium still honored.
+  const gptDefault = buildAdobeImagePayload({
+    prompt: "a dog",
+    aspectRatio: "1:1",
+    outputResolution: "1K",
+    modelSpec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image-2"],
+  });
+  assert.equal((gptDefault.generationSettings as Record<string, unknown>).detailLevel, 5);
+  const gptAuto = buildAdobeImagePayload({
+    prompt: "a dog",
+    aspectRatio: "1:1",
+    outputResolution: "1K",
+    modelSpec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image"],
+    quality: "auto",
+  });
+  assert.equal((gptAuto.generationSettings as Record<string, unknown>).detailLevel, 5);
+  const gptLow = buildAdobeImagePayload({
+    prompt: "a dog",
+    aspectRatio: "1:1",
+    outputResolution: "1K",
+    modelSpec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image"],
+    quality: "low",
+  });
+  assert.equal((gptLow.generationSettings as Record<string, unknown>).detailLevel, 1);
+  const gptMedium = buildAdobeImagePayload({
+    prompt: "a dog",
+    aspectRatio: "1:1",
+    outputResolution: "1K",
+    modelSpec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image"],
+    quality: "medium",
+  });
+  assert.equal((gptMedium.generationSettings as Record<string, unknown>).detailLevel, 3);
+  // Firefly UI resolution tiers map onto the same detailLevel scale.
+  const gpt4k = buildAdobeImagePayload({
+    prompt: "a dog",
+    aspectRatio: "1:1",
+    outputResolution: "1K",
+    modelSpec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image"],
+    quality: "4k",
+  });
+  assert.equal((gpt4k.generationSettings as Record<string, unknown>).detailLevel, 5);
+});
+
+test("buildAdobeImagePayload attaches referenceBlobs like live adobe_atach_images capture", () => {
+  // Live: referenceBlobs usage "general", module stays text2image for nano
+  const nano = buildAdobeImagePayload({
+    prompt: "teest",
+    aspectRatio: "1:1",
+    outputResolution: "1K",
+    modelSpec: ADOBE_FIREFLY_IMAGE_MODELS["nano-banana"],
+    sourceImageIds: [
+      "2a4f1025-e0dc-4671-a11a-7dfd3c07bd94",
+      "84c11d1a-e798-4300-a63e-c06504ca2068",
+    ],
+  });
+  assert.deepEqual(nano.referenceBlobs, [
+    { id: "2a4f1025-e0dc-4671-a11a-7dfd3c07bd94", usage: "general" },
+    { id: "84c11d1a-e798-4300-a63e-c06504ca2068", usage: "general" },
+  ]);
+  assert.equal(
+    (nano.generationMetadata as Record<string, unknown>).module,
+    "text2image"
+  );
+
+  const gpt = buildAdobeImagePayload({
+    prompt: "edit me",
+    aspectRatio: "1:1",
+    outputResolution: "1K",
+    modelSpec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image"],
+    sourceImageIds: ["aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"],
+  });
+  assert.deepEqual(gpt.referenceBlobs, [
+    { id: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee", usage: "subject" },
+  ]);
+  assert.equal(
+    (gpt.generationMetadata as Record<string, unknown>).module,
+    "image2image"
+  );
+});
+
+test("extractAdobeSourceImageSources reads Media page image fields", () => {
+  const tinyPng =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+  const sources = extractAdobeSourceImageSources({
+    prompt: "x",
+    image_url: tinyPng,
+    image_urls: [tinyPng, "https://cdn.example/b.png"],
+    provider_options: { images: ["https://cdn.example/c.png"] },
+  });
+  assert.ok(sources.includes(tinyPng));
+  assert.ok(sources.includes("https://cdn.example/b.png"));
+  assert.ok(sources.includes("https://cdn.example/c.png"));
+  assert.equal(sources.length, 3); // tinyPng deduped from image_url + image_urls[0]
+});
+
+test("parseAdobeImageSourceBytes + parseAdobeStorageUploadResponse", () => {
+  const tinyPng =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+  const { buffer, contentType } = parseAdobeImageSourceBytes(tinyPng);
+  assert.ok(buffer.length > 10);
+  assert.equal(contentType, "image/png");
+  assert.equal(
+    parseAdobeStorageUploadResponse({
+      images: [{ id: "2a4f1025-e0dc-4671-a11a-7dfd3c07bd94" }],
+    }),
+    "2a4f1025-e0dc-4671-a11a-7dfd3c07bd94"
+  );
+  assert.equal(parseAdobeStorageUploadResponse({}), "");
+});
+
+test("buildAdobeUploadHeaders uses image content-type not json", () => {
+  const h = buildAdobeUploadHeaders("tok", "image/png", { arpSessionId: "arp" });
+  assert.equal(h["content-type"], "image/png");
+  assert.equal(h.Authorization, "Bearer tok");
+  assert.equal(h["x-api-key"], "clio-playground-web");
+  assert.equal(h["x-arp-session-id"], "arp");
+  assert.ok(h["x-nonce"]);
+});
+
+test("resolveAdobeSourceImageIds uploads data URLs then returns blob ids", async () => {
+  const tinyPng =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+  let uploadCalls = 0;
+  const fetchImpl = async (url: string | URL, init?: RequestInit) => {
+    const u = String(url);
+    if (u.includes("/v2/storage/image")) {
+      uploadCalls += 1;
+      assert.equal(init?.method, "POST");
+      const headers = init?.headers as Record<string, string>;
+      assert.match(String(headers["content-type"] || headers["Content-Type"] || ""), /image\//);
+      assert.ok(init?.body);
+      return new Response(
+        JSON.stringify({ images: [{ id: `blob-${uploadCalls}` }] }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+    throw new Error(`unexpected fetch ${u}`);
+  };
+
+  const ids = await resolveAdobeSourceImageIds({
+    accessToken: "tok",
+    body: { image_url: tinyPng, image_urls: [tinyPng] },
+    max: 4,
+    prompt: "ref",
+    fetchImpl: fetchImpl as typeof fetch,
+  });
+  // Same data URL deduped → one upload
+  assert.deepEqual(ids, ["blob-1"]);
+  assert.equal(uploadCalls, 1);
+  assert.equal(ADOBE_FIREFLY_IMAGE_UPLOAD_URL.includes("storage/image"), true);
 });
 
 test("buildAdobeImagePayload attaches referenceBlobs like live adobe_atach_images capture", () => {

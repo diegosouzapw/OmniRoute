@@ -12,9 +12,10 @@ import {
 } from "@/lib/localDb";
 import { createLazyConnectionView } from "@/lib/db/providers/lazyConnectionView";
 import { extractAliasBackedModels } from "./aliasBackedModels";
-import { appendNoThinkingVariants } from "@omniroute/open-sse/utils/noThinkingAlias";
-import { appendClaudeEffortVariants } from "@omniroute/open-sse/utils/claudeEffortVariants";
-import { appendSyncedEffortVariants } from "@omniroute/open-sse/utils/syncedEffortVariants";
+import {
+  buildSyncedModelIdsByCanonicalProvider,
+  shouldSuppressStaticModelBySyncedCoverage,
+} from "./catalogSyncedCoverage";
 import { buildSyncedCapabilities, mergeSyncedCapabilities } from "./syncedCapabilities";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
 import {
@@ -44,18 +45,13 @@ import { getOpenRouterCatalog } from "@/lib/catalog/openrouterCatalog";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 import {
   INTERNAL_PROXY_ERROR,
-  enrichCatalogModelEntry,
   getCanonicalModelMetadata,
   getCatalogDiagnosticsHeaders,
-  disambiguateCatalogModelNames,
 } from "@/lib/modelMetadataRegistry";
 import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { getModelSpec } from "@/shared/constants/modelSpecs";
-import {
-  isModelCatalogNamesEnabled,
-  getModelsCatalogPrefixMode,
-} from "@/shared/utils/featureFlags";
-import { dedupeExactCatalogIds } from "./catalogDedupe";
+import { getModelsCatalogPrefixMode } from "@/shared/utils/featureFlags";
+import { applyCatalogPostFilters, finalizeCatalogResponse } from "./catalogResponse";
 import {
   isNoAuthProviderBlocked,
   isNoAuthProviderKey,
@@ -92,9 +88,15 @@ import {
   getProviderPrefixes as getProviderPrefixesFromMaps,
   getComboTargetModelId as getComboTargetModelIdFromMaps,
 } from "./catalogProviderMaps";
-import { getModelCatalogAuthRejection, isCodexModelCatalogClient } from "./catalogRequest";
+import {
+  getModelCatalogAuthRejection,
+  isCodexModelCatalogClient,
+  isCcDiscoveryModelCatalogClient,
+} from "./catalogRequest";
+import { incrementCcDiscoveryHitCount } from "@/lib/db/ccDiscoveryMetrics";
 import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
 import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryPolicy";
+import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
 // Public API of this module is preserved after the catalog helper extraction:
 // `isVisionModelId` (vision-detection-consistency.test.ts) and
@@ -103,87 +105,22 @@ import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryP
 export { isVisionModelId } from "@/shared/constants/visionModels";
 export { getCustomVisionCapabilityFields };
 
-// #6408 — Concurrent GET /v1/models requests serialized (~1.2s each × N). The
-// per-request builder walks 8 registries + hits SQLite for connections, combos,
-// custom models, and aliases; under Next.js single-threaded App Router request
-// handling, N concurrent calls execute back-to-back and the Nth completes
-// N × single-request latency (linear staircase reproduced in the issue).
-//
-// Fix: coalesce identical concurrent requests onto a single in-flight promise,
-// then memoize the serialized body for a short window so a burst (SDK startup,
-// multi-tab dashboard poll) returns from cache. Auth-rejection paths are NOT
-// cached (they depend on live session state — dashboard cookies, API key).
-type CachedCatalog = {
-  body: string;
-  headers: Record<string, string>;
-  status: number;
-  expiresAt: number;
-};
-const CATALOG_CACHE_TTL_MS_DEFAULT = 1500; // fallback; overridden by settings
-const catalogCache = new Map<string, CachedCatalog>();
-const catalogInFlight = new Map<string, Promise<CachedCatalog>>();
+// The response cache (coalescing, short-TTL memoization and stale-while-revalidate)
+// lives in ./catalogCache. Re-exported here because the existing tests import the
+// hooks from this module, and CATALOG_STALE_WHILE_REVALIDATE_MS is part of the
+// documented behavior of this endpoint.
+import { CATALOG_CACHE_TTL_MS_DEFAULT, resolveCachedCatalogResponse } from "./catalogCache";
 
-// Test hook — increments each time the full catalog builder runs. Used by
-// tests/unit/v1-models-concurrent-6408.test.ts to prove concurrent requests
-// share one execution. Not part of the public API; do not read from app code.
-let _catalogBuilderRuns = 0;
-export function __resetCatalogBuilderRunsForTest(): void {
-  _catalogBuilderRuns = 0;
-  catalogCache.clear();
-  catalogInFlight.clear();
-  lastSeenCatalogCacheVersion = getModelCatalogCacheVersion();
-}
-export function __getCatalogBuilderRunsForTest(): number {
-  return _catalogBuilderRuns;
-}
-
-function buildCatalogCacheKey(request: Request): string {
-  const url = new URL(request.url);
-  const prefix = url.searchParams.get("prefix") || "";
-  const apiKey = extractApiKey(request) || "";
-  const isCodex = isCodexModelCatalogClient(request) ? "1" : "0";
-  const configuredOnly = url.searchParams.get("configuredOnly") === "true" ? "1" : "0";
-  return `${prefix}|${isCodex}|${apiKey}|${configuredOnly}`;
-}
-
-// Tracks the model-catalog cache version (src/lib/db/readCache.ts) as of the last
-// cache access. invalidateDbCache() bumps that version on every settings/connections/
-// combos/pricing write; when it moves on, every memoized entry here was built from
-// state that no longer holds, so drop them all rather than keying by version (which
-// would leak one Map entry per version forever instead of ever pruning old ones).
-let lastSeenCatalogCacheVersion = getModelCatalogCacheVersion();
-function dropCatalogCacheIfStateChanged(): void {
-  const currentVersion = getModelCatalogCacheVersion();
-  if (currentVersion === lastSeenCatalogCacheVersion) return;
-  lastSeenCatalogCacheVersion = currentVersion;
-  catalogCache.clear();
-  // Deliberately NOT clearing catalogInFlight: an in-flight build already reads live
-  // DB/settings state as of when it started, so letting it finish and populate the
-  // (now-current) cache entry is correct — clearing it would just force a redundant
-  // second builder run for requests that arrive mid-flight.
-}
-
-// Header sources here mix Title-Case keys (diagnosticHeaders, corsHeaders — plain
-// objects built by app code) with lower-case keys (payload/cached.headers — captured
-// via the Fetch `Headers` iterator, which always yields lower-cased names). Merging
-// those with a plain object spread leaves both casings present as distinct object
-// keys; the `Response` constructor then treats them as the same case-insensitive
-// header and *appends* rather than overwrites, producing a comma-joined duplicate
-// (e.g. request-id echoing "foo, foo"). Merge through a real `Headers` instance
-// instead so `.set()` overwrites case-insensitively. Sources listed earlier are the
-// base (cached/freshly-built payload headers); `diagnosticHeaders` is applied last so
-// per-request fields (e.g. X-Request-Id) always reflect the *current* request rather
-// than whichever request happened to populate the cache entry.
-function mergeCatalogHeaders(...sources: Array<Record<string, string> | undefined>): Headers {
-  const merged = new Headers();
-  for (const source of sources) {
-    if (!source) continue;
-    for (const [key, value] of Object.entries(source)) {
-      merged.set(key, value);
-    }
-  }
-  return merged;
-}
+export {
+  CATALOG_STALE_WHILE_REVALIDATE_MS,
+  __resetCatalogBuilderRunsForTest,
+  __getCatalogBuilderRunsForTest,
+  __expireCatalogCacheForTest,
+  __setCatalogCacheEntryForTest,
+  __flushCatalogBackgroundRefreshForTest,
+  __forceCatalogInFlightRejectionForTest,
+} from "./catalogCache";
+export type { CachedCatalog } from "./catalogCache";
 
 /**
  * Build unified OpenAI-compatible model catalog response.
@@ -212,47 +149,29 @@ export async function getUnifiedModelsResponse(
     // Fall through to full builder on auth-check failure; core handles errors.
   }
 
-  dropCatalogCacheIfStateChanged();
-  const cacheKey = buildCatalogCacheKey(request);
-  const cached = catalogCache.get(cacheKey);
-  if (cached && cached.expiresAt > Date.now()) {
-    return new Response(cached.body, {
-      status: cached.status,
-      headers: mergeCatalogHeaders(corsHeaders, cached.headers, diagnosticHeaders),
-    });
-  }
-  let inflight = catalogInFlight.get(cacheKey);
-  if (!inflight) {
-    inflight = buildCatalogPayload(request).then((payload) => {
-      catalogCache.set(cacheKey, {
-        body: payload.body,
-        headers: payload.headers,
-        status: payload.status,
-        expiresAt: Date.now() + payload.cacheTTL,
-      });
-      return payload;
-    });
-    catalogInFlight.set(cacheKey, inflight);
-    inflight.finally(() => {
-      if (catalogInFlight.get(cacheKey) === inflight) catalogInFlight.delete(cacheKey);
-    });
+  // Best-effort cc-discovery usage metric — count every authorized GET /v1/models
+  // hit from a Claude Code client, cache hit or not. Never blocks/slows the
+  // request (incrementCcDiscoveryHitCount already swallows its own errors).
+  if (isCcDiscoveryModelCatalogClient(request)) {
+    incrementCcDiscoveryHitCount();
   }
 
   try {
-    const payload = await inflight;
-    return new Response(payload.body, {
-      status: payload.status,
-      headers: mergeCatalogHeaders(corsHeaders, payload.headers, diagnosticHeaders),
-    });
+    return await resolveCachedCatalogResponse(
+      request,
+      { corsHeaders, diagnosticHeaders },
+      buildCatalogPayload
+    );
   } catch (err) {
+    // Hard rule #12: never put a raw err.message/err.stack in a response body.
+    // Route it through the shared sanitizer instead — same status/type/code as
+    // before, minus the stack-trace/path leak.
+    const message = err instanceof Error ? err.message : String(err);
     return Response.json(
-      {
-        error: {
-          message: err instanceof Error ? err.message : String(err),
-          type: "server_error",
-          code: INTERNAL_PROXY_ERROR,
-        },
-      },
+      buildErrorBody(500, message, undefined, {
+        type: "server_error",
+        code: INTERNAL_PROXY_ERROR,
+      }),
       { status: 500, headers: { ...corsHeaders, ...diagnosticHeaders } }
     );
   }
@@ -261,7 +180,6 @@ export async function getUnifiedModelsResponse(
 async function buildCatalogPayload(
   request: Request
 ): Promise<{ body: string; headers: Record<string, string>; status: number; cacheTTL: number }> {
-  _catalogBuilderRuns++;
   const built = await buildUnifiedModelsResponseCore(request);
   const body = await built.text();
   const headers: Record<string, string> = {};
@@ -543,7 +461,12 @@ async function buildUnifiedModelsResponseCore(
       }
       Object.assign(
         capabilities,
-        getThinkingCapabilityFields(providerId, modelId, canonical.capabilities.supportsThinking)
+        getThinkingCapabilityFields(
+          providerId,
+          modelId,
+          canonical.capabilities.supportsThinking,
+          registryModel?.supportedThinkingEfforts
+        )
       );
 
       return {
@@ -613,6 +536,38 @@ async function buildUnifiedModelsResponseCore(
     const models = [];
     const timestamp = Math.floor(Date.now() / 1000);
     const listedIds = new Set<string>();
+
+    // #8770 follow-up: a quota-exclusive key (allowedQuotas non-empty) only ever
+    // receives the pool's `qtSd/*` combos — the key-permission step further down
+    // discards the entire catalog for it. Building that catalog first costs ~1.2s
+    // of CPU on a 1 vCPU host (measured), enough for Claude Code's 3s gateway model
+    // discovery to time out under contention, and every byte of it is thrown away.
+    // Everything the quota path needs (`combos`, `timestamp`,
+    // `buildComboCatalogMetadata`) already exists here, so return before the
+    // provider/auto-combo/registry loops start.
+    const earlyApiKey = extractApiKey(request);
+    if (earlyApiKey) {
+      const { getApiKeyMetadata } = await import("@/lib/db/apiKeys");
+      const earlyKeyMeta = await getApiKeyMetadata(earlyApiKey);
+      if (earlyKeyMeta?.allowedQuotas && earlyKeyMeta.allowedQuotas.length > 0) {
+        const { buildQuotaExclusiveModels } = await import("@/lib/quota/quotaCombos");
+        const quotaModels = await buildQuotaExclusiveModels(
+          earlyKeyMeta.allowedQuotas,
+          combos,
+          timestamp,
+          (c) => buildComboCatalogMetadata(c, combos)
+        );
+        const quotaFinal = applyCatalogPostFilters(request, quotaModels, {
+          connections,
+          prefixMode,
+          aliasToProviderId,
+        });
+        return finalizeCatalogResponse(request, quotaFinal, () => undefined, {
+          ...corsHeaders,
+          ...diagnosticHeaders,
+        });
+      }
+    }
 
     // #4164: advertise the built-in zero-setup `auto/*` combos at the very top.
     // #4189: enrich each with the combo's advertised context/output limits (computed
@@ -716,6 +671,28 @@ async function buildUnifiedModelsResponseCore(
         return Array.isArray(models) && models.length > 0;
       })
     );
+    const isRegisteredEffortVariant = (
+      providerModels: Array<{ id: string }>,
+      modelId: string
+    ): boolean => {
+      for (const suffix of ["none", "low", "medium", "high", "max", "xhigh"]) {
+        const suffixWithSeparator = `-${suffix}`;
+        if (!modelId.endsWith(suffixWithSeparator)) continue;
+        const baseModelId = modelId.slice(0, -suffixWithSeparator.length);
+        return providerModels.some((candidate) => candidate.id === baseModelId);
+      }
+      return false;
+    };
+
+    // Map canonical provider id -> set of synced display-model ids, so the static
+    // loop below can decide which static models a provider's synced discovery list
+    // actually covers (and which static models it must preserve).
+    const syncedModelIdsByCanonicalProvider = buildSyncedModelIdsByCanonicalProvider(
+      syncedModelsByProvider,
+      resolveCanonicalProviderId,
+      providerIdToPrefix,
+      providerIdToAlias
+    );
 
     // Add provider models (chat)
     for (const [alias, providerModels] of Object.entries(PROVIDER_MODELS)) {
@@ -734,9 +711,24 @@ async function buildUnifiedModelsResponseCore(
         continue;
       }
 
-      if (providersWithSyncedModels.has(canonicalProviderId)) continue;
-
       for (const model of providerModels) {
+        // Synced models replace static base entries they COVER, but they do not
+        // carry aliases registered for provider-specific reasoning variants, and
+        // static models the synced list does NOT cover must be preserved (the
+        // gateway still routes them — e.g. command-code's static
+        // `deepseek/deepseek-v4-flash` which its discovery never lists). Before
+        // the fix, a provider with any synced model silently dropped ALL its
+        // static models.
+        const syncedForProvider = syncedModelIdsByCanonicalProvider.get(canonicalProviderId);
+        if (
+          shouldSuppressStaticModelBySyncedCoverage({
+            providerHasSynced: syncedForProvider !== undefined && syncedForProvider.size > 0,
+            staticModelId: model.id,
+            syncedModelIds: syncedForProvider ? [...syncedForProvider] : [],
+          }) &&
+          !isRegisteredEffortVariant(providerModels, model.id)
+        )
+          continue;
         if (!providerSupportsModel(canonicalProviderId, model.id)) continue;
         const aliasId = `${alias}/${model.id}`;
         if (getModelIsHidden(canonicalProviderId, model.id)) continue;
@@ -1485,42 +1477,11 @@ async function buildUnifiedModelsResponseCore(
       }
     }
     // ?configuredOnly — hide models that have no eligible DB connection.
-    // Applied after the API-key filter so the key filter runs first, then
-    // variants are only generated for surviving models.
-    if (new URL(request.url).searchParams.get("configuredOnly") === "true") {
-      finalModels = finalModels.filter((m) => {
-        if (!m.root) return true;
-        return hasEligibleConnectionForModel(connections, m.root);
-      });
-    }
-
-    // Advertise Claude reasoning-effort variants (claude/<model>-{low,medium,high[,xhigh]}).
-    // Derived from the already key-filtered list so a variant only appears when its real
-    // model is permitted. Runs before the no-thinking pass: the gateway already routes these
-    // suffixed ids (claudeEffortVariant.ts), this just makes them selectable in catalog-only
-    // clients (OpenCode) that can't set a reasoning_effort config the way VS Code does.
-    finalModels = appendClaudeEffortVariants(
-      finalModels,
-      prefixMode === "canonical" ? aliasToProviderId : undefined
-    );
-
-    // Advertise no-thinking gateway variants (Fase 8.1). Derived from the already
-    // key-filtered list, so a variant only appears when its real model is permitted.
-    finalModels = appendNoThinkingVariants(
-      finalModels,
-      prefixMode === "canonical" ? aliasToProviderId : undefined
-    );
-
-    // #7694: advertise `<provider>/<model>-<tier>` variants for synced models that
-    // captured `reasoning.supported_efforts` at sync time (capabilities.effort_tiers).
-    // Derived from the already key-filtered list; skips codex/kimi (own suffix mechanism).
-    finalModels = appendSyncedEffortVariants(finalModels);
-
-    // #4424 follow-up — drop exact-duplicate ids that slip through the per-source push
-    // guards (e.g. `codex/gpt-5.5`, `veo-free/seedance` listed twice). Keyed by listing
-    // identity (id, type, subtype) so the intentional same-id audio transcription/speech
-    // pair survives. Independent of MODELS_CATALOG_PREFIX_MODE; runs as the final guard.
-    finalModels = dedupeExactCatalogIds(finalModels);
+    finalModels = applyCatalogPostFilters(request, finalModels, {
+      connections,
+      prefixMode,
+      aliasToProviderId,
+    });
 
     const getDefaultContextFallback = (model: any): number | undefined => {
       if (typeof model.context_length === "number") return undefined;
@@ -1539,58 +1500,20 @@ async function buildUnifiedModelsResponseCore(
       return modelId ? getTokenLimit(canonicalId, modelId) : getTokenLimit(canonicalId);
     };
 
-    const includeModelNames = isModelCatalogNamesEnabled();
-    const enrichedModels = disambiguateCatalogModelNames(
-      finalModels.map((model) => {
-        if (model.owned_by === "combo") {
-          return maybeOmitCatalogModelName(model, includeModelNames);
-        }
-        const enriched = enrichCatalogModelEntry(model);
-        const fallbackContextLength = getDefaultContextFallback(enriched);
-        const listedModel = fallbackContextLength
-          ? { ...enriched, context_length: fallbackContextLength }
-          : enriched;
-        return maybeOmitCatalogModelName(listedModel, includeModelNames);
-      })
-    );
-    // Codex CLI compatibility: its model-catalog refresh (codex_models_manager) does
-    // GET /v1/models?client_version=<v> and decodes a JSON object with a TOP-LEVEL
-    // `models` array, so the OpenAI-standard `{object,data}` shape makes it fail with
-    // "missing field `models`" and log "failed to refresh available models" on every
-    // startup. For codex clients only (detected by the codex originator/user-agent) we add
-    // an EMPTY `models: []` so the decode succeeds and the error disappears. Every other
-    // OpenAI consumer keeps the byte-identical `{object,data}` response.
-    //
-    // We deliberately keep it EMPTY rather than mirroring the catalog: codex replaces its
-    // built-in per-model agent prompt (`base_instructions`, ~21k chars) with whatever a
-    // populated entry carries for the selected model, so emitting our models with an
-    // empty/foreign `base_instructions` would drop codex's agent prompt to nothing and
-    // break its agent behavior (verified empirically against codex 0.137). An empty array
-    // keeps codex on its built-in model info — same inference as today, minus the error.
-    const responseBody: Record<string, unknown> = {
-      object: "list",
-      data: enrichedModels,
-    };
-    if (isCodexModelCatalogClient(request)) {
-      responseBody.models = [];
-    }
-
-    return Response.json(responseBody, {
-      headers: {
-        ...corsHeaders,
-        ...diagnosticHeaders,
-      },
+    return finalizeCatalogResponse(request, finalModels, getDefaultContextFallback, {
+      ...corsHeaders,
+      ...diagnosticHeaders,
     });
   } catch (error) {
     console.log("Error fetching models:", error);
+    // Hard rule #12 — this is the realistically reachable 500 for the endpoint
+    // (the wrapper's catch only fires on an in-flight rejection), so it must go
+    // through the shared sanitizer too. Same status/type/code as before.
     return Response.json(
-      {
-        error: {
-          message: error instanceof Error ? error.message : String(error),
-          type: "server_error",
-          code: INTERNAL_PROXY_ERROR,
-        },
-      },
+      buildErrorBody(500, error instanceof Error ? error.message : String(error), undefined, {
+        type: "server_error",
+        code: INTERNAL_PROXY_ERROR,
+      }),
       {
         status: 500,
         headers: {

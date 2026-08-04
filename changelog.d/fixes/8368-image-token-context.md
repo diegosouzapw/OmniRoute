@@ -1,1 +1,0 @@
-- fix(api): estimate inline base64 image tokens instead of counting the data URL as text so it does not falsely exceed the context window (#8368)

@@ -17,6 +17,7 @@ import {
 } from "@omniroute/open-sse/config/agyModels.ts";
 import { normalizeAntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
 import { ensureAntigravityProjectAssigned } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
+import { persistDiscoveredAntigravityProjectId } from "@omniroute/open-sse/services/antigravityProjectPersist.ts";
 import { asRecord, toNonEmptyString } from "./helpers";
 
 const antigravityDiscoveryInflight = new Map<
@@ -115,7 +116,16 @@ export async function fetchAntigravityDiscoveryModelsCached(
 
   const promise = (async () => {
     await resolveAntigravityClientVersion(profile);
-    await ensureAntigravityProjectAssigned(accessToken, fetch, profile);
+    const discovered = await ensureAntigravityProjectAssigned(accessToken, fetch, profile);
+    if (discovered) {
+      // #8491: persist the recovered id so it survives the next token refresh
+      // or process restart instead of being silently rediscovered every time.
+      await persistDiscoveredAntigravityProjectId(
+        connectionId,
+        discovered,
+        asRecord(providerSpecificData)
+      );
+    }
 
     for (const discoveryUrl of [
       ...getAntigravityFetchAvailableModelsUrls(),

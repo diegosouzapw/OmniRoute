@@ -39,6 +39,7 @@ test("synthOpenAIErrorChunk payload has expected OpenAI chunk shape", () => {
   assert.equal(payload.choices.length, 1);
   assert.ok(payload.error, "must have error field");
   assert.equal(payload.error.type, "upstream_empty_response");
+  assert.equal(payload.error.code, "upstream_empty_response");
   assert.ok(typeof payload.error.message === "string" && payload.error.message.length > 0);
 });
 

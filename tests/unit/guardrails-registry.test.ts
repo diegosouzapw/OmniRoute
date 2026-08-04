@@ -176,9 +176,38 @@ test("pii masker guardrail redacts request and response payloads", async () => {
       const postBody = postCall?.modifiedResponse as ChatLikePayload;
       const redactedContent = String(postBody.choices?.[0]?.message?.content);
       assert.ok(
-        redactedContent.includes("[EMAIL_REDACTED]") || redactedContent.includes("[PHONE_REDACTED]"),
+        redactedContent.includes("[EMAIL_REDACTED]") ||
+          redactedContent.includes("[PHONE_REDACTED]"),
         "email or phone should be redacted in response"
       );
+    }
+  );
+});
+
+test("pii masker respects feature flag overrides (DB and env)", async () => {
+  const { setFeatureFlagOverride, removeFeatureFlagOverride } =
+    await import("@/lib/db/featureFlags");
+
+  await withEnv(
+    {
+      PII_REDACTION_ENABLED: undefined,
+    },
+    async () => {
+      try {
+        setFeatureFlagOverride("PII_REDACTION_ENABLED", "true");
+        const guardrail = new PIIMaskerGuardrail();
+        const preCall = await guardrail.preCall({
+          messages: [{ role: "user", content: "Email me at dev@example.com" }],
+        });
+        assert.ok(
+          preCall?.modifiedPayload,
+          "DB override for PII_REDACTION_ENABLED=true should enable request redaction"
+        );
+        const preBody = preCall?.modifiedPayload as ChatLikePayload;
+        assert.match(String(preBody.messages?.[0]?.content), /\[EMAIL_REDACTED\]/);
+      } finally {
+        removeFeatureFlagOverride("PII_REDACTION_ENABLED");
+      }
     }
   );
 });
@@ -199,7 +228,6 @@ test("pii masker does not rewrite request PII when redaction flag is off", async
     }
   );
 });
-
 
 test("guardrail registry fails open when a guardrail throws", async () => {
   class ExplodingGuardrail extends BaseGuardrail {

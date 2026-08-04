@@ -1,1 +1,0 @@
-- feat(providers): map upstream reasoning-level metadata in openai-compatible discovery (#8347)

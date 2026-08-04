@@ -171,7 +171,11 @@ test("runWithProxyContext throws PROXY_UNREACHABLE for an unreachable proxy by d
   // 127.0.0.1:9 (discard) refuses connections — the proxy is unreachable.
   await assert.rejects(
     runWithProxyContext({ type: "http", host: "127.0.0.1", port: "9" }, async () => "unreachable"),
-    /Proxy unreachable/
+    (err: Error & { code?: string; errorCode?: string }) => {
+      assert.equal(err.code, "PROXY_UNREACHABLE");
+      assert.equal(err.errorCode, "proxy_unreachable");
+      return true;
+    }
   );
 });
 

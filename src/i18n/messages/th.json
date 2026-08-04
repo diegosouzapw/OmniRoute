@@ -168,6 +168,10 @@
     "noModelsFound": "No models found",
     "clear": "Clear",
     "done": "Done",
+    "selectAll": "เลือกทั้งหมด",
+    "unselectAll": "ยกเลิกการเลือกทั้งหมด",
+    "visibleModels": "ที่แสดง",
+    "selectAllConfirm": "เพิ่ม {count} โมเดลลงในคอมโบนี้ไหม",
     "errorOccurred": "Error Occurred",
     "comboDeleted": "Combo Deleted",
     "hide": "Hide",
@@ -933,6 +937,7 @@
   "disabled": "ปิดใช้งาน",
   "featureFlagOmnirouteEmergencyFallbackDescription": "กำหนดเส้นทางคำขอที่งบประมาณหมดไปยังผู้ให้บริการ/โมเดลสำรองฟรีในกรณีฉุกเฉิน",
   "featureFlagArenaEloSyncEnabledDescription": "เปิดใช้งานการซิงค์ ELO ของลีดเดอร์บอร์ด Arena AI เป็นระยะสำหรับการจัดอันดับความฉลาดของโมเดล",
+  "featureFlagExposeCcDiscoveryAliasesDescription": "__MISSING__:Advertise claude/&lt;provider&gt;/&lt;model&gt; mirror ids on /v1/models so Claude Code gateway model discovery lists non-Claude models. Warning: doubles catalog entries for all clients when enabled globally.",
   "sidebar": {
     "home": "บ้าน",
     "dashboard": "แดชบอร์ด",
@@ -1113,6 +1118,7 @@
     "providerQuota": "Provider Quota",
     "runtime": "Runtime",
     "consoleLogs": "Console Logs",
+    "logsTimeline": "Timeline",
     "globalRouting": "Global Routing",
     "mitmProxy": "MITM Proxy",
     "oneProxy": "1Proxy",
@@ -1158,6 +1164,7 @@
     "logsSubtitle": "Application logs",
     "logsProxySubtitle": "Proxy traffic logs",
     "consoleLogsSubtitle": "Console output",
+    "logsTimelineSubtitle": "__MISSING__:Visual request timeline",
     "logsActivitySubtitle": "User activity log",
     "healthSubtitle": "System health check",
     "costsPricingSubtitle": "Per-model pricing rules",
@@ -2938,7 +2945,15 @@
     "copilotPasteInto": "วางลงใน:",
     "copilotReloadInstruction": "จากนั้นโหลด VS Code ใหม่ และตั้งค่าคีย์ API ในช่องป้อนข้อมูล",
     "wireApiChatCompletions": "เสร็จสิ้นการแชท (/แชท/เสร็จสิ้น)",
-    "wireApiResponses": "API การตอบกลับ (/การตอบกลับ)"
+    "wireApiResponses": "API การตอบกลับ (/การตอบกลับ)",
+    "ccDiscoveryInfoButton": "__MISSING__:How to enable discovery in Claude Code",
+    "ccDiscoveryInfoTooltip": "__MISSING__:Advertise non-Claude models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Doubles catalog entries for all clients when enabled globally.",
+    "ccDiscoveryInfoLink": "__MISSING__:Open Feature Flags",
+    "ccOnboardingTitle": "__MISSING__:settings.json for gateway model discovery",
+    "ccOnboardingCopy": "__MISSING__:Copy",
+    "ccOnboardingCopied": "__MISSING__:Copied",
+    "ccOnboardingKeyPlaceholder": "__MISSING__:<your OmniRoute API key>",
+    "ccOnboardingWindowNote": "__MISSING__:Claude Code assumes a 200K context window for any model id it does not recognize. For a model with a different real window, add CLAUDE_CODE_AUTO_COMPACT_WINDOW just under it so auto-compaction does not fire too early."
   },
   "combos": {
     "title": "คอมโบ",
@@ -3689,7 +3704,7 @@
     "modelsCount": "{count, plural, one {# model} other {# models}}",
     "sectionTitle": "Integration Surface",
     "sectionDescription": "OpenAI-compatible APIs and operational protocol endpoints",
-    "tabApis": "OpenAI-compatible APIs",
+    "tabApis": "__MISSING__:APIs",
     "tabProtocols": "Protocols",
     "tabsAria": "Endpoint sections",
     "protocolsTitle": "Protocols",
@@ -4958,10 +4973,12 @@
     "noNewModelsToImport": "ไม่มีโมเดลใหม่ที่จะนำเข้า — โมเดลทั้งหมดมีอยู่แล้วในรีจิสทรีหรือรายการโมเดลที่กำหนดเอง",
     "skippingExistingModels": "ข้าม {count} โมเดลที่มีอยู่",
     "autoSync": "ซิงค์อัตโนมัติ",
+    "autoSyncShort": "ซิงค์",
     "autoSyncTooltip": "รีเฟรชรายการโมเดลโดยอัตโนมัติทุกๆ 24 ชั่วโมง (กำหนดค่าได้ผ่าน MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "เปิดใช้งานการซิงค์อัตโนมัติ — โมเดลจะรีเฟรชเป็นระยะ",
     "autoSyncDisabled": "ปิดใช้งานการซิงค์อัตโนมัติแล้ว",
     "autoSyncToggleFailed": "ไม่สามารถสลับการซิงค์อัตโนมัติ",
+    "autoSyncPartialFailure": "การซิงค์อัตโนมัติอัปเดตสำหรับบางการเชื่อมต่อ แต่ไม่ใช่ทั้งหมด",
     "clearAllModels": "ล้างทุกรุ่น",
     "clearAllModelsConfirm": "คุณแน่ใจหรือไม่ว่าต้องการลบโมเดลทั้งหมดสำหรับผู้ให้บริการรายนี้ สิ่งนี้ไม่สามารถยกเลิกได้",
     "clearAllModelsSuccess": "เคลียร์ทุกรุ่น",
@@ -5394,8 +5411,8 @@
     "t3ChatWebCookieHint": "เปิด t3.chat → DevTools → Application → Local Storage → https://t3.chat คัดลอก 'convex-session-id' จากนั้นเปิด DevTools → Network คัดลอกส่วนหัวคุกกี้แบบเต็มจากคำขอแชท วางทั้งสองค่าในช่องด้านล่าง",
     "t3ChatWebCookiePlaceholder": "นูน-session-id=abc123...",
     "grokWebCookieHint": "Grok Web Cookie Hint",
-    "blockClaudeExtraUsageDescription": "Block Claude Extra Usage Description",
-    "blockClaudeExtraUsageLabel": "Block Claude Extra Usage Label",
+    "blockClaudeExtraUsageDescription": "__MISSING__:When enabled, OmniRoute marks this Claude connection unavailable as soon as the usage API reports queued extra usage, so fallback switches to another connection instead of continuing on pay-as-you-go extra billing.",
+    "blockClaudeExtraUsageLabel": "__MISSING__:Block extra Claude usage",
     "disableCoolingDescription": "ข้ามคูลดาวน์ชั่วคราวเพื่อให้การเชื่อมต่อนี้ยังคงมีสิทธิ์ใช้งานได้แม้หลังจากเกิดข้อผิดพลาดที่กู้คืนได้ (สถานะสิ้นสุด เช่น ถูกแบน/หมดอายุ ยังคงมีผลอยู่)",
     "disableCoolingLabel": "ปิดใช้งานคูลดาวน์สำหรับการเชื่อมต่อนี้",
     "bulkPasteAdded": "{count, plural, one {1 key added} other {# keys added}}",
@@ -5574,13 +5591,13 @@
     "importGrokAuth": "นำเข้าข้อมูลการยืนยันตัวตน Grok Build",
     "zedImportTitle": "นำเข้าจาก Zed Keychain",
     "zedImportDescription": "ค้นหาข้อมูลประจำตัวของผู้ให้บริการ AI (OpenAI, Anthropic, Google, Mistral, xAI) ที่จัดเก็บโดย Zed IDE ในพวงกุญแจของระบบปฏิบัติการ (OS keychain) และนำเข้ามาเป็นรายการเชื่อมต่อ ต้องติดตั้ง Zed IDE บนเครื่องนี้",
-    "zedImportButton": "Zed Import Button",
-    "zedImportFailed": "Zed Import Failed",
+    "zedImportButton": "__MISSING__:Import from Zed",
+    "zedImportFailed": "__MISSING__:Zed import failed",
     "zedImportHint": "Zed Import Hint",
     "zedImportNetworkError": "Zed Import Network Error",
     "zedImportNone": "Zed Import None",
-    "zedImportSuccess": "Zed Import Success",
-    "zedImporting": "Zed Importing",
+    "zedImportSuccess": "__MISSING__:Imported {credentials} credential(s) from Zed for {providers} provider(s)",
+    "zedImporting": "__MISSING__:Importing…",
     "zedNoCredentials": "ไม่พบข้อมูลประจำตัวของ Zed ในพวงกุญแจ",
     "zedUnsupportedCredentials": "พบข้อมูลประจำตัวในพวงกุญแจ {count} รายการ แต่ไม่มีรายการใดที่ตรงกับผู้ให้บริการที่รองรับ",
     "zedManualTitle": "นำเข้าโทเค็นด้วยตนเอง",
@@ -5961,7 +5978,21 @@
     "lmarenaWebCookieHint": "เปิด arena.ai เข้าสู่ระบบ แล้วคัดลอกส่วนหัว Cookie ทั้งหมดจากคำขอ Network รวม arena-auth-prod-v1.0 และ arena-auth-prod-v1.1 (และส่วนย่อยเพิ่มเติมหากมี) โดยควรมี cf_clearance ด้วย อย่าวางเฉพาะคุกกี้ arena-auth-prod-v1 ที่ว่างเปล่า ไม่บังคับ: providerSpecificData.recaptchaV3Token หาก create-evaluation ยังคงส่งคืน 403",
     "kimiOfficialSupporterBadge": "เพื่อนผู้ก่อตั้ง",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) คือเพื่อนโอเพนซอร์สผู้ก่อตั้งของ OmniRoute",
-    "kimiPartnerLinkNote": "ลิงก์พันธมิตร — สนับสนุน OmniRoute โดยไม่มีค่าใช้จ่ายเพิ่มเติมสำหรับคุณ"
+    "cheaperInferenceSupporterBadge": "เพื่อนโอเพนซอร์ส",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference สนับสนุน OmniRoute ในฐานะเพื่อนโอเพนซอร์ส",
+    "kimiPartnerLinkNote": "ลิงก์พันธมิตร — สนับสนุน OmniRoute โดยไม่มีค่าใช้จ่ายเพิ่มเติมสำหรับคุณ",
+    "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
+    "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
+    "ccAliasProviderLevelLabel": "__MISSING__:Provider default",
+    "ccAliasModelOverridesLabel": "__MISSING__:Per-model overrides",
+    "ccAliasModelOverrideAriaLabel": "__MISSING__:Override for {modelId}",
+    "ccAliasStateInherit": "__MISSING__:Inherit",
+    "ccAliasStateOn": "__MISSING__:On",
+    "ccAliasStateOff": "__MISSING__:Off",
+    "ccAliasAddModelPlaceholder": "__MISSING__:Model id (e.g. gpt-4o)",
+    "ccAliasAddModelButton": "__MISSING__:Add override",
+    "ccAliasLoadError": "__MISSING__:Failed to load discovery-alias settings: {error}",
+    "ccAliasSaveError": "__MISSING__:Failed to save discovery-alias setting: {error}"
   },
   "settings": {
     "title": "การตั้งค่า",
@@ -6721,7 +6752,7 @@
     "howPricingWorks": "วิธีการทำงานของการกำหนดราคา",
     "cacheWrite": "แคชเขียน",
     "unsaved": "ไม่ได้บันทึก",
-    "resetDefaults": "รีเซ็ตค่าเริ่มต้น",
+    "resetDefaults": "__MISSING__:Reset defaults",
     "saveProvider": "บันทึกผู้ให้บริการ",
     "model": "รุ่น",
     "models": "โมเดล",
@@ -7270,6 +7301,10 @@
       "less-code": {
         "label": "โค้ดน้อยลง",
         "description": "บันได YAGNI: การเปลี่ยนแปลงที่เล็กที่สุดที่ใช้งานได้จริง โดยไม่มีการสร้าง Abstraction ที่ไม่ได้ร้องขอ"
+      },
+      "ponytail": {
+        "label": "Ponytail (lazy senior dev)",
+        "description": "Lazy senior-dev discipline: climb the YAGNI ladder, fix root cause, smallest working diff."
       },
       "terse-cjk": {
         "label": "CJK แบบกระชับ (文言)",
@@ -9688,8 +9723,23 @@
     "deviceCodeVerificationUrl": "URL การยืนยัน",
     "deviceCodeYourCode": "รหัสของคุณ",
     "deviceCodeWaiting": "กำลังรอการอนุญาต...",
-    "googleOAuthWarning": "การเข้าถึงระยะไกล + Google OAuth: ข้อมูลรับรองเริ่มต้นยอมรับเฉพาะการเปลี่ยนเส้นทางไปยัง <code>localhost</code> หลังจากอนุญาตแล้ว เบราว์เซอร์ของคุณจะพยายามเปิด <code>localhost</code> — คัดลอก URL แบบเต็มแล้ววางไว้ด้านล่าง สำหรับการใช้งานระยะไกลโดยสมบูรณ์โดยไม่ต้องทำตามขั้นตอนด้วยตนเองนี้ <a>กำหนดค่าข้อมูลประจำตัว OAuth ของคุณเอง</a>",
+    "googleLoopbackTitle": "__MISSING__:Google sign-in can't complete from this address",
+    "googleLoopbackWhatHappens": "__MISSING__:Google only releases the authorization code once <code>{redirectUri}</code> is reachable from the browser that approves the sign-in. Here that address points at this computer, not at the OmniRoute server — so the consent screen hangs instead of redirecting, and there is no callback URL to copy.",
+    "googleLoopbackRecommended": "__MISSING__:Recommended — run this on your own computer, then paste the result below:",
+    "googleLoopbackHelperNote": "__MISSING__:It opens the Google consent locally (where 127.0.0.1 works) and prints a one-line omniroute-cred-v1.… blob. Paste that blob into the Step 2 field below — it accepts a credential blob as well as a callback URL.",
+    "googleLoopbackTunnelLabel": "__MISSING__:Or forward the dashboard port over SSH and reload OmniRoute through the tunnel:",
+    "googleLoopbackTunnelNote": "__MISSING__:Replace {userPlaceholder} with your SSH username, keep the terminal open, then open {localUrl} and connect again from there.",
+    "googleLoopbackHeadlessAlt": "__MISSING__:For fully headless use with no local callback at all, <a>configure your own Google OAuth credentials</a> plus a public base URL.",
     "remoteAccessInfo": "การเข้าถึงระยะไกล: เนื่องจากคุณเข้าถึง OmniRoute จากระยะไกล หลังจากได้รับอนุญาต คุณจะเห็นหน้าข้อผิดพลาด (ไม่พบ localhost) นี่เป็นเรื่องปกติ — เพียงคัดลอก URL แบบเต็มจากแถบที่อยู่ของเบราว์เซอร์แล้ววางไว้ด้านล่าง",
+    "loopbackMismatchTitle": "__MISSING__:Sign-in can't complete from this address",
+    "loopbackMismatchWhatHappened": "__MISSING__:What's happening",
+    "loopbackMismatchExplanation": "__MISSING__:After you approve the login, {providerName} always sends the browser back to <code>{redirectUri}</code>. That address points at the computer running this browser, not at the OmniRoute server — so the authorization code never reaches OmniRoute and the provider fails the sign-in without showing an error.",
+    "loopbackMismatchHowToFix": "__MISSING__:How to fix it",
+    "loopbackMismatchStep1": "__MISSING__:On this computer, open a terminal and start an SSH tunnel to the OmniRoute server:",
+    "loopbackMismatchStep1Note": "__MISSING__:Replace {userPlaceholder} with your SSH username. Keep this terminal open until the connection shows as active — both ports are needed: one serves the dashboard, the other receives the callback.",
+    "loopbackMismatchStep2": "__MISSING__:In this browser, reopen OmniRoute through the tunnel:",
+    "loopbackMismatchStep3": "__MISSING__:Then connect {providerName} again from the new tab. The callback now reaches the server and the login completes normally.",
+    "loopbackMismatchAlternative": "__MISSING__:No SSH access? If this provider offers a token import tab, connect with a token instead — that path doesn't use a loopback callback.",
     "step1OpenUrl": "ขั้นตอนที่ 1: เปิด URL นี้ในเบราว์เซอร์ของคุณ",
     "copy": "คัดลอก",
     "step2PasteCallback": "ขั้นตอนที่ 2: วาง URL โทรกลับหรือรหัสการให้สิทธิ์ที่นี่",
@@ -10476,7 +10526,9 @@
     "deleteGroupConfirm": "ลบกลุ่มนี้หรือไม่? ต้องมอบหมายพูลใหม่หรือลบพูลของกลุ่มนี้ออกก่อน",
     "deleteGroupHasPools": "กลุ่มนี้ยังมีพูลอยู่ — โปรดมอบหมายใหม่หรือลบพูลเหล่านั้นออกก่อน",
     "ungroupedTitle": "ไม่ได้จัดกลุ่ม",
-    "ungroupedHint": "พูลเหล่านี้ไม่ได้ถูกมอบหมายให้กับกลุ่มที่รู้จัก แก้ไขพูลเพื่อย้ายไปยังกลุ่มจริง"
+    "ungroupedHint": "พูลเหล่านี้ไม่ได้ถูกมอบหมายให้กับกลุ่มที่รู้จัก แก้ไขพูลเพื่อย้ายไปยังกลุ่มจริง",
+    "removeFailed": "Could not remove this pool.",
+    "dismiss": "Dismiss"
   },
   "plugins": {
     "title": "Plugins",
@@ -11784,7 +11836,8 @@
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "เปิดใช้งานการเข้าถึงเครือข่ายใน skills sandbox"
       }
-    }
+    },
+    "ccDiscoveryAliasesEnvWarning": "__MISSING__:Active via environment variable (EXPOSE_CC_DISCOVERY_ALIASES) — this overrides any dashboard toggle below."
   },
   "comboControl": {
     "title": "ศูนย์ควบคุม Combo",
@@ -12131,5 +12184,6 @@
     "cta": "รับ Kimi Code",
     "partnerLinkNote": "ลิงก์พันธมิตร",
     "dismissAriaLabel": "ปิด"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

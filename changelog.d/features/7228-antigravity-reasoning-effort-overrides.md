@@ -1,1 +1,0 @@
-- **feat(mitm):** Antigravity MITM model mappings now support an optional per-model reasoning-effort override (Default/None/Low/Medium/High/XHigh) alongside the destination-model remap. (thanks @trfi)

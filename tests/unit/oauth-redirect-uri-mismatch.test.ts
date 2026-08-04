@@ -305,3 +305,112 @@ test("OMNIROUTE_PUBLIC_BASE_URL is used as fallback when NEXT_PUBLIC_BASE_URL is
 
   assert.equal(redirectUri, "https://fallback.example.com/callback");
 });
+
+// ---------------------------------------------------------------------------
+// Web client type (ANTIGRAVITY_OAUTH_CLIENT_TYPE=web) - public redirect
+// ---------------------------------------------------------------------------
+
+test("antigravity with client type 'web' and custom credentials switches loopback to public URL", () => {
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "antigravity",
+    "http://127.0.0.1:20128/callback",
+    {
+      OMNIROUTE_PUBLIC_BASE_URL: "https://192.168.100.10:20128",
+      ANTIGRAVITY_OAUTH_CLIENT_TYPE: "web",
+      ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
+      ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-secret",
+    }
+  );
+
+  assert.equal(
+    redirectUri,
+    "https://192.168.100.10:20128/callback",
+    "web client type must use public base URL"
+  );
+});
+
+test("agy with client type 'web' and custom credentials switches loopback to public URL", () => {
+  const redirectUri = resolveBrowserOAuthRedirectUri("agy", "http://127.0.0.1:20128/callback", {
+    OMNIROUTE_PUBLIC_BASE_URL: "https://omniroute.example.com",
+    ANTIGRAVITY_OAUTH_CLIENT_TYPE: "web",
+    ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
+    ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-secret",
+  });
+
+  assert.equal(
+    redirectUri,
+    "https://omniroute.example.com/callback",
+    "agy must inherit web client type from antigravity"
+  );
+});
+
+test("client type 'web' without custom credentials keeps loopback", () => {
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "antigravity",
+    "http://127.0.0.1:20128/callback",
+    {
+      OMNIROUTE_PUBLIC_BASE_URL: "https://omniroute.example.com",
+      ANTIGRAVITY_OAUTH_CLIENT_TYPE: "web",
+      ANTIGRAVITY_OAUTH_CLIENT_ID: DEFAULT_ANTIGRAVITY_CLIENT_ID,
+      ANTIGRAVITY_OAUTH_CLIENT_SECRET: "GOCSPX-SomeDefaultSecret",
+    }
+  );
+
+  assert.equal(
+    redirectUri,
+    "http://127.0.0.1:20128/callback",
+    "web client type with default credentials must keep loopback"
+  );
+});
+
+test("client type 'desktop' (default) keeps loopback even with public base URL", () => {
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "antigravity",
+    "http://127.0.0.1:20128/callback",
+    {
+      OMNIROUTE_PUBLIC_BASE_URL: "https://omniroute.example.com",
+      ANTIGRAVITY_OAUTH_CLIENT_TYPE: "desktop",
+    }
+  );
+
+  assert.equal(
+    redirectUri,
+    "http://127.0.0.1:20128/callback",
+    "desktop client type must keep loopback"
+  );
+});
+
+test("no client type set defaults to desktop (keeps loopback)", () => {
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "antigravity",
+    "http://127.0.0.1:20128/callback",
+    {
+      OMNIROUTE_PUBLIC_BASE_URL: "https://omniroute.example.com",
+    }
+  );
+
+  assert.equal(
+    redirectUri,
+    "http://127.0.0.1:20128/callback",
+    "missing client type must default to desktop"
+  );
+});
+
+test("client type 'web' preserves custom callback path", () => {
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "antigravity",
+    "http://127.0.0.1:20128/custom-callback",
+    {
+      OMNIROUTE_PUBLIC_BASE_URL: "https://omniroute.example.com",
+      ANTIGRAVITY_OAUTH_CLIENT_TYPE: "web",
+      ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
+      ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-secret",
+    }
+  );
+
+  assert.equal(
+    redirectUri,
+    "https://omniroute.example.com/custom-callback",
+    "custom callback path must be preserved"
+  );
+});

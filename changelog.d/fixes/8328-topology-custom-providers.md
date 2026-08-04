@@ -1,1 +1,0 @@
-- fix(dashboard): show custom provider_nodes providers in the Topology view instead of only AI_PROVIDERS (#8328)

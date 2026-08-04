@@ -168,6 +168,10 @@
     "noModelsFound": "لم يتم العثور على نماذج",
     "clear": "مسح",
     "done": "تم",
+    "selectAll": "تحديد الكل",
+    "unselectAll": "إلغاء تحديد الكل",
+    "visibleModels": "مرئي",
+    "selectAllConfirm": "إضافة {count} نموذجًا إلى هذه المجموعة؟",
     "errorOccurred": "حدث خطأ",
     "comboDeleted": "تم حذف المجموعة",
     "hide": "إخفاء",
@@ -933,6 +937,7 @@
   "disabled": "معطل",
   "featureFlagOmnirouteEmergencyFallbackDescription": "توجيه الطلبات التي استنفدت الميزانية إلى موفر/نموذج الاحتياط المجاني للطوارئ.",
   "featureFlagArenaEloSyncEnabledDescription": "تمكين المزامنة الدورية لتصنيف ELO للوحة صدارة Arena AI لتصنيفات ذكاء النماذج.",
+  "featureFlagExposeCcDiscoveryAliasesDescription": "__MISSING__:Advertise claude/&lt;provider&gt;/&lt;model&gt; mirror ids on /v1/models so Claude Code gateway model discovery lists non-Claude models. Warning: doubles catalog entries for all clients when enabled globally.",
   "sidebar": {
     "home": "الصفحة الرئيسية",
     "dashboard": "لوحة القيادة",
@@ -1113,6 +1118,8 @@
     "providerQuota": "حصة المزود",
     "runtime": "وقت التشغيل",
     "consoleLogs": "سجلات وحدة التحكم",
+    "logsTimeline": "Timeline",
+    "logsTimelineSubtitle": "__MISSING__:Visual request timeline",
     "globalRouting": "التوجيه العام",
     "mitmProxy": "بروكسي MITM",
     "oneProxy": "1Proxy",
@@ -2938,7 +2945,15 @@
     "copilotPasteInto": "لصق في:",
     "copilotReloadInstruction": "ثم أعد تحميل VS Code وعيّن مفتاح API في موجه الإدخال.",
     "wireApiChatCompletions": "مكتملات الدردشة (/chat/مكتملات)",
-    "wireApiResponses": "واجهة برمجة تطبيقات الاستجابات (/ الاستجابات)"
+    "wireApiResponses": "واجهة برمجة تطبيقات الاستجابات (/ الاستجابات)",
+    "ccDiscoveryInfoButton": "__MISSING__:How to enable discovery in Claude Code",
+    "ccDiscoveryInfoTooltip": "__MISSING__:Advertise non-Claude models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Doubles catalog entries for all clients when enabled globally.",
+    "ccDiscoveryInfoLink": "__MISSING__:Open Feature Flags",
+    "ccOnboardingTitle": "__MISSING__:settings.json for gateway model discovery",
+    "ccOnboardingCopy": "__MISSING__:Copy",
+    "ccOnboardingCopied": "__MISSING__:Copied",
+    "ccOnboardingKeyPlaceholder": "__MISSING__:<your OmniRoute API key>",
+    "ccOnboardingWindowNote": "__MISSING__:Claude Code assumes a 200K context window for any model id it does not recognize. For a model with a different real window, add CLAUDE_CODE_AUTO_COMPACT_WINDOW just under it so auto-compaction does not fire too early."
   },
   "combos": {
     "title": "المجموعات",
@@ -3689,7 +3704,7 @@
     "modelsCount": "النماذج: {count, plural, one {نموذج واحد} other {# نماذج}}",
     "sectionTitle": "سطح التكامل",
     "sectionDescription": "واجهات برمجة التطبيقات المتوافقة مع OpenAI ونقاط نهاية البروتوكول التشغيلية",
-    "tabApis": "واجهات برمجة تطبيقات متوافقة مع OpenAI",
+    "tabApis": "__MISSING__:APIs",
     "tabProtocols": "البروتوكولات",
     "tabsAria": "أقسام نقطة النهاية",
     "protocolsTitle": "البروتوكولات",
@@ -4958,10 +4973,12 @@
     "noNewModelsToImport": "لا توجد نماذج جديدة لاستيرادها — جميعها موجودة في السجل أو قائمة النماذج المخصصة",
     "skippingExistingModels": "تخطي {count} نموذج موجود",
     "autoSync": "المزامنة التلقائية",
+    "autoSyncShort": "المزامنة",
     "autoSyncTooltip": "تحديث قائمة النماذج كل 24 ساعة (يمكن ضبطه عبر MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "تم تمكين المزامنة التلقائية — سيتم تحديث النماذج بشكل دوري",
     "autoSyncDisabled": "تم تعطيل المزامنة التلقائية",
     "autoSyncToggleFailed": "فشل في تبديل المزامنة التلقائية",
+    "autoSyncPartialFailure": "تم تحديث المزامنة التلقائية لبعض الاتصالات، وليس كلها",
     "clearAllModels": "مسح كافة النماذج",
     "clearAllModelsConfirm": "هل أنت متأكد أنك تريد إزالة كافة النماذج لهذا الموفر؟ لا يمكن التراجع عن هذا.",
     "clearAllModelsSuccess": "تم مسح جميع النماذج",
@@ -5961,7 +5978,21 @@
     "lmarenaWebCookieHint": "افتح arena.ai، وسجل الدخول، ثم انسخ ترويسة Cookie الكاملة من طلب الشبكة. قم بتضمين arena-auth-prod-v1.0 و arena-auth-prod-v1.1 (وأي أجزاء أخرى إن وجدت)، ويفضل مع cf_clearance. لا تقم بلصق ملف تعريف الارتباط الفارغ arena-auth-prod-v1 فقط. اختياري: providerSpecificData.recaptchaV3Token إذا كان create-evaluation لا يزال يرجع 403.",
     "kimiOfficialSupporterBadge": "الصديق المؤسس",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) هو الصديق المؤسس للمصادر المفتوحة لـ OmniRoute",
-    "kimiPartnerLinkNote": "رابط شريك — يدعم OmniRoute دون أي تكلفة إضافية عليك"
+    "cheaperInferenceSupporterBadge": "صديق مفتوح المصدر",
+    "cheaperInferenceSupporterTooltip": "‏Cheaper Inference تدعم OmniRoute كصديق للمصادر المفتوحة",
+    "kimiPartnerLinkNote": "رابط شريك — يدعم OmniRoute دون أي تكلفة إضافية عليك",
+    "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
+    "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
+    "ccAliasProviderLevelLabel": "__MISSING__:Provider default",
+    "ccAliasModelOverridesLabel": "__MISSING__:Per-model overrides",
+    "ccAliasModelOverrideAriaLabel": "__MISSING__:Override for {modelId}",
+    "ccAliasStateInherit": "__MISSING__:Inherit",
+    "ccAliasStateOn": "__MISSING__:On",
+    "ccAliasStateOff": "__MISSING__:Off",
+    "ccAliasAddModelPlaceholder": "__MISSING__:Model id (e.g. gpt-4o)",
+    "ccAliasAddModelButton": "__MISSING__:Add override",
+    "ccAliasLoadError": "__MISSING__:Failed to load discovery-alias settings: {error}",
+    "ccAliasSaveError": "__MISSING__:Failed to save discovery-alias setting: {error}"
   },
   "settings": {
     "title": "الإعدادات",
@@ -6721,7 +6752,7 @@
     "howPricingWorks": "كيف يعمل التسعير",
     "cacheWrite": "كتابة ذاكرة التخزين المؤقت",
     "unsaved": "غير محفوظ",
-    "resetDefaults": "إعادة تعيين الإعدادات الافتراضية",
+    "resetDefaults": "__MISSING__:Reset defaults",
     "saveProvider": "حفظ المزود",
     "model": "نموذج",
     "models": "نماذج",
@@ -7270,6 +7301,10 @@
       "less-code": {
         "label": "كود أقل",
         "description": "سلم YAGNI: أصغر تغيير فعال، بدون تجريدات غير مطلوبة."
+      },
+      "ponytail": {
+        "label": "Ponytail (lazy senior dev)",
+        "description": "Lazy senior-dev discipline: climb the YAGNI ladder, fix root cause, smallest working diff."
       },
       "terse-cjk": {
         "label": "CJK مقتضب (文言)",
@@ -9688,8 +9723,23 @@
     "deviceCodeVerificationUrl": "عنوان URL للتحقق",
     "deviceCodeYourCode": "الرمز الخاص بك",
     "deviceCodeWaiting": "في انتظار الترخيص...",
-    "googleOAuthWarning": "الوصول عن بعد + Google OAuth: لا تقبل بيانات الاعتماد الافتراضية سوى عمليات إعادة التوجيه إلى <code>localhost</code>. بعد التفويض، سيحاول متصفحك فتح <code>localhost</code> - انسخ عنوان URL الكامل والصقه أدناه. للاستخدام عن بعد بالكامل بدون هذه الخطوة اليدوية، <a>قم بتكوين بيانات اعتماد OAuth الخاصة بك</a>.",
+    "googleLoopbackTitle": "__MISSING__:Google sign-in can't complete from this address",
+    "googleLoopbackWhatHappens": "__MISSING__:Google only releases the authorization code once <code>{redirectUri}</code> is reachable from the browser that approves the sign-in. Here that address points at this computer, not at the OmniRoute server — so the consent screen hangs instead of redirecting, and there is no callback URL to copy.",
+    "googleLoopbackRecommended": "__MISSING__:Recommended — run this on your own computer, then paste the result below:",
+    "googleLoopbackHelperNote": "__MISSING__:It opens the Google consent locally (where 127.0.0.1 works) and prints a one-line omniroute-cred-v1.… blob. Paste that blob into the Step 2 field below — it accepts a credential blob as well as a callback URL.",
+    "googleLoopbackTunnelLabel": "__MISSING__:Or forward the dashboard port over SSH and reload OmniRoute through the tunnel:",
+    "googleLoopbackTunnelNote": "__MISSING__:Replace {userPlaceholder} with your SSH username, keep the terminal open, then open {localUrl} and connect again from there.",
+    "googleLoopbackHeadlessAlt": "__MISSING__:For fully headless use with no local callback at all, <a>configure your own Google OAuth credentials</a> plus a public base URL.",
     "remoteAccessInfo": "الوصول عن بعد: نظرًا لأنك تصل إلى OmniRoute عن بُعد، فبعد الحصول على الترخيص، ستظهر لك صفحة خطأ (لم يتم العثور على المضيف المحلي). وهذا أمر طبيعي — ما عليك سوى نسخ عنوان URL الكامل من شريط عنوان المتصفح لديك ولصقه أدناه.",
+    "loopbackMismatchTitle": "__MISSING__:Sign-in can't complete from this address",
+    "loopbackMismatchWhatHappened": "__MISSING__:What's happening",
+    "loopbackMismatchExplanation": "__MISSING__:After you approve the login, {providerName} always sends the browser back to <code>{redirectUri}</code>. That address points at the computer running this browser, not at the OmniRoute server — so the authorization code never reaches OmniRoute and the provider fails the sign-in without showing an error.",
+    "loopbackMismatchHowToFix": "__MISSING__:How to fix it",
+    "loopbackMismatchStep1": "__MISSING__:On this computer, open a terminal and start an SSH tunnel to the OmniRoute server:",
+    "loopbackMismatchStep1Note": "__MISSING__:Replace {userPlaceholder} with your SSH username. Keep this terminal open until the connection shows as active — both ports are needed: one serves the dashboard, the other receives the callback.",
+    "loopbackMismatchStep2": "__MISSING__:In this browser, reopen OmniRoute through the tunnel:",
+    "loopbackMismatchStep3": "__MISSING__:Then connect {providerName} again from the new tab. The callback now reaches the server and the login completes normally.",
+    "loopbackMismatchAlternative": "__MISSING__:No SSH access? If this provider offers a token import tab, connect with a token instead — that path doesn't use a loopback callback.",
     "step1OpenUrl": "الخطوة 1: افتح عنوان URL هذا في متصفحك",
     "copy": "نسخ",
     "step2PasteCallback": "الخطوة 2: الصق عنوان URL لرد الاتصال أو رمز التفويض هنا",
@@ -10476,7 +10526,9 @@
     "deleteGroupConfirm": "هل تريد حذف هذه المجموعة؟ يجب إعادة تعيين مجمعاتها أو إزالتها أولاً.",
     "deleteGroupHasPools": "لا تزال هذه المجموعة تحتوي على مجمعات — أعد تعيينها أو احذفها أولاً.",
     "ungroupedTitle": "غير مجمع",
-    "ungroupedHint": "هذه المجمعات غير مخصصة لمجموعة معروفة. قم بتحرير مجمع لنقله إلى مجموعة حقيقية."
+    "ungroupedHint": "هذه المجمعات غير مخصصة لمجموعة معروفة. قم بتحرير مجمع لنقله إلى مجموعة حقيقية.",
+    "removeFailed": "Could not remove this pool.",
+    "dismiss": "Dismiss"
   },
   "plugins": {
     "title": "الإضافات",
@@ -11784,7 +11836,8 @@
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "تمكين الوصول إلى الشبكة في بيئة اختبار المهارات المعزولة."
       }
-    }
+    },
+    "ccDiscoveryAliasesEnvWarning": "__MISSING__:Active via environment variable (EXPOSE_CC_DISCOVERY_ALIASES) — this overrides any dashboard toggle below."
   },
   "comboControl": {
     "title": "مركز تحكم Combo",
@@ -12131,5 +12184,6 @@
     "cta": "احصل على Kimi Code",
     "partnerLinkNote": "رابط شريك",
     "dismissAriaLabel": "تجاهل"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

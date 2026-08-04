@@ -95,10 +95,10 @@ const resilienceTabSettingsKeys = [
 ];
 
 const quotaShareResilienceSettingsMessages = {
-  resilienceComboCooldownWaitTitle: "Quota-share combo cooldown wait",
+  resilienceComboCooldownWaitTitle: "Combo cooldown wait",
   resilienceComboCooldownWaitDesc:
-    "For quota-share combos only: wait out a short transient cooldown and re-dispatch instead of returning a 429 immediately. Never waits on quota_exhausted.",
-  resilienceComboCooldownWaitToggleDesc: "Quota-share combos only; never waits on quota_exhausted.",
+    "For all combo strategies: wait out a short transient cooldown and re-dispatch instead of returning a 429 immediately. Never waits on quota_exhausted.",
+  resilienceComboCooldownWaitToggleDesc: "All combo strategies; never waits on quota_exhausted.",
   resilienceComboCooldownMaxWaitMs: "Maximum wait per attempt",
   resilienceComboCooldownBudgetMs: "Total wait budget",
   resilienceQuotaShareConcurrencyTitle: "Quota-share per-connection concurrency",

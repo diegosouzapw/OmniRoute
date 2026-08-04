@@ -47,6 +47,12 @@ export function buildRecoveryHint(
         next_step:
           "This combo has no executable targets in the current account pool. Pick a different combo or reconnect the missing providers.",
       };
+    case "context_requirements_exhausted":
+      return {
+        action: "switch-combo",
+        next_step:
+          "Strict context requirements removed every target (known context windows are below minContextWindow). Lower minContextWindow, switch contextFilterMode to lenient, or add larger-context models.",
+      };
     default:
       return {
         action: "retry",
@@ -69,5 +75,49 @@ export function buildNoUpstreamResponseDiagnostics(poolSize: number): ComboDiagn
     excluded: [],
     attemptOrder: [],
     terminalReason: "no_upstream_response",
+  };
+}
+
+/**
+ * #8786: empty-pool payload after `applyContextRequirements`. When the
+ * pre-filter pool was non-empty, surface `context_requirements_exhausted`
+ * (with excluded targets) instead of a generic `no_executable_targets` 404.
+ * Lives here so combo.ts / targetResolution stay under the file-size freeze.
+ */
+export function buildEmptyComboTargetsPayload(
+  preContextTargets: ReadonlyArray<{ provider: string; modelStr: string }>,
+  minContextWindow?: number
+): { message: string; diagnostics: ComboDiagnostics } {
+  if (preContextTargets.length > 0) {
+    const minCtxLabel =
+      typeof minContextWindow === "number" && minContextWindow > 0
+        ? ` (minContextWindow: ${minContextWindow})`
+        : "";
+    return {
+      message: `Combo has no executable targets after context requirements filtering${minCtxLabel}`,
+      diagnostics: {
+        poolSize: preContextTargets.length,
+        attempted: 0,
+        excluded: preContextTargets.map((t) => ({
+          provider: t.provider,
+          model: t.modelStr,
+          reason: "context_requirements",
+        })),
+        attemptOrder: [],
+        terminalReason: "context_requirements_exhausted",
+        recovery: buildRecoveryHint("context_requirements_exhausted"),
+      },
+    };
+  }
+  return {
+    message: "Combo has no executable targets",
+    diagnostics: {
+      poolSize: 0,
+      attempted: 0,
+      excluded: [],
+      attemptOrder: [],
+      terminalReason: "no_executable_targets",
+      recovery: buildRecoveryHint("no_executable_targets"),
+    },
   };
 }

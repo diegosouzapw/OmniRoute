@@ -27,7 +27,13 @@ import { createHash } from "node:crypto";
 
 import { v4 as uuidv4 } from "uuid";
 
+import {
+  isExternalIdpAuthMethod,
+  KIRO_EXTERNAL_IDP_TOKEN_TYPE_HEADER,
+  KIRO_EXTERNAL_IDP_TOKEN_TYPE_VALUE,
+} from "./kiroExternalIdp.ts";
 import { resolveKiroRuntimeRegion } from "./kiroRegion.ts";
+import { supportsKiroAdaptiveThinking } from "../translator/request/openai-to-kiro/adaptiveThinking.ts";
 
 type RawRecord = Record<string, unknown>;
 
@@ -98,13 +104,6 @@ export function parseKiroModels(data: unknown): KiroModel[] {
   return models;
 }
 
-function stripSyntheticSuffixes(id: string): string {
-  let out = id;
-  if (out.endsWith("-agentic")) out = out.slice(0, -"-agentic".length);
-  if (out.endsWith("-thinking")) out = out.slice(0, -"-thinking".length);
-  return out;
-}
-
 function formatDisplayName(modelName: unknown, modelId: string, rateMultiplier: unknown): string {
   const base = toNonEmptyString(modelName) || modelId;
   const rate = Number(rateMultiplier);
@@ -115,40 +114,34 @@ function formatDisplayName(modelName: unknown, modelId: string, rateMultiplier: 
 }
 
 function buildVariants(upstream: string, displayName: string): KiroModel[] {
-  const safeUpstream = stripSyntheticSuffixes(upstream);
-  const display = displayName || `Kiro ${safeUpstream}`;
-  const isAuto = safeUpstream === "auto" || safeUpstream === "auto-kiro";
+  const display = displayName || `Kiro ${upstream}`;
   const variants: KiroModel[] = [
     {
-      id: safeUpstream,
+      id: upstream,
       name: display,
       owned_by: "kiro",
       capabilities: { thinking: false, agentic: false },
     },
-    {
-      id: `${safeUpstream}-thinking`,
+  ];
+
+  if (supportsKiroAdaptiveThinking(upstream)) {
+    variants.push({
+      id: `${upstream}-thinking`,
       name: `${display} (Thinking)`,
       owned_by: "kiro",
       capabilities: { thinking: true, agentic: false },
-    },
-  ];
-
-  if (!isAuto) {
-    variants.push({
-      id: `${safeUpstream}-agentic`,
-      name: `${display} (Agentic)`,
-      owned_by: "kiro",
-      capabilities: { thinking: false, agentic: true },
-    });
-    variants.push({
-      id: `${safeUpstream}-thinking-agentic`,
-      name: `${display} (Thinking + Agentic)`,
-      owned_by: "kiro",
-      capabilities: { thinking: true, agentic: true },
     });
   }
 
   return variants;
+}
+
+export function isObsoleteKiroModelAlias(modelId: unknown): boolean {
+  if (typeof modelId !== "string") return false;
+  if (modelId === "auto-kiro" || modelId.endsWith("-agentic")) return true;
+  if (!modelId.endsWith("-thinking")) return false;
+  const upstream = modelId.slice(0, -"-thinking".length);
+  return !supportsKiroAdaptiveThinking(upstream);
 }
 
 function expandKiroModels(data: unknown): KiroModel[] {
@@ -255,7 +248,7 @@ function buildKiroFingerprintHeaders(providerSpecificData: unknown, accessToken:
     `api/codewhispererruntime#${KIRO_RUNTIME_SDK_VERSION} m/N,E ` +
     `KiroIDE-${KIRO_IDE_VERSION}-${machineId}`;
 
-  return {
+  const headers: Record<string, string> = {
     "User-Agent": userAgent,
     "x-amz-user-agent": `aws-sdk-js/${KIRO_RUNTIME_SDK_VERSION} KiroIDE-${KIRO_IDE_VERSION}-${machineId}`,
     "x-amzn-kiro-agent-mode": "vibe",
@@ -264,6 +257,15 @@ function buildKiroFingerprintHeaders(providerSpecificData: unknown, accessToken:
     "amz-sdk-invocation-id": uuidv4(),
     Accept: "application/json",
   };
+
+  if (psd.authMethod === "api_key") {
+    headers.tokentype = "API_KEY";
+  }
+  if (isExternalIdpAuthMethod(psd.authMethod)) {
+    headers[KIRO_EXTERNAL_IDP_TOKEN_TYPE_HEADER] = KIRO_EXTERNAL_IDP_TOKEN_TYPE_VALUE;
+  }
+
+  return headers;
 }
 
 function cacheKey(accessToken: string, providerSpecificData: unknown): string {
@@ -273,7 +275,8 @@ function cacheKey(accessToken: string, providerSpecificData: unknown): string {
     toNonEmptyString(psd.clientId) ||
     accessToken ||
     "anonymous";
-  return createHash("sha256").update(`kiro:${seed}`).digest("hex");
+  const authMethod = toNonEmptyString(psd.authMethod) || "unknown";
+  return createHash("sha256").update(`kiro:${authMethod}:${seed}`).digest("hex");
 }
 
 async function tryFetchModels(

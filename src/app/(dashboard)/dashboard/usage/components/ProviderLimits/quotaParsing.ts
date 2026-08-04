@@ -54,14 +54,24 @@ function getResetAdjustedQuota(quota: any) {
 
 function normalizeQuotaEntry(name: string, quota: any = {}, extras: any = {}) {
   const adjusted = getResetAdjustedQuota(quota);
+  const remaining = Number(quota?.remaining);
   return {
     name,
     used: Number.isFinite(adjusted.used) ? adjusted.used : 0,
     total: adjusted.total,
+    ...(Number.isFinite(remaining) ? { remaining } : {}),
     resetAt: quota?.resetAt || null,
     staleAfterReset: adjusted.staleAfterReset,
     ...(adjusted.remainingPercentage !== undefined
       ? { remainingPercentage: adjusted.remainingPercentage }
+      : {}),
+    ...(quota?.extraCreditsInferred !== undefined
+      ? { extraCreditsInferred: Number(quota.extraCreditsInferred) || 0 }
+      : {}),
+    ...(quota?.overPlan !== undefined ? { overPlan: quota.overPlan === true } : {}),
+    ...(quota?.displayName !== undefined ? { displayName: String(quota.displayName) } : {}),
+    ...(quota?.isPercentageOnly !== undefined
+      ? { isPercentageOnly: quota.isPercentageOnly === true }
       : {}),
     ...extras,
   };

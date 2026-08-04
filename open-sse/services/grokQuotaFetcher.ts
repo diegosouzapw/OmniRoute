@@ -15,6 +15,9 @@
  * Registration: call registerGrokWebQuotaFetcher() once at server startup,
  * before registerGenericQuotaFetchers() — because the generic path doesn't
  * know how to resolve grok OIDC auth from a cookie-based connection.
+ *
+ * Shared billing helper: `fetchGrokBillingWithToken` / `grokBillingSnapshotToQuotaInfo`
+ * are also used by `xaiOauthQuotaFetcher.ts` (connection OAuth token path).
  */
 
 import { registerQuotaFetcher, registerQuotaWindows, type QuotaInfo } from "./quotaPreflight.ts";
@@ -100,6 +103,9 @@ interface UsageSnapshot {
   fetchedAt: number;
 }
 
+/** Public billing snapshot for the shared weekly credit pool (grok-web / xai-oauth). */
+export type GrokBillingSnapshot = UsageSnapshot;
+
 // ─── In-memory cache (per-connection, keyed by connectionId) ─────────────────
 
 interface CacheEntry {
@@ -181,7 +187,7 @@ function pickAuthEntry(file: Record<string, GrokAuthEntry>): ResolvedAuth | null
 
 function writeRefreshedTokens(
   entryId: string,
-  update: { access: string; refresh?: string; expiresAtIso: string },
+  update: { access: string; refresh?: string; expiresAtIso: string }
 ): void {
   const file = readAuthFile();
   if (!file || !file[entryId]) return;
@@ -314,6 +320,34 @@ function resetLocalLabel(endIso?: string): string {
   return `${weekday} ${hour.replace(/^24:/, "00:")}`;
 }
 
+/**
+ * Call xAI's shared weekly billing endpoint with an already-resolved Bearer token.
+ * Used by grok-web (local CLI OIDC) and xai-oauth (connection access token).
+ *
+ * Endpoint: GET https://cli-chat-proxy.grok.com/v1/billing?format=credits
+ * `creditUsagePercent` is percent **used** (0–100), matching grok.com Usage UI.
+ */
+export async function fetchGrokBillingWithToken(
+  token: string,
+  signal?: AbortSignal
+): Promise<GrokBillingSnapshot> {
+  const controller = signal ? null : new AbortController();
+  const timeout = controller ? setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS) : null;
+  try {
+    return await fetchBilling(token, signal ?? controller!.signal);
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+}
+
+/**
+ * Convert a billing snapshot into the preflight QuotaInfo contract.
+ * Single weekly window; percentUsed = creditUsagePercent / 100.
+ */
+export function grokBillingSnapshotToQuotaInfo(snap: GrokBillingSnapshot): QuotaInfo {
+  return snapshotToQuotaInfo(snap);
+}
+
 async function fetchBilling(token: string, signal: AbortSignal): Promise<UsageSnapshot> {
   const res = await fetch(BILLING_URL, {
     method: "GET",
@@ -395,7 +429,7 @@ function snapshotToQuotaInfo(snap: UsageSnapshot): QuotaInfo {
  */
 export async function fetchGrokWebQuota(
   connectionId: string,
-  _connection?: Record<string, unknown>,
+  _connection?: Record<string, unknown>
 ): Promise<QuotaInfo | null> {
   // Check cache first
   const cached = quotaCache.get(connectionId);

@@ -132,13 +132,9 @@ test("chatCore.ts calls runPluginOnResponseHook from both the non-streaming and 
   );
 
   const nonStreamingReturnIndex = source.indexOf("buildNonStreamingJsonResponse(translatedResponse");
-  const hookCallIndex = source.indexOf(
-    "await runPluginOnResponseHook({ requestId: traceId, body, model, provider, apiKeyInfo });"
-  );
-  const secondHookCallIndex = source.indexOf(
-    "await runPluginOnResponseHook({ requestId: traceId, body, model, provider, apiKeyInfo });",
-    hookCallIndex + 1
-  );
+  const hookCallNeedle = "await runPluginOnResponseHook({";
+  const hookCallIndex = source.indexOf(hookCallNeedle);
+  const secondHookCallIndex = source.indexOf(hookCallNeedle, hookCallIndex + 1);
 
   assert.notEqual(hookCallIndex, -1, "expected at least one runPluginOnResponseHook call site");
   assert.notEqual(
@@ -146,6 +142,14 @@ test("chatCore.ts calls runPluginOnResponseHook from both the non-streaming and 
     -1,
     "expected TWO runPluginOnResponseHook call sites — one per success branch " +
       "(non-streaming JSON return and streaming SSE return)"
+  );
+  assert.ok(
+    source.indexOf("response: { status: 200, data: translatedResponse }") !== -1,
+    "non-streaming branch must pass translatedResponse as plugin response data (#8711)"
+  );
+  assert.ok(
+    source.indexOf("response: { status: 200, streamed: true }") !== -1,
+    "streaming branch must pass streamed:true without materializing SSE body (#8711)"
   );
   assert.ok(
     hookCallIndex < nonStreamingReturnIndex,

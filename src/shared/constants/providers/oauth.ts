@@ -2,6 +2,8 @@
  * Provider catalog data — extracted from providers.ts (god-file decomposition).
  * Pure data literal; re-exported by the providers.ts barrel. No behavior change.
  */
+import { GITLAB_DUO_OAUTH_SETUP_MESSAGE } from "@/shared/constants/gitlabDuoSetupMessage";
+
 export const OAUTH_PROVIDERS = {
   "ghe-copilot": {
     id: "ghe-copilot",
@@ -122,8 +124,8 @@ export const OAUTH_PROVIDERS = {
     color: "#FC6D26",
     textIcon: "GL",
     website: "https://docs.gitlab.com/user/duo_agent_platform/code_suggestions/",
-    authHint:
-      "OAuth application with ai_features + read_user scopes. Configure GITLAB_DUO_OAUTH_CLIENT_ID and optionally GITLAB_DUO_OAUTH_CLIENT_SECRET on this OmniRoute instance.",
+    // #8688: full actionable recipe (same string as authorize error + OAuthModal setup step)
+    authHint: GITLAB_DUO_OAUTH_SETUP_MESSAGE,
   },
   cursor: {
     id: "cursor",

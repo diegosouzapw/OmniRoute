@@ -136,6 +136,7 @@ export default function QuotaSharePageClient() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [plans, setPlans] = useState<Record<string, PlanInfo>>({});
   const [createOpen, setCreateOpen] = useState(false);
+  const [removeError, setRemoveError] = useState<string | null>(null);
   const [editing, setEditing] = useState<QuotaPool | null>(null);
 
   // ── Group state ───────────────────────────────────────────────────────────
@@ -376,10 +377,31 @@ export default function QuotaSharePageClient() {
 
   // ── Mutations ─────────────────────────────────────────────────────────────
 
+  /**
+   * A failed delete must never look like a click that did nothing. Without the
+   * response check the page just revalidated and left the card in place, so a
+   * 401 from an expired session, a 500 or a dropped request were all
+   * indistinguishable from "I misclicked" — and the operator would click again.
+   */
   const handleRemovePool = useCallback(
     async (id: string) => {
       if (!confirm(t("removeConfirm"))) return;
-      await fetch(`/api/quota/pools/${id}`, { method: "DELETE" });
+      setRemoveError(null);
+      try {
+        const res = await fetch(`/api/quota/pools/${id}`, { method: "DELETE" });
+        if (!res.ok) {
+          const detail = await res
+            .json()
+            .then((b) => b?.error?.message || b?.error || b?.message)
+            .catch(() => null);
+          setRemoveError(detail ? `${t("removeFailed")} — ${detail}` : t("removeFailed"));
+          return;
+        }
+      } catch {
+        // Network-level failure: there is no response to read.
+        setRemoveError(t("removeFailed"));
+        return;
+      }
       await mutate();
     },
     [mutate, t]
@@ -389,6 +411,25 @@ export default function QuotaSharePageClient() {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Falha ao remover: dispensável, mas nunca silenciosa. */}
+      {removeError && (
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-[12px] text-red-700 dark:text-red-200"
+        >
+          <span className="material-symbols-outlined text-[16px] text-red-500 shrink-0">error</span>
+          <span className="flex-1">{removeError}</span>
+          <button
+            type="button"
+            onClick={() => setRemoveError(null)}
+            aria-label={t("dismiss")}
+            className="shrink-0 text-red-500 hover:text-red-400 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">close</span>
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>

@@ -96,7 +96,7 @@ function getNextSortOrder() {
 export async function getCombos(limit?: number, offset?: number) {
   const db = getDbInstance();
   let sql =
-    "SELECT data, sort_order, context_cache_protection FROM combos ORDER BY sort_order ASC, name COLLATE NOCASE ASC";
+    "SELECT id, data, sort_order, context_cache_protection FROM combos ORDER BY sort_order ASC, name COLLATE NOCASE ASC";
   const params: unknown[] = [];
   if (limit !== undefined) {
     sql += " LIMIT ? OFFSET ?";
@@ -357,4 +357,46 @@ export function setActiveCombo(name: string, db = getDbInstance()) {
   db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', 'activeCombo', ?)"
   ).run(JSON.stringify(name));
+}
+
+/**
+ * Null out any combo model step whose connectionId matches a deleted connection.
+ * Called after a provider connection is removed so combo routes don't carry
+ * stale references.
+ */
+export async function cleanupComboConnectionRefs(connectionId: string) {
+  const combos = await getCombos();
+  let touched = 0;
+  for (const combo of combos) {
+    if (!Array.isArray(combo.models)) continue;
+    let changed = false;
+    const models = (combo.models as unknown as Record<string, unknown>[]).map((step) => {
+      let out = step;
+      if (out.connectionId === connectionId) {
+        const { connectionId: _, ...rest } = out;
+        out = rest;
+        changed = true;
+      }
+      if (Array.isArray(out.allowedConnectionIds)) {
+        const filtered = out.allowedConnectionIds.filter(
+          (id: string) => id !== connectionId
+        );
+        if (filtered.length !== out.allowedConnectionIds.length) {
+          out = { ...out, allowedConnectionIds: filtered };
+          changed = true;
+        }
+      }
+      return out;
+    });
+    if (changed && typeof combo.id === "string") {
+      try {
+        const { id, ...rest } = combo;
+        await updateCombo(combo.id, { ...rest, models });
+        touched++;
+      } catch {
+        // One combo failing should not block cleanup of the rest.
+      }
+    }
+  }
+  return touched;
 }

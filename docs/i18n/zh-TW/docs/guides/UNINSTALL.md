@@ -22,7 +22,7 @@ OmniRoute 提供兩個內建指令碼來進行乾淨的移除：
 npm run uninstall
 ```
 
-此指令會移除 OmniRoute 應用程式，但**保留**您的資料庫、設定檔、API 金鑰及供應商設定於 `~/.omniroute/`。若您日後打算重新安裝並保留既有設定，請使用此方式。
+此指令會移除 OmniRoute 應用程式，但**保留**您的資料庫、設定檔、API 金鑰及提供者設定於 `~/.omniroute/`。若您日後打算重新安裝並保留既有設定，請使用此方式。
 
 ### 完整移除
 
@@ -33,12 +33,12 @@ npm run uninstall:full
 此指令會移除應用程式，**並永久刪除**所有資料：
 
 - 資料庫（`storage.sqlite`）
-- 供應商設定與 API 金鑰
+- 提供者設定與 API 金鑰
 - 備份檔案
 - 日誌檔案
 - `~/.omniroute/` 目錄中的所有檔案
 
-> ⚠️ **警告：** `npm run uninstall:full` 為不可逆操作。所有供應商連線、組合設定、API 金鑰及使用記錄都將永久刪除。
+> ⚠️ **警告：** `npm run uninstall:full` 為不可逆操作。所有提供者連線、組合設定、API 金鑰及使用記錄都將永久刪除。
 
 ---
 
@@ -118,24 +118,24 @@ rm -rf ~/.omniroute
 
 OmniRoute 預設將資料存放於以下位置：
 
-| 平台           | 預設路徑                       | 覆蓋方式                |
-| -------------- | ------------------------------ | ----------------------- |
-| Linux          | `~/.omniroute/`                | `DATA_DIR` 環境變數     |
-| macOS          | `~/.omniroute/`                | `DATA_DIR` 環境變數     |
-| Windows        | `%APPDATA%/omniroute/`         | `DATA_DIR` 環境變數     |
-| Docker         | `/app/data/`（掛載資料卷）     | `DATA_DIR` 環境變數     |
-| XDG 相容模式   | `$XDG_CONFIG_HOME/omniroute/`  | `XDG_CONFIG_HOME` 環境變數 |
+| 平台         | 預設路徑                      | 覆蓋方式                   |
+| ------------ | ----------------------------- | -------------------------- |
+| Linux        | `~/.omniroute/`               | `DATA_DIR` 環境變數        |
+| macOS        | `~/.omniroute/`               | `DATA_DIR` 環境變數        |
+| Windows      | `%APPDATA%/omniroute/`        | `DATA_DIR` 環境變數        |
+| Docker       | `/app/data/`（掛載資料卷）    | `DATA_DIR` 環境變數        |
+| XDG 相容模式 | `$XDG_CONFIG_HOME/omniroute/` | `XDG_CONFIG_HOME` 環境變數 |
 
 ### 資料目錄中的檔案
 
-| 檔案/目錄             | 說明                                    |
-| --------------------- | --------------------------------------- |
-| `storage.sqlite`      | 主要資料庫（供應商、組合、設定、金鑰）  |
-| `storage.sqlite-wal`  | SQLite 預寫式日誌（暫存）               |
-| `storage.sqlite-shm`  | SQLite 共享記憶體（暫存）               |
-| `call_logs/`          | 請求承載記錄封存                        |
-| `backups/`            | 自動資料庫備份                          |
-| `log.txt`             | 舊版請求日誌（選用）                    |
+| 檔案/目錄            | 說明                                   |
+| -------------------- | -------------------------------------- |
+| `storage.sqlite`     | 主要資料庫（提供者、組合、設定、金鑰） |
+| `storage.sqlite-wal` | SQLite 預寫式日誌（暫存）              |
+| `storage.sqlite-shm` | SQLite 共享記憶體（暫存）              |
+| `call_logs/`         | 請求承載記錄封存                       |
+| `backups/`           | 自動資料庫備份                         |
+| `log.txt`            | 舊版請求日誌（選用）                   |
 
 ---
 

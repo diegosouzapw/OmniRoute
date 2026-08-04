@@ -28,13 +28,18 @@ export interface QuotaTextFallback {
 // for the 5-hour subscription quota. Without a dedicated branch the request
 // falls through to the generic 429 retry path (~5s base cooldown).
 
-export function isSubscriptionQuotaText(lower: string): boolean {
+export function isSubscriptionQuotaText(lower: string, provider?: string | null): boolean {
   return (
     lower.includes("usage limit reached") ||
     lower.includes("usage limit has been") ||
     lower.includes("claude pro usage limit") ||
     lower.includes("you've reached your usage limit") ||
-    lower.includes("you have reached your usage limit")
+    lower.includes("you have reached your usage limit") ||
+    // Native Claude OAuth uses this otherwise-generic 429 wording for an
+    // exhausted subscription window. Keep it provider-scoped: other upstreams
+    // can use the same phrase for a short RPM throttle.
+    (provider === "claude" &&
+      lower.includes("this request would exceed your account's rate limit"))
   );
 }
 
@@ -55,9 +60,10 @@ const SUBSCRIPTION_QUOTA_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
 export function buildSubscriptionQuotaFallback(
   errorStr: string,
   getUpstreamRetryHintMs: () => number | null,
-  parseRetryFromErrorText: (text: string) => number | null
+  parseRetryFromErrorText: (text: string) => number | null,
+  provider?: string | null
 ): QuotaTextFallback | null {
-  if (!isSubscriptionQuotaText(errorStr.toLowerCase())) return null;
+  if (!isSubscriptionQuotaText(errorStr.toLowerCase(), provider)) return null;
   const hintMs = getUpstreamRetryHintMs();
   const bodyHint = parseRetryFromErrorText(errorStr);
   return {

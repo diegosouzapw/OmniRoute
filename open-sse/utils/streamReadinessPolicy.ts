@@ -1,3 +1,4 @@
+import { jsonLength } from "./jsonSize.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
 
 type StreamReadinessBody = Record<string, unknown> | null | undefined;
@@ -31,7 +32,10 @@ function countArrayField(body: StreamReadinessBody, field: "input" | "messages" 
 function estimateBodyChars(body: StreamReadinessBody): number {
   if (!body) return 0;
   try {
-    return JSON.stringify(body).length;
+    // #7847: count the serialized length without building the string — this runs on every
+    // streaming request, and only `.length` was ever used. jsonLength is exact (property-tested
+    // against JSON.stringify), so the readiness thresholds are unchanged.
+    return jsonLength(body);
   } catch {
     return 0;
   }

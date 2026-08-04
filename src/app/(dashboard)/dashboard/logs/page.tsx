@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { ConfirmModal, RequestLoggerV2 } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
@@ -25,7 +26,14 @@ function logsText(
   return values ? t(key, values) : t(key);
 }
 
-export default function LogsPage() {
+function LogsPageContent() {
+  const searchParams = useSearchParams();
+  // Read ONCE: #6830 fixed the detail modal reopening on first close by freezing this
+  // value, and the #8354 page rewrite regressed it by reading the live searchParams on
+  // every render — the prop flips mid-session and re-fires the child's deep-link effect
+  // exactly when the modal closes.
+  const [initialId] = useState(() => searchParams.get("id"));
+
   const [showExport, setShowExport] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [showCleanHistory, setShowCleanHistory] = useState(false);
@@ -45,14 +53,6 @@ export default function LogsPage() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  // initial id from URL (synchronously on client) so child can open on mount.
-  // Read once via lazy state: window.location lags router.replace() by one
-  // render, so re-reading it on every render flips this prop mid-session and
-  // re-triggers the child's deep-link effect right when the modal closes.
-  const [initialId] = useState(() =>
-    typeof window !== "undefined" ? new URL(window.location.href).searchParams.get("id") : null
-  );
 
   async function handleExport(hours: number) {
     setExporting(true);
@@ -236,5 +236,19 @@ export default function LogsPage() {
         loading={cleaningHistory}
       />
     </div>
+  );
+}
+
+export default function LogsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-12 text-text-muted text-sm">
+          Loading logs...
+        </div>
+      }
+    >
+      <LogsPageContent />
+    </Suspense>
   );
 }

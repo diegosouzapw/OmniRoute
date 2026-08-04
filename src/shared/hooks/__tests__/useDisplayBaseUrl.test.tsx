@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_DISPLAY_BASE_URL,
   isPublicDisplayBaseUrl,
+  normalizeBasePath,
   resolveDisplayBaseUrl,
 } from "../useDisplayBaseUrl";
 
@@ -140,6 +141,41 @@ describe("useDisplayBaseUrl", () => {
     expect(resolveDisplayBaseUrl("https://old.example.com", "https://api.example.com/")).toBe(
       "https://api.example.com"
     );
+  });
+
+  it("appends OMNIROUTE basePath when resolving a public browser origin", () => {
+    expect(
+      resolveDisplayBaseUrl(
+        "https://old.example.com",
+        "https://api.example.com/",
+        "/omniroute/dashboard",
+        "/omniroute"
+      )
+    ).toBe("https://api.example.com/omniroute");
+  });
+
+  it("keeps a configured public URL that already includes the basePath", () => {
+    expect(
+      resolveDisplayBaseUrl(
+        "https://api.example.com/omniroute",
+        "https://api.example.com",
+        "/omniroute/dashboard",
+        "/omniroute"
+      )
+    ).toBe("https://api.example.com/omniroute");
+  });
+
+  it("derives basePath from NEXT_PUBLIC_BASE_URL when env basePath is unset", () => {
+    expect(
+      resolveDisplayBaseUrl("https://api.example.com/omniroute", "https://api.example.com", "/")
+    ).toBe("https://api.example.com/omniroute");
+  });
+
+  it("normalizes basePath values without a leading slash", () => {
+    expect(normalizeBasePath("omniroute")).toBe("/omniroute");
+    expect(normalizeBasePath("/omniroute/")).toBe("/omniroute");
+    expect(normalizeBasePath("")).toBe("");
+    expect(normalizeBasePath("/")).toBe("");
   });
 
   it("prefers a public browser origin over a loopback build-time value", async () => {

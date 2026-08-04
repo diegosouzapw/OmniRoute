@@ -1,1 +1,0 @@
-- fix(sse): strip third-party-agent signals from the Hermes system prompt that trigger Anthropic 400 extra-usage (#8350)

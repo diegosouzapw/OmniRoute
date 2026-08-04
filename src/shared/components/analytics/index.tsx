@@ -16,11 +16,11 @@ export {
   ApiKeyTable,
   MostActiveDay7d,
   WeeklySquares7d,
-  ModelTable,
   UsageDetail,
   ProviderTable,
   ServiceTierBreakdown,
 } from "./charts";
+export { ModelTable } from "./ModelTable";
 export { AccountDonut, ApiKeyDonut, ProviderCostDonut } from "./rechartsDonuts";
 export { DailyTrendChart, ModelOverTimeChart } from "./rechartsUsageCharts";
 

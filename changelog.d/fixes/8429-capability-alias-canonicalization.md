@@ -1,1 +1,0 @@
-- fix(api): reach synced model_capabilities rows for canonical provider ids that only appear as an alias in MODELS_DEV_PROVIDER_MAP, e.g. codex/claude (#8429)

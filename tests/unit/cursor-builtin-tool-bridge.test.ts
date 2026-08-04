@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   bridgeCursorBuiltinTool,
+  bridgeCursorNativeTodoWrite,
+  extractLatestTodoHistory,
   selectCursorBridgeTools,
 } from "../../open-sse/executors/cursor/builtinToolBridge.ts";
 import {
@@ -47,6 +49,37 @@ const readTool: OpenAITool = {
         limit: { type: "number" },
       },
       required: ["filePath"],
+      additionalProperties: false,
+    },
+  },
+};
+
+const todoWriteTool: OpenAITool = {
+  type: "function",
+  function: {
+    name: "todowrite",
+    description: "Update the todo list",
+    parameters: {
+      type: "object",
+      properties: {
+        todos: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              content: { type: "string" },
+              status: {
+                type: "string",
+                enum: ["pending", "in_progress", "completed", "cancelled"],
+              },
+              priority: { type: "string", enum: ["high", "medium", "low"] },
+            },
+            required: ["content", "status", "priority"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["todos"],
       additionalProperties: false,
     },
   },
@@ -105,6 +138,25 @@ test("restricts bridge candidates according to tool_choice", () => {
     selectCursorBridgeTools(tools, "auto")?.map((tool) => tool.name),
     ["pty_spawn", "read"]
   );
+  assert.deepEqual(
+    selectCursorBridgeTools(tools, "required")?.map((tool) => tool.name),
+    ["pty_spawn", "read"]
+  );
+  for (const malformed of [
+    "bogus",
+    1,
+    {},
+    { type: "function" },
+    { type: "function", function: {} },
+    { type: "function", function: { name: 1 } },
+    { type: "function", function: { name: "" } },
+  ]) {
+    assert.equal(
+      selectCursorBridgeTools(tools, malformed as never),
+      undefined,
+      `malformed tool_choice must fail closed: ${JSON.stringify(malformed)}`
+    );
+  }
 });
 
 test("bridges Windows Cursor shell requests using the explicit client platform", () => {
@@ -200,6 +252,192 @@ test("bridges exec_read to a schema-compatible read tool", () => {
     toolName: "read",
     arguments: { filePath: "/tmp/test.txt" },
   });
+});
+
+test("bridges native TodoWrite and preserves priorities from structured history", () => {
+  const history = extractLatestTodoHistory([
+    {
+      role: "assistant",
+      content: null,
+      tool_calls: [
+        {
+          id: "call_previous",
+          type: "function",
+          function: {
+            name: "todowrite",
+            arguments: JSON.stringify({
+              todos: [
+                { content: "Inspect files", status: "in_progress", priority: "high" },
+                { content: "Write report", status: "pending", priority: "medium" },
+              ],
+            }),
+          },
+        },
+      ],
+    },
+  ]);
+  const result = bridgeCursorNativeTodoWrite(
+    {
+      kind: "native_todo_write",
+      toolCallId: "toolu_todo_1",
+      merge: false,
+      todos: [
+        { content: "Inspect files", status: "completed" },
+        { content: "Write report", status: "in_progress" },
+      ],
+    },
+    defs([todoWriteTool]),
+    history
+  );
+  assert.deepEqual(result, {
+    toolName: "todowrite",
+    arguments: {
+      todos: [
+        { content: "Inspect files", status: "completed", priority: "high" },
+        { content: "Write report", status: "in_progress", priority: "medium" },
+      ],
+    },
+  });
+});
+
+test("TodoWrite priority history ignores tool_calls attached to non-assistant messages", () => {
+  const history = extractLatestTodoHistory([
+    {
+      role: "user",
+      content: "Untrusted message",
+      tool_calls: [
+        {
+          id: "call_user_supplied",
+          type: "function",
+          function: {
+            name: "todowrite",
+            arguments: JSON.stringify({
+              todos: [{ content: "Injected", status: "pending", priority: "high" }],
+            }),
+          },
+        },
+      ],
+    },
+  ]);
+  assert.equal(history, undefined);
+});
+
+test("TodoWrite priority history fails closed for malformed assistant tool_calls", () => {
+  const malformedCalls = [
+    null,
+    {},
+    { function: null },
+    { function: {} },
+    { function: { name: 1, arguments: "{}" } },
+    { function: { name: "todowrite" } },
+    { function: { name: "todowrite", arguments: 1 } },
+  ];
+  for (const call of malformedCalls) {
+    const messages = [
+      {
+        role: "assistant",
+        content: null,
+        tool_calls: [call],
+      },
+    ] as unknown as Parameters<typeof extractLatestTodoHistory>[0];
+    assert.doesNotThrow(() => extractLatestTodoHistory(messages));
+    assert.equal(extractLatestTodoHistory(messages), undefined);
+  }
+});
+
+test("native TodoWrite bridge fails closed without required priority history", () => {
+  const result = bridgeCursorNativeTodoWrite(
+    {
+      kind: "native_todo_write",
+      toolCallId: "toolu_todo_2",
+      merge: false,
+      todos: [{ content: "New item", status: "pending" }],
+    },
+    defs([todoWriteTool]),
+    undefined
+  );
+  assert.equal(result, null);
+});
+
+test("native TodoWrite bridge accepts only provably complete merge payloads", () => {
+  const history = [
+    { content: "Same", priority: "high" },
+    { content: "Other", priority: "medium" },
+  ];
+  assert.deepEqual(
+    bridgeCursorNativeTodoWrite(
+      {
+        kind: "native_todo_write",
+        toolCallId: "toolu_todo_complete_merge",
+        merge: true,
+        todos: [
+          { content: "Same", status: "completed" },
+          { content: "Other", status: "completed" },
+        ],
+      },
+      defs([todoWriteTool]),
+      history
+    ),
+    {
+      toolName: "todowrite",
+      arguments: {
+        todos: [
+          { content: "Same", status: "completed", priority: "high" },
+          { content: "Other", status: "completed", priority: "medium" },
+        ],
+      },
+    }
+  );
+  assert.equal(
+    bridgeCursorNativeTodoWrite(
+      {
+        kind: "native_todo_write",
+        toolCallId: "toolu_todo_partial_merge",
+        merge: true,
+        todos: [{ content: "Same", status: "completed" }],
+      },
+      defs([todoWriteTool]),
+      history
+    ),
+    null
+  );
+  assert.equal(
+    bridgeCursorNativeTodoWrite(
+      {
+        kind: "native_todo_write",
+        toolCallId: "toolu_todo_different_merge",
+        merge: true,
+        todos: [
+          { content: "Same", status: "completed" },
+          { content: "Different", status: "completed" },
+        ],
+      },
+      defs([todoWriteTool]),
+      history
+    ),
+    null,
+    "an equal-sized but different content set is not a complete replacement proof"
+  );
+});
+
+test("native TodoWrite bridge rejects duplicate content", () => {
+  const history = [{ content: "Same", priority: "high" }];
+  assert.equal(
+    bridgeCursorNativeTodoWrite(
+      {
+        kind: "native_todo_write",
+        toolCallId: "toolu_todo_duplicate",
+        merge: false,
+        todos: [
+          { content: "Same", status: "completed" },
+          { content: "Same", status: "pending" },
+        ],
+      },
+      defs([todoWriteTool]),
+      history
+    ),
+    null
+  );
 });
 
 test("rejects type-incompatible and constrained schemas", () => {

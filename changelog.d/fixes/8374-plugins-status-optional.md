@@ -1,1 +1,0 @@
-- fix(api): accept a missing status query-param on GET /api/plugins instead of rejecting null with Invalid status value (#8374)

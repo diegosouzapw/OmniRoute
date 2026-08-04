@@ -35,7 +35,14 @@ test.after(() => {
 import {
   deriveKiroConnectionName,
   findKiroConnectionByProfileArn,
+  resolveKiroCliAuthMethod,
 } from "../../src/app/api/oauth/kiro/auto-import/route.ts";
+
+test("kiro-cli source keeps Builder ID and IdC as distinct auth methods", () => {
+  assert.equal(resolveKiroCliAuthMethod(undefined), "builder-id");
+  assert.equal(resolveKiroCliAuthMethod(null), "builder-id");
+  assert.equal(resolveKiroCliAuthMethod("arn:aws:codewhisperer:eu-central-1:1:profile/IDC"), "idc");
+});
 
 // ── (a) Display name derivation ───────────────────────────────────────────────
 
@@ -132,10 +139,7 @@ test("findKiroConnectionByProfileArn returns the matching connection", async () 
 });
 
 test("findKiroConnectionByProfileArn returns null when no match exists", async () => {
-  const result = await findKiroConnectionByProfileArn(
-    [fakeConnectionNoArn],
-    FAKE_PROFILE_ARN
-  );
+  const result = await findKiroConnectionByProfileArn([fakeConnectionNoArn], FAKE_PROFILE_ARN);
   assert.equal(result, null);
 });
 
@@ -145,9 +149,6 @@ test("findKiroConnectionByProfileArn returns null for empty connection list", as
 });
 
 test("findKiroConnectionByProfileArn returns null when profileArn arg is undefined", async () => {
-  const result = await findKiroConnectionByProfileArn(
-    [fakeConnectionWithArn],
-    undefined
-  );
+  const result = await findKiroConnectionByProfileArn([fakeConnectionWithArn], undefined);
   assert.equal(result, null);
 });

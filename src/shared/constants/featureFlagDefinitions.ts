@@ -234,7 +234,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
 
-  // ──────────────── Runtime (13) ────────────────
+  // ──────────────── Runtime (15) ────────────────
   {
     key: "RESPONSES_PASSTHROUGH_DROP_COMMENTARY",
     label: "Drop Responses Commentary",
@@ -393,6 +393,30 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     descriptionI18nKey: "featureFlagArenaEloSyncEnabledDescription",
     category: "runtime",
     defaultValue: "true",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "info",
+  },
+  {
+    key: "EXPOSE_CC_DISCOVERY_ALIASES",
+    label: "Claude Code Discovery Aliases",
+    description:
+      "Advertise claude/<provider>/<model> mirror ids on /v1/models so Claude Code gateway model discovery lists non-Claude models. Warning: doubles catalog entries for all clients when enabled globally.",
+    descriptionI18nKey: "featureFlagExposeCcDiscoveryAliasesDescription",
+    category: "runtime",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "info",
+  },
+  {
+    key: "EXPOSE_FUNCTIONAL_GATEWAY_MIRRORS",
+    label: "Functional Gateway Mirrors",
+    description:
+      "Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally.",
+    descriptionI18nKey: "featureFlagExposeFunctionalGatewayMirrorsDescription",
+    category: "runtime",
+    defaultValue: "false",
     type: "boolean",
     requiresRestart: false,
     warningLevel: "info",

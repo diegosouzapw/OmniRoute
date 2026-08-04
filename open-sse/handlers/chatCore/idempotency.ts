@@ -2,6 +2,11 @@ import { createHash } from "node:crypto";
 import { getIdempotencyKey, checkIdempotency } from "@/lib/idempotencyLayer";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import type { EffectiveServiceTier } from "./serviceTier.ts";
+
+type HeadersLike = Headers | Record<string, unknown> | null | undefined;
+type IdempotencyRequest = { headers?: HeadersLike } | null | undefined;
+type LoggerLike = { debug?: (...args: unknown[]) => void } | null | undefined;
 
 /**
  * NEXA fusion-idempotency fix: compose the effective idempotency key from the raw
@@ -55,13 +60,13 @@ export async function checkIdempotencyCache({
   startTime,
   log,
 }: {
-  clientRawRequest: unknown;
+  clientRawRequest: IdempotencyRequest;
   provider: string;
   model: string;
   body?: unknown;
-  effectiveServiceTier: unknown;
+  effectiveServiceTier: EffectiveServiceTier | null | undefined;
   startTime: number;
-  log: unknown;
+  log: LoggerLike;
 }): Promise<{ hit: { success: true; response: Response } | null; idempotencyKey: string | null }> {
   // NEXA fusion-idempotency fix: namespace the raw header key (see composeIdempotencyKey).
   const rawIdempotencyKey = getIdempotencyKey(clientRawRequest?.headers);

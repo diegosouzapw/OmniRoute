@@ -59,7 +59,7 @@ async function resolveLocalOverrideCredentials(provider) {
  */
 async function postHandler(request, context) {
   const parsed = await readMediaGenerationBody(request, log, "MUSIC");
-  if (!parsed.ok) {
+  if (parsed.state === "invalid") {
     return parsed.response;
   }
   const body = parsed.body;

@@ -51,8 +51,17 @@ export function checkTrackedArtifacts(trackedFiles, trackedSymlinks = []) {
   return violations;
 }
 
+/**
+ * `execFileSync` defaults to a 1 MiB stdout buffer and throws ENOBUFS past it.
+ * This check runs on pre-commit, so crossing that line breaks committing for
+ * the whole repo, not just the change that crossed it. `git ls-files -s` is
+ * already at ~1.04 MB here and only grows, so the ceiling is set far above any
+ * plausible tree instead of just above today's.
+ */
+const GIT_LS_OPTS = { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 };
+
 function getTrackedFiles() {
-  const output = execFileSync("git", ["ls-files"], { encoding: "utf8" });
+  const output = execFileSync("git", ["ls-files"], GIT_LS_OPTS);
   return output
     .split("\n")
     .map((l) => l.trim())
@@ -62,7 +71,7 @@ function getTrackedFiles() {
 function getTrackedSymlinks() {
   // git ls-files -s prints: <mode> <hash> <stage>\t<path>
   // mode 120000 = symlink
-  const output = execFileSync("git", ["ls-files", "-s"], { encoding: "utf8" });
+  const output = execFileSync("git", ["ls-files", "-s"], GIT_LS_OPTS);
   const symlinks = [];
   for (const line of output.split("\n")) {
     if (line.startsWith("120000")) {

@@ -7,6 +7,23 @@ const CLINE_OAUTH_TEST_CONFIG = {
   refreshable: true,
 };
 
+// Shared api.x.ai chat probe for apikey `xai` and OAuth `xai-oauth` / alias `xao`.
+const XAI_CHAT_OAUTH_TEST_CONFIG = {
+  url: "https://api.x.ai/v1/chat/completions",
+  method: "POST",
+  authHeader: "Authorization",
+  authPrefix: "Bearer ",
+  extraHeaders: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    model: "grok-4.3",
+    messages: [{ role: "user", content: "ping" }],
+    max_tokens: 1,
+    stream: false,
+    reasoning: { effort: "high" },
+  }),
+  refreshable: true,
+};
+
 // OAuth provider test endpoints. Extracted from route.ts (#7610) so adding a
 // provider entry doesn't grow the frozen route.ts file past its check-file-size
 // cap — this module carries no logic of its own beyond the GitLab URL builder.
@@ -63,21 +80,9 @@ export const OAUTH_TEST_CONFIG = {
     authPrefix: "Bearer ",
     refreshable: true,
   },
-  xai: {
-    url: "https://api.x.ai/v1/chat/completions",
-    method: "POST",
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    extraHeaders: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "grok-4.3",
-      messages: [{ role: "user", content: "ping" }],
-      max_tokens: 1,
-      stream: false,
-      reasoning: { effort: "high" },
-    }),
-    refreshable: true,
-  },
+  xai: XAI_CHAT_OAUTH_TEST_CONFIG,
+  "xai-oauth": XAI_CHAT_OAUTH_TEST_CONFIG,
+  xao: XAI_CHAT_OAUTH_TEST_CONFIG,
   github: {
     url: "https://api.github.com/user",
     method: "GET",

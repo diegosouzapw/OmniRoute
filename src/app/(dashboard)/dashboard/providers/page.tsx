@@ -30,11 +30,11 @@ import {
   shouldFilterProviderEntriesForDisplayMode,
   shouldShowFirstProviderHint,
   shouldShowProviderSection,
+  syncSearchToUrl,
   upsertProviderNodeById,
   loadProviderPageData,
 } from "./providerPageUtils";
 import type { ProviderEntry } from "./providerPageUtils";
-import { recordProviderNavigation, resolveHighlightedCard } from "./providerPageHighlightUtils";
 import {
   readProviderDisplayModePreference,
   shouldSyncProviderDisplayMode,
@@ -50,8 +50,7 @@ import AddCompatibleProviderModal from "./components/AddCompatibleProviderModal"
 import { CategoryDot } from "./components/CategoryDot";
 import { ImportProvidersFromFileModal } from "./components/ImportProvidersFromFileModal";
 import NoAuthProvidersSection from "./components/NoAuthProvidersSection";
-import ProviderCard from "./components/ProviderCard";
-import type { ProviderCardHandle } from "./components/ProviderCard";
+import HighlightableProviderCard from "./components/HighlightableProviderCard";
 import ProviderCountBadge from "./components/ProviderCountBadge";
 import ProviderSummaryCard from "./components/ProviderSummaryCard";
 import {
@@ -207,22 +206,6 @@ export default function ProvidersPage() {
   // #4240: media-category (serviceKind) filter — composes with activeCategory,
   // search and configured-only. null = no serviceKind filter.
   const [activeServiceKind, setActiveServiceKind] = useState<string | null>(null);
-
-  // a highlighted card is one that we should scroll into view and highlight upon navigation
-  const [highlightedProviderId, setHighlightedProviderId] = useState<string | null>(() => {
-    return history.state?.providerId ?? null;
-  });
-
-  const handleCardClick = useCallback((id: string) => {
-    recordProviderNavigation(id);
-  }, []);
-
-  const highlightedCardRef = useCallback(
-    (handle: ProviderCardHandle | null) => {
-      resolveHighlightedCard(handle, highlightedProviderId, () => setHighlightedProviderId(null));
-    },
-    [highlightedProviderId, setHighlightedProviderId]
-  );
   const notify = useNotificationStore();
   const sectionCategoryAliases: Record<string, string> = {
     cloud: "cloudagent",
@@ -256,6 +239,10 @@ export default function ProvidersPage() {
       setSearchQuery(searchFromUrl);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    syncSearchToUrl(searchQuery);
+  }, [searchQuery]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -927,7 +914,7 @@ export default function ProvidersPage() {
             data-testid="provider-compact-grid"
           >
             {compactProviderEntries.map((entry) => (
-              <ProviderCard
+              <HighlightableProviderCard
                 key={`compact-${entry.providerId}`}
                 providerId={entry.providerId}
                 provider={entry.provider}
@@ -936,9 +923,6 @@ export default function ProvidersPage() {
                 onToggle={(active) =>
                   handleToggleProvider(entry.providerId, entry.toggleAuthType, active)
                 }
-
-                onCardClick={handleCardClick}
-                ref={highlightedCardRef}
               />
             ))}
           </div>
@@ -1016,7 +1000,7 @@ export default function ProvidersPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                   {compatibleProviderEntries.map(
                     ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                      <ProviderCard
+                      <HighlightableProviderCard
                         key={providerId}
                         providerId={providerId}
                         provider={provider}
@@ -1025,9 +1009,6 @@ export default function ProvidersPage() {
                         onToggle={(active) =>
                           handleToggleProvider(providerId, toggleAuthType, active)
                         }
-
-                        onCardClick={handleCardClick}
-                        ref={highlightedCardRef}
                       />
                     )
                   )}
@@ -1093,7 +1074,7 @@ export default function ProvidersPage() {
                 {oauthProviderEntries
                   .filter((e) => !IDE_PROVIDER_IDS.has(e.providerId))
                   .map(({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                    <ProviderCard
+                    <HighlightableProviderCard
                       key={providerId}
                       providerId={providerId}
                       provider={provider}
@@ -1102,9 +1083,6 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
-
-                      onCardClick={handleCardClick}
-                      ref={highlightedCardRef}
                     />
                   ))}
               </div>
@@ -1154,7 +1132,7 @@ export default function ProvidersPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                   {ideProviderEntries.map(
                     ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                      <ProviderCard
+                      <HighlightableProviderCard
                         key={`ide-${providerId}`}
                         providerId={providerId}
                         provider={provider}
@@ -1163,9 +1141,6 @@ export default function ProvidersPage() {
                         onToggle={(active) =>
                           handleToggleProvider(providerId, toggleAuthType, active)
                         }
-
-                        onCardClick={handleCardClick}
-                        ref={highlightedCardRef}
                       />
                     )
                   )}
@@ -1207,16 +1182,13 @@ export default function ProvidersPage() {
               <p className="text-sm text-text-muted -mt-2">{t("webCookieProvidersDesc")}</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                 {webCookieProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
-                  <ProviderCard
+                  <HighlightableProviderCard
                     key={providerId}
                     providerId={providerId}
                     provider={provider}
                     stats={stats}
                     authType="web-cookie"
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-
-                    onCardClick={handleCardClick}
-                    ref={highlightedCardRef}
                   />
                 ))}
               </div>
@@ -1256,7 +1228,7 @@ export default function ProvidersPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                 {freeSectionEntries.map(
                   ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                    <ProviderCard
+                    <HighlightableProviderCard
                       key={`free-section-${providerId}`}
                       providerId={providerId}
                       provider={provider}
@@ -1265,9 +1237,6 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
-
-                      onCardClick={handleCardClick}
-                      ref={highlightedCardRef}
                     />
                   )
                 )}
@@ -1312,7 +1281,7 @@ export default function ProvidersPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                     {llmProviderEntries.map(
                       ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                        <ProviderCard
+                        <HighlightableProviderCard
                           key={providerId}
                           providerId={providerId}
                           provider={provider}
@@ -1321,9 +1290,6 @@ export default function ProvidersPage() {
                           onToggle={(active) =>
                             handleToggleProvider(providerId, toggleAuthType, active)
                           }
-
-                          onCardClick={handleCardClick}
-                          ref={highlightedCardRef}
                         />
                       )
                     )}
@@ -1383,16 +1349,13 @@ export default function ProvidersPage() {
               <p className="text-sm text-text-muted -mt-2">{t("upstreamProxyProvidersDesc")}</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                 {upstreamProxyEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
-                  <ProviderCard
+                  <HighlightableProviderCard
                     key={providerId}
                     providerId={providerId}
                     provider={provider}
                     stats={stats}
                     authType="upstream-proxy"
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-
-                    onCardClick={handleCardClick}
-                    ref={highlightedCardRef}
                   />
                 ))}
               </div>
@@ -1416,7 +1379,7 @@ export default function ProvidersPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                 {webFetchEntries.map(
                   ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                    <ProviderCard
+                    <HighlightableProviderCard
                       key={`webfetch-${providerId}`}
                       providerId={providerId}
                       provider={provider}
@@ -1425,9 +1388,6 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
-
-                      onCardClick={handleCardClick}
-                      ref={highlightedCardRef}
                     />
                   )
                 )}
@@ -1452,7 +1412,7 @@ export default function ProvidersPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                 {aggregatorProviderEntries.map(
                   ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                    <ProviderCard
+                    <HighlightableProviderCard
                       key={providerId}
                       providerId={providerId}
                       provider={provider}
@@ -1461,9 +1421,6 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
-
-                      onCardClick={handleCardClick}
-                      ref={highlightedCardRef}
                     />
                   )
                 )}
@@ -1488,7 +1445,7 @@ export default function ProvidersPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                 {enterpriseProviderEntries.map(
                   ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                    <ProviderCard
+                    <HighlightableProviderCard
                       key={providerId}
                       providerId={providerId}
                       provider={provider}
@@ -1497,9 +1454,6 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
-
-                      onCardClick={handleCardClick}
-                      ref={highlightedCardRef}
                     />
                   )
                 )}
@@ -1541,7 +1495,7 @@ export default function ProvidersPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                 {cloudAgentProviderEntries.map(
                   ({ providerId, provider, stats, toggleAuthType }) => (
-                    <ProviderCard
+                    <HighlightableProviderCard
                       key={providerId}
                       providerId={providerId}
                       provider={provider}
@@ -1550,9 +1504,6 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
-
-                      onCardClick={handleCardClick}
-                      ref={highlightedCardRef}
                     />
                   )
                 )}
@@ -1593,16 +1544,13 @@ export default function ProvidersPage() {
               <p className="text-sm text-text-muted -mt-2">{t("localProvidersDesc")}</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                 {localProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
-                  <ProviderCard
+                  <HighlightableProviderCard
                     key={providerId}
                     providerId={providerId}
                     provider={provider}
                     stats={stats}
                     authType="local"
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-
-                    onCardClick={handleCardClick}
-                    ref={highlightedCardRef}
                   />
                 ))}
               </div>
@@ -1642,16 +1590,13 @@ export default function ProvidersPage() {
               <p className="text-sm text-text-muted -mt-2">{t("searchProvidersDesc")}</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                 {searchProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
-                  <ProviderCard
+                  <HighlightableProviderCard
                     key={providerId}
                     providerId={providerId}
                     provider={provider}
                     stats={stats}
                     authType="search"
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-
-                    onCardClick={handleCardClick}
-                    ref={highlightedCardRef}
                   />
                 ))}
               </div>
@@ -1675,7 +1620,7 @@ export default function ProvidersPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                 {embeddingRerankProviderEntries.map(
                   ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                    <ProviderCard
+                    <HighlightableProviderCard
                       key={providerId}
                       providerId={providerId}
                       provider={provider}
@@ -1684,9 +1629,6 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
-
-                      onCardClick={handleCardClick}
-                      ref={highlightedCardRef}
                     />
                   )
                 )}
@@ -1711,7 +1653,7 @@ export default function ProvidersPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                 {imageProviderEntries.map(
                   ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                    <ProviderCard
+                    <HighlightableProviderCard
                       key={providerId}
                       providerId={providerId}
                       provider={provider}
@@ -1720,9 +1662,6 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
-
-                      onCardClick={handleCardClick}
-                      ref={highlightedCardRef}
                     />
                   )
                 )}
@@ -1763,16 +1702,13 @@ export default function ProvidersPage() {
               <p className="text-sm text-text-muted -mt-2">{t("audioProvidersDesc")}</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                 {audioProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
-                  <ProviderCard
+                  <HighlightableProviderCard
                     key={providerId}
                     providerId={providerId}
                     provider={provider}
                     stats={stats}
                     authType="audio"
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-
-                    onCardClick={handleCardClick}
-                    ref={highlightedCardRef}
                   />
                 ))}
               </div>
@@ -1796,7 +1732,7 @@ export default function ProvidersPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                 {videoProviderEntries.map(
                   ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                    <ProviderCard
+                    <HighlightableProviderCard
                       key={providerId}
                       providerId={providerId}
                       provider={provider}
@@ -1805,9 +1741,6 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
-
-                      onCardClick={handleCardClick}
-                      ref={highlightedCardRef}
                     />
                   )
                 )}

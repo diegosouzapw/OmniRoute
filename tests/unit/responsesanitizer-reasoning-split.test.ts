@@ -52,6 +52,34 @@ describe("responseSanitizer/reasoning — shouldParseTextualReasoningTags", () =
   });
 });
 
+describe("responseSanitizer/reasoning — Kimi Code K3 textual reasoning-tag route", () => {
+  it("extracts <think> blocks from the Kimi Code K3 route", () => {
+    const chunk = {
+      choices: [{ index: 0, delta: { content: "<think>reasoning here</think>final answer" } }],
+    };
+    const sanitized = sanitizeOpenAIResponse(chunk, {
+      parseTextualReasoningTags: shouldParseTextualReasoningTags("kimi-coding", "k3"),
+    }) as { choices: Array<{ delta: { content: string; reasoning_content?: string } }> };
+
+    const delta = sanitized.choices[0].delta;
+    assert.equal(delta.content, "final answer");
+    assert.equal(delta.reasoning_content, "reasoning here");
+  });
+
+  it("extracts <think> blocks from a K3 route", () => {
+    const chunk = {
+      choices: [{ index: 0, delta: { content: "<think>reasoning here</think>final answer" } }],
+    };
+    const sanitized = sanitizeOpenAIResponse(chunk, {
+      parseTextualReasoningTags: shouldParseTextualReasoningTags("kimi-coding", "k3"),
+    }) as { choices: Array<{ delta: { content: string; reasoning_content?: string } }> };
+
+    const delta = sanitized.choices[0].delta;
+    assert.equal(delta.content, "final answer");
+    assert.equal(delta.reasoning_content, "reasoning here");
+  });
+});
+
 // ── MiniMax M3 textual reasoning-tag route (9router#2231) ──────────────────────
 //
 // MiniMax M3 leaks raw <think>...</think> into `content` instead of a separate

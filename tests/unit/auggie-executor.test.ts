@@ -293,6 +293,34 @@ test("resolveAuggieModel resolves every pre-v0.32.0 alias to an allowlisted v0.3
   }
 });
 
+// The failure arm is read through an `isAuggieModelFailure()` type predicate — this
+// workspace compiles with `strictNullChecks: false`, where `!result.ok` narrows the
+// success branch but not the failure one, so `.error` was unreachable to the checker.
+// The predicate is a one-liner whose control flow inverts on a stray `!`, so pin both
+// arms: the failure arm must carry a usable message, the success arm must not claim one.
+test("resolveAuggieModel's failure arm carries a readable error message", () => {
+  const result = resolveAuggieModel("totally-not-a-real-model");
+  assert.equal(result.ok, false);
+  if (!result.ok) {
+    assert.equal(typeof result.error, "string");
+    assert.ok(result.error.length > 0, "the rejection must explain itself");
+    assert.match(result.error, /Unknown Auggie model/);
+  }
+});
+
+test("resolveAuggieModel's success arm resolves a model and reports no error", () => {
+  const result = resolveAuggieModel("haiku4.5");
+  assert.equal(result.ok, true);
+  if (result.ok) {
+    assert.equal(result.model, "haiku4.5");
+    assert.equal(
+      (result as unknown as { error?: unknown }).error,
+      undefined,
+      "the success arm must not carry a failure message"
+    );
+  }
+});
+
 // ─── execute(): model allowlist (argument-injection defense) ──────────────
 
 test("execute() rejects a model not in the registry allowlist and never spawns", async () => {

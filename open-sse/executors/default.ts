@@ -55,6 +55,7 @@ import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
 import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
 import { acquireNvidiaConcurrencySlot } from "./default/nvidiaConcurrencyGate.ts";
 import { resolveAlibabaProviderBaseUrl } from "@/shared/constants/alibabaProviderRegions";
+import { usesCcWireImage } from "../services/ccWireImageBuiltins.ts";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 
@@ -139,6 +140,21 @@ export class DefaultExecutor extends BaseExecutor {
       const normalized = baseUrl.replace(/\/$/, "");
       return `${normalized}${customPath || "/messages"}`;
     }
+    // An alternate protocol selected on the connection carries a complete endpoint
+    // URL, so it must bypass the per-provider normalizers in the switch below —
+    // those assume the provider's default (OpenAI-shaped) path and would mangle it,
+    // e.g. appending "/chat/completions" to an Anthropic ".../v1/messages" endpoint.
+    {
+      const alternate = this.resolveAlternate(credentials);
+      const manualBaseUrl = credentials?.providerSpecificData?.baseUrl;
+      const hasManualBaseUrl = typeof manualBaseUrl === "string" && !!manualBaseUrl;
+      if (alternate?.baseUrl && !hasManualBaseUrl) {
+        // Operator's manual override (#6147) keeps its own semantics and falls
+        // through to the provider-specific handling below.
+        const normalized = alternate.baseUrl.replace(/\/$/, "");
+        return `${normalized}${alternate.chatPath || ""}${alternate.urlSuffix || ""}`;
+      }
+    }
     switch (this.provider) {
       case "openai": {
         // #5842: responses-only models (o1-pro / gpt-5.x-pro) 404 on
@@ -222,7 +238,8 @@ export class DefaultExecutor extends BaseExecutor {
         const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeSapChatUrl(baseUrl);
       }
-      case "xiaomi-mimo": {
+      case "xiaomi-mimo":
+      case "xiaomi-mimo-token-plan": {
         const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeXiaomiMimoChatUrl(baseUrl);
       }
@@ -275,6 +292,10 @@ export class DefaultExecutor extends BaseExecutor {
       case "minimax":
       case "minimax-cn":
         return `${this.config.baseUrl}?beta=true`;
+      case "agentrouter":
+        return this.usesClaudeCodeProtocol(credentials)
+          ? `${this.config.baseUrl}?beta=true`
+          : this.config.baseUrl;
       case "gemini":
         return `${this.config.baseUrl}/${model}:${stream ? "streamGenerateContent?alt=sse" : "generateContent"}`;
       default: {
@@ -397,7 +418,7 @@ export class DefaultExecutor extends BaseExecutor {
         applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, false);
         break;
       default:
-        if (isClaudeCodeCompatible(this.provider)) {
+        if (this.usesClaudeCodeProtocol(credentials)) {
           const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
             credentials?.providerSpecificData
           );
@@ -407,6 +428,10 @@ export class DefaultExecutor extends BaseExecutor {
             credentials?.providerSpecificData?.ccSessionId,
             { redactThinking: ccRequestDefaults.redactThinking === true }
           );
+          if (usesCcWireImage(this.provider)) {
+            delete ccHeaders["Authorization"];
+            ccHeaders["x-api-key"] = effectiveKey || credentials.accessToken || "";
+          }
           // CC nodes are also anthropic-compatible-*, so honor operator custom
           // headers here (the early return skips the shared block below).
           applyCustomHeaders(ccHeaders, credentials.providerSpecificData?.customHeaders);
@@ -443,9 +468,12 @@ export class DefaultExecutor extends BaseExecutor {
             headers["anthropic-version"] = "2023-06-01";
           }
         } else {
-          // Use registry authHeader if available, otherwise default to bearer
+          // Use registry authHeader if available, otherwise default to bearer.
+          // An alternate protocol selected on the connection carries its own auth
+          // scheme (e.g. claude uses x-api-key where openai uses bearer).
           const entry = getRegistryEntry(this.provider);
-          const authHeader = entry?.authHeader || "bearer";
+          const alternate = this.resolveAlternate(credentials);
+          const authHeader = alternate?.authHeader || entry?.authHeader || "bearer";
           const token = effectiveKey || credentials.accessToken || entry?.anonymousApiKey;
           if (token) {
             if (authHeader === "x-api-key") {

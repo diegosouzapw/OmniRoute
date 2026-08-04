@@ -17,6 +17,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { comboErrorResponse } from "@/lib/api/comboErrorResponse";
 import { computeComboContextLength } from "@/lib/combos/comboContext";
 import { ComboInvariantError } from "@/lib/combos/invariants";
+import { buildComboNameCollisionWarning } from "@/lib/combos/modelNameCollision";
 
 // GET /api/combos - Get all combos
 export async function GET(request: Request) {
@@ -120,7 +121,12 @@ export async function POST(request) {
     // Auto sync to Cloud if enabled
     await syncToCloudIfEnabled();
 
-    return NextResponse.json(combo, { status: 201 });
+    // #8530: a combo named after a real model id is a supported pattern
+    // (#6940 — bare-model-id provider fallback), so it is never rejected.
+    // Surface it as a non-blocking warning so the dashboard/API caller can
+    // confirm it was intentional instead of silently shadowing the model.
+    const warning = buildComboNameCollisionWarning(name);
+    return NextResponse.json(warning ? { ...combo, warning } : combo, { status: 201 });
   } catch (error) {
     if (error instanceof ComboInvariantError) {
       return comboErrorResponse("COMBO_008", 400, { reason: error.message }, request);

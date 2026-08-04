@@ -1,1 +1,0 @@
-- fix(db): stop closing the single sql.js singleton during getDbInstance()'s probe/reopen sequence, which poisoned every boot with "Database closed" once both sync SQLite drivers were unavailable (#7494)

@@ -217,6 +217,15 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     textIcon: "MM",
     website: "https://mimo.mi.com",
   },
+  "xiaomi-mimo-token-plan": {
+    id: "xiaomi-mimo-token-plan",
+    alias: "mimotp",
+    name: "Xiaomi MiMo Token Plan",
+    icon: "devices",
+    color: "#EA580C",
+    textIcon: "MT",
+    website: "https://mimo.mi.com",
+  },
   baidu: {
     id: "baidu",
     alias: "baidu",

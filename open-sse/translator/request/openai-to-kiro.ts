@@ -11,7 +11,10 @@ import {
   normalizeKiroToolSchema,
   serializeToolResultContent,
 } from "./openai-to-kiro/messageHelpers.ts";
-import { supportsKiroAdaptiveThinking } from "./openai-to-kiro/adaptiveThinking.ts";
+import {
+  resolveKiroModelAlias,
+  supportsKiroAdaptiveThinking,
+} from "./openai-to-kiro/adaptiveThinking.ts";
 
 /**
  * Anthropic's direct-provider `[1m]` context-1m beta suffix. Kiro is AWS
@@ -580,26 +583,6 @@ function convertMessages(messages, tools, model) {
 /** Kiro's accepted reasoning-effort levels (`output_config.effort`). */
 const KIRO_EFFORT_LEVELS = ["low", "medium", "high", "xhigh", "max"];
 
-function resolveKiroModelAlias(model: string): { upstream: string; thinking: boolean } {
-  let upstream = String(model || "");
-  let thinking = false;
-
-  if (upstream.endsWith("-agentic")) {
-    upstream = upstream.slice(0, -"-agentic".length);
-  }
-  if (upstream.endsWith("-thinking")) {
-    upstream = upstream.slice(0, -"-thinking".length);
-    thinking = true;
-  }
-  if (upstream === "auto-kiro") {
-    upstream = "auto";
-  }
-
-  upstream = upstream.replace(/^(claude-(?:opus|sonnet|haiku|3-\d+)-\d+)-(\d{1,2})$/, "$1.$2");
-
-  return { upstream, thinking };
-}
-
 /**
  * Resolve the Kiro effort level for a request, or "" when no reasoning was asked
  * for. Effort sources, in priority order:
@@ -680,15 +663,14 @@ export function buildKiroPayload(model, body, stream, credentials) {
   if (hasUnsupportedKiroContextSuffix(model)) {
     throw new Error(KIRO_UNSUPPORTED_CONTEXT_1M_MESSAGE);
   }
-
   // Normalize model name: Claude Code sends dashes (claude-sonnet-4-6),
   // Kiro API expects dots (claude-sonnet-4.6). Convert trailing version segment.
   // The minor group is bounded to 1-2 digits so date-suffixed ids (e.g.
   // claude-opus-4-20250514) are never mistaken for a dash-separated minor
   // version and corrupted into claude-opus-4.20250514 (upstream 9router #2270).
-  // Synthetic Kiro selector variants (`-thinking`, `-agentic`) are local aliases:
-  // strip them before the request leaves OmniRoute so Kiro only receives real
-  // upstream model IDs. We intentionally do not inject an agentic system prompt here.
+  // The supported `-thinking` selector is a local alias: strip it before the request leaves
+  // OmniRoute so Kiro only receives a real upstream model ID. Non-functional agentic and
+  // auto-kiro aliases are rejected above instead of silently degrading to another model.
   const { upstream: normalizedModel, thinking: modelRequestsThinking } =
     resolveKiroModelAlias(model);
   const messages = body.messages || [];

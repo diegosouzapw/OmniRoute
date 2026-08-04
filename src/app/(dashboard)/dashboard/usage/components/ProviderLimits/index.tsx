@@ -8,7 +8,7 @@ import {
   formatQuotaLabel,
   formatCountdown,
   normalizePlanTier,
-  resolvePlanValue,
+  buildProviderLimitsResolvedPlans,
   calculatePercentage,
   matchesProviderFilter,
   buildProviderOptions,
@@ -535,13 +535,10 @@ export default function ProviderLimits({
   }, [filteredConnections]);
   const visibleQuotaData = useVisibleQuotaData(sortedConnections, quotaData);
 
-  const resolvedPlanByConnection = useMemo(() => {
-    const out: Record<string, string | null> = {};
-    for (const conn of sortedConnections) {
-      out[conn.id] = resolvePlanValue(quotaData[conn.id]?.plan, conn.providerSpecificData);
-    }
-    return out;
-  }, [sortedConnections, quotaData]);
+  const resolvedPlanByConnection = useMemo(
+    () => buildProviderLimitsResolvedPlans(sortedConnections, quotaData),
+    [sortedConnections, quotaData]
+  );
 
   const tierByConnection = useMemo(() => {
     const out: Record<string, ReturnType<typeof normalizePlanTier>> = {};

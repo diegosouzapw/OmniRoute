@@ -253,7 +253,7 @@ export class HailuoWebExecutor extends BaseExecutor {
     super("hailuo-web", { id: "hailuo-web", baseUrl: BASE_URL });
   }
 
-  private buildHeaders(token: string, yy: string): Record<string, string> {
+  private buildStreamHeaders(token: string, yy: string): Record<string, string> {
     return {
       Accept: "text/event-stream",
       "User-Agent": USER_AGENT,
@@ -357,7 +357,7 @@ export class HailuoWebExecutor extends BaseExecutor {
     form.set("chatID", chatID);
     form.set("searchMode", "0");
 
-    return { url: `${BASE_URL}${pathAndQuery}`, headers: this.buildHeaders(token, yy), form };
+    return { url: `${BASE_URL}${pathAndQuery}`, headers: this.buildStreamHeaders(token, yy), form };
   }
 
   /** POST the signed multipart request and normalize both network + upstream-status errors. */

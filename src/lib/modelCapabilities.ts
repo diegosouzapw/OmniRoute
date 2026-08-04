@@ -4,7 +4,7 @@ import {
 } from "@omniroute/open-sse/config/providerModels.ts";
 import { parseModel, resolveCanonicalProviderModel } from "@omniroute/open-sse/services/model.ts";
 import {
-  MODEL_SPECS,
+  findModelSpecIdByExactOrAlias,
   getAuthoritativeContextWindow,
   getAuthoritativeProviderContextWindow,
   getModelSpec,
@@ -16,6 +16,10 @@ import { getModelContextOverride } from "@/lib/db/modelContextOverrides";
 import { getModelCapabilityOverride } from "@/lib/db/modelCapabilityOverrides";
 import { isVisionModelId } from "@/shared/constants/visionModels";
 import { getUnsupportedParams } from "@omniroute/open-sse/config/providerRegistry.ts";
+import {
+  getLearnedThinkingCap,
+  GEMINI_FALLBACK_THINKING_CAP,
+} from "@omniroute/open-sse/services/learnedThinkingCaps.ts";
 
 const TOOL_CALLING_UNSUPPORTED_PATTERNS: string[] = [
   // Specialty / non-chat surfaces must never inherit optimistic tool defaults (#8016)
@@ -224,6 +228,13 @@ function heuristicMaxTokens(modelStr: string): boolean {
   return !blocked;
 }
 
+/** Last path segment of a path-shaped model id (`cline-pass/kimi-k3` → `kimi-k3`). */
+function leafModelId(modelId: string | null | undefined): string | null {
+  if (!modelId || !modelId.includes("/")) return null;
+  const leaf = modelId.split("/").filter(Boolean).pop() ?? null;
+  return leaf && leaf !== modelId ? leaf : null;
+}
+
 function getStaticSpec(modelId: string | null, rawModel: string | null): ModelSpec | undefined {
   if (modelId) {
     const byCanonical = getModelSpec(modelId);
@@ -231,6 +242,29 @@ function getStaticSpec(modelId: string | null, rawModel: string | null): ModelSp
   }
   if (rawModel && rawModel !== modelId) {
     return getModelSpec(rawModel);
+  }
+  return undefined;
+}
+
+/**
+ * #8032: vision-only leaf fallback for path-shaped routed ids.
+ *
+ * Must NOT live in getStaticSpec() — that helper also feeds supportsTools /
+ * supportsThinking / contextWindow / maxOutputTokens. A shared leaf lookup
+ * incorrectly promotes e.g. aihorde/deepseek/deepseek-v4-flash to the real
+ * DeepSeek V4 Flash tool-calling spec (#8212 regression).
+ */
+function getVisionStaticSpec(
+  modelId: string | null,
+  rawModel: string | null
+): ModelSpec | undefined {
+  const direct = getStaticSpec(modelId, rawModel);
+  if (direct) return direct;
+  for (const candidate of [modelId, rawModel]) {
+    const leaf = leafModelId(candidate);
+    if (!leaf) continue;
+    const byLeaf = getModelSpec(leaf);
+    if (byLeaf) return byLeaf;
   }
   return undefined;
 }
@@ -251,17 +285,18 @@ function getAuthoritativeStaticContextWindow(
   return null;
 }
 
+// #8697-adjacent: this used to rescan Object.entries(MODEL_SPECS) per candidate per
+// call — the top hotspot in a full catalog-rebuild profile once the pricing-path and
+// getCanonicalModelSpecId() bottlenecks were fixed. Reuses the lazy index already built
+// for getCanonicalModelSpecId() (@/shared/constants/modelSpecs) instead of duplicating a
+// second cache over the same static table.
 function getStaticSpecCanonicalModelId(modelId: string | null, rawModel: string | null) {
   const candidates = [modelId, rawModel].filter(
     (candidate): candidate is string => typeof candidate === "string" && candidate.length > 0
   );
   for (const candidate of candidates) {
-    const lower = candidate.toLowerCase();
-    for (const [canonical, spec] of Object.entries(MODEL_SPECS)) {
-      if (canonical === "__default__") continue;
-      if (canonical.toLowerCase() === lower) return canonical;
-      if (spec.aliases?.some((alias) => alias.toLowerCase() === lower)) return canonical;
-    }
+    const hit = findModelSpecIdByExactOrAlias(candidate);
+    if (hit) return hit;
   }
   return null;
 }
@@ -277,7 +312,14 @@ function stripLatestAlias(modelId: string | null): string | null {
   return stripped && stripped !== modelId ? stripped : null;
 }
 
-function reverseModelsDevProviders(provider: string): string[] {
+// #8697-adjacent: MODELS_DEV_PROVIDER_MAP is a static module constant, so the result
+// of reverseModelsDevProviders() never changes for a given provider — memoized by
+// provider key instead of rescanning Object.entries(MODELS_DEV_PROVIDER_MAP) on every
+// call (called once per model in a catalog rebuild). Never evicted — bounded by the
+// number of distinct providers ever queried (~50-100 in practice), negligible memory.
+const reverseModelsDevProvidersCache = new Map<string, readonly string[]>();
+
+function reverseModelsDevProviders(provider: string): readonly string[] {
   // models.dev may store capabilities under a different OmniRoute provider id
   // that also maps from the same upstream models.dev provider. Build reverse
   // candidates from MODELS_DEV_PROVIDER_MAP (e.g. openai ↔ cx).
@@ -287,6 +329,9 @@ function reverseModelsDevProviders(provider: string): string[] {
   // list their alias (cx/cc), never the canonical id. Also probe the
   // provider's alias so a canonical id like "codex"/"claude" still matches
   // the map entries keyed only by "cx"/"cc" (#8429).
+  const cached = reverseModelsDevProvidersCache.get(provider);
+  if (cached) return cached;
+
   const out = new Set<string>();
   const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   for (const [modelsDevId, omniIds] of Object.entries(MODELS_DEV_PROVIDER_MAP)) {
@@ -300,7 +345,12 @@ function reverseModelsDevProviders(provider: string): string[] {
       for (const id of omniIds) out.add(id);
     }
   }
-  return [...out];
+  // Frozen: the result is now shared across every future call for this provider (via
+  // the cache above) instead of a fresh array per call — freeze prevents an accidental
+  // caller mutation (e.g. .push()) from corrupting the cache for everyone else.
+  const result = Object.freeze([...out]);
+  reverseModelsDevProvidersCache.set(provider, result);
+  return result;
 }
 
 function getSyncedCapabilityForResolved(
@@ -318,6 +368,8 @@ function getSyncedCapabilityForResolved(
           const values = [candidate];
           const stripped = stripLatestAlias(candidate);
           if (stripped) values.push(stripped);
+          const leaf = leafModelId(candidate);
+          if (leaf) values.push(leaf);
           // models.dev often stores OpenAI-family specialty models as qualified
           // ids under another mapped provider, e.g. vercel + "openai/whisper-1".
           if (!candidate.includes("/")) {
@@ -410,6 +462,14 @@ function resolveVisionCapability(
     // can be reconciled to a single vision-capable verdict.
     if (synced.attachment === false && modalitiesDeclareVision(allModalities)) {
       return true;
+    }
+    // #8032: attachment=false without modalities must not beat authoritative
+    // registry/spec vision for path-shaped custom/routed ids (e.g. Cline Pass
+    // `cp/cline-pass/kimi-k3` → MODEL_SPECS["kimi-k3"].supportsVision).
+    if (synced.attachment === false) {
+      if (registryModel?.supportsVision === true) return true;
+      if (spec?.supportsVision === true) return true;
+      return false;
     }
     return synced.attachment;
   }
@@ -534,8 +594,12 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
 
   const maxTokenOverride = getMaxTokenCapabilityOverride(resolved);
 
+  // Vision consults leaf static metadata for path-shaped ids; other capability
+  // fields keep using the non-leaf `spec` from getStaticSpec() above.
+  const visionSpec = getVisionStaticSpec(resolved.model, resolved.rawModel);
+
   const supportsVision = resolveVisionCapability(
-    spec,
+    visionSpec,
     registryModel,
     synced,
     modalitiesInput,
@@ -619,9 +683,45 @@ export function getDefaultThinkingBudget(input: CapabilityInput): number {
   return getResolvedModelCapabilities(input).defaultThinkingBudget;
 }
 
+/**
+ * Clamp a requested thinking budget to the model's real ceiling.
+ *
+ * Resolution order (lowest wins):
+ *  1. Registry cap (MODEL_SPECS.thinkingBudgetCap) — authoritative when present.
+ *  2. Learned cap — a lower ceiling previously discovered via an upstream 400
+ *     ("thinking_budget must be in the range ...") recorded by the executor
+ *     (open-sse/services/learnedThinkingCaps.ts). In-memory, per provider+model.
+ *  3. Gemini-family fallback — when the registry has no cap but the model id
+ *     contains "gemini" (any provider: many providers host Gemini models), clamp
+ *     to GEMINI_FALLBACK_THINKING_CAP (32768, the known pro-tier cap) instead of
+ *     letting an xhigh budget (131072) sail through to a 400. Registered flash
+ *     models already carry their explicit 24576 cap via rule 1, so this only
+ *     fires for unregistered Gemini ids.
+ */
 export function capThinkingBudget(input: CapabilityInput, budget: number): number {
-  const cap = getResolvedModelCapabilities(input).thinkingBudgetCap ?? budget;
-  return Math.min(budget, cap);
+  const resolved = getResolvedModelCapabilities(input);
+  let cap = resolved.thinkingBudgetCap;
+
+  const modelId = resolved.model ?? resolved.rawModel ?? "";
+  const modelLower = modelId.toLowerCase();
+  // Learned-cap lookup needs a concrete provider key (the executor records under
+  // `this.provider`). When the input is a bare Gemini id, `resolved.provider` is
+  // null — but bare Gemini ids always route to the native Gemini provider, so
+  // default to "gemini". Without this a cap learned via the executor would be
+  // invisible to bare-model callers. Provider-qualified inputs keep their own
+  // provider, preserving per-provider independence.
+  const providerForLearned = resolved.provider ?? (modelLower.includes("gemini") ? "gemini" : null);
+
+  const learned = getLearnedThinkingCap(providerForLearned, modelId);
+  if (learned !== null) {
+    cap = cap === null ? learned : Math.min(cap, learned);
+  }
+
+  if (cap === null && modelLower.includes("gemini")) {
+    cap = GEMINI_FALLBACK_THINKING_CAP;
+  }
+
+  return Math.min(budget, cap ?? budget);
 }
 
 export function getModelContextLimit(

@@ -30,7 +30,7 @@ const UUID_V7_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9
 type LMArenaExecutorTestAccess = {
   provider: string;
   buildUrl: (model: string, credentials: unknown) => string;
-  buildHeaders: (model: string, credentials: unknown, body: unknown) => Record<string, string>;
+  buildRequestHeaders: (model: string, credentials: unknown, body: unknown) => Record<string, string>;
   transformRequest: (
     body: unknown,
     model: string,
@@ -133,7 +133,7 @@ describe("LMArena Executor", () => {
 
   it("builds headers with cookie", () => {
     const executor = new LMArenaExecutor();
-    const headers = access(executor).buildHeaders("gpt-4", { cookie: "session=abc123" }, {});
+    const headers = access(executor).buildRequestHeaders("gpt-4", { cookie: "session=abc123" }, {});
     assert.ok(headers.Cookie, "Should have Cookie header");
     assert.equal(headers.Cookie, "session=abc123");
     assert.equal(headers["Content-Type"], "application/json");
@@ -142,7 +142,7 @@ describe("LMArena Executor", () => {
 
   it("builds headers without cookie when not provided", () => {
     const executor = new LMArenaExecutor();
-    const headers = access(executor).buildHeaders("gpt-4", {}, {});
+    const headers = access(executor).buildRequestHeaders("gpt-4", {}, {});
     assert.ok(!headers.Cookie, "Should not have Cookie header when no cookie provided");
   });
 
@@ -151,19 +151,19 @@ describe("LMArena Executor", () => {
     const ex = access(executor);
 
     // Direct cookie field
-    let headers = ex.buildHeaders("gpt-4", { cookie: "session=abc" }, {});
+    let headers = ex.buildRequestHeaders("gpt-4", { cookie: "session=abc" }, {});
     assert.equal(headers.Cookie, "session=abc");
 
     // apiKey field (dashboard form)
-    headers = ex.buildHeaders("gpt-4", { apiKey: "session=def" }, {});
+    headers = ex.buildRequestHeaders("gpt-4", { apiKey: "session=def" }, {});
     assert.equal(headers.Cookie, "session=def");
 
     // providerSpecificData.cookie
-    headers = ex.buildHeaders("gpt-4", { providerSpecificData: { cookie: "session=ghi" } }, {});
+    headers = ex.buildRequestHeaders("gpt-4", { providerSpecificData: { cookie: "session=ghi" } }, {});
     assert.equal(headers.Cookie, "session=ghi");
 
     // Priority: direct > apiKey > providerSpecificData
-    headers = ex.buildHeaders("gpt-4", { cookie: "session=abc", apiKey: "session=def" }, {});
+    headers = ex.buildRequestHeaders("gpt-4", { cookie: "session=abc", apiKey: "session=def" }, {});
     assert.equal(headers.Cookie, "session=abc");
   });
 

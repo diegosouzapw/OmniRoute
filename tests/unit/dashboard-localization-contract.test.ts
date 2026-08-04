@@ -183,6 +183,9 @@ test("production audit regressions stay localized and provider icons stay bounde
   }
 
   const endpoint = readSource("src/app/(dashboard)/dashboard/endpoint/EndpointPageClient.tsx");
+  // Anchor: the page component itself, so the raw-copy guards below cannot pass
+  // against a file that was moved, renamed, or split apart.
+  assert.match(endpoint, /export default function APIPageClient\(/);
   for (const rawText of [
     'label: "Context Sources"',
     ">Active Endpoints<",

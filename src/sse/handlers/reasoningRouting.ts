@@ -1,7 +1,7 @@
 import { getComboForModel, getModelInfo } from "../services/model";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
-import { validateApiKeyRoutingTarget } from "@/shared/utils/apiKeyPolicy";
+import { validateApiKeyRoutingTarget, type ApiKeyMetadata } from "@/shared/utils/apiKeyPolicy";
 import { resolveRequestRoutingTags } from "@/domain/tagRouter";
 import * as log from "../utils/logger";
 import {
@@ -14,15 +14,10 @@ import {
   type ReasoningRuleDecision,
 } from "@/lib/reasoningRouting/policy";
 
-type ApiKeyInfo = {
-  id?: string | null;
-  scopes?: string[];
-  [key: string]: unknown;
-};
 
 type RoutingPolicy = {
   apiKey?: string | null;
-  apiKeyInfo?: ApiKeyInfo | null;
+  apiKeyInfo?: ApiKeyMetadata | null;
 };
 
 type ReasoningRoutingResult = {
@@ -48,13 +43,25 @@ async function resolveDecision(input: Parameters<typeof resolveReasoningRoutingR
   }
 }
 
+/**
+ * Either the rewritten request, or a `response` to short-circuit with. Declared
+ * rather than inferred: two of the three returns carry only `response`, so the
+ * inferred union had arms without `body`/`modelStr` at all and the caller could
+ * not read them.
+ */
+type AppliedDecision = {
+  body?: unknown;
+  modelStr?: string;
+  response: Response | null;
+};
+
 function applyDecision(
   request: Request,
   body: any,
   policy: RoutingPolicy,
-  apiKeyInfo: ApiKeyInfo | null,
+  apiKeyInfo: ApiKeyMetadata | null,
   decision: ReasoningRuleDecision
-) {
+): AppliedDecision | Promise<AppliedDecision> {
   if (decision.capability === "unsupported" && !decision.targetCombo) {
     return {
       response: errorResponse(
@@ -99,7 +106,7 @@ export async function applyReasoningRouting({
   body: any;
   modelStr: string;
   policy: RoutingPolicy;
-  apiKeyInfo: ApiKeyInfo | null;
+  apiKeyInfo: ApiKeyMetadata | null;
   reasoningIntent?: ExtractedReasoningIntent | null;
 }): Promise<ReasoningRoutingResult> {
   const stableReasoningIntent = reasoningIntent || extractReasoningIntent(modelStr, body);
@@ -125,16 +132,9 @@ export async function applyReasoningRouting({
     comboId: typeof requestedCombo?.id === "string" ? requestedCombo.id : null,
     requestTags: requestRoutingTags.tags,
   });
-  if (decision && "error" in decision) {
-    return {
-      body,
-      modelStr,
-      reasoningIntent: stableReasoningIntent,
-      reasoningDecision: null,
-      requestRoutingTags,
-      response: decision.error,
-    };
-  }
+  // Guards are split rather than combined: `decision && "error" in decision`
+  // only narrows its *true* branch, so the union kept the `{ error }` arm all
+  // the way down and every later use of `decision` saw it.
   if (!decision) {
     return {
       body,
@@ -143,6 +143,16 @@ export async function applyReasoningRouting({
       reasoningDecision: null,
       requestRoutingTags,
       response: null,
+    };
+  }
+  if ("error" in decision) {
+    return {
+      body,
+      modelStr,
+      reasoningIntent: stableReasoningIntent,
+      reasoningDecision: null,
+      requestRoutingTags,
+      response: decision.error,
     };
   }
 
@@ -198,7 +208,7 @@ export async function applyConnectionReasoningRule({
   provider: string;
   effectiveModel: string;
   credentials: any;
-  apiKeyInfo: ApiKeyInfo | null;
+  apiKeyInfo: ApiKeyMetadata | null;
   reasoningIntent?: ExtractedReasoningIntent | null;
   reasoningDecision?: ReasoningRuleDecision | null;
   requestRoutingTags?: string[];

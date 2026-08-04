@@ -18,6 +18,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { QUOTA_MODEL_PREFIX } from "@/lib/quota/quotaModelNaming";
 import { comboErrorResponse } from "@/lib/api/comboErrorResponse";
 import { ComboInvariantError } from "@/lib/combos/invariants";
+import { buildComboNameCollisionWarning } from "@/lib/combos/modelNameCollision";
 
 // Minimal shape for the fields we read off a combo row in this route.
 // `getComboById` returns a structurally `JsonRecord`-typed object, so we
@@ -249,7 +250,13 @@ export async function PUT(request, { params }) {
     // Auto sync to Cloud if enabled
     await syncToCloudIfEnabled();
 
-    return NextResponse.json(combo);
+    // #8530: a combo renamed to a real model id is a supported pattern
+    // (#6940 — bare-model-id provider fallback), so it is never rejected.
+    // Surface it as a non-blocking warning instead of silently shadowing it.
+    const warning = comboName
+      ? buildComboNameCollisionWarning(String(comboName))
+      : null;
+    return NextResponse.json(warning ? { ...combo, warning } : combo);
   } catch (error) {
     if (error instanceof ComboInvariantError) {
       return comboErrorResponse("COMBO_008", 400, { reason: error.message }, request);

@@ -168,6 +168,10 @@
     "noModelsFound": "No models found",
     "clear": "Clear",
     "done": "Done",
+    "selectAll": "Pilih semua",
+    "unselectAll": "Batalkan semua pilihan",
+    "visibleModels": "terlihat",
+    "selectAllConfirm": "Tambahkan {count} model ke kombinasi ini?",
     "errorOccurred": "Error Occurred",
     "comboDeleted": "Combo Deleted",
     "hide": "Hide",
@@ -933,6 +937,7 @@
   "disabled": "Dinonaktifkan",
   "featureFlagOmnirouteEmergencyFallbackDescription": "Arahkan permintaan yang kehabisan anggaran ke penyedia/model fallback gratis darurat.",
   "featureFlagArenaEloSyncEnabledDescription": "Aktifkan sinkronisasi ELO papan peringkat Arena AI berkala untuk peringkat kecerdasan model.",
+  "featureFlagExposeCcDiscoveryAliasesDescription": "__MISSING__:Advertise claude/&lt;provider&gt;/&lt;model&gt; mirror ids on /v1/models so Claude Code gateway model discovery lists non-Claude models. Warning: doubles catalog entries for all clients when enabled globally.",
   "sidebar": {
     "home": "Rumah",
     "dashboard": "Dasbor",
@@ -1113,6 +1118,7 @@
     "providerQuota": "Provider Quota",
     "runtime": "Runtime",
     "consoleLogs": "Console Logs",
+    "logsTimeline": "Timeline",
     "globalRouting": "Global Routing",
     "mitmProxy": "MITM Proxy",
     "oneProxy": "1Proxy",
@@ -1158,6 +1164,7 @@
     "logsSubtitle": "Application logs",
     "logsProxySubtitle": "Proxy traffic logs",
     "consoleLogsSubtitle": "Console output",
+    "logsTimelineSubtitle": "__MISSING__:Visual request timeline",
     "logsActivitySubtitle": "User activity log",
     "healthSubtitle": "System health check",
     "costsPricingSubtitle": "Per-model pricing rules",
@@ -2938,7 +2945,15 @@
     "copilotPasteInto": "Tempel ke:",
     "copilotReloadInstruction": "Kemudian muat ulang VS Code dan atur kunci API di prompt input.",
     "wireApiChatCompletions": "Penyelesaian Obrolan (/chat/penyelesaian)",
-    "wireApiResponses": "API Respons (/respons)"
+    "wireApiResponses": "API Respons (/respons)",
+    "ccDiscoveryInfoButton": "__MISSING__:How to enable discovery in Claude Code",
+    "ccDiscoveryInfoTooltip": "__MISSING__:Advertise non-Claude models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Doubles catalog entries for all clients when enabled globally.",
+    "ccDiscoveryInfoLink": "__MISSING__:Open Feature Flags",
+    "ccOnboardingTitle": "__MISSING__:settings.json for gateway model discovery",
+    "ccOnboardingCopy": "__MISSING__:Copy",
+    "ccOnboardingCopied": "__MISSING__:Copied",
+    "ccOnboardingKeyPlaceholder": "__MISSING__:<your OmniRoute API key>",
+    "ccOnboardingWindowNote": "__MISSING__:Claude Code assumes a 200K context window for any model id it does not recognize. For a model with a different real window, add CLAUDE_CODE_AUTO_COMPACT_WINDOW just under it so auto-compaction does not fire too early."
   },
   "combos": {
     "title": "kombo",
@@ -3689,7 +3704,7 @@
     "modelsCount": "{count, plural, one {# model} other {# models}}",
     "sectionTitle": "Integration Surface",
     "sectionDescription": "OpenAI-compatible APIs and operational protocol endpoints",
-    "tabApis": "OpenAI-compatible APIs",
+    "tabApis": "__MISSING__:APIs",
     "tabProtocols": "Protocols",
     "tabsAria": "Endpoint sections",
     "protocolsTitle": "Protocols",
@@ -4958,10 +4973,12 @@
     "noNewModelsToImport": "Tidak ada model baru untuk diimpor — semua model sudah ada di registri atau daftar model kustom",
     "skippingExistingModels": "Melewatkan {count} model yang sudah ada",
     "autoSync": "Sinkronisasi Otomatis",
+    "autoSyncShort": "Sinkronkan",
     "autoSyncTooltip": "Segarkan daftar model secara otomatis setiap 24 jam (dapat dikonfigurasi melalui MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Sinkronisasi otomatis diaktifkan — model akan disegarkan secara berkala",
     "autoSyncDisabled": "Sinkronisasi otomatis dinonaktifkan",
     "autoSyncToggleFailed": "Gagal mengaktifkan sinkronisasi otomatis",
+    "autoSyncPartialFailure": "Sinkronisasi otomatis diperbarui untuk beberapa koneksi, tetapi tidak semua",
     "clearAllModels": "Hapus Semua Model",
     "clearAllModelsConfirm": "Apakah Anda yakin ingin menghapus semua model untuk penyedia ini?",
     "clearAllModelsSuccess": "Semua model dihapus",
@@ -5394,8 +5411,8 @@
     "t3ChatWebCookieHint": "Buka t3.chat → DevTools → Aplikasi → Penyimpanan Lokal → https://t3.chat, salin 'convex-session-id'. Lalu buka DevTools → Jaringan, salin header Cookie lengkap dari permintaan obrolan apa pun. Tempelkan kedua nilai pada kolom di bawah.",
     "t3ChatWebCookiePlaceholder": "id-sesi-cembung=abc123...",
     "grokWebCookieHint": "Grok Web Cookie Hint",
-    "blockClaudeExtraUsageDescription": "Block Claude Extra Usage Description",
-    "blockClaudeExtraUsageLabel": "Block Claude Extra Usage Label",
+    "blockClaudeExtraUsageDescription": "__MISSING__:When enabled, OmniRoute marks this Claude connection unavailable as soon as the usage API reports queued extra usage, so fallback switches to another connection instead of continuing on pay-as-you-go extra billing.",
+    "blockClaudeExtraUsageLabel": "__MISSING__:Block extra Claude usage",
     "disableCoolingDescription": "Lewati cooldown transien agar koneksi ini tetap memenuhi syarat bahkan setelah kesalahan yang dapat dipulihkan (status terminal seperti diblokir/kedaluwarsa tetap berlaku).",
     "disableCoolingLabel": "Nonaktifkan cooldown untuk koneksi ini",
     "bulkPasteAdded": "{count, plural, one {1 key added} other {# keys added}}",
@@ -5574,13 +5591,13 @@
     "importGrokAuth": "Impor autentikasi Grok Build",
     "zedImportTitle": "Impor dari Zed Keychain",
     "zedImportDescription": "Temukan kredensial penyedia AI (OpenAI, Anthropic, Google, Mistral, xAI) yang disimpan oleh Zed IDE di keychain OS dan impor sebagai koneksi. Zed IDE harus terinstal di mesin ini.",
-    "zedImportButton": "Zed Import Button",
-    "zedImportFailed": "Zed Import Failed",
+    "zedImportButton": "__MISSING__:Import from Zed",
+    "zedImportFailed": "__MISSING__:Zed import failed",
     "zedImportHint": "Zed Import Hint",
     "zedImportNetworkError": "Zed Import Network Error",
     "zedImportNone": "Zed Import None",
-    "zedImportSuccess": "Zed Import Success",
-    "zedImporting": "Zed Importing",
+    "zedImportSuccess": "__MISSING__:Imported {credentials} credential(s) from Zed for {providers} provider(s)",
+    "zedImporting": "__MISSING__:Importing…",
     "zedNoCredentials": "Tidak ada kredensial Zed yang ditemukan di keychain",
     "zedUnsupportedCredentials": "Ditemukan {count} kredensial keychain, tetapi tidak ada yang cocok dengan penyedia yang didukung",
     "zedManualTitle": "Impor Token Manual",
@@ -5961,7 +5978,21 @@
     "lmarenaWebCookieHint": "Buka arena.ai, masuk, lalu salin header Cookie lengkap dari permintaan Network. Sertakan arena-auth-prod-v1.0 dan arena-auth-prod-v1.1 (dan chunk selanjutnya jika ada), sebaiknya dengan cf_clearance. Jangan hanya menempelkan cookie arena-auth-prod-v1 yang kosong. Opsional: providerSpecificData.recaptchaV3Token jika create-evaluation masih mengembalikan 403.",
     "kimiOfficialSupporterBadge": "Sahabat Pendiri",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) adalah sahabat open source pendiri OmniRoute",
-    "kimiPartnerLinkNote": "Tautan mitra — mendukung OmniRoute tanpa biaya tambahan bagi Anda"
+    "cheaperInferenceSupporterBadge": "Teman Open Source",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference mendukung OmniRoute sebagai Teman Open Source",
+    "kimiPartnerLinkNote": "Tautan mitra — mendukung OmniRoute tanpa biaya tambahan bagi Anda",
+    "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
+    "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
+    "ccAliasProviderLevelLabel": "__MISSING__:Provider default",
+    "ccAliasModelOverridesLabel": "__MISSING__:Per-model overrides",
+    "ccAliasModelOverrideAriaLabel": "__MISSING__:Override for {modelId}",
+    "ccAliasStateInherit": "__MISSING__:Inherit",
+    "ccAliasStateOn": "__MISSING__:On",
+    "ccAliasStateOff": "__MISSING__:Off",
+    "ccAliasAddModelPlaceholder": "__MISSING__:Model id (e.g. gpt-4o)",
+    "ccAliasAddModelButton": "__MISSING__:Add override",
+    "ccAliasLoadError": "__MISSING__:Failed to load discovery-alias settings: {error}",
+    "ccAliasSaveError": "__MISSING__:Failed to save discovery-alias setting: {error}"
   },
   "settings": {
     "title": "Pengaturan",
@@ -6721,7 +6752,7 @@
     "howPricingWorks": "Bagaimana Penetapan Harga Bekerja",
     "cacheWrite": "Tulis Cache",
     "unsaved": "belum disimpan",
-    "resetDefaults": "Atur Ulang Default",
+    "resetDefaults": "__MISSING__:Reset defaults",
     "saveProvider": "Simpan Penyedia",
     "model": "Model",
     "models": "model",
@@ -7270,6 +7301,10 @@
       "less-code": {
         "label": "Lebih sedikit kode",
         "description": "Tangga YAGNI: perubahan kerja terkecil, tanpa abstraksi yang tidak diminta."
+      },
+      "ponytail": {
+        "label": "Ponytail (lazy senior dev)",
+        "description": "Lazy senior-dev discipline: climb the YAGNI ladder, fix root cause, smallest working diff."
       },
       "terse-cjk": {
         "label": "CJK Ringkas (文言)",
@@ -9688,8 +9723,23 @@
     "deviceCodeVerificationUrl": "URL verifikasi",
     "deviceCodeYourCode": "Kode Anda",
     "deviceCodeWaiting": "Menunggu otorisasi...",
-    "googleOAuthWarning": "Akses jarak jauh + Google OAuth: Kredensial default hanya menerima pengalihan ke <code>localhost</code>. Setelah otorisasi, browser Anda akan mencoba membuka <code>localhost</code> — salin URL lengkap tersebut dan tempel di bawah. Untuk penggunaan jarak jauh sepenuhnya tanpa langkah manual ini, <a>konfigurasi kredensial OAuth Anda sendiri</a>.",
+    "googleLoopbackTitle": "__MISSING__:Google sign-in can't complete from this address",
+    "googleLoopbackWhatHappens": "__MISSING__:Google only releases the authorization code once <code>{redirectUri}</code> is reachable from the browser that approves the sign-in. Here that address points at this computer, not at the OmniRoute server — so the consent screen hangs instead of redirecting, and there is no callback URL to copy.",
+    "googleLoopbackRecommended": "__MISSING__:Recommended — run this on your own computer, then paste the result below:",
+    "googleLoopbackHelperNote": "__MISSING__:It opens the Google consent locally (where 127.0.0.1 works) and prints a one-line omniroute-cred-v1.… blob. Paste that blob into the Step 2 field below — it accepts a credential blob as well as a callback URL.",
+    "googleLoopbackTunnelLabel": "__MISSING__:Or forward the dashboard port over SSH and reload OmniRoute through the tunnel:",
+    "googleLoopbackTunnelNote": "__MISSING__:Replace {userPlaceholder} with your SSH username, keep the terminal open, then open {localUrl} and connect again from there.",
+    "googleLoopbackHeadlessAlt": "__MISSING__:For fully headless use with no local callback at all, <a>configure your own Google OAuth credentials</a> plus a public base URL.",
     "remoteAccessInfo": "Akses jarak jauh: Karena Anda mengakses OmniRoute dari jarak jauh, setelah otorisasi Anda akan melihat halaman kesalahan (localhost tidak ditemukan). Ini normal — cukup salin URL lengkap dari bilah alamat browser Anda dan tempelkan di bawah.",
+    "loopbackMismatchTitle": "__MISSING__:Sign-in can't complete from this address",
+    "loopbackMismatchWhatHappened": "__MISSING__:What's happening",
+    "loopbackMismatchExplanation": "__MISSING__:After you approve the login, {providerName} always sends the browser back to <code>{redirectUri}</code>. That address points at the computer running this browser, not at the OmniRoute server — so the authorization code never reaches OmniRoute and the provider fails the sign-in without showing an error.",
+    "loopbackMismatchHowToFix": "__MISSING__:How to fix it",
+    "loopbackMismatchStep1": "__MISSING__:On this computer, open a terminal and start an SSH tunnel to the OmniRoute server:",
+    "loopbackMismatchStep1Note": "__MISSING__:Replace {userPlaceholder} with your SSH username. Keep this terminal open until the connection shows as active — both ports are needed: one serves the dashboard, the other receives the callback.",
+    "loopbackMismatchStep2": "__MISSING__:In this browser, reopen OmniRoute through the tunnel:",
+    "loopbackMismatchStep3": "__MISSING__:Then connect {providerName} again from the new tab. The callback now reaches the server and the login completes normally.",
+    "loopbackMismatchAlternative": "__MISSING__:No SSH access? If this provider offers a token import tab, connect with a token instead — that path doesn't use a loopback callback.",
     "step1OpenUrl": "Langkah 1: Buka URL ini di browser Anda",
     "copy": "Salin",
     "step2PasteCallback": "Langkah 2: Tempelkan URL panggilan balik atau kode otorisasi di sini",
@@ -10476,7 +10526,9 @@
     "deleteGroupConfirm": "Hapus grup ini? Pool di dalamnya harus dialihkan atau dihapus terlebih dahulu.",
     "deleteGroupHasPools": "Grup ini masih memiliki pool — alihkan atau hapus terlebih dahulu.",
     "ungroupedTitle": "Tanpa Grup",
-    "ungroupedHint": "Pool ini tidak ditetapkan ke grup yang dikenal. Edit pool untuk memindahkannya ke grup yang sebenarnya."
+    "ungroupedHint": "Pool ini tidak ditetapkan ke grup yang dikenal. Edit pool untuk memindahkannya ke grup yang sebenarnya.",
+    "removeFailed": "Could not remove this pool.",
+    "dismiss": "Dismiss"
   },
   "plugins": {
     "title": "Plugins",
@@ -11784,7 +11836,8 @@
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "Aktifkan akses jaringan di sandbox keterampilan."
       }
-    }
+    },
+    "ccDiscoveryAliasesEnvWarning": "__MISSING__:Active via environment variable (EXPOSE_CC_DISCOVERY_ALIASES) — this overrides any dashboard toggle below."
   },
   "comboControl": {
     "title": "Pusat Kontrol Kombo",
@@ -12131,5 +12184,6 @@
     "cta": "Dapatkan Kimi Code",
     "partnerLinkNote": "Tautan mitra",
     "dismissAriaLabel": "Tutup"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

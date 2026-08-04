@@ -108,3 +108,88 @@ test("OpencodeExecutor.buildHeaders: preserves x-opencode-client from client hea
   });
   assert.equal(headers["x-opencode-client"], "desktop");
 });
+
+// ---------------------------------------------------------------------------
+// #8467 — Extra API Keys rotation (resolveEffectiveKey)
+// ---------------------------------------------------------------------------
+
+test("OpencodeExecutor.buildHeaders: rotates extra API keys (Bearer)", () => {
+  const executor = new OpencodeExecutor("opencode-zen");
+  const credentials = {
+    apiKey: "primary-key",
+    connectionId: "opencode-rotation-bearer",
+    providerSpecificData: { extraApiKeys: ["extra-key"] } as Record<string, unknown>,
+  };
+
+  // Clear sticky selectedKeyId between calls so getValidApiKey round-robin is exercised.
+  const seen = new Set<string>();
+  for (let i = 0; i < 4; i++) {
+    delete credentials.providerSpecificData.selectedKeyId;
+    const headers = executor.buildHeaders(credentials, true);
+    const token = headers["Authorization"]?.replace(/^Bearer /, "");
+    assert.ok(token === "primary-key" || token === "extra-key", `unexpected token: ${token}`);
+    seen.add(token ?? "");
+  }
+  assert.ok(seen.has("primary-key"));
+  assert.ok(seen.has("extra-key"));
+  assert.ok(
+    typeof credentials.providerSpecificData.selectedKeyId === "string" &&
+      credentials.providerSpecificData.selectedKeyId.length > 0,
+    "selectedKeyId should be persisted after rotation"
+  );
+});
+
+test("OpencodeExecutor.buildHeaders: rotates extra API keys (claude x-api-key)", () => {
+  const executor = new OpencodeExecutor("opencode-zen");
+  executor._requestFormat = "claude";
+  const credentials = {
+    apiKey: "primary-key",
+    connectionId: "opencode-rotation-claude",
+    providerSpecificData: { extraApiKeys: ["extra-key"] } as Record<string, unknown>,
+  };
+
+  const seen = new Set<string>();
+  for (let i = 0; i < 4; i++) {
+    delete credentials.providerSpecificData.selectedKeyId;
+    const headers = executor.buildHeaders(credentials, true);
+    const key = headers["x-api-key"];
+    assert.ok(key === "primary-key" || key === "extra-key", `unexpected x-api-key: ${key}`);
+    seen.add(key ?? "");
+  }
+  assert.ok(seen.has("primary-key"));
+  assert.ok(seen.has("extra-key"));
+});
+
+test("OpencodeExecutor.buildHeaders: empty primary + extras still sends Authorization", () => {
+  const executor = new OpencodeExecutor("opencode-go");
+  const headers = executor.buildHeaders(
+    {
+      apiKey: "",
+      connectionId: "opencode-empty-primary",
+      providerSpecificData: { extraApiKeys: ["only-extra-key"] },
+    },
+    true
+  );
+  assert.equal(headers["Authorization"], "Bearer only-extra-key");
+});
+
+test("OpencodeExecutor.buildHeaders: #8467 guard — override uses resolveEffectiveKey path", async () => {
+  // Source-level guard: OpencodeExecutor overrides buildHeaders and must not
+  // reintroduce a direct credentials.apiKey read that bypasses extra-keys rotation.
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const { fileURLToPath } = await import("node:url");
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const source = fs.readFileSync(
+    path.resolve(here, "../../open-sse/executors/opencode.ts"),
+    "utf8"
+  );
+  const buildHeadersStart = source.indexOf("buildHeaders(");
+  assert.ok(buildHeadersStart >= 0);
+  const buildHeadersBody = source.slice(buildHeadersStart, buildHeadersStart + 1200);
+  assert.match(buildHeadersBody, /resolveEffectiveKey\s*\(/);
+  assert.doesNotMatch(
+    buildHeadersBody,
+    /credentials\?\.apiKey\s*\|\|\s*credentials\?\.accessToken/
+  );
+});

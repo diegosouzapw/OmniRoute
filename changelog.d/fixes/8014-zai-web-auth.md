@@ -1,1 +1,0 @@
-- fix(providers): repoint the zai-web executor at chat.z.ai's current v2 chat-completions endpoint, fixing model-independent 404s (#8014)

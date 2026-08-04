@@ -675,15 +675,18 @@ export function resolveAdobeVideoModel(model: string): {
   return { id: "sora-2", spec: ADOBE_FIREFLY_VIDEO_MODELS["sora-2"] };
 }
 
+/**
+ * Map OpenAI/VibeProxy quality tiers onto Firefly gpt-image `generationSettings.detailLevel`.
+ * Wire range is integer 1–5 (discovery schema). Default is **maximal (5)** —
+ * the SPA often defaults to 3, but detail is critical for GPT Image 2 output quality.
+ * Explicit low/medium still honor the caller's choice.
+ */
 function gptDetailLevel(quality: unknown): number {
-  // Live firefly.adobe.com default for gpt-image is detailLevel 3 (medium).
-  const q = String(quality ?? "medium")
-    .trim()
-    .toLowerCase();
-  if (q === "high" || q === "4k" || q === "ultra") return 5;
-  if (q === "low" || q === "1k") return 1;
-  if (q === "medium" || q === "2k" || q === "standard" || q === "hd" || q === "auto") return 3;
-  return 3;
+  const q = String(quality ?? "high").trim().toLowerCase();
+  if (q === "low" || q === "1k" || q === "1") return 1;
+  if (q === "medium" || q === "2k" || q === "standard" || q === "hd" || q === "3") return 3;
+  // high / 4k / ultra / auto / empty / unknown → max detail
+  return 5;
 }
 
 export function buildAdobeImagePayload(opts: {
@@ -1760,7 +1763,8 @@ async function imsCheckToken(opts: {
   guestAllowed: boolean;
   fetchImpl: typeof fetch;
 }): Promise<
-  { ok: true; token: string; data: ImsTokenResponse } | { ok: false; status: number; error: string }
+  | { state: "ok"; token: string; data: ImsTokenResponse }
+  | { state: "failed"; status: number; error: string }
 > {
   const form = new URLSearchParams({
     client_id: opts.clientId,
@@ -1792,7 +1796,7 @@ async function imsCheckToken(opts: {
 
   if (!resp.ok) {
     return {
-      ok: false,
+      state: "failed",
       status: resp.status,
       error: sanitizeErrorMessage(
         data?.error_description || data?.error || text.slice(0, 200) || `HTTP ${resp.status}`
@@ -1803,14 +1807,14 @@ async function imsCheckToken(opts: {
   const token = String(data?.access_token || "").trim();
   if (!token) {
     return {
-      ok: false,
+      state: "failed",
       status: 401,
       error: sanitizeErrorMessage(
         data?.error_description || data?.error || "IMS response missing access_token"
       ),
     };
   }
-  return { ok: true, token, data: data || {} };
+  return { state: "ok", token, data: data || {} };
 }
 
 /**
@@ -1857,7 +1861,7 @@ export async function exchangeAdobeCookieForAccessToken(
       guestAllowed: false,
       fetchImpl,
     });
-    if (authed.ok) {
+    if (authed.state === "ok") {
       if (
         isAdobeGuestAccessToken(authed.token) ||
         authed.data.account_type === "guest" ||
@@ -1880,7 +1884,7 @@ export async function exchangeAdobeCookieForAccessToken(
       guestAllowed: true,
       fetchImpl,
     });
-    if (guest.ok) {
+    if (guest.state === "ok") {
       if (
         guest.data.account_type === "guest" ||
         guest.data.guestId ||

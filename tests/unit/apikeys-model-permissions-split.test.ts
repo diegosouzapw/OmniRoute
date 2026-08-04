@@ -16,6 +16,7 @@ test("module exposes the matching helpers + Claude-Code alias sets", () => {
     "hasClaudeCodeWildcardPermission",
     "isPotentialUnprefixedClaudeCodeModel",
     "addModelCandidate",
+    "addProviderAliasScopedCandidates",
     "stripExtendedContextSuffix",
   ]) {
     assert.equal(typeof (M as Record<string, unknown>)[name], "function", `missing ${name}`);

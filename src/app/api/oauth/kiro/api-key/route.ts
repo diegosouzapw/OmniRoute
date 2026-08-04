@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { KiroService } from "@/lib/oauth/services/kiro";
-import { createProviderConnection, isCloudEnabled } from "@/models";
+import {
+  createProviderConnection,
+  getProviderConnections,
+  updateProviderConnection,
+  isCloudEnabled,
+} from "@/models";
 import { syncToCloud } from "@/lib/cloudSync";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { kiroApiKeyImportSchema } from "@/shared/validation/schemas";
@@ -8,6 +13,7 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { buildKiroImportError } from "../import/route";
 import { buildKiroApiKeyConnectionName, isKiroApiKeyImportClientError } from "./helpers";
+import { findKiroConnectionByIdentity } from "@/lib/oauth/kiroConnectionIdentity";
 
 async function requireKiroApiKeyImportAuth(request: Request) {
   if (!(await isAuthRequired(request))) return null;
@@ -53,11 +59,10 @@ export async function POST(request: Request) {
     const kiroService = new KiroService();
     const credential = await kiroService.validateApiKey(apiKey, region || "us-east-1");
     const email = kiroService.extractEmailFromJWT(credential.accessToken);
+    const name = buildKiroApiKeyConnectionName(targetProvider, credential.region, apiKey);
 
-    const connection: any = await createProviderConnection({
-      provider: targetProvider,
-      authType: "apikey",
-      name: buildKiroApiKeyConnectionName(targetProvider, credential.region, apiKey),
+    const record = {
+      name,
       apiKey: credential.accessToken,
       accessToken: credential.accessToken,
       refreshToken: null,
@@ -72,7 +77,23 @@ export async function POST(request: Request) {
         provider: "API Key",
       },
       testStatus: "active",
+      isActive: true,
+    };
+    const existing = await getProviderConnections({ provider: targetProvider });
+    const match = findKiroConnectionByIdentity(existing, {
+      authType: "apikey",
+      profileArn: credential.profileArn,
+      email,
+      name,
     });
+    const connection: any =
+      typeof match?.id === "string"
+        ? await updateProviderConnection(match.id, record)
+        : await createProviderConnection({
+            provider: targetProvider,
+            authType: "apikey",
+            ...record,
+          });
 
     await syncToCloudIfEnabled();
 

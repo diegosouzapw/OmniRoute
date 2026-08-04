@@ -106,7 +106,7 @@ test("shape: anthropic-ping emits event: ping with empty JSON data", async () =>
     await writer.close();
     await pump;
 
-    assert.equal(emitted[0], "event: ping\ndata: {}\n\n");
+    assert.equal(emitted[0], 'event: ping\ndata: {"type":"ping"}\n\n');
   });
 });
 

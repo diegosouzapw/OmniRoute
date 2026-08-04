@@ -235,10 +235,53 @@ function hasTextContent(message: MessageLike): boolean {
   );
 }
 
+function isInlineBase64ImageUrl(value: unknown): boolean {
+  return typeof value === "string" && /^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(value);
+}
+
+/** Image-only Responses turns must enter the adapter so #8560 image pruning can see them. */
+function hasInlineImageContent(message: MessageLike): boolean {
+  if (!Array.isArray(message.content)) return false;
+  return message.content.some((part) => {
+    if (!isRecord(part)) return false;
+    if (part.type === "input_image" && isInlineBase64ImageUrl(part.image_url)) return true;
+    if (part.type === "image_url") {
+      const imageUrl = part.image_url;
+      if (isInlineBase64ImageUrl(imageUrl)) return true;
+      return isRecord(imageUrl) && isInlineBase64ImageUrl(imageUrl.url);
+    }
+    if (part.type === "image") {
+      if (isInlineBase64ImageUrl(part.image)) return true;
+      const source = part.source;
+      return isRecord(source) && source.type === "base64" && typeof source.data === "string";
+    }
+    const inlineData = part.inlineData ?? part.inline_data;
+    return isRecord(inlineData) && typeof inlineData.data === "string";
+  });
+}
+
+function hasCompressibleContent(message: MessageLike): boolean {
+  return hasTextContent(message) || hasInlineImageContent(message);
+}
+
+export type CompressionBodyRestoreOptions = {
+  /**
+   * When true, mapped `input[]` items whose synthetic messages were removed
+   * (e.g. compressContext Layer-3 purifyHistory) are omitted from the restored
+   * Responses payload. Default false preserves prior engine behavior: lite
+   * dedup may drop a synthetic duplicate without mutating the original input
+   * item positions (#8560 compaction opts in explicitly).
+   */
+  dropMissingMappedItems?: boolean;
+};
+
 export type CompressionBodyAdapter = {
   body: Record<string, unknown>;
   adapted: boolean;
-  restore(compressedBody: Record<string, unknown>): Record<string, unknown>;
+  restore(
+    compressedBody: Record<string, unknown>,
+    options?: CompressionBodyRestoreOptions
+  ): Record<string, unknown>;
 };
 
 export function adaptBodyForCompression(
@@ -278,7 +321,7 @@ export function adaptBodyForCompression(
   inputItems.forEach((item, index) => {
     if (!isRecord(item)) return;
     const message = responsesItemToMessage(item);
-    if (!message || !hasTextContent(message)) return;
+    if (!message || !hasCompressibleContent(message)) return;
     mappings.push({ index, item: item as ResponsesItem });
     messages.push({ ...message, [COMPRESSION_INPUT_INDEX]: index });
   });
@@ -295,11 +338,13 @@ export function adaptBodyForCompression(
 
   const bodyWithoutInput = { ...body };
   delete bodyWithoutInput.input;
+  const mappedIndexSet = new Set(mappings.map((mapping) => mapping.index));
 
   return {
     body: { ...bodyWithoutInput, messages },
     adapted: true,
-    restore(compressedBody) {
+    restore(compressedBody, options = {}) {
+      const dropMissingMappedItems = options.dropMissingMappedItems === true;
       const compressedMessagesByIndex = new Map<number, MessageLike>();
       if (Array.isArray(compressedBody.messages)) {
         for (const message of compressedBody.messages as MessageLike[]) {
@@ -308,19 +353,74 @@ export function adaptBodyForCompression(
           }
         }
       }
-      const nextInput = [...inputItems];
-      mappings.forEach((mapping) => {
-        const compressedMessage = compressedMessagesByIndex.get(mapping.index);
-        if (!compressedMessage) return;
-        nextInput[mapping.index] = messageToResponsesItem(compressedMessage, mapping.item);
+
+      if (!dropMissingMappedItems) {
+        // Legacy restore: patch survivors in place; leave missing mapped items untouched
+        // so lite/caveman dedup of synthetic messages cannot desync Responses positions.
+        const nextInput = [...inputItems];
+        mappings.forEach((mapping) => {
+          const compressedMessage = compressedMessagesByIndex.get(mapping.index);
+          if (!compressedMessage) return;
+          nextInput[mapping.index] = messageToResponsesItem(compressedMessage, mapping.item);
+        });
+        const rest = { ...compressedBody };
+        delete rest.messages;
+        if (typeof body.input === "string") {
+          const first = nextInput[0];
+          return { ...rest, input: isRecord(first) ? (first.content ?? body.input) : body.input };
+        }
+        return { ...rest, input: nextInput };
+      }
+
+      // Compaction restore (#8560): rebuild input so Layer-3 history drops actually shrink
+      // Responses payloads. Also drop orphan function_call items whose outputs vanished.
+      const nextInput: unknown[] = [];
+      const survivingCallIds = new Set<string>();
+      inputItems.forEach((item, index) => {
+        if (mappedIndexSet.has(index)) {
+          const compressedMessage = compressedMessagesByIndex.get(index);
+          if (!compressedMessage) return;
+          const mapping = mappings.find((entry) => entry.index === index);
+          if (!mapping) return;
+          const restored = messageToResponsesItem(compressedMessage, mapping.item);
+          nextInput.push(restored);
+          if (
+            isRecord(restored) &&
+            (restored.type === "function_call_output" ||
+              restored.type === "custom_tool_call_output" ||
+              restored.type === "local_shell_call_output" ||
+              restored.type === "apply_patch_call_output") &&
+            typeof restored.call_id === "string"
+          ) {
+            survivingCallIds.add(restored.call_id);
+          }
+          return;
+        }
+        nextInput.push(item);
       });
+
+      const cleanedInput = nextInput.filter((item) => {
+        if (!isRecord(item) || item.type !== "function_call") return true;
+        if (typeof item.call_id !== "string" || item.call_id.length === 0) return true;
+        const hadMappedOutput = mappings.some((mapping) => {
+          const original = mapping.item;
+          return (
+            (original.type === "function_call_output" ||
+              original.type === "custom_tool_call_output") &&
+            original.call_id === item.call_id
+          );
+        });
+        if (!hadMappedOutput) return true;
+        return survivingCallIds.has(item.call_id);
+      });
+
       const rest = { ...compressedBody };
       delete rest.messages;
       if (typeof body.input === "string") {
-        const first = nextInput[0];
+        const first = cleanedInput[0];
         return { ...rest, input: isRecord(first) ? (first.content ?? body.input) : body.input };
       }
-      return { ...rest, input: nextInput };
+      return { ...rest, input: cleanedInput };
     },
   };
 }

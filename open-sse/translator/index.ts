@@ -368,10 +368,16 @@ export function translateRequest(
   // Preserve cache_control when:
   // 1. Claude passthrough mode (Claude → Claude), OR
   // 2. Explicitly requested via options (for caching-aware clients like Claude Code)
+  // When preserve-mode has nothing to preserve (the client sent no cache_control
+  // anywhere), fall back to the standard heuristic so the request never ships
+  // with zero prompt-cache breakpoints. Translator-path only — the CC relay
+  // path keeps its "never supplement" contract.
   if (targetFormat === FORMATS.CLAUDE) {
     const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE;
     const preserveCache = isClaudePassthrough || options?.preserveCacheControl === true;
-    result = prepareClaudeRequest(result, provider, preserveCache, model);
+    result = prepareClaudeRequest(result, provider, preserveCache, model, {
+      fallbackToHeuristicWhenNoMarkers: true,
+    });
   }
 
   // Normalize openai-responses input shape for providers that require list input.

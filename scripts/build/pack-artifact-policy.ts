@@ -176,6 +176,7 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   // required entries make its absence loud (#7065 class; derived + enforced by
   // tests/unit/pack-artifact-entrypoint-closures.test.ts).
   "bin/cli/data-dir.mjs",
+  "bin/cli/utils/ensureAndroidCacheDir.mjs",
   "bin/cli/utils/storageKeyProvision.mjs",
   "bin/cli/utils/versionFastPath.mjs",
   "bin/mcp-server.mjs",

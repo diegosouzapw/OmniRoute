@@ -1,0 +1,1 @@
+- **test(ci):** fixed the intermittent `spawnSync bash EPIPE` failure in the `:latest` promotion guard — the script exits on a pre-release version before reading stdin, so the harness's pipe-backed `input:` raced that exit; stdin is now file-backed, which makes the race structurally impossible ([#8977](https://github.com/diegosouzapw/OmniRoute/pull/8977))

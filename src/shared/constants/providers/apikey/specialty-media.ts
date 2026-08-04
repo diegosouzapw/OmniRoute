@@ -257,21 +257,6 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
     freeNote: "Free-tier API key via signup, no credit card required.",
     authHint: "Bearer API key for the Mixedbread embeddings API.",
   },
-  firecrawl: {
-    id: "firecrawl",
-    alias: "fc",
-    name: "Firecrawl",
-    icon: "language",
-    color: "#FB923C",
-    textIcon: "FC",
-    website: "https://firecrawl.dev",
-    hasFree: true,
-    notice: {
-      text: "Free tier: 500 fetches/month, no credit card needed.",
-      apiKeyUrl: "https://firecrawl.dev/app/api-keys",
-    },
-    serviceKinds: ["webFetch"],
-  },
   "jina-reader": {
     id: "jina-reader",
     alias: "jr",

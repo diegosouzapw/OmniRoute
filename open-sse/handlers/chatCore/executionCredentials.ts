@@ -5,8 +5,8 @@
  * Pure builder extracted from handleChatCore: derives the per-execution credentials object from the
  * resolved request context. Applies the native-Codex passthrough endpoint override, forces
  * apiType=responses (and the responses-upstream marker) for Azure AI Foundry / OCI when the model
- * routes to the OpenAI Responses format, and threads the Claude Code session id when present.
- * Side-effect-free; behaviour is byte-identical to the previous inline closure.
+ * routes to the OpenAI Responses format, synchronizes AgentRouter's per-request alternate protocol,
+ * and threads the Claude Code session id when present. Side-effect-free.
  */
 
 import { getKimiCodeStaticThinkingPolicy } from "../../config/providers/registry/kimi/coding/runtime.ts";
@@ -125,6 +125,16 @@ export function resolveExecutionCredentials(opts: {
   // endpoint. DefaultExecutor.buildUrl()'s "zai" branch has no other way to see that
   // override, so surface it on providerSpecificData for buildUrl to read.
   if (targetFormat === FORMATS.OPENAI && (provider === "zai" || provider === "glm-coding-apikey")) {
+    providerSpecificData.targetFormat = targetFormat;
+  }
+
+  // AgentRouter exposes Claude, OpenAI Chat, and OpenAI Responses on distinct URLs with distinct
+  // auth schemes. Keep the executor's URL/header resolution synchronized with chatCore's resolved
+  // per-request protocol without persisting the inferred selection back to the connection.
+  if (
+    provider === "agentrouter" &&
+    (targetFormat === FORMATS.OPENAI || targetFormat === FORMATS.OPENAI_RESPONSES)
+  ) {
     providerSpecificData.targetFormat = targetFormat;
   }
 

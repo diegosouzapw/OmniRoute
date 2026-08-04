@@ -1,1 +1,0 @@
-- fix(sse): replace spoofable `.includes()` PromptQL issuer check with hostname comparison (#8029)

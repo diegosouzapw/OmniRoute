@@ -110,3 +110,19 @@ export async function readRefreshErrorBody(
   const code = extractOAuthErrorCode(parsed) ?? extractOAuthErrorCode(rawText);
   return { rawText, code };
 }
+
+/**
+ * Check if a refresh result indicates an unrecoverable error
+ * (e.g. the refresh token was already consumed and cannot be reused).
+ * Callers should stop retrying and request re-authentication.
+ */
+export function isUnrecoverableRefreshError(result) {
+  return (
+    result &&
+    typeof result === "object" &&
+    (result.error === "unrecoverable_refresh_error" ||
+      result.error === "refresh_token_reused" ||
+      result.error === "invalid_request" ||
+      result.error === "invalid_grant")
+  );
+}

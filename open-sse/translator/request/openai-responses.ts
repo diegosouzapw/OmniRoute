@@ -35,6 +35,44 @@ import {
 export { openaiToOpenAIResponsesRequest } from "./openai-responses/toResponses.ts";
 
 /**
+ * #8459: Convert a tool output content-part array to a safe string for Chat Completions
+ * tool content. Responses API tool outputs can contain `input_image` parts which have no
+ * equivalent in Chat Completions `tool` messages — JSON.stringify would embed the raw
+ * base64 as inert text. Instead, extract text parts and replace images with a placeholder.
+ *
+ * @param output - The tool output value (string, array of content parts, or other JSON)
+ * @returns A plain string safe for Chat Completions `tool` message content.
+ */
+function toolOutputContentToString(output: unknown): string {
+  if (typeof output === "string") return output;
+  if (!Array.isArray(output)) return JSON.stringify(output);
+
+  const parts: string[] = [];
+  for (const item of output) {
+    if (typeof item !== "object" || item === null) {
+      parts.push(String(item));
+      continue;
+    }
+    const rec = item as Record<string, unknown>;
+    const type = typeof rec.type === "string" ? rec.type : "";
+    if (type === "input_text" || type === "output_text") {
+      const text = typeof rec.text === "string" ? rec.text : "";
+      if (text) parts.push(text);
+    } else if (type === "input_image") {
+      parts.push("[Image omitted: not supported on Chat Completions tool results]");
+    } else {
+      // Unknown part type — stringify as fallback
+      try {
+        parts.push(JSON.stringify(item));
+      } catch {
+        parts.push(String(item));
+      }
+    }
+  }
+  return parts.join("\n");
+}
+
+/**
  * Convert OpenAI Responses API request to OpenAI Chat Completions format
  */
 export function openaiResponsesToOpenAIRequest(
@@ -293,7 +331,7 @@ export function openaiResponsesToOpenAIRequest(
       messages.push({
         role: "tool",
         tool_call_id: toString(item.call_id),
-        content: typeof item.output === "string" ? item.output : JSON.stringify(item.output),
+        content: toolOutputContentToString(item.output),
       });
       continue;
     }
@@ -342,7 +380,9 @@ export function openaiResponsesToOpenAIRequest(
         pendingToolResults = [];
       }
       // Unwrap JSON-wrapped output {"output":"...","metadata":{...}} → plain string.
-      const rawOut = typeof item.output === "string" ? item.output : JSON.stringify(item.output);
+      // #8459: handle content-part arrays that may contain input_image without
+      // stringifying raw base64 as text.
+      const rawOut = toolOutputContentToString(item.output);
       let toolContent = rawOut;
       try {
         const parsed = JSON.parse(rawOut);

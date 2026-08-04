@@ -28,6 +28,7 @@ import {
   INITIAL_SCHEMA_SENTINELS,
   OPTIONAL_FTS5_MIGRATION_VERSIONS,
 } from "./migrationRunner/constants";
+import { getExtraMigrationFiles } from "./migrationRunner/extraDirs";
 
 const isNodeTestRunnerChild = typeof process.env.NODE_TEST_CONTEXT === "string";
 
@@ -216,7 +217,9 @@ function isDeferredUnsupportedMigration(
  * Get all migration files sorted by version number.
  */
 function getMigrationFiles(): Array<{ version: string; name: string; path: string }> {
-  if (!fs.existsSync(MIGRATIONS_DIR)) return [];
+  // The extra directories are an independent set: a missing core directory must not
+  // make them vanish silently.
+  if (!fs.existsSync(MIGRATIONS_DIR)) return getExtraMigrationFiles();
 
   const files = fs
     .readdirSync(MIGRATIONS_DIR)
@@ -265,7 +268,13 @@ function getMigrationFiles(): Array<{ version: string; name: string; path: strin
     );
   }
 
-  return files;
+  // Extra directories registered via OMNIROUTE_EXTRA_MIGRATIONS_DIRS, appended
+  // AFTER the numeric set so a distribution's own schema always lands on top of
+  // the upstream one. Their versions are namespaced (`ee-134`), so they cannot
+  // collide with a numeric slot, and every downstream consumer here — the applied
+  // set, the gap reconciliation, the name-mismatch check — keys on the version
+  // string and needs no further change. Empty and filesystem-free when unset.
+  return [...files, ...getExtraMigrationFiles()];
 }
 
 function filterSupersededDuplicateMigrations(

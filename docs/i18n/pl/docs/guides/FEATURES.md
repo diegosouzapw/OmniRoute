@@ -1,269 +1,329 @@
-# OmniRoute — Dashboard Features Gallery (Polski)
+---
+title: "OmniRoute — Galeria funkcji dashboardu"
+version: 3.8.40
+lastUpdated: 2026-06-28
+---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/FEATURES.md) · 🇸🇦 [ar](../../ar/docs/FEATURES.md) · 🇧🇬 [bg](../../bg/docs/FEATURES.md) · 🇧🇩 [bn](../../bn/docs/FEATURES.md) · 🇨🇿 [cs](../../cs/docs/FEATURES.md) · 🇩🇰 [da](../../da/docs/FEATURES.md) · 🇩🇪 [de](../../de/docs/FEATURES.md) · 🇪🇸 [es](../../es/docs/FEATURES.md) · 🇮🇷 [fa](../../fa/docs/FEATURES.md) · 🇫🇮 [fi](../../fi/docs/FEATURES.md) · 🇫🇷 [fr](../../fr/docs/FEATURES.md) · 🇮🇳 [gu](../../gu/docs/FEATURES.md) · 🇮🇱 [he](../../he/docs/FEATURES.md) · 🇮🇳 [hi](../../hi/docs/FEATURES.md) · 🇭🇺 [hu](../../hu/docs/FEATURES.md) · 🇮🇩 [id](../../id/docs/FEATURES.md) · 🇮🇹 [it](../../it/docs/FEATURES.md) · 🇯🇵 [ja](../../ja/docs/FEATURES.md) · 🇰🇷 [ko](../../ko/docs/FEATURES.md) · 🇮🇳 [mr](../../mr/docs/FEATURES.md) · 🇲🇾 [ms](../../ms/docs/FEATURES.md) · 🇳🇱 [nl](../../nl/docs/FEATURES.md) · 🇳🇴 [no](../../no/docs/FEATURES.md) · 🇵🇭 [phi](../../phi/docs/FEATURES.md) · 🇵🇱 [pl](../../pl/docs/FEATURES.md) · 🇵🇹 [pt](../../pt/docs/FEATURES.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/FEATURES.md) · 🇷🇴 [ro](../../ro/docs/FEATURES.md) · 🇷🇺 [ru](../../ru/docs/FEATURES.md) · 🇸🇰 [sk](../../sk/docs/FEATURES.md) · 🇸🇪 [sv](../../sv/docs/FEATURES.md) · 🇰🇪 [sw](../../sw/docs/FEATURES.md) · 🇮🇳 [ta](../../ta/docs/FEATURES.md) · 🇮🇳 [te](../../te/docs/FEATURES.md) · 🇹🇭 [th](../../th/docs/FEATURES.md) · 🇹🇷 [tr](../../tr/docs/FEATURES.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/FEATURES.md) · 🇵🇰 [ur](../../ur/docs/FEATURES.md) · 🇻🇳 [vi](../../vi/docs/FEATURES.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/FEATURES.md)
+# OmniRoute — Galeria funkcji dashboardu
+
+🌐 **Tłumaczenia głównego README:** 🇺🇸 [English](../README.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/README.md) | 🇪🇸 [Español](../i18n/es/README.md) | 🇫🇷 [Français](../i18n/fr/README.md) | 🇮🇹 [Italiano](../i18n/it/README.md) | 🇷🇺 [Русский](../i18n/ru/README.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/README.md) | 🇩🇪 [Deutsch](../i18n/de/README.md) | 🇮🇳 [हिन्दी](../i18n/in/README.md) | 🇹🇭 [ไทย](../i18n/th/README.md) | 🇺🇦 [Українська](../i18n/uk-UA/README.md) | 🇸🇦 [العربية](../i18n/ar/README.md) | 🇯🇵 [日本語](../i18n/ja/README.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/README.md) | 🇧🇬 [Български](../i18n/bg/README.md) | 🇩🇰 [Dansk](../i18n/da/README.md) | 🇫🇮 [Suomi](../i18n/fi/README.md) | 🇮🇱 [עברית](../i18n/he/README.md) | 🇭🇺 [Magyar](../i18n/hu/README.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/README.md) | 🇰🇷 [한국어](../i18n/ko/README.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/README.md) | 🇳🇱 [Nederlands](../i18n/nl/README.md) | 🇳🇴 [Norsk](../i18n/no/README.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/README.md) | 🇷🇴 [Română](../i18n/ro/README.md) | 🇵🇱 [Polski](../i18n/pl/README.md) | 🇸🇰 [Slovenčina](../i18n/sk/README.md) | 🇸🇪 [Svenska](../i18n/sv/README.md) | 🇵🇭 [Filipino](../i18n/phi/README.md) | 🇨🇿 [Čeština](../i18n/cs/README.md)
+
+Wizualny przewodnik po każdej sekcji dashboardu OmniRoute.
+
+> 📅 **Ostatnia aktualizacja:** 2026-06-28 — **v3.8.40**
 
 ---
 
-Visual guide to every section of the OmniRoute dashboard.
+## ✨ Najważniejsze nowości v3.8.0
+
+Cykl v3.7.x → v3.8.0 dodał auto-routing bez konfiguracji, nowych providerów, przepływy OAuth, głębszą odporność oraz znacznie bogatsze doświadczenie CLI. Poniżej kluczowe funkcje — pełne szczegóły dalej w dokumencie i w powiązanych specyfikacjach.
+
+- 🤖 **Auto Combo / Zero-config auto-routing** — używaj prefiksów `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`. Oparte na 9-czynnikowym silniku scoringu i 4 kuratorowanych **mode packs** (ship-fast, cost-saver, quality-first, offline-friendly)
+- 🆕 **Provider Command Code** (#2199) — rejestracja pierwszej klasy z katalogiem modeli i śledzeniem quota
+- 🆕 **Provider Z.AI** — nowy provider w darmowym tierze z etykietami quota
+- 🎬 **Rozszerzenie mediów KIE** — rozszerzony katalog, w tym modele generacji wideo
+- 🔐 **Przepływy OAuth Windsurf + Devin CLI** (#2168) — logowanie przeglądarkowe end-to-end
+- 🆓 **8 nowych darmowych providerów** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
+- 🎯 **Manifest-aware tier routing W1–W4** — manifesty providerów sterują ważonym wyborem tierów
+- 🎨 **Pełna zgodność Cursor z OpenAI** — tool calls, streaming, zarządzanie sesjami end-to-end
+- 📊 **Użycie planu Cursor Pro** — dane quota i cyklu widoczne w dashboardzie provider-limits
+- ⚡ **Podział service tier / analityka szybkiego tieru Codex** — widoczność zużycia per tier
+- 📌 **Per-session sticky routing** — sesje Codex przypinają to samo konto między turami
+- 🔊 **Ulepszenia Inworld TTS** — katalogi głosów, streaming i poprawa opóźnień
+- 🔑 **Kiro headless auth** — logowanie przez lokalny magazyn SQLite `kiro-cli`, bez przeglądarki
+- 📉 **Monitorowanie quota i limitów DeepSeek** — użycie dzienne/miesięczne widoczne w dashboardzie
+- 🔄 **Strategia routingu reset-aware** — combo preferują konta, których okno quota resetuje się najszybciej
+- ⏱️ **`fallbackDelayMs`** oraz **dynamiczne wykrywanie limitów narzędzi** — precyzyjniejszy timing fallbacku + limity liczby narzędzi per provider
+- 🔧 **Degradacja trybu background (Responses API)** — przełącza na tryb synchroniczny ze strukturalnym ostrzeżeniem, gdy upstream nie obsługuje background polling
+- 🚦 **Klasyfikacja 429 per provider** + przełącznik `useUpstream429BreakerHints` — precyzyjniejsze zachowanie breakera z użyciem wskazówek rate-limit z upstreamu
+- 🩺 **Dashboard model cooldowns** — podgląd blokad per model i ręczne ponowne włączanie z UI
+- 🔒 **MITM dynamiczna detekcja certyfikatów Linux** — działa na Debian/Ubuntu, Fedora/RHEL, Arch i innych dystrybucjach
+- 💻 **Pakiet ulepszeń CLI** — ponad 20 poleceń, w tym `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
+- 🔍 **Odkrywanie modeli embeddingów Qdrant** — automatyczna sonda modeli vector-store
+- 🔑 **API Keys / Bearer keys z zakresem `manage`** — operacje administracyjne programowo przez API
+- 🏥 **Analityka zdrowia celów combo** + **strukturalny builder combo** — zdrowie per target i builder UI do składania kroków `(provider, model, connection)`
+- 🤝 **Provider OAuth GitLab Duo** — logowanie danymi GitLab
+- 🧠 **Reasoning Replay Cache** — hybrydowa persystencja śladów reasoning: pamięć + SQLite
+
+📚 **Powiązane dokumenty:** [Skills Framework](../frameworks/SKILLS.md) · [Memory System](../frameworks/MEMORY.md) · [Cloud Agents](../frameworks/CLOUD_AGENT.md) · [Webhooks](../frameworks/WEBHOOKS.md) · [Reasoning Replay Cache](../routing/REASONING_REPLAY.md)
 
 ---
 
 ## 🔌 Providers
 
+Zarządzaj połączeniami z providerami AI: providerzy OAuth (Claude Code, Codex), providerzy z kluczem API (Groq, DeepSeek, OpenRouter) oraz darmowi providerzy (Qoder, Kiro). Konta Kiro obejmują śledzenie salda kredytów — pozostałe kredyty, całkowity limit i data odnowienia widoczne w Dashboard → Usage.
 
-![Providers Dashboard](screenshots/01-providers.png)
+Połączenia OpenRouter mogą przechowywać per-connection `preset` w Advanced Settings. Gdy jest ustawiony, OmniRoute wysyła go jako pole najwyższego poziomu żądania OpenRouter, na przykład `"preset": "email-copywriter"`, chyba że żądanie klienta już dostarczyło własny `preset`.
+
+![Providers Dashboard](../screenshots/01-providers.png)
 
 ---
 
 ## 🎨 Combos
 
-Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
+Twórz combo routingu modeli z 17 strategiami: priority, weighted, fill-first, round-robin, p2c (power-of-two-choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, context-relay oraz **fusion** (równoległy fan-out do panelu modeli, a następnie synteza jednej odpowiedzi przez judge). Każde combo łączy wiele modeli z automatycznym fallbackiem i zawiera szybkie szablony oraz kontrole gotowości.
 
-Recent combo improvements:
+Niedawne ulepszenia combo:
 
-- **Structured combo builder** — create each step by selecting provider, model, and exact account/connection
-- **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
-- **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
-- **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
+- **Strukturalny builder combo** — twórz każdy krok, wybierając providera, model i dokładne konto/połączenie
+- **Wsparcie powtórzonego providera** — używaj tego samego providera wiele razy w jednym combo, o ile krotka `(provider, model, connection)` jest unikalna
+- **Zdrowie celów combo** — analityka i widoki zdrowia rozróżniają teraz poszczególne cele/kroki combo zamiast spłaszczać wszystko do stringów modeli
+- **Złożone porządkowanie tierów** — `defaultTier -> fallbackTier` wpływa teraz na kolejność wykonania/fallbacku w runtime dla kroków combo najwyższego poziomu
 
-![Combos Dashboard](screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 
 ## 📊 Analytics
 
-Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
+Kompleksowa analityka użycia ze zużyciem tokenów, szacunkami kosztów, mapami ciepła aktywności, wykresami tygodniowego rozkładu oraz podziałami per provider.
 
-![Analytics Dashboard](screenshots/03-analytics.png)
+![Analytics Dashboard](../screenshots/03-analytics.png)
 
 ---
 
 ## 🏥 System Health
 
-Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, provider circuit breaker states, active quota-monitored sessions, and combo target health.
+Monitorowanie w czasie rzeczywistym: uptime, pamięć, wersja, percentyle opóźnień (p50/p95/p99), statystyki cache, stany circuit breakerów providerów, aktywne sesje monitorowane pod kątem quota oraz zdrowie celów combo.
 
-![Health Dashboard](screenshots/04-health.png)
+![Health Dashboard](../screenshots/04-health.png)
 
 ---
 
 ## 🔧 Translator Playground
 
-Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+Cztery tryby debugowania tłumaczeń API: **Playground** (konwerter formatów), **Chat Tester** (żywe żądania), **Test Bench** (testy wsadowe) oraz **Live Monitor** (strumień w czasie rzeczywistym).
 
-![Translator Playground](screenshots/05-translator.png)
+![Translator Playground](../screenshots/05-translator.png)
 
 ---
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+Testuj dowolny model bezpośrednio z dashboardu. Wybierz providera, model i endpoint, pisz prompty w Monaco Editor, streamuj odpowiedzi w czasie rzeczywistym, przerywaj w trakcie streamu i przeglądaj metryki czasowe.
 
 ---
 
 ## 🎨 Themes _(v2.0.5+)_
 
-Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+Konfigurowalne motywy kolorów dla całego dashboardu. Wybierz spośród 7 presetów kolorów (Coral, Blue, Red, Green, Violet, Orange, Cyan) albo utwórz własny motyw, wybierając dowolny kolor hex. Obsługa trybu light, dark i system.
 
 ---
 
 ## ⚙️ Settings
 
-Comprehensive settings panel with tabs:
+Kompleksowy panel ustawień z **7 kartami**:
 
-- **General** — System storage, backup management (export/import database)
-- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
-- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
-- **Routing** — Model aliases, background task degradation
-- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
-- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
+- **General** — Pamięć systemowa, zarządzanie kopiami zapasowymi (export/import bazy)
+- **Appearance** — Selektor motywu (dark/light/system), presety kolorów i kolory własne, widoczność logów health, kontrola widoczności elementów i separatorów grup w sidebarze, kontrola widoczności tuneli Endpoint
+- **AI** — Funkcje asystenta AI, domyślne presety routingu (Auto Combo `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), cache reasoning replay oraz przełączniki skill/memory
+- **Security** — Ochrona endpointów API, blokowanie niestandardowych providerów, filtrowanie IP, informacje o sesji
+- **Routing** — Aliasy modeli, degradacja zadań w tle, manifest-aware tier routing (W1–W4), `fallbackDelayMs`, per-session sticky routing
+- **Resilience** — Trwałość limitów rate, strojenie circuit breakera, auto-wyłączanie zbanowanych kont, monitoring wygasania providerów, próg handoff **Context Relay** i konfiguracja modelu podsumowań, klasyfikacja 429 per provider oraz przełącznik `useUpstream429BreakerHints`, model cooldowns
+- **Advanced** — Nadpisania konfiguracji, ślad audytu konfiguracji, tryb degradacji fallbacku, degradacja trybu background dla Responses API
 
-![Settings Dashboard](screenshots/06-settings.png)
+![Settings Dashboard](../screenshots/06-settings.png)
 
 ---
 
 ## 🔧 CLI Tools
 
-One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
+Konfiguracja jednym kliknięciem dla narzędzi do kodowania AI: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor i Factory Droid. Funkcje: automatyczne apply/reset konfiguracji, profile połączeń i mapowanie modeli.
 
-![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+![CLI Tools Dashboard](../screenshots/07-cli-tools.png)
 
 ---
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 17 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
+Dashboard do odkrywania i zarządzania agentami CLI. Pokazuje siatkę 16 wbudowanych agentów (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) z:
 
-- **Installation status** — Installed / Not Found with version detection
-- **Protocol badges** — stdio, HTTP, etc.
-- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
-- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+- **Statusem instalacji** — Installed / Not Found z wykrywaniem wersji
+- **Odznakami protokołów** — stdio, HTTP itd.
+- **Własnymi agentami** — Rejestruj dowolne narzędzie CLI przez formularz (nazwa, binary, polecenie wersji, argumenty spawn)
+- **CLI Fingerprint Matching** — Przełącznik per provider dopasowujący natywne sygnatury żądań CLI, zmniejszający ryzyko bana przy zachowaniu IP proxy
+- **Agentami opartymi o OAuth** — Windsurf i Devin CLI używają teraz przeglądarkowych przepływów OAuth do uwierzytelniania (v3.8.0+)
 
 ---
 
 ## 🔗 Context Relay _(v3.5.5+)_
 
-A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+Strategia combo, która zachowuje ciągłość sesji, gdy rotacja konta następuje w trakcie rozmowy. Zanim aktywne konto się wyczerpie, OmniRoute generuje w tle strukturalne podsumowanie handoff. Po tym, jak kolejne żądanie rozwiąże się na inne konto, podsumowanie jest wstrzykiwane jako komunikat systemowy, dzięki czemu nowe konto kontynuuje z pełnym kontekstem.
 
-Configurable via combo-level or global settings:
+Konfigurowalne przez ustawienia na poziomie combo lub globalne:
 
-- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
-- **Max Messages For Summary** — How much recent history to condense
-- **Summary Model** — Optional override model for generating the handoff summary
+- **Handoff Threshold** — Procent użycia quota uruchamiający generowanie podsumowania (domyślnie 85%)
+- **Max Messages For Summary** — Ile ostatnich wiadomości skondensować
+- **Summary Model** — Opcjonalny model nadpisujący do generowania podsumowania handoff
 
-Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+Obecnie obsługuje rotację kont Codex. Zobacz [dokumentację Context Relay](../architecture/ARCHITECTURE.md).
+
+---
+
+## 🗜️ Prompt Compression _(v3.7.9+)_
+
+Context & Cache udostępnia teraz dedykowane strony dla Caveman, RTK i Compression Combos:
+
+- **Caveman** — pakiety reguł świadome języka, podgląd, kontrola trybu wyjścia i analityka
+- **RTK** — kompresja świadoma poleceń dla wyjścia shell, git, test, build, package, Docker, infra, JSON i stack-trace
+- **Compression Combos** — nazwane potoki, takie jak `rtk -> caveman`, przypisane do combo routingu; domyślna matematyka stacked osiąga średnio `~89%` oraz `78-95%` oszczędności eligible-context, gdy działają oba silniki
+- **Raw-output recovery** — opcjonalne zredagowane wskaźniki raw-output RTK do debugowania skompresowanych awarii
+
+Zobacz [Compression Guide](../compression/COMPRESSION_GUIDE.md), [RTK Compression](../compression/RTK_COMPRESSION.md) oraz
+[Compression Engines](../compression/COMPRESSION_ENGINES.md).
 
 ---
 
 ## 🛡️ Proxy Hardening _(v3.5.5+)_
 
-Comprehensive proxy configuration enforcement across the entire request pipeline:
+Kompleksowe egzekwowanie konfiguracji proxy w całym potoku żądań:
 
-- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
-- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
-- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
-- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
-
----
-
-## 📧 Email Privacy Masking _(v3.5.6+)_
-
-OAuth account emails are now masked in the provider dashboard (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. The full email address remains accessible via hover tooltip (`title` attribute).
+- **Token Health Check** — Odświeżanie OAuth w tle rozwiązuje teraz konfigurację proxy per połączenie, zapobiegając awariom w środowiskach wymagających proxy
+- **Walidacja klucza API** — Walidacja klucza providera (`POST /api/providers/validate`) przechodzi przez `runWithProxyContext`, honorując ustawienia proxy na poziomie providera i globalne
+- **Poprawka undici Dispatcher** — Dispatchery proxy używają własnej implementacji fetch undici zamiast wbudowanego fetch Node, rozwiązując błędy `invalid onRequestStart method` na Node.js 22
+- **Wykrywanie wersji Node.js** — Strona logowania proaktywnie wykrywa niekompatybilne wersje Node.js (24+) i wyświetla baner ostrzegawczy z instrukcją użycia Node 22 LTS
 
 ---
 
-## 👁️ Model Visibility Toggle _(v3.5.6+)_
+## 📧 Maskowanie prywatności e-mail _(v3.5.6+)_
 
-The provider page model list now includes:
+E-maile kont OAuth są domyślnie maskowane (np. `di*****@g****.com`), aby zapobiec przypadkowemu ujawnieniu przy udostępnianiu zrzutów ekranu lub nagrywaniu dem. Użyj Settings → Appearance → Account email visibility, aby globalnie ujawnić lub zamaskować pełne e-maile kont w widokach providers, combos, logs, quota i playground.
 
-- **Real-time search/filter bar** — Quickly find specific models
-- **Per-model visibility toggle** (👁 icon) — Hidden models are grayed out and excluded from the `/v1/models` catalog
-- **Active-count badge** (`N/M active`) — Shows at a glance how many models are enabled vs total
+---
+
+## 👁️ Przełącznik widoczności modeli _(v3.5.6+)_
+
+Lista modeli na stronie providera obejmuje teraz:
+
+- **Pasek wyszukiwania/filtrowania w czasie rzeczywistym** — Szybko znajdź konkretne modele
+- **Przełącznik widoczności per model** (ikona 👁) — Ukryte modele są wyszarzone i wykluczone z katalogu `/v1/models`
+- **Odznaka liczby aktywnych** (`N/M active`) — Pokazuje od razu, ile modeli jest włączonych względem całkowitej liczby
 
 ---
 
 ## 🔧 OAuth Env Repair _(v3.6.1+)_
 
-One-click "Repair env" action for OAuth providers that restores missing environment variables and fixes broken auth state. Accessible from `Dashboard → Providers → [OAuth Provider] → Repair env`. Automatically detects and repairs:
+Akcja „Repair env” jednym kliknięciem dla providerów OAuth przywraca brakujące zmienne środowiskowe i naprawia uszkodzony stan auth. Dostępna z `Dashboard → Providers → [OAuth Provider] → Repair env`. Automatycznie wykrywa i naprawia:
 
-- Missing OAuth client credentials
-- Corrupted env file entries
-- Backup path sanitization
+- Brakujące poświadczenia klienta OAuth
+- Uszkodzone wpisy w pliku env
+- Sanityzację ścieżek backupu
 
 ---
 
 ## 🗑️ Uninstall / Full Uninstall _(v3.6.2+)_
 
-Clean removal scripts for all installation methods:
+Skrypty czystego usuwania dla wszystkich metod instalacji:
 
-| Command                  | Action                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
-| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+| Polecenie                | Działanie                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------ |
+| `npm run uninstall`      | Usuwa aplikację systemową, ale **zachowuje DB i konfiguracje** w `~/.omniroute`.     |
+| `npm run uninstall:full` | Usuwa aplikację ORAZ trwale **kasuje wszystkie konfiguracje, klucze i bazy danych**. |
 
 ---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+Generuj obrazy, wideo i muzykę z dashboardu. Obsługa OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open i MusicGen.
 
 ---
 
 ## 📝 Request Logs
 
-Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+Logowanie żądań w czasie rzeczywistym z filtrowaniem po providerze, modelu, koncie i kluczu API. Pokazuje kody statusu, użycie tokenów, opóźnienie i szczegóły odpowiedzi.
 
-![Usage Logs](screenshots/08-usage.png)
+![Usage Logs](../screenshots/08-usage.png)
 
 ---
 
 ## 🌐 API Endpoint
 
-Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+Twój zunifikowany endpoint API z podziałem możliwości: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations oraz zarejestrowane klucze API. Dostępne są Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel oraz wsparcie cloud proxy do zdalnego dostępu.
 
-![Endpoint Dashboard](screenshots/09-endpoint.png)
+![Endpoint Dashboard](../screenshots/09-endpoint.png)
 
 ---
 
-## 🔑 API Key Management
+## 🔑 Zarządzanie kluczami API
 
-Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+Twórz, nadawaj zakresy i odwołuj klucze API. Każdy klucz może być ograniczony do konkretnych modeli/providerów z pełnym dostępem lub uprawnieniami tylko do odczytu. Wizualne zarządzanie kluczami ze śledzeniem użycia.
 
 ---
 
 ## 📋 Audit Log
 
-Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+Śledzenie działań administracyjnych z filtrowaniem po typie akcji, aktorze, celu, adresie IP i znaczniku czasu. Pełna historia zdarzeń bezpieczeństwa.
 
 ---
 
-## 🖥️ Desktop Application
+## 🖥️ Aplikacja desktopowa
 
-Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
+Natywna aplikacja desktopowa Electron dla Windows, macOS i Linux. Uruchamiaj OmniRoute jako samodzielną aplikację z integracją zasobnika systemowego, wsparciem offline, auto-update i instalacją jednym kliknięciem.
 
-Key features:
+Kluczowe funkcje:
 
-- Server readiness polling (no blank screen on cold start)
-- System tray with port management
+- Polling gotowości serwera (bez pustego ekranu przy cold start)
+- Zasobnik systemowy z zarządzaniem portem
 - Content Security Policy
-- Single-instance lock
-- Auto-update on restart
-- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
-- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
-- **Graceful shutdown** — Electron `before-quit` shuts down Next.js cleanly, preventing SQLite WAL database locks (v3.6.2+)
+- Blokada jednej instancji
+- Auto-update przy restarcie
+- UI warunkowe platformowo (traffic lights macOS, domyślny pasek tytułu Windows/Linux)
+- Wzmocnione pakowanie buildu Electron — symlinkowane `node_modules` w bundlu standalone są wykrywane i odrzucane przed pakowaniem, zapobiegając zależności runtime od maszyny build (v2.5.5+)
+- **Graceful shutdown** — Electron `before-quit` zamyka Next.js czysto, zapobiegając blokadom bazy SQLite WAL (v3.6.2+)
 
-📖 See [`electron/README.md`](../electron/README.md) for full documentation.
+📖 Zobacz [`electron/README.md`](../../electron/README.md), aby uzyskać pełną dokumentację.
 
 ---
 
 ## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
 
-OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
+OmniRoute obsługuje teraz **klienty WebSocket zgodne z OpenAI** przez endpoint upgrade `/v1/ws`. Niestandardowy serwer `scripts/dev/v1-ws-bridge.mjs` owija Next.js i upgrade’uje połączenia WS do pełnych dwukierunkowych sesji streamingowych. Uwierzytelnianie używa tego samego klucza API lub cookie sesji co żądania HTTP.
 
-Key behaviours:
+Kluczowe zachowania:
 
-- WS upgrade validated by `src/lib/ws/handshake.ts` before the connection is established
-- Streams terminated cleanly on session close or upstream error
-- Works alongside the existing HTTP+SSE streaming path simultaneously
+- Upgrade WS walidowany przez `src/lib/ws/handshake.ts` przed nawiązaniem połączenia
+- Strumienie zamykane czysto przy zamknięciu sesji lub błędzie upstream
+- Działa jednocześnie obok istniejącej ścieżki streamingu HTTP+SSE
 
 ---
 
-## 🔑 Sync Tokens & Config Bundle _(v3.6.6+)_
+## 🔑 Sync Tokens i Config Bundle _(v3.6.6+)_
 
-Multi-device and external operator access is now possible via **scoped sync tokens**:
+Dostęp z wielu urządzeń i zewnętrznych operatorów jest teraz możliwy dzięki **scoped sync tokens**:
 
-- **`POST /api/sync/tokens`** — Issue a new sync token (scoped, with optional expiry)
-- **`DELETE /api/sync/tokens/:id`** — Revoke a token
-- **`GET /api/sync/bundle`** — Download a versioned, ETag-keyed JSON snapshot of all non-sensitive settings (passwords redacted)
+- **`POST /api/sync/tokens`** — Wystaw nowy sync token (z zakresem, z opcjonalnym wygaśnięciem)
+- **`DELETE /api/sync/tokens/:id`** — Odwołaj token
+- **`GET /api/sync/bundle`** — Pobierz wersjonowany, kluczowany ETag zrzut JSON wszystkich niepoufnych ustawień (hasła zredagowane)
 
-The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `ETag` response header to detect changes without re-downloading the full payload.
+Config bundle jest budowany przez `src/lib/sync/bundle.ts`. Konsumenci porównują nagłówek odpowiedzi `ETag`, aby wykryć zmiany bez ponownego pobierania pełnego payloadu.
 
 ---
 
 ## 🧠 GLM Thinking Preset _(v3.6.6+)_
 
-**GLM Thinking (`glmt`)** is now a registered first-class provider: 65 536 max output tokens, 24 576 thinking budget, 900 s default timeout, Claude-compatible API format, and shared usage sync with the GLM family.
+**GLM Thinking (`glmt`)** jest teraz zarejestrowanym providerem pierwszej klasy: 65 536 max output tokens, 24 576 thinking budget, domyślny timeout 900 s, format API zgodny z Claude oraz współdzielona synchronizacja użycia z rodziną GLM.
 
-**Hybrid token counting** also lands in v3.6.6: when a Claude-compatible provider exposes `/messages/count_tokens`, OmniRoute calls it before large requests with graceful estimation fallback.
-
----
-
-## 🛡️ Safe Outbound Fetch & SSRF Guard _(v3.6.6+)_
-
-All provider validation and model discovery calls now go through a two-layer outbound guard:
-
-1. **URL guard** (`src/shared/network/outboundUrlGuard.ts`) — Blocks private/loopback/link-local IP ranges before the socket is opened.
-2. **Safe fetch wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Applies the URL guard, normalises timeouts, and retries transient errors with exponential backoff.
-
-Guard violations surface as HTTP 422 (`URL_GUARD_BLOCKED`) and are written to the compliance audit log via `providerAudit.ts`.
+**Hybrydowe zliczanie tokenów** również wchodzi w v3.6.6: gdy provider zgodny z Claude udostępnia `/messages/count_tokens`, OmniRoute wywołuje go przed dużymi żądaniami z łagodnym fallbackiem estymacji.
 
 ---
 
-## 🔄 Cooldown-Aware Retries _(v3.6.6+)_
+## 🛡️ Safe Outbound Fetch i SSRF Guard _(v3.6.6+)_
 
-Chat requests now **automatically retry** when an upstream provider returns a model-scoped cooldown. Configurable via `REQUEST_RETRY` (default: 2) and `MAX_RETRY_INTERVAL_SEC` (default: 30 s). Rate-limit header learning improved across `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, and `Retry-After` — per-model cooldown state is visible in the Resilience dashboard.
+Wszystkie wywołania walidacji providerów i odkrywania modeli przechodzą teraz przez dwuwarstwową ochronę wychodzącą:
+
+1. **URL guard** (`src/shared/network/outboundUrlGuard.ts`) — Blokuje zakresy IP private/loopback/link-local przed otwarciem gniazda.
+2. **Safe fetch wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Stosuje URL guard, normalizuje timeouty i ponawia przejściowe błędy z exponential backoff.
+
+Naruszenia guarda pojawiają się jako HTTP 422 (`URL_GUARD_BLOCKED`) i są zapisywane w logu audytu compliance przez `providerAudit.ts`.
+
+---
+
+## 🔄 Ponowienia świadome cooldown _(v3.6.6+)_
+
+Żądania chat **automatycznie ponawiają się**, gdy upstream provider zwraca cooldown w zakresie modelu. Konfigurowalne przez `REQUEST_RETRY` (domyślnie: 2) i `MAX_RETRY_DELAY_SEC` (domyślnie: 30 s). Uczenie nagłówków rate-limit ulepszone dla `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens` i `Retry-After` — stan cooldown per model jest widoczny w dashboardzie Resilience.
 
 ---
 
 ## 📋 Compliance Audit v2 _(v3.6.6+)_
 
-The audit log has been expanded with cursor-based pagination, request context enrichment (request ID, user agent, IP), structured auth events, provider CRUD events with diff context, and SSRF-blocked validation logging. New events emitted by `src/lib/compliance/providerAudit.ts`.
+Log audytu został rozszerzony o paginację cursor-based, wzbogacenie kontekstu żądania (request ID, user agent, IP), strukturalne zdarzenia auth, zdarzenia CRUD providerów z kontekstem diff oraz logowanie walidacji zablokowanej przez SSRF. Nowe zdarzenia emitowane przez `src/lib/compliance/providerAudit.ts`.

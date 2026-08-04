@@ -1,1 +1,0 @@
-- **feat(sse):** GitHub Copilot Claude models now route through Copilot's native `/v1/messages` endpoint (prompt-cache token counts, no more lossy tool-call round-trip). (thanks @yidecode)

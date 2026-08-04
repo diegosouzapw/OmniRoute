@@ -47,6 +47,20 @@ function isLoopbackHostname(hostname: string): boolean {
   return /^(localhost|127\.0\.0\.1|\[::1\]|::1)$/i.test(hostname);
 }
 
+function upgradeLoopbackToPublic(redirectUri: string, publicBaseUrl: string): string {
+  try {
+    const requested = new URL(redirectUri);
+    if (!isLoopbackHostname(requested.hostname)) {
+      return redirectUri;
+    }
+    const callbackPath =
+      requested.pathname && requested.pathname !== "/" ? requested.pathname : "/callback";
+    return `${publicBaseUrl}${callbackPath}${requested.search}`;
+  } catch {
+    return redirectUri;
+  }
+}
+
 /**
  * Google providers default to loopback redirects so the embedded public
  * credentials keep working on out-of-the-box local installs. When operators
@@ -68,10 +82,22 @@ export function resolveBrowserOAuthRedirectUri(
   }
 
   const publicBaseUrl =
-    normalizeBaseUrl(env.NEXT_PUBLIC_BASE_URL) || normalizeBaseUrl(env.OMNIROUTE_PUBLIC_BASE_URL);
+    normalizeBaseUrl(env?.NEXT_PUBLIC_BASE_URL) || normalizeBaseUrl(env?.OMNIROUTE_PUBLIC_BASE_URL);
 
   if (!publicBaseUrl) {
     return redirectUri;
+  }
+
+  // Web application OAuth client type allows non-loopback redirect URIs.
+  // When the operator sets ANTIGRAVITY_OAUTH_CLIENT_TYPE=web with custom
+  // credentials, upgrade the loopback redirect so remote deployments work
+  // without SSH tunneling. Non-web client types fall through to the
+  // existing custom-credentials upgrade path below.
+  if (GOOGLE_BROWSER_PROVIDERS.has(providerName)) {
+    const clientType = (env?.ANTIGRAVITY_OAUTH_CLIENT_TYPE || "").toLowerCase().trim();
+    if (clientType === "web") {
+      return upgradeLoopbackToPublic(redirectUri, publicBaseUrl);
+    }
   }
 
   try {
@@ -79,10 +105,7 @@ export function resolveBrowserOAuthRedirectUri(
     if (!isLoopbackHostname(requested.hostname)) {
       return redirectUri;
     }
-
-    const callbackPath =
-      requested.pathname && requested.pathname !== "/" ? requested.pathname : "/callback";
-    return `${publicBaseUrl}${callbackPath}${requested.search}`;
+    return upgradeLoopbackToPublic(redirectUri, publicBaseUrl);
   } catch {
     return redirectUri;
   }

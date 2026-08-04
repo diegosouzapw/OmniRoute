@@ -1,1 +1,0 @@
-- fix(compression): wire the adaptive context-budget "dial" (`contextBudget`) into the settings schema and DB so it can actually be persisted via `PUT /api/settings/compression`, instead of being silently rejected (#7005)

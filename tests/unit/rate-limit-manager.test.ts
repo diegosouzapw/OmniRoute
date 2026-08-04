@@ -12,6 +12,7 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const resilienceSettings = await import("../../src/lib/resilience/settings.ts");
 const rateLimitManager = await import("../../open-sse/services/rateLimitManager.ts");
 const accountFallback = await import("../../open-sse/services/accountFallback.ts");
+const Bottleneck = (await import("bottleneck")).default;
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -57,6 +58,45 @@ test("rate limit manager bypasses disabled connections and exposes inactive stat
     running: 0,
   });
   assert.deepEqual(rateLimitManager.getAllRateLimitStatus(), {});
+});
+
+test("idle-capacity queue expiry resets the limiter and retries once", async () => {
+  await rateLimitManager.applyRequestQueueSettings({
+    ...resilienceSettings.DEFAULT_RESILIENCE_SETTINGS.requestQueue,
+    autoEnableApiKeyProviders: false,
+    maxWaitMs: 20,
+    requestsPerMinute: 0,
+    concurrentRequests: 1,
+    minTimeBetweenRequestsMs: 0,
+    maxQueueDepth: 0,
+  });
+
+  const originalSchedule = Bottleneck.prototype.schedule;
+  let attempts = 0;
+  Bottleneck.prototype.schedule = function (...args) {
+    attempts++;
+    if (attempts === 1) {
+      return new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("This job timed out after 20 ms.")), 30);
+      });
+    }
+    return originalSchedule.apply(this, args);
+  };
+
+  try {
+    rateLimitManager.enableRateLimitProtection("idle-capacity-conn");
+    const result = await rateLimitManager.withRateLimit(
+      "openai",
+      "idle-capacity-conn",
+      "gpt-4o",
+      async () => "recovered"
+    );
+
+    assert.equal(result, "recovered");
+    assert.equal(attempts, 2, "the expired job should be retried once on a fresh limiter");
+  } finally {
+    Bottleneck.prototype.schedule = originalSchedule;
+  }
 });
 
 test("withRateLimit forwards AbortController DOMException without mutating it", async () => {

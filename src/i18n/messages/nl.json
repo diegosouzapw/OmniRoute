@@ -168,6 +168,10 @@
     "noModelsFound": "No models found",
     "clear": "Clear",
     "done": "Done",
+    "selectAll": "Alles selecteren",
+    "unselectAll": "Selectie opheffen",
+    "visibleModels": "zichtbaar",
+    "selectAllConfirm": "{count} modellen aan deze combinatie toevoegen?",
     "errorOccurred": "Error Occurred",
     "comboDeleted": "Combo Deleted",
     "hide": "Hide",
@@ -933,6 +937,7 @@
   "disabled": "Uitgeschakeld",
   "featureFlagOmnirouteEmergencyFallbackDescription": "Routeer verzoeken met uitgeput budget naar de gratis nood-fallbackprovider/-model.",
   "featureFlagArenaEloSyncEnabledDescription": "Schakel periodieke ELO-synchronisatie van het Arena AI-leaderboard in voor modelintelligentieranglijsten.",
+  "featureFlagExposeCcDiscoveryAliasesDescription": "__MISSING__:Advertise claude/&lt;provider&gt;/&lt;model&gt; mirror ids on /v1/models so Claude Code gateway model discovery lists non-Claude models. Warning: doubles catalog entries for all clients when enabled globally.",
   "sidebar": {
     "home": "Thuis",
     "dashboard": "Dashboard",
@@ -1113,6 +1118,7 @@
     "providerQuota": "Provider Quota",
     "runtime": "Runtime",
     "consoleLogs": "Console Logs",
+    "logsTimeline": "Timeline",
     "globalRouting": "Global Routing",
     "mitmProxy": "MITM Proxy",
     "oneProxy": "1Proxy",
@@ -1158,6 +1164,7 @@
     "logsSubtitle": "Application logs",
     "logsProxySubtitle": "Proxy traffic logs",
     "consoleLogsSubtitle": "Console output",
+    "logsTimelineSubtitle": "__MISSING__:Visual request timeline",
     "logsActivitySubtitle": "User activity log",
     "healthSubtitle": "System health check",
     "costsPricingSubtitle": "Per-model pricing rules",
@@ -2938,7 +2945,15 @@
     "copilotPasteInto": "Plakken in:",
     "copilotReloadInstruction": "Herlaad vervolgens VS Code en stel de API-sleutel in bij de invoerprompt.",
     "wireApiChatCompletions": "Chatvoltooiingen (/chat/voltooiingen)",
-    "wireApiResponses": "Reacties-API (/reacties)"
+    "wireApiResponses": "Reacties-API (/reacties)",
+    "ccDiscoveryInfoButton": "__MISSING__:How to enable discovery in Claude Code",
+    "ccDiscoveryInfoTooltip": "__MISSING__:Advertise non-Claude models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Doubles catalog entries for all clients when enabled globally.",
+    "ccDiscoveryInfoLink": "__MISSING__:Open Feature Flags",
+    "ccOnboardingTitle": "__MISSING__:settings.json for gateway model discovery",
+    "ccOnboardingCopy": "__MISSING__:Copy",
+    "ccOnboardingCopied": "__MISSING__:Copied",
+    "ccOnboardingKeyPlaceholder": "__MISSING__:<your OmniRoute API key>",
+    "ccOnboardingWindowNote": "__MISSING__:Claude Code assumes a 200K context window for any model id it does not recognize. For a model with a different real window, add CLAUDE_CODE_AUTO_COMPACT_WINDOW just under it so auto-compaction does not fire too early."
   },
   "combos": {
     "title": "Combo's",
@@ -3689,7 +3704,7 @@
     "modelsCount": "{count, plural, one {# model} other {# models}}",
     "sectionTitle": "Integration Surface",
     "sectionDescription": "OpenAI-compatible APIs and operational protocol endpoints",
-    "tabApis": "OpenAI-compatible APIs",
+    "tabApis": "__MISSING__:APIs",
     "tabProtocols": "Protocols",
     "tabsAria": "Endpoint sections",
     "protocolsTitle": "Protocols",
@@ -4958,10 +4973,12 @@
     "noNewModelsToImport": "Geen nieuwe modellen om te importeren — alle modellen staan al in het register of de lijst met aangepaste modellen",
     "skippingExistingModels": "{count} bestaande modellen overgeslagen",
     "autoSync": "Automatische synchronisatie",
+    "autoSyncShort": "Synchroniseren",
     "autoSyncTooltip": "Modellijst automatisch elke 24 uur vernieuwen (configureerbaar via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Automatische synchronisatie ingeschakeld: modellen worden periodiek vernieuwd",
     "autoSyncDisabled": "Automatische synchronisatie uitgeschakeld",
     "autoSyncToggleFailed": "Kan automatische synchronisatie niet in- of uitschakelen",
+    "autoSyncPartialFailure": "Automatische synchronisatie bijgewerkt voor sommige verbindingen, maar niet alle",
     "clearAllModels": "Wis alle modellen",
     "clearAllModelsConfirm": "Weet u zeker dat u alle modellen voor deze aanbieder wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
     "clearAllModelsSuccess": "Alle modellen gewist",
@@ -5394,8 +5411,8 @@
     "t3ChatWebCookieHint": "Open t3.chat → DevTools → Applicatie → Lokale opslag → https://t3.chat, kopieer 'convex-session-id'. Open vervolgens DevTools → Netwerk en kopieer de volledige Cookie-header van elk chatverzoek. Plak beide waarden in de onderstaande velden.",
     "t3ChatWebCookiePlaceholder": "convexe-sessie-id=abc123...",
     "grokWebCookieHint": "Grok Web Cookie Hint",
-    "blockClaudeExtraUsageDescription": "Block Claude Extra Usage Description",
-    "blockClaudeExtraUsageLabel": "Block Claude Extra Usage Label",
+    "blockClaudeExtraUsageDescription": "__MISSING__:When enabled, OmniRoute marks this Claude connection unavailable as soon as the usage API reports queued extra usage, so fallback switches to another connection instead of continuing on pay-as-you-go extra billing.",
+    "blockClaudeExtraUsageLabel": "__MISSING__:Block extra Claude usage",
     "disableCoolingDescription": "Sla de tijdelijke afkoelperiode over, zodat deze verbinding in aanmerking blijft komen, zelfs na herstelbare fouten (definitieve statussen zoals verbannen/verlopen zijn nog steeds van toepassing).",
     "disableCoolingLabel": "Afkoelperiode uitschakelen voor deze verbinding",
     "bulkPasteAdded": "{count, plural, one {1 key added} other {# keys added}}",
@@ -5574,13 +5591,13 @@
     "importGrokAuth": "Grok Build-authenticatie importeren",
     "zedImportTitle": "Importeren uit Zed-sleutelhanger",
     "zedImportDescription": "Ontdek inloggegevens van AI-providers (OpenAI, Anthropic, Google, Mistral, xAI) die door Zed IDE zijn opgeslagen in de sleutelhanger van het besturingssysteem en importeer ze als verbindingen. Zed IDE moet op deze machine zijn geïnstalleerd.",
-    "zedImportButton": "Zed Import Button",
-    "zedImportFailed": "Zed Import Failed",
+    "zedImportButton": "__MISSING__:Import from Zed",
+    "zedImportFailed": "__MISSING__:Zed import failed",
     "zedImportHint": "Zed Import Hint",
     "zedImportNetworkError": "Zed Import Network Error",
     "zedImportNone": "Zed Import None",
-    "zedImportSuccess": "Zed Import Success",
-    "zedImporting": "Zed Importing",
+    "zedImportSuccess": "__MISSING__:Imported {credentials} credential(s) from Zed for {providers} provider(s)",
+    "zedImporting": "__MISSING__:Importing…",
     "zedNoCredentials": "Geen Zed-inloggegevens gevonden in de sleutelhanger",
     "zedUnsupportedCredentials": "{count} inloggegeven(s) in de sleutelhanger gevonden, maar geen enkele kwam overeen met ondersteunde providers",
     "zedManualTitle": "Handmatige tokenimport",
@@ -5961,7 +5978,21 @@
     "lmarenaWebCookieHint": "Open arena.ai, meld u aan en kopieer vervolgens de volledige Cookie-header van een netwerkverzoek. Voeg arena-auth-prod-v1.0 en arena-auth-prod-v1.1 toe (en verdere chunks indien aanwezig), bij voorkeur met cf_clearance. Plak niet alleen de lege arena-auth-prod-v1-cookie. Optioneel: providerSpecificData.recaptchaV3Token als create-evaluation nog steeds 403 retourneert.",
     "kimiOfficialSupporterBadge": "Oprichtende Vriend",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is OmniRoute's oprichtende open source-vriend",
-    "kimiPartnerLinkNote": "Partnerlink — ondersteunt OmniRoute zonder extra kosten voor u"
+    "cheaperInferenceSupporterBadge": "Opensourcevriend",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference steunt OmniRoute als opensourcevriend",
+    "kimiPartnerLinkNote": "Partnerlink — ondersteunt OmniRoute zonder extra kosten voor u",
+    "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
+    "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
+    "ccAliasProviderLevelLabel": "__MISSING__:Provider default",
+    "ccAliasModelOverridesLabel": "__MISSING__:Per-model overrides",
+    "ccAliasModelOverrideAriaLabel": "__MISSING__:Override for {modelId}",
+    "ccAliasStateInherit": "__MISSING__:Inherit",
+    "ccAliasStateOn": "__MISSING__:On",
+    "ccAliasStateOff": "__MISSING__:Off",
+    "ccAliasAddModelPlaceholder": "__MISSING__:Model id (e.g. gpt-4o)",
+    "ccAliasAddModelButton": "__MISSING__:Add override",
+    "ccAliasLoadError": "__MISSING__:Failed to load discovery-alias settings: {error}",
+    "ccAliasSaveError": "__MISSING__:Failed to save discovery-alias setting: {error}"
   },
   "settings": {
     "title": "Instellingen",
@@ -6721,7 +6752,7 @@
     "howPricingWorks": "Hoe prijzen werken",
     "cacheWrite": "Cache schrijven",
     "unsaved": "niet opgeslagen",
-    "resetDefaults": "Standaardwaarden opnieuw instellen",
+    "resetDefaults": "__MISSING__:Reset defaults",
     "saveProvider": "Aanbieder opslaan",
     "model": "Model",
     "models": "modellen",
@@ -7270,6 +7301,10 @@
       "less-code": {
         "label": "Minder code",
         "description": "YAGNI-ladder: kleinste werkende wijziging, geen ongevraagde abstracties."
+      },
+      "ponytail": {
+        "label": "Ponytail (lazy senior dev)",
+        "description": "Lazy senior-dev discipline: climb the YAGNI ladder, fix root cause, smallest working diff."
       },
       "terse-cjk": {
         "label": "Beknopt CJK (文言)",
@@ -9688,8 +9723,23 @@
     "deviceCodeVerificationUrl": "Verificatie-URL",
     "deviceCodeYourCode": "Jouw code",
     "deviceCodeWaiting": "Wachten op toestemming...",
-    "googleOAuthWarning": "Toegang op afstand + Google OAuth: standaardgegevens accepteren alleen omleidingen naar <code>localhost</code>. Na autorisatie probeert uw browser <code>localhost</code> te openen. Kopieer de volledige URL en plak deze hieronder. Voor volledig extern gebruik zonder deze handmatige stap, <a>configureert u uw eigen OAuth-inloggegevens</a>.",
+    "googleLoopbackTitle": "__MISSING__:Google sign-in can't complete from this address",
+    "googleLoopbackWhatHappens": "__MISSING__:Google only releases the authorization code once <code>{redirectUri}</code> is reachable from the browser that approves the sign-in. Here that address points at this computer, not at the OmniRoute server — so the consent screen hangs instead of redirecting, and there is no callback URL to copy.",
+    "googleLoopbackRecommended": "__MISSING__:Recommended — run this on your own computer, then paste the result below:",
+    "googleLoopbackHelperNote": "__MISSING__:It opens the Google consent locally (where 127.0.0.1 works) and prints a one-line omniroute-cred-v1.… blob. Paste that blob into the Step 2 field below — it accepts a credential blob as well as a callback URL.",
+    "googleLoopbackTunnelLabel": "__MISSING__:Or forward the dashboard port over SSH and reload OmniRoute through the tunnel:",
+    "googleLoopbackTunnelNote": "__MISSING__:Replace {userPlaceholder} with your SSH username, keep the terminal open, then open {localUrl} and connect again from there.",
+    "googleLoopbackHeadlessAlt": "__MISSING__:For fully headless use with no local callback at all, <a>configure your own Google OAuth credentials</a> plus a public base URL.",
     "remoteAccessInfo": "Toegang op afstand: Omdat u OmniRoute op afstand gebruikt, ziet u na autorisatie een foutpagina (localhost niet gevonden). Dit is normaal: kopieer gewoon de volledige URL uit de adresbalk van uw browser en plak deze hieronder.",
+    "loopbackMismatchTitle": "__MISSING__:Sign-in can't complete from this address",
+    "loopbackMismatchWhatHappened": "__MISSING__:What's happening",
+    "loopbackMismatchExplanation": "__MISSING__:After you approve the login, {providerName} always sends the browser back to <code>{redirectUri}</code>. That address points at the computer running this browser, not at the OmniRoute server — so the authorization code never reaches OmniRoute and the provider fails the sign-in without showing an error.",
+    "loopbackMismatchHowToFix": "__MISSING__:How to fix it",
+    "loopbackMismatchStep1": "__MISSING__:On this computer, open a terminal and start an SSH tunnel to the OmniRoute server:",
+    "loopbackMismatchStep1Note": "__MISSING__:Replace {userPlaceholder} with your SSH username. Keep this terminal open until the connection shows as active — both ports are needed: one serves the dashboard, the other receives the callback.",
+    "loopbackMismatchStep2": "__MISSING__:In this browser, reopen OmniRoute through the tunnel:",
+    "loopbackMismatchStep3": "__MISSING__:Then connect {providerName} again from the new tab. The callback now reaches the server and the login completes normally.",
+    "loopbackMismatchAlternative": "__MISSING__:No SSH access? If this provider offers a token import tab, connect with a token instead — that path doesn't use a loopback callback.",
     "step1OpenUrl": "Stap 1: Open deze URL in uw browser",
     "copy": "Kopieer",
     "step2PasteCallback": "Stap 2: Plak hier de terugbel-URL of autorisatiecode",
@@ -10476,7 +10526,9 @@
     "deleteGroupConfirm": "Deze groep verwijderen? De pools moeten eerst opnieuw worden toegewezen of worden verwijderd.",
     "deleteGroupHasPools": "Deze groep heeft nog pools — wijs ze eerst opnieuw toe of verwijder ze.",
     "ungroupedTitle": "Niet gegroepeerd",
-    "ungroupedHint": "Deze pools zijn niet toegewezen aan een bekende groep. Bewerk een pool om deze naar een echte groep te verplaatsen."
+    "ungroupedHint": "Deze pools zijn niet toegewezen aan een bekende groep. Bewerk een pool om deze naar een echte groep te verplaatsen.",
+    "removeFailed": "Could not remove this pool.",
+    "dismiss": "Dismiss"
   },
   "plugins": {
     "title": "Plugins",
@@ -11784,7 +11836,8 @@
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "Schakel netwerktoegang in de skills-sandbox in."
       }
-    }
+    },
+    "ccDiscoveryAliasesEnvWarning": "__MISSING__:Active via environment variable (EXPOSE_CC_DISCOVERY_ALIASES) — this overrides any dashboard toggle below."
   },
   "comboControl": {
     "title": "Combo-controlecentrum",
@@ -12131,5 +12184,6 @@
     "cta": "Kimi Code ophalen",
     "partnerLinkNote": "Partnerlink",
     "dismissAriaLabel": "Sluiten"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

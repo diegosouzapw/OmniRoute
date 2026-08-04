@@ -74,6 +74,70 @@ function formatStreamChunk(content: string, model: string, finishReason: string 
 }
 
 /**
+ * Flatten the OpenAI-style multi-turn `messages[]` into the single plain-text
+ * prompt typed into the Gemini web UI (#8371).
+ *
+ * gemini-web drives a real browser page and captures only the FIRST
+ * `StreamGenerate` response, so — unlike claude-web — it has no upstream
+ * conversation id to thread across turns. It is therefore a stateless,
+ * single-turn provider: the previous code forwarded only the last user message
+ * (`messages.filter(m => m.role === "user").pop()`), so follow-up questions
+ * lost all prior context ("I am in Berlin" → "What should I wear today?" was
+ * answered without Berlin). This implements the issue's accepted fallback (b):
+ * flatten the full history into one prompt so the web UI still sees the
+ * conversation.
+ *
+ * Single-turn requests are preserved byte-for-byte (only the final user message
+ * is returned) — the regression guard for the pre-existing no-tools path.
+ * Multi-turn requests emit a labeled transcript:
+ *
+ *   System:
+ *   <system text>
+ *
+ *   Previous conversation:
+ *   User: ...
+ *   Assistant: ...
+ *
+ *   Current user message:
+ *   <last user message>
+ */
+export function buildGeminiPrompt(messages: Array<{ role: string; content: unknown }>): string {
+  const textMessages = messages.filter(
+    (m) => typeof m.content === "string" && (m.content as string).trim().length > 0
+  ) as Array<{ role: string; content: string }>;
+
+  const userMessages = textMessages.filter((m) => m.role === "user");
+  const lastUser = userMessages[userMessages.length - 1];
+  const lastUserContent = lastUser?.content ?? "";
+  const lastUserIdx = lastUser ? textMessages.lastIndexOf(lastUser) : -1;
+
+  // Prior conversation = every user/assistant turn before the final user turn.
+  const priorTurns = textMessages.filter(
+    (m, i) => i < lastUserIdx && (m.role === "user" || m.role === "assistant")
+  );
+
+  // Single-turn (no earlier user/assistant turns): byte-for-byte the original
+  // single-message derivation. Do NOT prepend system text here — the old
+  // no-tools path ignored a system-only prefix on the first turn.
+  if (priorTurns.length === 0) return lastUserContent;
+
+  const systemText = textMessages
+    .filter((m) => m.role === "system")
+    .map((m) => m.content)
+    .join("\n\n");
+
+  const historyLines = priorTurns.map(
+    (m) => `${m.role === "assistant" ? "Assistant" : "User"}: ${m.content}`
+  );
+
+  const parts: string[] = [];
+  if (systemText) parts.push(`System:\n${systemText}`);
+  parts.push(`Previous conversation:\n${historyLines.join("\n\n")}`);
+  parts.push(`Current user message:\n${lastUserContent}`);
+  return parts.join("\n\n");
+}
+
+/**
  * Build the plain-text prompt typed into the Gemini web UI when a tool
  * contract is active — the synthetic system message injected by
  * `prepareToolMessages()` prepended to the last user message. gemini-web
@@ -337,11 +401,14 @@ export class GeminiWebExecutor extends BaseExecutor {
       messages
     );
 
-    // hasTools === false: byte-for-byte the original prompt derivation
-    // (regression guard — #7286 must not touch the no-tools path).
+    // hasTools === false: flatten the full multi-turn history into the single
+    // prompt so gemini-web (a stateless web-cookie provider that captures only
+    // the first StreamGenerate response) preserves prior context across turns
+    // (#8371). Single-turn requests stay byte-for-byte identical to the original
+    // derivation, keeping the #7286 no-tools regression guard intact.
     const prompt = hasTools
       ? buildGeminiToolPrompt(effectiveMessages)
-      : messages.filter((m) => m.role === "user").pop()?.content || "";
+      : buildGeminiPrompt(messages);
 
     if (!prompt) {
       return {

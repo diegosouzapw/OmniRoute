@@ -122,6 +122,146 @@ test("decode bounds hardening does not affect well-formed frames", () => {
   assert.deepEqual(decodeAgentServerMessage(asm), [{ kind: "text", text: "ok" }]);
 });
 
+test("decodeAgentServerMessage preserves a native TodoWrite completion", () => {
+  function v(n: number): Buffer {
+    const out: number[] = [];
+    while (n > 0x7f) {
+      out.push((n & 0x7f) | 0x80);
+      n >>>= 7;
+    }
+    out.push(n);
+    return Buffer.from(out);
+  }
+  function tag(field: number, wireType: number): Buffer {
+    return v((field << 3) | wireType);
+  }
+  function lp(field: number, payload: Buffer): Buffer {
+    return Buffer.concat([tag(field, 2), v(payload.length), payload]);
+  }
+  function s(field: number, value: string): Buffer {
+    return lp(field, Buffer.from(value, "utf8"));
+  }
+  function vi(field: number, value: number): Buffer {
+    return Buffer.concat([tag(field, 0), v(value)]);
+  }
+  function todo(content: string, status: number): Buffer {
+    // TodoItem { content (2), status (3) }
+    return lp(1, Buffer.concat([s(2, content), vi(3, status)]));
+  }
+
+  // ToolCallCompletedUpdate {
+  //   tool_call_id (1),
+  //   tool_call (2): ToolCall {
+  //     todo_write (9): TodoWriteDetails {
+  //       args (1): TodoWriteArgs { todos (1 repeated), merge (2) }
+  //     }
+  //   }
+  // }
+  const todoArgs = Buffer.concat([todo("Inspect files", 3), todo("Write report", 2), vi(2, 0)]);
+  const todoDetails = lp(1, todoArgs);
+  const toolCall = lp(9, todoDetails);
+  const completed = Buffer.concat([s(1, "toolu_todo_1"), lp(2, toolCall)]);
+  const interactionUpdate = lp(3, completed);
+  const asm = lp(1, interactionUpdate);
+
+  assert.deepEqual(decodeAgentServerMessage(asm), [
+    {
+      kind: "native_todo_write",
+      toolCallId: "toolu_todo_1",
+      merge: false,
+      todos: [
+        { content: "Inspect files", status: "completed" },
+        { content: "Write report", status: "in_progress" },
+      ],
+    },
+    { kind: "tool_call_completed" },
+  ]);
+});
+
+test("native TodoWrite decoding rejects duplicate singular fields and malformed IDs", () => {
+  function v(n: number): Buffer {
+    const out: number[] = [];
+    while (n > 0x7f) {
+      out.push((n & 0x7f) | 0x80);
+      n >>>= 7;
+    }
+    out.push(n);
+    return Buffer.from(out);
+  }
+  function tag(field: number, wireType: number): Buffer {
+    return v((field << 3) | wireType);
+  }
+  function lp(field: number, payload: Buffer): Buffer {
+    return Buffer.concat([tag(field, 2), v(payload.length), payload]);
+  }
+  function s(field: number, value: string): Buffer {
+    return lp(field, Buffer.from(value, "utf8"));
+  }
+  function vi(field: number, value: number): Buffer {
+    return Buffer.concat([tag(field, 0), v(value)]);
+  }
+  function todoItem(parts: Buffer[]): Buffer {
+    return lp(1, Buffer.concat(parts));
+  }
+  function completed(idFields: Buffer[], todoWriteDetails: Buffer): Buffer {
+    const toolCall = lp(9, todoWriteDetails);
+    return lp(1, lp(3, Buffer.concat([...idFields, lp(2, toolCall)])));
+  }
+  const genericOnly = [{ kind: "tool_call_completed" }];
+
+  const completeArgs = Buffer.concat([todoItem([s(2, "Keep me"), vi(3, 3)]), vi(2, 1)]);
+  const duplicateArgsExploit = completed(
+    [s(1, "todo-1")],
+    Buffer.concat([lp(1, Buffer.alloc(0)), lp(1, completeArgs)])
+  );
+  assert.deepEqual(decodeAgentServerMessage(duplicateArgsExploit), genericOnly);
+
+  const duplicateStatus = completed(
+    [s(1, "todo-2")],
+    lp(1, todoItem([s(2, "Keep me"), vi(3, 1), vi(3, 99)]))
+  );
+  assert.deepEqual(decodeAgentServerMessage(duplicateStatus), genericOnly);
+
+  const duplicateMerge = completed(
+    [s(1, "todo-3")],
+    lp(1, Buffer.concat([todoItem([s(2, "Keep me"), vi(3, 3)]), vi(2, 0), vi(2, 1)]))
+  );
+  assert.deepEqual(decodeAgentServerMessage(duplicateMerge), genericOnly);
+
+  const duplicateContent = completed(
+    [s(1, "todo-4")],
+    lp(1, todoItem([s(2, "First"), s(2, "Second"), vi(3, 3)]))
+  );
+  assert.deepEqual(decodeAgentServerMessage(duplicateContent), genericOnly);
+
+  const emptyId = completed([s(1, "")], lp(1, completeArgs));
+  assert.deepEqual(decodeAgentServerMessage(emptyId), genericOnly);
+
+  const duplicateId = completed([s(1, "todo-5"), s(1, "todo-6")], lp(1, completeArgs));
+  assert.deepEqual(decodeAgentServerMessage(duplicateId), genericOnly);
+
+  const invalidUtf8Id = completed([lp(1, Buffer.from([0xff]))], lp(1, completeArgs));
+  assert.deepEqual(decodeAgentServerMessage(invalidUtf8Id), genericOnly);
+
+  const unknownStatus = completed([s(1, "todo-7")], lp(1, todoItem([s(2, "Keep me"), vi(3, 99)])));
+  assert.deepEqual(decodeAgentServerMessage(unknownStatus), genericOnly);
+
+  const missingStatus = completed([s(1, "todo-8")], lp(1, todoItem([s(2, "Keep me")])));
+  assert.deepEqual(decodeAgentServerMessage(missingStatus), genericOnly);
+
+  const wrongWireStatus = completed(
+    [s(1, "todo-9")],
+    lp(1, todoItem([s(2, "Keep me"), s(3, "completed")]))
+  );
+  assert.deepEqual(decodeAgentServerMessage(wrongWireStatus), genericOnly);
+
+  const invalidUtf8Content = completed(
+    [s(1, "todo-10")],
+    lp(1, todoItem([lp(2, Buffer.from([0xff])), vi(3, 3)]))
+  );
+  assert.deepEqual(decodeAgentServerMessage(invalidUtf8Content), genericOnly);
+});
+
 test("encodeAgentRunRequest embeds user text and resolves the model id", () => {
   const buf = encodeAgentRunRequest({
     modelId: "auto",
@@ -175,7 +315,10 @@ test("encodeAgentRunRequest keeps RequestedModel + parameters alongside ModelDet
   const composerText = composer.toString("latin1");
   assert.ok(composerText.includes("composer-2"), "split model id still present");
   assert.ok(composerText.includes("fast"), "'-fast' parameter id still present (RequestedModel)");
-  assert.ok(composerText.includes("true"), "'-fast' parameter value still present (RequestedModel)");
+  assert.ok(
+    composerText.includes("true"),
+    "'-fast' parameter value still present (RequestedModel)"
+  );
 
   // auto → default, now appearing in both RequestedModel and ModelDetails.
   const auto = encodeAgentRunRequest({ modelId: "auto", userText: "hi" });

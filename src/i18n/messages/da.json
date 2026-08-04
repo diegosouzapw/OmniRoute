@@ -168,6 +168,10 @@
     "noModelsFound": "No models found",
     "clear": "Clear",
     "done": "Done",
+    "selectAll": "Vælg alle",
+    "unselectAll": "Fravælg alle",
+    "visibleModels": "synlige",
+    "selectAllConfirm": "Tilføj {count} modeller til denne kombination?",
     "errorOccurred": "Error Occurred",
     "comboDeleted": "Combo Deleted",
     "hide": "Hide",
@@ -933,6 +937,7 @@
   "disabled": "Deaktiveret",
   "featureFlagOmnirouteEmergencyFallbackDescription": "Diriger budgetudtømte anmodninger til den gratis nød-fallback-udbyder/-model.",
   "featureFlagArenaEloSyncEnabledDescription": "Aktivér periodisk ELO-synkronisering fra Arena AI-førertavlen til rangering af modelintelligens.",
+  "featureFlagExposeCcDiscoveryAliasesDescription": "__MISSING__:Advertise claude/&lt;provider&gt;/&lt;model&gt; mirror ids on /v1/models so Claude Code gateway model discovery lists non-Claude models. Warning: doubles catalog entries for all clients when enabled globally.",
   "sidebar": {
     "home": "Hjem",
     "dashboard": "Dashboard",
@@ -1113,6 +1118,8 @@
     "providerQuota": "Provider Quota",
     "runtime": "Runtime",
     "consoleLogs": "Console Logs",
+    "logsTimeline": "Timeline",
+    "logsTimelineSubtitle": "__MISSING__:Visual request timeline",
     "globalRouting": "Global Routing",
     "mitmProxy": "MITM Proxy",
     "oneProxy": "1Proxy",
@@ -2938,7 +2945,15 @@
     "copilotPasteInto": "Indsæt i:",
     "copilotReloadInstruction": "Genstart derefter VS Code, og angiv API-nøglen i inputfeltet.",
     "wireApiChatCompletions": "Chatafslutninger (/chat/afslutninger)",
-    "wireApiResponses": "Responses API (/responses)"
+    "wireApiResponses": "Responses API (/responses)",
+    "ccDiscoveryInfoButton": "__MISSING__:How to enable discovery in Claude Code",
+    "ccDiscoveryInfoTooltip": "__MISSING__:Advertise non-Claude models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Doubles catalog entries for all clients when enabled globally.",
+    "ccDiscoveryInfoLink": "__MISSING__:Open Feature Flags",
+    "ccOnboardingTitle": "__MISSING__:settings.json for gateway model discovery",
+    "ccOnboardingCopy": "__MISSING__:Copy",
+    "ccOnboardingCopied": "__MISSING__:Copied",
+    "ccOnboardingKeyPlaceholder": "__MISSING__:<your OmniRoute API key>",
+    "ccOnboardingWindowNote": "__MISSING__:Claude Code assumes a 200K context window for any model id it does not recognize. For a model with a different real window, add CLAUDE_CODE_AUTO_COMPACT_WINDOW just under it so auto-compaction does not fire too early."
   },
   "combos": {
     "title": "Combos",
@@ -3689,7 +3704,7 @@
     "modelsCount": "{count, plural, one {# model} other {# models}}",
     "sectionTitle": "Integrationsoverflade",
     "sectionDescription": "OpenAI-kompatible API'er og operationelle protokolendepunkter",
-    "tabApis": "OpenAI-kompatible API'er",
+    "tabApis": "__MISSING__:APIs",
     "tabProtocols": "Protokoller",
     "tabsAria": "Endepunktsafsnit",
     "protocolsTitle": "Protokoller",
@@ -4958,10 +4973,12 @@
     "noNewModelsToImport": "Ingen nye modeller at importere — alle modeller findes allerede i registreret eller brugerdefineret liste",
     "skippingExistingModels": "Springer {count} eksisterende modeller over",
     "autoSync": "Auto-synkronisering",
+    "autoSyncShort": "Synkronisering",
     "autoSyncTooltip": "Opdater modellisten automatisk hver 24. time (kan konfigureres via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Automatisk synkronisering aktiveret - modellerne opdateres med jævne mellemrum",
     "autoSyncDisabled": "Automatisk synkronisering deaktiveret",
     "autoSyncToggleFailed": "Automatisk synkronisering kunne ikke slås til eller fra",
+    "autoSyncPartialFailure": "Automatisk synkronisering opdateret for nogle forbindelser, men ikke alle",
     "clearAllModels": "Ryd alle modeller",
     "clearAllModelsConfirm": "Er du sikker på, at du vil fjerne alle modeller for denne udbyder? Dette kan ikke fortrydes.",
     "clearAllModelsSuccess": "Alle modeller ryddet",
@@ -5394,8 +5411,8 @@
     "t3ChatWebCookieHint": "Åbn t3.chat → DevTools → Application → Local Storage → https://t3.chat, kopier 'convex-session-id'. Åbn derefter DevTools → Netværk, kopier den fulde Cookie-header fra enhver chatanmodning. Indsæt begge værdier i felterne nedenfor.",
     "t3ChatWebCookiePlaceholder": "convex-session-id=abc123...",
     "grokWebCookieHint": "Grok Web Cookie Hint",
-    "blockClaudeExtraUsageDescription": "Block Claude Extra Usage Description",
-    "blockClaudeExtraUsageLabel": "Block Claude Extra Usage Label",
+    "blockClaudeExtraUsageDescription": "__MISSING__:When enabled, OmniRoute marks this Claude connection unavailable as soon as the usage API reports queued extra usage, so fallback switches to another connection instead of continuing on pay-as-you-go extra billing.",
+    "blockClaudeExtraUsageLabel": "__MISSING__:Block extra Claude usage",
     "disableCoolingDescription": "Skip the transient cooldown so this connection stays eligible even after recoverable errors (terminal states like banned/expired still apply).",
     "disableCoolingLabel": "Deaktiver afkøling for denne forbindelse",
     "bulkPasteAdded": "{count, plural, one {1 key added} other {# keys added}}",
@@ -5574,13 +5591,13 @@
     "importGrokAuth": "Importer Grok Build-godkendelse",
     "zedImportTitle": "Importer fra Zed Keychain",
     "zedImportDescription": "Find AI-udbyderoplysninger (OpenAI, Anthropic, Google, Mistral, xAI) gemt af Zed IDE i OS-nøgleringen og importer dem som forbindelser. Zed IDE skal være installeret på denne maskine.",
-    "zedImportButton": "Zed Import Button",
-    "zedImportFailed": "Zed Import Failed",
+    "zedImportButton": "__MISSING__:Import from Zed",
+    "zedImportFailed": "__MISSING__:Zed import failed",
     "zedImportHint": "Zed Import Hint",
     "zedImportNetworkError": "Zed Import Network Error",
     "zedImportNone": "Zed Import None",
-    "zedImportSuccess": "Zed Import Success",
-    "zedImporting": "Zed Importing",
+    "zedImportSuccess": "__MISSING__:Imported {credentials} credential(s) from Zed for {providers} provider(s)",
+    "zedImporting": "__MISSING__:Importing…",
     "zedNoCredentials": "Ingen Zed-legitimationsoplysninger fundet i nøgleringen",
     "zedUnsupportedCredentials": "Fandt {count} legitimationsoplysning(er) i nøgleringen, men ingen matchede understøttede udbydere",
     "zedManualTitle": "Manuel token-import",
@@ -5961,7 +5978,21 @@
     "lmarenaWebCookieHint": "Åbn arena.ai, log ind, og kopiér derefter den fulde Cookie-header fra en netværksanmodning. Inkluder arena-auth-prod-v1.0 og arena-auth-prod-v1.1 (og yderligere bidder, hvis de findes), helst med cf_clearance. Indsæt ikke kun den tomme arena-auth-prod-v1-cookie. Valgfrit: providerSpecificData.recaptchaV3Token hvis create-evaluation stadig returnerer 403.",
     "kimiOfficialSupporterBadge": "Grundlæggende ven",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) er OmniRoutes grundlæggende open source-ven",
-    "kimiPartnerLinkNote": "Partnerlink — understøtter OmniRoute uden ekstra omkostninger for dig"
+    "cheaperInferenceSupporterBadge": "Open source-ven",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference støtter OmniRoute som open source-ven",
+    "kimiPartnerLinkNote": "Partnerlink — understøtter OmniRoute uden ekstra omkostninger for dig",
+    "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
+    "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
+    "ccAliasProviderLevelLabel": "__MISSING__:Provider default",
+    "ccAliasModelOverridesLabel": "__MISSING__:Per-model overrides",
+    "ccAliasModelOverrideAriaLabel": "__MISSING__:Override for {modelId}",
+    "ccAliasStateInherit": "__MISSING__:Inherit",
+    "ccAliasStateOn": "__MISSING__:On",
+    "ccAliasStateOff": "__MISSING__:Off",
+    "ccAliasAddModelPlaceholder": "__MISSING__:Model id (e.g. gpt-4o)",
+    "ccAliasAddModelButton": "__MISSING__:Add override",
+    "ccAliasLoadError": "__MISSING__:Failed to load discovery-alias settings: {error}",
+    "ccAliasSaveError": "__MISSING__:Failed to save discovery-alias setting: {error}"
   },
   "settings": {
     "title": "Indstillinger",
@@ -6721,7 +6752,7 @@
     "howPricingWorks": "Hvordan prissætning fungerer",
     "cacheWrite": "Cache skriv",
     "unsaved": "ikke gemt",
-    "resetDefaults": "Nulstil standarder",
+    "resetDefaults": "__MISSING__:Reset defaults",
     "saveProvider": "Gem udbyder",
     "model": "Model",
     "models": "modeller",
@@ -7270,6 +7301,10 @@
       "less-code": {
         "label": "Mindre kode",
         "description": "YAGNI-stige: mindste fungerende ændring, ingen uanmodede abstraktioner."
+      },
+      "ponytail": {
+        "label": "Ponytail (lazy senior dev)",
+        "description": "Lazy senior-dev discipline: climb the YAGNI ladder, fix root cause, smallest working diff."
       },
       "terse-cjk": {
         "label": "Kortfattet CJK (文言)",
@@ -9688,8 +9723,23 @@
     "deviceCodeVerificationUrl": "Bekræftelses-URL",
     "deviceCodeYourCode": "Din kode",
     "deviceCodeWaiting": "Venter på godkendelse...",
-    "googleOAuthWarning": "Fjernadgang + Google OAuth: Standardlegitimationsoplysninger accepterer kun omdirigeringer til <code>localhost</code>. Efter godkendelse vil din browser forsøge at åbne <code>localhost</code> — kopier den fulde URL og indsæt den nedenfor. For fuldstændig fjernbrug uden dette manuelle trin, <a>konfigurere dine egne OAuth-legitimationsoplysninger</a>.",
+    "googleLoopbackTitle": "__MISSING__:Google sign-in can't complete from this address",
+    "googleLoopbackWhatHappens": "__MISSING__:Google only releases the authorization code once <code>{redirectUri}</code> is reachable from the browser that approves the sign-in. Here that address points at this computer, not at the OmniRoute server — so the consent screen hangs instead of redirecting, and there is no callback URL to copy.",
+    "googleLoopbackRecommended": "__MISSING__:Recommended — run this on your own computer, then paste the result below:",
+    "googleLoopbackHelperNote": "__MISSING__:It opens the Google consent locally (where 127.0.0.1 works) and prints a one-line omniroute-cred-v1.… blob. Paste that blob into the Step 2 field below — it accepts a credential blob as well as a callback URL.",
+    "googleLoopbackTunnelLabel": "__MISSING__:Or forward the dashboard port over SSH and reload OmniRoute through the tunnel:",
+    "googleLoopbackTunnelNote": "__MISSING__:Replace {userPlaceholder} with your SSH username, keep the terminal open, then open {localUrl} and connect again from there.",
+    "googleLoopbackHeadlessAlt": "__MISSING__:For fully headless use with no local callback at all, <a>configure your own Google OAuth credentials</a> plus a public base URL.",
     "remoteAccessInfo": "Fjernadgang: Da du fjernadgang til OmniRoute, vil du efter godkendelse se en fejlside (lokal vært ikke fundet). Dette er normalt - bare kopier den fulde URL fra din browsers adresselinje og indsæt den nedenfor.",
+    "loopbackMismatchTitle": "__MISSING__:Sign-in can't complete from this address",
+    "loopbackMismatchWhatHappened": "__MISSING__:What's happening",
+    "loopbackMismatchExplanation": "__MISSING__:After you approve the login, {providerName} always sends the browser back to <code>{redirectUri}</code>. That address points at the computer running this browser, not at the OmniRoute server — so the authorization code never reaches OmniRoute and the provider fails the sign-in without showing an error.",
+    "loopbackMismatchHowToFix": "__MISSING__:How to fix it",
+    "loopbackMismatchStep1": "__MISSING__:On this computer, open a terminal and start an SSH tunnel to the OmniRoute server:",
+    "loopbackMismatchStep1Note": "__MISSING__:Replace {userPlaceholder} with your SSH username. Keep this terminal open until the connection shows as active — both ports are needed: one serves the dashboard, the other receives the callback.",
+    "loopbackMismatchStep2": "__MISSING__:In this browser, reopen OmniRoute through the tunnel:",
+    "loopbackMismatchStep3": "__MISSING__:Then connect {providerName} again from the new tab. The callback now reaches the server and the login completes normally.",
+    "loopbackMismatchAlternative": "__MISSING__:No SSH access? If this provider offers a token import tab, connect with a token instead — that path doesn't use a loopback callback.",
     "step1OpenUrl": "Trin 1: Åbn denne URL i din browser",
     "copy": "Kopiér",
     "step2PasteCallback": "Trin 2: Indsæt tilbagekalds-URL eller autorisationskode her",
@@ -10476,7 +10526,9 @@
     "deleteGroupConfirm": "Slet denne gruppe? Dens puljer skal tildeles igen eller fjernes først.",
     "deleteGroupHasPools": "Denne gruppe har stadig puljer — tildel dem igen eller slet dem først.",
     "ungroupedTitle": "Ikke grupperet",
-    "ungroupedHint": "Disse puljer er ikke tildelt en kendt gruppe. Rediger en pulje for at flytte den til en rigtig gruppe."
+    "ungroupedHint": "Disse puljer er ikke tildelt en kendt gruppe. Rediger en pulje for at flytte den til en rigtig gruppe.",
+    "removeFailed": "Could not remove this pool.",
+    "dismiss": "Dismiss"
   },
   "plugins": {
     "title": "Plugins",
@@ -11784,7 +11836,8 @@
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "Aktivér netværksadgang i skills-sandkassen."
       }
-    }
+    },
+    "ccDiscoveryAliasesEnvWarning": "__MISSING__:Active via environment variable (EXPOSE_CC_DISCOVERY_ALIASES) — this overrides any dashboard toggle below."
   },
   "comboControl": {
     "title": "Combo Kontrolcenter",
@@ -12131,5 +12184,6 @@
     "cta": "Hent Kimi Code",
     "partnerLinkNote": "Partnerlink",
     "dismissAriaLabel": "Afvis"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

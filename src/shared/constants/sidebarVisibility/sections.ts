@@ -394,6 +394,13 @@ const LOGS_GROUP: SidebarItemGroup = {
       subtitleKey: "consoleLogsSubtitle",
       icon: "terminal",
     },
+    {
+      id: "logs-timeline",
+      href: "/dashboard/logs/timeline",
+      i18nKey: "logsTimeline",
+      subtitleKey: "logsTimelineSubtitle",
+      icon: "view_timeline",
+    },
   ],
 };
 

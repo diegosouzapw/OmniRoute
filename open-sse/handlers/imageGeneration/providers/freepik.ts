@@ -114,14 +114,18 @@ async function pollMysticTask(params: {
 }
 
 async function downloadGeneratedImage(imageUrl: string): Promise<
-  { ok: true; b64: string } | { ok: false; status: number; error: string }
+  { state: "ok"; b64: string } | { state: "failed"; status: number; error: string }
 > {
   const imgRes = await fetch(imageUrl);
   if (!imgRes.ok) {
-    return { ok: false, status: imgRes.status, error: `Failed to download image: ${imgRes.status}` };
+    return {
+      state: "failed",
+      status: imgRes.status,
+      error: `Failed to download image: ${imgRes.status}`,
+    };
   }
   const buf = await imgRes.arrayBuffer();
-  return { ok: true, b64: Buffer.from(buf).toString("base64") };
+  return { state: "ok", b64: Buffer.from(buf).toString("base64") };
 }
 
 async function resolveCompletedResult(params: {
@@ -141,7 +145,7 @@ async function resolveCompletedResult(params: {
     });
   }
   const downloaded = await downloadGeneratedImage(imageUrl);
-  if (!downloaded.ok) {
+  if (downloaded.state === "failed") {
     return { success: false, status: downloaded.status, error: downloaded.error };
   }
   saveCallLog({

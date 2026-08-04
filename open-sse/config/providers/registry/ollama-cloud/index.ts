@@ -12,6 +12,18 @@ export const ollama_cloudProvider: RegistryEntry = {
   // Note: rate limits vary by plan (free = "Light usage", Pro = more, Max = 5x Pro).
   // Users can generate API keys at https://ollama.com/settings/keys
   models: [
+    {
+      id: "gpt-oss:20b",
+      name: "GPT-OSS 20B",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high"],
+    },
+    {
+      id: "gpt-oss:120b",
+      name: "GPT-OSS 120B",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high"],
+    },
     { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
     { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
     { id: "kimi-k2.6", name: "Kimi K2.6" },

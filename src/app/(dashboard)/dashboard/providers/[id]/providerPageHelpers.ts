@@ -17,6 +17,8 @@ import {
 } from "@/lib/providers/requestDefaults";
 import { type CodexGlobalServiceMode } from "@/lib/providers/codexFastTier";
 import { CC_COMPATIBLE_DEFAULT_CHAT_PATH } from "./providerDetailConstants";
+import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry";
+import type { AlternateFormat } from "@omniroute/open-sse/config/providers/alternateFormats";
 import {
   type ProviderMessageTranslator,
   providerText,
@@ -280,6 +282,16 @@ export function isBaseUrlOverrideEligibleProvider(providerId?: string | null): b
   if (!providerId) return false;
   if (isBaseUrlConfigurableProvider(providerId)) return false;
   return true;
+}
+
+/**
+ * Alternate API protocols the provider declares in the registry (e.g. an
+ * Anthropic-compatible endpoint alongside the default OpenAI one). An empty list
+ * means the protocol selector stays hidden for this provider.
+ */
+export function getAlternateFormats(providerId?: string | null): AlternateFormat[] {
+  if (!providerId) return [];
+  return getRegistryEntry(providerId)?.alternateFormats ?? [];
 }
 
 export function getProviderBaseUrlDefault(providerId?: string | null) {

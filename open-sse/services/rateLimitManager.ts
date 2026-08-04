@@ -259,9 +259,6 @@ function watchdogTick() {
     warnRateLimit(
       `🚨 [RATE-LIMIT] WEDGED: ${key} queued=${counts.QUEUED} running=0 executing=0 stalled=${stalledMs}ms — force-resetting`
     );
-    limiters.delete(key);
-    lastDispatchAt.delete(key);
-    limiterLastUsed.delete(key);
     // Live incident (log id 1784465227489-a2cbc0): disconnect() releases the
     // heartbeat timer but does NOT reject the QUEUED jobs already sitting on
     // this instance — withRateLimit's `limiter.schedule()` for those callers
@@ -285,9 +282,7 @@ function watchdogTick() {
     // no future getLimiter() call can ever hand out this now-stopped instance
     // — the "permanently rejects future .schedule()" behavior stop() has is
     // therefore moot; nothing will call .schedule() on it again.
-    trackAsyncOperation(
-      limiter.stop({ dropWaitingJobs: true, dropErrorMessage: "rate-limit-watchdog-wedge-reset" })
-    );
+    evictWedgeLimiter(key, limiter);
   }
 }
 
@@ -311,6 +306,17 @@ export function stopRateLimitWatchdog(): void {
   if (!watchdogInterval) return;
   clearInterval(watchdogInterval);
   watchdogInterval = null;
+}
+
+function evictWedgeLimiter(key: string, limiter: Bottleneck): void {
+  if (limiters.get(key) !== limiter) return;
+  limiters.delete(key);
+  lastDispatchAt.delete(key);
+  limiterLastUsed.delete(key);
+  trackAsyncOperation(limiter.disconnect());
+  trackAsyncOperation(
+    limiter.stop({ dropWaitingJobs: true, dropErrorMessage: "rate-limit-watchdog-wedge-reset" })
+  );
 }
 
 /**
@@ -553,7 +559,32 @@ function getLimiter(provider, connectionId, model = null) {
  * @param {AbortSignal} signal - Optional abort signal to cancel waiting
  * @returns {Promise<unknown>} Result of fn()
  */
-export async function withRateLimit(provider, connectionId, model, fn, signal = null) {
+async function getQueueHealthSnapshot(key: string, limiter: Bottleneck) {
+  const counts = limiter.counts();
+  let reservoirRemaining: number | null = null;
+  try {
+    reservoirRemaining = await limiter.currentReservoir();
+  } catch {
+    // Snapshot logging must never affect request handling.
+  }
+  const lastDispatch = lastDispatchAt.get(key);
+  return {
+    queued: counts.QUEUED,
+    running: counts.RUNNING,
+    executing: counts.EXECUTING,
+    reservoirRemaining,
+    lastDispatchAgeMs: lastDispatch ? Date.now() - lastDispatch : null,
+  };
+}
+
+export async function withRateLimit(
+  provider,
+  connectionId,
+  model,
+  fn,
+  signal = null,
+  retryAfterWedge = true
+) {
   if (!enabledConnections.has(connectionId)) {
     return fn();
   }
@@ -637,12 +668,27 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
     // bodies / call-log `last_error` and gets misdiagnosed as a provider outage
     // (#4165). Rewrite it into a clear, OmniRoute-owned error (knob named,
     // upstream disclaimed, original kept as `cause`, `code` for classification).
-    // Behavior is unchanged — the job is still dropped so combo can fall back.
+    // If the limiter is idle with capacity after the expiry, the scheduler is wedged.
+    // Reset it and retry this never-dispatched function once on a fresh limiter.
     if (err?.message?.includes("This job timed out")) {
       const key = getLimiterKey(provider, connectionId, model);
+      const queueState = await getQueueHealthSnapshot(key, limiter);
       logRateLimit(
         `⏰ [RATE-LIMIT] ${key} — job expired after ${Math.ceil((maxWaitMs || 0) / 1000)}s in queue, dropping`
       );
+      const limiterIsWedged =
+        retryAfterWedge &&
+        queueState.running === 0 &&
+        queueState.executing === 0 &&
+        typeof queueState.reservoirRemaining === "number" &&
+        queueState.reservoirRemaining > 0 &&
+        typeof queueState.lastDispatchAgeMs === "number" &&
+        queueState.lastDispatchAgeMs >= Math.max(1, maxWaitMs || 0);
+      if (limiterIsWedged) {
+        logRateLimit(`🔄 [RATE-LIMIT] ${key} — recovering idle limiter after queue expiry`);
+        evictWedgeLimiter(key, limiter);
+        return withRateLimit(provider, connectionId, model, fn, signal, false);
+      }
       const queueErr = new Error(
         `Request dropped after exceeding the local rate-limit queue budget maxWaitMs (${maxWaitMs}ms) for ` +
           `${model ? `${provider}/${model}` : provider} — this is OmniRoute's request queue ` +

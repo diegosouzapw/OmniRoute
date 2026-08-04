@@ -239,12 +239,18 @@ test("Claude -> Gemini handles empty bodies without producing invalid content", 
 });
 
 test("Claude -> Gemini maps output_config.effort to thinkingConfig when thinking absent", () => {
+  // NOTE: max/xhigh previously asserted 131072, but that locked in the OLD
+  // no-cap behavior — gemini-2.5-pro is unregistered, so the raw budget sailed
+  // to the upstream and 400'd ("thinking_budget must be in the range"). The
+  // gemini-substring fallback in capThinkingBudget now clamps unregistered
+  // Gemini models to the pro-tier ceiling 32768, which is what the upstream
+  // actually accepts. low/medium/high are below the cap and stay unchanged.
   const cases: Array<{ effort: string; expected: number }> = [
     { effort: "low", expected: 1024 },
     { effort: "medium", expected: 10240 },
     { effort: "high", expected: 32768 },
-    { effort: "max", expected: 131072 },
-    { effort: "xhigh", expected: 131072 },
+    { effort: "max", expected: 32768 },
+    { effort: "xhigh", expected: 32768 },
   ];
 
   for (const { effort, expected } of cases) {

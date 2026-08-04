@@ -5,6 +5,8 @@ import { injectSkills } from "@/lib/skills/injection";
 import { FORMATS } from "../../translator/formats.ts";
 import { detectCachingContext } from "../../services/compression/cachingAware.ts";
 
+type MemorySkillsLogger = { debug?: (...args: unknown[]) => void } | null | undefined;
+
 export function getSkillsProviderForFormat(format: string): "openai" | "anthropic" | "google" | "other" {
   switch (format) {
     case FORMATS.CLAUDE:
@@ -33,7 +35,7 @@ export async function injectMemoryAndSkills({
   sourceFormat: string;
   targetFormat: string;
   backgroundReason: string | null;
-  log: unknown;
+  log: MemorySkillsLogger;
 }) {
   const memorySettings = memoryOwnerId
     ? await getMemorySettings().catch(() => DEFAULT_MEMORY_SETTINGS)

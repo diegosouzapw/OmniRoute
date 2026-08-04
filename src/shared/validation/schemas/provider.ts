@@ -564,6 +564,22 @@ export const updateInterceptionRulesSchema = z.object({
   models: z.record(z.string().trim().min(1).max(200), modelInterceptionRuleSchema).optional(),
 });
 
+// PUT /api/providers/[id]/cc-alias — Claude Code discovery-alias gate override
+// (provider-level or per-model). `value: null` clears the override (inherit).
+const ccAliasSettingValueSchema = z.enum(["on", "off"]).nullable();
+
+export const updateCcAliasSettingSchema = z.discriminatedUnion("scope", [
+  z.object({
+    scope: z.literal("provider"),
+    value: ccAliasSettingValueSchema,
+  }),
+  z.object({
+    scope: z.literal("model"),
+    modelId: z.string().trim().min(1).max(200),
+    value: ccAliasSettingValueSchema,
+  }),
+]);
+
 export const validateProviderApiKeySchema = z
   .object({
     provider: z.string().trim().min(1, "Provider and API key required"),

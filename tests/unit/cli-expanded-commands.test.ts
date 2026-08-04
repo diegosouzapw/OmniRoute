@@ -82,6 +82,117 @@ test("backup auto status sem arquivo retorna 0", async () => {
   }
 });
 
+// Regressão #8512: `backup` re-declara os mesmos nomes de opção que `create`/
+// `auto enable` no fallback legacy ("omniroute backup" sem subcomando) — o
+// Commander resolve a opção no ancestral mais próximo que a declara, então o
+// valor do subcomando é descartado silenciosamente e substituído pelo default
+// da própria opção do subcomando (null/false/[]).
+test("backup auto enable — nenhuma opção é sombreada pelo parent backup", async () => {
+  const { registerBackup } = await import("../../bin/cli/commands/backup.mjs");
+  const { Command } = await import("commander");
+  const { mkdtempSync, readFileSync, rmSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+
+  const dataDir = mkdtempSync(join(tmpdir(), "omniroute-backup-test-"));
+  const origDataDir = process.env.DATA_DIR;
+  process.env.DATA_DIR = dataDir;
+  try {
+    const prog = new Command().exitOverride();
+    registerBackup(prog);
+    await prog.parseAsync(
+      [
+        "node",
+        "x",
+        "backup",
+        "auto",
+        "enable",
+        "--cron",
+        "0 4 * * *",
+        "--cloud",
+        "--encrypt",
+        "--retention",
+        "7",
+      ],
+      { from: "node" }
+    );
+    const schedule = JSON.parse(readFileSync(join(dataDir, "backup-schedule.json"), "utf8"));
+    assert.equal(schedule.cron, "0 4 * * *");
+    assert.equal(schedule.cloud, true, "--cloud não deve ser sombreado pelo parent backup");
+    assert.equal(schedule.encrypt, true, "--encrypt não deve ser sombreado pelo parent backup");
+    assert.equal(schedule.retention, 7, "--retention não deve ser sombreado pelo parent backup");
+  } finally {
+    if (origDataDir === undefined) delete process.env.DATA_DIR;
+    else process.env.DATA_DIR = origDataDir;
+    rmSync(dataDir, { recursive: true, force: true });
+  }
+});
+
+test("backup create — nenhuma opção é sombreada pelo parent backup", async () => {
+  const { registerBackup } = await import("../../bin/cli/commands/backup.mjs");
+  const { Command } = await import("commander");
+  const prog = new Command().exitOverride();
+  registerBackup(prog);
+  const backupCmd = prog.commands.find((c) => c.name() === "backup");
+  const createCmd = backupCmd.commands.find((c) => c.name() === "create");
+  let capturedOpts = null;
+  createCmd.action((opts) => {
+    capturedOpts = opts;
+  });
+  await prog.parseAsync(
+    [
+      "node",
+      "x",
+      "backup",
+      "create",
+      "--name",
+      "foo",
+      "--cloud",
+      "--encrypt",
+      "--retention",
+      "7",
+      "--exclude",
+      "*.log",
+    ],
+    { from: "node" }
+  );
+  assert.ok(capturedOpts, "action deve ter sido chamada");
+  assert.equal(capturedOpts.name, "foo", "--name não deve ser sombreado");
+  assert.equal(capturedOpts.cloud, true, "--cloud não deve ser sombreado");
+  assert.equal(capturedOpts.encrypt, true, "--encrypt não deve ser sombreado");
+  assert.equal(capturedOpts.retention, 7, "--retention não deve ser sombreado");
+  assert.deepEqual(capturedOpts.exclude, ["*.log"], "--exclude não deve ser sombreado");
+});
+
+// Regressão de documentação: `omniroute backup` sem subcomando é o uso
+// canônico documentado em USER_GUIDE.md / CLI-TOOLS.md / AGENT-SKILLS.md
+// ("omniroute backup # Snapshot config + DB"). Remover só as opções
+// duplicadas do parent (causa real do #8512) não pode remover essa ação.
+test("backup — sem subcomando ainda cria um backup (uso legado documentado)", async () => {
+  const { registerBackup } = await import("../../bin/cli/commands/backup.mjs");
+  const { Command } = await import("commander");
+  const { mkdtempSync, existsSync, rmSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+
+  const dataDir = mkdtempSync(join(tmpdir(), "omniroute-backup-bare-test-"));
+  const origDataDir = process.env.DATA_DIR;
+  process.env.DATA_DIR = dataDir;
+  try {
+    const prog = new Command().exitOverride();
+    registerBackup(prog);
+    await prog.parseAsync(["node", "x", "backup"], { from: "node" });
+    assert.ok(
+      existsSync(join(dataDir, "backups")),
+      "omniroute backup deve criar o diretório de backups"
+    );
+  } finally {
+    if (origDataDir === undefined) delete process.env.DATA_DIR;
+    else process.env.DATA_DIR = origDataDir;
+    rmSync(dataDir, { recursive: true, force: true });
+  }
+});
+
 test("tunnel — registerTunnel registra list/create/stop/status/logs/info/rotate", async () => {
   const { registerTunnel } = await import("../../bin/cli/commands/tunnel.mjs");
   const { Command } = await import("commander");

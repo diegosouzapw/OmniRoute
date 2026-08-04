@@ -84,6 +84,23 @@ function buildShellStreamEvent(
   return lenPrefixed(2, esm);
 }
 
+function buildNativeTodoCompletedEvent(
+  toolCallId: string,
+  todos: Array<{ content: string; status: number }>,
+  merge = false
+): Buffer {
+  const todoArgs = Buffer.concat([
+    ...todos.map((todo) =>
+      lenPrefixed(1, Buffer.concat([stringField(2, todo.content), varintField(3, todo.status)]))
+    ),
+    varintField(2, merge ? 1 : 0),
+  ]);
+  const todoDetails = lenPrefixed(1, todoArgs);
+  const toolCall = lenPrefixed(9, todoDetails);
+  const completed = Buffer.concat([stringField(1, toolCallId), lenPrefixed(2, toolCall)]);
+  return lenPrefixed(1, lenPrefixed(3, completed));
+}
+
 // ─── decodeProtobufValue round-trip tests ──────────────────────────────────
 
 test("decodeProtobufValue round-trips primitives", () => {
@@ -310,6 +327,71 @@ test("processFrame bridges Cursor shell_stream to an external tool call and cold
   assert.equal(emitted.length, 3, "role + tool init + tool args chunks");
   assert.equal(writes.length, 1, "native Cursor shell request must receive a typed rejection");
   assert.ok(writes[0].includes(Buffer.from("Tool not available in this environment", "utf8")));
+});
+
+test("processFrame bridges a complete native TodoWrite merge once and forces a cold resume", () => {
+  const emitted: string[] = [];
+  const ctx = newStreamCtx("claude-fable-5-thinking-xhigh", (s) => emitted.push(s));
+  const mcpTools = openAIToolsToMcpDefs([
+    {
+      type: "function",
+      function: {
+        name: "todowrite",
+        parameters: {
+          type: "object",
+          properties: {
+            todos: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  content: { type: "string" },
+                  status: { type: "string" },
+                  priority: { type: "string" },
+                },
+                required: ["content", "status", "priority"],
+                additionalProperties: false,
+              },
+            },
+          },
+          required: ["todos"],
+          additionalProperties: false,
+        },
+      },
+    },
+  ]);
+  const payload = buildNativeTodoCompletedEvent(
+    "toolu_todo_process",
+    [
+      { content: "Inspect files", status: 3 },
+      { content: "Write report", status: 2 },
+    ],
+    true
+  );
+  const acked = new Set<string>();
+
+  const opts = {
+    mcpTools,
+    todoHistory: [
+      { content: "Inspect files", priority: "high" },
+      { content: "Write report", priority: "medium" },
+    ],
+  };
+  processFrame(payload, ctx, acked, opts);
+  processFrame(payload, ctx, acked, opts);
+
+  assert.equal(ctx.endReason, "tool_calls");
+  assert.equal(ctx.requiresColdResume, true);
+  assert.equal(ctx.pendingToolCalls.size, 0);
+  assert.equal(ctx.toolCalls.length, 1, "duplicate native completion frames must be deduplicated");
+  assert.equal(ctx.toolCalls[0].name, "todowrite");
+  assert.deepEqual(JSON.parse(ctx.toolCalls[0].argumentsJson), {
+    todos: [
+      { content: "Inspect files", status: "completed", priority: "high" },
+      { content: "Write report", status: "in_progress", priority: "medium" },
+    ],
+  });
+  assert.equal(emitted.length, 3, "role + tool init + tool args chunks");
 });
 
 test("infers the client platform from explicit environment metadata, not command text", () => {

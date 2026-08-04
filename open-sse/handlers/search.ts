@@ -3,9 +3,10 @@ import { randomUUID } from "crypto";
  * Search Handler
  *
  * Handles POST /v1/search requests.
- * Routes to 11 search providers with automatic failover:
+ * Routes to search providers with automatic failover:
  *   serper-search, brave-search, perplexity-search, exa-search, tavily-search,
- *   google-pse-search, linkup-search, searchapi-search, youcom-search, searxng-search, ollama-search, zai-search
+ *   firecrawl, google-pse-search, linkup-search, searchapi-search,
+ *   youcom-search, searxng-search, ollama-search, zai-search, duckduckgo-free
  *
  * Request format:
  * {
@@ -18,6 +19,7 @@ import { randomUUID } from "crypto";
 
 import { getSearchProvider, type SearchProviderConfig } from "../config/searchRegistry.ts";
 import { buildPerplexityRequest, parsePerplexitySearchOptions } from "./search/perplexitySearch.ts";
+import * as fcSearch from "./search/firecrawlSearch.ts";
 import { freeWebSearch } from "../services/freeWebSearch.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
@@ -25,8 +27,6 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { z } from "zod";
 import { sanitizeErrorMessage } from "../utils/error.ts";
-
-// ── Types ────────────────────────────────────────────────────────────────
 
 export interface SearchResult {
   title: string;
@@ -600,6 +600,7 @@ function buildRequest(
   if (config.id === "perplexity-search") return buildPerplexityRequest(config, params);
   if (config.id === "exa-search") return buildExaRequest(config, params);
   if (config.id === "tavily-search") return buildTavilyRequest(config, params);
+  if (config.id === "firecrawl") return fcSearch.buildFirecrawlSearchRequest(config, params);
   if (config.id === "google-pse-search") return buildGooglePseRequest(config, params);
   if (config.id === "linkup-search") return buildLinkupRequest(config, params);
   if (config.id === "searchapi-search") return buildSearchApiRequest(config, params);
@@ -1166,6 +1167,8 @@ function normalizeResponse(
     return normalizePerplexityResponse(data, query, searchType);
   if (providerId === "exa-search") return normalizeExaResponse(data, query, searchType);
   if (providerId === "tavily-search") return normalizeTavilyResponse(data, query, searchType);
+  if (providerId === "firecrawl")
+    return fcSearch.normalizeFirecrawlSearchResponse(data, searchType, makeResult);
   if (providerId === "google-pse-search")
     return normalizeGooglePseResponse(data, query, searchType);
   if (providerId === "linkup-search") return normalizeLinkupResponse(data, query, searchType);
@@ -1175,9 +1178,6 @@ function normalizeResponse(
   if (providerId === "ollama-search") return normalizeOllamaResponse(data, query, searchType);
   return { results: [], totalResults: null };
 }
-
-// ── Main Handler ────────────────────────────────────────────────────────
-
 export async function handleSearch(options: SearchHandlerOptions): Promise<SearchHandlerResult> {
   const {
     query,

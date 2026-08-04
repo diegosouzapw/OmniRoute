@@ -90,6 +90,28 @@ test("VertexExecutor.buildUrl routes partner and org-prefixed models to the glob
   );
 });
 
+test("VertexExecutor.buildUrl routes current-generation Claude models to the global partner endpoint (#1985)", () => {
+  const executor = new VertexExecutor();
+
+  // These model IDs post-date the old pinned "claude-3-5-sonnet" / "claude-3-opus" /
+  // "claude-3-haiku" prefixes and were previously misrouted to the Google-publisher path.
+  const claude4Sonnet = executor.buildUrl("claude-sonnet-4-6", false, 0, {
+    apiKey: createServiceAccountJson({ projectId: "proj-claude" }),
+  });
+  const claude4Haiku = executor.buildUrl("claude-haiku-4-5@20251001", true, 0, {
+    apiKey: createServiceAccountJson({ projectId: "proj-claude" }),
+  });
+
+  assert.equal(
+    claude4Sonnet,
+    "https://aiplatform.googleapis.com/v1/projects/proj-claude/locations/global/endpoints/openapi/chat/completions"
+  );
+  assert.equal(
+    claude4Haiku,
+    "https://aiplatform.googleapis.com/v1/projects/proj-claude/locations/global/endpoints/openapi/chat/completions"
+  );
+});
+
 test("VertexExecutor.buildHeaders includes Bearer token and SSE Accept only for streaming", () => {
   const executor = new VertexExecutor();
   const streamHeaders = executor.buildHeaders({ accessToken: "ya29.stream" }, true);

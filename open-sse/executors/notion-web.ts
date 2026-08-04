@@ -77,6 +77,7 @@ export {
   parseNotionInferenceStream,
   resolveNotionThreadBinding,
   notionThreadMarkCreateAttempted,
+  notionThreadMarkConfirmed,
   sanitizeNotionAssistantText,
 };
 
@@ -95,6 +96,9 @@ const NOTION_CLIENT_VERSION = "23.13.20260720.1949";
 interface NotionRequestBody {
   messages?: NotionMessage[];
   model?: string;
+  /** OpenAI-compatible structured output request. Notion Web has no native param,
+   * so the executor folds it into transcript instructions. */
+  response_format?: unknown;
   /** Optional client-supplied Notion thread continuity (also via X-Notion-Thread-Id). */
   notion_thread_id?: string;
   thread_id?: string;
@@ -125,6 +129,41 @@ function readProviderSpecificString(
     if (value) return value;
   }
   return "";
+}
+
+function buildStructuredOutputInstruction(responseFormat: unknown): string {
+  if (!responseFormat || typeof responseFormat !== "object" || Array.isArray(responseFormat)) {
+    return "";
+  }
+  const format = responseFormat as Record<string, unknown>;
+  const type = typeof format.type === "string" ? format.type : "";
+  if (type !== "json_object" && type !== "json_schema") return "";
+
+  const lines = [
+    "Structured output requirement:",
+    "- Return only valid JSON.",
+    "- Do not wrap the JSON in markdown fences.",
+    "- Do not add prose before or after the JSON.",
+  ];
+
+  if (type === "json_schema" && format.json_schema && typeof format.json_schema === "object") {
+    try {
+      lines.push(`- Match this JSON schema: ${JSON.stringify(format.json_schema)}`);
+    } catch {
+      lines.push("- Match the requested JSON schema.");
+    }
+  }
+
+  return lines.join("\n");
+}
+
+function appendStructuredOutputInstruction(
+  messages: NotionMessage[],
+  responseFormat: unknown
+): NotionMessage[] {
+  const instruction = buildStructuredOutputInstruction(responseFormat);
+  if (!instruction) return messages;
+  return [{ role: "system", content: instruction }, ...messages];
 }
 
 /** Normalize a pasted credential to a `name=value` cookie pair. Accepts a bare
@@ -560,7 +599,10 @@ export class NotionWebExecutor extends BaseExecutor {
     // Optional custom agent (workflowId). Empty → default Notion AI (not agentic-specific).
     const agent = resolveNotionAgentOptions(credentials, cookie);
 
-    const messages = requestBody.messages || [];
+    const messages = appendStructuredOutputInstruction(
+      requestBody.messages || [],
+      requestBody.response_format
+    );
     if (!messages.some((m) => m.role === "user")) {
       return makeErrorResult(400, "No user message found", body, NOTION_URL);
     }
@@ -583,11 +625,12 @@ export class NotionWebExecutor extends BaseExecutor {
     const clientFacing = clientFacingModelId(model);
     const modelId = clientFacing || notionCodename || "notion-ai";
 
-    // Thread continuity (sticky):
+    // Thread continuity (sticky) — see resolveNotionThreadBinding:
     // - Prefer X-Notion-Thread-Id / body pin from the client
-    // - Else sticky root key from first user message (UREW-normalized, durable on disk)
-    // - Bind threadId *before* the upstream call so error retries never mint a new chat
-    // - createThread:true only for brand-new roots; never again for that root
+    // - Else exact conversation-prefix hash (multi-turn OpenAI history)
+    // - Else sticky root (first user text) for UREW + failed-first-request retries
+    // - First-turn + confirmed sticky (new Claude Code session with same “hi”) → mint fresh
+    // - Bind threadId *before* the upstream call so error retries never mint a second chat
     const inboundHeaders =
       (input.clientHeaders as Record<string, string> | null | undefined) ??
       ((input as { headers?: Record<string, string> }).headers as
@@ -606,13 +649,26 @@ export class NotionWebExecutor extends BaseExecutor {
 
     const reqHeaders = buildNotionExecuteHeaders({ cookie, spaceId, userId, agent });
 
+    type NotionAttempt =
+      | { ok: true; finalText: string; reqBody: Record<string, unknown> }
+      | {
+          ok: false;
+          errorResult: ReturnType<typeof makeErrorResult>;
+          retryable: boolean;
+          reqBody: Record<string, unknown>;
+        };
+
+    // `strictNullChecks: false` narrows a boolean-literal discriminant on the positive
+    // branch only, so `!attempt.ok` leaves the full union and the failure-only fields are
+    // unreachable to the checker. An explicit predicate narrows under those settings.
+    const isFailedAttempt = (
+      attempt: NotionAttempt
+    ): attempt is Extract<NotionAttempt, { ok: false }> => !attempt.ok;
+
     const runOnce = async (opts: {
       createThread: boolean;
       threadId: string;
-    }): Promise<
-      | { ok: true; finalText: string; reqBody: Record<string, unknown> }
-      | { ok: false; errorResult: ReturnType<typeof makeErrorResult>; retryable: boolean; reqBody: Record<string, unknown> }
-    > => {
+    }): Promise<NotionAttempt> => {
       const transcript = buildNotionTranscript(messages, {
         notionModel: notionCodename || undefined,
         spaceId,
@@ -681,13 +737,13 @@ export class NotionWebExecutor extends BaseExecutor {
     let attempt = await runOnce({ createThread, threadId });
 
     // One automatic retry for transient Notion faults — same threadId, never create again
-    if (!attempt.ok && attempt.retryable) {
+    if (isFailedAttempt(attempt) && attempt.retryable) {
       const delayMs = process.env.NODE_ENV === "test" || process.env.VITEST ? 20 : 700 + Math.floor(Math.random() * 400);
       await new Promise((r) => setTimeout(r, delayMs));
       attempt = await runOnce({ createThread: false, threadId });
     }
 
-    if (!attempt.ok) {
+    if (isFailedAttempt(attempt)) {
       return attempt.errorResult;
     }
 

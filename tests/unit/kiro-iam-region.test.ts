@@ -91,6 +91,27 @@ test("kiro.postExchange returns null when no profile is available (AWS Builder I
   }
 });
 
+test("kiro.postExchange skips profile discovery for an identified Builder ID flow", async () => {
+  const originalFetch = global.fetch;
+  let calls = 0;
+  global.fetch = (async () => {
+    calls += 1;
+    throw new Error("Builder ID must not probe ListAvailableProfiles");
+  }) as typeof fetch;
+
+  try {
+    const extra = await kiro.postExchange({
+      access_token: "builder-token",
+      _region: "us-east-1",
+      _authMethod: "builder-id",
+    });
+    assert.equal(extra, null);
+    assert.equal(calls, 0);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
 test("kiro.postExchange never throws on network failure", async () => {
   const originalFetch = global.fetch;
   global.fetch = (async () => {
@@ -112,6 +133,7 @@ test("kiro.mapTokens stores the discovered profileArn from postExchange extra", 
     mapped.providerSpecificData.profileArn,
     "arn:aws:codewhisperer:eu-central-1:820374639727:profile/RX4VNUHGHGAQ"
   );
+  assert.equal(mapped.providerSpecificData.authMethod, "idc");
 });
 
 test("kiro.mapTokens omits profileArn when postExchange found none", () => {
@@ -120,4 +142,5 @@ test("kiro.mapTokens omits profileArn when postExchange found none", () => {
     null
   );
   assert.equal("profileArn" in mapped.providerSpecificData, false);
+  assert.equal(mapped.providerSpecificData.authMethod, "builder-id");
 });

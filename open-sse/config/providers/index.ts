@@ -35,6 +35,7 @@ import { bedrockProvider } from "./registry/bedrock/index.ts";
 import { inner_aiProvider } from "./registry/inner-ai/index.ts";
 import { qoderProvider } from "./registry/qoder/index.ts";
 import { xiaomi_mimoProvider } from "./registry/xiaomi-mimo/index.ts";
+import { xiaomi_mimo_token_planProvider } from "./registry/xiaomi-mimo-token-plan/index.ts";
 import { codestralProvider } from "./registry/codestral/index.ts";
 import { wandbProvider } from "./registry/wandb/index.ts";
 import { predibaseProvider } from "./registry/predibase/index.ts";
@@ -116,6 +117,7 @@ import { uncloseaiProvider } from "./registry/uncloseai/index.ts";
 import { nscaleProvider } from "./registry/nscale/index.ts";
 import { chatgpt_webProvider } from "./registry/chatgpt-web/index.ts";
 import { openrouterProvider } from "./registry/openrouter/index.ts";
+import { cheaperinferenceProvider } from "./registry/cheaperinference/index.ts";
 import { openvectaProvider } from "./registry/openvecta/index.ts";
 import { orcarouterProvider } from "./registry/orcarouter/index.ts";
 import { copilot_webProvider } from "./registry/copilot-web/index.ts";
@@ -254,6 +256,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "inner-ai": inner_aiProvider,
   qoder: qoderProvider,
   "xiaomi-mimo": xiaomi_mimoProvider,
+  "xiaomi-mimo-token-plan": xiaomi_mimo_token_planProvider,
   codestral: codestralProvider,
   wandb: wandbProvider,
   predibase: predibaseProvider,
@@ -335,6 +338,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   nscale: nscaleProvider,
   "chatgpt-web": chatgpt_webProvider,
   openrouter: openrouterProvider,
+  cheaperinference: cheaperinferenceProvider,
   openvecta: openvectaProvider,
   orcarouter: orcarouterProvider,
   "copilot-web": copilot_webProvider,

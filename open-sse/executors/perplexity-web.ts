@@ -6,7 +6,7 @@
  * completions format and Perplexity's internal protocol.
  */
 
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "./base.ts";
 import {
   tlsFetchPerplexity,
   isCloudflareChallenge,
@@ -16,6 +16,10 @@ import {
 import { prepareToolMessages } from "../translator/webTools.ts";
 import { buildToolModeResponse } from "./chatgptWebTools.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import {
+  buildSessionCookieHeader,
+  mergeRefreshedCookie,
+} from "../utils/nextAuthCookie.ts";
 import {
   PPLX_SSE_ENDPOINT,
   PPLX_USER_AGENT,
@@ -330,6 +334,27 @@ async function buildNonStreamingResponse(
   );
 }
 
+async function persistRotatedSessionCookie(
+  cookie: string,
+  setCookieHeader: string | null,
+  credentials: ProviderCredentials,
+  onCredentialsRefreshed: ExecuteInput["onCredentialsRefreshed"],
+  log: ExecuteInput["log"]
+): Promise<void> {
+  if (!onCredentialsRefreshed) return;
+  try {
+    const refreshed = mergeRefreshedCookie(cookie, setCookieHeader);
+    if (refreshed && refreshed !== cookie) {
+      await onCredentialsRefreshed({ ...credentials, apiKey: refreshed });
+    }
+  } catch (err) {
+    log?.warn?.(
+      "PPLX-WEB",
+      `Failed to persist refreshed cookie: ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
+}
+
 // ─── Executor ───────────────────────────────────────────────────────────────
 
 export class PerplexityWebExecutor extends BaseExecutor {
@@ -337,7 +362,7 @@ export class PerplexityWebExecutor extends BaseExecutor {
     super("perplexity-web", { id: "perplexity-web", baseUrl: PPLX_SSE_ENDPOINT });
   }
 
-  async execute({ model, body, stream, credentials, signal, log }: ExecuteInput) {
+  async execute({ model, body, stream, credentials, signal, log, onCredentialsRefreshed }: ExecuteInput) {
     const bodyObj = (body || {}) as Record<string, unknown>;
     const rawMessages = bodyObj.messages as Array<Record<string, unknown>> | undefined;
     if (!rawMessages || !Array.isArray(rawMessages) || rawMessages.length === 0) {
@@ -417,10 +442,11 @@ export class PerplexityWebExecutor extends BaseExecutor {
       "x-request-id": requestId,
     };
 
+    const cookieBlob = credentials.apiKey ?? "";
     if (credentials.accessToken) {
       headers["Authorization"] = `Bearer ${credentials.accessToken}`;
-    } else if (credentials.apiKey) {
-      headers["Cookie"] = `__Secure-next-auth.session-token=${credentials.apiKey}`;
+    } else if (cookieBlob) {
+      headers["Cookie"] = buildSessionCookieHeader(cookieBlob);
     }
 
     log?.info?.(
@@ -526,6 +552,18 @@ export class PerplexityWebExecutor extends BaseExecutor {
         { status: 502, headers: { "Content-Type": "application/json" } }
       );
       return { response: errResp, url: PPLX_SSE_ENDPOINT, headers, transformedBody: pplxBody };
+    }
+
+    // Surface any rotated session-token back to the caller so the DB credential
+    // is refreshed — mirrors chatgpt-web.ts exchangeSession + onCredentialsRefreshed.
+    if (cookieBlob) {
+      await persistRotatedSessionCookie(
+        cookieBlob,
+        response.headers.get("set-cookie"),
+        credentials,
+        onCredentialsRefreshed,
+        log
+      );
     }
 
     // Build OpenAI-compatible response

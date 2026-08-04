@@ -1,7 +1,8 @@
 // Characterization of runPluginOnResponseHook — the plugin onResponse hook extracted from
 // handleChatCore's streaming finalization (chatCore god-file decomposition, #3501). Hooks are
-// in-memory (no DB). Locks: a registered onResponse hook receives the request context + status-200
-// response, and the helper is fire-and-forget / fail-open (no registered hooks → no-op).
+// in-memory (no DB). Locks: a registered onResponse hook receives the request context plus the
+// real response payload (status + data or streamed flag), and the helper is fire-and-forget /
+// fail-open (no registered hooks → no-op). #8711: must not hardcode { status: 200 } only.
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 
@@ -29,16 +30,22 @@ test("no registered hooks → resolves without throwing (no-op)", async () => {
       model: "gpt-x",
       provider: "openai",
       apiKeyInfo: null,
+      response: { status: 200, data: { choices: [] } },
     })
   );
 });
 
-test("registered onResponse hook receives the request context and status-200 response", async () => {
+test("registered onResponse hook receives the request context and response payload (#8711)", async () => {
   let captured: Record<string, unknown> | undefined;
   registerHook("onResponse", "test-onresponse-plugin", async (ctx: Record<string, unknown>) => {
     captured = ctx;
     return {};
   });
+
+  const responseBody = {
+    id: "chatcmpl-test",
+    choices: [{ message: { role: "assistant", content: "hello" } }],
+  };
 
   await runPluginOnResponseHook({
     requestId: "req-42",
@@ -46,6 +53,7 @@ test("registered onResponse hook receives the request context and status-200 res
     model: "gpt-4o",
     provider: "openai",
     apiKeyInfo: { id: "key-1" },
+    response: { status: 200, data: responseBody },
   });
 
   await waitFor(() => captured !== undefined);
@@ -53,7 +61,28 @@ test("registered onResponse hook receives the request context and status-200 res
   assert.equal(captured!.requestId, "req-42");
   assert.equal(captured!.model, "gpt-4o");
   assert.equal(captured!.provider, "openai");
-  assert.deepEqual(captured!.response, { status: 200 });
+  assert.deepEqual(captured!.response, { status: 200, data: responseBody });
+});
+
+test("streaming success path passes streamed flag without materialized body", async () => {
+  let captured: Record<string, unknown> | undefined;
+  registerHook("onResponse", "test-onresponse-plugin", async (ctx: Record<string, unknown>) => {
+    captured = ctx;
+    return {};
+  });
+
+  await runPluginOnResponseHook({
+    requestId: "req-stream",
+    body: { messages: [{ role: "user", content: "hi" }], stream: true },
+    model: "gpt-4o",
+    provider: "openai",
+    apiKeyInfo: null,
+    response: { status: 200, streamed: true },
+  });
+
+  await waitFor(() => captured !== undefined);
+  assert.deepEqual(captured!.response, { status: 200, streamed: true });
+  assert.equal((captured!.response as { data?: unknown }).data, undefined);
 });
 
 test("a throwing hook never rejects the caller (fail-open)", async () => {
@@ -67,6 +96,7 @@ test("a throwing hook never rejects the caller (fail-open)", async () => {
       model: "m",
       provider: "p",
       apiKeyInfo: null,
+      response: { status: 200, data: { ok: true } },
     })
   );
   await new Promise((r) => setTimeout(r, 30));

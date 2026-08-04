@@ -1,1 +1,0 @@
-- fix(dashboard): label audio/embeddings/image compatible providers by kind instead of "Chat" on ProviderCard (#6936)
