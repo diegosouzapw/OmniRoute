@@ -1,0 +1,1 @@
+- **feat(providers):** filter provider detail connections server-side while preserving full-page search and pagination. (thanks @RobertsXML)

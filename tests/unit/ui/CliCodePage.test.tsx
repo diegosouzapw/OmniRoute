@@ -20,10 +20,11 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("next-intl", () => ({
-  useTranslations: (ns: string) => (key: string) => `${ns}.${key}`,
-  useLocale: () => "en",
-}));
+// next-intl: no local mock — falls through to the real-EN-text default mock
+// registered in tests/_setup/vitestUiPolyfills.ts (backed by src/i18n/messages/en.json
+// via next-intl's own createTranslator). The previous local mock rendered raw
+// "namespace.key" strings, which no longer matches most assertions below (they check
+// literal English copy such as "Claude Code profiles").
 
 // Mock CLI components so tests don't pull in their heavy dependencies
 vi.mock("@/shared/components/cli", () => ({
@@ -398,8 +399,8 @@ describe("CliCodePageClient", () => {
     // The banner should appear (providers loading done, hasActiveProviders = false)
     const providerLink = container.querySelector('a[href="/dashboard/providers"]');
     expect(providerLink).not.toBeNull();
-    // Banner text keys
-    expect(container.textContent).toContain("detail.noActiveProviders");
+    // Banner text (cliCommon.detail.noActiveProviders in src/i18n/messages/en.json)
+    expect(container.textContent).toContain("No active providers");
   });
 
   it("6. CliConceptCard rendered at top with currentType='code'", async () => {

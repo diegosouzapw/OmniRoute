@@ -1,12 +1,17 @@
 import { expect, test } from "@playwright/test";
 import { gotoDashboardRoute } from "./helpers/dashboardAuth";
 
-const DEFAULT_BAILIAN_URL = "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
+// #7882 replaced this provider's free-text Base URL field with a region step:
+// the endpoint is now derived from the choice ("global-sg" ->
+// coding-intl.dashscope.aliyuncs.com, "china-beijing" -> coding.dashscope.aliyuncs.com,
+// see src/shared/constants/alibabaProviderRegions.ts), so the modal persists
+// providerSpecificData.region instead of a baseUrl. A per-connection base-URL
+// override still exists, but it moved to Advanced in the edit-connection modal.
 
 test.describe("Bailian Coding Plan Provider", () => {
   test.describe.configure({ mode: "serial" });
 
-  test("default URL visible and editable in Add API Key modal", async ({ page }) => {
+  test("region step persists the international (Singapore) choice", async ({ page }) => {
     const capturedPayloads: { createProvider?: Record<string, unknown> } = {};
 
     await page.route("**/api/providers", async (route) => {
@@ -80,14 +85,10 @@ test.describe("Bailian Coding Plan Provider", () => {
     const dialog = page.getByRole("dialog").first();
     await expect(dialog).toBeVisible({ timeout: 10000 });
 
-    const baseUrlInput = dialog
-      .getByLabel(/base.*url/i)
-      .or(dialog.locator("input").filter({ has: page.locator("..").getByText(/base.*url/i) }));
-
-    await expect(baseUrlInput).toBeVisible({ timeout: 15000 });
-
-    const inputValue = await baseUrlInput.inputValue();
-    expect(inputValue).toBe(DEFAULT_BAILIAN_URL);
+    const regionStep = dialog.getByTestId("alibaba-region-step");
+    await expect(regionStep).toBeVisible({ timeout: 15000 });
+    await expect(regionStep.locator("[data-region]")).toHaveCount(2);
+    await regionStep.locator('[data-region="global-sg"]').click();
 
     const nameInput = dialog.getByLabel(/name/i).or(dialog.locator("input").first());
     await nameInput.fill("Test Bailian Connection");
@@ -96,9 +97,6 @@ test.describe("Bailian Coding Plan Provider", () => {
       .getByLabel(/api.*key/i)
       .or(dialog.locator('input[type="password"]').first());
     await apiKeyInput.fill("test-api-key-12345");
-
-    const customUrl = "https://custom.example.com/anthropic/v1";
-    await baseUrlInput.fill(customUrl);
 
     const saveButton = dialog
       .getByRole("button", {
@@ -115,11 +113,16 @@ test.describe("Bailian Coding Plan Provider", () => {
     expect(capturedPayloads.createProvider).toBeDefined();
     const payload = capturedPayloads.createProvider;
     expect(payload?.providerSpecificData).toBeDefined();
-    expect((payload?.providerSpecificData as Record<string, unknown>)?.baseUrl).toBe(customUrl);
+    expect((payload?.providerSpecificData as Record<string, unknown>)?.region).toBe("global-sg");
   });
 
-  test("invalid URL blocks save with validation error", async ({ page }) => {
-    let createAttempted = false;
+  // The old "invalid URL blocks save" case tested client-side validation of the
+  // free-text Base URL field, which #7882 removed for this provider — an invalid
+  // URL is no longer reachable from this modal. Replaced with the other half of
+  // the region contract: the China-mainland choice must persist as typed, since
+  // that is what selects the coding.dashscope.aliyuncs.com endpoint.
+  test("region step persists the China-mainland (Beijing) choice", async ({ page }) => {
+    const capturedPayloads: { createProvider?: Record<string, unknown> } = {};
 
     await page.route("**/api/providers", async (route) => {
       const method = route.request().method();
@@ -133,18 +136,19 @@ test.describe("Bailian Coding Plan Provider", () => {
       }
 
       if (method === "POST") {
-        createAttempted = true;
+        const payload = route.request().postDataJSON();
+        capturedPayloads.createProvider = payload;
         await route.fulfill({
-          status: 400,
+          status: 200,
           contentType: "application/json",
           body: JSON.stringify({
-            message: "Invalid request",
-            details: [
-              {
-                field: "providerSpecificData.baseUrl",
-                message: "providerSpecificData.baseUrl must be a valid URL",
-              },
-            ],
+            connection: {
+              id: "conn-bailian-cn",
+              provider: "bailian-coding-plan",
+              name: payload.name || "Test Connection",
+              testStatus: "active",
+              providerSpecificData: payload.providerSpecificData,
+            },
           }),
         });
         return;
@@ -191,50 +195,33 @@ test.describe("Bailian Coding Plan Provider", () => {
     const dialog = page.getByRole("dialog").first();
     await expect(dialog).toBeVisible({ timeout: 10000 });
 
-    const baseUrlInput = dialog
-      .getByLabel(/base.*url/i)
-      .or(dialog.locator("input").filter({ has: page.locator("..").getByText(/base.*url/i) }));
-    await expect(baseUrlInput).toBeVisible({ timeout: 15000 });
+    const regionStep = dialog.getByTestId("alibaba-region-step");
+    await expect(regionStep).toBeVisible({ timeout: 15000 });
+    await regionStep.locator('[data-region="china-beijing"]').click();
 
     const nameInput = dialog.getByLabel(/name/i).or(dialog.locator("input").first());
-    await nameInput.fill("Test Invalid URL Connection");
+    await nameInput.fill("Test Bailian CN Connection");
 
     const apiKeyInput = dialog
       .getByLabel(/api.*key/i)
       .or(dialog.locator('input[type="password"]').first());
     await apiKeyInput.fill("test-api-key-12345");
 
-    await baseUrlInput.fill("not-a-url");
-
     const saveButton = dialog
       .getByRole("button", {
         name: /save|add|create|connect/i,
       })
       .last();
+    await expect(saveButton).toBeEnabled({ timeout: 15000 });
     await saveButton.click();
 
-    // Wait for React to process the validation and re-render
-    await page.waitForTimeout(1000);
+    await expect(dialog)
+      .toBeHidden({ timeout: 10000 })
+      .catch(() => undefined);
 
-    // Check for the validation error scoped to the dialog to avoid strict-mode
-    // violations from broad selectors matching unrelated page elements.
-    const errorTextLocator = dialog
-      .locator("text=/invalid.*url|url.*invalid|must be a valid url|must use http/i")
-      .first();
-    const errorClassLocator = dialog.locator(".text-red-500").first();
-
-    let errorVisible =
-      (await errorTextLocator.isVisible().catch(() => false)) ||
-      (await errorClassLocator.isVisible().catch(() => false));
-
-    if (!errorVisible) {
-      // Fallback: if the dialog stays open after clicking save, it means the
-      // client-side validation prevented submission (which is the desired behavior).
-      await page.waitForTimeout(2000);
-      errorVisible = await dialog.isVisible().catch(() => false);
-    }
-
-    expect(errorVisible).toBe(true);
-    expect(createAttempted).toBe(false);
+    expect(capturedPayloads.createProvider).toBeDefined();
+    const payload = capturedPayloads.createProvider;
+    expect(payload?.providerSpecificData).toBeDefined();
+    expect((payload?.providerSpecificData as Record<string, unknown>)?.region).toBe("china-beijing");
   });
 });

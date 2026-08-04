@@ -86,4 +86,10 @@
     regexes = [
       '''latencyP\d{2}Ms''',
       '''interleaved-thinking-2025-05-14''',
+      # v3.8.49 pre-flight (2026-07-28). Nenhum dos dois e credencial:
+      # - chave de localStorage do banner de patrocinio (#8723), so um identificador de UI;
+      # - x-api-key PUBLICO do Firefly web (documentado em open-sse/utils/publicCreds.ts:207);
+      #   as duas ocorrencias sinalizadas estao em COMENTARIOS JSDoc, o runtime le de resolvePublicCred().
+      '''omniroute-kimi-sponsor-banner-dismissed-v1''',
+      '''SunbreakWebUI1''',
     ]

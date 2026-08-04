@@ -4,10 +4,11 @@
  *
  * Pure resolution of the provider alias + the upstream target format used to translate the request:
  * apiFormat==="responses" forces OpenAI Responses; otherwise the model's registry target format, then
- * the per-model custom override (#2905), then the provider default. Returns both `alias` (reused by
+ * the per-model custom override (#2905), then AgentRouter's matching inbound protocol when the
+ * connection has no explicit override, then the provider default. Returns both `alias` (reused by
  * the handler when stripping the `alias/` prefix off the upstream model id) and `targetFormat`.
- * Side-effect-free; byte-identical to the previous inline block. Sits alongside the other
- * request-setup resolvers (resolveChatCoreRequestSetup / resolveChatCoreRequestFormat).
+ * Side-effect-free; sits alongside the other request-setup resolvers
+ * (resolveChatCoreRequestSetup / resolveChatCoreRequestFormat).
  */
 
 import { PROVIDER_ID_TO_ALIAS, getModelTargetFormat } from "../../config/providerModels.ts";
@@ -18,16 +19,38 @@ export function resolveChatCoreTargetFormat(opts: {
   provider: string;
   resolvedModel: string;
   apiFormat: string | undefined;
+  sourceFormat?: string;
   customModelTargetFormat: string | undefined;
   providerSpecificData: unknown;
 }) {
-  const { provider, resolvedModel, apiFormat, customModelTargetFormat, providerSpecificData } = opts;
+  const {
+    provider,
+    resolvedModel,
+    apiFormat,
+    sourceFormat,
+    customModelTargetFormat,
+    providerSpecificData,
+  } = opts;
   const alias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   const modelTargetFormat = getModelTargetFormat(alias, resolvedModel);
+  const explicitConnectionTargetFormat = (
+    providerSpecificData as { targetFormat?: unknown } | null | undefined
+  )?.targetFormat;
+  const inferredAgentRouterTargetFormat =
+    provider === "agentrouter" &&
+    !(typeof explicitConnectionTargetFormat === "string" && explicitConnectionTargetFormat) &&
+    (sourceFormat === FORMATS.OPENAI_RESPONSES ||
+      sourceFormat === FORMATS.OPENAI ||
+      sourceFormat === FORMATS.CLAUDE)
+      ? sourceFormat
+      : undefined;
   const targetFormat =
     apiFormat === "responses"
       ? FORMATS.OPENAI_RESPONSES
-      : modelTargetFormat || customModelTargetFormat || getTargetFormat(provider, providerSpecificData);
+      : modelTargetFormat ||
+        customModelTargetFormat ||
+        inferredAgentRouterTargetFormat ||
+        getTargetFormat(provider, providerSpecificData);
   return { alias, targetFormat };
 }
 

@@ -3704,7 +3704,7 @@
     "modelsCount": "النماذج: {count, plural, one {نموذج واحد} other {# نماذج}}",
     "sectionTitle": "سطح التكامل",
     "sectionDescription": "واجهات برمجة التطبيقات المتوافقة مع OpenAI ونقاط نهاية البروتوكول التشغيلية",
-    "tabApis": "واجهات برمجة تطبيقات متوافقة مع OpenAI",
+    "tabApis": "__MISSING__:APIs",
     "tabProtocols": "البروتوكولات",
     "tabsAria": "أقسام نقطة النهاية",
     "protocolsTitle": "البروتوكولات",
@@ -4973,10 +4973,12 @@
     "noNewModelsToImport": "لا توجد نماذج جديدة لاستيرادها — جميعها موجودة في السجل أو قائمة النماذج المخصصة",
     "skippingExistingModels": "تخطي {count} نموذج موجود",
     "autoSync": "المزامنة التلقائية",
+    "autoSyncShort": "المزامنة",
     "autoSyncTooltip": "تحديث قائمة النماذج كل 24 ساعة (يمكن ضبطه عبر MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "تم تمكين المزامنة التلقائية — سيتم تحديث النماذج بشكل دوري",
     "autoSyncDisabled": "تم تعطيل المزامنة التلقائية",
     "autoSyncToggleFailed": "فشل في تبديل المزامنة التلقائية",
+    "autoSyncPartialFailure": "تم تحديث المزامنة التلقائية لبعض الاتصالات، وليس كلها",
     "clearAllModels": "مسح كافة النماذج",
     "clearAllModelsConfirm": "هل أنت متأكد أنك تريد إزالة كافة النماذج لهذا الموفر؟ لا يمكن التراجع عن هذا.",
     "clearAllModelsSuccess": "تم مسح جميع النماذج",
@@ -5976,6 +5978,8 @@
     "lmarenaWebCookieHint": "افتح arena.ai، وسجل الدخول، ثم انسخ ترويسة Cookie الكاملة من طلب الشبكة. قم بتضمين arena-auth-prod-v1.0 و arena-auth-prod-v1.1 (وأي أجزاء أخرى إن وجدت)، ويفضل مع cf_clearance. لا تقم بلصق ملف تعريف الارتباط الفارغ arena-auth-prod-v1 فقط. اختياري: providerSpecificData.recaptchaV3Token إذا كان create-evaluation لا يزال يرجع 403.",
     "kimiOfficialSupporterBadge": "الصديق المؤسس",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) هو الصديق المؤسس للمصادر المفتوحة لـ OmniRoute",
+    "cheaperInferenceSupporterBadge": "صديق مفتوح المصدر",
+    "cheaperInferenceSupporterTooltip": "‏Cheaper Inference تدعم OmniRoute كصديق للمصادر المفتوحة",
     "kimiPartnerLinkNote": "رابط شريك — يدعم OmniRoute دون أي تكلفة إضافية عليك",
     "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
     "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
@@ -6748,7 +6752,7 @@
     "howPricingWorks": "كيف يعمل التسعير",
     "cacheWrite": "كتابة ذاكرة التخزين المؤقت",
     "unsaved": "غير محفوظ",
-    "resetDefaults": "إعادة تعيين الإعدادات الافتراضية",
+    "resetDefaults": "__MISSING__:Reset defaults",
     "saveProvider": "حفظ المزود",
     "model": "نموذج",
     "models": "نماذج",
@@ -12180,5 +12184,6 @@
     "cta": "احصل على Kimi Code",
     "partnerLinkNote": "رابط شريك",
     "dismissAriaLabel": "تجاهل"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

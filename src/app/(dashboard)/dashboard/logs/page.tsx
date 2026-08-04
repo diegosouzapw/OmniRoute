@@ -28,7 +28,11 @@ function logsText(
 
 function LogsPageContent() {
   const searchParams = useSearchParams();
-  const initialId = searchParams.get("id");
+  // Read ONCE: #6830 fixed the detail modal reopening on first close by freezing this
+  // value, and the #8354 page rewrite regressed it by reading the live searchParams on
+  // every render — the prop flips mid-session and re-fires the child's deep-link effect
+  // exactly when the modal closes.
+  const [initialId] = useState(() => searchParams.get("id"));
 
   const [showExport, setShowExport] = useState(false);
   const [exporting, setExporting] = useState(false);

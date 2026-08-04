@@ -1,0 +1,1892 @@
+{
+  "chatCore": {
+    "nativeCodexPassthrough": [
+      {
+        "input": {
+          "endpointPath": "/v1/chat/completions",
+          "provider": "codex",
+          "sourceFormat": null
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "endpointPath": "/v1/responses",
+          "provider": null,
+          "sourceFormat": null
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "endpointPath": "/v1/responses",
+          "provider": "openai",
+          "sourceFormat": "openai-chat"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "endpointPath": "/v1/responses",
+          "provider": "codex",
+          "sourceFormat": "openai-chat"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "endpointPath": "/v1/chat/completions",
+          "provider": "openai",
+          "sourceFormat": "openai-responses"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "endpointPath": "/v1/responses/",
+          "provider": "openai",
+          "sourceFormat": "openai-responses"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "endpointPath": "/v1/responses",
+          "provider": "codex",
+          "sourceFormat": "openai-responses"
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "endpointPath": "/v1/responses/",
+          "provider": "openai",
+          "sourceFormat": null
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "endpointPath": "/v1/responses",
+          "provider": "openai",
+          "sourceFormat": "openai-responses"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "endpointPath": "responses",
+          "provider": null,
+          "sourceFormat": "openai-responses"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "endpointPath": "responses",
+          "provider": null,
+          "sourceFormat": null
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "endpointPath": "responses",
+          "provider": null,
+          "sourceFormat": "openai-chat"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "endpointPath": "/v1/chat/completions",
+          "provider": null,
+          "sourceFormat": null
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "endpointPath": "/v1/chat/completions",
+          "provider": "openai",
+          "sourceFormat": "openai-chat"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "endpointPath": "/v1/chat/completions",
+          "provider": null,
+          "sourceFormat": "openai-responses"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "endpointPath": "responses",
+          "provider": "codex",
+          "sourceFormat": "openai-responses"
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "endpointPath": "responses",
+          "provider": "codex",
+          "sourceFormat": "openai-chat"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "endpointPath": "/v1/chat/completions",
+          "provider": null,
+          "sourceFormat": "openai-chat"
+        },
+        "output": false
+      }
+    ],
+    "semanticClaudePassthrough": [
+      {
+        "input": {
+          "provider": "claude",
+          "signal": "sessionHeader",
+          "sourceFormat": "openai-chat",
+          "targetFormat": "openai-chat"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "anthropic-compatible-acme",
+          "signal": "none",
+          "sourceFormat": "openai-chat",
+          "targetFormat": "claude"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "anthropic-compatible-acme",
+          "signal": "userAgent",
+          "sourceFormat": "claude",
+          "targetFormat": "claude"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "anthropic-compatible-acme",
+          "signal": "none",
+          "sourceFormat": "claude",
+          "targetFormat": "claude"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "openai",
+          "signal": "none",
+          "sourceFormat": "openai-chat",
+          "targetFormat": "claude"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "openai",
+          "signal": "appHeader",
+          "sourceFormat": "claude",
+          "targetFormat": "openai-chat"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "claude",
+          "signal": "sessionHeader",
+          "sourceFormat": "claude",
+          "targetFormat": "claude"
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "provider": "claude",
+          "signal": "none",
+          "sourceFormat": "claude",
+          "targetFormat": "claude"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "openai",
+          "signal": "appHeader",
+          "sourceFormat": "openai-chat",
+          "targetFormat": "openai-chat"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "openai",
+          "signal": "appHeader",
+          "sourceFormat": "openai-chat",
+          "targetFormat": "claude"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "anthropic-compatible-acme",
+          "signal": "appHeader",
+          "sourceFormat": "openai-chat",
+          "targetFormat": "openai-chat"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "anthropic-compatible-acme",
+          "signal": "sessionHeader",
+          "sourceFormat": "claude",
+          "targetFormat": "claude"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "claude",
+          "signal": "userAgent",
+          "sourceFormat": "claude",
+          "targetFormat": "openai-chat"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "openai",
+          "signal": "userAgent",
+          "sourceFormat": "openai-chat",
+          "targetFormat": "openai-chat"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "claude",
+          "signal": "sessionHeader",
+          "sourceFormat": "openai-chat",
+          "targetFormat": "claude"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "anthropic-compatible-acme",
+          "signal": "appHeader",
+          "sourceFormat": "claude",
+          "targetFormat": "openai-chat"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "claude",
+          "signal": "userAgent",
+          "sourceFormat": "openai-chat",
+          "targetFormat": "openai-chat"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "anthropic-compatible-acme",
+          "signal": "none",
+          "sourceFormat": "claude",
+          "targetFormat": "openai-chat"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "openai",
+          "signal": "none",
+          "sourceFormat": "openai-chat",
+          "targetFormat": "openai-chat"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "openai",
+          "signal": "sessionHeader",
+          "sourceFormat": "openai-chat",
+          "targetFormat": "openai-chat"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "openai",
+          "signal": "userAgent",
+          "sourceFormat": "openai-chat",
+          "targetFormat": "claude"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "openai",
+          "signal": "userAgent",
+          "sourceFormat": "claude",
+          "targetFormat": "claude"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "openai",
+          "signal": "none",
+          "sourceFormat": "claude",
+          "targetFormat": "claude"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "provider": "openai",
+          "signal": "sessionHeader",
+          "sourceFormat": "claude",
+          "targetFormat": "openai-chat"
+        },
+        "output": false
+      }
+    ],
+    "staleForwardingHeaders": [
+      {
+        "input": {
+          "content-encoding": "gzip",
+          "content-length": "10",
+          "transfer-encoding": "chunked",
+          "x-request-id": "req-3"
+        },
+        "output": {
+          "x-request-id": "req-3"
+        }
+      },
+      {
+        "input": {
+          "Content-Length": "20",
+          "x-provider": "kept"
+        },
+        "output": {
+          "x-provider": "kept"
+        }
+      }
+    ],
+    "streamingHeaders": [
+      {
+        "input": 0,
+        "output": {
+          "Cache-Control": "no-cache, no-transform",
+          "Connection": "keep-alive",
+          "Content-Type": "text/event-stream",
+          "X-Accel-Buffering": "no",
+          "X-OmniRoute-Cache": "MISS",
+          "X-OmniRoute-Cache-Hit": "false",
+          "X-OmniRoute-Decision": "provider=test-provider; latency_ms=0",
+          "X-OmniRoute-Latency-Ms": "0",
+          "X-OmniRoute-Model": "test-model",
+          "X-OmniRoute-Provider": "test-provider",
+          "X-OmniRoute-Request-Id": "request-0",
+          "X-OmniRoute-Response-Cost": "0.0000000000",
+          "X-OmniRoute-Tokens-In": "0",
+          "X-OmniRoute-Tokens-Out": "0",
+          "X-OmniRoute-Version": "<APP_VERSION>",
+          "retry-after": "15",
+          "x-ratelimit-remaining": "7",
+          "x-request-id": "req-1",
+          "x-upstream-debug": "safe"
+        }
+      },
+      {
+        "input": 1,
+        "output": {
+          "Cache-Control": "no-cache, no-transform",
+          "Connection": "keep-alive",
+          "Content-Type": "text/event-stream",
+          "X-Accel-Buffering": "no",
+          "X-OmniRoute-Cache": "MISS",
+          "X-OmniRoute-Cache-Hit": "false",
+          "X-OmniRoute-Decision": "provider=test-provider; latency_ms=0",
+          "X-OmniRoute-Latency-Ms": "0",
+          "X-OmniRoute-Model": "test-model",
+          "X-OmniRoute-Provider": "test-provider",
+          "X-OmniRoute-Request-Id": "request-1",
+          "X-OmniRoute-Response-Cost": "0.0000000000",
+          "X-OmniRoute-Tokens-In": "0",
+          "X-OmniRoute-Tokens-Out": "0",
+          "X-OmniRoute-Version": "<APP_VERSION>",
+          "request-id": "req-2",
+          "x-provider": "kept"
+        }
+      }
+    ],
+    "systemRoleExtraction": [
+      {
+        "input": {
+          "messages": [
+            {
+              "content": [
+                {
+                  "text": "lifted",
+                  "type": "text"
+                },
+                {
+                  "source": "ignored",
+                  "type": "image"
+                }
+              ],
+              "role": "SYSTEM"
+            }
+          ],
+          "system": [
+            {
+              "text": "existing-block",
+              "type": "text"
+            }
+          ]
+        },
+        "output": {
+          "messages": [],
+          "system": [
+            {
+              "text": "existing-block",
+              "type": "text"
+            },
+            {
+              "text": "lifted",
+              "type": "text"
+            }
+          ]
+        }
+      },
+      {
+        "input": {
+          "messages": [
+            {
+              "content": "new",
+              "role": "developer"
+            },
+            {
+              "content": "ok",
+              "role": "assistant"
+            }
+          ],
+          "system": "existing"
+        },
+        "output": {
+          "messages": [
+            {
+              "content": "ok",
+              "role": "assistant"
+            }
+          ],
+          "system": [
+            {
+              "text": "existing",
+              "type": "text"
+            },
+            {
+              "text": "new",
+              "type": "text"
+            }
+          ]
+        }
+      },
+      {
+        "input": {
+          "messages": [
+            {
+              "content": "policy",
+              "role": "system"
+            },
+            {
+              "content": "go",
+              "role": "user"
+            }
+          ]
+        },
+        "output": {
+          "messages": [
+            {
+              "content": "go",
+              "role": "user"
+            }
+          ],
+          "system": [
+            {
+              "text": "policy",
+              "type": "text"
+            }
+          ]
+        }
+      },
+      {
+        "input": {
+          "messages": [
+            {
+              "content": "",
+              "role": "developer"
+            },
+            {
+              "content": "kept",
+              "role": "user"
+            }
+          ]
+        },
+        "output": {
+          "messages": [
+            {
+              "content": "kept",
+              "role": "user"
+            }
+          ]
+        }
+      },
+      {
+        "input": {
+          "messages": null,
+          "model": "claude"
+        },
+        "output": {
+          "messages": null,
+          "model": "claude"
+        }
+      },
+      {
+        "input": {
+          "messages": [
+            {
+              "content": "hello",
+              "role": "user"
+            }
+          ]
+        },
+        "output": {
+          "messages": [
+            {
+              "content": "hello",
+              "role": "user"
+            }
+          ]
+        }
+      }
+    ],
+    "thinkingSignaturePassthrough": [
+      {
+        "input": [
+          {
+            "content": [
+              {
+                "signature": "sig",
+                "text": "x",
+                "type": "thinking"
+              }
+            ],
+            "role": "assistant"
+          }
+        ],
+        "output": [
+          {
+            "content": [
+              {
+                "signature": "sig",
+                "text": "x",
+                "type": "thinking"
+              }
+            ],
+            "role": "assistant"
+          }
+        ]
+      },
+      {
+        "input": "plain",
+        "output": "plain"
+      },
+      {
+        "input": {
+          "messages": [
+            {
+              "content": [
+                {
+                  "data": "x",
+                  "type": "redacted_thinking"
+                }
+              ],
+              "role": "assistant"
+            }
+          ]
+        },
+        "output": {
+          "messages": [
+            {
+              "content": [
+                {
+                  "data": "x",
+                  "type": "redacted_thinking"
+                }
+              ],
+              "role": "assistant"
+            }
+          ]
+        }
+      },
+      {
+        "input": null,
+        "output": null
+      }
+    ],
+    "tokenExpiry": [
+      {
+        "input": {
+          "bufferMs": 86400000,
+          "expiresAt": "2999-01-01T00:00:00.000Z"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "bufferMs": 0,
+          "expiresAt": "2999-01-01T00:00:00.000Z"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "bufferMs": 0,
+          "expiresAt": null
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "bufferMs": 300000,
+          "expiresAt": "invalid"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "bufferMs": 86400000,
+          "expiresAt": "invalid"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "bufferMs": 300000,
+          "expiresAt": "2000-01-01T00:00:00.000Z"
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "bufferMs": 300000,
+          "expiresAt": "2999-01-01T00:00:00.000Z"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "bufferMs": 0,
+          "expiresAt": "invalid"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "bufferMs": 86400000,
+          "expiresAt": "2000-01-01T00:00:00.000Z"
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "bufferMs": 0,
+          "expiresAt": "2000-01-01T00:00:00.000Z"
+        },
+        "output": true
+      }
+    ]
+  },
+  "combo": {
+    "badRequestClassifiers": [
+      {
+        "input": "this model does not support the Responses API",
+        "output": {
+          "contextOverflow": false,
+          "modelScoped": true,
+          "parameterValidation": false
+        }
+      },
+      {
+        "input": "unsupported_api_for_model",
+        "output": {
+          "contextOverflow": false,
+          "modelScoped": true,
+          "parameterValidation": false
+        }
+      },
+      {
+        "input": "maximum context length exceeded",
+        "output": {
+          "contextOverflow": true,
+          "modelScoped": false,
+          "parameterValidation": false
+        }
+      },
+      {
+        "input": "model is not supported",
+        "output": {
+          "contextOverflow": false,
+          "modelScoped": true,
+          "parameterValidation": false
+        }
+      },
+      {
+        "input": "",
+        "output": {
+          "contextOverflow": false,
+          "modelScoped": false,
+          "parameterValidation": false
+        }
+      },
+      {
+        "input": "your input exceeds the context window",
+        "output": {
+          "contextOverflow": true,
+          "modelScoped": false,
+          "parameterValidation": false
+        }
+      },
+      {
+        "input": "parameter is illegal",
+        "output": {
+          "contextOverflow": false,
+          "modelScoped": false,
+          "parameterValidation": true
+        }
+      },
+      {
+        "input": "plain upstream failure",
+        "output": {
+          "contextOverflow": false,
+          "modelScoped": false,
+          "parameterValidation": false
+        }
+      },
+      {
+        "input": "max_tokens must be between 1 and 4096",
+        "output": {
+          "contextOverflow": true,
+          "modelScoped": false,
+          "parameterValidation": true
+        }
+      },
+      {
+        "input": "invalid message format",
+        "output": {
+          "contextOverflow": false,
+          "modelScoped": false,
+          "parameterValidation": false
+        }
+      }
+    ],
+    "clampDepth": [
+      {
+        "input": "NaN",
+        "output": 3
+      },
+      {
+        "input": "nope",
+        "output": 3
+      },
+      {
+        "input": "10",
+        "output": 10
+      },
+      {
+        "input": "999",
+        "output": 10
+      },
+      {
+        "input": "1.9",
+        "output": 1
+      },
+      {
+        "input": "-4",
+        "output": 3
+      },
+      {
+        "input": "null",
+        "output": 3
+      },
+      {
+        "input": "0",
+        "output": 3
+      },
+      {
+        "input": "0.9",
+        "output": 3
+      },
+      {
+        "input": "1",
+        "output": 1
+      },
+      {
+        "input": "9.9",
+        "output": 9
+      },
+      {
+        "input": "undefined",
+        "output": 3
+      }
+    ],
+    "connectionDisable": [
+      {
+        "input": {
+          "errorCode": null,
+          "hasExtraKeys": false,
+          "is401": true,
+          "provider": "codex",
+          "status": 499
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": "plugin_block",
+          "hasExtraKeys": true,
+          "is401": false,
+          "provider": "openai",
+          "status": 401
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": "plugin_block",
+          "hasExtraKeys": true,
+          "is401": true,
+          "provider": "openai",
+          "status": 401
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": "client_disconnected",
+          "hasExtraKeys": false,
+          "is401": false,
+          "provider": "openai",
+          "status": 408
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": null,
+          "hasExtraKeys": true,
+          "is401": true,
+          "provider": "openai",
+          "status": 401
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": "context_length_exceeded",
+          "hasExtraKeys": false,
+          "is401": true,
+          "provider": "codex",
+          "status": 401
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": null,
+          "hasExtraKeys": false,
+          "is401": false,
+          "provider": "codex",
+          "status": 408
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "errorCode": "context_length_exceeded",
+          "hasExtraKeys": true,
+          "is401": true,
+          "provider": "openai",
+          "status": 499
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": "context_length_exceeded",
+          "hasExtraKeys": false,
+          "is401": false,
+          "provider": "openai",
+          "status": 401
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": "context_length_exceeded",
+          "hasExtraKeys": true,
+          "is401": false,
+          "provider": "codex",
+          "status": 408
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": "client_disconnected",
+          "hasExtraKeys": false,
+          "is401": true,
+          "provider": "codex",
+          "status": 401
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": "plugin_block",
+          "hasExtraKeys": true,
+          "is401": false,
+          "provider": "codex",
+          "status": 401
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": null,
+          "hasExtraKeys": false,
+          "is401": true,
+          "provider": "openai",
+          "status": 502
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "errorCode": "plugin_block",
+          "hasExtraKeys": true,
+          "is401": false,
+          "provider": "codex",
+          "status": 499
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": null,
+          "hasExtraKeys": true,
+          "is401": false,
+          "provider": "codex",
+          "status": 401
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "errorCode": "context_length_exceeded",
+          "hasExtraKeys": false,
+          "is401": true,
+          "provider": "codex",
+          "status": 502
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": "plugin_block",
+          "hasExtraKeys": false,
+          "is401": false,
+          "provider": "openai",
+          "status": 408
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": "context_length_exceeded",
+          "hasExtraKeys": false,
+          "is401": true,
+          "provider": "codex",
+          "status": 499
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": "client_disconnected",
+          "hasExtraKeys": true,
+          "is401": true,
+          "provider": "openai",
+          "status": 502
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": null,
+          "hasExtraKeys": false,
+          "is401": false,
+          "provider": "openai",
+          "status": 499
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": "context_length_exceeded",
+          "hasExtraKeys": false,
+          "is401": true,
+          "provider": "codex",
+          "status": 408
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": null,
+          "hasExtraKeys": false,
+          "is401": true,
+          "provider": "codex",
+          "status": 408
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "errorCode": "context_length_exceeded",
+          "hasExtraKeys": true,
+          "is401": true,
+          "provider": "codex",
+          "status": 502
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "errorCode": "plugin_block",
+          "hasExtraKeys": true,
+          "is401": false,
+          "provider": "codex",
+          "status": 502
+        },
+        "output": true
+      }
+    ],
+    "connectionStatusCutoff": [
+      {
+        "input": {
+          "rateLimitedUntil": "2999-01-01T00:00:00.000Z",
+          "testStatus": "healthy"
+        },
+        "output": null
+      },
+      {
+        "input": {
+          "rateLimitedUntil": "2000-01-01T00:00:00.000Z",
+          "testStatus": "unavailable"
+        },
+        "output": null
+      },
+      {
+        "output": null
+      },
+      {
+        "input": {
+          "rateLimitedUntil": "2999-01-01T00:00:00.000Z",
+          "testStatus": "unavailable"
+        },
+        "output": "rate_limited"
+      },
+      {
+        "input": {
+          "testStatus": " CREDITS_EXHAUSTED "
+        },
+        "output": "credits_exhausted"
+      },
+      {
+        "input": {
+          "testStatus": "banned"
+        },
+        "output": "banned"
+      },
+      {
+        "input": {},
+        "output": null
+      }
+    ],
+    "predictiveTtft": [
+      {
+        "input": {
+          "avgLatencyMs": 1001,
+          "predictiveTtftMs": 3000,
+          "requests": 20
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 1001,
+          "predictiveTtftMs": -1,
+          "requests": 20
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 0,
+          "predictiveTtftMs": 1000,
+          "requests": 4
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 5000,
+          "predictiveTtftMs": 0,
+          "requests": 4
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 0,
+          "predictiveTtftMs": 0,
+          "requests": 5
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 1000,
+          "predictiveTtftMs": 3000,
+          "requests": 5
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 1000,
+          "predictiveTtftMs": 1000,
+          "requests": 4
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 1001,
+          "predictiveTtftMs": 3000,
+          "requests": 0
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 1001,
+          "predictiveTtftMs": 1000,
+          "requests": 4
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 5000,
+          "predictiveTtftMs": 0,
+          "requests": 0
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 999,
+          "predictiveTtftMs": 1000,
+          "requests": 4
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 0,
+          "predictiveTtftMs": 3000,
+          "requests": 4
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 1001,
+          "predictiveTtftMs": 0,
+          "requests": 5
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 5000,
+          "predictiveTtftMs": 1000,
+          "requests": 5
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "avgLatencyMs": 0,
+          "predictiveTtftMs": -1,
+          "requests": 0
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 999,
+          "predictiveTtftMs": -1,
+          "requests": 0
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 1000,
+          "predictiveTtftMs": 0,
+          "requests": 4
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 5000,
+          "predictiveTtftMs": 3000,
+          "requests": 4
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 0,
+          "predictiveTtftMs": 0,
+          "requests": 6
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 999,
+          "predictiveTtftMs": -1,
+          "requests": 20
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 999,
+          "predictiveTtftMs": 1000,
+          "requests": 20
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 1001,
+          "predictiveTtftMs": 0,
+          "requests": 4
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 999,
+          "predictiveTtftMs": -1,
+          "requests": 4
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "avgLatencyMs": 1001,
+          "predictiveTtftMs": 1000,
+          "requests": 5
+        },
+        "output": true
+      }
+    ],
+    "providerBreaker": [
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": false,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": false,
+          "sameProviderNext": false,
+          "skipProviderBreaker": false,
+          "status": 503
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": false,
+          "sameProviderNext": true,
+          "skipProviderBreaker": false,
+          "status": 400
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": true,
+          "sameProviderNext": false,
+          "skipProviderBreaker": false,
+          "status": 504
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": false,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": true,
+          "sameProviderNext": true,
+          "skipProviderBreaker": true,
+          "status": 502
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": false,
+          "sameProviderNext": true,
+          "skipProviderBreaker": false,
+          "status": 502
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": false,
+          "sameProviderNext": true,
+          "skipProviderBreaker": true,
+          "status": 408
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": false,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": true,
+          "sameProviderNext": false,
+          "skipProviderBreaker": false,
+          "status": 400
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": false,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": false,
+          "sameProviderNext": true,
+          "skipProviderBreaker": true,
+          "status": 408
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": true,
+          "sameProviderNext": true,
+          "skipProviderBreaker": true,
+          "status": 502
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": false,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": false,
+          "sameProviderNext": true,
+          "skipProviderBreaker": false,
+          "status": 408
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": false,
+          "sameProviderNext": false,
+          "skipProviderBreaker": false,
+          "status": 504
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": true,
+          "sameProviderNext": true,
+          "skipProviderBreaker": false,
+          "status": 502
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": false,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": false,
+          "sameProviderNext": false,
+          "skipProviderBreaker": false,
+          "status": 408
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": false,
+          "sameProviderNext": true,
+          "skipProviderBreaker": true,
+          "status": 504
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": false,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": false,
+          "sameProviderNext": true,
+          "skipProviderBreaker": true,
+          "status": 502
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": false,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": true,
+          "sameProviderNext": false,
+          "skipProviderBreaker": true,
+          "status": 504
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": true,
+          "sameProviderNext": true,
+          "skipProviderBreaker": false,
+          "status": 504
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": true,
+          "sameProviderNext": false,
+          "skipProviderBreaker": true,
+          "status": 504
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": false,
+          "sameProviderNext": true,
+          "skipProviderBreaker": false,
+          "status": 504
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": false,
+          "sameProviderNext": true,
+          "skipProviderBreaker": true,
+          "status": 503
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": true,
+          "sameProviderNext": true,
+          "skipProviderBreaker": false,
+          "status": 400
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": false,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": true,
+          "sameProviderNext": true,
+          "skipProviderBreaker": false,
+          "status": 408
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": false,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": false,
+          "sameProviderNext": false,
+          "skipProviderBreaker": true,
+          "status": 500
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": false,
+          "sameProviderNext": false,
+          "skipProviderBreaker": false,
+          "status": 408
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": false,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": true,
+          "sameProviderNext": false,
+          "skipProviderBreaker": true,
+          "status": 408
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": true,
+          "sameProviderNext": false,
+          "skipProviderBreaker": true,
+          "status": 400
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": false,
+          "sameProviderNext": true,
+          "skipProviderBreaker": false,
+          "status": 408
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": false,
+          "sameProviderNext": true,
+          "skipProviderBreaker": false,
+          "status": 502
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": false,
+          "sameProviderNext": true,
+          "skipProviderBreaker": false,
+          "status": 400
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": false,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": false,
+          "sameProviderNext": false,
+          "skipProviderBreaker": true,
+          "status": 504
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": false,
+          "sameProviderNext": false,
+          "skipProviderBreaker": false,
+          "status": 502
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": true,
+          "sameProviderNext": false,
+          "skipProviderBreaker": true,
+          "status": 400
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": false,
+          "sameProviderNext": false,
+          "skipProviderBreaker": true,
+          "status": 503
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": true,
+          "sameProviderNext": true,
+          "skipProviderBreaker": true,
+          "status": 500
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": false,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": false,
+          "sameProviderNext": true,
+          "skipProviderBreaker": false,
+          "status": 500
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": false,
+          "sameProviderNext": false,
+          "skipProviderBreaker": true,
+          "status": 504
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": true,
+          "requestScopedFailure": false,
+          "sameProviderNext": false,
+          "skipProviderBreaker": false,
+          "status": 429
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": false,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": false,
+          "sameProviderNext": false,
+          "skipProviderBreaker": true,
+          "status": 429
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "upstream failed",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": true,
+          "sameProviderNext": true,
+          "skipProviderBreaker": true,
+          "status": 429
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "error": "Client disconnected: aborted",
+          "isProxyUnreachable": true,
+          "isStreamReadinessFailure": false,
+          "requestScopedFailure": false,
+          "sameProviderNext": true,
+          "skipProviderBreaker": false,
+          "status": 503
+        },
+        "output": false
+      }
+    ],
+    "requestScoped": [
+      {
+        "input": {
+          "code": "upstream_empty_response",
+          "type": "server_error"
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "code": "context_length_exceeded",
+          "type": "context_length_exceeded"
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "code": "upstream_empty_response",
+          "type": null
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "code": "context_length_exceeded",
+          "type": null
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "code": "upstream_empty_response",
+          "type": "context_length_exceeded"
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "code": "other",
+          "type": null
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "code": "other",
+          "type": "server_error"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "code": null,
+          "type": "server_error"
+        },
+        "output": false
+      },
+      {
+        "input": {
+          "code": "other",
+          "type": "context_length_exceeded"
+        },
+        "output": true
+      },
+      {
+        "input": {
+          "code": null,
+          "type": null
+        },
+        "output": false
+      }
+    ]
+  },
+  "seed": "0x5013c0de"
+}

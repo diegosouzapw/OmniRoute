@@ -6,7 +6,11 @@ type GotoDashboardRouteOptions = {
 };
 
 const DEFAULT_TIMEOUT_MS = 300_000;
-const APP_ROUTE_PATTERN = /\/(login|dashboard)(\/[^?#]*)?([?#].*)?$/;
+// `home` belongs here too: it is an app route under the (dashboard) group but does
+// NOT sit under the /dashboard prefix. Without it, waitForURL() never resolves for
+// gotoDashboardRoute(page, "/home") — the retry loop just burns the whole test
+// timeout with no assertion error, which is how #8292's prefetch spec hung.
+const APP_ROUTE_PATTERN = /\/(login|dashboard|home)(\/[^?#]*)?([?#].*)?$/;
 const E2E_PASSWORD =
   process.env.OMNIROUTE_E2E_PASSWORD || process.env.INITIAL_PASSWORD || "omniroute-e2e-password";
 
