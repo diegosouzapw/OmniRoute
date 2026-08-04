@@ -1,3 +1,7 @@
+---
+title: "agentrouter.org WAF (Web Application Firewall)"
+---
+
 # agentrouter.org WAF (Web Application Firewall)
 
 The `agentrouter` upstream gateway runs a keyword-based content filter on
