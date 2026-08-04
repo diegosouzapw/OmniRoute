@@ -175,6 +175,48 @@ test("createResponsesApiTransformStream handles native reasoning content and too
   );
 });
 
+test("createResponsesApiTransformStream converts OpenAI-compatible reasoning aliases", async () => {
+  const output = await runTransformStream([
+    'data: {"id":"chatcmpl_1","model":"gpt-oss:20b","choices":[{"index":0,"delta":{"reasoning":"plan "}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{"reasoning":"carefully","content":"answer"}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":3,"completion_tokens":4,"total_tokens":7}}\n\n',
+  ]);
+
+  const events = parseSseOutput(output);
+  const reasoningDeltas = events
+    .filter((event) => event.event === "response.reasoning_summary_text.delta")
+    .map((event) => JSON.parse(event.data).delta);
+  const addedItems = events
+    .filter((event) => event.event === "response.output_item.added")
+    .map((event) => JSON.parse(event.data).item);
+  const completed = JSON.parse(
+    events.find((event) => event.event === "response.completed").data
+  ).response;
+
+  assert.deepEqual(reasoningDeltas, ["plan ", "carefully"]);
+  assert.deepEqual(
+    addedItems.map((item) => item.type),
+    ["reasoning", "message"]
+  );
+  assert.equal(completed.output[0].type, "reasoning");
+  assert.equal(completed.output[0].summary[0].text, "plan carefully");
+  assert.equal(completed.output[1].content[0].text, "answer");
+});
+
+test("createResponsesApiTransformStream prefers reasoning_content without duplicating aliases", async () => {
+  const output = await runTransformStream([
+    'data: {"choices":[{"index":0,"delta":{"reasoning_content":"canonical","reasoning":"alias"}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}\n\n',
+  ]);
+
+  const events = parseSseOutput(output);
+  const reasoningDeltas = events
+    .filter((event) => event.event === "response.reasoning_summary_text.delta")
+    .map((event) => JSON.parse(event.data).delta);
+
+  assert.deepEqual(reasoningDeltas, ["canonical"]);
+});
+
 test("createResponsesApiTransformStream hides the internal reasoning replay placeholder", async () => {
   const output = await runTransformStream([
     'data: {"choices":[{"index":0,"delta":{"reasoning_content":"(prior reasoning summary unavailable)"}}]}\n\n',

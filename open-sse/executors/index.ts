@@ -50,6 +50,7 @@ import { PoeWebExecutor } from "./poe-web.ts";
 import { VeniceWebExecutor } from "./venice-web.ts";
 import { NotionWebExecutor } from "./notion-web.ts";
 import { V0VercelWebExecutor } from "./v0-vercel-web.ts";
+import { CheaperInferenceExecutor } from "./cheaperinference.ts";
 import { KimiWebExecutor } from "./kimi-web.ts";
 import { DoubaoWebExecutor } from "./doubao-web.ts";
 import { QwenWebExecutor } from "./qwen-web.ts";
@@ -165,6 +166,8 @@ const executors = {
   "kimi-coding": new KimiExecutor(), // Alias
   moonshot: new MoonshotExecutor(),
   kimi: new MoonshotExecutor("kimi"), // Hidden legacy Moonshot provider id
+  cheaperinference: new CheaperInferenceExecutor(),
+  cinf: new CheaperInferenceExecutor("cheaperinference"), // Alias
   "doubao-web": new DoubaoWebExecutor(),
   db: new DoubaoWebExecutor(), // Alias
   "qwen-web": new QwenWebExecutor(),
@@ -282,4 +285,5 @@ export { ZenmuxFreeExecutor } from "./zenmux-free.ts";
 export { HyperAgentExecutor } from "./hyperagent.ts";
 export { XaiExecutor } from "./xai.ts";
 export { MoonshotExecutor } from "./moonshot.ts";
+export { CheaperInferenceExecutor } from "./cheaperinference.ts";
 export { PromptQlExecutor } from "./promptql.ts";

@@ -66,6 +66,23 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   // the 429 is misclassified as transient rate_limit and retried every
   // ~60s against a budget that only resets at UTC midnight.
   /daily free allocation/i,
+
+  // Modal-hosted OpenAI-compatible endpoints (e.g. self-hosted Kimi K3).
+  // Body: {"error":"usage limit reached"}, no nested "message"/"quota"/
+  // "daily" wording. Without this pattern the 429 falls through to
+  // "rate_limit" (short cooldown), so combo round-robin's per-conversation
+  // session stickiness (#3825) keeps re-targeting the same exhausted
+  // connection every turn instead of a long lockout that lets the sticky
+  // target fail over to another account.
+  //
+  // Matches the "error" JSON key with "usage limit reached" as its value.
+  // Extra sibling fields (e.g. {"error":"usage limit reached", "code":"..."})
+  // still match. A different key like {"detail":"..."} or a qualified value
+  // like {"error":"Per-minute usage limit reached"} does NOT match. Bare
+  // string bodies without a JSON wrapper also do NOT match.
+  // Trailing punctuation/whitespace before the closing quote is tolerated
+  // because real API responses may include a period or trailing space.
+  /"error"\s*:\s*"usage limit reached[.\s]*"/i,
 ];
 
 /**

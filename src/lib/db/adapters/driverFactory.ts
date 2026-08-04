@@ -12,6 +12,48 @@ const _require = createRequire(import.meta.url);
 
 type DriverLoader = (moduleName: string) => unknown;
 
+/**
+ * The production loader for the sync driver cascade.
+ *
+ * WHY A SWITCH INSTEAD OF PASSING `_require` DIRECTLY
+ * ---------------------------------------------------
+ * `createSyncDriverFactory(load)` takes the loader as a parameter so the driver
+ * branches stay testable. But webpack (the Next.js server build) only recognizes a
+ * require when it can read the module id as a literal at the call site:
+ *
+ *   _require("better-sqlite3")   →  a real external: `module.exports = require("better-sqlite3")`
+ *   load("better-sqlite3")       →  unanalyzable, so the loader ITSELF is replaced
+ *
+ * In the second case webpack cannot see what `load` is, so the value passed in is
+ * replaced by its "missing module" stub — a function whose only behavior is
+ * `throw Error("Cannot find module '" + id + "'")` with `code = "MODULE_NOT_FOUND"`.
+ * Every driver in the cascade then reports itself as not installed even though the
+ * addon is present on disk, the whole cascade falls through to the sql.js WASM last
+ * resort, and startup dies there instead — pointing the blame at sql.js rather than at
+ * the bundling. Observed in the packaged v3.8.49 server build, where the driver chunk
+ * contains that stub and NO `require("better-sqlite3")` external, while the previous
+ * release's chunk (before the loader became injectable) contains the external and no
+ * stub. Not reproducible from source: `tsx`/`node --test` resolve the injected
+ * `_require` normally, so the existing unit tests pass either way.
+ *
+ * Naming each module in a direct `_require("<literal>")` call restores the externals
+ * webpack emitted before the loader became injectable, while keeping the seam intact.
+ * Keep the literals literal: hoisting them into a constant or a map keyed by variable
+ * re-breaks the analysis.
+ */
+function requireSqliteDriver(moduleName: string): unknown {
+  switch (moduleName) {
+    case "bun:sqlite":
+      return _require("bun:sqlite");
+    case "better-sqlite3":
+      return _require("better-sqlite3");
+    case "node:sqlite":
+      return _require("node:sqlite");
+    default:
+      throw new Error(`Unsupported SQLite driver module: ${moduleName}`);
+  }
+}
+
 type NodeSqliteOptions = {
   readOnly?: boolean;
 };
@@ -151,8 +193,25 @@ export function createSyncDriverFactory(load: DriverLoader) {
   };
 }
 
+const openSyncDriver = createSyncDriverFactory(requireSqliteDriver);
+
+/**
+ * The installed-tarball smoke uses this paired marker to exercise the sql.js tier
+ * even on runners where better-sqlite3 or node:sqlite is available. Requiring both
+ * pack-boot-specific flags keeps this from becoming a general operator override.
+ */
+export function isPackBootForcedSqlJsSmoke(env: NodeJS.ProcessEnv): boolean {
+  return env.OMNIROUTE_PACK_BOOT_SMOKE === "1" && env.OMNIROUTE_PACK_BOOT_FORCE_SQLJS === "1";
+}
+
 /** Tenta abrir com better-sqlite3 e node:sqlite sincronamente. Retorna null se ambos falharem. */
-export const tryOpenSync = createSyncDriverFactory(_require);
+export function tryOpenSync(
+  filePath: string,
+  options?: Record<string, unknown>
+): SqliteAdapter | null {
+  if (isPackBootForcedSqlJsSmoke(process.env)) return null;
+  return openSyncDriver(filePath, options);
+}
 
 /**
  * Pré-inicializa sql.js para um filePath.

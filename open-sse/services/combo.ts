@@ -153,6 +153,7 @@ import {
   resolveDelayMs,
   comboModelNotFoundResponse,
   isStreamReadinessFailureErrorBody,
+  isStreamEarlyEofErrorBody,
   isTokenLimitBreachErrorBody,
   toRecordedTarget,
   getExhaustedTargetSkipReason,
@@ -1511,6 +1512,11 @@ export async function handleComboChat({
           const isStreamReadinessFailure =
             (result.status === 502 || result.status === 504) &&
             isStreamReadinessFailureErrorBody(errorBody);
+          // An early EOF is an upstream failure, not a readiness probe — the breaker must
+          // see it even though the transient-retry path below treats both codes alike.
+          const isStreamEarlyEof =
+            (result.status === 502 || result.status === 504) &&
+            isStreamEarlyEofErrorBody(errorBody);
 
           // FIX 5: a local per-API-key token-limit 429 must not cool shared accounts.
           const isTokenLimitBreach =
@@ -1713,6 +1719,7 @@ export async function handleComboChat({
           if (
             shouldRecordProviderBreakerFailure({
               isStreamReadinessFailure,
+              isStreamEarlyEof,
               status: result.status,
               sameProviderNext,
               skipProviderBreaker: fallbackResult.skipProviderBreaker,

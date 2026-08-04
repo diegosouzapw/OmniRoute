@@ -16,7 +16,6 @@ const imageRoute = await import("../../src/app/api/v1/images/generations/route.t
 const providerImageRoute =
   await import("../../src/app/api/v1/providers/[provider]/images/generations/route.ts");
 const imageEditRoute = await import("../../src/app/api/v1/images/edits/route.ts");
-const { MAX_BODY_BYTES_IMAGE_EDIT } = await import("../../src/shared/middleware/bodySizeGuard.ts");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 
 const originalFetch = globalThis.fetch;
@@ -216,21 +215,22 @@ test("v1 image generation POST still requires prompts for text-input models", as
   assert.match(body.error.message, /Prompt is required for image model: openai\/gpt-image-2/);
 });
 
-test("v1 image edit POST rejects a declared body above the image-edit admission limit", async () => {
+test("v1 image edit POST defers body-size validation to the provider", async () => {
   const response = await imageEditRoute.POST(
     new Request("http://localhost/api/v1/images/edits", {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "content-length": String(MAX_BODY_BYTES_IMAGE_EDIT + 1),
+        "content-length": String(Number.MAX_SAFE_INTEGER),
       },
       body: "{}",
     })
   );
   const body = (await response.json()) as ErrorResponseBody;
 
-  assert.equal(response.status, 413);
-  assert.match(body.error.message, /30 MiB limit/i);
+  assert.equal(response.status, 400);
+  assert.match(body.error.message, /Missing required field: prompt/i);
+  assert.doesNotMatch(body.error.message, /request body|payload too large/i);
 });
 
 test("v1 image edit POST enforces disabled API key policy", async () => {

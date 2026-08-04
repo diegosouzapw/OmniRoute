@@ -1,5 +1,6 @@
 import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
 import { shouldParseTextualReasoningTags } from "../handlers/responseSanitizer.ts";
+import { getReadableReasoningValue } from "../utils/reasoningFields.ts";
 import {
   isInternalReasoningPlaceholder,
   stripInternalReasoningPlaceholder,
@@ -528,10 +529,13 @@ export function createResponsesApiTransformStream(
             });
           }
 
-          // Handle reasoning_content (OpenAI native format)
-          if (delta.reasoning_content && !isInternalReasoningPlaceholder(delta.reasoning_content)) {
+          // Handle OpenAI-compatible reasoning fields. Some providers use the
+          // standard `reasoning_content` key while others use the string alias
+          // `reasoning`; prefer the standard key when both are present.
+          const reasoning = getReadableReasoningValue(delta);
+          if (reasoning && !isInternalReasoningPlaceholder(reasoning)) {
             startReasoning(controller, idx);
-            emitReasoningDelta(controller, delta.reasoning_content);
+            emitReasoningDelta(controller, reasoning);
           }
 
           // Handle text content. Generic prompt-format tags are visible text;

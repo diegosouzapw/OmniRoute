@@ -215,6 +215,11 @@ const EXTRA_MODULE_ENTRIES = [
     dest: ["node_modules", "undici"],
   },
   {
+    label: "sql.js WASM fallback runtime",
+    src: ["node_modules", "sql.js"],
+    dest: ["node_modules", "sql.js"],
+  },
+  {
     label: "sqlite-vec wrapper (vector memory - loaded at runtime via createRequire)",
     src: ["node_modules", "sqlite-vec"],
     dest: ["node_modules", "sqlite-vec"],

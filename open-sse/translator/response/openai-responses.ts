@@ -7,6 +7,7 @@ import { FORMATS } from "../formats.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
+import { getReadableReasoningValue } from "../../utils/reasoningFields.ts";
 import {
   isInternalReasoningPlaceholder,
   stripInternalReasoningPlaceholder,
@@ -80,9 +81,7 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     return flushEvents(state);
   }
 
-  // Capture usage from all chunks that carry it (usage-only chunks OR final chunks with finish_reason)
-  // Normalize Chat Completions format (prompt_tokens/completion_tokens) to Responses API format
-  // (input_tokens/output_tokens) so response.completed always has the fields Codex expects.
+  // Normalize usage from any chunk so response.completed has Responses token fields.
   if (chunk.usage) {
     const u = chunk.usage;
     const input_tokens = u.input_tokens ?? u.prompt_tokens ?? 0;
@@ -193,9 +192,10 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     });
   }
 
-  if (delta.reasoning_content && !isInternalReasoningPlaceholder(delta.reasoning_content)) {
+  const reasoning = getReadableReasoningValue(delta);
+  if (reasoning && !isInternalReasoningPlaceholder(reasoning)) {
     startReasoning(state, emit, idx);
-    emitReasoningDelta(state, emit, delta.reasoning_content);
+    emitReasoningDelta(state, emit, reasoning);
   }
   // Strip the internal reasoning placeholder if the model echoed it
   // through ordinary content (#8081). Only the text-content emission is
