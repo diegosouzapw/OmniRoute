@@ -1,4 +1,4 @@
-import { readHeaderValue } from "./auth.ts";
+import { readHeaderValue } from "./authHeaders.ts";
 
 type AuthRequestHeaders = Headers | Record<string, string | string[] | undefined>;
 
