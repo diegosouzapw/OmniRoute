@@ -29,7 +29,7 @@ import { ChaosModeAccessToggle } from "./components/ChaosModeAccessToggle";
 import { BypassProviderQuotaToggle } from "./components/BypassProviderQuotaToggle";
 import ProviderModelPermissionList from "./components/ProviderModelPermissionList";
 import ReasoningRoutingRules from "@/shared/components/ReasoningRoutingRules";
-import { buildModelAccessSavePayload } from "./apiManagerPageUtils";
+import { buildModelAccessSavePayload, restoreProviderScopeSelection } from "./apiManagerPageUtils";
 
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 200;
@@ -1990,9 +1990,14 @@ const PermissionsModal = memo(function PermissionsModal({
     t,
   ]);
 
-  // selectedCount counts provider scopes as one entry each; inherited
-  // children render selected via the owner lookup inside the list component.
+  // Provider wildcards ("ollama-cloud/*") are counted as providers, not models.
+  // Inherited children render selected via the owner lookup inside the list component.
+  const { providerWildcards: selectedProviderScopes, exactModels: selectedExactModels } =
+    restoreProviderScopeSelection(selectedModels);
+  const selectedProviderCount = selectedProviderScopes.length;
+  const selectedModelCount = selectedExactModels.length;
   const selectedCount = selectedModels.length;
+
   const totalModels = allModels.length;
   const hasClaudeCodeDefaultSelected =
     !allowAll && selectedModels.includes(CLAUDE_CODE_DEFAULT_MODEL_ID);
@@ -2616,7 +2621,11 @@ const PermissionsModal = memo(function PermissionsModal({
           <div className="flex flex-col gap-1.5 p-2 bg-primary/5 rounded-lg border border-primary/20">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-primary">
-                {t("selectedCount", { count: selectedCount })}
+                {selectedProviderCount > 0 && selectedModelCount > 0
+                  ? `${selectedProviderCount} ${tc(selectedProviderCount === 1 ? "provider" : "providers")} · ${t("modelsCount", { count: selectedModelCount })}`
+                  : selectedProviderCount > 0
+                    ? `${selectedProviderCount} ${tc(selectedProviderCount === 1 ? "provider" : "providers")}`
+                    : `${t("modelsCount", { count: selectedModelCount })}`}
               </span>
               <div className="flex gap-1">
                 <button
