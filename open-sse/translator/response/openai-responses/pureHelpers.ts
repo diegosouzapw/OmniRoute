@@ -60,8 +60,17 @@ function isDroppableEmptyEntry(entry, propSchema, required, key, allowlisted) {
 // no-default optional enum properties to accept `null`, meaning "omitted" (OpenAI's own
 // nullable-union idiom for Responses-API strict mode). Drop the key when the model
 // follows that idiom for a non-required, schema-declared property.
-function isDroppableNullEntry(entry, propSchema, required, key) {
-  return entry === null && propSchema != null && !required.has(key);
+function isDroppableNullEntry(entry, propSchema, required, key, toolName) {
+  if (entry !== null) return false;
+  if (toolName === "Agent") return true;
+  if (propSchema == null) return false;
+  const omissionSentinel =
+    typeof propSchema === "object" &&
+    Array.isArray(propSchema.enum) &&
+    propSchema.enum.includes(null) &&
+    typeof propSchema.description === "string" &&
+    propSchema.description.includes("null = omit this parameter");
+  return !required.has(key) || omissionSentinel;
 }
 
 function stripEmptyOptionalToolArgsObject(value, toolName, schema) {
@@ -75,7 +84,7 @@ function stripEmptyOptionalToolArgsObject(value, toolName, schema) {
     if (
       matchesSchemaDefault(propSchema, entry) ||
       isDroppableEmptyEntry(entry, propSchema, required, key, allowlisted) ||
-      isDroppableNullEntry(entry, propSchema, required, key)
+      isDroppableNullEntry(entry, propSchema, required, key, toolName)
     ) {
       delete cleaned[key];
     }

@@ -11,15 +11,12 @@ import assert from "node:assert/strict";
 // own documented nullable-union idiom for this exact strict-mode limitation), and
 // response-side drops the key when the model emits `null` for a non-required property.
 
-const { injectOptionalEnumOmissionSentinel, injectOptionalEnumOmissionForTools } = await import(
-  "../../open-sse/translator/helpers/schemaCoercion.ts"
-);
-const { stripEmptyOptionalToolArgs } = await import(
-  "../../open-sse/translator/response/openai-responses/pureHelpers.ts"
-);
-const { openaiResponsesToOpenAIResponse } = await import(
-  "../../open-sse/translator/response/openai-responses.ts"
-);
+const { injectOptionalEnumOmissionSentinel, injectOptionalEnumOmissionForTools } =
+  await import("../../open-sse/translator/helpers/schemaCoercion.ts");
+const { stripEmptyOptionalToolArgs } =
+  await import("../../open-sse/translator/response/openai-responses/pureHelpers.ts");
+const { openaiResponsesToOpenAIResponse } =
+  await import("../../open-sse/translator/response/openai-responses.ts");
 const { translateRequest } = await import("../../open-sse/translator/index.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 
@@ -60,7 +57,9 @@ test("7023: injectOptionalEnumOmissionSentinel leaves a required enum property u
 test("7023: injectOptionalEnumOmissionSentinel leaves an enum property with a default untouched", () => {
   const schema = {
     type: "object",
-    properties: { isolation: { type: "string", enum: ["worktree", "remote"], default: "worktree" } },
+    properties: {
+      isolation: { type: "string", enum: ["worktree", "remote"], default: "worktree" },
+    },
     required: [],
   };
   const result = injectOptionalEnumOmissionSentinel(schema);
@@ -124,7 +123,9 @@ test("7023: translateRequest applies the injection only for targetFormat OPENAI_
     "gpt-5.1-codex",
     JSON.parse(JSON.stringify(body))
   );
-  const responsesTool = toResponses.tools.find((t) => t.name === "Agent" || t?.function?.name === "Agent");
+  const responsesTool = toResponses.tools.find(
+    (t) => t.name === "Agent" || t?.function?.name === "Agent"
+  );
   const responsesParams = responsesTool.parameters ?? responsesTool.function?.parameters;
   assert.ok(responsesParams.properties.isolation.enum.includes(null));
 
@@ -143,7 +144,16 @@ const AGENT_SCHEMA_OPTIONAL = {
   type: "object",
   properties: {
     description: { type: "string" },
-    isolation: { type: ["string", "null"], enum: ["worktree", "remote", null] },
+    model: {
+      type: ["string", "null"],
+      enum: ["sonnet", "opus", "haiku", "fable", null],
+      description: "Model override (null = omit this parameter)",
+    },
+    isolation: {
+      type: ["string", "null"],
+      enum: ["worktree", "remote", null],
+      description: "Isolation mode (null = omit this parameter)",
+    },
   },
   required: ["description"],
 };
@@ -166,11 +176,38 @@ test("7023: stripEmptyOptionalToolArgs preserves null for a required property (n
   assert.equal(Object.prototype.hasOwnProperty.call(cleaned, "note"), true);
 });
 
+test("7023: stripEmptyOptionalToolArgs drops the omission sentinel after strict mode marks it required", () => {
+  const schema = {
+    type: "object",
+    properties: {
+      isolation: {
+        type: ["string", "null"],
+        enum: ["worktree", "remote", null],
+        description: "Isolation mode (null = omit this parameter)",
+      },
+    },
+    required: ["isolation"],
+  };
+  const cleaned = JSON.parse(
+    stripEmptyOptionalToolArgs(JSON.stringify({ isolation: null }), "Agent", schema)
+  );
+  assert.equal(Object.prototype.hasOwnProperty.call(cleaned, "isolation"), false);
+});
+
+test("7023: Agent null fields drop even when the strict schema snapshot is unavailable", () => {
+  const raw = JSON.stringify({ description: "schema unavailable", model: null, isolation: null });
+  const cleaned = JSON.parse(stripEmptyOptionalToolArgs(raw, "Agent", null));
+  assert.deepEqual(cleaned, { description: "schema unavailable" });
+});
+
 test("7023: acceptance — codex Agent call emits isolation:null (post-injection idiom) -> client-visible call has no isolation key", () => {
   const state = { toolSchemas: new Map([["Agent", AGENT_SCHEMA_OPTIONAL]]) };
 
   openaiResponsesToOpenAIResponse(
-    { type: "response.output_item.added", item: { type: "function_call", call_id: "call_1", name: "Agent" } },
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_1", name: "Agent" },
+    },
     state
   );
   const done = openaiResponsesToOpenAIResponse(
@@ -191,11 +228,161 @@ test("7023: acceptance — codex Agent call emits isolation:null (post-injection
   assert.equal(args.description, "no isolation intended");
 });
 
+test("7023: streamed Agent arguments are buffered until the null omission sentinel is stripped", () => {
+  const state = { toolSchemas: new Map([["Agent", AGENT_SCHEMA_OPTIONAL]]) };
+
+  openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_1", name: "Agent" },
+    },
+    state
+  );
+  const raw = JSON.stringify({
+    description: "no isolation intended",
+    model: null,
+    isolation: null,
+  });
+  const firstDelta = openaiResponsesToOpenAIResponse(
+    { type: "response.function_call_arguments.delta", delta: raw.slice(0, 35) },
+    state
+  );
+  const secondDelta = openaiResponsesToOpenAIResponse(
+    { type: "response.function_call_arguments.delta", delta: raw.slice(35) },
+    state
+  );
+  const done = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.done",
+      item: { type: "function_call", call_id: "call_1", name: "Agent", arguments: raw },
+    },
+    state
+  );
+
+  assert.equal(firstDelta, null);
+  assert.equal(secondDelta, null);
+  const args = JSON.parse(done.choices[0].delta.tool_calls[0].function.arguments);
+  assert.equal(Object.prototype.hasOwnProperty.call(args, "model"), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(args, "isolation"), false);
+  assert.equal(args.description, "no isolation intended");
+});
+
+test("7023: buffered fragments are normalized when done omits its argument snapshot", () => {
+  const state = { toolSchemas: new Map([["Agent", AGENT_SCHEMA_OPTIONAL]]) };
+  const raw = JSON.stringify({ description: "fragmented", model: null, isolation: null });
+
+  openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_2", name: "Agent" },
+    },
+    state
+  );
+  openaiResponsesToOpenAIResponse(
+    { type: "response.function_call_arguments.delta", delta: raw.slice(0, 25) },
+    state
+  );
+  openaiResponsesToOpenAIResponse(
+    { type: "response.function_call_arguments.delta", delta: raw.slice(25) },
+    state
+  );
+  const done = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.done",
+      item: { type: "function_call", call_id: "call_2", name: "Agent" },
+    },
+    state
+  );
+
+  const args = JSON.parse(done.choices[0].delta.tool_calls[0].function.arguments);
+  assert.deepEqual(args, { description: "fragmented" });
+});
+
+test("7023: stream flush emits normalized arguments and terminal finish reason", () => {
+  const state = { toolSchemas: new Map([["Agent", AGENT_SCHEMA_OPTIONAL]]) };
+  const raw = JSON.stringify({ description: "flush", model: null, isolation: null });
+
+  openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_flush", name: "Agent" },
+    },
+    state
+  );
+  openaiResponsesToOpenAIResponse(
+    { type: "response.function_call_arguments.delta", delta: raw },
+    state
+  );
+  const flushed = openaiResponsesToOpenAIResponse(null, state);
+
+  assert.equal(flushed.length, 2);
+  const args = JSON.parse(flushed[0].choices[0].delta.tool_calls[0].function.arguments);
+  assert.deepEqual(args, { description: "flush" });
+  assert.equal(flushed[1].choices[0].finish_reason, "tool_calls");
+});
+
+test("7023: object-valued terminal arguments retain explicit isolation", () => {
+  const state = { toolSchemas: new Map([["Agent", AGENT_SCHEMA_OPTIONAL]]) };
+
+  openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_object", name: "Agent" },
+    },
+    state
+  );
+  const done = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.done",
+      item: {
+        type: "function_call",
+        call_id: "call_object",
+        name: "Agent",
+        arguments: { description: "explicit", model: null, isolation: "worktree" },
+      },
+    },
+    state
+  );
+
+  const args = JSON.parse(done.choices[0].delta.tool_calls[0].function.arguments);
+  assert.deepEqual(args, { description: "explicit", isolation: "worktree" });
+});
+
+test("7023: deferred Agent name normalizes buffered null sentinels", () => {
+  const state = { toolSchemas: new Map([["Agent", AGENT_SCHEMA_OPTIONAL]]) };
+  const raw = JSON.stringify({ description: "deferred", model: null, isolation: null });
+
+  openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_deferred", name: "" },
+    },
+    state
+  );
+  openaiResponsesToOpenAIResponse(
+    { type: "response.function_call_arguments.delta", delta: raw },
+    state
+  );
+  const done = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.done",
+      item: { type: "function_call", call_id: "call_deferred", name: "Agent" },
+    },
+    state
+  );
+
+  const args = JSON.parse(done.choices[0].delta.tool_calls[0].function.arguments);
+  assert.deepEqual(args, { description: "deferred" });
+});
+
 test("7023: negative — a legitimate isolation:'worktree' value is preserved unchanged", () => {
   const state = { toolSchemas: new Map([["Agent", AGENT_SCHEMA_OPTIONAL]]) };
 
   openaiResponsesToOpenAIResponse(
-    { type: "response.output_item.added", item: { type: "function_call", call_id: "call_2", name: "Agent" } },
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_2", name: "Agent" },
+    },
     state
   );
   const done = openaiResponsesToOpenAIResponse(
