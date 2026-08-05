@@ -45,7 +45,7 @@ packages/browser-pool/   ← NEW: optional package
 
 **Phase 1 — Core pool extraction (this issue):**
 
-1. Define `BrowserPoolProvider` interface in `open-sse/interfaces/browserPool.ts`
+1. Define `BrowserPoolProvider` interface in `packages/browser-pool/src/interfaces.ts`
 2. Extract `browserPool.ts` (~502 LOC), `browserBackedChat.ts` (~270 LOC), `grokClearance.ts` (~84 LOC) into `packages/browser-pool/`
 3. Replace core files with thin stubs that try `import('../../../packages/browser-pool')` with graceful fallback
 4. Keep `poolTools.ts` importing the core stub (unchanged from consumer perspective)
@@ -66,7 +66,7 @@ packages/browser-pool/   ← NEW: optional package
 ### Interface Design (Phase 1)
 
 ```typescript
-// open-sse/interfaces/browserPool.ts
+// packages/browser-pool/src/interfaces.ts
 export interface BrowserPoolProvider {
   acquireBrowserContext(options?: BrowserPoolContextOptions): Promise<PooledContext>;
   releaseBrowserContext(ctx: PooledContext): Promise<void>;
@@ -115,7 +115,7 @@ export async function acquireBrowserContext(...args) {
 
 ## Acceptance Criteria
 
-1. `open-sse/interfaces/browserPool.ts` exists and exports `BrowserPoolProvider`, `PooledContext`, `BrowserPoolMetrics` types
+1. `packages/browser-pool/src/interfaces.ts` exists and exports `BrowserPoolProvider`, `PooledContext`, `BrowserPoolMetrics` types
 2. `open-sse/services/browserPool.ts` becomes a thin stub with zero Playwright imports
 3. `packages/browser-pool/` contains all extracted implementation (browserPool, browserBackedChat, grokClearance)
 4. Core typecheck (`npm run typecheck:core`) passes with 0 errors **without** the browser-pool package installed
