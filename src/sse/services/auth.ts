@@ -25,6 +25,7 @@ import {
 } from "@/domain/quotaCache";
 import { getQuotaScopeLabelForProvider } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
 import { getCreditsMode } from "@omniroute/open-sse/services/antigravityCredits.ts";
+import { preferAntigravityConnectionsWithStoredProject } from "@omniroute/open-sse/services/antigravityProjectPersistence.ts";
 import {
   isAccountUnavailable,
   getUnavailableUntil,
@@ -1182,7 +1183,7 @@ export async function getProviderCredentials(
     let familyLockedCount = 0;
     const connectionFilterStatus = new Map<string, string>();
     // Filter out unavailable accounts and excluded connection
-    const availableConnections = connections.filter((c) => {
+    let availableConnections = connections.filter((c) => {
       if (excludedConnectionIds.has(c.id)) {
         connectionFilterStatus.set(c.id, "excluded");
         return false;
@@ -1221,6 +1222,14 @@ export async function getProviderCredentials(
       connectionFilterStatus.set(c.id, "available");
       return true;
     });
+
+    if (provider === "antigravity" || provider === "agy") {
+      const projectAwareConnections =
+        preferAntigravityConnectionsWithStoredProject(availableConnections);
+      if (projectAwareConnections.length > 0) {
+        availableConnections = projectAwareConnections;
+      }
+    }
 
     log.debug(
       "AUTH",

@@ -24,6 +24,7 @@ import { setConnectionRateLimitUntil } from "@/lib/db/providers";
 import { getMitmAlias } from "@/lib/db/models";
 import { ensureAntigravityProjectAssigned } from "../services/antigravityProjectBootstrap.ts";
 import { persistDiscoveredAntigravityProjectId } from "../services/antigravityProjectPersist.ts";
+import { markAntigravityMissingCloudCodeProject } from "../services/antigravityProjectPersistence.ts";
 import {
   resolveAntigravityModelId,
   getAntigravityModelFallbacks,
@@ -555,6 +556,7 @@ export class AntigravityExecutor extends BaseExecutor {
     }
 
     if (!projectId) {
+      markAntigravityMissingCloudCodeProject(credentials?.connectionId);
       // (#489) Return a structured error instead of throwing — gives the client a clear signal
       // to show a "Reconnect OAuth" prompt rather than an opaque "Internal Server Error".
       const errorMsg =

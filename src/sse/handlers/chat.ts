@@ -84,6 +84,7 @@ import {
   resolveStreamReadinessClassificationError,
   shouldTripProviderBreakerForResult,
 } from "./chatPredicates";
+import { markAntigravityMissingCloudCodeProject } from "@omniroute/open-sse/services/antigravityProjectPersistence.ts";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import {
   extractReasoningIntent,
@@ -1311,7 +1312,7 @@ async function handleSingleModelChat(
         if (
           !forceLiveComboTest &&
           credentials?.allRateLimited &&
-          PROVIDER_BREAKER_FAILURE_STATUSES.has(breakerFailureStatus)
+          isProviderBreakerFailureStatus(breakerFailureStatus)
         ) {
           breaker._onFailure();
         }
@@ -1495,6 +1496,7 @@ async function handleSingleModelChat(
       // Preserve the typed fail-closed 422; marking it unavailable would trigger cooldown
       // redispatch and repeat bootstrap within the same logical request.
       if (isAntigravityMissingProjectError(provider, result)) {
+        markAntigravityMissingCloudCodeProject(credentials.connectionId);
         return withSelectedConnectionHeader(result.response, credentials.connectionId);
       }
 

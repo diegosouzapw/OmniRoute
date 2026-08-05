@@ -108,3 +108,48 @@ test("isQuotaExhaustedForRequest isolates Claude and Gemini quota families for a
     "Unknown model B should NOT be exhausted"
   );
 });
+
+test("isQuotaExhaustedForRequest scopes gemini exhaustion to the requested model, not sibling models", () => {
+  const connectionId = "conn-gemini-sibling-test";
+  quotaCache.setQuotaCache(connectionId, "antigravity", {
+    "gemini-3.6-flash-medium": { remainingPercentage: 0, resetAt: null },
+    "gemini-2.5-pro": { remainingPercentage: 100, resetAt: null },
+    gemini_weekly: { remainingPercentage: 0, resetAt: null },
+  });
+
+  assert.equal(
+    quotaCache.isQuotaExhaustedForRequest(
+      connectionId,
+      "antigravity",
+      "antigravity/gemini-3.6-flash-medium"
+    ),
+    true,
+    "gemini-3.6 at 0% should be exhausted even when gemini-2.5-pro still has quota"
+  );
+  assert.equal(
+    quotaCache.isQuotaExhaustedForRequest(
+      connectionId,
+      "antigravity",
+      "antigravity/gemini-2.5-pro"
+    ),
+    false,
+    "gemini-2.5-pro should remain available when only gemini-3.6 is depleted"
+  );
+});
+
+test("isQuotaExhaustedForRequest treats near-zero remaining as exhausted at default threshold", () => {
+  const connectionId = "conn-near-zero-test";
+  quotaCache.setQuotaCache(connectionId, "antigravity", {
+    "gemini-3.6-flash-medium": { remainingPercentage: 0.00000167, resetAt: null },
+  });
+
+  assert.equal(
+    quotaCache.isQuotaExhaustedForRequest(
+      connectionId,
+      "antigravity",
+      "antigravity/gemini-3.6-flash-medium"
+    ),
+    true,
+    "effectively-zero remaining should count as exhausted"
+  );
+});
