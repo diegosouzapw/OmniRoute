@@ -80,7 +80,10 @@ test("#9320: authenticated request (valid API key) returns 200 with models", asy
   // Create a valid API key
   await apiKeysDb.createApiKey("test-key-9320", "test-machine-9320");
   const keys = await apiKeysDb.getApiKeys();
-  const apiKey = Array.isArray(keys) ? keys.find((k: any) => k.name === "test-key-9320") : null;
+  type ApiKeyRecord = Awaited<ReturnType<typeof apiKeysDb.getApiKeys>>[number];
+  const apiKey = Array.isArray(keys)
+    ? keys.find((k: ApiKeyRecord) => k.name === "test-key-9320")
+    : null;
   assert.ok(apiKey, "API key must have been created");
 
   const res = await v1ModelsCatalog.getUnifiedModelsResponse(
