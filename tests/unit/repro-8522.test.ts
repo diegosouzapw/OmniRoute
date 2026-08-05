@@ -25,21 +25,22 @@ test("8522: innocent PR (base already over frozen cap) must NOT be a violation",
   const frozen = { "src/foo.ts": 100 };
   const cap = 100;
 
-  const { violations } = evaluateFileSizes(currentLocByFile, frozen, cap);
+  // With baseLocByFile, the gate compares against max(frozen, base) = max(100, 110) = 110,
+  // so 110 > 110 is false — innocent PR passes.
+  const { violations } = evaluateFileSizes(currentLocByFile, frozen, cap, baseLocByFile);
 
-  // The gate has no base-ref input; it compares head LOC (110) to frozen (100)
-  // and flags a violation. But the PR introduced ZERO growth — it is a false
-  // positive on inherited drift.
   assert.deepEqual(violations, [], "innocent PR flagged for inherited drift");
 });
 
 test("8522: PR that DOES grow a frozen file above frozen cap is a violation", () => {
   // Sanity: the gate must still catch a PR that grows the file above its cap.
+  // Base is at the frozen cap (100), but PR grew it to 112.
   const baseLocByFile = { "src/foo.ts": 100 };
   const currentLocByFile = { "src/foo.ts": 112 }; // PR grew it +12
   const frozen = { "src/foo.ts": 100 };
   const cap = 100;
 
-  const { violations } = evaluateFileSizes(currentLocByFile, frozen, cap);
+  // With baseLocByFile: threshold = max(100, 100) = 100, 112 > 100 → violation
+  const { violations } = evaluateFileSizes(currentLocByFile, frozen, cap, baseLocByFile);
   assert.equal(violations.length, 1, "own-growth PR must be a violation");
 });

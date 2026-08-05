@@ -1,5 +1,4 @@
 {
-  "_comment": "Congelamento em massa gerado em 2026-08-05 durante a migracao para TypeScript 7 (branch release/v3.8.50). A mudanca de toolchain elevou a contagem de violacoes ESLint de forma ampla e mecanica: 4344 violacoes em 676 arquivos, concentradas em @typescript-eslint/no-explicit-any (4063) e no-restricted-imports (203). Todas sao PRE-EXISTENTES ao congelamento - nenhuma foi introduzida para passar o gate. Politica (CLAUDE.md): novas violacoes DEVEM ser corrigidas, nunca adicionadas aqui; esta allowlist so cobre a divida herdada da migracao. As entradas devem ser reduzidas conforme a divida for paga (o gate quality-ratchet impede crescimento). Regenerado a partir de `npx eslint . --format json`; entradas individuais nao levam justificativa propria por serem de origem unica e mecanica - a justificativa e esta.",
   "open-sse/executors/blackbox-web.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -1289,11 +1288,6 @@
   },
   "src/lib/usage/internalUsageCommand.ts": {
     "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/lib/usage/providerLimits.ts": {
-    "no-restricted-imports": {
       "count": 1
     }
   },

@@ -155,7 +155,18 @@ jobs:
       - run: npm run check:fetch-targets
       # docs-all / openapi-routes / docs-symbols live in docs-gates (path-filtered).
       - run: npm run check:deps
-      - run: npm run check:file-size
+      # #8522: --base-ref mode for PR events — compare against max(frozen, base) so
+      # inherited drift (base already over frozen cap) doesn't red an innocent PR.
+      # workflow_dispatch (no PR base) falls back to absolute comparison.
+      - name: File-size ratchet (base-relative on PR)
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ -n "$PR_BASE_SHA" ]; then
+            npm run check:file-size -- --base-ref "$PR_BASE_SHA"
+          else
+            npm run check:file-size
+          fi
       - run: npm run check:error-helper
       - run: npm run check:migration-numbering
       - run: npm run check:public-creds
