@@ -1092,6 +1092,7 @@ async function buildUnifiedModelsResponseCore(
         input_modalities: imgModel.inputModalities || ["text"],
         output_modalities: ["image"],
         ...(imgModel.description ? { description: imgModel.description } : {}),
+        ...(imgModel.mediaCapabilities ? { media_capabilities: imgModel.mediaCapabilities } : {}),
       });
     }
 
@@ -1157,6 +1158,12 @@ async function buildUnifiedModelsResponseCore(
         created: timestamp,
         owned_by: videoModel.provider,
         type: "video",
+        supported_sizes: videoModel.supportedSizes,
+        input_modalities: ["text"],
+        output_modalities: ["video"],
+        ...(videoModel.mediaCapabilities
+          ? { media_capabilities: videoModel.mediaCapabilities }
+          : {}),
       });
     }
 

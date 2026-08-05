@@ -12,6 +12,10 @@ import { FREEPIK_IMAGE_PROVIDER } from "./providers/registry/freepik/index.ts";
 import { STABILITY_AI_IMAGE_MODELS } from "./providers/registry/stability-ai/imageModels.ts";
 import { GEMINI_IMAGEN_PROVIDER } from "./providers/registry/gemini/imageModels.ts";
 import { CHEAPERINFERENCE_IMAGE_PROVIDER } from "./providers/registry/cheaperinference/imageModels.ts";
+import {
+  ADOBE_FIREFLY_IMAGE_ROUTING_ALIASES,
+  toRegistryImageModels,
+} from "../services/adobeFireflyModels.ts";
 
 interface ImageModelEntry {
   id: string;
@@ -22,6 +26,8 @@ interface ImageModelEntry {
   imageRequired?: boolean;
   description?: string;
   isMarket?: boolean;
+  supportedSizes?: string[];
+  mediaCapabilities?: Record<string, unknown>;
 }
 
 interface ImageProviderConfig {
@@ -35,6 +41,7 @@ interface ImageProviderConfig {
   authHeader: string;
   format: string;
   models: ImageModelEntry[];
+  routingAliases?: readonly string[];
   supportedSizes: string[];
 }
 
@@ -46,6 +53,7 @@ interface ImageModelAliasEntry {
   inputModalities?: string[];
   imageRequired?: boolean;
   description?: string;
+  mediaCapabilities?: Record<string, unknown>;
 }
 
 interface ImageCatalogModelEntry {
@@ -55,6 +63,7 @@ interface ImageCatalogModelEntry {
   supportedSizes: string[];
   inputModalities: string[];
   description?: string;
+  mediaCapabilities?: Record<string, unknown>;
 }
 
 const IMAGE_MODEL_ALIASES: Record<string, ImageModelAliasEntry> = {
@@ -678,41 +687,9 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     authType: "apikey",
     authHeader: "bearer",
     format: "adobe-firefly-image",
-    models: [
-      {
-        id: "nano-banana-pro",
-        name: "Firefly Gemini 3.0 (Nano Banana Pro)",
-        inputModalities: ["text", "image"],
-      },
-      {
-        id: "nano-banana",
-        name: "Firefly Gemini 2.5 (Nano Banana)",
-        inputModalities: ["text", "image"],
-      },
-      {
-        id: "nano-banana-2",
-        name: "Firefly Gemini 3.1 (Nano Banana 2)",
-        inputModalities: ["text", "image"],
-      },
-      { id: "gpt-image-2", name: "Firefly GPT Image 2", inputModalities: ["text", "image"] },
-      { id: "gpt-image", name: "Firefly GPT Image 2", inputModalities: ["text", "image"] },
-      { id: "gpt-image-1.5", name: "Firefly GPT Image 1.5", inputModalities: ["text", "image"] },
-      { id: "flux-2", name: "Firefly Flux 2", inputModalities: ["text", "image"] },
-      { id: "flux-pro", name: "Firefly Flux 1.1 Pro", inputModalities: ["text", "image"] },
-      { id: "flux-ultra", name: "Firefly Flux 1.1 Ultra", inputModalities: ["text", "image"] },
-      { id: "seedream-4", name: "Firefly Seedream 4.0", inputModalities: ["text", "image"] },
-      {
-        id: "seedream-5-lite",
-        name: "Firefly Seedream 5.0 Lite",
-        inputModalities: ["text", "image"],
-      },
-      {
-        id: "runway-gen4-image",
-        name: "Firefly Runway Gen-4 Image",
-        inputModalities: ["text", "image"],
-      },
-    ],
-    supportedSizes: ["1:1", "16:9", "9:16", "4:3", "3:4", "1024x1024", "1792x1024", "1024x1792"],
+    models: toRegistryImageModels(),
+    routingAliases: ADOBE_FIREFLY_IMAGE_ROUTING_ALIASES,
+    supportedSizes: [],
   },
 
   // Cheaper Inference (OSS-sponsor gateway). Declared AFTER adobe-firefly on
@@ -873,7 +850,7 @@ export function parseImageModel(modelStr) {
 
   // No provider prefix — try to find the model in every provider
   for (const [providerId, config] of Object.entries(IMAGE_PROVIDERS)) {
-    if (config.models.some((m) => m.id === modelStr)) {
+    if (config.routingAliases?.includes(modelStr) || config.models.some((m) => m.id === modelStr)) {
       return { provider: providerId, model: modelStr };
     }
   }
@@ -892,9 +869,10 @@ function imageProviderCatalogEntries(
     id: `${providerId}/${model.id}`,
     name: model.name,
     provider: providerId,
-    supportedSizes: config.supportedSizes,
+    supportedSizes: model.supportedSizes || config.supportedSizes,
     inputModalities: model.inputModalities || ["text"],
     description: model.description || undefined,
+    mediaCapabilities: model.mediaCapabilities,
   }));
 }
 

@@ -1,328 +1,567 @@
 /**
- * Adobe Firefly model catalog: live discovery + static fallback from browser capture.
+ * Adobe Firefly model discovery and normalized media capabilities.
  *
- * Live: POST firefly-3p.ff.adobe.io/v2/models/discovery (needs valid IMS token).
- * Fallback: curated rows from adobe/get_models.txt (2026-07 Firefly SPA capture) so
- * Media/Models still list usable ids when discovery fails or credentials are missing.
+ * The live discovery schema is authoritative. The generated snapshot is used only
+ * when a request cannot perform authenticated discovery (for example /v1/models).
  */
 
-import {
-  type AdobeFireflyDiscoveredModel,
-  discoverAdobeFireflyModels,
-  resolveAdobeAccessToken,
-} from "./adobeFireflyClient.ts";
+import { ADOBE_FIREFLY_DISCOVERY_SNAPSHOT } from "./adobeFireflyModelSnapshot.ts";
+
+export type AdobeFireflyModality = "image" | "video" | "audio" | "unknown";
+
+export interface AdobeFireflyDiscoveredModel {
+  modelId: string;
+  modelVersion: string;
+  displayName: string;
+  modality: AdobeFireflyModality;
+  enabled: boolean;
+  providerName?: string;
+  releaseReadiness?: string;
+  healthStatus?: string;
+  inputMediaUseCases: string[];
+  requestSchema?: Record<string, unknown>;
+  backingModel?: string;
+}
+
+export interface AdobeFireflyReferenceInputCapability {
+  mediaType: string;
+  usageType: string;
+  minItems: number;
+  maxItems: number | null;
+  maxFileSizeBytes: number | null;
+}
+
+export interface AdobeFireflyMediaCapabilities {
+  inputMediaUseCases: string[];
+  schemaProperties: string[];
+  requiredProperties: string[];
+  referenceInputs: AdobeFireflyReferenceInputCapability[];
+  maxReferenceItems: number | null;
+  supportedSizes: string[];
+  supportedAspectRatios: string[];
+  supportedResolutions: string[];
+  supportedDurations: number[];
+  durationMin: number | null;
+  durationMax: number | null;
+  durationDefault: number | null;
+  outputCountMin: number | null;
+  outputCountMax: number | null;
+  promptMaxLength: number | null;
+  releaseReadiness: string;
+  healthStatus: string;
+}
 
 export interface AdobeFireflyCatalogModel {
-  /** OpenAI-style id without provider prefix, e.g. nano-banana-pro or flux-fluxPro */
+  /** Stable API id without the provider prefix. */
   id: string;
   name: string;
   modality: "image" | "video";
-  /** Upstream wire modelId for generate-async */
   upstreamModelId: string;
-  /** Upstream wire modelVersion for generate-async */
   upstreamModelVersion: string;
-  inputModalities?: string[];
+  providerName: string;
+  backingModel: string;
+  inputModalities: string[];
+  capabilities: AdobeFireflyMediaCapabilities;
 }
 
-/**
- * Static fallback built from adobe/get_models.txt discovery response.
- * Friendly aliases first (Media page defaults), then popular upstream families.
- */
-export const ADOBE_FIREFLY_FALLBACK_MODELS: AdobeFireflyCatalogModel[] = [
-  // ── Friendly aliases (handler resolveAdobeImageModel / resolveAdobeVideoModel) ──
-  {
-    id: "nano-banana-pro",
-    name: "Gemini 3.0 (Nano Banana Pro)",
-    modality: "image",
-    upstreamModelId: "gemini-flash",
-    upstreamModelVersion: "nano-banana-2",
-    inputModalities: ["text", "image"],
-  },
-  {
-    id: "nano-banana",
-    name: "Gemini 2.5 (Nano Banana)",
-    modality: "image",
-    upstreamModelId: "gemini-flash",
-    upstreamModelVersion: "nano-banana",
-    inputModalities: ["text", "image"],
-  },
-  {
-    id: "nano-banana-2",
-    name: "Gemini 3.1 (Nano Banana 2)",
-    modality: "image",
-    upstreamModelId: "gemini-flash",
-    upstreamModelVersion: "nano-banana-3",
-    inputModalities: ["text", "image"],
-  },
-  {
-    id: "gpt-image-2",
-    name: "GPT Image 2",
-    modality: "image",
-    upstreamModelId: "gpt-image",
-    upstreamModelVersion: "2",
-    inputModalities: ["text", "image"],
-  },
-  {
-    id: "gpt-image",
-    name: "GPT Image 2",
-    modality: "image",
-    upstreamModelId: "gpt-image",
-    upstreamModelVersion: "2",
-    inputModalities: ["text", "image"],
-  },
-  {
-    id: "gpt-image-1.5",
-    name: "GPT Image 1.5",
-    modality: "image",
-    upstreamModelId: "gpt-image",
-    upstreamModelVersion: "1.5",
-    inputModalities: ["text", "image"],
-  },
-  {
-    id: "sora-2",
-    name: "Sora 2",
-    modality: "video",
-    upstreamModelId: "sora",
-    upstreamModelVersion: "sora-2",
-  },
-  {
-    id: "sora-2-pro",
-    name: "Sora 2 Pro",
-    modality: "video",
-    upstreamModelId: "sora",
-    upstreamModelVersion: "sora-2-pro",
-  },
-  {
-    id: "veo-3.1",
-    name: "Veo 3.1",
-    modality: "video",
-    upstreamModelId: "veo",
-    upstreamModelVersion: "3.1-generate",
-  },
-  {
-    id: "veo-3.1-fast",
-    name: "Veo 3.1 Fast",
-    modality: "video",
-    upstreamModelId: "veo",
-    upstreamModelVersion: "3.1-fast-generate",
-  },
-  {
-    id: "veo-3.1-ref",
-    name: "Veo 3.1 Reference",
-    modality: "video",
-    upstreamModelId: "veo",
-    upstreamModelVersion: "3.1-generate",
-  },
-  {
-    id: "kling-3",
-    name: "Kling Video v3 Standard Image to Video",
-    modality: "video",
-    upstreamModelId: "kling",
-    upstreamModelVersion: "kling_v3_standard_i2v",
-  },
-  // ── Additional image families from discovery capture ──
-  {
-    id: "flux-2",
-    name: "Flux 2",
-    modality: "image",
-    upstreamModelId: "flux",
-    upstreamModelVersion: "2",
-    inputModalities: ["text", "image"],
-  },
-  {
-    id: "flux-pro",
-    name: "Flux 1.1 Pro",
-    modality: "image",
-    upstreamModelId: "flux",
-    upstreamModelVersion: "fluxPro",
-    inputModalities: ["text", "image"],
-  },
-  {
-    id: "flux-ultra",
-    name: "Flux 1.1 Ultra",
-    modality: "image",
-    upstreamModelId: "flux",
-    upstreamModelVersion: "fluxUltra",
-    inputModalities: ["text", "image"],
-  },
-  {
-    id: "seedream-4",
-    name: "Seedream 4.0",
-    modality: "image",
-    upstreamModelId: "seedream",
-    upstreamModelVersion: "seedream_v4",
-    inputModalities: ["text", "image"],
-  },
-  {
-    id: "seedream-5-lite",
-    name: "Seedream 5.0 Lite",
-    modality: "image",
-    upstreamModelId: "seedream",
-    upstreamModelVersion: "seedream_v5_lite",
-    inputModalities: ["text", "image"],
-  },
-  {
-    id: "runway-gen4-image",
-    name: "Runway Gen-4 Image",
-    modality: "image",
-    upstreamModelId: "runway-gen4-image",
-    upstreamModelVersion: "gen4_image",
-    inputModalities: ["text", "image"],
-  },
-  // ── Additional video families ──
-  {
-    id: "kling-v3-t2v",
-    name: "Kling Video v3 Standard Text to Video",
-    modality: "video",
-    upstreamModelId: "kling",
-    upstreamModelVersion: "kling_v3_standard_t2v",
-  },
-  {
-    id: "kling-v3-pro-i2v",
-    name: "Kling Video v3 Pro Image to Video",
-    modality: "video",
-    upstreamModelId: "kling",
-    upstreamModelVersion: "kling_v3_pro_i2v",
-  },
-  {
-    id: "luma-ray3",
-    name: "Ray3",
-    modality: "video",
-    upstreamModelId: "luma",
-    upstreamModelVersion: "3.0-ray",
-  },
-  {
-    id: "runway-gen4-turbo",
-    name: "Runway Gen-4 Video",
-    modality: "video",
-    upstreamModelId: "runway",
-    upstreamModelVersion: "gen4_turbo",
-  },
-];
+export interface AdobeFireflyImageModelSpec extends AdobeFireflyCatalogModel {
+  modality: "image";
+  /** Payload dialect observed for this model family. */
+  family: "gemini" | "gpt-image" | "generic";
+}
 
-/** Stable slug for upstream modelId + modelVersion (catalog id when not a friendly alias). */
+export interface AdobeFireflyVideoModelSpec extends AdobeFireflyCatalogModel {
+  modality: "video";
+  defaultDuration: number;
+  defaultResolution: string;
+}
+
+interface MergedObjectSchema {
+  properties: Record<string, Record<string, unknown>>;
+  required: string[];
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function asStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.map((item) => String(item)).filter((item) => item.length > 0)
+    : [];
+}
+
+function finiteInteger(value: unknown): number | null {
+  return Number.isInteger(value) ? (value as number) : null;
+}
+
+/** Merge object properties/required keys contributed through JSON Schema allOf. */
+export function mergeAdobeObjectSchema(schema: unknown): MergedObjectSchema {
+  const merged: MergedObjectSchema = { properties: {}, required: [] };
+  const visit = (value: unknown) => {
+    const node = asRecord(value);
+    const properties = asRecord(node.properties);
+    for (const [key, property] of Object.entries(properties)) {
+      merged.properties[key] = asRecord(property);
+    }
+    merged.required.push(...asStringArray(node.required));
+    if (Array.isArray(node.allOf)) node.allOf.forEach(visit);
+  };
+  visit(schema);
+  merged.required = [...new Set(merged.required)];
+  return merged;
+}
+
+function schemaBranches(schema: unknown): Record<string, unknown>[] {
+  const root = asRecord(schema);
+  if (Object.keys(root).length === 0) return [];
+  return [
+    root,
+    ...(Array.isArray(root.anyOf) ? root.anyOf.map(asRecord) : []),
+    ...(Array.isArray(root.oneOf) ? root.oneOf.map(asRecord) : []),
+  ];
+}
+
+function enumStrings(schema: unknown): string[] {
+  return [
+    ...new Set(
+      schemaBranches(schema)
+        .flatMap((branch) => (Array.isArray(branch.enum) ? branch.enum : []))
+        .filter((value): value is string => typeof value === "string")
+    ),
+  ];
+}
+
+function integerBranch(schema: unknown): Record<string, unknown> {
+  return schemaBranches(schema).find((branch) => branch.type === "integer") || {};
+}
+
+/** Stable, collision-resistant public id for an exact upstream model/version pair. */
 export function slugifyAdobeModel(modelId: string, modelVersion: string): string {
-  const mid = String(modelId || "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-  const ver = String(modelVersion || "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9.]+/g, "-")
-    .replace(/^-|-$/g, "");
-  if (!ver || ver === "default" || ver === mid) return mid || "model";
-  return `${mid}-${ver}`;
+  const slug = (value: string, allowDot = false) =>
+    String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(allowDot ? /[^a-z0-9.]+/g : /[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+  const family = slug(modelId);
+  // Adobe still uses `kling_v3_omni*` internally, while discovery exposes these
+  // products to users as Kling O3. Never leak the obsolete/internal "omni" name
+  // into the public API catalog; the untouched upstream version stays in the spec.
+  const publicVersion =
+    family === "kling" ? modelVersion.replace(/^kling_v3_omni/i, "kling_o3") : modelVersion;
+  const version = slug(publicVersion, true);
+  if (!version || version === "default" || version === family) return family || "model";
+  return `${family}-${version}`;
 }
 
-/** Map discovery rows → catalog entries (image/video only). */
-export function mapDiscoveredToCatalog(
-  rows: AdobeFireflyDiscoveredModel[]
-): AdobeFireflyCatalogModel[] {
-  const out: AdobeFireflyCatalogModel[] = [];
-  const seen = new Set<string>();
+/** Parse POST /v2/models/discovery without discarding its resolved request schema. */
+export function parseAdobeModelsDiscovery(body: unknown): AdobeFireflyDiscoveredModel[] {
+  const root = asRecord(body);
+  const families = Array.isArray(root.models) ? root.models : [];
+  const rows: AdobeFireflyDiscoveredModel[] = [];
 
-  // Prefer friendly aliases when upstream matches known fallback rows.
-  for (const fb of ADOBE_FIREFLY_FALLBACK_MODELS) {
-    const hit = rows.find(
-      (r) =>
-        r.modelId === fb.upstreamModelId &&
-        r.modelVersion === fb.upstreamModelVersion &&
-        (r.modality === fb.modality || r.modality === "unknown")
-    );
-    if (hit && !seen.has(fb.id)) {
-      seen.add(fb.id);
-      out.push({
-        ...fb,
-        name: hit.displayName || fb.name,
+  for (const familyValue of families) {
+    const family = asRecord(familyValue);
+    const modelId = String(family.modelId || "").trim();
+    if (!modelId) continue;
+    for (const [modelVersion, versionValue] of Object.entries(asRecord(family.modelVersions))) {
+      const version = asRecord(versionValue);
+      if (version.enabled === false) continue;
+      const outputModalities = asStringArray(version.outputModality).map((item) =>
+        item.toLowerCase()
+      );
+      const modality: AdobeFireflyModality = outputModalities.includes("image")
+        ? "image"
+        : outputModalities.includes("video")
+          ? "video"
+          : outputModalities.includes("audio")
+            ? "audio"
+            : "unknown";
+      rows.push({
+        modelId,
+        modelVersion,
+        displayName: String(
+          version.modelDisplayName || version.modelCaiDisplayName || modelVersion
+        ),
+        modality,
+        enabled: version.enabled !== false,
+        providerName:
+          typeof family.acModelFamilyProviderDisplayName === "string"
+            ? family.acModelFamilyProviderDisplayName
+            : undefined,
+        releaseReadiness:
+          typeof version.releaseReadiness === "string" ? version.releaseReadiness : undefined,
+        healthStatus: typeof version.healthStatus === "string" ? version.healthStatus : undefined,
+        inputMediaUseCases: asStringArray(version.inputMediaUseCase),
+        requestSchema: asRecord(version.requestSchema),
+        backingModel:
+          typeof version.bksGenerationModel === "string" ? version.bksGenerationModel : undefined,
+      });
+    }
+  }
+  return rows;
+}
+
+function normalizeCapabilities(row: AdobeFireflyDiscoveredModel): AdobeFireflyMediaCapabilities {
+  const schema = mergeAdobeObjectSchema(row.requestSchema);
+  const referenceSchema = asRecord(schema.properties.referenceBlobs);
+  const referenceInputs: AdobeFireflyReferenceInputCapability[] = [];
+  const mediaCapabilities = Array.isArray(referenceSchema["x-capabilities"])
+    ? referenceSchema["x-capabilities"]
+    : [];
+  for (const mediaValue of mediaCapabilities) {
+    const media = asRecord(mediaValue);
+    const maxFileSizeBytes = finiteInteger(media.maxFileSizeBytes);
+    const usageConstraints = Array.isArray(media.usageConstraints) ? media.usageConstraints : [];
+    for (const usageValue of usageConstraints) {
+      const usage = asRecord(usageValue);
+      if (usage.deprecated === true) continue;
+      const usageType = String(usage.usageType || "");
+      const mediaType = String(media.mediaType || "");
+      if (!usageType || !mediaType) continue;
+      referenceInputs.push({
+        mediaType,
+        usageType,
+        minItems: finiteInteger(usage.minItems) ?? 0,
+        maxItems: finiteInteger(usage.maxItems),
+        maxFileSizeBytes,
       });
     }
   }
 
-  for (const r of rows) {
-    if (r.modality !== "image" && r.modality !== "video") continue;
-    const id = slugifyAdobeModel(r.modelId, r.modelVersion);
-    if (seen.has(id)) continue;
-    // Skip if already covered by a friendly alias with same upstream
-    if (
-      out.some(
-        (o) =>
-          o.upstreamModelId === r.modelId && o.upstreamModelVersion === r.modelVersion
+  const supportedSizes = [
+    ...new Set(
+      schemaBranches(schema.properties.size)
+        .flatMap((branch) => (Array.isArray(branch.enum) ? branch.enum : []))
+        .map(asRecord)
+        .filter((size) => finiteInteger(size.width) !== null && finiteInteger(size.height) !== null)
+        .map((size) => `${size.width}x${size.height}`)
+    ),
+  ];
+  const supportedAspectRatios = [
+    ...new Set(
+      schemaBranches(schema.properties.generationSettings).flatMap((branch) =>
+        enumStrings(asRecord(asRecord(branch.properties).aspectRatio))
       )
-    ) {
-      continue;
-    }
-    seen.add(id);
-    out.push({
-      id,
-      name: r.displayName || id,
-      modality: r.modality,
-      upstreamModelId: r.modelId,
-      upstreamModelVersion: r.modelVersion,
-      inputModalities: r.modality === "image" ? ["text", "image"] : ["text"],
-    });
-  }
-
-  return out;
-}
-
-export function getAdobeFireflyFallbackCatalog(modality?: "image" | "video"): AdobeFireflyCatalogModel[] {
-  if (!modality) return [...ADOBE_FIREFLY_FALLBACK_MODELS];
-  return ADOBE_FIREFLY_FALLBACK_MODELS.filter((m) => m.modality === modality);
-}
-
-/**
- * Live discovery when credentials resolve; otherwise static fallback from get_models capture.
- */
-export async function resolveAdobeFireflyCatalog(opts: {
-  credentials?: {
-    apiKey?: string;
-    accessToken?: string;
-    providerSpecificData?: Record<string, unknown> | null;
-  } | null;
-  modality?: "image" | "video";
-  fetchImpl?: typeof fetch;
-}): Promise<{ models: AdobeFireflyCatalogModel[]; source: "api" | "fallback" }> {
-  const fetchImpl = opts.fetchImpl || fetch;
-  try {
-    if (opts.credentials) {
-      const token = await resolveAdobeAccessToken(opts.credentials, fetchImpl);
-      const discovered = await discoverAdobeFireflyModels(token, fetchImpl);
-      let catalog = mapDiscoveredToCatalog(discovered);
-      if (opts.modality) catalog = catalog.filter((m) => m.modality === opts.modality);
-      if (catalog.length > 0) return { models: catalog, source: "api" };
-    }
-  } catch {
-    // fall through to static catalog
-  }
+    ),
+  ];
+  const duration = integerBranch(schema.properties.duration);
+  const outputCount = integerBranch(schema.properties.n);
+  const prompt =
+    schemaBranches(schema.properties.prompt).find((branch) => branch.type === "string") || {};
 
   return {
-    models: getAdobeFireflyFallbackCatalog(opts.modality),
-    source: "fallback",
+    inputMediaUseCases: [...row.inputMediaUseCases],
+    schemaProperties: Object.keys(schema.properties),
+    requiredProperties: [...schema.required],
+    referenceInputs,
+    maxReferenceItems: finiteInteger(referenceSchema.maxItems),
+    supportedSizes,
+    supportedAspectRatios,
+    supportedResolutions: enumStrings(schema.properties.resolution),
+    supportedDurations: [
+      ...new Set(
+        schemaBranches(schema.properties.duration)
+          .flatMap((branch) => (Array.isArray(branch.enum) ? branch.enum : []))
+          .filter((value): value is number => Number.isInteger(value))
+      ),
+    ],
+    durationMin: finiteInteger(duration.minimum),
+    durationMax: finiteInteger(duration.maximum),
+    durationDefault: finiteInteger(duration.default),
+    outputCountMin: finiteInteger(outputCount.minimum),
+    outputCountMax: finiteInteger(outputCount.maximum),
+    promptMaxLength: finiteInteger(prompt.maxLength),
+    releaseReadiness: row.releaseReadiness || "",
+    healthStatus: row.healthStatus || "",
   };
 }
 
-/** Registry-shaped models for imageRegistry / videoRegistry. */
-export function toRegistryImageModels(
-  models: AdobeFireflyCatalogModel[] = getAdobeFireflyFallbackCatalog("image")
-): Array<{ id: string; name: string; inputModalities?: string[] }> {
-  return models
-    .filter((m) => m.modality === "image")
-    .map((m) => ({
-      id: m.id,
-      name: m.name.startsWith("Firefly ") ? m.name : `Firefly ${m.name}`,
-      inputModalities: m.inputModalities || ["text", "image"],
-    }));
+function isCallableGenerationModel(row: AdobeFireflyDiscoveredModel): boolean {
+  if (row.modality !== "image" && row.modality !== "video") return false;
+  if (!mergeAdobeObjectSchema(row.requestSchema).properties.prompt) return false;
+  const excluded = new Set(["upscaling", "sharpening", "denoising"]);
+  return !row.inputMediaUseCases.some((value) => excluded.has(value.toLowerCase()));
 }
 
-export function toRegistryVideoModels(
-  models: AdobeFireflyCatalogModel[] = getAdobeFireflyFallbackCatalog("video")
-): Array<{ id: string; name: string }> {
-  return models
-    .filter((m) => m.modality === "video")
-    .map((m) => ({
-      id: m.id,
-      name: m.name.startsWith("Firefly ") ? m.name : `Firefly ${m.name}`,
-    }));
+function deriveInputModalities(capabilities: AdobeFireflyMediaCapabilities): string[] {
+  return ["text", ...new Set(capabilities.referenceInputs.map((reference) => reference.mediaType))];
+}
+
+function semanticCatalogKey(model: AdobeFireflyCatalogModel): string {
+  return JSON.stringify({
+    backingModel: model.backingModel,
+    name: model.name,
+    modality: model.modality,
+    capabilities: model.capabilities,
+  });
+}
+
+/** Normalize and de-duplicate callable image/video rows from live discovery. */
+export function mapDiscoveredToCatalog(
+  rows: AdobeFireflyDiscoveredModel[]
+): AdobeFireflyCatalogModel[] {
+  const output: AdobeFireflyCatalogModel[] = [];
+  const seen = new Set<string>();
+  for (const row of rows) {
+    if (!isCallableGenerationModel(row)) continue;
+    const capabilities = normalizeCapabilities(row);
+    const model: AdobeFireflyCatalogModel = {
+      id: slugifyAdobeModel(row.modelId, row.modelVersion),
+      name: row.displayName,
+      modality: row.modality as "image" | "video",
+      upstreamModelId: row.modelId,
+      upstreamModelVersion: row.modelVersion,
+      providerName: row.providerName || "",
+      backingModel: row.backingModel || "",
+      inputModalities: deriveInputModalities(capabilities),
+      capabilities,
+    };
+    const key = semanticCatalogKey(model);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    output.push(model);
+  }
+  return output;
+}
+
+function snapshotCatalog(): AdobeFireflyCatalogModel[] {
+  return ADOBE_FIREFLY_DISCOVERY_SNAPSHOT.map((model) => {
+    const capabilities: AdobeFireflyMediaCapabilities = {
+      inputMediaUseCases: [...model.inputMediaUseCases],
+      schemaProperties: [...model.schemaProperties],
+      requiredProperties: [...model.requiredProperties],
+      referenceInputs: model.referenceInputs.map((reference) => ({ ...reference })),
+      maxReferenceItems: model.maxReferenceItems,
+      supportedSizes: [...model.supportedSizes],
+      supportedAspectRatios: [...model.supportedAspectRatios],
+      supportedResolutions: [...model.supportedResolutions],
+      supportedDurations: [...model.supportedDurations],
+      durationMin: model.durationMin,
+      durationMax: model.durationMax,
+      durationDefault: model.durationDefault,
+      outputCountMin: model.outputCountMin,
+      outputCountMax: model.outputCountMax,
+      promptMaxLength: model.promptMaxLength,
+      releaseReadiness: model.releaseReadiness,
+      healthStatus: model.healthStatus,
+    };
+    return {
+      id: model.id,
+      name: model.name,
+      modality: model.modality,
+      upstreamModelId: model.upstreamModelId,
+      upstreamModelVersion: model.upstreamModelVersion,
+      providerName: model.providerName,
+      backingModel: model.backingModel,
+      inputModalities: deriveInputModalities(capabilities),
+      capabilities,
+    };
+  });
+}
+
+export const ADOBE_FIREFLY_FALLBACK_MODELS: AdobeFireflyCatalogModel[] = snapshotCatalog();
+
+export function getAdobeFireflyFallbackCatalog(
+  modality?: "image" | "video"
+): AdobeFireflyCatalogModel[] {
+  return ADOBE_FIREFLY_FALLBACK_MODELS.filter((model) => !modality || model.modality === modality);
+}
+
+function imageFamily(model: AdobeFireflyCatalogModel): AdobeFireflyImageModelSpec["family"] {
+  if (model.upstreamModelId === "gemini-flash") return "gemini";
+  if (model.upstreamModelId === "gpt-image" || model.upstreamModelId === "gpt-4o-image") {
+    return "gpt-image";
+  }
+  return "generic";
+}
+
+export const ADOBE_FIREFLY_IMAGE_MODELS: Record<string, AdobeFireflyImageModelSpec> =
+  Object.fromEntries(
+    getAdobeFireflyFallbackCatalog("image").map((model) => [
+      model.id,
+      { ...model, modality: "image" as const, family: imageFamily(model) },
+    ])
+  );
+
+function defaultDuration(model: AdobeFireflyCatalogModel): number {
+  const caps = model.capabilities;
+  return caps.durationDefault ?? caps.supportedDurations[0] ?? caps.durationMin ?? 5;
+}
+
+function defaultResolution(model: AdobeFireflyCatalogModel): string {
+  if (model.capabilities.supportedSizes.some((value) => value.includes("1920x1080"))) {
+    return "1080p";
+  }
+  return "720p";
+}
+
+export const ADOBE_FIREFLY_VIDEO_MODELS: Record<string, AdobeFireflyVideoModelSpec> =
+  Object.fromEntries(
+    getAdobeFireflyFallbackCatalog("video").map((model) => [
+      model.id,
+      {
+        ...model,
+        modality: "video" as const,
+        defaultDuration: defaultDuration(model),
+        defaultResolution: defaultResolution(model),
+      },
+    ])
+  );
+
+const LEGACY_MODEL_ALIASES: Record<string, string> = {
+  "nano-banana": "gemini-flash-nano-banana",
+  "nano-banana-pro": "gemini-flash-nano-banana-2",
+  "nano-banana-2": "gemini-flash-nano-banana-3",
+  "gpt-image": "gpt-image-2",
+  "gpt-image-2": "gpt-image-2",
+  "gpt-image-1.5": "gpt-image-1.5",
+  "flux-2": "flux-2",
+  "flux-pro": "flux-fluxpro",
+  "flux-ultra": "flux-fluxultra",
+  "seedream-4": "seedream-seedream-v4",
+  "seedream-5-lite": "seedream-seedream-v5-lite",
+  "runway-gen4-image": "runway-gen4-image",
+  "veo-3.1": "veo-3.1-generate",
+  "veo-3.1-fast": "veo-3.1-fast-generate",
+  "luma-ray3": "luma-3.0-ray",
+  "runway-gen4-turbo": "runway-gen4-turbo",
+  // Backward compatibility only; the catalog advertises the exact discovered id.
+  "kling-3": "kling-kling-v3-standard-i2v",
+};
+
+// Preserve established API aliases when (and only when) they resolve to a model
+// that is present in the verified discovery snapshot. These keys are not listed.
+for (const [alias, target] of Object.entries(LEGACY_MODEL_ALIASES)) {
+  const imageTarget = ADOBE_FIREFLY_IMAGE_MODELS[target];
+  if (imageTarget) ADOBE_FIREFLY_IMAGE_MODELS[alias] = imageTarget;
+  const videoTarget = ADOBE_FIREFLY_VIDEO_MODELS[target];
+  if (videoTarget) ADOBE_FIREFLY_VIDEO_MODELS[alias] = videoTarget;
+}
+
+/** Backward-compatible request ids. Kept out of every advertised model catalog. */
+export const ADOBE_FIREFLY_IMAGE_ROUTING_ALIASES = Object.freeze(
+  Object.entries(LEGACY_MODEL_ALIASES)
+    .filter(([, target]) => Boolean(ADOBE_FIREFLY_IMAGE_MODELS[target]))
+    .map(([alias]) => alias)
+);
+
+function normalizeRequestedId(model: string): string {
+  return String(model || "")
+    .trim()
+    .toLowerCase()
+    .replace(/^adobe-firefly\//, "")
+    .replace(/^firefly\//, "");
+}
+
+function resolveCatalogId(model: string): string {
+  const requested = normalizeRequestedId(model);
+  return LEGACY_MODEL_ALIASES[requested] || requested;
+}
+
+export function resolveAdobeImageModel(model: string): {
+  id: string;
+  spec: AdobeFireflyImageModelSpec;
+} {
+  const id = resolveCatalogId(model);
+  const spec = ADOBE_FIREFLY_IMAGE_MODELS[id];
+  if (!spec) {
+    throw new Error(
+      `Unknown Adobe Firefly image model: ${normalizeRequestedId(model) || "(empty)"}`
+    );
+  }
+  return { id, spec };
+}
+
+export function resolveAdobeVideoModel(model: string): {
+  id: string;
+  spec: AdobeFireflyVideoModelSpec;
+} {
+  const id = resolveCatalogId(model);
+  const spec = ADOBE_FIREFLY_VIDEO_MODELS[id];
+  if (!spec) {
+    throw new Error(
+      `Unknown Adobe Firefly video model: ${normalizeRequestedId(model) || "(empty)"}`
+    );
+  }
+  return { id, spec };
+}
+
+export function toRegistryImageModels(): Array<{
+  id: string;
+  name: string;
+  inputModalities: string[];
+  supportedSizes: string[];
+  mediaCapabilities: Record<string, unknown>;
+}> {
+  return getAdobeFireflyFallbackCatalog("image").map((model) => ({
+    id: model.id,
+    name: `Firefly ${model.name}`,
+    inputModalities: model.inputModalities,
+    supportedSizes: model.capabilities.supportedSizes,
+    mediaCapabilities: toAdobeMediaCapabilitiesApi(model),
+  }));
+}
+
+export function toRegistryVideoModels(): Array<{
+  id: string;
+  name: string;
+  supportedSizes: string[];
+  mediaCapabilities: Record<string, unknown>;
+}> {
+  return getAdobeFireflyFallbackCatalog("video").map((model) => ({
+    id: model.id,
+    name: `Firefly ${model.name}`,
+    supportedSizes: model.capabilities.supportedSizes,
+    mediaCapabilities: toAdobeMediaCapabilitiesApi(model),
+  }));
+}
+
+/** JSON-safe extension emitted by /v1/models. */
+export function toAdobeMediaCapabilitiesApi(
+  model: AdobeFireflyCatalogModel
+): Record<string, unknown> {
+  const caps = model.capabilities;
+  return {
+    upstream_model_id: model.upstreamModelId,
+    upstream_model_version: model.upstreamModelVersion,
+    provider_name: model.providerName,
+    release_readiness: caps.releaseReadiness,
+    health_status: caps.healthStatus,
+    input_media_use_cases: caps.inputMediaUseCases,
+    reference_inputs: caps.referenceInputs.map((reference) => ({
+      media_type: reference.mediaType,
+      usage_type: reference.usageType,
+      min_items: reference.minItems,
+      max_items: reference.maxItems,
+      max_file_size_bytes: reference.maxFileSizeBytes,
+    })),
+    max_reference_items: caps.maxReferenceItems,
+    supported_sizes: caps.supportedSizes,
+    supported_aspect_ratios: caps.supportedAspectRatios,
+    supported_resolutions: caps.supportedResolutions,
+    supported_durations: caps.supportedDurations,
+    duration_min: caps.durationMin,
+    duration_max: caps.durationMax,
+    duration_default: caps.durationDefault,
+    output_count_min: caps.outputCountMin,
+    output_count_max: caps.outputCountMax,
+    prompt_max_length: caps.promptMaxLength,
+  };
+}
+
+export function getAdobeReferenceUploadLimit(
+  model: AdobeFireflyCatalogModel,
+  mediaType: string
+): number {
+  if (model.capabilities.maxReferenceItems !== null) {
+    return Math.max(1, Math.min(32, model.capabilities.maxReferenceItems));
+  }
+  const declaredTotal = model.capabilities.referenceInputs
+    .filter((reference) => reference.mediaType === mediaType)
+    .reduce((total, reference) => total + (reference.maxItems ?? 0), 0);
+  return Math.max(1, Math.min(32, declaredTotal || 1));
 }

@@ -10,9 +10,10 @@ import {
   AdobeFireflyError,
   adobeFireflyGenerateVideo,
   resolveAdobeAccessToken,
-  resolveAdobeSourceImageIds,
+  resolveAdobeSourceImageReferences,
   resolveAdobeVideoModel,
 } from "../../services/adobeFireflyClient.ts";
+import { getAdobeReferenceUploadLimit } from "../../services/adobeFireflyModels.ts";
 
 function normalizePositiveNumber(value: unknown, fallback: number): number {
   const n = Number(value);
@@ -55,7 +56,8 @@ export async function handleAdobeFireflyVideoGeneration({
           ? Number(body.seed)
           : undefined;
     // Keep raw paste for Cookie + sherlockToken (x-arp-session-id).
-    const psd = (credentials as { providerSpecificData?: { cookie?: string } })?.providerSpecificData;
+    const psd = (credentials as { providerSpecificData?: { cookie?: string } })
+      ?.providerSpecificData;
     const sessionCookie =
       (typeof psd?.cookie === "string" && psd.cookie.trim()) ||
       (typeof credentials?.apiKey === "string" && credentials.apiKey.trim()) ||
@@ -63,13 +65,11 @@ export async function handleAdobeFireflyVideoGeneration({
         ? credentials.accessToken
         : undefined);
 
-    // Kling i2v / Veo ref / Sora frame: upload reference images first.
-    const { id: videoModelId } = resolveAdobeVideoModel(String(model));
-    const maxFrames = videoModelId.includes("kling") || videoModelId.includes("sora") ? 2 : 3;
-    const sourceImageIds = await resolveAdobeSourceImageIds({
+    const { spec } = resolveAdobeVideoModel(String(model));
+    const references = await resolveAdobeSourceImageReferences({
       accessToken,
       body,
-      max: maxFrames,
+      max: getAdobeReferenceUploadLimit(spec, "image"),
       sessionCookie,
       prompt,
       fetchImpl,
@@ -79,7 +79,7 @@ export async function handleAdobeFireflyVideoGeneration({
     log?.info?.(
       "VIDEO",
       `${provider}/${model} (adobe-firefly) | prompt: "${prompt.slice(0, 60)}${prompt.length > 60 ? "..." : ""}"` +
-        (sourceImageIds.length ? ` | frames: ${sourceImageIds.length}` : "")
+        (references.length ? ` | refs: ${references.length}` : "")
     );
 
     const result = await adobeFireflyGenerateVideo({
@@ -99,7 +99,7 @@ export async function handleAdobeFireflyVideoGeneration({
             ? body.negativePrompt
             : undefined,
       generateAudio: body.generate_audio !== false && body.generateAudio !== false,
-      sourceImageIds: sourceImageIds.length ? sourceImageIds : undefined,
+      references: references.length ? references : undefined,
       sessionCookie,
       timeoutMs,
       fetchImpl,

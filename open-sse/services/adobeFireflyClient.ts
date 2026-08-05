@@ -24,17 +24,31 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { resolvePublicCred } from "../utils/publicCreds.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import {
+  ADOBE_FIREFLY_IMAGE_MODELS as DISCOVERED_IMAGE_MODELS,
+  ADOBE_FIREFLY_VIDEO_MODELS as DISCOVERED_VIDEO_MODELS,
+  parseAdobeModelsDiscovery,
+  resolveAdobeImageModel as resolveDiscoveredImageModel,
+  resolveAdobeVideoModel as resolveDiscoveredVideoModel,
+  type AdobeFireflyCatalogModel as DiscoveredCatalogModel,
+  type AdobeFireflyImageModelSpec as DiscoveredImageModelSpec,
+  type AdobeFireflyVideoModelSpec as DiscoveredVideoModelSpec,
+} from "./adobeFireflyModels.ts";
+
+export {
+  DISCOVERED_IMAGE_MODELS as ADOBE_FIREFLY_IMAGE_MODELS,
+  DISCOVERED_VIDEO_MODELS as ADOBE_FIREFLY_VIDEO_MODELS,
+  parseAdobeModelsDiscovery,
+};
 
 export const ADOBE_FIREFLY_IMAGE_SUBMIT_URL =
   "https://firefly-3p.ff.adobe.io/v2/3p-images/generate-async";
 export const ADOBE_FIREFLY_VIDEO_SUBMIT_URL =
   "https://firefly-3p.ff.adobe.io/v2/3p-videos/generate-async";
-export const ADOBE_FIREFLY_IMAGE_UPLOAD_URL =
-  "https://firefly-3p.ff.adobe.io/v2/storage/image";
+export const ADOBE_FIREFLY_IMAGE_UPLOAD_URL = "https://firefly-3p.ff.adobe.io/v2/storage/image";
 export const ADOBE_FIREFLY_MODELS_DISCOVERY_URL =
   "https://firefly-3p.ff.adobe.io/v2/models/discovery";
-export const ADOBE_FIREFLY_CREDITS_BALANCE_URL =
-  "https://firefly.adobe.io/v1/credits/balance";
+export const ADOBE_FIREFLY_CREDITS_BALANCE_URL = "https://firefly.adobe.io/v1/credits/balance";
 export const ADOBE_FIREFLY_IMS_REFRESH_URL =
   "https://adobeid-na1.services.adobe.com/ims/check/v6/token?jslVersion=v2-v0.48.0-1-g1e322cb";
 /** Scope set observed on live firefly.adobe.com IMS access tokens. */
@@ -46,174 +60,12 @@ export const ADOBE_FIREFLY_IMS_SCOPE =
 
 const DEFAULT_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36";
-const DEFAULT_SEC_CH_UA =
-  '"Not;A=Brand";v="8", "Chromium";v="150", "Google Chrome";v="150"';
+const DEFAULT_SEC_CH_UA = '"Not;A=Brand";v="8", "Chromium";v="150", "Google Chrome";v="150"';
 const DEFAULT_POLL_INTERVAL_MS = 3000;
 const DEFAULT_IMAGE_TIMEOUT_MS = 180_000;
 const DEFAULT_VIDEO_TIMEOUT_MS = 300_000;
 const FIREFLY_ORIGIN = "https://firefly.adobe.com";
 const FIREFLY_REFERER = "https://firefly.adobe.com/";
-
-export type AdobeFireflyImageModelId =
-  | "nano-banana-pro"
-  | "nano-banana"
-  | "nano-banana-2"
-  | "gpt-image"
-  | "gpt-image-2"
-  | "gpt-image-1.5"
-  | "flux-2"
-  | "flux-pro"
-  | "flux-ultra"
-  | "seedream-4"
-  | "seedream-5-lite"
-  | "runway-gen4-image";
-
-export type AdobeFireflyVideoModelId =
-  | "sora-2"
-  | "sora-2-pro"
-  | "veo-3.1"
-  | "veo-3.1-fast"
-  | "veo-3.1-ref"
-  | "kling-3";
-
-export interface AdobeFireflyImageModelSpec {
-  upstreamModelId: string;
-  upstreamModelVersion: string;
-  /** Payload builder family — nano uses Gemini-style size maps; gpt-image uses OpenAI detail levels. */
-  family: "nano" | "gpt-image" | "generic";
-}
-
-export interface AdobeFireflyVideoModelSpec {
-  engine: "sora2" | "sora2-pro" | "veo31-standard" | "veo31-fast" | "kling3";
-  upstreamModel: string;
-  modelId?: string;
-  modelVersion?: string;
-  referenceMode?: "frame" | "image";
-  defaultDuration: number;
-  defaultResolution: string;
-}
-
-/**
- * Upstream modelId/modelVersion pairs from firefly-3p models/discovery
- * (captured 2026-07 — see adobe/get_models.txt). Friendly catalog ids map here.
- */
-export const ADOBE_FIREFLY_IMAGE_MODELS: Record<AdobeFireflyImageModelId, AdobeFireflyImageModelSpec> =
-  {
-    // Gemini 3.0 (Nano Banana Pro) — discovery: gemini-flash / nano-banana-2
-    "nano-banana-pro": {
-      upstreamModelId: "gemini-flash",
-      upstreamModelVersion: "nano-banana-2",
-      family: "nano",
-    },
-    // Gemini 2.5 (Nano Banana) — discovery: gemini-flash / nano-banana
-    "nano-banana": {
-      upstreamModelId: "gemini-flash",
-      upstreamModelVersion: "nano-banana",
-      family: "nano",
-    },
-    // Gemini 3.1 (Nano Banana 2) — discovery: gemini-flash / nano-banana-3
-    "nano-banana-2": {
-      upstreamModelId: "gemini-flash",
-      upstreamModelVersion: "nano-banana-3",
-      family: "nano",
-    },
-    // GPT Image 2 — discovery modelVersion "2" (get_models: modelDisplayName "GPT Image 2")
-    "gpt-image": {
-      upstreamModelId: "gpt-image",
-      upstreamModelVersion: "2",
-      family: "gpt-image",
-    },
-    // Explicit catalog alias so pickers show "gpt-image-2" distinctly
-    "gpt-image-2": {
-      upstreamModelId: "gpt-image",
-      upstreamModelVersion: "2",
-      family: "gpt-image",
-    },
-    "gpt-image-1.5": {
-      upstreamModelId: "gpt-image",
-      upstreamModelVersion: "1.5",
-      family: "gpt-image",
-    },
-    "flux-2": {
-      upstreamModelId: "flux",
-      upstreamModelVersion: "2",
-      family: "generic",
-    },
-    "flux-pro": {
-      upstreamModelId: "flux",
-      upstreamModelVersion: "fluxPro",
-      family: "generic",
-    },
-    "flux-ultra": {
-      upstreamModelId: "flux",
-      upstreamModelVersion: "fluxUltra",
-      family: "generic",
-    },
-    "seedream-4": {
-      upstreamModelId: "seedream",
-      upstreamModelVersion: "seedream_v4",
-      family: "generic",
-    },
-    "seedream-5-lite": {
-      upstreamModelId: "seedream",
-      upstreamModelVersion: "seedream_v5_lite",
-      family: "generic",
-    },
-    "runway-gen4-image": {
-      upstreamModelId: "runway-gen4-image",
-      upstreamModelVersion: "gen4_image",
-      family: "generic",
-    },
-  };
-
-export const ADOBE_FIREFLY_VIDEO_MODELS: Record<AdobeFireflyVideoModelId, AdobeFireflyVideoModelSpec> =
-  {
-    "sora-2": {
-      engine: "sora2",
-      upstreamModel: "openai:firefly:colligo:sora2",
-      defaultDuration: 8,
-      defaultResolution: "720p",
-    },
-    "sora-2-pro": {
-      engine: "sora2-pro",
-      upstreamModel: "openai:firefly:colligo:sora2-pro",
-      defaultDuration: 8,
-      defaultResolution: "720p",
-    },
-    "veo-3.1": {
-      engine: "veo31-standard",
-      upstreamModel: "google:firefly:colligo:veo31",
-      modelId: "veo",
-      modelVersion: "3.1-generate",
-      defaultDuration: 6,
-      defaultResolution: "720p",
-    },
-    "veo-3.1-fast": {
-      engine: "veo31-fast",
-      upstreamModel: "google:firefly:colligo:veo31-fast",
-      modelId: "veo",
-      modelVersion: "3.1-fast-generate",
-      defaultDuration: 6,
-      defaultResolution: "720p",
-    },
-    "veo-3.1-ref": {
-      engine: "veo31-standard",
-      upstreamModel: "google:firefly:colligo:veo31",
-      modelId: "veo",
-      modelVersion: "3.1-generate",
-      referenceMode: "image",
-      defaultDuration: 6,
-      defaultResolution: "720p",
-    },
-    "kling-3": {
-      engine: "kling3",
-      upstreamModel: "kling:firefly:colligo:kling3",
-      modelId: "kling",
-      modelVersion: "kling_v3_standard_i2v",
-      defaultDuration: 5,
-      defaultResolution: "1080p",
-    },
-  };
 
 const NANO_SIZE_MAP: Record<string, Record<string, { width: number; height: number }>> = {
   "1K": {
@@ -337,7 +189,10 @@ export function adobeFireflyBalanceApiKey(): string {
 export function decodeAdobeJwtPayload(token: string): Record<string, unknown> | null {
   try {
     // Do not call extractAdobeCredentialToken here (would recurse via guest checks).
-    let raw = String(token || "").trim().replace(/^bearer\s+/i, "").trim();
+    let raw = String(token || "")
+      .trim()
+      .replace(/^bearer\s+/i, "")
+      .trim();
     // If a blob was passed, take the first JWT-shaped segment.
     const m = raw.match(/eyJ[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}/);
     if (m) raw = m[0];
@@ -414,7 +269,11 @@ export function extractAdobeCredentialToken(raw: string): string {
   if (!value) return "";
 
   if (/^bearer\s+/i.test(value)) {
-    const bare = value.replace(/^bearer\s+/i, "").trim().split(/\s+/)[0] || "";
+    const bare =
+      value
+        .replace(/^bearer\s+/i, "")
+        .trim()
+        .split(/\s+/)[0] || "";
     if (looksLikeAdobeJwt(bare)) return bare;
   }
 
@@ -432,11 +291,15 @@ export function extractAdobeCredentialToken(raw: string): string {
   }
 
   // Authorization: Bearer eyJ...
-  const authMatch = value.match(/Authorization\s*:\s*Bearer\s+([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/i);
+  const authMatch = value.match(
+    /Authorization\s*:\s*Bearer\s+([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/i
+  );
   if (authMatch?.[1] && looksLikeAdobeJwt(authMatch[1])) return authMatch[1];
 
   // Any eyJ… JWT in the blob (HAR / multi-line). Prefer user AdobeID tokens.
-  const jwtMatches = value.match(/eyJ[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}/g);
+  const jwtMatches = value.match(
+    /eyJ[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}/g
+  );
   if (jwtMatches && jwtMatches.length > 0) {
     const sorted = [...jwtMatches].sort((a, b) => b.length - a.length);
     const user = sorted.find((t) => looksLikeAdobeJwt(t) && isAdobeUserAccessToken(t));
@@ -485,7 +348,8 @@ export function extractAdobeCookieHeader(raw: string): string {
       if (/^bearer\s+/i.test(line)) return false;
       if (looksLikeAdobeJwt(line)) return false;
       // Drop standalone eyJ… segments
-      if (/^eyJ[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}$/.test(line)) return false;
+      if (/^eyJ[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}$/.test(line))
+        return false;
       return true;
     })
     .join("; ");
@@ -545,8 +409,13 @@ export function normalizeAdobeAspectRatio(sizeOrRatio: unknown, fallback = "1:1"
   return fallback;
 }
 
-export function normalizeAdobeOutputResolution(quality: unknown, size: unknown): "1K" | "2K" | "4K" {
-  const q = String(quality ?? "").trim().toLowerCase();
+export function normalizeAdobeOutputResolution(
+  quality: unknown,
+  size: unknown
+): "1K" | "2K" | "4K" {
+  const q = String(quality ?? "")
+    .trim()
+    .toLowerCase();
   if (q === "4k" || q === "ultra" || q === "high") return "4K";
   if (q === "2k" || q === "hd" || q === "standard" || q === "medium") return "2K";
   if (q === "1k" || q === "low") return "1K";
@@ -557,107 +426,32 @@ export function normalizeAdobeOutputResolution(quality: unknown, size: unknown):
   return "2K";
 }
 
-export function resolveAdobeImageModel(model: string): {
-  id: AdobeFireflyImageModelId;
-  spec: AdobeFireflyImageModelSpec;
-} {
-  const raw = String(model || "")
-    .trim()
-    .toLowerCase()
-    .replace(/^adobe-firefly\//, "")
-    .replace(/^firefly\//, "");
-
-  // Accept long catalog ids like firefly-nano-banana-pro-2k-16x9
-  if (raw.includes("nano-banana2") || raw.includes("nano-banana-2") || raw.includes("nano-banana-3")) {
-    return { id: "nano-banana-2", spec: ADOBE_FIREFLY_IMAGE_MODELS["nano-banana-2"] };
+export function resolveAdobeImageModel(
+  model: string
+): ReturnType<typeof resolveDiscoveredImageModel> {
+  try {
+    return resolveDiscoveredImageModel(model);
+  } catch (error) {
+    throw new AdobeFireflyError(
+      error instanceof Error ? error.message : "Unknown Adobe Firefly image model",
+      400,
+      "unknown_model"
+    );
   }
-  if (raw.includes("nano-banana-pro")) {
-    return { id: "nano-banana-pro", spec: ADOBE_FIREFLY_IMAGE_MODELS["nano-banana-pro"] };
-  }
-  if (raw.includes("nano-banana")) {
-    return { id: "nano-banana", spec: ADOBE_FIREFLY_IMAGE_MODELS["nano-banana"] };
-  }
-  if (raw.includes("gpt-image-1.5") || raw.includes("gpt-image1.5")) {
-    return { id: "gpt-image-1.5", spec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image-1.5"] };
-  }
-  // Prefer explicit "2" / "gpt-image-2" before generic gpt-image
-  if (
-    raw === "gpt-image-2" ||
-    raw.includes("gpt-image-2") ||
-    raw.includes("gptimage2") ||
-    raw === "gpt-image" ||
-    raw.includes("gpt-image")
-  ) {
-    // Bare gpt-image and gpt-image-2 both map to upstream version "2" (GPT Image 2).
-    if (raw.includes("1.5")) {
-      return { id: "gpt-image-1.5", spec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image-1.5"] };
-    }
-    const id = raw.includes("gpt-image-2") || raw.includes("gptimage2") ? "gpt-image-2" : "gpt-image";
-    return { id: id as AdobeFireflyImageModelId, spec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image"] };
-  }
-  if (raw.includes("flux-ultra") || raw.includes("fluxultra")) {
-    return { id: "flux-ultra", spec: ADOBE_FIREFLY_IMAGE_MODELS["flux-ultra"] };
-  }
-  if (raw.includes("flux-pro") || raw.includes("fluxpro")) {
-    return { id: "flux-pro", spec: ADOBE_FIREFLY_IMAGE_MODELS["flux-pro"] };
-  }
-  if (raw.includes("flux")) {
-    return { id: "flux-2", spec: ADOBE_FIREFLY_IMAGE_MODELS["flux-2"] };
-  }
-  if (raw.includes("seedream-5") || raw.includes("seedream_v5")) {
-    return { id: "seedream-5-lite", spec: ADOBE_FIREFLY_IMAGE_MODELS["seedream-5-lite"] };
-  }
-  if (raw.includes("seedream")) {
-    return { id: "seedream-4", spec: ADOBE_FIREFLY_IMAGE_MODELS["seedream-4"] };
-  }
-  if (raw.includes("runway") && raw.includes("image")) {
-    return { id: "runway-gen4-image", spec: ADOBE_FIREFLY_IMAGE_MODELS["runway-gen4-image"] };
-  }
-
-  if (raw in ADOBE_FIREFLY_IMAGE_MODELS) {
-    const id = raw as AdobeFireflyImageModelId;
-    return { id, spec: ADOBE_FIREFLY_IMAGE_MODELS[id] };
-  }
-
-  // Default to Nano Banana Pro (most common Firefly image path).
-  return { id: "nano-banana-pro", spec: ADOBE_FIREFLY_IMAGE_MODELS["nano-banana-pro"] };
 }
 
-export function resolveAdobeVideoModel(model: string): {
-  id: AdobeFireflyVideoModelId;
-  spec: AdobeFireflyVideoModelSpec;
-} {
-  const raw = String(model || "")
-    .trim()
-    .toLowerCase()
-    .replace(/^adobe-firefly\//, "")
-    .replace(/^firefly\//, "");
-
-  if (raw.includes("sora2-pro") || raw.includes("sora-2-pro") || raw.includes("sora2_pro")) {
-    return { id: "sora-2-pro", spec: ADOBE_FIREFLY_VIDEO_MODELS["sora-2-pro"] };
+export function resolveAdobeVideoModel(
+  model: string
+): ReturnType<typeof resolveDiscoveredVideoModel> {
+  try {
+    return resolveDiscoveredVideoModel(model);
+  } catch (error) {
+    throw new AdobeFireflyError(
+      error instanceof Error ? error.message : "Unknown Adobe Firefly video model",
+      400,
+      "unknown_model"
+    );
   }
-  if (raw.includes("sora2") || raw.includes("sora-2") || raw.includes("sora")) {
-    return { id: "sora-2", spec: ADOBE_FIREFLY_VIDEO_MODELS["sora-2"] };
-  }
-  if (raw.includes("veo31-ref") || raw.includes("veo-3.1-ref") || raw.includes("veo31_ref")) {
-    return { id: "veo-3.1-ref", spec: ADOBE_FIREFLY_VIDEO_MODELS["veo-3.1-ref"] };
-  }
-  if (raw.includes("veo31-fast") || raw.includes("veo-3.1-fast") || raw.includes("veo31_fast")) {
-    return { id: "veo-3.1-fast", spec: ADOBE_FIREFLY_VIDEO_MODELS["veo-3.1-fast"] };
-  }
-  if (raw.includes("veo31") || raw.includes("veo-3.1") || raw.includes("veo")) {
-    return { id: "veo-3.1", spec: ADOBE_FIREFLY_VIDEO_MODELS["veo-3.1"] };
-  }
-  if (raw.includes("kling")) {
-    return { id: "kling-3", spec: ADOBE_FIREFLY_VIDEO_MODELS["kling-3"] };
-  }
-
-  if (raw in ADOBE_FIREFLY_VIDEO_MODELS) {
-    const id = raw as AdobeFireflyVideoModelId;
-    return { id, spec: ADOBE_FIREFLY_VIDEO_MODELS[id] };
-  }
-
-  return { id: "sora-2", spec: ADOBE_FIREFLY_VIDEO_MODELS["sora-2"] };
 }
 
 /**
@@ -667,26 +461,138 @@ export function resolveAdobeVideoModel(model: string): {
  * Explicit low/medium still honor the caller's choice.
  */
 function gptDetailLevel(quality: unknown): number {
-  const q = String(quality ?? "high").trim().toLowerCase();
+  const q = String(quality ?? "high")
+    .trim()
+    .toLowerCase();
   if (q === "low" || q === "1k" || q === "1") return 1;
   if (q === "medium" || q === "2k" || q === "standard" || q === "hd" || q === "3") return 3;
   // high / 4k / ultra / auto / empty / unknown → max detail
   return 5;
 }
 
+export interface AdobeFireflyReferenceBlob {
+  id: string;
+  mediaType?: string;
+  usage?: string;
+  order?: number;
+}
+
+function defaultAdobeReferenceUsage(
+  model: DiscoveredCatalogModel,
+  mediaType: string
+): string | null {
+  const supported = model.capabilities.referenceInputs
+    .filter((capability) => capability.mediaType === mediaType)
+    .map((capability) => capability.usageType);
+  const priority =
+    model.modality === "video"
+      ? ["frame", "element", "style", "subject", "source", "general"]
+      : ["source", "general", "style", "element", "subject"];
+  return priority.find((usage) => supported.includes(usage)) || supported[0] || null;
+}
+
+/** Validate roles/counts against the resolved discovery schema and produce wire blobs. */
+export function normalizeAdobeReferenceBlobs(
+  model: DiscoveredCatalogModel,
+  references: AdobeFireflyReferenceBlob[] = [],
+  fallbackImageIds: string[] = []
+): Array<Record<string, unknown>> {
+  const requested = references.length
+    ? references
+    : fallbackImageIds.map((id) => ({ id, mediaType: "image" }));
+  const capabilities = model.capabilities.referenceInputs;
+  const totalLimit = model.capabilities.maxReferenceItems;
+  if (totalLimit !== null && requested.length > totalLimit) {
+    throw new AdobeFireflyError(
+      `${model.name} accepts at most ${totalLimit} total reference item(s)`,
+      400,
+      "invalid_reference_count"
+    );
+  }
+
+  const counts = new Map<string, number>();
+  const normalized = requested.map((reference) => {
+    const id = String(reference.id || "").trim();
+    if (!id) {
+      throw new AdobeFireflyError(
+        "Adobe Firefly reference id is required",
+        400,
+        "invalid_reference"
+      );
+    }
+    const mediaType = String(reference.mediaType || "image")
+      .trim()
+      .toLowerCase();
+    const usage =
+      String(reference.usage || "")
+        .trim()
+        .toLowerCase() || defaultAdobeReferenceUsage(model, mediaType);
+    const capability = capabilities.find(
+      (candidate) => candidate.mediaType === mediaType && candidate.usageType === usage
+    );
+    if (!usage || !capability) {
+      const allowed = capabilities
+        .filter((candidate) => candidate.mediaType === mediaType)
+        .map((candidate) => candidate.usageType)
+        .join(", ");
+      throw new AdobeFireflyError(
+        `${model.name} does not support ${mediaType} references with usage '${usage || "unspecified"}'` +
+          (allowed ? ` (allowed: ${allowed})` : ""),
+        400,
+        "invalid_reference_usage"
+      );
+    }
+    const key = `${mediaType}:${usage}`;
+    const count = (counts.get(key) || 0) + 1;
+    counts.set(key, count);
+    if (capability.maxItems !== null && count > capability.maxItems) {
+      throw new AdobeFireflyError(
+        `${model.name} accepts at most ${capability.maxItems} ${usage} ${mediaType} reference(s)`,
+        400,
+        "invalid_reference_count"
+      );
+    }
+    return {
+      id,
+      usage,
+      ...(usage === "frame" ? { order: reference.order ?? count } : {}),
+    };
+  });
+
+  for (const capability of capabilities) {
+    if (capability.minItems <= 0) continue;
+    const key = `${capability.mediaType}:${capability.usageType}`;
+    const count = counts.get(key) || 0;
+    if (count < capability.minItems) {
+      throw new AdobeFireflyError(
+        `${model.name} requires at least ${capability.minItems} ${capability.usageType} ${capability.mediaType} reference(s)`,
+        400,
+        "missing_required_reference"
+      );
+    }
+  }
+  return normalized;
+}
+
 export function buildAdobeImagePayload(opts: {
   prompt: string;
   aspectRatio: string;
   outputResolution: "1K" | "2K" | "4K";
-  modelSpec: AdobeFireflyImageModelSpec;
+  modelSpec: DiscoveredImageModelSpec;
   quality?: unknown;
   seed?: number;
   sourceImageIds?: string[];
+  references?: AdobeFireflyReferenceBlob[];
   negativePrompt?: string;
 }): Record<string, unknown> {
   const ratio = opts.aspectRatio === "auto" ? "1:1" : opts.aspectRatio || "1:1";
   const seeds = [typeof opts.seed === "number" ? opts.seed : Math.floor(Date.now() % 999999)];
   const negative = String(opts.negativePrompt || "").trim();
+  const referenceBlobs = normalizeAdobeReferenceBlobs(
+    opts.modelSpec,
+    opts.references,
+    opts.sourceImageIds
+  );
   const genSettings: Record<string, unknown> = {};
   if (negative) {
     genSettings.avoidKeywords = negative
@@ -714,19 +620,16 @@ export function buildAdobeImagePayload(opts: {
         ...genSettings,
       },
     };
-    if (opts.sourceImageIds?.length) {
+    if (referenceBlobs.length) {
       // gpt-image subject references (mask path uses separate mask blob when present).
       payload.generationMetadata = { module: "image2image", submodule: "ff-image-generate" };
-      payload.referenceBlobs = opts.sourceImageIds.map((id) => ({
-        id: String(id),
-        usage: "subject",
-      }));
+      payload.referenceBlobs = referenceBlobs;
       payload.modelSpecificPayload = {};
     }
     return payload;
   }
 
-  // nano (Gemini Flash) + generic (Flux / Seedream / Runway image): same 3P image shape.
+  // Gemini Flash + generic (Flux / Seedream / Runway image): same 3P image shape.
   // Live capture (web_providers/adobe_atach_images.txt): referenceBlobs with usage "general"
   // keep module "text2image" (not image2image) for nano multi-ref composition.
   const sizeMap = NANO_SIZE_MAP[opts.outputResolution] || NANO_SIZE_MAP["2K"];
@@ -750,12 +653,9 @@ export function buildAdobeImagePayload(opts: {
   };
   if (Object.keys(genSettings).length) payload.generationSettings = genSettings;
 
-  if (opts.sourceImageIds?.length) {
-    payload.referenceBlobs = opts.sourceImageIds.map((id) => ({
-      id: String(id),
-      usage: "general",
-    }));
-    // Flux / Seedream / Runway image historically used image2image; nano keeps text2image.
+  if (referenceBlobs.length) {
+    payload.referenceBlobs = referenceBlobs;
+    // Flux / Seedream / Runway image historically used image2image; Gemini keeps text2image.
     if (opts.modelSpec.family === "generic") {
       payload.generationMetadata = { module: "image2image", submodule: "ff-image-generate" };
     }
@@ -772,139 +672,125 @@ function videoSize(aspectRatio: string, resolution: string): { width: number; he
   return { width: Math.round((short * 16) / 9), height: short };
 }
 
+function parseSize(value: string): { width: number; height: number } | null {
+  const match = String(value || "").match(/^(\d+)[x:](\d+)$/i);
+  if (!match) return null;
+  const width = Number(match[1]);
+  const height = Number(match[2]);
+  return width > 0 && height > 0 ? { width, height } : null;
+}
+
+function selectAdobeVideoSize(
+  model: DiscoveredVideoModelSpec,
+  aspectRatio: string,
+  resolution: string
+): { width: number; height: number } {
+  const supported = model.capabilities.supportedSizes.map(parseSize).filter(Boolean) as Array<{
+    width: number;
+    height: number;
+  }>;
+  const requestedExact = parseSize(aspectRatio);
+  if (requestedExact) {
+    const exact = supported.find(
+      (size) => size.width === requestedExact.width && size.height === requestedExact.height
+    );
+    if (exact) return exact;
+  }
+  if (supported.length === 0) return videoSize(aspectRatio, resolution);
+
+  const [ratioWidth, ratioHeight] = String(aspectRatio || "16:9")
+    .split(":")
+    .map(Number);
+  const targetRatio = ratioWidth > 0 && ratioHeight > 0 ? ratioWidth / ratioHeight : 16 / 9;
+  const targetLongEdge = String(resolution).includes("1080") ? 1920 : 1280;
+  return [...supported].sort((left, right) => {
+    const leftScore =
+      Math.abs(left.width / left.height - targetRatio) * 10_000 +
+      Math.abs(Math.max(left.width, left.height) - targetLongEdge);
+    const rightScore =
+      Math.abs(right.width / right.height - targetRatio) * 10_000 +
+      Math.abs(Math.max(right.width, right.height) - targetLongEdge);
+    return leftScore - rightScore;
+  })[0];
+}
+
+function validateAdobeDuration(model: DiscoveredVideoModelSpec, requested: number): number {
+  const capabilities = model.capabilities;
+  const duration = Math.floor(Number.isFinite(requested) ? requested : model.defaultDuration);
+  if (
+    capabilities.supportedDurations.length > 0 &&
+    !capabilities.supportedDurations.includes(duration)
+  ) {
+    throw new AdobeFireflyError(
+      `${model.name} supports duration(s): ${capabilities.supportedDurations.join(", ")} seconds`,
+      400,
+      "invalid_duration"
+    );
+  }
+  if (
+    (capabilities.durationMin !== null && duration < capabilities.durationMin) ||
+    (capabilities.durationMax !== null && duration > capabilities.durationMax)
+  ) {
+    throw new AdobeFireflyError(
+      `${model.name} duration must be between ${capabilities.durationMin ?? "?"} and ${capabilities.durationMax ?? "?"} seconds`,
+      400,
+      "invalid_duration"
+    );
+  }
+  return duration;
+}
+
 export function buildAdobeVideoPayload(opts: {
   prompt: string;
   aspectRatio: string;
   duration: number;
-  modelSpec: AdobeFireflyVideoModelSpec;
+  modelSpec: DiscoveredVideoModelSpec;
   resolution?: string;
   seed?: number;
   sourceImageIds?: string[];
+  references?: AdobeFireflyReferenceBlob[];
   negativePrompt?: string;
   generateAudio?: boolean;
 }): Record<string, unknown> {
-  const seedVal = typeof opts.seed === "number" ? opts.seed : Math.floor(Date.now() % 999999);
+  const model = opts.modelSpec;
+  const properties = new Set(model.capabilities.schemaProperties);
   const aspect = opts.aspectRatio === "auto" ? "16:9" : opts.aspectRatio || "16:9";
-  const duration = Math.max(1, Math.min(30, Math.floor(opts.duration || opts.modelSpec.defaultDuration)));
-  const resolution = opts.resolution || opts.modelSpec.defaultResolution;
-  const vidSize = videoSize(aspect, resolution);
-  const engine = opts.modelSpec.engine;
-  const sourceImageIds = opts.sourceImageIds || [];
-  const negative = String(opts.negativePrompt || "");
-
-  if (engine === "veo31-standard" || engine === "veo31-fast") {
-    const payload: Record<string, unknown> = {
-      n: 1,
-      seeds: [seedVal],
-      modelId: "veo",
-      modelVersion:
-        opts.modelSpec.modelVersion ||
-        (engine === "veo31-fast" ? "3.1-fast-generate" : "3.1-generate"),
-      output: { storeInputs: true },
-      prompt: opts.prompt,
-      size: vidSize,
-      generateAudio: opts.generateAudio !== false,
-      referenceBlobs: [] as Array<Record<string, unknown>>,
-      generationMetadata: { module: "text2video" },
-      modelSpecificPayload: {
-        parameters: {
-          durationSeconds: duration,
-          aspectRatio: aspect,
-          addWaterMark: false,
-        },
-      },
-    };
-    if (sourceImageIds.length) {
-      const refs = payload.referenceBlobs as Array<Record<string, unknown>>;
-      if (opts.modelSpec.referenceMode === "image") {
-        for (const imageId of sourceImageIds.slice(0, 3)) {
-          refs.push({ id: String(imageId), usage: "asset" });
-        }
-      } else {
-        sourceImageIds.slice(0, 2).forEach((imageId, idx) => {
-          refs.push({ id: String(imageId), usage: "general", order: idx + 1 });
-        });
-      }
-      payload.generationMetadata = { module: "image2video" };
-    }
-    if (negative) payload.negativePrompt = negative;
-    return payload;
+  if (
+    model.capabilities.supportedAspectRatios.length > 0 &&
+    !model.capabilities.supportedAspectRatios.includes(aspect)
+  ) {
+    throw new AdobeFireflyError(
+      `${model.name} supports aspect ratio(s): ${model.capabilities.supportedAspectRatios.join(", ")}`,
+      400,
+      "invalid_aspect_ratio"
+    );
   }
-
-  if (engine === "kling3") {
-    const payload: Record<string, unknown> = {
-      n: 1,
-      seeds: [seedVal],
-      modelId: "kling",
-      modelVersion: "kling_v3_standard_i2v",
-      output: { storeInputs: true },
-      prompt: opts.prompt,
-      size: vidSize,
-      generationMetadata: {
-        module: sourceImageIds.length ? "image2video" : "text2video",
-      },
-      duration,
-      generationSettings: { aspectRatio: aspect },
-      referenceBlobs: [] as Array<Record<string, unknown>>,
-    };
-    if (sourceImageIds.length) {
-      const refs = payload.referenceBlobs as Array<Record<string, unknown>>;
-      sourceImageIds.slice(0, 2).forEach((imageId, idx) => {
-        refs.push({ id: String(imageId), usage: "frame", order: idx + 1 });
-      });
-    }
-    if (negative) payload.negativePrompt = negative;
-    return payload;
-  }
-
-  // Sora 2 / Sora 2 Pro
-  const promptJson = JSON.stringify({
-    prompt: opts.prompt,
-    duration,
-    ...(negative ? { negative_prompt: negative } : {}),
-  });
+  const duration = validateAdobeDuration(model, opts.duration);
+  const referenceBlobs = normalizeAdobeReferenceBlobs(model, opts.references, opts.sourceImageIds);
+  const seed = typeof opts.seed === "number" ? opts.seed : Math.floor(Date.now() % 999999);
+  const resolution = opts.resolution || model.defaultResolution;
   const payload: Record<string, unknown> = {
-    n: 1,
-    seeds: [seedVal],
-    modelId: "sora",
-    modelVersion: engine === "sora2-pro" ? "sora-2-pro" : "sora-2",
-    size: vidSize,
-    duration,
-    fps: 24,
-    prompt: promptJson,
-    generationMetadata: { module: sourceImageIds.length ? "image2video" : "text2video" },
-    model: opts.modelSpec.upstreamModel,
-    generateLoop: false,
-    transparentBackground: false,
-    seed: String(seedVal),
-    locale: "en-US",
-    camera: { angle: "none", shotSize: "none", motion: null, promptStyle: null },
-    negativePrompt: negative,
-    jobMode: "standard",
-    debugGenerationEndpoint: "",
-    referenceBlobs: [] as Array<Record<string, unknown>>,
-    referenceFrames: [] as Array<Record<string, unknown> | null>,
-    referenceVideo: null,
-    cameraMotionReferenceVideo: null,
-    characterReference: null,
-    editReferenceVideo: null,
-    output: { storeInputs: true },
+    modelId: model.upstreamModelId,
+    modelVersion: model.upstreamModelVersion,
+    prompt: opts.prompt,
+    generationMetadata: {
+      module: referenceBlobs.some((reference) => reference.usage === "frame")
+        ? "image2video"
+        : "text2video",
+    },
   };
-  if (sourceImageIds.length) {
-    const firstId = String(sourceImageIds[0]);
-    payload.referenceBlobs = [{ id: firstId, usage: "general", promptReference: 1 }];
-    const frames: Array<Record<string, unknown> | null> = [{ localBlobRef: firstId }, null];
-    if (sourceImageIds.length > 1) {
-      const lastId = String(sourceImageIds[1]);
-      (payload.referenceBlobs as Array<Record<string, unknown>>).push({
-        id: lastId,
-        usage: "general",
-        promptReference: 2,
-      });
-      frames[1] = { localBlobRef: lastId };
-    }
-    payload.referenceFrames = frames;
-  }
+
+  if (properties.has("n")) payload.n = 1;
+  if (properties.has("seeds")) payload.seeds = [seed];
+  if (properties.has("output")) payload.output = { storeInputs: true };
+  if (properties.has("size")) payload.size = selectAdobeVideoSize(model, aspect, resolution);
+  if (properties.has("duration")) payload.duration = duration;
+  if (properties.has("generationSettings")) payload.generationSettings = { aspectRatio: aspect };
+  if (properties.has("generateAudio")) payload.generateAudio = opts.generateAudio !== false;
+  if (properties.has("modelSpecificPayload")) payload.modelSpecificPayload = {};
+  if (properties.has("referenceBlobs")) payload.referenceBlobs = referenceBlobs;
+  const negativePrompt = String(opts.negativePrompt || "").trim();
+  if (negativePrompt && properties.has("negativePrompt")) payload.negativePrompt = negativePrompt;
   return payload;
 }
 
@@ -1039,7 +925,10 @@ export function buildAdobeUploadHeaders(
     cookie: extras?.cookie,
     prompt: extras?.prompt || "upload",
   });
-  const ct = String(contentType || "image/png").trim().toLowerCase() || "image/png";
+  const ct =
+    String(contentType || "image/png")
+      .trim()
+      .toLowerCase() || "image/png";
   return {
     ...base,
     "content-type": ct.startsWith("image/") ? ct : "image/png",
@@ -1055,7 +944,9 @@ export function extractAdobeSourceImageSources(body: unknown, max = 4): string[]
   if (!body || typeof body !== "object") return [];
   const b = body as Record<string, unknown>;
   const po =
-    b.provider_options && typeof b.provider_options === "object" && !Array.isArray(b.provider_options)
+    b.provider_options &&
+    typeof b.provider_options === "object" &&
+    !Array.isArray(b.provider_options)
       ? (b.provider_options as Record<string, unknown>)
       : {};
 
@@ -1135,6 +1026,49 @@ export function extractAdobeSourceImageSources(body: unknown, max = 4): string[]
   return out.slice(0, max);
 }
 
+export interface AdobeFireflySourceImageReference {
+  source: string;
+  usage?: string;
+  order?: number;
+}
+
+/** Structured extension used when a caller needs style/element/frame semantics. */
+export function extractAdobeSourceImageReferences(
+  body: unknown,
+  max = 4
+): AdobeFireflySourceImageReference[] {
+  const record = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
+  const explicit = record.adobe_reference_inputs ?? record.adobeReferenceInputs;
+  if (Array.isArray(explicit)) {
+    const references: AdobeFireflySourceImageReference[] = [];
+    for (const value of explicit) {
+      if (references.length >= max) break;
+      if (!value || typeof value !== "object") continue;
+      const item = value as Record<string, unknown>;
+      const mediaType = String(item.media_type ?? item.mediaType ?? "image").toLowerCase();
+      if (mediaType !== "image") continue;
+      const source =
+        typeof item.source === "string"
+          ? item.source
+          : typeof item.url === "string"
+            ? item.url
+            : typeof item.image_url === "string"
+              ? item.image_url
+              : "";
+      if (!source.trim()) continue;
+      const usage = String(item.usage ?? item.usage_type ?? item.usageType ?? "").trim();
+      const orderValue = Number(item.order);
+      references.push({
+        source: source.trim(),
+        ...(usage ? { usage } : {}),
+        ...(Number.isInteger(orderValue) && orderValue > 0 ? { order: orderValue } : {}),
+      });
+    }
+    return references;
+  }
+  return extractAdobeSourceImageSources(body, max).map((source) => ({ source }));
+}
+
 export function parseAdobeImageSourceBytes(source: string): {
   buffer: Buffer;
   contentType: string;
@@ -1171,7 +1105,11 @@ export function parseAdobeImageSourceBytes(source: string): {
   }
 
   // Raw base64 without data: prefix
-  if (!/^https?:\/\//i.test(trimmed) && /^[A-Za-z0-9+/=\s]+$/.test(trimmed) && trimmed.length > 64) {
+  if (
+    !/^https?:\/\//i.test(trimmed) &&
+    /^[A-Za-z0-9+/=\s]+$/.test(trimmed) &&
+    trimmed.length > 64
+  ) {
     const buffer = Buffer.from(trimmed.replace(/\s/g, ""), "base64");
     if (buffer.length > 0 && buffer.length <= ADOBE_FIREFLY_MAX_UPLOAD_BYTES) {
       return { buffer, contentType: "image/png" };
@@ -1273,11 +1211,7 @@ export async function uploadAdobeFireflyImage(opts: {
   try {
     json = text ? JSON.parse(text) : {};
   } catch {
-    throw new AdobeFireflyError(
-      "Adobe Firefly image upload returned non-JSON body",
-      502,
-      "upload"
-    );
+    throw new AdobeFireflyError("Adobe Firefly image upload returned non-JSON body", 502, "upload");
   }
   const id = parseAdobeStorageUploadResponse(json);
   if (!id) {
@@ -1306,7 +1240,7 @@ export async function resolveAdobeSourceImageIds(opts: {
   fetchImpl?: typeof fetch;
   log?: { info?: (...args: unknown[]) => void; error?: (...args: unknown[]) => void };
 }): Promise<string[]> {
-  const max = Math.max(1, Math.min(8, opts.max ?? 4));
+  const max = Math.max(1, Math.min(32, opts.max ?? 4));
   const sources = extractAdobeSourceImageSources(opts.body, max);
   if (!sources.length) return [];
 
@@ -1360,6 +1294,31 @@ export async function resolveAdobeSourceImageIds(opts: {
   }
 
   return ids;
+}
+
+export async function resolveAdobeSourceImageReferences(opts: {
+  accessToken: string;
+  body: unknown;
+  max?: number;
+  sessionCookie?: string;
+  prompt?: string;
+  fetchImpl?: typeof fetch;
+  log?: { info?: (...args: unknown[]) => void; error?: (...args: unknown[]) => void };
+}): Promise<AdobeFireflyReferenceBlob[]> {
+  const max = Math.max(1, Math.min(32, opts.max ?? 4));
+  const references = extractAdobeSourceImageReferences(opts.body, max);
+  if (references.length === 0) return [];
+  const ids = await resolveAdobeSourceImageIds({
+    ...opts,
+    max,
+    body: { images: references.map((reference) => reference.source) },
+  });
+  return ids.map((id, index) => ({
+    id,
+    mediaType: "image",
+    ...(references[index]?.usage ? { usage: references[index].usage } : {}),
+    ...(references[index]?.order ? { order: references[index].order } : {}),
+  }));
 }
 
 /** Transient Adobe 3P overload / rate / edge errors worth retrying. */
@@ -1441,7 +1400,8 @@ export function extractAdobeResultLink(
   if (override) return override;
 
   const data = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
-  const links = data.links && typeof data.links === "object" ? (data.links as Record<string, unknown>) : {};
+  const links =
+    data.links && typeof data.links === "object" ? (data.links as Record<string, unknown>) : {};
   const result = links.result;
   if (typeof result === "string" && result) return result;
   if (result && typeof result === "object") {
@@ -1472,9 +1432,7 @@ export function normalizeAdobePollUrl(rawUrl: string): string {
 
     const path = parsed.pathname || "";
     const isJobPath =
-      path.includes("/jobs/result/") ||
-      path.includes("/v2/status") ||
-      path.includes("/status/");
+      path.includes("/jobs/result/") || path.includes("/v2/status") || path.includes("/status/");
     if (!isJobPath) return url;
 
     const jobId = path.split("/").filter(Boolean).pop() || "";
@@ -1489,14 +1447,12 @@ export function normalizeAdobePollUrl(rawUrl: string): string {
   }
 }
 
-export function extractAdobeMediaUrl(
-  latest: unknown,
-  kind: "image" | "video"
-): string | null {
+export function extractAdobeMediaUrl(latest: unknown, kind: "image" | "video"): string | null {
   const body = latest && typeof latest === "object" ? (latest as Record<string, unknown>) : {};
   const outputs = Array.isArray(body.outputs) ? body.outputs : [];
   if (outputs.length > 0) {
-    const first = outputs[0] && typeof outputs[0] === "object" ? (outputs[0] as Record<string, unknown>) : {};
+    const first =
+      outputs[0] && typeof outputs[0] === "object" ? (outputs[0] as Record<string, unknown>) : {};
     const media =
       kind === "image"
         ? first.image && typeof first.image === "object"
@@ -1510,7 +1466,10 @@ export function extractAdobeMediaUrl(
   }
 
   // Fallback recursive search for a presigned URL.
-  const found = findPresignedUrl(latest, kind === "image" ? [".png", ".jpg", ".jpeg", ".webp"] : [".mp4", ".webm"]);
+  const found = findPresignedUrl(
+    latest,
+    kind === "image" ? [".png", ".jpg", ".jpeg", ".webp"] : [".mp4", ".webm"]
+  );
   return found;
 }
 
@@ -1518,7 +1477,12 @@ function findPresignedUrl(obj: unknown, exts: string[]): string | null {
   if (!obj) return null;
   if (typeof obj === "string") {
     const s = obj.trim();
-    if (/^https?:\/\//i.test(s) && (exts.some((e) => s.toLowerCase().includes(e)) || s.includes("presigned") || s.includes("X-Amz"))) {
+    if (
+      /^https?:\/\//i.test(s) &&
+      (exts.some((e) => s.toLowerCase().includes(e)) ||
+        s.includes("presigned") ||
+        s.includes("X-Amz"))
+    ) {
       return s;
     }
     return null;
@@ -1732,7 +1696,11 @@ export async function resolveAdobeAccessToken(
     | {
         apiKey?: string;
         accessToken?: string;
-        providerSpecificData?: { cookie?: unknown; access_token?: unknown; accessToken?: unknown } | null;
+        providerSpecificData?: {
+          cookie?: unknown;
+          access_token?: unknown;
+          accessToken?: unknown;
+        } | null;
       }
     | null
     | undefined,
@@ -1890,67 +1858,21 @@ export async function fetchAdobeCreditsBalance(
 
 // ── Models discovery ────────────────────────────────────────────────────────
 
-export interface AdobeFireflyDiscoveredModel {
-  modelId: string;
-  modelVersion: string;
-  displayName: string;
-  modality: "image" | "video" | "audio" | "unknown";
-  enabled: boolean;
-  healthStatus?: string;
-}
-
-/**
- * Parse POST /v2/models/discovery response into flat model/version rows.
- */
-export function parseAdobeModelsDiscovery(body: unknown): AdobeFireflyDiscoveredModel[] {
-  const root = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
-  const models = Array.isArray(root.models) ? root.models : [];
-  const out: AdobeFireflyDiscoveredModel[] = [];
-
-  for (const m of models) {
-    if (!m || typeof m !== "object") continue;
-    const rec = m as Record<string, unknown>;
-    const modelId = String(rec.modelId || "").trim();
-    if (!modelId) continue;
-    const versions =
-      rec.modelVersions && typeof rec.modelVersions === "object"
-        ? (rec.modelVersions as Record<string, unknown>)
-        : {};
-    for (const [ver, spec] of Object.entries(versions)) {
-      if (!spec || typeof spec !== "object") continue;
-      const s = spec as Record<string, unknown>;
-      if (s.enabled === false) continue;
-      const mods = Array.isArray(s.outputModality)
-        ? s.outputModality.map((x) => String(x).toLowerCase())
-        : [];
-      let modality: AdobeFireflyDiscoveredModel["modality"] = "unknown";
-      if (mods.includes("image")) modality = "image";
-      else if (mods.includes("video")) modality = "video";
-      else if (mods.includes("audio")) modality = "audio";
-      out.push({
-        modelId,
-        modelVersion: ver,
-        displayName: String(s.modelDisplayName || s.modelCaiDisplayName || ver),
-        modality,
-        enabled: s.enabled !== false,
-        healthStatus: typeof s.healthStatus === "string" ? s.healthStatus : undefined,
-      });
-    }
-  }
-  return out;
-}
-
 export async function discoverAdobeFireflyModels(
   accessToken: string,
   fetchImpl: typeof fetch = fetch
-): Promise<AdobeFireflyDiscoveredModel[]> {
+) {
   const resp = await fetchImpl(ADOBE_FIREFLY_MODELS_DISCOVERY_URL, {
     method: "POST",
     headers: buildAdobeDiscoveryHeaders(accessToken),
     body: JSON.stringify({ filters: { resolveSchema: true } }),
   });
   if (resp.status === 401 || resp.status === 403) {
-    throw new AdobeFireflyError("Adobe Firefly model discovery: token invalid or expired", 401, "auth");
+    throw new AdobeFireflyError(
+      "Adobe Firefly model discovery: token invalid or expired",
+      401,
+      "auth"
+    );
   }
   if (!resp.ok) {
     const text = await resp.text().catch(() => "");
@@ -1978,7 +1900,8 @@ async function pollAdobeJob(opts: {
 }): Promise<{ mediaUrl: string; latest: unknown }> {
   const fetchImpl = opts.fetchImpl || fetch;
   const deadline = Date.now() + opts.timeoutMs;
-  const interval = opts.pollIntervalMs && opts.pollIntervalMs > 0 ? opts.pollIntervalMs : DEFAULT_POLL_INTERVAL_MS;
+  const interval =
+    opts.pollIntervalMs && opts.pollIntervalMs > 0 ? opts.pollIntervalMs : DEFAULT_POLL_INTERVAL_MS;
   let attempt = 0;
   let latest: unknown = {};
 
@@ -1992,7 +1915,11 @@ async function pollAdobeJob(opts: {
     if (pollResp.status === 401 || pollResp.status === 403) {
       const accessError = pollResp.headers.get("x-access-error") || "";
       if (accessError === "taste_exhausted") {
-        throw new AdobeFireflyError("Adobe Firefly quota exhausted for this account", 429, "quota_exhausted");
+        throw new AdobeFireflyError(
+          "Adobe Firefly quota exhausted for this account",
+          429,
+          "quota_exhausted"
+        );
       }
       throw new AdobeFireflyError("Adobe Firefly token invalid or expired", 401, "auth");
     }
@@ -2037,7 +1964,10 @@ async function pollAdobeJob(opts: {
       );
     }
 
-    opts.log?.info?.("ADOBE-FIREFLY", `${opts.kind} pending #${attempt} status=${statusVal || "unknown"}`);
+    opts.log?.info?.(
+      "ADOBE-FIREFLY",
+      `${opts.kind} pending #${attempt} status=${statusVal || "unknown"}`
+    );
     await sleep(interval);
   }
 
@@ -2059,6 +1989,7 @@ export async function adobeFireflyGenerateImage(opts: {
   quality?: unknown;
   seed?: number;
   sourceImageIds?: string[];
+  references?: AdobeFireflyReferenceBlob[];
   negativePrompt?: string;
   /** Optional Cookie blob — used only to lift sherlockToken → x-arp-session-id */
   sessionCookie?: string;
@@ -2078,6 +2009,7 @@ export async function adobeFireflyGenerateImage(opts: {
     quality: opts.quality,
     seed: opts.seed,
     sourceImageIds: opts.sourceImageIds,
+    references: opts.references,
     negativePrompt: opts.negativePrompt,
   });
 
@@ -2106,7 +2038,11 @@ export async function adobeFireflyGenerateImage(opts: {
     if (submitResp.status === 401 || submitResp.status === 403) {
       const accessError = submitResp.headers.get("x-access-error") || "";
       if (accessError === "taste_exhausted") {
-        throw new AdobeFireflyError("Adobe Firefly quota exhausted for this account", 429, "quota_exhausted");
+        throw new AdobeFireflyError(
+          "Adobe Firefly quota exhausted for this account",
+          429,
+          "quota_exhausted"
+        );
       }
       throw new AdobeFireflyError(
         "Adobe Firefly token invalid or expired. Paste a fresh IMS JWT (Authorization: Bearer on firefly-3p), not page cookies alone.",
@@ -2190,6 +2126,7 @@ export async function adobeFireflyGenerateVideo(opts: {
   resolution?: unknown;
   seed?: number;
   sourceImageIds?: string[];
+  references?: AdobeFireflyReferenceBlob[];
   negativePrompt?: string;
   generateAudio?: boolean;
   sessionCookie?: string;
@@ -2221,6 +2158,7 @@ export async function adobeFireflyGenerateVideo(opts: {
     resolution,
     seed: opts.seed,
     sourceImageIds: opts.sourceImageIds,
+    references: opts.references,
     negativePrompt: opts.negativePrompt,
     generateAudio: opts.generateAudio,
   });
@@ -2248,7 +2186,11 @@ export async function adobeFireflyGenerateVideo(opts: {
     if (submitResp.status === 401 || submitResp.status === 403) {
       const accessError = submitResp.headers.get("x-access-error") || "";
       if (accessError === "taste_exhausted") {
-        throw new AdobeFireflyError("Adobe Firefly quota exhausted for this account", 429, "quota_exhausted");
+        throw new AdobeFireflyError(
+          "Adobe Firefly quota exhausted for this account",
+          429,
+          "quota_exhausted"
+        );
       }
       throw new AdobeFireflyError(
         "Adobe Firefly token invalid or expired. Paste a fresh IMS JWT (Authorization: Bearer on firefly-3p), not page cookies alone.",
