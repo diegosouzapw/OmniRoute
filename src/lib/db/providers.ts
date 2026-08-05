@@ -56,7 +56,7 @@ interface DbLike {
 // requested name must be validated against this allowlist before use —
 // there is no current caller that passes untrusted input, but the
 // projection API itself must never accept an arbitrary string.
-const PROVIDER_CONNECTIONS_COLUMNS = new Set([
+export const PROVIDER_CONNECTIONS_COLUMNS = new Set([
   "id",
   "provider",
   "auth_type",
