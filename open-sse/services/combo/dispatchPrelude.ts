@@ -68,6 +68,7 @@ type PreludeBaseOptionArgs = {
   relayOptions?: HandleComboChatOptions["relayOptions"];
   signal?: AbortSignal | null;
   apiKeyAllowedConnections?: string[] | null;
+  clientManagedResponsesContext?: boolean;
 };
 
 /** Rebuild handleComboChat's option bag verbatim for a recursive dispatch. */
@@ -83,6 +84,7 @@ function buildBaseOptions(a: PreludeBaseOptionArgs): HandleComboChatOptions {
     relayOptions: a.relayOptions,
     signal: a.signal,
     apiKeyAllowedConnections: a.apiKeyAllowedConnections,
+    clientManagedResponsesContext: a.clientManagedResponsesContext,
   };
 }
 

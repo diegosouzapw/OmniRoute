@@ -2,9 +2,55 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
 import { applyCompression } from "../../../open-sse/services/compression/strategySelector.ts";
+import { adaptBodyForCompression } from "../../../open-sse/services/compression/bodyAdapter.ts";
 import { applyRtkCompression } from "../../../open-sse/services/compression/engines/rtk/index.ts";
 
 describe("compression body adapter", () => {
+  it("drops a custom tool call when compaction removes its mapped output (#8932)", () => {
+    const body = {
+      input: [
+        {
+          type: "custom_tool_call",
+          call_id: "call_patch_1",
+          name: "apply_patch",
+          input: "*** Begin Patch",
+        },
+        {
+          type: "custom_tool_call_output",
+          call_id: "call_patch_1",
+          output: "Done!",
+        },
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: "Continue." }],
+        },
+      ],
+    };
+    const adapter = adaptBodyForCompression(body);
+    const compressedMessages = (adapter.body.messages as Array<Record<string, unknown>>).filter(
+      (message) => message.role !== "tool"
+    );
+    const restored = adapter.restore(
+      { ...adapter.body, messages: compressedMessages },
+      { dropMissingMappedItems: true }
+    );
+    const input = restored.input as Array<Record<string, unknown>>;
+
+    assert.equal(
+      input.some((item) => item.type === "custom_tool_call"),
+      false
+    );
+    assert.equal(
+      input.some((item) => item.type === "custom_tool_call_output"),
+      false
+    );
+    assert.equal(
+      input.some((item) => item.type === "message"),
+      true
+    );
+  });
+
   it("applies Caveman compression to OpenAI Responses input messages", () => {
     const body = {
       model: "gpt-5.5-codex",

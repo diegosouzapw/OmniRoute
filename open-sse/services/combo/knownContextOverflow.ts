@@ -61,7 +61,6 @@ export function getKnownContextLimit(
   return limits.length > 0 ? Math.min(...limits) : null;
 }
 
-
 /**
  * Return a hard context-overflow decision only when every target has a known
  * context limit and every one of those limits is too small for the request.
@@ -69,9 +68,20 @@ export function getKnownContextLimit(
  */
 export function getKnownContextOverflow(
   targets: ResolvedComboTarget[],
-  body: Record<string, unknown>
+  body: Record<string, unknown>,
+  options: { clientManagedResponsesContext?: boolean } = {}
 ): KnownContextOverflow | null {
   if (targets.length === 0) return null;
+  // Native Codex Responses clients compact their own item history. Let the concrete
+  // Codex target enforce its effective context limit (including operator overrides)
+  // instead of rejecting early against a smaller catalog hint. Keep this scoped to
+  // all-Codex pools so other Responses clients/providers retain the hard preflight.
+  if (
+    options.clientManagedResponsesContext === true &&
+    targets.every((target) => target.provider === "codex")
+  ) {
+    return null;
+  }
   const requirements = deriveRequestCompatibilityRequirements(body);
   if (requirements.requiredContextTokens <= 0) return null;
 

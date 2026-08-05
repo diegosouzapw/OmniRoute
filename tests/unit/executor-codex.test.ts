@@ -630,6 +630,47 @@ test("CodexExecutor.transformRequest inserts missing function_call_output items"
   });
 });
 
+test("CodexExecutor.transformRequest inserts missing custom_tool_call_output items (#8932)", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5-xhigh",
+    {
+      _nativeCodexPassthrough: true,
+      input: [
+        {
+          type: "custom_tool_call",
+          call_id: "call_missing_custom_result",
+          name: "apply_patch",
+          input: "*** Begin Patch",
+        },
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: "Continue." }],
+        },
+      ],
+      stream: false,
+    },
+    false,
+    { requestEndpointPath: "/responses" }
+  );
+
+  const customCallIndex = result.input.findIndex(
+    (item) => item.type === "custom_tool_call" && item.call_id === "call_missing_custom_result"
+  );
+  const missingOutputIndex = result.input.findIndex(
+    (item) =>
+      item.type === "custom_tool_call_output" && item.call_id === "call_missing_custom_result"
+  );
+
+  assert.equal(missingOutputIndex, customCallIndex + 1);
+  assert.deepEqual(result.input[missingOutputIndex], {
+    type: "custom_tool_call_output",
+    call_id: "call_missing_custom_result",
+    output: "",
+  });
+});
+
 test("CodexExecutor.transformRequest preserves native assistant commentary before mapping messages to input", () => {
   const executor = new CodexExecutor();
   const result = executor.transformRequest(
