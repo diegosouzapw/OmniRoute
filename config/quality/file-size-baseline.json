@@ -182,7 +182,7 @@
     "tests/unit/combo-routing-engine.test.ts": 3449,
     "tests/unit/db-migration-runner.test.ts": 1499,
     "tests/unit/deepseek-web.test.ts": 1092,
-    "tests/unit/executor-codex.test.ts": 1339,
+    "tests/unit/executor-codex.test.ts": 1380,
     "tests/unit/executor-default-base.test.ts": 1519,
     "tests/unit/grok-web.test.ts": 2437,
     "tests/unit/image-generation-handler.test.ts": 2029,
@@ -412,5 +412,6 @@
   "_rebaseline_2026_07_28_8842_antigravity_test": "PR #8842 test growth: tests/unit/executor-antigravity.test.ts new testFrozen 1098 (4 new test cases for projectId discovery during refresh: discovers when empty, skips when set, handles failure, skips when access_token not a string). All above cap 1000 on day one.",
   "_rebaseline_2026_07_28_8860_tokenrefresh_projectid": "PR #8860 (fix/antigravity-projectid-centralized) own test growth: tests/unit/token-refresh-service.test.ts 1311->1378 (+67 = 4 cases covering projectId discovery on the tokenRefresh.ts path — the Dashboard/health-check refresh route, which #8842 did not reach since that fixed the executor path). Covered by the same file.",
   "_rebaseline_2026_07_28_8861_xiaomi_token_plan": "PR #8861 (feat/xiaomi-token-plan-protocol-selector) own growth: EditConnectionModal.tsx 1283->1316 (+33 = the per-connection API-protocol selector field) and open-sse/executors/base.ts 1540->1562 (+22 = alternate-format resolution at the existing buildUrl/headers chokepoint). Both are irreducible wiring at existing call sites.",
-  "_rebaseline_2026_07_28_8863_firefly_detail_level": "PR #8863 (fix/adobe-firefly-gpt-detail-level-max) own growth: adobeFireflyClient.ts 2317->2322 (+5 = gpt-image detailLevel defaulting to maximal at the existing payload-build site). Covered by tests/unit/adobe-firefly.test.ts."
+  "_rebaseline_2026_07_28_8863_firefly_detail_level": "PR #8863 (fix/adobe-firefly-gpt-detail-level-max) own growth: adobeFireflyClient.ts 2317->2322 (+5 = gpt-image detailLevel defaulting to maximal at the existing payload-build site). Covered by tests/unit/adobe-firefly.test.ts.",
+  "_rebaseline_2026_08_05_8933_codex_custom_tool_output_test": "PR #8933 (dev/fix/custom-tool-compression-8932, JxnLexn) test growth: tests/unit/executor-codex.test.ts 1339->1380 (+41 = 1 new test case 'CodexExecutor.transformRequest inserts missing custom_tool_call_output items (#8932)' asserting the repaired custom_tool_call/custom_tool_call_output pairing added by the fix). Legitimate coverage growth for new behavior, not squeezable. Note: open-sse/executors/codex.ts itself did NOT need a rebaseline — repairMissingCodexToolCallOutputs (renamed from repairMissingCodexFunctionCallOutputs to cover both function_call and custom_tool_call types) was extracted to the new leaf module open-sse/executors/codex/toolCallRepair.ts, keeping codex.ts at its frozen 1534 lines while still landing #8932's fix."
 }
