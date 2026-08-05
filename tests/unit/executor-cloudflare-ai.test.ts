@@ -5,7 +5,7 @@ import { CloudflareAIExecutor } from "../../open-sse/executors/cloudflare-ai.ts"
 
 test("CloudflareAIExecutor.buildUrl prefers providerSpecificData.accountId", () => {
   const executor = new CloudflareAIExecutor();
-  const url = executor.buildUrl("@cf/meta/llama-3.3-70b-instruct", true, 0, {
+  const url = executor.buildUrl("@cf/meta/llama-3.3-70b-instruct-fp8-fast", true, 0, {
     accountId: "top-level-id",
     providerSpecificData: { accountId: "provider-id" },
   });
@@ -22,10 +22,10 @@ test("CloudflareAIExecutor.buildUrl falls back to top-level credentials and envi
   process.env.CLOUDFLARE_ACCOUNT_ID = "env-account-id";
 
   try {
-    const fromTopLevel = executor.buildUrl("@cf/meta/llama-3.3-70b-instruct", false, 0, {
+    const fromTopLevel = executor.buildUrl("@cf/meta/llama-3.3-70b-instruct-fp8-fast", false, 0, {
       accountId: "top-level-id",
     });
-    const fromEnv = executor.buildUrl("@cf/meta/llama-3.3-70b-instruct", false, 0, {});
+    const fromEnv = executor.buildUrl("@cf/meta/llama-3.3-70b-instruct-fp8-fast", false, 0, {});
 
     assert.equal(
       fromTopLevel,
@@ -48,7 +48,7 @@ test("CloudflareAIExecutor.buildUrl throws when account ID is missing", () => {
 
   try {
     assert.throws(
-      () => executor.buildUrl("@cf/meta/llama-3.3-70b-instruct", true, 0, {}),
+      () => executor.buildUrl("@cf/meta/llama-3.3-70b-instruct-fp8-fast", true, 0, {}),
       /Account ID/
     );
   } finally {
@@ -76,10 +76,10 @@ test("CloudflareAIExecutor.buildHeaders uses API key or access token and stream 
 test("CloudflareAIExecutor.transformRequest preserves plain-string content", () => {
   const executor = new CloudflareAIExecutor();
   const body = {
-    model: "@cf/meta/llama-3.3-70b-instruct",
+    model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     messages: [{ role: "user", content: "hi" }],
   };
-  const out = executor.transformRequest("@cf/meta/llama-3.3-70b-instruct", body, true, {} as any);
+  const out = executor.transformRequest("@cf/meta/llama-3.3-70b-instruct-fp8-fast", body, true, {} as any);
   assert.deepEqual((out as any).messages, [{ role: "user", content: "hi" }]);
 });
 
@@ -88,7 +88,7 @@ test("CloudflareAIExecutor.transformRequest preserves plain-string content", () 
 test("CloudflareAIExecutor.transformRequest flattens content-part arrays to strings (#2539)", () => {
   const executor = new CloudflareAIExecutor();
   const body = {
-    model: "@cf/meta/llama-3.3-70b-instruct",
+    model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     messages: [
       {
         role: "user",
@@ -101,7 +101,7 @@ test("CloudflareAIExecutor.transformRequest flattens content-part arrays to stri
     ],
   };
   const out = executor.transformRequest(
-    "@cf/meta/llama-3.3-70b-instruct",
+    "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     body,
     false,
     {} as any
@@ -132,11 +132,11 @@ test("CloudflareAIExecutor.execute uses inherited BaseExecutor flow successfully
 
   try {
     const body = {
-      model: "@cf/meta/llama-3.3-70b-instruct",
+      model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
       messages: [{ role: "user", content: "hello" }],
     };
     const result = await executor.execute({
-      model: "@cf/meta/llama-3.3-70b-instruct",
+      model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
       body,
       stream: false,
       credentials: {
