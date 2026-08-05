@@ -6,8 +6,8 @@ export function sanitizeChatRequestBody(
   sourceFormat: string,
   targetFormat: string
 ): Record<string, unknown> {
-  const prefersResponsesTokenField =
-    sourceFormat === FORMATS.OPENAI_RESPONSES || targetFormat === FORMATS.OPENAI_RESPONSES;
+  void sourceFormat;
+  const prefersResponsesTokenField = targetFormat === FORMATS.OPENAI_RESPONSES;
 
   if (prefersResponsesTokenField) {
     if (body.max_output_tokens === undefined) {

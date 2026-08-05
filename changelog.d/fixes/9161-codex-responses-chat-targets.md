@@ -1,0 +1,1 @@
+- **fix(translator):** Honor configured Chat targets for Responses-shaped clients while preserving native Responses providers and outbound token fields ([#9161](https://github.com/diegosouzapw/OmniRoute/pull/9161)) — thanks @Zartharas

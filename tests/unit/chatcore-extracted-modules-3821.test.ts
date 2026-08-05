@@ -18,8 +18,12 @@ import {
 import { FORMATS } from "../../open-sse/translator/formats.ts";
 import { saveIdempotency } from "../../src/lib/idempotencyLayer.ts";
 
-test("sanitizeChatRequestBody: Chat Completions target maps max_output_tokens → max_tokens", () => {
-  const out = sanitizeChatRequestBody({ max_output_tokens: 256 }, FORMATS.OPENAI, FORMATS.OPENAI);
+test("sanitizeChatRequestBody: Responses source targeting Chat maps max_output_tokens → max_tokens", () => {
+  const out = sanitizeChatRequestBody(
+    { max_output_tokens: 256 },
+    FORMATS.OPENAI_RESPONSES,
+    FORMATS.OPENAI
+  );
   assert.equal(out.max_tokens, 256);
   assert.equal(out.max_output_tokens, undefined);
 });
@@ -35,7 +39,11 @@ test("sanitizeChatRequestBody: Responses target maps max_completion_tokens → m
 });
 
 test("sanitizeChatRequestBody: Responses target maps max_tokens → max_output_tokens", () => {
-  const out = sanitizeChatRequestBody({ max_tokens: 128 }, FORMATS.OPENAI_RESPONSES, FORMATS.OPENAI);
+  const out = sanitizeChatRequestBody(
+    { max_tokens: 128 },
+    FORMATS.OPENAI,
+    FORMATS.OPENAI_RESPONSES
+  );
   assert.equal(out.max_output_tokens, 128);
   assert.equal(out.max_tokens, undefined);
 });
