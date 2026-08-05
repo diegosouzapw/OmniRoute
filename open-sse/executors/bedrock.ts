@@ -393,6 +393,8 @@ function usageFromBedrock(usage) {
     prompt_tokens: input,
     completion_tokens: output,
     total_tokens: Number(usage?.totalTokens || input + output),
+    cache_read_input_tokens: Number(usage?.cacheReadInputTokenCount || 0),
+    cache_creation_input_tokens: Number(usage?.cacheWriteInputTokenCount || 0),
   };
 }
 

@@ -8,6 +8,7 @@ import {
   collapseExcessiveNewlines,
   extractThinkingFromContent,
 } from "./responseSanitizer/reasoning.ts";
+import { applyCacheHitTokensToUsage, applyCacheHitTokensToResponsesUsage } from "./responseSanitizer/cacheHitTokens.ts";
 export {
   extractThinkingFromContent,
   shouldParseTextualReasoningTags,
@@ -30,7 +31,7 @@ const ALLOWED_USAGE_FIELDS = new Set([
   "total_tokens",
   "cached_tokens",
   "prompt_tokens_details",
-  "completion_tokens_details",
+  "completion_tokens_details", "cache_read_input_tokens", "cache_creation_input_tokens",
   // Keep through sanitize → applyClientUsageBuffer so heuristic web usage is
   // not inflated by the default USAGE_TOKEN_BUFFER (2000).
   "estimated",
@@ -482,7 +483,7 @@ function sanitizeUsage(usage: unknown): unknown {
       sanitized[key] = usageRecord[key];
     }
   }
-
+  applyCacheHitTokensToUsage(usageRecord, sanitized); // DeepSeek/MiniMax/Bedrock cache-hit passthrough (#8171)
   // Ensure required fields
   const promptTokens = toNumber(sanitized.prompt_tokens) ?? 0;
   const completionTokens = toNumber(sanitized.completion_tokens) ?? 0;
@@ -519,7 +520,7 @@ function sanitizeResponsesUsage(usage: unknown): unknown {
   ) {
     normalized.output_tokens_details = normalized.completion_tokens_details;
   }
-
+  applyCacheHitTokensToResponsesUsage(normalized, toRecord); // DeepSeek/MiniMax/Bedrock cache-hit passthrough
   const inputDetails = toRecord(normalized.input_tokens_details) || {};
   const cachedTokens = normalized.cached_tokens ?? normalized.cache_read_input_tokens;
   if (cachedTokens !== undefined && inputDetails.cached_tokens === undefined) {
