@@ -686,5 +686,38 @@ export function cleanJSONSchemaForAntigravity(schema: unknown): unknown {
 
   addPlaceholders(cleaned);
 
+  // Phase 7: Recursive type:"object" injection for nested schemas (#9268).
+  // Gemini/Vertex requires every node with properties/required to have an explicit
+  // `type: "object"`. Some clients (e.g. Composio-exported tools) emit nested
+  // schemas with `properties` but no `type`, causing a Gemini 400. Follow the
+  // `removeUnsupportedKeywords()`/`addPlaceholders()` visitor pattern.
+  function injectObjectType(obj: unknown): void {
+    if (!obj || typeof obj !== "object") return;
+
+    if (Array.isArray(obj)) {
+      for (const item of obj) {
+        injectObjectType(item);
+      }
+      return;
+    }
+
+    const record = obj as JsonRecord;
+    if (
+      !record.type &&
+      (record.properties !== undefined || record.required !== undefined)
+    ) {
+      record.type = "object";
+    }
+
+    // Recurse into remaining values.
+    for (const value of Object.values(record)) {
+      if (value && typeof value === "object") {
+        injectObjectType(value);
+      }
+    }
+  }
+
+  injectObjectType(cleaned);
+
   return cleaned;
 }

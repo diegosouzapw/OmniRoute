@@ -22,6 +22,7 @@ import {
   buildSyntheticChatChunk,
   hasActiveDeltaValue,
 } from "./streamHelpers.ts";
+import { rejectEmptyChoicesStream, buildEmptyChoicesStreamError } from "./streamEmptyChoices.ts";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { buildOmniRouteSseMetadataComment } from "@/domain/omnirouteResponseMeta";
 import {
@@ -767,6 +768,9 @@ export function createSSEStream(options: StreamOptions = {}) {
         }
       : null;
 
+  // Tracks whether any valuable chunk was forwarded; empty at flush => retryable 502 (#9268)
+  let forwardedValuableChunk = false;
+
   // Track content length for usage estimation (both modes)
   let totalContentLength = 0;
   // Passthrough: accumulate content and reasoning separately for call log response body
@@ -1036,6 +1040,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     const output = formatSSE(itemSanitized, sourceFormat);
     clientPayloadCollector.push(itemSanitized);
     reqLogger?.appendConvertedChunk?.(output);
+    forwardedValuableChunk = true;
     controller.enqueue(encoder.encode(output));
   };
 
@@ -2648,6 +2653,27 @@ export function createSSEStream(options: StreamOptions = {}) {
             controller.error(
               markPendingRequestCleared(new Error(err.message || "Upstream failure"))
             );
+            return;
+          }
+
+          // #9268: reject a translate-mode stream that forwarded no valuable chunk
+          // (all-empty `choices: []`) instead of completing with an empty 200.
+          if (
+            mode === STREAM_MODE.TRANSLATE &&
+            rejectEmptyChoicesStream({
+              forwardedValuableChunk,
+              hasValidUsage: hasValidUsage(state?.usage),
+              providerPayloadCollector,
+              clientPayloadCollector,
+              targetFormat,
+              model,
+              usage: state?.usage,
+              onFailure,
+              onComplete,
+              clearPendingRequestFromStream,
+            })
+          ) {
+            controller.error(markPendingRequestCleared(buildEmptyChoicesStreamError()));
             return;
           }
 
