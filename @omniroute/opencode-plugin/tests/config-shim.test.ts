@@ -752,6 +752,37 @@ test("buildStaticProviderEntry: hidden combos are excluded", () => {
   assert.ok(block.models["opencode-omniroute/claude-sonnet-4-6"]);
 });
 
+test("buildStaticProviderEntry: expected raw auto twin does not warn and auto combo wins", () => {
+  const resolved = resolveOmniRoutePluginOptions({ providerId: "omniroute" });
+  const warnings: string[] = [];
+  const originalWarn = console.warn;
+  console.warn = (...args: unknown[]) => warnings.push(args.map(String).join(" "));
+
+  let block: OmniRouteStaticProviderEntry;
+  try {
+    block = buildStaticProviderEntry(
+      [{ id: "auto/coding" }],
+      [],
+      resolved,
+      "https://or.example/v1",
+      "sk-test",
+      undefined,
+      undefined,
+      undefined,
+      [{ id: "auto/coding", name: "Auto Coding", variant: "coding", candidateCount: 5 }]
+    );
+  } finally {
+    console.warn = originalWarn;
+  }
+
+  assert.equal(Object.keys(block.models).filter((key) => key === "auto/coding").length, 1);
+  assert.equal(block.models["auto/coding"].tool_call, true, "auto-combo entry wins over raw twin");
+  assert.deepEqual(
+    warnings.filter((warning) => warning.includes("collides with an existing model")),
+    []
+  );
+});
+
 // ────────────────────────────────────────────────────────────────────────────
 // Schema parity (modalities / cost / release_date / limit cleanup)
 // ────────────────────────────────────────────────────────────────────────────
