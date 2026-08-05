@@ -1,17 +1,16 @@
-// #3520 — Provider Quota page should use horizontal whitespace better.
+// Provider Quota page should be easy to scan provider-by-provider.
 //
-// QuotaCardGrid previously stacked provider groups vertically via a single
-// `flex flex-col` container and sized card columns from fixed viewport
-// breakpoints. This regression guard asserts the shipped JSX structure and
-// grouping logic directly:
+// QuotaCardGrid used to flow provider groups into CSS columns. That made
+// high-account operators scan left/right across unrelated providers and made
+// Codex/Claude quota priority hard to follow. This regression guard asserts
+// the shipped JSX structure and grouping logic directly:
 //  1. Grouping still produces one header per distinct provider with the
 //     correct account count ("N account(s)").
 //  2. Each provider group's cards auto-fit into as many 280px columns as that
 //     group's actual width supports, while a card can shrink to the group's
 //     width when its container is narrower than 280px.
-//  3. Provider groups themselves flow into multiple columns on wide screens
-//     (`columns-*`) instead of an unconditional vertical `flex flex-col`
-//     stack.
+//  3. Provider groups themselves are one-column expandable sections, not a
+//     two-column masonry flow.
 //
 // Note: QuotaCardGrid's sibling QuotaCard pulls in next/image + provider-icon
 // resolution that only works inside the real Next.js runtime, so this file
@@ -98,11 +97,50 @@ function extractDivClassNames(sourcePath: string): string[] {
   return classNames;
 }
 
-test("QuotaCardGrid (#3520) — outer container flows groups into multiple columns, not a single vertical stack", () => {
-  const [outerClassName] = extractDivClassNames(COMPONENT_PATH);
-  assert.ok(outerClassName, "expected the component to render an outer <div className=...>");
-  assert.match(outerClassName, /\bcolumns-/);
-  assert.notEqual(outerClassName, "flex flex-col gap-6");
+test("QuotaCardGrid — outer provider sections stay in one vertical reading order", () => {
+  const classNames = extractDivClassNames(COMPONENT_PATH);
+  const outerClassName = classNames.find((className) => /\bspace-y-\d+\b/.test(className));
+  assert.ok(
+    outerClassName,
+    "expected the component to render a vertical provider-section container"
+  );
+  assert.doesNotMatch(
+    outerClassName!,
+    /\bcolumns-/,
+    "provider sections should not flow into two CSS columns"
+  );
+  assert.match(
+    outerClassName,
+    /(?:^|\s)(?:space-y-\d+|flex)(?:\s|$)/,
+    "provider sections should render as one vertical list"
+  );
+});
+
+test("QuotaCardGrid — provider groups are expandable details sections", () => {
+  const sourceText = fs.readFileSync(COMPONENT_PATH, "utf8");
+  assert.match(sourceText, /<details\b/, "expected each provider group to use <details>");
+  assert.match(sourceText, /<summary\b/, "expected each provider group to expose a summary row");
+  assert.match(sourceText, /\bdefaultOpen\b/, "expected provider sections to default open");
+});
+
+test("QuotaCardGrid — provider sections and accounts use quota monitoring priority", () => {
+  const sourceText = fs.readFileSync(COMPONENT_PATH, "utf8");
+  assert.match(
+    sourceText,
+    /\bPROVIDER_ORDER\b/,
+    "expected provider sections to use provider order"
+  );
+  assert.match(
+    sourceText,
+    /\bsortProviderConnectionsByPriority\b/,
+    "expected accounts inside a provider to use a dedicated priority sort"
+  );
+  assert.match(sourceText, /\bisActive\b/, "expected active accounts to sort before inactive ones");
+  assert.match(
+    sourceText,
+    /\bgetSoonestResetMs\b/,
+    "expected account priority to consider the next quota reset"
+  );
 });
 
 test("QuotaCardGrid (#3520) — cards follow actual group width with a narrow-container fallback", () => {
