@@ -155,6 +155,7 @@ import {
   isStreamReadinessFailureErrorBody,
   isStreamEarlyEofErrorBody,
   isTokenLimitBreachErrorBody,
+  isLocalQueueCapacityErrorBody,
   toRecordedTarget,
   getExhaustedTargetSkipReason,
   clampPercent,
@@ -1521,6 +1522,7 @@ export async function handleComboChat({
           // FIX 5: a local per-API-key token-limit 429 must not cool shared accounts.
           const isTokenLimitBreach =
             result.status === 429 && isTokenLimitBreachErrorBody(errorBody);
+          const isLocalQueueCapacity = isLocalQueueCapacityErrorBody(errorBody);
 
           // Fix #1681: Status 499 means client disconnected — stop combo loop immediately.
           // There is no point trying fallback models when nobody is listening.
@@ -1537,6 +1539,22 @@ export async function handleComboChat({
             // executeTarget must return the {ok,response} contract — a raw Response
             // here makes the speculative loop's res.ok/res.response checks both miss,
             // so the combo would wrongly fall through to the next model after a 499.
+            return { ok: false, response: result };
+          }
+          if (isLocalQueueCapacity) {
+            log.info(
+              "COMBO",
+              `Local rate-limit queue capacity reached for ${modelStr} — returning without upstream fallback`
+            );
+            recordComboRequest(combo.name, modelStr, {
+              success: false,
+              latencyMs: Date.now() - startTime,
+              fallbackCount,
+              strategy,
+              target: toRecordedTarget(target),
+            });
+            recordedAttempts++;
+            if (i > 0) fallbackCount++;
             return { ok: false, response: result };
           }
 
@@ -2766,6 +2784,23 @@ async function handleRoundRobinCombo({
 
         // FIX 5: a local per-API-key token-limit 429 must not cool shared accounts.
         const isTokenLimitBreach = result.status === 429 && isTokenLimitBreachErrorBody(errorBody);
+        const isLocalQueueCapacity = isLocalQueueCapacityErrorBody(errorBody);
+
+        if (isLocalQueueCapacity) {
+          log.info(
+            "COMBO-RR",
+            `Local rate-limit queue capacity reached for ${modelStr} — returning without upstream fallback`
+          );
+          recordComboRequest(combo.name, modelStr, {
+            success: false,
+            latencyMs: Date.now() - startTime,
+            fallbackCount,
+            strategy: "round-robin",
+            target: toRecordedTarget(target),
+          });
+          recordedAttempts++;
+          return result;
+        }
 
         // Round-robin uses the same target-level fallback rule as other combo
         // strategies: non-ok target responses fall through to the next target.

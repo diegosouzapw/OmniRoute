@@ -46,3 +46,106 @@ export function checkQueueAdmission(
   err.status = 429;
   return err as QueueFullError;
 }
+
+export interface QueueWaitTimeoutError extends Error {
+  code: "RATE_LIMIT_QUEUE_TIMEOUT";
+  status: 429;
+}
+
+function abortError(signal: AbortSignal): Error {
+  const reason = signal.reason;
+  if (reason instanceof Error) return reason;
+  const err = new Error(typeof reason === "string" ? reason : "The operation was aborted");
+  err.name = "AbortError";
+  if (reason !== undefined) {
+    (err as Error & { cause?: unknown }).cause = reason;
+  }
+  return err;
+}
+
+export function createQueueWaitTimeoutError(
+  maxWaitMs: number,
+  identity: string
+): QueueWaitTimeoutError {
+  const err = new Error(
+    `Request dropped after waiting longer than the local rate-limit queue budget maxWaitMs ` +
+      `(${maxWaitMs}ms) for ${identity} — this is OmniRoute's request queue ` +
+      `(resilienceSettings.requestQueue.maxWaitMs), not an upstream timeout or provider failure. ` +
+      `Raise it in Settings → Resilience only when the expected queueing delay is longer.`
+  ) as Error & { code?: string; status?: number };
+  err.code = "RATE_LIMIT_QUEUE_TIMEOUT";
+  err.status = 429;
+  return err as QueueWaitTimeoutError;
+}
+
+/**
+ * Schedule through a limiter while applying maxWaitMs only to queue admission.
+ * Once the job begins executing, its lifetime is governed by the upstream request
+ * timeouts and AbortSignal rather than the local queue-wait budget.
+ *
+ * A timed-out or aborted queued placeholder may remain inside Bottleneck until a
+ * slot opens, but it throws before invoking `job`, so delayed upstream work cannot
+ * start after the caller has already received a local capacity error.
+ */
+export async function scheduleWithQueueWaitBudget<T>(
+  schedule: (job: () => Promise<T>) => Promise<T>,
+  job: () => Promise<T> | T,
+  maxWaitMs: number,
+  identity: string,
+  signal: AbortSignal | null = null
+): Promise<T> {
+  let admitted = false;
+  let cancelledBeforeAdmission: Error | null = null;
+  let queueTimer: ReturnType<typeof setTimeout> | null = null;
+  let abortListener: (() => void) | undefined;
+
+  const scheduled = schedule(async () => {
+    admitted = true;
+    if (queueTimer) {
+      clearTimeout(queueTimer);
+      queueTimer = null;
+    }
+    if (cancelledBeforeAdmission) throw cancelledBeforeAdmission;
+    return await job();
+  });
+
+  const contenders: Promise<T>[] = [scheduled];
+
+  if (maxWaitMs > 0) {
+    contenders.push(
+      new Promise<T>((_, reject) => {
+        queueTimer = setTimeout(() => {
+          if (admitted) return;
+          const err = createQueueWaitTimeoutError(maxWaitMs, identity);
+          cancelledBeforeAdmission = err;
+          reject(err);
+        }, maxWaitMs);
+      })
+    );
+  }
+
+  if (signal) {
+    contenders.push(
+      new Promise<T>((_, reject) => {
+        const onAbort = () => {
+          const err = abortError(signal);
+          if (!admitted) cancelledBeforeAdmission = err;
+          reject(err);
+        };
+        if (signal.aborted) {
+          onAbort();
+          return;
+        }
+        abortListener = onAbort;
+        signal.addEventListener("abort", abortListener, { once: true });
+      })
+    );
+  }
+
+  try {
+    return await Promise.race(contenders);
+  } finally {
+    if (queueTimer) clearTimeout(queueTimer);
+    if (signal && abortListener) signal.removeEventListener("abort", abortListener);
+  }
+}
