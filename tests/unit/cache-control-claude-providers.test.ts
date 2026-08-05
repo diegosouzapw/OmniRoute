@@ -17,8 +17,10 @@ describe("Cache Control Policy - Claude Protocol Providers", () => {
     // These should be detected via targetFormat
     assert.equal(providerSupportsCaching("bailian-coding-plan", "claude"), true);
     assert.equal(providerSupportsCaching("glm", "claude"), true);
-    assert.equal(providerSupportsCaching("minimax", "claude"), true);
-    assert.equal(providerSupportsCaching("minimax-cn", "claude"), true);
+    // minimax/minimax-cn use openai format (#3110 / image 403 fix);
+    // caching support for their OpenAI-compatible endpoint is TBD
+    assert.equal(providerSupportsCaching("minimax", "openai"), false);
+    assert.equal(providerSupportsCaching("minimax-cn", "openai"), false);
     assert.equal(providerSupportsCaching("kimi-coding", "claude"), true);
 
     // #3955 — OpenAI / Codex use automatic prefix caching (no cache_control needed).
@@ -66,15 +68,17 @@ describe("Cache Control Policy - Claude Protocol Providers", () => {
       true
     );
 
+    // minimax now uses openai format — caching behavior may differ;
+    // cache_control preservation depends on whether it joins CACHING_PROVIDERS
     assert.equal(
       shouldPreserveCacheControl({
         userAgent: claudeCodeUA,
         isCombo: false,
         targetProvider: "minimax",
-        targetFormat: "claude",
+        targetFormat: "openai",
         settings: { alwaysPreserveClientCache: "auto" },
       }),
-      true
+      false
     );
   });
 

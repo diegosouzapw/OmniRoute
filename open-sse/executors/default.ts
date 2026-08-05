@@ -289,8 +289,6 @@ export class DefaultExecutor extends BaseExecutor {
       case "glm":
       case "glmt":
       case "kimi-coding":
-      case "minimax":
-      case "minimax-cn":
         return `${this.config.baseUrl}?beta=true`;
       case "agentrouter":
         return this.usesClaudeCodeProtocol(credentials)

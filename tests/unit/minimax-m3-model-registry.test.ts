@@ -73,6 +73,26 @@ describe("MiniMax M3 model registration (#3110)", () => {
     assert.equal(m3.contextLength, 1_048_576);
   });
 
+  it("minimax uses openai format (not claude) so images work via /v1/chat/completions", () => {
+    const entry = REGISTRY.minimax;
+    assert.ok(entry, "minimax registry entry must exist");
+    assert.equal(
+      entry.format,
+      "openai",
+      "minimax must use openai format — the Anthropic-compatible /anthropic/v1/messages endpoint rejects images with 403; images work on the OpenAI-compatible /v1/chat/completions endpoint. See Hermes Agent #15715."
+    );
+  });
+
+  it("minimax-cn uses openai format (not claude) so images work via /v1/chat/completions", () => {
+    const entry = REGISTRY["minimax-cn"];
+    assert.ok(entry, "minimax-cn registry entry must exist");
+    assert.equal(
+      entry.format,
+      "openai",
+      "minimax-cn must use openai format — parity with minimax; the Anthropic endpoint on api.minimaxi.com also rejects images."
+    );
+  });
+
   it("nvidia provider does NOT list minimaxai/minimax-m3 (removed in #3329 — 404 upstream)", () => {
     const entry = REGISTRY.nvidia;
     assert.ok(entry, "nvidia registry entry must exist");

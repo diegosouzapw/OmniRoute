@@ -137,12 +137,12 @@ describe("responseSanitizer/reasoning — MiniMax M3 textual reasoning-tag route
 });
 
 describe("responseSanitizer/reasoning — MiniMax M3 fix regression guards", () => {
-  it("direct minimax tier (claude format) stays unaffected", () => {
+  it("direct minimax tier (openai format) stays unaffected for textual reasoning tags", () => {
     assert.equal(isTextualReasoningTagNativeRoute("minimax", "minimax-m3"), false);
     assert.equal(shouldParseTextualReasoningTags("minimax", "MiniMax-M3"), false);
   });
 
-  it("direct minimax-cn tier (claude format) stays unaffected", () => {
+  it("direct minimax-cn tier (openai format) stays unaffected for textual reasoning tags", () => {
     assert.equal(isTextualReasoningTagNativeRoute("minimax-cn", "minimax-m3"), false);
     assert.equal(shouldParseTextualReasoningTags("minimax-cn", "MiniMax-M3"), false);
   });
