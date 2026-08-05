@@ -4,7 +4,7 @@ import {
 } from "@omniroute/open-sse/config/providerModels.ts";
 import { parseModel, resolveCanonicalProviderModel } from "@omniroute/open-sse/services/model.ts";
 import {
-  MODEL_SPECS,
+  findModelSpecIdByExactOrAlias,
   getAuthoritativeContextWindow,
   getAuthoritativeProviderContextWindow,
   getModelSpec,
@@ -285,17 +285,18 @@ function getAuthoritativeStaticContextWindow(
   return null;
 }
 
+// #8697-adjacent: this used to rescan Object.entries(MODEL_SPECS) per candidate per
+// call — the top hotspot in a full catalog-rebuild profile once the pricing-path and
+// getCanonicalModelSpecId() bottlenecks were fixed. Reuses the lazy index already built
+// for getCanonicalModelSpecId() (@/shared/constants/modelSpecs) instead of duplicating a
+// second cache over the same static table.
 function getStaticSpecCanonicalModelId(modelId: string | null, rawModel: string | null) {
   const candidates = [modelId, rawModel].filter(
     (candidate): candidate is string => typeof candidate === "string" && candidate.length > 0
   );
   for (const candidate of candidates) {
-    const lower = candidate.toLowerCase();
-    for (const [canonical, spec] of Object.entries(MODEL_SPECS)) {
-      if (canonical === "__default__") continue;
-      if (canonical.toLowerCase() === lower) return canonical;
-      if (spec.aliases?.some((alias) => alias.toLowerCase() === lower)) return canonical;
-    }
+    const hit = findModelSpecIdByExactOrAlias(candidate);
+    if (hit) return hit;
   }
   return null;
 }
@@ -311,7 +312,14 @@ function stripLatestAlias(modelId: string | null): string | null {
   return stripped && stripped !== modelId ? stripped : null;
 }
 
-function reverseModelsDevProviders(provider: string): string[] {
+// #8697-adjacent: MODELS_DEV_PROVIDER_MAP is a static module constant, so the result
+// of reverseModelsDevProviders() never changes for a given provider — memoized by
+// provider key instead of rescanning Object.entries(MODELS_DEV_PROVIDER_MAP) on every
+// call (called once per model in a catalog rebuild). Never evicted — bounded by the
+// number of distinct providers ever queried (~50-100 in practice), negligible memory.
+const reverseModelsDevProvidersCache = new Map<string, readonly string[]>();
+
+function reverseModelsDevProviders(provider: string): readonly string[] {
   // models.dev may store capabilities under a different OmniRoute provider id
   // that also maps from the same upstream models.dev provider. Build reverse
   // candidates from MODELS_DEV_PROVIDER_MAP (e.g. openai ↔ cx).
@@ -321,6 +329,9 @@ function reverseModelsDevProviders(provider: string): string[] {
   // list their alias (cx/cc), never the canonical id. Also probe the
   // provider's alias so a canonical id like "codex"/"claude" still matches
   // the map entries keyed only by "cx"/"cc" (#8429).
+  const cached = reverseModelsDevProvidersCache.get(provider);
+  if (cached) return cached;
+
   const out = new Set<string>();
   const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   for (const [modelsDevId, omniIds] of Object.entries(MODELS_DEV_PROVIDER_MAP)) {
@@ -334,7 +345,12 @@ function reverseModelsDevProviders(provider: string): string[] {
       for (const id of omniIds) out.add(id);
     }
   }
-  return [...out];
+  // Frozen: the result is now shared across every future call for this provider (via
+  // the cache above) instead of a fresh array per call — freeze prevents an accidental
+  // caller mutation (e.g. .push()) from corrupting the cache for everyone else.
+  const result = Object.freeze([...out]);
+  reverseModelsDevProvidersCache.set(provider, result);
+  return result;
 }
 
 function getSyncedCapabilityForResolved(
@@ -694,8 +710,7 @@ export function capThinkingBudget(input: CapabilityInput, budget: number): numbe
   // default to "gemini". Without this a cap learned via the executor would be
   // invisible to bare-model callers. Provider-qualified inputs keep their own
   // provider, preserving per-provider independence.
-  const providerForLearned =
-    resolved.provider ?? (modelLower.includes("gemini") ? "gemini" : null);
+  const providerForLearned = resolved.provider ?? (modelLower.includes("gemini") ? "gemini" : null);
 
   const learned = getLearnedThinkingCap(providerForLearned, modelId);
   if (learned !== null) {

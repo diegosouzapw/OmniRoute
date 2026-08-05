@@ -110,6 +110,13 @@ const PROVIDER_CONNECTION_ALIASES: Record<string, readonly string[]> = {
   "kimi-coding": ["kimi-coding-apikey"],
 };
 
+export function getProviderConnectionsRequestUrl(providerId: string): string {
+  const hasAliases = (PROVIDER_CONNECTION_ALIASES[providerId]?.length ?? 0) > 0;
+  return hasAliases
+    ? "/api/providers"
+    : `/api/providers?provider=${encodeURIComponent(providerId)}`;
+}
+
 export function connectionBelongsToProviderPage(
   connectionProvider: string | null | undefined,
   providerId: string
