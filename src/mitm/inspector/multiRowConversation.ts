@@ -46,12 +46,27 @@ export interface LoadedCallLogRow {
  * SUBSEQUENT row's delta slicing would be computed against the wrong
  * previousTotal (0 instead of the row's real turn count), corrupting the
  * rest of the reconstruction too.
+ *
+ * `knownCount` is null when the summary carries no count at all — either
+ * older data logged before truncateForLog() learned to count Responses API
+ * `input[]` bodies, or some other body shape it doesn't recognize. In that
+ * case we can't safely diff against previousTotal, so the caller falls back
+ * to a single generic placeholder instead of a specific "N messages" one.
  */
-function truncatedMessageCount(body: unknown): number | null {
+function getTruncationInfo(body: unknown): { knownCount: number | null } | null {
   if (!body || typeof body !== "object" || Array.isArray(body)) return null;
   const record = body as Record<string, unknown>;
   if (record._truncated !== true) return null;
-  return typeof record.messageCount === "number" ? record.messageCount : 0;
+  return { knownCount: typeof record.messageCount === "number" ? record.messageCount : null };
+}
+
+function placeholderTurn(text: string, row: LoadedCallLogRow): ConversationTurn {
+  return {
+    role: "system",
+    blocks: [{ type: "text", text }],
+    sourceCallLogId: row.id,
+    timestamp: row.timestamp,
+  };
 }
 
 function rowAsInterceptedRequest(row: LoadedCallLogRow): InterceptedRequest {
@@ -82,39 +97,45 @@ export function buildMultiRowConversation(rows: LoadedCallLogRow[]): Conversatio
   const turns: ConversationTurn[] = [];
 
   for (const row of rows) {
-    const truncatedCount = truncatedMessageCount(row.requestBody);
-    const reqTurns = truncatedCount === null ? (buildRequestTurns(row.requestBody) ?? []) : [];
-    const effectiveReqTurnCount = truncatedCount ?? reqTurns.length;
-    const sliceStart = Math.max(0, Math.min(previousTotal, effectiveReqTurnCount));
+    const truncation = getTruncationInfo(row.requestBody);
     const respTurns = buildResponseTurns(rowAsInterceptedRequest(row));
 
-    if (truncatedCount !== null) {
-      const newCount = Math.max(0, effectiveReqTurnCount - sliceStart);
-      if (newCount > 0) {
-        turns.push({
-          role: "system",
-          blocks: [
-            {
-              type: "text",
-              text: `${newCount} message${newCount === 1 ? "" : "s"} not shown — the request body was too large to log.`,
-            },
-          ],
-          sourceCallLogId: row.id,
-          timestamp: row.timestamp,
-        });
-      }
-    } else {
-      const newRequestTurns = reqTurns.slice(sliceStart);
-      for (const turn of newRequestTurns) {
+    if (truncation === null) {
+      const reqTurns = buildRequestTurns(row.requestBody) ?? [];
+      const sliceStart = Math.max(0, Math.min(previousTotal, reqTurns.length));
+      for (const turn of reqTurns.slice(sliceStart)) {
         turns.push({ ...turn, sourceCallLogId: row.id, timestamp: row.timestamp });
       }
+      previousTotal = reqTurns.length + respTurns.length;
+    } else if (truncation.knownCount !== null) {
+      const effectiveReqTurnCount = truncation.knownCount;
+      const sliceStart = Math.max(0, Math.min(previousTotal, effectiveReqTurnCount));
+      const newCount = Math.max(0, effectiveReqTurnCount - sliceStart);
+      if (newCount > 0) {
+        turns.push(
+          placeholderTurn(
+            `${newCount} message${newCount === 1 ? "" : "s"} not shown — the request body was too large to log.`,
+            row
+          )
+        );
+      }
+      previousTotal = effectiveReqTurnCount + respTurns.length;
+    } else {
+      // Count unknown (older data, or a body shape truncateForLog() doesn't
+      // recognize) — can't tell how many of this row's turns are genuinely
+      // new, so surface one generic placeholder rather than silently
+      // showing nothing. previousTotal is left as-is: we have no reliable
+      // new figure to add to it, and understating a later row's "new" count
+      // is a safer failure mode here than overstating it.
+      turns.push(
+        placeholderTurn("Earlier messages not shown — the request body was too large to log.", row)
+      );
+      previousTotal = previousTotal + respTurns.length;
     }
 
     for (const turn of respTurns) {
       turns.push({ ...turn, sourceCallLogId: row.id, timestamp: row.timestamp });
     }
-
-    previousTotal = effectiveReqTurnCount + respTurns.length;
   }
 
   return turns;

@@ -150,6 +150,22 @@ test("truncateForLog summarizes oversized payloads instead of cloning", () => {
   assert.notEqual(summary, huge);
 });
 
+test("truncateForLog captures a message count for Responses API bodies too (input[], not messages[])", () => {
+  // Live bug: a large /v1/responses request got summarized with NO count at
+  // all (messages/contents are OpenAI-chat/Gemini-only field names), so the
+  // "Full Conversation" dashboard panel had nothing to base its "N messages
+  // not shown" placeholder on for any Responses-API conversation, even
+  // though the exact same 8KB summarization applies to it.
+  const huge = {
+    model: "gpt-5",
+    stream: true,
+    input: Array.from({ length: 400 }, () => ({ role: "user", content: "x".repeat(64) })),
+  };
+  const summary = truncateForLog(huge) as Record<string, unknown>;
+  assert.equal(summary._truncated, true);
+  assert.equal(summary.messageCount, 400);
+});
+
 test("truncateForLog keeps a bounded `tools` field alive when the request is summarized", () => {
   // A request whose message history alone blows well past the 8KB summary
   // threshold, but which also carries `tools` — a field that used to be
@@ -198,14 +214,8 @@ test("truncateForLog keeps a bounded `tools` field alive when the request is sum
   assert.ok(summary.tools, "expected the summary to retain a `tools` field");
   const clonedTools = summary.tools as Array<Record<string, unknown>>;
   assert.equal(clonedTools.length, tools.length);
-  assert.equal(
-    (clonedTools[0].function as Record<string, unknown>).name,
-    "get_weather"
-  );
-  assert.equal(
-    (clonedTools[1].function as Record<string, unknown>).name,
-    "search_web"
-  );
+  assert.equal((clonedTools[0].function as Record<string, unknown>).name, "get_weather");
+  assert.equal((clonedTools[1].function as Record<string, unknown>).name, "search_web");
 });
 
 test("truncateForLog bounds an oversized `tools` array to the configured tail-item cap", () => {

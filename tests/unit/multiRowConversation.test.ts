@@ -205,3 +205,36 @@ test("buildMultiRowConversation: a truncated row's messageCount keeps a LATER re
   );
   assert.equal(nextRowTurns[1].role, "assistant");
 });
+
+test("buildMultiRowConversation: a truncated body with NO messageCount at all (older data, or a body shape truncateForLog() doesn't count) still shows a generic placeholder", () => {
+  // Live bug: a /v1/responses request's truncated summary had no count field
+  // at all (truncateForLog() only counted `messages[]`, not Responses API's
+  // `input[]`, until a companion fix) — the previous version of this
+  // function silently treated an unknown count as 0 new turns, so the
+  // transcript rendered NOTHING for the request side, same end symptom as
+  // the original bug report despite the row genuinely being truncated.
+  const rows = [
+    {
+      id: "responses-big",
+      timestamp: "2026-01-01T10:00:00.000Z",
+      requestBody: {
+        _truncated: true,
+        _originalBytes: 300000,
+        model: "gpt-5",
+        stream: true,
+        // no messageCount field at all
+      },
+      responseBody: { choices: [{ message: { role: "assistant", content: "final reply" } }] },
+    },
+  ];
+
+  const turns = buildMultiRowConversation(rows);
+  assert.equal(turns.length, 2, "expected a generic placeholder plus the response turn");
+  assert.equal(turns[0].role, "system");
+  assert.equal(turns[0].sourceCallLogId, "responses-big");
+  assert.equal(
+    turns[0].blocks[0].type === "text" ? turns[0].blocks[0].text : "",
+    "Earlier messages not shown — the request body was too large to log."
+  );
+  assert.equal(turns[1].role, "assistant");
+});

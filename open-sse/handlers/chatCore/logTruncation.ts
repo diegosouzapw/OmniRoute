@@ -86,6 +86,10 @@ export function truncateForLog(value: unknown): Record<string, unknown> | null |
   if (typeof obj.model === "string") summary.model = obj.model;
   if (typeof obj.provider === "string") summary.provider = obj.provider;
   if (Array.isArray(obj.messages)) summary.messageCount = obj.messages.length;
+  // Responses API (`input`, not `messages`) — same count semantics, needed so
+  // the dashboard's multi-row conversation transcript can still render a
+  // "N messages not shown" placeholder for a truncated /v1/responses request.
+  else if (Array.isArray(obj.input)) summary.messageCount = obj.input.length;
   if (Array.isArray(obj.contents)) summary.contentCount = obj.contents.length;
   if (typeof obj.stream === "boolean") summary.stream = obj.stream;
   if (Array.isArray(obj.tools)) summary.tools = cloneBoundedChatLogPayload(obj.tools);
