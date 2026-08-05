@@ -14,7 +14,9 @@ export async function getModelCatalogAuthRejection(
   settings: Record<string, any>,
   headers: Record<string, string>
 ): Promise<Response | null> {
-  if (settings.requireAuthForModels !== true || !(await isAuthRequired(request))) return null;
+  const authRequired = await isAuthRequired(request);
+  if (!authRequired) return null;
+  if (settings.requireAuthForModels === false) return null;
 
   const apiKey = extractApiKey(request);
   if (apiKey) {

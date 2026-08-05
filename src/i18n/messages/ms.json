@@ -4973,10 +4973,12 @@
     "noNewModelsToImport": "Tiada model baru untuk diimport — semua model sudah ada dalam registri atau senarai model tersuai",
     "skippingExistingModels": "Melangkau {count} model sedia ada",
     "autoSync": "Auto-Segerak",
+    "autoSyncShort": "Segerak",
     "autoSyncTooltip": "Muat semula senarai model secara automatik setiap 24j (boleh dikonfigurasikan melalui MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Autosegerak didayakan — model akan dimuat semula secara berkala",
     "autoSyncDisabled": "Autosegerak dilumpuhkan",
     "autoSyncToggleFailed": "Gagal untuk menogol autosegerak",
+    "autoSyncPartialFailure": "Segerak automatik dikemas kini untuk beberapa sambungan, tetapi bukan semua",
     "clearAllModels": "Kosongkan Semua Model",
     "clearAllModelsConfirm": "Adakah anda pasti mahu mengalih keluar semua model untuk pembekal ini? Ini tidak boleh dibuat asal.",
     "clearAllModelsSuccess": "Semua model dibersihkan",
@@ -12182,5 +12184,6 @@
     "cta": "Dapatkan Kimi Code",
     "partnerLinkNote": "Pautan rakan kongsi",
     "dismissAriaLabel": "Tutup"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

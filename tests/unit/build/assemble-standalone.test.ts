@@ -40,6 +40,9 @@ function seedSidecarSources(root: string) {
     "node_modules/pino-pretty/index.js",
     "node_modules/split2/index.js",
     "node_modules/playwright-core/index.js",
+    "node_modules/sql.js/package.json",
+    "node_modules/sql.js/dist/sql-wasm.js",
+    "node_modules/sql.js/dist/sql-wasm.wasm",
     "node_modules/sqlite-vec/index.js",
     "node_modules/sqlite-vec-linux-x64/vec0.so",
     "src/lib/db/migrations/001_init.sql",
@@ -162,6 +165,13 @@ test("async and sync sidecar copy paths produce identical bundle trees", async (
     asyncTree.includes("src/mitm/tproxy/native/build/Release/transparent.node"),
     "TPROXY transparent.node copied into the standalone bundle"
   );
+  for (const sqlJsFile of [
+    "node_modules/sql.js/package.json",
+    "node_modules/sql.js/dist/sql-wasm.js",
+    "node_modules/sql.js/dist/sql-wasm.wasm",
+  ]) {
+    assert.ok(asyncTree.includes(sqlJsFile), `sql.js runtime file copied: ${sqlJsFile}`);
+  }
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 
