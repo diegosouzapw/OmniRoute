@@ -824,6 +824,29 @@ Reverse-engineered session bridge for hyperagent.com (`src/shared/constants/prov
 
 ---
 
+## Adobe Firefly Web Provider (Unofficial/Experimental)
+
+Chrome-driven session refresh (ARP) for the Adobe Firefly web provider (`open-sse/services/adobeFireflyChromeRuntime.ts`, `open-sse/services/adobeFireflySession.ts`, `open-sse/services/adobeFireflyClient.ts`). Optional — all defaults are tuned for a normal desktop Chrome install.
+
+| Variable                              | Default        | Source File                                       | Description                                                                                          |
+| -------------------------------------- | ---------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `CHROME_PATH`                         | _(auto-detect)_ | `open-sse/services/adobeFireflyChromeRuntime.ts`   | Override path to the local Google Chrome binary used to drive the session refresh.                    |
+| `ADOBE_FIREFLY_CHROME_CDP_PORT`       | `9334`          | `open-sse/services/adobeFireflyChromeRuntime.ts`   | Chrome DevTools Protocol port used to attach to the managed Chrome instance.                          |
+| `ADOBE_FIREFLY_CHROME_HEADLESS`       | `0`             | `open-sse/services/adobeFireflyChromeRuntime.ts`   | Set to `1` for true headless Chrome (known-broken for generate; debug only).                          |
+| `ADOBE_FIREFLY_CHROME_VISIBLE`        | `0`             | `open-sse/services/adobeFireflyChromeRuntime.ts`   | Set to `1` to show the Chrome window on-screen for debugging.                                          |
+| `ADOBE_FIREFLY_CHROME_HEADED`         | `0`             | `open-sse/services/adobeFireflyChromeRuntime.ts`   | Legacy alias for `ADOBE_FIREFLY_CHROME_VISIBLE=1`.                                                    |
+| `ADOBE_FIREFLY_CHROME_PING`           | `0`             | `open-sse/services/adobeFireflyChromeRuntime.ts`   | Set to `1` to prove ARP with an in-page generate-async ping after warm.                                |
+| `ADOBE_FIREFLY_CHROME_FORCE_RESTART`  | `0`             | `open-sse/services/adobeFireflyChromeRuntime.ts`   | Set to `1` to force-restart the managed Chrome instance instead of reusing it.                         |
+| `ADOBE_FIREFLY_BROWSER_REFRESH`       | `1`             | `open-sse/services/adobeFireflySession.ts`         | Proactive browser warm opt-in/out. `0` disables proactive warm (mid-batch 408 recovery still applies). |
+| `ADOBE_FIREFLY_SESSION_DISK`          | `1`             | `open-sse/services/adobeFireflySession.ts`         | Set to `0` to disable persisting the Adobe Firefly session to disk.                                    |
+| `ADOBE_FIREFLY_LOGIN_WAIT_MS`         | `300000`        | `open-sse/services/adobeFireflyChromeRuntime.ts`   | Max wait (ms) for interactive Adobe login to complete during a browser warm.                           |
+| `ADOBE_FIREFLY_FORTER_WAIT_MS`        | `45000`         | `open-sse/services/adobeFireflyChromeRuntime.ts`   | Max wait (ms) for Forter anti-bot tokens to settle before continuing.                                  |
+| `ADOBE_FIREFLY_MIN_SUBMIT_GAP_MS`     | _(unset)_       | `open-sse/services/adobeFireflySession.ts`         | Minimum gap (ms) enforced between successive submits, overriding the built-in default.                |
+| `ADOBE_FIREFLY_BATCH_EXTRA_GAP_MS`    | _(unset)_       | `open-sse/services/adobeFireflySession.ts`         | Extra gap (ms) added after a successful batch, overriding the built-in default.                       |
+| `ADOBE_FIREFLY_SUBMIT_BASE_DELAY_MS`  | _(unset)_       | `open-sse/services/adobeFireflyClient.ts`          | Base delay (ms) before submitting a generation request, overriding the built-in default.               |
+
+---
+
 ## 19. Model Sync (Dev)
 
 | Variable                            | Default       | Source File                        | Description                                                                                                                                                                                                                                                                                            |
