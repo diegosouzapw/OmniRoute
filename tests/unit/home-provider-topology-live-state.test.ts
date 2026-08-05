@@ -13,20 +13,51 @@ const providerTopologySrc = readFileSync(
   "utf8"
 );
 
-test("home topology uses provider-metrics topology.errorProvider instead of re-deriving from stale lastErrorAt", () => {
+test("home topology uses provider-metrics topology error state instead of re-deriving from stale lastErrorAt", () => {
+  // The API now reports EVERY failing provider (`errorProviders`), not just the most recent
+  // one. The singular field could not represent two simultaneous failures, so a second
+  // failing provider silently cleared the first — and that second provider succeeding
+  // handed the flag back, which is what made a red edge look like it hid and returned on
+  // its own. The singular field is still read as a fallback for an older API response.
   assert.match(
     homePageClientSrc,
-    /errorProvider:\s*normalizeProviderId\(data\.topology\?\.errorProvider\)/,
-    "HomePageClient should trust /api/provider-metrics topology.errorProvider"
+    /Array\.isArray\(data\.topology\?\.errorProviders\)/,
+    "HomePageClient should read the plural topology.errorProviders"
+  );
+  assert.match(
+    homePageClientSrc,
+    /errorProviders:\s*reportedErrors/,
+    "the normalized list should feed providerTopology.errorProviders"
   );
 
   const localTopologyDerivation = homePageClientSrc.match(
-    /const \{ lastProvider, errorProvider \} = useMemo[\s\S]*?\}, \[providerMetrics\]\);/
+    /const \{ lastProvider, errorProviders \} = useMemo[\s\S]*?\}, \[providerMetrics\]\);/
   );
   assert.equal(
     localTopologyDerivation,
     null,
     "HomePageClient must not re-derive topology error state from providerMetrics.lastErrorAt"
+  );
+});
+
+test("topology error state is a list, so simultaneous failures cannot overwrite each other", () => {
+  // Guards the shape at every hop: a single scalar anywhere in the chain re-introduces the
+  // overwrite, and no runtime test can catch it because one failing provider still works.
+  assert.match(
+    providerTopologySrc,
+    /errorProviders\?: readonly string\[\]/,
+    "ProviderTopology must accept a list of failing providers"
+  );
+  assert.doesNotMatch(
+    providerTopologySrc,
+    /errorProvider\?: string;/,
+    "the single-provider prop must be gone, not kept alongside the list"
+  );
+  // errorSet must be able to hold more than one entry.
+  assert.match(
+    providerTopologySrc,
+    /new Set<string>\(errorKey \? errorKey\.split\(","\) : \[\]\)/,
+    "errorSet must be built from the joined list, not a lone provider id"
   );
 });
 

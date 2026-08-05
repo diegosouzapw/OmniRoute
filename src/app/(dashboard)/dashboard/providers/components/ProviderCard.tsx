@@ -14,6 +14,7 @@ import {
   isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
 } from "@/shared/constants/providers";
+import { resolveCompatibleStaticIcon } from "@/shared/utils/compatibleProviderId";
 
 import { CategoryDot } from "./CategoryDot";
 import { isCheaperInferenceProviderId, isKimiPartnerProviderId } from "../featuredProviders";
@@ -301,13 +302,12 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
     "cloud-agent": t("cloudAgentProviders"),
   };
 
-  const staticIconPath = (() => {
-    if (isCompatible) {
-      return provider.apiType === "responses" ? "/providers/oai-r.png" : "/providers/oai-cc.png";
-    }
-    if (isAnthropicCompatible || isCcCompatible) return "/providers/anthropic-m.png";
-    return null;
-  })();
+  // Resolved by the shared helper rather than re-derived here. This mapping used to live
+  // only at this call site, which is why the same compatible node rendered its real logo on
+  // this page and a generic circle-plus glyph on the home topology: ProviderIcon itself had
+  // no idea these assets existed. It now resolves them internally, so this value is needed
+  // only for the <Image> branch below.
+  const staticIconPath = resolveCompatibleStaticIcon(providerId, provider.apiType);
 
   const handleToggle = (event: MouseEvent<HTMLDivElement>) => {
     event.preventDefault();

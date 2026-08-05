@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "K dispozici je nová verze. Kliknutím aktualizujte.",
     "updateStarted": "Aktualizace začala...",
     "reloadingPageAutomatically": "Automatické opětovné načítání stránky...",
-    "providerTopology": "Topologie poskytovatele"
+    "providerTopology": "Topologie poskytovatele",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "Analytika",

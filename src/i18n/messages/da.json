@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "En ny version er tilgængelig. Klik for at opdatere.",
     "updateStarted": "Opdatering startet...",
     "reloadingPageAutomatically": "Genindlæser siden automatisk...",
-    "providerTopology": "Udbydertopologi"
+    "providerTopology": "Udbydertopologi",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "Analytics",

@@ -55,8 +55,24 @@ export interface SearchProviderCountRow {
 // ---------------------------------------------------------------------------
 
 /**
+ * SQL predicate that excludes connection-test rows for the given table alias.
+ * Provider "Test connection" writes real call_logs rows tagged model
+ * `connection-test` / path `/api/providers/test` / source_format `test`
+ * (see src/app/api/providers/[id]/test/route.ts). Those are health probes, not
+ * user traffic, so the home topology's per-provider metrics and last/error hints
+ * must ignore them — otherwise a failed test lights a provider node red at rest.
+ * Applied to the main query AND both last-status subselects so a test row can
+ * never surface as `lastStatus`/`lastErrorStatus`.
+ */
+function excludeConnectionTests(alias: string): string {
+  return `(${alias}.model IS NULL OR ${alias}.model != 'connection-test')
+        AND (${alias}.source_format IS NULL OR ${alias}.source_format != 'test')
+        AND (${alias}.path IS NULL OR ${alias}.path != '/api/providers/test')`;
+}
+
+/**
  * Returns one row per provider with call-level aggregates plus last-status
- * subselects. Excludes rows where provider is NULL or '-'.
+ * subselects. Excludes rows where provider is NULL or '-', and connection-test rows.
  */
 export function getProviderMetrics(): ProviderMetricRow[] {
   const db = getDbInstance();
@@ -80,6 +96,7 @@ export function getProviderMetrics(): ProviderMetricRow[] {
             SELECT c2.status
             FROM call_logs c2
             WHERE c2.provider = c.provider
+              AND ${excludeConnectionTests("c2")}
             ORDER BY c2.timestamp DESC, c2.id DESC
             LIMIT 1
           ) as lastStatus,
@@ -91,11 +108,13 @@ export function getProviderMetrics(): ProviderMetricRow[] {
                 (c3.status IS NOT NULL AND (c3.status < 200 OR c3.status >= 400))
                 OR c3.error_summary IS NOT NULL
               )
+              AND ${excludeConnectionTests("c3")}
             ORDER BY c3.timestamp DESC, c3.id DESC
             LIMIT 1
           ) as lastErrorStatus
         FROM call_logs c
         WHERE c.provider IS NOT NULL AND c.provider != '-'
+          AND ${excludeConnectionTests("c")}
         GROUP BY c.provider`
     )
     .all() as ProviderMetricRow[];

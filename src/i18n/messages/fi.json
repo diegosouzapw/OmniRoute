@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "Uusi versio on saatavilla. Päivitä napsauttamalla.",
     "updateStarted": "Päivitys aloitettu...",
     "reloadingPageAutomatically": "Ladataan sivua automaattisesti uudelleen...",
-    "providerTopology": "Palveluntarjoajan topologia"
+    "providerTopology": "Palveluntarjoajan topologia",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "Analytics",

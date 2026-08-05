@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "Este disponibilă o nouă versiune. Faceți clic pentru a actualiza.",
     "updateStarted": "Actualizarea a început...",
     "reloadingPageAutomatically": "Se reîncarcă pagina automat...",
-    "providerTopology": "Topologia furnizorului"
+    "providerTopology": "Topologia furnizorului",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "Analytics",

@@ -9,7 +9,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { selectActiveRequests } from "../../src/app/(dashboard)/home/topologyUtils.ts";
+import {
+  selectActiveRequests,
+  selectDrawnProviders,
+} from "../../src/app/(dashboard)/home/topologyUtils.ts";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -69,4 +72,38 @@ test("selectActiveRequests: only extracts provider and model fields (not id/time
   assert.ok("model" in result[0]);
   assert.ok(!("id" in result[0]));
   assert.ok(!("timestamp" in result[0]));
+});
+
+// ── drawn-provider intersection ──────────────────────────────────────────────
+//
+// The active signal must obey the same rule the error signal already does: a provider with
+// no node on the ring cannot count as active. The live feed is broader than the graph (it can
+// still carry a request for a connection that was disabled or deleted after the request
+// started), so the request list is intersected with the drawn providers before it reaches the
+// caption, the node pulse, or the router counter.
+
+test("selectDrawnProviders: keeps only providers that have a drawn node", () => {
+  const drawn = ["openai", "anthropic"];
+  const result = selectDrawnProviders(["openai", "ghost", "anthropic"], drawn);
+  assert.deepEqual([...result].sort(), ["anthropic", "openai"]);
+});
+
+test("selectDrawnProviders: drops a provider whose node disappeared mid-request", () => {
+  // A request for a disabled/deleted connection must not light the router or inflate the
+  // active count once its node is gone.
+  const drawn = ["openai"];
+  const result = selectDrawnProviders(["openai", "deleted-provider"], drawn);
+  assert.deepEqual([...result], ["openai"]);
+});
+
+test("selectDrawnProviders: normalizes casing and whitespace on both sides", () => {
+  const drawn = ["  OpenAI  ", "Anthropic"];
+  const result = selectDrawnProviders(["OPENAI", " anthropic "], drawn);
+  assert.deepEqual([...result].sort(), ["anthropic", "openai"]);
+});
+
+test("selectDrawnProviders: returns an empty set when nothing is drawn", () => {
+  assert.equal(selectDrawnProviders(["openai"], []).size, 0);
+  assert.equal(selectDrawnProviders(null, ["openai"]).size, 0);
+  assert.equal(selectDrawnProviders([], ["openai"]).size, 0);
 });

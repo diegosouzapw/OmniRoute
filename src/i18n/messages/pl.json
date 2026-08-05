@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "Dostępna jest nowa wersja. Kliknij, aby zaktualizować.",
     "updateStarted": "Rozpoczęto aktualizację...",
     "reloadingPageAutomatically": "Automatyczne przeładowywanie strony...",
-    "providerTopology": "Topologia Provider"
+    "providerTopology": "Topologia Provider",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "Analityka",

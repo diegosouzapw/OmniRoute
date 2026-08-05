@@ -3,28 +3,73 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-// The topology used to colour nodes only from live/recent traffic, so between requests
-// (and right after a restart) the map went blank even though connections were healthy.
-// These guard the connection-health base layer that keeps "what is connected" visible.
+/**
+ * Topology rest-state contract.
+ *
+ * HISTORY — this file originally guarded #7672, which painted a connection-health base
+ * layer onto the nodes: a healthy-but-idle provider was drawn with a green border and a
+ * static dot so the map never "went blank" between requests.
+ *
+ * That base layer is DELIBERATELY REPLACED here by a calm-at-rest map: only a live
+ * in-flight request (or a real error) lights a node or a beam, and a healthy-but-quiet
+ * connection stays muted. The reasoning is signal economy at scale — with many providers,
+ * painting every healthy connection green makes the steady state a wall of green, and the
+ * two things an operator actually needs to spot (what is routing right now, what is
+ * failing) have to compete with it.
+ *
+ * The legibility concern that motivated #7672 (and #8409) is preserved by *structure*
+ * instead of by colour:
+ *   - a node exists ONLY for a provider with at least one enabled connection, so presence
+ *     in the map already means "configured and enabled" — and absence is meaningful;
+ *   - ring slots are stable and alphabetical, so a node never moves because of traffic.
+ *
+ * These tests therefore assert the CURRENT contract. They are not a relaxation of #7672:
+ * each assertion below pins a specific behaviour that must not silently regress.
+ */
 
-const read = (rel: string) =>
-  readFileSync(fileURLToPath(new URL(rel, import.meta.url)), "utf8");
+const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), "utf8");
 
 const homePageClientSrc = read("../../src/app/(dashboard)/dashboard/HomePageClient.tsx");
+// The topology-node derivation was extracted out of HomePageClient (size-frozen) into this
+// hook, which now owns the enabled-connection and health-status rules below.
+const providerStatsSrc = read("../../src/app/(dashboard)/dashboard/useHomeProviderStats.ts");
 const providerTopologySrc = read("../../src/app/(dashboard)/home/ProviderTopology.tsx");
 const sectionSrc = read("../../src/app/(dashboard)/dashboard/HomeProviderTopologySection.tsx");
 
-test("HomePageClient derives per-provider health from connection testStatus counts", () => {
-  assert.match(homePageClientSrc, /healthByProvider/, "must build a per-provider health map");
+test("useHomeProviderStats draws a node only for providers with an enabled connection", () => {
+  // `connected` + `errors` counts only enabled connections (isActive !== false), so a
+  // provider whose connections are all disabled must be skipped entirely. This is what
+  // keeps untested / disabled / removed providers from lingering as ghost nodes.
   assert.match(
-    homePageClientSrc,
-    /stat\.connected > 0 \? "active" : stat\.errors > 0 \? "error" : "idle"/,
-    "healthy = has a working connection; error = only failing ones; else idle"
+    providerStatsSrc,
+    /const enabled = stat\.connected \+ stat\.errors;/,
+    "enabled-connection count must drive node inclusion"
   );
   assert.match(
-    homePageClientSrc,
-    /status:\s*healthByProvider\.get\(canonicalProviderId\)\s*\?\?\s*"idle"/,
-    "each topology entry must carry the resolved health status"
+    providerStatsSrc,
+    /if \(enabled <= 0\) continue;/,
+    "no enabled connection → no node"
+  );
+  // Nodes must NOT be seeded from all-time call_logs aggregates, which have no time
+  // window and no connection check (the ghost-node source before this change). Guarded on
+  // both files: the derivation moved, but the metrics state still lives in the client, so
+  // either side could reintroduce the seeding.
+  for (const src of [providerStatsSrc, homePageClientSrc]) {
+    assert.doesNotMatch(
+      src,
+      /Object\.keys\(providerMetrics\)\.forEach\(\(provider\) => addProvider\(provider\)\)/,
+      "providerMetrics must not resurrect providers that no longer have a connection"
+    );
+  }
+});
+
+test("useHomeProviderStats still resolves a per-provider health status for each node", () => {
+  // Health is no longer painted as a green rest colour, but the status is still computed
+  // and carried so the section/graph (and any future health affordance) can use it.
+  assert.match(
+    providerStatsSrc,
+    /status:\s*stat\.connected > 0 \? "active" : "error"/,
+    "each topology entry must still carry a resolved health status"
   );
 });
 
@@ -36,53 +81,55 @@ test("HomeProviderTopologySection forwards the status field on each provider", (
   );
 });
 
-test("ProviderTopology renders a connection-health base layer under the traffic signals", () => {
-  // Live traffic and traffic errors still take precedence over the static health colour,
-  // but `last` (most recently routed) must NOT: it used to null out `healthy`, and since
-  // the node had no `last` visual the just-used provider rendered as idle grey with an
-  // amber edge — less connected-looking than an untouched peer. Health owns the border,
-  // recency owns the dot.
+test("ProviderTopology keeps the map calm at rest — only traffic or a real error lights a node", () => {
+  // Node state is derived purely from transient traffic: active (in-flight) beats a live
+  // error beats the most-recent call. Connection health must NOT be a fourth colour here.
   assert.match(
     providerTopologySrc,
-    /const healthy =\s*!active && !trafficError && !healthError && p\.status === "active"/,
-    "healthy must survive the last-used annotation"
+    /const active = activeSet\.has\(pid\);/,
+    "active state comes from the live in-flight set"
   );
   assert.doesNotMatch(
     providerTopologySrc,
-    /const healthy =[^;]*!last/,
-    "last-used must not suppress the health colour"
+    /p\.status === "active"/,
+    "connection health must not paint the node at rest (replaces the #7672 base layer)"
   );
+  // The rest border falls through to the neutral token — not green — when idle.
   assert.match(
     providerTopologySrc,
-    /const healthError =\s*!active && !trafficError && p\.status === "error"/,
-    "healthError must survive the last-used annotation"
+    /borderColor: error \? RED : active \? color : "var\(--color-border\)"/,
+    "an idle node keeps the neutral border, even when its connection is healthy"
   );
+  // A dot is rendered only for a live request or a real error.
   assert.match(
     providerTopologySrc,
-    /edgeStyle\(active, last, error, healthy\)/,
-    "the healthy state must reach the edge palette"
+    /\{\(active \|\| error\) && \(/,
+    "no status dot for a healthy-but-idle provider"
   );
-
-  // The node must render the health state (green border / static dot) — a non-pulsing dot
-  // distinguishes "connected" from "active".
-  assert.match(providerTopologySrc, /pulse=\{active \|\| error\}/);
-  assert.match(providerTopologySrc, /active \|\| error \|\| healthy \|\| last/);
 });
 
-test("ProviderTopology marks the last-routed provider with an amber dot, not a grey node", () => {
+test("ProviderTopology node position never depends on activity", () => {
+  // A provider must keep its ring slot whether or not it is mid-request, so the map cannot
+  // reshuffle ("jump") every time a call lands — activity is carried by styling alone.
+  // The order itself is creation order (see compareTopologyProviders): sorting on the
+  // provider ID put every newly added compatible node first, because its generated id
+  // begins with "anthropic-compatible-"/"openai-compatible-".
   assert.match(
     providerTopologySrc,
-    /const AMBER = FLOW_EDGE_COLORS\.last/,
-    "recency reuses the shared amber from the edge palette"
+    /\[\.\.\.providers\]\.sort\(compareTopologyProviders\)/,
+    "providers must be laid out in creation order via the shared comparator"
   );
-  assert.match(
+  assert.doesNotMatch(
     providerTopologySrc,
-    /const dotColor = active \? color : last \? AMBER : GREEN/,
-    "the dot encodes recency while the border keeps encoding health"
+    /a\.provider\.toLowerCase\(\)\.localeCompare\(b\.provider\.toLowerCase\(\)\)/,
+    "layout must not sort on the provider id — that pins new compatible nodes first"
   );
+  // A single growing ellipse replaced the fixed-capacity ring ladder (RING_MIN_RX /
+  // ringRadii); node spacing now scales with the provider count instead of stepping
+  // between discrete rings.
   assert.match(
     providerTopologySrc,
-    /borderColor: error \? RED : active \? color : healthy \? GREEN : "var\(--color-border\)"/,
-    "border stays health-driven — grey is reserved for genuinely idle/unconfigured"
+    /function ringRadii\(/,
+    "layout must size its ring from the provider count"
   );
 });

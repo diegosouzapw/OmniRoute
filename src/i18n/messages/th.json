@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "มีเวอร์ชันใหม่ให้ใช้งานแล้ว คลิกเพื่ออัปเดต",
     "updateStarted": "เริ่มการอัพเดต...",
     "reloadingPageAutomatically": "กำลังโหลดหน้าซ้ำโดยอัตโนมัติ...",
-    "providerTopology": "โทโพโลยีของผู้ให้บริการ"
+    "providerTopology": "โทโพโลยีของผู้ให้บริการ",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "การวิเคราะห์",

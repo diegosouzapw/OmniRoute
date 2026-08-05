@@ -53,19 +53,30 @@ test.after(() => {
 });
 
 test("GET /api/provider-metrics includes provider recency and error topology", async () => {
+  // `errorProvider` is gated on TOPOLOGY_ERROR_TTL_MS (10s) so a provider that failed and was
+  // then left alone stops being reported as failing. Fixed calendar timestamps therefore
+  // cannot exercise it — any literal date is stale by the time the suite runs, which made this
+  // assertion depend on when the file was written. One clock read at the top of the test keeps
+  // the row order deterministic while placing the failure inside the live window.
+  const now = Date.now();
+  const iso = (msAgo: number) => new Date(now - msAgo).toISOString();
+  const openaiSuccessAt = iso(6_000);
+  const anthropicSuccessAt = iso(4_000);
+  const openaiErrorAt = iso(2_000);
+
   const db = core.getDbInstance();
   db.prepare(
     `INSERT INTO call_logs (id, timestamp, provider, status, duration, error_summary)
      VALUES (?, ?, ?, ?, ?, ?)`
-  ).run("openai-success", "2026-05-22T10:00:00.000Z", "openai", 200, 120, null);
+  ).run("openai-success", openaiSuccessAt, "openai", 200, 120, null);
   db.prepare(
     `INSERT INTO call_logs (id, timestamp, provider, status, duration, error_summary)
      VALUES (?, ?, ?, ?, ?, ?)`
-  ).run("anthropic-success", "2026-05-22T10:05:00.000Z", "anthropic", 200, 240, null);
+  ).run("anthropic-success", anthropicSuccessAt, "anthropic", 200, 240, null);
   db.prepare(
     `INSERT INTO call_logs (id, timestamp, provider, status, duration, error_summary)
      VALUES (?, ?, ?, ?, ?, ?)`
-  ).run("openai-error", "2026-05-22T10:10:00.000Z", "openai", 500, 80, "upstream error");
+  ).run("openai-error", openaiErrorAt, "openai", 500, 80, "upstream error");
 
   const response = await providerMetricsRoute.GET();
   const body = (await response.json()) as ProviderMetricsResponse;
@@ -74,11 +85,11 @@ test("GET /api/provider-metrics includes provider recency and error topology", a
   assert.equal(body.metrics.openai.totalRequests, 2);
   assert.equal(body.metrics.openai.totalSuccesses, 1);
   assert.equal(body.metrics.openai.successRate, 50);
-  assert.equal(body.metrics.openai.lastRequestAt, "2026-05-22T10:10:00.000Z");
-  assert.equal(body.metrics.openai.lastErrorAt, "2026-05-22T10:10:00.000Z");
+  assert.equal(body.metrics.openai.lastRequestAt, openaiErrorAt);
+  assert.equal(body.metrics.openai.lastErrorAt, openaiErrorAt);
   assert.equal(body.metrics.openai.lastStatus, 500);
   assert.equal(body.metrics.openai.lastErrorStatus, 500);
-  assert.equal(body.metrics.anthropic.lastRequestAt, "2026-05-22T10:05:00.000Z");
+  assert.equal(body.metrics.anthropic.lastRequestAt, anthropicSuccessAt);
   assert.equal(body.metrics.anthropic.lastErrorAt, null);
   assert.deepEqual(body.topology.providers.sort(), ["anthropic", "openai"]);
   assert.equal(body.topology.lastProvider, "openai");

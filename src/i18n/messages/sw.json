@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "A new version is available. Click to update.",
     "updateStarted": "Update started...",
     "reloadingPageAutomatically": "Inapakia upya ukurasa kiotomatiki...",
-    "providerTopology": "Topolojia ya mtoaji"
+    "providerTopology": "Topolojia ya mtoaji",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "Analytics",

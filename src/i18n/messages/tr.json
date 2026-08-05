@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "Yeni bir sürüm mevcut. Güncellemek için tıklayın.",
     "updateStarted": "Güncelleme başladı...",
     "reloadingPageAutomatically": "Sayfa otomatik olarak yeniden yükleniyor...",
-    "providerTopology": "Sağlayıcı Topolojisi"
+    "providerTopology": "Sağlayıcı Topolojisi",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "Analitik",

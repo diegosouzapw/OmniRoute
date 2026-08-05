@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "En ny version finns tillgänglig. Klicka för att uppdatera.",
     "updateStarted": "Uppdatering startade...",
     "reloadingPageAutomatically": "Laddar om sidan automatiskt...",
-    "providerTopology": "Leverantörstopologi"
+    "providerTopology": "Leverantörstopologi",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "Analytics",

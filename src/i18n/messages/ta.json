@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "A new version is available. Click to update.",
     "updateStarted": "Update started...",
     "reloadingPageAutomatically": "தானாக பக்கத்தை மீண்டும் ஏற்றுகிறது...",
-    "providerTopology": "வழங்குநர் இடவியல்"
+    "providerTopology": "வழங்குநர் இடவியல்",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "Analytics",

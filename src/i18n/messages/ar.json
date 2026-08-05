@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "نسخة جديدة متاحة. انقر للتحديث.",
     "updateStarted": "بدأ التحديث...",
     "reloadingPageAutomatically": "جارٍ إعادة تحميل الصفحة تلقائيًا...",
-    "providerTopology": "طوبولوجيا الموفر"
+    "providerTopology": "طوبولوجيا الموفر",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "التحليلات",

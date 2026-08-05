@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "A new version is available. Click to update.",
     "updateStarted": "Update started...",
     "reloadingPageAutomatically": "पृष्ठ स्वचालित रूप से पुनः लोड हो रहा है...",
-    "providerTopology": "प्रदाता टोपोलॉजी"
+    "providerTopology": "प्रदाता टोपोलॉजी",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "विश्लेषिकी",

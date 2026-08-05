@@ -26,6 +26,8 @@ import Image from "next/image";
 
 import { useTheme } from "@/shared/hooks/useTheme";
 
+import { resolveCompatibleStaticIcon } from "@/shared/utils/compatibleProviderId";
+
 import { getLobeProviderIcon } from "./lobeProviderIcons";
 
 interface ProviderIconProps {
@@ -44,6 +46,12 @@ interface ProviderIconProps {
   alt?: string;
   fallbackText?: string;
   fallbackColor?: string;
+  /**
+   * `provider_nodes.api_type` for a compatible node. Only used to pick between the two
+   * OpenAI-compatible logos ("responses" vs chat); the Anthropic-compatible variants
+   * share one asset, so omitting it is safe for them.
+   */
+  apiType?: string | null;
 }
 
 function GenericProviderIcon({ size }: { size: number }) {
@@ -324,6 +332,7 @@ const ProviderIcon = memo(function ProviderIcon({
   alt,
   fallbackText,
   fallbackColor,
+  apiType,
 }: ProviderIconProps) {
   const { isDark } = useTheme();
   const normalizedId = PROVIDER_ICON_ALIASES[providerId.toLowerCase()] || providerId.toLowerCase();
@@ -341,6 +350,9 @@ const ProviderIcon = memo(function ProviderIcon({
   const theSvgKey = `${normalizedId}:thesvg`;
 
   const trimmedSrc = typeof src === "string" ? src.trim() : "";
+  const compatStaticIcon = resolveCompatibleStaticIcon(providerId, apiType);
+  const compatKey = `${normalizedId}:compat`;
+  const compatFailed = failedAssets[compatKey];
   const themedFailed = failedAssets[themedKey];
   const svgFailed = failedAssets[svgKey];
   const theSvgFailed = failedAssets[theSvgKey];
@@ -387,6 +399,34 @@ const ProviderIcon = memo(function ProviderIcon({
       >
         {fallbackText}
       </span>
+    );
+  }
+
+  // Tier 0b: bundled logo for a compatible provider node with no operator icon_url.
+  //
+  // A compatible node's id is a generated UUID, so it matches no local SVG/PNG and no
+  // LobeHub icon — every tier below misses and the chain used to end at the generic
+  // circle-plus glyph. The providers page never showed that glyph, but only because it
+  // duplicated this mapping at its own call site, outside this component; the home
+  // topology (and anything else rendering the same node) got the plus. Resolving it here
+  // means one definition serves every surface.
+  //
+  // Placed after the operator-supplied `src` branches so a real custom icon still wins,
+  // and BEFORE the text badge for a src-less node: the providers page shows this image —
+  // not an "AC"/"OC" badge — when icon_url is empty, so matching it is what makes the two
+  // surfaces agree.
+  if (compatStaticIcon && !compatFailed) {
+    return (
+      <Image
+        src={compatStaticIcon}
+        alt={alt || providerId}
+        width={size}
+        height={size}
+        className={className}
+        style={{ objectFit: "contain", flex: "none", ...style }}
+        sizes={`${size}px`}
+        onError={() => setFailedAssets((prev) => ({ ...prev, [compatKey]: true }))}
+      />
     );
   }
 
@@ -483,6 +523,34 @@ const ProviderIcon = memo(function ProviderIcon({
           style={{ objectFit: "contain", flex: "none" }}
           onError={() => setFailedAssets((current) => ({ ...current, [theSvgKey]: true }))}
         />
+      </span>
+    );
+  }
+
+  // Tier 5b: caller-supplied text badge, before giving up.
+  //
+  // `fallbackText` used to be reachable ONLY from the failed-remote-src branch above, so a
+  // caller that passed a badge without an icon_url (every compatible node in the DB) had it
+  // ignored and got the generic glyph instead. Honouring it here keeps the badge as a real
+  // last resort for any node whose bundled/remote images are all unavailable.
+  if (fallbackText) {
+    return (
+      <span
+        className={className}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: size,
+          height: size,
+          fontSize: Math.max(10, Math.round(size * 0.4)),
+          fontWeight: 700,
+          lineHeight: 1,
+          color: fallbackColor || "currentColor",
+          ...style,
+        }}
+      >
+        {fallbackText}
       </span>
     );
   }

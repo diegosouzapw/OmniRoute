@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "A new version is available. Click to update.",
     "updateStarted": "Update started...",
     "reloadingPageAutomatically": "పేజీని స్వయంచాలకంగా రీలోడ్ చేస్తోంది...",
-    "providerTopology": "ప్రొవైడర్ టోపాలజీ"
+    "providerTopology": "ప్రొవైడర్ టోపాలజీ",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "Analytics",

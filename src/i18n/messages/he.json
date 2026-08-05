@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "גרסה חדשה זמינה. לחץ לעדכון.",
     "updateStarted": "העדכון התחיל...",
     "reloadingPageAutomatically": "טוען מחדש את הדף באופן אוטומטי...",
-    "providerTopology": "טופולוגיה של ספק"
+    "providerTopology": "טופולוגיה של ספק",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "אנליטיקס",

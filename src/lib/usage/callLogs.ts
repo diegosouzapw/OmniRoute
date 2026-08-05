@@ -782,6 +782,33 @@ function pushLikeFilter(
   params[paramKey] = `%${value}%`;
 }
 
+/**
+ * Pushes the `status` filter condition ("error" / "ok" / an explicit numeric code).
+ * Extracted for the same reason as `pushLikeFilter` above: getCallLogs sits directly
+ * on the max-lines-per-function ratchet, and this branch is the largest self-contained
+ * block in it.
+ */
+function pushStatusFilter(
+  conditions: string[],
+  params: Record<string, unknown>,
+  status: unknown
+) {
+  if (!status) return;
+  if (status === "error") {
+    conditions.push("(cl.status >= 400 OR cl.error_summary IS NOT NULL)");
+    return;
+  }
+  if (status === "ok") {
+    conditions.push("cl.status >= 200 AND cl.status < 300");
+    return;
+  }
+  const statusCode = Number.parseInt(String(status), 10);
+  if (!Number.isNaN(statusCode)) {
+    conditions.push("cl.status = @statusCode");
+    params.statusCode = statusCode;
+  }
+}
+
 export async function getCallLogs(filter: any = {}) {
   const db = getDbInstance();
   let sql = `
@@ -795,19 +822,7 @@ export async function getCallLogs(filter: any = {}) {
   const conditions: string[] = [];
   const params: Record<string, unknown> = {};
 
-  if (filter.status) {
-    if (filter.status === "error") {
-      conditions.push("(cl.status >= 400 OR cl.error_summary IS NOT NULL)");
-    } else if (filter.status === "ok") {
-      conditions.push("cl.status >= 200 AND cl.status < 300");
-    } else {
-      const statusCode = Number.parseInt(filter.status, 10);
-      if (!Number.isNaN(statusCode)) {
-        conditions.push("cl.status = @statusCode");
-        params.statusCode = statusCode;
-      }
-    }
-  }
+  pushStatusFilter(conditions, params, filter.status);
 
   if (filter.model) {
     conditions.push("(cl.model LIKE @modelQ OR cl.requested_model LIKE @modelQ)");
@@ -829,6 +844,14 @@ export async function getCallLogs(filter: any = {}) {
   pushLikeFilter(conditions, params, "session_tag", "sessionTag", filter.sessionTag);
   if (filter.combo) {
     conditions.push("cl.combo_name IS NOT NULL");
+  }
+  if (filter.excludeTests) {
+    // Home "Recent Requests" is an allowlist of real provider inference, not a
+    // blacklist of known backend log types. Persisted provider requests enter via
+    // the public gateway namespaces (/v1/* or /api/v1/*); internal management work
+    // (connection tests, model sync, and future /api/providers/* jobs) does not.
+    // Apply this before LIMIT so backend rows can never displace real traffic.
+    conditions.push(`(cl.path LIKE '/v1/%' OR cl.path LIKE '/api/v1/%')`);
   }
   if (filter.since) {
     conditions.push("cl.timestamp >= @since");

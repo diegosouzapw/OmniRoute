@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "Доступна нова версія. Натисніть, щоб оновити.",
     "updateStarted": "Оновлення розпочато...",
     "reloadingPageAutomatically": "Автоматичне перезавантаження сторінки...",
-    "providerTopology": "Топологія провайдера"
+    "providerTopology": "Топологія провайдера",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "Аналітика",

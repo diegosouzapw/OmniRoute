@@ -125,24 +125,46 @@ export function buildCallLogListRows({
   });
 }
 
+/**
+ * Reads the query string into a `getCallLogs` filter.
+ *
+ * Extracted from GET: one `if` per supported parameter is a straight-line mapping, but
+ * it is also 13 branches, which is what pushed GET over the cyclomatic ratchet.
+ */
+const STRING_FILTER_KEYS = [
+  "status",
+  "model",
+  "provider",
+  "account",
+  "apiKey",
+  "combo",
+  "search",
+  "correlationId",
+] as const;
+
+function parseCallLogFilter(searchParams: URLSearchParams): Record<string, any> {
+  const filter: Record<string, any> = {};
+  for (const key of STRING_FILTER_KEYS) {
+    const value = searchParams.get(key);
+    if (value) filter[key] = value;
+  }
+  for (const key of ["limit", "offset"] as const) {
+    const value = searchParams.get(key);
+    if (value) filter[key] = parseInt(value);
+  }
+  // Home Recent Requests feed sets excludeTests=1 so connection-test probe rows
+  // are dropped at the SQL layer (before LIMIT), not client-side after slicing.
+  if (searchParams.get("excludeTests") === "1") filter.excludeTests = true;
+  return filter;
+}
+
 export async function GET(request: Request) {
   try {
     const authError = await requireManagementAuth(request);
     if (authError) return authError;
 
     const { searchParams } = new URL(request.url);
-
-    const filter: Record<string, any> = {};
-    if (searchParams.get("status")) filter.status = searchParams.get("status");
-    if (searchParams.get("model")) filter.model = searchParams.get("model");
-    if (searchParams.get("provider")) filter.provider = searchParams.get("provider");
-    if (searchParams.get("account")) filter.account = searchParams.get("account");
-    if (searchParams.get("apiKey")) filter.apiKey = searchParams.get("apiKey");
-    if (searchParams.get("combo")) filter.combo = searchParams.get("combo");
-    if (searchParams.get("search")) filter.search = searchParams.get("search");
-    if (searchParams.get("correlationId")) filter.correlationId = searchParams.get("correlationId");
-    if (searchParams.get("limit")) filter.limit = parseInt(searchParams.get("limit"));
-    if (searchParams.get("offset")) filter.offset = parseInt(searchParams.get("offset"));
+    const filter = parseCallLogFilter(searchParams);
 
     const [logs, connections, providerNodes] = await Promise.all([
       getCallLogs(filter),

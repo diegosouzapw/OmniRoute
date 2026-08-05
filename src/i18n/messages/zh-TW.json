@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "有新版本可用。點選更新。",
     "updateStarted": "更新已開始...",
     "reloadingPageAutomatically": "自動重新載入頁面...",
-    "providerTopology": "提供者拓撲"
+    "providerTopology": "提供者拓撲",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "分析",

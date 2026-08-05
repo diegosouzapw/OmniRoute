@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "Налична е нова версия. Кликнете, за да актуализирате.",
     "updateStarted": "Актуализацията започна...",
     "reloadingPageAutomatically": "Страницата се презарежда автоматично...",
-    "providerTopology": "Топология на доставчика"
+    "providerTopology": "Топология на доставчика",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "Анализ",

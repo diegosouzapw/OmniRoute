@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "새 버전을 사용할 수 있습니다. 클릭하여 업데이트하세요.",
     "updateStarted": "업데이트 시작됨...",
     "reloadingPageAutomatically": "페이지를 자동으로 새로고침하는 중...",
-    "providerTopology": "공급자 토폴로지"
+    "providerTopology": "공급자 토폴로지",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "분석",

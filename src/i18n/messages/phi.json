@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "Available ang isang bagong bersyon. I-click para mag-update.",
     "updateStarted": "Nagsimula ang pag-update...",
     "reloadingPageAutomatically": "Awtomatikong nire-reload ang page...",
-    "providerTopology": "Topology ng Provider"
+    "providerTopology": "Topology ng Provider",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "Analytics",

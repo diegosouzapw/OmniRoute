@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "Versi baharu tersedia. Klik untuk mengemas kini.",
     "updateStarted": "Kemas kini bermula...",
     "reloadingPageAutomatically": "Memuat semula halaman secara automatik...",
-    "providerTopology": "Topologi Pembekal"
+    "providerTopology": "Topologi Pembekal",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "Analitis",

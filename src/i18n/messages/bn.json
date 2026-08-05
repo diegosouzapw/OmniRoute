@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "A new version is available. Click to update.",
     "updateStarted": "Update started...",
     "reloadingPageAutomatically": "স্বয়ংক্রিয়ভাবে পৃষ্ঠা পুনরায় লোড হচ্ছে...",
-    "providerTopology": "প্রদানকারী টপোলজি"
+    "providerTopology": "প্রদানকারী টপোলজি",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "Analytics",

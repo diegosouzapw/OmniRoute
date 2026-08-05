@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "有新版本可用。点击更新。",
     "updateStarted": "更新已开始...",
     "reloadingPageAutomatically": "自动重新加载页面...",
-    "providerTopology": "提供者拓扑"
+    "providerTopology": "提供者拓扑",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "分析",

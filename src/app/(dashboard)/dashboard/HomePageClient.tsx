@@ -8,18 +8,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
-import { AI_PROVIDERS, NOAUTH_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
-import {
-  isProviderConnectionConnected,
-  isProviderConnectionErrored,
-} from "@/shared/utils/providerConnectionStatus";
 import { useNotificationStore } from "@/store/notificationStore";
 import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { copyToClipboard } from "@/shared/utils/clipboard";
-import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import { useIsElectron, useOpenExternal } from "@/shared/hooks/useElectron";
 import { HomeProviderTopologySection } from "./HomeProviderTopologySection";
 import { shouldShowProviderTopologyOnHome } from "./homeAppearance";
+import {
+  normalizeProviderId,
+  useHomeProviderStats,
+  type HomeModelSummary,
+  type HomeProviderConnection,
+  type HomeProviderNode,
+  type ProviderModelSummary,
+  type ProviderSummaryItem,
+} from "./useHomeProviderStats";
 
 const ProviderQuotaWidget = dynamic(() => import("../home/ProviderQuotaWidget"), { ssr: false });
 import type { NewsAnnouncement } from "@/shared/utils/releaseNotes";
@@ -44,22 +47,6 @@ type HomePageClientProps = {
   machineId?: string;
 };
 
-type ProviderSummaryItem = {
-  id: string;
-  provider: {
-    id: string;
-    name: string;
-    color?: string;
-    textIcon?: string;
-    alias?: string;
-  };
-  total: number;
-  connected: number;
-  errors: number;
-  modelCount: number;
-  authType: "free" | "oauth" | "apikey" | string;
-};
-
 type ProviderMetricSummary = {
   totalRequests?: number;
   totalSuccesses?: number;
@@ -70,26 +57,6 @@ type ProviderMetricSummary = {
   lastStatus?: number | null;
   lastErrorStatus?: number | null;
 };
-
-type ProviderModelSummary = {
-  fullModel: string;
-  alias?: string;
-  model?: string;
-};
-
-const PROVIDER_ALIAS_TO_ID = new Map(
-  Object.entries(AI_PROVIDERS)
-    .flatMap(([providerId, providerInfo]) =>
-      providerInfo.alias ? [[providerInfo.alias.toLowerCase(), providerId]] : []
-    )
-    .filter((entry): entry is [string, string] => entry.length === 2)
-);
-
-function normalizeProviderId(providerId?: string | null): string {
-  const normalized = typeof providerId === "string" ? providerId.trim().toLowerCase() : "";
-  if (!normalized) return "";
-  return AI_PROVIDERS[normalized] ? normalized : PROVIDER_ALIAS_TO_ID.get(normalized) || normalized;
-}
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -116,16 +83,23 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const { openExternal } = useOpenExternal();
   const t = useTranslations("home");
   const tp = useTranslations("providers");
-  const [providerConnections, setProviderConnections] = useState([]);
-  const [models, setModels] = useState([]);
+  const [providerConnections, setProviderConnections] = useState<HomeProviderConnection[]>([]);
+  const [models, setModels] = useState<HomeModelSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [baseUrl, setBaseUrl] = useState("/v1");
-  const [selectedProvider, setSelectedProvider] = useState(null);
+  const [selectedProvider, setSelectedProvider] = useState<ProviderSummaryItem | null>(null);
   const [providerMetrics, setProviderMetrics] = useState<Record<string, ProviderMetricSummary>>({});
-  const [providerTopology, setProviderTopology] = useState({ lastProvider: "", errorProvider: "" });
-  const [providerNodes, setProviderNodes] = useState<
-    Array<{ id?: string; prefix?: string; name?: string }>
-  >([]);
+  const [providerTopology, setProviderTopology] = useState<{
+    lastProvider: string;
+    errorProviders: string[];
+  }>({ lastProvider: "", errorProviders: [] });
+  // `type` and `iconUrl` are what `resolveCompatibleProviderCatalogEntry` needs to pick the
+  // right logo/badge/colour. /api/provider-nodes already returns both; this state type used
+  // to drop them, so the topology could never render an operator's icon no matter what was
+  // configured — the data was fetched and then discarded one type annotation later.
+  // `createdAt` is likewise carried through so the topology can order nodes by age — a
+  // newly added provider must append, not displace. See HomeProviderNode.
+  const [providerNodes, setProviderNodes] = useState<HomeProviderNode[]>([]);
 
   // The live in-flight request feed for the Provider Topology pulse animation is owned by
   // <HomeProviderTopologySection>, which subscribes to it (gated by the `enabled` prop)
@@ -315,9 +289,20 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           const data = await metricsRes.json();
           if (!cancelled) {
             setProviderMetrics(data.metrics || {});
+            // `errorProviders` (plural) carries EVERY failing provider. Reading the legacy
+            // singular field showed only the most recent one, so a second failure appeared
+            // to clear the first. Fall back to the singular field so an older/cached API
+            // response still lights one edge rather than none.
+            const reportedErrors = Array.isArray(data.topology?.errorProviders)
+              ? data.topology.errorProviders
+              : [data.topology?.errorProvider];
             setProviderTopology({
               lastProvider: normalizeProviderId(data.topology?.lastProvider),
-              errorProvider: normalizeProviderId(data.topology?.errorProvider),
+              errorProviders: reportedErrors
+                .map((provider: unknown) =>
+                  normalizeProviderId(typeof provider === "string" ? provider : "")
+                )
+                .filter(Boolean),
             });
           }
         }
@@ -430,97 +415,17 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     }
   }, [providerConnections, t, tp, router]);
 
-  const providerStats = useMemo(() => {
-    return Object.entries(AI_PROVIDERS).map(([providerId, providerInfo]) => {
-      const connections = providerConnections.filter((conn) => conn.provider === providerId);
-      const connected = connections.filter((connection) =>
-        isProviderConnectionConnected(connection)
-      ).length;
-      const errors = connections.filter((connection) =>
-        isProviderConnectionErrored(connection)
-      ).length;
+  // Provider summaries, the selected provider's models, and the topology nodes — see
+  // useHomeProviderStats. Extracted so this size-frozen file stays under its baseline.
+  const { selectedProviderModels, topologyProviders } = useHomeProviderStats({
+    providerConnections,
+    models,
+    providerNodes,
+    selectedProvider,
+    tp,
+  });
 
-      const providerKeys = new Set([providerId, providerInfo.alias].filter(Boolean));
-      const providerModels = models.filter((m) => providerKeys.has(m.provider));
-
-      const authType = NOAUTH_PROVIDERS[providerId]
-        ? "no-auth"
-        : OAUTH_PROVIDERS[providerId]
-          ? "oauth"
-          : "apikey";
-
-      return {
-        id: providerId,
-        provider: providerInfo,
-        total: connections.length,
-        connected,
-        errors,
-        modelCount: providerModels.length,
-        authType,
-      };
-    });
-  }, [providerConnections, models]);
-
-  const selectedProviderModels = useMemo(() => {
-    if (!selectedProvider) return [];
-    const providerKeys = new Set(
-      [selectedProvider.id, selectedProvider.provider?.alias].filter(Boolean)
-    );
-    return models.filter((m) => providerKeys.has(m.provider));
-  }, [selectedProvider, models]);
-
-  const topologyProviders = useMemo(() => {
-    type ProviderHealth = "active" | "error" | "idle";
-    const byProvider = new Map<
-      string,
-      { id: string; provider: string; name?: string; status: ProviderHealth }
-    >();
-    const providerConfig = AI_PROVIDERS as Record<string, { name?: string }>;
-
-    // Connection-health per provider, so the topology node reflects "what is connected"
-    // at rest (green healthy / red error) instead of going blank between requests. A
-    // provider with ≥1 healthy connection is "active"; if none are healthy but some are
-    // errored it is "error"; otherwise "idle". Live/recent traffic still overrides this.
-    const healthByProvider = new Map<string, ProviderHealth>();
-    for (const stat of providerStats) {
-      const canonical = normalizeProviderId(stat.id);
-      if (!canonical) continue;
-      healthByProvider.set(
-        canonical,
-        stat.connected > 0 ? "active" : stat.errors > 0 ? "error" : "idle"
-      );
-    }
-
-    const addProvider = (providerId?: string | null, name?: string) => {
-      const rawProviderId = typeof providerId === "string" ? providerId.trim() : "";
-      if (!rawProviderId) return;
-
-      const canonicalProviderId = normalizeProviderId(rawProviderId);
-      if (!canonicalProviderId || byProvider.has(canonicalProviderId)) return;
-
-      const resolvedName =
-        getProviderDisplayLabel(rawProviderId, providerNodes) ||
-        name ||
-        providerConfig[canonicalProviderId]?.name ||
-        rawProviderId;
-
-      byProvider.set(canonicalProviderId, {
-        id: canonicalProviderId,
-        provider: canonicalProviderId,
-        name: resolvedName,
-        status: healthByProvider.get(canonicalProviderId) ?? "idle",
-      });
-    };
-
-    providerStats
-      .filter((provider) => provider.total > 0)
-      .forEach((provider) => addProvider(provider.id, provider.provider.name));
-    Object.keys(providerMetrics).forEach((provider) => addProvider(provider));
-
-    return Array.from(byProvider.values());
-  }, [providerStats, providerMetrics, providerNodes]);
-
-  const { lastProvider, errorProvider } = providerTopology;
+  const { lastProvider, errorProviders } = providerTopology;
 
   const pollBackgroundUpdate = useCallback(
     async ({
@@ -1181,7 +1086,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
         <HomeProviderTopologySection
           providers={topologyProviders}
           lastProvider={lastProvider}
-          errorProvider={errorProvider}
+          errorProviders={errorProviders}
           enabled={showProviderTopologyOnHome}
         />
       )}

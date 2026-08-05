@@ -1730,7 +1730,12 @@
     "updateAvailableDesc": "Új verzió érhető el. Kattintson a frissítéshez.",
     "updateStarted": "Frissítés elindult...",
     "reloadingPageAutomatically": "Oldal automatikus újratöltése...",
-    "providerTopology": "Szolgáltató topológia"
+    "providerTopology": "Szolgáltató topológia",
+    "recentRequests": "__MISSING__:Recent Requests",
+    "recentRequestsEmpty": "__MISSING__:No requests yet.",
+    "recentRequestsModel": "__MISSING__:Model",
+    "recentRequestsTokens": "__MISSING__:In / Out",
+    "recentRequestsWhen": "__MISSING__:When"
   },
   "analytics": {
     "title": "Analytics",
