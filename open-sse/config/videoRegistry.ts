@@ -348,6 +348,15 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
       { id: "runway-gen4-turbo", name: "Firefly Runway Gen-4 Video" },
     ],
   },
+
+  nanogpt: {
+    id: "nanogpt",
+    baseUrl: "https://nano-gpt.com/api/v1/video/generations",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "openai",
+    models: [{ id: "default", name: "NanoGPT Video" }],
+  },
 };
 
 /**

@@ -394,6 +394,25 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
       },
     ],
   },
+
+  nanogpt: {
+    id: "nanogpt",
+    baseUrl: "https://nano-gpt.com/v1/embeddings",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      {
+        id: "text-embedding-3-small",
+        name: "Text Embedding 3 Small",
+        dimensions: 1536,
+      },
+      {
+        id: "text-embedding-3-large",
+        name: "Text Embedding 3 Large",
+        dimensions: 3072,
+      },
+    ],
+  },
 };
 
 const EMBEDDING_PROVIDER_ALIASES: Record<string, string> = {

@@ -226,6 +226,17 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
     format: "speechmatics",
     models: [{ id: "enhanced", name: "Enhanced" }],
   },
+
+  nanogpt: {
+    id: "nanogpt",
+    baseUrl: "https://nano-gpt.com/api/v1/audio/transcriptions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "whisper-1", name: "Whisper 1" },
+      { id: "gpt-4o-transcription", name: "GPT-4o Transcription" },
+    ],
+  },
 };
 
 /**
@@ -538,6 +549,17 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "mimo-v2.5-tts", name: "MiMo V2.5 TTS" },
       { id: "mimo-v2.5-tts-voicedesign", name: "MiMo V2.5 Voice Design" },
       { id: "mimo-v2.5-tts-voiceclone", name: "MiMo V2.5 Voice Clone" },
+    ],
+  },
+
+  nanogpt: {
+    id: "nanogpt",
+    baseUrl: "https://nano-gpt.com/api/v1/audio/speech",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "tts-1-hd", name: "TTS 1 HD" },
+      { id: "tts-1", name: "TTS 1" },
     ],
   },
 };

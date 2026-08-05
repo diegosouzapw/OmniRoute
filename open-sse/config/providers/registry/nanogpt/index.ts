@@ -7,6 +7,7 @@ export const nanogptProvider: RegistryEntry = {
   format: "openai",
   executor: "default",
   baseUrl: "https://nano-gpt.com/api/v1/chat/completions",
+  responsesBaseUrl: "https://nano-gpt.com/api/v1/responses",
   authType: "apikey",
   authHeader: "bearer",
   models: CHAT_OPENAI_COMPAT_MODELS.nanogpt,
