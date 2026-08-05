@@ -120,9 +120,13 @@ test("normalizeProviderSpecificData trims OpenRouter preset and clears empty val
   assert.equal(ignored?.tag, "primary");
 });
 
-test("sanitizeProviderSpecificDataForResponse removes quota scraping cookies", () => {
+test("sanitizeProviderSpecificDataForResponse removes credentials and quota scraping cookies", () => {
   const sanitized = sanitizeProviderSpecificDataForResponse({
     opencodeGoWorkspaceId: "workspace-123",
+    accessToken: "access-token",
+    refreshToken: "refresh-token",
+    idToken: "id-token",
+    apiKey: "api-key",
     opencodeGoAuthCookie: "auth-cookie",
     ollamaCloudUsageCookie: "ollama-cookie",
     usageCookie: "fallback-cookie",

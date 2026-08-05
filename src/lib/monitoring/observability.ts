@@ -1,3 +1,8 @@
+import {
+  createCodexAccountPool,
+  getCodexParentAccountDiagnostic,
+} from "@omniroute/open-sse/services/codexAccount/index.ts";
+
 type JsonRecord = Record<string, unknown>;
 
 interface CircuitBreakerStatus {
@@ -70,7 +75,13 @@ interface BuildHealthPayloadOptions {
   appVersion: string;
   catalogCount?: number;
   settings: { setupComplete?: boolean } | null | undefined;
-  connections: Array<{ provider?: string; isActive?: boolean | null; rateLimitedUntil?: unknown }>;
+  connections: Array<{
+    id?: string;
+    provider?: string;
+    isActive?: boolean | null;
+    rateLimitedUntil?: unknown;
+    providerSpecificData?: Readonly<Record<string, unknown>> | null;
+  }>;
   circuitBreakers: CircuitBreakerStatus[];
   rateLimitStatus: JsonRecord;
   learnedLimits: JsonRecord;
@@ -211,6 +222,53 @@ export function summarizeConnectionCooldown(
   return summary;
 }
 
+export interface CodexAccountPoolsSummary {
+  total: number;
+  available: number;
+  partiallyLimited: number;
+  fullyLimited: number;
+  quotaObserved: number;
+  soonestRetryAfterMs: number;
+}
+
+export function summarizeCodexAccountPools(
+  connections: BuildHealthPayloadOptions["connections"],
+  nowMs: number
+): CodexAccountPoolsSummary {
+  const summary: CodexAccountPoolsSummary = {
+    total: 0,
+    available: 0,
+    partiallyLimited: 0,
+    fullyLimited: 0,
+    quotaObserved: 0,
+    soonestRetryAfterMs: 0,
+  };
+  for (const connection of connections) {
+    if (connection.provider !== "codex" || !connection.id) continue;
+    const diagnostic = getCodexParentAccountDiagnostic(
+      createCodexAccountPool({
+        id: connection.id,
+        provider: connection.provider,
+        providerSpecificData: connection.providerSpecificData ?? {},
+      }),
+      nowMs
+    );
+    summary.total += 1;
+    if (diagnostic.status === "available") summary.available += 1;
+    else if (diagnostic.status === "partially_limited") summary.partiallyLimited += 1;
+    else summary.fullyLimited += 1;
+    if (diagnostic.quota.observedScopeCount > 0) summary.quotaObserved += 1;
+    if (
+      diagnostic.cooldown.soonestRetryAfterMs > 0 &&
+      (summary.soonestRetryAfterMs === 0 ||
+        diagnostic.cooldown.soonestRetryAfterMs < summary.soonestRetryAfterMs)
+    ) {
+      summary.soonestRetryAfterMs = diagnostic.cooldown.soonestRetryAfterMs;
+    }
+  }
+  return summary;
+}
+
 export function buildHealthPayload({
   appVersion,
   catalogCount = 0,
@@ -266,7 +324,9 @@ export function buildHealthPayload({
     };
   }
 
-  const connectionHealth = summarizeConnectionCooldown(connections, Date.now());
+  const nowMs = Date.now();
+  const connectionHealth = summarizeConnectionCooldown(connections, nowMs);
+  const codexAccountPools = summarizeCodexAccountPools(connections, nowMs);
 
   const configuredProviders = new Set(
     connections.map((connection) => connection.provider).filter(Boolean)
@@ -305,6 +365,7 @@ export function buildHealthPayload({
     providerBreakers,
     providerHealth,
     connectionHealth,
+    codexAccountPools,
     providerSummary: {
       catalogCount,
       configuredCount: configuredProviders.size,

@@ -2427,11 +2427,6 @@
       "count": 1
     }
   },
-  "open-sse/handlers/chatCore/codexFailover.ts": {
-    "no-restricted-imports": {
-      "count": 1
-    }
-  },
   "open-sse/handlers/chatCore/comboContextCache.ts": {
     "no-restricted-imports": {
       "count": 1

@@ -82,6 +82,69 @@ test("buildTelemetryPayload exposes totalRequests alias plus quota/session signa
   assert.equal(payload.quotaMonitor.exhausted, 1);
 });
 
+test("buildHealthPayload reports Codex persisted parents through aggregate child state", () => {
+  const now = Date.now();
+  const partialUntil = new Date(now + 60_000).toISOString();
+  const fullUntil = new Date(now + 120_000).toISOString();
+  const payload = buildHealthPayload({
+    appVersion: "1.2.3",
+    settings: { setupComplete: true },
+    connections: [
+      {
+        id: "codex-partial",
+        provider: "codex",
+        isActive: true,
+        providerSpecificData: {
+          codexScopeRateLimitedUntil: { spark: partialUntil },
+          codexQuotaStateByScope: { spark: { usage5h: 100, limit5h: 100 } },
+        },
+      },
+      {
+        id: "codex-full",
+        provider: "codex",
+        isActive: true,
+        providerSpecificData: {
+          codexScopeRateLimitedUntil: { codex: fullUntil, spark: fullUntil },
+          codexQuotaStateByScope: {
+            codex: { usage5h: 100, limit5h: 100 },
+            spark: { usage5h: 100, limit5h: 100 },
+          },
+        },
+      },
+      { id: "openai", provider: "openai", isActive: true },
+    ],
+    circuitBreakers: [],
+    rateLimitStatus: {},
+    learnedLimits: {},
+    lockouts: {},
+    localProviders: {},
+    inflightRequests: 0,
+    quotaMonitorSummary: {
+      active: 0,
+      alerting: 0,
+      exhausted: 0,
+      errors: 0,
+      statusCounts: { starting: 0, idle: 0, healthy: 0, warning: 0, exhausted: 0, error: 0 },
+      byProvider: {},
+    },
+    quotaMonitorMonitors: [],
+    activeSessions: [],
+  });
+
+  assert.equal(payload.codexAccountPools.total, 2);
+  assert.equal(payload.codexAccountPools.available, 0);
+  assert.equal(payload.codexAccountPools.partiallyLimited, 1);
+  assert.equal(payload.codexAccountPools.fullyLimited, 1);
+  assert.equal(payload.codexAccountPools.quotaObserved, 2);
+  assert.ok(payload.codexAccountPools.soonestRetryAfterMs > 0);
+  assert.ok(payload.codexAccountPools.soonestRetryAfterMs <= 60_000);
+  assert.equal(payload.connectionHealth.codex, undefined);
+  assert.equal(payload.providerSummary.configuredCount, 2);
+  assert.equal(payload.quotaMonitor.active, 0);
+  assert.ok(payload.sessions);
+  assert.deepEqual(payload.rateLimitStatus, {});
+});
+
 test("buildHealthPayload keeps legacy aliases and adds session/quota observability blocks", () => {
   const payload = buildHealthPayload({
     appVersion: "1.2.3",

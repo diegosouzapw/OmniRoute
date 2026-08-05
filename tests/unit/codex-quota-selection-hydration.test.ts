@@ -82,3 +82,106 @@ test("Codex selection ignores hydrated Spark-only exhaustion for normal Codex mo
   assert.equal(normalSelected.connectionId, connectionId);
   assert.equal(sparkSelected.allRateLimited, true);
 });
+
+test("Codex selection hydrates authoritative scoped quota metadata after restart", async () => {
+  const sparkResetAt = futureIso(180_000);
+  const connection = await providersDb.createProviderConnection({
+    provider: "codex",
+    authType: "oauth",
+    name: "codex-authoritative-scoped-restart",
+    apiKey: null,
+    accessToken: "codex-authoritative-scoped-access",
+    refreshToken: "codex-authoritative-scoped-refresh",
+    isActive: true,
+    testStatus: "active",
+    providerSpecificData: {
+      codexQuotaStateByScope: {
+        codex: {
+          usage5h: 20,
+          limit5h: 100,
+          resetAt5h: futureIso(60_000),
+          usage7d: 30,
+          limit7d: 100,
+          resetAt7d: futureIso(120_000),
+          observedAt: new Date().toISOString(),
+        },
+        spark: {
+          usage5h: 80,
+          limit5h: 100,
+          resetAt5h: sparkResetAt,
+          usage7d: 20,
+          limit7d: 100,
+          resetAt7d: futureIso(240_000),
+          observedAt: new Date().toISOString(),
+        },
+      },
+      codexExhaustedWindowByScope: { spark: "5h" },
+      codexScopeRateLimitSource: { spark: "quota_reset" },
+    },
+  });
+  const connectionId = (connection as { id: string }).id;
+
+  quotaCache.__clearForTests();
+
+  const normalSelected = await auth.getProviderCredentials("codex", null, null, "codex/gpt-5.5");
+  const sparkSelected = await auth.getProviderCredentials(
+    "codex",
+    null,
+    null,
+    "gpt-5.3-codex-spark"
+  );
+
+  assert.equal(normalSelected.connectionId, connectionId);
+  assert.equal(sparkSelected.allRateLimited, true);
+  assert.equal(sparkSelected.retryAfter, sparkResetAt);
+  assert.equal(
+    quotaCache.getQuotaWindowStatus(connectionId, "session", 100)?.reachedThreshold,
+    false
+  );
+  assert.equal(
+    quotaCache.getQuotaWindowStatus(connectionId, "gpt_5_3_codex_spark_session", 100)
+      ?.reachedThreshold,
+    true
+  );
+});
+
+test("legacy Codex quota metadata hydrates only its embedded child scope", async () => {
+  const sparkResetAt = futureIso(180_000);
+  const connection = await providersDb.createProviderConnection({
+    provider: "codex",
+    authType: "oauth",
+    name: "codex-legacy-scoped-restart",
+    apiKey: null,
+    accessToken: "codex-legacy-scoped-access",
+    refreshToken: "codex-legacy-scoped-refresh",
+    isActive: true,
+    testStatus: "active",
+    providerSpecificData: {
+      codexQuotaState: {
+        scope: "spark",
+        usage5h: 100,
+        limit5h: 100,
+        resetAt5h: sparkResetAt,
+        usage7d: 10,
+        limit7d: 100,
+        resetAt7d: futureIso(240_000),
+        observedAt: new Date().toISOString(),
+      },
+      codexExhaustedWindow: "5h",
+    },
+  });
+  const connectionId = (connection as { id: string }).id;
+
+  quotaCache.__clearForTests();
+
+  const normalSelected = await auth.getProviderCredentials("codex", null, null, "codex/gpt-5.5");
+  const sparkSelected = await auth.getProviderCredentials(
+    "codex",
+    null,
+    null,
+    "gpt-5.3-codex-spark"
+  );
+
+  assert.equal(normalSelected.connectionId, connectionId);
+  assert.equal(sparkSelected.allRateLimited, true);
+});

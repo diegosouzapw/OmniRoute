@@ -6017,7 +6017,16 @@
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is OmniRoute's founding Open Source Friend",
     "cheaperInferenceSupporterBadge": "Open Source Friend",
     "cheaperInferenceSupporterTooltip": "Cheaper Inference backs OmniRoute as an Open Source Friend",
-    "kimiPartnerLinkNote": "Partner link — supports OmniRoute at no extra cost to you"
+    "kimiPartnerLinkNote": "Partner link — supports OmniRoute at no extra cost to you",
+    "codexQuotaPools": "Codex quota pools",
+    "codexPoolAvailable": "Available",
+    "codexPoolPartiallyLimited": "Partially limited",
+    "codexPoolFullyLimited": "Fully limited",
+    "codexPoolLimited": "{count} limited",
+    "codexPoolQuotaExhausted": "Quota exhausted",
+    "codexPoolCoolingDown": "Cooling down",
+    "codexPoolUsed": "used",
+    "codexPoolUntil": "Until {value}"
   },
   "settings": {
     "title": "Settings",

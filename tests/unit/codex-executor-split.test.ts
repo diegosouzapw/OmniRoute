@@ -6,7 +6,7 @@ import { dirname, join } from "node:path";
 
 // Split-guard for the codex executor quota extraction.
 // The pure quota-snapshot parsing + reset/cooldown scheduling lives in codex/quota.ts.
-// Host re-exports the 4 public symbols (chatCore/codexQuota.ts + tests import them).
+// Host re-exports the 4 public symbols for the Codex account module and tests.
 const HERE = dirname(fileURLToPath(import.meta.url));
 const EXE = join(HERE, "../../open-sse/executors");
 const HOST = join(EXE, "codex.ts");

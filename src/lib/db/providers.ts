@@ -119,7 +119,7 @@ export async function getProviderConnections(
   filter: JsonRecord = {},
   limit?: number,
   offset?: number,
-  columns?: string[],
+  columns?: string[]
 ) {
   const useCache = !columns?.length && limit === undefined && offset === undefined;
   const raw = useCache
@@ -145,7 +145,7 @@ export async function getRawProviderConnections(
   filter: JsonRecord = {},
   limit?: number,
   offset?: number,
-  columns?: string[],
+  columns?: string[]
 ) {
   const db = getDbInstance() as unknown as DbLike;
   let selectCols = "*";
@@ -176,8 +176,6 @@ export async function getRawProviderConnections(
     conditions.push("auth_type = @authType");
     params.authType = filter.authType;
   }
-
-
 
   if (conditions.length > 0) {
     sql += " WHERE " + conditions.join(" AND ");
@@ -783,6 +781,11 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
   );
 }
 
+export {
+  updateCodexScopedQuotaState,
+  updateCodexScopeCooldown,
+} from "./providers/codexAccountState";
+
 /**
  * Atomic conditional clear of recoverable error state on a connection row.
  *
@@ -1005,10 +1008,7 @@ export async function getDistinctGroups(): Promise<string[]> {
   return rows.map((r) => String(r.group ?? "")).filter(Boolean);
 }
 
-export {
-  autoMigrateLegacyEncryptedConnections,
-  getGheCopilotHosts,
-} from "./providers/migrations";
+export { autoMigrateLegacyEncryptedConnections, getGheCopilotHosts } from "./providers/migrations";
 
 // ──────────────── Re-exports from leaf modules ────────────────
 

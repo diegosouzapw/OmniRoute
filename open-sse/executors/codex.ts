@@ -39,8 +39,8 @@ import { errorResponse } from "../utils/error.ts";
 import { normalizeCodexResponsesInput } from "../utils/responsesInputNormalization.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
 import { createRequire } from "module";
-// Quota parsing/scheduling extracted to a pure leaf; re-exported for external
-// importers (handlers/chatCore/codexQuota.ts + tests).
+// Quota parsing/scheduling extracted to a pure leaf; re-exported for the
+// Codex account module and tests.
 export {
   type CodexQuotaSnapshot,
   parseCodexQuotaHeaders,

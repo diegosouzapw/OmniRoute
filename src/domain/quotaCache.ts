@@ -23,7 +23,17 @@ import {
   getLatestQuotaSnapshotsForConnection,
 } from "@/lib/db/quotaSnapshots";
 import { recordProviderQuotaResetEventIfChanged } from "@/lib/db/quotaResetEvents";
-import { getCodexQuotaWindowFilterForModel } from "@omniroute/open-sse/config/codexQuotaScopes.ts";
+import {
+  CODEX_SPARK_QUOTA_SESSION,
+  CODEX_SPARK_QUOTA_WEEKLY,
+  getCodexQuotaWindowFilterForModel,
+} from "@omniroute/open-sse/config/codexQuotaScopes.ts";
+import {
+  createCodexAccountPool,
+  getCodexChildQuotaHydration,
+  resolveCodexAccount,
+  type CodexPersistedQuotaState,
+} from "@omniroute/open-sse/services/codexAccount/index.ts";
 import { getAntigravityQuotaFamily } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -258,6 +268,88 @@ function isAntigravityQuotaExhausted(
       (windowName) => getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
     )
   );
+}
+
+function remainingPercent(usage: unknown, limit: unknown): number | null {
+  const used = Number(usage);
+  const total = Number(limit);
+  if (!Number.isFinite(used) || !Number.isFinite(total) || total <= 0) return null;
+  return clampPercent(((total - used) / total) * 100);
+}
+
+function mergeCodexPersistedQuota(
+  entry: QuotaCacheEntry,
+  scope: "codex" | "spark",
+  quotaState: CodexPersistedQuotaState
+): void {
+  const sessionKey = scope === "spark" ? CODEX_SPARK_QUOTA_SESSION : "session";
+  const weeklyKey = scope === "spark" ? CODEX_SPARK_QUOTA_WEEKLY : "weekly";
+  const sessionRemaining = remainingPercent(quotaState.usage5h, quotaState.limit5h);
+  const weeklyRemaining = remainingPercent(quotaState.usage7d, quotaState.limit7d);
+  if (sessionRemaining !== null) {
+    entry.quotas[sessionKey] = {
+      remainingPercentage: sessionRemaining,
+      resetAt: quotaState.resetAt5h ?? null,
+    };
+  }
+  if (weeklyRemaining !== null) {
+    entry.quotas[weeklyKey] = {
+      remainingPercentage: weeklyRemaining,
+      resetAt: quotaState.resetAt7d ?? null,
+    };
+  }
+}
+
+/** Overlay one Codex child's persisted quota facts into the existing request cache. */
+export function hydrateCodexQuotaCacheForRequest(
+  connection: {
+    id: string;
+    provider: string;
+    providerSpecificData?: Readonly<Record<string, unknown>> | null;
+  },
+  requestedModel: string | null
+): void {
+  if (connection.provider !== "codex" || !requestedModel?.trim()) return;
+  const pool = createCodexAccountPool({
+    id: connection.id,
+    provider: connection.provider,
+    providerSpecificData: connection.providerSpecificData ?? {},
+  });
+  const account = resolveCodexAccount(pool, requestedModel);
+  if (account.kind !== "child") return;
+  const hydration = getCodexChildQuotaHydration(account);
+  if (!hydration.quotaState) return;
+
+  const { cache } = getState();
+  const entry = cache.get(connection.id) ||
+    hydrateQuotaCacheFromSnapshots(connection.id) || {
+      connectionId: connection.id,
+      provider: connection.provider,
+      quotas: {},
+      fetchedAt: Date.now(),
+      exhausted: false,
+      nextResetAt: null,
+    };
+  mergeCodexPersistedQuota(entry, hydration.scope, hydration.quotaState);
+  let exhaustedResetAt: string | null = null;
+  if (hydration.exhaustedWindow) {
+    const windowName =
+      hydration.scope === "spark"
+        ? hydration.exhaustedWindow === "5h"
+          ? CODEX_SPARK_QUOTA_SESSION
+          : CODEX_SPARK_QUOTA_WEEKLY
+        : hydration.exhaustedWindow === "5h"
+          ? "session"
+          : "weekly";
+    const window = entry.quotas[windowName];
+    if (window) {
+      entry.quotas[windowName] = { ...window, remainingPercentage: 0 };
+      exhaustedResetAt = window.resetAt;
+    }
+  }
+  entry.exhausted = isExhausted(entry.quotas);
+  if (exhaustedResetAt) entry.nextResetAt = exhaustedResetAt;
+  cache.set(connection.id, entry);
 }
 
 function isCodexQuotaExhausted(

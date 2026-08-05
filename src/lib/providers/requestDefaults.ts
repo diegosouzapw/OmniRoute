@@ -265,6 +265,10 @@ export function sanitizeProviderSpecificDataForResponse(value: unknown): JsonRec
   if (Object.keys(record).length === 0) return undefined;
 
   const sanitized: JsonRecord = { ...record };
+  delete sanitized.accessToken;
+  delete sanitized.refreshToken;
+  delete sanitized.idToken;
+  delete sanitized.apiKey;
   delete sanitized.consoleApiKey;
   delete sanitized.secretAccessKey;
   delete sanitized.awsSecretAccessKey;
