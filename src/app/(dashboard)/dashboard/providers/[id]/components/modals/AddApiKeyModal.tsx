@@ -946,7 +946,6 @@ export default function AddApiKeyModal({
                 disabled={
                   !formData.name ||
                   (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
-                  (isCompatible && !formData.defaultModel.trim()) ||
                   (isGooglePse && !formData.cx.trim()) ||
                   saving ||
                   (usesBaseUrl && !formData.baseUrl.trim() && !defaultBaseUrl)

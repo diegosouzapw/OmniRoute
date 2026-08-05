@@ -40,6 +40,7 @@ export interface ConnectionRowConnection {
   errorCode?: string | number;
   globalPriority?: number;
   providerSpecificData?: Record<string, unknown>;
+  defaultModel?: string | null;
   expiresAt?: string;
   tokenExpiresAt?: string;
   maxConcurrent?: number | null;
