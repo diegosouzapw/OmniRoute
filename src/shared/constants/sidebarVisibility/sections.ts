@@ -424,6 +424,13 @@ const SYSTEM_GROUP: SidebarItemGroup = {
       subtitleKey: "runtimeSubtitle",
       icon: "bolt",
     },
+    {
+      id: "resilience-connections",
+      href: "/dashboard/resilience/connections",
+      i18nKey: "resilienceConnections",
+      subtitleKey: "resilienceConnectionsSubtitle",
+      icon: "shield",
+    },
   ],
 };
 

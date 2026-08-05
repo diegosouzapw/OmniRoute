@@ -56,6 +56,7 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   VNC_ROUTE_PREFIX, // #7892: /api/vnc-session/* spawns Docker containers via child_process.spawn (src/lib/vncSession/service.ts) — RCE-via-tunnel surface (Hard Rules #15 + #17), same CVE class (GHSA-fhh6-4qxv-rpqj).
   "/api/acp/agents", // ACP custom-agent registry: POST registers a client-chosen `binary`; GET / POST {action:"refresh"} runs detectInstalledAgents() -> execFileSync(probe.command, probe.args, { shell }) transitively (src/lib/acp/registry.ts) — RCE-via-tunnel surface (Hard Rules #15 + #17, #7948)
   "/api/resilience/connections", // Per-account resilience state. NOTE: prefix matching also gates future /api/resilience/connections-* paths.
+  "/dashboard/resilience/connections", // Per-account resilience state. NOTE: this endpoint is READ-ONLY (no child process spawn, unlike every other entry in this list); gated because it exposes per-account operational state (cooldown/breaker/lockout). Do not treat as precedent for non-spawning routes.
 ];
 
 /**

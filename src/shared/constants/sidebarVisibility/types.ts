@@ -57,6 +57,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "logs-activity",
   "health",
   "runtime",
+  "resilience-connections",
   // Costs section
   "costs-pricing",
   "costs-budget",

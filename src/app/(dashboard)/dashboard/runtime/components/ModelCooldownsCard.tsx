@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Card } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
+import { formatRemaining } from "@/shared/utils/formatRemaining";
 
 type CooldownItem = {
   provider: string;
@@ -12,13 +13,6 @@ type CooldownItem = {
   remainingMs: number;
   unavailableSince: string;
 };
-
-function formatRemaining(ms: number): string {
-  const totalSec = Math.max(0, Math.ceil(ms / 1000));
-  const min = Math.floor(totalSec / 60);
-  const sec = totalSec % 60;
-  return `${min}m ${sec}s`;
-}
 
 export default function ModelCooldownsCard() {
   const t = useTranslations("settings");
