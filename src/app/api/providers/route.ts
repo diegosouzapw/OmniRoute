@@ -39,7 +39,7 @@ import {
   fetchModelSyncInternal,
   getModelSyncInternalBaseUrl,
 } from "@/shared/services/modelSyncScheduler";
-import { finalizeValidatedChatGptWebCodexSecrets } from "@omniroute/open-sse/executors/chatgpt-web-codex/storageState.ts";
+import { finalizeValidatedChatGptWebCodexSecrets } from "@omniroute/open-sse/services/chatgptWebCodexAdmin.ts";
 
 // GET /api/providers - List all connections
 export async function GET(request: Request) {

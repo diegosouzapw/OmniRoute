@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getProviderConnectionById } from "@/lib/db/providers";
-import { getChatGptWebCodexDoctorStatus } from "@omniroute/open-sse/executors/chatgpt-web-codex/doctor.ts";
+import { getChatGptWebCodexDoctorStatus } from "@omniroute/open-sse/services/chatgptWebCodexAdmin.ts";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const authError = await requireManagementAuth(request);

@@ -30,11 +30,11 @@ import {
   refreshConnectionRateLimits,
   enableRateLimitProtection,
 } from "@/../open-sse/services/rateLimitManager";
-import { finalizeValidatedChatGptWebCodexSecrets } from "@omniroute/open-sse/executors/chatgpt-web-codex/storageState.ts";
 import {
+  finalizeValidatedChatGptWebCodexSecrets,
   decodeChatGptWebCodexSecrets,
   encodeChatGptWebCodexSecrets,
-} from "@omniroute/open-sse/executors/chatgpt-web-codex/credentials.ts";
+} from "@omniroute/open-sse/services/chatgptWebCodexAdmin.ts";
 
 function normalizeCodexLimitPolicy(
   incoming: unknown,
