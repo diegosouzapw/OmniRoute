@@ -25,7 +25,9 @@ VERSION="${1:?version required}"
 # A pre-release VERSION must never grab :latest (callers already short-circuit
 # this, but stay safe as a standalone unit).
 case "$VERSION" in
-  *-*) echo "false"; exit 0 ;;
+  # Consume the caller's tag stream before exiting. A pre-release decision is
+  # immediate, but closing stdin early can give a piped producer EPIPE.
+  *-*) cat >/dev/null; echo "false"; exit 0 ;;
 esac
 
 # Build the stable candidate set: incoming tags (v-stripped, pre-releases

@@ -7120,6 +7120,8 @@
     "visionBridgeDesc": "Run an automatic vision-to-text fallback before routing image requests to text-only models.",
     "visionBridgeEnabledLabel": "Enabled",
     "visionBridgeEnabledDesc": "Toggle the pre-call bridge that replaces image parts with extracted text.",
+    "visionBridgeRerouteTextOnlyLabel": "Reroute text-only models",
+    "visionBridgeRerouteTextOnlyDesc": "Send the complete request, including images, to the bridge model when the selected model has no image input.",
     "visionBridgeModel": "Bridge Model",
     "visionBridgeModelPlaceholder": "openai/gpt-4o-mini",
     "visionBridgeModelHint": "Any OmniRoute model ID that supports vision can be used here.",

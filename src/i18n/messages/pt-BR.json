@@ -7120,6 +7120,8 @@
     "visionBridgeDesc": "Executa um fallback automático de visão para texto antes de rotear solicitações de imagem para modelos que aceitam apenas texto.",
     "visionBridgeEnabledLabel": "Ativado",
     "visionBridgeEnabledDesc": "Ativa a ponte pré-chamada que substitui partes de imagem pelo texto extraído.",
+    "visionBridgeRerouteTextOnlyLabel": "Redirecionar modelos somente de texto",
+    "visionBridgeRerouteTextOnlyDesc": "Envia a solicitação completa, incluindo imagens, ao modelo de ponte quando o modelo selecionado não aceita entrada de imagem.",
     "visionBridgeModel": "Modelo de ponte",
     "visionBridgeModelPlaceholder": "openai/gpt-4o-mini",
     "visionBridgeModelHint": "Qualquer ID de modelo OmniRoute que suporte visão pode ser usado aqui.",
