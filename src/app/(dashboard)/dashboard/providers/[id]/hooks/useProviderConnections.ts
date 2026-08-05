@@ -26,7 +26,10 @@ import { useTranslations } from "next-intl";
 import { useNotificationStore } from "@/store/notificationStore";
 import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
 import type { ConnectionRowConnection } from "../components/ConnectionRow";
-import { connectionBelongsToProviderPage } from "../../providerPageUtils";
+import {
+  connectionBelongsToProviderPage,
+  getProviderConnectionsRequestUrl,
+} from "../../providerPageUtils";
 import { normalizeCodexLimitPolicy } from "../providerPageHelpers";
 import { useProviderQuotaVisibility } from "./useProviderQuotaVisibility";
 import { useReorderByAvailability } from "./useReorderByAvailability";
@@ -199,8 +202,9 @@ export function useProviderConnections(
 
   const fetchConnections = useCallback(async () => {
     try {
+      const connectionsUrl = getProviderConnectionsRequestUrl(providerId);
       const [connectionsRes, nodesRes] = await Promise.all([
-        fetch("/api/providers", { cache: "no-store" }),
+        fetch(connectionsUrl, { cache: "no-store" }),
         fetch("/api/provider-nodes", { cache: "no-store" }),
       ]);
       const connectionsData = await connectionsRes.json();

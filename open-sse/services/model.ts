@@ -557,20 +557,36 @@ function parseAliasTarget(target: string): ResolvedModelTarget | null {
 }
 
 async function resolveModelByProviderInference(modelId: string, extendedContext: boolean) {
-  if (CODEX_NATIVE_UNPREFIXED_MODELS.has(modelId)) {
-    return {
-      provider: "codex",
-      model: modelId,
-      extendedContext,
-    };
-  }
-
   const [activeProviders, activeSyncedProviders, preferClaudeCodeForUnprefixedClaudeModels] =
     await Promise.all([
       getActiveProviderSet(),
       getActiveSyncedProvidersForModel(modelId),
       getPreferClaudeCodeForUnprefixedClaudeModels(),
     ]);
+
+  // Codex-native bare ids prefer the ChatGPT subscription, but the preference is only
+  // allowed to PREEMPT another provider when a codex connection is actually active.
+  // Returning "codex" unconditionally (as this did once the set grew past
+  // `codex-auto-review` to cover gpt-5.5 / the gpt-5.6-sol tiers) hands ids that OpenAI
+  // also serves to a provider the operator may not have configured: an OpenAI-only
+  // install fails with "no active credentials for provider: codex" on a model that
+  // works, and an install whose codex connection is merely *inactive* fails the same way.
+  // Ids only codex catalogs (e.g. `codex-auto-review`) keep resolving to codex with no
+  // connection at all — there is no alternative to preempt, and "no codex credentials"
+  // is the honest error. With codex active the preference still beats OpenAI, and an
+  // explicit `openai/…` prefix remains the per-request override either way.
+  if (CODEX_NATIVE_UNPREFIXED_MODELS.has(modelId)) {
+    const codexNativeAlternatives = (MODEL_TO_PROVIDERS.get(modelId) || []).filter(
+      (p) => p !== "codex"
+    );
+    if (codexNativeAlternatives.length === 0 || activeProviders?.has("codex")) {
+      return {
+        provider: "codex",
+        model: modelId,
+        extendedContext,
+      };
+    }
+  }
   // #FIX: synced catalogs (populated from `/v1/models` per connection) can
   // claim ownership of models the provider does not actually serve (e.g. a
   // `kiro` upstream briefly advertising `claude-opus-5` before it was

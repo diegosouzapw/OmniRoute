@@ -108,11 +108,11 @@ describe("deepseekWebTools — variants", () => {
     assert.deepEqual(JSON.parse(call.function.arguments), { city: "Paris" });
   });
 
-  test("bare JSON (no tags) still resolves via fuzzy name match", () => {
+  test("bare JSON (no tags) is NOT promoted to tool_calls (#9343)", () => {
     const text = `{"name":"getWeather","arguments":{"city":"Paris"}}`;
-    const call = firstCall(text);
-    assert.equal(call.function.name, "get_weather");
-    assert.deepEqual(JSON.parse(call.function.arguments), { city: "Paris" });
+    const { toolCalls, content } = parseDeepSeekToolCalls(text, "call", TOOLS);
+    assert.equal(toolCalls, null, "bare JSON must not be promoted to tool_calls");
+    assert.equal(content, text, "bare JSON must be preserved as content text");
   });
 
   test("#3260: tag name attribute is bogus, real name is in JSON body", () => {
@@ -157,10 +157,11 @@ describe("deepseekWebTools — pure-text (no tool) replies", () => {
 });
 
 describe("deepseekWebTools — strict prompt", () => {
-  test("lists tools and mandates the exact <tool> JSON format", () => {
+  test("lists tools and mandates the exact <tool> JSON format with nonce binding", () => {
     const prompt = serializeDeepSeekToolPrompt(TOOLS);
     assert.ok(prompt.includes("todowrite"));
     assert.ok(prompt.includes("get_weather"));
+    assert.ok(prompt.includes('_nonce'), "includes nonce binding");
     assert.ok(prompt.includes('<tool>{"name"'), "shows the canonical format");
     assert.ok(/never|not|do not/i.test(prompt), "warns against alternative formats");
   });

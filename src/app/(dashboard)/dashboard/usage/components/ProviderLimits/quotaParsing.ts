@@ -69,6 +69,10 @@ function normalizeQuotaEntry(name: string, quota: any = {}, extras: any = {}) {
       ? { extraCreditsInferred: Number(quota.extraCreditsInferred) || 0 }
       : {}),
     ...(quota?.overPlan !== undefined ? { overPlan: quota.overPlan === true } : {}),
+    ...(quota?.displayName !== undefined ? { displayName: String(quota.displayName) } : {}),
+    ...(quota?.isPercentageOnly !== undefined
+      ? { isPercentageOnly: quota.isPercentageOnly === true }
+      : {}),
     ...extras,
   };
 }

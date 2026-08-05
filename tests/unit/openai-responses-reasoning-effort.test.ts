@@ -38,6 +38,21 @@ test("Responses -> Chat promotes reasoning.effort for non-Copilot clients", () =
   assert.equal(out.reasoning, undefined);
 });
 
+test("Responses -> Ollama Cloud Chat preserves every advertised reasoning effort", () => {
+  for (const effort of ["low", "medium", "high"]) {
+    const out = asRecord(
+      openaiResponsesToOpenAIRequest(
+        "ollama-cloud/gpt-oss:20b",
+        { input: "hello", reasoning: { effort } },
+        true,
+        { _provider: "ollama-cloud" }
+      )
+    );
+    assert.equal(out.reasoning_effort, effort);
+    assert.equal(out.reasoning, undefined);
+  }
+});
+
 test("Responses -> Chat preserves reasoning.effort via the helper wrapper", () => {
   const out = asRecord(
     convertResponsesApiFormat({ input: "hello", reasoning: { effort: "medium" } })

@@ -2,10 +2,7 @@ import { randomUUID } from "node:crypto";
 import { parseModel } from "@omniroute/open-sse/services/model.ts";
 import { getModelInfo } from "@/sse/services/model";
 import { getModelAliases } from "@/lib/db/models";
-import {
-  getResolvedModelCapabilities,
-  isNonChatCatalogSurface,
-} from "@/lib/modelCapabilities";
+import { getResolvedModelCapabilities, isNonChatCatalogSurface } from "@/lib/modelCapabilities";
 import {
   getAuthoritativeContextWindow,
   getAuthoritativeProviderContextWindow,
@@ -261,24 +258,46 @@ export function getCanonicalModelMetadata(input: {
   };
 }
 
+// #8697 second bottleneck (after getModelsDevPricing memoization above): findInsensitive
+// rebuilt a full Object.entries() scan on every miss, twice per model (provider lookup +
+// model lookup) — ~6091 models × ~180-210 entries ≈ 1.2-1.3M allocations per catalog
+// rebuild. Replaced with a lowercase-key index built once per distinct object and cached
+// by identity (WeakMap) — getModelsDevPricing() returns the same object reference while
+// its cache is warm, so the index is reused across every resolveCatalogPricing() call in
+// a rebuild instead of rebuilt per lookup.
+const lowercaseIndexCache = new WeakMap<object, Map<string, unknown>>();
+
+function findInsensitive<T>(obj: Record<string, T> | null | undefined, key: string): T | undefined {
+  if (!obj || !key) return undefined;
+  if (key in obj) return obj[key];
+  let index = lowercaseIndexCache.get(obj);
+  if (!index) {
+    index = new Map();
+    for (const [k, v] of Object.entries(obj)) {
+      const lowerKey = k.toLowerCase();
+      // Warn once at index-build time (not per-lookup) if two keys collide
+      // case-insensitively — a real data-quality signal from an upstream sync (e.g.
+      // models.dev returning both "OpenAI" and "openai" as distinct provider keys).
+      // Matches the pre-fix scan's silent first-match-wins behavior, just surfaced
+      // instead of swallowed.
+      if (index.has(lowerKey)) {
+        console.warn(
+          `[modelMetadataRegistry] findInsensitive: case-insensitive key collision on "${lowerKey}" — keeping first-seen value, later one discarded`
+        );
+        continue;
+      }
+      index.set(lowerKey, v);
+    }
+    lowercaseIndexCache.set(obj, index);
+  }
+  return index.get(key.toLowerCase()) as T | undefined;
+}
+
 function resolveCatalogPricing(
   provider: string | null,
   model: string | null
 ): Record<string, number> | null {
   if (!provider || !model) return null;
-
-  const findInsensitive = <T>(
-    obj: Record<string, T> | null | undefined,
-    key: string
-  ): T | undefined => {
-    if (!obj || !key) return undefined;
-    if (key in obj) return obj[key];
-    const lower = key.toLowerCase();
-    for (const [k, v] of Object.entries(obj)) {
-      if (k.toLowerCase() === lower) return v;
-    }
-    return undefined;
-  };
 
   // Prefer models.dev synced pricing when present; fall back to hardcoded defaults.
   try {
@@ -346,6 +365,10 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
 
   const metadata = getCanonicalModelMetadata({ provider, model });
   if (!metadata) return entry;
+  const registryModel = getRegistryModel(
+    metadata.providerAlias || metadata.provider,
+    metadata.model
+  );
 
   const nextEntry: JsonRecord = { ...entry };
   const existingName = asNonEmptyString(entry.name);
@@ -382,11 +405,15 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
           supportsThinking: metadata.capabilities.supportsThinking,
           ...(metadata.capabilities.supportsThinking
             ? {
-                effort_tiers: extendCodexGpt56EffortValues(
-                  metadata.provider,
-                  metadata.model,
-                  CANONICAL_EFFORT_VALUES
-                ),
+                effort_tiers:
+                  registryModel?.supportedThinkingEfforts &&
+                  registryModel.supportedThinkingEfforts.length > 0
+                    ? [...registryModel.supportedThinkingEfforts]
+                    : extendCodexGpt56EffortValues(
+                        metadata.provider,
+                        metadata.model,
+                        CANONICAL_EFFORT_VALUES
+                      ),
               }
             : {}),
         }

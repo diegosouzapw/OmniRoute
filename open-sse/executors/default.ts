@@ -395,9 +395,26 @@ export class DefaultExecutor extends BaseExecutor {
       }
       case "claude":
       case "anthropic":
-        effectiveKey
-          ? (headers["x-api-key"] = effectiveKey)
-          : (headers["Authorization"] = `Bearer ${credentials.accessToken}`);
+        if (effectiveKey) {
+          headers["x-api-key"] = effectiveKey;
+          // Port of decolua/9router commit b977bf74:
+          // Third-party Anthropic-compatible gateways frequently require
+          // Authorization: Bearer ALONGSIDE x-api-key — without it they
+          // return 401 missing_api_key on every forward. Only emit the
+          // Bearer fallback for non-official upstreams; api.anthropic.com
+          // (and the empty/default baseUrl that targets it) must keep the
+          // x-api-key-only behavior to avoid regressing the official path.
+          const baseUrl = credentials?.providerSpecificData?.baseUrl || "";
+          const isOfficial = isOfficialAnthropicBaseUrl(baseUrl);
+          if (!isOfficial) {
+            headers["Authorization"] = `Bearer ${effectiveKey}`;
+          }
+        } else if (credentials.accessToken) {
+          headers["Authorization"] = `Bearer ${credentials.accessToken}`;
+        }
+        // If neither effectiveKey nor accessToken is available, emit no
+        // auth header — the handler will produce a clean "no credentials"
+        // 4xx instead of forwarding garbage auth headers to the upstream.
         break;
       case "glm":
       case "glmt":

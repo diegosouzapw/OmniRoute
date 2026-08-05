@@ -3307,11 +3307,6 @@
       "count": 1
     }
   },
-  "src/lib/usage/providerLimits.ts": {
-    "no-restricted-imports": {
-      "count": 1
-    }
-  },
   "src/lib/ws/handshake.ts": {
     "no-restricted-imports": {
       "count": 1
