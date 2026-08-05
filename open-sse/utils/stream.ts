@@ -1021,24 +1021,6 @@ export function createSSEStream(options: StreamOptions = {}) {
       itemSanitized.usage = filterUsageForFormat(buffered, sourceFormat);
     }
 
-    // Streaming path patch: extractUsage has already consumed prompt_cache_hit_tokens
-    // into flat cached_tokens, but the standard OpenAI nested field prompt_tokens_details
-    // was lost from state.usage. Rebuild the nested structure from the flat cached_tokens
-    // so agent clients (Cline / Cursor / Claude Code etc.) see cache hit counts.
-    if (sourceFormat === FORMATS.OPENAI) {
-      const u = itemSanitized?.usage as Record<string, unknown> | undefined;
-      if (u) {
-        const ct = u.cached_tokens ?? u.cache_read_input_tokens;
-        if (ct !== undefined) {
-          const details = (u.prompt_tokens_details as Record<string, unknown>) ?? {};
-          if (details.cached_tokens === undefined) {
-            details.cached_tokens = ct;
-            u.prompt_tokens_details = details;
-          }
-        }
-      }
-    }
-
     if (
       sourceFormat === FORMATS.CLAUDE &&
       shouldInjectClaudeEmptyResponseBeforeCurrentEvent(claudeEmptyResponseLifecycle, itemSanitized)
@@ -1920,20 +1902,6 @@ export function createSSEStream(options: StreamOptions = {}) {
                   } else if (isFinishChunk && usage) {
                     const buffered = addBufferToUsage(usage);
                     parsed.usage = filterUsageForFormat(buffered, FORMATS.OPENAI);
-
-                    // Rebuild prompt_tokens_details.cached_tokens from flat cached_tokens / cache_read_input_tokens
-                    const u = parsed?.usage as Record<string, unknown> | undefined;
-                    if (u) {
-                      const ct = u.cached_tokens ?? u.cache_read_input_tokens;
-                      if (ct !== undefined) {
-                        const d = (u.prompt_tokens_details as Record<string, unknown>) ?? {};
-                        if (d.cached_tokens === undefined) {
-                          d.cached_tokens = ct;
-                          u.prompt_tokens_details = d;
-                        }
-                      }
-                    }
-
                     output = `data: ${JSON.stringify(parsed)}\n\n`;
                     injectedUsage = true;
                   } else if (textualToolCallConverted) {

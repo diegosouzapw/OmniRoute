@@ -199,6 +199,14 @@ export function filterUsageForFormat(usage, targetFormat) {
     ) {
       convertedUsage.total_tokens = convertedUsage.prompt_tokens + convertedUsage.completion_tokens;
     }
+    // Rebuild prompt_tokens_details.cached_tokens from flat cached_tokens / cache_read_input_tokens (#8171)
+    const flatCached = convertedUsage.cached_tokens ?? convertedUsage.cache_read_input_tokens;
+    if (flatCached !== undefined && !convertedUsage.prompt_tokens_details?.cached_tokens) {
+      convertedUsage.prompt_tokens_details = {
+        ...convertedUsage.prompt_tokens_details,
+        cached_tokens: flatCached,
+      };
+    }
   }
 
   // Helper to pick only defined fields from usage
