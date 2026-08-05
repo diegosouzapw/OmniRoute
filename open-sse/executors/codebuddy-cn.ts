@@ -1,5 +1,82 @@
 import { DefaultExecutor } from "./default.ts";
-import type { ProviderCredentials } from "./base.ts";
+import type { ExecuteInput, ExecutorExecuteResult, ProviderCredentials } from "./base.ts";
+
+const SENSITIVE_CONTENT_REJECTION =
+  "抱歉，系统检测到您当前输入的信息存在敏感内容，我无法响应您的请求，请检查后重新输入";
+const LARGE_TOOL_METADATA_BYTES = 64 * 1024;
+
+function responseFromResult(result: ExecutorExecuteResult): Response {
+  return result instanceof Response ? result : result.response;
+}
+
+function credentialsFromResult(
+  result: ExecutorExecuteResult,
+  fallback: ProviderCredentials
+): ProviderCredentials {
+  if (result instanceof Response || !result.headers) return fallback;
+
+  const authorization = Object.entries(result.headers).find(
+    ([name]) => name.toLowerCase() === "authorization"
+  )?.[1];
+  if (!authorization?.startsWith("Bearer ")) return fallback;
+
+  return {
+    ...fallback,
+    accessToken: authorization.slice("Bearer ".length),
+    expiresAt: undefined,
+  };
+}
+
+function compactToolDescriptions(body: unknown): unknown | null {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return null;
+
+  const request = body as Record<string, unknown>;
+  if (!Array.isArray(request.tools) || request.tools.length === 0) return null;
+
+  const originalTools = request.tools;
+  try {
+    const serializedTools = JSON.stringify(originalTools);
+    if (new TextEncoder().encode(serializedTools).byteLength < LARGE_TOOL_METADATA_BYTES) {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+
+  let tools: unknown[] | null = null;
+  originalTools.forEach((tool, index) => {
+    if (!tool || typeof tool !== "object" || Array.isArray(tool)) return;
+
+    const declaration = tool as Record<string, unknown>;
+    if (
+      declaration.type !== "function" ||
+      !declaration.function ||
+      typeof declaration.function !== "object" ||
+      Array.isArray(declaration.function)
+    ) {
+      return;
+    }
+
+    const toolFunction = declaration.function as Record<string, unknown>;
+    if (!Object.prototype.hasOwnProperty.call(toolFunction, "description")) return;
+
+    const compactFunction = { ...toolFunction };
+    delete compactFunction.description;
+    tools ??= originalTools.slice();
+    tools[index] = { ...declaration, function: compactFunction };
+  });
+
+  return tools ? { ...request, tools } : null;
+}
+
+async function isSensitiveContentRejection(response: Response): Promise<boolean> {
+  if (response.status !== 400) return false;
+  const responseText = await response
+    .clone()
+    .text()
+    .catch(() => "");
+  return responseText.includes(SENSITIVE_CONTENT_REJECTION);
+}
 
 /**
  * CodeBuddyCnExecutor — talks to https://copilot.tencent.com/v2/chat/completions
@@ -19,6 +96,26 @@ import type { ProviderCredentials } from "./base.ts";
 export class CodeBuddyCnExecutor extends DefaultExecutor {
   constructor() {
     super("codebuddy-cn");
+  }
+
+  async execute(input: ExecuteInput): Promise<ExecutorExecuteResult> {
+    const result = await super.execute(input);
+    if (!(await isSensitiveContentRejection(responseFromResult(result)))) {
+      return result;
+    }
+
+    const compactBody = compactToolDescriptions(input.body);
+    if (!compactBody) return result;
+
+    input.log?.debug?.(
+      "CODEBUDDY_CN",
+      "Upstream rejected an oversized tool request as sensitive content; retrying with compact tool descriptions"
+    );
+    return super.execute({
+      ...input,
+      body: compactBody,
+      credentials: credentialsFromResult(result, input.credentials),
+    });
   }
 
   transformRequest(
