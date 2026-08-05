@@ -168,10 +168,12 @@ describe("ModelSelectModal — deselect / toggle behavior (upstream PR #889)", (
       keepOpenOnSelect: true,
     });
 
-    const firstModelButton = container.querySelector(
-      "button[class*='hover:border-primary']"
-    ) as HTMLButtonElement | null;
-    expect(firstModelButton).not.toBeNull();
+    // Model chips use rounded-xl; toolbar controls (Select all / Test Selected)
+    // also include hover:border-primary so class-only matching is too broad.
+    const firstModelButton = Array.from(container.querySelectorAll("button")).find((b) =>
+      (b.className || "").includes("rounded-xl")
+    ) as HTMLButtonElement | undefined;
+    expect(firstModelButton, "expected a model chip button").toBeDefined();
 
     await act(async () => {
       firstModelButton!.click();
