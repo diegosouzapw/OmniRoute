@@ -113,12 +113,14 @@ import { CATALOG_CACHE_TTL_MS_DEFAULT, resolveCachedCatalogResponse } from "./ca
 
 export {
   CATALOG_STALE_WHILE_REVALIDATE_MS,
+  getCatalogStaleWhileRevalidateMs,
   __resetCatalogBuilderRunsForTest,
   __getCatalogBuilderRunsForTest,
   __expireCatalogCacheForTest,
   __setCatalogCacheEntryForTest,
   __flushCatalogBackgroundRefreshForTest,
   __forceCatalogInFlightRejectionForTest,
+  __setCatalogStaleWhileRevalidateMsForTest,
 } from "./catalogCache";
 export type { CachedCatalog } from "./catalogCache";
 

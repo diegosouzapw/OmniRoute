@@ -38,6 +38,11 @@ async function resetStorage() {
 
 test.beforeEach(async () => {
   await resetStorage();
+  // SWR assertions below need the production (unbounded) window; node:test
+  // defaults the live bound to 0 so other suites stay isolated.
+  v1ModelsCatalog.__setCatalogStaleWhileRevalidateMsForTest(
+    v1ModelsCatalog.CATALOG_STALE_WHILE_REVALIDATE_MS
+  );
 });
 
 test.after(async () => {
@@ -108,26 +113,32 @@ test("3. stale-first: an expired 200 entry within the staleness window is served
   );
 });
 
-test("4. beyond the staleness window, the response waits for a fresh build again", async () => {
+test("4. #8697 — even far past the old 30s staleness bound, the response stays stale-first", async () => {
   const makeRequest = () => new Request("http://localhost/v1/models");
 
   const res1 = await v1ModelsCatalog.getUnifiedModelsResponse(makeRequest());
   assert.equal(res1.status, 200);
+  const body1 = await res1.text();
   const runsAfterFirst = v1ModelsCatalog.__getCatalogBuilderRunsForTest();
   assert.equal(runsAfterFirst, 1);
 
-  // Push the entry's age past CATALOG_STALE_WHILE_REVALIDATE_MS.
-  v1ModelsCatalog.__expireCatalogCacheForTest(
-    v1ModelsCatalog.CATALOG_STALE_WHILE_REVALIDATE_MS + 5_000
-  );
+  // Age well past the historical 30s SWR bound that used to force a cold wait.
+  v1ModelsCatalog.__expireCatalogCacheForTest(60_000);
 
   const res2 = await v1ModelsCatalog.getUnifiedModelsResponse(makeRequest());
   assert.equal(res2.status, 200);
+  assert.equal(await res2.text(), body1, "stale body must be returned immediately");
+  assert.equal(
+    v1ModelsCatalog.__getCatalogBuilderRunsForTest(),
+    runsAfterFirst,
+    "must not wait on a rebuild — TTL expiry only schedules a background refresh"
+  );
+
+  await v1ModelsCatalog.__flushCatalogBackgroundRefreshForTest();
   assert.equal(
     v1ModelsCatalog.__getCatalogBuilderRunsForTest(),
     runsAfterFirst + 1,
-    "past the staleness window, the builder must run again BEFORE the response is returned " +
-      "(a refresh that keeps failing must not pin a stale catalog forever)"
+    "background refresh must still run once flushed"
   );
 });
 
@@ -156,25 +167,33 @@ test("5. a cached non-200 entry is never served as stale", async () => {
   assert.equal(res.status, 200, "the fresh rebuild replaces the cached error response");
 });
 
-test("6. a DB-state change drops the cache outright — the next response is a fresh build, never the stale pre-change body", async () => {
+test("6. #8697 — a DB-state change stale-serves the last 200 and refreshes in the background", async () => {
   const makeRequest = () => new Request("http://localhost/v1/models");
 
   const res1 = await v1ModelsCatalog.getUnifiedModelsResponse(makeRequest());
   assert.equal(res1.status, 200);
+  const body1 = await res1.text();
   const runsAfterFirst = v1ModelsCatalog.__getCatalogBuilderRunsForTest();
   assert.equal(runsAfterFirst, 1);
 
-  // Any settings/connections/combos/pricing write bumps this version; catalog.ts
-  // drops its entire cache map the next time it is read, independent of TTL/staleness.
+  // Settings/connections/combos/pricing writes bump this version. Entries are
+  // marked expired (not cleared) so the client never waits on a cold rebuild.
   readCache.invalidateDbCache();
 
   const res2 = await v1ModelsCatalog.getUnifiedModelsResponse(makeRequest());
   assert.equal(res2.status, 200);
+  assert.equal(await res2.text(), body1, "invalidation must return the last snapshot immediately");
+  assert.equal(
+    v1ModelsCatalog.__getCatalogBuilderRunsForTest(),
+    runsAfterFirst,
+    "builder must not run before the stale response is returned"
+  );
+
+  await v1ModelsCatalog.__flushCatalogBackgroundRefreshForTest();
   assert.equal(
     v1ModelsCatalog.__getCatalogBuilderRunsForTest(),
     runsAfterFirst + 1,
-    "a state change must force a fresh build — the (now-superseded) cached entry must never be " +
-      "served, stale or otherwise"
+    "background refresh must rebuild against the new DB state"
   );
 });
 

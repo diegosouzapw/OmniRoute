@@ -134,9 +134,9 @@ await test("chave quota-exclusive não constrói o catálogo completo", async (t
     process.env.EXPOSE_CC_DISCOVERY_ALIASES = "1";
     // A chave do cache é `prefix|isCodex|apiKey|configuredOnly` — um query param
     // qualquer NÃO a invalida, então a resposta do subteste anterior seria servida.
-    v1ModelsCatalog.__expireCatalogCacheForTest(
-      v1ModelsCatalog.CATALOG_STALE_WHILE_REVALIDATE_MS + 1000
-    );
+    // #8697: expire alone keeps serving stale; force a true cold miss so the
+    // EXPOSE_CC_DISCOVERY_ALIASES flip is visible on this request.
+    v1ModelsCatalog.__resetCatalogBuilderRunsForTest();
     try {
       const res = await v1ModelsCatalog.getUnifiedModelsResponse(
         new Request("http://localhost/api/v1/models", {
