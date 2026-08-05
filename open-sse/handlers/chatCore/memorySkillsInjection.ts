@@ -2,6 +2,8 @@ import { retrieveMemories } from "@/lib/memory/retrieval";
 import { getMemorySettings, DEFAULT_MEMORY_SETTINGS, toMemoryRetrievalConfig } from "@/lib/memory/settings";
 import { injectMemory, shouldInjectMemory } from "@/lib/memory/injection";
 import { injectSkills } from "@/lib/skills/injection";
+import { buildMemoryToolsForProvider } from "@/lib/skills/memoryBuiltins";
+import { skillRegistry } from "@/lib/skills/registry";
 import { FORMATS } from "../../translator/formats.ts";
 import { detectCachingContext } from "../../services/compression/cachingAware.ts";
 
@@ -137,7 +139,50 @@ export async function injectMemoryAndSkills({
     }
   }
 
+  if (memoryOwnerId && memorySettings?.enabled && body.stream !== true) {
+    // Server-side builtin memory tools (memory_save/update/search/delete) are
+    // executed by the gateway's tool-call interception, which runs only on the
+    // non-stream path. Stream clients (opencode etc.) execute tools client-side,
+    // so for them these tools would be announced but never executed; they should
+    // use the MCP memory tools (omniroute_memory_*) instead.
+    const existingTools = Array.isArray(body.tools) ? body.tools : [];
+    const existingToolNames = new Set(
+      existingTools.flatMap((tool) => {
+        const record = tool as Record<string, unknown> | null;
+        if (!record || typeof record !== "object") return [];
+        const fn = record.function as Record<string, unknown> | undefined;
+        if (typeof fn?.name === "string") return [fn.name];
+        if (typeof record.name === "string") return [record.name];
+        return [];
+      })
+    );
+    const memoryTools = buildMemoryToolsForProvider(
+      getSkillsProviderForFormat(sourceFormat)
+    ).filter((tool) => {
+      const record = tool as Record<string, unknown>;
+      const name =
+        (record.function as Record<string, unknown> | undefined)?.name ?? record.name;
+      return typeof name === "string" && !existingToolNames.has(name);
+    });
+    if (memoryTools.length > 0) {
+      body = {
+        ...body,
+        tools: [...existingTools, ...memoryTools],
+      };
+      log?.debug?.(
+        "MEMORY",
+        `Injected ${memoryTools.length} memory tool(s) for key=${memoryOwnerId}`
+      );
+    }
+  }
+
   if (memoryOwnerId && memorySettings?.skillsEnabled) {
+    // Ensure the registry cache is warm before listing: on a cold/fresh
+    // process skills that exist only in the DB would be missed (false
+    // negative -> silent skip). loadFromDatabase() is a no-op when the cache
+    // is already warm (TTL = 60 s), so repeated calls are cheap. Mirrors the
+    // pattern in src/lib/skills/interception.ts (#2815).
+    await skillRegistry.loadFromDatabase(memoryOwnerId);
     const existingTools = Array.isArray(body.tools) ? body.tools : [];
     const mergedTools = injectSkills({
       provider: getSkillsProviderForFormat(sourceFormat),

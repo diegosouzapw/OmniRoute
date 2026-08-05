@@ -25,20 +25,17 @@ jobs:
   # path filters share existence reasons: code / docs / i18n / workflow.
   changes:
     name: Change Classification
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       code: ${{ steps.classify.outputs.code }}
       docs: ${{ steps.classify.outputs.docs }}
       i18n: ${{ steps.classify.outputs.i18n }}
       workflow: ${{ steps.classify.outputs.workflow }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
       - id: classify
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -61,19 +58,16 @@ jobs:
     name: Build (advisory)
     needs: changes
     if: ${{ github.event_name != 'pull_request' || ((github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) && needs.changes.outputs.code == 'true') }}
-    # Dynamic runner — same fork-safe rule as ci.yml / fast-gates.
-    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
+    # Fork-safe fallback uses Ubuntu 26.04's bundled Node 24 without setup-node.
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-26.04' }}
     # #7307: advisory for the first week of release-PR runs; remove
     # continue-on-error after the production-build signal is stable.
     continue-on-error: true
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
+      - run: node -e 'if (process.versions.node.split(".")[0] !== process.env.CI_NODE_VERSION) throw new Error("Expected Node " + process.env.CI_NODE_VERSION)'
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - run: npm run build
@@ -88,15 +82,11 @@ jobs:
     name: Docs Gates (fast-path)
     needs: changes
     if: ${{ github.event_name != 'pull_request' || ((github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) && (needs.changes.outputs.docs == 'true' || needs.changes.outputs.code == 'true')) }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - run: npm ci
       # One walk of src/app/api for openapi-routes + docs-symbols (both still fail independently).
       - run: npm run check:api-docs-refs
@@ -111,7 +101,7 @@ jobs:
     # Dynamic runner (same rule as ci.yml): use the self-hosted VPS pool only when the
     # release captain has USE_VPS_RUNNER=true AND this is not a fork PR (own-origin
     # branches only — a fork PR must never execute on the LAN runner). Var unset/false
-    # or a fork PR falls back to ubuntu-latest, so this is inert until the flag flips.
+    # or a fork PR falls back to ubuntu-26.04, so this is inert until the flag flips.
     # PINNED to hosted (gap 19). This job carried the USE_VPS_RUNNER expression, and that
     # expression was DEAD CONFIGURATION: across 160 quality.yml runs the job never once landed on
     # a self-hosted runner — every non-skipped sample is `GitHub Actions NNNN`. The classifier is
@@ -125,7 +115,7 @@ jobs:
     #
     # With this pinned, USE_VPS_RUNNER governs ONLY build-like jobs — one variable, one coherent
     # purpose. That is what gap 19 asked for; a second variable turned out to be unnecessary.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # tsx gates (known-symbols, route-guard-membership) import modules that open
     # SQLite on load; provide DB env so a fresh CI DB initializes cleanly.
     env:
@@ -133,14 +123,10 @@ jobs:
       API_KEY_SECRET: ci-lint-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - run: npm ci
       - name: Restore ESLint file cache
         uses: actions/cache@v6
@@ -279,7 +265,7 @@ jobs:
       # selector returns __RUN_ALL__ — full-suite authority is the parallel
       # `fast-unit` 4-shard job (test:unit:ci:shard; was 2-shard, #6781), NOT an
       # unsharded re-run here. Stacking unsharded test:unit:ci on top of fast-unit
-      # doubled wall time (~16 min extra on ubuntu-latest) without extra coverage.
+      # doubled wall time (~16 min extra on the hosted runner) without extra coverage.
       #
       # BLOCKING for the *impacted subset* (flipped 2026-06-17). Fail-safe full
       # coverage remains required via `Unit Tests fast-path` (fast-unit).
@@ -343,36 +329,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
 
-  fast-vitest:
-    name: Vitest (fast-path)
-    needs: changes
-    if: ${{ github.event_name != 'pull_request' || ((github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) && needs.changes.outputs.code == 'true') }}
-    # Dynamic runner — see fast-gates (own-origin + flag; fork/unset → ubuntu-latest).
-    # PINNED to hosted, deliberately not on the USE_VPS_RUNNER switch (gap 19). One variable
-    # governed the build and the test jobs, which want OPPOSITE machines: the build needs the
-    # .113's RAM, the tests need the hosted runner's link. Measured on 2026-07-29 —
-    # actions/setup-node took 20m06s on .113 with 4 concurrent runners versus 16s hosted (npm
-    # cache restore saturating the link), while the tests themselves tied, 2m54 vs 2m31. So
-    # self-hosted is strictly worse here and there is nothing to configure.
-    runs-on: ubuntu-latest
-    env:
-      JWT_SECRET: ci-lint-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-lint-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - run: npm ci
-      # WS5.2/5.3: JUnit feeds Trunk Flaky Tests — the fast-path runs on EVERY PR,
-      # which is where flaky-detection volume actually comes from (ci.yml's heavy
-      # jobs only run on the release PR). Advisory upload, own-origin only.
-      - run: npm run test:vitest -- --reporter=default --reporter=junit --outputFile.junit=trunk-junit/vitest-fastpath.xml
-      - name: Upload test results to Trunk (advisory)
+      # Share fast-gates' checkout + npm ci instead of spending ~80s preparing a
+      # separate runner for a ~13s Vitest invocation. !cancelled() preserves the
+      # independent test signal when an earlier fast gate fails.
+      - name: Vitest
+        if: ${{ !cancelled() }}
+        run: npm run test:vitest -- --reporter=default --reporter=junit --outputFile.junit=trunk-junit/vitest-fastpath.xml
+      # WS5.2/5.3: JUnit feeds Trunk Flaky Tests — the fast path runs on every PR.
+      # Advisory upload, own-origin only.
+      - name: Upload Vitest results to Trunk (advisory)
         if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         continue-on-error: true
         uses: trunk-io/analytics-uploader@385f1ccdf345b4532dc4b6c665dd432b702b8e28 # v2.1.2
@@ -385,9 +350,9 @@ jobs:
     name: Unit Tests fast-path (${{ matrix.shard }}/4)
     needs: changes
     if: ${{ github.event_name != 'pull_request' || ((github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) && needs.changes.outputs.code == 'true') }}
-    # Dynamic runner — see fast-gates (own-origin + flag; fork/unset → ubuntu-latest).
+    # Dynamic runner — see fast-gates (own-origin + flag; fork/unset → ubuntu-26.04).
     # This is the heaviest fast-path job; 4-way sharding (was 2, #6781) halves the
-    # critical path again (~8.5min → ~4.5min on ubuntu-latest; ~2min on the 8-slot
+    # critical path again (~8.5min → ~4.5min hosted; ~2min on the 8-slot
     # runner box). Node's native --test-shard=N/total takes any denominator — only
     # this matrix and the TEST_SHARD env below encode the shard count.
     # PINNED to hosted, deliberately not on the USE_VPS_RUNNER switch (gap 19). One variable
@@ -396,7 +361,7 @@ jobs:
     # actions/setup-node took 20m06s on .113 with 4 concurrent runners versus 16s hosted (npm
     # cache restore saturating the link), while the tests themselves tied, 2m54 vs 2m31. So
     # self-hosted is strictly worse here and there is nothing to configure.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
@@ -406,13 +371,9 @@ jobs:
       API_KEY_SECRET: ci-lint-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - run: npm ci
       # QW-d: fonte única — o mesmo npm script do CI pesado/local. Fecha dois drifts do
       # comando inline antigo: os dirs `memory` e `usage` estavam FORA do glob (testes
@@ -437,7 +398,7 @@ jobs:
     name: No new ESLint warnings
     needs: changes
     if: ${{ github.event_name != 'pull_request' || ((github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) && needs.changes.outputs.code == 'true') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     continue-on-error: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true }}
     # G0 (trilho .50): security-events:read lets the CodeQL ratchet below read open
     # code-scanning alerts via `gh api .../code-scanning/alerts` (same as ci.yml's
@@ -446,13 +407,9 @@ jobs:
       contents: read
       security-events: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - run: npm ci
       - name: Restore ESLint file cache
         uses: actions/cache@v6
@@ -505,21 +462,17 @@ jobs:
     name: Merge integrity (changelog + generated skills)
     # Always on non-draft PRs — CHANGELOG/skills can break on docs-only merges too.
     if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     continue-on-error: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true }}
     env:
       JWT_SECRET: ci-lint-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-lint-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - run: npm ci
       - name: CHANGELOG integrity (nenhum bullet da base pode sumir no merge-result)
         run: npm run check:changelog-integrity

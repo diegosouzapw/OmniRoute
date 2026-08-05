@@ -59,19 +59,22 @@ export default function SubscriptionTab() {
   // Resolve a subscription `error` value into a localized message. Values are
   // either a `{ code, detail? }` JSON (user-facing, i18n'd) or a plain
   // diagnostic string (technical fetch/sync errors) shown verbatim.
-  const resolveSubError = useCallback((raw: string | null): string | null => {
-    if (!raw) return null;
-    try {
-      const parsed = JSON.parse(raw) as { code?: string; detail?: string };
-      if (parsed?.code) {
-        const base = t(`proxySubscription.error.${parsed.code}`);
-        return parsed.detail ? `${base}（${parsed.detail}）` : base;
+  const resolveSubError = useCallback(
+    (raw: string | null): string | null => {
+      if (!raw) return null;
+      try {
+        const parsed = JSON.parse(raw) as { code?: string; detail?: string };
+        if (parsed?.code) {
+          const base = t(`proxySubscription.error.${parsed.code}`);
+          return parsed.detail ? `${base}（${parsed.detail}）` : base;
+        }
+      } catch {
+        // plain diagnostic string — show as-is
       }
-    } catch {
-      // plain diagnostic string — show as-is
-    }
-    return raw;
-  }, [t]);
+      return raw;
+    },
+    [t]
+  );
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const [showForm, setShowForm] = useState(false);
@@ -85,7 +88,7 @@ export default function SubscriptionTab() {
     setError(null);
     try {
       const res = await fetch("/api/v1/management/proxy-subscriptions");
-      if (!res.ok) throw new Error("加载订阅列表失败");
+      if (!res.ok) throw new Error(t("proxySubscription.loadFailed"));
       const data = await res.json();
       setSubs(Array.isArray(data.items) ? data.items : []);
     } catch (e) {
@@ -93,7 +96,7 @@ export default function SubscriptionTab() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const loadProviders = useCallback(async () => {
     try {
@@ -143,10 +146,10 @@ export default function SubscriptionTab() {
     setSaving(true);
     setFormError(null);
     try {
-      if (!form.name.trim()) throw new Error("请填写名称");
-      if (!form.url.trim()) throw new Error("请填写订阅链接");
+      if (!form.name.trim()) throw new Error(t("proxySubscription.nameRequired"));
+      if (!form.url.trim()) throw new Error(t("proxySubscription.urlRequired"));
       if (form.mode === "rule" && form.ruleProviders.length === 0) {
-        throw new Error("规则模式下请至少选择一个 Provider");
+        throw new Error(t("proxySubscription.ruleModeProviderRequired"));
       }
       const payload = {
         name: form.name.trim(),
@@ -170,7 +173,7 @@ export default function SubscriptionTab() {
           });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "保存失败");
+        throw new Error(data.error || t("proxySubscription.saveFailed"));
       }
       resetForm();
       await load();
@@ -189,7 +192,7 @@ export default function SubscriptionTab() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabled: !sub.enabled }),
       });
-      if (!res.ok) throw new Error("切换开关失败");
+      if (!res.ok) throw new Error(t("proxySubscription.toggleFailed"));
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -204,7 +207,7 @@ export default function SubscriptionTab() {
       const res = await fetch(`/api/v1/management/proxy-subscriptions/${sub.id}/refresh`, {
         method: "POST",
       });
-      if (!res.ok) throw new Error("刷新失败");
+      if (!res.ok) throw new Error(t("proxySubscription.refreshFailed"));
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -214,13 +217,13 @@ export default function SubscriptionTab() {
   };
 
   const remove = async (sub: SubscriptionRecord) => {
-    if (!window.confirm(`确定删除订阅「${sub.name}」？相关代理节点也会一并移除。`)) return;
+    if (!window.confirm(t("proxySubscription.confirmDelete", { name: sub.name }))) return;
     setBusyId(sub.id);
     try {
       const res = await fetch(`/api/v1/management/proxy-subscriptions/${sub.id}`, {
         method: "DELETE",
       });
-      if (!res.ok) throw new Error("删除失败");
+      if (!res.ok) throw new Error(t("proxySubscription.deleteFailed"));
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -238,13 +241,10 @@ export default function SubscriptionTab() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-text-muted">
-          粘贴你的代理订阅链接，开启后即可按全局或规则（指定 Provider）模式走代理。
-          订阅节点会自动同步进代理池，并复用既有的轮询、健康检查与防泄漏机制。
-        </p>
+        <p className="text-sm text-text-muted">{t("proxySubscription.description")}</p>
         {!showForm && (
           <Button size="sm" variant="primary" icon="add" onClick={() => setShowForm(true)}>
-            新增订阅
+            {t("proxySubscription.addSubscription")}
           </Button>
         )}
       </div>
@@ -259,38 +259,40 @@ export default function SubscriptionTab() {
         <div className="rounded-lg border border-border bg-surface p-4 space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold">
-              {editingId ? "编辑订阅" : "新增订阅"}
+              {editingId
+                ? t("proxySubscription.editSubscription")
+                : t("proxySubscription.newSubscription")}
             </h3>
             <Button size="sm" variant="secondary" icon="close" onClick={resetForm}>
-              取消
+              {t("cancel")}
             </Button>
           </div>
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <label className="flex flex-col gap-1 text-sm">
-              <span className="text-text-muted">名称</span>
+              <span className="text-text-muted">{t("proxySubscription.name")}</span>
               <input
                 className="rounded border border-border bg-surface px-2 py-1.5 text-text outline-none focus:border-primary"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="例如：我的订阅A"
+                placeholder={t("proxySubscription.namePlaceholder")}
               />
             </label>
 
             <label className="flex flex-col gap-1 text-sm">
-              <span className="text-text-muted">订阅链接</span>
+              <span className="text-text-muted">{t("proxySubscription.url")}</span>
               <input
                 className="rounded border border-border bg-surface px-2 py-1.5 text-text outline-none focus:border-primary"
                 value={form.url}
                 onChange={(e) => setForm({ ...form, url: e.target.value })}
-                placeholder="https://.../subscribe?token=..."
+                placeholder={t("proxySubscription.urlPlaceholder")}
               />
             </label>
           </div>
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div className="flex flex-col gap-1 text-sm">
-              <span className="text-text-muted">模式</span>
+              <span className="text-text-muted">{t("proxySubscription.mode")}</span>
               <div className="flex gap-2">
                 {(["global", "rule"] as const).map((m) => (
                   <button
@@ -303,36 +305,40 @@ export default function SubscriptionTab() {
                         : "border-border text-text-muted hover:text-text"
                     }`}
                   >
-                    {m === "global" ? "全局模式" : "规则模式"}
+                    {m === "global"
+                      ? t("proxySubscription.globalMode")
+                      : t("proxySubscription.ruleMode")}
                   </button>
                 ))}
               </div>
               <span className="text-xs text-text-muted">
                 {form.mode === "global"
-                  ? "所有 Provider 流量都走该订阅的代理池。"
-                  : "仅所选 Provider 的流量走代理，其余直连。"}
+                  ? t("proxySubscription.globalModeDesc")
+                  : t("proxySubscription.ruleModeDesc")}
               </span>
             </div>
 
             <label className="flex flex-col gap-1 text-sm">
-              <span className="text-text-muted">本地内核 SOCKS5/HTTP 端点（可选）</span>
+              <span className="text-text-muted">{t("proxySubscription.localCoreEndpoint")}</span>
               <input
                 className="rounded border border-border bg-surface px-2 py-1.5 text-text outline-none focus:border-primary"
                 value={form.localCoreEndpoint}
                 onChange={(e) => setForm({ ...form, localCoreEndpoint: e.target.value })}
-                placeholder="socks5://127.0.0.1:1080"
+                placeholder={t("proxySubscription.localCoreEndpointPlaceholder")}
               />
               <span className="text-xs text-text-muted">
-                仅接受 127.0.0.1 / localhost（SS/VMess/Trojan/VLESS 需本地 sing-box/clash 内核）。
+                {t("proxySubscription.localCoreEndpointDesc")}
               </span>
             </label>
           </div>
 
           {form.mode === "rule" && (
             <div className="flex flex-col gap-1 text-sm">
-              <span className="text-text-muted">按 Provider 路由（多选）</span>
+              <span className="text-text-muted">{t("proxySubscription.routeByProvider")}</span>
               {providers.length === 0 ? (
-                <span className="text-xs text-text-muted">正在加载 Provider 列表…</span>
+                <span className="text-xs text-text-muted">
+                  {t("proxySubscription.loadingProviders")}
+                </span>
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {providers.map((p) => {
@@ -366,7 +372,7 @@ export default function SubscriptionTab() {
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <label className="flex flex-col gap-1 text-sm">
-              <span className="text-text-muted">自动刷新间隔（分钟）</span>
+              <span className="text-text-muted">{t("proxySubscription.autoRefreshInterval")}</span>
               <input
                 type="number"
                 min={5}
@@ -383,7 +389,7 @@ export default function SubscriptionTab() {
                 checked={form.enabled}
                 onChange={(e) => setForm({ ...form, enabled: e.target.checked })}
               />
-              <span>创建后启用（立即同步并生效）</span>
+              <span>{t("proxySubscription.enableAfterCreate")}</span>
             </label>
           </div>
 
@@ -391,129 +397,153 @@ export default function SubscriptionTab() {
 
           <div className="flex justify-end gap-2">
             <Button size="sm" variant="secondary" onClick={resetForm}>
-              取消
+              {t("cancel")}
             </Button>
             <Button size="sm" variant="primary" icon="save" onClick={save} disabled={saving}>
-              {saving ? "保存中…" : editingId ? "保存修改" : "创建订阅"}
+              {saving
+                ? t("proxySubscription.saving")
+                : editingId
+                  ? t("proxySubscription.saveChanges")
+                  : t("proxySubscription.createSubscription")}
             </Button>
           </div>
         </div>
       )}
 
       <div className="space-y-2">
-        {loading && <p className="text-sm text-text-muted">加载中…</p>}
+        {loading && <p className="text-sm text-text-muted">{t("proxySubscription.loading")}</p>}
         {!loading && subs.length === 0 && (
-          <p className="text-sm text-text-muted">还没有任何订阅。点击「新增订阅」开始吧。</p>
+          <p className="text-sm text-text-muted">{t("proxySubscription.noSubscriptions")}</p>
         )}
         {subs.map((sub) => {
           const needsCoreNodes = (sub.lastNodes ?? []).filter(isNeedsCoreNode);
           const showCoreHint = needsCoreNodes.length > 0 && !sub.localCoreEndpoint;
           return (
-          <div
-            key={sub.id}
-            className="rounded-lg border border-border bg-surface p-3 flex flex-col gap-2"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium truncate">{sub.name}</span>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded border ${
-                      statusBadge[sub.status] || statusBadge.empty
-                    }`}
-                  >
-                    {sub.status === "ok" ? "正常" : sub.status === "error" ? "错误" : "空"}
-                  </span>
-                  <span className="text-xs px-2 py-0.5 rounded border border-border text-text-muted">
-                    {sub.mode === "global" ? "全局" : "规则"}
-                  </span>
-                  <span className="text-xs px-2 py-0.5 rounded border border-border text-text-muted">
-                    {sub.enabled ? "已启用" : "已停用"}
-                  </span>
-                </div>
-                <p className="text-xs text-text-muted truncate mt-1" title={sub.url}>
-                  {sub.url}
-                </p>
-                {resolveSubError(sub.error) && (
-                  <p className="text-xs text-amber-600 mt-1 break-words">{resolveSubError(sub.error)}</p>
-                )}
-                {showCoreHint && (
-                  <div className="mt-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 space-y-1.5">
-                    <p className="font-medium">
-                      该订阅有 {needsCoreNodes.length} 个节点需要本地代理内核（SS / VMess / Trojan / VLESS 等），当前未被路由。
-                    </p>
-                    <p>
-                      这些协议无法被 OmniRoute 直接转发。请在本机启动一个 <code>sing-box</code> 或{" "}
-                      <code>clash（Clash.Meta）</code> 内核，并把它暴露为一个 SOCKS5/HTTP 端点，然后在「编辑」中填入该端点（仅接受 127.0.0.1 / localhost）。
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <code className="rounded bg-surface px-2 py-1 border border-border">socks5://127.0.0.1:2080</code>
-                      <button
-                        type="button"
-                        onClick={() => navigator.clipboard?.writeText("socks5://127.0.0.1:2080")}
-                        className="px-2 py-1 rounded border border-border hover:border-primary/50"
-                      >
-                        复制
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => startEdit(sub)}
-                        className="px-2 py-1 rounded border border-border hover:border-primary/50"
-                      >
-                        去配置
-                      </button>
-                    </div>
+            <div
+              key={sub.id}
+              className="rounded-lg border border-border bg-surface p-3 flex flex-col gap-2"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium truncate">{sub.name}</span>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded border ${
+                        statusBadge[sub.status] || statusBadge.empty
+                      }`}
+                    >
+                      {sub.status === "ok"
+                        ? t("proxySubscription.statusOk")
+                        : sub.status === "error"
+                          ? t("proxySubscription.statusError")
+                          : t("proxySubscription.statusEmpty")}
+                    </span>
+                    <span className="text-xs px-2 py-0.5 rounded border border-border text-text-muted">
+                      {sub.mode === "global"
+                        ? t("proxySubscription.global")
+                        : t("proxySubscription.rule")}
+                    </span>
+                    <span className="text-xs px-2 py-0.5 rounded border border-border text-text-muted">
+                      {sub.enabled
+                        ? t("proxySubscription.enabled")
+                        : t("proxySubscription.disabled")}
+                    </span>
                   </div>
-                )}
-                <p className="text-xs text-text-muted mt-1">
-                  节点数：{sub.lastNodes?.length ?? 0}
-                  {needsCoreNodes.length > 0 ? `（${needsCoreNodes.length} 个需本地内核）` : ""}
-                  {sub.lastFetchedAt ? ` · 上次同步：${sub.lastFetchedAt}` : ""}
-                  {sub.consecutiveFailures > 0 ? ` · 连续失败 ${sub.consecutiveFailures} 次` : ""}
-                  {sub.lastErrorAt ? ` · 上次错误：${sub.lastErrorAt}` : ""}
-                </p>
-              </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <button
-                  type="button"
-                  disabled={busyId === sub.id}
-                  onClick={() => toggleEnabled(sub)}
-                  className="px-2 py-1 text-xs rounded border border-border hover:border-primary/50"
-                  title={sub.enabled ? "停用" : "启用"}
-                >
-                  {sub.enabled ? "停用" : "启用"}
-                </button>
-                <button
-                  type="button"
-                  disabled={busyId === sub.id}
-                  onClick={() => refresh(sub)}
-                  className="px-2 py-1 text-xs rounded border border-border hover:border-primary/50"
-                  title="刷新节点"
-                >
-                  刷新
-                </button>
-                <button
-                  type="button"
-                  disabled={busyId === sub.id}
-                  onClick={() => startEdit(sub)}
-                  className="px-2 py-1 text-xs rounded border border-border hover:border-primary/50"
-                  title="编辑"
-                >
-                  编辑
-                </button>
-                <button
-                  type="button"
-                  disabled={busyId === sub.id}
-                  onClick={() => remove(sub)}
-                  className="px-2 py-1 text-xs rounded border border-red-500/30 text-red-600 hover:bg-red-500/10"
-                  title="删除"
-                >
-                  删除
-                </button>
+                  <p className="text-xs text-text-muted truncate mt-1" title={sub.url}>
+                    {sub.url}
+                  </p>
+                  {resolveSubError(sub.error) && (
+                    <p className="text-xs text-amber-600 mt-1 break-words">
+                      {resolveSubError(sub.error)}
+                    </p>
+                  )}
+                  {showCoreHint && (
+                    <div className="mt-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 space-y-1.5">
+                      <p className="font-medium">
+                        {t("proxySubscription.coreHintTitle", { count: needsCoreNodes.length })}
+                      </p>
+                      <p>{t("proxySubscription.coreHintDesc")}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <code className="rounded bg-surface px-2 py-1 border border-border">
+                          socks5://127.0.0.1:2080
+                        </code>
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard?.writeText("socks5://127.0.0.1:2080")}
+                          className="px-2 py-1 rounded border border-border hover:border-primary/50"
+                        >
+                          {t("proxySubscription.copy")}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => startEdit(sub)}
+                          className="px-2 py-1 rounded border border-border hover:border-primary/50"
+                        >
+                          {t("proxySubscription.goConfigure")}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-xs text-text-muted mt-1">
+                    {t("proxySubscription.nodeCount", { count: sub.lastNodes?.length ?? 0 })}
+                    {needsCoreNodes.length > 0
+                      ? ` (${t("proxySubscription.needsCoreCount", { count: needsCoreNodes.length })})`
+                      : ""}
+                    {sub.lastFetchedAt
+                      ? ` · ${t("proxySubscription.lastSynced", { time: sub.lastFetchedAt })}`
+                      : ""}
+                    {sub.consecutiveFailures > 0
+                      ? ` · ${t("proxySubscription.consecutiveFailures", { count: sub.consecutiveFailures })}`
+                      : ""}
+                    {sub.lastErrorAt
+                      ? ` · ${t("proxySubscription.lastError", { time: sub.lastErrorAt })}`
+                      : ""}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    disabled={busyId === sub.id}
+                    onClick={() => toggleEnabled(sub)}
+                    className="px-2 py-1 text-xs rounded border border-border hover:border-primary/50"
+                    title={
+                      sub.enabled ? t("proxySubscription.disable") : t("proxySubscription.enable")
+                    }
+                  >
+                    {sub.enabled ? t("proxySubscription.disable") : t("proxySubscription.enable")}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busyId === sub.id}
+                    onClick={() => refresh(sub)}
+                    className="px-2 py-1 text-xs rounded border border-border hover:border-primary/50"
+                    title={t("proxySubscription.refreshNodes")}
+                  >
+                    {t("proxySubscription.refreshNodes")}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busyId === sub.id}
+                    onClick={() => startEdit(sub)}
+                    className="px-2 py-1 text-xs rounded border border-border hover:border-primary/50"
+                    title={t("proxySubscription.edit")}
+                  >
+                    {t("proxySubscription.edit")}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busyId === sub.id}
+                    onClick={() => remove(sub)}
+                    className="px-2 py-1 text-xs rounded border border-red-500/30 text-red-600 hover:bg-red-500/10"
+                    title={t("proxySubscription.delete")}
+                  >
+                    {t("proxySubscription.delete")}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ); })}
+          );
+        })}
       </div>
     </div>
   );

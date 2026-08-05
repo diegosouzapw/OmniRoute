@@ -1,0 +1,11 @@
+[package]
+name = "compression-tests"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+core-api = { workspace = true }
+tokenizer = { workspace = true }
+serde_json = { workspace = true }

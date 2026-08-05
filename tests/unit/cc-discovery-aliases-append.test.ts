@@ -30,9 +30,23 @@ test("adds a claude/ mirror with display_name and root for an eligible model", (
   assert.deepEqual(out[0], models[0]);
   const alias = out[1];
   assert.equal(alias.id, "claude/kimi/kimi-k2.6");
-  assert.equal(alias.root, "kimi/kimi-k2.6");
+  assert.equal(alias.root, "kimi-k2.6");
   assert.equal(alias.display_name, "Kimi K2.6 (OmniRoute)");
   assert.equal(alias.owned_by, "kimi");
+});
+
+test("keeps root bare even when the original id carries a provider prefix", () => {
+  const models: CatalogEntry[] = [
+    { id: "vertex/claude-sonnet-5", owned_by: "vertex", name: "Claude Sonnet 5 (Vertex)" },
+  ];
+  const out = appendCcDiscoveryAliases(models, alwaysEnabled);
+  const alias = out.find((m) => m.id === "claude/vertex/claude-sonnet-5");
+  assert.ok(alias, "mirror entry with the fully-qualified id must exist");
+  assert.equal(
+    alias!.root,
+    "claude-sonnet-5",
+    "root must be bare, matching the no-think/effort-variant convention"
+  );
 });
 
 test("falls back to the id for display_name when name is missing", () => {
@@ -84,6 +98,17 @@ test("mirrors combo names containing spaces (comboNameSchema allows them)", () =
   assert.equal(out.length, 2);
   assert.equal(out[1].id, "claude/combo/Custo Otimizado BR");
   assert.equal(out[1].root, "Custo Otimizado BR");
+});
+
+test("keeps a combo's root the full name verbatim when the combo name contains a slash", () => {
+  // comboNameSchema (src/shared/validation/schemas/combo.ts) explicitly allows "/" in
+  // combo names, so bareModelName must NOT be applied to combo entries — only to real
+  // provider-qualified model ids.
+  const models: CatalogEntry[] = [{ id: "Team/Alpha", owned_by: "combo", name: "Team/Alpha" }];
+  const out = appendCcDiscoveryAliases(models, alwaysEnabled);
+  assert.equal(out.length, 2);
+  assert.equal(out[1].id, "claude/combo/Team/Alpha");
+  assert.equal(out[1].root, "Team/Alpha", "root must be the full combo name, not truncated");
 });
 
 test("skips disabled entries and returns the same array reference when nothing is eligible", () => {

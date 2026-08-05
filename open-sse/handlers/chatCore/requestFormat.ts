@@ -49,13 +49,19 @@ function isOpencodeClient(
 
   if (headers instanceof Headers) {
     for (const [key, value] of headers as unknown as Iterable<[string, string]>) {
-      if (matchesHeaderKey(key) || (key.toLowerCase() === "user-agent" && matchesUserAgent(value))) {
+      if (
+        matchesHeaderKey(key) ||
+        (key.toLowerCase() === "user-agent" && matchesUserAgent(value))
+      ) {
         return true;
       }
     }
   } else if (headers && typeof headers === "object") {
     for (const [key, value] of Object.entries(headers)) {
-      if (matchesHeaderKey(key) || (key.toLowerCase() === "user-agent" && matchesUserAgent(value))) {
+      if (
+        matchesHeaderKey(key) ||
+        (key.toLowerCase() === "user-agent" && matchesUserAgent(value))
+      ) {
         return true;
       }
     }
@@ -71,9 +77,7 @@ function isOpencodeClient(
  */
 export function resolveChatCoreRequestFormat(opts: {
   clientRawRequest:
-    | { endpoint?: unknown; headers?: Headers | Record<string, unknown> | null }
-    | null
-    | undefined;
+    { endpoint?: unknown; headers?: Headers | Record<string, unknown> | null } | null | undefined;
   body: unknown;
   provider: string | null | undefined;
   userAgent: string | null | undefined;
@@ -87,6 +91,8 @@ export function resolveChatCoreRequestFormat(opts: {
     provider,
     sourceFormat,
     endpointPath,
+    body,
+    headers: clientRawRequest?.headers,
   });
   const isDroidCLI =
     userAgent?.toLowerCase().includes("droid") || userAgent?.toLowerCase().includes("codex-cli");

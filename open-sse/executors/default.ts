@@ -40,6 +40,10 @@ import {
   normalizeOpenAIChatUrl,
   getOpenRouterConnectionPreset,
 } from "./default/urlNormalizers.ts";
+import {
+  isPoeMessagesEligibleModel,
+  resolvePoeUpstreamUrl,
+} from "../config/providers/registry/poe/index.ts";
 import { buildMaritalkChatUrl } from "../config/maritalk.ts";
 import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
@@ -285,6 +289,36 @@ export class DefaultExecutor extends BaseExecutor {
       case "glm-coding-apikey":
         // #7364: format override extracted to zaiFormatOverride.ts (file-size ratchet).
         return resolveZaiUrl(credentials, (fallback) => this.resolveBaseUrl(credentials, fallback));
+      case "poe": {
+        // #8969: Poe API-key surfaces — Chat Completions, Responses, and
+        // Claude-only Messages. Prefer the responses marker from
+        // resolveExecutionCredentials (incoming /v1/responses), then the
+        // registry Claude targetFormat → messagesUrl, else chat/completions.
+        // GPT models must never hit /v1/messages (Poe rejects non-Claude there).
+        const psd = credentials?.providerSpecificData;
+        const manualBaseUrl =
+          typeof psd?.baseUrl === "string" && psd.baseUrl.trim() ? psd.baseUrl.trim() : null;
+        const forceResponses = psd?._omnirouteForceResponsesUpstream === true;
+        const modelTarget = getModelTargetFormat("poe", model);
+        const connectionTarget =
+          typeof psd?.targetFormat === "string" ? (psd.targetFormat as string) : null;
+        const effectiveTarget = modelTarget || connectionTarget;
+
+        let protocol: "chat" | "responses" | "messages" = "chat";
+        if (forceResponses || effectiveTarget === "openai-responses") {
+          protocol = "responses";
+        } else if (effectiveTarget === "claude" && isPoeMessagesEligibleModel(model)) {
+          protocol = "messages";
+        }
+
+        return resolvePoeUpstreamUrl({
+          protocol,
+          configuredBaseUrl: manualBaseUrl,
+          responsesBaseUrl: this.config.responsesBaseUrl,
+          messagesUrl: this.config.messagesUrl,
+          defaultChatUrl: this.config.baseUrl,
+        });
+      }
       case "claude":
       case "glm":
       case "glmt":

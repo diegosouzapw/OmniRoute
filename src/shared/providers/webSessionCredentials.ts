@@ -25,6 +25,13 @@ export type WebSessionCredentialRequirement =
     };
 
 export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
+  "chatgpt-web-codex": {
+    kind: "cookie",
+    credentialName: "ChatGPT Cookie header (full)",
+    placeholder: "__Secure-next-auth.session-token=...; cf_clearance=...",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "sessionToken", "session-token", "__Secure-next-auth.session-token"],
+  },
   "zenmux-free": {
     kind: "cookie",
     credentialName: "Cookie header (full)",
@@ -295,7 +302,7 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     hintFallback:
       "Open arena.ai, sign in, then copy the full Cookie header from a Network request. Include arena-auth-prod-v1.0 and arena-auth-prod-v1.1 (and further chunks if present), preferably with cf_clearance. Do not paste only the empty arena-auth-prod-v1 cookie. Optional: providerSpecificData.recaptchaV3Token if create-evaluation still returns 403.",
   },
-  "promptql": {
+  promptql: {
     kind: "token",
     credentialName: "Bearer JWT (optional: projectId, session Cookie)",
     placeholder: "eyJ...  (Authorization Bearer from prompt.ql.app)",

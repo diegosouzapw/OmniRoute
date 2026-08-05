@@ -377,6 +377,14 @@ Controls how OmniRoute discovers and launches CLI sidecars (Claude Code, Codex, 
 | `CLI_QODER_BIN`           | `qoder`     | `src/shared/services/cliRuntime.ts`                 | Custom path to Qoder CLI binary.                                                                                                                                               |
 | `CLI_QWEN_BIN`            | `qwen`      | `src/shared/services/cliRuntime.ts`                 | Custom path to the Qwen Code CLI binary.                                                                                                                                       |
 | `CLI_DEVIN_BIN`           | `devin`     | `open-sse/executors/devin-cli.ts`                   | Custom path to the Devin CLI binary (v3.8.0). Used by the Windsurf/Devin executor.                                                                                             |
+| `CLI_DEVIN_AGENTIC_BIN`   | `devin`     | `open-sse/executors/devin-cli-agentic.ts`           | Agentic bridge-only Devin CLI override. The executor accepts only the local ACP stdio upstream.                                                                               |
+| `DEVIN_AGENTIC_HOME`      | _(required)_ | `open-sse/executors/devin-cli-agentic.ts`           | Absolute isolated home for the agentic Devin subprocess; accepted bridge paths are `/home/bridge` and task-local `.sandbox` paths.                                            |
+| `DEVIN_AGENTIC_ACP_TIMEOUT_MS` | `120000` | `open-sse/executors/devin-cli-agentic.ts`           | Maximum duration of one Devin ACP turn before the bridge terminates the child and returns an explicit timeout.                                                                |
+| `DEVIN_BRIDGE_MODEL` | `devin-cli-agentic/swe-1-7` | `docker/devin-bridge/compose.yml` | Main Claude Code model alias for the isolated bridge. The live harness replaces the example with a model returned by the current Devin account. |
+| `DEVIN_BRIDGE_SONNET_MODEL` | `DEVIN_BRIDGE_MODEL` | `docker/devin-bridge/compose.yml` | Isolated bridge alias used when Claude Code requests its Sonnet default. |
+| `DEVIN_BRIDGE_OPUS_MODEL` | `DEVIN_BRIDGE_MODEL` | `docker/devin-bridge/compose.yml` | Isolated bridge alias used when Claude Code requests its Opus default. |
+| `DEVIN_BRIDGE_HAIKU_MODEL` | `DEVIN_BRIDGE_MODEL` | `docker/devin-bridge/compose.yml` | Isolated bridge alias used when Claude Code requests its Haiku default. |
+| `DEVIN_BRIDGE_SUBAGENT_MODEL` | `DEVIN_BRIDGE_MODEL` | `docker/devin-bridge/compose.yml` | Isolated bridge alias used for Claude Code subagents. |
 | `AUGGIE_BIN`              | `auggie`    | `open-sse/executors/auggie.ts`                      | Absolute-path override for the Augment (Auggie) CLI binary used by the local `auggie` provider. Falls back to `CLI_AUGGIE_BIN`, then a PATH lookup.                            |
 | `CLI_AUGGIE_BIN`          | `auggie`    | `open-sse/executors/auggie.ts`                      | Alias override for the Augment (Auggie) CLI binary path (checked after `AUGGIE_BIN`).                                                                                          |
 | `HERMES_HOME`             | `~/.hermes` | `src/lib/cli-helper/config-generator/hermesHome.ts` | Hermes Agent home directory where OmniRoute reads/writes the Hermes CLI config. Matches the env var the Hermes PowerShell installer sets on Windows (`%LOCALAPPDATA%\hermes`). |
@@ -1299,3 +1307,16 @@ Used by `src/lib/vncSession/manifest.ts` to configure Docker-based headless Chro
 | `OMNIROUTE_VNC_READY_MS`              | `45000`                       | `src/lib/vncSession/manifest.ts`  | Browser readiness timeout (ms).                                                |
 | `OMNIROUTE_VNC_HARVEST_MS`            | `20000`                       | `src/lib/vncSession/manifest.ts`  | Harvest/cleanup timeout (ms).                                                  |
 | `VIBEPROXY_DATA_DIR`                  | _(unset)_                     | `open-sse/services/notionThreadSessions.ts` | Directory for Notion thread session persistence.                               |
+
+### ChatGPT Web (Codex)
+
+Globale Defaults für den headless Browser und den ausgehenden Tool-Tunnel. Im Dashboard gesetzte Connection-Werte haben Vorrang.
+
+| Variable                             | Default                          | Source File                                      | Description                                                                 |
+| ------------------------------------ | -------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
+| `CHATGPT_WEB_CODEX_CHROME_PATH`      | _(auto-detect)_                  | `open-sse/executors/chatgpt-web-codex.ts`        | Expliziter Chrome-/Chromium-Pfad für npm-, systemd- und PM2-Betrieb.       |
+| `CHROME_PATH`                        | _(auto-detect)_                  | `open-sse/executors/chatgpt-web-codex.ts`        | Gemeinsamer Fallback für einen expliziten Chrome-/Chromium-Pfad.            |
+| `CHATGPT_WEB_CODEX_CDP_URL`          | _(unset)_                        | `open-sse/executors/chatgpt-web-codex.ts`        | Interner CDP-Endpunkt; Docker verwendet den Sidecar auf Port `9223`.        |
+| `CHATGPT_WEB_CODEX_TUNNEL_ID`        | _(unset)_                        | `open-sse/executors/chatgpt-web-codex.ts`        | Globale OpenAI-Tunnel-ID für lokale Codex-Tool-Runden.                      |
+| `CHATGPT_WEB_CODEX_RUNTIME_KEY`      | _(unset)_                        | `open-sse/executors/chatgpt-web-codex.ts`        | Globaler Tunnel Runtime-Key; niemals in Logs ausgeben.                      |
+| `CHATGPT_WEB_CODEX_CONNECTOR_NAME`   | _(unset)_                        | `open-sse/executors/chatgpt-web-codex.ts`        | Name des ChatGPT-Custom-Connectors für die MCP-Brücke.                      |

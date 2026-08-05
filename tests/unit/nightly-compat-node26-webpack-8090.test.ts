@@ -7,7 +7,7 @@
  * nightly it failed with the runner-reclaimed signature — "The runner has received
  * a shutdown signal" / "The operation was canceled", no exit code, always at the
  * same Turbopack compile phase — the classic OOM-kill pattern on the
- * memory-constrained ubuntu-latest runner.
+ * memory-constrained 16 GB hosted runner.
  *
  * Turbopack's native (Rust, off-V8-heap) allocation is NOT bounded by
  * --max-old-space-size and peaks far higher than webpack on OmniRoute's large module
@@ -44,10 +44,7 @@ function extractJobBlock(yaml: string, jobName: string): string {
 }
 
 test("#8090 compat-build-26 uses the webpack fallback (OMNIROUTE_USE_TURBOPACK=0) to avoid Node 26 OOM", () => {
-  const wf = fs.readFileSync(
-    path.join(repoRoot, ".github/workflows/nightly-compat.yml"),
-    "utf-8"
-  );
+  const wf = fs.readFileSync(path.join(repoRoot, ".github/workflows/nightly-compat.yml"), "utf-8");
   const jobBlock = extractJobBlock(wf, "compat-build-26");
 
   assert.match(

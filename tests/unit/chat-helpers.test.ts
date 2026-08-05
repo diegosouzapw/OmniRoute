@@ -201,6 +201,37 @@ test("resolveModelOrError keeps bare gpt-5.5 on OpenAI when OpenAI is the only a
   assert.equal(result.model, "gpt-5.5");
 });
 
+test("resolveModelOrError honors a custom-model targetFormat override even when the model id also exists in the static provider registry", async () => {
+  // #8852-followup: "claude-sonnet-4-6" is a real static registry entry under
+  // "vertex" (see open-sse/config/providers/registry/vertex/index.ts) with no
+  // per-model targetFormat, so the provider default ("gemini") normally applies.
+  // A user who manually added the same id as a custom model with an explicit
+  // "claude" targetFormat override must have that override win — otherwise
+  // Vertex's native Anthropic response shape gets mistranslated as Gemini's,
+  // silently dropping all response content.
+  await seedConnection("vertex");
+  const modelsDb = await import("../../src/lib/db/models.ts");
+  await modelsDb.addCustomModel(
+    "vertex",
+    "claude-sonnet-4-6",
+    "Claude Sonnet 4.6 (Vertex)",
+    "manual",
+    "chat-completions",
+    ["chat"],
+    "claude"
+  );
+
+  const result = await resolveModelOrError(
+    "vertex/claude-sonnet-4-6",
+    { model: "vertex/claude-sonnet-4-6", messages: [{ role: "user", content: "hi" }] },
+    "/v1/chat/completions"
+  );
+
+  assert.equal(result.provider, "vertex");
+  assert.equal(result.model, "claude-sonnet-4-6");
+  assert.equal(result.targetFormat, "claude");
+});
+
 test("checkPipelineGates blocks providers with an open circuit breaker", async () => {
   const breaker = getCircuitBreaker("openai");
   breaker.state = STATE.OPEN;

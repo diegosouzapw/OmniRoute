@@ -1,0 +1,13 @@
+[package]
+name = "tokenizer"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+core-api = { workspace = true }
+tiktoken-rs = { workspace = true }
+anyhow = "1"
+
+[dev-dependencies]
+serde_json = { workspace = true }

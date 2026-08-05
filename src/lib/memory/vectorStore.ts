@@ -16,6 +16,7 @@ import {
   countMemoryReindexPending,
 } from "../localDb";
 import { getDbInstance } from "../db/core";
+import { toFts5MatchQuery } from "./ftsQuery";
 import { logger } from "../../../open-sse/utils/logger.ts";
 import { sanitizeErrorMessage } from "../../../open-sse/utils/error.ts";
 
@@ -344,7 +345,7 @@ class VectorStoreImpl implements VectorStore {
         encodeVector(vector),
         { apiKeyId: apiKeyId ?? null },
         k,
-        queryText,
+        toFts5MatchQuery(queryText),
         k,
         k,
       ) as Array<{

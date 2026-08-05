@@ -333,10 +333,11 @@ test("#7307 quality.yml adds an advisory production build for release PR code ch
     buildJob[0],
     /github\.event\.pull_request\.head\.repo\.full_name == github\.repository/
   );
-  assert.match(buildJob[0], /fromJSON\('\["self-hosted","omni-release"\]'\) \|\| 'ubuntu-latest'/);
+  assert.match(buildJob[0], /fromJSON\('\["self-hosted","omni-release"\]'\) \|\| 'ubuntu-26\.04'/);
   assert.match(buildJob[0], /continue-on-error: true/);
-  assert.match(buildJob[0], /uses: actions\/checkout@[0-9a-f]{40} # v7/);
-  assert.match(buildJob[0], /uses: actions\/setup-node@[0-9a-f]{40} # v7/);
+  assert.match(buildJob[0], /uses: actions\/checkout@[0-9a-f]{40} # v7\.0\.1/);
+  assert.doesNotMatch(buildJob[0], /uses: actions\/setup-node@/);
+  assert.match(buildJob[0], /process\.env\.CI_NODE_VERSION/);
   assert.match(buildJob[0], /uses: \.\/\.github\/actions\/npm-ci-retry/);
   assert.match(buildJob[0], /npm run check:node-runtime/);
   assert.match(buildJob[0], /npm run build/);

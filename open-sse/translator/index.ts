@@ -258,11 +258,16 @@ export function translateRequest(
     if (directTranslator && sourceFormat !== FORMATS.OPENAI && targetFormat !== FORMATS.OPENAI) {
       // Thread the routed provider id so target translators can apply provider-specific
       // quirks (e.g. Vertex rejects function_call.id — #3440).
+      // Also thread signatureNamespace so Claude→Gemini can re-attach cached
+      // thoughtSignature on tool-use history (#8979 / #2504 parity with the hub path).
+      const hasNs = options?.signatureNamespace != null;
+      const hasProvider = provider != null;
       const directCredentials =
-        provider != null
+        hasNs || hasProvider
           ? {
               ...(credentials && typeof credentials === "object" ? credentials : {}),
-              _provider: provider,
+              ...(hasProvider ? { _provider: provider } : {}),
+              ...(hasNs ? { _signatureNamespace: options.signatureNamespace } : {}),
             }
           : credentials;
       result = directTranslator(model, result, stream, directCredentials);

@@ -6,9 +6,12 @@ import {
   CLAUDE_XHIGH_EFFORT_LEVEL,
   formatClaudeEffortLabel,
   shouldExposeClaudeEffortVariants,
+  isKnownClaudeEffortBaseModel,
   claudeEffortLevelsFor,
   appendClaudeEffortVariants,
 } from "../../open-sse/utils/claudeEffortVariants.ts";
+import { shouldExposeNoThinkingAlias } from "../../open-sse/utils/noThinkingAlias.ts";
+import { appendCcDiscoveryAliases } from "../../open-sse/utils/ccDiscoveryAliases.ts";
 
 const mk = (id: string, extra: Record<string, unknown> = {}) => ({
   id,
@@ -61,6 +64,26 @@ test("non-string / empty / non-object ids never match", () => {
   assert.equal(shouldExposeClaudeEffortVariants(undefined as never), false);
   assert.equal(shouldExposeClaudeEffortVariants({ id: "" }), false);
   assert.equal(shouldExposeClaudeEffortVariants({ id: 42 as never }), false);
+});
+
+// ── isKnownClaudeEffortBaseModel ─────────────────────────────────────────────
+
+test("isKnownClaudeEffortBaseModel returns true for a real effort-capable Claude model", () => {
+  assert.equal(isKnownClaudeEffortBaseModel("claude-fable-5"), true);
+});
+
+test("isKnownClaudeEffortBaseModel returns false for a non-Claude model", () => {
+  assert.equal(isKnownClaudeEffortBaseModel("gpt-4o"), false);
+});
+
+test("isKnownClaudeEffortBaseModel returns false for an unregistered model id", () => {
+  assert.equal(isKnownClaudeEffortBaseModel("totally-unregistered-model-xyz"), false);
+});
+
+test("isKnownClaudeEffortBaseModel returns false for a non-Claude model that also supports thinking (SC-1)", () => {
+  // gpt-5.5 has supportsThinking:true in MODEL_SPECS (like 36+ other non-Claude models) —
+  // the /claude/i name check is the only thing excluding it, not the thinking flag alone.
+  assert.equal(isKnownClaudeEffortBaseModel("gpt-5.5"), false);
 });
 
 // ── claudeEffortLevelsFor ────────────────────────────────────────────────────
@@ -132,4 +155,92 @@ test("never generates variants-of-variants when the list already contains effort
     .map((m) => m.id)
     .filter((id) => /-(low|medium|high|xhigh)-(low|medium|high|xhigh)$/.test(id));
   assert.deepEqual(doubleSuffixed, []);
+});
+
+// ── cross-module drift guard: CLAUDE_EFFORT_SUFFIX_RE parity ────────────────
+//
+// `CLAUDE_EFFORT_SUFFIX_RE` (`/-(?:xhigh|high|medium|low)$/i`) is intentionally
+// duplicated as a local, non-exported constant in THREE sibling modules: this
+// file's module (claudeEffortVariants.ts), noThinkingAlias.ts, and
+// ccDiscoveryAliases.ts. A cross-import consolidation of that constant was
+// already proposed and explicitly reverted earlier in this project's review
+// cycle — the plan deliberately kept local duplication for these three
+// sibling modules (accepted by the Reduction Analyst). This test does NOT
+// argue for reversing that decision and must NOT be read as one. Its only
+// purpose is a behavioral drift guard: if a future edit changes the effort
+// levels recognized by one copy (e.g. adds a new level, or narrows/widens the
+// suffix pattern) without updating the other two, this test fails instead of
+// the three modules silently disagreeing about which ids carry an
+// effort-level suffix.
+test("CLAUDE_EFFORT_SUFFIX_RE stays in sync across claudeEffortVariants/noThinkingAlias/ccDiscoveryAliases (drift guard — do not consolidate, see comment above)", () => {
+  // Real, registered, thinking-capable Claude model that does NOT reject
+  // `thinking:{type:"disabled"}` — satisfies every module's registry-lookup
+  // gate identically, so any behavioral difference below is attributable only
+  // to the effort-suffix regex, not to some other per-module gating rule.
+  const BASE = "claude-opus-4-5";
+  const EFFORT_SUFFIXES = ["-low", "-medium", "-high", "-xhigh", "-XHIGH"];
+  // Trailing tokens that look suffix-like but must NOT match the regex
+  // (anchored to exactly low/medium/high/xhigh at end-of-string).
+  const NON_MATCHING_SUFFIXES = ["-max", "-highest"];
+
+  for (const suffix of EFFORT_SUFFIXES) {
+    const qualifiedId = `claude/${BASE}${suffix}`;
+    assert.equal(
+      shouldExposeClaudeEffortVariants(mk(qualifiedId)),
+      false,
+      `claudeEffortVariants must exclude ${qualifiedId}`
+    );
+    assert.equal(
+      shouldExposeNoThinkingAlias(mk(qualifiedId)),
+      false,
+      `noThinkingAlias must exclude ${qualifiedId}`
+    );
+    const mirrored = appendCcDiscoveryAliases(
+      [{ id: `cc/${BASE}${suffix}`, owned_by: "cc" }],
+      () => true
+    );
+    assert.equal(
+      mirrored.length,
+      1,
+      `ccDiscoveryAliases must never mirror an effort-suffixed id (${suffix})`
+    );
+  }
+
+  // Control: the identical base model WITHOUT a suffix must pass all three
+  // gates — proves the suffix itself (not something else about the id) is
+  // what excluded the cases above.
+  assert.equal(shouldExposeClaudeEffortVariants(mk(`claude/${BASE}`)), true);
+  assert.equal(shouldExposeNoThinkingAlias(mk(`claude/${BASE}`)), true);
+  const baseMirror = appendCcDiscoveryAliases([{ id: `cc/${BASE}`, owned_by: "cc" }], () => true);
+  assert.equal(baseMirror.length, 2, "unsuffixed id must still be mirrored");
+
+  // Suffix-like-but-non-matching trailing tokens must NOT be excluded by the
+  // regex. This isolates the regex's specificity (exactly xhigh/high/medium/low)
+  // from the models-registry prefix-matching gate: `getCanonicalModelSpecId`
+  // resolves "claude-opus-4-5-max" back to the "claude-opus-4-5" spec via its
+  // prefix-match fallback, so `shouldExposeClaudeEffortVariants` /
+  // `shouldExposeNoThinkingAlias` still pass their registry-lookup gate here —
+  // any exclusion left could only come from the suffix regex, and there is none.
+  for (const suffix of NON_MATCHING_SUFFIXES) {
+    const qualifiedId = `claude/${BASE}${suffix}`;
+    assert.equal(
+      shouldExposeClaudeEffortVariants(mk(qualifiedId)),
+      true,
+      `claudeEffortVariants must not treat "${suffix}" as an effort suffix`
+    );
+    assert.equal(
+      shouldExposeNoThinkingAlias(mk(qualifiedId)),
+      true,
+      `noThinkingAlias must not treat "${suffix}" as an effort suffix`
+    );
+    const mirrored = appendCcDiscoveryAliases(
+      [{ id: `cc/${BASE}${suffix}`, owned_by: "cc" }],
+      () => true
+    );
+    assert.equal(
+      mirrored.length,
+      2,
+      `ccDiscoveryAliases must still mirror a non-effort-suffix-looking id ("${suffix}")`
+    );
+  }
 });

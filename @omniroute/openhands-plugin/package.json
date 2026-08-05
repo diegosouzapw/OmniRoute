@@ -1,0 +1,79 @@
+{
+  "name": "@omniroute/openhands-plugin",
+  "version": "0.1.0",
+  "description": "OpenHands integration for the OmniRoute AI Gateway. Generates OpenHands env + Docker Compose config (model mapping, sandbox, CORS, persistence) so OpenHands agents talk to OmniRoute out of the box.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "omniroute-openhands": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./env": {
+      "types": "./dist/env.d.ts",
+      "import": "./dist/env.js"
+    },
+    "./docker": {
+      "types": "./dist/docker.d.ts",
+      "import": "./dist/docker.js"
+    },
+    "./model-map": {
+      "types": "./dist/model-map.d.ts",
+      "import": "./dist/model-map.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist",
+    "test": "node --import tsx/esm --test tests/env.test.ts tests/model-map.test.ts tests/docker.test.ts",
+    "prepublishOnly": "npm run clean && npm run build && npm test"
+  },
+  "keywords": [
+    "omniroute",
+    "openhands",
+    "open-hands",
+    "openhands-plugin",
+    "openai-compatible",
+    "docker",
+    "agent"
+  ],
+  "author": "OmniRoute contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/diegosouzapw/OmniRoute.git",
+    "directory": "@omniroute/openhands-plugin"
+  },
+  "bugs": {
+    "url": "https://github.com/diegosouzapw/OmniRoute/issues"
+  },
+  "homepage": "https://github.com/diegosouzapw/OmniRoute/tree/main/%40omniroute/openhands-plugin#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "peerDependencies": {
+    "@omniroute/open-sse": "*"
+  },
+  "peerDependenciesMeta": {
+    "@omniroute/open-sse": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.19",
+    "tsup": "^8.5.1",
+    "tsx": "^4.22.3"
+  }
+}

@@ -18,7 +18,7 @@ const agentSkillsConstants = await import("../../src/shared/constants/agentSkill
 test("getCatalog() returns exactly 45 entries", () => {
   refreshCatalog();
   const catalog = getCatalog();
-  assert.equal(catalog.length, 45, `Expected 45 but got ${catalog.length}`);
+  assert.equal(catalog.length, 46, `Expected 46 but got ${catalog.length}`);
 });
 
 test("API_SKILL_IDS has exactly 23 entries", () => {
@@ -185,9 +185,9 @@ test("filterCatalog({ area: 'nonexistent' }) returns empty array", () => {
   assert.equal(skills.length, 0);
 });
 
-test("filterCatalog({}) returns full catalog (45 entries)", () => {
+test("filterCatalog({}) returns full catalog (46 entries)", () => {
   const skills = filterCatalog({});
-  assert.equal(skills.length, 45);
+  assert.equal(skills.length, 46);
 });
 
 // ─── refreshCatalog ───────────────────────────────────────────────────────────

@@ -73,7 +73,11 @@ test("applyNoThinkingAlias expresses reasoning_effort:none without a thinking bl
   // #6879: a thinks-by-default OpenAI-shape model must carry reasoning_effort:"none"
   // explicitly (not merely have the field deleted), so suppression actually takes
   // effect downstream; the Responses-shaped `reasoning` object is still dropped.
-  assert.equal(body.reasoning_effort, "none", "reasoning_effort must express none, not be stripped");
+  assert.equal(
+    body.reasoning_effort,
+    "none",
+    "reasoning_effort must express none, not be stripped"
+  );
   assert.ok(!("reasoning" in body), "reasoning object must be dropped");
 });
 
@@ -96,11 +100,7 @@ test("applyNoThinkingAlias ignores a malformed prefix-only model", () => {
   const body: Record<string, unknown> = { model: "no-think/" };
   const res = applyNoThinkingAlias(body, { claudeFormat: true });
   assert.equal(res.applied, false);
-  assert.equal(
-    body.model,
-    "no-think/",
-    "left untouched when nothing follows the prefix"
-  );
+  assert.equal(body.model, "no-think/", "left untouched when nothing follows the prefix");
 });
 
 // ── catalog gating ───────────────────────────────────────────────────────────
@@ -120,28 +120,16 @@ test("shouldExposeNoThinkingAlias rejects models where suppression is meaningles
   // combos are virtual, never aliased
   assert.equal(shouldExposeNoThinkingAlias(entry("my-combo", "combo")), false);
   // never double-alias
-  assert.equal(
-    shouldExposeNoThinkingAlias(entry("no-think/anthropic/claude-opus-4-5")),
-    false
-  );
+  assert.equal(shouldExposeNoThinkingAlias(entry("no-think/anthropic/claude-opus-4-5")), false);
 });
 
 test("appendNoThinkingVariants adds one variant per eligible model and preserves the rest", () => {
   const models = [entry("claude-opus-4-5"), entry("gpt-4o", "openai"), entry("claude-fable-5")];
   const out = appendNoThinkingVariants(models);
   const ids = out.map((m) => m.id);
-  assert.ok(
-    ids.includes("no-think/claude-opus-4-5"),
-    "eligible model gets a variant"
-  );
-  assert.ok(
-    !ids.includes("no-think/gpt-4o"),
-    "non-thinking model has no variant"
-  );
-  assert.ok(
-    !ids.includes("no-think/claude-fable-5"),
-    "reject-disabled model has no variant"
-  );
+  assert.ok(ids.includes("no-think/claude-opus-4-5"), "eligible model gets a variant");
+  assert.ok(!ids.includes("no-think/gpt-4o"), "non-thinking model has no variant");
+  assert.ok(!ids.includes("no-think/claude-fable-5"), "reject-disabled model has no variant");
   assert.equal(out.length, models.length + 1, "exactly one variant appended");
   // originals preserved up front
   assert.deepEqual(out.slice(0, 3), models);
@@ -157,22 +145,42 @@ test("appendNoThinkingVariants normalizes alias prefix to canonical when aliasTo
   const aliasToCanonical = { cc: "claude" };
   const out = appendNoThinkingVariants(models, aliasToCanonical);
   const ids = out.map((m) => m.id);
-  assert.ok(
-    ids.includes("no-think/claude/claude-opus-4-5"),
-    "uses canonical prefix"
-  );
-  assert.ok(
-    !ids.includes("no-think/cc/claude-opus-4-5"),
-    "alias prefix not used"
-  );
+  assert.ok(ids.includes("no-think/claude/claude-opus-4-5"), "uses canonical prefix");
+  assert.ok(!ids.includes("no-think/cc/claude-opus-4-5"), "alias prefix not used");
 });
 
 test("appendNoThinkingVariants keeps alias prefix when no map is provided", () => {
   const models = [entry("cc/claude-opus-4-5")];
   const out = appendNoThinkingVariants(models);
   const ids = out.map((m) => m.id);
+  assert.ok(ids.includes("no-think/cc/claude-opus-4-5"), "alias prefix preserved");
+});
+
+test("appendNoThinkingVariants keeps root bare even when id carries a provider prefix", () => {
+  const models = [entry("vertex/claude-opus-4-5", "vertex")];
+  const out = appendNoThinkingVariants(models);
+  const variant = out.find((m) => m.id === "no-think/vertex/claude-opus-4-5");
+  assert.ok(variant, "variant with the fully-qualified id must exist");
+  assert.equal(
+    variant!.root,
+    "no-think/claude-opus-4-5",
+    "root must be bare (no embedded provider segment), matching the effort-variant convention"
+  );
+});
+
+test("shouldExposeNoThinkingAlias rejects an already effort-suffixed id", () => {
+  assert.equal(shouldExposeNoThinkingAlias(entry("vertex/claude-sonnet-5-high")), false);
+  assert.equal(shouldExposeNoThinkingAlias(entry("claude-opus-4-5-xhigh")), false);
+});
+
+test("appendNoThinkingVariants does not synthesize a no-think variant of an effort variant", () => {
+  // Simulates the real pipeline order in catalogResponse.ts: appendClaudeEffortVariants
+  // runs first and produces an id like this before appendNoThinkingVariants ever sees it.
+  const models = [entry("vertex/claude-sonnet-5-high")];
+  const out = appendNoThinkingVariants(models);
+  assert.equal(out, models, "no variant should be added for an effort-suffixed id");
   assert.ok(
-    ids.includes("no-think/cc/claude-opus-4-5"),
-    "alias prefix preserved"
+    !out.some((m) => m.id === "no-think/vertex/claude-sonnet-5-high"),
+    "the incoherent combined id must never be advertised"
   );
 });

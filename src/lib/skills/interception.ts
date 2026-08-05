@@ -1,7 +1,8 @@
 import { skillExecutor } from "./executor";
 import { skillRegistry } from "./registry";
 import { builtinSkills } from "./builtins";
-import { detectProvider } from "./injection";
+import { memoryBuiltinHandlers, MEMORY_BUILTIN_TOOL_NAMES } from "./memoryBuiltins";
+import { detectProvider, decodeSkillToolName } from "./injection";
 import { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } from "@omniroute/open-sse/services/webSearchFallback.ts";
 import { OMNIROUTE_WEB_FETCH_FALLBACK_TOOL_NAME } from "@omniroute/open-sse/services/webFetchInterception.ts";
 import { logger } from "../../../open-sse/utils/logger.ts";
@@ -32,10 +33,12 @@ const BUILTIN_TOOL_ALIASES: Record<string, string> = {
   [OMNIROUTE_WEB_FETCH_FALLBACK_TOOL_NAME]: "web_fetch",
 };
 
+const MEMORY_TOOL_NAMES = new Set<string>(MEMORY_BUILTIN_TOOL_NAMES);
+
 function resolveBuiltinHandlerName(
   toolName: string,
   context: ExecutionContext
-): keyof typeof builtinSkills | null {
+): keyof typeof builtinSkills | keyof typeof memoryBuiltinHandlers | null {
   const [rawName] = toolName.includes("@") ? toolName.split("@") : [toolName];
   const canonicalName = BUILTIN_TOOL_ALIASES[rawName] || rawName;
   const allowed = new Set(
@@ -46,7 +49,13 @@ function resolveBuiltinHandlerName(
     return null;
   }
 
-  return canonicalName in builtinSkills ? (canonicalName as keyof typeof builtinSkills) : null;
+  if (canonicalName in builtinSkills) {
+    return canonicalName as keyof typeof builtinSkills;
+  }
+  if (MEMORY_TOOL_NAMES.has(canonicalName)) {
+    return canonicalName as keyof typeof memoryBuiltinHandlers;
+  }
+  return null;
 }
 
 function getResponsesOutputContainer(response: Record<string, unknown> | null | undefined): {
@@ -95,12 +104,23 @@ export async function interceptToolCalls(
             callId: call.id,
           });
 
-          const result = await builtinSkills[builtinHandlerName](call.arguments, {
-            apiKeyId: context.apiKeyId,
-            sessionId: context.sessionId,
-            provider: context.provider,
-            model: context.model,
-          });
+          const isMemoryHandler = MEMORY_TOOL_NAMES.has(builtinHandlerName);
+          const result = isMemoryHandler
+            ? await memoryBuiltinHandlers[
+                builtinHandlerName as keyof typeof memoryBuiltinHandlers
+              ](call.arguments, {
+                apiKeyId: context.apiKeyId,
+                sessionId: context.sessionId,
+              })
+            : await builtinSkills[builtinHandlerName as keyof typeof builtinSkills](
+                call.arguments,
+                {
+                  apiKeyId: context.apiKeyId,
+                  sessionId: context.sessionId,
+                  provider: context.provider,
+                  model: context.model,
+                }
+              );
 
           log.info("skills.interception.execution_complete", {
             toolName: call.name,
@@ -113,9 +133,10 @@ export async function interceptToolCalls(
           };
         }
 
-        const [name, version] = call.name.includes("@")
-          ? call.name.split("@")
-          : [call.name, "latest"];
+        const decodedName = decodeSkillToolName(call.name);
+        const [name, version] = decodedName.includes("@")
+          ? decodedName.split("@")
+          : [decodedName, "latest"];
 
         const skillName = version === "latest" ? name : `${name}@${version}`;
 
@@ -226,7 +247,10 @@ function parseArguments(args: string | Record<string, unknown>): Record<string, 
 }
 
 function isRegisteredCustomSkill(toolName: string, apiKeyId: string): boolean {
-  const [name, version] = toolName.includes("@") ? toolName.split("@", 2) : [toolName, undefined];
+  const decodedName = decodeSkillToolName(toolName);
+  const [name, version] = decodedName.includes("@")
+    ? decodedName.split("@", 2)
+    : [decodedName, undefined];
   const identifier = version ? `${name}@${version}` : name;
   return skillRegistry.getSkill(identifier, apiKeyId) != null;
 }

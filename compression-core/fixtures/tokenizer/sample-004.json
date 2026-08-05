@@ -1,0 +1,6 @@
+{
+  "id": "004",
+  "text": "Code:\n```rust\nfn main() { println!(\"hi\"); }\n```",
+  "cl100k_tokens": 15,
+  "o200k_tokens": 15
+}

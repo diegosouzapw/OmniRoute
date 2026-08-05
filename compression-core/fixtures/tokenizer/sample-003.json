@@ -1,0 +1,6 @@
+{
+  "id": "003",
+  "text": "JSON:\n{\"name\":\"test\",\"values\":[1,2,3]}",
+  "cl100k_tokens": 15,
+  "o200k_tokens": 15
+}

@@ -62,7 +62,7 @@ jobs:
     # mid-"Creating an optimized production build" while v3.8.48 had still fit in 16min.
     # This job never runs on `pull_request`, so the fork-safety clause is always true here;
     # it is kept verbatim so the expression stays greppable against ci.yml.
-    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-26.04' }}
     permissions:
       actions: read # find + download the CI run's next-build artifact for this SHA
       contents: write # gh release upload (attach SBOM to the GitHub Release)
@@ -70,7 +70,7 @@ jobs:
       packages: write # publish to npm.pkg.github.com
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           # Need full tag history to compare against highest semver when
@@ -78,7 +78,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: ${{ env.NPM_PUBLISH_NODE_VERSION }}
           registry-url: https://registry.npmjs.org
@@ -339,20 +339,20 @@ jobs:
           echo "✅ Action finished for GitHub Packages"
 
   publish-opencode-plugin:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       id-token: write # npm provenance
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
           # Full history needed for auto-bump: git diff against previous release tag
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: ${{ env.NPM_PUBLISH_NODE_VERSION }}
           registry-url: https://registry.npmjs.org

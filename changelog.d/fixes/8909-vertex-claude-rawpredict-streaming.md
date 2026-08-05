@@ -1,0 +1,1 @@
+- **fix(executors):** Vertex AI now routes Claude models through the native Anthropic `rawPredict` endpoint instead of the generic OpenAI-compatible partner endpoint, and synthesizes a real streaming response so Claude-via-Vertex works with `stream: true` ([#8909](https://github.com/diegosouzapw/OmniRoute/pull/8909)) — thanks @wgordon17

@@ -1,0 +1,6 @@
+{
+  "id": "011",
+  "text": "function foo(a,b){return a+b*2;}\n\nconst x = foo(1,2);\nconsole.log(x);",
+  "cl100k_tokens": 24,
+  "o200k_tokens": 24
+}

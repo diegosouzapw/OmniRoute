@@ -21,6 +21,7 @@ import { GrokWebExecutor } from "./grok-web.ts";
 import { GeminiWebExecutor } from "./gemini-web.ts";
 import { GeminiBusinessExecutor } from "./gemini-business.ts";
 import { ChatGptWebExecutor } from "./chatgpt-web.ts";
+import { ChatGptWebCodexExecutor } from "./chatgpt-web-codex.ts";
 import { BlackboxWebExecutor } from "./blackbox-web.ts";
 import { MuseSparkWebExecutor } from "./muse-spark-web.ts";
 import { AzureOpenAIExecutor } from "./azure-openai.ts";
@@ -30,6 +31,7 @@ import { NlpCloudExecutor } from "./nlpcloud.ts";
 import { WindsurfExecutor } from "./windsurf.ts";
 import { ZedHostedExecutor } from "./zed-hosted.ts";
 import { DevinCliExecutor } from "./devin-cli.ts";
+import { DevinCliAgenticExecutor } from "./devin-cli-agentic.ts";
 import { AuggieExecutor } from "./auggie.ts";
 import { DeepSeekWebExecutor } from "./deepseek-web.ts";
 import { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
@@ -79,6 +81,8 @@ const executors = {
   "amazon-q": new KiroExecutor("amazon-q"),
   bedrock: new BedrockExecutor(),
   codex: new CodexExecutor(),
+  "chatgpt-web-codex": new ChatGptWebCodexExecutor(),
+  "cgpt-codex": new ChatGptWebCodexExecutor(),
   cursor: new CursorExecutor(),
   trae: new TraeExecutor(),
   glm: new GlmExecutor("glm"),
@@ -125,6 +129,7 @@ const executors = {
   ws: new WindsurfExecutor(), // Alias
   "zed-hosted": new ZedHostedExecutor(),
   "devin-cli": new DevinCliExecutor(),
+  "devin-cli-agentic": new DevinCliAgenticExecutor(),
   devin: new DevinCliExecutor(), // Alias
   "deepseek-web": new DeepSeekWebWithAutoRefreshExecutor(),
   "ds-web": new DeepSeekWebWithAutoRefreshExecutor(), // Alias
@@ -152,7 +157,9 @@ const executors = {
   "yuanbao-web": new YuanbaoWebExecutor(),
   ybw: new YuanbaoWebExecutor(), // Alias
   "poe-web": new PoeWebExecutor(),
-  poe: new PoeWebExecutor(), // Alias
+  // #8969: do NOT alias canonical `poe` (API-key / api.poe.com) to PoeWebExecutor.
+  // Registry declares executor:"default"; the hard-coded map previously won and
+  // routed API-key traffic to GraphQL /api/gql_POST → HTTP 405.
   "venice-web": new VeniceWebExecutor(),
   ven: new VeniceWebExecutor(), // Alias
   "notion-web": new NotionWebExecutor(),
@@ -258,6 +265,7 @@ export { NlpCloudExecutor } from "./nlpcloud.ts";
 export { WindsurfExecutor } from "./windsurf.ts";
 export { ZedHostedExecutor } from "./zed-hosted.ts";
 export { DevinCliExecutor } from "./devin-cli.ts";
+export { DevinCliAgenticExecutor } from "./devin-cli-agentic.ts";
 export { AuggieExecutor } from "./auggie.ts";
 export { CopilotWebExecutor } from "./copilot-web.ts";
 export { CopilotM365WebExecutor } from "./copilot-m365-web.ts";

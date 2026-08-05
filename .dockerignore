@@ -18,6 +18,7 @@ coverage
 # Runtime data and logs
 data
 logs
+.sandbox
 
 # Local env files (inject at runtime via --env-file or -e)
 .env

@@ -64,6 +64,8 @@ How the system is put together — read these to understand the runtime, code la
 - [QUALITY_GATES.md](architecture/QUALITY_GATES.md) — quality-gate scripts and CI jobs inventory.
 - [MONITORING_SECTIONS.md](architecture/MONITORING_SECTIONS.md) — monitoring/costs dashboard navigation.
 - [cluster-decisions.md](architecture/cluster-decisions.md) — optional sidecar/cluster profile decisions.
+- [rust-port-research.md](rust-port-research.md) — feasibility study for porting the CPU-bound compression/tokenization core to a standalone Rust library (fork research, 2026-07-31).
+- [infrastructure.md](infrastructure.md) — deployment topology (Proxmox / LXC 101 / LXC 106 / Forgejo / Docker) and push flows (fork research, 2026-07-31).
 
 ## reference/
 

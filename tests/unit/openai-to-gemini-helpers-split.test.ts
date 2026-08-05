@@ -19,15 +19,26 @@ test("isVertexGeminiProvider matches only the vertex provider ids", () => {
   assert.equal(h.isVertexGeminiProvider(undefined), false);
 });
 
-test("buildChangedToolNameMap keeps only renamed entries, else null", () => {
+test("buildChangedToolNameMap keeps identity + renamed entries (#9008), else null", () => {
+  // Identity mappings are retained so Claude Code PascalCase tools can be
+  // restored when Gemini/Antigravity echoes a different case (#9008).
   const changed = h.buildChangedToolNameMap(
     new Map([
       ["a", "a"],
       ["b_sanitized", "b"],
     ])
   );
-  assert.deepEqual([...(changed ?? new Map()).entries()], [["b_sanitized", "b"]]);
-  assert.equal(h.buildChangedToolNameMap(new Map([["a", "a"]])), null);
+  assert.deepEqual(
+    [...(changed ?? new Map()).entries()],
+    [
+      ["a", "a"],
+      ["b_sanitized", "b"],
+    ]
+  );
+  assert.deepEqual([...(h.buildChangedToolNameMap(new Map([["a", "a"]])) ?? new Map()).entries()], [
+    ["a", "a"],
+  ]);
+  assert.equal(h.buildChangedToolNameMap(new Map()), null);
 });
 
 test("extractClientThoughtSignature reads the first non-empty signature field", () => {

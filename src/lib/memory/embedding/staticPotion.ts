@@ -95,25 +95,55 @@ function parseSafetensors(buf: Buffer): { matrix: Float32Array; shape: number[] 
   throw new Error("No float32 tensor found in safetensors file");
 }
 
+async function loadVocab(modelDir: string, tokenizerPath: string): Promise<Record<string, number>> {
+  try {
+    const tokenizerRaw = await fs.readFile(tokenizerPath, "utf8");
+    const tokenizer = JSON.parse(tokenizerRaw) as { model?: { vocab?: Record<string, number> } };
+    const vocab = tokenizer.model?.vocab;
+    if (vocab && Object.keys(vocab).length > 0) return vocab;
+  } catch {
+    // fall through to vocab.json
+  }
+
+  const vocabJsonPath = path.join(modelDir, "vocab.json");
+  try {
+    const vocabRaw = await fs.readFile(vocabJsonPath, "utf8");
+    const vocab = JSON.parse(vocabRaw) as Record<string, number>;
+    if (Object.keys(vocab).length > 0) return vocab;
+  } catch {
+    // fall through to vocab.txt
+  }
+
+  const vocabTxtPath = path.join(modelDir, "vocab.txt");
+  const txtRaw = await fs.readFile(vocabTxtPath, "utf8");
+  const vocab: Record<string, number> = {};
+  for (const [idx, token] of txtRaw.split(/\r?\n/).entries()) {
+    const t = token.trim();
+    if (t) vocab[t] = idx;
+  }
+  if (Object.keys(vocab).length === 0) {
+    throw new Error(
+      "Failed to load vocab: no token→id map in tokenizer.json, vocab.json, or vocab.txt"
+    );
+  }
+  return vocab;
+}
+
 async function loadModel(): Promise<PotionModel> {
   const modelDir = getModelDir();
   await fs.mkdir(modelDir, { recursive: true });
 
   const hfBase = `${HF_BASE}/${MODEL_ID}/resolve/main`;
 
-  const vocabPath = path.join(modelDir, "vocab.json");
   const modelPath = path.join(modelDir, "model.safetensors");
   const tokenizerPath = path.join(modelDir, "tokenizer.json");
 
   await Promise.all([
-    ensureFile(vocabPath, `${hfBase}/vocab.json`),
     ensureFile(modelPath, `${hfBase}/model.safetensors`),
     ensureFile(tokenizerPath, `${hfBase}/tokenizer.json`),
   ]);
 
-  // Load vocab
-  const vocabRaw = await fs.readFile(vocabPath, "utf8");
-  const vocab = JSON.parse(vocabRaw) as Record<string, number>;
+  const vocab = await loadVocab(modelDir, tokenizerPath);
 
   // Load matrix from safetensors
   const modelBuf = await fs.readFile(modelPath);

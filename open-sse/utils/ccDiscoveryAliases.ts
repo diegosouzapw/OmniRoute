@@ -33,7 +33,7 @@ export const CC_DISCOVERY_COMBO_PREFIX = "claude/combo/";
 // Ids that already live under the claude/anthropic namespace — never re-mirror them.
 const ALREADY_CLAUDE_RE = /^(?:claude|anthropic)(?:\/|$)/i;
 // Ids that already carry a reasoning-effort suffix — v1 only mirrors base ids.
-const EFFORT_SUFFIX_RE = /-(?:xhigh|high|medium|low)$/i;
+const CLAUDE_EFFORT_SUFFIX_RE = /-(?:xhigh|high|medium|low)$/i;
 const NO_THINKING_PREFIX = "no-think/";
 // Built-in `auto`/`auto/*` combos are synthesized by createBuiltinAutoCombo, NOT
 // stored in the DB combos table — the request-path resolver (getComboByName) can't
@@ -66,7 +66,14 @@ function isMirrorableId(id: string): boolean {
   if (id.length === 0) return false;
   if (ALREADY_CLAUDE_RE.test(id)) return false;
   if (id.startsWith(NO_THINKING_PREFIX)) return false;
-  return !EFFORT_SUFFIX_RE.test(id);
+  return !CLAUDE_EFFORT_SUFFIX_RE.test(id);
+}
+
+/** Strip a `<provider>/` prefix to get the bare model name, matching the convention in
+ * claudeEffortVariants.ts / noThinkingAlias.ts. */
+function bareModelName(id: string): string {
+  const slash = id.lastIndexOf("/");
+  return slash >= 0 ? id.slice(slash + 1) : id;
 }
 
 export function appendCcDiscoveryAliases<T extends CcDiscoveryCatalogEntry>(
@@ -90,7 +97,10 @@ export function appendCcDiscoveryAliases<T extends CcDiscoveryCatalogEntry>(
     aliases.push({
       ...model,
       id: aliasId,
-      root: id,
+      // Combo names may legally contain "/" (comboNameSchema allows it), so a combo's
+      // root must stay the full name verbatim — only real provider-qualified ids get
+      // the "/" stripped down to the bare model name.
+      root: isCombo ? id : bareModelName(id),
       display_name: `${label} (OmniRoute)`,
     } as T);
   }

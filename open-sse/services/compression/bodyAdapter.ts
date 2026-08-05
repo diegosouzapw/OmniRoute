@@ -400,7 +400,12 @@ export function adaptBodyForCompression(
       });
 
       const cleanedInput = nextInput.filter((item) => {
-        if (!isRecord(item) || item.type !== "function_call") return true;
+        if (
+          !isRecord(item) ||
+          (item.type !== "function_call" && item.type !== "custom_tool_call")
+        ) {
+          return true;
+        }
         if (typeof item.call_id !== "string" || item.call_id.length === 0) return true;
         const hadMappedOutput = mappings.some((mapping) => {
           const original = mapping.item;

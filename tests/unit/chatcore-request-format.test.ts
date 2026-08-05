@@ -10,7 +10,11 @@ import { resolveChatCoreRequestFormat } from "../../open-sse/handlers/chatCore/r
 import { shouldUseNativeCodexPassthrough } from "../../open-sse/handlers/chatCore/passthroughHelpers.ts";
 import { FORMATS } from "../../open-sse/translator/formats.ts";
 
-const base = { body: { messages: [{ role: "user", content: "hi" }] }, provider: "openai", userAgent: "unit-test" };
+const base = {
+  body: { messages: [{ role: "user", content: "hi" }] },
+  provider: "openai",
+  userAgent: "unit-test",
+};
 
 test("chat/completions endpoint → openai source, not a responses endpoint, no downgrade", () => {
   const r = resolveChatCoreRequestFormat({
@@ -93,6 +97,8 @@ test("nativeCodexPassthrough delegates to shouldUseNativeCodexPassthrough (codex
       provider: "codex",
       sourceFormat: r.sourceFormat,
       endpointPath: r.endpointPath,
+      body: { input: "x" },
+      headers: new Headers(),
     })
   );
 });

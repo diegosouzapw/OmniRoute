@@ -10,13 +10,11 @@ permissions:
 jobs:
   promptfoo-guard:
     name: promptfoo — injection guard (block mode, no secret)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with: { node-version: "24", cache: npm }
       - run: npm ci
       - name: Build CLI bundle
         env:
@@ -46,7 +44,7 @@ jobs:
 
   garak:
     name: garak probes (skip without provider secret)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # NOTE: the `secrets` context is NOT available in a job-level `if:` — referencing
     # it there makes GitHub reject the file on push (startup_failure on every push).
     # Map the secret into a job-level env and gate each step on a presence check, so
@@ -63,13 +61,10 @@ jobs:
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "::notice::PROMPTFOO_PROVIDER_KEY not set — skipping garak probes (advisory)."
           fi
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
         if: steps.gate.outputs.run == 'true'
-      - uses: actions/setup-node@v7
-        if: steps.gate.outputs.run == 'true'
-        with: { node-version: "24", cache: npm }
       - run: npm ci
         if: steps.gate.outputs.run == 'true'
       - name: Build CLI bundle

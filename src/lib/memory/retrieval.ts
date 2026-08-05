@@ -78,8 +78,16 @@ function fetchMemoriesByIds(ids: string[]): Memory[] {
   return ids.map((id) => byId.get(id)).filter((m): m is Memory => m !== undefined);
 }
 
-interface FtsColConfig {
-  apiKeyCol: string;
+/**
+ * Sanitize a free-text query into an FTS5 MATCH expression.
+ * Strips FTS5 syntax characters (?, !, ", *, :, parentheses, etc.) and quotes
+ * each whitespace-separated term so natural-language queries with punctuation
+ * don't raise "fts5: syntax error".
+ */
+import { toFts5MatchQuery } from "./ftsQuery";
+export { toFts5MatchQuery } from "./ftsQuery";
+
+interface FtsColConfig {  apiKeyCol: string;
   expiresCol: string;
   createdCol: string;
   sessionCol: string;
@@ -122,7 +130,7 @@ function buildFtsRows(apiKeyId: string, config: FtsColConfig): MemoryRow[] {
   }
   ftsQueryStr += ` ORDER BY f.rank LIMIT 100`;
 
-  const ftsParams: unknown[] = [q, apiKeyId];
+  const ftsParams: unknown[] = [toFts5MatchQuery(q), apiKeyId];
   if (scope === "session" && sessionId) ftsParams.push(sessionId);
   if (retentionDays && retentionDays > 0) {
     const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000).toISOString();
@@ -918,7 +926,9 @@ export async function retrievePreview(
       const ftsQueryStr = apiKeyId
         ? `SELECT m.* FROM ${tableName} m JOIN memory_fts f ON m.memory_id = f.rowid WHERE f.memory_fts MATCH ? AND m.${apiKeyCol} = ? ORDER BY f.rank LIMIT ?`
         : `SELECT m.* FROM ${tableName} m JOIN memory_fts f ON m.memory_id = f.rowid WHERE f.memory_fts MATCH ? ORDER BY f.rank LIMIT ?`;
-      const ftsP: unknown[] = apiKeyId ? [query, apiKeyId, limit] : [query, limit];
+      const ftsP: unknown[] = apiKeyId
+        ? [toFts5MatchQuery(query), apiKeyId, limit]
+        : [toFts5MatchQuery(query), limit];
       try {
         ftsRows = db.prepare(ftsQueryStr).all(...ftsP) as MemoryRow[];
       } catch {

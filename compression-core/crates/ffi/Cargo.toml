@@ -1,0 +1,13 @@
+[package]
+name = "compression-ffi"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+core-api = { workspace = true }
+tokenizer = { workspace = true }
+
+# napi-rs bindings are added in the integration phase. This crate exists to
+# keep the N-API adapter out of the algorithm crates.

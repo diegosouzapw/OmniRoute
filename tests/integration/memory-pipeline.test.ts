@@ -214,6 +214,74 @@ test("memory search ranks query-relevant memories first", async () => {
   assert.ok(result.data.memories.every((memory) => /TypeScript|backend/i.test(memory.content)));
 });
 
+test("MCP memory tools fall back to caller principal id when apiKeyId is omitted", async () => {
+  const apiKey = await seedApiKey();
+  await enableMemory(400, "hybrid");
+
+  const prevEnvKey = process.env.OMNIROUTE_API_KEY;
+  process.env.OMNIROUTE_API_KEY = apiKey.key;
+  try {
+    const added = await memoryTools.omniroute_memory_add.handler({
+      sessionId: "mcp-auto",
+      type: "factual",
+      key: "pref:auto-owner",
+      content: "Written without an explicit apiKeyId.",
+      metadata: {},
+    });
+    assert.equal(added.success, true);
+    assert.equal(added.data.memory.apiKeyId, "env-key");
+
+    const rows = await listMemories({ apiKeyId: "env-key", sessionId: "mcp-auto" });
+    const list = Array.isArray(rows) ? rows : (rows.data ?? []);
+    assert.equal(list.length, 1);
+    assert.equal(list[0].key, "pref:auto-owner");
+
+    const searched = await memoryTools.omniroute_memory_search.handler({
+      query: "explicit apiKeyId",
+      limit: 5,
+    });
+    assert.equal(searched.success, true);
+    assert.equal(searched.data.count, 1);
+    assert.equal(searched.data.memories[0].apiKeyId, "env-key");
+  } finally {
+    if (prevEnvKey === undefined) {
+      delete process.env.OMNIROUTE_API_KEY;
+    } else {
+      process.env.OMNIROUTE_API_KEY = prevEnvKey;
+    }
+  }
+});
+
+test("MCP memory tools reject explicit apiKeyId that does not match caller principal", async () => {
+  const prevEnvKey = process.env.OMNIROUTE_API_KEY;
+  process.env.OMNIROUTE_API_KEY = "sk-other-principal";
+  try {
+    const added = await memoryTools.omniroute_memory_add.handler({
+      apiKeyId: "principal-b",
+      sessionId: "mcp-mismatch",
+      type: "factual",
+      key: "pref:cross-tenant",
+      content: "Must not leak into another principal's store.",
+      metadata: {},
+    });
+    assert.equal(added.success, true);
+    assert.equal(added.data.memory.apiKeyId, "principal-b");
+
+    const searched = await memoryTools.omniroute_memory_search.handler({
+      query: "cross-tenant",
+      limit: 5,
+    });
+    assert.equal(searched.success, true);
+    assert.equal(searched.data.count, 0);
+  } finally {
+    if (prevEnvKey === undefined) {
+      delete process.env.OMNIROUTE_API_KEY;
+    } else {
+      process.env.OMNIROUTE_API_KEY = prevEnvKey;
+    }
+  }
+});
+
 test("memory injection respects the configured token budget", async () => {
   await seedConnection("openai", { apiKey: "sk-openai-budget" });
   const apiKey = await seedApiKey();

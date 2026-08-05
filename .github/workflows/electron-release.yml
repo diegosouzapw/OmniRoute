@@ -20,14 +20,14 @@ permissions:
 jobs:
   validate:
     name: Validate version
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     outputs:
       version: ${{ steps.validate.outputs.version }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -78,17 +78,17 @@ jobs:
             target: mac-arm64
             ext: -arm64.dmg
           - platform: linux
-            runner: ubuntu-latest
+            runner: ubuntu-26.04
             target: linux
             ext: .AppImage
             deb_ext: .deb
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
           cache: npm
@@ -239,12 +239,12 @@ jobs:
     # Now: attach everything that did build, then fail the job loudly (see the last
     # step) so an incomplete channel is visible instead of silent.
     if: ${{ !cancelled() && needs.validate.result == 'success' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: write # softprops/action-gh-release creates the GitHub Release
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -329,7 +329,7 @@ jobs:
     # of passing unnoticed — the v3.8.49 release had ZERO assets and every gate was
     # green, because nothing ever asserted the release HAS binaries.
     if: ${{ !cancelled() && needs.release.result == 'success' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     steps:

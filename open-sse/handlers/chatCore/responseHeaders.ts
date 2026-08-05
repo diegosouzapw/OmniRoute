@@ -64,6 +64,17 @@ function getForwardingPriority(headerName: string): number {
   }
   if (normalized === "retry-after") return 1;
   if (normalized.includes("ratelimit") || normalized.includes("rate-limit")) return 2;
+  // Provider quota/usage telemetry headers — NVIDIA NIM (x-nvcf-*,
+  // x-ratelimit-*, x-quota-*), Anthropic, OpenAI usage-style headers.
+  // Forwarded alongside rate-limit so operators can monitor remaining quota.
+  if (
+    normalized.startsWith("x-nvcf-") ||
+    normalized.includes("quota") ||
+    normalized.includes("usage") ||
+    normalized.includes("x-ratelimit-")
+  ) {
+    return 2;
+  }
   return 3;
 }
 

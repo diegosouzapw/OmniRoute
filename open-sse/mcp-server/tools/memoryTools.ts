@@ -7,9 +7,23 @@ import {
   toMemoryRetrievalConfig,
   DEFAULT_MEMORY_SETTINGS,
 } from "@/lib/memory/settings";
+import { resolveMcpCallerApiKeyId } from "../mcpCallerIdentity.ts";
+
+/**
+ * Resolve the memory owner id for an MCP tool call:
+ * explicit arg wins, otherwise fall back to the authenticated caller's
+ * principal id (HTTP auth headers on SSE/Streamable HTTP transports,
+ * OMNIROUTE_API_KEY env var on stdio). Keeps MCP-stored memories under
+ * the same owner id that chat-context memory uses, so retrieval in the
+ * chat pipeline finds entries written via MCP.
+ */
+async function resolveMemoryOwnerId(explicit?: string): Promise<string> {
+  if (explicit && explicit.trim() !== "") return explicit.trim();
+  return (await resolveMcpCallerApiKeyId().catch(() => undefined)) || "mcp";
+}
 
 export const MemorySearchSchema = z.object({
-  apiKeyId: z.string(),
+  apiKeyId: z.string().optional(),
   query: z.string().optional(),
   type: z.enum(["factual", "episodic", "procedural", "semantic"]).optional(),
   maxTokens: z.number().int().positive().max(8000).optional(),
@@ -17,7 +31,7 @@ export const MemorySearchSchema = z.object({
 });
 
 export const MemoryAddSchema = z.object({
-  apiKeyId: z.string(),
+  apiKeyId: z.string().optional(),
   sessionId: z.string().optional(),
   type: z.enum(["factual", "episodic", "procedural", "semantic"]),
   key: z.string().min(1),
@@ -26,7 +40,7 @@ export const MemoryAddSchema = z.object({
 });
 
 export const MemoryClearSchema = z.object({
-  apiKeyId: z.string(),
+  apiKeyId: z.string().optional(),
   type: z.enum(["factual", "episodic", "procedural", "semantic"]).optional(),
   olderThan: z.string().optional(),
 });
@@ -38,6 +52,7 @@ export const memoryTools = {
     scopes: ["read:memory"],
     inputSchema: MemorySearchSchema,
     handler: async (args: z.infer<typeof MemorySearchSchema>) => {
+      const apiKeyId = await resolveMemoryOwnerId(args.apiKeyId);
       // Plan 21 D16/Bug#7 fix: even on the error path the fallback must
       // respect DEFAULT_MEMORY_SETTINGS.strategy instead of hardcoding "exact".
       const memorySettings =
@@ -54,7 +69,7 @@ export const memoryTools = {
           (memorySettings.enabled ? memorySettings.maxTokens : DEFAULT_MEMORY_SETTINGS.maxTokens),
       };
 
-      const memories = await retrieveMemories(args.apiKeyId, config);
+      const memories = await retrieveMemories(apiKeyId, config);
 
       const filtered = args.type ? memories.filter((m) => m.type === args.type) : memories;
 
@@ -77,8 +92,9 @@ export const memoryTools = {
     scopes: ["write:memory"],
     inputSchema: MemoryAddSchema,
     handler: async (args: z.infer<typeof MemoryAddSchema>) => {
+      const apiKeyId = await resolveMemoryOwnerId(args.apiKeyId);
       const memory = await createMemory({
-        apiKeyId: args.apiKeyId,
+        apiKeyId,
         sessionId: args.sessionId || "",
         type: args.type as MemoryType,
         key: args.key,
@@ -103,8 +119,9 @@ export const memoryTools = {
     scopes: ["write:memory"],
     inputSchema: MemoryClearSchema,
     handler: async (args: z.infer<typeof MemoryClearSchema>) => {
+      const apiKeyId = await resolveMemoryOwnerId(args.apiKeyId);
       const result = await listMemories({
-        apiKeyId: args.apiKeyId,
+        apiKeyId,
         type: args.type as MemoryType | undefined,
       });
       const existingMemories = Array.isArray(result)

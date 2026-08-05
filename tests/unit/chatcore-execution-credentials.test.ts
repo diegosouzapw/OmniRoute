@@ -93,6 +93,28 @@ test("AgentRouter threads the resolved Responses protocol only into execution cr
     targetFormat: RESPONSES,
   });
   assert.deepEqual(credentials.providerSpecificData, { apiKeyHealth: {} });
+
+test("#8969: poe + responses target sets the responses-upstream marker (no apiType)", () => {
+  const out = resolveExecutionCredentials({
+    ...base,
+    provider: "poe",
+    targetFormat: RESPONSES,
+  }) as Record<string, unknown>;
+  const psd = out.providerSpecificData as Record<string, unknown>;
+  assert.equal(psd.apiType, undefined);
+  assert.equal(psd._omnirouteForceResponsesUpstream, true);
+});
+
+test("#8969: poe + claude target disables OpenAI stream_options injection", () => {
+  const out = resolveExecutionCredentials({
+    ...base,
+    provider: "poe",
+    targetFormat: "claude",
+  }) as Record<string, unknown>;
+  const psd = out.providerSpecificData as Record<string, unknown>;
+  assert.equal(psd.disableStreamOptions, true);
+  assert.equal(psd._omnirouteForceResponsesUpstream, undefined);
+
 });
 
 test("ccSessionId is threaded into providerSpecificData when present", () => {

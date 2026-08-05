@@ -2,8 +2,9 @@
 // Characterization of applyClaudeEffortVariant — the Claude effort-suffix normalization extracted
 // from handleChatCore (chatCore god-file decomposition, #3501). The VS Code "Effort" slider
 // advertises claude-...-{low,medium,high,xhigh,max}; Anthropic has no such model, so the suffix is
-// stripped to the base id and surfaced as reasoning_effort. Locks: the provider gate (claude /
-// claude-code-compatible only), the in-place body mutation (model + reasoning_effort), the
+// stripped to the base id and surfaced as reasoning_effort. Locks: the direct-Claude-lane
+// unconditional strip (claude / claude-code-compatible), the predicate-gated strip for any other
+// provider serving a real Claude model, the in-place body mutation (model + reasoning_effort), the
 // sourceFormat==="claude" skip, the explicit-effort-wins rule, and the returned effectiveModel/log.
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -51,7 +52,11 @@ test("sourceFormat 'claude' strips the model but does NOT inject reasoning_effor
 });
 
 test("an explicit client reasoning_effort wins (not overwritten)", () => {
-  const body: Record<string, unknown> = { model: "claude-sonnet-4-low", reasoning_effort: "high", messages: [] };
+  const body: Record<string, unknown> = {
+    model: "claude-sonnet-4-low",
+    reasoning_effort: "high",
+    messages: [],
+  };
   const r = applyClaudeEffortVariant({
     provider: "claude",
     effectiveModel: "claude-sonnet-4-low",
@@ -104,4 +109,67 @@ test("non-claude provider is a no-op even with an effort suffix", () => {
   assert.equal(body.model, "gpt-5-high");
   assert.equal(body.reasoning_effort, undefined);
   assert.equal(r.log, null);
+});
+
+test("non-claude provider serving a real Claude model strips the effort suffix", () => {
+  const body: Record<string, unknown> = { model: "claude-sonnet-5-high", messages: [] };
+  const r = applyClaudeEffortVariant({
+    provider: "vertex",
+    effectiveModel: "claude-sonnet-5-high",
+    body,
+    sourceFormat: FORMATS.OPENAI,
+  });
+  assert.equal(r.effectiveModel, "claude-sonnet-5");
+  assert.equal(body.model, "claude-sonnet-5");
+  assert.equal(body.reasoning_effort, "high");
+});
+
+test("safety guard: non-claude provider with a non-Claude model ending in a suffix word is left unchanged", () => {
+  const body: Record<string, unknown> = { model: "custom-model-high", messages: [] };
+  const r = applyClaudeEffortVariant({
+    provider: "some-other-provider",
+    effectiveModel: "custom-model-high",
+    body,
+    sourceFormat: FORMATS.OPENAI,
+  });
+  assert.equal(r.effectiveModel, "custom-model-high");
+  assert.equal(body.model, "custom-model-high");
+  assert.equal(body.reasoning_effort, undefined);
+  assert.equal(r.log, null);
+});
+
+test("claude-code-compatible provider strips even an unregistered model id (direct lane short-circuits the predicate)", () => {
+  // Proves the "unconditional strip, zero regression" claim: isDirectClaudeLane short-circuits
+  // the `||`, so isKnownClaudeEffortBaseModel() is never consulted for claude/CC-compatible
+  // providers — unlike the safety-guard case above, which requires the predicate to pass.
+  const body: Record<string, unknown> = {
+    model: "totally-unregistered-model-xyz-high",
+    messages: [],
+  };
+  const r = applyClaudeEffortVariant({
+    provider: "anthropic-compatible-cc-default",
+    effectiveModel: "totally-unregistered-model-xyz-high",
+    body,
+    sourceFormat: FORMATS.OPENAI,
+  });
+  assert.equal(r.effectiveModel, "totally-unregistered-model-xyz");
+  assert.equal(body.model, "totally-unregistered-model-xyz");
+  assert.equal(body.reasoning_effort, "high");
+});
+
+test("no-think alias's explicit reasoning_effort:none is not overwritten by a stripped effort suffix", () => {
+  const body: Record<string, unknown> = {
+    model: "claude-sonnet-5-high",
+    reasoning_effort: "none",
+    messages: [],
+  };
+  const r = applyClaudeEffortVariant({
+    provider: "vertex",
+    effectiveModel: "claude-sonnet-5-high",
+    body,
+    sourceFormat: FORMATS.OPENAI,
+  });
+  assert.equal(r.effectiveModel, "claude-sonnet-5");
+  assert.equal(body.model, "claude-sonnet-5");
+  assert.equal(body.reasoning_effort, "none");
 });

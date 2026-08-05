@@ -1,5 +1,6 @@
 import { skillRegistry } from "./registry";
 import { SkillExecution, SkillStatus, SkillHandler } from "./types";
+import { builtinSkills } from "./builtins";
 import { getDbInstance } from "../db/core";
 import { getSettings } from "../db/settings";
 import { randomUUID } from "crypto";
@@ -73,7 +74,19 @@ class SkillExecutor {
         new Date().toISOString()
       );
 
-      const handler = this.handlers.get(skill.handler);
+      let handler = this.handlers.get(skill.handler);
+      if (!handler) {
+        // Builtin handlers are registered by instrumentation-node at startup,
+        // but Next.js may compile this module into multiple chunks (each with
+        // its own SkillExecutor singleton). Fall back to the builtin registry
+        // so `POST /api/skills/executions` works regardless of which chunk the
+        // route is served from.
+        const builtin = builtinSkills[skill.handler];
+        if (builtin) {
+          this.handlers.set(skill.handler, builtin);
+          handler = builtin;
+        }
+      }
       if (!handler) {
         throw new Error(`Handler not found: ${skill.handler}`);
       }

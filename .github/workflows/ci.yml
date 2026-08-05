@@ -27,7 +27,7 @@ env:
 jobs:
   changes:
     name: Change Classification
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       code: ${{ steps.classify.outputs.code }}
       docs: ${{ steps.classify.outputs.docs }}
@@ -35,13 +35,10 @@ jobs:
       workflow: ${{ steps.classify.outputs.workflow }}
       testsOnly: ${{ steps.classify.outputs.testsOnly }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
       # Refuse a PR that targets its own head branch before spending anything on it. #8912 has
       # head == base == release/v3.8.50: no diff, can never merge, and it sits in the queue with
       # a full check board attached on every push to that branch. One field comparison.
@@ -77,7 +74,7 @@ jobs:
 
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
@@ -91,13 +88,9 @@ jobs:
       API_KEY_SECRET: ci-lint-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - run: npm run audit:deps
@@ -171,7 +164,7 @@ jobs:
 
   quality-gate:
     name: Quality Ratchet
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # needs lint so eslint-results artifact is available (same inventory as the
     # blocking lint step). Allow lint failure so other ratchets still run.
     needs: [changes, test-coverage, lint]
@@ -191,13 +184,9 @@ jobs:
       contents: read
       security-events: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - name: Restore ESLint file cache
         uses: actions/cache@v6
@@ -289,7 +278,7 @@ jobs:
   # SonarQube needs SONAR_TOKEN/SONAR_HOST_URL secrets.
   quality-extended:
     name: Quality Gates (Extended)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
@@ -299,14 +288,10 @@ jobs:
       # fetch-depth: 0 — the OpenAPI breaking-change gate (oasdiff) reads the base
       # spec via `git show <base_ref>:docs/openapi.yaml`; a shallow clone
       # would lack the base ref and the gate would self-skip (base-unresolved).
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       # Dead-code, cognitive-complexity, type-coverage foram promovidos ao job
       # quality-gate (bloqueante) na Fase 7 INT — não rodam aqui para evitar duplo custo.
@@ -409,20 +394,16 @@ jobs:
 
   docs-sync-strict:
     name: Docs Sync (Strict)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
     # Run when docs OR code change: API/route code can break doc/OpenAPI contract gates.
     if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && (needs.changes.outputs.docs == 'true' || needs.changes.outputs.code == 'true')) }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:docs-all
       # Previously-orphaned contract gates (existed as files, never wired anywhere).
@@ -442,7 +423,7 @@ jobs:
 
   docs-lint:
     name: Docs Lint (prose — advisory)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
@@ -452,13 +433,9 @@ jobs:
     # existing doc corpus is brought up to style. Promote to blocking once it converges.
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - name: markdownlint (docs + root, advisory)
         run: npx --yes markdownlint-cli2 "docs/**/*.md" "*.md" "!docs/i18n" "!docs/research" || true
       - name: Vale prose lint (Microsoft style, advisory)
@@ -473,7 +450,7 @@ jobs:
 
   i18n-ui-coverage:
     name: i18n UI Coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
@@ -483,14 +460,10 @@ jobs:
       # fetch-depth: 0 — the value-drift gate diffs en.json against the merge base to
       # find rewritten English strings. On a shallow clone the base ref is missing and
       # the gate self-skips (base-unresolved), so it would never actually run.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: node scripts/i18n/check-ui-keys-coverage.mjs --threshold=65
       # #8463: a rewritten English value used to leave its 39 translations behind
@@ -506,17 +479,13 @@ jobs:
   # without needing app-boot/Playwright infra. Same gating as i18n-ui-coverage.
   i18n-glossary-zhcn:
     name: i18n Glossary (zh-CN)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: changes
     if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && (needs.changes.outputs.i18n == 'true' || needs.changes.outputs.code == 'true')) }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: node scripts/i18n/check-glossary-consistency.mjs --locale=zh-CN
       - run: node scripts/i18n/check-glossary-consistency.mjs --locale=zh-TW
@@ -528,7 +497,7 @@ jobs:
   # idioma (a matrix antiga subia 40 artifacts cujo result.txt colidia no merge-multiple).
   i18n:
     name: i18n Validation (all languages)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
@@ -536,7 +505,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.i18n == 'true') }}
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - uses: actions/setup-python@v7
@@ -571,15 +540,12 @@ jobs:
   pr-test-policy:
     name: PR Test Policy
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
       - name: Fetch base branch
         run: git fetch --no-tags origin "${GITHUB_BASE_REF}"
       - name: Validate source changes include tests
@@ -606,17 +572,17 @@ jobs:
     # online), the heavy jobs run on the dedicated 32-core VPS runners (label
     # omni-release) instead of queueing on the 20-concurrent-job hosted pool.
     # Safety: fork PRs NEVER reach the self-hosted runner — the expression falls
-    # back to ubuntu-latest unless the PR head repo is this repository (push /
+    # back to ubuntu-26.04 unless the PR head repo is this repository (push /
     # dispatch events are own-origin by definition). Any failure path (VM down,
-    # var unset/false) also falls back to ubuntu-latest.
-    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
+    # var unset/false) also falls back to ubuntu-26.04.
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-26.04' }}
     needs: changes
     if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -656,18 +622,14 @@ jobs:
 
   package-artifact:
     name: Package Artifact
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: build
     env:
       JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Download Next.js build artifact
@@ -703,15 +665,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-26.04, windows-latest]
     env:
       JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -750,14 +712,14 @@ jobs:
 
   test-unit:
     name: Unit Tests (${{ matrix.shard }}/8)
-    # Same dynamic-runner rule as Build (own-origin only; fallback ubuntu-latest).
+    # Same dynamic-runner rule as Build (own-origin only; fallback ubuntu-26.04).
     # PINNED to hosted, deliberately not on the USE_VPS_RUNNER switch (gap 19). One variable
     # governed the build and the test jobs, which want OPPOSITE machines: the build needs the
     # .113's RAM, the tests need the hosted runner's link. Measured on 2026-07-29 —
     # actions/setup-node took 20m06s on .113 with 4 concurrent runners versus 16s hosted (npm
     # cache restore saturating the link), while the tests themselves tied, 2m54 vs 2m31. So
     # self-hosted is strictly worse here and there is nothing to configure.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 25
     # needs: changes (not build) — this job never downloads the next-build artifact;
     # gating it on Build only serialized ~20min of wall-clock for nothing. Jobs that
@@ -775,13 +737,9 @@ jobs:
       API_KEY_SECRET: ci-test-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       # QW-d (plano mestre): fonte única — o MESMO npm script dos runs locais (adiciona o
@@ -811,31 +769,27 @@ jobs:
 
   test-bun-sqlite:
     name: Bun SQLite Compatibility
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     needs: changes
     if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run test:bun:db
 
   test-vitest:
     name: Vitest (MCP / autoCombo / UI components)
-    # Same dynamic-runner rule as Build (own-origin only; fallback ubuntu-latest).
+    # Same dynamic-runner rule as Build (own-origin only; fallback ubuntu-26.04).
     # PINNED to hosted, deliberately not on the USE_VPS_RUNNER switch (gap 19). One variable
     # governed the build and the test jobs, which want OPPOSITE machines: the build needs the
     # .113's RAM, the tests need the hosted runner's link. Measured on 2026-07-29 —
     # actions/setup-node took 20m06s on .113 with 4 concurrent runners versus 16s hosted (npm
     # cache restore saturating the link), while the tests themselves tied, 2m54 vs 2m31. So
     # self-hosted is strictly worse here and there is nothing to configure.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     # needs: changes (not build) — no artifact consumed; see test-unit note.
     needs: changes
@@ -845,13 +799,9 @@ jobs:
       API_KEY_SECRET: ci-test-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       # The second test runner (CLAUDE.md: "Both test runners must pass") — was never
       # wired into CI until the 2026-06-09 quality audit (Fase 6A.2).
@@ -879,7 +829,7 @@ jobs:
   # the release gate can still exercise them via workflow_dispatch when needed).
   test-coverage:
     name: Coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # 10min was sized before #7114 added the lcov reporter (Codecov/Sonar need it);
     # merging 8 shard JSONs + text+json+lcov now takes ~10-12min — three consecutive
     # release-tip runs died at exactly 10m as job-timeout "cancelled" (2026-07-15/16).
@@ -890,13 +840,9 @@ jobs:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - name: Download all shard coverage
         uses: actions/download-artifact@v8
@@ -980,14 +926,14 @@ jobs:
 
   sonarqube:
     name: SonarQube
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: test-coverage
     if: ${{ !cancelled() && needs.test-coverage.result == 'success' }}
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -1032,7 +978,7 @@ jobs:
 
   coverage-pr-comment:
     name: PR Coverage Comment
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.draft == false && github.event.pull_request.head.repo.fork == false && needs.changes.outputs.code == 'true' }}
     needs:
       - changes
@@ -1111,7 +1057,7 @@ jobs:
 
   test-e2e:
     name: E2E Tests (${{ matrix.shard }}/9)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Build artifact from the `build` job is downloaded instead of rebuilding
     # (~5min saved per shard). 9 shards (up from 6) reduces tests per shard by
     # ~33%. Playwright browser is cached across runs (~1.5min saved per shard).
@@ -1133,13 +1079,9 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
       OMNIROUTE_PLAYWRIGHT_SKIP_BUILD: "1"
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Cache Playwright browsers
@@ -1188,7 +1130,7 @@ jobs:
 
   test-integration:
     name: Integration Tests (${{ matrix.shard }}/2)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     # needs: changes (not build) — no artifact consumed; see test-unit note.
     needs: changes
@@ -1204,13 +1146,9 @@ jobs:
       DATA_DIR: /tmp/omniroute-ci-${{ matrix.shard }}
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       # (tsx/esm = QW-b; o alinhamento de ESCOPO do integration com o npm script fica p/ follow-up)
@@ -1218,7 +1156,7 @@ jobs:
 
   test-security:
     name: Security Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # needs: changes (not build) — no artifact consumed; see test-unit note.
     needs: changes
     if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
@@ -1227,20 +1165,16 @@ jobs:
       API_KEY_SECRET: ci-test-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - run: npm run test:security
 
   ci-summary:
     name: CI Dashboard
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: ${{ !cancelled() }}
     needs:
       - changes

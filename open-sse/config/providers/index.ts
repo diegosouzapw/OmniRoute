@@ -116,6 +116,7 @@ import { blackbox_webProvider } from "./registry/blackbox/web/index.ts";
 import { uncloseaiProvider } from "./registry/uncloseai/index.ts";
 import { nscaleProvider } from "./registry/nscale/index.ts";
 import { chatgpt_webProvider } from "./registry/chatgpt-web/index.ts";
+import { chatgpt_web_codexProvider } from "./registry/chatgpt-web-codex/index.ts";
 import { openrouterProvider } from "./registry/openrouter/index.ts";
 import { cheaperinferenceProvider } from "./registry/cheaperinference/index.ts";
 import { openvectaProvider } from "./registry/openvecta/index.ts";
@@ -168,6 +169,7 @@ import { kilo_gatewayProvider } from "./registry/kilo-gateway/index.ts";
 import { bailian_coding_planProvider } from "./registry/bailian-coding-plan/index.ts";
 import { gigachatProvider } from "./registry/gigachat/index.ts";
 import { devin_cliProvider } from "./registry/devin-cli/index.ts";
+import { devin_cli_agenticProvider } from "./registry/devin-cli-agentic/index.ts";
 import { auggieProvider } from "./registry/auggie/index.ts";
 import { chutesProvider } from "./registry/chutes/index.ts";
 import { chenzkProvider } from "./registry/chenzk/index.ts";
@@ -337,6 +339,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   uncloseai: uncloseaiProvider,
   nscale: nscaleProvider,
   "chatgpt-web": chatgpt_webProvider,
+  "chatgpt-web-codex": chatgpt_web_codexProvider,
   openrouter: openrouterProvider,
   cheaperinference: cheaperinferenceProvider,
   openvecta: openvectaProvider,
@@ -388,6 +391,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "bailian-coding-plan": bailian_coding_planProvider,
   gigachat: gigachatProvider,
   "devin-cli": devin_cliProvider,
+  "devin-cli-agentic": devin_cli_agenticProvider,
   auggie: auggieProvider,
   chutes: chutesProvider,
   chenzk: chenzkProvider,
