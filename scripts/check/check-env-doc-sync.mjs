@@ -94,6 +94,18 @@ const IGNORE_FROM_CODE = new Set([
   // CI passes BASE_REF=${{ github.base_ref }} to the OpenAPI breaking-change gate
   // (scripts/check/check-openapi-breaking.mjs) — a build/check signal, not OmniRoute runtime config.
   "BASE_REF",
+  // Same class as BASE_REF above: the `changes` job passes these four to the
+  // self-targeting-PR guard (scripts/check/check-pr-self-target.mjs) so it can compare a PR's
+  // head against its base. CI-only signals from github.head_ref / github.base_ref /
+  // pull_request.{head,base}.sha — never OmniRoute runtime config, and meaningless in a .env.
+  "HEAD_REF",
+  "HEAD_SHA",
+  "BASE_SHA",
+  // Escape hatch for the test-masking gate's release-scale skip
+  // (scripts/check/check-test-masking.mjs): above ~300 changed test files the per-file diff
+  // subchecks are skipped, and this raises that cap for anyone who wants the full pass anyway.
+  // A gate tuning knob, not application configuration.
+  "TEST_MASKING_MAX_CHANGED_TESTS",
   // PR body injected by GitHub Actions into the pr-evidence gate (github.event.pull_request.body);
   // a CI-only signal, never an OmniRoute runtime config (Phase 7.10).
   "PR_BODY",

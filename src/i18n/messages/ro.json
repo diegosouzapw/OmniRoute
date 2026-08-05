@@ -4973,10 +4973,12 @@
     "noNewModelsToImport": "Niciun model nou de importat — toate modelele sunt deja în registru sau în lista de modele personalizate",
     "skippingExistingModels": "Se omit {count} modele existente",
     "autoSync": "Sincronizare automată",
+    "autoSyncShort": "Sincronizează",
     "autoSyncTooltip": "Actualizează automat lista de modele la fiecare 24 de ore (configurabil prin MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Sincronizare automată activată — modelele se vor reîmprospăta periodic",
     "autoSyncDisabled": "Sincronizarea automată a fost dezactivată",
     "autoSyncToggleFailed": "Nu s-a putut comuta sincronizarea automată",
+    "autoSyncPartialFailure": "Sincronizarea automată a fost actualizată pentru unele conexiuni, dar nu toate",
     "clearAllModels": "Ștergeți toate modelele",
     "clearAllModelsConfirm": "Sigur doriți să eliminați toate modelele pentru acest furnizor? Acest lucru nu poate fi anulat.",
     "clearAllModelsSuccess": "Toate modelele au fost eliminate",
@@ -5976,6 +5978,8 @@
     "lmarenaWebCookieHint": "Deschide arena.ai, conectează-te, apoi copiază antetul Cookie complet dintr-o cerere Network. Include arena-auth-prod-v1.0 și arena-auth-prod-v1.1 (și fragmentele ulterioare dacă sunt prezente), de preferință cu cf_clearance. Nu lipi doar cookie-ul gol arena-auth-prod-v1. Opțional: providerSpecificData.recaptchaV3Token dacă create-evaluation returnează în continuare 403.",
     "kimiOfficialSupporterBadge": "Prieten Fondator",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) este prietenul fondator open source al OmniRoute",
+    "cheaperInferenceSupporterBadge": "Prieten open source",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference susține OmniRoute ca prieten open source",
     "kimiPartnerLinkNote": "Link de partener — susține OmniRoute fără costuri suplimentare pentru dvs.",
     "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
     "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
@@ -12180,5 +12184,6 @@
     "cta": "Obține Kimi Code",
     "partnerLinkNote": "Link de partener",
     "dismissAriaLabel": "Închide"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

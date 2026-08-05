@@ -1,0 +1,1 @@
+- **chore(sse):** dropped the leftover `iflow` entry from the token-refresh TTL map — the provider was removed from the product but its 24-hour refresh lead outlived it, and the identifier had exactly two occurrences left repo-wide ([#8966](https://github.com/diegosouzapw/OmniRoute/pull/8966))

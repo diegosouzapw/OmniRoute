@@ -12,8 +12,15 @@ import { appendNoThinkingVariants } from "@omniroute/open-sse/utils/noThinkingAl
 import { appendClaudeEffortVariants } from "@omniroute/open-sse/utils/claudeEffortVariants";
 import { appendSyncedEffortVariants } from "@omniroute/open-sse/utils/syncedEffortVariants";
 import { appendCcDiscoveryAliases } from "@omniroute/open-sse/utils/ccDiscoveryAliases";
+import { appendFunctionalGatewayMirrors } from "@omniroute/open-sse/utils/functionalGatewayMirrors";
 import { isCcAliasGlobalEnabled, getCcAliasSettingsBulk } from "@/lib/db/ccDiscoveryAliases";
 import { buildCcAliasPredicate } from "./ccAliasPredicate";
+import {
+  isFunctionalGatewayGlobalEnabled,
+  getFunctionalGatewaySettingsBulk,
+} from "@/lib/db/functionalGatewayMirrors";
+import { buildFunctionalGatewayPredicate } from "./functionalGatewayPredicate";
+import { getPassthroughProviders, REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 import { dedupeExactCatalogIds } from "./catalogDedupe";
 import {
@@ -85,6 +92,40 @@ export function applyCatalogPostFilters(
         providers: ccAliasSettings.providers,
         models: ccAliasSettings.models,
       })
+    );
+  }
+
+  // Advertise `<gateway-alias>/<id>` functional-gateway mirrors so discovery
+  // clients surface the route that actually has a credential, even when the
+  // canonical owner provider has none (e.g. `deepseek/deepseek-v4-flash` fails
+  // 404 but `agentrouter/deepseek/deepseek-v4-flash` returns 200). Gated 3
+  // levels deep (global > provider > model, see db/functionalGatewayMirrors.ts)
+  // and default-off. Only emits a mirror when the canonical owner has no
+  // eligible connection for the model AND a passthrough gateway with an active
+  // credential covers it.
+  const fgGlobal = isFunctionalGatewayGlobalEnabled();
+  const fgSettings = getFunctionalGatewaySettingsBulk();
+  if (fgGlobal || fgSettings.providers.size > 0 || fgSettings.models.size > 0) {
+    const gatewayProviderIds = [...getPassthroughProviders()];
+    finalModels = appendFunctionalGatewayMirrors(finalModels, {
+      gatewayProviderIds,
+      isGateway: (provider) => getPassthroughProviders().has(provider),
+      gatewayAlias: (provider) => REGISTRY[provider]?.alias || provider,
+      gatewayCovers: (provider, modelId) =>
+        hasEligibleConnectionForModel(
+          ctx.connections.filter((c) => c.provider === provider),
+          modelId
+        ),
+      gatewayHasConnection: (provider) =>
+        ctx.connections.some((c) => c.provider === provider),
+      canonicalOwnerHasConnection: (owner) =>
+        hasEligibleConnectionForModel(
+          ctx.connections.filter((c) => c.provider === owner),
+          owner
+        ),
+    });
+    finalModels = finalModels.filter((m) =>
+      buildFunctionalGatewayPredicate({ global: fgGlobal, ...fgSettings })(m)
     );
   }
 

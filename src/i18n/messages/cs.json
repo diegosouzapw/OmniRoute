@@ -4973,10 +4973,12 @@
     "noNewModelsToImport": "Žádné nové modely k importu — všechny modely jsou již v registru nebo v seznamu vlastních modelů",
     "skippingExistingModels": "Přeskakování {count} existujících modelů",
     "autoSync": "Automatická synchronizace",
+    "autoSyncShort": "Synchronizace",
     "autoSyncTooltip": "Automaticky obnovuje seznam modelů každých 24 hodin (lze nastavit přes MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Automatická synchronizace povolena – modely se budou pravidelně obnovovat",
     "autoSyncDisabled": "Automatická synchronizace zakázána",
     "autoSyncToggleFailed": "Nepodařilo se přepnout automatickou synchronizaci",
+    "autoSyncPartialFailure": "Automatická synchronizace aktualizována pro některá připojení, ale ne všechna",
     "clearAllModels": "Vymazat všechny modely",
     "clearAllModelsConfirm": "Opravdu chcete odstranit všechny modely pro tohoto poskytovatele?",
     "clearAllModelsSuccess": "Všechny modely vymazány",
@@ -5976,6 +5978,8 @@
     "lmarenaWebCookieHint": "Otevřete arena.ai, přihlaste se a poté zkopírujte celou hlavičku Cookie ze síťového požadavku (Network request). Zahrňte arena-auth-prod-v1.0 a arena-auth-prod-v1.1 (a další části, pokud jsou přítomny), nejlépe s cf_clearance. Nevkládejte pouze prázdný cookie arena-auth-prod-v1. Volitelně: providerSpecificData.recaptchaV3Token, pokud create-evaluation stále vrací 403.",
     "kimiOfficialSupporterBadge": "Zakládající přítel",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) je zakládající open source přítel OmniRoute",
+    "cheaperInferenceSupporterBadge": "Přítel open source",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference podporuje OmniRoute jako přítel open source",
     "kimiPartnerLinkNote": "Partnerský odkaz — podporuje OmniRoute bez jakýchkoli dalších nákladů pro vás",
     "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
     "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
@@ -12180,5 +12184,6 @@
     "cta": "Získat Kimi Code",
     "partnerLinkNote": "Partnerský odkaz",
     "dismissAriaLabel": "Zavřít"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

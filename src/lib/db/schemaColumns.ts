@@ -273,6 +273,22 @@ export function ensureCallLogsColumns(db: SqliteDatabase) {
   }
 }
 
+export function ensureProxyLogsColumns(db: SqliteDatabase) {
+  try {
+    const columns = db.prepare("PRAGMA table_info(proxy_logs)").all() as Array<{
+      name?: string;
+    }>;
+    const columnNames = new Set(columns.map((column) => String(column.name ?? "")));
+    if (!columnNames.has("egress_ip")) {
+      db.exec("ALTER TABLE proxy_logs ADD COLUMN egress_ip TEXT");
+      console.log("[DB] Added proxy_logs.egress_ip column");
+    }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn("[DB] Failed to verify proxy_logs schema:", message);
+  }
+}
+
 export function hasColumn(db: SqliteDatabase, tableName: string, columnName: string): boolean {
   const rows = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name?: string }>;
   return rows.some((row) => row.name === columnName);

@@ -453,6 +453,8 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   // xAI OAuth (Grok) weekly quota (id + public alias, same pattern as ha/agy)
   "xai-oauth",
   "xao",
+  // Grok Build subscription, billing credits, and auto top-up status
+  "grok-cli",
   // Firecrawl team credits (GET /v2/team/credit-usage)
   "firecrawl",
 ];

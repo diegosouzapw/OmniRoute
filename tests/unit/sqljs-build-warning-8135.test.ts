@@ -36,9 +36,9 @@ test("#8135: sqljsAdapter must not statically resolve sql.js at build time", () 
     "sqljsAdapter dynamic import should include /* webpackIgnore: true */ magic comment"
   );
 
-  // sql.js does not export ./package.json. Resolving its public entrypoint is
-  // sufficient to locate the adjacent WASM asset and avoids repeated bundler
-  // diagnostics for the private package metadata subpath.
-  assert.match(source, /_require\.resolve\(["']sql\.js["']\)/);
-  assert.doesNotMatch(source, /sql\.js\/package\.json/);
+  // The standalone assembler ships sql.js as a real runtime package, so the
+  // adapter must not depend on a build-time createRequire/require.resolve lookup.
+  assert.doesNotMatch(source, /createRequire/);
+  assert.doesNotMatch(source, /\.resolve\(["']sql\.js["']\)/);
+  assert.match(source, /process\.cwd\(\)[\s\S]*"node_modules"[\s\S]*"sql\.js"/);
 });

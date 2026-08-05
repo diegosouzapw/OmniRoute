@@ -18,6 +18,43 @@ function collectEvents(chunks) {
   return events;
 }
 
+test("OpenAI -> Responses: accepts the reasoning alias without duplicating the canonical field", () => {
+  const events = collectEvents([
+    {
+      id: "chatcmpl-1",
+      model: "gpt-oss:20b",
+      choices: [
+        {
+          index: 0,
+          delta: { reasoning: "alias ", reasoning_content: "canonical " },
+          finish_reason: null,
+        },
+      ],
+    },
+    {
+      id: "chatcmpl-1",
+      model: "gpt-oss:20b",
+      choices: [{ index: 0, delta: { reasoning: "continued" }, finish_reason: null }],
+    },
+    {
+      id: "chatcmpl-1",
+      model: "gpt-oss:20b",
+      choices: [{ index: 0, delta: { content: "answer" }, finish_reason: "stop" }],
+      usage: { prompt_tokens: 1, completion_tokens: 2, total_tokens: 3 },
+    },
+  ]);
+
+  assert.deepEqual(
+    events
+      .filter((event) => event.event === "response.reasoning_summary_text.delta")
+      .map((event) => event.data.delta),
+    ["canonical ", "continued"]
+  );
+  const completed = events.find((event) => event.event === "response.completed").data.response;
+  assert.equal(completed.output[0].summary[0].text, "canonical continued");
+  assert.equal(completed.output[1].content[0].text, "answer");
+});
+
 test("OpenAI -> Responses: emits lifecycle, reasoning, text, tool calls and completed usage", () => {
   const events = collectEvents([
     {

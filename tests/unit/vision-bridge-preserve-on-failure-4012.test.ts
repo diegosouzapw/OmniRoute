@@ -1,14 +1,20 @@
 /**
- * Regression test for #4012 — Nvidia NIM (and any vision-capable model whose
- * capability OmniRoute can't prove) via OmniRoute fails to process image inputs.
+ * Regression test for #4012 / #8430 — Nvidia NIM (and any vision-capable model
+ * whose capability OmniRoute can't prove) via OmniRoute fails to process image
+ * inputs.
  *
- * The Vision Bridge is enabled by default. For a model with unknown
- * (`null`) vision capability it engages, tries to describe each image with the
- * configured vision model, and on a FAILED describe call it replaced the image
- * with the literal text "[Image N]: (unavailable)" — silently destroying the
- * original image so the (actually vision-capable) upstream answered
- * "Image unavailable". A describe failure must NOT be destructive: the original
- * image must survive so a vision-capable upstream can still see it.
+ * SEMANTIC CHANGE (#8430): In the combo describe path, when ALL describe calls
+ * fail (no vision-capable provider reachable on this instance), the raw image
+ * is now replaced with an error text stub instead of being preserved. This is
+ * safe because the combo describe path is only reached for models/targets that
+ * are confirmed non-vision-capable — forwarding a raw image to a text-only
+ * backend would produce an opaque serde error like `[400] unknown variant
+ * image_url, expected text`. The original #4012 preserve-raw behavior is
+ * maintained for the reroute path (not-combo / auto models with unknown vision
+ * capability), where the upstream model might still be vision-capable.
+ *
+ * Previous behavior: describe failure → preserve original image_url part
+ * Current behavior:  total describe failure → replace with error text stub
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -52,7 +58,7 @@ function imagePayload() {
 
 const ctx = { model: "nvidia/google/diffusiongemma-26b-a4b-it", log: console } as never;
 
-test("#4012 describe failure preserves the original image instead of dropping it", async () => {
+test("#4012/#8430 describe failure replaces image with error text stub (combo describe path)", async () => {
   const guardrail = makeGuardrail(true);
   const result = await guardrail.preCall(imagePayload(), ctx);
 
@@ -62,11 +68,14 @@ test("#4012 describe failure preserves the original image instead of dropping it
   };
   const content = modified.messages[0].content;
 
+  // (#8430) In the combo describe path, total describe failure stubs the image
+  // instead of preserving it, because the upstream cannot handle raw images.
   const imagePart = content.find((p) => p.type === "image_url");
-  assert.ok(imagePart, "original image_url part must be preserved when the describe call fails");
+  assert.equal(imagePart, undefined, "raw image_url must be replaced when no vision provider is reachable");
 
-  const unavailable = content.find((p) => p.type === "text" && p.text?.includes("(unavailable)"));
-  assert.equal(unavailable, undefined, "must NOT replace the image with an '(unavailable)' stub");
+  // The describe stub should contain the unavailable message
+  const stub = content.find((p) => p.type === "text" && p.text?.includes("unavailable"));
+  assert.ok(stub, "an error stub should be present when describe fails in the combo path");
 });
 
 test("#4012 successful describe still replaces the image with its text description", async () => {

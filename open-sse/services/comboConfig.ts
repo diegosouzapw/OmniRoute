@@ -99,7 +99,7 @@ const DEFAULT_COMBO_CONFIG = {
   retryDelayMs: 2000,
   fallbackDelayMs: 0,
   concurrencyPerModel: 3, // max simultaneous requests per model (round-robin)
-  queueTimeoutMs: 30000, // max wait time in semaphore queue (round-robin)
+  queueTimeoutMs: 120000, // max wait time in semaphore queue (round-robin); raised from 30s for browser-automation providers like gemini-web (#9407)
   queueDepth: DEFAULT_COMBO_QUEUE_DEPTH, // pre-cascade semaphore queue depth (round-robin, #3872)
   handoffThreshold: 0.85,
   handoffModel: "",

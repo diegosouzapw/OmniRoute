@@ -608,26 +608,83 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   __default__: {},
 };
 
+// #8697-adjacent: getCanonicalModelSpecId() re-scanned Object.keys/entries(MODEL_SPECS)
+// up to 3 times per call (exact ci, alias ci, prefix) — the top hotspot in a full
+// catalog-rebuild profile once the pricing-path bottlenecks were fixed. MODEL_SPECS is
+// a static module constant (never mutated at runtime), so the lowercase index below is
+// built once, lazily, on first use and never invalidated. Iteration order for the
+// prefix-match candidates is preserved exactly (same Object.keys() insertion order) so
+// resolution outcomes for ambiguous prefixes are unchanged.
+let modelSpecIndex: {
+  exactCi: Map<string, string>;
+  aliasCi: Map<string, string>;
+  aliasExact: Map<string, string>;
+  prefixCandidates: Array<[lowerKey: string, canonical: string]>;
+} | null = null;
+
+function getModelSpecIndex() {
+  if (modelSpecIndex) return modelSpecIndex;
+  const exactCi = new Map<string, string>();
+  const aliasCi = new Map<string, string>();
+  const aliasExact = new Map<string, string>();
+  const prefixCandidates: Array<[string, string]> = [];
+  for (const [canonical, spec] of Object.entries(MODEL_SPECS)) {
+    const lowerCanonical = canonical.toLowerCase();
+    if (!exactCi.has(lowerCanonical)) exactCi.set(lowerCanonical, canonical);
+    for (const alias of spec.aliases || []) {
+      const lowerAlias = alias.toLowerCase();
+      if (!aliasCi.has(lowerAlias)) aliasCi.set(lowerAlias, canonical);
+      if (!aliasExact.has(alias)) aliasExact.set(alias, canonical);
+    }
+    if (canonical !== "__default__") prefixCandidates.push([lowerCanonical, canonical]);
+  }
+  modelSpecIndex = { exactCi, aliasCi, aliasExact, prefixCandidates };
+  return modelSpecIndex;
+}
+
+/**
+ * Exact + alias case-insensitive lookup only (no prefix phase) — shared by
+ * modelCapabilities.ts's getStaticSpecCanonicalModelId(), which tries multiple id
+ * candidates and never wanted prefix matching. Reuses the same lazy index as
+ * getCanonicalModelSpecId() below instead of each caller maintaining its own cache
+ * over the same static MODEL_SPECS table.
+ *
+ * Contract: returns `null` for `__default__` (never a real canonical id), for an
+ * unrecognized `modelId`, or for an empty string. Matching is case-insensitive on
+ * both the canonical id and its aliases; there is no prefix-matching phase (unlike
+ * getCanonicalModelSpecId() below) — callers that need prefix matching should use
+ * that function instead.
+ */
+export function findModelSpecIdByExactOrAlias(modelId: string): string | null {
+  const lower = modelId.toLowerCase();
+  const index = getModelSpecIndex();
+  const exactHit = index.exactCi.get(lower);
+  if (exactHit && exactHit !== "__default__") return exactHit;
+  const aliasHit = index.aliasCi.get(lower);
+  if (aliasHit && aliasHit !== "__default__") return aliasHit;
+  return null;
+}
+
 export function getCanonicalModelSpecId(modelId: string): string | null {
   if (MODEL_SPECS[modelId]) return modelId;
 
   // Case-insensitive lookups: upstream model ids are often capitalized
   // (e.g. "MiniMax-M2.7") while specs/aliases use lowercase ids (#3141).
   const lower = modelId.toLowerCase();
+  const index = getModelSpecIndex();
 
   // Exact match (case-insensitive)
-  for (const canonical of Object.keys(MODEL_SPECS)) {
-    if (canonical.toLowerCase() === lower) return canonical;
-  }
+  const exactHit = index.exactCi.get(lower);
+  if (exactHit) return exactHit;
 
   // Buscas por alias (case-insensitive)
-  for (const [canonical, spec] of Object.entries(MODEL_SPECS)) {
-    if (spec.aliases?.some((alias) => alias.toLowerCase() === lower)) return canonical;
-  }
+  const aliasHit = index.aliasCi.get(lower);
+  if (aliasHit) return aliasHit;
 
-  // Prefix matching (case-insensitive)
-  for (const key of Object.keys(MODEL_SPECS)) {
-    if (key !== "__default__" && lower.startsWith(key.toLowerCase())) return key;
+  // Prefix matching (case-insensitive) — same insertion-order iteration as before,
+  // first match wins.
+  for (const [lowerKey, canonical] of index.prefixCandidates) {
+    if (lower.startsWith(lowerKey)) return canonical;
   }
 
   return null;
@@ -721,9 +778,12 @@ export function capThinkingBudget(modelId: string, budget: number): number {
   return Math.min(budget, cap);
 }
 
+// #8697-adjacent: rescanned Object.entries(MODEL_SPECS) on every call, unconditionally
+// once per model in a catalog rebuild — verified 1:1 call ratio (no early
+// short-circuit). Case-sensitive exact match (Array.includes(), no .toLowerCase()) —
+// deliberately NOT reusing the case-insensitive aliasCi index above, which would
+// silently broaden matches and change behavior.
 export function resolveModelAlias(modelId: string): string {
-  for (const [canonical, spec] of Object.entries(MODEL_SPECS)) {
-    if (spec.aliases?.includes(modelId)) return canonical;
-  }
-  return modelId;
+  const hit = getModelSpecIndex().aliasExact.get(modelId);
+  return hit ?? modelId;
 }

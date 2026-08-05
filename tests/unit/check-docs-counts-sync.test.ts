@@ -46,7 +46,7 @@ const strictCheck = {
   actual: 226,
   docKey: "providers",
   strict: true,
-  files: ["README.md", "AGENTS.md"],
+  files: ["README.md", "CLAUDE.md"],
 };
 
 test("no drift when every file mentions the real count", () => {
@@ -55,11 +55,11 @@ test("no drift when every file mentions the real count", () => {
   assert.equal(soft, 0);
 });
 
-test("STRICT drift is counted when a file omits the real count", () => {
+test("STRICT drift is counted when a user-facing document omits the real count", () => {
   const { strict, soft } = tally([strictCheck], (f) =>
     f === "README.md" ? "we have 226 providers" : "we have 177 providers"
   );
-  assert.equal(strict, 1, "AGENTS.md (177) should register one strict drift");
+  assert.equal(strict, 1, "CLAUDE.md (177) should register one strict drift");
   assert.equal(soft, 0);
 });
 

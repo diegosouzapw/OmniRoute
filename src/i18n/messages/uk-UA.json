@@ -4973,10 +4973,12 @@
     "noNewModelsToImport": "Немає нових моделей для імпорту — усі моделі вже є в реєстрі або списку користувацьких моделей",
     "skippingExistingModels": "Пропуск {count} наявних моделей",
     "autoSync": "Автоматична синхронізація",
+    "autoSyncShort": "Синхронізувати",
     "autoSyncTooltip": "Автоматично оновлювати список моделей кожні 24 години (налаштовується через MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Автоматична синхронізація ввімкнена — моделі періодично оновлюватимуться",
     "autoSyncDisabled": "Автоматична синхронізація вимкнена",
     "autoSyncToggleFailed": "Не вдалося вимкнути автоматичну синхронізацію",
+    "autoSyncPartialFailure": "Автоматичну синхронізацію оновлено для деяких з'єднань, але не всіх",
     "clearAllModels": "Очистити всі моделі",
     "clearAllModelsConfirm": "Ви впевнені, що хочете видалити всі моделі цього постачальника? Це неможливо скасувати.",
     "clearAllModelsSuccess": "Всі моделі розмитнені",
@@ -5976,6 +5978,8 @@
     "lmarenaWebCookieHint": "Відкрийте arena.ai, увійдіть, а потім скопіюйте повний заголовок Cookie з мережевого запиту. Включіть arena-auth-prod-v1.0 та arena-auth-prod-v1.1 (та наступні частини, якщо вони є), бажано з cf_clearance. Не вставляйте лише порожній cookie arena-auth-prod-v1. Необов'язково: providerSpecificData.recaptchaV3Token, якщо create-evaluation все ще повертає 403.",
     "kimiOfficialSupporterBadge": "Друг-засновник",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) — друг-засновник відкритого коду OmniRoute",
+    "cheaperInferenceSupporterBadge": "Друг відкритого коду",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference підтримує OmniRoute як друг відкритого коду",
     "kimiPartnerLinkNote": "Партнерське посилання — підтримує OmniRoute без додаткових витрат для вас",
     "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
     "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
@@ -12180,5 +12184,6 @@
     "cta": "Отримати Kimi Code",
     "partnerLinkNote": "Партнерське посилання",
     "dismissAriaLabel": "Закрити"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }
