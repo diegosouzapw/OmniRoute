@@ -15,10 +15,10 @@ import { saveImageErrorResult, saveImageSuccessResult } from "../../imageGenerat
 import {
   AdobeFireflyError,
   adobeFireflyGenerateImage,
-  resolveAdobeAccessToken,
   resolveAdobeSourceImageIds,
   resolveAdobeImageModel,
 } from "../../../services/adobeFireflyClient.ts";
+import { ensureAdobeFireflySession } from "../../../services/adobeFireflySession.ts";
 
 function normalizePositiveNumber(value: unknown, fallback: number): number {
   const n = Number(value);
@@ -68,7 +68,16 @@ export async function handleAdobeFireflyImageGeneration({
   }
 
   try {
-    const accessToken = await resolveAdobeAccessToken(credentials, fetchImpl);
+    // Durable session: JWT + Cookie once → auto-rebuild ARP from forter/arkose,
+    // cache, optional Playwright warm-up. Submit path rotates ARP on 408.
+    const session = await ensureAdobeFireflySession({
+      credentials,
+      fetchImpl,
+      log,
+    });
+    const accessToken = session.accessToken;
+    const sessionCookie = session.cookie || undefined;
+    const arpSessionId = session.arpSessionId;
     const timeoutMs = normalizePositiveNumber(body.timeout_ms, 180_000);
     const seed =
       typeof body.seed === "number"
@@ -76,16 +85,6 @@ export async function handleAdobeFireflyImageGeneration({
         : typeof body.seed === "string" && body.seed.trim()
           ? Number(body.seed)
           : undefined;
-
-    // Keep the raw credential blob for Cookie + sherlockToken (x-arp-session-id).
-    // JWT may be embedded in the same paste as cookies (HAR / multi-line).
-    const psd = (credentials as { providerSpecificData?: { cookie?: string } })?.providerSpecificData;
-    const sessionCookie =
-      (typeof psd?.cookie === "string" && psd.cookie.trim()) ||
-      (typeof credentials?.apiKey === "string" && credentials.apiKey.trim()) ||
-      (typeof credentials?.accessToken === "string" && credentials.accessToken.includes(";")
-        ? credentials.accessToken
-        : undefined);
 
     // Cap uploads by model family (matches MediaViewModel GetSourceImageLimit).
     const { id: resolvedId } = resolveAdobeImageModel(model);
@@ -99,6 +98,7 @@ export async function handleAdobeFireflyImageGeneration({
       body,
       max: maxRefs,
       sessionCookie,
+      arpSessionId,
       prompt,
       fetchImpl,
       log,
@@ -107,7 +107,8 @@ export async function handleAdobeFireflyImageGeneration({
     log?.info?.(
       "IMAGE",
       `${provider}/${model} (adobe-firefly) | prompt: "${prompt.slice(0, 60)}${prompt.length > 60 ? "..." : ""}"` +
-        (sourceImageIds.length ? ` | refs: ${sourceImageIds.length}` : "")
+        (sourceImageIds.length ? ` | refs: ${sourceImageIds.length}` : "") +
+        ` | session=${session.source}`
     );
 
     const result = await adobeFireflyGenerateImage({
@@ -122,6 +123,8 @@ export async function handleAdobeFireflyImageGeneration({
         typeof body.negative_prompt === "string" ? body.negative_prompt : undefined,
       sourceImageIds: sourceImageIds.length ? sourceImageIds : undefined,
       sessionCookie,
+      arpSessionId,
+      sessionFingerprint: session.fingerprint,
       timeoutMs,
       fetchImpl,
       log,

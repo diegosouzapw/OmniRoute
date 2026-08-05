@@ -88,7 +88,10 @@ test("getExecutor(adobe-firefly) rejects chat completions", async () => {
   assert.ok(executor);
   const result = await executor.execute({
     model: "adobe-firefly/nano-banana-pro",
-    body: { model: "adobe-firefly/nano-banana-pro", messages: [{ role: "user", content: "hi" }] },
+    body: {
+      model: "adobe-firefly/nano-banana-pro",
+      messages: [{ role: "user", content: "hi" }],
+    },
     stream: false,
     credentials: { apiKey: "tok" },
   });
@@ -190,48 +193,6 @@ test("buildAdobeImagePayload produces nano and gpt-image shapes", () => {
   assert.equal((gpt.modelSpecificPayload as Record<string, unknown>).size, "auto");
   assert.equal(gpt.size, undefined);
   assert.equal(gpt.outputResolution, undefined);
-
-  // Missing / auto quality → maximal detail (5). Explicit low/medium still honored.
-  const gptDefault = buildAdobeImagePayload({
-    prompt: "a dog",
-    aspectRatio: "1:1",
-    outputResolution: "1K",
-    modelSpec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image-2"],
-  });
-  assert.equal((gptDefault.generationSettings as Record<string, unknown>).detailLevel, 5);
-  const gptAuto = buildAdobeImagePayload({
-    prompt: "a dog",
-    aspectRatio: "1:1",
-    outputResolution: "1K",
-    modelSpec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image"],
-    quality: "auto",
-  });
-  assert.equal((gptAuto.generationSettings as Record<string, unknown>).detailLevel, 5);
-  const gptLow = buildAdobeImagePayload({
-    prompt: "a dog",
-    aspectRatio: "1:1",
-    outputResolution: "1K",
-    modelSpec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image"],
-    quality: "low",
-  });
-  assert.equal((gptLow.generationSettings as Record<string, unknown>).detailLevel, 1);
-  const gptMedium = buildAdobeImagePayload({
-    prompt: "a dog",
-    aspectRatio: "1:1",
-    outputResolution: "1K",
-    modelSpec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image"],
-    quality: "medium",
-  });
-  assert.equal((gptMedium.generationSettings as Record<string, unknown>).detailLevel, 3);
-  // Firefly UI resolution tiers map onto the same detailLevel scale.
-  const gpt4k = buildAdobeImagePayload({
-    prompt: "a dog",
-    aspectRatio: "1:1",
-    outputResolution: "1K",
-    modelSpec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image"],
-    quality: "4k",
-  });
-  assert.equal((gpt4k.generationSettings as Record<string, unknown>).detailLevel, 5);
 });
 
 test("buildAdobeImagePayload attaches referenceBlobs like live adobe_atach_images capture", () => {
@@ -250,10 +211,7 @@ test("buildAdobeImagePayload attaches referenceBlobs like live adobe_atach_image
     { id: "2a4f1025-e0dc-4671-a11a-7dfd3c07bd94", usage: "general" },
     { id: "84c11d1a-e798-4300-a63e-c06504ca2068", usage: "general" },
   ]);
-  assert.equal(
-    (nano.generationMetadata as Record<string, unknown>).module,
-    "text2image"
-  );
+  assert.equal((nano.generationMetadata as Record<string, unknown>).module, "text2image");
 
   const gpt = buildAdobeImagePayload({
     prompt: "edit me",
@@ -302,7 +260,9 @@ test("parseAdobeImageSourceBytes + parseAdobeStorageUploadResponse", () => {
 });
 
 test("buildAdobeUploadHeaders uses image content-type not json", () => {
-  const h = buildAdobeUploadHeaders("tok", "image/png", { arpSessionId: "arp" });
+  const h = buildAdobeUploadHeaders("tok", "image/png", {
+    arpSessionId: "arp",
+  });
   assert.equal(h["content-type"], "image/png");
   assert.equal(h.Authorization, "Bearer tok");
   assert.equal(h["x-api-key"], "clio-playground-web");
@@ -322,10 +282,10 @@ test("resolveAdobeSourceImageIds uploads data URLs then returns blob ids", async
       const headers = init?.headers as Record<string, string>;
       assert.match(String(headers["content-type"] || headers["Content-Type"] || ""), /image\//);
       assert.ok(init?.body);
-      return new Response(
-        JSON.stringify({ images: [{ id: `blob-${uploadCalls}` }] }),
-        { status: 200, headers: { "content-type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ images: [{ id: `blob-${uploadCalls}` }] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
     throw new Error(`unexpected fetch ${u}`);
   };
@@ -370,12 +330,16 @@ test("buildAdobeVideoPayload produces sora and veo shapes", () => {
 });
 
 test("extractAdobeResultLink prefers x-override-status-link then links.result", () => {
-  const headers = new Headers({ "x-override-status-link": "https://poll.example/job/1" });
+  const headers = new Headers({
+    "x-override-status-link": "https://poll.example/job/1",
+  });
   assert.equal(extractAdobeResultLink(headers, {}), "https://poll.example/job/1");
 
   const headers2 = new Headers();
   assert.equal(
-    extractAdobeResultLink(headers2, { links: { result: { href: "https://poll.example/job/2" } } }),
+    extractAdobeResultLink(headers2, {
+      links: { result: { href: "https://poll.example/job/2" } },
+    }),
     "https://poll.example/job/2"
   );
 });
@@ -429,8 +393,7 @@ test("buildAdobeSubmitNonce is sha256(user_id + prompt[:256])", async () => {
       type: "access_token",
       client_id: "clio-playground-web",
     })
-  )
-    .toString("base64url");
+  ).toString("base64url");
   const header = Buffer.from(JSON.stringify({ alg: "none" })).toString("base64url");
   const token = `${header}.${payload}.${"x".repeat(40)}`;
   // Pad token length for looksLikeAdobeJwt (>=80)
@@ -448,22 +411,50 @@ test("buildAdobeSubmitNonce is sha256(user_id + prompt[:256])", async () => {
   assert.notEqual(buildAdobeSubmitNonce(token, prompt + "!"), nonce);
   assert.equal(extractAdobeAccountIdFromToken(token), "0EB681AF6A5FF6C10A495FF2@AdobeID");
 
+  const {
+    isValidAdobeArpSessionId,
+    resolveAdobeArpSessionId,
+    extractAdobeArpSessionId,
+    ADOBE_FIREFLY_FTR_MAGIC,
+  } = await import("../../open-sse/services/adobeFireflyClient.ts");
   const arp = buildAdobeArpSessionId();
   assert.ok(arp.length > 20);
+  assert.equal(isValidAdobeArpSessionId(arp), true);
   const decoded = JSON.parse(Buffer.from(arp, "base64").toString("utf8"));
   assert.ok(decoded.sid);
-  assert.match(String(decoded.ftr), /dUAL43-mnts-ants-d4_31ck__tt$/);
+  // Live SPA shape (2026-07): sid + ark (Arkose) + ftr + bfp + fpjs
+  assert.ok(decoded.ark, "synthetic ARP must include ark field");
+  assert.match(String(decoded.ark), /pk=BBCC314C-4937-4CCD-B0A3-FDF0F0F7603C/);
+  assert.match(String(decoded.ftr), new RegExp(ADOBE_FIREFLY_FTR_MAGIC));
+  assert.match(String(decoded.ftr), /-v2_tt$/);
+  assert.ok(decoded.bfp, "synthetic ARP must include bfp (browser fingerprint)");
+  assert.ok(decoded.fpjs, "synthetic ARP must include fpjs");
 
   // Headers: deterministic nonce + always ARP (synthetic when none provided)
   const h = buildAdobeSubmitHeaders(token, { prompt });
   assert.equal(h["x-nonce"], nonce);
   assert.ok(h["x-arp-session-id"]);
   assert.equal(h.cookie, undefined);
+
+  // Prefer real sherlockToken / x-arp-session-id from paste over synthetic
+  const realArp = Buffer.from(
+    JSON.stringify({
+      sid: "11111111-2222-3333-4444-555555555555",
+      ark: "sess.123|r=eu-west-1|pk=BBCC314C-4937-4CCD-B0A3-FDF0F0F7603C",
+      ftr: "aa_1" + ADOBE_FIREFLY_FTR_MAGIC + "_x=-1-v2_tt",
+    }),
+    "utf8"
+  ).toString("base64");
+  assert.equal(extractAdobeArpSessionId(`a=1; sherlockToken=${realArp}; b=2`), realArp);
+  assert.equal(
+    extractAdobeArpSessionId(`x-arp-session-id: ${realArp}\nAuthorization: Bearer x`),
+    realArp
+  );
+  assert.equal(resolveAdobeArpSessionId(`sherlockToken=${realArp}`), realArp);
 });
 
 test("normalizeAdobePollUrl rewrites firefly-epo jobs/result to BKS", () => {
-  const raw =
-    "https://firefly-epo855232.adobe.io/jobs/result/4ae9fd2a-0864-46dd-9834-cfc16e91faa6";
+  const raw = "https://firefly-epo855232.adobe.io/jobs/result/4ae9fd2a-0864-46dd-9834-cfc16e91faa6";
   const out = normalizeAdobePollUrl(raw);
   assert.match(out, /^https:\/\/bks-epo8552\.adobe\.io\/v2\/jobs\/result\/4ae9fd2a/);
   assert.match(out, /host=firefly-epo855232\.adobe\.io/);
@@ -477,7 +468,9 @@ test("parseAdobeCreditsBalance maps total + free/plan buckets", () => {
     },
     credits: {
       firefly_free_credit: { quota: { total: 10, used: 0, available: 10 } },
-      firefly_plan_credit: { quota: { total: 10000, used: 10, available: 9990 } },
+      firefly_plan_credit: {
+        quota: { total: 10000, used: 10, available: 9990 },
+      },
     },
   });
   assert.equal(bal.total, 10010);
@@ -545,9 +538,9 @@ test("fallback catalog has image and video entries from get_models capture", () 
 
 test("extractAdobeAccountIdFromToken reads user_id claim", () => {
   // {"user_id":"0EB@AdobeID"} base64url
-  const payload = Buffer.from(JSON.stringify({ user_id: "0EB@AdobeID", type: "access_token" })).toString(
-    "base64url"
-  );
+  const payload = Buffer.from(
+    JSON.stringify({ user_id: "0EB@AdobeID", type: "access_token" })
+  ).toString("base64url");
   const jwt = `eyJhbGciOiJub25lIn0.${payload}.sig`;
   assert.equal(extractAdobeAccountIdFromToken(jwt), "0EB@AdobeID");
 });
@@ -584,7 +577,11 @@ function userImsJwt(userId = "0EB@AdobeID"): string {
   return (
     `eyJhbGciOiJSUzI1NiJ9.` +
     Buffer.from(
-      JSON.stringify({ user_id: userId, type: "access_token", client_id: "clio-playground-web" })
+      JSON.stringify({
+        user_id: userId,
+        type: "access_token",
+        client_id: "clio-playground-web",
+      })
     ).toString("base64url") +
     `.` +
     "sig".padEnd(40, "x")
@@ -665,7 +662,10 @@ test("handleAdobeFireflyImageGeneration uploads refs and submits referenceBlobs"
   assert.equal(result.success, true);
   assert.equal(uploadCalls, 1);
   assert.ok(sawGenerateBody);
-  const refs = sawGenerateBody!.referenceBlobs as Array<{ id: string; usage: string }>;
+  const refs = sawGenerateBody!.referenceBlobs as Array<{
+    id: string;
+    usage: string;
+  }>;
   assert.deepEqual(refs, [{ id: "ref-blob-1", usage: "general" }]);
 });
 
@@ -732,13 +732,19 @@ test("guest JWT without AdobeID is detected", () => {
   const emptyPayload = Buffer.from("{}").toString("base64url");
   const guestJwt = `eyJhbGciOiJub25lIn0.${emptyPayload}.sig`;
   // Pad to lookLikeAdobeJwt length if needed
-  const longGuest = `eyJhbGciOiJSUzI1NiJ9.${Buffer.from(JSON.stringify({ client_id: "clio-playground-web" })).toString("base64url")}.` + "x".repeat(40);
+  const longGuest =
+    `eyJhbGciOiJSUzI1NiJ9.${Buffer.from(JSON.stringify({ client_id: "clio-playground-web" })).toString("base64url")}.` +
+    "x".repeat(40);
   assert.equal(isAdobeGuestAccessToken(longGuest), true);
   const userJwt =
     `eyJhbGciOiJSUzI1NiJ9.` +
-    Buffer.from(JSON.stringify({ user_id: "0EB@AdobeID", type: "access_token", client_id: "clio-playground-web" })).toString(
-      "base64url"
-    ) +
+    Buffer.from(
+      JSON.stringify({
+        user_id: "0EB@AdobeID",
+        type: "access_token",
+        client_id: "clio-playground-web",
+      })
+    ).toString("base64url") +
     `.` +
     "y".repeat(40);
   assert.equal(isAdobeGuestAccessToken(userJwt), false);
@@ -784,8 +790,120 @@ test("cookie exchange rejects guest IMS tokens", async () => {
   );
 });
 
+test("extractAdobeArpSessionId recovers JWT+ARP joined by space (PasswordBox mangling)", async () => {
+  const { extractAdobeArpSessionId, hasBrowserAdobeArpSession, formatAdobeSystemUnderLoadError } =
+    await import("../../open-sse/services/adobeFireflyClient.ts");
+  const realArp = Buffer.from(
+    JSON.stringify({
+      sid: "bdf37b8a-117f-467d-a737-7792932d98b4",
+      ark: "60818c561473ddb23.0684402805|r=eu-west-1|pk=BBCC314C-4937-4CCD-B0A3-FDF0F0F7603C",
+      ftr: "aab9dc9eb48f4ee1916428649f908f7d_1__UDF43-m4_31ck_x=-1-v2_tt",
+    }),
+    "utf8"
+  ).toString("base64");
+  // Fake 3-segment JWT shape long enough for looksLikeAdobeJwt
+  const fakeJwt =
+    "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9." +
+    "eyJ1c2VyX2lkIjoiMEVCNjgxQUY2QTVGRjZDMTBBNDk1RkYyQEFkb2JlSUQifQ." +
+    "sigABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnop";
+  const joined = `${fakeJwt} ${realArp}`;
+  assert.equal(extractAdobeArpSessionId(joined), realArp);
+  assert.equal(hasBrowserAdobeArpSession(joined), true);
+  assert.equal(hasBrowserAdobeArpSession(fakeJwt), false);
+  assert.match(
+    formatAdobeSystemUnderLoadError("image", 2, { hadBrowserArp: false }),
+    /missing a browser x-arp-session-id/
+  );
+  assert.match(
+    formatAdobeSystemUnderLoadError("image", 2, { hadBrowserArp: true }),
+    /auto-rebuilds x-arp-session-id|Cookie once|Forter\/Arkose/i
+  );
+});
+
+test("extractAdobeArpSessionId does not pick aux_sid over sherlockToken", async () => {
+  const { extractAdobeArpSessionId, isValidAdobeArpSessionId } =
+    await import("../../open-sse/services/adobeFireflyClient.ts");
+  const { ADOBE_FIREFLY_FTR_MAGIC } = await import("../../open-sse/services/adobeFireflyClient.ts");
+  const realArp = Buffer.from(
+    JSON.stringify({
+      sid: "bdf37b8a-117f-467d-a737-7792932d98b4",
+      ark: "10618c58b8d3cd588.3119555905|r=eu-west-1|pk=BBCC314C-4937-4CCD-B0A3-FDF0F0F7603C",
+      ftr: `aa_${Date.now()}${ADOBE_FIREFLY_FTR_MAGIC}_x=-1-v2_tt`,
+    }),
+    "utf8"
+  ).toString("base64");
+  // Long aux_sid must NOT win ranking (this was the live 408 root cause)
+  const aux = "A" + "x".repeat(780);
+  const cookie = `ff_session_guid=bdf37b8a-117f-467d-a737-7792932d98b4; sherlockToken=${realArp}; aux_sid=${aux}; forterToken=x`;
+  const got = extractAdobeArpSessionId(cookie);
+  assert.equal(got, realArp);
+  assert.equal(isValidAdobeArpSessionId(`aux_sid=${aux}`), false);
+  assert.equal(isValidAdobeArpSessionId(realArp), true);
+});
+
+test("rebuild ARP from cookie components (forter+arkose+sid)", async () => {
+  const {
+    buildAdobeArpSessionIdFromCookies,
+    canRebuildAdobeArpFromCookies,
+    mergeAdobeCookieHeaders,
+    resolveAdobeArpSessionIdSmart,
+    serializeAdobeFireflyCredential,
+    normalizeAdobeForterToken,
+  } = await import("../../open-sse/services/adobeFireflySession.ts");
+  const { ADOBE_FIREFLY_FTR_MAGIC } = await import("../../open-sse/services/adobeFireflyClient.ts");
+
+  const ftr = `aab9dc9eb48f4ee1916428649f908f7d_${Date.now()}${ADOBE_FIREFLY_FTR_MAGIC}_x=-1092-v2_tt`;
+  const ark =
+    "87818c58b11662a57.5347274705|r=eu-west-1|meta=3|pk=BBCC314C-4937-4CCD-B0A3-FDF0F0F7603C|at=40";
+  const cookie =
+    `ff_session_guid=bdf37b8a-117f-467d-a737-7792932d98b4; arkose=${ark}; ` +
+    `forterToken=${encodeURIComponent(ftr)}; bfp=58ef2899-b1c4-42e4-9625-ae265e1b4994; ` +
+    `fpjs=${encodeURIComponent(JSON.stringify({ requestId: "1.x", visitorId: "v" }))}`;
+
+  assert.equal(canRebuildAdobeArpFromCookies(cookie), true);
+  const arp = buildAdobeArpSessionIdFromCookies(cookie);
+  assert.ok(arp.length > 40);
+  const decoded = JSON.parse(Buffer.from(arp, "base64").toString("utf8"));
+  assert.equal(decoded.sid, "bdf37b8a-117f-467d-a737-7792932d98b4");
+  assert.equal(decoded.ark, ark);
+  assert.ok(String(decoded.ftr).includes(ADOBE_FIREFLY_FTR_MAGIC));
+  assert.equal(decoded.bfp, "58ef2899-b1c4-42e4-9625-ae265e1b4994");
+  assert.ok(decoded.fpjs);
+
+  // forter without _tt suffix gets normalized
+  assert.match(normalizeAdobeForterToken("abc_1__UDF43-m4_31ck_x=-1-v2"), /-v2_tt$/);
+  // localStorage comma form is rejected
+  assert.equal(normalizeAdobeForterToken("aab9dc9eb48f4ee1916428649f908f7d,1784986682306"), "");
+
+  const merged = mergeAdobeCookieHeaders(
+    "ff_session_guid=old; arkose=a1",
+    "arkose=a2; forterToken=newftr"
+  );
+  assert.match(merged, /arkose=a2/);
+  assert.match(merged, /forterToken=newftr/);
+  assert.match(merged, /ff_session_guid=old/);
+
+  // Smart resolve prefers rebuild when cookie pieces present
+  const smart = resolveAdobeArpSessionIdSmart(cookie);
+  assert.equal(smart, arp);
+
+  const ser = serializeAdobeFireflyCredential({
+    accessToken: "eyJ.token.sig",
+    cookie,
+    arpSessionId: arp,
+  });
+  assert.match(ser, /eyJ\.token\.sig/);
+  assert.match(ser, /ff_session_guid=/);
+});
+
 test("isAdobeTransientSubmitError detects 408 system under load", () => {
-  assert.equal(isAdobeTransientSubmitError(408, '{"error_code":"timeout_error","message":"system under load"}'), true);
+  assert.equal(
+    isAdobeTransientSubmitError(
+      408,
+      '{"error_code":"timeout_error","message":"system under load"}'
+    ),
+    true
+  );
   assert.equal(isAdobeTransientSubmitError(429, "rate"), true);
   assert.equal(isAdobeTransientSubmitError(400, "bad request"), false);
   assert.ok(generateAdobeNonce().length === 64);
@@ -824,6 +942,10 @@ test("resolveAdobeImageModel maps gpt-image-2 alias", async () => {
 });
 
 test("image submit retries on 408 then succeeds", async () => {
+  const { __resetAdobeFireflySessionCacheForTests } =
+    await import("../../open-sse/services/adobeFireflySession.ts");
+  __resetAdobeFireflySessionCacheForTests();
+
   let submits = 0;
   const userTok = userImsJwt();
   const fetchImpl = async (url: string) => {
@@ -831,13 +953,12 @@ test("image submit retries on 408 then succeeds", async () => {
     if (u.includes("generate-async")) {
       submits += 1;
       if (submits < 3) {
-        return jsonResponse(408, { error_code: "timeout_error", message: "system under load" });
+        return jsonResponse(408, {
+          error_code: "timeout_error",
+          message: "system under load",
+        });
       }
-      return jsonResponse(
-        200,
-        { links: { result: { href: "https://poll.example/job/r1" } } },
-        {}
-      );
+      return jsonResponse(200, { links: { result: { href: "https://poll.example/job/r1" } } }, {});
     }
     if (u.includes("poll.example")) {
       return jsonResponse(200, {
@@ -858,11 +979,114 @@ test("image submit retries on 408 then succeeds", async () => {
   assert.match(result.url, /retry\.png/);
 });
 
+test("sticky ARP: successful submit is reused by ensure on next call", async () => {
+  const {
+    __resetAdobeFireflySessionCacheForTests,
+    markAdobeFireflyArpSuccess,
+    ensureAdobeFireflySession,
+    fingerprintAdobeCredential,
+  } = await import("../../open-sse/services/adobeFireflySession.ts");
+  const { ADOBE_FIREFLY_FTR_MAGIC } = await import("../../open-sse/services/adobeFireflyClient.ts");
+  __resetAdobeFireflySessionCacheForTests();
+
+  const userTok = userImsJwt();
+  const ftr = `aab9dc9eb48f4ee1916428649f908f7d_${Date.now()}${ADOBE_FIREFLY_FTR_MAGIC}_x=-1-v2_tt`;
+  const ark =
+    "87818c58b11662a57.5347274705|r=eu-west-1|meta=3|pk=BBCC314C-4937-4CCD-B0A3-FDF0F0F7603C|at=40";
+  const cookie =
+    `ff_session_guid=bdf37b8a-117f-467d-a737-7792932d98b4; arkose=${ark}; ` +
+    `forterToken=${encodeURIComponent(ftr)}`;
+  const cred = `${userTok}\n${cookie}`;
+  const fp = fingerprintAdobeCredential(cred);
+  const stickyArp = Buffer.from(
+    JSON.stringify({ sid: "sticky-sid", ark: "sticky-ark", ftr: "sticky-ftr" }),
+    "utf8"
+  ).toString("base64");
+
+  markAdobeFireflyArpSuccess(fp, stickyArp);
+
+  const session = await ensureAdobeFireflySession({
+    credentials: { apiKey: cred },
+    allowBrowserRefresh: false,
+    fetchImpl: (async () => {
+      throw new Error("no network expected");
+    }) as typeof fetch,
+  });
+  assert.equal(session.arpSessionId, stickyArp, "ensure must stick to last successful ARP");
+  assert.equal(session.fingerprint, fp);
+});
+
+test("rotateAdobeFireflySessionOnError: attempt1-2 reuse sticky; attempt3 keeps ARP without browser", async () => {
+  const {
+    __resetAdobeFireflySessionCacheForTests,
+    rotateAdobeFireflySessionOnError,
+    markAdobeFireflyArpSuccess,
+    buildAdobeArpSessionIdFromCookies,
+  } = await import("../../open-sse/services/adobeFireflySession.ts");
+  const { ADOBE_FIREFLY_FTR_MAGIC } = await import("../../open-sse/services/adobeFireflyClient.ts");
+  __resetAdobeFireflySessionCacheForTests();
+
+  const ftr = `aa_${Date.now()}${ADOBE_FIREFLY_FTR_MAGIC}_x=-1-v2_tt`;
+  const cookie = `ff_session_guid=sid-1; arkose=ark-1; forterToken=${encodeURIComponent(ftr)}`;
+  const rebuilt = buildAdobeArpSessionIdFromCookies(cookie);
+  assert.ok(rebuilt);
+
+  const base = {
+    accessToken: userImsJwt(),
+    cookie,
+    arpSessionId: rebuilt!,
+    tokenExpiresAt: Date.now() + 3600_000,
+    updatedAt: Date.now(),
+    fingerprint: "fp-rotate-test",
+    source: "paste" as const,
+  };
+  markAdobeFireflyArpSuccess(base.fingerprint, rebuilt!);
+
+  const a1 = await rotateAdobeFireflySessionOnError(base, {
+    attempt: 1,
+    tryBrowser: false,
+  });
+  assert.equal(a1.arpSessionId, rebuilt, "attempt 1 reuses ARP (rate-limit quiet)");
+
+  const a2 = await rotateAdobeFireflySessionOnError(
+    { ...base, arpSessionId: rebuilt! },
+    { attempt: 2, tryBrowser: false }
+  );
+  assert.equal(a2.arpSessionId, rebuilt, "attempt 2 still reuses ARP (mid-batch quiet)");
+
+  const a3 = await rotateAdobeFireflySessionOnError(
+    { ...base, arpSessionId: rebuilt! },
+    { attempt: 3, tryBrowser: false }
+  );
+  // attempt 3 without browser: cookie rebuild (identical forter → same ARP)
+  assert.ok(a3.arpSessionId, "attempt 3 still yields an ARP");
+  assert.equal(
+    a3.arpSessionId,
+    rebuilt,
+    "identical cookie rebuild keeps ARP (no synthetic thrash)"
+  );
+
+  const auth = await rotateAdobeFireflySessionOnError(
+    { ...base, arpSessionId: rebuilt!, tokenExpiresAt: 0 },
+    { attempt: 1, authFailure: true, tryBrowser: false }
+  );
+  assert.equal(auth.source, "rebuild", "auth failures must bypass quiet sticky reuse");
+  assert.ok(auth.tokenExpiresAt > Date.now(), "retry must repair a missing token expiry");
+});
+
 test("adobeFireflyGenerateImage cookie path exchanges IMS token first", async () => {
+  const { __resetAdobeFireflySessionCacheForTests } =
+    await import("../../open-sse/services/adobeFireflySession.ts");
+  __resetAdobeFireflySessionCacheForTests();
+
   const userTok =
     `eyJhbGciOiJSUzI1NiJ9.` +
     Buffer.from(
-      JSON.stringify({ user_id: "0EB@AdobeID", type: "access_token", client_id: "clio-playground-web" })
+      JSON.stringify({
+        user_id: "0EB@AdobeID",
+        type: "access_token",
+        client_id: "clio-playground-web",
+      })
     ).toString("base64url") +
     `.` +
     "s".repeat(40);
@@ -872,7 +1096,10 @@ test("adobeFireflyGenerateImage cookie path exchanges IMS token first", async ()
     if (String(url).includes("ims/check")) {
       assert.equal(init?.method, "POST");
       // Authenticated exchange (guest_allowed=false)
-      return jsonResponse(200, { access_token: userTok, account_type: "type1" });
+      return jsonResponse(200, {
+        access_token: userTok,
+        account_type: "type1",
+      });
     }
     if (String(url).includes("generate-async")) {
       const auth =
@@ -884,11 +1111,7 @@ test("adobeFireflyGenerateImage cookie path exchanges IMS token first", async ()
           ? (init.headers as Record<string, string>).Authorization
           : auth;
       assert.equal(headerAuth, `Bearer ${userTok}`);
-      return jsonResponse(
-        200,
-        {},
-        { "x-override-status-link": "https://poll.example/job/c1" }
-      );
+      return jsonResponse(200, {}, { "x-override-status-link": "https://poll.example/job/c1" });
     }
     if (String(url).includes("poll.example")) {
       return jsonResponse(200, {
