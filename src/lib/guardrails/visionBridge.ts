@@ -311,6 +311,19 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
       return null;
     });
 
+    // 12b. (#8430) When every describe call failed (all null descriptions) in
+    // the combo describe path, the upstream is a confirmed non-vision model that
+    // cannot process raw images — replacing them with an "(unavailable)" stub
+    // is safe here because the upstream can only handle text. The original #4012
+    // preserve-raw behavior only applies to paths where the upstream might still
+    // be vision-capable (reroute path / unknown capability).
+    const allNull = descriptions.every((d) => d === null);
+    if (allNull && comboVisionBridgeDecision === "process") {
+      for (let i = 0; i < descriptions.length; i++) {
+        descriptions[i] = `[Image ${i + 1}]: (unavailable — no vision-capable provider connected)`;
+      }
+    }
+
     // 13. Replace image parts with text descriptions (null → keep original image)
     const modifiedBody = replaceImageParts(
       body as Parameters<typeof replaceImageParts>[0],

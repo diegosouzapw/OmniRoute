@@ -388,7 +388,10 @@ export class PerplexityWebExecutor extends BaseExecutor {
     let pplxMode: string;
     let modelPref: string;
     if (thinking && THINKING_MAP[model]) {
-      pplxMode = "search";
+      // "copilot", not "search": the backend downgrades "search" to CONCISE and drops
+      // model_preference, so the thinking variant would fail the same way the catalog
+      // models do (see the note above MODEL_MAP).
+      pplxMode = "copilot";
       modelPref = THINKING_MAP[model];
       log?.info?.("PPLX-WEB", `Thinking mode → ${model} using ${modelPref}`);
     } else if (MODEL_MAP[model]) {

@@ -98,7 +98,8 @@ export async function POST(request, { params }) {
     method: request.method,
     headers: request.headers,
     body: JSON.stringify(body),
+    signal: request.signal,
   });
 
-  return await handleChat(newRequest, buildClientRawRequest(request, rawBody));
+  return await handleChat(newRequest, () => buildClientRawRequest(request, rawBody));
 }

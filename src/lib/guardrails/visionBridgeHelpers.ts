@@ -212,11 +212,17 @@ export async function callVisionModel(
   apiKey?: string,
   routerConfig?: Partial<import("./visionBridgeRouter").VisionBridgeRouterConfig>
 ): Promise<string> {
-  // Auto-select the best vision model if not explicitly configured
+  // Auto-select the best vision model
   const modelToUse = await getBestVisionModel({
     fixedModel: config.model,
     ...routerConfig,
   });
+  // (#8430) When no vision-capable provider has usable credentials on this
+  // instance, surface a clear error instead of attempting a describe call that
+  // would fail with an opaque auth/serde error upstream.
+  if (!modelToUse) {
+    throw new Error("No vision-capable provider connected, cannot process image request");
+  }
   let lastError: Error | null = null;
 
   // Try primary model + fallbacks

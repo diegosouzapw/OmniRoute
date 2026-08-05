@@ -171,7 +171,6 @@ config/quality/test-impact-map.json
 # GitNexus local index
 .gitnexus
 .worktrees
-bin/omniroute.mjs
 
 # Consistent with .dockerignore / .npmignore
 .omc/
@@ -201,7 +200,10 @@ scripts/i18n/_pending-keys.json
 .codegraph/
 
 # Fumadocs generated source
-.source/
+/.source/
+
+# Temporary local worktrees used to build unpublished npm tarballs
+/.deploy-build-*/
 
 # AI agent local settings and configs
 .agents/
@@ -233,7 +235,10 @@ omniroute.md
 
 # mise configuration
 mise.toml
-_artifacts/          # release-green artifacts
+# release-green artifacts (.gitignore has no inline comments — a trailing
+# `# ...` becomes part of the pattern, so it must sit on its own line).
+# Already covered by /_*/ above; kept explicit for discoverability.
+_artifacts/
 .claude-flow/
 
 # ESLint file cache (npm run lint --cache / complexity ratchets)
@@ -250,3 +255,8 @@ tests/homolog/.auth/
 tests/homolog/ui/.auth/
 homolog-report/
 docker-compose.yml.bak
+.playwright-cli/
+# Playwright screenshot/log output. Today every artifact happens to land inside
+# output/**/.playwright-cli/ (covered above), but anything written directly to
+# output/ would otherwise show up as untracked.
+/output/

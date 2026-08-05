@@ -7,7 +7,13 @@
 **/.vscode
 
 # Dependencies and build output
+# `node_modules` alone matches the ROOT only — Docker's matcher does not cross
+# `/` like .gitignore does. Without the `**/` form, nested installs ship in the
+# build context (e.g. @omniroute/opencode-provider/node_modules, ~79 MB of
+# devDependencies). Both forms are kept: the bare one is the documented root
+# rule, the `**/` one covers every nested package.
 node_modules
+**/node_modules
 .next
 .build
 out
@@ -37,6 +43,17 @@ tests
 test-results
 playwright-report
 blob-report
+output
+.playwright-cli
+.playwright-mcp
+.stryker-tmp
+reports/mutation
+
+# Local caches and quality-gate artifacts (all gitignored). `_*` does not match
+# dot-prefixed names, so these need explicit entries.
+.artifacts
+.eslintcache
+.eslintcache-complexity
 
 # Documentation
 # Issue #2348: The Dashboard Docs viewer reads markdown from `/app/docs` at
@@ -49,6 +66,10 @@ blob-report
 # (English) sources at runtime, so translations are not required in the
 # container image.
 docs/i18n/**
+# Internal planning artifacts (gitignored). `*.md` above only matches the root,
+# so without this rule these land in /app/docs and become readable through the
+# dashboard's Docs viewer at runtime.
+docs/superpowers/**
 docs/diagrams/**/*.png
 docs/diagrams/**/*.jpg
 docs/diagrams/**/*.jpeg

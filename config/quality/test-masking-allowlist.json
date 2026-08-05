@@ -64,6 +64,18 @@
     "tests/unit/ui/provider-plan-config.test.tsx": {
       "replacement": "tests/unit/quota-plans-route-retired.test.ts",
       "reason": "v3.8.49 #7127: fix(tests) suíte vitest UI de volta ao verde — a rota Plans e o ProviderPlanConfigClient foram APOSENTADOS; o replacement inverte a asserção e guarda a aposentadoria (o arquivo da rota e o ProviderPlanConfigClient não existem mais, costs-quota-plans saiu do sidebarVisibility e da navegação)."
+    },
+    "tests/unit/plugin-sandbox-permissions.test.ts": {
+      "sourceRemoved": [
+        "src/lib/plugins/pluginWorker.ts",
+        "src/lib/plugins/sandbox.ts",
+        "src/lib/plugins/signing.ts"
+      ],
+      "reason": "v3.8.50 #9126 (commit 8fac6bcd48): pluginWorker.ts, sandbox.ts e signing.ts foram removidos por completo (\"zero importers confirmed\") — o subsistema de sandbox de plugins com worker-thread nunca foi ligado a nenhum consumidor. O teste era source-scan sobre pluginWorker.ts (ver docstring do arquivo deletado); sem o arquivo-fonte não há mais o que testar. OMNIROUTE_PLUGINS_ALLOW_EXEC também foi removido de .env.example e da doc na mesma release. Sem substituto porque a feature foi extinta, não migrada."
+    },
+    "tests/unit/plugins-sandbox.test.ts": {
+      "sourceRemoved": ["src/lib/plugins/sandbox.ts"],
+      "reason": "v3.8.50 #9126 (commit 8fac6bcd48): sandbox.ts foi removido por completo junto com pluginWorker.ts e signing.ts (\"zero importers confirmed\", subsistema de sandbox de plugins nunca ligado a nenhum consumidor). O teste cobria SandboxLevel/getSandboxLabel exportados por sandbox.ts; sem o arquivo-fonte não há mais símbolo a testar. Mesma causa-raiz de tests/unit/plugin-sandbox-permissions.test.ts nesta entrada."
     }
   },
   "tests/unit/catalog-updates-v3x.test.ts": "v3.8.45 #6248: fix(providers) remove deprecated MiMo V2 entries — os 5 asserts removidos pinavam specs de modelos mimo-v2-* que deixaram de existir no catálogo (54→49). Asserts seguem a remoção dos modelos, não enfraquecimento. Verificado legítimo. Prune após v3.8.45 mergear para main.",
@@ -96,5 +108,6 @@
   "tests/unit/usage-providers.test.ts": "v3.8.49 #7866: o case \"qwen\" saiu de getUsageForProvider (não há mais case \"qwen\" no switch de open-sse/services/usage.ts); o teste cobria esse ramo extinto (net 20→19). Verificado legítimo. Prune após v3.8.49 mergear para main.",
   "tests/unit/usage-service-hardening.test.ts": "v3.8.49 #7866/#8565/#8013: qwen removido (−3 asserts); o Kimi/Kiro builder-id (uso profileless) passou a ter SUCESSO real em vez de erro de ARN — supportsProfilelessKiroUsage(\"builder-id\") retorna true —, trocando 1 assert de regex de erro por 3 asserts de valor; e os ids de bucket de quota do Antigravity foram atualizados para o catálogo atual. Rodado no HEAD: 23/23 passam. Net 210→209. Verificado legítimo. Prune após v3.8.49 mergear para main.",
   "tests/unit/virtual-auto-combo.test.ts": "v3.8.49 #7928/#8183: o pooling de contas passou a agrupar conexões web-session do mesmo provider numa entrada lógica com allowedConnectionIds (campo confirmado em open-sse/services/autoCombo/virtualFactory.ts), e o pool no-auth virou uma allowlist fixa (AUTO_COMBO_NOAUTH_ALLOWLIST = opencode, felo-web) — os testes antigos esperavam duplicatas e a inclusão de duckduckgo-web/theoldllm/chipotle, que hoje são corretamente excluídos. Guard dedicado em noauth-autocombo-allowlist.test.ts. Rodado no HEAD: 10/10 passam. Net 39→31. Verificado legítimo. Prune após v3.8.49 mergear para main.",
-  "open-sse/services/__tests__/tierResolver.test.ts": "v3.8.49 #7866: refactor(qwen) remove o provider OAuth legado — o teste \"classifies Qwen as free\" e a entrada de qwen na lista do batch saíram junto com o provider, e os índices do batch desceram de 10 para 9 elementos (net 61→59). Superfície extinta, não enfraquecimento. Verificado legítimo. Prune após v3.8.49 mergear para main."
+  "open-sse/services/__tests__/tierResolver.test.ts": "v3.8.49 #7866: refactor(qwen) remove o provider OAuth legado — o teste \"classifies Qwen as free\" e a entrada de qwen na lista do batch saíram junto com o provider, e os índices do batch desceram de 10 para 9 elementos (net 61→59). Superfície extinta, não enfraquecimento. Verificado legítimo. Prune após v3.8.49 mergear para main.",
+  "tests/unit/plugins-welcome-banner-e2e.test.ts": "v3.8.50 #9126 (commit 8fac6bcd48): o teste único 'BUILTIN_EVENTS has all 14 events' (13 asserts .ok/.equal) foi reestruturado em 3 testes mais específicos — 'contains only emitted/public events' (assert.deepEqual da lista completa), 'does not advertise dead events' (7 asserts .equal(false) para eventos sem emissor real: onModelSelect/onComboResolve/onRateLimit/onQuotaExhaust/onProviderError/onStreamStart/onStreamEnd) e 'lifecycle events remain represented' (4 asserts .ok). Contrato mais forte (agora também nega presença dos eventos mortos), não mais fraco — a contagem líquida cai (73→61) porque o assert.deepEqual único substitui múltiplos assert.ok redundantes com a mesma cobertura. Asserts restruturados, não removidos sem substituição. Verificado legítimo."
 }

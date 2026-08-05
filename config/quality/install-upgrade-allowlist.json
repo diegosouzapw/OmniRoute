@@ -1,0 +1,6 @@
+{
+  "_doc": "Tables that exist ONLY in databases upgraded from an older version — residue whose CREATE left the migration set in some past cycle but survives where it already existed. Harmless (nothing references them), but recorded here so check-install-upgrade.mjs can still fail on a NEW divergence. The opposite direction (a table a clean install creates but an upgrade does not) is NEVER allowlisted: it means every existing user is missing structure the code expects.",
+  "residualTables": {
+    "cache_metrics": "Measured 2026-07-30 on a real 3.8.48 install upgraded to 3.8.49 (VPS .16, 165 MB database, 114 → 117 tables). Present in upgraded databases, absent from clean installs. No code path referenced it during the upgrade (zero `no such table` in 150 log lines, both installs healthy). Left in place rather than dropped: a DROP migration on a table we cannot prove is unused everywhere is the riskier change. Revisit when the cache subsystem is next touched."
+  }
+}

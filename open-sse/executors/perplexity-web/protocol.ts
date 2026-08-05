@@ -51,31 +51,40 @@ export const PPLX_STREAM_EOF_SYMBOL = "event: end_of_stream";
 export const PPLX_USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0";
 
-// mode / model_preference pairs. Live www.perplexity.ai still posts mode:"copilot"
-// for the default turbo path; search mode is used for the curated catalog models.
+// mode / model_preference pairs — every entry posts mode:"copilot", like the live
+// www.perplexity.ai client does when a model is picked from the catalog.
+//
+// mode:"search" must NOT be used here. The backend now downgrades it to CONCISE and
+// drops model_preference entirely, answering with status:"FAILED" and the text
+// "Error in processing query." Verified against a paid `subscription_tier: "max"`
+// account: mode:"search" + claude50sonnet → {"mode":"CONCISE","status":"FAILED"},
+// while mode:"copilot" + the same preference → {"mode":"COPILOT",
+// "display_model":"claude50sonnet"} and a normal stream. Same for every other
+// catalog model, so "search" breaks the whole catalog, not just one entry.
 export const MODEL_MAP: Record<string, [string, string]> = {
-  // pplx-auto/pplx-sonar use "copilot" mode (was "search", which for pplx-sonar
-  // maps to "experimental" — that model no longer streams answer-text blocks
-  // for many sessions → empty content, issue #6955). The live web client uses
-  // mode:"copilot" + model_preference:"turbo" for the default turbo path.
+  // pplx-auto/pplx-sonar were already on "copilot" (with "search", pplx-sonar maps to
+  // "experimental" — that model no longer streams answer-text blocks for many
+  // sessions → empty content, issue #6955).
   "pplx-auto": ["copilot", "pplx_pro"],
   "pplx-sonar": ["copilot", "turbo"],
-  "pplx-gpt-5.6-terra": ["search", "gpt56_terra"],
-  "pplx-gpt-5.6-sol": ["search", "gpt56_sol"],
-  "pplx-gemini": ["search", "gemini31pro_high"],
-  "pplx-sonnet": ["search", "claude50sonnet"],
-  "pplx-opus": ["search", "claude48opus"],
-  "pplx-glm": ["search", "glm_5_2"],
-  "pplx-kimi": ["search", "kimik26instant"],
-  "pplx-grok-4.5": ["search", "grok45low"],
-  "pplx-nemotron": ["search", "nv_nemotron_3_ultra"],
+  "pplx-gpt-5.6-terra": ["copilot", "gpt56_terra"],
+  "pplx-gpt-5.6-sol": ["copilot", "gpt56_sol"],
+  "pplx-gemini": ["copilot", "gemini31pro_high"],
+  "pplx-sonnet": ["copilot", "claude50sonnet"],
+  // Perplexity's catalog moved Opus to 5.0; claude48opus is still accepted but
+  // answers from the older model.
+  "pplx-opus": ["copilot", "claude50opus"],
+  "pplx-glm": ["copilot", "glm_5_2"],
+  "pplx-kimi": ["copilot", "kimik26instant"],
+  "pplx-grok-4.5": ["copilot", "grok45low"],
+  "pplx-nemotron": ["copilot", "nv_nemotron_3_ultra"],
 };
 
 export const THINKING_MAP: Record<string, string> = {
   "pplx-gpt-5.6-terra": "gpt56_terra_thinking",
   "pplx-gpt-5.6-sol": "gpt56_sol_thinking",
   "pplx-sonnet": "claude50sonnetthinking",
-  "pplx-opus": "claude48opusthinking",
+  "pplx-opus": "claude50opusthinking",
   "pplx-kimi": "kimik26thinking",
   "pplx-grok-4.5": "grok45medium",
 };

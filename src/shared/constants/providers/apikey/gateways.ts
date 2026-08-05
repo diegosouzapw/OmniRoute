@@ -3,6 +3,22 @@
  * Pure data; merged by apikey/index.ts via spread (god-file decomposition; semantic split).
  */
 export const APIKEY_PROVIDERS_GATEWAYS = {
+  // Cheaper Inference (https://cheaperinference.com) — OSS-sponsor gateway.
+  // Cost-ranked reseller of 42 upstream models (Anthropic/OpenAI/Google/Moonshot/
+  // xAI/Z.AI/DeepSeek/MiniMax) behind one OpenAI-compatible surface, with a native
+  // /v1/responses endpoint and 3 image models. Keys are `ir_live_…` bearer tokens.
+  cheaperinference: {
+    id: "cheaperinference",
+    alias: "cinf",
+    name: "Cheaper Inference",
+    icon: "savings",
+    color: "#31f889",
+    textIcon: "CI",
+    website: "https://cheaperinference.com/?utm_source=omniroute",
+    apiHint:
+      "Create an API key at https://cheaperinference.com/?utm_source=omniroute (needs the `inference` scope), then paste the ir_live_… token here.",
+    passthroughModels: true,
+  },
   "charm-hyper": {
     id: "charm-hyper",
     alias: "charm-hyper",

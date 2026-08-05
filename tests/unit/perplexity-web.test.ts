@@ -814,7 +814,7 @@ test("Model mapping: GPT-5.6 Terra sends its current internal preference", async
     });
 
     assert.equal(capturedBody.params.model_preference, "gpt56_terra");
-    assert.equal(capturedBody.params.mode, "search");
+    assert.equal(capturedBody.params.mode, "copilot");
   } finally {
     globalThis.fetch = original;
   }
@@ -905,8 +905,8 @@ test("Model mapping: thinking mode uses thinking variant", async () => {
     });
 
     assert.equal(capturedBody.params.model_preference, "claude50sonnetthinking");
-    // Thinking variants still go through mode "search" (THINKING_MAP path).
-    assert.equal(capturedBody.params.mode, "search");
+    // THINKING_MAP path posts "copilot" too ("search" is downgraded to CONCISE).
+    assert.equal(capturedBody.params.mode, "copilot");
   } finally {
     globalThis.fetch = original;
   }
