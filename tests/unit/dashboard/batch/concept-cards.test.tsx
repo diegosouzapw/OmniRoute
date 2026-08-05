@@ -20,14 +20,23 @@ vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }));
 
+const storage = new Map<string, string>();
+Object.defineProperty(globalThis, "localStorage", {
+  configurable: true,
+  value: {
+    clear: () => storage.clear(),
+    getItem: (key: string) => storage.get(key) ?? null,
+    removeItem: (key: string) => storage.delete(key),
+    setItem: (key: string, value: string) => storage.set(key, value),
+  },
+});
+
 // ── Import components after mocks ─────────────────────────────────────────────
 
-const { default: BatchConceptCard } = await import(
-  "../../../../src/app/(dashboard)/dashboard/batch/components/BatchConceptCard"
-);
-const { default: FilesConceptCard } = await import(
-  "../../../../src/app/(dashboard)/dashboard/batch/components/FilesConceptCard"
-);
+const { default: BatchConceptCard } =
+  await import("../../../../src/app/(dashboard)/dashboard/batch/components/BatchConceptCard");
+const { default: FilesConceptCard } =
+  await import("../../../../src/app/(dashboard)/dashboard/batch/components/FilesConceptCard");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

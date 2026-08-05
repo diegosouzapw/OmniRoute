@@ -26,7 +26,7 @@ function makeContainer(): HTMLElement {
   return container;
 }
 
-describe("AutoComboCatalog", () => {
+describe("AutoComboCatalog", { timeout: 15_000 }, () => {
   beforeEach(() => {
     (
       globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }

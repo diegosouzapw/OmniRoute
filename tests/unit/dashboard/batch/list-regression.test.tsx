@@ -22,7 +22,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
 vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
+  useLocale: () => "en",
+  useTranslations: () => {
+    const t = (key: string) => key;
+    t.has = () => false;
+    return t;
+  },
 }));
 
 vi.mock("next/link", () => ({
@@ -33,17 +38,20 @@ vi.mock("next/link", () => ({
 
 // Mock retryFailed (used by BatchRowActions → useBatchActions)
 vi.mock("@/lib/batches/retryFailed", () => ({
-  buildRetryPlan: vi.fn(() => ({ retriableLines: 0, newJsonl: "", failedCustomIds: [], skippedLines: 0 })),
+  buildRetryPlan: vi.fn(() => ({
+    retriableLines: 0,
+    newJsonl: "",
+    failedCustomIds: [],
+    skippedLines: 0,
+  })),
 }));
 
 // ── Import components after mocks ─────────────────────────────────────────────
 
-const { default: BatchListTab } = await import(
-  "../../../../src/app/(dashboard)/dashboard/batch/BatchListTab"
-);
-const { default: FilesListTab } = await import(
-  "../../../../src/app/(dashboard)/dashboard/batch/FilesListTab"
-);
+const { default: BatchListTab } =
+  await import("../../../../src/app/(dashboard)/dashboard/batch/BatchListTab");
+const { default: FilesListTab } =
+  await import("../../../../src/app/(dashboard)/dashboard/batch/FilesListTab");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -56,21 +64,23 @@ function makeDiv() {
 }
 
 // Batch record factory
-function makeBatch(overrides: Partial<{
-  id: string;
-  status: string;
-  endpoint: string;
-  model: string;
-  requestCountsTotal: number;
-  requestCountsCompleted: number;
-  requestCountsFailed: number;
-  outputFileId: string | null;
-  errorFileId: string | null;
-  expiresAt: number | null;
-  inputFileId: string;
-  completionWindow: string;
-  createdAt: number;
-}> = {}) {
+function makeBatch(
+  overrides: Partial<{
+    id: string;
+    status: string;
+    endpoint: string;
+    model: string;
+    requestCountsTotal: number;
+    requestCountsCompleted: number;
+    requestCountsFailed: number;
+    outputFileId: string | null;
+    errorFileId: string | null;
+    expiresAt: number | null;
+    inputFileId: string;
+    completionWindow: string;
+    createdAt: number;
+  }> = {}
+) {
   return {
     id: overrides.id ?? "batch-001",
     endpoint: overrides.endpoint ?? "/v1/chat/completions",
@@ -99,14 +109,16 @@ function makeBatch(overrides: Partial<{
 }
 
 // File record factory
-function makeFile(overrides: Partial<{
-  id: string;
-  filename: string;
-  bytes: number;
-  purpose: string;
-  createdAt: number;
-  expiresAt: number | null;
-}> = {}) {
+function makeFile(
+  overrides: Partial<{
+    id: string;
+    filename: string;
+    bytes: number;
+    purpose: string;
+    createdAt: number;
+    expiresAt: number | null;
+  }> = {}
+) {
   return {
     id: overrides.id ?? "file-001",
     filename: overrides.filename ?? "batch-input.jsonl",
@@ -131,7 +143,10 @@ function render(jsx: React.ReactElement) {
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
-  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({}), text: async () => "" }));
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ ok: true, json: async () => ({}), text: async () => "" })
+  );
   vi.stubGlobal("confirm", vi.fn().mockReturnValue(false)); // don't confirm dialogs
 });
 
@@ -163,9 +178,7 @@ describe("BatchListTab — rendering", () => {
 
   it("2. 'Remove completed' button appears when there are completed batches", () => {
     const batches = [makeBatch({ id: "batch-completed", status: "completed" })];
-    const el = render(
-      <BatchListTab batches={batches} files={[]} loading={false} />
-    );
+    const el = render(<BatchListTab batches={batches} files={[]} loading={false} />);
     // button text contains "Remove completed"
     const btn = Array.from(el.querySelectorAll("button")).find((b) =>
       b.textContent?.includes("batchListRemoveCompleted")
@@ -205,9 +218,7 @@ describe("BatchListTab — rendering", () => {
       makeBatch({ id: "batch-completed", status: "completed" }),
       makeBatch({ id: "batch-in-progress", status: "in_progress" }),
     ];
-    const el = render(
-      <BatchListTab batches={batches} files={[]} loading={false} />
-    );
+    const el = render(<BatchListTab batches={batches} files={[]} loading={false} />);
 
     // Both visible initially
     expect(el.textContent).toContain("batch-completed");
@@ -231,9 +242,7 @@ describe("BatchListTab — rendering", () => {
       makeBatch({ id: "batch-unique-aaa", status: "completed" }),
       makeBatch({ id: "batch-unique-bbb", status: "completed" }),
     ];
-    const el = render(
-      <BatchListTab batches={batches} files={[]} loading={false} />
-    );
+    const el = render(<BatchListTab batches={batches} files={[]} loading={false} />);
 
     // Search input exists and accepts text
     const input = el.querySelector("input[type='text']") as HTMLInputElement;
@@ -245,27 +254,21 @@ describe("BatchListTab — rendering", () => {
   });
 
   it("6. shows loading spinner when loading=true and no batches", () => {
-    const el = render(
-      <BatchListTab batches={[]} files={[]} loading={true} />
-    );
+    const el = render(<BatchListTab batches={[]} files={[]} loading={true} />);
     // Loading state renders a spinner (animate-spin class)
     const spinner = el.querySelector(".animate-spin");
     expect(spinner).not.toBeNull();
   });
 
   it("7. shows empty state when no batches and not loading", () => {
-    const el = render(
-      <BatchListTab batches={[]} files={[]} loading={false} />
-    );
+    const el = render(<BatchListTab batches={[]} files={[]} loading={false} />);
     // Should show some empty-state indicator (no spinner)
     expect(el.querySelector(".animate-spin")).toBeNull();
   });
 
   it("8. sanitization: rendered content contains no stack traces or file paths", () => {
     const batches = [makeBatch({ id: "batch-safe", status: "completed" })];
-    const el = render(
-      <BatchListTab batches={batches} files={[]} loading={false} />
-    );
+    const el = render(<BatchListTab batches={batches} files={[]} loading={false} />);
     const text = el.textContent ?? "";
     expect(text).not.toMatch(/\/home\//);
     expect(text).not.toMatch(/at \//);
@@ -283,9 +286,7 @@ describe("BatchListTab — rendering", () => {
         requestCountsFailed: 10,
       }),
     ];
-    const el = render(
-      <BatchListTab batches={batches} files={[]} loading={false} />
-    );
+    const el = render(<BatchListTab batches={batches} files={[]} loading={false} />);
     // The i18n key is rendered literally in tests (mock useTranslations returns key)
     expect(el.textContent).toContain("batchListProgressPartial");
   });
@@ -300,21 +301,21 @@ describe("BatchListTab — rendering", () => {
         requestCountsFailed: 0,
       }),
     ];
-    const el = render(
-      <BatchListTab batches={batches} files={[]} loading={false} />
-    );
+    const el = render(<BatchListTab batches={batches} files={[]} loading={false} />);
     expect(el.textContent).toContain("-50%");
   });
 
   it("18. Provider column derives provider from model id (A-1)", () => {
     const batches = [
       makeBatch({ id: "batch-openai", model: "gpt-4o", status: "completed" }),
-      makeBatch({ id: "batch-anthropic", model: "claude-3-5-sonnet-20241022", status: "completed" }),
+      makeBatch({
+        id: "batch-anthropic",
+        model: "claude-3-5-sonnet-20241022",
+        status: "completed",
+      }),
       makeBatch({ id: "batch-gemini", model: "gemini-1.5-flash", status: "completed" }),
     ];
-    const el = render(
-      <BatchListTab batches={batches} files={[]} loading={false} />
-    );
+    const el = render(<BatchListTab batches={batches} files={[]} loading={false} />);
     const text = el.textContent ?? "";
     expect(text).toContain("OpenAI");
     expect(text).toContain("Anthropic");
@@ -327,9 +328,7 @@ describe("BatchListTab — rendering", () => {
       makeBatch({ id: "b-o1", model: "o1-preview", status: "completed" }),
       makeBatch({ id: "b-o3", model: "o3-mini", status: "completed" }),
     ];
-    const el = render(
-      <BatchListTab batches={batches} files={[]} loading={false} />
-    );
+    const el = render(<BatchListTab batches={batches} files={[]} loading={false} />);
     const text = el.textContent ?? "";
     // All three are OpenAI families — the column should print "OpenAI" three times.
     const occurrences = (text.match(/OpenAI/g) ?? []).length;
@@ -338,13 +337,15 @@ describe("BatchListTab — rendering", () => {
 
   it("20. Provider derivation routes unknown / null model through i18n keys (R2)", () => {
     const batches = [
-      makeBatch({ id: "b-unknown-model", model: "weird-model-name-not-recognized", status: "completed" }),
+      makeBatch({
+        id: "b-unknown-model",
+        model: "weird-model-name-not-recognized",
+        status: "completed",
+      }),
       // makeBatch's default model is gpt-4o; explicitly null-ish models below
       makeBatch({ id: "b-null-model", model: "", status: "completed" }),
     ];
-    const el = render(
-      <BatchListTab batches={batches} files={[]} loading={false} />
-    );
+    const el = render(<BatchListTab batches={batches} files={[]} loading={false} />);
     const text = el.textContent ?? "";
     // i18n mock returns the key literal — proves we route through t() and
     // didn't leave hardcoded "Other" / "—" English strings in the cell.
@@ -362,9 +363,7 @@ describe("FilesListTab — rendering", () => {
       makeFile({ id: "file-bbb", filename: "output-bbb.jsonl", purpose: "batch-output" }),
       makeFile({ id: "file-ccc", filename: "fine-tune-ccc.jsonl", purpose: "fine-tune" }),
     ];
-    const el = render(
-      <FilesListTab files={files} loading={false} onRefresh={vi.fn()} />
-    );
+    const el = render(<FilesListTab files={files} loading={false} onRefresh={vi.fn()} />);
     expect(el.textContent).toContain("input-aaa.jsonl");
     expect(el.textContent).toContain("output-bbb.jsonl");
     expect(el.textContent).toContain("fine-tune-ccc.jsonl");
@@ -375,9 +374,7 @@ describe("FilesListTab — rendering", () => {
       makeFile({ id: "file-batch", filename: "batch-input.jsonl", purpose: "batch" }),
       makeFile({ id: "file-fine", filename: "fine-tune.jsonl", purpose: "fine-tune" }),
     ];
-    const el = render(
-      <FilesListTab files={files} loading={false} />
-    );
+    const el = render(<FilesListTab files={files} loading={false} />);
 
     expect(el.textContent).toContain("batch-input.jsonl");
     expect(el.textContent).toContain("fine-tune.jsonl");
@@ -399,9 +396,7 @@ describe("FilesListTab — rendering", () => {
       makeFile({ id: "file-alpha", filename: "alpha-batch.jsonl", purpose: "batch" }),
       makeFile({ id: "file-beta", filename: "beta-batch.jsonl", purpose: "batch" }),
     ];
-    const el = render(
-      <FilesListTab files={files} loading={false} />
-    );
+    const el = render(<FilesListTab files={files} loading={false} />);
 
     // Search input exists
     const input = el.querySelector("input[type='text']") as HTMLInputElement;
@@ -413,9 +408,7 @@ describe("FilesListTab — rendering", () => {
   });
 
   it("12. 'used by' column header is visible (i18n key)", () => {
-    const el = render(
-      <FilesListTab files={[makeFile()]} loading={false} />
-    );
+    const el = render(<FilesListTab files={[makeFile()]} loading={false} />);
     // filesListUsedByColumn key is rendered in the header
     expect(el.textContent).toContain("filesListUsedByColumn");
   });
@@ -433,9 +426,7 @@ describe("FilesListTab — rendering", () => {
         model: "gpt-4o",
       },
     ];
-    const el = render(
-      <FilesListTab files={[file]} loading={false} batches={batches} />
-    );
+    const el = render(<FilesListTab files={[file]} loading={false} batches={batches} />);
     // Truncated id prefix (12 chars) appears inline
     expect(el.textContent).toContain("batch-using-");
     // Role label is rendered next to the id (G-AUD1 — plan §4 "b1 (input)")
@@ -447,9 +438,7 @@ describe("FilesListTab — rendering", () => {
   });
 
   it("14. loading state shows spinner", () => {
-    const el = render(
-      <FilesListTab files={[]} loading={true} />
-    );
+    const el = render(<FilesListTab files={[]} loading={true} />);
     const spinner = el.querySelector(".animate-spin");
     expect(spinner).not.toBeNull();
   });

@@ -19,7 +19,7 @@ test("flags a vitest-only-dir test that imports node:test", () => {
   );
   const bad = findRunnerMismatches(root);
   assert.equal(bad.length, 1);
-  assert.match(bad[0].file, /autoCombo\/bad\.test\.ts$/);
+  assert.match(bad[0].file.replace(/\\/g, "/"), /autoCombo\/bad\.test\.ts$/);
   assert.match(bad[0].reason, /vitest-only/);
   fs.rmSync(root, { recursive: true, force: true });
 });
@@ -31,5 +31,26 @@ test("accepts a vitest-only-dir test that imports vitest", () => {
     `import { describe, it } from "vitest";\ndescribe("x", () => it("y", () => {}));\n`
   );
   assert.equal(findRunnerMismatches(root).length, 0);
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
+test("flags node:test imports in the Vitest-only config roots", () => {
+  const root = tmpRepo();
+  const dirs = [
+    "open-sse/services/__tests__",
+    "open-sse/translator/helpers/__tests__",
+    "src/lib/memory/__tests__",
+    "src/lib/skills/__tests__",
+  ];
+
+  for (const dir of dirs) {
+    fs.mkdirSync(path.join(root, dir), { recursive: true });
+    fs.writeFileSync(
+      path.join(root, dir, "bad.test.ts"),
+      `import { describe, it } from "node:test";\ndescribe("x", () => it("y", () => {}));\n`
+    );
+  }
+
+  assert.equal(findRunnerMismatches(root).length, dirs.length);
   fs.rmSync(root, { recursive: true, force: true });
 });

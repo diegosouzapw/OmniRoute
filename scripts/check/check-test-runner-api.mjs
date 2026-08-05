@@ -1,12 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
-// Dirs collected ONLY by vitest (vitest.mcp.config.ts include globs for .ts tests).
-// Keep in sync with vitest.mcp.config.ts. A test here MUST import from "vitest".
+// Dirs collected ONLY by Vitest (vitest.mcp.config.ts and vitest.config.ts).
+// Keep in sync with both configs. A test here MUST import from "vitest".
 const VITEST_ONLY_DIRS = [
   "tests/unit/autoCombo",
   "open-sse/services/autoCombo",
   "open-sse/mcp-server",
+  "open-sse/services/__tests__",
+  "open-sse/translator/helpers/__tests__",
+  "src/lib/memory/__tests__",
+  "src/lib/skills/__tests__",
 ];
 
 function walk(dir, root, out = []) {
@@ -47,7 +52,7 @@ export function findRunnerMismatches(root) {
   return bad;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === pathToFileURL(process.argv[1] || "").href) {
   const root = process.cwd();
   const bad = findRunnerMismatches(root);
   if (bad.length) {

@@ -1,5 +1,12 @@
-import { describe, it } from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, expect, vi } from "vitest";
+
+// Mock the DB so recommendStrategyOverride sees adaptiveVolumeRouting = true.
+// Without this the real getSettings() throws (no SQLite in test env), the
+// catch block fires, and the function returns noOverride before any rule runs.
+vi.mock("@/lib/localDb", () => ({
+  getSettings: vi.fn().mockResolvedValue({ adaptiveVolumeRouting: true }),
+}));
+
 import { detectVolumeSignals, recommendStrategyOverride } from "../volumeDetector";
 
 describe("volumeDetector", async () => {
@@ -9,11 +16,11 @@ describe("volumeDetector", async () => {
         messages: [{ role: "user", content: "Hello" }],
       };
       const signals = detectVolumeSignals(body);
-      assert.equal(signals.batchSize, 1);
-      assert.ok(signals.estimatedTokens < 100);
-      assert.equal(signals.toolCount, 0);
-      assert.equal(signals.hasBrowser, false);
-      assert.equal(signals.complexity, "trivial");
+      expect(signals.batchSize).toBe(1);
+      expect(signals.estimatedTokens).toBeLessThan(100);
+      expect(signals.toolCount).toBe(0);
+      expect(signals.hasBrowser).toBe(false);
+      expect(signals.complexity).toBe("trivial");
     });
 
     it("detects tool-heavy request as high complexity", async () => {
@@ -27,8 +34,8 @@ describe("volumeDetector", async () => {
         ],
       };
       const signals = detectVolumeSignals(body);
-      assert.equal(signals.toolCount, 4);
-      assert.equal(signals.complexity, "critical");
+      expect(signals.toolCount).toBe(4);
+      expect(signals.complexity).toBe("critical");
     });
 
     it("detects browser keywords", async () => {
@@ -36,7 +43,7 @@ describe("volumeDetector", async () => {
         messages: [{ role: "user", content: "Navigate to the page and take a screenshot" }],
       };
       const signals = detectVolumeSignals(body);
-      assert.equal(signals.hasBrowser, true);
+      expect(signals.hasBrowser).toBe(true);
     });
 
     it("detects batch from multi-part content", async () => {
@@ -48,7 +55,7 @@ describe("volumeDetector", async () => {
         messages: [{ role: "user", content: parts }],
       };
       const signals = detectVolumeSignals(body);
-      assert.equal(signals.batchSize, 20);
+      expect(signals.batchSize).toBe(20);
     });
 
     it("detects security keywords as high complexity", async () => {
@@ -56,10 +63,10 @@ describe("volumeDetector", async () => {
         messages: [{ role: "user", content: "Refactor the authentication module for production" }],
       };
       const signals = detectVolumeSignals(body);
-      assert.ok(
+      expect(
         signals.complexity === "critical" || signals.complexity === "high",
         `expected critical or high, got ${signals.complexity}`
-      );
+      ).toBe(true);
     });
   });
 
@@ -67,9 +74,9 @@ describe("volumeDetector", async () => {
     it("recommends round-robin for large batches", async () => {
       const signals = detectVolumeSignals({ input: Array(60).fill("item") });
       const override = await recommendStrategyOverride(signals, "priority");
-      assert.equal(override.shouldOverride, true);
-      assert.equal(override.strategy, "round-robin");
-      assert.equal(override.preferEconomy, true);
+      expect(override.shouldOverride).toBe(true);
+      expect(override.strategy).toBe("round-robin");
+      expect(override.preferEconomy).toBe(true);
     });
 
     it("recommends premium-first for browser tasks", async () => {
@@ -82,9 +89,9 @@ describe("volumeDetector", async () => {
         complexity: "high" as const,
       };
       const override = await recommendStrategyOverride(signals, "round-robin");
-      assert.equal(override.shouldOverride, true);
-      assert.equal(override.strategy, "priority");
-      assert.equal(override.forcePremium, true);
+      expect(override.shouldOverride).toBe(true);
+      expect(override.strategy).toBe("priority");
+      expect(override.forcePremium).toBe(true);
     });
 
     it("flags economy for tiny requests without changing strategy", async () => {
@@ -97,8 +104,8 @@ describe("volumeDetector", async () => {
         complexity: "trivial" as const,
       };
       const override = await recommendStrategyOverride(signals, "priority");
-      assert.equal(override.shouldOverride, false);
-      assert.equal(override.preferEconomy, true);
+      expect(override.shouldOverride).toBe(false);
+      expect(override.preferEconomy).toBe(true);
     });
 
     it("no override for normal medium requests", async () => {
@@ -111,8 +118,8 @@ describe("volumeDetector", async () => {
         complexity: "low" as const,
       };
       const override = await recommendStrategyOverride(signals, "priority");
-      assert.equal(override.shouldOverride, false);
-      assert.equal(override.preferEconomy, false);
+      expect(override.shouldOverride).toBe(false);
+      expect(override.preferEconomy).toBe(false);
     });
   });
 });
