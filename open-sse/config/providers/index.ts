@@ -116,6 +116,7 @@ import { blackbox_webProvider } from "./registry/blackbox/web/index.ts";
 import { uncloseaiProvider } from "./registry/uncloseai/index.ts";
 import { nscaleProvider } from "./registry/nscale/index.ts";
 import { chatgpt_webProvider } from "./registry/chatgpt-web/index.ts";
+import { chatgpt_web_codexProvider } from "./registry/chatgpt-web-codex/index.ts";
 import { openrouterProvider } from "./registry/openrouter/index.ts";
 import { cheaperinferenceProvider } from "./registry/cheaperinference/index.ts";
 import { openvectaProvider } from "./registry/openvecta/index.ts";
@@ -337,6 +338,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   uncloseai: uncloseaiProvider,
   nscale: nscaleProvider,
   "chatgpt-web": chatgpt_webProvider,
+  "chatgpt-web-codex": chatgpt_web_codexProvider,
   openrouter: openrouterProvider,
   cheaperinference: cheaperinferenceProvider,
   openvecta: openvectaProvider,

@@ -1299,3 +1299,16 @@ Used by `src/lib/vncSession/manifest.ts` to configure Docker-based headless Chro
 | `OMNIROUTE_VNC_READY_MS`              | `45000`                       | `src/lib/vncSession/manifest.ts`  | Browser readiness timeout (ms).                                                |
 | `OMNIROUTE_VNC_HARVEST_MS`            | `20000`                       | `src/lib/vncSession/manifest.ts`  | Harvest/cleanup timeout (ms).                                                  |
 | `VIBEPROXY_DATA_DIR`                  | _(unset)_                     | `open-sse/services/notionThreadSessions.ts` | Directory for Notion thread session persistence.                               |
+
+### ChatGPT Web (Codex)
+
+Globale Defaults für den headless Browser und den ausgehenden Tool-Tunnel. Im Dashboard gesetzte Connection-Werte haben Vorrang.
+
+| Variable                             | Default                          | Source File                                      | Description                                                                 |
+| ------------------------------------ | -------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
+| `CHATGPT_WEB_CODEX_CHROME_PATH`      | _(auto-detect)_                  | `open-sse/executors/chatgpt-web-codex.ts`        | Expliziter Chrome-/Chromium-Pfad für npm-, systemd- und PM2-Betrieb.       |
+| `CHROME_PATH`                        | _(auto-detect)_                  | `open-sse/executors/chatgpt-web-codex.ts`        | Gemeinsamer Fallback für einen expliziten Chrome-/Chromium-Pfad.            |
+| `CHATGPT_WEB_CODEX_CDP_URL`          | _(unset)_                        | `open-sse/executors/chatgpt-web-codex.ts`        | Interner CDP-Endpunkt; Docker verwendet den Sidecar auf Port `9223`.        |
+| `CHATGPT_WEB_CODEX_TUNNEL_ID`        | _(unset)_                        | `open-sse/executors/chatgpt-web-codex.ts`        | Globale OpenAI-Tunnel-ID für lokale Codex-Tool-Runden.                      |
+| `CHATGPT_WEB_CODEX_RUNTIME_KEY`      | _(unset)_                        | `open-sse/executors/chatgpt-web-codex.ts`        | Globaler Tunnel Runtime-Key; niemals in Logs ausgeben.                      |
+| `CHATGPT_WEB_CODEX_CONNECTOR_NAME`   | _(unset)_                        | `open-sse/executors/chatgpt-web-codex.ts`        | Name des ChatGPT-Custom-Connectors für die MCP-Brücke.                      |

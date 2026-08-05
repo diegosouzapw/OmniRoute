@@ -107,6 +107,8 @@ export type HandleComboChatOptions = {
   signal?: AbortSignal | null;
   apiKeyAllowedConnections?: string[] | null;
   nesting?: ComboNestingContext | null;
+  /** Native Responses clients (for example Codex CLI/Desktop) manage compaction themselves. */
+  clientManagedResponsesContext?: boolean;
 };
 
 export type HandleRoundRobinOptions = Omit<

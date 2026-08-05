@@ -131,6 +131,15 @@ async function cleanup(): Promise<void> {
     } catch {
       /* feature unused / docker missing */
     }
+
+    try {
+      const { stopChatGptWebCodexRuntime } =
+        await import("@omniroute/open-sse/executors/chatgpt-web-codex/runtime.ts");
+      await stopChatGptWebCodexRuntime();
+      console.log("[Shutdown] ChatGPT Web (Codex) runtime stopped.");
+    } catch {
+      /* feature unused */
+    }
   } catch (err) {
     console.error("[Shutdown] Error during cleanup:", (err as Error).message);
   }

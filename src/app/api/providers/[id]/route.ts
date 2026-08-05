@@ -30,6 +30,11 @@ import {
   refreshConnectionRateLimits,
   enableRateLimitProtection,
 } from "@/../open-sse/services/rateLimitManager";
+import {
+  finalizeValidatedChatGptWebCodexSecrets,
+  decodeChatGptWebCodexSecrets,
+  encodeChatGptWebCodexSecrets,
+} from "@omniroute/open-sse/services/chatgptWebCodexAdmin.ts";
 
 function normalizeCodexLimitPolicy(
   incoming: unknown,
@@ -157,7 +162,38 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (globalPriority !== undefined) updateData.globalPriority = globalPriority;
     if (defaultModel !== undefined) updateData.defaultModel = defaultModel;
     if (isActive !== undefined) updateData.isActive = isActive;
-    if (apiKey && existing.authType === "apikey") updateData.apiKey = apiKey;
+    if (apiKey && existing.authType === "apikey") {
+      if (existing.provider === "chatgpt-web-codex") {
+        const validationId =
+          incomingPsd && typeof incomingPsd.validationId === "string"
+            ? incomingPsd.validationId
+            : "";
+        try {
+          const incomingSecrets = decodeChatGptWebCodexSecrets(apiKey);
+          const existingSecrets = decodeChatGptWebCodexSecrets(existing.apiKey || "");
+          const encoded = encodeChatGptWebCodexSecrets({
+            cookie: incomingSecrets.cookie,
+            runtimeKey: incomingSecrets.runtimeKey || existingSecrets.runtimeKey,
+          });
+          updateData.apiKey = finalizeValidatedChatGptWebCodexSecrets(
+            encoded,
+            validationId
+          ).encodedCredential;
+        } catch (error) {
+          return NextResponse.json(
+            {
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Die ChatGPT-Browserprüfung konnte nicht abgeschlossen werden.",
+            },
+            { status: 400 }
+          );
+        }
+      } else {
+        updateData.apiKey = apiKey;
+      }
+    }
     if (testStatus !== undefined) updateData.testStatus = testStatus;
     if (lastError !== undefined) updateData.lastError = lastError;
     if (lastErrorAt !== undefined) updateData.lastErrorAt = lastErrorAt;
@@ -206,6 +242,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
           ? existing.providerSpecificData
           : {};
       const mergedPsd = { ...existingPsd, ...incomingPsd };
+      delete mergedPsd.validationId;
+      delete mergedPsd.runtimeKey;
 
       // Deep-merge and normalize Codex limit policy defaults.
       if (existing.provider === "codex") {

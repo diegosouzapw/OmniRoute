@@ -46,6 +46,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      chatgpt-web-codex-browser:
+        condition: service_started
     build:
       context: .
       target: runner-cli
@@ -67,6 +69,7 @@ services:
       - HOSTNAME=0.0.0.0
       - DATA_DIR=/app/data
       - OMNIROUTE_BASE_PATH=${OMNIROUTE_BASE_PATH:-}
+      - CHATGPT_WEB_CODEX_CDP_URL=http://chatgpt-web-codex-browser:9223
     ports:
       - "${PROD_DASHBOARD_PORT:-20130}:${DASHBOARD_PORT:-${PORT:-20128}}"
       - "${PROD_API_PORT:-20131}:${API_PORT:-20129}"
@@ -80,7 +83,19 @@ services:
       retries: 3
       start_period: 15s
 
+  chatgpt-web-codex-browser:
+    build:
+      context: .
+      dockerfile: docker/chatgpt-web-codex-browser/Dockerfile
+    image: omniroute:chatgpt-web-codex-browser
+    restart: unless-stopped
+    shm_size: "2gb"
+    volumes:
+      - chatgpt-web-codex-browser-prod-data:/browser-profile
+
 volumes:
+  chatgpt-web-codex-browser-prod-data:
+    name: omniroute-chatgpt-web-codex-browser-prod-data
   omniroute-prod-data:
     name: omniroute-prod-data
   redis-prod-data:

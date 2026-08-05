@@ -236,6 +236,11 @@ FROM runner-base AS runner-cli
 # runner-base runs.
 USER root
 
+# The CLI image can use the internal ChatGPT Web (Codex) Chromium sidecar over
+# CDP without installing a second browser in this container.
+COPY --from=builder /app/node_modules/playwright-core ./node_modules/playwright-core
+COPY --from=builder /app/node_modules/playwright ./node_modules/playwright
+
 # Install system dependencies required by openclaw (git+ssh references).
 RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,id=apt-lists,target=/var/lib/apt/lists,sharing=locked \

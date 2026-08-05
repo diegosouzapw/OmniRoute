@@ -71,7 +71,16 @@ function maskSensitiveHeaders(headers: HeaderInput): Record<string, unknown> {
       : { ...(headers as Record<string, unknown>) };
 
   const masked = { ...headerEntries };
-  const sensitiveKeys = ["authorization", "x-api-key", "cookie", "token"];
+  const sensitiveKeys = [
+    "authorization",
+    "x-api-key",
+    "cookie",
+    "token",
+    "runtimekey",
+    "storage-state",
+    "storagestate",
+    "capability",
+  ];
 
   for (const key of Object.keys(masked)) {
     const lowerKey = key.toLowerCase();

@@ -39,6 +39,7 @@ import {
   fetchModelSyncInternal,
   getModelSyncInternalBaseUrl,
 } from "@/shared/services/modelSyncScheduler";
+import { finalizeValidatedChatGptWebCodexSecrets } from "@omniroute/open-sse/services/chatgptWebCodexAdmin.ts";
 
 // GET /api/providers - List all connections
 export async function GET(request: Request) {
@@ -118,11 +119,35 @@ export async function POST(request: Request) {
     }
 
     let providerSpecificData = incomingPsd || null;
+    let persistedApiKey = apiKey;
     const allowMultipleCompatibleConnections =
       process.env.ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE === "true";
 
     if (provider === "qoder") {
       providerSpecificData = normalizeQoderPatProviderData(providerSpecificData || {});
+    }
+
+    if (provider === "chatgpt-web-codex") {
+      const validationId =
+        providerSpecificData && typeof providerSpecificData.validationId === "string"
+          ? providerSpecificData.validationId
+          : "";
+      try {
+        const finalized = finalizeValidatedChatGptWebCodexSecrets(apiKey || "", validationId);
+        persistedApiKey = finalized.encodedCredential;
+        providerSpecificData = { ...(providerSpecificData || {}) };
+        delete providerSpecificData.validationId;
+      } catch (error) {
+        return NextResponse.json(
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : "Die ChatGPT-Browserprüfung konnte nicht abgeschlossen werden.",
+          },
+          { status: 400 }
+        );
+      }
     }
 
     if (isOpenAICompatibleProvider(provider)) {
@@ -177,7 +202,7 @@ export async function POST(request: Request) {
       provider,
       authType: "apikey",
       name,
-      apiKey,
+      apiKey: persistedApiKey,
       priority: priority || 1,
       globalPriority: globalPriority || null,
       defaultModel: defaultModel || null,
