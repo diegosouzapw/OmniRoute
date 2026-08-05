@@ -83,6 +83,26 @@ describe("management password as a provider credential", () => {
     );
   });
 
+  it("a password that carries its own whitespace is caught too", async () => {
+    // Neither the login route nor the set-password route trims, so this is a
+    // password an operator can really have. Comparing only the trimmed value
+    // would miss it and store the password the guard exists to reject.
+    const padded = `  ${DASHBOARD_PASSWORD}  `;
+    await storeDashboardPassword(padded);
+
+    await assert.rejects(
+      () =>
+        providersDb.createProviderConnection({
+          provider: "openai",
+          authType: "apikey",
+          name: "autofilled",
+          apiKey: padded,
+          isActive: true,
+        }),
+      /dashboard login password/
+    );
+  });
+
   it("a real API key is stored normally", async () => {
     await storeDashboardPassword(DASHBOARD_PASSWORD);
 
@@ -167,15 +187,74 @@ describe("management password as a provider credential", () => {
   });
 
   it("an OAuth connection carrying no apiKey never reaches the bcrypt round", async () => {
-    await storeDashboardPassword(DASHBOARD_PASSWORD);
+    // Storing a hash bcrypt cannot parse turns the expensive path into an
+    // observable one: reaching it throws and the catch logs. Silence is then
+    // proof the guard returned before touching settings at all, which is what
+    // keeps a token renewal -- a write that carries tokens but no apiKey --
+    // from paying for a database read and a bcrypt round on every renewal.
+    await settingsDb.updateSettings({ password: `$2a$99$${"a".repeat(53)}` });
 
-    const conn = await providersDb.createProviderConnection({
-      provider: "claude",
-      authType: "oauth",
-      name: "oauth",
-      accessToken: DASHBOARD_PASSWORD,
-      isActive: true,
-    });
-    assert.ok(conn?.id, "the guard covers apiKey only; OAuth tokens are not operator-typed");
+    const warnings: string[] = [];
+    const realWarn = console.warn;
+    console.warn = (...args: unknown[]) => {
+      warnings.push(args.map((a) => String(a)).join(" "));
+    };
+
+    try {
+      const conn = await providersDb.createProviderConnection({
+        provider: "claude",
+        authType: "oauth",
+        name: "oauth",
+        accessToken: DASHBOARD_PASSWORD,
+        isActive: true,
+      });
+      assert.ok(conn?.id, "the guard covers apiKey only");
+    } finally {
+      console.warn = realWarn;
+    }
+
+    assert.equal(
+      warnings.filter((w) => w.includes("could not check the credential")).length,
+      0,
+      "a write carrying no apiKey must not reach settings or bcrypt"
+    );
+  });
+
+  it("a check that cannot complete allows the write instead of blocking it", async () => {
+    // isBcryptHash validates shape, not semantics, so a stored hash carrying an
+    // impossible cost factor passes it and then makes bcrypt.compare throw. That
+    // reaches the same branch as an unreadable settings row, without a mock.
+    const unparseable = `$2a$99$${"a".repeat(53)}`;
+
+    // Asserted rather than assumed. Should bcrypt ever resolve instead of
+    // throwing here, the guard would take its no-match return and this test
+    // would quietly stop covering the catch branch, so name the reason first.
+    await assert.rejects(() => mgmt.verifyManagementPassword("anything", unparseable));
+
+    await settingsDb.updateSettings({ password: unparseable });
+
+    const warnings: string[] = [];
+    const realWarn = console.warn;
+    console.warn = (...args: unknown[]) => {
+      warnings.push(args.map((a) => String(a)).join(" "));
+    };
+
+    try {
+      const conn = await providersDb.createProviderConnection({
+        provider: "openai",
+        authType: "apikey",
+        name: "unverifiable",
+        apiKey: DASHBOARD_PASSWORD,
+        isActive: true,
+      });
+      assert.ok(conn?.id, "one broken settings row must not block every connection write");
+    } finally {
+      console.warn = realWarn;
+    }
+
+    assert.ok(
+      warnings.some((w) => w.includes("could not check the credential")),
+      "failing open silently would hide that the guard stopped guarding"
+    );
   });
 });
