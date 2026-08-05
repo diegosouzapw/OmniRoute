@@ -92,7 +92,7 @@ import { resolveAgentGoalPolicy } from "../utils/agentGoalPolicy.ts";
 import { createStreamController } from "../utils/streamHandler.ts";
 import * as streamFailure from "../utils/streamFailureFinalization.ts";
 import { createSseHeartbeatTransform, shapeForClientFormat } from "../utils/sseHeartbeat.ts";
-import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/usageTracking.ts";
+import { addBufferToUsage, filterUsageForFormat, estimateUsage, sanitizeUsagePayloadForRequest } from "../utils/usageTracking.ts";
 import {
   refreshWithRetry,
   isUnrecoverableRefreshError,
@@ -4211,8 +4211,8 @@ export async function handleChatCore({
           }
         : responseBody
     );
+    sanitizeUsagePayloadForRequest(responseBody, finalBody || translatedBody || body, responsePayloadFormat);
     effectiveServiceTier = resolveReportedServiceTier(responseBody) ?? effectiveServiceTier;
-
     // Notify success - caller can clear error status if needed
     if (onRequestSuccess) {
       await onRequestSuccess();
@@ -4354,7 +4354,7 @@ export async function handleChatCore({
     // #8331: keep the client-visible metering fields real everywhere except Claude-Code-compatible
     // providers, where Claude Code's own context accounting relies on the buffered number — see
     // clientUsageBuffer.ts module docstring.
-    applyClientUsageBuffer(translatedResponse, body, clientResponseFormat, {
+    applyClientUsageBuffer(translatedResponse, finalBody || translatedBody || body, clientResponseFormat, {
       preserveContextBudgetInVisibleUsage: isClaudeCodeCompatible,
     });
 
