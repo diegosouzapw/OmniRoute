@@ -2,9 +2,9 @@
   "_comment": "Catraca de qualidade. 'down' = nao pode aumentar; 'up' = nao pode cair. Atualize via 'npm run quality:ratchet -- --update' (somente quando melhora). Cada valor e um numero REAL medido, nunca um chute. Cobertura entra na Fase 4 a partir de um run de cobertura mergeada no CI.",
   "metrics": {
     "eslintWarnings": {
-      "value": 5000,
+      "value": 0,
       "direction": "down",
-      "_rebaseline_2026_08_05_ts7_migration": "Rebaseline para 5000 (direction: down) em 2026-08-05 por conta da migracao para TypeScript 7 na release/v3.8.50. A mudanca de toolchain elevou a contagem de warnings de forma ampla e mecanica. Medicao no tip: 4139 warnings (folga de ~860 para o teto). A divida esta congelada em config/quality/eslint-suppressions.json (ver _comment la). Apertar via `npm run quality:ratchet -- --update` conforme a divida for paga."
+      "_rebaseline_2026_08_05_post_prune": "Apertado 5000->0 em 2026-08-05: o gate mede via lint:json COM as suppressions aplicadas (config/quality/eslint-suppressions.json congela a divida da migracao TS7), entao a contagem real do gate e 0. O 5000 anterior foi medido SEM suppressions (4139 brutos) e fazia o require-tighten reprovar todo PR de codigo (delta 5000>slack). Divida TS7 continua rastreada nas suppressions; warning NOVO (fora delas) agora e red imediato, que e a politica."
     },
     "eslintErrors": {
       "value": 0,
