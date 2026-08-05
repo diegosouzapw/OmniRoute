@@ -1,11 +1,7 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { isAbortFinishReason } from "../../utils/finishReason.ts";
-import { REVERSE_MAP } from "../../services/claudeCodeToolRemapper.ts";
-
-function normalizeToolName(name: string): string {
-  return REVERSE_MAP[name] ?? name;
-}
+import { restoreClaudeToolName } from "../../services/claudeCodeToolRemapper.ts";
 
 /**
  * Direct Gemini → Claude response translator.
@@ -87,7 +83,13 @@ export function geminiToClaudeResponse(chunk, state) {
         }
         const fc = part.functionCall;
         const rawToolName = fc.name;
-        const restoredToolName = normalizeToolName(state.toolNameMap?.get(rawToolName) || rawToolName);
+        // #9008: honor the request's original casing via toolNameMap before any
+        // REVERSE_MAP lowercase fallback (#7926). Blind REVERSE_MAP broke Claude
+        // Code (Read/WebSearch → read/websearch → "No such tool available").
+        const restoredToolName = restoreClaudeToolName(
+          typeof rawToolName === "string" ? rawToolName : "",
+          state.toolNameMap instanceof Map ? state.toolNameMap : null
+        );
         const idx = state.contentBlockIndex++;
         const toolId = fc.id || `toolu_${Date.now()}_${idx}`;
 

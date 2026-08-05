@@ -37,10 +37,13 @@ type OpenAIToolCallLike = {
 export function buildChangedToolNameMap(
   toolNameMap: Map<string, string>
 ): Map<string, string> | null {
-  const changedEntries = [...toolNameMap.entries()].filter(
-    ([sanitizedName, originalName]) => sanitizedName !== originalName
-  );
-  return changedEntries.length > 0 ? new Map(changedEntries) : null;
+  // #9008: keep identity mappings (Read → Read) too. Gemini/Antigravity may
+  // echo a lowercased name for an unchanged PascalCase Claude Code tool; the
+  // response path needs the original casing even when sanitization was a no-op.
+  // Previously only sanitized≠original entries were kept, so REVERSE_MAP in
+  // gemini-to-claude forced Read → read and Claude Code rejected the tool call.
+  if (toolNameMap.size === 0) return null;
+  return new Map(toolNameMap);
 }
 
 export function extractClientThoughtSignature(toolCall: unknown): string | null {
