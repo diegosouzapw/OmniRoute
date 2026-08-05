@@ -87,6 +87,8 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "g4f-pollinations",
   "g4f-ollama",
   "g4f-nvidia",
+  "naga-ac",
+  "chatanywhere",
 ]);
 
 export const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
@@ -189,6 +191,7 @@ const EXPLICIT_OPTIONAL_APIKEY_PROVIDER_IDS = new Set([
   "huggingchat",
   "gitlawb",
   "gitlawb-gmi",
+  "naga-ac",
 ]);
 
 export function providerAllowsOptionalApiKey(providerId: unknown): boolean {

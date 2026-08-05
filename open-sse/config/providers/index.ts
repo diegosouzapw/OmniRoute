@@ -221,6 +221,8 @@ import { digitaloceanProvider } from "./registry/digitalocean/index.ts";
 import { hcnsecProvider } from "./registry/hcnsec/index.ts";
 import { promptqlProvider } from "./registry/promptql/index.ts";
 import { hyperagentProvider } from "./registry/hyperagent/index.ts";
+import { naga_acProvider } from "./registry/naga-ac/index.ts";
+import { chatanywhereProvider } from "./registry/chatanywhere/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -444,4 +446,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   hcnsec: hcnsecProvider,
   promptql: promptqlProvider,
   hyperagent: hyperagentProvider,
+  "naga-ac": naga_acProvider,
+  chatanywhere: chatanywhereProvider,
 };
