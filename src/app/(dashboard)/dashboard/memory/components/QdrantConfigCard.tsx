@@ -34,7 +34,7 @@ export default function QdrantConfigCard() {
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"" | "saved" | "error">("");
   const [health, setHealth] = useState<{ ok: boolean; latencyMs: number; error?: string } | null>(
-    null,
+    null
   );
   const [checking, setChecking] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -103,7 +103,7 @@ export default function QdrantConfigCard() {
         setSaving(false);
       }
     },
-    [qdrant],
+    [qdrant]
   );
 
   const checkHealth = useCallback(async () => {
@@ -185,11 +185,7 @@ export default function QdrantConfigCard() {
         </div>
         <span
           className={`inline-flex items-center gap-1.5 text-xs font-medium ${
-            qdrant.enabled
-              ? health?.ok
-                ? "text-emerald-500"
-                : "text-red-500"
-              : "text-text-muted"
+            qdrant.enabled ? (health?.ok ? "text-emerald-500" : "text-red-500") : "text-text-muted"
           }`}
         >
           <span
@@ -269,7 +265,7 @@ export default function QdrantConfigCard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
         <div className="p-3 rounded-lg bg-surface/30 border border-border/30">
-          <label className="text-xs font-medium block mb-1.5">Host</label>
+          <label className="text-xs font-medium block mb-1.5">{t("qdrant.hostLabel")}</label>
           <input
             value={qdrant.host}
             onChange={(e) => setQdrant((s) => ({ ...s, host: e.target.value }))}
@@ -284,14 +280,17 @@ export default function QdrantConfigCard() {
             value={qdrant.port}
             type="number"
             onChange={(e) =>
-              setQdrant((s) => ({ ...s, port: Math.max(1, Math.min(65535, Number(e.target.value) || 1)) }))
+              setQdrant((s) => ({
+                ...s,
+                port: Math.max(1, Math.min(65535, Number(e.target.value) || 1)),
+              }))
             }
             placeholder="6333"
             className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500"
           />
         </div>
         <div className="p-3 rounded-lg bg-surface/30 border border-border/30">
-          <label className="text-xs font-medium block mb-1.5">Collection</label>
+          <label className="text-xs font-medium block mb-1.5">{t("qdrant.collectionLabel")}</label>
           <input
             value={qdrant.collection}
             onChange={(e) => setQdrant((s) => ({ ...s, collection: e.target.value }))}
@@ -355,9 +354,7 @@ export default function QdrantConfigCard() {
               </button>
             )}
             <button
-              onClick={() =>
-                save(apiKeyInput.trim() ? { apiKey: apiKeyInput } : {})
-              }
+              onClick={() => save(apiKeyInput.trim() ? { apiKey: apiKeyInput } : {})}
               disabled={saving}
               className="px-4 py-2 text-sm font-medium rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50"
             >

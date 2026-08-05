@@ -35,7 +35,7 @@ export default function DegradationBadge() {
       title={t("warning")} // Using common warning text, or we could just use English / fixed string if i18n is not strict
     >
       <span className="material-symbols-outlined text-[16px]">healing</span>
-      <span className="text-xs font-semibold whitespace-nowrap">Degraded</span>
+      <span className="text-xs font-semibold whitespace-nowrap">{t("degraded")}</span>
     </Link>
   );
 }

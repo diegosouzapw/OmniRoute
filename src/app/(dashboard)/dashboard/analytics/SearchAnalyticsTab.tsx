@@ -189,8 +189,8 @@ export default function SearchAnalyticsTab() {
           check_circle
         </span>
         <span>
-          <strong>Free tier available:</strong> Serper (2,500/mo), Brave (2,000/mo), Exa (1,000/mo),
-          Tavily (1,000/mo) — total 6,500+ free searches/month with automatic failover.
+          <strong>{t("freeTierAvailable")}:</strong> Serper (2,500/mo), Brave (2,000/mo), Exa
+          (1,000/mo), Tavily (1,000/mo) — total 6,500+ free searches/month with automatic failover.
         </span>
       </div>
     </div>

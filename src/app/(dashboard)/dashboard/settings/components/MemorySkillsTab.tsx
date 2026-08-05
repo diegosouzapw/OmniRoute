@@ -369,7 +369,10 @@ export default function MemorySkillsTab() {
             role="note"
             data-testid="memory-token-cost-warning"
           >
-            <span className="material-symbols-outlined text-[18px] leading-none mt-0.5" aria-hidden="true">
+            <span
+              className="material-symbols-outlined text-[18px] leading-none mt-0.5"
+              aria-hidden="true"
+            >
               info
             </span>
             <p className="text-xs leading-relaxed">
@@ -540,7 +543,7 @@ export default function MemorySkillsTab() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="p-4 rounded-lg bg-surface/30 border border-border/30">
-            <label className="text-sm font-medium block mb-2">Host</label>
+            <label className="text-sm font-medium block mb-2">{t("qdrantHost")}</label>
             <input
               value={qdrant.host}
               onChange={(e) => setQdrant((s) => ({ ...s, host: e.target.value }))}
@@ -567,7 +570,7 @@ export default function MemorySkillsTab() {
           </div>
 
           <div className="p-4 rounded-lg bg-surface/30 border border-border/30">
-            <label className="text-sm font-medium block mb-2">Collection</label>
+            <label className="text-sm font-medium block mb-2">{t("qdrantCollection")}</label>
             <input
               value={qdrant.collection}
               onChange={(e) => setQdrant((s) => ({ ...s, collection: e.target.value }))}

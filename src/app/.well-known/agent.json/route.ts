@@ -21,12 +21,11 @@ const BASE_URL = process.env.OMNIROUTE_BASE_URL || "http://localhost:20128";
  */
 export async function GET() {
   const agentCard = {
-    name: "OmniRoute AI Gateway",
+    name: "OmniRoute AI 网关",
     description:
-      "Intelligent AI routing gateway with 36+ providers, smart fallback, " +
-      "quota tracking, format translation, and auto-managed combos. " +
-      "Routes AI requests to the optimal provider based on cost, latency, " +
-      "quota availability, and task requirements.",
+      "智能 AI 路由网关，支持 36+ 个提供者、智能回退、配额跟踪、" +
+      "格式转换和自动管理组合。根据成本、延迟、配额可用性" +
+      "和任务要求将 AI 请求路由到最优提供者。",
     url: `${BASE_URL}/a2a`,
     version: PACKAGE_VERSION,
     capabilities: {
@@ -36,80 +35,65 @@ export async function GET() {
     skills: [
       {
         id: "smart-routing",
-        name: "Smart Request Routing",
+        name: "智能请求路由",
         description:
-          "Routes AI requests to the optimal provider based on quota, cost, " +
-          "latency, and reliability. Supports combo-based routing with " +
-          "multiple strategies: priority, weighted, round-robin, cost-optimized.",
+          "基于配额、成本、延迟和可靠性将 AI 请求路由到最优提供者。" +
+          "支持基于组合的路由，包含多种策略：优先级、加权、轮询、成本优化。",
         tags: ["routing", "llm", "optimization", "fallback"],
         examples: [
-          "Route this coding task to the fastest available model",
-          "Send this review to an analytical model under $0.50 budget",
-          "Find the cheapest provider with available quota",
+          "将此编码任务路由到最快的可用模型",
+          "将此次审查发送给预算 $0.50 以下的分析模型",
+          "查找有可用配额的最便宜提供者",
         ],
       },
       {
         id: "quota-management",
-        name: "Quota & Cost Management",
+        name: "配额与成本管理",
         description:
-          "Tracks and manages API quotas across 36+ providers with " +
-          "auto-fallback when quotas are exhausted. Provides real-time " +
-          "cost tracking and budget enforcement.",
+          "跨 36+ 个提供者跟踪和管理 API 配额，" +
+          "配额耗尽时自动回退。提供实时成本跟踪和预算执行。",
         tags: ["quota", "cost", "monitoring", "budget"],
-        examples: [
-          "Check remaining quota for all providers",
-          "Which provider has the most available quota?",
-          "Generate a cost report for today",
-        ],
+        examples: ["检查所有提供者的剩余配额", "哪个提供者有最多可用配额？", "生成今天的成本报告"],
       },
       {
         id: "provider-discovery",
-        name: "Provider Discovery",
+        name: "提供者发现",
         description:
-          "Discovers providers that can handle a requested capability " +
-          "such as chat, images, audio, search, embeddings, rerank, or video. " +
-          "Reports availability, health, configuration status, and a recommended provider.",
+          "发现能够处理请求能力的提供者，" +
+          "如聊天、图像、音频、搜索、嵌入、重排序或视频。" +
+          "报告可用性、健康状态、配置状态和推荐提供者。",
         tags: ["providers", "discovery", "capabilities", "health"],
         examples: [
-          "Which providers can handle image generation?",
-          "Find healthy providers for embeddings",
-          "What local providers are configured?",
+          "哪些提供者可以处理图像生成？",
+          "查找健康的嵌入提供者",
+          "哪些本地提供者已配置？",
         ],
       },
       {
         id: "cost-analysis",
-        name: "Cost Analysis",
+        name: "成本分析",
         description:
-          "Analyzes usage costs by provider and model, compares recent periods, " +
-          "and returns cost-saving opportunities for agents to act on.",
+          "按提供者和模型分析使用成本，比较最近时段，" + "并返回可供代理执行的成本节省机会。",
         tags: ["cost", "usage", "analytics", "optimization"],
-        examples: [
-          "How much did we spend this week?",
-          "Which provider is costing the most?",
-          "Suggest cost-saving opportunities for the last 30 days",
-        ],
+        examples: ["这周花了多少钱？", "哪个提供者花费最多？", "建议过去 30 天的成本节省机会"],
       },
       {
         id: "health-report",
-        name: "Health Report",
+        name: "健康报告",
         description:
-          "Aggregates provider health, circuit breaker states, rate limit queues, " +
-          "lockouts, and telemetry into a structured report for orchestration.",
+          "将提供者健康状态、断路器状态、速率限制队列、" +
+          "锁定和遥测汇总为结构化报告，供编排使用。",
         tags: ["health", "monitoring", "resilience", "telemetry"],
-        examples: [
-          "Is everything healthy?",
-          "Report degraded providers and retry timing",
-          "Summarize active rate limits and lockouts",
-        ],
+        examples: ["一切都健康吗？", "报告降级的提供者和重试时机", "汇总活跃的速率限制和锁定"],
       },
       {
         id: "list-capabilities",
-        name: "List Capabilities",
+        name: "列出能力",
         description:
-          "Returns the full catalog of 42 OmniRoute agent skills (22 API + 20 CLI) " +
-          "with raw URLs for the SKILL.md docs.",
+          "返回 42 个 OmniRoute 代理技能的完整目录（22 API + 20 CLI）" +
+          "以及 SKILL.md 文档的原始 URL。",
         tags: ["discovery", "capabilities"],
-        examples: ["What can you do?", "List your skills", "Show capabilities"],
+        examples: ["你能做什么？", "列出你的技能", "展示能力"],
       },
     ],
     authentication: {

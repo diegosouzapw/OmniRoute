@@ -233,31 +233,31 @@ export default function CliproxyapiSettingsTab() {
             <span className="material-symbols-outlined animate-spin text-base">
               progress_activity
             </span>
-            Loading...
+            {t("loading")}
           </div>
         ) : toolStateError ? (
           <p className="text-sm text-text-muted">{toolStateError}</p>
         ) : toolState ? (
           <div className="grid grid-cols-2 gap-3">
             <div className="p-3 rounded-lg bg-bg-secondary">
-              <p className="text-xs text-text-muted mb-1">Status</p>
+              <p className="text-xs text-text-muted mb-1">{t("cliproxyapiStatusLabel")}</p>
               <div className="flex items-center gap-1.5">
                 <span className={`material-symbols-outlined text-sm ${statusColor}`}>
                   {statusIcon}
                 </span>
                 <p className={`text-sm font-medium capitalize ${statusColor}`}>
-                  {toolState.status?.replace("_", " ") || "Unknown"}
+                  {toolState.status?.replace("_", " ") || t("cliproxyapiUnknown")}
                 </p>
               </div>
             </div>
             <div className="p-3 rounded-lg bg-bg-secondary">
-              <p className="text-xs text-text-muted mb-1">Version</p>
+              <p className="text-xs text-text-muted mb-1">{t("cliproxyapiVersion")}</p>
               <p className="text-sm font-medium">
                 {toolState.installedVersion ? `v${toolState.installedVersion}` : "Not installed"}
               </p>
             </div>
             <div className="p-3 rounded-lg bg-bg-secondary">
-              <p className="text-xs text-text-muted mb-1">Health</p>
+              <p className="text-xs text-text-muted mb-1">{t("cliproxyapiHealth")}</p>
               <p
                 className={`text-sm font-medium ${
                   toolState.healthStatus === "healthy"
@@ -275,7 +275,7 @@ export default function CliproxyapiSettingsTab() {
               </p>
             </div>
             <div className="p-3 rounded-lg bg-bg-secondary">
-              <p className="text-xs text-text-muted mb-1">Port</p>
+              <p className="text-xs text-text-muted mb-1">{t("cliproxyapiPort")}</p>
               <p className="text-sm font-mono">{toolState.port || 8317}</p>
             </div>
           </div>

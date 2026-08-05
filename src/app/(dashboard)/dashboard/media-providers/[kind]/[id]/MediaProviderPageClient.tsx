@@ -119,8 +119,7 @@ export default function MediaProviderPageClient({
         <div className="text-xs text-text-muted border border-border rounded-lg p-3 flex items-start gap-2">
           <span className="material-symbols-outlined text-[16px] text-blue-500 mt-0.5">info</span>
           <span>
-            <strong>Existing connection:</strong> OpenRouter speech-to-text models use your
-            configured OpenRouter connection. No separate credential is required.
+            <strong>{t("existingConnection")}:</strong> {t("openrouterSttDescription")}
           </span>
         </div>
       )}

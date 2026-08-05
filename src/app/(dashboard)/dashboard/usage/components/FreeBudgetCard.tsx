@@ -247,7 +247,10 @@ function filterRows(
   if (providerFilter !== "all") out = out.filter((m) => m.provider === providerFilter);
   if (search.trim()) {
     out = out.filter(
-      (m) => matchesSearch(m.displayName, search) || matchesSearch(m.modelId, search) || matchesSearch(m.provider, search)
+      (m) =>
+        matchesSearch(m.displayName, search) ||
+        matchesSearch(m.modelId, search) ||
+        matchesSearch(m.provider, search)
     );
   }
   return out;
@@ -421,11 +424,14 @@ export function FreeBudgetView({
           className="mx-3 mt-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2"
         >
           <div className="flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-[14px] text-emerald-500">lock_open</span>
-            <span className="text-[11px] font-semibold text-emerald-500">No API key required</span>
+            <span className="material-symbols-outlined text-[14px] text-emerald-500">
+              lock_open
+            </span>
+            <span className="text-[11px] font-semibold text-emerald-500">
+              {t("noApiKeyRequired")}
+            </span>
             <span className="text-[10.5px] text-text-muted">
-              ({keylessModels.length} model{keylessModels.length !== 1 ? "s" : ""} · {keylessProviders.length}{" "}
-              provider{keylessProviders.length !== 1 ? "s" : ""})
+              ({keylessModels.length}个模型 · {keylessProviders.length}个提供者)
             </span>
           </div>
           <div className="mt-1 flex flex-wrap gap-1">
@@ -606,7 +612,7 @@ export default function FreeBudgetCard() {
           data-testid="budget-provider-select"
           className="rounded border border-border bg-surface px-1.5 py-1 text-[11px] text-text-main"
         >
-          <option value="all">All providers</option>
+          <option value="all">{t("allProviders")}</option>
           {providers.map((p) => (
             <option key={p} value={p}>
               {p}
