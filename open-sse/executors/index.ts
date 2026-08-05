@@ -54,6 +54,7 @@ import { CheaperInferenceExecutor } from "./cheaperinference.ts";
 import { KimiWebExecutor } from "./kimi-web.ts";
 import { DoubaoWebExecutor } from "./doubao-web.ts";
 import { QwenWebExecutor } from "./qwen-web.ts";
+import { ConolWebExecutor } from "./conol-web.ts";
 import { HailuoWebExecutor } from "./hailuo-web.ts";
 import { ZaiWebExecutor } from "./zai-web.ts";
 import { KimiExecutor } from "./kimi.ts";
@@ -171,6 +172,9 @@ const executors = {
   "doubao-web": new DoubaoWebExecutor(),
   db: new DoubaoWebExecutor(), // Alias
   "qwen-web": new QwenWebExecutor(),
+  qw: new QwenWebExecutor(), // Alias
+  "conol-web": new ConolWebExecutor(),
+  cnl: new ConolWebExecutor(), // Alias
   "hailuo-web": new HailuoWebExecutor(),
   "zai-web": new ZaiWebExecutor(),
   zw: new ZaiWebExecutor(), // Alias
@@ -274,6 +278,7 @@ export { YuanbaoWebExecutor } from "./yuanbao-web.ts";
 export { T3ChatWebExecutor } from "./t3-chat-web.ts";
 export { InnerAiExecutor } from "./inner-ai.ts";
 export { QwenWebExecutor } from "./qwen-web.ts";
+export { ConolWebExecutor } from "./conol-web.ts";
 export { HailuoWebExecutor } from "./hailuo-web.ts";
 export { TheOldLlmExecutor } from "./theoldllm.ts";
 export { ChipotleExecutor } from "./chipotle.ts";

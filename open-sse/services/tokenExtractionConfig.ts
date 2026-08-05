@@ -388,6 +388,17 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     "Log in to Z.ai at chat.z.ai. The session token will be extracted.",
     { cookieDomain: ".z.ai" }
   ),
+
+  // ── Conol (conol.ai) ──────────────────────────────────────
+  config(
+    "conol-web",
+    "Conol",
+    "https://conol.ai/home",
+    "https://conol.ai",
+    [{ type: "cookie", name: "__Secure-better-auth.session_token", domain: ".conol.ai" }],
+    "Log in to your Conol account at conol.ai. The __Secure-better-auth.session_token cookie will be extracted.",
+    { cookieDomain: ".conol.ai" }
+  ),
 ];
 
 // ─── Registry ───────────────────────────────────────────────────────────────

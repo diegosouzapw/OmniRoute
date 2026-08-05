@@ -449,6 +449,19 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Paste the full Cookie header from hyperagent.com (DevTools → Network → any request → Request Headers → Cookie). Session cookies power chat + billing usage.",
   },
+  "conol-web": {
+    id: "conol-web",
+    alias: "cnl",
+    name: "Conol (Unofficial/Experimental)",
+    icon: "auto_awesome",
+    color: "#F6C945",
+    textIcon: "CO",
+    website: "https://conol.ai",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    authHint:
+      "Use browser sign-in, or paste the full Cookie header from conol.ai. The __Secure-better-auth.session_token cookie is required.",
+  },
 };
 
 /** Resolved public site for a web-session provider (href + display host). */

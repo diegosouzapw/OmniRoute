@@ -82,6 +82,12 @@ test("web session credential metadata identifies cookie, token, and no-auth prov
     // #5465 — t3.chat ships a step-by-step DevTools copy hint (localStorage + Cookie header).
     hintKey: "t3ChatWebCookieHint",
   });
+  assert.deepEqual(webSessionCredentials.getWebSessionCredentialRequirement("conol-web"), {
+    kind: "cookie",
+    credentialName: "__Secure-better-auth.session_token",
+    placeholder: "__Secure-better-auth.session_token=... or full Cookie header from conol.ai",
+    acceptsFullCookieHeader: true,
+  });
 });
 
 test("web session credential validator requires provider-specific non-empty values", () => {

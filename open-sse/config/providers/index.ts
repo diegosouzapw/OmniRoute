@@ -221,6 +221,7 @@ import { digitaloceanProvider } from "./registry/digitalocean/index.ts";
 import { hcnsecProvider } from "./registry/hcnsec/index.ts";
 import { promptqlProvider } from "./registry/promptql/index.ts";
 import { hyperagentProvider } from "./registry/hyperagent/index.ts";
+import { conolWebProvider } from "./registry/conol-web/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -444,4 +445,5 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   hcnsec: hcnsecProvider,
   promptql: promptqlProvider,
   hyperagent: hyperagentProvider,
+  "conol-web": conolWebProvider,
 };

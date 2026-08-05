@@ -68,6 +68,7 @@ import { getXaiUsage } from "./usage/xai.ts";
 import { getXaiOauthUsage } from "./usage/xaiOauth.ts";
 import { getGrokCliUsage } from "./usage/grokCli.ts";
 import { getFirecrawlUsage } from "./usage/firecrawl.ts";
+import { getConolUsage } from "./conolUsage.ts";
 
 type JsonRecord = Record<string, unknown>;
 type UsageProviderConnection = JsonRecord & {
@@ -114,6 +115,8 @@ export const USAGE_FETCHER_PROVIDERS = [
   "opencode",
   "opencode-zen",
   "xiaomi-mimo",
+  "conol-web",
+  "cnl",
   "xai",
   "xai-oauth",
   "xao",
@@ -207,6 +210,9 @@ export async function getUsageForProvider(
       return await getOpencodeUsage(id || "", apiKey || "");
     case "xiaomi-mimo":
       return await getXiaomiMimoUsage(id || "");
+    case "conol-web":
+    case "cnl":
+      return await getConolUsage(apiKey || accessToken, providerSpecificData);
     case "xai":
       return await getXaiUsage(id || "");
     case "xai-oauth":

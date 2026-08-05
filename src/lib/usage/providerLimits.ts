@@ -73,6 +73,8 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "nanogpt",
   "deepseek",
   "xiaomi-mimo",
+  "conol-web",
+  "cnl",
   "vertex",
   "vertex-partner",
   "kimi-coding-apikey",

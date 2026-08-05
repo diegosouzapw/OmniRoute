@@ -93,6 +93,7 @@ import {
 } from "@/lib/providerModels/geminiModelsParser";
 import { getSyncedAvailableModels, getCustomModels } from "@/lib/db/models";
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
+import { maybeHandleConolModelDiscovery } from "./conolDiscovery";
 import {
   type JsonRecord,
   asRecord,
@@ -536,6 +537,21 @@ export async function GET(
       const localCatalog = buildLocalCatalogResponse(undefined, true);
       if (localCatalog) return localCatalog;
     }
+
+    const conolResponse = await maybeHandleConolModelDiscovery({
+      provider,
+      connectionId,
+      apiKey,
+      accessToken,
+      providerSpecificData: connection.providerSpecificData,
+      proxy,
+      maybeReturnCachedDiscovery,
+      maybeReturnAutoFetchDisabled,
+      buildDiscoveryFallbackResponse,
+      buildResponse,
+      buildApiDiscoveryResponse,
+    });
+    if (conolResponse) return conolResponse;
 
     if (provider === "lmarena") {
       // Direct-chat allowlist is the intended source — no arena.ai HTML scrape
