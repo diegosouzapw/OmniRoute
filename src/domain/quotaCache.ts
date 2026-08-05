@@ -244,8 +244,23 @@ function isAntigravityQuotaExhausted(
   if (!requestedModel) return entry.exhausted;
   const quotaNames = Object.keys(entry.quotas || {});
   if (quotaNames.length === 0) return entry.exhausted;
-  const requestedFamily = getAntigravityQuotaFamily(requestedModel);
   const cleanRequestedModel = requestedModel.replace(/^(antigravity|agy)\//, "");
+
+  // An exact per-model window (e.g. "gemini-3.6-flash-medium") always takes
+  // precedence over broader family/shared windows (e.g. "gemini_weekly").
+  // Quota is tracked per model — a sibling model or a shared weekly bucket
+  // being exhausted must never mask (or be masked by) this model's own status.
+  const exactWindow = quotaNames.find(
+    (windowName) => windowName.replace(/^(antigravity|agy)\//, "") === cleanRequestedModel
+  );
+  if (exactWindow) {
+    return Boolean(
+      getQuotaWindowStatus(connectionId, exactWindow, DEFAULT_QUOTA_THRESHOLD_PERCENT)
+        ?.reachedThreshold
+    );
+  }
+
+  const requestedFamily = getAntigravityQuotaFamily(requestedModel);
   const matchingWindows = quotaNames.filter((windowName) => {
     if (requestedFamily === "other") {
       return windowName.replace(/^(antigravity|agy)\//, "") === cleanRequestedModel;
@@ -255,7 +270,9 @@ function isAntigravityQuotaExhausted(
   return (
     matchingWindows.length > 0 &&
     matchingWindows.every(
-      (windowName) => getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
+      (windowName) =>
+        getQuotaWindowStatus(connectionId, windowName, DEFAULT_QUOTA_THRESHOLD_PERCENT)
+          ?.reachedThreshold
     )
   );
 }
