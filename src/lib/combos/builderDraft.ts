@@ -210,6 +210,119 @@ export function findNextSuggestedConnectionId(
   return COMBO_BUILDER_AUTO_CONNECTION;
 }
 
+export type ComboBuilderGlobalModelEntry = {
+  providerId: string;
+  providerName: string;
+  modelId: string;
+  modelName: string;
+  connectionCount: number;
+  connections: unknown[];
+  step: ComboModelStep;
+};
+
+type ComboBuilderGlobalProvider = {
+  providerId?: unknown;
+  displayName?: unknown;
+  connectionCount?: unknown;
+  connections?: unknown[];
+  models?: Array<{ id?: unknown; name?: unknown }>;
+};
+
+/**
+ * Flattens the combo builder's provider→model tree into a single searchable
+ * list (one row per provider/model pair), used by the "global model search"
+ * selection mode in the combo builder (#8285). Each entry carries the exact
+ * `ComboModelStep` that would be added if the user picks it, pre-built with
+ * no pinned connection so the combo auto-selects at runtime.
+ */
+export function buildGlobalModelList(
+  providers: ComboBuilderGlobalProvider[] = []
+): ComboBuilderGlobalModelEntry[] {
+  const list: ComboBuilderGlobalModelEntry[] = [];
+
+  (providers || []).forEach((provider) => {
+    const providerId = toTrimmedString(provider?.providerId) || "";
+    if (!providerId) return;
+    const providerName = toTrimmedString(provider?.displayName) || providerId;
+    const connectionCount =
+      typeof provider?.connectionCount === "number" ? provider.connectionCount : 0;
+    const connections = Array.isArray(provider?.connections) ? provider.connections : [];
+
+    (provider?.models || []).forEach((model) => {
+      const modelId = toTrimmedString(model?.id);
+      if (!modelId) return;
+      const modelName = toTrimmedString(model?.name) || modelId;
+      const step = buildPrecisionComboModelStep({
+        providerId,
+        modelId,
+        connectionId: null,
+        connectionLabel: null,
+        allowedConnectionIds: [],
+      });
+      list.push({
+        providerId,
+        providerName,
+        modelId,
+        modelName,
+        connectionCount,
+        connections,
+        step,
+      });
+    });
+  });
+
+  return list;
+}
+
+/**
+ * Case-insensitive substring filter over `buildGlobalModelList()` output,
+ * matching against provider display name, provider id, model name and model
+ * id combined. Empty/whitespace-only query returns the full list unfiltered.
+ */
+export function filterGlobalModelList(
+  entries: ComboBuilderGlobalModelEntry[],
+  query: string
+): ComboBuilderGlobalModelEntry[] {
+  const normalizedQuery = (query || "").trim().toLowerCase();
+  if (!normalizedQuery) return entries;
+  return entries.filter((item) => {
+    const text =
+      `${item.providerName} ${item.providerId} ${item.modelName} ${item.modelId}`.toLowerCase();
+    return text.includes(normalizedQuery);
+  });
+}
+
+/**
+ * Appends a single global-search step to the combo's model list, skipping it
+ * if an exact provider/model/account duplicate is already present. Returns
+ * the original array reference when nothing changed so callers can skip a
+ * state update.
+ */
+export function addGlobalModelStep(entries: unknown[], step: unknown): unknown[] {
+  if (hasExactModelStepDuplicate(entries, step)) return entries;
+  return [...entries, step];
+}
+
+/**
+ * Appends every non-duplicate step from a filtered global-search result set,
+ * de-duplicating against both the existing combo models and steps already
+ * queued earlier in the same batch (so two search matches that resolve to
+ * the same provider/model/account never get added twice). Returns the
+ * original array reference when nothing changed.
+ */
+export function addAllGlobalSearchMatches(
+  entries: unknown[],
+  matches: ComboBuilderGlobalModelEntry[]
+): unknown[] {
+  const newSteps: unknown[] = [];
+  (matches || []).forEach((item) => {
+    if (!hasExactModelStepDuplicate([...entries, ...newSteps], item.step)) {
+      newSteps.push(item.step);
+    }
+  });
+  return newSteps.length > 0 ? [...entries, ...newSteps] : entries;
+}
+
 export function getComboBuilderStageChecks({
   name,
   nameError,

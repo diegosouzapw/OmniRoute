@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/shared/components/Button";
+import GlobalModelSearchPanel from "./GlobalModelSearchPanel";
 import Card from "@/shared/components/Card";
 import { CardSkeleton } from "@/shared/components/Loading";
 import EmptyState from "@/shared/components/EmptyState";
@@ -25,11 +26,15 @@ import { ROUTING_STRATEGIES } from "@/shared/constants/routingStrategies";
 import {
   COMBO_BUILDER_AUTO_CONNECTION,
   COMBO_BUILDER_STAGES,
+  addAllGlobalSearchMatches,
+  addGlobalModelStep,
+  buildGlobalModelList,
   buildManualComboModelStep,
   buildPrecisionComboModelStep,
   canAccessComboBuilderStage,
   computeBatchAddModelSteps,
   computeBatchDeselectModelSteps,
+  filterGlobalModelList,
   findNextSuggestedConnectionId,
   getComboBuilderStageChecks,
   getComboBuilderStages,
@@ -2041,10 +2046,29 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
 
   const [dragIndex, setDragIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [builderSelectionMode, setBuilderSelectionMode] = useState<"step" | "global">("step");
+  const [globalSearchQuery, setGlobalSearchQuery] = useState("");
+
   const builderProviders = useMemo(
     () => builderOptions.providers || [],
     [builderOptions.providers]
   );
+
+  const allGlobalModels = useMemo(() => buildGlobalModelList(builderProviders), [builderProviders]);
+
+  const filteredGlobalModels = useMemo(
+    () => filterGlobalModelList(allGlobalModels, globalSearchQuery),
+    [allGlobalModels, globalSearchQuery]
+  );
+
+  const handleAddGlobalModelStep = (step: any) => {
+    setModels((prev) => addGlobalModelStep(prev, step) as typeof prev);
+  };
+
+  const handleAddAllGlobalSearchMatches = () => {
+    setModels((prev) => addAllGlobalSearchMatches(prev, filteredGlobalModels) as typeof prev);
+  };
+
   const builderComboRefs = (builderOptions.comboRefs || []).filter(
     (comboRef) => comboRef.name !== combo?.name && comboRef.name !== name.trim()
   );
@@ -3118,52 +3142,21 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                   )}
                 </div>
 
-                {isExpertMode && (
-                  <div className="mt-3 rounded-md border border-black/8 dark:border-white/8 bg-white/70 dark:bg-white/[0.03] px-2.5 py-2">
-                    <label className="text-[10px] font-medium uppercase tracking-wide text-text-muted block mb-1">
-                      {getI18nOrFallback(t, "manualModel", "Manual model")}
-                    </label>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <input
-                        type="text"
-                        value={manualModelInput}
-                        onChange={(e) => {
-                          setManualModelInput(e.target.value);
-                          setManualModelError("");
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleAddManualModel();
-                          }
-                        }}
-                        placeholder="provider/model"
-                        data-testid="combo-manual-model-input"
-                        className="flex-1 text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-white dark:bg-white/5 text-text-main focus:border-primary focus:outline-none font-mono"
-                      />
-                      <Button
-                        onClick={handleAddManualModel}
-                        size="sm"
-                        disabled={!manualModelInput.trim() || !!manualModelHasDuplicate}
-                        data-testid="combo-manual-model-add"
-                      >
-                        {getI18nOrFallback(t, "addModel", "Add model")}
-                      </Button>
-                    </div>
-                    {(manualModelError || manualModelHasDuplicate) && (
-                      <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[10px] text-amber-700 dark:text-amber-300">
-                        {manualModelError ||
-                          getI18nOrFallback(
-                            t,
-                            "builderDuplicateExact",
-                            "This exact provider/model/account step is already in the combo."
-                          )}
-                      </div>
-                    )}
-                  </div>
-                )}
+                <GlobalModelSearchPanel
+                  builderSelectionMode={builderSelectionMode}
+                  onSelectionModeChange={setBuilderSelectionMode}
+                  globalSearchQuery={globalSearchQuery}
+                  onGlobalSearchQueryChange={setGlobalSearchQuery}
+                  filteredGlobalModels={filteredGlobalModels}
+                  models={models}
+                  onAddOne={handleAddGlobalModelStep}
+                  onAddAll={handleAddAllGlobalSearchMatches}
+                  t={t}
+                />
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
+                {builderSelectionMode === "step" && (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wide text-text-muted block mb-1">
                       1. {getI18nOrFallback(t, "builderProvider", "Provider")}
@@ -3371,6 +3364,8 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                     </Button>
                   </div>
                 </div>
+                  </>
+                )}
 
                 {builderError && (
                   <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[10px] text-amber-700 dark:text-amber-300">
