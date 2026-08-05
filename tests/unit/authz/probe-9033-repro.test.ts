@@ -55,11 +55,7 @@ test("D1: blacklisted IP is blocked on a DIRECT connection (trusted peer stamp, 
     { enforce: true }
   );
 
-  assert.equal(
-    res.status,
-    403,
-    `direct blacklisted IP must be blocked, got status=${res.status}`
-  );
+  assert.equal(res.status, 403, `direct blacklisted IP must be blocked, got status=${res.status}`);
 });
 
 test("D2: persisted config written after first load is honored WITHOUT restart", async () => {
@@ -74,9 +70,7 @@ test("D2: persisted config written after first load is honored WITHOUT restart",
   // Now simulate a "settings route" write: write directly to the DB key_value table
   // with a DIFFERENT config (e.g. empty blacklist, effectively "allow all").
   const db = core.getDbInstance();
-  db.prepare(
-    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
-  ).run(
+  db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
     "ipFilter",
     "config",
     JSON.stringify({ enabled: true, mode: "blacklist", blacklist: [], whitelist: [] })
@@ -116,9 +110,7 @@ test("D3: behind reverse proxy (peer stamp=loopback + via-proxy marker + XFF=bla
 });
 
 test("Bonus: ipFilterModeSchema accepts whitelist-priority", async () => {
-  const { ipFilterModeSchema } = await import(
-    "../../../src/shared/validation/schemas/misc.ts"
-  );
+  const { ipFilterModeSchema } = await import("../../../src/shared/validation/schemas/misc.ts");
   const result = ipFilterModeSchema.safeParse("whitelist-priority");
   assert.equal(
     result.success,
