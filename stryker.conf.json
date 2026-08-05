@@ -84,6 +84,7 @@
       "tests/unit/bug-7940-gemini-retrydelay.test.ts",
       "tests/unit/build/check-circular-deps.test.ts",
       "tests/unit/cache-sweeps.test.ts",
+      "tests/unit/capability-filter.test.ts",
       "tests/unit/chat-adaptive-admission-binding.test.ts",
       "tests/unit/cc-bridge-openai-image-7777.test.ts",
       "tests/unit/cc-compatible-provider.test.ts",

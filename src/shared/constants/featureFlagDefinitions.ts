@@ -233,6 +233,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     requiresRestart: true,
     warningLevel: "info",
   },
+  {
+    key: "CAPABILITY_FILTER_ENABLED",
+    label: "Capability Filter",
+    description:
+      "Reject requests before dispatch when the target model lacks required capabilities (vision, tools, structured output, context window). Protects direct single-provider requests that bypass the combo-layer compatibility filter.",
+    descriptionI18nKey: "featureFlagCapabilityFilterEnabledDescription",
+    category: "policies",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
 
   // ──────────────── Runtime (15) ────────────────
   {

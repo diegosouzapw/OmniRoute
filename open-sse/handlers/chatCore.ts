@@ -134,6 +134,8 @@ import {
   getResolvedModelCapabilities,
   getExplicitModelOutputCap,
 } from "@/lib/modelCapabilities.ts";
+import { checkRequestCapabilityFit, deriveRequestCapabilityRequirements, buildCapabilityMismatchMessage } from "@/shared/constants/capabilities/capabilityFilter.ts";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags.ts";
 import { toPositiveInteger } from "../services/reasoningTokenBuffer.ts";
 import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
 import {
@@ -2605,7 +2607,16 @@ export async function handleChatCore({
     }
   }
   // === /Quota Share enforcement PRE-hook ===
-
+  if (isFeatureFlagEnabled("CAPABILITY_FILTER_ENABLED")) {
+    const fit = checkRequestCapabilityFit(getResolvedModelCapabilities({ provider, model: effectiveModel }),
+      deriveRequestCapabilityRequirements(body as Record<string, unknown>), provider);
+    if (!fit.compatible) {
+      const msg = buildCapabilityMismatchMessage(fit.terminalReason!, provider, effectiveModel);
+      log?.warn?.("CAPABILITY", msg);
+      trackPendingRequest(model, provider, connectionId, false);
+      return createErrorResult(400, msg, null, fit.terminalReason, "invalid_request_error");
+    }
+  }
   // Get executor for this provider (with optional upstream proxy routing)
   const executor = await resolveExecutorWithProxy(provider);
   const getExecutionCredentials = () =>

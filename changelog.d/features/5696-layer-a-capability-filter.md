@@ -1,0 +1,1 @@
+- **feat(core):** add Layer A capability filter at router (#5696)

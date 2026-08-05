@@ -938,6 +938,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Encaminhar solicitações com orçamento esgotado para o provedor/modelo de fallback gratuito de emergência.",
   "featureFlagArenaEloSyncEnabledDescription": "Habilitar sincronização periódica de ELO da tabela de classificação do Arena AI para rankings de inteligência de modelos.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Divulgar ids espelho claude/&lt;provider&gt;/&lt;model&gt; em /v1/models para que a descoberta de modelos do gateway Claude Code liste modelos não-Claude. Atenção: duplica as entradas do catálogo para todos os clientes quando ativado globalmente.",
+  "featureFlagCapabilityFilterEnabledDescription": "Rejeitar requisicoes antes do despacho quando o modelo alvo nao possui as capacidades necessarias (visao, ferramentas, saida estruturada, janela de contexto). Protege requisicoes diretas que ignoram o filtro de compatibilidade do combo.",
   "sidebar": {
     "home": "Início",
     "dashboard": "Painel",
@@ -12220,5 +12221,10 @@
     "partnerLinkNote": "Link de parceiro",
     "dismissAriaLabel": "Descartar"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally.",
+  "featureFlagCapabilityFilterEnabledDescription": "Rejeitar requisições antes do despacho quando o modelo alvo nao possui as capacidades necessarias (visao, ferramentas, saída estruturada, janela de contexto). Protege requisições diretas que ignoram o filtro de compatibilidade do combo.",
+  "capabilityFilter.visionMismatch": "O provedor nao suporta visao para esta requisicao de imagem",
+  "capabilityFilter.toolsMismatch": "O provedor nao suporta chamada de ferramentas",
+  "capabilityFilter.structuredOutputMismatch": "O provedor nao suporta saida estruturada",
+  "capabilityFilter.contextWindowMismatch": "A requisicao excede a janela de contexto do provedor"
 }

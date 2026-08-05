@@ -938,6 +938,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Route budget-exhausted requests to the emergency free fallback provider/model.",
   "featureFlagArenaEloSyncEnabledDescription": "Enable periodic Arena AI leaderboard ELO sync for model intelligence rankings.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Advertise claude/&lt;provider&gt;/&lt;model&gt; mirror ids on /v1/models so Claude Code gateway model discovery lists non-Claude models. Warning: doubles catalog entries for all clients when enabled globally.",
+  "featureFlagCapabilityFilterEnabledDescription": "Reject requests before dispatch when the target model lacks required capabilities (vision, tools, structured output, context window). Protects direct single-provider requests that bypass the combo-layer compatibility filter.",
   "sidebar": {
     "home": "Home",
     "dashboard": "Dashboard",
@@ -12220,5 +12221,9 @@
     "partnerLinkNote": "Partner link",
     "dismissAriaLabel": "Dismiss"
   },
-  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally.",
+  "capabilityFilter.visionMismatch": "Provider does not support vision for this image request",
+  "capabilityFilter.toolsMismatch": "Provider does not support tool calling",
+  "capabilityFilter.structuredOutputMismatch": "Provider does not support structured output",
+  "capabilityFilter.contextWindowMismatch": "Request exceeds provider context window"
 }

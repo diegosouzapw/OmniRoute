@@ -350,7 +350,7 @@
     "open-sse/executors/deepseek-web.ts": 1148,
     "open-sse/executors/grok-web.ts": 1044,
     "open-sse/executors/muse-spark-web.ts": 1405,
-    "open-sse/handlers/chatCore.ts": 5020,
+    "open-sse/handlers/chatCore.ts": 5029,
     "open-sse/handlers/imageGeneration.ts": 3101,
     "open-sse/handlers/responseSanitizer.ts": 1115,
     "open-sse/handlers/search.ts": 1536,
