@@ -19,6 +19,7 @@ import {
 import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
+import { deleteLKGPByConnectionIds } from "./settings/lkgp";
 import { webSessionCredentialKey, parseProviderSpecificData } from "./webSessionDedup";
 import { pickCodexConnectionForUser } from "@/lib/oauth/utils/codexConnectionSelection";
 import { reconcileCodexUsageHistory } from "./providers/usageIdentityReconciliation";
@@ -905,6 +906,7 @@ export async function deleteProviderConnection(id: string) {
 
   db.prepare("DELETE FROM quota_snapshots WHERE connection_id = ?").run(id);
   db.prepare("DELETE FROM provider_connections WHERE id = ?").run(id);
+  await deleteLKGPByConnectionIds([id]);
   removeConnectionHealth(id);
   removeConnectionIndex(id);
   bumpProxyConfigGeneration();
@@ -937,6 +939,7 @@ export async function deleteProviderConnections(ids: string[]): Promise<number> 
     removeConnectionHealth(id);
     removeConnectionIndex(id);
   }
+  await deleteLKGPByConnectionIds(ids);
   backupDbFile("pre-write");
   invalidateDbCache("connections");
   invalidateReasoningRoutingRuleCache();
@@ -966,6 +969,7 @@ export async function deleteProviderConnectionsByProvider(providerId: string) {
     removeConnectionHealth(connectionId);
     removeConnectionIndex(connectionId);
   }
+  await deleteLKGPByConnectionIds(connectionIds);
   backupDbFile("pre-write");
   invalidateDbCache("connections");
   invalidateReasoningRoutingRuleCache();

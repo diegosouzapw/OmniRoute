@@ -209,6 +209,17 @@ export async function setCachedLKGP(
   lkgpCache.invalidate(`lkgp:${comboName}:${modelId}`);
 }
 
+/**
+ * Drop cached LKGP entries so a pin deleted in SQLite cannot be served from
+ * memory for the rest of the TTL window (#8887).
+ *
+ * `pinKey` is the storage key used by `db/settings/lkgp.ts`
+ * (`${comboName}:${modelId}`); omit it to clear every cached pin.
+ */
+export function invalidateCachedLKGP(pinKey?: string): void {
+  lkgpCache.invalidate(pinKey ? `lkgp:${pinKey}` : undefined);
+}
+
 // ──────────────── Combo Cache Invalidation Signal ────────────────
 //
 // The nested-combo expansion caches live in request handlers
