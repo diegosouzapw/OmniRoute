@@ -2,6 +2,10 @@ import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { isAbortFinishReason } from "../../utils/finishReason.ts";
 import { REVERSE_MAP } from "../../services/claudeCodeToolRemapper.ts";
+import {
+  buildGeminiThoughtSignatureKey,
+  storeGeminiThoughtSignature,
+} from "../../services/geminiThoughtSignatureStore.ts";
 
 function normalizeToolName(name: string): string {
   return REVERSE_MAP[name] ?? name;
@@ -56,6 +60,16 @@ export function geminiToClaudeResponse(chunk, state) {
       const hasThoughtSig = part.thoughtSignature || part.thought_signature;
       const isThought = part.thought === true;
 
+      // Gemini/Antigravity can emit thoughtSignature as a standalone part
+      // immediately before the functionCall part, or co-located on the same
+      // part. Keep it pending so the functionCall handler below can persist
+      // it keyed to the tool_use id — otherwise the next turn has no real
+      // signature to re-attach and historical tool calls must be degraded
+      // to inert text (or rejected outright by strict Gemini 3+ validation).
+      if (hasThoughtSig && typeof hasThoughtSig === "string") {
+        state.pendingThoughtSignature = hasThoughtSig;
+      }
+
       // Thinking content → thinking block (always open+close per chunk)
       if (isThought && part.text) {
         // Close any open text block first
@@ -90,6 +104,14 @@ export function geminiToClaudeResponse(chunk, state) {
         const restoredToolName = normalizeToolName(state.toolNameMap?.get(rawToolName) || rawToolName);
         const idx = state.contentBlockIndex++;
         const toolId = fc.id || `toolu_${Date.now()}_${idx}`;
+
+        if (state.pendingThoughtSignature) {
+          storeGeminiThoughtSignature(
+            buildGeminiThoughtSignatureKey(state.signatureNamespace, toolId),
+            state.pendingThoughtSignature
+          );
+          state.pendingThoughtSignature = null;
+        }
 
         results.push({
           type: "content_block_start",

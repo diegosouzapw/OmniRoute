@@ -5,10 +5,17 @@ import {
   tryParseJSON,
   cleanJSONSchemaForAntigravity,
 } from "../helpers/geminiHelper.ts";
-import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
 import { capMaxOutputTokens, capThinkingBudget } from "../../../src/lib/modelCapabilities.ts";
 import { getModelSpec } from "../../../src/shared/constants/modelSpecs.ts";
+import {
+  buildGeminiThoughtSignatureKey,
+  getGeminiThoughtSignature,
+} from "../../services/geminiThoughtSignatureStore.ts";
+import {
+  buildInertHistoricalToolCallText,
+  buildInertHistoricalToolResponseText,
+} from "./openai-to-gemini/helpers.ts";
 
 /**
  * Direct Claude → Gemini request translator.
@@ -26,6 +33,29 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
   // is scoped to the routed vertex provider only (threaded via credentials._provider).
   const provider = credentials && typeof credentials === "object" ? credentials._provider : null;
   const stripFunctionCallId = provider === "vertex" || provider === "vertex-partner";
+  const signatureNamespace =
+    credentials &&
+    typeof credentials === "object" &&
+    typeof (credentials as Record<string, unknown>)._signatureNamespace === "string"
+      ? ((credentials as Record<string, unknown>)._signatureNamespace as string)
+      : null;
+  // All modern Gemini models (2.5+, 3.x, pro-agent, etc.) use thinking by default
+  // and require a real thoughtSignature on functionCall parts in a multi-turn
+  // tool-call history — sending one without a signature returns a strict 400.
+  // Matches the isThinkingGemini heuristic used by the Antigravity path
+  // (openai-to-gemini.ts) since Gemini's requirement is the same regardless of
+  // which translator hop reaches it.
+  const modelLower = model.toLowerCase();
+  const requiresThoughtSignature =
+    modelLower.includes("gemini-3") ||
+    modelLower.includes("gemini-2.5") ||
+    modelLower.includes("thinking") ||
+    modelLower.includes("gemini-pro");
+  // tool_use ids downgraded to inert text because no real signature was found
+  // (e.g. the call originated from a different model via combo fallback) — the
+  // matching tool_result must be downgraded the same way so Gemini never sees
+  // a functionResponse referencing a functionCall id that isn't a native part.
+  const contextualizedToolUseIds = new Set<string>();
   const result: {
     model: string;
     contents: Array<Record<string, unknown>>;
@@ -114,8 +144,24 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
               }
               break;
 
-            case "tool_use":
+            case "tool_use": {
+              const signature = getGeminiThoughtSignature(
+                buildGeminiThoughtSignatureKey(signatureNamespace, block.id)
+              );
+              if (!signature && requiresThoughtSignature) {
+                // No real signature available (e.g. this tool_use was made by a
+                // different model before a combo fallback landed on Gemini) and
+                // this model strictly validates it — represent it as inert text
+                // instead of a native functionCall part, matching the "context"
+                // fallback the OpenAI hub path uses for the same situation (#3358).
+                contextualizedToolUseIds.add(block.id);
+                parts.push({
+                  text: buildInertHistoricalToolCallText(block.name, block.input || {}),
+                });
+                break;
+              }
               parts.push({
+                ...(signature ? { thoughtSignature: signature } : {}),
                 functionCall: {
                   ...(stripFunctionCallId ? {} : { id: block.id }),
                   name: sanitizeToolName(block.name),
@@ -123,6 +169,7 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
                 },
               });
               break;
+            }
 
             case "tool_result": {
               let content = block.content;
@@ -136,6 +183,15 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
                 parsedContent = { result: content };
               } else if (typeof parsedContent !== "object") {
                 parsedContent = { result: parsedContent };
+              }
+              if (contextualizedToolUseIds.has(block.tool_use_id)) {
+                parts.push({
+                  text: buildInertHistoricalToolResponseText(
+                    toolUseNames[block.tool_use_id] || "unknown",
+                    parsedContent
+                  ),
+                });
+                break;
               }
               parts.push({
                 functionResponse: {
@@ -167,14 +223,6 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
       if (parts.length > 0) {
         // Map Claude roles to Gemini roles
         const geminiRole = msg.role === "assistant" ? "model" : "user";
-
-        // Gemini 3+ expects the signature on all functionCall parts in a tool-call
-        // batch. If there is no real signature, we don't inject a fake one because
-        // Gemini API strictly validates it and returns 400.
-        if (geminiRole === "model") {
-          // No operation needed since we no longer inject fake signatures.
-        }
-
         result.contents.push({ role: geminiRole, parts });
       }
     }

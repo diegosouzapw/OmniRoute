@@ -142,6 +142,38 @@ test("Gemini -> Claude stream: STOP after prior tool use still maps to tool_use"
   assert.equal(result[1].type, "message_stop");
 });
 
+test("Gemini -> Claude stream: stores thoughtSignature from a standalone part preceding functionCall", async () => {
+  const { getGeminiThoughtSignature, clearGeminiThoughtSignatureMemoryForTests } = await import(
+    "../../open-sse/services/geminiThoughtSignatureStore.ts"
+  );
+  clearGeminiThoughtSignatureMemoryForTests();
+
+  const state: { signatureNamespace: string; pendingThoughtSignature?: string | null } = {
+    signatureNamespace: "conn-claude-1",
+  };
+  const result = geminiToClaudeResponse(
+    {
+      responseId: "resp-sig-1",
+      modelVersion: "gemini-3.1-flash-lite",
+      candidates: [
+        {
+          content: {
+            parts: [
+              { thoughtSignature: "sig-claude-1" },
+              { functionCall: { id: "toolu_sig_1", name: "read_file", args: { path: "/a" } } },
+            ],
+          },
+        },
+      ],
+    },
+    state
+  );
+
+  assert.equal(result[1].content_block.id, "toolu_sig_1");
+  assert.equal(state.pendingThoughtSignature, null);
+  assert.equal(getGeminiThoughtSignature("conn-claude-1:toolu_sig_1"), "sig-claude-1");
+});
+
 test("Gemini -> Claude stream: response wrapper is supported and promptFeedback-only chunk is ignored", () => {
   const wrapped = geminiToClaudeResponse(
     {

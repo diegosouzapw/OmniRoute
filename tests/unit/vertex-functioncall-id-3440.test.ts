@@ -17,6 +17,9 @@ const { openaiToGeminiRequest } = await import(
 const { claudeToGeminiRequest } = await import(
   "../../open-sse/translator/request/claude-to-gemini.ts"
 );
+const { storeGeminiThoughtSignature } = await import(
+  "../../open-sse/services/geminiThoughtSignatureStore.ts"
+);
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -138,6 +141,11 @@ test("#3440 Claude->Gemini: vertex provider omits id from functionCall and funct
 });
 
 test("#3440 Claude->Gemini: no provider hint PRESERVES id (default, non-vertex)", () => {
+  // gemini-2.5-pro requires a real thoughtSignature on historical tool_use
+  // parts; without one the fix in claude-to-gemini.ts downgrades the call to
+  // inert text (never a bare functionCall part) to avoid a strict 400. Prime
+  // a signature so this id-preservation assertion stays isolated from that.
+  storeGeminiThoughtSignature("tu_weather_1", "sig-weather-1");
   const result = claudeToGeminiRequest("gemini-2.5-pro", CLAUDE_TOOL_BODY, false);
   assert.equal(findFunctionCall(result)?.id, "tu_weather_1");
 });

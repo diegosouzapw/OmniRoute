@@ -1,10 +1,17 @@
-import test from "node:test";
+import test, { beforeEach } from "node:test";
 import assert from "node:assert/strict";
 
 const { claudeToGeminiRequest } =
   await import("../../open-sse/translator/request/claude-to-gemini.ts");
 const { DEFAULT_SAFETY_SETTINGS } =
   await import("../../open-sse/translator/helpers/geminiHelper.ts");
+const { storeGeminiThoughtSignature, clearGeminiThoughtSignatureMemoryForTests } = await import(
+  "../../open-sse/services/geminiThoughtSignatureStore.ts"
+);
+
+beforeEach(() => {
+  clearGeminiThoughtSignatureMemoryForTests();
+});
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -34,6 +41,9 @@ function getFunctionResponse(part: unknown) {
 }
 
 test("Claude -> Gemini maps system, thinking, tool use, tool result and tools", () => {
+  // A real stored signature (as gemini-to-claude.ts persists from Gemini's own
+  // response) means the historical tool_use can be re-sent as a native part.
+  storeGeminiThoughtSignature("tu_1", "sig-tu-1");
   const result = claudeToGeminiRequest(
     "gemini-2.5-pro",
     {
@@ -82,6 +92,7 @@ test("Claude -> Gemini maps system, thinking, tool use, tool result and tools", 
   assert.equal(result.contents[0].role, "model");
   assert.deepEqual(result.contents[0].parts[0] as any, { thought: true, text: "need tool" });
   assert.deepEqual(result.contents[0].parts[1] as any, {
+    thoughtSignature: "sig-tu-1",
     functionCall: { id: "tu_1", name: "weather", args: { city: "Tokyo" } },
   });
   assert.deepEqual(result.contents[1].parts[0] as any, {
@@ -162,14 +173,58 @@ test("Claude -> Gemini converts text and base64 images to Gemini parts", () => {
   ]);
 });
 
-test("Claude -> Gemini injects a fallback thoughtSignature on tool-call batches without thinking", () => {
+test("Claude -> Gemini downgrades a signature-less historical tool_use to inert text on thinking-capable models (fixes 400 on combo fallback)", () => {
+  // Reproduces the production bug: a combo falls back from another model (e.g.
+  // Claude) to Gemini mid-conversation. The prior tool_use never went through
+  // Gemini, so no real thoughtSignature was ever stored for it. Gemini 3+/2.5
+  // strictly rejects a native functionCall part with no signature (400), so it
+  // must be represented as inert text instead — never sent natively.
   const result = claudeToGeminiRequest(
-    "gemini-2.5-flash",
+    "gemini-3.1-flash-lite",
     {
       messages: [
         {
           role: "assistant",
-          content: [{ type: "tool_use", id: "tu_1", name: "read_file", input: {} }],
+          content: [
+            { type: "tool_use", id: "tu_fallback_1", name: "read_file", input: { path: "/a" } },
+          ],
+        },
+        {
+          role: "user",
+          content: [
+            { type: "tool_result", tool_use_id: "tu_fallback_1", content: "file contents" },
+          ],
+        },
+      ],
+    },
+    false
+  );
+
+  assert.equal(result.contents.length, 2);
+  assert.equal(result.contents[0].role, "model");
+  const toolUsePart = result.contents[0].parts[0] as UnknownRecord;
+  assert.equal(toolUsePart.functionCall, undefined);
+  assert.equal(toolUsePart.thoughtSignature, undefined);
+  assert.match(toolUsePart.text as string, /^\[tool_history_call: read_file\]/);
+
+  // The paired tool_result must be downgraded the same way — Gemini must never
+  // see a functionResponse referencing a functionCall id that isn't a native part.
+  assert.equal(result.contents[1].role, "user");
+  const toolResultPart = result.contents[1].parts[0] as UnknownRecord;
+  assert.equal(toolResultPart.functionResponse, undefined);
+  assert.match(toolResultPart.text as string, /^\[tool_history_result: read_file\]/);
+});
+
+test("Claude -> Gemini keeps native functionCall passthrough for non-thinking models even without a signature", () => {
+  // Older Gemini models (< 2.5, no "gemini-pro"/"thinking" in the id) never
+  // required thought_signature — preserve the pre-fix passthrough for them.
+  const result = claudeToGeminiRequest(
+    "gemini-2.0-flash",
+    {
+      messages: [
+        {
+          role: "assistant",
+          content: [{ type: "tool_use", id: "tu_legacy_1", name: "read_file", input: {} }],
         },
       ],
     },
@@ -178,13 +233,16 @@ test("Claude -> Gemini injects a fallback thoughtSignature on tool-call batches 
 
   assert.equal(result.contents.length, 1);
   assert.equal(result.contents[0].role, "model");
-  assert.equal((result.contents[0].parts[0] as any).functionCall.name, "read_file");
-  assert.equal((result.contents[0].parts[0] as any).thoughtSignature, undefined);
+  assert.equal(getFunctionCall(result.contents[0].parts[0]).name, "read_file");
+  assert.equal((result.contents[0].parts[0] as UnknownRecord).thoughtSignature, undefined);
 });
 
 test("Claude -> Gemini sanitizes long tool names and exposes a restore map", () => {
   const longToolName =
     "mcp__filesystem__read_multiple_files_with_validation_and_metadata_bundle_v2";
+  // Not under test here — prime a signature so the tool-name sanitization
+  // assertions below aren't affected by the thoughtSignature guard.
+  storeGeminiThoughtSignature("tu_long_1", "sig-long-1");
   const result = claudeToGeminiRequest(
     "gemini-2.5-pro",
     {
