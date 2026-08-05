@@ -11094,7 +11094,10 @@
         "examples": "例如：hermes，goose"
       },
       "acp": {
-        "flow": "OmniRoute → 启动 CLI → 响应"
+        "title": "Omni 使用的后端 CLI",
+        "desc": "反向执行",
+        "flow": "OmniRoute → 启动 CLI → 响应",
+        "examples": "例如：claude，codex (ACP)"
       }
     },
     "card": {
