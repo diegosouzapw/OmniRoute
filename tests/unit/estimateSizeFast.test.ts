@@ -68,6 +68,55 @@ test("estimateSizeFast early-exits at 262144 bytes (256KB)", () => {
   assert.ok(result >= 262144, `Should early-exit, got ${result}`);
 });
 
+/**
+ * Real bug: the byte early-exit was unconditionally ESTIMATE_SIZE_BYTE_LIMIT
+ * (256 KiB) with no way for a caller to raise it, so any caller comparing
+ * against a bigger configured threshold (e.g. logTruncation.ts's
+ * getChatLogMaxBodyBytes(), default 1 MiB) could never see a size above
+ * ~256 KiB — every payload up to their real threshold looked "under
+ * threshold" and truncation never fired for anything between 256 KiB and
+ * the caller's actual limit, silently letting oversized bodies through.
+ */
+test("estimateSizeFast respects a caller-supplied byteLimit above the 256KB default", () => {
+  const oneMiB = 1024 * 1024;
+  // Multiple 200KB elements: the 2nd element alone already crosses the
+  // default 256KB limit, so a hardcoded-256KB implementation early-exits
+  // there and never accumulates the 3rd/4th elements — only a truly
+  // caller-configurable limit reports the full, accurate total.
+  const payload = Array.from({ length: 4 }, () => "x".repeat(200_000));
+  const trueTotal = payload.reduce((sum, s) => sum + s.length, 0);
+
+  const withDefaultLimit = estimateSizeFast(payload);
+  assert.ok(
+    withDefaultLimit < trueTotal,
+    `sanity: default 256KB limit must early-exit before the true total, got ${withDefaultLimit}`
+  );
+
+  const withCustomLimit = estimateSizeFast(payload, oneMiB);
+  assert.equal(
+    withCustomLimit,
+    trueTotal,
+    "must report the true accumulated size instead of early-exiting at the default 256KB"
+  );
+  assert.ok(withCustomLimit <= oneMiB, "payload must be recognized as under the caller's own limit");
+});
+
+test("estimateSizeFast node-budget fail-closed return respects a caller-supplied byteLimit", () => {
+  const oneMiB = 1024 * 1024;
+  const hugeSparseArray = new Proxy([] as unknown[], {
+    get(target, prop, receiver) {
+      if (prop === "length") return 5_000_000;
+      if (typeof prop === "string" && /^[0-9]+$/.test(prop)) return null;
+      return Reflect.get(target, prop, receiver);
+    },
+  });
+  const result = estimateSizeFast(hugeSparseArray, oneMiB);
+  assert.ok(
+    result > oneMiB,
+    `node-budget exhaustion must fail closed above the CALLER's limit (${oneMiB}), not the default 256KB — got ${result}`
+  );
+});
+
 test("estimateSizeFast checks byte limit after numbers and booleans", () => {
   const almostForNumber = "x".repeat(ESTIMATE_SIZE_BYTE_LIMIT - 4);
   const withNumber = estimateSizeFast([almostForNumber, 1]);

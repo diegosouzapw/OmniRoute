@@ -744,6 +744,7 @@ The logging system writes to both stdout and rotated log files. All configuratio
 | `CHAT_LOG_ARRAY_TAIL_ITEMS`               | `24`                       | Number of array items retained from the tail when truncating chat log payloads.   |
 | `CHAT_LOG_MAX_DEPTH`                      | `6`                        | Max nesting depth before chat log payloads are truncated.                         |
 | `CHAT_LOG_MAX_OBJECT_KEYS`                | `80`                       | Max object keys retained in chat log payloads (0 = unlimited).                    |
+| `CHAT_LOG_MAX_BODY_KB`                    | `1024`                     | Whole request/response body size (KB) before it's replaced by a bare summary instead of the full clone. Raise this if long agentic conversations show a placeholder instead of the real messages in the dashboard. |
 | `CHAT_DEBUG_FILE`                         | `false`                    | When true, `serializeArtifactForStorage` skips size-based truncation. Debug only. |
 
 ---

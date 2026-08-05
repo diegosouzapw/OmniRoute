@@ -254,7 +254,11 @@ function ConversationTranscriptSection({
         <div className="flex items-center gap-2">
           <button
             onClick={toggleAutoFollow}
-            title={autoFollow ? "Auto-follow: on (jumps to the next turn as soon as it lands)" : "Auto-follow: off"}
+            title={
+              autoFollow
+                ? "Auto-follow: on (jumps to the next turn as soon as it lands)"
+                : "Auto-follow: off"
+            }
             className={`p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors ${autoFollow ? "text-primary" : ""}`}
             aria-pressed={autoFollow}
             aria-label="Toggle auto-follow to next turn"
@@ -951,6 +955,21 @@ export default function RequestLoggerDetail({
                   <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-violet-500/20 text-violet-700 dark:text-violet-300 border border-violet-500/30">
                     {detail?.comboName || log.comboName}
                   </span>
+                ) : (
+                  <div className="text-sm text-text-muted">\u2014</div>
+                )}
+              </div>
+              <div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  Conversation
+                </div>
+                {detail?.sessionTag || log.sessionTag ? (
+                  <div
+                    className="text-sm font-mono select-all"
+                    title={detail?.sessionTag || log.sessionTag}
+                  >
+                    {(detail?.sessionTag || log.sessionTag).slice(0, 20)}\u2026
+                  </div>
                 ) : (
                   <div className="text-sm text-text-muted">\u2014</div>
                 )}

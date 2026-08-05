@@ -134,7 +134,7 @@ test("truncateForLog summarizes oversized payloads instead of cloning", () => {
     provider: "openai",
     stream: true,
     // distinct object references so estimateSizeFast (WeakSet-dedup) counts each one
-    messages: Array.from({ length: 50000 }, () => ({ role: "user", content: "x".repeat(64) })),
+    messages: Array.from({ length: 50000 }, () => ({ role: "user", content: "x".repeat(500) })),
     contents: [{ a: 1 }],
   };
   const summary = truncateForLog(huge) as Record<string, unknown>;
@@ -159,11 +159,11 @@ test("truncateForLog captures a message count for Responses API bodies too (inpu
   const huge = {
     model: "gpt-5",
     stream: true,
-    input: Array.from({ length: 400 }, () => ({ role: "user", content: "x".repeat(64) })),
+    input: Array.from({ length: 50000 }, () => ({ role: "user", content: "x".repeat(500) })),
   };
   const summary = truncateForLog(huge) as Record<string, unknown>;
   assert.equal(summary._truncated, true);
-  assert.equal(summary.messageCount, 400);
+  assert.equal(summary.messageCount, 50000);
 });
 
 test("truncateForLog keeps a bounded `tools` field alive when the request is summarized", () => {
@@ -200,7 +200,7 @@ test("truncateForLog keeps a bounded `tools` field alive when the request is sum
     model: "gpt-4o",
     provider: "openai",
     stream: true,
-    messages: Array.from({ length: 50000 }, () => ({ role: "user", content: "x".repeat(64) })),
+    messages: Array.from({ length: 50000 }, () => ({ role: "user", content: "x".repeat(500) })),
     tools,
   };
 
@@ -226,7 +226,7 @@ test("truncateForLog bounds an oversized `tools` array to the configured tail-it
   }));
   const huge = {
     model: "gpt-4o",
-    messages: Array.from({ length: 50000 }, () => ({ role: "user", content: "x".repeat(64) })),
+    messages: Array.from({ length: 50000 }, () => ({ role: "user", content: "x".repeat(500) })),
     tools: manyTools,
   };
 
