@@ -80,9 +80,11 @@ import {
   applyPollinationsAnonymousFallback,
   reportPollinationsAnonOutcome,
 } from "./imageGeneration/pollinationsAnonAuth.ts";
+import { saveImageErrorResult, saveImageSuccessResult } from "./imageGeneration/callLogResult.ts";
 
 // Re-export so /v1/images/edits can dispatch Firefly reference-image edits.
 export { handleAdobeFireflyImageGeneration };
+export { saveImageErrorResult, saveImageSuccessResult };
 
 interface KieImageOptions {
   model: string;
@@ -2354,6 +2356,7 @@ async function handleCodexImageGeneration({
     return saveImageErrorResult({
       provider,
       model,
+      connectionId: credentials?.connectionId,
       status: 400,
       startTime,
       error: "Prompt is required for Codex image generation",
@@ -2375,6 +2378,7 @@ async function handleCodexImageGeneration({
     return saveImageErrorResult({
       provider,
       model,
+      connectionId: credentials?.connectionId,
       status: 401,
       startTime,
       error: "Codex credentials missing accessToken — reconnect the Codex provider",
@@ -2477,6 +2481,7 @@ async function handleCodexImageGeneration({
         error: {
           provider,
           model,
+          connectionId: credentials?.connectionId,
           status: 502,
           startTime,
           error: `Image provider error: ${message}`,
@@ -2497,6 +2502,7 @@ async function handleCodexImageGeneration({
         error: {
           provider,
           model,
+          connectionId: credentials?.connectionId,
           status: response.status,
           startTime,
           error: safeError,
@@ -2514,6 +2520,7 @@ async function handleCodexImageGeneration({
         error: {
           provider,
           model,
+          connectionId: credentials?.connectionId,
           status: 502,
           startTime,
           error:
@@ -2553,6 +2560,7 @@ async function handleCodexImageGeneration({
   return saveImageSuccessResult({
     provider,
     model,
+    connectionId: credentials?.connectionId,
     startTime,
     requestBody: requestBodyForLog,
     responseBody: { images_count: data.length },
@@ -2605,63 +2613,6 @@ export async function handleCodexImageEdit({
     logPath: "/v1/images/edits",
   });
   return result as CodexImageEditResult;
-}
-
-export function saveImageSuccessResult({
-  provider,
-  model,
-  startTime,
-  requestBody = null,
-  responseBody = null,
-  created = null,
-  images,
-  path = "/v1/images/generations",
-}) {
-  saveCallLog({
-    method: "POST",
-    path,
-    status: 200,
-    model: `${provider}/${model}`,
-    provider,
-    duration: Date.now() - startTime,
-    requestBody,
-    responseBody,
-  }).catch(() => {});
-
-  return {
-    success: true,
-    data: {
-      created: created || Math.floor(Date.now() / 1000),
-      data: images,
-    },
-  };
-}
-
-export function saveImageErrorResult({
-  provider,
-  model,
-  status,
-  startTime,
-  error,
-  requestBody = null,
-  path = "/v1/images/generations",
-}) {
-  saveCallLog({
-    method: "POST",
-    path,
-    status,
-    model: `${provider}/${model}`,
-    provider,
-    duration: Date.now() - startTime,
-    error: typeof error === "string" ? error.slice(0, 500) : String(error).slice(0, 500),
-    requestBody,
-  }).catch(() => {});
-
-  return {
-    success: false,
-    status,
-    error,
-  };
 }
 
 /**

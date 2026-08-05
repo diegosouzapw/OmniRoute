@@ -78,7 +78,11 @@ jobs:
       - run: npm run check:node-runtime
       - run: npm run build
         env:
-          OMNIROUTE_USE_TURBOPACK: "1"
+          # Turbopack's native memory is not bounded by NODE_OPTIONS and has
+          # repeatedly terminated standard hosted runners. Keep the faster
+          # production path on the trusted release VPS; fork-safe hosted jobs
+          # use the repository's documented webpack escape hatch.
+          OMNIROUTE_USE_TURBOPACK: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && '1' || '0' }}
       # No artifact upload here: the PR-to-release quality workflow has no
       # downstream package/e2e jobs that consume the Next.js build output.
 

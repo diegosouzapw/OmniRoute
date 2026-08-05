@@ -39,8 +39,10 @@ the moment when running it yields the most value.
 
 `quality.yml` now includes `Build (advisory)` for non-draft code PRs and Mergify queue branches.
 It mirrors the production build recipe from `ci.yml`: Node 24, `npm-ci-retry`,
-`check:node-runtime`, and `npm run build` with `OMNIROUTE_USE_TURBOPACK=1`. It intentionally
-does not upload a build artifact because no downstream quality job consumes one in this workflow.
+`check:node-runtime`, and `npm run build`. Trusted release runners use Turbopack; fork-safe
+GitHub-hosted runners use the documented webpack fallback because Turbopack's native memory is
+not bounded by `NODE_OPTIONS`. The job intentionally does not upload a build artifact because no
+downstream quality job consumes one in this workflow.
 Remove `continue-on-error` after one week of stable release-PR runs so the signal becomes a
 blocking PR-to-release gate.
 

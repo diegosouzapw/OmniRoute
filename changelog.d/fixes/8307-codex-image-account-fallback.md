@@ -1,0 +1,1 @@
+- **fix(api):** Codex image generation now skips incompatible accounts, retries one eligible sibling account for model-access errors, and records the selected account in call logs ([#8307](https://github.com/diegosouzapw/OmniRoute/pull/8307)) — thanks @fenix007
