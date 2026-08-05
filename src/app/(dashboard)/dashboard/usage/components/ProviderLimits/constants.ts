@@ -17,6 +17,7 @@ export const PROVIDER_LABEL: Record<string, string> = {
   deepseek: "DeepSeek",
   "xai-oauth": "xAI OAuth (Grok)",
   xao: "xAI OAuth (Grok)",
+  "grok-cli": "Grok Build",
 };
 
 export const PROVIDER_ORDER: Record<string, number> = {
@@ -36,6 +37,7 @@ export const PROVIDER_ORDER: Record<string, number> = {
   nanogpt: 15,
   "xai-oauth": 16,
   xao: 16,
+  "grok-cli": 17,
 };
 
 export const TIER_FILTERS = [

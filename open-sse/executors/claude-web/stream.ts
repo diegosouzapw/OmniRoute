@@ -13,13 +13,21 @@ export interface ClaudeWebStreamOptions {
 }
 
 type StreamPhase = "awaiting_message" | "in_message" | "stopped" | "failed";
-type BlockKind = "thinking" | "text" | "other";
+type BlockKind = "thinking" | "text" | "tool_use" | "other";
 const MAX_CLAUDE_WEB_SSE_PENDING_CHARS = 1024 * 1024;
 type SemanticEvent =
   | { kind: "content"; text: string }
   | { kind: "reasoning"; text: string }
+  | { kind: "tool_call"; index: number; id: string; name: string; input: string }
   | { kind: "metadata"; eventType: string; data: Record<string, unknown> }
   | { kind: "finish"; stopReason: string };
+
+interface ToolBlockInfo {
+  id: string;
+  name: string;
+  inputParts: string[];
+  initialInput: string;
+}
 
 const KNOWN_METADATA_EVENTS = new Set([
   "ping",
@@ -193,6 +201,7 @@ function thinkingSummaryText(delta: Record<string, unknown>): string {
 interface ProtocolState {
   phase: StreamPhase;
   openBlocks: Map<number, BlockKind>;
+  toolBlocks: Map<number, ToolBlockInfo>;
   stopReason: string;
 }
 
@@ -241,6 +250,7 @@ function handleMessageStart(state: ProtocolState): null {
 function blockKind(block: Record<string, unknown>): BlockKind {
   if (block.type === "thinking") return "thinking";
   if (block.type === "text") return "text";
+  if (block.type === "tool_use") return "tool_use";
   return "other";
 }
 
@@ -252,17 +262,35 @@ function handleContentBlockStart(
   const index = requireBlockIndex(event);
   if (state.openBlocks.has(index)) protocolFailure(state, "Content block was opened twice");
 
-  const kind = blockKind(requireRecord(event.content_block, "content_block"));
+  const contentBlock = requireRecord(event.content_block, "content_block");
+  const kind = blockKind(contentBlock);
   state.openBlocks.set(index, kind);
+
+  if (kind === "tool_use") {
+    const id = typeof contentBlock.id === "string" ? contentBlock.id : "";
+    const name = typeof contentBlock.name === "string" ? contentBlock.name : "";
+    let initialInput = "";
+    if (contentBlock.input !== undefined) {
+      try {
+        initialInput = JSON.stringify(contentBlock.input);
+      } catch {
+        initialInput = "";
+      }
+    }
+    state.toolBlocks.set(index, { id, name, inputParts: [], initialInput });
+    return null;
+  }
+
   return kind === "thinking" ? { kind: "reasoning", text: "" } : null;
 }
 
 function handleContentBlockDelta(
   event: Record<string, unknown>,
   state: ProtocolState
-): SemanticEvent {
+): SemanticEvent | null {
   assertInMessage(state, "content_block_delta");
-  const block = state.openBlocks.get(requireBlockIndex(event));
+  const index = requireBlockIndex(event);
+  const block = state.openBlocks.get(index);
   if (!block) protocolFailure(state, "Content delta has no open block");
 
   const delta = requireRecord(event.delta, "delta");
@@ -275,14 +303,42 @@ function handleContentBlockDelta(
   if (delta.type === "thinking_summary_delta" && block === "thinking") {
     return { kind: "reasoning", text: thinkingSummaryText(delta) };
   }
+  if (delta.type === "input_json_delta" && block === "tool_use") {
+    const toolBlock = state.toolBlocks.get(index);
+    if (!toolBlock) protocolFailure(state, "input_json_delta has no tool block state");
+    if (typeof delta.partial_json === "string") {
+      toolBlock.inputParts.push(delta.partial_json);
+    }
+    return null;
+  }
   return protocolFailure(state, "Content delta type does not match its block");
 }
 
-function handleContentBlockStop(event: Record<string, unknown>, state: ProtocolState): null {
+function handleContentBlockStop(
+  event: Record<string, unknown>,
+  state: ProtocolState
+): SemanticEvent | null {
   assertInMessage(state, "content_block_stop");
-  if (!state.openBlocks.delete(requireBlockIndex(event))) {
-    protocolFailure(state, "Content block stop has no open block");
+  const index = requireBlockIndex(event);
+  const kind = state.openBlocks.get(index);
+  if (!kind) protocolFailure(state, "Content block stop has no open block");
+  state.openBlocks.delete(index);
+
+  if (kind === "tool_use") {
+    const toolBlock = state.toolBlocks.get(index);
+    state.toolBlocks.delete(index);
+    if (!toolBlock) protocolFailure(state, "Tool block stop has no tool state");
+
+    let inputStr = "";
+    if (toolBlock.inputParts.length > 0) {
+      inputStr = toolBlock.inputParts.join("");
+    } else if (toolBlock.initialInput) {
+      inputStr = toolBlock.initialInput;
+    }
+
+    return { kind: "tool_call", index, id: toolBlock.id, name: toolBlock.name, input: inputStr };
   }
+
   return null;
 }
 
@@ -336,6 +392,7 @@ async function* parseClaudeWebEvents(
   const state: ProtocolState = {
     phase: "awaiting_message",
     openBlocks: new Map(),
+    toolBlocks: new Map(),
     stopReason: "end_turn",
   };
 
@@ -447,6 +504,7 @@ async function createBufferedResponse(
   let assistantText = "";
   let reasoningText = "";
   let stopReason = "end_turn";
+  const toolCalls: Array<{ id: string; name: string; input: string }> = [];
   const metadataEvents: Array<{ type: string; data: Record<string, unknown> }> = [];
   const control: StreamControl = { reader: null, cancelled: false };
 
@@ -454,12 +512,30 @@ async function createBufferedResponse(
     for await (const event of parseClaudeWebEvents(source, control)) {
       if (event.kind === "content") assistantText += event.text;
       if (event.kind === "reasoning") reasoningText += event.text;
+      if (event.kind === "tool_call") {
+        toolCalls.push({ id: event.id, name: event.name, input: event.input });
+      }
       if (event.kind === "metadata") {
         metadataEvents.push({ type: event.eventType, data: event.data });
       }
       if (event.kind === "finish") stopReason = event.stopReason;
     }
     notifyComplete(options, { assistantText, stopReason });
+
+    const message: Record<string, unknown> = {
+      role: "assistant",
+      content: assistantText || null,
+      ...(reasoningText ? { reasoning_content: reasoningText } : {}),
+    };
+
+    if (toolCalls.length > 0) {
+      message.tool_calls = toolCalls.map((tc) => ({
+        id: tc.id,
+        type: "function",
+        function: { name: tc.name, arguments: tc.input },
+      }));
+    }
+
     return new Response(
       JSON.stringify({
         id,
@@ -469,11 +545,7 @@ async function createBufferedResponse(
         choices: [
           {
             index: 0,
-            message: {
-              role: "assistant",
-              content: assistantText,
-              ...(reasoningText ? { reasoning_content: reasoningText } : {}),
-            },
+            message,
             finish_reason: openAiFinishReason(stopReason),
             logprobs: null,
           },
@@ -569,6 +641,31 @@ async function queueSemanticEvent(
     );
     return;
   }
+  if (event.kind === "tool_call") {
+    state.pendingChunks.push(
+      encodeStreamEvent(
+        state,
+        makeChunk(
+          state.id,
+          state.created,
+          options,
+          {
+            tool_calls: [
+              {
+                index: event.index,
+                id: event.id,
+                type: "function",
+                function: { name: event.name, arguments: event.input },
+              },
+            ],
+          },
+          null
+        )
+      )
+    );
+    return;
+  }
+
   if (event.kind === "metadata") {
     state.pendingChunks.push(
       encodeStreamEvent(

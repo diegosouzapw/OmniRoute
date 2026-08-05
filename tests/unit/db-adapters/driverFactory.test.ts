@@ -5,8 +5,14 @@ import os from "node:os";
 import path from "node:path";
 import { createRequire } from "node:module";
 
-const { createSyncDriverFactory, tryOpenSync, openDatabaseAsync, preInitSqlJs, getSqlJsAdapter } =
-  await import("../../../src/lib/db/adapters/driverFactory.ts");
+const {
+  createSyncDriverFactory,
+  isPackBootForcedSqlJsSmoke,
+  tryOpenSync,
+  openDatabaseAsync,
+  preInitSqlJs,
+  getSqlJsAdapter,
+} = await import("../../../src/lib/db/adapters/driverFactory.ts");
 
 const require = createRequire(import.meta.url);
 const isBun = Boolean(process.versions.bun);
@@ -56,7 +62,9 @@ describe("driverFactory", () => {
 
     test(
       "prefers better-sqlite3 when it loads",
-      { skip: betterSqliteLoads ? undefined : "better-sqlite3 is not available in this environment" },
+      {
+        skip: betterSqliteLoads ? undefined : "better-sqlite3 is not available in this environment",
+      },
       () => {
         const adapter = tryOpenSync(":memory:");
         assert.ok(adapter);
@@ -169,6 +177,19 @@ describe("driverFactory", () => {
     });
 
     assert.equal(openWithoutNativeDrivers(":memory:"), null);
+  });
+
+  test("pack-boot sql.js forcing requires both smoke-only markers", () => {
+    assert.equal(isPackBootForcedSqlJsSmoke({}), false);
+    assert.equal(isPackBootForcedSqlJsSmoke({ OMNIROUTE_PACK_BOOT_SMOKE: "1" }), false);
+    assert.equal(isPackBootForcedSqlJsSmoke({ OMNIROUTE_PACK_BOOT_FORCE_SQLJS: "1" }), false);
+    assert.equal(
+      isPackBootForcedSqlJsSmoke({
+        OMNIROUTE_PACK_BOOT_SMOKE: "1",
+        OMNIROUTE_PACK_BOOT_FORCE_SQLJS: "1",
+      }),
+      true
+    );
   });
 
   test("openDatabaseAsync sempre retorna um adapter válido", async () => {

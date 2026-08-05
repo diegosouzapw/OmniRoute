@@ -106,9 +106,8 @@ function normalizeWhitespace(s) {
  */
 export function countSignificantTokens(cond) {
   const tokens =
-    (cond || "").match(
-      /===|!==|==|!=|>=|<=|&&|\|\||[<>+\-*/%!]|[A-Za-z_$][\w$]*|\d+(?:\.\d+)?/g
-    ) || [];
+    (cond || "").match(/===|!==|==|!=|>=|<=|&&|\|\||[<>+\-*/%!]|[A-Za-z_$][\w$]*|\d+(?:\.\d+)?/g) ||
+    [];
   let count = 0;
   for (const tk of tokens) {
     if (/^[A-Za-z_$]/.test(tk)) {
@@ -178,8 +177,7 @@ export function extractProdConditions(src) {
   }
 
   // Comparison-bearing ternaries: `<lhs> <cmp> <rhs> ? … : …` (best-effort, low-noise).
-  const ternRe =
-    /([A-Za-z_$][\w$).\]]*\s*(?:===|!==|==|!=|>=|<=|>|<)\s*[^?;{}\n]+?)\s*\?/g;
+  const ternRe = /([A-Za-z_$][\w$).\]]*\s*(?:===|!==|==|!=|>=|<=|>|<)\s*[^?;{}\n]+?)\s*\?/g;
   let t;
   while ((t = ternRe.exec(src))) {
     pushCond(t[1], ownerAt(t.index));
@@ -199,7 +197,10 @@ export function extractImports(src) {
   if (!src) return names;
   const addModule = (mod) => {
     names.add(mod);
-    const base = mod.split("/").pop().replace(/\.\w+$/, "");
+    const base = mod
+      .split("/")
+      .pop()
+      .replace(/\.\w+$/, "");
     if (base) names.add(base);
   };
   let m;
@@ -227,8 +228,7 @@ export function extractImports(src) {
 export function findReimplementedConditions(prodSources, testSource, testImports) {
   const flags = [];
   if (!testSource) return flags;
-  const imports =
-    testImports instanceof Set ? testImports : new Set(testImports || []);
+  const imports = testImports instanceof Set ? testImports : new Set(testImports || []);
   const squash = (s) => (s || "").replace(/\s+/g, "");
   const testSq = squash(testSource);
   const seen = new Set();
@@ -251,10 +251,15 @@ export function findReimplementedConditions(prodSources, testSource, testImports
  * (filtro D do git diff --diff-filter=MDR).
  *
  * `deletionAllowlist` (`_deletedWithReplacement` no test-masking-allowlist.json)
- * isenta uma deleção SOMENTE quando o substituto declarado existe no HEAD e é
- * ele próprio um arquivo de teste — o caso "reescrito em outro path sem rename
- * detectável" (conteúdo novo demais para o -M do git). Qualquer entrada cujo
- * substituto não exista ou não seja teste continua flagada.
+ * isenta uma deleção de duas formas, cada uma com sua própria verificação:
+ *   1. `replacement` (path string) — o substituto declarado existe no HEAD e é
+ *      ele próprio um arquivo de teste — o caso "reescrito em outro path sem
+ *      rename detectável" (conteúdo novo demais para o -M do git).
+ *   2. `sourceRemoved` (array de paths) — feature removida por completo: TODOS
+ *      os arquivos de produção listados precisam estar ausentes no HEAD (sem
+ *      substituto porque não há mais código a testar). Usar apenas quando a
+ *      remoção do código-fonte está confirmada na mesma commit/PR.
+ * Qualquer entrada cuja condição declarada não se verifique continua flagada.
  */
 export function evaluateDeletedFiles(
   deletedPaths,
@@ -269,6 +274,14 @@ export function evaluateDeletedFiles(
       if (TEST_RE.test(entry.replacement) && fileExists(entry.replacement)) continue;
       flags.push(
         `${f}: deleção allowlistada mas o substituto declarado (${entry.replacement}) não existe ou não é arquivo de teste`
+      );
+      continue;
+    }
+    if (entry && Array.isArray(entry.sourceRemoved) && entry.sourceRemoved.length > 0) {
+      const stillPresent = entry.sourceRemoved.filter((p) => fileExists(p));
+      if (stillPresent.length === 0) continue;
+      flags.push(
+        `${f}: deleção allowlistada como feature removida mas ${stillPresent.join(", ")} ainda existe(m) no HEAD`
       );
       continue;
     }

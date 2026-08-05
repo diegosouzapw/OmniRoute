@@ -6,9 +6,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { serializeToolsToPrompt, parseToolCallsFromText } = await import(
-  "../../open-sse/translator/webTools.ts"
-);
+const { serializeToolsToPrompt, parseToolCallsFromText } =
+  await import("../../open-sse/translator/webTools.ts");
 
 const TOOLS = [
   {
@@ -58,14 +57,12 @@ test("parseToolCallsFromText returns null toolCalls when there is no tool block"
   assert.equal(content, "just a normal answer");
 });
 
-test("parseToolCallsFromText detects bare JSON tool calls when requested tools are present", () => {
+test("parseToolCallsFromText does NOT promote bare JSON to tool_calls even when tools are requested (#9343)", () => {
   const text = '{"name":"get_weather","arguments":{"city":"Paris"}}';
   const { content, toolCalls } = parseToolCallsFromText(text, "call", TOOLS);
 
-  assert.equal(content, "");
-  assert.equal(toolCalls?.length, 1);
-  assert.equal(toolCalls?.[0].function.name, "get_weather");
-  assert.deepEqual(JSON.parse(toolCalls?.[0].function.arguments || "{}"), { city: "Paris" });
+  assert.equal(toolCalls, null, "bare JSON must not be promoted");
+  assert.equal(content, text, "bare JSON must be preserved as content text");
 });
 
 test("parseToolCallsFromText does not parse bare JSON without requested tools", () => {
@@ -76,42 +73,40 @@ test("parseToolCallsFromText does not parse bare JSON without requested tools", 
   assert.equal(content, text);
 });
 
-test("parseToolCallsFromText tolerates Python-dict-ish bare tool JSON", () => {
-  const text = "{'command': 'get_weather', 'arguments': {'city': 'Paris', 'units': 'metric', 'fresh': True}}";
-  const { toolCalls } = parseToolCallsFromText(text, "call", TOOLS);
-
-  assert.equal(toolCalls?.length, 1);
-  assert.equal(toolCalls?.[0].function.name, "get_weather");
-  assert.deepEqual(JSON.parse(toolCalls?.[0].function.arguments || "{}"), {
-    city: "Paris",
-    units: "metric",
-    fresh: true,
-  });
-});
-
-test("parseToolCallsFromText escapes double quotes inside single-quoted strings", () => {
-  const text = "{'command': 'get_weather', 'arguments': {'city': 'Paris \"City\"'}}";
-  const { toolCalls } = parseToolCallsFromText(text, "call", TOOLS);
-
-  assert.equal(toolCalls?.length, 1);
-  assert.deepEqual(JSON.parse(toolCalls?.[0].function.arguments || "{}"), { city: 'Paris "City"' });
-});
-
-test("parseToolCallsFromText fuzzy-matches emitted tool names to requested tools", () => {
-  const text = '{"name":"getWeather","arguments":{"city":"Paris"}}';
-  const { toolCalls } = parseToolCallsFromText(text, "call", TOOLS);
-
-  assert.equal(toolCalls?.length, 1);
-  assert.equal(toolCalls?.[0].function.name, "get_weather");
-});
-
-test("parseToolCallsFromText strips bare JSON while preserving surrounding text", () => {
-  const text = 'I will check now.\n{"name":"get_weather","arguments":"{\\"city\\":\\"Paris\\"}"}\nDone.';
+test("parseToolCallsFromText does NOT promote Python-dict-ish bare JSON (#9343)", () => {
+  const text =
+    "{'command': 'get_weather', 'arguments': {'city': 'Paris', 'units': 'metric', 'fresh': True}}";
   const { content, toolCalls } = parseToolCallsFromText(text, "call", TOOLS);
 
-  assert.equal(toolCalls?.length, 1);
-  assert.deepEqual(JSON.parse(toolCalls?.[0].function.arguments || "{}"), { city: "Paris" });
-  assert.equal(content, "I will check now.\nDone.");
+  assert.equal(toolCalls, null, "bare JSON must not be promoted");
+  assert.equal(content, text, "bare JSON must be preserved as content text");
+});
+
+test("parseToolCallsFromText does NOT promote bare JSON with single-quoted strings (#9343)", () => {
+  // Backward-compat note: single-quoted JSON is still a valid format, but without
+  // the <tool> envelope it must not be promoted to a tool call.
+  const text = "{'command': 'get_weather', 'arguments': {'city': 'Paris \"City\"'}}";
+  const { content, toolCalls } = parseToolCallsFromText(text, "call", TOOLS);
+
+  assert.equal(toolCalls, null, "bare JSON must not be promoted");
+  assert.equal(content, text, "bare JSON must be preserved as content text");
+});
+
+test("parseToolCallsFromText does NOT promote fuzzy-matched bare JSON (#9343)", () => {
+  const text = '{"name":"getWeather","arguments":{"city":"Paris"}}';
+  const { content, toolCalls } = parseToolCallsFromText(text, "call", TOOLS);
+
+  assert.equal(toolCalls, null, "bare JSON must not be promoted");
+  assert.equal(content, text, "bare JSON must be preserved as content text");
+});
+
+test("parseToolCallsFromText does NOT strip bare JSON from surrounding text (#9343)", () => {
+  const text =
+    'I will check now.\n{"name":"get_weather","arguments":"{\\"city\\":\\"Paris\\"}"}\nDone.';
+  const { content, toolCalls } = parseToolCallsFromText(text, "call", TOOLS);
+
+  assert.equal(toolCalls, null, "bare JSON must not be promoted");
+  assert.equal(content, text, "bare JSON must be preserved as content text");
 });
 
 test("parseToolCallsFromText ignores bare JSON whose tool is not requested", () => {

@@ -767,9 +767,7 @@ test("vscode tokenized tags route only exposes usable canonical chat models", as
     );
     assert.ok(
       !catalogModel.api_format ||
-        ["chat-completions", "responses", "openai-responses"].includes(
-          catalogModel.api_format
-        ),
+        ["chat-completions", "responses", "openai-responses"].includes(catalogModel.api_format),
       `tag ${tagModel.name} should use a text-generation API format`
     );
     assert.ok(
@@ -1161,7 +1159,7 @@ test("vscode tokenized /chat/completions route applies the path token and codex 
   // error code mapping is "model_not_found" (open-sse/config/errorConfig.ts:29).
   assert.equal(response.status, 404);
   assert.equal(body.error?.code, "model_not_found");
-  assert.equal(body.error?.message, "No active credentials for provider: codex");
+  assert.equal(body.error?.message, "No active credentials for provider: codex.");
 });
 
 test("vscode tokenized /responses route applies the path token and codex tier rewrite", async () => {
@@ -1192,7 +1190,7 @@ test("vscode tokenized /responses route applies the path token and codex tier re
   // Upstream port decolua/9router#336: see chat/completions sibling test above.
   assert.equal(response.status, 404);
   assert.equal(body.error?.code, "model_not_found");
-  assert.equal(body.error?.message, "No active credentials for provider: codex");
+  assert.equal(body.error?.message, "No active credentials for provider: codex.");
 });
 
 test("vscode tokenized api/show route preserves the selected reasoning effort for codex variants", async () => {

@@ -38,6 +38,7 @@
     "scripts/build/runtime-env.mjs",
     "README.md",
     "LICENSE",
+    "!**/node_modules/**",
     "!**/__tests__/**",
     "!**/*.test.ts",
     "!**/*.test.tsx",
@@ -437,7 +438,10 @@
       "undici": "^7.29.0",
       "@apidevtools/json-schema-ref-parser": {
         "js-yaml": "^4.2.0"
-      }
-    }
+      },
+      "undici": "^7.29.0"
+    },
+    "socket.io-parser": "^4.2.7",
+    "tar": "^7.5.21"
   }
 }
