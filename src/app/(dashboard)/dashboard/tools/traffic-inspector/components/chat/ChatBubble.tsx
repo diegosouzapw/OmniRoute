@@ -9,12 +9,11 @@ import { MessageContent } from "./MessageContent";
 
 interface ChatBubbleProps {
   turn: NormalizedTurn;
-  /** Present only for multi-row conversation transcripts (see
-   * src/mitm/inspector/multiRowConversation.ts) — makes the bubble clickable,
-   * navigating to the request log that produced this turn. Absent for the
-   * single-request traffic-inspector usage. */
+  /** Optional — makes the bubble clickable when a caller has somewhere to
+   * navigate to for this turn (e.g. a tree/list view linking back to the
+   * request that produced it). */
   onClick?: () => void;
-  /** True when this turn belongs to the request log currently open — shown
+  /** True when this turn belongs to the request currently open — shown
    * highlighted instead of clickable (nowhere further to navigate to). */
   isCurrent?: boolean;
 }

@@ -7,6 +7,13 @@ type OmniRouteLogoProps = {
   className?: string;
 };
 
+// Dark Reader (and similar browser extensions) injects style/
+// data-darkreader-inline-stroke attributes onto elements with an inline
+// `stroke` before React hydrates, causing a harmless but noisy
+// hydration-mismatch warning on the <line> elements below — not an app bug,
+// see https://nextjs.org/docs/messages/react-hydration-error's own "browser
+// extension" case.
+
 export default function OmniRouteLogo({ size = 20, className = "" }: OmniRouteLogoProps) {
   return (
     <svg
@@ -28,6 +35,7 @@ export default function OmniRouteLogo({ size = 20, className = "" }: OmniRouteLo
       <circle cx="16" cy="27" r="1.5" fill="currentColor" />
       {/* Connection lines */}
       <line
+        suppressHydrationWarning
         x1="16"
         y1="13"
         x2="8"
@@ -37,6 +45,7 @@ export default function OmniRouteLogo({ size = 20, className = "" }: OmniRouteLo
         strokeLinecap="round"
       />
       <line
+        suppressHydrationWarning
         x1="16"
         y1="13"
         x2="24"
@@ -46,6 +55,7 @@ export default function OmniRouteLogo({ size = 20, className = "" }: OmniRouteLo
         strokeLinecap="round"
       />
       <line
+        suppressHydrationWarning
         x1="16"
         y1="19"
         x2="8"
@@ -55,6 +65,7 @@ export default function OmniRouteLogo({ size = 20, className = "" }: OmniRouteLo
         strokeLinecap="round"
       />
       <line
+        suppressHydrationWarning
         x1="16"
         y1="19"
         x2="24"
@@ -64,6 +75,7 @@ export default function OmniRouteLogo({ size = 20, className = "" }: OmniRouteLo
         strokeLinecap="round"
       />
       <line
+        suppressHydrationWarning
         x1="16"
         y1="13"
         x2="16"
@@ -73,6 +85,7 @@ export default function OmniRouteLogo({ size = 20, className = "" }: OmniRouteLo
         strokeLinecap="round"
       />
       <line
+        suppressHydrationWarning
         x1="16"
         y1="19"
         x2="16"

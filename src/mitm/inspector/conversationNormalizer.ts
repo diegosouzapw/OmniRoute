@@ -79,8 +79,7 @@ function blocksFromOpenAiContent(content: unknown): NormalizedBlock[] {
     } else if (type === "tool_result") {
       out.push({
         type: "tool_result",
-        tool_use_id:
-          typeof block.tool_use_id === "string" ? block.tool_use_id : "",
+        tool_use_id: typeof block.tool_use_id === "string" ? block.tool_use_id : "",
         content: block.content ?? null,
       });
     } else if (typeof block.text === "string") {
@@ -94,10 +93,7 @@ function blocksFromOpenAiContent(content: unknown): NormalizedBlock[] {
  * OpenAI assistant messages may declare `tool_calls`. Each becomes a
  * `tool_use` block alongside any text content.
  */
-function appendOpenAiToolCalls(
-  blocks: NormalizedBlock[],
-  toolCalls: unknown
-): NormalizedBlock[] {
+function appendOpenAiToolCalls(blocks: NormalizedBlock[], toolCalls: unknown): NormalizedBlock[] {
   if (!Array.isArray(toolCalls)) return blocks;
   for (const raw of toolCalls) {
     const tc = asRecord(raw);
@@ -126,11 +122,74 @@ function appendOpenAiToolCalls(
 /**
  * Build NormalizedTurn[] from OpenAI / Anthropic chat messages.
  */
+/** Responses API reasoning items carry `summary: [{type: "summary_text", text}]`. */
+function reasoningSummaryText(summary: unknown): string {
+  if (!Array.isArray(summary)) return "";
+  const parts: string[] = [];
+  for (const raw of summary) {
+    const block = asRecord(raw);
+    if (block && typeof block.text === "string") parts.push(block.text);
+  }
+  return parts.join("\n\n");
+}
+
 function turnsFromOpenAiMessages(messages: unknown[]): NormalizedTurn[] {
   const out: NormalizedTurn[] = [];
   for (const raw of messages) {
     const msg = asRecord(raw);
     if (!msg) continue;
+
+    // Responses API items for tool activity/reasoning carry no `role` at
+    // all — they're distinguished by `type` instead. Handle these before the
+    // role-based branches below, which would otherwise silently drop them
+    // (empty `content`, no `tool_calls`, `normalizeRole(undefined)` defaults
+    // to "user") — the exact gap that made a real OpenClaw request's
+    // function_call/function_call_output items vanish from the Conversation
+    // Context panel entirely (2026-08-06).
+    if (msg.type === "function_call") {
+      let parsedInput: unknown = {};
+      if (typeof msg.arguments === "string") {
+        try {
+          parsedInput = JSON.parse(msg.arguments);
+        } catch {
+          parsedInput = msg.arguments;
+        }
+      } else if (msg.arguments != null) {
+        parsedInput = msg.arguments;
+      }
+      out.push({
+        role: "assistant",
+        blocks: [
+          {
+            type: "tool_use",
+            id: typeof msg.call_id === "string" ? msg.call_id : "",
+            name: typeof msg.name === "string" ? msg.name : "",
+            input: parsedInput,
+          },
+        ],
+      });
+      continue;
+    }
+    if (msg.type === "function_call_output") {
+      out.push({
+        role: "tool",
+        blocks: [
+          {
+            type: "tool_result",
+            tool_use_id: typeof msg.call_id === "string" ? msg.call_id : "",
+            content: msg.output ?? null,
+          },
+        ],
+      });
+      continue;
+    }
+    if (msg.type === "reasoning") {
+      const text = reasoningSummaryText(msg.summary);
+      if (!text) continue;
+      out.push({ role: "assistant", blocks: [{ type: "text", text }] });
+      continue;
+    }
+
     const role = normalizeRole(msg.role);
 
     if (msg.role === "tool" || msg.role === "function") {
@@ -374,9 +433,7 @@ export function buildResponseTurns(req: InterceptedRequest): NormalizedTurn[] {
  * Normalize an intercepted LLM request + response into a provider-agnostic
  * conversation. Returns `null` for non-LLM requests or unparseable payloads.
  */
-export function normalizeConversation(
-  req: InterceptedRequest
-): NormalizedConversation | null {
+export function normalizeConversation(req: InterceptedRequest): NormalizedConversation | null {
   if (req.detectedKind !== "llm") return null;
 
   const requestBody = tryParseJson(req.requestBody);

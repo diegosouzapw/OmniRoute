@@ -2,76 +2,6 @@ import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getCallLogById } from "@/lib/usageDb";
 import { getCompletedDetails, getPendingById } from "@/lib/usage/usageHistory";
-import { getAllCallLogsForConversation } from "@/lib/db/agenticConversations";
-import { buildMultiRowConversation, type LoadedCallLogRow } from "@/mitm/inspector/multiRowConversation";
-
-// Reconstructing N rows means N sequential getCallLogById disk reads — bound
-// how many earlier turns get loaded so a very long-running agent session
-// doesn't add unbounded latency to opening any one of its turns.
-const MAX_LOADED_ROWS = 50;
-
-interface ConversationAttachment {
-  conversationTurns: unknown[];
-  conversationNextId: string | null;
-  conversationIsLatest: boolean;
-  conversationLastSeenAt: string | null;
-  conversationEarlierTurnsOmitted: boolean;
-}
-
-/**
- * "Full Conversation" panel data: every call_logs row sharing this entry's
- * conversation id (session_tag), reconstructed into one chronological,
- * per-turn-tagged transcript truncated to the turns visible as of the
- * CURRENTLY viewed row (turn-relative view) — not always "the latest turn".
- */
-async function buildConversationAttachment(
-  sessionTag: string | null | undefined,
-  currentEntry: any
-): Promise<ConversationAttachment | null> {
-  if (!sessionTag) return null;
-  try {
-    const allRefs = getAllCallLogsForConversation(sessionTag);
-    if (allRefs.length === 0) return null;
-
-    const currentIndex = allRefs.findIndex((r) => r.id === String(currentEntry.id));
-    const found = currentIndex !== -1;
-
-    // Defensive: the current row should always appear in its own conversation's
-    // row list. If it somehow doesn't, show everything with no "next" link
-    // and no "in progress" auto-refresh rather than crash or guess wrong.
-    let refsToLoad = found ? allRefs.slice(0, currentIndex + 1) : allRefs;
-    const earlierTurnsOmitted = refsToLoad.length > MAX_LOADED_ROWS;
-    if (earlierTurnsOmitted) refsToLoad = refsToLoad.slice(-MAX_LOADED_ROWS);
-
-    const loadedRows: LoadedCallLogRow[] = [];
-    for (const ref of refsToLoad) {
-      const entry =
-        ref.id === String(currentEntry.id) ? currentEntry : await getCallLogById(ref.id);
-      if (!entry) continue;
-      loadedRows.push({
-        id: String(entry.id),
-        timestamp: String(entry.timestamp ?? ref.timestamp),
-        requestBody: entry.requestBody ?? null,
-        responseBody: entry.responseBody ?? null,
-      });
-    }
-
-    const conversationTurns = buildMultiRowConversation(loadedRows);
-    const nextRef = found ? (allRefs[currentIndex + 1] ?? null) : null;
-    const lastRef = allRefs[allRefs.length - 1] ?? null;
-
-    return {
-      conversationTurns,
-      conversationNextId: nextRef?.id ?? null,
-      conversationIsLatest: found && currentIndex === allRefs.length - 1,
-      conversationLastSeenAt: lastRef?.timestamp ?? null,
-      conversationEarlierTurnsOmitted: earlierTurnsOmitted,
-    };
-  } catch (e) {
-    console.warn("/api/logs/[id] - failed to build conversation transcript:", e);
-    return null;
-  }
-}
 
 // Best-effort parse of the accumulated SSE `data:` lines captured live for an
 // in-flight request (open-sse/utils/requestLogger.ts's appendConvertedChunk
@@ -84,6 +14,7 @@ function extractPartialAssistantText(
   for (const chunkArr of [streamChunks.client, streamChunks.provider, streamChunks.openai]) {
     if (!Array.isArray(chunkArr) || chunkArr.length === 0) continue;
     let text = "";
+    let reasoning = "";
     for (const raw of chunkArr) {
       for (const line of String(raw).split("\n")) {
         const idx = line.indexOf("data:");
@@ -94,70 +25,22 @@ function extractPartialAssistantText(
           const parsed = JSON.parse(jsonStr);
           const delta = parsed?.choices?.[0]?.delta ?? parsed?.choices?.[0]?.message;
           if (typeof delta?.content === "string") text += delta.content;
+          if (typeof delta?.reasoning_content === "string") reasoning += delta.reasoning_content;
         } catch {
           // partial/malformed chunk line (e.g. cut mid-write) — skip it
         }
       }
     }
     if (text) return text;
+    // Reasoning-model providers (e.g. DeepSeek-R1-style) stream
+    // `reasoning_content` before any visible `content` — with only the
+    // content check above, the live panel had nothing new to show for the
+    // whole reasoning phase and looked frozen even while the SSE event
+    // stream kept visibly ticking. Surface the reasoning text meanwhile so
+    // the panel keeps progressing.
+    if (reasoning) return `_Thinking…_\n\n${reasoning}`;
   }
   return "";
-}
-
-/**
- * Same idea as buildConversationAttachment, but for a request that hasn't
- * finished (and isn't in call_logs yet): prior turns come from already-
- * persisted rows, and the currently-streaming reply is reconstructed from the
- * live streamChunks capture — so the "Full Conversation" panel can grow in
- * real time while a request is still generating, matching the raw SSE panel.
- */
-async function buildInFlightConversationAttachment(pendingRequestDetail: {
-  id: string;
-  sessionTag?: string | null;
-  clientRequest?: unknown;
-  streamChunks?: { provider?: string[]; openai?: string[]; client?: string[] } | null;
-}): Promise<ConversationAttachment | null> {
-  const sessionTag = pendingRequestDetail.sessionTag;
-  if (!sessionTag) return null;
-  try {
-    const allRefs = getAllCallLogsForConversation(sessionTag);
-    const earlierTurnsOmitted = allRefs.length > MAX_LOADED_ROWS;
-    const refsToLoad = earlierTurnsOmitted ? allRefs.slice(-MAX_LOADED_ROWS) : allRefs;
-
-    const loadedRows: LoadedCallLogRow[] = [];
-    for (const ref of refsToLoad) {
-      const entry = await getCallLogById(ref.id);
-      if (!entry) continue;
-      loadedRows.push({
-        id: String(entry.id),
-        timestamp: String(entry.timestamp ?? ref.timestamp),
-        requestBody: entry.requestBody ?? null,
-        responseBody: entry.responseBody ?? null,
-      });
-    }
-
-    const partialText = extractPartialAssistantText(pendingRequestDetail.streamChunks);
-    const nowIso = new Date().toISOString();
-    loadedRows.push({
-      id: pendingRequestDetail.id,
-      timestamp: nowIso,
-      requestBody: pendingRequestDetail.clientRequest ?? null,
-      responseBody: partialText
-        ? { choices: [{ message: { role: "assistant", content: partialText } }] }
-        : null,
-    });
-
-    return {
-      conversationTurns: buildMultiRowConversation(loadedRows),
-      conversationNextId: null,
-      conversationIsLatest: true,
-      conversationLastSeenAt: nowIso,
-      conversationEarlierTurnsOmitted: earlierTurnsOmitted,
-    };
-  } catch (e) {
-    console.warn("/api/logs/[id] - failed to build in-flight conversation transcript:", e);
-    return null;
-  }
 }
 
 export const dynamic = "force-dynamic";
@@ -200,17 +83,11 @@ export async function GET(
           active: true,
           pipelinePayloads,
           hasPipelineDetails: true,
+          // The still-generating reply so far — the request's own context
+          // panel renders this alongside its (already-complete) requestBody
+          // instead of waiting for the stream to finish.
+          partialAssistantText: extractPartialAssistantText(pendingRequestDetail.streamChunks),
         };
-
-        const inFlightConversationAttachment = await buildInFlightConversationAttachment({
-          id: pendingRequestDetail.id,
-          sessionTag: (pendingRequestDetail as any).sessionTag ?? null,
-          clientRequest: pendingRequestDetail.clientRequest,
-          streamChunks: pendingRequestDetail.streamChunks,
-        });
-        if (inFlightConversationAttachment) {
-          Object.assign(activeEntry, inFlightConversationAttachment);
-        }
 
         return NextResponse.json(activeEntry);
       }
@@ -269,14 +146,6 @@ export async function GET(
     }
 
     if (!persistedRequest) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-    const conversationAttachment = await buildConversationAttachment(
-      (persistedRequest as any).sessionTag,
-      persistedRequest
-    );
-    if (conversationAttachment) {
-      Object.assign(persistedRequest, conversationAttachment);
-    }
 
     return NextResponse.json(persistedRequest);
   } catch (err) {
