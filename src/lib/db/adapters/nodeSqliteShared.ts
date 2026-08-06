@@ -19,6 +19,7 @@ export function createNodeSqliteAdapterFromDatabase(
   onClose?: () => void
 ): SqliteAdapter {
   let _isOpen = true;
+  let transactionDepth = 0;
   type NodeSqliteStatement = ReturnType<NodeSqliteDatabaseLike["prepare"]>;
   interface CachedStatement {
     stmt: NodeSqliteStatement;
@@ -66,6 +67,27 @@ export function createNodeSqliteAdapterFromDatabase(
         db.exec(`RELEASE "${sp}"`);
       } catch {}
       throw err;
+    }
+  }
+
+  function runImmediate(fn: () => void): void {
+    if (transactionDepth > 0) {
+      runSavepoint(fn);
+      return;
+    }
+
+    db.exec("BEGIN IMMEDIATE");
+    transactionDepth += 1;
+    try {
+      fn();
+      db.exec("COMMIT");
+    } catch (error) {
+      try {
+        db.exec("ROLLBACK");
+      } catch {} // The failed transaction may already have released its write lock.
+      throw error;
+    } finally {
+      transactionDepth -= 1;
     }
   }
 
@@ -124,12 +146,25 @@ export function createNodeSqliteAdapterFromDatabase(
       return db.prepare(sql).all();
     },
     transaction<T>(fn: (...args: unknown[]) => T): (...args: unknown[]) => T {
-      return (...args: unknown[]) => runSavepoint(fn, ...args);
+      return (...args: unknown[]) => {
+        transactionDepth += 1;
+        try {
+          return runSavepoint(fn, ...args);
+        } finally {
+          transactionDepth -= 1;
+        }
+      };
     },
     immediate(fn: () => void): void {
-      runSavepoint(() => fn());
+      runImmediate(fn);
     },
     async backup(destination: string): Promise<void> {
+      const { backup } = await import("node:sqlite");
+      if (typeof backup === "function") {
+        await backup(db as never, destination);
+        return;
+      }
+
       try {
         db.exec("PRAGMA wal_checkpoint(TRUNCATE)");
       } catch {}

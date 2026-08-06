@@ -81,7 +81,10 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://www.meta.ai",
     hasFree: true,
     freeNote: "Free with login — Meta AI platform with Llama models.",
-    authHint: "Paste your ecto_1_sess value or full cookie header from meta.ai",
+    authHint:
+      "Paste your ecto_1_sess cookie AND the ecto1:... WS auth token from meta.ai. " +
+      "Capture the ecto1: token in DevTools → Network → WS → the clippy request's Authorization query param. " +
+      "Example: ecto_1_sess=4240a308...NVDg0; ecto1:ABCD...",
     toolCalling: "emulated",
   },
   "claude-web": {

@@ -24,8 +24,13 @@ const { GET, DELETE } = await import("../../src/app/api/monitoring/health/route.
 
 async function healthTimestamp(): Promise<string> {
   const res = await GET();
-  const body = (await res.json()) as { timestamp?: string };
+  const body = (await res.json()) as {
+    timestamp?: string;
+    adaptiveAdmission?: unknown;
+  };
   assert.ok(body.timestamp, "health payload should carry a timestamp");
+  // Adaptive admission is always projected (summary object or null) — never omitted.
+  assert.ok("adaptiveAdmission" in body, "health payload must include adaptiveAdmission");
   return body.timestamp as string;
 }
 
@@ -54,7 +59,7 @@ test("DELETE (circuit-breaker reset) invalidates the cache immediately", async (
     new Request("http://localhost/api/monitoring/health", {
       method: "DELETE",
       headers: { cookie: `auth_token=${authToken}` },
-    }),
+    })
   );
   assert.ok(delRes.status < 400, `DELETE should succeed, got ${delRes.status}`);
   await new Promise((r) => setTimeout(r, 5)); // ensure the clock advances past ms precision

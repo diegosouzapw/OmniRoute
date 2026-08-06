@@ -256,6 +256,7 @@ import {
   getCcrStoreStats,
   handleCcrRetrieve,
   inspectCcrBlock,
+  isCcrStoreRejection,
   listCcrBlocks,
   tryStoreBlock,
 } from "../../services/compression/engines/ccr/index.ts";
@@ -298,7 +299,7 @@ export async function handleCcrStoreTool(
     ttlSeconds: args.ttlSeconds,
   });
   const auditInput = buildCcrStoreAuditInput(args);
-  if (!result.stored) {
+  if (isCcrStoreRejection(result)) {
     const output = { stored: false as const, reason: result.reason };
     await logToolCall(
       "omniroute_ccr_store",

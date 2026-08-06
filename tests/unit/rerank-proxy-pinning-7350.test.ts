@@ -29,9 +29,10 @@ const { handleRerank } = await import("../../open-sse/handlers/rerank.ts");
 const originalFetch = globalThis.fetch;
 
 /** Captures the proxy URL visible inside the dispatch context at fetch time. */
-function stubFetch(seen: { proxyUrl: string | null | undefined }[]) {
+function stubFetch(seen: { proxyUrl: string | null | undefined }[], gate?: () => Promise<void>) {
   globalThis.fetch = (async () => {
     seen.push({ proxyUrl: proxyFetch.getCurrentProxyUrlForTests?.() ?? undefined });
+    if (gate) await gate();
     return new Response(
       JSON.stringify({ data: [{ index: 0, relevance_score: 0.9 }], model: "rerank-2" }),
       { status: 200, headers: { "Content-Type": "application/json" } }
@@ -63,10 +64,20 @@ test("#7350 handleRerank routes the upstream call through the connection's pinne
 
   // The stub only ever answers a DIRECT call: runWithProxyContext dispatches through
   // undici with the pinned proxy agent instead, so a pinned-but-unreachable proxy is
-  // observable as "the stub was bypassed and the request did not succeed". That
+  // observable as "the request did not succeed through the direct stub". That
   // difference IS the wiring — before #7350 this call egressed directly and got a 200.
+  //
+  // #9100: the T14 reachability probe is now NON-BLOCKING — dispatch is optimistic, so
+  // fn() (and hence this stub) runs immediately. To still observe the dead-proxy
+  // failure the stub must stay pending long enough for the probe (fast NXDOMAIN /
+  // ECONNREFUSED on rerank-egress.local) to resolve unreachable and abort the
+  // in-flight request with PROXY_UNREACHABLE instead of a direct 200.
   const seen: { proxyUrl: string | null | undefined }[] = [];
-  stubFetch(seen);
+  let releaseStub: () => void = () => {};
+  const stubGate = new Promise<void>((resolve) => {
+    releaseStub = resolve;
+  });
+  stubFetch(seen, () => stubGate);
 
   const res = (await handleRerank({
     model: "voyage/rerank-2",
@@ -76,12 +87,15 @@ test("#7350 handleRerank routes the upstream call through the connection's pinne
     connectionId: (conn as { id: string }).id,
   })) as Response;
 
-  assert.equal(seen.length, 0, "a pinned proxy must bypass the direct-egress path entirely");
+  // Optimistic dispatch (#9100) — the request IS started; what must NOT happen is
+  // the stub's direct 200 winning over the unreachable-proxy abort.
+  assert.equal(seen.length, 1, "a pinned proxy dispatches optimistically (non-blocking probe)");
   assert.notEqual(
     res.status,
     200,
     "the unreachable pinned proxy must surface as a failure rather than silently egressing direct"
   );
+  releaseStub();
 });
 
 test("#7350 an unresolvable connectionId degrades to a direct call instead of failing the request", async () => {

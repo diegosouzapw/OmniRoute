@@ -1,0 +1,1 @@
+- fix(api): fall back to slugified provider name when prefix is empty to prevent UUID leak in /v1/models (#9416)

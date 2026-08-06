@@ -34,6 +34,27 @@ test.after(() => {
     fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   } catch {}
   delete process.env.INITIAL_PASSWORD;
+  delete process.env.OMNIROUTE_INTERNAL_SERVICE_TOKEN;
+});
+
+test("internal service token requires the trusted loopback locality marker", async () => {
+  process.env.OMNIROUTE_INTERNAL_SERVICE_TOKEN = "internal-service-token-0123456789";
+  const tokenHeader = "x-omniroute-internal-service-token";
+  const local = new Request(`${BASE}/api/combos`, {
+    headers: {
+      [tokenHeader]: "internal-service-token-0123456789",
+      "x-omniroute-peer-locality": "loopback",
+    },
+  });
+  assert.equal(await requireManagementAuth(local), null);
+
+  const remote = new Request(`${BASE}/api/combos`, {
+    headers: {
+      [tokenHeader]: "internal-service-token-0123456789",
+      "x-omniroute-peer-locality": "remote",
+    },
+  });
+  assert.equal((await requireManagementAuth(remote))?.status, 401);
 });
 
 test("read token: allowed on GET, rejected (403) on a write route", async () => {

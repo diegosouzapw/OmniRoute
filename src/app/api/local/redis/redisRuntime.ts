@@ -6,6 +6,27 @@ export const REDIS_CONTAINER_NAME = process.env.OMNIROUTE_REDIS_CONTAINER_NAME |
 
 export const RUNTIME_PREFERENCE = ["podman", "docker"] as const;
 
+// The 1-click launcher starts Redis without AUTH, so its published port stays
+// on loopback. `-p 6379:6379` would bind 0.0.0.0 and expose an unauthenticated
+// Redis to the whole LAN. Operators who really need remote access set
+// OMNIROUTE_REDIS_BIND_HOST and secure the instance themselves.
+export const REDIS_DEFAULT_BIND_HOST = "127.0.0.1";
+
+/**
+ * Build the `-p` publish spec for the launcher's Redis container.
+ * Always host-qualified so the container runtime never falls back to 0.0.0.0.
+ */
+export function buildRedisPublishSpec(
+  bindHost: string = REDIS_DEFAULT_BIND_HOST,
+  hostPort: string | number = "6379"
+): string {
+  const host = String(bindHost || REDIS_DEFAULT_BIND_HOST).trim() || REDIS_DEFAULT_BIND_HOST;
+  const port = String(hostPort || "6379").trim() || "6379";
+  // Bracket IPv6 literals (e.g. ::1) so `host:port:port` stays unambiguous.
+  const normalizedHost = host.includes(":") && !host.startsWith("[") ? `[${host}]` : host;
+  return `${normalizedHost}:${port}:6379`;
+}
+
 type ExecFileAsync = (
   file: string,
   args: readonly string[],

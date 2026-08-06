@@ -1,0 +1,1 @@
+- fix(providers): map kimi-web/K3 to K2D5 scenario instead of OK Computer premium mode to fix resource_exhausted on non-subscriber accounts (#9338)

@@ -1,7 +1,7 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { z } from "zod";
-import { validatedJsonBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, validatedJsonBody } from "@/shared/validation/helpers";
 
 function makeRequest(body: string, contentType = "application/json"): Request {
   return new Request("http://localhost/test", {
@@ -71,6 +71,15 @@ describe("validatedJsonBody", () => {
       const fields = body.error.details.map((d: { field: string }) => d.field);
       assert.ok(fields.includes("name"));
       assert.ok(fields.includes("count"));
+    }
+  });
+
+  test("isValidationFailure narrows a validateBody failure", () => {
+    const result = validateBody(schema, { name: "", count: -1 });
+    assert.equal(isValidationFailure(result), true);
+    if (isValidationFailure(result)) {
+      assert.equal(result.error.message, "Invalid request");
+      assert.equal(result.error.details.length, 2);
     }
   });
 

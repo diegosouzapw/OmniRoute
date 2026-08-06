@@ -50,8 +50,13 @@ test("#5887(a) codex-only setup infers codex for unprefixed gpt-5.5", async () =
   assert.equal(info.model, "gpt-5.5", "codex inference keeps the bare gpt-5.5 id");
 });
 
-// (b) Codex + OpenAI active → preserve the historical OpenAI default.
-test("#5887(b) active Codex and OpenAI connections keep gpt-5.5 on OpenAI", async () => {
+// (b) Codex + OpenAI active → Codex wins for a Codex-native bare id.
+//     Reversed by #9275: `gpt-5.5` joined CODEX_NATIVE_UNPREFIXED_MODELS, so the
+//     ChatGPT subscription is now the deliberate destination for bare Codex CLI ids
+//     even with OpenAI active. The compatibility boundary this file documented moved
+//     from "OpenAI wins the overlap" to "an explicit prefix wins the overlap" —
+//     asserted in (b2) below so the override is not silently lost.
+test("#5887(b) active Codex and OpenAI connections route bare gpt-5.5 to Codex", async () => {
   const conn = await providersDb.createProviderConnection({
     provider: "openai",
     authType: "apikey",
@@ -60,7 +65,18 @@ test("#5887(b) active Codex and OpenAI connections keep gpt-5.5 on OpenAI", asyn
   openaiConnectionId = (conn as { id?: number | string })?.id;
 
   const info = await getModelInfoCore("gpt-5.5", null);
-  assert.equal(info.provider, "openai", "OpenAI remains default when both providers are active");
+  assert.equal(
+    info.provider,
+    "codex",
+    "bare gpt-5.5 prefers the Codex subscription once both providers are active (#9275)"
+  );
+  assert.equal(info.model, "gpt-5.5");
+});
+
+// (b2) …but the explicit prefix stays authoritative — the documented escape hatch.
+test("#5887(b2) an explicit openai/ prefix still overrides the Codex preference", async () => {
+  const info = await getModelInfoCore("openai/gpt-5.5", null);
+  assert.equal(info.provider, "openai", "explicit provider prefix beats the Codex-native set");
   assert.equal(info.model, "gpt-5.5");
 });
 

@@ -7,10 +7,11 @@ import { supportsClaudeMaxEffort, supportsXHighEffort } from "../../config/provi
 /**
  * Sanitize reasoning_effort for providers that don't accept all values.
  *
- * The claude→openai translator may emit reasoning_effort=max/xhigh when the
- * client sends output_config.effort=max on a Claude-shape request. Combined with
- * runtime alias remapping (e.g. claude-opus-4-6 → mimo/mimo-v2.5-pro), this
- * routes xhigh to OpenAI-shape providers that don't accept the value:
+ * The claude→openai translator passes output_config.effort through verbatim
+ * (including max) and only performs form conversion; provider-aware effort
+ * policy is owned here. Combined with runtime alias remapping (e.g.
+ * claude-opus-4-6 → mimo/mimo-v2.5-pro), this routes a client's effort value
+ * to OpenAI-shape providers that don't accept it:
  *
  *   xiaomi-mimo : low|medium|high only — 400 literal_error on xhigh
  *   mistral     : devstral models reject reasoning_effort entirely
@@ -216,10 +217,7 @@ function writeEffortValue(
 }
 
 /** Strip the effort field from every carrier that was present. */
-function stripEffortValue(
-  b: Record<string, unknown>,
-  c: EffortCarriers
-): Record<string, unknown> {
+function stripEffortValue(b: Record<string, unknown>, c: EffortCarriers): Record<string, unknown> {
   const next: Record<string, unknown> = { ...b };
   if (c.hasTopLevelReasoningEffort) delete next.reasoning_effort;
   if (c.hasReasoningEffort && c.reasoning) {

@@ -118,6 +118,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
   {
+    key: "AUDIO_REMOTE_PROVIDER_NODES",
+    label: "Remote Audio Provider Nodes",
+    description:
+      "Allow the /v1/audio/* routes to use OpenAI-compatible provider nodes hosted outside localhost. Off by default — routing audio to a remote host changes egress identity and must be an explicit operator decision. Loopback nodes are always allowed and unaffected.",
+    descriptionI18nKey: "settings.featureFlags.audioRemoteProviderNodes",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "danger",
+  },
+  {
     key: "ONEPROXY_ENABLED",
     label: "OneProxy Enabled",
     description: "Enable 1proxy request proxying.",
@@ -403,6 +415,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     description:
       "Advertise claude/<provider>/<model> mirror ids on /v1/models so Claude Code gateway model discovery lists non-Claude models. Warning: doubles catalog entries for all clients when enabled globally.",
     descriptionI18nKey: "featureFlagExposeCcDiscoveryAliasesDescription",
+    category: "runtime",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "info",
+  },
+  {
+    key: "EXPOSE_FUNCTIONAL_GATEWAY_MIRRORS",
+    label: "Functional Gateway Mirrors",
+    description:
+      "Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally.",
+    descriptionI18nKey: "featureFlagExposeFunctionalGatewayMirrorsDescription",
     category: "runtime",
     defaultValue: "false",
     type: "boolean",

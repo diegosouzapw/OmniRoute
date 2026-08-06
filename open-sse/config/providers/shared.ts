@@ -48,6 +48,7 @@ export interface RegistryModel {
   aliases?: readonly string[];
   toolCalling?: boolean;
   supportsReasoning?: boolean;
+  supportedThinkingEfforts?: readonly string[];
   supportsVision?: boolean;
   supportsXHighEffort?: boolean;
   maxOutputTokens?: number;
@@ -140,6 +141,8 @@ export interface RegistryEntry {
   passthroughModels?: boolean;
   /** Default context window for all models in this provider (can be overridden per-model) */
   defaultContextLength?: number;
+  /** Maximum OpenAI-compatible function name length accepted by this provider. */
+  toolNameMaxLength?: number;
   /** Optional session pool config for rate limit management */
   poolConfig?: Record<string, unknown>;
   /**
@@ -176,6 +179,12 @@ export interface RegistryEntry {
    * standard OpenAI array-shaped content untouched (see openai-responses.ts).
    */
   requiresPlainStringContent?: boolean;
+  /**
+   * Anthropic-compatible providers that omit the required `signature` field
+   * from streamed thinking block starts. The passthrough stream adds only an
+   * empty placeholder; later provider `signature_delta` events remain intact.
+   */
+  ensureThinkingSignature?: boolean;
   /**
    * Protocolos alternativos que este provedor aceita (ex.: um endpoint
    * Anthropic-compatible alem do OpenAI-compatible padrao). A conexao escolhe

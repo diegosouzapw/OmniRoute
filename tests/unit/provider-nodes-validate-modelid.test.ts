@@ -10,9 +10,8 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-validate-
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
-const providerNodesValidateRoute = await import(
-  "../../src/app/api/provider-nodes/validate/route.ts"
-);
+const providerNodesValidateRoute =
+  await import("../../src/app/api/provider-nodes/validate/route.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -133,6 +132,98 @@ test("openai-compatible: without modelId, 404 from /models returns helpful hint"
   const data = (await res.json()) as any;
   assert.equal(data.valid, false);
   assert.match(String(data.error), /models.*endpoint.*not found|model id/i);
+});
+
+// ---------------------------------------------------------------------------
+// apiType-aware validation. Before this, the Check button ignored the node's
+// apiType and always probed /models then /chat/completions — so an
+// audio-transcriptions node was validated against a chat endpoint it does not
+// serve, reporting a misleading pass/fail.
+// ---------------------------------------------------------------------------
+
+type ValidateResult = { valid: boolean; error?: string | null; method?: string | null };
+
+test("audio-transcriptions: probes /audio/transcriptions, never /chat/completions", async () => {
+  const calls = installFetchSequence([
+    () => new Response(JSON.stringify({ text: "" }), { status: 200 }),
+  ]);
+
+  const res = await validate({
+    baseUrl: "https://proxy.example.com/v1",
+    apiKey: "sk-test",
+    type: "openai-compatible",
+    apiType: "audio-transcriptions",
+    modelId: "whisper-1",
+  });
+
+  assert.equal(res.status, 200);
+  const data = (await res.json()) as ValidateResult;
+  assert.equal(data.valid, true);
+  assert.equal(data.method, "audio-transcriptions");
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://proxy.example.com/v1/audio/transcriptions");
+  assert.equal(calls[0].init.method, "POST");
+  // No chat endpoint may be touched for an audio node.
+  assert.ok(!calls.some((c) => c.url.includes("/chat/completions")));
+  // The probe uploads a real multipart body carrying the model + an audio file.
+  const body = calls[0].init.body as FormData;
+  assert.equal(body.get("model"), "whisper-1");
+  assert.ok(body.get("file"), "expected an audio file part");
+});
+
+test("audio-transcriptions: without modelId, fails fast without any upstream call", async () => {
+  const calls = installFetchSequence([() => new Response("unexpected", { status: 200 })]);
+
+  const res = await validate({
+    baseUrl: "https://proxy.example.com/v1",
+    apiKey: "sk-test",
+    type: "openai-compatible",
+    apiType: "audio-transcriptions",
+  });
+
+  assert.equal(res.status, 200);
+  const data = (await res.json()) as ValidateResult;
+  assert.equal(data.valid, false);
+  assert.match(String(data.error), /model id required/i);
+  assert.equal(calls.length, 0);
+});
+
+test("audio-transcriptions: upstream failure returns an audio-specific error", async () => {
+  installFetchSequence([() => new Response("nope", { status: 401 })]);
+
+  const res = await validate({
+    baseUrl: "https://proxy.example.com/v1",
+    apiKey: "sk-bad",
+    type: "openai-compatible",
+    apiType: "audio-transcriptions",
+    modelId: "whisper-1",
+  });
+
+  const data = (await res.json()) as ValidateResult;
+  assert.equal(data.valid, false);
+  assert.equal(data.method, "audio-transcriptions");
+  assert.match(String(data.error), /unauthorized/i);
+});
+
+test("apiType chat keeps the existing /models then /chat/completions flow", async () => {
+  const calls = installFetchSequence([
+    () => new Response("not found", { status: 404 }),
+    () => new Response(JSON.stringify({ id: "ok" }), { status: 200 }),
+  ]);
+
+  const res = await validate({
+    baseUrl: "https://proxy.example.com/v1",
+    apiKey: "sk-test",
+    type: "openai-compatible",
+    apiType: "chat",
+    modelId: "my-model",
+  });
+
+  const data = (await res.json()) as ValidateResult;
+  assert.equal(data.valid, true);
+  assert.equal(data.method, "chat");
+  assert.equal(calls[0].url, "https://proxy.example.com/v1/models");
+  assert.equal(calls[1].url, "https://proxy.example.com/v1/chat/completions");
 });
 
 test("anthropic-compatible: modelId fallback to /chat/completions on 404", async () => {

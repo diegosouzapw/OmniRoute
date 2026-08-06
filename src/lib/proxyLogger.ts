@@ -8,6 +8,7 @@
  */
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance, isCloud, isBuildPhase } from "./db/core";
+import { ensureProxyLogsColumns } from "./db/schemaColumns";
 
 const shouldPersistToDisk = !isCloud && !isBuildPhase;
 
@@ -64,6 +65,9 @@ function loadFromDb() {
   if (!shouldPersistToDisk) return;
   try {
     const db = getDbInstance();
+    // Self-heal the proxy_logs schema before reading/writing (migration 134
+    // guarantees egress_ip on every migrated DB; this covers restored/odd states).
+    ensureProxyLogsColumns(db);
     const rows = db
       .prepare("SELECT * FROM proxy_logs ORDER BY timestamp DESC LIMIT ?")
       .all(MAX_IN_MEMORY_ENTRIES) as any[];
@@ -145,10 +149,10 @@ export function logProxyEvent(entry: ProxyLogInput) {
       const db = getDbInstance();
       db.prepare(
         `INSERT INTO proxy_logs (id, timestamp, status, proxy_type, proxy_host, proxy_port,
-          level, level_id, provider, target_url, public_ip, latency_ms, error,
+          level, level_id, provider, target_url, public_ip, egress_ip, latency_ms, error,
           connection_id, combo_id, account, tls_fingerprint)
         VALUES (@id, @timestamp, @status, @proxyType, @proxyHost, @proxyPort,
-          @level, @levelId, @provider, @targetUrl, @clientIp, @latencyMs, @error,
+          @level, @levelId, @provider, @targetUrl, @clientIp, @egressIp, @latencyMs, @error,
           @connectionId, @comboId, @account, @tlsFingerprint)`
       ).run({
         id: log.id,
@@ -162,6 +166,7 @@ export function logProxyEvent(entry: ProxyLogInput) {
         provider: log.provider,
         targetUrl: log.targetUrl,
         clientIp: log.clientIp,
+        egressIp: log.egressIp,
         latencyMs: log.latencyMs,
         error: log.error,
         connectionId: log.connectionId,
@@ -214,6 +219,7 @@ export function getProxyLogs(filters: ProxyLogFilters = {}) {
         (l.provider || "").toLowerCase().includes(q) ||
         (l.targetUrl || "").toLowerCase().includes(q) ||
         (l.clientIp || "").toLowerCase().includes(q) ||
+        (l.egressIp || "").toLowerCase().includes(q) ||
         (l.level || "").toLowerCase().includes(q) ||
         (l.error || "").toLowerCase().includes(q) ||
         (l.account || "").toLowerCase().includes(q)

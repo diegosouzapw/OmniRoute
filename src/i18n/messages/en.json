@@ -4995,10 +4995,12 @@
     "noNewModelsToImport": "No new models to import — all models are already in the registry or custom models list",
     "skippingExistingModels": "Skipping {count} existing models",
     "autoSync": "Auto-Sync",
+    "autoSyncShort": "Sync",
     "autoSyncTooltip": "Automatically refresh model list every 24h (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Auto-sync enabled — models will refresh periodically",
     "autoSyncDisabled": "Auto-sync disabled",
     "autoSyncToggleFailed": "Failed to toggle auto-sync",
+    "autoSyncPartialFailure": "Auto-sync updated for some connections, but not all",
     "clearAllModels": "Clear All Models",
     "clearAllModelsConfirm": "Are you sure you want to remove all models for this provider? This cannot be undone.",
     "clearAllModelsSuccess": "All models cleared",
@@ -5767,6 +5769,7 @@
     "onboardingProviderDescriptions": {
       "360ai": "Get API key at ai.360.cn",
       "agentrouter": "Get $200 free credits at https://agentrouter.org/register — no credit card required.",
+      "unorouter": "Create an API key at https://unorouter.ai, then paste it here as a Bearer token.",
       "agnes": "Get API key at agnes-ai.com",
       "aimlapi": "Free tier paused (2026) — AI/ML API is now pay-as-you-go only (min $20 top-up); no recurring free credits.",
       "ai21": "$10 trial credits on signup (valid 3 months), no credit card required",
@@ -8463,6 +8466,16 @@
   },
   "usage": {
     "title": "Usage",
+    "grokExtraUsageCredits": "Extra Usage Credits",
+    "grokAutoTopUp": "Auto Top-Up",
+    "grokAutoTopUpUnavailable": "Unavailable",
+    "grokAutoTopUpEnabled": "Enabled",
+    "grokAutoTopUpDisabled": "Disabled",
+    "grokAutoTopUpAt": "at",
+    "grokAutoTopUpAdd": "add",
+    "grokAutoTopUpMax": "max",
+    "grokAutoTopUpMonth": "month",
+    "grokAdditionalCredits": "Additional Credits",
     "loggerTab": "Logger",
     "proxyTab": "Proxy",
     "budgetManagement": "Budget Management",
@@ -10765,6 +10778,8 @@
     "sourceModel": "Source model (agent native)",
     "targetModel": "Target model (OmniRoute)",
     "noMappings": "No model mappings configured. Run setup wizard to auto-detect models.",
+    "noMappingsDesc": "No model mappings configured yet. Add mappings to route agent requests through OmniRoute.",
+    "addMapping": "Add mapping",
     "selectModel": "Select…",
     "saveMappings": "Save mappings",
     "setupWizard": "Setup wizard",
@@ -12207,5 +12222,6 @@
     "cta": "Get Kimi Code",
     "partnerLinkNote": "Partner link",
     "dismissAriaLabel": "Dismiss"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { POST as postChatCompletion } from "@/app/api/v1/chat/completions/route";
+import { POST as postAudioTranscription } from "@/app/api/v1/audio/transcriptions/route";
 import { handleValidatedEmbeddingRequestBody } from "@/app/api/v1/embeddings/route";
 import { POST as postRerank } from "@/app/api/v1/rerank/route";
 import {
@@ -8,6 +9,7 @@ import {
   extractComboTestStreamResult,
 } from "@/lib/combos/testHealth";
 import { getCustomModels } from "@/lib/localDb";
+import { getProviderNodeById } from "@/lib/db/providers";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { withRateLimit } from "@omniroute/open-sse/services/rateLimitManager";
 
@@ -124,6 +126,18 @@ async function findCustomModelMetadata(providerId: string, modelId: string) {
   }
 }
 
+// The apiType configured on the provider node ("the account"), used as the fallback
+// signal in detectTestKind. Non-node providers (e.g. "openai") simply have no row —
+// resolve to undefined and let the model-level heuristics decide.
+async function findProviderNodeApiType(providerId: string): Promise<string | undefined> {
+  try {
+    const node = (await getProviderNodeById(providerId)) as { apiType?: unknown } | null;
+    return typeof node?.apiType === "string" ? node.apiType : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function buildInternalChatRequest(
   testBody: Record<string, unknown>,
   signal: AbortSignal,
@@ -167,26 +181,77 @@ export function buildInternalRerankRequest(
   });
 }
 
-export function detectTestKind(modelStr: string, customModel: any) {
+function buildTinyWavFile(): File {
+  return new File(
+    [
+      new Uint8Array([
+        0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45, 0x66, 0x6d, 0x74,
+        0x20, 0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x40, 0x1f, 0x00, 0x00, 0x80, 0x3e,
+        0x00, 0x00, 0x02, 0x00, 0x10, 0x00, 0x64, 0x61, 0x74, 0x61, 0x00, 0x00, 0x00, 0x00,
+      ]),
+    ],
+    "omniroute-model-test.wav",
+    { type: "audio/wav" }
+  );
+}
+
+export function buildInternalAudioTranscriptionRequest(
+  model: string,
+  signal: AbortSignal,
+  connectionId?: string
+) {
+  const formData = new FormData();
+  formData.set("model", model);
+  formData.set("file", buildTinyWavFile());
+
+  return new Request(`${INTERNAL_ORIGIN}/v1/audio/transcriptions`, {
+    method: "POST",
+    headers: {
+      "X-Internal-Test": "combo-health-check",
+      "X-OmniRoute-No-Cache": "true",
+      "X-OmniRoute-Compression": "off",
+      "X-Request-Id": `model-test-${randomUUID()}`,
+      ...(connectionId ? { "X-OmniRoute-Connection": connectionId } : {}),
+    },
+    body: formData,
+    signal,
+  });
+}
+
+export function detectTestKind(modelStr: string, customModel: any, nodeApiType?: string) {
   const supportedEndpoints = Array.isArray(customModel?.supportedEndpoints)
     ? customModel.supportedEndpoints
     : [];
   const apiFormat = typeof customModel?.apiFormat === "string" ? customModel.apiFormat : "";
+  // Imported/synced models carry no per-model metadata — they come straight from the
+  // upstream /models list and are often opaque ids. The provider node's configured
+  // apiType is then the only signal for which endpoint may be probed; without it an
+  // audio-only node gets tested against /chat/completions and fails with
+  // "All AI backends exhausted for chat".
+  const nodeType = typeof nodeApiType === "string" ? nodeApiType : "";
   const lowerModel = modelStr.toLowerCase();
+  const isAudioTranscription =
+    apiFormat === "audio-transcriptions" ||
+    nodeType === "audio-transcriptions" ||
+    supportedEndpoints.includes("audio-transcriptions");
   const isRerank =
-    apiFormat === "rerank" ||
-    supportedEndpoints.includes("rerank") ||
-    lowerModel.includes("rerank");
+    !isAudioTranscription &&
+    (apiFormat === "rerank" ||
+      nodeType === "rerank" ||
+      supportedEndpoints.includes("rerank") ||
+      lowerModel.includes("rerank"));
   const isEmbedding =
+    !isAudioTranscription &&
     !isRerank &&
     (apiFormat === "embeddings" ||
+      nodeType === "embeddings" ||
       supportedEndpoints.includes("embeddings") ||
       lowerModel.includes("embedding") ||
       lowerModel.includes("bge-") ||
       lowerModel.includes("text-embed") ||
       lowerModel.includes("jina-clip") ||
       lowerModel.includes("colbert"));
-  return { isRerank, isEmbedding };
+  return { isRerank, isEmbedding, isAudioTranscription };
 }
 
 /**
@@ -281,8 +346,15 @@ export async function runSingleModelTest(
   const effectiveTimeoutMs = resolveModelTestTimeoutMs(providerId, fullModelStr, timeoutMs);
 
   const startTime = Date.now();
-  const customModel = await findCustomModelMetadata(providerId, fullModelStr);
-  const { isRerank, isEmbedding } = detectTestKind(fullModelStr, customModel);
+  const [customModel, nodeApiType] = await Promise.all([
+    findCustomModelMetadata(providerId, fullModelStr),
+    findProviderNodeApiType(providerId),
+  ]);
+  const { isRerank, isEmbedding, isAudioTranscription } = detectTestKind(
+    fullModelStr,
+    customModel,
+    nodeApiType
+  );
 
   const testBody = isRerank
     ? {
@@ -295,10 +367,12 @@ export async function runSingleModelTest(
         top_n: 1,
         return_documents: false,
       }
-    : buildComboTestRequestBody(fullModelStr, isEmbedding, {
-        stream: !isEmbedding && streamChat,
-        maxTokens: !isEmbedding && streamChat ? STREAMING_CHAT_TEST_MAX_TOKENS : undefined,
-      });
+    : isAudioTranscription
+      ? { model: fullModelStr }
+      : buildComboTestRequestBody(fullModelStr, isEmbedding, {
+          stream: !isEmbedding && streamChat,
+          maxTokens: !isEmbedding && streamChat ? STREAMING_CHAT_TEST_MAX_TOKENS : undefined,
+        });
 
   // Per-model AbortController. We track whether the timeout fired so we can
   // distinguish "rate-limit queue aborted" (withRateLimit threw AbortError
@@ -319,6 +393,11 @@ export async function runSingleModelTest(
     }
     if (isRerank) {
       return postRerank(buildInternalRerankRequest(testBody, signal, connectionId));
+    }
+    if (isAudioTranscription) {
+      return postAudioTranscription(
+        buildInternalAudioTranscriptionRequest(fullModelStr, signal, connectionId)
+      );
     }
     return postChatCompletion(buildInternalChatRequest(testBody, signal, connectionId));
   };

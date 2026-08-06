@@ -188,3 +188,183 @@ test("#8327: built-in providers keep their existing owned_by contract (unaffecte
   assert.ok(openaiModel, "expected at least one openai/* built-in model in the catalog");
   assert.equal(openaiModel!.owned_by, "openai");
 });
+
+test("#9416: compatible provider with empty prefix falls back to slugified name, not UUID", async () => {
+  await providersDb.createProviderNode({
+    id: NODE_ID,
+    type: "openai-compatible",
+    name: "PIX4K Talk (production-probe)",
+    prefix: "", // empty prefix — should fall back to slugified name
+    baseUrl: "https://proxy.example.com",
+    chatPath: "/v1/chat/completions",
+    modelsPath: "/v1/models",
+  });
+  const connection = await providersDb.createProviderConnection({
+    provider: NODE_ID,
+    authType: "apikey",
+    name: "pix4k-talk-conn",
+    apiKey: "sk-test",
+    isActive: true,
+    testStatus: "active",
+    providerSpecificData: {
+      baseUrl: "https://proxy.example.com",
+      chatPath: "/v1/chat/completions",
+      modelsPath: "/v1/models",
+    },
+  });
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection(
+    NODE_ID,
+    (connection as { id: string }).id,
+    [
+      {
+        id: "glm-5.2",
+        name: "GLM 5.2",
+        source: "imported",
+        supportedEndpoints: ["chat"],
+      },
+    ]
+  );
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as { data: Array<Record<string, unknown>> };
+
+  // "PIX4K Talk (production-probe)" → slugified "pix4k-talk-production-probe"
+  const expectedPrefix = "pix4k-talk-production-probe";
+  const entry = body.data.find((m) => m.id === `${expectedPrefix}/glm-5.2`);
+  assert.ok(
+    entry,
+    `expected an entry with id "${expectedPrefix}/glm-5.2" since prefix was empty, name should slugify — got ids: ${JSON.stringify(body.data.map((m) => m.id))}`
+  );
+  assert.equal(
+    entry!.owned_by,
+    expectedPrefix,
+    `owned_by must be the slugified name "${expectedPrefix}", not the raw provider-node UUID — got "${entry!.owned_by}"`
+  );
+
+  // The raw UUID-shaped provider-node id must never appear as owned_by anywhere.
+  for (const model of body.data) {
+    assert.equal(
+      typeof model.owned_by === "string" && UUID_SHAPE_RE.test(model.owned_by),
+      false,
+      `owned_by "${model.owned_by}" (id "${model.id}") must not be a raw provider-node UUID`
+    );
+    assert.notEqual(
+      model.owned_by,
+      NODE_ID,
+      `owned_by must never equal the raw provider-node id "${NODE_ID}"`
+    );
+  }
+});
+
+test("#9416: compatible provider with null/undefined prefix also falls back to slugified name", async () => {
+  const nodeIdWithoutPrefix = "openai-compatible-chat-660e8400-e29b-41d4-a716-446655440001";
+  await providersDb.createProviderNode({
+    id: nodeIdWithoutPrefix,
+    type: "openai-compatible",
+    name: "My Custom Proxy",
+    // prefix omitted entirely → should fall back to slugified name
+    baseUrl: "https://myproxy.example.com",
+    chatPath: "/v1/chat/completions",
+    modelsPath: "/v1/models",
+  });
+  const connection2 = await providersDb.createProviderConnection({
+    provider: nodeIdWithoutPrefix,
+    authType: "apikey",
+    name: "myproxy-conn",
+    apiKey: "sk-test-2",
+    isActive: true,
+    testStatus: "active",
+    providerSpecificData: {
+      baseUrl: "https://myproxy.example.com",
+      chatPath: "/v1/chat/completions",
+      modelsPath: "/v1/models",
+    },
+  });
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection(
+    nodeIdWithoutPrefix,
+    (connection2 as { id: string }).id,
+    [
+      {
+        id: "my-model-v1",
+        name: "My Model V1",
+        source: "imported",
+        supportedEndpoints: ["chat"],
+      },
+    ]
+  );
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as { data: Array<Record<string, unknown>> };
+
+  // "My Custom Proxy" → slugified "my-custom-proxy"
+  const expectedSlug = "my-custom-proxy";
+  const entry = body.data.find((m) => m.id === `${expectedSlug}/my-model-v1`);
+  assert.ok(
+    entry,
+    `expected an entry with id "${expectedSlug}/my-model-v1" — got ids: ${JSON.stringify(body.data.map((m) => m.id))}`
+  );
+  assert.equal(
+    entry!.owned_by,
+    expectedSlug,
+    `owned_by must be the slugified name "${expectedSlug}", not the raw provider-node id`
+  );
+  assert.notEqual(entry!.owned_by, nodeIdWithoutPrefix);
+});
+
+test("#9416: provider with configured prefix still uses the configured prefix (regression guard)", async () => {
+  await providersDb.createProviderNode({
+    id: NODE_ID,
+    type: "openai-compatible",
+    name: "pix4k talk (probe)",
+    prefix: CONFIGURED_PREFIX,
+    baseUrl: "https://proxy.example.com",
+    chatPath: "/v1/chat/completions",
+    modelsPath: "/v1/models",
+  });
+  const connection = await providersDb.createProviderConnection({
+    provider: NODE_ID,
+    authType: "apikey",
+    name: "pix4k-talk-conn",
+    apiKey: "sk-test",
+    isActive: true,
+    testStatus: "active",
+    providerSpecificData: {
+      baseUrl: "https://proxy.example.com",
+      chatPath: "/v1/chat/completions",
+      modelsPath: "/v1/models",
+    },
+  });
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection(
+    NODE_ID,
+    (connection as { id: string }).id,
+    [
+      {
+        id: "glm-5.2",
+        name: "GLM 5.2",
+        source: "imported",
+        supportedEndpoints: ["chat"],
+      },
+    ]
+  );
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as { data: Array<Record<string, unknown>> };
+
+  // Must still use the configured prefix, NOT slugified name
+  const entry = body.data.find((m) => m.id === `${CONFIGURED_PREFIX}/glm-5.2`);
+  assert.ok(
+    entry,
+    `expected entry with configured prefix "${CONFIGURED_PREFIX}/glm-5.2"`
+  );
+  assert.equal(entry!.owned_by, CONFIGURED_PREFIX);
+  assert.notEqual(entry!.owned_by, "pix4k-talk-probe"); // not slugified
+});

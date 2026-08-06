@@ -12,6 +12,10 @@ import {
 } from "@/lib/localDb";
 import { createLazyConnectionView } from "@/lib/db/providers/lazyConnectionView";
 import { extractAliasBackedModels } from "./aliasBackedModels";
+import {
+  buildSyncedModelIdsByCanonicalProvider,
+  shouldSuppressStaticModelBySyncedCoverage,
+} from "./catalogSyncedCoverage";
 import { buildSyncedCapabilities, mergeSyncedCapabilities } from "./syncedCapabilities";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
 import {
@@ -263,8 +267,16 @@ async function buildUnifiedModelsResponseCore(
     const providerIdToPrefix: Record<string, string> = {};
     const nodeIdToProviderType: Record<string, string> = {};
     for (const node of providerNodes) {
-      if (node.prefix) {
-        providerIdToPrefix[node.id] = node.prefix;
+      const resolvedPrefix =
+        node.prefix?.trim() ||
+        node.name
+          ?.trim()
+          ?.toLowerCase()
+          ?.replace(/\s+/g, "-")
+          ?.replace(/[^a-z0-9-]/g, "") ||
+        null;
+      if (resolvedPrefix) {
+        providerIdToPrefix[node.id] = resolvedPrefix;
       }
       if (node.type) {
         nodeIdToProviderType[node.id] = node.type;
@@ -457,7 +469,12 @@ async function buildUnifiedModelsResponseCore(
       }
       Object.assign(
         capabilities,
-        getThinkingCapabilityFields(providerId, modelId, canonical.capabilities.supportsThinking)
+        getThinkingCapabilityFields(
+          providerId,
+          modelId,
+          canonical.capabilities.supportsThinking,
+          registryModel?.supportedThinkingEfforts
+        )
       );
 
       return {
@@ -675,6 +692,16 @@ async function buildUnifiedModelsResponseCore(
       return false;
     };
 
+    // Map canonical provider id -> set of synced display-model ids, so the static
+    // loop below can decide which static models a provider's synced discovery list
+    // actually covers (and which static models it must preserve).
+    const syncedModelIdsByCanonicalProvider = buildSyncedModelIdsByCanonicalProvider(
+      syncedModelsByProvider,
+      resolveCanonicalProviderId,
+      providerIdToPrefix,
+      providerIdToAlias
+    );
+
     // Add provider models (chat)
     for (const [alias, providerModels] of Object.entries(PROVIDER_MODELS)) {
       const providerId = aliasToProviderId[alias] || alias;
@@ -693,10 +720,20 @@ async function buildUnifiedModelsResponseCore(
       }
 
       for (const model of providerModels) {
-        // Synced models replace static base entries, but they do not carry aliases
-        // registered for provider-specific reasoning variants.
+        // Synced models replace static base entries they COVER, but they do not
+        // carry aliases registered for provider-specific reasoning variants, and
+        // static models the synced list does NOT cover must be preserved (the
+        // gateway still routes them — e.g. command-code's static
+        // `deepseek/deepseek-v4-flash` which its discovery never lists). Before
+        // the fix, a provider with any synced model silently dropped ALL its
+        // static models.
+        const syncedForProvider = syncedModelIdsByCanonicalProvider.get(canonicalProviderId);
         if (
-          providersWithSyncedModels.has(canonicalProviderId) &&
+          shouldSuppressStaticModelBySyncedCoverage({
+            providerHasSynced: syncedForProvider !== undefined && syncedForProvider.size > 0,
+            staticModelId: model.id,
+            syncedModelIds: syncedForProvider ? [...syncedForProvider] : [],
+          }) &&
           !isRegisteredEffortVariant(providerModels, model.id)
         )
           continue;

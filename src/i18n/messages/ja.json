@@ -4973,10 +4973,12 @@
     "noNewModelsToImport": "インポートする新しいモデルはありません — すべてのモデルは既にレジストリまたはカスタムモデルリストにあります",
     "skippingExistingModels": "{count}件の既存モデルをスキップ",
     "autoSync": "自動同期",
+    "autoSyncShort": "同期",
     "autoSyncTooltip": "24時間ごとにモデルリストを自動更新（MODEL_SYNC_INTERVAL_HOURSで設定可能）",
     "autoSyncEnabled": "自動同期有効 — モデルは定期的に更新されます",
     "autoSyncDisabled": "自動同期無効",
     "autoSyncToggleFailed": "自動同期の切り替えに失敗",
+    "autoSyncPartialFailure": "自動同期が一部の接続で更新されましたが、すべてではありません",
     "clearAllModels": "すべてのモデルを削除",
     "clearAllModelsConfirm": "このプロバイダーのすべてのモデルを削除してもよろしいですか？",
     "clearAllModelsSuccess": "すべてのモデルを削除しました",
@@ -12182,5 +12184,6 @@
     "cta": "Kimi Code を取得",
     "partnerLinkNote": "パートナーリンク",
     "dismissAriaLabel": "閉じる"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

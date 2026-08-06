@@ -4973,10 +4973,12 @@
     "noNewModelsToImport": "Inga nya modeller att importera — alla modeller finns redan i registret eller listan över anpassade modeller",
     "skippingExistingModels": "Hoppar över {count} befintliga modeller",
     "autoSync": "Automatisk synkronisering",
+    "autoSyncShort": "Synkronisera",
     "autoSyncTooltip": "Uppdatera modelllistan automatiskt var 24:e timme (konfigurerbar via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Automatisk synkronisering aktiverad — modeller uppdateras regelbundet",
     "autoSyncDisabled": "Automatisk synkronisering inaktiverad",
     "autoSyncToggleFailed": "Det gick inte att växla automatisk synkronisering",
+    "autoSyncPartialFailure": "Automatisk synkronisering uppdaterad för vissa anslutningar, men inte alla",
     "clearAllModels": "Rensa alla modeller",
     "clearAllModelsConfirm": "Är du säker på att du vill ta bort alla modeller för den här leverantören? Detta kan inte ångras.",
     "clearAllModelsSuccess": "Alla modeller rensade",
@@ -12182,5 +12184,6 @@
     "cta": "Hämta Kimi Code",
     "partnerLinkNote": "Partnerlänk",
     "dismissAriaLabel": "Avvisa"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

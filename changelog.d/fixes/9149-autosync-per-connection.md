@@ -1,0 +1,1 @@
+- **fix(dashboard):** the provider "Auto Sync" toggle now applies to every active connection and each connection gets its own Auto Sync toggle — previously only the lowest-priority connection was updated. ([#9149](https://github.com/diegosouzapw/OmniRoute/pull/9149))

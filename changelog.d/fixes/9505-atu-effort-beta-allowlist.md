@@ -1,0 +1,1 @@
+- fix(sse): stop force-injecting advanced-tool-use beta via the effort-2025-11-24 gate; forward client-negotiated effort through the allowlist (#9505)
