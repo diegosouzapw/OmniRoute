@@ -22,13 +22,21 @@ export async function GET(req: Request) {
     // A pending (still-streaming) request's sessionTag is the conversation's
     // own id (agentic_conversations.id === call_logs.session_tag) — cross
     // reference so the list can show "in progress" without a separate poll.
-    const activeConversationIds = new Set<string>();
+    // `call_logs` only gets its row on completion (src/lib/usage/callLogs.ts's
+    // INSERT needs duration/status/tokens, none of which exist yet), so
+    // `lastCallLogId` from listMultiTurnConversations always lags one request
+    // behind while a reply is still streaming — it can't be used to fetch the
+    // in-flight response. Surface the pending request's own id separately so
+    // the conversation panel can poll /api/logs/[id] for it directly (same
+    // live-partial-text path RequestLoggerDetail already uses).
+    const activeCallLogIdByConversation = new Map<string, string>();
     for (const pending of getPendingById().values()) {
-      if (pending.sessionTag) activeConversationIds.add(pending.sessionTag);
+      if (pending.sessionTag) activeCallLogIdByConversation.set(pending.sessionTag, pending.id);
     }
     const conversations = rows.map((row) => ({
       ...row,
-      isActive: activeConversationIds.has(row.id),
+      isActive: activeCallLogIdByConversation.has(row.id),
+      activeCallLogId: activeCallLogIdByConversation.get(row.id) ?? null,
     }));
 
     return NextResponse.json({ conversations, total });

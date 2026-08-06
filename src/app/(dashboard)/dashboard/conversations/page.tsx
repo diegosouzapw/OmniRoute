@@ -20,6 +20,12 @@ interface ConversationRow {
   lastProvider: string | null;
   lastStatus: number | null;
   isActive: boolean;
+  // The in-flight request's OWN id (from usageHistory's pendingById, keyed by
+  // sessionTag) — distinct from lastCallLogId, which joins against call_logs
+  // and therefore always lags one request behind while a reply is still
+  // streaming (call_logs only gets its row on completion). Used to poll
+  // /api/logs/[id] for this conversation's live partial assistant text.
+  activeCallLogId: string | null;
 }
 
 // Same spinner used for an in-flight request on /dashboard/logs
@@ -56,6 +62,9 @@ const CONVERSATION_PAGE_SIZE = 20;
 
 const DEFAULT_POLL_SECONDS = 5;
 const POLL_STORAGE_KEY = "conversationsListPollSeconds";
+// Matches RequestLoggerDetail's CONVERSATION_ACTIVE_POLL_INTERVAL_MS — same
+// live-partial-text source, same cadence, so the two views feel consistent.
+const LIVE_TEXT_POLL_INTERVAL_MS = 1200;
 
 function ProviderBadge({ provider }: { provider: string | null }) {
   if (!provider) return <span className="text-text-muted text-[10px]">—</span>;
@@ -145,13 +154,18 @@ function ConversationLogView({
   hasMore,
   loadingMore,
   onLoadOlder,
+  livePartialText,
 }: {
   nodes: ConversationTurn[];
   hasMore: boolean;
   loadingMore: boolean;
   onLoadOlder: () => void;
+  // The reply currently streaming for this conversation, if any — not yet a
+  // persisted conversation_turn_nodes row (see the live-text poll effect's
+  // comment for why), rendered as a provisional bubble below the real turns.
+  livePartialText: string;
 }) {
-  if (nodes.length === 0) {
+  if (nodes.length === 0 && !livePartialText) {
     return (
       <div className="text-sm text-text-muted py-4">No turns recorded for this conversation.</div>
     );
@@ -171,6 +185,20 @@ function ConversationLogView({
       {nodes.map((node) => (
         <ChatBubble key={node.id} turn={toTurn(node)} />
       ))}
+      {livePartialText && (
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 text-[10px] text-amber-600 dark:text-amber-400">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+            Generating…
+          </div>
+          <ChatBubble
+            turn={{
+              role: "assistant",
+              blocks: [{ type: "text", text: livePartialText }],
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -202,6 +230,11 @@ function ConversationsPageContent() {
   // every list-poll tick once opened (see the resync effect below), which
   // would otherwise rebind timers/listeners on every poll tick.
   const activeConversationId = activeConversation?.id ?? null;
+  // Only the identifier, not the whole activeConversation object, for the same
+  // reason as activeConversationId above: this changes identity every list-poll
+  // tick, which would otherwise tear down/restart the live-text poll effect.
+  const activeCallLogId = activeConversation?.activeCallLogId ?? null;
+  const [livePartialText, setLivePartialText] = useState("");
   const [conversationNodes, setConversationNodes] = useState<ConversationTurn[]>([]);
   const [conversationLoading, setConversationLoading] = useState(false);
   const [conversationHasMore, setConversationHasMore] = useState(false);
@@ -413,6 +446,7 @@ function ConversationsPageContent() {
       setConversationNodes([]);
       setConversationHasMore(false);
       setConversationLoading(true);
+      setLivePartialText("");
       try {
         const url = new URL(globalThis.location.href);
         url.searchParams.set("tree", row.id);
@@ -535,6 +569,54 @@ function ConversationsPageContent() {
     return () => clearInterval(interval);
   }, [activeConversationId, pollSeconds, fetchConversationPage]);
 
+  // Live preview of the CURRENTLY streaming reply, if any: conversation_turn_nodes
+  // only gains a node for an assistant turn once the client resends it as
+  // history on its NEXT request (resolveConversationId reads only the request
+  // body), so the turns-poll effect above has nothing new to fetch while a
+  // reply is still generating — the transcript would sit frozen despite the
+  // request actively producing text. Same live-partial-text source
+  // RequestLoggerDetail's ConversationContextSection already polls
+  // (/api/logs/[id]'s partialAssistantText, built from in-flight streamChunks),
+  // rendered here as a provisional bubble that's never written to
+  // conversationNodes/DB. Uses a short fixed interval (not the user's
+  // Auto-refresh Xs list-poll setting) since a still-generating reply is worth
+  // refreshing faster than "is there a new conversation" — matches
+  // RequestLoggerDetail's CONVERSATION_ACTIVE_POLL_INTERVAL_MS.
+  useEffect(() => {
+    if (!activeCallLogId) {
+      setLivePartialText("");
+      return;
+    }
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const tick = () => {
+      if (cancelled) return;
+      if (document.visibilityState !== "visible") {
+        timeoutId = setTimeout(tick, LIVE_TEXT_POLL_INTERVAL_MS);
+        return;
+      }
+      fetch(`/api/logs/${activeCallLogId}`, { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (cancelled || !data) return;
+          setLivePartialText(
+            typeof data.partialAssistantText === "string" ? data.partialAssistantText : ""
+          );
+          if (data.active) timeoutId = setTimeout(tick, LIVE_TEXT_POLL_INTERVAL_MS);
+        })
+        .catch(() => {
+          timeoutId = setTimeout(tick, LIVE_TEXT_POLL_INTERVAL_MS);
+        });
+    };
+
+    timeoutId = setTimeout(tick, LIVE_TEXT_POLL_INTERVAL_MS);
+    return () => {
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [activeCallLogId]);
+
   // Deep link: /dashboard/conversations?tree=<id> opens that conversation.
   // Prefer the already-loaded row (has lastCallLogId for "Goto latest
   // request"); fall back to a minimal row if the conversation isn't in the
@@ -555,6 +637,7 @@ function ConversationsPageContent() {
         lastProvider: null,
         lastStatus: null,
         isActive: false,
+        activeCallLogId: null,
       }
     );
   }, [initialConversationParam, loading, conversations, openConversation]);
@@ -565,6 +648,31 @@ function ConversationsPageContent() {
     closeConversation();
     openById(id).catch(() => {});
   };
+
+  // Previous/Next navigate to the adjacent row in the currently loaded list —
+  // same idea as RequestLoggerDetail's onPrevious/onNext, but one level up
+  // (between conversations, not between requests within one). Index is
+  // recomputed from `conversations` on every click rather than memoized: the
+  // list refreshes under a poll while the modal is open (see the resync
+  // effect above), so a stale captured index could skip/repeat a row.
+  const activeConversationIndex = activeConversation
+    ? conversations.findIndex((c) => c.id === activeConversation.id)
+    : -1;
+  const hasPreviousConversation = activeConversationIndex > 0;
+  const hasNextConversation =
+    activeConversationIndex !== -1 && activeConversationIndex < conversations.length - 1;
+
+  const goToPreviousConversation = useCallback(() => {
+    const index = conversations.findIndex((c) => c.id === activeConversation?.id);
+    if (index <= 0) return;
+    openConversation(conversations[index - 1]);
+  }, [conversations, activeConversation, openConversation]);
+
+  const goToNextConversation = useCallback(() => {
+    const index = conversations.findIndex((c) => c.id === activeConversation?.id);
+    if (index === -1 || index >= conversations.length - 1) return;
+    openConversation(conversations[index + 1]);
+  }, [conversations, activeConversation, openConversation]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -734,6 +842,26 @@ function ConversationsPageContent() {
                 </span>
               </div>
               <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={goToPreviousConversation}
+                  disabled={!hasPreviousConversation}
+                  title="Previous conversation"
+                  aria-label="Previous conversation"
+                  className="p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                >
+                  <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={goToNextConversation}
+                  disabled={!hasNextConversation}
+                  title="Next conversation"
+                  aria-label="Next conversation"
+                  className="p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                >
+                  <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                </button>
                 {activeConversation.lastCallLogId && (
                   <button
                     type="button"
@@ -773,6 +901,7 @@ function ConversationsPageContent() {
                   hasMore={conversationHasMore}
                   loadingMore={loadingOlder}
                   onLoadOlder={loadOlderTurns}
+                  livePartialText={livePartialText}
                 />
               )}
             </div>
