@@ -196,6 +196,15 @@ export async function installCert(sudoPassword: string, certPath: string): Promi
 
   const isInstalled = await checkCertInstalled(certPath);
   if (isInstalled) {
+    // #9442: the fingerprint matched, but a restrictive umask at install time
+    // may have left the system cert as 0600 — unreadable by non-root TLS
+    // clients (curl, reqwest, uv, Python requests). Repair the mode before
+    // the early return so re-running install fixes a previously wrong-mode
+    // cert instead of silently skipping it.
+    if (!IS_WIN && !IS_MAC) {
+      const config = getLinuxCertConfig();
+      await ensureSystemCertMode(`${config.dir}/${LINUX_CERT_NAME}`, sudoPassword);
+    }
     console.log("✅ Certificate already installed");
     return;
   }
@@ -366,6 +375,10 @@ async function installCertLinux(sudoPassword: string, certPath: string): Promise
 
     await execFileWithPassword("sudo", ["-S", "mkdir", "-p", config.dir], sudoPassword);
     await execFileWithPassword("sudo", ["-S", "cp", certPath, destFile], sudoPassword);
+    // #9442: `cp` inherits the process umask. A restrictive umask (e.g. PM2
+    // UMask=0077) creates the system cert as 0600 root:root, unreadable by
+    // non-root TLS clients. Force the public cert to 0644 (world-readable).
+    await execFileWithPassword("sudo", ["-S", "chmod", "0644", destFile], sudoPassword);
     await execFileWithPassword("sudo", ["-S", config.cmd], sudoPassword);
 
     await updateNssDatabases(certPath, "add");
@@ -375,6 +388,29 @@ async function installCertLinux(sudoPassword: string, certPath: string): Promise
       ? "User canceled authorization"
       : "Certificate install failed";
     throw new Error(msg);
+  }
+}
+
+/**
+ * #9442 — ensure the system trust-store cert is world-readable (mode 0644).
+ *
+ * `installCertLinux()` now sets the mode explicitly after `cp`, but a cert
+ * installed by an older build (before the chmod was added) may still be 0600
+ * from a restrictive umask. `checkCertInstalledLinux()` only compares
+ * fingerprints, so {@link installCert}'s already-installed branch calls this
+ * helper to repair the mode on re-run. Best-effort: a stat/chmod failure
+ * (e.g. dest removed between the fingerprint check and here) is swallowed —
+ * the caller still reports "already installed" and a fresh install will run
+ * next time the fingerprint no longer matches.
+ */
+export async function ensureSystemCertMode(destFile: string, sudoPassword: string): Promise<void> {
+  try {
+    const mode = fs.statSync(destFile).mode & 0o777;
+    if (mode !== 0o644) {
+      await execFileWithPassword("sudo", ["-S", "chmod", "0644", destFile], sudoPassword);
+    }
+  } catch {
+    // best-effort: if stat/chmod fails, the mode repair is skipped
   }
 }
 

@@ -285,14 +285,16 @@ test("chat completions streams Codex Responses reasoning through real route HTTP
     const chunks = parseSse(raw);
     assert.equal(chunks.at(-1), "[DONE]");
     const payloads = chunks.slice(0, -1).map((chunk) => JSON.parse(chunk));
+    // #7243: encrypted-only reasoning must not fabricate client-visible
+    // reasoning_content (old #7095/#7304 placeholder is gone).
     const reasoningContentDeltas = payloads
       .map((payload) => payload.choices?.[0]?.delta?.reasoning_content)
       .filter((content): content is string => Boolean(content));
-    assert.equal(reasoningContentDeltas.length, 1);
+    assert.equal(reasoningContentDeltas.length, 0);
     const reasoningContent = reasoningContentDeltas.join("");
-    assert.match(reasoningContent, /encrypted (?:state|private reasoning)/i);
+    assert.doesNotMatch(reasoningContent, /encrypted (?:state|private reasoning)/i);
+    assert.doesNotMatch(raw, /OmniRoute cannot recover|Codex is reasoning/i);
     assert(!raw.includes(ENCRYPTED_CONTENT_SENTINEL), raw);
-    assert(!reasoningContent.includes(ENCRYPTED_CONTENT_SENTINEL), reasoningContent);
     assert(
       payloads.some((payload) => payload.choices?.[0]?.delta?.content === "The answer is 42.")
     );

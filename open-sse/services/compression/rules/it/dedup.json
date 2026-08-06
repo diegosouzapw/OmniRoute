@@ -1,0 +1,38 @@
+{
+  "language": "it",
+  "category": "dedup",
+  "rules": [
+    {
+      "name": "it_repeated_context",
+      "pattern": "\\b(?:come (?:ti )?(?:ho )?(?:già |)(?:detto|accennato|scritto|spiegato) (?:prima|sopra|in precedenza)|come dicevo|come sopra|come menzionato)\\b[,.]?\\s*",
+      "replacement": "Vedi sopra. ",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_repeated_question",
+      "pattern": "\\b(?:stessa domanda di prima|te l'ho già chiesto|è la stessa domanda|come chiedevo prima)\\b[,.]?\\s*",
+      "replacement": "[stessa domanda] ",
+      "context": "user",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_restating",
+      "pattern": "\\b(?:in altre parole|detto altrimenti|ovvero|vale a dire|cioè per essere chiari)\\b[,:]?\\s*",
+      "replacement": "cioè ",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "full"
+    },
+    {
+      "name": "it_recap_preamble",
+      "pattern": "\\b(?:ricapitolando|per ricapitolare|facciamo il punto|riepilogo)\\b[,:]?\\s*",
+      "replacement": "",
+      "context": "assistant",
+      "category": "dedup",
+      "minIntensity": "full"
+    }
+  ]
+}

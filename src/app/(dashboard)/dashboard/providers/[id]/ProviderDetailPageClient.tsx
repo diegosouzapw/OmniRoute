@@ -116,6 +116,8 @@ export default function ProviderDetailPageClient() {
     proxyConfig,
     connProxyMap,
     cpaProviderEnabled,
+    upstreamProxyMode,
+    upstreamProxyFallbackBackend,
     refreshingId,
     setPage,
     setHealthFilter,
@@ -133,6 +135,7 @@ export default function ProviderDetailPageClient() {
     handleToggleClaudeExtraUsage,
     handleToggleCodexLimit,
     handleToggleCliproxyapiMode,
+    handleSetUpstreamProxyMode,
     handleToggleProxyEnabled,
     handleTogglePerKeyProxyEnabled,
     handleRetestConnection,
@@ -609,6 +612,9 @@ export default function ProviderDetailPageClient() {
                 canAutoSync={!usesCuratedModelsOnly && compatibleSupportsModelImport}
                 handleToggleConnectionAutoSync={handleToggleConnectionAutoSync}
                 handleToggleCliproxyapiMode={handleToggleCliproxyapiMode}
+                handleSetUpstreamProxyMode={handleSetUpstreamProxyMode}
+                upstreamProxyMode={upstreamProxyMode}
+                upstreamProxyFallbackBackend={upstreamProxyFallbackBackend}
                 handleToggleCodexLimit={handleToggleCodexLimit}
                 handleToggleProxyEnabled={handleToggleProxyEnabled}
                 handleTogglePerKeyProxyEnabled={handleTogglePerKeyProxyEnabled}

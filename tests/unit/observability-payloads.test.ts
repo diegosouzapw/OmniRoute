@@ -5,6 +5,7 @@ import {
   buildHealthPayload,
   buildSessionsSummary,
   buildTelemetryPayload,
+  projectAdaptiveAdmissionSummary,
 } from "../../src/lib/monitoring/observability.ts";
 
 test("buildSessionsSummary returns sticky counts and ordered top sessions", () => {
@@ -162,4 +163,113 @@ test("buildHealthPayload keeps legacy aliases and adds session/quota observabili
   assert.equal(payload.quotaMonitor.active, 1);
   assert.equal(payload.quotaMonitor.monitors[0].provider, "codex");
   assert.equal(payload.setupComplete, true);
+  assert.equal(payload.adaptiveAdmission, null);
+});
+
+test("buildHealthPayload projects allowlisted adaptiveAdmission aggregates only", () => {
+  const snapshot = {
+    mode: "enforce",
+    currentLimit: 4,
+    minLimit: 1,
+    maxLimit: 8,
+    activeCost: 2,
+    activeCount: 1,
+    queuedCost: 3,
+    queuedCount: 1,
+    virtualActiveCost: 99,
+    virtualActiveCount: 99,
+    virtualQueuedCost: 99,
+    virtualQueuedCount: 99,
+    admittedCount: 10,
+    rejectedCount: 2,
+    wouldAdmitCount: 7,
+    wouldQueueCount: 1,
+    wouldRejectCount: 3,
+    shortLatencyEwma: 12.5,
+    longLatencyEwma: 40.1,
+    utilization: 0.42,
+    pressure: "high",
+    resourceSeverity: "normal",
+    resourceReason: "none",
+    resourceObservedAtMs: 1_700_000_000_000,
+    pressureGuardRejectCount: 5,
+    shutdown: false,
+    // Malicious / high-card sentinels that must never appear in the public payload.
+    tenantId: "tenant-SECRET-should-not-leak",
+    apiKey: "sk-live-SHOULD-NOT-LEAK",
+    model: "openai/gpt-secret-model",
+    sessionId: "sess-secret",
+    requestId: "req-secret",
+    body: { messages: [{ role: "user", content: "PII-body-secret" }] },
+    queueItems: [{ tenantKey: "t-secret", cost: 9 }],
+    resourcePath: "/sys/fs/cgroup/memory.current",
+  } as unknown as import("../../open-sse/services/admission/runtime.ts").AdaptiveAdmissionPublicSnapshot;
+
+  const payload = buildHealthPayload({
+    appVersion: "9.9.9",
+    settings: { setupComplete: false },
+    connections: [],
+    circuitBreakers: [],
+    rateLimitStatus: {},
+    learnedLimits: {},
+    lockouts: {},
+    localProviders: {},
+    inflightRequests: 0,
+    quotaMonitorSummary: {
+      active: 0,
+      alerting: 0,
+      exhausted: 0,
+      errors: 0,
+      statusCounts: {
+        starting: 0,
+        idle: 0,
+        healthy: 0,
+        warning: 0,
+        exhausted: 0,
+        error: 0,
+      },
+      byProvider: {},
+    },
+    quotaMonitorMonitors: [],
+    activeSessions: [],
+    adaptiveAdmission: snapshot,
+  });
+
+  assert.deepEqual(payload.adaptiveAdmission, {
+    mode: "enforce",
+    currentLimit: 4,
+    minLimit: 1,
+    maxLimit: 8,
+    activeCost: 2,
+    activeCount: 1,
+    queuedCost: 3,
+    queuedCount: 1,
+    admittedCount: 10,
+    rejectedCount: 2,
+    wouldAdmitCount: 7,
+    wouldQueueCount: 1,
+    wouldRejectCount: 3,
+    utilization: 0.42,
+    pressure: "high",
+    resourceSeverity: "normal",
+    resourceReason: "none",
+    resourceObservedAtMs: 1_700_000_000_000,
+    pressureGuardRejectCount: 5,
+    shutdown: false,
+  });
+
+  const json = JSON.stringify(payload);
+  assert.equal(json.includes("tenant-SECRET"), false);
+  assert.equal(json.includes("sk-live-SHOULD-NOT-LEAK"), false);
+  assert.equal(json.includes("gpt-secret-model"), false);
+  assert.equal(json.includes("PII-body-secret"), false);
+  assert.equal(json.includes("t-secret"), false);
+  assert.equal(json.includes("memory.current"), false);
+  assert.equal(json.includes("queueItems"), false);
+  assert.equal(json.includes("virtualActiveCost"), false);
+  assert.equal(json.includes("shortLatencyEwma"), false);
+
+  // Direct projector also null-safe.
+  assert.equal(projectAdaptiveAdmissionSummary(null), null);
+  assert.equal(projectAdaptiveAdmissionSummary(undefined), null);
 });

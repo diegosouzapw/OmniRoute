@@ -61,12 +61,12 @@ const DEFAULT_DEPS: StreamingPipelineDeps = {
 
 export function assembleStreamingPipeline(
   args: {
-    providerResponse: unknown;
-    transformStream: unknown;
-    streamController: { signal: AbortSignal };
+    providerResponse: Parameters<typeof defaultPipeWithDisconnect>[0];
+    transformStream: Parameters<typeof defaultPipeWithDisconnect>[1];
+    streamController: Parameters<typeof defaultPipeWithDisconnect>[2];
     createPiiTransform: unknown;
     clientRawRequestHeaders: HeadersLike;
-    clientResponseFormat: unknown;
+    clientResponseFormat: Parameters<typeof defaultShape>[0];
     echoModel: string | null | undefined;
     responseHeaders: Record<string, string>;
   },

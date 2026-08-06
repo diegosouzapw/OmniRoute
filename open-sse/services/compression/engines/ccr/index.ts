@@ -61,7 +61,12 @@ const RETRIEVAL_THRESHOLD = 3;
  * ramp (only the >= threshold cliff remains — the legacy binary behavior).
  */
 const RETRIEVAL_RAMP_FACTOR_DEFAULT = 2;
-/** Maximum number of entries in the principal-scoped, LRU-ordered store. */
+/**
+ * Maximum number of entries in the LRU-ordered store, across every principal. The store
+ * is keyed per principal, but this cap is not: the only per-principal cap is
+ * `MAX_CCR_PRINCIPAL_BYTES`. Eviction under this cap takes the storing principal's own
+ * blocks first (see `enforceGlobalBudget`).
+ */
 export const MAX_CCR_ENTRIES = 5_000;
 export const MAX_CCR_BLOCK_BYTES = 2 * 1024 * 1024;
 export const MAX_CCR_PRINCIPAL_BYTES = 16 * 1024 * 1024;
@@ -104,6 +109,12 @@ export type StoreCcrBlockResult =
       hash: string;
       reason: "block_too_large" | "principal_budget_exceeded" | "global_budget_exceeded";
     };
+
+export function isCcrStoreRejection(
+  result: StoreCcrBlockResult
+): result is Extract<StoreCcrBlockResult, { stored: false }> {
+  return result.stored === false;
+}
 
 export interface CcrStoreStats {
   storage: "memory";
@@ -257,12 +268,30 @@ function enforcePrincipalBudget(owner: string, bytes: number): boolean {
   return principalBytes(owner) + bytes <= MAX_CCR_PRINCIPAL_BYTES;
 }
 
-function enforceGlobalBudget(bytes: number): boolean {
-  while (
-    (ccrStore.size >= MAX_CCR_ENTRIES || ccrTotalBytes + bytes > MAX_CCR_GLOBAL_BYTES) &&
-    evictOldestMatching(() => true)
-  ) {
-    // Enforce both entry and global byte caps with LRU eviction.
+/**
+ * Enforce the entry and global byte caps, giving up the storing principal's own
+ * least-recently-used blocks before anyone else's.
+ *
+ * The caps here are global while the only per-principal cap is `MAX_CCR_PRINCIPAL_BYTES`,
+ * so nothing bounds a principal's entry *count*. Blocks start at `DEFAULT_MIN_CHARS`, so
+ * 5,000 of them is around 3 MB, under a fifth of one principal's 16 MB byte allowance,
+ * and enough to exhaust the shared entry budget on its own. Evicting the globally oldest
+ * entry from there took a block from whoever had been quiet longest, because LRU keeps
+ * promoting the busy principal's own entries to the tail.
+ *
+ * Preferring `owner` keeps the global bound exactly as strict and makes a principal pay
+ * for its own pressure first. Falling back to any principal preserves the previous
+ * behaviour for the case that actually needs it: a newcomer storing into a store held
+ * entirely by others, which would otherwise never fit.
+ */
+function enforceGlobalBudget(owner: string, bytes: number): boolean {
+  const overBudget = () =>
+    ccrStore.size >= MAX_CCR_ENTRIES || ccrTotalBytes + bytes > MAX_CCR_GLOBAL_BYTES;
+
+  while (overBudget()) {
+    if (evictOldestMatching((entry) => entry.principalId === owner)) continue;
+    if (evictOldestMatching(() => true)) continue;
+    break;
   }
   return ccrTotalBytes + bytes <= MAX_CCR_GLOBAL_BYTES;
 }
@@ -300,7 +329,7 @@ export function tryStoreBlock(
     return rejectStore(hash, owner, "principal_budget_exceeded");
   }
 
-  if (!enforceGlobalBudget(bytes)) {
+  if (!enforceGlobalBudget(owner, bytes)) {
     return rejectStore(hash, owner, "global_budget_exceeded");
   }
 
@@ -330,7 +359,9 @@ export function storeBlock(
   options: StoreCcrBlockOptions = {}
 ): string {
   const result = tryStoreBlock(text, principalId, options);
-  if (!result.stored) throw new RangeError(`CCR store rejected block: ${result.reason}`);
+  if (isCcrStoreRejection(result)) {
+    throw new RangeError(`CCR store rejected block: ${result.reason}`);
+  }
   return result.hash;
 }
 

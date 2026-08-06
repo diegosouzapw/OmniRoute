@@ -1,0 +1,1 @@
+- fix(translator): join reasoning summary segments with newline separators (#9500)

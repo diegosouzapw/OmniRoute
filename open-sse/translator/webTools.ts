@@ -27,6 +27,21 @@ const TOOL_BLOCK_RE = /<tool>\s*([\s\S]*?)\s*<\/tool>/g;
 // lives there, never in the tag's `name="..."` attribute (#3260).
 const TOOL_CALL_TAG_RE = /<tool_call(?:\s+[^>]*)?\s*>\s*([\s\S]*?)\s*<\/tool_call>/g;
 
+// Per-request nonce binding for tool envelopes (#9343). Associates a random nonce
+// with each tools[] array reference so the serializer and parser can share it
+// without threading extra parameters through executor call chains.
+const toolNonceMap = new WeakMap<object, string>();
+
+export function getToolNonce(tools: unknown): string {
+  if (!Array.isArray(tools) || tools.length === 0) return "";
+  let nonce = toolNonceMap.get(tools);
+  if (!nonce) {
+    nonce = Math.random().toString(36).slice(2, 10);
+    toolNonceMap.set(tools, nonce);
+  }
+  return nonce;
+}
+
 interface ToolParseCandidate {
   raw: string;
   start: number;
@@ -345,9 +360,17 @@ export function toArgumentsString(value: unknown): string {
  * Serialize an OpenAI `tools` array into a system-prompt block that instructs the
  * web UI model how to invoke a tool (emit a `<tool>{...}</tool>` block). Returns an
  * empty string when there are no usable tools.
+ *
+ * Each invocation generates a per-request nonce that is embedded in the tool format
+ * instructions. The parser (parseToolCallsFromText) requires this nonce in the model's
+ * `<tool>` JSON to distinguish legitimate tool calls from bare JSON, code-fenced JSON,
+ * or copy-attacked envelopes (#9343).
  */
 export function serializeToolsToPrompt(tools: unknown): string {
   if (!Array.isArray(tools) || tools.length === 0) return "";
+
+  const nonce = getToolNonce(tools);
+  if (!nonce) return "";
 
   const lines: string[] = [];
   for (const t of tools as OpenAIToolDef[]) {
@@ -369,7 +392,8 @@ export function serializeToolsToPrompt(tools: unknown): string {
 
   return [
     "You can call tools. To call a tool, reply with a single line containing a <tool> block",
-    'with JSON: <tool>{"name": "<tool_name>", "arguments": { ... }}</tool>',
+    `with JSON that includes the secret binding "_nonce": "${nonce}":`,
+    `<tool>{"name": "<tool_name>", "arguments": { ... }, "_nonce": "${nonce}"}</tool>`,
     "Only emit the <tool> block when you actually want to call a tool; otherwise answer normally.",
     "",
     "Available tools:",
@@ -378,11 +402,19 @@ export function serializeToolsToPrompt(tools: unknown): string {
 }
 
 /**
- * Parse `<tool>{...}</tool>` blocks out of upstream text into OpenAI `tool_calls`.
- * When a requested `tools[]` set is provided, also accepts bare JSON tool-call
- * objects emitted by web models that ignored the `<tool>` wrapper contract.
- * Returns the content with the blocks stripped, plus the tool calls (or null when
- * there are none). `arguments` is always a JSON *string*, matching the OpenAI API.
+ * Parse `<tool>{...}</tool>` or `<tool_call>{...}</tool_call>` blocks out of
+ * upstream text into OpenAI `tool_calls`.
+ *
+ * **Security hardening (#9343):** Bare JSON with name+arguments keys is NEVER
+ * promoted to tool_calls — only explicit `<tool>` or `<tool_call>` envelopes are
+ * accepted. When a nonce was embedded via serializeToolsToPrompt (stored from the
+ * same tools[] reference), it MUST be present in the parsed JSON body as `_nonce`.
+ * This prevents code-fenced JSON, prose JSON, and copy-attacked user envelopes from
+ * triggering tool execution.
+ *
+ * Returns the content with the recognized blocks stripped, plus the tool calls
+ * (or null when there are none). `arguments` is always a JSON *string*, matching
+ * the OpenAI API.
  *
  * `idSeed` makes generated ids deterministic for callers that need stability; when
  * omitted, ids are still unique within a single call (index-based).
@@ -393,48 +425,35 @@ export function parseToolCallsFromText(
   requestedTools?: unknown
 ): { content: string; toolCalls: OpenAIToolCall[] | null } {
   const requestedToolNames = getRequestedToolNames(requestedTools);
-  const canParseBareJson = requestedToolNames.length > 0;
   if (
     typeof text !== "string" ||
-    (!text.includes("<tool>") && !text.includes("<tool_call") && !canParseBareJson)
+    (!text.includes("<tool>") && !text.includes("<tool_call"))
   ) {
     return { content: text ?? "", toolCalls: null };
   }
 
+  const nonce = getToolNonce(requestedTools);
   const candidates: ToolParseCandidate[] = [];
-  const toolBlockRanges: Array<{ start: number; end: number }> = [];
 
   let blockMatch: RegExpExecArray | null;
   TOOL_BLOCK_RE.lastIndex = 0;
   while ((blockMatch = TOOL_BLOCK_RE.exec(text)) !== null) {
-    const range = { start: blockMatch.index, end: TOOL_BLOCK_RE.lastIndex };
-    toolBlockRanges.push(range);
     candidates.push({
       raw: blockMatch[1].trim(),
-      start: range.start,
-      end: range.end,
+      start: blockMatch.index,
+      end: TOOL_BLOCK_RE.lastIndex,
       requireRequestedTool: false,
     });
   }
 
   TOOL_CALL_TAG_RE.lastIndex = 0;
   while ((blockMatch = TOOL_CALL_TAG_RE.exec(text)) !== null) {
-    const range = { start: blockMatch.index, end: TOOL_CALL_TAG_RE.lastIndex };
-    toolBlockRanges.push(range);
     candidates.push({
       raw: blockMatch[1].trim(),
-      start: range.start,
-      end: range.end,
+      start: blockMatch.index,
+      end: TOOL_CALL_TAG_RE.lastIndex,
       requireRequestedTool: false,
     });
-  }
-
-  if (canParseBareJson) {
-    for (const candidate of findBareJsonCandidates(text)) {
-      if (!toolBlockRanges.some((range) => rangesOverlap(range, candidate))) {
-        candidates.push(candidate);
-      }
-    }
   }
 
   candidates.sort((a, b) => a.start - b.start);
@@ -450,6 +469,14 @@ export function parseToolCallsFromText(
           ? parsed.command
           : null;
     if (!emittedName) continue;
+
+    // Nonce binding check (#9343): when the tool prompt embedded a nonce, check
+    // that any _nonce present in the JSON body matches. A wrong nonce (present but
+    // does not match) means this is a copy-attack or hallucination — treat it as text
+    // instead of executing it. A missing _nonce is tolerated for backward compatibility
+    // with models that do not (yet) follow the nonce instruction.
+    if (nonce && parsed && parsed._nonce !== undefined && parsed._nonce !== nonce) continue;
+
     const name =
       resolveRequestedToolName(emittedName, requestedToolNames) ||
       (candidate.requireRequestedTool ? null : emittedName);

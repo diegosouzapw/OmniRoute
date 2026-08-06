@@ -86,6 +86,8 @@ const PATH_LABELS = {
   "quota-share": "quotaShare",
   discovery: "discovery",
   "free-provider-rankings": "freeProviderRankings",
+  radar: "radar",
+  setup: "setup",
   "free-tiers": "freeTiers",
   gamification: "gamification",
   leaderboard: "leaderboard",

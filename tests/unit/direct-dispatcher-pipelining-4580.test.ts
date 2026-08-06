@@ -30,10 +30,17 @@ describe("#4580 direct dispatcher options", () => {
     assert.equal(opts.connections, 32);
   });
 
-  it("preserves keep-alive (NOT the 1ms TTL the proxy path forces)", () => {
+  it("preserves keep-alive (NOT the 1ms TTL the proxy path used to force)", () => {
     const direct = __getDefaultDispatcherOptionsForTest({});
     const proxy = __getProxyDispatcherOptionsForTest({});
-    assert.equal(proxy.keepAliveTimeout, 1);
+    // #9100: the proxy path no longer forces the 1ms keep-alive TTL — the
+    // regression that destroyed the pooled socket after every response and
+    // forced a fresh TCP+TLS+CONNECT handshake per request. Both paths now
+    // keep the socket alive for fetchKeepAliveTimeoutMs (default 4000ms).
+    assert.ok(
+      (proxy.keepAliveTimeout ?? 0) > 1,
+      `proxy keepAliveTimeout should stay > 1 (got ${proxy.keepAliveTimeout})`
+    );
     assert.ok(
       (direct.keepAliveTimeout ?? 0) > 1,
       `direct keepAliveTimeout should stay > 1 (got ${direct.keepAliveTimeout})`

@@ -3823,6 +3823,33 @@ paths:
         "400":
           description: Invalid request body
 
+  /api/services/9router/auto-restart-adopted:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle 9Router auto-restart-when-adopted
+      description: >-
+        When enabled, an externally-adopted (not OmniRoute-spawned) 9Router
+        process is restarted under OmniRoute's own supervisor on the next
+        health-check cycle instead of being left as adopted-only.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "204":
+          description: Flag updated
+        "400":
+          description: Invalid request body
+        "500":
+          description: Update failed
+
   /api/services/cliproxy/install:
     post:
       tags: [Embedded Services]
@@ -3984,6 +4011,33 @@ paths:
         "400":
           description: Invalid request body
 
+  /api/services/cliproxy/auto-restart-adopted:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle CLIProxyAPI auto-restart-when-adopted
+      description: >-
+        When enabled, an externally-adopted (not OmniRoute-spawned) CLIProxyAPI
+        process is restarted under OmniRoute's own supervisor on the next
+        health-check cycle instead of being left as adopted-only.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "204":
+          description: Flag updated
+        "400":
+          description: Invalid request body
+        "500":
+          description: Update failed
+
   /api/services/mux/install:
     post:
       tags: [Embedded Services]
@@ -4144,6 +4198,33 @@ paths:
         "400":
           description: Invalid request body
 
+  /api/services/mux/auto-restart-adopted:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle Mux auto-restart-when-adopted
+      description: >-
+        When enabled, an externally-adopted (not OmniRoute-spawned) Mux
+        process is restarted under OmniRoute's own supervisor on the next
+        health-check cycle instead of being left as adopted-only.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "204":
+          description: Flag updated
+        "400":
+          description: Invalid request body
+        "500":
+          description: Update failed
+
   /api/services/bifrost/install:
     post:
       tags: [Embedded Services]
@@ -4253,6 +4334,459 @@ paths:
           description: Auto-start flag updated
         "400":
           description: Invalid request body
+
+  /api/services/bifrost/auto-restart-adopted:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle Bifrost auto-restart-when-adopted
+      description: >-
+        When enabled, an externally-adopted (not OmniRoute-spawned) Bifrost
+        process is restarted under OmniRoute's own supervisor on the next
+        health-check cycle instead of being left as adopted-only.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "204":
+          description: Flag updated
+        "400":
+          description: Invalid request body
+        "500":
+          description: Update failed
+
+  /api/services/dario/install:
+    post:
+      tags: [Embedded Services]
+      summary: Install Dario from npm
+      description: >-
+        Installs the `@askalf/dario` npm package (Claude-account-pool proxy) under
+        DATA_DIR/services/dario/. Uses execFile (no shell interpolation — hard rule
+        #13). **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+                  description: npm version tag or semver to install
+      responses:
+        "200":
+          description: Install succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+                  path:
+                    type: string
+        "400":
+          description: Invalid request body
+        "500":
+          description: npm install failed
+
+  /api/services/dario/start:
+    post:
+      tags: [Embedded Services]
+      summary: Start Dario
+      description: >-
+        Spawns the Dario process. Idempotent if already running.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service started (or already running)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+        "409":
+          description: Dario is not installed
+        "503":
+          description: Start failed
+
+  /api/services/dario/stop:
+    post:
+      tags: [Embedded Services]
+      summary: Stop Dario
+      description: >-
+        Gracefully stops Dario. Idempotent — returns a stopped status even if no
+        supervisor is currently tracking the process.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+        "500":
+          description: Stop failed
+
+  /api/services/dario/restart:
+    post:
+      tags: [Embedded Services]
+      summary: Restart Dario
+      description: >-
+        Equivalent to stop() then start() under the operation lock.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service restarted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+        "409":
+          description: Dario is not installed
+        "503":
+          description: Restart failed
+
+  /api/services/dario/update:
+    post:
+      tags: [Embedded Services]
+      summary: Update Dario to a newer npm version
+      description: >-
+        Stops the service (if running), installs the newer npm version, then
+        restarts it if it was running before the update. **LOCAL_ONLY** — loopback
+        only.
+      responses:
+        "200":
+          description: Update result (no-op if already on the latest version)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    type: boolean
+                  installedVersion:
+                    type: string
+                  latestVersion:
+                    type: string
+                  oldVersion:
+                    type: string
+                    nullable: true
+                  newVersion:
+                    type: string
+        "500":
+          description: Update failed
+
+  /api/services/dario/status:
+    get:
+      tags: [Embedded Services]
+      summary: Get Dario status
+      description: >-
+        Returns combined live supervisor state and DB metadata, including the
+        auto-start / auto-restart-adopted flags and whether an update is available.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Status response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatusExtended"
+        "500":
+          description: Status read failed
+
+  /api/services/dario/auto-start:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle Dario auto-start
+      description: >-
+        When enabled, Dario starts automatically on the next OmniRoute boot.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "204":
+          description: Auto-start flag updated
+        "400":
+          description: Invalid request body
+        "500":
+          description: Update failed
+
+  /api/services/dario/auto-restart-adopted:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle Dario auto-restart-when-adopted
+      description: >-
+        When enabled, an externally-adopted (not OmniRoute-spawned) Dario process
+        is restarted under OmniRoute's own supervisor on the next health-check
+        cycle instead of being left as adopted-only.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "204":
+          description: Flag updated
+        "400":
+          description: Invalid request body
+        "500":
+          description: Update failed
+
+  /api/services/dario/admin/login-start:
+    post:
+      tags: [Embedded Services]
+      summary: Start a Dario account-pool login (device-code style)
+      description: >-
+        Forwards to the running Dario instance's `POST /admin/login/start` using
+        the stored admin token. The operator opens the returned `authorize_url`,
+        approves in their own Claude account, then posts the displayed code to
+        `/admin/login-complete`. **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                alias:
+                  type: string
+                  description: Optional account alias; Dario assigns one if omitted.
+      responses:
+        "200":
+          description: Login challenge created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alias:
+                    type: string
+                  authorize_url:
+                    type: string
+                  expires_at:
+                    type: string
+                  instructions:
+                    type: string
+        "400":
+          description: Invalid request body
+        "401":
+          description: Missing or invalid admin auth
+        "502":
+          description: Dario did not respond or Dario is not running
+
+  /api/services/dario/admin/login-complete:
+    post:
+      tags: [Embedded Services]
+      summary: Complete a Dario account-pool login
+      description: >-
+        Forwards to the running Dario instance's `POST /admin/login/complete`.
+        On success the account becomes routable immediately (Dario hot-reloads
+        its pool). **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [alias, code]
+              properties:
+                alias:
+                  type: string
+                code:
+                  type: string
+      responses:
+        "200":
+          description: Account added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alias:
+                    type: string
+                  status:
+                    type: string
+                  expires_at:
+                    type: string
+        "400":
+          description: Invalid request body
+        "401":
+          description: Missing or invalid admin auth
+        "502":
+          description: Dario did not respond or Dario is not running
+
+  /api/services/dario/admin/accounts:
+    get:
+      tags: [Embedded Services]
+      summary: List Dario account-pool accounts
+      description: >-
+        Forwards to the running Dario instance's `GET /admin/accounts`.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Account list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accounts:
+                    type: array
+                    items:
+                      type: object
+                  count:
+                    type: integer
+        "401":
+          description: Missing or invalid admin auth
+        "502":
+          description: Dario did not respond or Dario is not running
+    delete:
+      tags: [Embedded Services]
+      summary: Remove a Dario account-pool account
+      description: >-
+        Forwards to the running Dario instance's `DELETE /admin/accounts/<alias>`.
+        The alias is taken from a `?alias=` query param or a `{ alias }` JSON body.
+        **LOCAL_ONLY** — loopback only.
+      parameters:
+        - name: alias
+          in: query
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                alias:
+                  type: string
+      responses:
+        "200":
+          description: Account removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alias:
+                    type: string
+                  removed:
+                    type: boolean
+        "400":
+          description: Missing alias
+        "401":
+          description: Missing or invalid admin auth
+        "502":
+          description: Dario did not respond or Dario is not running
+
+  /api/services/dario/admin/import-from-omniroute:
+    get:
+      tags: [Embedded Services]
+      summary: List OmniRoute claude connections eligible for Dario import
+      description: >-
+        Returns eligible OmniRoute `claude` OAuth provider connections (metadata
+        only — id/name/email/org tier, never tokens) so the UI can offer a picker
+        when more than one exists. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Eligible connections
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  connections:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        email:
+                          type: string
+                          nullable: true
+                        organizationType:
+                          type: string
+                          nullable: true
+                        organizationRateLimitTier:
+                          type: string
+                          nullable: true
+        "401":
+          description: Missing or invalid admin auth
+    post:
+      tags: [Embedded Services]
+      summary: Import an OmniRoute claude connection's OAuth tokens into Dario
+      description: >-
+        Writes the source connection's access/refresh token pair directly into
+        Dario's own account-file store (`~/.dario/accounts/<alias>.json`), reusing
+        the shared Claude Code OAuth client_id, then restarts the Dario supervisor
+        so it picks up the new account. **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [connectionId]
+              properties:
+                connectionId:
+                  type: string
+                alias:
+                  type: string
+                  description: Optional custom alias; derived from the source email if omitted.
+      responses:
+        "200":
+          description: Account imported
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alias:
+                    type: string
+                  imported:
+                    type: boolean
+                  sourceConnectionId:
+                    type: string
+                  sourceEmail:
+                    type: string
+                    nullable: true
+        "400":
+          description: Invalid request body, unsupported connection, or missing tokens
+        "401":
+          description: Missing or invalid admin auth
+        "404":
+          description: Connection not found
+        "500":
+          description: Import failed
 
   /api/services/{name}/logs:
     get:

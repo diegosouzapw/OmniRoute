@@ -156,6 +156,14 @@ describe("CCR MCP contracts and handlers", () => {
     if (!result.stored) assert.equal(result.reason, "block_too_large");
   });
 
+  it("propagates store rejection reasons without changing the MCP result shape", async () => {
+    const result = await tools.handleCcrStoreTool(
+      { content: "x".repeat(ccr.MAX_CCR_BLOCK_BYTES + 1), contentType: "text/plain" },
+      writeExtra
+    );
+    assert.deepEqual(result, { stored: false, reason: "block_too_large" });
+  });
+
   it("stores through MCP and exposes metadata without content in inspect/list", async () => {
     const stored = await tools.handleCcrStoreTool(
       { content: "sensitive body", contentType: "text/plain", ttlSeconds: 120 },

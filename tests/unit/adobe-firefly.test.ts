@@ -4,8 +4,13 @@ import { resolvePublicCred } from "../../open-sse/utils/publicCreds.ts";
 import {
   ADOBE_FIREFLY_IMAGE_MODELS,
   ADOBE_FIREFLY_VIDEO_MODELS,
+  ADOBE_FIREFLY_IMAGE_TIMEOUT_MAX_MS,
+  ADOBE_FIREFLY_IMAGE_TIMEOUT_PER_REF_MS,
+  DEFAULT_IMAGE_TIMEOUT_MS,
   adobeFireflyApiKey,
   adobeFireflyBalanceApiKey,
+  adobeFireflyImageTimeoutMs,
+  adobeFireflyMaxImageRefs,
   buildAdobeImagePayload,
   buildAdobePollHeaders,
   buildAdobeSubmitHeaders,
@@ -268,6 +273,48 @@ test("buildAdobeImagePayload attaches referenceBlobs like live adobe_atach_image
   assert.equal(
     (gpt.generationMetadata as Record<string, unknown>).module,
     "image2image"
+  );
+
+  // gpt-image: only first 2 subject refs survive (extra screenshots hang colligo).
+  const gptMany = buildAdobeImagePayload({
+    prompt: "edit me",
+    aspectRatio: "1:1",
+    outputResolution: "1K",
+    modelSpec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image-2"],
+    sourceImageIds: ["id-1", "id-2", "id-3", "id-4", "id-5"],
+  });
+  assert.deepEqual(gptMany.referenceBlobs, [
+    { id: "id-1", usage: "subject" },
+    { id: "id-2", usage: "subject" },
+  ]);
+
+  // nano keeps up to 4 general refs for multi-panel composition.
+  const nanoMany = buildAdobeImagePayload({
+    prompt: "compose",
+    aspectRatio: "16:9",
+    outputResolution: "2K",
+    modelSpec: ADOBE_FIREFLY_IMAGE_MODELS["nano-banana-2"],
+    sourceImageIds: ["a", "b", "c", "d", "e"],
+  });
+  assert.equal((nanoMany.referenceBlobs as unknown[]).length, 4);
+  assert.equal((nanoMany.referenceBlobs as Array<{ usage: string }>)[0].usage, "general");
+});
+
+test("adobeFireflyMaxImageRefs + adaptive image timeout", () => {
+  assert.equal(adobeFireflyMaxImageRefs("gpt-image-2"), 2);
+  assert.equal(adobeFireflyMaxImageRefs("adobe-firefly/gpt-image"), 2);
+  assert.equal(adobeFireflyMaxImageRefs("nano-banana-2"), 4);
+  assert.equal(adobeFireflyMaxImageRefs("flux-2"), 2);
+
+  assert.equal(adobeFireflyImageTimeoutMs({ refCount: 0 }), DEFAULT_IMAGE_TIMEOUT_MS);
+  assert.equal(
+    adobeFireflyImageTimeoutMs({ refCount: 2 }),
+    DEFAULT_IMAGE_TIMEOUT_MS + 2 * ADOBE_FIREFLY_IMAGE_TIMEOUT_PER_REF_MS
+  );
+  assert.equal(adobeFireflyImageTimeoutMs({ timeoutMs: 120_000, refCount: 5 }), 120_000);
+  assert.equal(
+    adobeFireflyImageTimeoutMs({ refCount: 99 }),
+    ADOBE_FIREFLY_IMAGE_TIMEOUT_MAX_MS
   );
 });
 

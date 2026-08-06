@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - "release/v*"
     tags:
       - "v*"
     paths-ignore:
@@ -57,39 +58,20 @@ jobs:
           REF_TYPE: ${{ github.ref_type }}
           INPUT_VERSION: ${{ inputs.version }}
           PROMOTE_INPUT: ${{ inputs.promote_latest }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
 
-          # 1) Resolve version string from the trigger (all inputs come via env).
-          case "$EVENT_NAME" in
-            workflow_dispatch)
-              VERSION="${INPUT_VERSION#v}"
-              ;;
-            push)
-              if [ "$REF_TYPE" = "tag" ]; then
-                VERSION="${REF_NAME#v}"
-              else
-                # Push to main → build & tag as `main` only. Never touch :latest.
-                VERSION="main"
-              fi
-              ;;
-            release)
-              VERSION="${REF_NAME#v}"
-              ;;
-            *)
-              VERSION="${REF_NAME#v}"
-              ;;
-          esac
-          # Sanity-check: only allow [A-Za-z0-9._-] in VERSION (defense in depth).
-          if ! printf '%s' "$VERSION" | grep -qE '^[A-Za-z0-9._-]+$'; then
-            echo "Refusing to use unsafe VERSION value: $VERSION" >&2
-            exit 1
-          fi
+          # 1) Resolve version/channel from the trigger. Only the current default
+          # release branch publishes the mutable `next` channel; main keeps `main`.
+          VERSION=$(bash scripts/ci/resolve-docker-publish-version.sh \
+            "$EVENT_NAME" "$REF_TYPE" "$REF_NAME" "$INPUT_VERSION" "$DEFAULT_BRANCH")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-          # 2) Decide whether to promote :latest.
+          # 2) Decide whether to promote :latest. Floating channels are never
+          # eligible, and the helper independently fails closed for non-semver.
           PROMOTE="false"
-          if [ "$VERSION" = "main" ]; then
+          if [ "$VERSION" = "main" ] || [ "$VERSION" = "next" ]; then
             PROMOTE="false"
           elif printf '%s' "$VERSION" | grep -qE -- '-(rc|alpha|beta|pre|next)'; then
             echo "Pre-release identifier detected — skipping :latest."
@@ -109,10 +91,10 @@ jobs:
           fi
           echo "promote_latest=$PROMOTE" >> "$GITHUB_OUTPUT"
 
-          # 3) Skip if this exact version is already published in Docker Hub.
-          #    `main` is always rebuilt (mutable floating tag).
+          # 3) Skip immutable version tags that already exist. Floating `main`
+          # and `next` channels are intentionally rebuilt on every matching push.
           SKIP="false"
-          if [ "$VERSION" != "main" ]; then
+          if [ "$VERSION" != "main" ] && [ "$VERSION" != "next" ]; then
             if docker manifest inspect "diegosouzapw/omniroute:${VERSION}" >/dev/null 2>&1; then
               echo "Image diegosouzapw/omniroute:${VERSION} already exists on Docker Hub — skipping rebuild."
               SKIP="true"
@@ -397,7 +379,7 @@ jobs:
 
       - name: Update Docker Hub description
         # Only refresh README/description when we actually promote :latest
-        # (avoids overwriting from main pushes or back-fill builds).
+        # (avoids overwriting from main, next, or back-fill builds).
         if: needs.prepare.outputs.promote_latest == 'true'
         uses: peter-evans/dockerhub-description@v5
         with:

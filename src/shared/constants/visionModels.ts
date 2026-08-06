@@ -42,6 +42,7 @@ export const VISION_MODEL_ID_FRAGMENTS = [
   "gpt-4.1",
   "gpt-4-turbo",
   "gpt-4-vision",
+  "gpt-5",
   "gemini-1.5",
   "gemini-2",
   "gemini-3",
@@ -51,8 +52,10 @@ export const VISION_MODEL_ID_FRAGMENTS = [
   "claude-opus-4",
   "claude-sonnet-4",
   "claude-haiku-4",
+  "claude-fable",
   "mistral-medium-3",
   "minimax-m3",
+  "kimi-k2.",
   "-vision",
   "multimodal",
 ] as const;

@@ -5,9 +5,13 @@ type OpenAIUsage = {
   prompt_tokens: number;
   completion_tokens: number;
   total_tokens: number;
+  reasoning_tokens?: number;
   prompt_tokens_details?: {
     cached_tokens?: number;
     cache_creation_tokens?: number;
+  };
+  completion_tokens_details?: {
+    reasoning_tokens?: number;
   };
 };
 
@@ -153,6 +157,10 @@ export function claudeToOpenAIResponse(chunk, state) {
           typeof chunk.usage.input_tokens === "number" ? chunk.usage.input_tokens : 0;
         const outputTokens =
           typeof chunk.usage.output_tokens === "number" ? chunk.usage.output_tokens : 0;
+        const thinkingTokens =
+          typeof chunk.usage.output_tokens_details?.thinking_tokens === "number"
+            ? chunk.usage.output_tokens_details.thinking_tokens
+            : undefined;
         const cacheReadTokens =
           typeof chunk.usage.cache_read_input_tokens === "number"
             ? chunk.usage.cache_read_input_tokens
@@ -180,6 +188,14 @@ export function claudeToOpenAIResponse(chunk, state) {
           input_tokens: billableInputTokens,
           output_tokens: outputTokens,
         };
+
+        // Anthropic includes thinking in output_tokens. Surface the separately
+        // reported portion without adding it to completion_tokens a second time.
+        if (thinkingTokens !== undefined) {
+          state.usage.reasoning_tokens = thinkingTokens;
+          state.usage.completion_tokens_details = { reasoning_tokens: thinkingTokens };
+          state.usage.output_tokens_details = { thinking_tokens: thinkingTokens };
+        }
 
         // Store cache tokens if present (needed for prompt_tokens_details in final chunk)
         const effectiveCacheReadTokens = cacheReadTokens || previousCacheReadTokens;
@@ -252,6 +268,14 @@ export function claudeToOpenAIResponse(chunk, state) {
             total_tokens: totalTokens,
           };
 
+          const reasoningTokens = state.usage.reasoning_tokens;
+          if (typeof reasoningTokens === "number") {
+            finalChunk.usage.reasoning_tokens = reasoningTokens;
+            finalChunk.usage.completion_tokens_details = {
+              reasoning_tokens: reasoningTokens,
+            };
+          }
+
           // Add prompt_tokens_details if cached tokens exist
           if (cachedTokens > 0 || cacheCreationTokens > 0) {
             finalChunk.usage.prompt_tokens_details = {};
@@ -281,6 +305,14 @@ export function claudeToOpenAIResponse(chunk, state) {
                   prompt_tokens: state.usage.input_tokens || 0,
                   completion_tokens: state.usage.output_tokens || 0,
                   total_tokens: (state.usage.input_tokens || 0) + (state.usage.output_tokens || 0),
+                  ...(typeof state.usage.reasoning_tokens === "number"
+                    ? {
+                        reasoning_tokens: state.usage.reasoning_tokens,
+                        completion_tokens_details: {
+                          reasoning_tokens: state.usage.reasoning_tokens,
+                        },
+                      }
+                    : {}),
                 },
               }
             : {};

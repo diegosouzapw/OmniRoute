@@ -1,0 +1,174 @@
+/**
+ * feedSchema.ts — Zod schema for the OmniRoute Radar feed payload.
+ *
+ * This is the CLIENT-SIDE mirror of the server's feed schema.  The server
+ * is the source of truth; this schema validates whatever we downloaded
+ * before caching it locally.
+ *
+ * Schema version: 1
+ */
+
+import { z } from "zod";
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+const FreeTypeEnum = z.enum([
+  "recurring-daily",
+  "recurring-monthly",
+  "recurring-uncapped",
+  "recurring-credit",
+  "keyless",
+  "one-time-initial",
+  "discontinued",
+]);
+
+const TosRiskEnum = z.enum(["ok", "caution", "avoid"]);
+
+const SeverityEnum = z.enum(["info", "warn"]);
+
+const TierEnum = z.enum(["community", "live"]);
+
+/**
+ * Exported so `sync.ts` can validate the `x-omniroute-feed-tier` response
+ * header against the same allowed values, without duplicating the enum.
+ */
+export const RadarTierSchema = TierEnum;
+export type RadarTier = z.infer<typeof RadarTierSchema>;
+
+// ---------------------------------------------------------------------------
+// Sub-schemas
+// ---------------------------------------------------------------------------
+
+const IntNullable = z.number().int().nullable();
+
+/**
+ * Budget is a discriminated union on `kind`:
+ *   - per_model: tokensPerMonth (positive int)
+ *   - shared_pool: poolId + tokensPerMonth (positive int)
+ *   - rate_only: no additional fields
+ */
+const BudgetSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("per_model"),
+    tokensPerMonth: z.number().int().positive(),
+  }),
+  z.object({
+    kind: z.literal("shared_pool"),
+    poolId: z.string(),
+    tokensPerMonth: z.number().int().positive(),
+  }),
+  z.object({
+    kind: z.literal("rate_only"),
+  }),
+]);
+
+const LimitsSchema = z.object({
+  rpm: IntNullable,
+  rpd: IntNullable,
+  tpm: IntNullable,
+  tpd: IntNullable,
+});
+
+const CapabilitiesSchema = z.object({
+  tools: z.boolean(),
+  vision: z.boolean(),
+  thinking: z.boolean(),
+});
+
+const SetupSchema = z
+  .object({
+    keyUrl: z.string().url().nullable(),
+    steps: z.array(z.string()),
+  })
+  .nullable();
+
+// ---------------------------------------------------------------------------
+// Model
+// ---------------------------------------------------------------------------
+
+const ModelSchema = z.object({
+  provider: z.string(),
+  modelId: z.string(),
+  displayName: z.string(),
+  familyId: z.string().nullable(),
+  freeType: FreeTypeEnum,
+  budget: BudgetSchema,
+  limits: LimitsSchema,
+  contextWindow: z.number().int().nullable(),
+  capabilities: CapabilitiesSchema,
+  trainsOnPrompts: z.boolean().nullable(),
+  tosRisk: TosRiskEnum,
+  setup: SetupSchema,
+  enabled: z.boolean(),
+});
+
+// ---------------------------------------------------------------------------
+// Provider
+// ---------------------------------------------------------------------------
+
+const ProviderSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+});
+
+// ---------------------------------------------------------------------------
+// Quirk
+// ---------------------------------------------------------------------------
+
+const QuirkTargetSchema = z.object({
+  provider: z.string(),
+  modelGlob: z.string().nullable(),
+});
+
+const QuirkSchema = z.object({
+  slug: z.string(),
+  title: z.string(),
+  body: z.string(),
+  severity: SeverityEnum,
+  targets: z.array(QuirkTargetSchema),
+});
+
+// ---------------------------------------------------------------------------
+// Top-level feed schema
+// ---------------------------------------------------------------------------
+
+export const RadarFeedSchema = z.object({
+  feed: z.literal("omniroute-radar"),
+  schemaVersion: z.literal(1),
+  version: z.string(),
+  generatedAt: z.string().datetime(),
+  // NOTE: this body field is ALWAYS "live", by design — the community tier
+  // is the exact same signed bytes served from an older snapshot, and there
+  // is only one signed artifact per version (rewriting this field
+  // server-side per request would break the exact-bytes Ed25519 signature).
+  // The tier ACTUALLY served is decided by the server per-request based on
+  // the Authorization key, and is surfaced via the `x-omniroute-feed-tier`
+  // response header instead. NEVER read this field for UI/display — use the
+  // served-tier value that `sync.ts` derives from the header (falling back
+  // to this field only when the header is absent, e.g. an older server).
+  tier: TierEnum,
+  counts: z.object({
+    providers: z.number().int(),
+    models: z.number().int(),
+  }),
+  providers: z.array(ProviderSchema),
+  models: z.array(ModelSchema),
+  quirks: z.array(QuirkSchema),
+  totals: z.object({
+    dedupedTokensPerMonth: z.number().int(),
+    modelCount: z.number().int(),
+    poolCount: z.number().int(),
+  }),
+});
+
+// ---------------------------------------------------------------------------
+// Inferred types
+// ---------------------------------------------------------------------------
+
+export type RadarFeed = z.infer<typeof RadarFeedSchema>;
+export type RadarModel = z.infer<typeof ModelSchema>;
+export type RadarProvider = z.infer<typeof ProviderSchema>;
+export type RadarQuirk = z.infer<typeof QuirkSchema>;
+export type RadarBudget = z.infer<typeof BudgetSchema>;

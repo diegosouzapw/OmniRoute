@@ -173,6 +173,10 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: process.env.OMNIROUTE_SERVER_ACTIONS_BODY_LIMIT || "50mb",
     },
+    // Reduce peak heap during production builds (Next.js 15+).
+    webpackMemoryOptimizations: true,
+    // Run webpack in a separate Node worker, lowering main-process memory.
+    webpackBuildWorker: true,
     // Next.js proxy (middleware) has a default 10MB body clone limit. File
     // uploads (OpenAI-compatible /v1/files) routinely exceed this. Match the
     // 512 MB server-side cap; tune via env if needed.

@@ -91,8 +91,12 @@ export async function runContextWindowReconcile(): Promise<ReconcileResult> {
   const byProvider = await getAllSyncedAvailableModels();
   const discovered = toDiscoveredWindows(byProvider);
   return reconcileContextWindows(discovered, {
+    // Compare against the override-free catalog view. A persisted override must
+    // never feed back into the comparison that (re)writes it, or the reconciler
+    // oscillates (write → equal → remove → differ → write ...).
     getCatalogWindow: (provider, modelId) =>
-      getResolvedModelCapabilities({ provider, model: modelId }).contextWindow,
+      getResolvedModelCapabilities({ provider, model: modelId }, { persistedOverrides: false })
+        .contextWindow,
     getExistingSource: (provider, modelId) =>
       getModelContextOverrideRecord(provider, modelId)?.source ?? null,
     writeAuto: (provider, modelId, window) => {

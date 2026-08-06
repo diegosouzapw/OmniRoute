@@ -102,6 +102,11 @@ export function sha256Base64(value: string): string {
   return createHash("sha256").update(value, "utf8").digest("base64");
 }
 
+type DuckDuckGoChallengeResult = {
+  client_hashes?: unknown;
+  [key: string]: unknown;
+};
+
 export async function solveDuckDuckGoChallenge(
   challenge: string,
   userAgent: string

@@ -100,9 +100,11 @@ export default function AddCompatibleProviderModal({
   const [checkKey, setCheckKey] = useState("");
   const [checkModelId, setCheckModelId] = useState("");
   const [validating, setValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState<
-    null | { valid: boolean; error?: string | null; method?: string | null }
-  >(null);
+  const [validationResult, setValidationResult] = useState<null | {
+    valid: boolean;
+    error?: string | null;
+    method?: string | null;
+  }>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const apiTypeOptions = useMemo(
@@ -222,6 +224,7 @@ export default function AddCompatibleProviderModal({
         apiKey: checkKey,
         type: defaults.type,
       };
+      if (defaults.hasApiType) body.apiType = formData.apiType;
       if (defaults.hasModelsPath) body.modelsPath = formData.modelsPath || "";
       if (defaults.compatMode) {
         body.compatMode = defaults.compatMode;

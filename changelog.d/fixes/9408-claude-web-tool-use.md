@@ -1,0 +1,1 @@
+- fix(providers): add tool_use block handling to claude-web stream parser for OpenAI tool_calls projection (#9408)

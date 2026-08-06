@@ -1,0 +1,1 @@
+- fix(cli): route claude-code OAuth to the Anthropic `claude` browser-PKCE flow instead of the unrelated command-code provider (#9474)

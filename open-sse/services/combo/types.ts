@@ -95,6 +95,8 @@ export type ComboNestingContext = {
   attemptBudget: { count: number; limit: number };
 };
 
+export type HiddenModelsByProvider = ReadonlyMap<string, ReadonlySet<string>>;
+
 export type HandleComboChatOptions = {
   body: Record<string, unknown>;
   combo: ComboLike;
@@ -107,6 +109,7 @@ export type HandleComboChatOptions = {
   signal?: AbortSignal | null;
   apiKeyAllowedConnections?: string[] | null;
   nesting?: ComboNestingContext | null;
+  hiddenModelsByProvider?: HiddenModelsByProvider;
 };
 
 export type HandleRoundRobinOptions = Omit<
@@ -167,6 +170,7 @@ export type ResolvedComboTarget = {
   allowedConnectionIds?: string[] | null;
   weight: number;
   label: string | null;
+  prompt?: string | null;
   failoverBeforeRetry?: unknown;
   trafficType?: "production" | "shadow";
   /**

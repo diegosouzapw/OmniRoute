@@ -87,7 +87,7 @@ export function createResponsesLogger(model, logsDir = null) {
 export function createResponsesApiTransformStream(
   logger = null,
   keepaliveIntervalMs = 3000,
-  options = {}
+  options: { customToolNames?: Iterable<string> } = {}
 ) {
   const customToolNames = new Set(options.customToolNames || []);
   const state = {

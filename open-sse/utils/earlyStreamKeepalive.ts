@@ -1,13 +1,18 @@
 /**
- * Early SSE keepalive wrapper for streaming route handlers.
+ * @file earlyStreamKeepalive.ts
+ * @description Early SSE keepalive wrapper so short idle-read clients stay connected
+ * while the handler waits on upstream first-byte (reasoning models, combo failover).
+ *
+ * @changes
+ * - [2026-07-28] [Cursor Grok 4.5] - Scrub omniroute from client-facing keepalive id/model/comment frames
+ * - [2026-07-28] [Cursor Grok 4.5] - Neutralize Responses startup thinking text (no OmniRoute brand leak)
  *
  * Strict HTTP clients (notably Codex CLI's `reqwest`, which has a ~5s idle-read
  * timeout) drop the connection if no bytes arrive shortly after the request.
- * OmniRoute, however, holds the streaming response until `ensureStreamReadiness`
- * observes the upstream's first useful byte — which can exceed 5s for reasoning
- * models that "think" before emitting any token (#2544). `curl` has no such
- * idle timeout, so it was never affected, which is why the bug looked
- * client-specific.
+ * The proxy holds the streaming response until `ensureStreamReadiness` observes
+ * the upstream's first useful byte — which can exceed 5s for reasoning models
+ * that "think" before emitting any token (#2544). `curl` has no such idle
+ * timeout, so it was never affected, which is why the bug looked client-specific.
  *
  * This wrapper keeps the connection warm without disturbing the handler's
  * internal logic (combo failover, stream readiness, account cooldown all still
@@ -27,12 +32,13 @@
  */
 
 const ENCODER = new TextEncoder();
-const KEEPALIVE_FRAME = ENCODER.encode(": omniroute-keepalive\n\n");
+const KEEPALIVE_FRAME = ENCODER.encode(": keepalive\n\n");
 // OpenAI-compatible keepalive: a syntactically valid empty streaming chunk.
 // Some OpenAI-compatible clients parse every non-empty SSE line as JSON and
 // reject legal SSE comments before their first provider chunk arrives.
+// id/model stay brand-neutral — these frames go to the client, not upstream.
 export const OPENAI_KEEPALIVE_FRAME = ENCODER.encode(
-  'data: {"id":"omniroute-keepalive","object":"chat.completion.chunk","created":0,"model":"omniroute","choices":[{"index":0,"delta":{},"finish_reason":null}]}\n\n'
+  'data: {"id":"chatcmpl-keepalive","object":"chat.completion.chunk","created":0,"model":"keepalive","choices":[{"index":0,"delta":{},"finish_reason":null}]}\n\n'
 );
 // The first slow-path frame must be a valid OpenAI chunk without creating
 // visible reasoning that clients persist into the conversation.
@@ -51,8 +57,9 @@ export const ANTHROPIC_PING_FRAME = ENCODER.encode('event: ping\ndata: {"type":"
 // real upstream response — once it arrives — starts its own independent
 // response.created lifecycle from scratch; this placeholder item never
 // carries a response_id and isn't meant to be continued.
-const RESPONSES_STARTUP_ITEM_ID = "rs_omniroute_keepalive";
-const STARTUP_THINKING_TEXT = "OmniRoute: got request, sending to provider";
+const RESPONSES_STARTUP_ITEM_ID = "rs_keepalive";
+// Brand-neutral placeholder — clients persist this as visible reasoning.
+const STARTUP_THINKING_TEXT = "✨";
 export const RESPONSES_STARTUP_THINKING_FRAME = ENCODER.encode(
   [
     {
@@ -144,7 +151,7 @@ export type EarlyStreamKeepaliveOptions = {
   signal?: AbortSignal | null;
   /**
    * Frame emitted on each keepalive tick. Defaults to an SSE comment
-   * (`: omniroute-keepalive`). Anthropic-format routes (/v1/messages) must pass
+   * (`: keepalive`). Anthropic-format routes (/v1/messages) must pass
    * `ANTHROPIC_PING_FRAME` instead, because Anthropic clients ignore SSE comments
    * for their stream watchdog and only a real `event: ping` keeps them from aborting.
    */

@@ -11,6 +11,7 @@ import {
   getDispatcherCache,
   getRetryCachedDispatcher,
   setDefaultCachedDispatcher,
+  setDispatcherCacheEntry,
   setRetryCachedDispatcher,
 } from "./proxyDispatcherCache.ts";
 
@@ -96,20 +97,27 @@ export function getProxyDispatcherConnectionLimit(
 
 function getProxyDispatcherOptions(env: Record<string, string | undefined> = process.env) {
   const options = getDispatcherOptions();
-  // Disable keep-alive and pipelining for proxy connections.
-  // Cheap proxy servers aggressively drop idle sockets without sending TCP RST,
-  // causing "socket hang up" or "Client network socket disconnected" errors
-  // on subsequent requests that try to reuse the pooled connection.
+  // #9100: restore keep-alive on the proxy path. The previous hard-coded
+  // keepAliveTimeout: 1 (1ms) destroyed the pooled socket right after every
+  // response, forcing a fresh TCP+TLS+CONNECT handshake per request. Proxies
+  // that throttle connection churn then serialized concurrent requests behind
+  // ~30s stalls (5 concurrent → 1 fast + 4× ~29.5s). The socket now stays
+  // alive for at least 30s (the default fetchKeepAliveTimeoutMs is 4s), and
+  // keepAliveMaxTimeout is raised so an upstream Keep-Alive header cannot
+  // clamp it back down to a sub-second value.
   //
-  // Keep multiple connections available anyway: with pipelining disabled, long
-  // SSE streams such as Codex /v1/responses otherwise bottleneck through the
-  // cached proxy dispatcher under concurrency (#4163).
+  // Stale pooled sockets (a proxy that silently drops idle ones) are recovered
+  // by the retry-once-with-fresh-socket path in proxyFetch.ts (mirrors the
+  // direct-path #4252 fix) instead of by killing all idle sockets after 1ms.
+  //
+  // Pipelining 4 lets concurrent SSE streams multiplex over the pooled
+  // connection instead of each opening its own socket (#4163 regression).
   return {
     ...options,
     connections: getProxyDispatcherConnectionLimit(env),
-    keepAliveTimeout: 1,
-    keepAliveMaxTimeout: 1,
-    pipelining: 0,
+    keepAliveTimeout: Math.max(options.keepAliveTimeout, 30_000),
+    keepAliveMaxTimeout: Math.max(options.keepAliveMaxTimeout, 60_000),
+    pipelining: 4,
   };
 }
 
@@ -429,14 +437,15 @@ export function __createRoundRobinDispatcherForTest(dispatchers: Dispatcher[]): 
   return createRoundRobinDispatcher(dispatchers);
 }
 
-export function createProxyDispatcher(proxyUrl: string): Dispatcher {
-  const normalizedUrl = normalizeProxyUrl(proxyUrl, "proxy dispatcher");
-  const dispatcherCache = getDispatcherCache();
-  const proxyDispatcherOptions = getProxyDispatcherOptions();
-
-  let dispatcher = dispatcherCache.get(normalizedUrl);
-  if (dispatcher) return dispatcher;
-
+/**
+ * Build a ProxyAgent / socks dispatcher for a normalized proxy URL using the
+ * given options. Shared by the pooled dispatcher (keep-alive, pipelining 4)
+ * and the retry dispatcher (fresh no-keep-alive socket, mirrors #4252).
+ */
+function buildProxyDispatcher(
+  normalizedUrl: string,
+  options: ReturnType<typeof getProxyDispatcherOptions>
+): Dispatcher {
   const parsed = new URL(normalizedUrl);
   const family = resolveDispatcherFamily(parsed);
   parsed.searchParams.delete("family");
@@ -452,40 +461,89 @@ export function createProxyDispatcher(proxyUrl: string): Dispatcher {
     };
     if (parsed.username) socksOptions.userId = decodeURIComponent(parsed.username);
     if (parsed.password) socksOptions.password = decodeURIComponent(parsed.password);
-    dispatcher =
-      family === null
-        ? (socksDispatcher(
-            socksOptions as Parameters<typeof socksDispatcher>[0],
-            proxyDispatcherOptions
-          ) as Dispatcher)
-        : createSocksDispatcherWithFamily(
-            socksOptions as unknown as Parameters<typeof createSocksDispatcherWithFamily>[0],
-            family,
-            proxyDispatcherOptions
-          );
-  } else {
-    // ProxyAgent omits `connect`; the client->proxy socket is built from `proxyTls`.
-    // undici 8.4.1 types `proxyTls?: buildConnector.BuildOptions`, a union whose
-    // `TcpNetConnectOpts` member nominally requires `port` — so TS rejects a bare
-    // `{ family, autoSelectFamily }` pin. At runtime undici merges these options into
-    // net.connect (the uri already carries the host:port), so the partial pin is
-    // valid; the cast suppresses the spurious missing-`port` error.
-    dispatcher = new ProxyAgent({
-      uri: cleanUri,
-      // undici 8.6+ forwards plain-HTTP requests through the proxy as an origin
-      // request (GET http://host/…) instead of a CONNECT tunnel; upstream proxies
-      // that only speak CONNECT then reject it (501). OmniRoute tunnels ALL proxied
-      // traffic (HTTP + HTTPS) via CONNECT, so force tunneling. Unknown option on
-      // undici <8.6 → silently ignored (that version already tunneled by default).
-      proxyTunnel: true,
-      ...proxyDispatcherOptions,
-      ...(family !== null
-        ? { proxyTls: { family, autoSelectFamily: false } as ProxyAgent.Options["proxyTls"] }
-        : {}),
-    });
+    return family === null
+      ? (socksDispatcher(
+          socksOptions as Parameters<typeof socksDispatcher>[0],
+          options
+        ) as Dispatcher)
+      : createSocksDispatcherWithFamily(
+          socksOptions as unknown as Parameters<typeof createSocksDispatcherWithFamily>[0],
+          family,
+          options
+        );
   }
 
-  dispatcherCache.set(normalizedUrl, dispatcher);
+  // ProxyAgent omits `connect`; the client->proxy socket is built from `proxyTls`.
+  // undici 8.4.1 types `proxyTls?: buildConnector.BuildOptions`, a union whose
+  // `TcpNetConnectOpts` member nominally requires `port` — so TS rejects a bare
+  // `{ family, autoSelectFamily }` pin. At runtime undici merges these options into
+  // net.connect (the uri already carries the host:port), so the partial pin is
+  // valid; the cast suppresses the spurious missing-`port` error.
+  return new ProxyAgent({
+    uri: cleanUri,
+    // undici 8.6+ forwards plain-HTTP requests through the proxy as an origin
+    // request (GET http://host/…) instead of a CONNECT tunnel; upstream proxies
+    // that only speak CONNECT then reject it (501). OmniRoute tunnels ALL proxied
+    // traffic (HTTP + HTTPS) via CONNECT, so force tunneling. Unknown option on
+    // undici <8.6 → silently ignored (that version already tunneled by default).
+    proxyTunnel: true,
+    ...options,
+    ...(family !== null
+      ? { proxyTls: { family, autoSelectFamily: false } as ProxyAgent.Options["proxyTls"] }
+      : {}),
+  });
+}
+
+export function createProxyDispatcher(proxyUrl: string): Dispatcher {
+  const normalizedUrl = normalizeProxyUrl(proxyUrl, "proxy dispatcher");
+  const dispatcherCache = getDispatcherCache();
+
+  let dispatcher = dispatcherCache.get(normalizedUrl);
+  if (dispatcher) return dispatcher;
+
+  dispatcher = buildProxyDispatcher(normalizedUrl, getProxyDispatcherOptions());
+
+  // A concurrent caller may have built + cached the same URL while we were
+  // building. If so, drop our duplicate (avoid leaking sockets) and reuse theirs.
+  const winner = dispatcherCache.get(normalizedUrl);
+  if (winner) {
+    void dispatcher.close().catch(() => {});
+    return winner;
+  }
+  setDispatcherCacheEntry(normalizedUrl, dispatcher);
+  return dispatcher;
+}
+
+/**
+ * Dispatcher for RETRYING a proxied request that just failed with a transient
+ * socket error. Mirrors {@link getRetryDispatcher} for the direct path (#4252):
+ * the retry forces a FRESH socket by disabling keep-alive and pipelining, so a
+ * stale pooled socket (a proxy that silently dropped it) is recovered instead
+ * of re-hitting the dead connection. Cached per normalized proxy URL.
+ */
+export function getProxyRetryDispatcher(proxyUrl: string): Dispatcher {
+  const normalizedUrl = normalizeProxyUrl(proxyUrl, "proxy dispatcher");
+  const dispatcherCache = getDispatcherCache();
+  const retryKey = `retry:${normalizedUrl}`;
+
+  let dispatcher = dispatcherCache.get(retryKey);
+  if (dispatcher) return dispatcher;
+
+  dispatcher = buildProxyDispatcher(normalizedUrl, {
+    ...getProxyDispatcherOptions(),
+    // Retry needs exactly one fresh socket (not the inherited connection pool).
+    connections: 1,
+    keepAliveTimeout: 1,
+    keepAliveMaxTimeout: 1,
+    pipelining: 0,
+  });
+
+  const winner = dispatcherCache.get(retryKey);
+  if (winner) {
+    void dispatcher.close().catch(() => {});
+    return winner;
+  }
+  setDispatcherCacheEntry(retryKey, dispatcher);
   return dispatcher;
 }
 

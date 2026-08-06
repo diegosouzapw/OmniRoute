@@ -1,0 +1,1 @@
+- **fix(cli):** prefer IPv4 DNS for spawned Node servers. (thanks @dsitmilis)

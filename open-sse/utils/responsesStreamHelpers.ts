@@ -201,7 +201,10 @@ export function stripResponsesLifecycleEcho(parsed: unknown): boolean {
     delete r.instructions;
     changed = true;
   }
-  if ("tools" in r) {
+  // Preserve tools on the terminal snapshot: response.completed is what
+  // Codex CLI rebuilds its tool list from (#8990). Same special-case as
+  // backfillResponsesCompletedOutput. Still stripped on created/in_progress.
+  if (obj.type !== "response.completed" && "tools" in r) {
     delete r.tools;
     changed = true;
   }

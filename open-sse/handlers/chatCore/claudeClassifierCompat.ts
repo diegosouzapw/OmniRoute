@@ -41,8 +41,8 @@ function extractSystemTexts(body: Record<string, unknown> | null | undefined): s
  * True when the inbound request should be default-allowed without calling upstream.
  *
  * - `mode === "off"` (default): never short-circuits.
- * - `mode === "always"`: short-circuits every Claude-format request (operator has
- *   decided every `/v1/messages` call through this route is the classifier).
+ * - `mode === "always"`: short-circuits only when the request carries the classifier's
+ *   system-prompt marker (same body-awareness as "auto").
  * - `mode === "auto"`: only short-circuits when the request carries the classifier's
  *   system-prompt marker. `</block>` in `stop_sequences` is corroborating evidence but
  *   is never sufficient alone — the marker is the strong, classifier-unique signal;
@@ -56,7 +56,6 @@ export function shouldDefaultAllowClassifier(
 ): boolean {
   if (mode !== "auto" && mode !== "always") return false;
   if (sourceFormat !== FORMATS.CLAUDE) return false;
-  if (mode === "always") return true;
 
   return extractSystemTexts(body).some((text) => text.includes(SECURITY_MONITOR_MARKER));
 }

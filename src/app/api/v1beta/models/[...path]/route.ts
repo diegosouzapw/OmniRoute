@@ -89,9 +89,7 @@ export async function POST(request, { params }) {
       action = modelAction.includes(":streamGenerateContent")
         ? ":streamGenerateContent"
         : ":generateContent";
-      model = modelAction
-        .replace(":streamGenerateContent", "")
-        .replace(":generateContent", "");
+      model = modelAction.replace(":streamGenerateContent", "").replace(":generateContent", "");
     }
 
     const validation = validateBody(v1betaGeminiGenerateSchema, rawBody);
@@ -113,9 +111,10 @@ export async function POST(request, { params }) {
       method: "POST",
       headers: request.headers,
       body: JSON.stringify(convertedBody),
+      signal: request.signal,
     });
 
-    const response = await handleChat(newRequest, buildClientRawRequest(request, rawBody));
+    const response = await handleChat(newRequest, () => buildClientRawRequest(request, rawBody));
 
     if (stream) {
       // Transform OpenAI SSE => Gemini SSE on the fly. The @google/genai SDK

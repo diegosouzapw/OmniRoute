@@ -1,3 +1,9 @@
+---
+title: "Quick Start: Get OmniRoute Running in 3 Minutes"
+version: 3.8.50
+lastUpdated: 2026-08-06
+---
+
 # Quick Start: Get OmniRoute Running in 3 Minutes
 
 > **TL;DR**: Install → Connect a free provider → Point your IDE to OmniRoute. Done.

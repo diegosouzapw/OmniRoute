@@ -2415,7 +2415,12 @@ test("claude-web validator: 401 → invalid session cookie", async () => {
   __setClaudeTlsFetchOverride(null);
 });
 
-test("claude-web validator: 429 → valid (rate limited means auth passed)", async () => {
+// #9406 inverted this contract: a 429 session shows as UNHEALTHY (valid:false)
+// so the dashboard stops painting rate-limited sessions green. The dedicated
+// repro (tests/unit/repro-9406-claude-web-429-valid.test.ts) owns the full
+// contract incl. Retry-After forwarding; this sibling keeps the validator-level
+// assertion aligned with it.
+test("claude-web validator: 429 → invalid (rate limited session is not healthy, #9406)", async () => {
   __setClaudeTlsFetchOverride(async () =>
     makeClaudeTlsResponse(429, JSON.stringify({ error: "rate limited" }))
   );
@@ -2425,7 +2430,7 @@ test("claude-web validator: 429 → valid (rate limited means auth passed)", asy
     apiKey: "sessionKey=sk-ant-sid02-good-key",
   });
 
-  assert.equal(result.valid, true);
+  assert.equal(result.valid, false);
   __setClaudeTlsFetchOverride(null);
 });
 

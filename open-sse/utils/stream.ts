@@ -21,6 +21,7 @@ import {
   appendBoundedText,
   buildSyntheticChatChunk,
   hasActiveDeltaValue,
+  injectThinkingSignature,
 } from "./streamHelpers.ts";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { buildOmniRouteSseMetadataComment } from "@/domain/omnirouteResponseMeta";
@@ -40,6 +41,11 @@ import {
 } from "./responsesCommentaryDrop.ts";
 import { buildErrorBody } from "./error.ts";
 import { parseTextualToolCallCandidate, isValidToolCallHeaderPrefix } from "./textualToolCall.ts";
+import {
+  formatTranslatedStreamError,
+  normalizeStreamFailurePayload,
+  type StreamFailurePayload,
+} from "./streamErrorFormat.ts";
 import { recordToolLatency } from "../services/toolLatencyTracker.ts";
 import { extractToolSchemaMap } from "../translator/response/openai-responses/toolSchemas.ts";
 import {
@@ -64,6 +70,8 @@ import {
   hasUnsupportedReasoningSignal,
 } from "./reasoningFields.ts";
 import { applyThinkTag, flushThink, initThinkState } from "./thinkTagParser.ts";
+import { restoreOpenAIToolNames } from "../translator/helpers/toolCallHelper.ts";
+import { normalizeFinalOpenAIStreamChunk } from "./openAIStreamChunk.ts";
 
 /**
  * Race a response body read against a timeout.
@@ -113,13 +121,6 @@ type StreamCompletePayload = {
   error?: string | null;
   errorCode?: string | null;
   ttft?: number | null;
-};
-
-type StreamFailurePayload = {
-  status: number;
-  message: string;
-  code?: string;
-  type?: string;
 };
 
 type StreamOptions = {
@@ -226,8 +227,8 @@ function restoreResponsesPassthroughFunctionCallIdentity(
     return restoreItem(parsed.item);
   }
 
-  if (parsed.type === "response.completed" && Array.isArray(parsed.response?.output)) {
-    return (parsed.response as JsonRecord).output.reduce(
+  if (parsed.type === "response.completed" && Array.isArray(asRecord(parsed.response).output)) {
+    return (asRecord(parsed.response).output as unknown[]).reduce<boolean>(
       (changed: boolean, item: unknown) => restoreItem(item) || changed,
       false
     );
@@ -398,63 +399,6 @@ function toResponsesCompletedWithToolCalls(parsed: JsonRecord, toolCalls: ToolCa
         ...toolCalls.map((toolCall) => toResponsesFunctionCallItem(toolCall)),
       ],
     },
-  };
-}
-
-function toStreamFailureStatus(value: unknown): number | null {
-  if (typeof value === "number" && Number.isInteger(value) && value >= 400 && value <= 599) {
-    return value;
-  }
-  if (typeof value === "string" && /^\d{3}$/.test(value.trim())) {
-    const parsed = Number(value.trim());
-    return parsed >= 400 && parsed <= 599 ? parsed : null;
-  }
-  return null;
-}
-
-function looksLikeStreamRateLimit(code: string, type: string, message: string): boolean {
-  const haystack = `${code} ${type} ${message}`.toLowerCase();
-  return (
-    haystack.includes("usage_limit_reached") ||
-    haystack.includes("rate_limit") ||
-    haystack.includes("rate limit") ||
-    haystack.includes("quota") ||
-    haystack.includes("too many requests") ||
-    haystack.includes("limit reached") ||
-    haystack.includes("limit has been reached")
-  );
-}
-
-function normalizeStreamFailurePayload(payload: unknown): StreamFailurePayload | null {
-  const record = payload && typeof payload === "object" ? (payload as JsonRecord) : {};
-  const response = asRecord(record.response);
-  const error = Object.keys(asRecord(response.error)).length
-    ? asRecord(response.error)
-    : Object.keys(asRecord(record.error)).length
-      ? asRecord(record.error)
-      : record;
-  const code = typeof error.code === "string" ? error.code : "upstream_error";
-  const type = typeof error.type === "string" ? error.type : undefined;
-  const message =
-    typeof error.message === "string" && error.message.trim()
-      ? error.message
-      : typeof record.message === "string" && record.message.trim()
-        ? record.message
-        : "Upstream failure";
-  const status =
-    toStreamFailureStatus(error.status_code) ??
-    toStreamFailureStatus(error.status) ??
-    toStreamFailureStatus(response.status_code) ??
-    toStreamFailureStatus(response.status) ??
-    toStreamFailureStatus(record.status_code) ??
-    toStreamFailureStatus(record.status) ??
-    (looksLikeStreamRateLimit(code, type || "", message) ? 429 : 502);
-
-  return {
-    status,
-    message,
-    code,
-    ...(type ? { type } : {}),
   };
 }
 
@@ -709,11 +653,9 @@ export function createSSEStream(options: StreamOptions = {}) {
   }
 
   // Drop internal commentary-phase Responses output before forwarding (#6199).
-  // Explicit option wins; otherwise read the feature flag (default on). Resolved
-  // once per stream — never on the hot per-chunk path.
+  // Explicit option wins; otherwise read the feature flag (default on) — resolved once per stream.
   const shouldDropResponsesCommentary =
     dropResponsesCommentary ?? isFeatureFlagEnabled("RESPONSES_PASSTHROUGH_DROP_COMMENTARY");
-
   const clientExpectsResponsesStream =
     (mode === STREAM_MODE.PASSTHROUGH
       ? clientResponseFormat === FORMATS.OPENAI_RESPONSES
@@ -730,11 +672,23 @@ export function createSSEStream(options: StreamOptions = {}) {
       ? clientResponseFormat === FORMATS.CLAUDE
       : sourceFormat === FORMATS.CLAUDE) === true;
 
+  // Antigravity/cloudcode streams terminate naturally on their last
+  // `data: {"response":{...}}` event, not on a `[DONE]` marker. Emitting
+  // `[DONE]` to the Antigravity IDE causes a protobuf parse failure
+  // (proto: syntax error (line 1:1): unexpected token [) because the
+  // Go binary's protobuf deserializer receives `[DONE]` as input.
+  const clientExpectsAntigravityStream =
+    (mode === STREAM_MODE.PASSTHROUGH
+      ? clientResponseFormat === FORMATS.ANTIGRAVITY
+      : sourceFormat === FORMATS.ANTIGRAVITY) === true;
+
   // Single source of truth for the [DONE] decision, used at both emission
   // sites below. Only OpenAI Chat Completions clients expect [DONE];
-  // Responses API and Anthropic SSE terminate on their own protocol events
-  // (response.completed / message_stop respectively).
-  const shouldEmitDoneTerminator = !clientExpectsResponsesStream && !clientExpectsClaudeStream;
+  // Responses API, Anthropic SSE, and Antigravity/cloudcode terminate on
+  // their own protocol events (response.completed / message_stop / last
+  // response candidate respectively).
+  const shouldEmitDoneTerminator =
+    !clientExpectsResponsesStream && !clientExpectsClaudeStream && !clientExpectsAntigravityStream;
 
   let buffer = "";
   let usage: UsageTokenRecord | null = null;
@@ -819,6 +773,7 @@ export function createSSEStream(options: StreamOptions = {}) {
 
   // Guard against duplicate [DONE] events — ensures exactly one per stream
   let doneSent = false;
+  let upstreamErrorForwarded = false;
   const providerPayloadCollector = createStructuredSSECollector({
     stage: "provider_response",
   });
@@ -1093,9 +1048,9 @@ export function createSSEStream(options: StreamOptions = {}) {
       return;
     }
 
-    // #7095/#7176 reconciliation: compute the visible placeholder WITHOUT
-    // mutating `item` — the encrypted reasoning item (and its `encrypted_content`,
-    // required by Codex for subsequent requests) is forwarded to the client intact.
+    // #7176/#7243: only synthesize summary events from real upstream plaintext —
+    // never mutate `item` and never fabricate alarming placeholder text for
+    // encrypted-only reasoning (`encrypted_content` still forwards intact).
     const visibleSummary = getVisibleResponsesReasoningSummaryText(item);
 
     if (!visibleSummary) {
@@ -1595,6 +1550,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }
                 } else if (isClaudeSSE) {
                   // Claude SSE: extract usage, track content, forward as-is
+                  const thinkingSignatureInjected = injectThinkingSignature(parsed, provider);
                   const extracted = extractUsage(parsed);
                   if (extracted) {
                     // Non-destructive merge: never overwrite a positive value with 0
@@ -1636,7 +1592,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                       parsed.delta.thinking
                     );
                   }
-                  if (restoredToolName) {
+                  if (restoredToolName || thinkingSignatureInjected) {
                     output = `data: ${JSON.stringify(parsed)}\n\n`;
                     injectedUsage = true;
                   }
@@ -1724,6 +1680,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     continue;
                   }
 
+                  const restoredOpenAIToolName = restoreOpenAIToolNames(parsed, toolNameMap);
                   const idFixed = hadNonStringTopLevelId ? false : fixInvalidId(parsed);
 
                   if (!hasValuableContent(parsed, FORMATS.OPENAI)) {
@@ -1912,7 +1869,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                     needsReserialization ||
                     toolCallIdCoerced ||
                     hadNonStringToolCallId ||
-                    hadNonStringTopLevelId
+                    hadNonStringTopLevelId ||
+                    restoredOpenAIToolName
                   ) {
                     output = `data: ${JSON.stringify(parsed)}\n\n`;
                     injectedUsage = true;
@@ -1977,6 +1935,17 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           const parsed = parseSSELine(trimmed);
           if (!parsed) continue;
+
+          if (upstreamErrorForwarded) continue;
+
+          if (parsed.error) {
+            const output = formatTranslatedStreamError(parsed, sourceFormat);
+            reqLogger?.appendConvertedChunk?.(output);
+            controller.enqueue(encoder.encode(output));
+            upstreamErrorForwarded = true;
+            doneSent = true;
+            continue;
+          }
 
           // #5786 — drop replayed Responses-API events (identical/lower sequence_number
           // re-sent on an upstream reconnect) so their deltas are not glued twice into
@@ -2169,6 +2138,10 @@ export function createSSEStream(options: StreamOptions = {}) {
         if (streamTimedOut) {
           return;
         }
+        if (upstreamErrorForwarded) {
+          clearPendingRequestFromStream();
+          return;
+        }
         try {
           const remaining = decoder.decode();
           if (remaining) buffer += remaining;
@@ -2242,6 +2215,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                 toResponsesCompletedWithToolCalls(parsed, [
                   ...passthroughToolCalls.values(),
                 ]) as JsonRecord,
+              restoreOpenAIToolNames: (parsed: JsonRecord) =>
+                restoreOpenAIToolNames(parsed, toolNameMap),
             };
 
             for (const line of normalizedTailLines) {
@@ -2289,36 +2264,12 @@ export function createSSEStream(options: StreamOptions = {}) {
                       output = `data: ${JSON.stringify(flushedParsed)}\n\n`;
                     }
                   } else if (!isClaude) {
-                    let flushChanged = false;
-                    const flushedHadNonStringTopLevelId =
-                      flushedParsed?.id != null && typeof flushedParsed.id !== "string";
-                    if (flushedHadNonStringTopLevelId) {
-                      flushedParsed.id = String(flushedParsed.id);
-                      flushChanged = true;
-                    }
-                    if (Array.isArray(flushedParsed.choices)) {
-                      for (const choice of flushedParsed.choices as JsonRecord[]) {
-                        const tcs = (choice as JsonRecord | undefined)?.delta as
-                          JsonRecord | undefined;
-                        if (Array.isArray(tcs?.tool_calls)) {
-                          for (const tc of tcs.tool_calls as JsonRecord[]) {
-                            if (tc?.id != null && typeof tc.id !== "string") {
-                              tc.id = String(tc.id);
-                              flushChanged = true;
-                            }
-                          }
-                        }
-                      }
-                    }
+                    const { changed: flushChanged, hasFinishReason } =
+                      normalizeFinalOpenAIStreamChunk(flushedParsed, toolNameMap);
                     // #7800: track finish_reason in the flush path too, so a
                     // final chunk without trailing newline still suppresses the
                     // synthetic finish_reason synthesis.
-                    if (
-                      Array.isArray(flushedParsed.choices) &&
-                      (flushedParsed.choices[0] as JsonRecord | undefined)?.finish_reason
-                    ) {
-                      passthroughSawFinishReason = true;
-                    }
+                    if (hasFinishReason) passthroughSawFinishReason = true;
                     if (flushChanged) {
                       output = `data: ${JSON.stringify(flushedParsed)}\n\n`;
                     }
@@ -2487,6 +2438,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                   console.warn(
                     `[STREAM] Empty assistant response after tool_calls completion (${provider || "provider"}:${model || "unknown"}) — sessionId=${sessionId}`
                   );
+                } else if (passthroughHasToolCalls && !content.trim() && reasoning.trim()) {
+                  message.content = "";
                 }
 
                 const responseBody = {

@@ -1,5 +1,8 @@
 import { randomUUID } from "crypto";
 import { resolveChatRequestBody } from "./requestBody";
+import * as chatAdmission from "./chatAdmission.ts";
+import { buildClientRawRequest, resolveDispatchClientRawRequest } from "./chat/clientRawRequest.ts";
+export { buildClientRawRequest, resolveDispatchClientRawRequest };
 import { normalizeReasoningRequest } from "@/shared/reasoning/effortStandardization";
 import { resolveRoutingModel, RoutingModelOps } from "./resolveRoutingModel";
 import {
@@ -17,7 +20,8 @@ import {
   recordModelLockoutFailure,
   isDailyQuotaExhausted,
 } from "@omniroute/open-sse/services/accountFallback.ts";
-import { getModelInfo, getComboForModel } from "../services/model";
+import { getCombo, getComboForModel, getModelInfo } from "../services/model";
+import { stripContextWindowSuffix } from "@omniroute/open-sse/services/model.ts";
 import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { getImageModelEntry } from "@omniroute/open-sse/config/imageRegistry.ts";
@@ -64,6 +68,7 @@ import { guardrailRegistry, resolveDisabledGuardrails } from "@/lib/guardrails";
 import {
   resolveModelOrError,
   checkPipelineGates,
+  checkResourcePressureBeforeProviderWork,
   executeChatWithBreaker,
   handleNoCredentials,
   safeResolveProxy,
@@ -232,16 +237,12 @@ const comboPromoteDeps = { updateCombo, info: log.info, warn: log.warn };
 
 export { shouldTripProviderBreakerForResult } from "./chatPredicates";
 
-/**
- * Handle chat completion request
- * Supports: OpenAI, Claude, Gemini, OpenAI Responses API formats
- * Format detection and translation handled by translator
- */
-export async function handleChat(
+async function handleChatImplementation(
   request: any,
   clientRawRequest: any = null,
   preParsedBody: any = null,
-  correlationId?: string
+  correlationId: string | undefined,
+  admissionContext: chatAdmission.ChatAdmissionContext
 ) {
   const peerRejection = rejectPeerRequest(request?.headers, log.warn, errorResponse);
   if (peerRejection) return peerRejection;
@@ -357,11 +358,7 @@ export async function handleChat(
     }
   }
 
-  // buildClientRawRequest already deep-clones the body, so pass `body` directly — the
-  // prior local clone was a redundant second full-body copy on the hot path (#5152).
-  if (!clientRawRequest) {
-    clientRawRequest = buildClientRawRequest(request, body);
-  }
+  const deferredClientRawBody = chatAdmission.captureDeferredClientRawBody(body);
 
   // T01 — Accept-header streaming opt-in (#302 / #5305). A bare `Accept:
   // text/event-stream` with `stream` omitted opts a curl/httpx-style client into
@@ -395,6 +392,17 @@ export async function handleChat(
   // resolveRoutingModel). The resolved model still passes through
   // enforceApiKeyPolicy below, so it cannot bypass per-key allowlists.
   let modelStr = resolveRoutingModel(request, body);
+  if (typeof modelStr === "string") {
+    // Preserve literal combo names such as "Claude [1m]". Context tags are
+    // stripped only when the exact request does not identify a combo.
+    const exactCombo = await getCombo(modelStr);
+    if (!exactCombo) {
+      modelStr = stripContextWindowSuffix(modelStr) || modelStr;
+      if (body?.model !== modelStr) {
+        body = { ...body, model: modelStr };
+      }
+    }
+  }
 
   // cc discovery alias (`claude/<provider>/<model>`, `claude/combo/<name>`):
   // resolve back to the real id before any combo lookup / resolveModelOrError()
@@ -487,6 +495,12 @@ export async function handleChat(
   const apiKeyInfo = policy.apiKeyInfo;
   const bypassProviderQuotaPolicy = hasProviderQuotaBypassScope(apiKeyInfo?.scopes);
   telemetry.endPhase();
+
+  const admissionRejection = await admissionContext.acquire(apiKeyInfo?.id, request, body);
+  if (admissionRejection) return admissionRejection;
+  clientRawRequest = chatAdmission.resolveClientRawAfterAdmission(clientRawRequest, () =>
+    deferredClientRawBody.withClientBody((clientBody) => buildClientRawRequest(request, clientBody))
+  );
 
   // Guardrail pre-call pipeline — prompt injection, PII masking, and future custom rules.
   telemetry.startPhase("validate");
@@ -972,18 +986,9 @@ export async function handleChat(
   return withCorrelationId(withSessionHeader(response, sessionId), reqId);
 }
 
-// The clientRawRequest envelope lives in ./chat/clientRawRequest.ts. Imported for local use
-// below and re-exported for the historical public surface.
-import { buildClientRawRequest, resolveDispatchClientRawRequest } from "./chat/clientRawRequest.ts";
-export { buildClientRawRequest, resolveDispatchClientRawRequest };
+export const handleChat = chatAdmission.withChatAdmission(handleChatImplementation);
 
-/**
- * Handle single model chat request
- *
- * Refactored: model resolution, logging, pipeline gates, and chat execution
- * extracted to focused helpers. This function orchestrates the credential
- * retry loop.
- */
+/** Handle one resolved model through gates, credentials, and retry/fallback. */
 async function handleSingleModelChat(
   body: any,
   modelStr: string,
@@ -1147,7 +1152,9 @@ async function handleSingleModelChat(
       ? "fixed combo step connection"
       : undefined;
 
-  // 2. Pipeline gates (availability + provider circuit breaker)
+  // 2. Local pressure precedes availability/breaker gates and account selection.
+  const pressureGuard = checkResourcePressureBeforeProviderWork();
+  if (pressureGuard) return pressureGuard.response;
   const providerProfile = await getRuntimeProviderProfile(provider);
   const gate = await checkPipelineGates(provider, model, {
     ignoreCircuitBreaker: forceLiveComboTest || hasForcedConnection,
@@ -1426,7 +1433,7 @@ async function handleSingleModelChat(
         clientRawRequest,
         runtimeOptions.modelAbortSignal
       );
-      const { result, tlsFingerprintUsed } = await executeChatWithBreaker({
+      const execution = await executeChatWithBreaker({
         bypassCircuitBreaker: forceLiveComboTest || hasForcedConnection,
         breaker,
         body: requestBody,
@@ -1455,6 +1462,10 @@ async function handleSingleModelChat(
         routingComboId: runtimeOptions?.routingComboId ?? null,
       });
       if (telemetry) telemetry.endPhase();
+      if ("localResourcePressureResult" in execution) {
+        return execution.localResourcePressureResult.response;
+      }
+      const { result, tlsFingerprintUsed } = execution;
 
       const proxyLatency = Date.now() - proxyStartTime;
       const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
@@ -1529,6 +1540,26 @@ async function handleSingleModelChat(
           // Plain re-attempt of the same request: no markAccountUnavailable, no
           // excludedConnectionIds mutation (an early close is not a bad connection).
           continue;
+        }
+
+        // #8928: once the bounded same-connection retry is unavailable or exhausted,
+        // remove only the affinity pin that still points at this failed connection. This lets
+        // the next client retry select another eligible account without deleting a
+        // pin that may already have moved to a healthy connection.
+        const isTerminalStreamEarlyEof =
+          result.errorCode === "STREAM_EARLY_EOF" ||
+          result.errorType === "stream_early_eof";
+
+        if (isTerminalStreamEarlyEof && runtimeOptions.sessionAffinityKey) {
+          try {
+            evictSessionAccountAffinityForConnection(
+              runtimeOptions.sessionAffinityKey,
+              provider,
+              credentials.connectionId
+            );
+          } catch {
+            // Best-effort: the current response still surfaces the original 502.
+          }
         }
 
         // Stream readiness timeout is an upstream stall after an HTTP response was received,
@@ -1747,7 +1778,10 @@ async function handleSingleModelChat(
             result.status,
             0,
             providerProfile,
-            { maxCooldownMs: mlSettings.maxCooldownMs }
+            {
+              maxCooldownMs: mlSettings.maxCooldownMs,
+              scope: provider === "antigravity" ? "exact" : undefined,
+            }
           );
 
           log.info(

@@ -161,7 +161,7 @@ describe("ensureAntigravityProjectAssigned", () => {
     assert.equal(capturedHeaders?.get("Client-Metadata"), null);
   });
 
-  test("bootstrap uses the single stable production loadCodeAssist endpoint and stays non-fatal on 404", async () => {
+  test("bootstrap tries loadCodeAssist then onboardUser on 404, non-fatal", async () => {
     const hitUrls: string[] = [];
 
     const mockFetch = async (url: string, _init?: RequestInit): Promise<Response> => {
@@ -171,13 +171,12 @@ describe("ensureAntigravityProjectAssigned", () => {
 
     const projectId = await ensureAntigravityProjectAssigned("bootstrap-404-token", mockFetch);
 
-    // #8098 narrowed the bootstrap to the single stable production endpoint (no
-    // daily/sandbox fallback), so a 404 has no next URL to try — the call fails closed
-    // (undefined) and the caller proceeds with any DB-stored project id.
-    assert.equal(hitUrls.length, 1, "bootstrap tries exactly the one dedicated production URL");
-    // Exact hostname match (not substring .includes) so the check can't be fooled by a
-    // look-alike host (CodeQL js/incomplete-url-substring-sanitization).
-    assert.equal(new URL(hitUrls[0]).hostname, "cloudcode-pa.googleapis.com");
+    // loadCodeAssist returns no project on 404, so the fallback calls
+    // onboardUser (also 404). Total: 2 URLs (loadCodeAssist + onboardUser).
+    assert.equal(hitUrls.length, 2, "must try loadCodeAssist then onboardUser");
+    for (const url of hitUrls) {
+      assert.equal(new URL(url).hostname, "cloudcode-pa.googleapis.com");
+    }
     assert.equal(projectId, undefined, "a 404 bootstrap is non-fatal and returns undefined");
   });
 
@@ -235,5 +234,115 @@ describe("ordering guarantee: loadCodeAssist before :models", () => {
     assert.ok(loadIdx >= 0, ":loadCodeAssist must be called");
     assert.ok(modelsIdx >= 0, ":models must be called");
     assert.ok(loadIdx < modelsIdx, ":loadCodeAssist must be called BEFORE :models");
+  });
+});
+
+// ── onboardUser fallback when loadCodeAssist returns no project ──────────
+
+describe("onboardUser fallback", () => {
+  test("calls onboardUser when loadCodeAssist returns empty, then retries loadCodeAssist", async () => {
+    let loadCalls = 0;
+    let onboardCalls = 0;
+
+    const mockFetch = async (url: string, _init?: RequestInit): Promise<Response> => {
+      if (url.endsWith(":loadCodeAssist")) {
+        loadCalls++;
+        // First call returns empty, second returns project after onboarding.
+        if (loadCalls >= 2) {
+          return new Response(JSON.stringify({ cloudaicompanionProject: "proj-after-onboard" }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url.endsWith(":onboardUser")) {
+        onboardCalls++;
+        return new Response(JSON.stringify({ done: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return new Response("Not Found", { status: 404 });
+    };
+
+    const projectId = await ensureAntigravityProjectAssigned("onboard-test-token", mockFetch);
+
+    assert.equal(projectId, "proj-after-onboard");
+    assert.equal(onboardCalls, 1, "onboardUser must be called exactly once");
+    assert.ok(loadCalls >= 2, "loadCodeAssist must be called twice (before and after onboard)");
+  });
+
+  test("returns undefined when both loadCodeAssist and onboardUser fail", async () => {
+    const mockFetch = async (url: string, _init?: RequestInit): Promise<Response> => {
+      if (url.endsWith(":loadCodeAssist")) {
+        return new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url.endsWith(":onboardUser")) {
+        return new Response("Forbidden", { status: 403 });
+      }
+      return new Response("Not Found", { status: 404 });
+    };
+
+    const projectId = await ensureAntigravityProjectAssigned("both-fail-token", mockFetch);
+    assert.equal(projectId, undefined, "must return undefined when both fail");
+  });
+
+  test("does not retry onboardUser for the same token", async () => {
+    let onboardCalls = 0;
+
+    const mockFetch = async (url: string, _init?: RequestInit): Promise<Response> => {
+      if (url.endsWith(":loadCodeAssist")) {
+        return new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url.endsWith(":onboardUser")) {
+        onboardCalls++;
+        return new Response(JSON.stringify({ done: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return new Response("Not Found", { status: 404 });
+    };
+
+    await ensureAntigravityProjectAssigned("dedup-token", mockFetch);
+    await ensureAntigravityProjectAssigned("dedup-token", mockFetch);
+
+    assert.equal(onboardCalls, 1, "onboardUser must be called only once per token");
+  });
+
+  test("skips onboardUser when loadCodeAssist succeeds on first try", async () => {
+    let onboardCalls = 0;
+
+    const mockFetch = async (url: string, _init?: RequestInit): Promise<Response> => {
+      if (url.endsWith(":loadCodeAssist")) {
+        return new Response(JSON.stringify({ cloudaicompanionProject: "proj-exists" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url.endsWith(":onboardUser")) {
+        onboardCalls++;
+        return new Response(JSON.stringify({ done: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return new Response("Not Found", { status: 404 });
+    };
+
+    const projectId = await ensureAntigravityProjectAssigned("already-ok-token", mockFetch);
+
+    assert.equal(projectId, "proj-exists");
+    assert.equal(onboardCalls, 0, "onboardUser must NOT be called when loadCodeAssist succeeds");
   });
 });

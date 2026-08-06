@@ -35,9 +35,11 @@ test("Perplexity Web registers the refreshed model catalog", () => {
 test("every advertised Perplexity Web model has an explicit internal mapping", () => {
   const missing = PROVIDER_MODELS["pplx-web"].filter((model) => !MODEL_MAP[model.id]);
   assert.deepEqual(missing, []);
-  assert.deepEqual(MODEL_MAP["pplx-gpt-5.6-terra"], ["search", "gpt56_terra"]);
-  assert.deepEqual(MODEL_MAP["pplx-gpt-5.6-sol"], ["search", "gpt56_sol"]);
-  assert.deepEqual(MODEL_MAP["pplx-grok-4.5"], ["search", "grok45low"]);
+  assert.deepEqual(MODEL_MAP["pplx-gpt-5.6-terra"], ["copilot", "gpt56_terra"]);
+  assert.deepEqual(MODEL_MAP["pplx-gpt-5.6-sol"], ["copilot", "gpt56_sol"]);
+  assert.deepEqual(MODEL_MAP["pplx-grok-4.5"], ["copilot", "grok45low"]);
+  assert.deepEqual(MODEL_MAP["pplx-opus"], ["copilot", "claude50opus"]);
+  assert.equal(THINKING_MAP["pplx-opus"], "claude50opusthinking");
   assert.equal(THINKING_MAP["pplx-gpt-5.6-terra"], "gpt56_terra_thinking");
   assert.equal(THINKING_MAP["pplx-gpt-5.6-sol"], "gpt56_sol_thinking");
   assert.equal(THINKING_MAP["pplx-grok-4.5"], "grok45medium");

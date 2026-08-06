@@ -119,11 +119,10 @@ omnirouteSite/
 # 4. Diretorios de dados / runtime locais (storage, env, secrets, scratch)
 # ─────────────────────────────────────────────────────────────────────────────
 data/
-src/lib/env/
-src/app/api/agent-skills/coverage/
-src/app/api/cloud/
-src/app/api/sync/cloud/
-src/app/api/system/env/
+# NOTA: src/lib/env/, src/app/api/{cloud,sync/cloud,system/env,agent-skills/coverage}/
+# foram removidos daqui (2026-08-05). Os nomes sugerem dados/segredos locais, mas os
+# 8 arquivos sao route handlers e modulos rastreados no git — escondia-los do grafo
+# criava pontos cegos em buscas e em analise de impacto.
 tests/golden-set/data/
 
 # Logs e saida de teste
@@ -142,6 +141,10 @@ obsidian-plugin/node_modules/
 # 6. Diretorios de documentacao interna / workflow
 # ─────────────────────────────────────────────────────────────────────────────
 docs/superpowers/
+# Docs traduzidas: 1.215 arquivos / 94 MB (inclui 20+ copias do CHANGELOG).
+# Sao traducoes do tree em ingles, ja indexado — no grafo so geram ruido em
+# search_code e consomem o auto_index_limit.
+docs/i18n/
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 7. Arquivos especificos (nao diretorios inteiros)
@@ -188,8 +191,9 @@ audit-report.json
 scripts/i18n/_audit.json
 scripts/i18n/_pending-keys.json
 
-# Cli binario local (scratch)
-bin/omniroute.mjs
+# NOTA: bin/omniroute.mjs foi removido daqui (2026-08-05). Estava marcado como
+# "scratch", mas e o entrypoint real do CLI publicado (package.json -> bin.omniroute)
+# e consta em PACK_ARTIFACT_REQUIRED_PATHS. Precisa estar no grafo.
 
 # Deploy / docker backups
 deploy.sh

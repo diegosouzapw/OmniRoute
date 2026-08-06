@@ -27,6 +27,11 @@ test("classifyProviderError: 400 + billing signal => QUOTA_EXHAUSTED", () => {
     error: { message: "insufficient_quota: exceeded your current quota" },
   });
   assert.equal(result, PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED);
+
+  const resultExhausted = classifyProviderError(400, {
+    error: { message: "The free tier of the model has been exhausted." },
+  });
+  assert.equal(resultExhausted, PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED);
 });
 
 test("classifyProviderError: Kimi billing-cycle 403 => QUOTA_EXHAUSTED", () => {

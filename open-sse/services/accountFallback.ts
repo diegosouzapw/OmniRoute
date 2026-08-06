@@ -58,6 +58,7 @@ import { evictLockoutOverflow } from "./accountFallback/lockoutEviction.ts";
 export { MODEL_LOCKOUT_EVICTION_CAP } from "./accountFallback/lockoutEviction.ts";
 import { capScaledCooldownMs } from "./accountFallback/cooldownCap.ts";
 import { resolveApiKeyForbiddenFallback } from "./accountFallback/nonRetryableUpstream.ts";
+import * as exactModelLock from "./accountFallback/exactModelLock.ts";
 export type ProviderProfile = {
   baseCooldownMs: number;
   useUpstreamRetryHints: boolean;
@@ -183,6 +184,12 @@ export const CREDITS_EXHAUSTED_SIGNALS = [
   "out of credits",
   "payment required",
   "free tier of the model has been exhausted",
+  // #8631: narrower than a bare "has been exhausted" — that generic phrase also
+  // appears in Gemini's transient RPM/TPM 429 body ("Resource has been exhausted
+  // (e.g. check quota)."), which must stay RATE_LIMIT_EXCEEDED, not terminal.
+  // Anchoring on "tier" keeps free-tier depletion wording matched while excluding
+  // Gemini's "resource has been exhausted" rate-limit phrasing.
+  "tier has been exhausted",
   // #5239: providers (e.g. DeepSeek/GLM-style) return "Insufficient account balance"
   // on a depleted key. 402 is already terminalized by status, but catch non-402
   // out-of-credit bodies here too.
@@ -442,6 +449,12 @@ function getModelLockKey(
   return `${canonicalProvider}:${connectionId}:${lockModel}`;
 }
 
+const buildExactKey = exactModelLock.buildExactModelLockKey; // see exactModelLock.ts
+const getModelLockKeys = exactModelLock.createGetModelLockKeys(
+  getModelLockKey,
+  getCanonicalLockProvider
+);
+
 function getFailureWindowMs(profile: ProviderProfile | null = null, fallbackMs = 30 * 60 * 1000) {
   const configured = profile?.resetTimeoutMs;
   return typeof configured === "number" && configured > 0 ? configured : fallbackMs;
@@ -559,6 +572,14 @@ export function lockModel(
   });
 }
 
+// Lock only this exact provider/account/model tuple, never a quota family — see exactModelLock.ts.
+export const lockExactModel = exactModelLock.createLockExactModel(
+  modelLockouts,
+  ensureCleanupTimer,
+  cleanupModelLockKey,
+  getCanonicalLockProvider
+);
+
 /**
  * Pick the `exactCooldownMs` to apply to a model lockout (#1308).
  *
@@ -591,6 +612,7 @@ export function recordModelLockoutFailure(
   options: {
     exactCooldownMs?: number | null;
     maxCooldownMs?: number;
+    scope?: "exact" | "quota_family";
     /**
      * #6863 vs #7940: set true only when `exactCooldownMs` came from an actual
      * upstream signal (Retry-After header, X-RateLimit-Reset, or a reset parsed
@@ -606,7 +628,10 @@ export function recordModelLockoutFailure(
   } = {}
 ) {
   ensureCleanupTimer();
-  const key = getModelLockKey(provider, connectionId, model, reason, status);
+  const key =
+    options.scope === "exact"
+      ? buildExactKey(getCanonicalLockProvider(provider), connectionId, model)
+      : getModelLockKey(provider, connectionId, model, reason, status);
   const now = Date.now();
   cleanupModelLockKey(key, now);
 
@@ -656,7 +681,8 @@ export function recordModelLockoutFailure(
     lastCooldownMs: cooldownMs,
   });
 
-  lockModel(provider, connectionId, model, reason, cooldownMs, {
+  const lockFn = options.scope === "exact" ? lockExactModel : lockModel;
+  lockFn(provider, connectionId, model, reason, cooldownMs, {
     failureCount,
     lastFailureAt: now,
     resetAfterMs,
@@ -675,16 +701,11 @@ export function clearModelLock(
   model: string | null | undefined
 ): boolean {
   if (!model) return false;
-  const familyKey = getModelLockKey(provider, connectionId, model);
-  const exactKey = `${getCanonicalLockProvider(provider)}:${connectionId}:${model}`;
-
-  const hadLock1 = modelLockouts.delete(familyKey);
-  const hadFailure1 = modelFailureState.delete(familyKey);
-
-  const hadLock2 = modelLockouts.delete(exactKey);
-  const hadFailure2 = modelFailureState.delete(exactKey);
-
-  return hadLock1 || hadFailure1 || hadLock2 || hadFailure2;
+  return exactModelLock.clearMultiKeyLock(
+    modelLockouts,
+    modelFailureState,
+    getModelLockKeys(provider, connectionId, model)
+  );
 }
 
 /**
@@ -708,6 +729,7 @@ export function hasPerModelQuota(
     return connectionPassthroughModels;
   }
   if (!provider) return false;
+  if (getCanonicalLockProvider(provider) === "antigravity") return true;
   if (getCanonicalLockProvider(provider) === "codex") return true;
   if (provider === "gemini" || provider === "github") return true;
   if (getPassthroughProviders().has(provider)) return true;
@@ -731,7 +753,8 @@ export function lockModelIfPerModelQuota(
   // Skip model-level lock if the entire provider is in circuit-breaker cooldown.
   // The provider cooldown already prevents all requests, so a model lock is redundant.
   if (isProviderInCooldown(provider)) return false;
-  lockModel(provider, connectionId, model, reason, cooldownMs);
+  const lockFn = getCanonicalLockProvider(provider) === "antigravity" ? lockExactModel : lockModel;
+  lockFn(provider, connectionId, model, reason, cooldownMs);
   return true;
 }
 
@@ -800,14 +823,11 @@ export function isModelLocked(
   model: string | null | undefined
 ): boolean {
   if (!model) return false;
-
-  const exactKey = `${getCanonicalLockProvider(provider)}:${connectionId}:${model}`;
-  cleanupModelLockKey(exactKey);
-  if (modelLockouts.has(exactKey)) return true;
-
-  const familyKey = getModelLockKey(provider, connectionId, model);
-  cleanupModelLockKey(familyKey);
-  return modelLockouts.has(familyKey);
+  return exactModelLock.isAnyKeyLocked(
+    modelLockouts,
+    cleanupModelLockKey,
+    getModelLockKeys(provider, connectionId, model)
+  );
 }
 
 /**
@@ -819,32 +839,18 @@ export function getModelLockoutInfo(
   model: string | null | undefined
 ) {
   if (!model) return null;
-
-  const exactKey = `${getCanonicalLockProvider(provider)}:${connectionId}:${model}`;
-  cleanupModelLockKey(exactKey);
-  const exactEntry = modelLockouts.get(exactKey);
-  if (exactEntry) {
-    return {
-      reason: exactEntry.reason,
-      remainingMs: exactEntry.until - Date.now(),
-      lockedAt: new Date(exactEntry.lockedAt).toISOString(),
-      failureCount: exactEntry.failureCount,
-    };
-  }
-
-  const familyKey = getModelLockKey(provider, connectionId, model);
-  cleanupModelLockKey(familyKey);
-  const familyEntry = modelLockouts.get(familyKey);
-  if (familyEntry) {
-    return {
-      reason: familyEntry.reason,
-      remainingMs: familyEntry.until - Date.now(),
-      lockedAt: new Date(familyEntry.lockedAt).toISOString(),
-      failureCount: familyEntry.failureCount,
-    };
-  }
-
-  return null;
+  const entry = exactModelLock.findLatestLockEntry(
+    modelLockouts,
+    cleanupModelLockKey,
+    getModelLockKeys(provider, connectionId, model)
+  );
+  if (!entry) return null;
+  return {
+    reason: entry.reason,
+    remainingMs: entry.until - Date.now(),
+    lockedAt: new Date(entry.lockedAt).toISOString(),
+    failureCount: entry.failureCount,
+  };
 }
 
 export type ModelLockoutInfo = {
