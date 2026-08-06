@@ -481,40 +481,43 @@ export default function RequestTimeline({
 
   // Deep-link support: open the request from ?id= on mount without waiting for
   // it to show up in the polled `logs` list (mirrors RequestLoggerV2's openDetail).
-  const openById = useCallback(async (id: string) => {
-    try {
-      const url = new URL(globalThis.location.href);
-      url.searchParams.set("id", id);
-      router.replace(url.pathname + url.search);
-    } catch {
-      // ignore navigation errors
-    }
-    setDetailLoading(true);
-    try {
-      const res = await fetch(`/api/logs/${id}`, { cache: "no-store" });
-      const data = res.ok ? await res.json() : null;
-      if (data) {
-        setSelectedLog({
-          id: data.id ?? id,
-          timestamp: data.timestamp,
-          status: data.status ?? 0,
-          model: data.model ?? null,
-          provider: data.provider ?? null,
-          account: data.account ?? null,
-          duration: data.duration ?? 0,
-          tokens: data.tokens ?? { in: 0, out: 0 },
-          active: data.active,
-          error: data.error ?? null,
-          path: data.path ?? null,
-        });
-        setDetailData(data);
+  const openById = useCallback(
+    async (id: string) => {
+      try {
+        const url = new URL(globalThis.location.href);
+        url.searchParams.set("id", id);
+        router.replace(url.pathname + url.search);
+      } catch {
+        // ignore navigation errors
       }
-    } catch {
-      // ignore fetch errors
-    } finally {
-      setDetailLoading(false);
-    }
-  }, [router]);
+      setDetailLoading(true);
+      try {
+        const res = await fetch(`/api/logs/${id}`, { cache: "no-store" });
+        const data = res.ok ? await res.json() : null;
+        if (data) {
+          setSelectedLog({
+            id: data.id ?? id,
+            timestamp: data.timestamp,
+            status: data.status ?? 0,
+            model: data.model ?? null,
+            provider: data.provider ?? null,
+            account: data.account ?? null,
+            duration: data.duration ?? 0,
+            tokens: data.tokens ?? { in: 0, out: 0 },
+            active: data.active,
+            error: data.error ?? null,
+            path: data.path ?? null,
+          });
+          setDetailData(data);
+        }
+      } catch {
+        // ignore fetch errors
+      } finally {
+        setDetailLoading(false);
+      }
+    },
+    [router]
+  );
 
   useEffect(() => {
     if (!initialSelectedId || initialOpenedRef.current) return;
@@ -832,7 +835,12 @@ export default function RequestTimeline({
               bar pair sharing a lane. */}
           <svg
             className="absolute left-0 right-0 pointer-events-none text-primary/60"
-            style={{ top: AXIS_HEIGHT, height: (maxLane + 1) * LANE_HEIGHT, width: "100%", zIndex: 1 }}
+            style={{
+              top: AXIS_HEIGHT,
+              height: (maxLane + 1) * LANE_HEIGHT,
+              width: "100%",
+              zIndex: 1,
+            }}
             viewBox={`0 0 100 ${(maxLane + 1) * LANE_HEIGHT}`}
             preserveAspectRatio="none"
           >
@@ -1028,7 +1036,6 @@ export default function RequestTimeline({
           onNext={undefined}
           relatedLogs={[]}
           onSelectRelated={undefined}
-          onNavigateToLog={openById}
         />
       )}
     </div>
