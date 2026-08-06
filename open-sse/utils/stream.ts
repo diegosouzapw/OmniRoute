@@ -64,6 +64,7 @@ import {
   hasUnsupportedReasoningSignal,
 } from "./reasoningFields.ts";
 import { applyThinkTag, flushThink, initThinkState } from "./thinkTagParser.ts";
+import { sseCommentsEnabled } from "./sseHeartbeat.ts";
 
 /**
  * Race a response body read against a timeout.
@@ -1055,6 +1056,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     finalUsage: UsageTokenRecord | Record<string, unknown> | null | undefined
   ) => {
     const costUsd = finalUsage ? await calculateCost(provider, model, finalUsage) : 0;
+    if (!sseCommentsEnabled()) return;
     const comment = buildOmniRouteSseMetadataComment({
       provider,
       model,
