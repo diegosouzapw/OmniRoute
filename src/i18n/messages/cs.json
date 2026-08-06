@@ -4917,6 +4917,7 @@
     "baseUrlHint": "Povinně. Základní API URL poskytovatele.",
     "iconUrlLabel": "URL ikony",
     "iconUrlHint": "Volitelné. URL obrázku zobrazeného jako ikona tohoto poskytovatele.",
+    "iconUrlInvalid": "Invalid icon URL. Use http(s):// or a data:image/*;base64 URL.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",

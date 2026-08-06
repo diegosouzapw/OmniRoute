@@ -4917,6 +4917,7 @@
     "baseUrlHint": "Obligatoriu. Adresa URL de bază a API-ului furnizorului.",
     "iconUrlLabel": "URL pictogramă",
     "iconUrlHint": "Opțional. URL-ul imaginii afișate ca pictogramă a acestui furnizor.",
+    "iconUrlInvalid": "Invalid icon URL. Use http(s):// or a data:image/*;base64 URL.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",

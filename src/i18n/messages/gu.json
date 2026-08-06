@@ -4917,6 +4917,7 @@
     "baseUrlHint": "Required. Provider API base URL.",
     "iconUrlLabel": "આઇકન URL",
     "iconUrlHint": "વૈકલ્પિક. આ પ્રદાતાના આઇકન તરીકે દર્શાવેલ છબી URL.",
+    "iconUrlInvalid": "Invalid icon URL. Use http(s):// or a data:image/*;base64 URL.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",

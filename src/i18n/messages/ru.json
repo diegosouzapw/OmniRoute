@@ -4963,6 +4963,7 @@
     "baseUrlHint": "Обязательно. Базовый URL-адрес API поставщика.",
     "iconUrlLabel": "URL-адрес иконки",
     "iconUrlHint": "Необязательно. URL-адрес изображения, используемого в качестве иконки этого провайдера.",
+    "iconUrlInvalid": "Invalid icon URL. Use http(s):// or a data:image/*;base64 URL.",
     "anthropicPrefixPlaceholder": "ac-прод",
     "openaiPrefixPlaceholder": "oc-прод",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",

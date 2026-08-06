@@ -4917,6 +4917,7 @@
     "baseUrlHint": "Vereist. Basis-URL van de provider-API.",
     "iconUrlLabel": "Pictogram-URL",
     "iconUrlHint": "Optioneel. Afbeeldings-URL die wordt getoond als het pictogram van deze provider.",
+    "iconUrlInvalid": "Invalid icon URL. Use http(s):// or a data:image/*;base64 URL.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",

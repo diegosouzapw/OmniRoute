@@ -4917,6 +4917,7 @@
     "baseUrlHint": "จำเป็น URL ฐาน API ของผู้ให้บริการ",
     "iconUrlLabel": "URL ไอคอน",
     "iconUrlHint": "ไม่บังคับ URL รูปภาพที่จะแสดงเป็นไอคอนของผู้ให้บริการรายนี้",
+    "iconUrlInvalid": "Invalid icon URL. Use http(s):// or a data:image/*;base64 URL.",
     "anthropicPrefixPlaceholder": "ac-ผลิตภัณฑ์",
     "openaiPrefixPlaceholder": "oc-ผลิตภัณฑ์",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",

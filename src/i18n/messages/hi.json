@@ -4917,6 +4917,7 @@
     "baseUrlHint": "आवश्यक. प्रदाता एपीआई आधार यूआरएल।",
     "iconUrlLabel": "आइकन URL",
     "iconUrlHint": "वैकल्पिक। इस प्रदाता के आइकन के रूप में दिखाया जाने वाला छवि URL।",
+    "iconUrlInvalid": "Invalid icon URL. Use http(s):// or a data:image/*;base64 URL.",
     "anthropicPrefixPlaceholder": "एसी-उत्पाद",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",

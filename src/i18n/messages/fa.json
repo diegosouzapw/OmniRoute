@@ -4917,6 +4917,7 @@
     "baseUrlHint": "Required. Provider API base URL.",
     "iconUrlLabel": "URL آیکون",
     "iconUrlHint": "اختیاری. URL تصویری که به عنوان آیکون این ارائه‌دهنده نمایش داده می‌شود.",
+    "iconUrlInvalid": "Invalid icon URL. Use http(s):// or a data:image/*;base64 URL.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",
