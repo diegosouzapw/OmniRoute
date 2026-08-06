@@ -7,7 +7,7 @@
  *
  * `last_message_count`/`last_messages_hash` on `agentic_conversations` are
  * dead columns kept only for backward on-disk compatibility (superseded by
- * `conversation_turn_nodes`, migration 136) — never read, written as
+ * `conversation_turn_nodes`, migration 144) — never read, written as
  * placeholders.
  */
 
@@ -51,7 +51,7 @@ export function createAgenticConversation(input: {
   const id = input.id || `conv_${uuidv4()}`;
 
   // last_message_count/last_messages_hash are dead columns (superseded by
-  // conversation_turn_nodes, migration 136) — 0/'' placeholders only.
+  // conversation_turn_nodes, migration 144) — 0/'' placeholders only.
   db.prepare(
     `INSERT INTO agentic_conversations
        (id, api_key_id, fingerprint_hash, last_message_count, last_messages_hash, turn_count, first_seen_at, last_seen_at)
@@ -89,7 +89,7 @@ export function updateAgenticConversation(id: string, patch: { turnCount: number
   );
 }
 
-// ── Turn-node tree (migration 136) ───────────────────────────────────────
+// ── Turn-node tree (migration 144) ───────────────────────────────────────
 
 export interface ConversationTurnNode {
   id: string;
