@@ -37,6 +37,7 @@ import { migrateLegacyEncryptedString } from "./encryption";
 import { invalidateDbCache } from "./readCache";
 import { rowToCamel } from "./caseMapping";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
+import { parseModelAccessMode } from "./apiKeys/modelAccessMode";
 // Re-exported so existing call sites that pull these helpers off the core module keep working.
 export { toSnakeCase, toCamelCase, objToSnake, rowToCamel, cleanNulls } from "./caseMapping";
 import {
@@ -1556,11 +1557,9 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
           updatedAt: normalizedCombo.updatedAt || new Date().toISOString(),
         });
       }
-
-      // 5. API Keys
       const insertKey = db.prepare(`
-        INSERT OR REPLACE INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at)
-        VALUES (@id, @name, @key, @machineId, @allowedModels, @noLog, @createdAt)
+        INSERT OR REPLACE INTO api_keys (id, name, key, machine_id, model_access_mode, allowed_models, no_log, created_at)
+        VALUES (@id, @name, @key, @machineId, @modelAccessMode, @allowedModels, @noLog, @createdAt)
       `);
       for (const apiKey of data.apiKeys || []) {
         insertKey.run({
@@ -1568,6 +1567,7 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
           name: apiKey.name,
           key: apiKey.key,
           machineId: apiKey.machineId || null,
+          modelAccessMode: parseModelAccessMode(apiKey.modelAccessMode, apiKey.allowedModels),
           allowedModels: JSON.stringify(apiKey.allowedModels || []),
           noLog: apiKey.noLog ? 1 : 0,
           createdAt: apiKey.createdAt || new Date().toISOString(),

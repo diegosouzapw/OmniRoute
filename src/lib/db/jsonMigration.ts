@@ -15,6 +15,7 @@ import type { SqliteAdapter } from "./adapters/types";
 import { normalizeRoutingStrategy } from "@/shared/constants/routingStrategies";
 import { normalizeComboRecord } from "@/lib/combos/steps";
 import { validateComboInvariant } from "@/lib/combos/invariants";
+import { parseModelAccessMode } from "./apiKeys/modelAccessMode";
 import {
   resolveImportedUsageAccountIdentity,
   resolveOrphanedUsageAccountIdentity,
@@ -99,8 +100,11 @@ export function runJsonMigration(
   `);
 
   const insertKey = db.prepare(`
-    INSERT OR REPLACE INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at)
-    VALUES (@id, @name, @key, @machineId, @allowedModels, @noLog, @createdAt)
+    INSERT OR REPLACE INTO api_keys (
+      id, name, key, machine_id, model_access_mode, allowed_models, no_log, created_at
+    ) VALUES (
+      @id, @name, @key, @machineId, @modelAccessMode, @allowedModels, @noLog, @createdAt
+    )
   `);
 
   const migrate = db.transaction(() => {
@@ -219,12 +223,14 @@ export function runJsonMigration(
 
     // 6. API Keys
     for (const apiKey of data.apiKeys ?? []) {
+      const allowedModels = Array.isArray(apiKey.allowedModels) ? apiKey.allowedModels : [];
       insertKey.run({
         id: apiKey.id,
         name: apiKey.name,
         key: apiKey.key,
         machineId: apiKey.machineId ?? null,
-        allowedModels: JSON.stringify(apiKey.allowedModels ?? []),
+        modelAccessMode: parseModelAccessMode(apiKey.modelAccessMode, allowedModels),
+        allowedModels: JSON.stringify(allowedModels),
         noLog: apiKey.noLog ? 1 : 0,
         createdAt: apiKey.createdAt ?? new Date().toISOString(),
       });

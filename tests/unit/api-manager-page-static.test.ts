@@ -9,6 +9,10 @@ const pagePath = path.join(
   repoRoot,
   "src/app/(dashboard)/dashboard/api-manager/ApiManagerPageClient.tsx"
 );
+const providerModelPermissionListPath = path.join(
+  repoRoot,
+  "src/app/(dashboard)/dashboard/api-manager/components/ProviderModelPermissionList.tsx"
+);
 const messagesDir = path.join(repoRoot, "src/i18n/messages");
 
 const selfServiceScopeMessageKeys = [
@@ -87,11 +91,12 @@ test("permissions modal switch buttons declare button type", () => {
 
 test("permissions modal exposes Claude Code default wildcard model", () => {
   const source = readApiManagerPage();
+  const modelListSource = fs.readFileSync(providerModelPermissionListPath, "utf8");
 
   assert.match(source, /const CLAUDE_CODE_DEFAULT_MODEL_ID = "cc\/\*";/);
   assert.match(source, /const CLAUDE_CODE_DEFAULT_MODEL_NAME = "Claude Code default";/);
   assert.match(source, /withClaudeCodeDefaultModel\(allModels\)/);
-  assert.match(source, /getModelDisplayName\(model\.id\)/);
+  assert.match(modelListSource, /getModelDisplayName\(model\.id\)/);
   assert.match(
     source,
     /modelId === CLAUDE_CODE_DEFAULT_MODEL_ID\s+\?\s+CLAUDE_CODE_DEFAULT_MODEL_NAME\s+:\s+modelId/
@@ -131,7 +136,10 @@ test("API-key model fallback preserves combo pseudo-models", () => {
   const source = readApiManagerPage();
   const fallbackBlock = source.slice(
     source.indexOf("const [fallbackRes, combosRes] = await Promise.all"),
-    source.indexOf("} catch (error)", source.indexOf("const [fallbackRes, combosRes] = await Promise.all"))
+    source.indexOf(
+      "} catch (error)",
+      source.indexOf("const [fallbackRes, combosRes] = await Promise.all")
+    )
   );
 
   assert.match(fallbackBlock, /fetch\("\/api\/models\?all=true"\)/);

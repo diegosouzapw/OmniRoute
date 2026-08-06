@@ -90,10 +90,10 @@ function dropCatalogCacheIfStateChanged(): void {
   if (currentVersion === lastSeenCatalogCacheVersion) return;
   lastSeenCatalogCacheVersion = currentVersion;
   catalogCache.clear();
-  // Deliberately NOT clearing catalogInFlight: an in-flight build already reads live
-  // DB/settings state as of when it started, so letting it finish and populate the
-  // (now-current) cache entry is correct — clearing it would just force a redundant
-  // second builder run for requests that arrive mid-flight.
+  // Detach old-generation work so the first post-write caller starts a fresh build.
+  // Existing callers may still receive their original result, but storePayload's
+  // generation guard prevents that result from becoming the current cached body.
+  catalogInFlight.clear();
 }
 
 // Header sources mix Title-Case keys (diagnostic/cors headers built by app code) with
@@ -116,14 +116,18 @@ export function mergeCatalogHeaders(
   return merged;
 }
 
-function storePayload(cacheKey: string, payload: CatalogPayload): CachedCatalog {
+function storePayload(
+  cacheKey: string,
+  payload: CatalogPayload,
+  buildVersion: number
+): CachedCatalog {
   const entry: CachedCatalog = {
     body: payload.body,
     headers: payload.headers,
     status: payload.status,
     expiresAt: Date.now() + payload.cacheTTL,
   };
-  catalogCache.set(cacheKey, entry);
+  if (getModelCatalogCacheVersion() === buildVersion) catalogCache.set(cacheKey, entry);
   return entry;
 }
 
@@ -150,11 +154,12 @@ function scheduleBackgroundRefresh(
   buildPayload: (request: Request) => Promise<CatalogPayload>
 ): void {
   if (catalogInFlight.has(cacheKey)) return; // a refresh for this key is already running
+  const buildVersion = getModelCatalogCacheVersion();
 
   const refreshPromise: Promise<CachedCatalog> = new Promise((resolve, reject) => {
     setTimeout(() => {
       runBuilder(buildPayload, request)
-        .then((payload) => resolve(storePayload(cacheKey, payload)))
+        .then((payload) => resolve(storePayload(cacheKey, payload, buildVersion)))
         .catch((err) => {
           console.error(
             `[catalog] Background stale-while-revalidate refresh failed for key "${cacheKey}":`,
@@ -231,7 +236,10 @@ export async function resolveCachedCatalogResponse(
 
   let inflight = catalogInFlight.get(cacheKey);
   if (!inflight) {
-    inflight = runBuilder(buildPayload, request).then((payload) => storePayload(cacheKey, payload));
+    const buildVersion = getModelCatalogCacheVersion();
+    inflight = runBuilder(buildPayload, request).then((payload) =>
+      storePayload(cacheKey, payload, buildVersion)
+    );
     catalogInFlight.set(cacheKey, inflight);
     inflight.finally(() => {
       if (catalogInFlight.get(cacheKey) === inflight) catalogInFlight.delete(cacheKey);

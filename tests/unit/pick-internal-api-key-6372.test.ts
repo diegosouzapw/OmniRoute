@@ -43,8 +43,29 @@ test("#6372: prefers a management-scoped key over a plain self:usage key", async
   assert.equal(picked, mgr.key, "should pick the management-scoped key, not the first row");
 });
 
-test("#6372: falls back to an active key when none is management-scoped", async () => {
-  const only = await apiKeysDb.createApiKey("usage-key", "machine-a", ["self:usage"]);
+test("#6372: a restricted-empty key does not outrank a real allow-all key", async () => {
+  const restricted = await apiKeysDb.createApiKey("restricted-empty", "machine-a", ["self:usage"]);
+  await apiKeysDb.updateApiKeyPermissions(restricted.id, {
+    modelAccessMode: "restricted",
+    allowedModels: [],
+  });
+  const allowAll = await apiKeysDb.createApiKey("allow-all", "machine-a", ["self:usage"]);
+
   const picked = await apiKeysDb.pickApiKeyForInternalUse("internal-probe");
-  assert.equal(picked, only.key, "should still return a usable active key via fallback rules");
+  assert.equal(picked, allowAll.key);
+});
+
+test("#6372: falls back to an active key when none is management-scoped or allow-all", async () => {
+  const only = await apiKeysDb.createApiKey("restricted-empty", "machine-a", ["self:usage"]);
+  await apiKeysDb.updateApiKeyPermissions(only.id, {
+    modelAccessMode: "restricted",
+    allowedModels: [],
+  });
+
+  const picked = await apiKeysDb.pickApiKeyForInternalUse("internal-probe");
+  assert.equal(
+    picked,
+    only.key,
+    "last-resort fallback stays best-effort and does not bypass policy"
+  );
 });

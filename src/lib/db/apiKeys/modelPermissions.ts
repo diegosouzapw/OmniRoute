@@ -67,9 +67,8 @@ export function modelPatternMatches(pattern: string, candidates: string[]): bool
     if (pattern === candidate) return true;
     if (pattern.endsWith("/*")) {
       const prefix = pattern.slice(0, -2);
-      if (candidate.startsWith(prefix + "/") || candidate.startsWith(prefix)) {
-        return true;
-      }
+      if (candidate.startsWith(prefix + "/")) return true;
+      continue;
     }
     if (pattern.includes("*") && matchesWildcardPattern(pattern, candidate)) {
       return true;

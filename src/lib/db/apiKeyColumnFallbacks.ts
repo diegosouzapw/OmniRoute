@@ -1,5 +1,10 @@
 export const API_KEY_COLUMN_FALLBACKS = [
   { name: "allowed_models", definition: "allowed_models TEXT" },
+  {
+    name: "model_access_mode",
+    definition:
+      "model_access_mode TEXT NOT NULL DEFAULT 'all' CHECK (model_access_mode IN ('all', 'restricted'))",
+  },
   { name: "blocked_models", definition: "blocked_models TEXT" },
   { name: "allowed_combos", definition: "allowed_combos TEXT" },
   { name: "no_log", definition: "no_log INTEGER NOT NULL DEFAULT 0" },

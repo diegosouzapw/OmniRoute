@@ -9,6 +9,8 @@
  */
 
 import type { AccessSchedule, RateLimitRule } from "./types";
+export { parseModelAccessMode } from "./modelAccessMode";
+export type { ModelAccessMode } from "./modelAccessMode";
 
 /**
  * Helper function to safely parse allowed_models JSON

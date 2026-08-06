@@ -102,9 +102,7 @@ export async function getCachedPricing(): Promise<Record<string, unknown>> {
 export async function getCachedProviderConnections(
   filter?: Record<string, unknown>
 ): Promise<unknown[]> {
-  const cacheKey = filter && Object.keys(filter).length > 0
-    ? JSON.stringify(filter)
-    : "all";
+  const cacheKey = filter && Object.keys(filter).length > 0 ? JSON.stringify(filter) : "all";
 
   const cached = connectionsCache.get(cacheKey);
   if (cached) return cached;
@@ -136,7 +134,10 @@ export async function getCachedRawProviderConnections(
   return rows;
 }
 
-const connectionByIdCache = new TTLCache<Record<string, unknown> | null>(CONNECTIONS_TTL_MS, 10_000);
+const connectionByIdCache = new TTLCache<Record<string, unknown> | null>(
+  CONNECTIONS_TTL_MS,
+  10_000
+);
 const nodesCache = new TTLCache<(Record<string, unknown> | null)[]>(CONNECTIONS_TTL_MS);
 
 /**
@@ -253,6 +254,11 @@ export function getModelCatalogCacheVersion(): number {
   return modelCatalogCacheVersion;
 }
 
+/** Bump only the unified model-catalog generation. */
+export function invalidateModelCatalogCache(): void {
+  modelCatalogCacheVersion++;
+}
+
 /**
  * Invalidate caches (call after writes to any of: settings, pricing,
  * connections, combos, nodes).
@@ -282,5 +288,5 @@ export function invalidateDbCache(
   // Settings/connections/combos all feed the unified model catalog builder
   // (blockedProviders + hidePaidModels, provider connections + excludedModels,
   // combo definitions, respectively) — pricing does too, via isFreeModel().
-  modelCatalogCacheVersion++;
+  invalidateModelCatalogCache();
 }
