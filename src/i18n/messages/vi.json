@@ -4939,6 +4939,7 @@
     "baseUrlHint": "Bắt buộc. URL cơ sở API của nhà cung cấp.",
     "iconUrlLabel": "URL biểu tượng",
     "iconUrlHint": "Tùy chọn. URL hình ảnh được hiển thị làm biểu tượng của nhà cung cấp này.",
+    "iconUrlInvalid": "URL biểu tượng không hợp lệ. Dùng http(s):// hoặc URL data:image/*;base64.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",

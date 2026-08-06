@@ -4917,6 +4917,7 @@
     "baseUrlHint": "必須。 プロバイダー API のベース URL。",
     "iconUrlLabel": "アイコンURL",
     "iconUrlHint": "任意。このプロバイダーのアイコンとして表示される画像URL。",
+    "iconUrlInvalid": "Invalid icon URL. Use http(s):// or a data:image/*;base64 URL.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",

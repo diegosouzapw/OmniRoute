@@ -4917,6 +4917,7 @@
     "baseUrlHint": "必填。供应商API基本URL。",
     "iconUrlLabel": "图标URL",
     "iconUrlHint": "可选。显示为此服务商图标的图片URL。",
+    "iconUrlInvalid": "Invalid icon URL. Use http(s):// or a data:image/*;base64 URL.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",

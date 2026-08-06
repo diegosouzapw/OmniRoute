@@ -4917,6 +4917,7 @@
     "baseUrlHint": "필수입니다. 공급자 API 기본 URL.",
     "iconUrlLabel": "아이콘 URL",
     "iconUrlHint": "선택 사항. 이 제공자의 아이콘으로 표시될 이미지 URL입니다.",
+    "iconUrlInvalid": "Invalid icon URL. Use http(s):// or a data:image/*;base64 URL.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",

@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Badge, Input, Modal, Select } from "@/shared/components";
+import { isValidProviderIconUrl } from "@/shared/validation/iconUrl";
 import { CC_COMPATIBLE_DEFAULT_CHAT_PATH } from "../../providerDetailConstants";
 interface EditCompatibleNodeModalNode {
   id?: string;
@@ -51,6 +52,7 @@ export default function EditCompatibleNodeModal({
     method?: string | null;
   }>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [iconUrlError, setIconUrlError] = useState<string | null>(null);
 
   useEffect(() => {
     if (node) {
@@ -76,6 +78,7 @@ export default function EditCompatibleNodeModal({
           (isCcCompatible && !node.chatPath)
         )
       );
+      setIconUrlError(null);
     }
   }, [node, isAnthropic, isCcCompatible]);
 
@@ -90,6 +93,15 @@ export default function EditCompatibleNodeModal({
 
   const handleSubmit = async () => {
     if (!formData.name.trim() || !formData.prefix.trim() || !formData.baseUrl.trim()) return;
+    // Field-level icon URL validation before blind submission — mirrors the
+    // shared server-side validator so invalid input is surfaced inline instead
+    // of failing only after the request round-trip.
+    const iconUrl = formData.iconUrl.trim();
+    if (!isValidProviderIconUrl(iconUrl)) {
+      setIconUrlError(t("iconUrlInvalid"));
+      return;
+    }
+    setIconUrlError(null);
     setSaving(true);
     try {
       const payload: any = {
@@ -98,7 +110,7 @@ export default function EditCompatibleNodeModal({
         baseUrl: formData.baseUrl,
         chatPath: formData.chatPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_CHAT_PATH : ""),
         modelsPath: isCcCompatible ? "" : formData.modelsPath,
-        iconUrl: formData.iconUrl.trim(),
+        iconUrl,
       };
       if (!isAnthropic) {
         payload.apiType = formData.apiType;
@@ -218,9 +230,14 @@ export default function EditCompatibleNodeModal({
         <Input
           label={t("iconUrlLabel")}
           value={formData.iconUrl}
-          onChange={(e) => setFormData({ ...formData, iconUrl: e.target.value })}
+          onChange={(e) => {
+            setFormData({ ...formData, iconUrl: e.target.value });
+            // Clear the inline error as soon as the operator starts typing again.
+            if (iconUrlError) setIconUrlError(null);
+          }}
           placeholder="https://example.com/logo.png"
           hint={t("iconUrlHint")}
+          error={iconUrlError || undefined}
         />
         <button
           type="button"

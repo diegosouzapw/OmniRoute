@@ -4917,6 +4917,7 @@
     "baseUrlHint": "Kinakailangan. URL base ng Provider API.",
     "iconUrlLabel": "URL ng Icon",
     "iconUrlHint": "Opsyonal. URL ng larawan na ipinapakita bilang icon ng provider na ito.",
+    "iconUrlInvalid": "Invalid icon URL. Use http(s):// or a data:image/*;base64 URL.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",

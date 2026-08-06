@@ -4917,6 +4917,7 @@
     "baseUrlHint": "Pakollinen. Palveluntarjoajan API-perus-URL-osoite.",
     "iconUrlLabel": "Kuvakkeen URL-osoite",
     "iconUrlHint": "Valinnainen. Kuvan URL-osoite, joka näytetään tämän tarjoajan kuvakkeena.",
+    "iconUrlInvalid": "Invalid icon URL. Use http(s):// or a data:image/*;base64 URL.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",

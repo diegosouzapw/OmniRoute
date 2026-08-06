@@ -4917,6 +4917,7 @@
     "baseUrlHint": "Gerekli. Sağlayıcı API temel URL'si.",
     "iconUrlLabel": "Simge URL'si",
     "iconUrlHint": "İsteğe bağlı. Bu sağlayıcının simgesi olarak gösterilen görsel URL'si.",
+    "iconUrlInvalid": "Invalid icon URL. Use http(s):// or a data:image/*;base64 URL.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",

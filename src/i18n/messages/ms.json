@@ -4917,6 +4917,7 @@
     "baseUrlHint": "Diperlukan. URL asas API pembekal.",
     "iconUrlLabel": "URL Ikon",
     "iconUrlHint": "Pilihan. URL imej yang ditunjukkan sebagai ikon penyedia ini.",
+    "iconUrlInvalid": "Invalid icon URL. Use http(s):// or a data:image/*;base64 URL.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",

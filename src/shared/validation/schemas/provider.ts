@@ -14,6 +14,7 @@ import {
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 import { validateProviderSpecificData } from "@/shared/validation/providerSpecificData";
+import { isValidProviderIconUrl } from "@/shared/validation/iconUrl";
 
 import {
   upstreamHeadersRecordSchema,
@@ -25,19 +26,18 @@ export { validateProviderSpecificData };
 
 // ──── Provider Schemas ────
 
-// #2166: shared optional remote icon URL for compatible provider nodes. Empty string
-// is accepted as "no custom icon" (clears any previously stored value). Restricted to
-// http(s) — `.url()` alone also accepts syntactically-valid-but-unsafe schemes like
-// `javascript:`/`data:`, which we never want persisted as an <img src>.
+// #2166 + data-URL support: shared optional remote icon URL for compatible provider
+// nodes. Empty string is accepted as "no custom icon" (clears any previously stored
+// value). Accepts http(s) URLs AND valid `data:image/*;base64,...` data URLs; rejects
+// malformed input, unsafe schemes (`javascript:`/`ftp:`), non-image data URLs, and
+// data URLs without a valid base64 payload. Validation lives in the single shared
+// validator `isValidProviderIconUrl` (src/shared/validation/iconUrl.ts) so the UI
+// and the API never diverge.
 const providerNodeIconUrlSchema = z
   .string()
   .trim()
-  .max(2000)
-  .refine((value) => value === "" || z.string().url().safeParse(value).success, {
-    message: "Icon URL must be a valid URL",
-  })
-  .refine((value) => value === "" || /^https?:\/\//i.test(value), {
-    message: "Icon URL must be a valid http:// or https:// URL",
+  .refine((value) => isValidProviderIconUrl(value), {
+    message: "Icon URL must be a valid http(s) or data:image/*;base64 URL",
   })
   .optional();
 
