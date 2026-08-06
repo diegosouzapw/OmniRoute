@@ -145,21 +145,43 @@ function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingReq
 
 // ──────────────── Pending Requests (in-memory) ────────────────
 
-const pendingRequests: {
-  byModel: Record<string, number>;
-  byAccount: Record<string, Record<string, number>>;
-  details: Record<string, Record<string, PendingRequestDetail[]>>;
-} = {
-  byModel: Object.create(null) as Record<string, number>,
-  byAccount: Object.create(null) as Record<string, Record<string, number>>,
-  details: Object.create(null) as Record<string, Record<string, PendingRequestDetail[]>>,
-};
+declare global {
+  var __omnirouteUsageHistoryPendingState:
+    | {
+        pendingRequests: {
+          byModel: Record<string, number>;
+          byAccount: Record<string, Record<string, number>>;
+          details: Record<string, Record<string, PendingRequestDetail[]>>;
+        };
+        pendingById: Map<string, PendingRequestDetail>;
+      }
+    | undefined;
+}
+
+// Reuse the SAME object/Map across Next.js dev HMR module re-evaluations —
+// same pattern (and reason) as src/lib/db/core.ts's `globalThis.__omnirouteDb`.
+// Without this, an edit anywhere in this module's dependency graph resets
+// in-flight request tracking to empty mid-stream, so a live poll against
+// getPendingById() (RequestLoggerDetail.tsx's Conversation Context section)
+// silently stops seeing partialAssistantText for a request that started
+// before the reload — the request keeps streaming fine, but the *next*
+// module instance's pendingById has never heard of it.
+const pendingState = (globalThis.__omnirouteUsageHistoryPendingState ??= {
+  pendingRequests: {
+    byModel: Object.create(null) as Record<string, number>,
+    byAccount: Object.create(null) as Record<string, Record<string, number>>,
+    details: Object.create(null) as Record<string, Record<string, PendingRequestDetail[]>>,
+  },
+  pendingById: new Map<string, PendingRequestDetail>(),
+});
+
+const pendingRequests = pendingState.pendingRequests;
 
 /**
  * O(1) ID → PendingRequestDetail lookup map.
  * Populated when a detail is created and cleaned up when it is removed/finalized.
  */
-const pendingById = new Map<string, PendingRequestDetail>();
+const pendingById = pendingState.pendingById;
 
 const DEFAULT_MAX_PENDING_REQUEST_AGE_MS = 60 * 60 * 1000;
 const MAX_PENDING_DETAILS = 5000;

@@ -7,6 +7,8 @@ import { formatTime } from "@/shared/utils/formatting";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 import RequestLoggerDetail from "@/shared/components/RequestLoggerDetail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
+import { ChatBubble } from "@/app/(dashboard)/dashboard/tools/traffic-inspector/components/chat/ChatBubble";
+import type { NormalizedBlock, NormalizedTurn } from "@/mitm/inspector/types";
 
 interface ConversationRow {
   id: string;
@@ -17,7 +19,40 @@ interface ConversationRow {
   lastModel: string | null;
   lastProvider: string | null;
   lastStatus: number | null;
+  isActive: boolean;
 }
+
+// Same spinner used for an in-flight request on /dashboard/logs
+// (RequestLoggerV2) — reused here so "in progress" reads the same way in
+// both places.
+function ActiveSpinner() {
+  return (
+    <span
+      className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/15 border border-amber-500/25 shrink-0"
+      title="In progress"
+    >
+      <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
+    </span>
+  );
+}
+
+interface ConversationTurn {
+  seq: number;
+  id: string;
+  parentId: string | null;
+  role: string;
+  textPreview: string;
+  blockKind: string;
+  toolName: string | null;
+  firstSeenAt: string;
+}
+
+interface ConversationTurnsPage {
+  nodes: ConversationTurn[];
+  hasMore: boolean;
+}
+
+const CONVERSATION_PAGE_SIZE = 20;
 
 const DEFAULT_POLL_SECONDS = 5;
 const POLL_STORAGE_KEY = "conversationsListPollSeconds";
@@ -57,6 +92,89 @@ function StatusBadge({ status }: { status: number | null }) {
   );
 }
 
+/**
+ * Builds the exact NormalizedBlock (src/mitm/inspector/types.ts) the
+ * request-detail panel already builds from buildRequestTurns/
+ * buildResponseTurns, so a tool call/result renders through the very same
+ * ChatBubble → MessageContent → ToolCallBlock/ToolResultBlock pipeline as
+ * the detail view — not a parallel implementation. `textPreview` round-
+ * tripped through JSON for a structured tool_use/tool_result turn; parse it
+ * best-effort so the block gets a real object, not a JSON string.
+ */
+function toTurn(node: ConversationTurn): NormalizedTurn {
+  const role: NormalizedTurn["role"] =
+    node.role === "system" || node.role === "user" || node.role === "assistant"
+      ? node.role
+      : "tool";
+
+  let block: NormalizedBlock;
+  if (node.blockKind === "tool_use") {
+    let input: unknown = node.textPreview;
+    try {
+      input = JSON.parse(node.textPreview);
+    } catch {
+      // Arguments weren't valid JSON — show the raw string.
+    }
+    block = { type: "tool_use", id: node.id.slice(0, 12), name: node.toolName ?? "tool", input };
+  } else if (node.blockKind === "tool_result") {
+    let content: unknown = node.textPreview;
+    try {
+      content = JSON.parse(node.textPreview);
+    } catch {
+      // Not JSON — show the raw string.
+    }
+    block = { type: "tool_result", tool_use_id: node.id.slice(0, 12), content };
+  } else {
+    block = { type: "text", text: node.textPreview || "_(empty)_" };
+  }
+
+  return { role, blocks: [block], timestamp: node.firstSeenAt };
+}
+
+/**
+ * Renders a conversation's turns top to bottom, oldest first — always a
+ * flat, chronological list. Every OmniRoute conversation is a single
+ * straight line (an edited/duplicated turn mints its own independent
+ * conversation instead of branching this one — see conversationTracker.ts's
+ * 2026-08-06 redesign), so there is no fork/indentation logic here at all
+ * anymore. `onLoadOlder` renders as a button above the turns when more
+ * (older) history exists than the current page.
+ */
+function ConversationLogView({
+  nodes,
+  hasMore,
+  loadingMore,
+  onLoadOlder,
+}: {
+  nodes: ConversationTurn[];
+  hasMore: boolean;
+  loadingMore: boolean;
+  onLoadOlder: () => void;
+}) {
+  if (nodes.length === 0) {
+    return (
+      <div className="text-sm text-text-muted py-4">No turns recorded for this conversation.</div>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-1.5 py-2 w-full min-w-0">
+      {hasMore && (
+        <button
+          type="button"
+          onClick={onLoadOlder}
+          disabled={loadingMore}
+          className="self-center mb-2 px-3 py-1.5 rounded-md border border-border text-xs text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors disabled:opacity-50"
+        >
+          {loadingMore ? "Loading…" : "Load more"}
+        </button>
+      )}
+      {nodes.map((node) => (
+        <ChatBubble key={node.id} turn={toTurn(node)} />
+      ))}
+    </div>
+  );
+}
+
 function ConversationsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -64,6 +182,9 @@ function ConversationsPageContent() {
   // live searchParams on every render re-fires the deep-link open effect right when the
   // panel closes and router.replace() strips the ?id= param.
   const [initialId] = useState(() => searchParams.get("id"));
+  // Deep link for the conversation modal — separate param from `id` (the
+  // request-detail panel) so either overlay can be linked independently.
+  const [initialConversationParam] = useState(() => searchParams.get("tree"));
 
   const [conversations, setConversations] = useState<ConversationRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -74,6 +195,17 @@ function ConversationsPageContent() {
   const [detailData, setDetailData] = useState<any>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailLoggingEnabled, setDetailLoggingEnabled] = useState(false);
+  const [activeConversation, setActiveConversation] = useState<ConversationRow | null>(null);
+  // Extracted so effects that only care "which conversation" (not its
+  // summary fields) can depend on this stable primitive instead of the
+  // whole activeConversation object — that object gets a fresh reference
+  // every list-poll tick once opened (see the resync effect below), which
+  // would otherwise rebind timers/listeners on every poll tick.
+  const activeConversationId = activeConversation?.id ?? null;
+  const [conversationNodes, setConversationNodes] = useState<ConversationTurn[]>([]);
+  const [conversationLoading, setConversationLoading] = useState(false);
+  const [conversationHasMore, setConversationHasMore] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [pollSeconds, setPollSeconds] = useState(() => {
     try {
       const saved = localStorage.getItem(POLL_STORAGE_KEY);
@@ -84,6 +216,25 @@ function ConversationsPageContent() {
     }
   });
   const initialOpenedRef = useRef(false);
+  const initialConversationOpenedRef = useRef(false);
+  const conversationPanelRef = useRef<HTMLDivElement>(null);
+  const conversationContentRef = useRef<HTMLDivElement>(null);
+  // True right after opening a conversation (or clicking "Go to bottom"),
+  // cleared once the user scrolls away from the bottom themselves. A large
+  // conversation's last page can include multi-KB tool-output/context turns
+  // whose markdown takes more than one animation frame to lay out, so a
+  // single scrollTop=scrollHeight right after fetch can undershoot — the
+  // ResizeObserver below re-pins on every subsequent layout change while
+  // this stays true, instead of a one-shot scroll that races the render.
+  const pinnedToBottomRef = useRef(false);
+  // Set right before prepending an older page, so the effect below can
+  // adjust scrollTop by exactly how much content grew above the fold —
+  // otherwise "Load more" would visually yank the view to the top.
+  const prependAdjustRef = useRef<{ prevScrollHeight: number; prevScrollTop: number } | null>(null);
+  // Mirrors the newest loaded turn's seq without needing conversationNodes
+  // itself in the poll effect's dependency array (which would tear down and
+  // restart the interval on every single appended turn).
+  const newestSeqRef = useRef<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -110,6 +261,21 @@ function ConversationsPageContent() {
       clearInterval(interval);
     };
   }, [pollSeconds]);
+
+  // activeConversation is a snapshot taken once at openConversation() time —
+  // it's never touched again while the modal stays open (the turns-poll
+  // effect below only appends conversationNodes). Without this, "Goto latest
+  // request" and any other displayed summary field (lastModel/lastStatus/
+  // turnCount) go stale the moment a new request lands in this conversation
+  // while you're still reading it, even though the list poll above (which
+  // runs regardless of whether the modal is open) already has the fresh
+  // row. Re-sync from it whenever the list refreshes.
+  useEffect(() => {
+    if (!activeConversationId) return;
+    const fresh = conversations.find((c) => c.id === activeConversationId);
+    if (!fresh) return;
+    setActiveConversation((prev) => (prev && prev.id === fresh.id ? fresh : prev));
+  }, [conversations, activeConversationId]);
 
   useEffect(() => {
     fetch("/api/logs/detail?limit=1")
@@ -180,9 +346,224 @@ function ConversationsPageContent() {
     openById(initialId).catch(() => {});
   }, [initialId, openById]);
 
-  const openConversation = (row: ConversationRow) => {
-    if (!row.lastCallLogId) return;
-    openById(row.lastCallLogId).catch(() => {});
+  const scrollToBottom = useCallback(() => {
+    pinnedToBottomRef.current = true;
+    const el = conversationPanelRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      try {
+        el.scrollTop = el.scrollHeight;
+      } catch {}
+    });
+  }, []);
+
+  // Keeps the panel pinned to its bottom while conversationContentRef's
+  // height keeps changing (initial render of a large page, late-settling
+  // markdown/tool-output layout, a new turn arriving via poll) — see
+  // pinnedToBottomRef's comment above for why a single scrollToBottom call
+  // isn't enough on its own for a heavy page.
+  useEffect(() => {
+    const content = conversationContentRef.current;
+    const panel = conversationPanelRef.current;
+    if (!content || !panel) return;
+    const observer = new ResizeObserver(() => {
+      if (!pinnedToBottomRef.current) return;
+      panel.scrollTop = panel.scrollHeight;
+    });
+    observer.observe(content);
+    return () => observer.disconnect();
+    // Keyed on the id, not the whole object: activeConversation's summary
+    // fields (lastCallLogId etc.) get resynced from the list poll while the
+    // modal stays open (see that effect's comment), which would otherwise
+    // tear down and recreate this observer on every poll tick.
+  }, [activeConversation?.id]);
+
+  // Un-pin as soon as the user scrolls away from the bottom themselves (e.g.
+  // to read earlier turns or click "Load more"), so later content growth
+  // doesn't yank them back down against their will. Re-pins automatically if
+  // they scroll back down to the bottom on their own.
+  useEffect(() => {
+    const panel = conversationPanelRef.current;
+    if (!panel) return;
+    const NEAR_BOTTOM_PX = 24;
+    const onScroll = () => {
+      const distanceFromBottom = panel.scrollHeight - panel.scrollTop - panel.clientHeight;
+      pinnedToBottomRef.current = distanceFromBottom <= NEAR_BOTTOM_PX;
+    };
+    panel.addEventListener("scroll", onScroll, { passive: true });
+    return () => panel.removeEventListener("scroll", onScroll);
+  }, [activeConversation?.id]);
+
+  const fetchConversationPage = useCallback(
+    (id: string, params: string): Promise<ConversationTurnsPage | null> =>
+      fetch(`/api/conversations/${id}/tree?${params}`, { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) =>
+          data && Array.isArray(data.nodes)
+            ? { nodes: data.nodes, hasMore: Boolean(data.hasMore) }
+            : null
+        )
+        .catch(() => null),
+    []
+  );
+
+  const openConversation = useCallback(
+    (row: ConversationRow) => {
+      setActiveConversation(row);
+      setConversationNodes([]);
+      setConversationHasMore(false);
+      setConversationLoading(true);
+      try {
+        const url = new URL(globalThis.location.href);
+        url.searchParams.set("tree", row.id);
+        router.replace(url.pathname + url.search);
+      } catch {
+        // ignore navigation errors
+      }
+      fetchConversationPage(row.id, `limit=${CONVERSATION_PAGE_SIZE}`)
+        .then((page) => {
+          setConversationNodes(page?.nodes ?? []);
+          setConversationHasMore(page?.hasMore ?? false);
+        })
+        .finally(() => {
+          setConversationLoading(false);
+          // A freshly-opened conversation should start scrolled to the
+          // latest (bottom-most) turn, not the oldest one on the page.
+          scrollToBottom();
+        });
+    },
+    [router, fetchConversationPage, scrollToBottom]
+  );
+
+  const closeConversation = useCallback(() => {
+    setActiveConversation(null);
+    try {
+      const url = new URL(globalThis.location.href);
+      url.searchParams.delete("tree");
+      router.replace(url.pathname + url.search);
+    } catch {
+      // ignore navigation errors
+    }
+  }, [router]);
+
+  const loadOlderTurns = useCallback(() => {
+    const panel = conversationPanelRef.current;
+    const oldestSeq = conversationNodes[0]?.seq;
+    if (!activeConversation || !panel || oldestSeq == null || loadingOlder) return;
+    setLoadingOlder(true);
+    prependAdjustRef.current = {
+      prevScrollHeight: panel.scrollHeight,
+      prevScrollTop: panel.scrollTop,
+    };
+    fetchConversationPage(
+      activeConversation.id,
+      `limit=${CONVERSATION_PAGE_SIZE}&beforeSeq=${oldestSeq}`
+    )
+      .then((page) => {
+        if (page && page.nodes.length > 0) {
+          setConversationNodes((prev) => [...page.nodes, ...prev]);
+        }
+        setConversationHasMore(page?.hasMore ?? false);
+      })
+      .finally(() => setLoadingOlder(false));
+  }, [activeConversation, conversationNodes, loadingOlder, fetchConversationPage]);
+
+  // Preserve scroll position across a "load more" prepend — otherwise
+  // adding older turns above the fold visually yanks the view to the top.
+  useEffect(() => {
+    const adjust = prependAdjustRef.current;
+    if (!adjust) return;
+    prependAdjustRef.current = null;
+    const panel = conversationPanelRef.current;
+    if (!panel) return;
+    requestAnimationFrame(() => {
+      panel.scrollTop = adjust.prevScrollTop + (panel.scrollHeight - adjust.prevScrollHeight);
+    });
+  }, [conversationNodes]);
+
+  useEffect(() => {
+    newestSeqRef.current =
+      conversationNodes.length > 0 ? conversationNodes[conversationNodes.length - 1].seq : null;
+  }, [conversationNodes]);
+
+  useEffect(() => {
+    if (!activeConversationId) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeConversation();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+    // activeConversationId, not the whole activeConversation object: it
+    // gets resynced (new object reference) from the list poll while the
+    // modal stays open (see that effect's comment) — depending on the
+    // object here would rebind this listener on every poll tick for no
+    // reason.
+  }, [activeConversationId, closeConversation]);
+
+  // While the conversation is open, keep polling for turns that arrive
+  // later (the request that opened it may not be the last one — OpenClaw
+  // can send another turn while you're still reading). Reuses the same
+  // "Auto-refresh Xs" setting as the list, rather than a separate interval,
+  // so there's one poll cadence to reason about on this page. Only ever
+  // APPENDS newer turns (via afterSeq) — it never re-fetches or replaces
+  // the whole page, so a "Load more" page loaded earlier stays put, and it
+  // deliberately does NOT re-scroll on every refresh (only the initial open
+  // does that), so it doesn't yank the view mid-read.
+  //
+  // Depends on activeConversationId, NOT the whole activeConversation
+  // object: activeConversation gets a fresh object reference every list-poll
+  // tick (see the resync effect above, needed so "Goto latest request"
+  // doesn't go stale) — on the SAME poll cadence as this effect's own
+  // interval. Depending on the object would tear down and recreate this
+  // setInterval every single tick, resetting its countdown each time and
+  // starving it of ever actually firing — silently breaking the exact
+  // "keep filling in new turns while open" behavior this effect exists for.
+  useEffect(() => {
+    if (!activeConversationId) return;
+    const tick = () => {
+      if (document.visibilityState !== "visible") return;
+      if (newestSeqRef.current == null) return;
+      fetchConversationPage(activeConversationId, `afterSeq=${newestSeqRef.current}`).then(
+        (page) => {
+          if (page && page.nodes.length > 0) {
+            setConversationNodes((prev) => [...prev, ...page.nodes]);
+          }
+        }
+      );
+    };
+    const interval = setInterval(tick, pollSeconds * 1000);
+    return () => clearInterval(interval);
+  }, [activeConversationId, pollSeconds, fetchConversationPage]);
+
+  // Deep link: /dashboard/conversations?tree=<id> opens that conversation.
+  // Prefer the already-loaded row (has lastCallLogId for "Goto latest
+  // request"); fall back to a minimal row if the conversation isn't in the
+  // current page of the list (still fully works — the API only needs the
+  // id).
+  useEffect(() => {
+    if (!initialConversationParam || initialConversationOpenedRef.current || loading) return;
+    initialConversationOpenedRef.current = true;
+    const found = conversations.find((c) => c.id === initialConversationParam);
+    openConversation(
+      found ?? {
+        id: initialConversationParam,
+        turnCount: 0,
+        firstSeenAt: "",
+        lastSeenAt: "",
+        lastCallLogId: null,
+        lastModel: null,
+        lastProvider: null,
+        lastStatus: null,
+        isActive: false,
+      }
+    );
+  }, [initialConversationParam, loading, conversations, openConversation]);
+
+  const gotoLatestRequest = () => {
+    const id = activeConversation?.lastCallLogId;
+    if (!id) return;
+    closeConversation();
+    openById(id).catch(() => {});
   };
 
   return (
@@ -241,15 +622,18 @@ function ConversationsPageContent() {
                 className="rounded-xl border border-border p-3 flex flex-col gap-2 active:bg-bg-subtle cursor-pointer"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span
-                    title={row.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      copyToClipboard(row.id);
-                    }}
-                    className="font-mono text-[11px] text-text-main hover:underline truncate"
-                  >
-                    {row.id.slice(0, 16)}…
+                  <span className="flex items-center gap-1.5 min-w-0">
+                    {row.isActive && <ActiveSpinner />}
+                    <span
+                      title={row.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyToClipboard(row.id);
+                      }}
+                      className="font-mono text-[11px] text-text-main hover:underline truncate"
+                    >
+                      {row.id.slice(0, 16)}…
+                    </span>
                   </span>
                   <span className="font-mono text-xs text-text-muted shrink-0">
                     {row.turnCount} turns
@@ -257,9 +641,7 @@ function ConversationsPageContent() {
                 </div>
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="text-sm text-text-main truncate">
-                      {row.lastModel ?? "—"}
-                    </span>
+                    <span className="text-sm text-text-main truncate">{row.lastModel ?? "—"}</span>
                     <ProviderBadge provider={row.lastProvider} />
                   </div>
                   <StatusBadge status={row.lastStatus} />
@@ -292,15 +674,18 @@ function ConversationsPageContent() {
                     onClick={() => openConversation(row)}
                   >
                     <td className="px-3 py-2 font-mono text-[11px] text-text-main">
-                      <span
-                        title={row.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          copyToClipboard(row.id);
-                        }}
-                        className="hover:underline"
-                      >
-                        {row.id.slice(0, 16)}…
+                      <span className="flex items-center gap-1.5">
+                        {row.isActive && <ActiveSpinner />}
+                        <span
+                          title={row.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            copyToClipboard(row.id);
+                          }}
+                          className="hover:underline"
+                        >
+                          {row.id.slice(0, 16)}…
+                        </span>
                       </span>
                     </td>
                     <td className="px-3 py-2 text-right font-mono text-text-main">
@@ -324,6 +709,77 @@ function ConversationsPageContent() {
         </>
       )}
 
+      {activeConversation && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center px-2 pt-[5vh] sm:px-4"
+          onClick={closeConversation}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Conversation"
+        >
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div
+            ref={conversationPanelRef}
+            className="relative w-full max-w-3xl max-h-[90vh] overflow-x-hidden overflow-y-auto rounded-xl border border-border bg-bg-primary shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-3 px-4 py-3 border-b border-border bg-bg-primary/95 backdrop-blur-sm rounded-t-xl sm:px-6 sm:py-4">
+              <div className="min-w-0">
+                <h3 className="text-sm font-semibold text-text-main">Conversation</h3>
+                <span
+                  title={activeConversation.id}
+                  className="block truncate font-mono text-[11px] text-text-muted"
+                >
+                  {activeConversation.id.slice(0, 24)}…
+                </span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {activeConversation.lastCallLogId && (
+                  <button
+                    type="button"
+                    onClick={gotoLatestRequest}
+                    className="px-2 py-1 rounded-md border border-border text-[11px] text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors whitespace-nowrap"
+                  >
+                    Goto latest request
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={scrollToBottom}
+                  title="Go to bottom"
+                  className="p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
+                  aria-label="Go to bottom"
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    vertical_align_bottom
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={closeConversation}
+                  className="p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
+                  aria-label="Close conversation"
+                >
+                  <span className="material-symbols-outlined text-[20px]">close</span>
+                </button>
+              </div>
+            </div>
+            <div ref={conversationContentRef} className="p-4 sm:p-6">
+              {conversationLoading ? (
+                <div className="text-sm text-text-muted py-4">Loading…</div>
+              ) : (
+                <ConversationLogView
+                  nodes={conversationNodes}
+                  hasMore={conversationHasMore}
+                  loadingMore={loadingOlder}
+                  onLoadOlder={loadOlderTurns}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {selectedLog && (
         <RequestLoggerDetail
           log={selectedLog}
@@ -337,7 +793,6 @@ function ConversationsPageContent() {
           onNext={undefined}
           relatedLogs={[]}
           onSelectRelated={undefined}
-          onNavigateToLog={openById}
         />
       )}
     </div>

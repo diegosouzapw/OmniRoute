@@ -564,6 +564,7 @@ async function handleChatImplementation(
     model: modelStr,
     apiKeyId: apiKeyInfo?.id ?? null,
     clientSessionIdHeader: clientConversationHeader,
+    correlationId: reqId,
   });
 
   // T08: per-key active session limit (0 = unlimited).

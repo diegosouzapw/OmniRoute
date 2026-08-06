@@ -3,9 +3,28 @@
  * HTTP requests that are turns of the same multi-turn agentic conversation.
  *
  * Clients resend the full growing message/input history on every turn (no
- * server-side state dependency), so continuation is detected by checking
- * whether an earlier request's history is a strict prefix of the current
- * request's history. This is a new, persisted mechanism — separate from
+ * server-side state dependency). Continuation is detected with a per-turn
+ * hash chain (each turn's id = sha256(parentId, role, sha256(text)), the
+ * same idea as a git commit graph): a new request's turns are walked from
+ * the start against the candidate conversation's existing chain, matching as
+ * far as they agree. Real agentic-CLI traffic (OpenClaw and similar) often
+ * edits or duplicates a turn mid-history to keep provider-side prompt caches
+ * warm — e.g. request 1 has turns `a b c … h i`, request 2 has
+ * `a b c′ … h i′ i j k`. A whole-history hash (the original approach) breaks
+ * on any such edit and never reconnects.
+ *
+ * Every OmniRoute conversation is a single straight line — it never forks.
+ * When a turn diverges from what's already on file (`c` became `c'`), that
+ * diverging history becomes its OWN independent conversation, with its own
+ * id, built fresh from this request's full turn list — not a branch grafted
+ * onto the old chain (2026-08-06 redesign; the branching model's real
+ * traffic accumulated dozens of edits per session, and indenting one more
+ * tree level per edit eventually left no room to show content at all).
+ * `a b c d` and `a b c' d'` end up as two distinct conversations, sharing no
+ * further storage after the point they diverge — simpler to store, query,
+ * and render than a tree, and it matches how the data is actually used: a
+ * "conversation" here is one continuous transcript, not a version-control
+ * graph. This is a new, persisted mechanism — separate from
  * `sessionManager.ts`'s `generateSessionId()` (in-memory, routing/latency
  * only) even though it uses the same sha256-fingerprint style.
  *
@@ -16,8 +35,11 @@ import { createHash, randomUUID } from "node:crypto";
 import {
   createAgenticConversation,
   findAgenticConversationsByFingerprint,
+  getConversationTurnIndex,
+  insertConversationTurnNodes,
   touchOrCreateExternalConversation,
   updateAgenticConversation,
+  type ConversationTurnIndex,
 } from "../../src/lib/db/agenticConversations.ts";
 
 type JsonRecord = Record<string, unknown>;
@@ -25,6 +47,16 @@ type JsonRecord = Record<string, unknown>;
 interface CanonicalTurn {
   role: "system" | "user" | "assistant" | "tool";
   text: string;
+  /** 'text' | 'tool_use' | 'tool_result' — carried through to
+   * conversation_turn_nodes so the tree view (and any other consumer) can
+   * build the exact NormalizedBlock (src/mitm/inspector/types.ts) the
+   * request-detail panel already builds from buildRequestTurns/
+   * buildResponseTurns, rendering tool calls/results through the same
+   * ChatBubble/MessageContent/ToolCallBlock/ToolResultBlock components
+   * everywhere instead of a parallel tree-only implementation. */
+  blockKind: "text" | "tool_use" | "tool_result";
+  /** Set only when blockKind === "tool_use". */
+  toolName: string | null;
 }
 
 export interface ResolveConversationIdInput {
@@ -33,6 +65,15 @@ export interface ResolveConversationIdInput {
   apiKeyId: string | null;
   /** Raw `x-omniroute-session-id` header value, if the client supplied one. */
   clientSessionIdHeader: string | null;
+  /**
+   * call_logs.correlation_id for this request (109_call_logs_correlation_id)
+   * — generated earlier in the request lifecycle, well before this request's
+   * own call_logs row/id exists, so it's the only stable identifier
+   * available here to tag new turn nodes with. The tree API route
+   * (src/app/api/conversations/[id]/tree/route.ts) joins through it to
+   * resolve a navigable call_logs.id.
+   */
+  correlationId: string | null;
 }
 
 export interface ResolveConversationIdResult {
@@ -50,9 +91,47 @@ function normalizeRole(raw: unknown): CanonicalTurn["role"] {
   return "user";
 }
 
+/**
+ * Extract human-readable text from an OpenAI/Anthropic/Responses-API
+ * `content` value. Chat Completions sends a plain string; Responses API and
+ * Anthropic send an array of typed blocks (`{type:"text"|"input_text"|
+ * "output_text", text}`, `tool_use`, `tool_result`, ...) — collapsing that
+ * array to its text (rather than `JSON.stringify`-ing the whole thing) is
+ * what feeds both the turn-hash-chain (so the same underlying text chains
+ * identically regardless of which block-array shape a client used to send
+ * it) and `text_preview`, which the /dashboard/conversations tree view
+ * renders directly as markdown — a raw JSON blob there was a real bug, not a
+ * cosmetic one.
+ */
 function stringifyContent(content: unknown): string {
   if (typeof content === "string") return content;
   if (content == null) return "";
+  if (Array.isArray(content)) {
+    const parts: string[] = [];
+    for (const item of content) {
+      if (typeof item === "string") {
+        parts.push(item);
+        continue;
+      }
+      const block = item && typeof item === "object" ? (item as JsonRecord) : null;
+      if (!block) continue;
+      const type = block.type;
+      if (
+        (type === "text" || type === "input_text" || type === "output_text") &&
+        typeof block.text === "string"
+      ) {
+        parts.push(block.text);
+      } else if (type === "tool_use" || type === "function_call") {
+        const name = typeof block.name === "string" ? block.name : "";
+        parts.push(`[tool_use ${name}]`);
+      } else if (type === "tool_result" || type === "function_call_output") {
+        parts.push(stringifyContent(block.content ?? block.output ?? ""));
+      } else if (typeof block.text === "string") {
+        parts.push(block.text);
+      }
+    }
+    return parts.join("\n");
+  }
   try {
     return JSON.stringify(content);
   } catch {
@@ -96,7 +175,25 @@ export function extractCanonicalTurns(body: JsonRecord | null | undefined): Cano
         : null;
     if (!role) continue;
     const text = stringifyContent(rec.content ?? rec.text ?? rec.arguments ?? rec.output);
-    if (text) turns.push({ role, text });
+    if (!text) continue;
+
+    // Chat Completions tool-result messages (role: "tool"/"function") and
+    // Responses API function_call/function_call_output items are the only
+    // two shapes this canonicalizer sees for tool activity — everything
+    // else (including plain assistant/user/system text) is "text".
+    let blockKind: CanonicalTurn["blockKind"] = "text";
+    let toolName: string | null = null;
+    if (rec.type === "function_call") {
+      blockKind = "tool_use";
+      toolName = typeof rec.name === "string" ? rec.name : null;
+    } else if (rec.type === "function_call_output") {
+      blockKind = "tool_result";
+    } else if (rec.role === "tool" || rec.role === "function") {
+      blockKind = "tool_result";
+      toolName = typeof rec.name === "string" ? rec.name : null;
+    }
+
+    turns.push({ role, text, blockKind, toolName });
   }
   return turns;
 }
@@ -105,24 +202,6 @@ export function extractCanonicalTurns(body: JsonRecord | null | undefined): Cano
 
 function hashHex(text: string): string {
   return createHash("sha256").update(text).digest("hex");
-}
-
-function hashShort(text: string): string {
-  return hashHex(text).slice(0, 16);
-}
-
-// Deliberately ignores the system message. Real coding-agent CLIs (Claude
-// Code, opencode, etc.) commonly regenerate the system prompt on EVERY
-// request with live context (timestamp, cwd, git status...) — anchoring
-// identity to it would mint a brand new conversation on every single turn
-// for exactly that kind of real traffic, even though the actual
-// user/assistant history is a genuine, unbroken continuation. Discovered
-// live on a real deployment: 28 consecutive requests from one growing
-// session, each recorded as its own turn_count=1 conversation (issue #9315
-// follow-up).
-function extractFirstNonSystemText(turns: CanonicalTurn[]): string | null {
-  const first = turns.find((t) => t.role !== "system");
-  return first ? first.text : null;
 }
 
 function extractToolNames(body: JsonRecord | null | undefined): string[] {
@@ -138,53 +217,177 @@ function extractToolNames(body: JsonRecord | null | undefined): string[] {
   return names.sort();
 }
 
+// Deliberately excludes any message text — both the system prompt (real
+// coding-agent CLIs like Claude Code/opencode regenerate it every request
+// with live context: timestamp, cwd, git status...) AND, discovered live on
+// a real OmniRoute deployment running OpenClaw, the first non-system turn
+// too: OpenClaw's sliding context window drops/summarizes the EARLIEST
+// turns as a session grows, so `firstNonSystemText` never stays stable
+// across requests either — anchoring identity to either one mints a brand
+// new conversation (or, worse, finds zero fingerprint candidates at all, so
+// the turn-chain match in resolveConversationId never even runs) on every
+// single turn for exactly this kind of real traffic, even though the actual
+// history is a genuine, unbroken continuation. The bucket only needs to be
+// small enough to bound candidate lookup — apiKeyId + model + toolNames is
+// stable across a whole session and still narrow in practice; actual
+// identity is decided by the turn-chain walk (real content overlap), not by
+// this bucket, so widening it here cannot cause a false merge on its own.
 export function computeFingerprintHash(input: {
   apiKeyId: string | null;
   model: string | null;
-  turns: CanonicalTurn[];
   toolNames: string[];
 }): string {
-  const firstText = extractFirstNonSystemText(input.turns);
-  const parts = [
-    input.apiKeyId ?? "",
-    input.model ?? "",
-    firstText ? hashShort(firstText) : "",
-    input.toolNames.join(","),
-  ];
+  const parts = [input.apiKeyId ?? "", input.model ?? "", input.toolNames.join(",")];
   // NOTE: no connectionId — conversation identity must not depend on which
   // upstream connection this particular turn happened to be routed to.
   return hashHex(parts.join("|"));
 }
 
-// ── Bounded turn hash (continuation check, O(1) on very long histories) ──
+// ── Turn hash chain (continuation + branch detection) ────────────────────
 //
-// A history of 100k+ tokens (observed in real traffic) makes hashing the
-// FULL turn array on every request expensive. Instead hash a bounded
-// projection: total turn count, the role sequence (cheap - one char per
-// turn), and the text of the first 2 and last 3 turns. This is a documented
-// heuristic trade-off: two histories differing ONLY in an untouched middle
-// section, with the same length, would collide. Accepted for the O(1) cost
-// bound; see conversationTracker.test.ts for the explicit test pinning this
-// known limitation.
-const HEAD_TURNS = 2;
-const TAIL_TURNS = 3;
+// Each turn gets a stable id chained to its predecessor, the same idea as a
+// git commit graph: id = sha256(parentId, role, sha256(text)). A brand-new
+// tree's first turn chains off the conversation root id itself (not off
+// `null`) so two different, unrelated conversation trees whose first turn
+// happens to be byte-identical (e.g. two sessions that both open with "hi")
+// never compute the same node id — `conversation_turn_nodes.id` is a global
+// primary key, not scoped per conversation_id.
+// Bounded well past a UI "preview" length: the /dashboard/conversations tree
+// view renders this as full markdown per turn (matching the request detail
+// panel's rendering), not a truncated one-liner — 8000 chars comfortably
+// covers a real single turn (a system prompt or a long assistant reply)
+// while still bounding pathological outliers.
+const TEXT_PREVIEW_LENGTH = 8000;
 
-export function hashTurnsBounded(turns: CanonicalTurn[]): string {
-  // Same reasoning as extractFirstNonSystemText: a regenerated-every-turn
-  // system prompt must not be part of the continuation signal, or it alone
-  // breaks the head-hash for real CLI traffic even once the fingerprint
-  // bucket lookup (above) correctly finds the right candidate.
-  const relevant = turns.filter((t) => t.role !== "system");
-  const head = relevant.slice(0, HEAD_TURNS);
-  const tail = relevant.length > HEAD_TURNS ? relevant.slice(-TAIL_TURNS) : [];
-  const roleSequence = relevant.map((t) => t.role[0]).join("");
-  const parts = [
-    String(relevant.length),
-    roleSequence,
-    ...head.map((t) => t.text),
-    ...tail.map((t) => t.text),
-  ];
-  return hashHex(parts.join(""));
+function hashTurnContent(turn: CanonicalTurn): string {
+  return hashHex(`${turn.role} ${turn.text}`);
+}
+
+function chainNodeId(parentId: string, turn: CanonicalTurn): string {
+  return hashHex(`${parentId} ${hashTurnContent(turn)}`);
+}
+
+interface NewTurnNode {
+  id: string;
+  parentId: string | null;
+  role: string;
+  contentHash: string;
+  textPreview: string;
+  blockKind: string;
+  toolName: string | null;
+}
+
+/** Build the new-node run for turns[fromIndex:], chained off `chainAnchor`. */
+function buildNewNodes(
+  turns: CanonicalTurn[],
+  fromIndex: number,
+  chainAnchor: string,
+  rootId: string
+): NewTurnNode[] {
+  const nodes: NewTurnNode[] = [];
+  let parent = chainAnchor;
+  for (let i = fromIndex; i < turns.length; i++) {
+    const turn = turns[i];
+    const nodeId = chainNodeId(parent, turn);
+    nodes.push({
+      id: nodeId,
+      // The root anchor is a hashing seed, not a real node — the first turn
+      // of a tree has no parent turn.
+      parentId: parent === rootId ? null : parent,
+      role: turn.role,
+      contentHash: hashTurnContent(turn),
+      textPreview: turn.text.slice(0, TEXT_PREVIEW_LENGTH),
+      blockKind: turn.blockKind,
+      toolName: turn.toolName,
+    });
+    parent = nodeId;
+  }
+  return nodes;
+}
+
+interface ReconnectMatch {
+  /** Index into `chainTurns` where the reconnection was found (turns before
+   * this index were dropped from the chain's view — a compacted summary the
+   * client sent instead of resending them verbatim — and are not inserted
+   * as nodes). */
+  startIndex: number;
+  /** How far the match extends past startIndex (>= startIndex + 1). */
+  matchEndIndex: number;
+  /** Node id to chain new nodes off (the last matched node). */
+  anchorNodeId: string;
+  /** True when `anchorNodeId` already has a recorded child in this chain —
+   * i.e. turns[matchEndIndex] (if any) would collide with an existing,
+   * DIFFERENT turn rather than simply being new. See resolveConversationId's
+   * doc comment for what this distinction now controls. */
+  anchorHasChild: boolean;
+}
+
+/**
+ * Find where `chainTurns` reconnects to an existing chain, trying the
+ * leftmost turn first (so a still-fully-present prefix — the common case —
+ * matches immediately at the start) and falling back to later turns only
+ * when earlier ones aren't found anywhere in the chain. This is what makes
+ * continuation detection survive OpenClaw's sliding context window: once
+ * the earliest turns are compacted away, turn 0 of a new request is some
+ * turn from the MIDDLE of the existing chain, not its start — a start-only
+ * walk (checking only whether turn 0 is the chain's own first turn) would
+ * find nothing.
+ *
+ * Real agentic traffic is full of byte-identical repeated turns — a tool
+ * polling loop's "Process still running." output, a heartbeat ack, a
+ * one-word "ok" — so `byContentHash.get(...)` routinely returns MANY
+ * candidate anchors for the same turn (one real conversation observed 28
+ * duplicates of a single OpenClaw runtime-context turn). Evaluating only the
+ * first candidate (as this used to do) meant returning whichever occurrence
+ * SQLite happened to list first — in practice the OLDEST, most stale one —
+ * whose recorded next-turn almost never matches the current request, so the
+ * walk stalled a few turns in and (worse) that stale anchor already has a
+ * DIFFERENT recorded child, tripping `anchorHasChild` and making
+ * resolveConversationId treat a genuine continuation as a divergence. Live
+ * result: a real conversation minted a brand-new copy of its ENTIRE history
+ * on every single request instead of ever reconnecting (2026-08-06). Every
+ * candidate anchor for every prefix start is now tried, and the one that
+ * verifiably extends furthest into the actual request wins — the only
+ * reliable signal of genuine continuation when content repeats.
+ */
+function findReconnectMatch(
+  chainTurns: CanonicalTurn[],
+  index: ConversationTurnIndex
+): ReconnectMatch | null {
+  let best: ReconnectMatch | null = null;
+
+  for (let s = 0; s < chainTurns.length; s++) {
+    const anchors = index.byContentHash.get(hashTurnContent(chainTurns[s]));
+    if (!anchors) continue;
+    for (const anchorNodeId of anchors) {
+      let parent = anchorNodeId;
+      let matchEndIndex = s + 1;
+      for (let i = s + 1; i < chainTurns.length; i++) {
+        const nodeId = chainNodeId(parent, chainTurns[i]);
+        if (!index.nodeIds.has(nodeId)) break;
+        parent = nodeId;
+        matchEndIndex++;
+      }
+      const anchorHasChild = index.parentsWithChildren.has(parent);
+      // Longest verified run wins outright. An equal-length run breaks
+      // toward anchorHasChild===false: a tie means both candidate anchors'
+      // recorded next-turn already differs from what's being requested (the
+      // walk stopped for the same reason on both), so the anchor with NO
+      // established child is the safe, unambiguous "just append here" — the
+      // other, having a different recorded child already, would incorrectly
+      // read as a divergence purely because it happened to be tried first.
+      const isBetter =
+        !best ||
+        matchEndIndex > best.matchEndIndex ||
+        (matchEndIndex === best.matchEndIndex && !anchorHasChild && best.anchorHasChild);
+      if (isBetter) {
+        best = { startIndex: s, matchEndIndex, anchorNodeId: parent, anchorHasChild };
+      }
+      // Can't do better than matching every turn through to the end.
+      if (matchEndIndex === chainTurns.length) return best;
+    }
+  }
+  return best;
 }
 
 // ── Orchestration ─────────────────────────────────────────────────────────
@@ -208,36 +411,78 @@ export async function resolveConversationId(
   const fingerprintHash = computeFingerprintHash({
     apiKeyId: input.apiKeyId,
     model: input.model,
-    turns,
     toolNames,
   });
 
+  // The turn CHAIN excludes the system message entirely, same reasoning as
+  // extractFirstNonSystemText above: real coding-agent CLIs regenerate the
+  // system prompt (timestamp/cwd/git status...) on every single request, so
+  // treating it as an ordinary chained turn would make turn-0 (or wherever
+  // it sits) fail to match on every request — reintroducing the exact
+  // always-new-conversation bug this chain design exists to fix.
+  const chainTurns = turns.filter((t) => t.role !== "system");
+
   const candidates = findAgenticConversationsByFingerprint(fingerprintHash);
   for (const candidate of candidates) {
-    // A genuine continuation always strictly grows the history (the client
-    // appends at least the assistant's reply plus a new turn) — same-length
-    // must never match, or two independent single-shot requests with
-    // byte-identical content (a client retry, or two unrelated conversations
-    // that both just say "hi") would merge into one conversation.
-    if (turns.length <= candidate.lastMessageCount) continue;
-    const truncated = turns.slice(0, candidate.lastMessageCount);
-    if (hashTurnsBounded(truncated) === candidate.lastMessagesHash) {
-      updateAgenticConversation(candidate.id, {
-        lastMessageCount: turns.length,
-        lastMessagesHash: hashTurnsBounded(turns),
-        turnCount: candidate.turnCount + 1,
-      });
+    const index = getConversationTurnIndex(candidate.id);
+    if (index.nodeIds.size === 0) continue;
+
+    const match = findReconnectMatch(chainTurns, index);
+    // No match anywhere in the chain means this candidate isn't actually
+    // this conversation's lineage — it only shares the coarse fingerprint
+    // bucket (apiKeyId/model/toolNames), which real traffic proves is not
+    // enough to assume overlap on its own (see computeFingerprintHash's doc
+    // comment) — try the next candidate rather than attaching a completely
+    // unrelated turn.
+    if (!match) continue;
+
+    if (match.matchEndIndex === chainTurns.length) {
+      // Every turn from the reconnect point onward already exists on this
+      // chain (e.g. an exact retry, or the whole request is already fully
+      // recorded) — a real continuation, nothing new to insert.
+      updateAgenticConversation(candidate.id, { turnCount: candidate.turnCount + 1 });
       return { conversationId: candidate.id, isNewConversation: false };
     }
+
+    if (!match.anchorHasChild) {
+      // Genuine tail growth: the reconnect point has no recorded child yet,
+      // so turns[matchEndIndex:] are simply turns this conversation hasn't
+      // seen before — append them to this SAME chain. Turns before
+      // startIndex (a compacted-away prefix, if any) are never inserted —
+      // they don't represent new content, just the client's own context
+      // management.
+      const newNodes = buildNewNodes(
+        chainTurns,
+        match.matchEndIndex,
+        match.anchorNodeId,
+        candidate.id
+      );
+      insertConversationTurnNodes(candidate.id, input.correlationId, newNodes);
+      updateAgenticConversation(candidate.id, { turnCount: candidate.turnCount + 1 });
+      return { conversationId: candidate.id, isNewConversation: false };
+    }
+
+    // The reconnect point already has a DIFFERENT recorded child — this
+    // request's turn at that position diverges from what's on file (a real
+    // OpenClaw cache-aware-context edit: turn `c` became `c'`). As of the
+    // 2026-08-06 redesign, an edited/duplicated turn no longer forks a
+    // branch inside this conversation's own chain — every OmniRoute
+    // conversation is now a single straight line, never a tree. The
+    // diverging history becomes its own independent conversation instead
+    // (built fresh below, from this request's full turn list) — distinct
+    // conversation ids for `a b c d` and `a b c' d'`, not one tree with two
+    // branches. This is both simpler to store/query and fixes a real UX
+    // problem the branching model had: real OpenClaw traffic accumulates
+    // dozens of edits per session, and indenting one more level per fork
+    // eventually left no horizontal space for content at all. Keep checking
+    // remaining candidates first, though — a later candidate may already BE
+    // that independent conversation from a previous edit at this same spot
+    // (e.g. a repeated retry of the edited turn), which should continue
+    // that one rather than minting yet another new id for it.
   }
 
   const id = `conv_${randomUUID()}`;
-  createAgenticConversation({
-    id,
-    apiKeyId: input.apiKeyId,
-    fingerprintHash,
-    lastMessageCount: turns.length,
-    lastMessagesHash: hashTurnsBounded(turns),
-  });
+  createAgenticConversation({ id, apiKeyId: input.apiKeyId, fingerprintHash });
+  insertConversationTurnNodes(id, input.correlationId, buildNewNodes(chainTurns, 0, id, id));
   return { conversationId: id, isNewConversation: true };
 }
