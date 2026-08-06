@@ -108,7 +108,7 @@ export const resetStatsActionSchema = z.object({
   action: z.literal("reset-stats"),
 });
 
-export const ipFilterModeSchema = z.enum(["blacklist", "whitelist"]);
+export const ipFilterModeSchema = z.enum(["blacklist", "whitelist", "whitelist-priority"]);
 
 export const tempBanSchema = z.object({
   ip: z.string().trim().min(1),

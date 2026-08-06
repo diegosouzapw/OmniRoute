@@ -91,6 +91,52 @@ test("createPassthroughStreamWithLogger omits [DONE] for Responses clients", asy
   assert.doesNotMatch(result, /data: \[DONE\]/);
 });
 
+test("createPassthroughStreamWithLogger restores namespace identity in completed output", async () => {
+  const transform = createPassthroughStreamWithLogger(
+    "codex",
+    null,
+    null,
+    "gpt-5.5-low",
+    null,
+    null,
+    null,
+    null,
+    null,
+    "openai-responses",
+    new Map([["read", { namespace: "mcp__files", name: "read" }]])
+  );
+
+  const writer = transform.writable.getWriter();
+  await writer.write(
+    new TextEncoder().encode(
+      [
+        "event: response.output_item.done",
+        'data: {"type":"response.output_item.done","response_id":"resp_namespace","output_index":0,"item":{"id":"fc_1","type":"function_call","name":"read","arguments":"{}"}}',
+        "event: response.completed",
+        'data: {"type":"response.completed","response":{"id":"resp_namespace","status":"completed","output":[]}}',
+        "",
+      ].join("\n")
+    )
+  );
+  await writer.close();
+
+  const reader = transform.readable.getReader();
+  const decoder = new TextDecoder();
+  let result = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    result += decoder.decode(value);
+  }
+
+  const completed = result
+    .split(/\n\n+/)
+    .find((block) => block.includes('"type":"response.completed"'));
+  assert.ok(completed, "expected a response.completed event on the wire");
+  assert.match(completed, /"namespace":"mcp__files"/);
+  assert.match(completed, /"name":"read"/);
+});
+
 test("createPassthroughStreamWithLogger separates K3 thinking tags", async () => {
   const transform = createPassthroughStreamWithLogger(
     "kimi-coding",

@@ -22,15 +22,16 @@ let _config = {
 // lazily loaded on first access. better-sqlite3 is synchronous, so both the load
 // and the save stay in the sync hot path without extra startup wiring. tempBans
 // are intentionally NOT persisted — they are ephemeral, TTL-swept runtime state.
+//
+// D2 (#9033): the _loaded one-shot gate was removed so a config persisted by the
+// dashboard settings route (a separate module instance, since @omniroute/open-sse
+// is bundled per-entry via transpilePackages) propagates to the proxy runtime
+// without a restart. A DB failure still degrades to the in-memory defaults, and
+// tempBans remain in-memory-only as before.
 const IP_FILTER_NAMESPACE = "ipFilter";
 const IP_FILTER_KEY = "config";
-let _loaded = false;
 
 function ensureLoaded() {
-  if (_loaded) return;
-  // Mark loaded up-front so a DB failure (build phase / cloud / migration not yet
-  // run) degrades to in-memory only instead of retrying on every request.
-  _loaded = true;
   try {
     const row = getDbInstance()
       .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
@@ -235,9 +236,17 @@ export function createIPFilterMiddleware() {
 
 /**
  * For Next.js App Router — check IP from request object
+ *
+ * D1 (#9033): accepts an optional trustedPeerIp (resolved from the authenticated
+ * peer stamp, available on direct connections where the proxy runtime has no
+ * socket). When provided, it is checked FIRST before falling through to the
+ * forwarding headers, so a blacklisted IP on a direct connection (no XFF, no
+ * socket) is blocked. When behind a reverse proxy (via-proxy marker set), the
+ * caller passes null so the XFF path continues to work.
  */
-export function checkRequestIP(request) {
+export function checkRequestIP(request, trustedPeerIp) {
   const ip =
+    pickFirstValidIp(trustedPeerIp || null) ||
     pickFirstValidIp(request.headers?.get?.("cf-connecting-ip")) ||
     pickFirstValidIp(request.headers?.get?.("x-forwarded-for")) ||
     pickFirstValidIp(request.headers?.get?.("x-real-ip")) ||
@@ -329,7 +338,6 @@ function extractClientIP(req) {
  * Reset config (for testing)
  */
 export function resetIPFilter() {
-  _loaded = false;
   _config = {
     enabled: false,
     mode: "blacklist",

@@ -12,6 +12,7 @@ export const minimaxProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "bearer",
   headers: getAnthropicCompatHeaders(),
+  ensureThinkingSignature: true,
   models: [
     // T12/T28: MiniMax default upgraded from M2.5 to M2.7
     // #3110: MiniMax M3 — frontier coding model with 1M context

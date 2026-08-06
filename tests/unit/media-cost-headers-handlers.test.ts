@@ -16,6 +16,7 @@ const rerankHandler = await import("../../open-sse/handlers/rerank.ts");
 const moderationHandler = await import("../../open-sse/handlers/moderations.ts");
 const speechRoute = await import("../../src/app/api/v1/audio/speech/route.ts");
 const transcriptionRoute = await import("../../src/app/api/v1/audio/transcriptions/route.ts");
+const videoRoute = await import("../../src/app/api/v1/videos/generations/route.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -31,6 +32,33 @@ test.after(() => {
   restoreGlobals();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
+
+test("v1 video generation failure preserves provider status and error payload", async () => {
+  globalThis.fetch = (async (url: unknown) => {
+    assert.equal(String(url), "http://localhost:7860/animatediff/v1/generate");
+    return new Response("provider busy", { status: 503 });
+  }) as typeof fetch;
+
+  const response = await videoRoute.POST(
+    new Request("http://localhost/api/v1/videos/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "sdwebui/animatediff-webui",
+        prompt: "media failure test",
+      }),
+    })
+  );
+
+  assert.equal(response.status, 503);
+  assert.deepEqual(await response.json(), {
+    error: {
+      message: "provider busy",
+      type: "upstream_error",
+      code: "upstream_error",
+    },
+  });
 });
 
 // Shared assertions: every successful media Response must carry the

@@ -12,6 +12,7 @@ export const minimax_cnProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "bearer",
   headers: getAnthropicCompatHeaders(),
+  ensureThinkingSignature: true,
   models: [
     // Keep parity with minimax to ensure model discovery works for minimax-cn connections.
     // #3110: MiniMax M3 — frontier coding model with 1M context

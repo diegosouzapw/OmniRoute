@@ -80,13 +80,24 @@ test("routeGuard: /api/tools/agent-bridge/ is SPAWN_CAPABLE", () => {
 
 // ── GET /state ─────────────────────────────────────────────────────────────
 
-test("GET /state: returns server + agents shape", async () => {
+test("GET /state: returns both legacy (server/agents) and new (serverState/agentStates) keys (#8656)", async () => {
   const res = await stateRoute.GET();
   assert.equal(res.status, 200);
   const body = await res.json() as Record<string, unknown>;
-  assert.ok("server" in body, "body.server missing");
+
+  // Legacy keys (integration test + settings/mitm depend on these)
+  assert.ok("server" in body, "body.server missing — breaks backward compat");
   assert.ok("agents" in body, "body.agents missing");
   assert.ok(Array.isArray(body.agents), "agents should be array");
+
+  // New keys (#8656 fix — what UI actually reads)
+  assert.ok("serverState" in body, "body.serverState missing");
+  assert.ok("agentStates" in body, "body.agentStates missing");
+  assert.ok(Array.isArray(body.agentStates), "agentStates should be array");
+  assert.ok("bypassPatterns" in body, "body.bypassPatterns missing");
+  assert.ok(Array.isArray(body.bypassPatterns), "bypassPatterns should be array");
+  assert.ok("mappings" in body, "body.mappings missing");
+  assert.equal(typeof body.mappings, "object", "mappings should be object");
 });
 
 test("GET /state: error responses do not leak stack traces", async () => {

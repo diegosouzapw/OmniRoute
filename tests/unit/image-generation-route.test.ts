@@ -85,15 +85,27 @@ async function resetStorage() {
 async function seedConnection(
   provider: string,
   overrides: {
+    authType?: string;
     apiKey?: string | null;
+    accessToken?: string;
+    refreshToken?: string;
+    expiresAt?: string;
+    projectId?: string;
+    priority?: number;
     providerSpecificData?: Record<string, unknown>;
   } = {}
 ) {
+  const authType = overrides.authType ?? "apikey";
   return providersDb.createProviderConnection({
     provider,
-    authType: "apikey",
+    authType,
     name: `${provider}-${Math.random().toString(16).slice(2, 8)}`,
-    apiKey: overrides.apiKey ?? "test-key",
+    ...(authType === "apikey" ? { apiKey: overrides.apiKey ?? "test-key" } : {}),
+    ...(overrides.accessToken ? { accessToken: overrides.accessToken } : {}),
+    ...(overrides.refreshToken ? { refreshToken: overrides.refreshToken } : {}),
+    ...(overrides.expiresAt ? { expiresAt: overrides.expiresAt } : {}),
+    ...(overrides.projectId ? { projectId: overrides.projectId } : {}),
+    ...(overrides.priority ? { priority: overrides.priority } : {}),
     isActive: true,
     testStatus: "active",
     providerSpecificData: overrides.providerSpecificData ?? {},
@@ -606,4 +618,137 @@ test("v1 image generation POST executes directly when credentials.connectionId i
   const body = (await response.json()) as ImageResponseBody;
   assert.equal(response.status, 200);
   assert.ok(body.data, "should have image data");
+});
+
+test("v1 image generation POST rotates to the next account after an upstream 401", async () => {
+  await seedConnection("openai", { apiKey: "expired-image-key", priority: 1 });
+  await seedConnection("openai", { apiKey: "healthy-image-key", priority: 2 });
+  const authorizationHeaders: string[] = [];
+
+  globalThis.fetch = async (url, options: RequestInit = {}) => {
+    assert.equal(String(url), "https://api.openai.com/v1/images/generations");
+    const authorization = new Headers(options.headers).get("authorization") ?? "";
+    authorizationHeaders.push(authorization);
+    if (authorization === "Bearer expired-image-key") {
+      return new Response(JSON.stringify({ error: { message: "expired access token" } }), {
+        status: 401,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    assert.equal(authorization, "Bearer healthy-image-key");
+    return new Response(
+      JSON.stringify({ created: 123, data: [{ url: "https://cdn.example.com/rotated.png" }] }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  const response = await imageRoute.POST(
+    new Request("http://localhost/api/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "openai/gpt-image-2", prompt: "rotate image account" }),
+    })
+  );
+  const body = (await response.json()) as ImageResponseBody;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.data[0].url, "https://cdn.example.com/rotated.png");
+  assert.deepEqual(authorizationHeaders, ["Bearer expired-image-key", "Bearer healthy-image-key"]);
+});
+
+test("provider-scoped image generation POST uses the shared 401 account fallback", async () => {
+  await seedConnection("openai", { apiKey: "provider-expired-key", priority: 1 });
+  await seedConnection("openai", { apiKey: "provider-healthy-key", priority: 2 });
+  const authorizationHeaders: string[] = [];
+
+  globalThis.fetch = async (_url, options: RequestInit = {}) => {
+    const authorization = new Headers(options.headers).get("authorization") ?? "";
+    authorizationHeaders.push(authorization);
+    if (authorization === "Bearer provider-expired-key") {
+      return new Response(JSON.stringify({ error: { message: "expired access token" } }), {
+        status: 401,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    return new Response(
+      JSON.stringify({ created: 123, data: [{ url: "https://cdn.example.com/provider.png" }] }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  const response = await providerImageRoute.POST(
+    new Request("http://localhost/api/v1/providers/openai/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "gpt-image-2", prompt: "provider route rotation" }),
+    }),
+    { params: Promise.resolve({ provider: "openai" }) }
+  );
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(authorizationHeaders, [
+    "Bearer provider-expired-key",
+    "Bearer provider-healthy-key",
+  ]);
+});
+
+test("v1 image generation POST refreshes an expired Antigravity token before dispatch", async () => {
+  await seedConnection("antigravity", {
+    authType: "oauth",
+    accessToken: "expired-antigravity-token",
+    refreshToken: "valid-antigravity-refresh-token",
+    expiresAt: new Date(Date.now() - 60_000).toISOString(),
+    projectId: "test-cloud-code-project",
+  });
+  const calls: Array<{ url: string; authorization: string }> = [];
+
+  globalThis.fetch = async (url, options: RequestInit = {}) => {
+    const stringUrl = String(url);
+    const authorization = new Headers(options.headers).get("authorization") ?? "";
+    calls.push({ url: stringUrl, authorization });
+
+    if (stringUrl.includes("oauth2.googleapis.com/token")) {
+      return new Response(
+        JSON.stringify({
+          access_token: "fresh-antigravity-token",
+          expires_in: 3600,
+          token_type: "Bearer",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+
+    assert.equal(stringUrl, "https://daily-cloudcode-pa.googleapis.com/v1internal:generateContent");
+    assert.equal(authorization, "Bearer fresh-antigravity-token");
+    return new Response(
+      JSON.stringify({
+        response: {
+          candidates: [
+            {
+              content: {
+                parts: [{ inlineData: { mimeType: "image/jpeg", data: "ZnJlc2gtaW1hZ2U=" } }],
+              },
+            },
+          ],
+        },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  const response = await imageRoute.POST(
+    new Request("http://localhost/api/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "antigravity/gemini-3.1-flash-image",
+        prompt: "refresh before image generation",
+      }),
+    })
+  );
+  const body = (await response.json()) as ImageResponseBody;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.data[0].b64_json, "ZnJlc2gtaW1hZ2U=");
+  assert.equal(calls.filter((call) => call.url.includes("oauth2.googleapis.com/token")).length, 1);
 });

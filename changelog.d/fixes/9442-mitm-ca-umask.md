@@ -1,0 +1,1 @@
+- fix(backend): force system MITM CA cert to 0644 on Linux regardless of umask and repair on re-install (#9442)

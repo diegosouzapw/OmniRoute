@@ -16,11 +16,13 @@ import {
 } from "@/app/api/v1/_shared/rateLimit";
 import {
   failedMediaGenerationResponse,
+  isMediaGenerationFailure,
   mediaGenerationOptionsResponse,
   promptRequiredResponse,
   readMediaGenerationBody,
   successfulMediaGenerationResponse,
 } from "@/app/api/v1/_shared/mediaGenerationRoute";
+import type { MediaGenerationResultLike } from "@/app/api/v1/_shared/mediaGenerationRoute";
 import { getSpecialtyModelsResponse } from "@/app/api/v1/_shared/specialtyCatalog";
 
 export const dynamic = "force-dynamic";
@@ -118,21 +120,21 @@ async function postHandler(request, context) {
     credentials = await resolveLocalOverrideCredentials(provider);
   }
 
-  const result = await handleVideoGeneration({ body, credentials, log });
+  const result: MediaGenerationResultLike = await handleVideoGeneration({ body, credentials, log });
 
-  if (result.success) {
-    await clearRecoveredProviderState(credentials);
-    return successfulMediaGenerationResponse({
-      result,
-      billingMode: "video",
-      provider,
-      model: body.model,
-      startTime,
-      duration: body.duration,
-    });
+  if (isMediaGenerationFailure(result)) {
+    return failedMediaGenerationResponse(result, "Video generation provider error");
   }
 
-  return failedMediaGenerationResponse(result, "Video generation provider error");
+  await clearRecoveredProviderState(credentials);
+  return successfulMediaGenerationResponse({
+    result: { data: result.data },
+    billingMode: "video",
+    provider,
+    model: body.model,
+    startTime,
+    duration: body.duration,
+  });
 }
 
 export const POST = withInjectionGuard(postHandler);

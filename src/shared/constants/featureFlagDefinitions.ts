@@ -118,6 +118,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
   {
+    key: "AUDIO_REMOTE_PROVIDER_NODES",
+    label: "Remote Audio Provider Nodes",
+    description:
+      "Allow the /v1/audio/* routes to use OpenAI-compatible provider nodes hosted outside localhost. Off by default — routing audio to a remote host changes egress identity and must be an explicit operator decision. Loopback nodes are always allowed and unaffected.",
+    descriptionI18nKey: "settings.featureFlags.audioRemoteProviderNodes",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "danger",
+  },
+  {
     key: "ONEPROXY_ENABLED",
     label: "OneProxy Enabled",
     description: "Enable 1proxy request proxying.",

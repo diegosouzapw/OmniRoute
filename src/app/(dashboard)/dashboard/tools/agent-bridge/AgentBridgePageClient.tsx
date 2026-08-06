@@ -311,6 +311,7 @@ export default function AgentBridgePageClient({
             targets={targets}
             agentStates={data.agentStates}
             serverRunning={data.serverState.running}
+            serverState={data.serverState}
             mappingsMap={data.mappings}
             onDnsToggle={handleDnsToggle}
             onMappingsSave={handleMappingsSave}

@@ -166,11 +166,15 @@ export function normalizeUpstreamFailure(data, fallbackType = "server_error") {
 
 export function extractResponsesReasoningSummaryText(item) {
   if (!item || !Array.isArray(item.summary)) return "";
+  // #9500 — reasoning summary parts are discrete segments; join with "\n\n"
+  // (matches extractThinkingFromContent convention). Filter empties so an
+  // empty summary_text element does not produce a dangling separator.
   return item.summary
     .map((part) =>
       part && typeof part === "object" && typeof part.text === "string" ? part.text : ""
     )
-    .join("");
+    .filter((text) => text.length > 0)
+    .join("\n\n");
 }
 
 // #7095/#7176 — when Codex exposes a reasoning item only as encrypted private

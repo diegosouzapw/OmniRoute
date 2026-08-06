@@ -8,7 +8,7 @@ import {
   computeRestartDelayMs,
   waitUntilPortFree,
 } from "./supervisorPolicy.mjs";
-import { buildNodeHeapArgs } from "../../../scripts/build/runtime-env.mjs";
+import { buildNodeRuntimeArgs } from "../../../scripts/build/runtime-env.mjs";
 import { stopProcessGracefully } from "../../../src/shared/platform/windowsProcess.ts";
 import {
   isFatalInstrumentationHookFailure,
@@ -47,7 +47,6 @@ export class ServerSupervisor {
     // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
     // heap via NODE_OPTIONS (a CLI arg would shadow/override their value). The
     // calibrated heap is already carried by env.NODE_OPTIONS either way.
-    const heapArgs = buildNodeHeapArgs(process.env, this.memoryLimit);
     // #6321: stdout used to be discarded (`"ignore"`) whenever `--log`/OMNIROUTE_SHOW_LOG
     // wasn't set (the default) — any debug/pino output written to stdout vanished
     // silently, so a boot that never becomes ready looked like a dead hang with zero
@@ -55,7 +54,9 @@ export class ServerSupervisor {
     // stderr so a readiness timeout can surface what the child actually printed.
     this.child = spawn(
       process.versions.bun ? process.execPath : "node",
-      [...(process.versions.bun ? [] : heapArgs), this.serverPath],
+      process.versions.bun
+        ? [this.serverPath]
+        : buildNodeRuntimeArgs(process.env, this.memoryLimit, this.serverPath),
       {
         cwd: dirname(this.serverPath),
         env: this.env,

@@ -1,4 +1,4 @@
-import { test, describe } from "node:test";
+import { test, describe, type TestContext } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -26,7 +26,7 @@ function forceNodeSqlite() {
   });
 }
 
-function createTempDatabasePath(t: Parameters<typeof test>[1]) {
+function createTempDatabasePath(t: TestContext) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-node-sqlite-"));
   const databasePath = path.join(dir, "database.sqlite");
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
@@ -134,6 +134,7 @@ describe("driverFactory", () => {
         DatabaseSync: new (filePath: string) => {
           close(): void;
           exec(sql: string): void;
+          prepare(sql: string): { get(): unknown };
         };
       };
       const seed = new DatabaseSync(databasePath);
@@ -166,6 +167,101 @@ describe("driverFactory", () => {
         code: "ERR_INVALID_STATE",
       });
       adapter.close();
+    });
+
+    test("forced node:sqlite backup preserves WAL-backed data", async (t) => {
+      const sourcePath = createTempDatabasePath(t);
+      const destinationPath = path.join(path.dirname(sourcePath), "backup.sqlite");
+      const openNodeSqlite = forceNodeSqlite();
+      const source = openNodeSqlite(sourcePath);
+      assert.ok(source);
+      assert.equal(source.driver, "node:sqlite");
+      source.exec("PRAGMA journal_mode = WAL; CREATE TABLE items (value TEXT);");
+      source.prepare("INSERT INTO items VALUES (?)").run("backup value");
+
+      await source.backup(destinationPath);
+      source.close();
+
+      const destination = openNodeSqlite(destinationPath, { fileMustExist: true });
+      assert.ok(destination);
+      assert.equal(destination.driver, "node:sqlite");
+      assert.equal(
+        (destination.prepare("SELECT value FROM items").get() as { value: string }).value,
+        "backup value"
+      );
+      destination.close();
+    });
+
+    test("forced node:sqlite immediate commits, rolls back, and nests savepoints", (t) => {
+      const databasePath = createTempDatabasePath(t);
+      const adapter = forceNodeSqlite()(databasePath);
+      assert.ok(adapter);
+      assert.equal(adapter.driver, "node:sqlite");
+      adapter.exec("CREATE TABLE items (value TEXT)");
+
+      adapter.immediate(() => {
+        adapter.prepare("INSERT INTO items VALUES (?)").run("committed");
+      });
+      assert.throws(() =>
+        adapter.immediate(() => {
+          adapter.prepare("INSERT INTO items VALUES (?)").run("rolled back");
+          throw new Error("rollback");
+        })
+      );
+      adapter.immediate(() => {
+        adapter.prepare("INSERT INTO items VALUES (?)").run("outer before");
+        const nested = adapter.transaction(() => {
+          adapter.prepare("INSERT INTO items VALUES (?)").run("inner rolled back");
+          throw new Error("nested rollback");
+        });
+        assert.throws(() => nested());
+        adapter.prepare("INSERT INTO items VALUES (?)").run("outer after");
+      });
+
+      const rows = adapter.prepare("SELECT value FROM items ORDER BY rowid").all() as Array<{
+        value: string;
+      }>;
+      assert.deepEqual(
+        rows.map((row) => row.value),
+        ["committed", "outer before", "outer after"]
+      );
+      adapter.close();
+    });
+
+    test("forced node:sqlite immediate blocks a competing writer", (t) => {
+      const databasePath = createTempDatabasePath(t);
+      const openNodeSqlite = forceNodeSqlite();
+      const first = openNodeSqlite(databasePath);
+      assert.ok(first);
+      first.exec("CREATE TABLE items (value TEXT)");
+
+      const { DatabaseSync } = require("node:sqlite") as {
+        DatabaseSync: new (
+          filePath: string,
+          options: { timeout: number }
+        ) => {
+          close(): void;
+          exec(sql: string): void;
+        };
+      };
+      const second = new DatabaseSync(databasePath, { timeout: 50 });
+      try {
+        first.immediate(() => {
+          assert.throws(() => second.exec("INSERT INTO items VALUES ('competing writer')"), {
+            code: "ERR_SQLITE_ERROR",
+          });
+          first.prepare("INSERT INTO items VALUES (?)").run("owner");
+        });
+
+        const rows = first.prepare("SELECT value FROM items").all() as Array<{ value: string }>;
+        assert.deepEqual(
+          rows.map((row) => row.value),
+          ["owner"]
+        );
+      } finally {
+        second.close();
+        first.close();
+      }
     });
   }
 

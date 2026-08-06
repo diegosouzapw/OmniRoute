@@ -20,7 +20,8 @@ import {
   recordModelLockoutFailure,
   isDailyQuotaExhausted,
 } from "@omniroute/open-sse/services/accountFallback.ts";
-import { getModelInfo, getComboForModel } from "../services/model";
+import { getCombo, getComboForModel, getModelInfo } from "../services/model";
+import { stripContextWindowSuffix } from "@omniroute/open-sse/services/model.ts";
 import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { getImageModelEntry } from "@omniroute/open-sse/config/imageRegistry.ts";
@@ -391,6 +392,17 @@ async function handleChatImplementation(
   // resolveRoutingModel). The resolved model still passes through
   // enforceApiKeyPolicy below, so it cannot bypass per-key allowlists.
   let modelStr = resolveRoutingModel(request, body);
+  if (typeof modelStr === "string") {
+    // Preserve literal combo names such as "Claude [1m]". Context tags are
+    // stripped only when the exact request does not identify a combo.
+    const exactCombo = await getCombo(modelStr);
+    if (!exactCombo) {
+      modelStr = stripContextWindowSuffix(modelStr) || modelStr;
+      if (body?.model !== modelStr) {
+        body = { ...body, model: modelStr };
+      }
+    }
+  }
 
   // cc discovery alias (`claude/<provider>/<model>`, `claude/combo/<name>`):
   // resolve back to the real id before any combo lookup / resolveModelOrError()

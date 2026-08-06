@@ -10,10 +10,27 @@ const PROVIDERS_WITH_OAUTH = [
   { id: "cursor", name: "Cursor", flow: "import" },
   { id: "zed", name: "Zed", flow: "import" },
   { id: "kiro", name: "Amazon Kiro", flow: "social" },
-  { id: "claude-code", name: "Claude Code (OAuth)", flow: "device" },
+  { id: "claude-code", name: "Claude Code (OAuth)", flow: "browser" },
   { id: "codex", name: "OpenAI Codex (OAuth)", flow: "device" },
   { id: "copilot", name: "GitHub Copilot", flow: "device" },
 ];
+
+// The user-facing provider id (the one shown by `omniroute oauth providers`)
+// is NOT always the backend OAuth provider key the server's /api/oauth/[provider]/...
+// route expects. `claude-code` is the CLI-facing alias for Anthropic's Claude
+// OAuth, which the server registers under the key `claude` (see
+// src/lib/oauth/providers/index.ts). Routing `claude-code` to the unrelated
+// `command-code` (CommandCode.ai) provider — as the previous code did — sent
+// the device-flow request to /api/providers/command-code/auth/start, which is
+// gated by requireManagementAuth and returned 401 for a fresh CLI context
+// (issue #9474). Map the alias to the real backend key instead.
+const BACKEND_OAUTH_KEY = {
+  "claude-code": "claude",
+};
+
+function resolveBackendKey(id) {
+  return BACKEND_OAUTH_KEY[id] ?? id;
+}
 
 const oauthProviderSchema = [
   { key: "id", header: "Provider ID", width: 16 },
@@ -56,32 +73,109 @@ async function pollStatus(endpoint, timeoutMs) {
 }
 
 async function runBrowserFlow(def, opts) {
-  const startRes = await apiFetch(`/api/oauth/${def.id}/start`, { method: "POST" });
+  // The user-facing id (`def.id`, e.g. "claude-code") must be translated to the
+  // backend OAuth provider key the server's /api/oauth/[provider]/... route
+  // expects (e.g. "claude"). The previous implementation called a non-existent
+  // `/api/oauth/${def.id}/start` action — no such action exists on the server
+  // (src/app/api/oauth/[provider]/[action]/route.ts), so the browser flow was
+  // broken for every browser-flow provider. Use the real `authorize` action and
+  // complete the PKCE (authorization_code / authorization_code_pkce) flow with a
+  // manual code paste, mirroring the dashboard's manual "input" step.
+  const backendKey = resolveBackendKey(def.id);
+  const redirectUri = opts.redirectUri ?? null;
+  const authorizeUrl = `/api/oauth/${backendKey}/authorize${
+    redirectUri ? `?redirect_uri=${encodeURIComponent(redirectUri)}` : ""
+  }`;
+  const startRes = await apiFetch(authorizeUrl, { method: "GET" });
   if (!startRes.ok) {
-    process.stderr.write(`Failed to start OAuth for ${def.id}: ${startRes.status}\n`);
+    const detail = await safeErrorBody(startRes);
+    process.stderr.write(`Failed to start OAuth for ${def.id}: ${startRes.status}${detail}\n`);
     process.exit(1);
   }
   const start = await startRes.json();
-  const url = start.authorizeUrl ?? start.url;
+  const url = start.authUrl ?? start.authorizeUrl ?? start.url;
+  if (!url) {
+    const hint = start.error ?? "no authUrl returned by the server";
+    process.stderr.write(`OAuth unavailable for ${def.id}: ${hint}\n`);
+    process.exit(1);
+  }
+  const { codeVerifier, state, redirectUri: returnedRedirectUri } = start;
+  const finalRedirectUri = returnedRedirectUri || redirectUri;
 
-  if (process.stdout.isTTY && opts.browser !== false) {
-    const { startOAuthTui } = await import("../tui/OAuthFlow.jsx");
-    await openBrowser(url);
-    const tuiResult = await startOAuthTui({ provider: def.name ?? def.id, url });
-    if (tuiResult.status === "cancelled") return;
-  } else {
-    process.stdout.write(`\nOpen this URL to authorize:\n  ${url}\n\n`);
-    if (opts.browser !== false) await openBrowser(url);
-    process.stderr.write("Waiting for authorization... (Ctrl+C to cancel)\n");
+  process.stdout.write(`\nOpen this URL to authorize:\n  ${url}\n\n`);
+  if (opts.browser !== false) await openBrowser(url);
+  process.stdout.write(
+    "After authorizing, paste the callback URL (or the Authentication Code\n" +
+      "shown on the confirmation page) here:\n"
+  );
+
+  const { createPrompt } = await import("../io.mjs");
+  const prompt = createPrompt();
+  const input = await prompt.ask("Callback URL or code");
+  prompt.close();
+
+  const trimmed = input.trim();
+  if (!trimmed) {
+    process.stderr.write("No authorization code provided.\n");
+    process.exit(1);
   }
 
-  const result = await pollStatus(
-    `/api/oauth/${def.id}/status?state=${encodeURIComponent(start.state ?? "")}`,
-    opts.timeout ?? 300000
-  );
+  // The Anthropic Claude confirmation page (platform.claude.com/oauth/code/callback)
+  // shows a raw "Authentication Code" like `code#state` rather than a full URL.
+  // The dashboard's manual submit (src/shared/components/OAuthModal.tsx) parses
+  // both forms; mirror that here.
+  let code = null;
+  let codeState = state || null;
+  try {
+    const cbUrl = new URL(trimmed);
+    code = cbUrl.searchParams.get("code");
+    const stateParam = cbUrl.searchParams.get("state") || cbUrl.hash.replace(/^#/, "");
+    if (stateParam) codeState = stateParam;
+  } catch {
+    const [rawCode, rawState] = trimmed.split("#", 2);
+    code = rawCode || null;
+    if (rawState) codeState = rawState;
+  }
+  if (!code) {
+    process.stderr.write(
+      "No authorization code found. Paste the callback URL or the Authentication Code.\n"
+    );
+    process.exit(1);
+  }
+
+  const exchangeRes = await apiFetch(`/api/oauth/${backendKey}/exchange`, {
+    method: "POST",
+    body: {
+      code,
+      redirectUri: finalRedirectUri,
+      codeVerifier,
+      ...(codeState ? { state: codeState } : {}),
+    },
+  });
+  if (!exchangeRes.ok) {
+    const detail = await safeErrorBody(exchangeRes);
+    process.stderr.write(`Token exchange failed: ${exchangeRes.status}${detail}\n`);
+    process.exit(1);
+  }
+  const result = await exchangeRes.json();
+  const conn = result.connection ?? {};
   process.stdout.write(
-    `Authorized: ${result.email ?? result.userId ?? result.account ?? "connected"}\n`
+    `Authorized: ${conn.email ?? conn.displayName ?? conn.id ?? "connected"}\n`
   );
+}
+
+async function safeErrorBody(res) {
+  try {
+    const data = await res.json();
+    if (data?.error) {
+      const msg = typeof data.error === "string" ? data.error : data.error?.message;
+      if (msg) return `: ${msg}`;
+    }
+    if (data?.message) return `: ${data.message}`;
+  } catch {
+    /* ignore */
+  }
+  return "";
 }
 
 async function runImportFlow(def, opts) {
@@ -124,7 +218,7 @@ async function runSocialFlow(def, opts) {
 }
 
 async function runDeviceFlow(def, opts) {
-  const providerKey = def.id === "claude-code" ? "command-code" : def.id;
+  const providerKey = resolveBackendKey(def.id);
   const startRes = await apiFetch(`/api/providers/${providerKey}/auth/start`, { method: "POST" });
   if (!startRes.ok) {
     process.stderr.write(`Failed to start device flow: ${startRes.status}\n`);

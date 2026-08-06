@@ -9,6 +9,7 @@ import { getApiKeyMetadata } from "../../../lib/db/apiKeys";
 import { hasManageScope } from "../../../lib/api/requireManagementAuth";
 import { hasMcpConnectOrManageScope, MCP_CONNECT_SCOPE } from "../../../shared/constants/managementScopes";
 import { evaluateAccessTokenAuth } from "../accessTokenAuth";
+import { isInternalServiceRequest } from "../../../lib/api/internalServiceAuth";
 import { CLI_TOKEN_HEADER, PEER_IP_HEADER, VIA_PROXY_HEADER } from "../headers";
 import { resolveStampedPeer, resolveStampedViaProxy } from "../peerStamp";
 import {
@@ -231,6 +232,14 @@ export const managementPolicy: RoutePolicy = {
 
     if (isInternalModelSyncRequest(ctx)) {
       return allow({ kind: "management_key", id: "model-sync", label: "internal-model-sync" });
+    }
+
+    if (isLoopbackRequest(ctx) && isInternalServiceRequest(ctx.request as unknown as Request)) {
+      return allow({
+        kind: "management_key",
+        id: "internal-service",
+        label: "internal-service-token",
+      });
     }
 
     if (hasValidCliToken(ctx)) {
