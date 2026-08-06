@@ -97,3 +97,76 @@ test("#8072 buildModelOptions: synced <model>-<tier> effort variants appear in t
     );
   }
 });
+
+test("#9485 static DeepSeek effort aliases appear when synced rows omit supportedThinkingEfforts", async () => {
+  const connection = await providersDb.createProviderConnection({
+    provider: "deepseek",
+    authType: "apikey",
+    name: "deepseek-9485-effort",
+    apiKey: "deepseek-key-9485",
+    isActive: true,
+    testStatus: "active",
+  });
+
+  const flashId = "deepseek-v4-flash";
+  const proId = "deepseek-v4-pro";
+  const syncedMetadata = {
+    supportedEndpoints: ["chat"],
+    inputTokenLimit: 65536,
+    outputTokenLimit: 16384,
+    supportsThinking: true,
+  };
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection("deepseek", connection.id, [
+    { id: flashId, name: "Synced DeepSeek V4 Flash", ...syncedMetadata },
+    { id: proId, name: "Synced DeepSeek V4 Pro", ...syncedMetadata },
+  ]);
+
+  const payload = await getComboBuilderOptions();
+  const provider = payload.providers.find((p) => p.providerId === "deepseek");
+  assert.ok(provider, "deepseek provider must appear in the combo builder output");
+
+  const baseModels = new Map(
+    [flashId, proId].map((id) => {
+      const base = provider!.models.find((model) => model.id === id);
+      assert.ok(base, `${id} base model must appear in the provider's models list`);
+      return [id, base!];
+    })
+  );
+
+  const expectedAliases = new Set([
+    `${flashId}-none`,
+    `${flashId}-low`,
+    `${flashId}-high`,
+    `${flashId}-max`,
+    `${proId}-none`,
+    `${proId}-high`,
+    `${proId}-max`,
+  ]);
+  const deepSeekAliases = new Set(
+    provider!.models
+      .map((model) => model.id)
+      .filter((id) => id.startsWith(`${flashId}-`) || id.startsWith(`${proId}-`))
+  );
+  assert.deepEqual(deepSeekAliases, expectedAliases);
+  assert.equal(
+    provider!.models.some((model) => model.id === `${proId}-low`),
+    false
+  );
+  assert.equal(
+    provider!.models.some((model) => model.id === `${proId}-medium`),
+    false
+  );
+
+  for (const aliasId of expectedAliases) {
+    const baseId = aliasId.startsWith(`${flashId}-`) ? flashId : proId;
+    const base = baseModels.get(baseId)!;
+    const alias = provider!.models.find((model) => model.id === aliasId);
+    assert.ok(alias, `${aliasId} effort alias must appear in the model picker`);
+    assert.equal(alias!.source, base.source, `${aliasId} must preserve the base source`);
+    assert.equal(alias!.contextLength, base.contextLength);
+    assert.equal(alias!.outputTokenLimit, base.outputTokenLimit);
+    assert.deepEqual(alias!.supportedEndpoints, base.supportedEndpoints);
+    assert.equal(alias!.supportsThinking, base.supportsThinking);
+  }
+});
