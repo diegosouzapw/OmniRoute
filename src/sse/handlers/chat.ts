@@ -105,6 +105,7 @@ import { isSubscriptionQuotaText } from "@omniroute/open-sse/services/quotaTextC
 import { resolveUseUpstream429BreakerHints } from "@/shared/utils/providerHints";
 import { getCircuitBreaker, isLocalStreamLifecycleError } from "../../shared/utils/circuitBreaker";
 import { markAccountExhaustedFrom429 } from "../../domain/quotaCache";
+import { resolveForcedConnectionForCredentialPool } from "../services/sessionAffinityPin.ts";
 import { RequestTelemetry, recordTelemetry } from "../../shared/utils/requestTelemetry";
 import { generateRequestId } from "../../shared/utils/requestId";
 import { logAuditEvent } from "../../lib/compliance/index";
@@ -1277,9 +1278,19 @@ async function handleSingleModelChat(
                 ...(!forceLiveComboTest && bypassProviderQuotaPolicy
                   ? { bypassQuotaPolicy: true }
                   : {}),
-                ...(runtimeOptions.forcedConnectionId
-                  ? { forcedConnectionId: runtimeOptions.forcedConnectionId }
-                  : {}),
+                ...(() => {
+                  const effectiveForcedId = resolveForcedConnectionForCredentialPool({
+                    forcedConnectionId: runtimeOptions.forcedConnectionId ?? null,
+                    excludedConnectionIds,
+                    connections: [],
+                    allowRateLimitedConnections:
+                      runtimeOptions.allowRateLimitedConnection === true || forceLiveComboTest,
+                    bypassQuotaPolicy: forceLiveComboTest || bypassProviderQuotaPolicy,
+                    isQuotaExhausted: () => false,
+                    isQuotaPolicyBlocked: () => false,
+                  });
+                  return effectiveForcedId ? { forcedConnectionId: effectiveForcedId } : {};
+                })(),
               }
             );
       preselectedCredentials = null;

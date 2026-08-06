@@ -52,6 +52,15 @@ import {
   classifyProviderError,
   PROVIDER_ERROR_TYPES,
 } from "@omniroute/open-sse/services/errorClassifier.ts";
+import {
+  ALIBABA_FREE_DRAINED_LOCK_MS,
+  getAlibabaBillingMode,
+  isAlibabaFreeQuotaExhaustedError,
+  isAlibabaModelFreeDrained,
+  isAlibabaModelStudioProvider,
+  mergeAlibabaFreeDrainedModels,
+  rehydrateAlibabaFreeDrainedModelLocks,
+} from "@omniroute/open-sse/services/alibabaFreeTier.ts";
 
 import {
   getCodexModelScope,
@@ -70,6 +79,7 @@ import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import {
   applySessionAffinityPin,
   formatSessionKeyForLog,
+  resolveForcedConnectionForCredentialPool,
   resolveSessionAffinityTtlMs,
   selectSessionAffinityConnection,
 } from "./sessionAffinityPin";
@@ -1041,6 +1051,15 @@ export async function getProviderCredentials(
     let connections = (Array.isArray(connectionsRaw) ? connectionsRaw : [])
       .map(createLazyConnectionView)
       .filter((conn) => conn.id.length > 0);
+    if (isAlibabaModelStudioProvider(provider)) {
+      for (const conn of connections) {
+        rehydrateAlibabaFreeDrainedModelLocks(
+          provider,
+          conn.id,
+          conn.providerSpecificData as Record<string, unknown>
+        );
+      }
+    }
     // allowedConnections: restrict to specific connection IDs (from API key policy, #363)
     if (allowedConnections && allowedConnections.length > 0) {
       connections = connections.filter((conn) => allowedConnections.includes(conn.id));
@@ -1062,6 +1081,19 @@ export async function getProviderCredentials(
         isQuotaPolicyBlocked: (c) =>
           evaluateQuotaLimitPolicy(provider, c as ProviderConnectionView, requestedModel).blocked,
       }) ?? forcedConnectionId;
+
+    forcedConnectionId = resolveForcedConnectionForCredentialPool({
+      forcedConnectionId,
+      excludedConnectionIds,
+      connections,
+      allowRateLimitedConnections,
+      bypassQuotaPolicy,
+      isQuotaExhausted: (connectionId) =>
+        isQuotaExhaustedForRequest(connectionId, provider, requestedModel),
+      isQuotaPolicyBlocked: (connection) =>
+        evaluateQuotaLimitPolicy(provider, connection as ProviderConnectionView, requestedModel)
+          .blocked,
+    });
 
     if (forcedConnectionId) {
       connections = connections.filter((conn) => conn.id === forcedConnectionId);
@@ -1206,7 +1238,15 @@ export async function getProviderCredentials(
           return false;
         }
         // Per-model lockout: if this specific model/family is locked on this connection, skip it
-        if (requestedModel && isModelLocked(provider, c.id, requestedModel)) {
+        if (
+          requestedModel &&
+          (isModelLocked(provider, c.id, requestedModel) ||
+            isAlibabaModelFreeDrained(
+              provider,
+              c.providerSpecificData as Record<string, unknown>,
+              requestedModel
+            ))
+        ) {
           connectionFilterStatus.set(c.id, "modelLocked");
           if (
             provider === "antigravity" &&
@@ -1980,6 +2020,9 @@ export async function markAccountUnavailable(
 
     // Read passthroughModels from connection config (user-configured per-model quota)
     const connProviderSpecificData = (conn?.providerSpecificData as Record<string, unknown>) || {};
+    if (provider && conn) {
+      rehydrateAlibabaFreeDrainedModelLocks(provider, connectionId, connProviderSpecificData);
+    }
     const connectionPassthroughModels = connProviderSpecificData.passthroughModels as
       boolean | undefined;
     // #2997: per-connection opt-out of the TRANSIENT connection cooldown. When set,
@@ -2084,6 +2127,51 @@ export async function markAccountUnavailable(
     const { shouldFallback, cooldownMs: rawCooldownMs, newBackoffLevel, reason } = result;
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
     const providerErrorType = classifyProviderError(status, errorText, provider);
+
+    if (
+      isAlibabaModelStudioProvider(provider) &&
+      status === 403 &&
+      model &&
+      isAlibabaFreeQuotaExhaustedError(errorText)
+    ) {
+      const billingMode = getAlibabaBillingMode(connProviderSpecificData);
+      if (billingMode === "free") {
+        const persistedProviderSpecificData = mergeAlibabaFreeDrainedModels(
+          connProviderSpecificData,
+          model
+        );
+        await updateProviderConnection(connectionId, {
+          providerSpecificData: persistedProviderSpecificData,
+          lastErrorType: "free_quota_exhausted",
+          lastError: `Model ${model} free quota exhausted`,
+          lastErrorAt: new Date().toISOString(),
+          errorCode: status,
+        });
+        rehydrateAlibabaFreeDrainedModelLocks(
+          provider!,
+          connectionId,
+          persistedProviderSpecificData
+        );
+        recordModelLockoutFailure(
+          provider!,
+          connectionId,
+          model!,
+          "free_quota_exhausted",
+          status,
+          0,
+          effectiveProviderProfile,
+          {
+            exactCooldownMs: ALIBABA_FREE_DRAINED_LOCK_MS,
+            maxCooldownMs: ALIBABA_FREE_DRAINED_LOCK_MS,
+          }
+        );
+        log.info(
+          "AUTH",
+          `Alibaba free-tier drain for ${provider}:${model} — model permanently removed from routing (billingMode=free)`
+        );
+        return { shouldFallback: true, cooldownMs: 0 };
+      }
+    }
 
     if (provider && resolveProviderId(provider) === "grok-web" && status === 403 && model) {
       const lockout = recordModelLockoutFailure(

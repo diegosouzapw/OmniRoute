@@ -32,6 +32,26 @@
 import { wildcardMatch } from "../wildcardRouter.ts";
 import { getProviderModels } from "../../config/providerModels.ts";
 import { getSyncedAvailableModels } from "../../../src/lib/db/models.ts";
+import { filterAlibabaFreeTierModels, isAlibabaModelStudioProvider } from "../alibabaFreeTier.ts";
+import {
+  filterAlibabaFreeEligibleModels,
+  buildAlibabaFreeTierFilterContext,
+} from "../alibabaFreeTierDiscovery.ts";
+import {
+  buildAlibabaFreeAudioFilterContext,
+  buildAlibabaFreeMultimodalFilterContext,
+  buildAlibabaFreeVisionFilterContext,
+  filterAlibabaFreeAudioEligibleModels,
+  filterAlibabaFreeMultimodalEligibleModels,
+  filterAlibabaFreeVisionEligibleModels,
+} from "../alibabaFreeTierQuotaFetcher.ts";
+import type { AlibabaConnectionLike } from "../alibabaFreeTierQuotaFetcher.ts";
+import {
+  isAlibabaFreeTierAudioComboName,
+  isAlibabaFreeTierMultimodalComboName,
+  isAlibabaFreeTierTextComboName,
+  isAlibabaFreeTierVisionComboName,
+} from "../dashscopeTextModels.ts";
 import type { ComboLike } from "./types.ts";
 
 /** Sentinel pattern used for "all models of a provider". */
@@ -151,6 +171,61 @@ async function collectProviderModelIds(providerId: string): Promise<string[]> {
   return ids;
 }
 
+async function filterAlibabaFreeDrainedModelIds(
+  providerId: string,
+  modelIds: string[],
+  connectionId: string | null,
+  comboName: string
+): Promise<string[]> {
+  if (!isAlibabaModelStudioProvider(providerId) || !connectionId) {
+    return modelIds;
+  }
+  try {
+    const { getProviderConnections } = await import("../../../src/lib/db/providers.ts");
+    const connections = await getProviderConnections({ provider: providerId });
+    const connection = connections.find((entry) => entry.id === connectionId);
+    if (!connection) return modelIds;
+
+    if (isAlibabaFreeTierVisionComboName(comboName)) {
+      return filterAlibabaFreeVisionEligibleModels(
+        modelIds,
+        buildAlibabaFreeVisionFilterContext(
+          connections as unknown as readonly AlibabaConnectionLike[],
+          connectionId
+        )
+      );
+    }
+    if (isAlibabaFreeTierMultimodalComboName(comboName)) {
+      return filterAlibabaFreeMultimodalEligibleModels(
+        modelIds,
+        buildAlibabaFreeMultimodalFilterContext(
+          connections as unknown as readonly AlibabaConnectionLike[],
+          connectionId
+        )
+      );
+    }
+    if (isAlibabaFreeTierAudioComboName(comboName)) {
+      return filterAlibabaFreeAudioEligibleModels(
+        modelIds,
+        buildAlibabaFreeAudioFilterContext(
+          connections as unknown as readonly AlibabaConnectionLike[],
+          connectionId
+        )
+      );
+    }
+    return filterAlibabaFreeEligibleModels(
+      modelIds,
+      buildAlibabaFreeTierFilterContext(
+        connections as unknown as readonly AlibabaConnectionLike[],
+        connectionId
+      ),
+      { strictAllowlist: isAlibabaFreeTierTextComboName(comboName) }
+    );
+  } catch {
+    return modelIds;
+  }
+}
+
 /**
  * Expand a single provider-wildcard spec into concrete model entry objects
  * that `normalizeComboStep` can process as normal model steps.
@@ -162,8 +237,15 @@ async function expandWildcardSpec(
   spec: ProviderWildcardSpec,
   comboName: string
 ): Promise<unknown[] | null> {
-  const modelIds = await collectProviderModelIds(spec.providerId);
+  let modelIds = await collectProviderModelIds(spec.providerId);
   if (modelIds.length === 0) return null;
+
+  modelIds = await filterAlibabaFreeDrainedModelIds(
+    spec.providerId,
+    modelIds,
+    spec.connectionId,
+    comboName
+  );
 
   const pattern = spec.modelPattern;
   const matchingIds =

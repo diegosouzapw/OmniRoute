@@ -20,6 +20,10 @@ import {
   hasPerModelQuota,
   isProviderExhaustedReason,
 } from "../accountFallback.ts";
+import {
+  isAlibabaFreeQuotaExhaustedError,
+  isAlibabaModelStudioProvider,
+} from "../alibabaFreeTier.ts";
 import { RateLimitReason } from "../../config/constants.ts";
 import { isProviderCircuitOpenResult, isRequestScopedUpstreamFailure } from "./comboPredicates.ts";
 import type { ComboLogger, ResolvedComboTarget } from "./types.ts";
@@ -83,6 +87,14 @@ export function applyComboTargetExhaustion(
   // #8133/#8137: auth-level failures (401/403) mean that connection's credentials are bad.
   // Split out to keep applyComboTargetExhaustion under the complexity ceiling.
   if (AUTH_LEVEL_ERROR_STATUSES.includes(result.status) && provider && provider !== "unknown") {
+    // Alibaba free-tier drain is model-scoped — the connection and sibling models stay eligible.
+    if (
+      result.status === 403 &&
+      isAlibabaModelStudioProvider(provider) &&
+      isAlibabaFreeQuotaExhaustedError(opts.errorText)
+    ) {
+      return false;
+    }
     markAuthLevelExhaustion(target, { result, sets, log, tag });
     return true;
   }

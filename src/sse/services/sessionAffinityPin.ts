@@ -17,6 +17,9 @@
  * connection, so the existing 429-driven `deleteSessionAccountAffinity`
  * failover still owns rotating away from a pin that stops working.
  *
+ * @changes
+ * - [2026-07-24] [Composer] - Drop forcedConnectionId when excluded or ineligible (429 loop fix)
+ *
  * This module stays decoupled from auth.ts internals: the three predicates that
  * live in (or would cause a cycle back into) auth.ts —
  * `isTerminalConnectionStatus`, `isCodexScopeUnavailable`, and the quota-policy
@@ -163,9 +166,7 @@ export function resolveSessionAffinityTtlMs(
 ): number {
   const override = Number(options.sessionAffinityTtlMs);
   if (Number.isFinite(override) && override > 0) return override;
-  const configured = Number(
-    settings.sessionAffinityTtlMs ?? settings.codexSessionAffinityTtlMs
-  );
+  const configured = Number(settings.sessionAffinityTtlMs ?? settings.codexSessionAffinityTtlMs);
   if (Number.isFinite(configured) && configured > 0) return configured;
   return 0;
 }
@@ -254,4 +255,42 @@ export function applySessionAffinityPin(params: ApplySessionAffinityPinParams): 
     `session affinity pin ${pinned.connectionId.slice(0, 8)}... overrides forcedConnectionId ${forcedConnectionId.slice(0, 8)}... (#5903)`
   );
   return pinned.connectionId;
+}
+
+export interface ResolveForcedConnectionForPoolParams {
+  forcedConnectionId: string | null;
+  excludedConnectionIds: ReadonlySet<string>;
+  connections: AffinityPinConnection[];
+  allowRateLimitedConnections: boolean;
+  bypassQuotaPolicy: boolean;
+  isQuotaExhausted: (connectionId: string) => boolean;
+  isQuotaPolicyBlocked: (connection: AffinityPinConnection) => boolean;
+}
+
+/**
+ * Reset-aware combo routing pins a single `forcedConnectionId` per target. When
+ * that account 429s (quota exhausted / cooldown), the chat retry loop excludes
+ * it — but keeping the force would narrow the pool back to the same dead
+ * account. Drop the pin whenever the forced id is excluded or no longer eligible.
+ */
+export function resolveForcedConnectionForCredentialPool(
+  params: ResolveForcedConnectionForPoolParams
+): string | null {
+  const forced = params.forcedConnectionId?.trim() || null;
+  if (!forced || params.excludedConnectionIds.has(forced)) return null;
+
+  if (params.connections.length === 0) {
+    return forced;
+  }
+
+  const forcedConn = params.connections.find((conn) => conn.id === forced);
+  if (!forcedConn) return null;
+
+  if (!params.allowRateLimitedConnections && isAccountUnavailable(forcedConn.rateLimitedUntil)) {
+    return null;
+  }
+  if (params.isQuotaExhausted(forced)) return null;
+  if (!params.bypassQuotaPolicy && params.isQuotaPolicyBlocked(forcedConn)) return null;
+
+  return forced;
 }
