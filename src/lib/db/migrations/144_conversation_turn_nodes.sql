@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:src/lib/db/migrations/136_conversation_turn_nodes.sql
--- 136_conversation_turn_nodes.sql
-========
--- 137_conversation_turn_nodes.sql
->>>>>>>> 81646aaf0 (fix(chatcore): restore missing mergeResponseToolNameMap import):src/lib/db/migrations/137_conversation_turn_nodes.sql
+-- 144_conversation_turn_nodes.sql
 -- Per-turn hash-chain nodes backing a conversation's linear transcript
 -- (open-sse/services/conversationTracker.ts). Each row is one distinct
 -- turn instance, chained to its predecessor the same way a git commit
@@ -13,11 +9,7 @@
 -- duplicates a turn mid-history to keep provider-side prompt caches warm)
 -- becomes its OWN independent conversation instead (2026-08-06 — every
 -- OmniRoute conversation is a single straight line, it never forks; see
-<<<<<<<< HEAD:src/lib/db/migrations/136_conversation_turn_nodes.sql
--- resolveConversationId's doc comment). See agentic_conversations (135) for
-========
--- resolveConversationId's doc comment). See agentic_conversations (136) for
->>>>>>>> 81646aaf0 (fix(chatcore): restore missing mergeResponseToolNameMap import):src/lib/db/migrations/137_conversation_turn_nodes.sql
+-- resolveConversationId's doc comment). See agentic_conversations (143) for
 -- the conversation-root record; its last_message_count/last_messages_hash
 -- columns are superseded by this table and no longer written to.
 --
