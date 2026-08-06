@@ -3,6 +3,16 @@ import path from "path";
 import { createRequire } from "node:module";
 
 const _require = createRequire(import.meta.url);
+function getDatabaseClass() {
+  try {
+    if (process.versions.bun) {
+      return _require("bun:sqlite").Database;
+    }
+    return _require("better-sqlite3");
+  } catch {
+    return null;
+  }
+}
 const Database = process.versions.bun
   ? (_require("bun:sqlite").Database as typeof import("better-sqlite3"))
   : (_require("better-sqlite3") as typeof import("better-sqlite3"));
@@ -15,6 +25,8 @@ const getOmpDir = () => path.join(os.homedir(), ".omp", "agent");
 const getOmpDbPath = () => path.join(getOmpDir(), "agent.db");
 
 export function getOmpCredentials(providerId: string) {
+  const Database = getDatabaseClass();
+  if (!Database) return { hasOmniRoute: false, baseUrl: null, apiKey: null };
   const dbPath = getOmpDbPath();
   try {
     const db = new Database(dbPath, databaseOptions(true));
@@ -36,6 +48,8 @@ export function getOmpCredentials(providerId: string) {
 }
 
 export function saveOmpCredentials(providerId: string, apiKey: string, baseUrl: string) {
+  const Database = getDatabaseClass();
+  if (!Database) return;
   const dbPath = getOmpDbPath();
   const db = new Database(dbPath, databaseOptions());
 
@@ -54,6 +68,8 @@ export function saveOmpCredentials(providerId: string, apiKey: string, baseUrl: 
 }
 
 export function deleteOmpCredentials(providerId: string) {
+  const Database = getDatabaseClass();
+  if (!Database) return;
   const dbPath = getOmpDbPath();
   const db = new Database(dbPath, databaseOptions());
   db.prepare("DELETE FROM auth_credentials WHERE provider = ?").run(providerId);

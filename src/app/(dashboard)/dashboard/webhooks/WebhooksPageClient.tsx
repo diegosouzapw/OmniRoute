@@ -24,6 +24,7 @@ export function WebhooksPageClient() {
   const [testingId, setTestingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<FeedbackState>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [editingWebhook, setEditingWebhook] = useState<WebhookItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<WebhookItem | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -101,6 +102,21 @@ export function WebhooksPageClient() {
     }
   };
 
+  const handleAddWebhook = () => {
+    setEditingWebhook(null);
+    setWizardOpen(true);
+  };
+
+  const handleEditWebhook = (webhook: WebhookItem) => {
+    setEditingWebhook(webhook);
+    setWizardOpen(true);
+  };
+
+  const handleCloseWizard = () => {
+    setWizardOpen(false);
+    setEditingWebhook(null);
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -134,7 +150,7 @@ export function WebhooksPageClient() {
         </div>
         <button
           type="button"
-          onClick={() => setWizardOpen(true)}
+          onClick={handleAddWebhook}
           className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
@@ -221,7 +237,7 @@ export function WebhooksPageClient() {
                 t={tFn}
                 onTest={(wh) => void handleTest(wh)}
                 onToggleEnabled={(wh) => void handleToggleEnabled(wh)}
-                onEdit={() => setWizardOpen(true)}
+                onEdit={handleEditWebhook}
                 onDelete={setDeleteTarget}
               />
             </div>
@@ -237,11 +253,12 @@ export function WebhooksPageClient() {
 
       <AddWebhookWizard
         isOpen={wizardOpen}
-        onClose={() => setWizardOpen(false)}
+        onClose={handleCloseWizard}
         onCreated={async () => {
           await load();
         }}
         t={tFn}
+        editingWebhook={editingWebhook}
       />
 
       <ConfirmModal

@@ -45,6 +45,7 @@ export type PassthroughTailProcessorContext = {
   setPassthroughResponsesCurrentFunctionCallKey: (value: string | null) => void;
   hasPassthroughToolCalls: () => boolean;
   toResponsesCompletedWithToolCalls: (parsed: JsonRecord) => JsonRecord;
+  restoreOpenAIToolNames: (parsed: JsonRecord) => boolean;
 };
 
 function asRecord(value: unknown): JsonRecord {
@@ -290,7 +291,9 @@ export function processBufferedPassthroughLine(
     if (isResponses) {
       output = handleResponsesTailPayload(parsed, output, context);
     } else if (!isClaude) {
+      const restoredToolName = context.restoreOpenAIToolNames(parsed);
       handleOpenAiTailPayload(parsed, context);
+      if (restoredToolName) output = `data: ${JSON.stringify(parsed)}\n\n`;
     }
 
     context.pushClientPayload(parsed);

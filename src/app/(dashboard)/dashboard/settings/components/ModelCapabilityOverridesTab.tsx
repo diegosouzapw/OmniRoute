@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Card, Button } from "@/shared/components";
 import { matchesSearch } from "@/shared/utils/turkishText";
 
-type ModelOverrideKey = "max_token";
+type ModelOverrideKey = "context_length" | "max_input_tokens" | "max_output_tokens";
 type StatusTone = "success" | "error" | "info";
 
 type ModelOverrideTarget = {
@@ -337,7 +337,7 @@ function ModelOverrideForm({
   onSave: (target: string, key: ModelOverrideKey, value: number) => void;
 }) {
   const t = useTranslations("settings");
-  const [key, setKey] = useState<ModelOverrideKey>("max_token");
+  const [key, setKey] = useState<ModelOverrideKey>("context_length");
   const [value, setValue] = useState("");
   const numericValue = Number(value);
   const saveDisabled = !activeTarget || !Number.isInteger(numericValue) || numericValue <= 0;
@@ -349,7 +349,9 @@ function ModelOverrideForm({
         onChange={(event) => setKey(event.target.value as ModelOverrideKey)}
         className="sm:w-40 px-2 py-2 text-xs bg-bg-base border border-border rounded-md focus:outline-none focus:border-primary"
       >
-        <option value="max_token">max_token</option>
+        <option value="context_length">context_length</option>
+        <option value="max_input_tokens">max_input_tokens</option>
+        <option value="max_output_tokens">max_output_tokens</option>
       </select>
       <input
         type="number"

@@ -82,6 +82,32 @@ test("CodexExecutor.transformRequest clamps Luna ultra requests to its max effor
   assert.equal(result.reasoning.effort, "max");
 });
 
+test("CodexExecutor.transformRequest accepts parenthesized GPT-5.6 effort overrides", () => {
+  const executor = new CodexExecutor();
+  const cases = [
+    { model: "gpt-5.6-sol(ultra)", expectedModel: "gpt-5.6-sol", expectedEffort: "max" },
+    { model: "gpt-5.6-terra(max)", expectedModel: "gpt-5.6-terra", expectedEffort: "max" },
+    { model: "gpt-5.6-luna(ultra)", expectedModel: "gpt-5.6-luna", expectedEffort: "max" },
+  ];
+
+  for (const { model, expectedModel, expectedEffort } of cases) {
+    const result = executor.transformRequest(
+      model,
+      {
+        model,
+        input: [],
+        reasoning: { effort: "low", summary: "detailed" },
+      },
+      false,
+      { requestEndpointPath: "/responses" }
+    );
+
+    assert.equal(result.model, expectedModel);
+    assert.equal(result.reasoning.effort, expectedEffort);
+    assert.equal(result.reasoning.summary, "detailed");
+  }
+});
+
 test("CodexExecutor.execute disables parallel tool calls for Responses Lite markers", async () => {
   const executor = new CodexExecutor();
   const originalFetch = globalThis.fetch;

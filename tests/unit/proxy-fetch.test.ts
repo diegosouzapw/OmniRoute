@@ -169,14 +169,25 @@ test("runWithProxyContext accepts reachable HTTP proxy endpoints and returns cal
 
 test("runWithProxyContext throws PROXY_UNREACHABLE for an unreachable proxy by default", async () => {
   // 127.0.0.1:9 (discard) refuses connections — the proxy is unreachable.
-  await assert.rejects(
-    runWithProxyContext({ type: "http", host: "127.0.0.1", port: "9" }, async () => "unreachable"),
-    (err: Error & { code?: string; errorCode?: string }) => {
-      assert.equal(err.code, "PROXY_UNREACHABLE");
-      assert.equal(err.errorCode, "proxy_unreachable");
-      return true;
-    }
-  );
+  // #9100: the T14 probe is non-blocking, so the request must stay in flight
+  // long enough for the probe to resolve unreachable and abort it (an
+  // instantly-resolving callback would simply win the race and return).
+  let releaseRequest: () => void = () => {};
+  const gate = new Promise<void>((resolve) => {
+    releaseRequest = resolve;
+  });
+
+  const pending = runWithProxyContext({ type: "http", host: "127.0.0.1", port: "9" }, async () => {
+    await gate;
+    return "unreachable";
+  });
+
+  await assert.rejects(pending, (err: Error & { code?: string; errorCode?: string }) => {
+    assert.equal(err.code, "PROXY_UNREACHABLE");
+    assert.equal(err.errorCode, "proxy_unreachable");
+    return true;
+  });
+  releaseRequest();
 });
 
 test("runWithProxyContext degrades to a direct connection when directFallbackOnUnreachable is set", async () => {
@@ -198,14 +209,25 @@ test("runWithProxyContext degrades to a direct connection when directFallbackOnU
 
 test("runWithProxyContext keeps strict pinning when the direct fallback feature flag is off", async () => {
   await withEnv({ OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK: "false" }, async () => {
-    await assert.rejects(
-      runWithProxyContext(
-        { type: "http", host: "127.0.0.1", port: "9" },
-        async () => "unreachable",
-        { directFallbackOnUnreachable: true }
-      ),
-      /Proxy unreachable/
+    // #9100: with the flag off the request goes through the non-blocking T14
+    // probe; keep it in flight so the unreachable probe aborts it (strict
+    // pinning — no direct fallback — still applies).
+    let releaseRequest: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      releaseRequest = resolve;
+    });
+
+    const pending = runWithProxyContext(
+      { type: "http", host: "127.0.0.1", port: "9" },
+      async () => {
+        await gate;
+        return "unreachable";
+      },
+      { directFallbackOnUnreachable: true }
     );
+
+    await assert.rejects(pending, /Proxy unreachable/);
+    releaseRequest();
   });
 });
 

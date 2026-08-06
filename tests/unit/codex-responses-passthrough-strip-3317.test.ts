@@ -39,6 +39,32 @@ test("codex native responses passthrough strips client-only params (#3317)", asy
   assert.ok(Array.isArray(result.input), "input array preserved");
 });
 
+test("codex native responses passthrough normalizes additional_tools items", async () => {
+  const executor = new CodexExecutor();
+  const messageContent = [{ type: "input_text", text: "run the terminal tool" }];
+  const tools = [{ type: "function", name: "terminal", parameters: { type: "object" } }];
+  const body = {
+    _nativeCodexPassthrough: true,
+    model: "gpt-5.5",
+    input: [
+      {
+        type: "additional_tools",
+        role: "developer",
+        content: [{ type: "input_text", text: "unsupported wrapper content" }],
+        tools,
+      },
+      { type: "message", role: "user", content: messageContent },
+    ],
+  };
+
+  const result = (await executor.transformRequest("gpt-5.5", body, true, {} as never)) as {
+    input: Array<Record<string, unknown>>;
+  };
+
+  assert.deepEqual(result.input[0], { type: "additional_tools", role: "developer", tools });
+  assert.deepEqual(result.input[1], { type: "message", role: "user", content: messageContent });
+});
+
 test.after(() => {
   try {
     core.resetDbInstance?.();

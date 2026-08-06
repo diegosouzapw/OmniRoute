@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 
 // ─── T-12 (#3932 PR-3): `omniroute redis` CLI command ─────────────────────
 
@@ -53,18 +54,24 @@ test("registerRedis: attaches a `redis` command with up/down/status subcommands"
             const sub = {
               name: subName,
               options: new Set<string>(),
-              description() { return sub; },
+              description() {
+                return sub;
+              },
               option(flag) {
                 const optName = flag.split(/[ ,]/)[0].replace(/^-+/, "");
                 sub.options.add(optName);
                 return sub;
               },
-              action() { return sub; },
+              action() {
+                return sub;
+              },
             };
             subStubs.push(sub);
             return sub;
           },
-          description() { return redisCmd; },
+          description() {
+            return redisCmd;
+          },
           option(flag) {
             const optName = flag.split(/[ ,]/)[0].replace(/^-+/, "");
             redisCmd.options.add(optName);
@@ -97,7 +104,9 @@ test("registerRedis: `up` subcommand has the expected option flags", async () =>
           const sub = {
             name: subName,
             options: new Set<string>(),
-            description() { return sub; },
+            description() {
+              return sub;
+            },
             option(flag: string) {
               // Prefer the canonical long flag (`--port` from `-p, --port <port>`);
               // fall back to the first token for short-only / `--no-x` flags.
@@ -106,12 +115,16 @@ test("registerRedis: `up` subcommand has the expected option flags", async () =>
               sub.options.add(optName);
               return sub;
             },
-            action() { return sub; },
+            action() {
+              return sub;
+            },
           };
           subStubs.push(sub);
           return sub;
         },
-        description() { return redisCmd; },
+        description() {
+          return redisCmd;
+        },
         option(flag: string) {
           // Prefer the canonical long flag (`--port` from `-p, --port <port>`);
           // fall back to the first token for short-only / `--no-x` flags.
@@ -127,6 +140,7 @@ test("registerRedis: `up` subcommand has the expected option flags", async () =>
   registerRedis(program);
   const upCmd = subStubs.find((s) => s.name === "up")!;
   assert.ok(upCmd.options.has("port"), "missing --port");
+  assert.ok(upCmd.options.has("bind"), "missing --bind");
   assert.ok(upCmd.options.has("name"), "missing --name");
   assert.ok(upCmd.options.has("image"), "missing --image");
   assert.ok(upCmd.options.has("runtime"), "missing --runtime");
@@ -181,4 +195,40 @@ test("runRedisDownCommand: returns 1 when no podman/docker is available", async 
   } finally {
     process.stderr.write = origStderr;
   }
+});
+
+// ─── `omniroute redis up` must publish on loopback, not 0.0.0.0 ───────────
+// The launcher starts Redis with no `requirepass` unless --password is given,
+// so a bare "6379:6379" publish spec would hand the LAN an unauthenticated
+// Redis (the container runtime defaults an unqualified spec to 0.0.0.0).
+
+test("buildRedisPublishSpec: defaults to loopback, never 0.0.0.0", async () => {
+  const { buildRedisPublishSpec } = await import(
+    `../../bin/cli/commands/redis.mjs?case=${Date.now()}-${Math.random()}`
+  );
+  assert.equal(buildRedisPublishSpec(), "127.0.0.1:6379:6379");
+  assert.equal(buildRedisPublishSpec(undefined, "6380"), "127.0.0.1:6380:6379");
+  assert.equal(buildRedisPublishSpec("", ""), "127.0.0.1:6379:6379");
+});
+
+test("buildRedisPublishSpec: honours an explicit bind override and brackets IPv6", async () => {
+  const { buildRedisPublishSpec } = await import(
+    `../../bin/cli/commands/redis.mjs?case=${Date.now()}-${Math.random()}`
+  );
+  // Opt-in exposure stays possible — it just can never be the default.
+  assert.equal(buildRedisPublishSpec("0.0.0.0", "6379"), "0.0.0.0:6379:6379");
+  assert.equal(buildRedisPublishSpec("::1", "6379"), "[::1]:6379:6379");
+});
+
+test("`redis up` never builds an unqualified `-p <port>:6379` publish arg", async () => {
+  const source = await readFile(
+    new URL("../../bin/cli/commands/redis.mjs", import.meta.url),
+    "utf8"
+  );
+  assert.doesNotMatch(
+    source,
+    /"-p",\s*`\$\{port\}:6379`/,
+    "publish spec must be host-qualified via buildRedisPublishSpec()"
+  );
+  assert.match(source, /"-p",\s*buildRedisPublishSpec\(bind, port\)/);
 });

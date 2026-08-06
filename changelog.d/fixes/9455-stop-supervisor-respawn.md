@@ -1,0 +1,1 @@
+- fix(cli): stop the supervisor before the child so omniroute stop no longer reports success while the supervisor respawns the server (#9455)

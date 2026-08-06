@@ -1135,6 +1135,31 @@ test("buildKiroPayload enables thinking mode for Claude models via reasoning_eff
   );
 });
 
+test("buildKiroPayload uses native Max reasoning for Kiro GPT-5.6 models", () => {
+  for (const model of ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"]) {
+    const result = buildKiroPayload(
+      model,
+      {
+        messages: [{ role: "user", content: "Solve a hard problem" }],
+        reasoning_effort: "max",
+        max_tokens: 64000,
+      },
+      false,
+      null
+    );
+
+    assert.ok(result.additionalModelRequestFields, "Max reasoning must be forwarded to Kiro");
+    assert.equal(result.additionalModelRequestFields.reasoning.effort, "max");
+    assert.equal(result.additionalModelRequestFields.output_config, undefined);
+    assert.equal(result.additionalModelRequestFields.thinking, undefined);
+    assert.equal(result.additionalModelRequestFields.max_tokens, undefined);
+    assert.doesNotMatch(
+      result.conversationState.currentMessage.userInputMessage.content,
+      /<thinking_mode>/
+    );
+  }
+});
+
 test("buildKiroPayload drops temperature when thinking is enabled", () => {
   const body = {
     messages: [{ role: "user", content: "Solve a hard problem" }],

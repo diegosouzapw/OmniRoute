@@ -23,6 +23,7 @@ interface InnerAiModel {
   unavailable_api?: boolean;
   pro_only?: boolean;
   ultra_only?: boolean;
+  ai_model_categories?: Array<Record<string, unknown>>;
 }
 
 interface CredentialCache {
@@ -283,9 +284,7 @@ async function resolveModels(
     if (m.enable === false || m.unavailable_api) return false;
     if (m.ultra_only && !isUltra) return false;
     if (m.pro_only && !isPro) return false;
-    const cats = Array.isArray((m as Record<string, unknown>).ai_model_categories)
-      ? ((m as Record<string, unknown>).ai_model_categories as Array<Record<string, unknown>>)
-      : null;
+    const cats = Array.isArray(m.ai_model_categories) ? m.ai_model_categories : null;
     if (cats && cats.length > 0) {
       return cats.some((c) => String(c.unique_identifier ?? c.name ?? "").toLowerCase() === "text");
     }

@@ -4,6 +4,7 @@ import { extractApiKey, isValidApiKey } from "@/sse/services/auth";
 import { getApiKeyMetadata } from "@/lib/db/apiKeys";
 import { isCliTokenAuthValid } from "@/lib/middleware/cliTokenAuth";
 import { evaluateAccessTokenAuth } from "@/server/authz/accessTokenAuth";
+import { isTrustedLoopbackInternalServiceRequest } from "@/lib/api/internalServiceAuth";
 import {
   MANAGE_SCOPE,
   hasManageScope as hasManageScopeShared,
@@ -44,6 +45,10 @@ export async function requireManagementAuth(
   }
 
   if (await isDashboardSessionAuthenticated(request)) {
+    return null;
+  }
+
+  if (isTrustedLoopbackInternalServiceRequest(request)) {
     return null;
   }
 

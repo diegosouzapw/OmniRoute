@@ -17,6 +17,7 @@ import {
 
 import { CategoryDot } from "./CategoryDot";
 import { isCheaperInferenceProviderId, isKimiPartnerProviderId } from "../featuredProviders";
+import { useOpenRouterProviderStat } from "../context/openRouterProviderStatsContext";
 
 interface ProviderStats {
   total?: number;
@@ -228,6 +229,7 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
   const isKimiPartner = isKimiPartnerProviderId(provider.id || providerId);
   const isCheaperInferencePartner = isCheaperInferenceProviderId(provider.id || providerId);
   const isSponsorPartner = isKimiPartner || isCheaperInferencePartner;
+  const openRouterStat = useOpenRouterProviderStat(provider.id || providerId);
   const codexServiceTierLabel =
     stats.codexServiceTier === "flex"
       ? providerText(t, "codexTierFlexLabel", "Flex")
@@ -284,6 +286,36 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
     >
       <span className="material-symbols-outlined text-[10px] leading-none">verified</span>
       {providerText(t, "cheaperInferenceSupporterBadge", "Open Source Friend")}
+    </span>
+  ) : null;
+
+  const openRouterTooltipBits: string[] = [];
+  if (openRouterStat?.headquarters) openRouterTooltipBits.push(`HQ: ${openRouterStat.headquarters}`);
+  if (openRouterStat?.dataPolicy?.training === false) {
+    openRouterTooltipBits.push(providerText(t, "openRouterNoTraining", "Does not train on prompts"));
+  }
+  if (openRouterStat?.dataPolicy?.retainsPrompts === false) {
+    openRouterTooltipBits.push(providerText(t, "openRouterNoRetention", "Does not retain prompts"));
+  }
+  const openRouterTooltip = openRouterStat
+    ? providerText(t, "openRouterPopularityTooltip", "OpenRouter usage rank #{rank}", {
+        rank: openRouterStat.popularityRank,
+      }) + (openRouterTooltipBits.length ? ` — ${openRouterTooltipBits.join(" · ")}` : "")
+    : "";
+
+  // OpenRouter popularity badge — data refreshed daily from OpenRouter's
+  // provider directory + usage rankings (see src/lib/catalog/openrouterProviderStats.ts).
+  // Absent entirely for providers OpenRouter doesn't track; never affects routing.
+  const openRouterPopularityChip = openRouterStat ? (
+    <span
+      key="openrouter-popularity"
+      className="inline-flex items-center gap-0.5 rounded-full border border-border bg-bg-subtle px-1.5 py-0 text-[9px] font-semibold leading-none text-text-muted"
+      title={openRouterTooltip}
+    >
+      <span className="material-symbols-outlined text-[10px] leading-none">trending_up</span>
+      {providerText(t, "openRouterPopularityBadge", "OR #{rank}", {
+        rank: openRouterStat.popularityRank,
+      })}
     </span>
   ) : null;
 
@@ -417,10 +449,12 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
               isCompatible ||
               isCcCompatible ||
               isAnthropicCompatible ||
-              isSponsorPartner) && (
+              isSponsorPartner ||
+              Boolean(openRouterStat)) && (
               <div className="flex flex-wrap items-center gap-1">
                 {kimiOfficialSupporterChip}
                 {cheaperInferenceSupporterChip}
+                {openRouterPopularityChip}
                 {provider.serviceKinds?.map((k) => (
                   <span
                     key={k}

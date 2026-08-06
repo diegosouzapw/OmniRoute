@@ -50,14 +50,14 @@ export async function validateMuseSparkWebProvider({ apiKey, providerSpecificDat
     if (response.status === 401 || response.status === 403) {
       return {
         valid: false,
-        error: "Invalid Meta AI session cookie — re-paste abra_sess from meta.ai",
+        error: "Invalid Meta AI session cookie — re-paste ecto_1_sess from meta.ai",
       };
     }
 
     if (/authentication required to send messages|login is required|sign in/i.test(responseText)) {
       return {
         valid: false,
-        error: "Invalid Meta AI session cookie — re-paste abra_sess from meta.ai",
+        error: "Invalid Meta AI session cookie — re-paste ecto_1_sess from meta.ai",
       };
     }
 

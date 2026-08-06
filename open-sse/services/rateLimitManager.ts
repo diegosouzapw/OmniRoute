@@ -164,11 +164,56 @@ function buildLimiterDefaults() {
   };
 }
 
-function updateAllLimiterSettings() {
-  const defaults = buildLimiterDefaults();
-  for (const limiter of limiters.values()) {
-    limiter.updateSettings(defaults);
+/**
+ * Apply new settings to a Bottleneck limiter and re-arm its reservoir-refresh
+ * heartbeat.
+ *
+ * Bottleneck 2.19.5 (frozen upstream dependency, no release since 2019) has a
+ * bug in `LocalDatastore#_startHeartbeat()`
+ * (node_modules/bottleneck/lib/LocalDatastore.js:29,56): the guard
+ * `if (this.heartbeat == null && ...)` only (re)creates the periodic
+ * reservoir-refresh interval the FIRST time it runs. Every later call —
+ * including the one `updateSettings()` itself triggers internally — falls
+ * into the `else` branch and does `clearInterval(this.heartbeat)` WITHOUT
+ * resetting `this.heartbeat` back to `null`. Because the stale reference is
+ * left in place, every future `_startHeartbeat()` call keeps taking the same
+ * dead `else` branch: the periodic reservoir refresh is gone forever after
+ * the FIRST manual `updateSettings()` call on a limiter — every limiter here
+ * starts with a live heartbeat (buildLimiterDefaults() always sets
+ * reservoirRefreshInterval/reservoirRefreshAmount), so that "first call" is
+ * whichever of the 5 updateSettings() call sites in this file runs first.
+ *
+ * Work around it here instead of patching node_modules: null out the stale
+ * reference ourselves and re-invoke `_startHeartbeat()` so it takes the
+ * "start a fresh interval" branch again. Every `limiter.updateSettings(...)`
+ * call in this file MUST go through this helper, never Bottleneck's method
+ * directly.
+ */
+async function applyLimiterSettings(
+  limiter: Bottleneck,
+  updates: Bottleneck.ConstructorOptions
+): Promise<void> {
+  await limiter.updateSettings(updates);
+  const store = (
+    limiter as unknown as {
+      _store?: {
+        heartbeat?: ReturnType<typeof setInterval> | null;
+        _startHeartbeat?: () => void;
+      };
+    }
+  )._store;
+  if (store && typeof store._startHeartbeat === "function") {
+    if (store.heartbeat != null) clearInterval(store.heartbeat);
+    store.heartbeat = null;
+    store._startHeartbeat();
   }
+}
+
+async function updateAllLimiterSettings() {
+  const defaults = buildLimiterDefaults();
+  await Promise.all(
+    Array.from(limiters.values(), (limiter) => applyLimiterSettings(limiter, defaults))
+  );
 }
 
 function reconcileEnabledConnections(
@@ -381,7 +426,7 @@ export async function initializeRateLimits() {
       connections as unknown[],
       currentRequestQueueSettings
     );
-    updateAllLimiterSettings();
+    await updateAllLimiterSettings();
 
     // Load per-connection rate limit overrides
     connectionRateLimitOverrides.clear();
@@ -414,7 +459,7 @@ export async function applyRequestQueueSettings(nextSettings: RequestQueueSettin
   const { getCachedProviderConnections } = await import("@/lib/localDb");
   const connections = await getCachedProviderConnections();
   reconcileEnabledConnections(connections as unknown[], currentRequestQueueSettings);
-  updateAllLimiterSettings();
+  await updateAllLimiterSettings();
 }
 
 /**
@@ -779,9 +824,7 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
     logRateLimit(
       `⚠️ [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — near capacity, slowing down`
     );
-    limiter.updateSettings({
-      minTime: 200, // Add 200ms between requests
-    });
+    trackAsyncOperation(applyLimiterSettings(limiter, { minTime: 200 }));
     return;
   }
 
@@ -812,7 +855,7 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
       }
     }
 
-    limiter.updateSettings(updates);
+    trackAsyncOperation(applyLimiterSettings(limiter, updates));
 
     // Persist learned limits (debounced)
     recordLearnedLimit(
@@ -1014,7 +1057,7 @@ async function loadPersistedLimits() {
         const limiter = limiters.get(key);
         if (limiter && limit > 0) {
           const inferredMinTime = minTime || Math.max(0, Math.floor(60000 / limit) - 10);
-          limiter.updateSettings({ minTime: inferredMinTime });
+          await applyLimiterSettings(limiter, { minTime: inferredMinTime });
           count++;
         }
       }
@@ -1050,10 +1093,12 @@ export function updateFromResponseBody(provider, connectionId, responseBody, sta
       `🚫 [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — body-parsed retry: ${Math.ceil(retryAfterMs / 1000)}s (${reason})`
     );
 
-    limiter.updateSettings({
-      reservoir: 0,
-      reservoirRefreshAmount: 60,
-      reservoirRefreshInterval: retryAfterMs,
-    });
+    trackAsyncOperation(
+      applyLimiterSettings(limiter, {
+        reservoir: 0,
+        reservoirRefreshAmount: 60,
+        reservoirRefreshInterval: retryAfterMs,
+      })
+    );
   }
 }

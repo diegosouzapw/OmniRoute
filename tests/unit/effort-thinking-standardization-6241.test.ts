@@ -9,15 +9,10 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-effort-6241-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const {
-  CANONICAL_EFFORT_VALUES,
-  normalizeEffort,
-  effortRequestSchema,
-  normalizeReasoningRequest,
-} = await import("../../src/shared/reasoning/effortStandardization.ts");
-const { providerChatCompletionSchema } = await import(
-  "../../src/shared/validation/schemas/apiV1.ts"
-);
+const { CANONICAL_EFFORT_VALUES, normalizeEffort, effortRequestSchema, normalizeReasoningRequest } =
+  await import("../../src/shared/reasoning/effortStandardization.ts");
+const { providerChatCompletionSchema } =
+  await import("../../src/shared/validation/schemas/apiV1.ts");
 const core = await import("../../src/lib/db/core.ts");
 const modelsDevSync = await import("../../src/lib/modelsDevSync.ts");
 const registry = await import("../../src/lib/modelMetadataRegistry.ts");
@@ -182,4 +177,17 @@ test("enrichCatalogModelEntry exposes supportsThinking + effort_tiers for a thin
   // additive — existing flags preserved
   assert.equal(caps.thinking, true);
   assert.equal(caps.reasoning, true);
+});
+
+test("enrichCatalogModelEntry exposes Max for Kiro GPT-5.6 Luna", () => {
+  const enriched = registry.enrichCatalogModelEntry({
+    id: "kr/gpt-5.6-luna",
+    object: "model",
+    owned_by: "kr",
+    root: "gpt-5.6-luna",
+  }) as Record<string, unknown>;
+
+  const caps = enriched.capabilities as Record<string, unknown>;
+  assert.equal(caps.supportsThinking, true);
+  assert.deepEqual(caps.effort_tiers, ["none", "low", "medium", "high", "xhigh", "max"]);
 });

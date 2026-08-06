@@ -275,7 +275,7 @@ let cacheTimestamp = 0;
 let pendingHideLogs: Promise<boolean> | null = null;
 const CACHE_TTL = 30_000; // Cache settings for 30 seconds
 
-async function shouldHideLogs(): Promise<boolean> {
+export async function shouldHideLogs(): Promise<boolean> {
   if (
     isEnvFlagEnabled("OMNIROUTE_HIDE_HEALTHCHECK_LOGS") ||
     isBuildProcess() ||

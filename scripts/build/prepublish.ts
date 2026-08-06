@@ -39,6 +39,65 @@ const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..", "..");
 const NPX_BIN = process.platform === "win32" ? "npx.cmd" : "npx";
 
+// On Windows the npm/npx entry points are `.cmd` shims, and Node >= 20 refuses to
+// spawn a `.cmd` without a shell (EINVAL, from the CVE-2024-27980 hardening). On
+// Node 24 that makes every `execFileSync(NPX_BIN, ...)` in this script fail, which
+// silently skipped the MITM utilities, the MCP server bundle, the LLMLingua worker
+// and the OpenCode plugin while the build still reported success.
+//
+// `shell: true` would fix the spawn but disables argument escaping (DEP0190), so it
+// is only the last resort. Preferred order: run the tool's own JS entry point with
+// this Node binary — no shim, no shell, nothing to escape.
+function resolveLocalBinEntry(packageName: string, binName: string): string | null {
+  try {
+    const packageJsonPath = join(ROOT, "node_modules", packageName, "package.json");
+    if (!existsSync(packageJsonPath)) return null;
+    const meta = JSON.parse(readFileSync(packageJsonPath, "utf8")) as {
+      bin?: string | Record<string, string>;
+    };
+    const relative = typeof meta.bin === "string" ? meta.bin : meta.bin?.[binName];
+    if (!relative) return null;
+    const absolute = join(ROOT, "node_modules", packageName, relative);
+    return existsSync(absolute) ? absolute : null;
+  } catch {
+    return null;
+  }
+}
+
+function resolveBundledNpmEntry(name: "npm-cli.js" | "npx-cli.js"): string | null {
+  const candidate = join(dirname(process.execPath), "node_modules", "npm", "bin", name);
+  return existsSync(candidate) ? candidate : null;
+}
+
+/**
+ * Runs a build tool without ever touching a `.cmd` shim. `packageName` is where the
+ * tool lives in the local dependency tree; when it is not installed there the call
+ * falls back to the Node-resolved `npx` entry point, and only then to the shim.
+ */
+function runBuildTool(
+  packageName: string,
+  binName: string,
+  args: readonly string[],
+  options: Parameters<typeof execFileSync>[2]
+): void {
+  const localEntry = resolveLocalBinEntry(packageName, binName);
+  if (localEntry) {
+    execFileSync(process.execPath, [localEntry, ...args], options);
+    return;
+  }
+  const npxEntry = resolveBundledNpmEntry("npx-cli.js");
+  if (npxEntry) {
+    execFileSync(process.execPath, [npxEntry, binName, ...args], options);
+    return;
+  }
+  // Last resort. The arguments here are static build literals, never user input,
+  // so the missing escaping under `shell` is not an injection surface.
+  execFileSync(NPX_BIN, [binName, ...args], {
+    ...options,
+    shell: process.platform === "win32",
+  });
+}
+
 const DIST_DIR = join(ROOT, "dist");
 const METHOD_GUARD_REQUIRE = 'require("./http-method-guard.cjs").installHttpMethodGuard();\n';
 
@@ -205,7 +264,7 @@ if (existsSync(mitmSrc)) {
   writeFileSync(tmpTsconfigPath, JSON.stringify(mitmTsconfig, null, 2));
 
   try {
-    execFileSync(NPX_BIN, ["tsc", "-p", "tsconfig.mitm.tmp.json"], {
+    runBuildTool("typescript", "tsc", ["-p", "tsconfig.mitm.tmp.json"], {
       cwd: ROOT,
       stdio: "inherit",
     });
@@ -235,10 +294,10 @@ if (existsSync(mcpSrcFile)) {
   console.log("  🔨 Bundling MCP Server (TypeScript → JavaScript)...");
   mkdirSync(mcpDestDir, { recursive: true });
   try {
-    execFileSync(
-      NPX_BIN,
+    runBuildTool(
+      "esbuild",
+      "esbuild",
       [
-        "esbuild",
         "open-sse/mcp-server/server.ts",
         "--bundle",
         "--platform=node",
@@ -281,10 +340,10 @@ if (existsSync(llmWorkerSrc)) {
   console.log("  🔨 Bundling LLMLingua ONNX worker (TypeScript → JavaScript)...");
   mkdirSync(llmWorkerDestDir, { recursive: true });
   try {
-    execFileSync(
-      NPX_BIN,
+    runBuildTool(
+      "esbuild",
+      "esbuild",
       [
-        "esbuild",
         "open-sse/services/compression/engines/llmlingua/onnxWorker.ts",
         "--bundle",
         "--platform=node",
@@ -309,10 +368,10 @@ const cliDestFile = join(ROOT, "bin", "omniroute.mjs");
 if (existsSync(cliSrcFile)) {
   console.log("  🔨 Bundling CLI Entrypoint (TypeScript → JavaScript)...");
   try {
-    execFileSync(
-      NPX_BIN,
+    runBuildTool(
+      "esbuild",
+      "esbuild",
       [
-        "esbuild",
         "bin/omniroute.ts",
         "--bundle",
         "--platform=node",
@@ -349,13 +408,18 @@ if (existsSync(opencodePluginSrc) && existsSync(join(opencodePluginSrc, "package
       // needs the plugin's own devDependencies (typescript, @opencode-ai/plugin
       // types). Without this install a fresh CI publish fails at this step.
       if (!existsSync(join(opencodePluginSrc, "node_modules"))) {
-        const NPM_BIN = process.platform === "win32" ? "npm.cmd" : "npm";
-        execFileSync(NPM_BIN, ["install", "--no-audit", "--no-fund"], {
+        const npmEntry = resolveBundledNpmEntry("npm-cli.js");
+        if (!npmEntry) {
+          throw new Error(
+            "npm-cli.js not found next to the running Node binary; cannot install the plugin dependencies without falling back to a .cmd shim."
+          );
+        }
+        execFileSync(process.execPath, [npmEntry, "install", "--no-audit", "--no-fund"], {
           cwd: opencodePluginSrc,
           stdio: "inherit",
         });
       }
-      execFileSync(NPX_BIN, ["tsup"], {
+      runBuildTool("tsup", "tsup", [], {
         cwd: opencodePluginSrc,
         stdio: "inherit",
         env: { ...process.env, NODE_ENV: "production" },

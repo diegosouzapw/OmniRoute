@@ -35,7 +35,14 @@ export function Step2ConfigureIntegration({
 }: Step2ConfigureIntegrationProps) {
   if (kind === "slack") return <SlackConfigForm value={slack} onChange={onChangeSlack} t={t} />;
   if (kind === "telegram")
-    return <TelegramConfigForm value={telegram} onChange={onChangeTelegram} t={t} />;
+    return (
+      <TelegramConfigForm
+        value={telegram}
+        onChange={onChangeTelegram}
+        t={t}
+        isEditing={isEditing}
+      />
+    );
   if (kind === "discord")
     return <DiscordConfigForm value={discord} onChange={onChangeDiscord} t={t} />;
   return <CustomConfigForm value={custom} onChange={onChangeCustom} t={t} isEditing={isEditing} />;

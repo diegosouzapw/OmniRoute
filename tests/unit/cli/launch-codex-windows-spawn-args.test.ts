@@ -13,15 +13,18 @@ import {
 
 const isWindows = process.platform === "win32";
 
-test("resolveCodexSpawn: win32 spawns codex.cmd through a shell", () => {
-  const { command, shell } = resolveCodexSpawn("win32");
+// #9454: the resolver now probes PATH for a `.exe` before falling back to the
+// npm `.cmd` shim. With no probe injected it runs `where.exe`; pin the fallback
+// (no .exe found → codex.cmd + shell) here.
+test("resolveCodexSpawn: win32 falls back to codex.cmd + shell when no .exe is on PATH", async () => {
+  const { command, shell } = await resolveCodexSpawn("win32", { probe: async () => null });
   assert.equal(command, "codex.cmd");
   assert.equal(shell, true);
 });
 
-test("resolveCodexSpawn: non-Windows platforms spawn the bare binary without a shell", () => {
+test("resolveCodexSpawn: non-Windows platforms spawn the bare binary without a shell", async () => {
   for (const platform of ["linux", "darwin", "freebsd"]) {
-    const { command, shell } = resolveCodexSpawn(platform);
+    const { command, shell } = await resolveCodexSpawn(platform);
     assert.equal(command, "codex", `${platform} command`);
     assert.equal(shell, undefined, `${platform} shell`);
   }

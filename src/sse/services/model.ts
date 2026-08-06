@@ -13,10 +13,11 @@ import {
   parseModel,
   getModelInfoCore,
   splitSyncedEffortSuffix,
+  stripContextWindowSuffix,
 } from "@omniroute/open-sse/services/model.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 
-export { parseModel };
+export { parseModel, stripContextWindowSuffix };
 
 /**
  * Reserved provider prefixes — built-in provider ids + aliases. User-defined
@@ -140,7 +141,10 @@ function resolveSyncedModelIdAndEffort(
   }
   if (findSyncedModelMeta(syncedModels, modelId)) return { modelId, effort: null };
 
-  for (const candidate of syncedModels as Array<{ id?: unknown; supportedThinkingEfforts?: unknown }>) {
+  for (const candidate of syncedModels as Array<{
+    id?: unknown;
+    supportedThinkingEfforts?: unknown;
+  }>) {
     if (typeof candidate?.id !== "string" || !Array.isArray(candidate.supportedThinkingEfforts)) {
       continue;
     }
@@ -396,13 +400,21 @@ export async function getCombo(modelStr) {
  */
 export async function getComboForModel(modelStr) {
   // 1. Existing behavior — exact combo name match
-  const combo = await getCombo(modelStr);
+  let combo = await getCombo(modelStr);
   if (combo) return combo;
+
+  // Client context tags are ignored only after exact lookup, preserving literal
+  // combo names such as "Claude [1m]" while allowing "Claude[500k]" to use "Claude".
+  const baseModelStr = stripContextWindowSuffix(modelStr);
+  if (baseModelStr && baseModelStr !== modelStr) {
+    combo = await getCombo(baseModelStr);
+    if (combo) return combo;
+  }
 
   // 2. NEW — check model-combo mappings table (pattern match)
   try {
     const { resolveComboForModel } = await import("@/lib/localDb");
-    const mapped = await resolveComboForModel(modelStr);
+    const mapped = await resolveComboForModel(baseModelStr || modelStr);
     if (mapped && (mapped as any).models?.length > 0) {
       return mapped;
     }
