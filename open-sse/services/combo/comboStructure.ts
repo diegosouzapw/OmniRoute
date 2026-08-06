@@ -12,15 +12,14 @@
  */
 
 import { getModelContextLimit } from "../../../src/lib/modelCapabilities";
+import { getHiddenModelsByProvider } from "../../../src/lib/db/models";
 import { getComboModelString, normalizeComboStep } from "../../../src/lib/combos/steps.ts";
-import {
-  getProviderByAlias,
-  getProviderById,
-} from "../../../src/shared/constants/providers.ts";
+import { getProviderByAlias, getProviderById } from "../../../src/shared/constants/providers.ts";
 import { estimateTokens } from "../contextManager.ts";
 import { getResolvedModelCapabilities } from "../modelCapabilities.ts";
-import { parseModel } from "../model.ts";
+import { parseModel, stripContextWindowSuffix } from "../model.ts";
 import { dedupeTargetsByExecutionKey, isRecord } from "./comboData.ts";
+import { isComboModelVisible } from "./comboVisibility.ts";
 import { getTargetProvider, MAX_COMBO_DEPTH } from "./comboPredicates.ts";
 import { evaluateContextLimit } from "./contextOverrideGate.ts";
 import { hasEstimableContent } from "./knownContextOverflow.ts";
@@ -35,6 +34,7 @@ import type {
   ComboLike,
   ComboLogger,
   ComboRuntimeStep,
+  HiddenModelsByProvider,
   NestedComboMode,
   ResolvedComboTarget,
   ResolvedComboUnit,
@@ -135,13 +135,26 @@ function normalizeRuntimeStep(
       : {}),
     weight,
     label,
+    prompt: step.prompt || null,
   } satisfies ResolvedComboTarget;
 }
 
-function getDirectComboTargets(combo: ComboLike): ResolvedComboTarget[] {
-  return getOrderedTopLevelRuntimeSteps(combo, null).filter(
-    (entry): entry is ResolvedComboTarget => entry?.kind === "model"
+function isComboTargetVisible(
+  target: ResolvedComboTarget,
+  hiddenModelsByProvider: HiddenModelsByProvider
+): boolean {
+  return isComboModelVisible(
+    target.modelStr,
+    target.providerId || target.provider,
+    hiddenModelsByProvider
   );
+}
+
+export function filterVisibleComboTargets(
+  targets: ResolvedComboTarget[],
+  hiddenModelsByProvider: HiddenModelsByProvider = getHiddenModelsByProvider()
+): ResolvedComboTarget[] {
+  return targets.filter((target) => isComboTargetVisible(target, hiddenModelsByProvider));
 }
 
 function getTopLevelRuntimeSteps(
@@ -323,7 +336,8 @@ export function getComboModelsFromData(
   modelStr: string,
   combosData: ComboCollectionLike
 ): string[] | null {
-  const combo = getComboFromData(modelStr, combosData);
+  const baseModelStr = stripContextWindowSuffix(modelStr);
+  const combo = getComboFromData(baseModelStr || modelStr, combosData);
   if (!combo) return null;
   return combo.models.map((m) => normalizeModelEntry(m).model);
 }
@@ -834,36 +848,50 @@ export function sortTargetsByContextSize(targets: ResolvedComboTarget[]) {
 export function resolveComboTargets(
   combo: ComboLike,
   allCombos: ComboCollectionLike,
-  maxDepth: number = MAX_COMBO_DEPTH
+  maxDepth: number = MAX_COMBO_DEPTH,
+  hiddenModelsByProvider: HiddenModelsByProvider = getHiddenModelsByProvider()
 ): ResolvedComboTarget[] {
-  return allCombos
-    ? resolveNestedComboTargets(combo, allCombos, new Set<string>(), 0, [], maxDepth)
-    : getDirectComboTargets(combo);
+  return filterVisibleComboTargets(
+    allCombos
+      ? resolveNestedComboTargets(combo, allCombos, new Set<string>(), 0, [], maxDepth)
+      : getOrderedTopLevelRuntimeSteps(combo, null).filter(
+          (entry): entry is ResolvedComboTarget => entry?.kind === "model"
+        ),
+    hiddenModelsByProvider
+  );
 }
 
 export function resolveComboRuntimeUnits(
   combo: ComboLike,
   allCombos: ComboCollectionLike,
   mode: NestedComboMode,
-  maxDepth: number = MAX_COMBO_DEPTH
+  maxDepth: number = MAX_COMBO_DEPTH,
+  hiddenModelsByProvider: HiddenModelsByProvider = getHiddenModelsByProvider()
 ): ResolvedComboUnit[] {
-  if (mode === "flatten" || !allCombos) return resolveComboTargets(combo, allCombos, maxDepth);
+  if (mode === "flatten" || !allCombos)
+    return resolveComboTargets(combo, allCombos, maxDepth, hiddenModelsByProvider);
   validateComboDAG(combo.name, allCombos, new Set<string>(), 0, maxDepth);
-  return getOrderedTopLevelRuntimeSteps(combo, allCombos);
+  return getOrderedTopLevelRuntimeSteps(combo, allCombos).filter(
+    (unit) => unit.kind === "combo-ref" || isComboTargetVisible(unit, hiddenModelsByProvider)
+  );
 }
 
 export function resolveWeightedStepGroups(
   combo: ComboLike,
-  allCombos: ComboCollectionLike
+  allCombos: ComboCollectionLike,
+  hiddenModelsByProvider: HiddenModelsByProvider = getHiddenModelsByProvider()
 ): Array<{ step: ComboRuntimeStep; targets: ResolvedComboTarget[] }> {
   return getOrderedTopLevelRuntimeSteps(combo, allCombos)
     .map((step) => ({
       step,
-      targets: !allCombos
-        ? step.kind === "model"
-          ? [step]
-          : []
-        : expandRuntimeStep(step, allCombos, new Set([combo.name])),
+      targets: filterVisibleComboTargets(
+        !allCombos
+          ? step.kind === "model"
+            ? [step]
+            : []
+          : expandRuntimeStep(step, allCombos, new Set([combo.name])),
+        hiddenModelsByProvider
+      ),
     }))
     .filter((group) => group.targets.length > 0);
 }

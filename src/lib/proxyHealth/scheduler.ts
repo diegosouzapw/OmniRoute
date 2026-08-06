@@ -12,7 +12,7 @@
  */
 
 import { deleteProxyById, listProxies, updateProxy } from "@/lib/localDb";
-import { createProxyDispatcher, clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
+import { createProxyDispatcher, clearDispatcherCache, proxyConfigToUrl } from "@omniroute/open-sse/utils/proxyDispatcher";
 import { fetch as undiciFetch } from "undici";
 import {
   decideProxyHealthAction,
@@ -87,8 +87,17 @@ async function testOneProxy(proxy: {
   type: string;
   host: string;
   port: number;
+  username?: string;
+  password?: string;
+  family?: string;
 }): Promise<ProxyProbeOutcome> {
-  const proxyUrl = `${proxy.type}://${proxy.host}:${proxy.port}`;
+  let proxyUrl: string | null;
+  try {
+    proxyUrl = proxyConfigToUrl(proxy);
+  } catch {
+    proxyUrl = null;
+  }
+  if (!proxyUrl) return "fail";
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TEST_TIMEOUT_MS);
   try {
@@ -112,7 +121,7 @@ async function testOneProxy(proxy: {
 }
 
 async function sweep(): Promise<void> {
-  const { items: proxies } = await listProxies({ includeSecrets: false });
+  const { items: proxies } = await listProxies({ includeSecrets: true });
   if (proxies.length === 0) return;
 
   const failureMap = getFailureMap();

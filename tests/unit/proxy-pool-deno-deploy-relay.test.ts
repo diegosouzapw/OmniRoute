@@ -67,11 +67,18 @@ test("proxyFetch routes a deno-type context through the relay endpoint with rela
     relayAuth: "deno-relay-secret",
   };
 
+  // #9100: the relay branch now egresses through the pooled undici Agent
+  // (deps.undiciFetch) instead of `originalFetch`, so the test injects the
+  // relay sink via deps to keep the dispatch hermetic.
   const response = await runWithProxyContext(DENO_CTX, () =>
-    proxyFetch("https://api.anthropic.com/v1/messages?x=1", {
-      method: "POST",
-      headers: { "x-existing": "keep-me" },
-    })
+    proxyFetch(
+      "https://api.anthropic.com/v1/messages?x=1",
+      {
+        method: "POST",
+        headers: { "x-existing": "keep-me" },
+      },
+      { undiciFetch: relaySink as never }
+    )
   );
 
   assert.deepEqual(await response.json(), { via: "deno-relay" });

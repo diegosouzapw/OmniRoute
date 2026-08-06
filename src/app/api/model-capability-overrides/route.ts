@@ -6,10 +6,33 @@ import {
   listModelCapabilityOverrides,
   removeModelCapabilityOverride,
   setModelCapabilityOverride,
+  type ModelCapabilityOverride,
   type ModelCapabilityOverrideKey,
 } from "@/lib/db/modelCapabilityOverrides";
+import {
+  listModelContextOverrides,
+  removeModelContextOverride,
+  setModelContextOverride,
+} from "@/lib/db/modelContextOverrides";
 
-const overrideKeySchema = z.enum(["max_token"]);
+const overrideKeySchema = z.enum(["context_length", "max_input_tokens", "max_output_tokens"]);
+type PublicOverrideKey = z.infer<typeof overrideKeySchema>;
+type PublicOverride = Omit<ModelCapabilityOverride, "key"> & { key: PublicOverrideKey };
+
+function listPublicOverrides(): PublicOverride[] {
+  const capabilityOverrides = listModelCapabilityOverrides() as PublicOverride[];
+  const contextOverrides = listModelContextOverrides().map((override): PublicOverride => ({
+    provider: override.provider,
+    modelId: override.modelId,
+    target: `${override.provider}/${override.modelId}`,
+    key: "context_length",
+    value: override.realContext,
+    refreshedAt: override.refreshedAt,
+  }));
+  return [...capabilityOverrides, ...contextOverrides].sort((left, right) =>
+    right.refreshedAt.localeCompare(left.refreshedAt)
+  );
+}
 
 const upsertOverrideSchema = z.object({
   target: z.string().min(3),
@@ -33,7 +56,7 @@ export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
-  return NextResponse.json({ overrides: listModelCapabilityOverrides() });
+  return NextResponse.json({ overrides: listPublicOverrides() });
 }
 
 export async function PATCH(request: Request) {
@@ -57,12 +80,20 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Invalid model capability override" }, { status: 400 });
   }
 
-  const written = setModelCapabilityOverride(target, parsed.data.key, parsed.data.value);
+  const targetParts = target.split(/\/(.*)/s);
+  const written =
+    parsed.data.key === "context_length"
+      ? setModelContextOverride(targetParts[0], targetParts[1], parsed.data.value, "manual")
+      : setModelCapabilityOverride(
+          target,
+          parsed.data.key as ModelCapabilityOverrideKey,
+          parsed.data.value
+        );
   if (!written) {
     return NextResponse.json({ error: "Invalid model capability override" }, { status: 400 });
   }
 
-  return NextResponse.json({ overrides: listModelCapabilityOverrides() });
+  return NextResponse.json({ overrides: listPublicOverrides() });
 }
 
 export async function DELETE(request: Request) {
@@ -78,6 +109,11 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "target and key are required" }, { status: 400 });
   }
 
-  removeModelCapabilityOverride(target, parsedKey.data as ModelCapabilityOverrideKey);
-  return NextResponse.json({ overrides: listModelCapabilityOverrides() });
+  if (parsedKey.data === "context_length") {
+    const targetParts = target.split(/\/(.*)/s);
+    removeModelContextOverride(targetParts[0], targetParts[1]);
+  } else {
+    removeModelCapabilityOverride(target, parsedKey.data as ModelCapabilityOverrideKey);
+  }
+  return NextResponse.json({ overrides: listPublicOverrides() });
 }

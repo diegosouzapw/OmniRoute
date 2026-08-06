@@ -1,3 +1,9 @@
+---
+title: "Issue-Agent Executable Triage: Implementation Strategy"
+version: 3.8.50
+lastUpdated: 2026-08-06
+---
+
 # Issue-Agent Executable Triage: Implementation Strategy
 
 Machine status: `in_progress`

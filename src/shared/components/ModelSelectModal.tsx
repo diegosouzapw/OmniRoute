@@ -7,6 +7,8 @@ import {
   buildPassthroughAliasModels,
   buildNodeAliasModels,
   shouldConfirmSelectAll,
+  parseHiddenModelsByProvider,
+  isProviderModelHidden,
 } from "./modelSelectModalHelpers";
 import { getModelsByProviderId, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
@@ -110,6 +112,13 @@ export default function ModelSelectModal({
   const [combos, setCombos] = useState<any[]>([]);
   const [providerNodes, setProviderNodes] = useState<any[]>([]);
   const [customModels, setCustomModels] = useState<Record<string, any>>({});
+  // #9203: unified hidden-model map (customModels.isHidden +
+  // modelCompatOverrides.isHidden) from `/api/provider-models`, normalized so
+  // the picker hides every model source the operator flagged — not just custom
+  // rows that carry their own `isHidden` flag.
+  const [hiddenModelsByProvider, setHiddenModelsByProvider] = useState<Map<string, Set<string>>>(
+    new Map()
+  );
   // Models discovered live from a custom provider's upstream `/models` endpoint,
   // keyed by provider id. Merged into the alias/custom/fallback list below and
   // tagged with the `auto` source badge. Ported from upstream PR
@@ -162,6 +171,8 @@ export default function ModelSelectModal({
       if (!res.ok) throw new Error(`Failed to fetch custom models: ${res.status}`);
       const data = await res.json();
       setCustomModels(data.models || {});
+      // #9203: keep the unified hidden-model map in sync with the model list.
+      setHiddenModelsByProvider(parseHiddenModelsByProvider(data.hiddenModelsByProvider));
     } catch (error) {
       console.error("Error fetching custom models:", error);
       setCustomModels({});
@@ -180,7 +191,9 @@ export default function ModelSelectModal({
       const connection = activeProviders.find((p) => p.provider === providerId);
       if (!connection?.id) return null;
 
-      const res = await fetch(`/api/providers/${connection.id}/models`);
+      // #9203: ask the live route to drop hidden models server-side too, so the
+      // operator's visibility settings apply before the rows reach the picker.
+      const res = await fetch(`/api/providers/${connection.id}/models?excludeHidden=true`);
       if (!res.ok) {
         console.warn(`Failed to fetch models for ${providerId}: ${res.status}`);
         return null;
@@ -272,8 +285,13 @@ export default function ModelSelectModal({
       // Get user-added custom models for this provider (if any), excluding
       // any explicitly hidden by the operator (#7156 — the legacy picker
       // must respect the same isHidden flag the Precision Builder and
-      // /v1/models catalog already honor).
+      // /v1/models catalog already honor). #9203: the unified hidden map
+      // additionally covers catalog-override hidden rows and is applied to
+      // every source below, so a hidden passthrough alias / fallback /
+      // auto-fetched model is filtered exactly like a hidden custom row.
       const providerCustomModels = (customModels[providerId] || []).filter((cm) => !cm.isHidden);
+      const isHiddenForProvider = (modelId: string) =>
+        isProviderModelHidden(hiddenModelsByProvider, providerId, modelId);
 
       if (providerInfo.passthroughModels) {
         // Passthrough aliases are stored prefixed by the canonical providerId
@@ -283,11 +301,12 @@ export default function ModelSelectModal({
         const aliasModels = buildPassthroughAliasModels(
           modelAliases as Record<string, string>,
           providerId
-        );
+        ).filter((am) => !isHiddenForProvider(am.id));
 
         // Merge custom models for passthrough providers
         const customEntries = providerCustomModels
           .filter((cm) => !aliasModels.some((am) => am.id === cm.id))
+          .filter((cm) => !isHiddenForProvider(cm.id))
           .map((cm) => ({
             id: cm.id,
             name: cm.name || cm.id,
@@ -318,12 +337,13 @@ export default function ModelSelectModal({
           modelAliases as Record<string, string>,
           providerId,
           nodePrefix
-        );
+        ).filter((nm) => !isHiddenForProvider(nm.id));
 
         const fallbackEntries = (
           getCompatibleFallbackModels(providerId, providerCustomModels) || []
         )
           .filter((fm) => !nodeModels.some((nm) => nm.id === fm.id))
+          .filter((fm) => !isHiddenForProvider(fm.id))
           .map((fm) => ({
             id: fm.id,
             name: fm.name || fm.id,
@@ -339,6 +359,7 @@ export default function ModelSelectModal({
               !nodeModels.some((nm) => nm.id === cm.id) &&
               !fallbackEntries.some((fm) => fm.id === cm.id)
           )
+          .filter((cm) => !isHiddenForProvider(cm.id))
           .map((cm) => ({
             id: cm.id,
             name: cm.name || cm.id,
@@ -349,7 +370,10 @@ export default function ModelSelectModal({
 
         // Models discovered live from the provider's upstream `/models` endpoint.
         // Deduped against alias, fallback, and user-added custom models; tagged
-        // with the `auto` source so the badge reads "auto".
+        // with the `auto` source so the badge reads "auto". #9203: the server
+        // already filtered hidden rows via `excludeHidden=true`, but re-check the
+        // unified map here so a hidden model is dropped even on the local-catalog
+        // fallback path where the query param is not passed through.
         const fetchedEntries = (fetchedModels[providerId] || [])
           .map((m) => {
             const id = m.id || m.slug || m.model || m.name;
@@ -367,7 +391,8 @@ export default function ModelSelectModal({
               !nodeModels.some((nm) => nm.id === fm.id) &&
               !fallbackEntries.some((fbm) => fbm.id === fm.id) &&
               !customEntries.some((cm) => cm.id === fm.id)
-          );
+          )
+          .filter((fm) => !isHiddenForProvider(fm.id));
 
         const allModels = [...nodeModels, ...fallbackEntries, ...customEntries, ...fetchedEntries];
 
@@ -385,15 +410,18 @@ export default function ModelSelectModal({
         const systemModels = getModelsByProviderId(providerId);
 
         // Merge system models with user-added custom models
-        const systemEntries = systemModels.map((m) => ({
-          id: m.id,
-          name: m.name,
-          value: `${alias}/${m.id}`,
-          source: "system",
-        }));
+        const systemEntries = systemModels
+          .map((m) => ({
+            id: m.id,
+            name: m.name,
+            value: `${alias}/${m.id}`,
+            source: "system",
+          }))
+          .filter((sm) => !isHiddenForProvider(sm.id));
 
         const customEntries = providerCustomModels
           .filter((cm) => !systemModels.some((sm) => sm.id === cm.id))
+          .filter((cm) => !isHiddenForProvider(cm.id))
           .map((cm) => ({
             id: cm.id,
             name: cm.name || cm.id,
@@ -424,6 +452,7 @@ export default function ModelSelectModal({
     providerNodes,
     customModels,
     fetchedModels,
+    hiddenModelsByProvider,
   ]);
 
   // Filter combos by search query
@@ -526,11 +555,9 @@ export default function ModelSelectModal({
     if (
       shouldConfirmSelectAll(toAdd.length) &&
       !confirm(
-        labelOrFallback(
-          "selectAllConfirm",
-          `Add ${toAdd.length} models to this combo?`,
-          { count: toAdd.length }
-        )
+        labelOrFallback("selectAllConfirm", `Add ${toAdd.length} models to this combo?`, {
+          count: toAdd.length,
+        })
       )
     ) {
       return;

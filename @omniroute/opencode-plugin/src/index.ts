@@ -330,7 +330,10 @@ function trimLeadingDashes(value: string): string {
  * sees a consistent identifier.
  */
 export function resolveOmniRoutePluginOptions(opts?: OmniRoutePluginOptions): Required<
-  Pick<OmniRoutePluginOptions, "providerId" | "displayName" | "modelCacheTtl" | "autoSyncIntervalMs">
+  Pick<
+    OmniRoutePluginOptions,
+    "providerId" | "displayName" | "modelCacheTtl" | "autoSyncIntervalMs"
+  >
 > & {
   /**
    * #6859: the UNPREFIXED provider id ("omniroute", "omniroute-preprod", …).
@@ -621,7 +624,7 @@ export function createOmniRouteAuthHook(opts?: OmniRoutePluginOptions): AuthHook
  */
 export function invalidateOmniRouteFetchCache(
   cache: OmniRouteFetchCache,
-  baseURL?: string,
+  baseURL?: string
 ): number {
   if (!baseURL) {
     const n = cache.size;
@@ -645,7 +648,7 @@ export function invalidateOmniRouteFetchCache(
  */
 export async function resolveOmniRouteRuntimeAuth(
   resolved: ResolvedOmniRoutePluginOptions,
-  readAuthJson?: OmniRouteReadAuthJson,
+  readAuthJson?: OmniRouteReadAuthJson
 ): Promise<{ apiKey: string; baseURL: string; managementReadToken: string } | null> {
   const reader = readAuthJson ?? defaultReadAuthJson;
   let authJson: AuthJsonShape | undefined | null;
@@ -672,7 +675,7 @@ export async function resolveOmniRouteRuntimeAuth(
       e &&
       (e as { type?: unknown }).type === "api" &&
       typeof (e as { key?: unknown }).key === "string" &&
-      ((e as { key: string }).key).length > 0
+      (e as { key: string }).key.length > 0
     ) {
       entry = e as AuthJsonApiEntry;
       break;
@@ -737,7 +740,7 @@ export async function forceSyncOmniRouteModels(args: {
 
   const auth = await resolveOmniRouteRuntimeAuth(
     resolved,
-    args.readAuthJson ?? defaultReadAuthJson,
+    args.readAuthJson ?? defaultReadAuthJson
   );
   if (!auth) {
     return {
@@ -795,7 +798,7 @@ export async function forceSyncOmniRouteModels(args: {
         rawCompressionCombos = await compressionMetaFetcher(
           auth.baseURL,
           auth.managementReadToken,
-          10_000,
+          10_000
         );
       } catch {
         rawCompressionCombos = [];
@@ -820,10 +823,7 @@ export async function forceSyncOmniRouteModels(args: {
       rawConnections,
       expiresAt: t + resolved.modelCacheTtl,
     };
-    const cacheKey = modelsCacheKey(
-      auth.baseURL,
-      `${auth.apiKey}\0${auth.managementReadToken}`,
-    );
+    const cacheKey = modelsCacheKey(auth.baseURL, `${auth.apiKey}\0${auth.managementReadToken}`);
     cache.set(cacheKey, entry);
 
     if (wantDiskCache) {
@@ -831,7 +831,7 @@ export async function forceSyncOmniRouteModels(args: {
         const fingerprint = diskSnapshotIdentityFingerprint(
           auth.baseURL,
           auth.apiKey,
-          auth.managementReadToken,
+          auth.managementReadToken
         );
         const { expiresAt: _expiresAt, ...diskEntry } = entry;
         await defaultDiskSnapshotWriter(resolved.providerId, diskEntry, fingerprint);
@@ -843,7 +843,7 @@ export async function forceSyncOmniRouteModels(args: {
     console.warn(
       `[omniroute-plugin] force sync ok providerId=${resolved.providerId} ` +
         `models=${rawModels.length} combos=${rawCombos.length} ` +
-        `clearedMemory=${clearedMemory + clearedAll} disk=${clearedDisk}`,
+        `clearedMemory=${clearedMemory + clearedAll} disk=${clearedDisk}`
     );
 
     return {
@@ -944,7 +944,7 @@ export function startOmniRouteAutoSync(args: {
       const result = await forceSyncOmniRouteModels({ resolved, cache });
       if (!result.ok) {
         console.warn(
-          `[omniroute-plugin] auto-sync failed providerId=${resolved.providerId}: ${result.error}`,
+          `[omniroute-plugin] auto-sync failed providerId=${resolved.providerId}: ${result.error}`
         );
         return;
       }
@@ -955,7 +955,7 @@ export function startOmniRouteAutoSync(args: {
       if (result.count !== lastCount) {
         console.warn(
           `[omniroute-plugin] auto-sync catalog size changed ${lastCount} → ${result.count} ` +
-            `(providerId=${resolved.providerId})`,
+            `(providerId=${resolved.providerId})`
         );
         lastCount = result.count;
       }
@@ -976,7 +976,7 @@ export function startOmniRouteAutoSync(args: {
   }
 
   console.warn(
-    `[omniroute-plugin] auto-sync enabled intervalMs=${intervalMs} providerId=${resolved.providerId}`,
+    `[omniroute-plugin] auto-sync enabled intervalMs=${intervalMs} providerId=${resolved.providerId}`
   );
 
   return () => {
@@ -1032,7 +1032,13 @@ export const OmniRoutePlugin: Plugin = async (_input, options) => {
     const cfg = input as Config & {
       command?: Record<
         string,
-        { template: string; description?: string; agent?: string; model?: string; subtask?: boolean }
+        {
+          template: string;
+          description?: string;
+          agent?: string;
+          model?: string;
+          subtask?: boolean;
+        }
       >;
     };
     if (!cfg.command) cfg.command = {};
@@ -4271,7 +4277,7 @@ export function buildStaticProviderEntry(
     // has no corresponding provider block. So bare keys (no `/`) MUST be
     // prefixed with the resolved providerId. Already-prefixed keys
     // (e.g. `cc/claude-opus-4-7`) are left as-is to avoid double-prefixing.
-    models[raw.id.includes("/") ? raw.id : `${opts.providerId}/${raw.id}`] = entry;
+    models[raw.id] = entry;
   }
 
   // Combo entries → stripped LCD shape. Each combo is keyed as
@@ -4466,7 +4472,8 @@ export function buildStaticProviderEntry(
       // (`opencode-omniroute/opencode-omniroute/<slug>`), and `parseModel()`
       // resolves credentials for the nonexistent provider `opencode-omniroute`
       // instead of `omniroute`. See #7976.
-      models[buildComboKey(combo, usedComboKeys, opts.omnirouteProviderId)] = entry;
+      models[buildComboKey(combo, usedComboKeys, opts.omnirouteProviderId).split("/").pop()!] =
+        entry;
 
       // Make this combo's resolved entry available to parent combos
       // that reference it via combo-ref. Use the friendly name since

@@ -39,7 +39,7 @@ export const ENDPOINT_CATEGORIES: readonly EndpointCategory[] = [
   {
     id: "images",
     label: "Images",
-    description: "Image generation and editing",
+    description: "Image generation, editing and upscaling",
     prefixes: ["/v1/images"],
   },
   {

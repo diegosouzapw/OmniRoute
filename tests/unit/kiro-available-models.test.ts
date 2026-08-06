@@ -41,6 +41,82 @@ test("parseKiroModels reads CodeWhisperer ListAvailableModels shape", () => {
   assert.equal(models[0].owned_by, "kiro");
 });
 
+test("parseKiroModels preserves live prompt-caching capability metadata", () => {
+  const [model] = parseKiroModels({
+    models: [
+      {
+        modelId: "claude-sonnet-4.5",
+        modelName: "Claude Sonnet 4.5",
+        promptCaching: {
+          supportsPromptCaching: true,
+          minimumTokensPerCacheCheckpoint: 1024,
+          maximumCacheCheckpointsPerRequest: 4,
+        },
+      },
+    ],
+  });
+
+  assert.deepEqual(model.promptCaching, {
+    supportsPromptCaching: true,
+    minimumTokensPerCacheCheckpoint: 1024,
+    maximumCacheCheckpointsPerRequest: 4,
+  });
+});
+
+test("parseKiroModels keeps nonnumeric prompt-caching limits unknown", () => {
+  const [model] = parseKiroModels({
+    models: [
+      {
+        modelId: "claude-sonnet-4.5",
+        promptCaching: {
+          supportsPromptCaching: true,
+          minimumTokensPerCacheCheckpoint: null,
+          maximumCacheCheckpointsPerRequest: false,
+        },
+      },
+    ],
+  });
+
+  assert.deepEqual(model.promptCaching, {
+    supportsPromptCaching: true,
+    minimumTokensPerCacheCheckpoint: null,
+    maximumCacheCheckpointsPerRequest: null,
+  });
+});
+
+test("fetchKiroAvailableModels carries upstream prompt-caching metadata to model variants", async () => {
+  const fetchImpl = (async () =>
+    jsonResponse({
+      models: [
+        {
+          modelId: "claude-sonnet-4.5",
+          promptCaching: {
+            supportsPromptCaching: true,
+            minimumTokensPerCacheCheckpoint: 1024,
+            maximumCacheCheckpointsPerRequest: 4,
+          },
+        },
+      ],
+    })) as unknown as typeof fetch;
+
+  const result = await fetchKiroAvailableModels({
+    accessToken: "tok",
+    providerSpecificData: {},
+    fetchImpl,
+    fallbackModels: FALLBACK,
+  });
+
+  assert.ok(result.models.length >= 1);
+  for (const model of result.models) {
+    assert.equal(model.upstreamModelId, "claude-sonnet-4.5");
+    assert.deepEqual(model.promptCaching, {
+      supportsPromptCaching: true,
+      minimumTokensPerCacheCheckpoint: 1024,
+      maximumCacheCheckpointsPerRequest: 4,
+    });
+  }
+});
+
 test("resolveKiroRegion prefers stored region, then profileArn, else us-east-1", () => {
   assert.equal(resolveKiroRegion({ region: "eu-central-1" }), "eu-central-1");
   assert.equal(

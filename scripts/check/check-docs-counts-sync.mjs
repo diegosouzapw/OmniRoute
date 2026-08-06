@@ -259,7 +259,7 @@ export function buildChecks() {
       actual: readProviderTotal(),
       docKey: "providers",
       strict: true,
-      files: ["README.md", "CLAUDE.md"],
+      files: ["README.md", "AGENTS.md"],
     },
     {
       label: "i18n locales count",
@@ -317,9 +317,9 @@ export function buildChecks() {
             skipBefore: /(tools?|definitions?)\s*\(\s*$/i,
             skipAfter: /^\s*\(\d+ CLI/,
           },
-          ["README.md", "CLAUDE.md", "docs/frameworks/MCP-SERVER.md"]
+          ["README.md", "AGENTS.md", "docs/frameworks/MCP-SERVER.md"]
         ),
-        claim(f.mcpScopes, "MCP scopes", { pattern: /(\d+) scopes/gi }, ["README.md", "CLAUDE.md"]),
+        claim(f.mcpScopes, "MCP scopes", { pattern: /(\d+) scopes/gi }, ["README.md", "AGENTS.md"]),
         claim(f.cliTotal, "CLI tools", { pattern: /(\d+) tools(?=\s*\(\d+ CLI)/gi }, ["README.md"]),
       ];
     })(),

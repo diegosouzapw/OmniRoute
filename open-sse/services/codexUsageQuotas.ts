@@ -13,6 +13,7 @@ export type CodexUsageQuota = {
   remaining?: number;
   resetAt: string | null;
   unlimited: boolean;
+  windowSeconds: number | null;
   displayName?: string;
 };
 
@@ -36,6 +37,15 @@ function toNumber(value: unknown, fallback = 0): number {
     return Number.isFinite(parsed) ? parsed : fallback;
   }
   return fallback;
+}
+
+function toNullableNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
 }
 
 function parseResetTime(resetValue: unknown): string | null {
@@ -81,6 +91,15 @@ function buildPercentageQuota(window: JsonRecord, displayName?: string): CodexUs
     remaining: 100 - usedPercent,
     resetAt: parseWindowReset(window),
     unlimited: false,
+    windowSeconds: toNullableNumber(
+      getFieldValue(
+        window,
+        "limit_window_seconds",
+        "limitWindowSeconds",
+        "window_seconds",
+        "windowSeconds"
+      )
+    ),
     ...(displayName ? { displayName } : {}),
   };
 }
@@ -105,10 +124,7 @@ function isLatentWindow(window: JsonRecord): boolean {
     getFieldValue(window, "limit_window_seconds", "limitWindowSeconds"),
     0
   );
-  const resetAfter = toNumber(
-    getFieldValue(window, "reset_after_seconds", "resetAfterSeconds"),
-    0
-  );
+  const resetAfter = toNumber(getFieldValue(window, "reset_after_seconds", "resetAfterSeconds"), 0);
   return usedPercent === 0 && limitWindow > 0 && resetAfter >= limitWindow;
 }
 
@@ -225,7 +241,9 @@ function findCodexReviewRateLimit(data: JsonRecord): JsonRecord {
  * (issue #5199).
  */
 function parseBankedResetCredits(data: JsonRecord): number | undefined {
-  const resetCredits = toRecord(getFieldValue(data, "rate_limit_reset_credits", "rateLimitResetCredits"));
+  const resetCredits = toRecord(
+    getFieldValue(data, "rate_limit_reset_credits", "rateLimitResetCredits")
+  );
   const availableCount = getFieldValue(resetCredits, "available_count", "availableCount");
   const count = toNumber(availableCount, NaN);
   return Number.isFinite(count) ? count : undefined;

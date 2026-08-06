@@ -16,6 +16,7 @@ export interface ComboModelStep {
   allowedConnectionIds?: string[] | null;
   weight: number;
   label?: string;
+  prompt?: string | null;
   tags?: string[];
 }
 
@@ -237,6 +238,7 @@ export function normalizeComboStep(
   const explicitId = toTrimmedString(value.id);
   const weight = toWeight(value.weight);
   const label = toTrimmedString(value.label);
+  const prompt = toTrimmedString(value.prompt);
 
   if (value.kind === "combo-ref") {
     const comboRefName = toTrimmedString(value.comboName);
@@ -291,6 +293,7 @@ export function normalizeComboStep(
     ...(connectionId !== undefined ? { connectionId } : {}),
     weight,
     ...(label ? { label } : {}),
+    ...(prompt ? { prompt } : {}),
     ...(tags && tags.length > 0 ? { tags } : {}),
     ...(allowedConnectionIds && allowedConnectionIds.length > 0 ? { allowedConnectionIds } : {}),
   };

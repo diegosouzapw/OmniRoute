@@ -16,6 +16,16 @@ type ResolvedModelTarget = {
   model: string | null;
 };
 
+// Client context-window tags are routing hints, not part of provider model IDs.
+const CONTEXT_WINDOW_SUFFIX_RE = /\[(\d+)([kKmM])?\]\s*$/;
+
+export function stripContextWindowSuffix(
+  modelStr: string | null | undefined
+): string | null | undefined {
+  if (typeof modelStr !== "string" || !modelStr) return modelStr;
+  return modelStr.replace(CONTEXT_WINDOW_SUFFIX_RE, "").trimEnd();
+}
+
 // Derive alias→provider mapping from the single source of truth (PROVIDER_ID_TO_ALIAS)
 // This prevents the two maps from drifting out of sync
 const ALIAS_TO_PROVIDER_ID: Record<string, string> = {};
@@ -428,12 +438,12 @@ export function parseModel(modelStr: string | null | undefined): ParsedModel {
     };
   }
 
-  // Extract [1m] suffix before parsing provider/model
+  // Extract the legacy [1m] marker while stripping all client context tags.
   let extendedContext = false;
-  let cleanStr = modelStr;
-  if (cleanStr.endsWith("[1m]")) {
+  const cleanStripped = stripContextWindowSuffix(modelStr) as string;
+  let cleanStr = cleanStripped;
+  if (/\[1m\]\s*$/i.test(modelStr)) {
     extendedContext = true;
-    cleanStr = cleanStr.slice(0, -4);
   }
   cleanStr = cleanStr.trim();
 
@@ -557,20 +567,36 @@ function parseAliasTarget(target: string): ResolvedModelTarget | null {
 }
 
 async function resolveModelByProviderInference(modelId: string, extendedContext: boolean) {
-  if (CODEX_NATIVE_UNPREFIXED_MODELS.has(modelId)) {
-    return {
-      provider: "codex",
-      model: modelId,
-      extendedContext,
-    };
-  }
-
   const [activeProviders, activeSyncedProviders, preferClaudeCodeForUnprefixedClaudeModels] =
     await Promise.all([
       getActiveProviderSet(),
       getActiveSyncedProvidersForModel(modelId),
       getPreferClaudeCodeForUnprefixedClaudeModels(),
     ]);
+
+  // Codex-native bare ids prefer the ChatGPT subscription, but the preference is only
+  // allowed to PREEMPT another provider when a codex connection is actually active.
+  // Returning "codex" unconditionally (as this did once the set grew past
+  // `codex-auto-review` to cover gpt-5.5 / the gpt-5.6-sol tiers) hands ids that OpenAI
+  // also serves to a provider the operator may not have configured: an OpenAI-only
+  // install fails with "no active credentials for provider: codex" on a model that
+  // works, and an install whose codex connection is merely *inactive* fails the same way.
+  // Ids only codex catalogs (e.g. `codex-auto-review`) keep resolving to codex with no
+  // connection at all — there is no alternative to preempt, and "no codex credentials"
+  // is the honest error. With codex active the preference still beats OpenAI, and an
+  // explicit `openai/…` prefix remains the per-request override either way.
+  if (CODEX_NATIVE_UNPREFIXED_MODELS.has(modelId)) {
+    const codexNativeAlternatives = (MODEL_TO_PROVIDERS.get(modelId) || []).filter(
+      (p) => p !== "codex"
+    );
+    if (codexNativeAlternatives.length === 0 || activeProviders?.has("codex")) {
+      return {
+        provider: "codex",
+        model: modelId,
+        extendedContext,
+      };
+    }
+  }
   // #FIX: synced catalogs (populated from `/v1/models` per connection) can
   // claim ownership of models the provider does not actually serve (e.g. a
   // `kiro` upstream briefly advertising `claude-opus-5` before it was
@@ -649,7 +675,9 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
 
   // Canonicalize candidates (deduplicate alias providers pointing to the same provider ID)
   const canonicalCandidates = Array.from(
-    new Set(candidatesToUse.map((p) => resolveProviderAlias(p)).filter((p): p is string => p !== null))
+    new Set(
+      candidatesToUse.map((p) => resolveProviderAlias(p)).filter((p): p is string => p !== null)
+    )
   );
 
   // Filter candidates by active connections configured in the database

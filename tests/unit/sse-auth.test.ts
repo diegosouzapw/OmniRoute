@@ -1096,6 +1096,16 @@ test("getProviderCredentials resolves the nvidia special alias pool", async () =
   assert.equal(selected.connectionId, connection.id);
 });
 
+test("getProviderCredentials resolves the antigravity / agy alias pool", async () => {
+  const connection = await seedConnection("agy", {
+    name: "antigravity-alias-connection",
+  });
+
+  const selected = await auth.getProviderCredentials("antigravity");
+
+  assert.equal(selected.connectionId, connection.id);
+});
+
 test("getProviderCredentials exposes copilotToken when present in providerSpecificData", async () => {
   const connection = await seedConnection("codex", {
     authType: "oauth",

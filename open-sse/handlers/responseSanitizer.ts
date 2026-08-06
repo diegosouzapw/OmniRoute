@@ -42,7 +42,16 @@ const ALLOWED_RESPONSES_USAGE_FIELDS = new Set([
   "input_tokens_details",
   "output_tokens_details",
   "estimated",
+  "cost_in_usd_ticks",
+  "server_side_tool_usage_details",
+  "server_side_tool_usage",
 ]);
+
+const RESPONSES_EXTRA_TOP_LEVEL_FIELDS = [
+  "server_side_tool_usage_details",
+  "server_side_tool_usage",
+  "cost_in_usd_ticks",
+] as const;
 
 type JsonRecord = Record<string, unknown>;
 type ParseOptions = { parseTextualReasoningTags?: boolean };
@@ -353,6 +362,10 @@ export function sanitizeResponsesApiResponse(body: unknown): unknown {
 
   if (responseRoot.usage !== undefined) {
     sanitized.usage = sanitizeResponsesUsage(responseRoot.usage);
+  }
+
+  for (const key of RESPONSES_EXTRA_TOP_LEVEL_FIELDS) {
+    if (responseRoot[key] !== undefined) sanitized[key] = responseRoot[key];
   }
 
   return sanitized;

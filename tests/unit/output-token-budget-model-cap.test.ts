@@ -118,3 +118,73 @@ test("a sub-token cap is treated as absent, never as a cap of zero", () => {
   assert.equal(result.body.max_tokens, 8_000, "sub-token cap must leave the request untouched");
   assert.deepEqual(result.adjustedFields, []);
 });
+
+test("rejects when estimated input exceeds the model input cap, even with output room", () => {
+  // Input cap is input-only and independent of the (larger) total window.
+  const result = enforceOutputTokenBudget(
+    { max_tokens: 1_000 },
+    354_000,
+    372_000,
+    0,
+    null,
+    353_400
+  );
+
+  assert.equal(result.ok, false);
+  if (result.ok) return;
+  assert.equal(result.estimatedInputTokens, 354_000);
+  assert.equal(result.maxInputTokens, 353_400);
+});
+
+test("accepts input at the model input cap without double-counting requested output", () => {
+  // estimatedInput == input cap; a large requested output must not be re-counted
+  // against the input-only cap (only the total window bounds input + output).
+  const result = enforceOutputTokenBudget(
+    { max_tokens: 128_000 },
+    353_400,
+    372_000,
+    0,
+    null,
+    353_400
+  );
+
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  // Output clamped to remaining window room (372000 - 353400 = 18600).
+  assert.equal(result.body.max_tokens, 18_600);
+});
+
+test("input cap is fail-open when absent, null, or non-positive", () => {
+  const base = enforceOutputTokenBudget({ max_tokens: 1_000 }, 100_000, 200_000, 0, null);
+  const undefinedCap = enforceOutputTokenBudget(
+    { max_tokens: 1_000 },
+    100_000,
+    200_000,
+    0,
+    null,
+    undefined
+  );
+  const nullCap = enforceOutputTokenBudget({ max_tokens: 1_000 }, 100_000, 200_000, 0, null, null);
+  const zeroCap = enforceOutputTokenBudget({ max_tokens: 1_000 }, 100_000, 200_000, 0, null, 0);
+
+  assert.deepEqual(undefinedCap, base);
+  assert.deepEqual(nullCap, base);
+  assert.deepEqual(zeroCap, base);
+  assert.equal(base.ok, true);
+});
+
+test("the total window still rejects when input fits the input cap but no output room remains", () => {
+  // Input (150k) fits a 353k input cap but leaves no room in the 128k window.
+  const result = enforceOutputTokenBudget(
+    { max_tokens: 1_000 },
+    150_000,
+    128_000,
+    0,
+    null,
+    353_400
+  );
+
+  assert.equal(result.ok, false);
+  if (result.ok) return;
+  assert.equal(result.maxInputTokens, undefined, "window rejection, not input-cap rejection");
+});

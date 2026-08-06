@@ -40,19 +40,19 @@ Common problems and solutions for OmniRoute.
 
 ## Quick Fixes
 
-| Problem                                             | Solution                                                                                                                                                 |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| First login not working                             | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)                                                                                                  |
-| Dashboard opens on wrong port                       | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                       |
-| No logs written to disk                             | Set `APP_LOG_TO_FILE=true` and verify call log capture is enabled                                                                                        |
-| EACCES: permission denied                           | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`                                                                                          |
-| Routing strategy not saving                         | Update to the latest v3.x release (Zod schema fix for settings persistence shipped in earlier versions)                                                  |
-| Login crash / blank page                            | Check Node.js version — see [Node.js Compatibility](#nodejs-compatibility) below                                                                         |
-| `dlopen` / `slice is not valid mach-o file` (macOS) | Run `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — see [macOS native module rebuild](#macos-native-module-rebuild) below |
-| Proxy "fetch failed"                                | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below                                                                |
+| Problem                                                    | Solution                                                                                                                                                  |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| First login not working                                    | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)                                                                                                   |
+| Dashboard opens on wrong port                              | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                        |
+| No logs written to disk                                    | Set `APP_LOG_TO_FILE=true` and verify call log capture is enabled                                                                                         |
+| EACCES: permission denied                                  | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`                                                                                           |
+| Routing strategy not saving                                | Update to the latest v3.x release (Zod schema fix for settings persistence shipped in earlier versions)                                                   |
+| Login crash / blank page                                   | Check Node.js version — see [Node.js Compatibility](#nodejs-compatibility) below                                                                          |
+| `dlopen` / `slice is not valid mach-o file` (macOS)        | Run `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — see [macOS native module rebuild](#macos-native-module-rebuild) below  |
+| Proxy "fetch failed"                                       | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below                                                                 |
 | Docker `curl: (56) Recv failure: Connection reset by peer` | Your Docker port bind may be landing on IPv6. Use `-p 127.0.0.1:20128:20128` to force IPv4, or test with `curl -4`. See [Docker IPv6](#docker-ipv6) below |
-| Antivirus quarantines `README.md`                   | False positive — see [Antivirus false positives](#antivirus-false-positives) below                                                                       |
-| Kaspersky flags the Desktop app as a Trojan         | Behavioral false positive on the unsigned installer — see [Antivirus false positives](#antivirus-false-positives) below                                  |
+| Antivirus quarantines `README.md`                          | False positive — see [Antivirus false positives](#antivirus-false-positives) below                                                                        |
+| Kaspersky flags the Desktop app as a Trojan                | Behavioral false positive on the unsigned installer — see [Antivirus false positives](#antivirus-false-positives) below                                   |
 
 ---
 
@@ -95,7 +95,7 @@ dodge one vendor's heuristic would hurt every reader to satisfy a scanner bug.
 
 **This is a false positive from a behavioral heuristic. Nothing is infected.** Kaspersky's
 `PDM:` prefix means the verdict comes from its Proactive Defense Module (System Watcher),
-which judges what the installer *does* rather than matching it against known malware. When
+which judges what the installer _does_ rather than matching it against known malware. When
 it fires, Kaspersky "rolls back" the whole installation — deleting files it had already
 written — so the app ends up broken or missing.
 
@@ -162,6 +162,36 @@ until it lands, new releases can repeat this.
 4. Restart: `omniroute`
 
 > **Supported secure versions:** `>=22.22.2 <23` or `>=24.0.0 <27`. Node.js 24.x LTS (Krypton) and Node.js 26 are fully supported.
+
+### npm v11+: `better-sqlite3` not installed (Cannot find module)
+
+<a name="npm-v11-better-sqlite3-not-installed-cannot-find-module"></a>
+
+**Cause:** npm v11 (shipped with Node.js 24+) blocks install scripts for optional
+dependencies by default. Since `better-sqlite3` is listed in `optionalDependencies`
+and requires native compilation (`node-gyp rebuild`), npm silently skips it.
+
+**Symptoms:**
+
+- Server crashes on startup with `Cannot find module 'better-sqlite3'`
+- `ls node_modules/better-sqlite3` shows "No such file or directory"
+- `npm ls better-sqlite3` shows `(empty)`
+
+**Fix:**
+
+1. Approve the install scripts and reinstall:
+   ```bash
+   npm approve-scripts better-sqlite3
+   npm install
+   ```
+2. Or install the prebuilt manually:
+   ```bash
+   npm pack better-sqlite3@13.0.1
+   tar -xzf better-sqlite3-*.tgz -C node_modules
+   mv node_modules/package node_modules/better-sqlite3
+   rm better-sqlite3-*.tgz
+   ```
+3. Verify it works: `node -e "require('better-sqlite3')(':memory:').close(); console.log('OK')"`
 
 ### macOS: `dlopen` / "slice is not valid mach-o file"
 
@@ -306,6 +336,7 @@ see [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 **Cause:** `docker run -p 20128:20128` publishes on both `0.0.0.0` (IPv4) and `::` (IPv6), but the process inside the container listens on IPv4 only. On hosts where `localhost` resolves to `::1` first, the connection lands on the IPv6 published port with no listener behind it → connection reset.
 
 **Fix:**
+
 1. **Quick diagnostic:** Run `curl -4 http://localhost:20128/v1/models`. If it works with `-4` but fails without, you have an IPv6 bind mismatch.
 2. **Permanent fix:** Bind to IPv4 explicitly by using `-p 127.0.0.1:20128:20128` in your `docker run` command:
    ```bash

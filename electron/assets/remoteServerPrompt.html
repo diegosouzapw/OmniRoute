@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'self'"
+    />
+    <title>Connect to Remote Server</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        font-family:
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        background: #1a1a1a;
+        color: #e5e5e5;
+        user-select: none;
+      }
+      p {
+        margin: 0 0 12px;
+        font-size: 13px;
+        color: #a3a3a3;
+      }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 10px;
+        font-size: 13px;
+        border-radius: 6px;
+        border: 1px solid #3f3f3f;
+        background: #262626;
+        color: #e5e5e5;
+      }
+      .error {
+        color: #f87171;
+        font-size: 12px;
+        min-height: 16px;
+        margin-top: 6px;
+      }
+      .actions {
+        margin-top: 16px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+      button {
+        padding: 7px 14px;
+        font-size: 13px;
+        border-radius: 6px;
+        border: 1px solid #3f3f3f;
+        background: #262626;
+        color: #e5e5e5;
+        cursor: pointer;
+      }
+      button.primary {
+        background: #ff586b;
+        border-color: #ff586b;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <p>
+      Point this desktop app at an already-running OmniRoute server (e.g. a Docker/OrbStack
+      container) instead of spawning a local one. Leave blank and Save to disconnect.
+    </p>
+    <input
+      id="url-input"
+      type="text"
+      placeholder="http://localhost:20128"
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <div class="error" id="error"></div>
+    <div class="actions">
+      <button id="cancel-btn">Cancel</button>
+      <button id="save-btn" class="primary">Save</button>
+    </div>
+
+    <script src="../remoteServerPromptRenderer.js"></script>
+  </body>
+</html>

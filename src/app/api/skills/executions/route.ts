@@ -4,6 +4,7 @@ import { parsePaginationParams, buildPaginatedResponse } from "@/shared/types/pa
 import { z } from "zod";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 export async function GET(request: Request) {
   if (!(await isAuthenticated(request))) {
@@ -21,7 +22,7 @@ export async function GET(request: Request) {
     );
     return NextResponse.json(buildPaginatedResponse(executions, total, params));
   } catch (err: unknown) {
-    const error = err instanceof Error ? err.message : String(err);
+    const error = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
     return NextResponse.json({ error }, { status: 500 });
   }
 }
@@ -51,7 +52,7 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ execution });
   } catch (err: unknown) {
-    const error = err instanceof Error ? err.message : String(err);
+    const error = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
     if (error.includes("disabled")) {
       return NextResponse.json({ error }, { status: 503 });
     }

@@ -63,6 +63,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "costs-free-tiers",
   "costs-quota-share",
   "free-provider-rankings",
+  "radar",
   // Monitoring > Audit
   "audit",
   "audit-mcp",

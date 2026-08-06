@@ -6,6 +6,7 @@ import {
 import { normalizeOpenAICompatibleFinishReasonString } from "../utils/finishReason.ts";
 import { containsTextualToolCallMarker } from "../utils/textualToolCall.ts";
 import { getAnyReasoningValue } from "../utils/reasoningFields.ts";
+import { restoreOpenAIToolNames } from "../translator/helpers/toolCallHelper.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -137,10 +138,17 @@ export function translateNonStreamingResponse(
 ): unknown {
   // If already in source format, return as-is
   if (targetFormat === sourceFormat) {
+    if (targetFormat === FORMATS.OPENAI) {
+      restoreOpenAIToolNames(responseBody, toolNameMap);
+    }
     return responseBody;
   }
 
   let intermediateOpenAI = responseBody;
+
+  if (targetFormat === FORMATS.OPENAI) {
+    restoreOpenAIToolNames(intermediateOpenAI, toolNameMap);
+  }
 
   // Handle OpenAI Responses API format
   if (targetFormat === FORMATS.OPENAI_RESPONSES) {
@@ -166,14 +174,18 @@ export function translateNonStreamingResponse(
           if (!part || typeof part !== "object") continue;
           const partObj = toRecord(part);
           if (partObj.type === "summary_text" && typeof partObj.text === "string") {
-            reasoningContent += partObj.text;
+            // #9500 — reasoning summary parts are discrete segments; join with "\n\n"
+            // (matches extractThinkingFromContent convention) so they don't glue back-to-back.
+            reasoningContent += reasoningContent ? `\n\n${partObj.text}` : partObj.text;
           }
         }
       } else if (itemObj.type === "reasoning" && Array.isArray(itemObj.summary)) {
         for (const part of itemObj.summary) {
           const partObj = toRecord(part);
           if (partObj.type === "summary_text" && typeof partObj.text === "string") {
-            reasoningContent += partObj.text;
+            // #9500 — reasoning summary parts are discrete segments; join with "\n\n"
+            // (matches extractThinkingFromContent convention) so they don't glue back-to-back.
+            reasoningContent += reasoningContent ? `\n\n${partObj.text}` : partObj.text;
           }
         }
       } else if (itemObj.type === "function_call") {
@@ -328,7 +340,9 @@ export function translateNonStreamingResponse(
                 for (const part of content.parts) {
                   const partObj = toRecord(part);
                   if (partObj.thought === true && typeof partObj.text === "string") {
-                    reasoningContent += partObj.text;
+                    // #9500 — Gemini thinking parts are discrete segments; join with "\n\n"
+                    // (matches extractThinkingFromContent convention) so they don't glue back-to-back.
+                    reasoningContent += reasoningContent ? `\n\n${partObj.text}` : partObj.text;
                     continue;
                   }
 
@@ -547,11 +561,20 @@ export function translateNonStreamingResponse(
         const cacheCreationTokens = toNumber(usage.cache_creation_input_tokens, 0);
         const promptTokens = toNumber(usage.input_tokens, 0) + cachedTokens;
         const completionTokens = toNumber(usage.output_tokens, 0);
+        const reasoningTokens = firstPositiveNumber(
+          toRecord(usage.output_tokens_details).thinking_tokens,
+          toRecord(usage.completion_tokens_details).reasoning_tokens,
+          usage.reasoning_tokens
+        );
         const usageOut: JsonRecord = {
           prompt_tokens: promptTokens,
           completion_tokens: completionTokens,
           total_tokens: promptTokens + completionTokens,
         };
+        if (reasoningTokens > 0) {
+          usageOut.reasoning_tokens = reasoningTokens;
+          usageOut.completion_tokens_details = { reasoning_tokens: reasoningTokens };
+        }
         if (cachedTokens > 0 || cacheCreationTokens > 0) {
           const details: JsonRecord = {};
           if (cachedTokens > 0) details.cached_tokens = cachedTokens;

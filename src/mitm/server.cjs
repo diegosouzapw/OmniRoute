@@ -341,12 +341,40 @@ function collectBodyRaw(req) {
   });
 }
 
-function extractModel(body) {
+/**
+ * Extract the source model name from request body or URL.
+ *
+ * For Antigravity (Gemini format):
+ *   - Body may have top-level `model` field: { model: "gemini-2.0-flash", request: {...} }
+ *   - URL may encode model: /v1beta/models/gemini-2.0-flash:generateContent
+ *
+ * For other agents (OpenAI format):
+ *   - Body has `model` field: { model: "gpt-4", messages: [...] }
+ *
+ * @param {Buffer} body - Request body buffer
+ * @param {string} url - Request URL path
+ * @returns {string|null} Extracted model name or null
+ */
+function extractModel(body, url) {
+  // Try to extract from body first
   try {
-    return JSON.parse(body.toString()).model || null;
+    const parsed = JSON.parse(body.toString());
+    if (parsed && typeof parsed.model === "string" && parsed.model) {
+      return parsed.model;
+    }
   } catch {
-    return null;
+    // Invalid JSON or no model field
   }
+
+  // Try to extract from URL path (Gemini format: /v1beta/models/<model>:generateContent)
+  if (url && typeof url === "string") {
+    const match = url.match(/\/models\/([^/:]+)(?::|\/)/);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -604,7 +632,7 @@ async function startMitmServer() {
     const host = String(req.headers.host || "")
       .split(":")[0]
       .toLowerCase();
-    const model = bodyBuffer.length > 0 ? extractModel(bodyBuffer) : null;
+    const model = bodyBuffer.length > 0 ? extractModel(bodyBuffer, req.url) : null;
 
     vlog(
       1,
@@ -631,6 +659,30 @@ async function startMitmServer() {
       vlog(1, `[MITM] → PASSTHROUGH (URL ${req.url} does not match chat patterns)`);
       return passthrough(req, res, bodyBuffer);
     }
+
+    // FIX #8656: Capture ALL agent traffic (even passthrough) so Traffic Inspector
+    // and model auto-detection work WITHOUT requiring mappings first.
+    // This fixes the circular dependency: need mappings to see traffic, but need
+    // to see traffic to create mappings.
+    //
+    // Capture happens BEFORE checking for mappings, so requests appear in Traffic
+    // Inspector even when no mappings exist yet. Status is set to "in-flight"
+    // initially; will be updated to the actual status code if intercepted.
+    const startedAt = Date.now();
+    captureToInspector({
+      req,
+      bodyBuffer,
+      agentId,
+      sourceModel: model,
+      mappedModel: model, // Will be overridden if intercepted
+      status: "in-flight", // Valid schema value (not "passthrough")
+      respHeaders: {},
+      respBody: null,
+      respSize: 0,
+      error: null,
+      proxyLatencyMs: 0,
+      upstreamLatencyMs: 0,
+    });
 
     const mappedOverride = getMappedOverride(model, agentId);
 

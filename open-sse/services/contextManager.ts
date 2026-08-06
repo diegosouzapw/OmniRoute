@@ -254,7 +254,7 @@ function extractImageTokens(node: unknown, seen: Set<unknown>): { node: unknown;
  * budget instead of measuring its base64 payload as raw text, then the
  * remainder of the structure is measured normally via the char/4 heuristic.
  */
-export function estimateTokens(text: string | object | null | undefined): number {
+export function estimateTokens(text: unknown): number {
   if (!text) return 0;
   if (typeof text === "string") {
     return Math.ceil(text.length / CHARS_PER_TOKEN);

@@ -22,11 +22,13 @@ set -euo pipefail
 
 VERSION="${1:?version required}"
 
-# A pre-release VERSION must never grab :latest (callers already short-circuit
-# this, but stay safe as a standalone unit).
-case "$VERSION" in
-  *-*) echo "false"; exit 0 ;;
-esac
+# Only a stable x.y.z release may ever grab :latest. Floating channels such as
+# `main` and `next`, plus every pre-release identifier, fail closed here even if
+# a caller forgets to short-circuit them first.
+if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+  echo "false"
+  exit 0
+fi
 
 # Build the stable candidate set: incoming tags (v-stripped, pre-releases
 # dropped) plus VERSION itself, then pick the numerically highest.

@@ -102,7 +102,7 @@ async function fetchWithTimeout(
 function waitForDuration(ms: number, signal?: AbortSignal): Promise<void> {
   throwIfAborted(signal);
   let abort: (() => void) | undefined;
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     const timeout = setTimeout(resolve, ms);
     abort = () => {
       clearTimeout(timeout);

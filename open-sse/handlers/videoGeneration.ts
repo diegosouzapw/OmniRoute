@@ -655,11 +655,11 @@ async function handleRunwayVideoGeneration({
   );
   const headers = buildRunwayHeaders(token);
 
-  const upstreamBody = {
+  // prettier-ignore
+  const upstreamBody: { model: typeof model; promptText: typeof body.prompt; ratio: typeof ratio; duration: typeof duration; promptImage?: typeof promptImage; seed?: number } = {
     model,
     promptText: body.prompt,
-    ratio,
-    duration,
+    ratio, duration,
   };
 
   if (useImageToVideo) upstreamBody.promptImage = promptImage;

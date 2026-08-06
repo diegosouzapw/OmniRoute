@@ -1,0 +1,57 @@
+name: Build App
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Fast Production Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Expand Virtual Memory (Native 10GB Swap)
+        run: |
+          sudo swapoff -a || true
+          sudo rm -f /mnt/swapfile /swapfile
+          sudo fallocate -l 10G /mnt/swapfile || sudo dd if=/dev/zero of=/mnt/swapfile bs=1M count=10240
+          sudo chmod 600 /mnt/swapfile
+          sudo mkswap /mnt/swapfile
+          sudo swapon /mnt/swapfile
+          free -h
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js app & CLI bundle
+        run: |
+          npm run build:release
+        env:
+          NODE_OPTIONS: "--max-old-space-size=12288"
+          OMNIROUTE_BUILD_MEMORY_MB: "12288"
+          OMNIROUTE_USE_TURBOPACK: "1"
+
+      - name: Archive build outputs
+        run: |
+          tar -czf omniroute-build.tar.gz .build dist
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: omniroute-build
+          path: omniroute-build.tar.gz
+          retention-days: 7

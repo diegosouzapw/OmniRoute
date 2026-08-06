@@ -4,6 +4,7 @@ import { v1BatchCreateSchema } from "@/shared/validation/schemas";
 import { NextResponse } from "next/server";
 import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
 import { formatBatchResponse } from "./formatBatchResponse";
+import { parseBatchListLimit } from "./parseListLimit";
 
 export async function OPTIONS() {
   return handleCorsOptions();
@@ -69,7 +70,14 @@ export async function GET(request: Request) {
   const apiKeyId = scope.apiKeyId;
 
   const url = new URL(request.url);
-  const limit = Number.parseInt(url.searchParams.get("limit") || "20");
+  const parsedLimit = parseBatchListLimit(url.searchParams.get("limit"));
+  if (!parsedLimit.ok) {
+    return NextResponse.json(
+      { error: { message: parsedLimit.message, type: "invalid_request_error" } },
+      { status: 400, headers: CORS_HEADERS }
+    );
+  }
+  const limit = parsedLimit.limit;
   const after = url.searchParams.get("after") || undefined;
 
   const batches = listBatches(apiKeyId || undefined, limit + 1, after);

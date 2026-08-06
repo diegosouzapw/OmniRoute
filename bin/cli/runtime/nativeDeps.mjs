@@ -94,10 +94,12 @@ export function isBetterSqliteBinaryValid() {
     const magic = buf.toString("hex");
     const os = platform();
     let formatOk;
-    if (os === "linux") formatOk = magic.startsWith("7f454c46"); // ELF
+    if (os === "linux")
+      formatOk = magic.startsWith("7f454c46"); // ELF
     else if (os === "darwin")
       formatOk = magic.startsWith("cffaedfe") || magic.startsWith("cefaedfe"); // Mach-O
-    else if (os === "win32") formatOk = magic.startsWith("4d5a"); // PE/MZ
+    else if (os === "win32")
+      formatOk = magic.startsWith("4d5a"); // PE/MZ
     else formatOk = true;
     if (!formatOk) return false;
     // File-format magic bytes alone do not guarantee the binary was built for the Node ABI
@@ -152,9 +154,18 @@ export function ensureBetterSqliteRuntime({ silent = false, force = false } = {}
     if (!silent) process.stdout.write("[omniroute][runtime] better-sqlite3 OK\n");
     return { betterSqlite: true };
   }
+  if (!silent) {
+    process.stdout.write(
+      `[omniroute][runtime] Installing better-sqlite3@${BETTER_SQLITE3_VERSION} into runtime...\n`
+    );
+  }
   const ok = npmInstallRuntime([`better-sqlite3@${BETTER_SQLITE3_VERSION}`], { silent });
   if (!ok && !silent) {
-    process.stderr.write("[omniroute][runtime] better-sqlite3 install failed\n");
+    process.stderr.write(
+      "[omniroute][runtime] better-sqlite3 install failed.\n" +
+        "  This usually means npm install scripts are blocked.\n" +
+        "  Try: npm install-scripts approve better-sqlite3\n"
+    );
   }
   return { betterSqlite: ok && hasModule("better-sqlite3") && isBetterSqliteBinaryValid() };
 }

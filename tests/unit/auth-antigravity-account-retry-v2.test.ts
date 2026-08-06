@@ -120,7 +120,7 @@ test("round-robin same-model retry treats multi-exclude as fallback LRU and skip
   assert.equal(selected.connectionId, staleId);
 });
 
-test("Antigravity inferred Gemini family cooldown starts around 30s when no upstream hint exists", async () => {
+test("Antigravity 429 rate-limited locks only the exact model so siblings stay eligible", async () => {
   await resetStorage();
 
   const conn = await providersDb.createProviderConnection({
@@ -131,34 +131,52 @@ test("Antigravity inferred Gemini family cooldown starts around 30s when no upst
     isActive: true,
     testStatus: "active",
   });
+  const connId = connectionId(conn);
 
-  const before = Date.now();
   const result = await auth.markAccountUnavailable(
-    connectionId(conn),
+    connId,
     429,
     "RESOURCE_EXHAUSTED: Resource has been exhausted (queries per minute limit was reached)",
     "antigravity",
     "gemini-3-pro"
   );
-  const elapsedAllowanceMs = Date.now() - before;
 
+  // The exact-only lock replaces the previous family inference: only the
+  // exhausted model is cooled down (short bounded cooldown), and sibling
+  // models on the same connection stay eligible. See PR #8630.
   assert.equal(result.shouldFallback, true);
   assert.ok(
-    result.cooldownMs >= 30_000 - elapsedAllowanceMs - 500,
-    `expected inferred cooldown near 30s+, got ${result.cooldownMs}`
-  );
-  assert.ok(
-    result.cooldownMs <= 65_000,
-    `expected bounded initial cooldown, got ${result.cooldownMs}`
+    result.cooldownMs > 0 && result.cooldownMs <= 60_000,
+    `expected bounded cooldown, got ${result.cooldownMs}`
   );
 
-  const otherGemini = await auth.getProviderCredentials(
+  // The exhausted model itself is locked: getProviderCredentials reports
+  // model-scope cooldown for that exact model on the only connection.
+  const sameModel = await auth.getProviderCredentials(
+    "antigravity",
+    null,
+    null,
+    "gemini-3-pro"
+  );
+  assert.ok(sameModel);
+  assert.ok("allRateLimited" in sameModel && sameModel.allRateLimited);
+  assert.equal(sameModel.cooldownScope, "model");
+  assert.equal(sameModel.cooldownModel, "gemini-3-pro");
+
+  // Sibling model on the SAME connection stays eligible — the whole point
+  // of the exact-model lock: a Claude/Gemini 429 must not disable unrelated
+  // models on the same account.
+  const siblingModel = await auth.getProviderCredentials(
     "antigravity",
     null,
     null,
     "gemini-2.5-pro"
   );
-  assert.ok(otherGemini && "allRateLimited" in otherGemini && otherGemini.allRateLimited);
-  assert.equal(otherGemini.cooldownScope, "model");
-  assert.equal(otherGemini.lastErrorCode, 429);
+  assert.ok(siblingModel && !("allRateLimited" in siblingModel && siblingModel.allRateLimited));
+  assert.equal(siblingModel.connectionId, connId);
+
+  // The exact lock clears when a successful request for the same model comes
+  // back through. clearModelLock is the existing success-path hook.
+  const { clearModelLock } = await import("../../open-sse/services/accountFallback.ts");
+  assert.equal(clearModelLock("antigravity", connId, "gemini-3-pro"), true);
 });

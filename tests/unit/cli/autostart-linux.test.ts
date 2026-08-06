@@ -1,21 +1,52 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readFileSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, readFileSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
 let tmpDir: string;
 let origHome: string | undefined;
+let origPath: string | undefined;
+
+/**
+ * Redirecting HOME is NOT enough to isolate this test.
+ *
+ * `disableLinux()` runs `systemctl --user disable --now omniroute.service` and
+ * `enableLinux()` runs `systemctl --user enable` + `start`. `systemctl --user`
+ * talks to the caller's systemd bus via XDG_RUNTIME_DIR and does not care about
+ * HOME, so on any Linux developer machine that actually runs omniroute as a user
+ * service these tests stopped and disabled the REAL service — repeatedly, since
+ * the pair enable()/disable() ping-pongs it. Symptom: an ordered `Stopped` that
+ * `Restart=always` will not recover from, plus a silently `disabled` unit.
+ *
+ * Fix: shadow `systemctl` and `loginctl` with stubs that always fail, so
+ * `isSystemdUserAvailable()` returns false and the whole systemd branch is
+ * skipped. The XDG desktop-file branch still runs and IS isolated by HOME, so
+ * the test keeps its coverage.
+ */
+function installSystemctlStubs(binDir: string): void {
+  mkdirSync(binDir, { recursive: true });
+  for (const name of ["systemctl", "loginctl"]) {
+    const stub = join(binDir, name);
+    writeFileSync(stub, "#!/bin/sh\nexit 1\n", { mode: 0o755 });
+  }
+}
 
 test.before(() => {
   tmpDir = mkdtempSync(join(tmpdir(), "omniroute-autostart-linux-"));
   origHome = process.env.HOME;
   process.env.HOME = tmpDir;
+  origPath = process.env.PATH;
+  const stubBin = join(tmpDir, "stub-bin");
+  installSystemctlStubs(stubBin);
+  process.env.PATH = `${stubBin}:${origPath ?? ""}`;
 });
 
 test.after(() => {
   if (origHome === undefined) delete process.env.HOME;
   else process.env.HOME = origHome;
+  if (origPath === undefined) delete process.env.PATH;
+  else process.env.PATH = origPath;
   try {
     rmSync(tmpDir, { recursive: true, force: true });
   } catch {}

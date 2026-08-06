@@ -1,0 +1,1 @@
+- **docs:** add management authentication terminology guide ([#7786](https://github.com/diegosouzapw/OmniRoute/issues/7786))

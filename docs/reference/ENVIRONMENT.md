@@ -43,6 +43,7 @@ lastUpdated: 2026-06-28
 - [22. Debugging](#22-debugging)
 - [23. GitHub Integration](#23-github-integration)
 - [24. Skills Sandbox (v3.8.0+)](#24-skills-sandbox-v380)
+- [27. Radar Feed (Self-Hosting)](#27-radar-feed-self-hosting)
 - [Deployment Scenarios](#deployment-scenarios)
 - [Audit: Removed / Dead Variables](#audit-removed--dead-variables)
 
@@ -201,6 +202,7 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 | `OUTBOUND_SSRF_GUARD_ENABLED`           | `true`                  | `src/shared/network/outboundUrlGuard.ts`         | Block provider calls targeting private/loopback/link-local IP ranges. Disable only in isolated test envs.                                                                                                                                                                                                                                                          |
 | `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` | `false`                 | `src/shared/network/outboundUrlGuard.ts`         | Allow provider URLs pointing to private/local networks (localhost, 192.168.x.x, 10.x.x.x, etc.). **REQUIRED for self-hosted providers** (LM Studio, Ollama, vLLM, Llamafile, Triton, SearXNG). When `false`, the dashboard rejects validation of local URLs.                                                                                                       |
 | `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`   | `true`                  | `src/shared/network/outboundUrlGuard.ts`         | Allow adding/validating providers on local/private addresses (127.0.0.1, localhost, LAN, private ranges) — scoped to the provider validation path. **Default `true`** (local-first); set `false` to enforce strict public-only blocking. Cloud-metadata endpoints (169.254.169.254, metadata.google.internal) stay blocked regardless. (#5066)                     |
+| `AUDIO_REMOTE_PROVIDER_NODES`           | `false`                 | `src/app/api/v1/_shared/audioProviderNodes.ts`   | Let the `/v1/audio/*` routes (transcriptions, speech, translations) use an OpenAI-compatible provider node hosted outside localhost. Off by default — routing audio to a remote host changes egress identity and must be an explicit operator decision. Loopback/private nodes (localhost, 127.0.0.1, 172.16-31.x) are always allowed and unaffected. (#3963)      |
 
 ### Hardening Checklist
 
@@ -264,6 +266,7 @@ OmniRoute provides a two-layer defense: request-side injection scanning and resp
 | `OMNIROUTE_PAYLOAD_RULES_PATH`                              | `./config/payloadRules.json` | `open-sse/services/payloadRules.ts` | Path to payload manipulation rules JSON file (per-model/protocol upstream tweaks).                                                                                                                                                                         |
 | `OMNIROUTE_PAYLOAD_RULES_RELOAD_MS`                         | `5000`                       | `open-sse/services/payloadRules.ts` | Reload interval (ms) for hot-reloading the payload rules file. Minimum `1000`.                                                                                                                                                                             |
 | `OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS` | `false`                      | `open-sse/services/model.ts`        | Opt-in: route bare `claude-*` model IDs from Claude Code clients through the Claude Code OAuth account instead of requiring a provider prefix. Explicit provider prefixes still win. Also configurable via a dashboard toggle on the Claude provider page. |
+| `COMBO_CONCURRENCY_PER_MODEL`                               | `3`                          | `open-sse/services/comboConfig.ts`  | Per-model concurrency cap for round-robin combos (#9100). The round-robin combo semaphore was hard-capped at 3 concurrent requests per model with no override, serializing higher-concurrency traffic behind that cap. Validated to `>= 1`, clamped to `<= 32`.                                          |
 
 ---
 
@@ -505,7 +508,7 @@ Built-in credentials for **localhost development**. For remote deployments, regi
 | `OMNIROUTE_QODER_WORKSPACE`       | Qoder                   | Alias for `QODER_CLI_WORKSPACE`.                                                                                                                                                                                                                |
 | `QODER_CLI_CONFIG_DIR`            | Qoder                   | Override the Qoder CLI config dir (isolated PAT session, avoids clobbering a browser login).                                                                                                                                                     |
 | `BLACKBOX_WEB_VALIDATED_TOKEN`    | Blackbox Web            | Frontend `tk` token to send as `validated` on `/api/chat`. Required when Blackbox enforces token matching; otherwise OmniRoute falls back to a random UUID. See issue #2252.                                                                    |
-| `VISION_BRIDGE_BASE_URL`          | Vision Bridge guardrail | OpenAI-compatible base URL for non-Anthropic vision-bridge calls. Defaults to the legacy OpenAI URL env or api.openai.com. Point at OmniRoute's `/v1` self-loop or any OpenAI-compat endpoint (Gemini OpenAI-compat, OpenRouter). Issue #2232.  |
+| `VISION_BRIDGE_BASE_URL`          | Vision Bridge guardrail | OpenAI-compatible base URL for non-Anthropic vision-bridge calls. Defaults to the legacy OpenAI URL env or api.openai.com. Point at OmniRoute's `/v1` self-loop or any OpenAI-compat endpoint (Gemini OpenAI-compat, OpenRouter). Issue #2232. When the URL is OmniRoute's own `/v1`, the describe sub-request sends `x-omniroute-admission-bypass: internal` and authenticates with the resolved self-loop credential (`sk_omniroute` sentinel in local mode, or `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` — #1350) so `REQUIRE_API_KEY=true` deployments work. |
 | `VISION_BRIDGE_API_KEY`           | Vision Bridge guardrail | API key for the URL above. Overrides per-provider OpenAI / Google env vars for non-Anthropic vision-bridge calls. Anthropic models keep their dedicated Anthropic key path. Issue #2232.                                                        |
 
 > [!WARNING]
@@ -654,6 +657,8 @@ REQUEST_TIMEOUT_MS (global override)
 | `API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS`     | `0`                  | Raw socket timeout (0 = disabled).                                                                                                                              |
 | `SHUTDOWN_TIMEOUT_MS`                     | `30000`              | Grace period on SIGTERM/SIGINT before force-exit.                                                                                                               |
 | `OMNIROUTE_DEFAULT_FETCH_TIMEOUT_MS`      | `120000`             | Fallback used by `src/shared/utils/fetchTimeout.ts` when `FETCH_TIMEOUT_MS` is unset.                                                                           |
+| `OMNIROUTE_RELAY_FETCH_TIMEOUT_MS`        | `25000`               | Relay-specific fetch timeout in `open-sse/utils/proxyFetch.ts` (#9158). A hung relay must fail before the client/agent timeout (~30s) so callers see a relay-specific failure instead of a generic upstream timeout. Capped at `29000` so it always fires first. |
+| `OMNIROUTE_RETRY_BACKOFF_MS`              | `10`                  | Shared retry backoff for the direct/relay/proxy retry-once paths in `open-sse/utils/proxyFetch.ts` (#9158). `0` = retry immediately.                            |
 | `OMNIROUTE_CHATGPT_TLS_TIMEOUT_MS`        | `60000`              | Wire-level timeout for the bogdanfinn/tls-client koffi binding (`chatgptTlsClient.ts`).                                                                         |
 | `OMNIROUTE_CHATGPT_TLS_GRACE_MS`          | `10000`              | JS-side grace added on top of the wire timeout when the native binding is wedged.                                                                               |
 | `OMNIROUTE_CHATGPT_STREAM_FIRST_BYTE_TIMEOUT_MS` | `30000` (30s) | Max wait for the first streamed byte from the ChatGPT TLS sidecar (`chatgptTlsClient.ts`) before aborting a dead stream. Raise if upstream cold-starts exceed the window. |
@@ -667,6 +672,7 @@ REQUEST_TIMEOUT_MS (global override)
 | `OMNIROUTE_NOTION_TLS_GRACE_MS`           | `10000`              | JS-side grace added on top of the wire timeout when the native binding is wedged.                                                                               |
 | `OMNIROUTE_BROWSER_POOL`                  | `on`                 | Shared Playwright browser pool for browser-backed web-cookie chat (`browserPool.ts`); set `off` to disable.                                                     |
 | `WEB_COOKIE_USE_BROWSER`                  | `0`                  | Opt a web-cookie chat request into the browser-backed path (`browserBackedChat.ts`); `1` to enable.                                                             |
+| `OMNIROUTE_LOGIN_BROWSER_PATH`            | _(auto-detected)_    | Path to a system Chrome/Edge executable for the Adobe Firefly interactive browser sign-in (`adobeFireflyBrowserLogin.ts`); overrides per-OS auto-detection.     |
 
 Combo target attempts inherit the resolved upstream request timeout (`FETCH_TIMEOUT_MS`, or
 `REQUEST_TIMEOUT_MS` when it supplies the fetch default). Set `targetTimeoutMs` in a combo,
@@ -714,6 +720,7 @@ The logging system writes to both stdout and rotated log files. All configuratio
 | `CALL_LOG_RETENTION_DAYS`                 | `7`                        | Days to keep request/call log entries in the database.                            |
 | `CALL_LOG_MAX_ENTRIES`                    | `10000`                    | Max call log entries in the in-memory buffer.                                     |
 | `CALL_LOGS_TABLE_MAX_ROWS`                | `100000`                   | Max rows in the `call_logs` SQLite table before pruning.                          |
+| `ENABLE_REQUEST_LOGS`                     | _(unset)_                  | Force detailed request logging on or off, overriding the dashboard setting.       |
 | `MAX_PENDING_REQUEST_AGE_MS`              | `3600000` (1 hour)         | Max age for orphaned active request log entries before in-memory cleanup.         |
 | `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS` | `true`                     | Store stream chunks in pipeline artifacts when `call_log_pipeline_enabled=true`.  |
 | `CALL_LOG_PIPELINE_MAX_SIZE_KB`           | `512`                      | Max pipeline call log artifact size in KB when `call_log_pipeline_enabled=true`.  |
@@ -759,9 +766,13 @@ Embedding layer, vector store and reranking knobs for the persistent memory subs
 | `MEMORY_TRANSFORMERS_MODEL`     | `Xenova/all-MiniLM-L6-v2`  | HF repo id for the opt-in `@huggingface/transformers` local MiniLM pipeline (~23 MB int8, ~400 MB RAM).    |
 | `MEMORY_STATIC_MODEL`           | `minishlab/potion-base-8M` | HF repo id for the static potion/Model2Vec lookup-table embedder. Downloaded lazily into the cache dir.    |
 | `MEMORY_STATIC_CACHE_DIR`       | `<DATA_DIR>/embeddings`    | Directory used to cache the static potion model files. Defaults under `DATA_DIR` when unset.               |
+| `HF_HUB_ENDPOINT`               | `https://huggingface.co`   | Override Hugging Face Hub base URL used by `staticPotion.ts` (e.g. mirror endpoint for air-gapped setups). |
 | `MEMORY_VEC_TOP_K`              | `20`                       | Default top-K used by the `sqlite-vec` brute-force vector search inside `src/lib/memory/vectorStore.ts`.   |
 | `MEMORY_RRF_K`                  | `60`                       | Reciprocal Rank Fusion constant `k` for hybrid FTS5 + vector retrieval (sqlite-vec recipe).                |
-| `HF_HUB_ENDPOINT`               | `https://huggingface.co`   | Override Hugging Face Hub base URL used by `staticPotion.ts` (e.g. mirror endpoint for air-gapped setups). |
+| `NOTION_API_KEY`                | _(unset)_                  | API key for Notion backend (used by `genericBackend.ts` known backend preset).                                |
+| `NOTION_API_URL`                | `https://api.notion.com/v1`| Base URL for Notion API (can override for self-hosted Notion alternatives).                                   |
+| `OBSIDIAN_API_KEY`              | _(unset)_                  | API key for Obsidian Vault backend (used by `genericBackend.ts` known backend preset).                        |
+| `OBSIDIAN_API_URL`              | `http://localhost:27123`   | Base URL for Obsidian Vault API (can override for remote vault).                                              |
 | `MEMORY_TYPED_DECAY_ENABLED`    | `false`                    | TV6 typed memory decay master switch. **Opt-in (default off)** — the sweep **deletes** decayed memories. With it off, `access_count`/`last_accessed_at` are pure telemetry and nothing is ever deleted. |
 | `MEMORY_TYPED_DECAY_EPISODIC_DAYS` | `30`                    | TTL (days) after which an unused `episodic` memory decays. `0` makes episodic immune too. Durable types (`factual`/`procedural`/`semantic`) are always immune. The decay clock re-bases on `last_accessed_at`. |
 | `MEMORY_TYPED_DECAY_ACCESS_IMMUNITY` | `3`                   | A memory injected `>=` this many times becomes immune to decay regardless of type. `0` disables access immunity. |
@@ -843,6 +854,7 @@ Reverse-engineered session bridge for hyperagent.com (`src/shared/constants/prov
 | `NANOBANANA_POLL_INTERVAL_MS`                  | `2500`                                 | `open-sse/handlers/imageGeneration.ts`                                             | NanoBanana job polling frequency.                                                                           |
 | `DESIGNER_WEB_POLL_TIMEOUT_MS`                 | `60000`                                | `open-sse/handlers/imageGeneration/providers/designerWeb.ts`                       | Max wait for microsoft-designer-web image generation jobs.                                                  |
 | `DESIGNER_WEB_POLL_INTERVAL_MS`                | `2000`                                 | `open-sse/handlers/imageGeneration/providers/designerWeb.ts`                       | microsoft-designer-web job polling frequency.                                                               |
+| `ADOBE_FIREFLY_SUBMIT_BASE_DELAY_MS`           | `8000`                                 | `open-sse/services/adobeFireflyUpscale.ts`                                         | Base delay for the Adobe Firefly upscale submit-retry exponential backoff.                                  |
 | `AWS_REGION`                                   | _(unset)_                              | `src/lib/providers/validation.ts`, `open-sse/handlers/audioSpeech.ts`              | Region used to construct AWS Bedrock endpoints (Kiro, audio).                                               |
 | `AWS_DEFAULT_REGION`                           | _(unset)_                              | `src/lib/providers/validation.ts`, `open-sse/handlers/audioSpeech.ts`              | Fallback when `AWS_REGION` is not set.                                                                      |
 | `CLOUDFLARE_ACCOUNT_ID`                        | _(unset)_                              | `open-sse/executors/cloudflare-ai.ts`                                              | Account ID for Cloudflare Workers AI.                                                                       |
@@ -864,6 +876,10 @@ Reverse-engineered session bridge for hyperagent.com (`src/shared/constants/prov
 | `CLIPROXYAPI_PORT`                             | `5544`                                 | `open-sse/executors/cliproxyapi.ts`                                                | CLIProxyAPI bridge port.                                                                                    |
 | `CLIPROXYAPI_CONFIG_DIR`                       | `~/.cli-proxy-api`                     | `src/lib/versionManager/processManager.ts`                                         | CLIProxyAPI config directory.                                                                               |
 | `MUX_SERVICE_PORT`                             | `8322`                                 | `src/lib/services/bootstrap.ts`                                                    | Override the port where the embedded Mux (coder/mux) agent-orchestration daemon listens (always 127.0.0.1). |
+| `DARIO_HOST`                                   | `127.0.0.1`                            | `open-sse/executors/dario.ts`                                                      | Dario embedded-service bind/connect host (loopback only by default).                                        |
+| `DARIO_PORT`                                   | `3456`                                 | `open-sse/executors/dario.ts`                                                      | Dario embedded-service port.                                                                                |
+| `DARIO_HOST`                                   | `127.0.0.1`                            | `open-sse/executors/dario.ts`                                                      | Dario embedded-service bind/connect host (loopback only by default).                                        |
+| `DARIO_PORT`                                   | `3456`                                 | `open-sse/executors/dario.ts`                                                      | Dario embedded-service port.                                                                                |
 | `LOCAL_HOSTNAMES`                              | _(empty)_                              | `open-sse/config/providerRegistry.ts`                                              | Comma-separated additional hostnames treated as "local" (Docker service names, etc.).                       |
 
 `ENABLE_CC_COMPATIBLE_PROVIDER` is only for third-party relays that accept Claude Code clients
@@ -1144,6 +1160,13 @@ Provider quota endpoints, network tunnels (Tailscale, Ngrok, MITM debug proxy), 
 | `OMNIROUTE_LOCAL_ENDPOINTS_TOKEN`           | _(unset)_                                                                   | `src/lib/security/localEndpoints.ts`                                      | Bearer token for `/api/local/*` callers that aren't on loopback (e.g. the desktop app). When set, requests from non-loopback IPs must carry `Authorization: Bearer <token>`. Required when `OMNIROUTE_LOCAL_ENDPOINTS_ENABLED=1` in non-loopback deployments.                                                                                                         |
 | `OMNIROUTE_REDIS_CONTAINER_NAME`            | `omniroute-redis`                                                           | `bin/cli/commands/redis.mjs`                                              | Container name for the 1-click Redis launcher (`omniroute redis up`). Used by both the CLI and the `RedisLauncherPanel` GUI.                                                                                                                                                                                                                                          |
 | `OMNIROUTE_REDIS_HOST_PORT`                 | `6379`                                                                      | `bin/cli/commands/redis.mjs`                                              | Host port for the 1-click Redis launcher. Bump if the host already binds 6379. The container's internal port stays 6379.                                                                                                                                                                                                                                              |
+| `OMNIROUTE_REDIS_BIND_HOST`                 | `127.0.0.1`                                                                 | `bin/cli/commands/redis.mjs`                                              | Host interface the 1-click Redis launcher publishes on. The launcher starts Redis WITHOUT a password, so binding `0.0.0.0` hands every host on your LAN an unauthenticated Redis — only widen this if you also set a password on the instance yourself.                                                                                                                |
+| `REDIS_BIND_HOST`                           | `127.0.0.1`                                                                 | `docker-compose.yml`                                                      | Host interface docker-compose publishes the Redis sidecar on (#9286). The compose Redis runs without `requirepass`; app containers reach it over the compose network (`redis:6379`) — the published port exists only for host-side tooling. `0.0.0.0` exposes an unauthenticated Redis to the whole LAN.                                                              |
+| `REDIS_PORT`                                | `6379`                                                                      | `docker-compose.yml`                                                      | Host port for the compose Redis sidecar.                                                                                                                                                                                                                                                                                                                              |
+| `OMNIROUTE_INTERNAL_SERVICE_TOKEN`          | _(unset — mechanism disabled)_                                              | `src/lib/api/internalServiceAuth.ts`                                      | Shared secret for identity-preserving internal REST hops (#9260): OmniRoute components calling other local OmniRoute routes send it as `x-omniroute-internal-service-token` so the original caller identity is preserved. Compared with `timingSafeEqual`.                                                                                                              |
+| `OMNIROUTE_INTERNAL_SERVICE_TOKEN_FILE`     | _(unset)_                                                                   | `src/lib/api/internalServiceAuth.ts`                                      | Secret-file variant of the internal service token: path to a file whose trimmed content is the token. Only consulted when the inline var is unset.                                                                                                                                                                                                                    |
+| `OPENROUTER_PROVIDER_STATS_ENABLED`         | `true`                                                                      | `src/lib/catalog/openrouterProviderStats.ts`                              | Enrich the dashboard providers list with OpenRouter weekly ranking stats (#9324). On by default; set `false` to skip the background fetch entirely (non-blocking, never fatal).                                                                                                                                                                                       |
+| `OPENROUTER_PROVIDER_STATS_TTL_MS`          | `86400000` (24h)                                                            | `src/lib/catalog/openrouterProviderStats.ts`                              | Cache TTL for the OpenRouter provider-stats snapshot, in milliseconds.                                                                                                                                                                                                                                                                                                |
 | `OMNIROUTE_REDIS_IMAGE`                     | `redis:7-alpine`                                                            | `bin/cli/commands/redis.mjs`                                              | Redis image used by the 1-click Redis launcher. Override to `redis:8-alpine` or a private registry mirror as needed.                                                                                                                                                                                                                                                  |
 | `QDRANT_HOST`                               | `qdrant`                                                                    | _(opt-in cluster profile)_                                                | Hostname of the Qdrant sidecar when `--profile memory` is active. Default points to the in-network qdrant service name; override for an external deployment. Only consumed when `qdrantEnabled` is `true` in code (`src/lib/memory/vectorStore.ts:108`).                                                                                                              |
 | `QDRANT_PORT`                               | `6333`                                                                      | _(opt-in cluster profile)_                                                | REST port of the Qdrant sidecar.                                                                                                                                                                                                                                                                                                                                      |
@@ -1233,6 +1256,22 @@ that should be able to run the docs translator.
 
 ---
 
+## 27. Radar Feed (Self-Hosting)
+
+Optional add-on gated by the RADAR_ENABLED feature flag (default off — a feature
+flag toggled via Settings/DB, not an env var; see
+[docs/frameworks/RADAR.md](../frameworks/RADAR.md#flag-radar_enabled-default-off)).
+Both variables below are optional overrides used only to point the client at a
+self-hosted or forked feed instead of the default OmniRoute Radar feed. See
+[docs/frameworks/RADAR.md](../frameworks/RADAR.md) for the full module doc.
+
+| Variable            | Default                        | Source File                   | Description                                                                                     |
+| -------------------- | ------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `RADAR_FEED_URL`    | `https://radar.omniroute.dev`  | `src/lib/radar/sync.ts`       | Base URL of the Radar feed service. Override to point at a self-hosted or forked feed.          |
+| `RADAR_FEED_PUBKEY` | _(pinned default key)_          | `src/lib/radar/pinnedKeys.ts` | Ed25519 public key (base64-DER SPKI or PEM) used to verify feed signatures from a custom feed.   |
+
+---
+
 ## Audit: Removed / Dead Variables
 
 The following variables appeared in previous versions of `.env.example` but have **no runtime references** in the current codebase. They have been removed:
@@ -1299,3 +1338,25 @@ Used by `src/lib/vncSession/manifest.ts` to configure Docker-based headless Chro
 | `OMNIROUTE_VNC_READY_MS`              | `45000`                       | `src/lib/vncSession/manifest.ts`  | Browser readiness timeout (ms).                                                |
 | `OMNIROUTE_VNC_HARVEST_MS`            | `20000`                       | `src/lib/vncSession/manifest.ts`  | Harvest/cleanup timeout (ms).                                                  |
 | `VIBEPROXY_DATA_DIR`                  | _(unset)_                     | `open-sse/services/notionThreadSessions.ts` | Directory for Notion thread session persistence.                               |
+
+### Internal service auth
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `OMNIROUTE_INTERNAL_SERVICE_TOKEN` | – | Inline token for management-plane service-to-service authentication. |
+| `OMNIROUTE_INTERNAL_SERVICE_TOKEN_FILE` | – | Path to a file containing the internal service token (preferred in containers; overrides the inline variable). |
+
+### OpenRouter provider stats
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `OPENROUTER_PROVIDER_STATS_ENABLED` | `true` | Set to `false` to skip fetching OpenRouter per-provider stats for catalog enrichment. |
+| `OPENROUTER_PROVIDER_STATS_TTL_MS` | `3600000` | Cache TTL (ms) for the fetched OpenRouter provider stats. |
+
+### Embedded Redis binding
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `REDIS_BIND_HOST` | `127.0.0.1` | Bind address for the embedded Redis service. |
+| `REDIS_PORT` | `6379` | Port for the embedded Redis service. |
+| `OMNIROUTE_REDIS_BIND_HOST` | – | OmniRoute-scoped override for the embedded Redis bind address. |

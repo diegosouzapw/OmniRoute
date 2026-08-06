@@ -276,7 +276,7 @@ test("chat completions route emits early keepalive while waiting for stream read
   const body = await readAll(response);
   assert.match(
     body,
-    /data: \{"id":"omniroute-keepalive","object":"chat\.completion\.chunk"/
+    /data: \{"id":"chatcmpl-keepalive","object":"chat\.completion\.chunk"/
   );
   assert.match(body, /OK/);
   assert.match(body, /\[DONE\]/);

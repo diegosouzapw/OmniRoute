@@ -23,6 +23,10 @@ export interface PassthroughModelRowProps {
   fullModel: string;
   provider: string;
   alias?: string | null;
+  // Upstream-provided friendly name (`name` in the /models payload). Gateways that
+  // expose opaque model ids (GUID-style presets) still send a readable name — show it
+  // instead of "Click to set alias" so the list is not a wall of hex.
+  displayName?: string | null;
   source?: string;
   isFree?: boolean;
   isHidden?: boolean;
@@ -52,6 +56,7 @@ export default function PassthroughModelRow({
   modelId,
   fullModel,
   alias,
+  displayName,
   source,
   isFree,
   isHidden,
@@ -76,6 +81,11 @@ export default function PassthroughModelRow({
   const [editing, setEditing] = useState(false);
   const [aliasValue, setAliasValue] = useState(alias || "");
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Only useful when it actually differs from the id — otherwise we would just print
+  // the opaque id twice.
+  const upstreamName =
+    displayName && displayName !== modelId && displayName !== fullModel ? displayName : null;
 
   useEffect(() => {
     if (editing && inputRef.current) {
@@ -151,10 +161,12 @@ export default function PassthroughModelRow({
                     ? providerText(t, "clickToEditAlias", "Alias: {alias} (click to edit)", {
                         alias,
                       })
-                    : providerText(t, "clickToSetAlias", "Click to set alias")
+                    : upstreamName
+                      ? `${upstreamName} — ${providerText(t, "clickToSetAlias", "Click to set alias")}`
+                      : providerText(t, "clickToSetAlias", "Click to set alias")
                 }
               >
-                {alias || providerText(t, "clickToSetAlias", "Click to set alias")}
+                {alias || upstreamName || providerText(t, "clickToSetAlias", "Click to set alias")}
               </span>
             )}
           </span>

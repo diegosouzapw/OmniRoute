@@ -2,7 +2,12 @@ import { spawn, type ChildProcess } from "child_process";
 import path from "path";
 import fs from "fs";
 import { resolveMitmDataDir } from "./dataDir.ts";
-import { removeDNSEntry, removeDNSEntries, checkDNSEntryForAgent } from "./dns/dnsConfig.ts";
+import {
+  removeDNSEntry,
+  removeDNSEntries,
+  checkDNSEntryForAgent,
+  checkDNSEntry,
+} from "./dns/dnsConfig.ts";
 import { provisionDnsEntries } from "./dns/provision.ts";
 import { generateCert } from "./cert/generate.ts";
 import { installCertResult, installCaCert } from "./cert/install.ts";
@@ -395,15 +400,16 @@ export async function getMitmStatus(agentId?: string): Promise<{
   }
 
   // Check DNS configuration. When an agentId is provided, check THAT agent's
-  // own hosts (#8466) instead of always checking the Antigravity host set —
-  // callers that don't pass agentId keep the legacy Antigravity-only check.
+  // own hosts (#8466) instead of always checking the Antigravity host set.
+  // Fix #8656: no-agentId path now uses checkDNSEntry() which is Windows-aware
+  // (reads HOSTS_FILE = C:\Windows\System32\drivers\etc\hosts on Windows).
   let dnsConfigured = false;
   try {
     if (agentId) {
       dnsConfigured = checkDNSEntryForAgent(agentId);
     } else {
-      const hostsContent = fs.readFileSync("/etc/hosts", "utf-8");
-      dnsConfigured = /\bdaily-cloudcode-pa\.googleapis\.com\b/.test(hostsContent);
+      // Use Windows-aware checkDNSEntry() instead of hardcoded /etc/hosts
+      dnsConfigured = checkDNSEntry();
     }
   } catch {
     // Ignore

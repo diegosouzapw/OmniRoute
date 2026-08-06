@@ -1,0 +1,1 @@
+- **fix(compression):** honor the global compression-off setting for proactive and last-resort context compaction, preventing disabled compression from rewriting tool-call histories ([#9200](https://github.com/diegosouzapw/OmniRoute/pull/9200)) — thanks @joachimBrindeau

@@ -498,6 +498,12 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       const canonicalProviderId = normalizeProviderId(rawProviderId);
       if (!canonicalProviderId || byProvider.has(canonicalProviderId)) return;
 
+      // Exclude providers with no active connections (or where all connections are deactivated)
+      const hasActiveConn = providerConnections.some(
+        (c) => normalizeProviderId(c.provider) === canonicalProviderId && c.isActive !== false
+      );
+      if (!hasActiveConn) return;
+
       const resolvedName =
         getProviderDisplayLabel(rawProviderId, providerNodes) ||
         name ||
@@ -515,10 +521,11 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     providerStats
       .filter((provider) => provider.total > 0)
       .forEach((provider) => addProvider(provider.id, provider.provider.name));
+    providerConnections.forEach((conn) => addProvider(conn.provider));
     Object.keys(providerMetrics).forEach((provider) => addProvider(provider));
 
     return Array.from(byProvider.values());
-  }, [providerStats, providerMetrics, providerNodes]);
+  }, [providerStats, providerMetrics, providerNodes, providerConnections]);
 
   const { lastProvider, errorProvider } = providerTopology;
 

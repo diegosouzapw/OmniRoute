@@ -93,3 +93,50 @@ export function shouldConfirmSelectAll(
 ): boolean {
   return Number.isFinite(candidateCount) && candidateCount > threshold;
 }
+
+/**
+ * #9203 — hidden-model filtering for the Combo "Add model" picker.
+ *
+ * `/api/provider-models` returns the unified hidden-model map as a plain
+ * `Record<providerId, string[]>` (serialized from the DB's
+ * `Map<string, Set<string>>`, which covers both `customModels.isHidden` and
+ * `modelCompatOverrides.isHidden`). This normalizes that response into a
+ * lookup-friendly map, defensively skipping malformed entries so an unknown or
+ * partially-shipped API shape can never crash the picker.
+ *
+ * Keys are canonical provider ids; values are the hidden model ids for that
+ * provider. Matching happens on the canonical provider id and the *raw* model
+ * id (before any passthrough/node alias prefixing), so a single helper covers
+ * system, fallback, alias, node-alias, custom and auto-fetched rows alike.
+ */
+export function parseHiddenModelsByProvider(raw: unknown): Map<string, Set<string>> {
+  const result = new Map<string, Set<string>>();
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return result;
+
+  for (const [providerId, modelIds] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof providerId !== "string" || providerId.length === 0) continue;
+    if (!Array.isArray(modelIds)) continue;
+    const hidden = new Set<string>();
+    for (const modelId of modelIds) {
+      if (typeof modelId === "string" && modelId.length > 0) hidden.add(modelId);
+    }
+    if (hidden.size > 0) result.set(providerId, hidden);
+  }
+  return result;
+}
+
+/**
+ * Whether `modelId` is hidden for `providerId` under the parsed hidden map.
+ * Uses the canonical provider id and raw model id — callers pass the same ids
+ * they pass to `buildPassthroughAliasModels` / `buildNodeAliasModels`.
+ */
+export function isProviderModelHidden(
+  hiddenModelsByProvider: Map<string, Set<string>>,
+  providerId: string,
+  modelId: string
+): boolean {
+  if (typeof providerId !== "string" || typeof modelId !== "string" || modelId.length === 0) {
+    return false;
+  }
+  return hiddenModelsByProvider.get(providerId)?.has(modelId) ?? false;
+}

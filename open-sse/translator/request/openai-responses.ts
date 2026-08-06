@@ -20,6 +20,7 @@ import {
   RESPONSES_STORE_MARKER,
   COPILOT_REASONING_SUMMARY_MARKER,
   WEB_SEARCH_TOOL_TYPES,
+  X_SEARCH_TOOL_TYPES,
   TOOL_SEARCH_TOOL_TYPES,
   IMAGE_GENERATION_TOOL_TYPES,
   toRecord,
@@ -103,7 +104,7 @@ export function openaiResponsesToOpenAIRequest(
       // namespace tools (MCP tool groups used by Codex/OpenAI Responses API), and web_search server tools
       // (Anthropic versioned: web_search_20250305, web_search_20250101, etc. — or plain web_search).
       // tool_search is a Responses API built-in sent by newer Codex clients; silently skip it here
-      // (it will be filtered out during tools conversion below).
+      // (it will be filtered out during tools conversion below). x_search (#8964) same pattern.
       if (
         toolType &&
         toolType !== "function" &&
@@ -112,6 +113,7 @@ export function openaiResponsesToOpenAIRequest(
         toolType !== "namespace" &&
         toolType !== "local_shell" &&
         !WEB_SEARCH_TOOL_TYPES.test(toolType) &&
+        !X_SEARCH_TOOL_TYPES.test(toolType) &&
         !TOOL_SEARCH_TOOL_TYPES.test(toolType) &&
         !IMAGE_GENERATION_TOOL_TYPES.test(toolType) &&
         !tool.function
@@ -531,6 +533,9 @@ export function openaiResponsesToOpenAIRequest(
         if (WEB_SEARCH_TOOL_TYPES.test(toolType)) {
           return toolValue;
         }
+        if (X_SEARCH_TOOL_TYPES.test(toolType)) {
+          return [];
+        }
         // local_shell is a Responses API built-in (Codex CLI injects it for shell
         // execution). Non-OpenAI upstreams (Kiro/Claude) have no local_shell type,
         // so map it to a regular "shell" function tool. The response translator
@@ -719,7 +724,7 @@ export function openaiResponsesToOpenAIRequest(
     const reasoningRec = toRecord(root.reasoning);
     const effort = toString(reasoningRec.effort);
     if (effort && result.reasoning_effort === undefined) {
-      result.reasoning_effort = normalizeResponsesReasoningEffort(effort);
+      result.reasoning_effort = normalizeResponsesReasoningEffort(effort, model);
     }
     if (
       credentialRecord._copilotClient === true &&

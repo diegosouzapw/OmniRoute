@@ -86,19 +86,27 @@ OmniRoute ships four Compose profiles. Pick the one that matches your environmen
 
 OmniRoute relies on Redis to back the distributed rate limiter and shared cache. The `redis` service is **always defined** in `docker-compose.yml` (it has no profile gate) and starts alongside any other profile.
 
-| Detail               | Value                             |
-| -------------------- | --------------------------------- |
-| Image                | `redis:7-alpine`                  |
-| Container name       | `omniroute-redis`                 |
-| Internal port        | `6379`                            |
-| Host port (override) | `REDIS_PORT` (defaults to `6379`) |
-| Volume               | `omniroute-redis-data` → `/data`  |
-| Healthcheck          | `redis-cli ping` (10s interval)   |
+| Detail               | Value                                       |
+| -------------------- | ------------------------------------------- |
+| Image                | `redis:7-alpine`                            |
+| Container name       | `omniroute-redis`                           |
+| Internal port        | `6379`                                      |
+| Host port (override) | `REDIS_PORT` (defaults to `6379`)           |
+| Host bind (override) | `REDIS_BIND_HOST` (defaults to `127.0.0.1`) |
+| Volume               | `omniroute-redis-data` → `/data`            |
+| Healthcheck          | `redis-cli ping` (10s interval)             |
 
 Related environment variables:
 
 - `REDIS_URL` — connection string injected into the app (`redis://redis:6379` by default).
 - `REDIS_PORT` — host-side port mapping for the Redis container.
+- `REDIS_BIND_HOST` — host interface the port is published on. Defaults to `127.0.0.1`.
+
+> **Why loopback by default:** the sidecar runs without `requirepass`, and the app
+> containers reach it over the compose network (`redis:6379`) — the published port is
+> only there for host-side tooling (`redis-cli`, a local `npm run dev`). Publishing on
+> `0.0.0.0` would expose an unauthenticated Redis to every host on your LAN. If you set
+> `REDIS_BIND_HOST=0.0.0.0`, add `--requirepass` to the service `command:` as well.
 
 **Disabling Redis** is not recommended (rate limiter will degrade to in-memory fallback). If you must, either remove/comment the `redis:` service block in `docker-compose.yml` or scale it to zero:
 
@@ -170,6 +178,7 @@ Beyond the defaults documented in [ENVIRONMENT.md](../reference/ENVIRONMENT.md),
 | `OMNIROUTE_WS_BRIDGE_SECRET`  | Shared secret for the WebSocket bridge. **Required in production** — set to a strong random string. | unset (must be provided) |
 | `REDIS_URL`                   | Connection string for the rate limiter / cache backend                                              | `redis://redis:6379`     |
 | `REDIS_PORT`                  | Host-side port for the bundled Redis container                                                      | `6379`                   |
+| `REDIS_BIND_HOST`             | Host interface the bundled Redis port is published on (loopback unless you add AUTH)                | `127.0.0.1`              |
 | `AUTO_UPDATE_HOST_REPO_DIR`   | Host path mounted into `cli` profile at `/workspace/omniroute` for self-update workflows            | `.` (current directory)  |
 | `OMNIROUTE_MEMORY_MB`         | Runtime Node heap ceiling for the Docker standalone server; overrides the image fallback above      | `512`                    |
 | `DASHBOARD_PORT` / `API_PORT` | Override exposed ports for dashboard (20128) and API (20129)                                        | `20128` / `20129`        |

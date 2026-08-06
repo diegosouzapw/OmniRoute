@@ -27,9 +27,13 @@ import fs from "node:fs";
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-hidden-4558-"));
 process.env.DATA_DIR = tmpDir;
 
-const { mergeModelCompatOverride, getHiddenModelsByProvider, getModelIsHidden } = await import(
-  "../../src/lib/localDb.ts"
-);
+const {
+  addCustomModel,
+  getHiddenModelsByProvider,
+  getModelIsHidden,
+  mergeModelCompatOverride,
+  updateCustomModel,
+} = await import("../../src/lib/localDb.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 
 before(() => {
@@ -78,4 +82,14 @@ test("un-hiding a model (isHidden: null) removes it from the map", () => {
     false,
     "un-hidden model must drop out of the hidden set"
   );
+});
+
+test("an explicit visible custom-model setting overrides a hidden compat fallback", async () => {
+  const modelId = "gpt-custom-visible-override";
+  mergeModelCompatOverride(PROVIDER, modelId, { isHidden: true });
+  await addCustomModel(PROVIDER, modelId);
+  await updateCustomModel(PROVIDER, modelId, { isHidden: false });
+
+  assert.equal(getModelIsHidden(PROVIDER, modelId), false);
+  assert.equal(getHiddenModelsByProvider().get(PROVIDER)?.has(modelId) ?? false, false);
 });

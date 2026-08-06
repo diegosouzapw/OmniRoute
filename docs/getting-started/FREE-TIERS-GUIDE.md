@@ -1,3 +1,9 @@
+---
+title: "Free Tiers Guide: Get Free AI Without a Credit Card"
+version: 3.8.50
+lastUpdated: 2026-08-06
+---
+
 # Free Tiers Guide: Get Free AI Without a Credit Card
 
 > **TL;DR**: OmniRoute aggregates free tiers from 50+ providers. Connect multiple free providers for unlimited free AI with automatic fallback.
