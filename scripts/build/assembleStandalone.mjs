@@ -117,6 +117,25 @@ const EXTRA_MODULE_ENTRIES = [
   { label: "migrations", src: ["src", "lib", "db", "migrations"], dest: ["migrations"] },
   { label: "MITM server", src: ["src", "mitm", "server.cjs"], dest: ["src", "mitm", "server.cjs"] },
   {
+    // #9451: server.cjs requires 6 shims from ./_internal/ (bypass, ingest,
+    // forwardTarget, aliasConfig, standaloneRouting, rootCaShim) which the MITM
+    // child process loads via require(). Next.js's standalone tracer never sees
+    // them (server.cjs is a separate node process, not imported by the main
+    // server), so the _internal/ directory must be copied explicitly or the MITM
+    // child crashes with MODULE_NOT_FOUND at boot.
+    label: "MITM _internal shims (#9451)",
+    src: ["src", "mitm", "_internal"],
+    dest: ["src", "mitm", "_internal"],
+  },
+  {
+    // #9451: rootCaShim.cjs does `await import("selfsigned")` for dynamic SSL
+    // certificate generation. The MITM child is not traced by Next.js, so the
+    // package is absent from the Docker standalone bundle without this entry.
+    label: "selfsigned (MITM rootCaShim dynamic import — #9451)",
+    src: ["node_modules", "selfsigned"],
+    dest: ["node_modules", "selfsigned"],
+  },
+  {
     label: "run-standalone script",
     src: ["scripts", "dev", "run-standalone.mjs"],
     dest: ["dev", "run-standalone.mjs"],

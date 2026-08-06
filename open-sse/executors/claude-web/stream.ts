@@ -148,7 +148,8 @@ async function* decodeSseData(
 }
 
 function safeMetadataValue(value: unknown): string | number | boolean | null | undefined {
-  if (value === null || typeof value === "boolean") return value;
+  if (value === null) return null;
+  if (typeof value === "boolean") return value;
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string" && value.length <= 128 && /^[A-Za-z0-9._:+/@-]+$/.test(value)) {
     return value;
@@ -715,7 +716,7 @@ async function pullStreamingChunk(
     while (!state.terminal) {
       const next = await state.iterator.next();
       if (state.control.cancelled) return;
-      if (next.done) {
+      if (next.done === true) {
         throw new ClaudeWebProtocolError("Claude Web stream ended without a terminal event");
       }
       await queueSemanticEvent(state, next.value, options);

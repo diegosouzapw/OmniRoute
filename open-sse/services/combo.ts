@@ -2188,7 +2188,10 @@ async function handleRoundRobinCombo({
   const config = settings
     ? resolveComboConfig(combo, settings)
     : { ...getDefaultComboConfig(), ...(combo.config || {}) };
-  const concurrency = config.concurrencyPerModel ?? 3;
+  // #9158: clamp combo-level concurrency to a sane bound — a config carrying a
+  // huge or negative value would otherwise open an unbounded semaphore and
+  // flood targets (or deadlock at 0).
+  const concurrency = Math.min(Math.max(config.concurrencyPerModel ?? 3, 1), 32);
   // Honor each target connection's own maxConcurrent ceiling (cached per dispatch)
   // so a low-concurrency subscription account is not flooded; falls back to the
   // combo-level concurrency when the connection has no positive cap.

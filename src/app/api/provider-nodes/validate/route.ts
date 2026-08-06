@@ -88,6 +88,29 @@ function getChatErrorMessage(status: number) {
   return `Chat request failed (${status})`;
 }
 
+// Status-specific error message for the /audio/transcriptions fallback probe.
+function getAudioTranscriptionErrorMessage(status: number) {
+  if (status === 401 || status === 403) return "API key unauthorized";
+  if (status === 400) return "Invalid transcription model or bad audio request";
+  if (status === 404) return "Audio transcriptions endpoint not found";
+  if (status >= 500) return "Server error - try again later";
+  return `Audio transcription request failed (${status})`;
+}
+
+function buildTinyWavFile(): File {
+  return new File(
+    [
+      new Uint8Array([
+        0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45, 0x66, 0x6d, 0x74,
+        0x20, 0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x40, 0x1f, 0x00, 0x00, 0x80, 0x3e,
+        0x00, 0x00, 0x02, 0x00, 0x10, 0x00, 0x64, 0x61, 0x74, 0x61, 0x00, 0x00, 0x00, 0x00,
+      ]),
+    ],
+    "omniroute-validation.wav",
+    { type: "audio/wav" }
+  );
+}
+
 async function probeChatFallback({
   baseUrl,
   apiKey,
@@ -114,6 +137,28 @@ async function probeChatFallback({
       messages: [{ role: "user", content: "ping" }],
       max_tokens: 1,
     }),
+  });
+}
+
+async function probeAudioTranscriptionFallback({
+  baseUrl,
+  apiKey,
+  modelId,
+}: {
+  baseUrl: string;
+  apiKey: string;
+  modelId: string;
+}) {
+  const formData = new FormData();
+  formData.set("model", modelId);
+  formData.set("file", buildTinyWavFile());
+  const transcriptionUrl = `${baseUrl.replace(/\/$/, "")}/audio/transcriptions`;
+  return safeOutboundFetch(transcriptionUrl, {
+    ...SAFE_OUTBOUND_FETCH_PRESETS.validationRead,
+    guard: getProviderValidationGuard(),
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}` },
+    body: formData,
   });
 }
 
@@ -153,7 +198,8 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { baseUrl, apiKey, type, compatMode, chatPath, modelsPath, modelId } = validation.data;
+    const { baseUrl, apiKey, type, compatMode, apiType, chatPath, modelsPath, modelId } =
+      validation.data;
     const trimmedModelId = typeof modelId === "string" ? modelId.trim() : "";
 
     // Anthropic Compatible Validation
@@ -225,6 +271,30 @@ export async function POST(request) {
 
     // OpenAI Compatible Validation (Default)
     const openAiBase = baseUrl.replace(/\/$/, "");
+
+    if (apiType === "audio-transcriptions") {
+      if (!trimmedModelId) {
+        return NextResponse.json({
+          valid: false,
+          error: "Model ID required to validate audio transcriptions",
+          method: "audio-transcriptions",
+        });
+      }
+      const transcriptionRes = await probeAudioTranscriptionFallback({
+        baseUrl: openAiBase,
+        apiKey: apiKey ?? "",
+        modelId: trimmedModelId,
+      });
+      if (transcriptionRes.ok) {
+        return NextResponse.json({ valid: true, error: null, method: "audio-transcriptions" });
+      }
+      return NextResponse.json({
+        valid: false,
+        error: getAudioTranscriptionErrorMessage(transcriptionRes.status),
+        method: "audio-transcriptions",
+      });
+    }
+
     const modelsUrl = `${openAiBase}${modelsPath || "/models"}`;
     const res = await safeOutboundFetch(modelsUrl, {
       ...SAFE_OUTBOUND_FETCH_PRESETS.validationRead,

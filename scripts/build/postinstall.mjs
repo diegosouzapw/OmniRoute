@@ -24,7 +24,7 @@
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/7802
  */
 
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -32,10 +32,60 @@ import { PUBLISHED_BUILD_ARCH, PUBLISHED_BUILD_PLATFORM } from "./native-binary-
 import { hasStandaloneAppBundle, isTermux } from "./postinstallSupport.mjs";
 import { colocateLlmlinguaOptionals } from "./colocateOptionals.mjs";
 import { fixTlsClientNodeBinary } from "./fixTlsClientNodeBinary.mjs";
+import { fixPlaywrightAndroid } from "./fixPlaywrightAndroid.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..", "..");
+
+/**
+ * Patch node-gyp's common.gypi to include the android_ndk_path variable.
+ *
+ * On Termux/Android, node-gyp's bundled common.gypi (in ~/.cache/node-gyp/<version>/)
+ * does not define the `android_ndk_path` variable that the build system expects.
+ * Setting GYP_DEFINES="android_ndk_path=''" is not enough because common.gypi
+ * is parsed separately and the variable must be declared in the 'variables' section.
+ *
+ * This function finds and patches the common.gypi for the current Node.js version,
+ * adding `'android_ndk_path%': ''` to the variables block. The patch is idempotent.
+ */
+function patchNodeGypCommonGypi() {
+  try {
+    const nodeVersion = process.version; // e.g. "v26.4.0"
+    const gypDir = join(
+      process.env.HOME || process.env.USERPROFILE || "/root",
+      ".cache",
+      "node-gyp",
+      nodeVersion.replace(/^v/, "")
+    );
+    const commonGypi = join(gypDir, "include", "node", "common.gypi");
+
+    if (!existsSync(commonGypi)) {
+      console.warn(`  ⚠️  common.gypi not found at ${commonGypi}, skipping patch`);
+      return;
+    }
+
+    let content = readFileSync(commonGypi, "utf8");
+
+    // Check if already patched
+    if (content.includes("android_ndk_path")) {
+      return;
+    }
+
+    // Find the variables section and add android_ndk_path
+    // The pattern is: 'variables': { 'node_use_openssl%': ... }
+    // We insert our variable right after the opening of the variables block
+    const variablesMatch = content.match(/('variables'\s*:\s*\{)/);
+    if (variablesMatch) {
+      const insertPos = content.indexOf(variablesMatch[0]) + variablesMatch[0].length;
+      content = content.slice(0, insertPos) + "\n      'android_ndk_path%': ''," + content.slice(insertPos);
+      writeFileSync(commonGypi, content, "utf8");
+      console.log(`  ✅ Patched common.gypi for Android at ${commonGypi}`);
+    }
+  } catch (err) {
+    console.warn(`  ⚠️  Could not patch common.gypi: ${err.message}`);
+  }
+}
 
 const appBinary = join(
   ROOT,
@@ -148,6 +198,9 @@ async function fixBetterSqliteBinary() {
     const env = { ...process.env };
     if (isAndroid) {
       env.GYP_DEFINES = "android_ndk_path=''";
+      // Patch node-gyp's common.gypi to include android_ndk_path variable
+      // so the gyp build system doesn't fail with "Unknown variable"
+      patchNodeGypCommonGypi();
     }
 
     execSync(rebuildCmd, {
@@ -348,6 +401,7 @@ async function ensureLlmlinguaOptionals() {
 await fixBetterSqliteBinary();
 await fixWreqJsBinary();
 await fixTlsClientNodeBinary({ rootDir: ROOT });
+await fixPlaywrightAndroid({ rootDir: ROOT });
 await ensureSwcHelpers();
 await ensureLlmlinguaOptionals();
 await syncProjectEnv();

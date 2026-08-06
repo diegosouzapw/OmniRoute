@@ -179,8 +179,8 @@ EXPOSE 20128
 USER node
 
 # Warns if the mounted data volume has wrong ownership
-COPY --chmod=755 scripts/check-permissions.sh /tmp/check-permissions.sh
-ENTRYPOINT ["/tmp/check-permissions.sh"]
+COPY --chmod=755 scripts/check-permissions.sh /app/check-permissions.sh
+ENTRYPOINT ["/app/check-permissions.sh"]
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD ["node", "healthcheck.mjs"]

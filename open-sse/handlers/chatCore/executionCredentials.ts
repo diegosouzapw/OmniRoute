@@ -118,6 +118,18 @@ export function resolveExecutionCredentials(opts: {
     providerSpecificData._omnirouteForceResponsesUpstream = true;
   }
 
+  // #8969: Poe's native /v1/responses surface — DefaultExecutor.buildUrl("poe")
+  // reads this marker so Responses requests do not land on chat/completions.
+  if (targetFormat === FORMATS.OPENAI_RESPONSES && provider === "poe") {
+    providerSpecificData._omnirouteForceResponsesUpstream = true;
+  }
+
+  // #8969: Claude-tagged Poe models speak Anthropic Messages wire format. Keep
+  // DefaultExecutor from injecting OpenAI stream_options onto that body.
+  if (targetFormat === FORMATS.CLAUDE && provider === "poe") {
+    providerSpecificData.disableStreamOptions = true;
+  }
+
   // #7364: "zai"/"glm-coding-apikey" default to the Anthropic Messages wire format
   // (registry format:"claude"), but a per-model targetFormat override (custom-model
   // dropdown, #2905) can resolve targetFormat to "openai" — e.g. for a vision model

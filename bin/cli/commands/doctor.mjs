@@ -299,6 +299,7 @@ async function checkNativeBinary(rootDir) {
       "Release",
       "better_sqlite3.node"
     ),
+    path.join(rootDir, "dist", "node_modules", "better-sqlite3", "build", "Release", "better_sqlite3.node"),
     path.join(rootDir, "node_modules", "better-sqlite3", "build", "Release", "better_sqlite3.node"),
   ];
   const binaryPath = candidates.find((candidate) => fs.existsSync(candidate));

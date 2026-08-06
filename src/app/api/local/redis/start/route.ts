@@ -5,12 +5,15 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 import {
   REDIS_CONTAINER_NAME,
+  REDIS_DEFAULT_BIND_HOST,
+  buildRedisPublishSpec,
   detectRedisContainerRuntime,
   redisRuntimeUnavailableResponse,
   runRedisRuntimeCommand,
 } from "../redisRuntime";
 
 const HOST_PORT = process.env.OMNIROUTE_REDIS_HOST_PORT || "6379";
+const BIND_HOST = process.env.OMNIROUTE_REDIS_BIND_HOST || REDIS_DEFAULT_BIND_HOST;
 const IMAGE = process.env.OMNIROUTE_REDIS_IMAGE || "docker.io/redis:7-alpine";
 
 export async function POST() {
@@ -35,7 +38,7 @@ export async function POST() {
       "--name",
       REDIS_CONTAINER_NAME,
       "-p",
-      `${HOST_PORT}:6379`,
+      buildRedisPublishSpec(BIND_HOST, HOST_PORT),
       "--restart",
       "unless-stopped",
       IMAGE,
@@ -46,6 +49,7 @@ export async function POST() {
       runtime,
       name: REDIS_CONTAINER_NAME,
       port: HOST_PORT,
+      bindHost: BIND_HOST,
       stdout,
       stderr,
     });

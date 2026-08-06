@@ -1,0 +1,1 @@
+- **fix(codex):** preserve quota window duration in usage shape. (thanks @HectorBernstorff)

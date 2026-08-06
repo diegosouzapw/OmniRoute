@@ -1,0 +1,1 @@
+- fix(sse): stop the reasoning-token buffer from enlarging a client's explicit max_tokens upward (x1.5) (#9507)

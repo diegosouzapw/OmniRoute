@@ -16,6 +16,16 @@ type ResolvedModelTarget = {
   model: string | null;
 };
 
+// Client context-window tags are routing hints, not part of provider model IDs.
+const CONTEXT_WINDOW_SUFFIX_RE = /\[(\d+)([kKmM])?\]\s*$/;
+
+export function stripContextWindowSuffix(
+  modelStr: string | null | undefined
+): string | null | undefined {
+  if (typeof modelStr !== "string" || !modelStr) return modelStr;
+  return modelStr.replace(CONTEXT_WINDOW_SUFFIX_RE, "").trimEnd();
+}
+
 // Derive alias→provider mapping from the single source of truth (PROVIDER_ID_TO_ALIAS)
 // This prevents the two maps from drifting out of sync
 const ALIAS_TO_PROVIDER_ID: Record<string, string> = {};
@@ -428,12 +438,12 @@ export function parseModel(modelStr: string | null | undefined): ParsedModel {
     };
   }
 
-  // Extract [1m] suffix before parsing provider/model
+  // Extract the legacy [1m] marker while stripping all client context tags.
   let extendedContext = false;
-  let cleanStr = modelStr;
-  if (cleanStr.endsWith("[1m]")) {
+  const cleanStripped = stripContextWindowSuffix(modelStr) as string;
+  let cleanStr = cleanStripped;
+  if (/\[1m\]\s*$/i.test(modelStr)) {
     extendedContext = true;
-    cleanStr = cleanStr.slice(0, -4);
   }
   cleanStr = cleanStr.trim();
 
@@ -665,7 +675,9 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
 
   // Canonicalize candidates (deduplicate alias providers pointing to the same provider ID)
   const canonicalCandidates = Array.from(
-    new Set(candidatesToUse.map((p) => resolveProviderAlias(p)).filter((p): p is string => p !== null))
+    new Set(
+      candidatesToUse.map((p) => resolveProviderAlias(p)).filter((p): p is string => p !== null)
+    )
   );
 
   // Filter candidates by active connections configured in the database

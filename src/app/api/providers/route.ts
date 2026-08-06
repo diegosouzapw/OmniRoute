@@ -243,22 +243,37 @@ export async function POST(request: Request) {
       );
     }
 
-    // Auto sync to Cloud if enabled
-    await syncToCloudIfEnabled();
+    // Post-commit housekeeping: sync + audit must never fail the 201 response.
+    // The connection is already persisted; these are non-critical side-effects.
+    try {
+      await syncToCloudIfEnabled();
+    } catch (housekeepingError) {
+      console.log(
+        `[providers] syncToCloudIfEnabled failed after connection creation for ${newConnection.id}:`,
+        housekeepingError
+      );
+    }
 
-    logAuditEvent({
-      action: "provider.credentials.created",
-      actor: "admin",
-      target: getProviderAuditTarget(newConnection),
-      resourceType: "provider_credentials",
-      status: "success",
-      ipAddress: auditContext.ipAddress || undefined,
-      requestId: auditContext.requestId,
-      metadata: {
-        provider: provider,
-        connection: summarizeProviderConnectionForAudit(newConnection),
-      },
-    });
+    try {
+      logAuditEvent({
+        action: "provider.credentials.created",
+        actor: "admin",
+        target: getProviderAuditTarget(newConnection),
+        resourceType: "provider_credentials",
+        status: "success",
+        ipAddress: auditContext.ipAddress || undefined,
+        requestId: auditContext.requestId,
+        metadata: {
+          provider: provider,
+          connection: summarizeProviderConnectionForAudit(newConnection),
+        },
+      });
+    } catch (auditError) {
+      console.log(
+        `[providers] logAuditEvent failed after connection creation for ${newConnection.id}:`,
+        auditError
+      );
+    }
 
     return NextResponse.json({ connection: result }, { status: 201 });
   } catch (error) {

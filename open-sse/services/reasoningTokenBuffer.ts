@@ -45,6 +45,12 @@ export function resolveReasoningBufferedMaxTokens(
   // request. Respect it verbatim instead of inflating (e.g. 1 -> 1001).
   if (current < REASONING_BUFFER_MIN_TRIGGER) return current;
 
-  const buffered = Math.max(current + 1000, Math.ceil(current * 1.5));
-  return buffered > maxOutputTokens ? current : buffered;
+  // Issue #9507: never enlarge a client's explicit max_tokens. The #3587
+  // headroom heuristic (Math.ceil(current * 1.5)) silently rewrote reasoning
+  // budgets upward (64000 -> 96000 on claude-opus-5), violating the #1761
+  // contract that upward adjustment must be opt-in. The over-cap clamp above
+  // (line 42) already narrows, and the model's own output cap is the only
+  // legitimate ceiling; any headroom beyond the client-declared value is a
+  // silent cost increase the client did not authorize.
+  return current;
 }

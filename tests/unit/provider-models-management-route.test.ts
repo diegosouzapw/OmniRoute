@@ -27,6 +27,20 @@ function buildPatchRequest(url, body) {
   });
 }
 
+function buildGetRequest(url = "http://localhost/api/provider-models") {
+  return new Request(url, { method: "GET" });
+}
+
+type ProviderModelsResponse = {
+  models?: Record<string, Array<{ id: string; isHidden?: boolean }>> | Array<{ id: string }>;
+  modelCompatOverrides?: Array<{ id: string; isHidden?: boolean }>;
+  hiddenModelsByProvider?: Record<string, string[]>;
+};
+
+async function getBody(response: Response): Promise<ProviderModelsResponse> {
+  return (await response.json()) as ProviderModelsResponse;
+}
+
 test.beforeEach(async () => {
   await resetStorage();
 });
@@ -34,6 +48,83 @@ test.beforeEach(async () => {
 test.after(async () => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
+
+test("provider-models GET returns an empty hiddenModelsByProvider map with no hidden models", async () => {
+  const response = await providerModelsRoute.GET(buildGetRequest());
+  const body = await getBody(response);
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(body.hiddenModelsByProvider, {});
+  assert.ok(typeof body.models === "object" && body.models !== null);
+  assert.ok(Array.isArray(body.modelCompatOverrides));
+});
+
+test("provider-models GET surfaces hidden custom and catalog-override models per provider", async () => {
+  // Hidden custom model (customModels namespace).
+  await modelsDb.addCustomModel("openai", "gpt-hidden", "GPT Hidden", "manual", "chat-completions", [
+    "chat",
+  ]);
+  await providerModelsRoute.PATCH(
+    buildPatchRequest("http://localhost/api/provider-models?provider=openai&modelId=gpt-hidden", {
+      isHidden: true,
+    })
+  );
+  // Hidden catalog override (modelCompatOverrides namespace) + a visible sibling.
+  await providerModelsRoute.PATCH(
+    buildPatchRequest(
+      "http://localhost/api/provider-models?provider=claude&modelId=claude-sonnet-4-6",
+      { isHidden: true }
+    )
+  );
+  await modelsDb.addCustomModel("claude", "claude-visible", "Claude Visible", "manual", "chat", [
+    "chat",
+  ]);
+
+  const response = await providerModelsRoute.GET(buildGetRequest());
+  const body = await getBody(response);
+
+  assert.equal(response.status, 200);
+  // `models` is keyed by provider (getAllCustomModels shape) — assert the hidden
+  // custom row landed under its provider, and that the hidden map only carries
+  // hidden ids (custom + catalog-override), never the visible sibling.
+  const modelsByProvider = body.models as Record<string, Array<{ id: string }>>;
+  assert.ok(Array.isArray(modelsByProvider.openai));
+  assert.ok(modelsByProvider.openai.some((model) => model.id === "gpt-hidden"));
+  assert.deepEqual(body.hiddenModelsByProvider, {
+    openai: ["gpt-hidden"],
+    claude: ["claude-sonnet-4-6"],
+  });
+  assert.equal(body.hiddenModelsByProvider!.claude.includes("claude-visible"), false);
+});
+
+test("provider-models GET keeps the original models and modelCompatOverrides contract", async () => {
+  await modelsDb.addCustomModel("openai", "gpt-test", "GPT Test", "manual", "chat-completions", [
+    "chat",
+  ]);
+  await providerModelsRoute.PATCH(
+    buildPatchRequest(
+      "http://localhost/api/provider-models?provider=claude&modelId=claude-sonnet-4-6",
+      { isHidden: true }
+    )
+  );
+
+  // Per-provider GET keeps the array-shaped models + modelCompatOverrides contract
+  // while still returning the global hidden map (#9203).
+  const response = await providerModelsRoute.GET(
+    buildGetRequest("http://localhost/api/provider-models?provider=claude")
+  );
+  const body = await getBody(response);
+
+  assert.equal(response.status, 200);
+  assert.ok(Array.isArray(body.models));
+  assert.ok(Array.isArray(body.modelCompatOverrides));
+  assert.ok(
+    body.modelCompatOverrides!.some((override) => override.id === "claude-sonnet-4-6" && override.isHidden)
+  );
+  assert.deepEqual(body.hiddenModelsByProvider, {
+    claude: ["claude-sonnet-4-6"],
+  });
 });
 
 test("provider-models PATCH updates hidden flag for custom models", async () => {

@@ -207,7 +207,10 @@ function toString(value: unknown): string {
 }
 
 async function openBetterSqliteAuditDb(dbPath: string): Promise<AuditDatabase> {
-  const Database = (await import("better-sqlite3")).default as unknown as new (
+  const { createRequire } = await import("node:module");
+  const _require = createRequire(import.meta.url);
+  const mod = _require("better-sqlite3");
+  const Database = (mod?.default || mod) as unknown as new (
     dbPath: string
   ) => AuditDatabase;
   return new Database(dbPath);

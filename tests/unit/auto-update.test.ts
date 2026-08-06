@@ -404,7 +404,7 @@ test("resolveProjectRoot walks up from start dir to nearest package.json or .git
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-root-"));
   const subDir = path.join(tempRoot, "sub", "deep");
   fs.mkdirSync(subDir, { recursive: true });
-  fs.writeFileSync(path.join(tempRoot, "package.json"), "{}");
+  fs.writeFileSync(path.join(tempRoot, "package.json"), JSON.stringify({ name: "omniroute" }));
 
   try {
     // Walking up from a deep subdir that does not have markers must find the real root.

@@ -1,0 +1,1 @@
+- **feat(models):** add exact per-model `context_length`, `max_input_tokens`, and `max_output_tokens` overrides across model discovery and runtime enforcement, with automatic migration from the retired output-only `max_token` key ([#8908](https://github.com/diegosouzapw/OmniRoute/pull/8908)) — thanks @xz-dev

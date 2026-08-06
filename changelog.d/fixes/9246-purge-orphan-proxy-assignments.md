@@ -1,0 +1,1 @@
+- **fix(db):** deleting a provider connection (single, batch, or provider-scoped) now purges its account-scoped `proxy_assignments` rows inside an atomic transaction — no more orphan assignments pointing at deleted connections ([#9246](https://github.com/diegosouzapw/OmniRoute/pull/9246)) — thanks @maxmad64bis

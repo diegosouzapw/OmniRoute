@@ -1,4 +1,5 @@
 import { getDbInstance } from "./core";
+import { invalidateDbCache } from "./readCache";
 
 /**
  * Feature 5004 — self-correcting context-window overrides.
@@ -36,7 +37,10 @@ function isPositiveInteger(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value) && value > 0;
 }
 
-function normalizeKey(provider: unknown, modelId: unknown): { provider: string; modelId: string } | null {
+function normalizeKey(
+  provider: unknown,
+  modelId: unknown
+): { provider: string; modelId: string } | null {
   const p = typeof provider === "string" ? provider.trim() : "";
   const m = typeof modelId === "string" ? modelId.trim() : "";
   if (!p || !m) return null;
@@ -104,6 +108,7 @@ export function setModelContextOverride(
         "VALUES (?, ?, ?, ?, datetime('now'))"
     )
     .run(key.provider, key.modelId, realContext, normalizedSource);
+  invalidateDbCache("model-capabilities");
   return true;
 }
 
@@ -114,6 +119,7 @@ export function removeModelContextOverride(provider: string, modelId: string): b
   const info = getDbInstance()
     .prepare("DELETE FROM model_context_overrides WHERE provider = ? AND model_id = ?")
     .run(key.provider, key.modelId);
+  if (info.changes > 0) invalidateDbCache("model-capabilities");
   return info.changes > 0;
 }
 
