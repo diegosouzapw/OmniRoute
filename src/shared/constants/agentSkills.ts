@@ -35,11 +35,11 @@ export interface CuratedSkillEntry {
   isNew?: boolean;
 }
 
-// ── Canonical 42-entry curated list (D28) ────────────────────────────────────
+// ── Canonical 45-entry curated list (D28) ────────────────────────────────────
 
-/** Curated metadata for all 42 agent skills. Source-of-truth for the catalog. */
+/** Curated metadata for all 45 agent skills. Source-of-truth for the catalog. */
 export const CURATED_SKILLS: CuratedSkillEntry[] = [
-  // ── API Skills (22) ─────────────────────────────────────────────────────────
+  // ── API Skills (23) ─────────────────────────────────────────────────────────
 
   {
     id: "omni-auth",
@@ -55,7 +55,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     id: "omni-providers",
     name: "Providers",
     description:
-      "Manage provider connections, API keys, OAuth flows, and connection tests via the REST API. List, add, update, remove, and test AI provider integrations (OpenAI, Anthropic, Gemini, and 160+).",
+      "Manage provider connections, API keys, OAuth flows, and connection tests via the REST API. List, add, update, remove, and test AI provider integrations across OmniRoute's 327-provider catalog.",
     category: "api",
     area: "providers",
     icon: "key",
@@ -73,7 +73,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     id: "omni-combos-routing",
     name: "Combos & Routing",
     description:
-      "Create and manage routing combos with 14 strategies (priority, weighted, round-robin, Auto-combo, etc.). Configure fallback chains, test routing outcomes, and retrieve combo metrics.",
+      "Create and manage routing combos with 19 strategies (priority, weighted, round-robin, Auto-combo, and more). Configure fallback chains, test routing outcomes, and retrieve combo metrics.",
     category: "api",
     area: "combos-routing",
     icon: "route",
@@ -212,7 +212,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     id: "omni-mcp",
     name: "MCP Server",
     description:
-      "Connect to the OmniRoute MCP server (37 tools, 3 transports: SSE/stdio/HTTP). Covers routing, cache, compression, memory, skills, providers, and audit tools across 16 permission scopes.",
+      "Connect to the OmniRoute MCP server (107 tools, 3 transports: SSE/stdio/HTTP). Covers routing, cache, compression, memory, skills, providers, and audit tools across 32 permission scopes.",
     category: "api",
     area: "mcp",
     icon: "electrical_services",
@@ -245,7 +245,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     icon: "hub",
   },
 
-  // ── CLI Skills (20) ──────────────────────────────────────────────────────────
+  // ── CLI Skills (21) ──────────────────────────────────────────────────────────
 
   {
     id: "cli-serve",
@@ -457,7 +457,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     id: "omni-github-skills",
     name: "GitHub Skill Discovery",
     description:
-      "Search, score, scan, and import agent skills from GitHub repositories that contain SKILL.md, CLAUDE.md, .cursorrules, and similar agent skill files. Discover community skills across 160+ provider categories, evaluate relevance with heuristic scoring, check for malware or hardcoded secrets, and install into Hermes, Claude Code, Gemini CLI, or OpenCode agent directories.",
+      "Search, score, scan, and import agent skills from GitHub repositories that contain SKILL.md, CLAUDE.md, .cursorrules, and similar agent skill files. Discover community skills across many tool and provider categories, evaluate relevance with heuristic scoring, check for malware or hardcoded secrets, and install into Hermes, Claude Code, Gemini CLI, or OpenCode agent directories.",
     category: "api",
     area: "github-skills",
     icon: "explore",

@@ -105,7 +105,7 @@ Resolves the request to a concrete `(provider, model, account, credentials)` tup
 
 For `auto/*` models, this stage also:
 
-- Runs the **9-factor scoring** algorithm (`services/autoCombo/`)
+- Runs the **13-factor scoring** algorithm (`services/autoCombo/`)
 - Selects a `provider+model` pair based on health, cost, latency, etc.
 
 ### Stage 2: Translate (translator/)
@@ -228,7 +228,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Supports **17 routing strategies** (see `src/shared/constants/routingStrategies.ts`):
+Supports **19 routing strategies** (see `src/shared/constants/routingStrategies.ts`):
 
 | Strategy            | Behavior                                                                  |
 | ------------------- | ------------------------------------------------------------------------- |
@@ -245,7 +245,7 @@ Supports **17 routing strategies** (see `src/shared/constants/routingStrategies.
 | `reset-window`      | Reset window-based routing                                                |
 | `headroom`          | Most remaining quota headroom first                                       |
 | `strict-random`     | Truly uniform (no quality weighting)                                      |
-| `auto`              | Use 9-factor scoring (`autoCombo/`)                                       |
+| `auto`              | Use 13-factor scoring (`autoCombo/`)                                      |
 | `lkgp`              | Last known good provider first                                            |
 | `context-optimized` | Best for long-context requests                                            |
 | `fusion`            | Fan out to a panel in parallel, then synthesize via a judge (`fusion.ts`) |
@@ -280,7 +280,7 @@ Services are **focused, single-purpose modules** that handlers compose. The big 
 ### Routing & Combo
 
 - `combo.ts` — entry point for combo-routed requests
-- `services/autoCombo/` — 9-factor scoring, 8 auto routing strategies
+- `services/autoCombo/` — 13-factor scoring, 8 auto routing strategies
 - `wildcardRouter.ts` — matches wildcard routes (`gpt-*`)
 - `modelFamilyFallback.ts` — T5 intra-family fallback
 
@@ -368,7 +368,7 @@ const result = await executor.execute({
 });
 ````
 
-The factory is generated from `config/providerRegistry.ts` which lists all 212+ providers and their executor class.
+The factory covers all **329 provider catalog entries** through shared defaults and **89 executor implementation modules**. Most OpenAI-compatible providers use `DefaultExecutor`; specialized modules override only the behavior that differs.
 
 ---
 
@@ -406,9 +406,9 @@ Common translations:
 
 `open-sse/mcp-server/` implements the **Model Context Protocol** server:
 
-- **30+ tools** (provider management, combos, memory, cache, compression, 1proxy, skills)
+- **107 deduplicated tools** (provider management, combos, memory, cache, compression, 1proxy, skills)
 - **3 transports**: stdio, SSE, Streamable HTTP
-- **13 scopes** for fine-grained authorization
+- **32 scopes** for fine-grained authorization
 
 ### Tool Registration
 
@@ -487,7 +487,7 @@ This handles:
 
 | File                          | Purpose                           |
 | ----------------------------- | --------------------------------- |
-| `providerRegistry.ts`         | 212+ provider definitions         |
+| `providerRegistry.ts`         | 329 provider catalog entries      |
 | `providerModels.ts`           | Model aliases, format mapping     |
 | `constants.ts`                | Timeouts, limits, status codes    |
 | `defaultThinkingSignature.ts` | Default Claude thinking signature |
@@ -570,7 +570,7 @@ The routing engine has strict performance budgets:
 - [ARCHITECTURE.md](../architecture/ARCHITECTURE.md) — high-level architecture
 - [CODEBASE_DOCUMENTATION.md](../architecture/CODEBASE_DOCUMENTATION.md) — engineering reference
 - [REPOSITORY_MAP.md](../architecture/REPOSITORY_MAP.md) — directory-by-directory
-- [AUTO-COMBO.md](../routing/AUTO-COMBO.md) — 9-factor scoring
+- [AUTO-COMBO.md](../routing/AUTO-COMBO.md) — 13-factor scoring
 - [MCP-SERVER.md](./MCP-SERVER.md) — MCP server
 - [A2A-SERVER.md](./A2A-SERVER.md) — A2A server
 - Source: `open-sse/` (400+ files, ~143K LOC)

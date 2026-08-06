@@ -18,7 +18,7 @@ OmniRoute 控制台各功能区的可视化指南。
 
 v3.7.x → v3.8.0 版本周期引入了零配置自动路由、新的服务商、OAuth 流程、更深度的容灾能力，以及大幅增强的 CLI 体验。以下是主要功能——完整细节见下文及链接的规范文档。
 
-- 🤖 **Auto Combo / 零配置自动路由** — 使用 `auto/coding`、`auto/fast`、`auto/cheap`、`auto/offline`、`auto/smart`、`auto/lkgp` 前缀。背后是 9 因子评分引擎和 4 个精选**模式包**（快速交付、成本优先、质量优先、离线友好）
+- 🤖 **Auto Combo / 零配置自动路由** — 使用 `auto/coding`、`auto/fast`、`auto/cheap`、`auto/offline`、`auto/smart`、`auto/lkgp` 前缀。背后是 13 因子评分引擎和 4 个精选**模式包**（快速交付、成本优先、质量优先、离线友好）
 - 🆕 **Command Code 服务商** (#2199) — 一线注册，含模型目录和配额追踪
 - 🆕 **Z.AI 服务商** — 新增免费层服务商，带配额标签
 - 🎬 **KIE 媒体扩展** — 扩展目录，包含视频生成模型
@@ -61,7 +61,7 @@ OpenRouter 连接可以在 高级设置 中存储每个连接的 `preset`。设�
 
 ## 🎨 Combo
 
-使用 17 种策略创建模型路由 Combo：priority、weighted、fill-first、round-robin、p2c（power-of-two-choices）、random、least-used、cost-optimized、reset-aware、reset-window、headroom、strict-random、auto、lkgp（last-known-good-provider）、context-optimized、context-relay，以及 **fusion**（并行扇出到一组模型，然后通过评判模型合成一个答案）。每个 Combo 将多个模型串联起来，具备自动容灾能力，并包含快速模板和就绪检查。
+使用 19 种公开策略创建模型路由 Combo：priority、weighted、round-robin、context-relay、fill-first、p2c（power-of-two-choices）、random、least-used、cost-optimized、reset-aware、reset-window、headroom、strict-random、auto、lkgp（last-known-good-provider）、context-optimized、cache-optimized、**fusion**（并行扇出到一组模型，然后通过评判模型合成一个答案）以及 **pipeline**。每个 Combo 将多个模型串联起来，具备自动容灾能力，并包含快速模板和就绪检查。
 
 最近的 Combo 改进：
 

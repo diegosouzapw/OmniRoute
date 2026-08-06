@@ -39,22 +39,22 @@ npm run test:all
 
 ## परियोजना एक नज़र में
 
-**OmniRoute** — एकीकृत AI प्रॉक्सी/राउटर। एक एंडपॉइंट, 160+ LLM प्रदाता, स्वचालित फॉलबैक।
+**OmniRoute** — एकीकृत AI प्रॉक्सी/राउटर। एक एंडपॉइंट, 329 LLM प्रदाता, स्वचालित फॉलबैक।
 
-| परत          | स्थान                   | उद्देश्य                                                   |
-| ------------ | ----------------------- | ---------------------------------------------------------- |
-| API रूट्स    | `src/app/api/v1/`       | Next.js ऐप राउटर — प्रवेश बिंदु                            |
-| हैंडलर्स     | `open-sse/handlers/`    | अनुरोध प्रसंस्करण (चैट, एम्बेडिंग, आदि)                    |
-| निष्पादक     | `open-sse/executors/`   | प्रदाता-विशिष्ट HTTP डिस्पैच                               |
-| अनुवादक      | `open-sse/translator/`  | प्रारूप रूपांतरण (OpenAI↔Claude↔Gemini)                    |
-| ट्रांसफार्मर | `open-sse/transformer/` | प्रतिक्रियाएँ API ↔ चैट पूर्णता                            |
-| सेवाएँ       | `open-sse/services/`    | कॉम्बो राउटिंग, दर सीमाएँ, कैशिंग, आदि                     |
-| डेटाबेस      | `src/lib/db/`           | SQLite डोमेन मॉड्यूल (45+ फ़ाइलें, 55 माइग्रेशन)           |
-| डोमेन/नीति   | `src/domain/`           | नीति इंजन, लागत नियम, फॉलबैक लॉजिक                         |
-| MCP सर्वर    | `open-sse/mcp-server/`  | 37 उपकरण (30 बेस + 3 मेमोरी + 4 कौशल), 3 परिवहन, ~13 स्कोप |
-| A2A सर्वर    | `src/lib/a2a/`          | JSON-RPC 2.0 एजेंट प्रोटोकॉल                               |
-| कौशल         | `src/lib/skills/`       | विस्तारित कौशल ढांचा                                       |
-| मेमोरी       | `src/lib/memory/`       | स्थायी संवादात्मक मेमोरी                                   |
+| परत          | स्थान                   | उद्देश्य                                                                  |
+| ------------ | ----------------------- | ------------------------------------------------------------------------- |
+| API रूट्स    | `src/app/api/v1/`       | Next.js ऐप राउटर — प्रवेश बिंदु                                           |
+| हैंडलर्स     | `open-sse/handlers/`    | अनुरोध प्रसंस्करण (चैट, एम्बेडिंग, आदि)                                   |
+| निष्पादक     | `open-sse/executors/`   | प्रदाता-विशिष्ट HTTP डिस्पैच                                              |
+| अनुवादक      | `open-sse/translator/`  | प्रारूप रूपांतरण (OpenAI↔Claude↔Gemini)                                   |
+| ट्रांसफार्मर | `open-sse/transformer/` | प्रतिक्रियाएँ API ↔ चैट पूर्णता                                           |
+| सेवाएँ       | `open-sse/services/`    | कॉम्बो राउटिंग, दर सीमाएँ, कैशिंग, आदि                                    |
+| डेटाबेस      | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| डोमेन/नीति   | `src/domain/`           | नीति इंजन, लागत नियम, फॉलबैक लॉजिक                                        |
+| MCP सर्वर    | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2A सर्वर    | `src/lib/a2a/`          | JSON-RPC 2.0 एजेंट प्रोटोकॉल                                              |
+| कौशल         | `src/lib/skills/`       | विस्तारित कौशल ढांचा                                                      |
+| मेमोरी       | `src/lib/memory/`       | स्थायी संवादात्मक मेमोरी                                                  |
 
 मोनोरेपो: `src/` (Next.js 16 ऐप), `open-sse/` (स्ट्रीमिंग इंजन कार्यक्षेत्र), `electron/` (डेस्कटॉप ऐप), `tests/`, `bin/` (CLI प्रवेश बिंदु)।
 
@@ -76,7 +76,7 @@ Client → /v1/chat/completions (Next.js route)
 
 API रूट एक सुसंगत पैटर्न का पालन करते हैं: `Route → CORS preflight → Zod body validation → Optional auth (extractApiKey/isValidApiKey) → API key policy enforcement → Handler delegation (open-sse)`। कोई वैश्विक Next.js मिडलवेयर नहीं — इंटरसेप्शन रूट-विशिष्ट है।
 
-**कॉम्बो रूटिंग** (`open-sse/services/combo.ts`): 14 रणनीतियाँ (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, reset-aware, strict-random, auto, lkgp, context-optimized, context-relay)। प्रत्येक लक्ष्य `handleSingleModel()` को कॉल करता है जो `handleChatCore()` को प्रति-लक्ष्य त्रुटि हैंडलिंग और सर्किट ब्रेकर जांच के साथ लपेटता है। 9-फैक्टर Auto-Combo स्कोरिंग के लिए `docs/routing/AUTO-COMBO.md` देखें और 3 लचीलापन परतों के लिए `docs/architecture/RESILIENCE_GUIDE.md` देखें।
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -358,7 +358,9 @@ git push -u origin feat/your-feature
 
 ## वातावरण
 
-- **रनटाइम**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES मॉड्यूल
+- **रनटाइम**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, ES मॉड्यूल
 - **TypeScript**: 5.9+, लक्ष्य ES2022, मॉड्यूल esnext, समाधान बंडलर
 - **पथ उपनाम**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **डिफ़ॉल्ट पोर्ट**: 20128 (API + डैशबोर्ड एक ही पोर्ट पर)

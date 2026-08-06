@@ -47,7 +47,7 @@ Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer
 | **OAuth 2.0 + PKCE** | Secure provider auth (Claude, Codex, Gemini, Cursor, etc.) |
 | **Token Refresh**    | Automatic OAuth token refresh before expiry                |
 | **Secure Cookies**   | `AUTH_COOKIE_SECURE=true` for HTTPS environments           |
-| **MCP Scopes**       | 10 granular scopes for MCP tool access control             |
+| **MCP Scopes**       | 32 granular scopes for MCP tool access control             |
 
 ### 🛡️ Encryption at Rest
 

@@ -38,6 +38,10 @@ function CoverageBarSkeleton(): JSX.Element {
         <div className="h-2 w-16 rounded bg-bg-subtle" />
         <div className="flex-1 h-2 rounded bg-bg-subtle" />
       </div>
+      <div className="flex gap-2">
+        <div className="h-2 w-16 rounded bg-bg-subtle" />
+        <div className="flex-1 h-2 rounded bg-bg-subtle" />
+      </div>
     </div>
   );
 }
@@ -189,8 +193,12 @@ export function AgentSkillsPageClient(): JSX.Element {
   });
 
   const selectedMarkdown = selectedId ? (markdownCache.get(selectedId) ?? null) : null;
-  const coverageTotal = coverage !== null ? coverage.api.have + coverage.cli.have : null;
-  const showGenerateButton = coverageTotal !== null && coverageTotal < 42;
+  const coverageTotal =
+    coverage !== null ? coverage.api.have + coverage.cli.have + coverage.config.have : null;
+  const catalogTotal =
+    coverage !== null ? coverage.api.total + coverage.cli.total + coverage.config.total : null;
+  const showGenerateButton =
+    coverageTotal !== null && catalogTotal !== null && coverageTotal < catalogTotal;
 
   return (
     <div className="flex flex-col gap-4">

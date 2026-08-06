@@ -54,7 +54,7 @@ results rather than trusting totals alone.
 At the recorded revision, the script scanned:
 
 - 3,830 tracked non-test source files;
-- 129 migration SQL files.
+- 130 migration SQL files.
 
 The source-file count is intentionally broad because the goal is to find persistence coupling that
 has escaped the nominal database directory, including CLI and proxy/runtime code.

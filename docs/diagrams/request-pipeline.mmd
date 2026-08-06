@@ -13,12 +13,12 @@ flowchart LR
   Cache -->|yes| Return["Return cached"]
   Cache -->|no| Rate["Rate limit<br/>(per-key, per-IP)"]
   Rate --> Combo{"Combo<br/>target?"}
-  Combo -->|combo| Resolve["resolveComboTargets<br/>(18 strategies)"]
+  Combo -->|combo| Resolve["resolveComboTargets<br/>(19 strategies)"]
   Resolve --> Single["handleSingleModel<br/>(per target)"]
   Combo -->|single| Single
   Single --> Translate["translateRequest<br/>(OpenAI↔Claude↔Gemini)"]
-  Translate --> Exec["getExecutor<br/>(31 executors)"]
-  Exec --> Upstream["Upstream Provider<br/>(177 providers)"]
+  Translate --> Exec["getExecutor<br/>(89 executor modules)"]
+  Exec --> Upstream["Upstream Provider<br/>(329 catalog entries)"]
   Upstream --> Stream["SSE / JSON"]
   Stream --> Transformer["responsesTransformer<br/>(Responses↔Chat)"]
   Transformer --> Client

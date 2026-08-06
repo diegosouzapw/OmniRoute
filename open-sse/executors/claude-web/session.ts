@@ -151,12 +151,12 @@ function makeAccountScope(input: PrepareClaudeWebTurnInput): string {
     ? `connection:${connectionId}`
     : `cookie:${hash(input.normalizedCookie)}`;
   return hash(
-    `${credentialScope}${String.fromCharCode(31)}${input.organizationId}${String.fromCharCode(31)}${input.model}`
+    `${credentialScope}${String.fromCharCode(32)}${input.organizationId}${String.fromCharCode(32)}${input.model}`
   );
 }
 
 function makeCacheKey(accountScope: string, messages: ReadonlyArray<NormalizedMessage>): string {
-  return hash(`${accountScope}${String.fromCharCode(31)}${canonicalizeTranscript(messages)}`);
+  return hash(`${accountScope}${String.fromCharCode(32)}${canonicalizeTranscript(messages)}`);
 }
 
 function lookupCache(key: string): CachedClaudeWebConversation | null {

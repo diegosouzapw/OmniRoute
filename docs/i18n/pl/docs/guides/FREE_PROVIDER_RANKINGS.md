@@ -15,7 +15,7 @@ lastUpdated: 2026-06-28
 
 ## Czym to jest
 
-OmniRoute agreguje 160+ providerów, z których wiele udostępnia **darmowy tier** (no-auth,
+OmniRoute agreguje 329 wpisów katalogu providerów, z których wiele udostępnia **darmowy tier** (no-auth,
 darmowy OAuth albo darmowy klucz API — zobacz
 [Przewodnik Free Tiers](../getting-started/FREE-TIERS-GUIDE.md) oraz pełny
 [katalog Free Tiers](../reference/FREE_TIERS.md)). Haczyk: darmowi providerzy różnią się
@@ -236,7 +236,7 @@ providera, który oferuje przynajmniej jeden silny darmowy model.
    `user_override → arena_elo → models_dev_tier → static table`). Po podłączeniu
    top darmowych providerów routing z `model: "auto"` (np. `auto/coding`) będzie
    automatycznie preferował wyższej jakości darmowe modele per żądanie. Zobacz
-   [Auto-Combo](../routing/AUTO-COMBO.md) po pełny scoring 9-czynnikowy.
+   [Auto-Combo](../routing/AUTO-COMBO.md) po pełny scoring 13-czynnikowy.
 
 ---
 
@@ -246,7 +246,7 @@ providera, który oferuje przynajmniej jeden silny darmowy model.
   providerów, bez karty kredytowej.
 - [Katalog Free Tiers](../reference/FREE_TIERS.md) — pełny katalog darmowych providerów
   i ich limitów.
-- [Auto-Combo](../routing/AUTO-COMBO.md) — 9-czynnikowy silnik routingu, który konsumuje te
+- [Auto-Combo](../routing/AUTO-COMBO.md) — 13-czynnikowy silnik routingu, który konsumuje te
   same dane task-fitness Arena ELO.
 - [Zmienne środowiskowe](../reference/ENVIRONMENT.md) — referencja `ARENA_ELO_SYNC_ENABLED` /
   `ARENA_ELO_SYNC_INTERVAL`.

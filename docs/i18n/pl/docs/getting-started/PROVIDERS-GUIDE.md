@@ -70,16 +70,17 @@ Te providery oferują **darmowy dostęp** bez karty kredytowej:
 | Provider          | Darmowy limit     | Modele                                   | Jak połączyć       |
 | ----------------- | ----------------- | ---------------------------------------- | ------------------ |
 | **Kiro AI**       | 50 credits/mies.  | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Bez auth           |
-| **OpenCode Free** | Bez limitu        | GPT-4o, Claude, Gemini                   | Bez auth           |
+| **OpenCode Free** | Brak opublikowanego capu; limity obowiązują | GPT-4o, Claude, Gemini | Bez auth |
 | **Pollinations**  | Bez klucza        | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Bez auth           |
 | **LongCat**       | 10M jednorazowo   | LongCat-2.0                              | Klucz API + KYC    |
 | **Cloudflare AI** | 10K neurons/dzień | 50+ modeli                               | Bez auth           |
 | **NVIDIA NIM**    | ~40 RPM           | 129 modeli                               | Wymagany klucz API |
 | **Cerebras**      | 1M tokenów/dzień  | Qwen3 235B, GPT-OSS 120B                 | Wymagany klucz API |
-| **Qwen**          | Bez limitu        | Qwen3-coder-plus/flash/next              | Bez auth           |
-| **Qoder**         | Bez limitu        | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Bez auth           |
+| **Qwen**          | Brak opublikowanego capu; limity obowiązują | Qwen3-coder-plus/flash/next | Bez auth |
+| **Qoder**         | Brak opublikowanego capu; limity obowiązują | Kimi-K2, DeepSeek-R1, Qwen3-coder | Bez auth |
 
-**Wskazówka**: Podłącz kilka darmowych providerów, aby mieć **nieograniczone darmowe AI** z automatycznym fallbackiem!
+**Wskazówka**: Podłącz kilka darmowych providerów, aby zwiększyć pokrycie fallbacku.
+Brak opublikowanego limitu tokenów nie oznacza nieograniczonej dostępności.
 
 ---
 
@@ -145,7 +146,7 @@ OmniRoute działa najlepiej z **wieloma providerami**. Daje to:
 
 Podłącz co najmniej **3 providery**, aby uzyskać najlepsze doświadczenie:
 
-1. **Jeden darmowy provider** (Kiro, OpenCode Free lub Pollinations) — zawsze dostępny
+1. **Jeden provider z bieżącym dostępem bezpłatnym** (Kiro, OpenCode Free lub Pollinations) — limity i dostępność upstreamu obowiązują
 2. **Jeden szybki provider** (Groq, Cerebras) — do szybkich odpowiedzi
 3. **Jeden provider jakości** (OpenAI, Anthropic, Google) — do złożonych zadań
 
@@ -220,4 +221,4 @@ Przejdź do Providers → kliknij providera → kliknij **Disconnect**.
 - **[Auto-Combo Guide](./AUTO-COMBO-GUIDE.md)** — pozwól OmniRoute wybrać najlepsze AI za Ciebie
 - **[Free Tiers Guide](./FREE-TIERS-GUIDE.md)** — darmowe AI bez karty kredytowej
 - **[Troubleshooting](./TROUBLESHOOTING.md)** — rozwiązywanie typowych problemów
-- **[Provider Reference](../reference/PROVIDER_REFERENCE.md)** — pełna lista 226 providerów
+- **[Provider Reference](../reference/PROVIDER_REFERENCE.md)** — pełna lista 329 wpisów providerów

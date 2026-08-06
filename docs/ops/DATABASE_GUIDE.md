@@ -78,16 +78,16 @@ DATA_DIR=/custom/path omniroute
 
 ## Domain Module Architecture
 
-OmniRoute's database has **94 domain modules** in `src/lib/db/`. Each module:
+OmniRoute's database has **110 top-level TypeScript modules** in `src/lib/db/`. Each domain module:
 
 - Owns one or more specific tables
 - Exports typed CRUD functions
 - Never touches another module's tables
 - Uses `getDbInstance()` from `core.ts` to access the DB
 
-### The 94 DB Modules
+### The 110 Top-Level DB Modules
 
-OmniRoute has **94 module files** in `src/lib/db/`. Below is a sampling of core modules; see the directory listing for the complete list:
+OmniRoute has **110 top-level TypeScript files** in `src/lib/db/`. Below is a sampling of core modules; see the directory listing for the complete list:
 
 | Module                  | Tables                                                         | Responsibility                                                            |
 | ----------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------- |

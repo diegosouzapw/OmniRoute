@@ -2,6 +2,8 @@
  * APIKEY provider catalog — gateways family (aggregators, multi-model routers & API marketplaces).
  * Pure data; merged by apikey/index.ts via spread (god-file decomposition; semantic split).
  */
+import { APIKEY_PROVIDERS_AUDITED_FREE } from "./audited-free-gateways";
+
 export const APIKEY_PROVIDERS_GATEWAYS = {
   // Cheaper Inference (https://cheaperinference.com) — OSS-sponsor gateway.
   // Cost-ranked reseller of 42 upstream models (Anthropic/OpenAI/Google/Moonshot/
@@ -45,17 +47,6 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     freeNote: "$200 free credits on signup - multi-model routing gateway",
     apiHint: "Get $200 free credits at https://agentrouter.org/register — no credit card required.",
   },
-  unorouter: {
-    id: "unorouter",
-    alias: "unorouter",
-    name: "UnoRouter",
-    icon: "unorouter",
-    color: "#8B5CF6",
-    textIcon: "UR",
-    passthroughModels: true,
-    website: "https://unorouter.ai",
-    apiHint: "Create an API key at https://unorouter.ai, then paste it here as a Bearer token.",
-  },
   "command-code": {
     id: "command-code",
     alias: "cmd",
@@ -95,6 +86,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
       "Create an API key at https://app.requesty.ai, then paste it here as a Bearer token. " +
       "OpenAI-compatible endpoint at https://router.requesty.ai/v1, with a live /v1/models catalog.",
   },
+  ...APIKEY_PROVIDERS_AUDITED_FREE,
   dgrid: {
     id: "dgrid",
     alias: "dgrid",

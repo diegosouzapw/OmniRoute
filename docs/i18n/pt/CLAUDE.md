@@ -39,22 +39,22 @@ Para a matriz de testes completa, consulte `CONTRIBUTING.md` → "Execução de 
 
 ## Projeto em Resumo
 
-**OmniRoute** — proxy/router de IA unificado. Um endpoint, 160+ fornecedores de LLM, fallback automático.
+**OmniRoute** — proxy/router de IA unificado. Um endpoint, 329 fornecedores de LLM, fallback automático.
 
-| Camada           | Localização             | Propósito                                                                        |
-| ---------------- | ----------------------- | -------------------------------------------------------------------------------- |
-| Rotas API        | `src/app/api/v1/`       | Next.js App Router — pontos de entrada                                           |
-| Manipuladores    | `open-sse/handlers/`    | Processamento de pedidos (chat, embeddings, etc)                                 |
-| Executores       | `open-sse/executors/`   | Despacho HTTP específico do fornecedor                                           |
-| Tradutores       | `open-sse/translator/`  | Conversão de formato (OpenAI↔Claude↔Gemini)                                      |
-| Transformador    | `open-sse/transformer/` | API de respostas ↔ Completações de Chat                                          |
-| Serviços         | `open-sse/services/`    | Roteamento combinado, limites de taxa, caching, etc                              |
-| Base de Dados    | `src/lib/db/`           | Módulos de domínio SQLite (45+ ficheiros, 55 migrações)                          |
-| Domínio/Política | `src/domain/`           | Motor de políticas, regras de custo, lógica de fallback                          |
-| Servidor MCP     | `open-sse/mcp-server/`  | 37 ferramentas (30 base + 3 memória + 4 habilidades), 3 transportes, ~13 âmbitos |
-| Servidor A2A     | `src/lib/a2a/`          | Protocolo de agente JSON-RPC 2.0                                                 |
-| Habilidades      | `src/lib/skills/`       | Estrutura de habilidades extensível                                              |
-| Memória          | `src/lib/memory/`       | Memória conversacional persistente                                               |
+| Camada           | Localização             | Propósito                                                                 |
+| ---------------- | ----------------------- | ------------------------------------------------------------------------- |
+| Rotas API        | `src/app/api/v1/`       | Next.js App Router — pontos de entrada                                    |
+| Manipuladores    | `open-sse/handlers/`    | Processamento de pedidos (chat, embeddings, etc)                          |
+| Executores       | `open-sse/executors/`   | Despacho HTTP específico do fornecedor                                    |
+| Tradutores       | `open-sse/translator/`  | Conversão de formato (OpenAI↔Claude↔Gemini)                               |
+| Transformador    | `open-sse/transformer/` | API de respostas ↔ Completações de Chat                                   |
+| Serviços         | `open-sse/services/`    | Roteamento combinado, limites de taxa, caching, etc                       |
+| Base de Dados    | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| Domínio/Política | `src/domain/`           | Motor de políticas, regras de custo, lógica de fallback                   |
+| Servidor MCP     | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| Servidor A2A     | `src/lib/a2a/`          | Protocolo de agente JSON-RPC 2.0                                          |
+| Habilidades      | `src/lib/skills/`       | Estrutura de habilidades extensível                                       |
+| Memória          | `src/lib/memory/`       | Memória conversacional persistente                                        |
 
 Monorepo: `src/` (aplicação Next.js 16), `open-sse/` (espaço de trabalho do motor de streaming), `electron/` (aplicação de desktop), `tests/`, `bin/` (ponto de entrada CLI).
 
@@ -76,7 +76,7 @@ Cliente → /v1/chat/completions (rota Next.js)
 
 As rotas da API seguem um padrão consistente: `Rota → pré-vôo CORS → validação do corpo Zod → Autenticação opcional (extractApiKey/isValidApiKey) → aplicação da política da chave da API → delegação do manipulador (open-sse)`. Não há middleware global do Next.js — a intercepção é específica da rota.
 
-**Roteamento combinado** (`open-sse/services/combo.ts`): 14 estratégias (prioridade, ponderada, preenchimento-primeiro, round-robin, P2C, aleatório, menos-usado, otimizado por custo, ciente de reset, aleatório-rígido, automático, lkgp, otimizado por contexto, retransmissão de contexto). Cada alvo chama `handleSingleModel()` que envolve `handleChatCore()` com tratamento de erro por alvo e verificações de disjuntor. Veja `docs/routing/AUTO-COMBO.md` para a pontuação Auto-Combo de 9 fatores e `docs/architecture/RESILIENCE_GUIDE.md` para as 3 camadas de resiliência.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -298,7 +298,7 @@ Para qualquer alteração não trivial, leia primeiro a análise correspondente:
 | Navegação no repositório                            | `docs/architecture/REPOSITORY_MAP.md`                             |
 | Arquitetura                                         | `docs/architecture/ARCHITECTURE.md`                               |
 | Referência de engenharia                            | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (pontuação de 9 fatores, 14 estratégias) | `docs/routing/AUTO-COMBO.md`                                      |
+| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md` |
 | Resiliência (3 mecanismos)                          | `docs/architecture/RESILIENCE_GUIDE.md`                           |
 | Repetição de raciocínio                             | `docs/routing/REASONING_REPLAY.md`                                |
 | Estrutura de competências                           | `docs/frameworks/SKILLS.md`                                       |
@@ -364,7 +364,9 @@ git push -u origin feat/your-feature
 
 ## Ambiente
 
-- **Tempo de execução**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, Módulos ES
+- **Tempo de execução**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, Módulos ES
 - **TypeScript**: 5.9+, alvo ES2022, módulo esnext, resolução bundler
 - **Aliases de caminho**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Porta padrão**: 20128 (API + dashboard na mesma porta)

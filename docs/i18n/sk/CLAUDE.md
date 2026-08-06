@@ -39,22 +39,22 @@ Pre úplnú testovaciu maticu pozrite `CONTRIBUTING.md` → "Spúšťanie testov
 
 ## Projekt na prvý pohľad
 
-**OmniRoute** — unified AI proxy/router. Jeden koncový bod, 160+ poskytovateľov LLM, automatické zálohovanie.
+**OmniRoute** — unified AI proxy/router. Jeden koncový bod, 329 poskytovateľov LLM, automatické zálohovanie.
 
-| Vrstva        | Umiestnenie             | Účel                                                                          |
-| ------------- | ----------------------- | ----------------------------------------------------------------------------- |
-| API Routes    | `src/app/api/v1/`       | Next.js App Router — vstupné body                                             |
-| Handlers      | `open-sse/handlers/`    | Spracovanie požiadaviek (chat, embeddings, atď.)                              |
-| Executors     | `open-sse/executors/`   | HTTP dispatch špecifický pre poskytovateľa                                    |
-| Translators   | `open-sse/translator/`  | Konverzia formátu (OpenAI↔Claude↔Gemini)                                      |
-| Transformer   | `open-sse/transformer/` | API odpovedí ↔ Chat Completions                                               |
-| Services      | `open-sse/services/`    | Kombinované smerovanie, obmedzenia rýchlosti, caching, atď.                   |
-| Database      | `src/lib/db/`           | SQLite doménové moduly (45+ súborov, 55 migrácií)                             |
-| Domain/Policy | `src/domain/`           | Engin politiky, pravidlá nákladov, logika zálohovania                         |
-| MCP Server    | `open-sse/mcp-server/`  | 37 nástrojov (30 základných + 3 pamäť + 4 zručnosti), 3 prenosy, ~13 rozsahov |
-| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protokol                                                   |
-| Skills        | `src/lib/skills/`       | Rozšíriteľný rámec zručností                                                  |
-| Memory        | `src/lib/memory/`       | Trvalá konverzačná pamäť                                                      |
+| Vrstva        | Umiestnenie             | Účel                                                                      |
+| ------------- | ----------------------- | ------------------------------------------------------------------------- |
+| API Routes    | `src/app/api/v1/`       | Next.js App Router — vstupné body                                         |
+| Handlers      | `open-sse/handlers/`    | Spracovanie požiadaviek (chat, embeddings, atď.)                          |
+| Executors     | `open-sse/executors/`   | HTTP dispatch špecifický pre poskytovateľa                                |
+| Translators   | `open-sse/translator/`  | Konverzia formátu (OpenAI↔Claude↔Gemini)                                  |
+| Transformer   | `open-sse/transformer/` | API odpovedí ↔ Chat Completions                                           |
+| Services      | `open-sse/services/`    | Kombinované smerovanie, obmedzenia rýchlosti, caching, atď.               |
+| Database      | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| Domain/Policy | `src/domain/`           | Engin politiky, pravidlá nákladov, logika zálohovania                     |
+| MCP Server    | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protokol                                               |
+| Skills        | `src/lib/skills/`       | Rozšíriteľný rámec zručností                                              |
+| Memory        | `src/lib/memory/`       | Trvalá konverzačná pamäť                                                  |
 
 Monorepo: `src/` (Next.js 16 aplikácia), `open-sse/` (pracovisko streaming engine), `electron/` (desktopová aplikácia), `tests/`, `bin/` (CLI vstupný bod).
 
@@ -76,7 +76,7 @@ Klient → /v1/chat/completions (Next.js trasa)
 
 API trasy nasledujú konzistentný vzor: `Trasa → CORS preflight → Zod validácia tela → Voliteľná autentifikácia (extractApiKey/isValidApiKey) → Vynucovanie politiky API kľúča → Delegovanie handlera (open-sse)`. Žiadne globálne Next.js middleware — interceptácia je špecifická pre trasu.
 
-**Combo routing** (`open-sse/services/combo.ts`): 14 stratégií (priorita, vážené, fill-first, round-robin, P2C, náhodné, najmenej používané, optimalizované náklady, reset-aware, strict-random, auto, lkgp, optimalizované pre kontext, kontext-relay). Každý cieľ volá `handleSingleModel()`, ktorý obalí `handleChatCore()` s chybovým spracovaním pre každý cieľ a kontrolami obvodu. Pozrite sa na `docs/routing/AUTO-COMBO.md` pre 9-faktorové hodnotenie Auto-Combo a `docs/architecture/RESILIENCE_GUIDE.md` pre 3 vrstvy odolnosti.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -320,7 +320,7 @@ Pre akúkoľvek netriviálnu zmenu si najprv prečítajte zodpovedajúci hĺbkov
 | Navigácia v repozitári                            | `docs/architecture/REPOSITORY_MAP.md`                             |
 | Architektúra                                      | `docs/architecture/ARCHITECTURE.md`                               |
 | Referencia inžinierstva                           | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (9-faktorové hodnotenie, 14 stratégií) | `docs/routing/AUTO-COMBO.md`                                      |
+| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md` |
 | Odolnosť (3 mechanizmy)                           | `docs/architecture/RESILIENCE_GUIDE.md`                           |
 | Opakovanie uvažovania                             | `docs/routing/REASONING_REPLAY.md`                                |
 | Rámec zručností                                   | `docs/frameworks/SKILLS.md`                                       |
@@ -384,7 +384,9 @@ git push -u origin feat/your-feature
 
 ## Prostredie
 
-- **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES moduly
+- **Runtime**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, ES moduly
 - **TypeScript**: 5.9+, cieľ ES2022, modul esnext, rozlíšenie bundler
 - **Cestné aliasy**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Predvolený port**: 20128 (API + dashboard na rovnakom porte)

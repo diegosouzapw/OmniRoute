@@ -125,7 +125,7 @@ automatycznie, bez żadnej etykiety.
 - [ ] `npm run test:vitest` — pass (MCP server, autoCombo, cache)
 - [ ] `npm run test:coverage` — bramka 60/60/60/60 spełniona (statements/lines/functions/branches)
 - [ ] `npm run test:integration` — pass (jeśli zmiany dotykają DB / handlerów)
-- [ ] `npm run test:combo:matrix` — pass (macierz strategii combo: deterministycznie dowodzi decyzji selekcji wszystkich 17 strategii routingu; uruchamiaj przy zmianach combo routing, strategy resolution lub logiki fallback)
+- [ ] `npm run test:combo:matrix` — pass (macierz strategii combo: deterministycznie dowodzi decyzji selekcji wszystkich 19 publicznych strategii routingu; uruchamiaj przy zmianach combo routing, strategy resolution lub logiki fallback)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **opcjonalne/ręczne** (bramkowany smoke na realnym upstreamie; bierze snapshot DB tylko do odczytu z VPS `root@192.168.0.15`; uderza w realnych providerów, zużywa kredyty; nigdy nie biegnie w CI; bez bramki pomija się czysto)
 - [ ] `npm run test:combo:live:vps` — **opcjonalne/ręczne** (Phase-3 VPS live smoke: 7 scenariuszy HTTP przeciw żywemu serwerowi `.15` przez plain Node ESM; wymaga `ssh root@192.168.0.15`; tworzy/usuwa tylko combo `__live_test__*`; uderza w realnych providerów; nigdy nie biegnie w CI)
 - [ ] `npm run test:e2e` — pass (zmiany UI)
@@ -170,7 +170,7 @@ Breaking changes: dodaj stopkę `BREAKING CHANGE:` albo `!` po scope (np. `feat(
 
 - [ ] `npm run i18n:check` kończy się kodem 0 — stan tłumaczeń (`.i18n-state.json`) zsynchronizowany ze źródłowymi docs (brak dryfujących źródeł w trybie strict; doradztwo warn-mode jest akceptowalne przy last-minute poprawkach docs, ale przed tagowaniem powinno być 0)
 - [ ] `npm run i18n:check-ui-coverage` kończy się kodem 0 — każdy locale UI na lub powyżej progu pokrycia 80%
-- [ ] `npm run i18n:sync-ui:dry` raportuje 0 brakujących kluczy we wszystkich 42 locale
+- [ ] `npm run i18n:sync-ui:dry` raportuje 0 brakujących kluczy we wszystkich 43 locale
 - [ ] Jeśli źródłowe angielskie docs się zmieniły, uruchom `npm run i18n:run` (wymaga `OMNIROUTE_TRANSLATION_API_KEY` w `.env`) przed tagowaniem
 - [ ] Wkłady tłumaczeniowe można odłożyć na następne wydanie, jeśli drobne (śledź w CHANGELOG)
 

@@ -37,22 +37,22 @@ echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 
 开发环境关键变量：
 
-| 变量                     | 开发环境默认值           | 说明               |
-| ------------------------ | ------------------------ | ------------------ |
-| `PORT`                   | `20128`                  | 服务器端口         |
-| `NEXT_PUBLIC_BASE_URL`   | `http://localhost:20128` | 前端 Base URL      |
-| `JWT_SECRET`             | （通过上方命令生成）     | JWT 签名密钥       |
-| `INITIAL_PASSWORD`       | `CHANGEME`               | 首次登录密码       |
-| `APP_LOG_LEVEL`          | `info`                   | 日志详细级别       |
+| 变量                   | 开发环境默认值           | 说明          |
+| ---------------------- | ------------------------ | ------------- |
+| `PORT`                 | `20128`                  | 服务器端口    |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | 前端 Base URL |
+| `JWT_SECRET`           | （通过上方命令生成）     | JWT 签名密钥  |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | 首次登录密码  |
+| `APP_LOG_LEVEL`        | `info`                   | 日志详细级别  |
 
 ### 控制台设置
 
 控制台为部分功能提供了界面开关，这些功能也可通过环境变量配置：
 
-| 设置位置       | 开关               | 说明                         |
-| -------------- | ------------------ | ---------------------------- |
-| 设置 → 高级    | 调试模式           | 启用调试请求日志（界面端）   |
-| 设置 → 常规    | 侧边栏可见性       | 显示/隐藏侧边栏分区          |
+| 设置位置    | 开关         | 说明                       |
+| ----------- | ------------ | -------------------------- |
+| 设置 → 高级 | 调试模式     | 启用调试请求日志（界面端） |
+| 设置 → 常规 | 侧边栏可见性 | 显示/隐藏侧边栏分区        |
 
 这些设置存储在数据库中，重启后仍然有效，设置后会覆盖环境变量的默认值。
 
@@ -75,11 +75,11 @@ PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 
 ### 构建产物布局
 
-| 目录      | 内容                                                                         | 版本追踪 |
-| --------- | ---------------------------------------------------------------------------- | -------- |
-| `src/`    | 应用源码（TypeScript / TSX）                                                 | 是       |
-| `.build/` | 中间产物 — `next build` 输出（已 gitignore，`distDir = .build/next`）        | 否       |
-| `dist/`   | 可交付的打包产物 — 由 `assembleStandalone` 组装（已 gitignore）              | 否       |
+| 目录      | 内容                                                                  | 版本追踪 |
+| --------- | --------------------------------------------------------------------- | -------- |
+| `src/`    | 应用源码（TypeScript / TSX）                                          | 是       |
+| `.build/` | 中间产物 — `next build` 输出（已 gitignore，`distDir = .build/next`） | 否       |
+| `dist/`   | 可交付的打包产物 — 由 `assembleStandalone` 组装（已 gitignore）       | 否       |
 
 构建流水线为单次执行：
 
@@ -118,14 +118,14 @@ git push -u origin feat/your-feature-name
 
 ### 分支命名
 
-| 前缀        | 用途                   |
-| ----------- | ---------------------- |
-| `feat/`     | 新功能                 |
-| `fix/`      | Bug 修复               |
-| `refactor/` | 代码重构               |
-| `docs/`     | 文档修改               |
-| `test/`     | 测试新增/修复          |
-| `chore/`    | 工具链、CI、依赖项     |
+| 前缀        | 用途               |
+| ----------- | ------------------ |
+| `feat/`     | 新功能             |
+| `fix/`      | Bug 修复           |
+| `refactor/` | 代码重构           |
+| `docs/`     | 文档修改           |
+| `test/`     | 测试新增/修复      |
+| `chore/`    | 工具链、CI、依赖项 |
 
 ### 提交信息
 
@@ -241,7 +241,7 @@ src/                        # TypeScript（.ts / .tsx）
 │   ├── a2a/                # Agent-to-Agent v0.3 协议服务器
 │   ├── acp/                # Agent Communication Protocol 注册中心
 │   ├── compliance/         # 合规策略引擎
-│   ├── db/                 # SQLite 数据库层（21 个模块 + 16 次迁移）
+│   ├── db/                 # SQLite 数据库层（111 个顶层模块 + 131 次迁移）
 │   ├── memory/             # 持久化会话记忆
 │   ├── oauth/              # OAuth 服务商、服务与工具
 │   ├── skills/             # 可扩展技能框架
@@ -251,16 +251,16 @@ src/                        # TypeScript（.ts / .tsx）
 ├── mitm/                   # MITM 代理（证书、DNS、目标路由）
 ├── shared/
 │   ├── components/         # React 组件（.tsx）
-│   ├── constants/          # 服务商定义（177 个）、MCP 权限域、14 种路由策略
+│   ├── constants/          # 服务商定义（329 个）、MCP 权限域、19 种路由策略
 │   ├── utils/              # 熔断器、清洗器、认证辅助函数
 │   └── validation/         # Zod v4 Schema
 └── sse/                    # SSE 代理流水线
 
 open-sse/                   # @omniroute/open-sse 工作区
-├── executors/              # 14 个服务商专用请求执行器
+├── executors/              # 89 个执行器实现模块
 ├── handlers/               # 11 个请求处理器（chat、responses、embeddings、images 等）
-├── mcp-server/             # MCP Server（25 个工具、3 种传输、10 个权限域）
-├── services/               # 36+ 个服务（combo、autoCombo、rateLimitManager 等）
+├── mcp-server/             # MCP Server（107 个工具、3 种传输、32 个权限域）
+├── services/               # 179 个顶层服务（combo、autoCombo、rateLimitManager 等）
 ├── translator/             # 格式翻译器（OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama）
 ├── transformer/            # Responses API 变换器
 └── utils/                  # 22 个工具模块（stream、TLS、proxy、logging）

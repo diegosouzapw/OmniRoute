@@ -33,27 +33,27 @@ lastUpdated: 2026-06-28
 
 ## 💰 定价概览
 
-| 级别                     | 服务商            | 费用        | 配额重置      | 最佳用途              |
-| ------------------------ | ----------------- | ----------- | ------------- | --------------------- |
-| **💳 订阅制**            | Claude Code (Pro) | $20/月      | 5 小时 + 每周 | 已有订阅              |
-|                          | Codex (Plus/Pro)  | $20-200/月  | 5 小时 + 每周 | OpenAI 用户           |
-|                          | GitHub Copilot    | $10-19/月   | 每月          | GitHub 用户           |
-| **🔑 API Key**           | DeepSeek          | 按量付费    | 无            | 低成本推理            |
-|                          | Groq              | 按量付费    | 无            | 超高速推理            |
-|                          | xAI (Grok)        | 按量付费    | 无            | Grok 4 推理           |
-|                          | Mistral           | 按量付费    | 无            | 欧盟托管模型          |
-|                          | Perplexity        | 按量付费    | 无            | 搜索增强              |
-|                          | Together AI       | 按量付费    | 无            | 开源模型              |
-|                          | Fireworks AI      | 按量付费    | 无            | 快速 FLUX 图像生成    |
-|                          | Cerebras          | 按量付费    | 无            | 晶圆级速度            |
-|                          | Cohere            | 按量付费    | 无            | Command R+ RAG        |
-|                          | NVIDIA NIM        | 按量付费    | 无            | 企业级模型            |
-| **💰 经济型**            | GLM-4.7           | $0.6/1M     | 每日 10:00    | 预算备用              |
-|                          | MiniMax M2.1      | $0.2/1M     | 5 小时滑动窗口 | 最便宜选项            |
-|                          | Kimi K2           | $9/月 固定  | 10M Token/月   | 费用可预测            |
-| **🆓 免费**              | Qoder             | $0          | 无限制        | 8 个模型免费          |
-|                          | Qwen              | $0          | 无限制        | 3 个模型免费          |
-|                          | Kiro              | $0          | ~50 积分/月    | Claude 免费           |
+| 级别           | 服务商            | 费用       | 配额重置       | 最佳用途           |
+| -------------- | ----------------- | ---------- | -------------- | ------------------ |
+| **💳 订阅制**  | Claude Code (Pro) | $20/月     | 5 小时 + 每周  | 已有订阅           |
+|                | Codex (Plus/Pro)  | $20-200/月 | 5 小时 + 每周  | OpenAI 用户        |
+|                | GitHub Copilot    | $10-19/月  | 每月           | GitHub 用户        |
+| **🔑 API Key** | DeepSeek          | 按量付费   | 无             | 低成本推理         |
+|                | Groq              | 按量付费   | 无             | 超高速推理         |
+|                | xAI (Grok)        | 按量付费   | 无             | Grok 4 推理        |
+|                | Mistral           | 按量付费   | 无             | 欧盟托管模型       |
+|                | Perplexity        | 按量付费   | 无             | 搜索增强           |
+|                | Together AI       | 按量付费   | 无             | 开源模型           |
+|                | Fireworks AI      | 按量付费   | 无             | 快速 FLUX 图像生成 |
+|                | Cerebras          | 按量付费   | 无             | 晶圆级速度         |
+|                | Cohere            | 按量付费   | 无             | Command R+ RAG     |
+|                | NVIDIA NIM        | 按量付费   | 无             | 企业级模型         |
+| **💰 经济型**  | GLM-4.7           | $0.6/1M    | 每日 10:00     | 预算备用           |
+|                | MiniMax M2.1      | $0.2/1M    | 5 小时滑动窗口 | 最便宜选项         |
+|                | Kimi K2           | $9/月 固定 | 10M Token/月   | 费用可预测         |
+| **🆓 免费**    | Qoder             | $0         | 未公布 Token 上限；仍有服务商限制 | 8 个模型免费 |
+|                | Qwen              | $0         | 未公布 Token 上限；仍有服务商限制 | 3 个模型免费 |
+|                | Kiro              | $0         | ~50 积分/月    | Claude 免费        |
 
 ---
 
@@ -78,9 +78,9 @@ Combo: "maximize-claude"
 **问题：** 无法承担订阅费用，需要可靠的 AI 编程辅助
 
 ```
-Combo: "free-forever"
-  1. if/kimi-k2       (无限免费)
-  2. qw/qwen3-coder-plus       (无限免费)
+Combo: "free-tier-fallback"
+  1. if/kimi-k2       (未公布 Token 上限；限制仍适用)
+  2. qw/qwen3-coder-plus       (未公布 Token 上限；限制仍适用)
 
 每月费用：$0
 质量：生产级模型
@@ -108,9 +108,9 @@ Combo: "always-on"
 
 ```
 Combo: "openclaw-free"
-  1. if/qwen3-coder-plus       (无限免费)
-  2. if/deepseek-r1            (无限免费)
-  3. if/kimi-k2                (无限免费)
+  1. if/qwen3-coder-plus       (未公布 Token 上限；限制仍适用)
+  2. if/deepseek-r1            (未公布 Token 上限；限制仍适用)
+  3. if/kimi-k2                (未公布 Token 上限；限制仍适用)
 
 每月费用：$0
 访问途径：WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
@@ -206,7 +206,7 @@ Models:
 #### Qoder（8 个免费模型）
 
 ```bash
-Dashboard → Connect Qoder → OAuth login → Unlimited usage
+Dashboard → Connect Qoder → OAuth login → Access is subject to current provider limits
 
 Models: if/kimi-k2, if/qwen3-coder-plus, if/qwen3-max, if/qwen3-235b, if/deepseek-r1, if/deepseek-v3.2
 ```
@@ -244,10 +244,10 @@ Use in CLI: premium-coding
 ```
 Name: free-combo
 Models:
-  1. if/kimi-k2 (unlimited)
-  2. qw/coder-model (unlimited)
+  1. if/kimi-k2 (no published token cap; provider limits may apply)
+  2. qw/coder-model (no published token cap; provider limits may apply)
 
-Cost: $0 forever!
+Cost: currently listed as $0; terms and availability may change
 ```
 
 ---
@@ -348,10 +348,10 @@ CLI 自动从 `~/.omniroute/.env` 或 `./.env` 加载环境变量。
 
 当你不再需要 OmniRoute 时，我们提供了两个快速脚本来干净地移除：
 
-| 命令                      | 作用                                                             |
-| ------------------------- | ---------------------------------------------------------------- |
-| `npm run uninstall`       | 移除系统应用，但**保留 `~/.omniroute` 中的数据库和配置**         |
-| `npm run uninstall:full`  | 移除应用并**永久删除���有配置、密钥和数据库**                     |
+| 命令                     | 作用                                                     |
+| ------------------------ | -------------------------------------------------------- |
+| `npm run uninstall`      | 移除系统应用，但**保留 `~/.omniroute` 中的数据库和配置** |
+| `npm run uninstall:full` | 移除应用并**永久删除���有配置、密钥和数据库**            |
 
 > 注意：运行这些命令需要进入 OmniRoute 项目目录（如果你 clone 了项目）。如果全局安装，直接运行 `npm uninstall -g omniroute` 即可。
 
@@ -525,28 +525,28 @@ post_install() {
 
 ### 环境变量
 
-| 变量                                    | 默认值                               | 说明                                                                                |
-| --------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------- |
-| `JWT_SECRET`                            | `omniroute-default-secret-change-me` | JWT 签名密钥（**生产环境必须修改**）                                                |
-| `INITIAL_PASSWORD`                      | `CHANGEME`                           | 首次登录密码                                                                        |
-| `DATA_DIR`                              | `~/.omniroute`                       | 数据目录（数据库、用量、日志）                                                      |
-| `PORT`                                  | 框架默认                             | 服务端口（示例中使用 `20128`）                                                      |
-| `HOSTNAME`                              | 框架默认                             | 绑定主机（Docker 默认为 `0.0.0.0`）                                                 |
-| `NODE_ENV`                              | 运行时默认                           | 部署时设为 `production`                                                             |
-| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:20128`             | 面向前端和服务器公开的基础 URL（替代旧版 `BASE_URL`）                                |
-| `NEXT_PUBLIC_CLOUD_URL`                 | `https://omniroute.dev`              | Cloud Sync 端点基础 URL（替代旧版 `CLOUD_URL`）                                      |
-| `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`      | 生成 API Key 的 HMAC 密钥                                                            |
-| `REQUIRE_API_KEY`                       | `false`                              | 对 `/v1/*` 强制使用 Bearer API Key                                                   |
-| `ALLOW_API_KEY_REVEAL`                  | `false`                              | 允许已认证的 Dashboard 用户按需显示完整 API Key 值                                   |
-| `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`                                 | 缓存的 Provider Limits 数据服务端刷新周期；UI 刷新按钮仍可触发手动同步              |
-| `DISABLE_SQLITE_AUTO_BACKUP`            | `false`                              | 禁用在写入/导入/恢复前的自动 SQLite 快照；手动备份仍可使用                          |
-| `APP_LOG_TO_FILE`                       | `true`                               | 启用应用和审计日志写入磁盘                                                          |
-| `AUTH_COOKIE_SECURE`                    | `false`                              | 强制 `Secure` auth Cookie（在 HTTPS 反向代理之后）                                  |
-| `CLOUDFLARED_BIN`                       | 未设置                               | 使用已有的 `cloudflared` 二进制文件，而非托管下载                                    |
-| `CLOUDFLARED_PROTOCOL`                  | `http2`                              | 托管 Quick Tunnel 的传输协议（`http2`、`quic` 或 `auto`）                            |
-| `OMNIROUTE_MEMORY_MB`                   | `512`                                | Node.js 堆内存上限（MB）                                                             |
-| `PROMPT_CACHE_MAX_SIZE`                 | `50`                                 | 提示缓存条目上限                                                                    |
-| `SEMANTIC_CACHE_MAX_SIZE`               | `100`                                | 语义缓存条目上限                                                                    |
+| 变量                                    | 默认值                               | 说明                                                                   |
+| --------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------- |
+| `JWT_SECRET`                            | `omniroute-default-secret-change-me` | JWT 签名密钥（**生产环境必须修改**）                                   |
+| `INITIAL_PASSWORD`                      | `CHANGEME`                           | 首次登录密码                                                           |
+| `DATA_DIR`                              | `~/.omniroute`                       | 数据目录（数据库、用量、日志）                                         |
+| `PORT`                                  | 框架默认                             | 服务端口（示例中使用 `20128`）                                         |
+| `HOSTNAME`                              | 框架默认                             | 绑定主机（Docker 默认为 `0.0.0.0`）                                    |
+| `NODE_ENV`                              | 运行时默认                           | 部署时设为 `production`                                                |
+| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:20128`             | 面向前端和服务器公开的基础 URL（替代旧版 `BASE_URL`）                  |
+| `NEXT_PUBLIC_CLOUD_URL`                 | `https://omniroute.dev`              | Cloud Sync 端点基础 URL（替代旧版 `CLOUD_URL`）                        |
+| `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`      | 生成 API Key 的 HMAC 密钥                                              |
+| `REQUIRE_API_KEY`                       | `false`                              | 对 `/v1/*` 强制使用 Bearer API Key                                     |
+| `ALLOW_API_KEY_REVEAL`                  | `false`                              | 允许已认证的 Dashboard 用户按需显示完整 API Key 值                     |
+| `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`                                 | 缓存的 Provider Limits 数据服务端刷新周期；UI 刷新按钮仍可触发手动同步 |
+| `DISABLE_SQLITE_AUTO_BACKUP`            | `false`                              | 禁用在写入/导入/恢复前的自动 SQLite 快照；手动备份仍可使用             |
+| `APP_LOG_TO_FILE`                       | `true`                               | 启用应用和审计日志写入磁盘                                             |
+| `AUTH_COOKIE_SECURE`                    | `false`                              | 强制 `Secure` auth Cookie（在 HTTPS 反向代理之后）                     |
+| `CLOUDFLARED_BIN`                       | 未设置                               | 使用已有的 `cloudflared` 二进制文件，而非托管下载                      |
+| `CLOUDFLARED_PROTOCOL`                  | `http2`                              | 托管 Quick Tunnel 的传输协议（`http2`、`quic` 或 `auto`）              |
+| `OMNIROUTE_MEMORY_MB`                   | `512`                                | Node.js 堆内存上限（MB）                                               |
+| `PROMPT_CACHE_MAX_SIZE`                 | `50`                                 | 提示缓存条目上限                                                       |
+| `SEMANTIC_CACHE_MAX_SIZE`               | `100`                                | 语义缓存条目上限                                                       |
 
 完整环境变量参考见 [README](../README.md)。
 
@@ -702,12 +702,12 @@ curl http://localhost:20128/api/models/catalog
 
 通过 **Dashboard → Translator** 访问。调试和可视化 OmniRoute 如何在服务商之间转换 API 请求。
 
-| 模式             | 用途                                                                      |
-| ---------------- | ------------------------------------------------------------------------- |
-| **Playground**   | 选择源/目标格式，粘贴请求，即时查看翻译后的输出                            |
-| **Chat Tester**  | 通过代理发送实时聊天消息，并检查完整的请求/响应周期                        |
-| **Test Bench**   | 跨多个格式组合运行批量测试，验证翻译正确性                                  |
-| **Live Monitor** | 实时观察请求流经代理时的翻译过程                                            |
+| 模式             | 用途                                                |
+| ---------------- | --------------------------------------------------- |
+| **Playground**   | 选择源/目标格式，粘贴请求，即时查看翻译后的输出     |
+| **Chat Tester**  | 通过代理发送实时聊天消息，并检查完整的请求/响应周期 |
+| **Test Bench**   | 跨多个格式组合运行批量测试，验证翻译正确性          |
+| **Live Monitor** | 实时观察请求流经代理时的翻译过程                    |
 
 **用途：**
 
@@ -723,14 +723,14 @@ curl http://localhost:20128/api/models/catalog
 
 **Dashboard 可见策略（账户级路由）：**
 
-| 策略                            | 说明                                                       |
-| ------------------------------- | ---------------------------------------------------------- |
-| **Fill First**                  | 按优先级顺序使用账户 — 主账户处理所有请求，直到不可用      |
-| **Round Robin**                 | 循环遍历所有账户，可配置粘性限制（默认：每账户 3 次调用）  |
-| **P2C (Power of Two Choices)**  | 随机选择 2 个账户，路由到更健康的那个 — 兼顾负载与健康感知 |
-| **Random**                      | 使用 Fisher-Yates 洗牌为每次请求随机选择账户                |
-| **Least Used**                  | 路由到 `lastUsedAt` 时间戳最早的账户，均匀分配流量          |
-| **Cost Optimized**              | 路由到优先级值最低的账户，优先选择成本最低的服务商          |
+| 策略                           | 说明                                                       |
+| ------------------------------ | ---------------------------------------------------------- |
+| **Fill First**                 | 按优先级顺序使用账户 — 主账户处理所有请求，直到不可用      |
+| **Round Robin**                | 循环遍历所有账户，可配置粘性限制（默认：每账户 3 次调用）  |
+| **P2C (Power of Two Choices)** | 随机选择 2 个账户，路由到更健康的那个 — 兼顾负载与健康感知 |
+| **Random**                     | 使用 Fisher-Yates 洗牌为每次请求随机选择账户               |
+| **Least Used**                 | 路由到 `lastUsedAt` 时间戳最早的账户，均匀分配流量         |
+| **Cost Optimized**             | 路由到优先级值最低的账户，优先选择成本最低的服务商         |
 
 **高级 Combo 和自动策略**（可按 Combo 配置或通过 `auto/*` 前缀 — 详见 [AUTO-COMBO.md](../routing/AUTO-COMBO.md)）：
 
@@ -826,11 +826,11 @@ OmniRoute 通过五个组件实现服务商级容灾：
 
 在 **Dashboard → Settings → System & Storage** 中管理数据库备份。
 
-| 操作                      | 说明                                                                                          |
-| ------------------------- | --------------------------------------------------------------------------------------------- |
-| **导出数据库**            | 下载当前 SQLite 数据库为 `.sqlite` 文件                                                       |
-| **全部导出 (.tar.gz)**    | 下载完整备份归档，包含：数据库、设置、Combo、服务商连接（不含凭据）、API Key 元数据           |
-| **导入数据库**            | 上传 `.sqlite` 文件以替换当前数据库。导入前会自动创建备份，除非设置 `DISABLE_SQLITE_AUTO_BACKUP=true` |
+| 操作                   | 说明                                                                                                  |
+| ---------------------- | ----------------------------------------------------------------------------------------------------- |
+| **导出数据库**         | 下载当前 SQLite 数据库为 `.sqlite` 文件                                                               |
+| **全部导出 (.tar.gz)** | 下载完整备份归档，包含：数据库、设置、Combo、服务商连接（不含凭据）、API Key 元数据                   |
+| **导入数据库**         | 上传 `.sqlite` 文件以替换当前数据库。导入前会自动创建备份，除非设置 `DISABLE_SQLITE_AUTO_BACKUP=true` |
 
 ```bash
 # API: Export database
@@ -858,15 +858,15 @@ curl -X POST http://localhost:20128/api/db-backups/import \
 
 设置页面分为 **7 个标签页**，方便导航：
 
-| 标签页           | 内容                                                                                              |
-| ---------------- | ------------------------------------------------------------------------------------------------- |
-| **General**      | 系统存储工具、默认行为、Endpoint 隧道可见性                                                        |
-| **Appearance**   | 主题控制（浅色/深色/系统）、侧边栏可见性、Cloudflare/Tailscale/ngrok 隧道卡片的面板开关           |
-| **AI**           | 思考预算配置、全局系统提示注入、提示缓存统计                                                       |
-| **Security**     | 登录/密码设置、IP 访问控制、`/models` 的 API 认证、服务商屏蔽、提示注入安全护栏                    |
-| **Routing**      | 全局路由策略、通配符模型别名、容灾链、Combo 默认值                                                 |
-| **Resilience**   | 请求队列、连接冷却、服务商熔断器配置及等待冷却行为                                                 |
-| **Advanced**     | 全局代理配置（HTTP/SOCKS5）、按服务商的代理覆盖                                                    |
+| 标签页         | 内容                                                                                    |
+| -------------- | --------------------------------------------------------------------------------------- |
+| **General**    | 系统存储工具、默认行为、Endpoint 隧道可见性                                             |
+| **Appearance** | 主题控制（浅色/深色/系统）、侧边栏可见性、Cloudflare/Tailscale/ngrok 隧道卡片的面板开关 |
+| **AI**         | 思考预算配置、全局系统提示注入、提示缓存统计                                            |
+| **Security**   | 登录/密码设置、IP 访问控制、`/models` 的 API 认证、服务商屏蔽、提示注入安全护栏         |
+| **Routing**    | 全局路由策略、通配符模型别名、容灾链、Combo 默认值                                      |
+| **Resilience** | 请求队列、连接冷却、服务商熔断器配置及等待冷却行为                                      |
+| **Advanced**   | 全局代理配置（HTTP/SOCKS5）、按服务商的代理覆盖                                         |
 
 General 标签页不再重复显示只读的日志和缓存说明。数据库保留和优化设置通过 `/api/settings/database` 持久化；手动清除缓存使用 `DELETE /api/cache`。请求和代理日志行数上限由 `CALL_LOGS_TABLE_MAX_ROWS` 和 `PROXY_LOGS_TABLE_MAX_ROWS` 控制。
 
@@ -876,10 +876,10 @@ General 标签页不再重复显示只读的日志和缓存说明。数据库保
 
 通过 **Dashboard → Costs** 访问。
 
-| 标签页       | 用途                                                            |
-| ------------ | --------------------------------------------------------------- |
-| **Budget**   | 为每个 API Key 设置日/周/月预算上限，实时追踪消费               |
-| **Pricing**  | 查看和编辑模型定价条目 — 各服务商每 1K 输入/输出 Token 的费用   |
+| 标签页      | 用途                                                          |
+| ----------- | ------------------------------------------------------------- |
+| **Budget**  | 为每个 API Key 设置日/周/月预算上限，实时追踪消费             |
+| **Pricing** | 查看和编辑模型定价条目 — 各服务商每 1K 输入/输出 Token 的费用 |
 
 ```bash
 # API: Set a budget
@@ -946,14 +946,14 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 
 在 **Dashboard → Combos → Create/Edit → Strategy** 中按 Combo 配置负载均衡。
 
-| 策略               | 说明                                             |
-| ------------------ | ------------------------------------------------ |
-| **Round-Robin**    | 按顺序轮询模型                                   |
-| **Priority**       | 始终先尝试第一个模型，仅在出错时容灾切换         |
-| **Random**         | 每次请求从 Combo 中随机选择一个模型              |
-| **Weighted**       | 按每个模型分配的权重比例路由                     |
-| **Least-Used**     | 路由到最近请求最少的模型（使用 Combo 指标）      |
-| **Cost-Optimized** | 路由到当前可用的最廉价模型（使用定价表）         |
+| 策略               | 说明                                        |
+| ------------------ | ------------------------------------------- |
+| **Round-Robin**    | 按顺序轮询模型                              |
+| **Priority**       | 始终先尝试第一个模型，仅在出错时容灾切换    |
+| **Random**         | 每次请求从 Combo 中随机选择一个模型         |
+| **Weighted**       | 按每个模型分配的权重比例路由                |
+| **Least-Used**     | 路由到最近请求最少的模型（使用 Combo 指标） |
+| **Cost-Optimized** | 路由到当前可用的最廉价模型（使用定价表）    |
 
 全局 Combo 默认值可在 **Dashboard → Settings → Routing → Combo Defaults** 中设置。
 Combo 目标超时默认继承当前请求超时。仅在需要更短的按目标限制以触发更快容灾切换时，才在 Combo 默认值或单个 Combo 上使用 **Target timeout (seconds)**。
@@ -968,14 +968,14 @@ Combo 目标超时默认继承当前请求超时。仅在需要更短的按目�
 
 通过 **Dashboard → Health** 访问。实时系统健康概览，包含 6 张卡片：
 
-| 卡片                  | 显示内容                                 |
-| --------------------- | ---------------------------------------- |
-| **System Status**     | 运行时间、版本、内存用量、数据目录       |
-| **Provider Health**   | 全局服务商熔断器运行时状态               |
-| **Rate Limits**       | 每账户活跃的连接冷却及剩余时间           |
-| **Active Lockouts**   | 活跃的模型级封锁和临时排除               |
-| **Signature Cache**   | 去重缓存统计（活跃 Key、命中率）         |
-| **Latency Telemetry** | 各服务商的 p50/p95/p99 延时聚合          |
+| 卡片                  | 显示内容                           |
+| --------------------- | ---------------------------------- |
+| **System Status**     | 运行时间、版本、内存用量、数据目录 |
+| **Provider Health**   | 全局服务商熔断器运行时状态         |
+| **Rate Limits**       | 每账户活跃的连接冷却及剩余时间     |
+| **Active Lockouts**   | 活跃的模型级封锁和临时排除         |
+| **Signature Cache**   | 去重缓存统计（活跃 Key、命中率）   |
+| **Latency Telemetry** | 各服务商的 p50/p95/p99 延时聚合    |
 
 **技巧：** Health 页面每 10 秒自动刷新。使用熔断器卡片识别哪些服务商正在发生问题。
 
@@ -985,15 +985,15 @@ Combo 目标超时默认继承当前请求超时。仅在需要更短的按目�
 
 OmniRoute 内置了一个**得分驱动的自动路由器**，可跨所有已连接的服务商为每个请求选择最佳模型 — 无需维护 Combo。只需使用 `auto/*` 前缀发送请求，OmniRoute 即可即时构建虚拟 Combo，按延时、费用、成功率、上下文适配度、任务匹配度、近期故障、配额和熔断器状态对候选模型进行评分。
 
-| 前缀           | 优化目标                                                                   |
-| -------------- | -------------------------------------------------------------------------- |
-| `auto`         | 均衡默认值（延时 × 费用 × 成功率）                                         |
-| `auto/coding`  | 编码任务：优先 Claude、GPT-5、GLM、Kimi、Qwen Coder、DeepSeek 编码模型     |
-| `auto/cheap`   | 最低 $/Token，接受较高延时                                                  |
-| `auto/fast`    | 最低延时，忽略费用                                                         |
-| `auto/offline` | 仅本地服务商（Ollama、vLLM、llama.cpp）— 适用于离线环境                    |
-| `auto/smart`   | 推理质量优先（Opus、GPT-5 xhigh、R1、GLM 5.1 reasoning）                   |
-| `auto/lkgp`    | "最后已知成功服务商" — 粘性路由到最近一次成功的目标                        |
+| 前缀           | 优化目标                                                               |
+| -------------- | ---------------------------------------------------------------------- |
+| `auto`         | 均衡默认值（延时 × 费用 × 成功率）                                     |
+| `auto/coding`  | 编码任务：优先 Claude、GPT-5、GLM、Kimi、Qwen Coder、DeepSeek 编码模型 |
+| `auto/cheap`   | 最低 $/Token，接受较高延时                                             |
+| `auto/fast`    | 最低延时，忽略费用                                                     |
+| `auto/offline` | 仅本地服务商（Ollama、vLLM、llama.cpp）— 适用于离线环境                |
+| `auto/smart`   | 推理质量优先（Opus、GPT-5 xhigh、R1、GLM 5.1 reasoning）               |
+| `auto/lkgp`    | "最后已知成功服务商" — 粘性路由到最近一次成功的目标                    |
 
 示例：
 
@@ -1043,7 +1043,7 @@ OmniRoute 同时是一个 **MCP 服务端**（Model Context Protocol）和一个
 
 ### 权限域
 
-MCP 工具分为 10 个权限域：`analytics`、`auth`、`billing`、`combos`、`health`、`keys`、`memory`、`models`、`providers`、`system`。每个 Bearer Key 可限制到特定权限域 — 完整工具目录见 [MCP-SERVER.md](../frameworks/MCP-SERVER.md)，JSON-RPC Schema 见 [A2A-SERVER.md](../frameworks/A2A-SERVER.md)。
+MCP 当前定义 32 个命名权限域。每个 Bearer Key 可限制到特定权限域；权威权限域与工具清单见 [MCP-SERVER.md](../frameworks/MCP-SERVER.md)，JSON-RPC Schema 见 [A2A-SERVER.md](../frameworks/A2A-SERVER.md)。
 
 ---
 
@@ -1193,20 +1193,20 @@ npm run build:linux    # Linux (.AppImage)
 
 ### 核心特性
 
-| 特性                          | 说明                                        |
-| ----------------------------- | ------------------------------------------- |
-| **Server Readiness**          | 显示窗口前轮询服务端（无白屏）              |
-| **System Tray**               | 最小化到托盘，从托盘菜单切换端口、退出      |
-| **Port Management**           | 从托盘切换服务端端口（自动重启服务端）      |
-| **Content Security Policy**   | 通过会话头启用严格 CSP                      |
-| **Single Instance**           | 同一时间只能运行一个应用实例                |
-| **Offline Mode**              | 内置 Next.js 服务端，无需联网即可运行       |
+| 特性                        | 说明                                   |
+| --------------------------- | -------------------------------------- |
+| **Server Readiness**        | 显示窗口前轮询服务端（无白屏）         |
+| **System Tray**             | 最小化到托盘，从托盘菜单切换端口、退出 |
+| **Port Management**         | 从托盘切换服务端端口（自动重启服务端） |
+| **Content Security Policy** | 通过会话头启用严格 CSP                 |
+| **Single Instance**         | 同一时间只能运行一个应用实例           |
+| **Offline Mode**            | 内置 Next.js 服务端，无需联网即可运行  |
 
 ### 环境变量
 
-| 变量                  | 默认值   | 说明                        |
-| --------------------- | -------- | --------------------------- |
-| `OMNIROUTE_PORT`      | `20128`  | 服务端端口                  |
-| `OMNIROUTE_MEMORY_MB` | `512`    | Node.js 堆内存上限（64–16384 MB） |
+| 变量                  | 默认值  | 说明                              |
+| --------------------- | ------- | --------------------------------- |
+| `OMNIROUTE_PORT`      | `20128` | 服务端端口                        |
+| `OMNIROUTE_MEMORY_MB` | `512`   | Node.js 堆内存上限（64–16384 MB） |
 
 📖 完整文档：[`electron/README.md`](../../electron/README.md)

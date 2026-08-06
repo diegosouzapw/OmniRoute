@@ -209,7 +209,7 @@ Round-robin cycles through providers in order. Auto-combo **scores each provider
 ## Learn More
 
 For developers and contributors, see the [Auto-Combo Technical Reference](../routing/AUTO-COMBO.md) for:
-- Full 12-factor scoring algorithm
+- Full 13-factor scoring algorithm
 - Mode pack weight tables
 - Implementation file paths
 - API endpoints

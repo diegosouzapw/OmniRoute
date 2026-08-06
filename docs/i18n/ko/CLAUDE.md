@@ -39,22 +39,22 @@ npm run test:all
 
 ## 프로젝트 개요
 
-**OmniRoute** — 통합 AI 프록시/라우터. 하나의 엔드포인트, 160개 이상의 LLM 제공자, 자동 대체.
+**OmniRoute** — 통합 AI 프록시/라우터. 하나의 엔드포인트, 329 LLM 제공자, 자동 대체.
 
-| 레이어       | 위치                    | 목적                                                                |
-| ------------ | ----------------------- | ------------------------------------------------------------------- |
-| API 라우트   | `src/app/api/v1/`       | Next.js 앱 라우터 — 진입점                                          |
-| 핸들러       | `open-sse/handlers/`    | 요청 처리 (채팅, 임베딩 등)                                         |
-| 실행기       | `open-sse/executors/`   | 제공자별 HTTP 디스패치                                              |
-| 변환기       | `open-sse/translator/`  | 형식 변환 (OpenAI↔Claude↔Gemini)                                    |
-| 변환기       | `open-sse/transformer/` | 응답 API ↔ 채팅 완성                                                |
-| 서비스       | `open-sse/services/`    | 조합 라우팅, 속도 제한, 캐싱 등                                     |
-| 데이터베이스 | `src/lib/db/`           | SQLite 도메인 모듈 (45개 이상의 파일, 55개 마이그레이션)            |
-| 도메인/정책  | `src/domain/`           | 정책 엔진, 비용 규칙, 대체 논리                                     |
-| MCP 서버     | `open-sse/mcp-server/`  | 37개 도구 (30개 기본 + 3개 메모리 + 4개 기술), 3개 전송, ~13개 범위 |
-| A2A 서버     | `src/lib/a2a/`          | JSON-RPC 2.0 에이전트 프로토콜                                      |
-| 기술         | `src/lib/skills/`       | 확장 가능한 기술 프레임워크                                         |
-| 메모리       | `src/lib/memory/`       | 지속적인 대화형 메모리                                              |
+| 레이어       | 위치                    | 목적                                                                      |
+| ------------ | ----------------------- | ------------------------------------------------------------------------- |
+| API 라우트   | `src/app/api/v1/`       | Next.js 앱 라우터 — 진입점                                                |
+| 핸들러       | `open-sse/handlers/`    | 요청 처리 (채팅, 임베딩 등)                                               |
+| 실행기       | `open-sse/executors/`   | 제공자별 HTTP 디스패치                                                    |
+| 변환기       | `open-sse/translator/`  | 형식 변환 (OpenAI↔Claude↔Gemini)                                          |
+| 변환기       | `open-sse/transformer/` | 응답 API ↔ 채팅 완성                                                      |
+| 서비스       | `open-sse/services/`    | 조합 라우팅, 속도 제한, 캐싱 등                                           |
+| 데이터베이스 | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| 도메인/정책  | `src/domain/`           | 정책 엔진, 비용 규칙, 대체 논리                                           |
+| MCP 서버     | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2A 서버     | `src/lib/a2a/`          | JSON-RPC 2.0 에이전트 프로토콜                                            |
+| 기술         | `src/lib/skills/`       | 확장 가능한 기술 프레임워크                                               |
+| 메모리       | `src/lib/memory/`       | 지속적인 대화형 메모리                                                    |
 
 모노레포: `src/` (Next.js 16 앱), `open-sse/` (스트리밍 엔진 작업 공간), `electron/` (데스크탑 앱), `tests/`, `bin/` (CLI 진입점).
 
@@ -76,7 +76,7 @@ npm run test:all
 
 API 경로는 일관된 패턴을 따릅니다: `경로 → CORS 사전 비행 → Zod 본문 검증 → 선택적 인증 (extractApiKey/isValidApiKey) → API 키 정책 시행 → 핸들러 위임 (open-sse)`. 전역 Next.js 미들웨어는 없습니다 — 가로채기는 경로별로 특정합니다.
 
-**콤보 라우팅** (`open-sse/services/combo.ts`): 14가지 전략 (우선순위, 가중치, 먼저 채우기, 라운드 로빈, P2C, 랜덤, 가장 적게 사용된, 비용 최적화, 리셋 인식, 엄격한 랜덤, 자동, lkgp, 컨텍스트 최적화, 컨텍스트 릴레이). 각 타겟은 `handleSingleModel()`을 호출하여 `handleChatCore()`를 감싸고 각 타겟에 대한 오류 처리 및 회로 차단기 검사를 수행합니다. 9요소 자동 콤보 점수에 대한 내용은 `docs/routing/AUTO-COMBO.md`를 참조하고, 3개의 복원력 계층에 대한 내용은 `docs/architecture/RESILIENCE_GUIDE.md`를 참조하십시오.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -358,7 +358,9 @@ git push -u origin feat/your-feature
 
 ## 환경
 
-- **런타임**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES 모듈
+- **런타임**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, ES 모듈
 - **TypeScript**: 5.9+, 대상 ES2022, 모듈 esnext, 해상도 번들러
 - **경로 별칭**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **기본 포트**: 20128 (API + 대시보드 동일 포트)

@@ -39,22 +39,22 @@ npm run test:all
 
 ## Проект в обобщение
 
-**OmniRoute** — обединен AI прокси/рутер. Една крайна точка, 160+ LLM доставчици, автоматично резервиране.
+**OmniRoute** — обединен AI прокси/рутер. Една крайна точка, 329 LLM доставчици, автоматично резервиране.
 
-| Слой            | Местоположение          | Цел                                                                         |
-| --------------- | ----------------------- | --------------------------------------------------------------------------- |
-| API маршрути    | `src/app/api/v1/`       | Next.js App Router — входни точки                                           |
-| Обработчици     | `open-sse/handlers/`    | Обработка на заявки (чат, вграждания и др.)                                 |
-| Изпълнители     | `open-sse/executors/`   | HTTP разпределение, специфично за доставчика                                |
-| Преводачи       | `open-sse/translator/`  | Конверсия на формати (OpenAI↔Claude↔Gemini)                                 |
-| Трансформатор   | `open-sse/transformer/` | API за отговори ↔ Завършвания на чат                                        |
-| Услуги          | `open-sse/services/`    | Комбинирано маршрутизиране, лимити на скорост, кеширане и др.               |
-| База данни      | `src/lib/db/`           | SQLite домейн модули (45+ файла, 55 миграции)                               |
-| Домейн/Политика | `src/domain/`           | Двигател за политики, правила за разходи, логика за резервиране             |
-| MCP сървър      | `open-sse/mcp-server/`  | 37 инструмента (30 основни + 3 памет + 4 умения), 3 транспорта, ~13 области |
-| A2A сървър      | `src/lib/a2a/`          | JSON-RPC 2.0 агент протокол                                                 |
-| Умения          | `src/lib/skills/`       | Разширяема рамка за умения                                                  |
-| Памет           | `src/lib/memory/`       | Персистентна разговорна памет                                               |
+| Слой            | Местоположение          | Цел                                                                       |
+| --------------- | ----------------------- | ------------------------------------------------------------------------- |
+| API маршрути    | `src/app/api/v1/`       | Next.js App Router — входни точки                                         |
+| Обработчици     | `open-sse/handlers/`    | Обработка на заявки (чат, вграждания и др.)                               |
+| Изпълнители     | `open-sse/executors/`   | HTTP разпределение, специфично за доставчика                              |
+| Преводачи       | `open-sse/translator/`  | Конверсия на формати (OpenAI↔Claude↔Gemini)                               |
+| Трансформатор   | `open-sse/transformer/` | API за отговори ↔ Завършвания на чат                                      |
+| Услуги          | `open-sse/services/`    | Комбинирано маршрутизиране, лимити на скорост, кеширане и др.             |
+| База данни      | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| Домейн/Политика | `src/domain/`           | Двигател за политики, правила за разходи, логика за резервиране           |
+| MCP сървър      | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2A сървър      | `src/lib/a2a/`          | JSON-RPC 2.0 агент протокол                                               |
+| Умения          | `src/lib/skills/`       | Разширяема рамка за умения                                                |
+| Памет           | `src/lib/memory/`       | Персистентна разговорна памет                                             |
 
 Монорепо: `src/` (Next.js 16 приложение), `open-sse/` (работно пространство за стрийминг), `electron/` (десктоп приложение), `tests/`, `bin/` (CLI входна точка).
 
@@ -76,7 +76,7 @@ Client → /v1/chat/completions (Next.js маршрут)
 
 API маршрутите следват последователен модел: `Маршрут → CORS предварителен полет → Zod валидация на тялото → Опционална автентикация (extractApiKey/isValidApiKey) → прилагане на политика за API ключ → делегиране на обработчик (open-sse)`. Няма глобален Next.js middleware — интерцепцията е специфична за маршрута.
 
-**Комбинирано маршрутизиране** (`open-sse/services/combo.ts`): 14 стратегии (приоритет, тегло, запълване на първо място, рунд-робин, P2C, произволно, най-малко използвано, оптимизирано по цена, осведомено за нулиране, стриктно произволно, авто, lkgp, оптимизирано по контекст, контекст-релей). Всяка цел извиква `handleSingleModel()`, което обвива `handleChatCore()` с обработка на грешки за всяка цел и проверки на прекъсвачи. Вижте `docs/routing/AUTO-COMBO.md` за 9-факторното оценяване на Auto-Combo и `docs/architecture/RESILIENCE_GUIDE.md` за 3-те слоя на устойчивост.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -383,7 +383,9 @@ git push -u origin feat/your-feature
 
 ## Среда
 
-- **Среда на изпълнение**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Модули
+- **Среда на изпълнение**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, ES Модули
 - **TypeScript**: 5.9+, цел ES2022, модул esnext, резолюция bundler
 - **Пътни псевдоними**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Порт по подразбиране**: 20128 (API + табло на същия порт)

@@ -1,7 +1,7 @@
 export type SkillCategory = "api" | "cli" | "config";
 
 export type SkillArea =
-  // API areas (22)
+  // API areas (23)
   | "auth"
   | "providers"
   | "models"
@@ -28,7 +28,7 @@ export type SkillArea =
   | "github-skills"
   // Config skills
   | "config-codex-cli"
-  // CLI families (20)
+  // CLI families (21)
   | "cli-serve"
   | "cli-health"
   | "cli-providers"

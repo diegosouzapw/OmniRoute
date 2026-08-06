@@ -13,27 +13,27 @@ It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic acr
 
 Core capabilities:
 
-- OpenAI-compatible API surface for CLI/tools (100+ providers, 16 executors)
+- OpenAI-compatible API surface for CLI/tools (329 provider catalog entries, 89 executor implementation modules)
 - Request/response translation across provider formats
 - Model combo fallback (multi-model sequence)
 - Structured combo steps (`provider + model + connection`) with runtime ordering by `compositeTiers`
 - Account-level fallback (multi-account per provider)
 - Quota preflight and quota-aware P2C account selection in the main chat path
-- OAuth + API-key provider connection management (13 OAuth modules)
+- OAuth + API-key provider connection management (23 OAuth catalog entries backed by 21 provider modules)
 - Embedding generation via `/v1/embeddings` (6 providers, 9 models)
 - Image generation via `/v1/images/generations` (10+ providers, 20+ models)
 - Audio transcription via `/v1/audio/transcriptions` (7 providers)
 - Text-to-speech via `/v1/audio/speech` (10 providers)
 - Video generation via `/v1/videos/generations` (ComfyUI + SD WebUI)
 - Music generation via `/v1/music/generations` (ComfyUI)
-- Web search via `/v1/search` (5 providers)
+- Web search via `/v1/search` (12 providers)
 - Moderations via `/v1/moderations`
 - Reranking via `/v1/rerank`
 - Think tag parsing (`<think>...</think>`) for reasoning models
 - Response sanitization for strict OpenAI SDK compatibility
 - Role normalization (developer→system, system→user) for cross-provider compatibility
 - Structured output conversion (json_schema → Gemini responseSchema)
-- Local persistence for providers, keys, aliases, combos, settings, pricing (26 DB modules)
+- Local persistence for providers, keys, aliases, combos, settings, pricing (111 top-level DB modules)
 - Usage/cost tracking and request logging
 - Optional cloud sync for multi-device/state sync
 - IP allowlist/blocklist for API access control
@@ -54,14 +54,14 @@ Core capabilities:
 - Compliance audit logging with opt-out per API key
 - Eval framework for LLM quality assurance
 - Resilience UI dashboard with real-time circuit breaker status
-- MCP Server (25 tools) with 3 transports (stdio/SSE/Streamable HTTP)
+- MCP Server (107 unique tools, 32 scopes) with 3 transports (stdio/SSE/Streamable HTTP)
 - A2A Server (JSON-RPC 2.0 + SSE) with skills and task lifecycle
 - Memory system (extraction, injection, retrieval, summarization)
 - Skills system (registry, executor, sandbox, built-in skills)
 - MITM proxy with certificate management and DNS handling
 - Prompt injection guard middleware
 - ACP (Agent Communication Protocol) registry
-- Modular OAuth providers (13 individual modules under `src/lib/oauth/providers/`)
+- Modular OAuth providers (21 implementation modules under `src/lib/oauth/providers/`)
 - Uninstall/full-uninstall scripts
 - OAuth environment repair action
 - WebSocket bridge for OpenAI-compatible WS clients (`/v1/ws`)
@@ -281,7 +281,7 @@ Domain layer modules:
 - Eval runner: `src/lib/domain/evalRunner.ts`
 - Domain state persistence: `src/lib/db/domainState.ts` — SQLite CRUD for fallback chains, budgets, cost history, lockout state, circuit breakers
 
-OAuth provider modules (13 individual files under `src/lib/oauth/providers/`):
+OAuth provider modules (21 implementation modules under `src/lib/oauth/providers/`):
 
 - Registry index: `src/lib/oauth/providers/index.ts`
 - Individual providers: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`

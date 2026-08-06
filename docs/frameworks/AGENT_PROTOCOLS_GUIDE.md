@@ -24,7 +24,7 @@ The three are independent — pick any subset.
 ## Decision Tree
 
 ```
-Do you need a cloud service to do work outside this machine (Codex Cloud / Devin / Jules)?
+Do you need a cloud service to do work outside this machine (Codex Cloud / Cursor Cloud / Devin / Jules)?
 ├─ YES → Cloud Agents (POST /api/v1/agents/tasks)
 └─ NO → Continue
     │
@@ -183,7 +183,7 @@ Both have "long-running tasks" but at different layers:
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Returns the Agent Card with all 5 skills, transports, and version.
+Returns the Agent Card with all 6 skills, transports, and version.
 
 ### Call OmniRoute as an A2A agent
 

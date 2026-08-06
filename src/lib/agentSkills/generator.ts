@@ -1,5 +1,5 @@
 /**
- * generator.ts — idempotent SKILL.md generator for all 42 agent skills.
+ * generator.ts — idempotent SKILL.md generator for all 45 agent skills.
  *
  * Usage (library):
  *   import { generateAgentSkills, buildSkillMarkdown } from "@/lib/agentSkills/generator";

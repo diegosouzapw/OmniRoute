@@ -353,7 +353,7 @@ Z silnikiem quota-share dostarczane są dwie warstwy automatycznego pokrycia:
 | Unit (29 tests)    | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | Scheduler DRR, saturation gating, concurrency caps, matematyka fairShare, kolejka backlog                                                                                                          |
 | Integration matrix | `npm run test:combo:matrix`                                            | End-to-end decyzja routingu przez realny pipeline combo; fairness DRR + depriorytetyzacja nasycenia przez live seams (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Macierz integracyjna działa w CI obok pozostałych 17 publicznych strategii. Suite unit
+Macierz integracyjna działa w CI obok wszystkich 19 publicznych strategii. Suite unit
 można uruchomić samodzielnie.
 
 ---

@@ -25,13 +25,13 @@ Ele fornece um único endpoint compatível com OpenAI (`/v1/*`) e roteia o tráf
 
 Capacidades principais:
 
-- Superfície de API compatível com OpenAI para CLI/ferramentas (177 provedores, 38 executores)
+- Superfície de API compatível com OpenAI para CLI/ferramentas (329 entradas de provedores, 89 módulos de implementação de executores)
 - Tradução de solicitação/resposta entre formatos de provedores
 - Fallback de combinação de modelos (sequência de múltiplos modelos)
 - Passos de combinação estruturados (`provedor + modelo + conexão`) com ordenação em tempo de execução por `compositeTiers`
 - Fallback em nível de conta (multi-conta por provedor)
 - Pré-verificação de cota e seleção de conta P2C ciente da cota no caminho principal de chat
-- Gerenciamento de conexão de provedor OAuth + chave de API (14 módulos OAuth)
+- Gerenciamento de conexão de provedor OAuth + chave de API (21 módulos de implementação OAuth)
 - Geração de embeddings via `/v1/embeddings` (6 provedores, 9 modelos)
 - Geração de imagens via `/v1/images/generations` (10+ provedores, 20+ modelos)
 - Transcrição de áudio via `/v1/audio/transcriptions` (7 provedores)
@@ -45,7 +45,7 @@ Capacidades principais:
 - Sanitização de resposta para compatibilidade estrita com o SDK da OpenAI
 - Normalização de papéis (desenvolvedor→sistema, sistema→usuário) para compatibilidade entre provedores
 - Conversão de saída estruturada (json_schema → Gemini responseSchema)
-- Persistência local para provedores, chaves, aliases, combos, configurações, preços (26 módulos de DB)
+- Persistência local para provedores, chaves, aliases, combos, configurações, preços (111 módulos de DB de nível superior)
 - Rastreamento de uso/custo e registro de solicitações
 - Sincronização em nuvem opcional para sincronização multi-dispositivo/estado
 - Lista de permissão/bloqueio de IP para controle de acesso à API
@@ -66,7 +66,7 @@ Capacidades principais:
 - Registro de auditoria de conformidade com opção de exclusão por chave de API
 - Estrutura de avaliação para garantia de qualidade de LLM
 - Painel de saúde com status de disjuntor de provedor em tempo real
-- Servidor MCP (37 ferramentas) com 3 transportes (stdio/SSE/Streamable HTTP)
+- Servidor MCP (107 ferramentas únicas, 32 escopos) com 3 transportes (stdio/SSE/Streamable HTTP)
 - Servidor A2A (JSON-RPC 2.0 + SSE) com habilidades e ciclo de vida de tarefas
 - Sistema de memória (extração, injeção, recuperação, sumarização)
 - Sistema de habilidades (registro, executor, sandbox, habilidades integradas)
@@ -74,7 +74,7 @@ Capacidades principais:
 - Middleware de proteção contra injeção de prompt
 - Pipeline de compressão de prompt com Caveman, RTK, pipelines empilhados, combos de compressão, pacotes de idioma e análises
 - Registro de ACP (Agent Communication Protocol)
-- Provedores OAuth modulares (14 módulos individuais sob `src/lib/oauth/providers/`)
+- Provedores OAuth modulares (21 módulos de implementação sob `src/lib/oauth/providers/`)
 - Scripts de desinstalação/desinstalação completa
 - Ação de reparo de ambiente OAuth
 - Ponte WebSocket para clientes WS compatíveis com OpenAI (`/v1/ws`)
@@ -329,7 +329,7 @@ Módulos da camada de domínio:
 - Executor de avaliação: `src/lib/domain/evalRunner.ts`
 - Persistência do estado do domínio: `src/lib/db/domainState.ts` — CRUD SQLite para cadeias de fallback, orçamentos, histórico de custos, estado de bloqueio, disjuntores
 
-Módulos do provedor OAuth (14 arquivos individuais em `src/lib/oauth/providers/`):
+Módulos do provedor OAuth (21 módulos de implementação em `src/lib/oauth/providers/`):
 
 - Índice do registro: `src/lib/oauth/providers/index.ts`
 - Provedores individuais: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`, `windsurf.ts`, `gitlab-duo.ts`
@@ -914,7 +914,7 @@ Todos os outros provedores (incluindo nós compatíveis personalizados) usam o `
 
 ## Matriz de Compatibilidade de Provedores
 
-> **Nota:** A matriz abaixo é uma amostra representativa dos 177 provedores registrados no
+> **Nota:** A matriz abaixo é uma amostra representativa das 329 entradas de provedores registradas no
 > OmniRoute v3.8.0. Para a lista canônica e continuamente atualizada, consulte
 > [`docs/reference/PROVIDER_REFERENCE.md`](../reference/PROVIDER_REFERENCE.md) (gerada automaticamente) ou a fonte
 > de verdade em `src/shared/constants/providers.ts` (validada pelo Zod na carga).

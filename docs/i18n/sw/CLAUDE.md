@@ -39,22 +39,22 @@ Kwa matrix kamili ya majaribio, angalia `CONTRIBUTING.md` → "Kuendesha Majarib
 
 ## Mradi kwa Muonekano
 
-**OmniRoute** — proxy/router ya AI iliyounganishwa. Kipengele kimoja, watoa huduma 160+, auto-fallback.
+**OmniRoute** — proxy/router ya AI iliyounganishwa. Kipengele kimoja, watoa huduma 329, auto-fallback.
 
-| Tabaka        | Mahali                  | Kusudi                                                                   |
-| ------------- | ----------------------- | ------------------------------------------------------------------------ |
-| API Routes    | `src/app/api/v1/`       | Next.js App Router — maeneo ya kuingia                                   |
-| Handlers      | `open-sse/handlers/`    | Usindikaji wa maombi (chat, embeddings, nk)                              |
-| Executors     | `open-sse/executors/`   | Usambazaji wa HTTP maalum kwa mtoa huduma                                |
-| Translators   | `open-sse/translator/`  | Mabadiliko ya muundo (OpenAI↔Claude↔Gemini)                              |
-| Transformer   | `open-sse/transformer/` | API za majibu ↔ Kukamilisha Chat                                         |
-| Services      | `open-sse/services/`    | Uelekeo wa combo, mipaka ya viwango, caching, nk                         |
-| Database      | `src/lib/db/`           | Moduli za eneo la SQLite (faili 45+, uhamasishaji 55)                    |
-| Domain/Policy | `src/domain/`           | Injini ya sera, sheria za gharama, mantiki ya fallback                   |
-| MCP Server    | `open-sse/mcp-server/`  | Zana 37 (30 msingi + 3 kumbukumbu + 4 ujuzi), usafirishaji 3, ~13 maeneo |
-| A2A Server    | `src/lib/a2a/`          | Itifaki ya wakala ya JSON-RPC 2.0                                        |
-| Skills        | `src/lib/skills/`       | Mfumo wa ujuzi unaoweza kupanuliwa                                       |
-| Memory        | `src/lib/memory/`       | Kumbukumbu ya mazungumzo ya kudumu                                       |
+| Tabaka        | Mahali                  | Kusudi                                                                    |
+| ------------- | ----------------------- | ------------------------------------------------------------------------- |
+| API Routes    | `src/app/api/v1/`       | Next.js App Router — maeneo ya kuingia                                    |
+| Handlers      | `open-sse/handlers/`    | Usindikaji wa maombi (chat, embeddings, nk)                               |
+| Executors     | `open-sse/executors/`   | Usambazaji wa HTTP maalum kwa mtoa huduma                                 |
+| Translators   | `open-sse/translator/`  | Mabadiliko ya muundo (OpenAI↔Claude↔Gemini)                               |
+| Transformer   | `open-sse/transformer/` | API za majibu ↔ Kukamilisha Chat                                          |
+| Services      | `open-sse/services/`    | Uelekeo wa combo, mipaka ya viwango, caching, nk                          |
+| Database      | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| Domain/Policy | `src/domain/`           | Injini ya sera, sheria za gharama, mantiki ya fallback                    |
+| MCP Server    | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2A Server    | `src/lib/a2a/`          | Itifaki ya wakala ya JSON-RPC 2.0                                         |
+| Skills        | `src/lib/skills/`       | Mfumo wa ujuzi unaoweza kupanuliwa                                        |
+| Memory        | `src/lib/memory/`       | Kumbukumbu ya mazungumzo ya kudumu                                        |
 
 Monorepo: `src/` (programu ya Next.js 16), `open-sse/` (nafasi ya injini ya utiririshaji), `electron/` (programu ya desktop), `tests/`, `bin/` (kiingilio cha CLI).
 
@@ -76,7 +76,7 @@ Client → /v1/chat/completions (Njia ya Next.js)
 
 Njia za API zinafuata muundo thabiti: `Njia → CORS preflight → Uthibitisho wa Zod → Uthibitisho wa hiari (extractApiKey/isValidApiKey) → Utekelezaji wa sera ya ufunguo wa API → Delegation ya Handler (open-sse)`. Hakuna middleware ya kimataifa ya Next.js — kukatiza ni maalum kwa njia.
 
-**Mwelekeo wa combo** (`open-sse/services/combo.ts`): mikakati 14 (kipaumbele, uzito, kujaza-kwanza, mzunguko, P2C, nasibu, inayotumika kidogo, iliyoboreshwa kwa gharama, inayojua kurekebisha, nasibu kali, auto, lkgp, iliyoboreshwa kwa muktadha, relay ya muktadha). Kila lengo linaita `handleSingleModel()` ambayo inazunguka `handleChatCore()` na usimamizi wa makosa ya kila lengo na ukaguzi wa circuit breaker. Tazama `docs/routing/AUTO-COMBO.md` kwa alama za Auto-Combo za sababu 9 na `docs/architecture/RESILIENCE_GUIDE.md` kwa tabaka 3 za uhimilivu.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -315,7 +315,7 @@ Kwa mabadiliko yoyote yasiyo ya kawaida, soma uchambuzi unaofanana kwanza:
 | Usafiri wa repo                                  | `docs/architecture/REPOSITORY_MAP.md`                             |
 | Muktadha                                         | `docs/architecture/ARCHITECTURE.md`                               |
 | Marejeleo ya uhandisi                            | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (alama 9, mikakati 14)                | `docs/routing/AUTO-COMBO.md`                                      |
+| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md` |
 | Ustahimilivu (mekaniki 3)                        | `docs/architecture/RESILIENCE_GUIDE.md`                           |
 | Kurudi kwa mantiki                               | `docs/routing/REASONING_REPLAY.md`                                |
 | Mfumo wa ujuzi                                   | `docs/frameworks/SKILLS.md`                                       |
@@ -381,7 +381,9 @@ git push -u origin feat/your-feature
 
 ## Mazingira
 
-- **Muda wa kukimbia**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, Moduli za ES
+- **Muda wa kukimbia**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, Moduli za ES
 - **TypeScript**: 5.9+, lengo ES2022, moduli esnext, ufumbuzi wa bundler
 - **Majina ya njia**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Bandari ya kawaida**: 20128 (API + dashibodi kwenye bandari moja)

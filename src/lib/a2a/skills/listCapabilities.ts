@@ -1,7 +1,7 @@
 /**
  * A2A Skill: List Capabilities
  *
- * Returns the full catalog of OmniRoute agent skills (22 API + 20 CLI + config)
+ * Returns the full catalog of OmniRoute agent skills (23 API + 21 CLI + 1 config)
  * as a markdown table with raw SKILL.md URLs for orchestrating agents.
  */
 
@@ -14,7 +14,8 @@ export interface ListCapabilitiesResult {
   metadata: {
     coverage: {
       api: { have: number; total: 23 };
-      cli: { have: number; total: 20 };
+      cli: { have: number; total: 21 };
+      config: { have: number; total: 1 };
     };
     totalSkills: number;
     generatedAt: string;
@@ -47,7 +48,7 @@ export async function executeListCapabilities(_task: A2ATask): Promise<ListCapab
   const content = [
     `# OmniRoute Agent Skills Catalog`,
     ``,
-    `Total: ${catalog.length} skills (${coverage.api.total} API + ${coverage.cli.total} CLI)`,
+    `Total: ${catalog.length} skills (${coverage.api.total} API + ${coverage.cli.total} CLI + ${coverage.config.total} config)`,
     ``,
     table,
   ].join("\n");
@@ -62,7 +63,8 @@ export async function executeListCapabilities(_task: A2ATask): Promise<ListCapab
     metadata: {
       coverage: {
         api: { have: coverage.api.have, total: 23 },
-        cli: { have: coverage.cli.have, total: 20 },
+        cli: { have: coverage.cli.have, total: 21 },
+        config: { have: coverage.config.have, total: 1 },
       },
       totalSkills: catalog.length,
       generatedAt: coverage.generatedAt,

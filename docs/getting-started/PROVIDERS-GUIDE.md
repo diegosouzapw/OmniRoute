@@ -16,12 +16,12 @@ Think of a provider like a **phone carrier**. Just as you need a phone carrier t
 
 ### Types of Providers
 
-| Type           | What It Is                | Examples                          | Cost                   |
-| -------------- | ------------------------- | --------------------------------- | ---------------------- |
-| **Free**       | No payment required       | Kiro, OpenCode Free, Pollinations | $0                     |
-| **API Key**    | You need an API key       | OpenAI, Anthropic, Google         | Pay per use            |
-| **OAuth**      | Login with your account   | Claude Code, GitHub Copilot       | Subscription           |
-| **Web Cookie** | Uses your browser session | ChatGPT Web, Gemini Web           | $0 (uses your account) |
+| Type            | What It Is                                                           | Examples                          | Cost                             |
+| --------------- | -------------------------------------------------------------------- | --------------------------------- | -------------------------------- |
+| **Free access** | A documented free tier or no-auth path; limits and terms still apply | OpenCode Free, Pollinations, Groq | $0 within the upstream allowance |
+| **API Key**     | You need an API key                                                  | OpenAI, Anthropic, Google         | Pay per use                      |
+| **OAuth**       | Login with your account                                              | Claude Code, GitHub Copilot       | Subscription                     |
+| **Web Cookie**  | Uses your browser session                                            | ChatGPT Web, Gemini Web           | $0 (uses your account)           |
 
 ### Web Cookie Providers
 
@@ -34,14 +34,14 @@ See **[WEB-COOKIE-GUIDE.md](./WEB-COOKIE-GUIDE.md)** for general setup instructi
 
 1. Open the dashboard at `http://localhost:20128`
 2. Go to **Providers** → **Add Provider**
-3. Select one of these free providers:
-   - **Kiro AI** — Free Claude models (no auth needed)
-   - **OpenCode Free** — Free GPT models (no auth needed)
-   - **Pollinations** — Free GPT-5, Claude, Gemini (no key needed)
-   - **LongCat** — 10M tokens free (one-time grant, requires account + KYC)
-   - **Cloudflare AI** — 50+ models, 10K neurons/day
+3. Select a provider with a documented free-access path:
+   - **OpenCode Free** — public no-auth endpoint; rate limits and upstream terms apply
+   - **Pollinations** — selected keyless models; premium models require an API key
+   - **LongCat** — one-time 10M-token signup grant; account and KYC required
+   - **Cloudflare Workers AI** — 10K neurons/day; API token and Account ID required
+   - **Kiro AI** — 50 credits/month through OAuth; Kiro's terms prohibit third-party proxy/harness use
 4. Click **Connect**
-5. Done! You now have free AI access.
+5. Done. The connection can use the provider's current free allowance; model availability, quotas, regions, account requirements, and terms may change.
 
 ### Option B: API Key Provider (Paid)
 
@@ -71,21 +71,21 @@ See **[WEB-COOKIE-GUIDE.md](./WEB-COOKIE-GUIDE.md)** for general setup instructi
 
 ## Best Free Providers
 
-These providers offer **free access** with no credit card:
+These providers have documented free-access paths. Authentication, account, KYC, rate, model, region, privacy, and provider-policy requirements vary.
 
-| Provider          | Free Quota       | Models                                   | How to Connect |
-| ----------------- | ---------------- | ---------------------------------------- | -------------- |
-| **Kiro AI**       | 50 credits/month | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | No auth needed |
-| **OpenCode Free** | Unlimited        | GPT-4o, Claude, Gemini                   | No auth needed |
-| **Pollinations**  | No key needed    | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | No auth needed |
-| **LongCat**       | 10M one-time     | LongCat-2.0                              | API key + KYC  |
-| **Cloudflare AI** | 10K neurons/day  | 50+ models                               | No auth needed |
-| **NVIDIA NIM**    | ~40 RPM          | 129 models                               | API key needed |
-| **Cerebras**      | 1M tokens/day    | Qwen3 235B, GPT-OSS 120B                 | API key needed |
-| **Qwen**          | Unlimited        | Qwen3-coder-plus/flash/next              | No auth needed |
-| **Qoder**         | Unlimited        | Kimi-K2, DeepSeek-R1, Qwen3-coder        | No auth needed |
+| Provider                  | Documented free access                                            | Example models                                       | How to connect / caveat                                    |
+| ------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------- |
+| **OpenCode Free**         | No published token cap                                            | Current `*-free` models from the upstream catalog    | No auth; rate limits and upstream terms apply              |
+| **Pollinations**          | Selected keyless models                                           | OpenAI, Qwen Coder, Mistral, DeepSeek, Grok          | No auth for the keyless subset; premium models need a key  |
+| **LongCat**               | 10M tokens once                                                   | LongCat-2.0                                          | API key + signup + KYC; not a recurring allowance          |
+| **Cloudflare Workers AI** | 10K neurons/day                                                   | Llama, Gemma, Qwen, GLM, Kimi                        | API token + Account ID                                     |
+| **Kiro AI**               | 50 credits/month                                                  | Claude Sonnet 4.5, Haiku 4.5, DeepSeek, MiniMax, GLM | OAuth account; ToS prohibits third-party proxy/harness use |
+| **NVIDIA NIM**            | Current development access; no published token cap in the catalog | NVIDIA's current hosted model catalog                | API key; rate and model limits apply                       |
+| **Cerebras**              | 1M tokens/day, 30K TPM, 5 RPM                                     | Current Cerebras-hosted models                       | API key; current model-specific limits apply               |
+| **Qwen Web**              | No published token cap                                            | Current Qwen web models                              | Login token; session reliability and provider terms apply  |
+| **Qoder**                 | No published token cap for the documented free path               | Current Qoder catalog                                | Account credentials; account, daily, and ToS limits apply  |
 
-**Tip**: Connect multiple free providers for **unlimited free AI** with automatic fallback!
+**Tip**: Connect multiple providers with documented free access to broaden fallback capacity; quotas, rate limits, and provider terms still apply.
 
 ---
 
@@ -93,14 +93,14 @@ These providers offer **free access** with no credit card:
 
 These providers offer **high-quality models** with API keys:
 
-| Provider      | Best Models                 | Cost                   | Free Tier          |
-| ------------- | --------------------------- | ---------------------- | ------------------ |
-| **OpenAI**    | GPT-5, GPT-4o               | $2.50-$10/1M tokens    | $5 free credits    |
-| **Anthropic** | Claude Opus 4.6, Sonnet 4.6 | $3-$15/1M tokens       | $5 free credits    |
-| **Google**    | Gemini 2.5 Pro, Flash       | $0.075-$1.25/1M tokens | 1,500 req/day free |
-| **DeepSeek**  | DeepSeek V4                 | $0.14-$0.28/1M tokens  | 5M free tokens     |
-| **Groq**      | Llama 4, Mixtral            | $0.05-$0.27/1M tokens  | 30 RPM free        |
-| **xAI**       | Grok 3                      | $0.30-$0.60/1M tokens  | —                  |
+| Provider             | Representative models            | Cost model                     | Free-access note                                                                  |
+| -------------------- | -------------------------------- | ------------------------------ | --------------------------------------------------------------------------------- |
+| **OpenAI**           | Current GPT and reasoning models | Usage-based                    | No general free API allowance documented in the catalog                           |
+| **Anthropic**        | Current Claude models            | Usage-based                    | No general free API allowance documented in the catalog                           |
+| **Google AI Studio** | Gemini models                    | Usage-based beyond free quotas | Free tier exists; current per-model quotas and regional limits apply              |
+| **DeepSeek**         | Current DeepSeek models          | Usage-based                    | 5M-token one-time signup grant in the audited catalog; expiry/account terms apply |
+| **Groq**             | Llama, GPT-OSS, and Qwen models  | Usage-based beyond free quotas | Free tier is model-specific; RPM/RPD limits vary                                  |
+| **xAI**              | Grok models                      | Usage-based                    | No general free API allowance documented in the catalog                           |
 
 ---
 
@@ -124,7 +124,7 @@ Browse the list or search for your provider. Click on it.
 
 ### Step 5: Enter Credentials
 
-- **Free providers**: No credentials needed — just click **Connect**
+- **No-auth providers**: no credential is stored by OmniRoute; rate limits and upstream terms still apply
 - **API key providers**: Paste your API key
 - **OAuth providers**: Click **Connect with OAuth** and login
 
@@ -226,4 +226,4 @@ Go to Providers → click on the provider → click **Disconnect**.
 - **[Auto-Combo Guide](./AUTO-COMBO-GUIDE.md)** — Let OmniRoute pick the best AI for you
 - **[Free Tiers Guide](./FREE-TIERS-GUIDE.md)** — Get free AI with no credit card
 - **[Troubleshooting](./TROUBLESHOOTING.md)** — Fix common issues
-- **[Provider Reference](../reference/PROVIDER_REFERENCE.md)** — Full list of 226 providers
+- **[Provider Reference](../reference/PROVIDER_REFERENCE.md)** — Full list of 329 providers

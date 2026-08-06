@@ -66,7 +66,7 @@ rate limits — circuit breaker recovers them on backoff.
 Dashboard → **Tiers** → assign your providers. Defaults (from `tierDefaults.json`) are
 sensible; edit when you have specific subscriptions to prioritize or providers to exclude.
 
-Auto-Combo's 9-factor scoring also considers tier. See
+Auto-Combo's 13-factor scoring also considers tier. See
 [`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md).
 
 ## Telemetry

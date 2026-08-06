@@ -17,27 +17,27 @@ Udostępnia pojedynczy endpoint zgodny z OpenAI (`/v1/*`) i kieruje ruch przez w
 
 Główne możliwości:
 
-- Powierzchnia API zgodna z OpenAI dla CLI/narzędzi (271 dostawców, 86 executorów)
+- Powierzchnia API zgodna z OpenAI dla CLI/narzędzi (329 provider catalog entries, 89 executor implementation modules)
 - Tłumaczenie żądań/odpowiedzi między formatami dostawców
 - Fallback combo modeli (sekwencja wielu modeli)
 - Strukturalne kroki combo (`provider + model + connection`) z kolejnością runtime według `compositeTiers`
 - Fallback na poziomie konta (wiele kont na dostawcę)
 - Preflight limitu (quota) i wybór konta P2C uwzględniający quota na głównej ścieżce czatu
-- Zarządzanie połączeniami dostawców OAuth + klucz API (19 modułów dostawców OAuth)
+- Zarządzanie połączeniami dostawców OAuth + klucz API (21 modułów implementacji OAuth)
 - Generowanie embeddingów przez `/v1/embeddings` (6 dostawców, 9 modeli)
 - Generowanie obrazów przez `/v1/images/generations` (10+ dostawców, 20+ modeli)
 - Transkrypcja audio przez `/v1/audio/transcriptions` (7 dostawców)
 - Text-to-speech przez `/v1/audio/speech` (10 dostawców)
 - Generowanie wideo przez `/v1/videos/generations` (ComfyUI + SD WebUI)
 - Generowanie muzyki przez `/v1/music/generations` (ComfyUI)
-- Wyszukiwanie w sieci przez `/v1/search` (5 dostawców)
+- Wyszukiwanie w sieci przez `/v1/search` (12 dostawców)
 - Moderacje przez `/v1/moderations`
 - Reranking przez `/v1/rerank`
 - Parsowanie tagów think (`<think>...</think>`) dla modeli reasoning
 - Sanityzacja odpowiedzi pod ścisłą kompatybilność z OpenAI SDK
 - Normalizacja ról (developer→system, system→user) dla kompatybilności między dostawcami
 - Konwersja structured output (json_schema → Gemini responseSchema)
-- Lokalna persystencja dostawców, kluczy, aliasów, combo, ustawień, cennika (26 modułów DB)
+- Lokalna persystencja dostawców, kluczy, aliasów, combo, ustawień, cennika (111 modułów DB najwyższego poziomu)
 - Śledzenie użycia/kosztów i logowanie żądań
 - Opcjonalna synchronizacja chmurowa dla wielu urządzeń/stanu
 - Allowlista/blocklista IP do kontroli dostępu do API
@@ -58,7 +58,7 @@ Główne możliwości:
 - Logowanie audytu compliance z opt-out per klucz API
 - Framework eval do zapewnienia jakości LLM
 - Dashboard zdrowia ze statusem circuit breakerów dostawców w czasie rzeczywistym
-- MCP Server (87 narzędzi) z 3 transportami (stdio/SSE/Streamable HTTP)
+- MCP Server (107 narzędzi, 32 scope'y) z 3 transportami (stdio/SSE/Streamable HTTP)
 - A2A Server (JSON-RPC 2.0 + SSE) ze skillami i cyklem życia zadań
 - System pamięci (ekstrakcja, injekcja, retrieval, summarization)
 - System skilli (rejestr, executor, sandbox, wbudowane skille)
@@ -66,7 +66,7 @@ Główne możliwości:
 - Middleware ochrony przed prompt injection
 - Potok kompresji promptów z Caveman, RTK, stacked pipelines, compression combos, language packs i analityką
 - Rejestr ACP (Agent Communication Protocol)
-- Modularne dostawcy OAuth (19 osobnych modułów w `src/lib/oauth/providers/`)
+- Modularne dostawcy OAuth (21 modułów implementacji w `src/lib/oauth/providers/`)
 - Skrypty uninstall/full-uninstall
 - Akcja naprawy środowiska OAuth
 - Most WebSocket dla klientów WS zgodnych z OpenAI (`/v1/ws`)
@@ -321,7 +321,7 @@ Moduły warstwy domenowej:
 - Runner eval: `src/lib/evals/evalRunner.ts`
 - Persystencja stanu domeny: `src/lib/db/domainState.ts` — CRUD SQLite dla łańcuchów fallback, budżetów, historii kosztów, stanu lockout, circuit breakerów
 
-Moduły dostawców OAuth (16 osobnych plików w `src/lib/oauth/providers/`):
+Moduły dostawców OAuth (21 modułów implementacji w `src/lib/oauth/providers/`):
 
 - Indeks rejestru: `src/lib/oauth/providers/index.ts`
 - Poszczególni dostawcy: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `agy.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`, `windsurf.ts`, `gitlab-duo.ts`, `trae.ts`
@@ -365,13 +365,14 @@ polegać na statycznej definicji combo. Napędza rodzinę prefiksów modeli `aut
 
 Kluczowe możliwości:
 
-- **17 strategii routingu** (priority, weighted, fill-first, round-robin, P2C, random,
-  least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random,
-  **auto**, lkgp, context-optimized, context-relay, **fusion**, plus ścieżka fallback) —
+- **19 publicznych strategii routingu** (priority, weighted, fill-first, round-robin, P2C,
+  random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random,
+  **auto**, lkgp, context-optimized, cache-optimized, context-relay, **fusion**, pipeline) —
   auto to główna nowość w v3.8.0; `fusion` (panel fan-out + synteza sędziego,
   `open-sse/services/fusion.ts`) jest nowe w v3.8.36.
-- **Scoring 9-czynnikowy**: koszt, latency p95, success rate, quota headroom, bliskość
-  lockout, stan breakera, niedawne błędy, dostępność modelu oraz tag affinity.
+- **Scoring 13-czynnikowy**: quota, health, odwrotność kosztu i latencji, task fit,
+  stability, tier priority, tier affinity, specificity match, context affinity,
+  connection density, cache affinity oraz reset-window affinity.
 - **Virtual factory** materializuje efemeryczne combo, gdy nie istnieje pasujące nazwane combo,
   czerpiąc kandydatów ze zdrowych aktywnych połączeń dostawców.
 - **Prefiksy auto**: `auto/coding`, `auto/cheap`, `auto/fast`, `auto/offline`,
@@ -933,7 +934,7 @@ Wszystkie pozostałe dostawcy (w tym niestandardowe węzły kompatybilne) używa
 
 ## Macierz kompatybilności dostawców
 
-> **Uwaga:** Poniższa macierz to reprezentatywna próbka spośród 237 zarejestrowanych dostawców w
+> **Uwaga:** Poniższa macierz to reprezentatywna próbka spośród 329 wpisów katalogu dostawców w
 > OmniRoute v3.8.0. Kanoniczna i stale aktualizowana lista: zob.
 > [`docs/reference/PROVIDER_REFERENCE.md`](../reference/PROVIDER_REFERENCE.md) (auto-generowana) lub źródło
 > prawdy w `src/shared/constants/providers.ts` (walidowane Zod przy ładowaniu).

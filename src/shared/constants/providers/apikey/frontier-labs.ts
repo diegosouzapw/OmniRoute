@@ -63,7 +63,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
     website: "https://aistudio.google.com",
     hasFree: true,
     freeNote:
-      "Free forever: 1,500 req/day for Gemini 2.5 Flash — no credit card, get key at aistudio.google.com",
+      "Free tier available through Google AI Studio; current per-model quotas and regional limits apply",
   },
   groq: {
     id: "groq",
@@ -85,7 +85,8 @@ export const APIKEY_PROVIDERS_FRONTIER = {
     textIcon: "BB",
     website: "https://blackbox.ai",
     hasFree: true,
-    freeNote: "Free tier: unlimited basic chat plus Minimax-M2.5, no credit card required",
+    freeNote:
+      "Limited free access is available through Blackbox; model availability and account limits apply",
   },
   xai: {
     id: "xai",

@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute vs Alternatives"
-version: 3.8.43
-lastUpdated: 2026-07-01
+version: 3.8.50
+lastUpdated: 2026-08-02
 ---
 
 # OmniRoute vs Alternatives
@@ -13,16 +13,16 @@ Objective feature comparison vs popular open-source AI routers.
 
 | Feature                                            |                  OmniRoute 3.8                   |  LiteLLM 1.x   | OpenRouter (SaaS) |   Portkey   |
 | -------------------------------------------------- | :----------------------------------------------: | :------------: | :---------------: | :---------: |
-| **Providers**                                      |                     **237+**                     |      ~100      |        ~50        |     ~30     |
-| **Free-tier providers**                            |                     **90+**                      |      n/a       |    passthrough    |     n/a     |
+| **Providers**                                      |                     **329**                      |      ~100      |        ~50        |     ~30     |
+| **Free/no-auth catalog entries**                   |                     **155**                      |      n/a       |    passthrough    |     n/a     |
 | **Self-hostable**                                  |                        ✅                        |       ✅       |        ❌         |   ⚠ paid    |
-| **OAuth providers (Claude, Codex, Copilot, etc.)** |                     **15+**                      |    partial     |        ❌         |     ❌      |
-| **Auto-fallback combos**                           |                **17 strategies**                 | priority-based |    tier-based     |  weighted   |
+| **OAuth catalog entries**                          |                     **23**                       |    partial     |        ❌         |     ❌      |
+| **Auto-fallback combos**                           |                **19 strategies**                 | priority-based |    tier-based     |  weighted   |
 | **Fusion (parallel panel + judge synthesis)**      |                        ✅                        |       ❌       |        ❌         |     ❌      |
 | **Tier 1/2/3 fallback (subscription→cheap→free)**  |                     ✅ + UI                      |     manual     |        n/a        |   manual    |
-| **Token compression**                              | 10-engine pipeline (RTK + Caveman + LLMLingua-2) |      none      |       none        |    none     |
+| **Token compression**                              | 12-engine stack (RTK + Caveman + LLMLingua)      |      none      |       none        |    none     |
 | **Multimodal generation (speech/music/video)**     |                        ✅                        |       ❌       |    passthrough    |     ❌      |
-| **Built-in MCP server**                            |              ✅ 99 tools, 32 scopes              |       ❌       |        ❌         |     ❌      |
+| **Built-in MCP server**                            |             ✅ 107 tools, 32 scopes              |       ❌       |        ❌         |     ❌      |
 | **A2A protocol**                                   |                   ✅ 6 skills                    |       ❌       |        ❌         |     ❌      |
 | **Memory (FTS5 + vector)**                         |                        ✅                        |       ❌       |        ❌         |     ❌      |
 | **Guardrails (PII, injection, vision)**            |                        ✅                        |    partial     |        ❌         |   ✅ paid   |
@@ -34,14 +34,14 @@ Objective feature comparison vs popular open-source AI routers.
 | **CLI with system tray (no Electron)**             |                        ✅                        |       ❌       |        n/a        |     n/a     |
 | **CLI machine-ID auto-auth**                       |                        ✅                        |       ❌       |        n/a        |     n/a     |
 | **Dashboard**                                      |                    Next.js 16                    |     basic      |    proprietary    | proprietary |
-| **i18n**                                           |                 **42+ locales**                  |       ❌       |        ❌         |      ⚠      |
-| **Public agent skills (SKILL.md)**                 |                      ✅ 43                       |       ❌       |        ❌         |     ❌      |
+| **i18n**                                           |                  **43 locales**                  |       ❌       |        ❌         |      ⚠      |
+| **Public agent skills (SKILL.md)**                 |                      ✅ 45                       |       ❌       |        ❌         |     ❌      |
 | **Tunnel support (Cloudflared, Tailscale, Ngrok)** |                        ✅                        |       ❌       |        n/a        |     n/a     |
 | **License**                                        |                       MIT                        |      MIT       |    proprietary    | proprietary |
 
 ## When to choose OmniRoute
 
-- You self-host and want **maximum provider coverage** (237+, 90+ with a free tier)
+- You self-host and want **maximum provider coverage** (329 providers, 155 free/no-auth catalog entries)
 - You need a **built-in MCP server** (LLM tools, memory, skills exposed as tools)
 - You need **A2A protocol** for agent-to-agent workflows
 - You want **fingerprint stealth** (JA3/JA4) to avoid detection by upstream CAPTCHAs
@@ -67,4 +67,4 @@ Objective feature comparison vs popular open-source AI routers.
 
 ---
 
-_Last updated: 2026-06-28. Submit corrections via PR to keep this table accurate._
+_Last updated: 2026-08-02. Submit corrections via PR to keep this table accurate._

@@ -12,14 +12,14 @@ consume OmniRoute via OpenAI-compatible REST in one fetch.
 
 ## How agents discover capabilities
 
-- **MCP tool**: `omniroute_agent_skills_list` (scope `read:catalog`) — returns the full 42-skill catalog in one call.
+- **MCP tool**: `omniroute_agent_skills_list` (scope `read:catalog`) — returns the full 45-entry catalog in one call.
 - **A2A skill**: `list-capabilities` — JSON-RPC 2.0 endpoint that returns the agent card with all registered skills.
 
 See [`docs/frameworks/AGENT-SKILLS.md`](../docs/frameworks/AGENT-SKILLS.md) for the full framework reference.
 
 ---
 
-## API Skills (22)
+## API Skills (23)
 
 Each manifest URL follows the pattern:
 `https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/<id>/SKILL.md`
@@ -27,9 +27,9 @@ Each manifest URL follows the pattern:
 | ID                     | Name                          | Description                                                                                                                                                                                    |
 | ---------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `omni-auth`            | Authentication                | Manage API key authentication and session tokens. Start here to authenticate requests via Bearer token, obtain session cookies, and configure login requirements.                              |
-| `omni-providers`       | Providers                     | Manage provider connections, API keys, OAuth flows, and connection tests. List, add, update, remove, and test AI provider integrations (OpenAI, Anthropic, Gemini, and 160+).                  |
+| `omni-providers`       | Providers                     | Manage provider connections, API keys, OAuth flows, and connection tests across OmniRoute's 327-provider catalog.                  |
 | `omni-models`          | Models                        | Query available AI models across all configured providers. List models, resolve model aliases, and browse the full model catalog including provider-specific variants.                         |
-| `omni-combos-routing`  | Combos & Routing              | Create and manage routing combos with 14 strategies (priority, weighted, round-robin, Auto-combo, etc.). Configure fallback chains, test routing outcomes, and retrieve combo metrics.         |
+| `omni-combos-routing`  | Combos & Routing              | Create and manage routing combos with 19 strategies (priority, weighted, round-robin, Auto-combo, and more). Configure fallback chains, test routing outcomes, and retrieve combo metrics.         |
 | `omni-api-keys`        | API Keys                      | Create, list, rotate, and revoke OmniRoute API keys. Control per-key scopes, spending limits, and expiration.                                                                                  |
 | `omni-usage-logs`      | Usage & Logs                  | Access detailed call logs and usage analytics. Filter by provider, model, time range, status, and cost. Export logs and aggregate token usage.                                                 |
 | `omni-budget`          | Budget & Rate Limits          | Configure spending limits, token quotas, and rate-limit policies per API key or globally. Inspect current consumption and enforce cost controls.                                               |
@@ -44,10 +44,11 @@ Each manifest URL follows the pattern:
 | `omni-sync-cloud`      | Cloud Sync                    | Synchronise OmniRoute configuration, provider connections, and settings to/from cloud storage. Manage cloud worker authentication and remote backup targets.                                   |
 | `omni-db-backups`      | Database & Backups            | Trigger system backups, restore from backup files, and manage the SQLite database lifecycle. Supports export, import, and incremental snapshot strategies.                                     |
 | `omni-webhooks`        | Webhooks                      | Register, list, test, and remove webhook endpoints. Configure event subscriptions (request.completed, provider.error, budget.exceeded, etc.) and manage delivery retries.                      |
-| `omni-mcp`             | MCP Server                    | Connect to the OmniRoute MCP server (37 tools, 3 transports: SSE/stdio/HTTP). Covers routing, cache, compression, memory, skills, providers, and audit tools across 16 permission scopes.      |
+| `omni-mcp`             | MCP Server                    | Connect to the OmniRoute MCP server (107 tools, 3 transports: SSE/stdio/HTTP) across 32 permission scopes.      |
 | `omni-agents-a2a`      | Agents & A2A Protocol         | Interact with OmniRoute via JSON-RPC 2.0 agent-to-agent protocol. 6 built-in A2A skills: smart-routing, quota-management, provider-discovery, cost-analysis, health-report, list-capabilities. |
 | `omni-version-manager` | Version Manager               | Install, start, stop, restart, and update embedded services (9Router, CLIProxyAPI). Monitor service status, retrieve logs, and configure auto-start.                                           |
 | `omni-inference`       | Inference (OpenAI-compatible) | The core OpenAI-compatible inference endpoints: chat completions, embeddings, images, audio (TTS/STT), moderations, rerank, and the Responses API.                                             |
+| `omni-github-skills`   | GitHub Skill Discovery        | Search, score, scan, and import community agent skills from GitHub across supported tool and provider categories.                                                                              |
 
 ---
 
@@ -77,6 +78,12 @@ Each manifest URL follows the pattern:
 | `cli-setup`           | CLI: Setup & Config           | Run initial setup, configure global CLI settings, manage environment variables, check for updates, and configure autostart via the CLI setup and config commands.                              |
 | `cli-skill-collector` | CLI: Skill Collector          | Detect installed coding CLI tools, search GitHub for matching agent skills, and plan their installation into the detected tools' skill directories.                                            |
 
+## Configuration workflow (1)
+
+| ID                 | Name              | Description                                                               |
+| ------------------ | ----------------- | ------------------------------------------------------------------------- |
+| `config-codex-cli` | Config: Codex CLI | Configure Codex CLI to use OmniRoute as an OpenAI-compatible backend.     |
+
 ---
 
 ## Raw manifest URLs
@@ -104,8 +111,8 @@ examples, and error codes. Assume the reader is an agent with no prior context.
 
 ## What makes OmniRoute skills unique
 
-- `omni-mcp` — 37 MCP tools (memory, skills, providers, routing, compression) over SSE/stdio/HTTP
+- `omni-mcp` — 107 MCP tools across 32 scopes over SSE/stdio/Streamable HTTP
 - `omni-agents-a2a` — 6 A2A skills (smart-routing, quota, discovery, cost, health, list-capabilities) via JSON-RPC 2.0
-- `omni-combos-routing` — create/configure combos, 14 strategies, Auto-combo scoring, fallback chains
+- `omni-combos-routing` — create/configure combos, 19 strategies, Auto-combo scoring, fallback chains
 - `omni-compression` — RTK + Caveman + stacked mode + MCP accessibility filter (60–90% token savings)
 - `omni-resilience` — circuit breakers, p50/p95/p99 latency, budget guard, MCP audit log

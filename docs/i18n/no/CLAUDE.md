@@ -39,22 +39,22 @@ For full testmatrise, se `CONTRIBUTING.md` → "Kjøring av tester". For dyp ark
 
 ## Prosjektet i et nøtteskall
 
-**OmniRoute** — enhetlig AI proxy/ruter. Ett endepunkt, 160+ LLM-leverandører, automatisk fallback.
+**OmniRoute** — enhetlig AI proxy/ruter. Ett endepunkt, 329 LLM-leverandører, automatisk fallback.
 
-| Lag             | Sted                    | Formål                                                                  |
-| --------------- | ----------------------- | ----------------------------------------------------------------------- |
-| API-ruter       | `src/app/api/v1/`       | Next.js App Router — inngangspunkter                                    |
-| Håndterere      | `open-sse/handlers/`    | Behandling av forespørsel (chat, embeddings, osv.)                      |
-| Utøvere         | `open-sse/executors/`   | Leverandørspesifikk HTTP-dispatch                                       |
-| Oversettere     | `open-sse/translator/`  | Formatkonvertering (OpenAI↔Claude↔Gemini)                               |
-| Transformer     | `open-sse/transformer/` | Respons API ↔ Chat Fullføringer                                         |
-| Tjenester       | `open-sse/services/`    | Kombinasjonsruting, hastighetsbegrensninger, caching, osv.              |
-| Database        | `src/lib/db/`           | SQLite domene moduler (45+ filer, 55 migrasjoner)                       |
-| Domene/Politikk | `src/domain/`           | Politikkmotor, kostnadsregler, fallback-logikk                          |
-| MCP-server      | `open-sse/mcp-server/`  | 37 verktøy (30 base + 3 minne + 4 ferdigheter), 3 transport, ~13 omfang |
-| A2A-server      | `src/lib/a2a/`          | JSON-RPC 2.0 agentprotokoll                                             |
-| Ferdigheter     | `src/lib/skills/`       | Utvidbar ferdighetsrammeverk                                            |
-| Minne           | `src/lib/memory/`       | Vedvarende samtaleminne                                                 |
+| Lag             | Sted                    | Formål                                                                    |
+| --------------- | ----------------------- | ------------------------------------------------------------------------- |
+| API-ruter       | `src/app/api/v1/`       | Next.js App Router — inngangspunkter                                      |
+| Håndterere      | `open-sse/handlers/`    | Behandling av forespørsel (chat, embeddings, osv.)                        |
+| Utøvere         | `open-sse/executors/`   | Leverandørspesifikk HTTP-dispatch                                         |
+| Oversettere     | `open-sse/translator/`  | Formatkonvertering (OpenAI↔Claude↔Gemini)                                 |
+| Transformer     | `open-sse/transformer/` | Respons API ↔ Chat Fullføringer                                           |
+| Tjenester       | `open-sse/services/`    | Kombinasjonsruting, hastighetsbegrensninger, caching, osv.                |
+| Database        | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| Domene/Politikk | `src/domain/`           | Politikkmotor, kostnadsregler, fallback-logikk                            |
+| MCP-server      | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2A-server      | `src/lib/a2a/`          | JSON-RPC 2.0 agentprotokoll                                               |
+| Ferdigheter     | `src/lib/skills/`       | Utvidbar ferdighetsrammeverk                                              |
+| Minne           | `src/lib/memory/`       | Vedvarende samtaleminne                                                   |
 
 Monorepo: `src/` (Next.js 16 app), `open-sse/` (streaming engine arbeidsområde), `electron/` (desktop app), `tests/`, `bin/` (CLI inngangspunkt).
 
@@ -76,7 +76,7 @@ Klient → /v1/chat/completions (Next.js rute)
 
 API-ruter følger et konsistent mønster: `Rute → CORS preflight → Zod body validering → Valgfri auth (extractApiKey/isValidApiKey) → API-nøkkel policy håndheving → Handler delegasjon (open-sse)`. Ingen global Next.js middleware — avbrudd er rute-spesifikk.
 
-**Combo routing** (`open-sse/services/combo.ts`): 14 strategier (prioritet, vektet, fyll-først, rund-robin, P2C, tilfeldig, minst-brukt, kostnadsoptimalisert, reset-bevisst, streng-tilfeldig, auto, lkgp, kontekst-optimalisert, kontekst-rele). Hvert mål kaller `handleSingleModel()` som omslutter `handleChatCore()` med per-mål feilhåndtering og kretsbryter sjekker. Se `docs/routing/AUTO-COMBO.md` for 9-faktor Auto-Combo poengsetting og `docs/architecture/RESILIENCE_GUIDE.md` for de 3 motstandsdyktighetslagene.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -321,7 +321,7 @@ For enhver ikke-triviell endring, les den tilhørende dybdeanalysen først:
 | Repo-navigasjon                                  | `docs/architecture/REPOSITORY_MAP.md`                             |
 | Arkitektur                                       | `docs/architecture/ARCHITECTURE.md`                               |
 | Ingeniørreferanse                                | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (9-faktor poengsum, 14 strategier)    | `docs/routing/AUTO-COMBO.md`                                      |
+| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md` |
 | Motstandsdyktighet (3 mekanismer)                | `docs/architecture/RESILIENCE_GUIDE.md`                           |
 | Resonnement replay                               | `docs/routing/REASONING_REPLAY.md`                                |
 | Ferdighetsramme                                  | `docs/frameworks/SKILLS.md`                                       |
@@ -387,7 +387,9 @@ git push -u origin feat/your-feature
 
 ## Miljø
 
-- **Kjøretid**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES-moduler
+- **Kjøretid**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, ES-moduler
 - **TypeScript**: 5.9+, mål ES2022, modul esnext, oppløsning bundler
 - **Sti-aliaser**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Standardport**: 20128 (API + dashboard på samme port)

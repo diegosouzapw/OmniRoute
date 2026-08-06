@@ -39,7 +39,7 @@ Koko testimatriisin näkemiseksi katso `CONTRIBUTING.md` → "Testien suorittami
 
 ## Projekti lyhyesti
 
-**OmniRoute** — yhtenäinen AI-proxy/reititin. Yksi päätepiste, yli 160 LLM-toimittajaa, automaattinen varajärjestelmä.
+**OmniRoute** — yhtenäinen AI-proxy/reititin. Yksi päätepiste, 329 LLM-toimittajaa, automaattinen varajärjestelmä.
 
 | Kerros          | Sijainti                | Tarkoitus                                                                 |
 | --------------- | ----------------------- | ------------------------------------------------------------------------- |
@@ -49,9 +49,9 @@ Koko testimatriisin näkemiseksi katso `CONTRIBUTING.md` → "Testien suorittami
 | Kääntäjät       | `open-sse/translator/`  | Muotojen muunnos (OpenAI↔Claude↔Gemini)                                   |
 | Muuntaja        | `open-sse/transformer/` | Vastaukset API ↔ Keskustelun täydentäminen                                |
 | Palvelut        | `open-sse/services/`    | Combo-reititys, nopeusrajoitukset, välimuisti jne.                        |
-| Tietokanta      | `src/lib/db/`           | SQLite-alueen moduulit (yli 45 tiedostoa, 55 migraatiota)                 |
+| Tietokanta      | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
 | Alue/Politiikka | `src/domain/`           | Politiikkamoottori, kustannussäännöt, varajärjestelmä                     |
-| MCP-palvelin    | `open-sse/mcp-server/`  | 37 työkalua (30 perus + 3 muisti + 4 taitoa), 3 kuljetusta, ~13 laajuutta |
+| MCP-palvelin    | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
 | A2A-palvelin    | `src/lib/a2a/`          | JSON-RPC 2.0 agenttiprotokolla                                            |
 | Taidot          | `src/lib/skills/`       | Laajennettavissa oleva taitokehys                                         |
 | Muisti          | `src/lib/memory/`       | Kestävä keskustelumuisti                                                  |
@@ -74,7 +74,7 @@ Asiakas → /v1/chat/completions (Next.js-reitti)
 
 API-reitit noudattavat johdonmukaista kaavaa: `Reitti → CORS-esivalmistelu → Zod-kehon validointi → Valinnainen auth (extractApiKey/isValidApiKey) → API-avaimen politiikan täytäntöönpano → Käsittelijän delegointi (open-sse)`. Ei globaalia Next.js-välikkää — keskeytys on reitti-spesifinen.
 
-**Yhdistelmäreittaus** (`open-sse/services/combo.ts`): 14 strategiaa (prioriteetti, painotettu, täytä-ensin, vuorotellen, P2C, satunnainen, vähiten käytetty, kustannusoptimoitu, reset-tieto, tiukka-satunnainen, automaattinen, lkgp, konteksti-optimoitu, konteksti-väylä). Jokainen kohde kutsuu `handleSingleModel()`, joka käärii `handleChatCore()`-funktion kohdekohtaisella virheenkäsittelyllä ja piirikytkin tarkistuksilla. Katso `docs/routing/AUTO-COMBO.md` 9-tekijän Auto-Combo-pisteytykselle ja `docs/architecture/RESILIENCE_GUIDE.md` 3-resilienssikerrokselle.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -317,7 +317,7 @@ Mikäli teet ei-triviaalia muutosta, lue ensin vastaava syväsukellus:
 | Repo-navigointi                                    | `docs/architecture/REPOSITORY_MAP.md`                             |
 | Arkkitehtuuri                                      | `docs/architecture/ARCHITECTURE.md`                               |
 | Insinööriviite                                     | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (9-tekijän pisteytys, 14 strategiaa)    | `docs/routing/AUTO-COMBO.md`                                      |
+| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md` |
 | Kestävyys (3 mekanismia)                           | `docs/architecture/RESILIENCE_GUIDE.md`                           |
 | Perustelujen toisto                                | `docs/routing/REASONING_REPLAY.md`                                |
 | Taitojen kehys                                     | `docs/frameworks/SKILLS.md`                                       |
@@ -383,7 +383,9 @@ git push -u origin feat/your-feature
 
 ## Ympäristö
 
-- **Suoritusaika**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES-moduulit
+- **Suoritusaika**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, ES-moduulit
 - **TypeScript**: 5.9+, kohde ES2022, moduuli esnext, resoluutio bundler
 - **Polkualias**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Oletusportti**: 20128 (API + dashboard samalla portilla)

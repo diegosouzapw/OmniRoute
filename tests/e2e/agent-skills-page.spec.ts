@@ -7,7 +7,7 @@ type AgentSkill = {
   id: string;
   name: string;
   description: string;
-  category: "api" | "cli";
+  category: "api" | "cli" | "config";
   area: string;
   icon: string;
   endpoints?: string[];
@@ -19,13 +19,14 @@ type AgentSkill = {
 type SkillCoverage = {
   api: { have: number; total: number };
   cli: { have: number; total: number };
+  config: { have: number; total: number };
   totalSkills: number;
   generatedAt: string;
 };
 
 function makeAgentSkills(): AgentSkill[] {
   const skills: AgentSkill[] = [];
-  for (let i = 0; i < 22; i++) {
+  for (let i = 0; i < 23; i++) {
     skills.push({
       id: `omni-skill-${i}`,
       name: `API Skill ${i}`,
@@ -38,7 +39,7 @@ function makeAgentSkills(): AgentSkill[] {
       githubUrl: `https://github.com/example/OmniRoute/blob/main/skills/omni-skill-${i}/SKILL.md`,
     });
   }
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 21; i++) {
     skills.push({
       id: `cli-skill-${i}`,
       name: `CLI Skill ${i}`,
@@ -51,13 +52,25 @@ function makeAgentSkills(): AgentSkill[] {
       githubUrl: `https://github.com/example/OmniRoute/blob/main/skills/cli-skill-${i}/SKILL.md`,
     });
   }
+  skills.push({
+    id: "config-codex-cli",
+    name: "Config: Codex CLI",
+    description: "Configure Codex CLI to use OmniRoute.",
+    category: "config",
+    area: "config-codex-cli",
+    icon: "terminal",
+    rawUrl:
+      "https://raw.githubusercontent.com/example/OmniRoute/main/skills/config-codex-cli/SKILL.md",
+    githubUrl: "https://github.com/example/OmniRoute/blob/main/skills/config-codex-cli/SKILL.md",
+  });
   return skills;
 }
 
 const FULL_COVERAGE: SkillCoverage = {
-  api: { have: 22, total: 22 },
-  cli: { have: 20, total: 20 },
-  totalSkills: 42,
+  api: { have: 23, total: 23 },
+  cli: { have: 21, total: 21 },
+  config: { have: 1, total: 1 },
+  totalSkills: 45,
   generatedAt: new Date().toISOString(),
 };
 
@@ -80,9 +93,7 @@ async function fulfillText(route: Route, body: string, status = 200) {
 test.describe("Agent Skills page", () => {
   test.setTimeout(600_000);
 
-  test("renders SkillsConceptCard with data-testid skills-concept-card-agent", async ({
-    page,
-  }) => {
+  test("renders SkillsConceptCard with data-testid skills-concept-card-agent", async ({ page }) => {
     const skills = makeAgentSkills();
 
     await page.route(/\/api\/agent-skills(?:\?.*)?$/, async (route) => {
@@ -101,7 +112,7 @@ test.describe("Agent Skills page", () => {
     await expect(conceptCard).toBeVisible({ timeout: 15_000 });
   });
 
-  test("grid shows 42 skill cards when filter is 'all'", async ({ page }) => {
+  test("grid shows 45 skill cards when filter is 'all'", async ({ page }) => {
     const skills = makeAgentSkills();
 
     await page.route(/\/api\/agent-skills(?:\?.*)?$/, async (route) => {
@@ -122,12 +133,10 @@ test.describe("Agent Skills page", () => {
     });
 
     const cards = page.locator("[data-testid^='skill-card-']");
-    await expect(cards).toHaveCount(42, { timeout: 15_000 });
+    await expect(cards).toHaveCount(45, { timeout: 15_000 });
   });
 
-  test("clicking omni-skill-0 card renders markdown in preview pane", async ({
-    page,
-  }) => {
+  test("clicking omni-skill-0 card renders markdown in preview pane", async ({ page }) => {
     const skills = makeAgentSkills();
     const mockMarkdown = "# API Skill 0\n\nThis skill manages connections.";
 
@@ -199,7 +208,7 @@ test.describe("Agent Skills page", () => {
     expect(
       finalUrl.includes("/dashboard/omni-skills") ||
         finalUrl.includes("/login") ||
-        finalUrl.includes("/onboarding"),
+        finalUrl.includes("/onboarding")
     ).toBe(true);
   });
 });

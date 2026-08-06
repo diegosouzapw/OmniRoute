@@ -179,7 +179,7 @@ W `Dashboard → Context & Cache → Compression Combos` przypisz combo kompresj
 routingu:
 
 ```txt
-Combo: "free-forever"
+Combo: "free-tier-fallback"
   Compression Combo: "coding-agent-stack"
   Pipeline: RTK -> Caveman
   Targets:

@@ -1,4 +1,5 @@
 <svg viewBox="0 0 1200 650" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OmniRoute request flow — auto-fallback cascade across 4 provider tiers">
+  <desc>Animated request path that tries subscription, API-key, low-cost, and free-access tiers in sequence, subject to upstream availability and limits.</desc>
   <defs>
     <radialGradient id="hubGlow" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#e54d5e" stop-opacity="0.5"/>
@@ -89,7 +90,7 @@
     </circle>
   </g>
   <text x="364" y="216" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="20" font-weight="800" fill="url(#gradBrand)">OmniRoute — Smart Router</text>
-  <text x="364" y="243" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa"><tspan fill="#8b5cf6">RTK + Caveman compression</tspan> · <tspan fill="#8b5cf6">18 routing strategies</tspan></text>
+  <text x="364" y="243" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa"><tspan fill="#8b5cf6">RTK + Caveman compression</tspan> · <tspan fill="#8b5cf6">19 routing strategies</tspan></text>
   <text x="364" y="264" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa">Circuit breakers · TLS stealth · MCP · A2A · Guardrails</text>
 
   <!-- fan-out topology (always visible) -->
@@ -255,15 +256,15 @@
     <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.735;0.745;0.765;0.775;1" dur="16s" repeatCount="indefinite"/>
   </circle>
 
-  <!-- ALWAYS ON badge under Tier 4 -->
+  <!-- Limits-apply badge under Tier 4 -->
   <g transform="translate(986, 566)">
     <rect width="104" height="24" rx="12" fill="#161b22" stroke="#22c55e" stroke-width="1" stroke-opacity="0.6"/>
     <circle cx="16" cy="12" r="3" fill="#22c55e">
       <animate attributeName="opacity" values="1;0.35;1" dur="1.6s" repeatCount="indefinite"/>
     </circle>
-    <text x="60" y="16" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="9.5" letter-spacing="2" font-weight="700" fill="#22c55e">ALWAYS ON</text>
+    <text x="60" y="16" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="9.5" letter-spacing="1.4" font-weight="700" fill="#22c55e">LIMITS APPLY</text>
   </g>
 
   <!-- footer -->
-  <text x="600" y="625" font-family="Consolas, 'Courier New', monospace" font-size="11" letter-spacing="4" font-weight="700" fill="#71717a" text-anchor="middle">AUTO-FALLBACK CASCADE · NEVER STOP CODING</text>
+  <text x="600" y="625" font-family="Consolas, 'Courier New', monospace" font-size="11" letter-spacing="3" font-weight="700" fill="#71717a" text-anchor="middle">AUTO-FALLBACK CASCADE · UPSTREAM AVAILABILITY VARIES</text>
 </svg>

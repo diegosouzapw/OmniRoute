@@ -22,28 +22,27 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 
 ## 💰 Pricing at a Glance
 
-| Tier                | Provider          | Cost        | Quota Reset      | Best For             |
-| ------------------- | ----------------- | ----------- | ---------------- | -------------------- |
-| **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly      | Already subscribed   |
-|                     | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly      | OpenAI users         |
-|                     | GitHub Copilot    | $10-19/mo   | Monthly          | GitHub users         |
-| **🔑 API KEY**      | DeepSeek          | Pay per use | None             | Cheap reasoning      |
-|                     | Groq              | Pay per use | None             | Ultra-fast inference |
-|                     | xAI (Grok)        | Pay per use | None             | Grok 4 reasoning     |
-|                     | Mistral           | Pay per use | None             | EU-hosted models     |
-|                     | Perplexity        | Pay per use | None             | Search-augmented     |
-|                     | Together AI       | Pay per use | None             | Open-source models   |
-|                     | Fireworks AI      | Pay per use | None             | Fast FLUX images     |
-|                     | Cerebras          | Pay per use | None             | Wafer-scale speed    |
-|                     | Cohere            | Pay per use | None             | Command R+ RAG       |
-|                     | NVIDIA NIM        | Pay per use | None             | Enterprise models    |
-| **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM       | Budget backup        |
-|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling   | Cheapest option      |
-|                     | Kimi K2           | $9/mo flat  | 10M tokens/mo    | Predictable cost     |
-| **🆓 FREE**         | Qoder             | $0          | Unlimited        | 8 models free        |
-|                     | Qwen              | $0          | Unlimited        | 3 models free        |
-|                     | Kiro              | $0          | Unlimited        | Claude free          |
-
+| Tier                | Provider          | Cost        | Quota Reset    | Best For             |
+| ------------------- | ----------------- | ----------- | -------------- | -------------------- |
+| **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly    | Already subscribed   |
+|                     | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly    | OpenAI users         |
+|                     | GitHub Copilot    | $10-19/mo   | Monthly        | GitHub users         |
+| **🔑 API KEY**      | DeepSeek          | Pay per use | None           | Cheap reasoning      |
+|                     | Groq              | Pay per use | None           | Ultra-fast inference |
+|                     | xAI (Grok)        | Pay per use | None           | Grok 4 reasoning     |
+|                     | Mistral           | Pay per use | None           | EU-hosted models     |
+|                     | Perplexity        | Pay per use | None           | Search-augmented     |
+|                     | Together AI       | Pay per use | None           | Open-source models   |
+|                     | Fireworks AI      | Pay per use | None           | Fast FLUX images     |
+|                     | Cerebras          | Pay per use | None           | Wafer-scale speed    |
+|                     | Cohere            | Pay per use | None           | Command R+ RAG       |
+|                     | NVIDIA NIM        | Pay per use | None           | Enterprise models    |
+| **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM     | Budget backup        |
+|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling | Cheapest option      |
+|                     | Kimi K2           | $9/mo flat  | 10M tokens/mo  | Predictable cost     |
+| **🆓 FREE**         | Qoder             | $0          | Provider limits apply | Verify current catalog        |
+|                     | Qwen              | $0          | Provider limits apply | Verify current catalog        |
+|                     | Kiro              | $0          | Provider limits apply | Claude free          |
 
 ---
 
@@ -68,12 +67,12 @@ vs. $20 + hitting limits = frustration
 **Problem:** Can't afford subscriptions, need reliable AI coding
 
 ```
-Combo: "free-forever"
-  1. if/kimi-k2-thinking       (unlimited free)
-  2. qw/qwen3-coder-plus       (unlimited free)
+Combo: "free-tier-fallback"
+  1. if/kimi-k2-thinking       (no published token cap; limits apply)
+  2. qw/qwen3-coder-plus       (no published token cap; limits apply)
 
 Monthly cost: $0
-Quality: Production-ready models
+Quality: verify the model, limits, privacy, and SLA for your workload
 ```
 
 ### Case 3: "I need 24/7 coding, no interruptions"
@@ -88,7 +87,7 @@ Combo: "always-on"
   4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
   5. if/kimi-k2-thinking       (free unlimited)
 
-Result: 5 layers of fallback = zero downtime
+Result: 5 fallback layers broaden resilience; upstream availability is not guaranteed
 Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
 ```
 
@@ -98,9 +97,9 @@ Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
 
 ```
 Combo: "openclaw-free"
-  1. if/glm-4.7                (unlimited free)
-  2. if/minimax-m2.1           (unlimited free)
-  3. if/kimi-k2-thinking       (unlimited free)
+  1. if/glm-4.7                (no published token cap; limits apply)
+  2. if/minimax-m2.1           (no published token cap; limits apply)
+  3. if/kimi-k2-thinking       (no published token cap; limits apply)
 
 Monthly cost: $0
 Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
@@ -138,8 +137,6 @@ Models:
   cx/gpt-5.2-codex
   cx/gpt-5.1-codex-max
 ```
-
-
 
 #### GitHub Copilot
 
@@ -183,7 +180,7 @@ Models:
 #### Qoder (8 FREE models)
 
 ```bash
-Dashboard → Connect Qoder → OAuth login → Unlimited usage
+Dashboard → Connect Qoder → OAuth login → Access is subject to current provider limits
 
 Models: if/kimi-k2-thinking, if/qwen3-coder-plus, if/glm-4.7, if/minimax-m2, if/deepseek-r1
 ```
@@ -191,7 +188,7 @@ Models: if/kimi-k2-thinking, if/qwen3-coder-plus, if/glm-4.7, if/minimax-m2, if/
 #### Qwen (3 FREE models)
 
 ```bash
-Dashboard → Connect Qwen → Device code auth → Unlimited usage
+Dashboard → Connect Qwen → Device code auth → Access is subject to current provider limits
 
 Models: qw/qwen3-coder-plus, qw/qwen3-coder-flash
 ```
@@ -229,10 +226,10 @@ Use in CLI: premium-coding
 ```
 Name: free-combo
 Models:
-  1. if/kimi-k2-thinking (unlimited)
-  2. qw/qwen3-coder-plus (unlimited)
+  1. if/kimi-k2-thinking (no published token cap; provider limits may apply)
+  2. qw/qwen3-coder-plus (no published token cap; provider limits may apply)
 
-Cost: $0 forever!
+Cost: currently listed as $0; terms and availability may change
 ```
 
 ---
@@ -541,7 +538,6 @@ For the full environment variable reference, see the [README](../README.md).
 **Claude Code (`cc/`)** — Pro/Max: `cc/claude-opus-4-7`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
 
 **Codex (`cx/`)** — Plus/Pro: `cx/gpt-5.2-codex`, `cx/gpt-5.1-codex-max`
-
 
 **GitHub Copilot (`gh/`)**: `gh/gpt-5`, `gh/claude-4.5-sonnet`
 

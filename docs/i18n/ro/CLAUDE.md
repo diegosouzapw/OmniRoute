@@ -39,22 +39,22 @@ Pentru matricea completă a testelor, consultați `CONTRIBUTING.md` → "Rularea
 
 ## Proiect pe scurt
 
-**OmniRoute** — proxy/router AI unificat. Un endpoint, 160+ furnizori LLM, fallback automat.
+**OmniRoute** — proxy/router AI unificat. Un endpoint, 329 furnizori LLM, fallback automat.
 
-| Strat            | Locație                 | Scop                                                                          |
-| ---------------- | ----------------------- | ----------------------------------------------------------------------------- |
-| Rute API         | `src/app/api/v1/`       | Router aplicație Next.js — puncte de intrare                                  |
-| Handleri         | `open-sse/handlers/`    | Procesarea cererilor (chat, embeddings, etc)                                  |
-| Executorii       | `open-sse/executors/`   | Dispatch HTTP specific furnizor                                               |
-| Traducători      | `open-sse/translator/`  | Conversie de format (OpenAI↔Claude↔Gemini)                                    |
-| Transformator    | `open-sse/transformer/` | API de răspunsuri ↔ Completări chat                                           |
-| Servicii         | `open-sse/services/`    | Rutare combinată, limite de rată, caching, etc                                |
-| Bază de date     | `src/lib/db/`           | Module de domeniu SQLite (45+ fișiere, 55 migrații)                           |
-| Domeniu/Politică | `src/domain/`           | Motor de politici, reguli de cost, logică de fallback                         |
-| Server MCP       | `open-sse/mcp-server/`  | 37 unelte (30 de bază + 3 memorie + 4 abilități), 3 transporturi, ~13 domenii |
-| Server A2A       | `src/lib/a2a/`          | Protocol agent JSON-RPC 2.0                                                   |
-| Abilități        | `src/lib/skills/`       | Cadru extensibil pentru abilități                                             |
-| Memorie          | `src/lib/memory/`       | Memorie conversațională persistentă                                           |
+| Strat            | Locație                 | Scop                                                                      |
+| ---------------- | ----------------------- | ------------------------------------------------------------------------- |
+| Rute API         | `src/app/api/v1/`       | Router aplicație Next.js — puncte de intrare                              |
+| Handleri         | `open-sse/handlers/`    | Procesarea cererilor (chat, embeddings, etc)                              |
+| Executorii       | `open-sse/executors/`   | Dispatch HTTP specific furnizor                                           |
+| Traducători      | `open-sse/translator/`  | Conversie de format (OpenAI↔Claude↔Gemini)                                |
+| Transformator    | `open-sse/transformer/` | API de răspunsuri ↔ Completări chat                                       |
+| Servicii         | `open-sse/services/`    | Rutare combinată, limite de rată, caching, etc                            |
+| Bază de date     | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| Domeniu/Politică | `src/domain/`           | Motor de politici, reguli de cost, logică de fallback                     |
+| Server MCP       | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| Server A2A       | `src/lib/a2a/`          | Protocol agent JSON-RPC 2.0                                               |
+| Abilități        | `src/lib/skills/`       | Cadru extensibil pentru abilități                                         |
+| Memorie          | `src/lib/memory/`       | Memorie conversațională persistentă                                       |
 
 Monorepo: `src/` (aplicație Next.js 16), `open-sse/` (spațiu de lucru pentru motor de streaming), `electron/` (aplicație desktop), `tests/`, `bin/` (punct de intrare CLI).
 
@@ -76,7 +76,7 @@ Client → /v1/chat/completions (ruta Next.js)
 
 Rutele API urmează un model consistent: `Ruta → CORS preflight → validare corp Zod → Auth opțional (extractApiKey/isValidApiKey) → aplicarea politicii cheii API → delegarea handler-ului (open-sse)`. Nu există middleware global Next.js — interceptarea este specifică rutei.
 
-**Rutare combo** (`open-sse/services/combo.ts`): 14 strategii (prioritate, ponderată, umple-primul, rotativ, P2C, aleatorie, cel mai puțin utilizată, optimizată pentru cost, conștientă de resetare, strict-aleatorie, auto, lkgp, optimizată pentru context, relay de context). Fiecare țintă apelează `handleSingleModel()` care învăluie `handleChatCore()` cu gestionarea erorilor per țintă și verificări ale circuit breaker-ului. Consultați `docs/routing/AUTO-COMBO.md` pentru scorul Auto-Combo cu 9 factori și `docs/architecture/RESILIENCE_GUIDE.md` pentru cele 3 straturi de reziliență.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -316,7 +316,7 @@ Pentru orice modificare non-trivială, citiți mai întâi analiza corespunzăto
 | Navigare în repo                                | `docs/architecture/REPOSITORY_MAP.md`                             |
 | Arhitectură                                     | `docs/architecture/ARCHITECTURE.md`                               |
 | Referință inginerie                             | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (scor 9-factori, 14 strategii)       | `docs/routing/AUTO-COMBO.md`                                      |
+| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md` |
 | Reziliență (3 mecanisme)                        | `docs/architecture/RESILIENCE_GUIDE.md`                           |
 | Repetare raționare                              | `docs/routing/REASONING_REPLAY.md`                                |
 | Cadru de abilități                              | `docs/frameworks/SKILLS.md`                                       |
@@ -382,7 +382,9 @@ git push -u origin feat/your-feature
 
 ## Mediu
 
-- **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, Module ES
+- **Runtime**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, Module ES
 - **TypeScript**: 5.9+, target ES2022, modul esnext, rezolvare bundler
 - **Aliasuri de cale**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Port implicit**: 20128 (API + dashboard pe același port)

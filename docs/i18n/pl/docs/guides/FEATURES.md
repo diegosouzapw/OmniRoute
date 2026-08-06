@@ -18,7 +18,7 @@ Wizualny przewodnik po każdej sekcji dashboardu OmniRoute.
 
 Cykl v3.7.x → v3.8.0 dodał auto-routing bez konfiguracji, nowych providerów, przepływy OAuth, głębszą odporność oraz znacznie bogatsze doświadczenie CLI. Poniżej kluczowe funkcje — pełne szczegóły dalej w dokumencie i w powiązanych specyfikacjach.
 
-- 🤖 **Auto Combo / Zero-config auto-routing** — używaj prefiksów `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`. Oparte na 9-czynnikowym silniku scoringu i 4 kuratorowanych **mode packs** (ship-fast, cost-saver, quality-first, offline-friendly)
+- 🤖 **Auto Combo / Zero-config auto-routing** — używaj prefiksów `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`. Oparte na 13-czynnikowym silniku scoringu i 4 kuratorowanych **mode packs** (ship-fast, cost-saver, quality-first, offline-friendly)
 - 🆕 **Provider Command Code** (#2199) — rejestracja pierwszej klasy z katalogiem modeli i śledzeniem quota
 - 🆕 **Provider Z.AI** — nowy provider w darmowym tierze z etykietami quota
 - 🎬 **Rozszerzenie mediów KIE** — rozszerzony katalog, w tym modele generacji wideo
@@ -61,7 +61,12 @@ Połączenia OpenRouter mogą przechowywać per-connection `preset` w Advanced S
 
 ## 🎨 Combos
 
-Twórz combo routingu modeli z 17 strategiami: priority, weighted, fill-first, round-robin, p2c (power-of-two-choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, context-relay oraz **fusion** (równoległy fan-out do panelu modeli, a następnie synteza jednej odpowiedzi przez judge). Każde combo łączy wiele modeli z automatycznym fallbackiem i zawiera szybkie szablony oraz kontrole gotowości.
+Twórz combo routingu modeli z 19 publicznymi strategiami: priority, weighted, round-robin,
+context-relay, fill-first, p2c (power-of-two-choices), random, least-used, cost-optimized,
+reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider),
+context-optimized, cache-optimized, **fusion** (równoległy fan-out do panelu modeli, a następnie
+synteza jednej odpowiedzi przez judge) oraz **pipeline**. Każde combo łączy wiele modeli z
+automatycznym fallbackiem i zawiera szybkie szablony oraz kontrole gotowości.
 
 Niedawne ulepszenia combo:
 

@@ -54,8 +54,8 @@ Kompletny przewodnik po konfiguracji providerów, tworzeniu combo, integracji na
 | **💰 TANIO**       | GLM-4.7           | $0.6/1M            | Codziennie 10:00   | Zapas budżetowy          |
 |                    | MiniMax M2.1      | $0.2/1M            | Okno 5-godzinne    | Najtańsza opcja          |
 |                    | Kimi K2           | $9/mies. ryczałt   | 10M tokenów/mies.  | Przewidywalny koszt      |
-| **🆓 ZA DARMO**    | Qoder             | $0                 | Bez limitu         | 8 modeli za darmo        |
-|                    | Qwen              | $0                 | Bez limitu         | 3 modele za darmo        |
+| **🆓 ZA DARMO**    | Qoder             | $0                 | Brak opublikowanego capu; limity obowiązują | 8 modeli za darmo |
+|                    | Qwen              | $0                 | Brak opublikowanego capu; limity obowiązują | 3 modele za darmo |
 |                    | Kiro              | $0                 | ~50 kredytów/mies. | Claude za darmo          |
 
 ---
@@ -81,12 +81,12 @@ vs. $20 + hitting limits = frustration
 **Problem:** Nie stać mnie na subskrypcje, potrzebuję niezawodnego AI do kodowania
 
 ```
-Combo: "free-forever"
-  1. if/kimi-k2.7-code          (unlimited free)
+Combo: "free-tier-fallback"
+  1. if/kimi-k2.7-code          (no published token cap; limits apply)
   2. kr/qwen3-coder-next        (Kiro free fallback)
 
 Monthly cost: $0
-Quality: Production-ready models
+Quality: verify the model, limits, privacy, and SLA for your workload
 ```
 
 ### Przypadek 3: „Potrzebuję kodowania 24/7 bez przerw”
@@ -101,7 +101,7 @@ Combo: "always-on"
   4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
   5. if/deepseek-v4-flash       (free unlimited)
 
-Result: 5 layers of fallback = zero downtime
+Result: 5 fallback layers broaden resilience; upstream availability is not guaranteed
 Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
 ```
 
@@ -111,9 +111,9 @@ Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
 
 ```
 Combo: "openclaw-free"
-  1. if/qwen3.8-max-preview     (unlimited free)
-  2. if/deepseek-v4-flash       (unlimited free)
-  3. if/kimi-k2.7-code          (unlimited free)
+  1. if/qwen3.8-max-preview     (no published token cap; limits apply)
+  2. if/deepseek-v4-flash       (no published token cap; limits apply)
+  3. if/kimi-k2.7-code          (no published token cap; limits apply)
 
 Monthly cost: $0
 Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
@@ -213,7 +213,7 @@ usuwa jego modele z `/v1/models`.
 #### Qoder (9 modeli ZA DARMO)
 
 ```bash
-Dashboard → Connect Qoder → OAuth login → Unlimited usage
+Dashboard → Connect Qoder → OAuth login → Access is subject to current provider limits
 
 Models: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -251,10 +251,10 @@ Use in CLI: premium-coding
 ```
 Name: free-combo
 Models:
-  1. if/kimi-k2.7-code (unlimited)
+  1. if/kimi-k2.7-code (no published token cap; provider limits may apply)
   2. kr/qwen3-coder-next (Kiro free fallback)
 
-Cost: $0 forever!
+Cost: currently listed as $0; terms and availability may change
 ```
 
 ---
@@ -1092,7 +1092,7 @@ Użyj URL SSE `http://localhost:20128/api/mcp/sse` oraz klucza API Bearer wygene
 
 ### Zakresy (scopes)
 
-Narzędzia MCP są pogrupowane w 10 zakresów: `analytics`, `auth`, `billing`, `combos`, `health`, `keys`, `memory`, `models`, `providers`, `system`. Każdy klucz Bearer można ograniczyć do wybranych zakresów — pełny katalog narzędzi: [MCP-SERVER.md](../frameworks/MCP-SERVER.md), schemat JSON-RPC: [A2A-SERVER.md](../frameworks/A2A-SERVER.md).
+MCP definiuje obecnie 32 nazwane scope'y. Każdy klucz Bearer można ograniczyć do wybranych scope'ów; autorytatywny katalog znajduje się w [MCP-SERVER.md](../frameworks/MCP-SERVER.md), a schemat JSON-RPC w [A2A-SERVER.md](../frameworks/A2A-SERVER.md).
 
 ---
 

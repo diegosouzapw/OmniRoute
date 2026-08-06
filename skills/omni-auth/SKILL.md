@@ -76,7 +76,7 @@ See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.y
 
 # OmniRoute
 
-Local/remote AI gateway exposing OpenAI-compatible REST. One key, 207+ providers,
+Local/remote AI gateway exposing OpenAI-compatible REST. One key, 327 providers,
 auto-fallback, RTK token saver, MCP server, A2A agents.
 
 ## Setup
@@ -114,7 +114,7 @@ Use `data[].id` as `model` field in requests. Combos appear with `owned_by:"comb
 | Embeddings            | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-embeddings/SKILL.md  |
 | Web search            | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-web-search/SKILL.md  |
 | Web fetch             | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-web-fetch/SKILL.md   |
-| MCP server (37 tools) | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-mcp/SKILL.md         |
+| MCP server (107 tools) | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omni-mcp/SKILL.md         |
 | A2A protocol          | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-a2a/SKILL.md         |
 | Routing & combos      | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-routing/SKILL.md     |
 | Token compression     | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-compression/SKILL.md |
@@ -139,7 +139,7 @@ Use `data[].id` as `model` field in requests. Combos appear with `owned_by:"comb
 
 ## Differentiators vs OpenAI direct
 
-- **Auto-fallback** combos (14 strategies): never stop coding even if a provider rate-limits
+- **Auto-fallback** combos (19 strategies): never stop coding even if a provider rate-limits
 - **RTK token saver**: tool_result compressed via 47 specialized filters (git-diff, test-jest, terraform-plan, docker-logs…) — 20-40% token reduction
 - **Caveman mode**: optional terse system prompt injection (LITE/FULL/ULTRA) — 15-25% completion reduction
 - **MCP + A2A** servers built-in (this is the only AI router that exposes both protocols)

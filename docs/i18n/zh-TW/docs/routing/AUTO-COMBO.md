@@ -114,11 +114,11 @@ handleComboChat（與持久化組合使用相同引擎）
 
 ## 運作原理（持久化自動組合）
 
-自動組合引擎使用**12 因子評分函數**（定義於 `open-sse/services/autoCombo/scoring.ts` → `DEFAULT_WEIGHTS`）為每個請求動態選擇最佳的提供者/模型。所有權重合計為 **1.0**。
+自動組合引擎使用**13 因子評分函數**（定義於 `open-sse/services/autoCombo/scoring.ts` → `DEFAULT_WEIGHTS`）為每個請求動態選擇最佳的提供者/模型。所有權重合計為 **1.0**。
 
-![自動組合 12 因子評分](../diagrams/exported/auto-combo-12factor.svg)
+![自動組合 13 因子評分](../diagrams/exported/auto-combo-12factor.svg)
 
-> 來源：[diagrams/auto-combo-12factor.mmd](../diagrams/auto-combo-12factor.mmd)（可透過 `npm run docs:render-diagrams` 重新生成）。
+> 來源：[diagrams/auto-combo-12factor.mmd](../diagrams/auto-combo-12factor.mmd)（可透過 `npm run docs:render-diagrams` 重新生成）。檔名是歷史名稱；目前圖表包含全部 13 個因子。
 
 | 因子                                    | 預設權重 | 說明                                                                         |
 | :-------------------------------------- | :------- | :--------------------------------------------------------------------------- |
@@ -184,7 +184,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## 所有路由策略
 
-OmniRoute 的組合引擎支援 **18 種路由策略**（宣告於 `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`）。自動組合引擎本身以 `auto` 策略對外提供；其他策略可用於持久化組合。
+OmniRoute 的組合引擎支援 **19 種公開路由策略**（宣告於 `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`）。自動組合引擎本身以 `auto` 策略對外提供；其他策略可用於持久化組合。
 
 | 策略                | 說明                                                                        |
 | :------------------ | :-------------------------------------------------------------------------- |
@@ -201,9 +201,10 @@ OmniRoute 的組合引擎支援 **18 種路由策略**（宣告於 `src/shared/c
 | `reset-window`      | 偏好額度視窗最快重置的目標                                                  |
 | `headroom`          | 挑選剩餘額度空間最大的目標                                                  |
 | `strict-random`     | 純隨機，不排除重複                                                          |
-| `auto`              | 使用自動組合評分（9 因子）— **推薦**                                        |
+| `auto`              | 使用自動組合評分（13 因子）— **推薦**                                       |
 | `lkgp`              | 上次已知良好路徑（黏著路由至上次成功的目標）                                |
 | `context-optimized` | 挑選最適合當前上下文大小的目標                                              |
+| `cache-optimized`   | 依 prompt cache affinity 重新排列目標                                       |
 | `fusion` 🧬         | 平行分發給多個模型面板，再由評判模型合成一個答案（詳見下方）                |
 | `pipeline`          | 依序執行目標，將每個步驟的輸出串接至下一步驟的輸入；僅回傳最終答案（#6396） |
 
@@ -268,7 +269,7 @@ curl -X POST http://localhost:20128/api/combos \
 3. 與 `getProviderRegistry()` 交叉參考以取得模型可用性 + 定價
 4. 對每個元組 `(provider, model, connection)` 建立 `VirtualAutoComboCandidate`
 5. 選取 `connection.defaultModel`（或註冊表中的第一個模型）作為分發目標
-6. 使用 9 因子 `scorePool()` 和變體的權重套件為每個候選項評分
+6. 使用 13 因子 `scorePool()` 和變體的權重套件為每個候選項評分
 7. 回傳結果的記憶體中 `AutoComboConfig` 供 `handleComboChat()` 使用 — 永不持久化至資料庫
 
 這表示**新增一個啟用 `auto/*` 的提供者會自動擴展候選池**—無需手動編輯組合。虛擬組合在每次請求時重新建立，因此新新增或剛恢復健康的連線會立即被納入。
@@ -560,7 +561,7 @@ SLA-aware 欄位：
 
 ## 層級如何融入自動組合
 
-12 因子評分函數（`open-sse/services/autoCombo/scoring.ts`）將層級歸屬視為兩個訊號：`tierPriority`（0.05）和 `tierAffinity`（0.05）。請參閱上方標準的[評分因子表](#運作原理持久化自動組合)以取得完整的 `DEFAULT_WEIGHTS` 集合 — 各套件覆寫值（ship-fast/cost-saver/quality-first/offline-friendly）列於「各套件權重設定檔」表中。
+13 因子評分函數（`open-sse/services/autoCombo/scoring.ts`）將層級歸屬視為兩個訊號：`tierPriority`（0.05）和 `tierAffinity`（0.05）。請參閱上方標準的[評分因子表](#運作原理持久化自動組合)以取得完整的 `DEFAULT_WEIGHTS` 集合 — 各套件覆寫值（ship-fast/cost-saver/quality-first/offline-friendly）列於「各套件權重設定檔」表中。
 
 層級本身**不會**強制 Tier 1 優先 — 如果 Tier 1 延遲不佳或成本 vs. 品質次佳，則 Tier 2 勝出。若要強制層級排序，請使用組合策略 `priority` 並按層級排列提供者。
 
@@ -603,7 +604,7 @@ SLA-aware 欄位：
 
 | 檔案                                                      | 用途                                                                     |
 | :-------------------------------------------------------- | :----------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | 9 因子評分函數、`DEFAULT_WEIGHTS`、池正規化                              |
+| `open-sse/services/autoCombo/scoring.ts`                  | 13 因子評分函數、`DEFAULT_WEIGHTS`、池正規化                             |
 | `open-sse/services/autoCombo/taskFitness.ts`              | 模型 × 任務適應性查詢表                                                  |
 | `open-sse/services/autoCombo/engine.ts`                   | 選擇邏輯、bandit、預算上限                                               |
 | `open-sse/services/autoCombo/selfHealing.ts`              | 排除、探測、事故模式                                                     |
@@ -611,5 +612,5 @@ SLA-aware 欄位：
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` 前綴解析器 + 6 個變體                                            |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | 從即時連線建立記憶體中 `AutoComboConfig`                                 |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | 用於 mock 提供者註冊表的測試鉤子                                         |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES`（18 種策略）                                   |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES`（19 種公開策略）                               |
 | `src/sse/handlers/chat.ts`                                | 整合點：自動前綴短路處理                                                 |

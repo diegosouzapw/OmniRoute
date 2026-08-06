@@ -1,13 +1,13 @@
 ---
 title: "OmniRoute Codebase Documentation"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.50
+lastUpdated: 2026-08-02
 ---
 
 # OmniRoute Codebase Documentation
 
-> **Version:** v3.8.0
-> **Last updated:** 2026-06-28
+> **Version:** v3.8.50
+> **Last updated:** 2026-08-02
 > **Audience:** Engineers contributing to OmniRoute or building integrations on top of it.
 >
 > For high-level architecture diagrams and the reasoning behind each subsystem, read
@@ -293,7 +293,7 @@ table groups the actual directories and notable top-level files.
 | `jobs/`           | Background jobs (`autoUpdate.ts`, …)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `memory/`         | Persistent memory: `store.ts`, `cache.ts`, `retrieval.ts`, `summarization.ts`, `extraction.ts`, `injection.ts`, `qdrant.ts`, `settings.ts`, `verify.ts`, `schemas.ts`, `types.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `monitoring/`     | `observability.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `oauth/`          | OAuth providers (13): `antigravity`, `claude`, `cline`, `codex`, `cursor`, `gemini`, `github`, `gitlab-duo`, `kilocode`, `kimi-coding`, `kiro`, `qoder`, `windsurf` plus `services/`, `utils/{pkce, server, banner, codexAuthFile, ui}`, `constants/oauth.ts`                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `oauth/`          | OAuth connection layer: 23 catalog entries in `OAUTH_PROVIDERS`, backed by 21 modules under `oauth/providers/`, plus `services/`, `utils/{pkce, server, banner, codexAuthFile, ui}`, and `constants/oauth.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `plugins/`        | Plugin loader (`index.ts`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `promptCache/`    | `prefixAnalyzer.ts`, `index.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `providerModels/` | Managed model lifecycle: `modelDiscovery.ts`, `managedModelImport.ts`, `managedAvailableModels.ts`, `cursorAgent.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -452,12 +452,12 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              84 provider-specific HTTP executors
+├── executors/              89 executor implementation modules
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
 ├── utils/                  Streaming helpers, TLS client, AWS SigV4, proxy fetch, …
-└── mcp-server/             MCP server (3 transports, 32 scopes, 99 tools)
+└── mcp-server/             MCP server (3 transports, 32 scopes, 107 unique tools)
 ```
 
 ### 4.1 `open-sse/handlers/`
@@ -482,7 +482,9 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-84 provider executors, each extending `BaseExecutor` (`base.ts`):
+The directory contains **89 executor implementation modules** after excluding shared files such
+as `base.ts`, `index.ts`, `types.ts`, and `constants.ts`. Provider-facing executors extend
+`BaseExecutor` (`base.ts`); helper modules support their protocol, identity, or error handling.
 
 `antigravity`, `azure-openai`, `blackbox-web`, `chatgpt-web`, `cliproxyapi`,
 `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
@@ -491,7 +493,7 @@ open-sse/
 (shared identity helper) and `index.ts` (registry).
 
 > Note: providers not listed here are served by `default.ts` using the generic
-> OpenAI-compatible executor. The full provider catalog (268 entries) lives in
+> OpenAI-compatible executor. The full provider catalog (329 entries) lives in
 > `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
@@ -524,7 +526,7 @@ Highlights (full list under `open-sse/services/`):
 
 | Concern              | Files                                                                                                                                                                                                                                             |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Combo routing        | `combo.ts` (17 strategies), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                             |
+| Combo routing        | `combo.ts` (19 public strategies), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                      |
 | Auto Combo engine    | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`      |
 | Resilience           | `accountFallback.ts` (cooldown + lockout), `errorClassifier.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                                              |
 | Quotas               | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts`                       |
@@ -540,11 +542,11 @@ Highlights (full list under `open-sse/services/`):
 
 ### 4.6 `open-sse/mcp-server/`
 
-- **31 registered tools** wired in `server.ts` (12 scoped under `schemas/tools.ts`,
-  5 compression tools, 3 memory tools, 4 skills tools, plus advanced tools added
-  through `advancedTools.ts`).
+- **107 unique tools** computed by `countUniqueMcpTools()` from the canonical registry and
+  standalone memory, skills, agent-skills, pool, gamification, plugin, Notion, Obsidian,
+  local-corpus, and compression collections.
 - **3 transports**: stdio, HTTP Streamable, SSE.
-- **13 scopes** declared in `src/shared/constants/mcpScopes.ts`.
+- **32 runtime tool scopes** in the documented MCP inventory.
 - Audit table: `mcp_tool_audit` (populated by `audit.ts`).
 - Files: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
   `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,

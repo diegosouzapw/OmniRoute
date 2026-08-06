@@ -39,22 +39,22 @@ Tam test matrisası üçün `CONTRIBUTING.md` → "Testləri İcra Etmək" bölm
 
 ## Layihəyə Qısa Baxış
 
-**OmniRoute** — birləşdirilmiş AI proxy/router. Bir uç nöqtə, 160+ LLM təminatçısı, avtomatik geri dönmə.
+**OmniRoute** — birləşdirilmiş AI proxy/router. Bir uç nöqtə, 329 LLM təminatçısı, avtomatik geri dönmə.
 
-| Təbəqə        | Yer                     | Məqsəd                                                          |
-| ------------- | ----------------------- | --------------------------------------------------------------- |
-| API Yolları   | `src/app/api/v1/`       | Next.js App Router — giriş nöqtələri                            |
-| İdarəedicilər | `open-sse/handlers/`    | Sorğu emalı (söhbət, embedding və s.)                           |
-| İcraçılar     | `open-sse/executors/`   | Təminatçıya spesifik HTTP göndərişi                             |
-| Tercüməçilər  | `open-sse/translator/`  | Format çevrilməsi (OpenAI↔Claude↔Gemini)                        |
-| Transformator | `open-sse/transformer/` | Cavablar API ↔ Söhbət Tamamlamaları                             |
-| Xidmətlər     | `open-sse/services/`    | Kombinasiya yönləndirmə, sürət limitləri, keşləmə və s.         |
-| Veritabanı    | `src/lib/db/`           | SQLite domen modulları (45+ fayl, 55 köçürmə)                   |
-| Domen/Siyasət | `src/domain/`           | Siyasət mühərriki, xərc qaydaları, geri dönmə məntiqi           |
-| MCP Server    | `open-sse/mcp-server/`  | 37 alət (30 əsas + 3 yaddaş + 4 bacarıq), 3 nəqliyyat, ~13 sahə |
-| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protokolu                                    |
-| Bacarıqlar    | `src/lib/skills/`       | Genişləndirilə bilən bacarıq çərçivəsi                          |
-| Yaddaş        | `src/lib/memory/`       | Davamlı söhbət yaddaşı                                          |
+| Təbəqə        | Yer                     | Məqsəd                                                                    |
+| ------------- | ----------------------- | ------------------------------------------------------------------------- |
+| API Yolları   | `src/app/api/v1/`       | Next.js App Router — giriş nöqtələri                                      |
+| İdarəedicilər | `open-sse/handlers/`    | Sorğu emalı (söhbət, embedding və s.)                                     |
+| İcraçılar     | `open-sse/executors/`   | Təminatçıya spesifik HTTP göndərişi                                       |
+| Tercüməçilər  | `open-sse/translator/`  | Format çevrilməsi (OpenAI↔Claude↔Gemini)                                  |
+| Transformator | `open-sse/transformer/` | Cavablar API ↔ Söhbət Tamamlamaları                                       |
+| Xidmətlər     | `open-sse/services/`    | Kombinasiya yönləndirmə, sürət limitləri, keşləmə və s.                   |
+| Veritabanı    | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| Domen/Siyasət | `src/domain/`           | Siyasət mühərriki, xərc qaydaları, geri dönmə məntiqi                     |
+| MCP Server    | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protokolu                                              |
+| Bacarıqlar    | `src/lib/skills/`       | Genişləndirilə bilən bacarıq çərçivəsi                                    |
+| Yaddaş        | `src/lib/memory/`       | Davamlı söhbət yaddaşı                                                    |
 
 Monorepo: `src/` (Next.js 16 tətbiqi), `open-sse/` (axın mühərriki iş sahəsi), `electron/` (masaüstü tətbiqi), `tests/`, `bin/` (CLI giriş nöqtəsi).
 
@@ -76,7 +76,7 @@ Müştəri → /v1/chat/completions (Next.js marşrutu)
 
 API marşrutları ardıcıl bir nümunəni izləyir: `Marşrut → CORS əvvəlcədən yoxlama → Zod bədən təsdiqi → İstəyə bağlı auth (extractApiKey/isValidApiKey) → API açar siyasətinin icrası → Handler delegasiyası (open-sse)`. Qlobal Next.js middleware yoxdur — müdaxilə marşrut spesifikdir.
 
-**Kombinasiyalı marşrutlama** (`open-sse/services/combo.ts`): 14 strategiya (prioritet, çəkili, ilk doldur, dövrü, P2C, təsadüfi, ən az istifadə olunan, xərclərə optimallaşdırılmış, sıfırlama ilə tanış, sərt-təsadüfi, avtomatik, lkgp, kontekstə optimallaşdırılmış, kontekst-relay). Hər bir hədəf `handleSingleModel()` çağırır ki, bu da `handleChatCore()`-u hədəf üzrə səhv idarəetmə və dövrə qırıcı yoxlamaları ilə sarır. 9-faktorlu Auto-Combo ballandırma üçün `docs/routing/AUTO-COMBO.md`-a və 3 davamlılıq qatları üçün `docs/architecture/RESILIENCE_GUIDE.md`-a baxın.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -310,7 +310,7 @@ Hər hansı qeyri-adi dəyişiklik üçün, uyğun dərin araşdırmanı əvvəl
 | Repo naviqasiyası                                              | `docs/architecture/REPOSITORY_MAP.md`                             |
 | Arxitektura                                                    | `docs/architecture/ARCHITECTURE.md`                               |
 | Mühəndislik istinadı                                           | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Avtomatik Kombinasiya (9-faktor qiymətləndirmə, 14 strategiya) | `docs/routing/AUTO-COMBO.md`                                      |
+| Avtomatik Kombinasiya (13-faktor qiymətləndirmə, 19 ictimai strategiya) | `docs/routing/AUTO-COMBO.md`                                  |
 | Dayanıqlılıq (3 mexanizm)                                      | `docs/architecture/RESILIENCE_GUIDE.md`                           |
 | Düşüncə yenidən oynatma                                        | `docs/routing/REASONING_REPLAY.md`                                |
 | Bacarıqlar çərçivəsi                                           | `docs/frameworks/SKILLS.md`                                       |
@@ -376,7 +376,9 @@ git push -u origin feat/your-feature
 
 ## Mühit
 
-- **İcra mühiti**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modulları
+- **İcra mühiti**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, ES Modulları
 - **TypeScript**: 5.9+, hədəf ES2022, modul esnext, resolution bundler
 - **Yol aliasları**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Default port**: 20128 (API + dashboard eyni portda)

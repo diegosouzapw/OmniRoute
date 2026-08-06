@@ -1,6 +1,6 @@
 # Przewodnik po darmowych planach: darmowe AI bez karty kredytowej
 
-> **TL;DR**: OmniRoute agreguje darmowe plany od 50+ providerów. Podłącz wielu darmowych providerów, aby uzyskać nielimitowane darmowe AI z automatycznym fallbackiem.
+> **TL;DR**: OmniRoute ma 155 wpisy katalogu oznaczone free/no-auth. Ściśle kwantyfikowany budżet obejmuje 43 pule / 522 wpisy modeli. Podłącz wielu providerów, aby rozszerzyć pokrycie fallbacku; dostępność, limity i warunki zależą od upstreamu.
 
 ---
 
@@ -14,19 +14,19 @@ OmniRoute **agreguje** te darmowe plany w jeden endpoint. Zamiast rejestrować s
 
 ## Najlepsi darmowi providerzy (bez karty kredytowej)
 
-### Poziom 1: darmowi na zawsze (nielimitowani)
+### Poziom 1: bieżący dostęp bez opublikowanego limitu tokenów
 
-Ci providerzy są **zawsze darmowi** i bez limitów:
+Ci providerzy nie publikują stałego limitu tokenów w katalogu, lecz nadal mogą stosować limity szybkości, współbieżności, konta, regionu, modeli, KYC i ToS:
 
 | Provider          | Modele                                   | Limit                     | Jak podłączyć   |
 | ----------------- | ---------------------------------------- | ------------------------- | --------------- |
 | **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | 50 kredytów/miesiąc       | Bez autoryzacji |
-| **OpenCode Free** | GPT-4o, Claude, Gemini                   | Nielimitowane             | Bez autoryzacji |
+| **OpenCode Free** | GPT-4o, Claude, Gemini                   | Brak opublikowanego capu; limity obowiązują | Bez autoryzacji |
 | **Pollinations**  | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Bez klucza                | Bez autoryzacji |
 | **LongCat**       | LongCat-2.0                              | 10M tokenów (jednorazowo) | Klucz API + KYC |
 | **Cloudflare AI** | 50+ modeli                               | 10K neuronów/dzień        | Bez autoryzacji |
-| **Qwen**          | Qwen3-coder-plus/flash/next              | Nielimitowane             | Bez autoryzacji |
-| **Qoder**         | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Nielimitowane             | Bez autoryzacji |
+| **Qwen**          | Qwen3-coder-plus/flash/next              | Brak opublikowanego capu; limity obowiązują | Bez autoryzacji |
+| **Qoder**         | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Brak opublikowanego capu; limity obowiązują | Bez autoryzacji |
 
 ### Poziom 2: darmowi po rejestracji (hojni)
 
@@ -59,23 +59,26 @@ Ci providerzy mają **darmowe plany** z określonymi limitami:
 
 Siła OmniRoute to **stackowanie darmowych planów**. Zamiast polegać na jednym providerze, podłączasz wielu darmowych providerów i pozwalasz OmniRoute automatycznie wybrać najlepszego dla każdego żądania.
 
-### Przykład: nielimitowane darmowe AI
+### Przykład: szersze pokrycie darmowego tieru
 
-Podłącz tych 4 providerów, aby uzyskać **nielimitowane darmowe AI**:
+Podłącz tych 4 providerów, aby zmniejszyć zależność od pojedynczego limitu — nie oznacza to
+nieograniczonej przepustowości ani gwarantowanej dostępności:
 
 1. **Kiro AI** — 50 kredytów/miesiąc (modele Claude)
-2. **OpenCode Free** — nielimitowane (modele GPT)
+2. **OpenCode Free** — brak opublikowanego limitu tokenów; limity nadal obowiązują (modele GPT)
 3. **Pollinations** — bez klucza (wiele modeli)
-4. **LongCat** — 10M tokenów jednorazowo (backup, wymaga KYC)
+4. **LongCat** — 10M tokenów jednorazowo (wymaga KYC; nie odnawia się)
 
 Następnie użyj `model: "auto"`, a OmniRoute:
 
 - Najpierw spróbuje Kiro (najlepsza jakość)
 - Jeśli Kiro jest zajęty → spróbuje OpenCode Free
 - Jeśli OpenCode Free jest wolny → spróbuje Pollinations
-- Jeśli wszystkie zawiodą → użyje LongCat jako backup
+- Jeśli wszystkie zawiodą → spróbuje LongCat jako kolejnego celu, o ile jego jednorazowa pula
+  i warunki dostępu nadal obowiązują
 
-**Efekt**: nielimitowane darmowe AI z automatycznym fallbackiem!
+**Efekt**: szersze pokrycie darmowego tieru z automatycznym fallbackiem — bez gwarancji
+nieograniczonej przepustowości.
 
 ---
 
@@ -125,7 +128,8 @@ Podłącz 3–4 darmowych providerów, aby uzyskać najlepsze doświadczenie.
 ### OpenCode Free
 
 - **Modele**: GPT-4o, Claude, Gemini
-- **Limit**: nielimitowane
+- **Limit**: brak opublikowanego limitu tokenów; limity szybkości, współbieżności, konta,
+  regionu, modeli, KYC i ToS mogą nadal obowiązywać
 - **Auth**: bez autoryzacji
 - **Najlepsze do**: uniwersalnego AI
 
@@ -167,14 +171,16 @@ Podłącz 3–4 darmowych providerów, aby uzyskać najlepsze doświadczenie.
 ### Qwen
 
 - **Modele**: Qwen3-coder-plus/flash/next
-- **Limit**: nielimitowane
+- **Limit**: brak opublikowanego limitu tokenów; limity szybkości, współbieżności, konta,
+  regionu, modeli, KYC i ToS mogą nadal obowiązywać
 - **Auth**: bez autoryzacji
 - **Najlepsze do**: zadań kodowania
 
 ### Qoder
 
 - **Modele**: Kimi-K2, DeepSeek-R1, Qwen3-coder
-- **Limit**: nielimitowane
+- **Limit**: brak opublikowanego limitu tokenów; limity szybkości, współbieżności, konta,
+  regionu, modeli, KYC i ToS mogą nadal obowiązywać
 - **Auth**: bez autoryzacji
 - **Najlepsze do**: zadań kodowania
 
@@ -213,24 +219,24 @@ Policzmy, ile darmowego AI możesz uzyskać:
 | Provider      | Limit dzienny | Limit miesięczny |
 | ------------- | ------------- | ---------------- |
 | Kiro AI       | ~1,7 kredytu  | 50 kredytów      |
-| OpenCode Free | Nielimitowane | Nielimitowane    |
-| Pollinations  | Nielimitowane | Nielimitowane    |
+| OpenCode Free | Limity obowiązują | Brak opublikowanego capu |
+| Pollinations  | Limity obowiązują | Brak opublikowanego capu |
 
-**Suma**: nielimitowane darmowe AI
+**Suma**: brak wiarygodnego stałego tokenowego maksimum; dostęp podlega limitom providerów
 
 ### Agresywne oszacowanie (7 providerów)
 
 | Provider      | Limit dzienny   | Limit miesięczny               |
 | ------------- | --------------- | ------------------------------ |
 | Kiro AI       | ~1,7 kredytu    | 50 kredytów                    |
-| OpenCode Free | Nielimitowane   | Nielimitowane                  |
-| Pollinations  | Nielimitowane   | Nielimitowane                  |
+| OpenCode Free | Limity obowiązują | Brak opublikowanego capu       |
+| Pollinations  | Limity obowiązują | Brak opublikowanego capu       |
 | LongCat       | — (jednorazowo) | 10M tokenów (jednorazowo, KYC) |
 | Cloudflare AI | 10K neuronów    | 300K neuronów                  |
 | NVIDIA NIM    | ~40 RPM         | ~1,7M żądań                    |
 | Cerebras      | 1M tokenów      | 30M tokenów                    |
 
-**Suma**: ~1,6B udokumentowanych darmowych tokenów/miesiąc — do ~2,1B w pierwszym miesiącu z kredytami za rejestrację (z compression: ~7,5B+ efektywnych tokenów)
+**Suma**: ~1,53B udokumentowanych tokenów cyklicznych/miesiąc — do ~2,15B w pierwszym miesiącu z jednorazowymi kredytami za rejestrację. Dostawcy bez opublikowanego capu są raportowani osobno.
 
 ---
 
@@ -238,26 +244,34 @@ Policzmy, ile darmowego AI możesz uzyskać:
 
 ### „Czy to naprawdę za darmo?”
 
-**Tak!** To oficjalne darmowe plany providerów. OmniRoute tylko ułatwia korzystanie z nich wszystkich naraz.
+Katalog opisuje darmowe warunki opublikowane przez providerów, ale oferty mogą się zmieniać.
+Przed użyciem sprawdź aktualne ceny, limity, prywatność i uprawnienia.
 
 ### „Czy darmowy plan się wyczerpie?”
 
-Niektórzy providerzy mają limity (np. 50 kredytów/miesiąc u Kiro), ale inni są nielimitowani (np. OpenCode Free i Pollinations). Podłączając wielu providerów, zawsze masz backup.
+Każdy provider może stosować rate limiting, zmienić modele, zawiesić dostęp lub być chwilowo
+niedostępny. Wiele połączeń zwiększa pokrycie fallbacku, ale nie gwarantuje działającej darmowej
+trasy.
 
 ### „Czy mogę używać darmowych providerów w produkcji?”
 
-**Tak!** Wielu darmowych providerów jest gotowych do produkcji. Jednak przy krytycznych aplikacjach rozważ dodanie płatnego providera jako backup.
+Tylko jeśli SLA, obsługa danych, limity i warunki danego providera spełniają wymagania
+produkcyjne. Dla krytycznych obciążeń użyj monitorowanego i odpowiedniego kontraktowo fallbacku.
 
 ### „Gdzie jest haczyk?”
 
-Nie ma haczyka! Providerzy oferują darmowe plany, żeby przyciągnąć użytkowników. OmniRoute tylko ułatwia korzystanie z nich wszystkich naraz.
+Możliwe kompromisy obejmują limity, kolejki, KYC, weryfikację karty, szkolenie na promptach,
+słabszą prywatność, brak SLA, zmienność modeli, ograniczenia geograficzne, płatne przekroczenia
+oraz ryzyko związane z zasadami konta. OmniRoute pokazuje dostępne metadane — decyzję podejmujesz
+Ty.
 
 ### „Jak uzyskać większy darmowy limit?”
 
-1. Podłącz więcej darmowych providerów
+1. Podłącz więcej darmowych providerów, jeśli ich warunki na to pozwalają
 2. Używaj compression, aby oszczędzać tokeny (oszczędność 15–95%)
 3. Używaj `auto/cheap`, aby priorytetyzować darmowych/tanich providerów
-4. Załóż wiele kont u tego samego providera
+4. Dodaj inne dozwolone konta lub providery — nie twórz kont w celu obchodzenia limitów lub zasad
+   dostawcy
 
 ### „Czy darmowi providerzy mają gorszą jakość?”
 

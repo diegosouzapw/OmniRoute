@@ -136,7 +136,7 @@ export const RETRY_DEFAULTS = {
 
 - Every user-facing string goes through `t("module.key", vars)`.
 - Catalogs live in `bin/cli/locales/{locale}.json` (nested objects).
-  42 files ship out-of-the-box: `en`, `pt-BR`, and 40 additional locales.
+  43 files ship out-of-the-box: `en`, `pt-BR`, and 41 additional locales.
   11 locales are scaffold-only (empty `{}`); all keys fall back to `en` automatically.
 - Detection order: `--lang` flag → `OMNIROUTE_LANG` env → `LC_ALL` → `LC_MESSAGES` → `LANG` → `en`.
 - Locale persisted via `config lang set <code>` — saves `OMNIROUTE_LANG` to `~/.omniroute/.env`.

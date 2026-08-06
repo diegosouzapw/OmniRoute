@@ -39,7 +39,7 @@ npm run test:all
 
 ## Dự án tổng quan
 
-**OmniRoute** — proxy/router AI thống nhất. Một điểm cuối, 160+ nhà cung cấp LLM, tự động chuyển tiếp.
+**OmniRoute** — proxy/router AI thống nhất. Một điểm cuối, 329 nhà cung cấp LLM, tự động chuyển tiếp.
 
 | Lớp           | Vị trí                  | Mục đích                                                                  |
 | ------------- | ----------------------- | ------------------------------------------------------------------------- |
@@ -49,9 +49,9 @@ npm run test:all
 | Translators   | `open-sse/translator/`  | Chuyển đổi định dạng (OpenAI↔Claude↔Gemini)                               |
 | Transformer   | `open-sse/transformer/` | API phản hồi ↔ Hoàn thành trò chuyện                                      |
 | Services      | `open-sse/services/`    | Định tuyến kết hợp, giới hạn tỷ lệ, bộ nhớ đệm, v.v.                      |
-| Database      | `src/lib/db/`           | Các mô-đun miền SQLite (45+ tệp, 55 di chuyển)                            |
+| Database      | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
 | Domain/Policy | `src/domain/`           | Bộ máy chính sách, quy tắc chi phí, logic chuyển tiếp                     |
-| MCP Server    | `open-sse/mcp-server/`  | 37 công cụ (30 cơ bản + 3 bộ nhớ + 4 kỹ năng), 3 phương tiện, ~13 phạm vi |
+| MCP Server    | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
 | A2A Server    | `src/lib/a2a/`          | Giao thức đại lý JSON-RPC 2.0                                             |
 | Skills        | `src/lib/skills/`       | Khung kỹ năng có thể mở rộng                                              |
 | Memory        | `src/lib/memory/`       | Bộ nhớ hội thoại bền vững                                                 |
@@ -76,7 +76,7 @@ Client → /v1/chat/completions (route Next.js)
 
 Các route API tuân theo một mẫu nhất quán: `Route → CORS preflight → xác thực body Zod → xác thực tùy chọn (extractApiKey/isValidApiKey) → thực thi chính sách API key → ủy quyền Handler (open-sse)`. Không có middleware Next.js toàn cục — việc chặn là cụ thể cho route.
 
-**Định tuyến combo** (`open-sse/services/combo.ts`): 14 chiến lược (ưu tiên, trọng số, điền trước, vòng tròn, P2C, ngẫu nhiên, ít sử dụng nhất, tối ưu chi phí, nhận thức reset, ngẫu nhiên nghiêm ngặt, tự động, lkgp, tối ưu ngữ cảnh, chuyển tiếp ngữ cảnh). Mỗi mục tiêu gọi `handleSingleModel()` bao bọc `handleChatCore()` với xử lý lỗi theo từng mục tiêu và kiểm tra cầu dao. Xem `docs/routing/AUTO-COMBO.md` cho điểm số Auto-Combo 9 yếu tố và `docs/architecture/RESILIENCE_GUIDE.md` cho 3 lớp độ bền.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -319,7 +319,7 @@ kết nối tiếp tục phục vụ các model khác.
 | Điều hướng repo                              | `docs/architecture/REPOSITORY_MAP.md`                             |
 | Kiến trúc                                    | `docs/architecture/ARCHITECTURE.md`                               |
 | Tài liệu tham khảo kỹ thuật                  | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (điểm số 9 yếu tố, 14 chiến lược) | `docs/routing/AUTO-COMBO.md`                                      |
+| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md` |
 | Khả năng phục hồi (3 cơ chế)                 | `docs/architecture/RESILIENCE_GUIDE.md`                           |
 | Phát lại lý do                               | `docs/routing/REASONING_REPLAY.md`                                |
 | Khung kỹ năng                                | `docs/frameworks/SKILLS.md`                                       |
@@ -385,7 +385,9 @@ git push -u origin feat/your-feature
 
 ## Môi trường
 
-- **Thời gian chạy**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
+- **Thời gian chạy**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, mục tiêu ES2022, mô-đun esnext, giải quyết bundler
 - **Biểu thức đường dẫn**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Cổng mặc định**: 20128 (API + bảng điều khiển trên cùng một cổng)

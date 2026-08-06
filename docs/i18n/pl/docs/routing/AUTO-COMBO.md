@@ -161,11 +161,11 @@ Helper detekcji żyje w `src/lib/combos/modelNameCollision.ts`.
 
 ## Jak to działa (persystowane Auto-Combo)
 
-Silnik Auto-Combo dynamicznie wybiera najlepszego providera/model dla każdego żądania przy użyciu **12-czynnikowej funkcji scoringu** (zdefiniowanej w `open-sse/services/autoCombo/scoring.ts` → `DEFAULT_WEIGHTS`). Wszystkie wagi sumują się do **1.0**.
+Silnik Auto-Combo dynamicznie wybiera najlepszego providera/model dla każdego żądania przy użyciu **13-czynnikowej funkcji scoringu** (zdefiniowanej w `open-sse/services/autoCombo/scoring.ts` → `DEFAULT_WEIGHTS`). Wszystkie wagi sumują się do **1.0**.
 
-![Auto-Combo 12-factor scoring](../diagrams/exported/auto-combo-12factor.svg)
+![Auto-Combo 13-factor scoring](../diagrams/exported/auto-combo-12factor.svg)
 
-> Źródło: [diagrams/auto-combo-12factor.mmd](../diagrams/auto-combo-12factor.mmd) (regeneruj przez `npm run docs:render-diagrams`).
+> Źródło: [diagrams/auto-combo-12factor.mmd](../diagrams/auto-combo-12factor.mmd) (regeneruj przez `npm run docs:render-diagrams`). Historyczna nazwa pliku pochodzi sprzed dodania kolejnych czynników; bieżący diagram pokazuje wszystkie 13.
 
 | Czynnik               | Domyślna waga | Opis                                                                                                     |
 | :-------------------- | :------------ | :------------------------------------------------------------------------------------------------------- |
@@ -237,7 +237,7 @@ rozwiązane wartości zasilają istniejące wejścia silnika `config.modePack` /
 
 ## Wszystkie strategie routingu
 
-Silnik combo OmniRoute obsługuje **18 strategii routingu** (zadeklarowanych w `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Sam silnik Auto Combo jest wystawiony pod strategią `auto`; pozostałe są dostępne dla persystowanych combo.
+Silnik combo OmniRoute obsługuje **19 strategii routingu** (zadeklarowanych w `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Sam silnik Auto Combo jest wystawiony pod strategią `auto`; pozostałe są dostępne dla persystowanych combo.
 
 | Strategy            | Opis                                                                                                                                    |
 | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------- |
@@ -254,9 +254,10 @@ Silnik combo OmniRoute obsługuje **18 strategii routingu** (zadeklarowanych w `
 | `reset-window`      | Preferuj targety, których okno quota resetuje się najszybciej                                                                           |
 | `headroom`          | Wybierz target z największym pozostałym headroomem quota                                                                                |
 | `strict-random`     | Losowo bez deduplikacji powtórzeń                                                                                                       |
-| `auto`              | Scoring Auto Combo (9-factor) — **zalecane**                                                                                            |
+| `auto`              | Scoring Auto Combo (13-factor) — **zalecane**                                                                                           |
 | `lkgp`              | Last-Known-Good Path (lepka trasa do ostatniego udanego targetu)                                                                        |
 | `context-optimized` | Wybierz target najlepiej pasujący do bieżącego rozmiaru kontekstu                                                                       |
+| `cache-optimized`   | Uporządkuj targety według affinity prompt cache                                                                                          |
 | `fusion` 🧬         | Fan-out do panelu modeli równolegle, potem synteza jednej odpowiedzi przez judge (zob. poniżej)                                         |
 | `pipeline`          | Uruchamia targety sekwencyjnie, przekładając output każdego kroku na input następnego; zwracana jest tylko ostateczna odpowiedź (#6396) |
 
@@ -342,7 +343,7 @@ Silnik Auto Combo nie wymaga predefiniowanych combo. Zamiast tego `open-sse/serv
 3. Krzyżuje z `getProviderRegistry()` pod kątem dostępności modeli + cennika
 4. Dla każdej krotki `(provider, model, connection)` buduje `VirtualAutoComboCandidate`
 5. Wybiera `connection.defaultModel` (albo pierwszy model z rejestru) jako target dispatch
-6. Scoruje każdego kandydata 9-czynnikowym `scorePool()` i packiem wag wariantu
+6. Scoruje każdego kandydata 13-czynnikowym `scorePool()` i packiem wag wariantu
 7. Zwraca wynikowy in-memory `AutoComboConfig` dla `handleComboChat()` — nigdy nie persystowany do DB
 
 To oznacza, że **dodanie nowego providera z włączonym `auto/*` automatycznie rozszerza pulę kandydatów** — bez ręcznej edycji combo. Wirtualne combo jest przebudowywane per request, więc nowo dodane lub nowo zdrowe połączenia są brane od razu.
@@ -651,7 +652,7 @@ Wraz z gołym `auto` (default) plus 6 wartościami `AutoVariant` zadeklarowanymi
 
 ## Jak tiery pasują do Auto-Combo
 
-12-czynnikowa funkcja scoringu (`open-sse/services/autoCombo/scoring.ts`) traktuje
+13-czynnikowa funkcja scoringu (`open-sse/services/autoCombo/scoring.ts`) traktuje
 przynależność do tieru jako dwa sygnały: `tierPriority` (0.05) i `tierAffinity` (0.05). Zobacz
 kanoniczną [tabelę czynników scoringu](#jak-to-działa-persystowane-auto-combo) powyżej dla pełnego
 zestawu `DEFAULT_WEIGHTS` — nadpisania per-pack (ship-fast/cost-saver/quality-first/
@@ -680,7 +681,7 @@ Zobacz `docs/marketing/TIERS.md` dla definicji tierów i klasyfikacji provideró
 publicznych strategii end-to-end przez realny pipeline combo z mockowanym upstreamem.
 Pokrycie obejmuje:
 
-- Wszystkie 18 strategii `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Wszystkie 19 strategii `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, cache, fusion, …).
 - `quota-share` (wewnętrzne) end-to-end: fairness DRR + depriorytetyzacja saturacji przez
   realny szew `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -706,7 +707,7 @@ celowo wyłączone z CI, bo wymagają żywych poświadczeń i dostępu VPS.
 
 | Plik                                                      | Cel                                                                    |
 | :-------------------------------------------------------- | :--------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | 9-czynnikowa funkcja scoringu, `DEFAULT_WEIGHTS`, pool norm            |
+| `open-sse/services/autoCombo/scoring.ts`                  | 13-czynnikowa funkcja scoringu, `DEFAULT_WEIGHTS`, pool norm           |
 | `open-sse/services/autoCombo/taskFitness.ts`              | Lookup fitness model × task                                            |
 | `open-sse/services/autoCombo/engine.ts`                   | Logika selekcji, bandit, budget cap                                    |
 | `open-sse/services/autoCombo/selfHealing.ts`              | Wykluczenia, probe, tryb incydentu                                     |
@@ -714,5 +715,5 @@ celowo wyłączone z CI, bo wymagają żywych poświadczeń i dostępu VPS.
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Parser prefiksu `auto/` + 6 wariantów                                  |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Buduje in-memory `AutoComboConfig` z żywych połączeń                   |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Hook testowy do mockowania rejestru providerów                         |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (18 strategii)                               |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (19 strategii)                               |
 | `src/sse/handlers/chat.ts`                                | Integracja: short-circuit prefiksu auto                                |

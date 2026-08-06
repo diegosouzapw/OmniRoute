@@ -179,7 +179,7 @@ In `Dashboard → Context & Cache → Compression Combos`, assign a compression 
 combo:
 
 ```txt
-Combo: "free-forever"
+Combo: "free-tier-fallback"
   Compression Combo: "coding-agent-stack"
   Pipeline: RTK -> Caveman
   Targets:

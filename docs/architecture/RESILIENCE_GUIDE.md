@@ -306,4 +306,4 @@ default `test:integration`, chaos and heap self-skip (without `RUN_CHAOS_INT`/`-
 
 - [Architecture Guide](./ARCHITECTURE.md) — System architecture and internals
 - [User Guide](../guides/USER_GUIDE.md) — Providers, combos, CLI integration
-- [Auto-Combo Engine](../routing/AUTO-COMBO.md) — 12-factor scoring, mode packs
+- [Auto-Combo Engine](../routing/AUTO-COMBO.md) — 13-factor scoring, mode packs

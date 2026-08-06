@@ -39,22 +39,22 @@ npm run test:all
 
 ## 项目概览
 
-**OmniRoute** — 统一的 AI 代理/路由。一个端点接入 236 家 LLM 服务商，自动容灾。
+**OmniRoute** — 统一的 AI 代理/路由。一个端点接入 329 个服务商目录项，并在上游可用时自动回退。
 
-| 层级         | 位置                    | 用途                                                                                 |
-| ------------ | ----------------------- | ------------------------------------------------------------------------------------ |
-| API 路由     | `src/app/api/v1/`       | Next.js App Router — 入口点                                                          |
-| 处理器       | `open-sse/handlers/`    | 请求处理（对话、嵌入等）                                                             |
-| 执行器       | `open-sse/executors/`   | 服务商特定的 HTTP 分发                                                               |
-| 翻译器       | `open-sse/translator/`  | 格式转换（OpenAI↔Claude↔Gemini）                                                     |
-| 转换器       | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                     |
-| 服务         | `open-sse/services/`    | Combo 路由、速率限制、缓存等                                                         |
-| 数据库       | `src/lib/db/`           | SQLite 领域模块（94 个文件，106 个迁移）                                             |
-| 领域/策略    | `src/domain/`           | 策略引擎、成本规则、容灾逻辑                                                         |
-| MCP 服务器   | `open-sse/mcp-server/`  | 94 个工具（34 个基础 + memory/skill/agentSkill/pool/notion/obsidian/gamification/plugin 模块），3 种传输（stdio / SSE / Streamable HTTP），30 个权限域 |
-| A2A 服务器   | `src/lib/a2a/`          | JSON-RPC 2.0 代理协议                                                                |
-| 技能         | `src/lib/skills/`       | 可扩展技能框架                                                                       |
-| 记忆         | `src/lib/memory/`       | 持久化对话记忆                                                                       |
+| 层级       | 位置                    | 用途                                                                      |
+| ---------- | ----------------------- | ------------------------------------------------------------------------- |
+| API 路由   | `src/app/api/v1/`       | Next.js App Router — 入口点                                               |
+| 处理器     | `open-sse/handlers/`    | 请求处理（对话、嵌入等）                                                  |
+| 执行器     | `open-sse/executors/`   | 服务商特定的 HTTP 分发                                                    |
+| 翻译器     | `open-sse/translator/`  | 格式转换（OpenAI↔Claude↔Gemini）                                          |
+| 转换器     | `open-sse/transformer/` | Responses API ↔ Chat Completions                                          |
+| 服务       | `open-sse/services/`    | Combo 路由、速率限制、缓存等                                              |
+| 数据库     | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| 领域/策略  | `src/domain/`           | 策略引擎、成本规则、容灾逻辑                                              |
+| MCP 服务器 | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2A 服务器 | `src/lib/a2a/`          | JSON-RPC 2.0 代理协议                                                     |
+| 技能       | `src/lib/skills/`       | 可扩展技能框架                                                            |
+| 记忆       | `src/lib/memory/`       | 持久化对话记忆                                                            |
 
 Monorepo：`src/`（Next.js 16 应用）、`open-sse/`（流式引擎 workspace）、`electron/`（桌面应用）、`tests/`、`bin/`（CLI 入口点）。
 
@@ -76,7 +76,7 @@ Client → /v1/chat/completions (Next.js 路由)
 
 API 路由遵循一致的模式：`路由 → CORS 预检 → Zod 请求体校验 → 可选鉴权（extractApiKey/isValidApiKey）→ API Key 策略执行 → 处理器委派（open-sse）`。没有全局 Next.js 中间件 — 拦截在路由级别进行。
 
-**Combo 路由** (`open-sse/services/combo.ts`)：17 种策略（priority、weighted、fill-first、round-robin、P2C、random、least-used、cost-optimized、reset-aware、reset-window、headroom、strict-random、auto、lkgp、context-optimized、context-relay、fusion）。每个目标调用 `handleSingleModel()`，该函数封装了 `handleChatCore()` 并附带逐目标的错误处理和熔断器检查。`fusion` 策略是一个例外：它并行扇出到一组模型面板，然后由裁判模型综合出一个最终答案 (`open-sse/services/fusion.ts`)。关于 12 因子 Auto-Combo 评分及完整策略表，见 `docs/routing/AUTO-COMBO.md`；关于 3 层容灾机制，见 `docs/architecture/RESILIENCE_GUIDE.md`。
+**Combo 路由** (`open-sse/services/combo.ts`)：19 种公开策略（priority、weighted、fill-first、round-robin、P2C、random、least-used、cost-optimized、reset-aware、reset-window、headroom、strict-random、auto、lkgp、context-optimized、cache-optimized、context-relay、fusion、pipeline）。每个目标调用 `handleSingleModel()`，该函数封装了 `handleChatCore()` 并附带逐目标的错误处理和熔断器检查。`fusion` 策略是一个例外：它并行扇出到一组模型面板，然后由裁判模型综合出一个最终答案 (`open-sse/services/fusion.ts`)。关于 13 因子 Auto-Combo 评分及完整策略表，见 `docs/routing/AUTO-COMBO.md`；关于 3 层容灾机制，见 `docs/architecture/RESILIENCE_GUIDE.md`。
 
 ---
 
@@ -304,48 +304,48 @@ baseCooldownMs * 2 ** failureIndex;
 
 对于任何非平凡修改，请先阅读对应的深度文档：
 
-| 领域                                    | 文档                                                     |
-| --------------------------------------- | -------------------------------------------------------- |
-| 仓库导航                                | `docs/architecture/REPOSITORY_MAP.md`                    |
-| 架构                                    | `docs/architecture/ARCHITECTURE.md`                      |
-| 工程参考                                | `docs/architecture/CODEBASE_DOCUMENTATION.md`            |
-| Auto-Combo（12 因子评分，17 种策略）    | `docs/routing/AUTO-COMBO.md`                             |
-| 容灾（3 种机制）                        | `docs/architecture/RESILIENCE_GUIDE.md`                  |
-| 推理重播                                | `docs/routing/REASONING_REPLAY.md`                       |
-| 技能框架                                | `docs/frameworks/SKILLS.md`                              |
-| 记忆系统（FTS5 + Qdrant）               | `docs/frameworks/MEMORY.md`                              |
-| 云代理                                  | `docs/frameworks/CLOUD_AGENT.md`                         |
-| 安全护栏（PII / 注入 / 视觉）           | `docs/security/GUARDRAILS.md`                            |
-| 公开上游凭据（Gemini 等）               | `docs/security/PUBLIC_CREDS.md`                          |
-| 错误消息脱敏                            | `docs/security/ERROR_SANITIZATION.md`                    |
-| 评估                                    | `docs/frameworks/EVALS.md`                               |
-| 合规 / 审计                             | `docs/security/COMPLIANCE.md`                            |
-| Webhook                                 | `docs/frameworks/WEBHOOKS.md`                            |
-| 授权管线                                | `docs/architecture/AUTHZ_GUIDE.md`                       |
-| 隐身（TLS / 指纹）                      | `docs/security/STEALTH_GUIDE.md`                         |
-| 代理协议（A2A / ACP / Cloud）           | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`               |
-| MCP 服务器                              | `docs/frameworks/MCP-SERVER.md`                          |
-| A2A 服务器                              | `docs/frameworks/A2A-SERVER.md`                          |
-| API 参考 + OpenAPI                      | `docs/reference/API_REFERENCE.md` + `docs/openapi.yaml`  |
-| 服务商目录（自动生成）                  | `docs/reference/PROVIDER_REFERENCE.md`                   |
-| 发布流程                                | `docs/ops/RELEASE_CHECKLIST.md`                          |
-| 嵌入式服务                              | `docs/frameworks/EMBEDDED-SERVICES.md`                   |
-| 质量门禁（约 48 个脚本，允许列表策略）  | `docs/architecture/QUALITY_GATES.md`                     |
+| 领域                                   | 文档                                                    |
+| -------------------------------------- | ------------------------------------------------------- |
+| 仓库导航                               | `docs/architecture/REPOSITORY_MAP.md`                   |
+| 架构                                   | `docs/architecture/ARCHITECTURE.md`                     |
+| 工程参考                               | `docs/architecture/CODEBASE_DOCUMENTATION.md`           |
+| Auto-Combo（13 因子评分，19 种公开策略） | `docs/routing/AUTO-COMBO.md`                          |
+| 容灾（3 种机制）                       | `docs/architecture/RESILIENCE_GUIDE.md`                 |
+| 推理重播                               | `docs/routing/REASONING_REPLAY.md`                      |
+| 技能框架                               | `docs/frameworks/SKILLS.md`                             |
+| 记忆系统（FTS5 + Qdrant）              | `docs/frameworks/MEMORY.md`                             |
+| 云代理                                 | `docs/frameworks/CLOUD_AGENT.md`                        |
+| 安全护栏（PII / 注入 / 视觉）          | `docs/security/GUARDRAILS.md`                           |
+| 公开上游凭据（Gemini 等）              | `docs/security/PUBLIC_CREDS.md`                         |
+| 错误消息脱敏                           | `docs/security/ERROR_SANITIZATION.md`                   |
+| 评估                                   | `docs/frameworks/EVALS.md`                              |
+| 合规 / 审计                            | `docs/security/COMPLIANCE.md`                           |
+| Webhook                                | `docs/frameworks/WEBHOOKS.md`                           |
+| 授权管线                               | `docs/architecture/AUTHZ_GUIDE.md`                      |
+| 隐身（TLS / 指纹）                     | `docs/security/STEALTH_GUIDE.md`                        |
+| 代理协议（A2A / ACP / Cloud）          | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`              |
+| MCP 服务器                             | `docs/frameworks/MCP-SERVER.md`                         |
+| A2A 服务器                             | `docs/frameworks/A2A-SERVER.md`                         |
+| API 参考 + OpenAPI                     | `docs/reference/API_REFERENCE.md` + `docs/openapi.yaml` |
+| 服务商目录（自动生成）                 | `docs/reference/PROVIDER_REFERENCE.md`                  |
+| 发布流程                               | `docs/ops/RELEASE_CHECKLIST.md`                         |
+| 嵌入式服务                             | `docs/frameworks/EMBEDDED-SERVICES.md`                  |
+| 质量门禁（约 48 个脚本，允许列表策略） | `docs/architecture/QUALITY_GATES.md`                    |
 
 ---
 
 ## 测试
 
-| 类型                    | 命令                                                                         |
-| ----------------------- | ---------------------------------------------------------------------------- |
-| 单元测试                | `npm run test:unit`                                                          |
-| 单个文件                | `node --import tsx/esm --test tests/unit/file.test.ts`                       |
-| Vitest（MCP, autoCombo）| `npm run test:vitest`                                                        |
-| E2E（Playwright）       | `npm run test:e2e`                                                           |
-| 协议 E2E（MCP+A2A）     | `npm run test:protocols:e2e`                                                 |
-| 生态兼容                | `npm run test:ecosystem`                                                     |
-| 覆盖率门禁              | `npm run test:coverage`（60/60/60/60 — 语句/行/函数/分支）                     |
-| 覆盖率报告              | `npm run coverage:report`                                                    |
+| 类型                     | 命令                                                       |
+| ------------------------ | ---------------------------------------------------------- |
+| 单元测试                 | `npm run test:unit`                                        |
+| 单个文件                 | `node --import tsx/esm --test tests/unit/file.test.ts`     |
+| Vitest（MCP, autoCombo） | `npm run test:vitest`                                      |
+| E2E（Playwright）        | `npm run test:e2e`                                         |
+| 协议 E2E（MCP+A2A）      | `npm run test:protocols:e2e`                               |
+| 生态兼容                 | `npm run test:ecosystem`                                   |
+| 覆盖率门禁               | `npm run test:coverage`（60/60/60/60 — 语句/行/函数/分支） |
+| 覆盖率报告               | `npm run coverage:report`                                  |
 
 **PR 规则**：如果你修改了 `src/`、`open-sse/`、`electron/` 或 `bin/` 中的生产代码，必须在同一个 PR 中包含或更新测试。
 
@@ -371,12 +371,12 @@ baseCooldownMs * 2 ** failureIndex;
 
 **硬规则 — 绝不要将 superpowers / 规划 / 调研的输出写入 `docs/` 或仓库根目录。** superpowers 技能附带的默认值指向 `docs/…`（`writing-plans` → `docs/superpowers/plans/`，`brainstorming` → `docs/superpowers/specs/`）。这些默认值**在此处被覆盖**。每当你在此项目中调用 superpowers（或任何计划/方案/调研生成器）时，改为保存到 `_tasks/`，使用相同的文件名约定：
 
-| 产物（技能）                       | 默认（不要用）            | 保存到这里                                                     |
-| --------------------------------- | ------------------------- | -------------------------------------------------------------- |
-| 计划 (`writing-plans`)            | `docs/superpowers/plans/`  | `_tasks/superpowers/plans/YYYY-MM-DD-<feature>.md`             |
-| 方案 / 设计 (`brainstorming`)     | `docs/superpowers/specs/`  | `_tasks/superpowers/specs/YYYY-MM-DD-<topic>-design.md`        |
-| 调研 (`deep-research`, 临时)      | `docs/research/`           | `_tasks/research/…`                                            |
-| 交接 (`/handoff`)                 | —                          | `_tasks/hands-off/<YYYY-MM-DD>_<branch>_v<versão>_sess-<id>/`  |
+| 产物（技能）                  | 默认（不要用）            | 保存到这里                                                    |
+| ----------------------------- | ------------------------- | ------------------------------------------------------------- |
+| 计划 (`writing-plans`)        | `docs/superpowers/plans/` | `_tasks/superpowers/plans/YYYY-MM-DD-<feature>.md`            |
+| 方案 / 设计 (`brainstorming`) | `docs/superpowers/specs/` | `_tasks/superpowers/specs/YYYY-MM-DD-<topic>-design.md`       |
+| 调研 (`deep-research`, 临时)  | `docs/research/`          | `_tasks/research/…`                                           |
+| 交接 (`/handoff`)             | —                         | `_tasks/hands-off/<YYYY-MM-DD>_<branch>_v<versão>_sess-<id>/` |
 
 当 superpowers 技能通告一个路径如 "saved to `docs/superpowers/plans/…`" 时，在写入前改写为 `_tasks/…` 等效路径。在 `_tasks/` 仓库内部提交这些产物 (`git -C _tasks …`)，绝不在主仓库中提交。
 
@@ -438,7 +438,8 @@ git push -u origin feat/your-feature
 
 ## 环境
 
-- **运行时**：Node.js ≥22.0.0 <23 || ≥24.0.0 <27，ES Modules
+- **运行时**：Node.js ≥22.0.0 <23 |
+  | ≥24.0.0 <27，ES Modules
 - **TypeScript**：6.0+，目标 ES2022，模块 esnext，解析策略 bundler
 - **路径别名**：`@/*` → `src/`，`@omniroute/open-sse` → `open-sse/`，`@omniroute/open-sse/*` → `open-sse/*`
 - **默认端口**：20128（API + 仪表盘在同一端口）

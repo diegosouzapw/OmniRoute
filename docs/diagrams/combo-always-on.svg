@@ -1,4 +1,5 @@
-<svg viewBox="0 0 1200 650" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OmniRoute combo 'always-on' with priority strategy: requests go to 1. cc/claude-opus-4-7 (subscription, use it fully); on failure fall through to 2. cx/gpt-5.5 (second subscription), then 3. glm/glm-5.1 (cheap backup at $0.5/1M), then 4. kr/claude-sonnet-4.5 (free, unlimited, never fails). Result: 4 layers of fallback, zero downtime.">
+<svg viewBox="0 0 1200 650" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OmniRoute combo 'always-on' with priority strategy: requests go to 1. cc/claude-opus-4-7 (subscription, use it fully); on failure fall through to 2. cx/gpt-5.5 (second subscription), then 3. glm/glm-5.1 (cheap backup at $0.5/1M), then 4. kr/claude-sonnet-4.5 (listed free access; account, quota, policy and availability limits may apply). Four fallback layers improve route resilience but do not guarantee uninterrupted availability.">
+  <desc>Animated priority combo that tries two subscriptions, a low-cost API, and a listed free-access route while clearly stating that fallback does not guarantee availability.</desc>
   <defs>
     <radialGradient id="hubGlowC" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#e54d5e" stop-opacity="0.5"/>
@@ -122,7 +123,7 @@
     </rect>
     <text x="30" y="56" font-family="Consolas, 'Courier New', monospace" font-size="20" font-weight="800" fill="#71717a">4</text>
     <text x="70" y="44" font-family="Consolas, 'Courier New', monospace" font-size="15" font-weight="700" fill="#F7F6FC"><tspan fill="#8b5cf6">kr/</tspan>claude-sonnet-4.5</text>
-    <text x="70" y="68" font-family="Consolas, 'Courier New', monospace" font-size="10.5" fill="#a1a1aa"><tspan fill="#22c55e" font-weight="700">FREE</tspan> &#183; unlimited &#183; never fails</text>
+    <text x="70" y="68" font-family="Consolas, 'Courier New', monospace" font-size="10.5" fill="#a1a1aa"><tspan fill="#22c55e" font-weight="700">FREE ACCESS</tspan> &#183; limits apply</text>
     <circle cx="524" cy="48" r="4.5" fill="#71717a">
       <animate attributeName="fill" values="#71717a;#71717a;#22c55e;#22c55e;#71717a" keyTimes="0;0.78;0.81;0.985;1" dur="16s" repeatCount="indefinite"/>
       <animate attributeName="opacity" values="1;0.45;1" dur="2s" repeatCount="indefinite"/>
@@ -214,8 +215,8 @@
   <text x="552" y="432" font-family="Consolas, 'Courier New', monospace" font-size="9.5" fill="#ef4444" opacity="0">
     <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.73;0.745;0.795;0.815;1" dur="16s" repeatCount="indefinite"/>fails &#8594; next</text>
 
-  <!-- ═══ Footer: the uptime bar that never drops ═══ -->
-  <text x="90" y="588" font-family="Consolas, 'Courier New', monospace" font-size="9.5" letter-spacing="2" font-weight="700" fill="#71717a">UPTIME</text>
+  <!-- ═══ Footer: fallback coverage indicator ═══ -->
+  <text x="90" y="588" font-family="Consolas, 'Courier New', monospace" font-size="9.5" letter-spacing="2" font-weight="700" fill="#71717a">FALLBACK COVERAGE</text>
   <rect x="90" y="596" width="1020" height="6" rx="3" fill="#22c55e" opacity="0.8">
     <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" repeatCount="indefinite"/>
   </rect>
@@ -224,7 +225,7 @@
     <circle cx="16" cy="12" r="3" fill="#22c55e">
       <animate attributeName="opacity" values="1;0.35;1" dur="1.6s" repeatCount="indefinite"/>
     </circle>
-    <text x="70" y="16" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="9.5" letter-spacing="2" font-weight="700" fill="#22c55e">ALWAYS ON</text>
+    <text x="70" y="16" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="9.5" letter-spacing="1.5" font-weight="700" fill="#22c55e">FALLBACK READY</text>
   </g>
-  <text x="600" y="634" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="12.5" fill="#a1a1aa">Result: 4 layers of fallback = <tspan fill="#22c55e" font-weight="700">zero downtime</tspan></text>
+  <text x="600" y="634" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="12.5" fill="#a1a1aa">Result: 4 fallback layers = <tspan fill="#22c55e" font-weight="700">broader resilience</tspan> &#183; availability is not guaranteed</text>
 </svg>

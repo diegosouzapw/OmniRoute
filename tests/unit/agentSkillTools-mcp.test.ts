@@ -77,13 +77,21 @@ test("omniroute_agent_skills_list({category:'cli'}) returns exactly 21 entries",
   assert.ok(result.skills.every((s: { category: string }) => s.category === "cli"));
 });
 
+test("omniroute_agent_skills_list({category:'config'}) returns exactly 1 entry", async () => {
+  const result = await agentSkillTools.omniroute_agent_skills_list.handler({ category: "config" });
+  assert.equal(result.count, 1, `Expected 1 config skill but got ${result.count}`);
+  assert.ok(result.skills.every((s: { category: string }) => s.category === "config"));
+});
+
 test("omniroute_agent_skills_list result includes coverage shape", async () => {
   const result = await agentSkillTools.omniroute_agent_skills_list.handler({});
   assert.ok(result.coverage != null, "coverage should be present");
   assert.ok(typeof result.coverage.api === "object");
   assert.ok(typeof result.coverage.cli === "object");
+  assert.ok(typeof result.coverage.config === "object");
   assert.equal(result.coverage.api.total, 23);
   assert.equal(result.coverage.cli.total, 21);
+  assert.equal(result.coverage.config.total, 1);
   assert.ok(typeof result.coverage.totalSkills === "number");
   assert.ok(typeof result.coverage.generatedAt === "string");
 });
@@ -94,7 +102,7 @@ test("omniroute_agent_skills_list skill entries have required fields", async () 
   assert.ok(typeof first.id === "string" && first.id.length > 0);
   assert.ok(typeof first.name === "string" && first.name.length > 0);
   assert.ok(typeof first.description === "string");
-  assert.ok(first.category === "api" || first.category === "cli");
+  assert.ok(first.category === "api" || first.category === "cli" || first.category === "config");
   assert.ok(typeof first.area === "string");
   assert.ok(typeof first.rawUrl === "string");
   assert.ok(typeof first.githubUrl === "string");
@@ -103,6 +111,11 @@ test("omniroute_agent_skills_list skill entries have required fields", async () 
 test("AgentSkillsListSchema parses valid category filter", () => {
   const parsed = AgentSkillsListSchema.parse({ category: "api" });
   assert.equal(parsed.category, "api");
+});
+
+test("AgentSkillsListSchema parses config category filter", () => {
+  const parsed = AgentSkillsListSchema.parse({ category: "config" });
+  assert.equal(parsed.category, "config");
 });
 
 test("AgentSkillsListSchema rejects invalid category", () => {
@@ -140,6 +153,14 @@ test("omniroute_agent_skills_get({id:'cli-serve'}) resolves correct cli skill me
   assert.ok(typeof skill!.name === "string" && skill!.name.length > 0);
 });
 
+test("omniroute_agent_skills_get({id:'config-codex-cli'}) resolves config skill metadata", async () => {
+  const { getSkillById } = await import("../../src/lib/agentSkills/catalog.ts");
+  const skill = getSkillById("config-codex-cli");
+  assert.ok(skill != null, "config-codex-cli should exist in catalog");
+  assert.equal(skill!.id, "config-codex-cli");
+  assert.equal(skill!.category, "config");
+});
+
 test("omniroute_agent_skills_get with invalid id throws Error", async () => {
   await assert.rejects(
     () => agentSkillTools.omniroute_agent_skills_get.handler({ id: "non-existent-skill-xyz" }),
@@ -167,14 +188,17 @@ test("omniroute_agent_skills_coverage({}) returns coverage shape", async () => {
   assert.ok(result != null);
   assert.ok(typeof result.api === "object");
   assert.ok(typeof result.cli === "object");
+  assert.ok(typeof result.config === "object");
   assert.equal(result.api.total, 23);
   assert.equal(result.cli.total, 21);
+  assert.equal(result.config.total, 1);
   assert.ok(typeof result.api.have === "number");
   assert.ok(typeof result.cli.have === "number");
   assert.ok(result.api.have >= 0 && result.api.have <= 23);
   assert.ok(result.cli.have >= 0 && result.cli.have <= 21);
+  assert.ok(result.config.have >= 0 && result.config.have <= 1);
   assert.ok(typeof result.totalSkills === "number");
-  assert.equal(result.totalSkills, result.api.have + result.cli.have + (result.config?.have ?? 0));
+  assert.equal(result.totalSkills, result.api.have + result.cli.have + result.config.have);
   assert.ok(typeof result.generatedAt === "string");
   // Validate ISO datetime format
   assert.ok(!isNaN(Date.parse(result.generatedAt)), "generatedAt should be valid ISO datetime");

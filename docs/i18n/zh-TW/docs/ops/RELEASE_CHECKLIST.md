@@ -121,7 +121,7 @@ CI 只能暫存；只有擁有者的 2FA 才能真正發布。
 - [ ] `npm run test:vitest` — 通過（MCP 伺服器、autoCombo、快取）
 - [ ] `npm run test:coverage` — 門檻 60/60/60/60 已達成（statements／lines／functions／branches）
 - [ ] `npm run test:integration` — 通過（若變更涉及 DB／處理器）
-- [ ] `npm run test:combo:matrix` — 通過（combo 策略矩陣：證明所有 17 種路由策略的選擇決策是確定性的；在更動 combo 路由、策略解析或備援邏輯時執行）
+- [ ] `npm run test:combo:matrix` — 通過（combo 策略矩陣：證明所有 19 種公開路由策略的選擇決策是確定性的；在更動 combo 路由、策略解析或備援邏輯時執行）
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **選擇性／手動**（受閘控的真實上游冒煙測試；從 VPS `root@192.168.0.15` 讀取唯讀 DB 快照；會命中真實提供者，消耗額度；不在 CI 中執行；若無閘控變數則乾淨跳過）
 - [ ] `npm run test:combo:live:vps` — **選擇性／手動**（Phase-3 VPS 即時冒煙測試：透過純 Node ESM 對 `.15` 伺服器執行 7 個 HTTP 情境；需要 `ssh root@192.168.0.15`；只會建立／刪除 `__live_test__*` 類型的 combo；會命中真實提供者；不在 CI 中執行）
 - [ ] `npm run test:e2e` — 通過（UI 變更）

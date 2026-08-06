@@ -39,22 +39,22 @@ Voor de volledige testmatrix, zie `CONTRIBUTING.md` → "Tests Uitvoeren". Voor 
 
 ## Project in een Oogopslag
 
-**OmniRoute** — verenigde AI proxy/router. Eén eindpunt, 160+ LLM-providers, automatische fallback.
+**OmniRoute** — verenigde AI proxy/router. Eén eindpunt, 329 LLM-providers, automatische fallback.
 
-| Laag          | Locatie                 | Doel                                                                         |
-| ------------- | ----------------------- | ---------------------------------------------------------------------------- |
-| API Routes    | `src/app/api/v1/`       | Next.js App Router — toegangspunten                                          |
-| Handlers      | `open-sse/handlers/`    | Verzoekverwerking (chat, embeddings, enz.)                                   |
-| Executors     | `open-sse/executors/`   | Provider-specifieke HTTP dispatch                                            |
-| Translators   | `open-sse/translator/`  | Formaatconversie (OpenAI↔Claude↔Gemini)                                      |
-| Transformer   | `open-sse/transformer/` | Antwoorden API ↔ Chat Completes                                              |
-| Services      | `open-sse/services/`    | Combo-routing, snelheidslimieten, caching, enz.                              |
-| Database      | `src/lib/db/`           | SQLite domeinmodules (45+ bestanden, 55 migraties)                           |
-| Domein/Beleid | `src/domain/`           | Beleid engine, kostenregels, fallback-logica                                 |
-| MCP Server    | `open-sse/mcp-server/`  | 37 tools (30 basis + 3 geheugen + 4 vaardigheden), 3 transporten, ~13 scopes |
-| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agentprotocol                                                   |
-| Vaardigheden  | `src/lib/skills/`       | Uitbreidbaar vaardighedenframework                                           |
-| Geheugen      | `src/lib/memory/`       | Persistente conversatiemonitor                                               |
+| Laag          | Locatie                 | Doel                                                                      |
+| ------------- | ----------------------- | ------------------------------------------------------------------------- |
+| API Routes    | `src/app/api/v1/`       | Next.js App Router — toegangspunten                                       |
+| Handlers      | `open-sse/handlers/`    | Verzoekverwerking (chat, embeddings, enz.)                                |
+| Executors     | `open-sse/executors/`   | Provider-specifieke HTTP dispatch                                         |
+| Translators   | `open-sse/translator/`  | Formaatconversie (OpenAI↔Claude↔Gemini)                                   |
+| Transformer   | `open-sse/transformer/` | Antwoorden API ↔ Chat Completes                                           |
+| Services      | `open-sse/services/`    | Combo-routing, snelheidslimieten, caching, enz.                           |
+| Database      | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| Domein/Beleid | `src/domain/`           | Beleid engine, kostenregels, fallback-logica                              |
+| MCP Server    | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agentprotocol                                                |
+| Vaardigheden  | `src/lib/skills/`       | Uitbreidbaar vaardighedenframework                                        |
+| Geheugen      | `src/lib/memory/`       | Persistente conversatiemonitor                                            |
 
 Monorepo: `src/` (Next.js 16 app), `open-sse/` (streaming engine workspace), `electron/` (desktop app), `tests/`, `bin/` (CLI-toegangspunt).
 
@@ -76,7 +76,7 @@ Client → /v1/chat/completions (Next.js route)
 
 API-routes volgen een consistent patroon: `Route → CORS preflight → Zod body validatie → Optionele auth (extractApiKey/isValidApiKey) → Handhaving van API-sleutelbeleid → Handler delegatie (open-sse)`. Geen globale Next.js middleware — onderschepping is route-specifiek.
 
-**Combo-routing** (`open-sse/services/combo.ts`): 14 strategieën (prioriteit, gewogen, vul-eerst, round-robin, P2C, willekeurig, minst-gebruikt, kosten-geoptimaliseerd, reset-bewust, strikt-willekeurig, auto, lkgp, context-geoptimaliseerd, context-relay). Elke target roept `handleSingleModel()` aan, dat `handleChatCore()` omhult met foutafhandeling per target en circuitbreaker-controles. Zie `docs/routing/AUTO-COMBO.md` voor de 9-factor Auto-Combo scoring en `docs/architecture/RESILIENCE_GUIDE.md` voor de 3 veerkrachtlagen.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -321,7 +321,7 @@ Voor elke niet-triviale wijziging, lees eerst de bijbehorende diepgaande analyse
 | Repo-navigatie                                   | `docs/architecture/REPOSITORY_MAP.md`                             |
 | Architectuur                                     | `docs/architecture/ARCHITECTURE.md`                               |
 | Engineeringreferentie                            | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (9-factor scoring, 14 strategieën)    | `docs/routing/AUTO-COMBO.md`                                      |
+| Auto-Combo (13-factor scoring, 19 strategieën)   | `docs/routing/AUTO-COMBO.md`                                      |
 | Veerkracht (3 mechanismen)                       | `docs/architecture/RESILIENCE_GUIDE.md`                           |
 | Redeneringsherhaling                             | `docs/routing/REASONING_REPLAY.md`                                |
 | Vaardighedenkader                                | `docs/frameworks/SKILLS.md`                                       |
@@ -385,7 +385,9 @@ git push -u origin feat/your-feature
 
 ## Omgeving
 
-- **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
+- **Runtime**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, target ES2022, module esnext, resolution bundler
 - **Padaliassen**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Standaardpoort**: 20128 (API + dashboard op dezelfde poort)

@@ -208,7 +208,7 @@ Round-robin przechodzi providerów po kolei. Auto-combo **ocenia każdego provid
 
 Dla deweloperów i kontrybutorów zobacz [Auto-Combo Technical Reference](../routing/AUTO-COMBO.md), gdzie znajdziesz:
 
-- Pełny 12-czynnikowy algorytm punktacji
+- Pełny 13-czynnikowy algorytm punktacji
 - Tabele wag pakietów trybów (mode pack)
 - Ścieżki plików implementacji
 - Endpointy API

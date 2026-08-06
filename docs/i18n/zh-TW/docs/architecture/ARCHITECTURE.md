@@ -17,27 +17,27 @@ OmniRoute 是一個建構於 Next.js 上的本地 AI 路由閘道與儀表板。
 
 核心能力：
 
-- OpenAI 相容的 API 表面，適用於 CLI/工具（268 個提供者、84 個執行器）
+- OpenAI 相容的 API 表面，適用於 CLI/工具（329 個提供者目錄項目、89 個執行器實作模組）
 - 跨提供者格式的請求/回應轉換
 - 模型組合備援（多模型序列）
 - 結構化組合步驟（`提供者 + 模型 + 連線`），支援執行期依 `compositeTiers` 排序
 - 帳戶層級備援（每個提供者多帳戶）
 - 主要聊天路徑中的配額預檢與配額感知 P2C 帳戶選擇
-- OAuth + API 金鑰提供者連線管理（19 個 OAuth 提供者模組）
+- OAuth + API 金鑰提供者連線管理（21 個 OAuth 實作模組）
 - 透過 `/v1/embeddings` 生成嵌入向量（6 個提供者、9 個模型）
 - 透過 `/v1/images/generations` 生成圖片（10+ 個提供者、20+ 個模型）
 - 透過 `/v1/audio/transcriptions` 進行語音轉錄（7 個提供者）
 - 透過 `/v1/audio/speech` 進行文字轉語音（10 個提供者）
 - 透過 `/v1/videos/generations` 生成影片（ComfyUI + SD WebUI）
 - 透過 `/v1/music/generations` 生成音樂（ComfyUI）
-- 透過 `/v1/search` 進行網路搜尋（5 個提供者）
+- 透過 `/v1/search` 進行網路搜尋（12 個提供者）
 - 透過 `/v1/moderations` 進行內容審核
 - 透過 `/v1/rerank` 進行重新排序
 - Think 標籤解析（`<think>...</think>`）用於推理模型
 - 回應淨化處理，確保嚴格的 OpenAI SDK 相容性
 - 角色正規化（developer→system, system→user）以實現跨提供者相容性
 - 結構化輸出轉換（json_schema → Gemini responseSchema）
-- 提供者、金鑰、別名、組合、設定、定價的本地持久化（26 個 DB 模組）
+- 提供者、金鑰、別名、組合、設定、定價的本地持久化（111 個頂層 DB 模組）
 - 用量/成本追蹤與請求記錄
 - 選用雲端同步，支援多裝置/狀態同步
 - 用於 API 存取控制的 IP 允許清單/封鎖清單
@@ -58,7 +58,7 @@ OmniRoute 是一個建構於 Next.js 上的本地 AI 路由閘道與儀表板。
 - 合規稽核記錄，可依 API 金鑰選擇退出
 - 用於 LLM 品質保證的評估框架
 - 健康狀態儀表板，即時顯示提供者斷路器狀態
-- MCP 伺服器（87 個工具）支援 3 種傳輸方式（stdio/SSE/Streamable HTTP）
+- MCP 伺服器（107 個工具、32 個範圍）支援 3 種傳輸方式（stdio/SSE/Streamable HTTP）
 - A2A 伺服器（JSON-RPC 2.0 + SSE）含技能與任務生命週期
 - 記憶系統（提取、注入、檢索、摘要）
 - 技能系統（註冊表、執行器、沙箱、內建技能）
@@ -66,7 +66,7 @@ OmniRoute 是一個建構於 Next.js 上的本地 AI 路由閘道與儀表板。
 - 提示注入防護中介軟體
 - 提示壓縮管線，含 Caveman、RTK、堆疊管線、壓縮組合、語言套件與分析功能
 - ACP（代理通訊協定）註冊表
-- 模組化 OAuth 提供者（19 個獨立模組，位於 `src/lib/oauth/providers/`）
+- 模組化 OAuth 提供者（21 個實作模組，位於 `src/lib/oauth/providers/`）
 - 解除安裝/完整解除安裝指令碼
 - OAuth 環境修復動作
 - WebSocket 橋接，供 OpenAI 相容的 WS 客戶端使用（`/v1/ws`）
@@ -319,7 +319,7 @@ flowchart LR
 - 評估執行器：`src/lib/evals/evalRunner.ts`
 - 領域狀態持久化：`src/lib/db/domainState.ts` — 備援鏈、預算、成本歷史、鎖定狀態、斷路器的 SQLite CRUD
 
-OAuth 提供者模組（`src/lib/oauth/providers/` 下的 16 個個別檔案）：
+OAuth 提供者模組（`src/lib/oauth/providers/` 下的 21 個實作模組）：
 
 - 註冊表索引：`src/lib/oauth/providers/index.ts`
 - 個別提供者：`claude.ts`、`codex.ts`、`gemini.ts`、`antigravity.ts`、`agy.ts`、`qoder.ts`、`qwen.ts`、`kimi-coding.ts`、`github.ts`、`kiro.ts`、`cursor.ts`、`kilocode.ts`、`cline.ts`、`windsurf.ts`、`gitlab-duo.ts`、`trae.ts`
@@ -359,13 +359,13 @@ OmniRoute 可以安裝、監督並路由至本地運行的 AI 工具程序，
 
 關鍵能力：
 
-- **17 種路由策略**（優先級、加權、先填滿、輪詢、P2C、隨機、
+- **19 種公開路由策略**（優先級、加權、先填滿、輪詢、P2C、隨機、
   最少使用、成本最佳化、重置感知、重置視窗、餘裕空間、嚴格隨機、
-  **自動**、lkpg、上下文最佳化、上下文轉接、**融合**，加上備援路徑）—
+  **自動**、lkgp、上下文最佳化、快取最佳化、上下文轉接、**融合**與 pipeline）—
   auto 是 v3.8.0 的主要新增功能；`fusion`（面板扇出 + 判斷綜合，
   `open-sse/services/fusion.ts`）是 v3.8.36 的新功能。
-- **9 因子評分**：成本、p95 延遲、成功率、配額餘裕、鎖定
-  接近度、斷路器狀態、近期失敗、模型可用性與標籤親和性。
+- **13 因子評分**：配額、健康度、成本／延遲倒數、任務適配、穩定性、層級優先級、
+  層級親和度、特異性匹配、上下文親和度、連線密度、快取親和度與重設視窗親和度。
 - **虛擬工廠**在沒有相符的命名組合時實例化暫時組合，
   從健康活躍的提供者連線中篩選候選者。
 - **自動前綴**：`auto/coding`、`auto/cheap`、`auto/fast`、`auto/offline`、
@@ -908,7 +908,7 @@ flowchart LR
 
 ## 提供者相容性矩陣
 
-> **注意：** 以下矩陣為 OmniRoute v3.8.0 中 237 個已註冊提供者的代表性樣本。
+> **注意：** 以下矩陣為目前 329 個提供者目錄項目的代表性樣本。
 > 完整且持續更新的清單，請參閱
 > [`docs/reference/PROVIDER_REFERENCE.md`](../reference/PROVIDER_REFERENCE.md)（自動產生）或
 > `src/shared/constants/providers.ts`（載入時經 Zod 驗證）中的權威來源。

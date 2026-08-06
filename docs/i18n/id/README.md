@@ -6,7 +6,7 @@
 
 ### Jangan pernah berhenti ngoding. Routing cerdas ke **model AI GRATIS & berbiaya rendah** dengan fallback otomatis.
 
-_Proxy API universal Anda — satu endpoint, 100+ penyedia, tanpa downtime. Kini dengan **MCP Server (25 alat)**, **Protokol A2A**, **Sistem Memori/Skill** & **Aplikasi Desktop Electron**._
+_Proxy API universal Anda — satu endpoint untuk 329 entri katalog penyedia, dengan fallback otomatis saat rute upstream tersedia. Kini dengan **MCP Server (107 alat, 32 cakupan)**, **Protokol A2A**, **Sistem Memori/Skill** & **Aplikasi Desktop Electron**._
 
 **Chat Completions • Embeddings • Pembuatan Gambar • Video • Musik • Audio • Reranking • **Pencarian Web** • MCP Server • Protokol A2A • 100% TypeScript**
 
@@ -80,7 +80,7 @@ _Proxy API universal Anda — satu endpoint, 100+ penyedia, tanpa downtime. Kini
 
 ### 🤖 Penyedia AI Gratis untuk agen coding favorit Anda
 
-_Hubungkan IDE atau alat CLI berbasis AI apa pun melalui OmniRoute — gateway API gratis untuk coding tanpa batas._
+_Hubungkan IDE atau alat CLI berbasis AI apa pun melalui OmniRoute — gateway API dengan akses gratis yang tetap tunduk pada batas penyedia._
 
   <table>
     <tr>
@@ -252,7 +252,7 @@ OpenAI menggunakan satu format, Claude (Anthropic) menggunakan format lain, Gemi
 
 **Cara OmniRoute menyelesaikannya:**
 
-- **Endpoint Terpadu** — Satu `http://localhost:20128/v1` berfungsi sebagai proxy untuk semua 100+ penyedia
+- **Endpoint Terpadu** — Satu `http://localhost:20128/v1` berfungsi sebagai proxy untuk seluruh 329 entri katalog penyedia
 - **Translasi Format** — Otomatis dan transparan: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
 - **Sanitasi Respons** — Menghapus field non-standar (`x_groq`, `usage_breakdown`, `service_tier`) yang merusak OpenAI SDK v1.83+
 - **Normalisasi Peran** — Mengonversi `developer` → `system` untuk penyedia non-OpenAI; `system` → `user` untuk GLM/ERNIE
@@ -288,7 +288,7 @@ Tidak semua orang bisa membayar $20–200/bulan untuk langganan AI. Pelajar, dev
 
 - **Ollama Cloud** — Model Ollama yang di-host di cloud pada `api.ollama.com` dengan tier "Light usage" gratis; gunakan prefix `ollamacloud/<model>`
 - **Combo Hanya Gratis** — Rantai `if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/bulan tanpa downtime
-- **Akses Gratis NVIDIA NIM** — ~40 RPM akses gratis selamanya untuk 70+ model di build.nvidia.com (beralih dari kredit ke batas rate murni)
+- **Akses Gratis NVIDIA NIM** — akses gratis yang saat ini tercantum sekitar ~40 RPM untuk 70+ model di build.nvidia.com; model, kuota, dan ketentuan dapat berubah
 - **Strategi Optimasi Biaya** — Strategi routing yang secara otomatis memilih penyedia termurah yang tersedia
 
 </details>
@@ -336,7 +336,7 @@ Penyedia AI bisa menjadi tidak stabil, mengembalikan kesalahan 5xx, atau mencapa
 - **Dashboard Alat CLI** — Halaman khusus dengan pengaturan satu klik untuk Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline
 - **Generator Konfigurasi GitHub Copilot** — Menghasilkan `chatLanguageModels.json` untuk VS Code dengan pemilihan model massal
 - **Wizard Orientasi** — Pengaturan terpandu 4 langkah untuk pengguna pertama kali
-- **Satu endpoint, semua model** — Konfigurasi `http://localhost:20128/v1` sekali, akses 100+ penyedia
+- **Satu endpoint, semua model** — Konfigurasi `http://localhost:20128/v1` sekali, akses 329 entri katalog penyedia
 
 </details>
 
@@ -543,7 +543,7 @@ Different clients should have least-privilege access to tool categories.
 
 **Bagaimana OmniRoute menyelesaikannya:**
 
-- 10 cakupan MCP granular untuk akses alat terkontrol
+- 32 cakupan MCP granular untuk akses alat terkontrol
 - Penegakan cakupan dan visibilitas di UI manajemen MCP
 - Postur default yang aman untuk perkakas operasional
 
@@ -696,9 +696,9 @@ Outcome: higher quality, near-zero interruption
 **Playbook B: Tumpukan coding tanpa biaya**
 
 ```txt
-Combo: "free-forever"
-  1. if/kimi-k2-thinking       (unlimited free)
-  2. qw/qwen3-coder-plus       (unlimited free)
+Combo: "free-tier-fallback"
+  1. if/kimi-k2-thinking       (no published token cap; limits apply)
+  2. qw/qwen3-coder-plus       (no published token cap; limits apply)
 
 Monthly cost: $0
 Outcome: stable free coding workflow
@@ -734,14 +734,14 @@ Outcome: deep fallback depth for deadline-critical workloads
 
 | Step | Action                                                 | Providers Unlocked                                                 |
 | ---- | ------------------------------------------------------ | ------------------------------------------------------------------ |
-| 1    | Connect **Kiro** (AWS Builder ID OAuth)                | Claude Sonnet 4.5, Haiku 4.5 — **unlimited**                       |
-| 2    | Connect **Qoder** (Google OAuth)                       | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **unlimited** |
-| 3    | Connect **Qwen** (Device Code)                         | qwen3-coder-plus, qwen3-coder-flash... — **unlimited**             |
+| 1    | Connect **Kiro** (AWS Builder ID OAuth)                | Claude Sonnet 4.5, Haiku 4.5 — batas akun/penyedia berlaku         |
+| 2    | Connect **Qoder** (Google OAuth)                       | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — batas berlaku |
+| 3    | Connect **Qwen** (Device Code)                         | qwen3-coder-plus, qwen3-coder-flash... — batas berlaku             |
 | 4    | `/dashboard/combos` → **Templat Tumpukan Gratis ($0)** | Round-robin semua penyedia gratis secara otomatis                  |
 
 **Arahkan IDE/CLI apa pun ke:** `http://localhost:20128/v1` · Kunci API: `any-string` · Selesai.
 
-> **Cakupan ekstra opsional (juga gratis):** Kunci API Groq (gratis 30 RPM), NVIDIA NIM (gratis 40 RPM, 70+ model), Cerebras (1 juta tok/hari), kunci API LongCat (50 juta token/hari!), Cloudflare Workers AI (10 ribu neuron/hari, 50+ model).
+> **Cakupan ekstra opsional (ketentuan saat ini berlaku):** Groq, NVIDIA NIM, Cerebras, LongCat, dan Cloudflare Workers AI dapat menyediakan akses gratis atau kredit pendaftaran sebagaimana tercantum saat ini. Kuota, model, akun, wilayah, KYC, dan ketentuan penyedia dapat berubah; lihat [`FREE_TIERS.md`](../../reference/FREE_TIERS.md).
 
 ## Mulai Cepat
 
@@ -1130,49 +1130,49 @@ Saat diminimalkan, OmniRoute ada di baki sistem Anda dengan tindakan cepat:
 
 ## 💰 Harga Sekilas
 
-| Tier                | Provider                    | Cost                                | Quota Reset      | Best For                          |
-| ------------------- | --------------------------- | ----------------------------------- | ---------------- | --------------------------------- |
-| **💳 SUBSCRIPTION** | Claude Code (Pro)           | $20/mo                              | 5h + weekly      | Already subscribed                |
-|                     | Codex (Plus/Pro)            | $20-200/mo                          | 5h + weekly      | OpenAI users                      |
-|                     | GitHub Copilot              | $10-19/mo                           | Monthly          | GitHub users                      |
-| **🔑 API KEY**      | NVIDIA NIM                  | **GRATIS** (pengembangan selamanya) | ~40 RPM          | 70+ open models                   |
-|                     | Cerebras                    | **FREE** (1M tok/day)               | 60K TPM / 30 RPM | World's fastest                   |
-|                     | Groq                        | **FREE** (30 RPM)                   | 14.4K RPD        | Ultra-fast Llama/Gemma            |
-|                     | DeepSeek V3.2               | $0.27/$1.10 per 1M                  | None             | Best price/quality reasoning      |
-|                     | xAI Grok-4 Fast             | **$0.20/$0.50 per 1M** 🆕           | None             | Fastest + tool calling, ultralow  |
-|                     | xAI Grok-4 (standard)       | $0.20/$1.50 per 1M 🆕               | None             | Penalaran andalan dari xAI        |
-|                     | Mistral                     | Uji coba gratis + berbayar          | Rate limited     | European AI                       |
-|                     | OpenRouter                  | Bayar per penggunaan                | None             | 100+ models aggr.                 |
-| **💰 CHEAP**        | GLM-5 (via Z.AI) 🆕         | $0.5/1M                             | Daily 10AM       | 128K output, newest flagship      |
-|                     | GLM-4.7                     | $0.6/1M                             | Daily 10AM       | Budget backup                     |
-|                     | MiniMax M2.5 🆕             | $0.3/1M input                       | 5-hour rolling   | Reasoning + agentic tasks         |
-|                     | MiniMax M2.1                | $0.2/1M                             | 5-hour rolling   | Cheapest option                   |
-|                     | Kimi K2.5 (Moonshot API) 🆕 | Bayar per penggunaan                | None             | Direct Moonshot API access        |
-|                     | Kimi K2                     | $9/mo flat                          | 10M tokens/mo    | Predictable cost                  |
-| **🆓 FREE**         | Qoder                       | **$0**                              | Unlimited        | 5 models unlimited                |
-|                     | Qwen                        | **$0**                              | Unlimited        | 4 models unlimited                |
-|                     | Kiro                        | **$0**                              | Unlimited        | Claude Sonnet/Haiku (AWS Builder) |
-|                     | LongCat Flash-Lite 🆕       | **$0** (50M tok/day 🔥)             | 1 RPS            | Kuota gratis terbesar di dunia    |
-|                     | Pollinations AI 🆕          | **$0** (tidak perlu kunci)          | 1 req/15s        | GPT-5, Claude, DeepSeek, Llama 4  |
-|                     | Cloudflare Workers AI 🆕    | **$0** (10K Neurons/day)            | ~150 resp/day    | 50+ model, keunggulan global      |
-|                     | Scaleway AI 🆕              | **$0** (1M tokens total)            | Rate limited     | EU/GDPR, Qwen3 235B, Llama 70B    |
+| Tier                | Provider                    | Cost                            | Quota Reset           | Best For                           |
+| ------------------- | --------------------------- | ------------------------------- | --------------------- | ---------------------------------- |
+| **💳 SUBSCRIPTION** | Claude Code (Pro)           | $20/mo                          | 5h + weekly           | Already subscribed                 |
+|                     | Codex (Plus/Pro)            | $20-200/mo                      | 5h + weekly           | OpenAI users                       |
+|                     | GitHub Copilot              | $10-19/mo                       | Monthly               | GitHub users                       |
+| **🔑 API KEY**      | NVIDIA NIM                  | **GRATIS** (ketentuan saat ini) | ~40 RPM               | Model dan kuota dapat berubah      |
+|                     | Cerebras                    | **FREE** (1M tok/day)           | 60K TPM / 30 RPM      | World's fastest                    |
+|                     | Groq                        | **FREE** (30 RPM)               | 14.4K RPD             | Ultra-fast Llama/Gemma             |
+|                     | DeepSeek V3.2               | $0.27/$1.10 per 1M              | None                  | Best price/quality reasoning       |
+|                     | xAI Grok-4 Fast             | **$0.20/$0.50 per 1M** 🆕       | None                  | Fastest + tool calling, ultralow   |
+|                     | xAI Grok-4 (standard)       | $0.20/$1.50 per 1M 🆕           | None                  | Penalaran andalan dari xAI         |
+|                     | Mistral                     | Uji coba gratis + berbayar      | Rate limited          | European AI                        |
+|                     | OpenRouter                  | Bayar per penggunaan            | None                  | 100+ models aggr.                  |
+| **💰 CHEAP**        | GLM-5 (via Z.AI) 🆕         | $0.5/1M                         | Daily 10AM            | 128K output, newest flagship       |
+|                     | GLM-4.7                     | $0.6/1M                         | Daily 10AM            | Budget backup                      |
+|                     | MiniMax M2.5 🆕             | $0.3/1M input                   | 5-hour rolling        | Reasoning + agentic tasks          |
+|                     | MiniMax M2.1                | $0.2/1M                         | 5-hour rolling        | Cheapest option                    |
+|                     | Kimi K2.5 (Moonshot API) 🆕 | Bayar per penggunaan            | None                  | Direct Moonshot API access         |
+|                     | Kimi K2                     | $9/mo flat                      | 10M tokens/mo         | Predictable cost                   |
+| **🆓 FREE**         | Qoder                       | **$0**                          | Provider limits apply | 5 model; batas akun berlaku        |
+|                     | Qwen                        | **$0**                          | Provider limits apply | 4 model; batas akun berlaku        |
+|                     | Kiro                        | **$0**                          | Provider limits apply | Claude Sonnet/Haiku (AWS Builder)  |
+|                     | LongCat-2.0                 | **$0** (10M sekali, KYC)        | Ketentuan berlaku     | Kredit pendaftaran, tidak berulang |
+|                     | Pollinations AI 🆕          | **$0** (tidak perlu kunci)      | 1 req/15s             | GPT-5, Claude, DeepSeek, Llama 4   |
+|                     | Cloudflare Workers AI 🆕    | **$0** (10K Neurons/day)        | ~150 resp/day         | 50+ model, keunggulan global       |
+|                     | Scaleway AI 🆕              | **$0** (1M tokens total)        | Rate limited          | EU/GDPR, Qwen3 235B, Llama 70B     |
 
 > 🆕 **Model baru ditambahkan (Mar 2026):** Keluarga Grok-4 Fast seharga $0,20/$0,50/M (dibandingkan pada 1143ms — 30% lebih cepat dibandingkan Gemini 2.5 Flash), GLM-5 melalui Z.AI dengan output 128K, penalaran MiniMax M2.5, harga DeepSeek V3.2 yang diperbarui, Kimi K2.5 melalui API langsung Moonshot.
 
 **💡 Tumpukan Kombo $0 — Penyiapan Gratis Lengkap:**
 
 ```
-# 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
-Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
-LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
+# 🆓 Free-access examples — provider limits and terms apply
+Kiro (kr/)             → Claude access — account/credit limits apply
+Qoder (if/)            → selected models — no published token cap; rate/account limits apply
+LongCat (lc/)          → LongCat-2.0 — 10M one-time signup credit; KYC required
 Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
-Qwen (qw/)             → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
-Gemini (gemini/)       → Gemini 2.5 Flash — 1,500 req/day free API key
+Qwen (qw/)             → selected models — no published token cap; rate/account limits apply
+Gemini (gemini/)       → selected free-tier models — current API quotas apply
 Cloudflare AI (cf/)    → Llama 70B, Gemma 3, Mistral — 10K Neurons/day
 Scaleway (scw/)        → Qwen3 235B, Llama 70B — 1M free tokens (EU)
-Groq (groq/)           → Llama/Gemma ultra-fast — 14.4K req/day
-NVIDIA NIM (nvidia/)   → 70+ open models — 40 RPM forever
+Groq (groq/)           → selected models — current per-model rate limits apply
+NVIDIA NIM (nvidia/)   → selected models — current rate limits apply
 Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 ```
 
@@ -1184,37 +1184,37 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 
 ## 🆓 Model Gratis — Apa yang Sebenarnya Anda Dapatkan
 
-> Semua model di bawah **100% gratis tanpa memerlukan kartu kredit**. OmniRoute melakukan rute otomatis di antara keduanya ketika satu kuota habis — gabungkan semuanya untuk kombo $0 yang tidak dapat dipecahkan.
+> Entri di bawah merangkum akses yang tercantum gratis saat diaudit. Kuota, persyaratan kartu/akun/KYC, model, wilayah, dan ketentuan penyedia dapat berubah. Kombo memperluas fallback, tetapi tidak menjamin akses $0 tanpa gangguan.
 
 ### 🔵 MODEL CLAUDE (melalui Kiro — ID AWS Builder)
 
-| Model               | Prefix | Limit         | Rate Limit            |
-| ------------------- | ------ | ------------- | --------------------- |
-| `claude-sonnet-4.5` | `kr/`  | **Unlimited** | No reported daily cap |
-| `claude-haiku-4.5`  | `kr/`  | **Unlimited** | No reported daily cap |
-| `claude-opus-4.6`   | `kr/`  | **Unlimited** | Latest Opus via Kiro  |
+| Model               | Prefix | Limit                                     | Rate Limit                        |
+| ------------------- | ------ | ----------------------------------------- | --------------------------------- |
+| `claude-sonnet-4.5` | `kr/`  | Tidak ada batas token yang dipublikasikan | Batas akun/penyedia dapat berlaku |
+| `claude-haiku-4.5`  | `kr/`  | Tidak ada batas token yang dipublikasikan | Batas akun/penyedia dapat berlaku |
+| `claude-opus-4.6`   | `kr/`  | Tidak ada batas token yang dipublikasikan | Batas akun/penyedia dapat berlaku |
 
 ### 🟢 MODEL QODER (PAT Gratis melalui qodercli)
 
-| Model              | Prefix | Limit         | Rate Limit      |
-| ------------------ | ------ | ------------- | --------------- |
-| `kimi-k2-thinking` | `if/`  | **Unlimited** | No reported cap |
-| `qwen3-coder-plus` | `if/`  | **Unlimited** | No reported cap |
-| `deepseek-r1`      | `if/`  | **Unlimited** | No reported cap |
-| `minimax-m2.1`     | `if/`  | **Unlimited** | No reported cap |
-| `kimi-k2`          | `if/`  | **Unlimited** | No reported cap |
+| Model              | Prefix | Limit                                     | Rate Limit                        |
+| ------------------ | ------ | ----------------------------------------- | --------------------------------- |
+| `kimi-k2-thinking` | `if/`  | Tidak ada batas token yang dipublikasikan | Batas akun/penyedia dapat berlaku |
+| `qwen3-coder-plus` | `if/`  | Tidak ada batas token yang dipublikasikan | Batas akun/penyedia dapat berlaku |
+| `deepseek-r1`      | `if/`  | Tidak ada batas token yang dipublikasikan | Batas akun/penyedia dapat berlaku |
+| `minimax-m2.1`     | `if/`  | Tidak ada batas token yang dipublikasikan | Batas akun/penyedia dapat berlaku |
+| `kimi-k2`          | `if/`  | Tidak ada batas token yang dipublikasikan | Batas akun/penyedia dapat berlaku |
 
 > Metode koneksi yang disarankan: **Token Akses Pribadi + `qodercli`**. Peramban OAuth adalah
 > eksperimental dan dinonaktifkan secara default kecuali variabel lingkungan `QODER_OAUTH_*` dikonfigurasi.
 
 ### 🟡 MODEL QWEN (Otentikasi Kode Perangkat)
 
-| Model               | Prefix | Limit         | Rate Limit          |
-| ------------------- | ------ | ------------- | ------------------- |
-| `qwen3-coder-plus`  | `qw/`  | **Unlimited** | No reported cap     |
-| `qwen3-coder-flash` | `qw/`  | **Unlimited** | No reported cap     |
-| `qwen3-coder-next`  | `qw/`  | **Unlimited** | No reported cap     |
-| `vision-model`      | `qw/`  | **Unlimited** | Multimodal (images) |
+| Model               | Prefix | Limit                                     | Rate Limit                        |
+| ------------------- | ------ | ----------------------------------------- | --------------------------------- |
+| `qwen3-coder-plus`  | `qw/`  | Tidak ada batas token yang dipublikasikan | Batas akun/penyedia dapat berlaku |
+| `qwen3-coder-flash` | `qw/`  | Tidak ada batas token yang dipublikasikan | Batas akun/penyedia dapat berlaku |
+| `qwen3-coder-next`  | `qw/`  | Tidak ada batas token yang dipublikasikan | Batas akun/penyedia dapat berlaku |
+| `vision-model`      | `qw/`  | Tidak ada batas token yang dipublikasikan | Batas akun/penyedia dapat berlaku |
 
 ### ⚫ NVIDIA NIM (Kunci API Gratis — build.nvidia.com)
 
@@ -1240,17 +1240,13 @@ Available free: `llama-3.3-70b`, `llama-3.1-8b`, `deepseek-r1-distill-llama-70b`
 
 Available free: `llama-3.3-70b-versatile`, `gemma2-9b-it`, `mixtral-8x7b`, `whisper-large-v3`
 
-### 🔴 LONGCAT AI (Kunci API Gratis — longcat.chat) 🆕
+### 🔴 LONGCAT AI (Kredit pendaftaran — KYC diperlukan)
 
-| Model                         | Prefix | Kuota Gratis Harian | Notes                                 |
-| ----------------------------- | ------ | ------------------- | ------------------------------------- |
-| `LongCat-Flash-Lite`          | `lc/`  | **50M tokens** 💥   | Kuota gratis terbesar yang pernah ada |
-| `LongCat-Flash-Chat`          | `lc/`  | 500K tokens         | Multi-turn chat                       |
-| `LongCat-Flash-Thinking`      | `lc/`  | 500K tokens         | Reasoning / CoT                       |
-| `LongCat-Flash-Thinking-2601` | `lc/`  | 500K tokens         | Jan 2026 version                      |
-| `LongCat-Flash-Omni-2603`     | `lc/`  | 500K tokens         | Multimodal                            |
+| Model         | Prefix | Kredit gratis        | Catatan                                      |
+| ------------- | ------ | -------------------- | -------------------------------------------- |
+| `LongCat-2.0` | `lc/`  | **10M token sekali** | Memerlukan pendaftaran + KYC; tidak berulang |
 
-> 100% gratis saat dalam versi beta publik. Daftar di [longcat.chat](https://longcat.chat) dengan email atau telepon. Reset setiap hari pukul 00:00 UTC.
+> Pratinjau publik telah berakhir dan model Flash lama telah dihentikan. Kredit 10M saat ini diberikan satu kali setelah pendaftaran akun dan verifikasi KYC; penggunaan berikutnya berbayar sesuai pemakaian.
 
 ### 🟢 POLLINASI AI (Tidak Perlu Kunci API) 🆕
 
@@ -1285,31 +1281,31 @@ Tersedia gratis: `qwen3-235b-a22b-instruct-2507` (Qwen3 235B!), `llama-3.1-70b-i
 
 > Sesuai dengan UE/GDPR. Dapatkan kunci API di [console.scaleway.com](https://console.scaleway.com).
 
-> **💡 Tumpukan Gratis Terbaik (11 Penyedia, $0 Selamanya):**
+> **💡 Contoh akses gratis (batas dan ketentuan penyedia berlaku):**
 >
 > ```
-> Kiro (kr/)             → Claude Sonnet/Haiku TANPA BATAS
-> Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 TANPA BATAS
-> LongCat Lite (lc/)     → LongCat-Flash-Lite — 50 juta token/hari 🔥
+> Kiro (kr/)             → akses Claude — batas akun/kredit berlaku
+> Qoder (if/)            → model terpilih — tidak ada batas token yang dipublikasikan; batas berlaku
+> LongCat (lc/)          → LongCat-2.0 — kredit pendaftaran 10M satu kali; KYC diperlukan
 > Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — tidak perlu kunci
-> Qwen (qw/)             → model qwen3-coder TANPA BATAS
+> Qwen (qw/)             → model terpilih — tidak ada batas token yang dipublikasikan; batas berlaku
 > Gemini (gemini/)       → Gemini 2.5 Flash — 1.500 req/hari gratis
 > Cloudflare AI (cf/)    → 50+ model — 10 ribu Neurons/hari
 > Scaleway (scw/)        → Qwen3 235B, Llama 70B — 1 juta token gratis (EU)
 > Groq (groq/)           → Llama/Gemma — 14,4 ribu req/hari, sangat cepat
-> NVIDIA NIM (nvidia/)   → 70+ model terbuka — 40 RPM selamanya
+> NVIDIA NIM (nvidia/)   → model terpilih — batas rate saat ini berlaku
 > Cerebras (cerebras/)   → Llama/Qwen tercepat di dunia — 1 juta tok/hari
 > ```
 
 ## 🎙️ Kombo Transkripsi Gratis
 
-> Transkripsikan audio/video apa pun seharga **$0** — Deepgram memimpin dengan $200 gratis, penggantian AssemblyAI $50, Groq Whisper sebagai cadangan darurat tanpa batas.
+> Akses transkripsi bergantung pada jatah masing-masing penyedia — kredit pendaftaran Deepgram dan AssemblyAI dapat menjadi pilihan utama, dengan Groq Whisper sebagai fallback yang dibatasi rate.
 
-| Provider          | Free Credits           | Best Model                                   | Rate Limit                               |
-| ----------------- | ---------------------- | -------------------------------------------- | ---------------------------------------- |
-| 🟢 **Deepgram**   | **$200 free** (signup) | `nova-3` — best accuracy, 30+ languages      | Tidak ada batasan RPM pada kredit gratis |
-| 🔵 **AssemblyAI** | **$50 free** (signup)  | `universal-3-pro` — chapters, sentiment, PII | Tidak ada batasan RPM pada kredit gratis |
-| 🔴 **Groq**       | **Free forever**       | `whisper-large-v3` — OpenAI Whisper          | 30 RPM (rate limited)                    |
+| Provider          | Free Credits                | Best Model                                   | Rate Limit                               |
+| ----------------- | --------------------------- | -------------------------------------------- | ---------------------------------------- |
+| 🟢 **Deepgram**   | **$200 free** (signup)      | `nova-3` — best accuracy, 30+ languages      | Tidak ada batasan RPM pada kredit gratis |
+| 🔵 **AssemblyAI** | **$50 free** (signup)       | `universal-3-pro` — chapters, sentiment, PII | Tidak ada batasan RPM pada kredit gratis |
+| 🔴 **Groq**       | **Free tier; limits apply** | `whisper-large-v3` — OpenAI Whisper          | Current model-specific rate limits apply |
 
 **Suggested combo in `/dashboard/combos`:**
 
@@ -1319,7 +1315,7 @@ Strategy: Priority
 Nodes:
   [1] deepgram/nova-3          → uses $200 free first
   [2] assemblyai/universal-3-pro → fallback when Deepgram credits run out
-  [3] groq/whisper-large-v3    → free forever, emergency fallback
+  [3] groq/whisper-large-v3    → free access; rate limits apply
 ```
 
 Kemudian di tab `/dashboard/media` → **Transkripsi**: unggah file audio atau video apa pun → pilih titik akhir kombo Anda → dapatkan transkripsi dalam format yang didukung.
@@ -1379,19 +1375,19 @@ OmniRoute v3.6 dibangun sebagai platform operasional, bukan hanya proxy relai.
 
 ### 🤖 Operasi Agen & Protokol (v2.0)
 
-| Feature                                 | Apa Fungsinya                                                                                                                          |
-| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| 🔧 **Server MCP (25 alat)**             | IDE/agent tools via 3 transports: stdio, SSE (`/api/mcp/sse`), Streamable HTTP (`/api/mcp/stream`). 18 core + 3 memory + 4 skill tools |
-| 🤝 **Server A2A (JSON-RPC + SSE)**      | Eksekusi tugas agen-ke-agen dengan alur sinkronisasi dan streaming                                                                     |
-| 🧭 **Halaman Titik Akhir Konsolidasi**  | Halaman manajemen bertab dengan tab Proksi Titik Akhir, MCP, A2A, dan Titik Akhir API                                                  |
-| 🎚️ **Service Enable/Disable Toggles**   | Sakelar ON/OFF untuk MCP dan A2A dengan pengaturan persistensi (default: OFF)                                                          |
-| 🛰️ **Detak Jantung Waktu Proses MCP**   | Real process status (pid, uptime, heartbeat age, transport, scope mode)                                                                |
-| 📋 **MCP Audit Trail**                  | Log audit yang dapat difilter dengan keberhasilan/kegagalan dan atribusi kunci                                                         |
-| 🔐 **MCP Scope Enforcement**            | 10 izin cakupan terperinci untuk akses alat terkontrol                                                                                 |
-| 📡 **Manajemen Siklus Hidup Tugas A2A** | List/filter tasks, inspect events/artifacts, cancel running tasks                                                                      |
-| 📋 **Agent Card Discovery**             | `/.well-known/agent.json` untuk penemuan otomatis klien                                                                                |
-| 🧪 **Protocol E2E Test Harness**        | Klien MCP SDK + A2A asli mengalir di `test:protocols:e2e`                                                                              |
-| ⚙️ **Operational Controls**             | Ganti kombo, sesuaikan pengaturan ketahanan, dan tinjau status pemutus dari permukaan Kesehatan dan Pengaturan khusus                  |
+| Feature                                 | Apa Fungsinya                                                                                                                                                                                             |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🔧 **Server MCP (107 alat)**            | IDE/agent tools via 3 transports: stdio, SSE (`/api/mcp/sse`), Streamable HTTP (`/api/mcp/stream`). 107 unique tools across the registered tool families; enabled skills may add dynamic tools at runtime |
+| 🤝 **Server A2A (JSON-RPC + SSE)**      | Eksekusi tugas agen-ke-agen dengan alur sinkronisasi dan streaming                                                                                                                                        |
+| 🧭 **Halaman Titik Akhir Konsolidasi**  | Halaman manajemen bertab dengan tab Proksi Titik Akhir, MCP, A2A, dan Titik Akhir API                                                                                                                     |
+| 🎚️ **Service Enable/Disable Toggles**   | Sakelar ON/OFF untuk MCP dan A2A dengan pengaturan persistensi (default: OFF)                                                                                                                             |
+| 🛰️ **Detak Jantung Waktu Proses MCP**   | Real process status (pid, uptime, heartbeat age, transport, scope mode)                                                                                                                                   |
+| 📋 **MCP Audit Trail**                  | Log audit yang dapat difilter dengan keberhasilan/kegagalan dan atribusi kunci                                                                                                                            |
+| 🔐 **MCP Scope Enforcement**            | 32 izin cakupan terperinci untuk akses alat terkontrol                                                                                                                                                    |
+| 📡 **Manajemen Siklus Hidup Tugas A2A** | List/filter tasks, inspect events/artifacts, cancel running tasks                                                                                                                                         |
+| 📋 **Agent Card Discovery**             | `/.well-known/agent.json` untuk penemuan otomatis klien                                                                                                                                                   |
+| 🧪 **Protocol E2E Test Harness**        | Klien MCP SDK + A2A asli mengalir di `test:protocols:e2e`                                                                                                                                                 |
+| ⚙️ **Operational Controls**             | Ganti kombo, sesuaikan pengaturan ketahanan, dan tinjau status pemutus dari permukaan Kesehatan dan Pengaturan khusus                                                                                     |
 
 ### 🧠 Routing & Kecerdasan
 
@@ -1778,7 +1774,7 @@ Models:
 ```bash
 Dashboard → Connect Qoder
 → Qoder OAuth login
-→ Unlimited usage
+→ Access is subject to current provider limits
 
 Models:
   if/kimi-k2-thinking
@@ -1793,7 +1789,7 @@ Models:
 ```bash
 Dashboard → Connect Qwen
 → Device code authorization
-→ Unlimited usage
+→ Access is subject to current provider limits
 
 Models:
   qw/qwen3-coder-plus
@@ -1805,7 +1801,7 @@ Models:
 ```bash
 Dashboard → Connect Kiro
 → AWS Builder ID or Google/GitHub
-→ Unlimited usage
+→ Access is subject to current provider limits
 
 Models:
   kr/claude-sonnet-4.5
@@ -1836,10 +1832,10 @@ Use in CLI: premium-coding
 ```
 Name: free-combo
 Models:
-  1. if/kimi-k2-thinking (unlimited)
-  2. qw/qwen3-coder-plus (unlimited)
+  1. if/kimi-k2-thinking (no published token cap; provider limits may apply)
+  2. qw/qwen3-coder-plus (no published token cap; provider limits may apply)
 
-Cost: $0 forever!
+Cost: currently listed as $0; terms and availability may change
 ```
 
 </details>
@@ -2124,9 +2120,9 @@ Jika Anda tidak ingin menyiapkan kredensial Anda sendiri saat ini, Anda masih da
 | --------------------------------------------------------------------- | --------------------------------------------------------------- |
 | [User Guide](docs/guides/USER_GUIDE.md)                               | Penyedia, kombo, integrasi CLI, penerapan                       |
 | [API Reference](docs/reference/API_REFERENCE.md)                      | Semua titik akhir dengan contoh                                 |
-| [MCP Server](open-sse/mcp-server/README.md)                           | 25 alat MCP, konfigurasi IDE, klien Python/TS/Go                |
+| [MCP Server](open-sse/mcp-server/README.md)                           | 107 alat MCP, konfigurasi IDE, klien Python/TS/Go               |
 | [A2A Server](src/lib/a2a/README.md)                                   | Protokol JSON-RPC 2.0, keterampilan, streaming, manajemen tugas |
-| [Auto-Combo Engine](docs/routing/AUTO-COMBO.md)                       | 6-factor scoring, mode packs, self-healing                      |
+| [Auto-Combo Engine](docs/routing/AUTO-COMBO.md)                       | 13-factor scoring, mode packs, self-healing                     |
 | [Context Relay](docs/features/context-relay.md)                       | Strategi penyerahan sesi untuk rotasi akun                      |
 | [Troubleshooting](docs/guides/TROUBLESHOOTING.md)                     | Masalah umum dan solusinya                                      |
 | [Architecture](docs/architecture/ARCHITECTURE.md)                     | Arsitektur sistem dan internal                                  |

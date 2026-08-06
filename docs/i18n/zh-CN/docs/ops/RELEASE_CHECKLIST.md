@@ -74,7 +74,7 @@ npm run test:e2e           # 可选但推荐
 - [ ] `npm run test:vitest` — 通过（MCP 服务端、Auto-Combo、缓存）
 - [ ] `npm run test:coverage` — 门禁 60/60/60/60 达标（语句/行/函数/分支）
 - [ ] `npm run test:integration` — 通过（若变更涉及数据库 / 处理器）
-- [ ] `npm run test:combo:matrix` — 通过（Combo 策略矩阵：确定性验证全部 17 种路由策略的选择决策；在修改 Combo 路由、策略解析或容灾逻辑时必须运行）
+- [ ] `npm run test:combo:matrix` — 通过（Combo 策略矩阵：确定性验证全部 19 种公开路由策略的选择决策；在修改 Combo 路由、策略解析或容灾逻辑时必须运行）
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **可选/手动**（带门控的真实上游冒烟测试；从 VPS `root@192.168.0.15` 拉取只读数据库快照；实际调用服务商，消耗积分；不在 CI 中运行；无门控时直接跳过）
 - [ ] `npm run test:combo:live:vps` — **可选/手动**（Phase-3 VPS 实时冒烟测试：7 个 HTTP 场景通过纯 Node ESM 对线上 `.15` 服务器执行；需要 `ssh root@192.168.0.15`；仅创建/删除 `__live_test__*` Combo；实际调用服务商；不在 CI 中运行）
 - [ ] `npm run test:e2e` — 通过（UI 变更时）

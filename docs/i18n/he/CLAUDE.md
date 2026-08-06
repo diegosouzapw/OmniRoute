@@ -39,22 +39,22 @@ npm run test:all
 
 ## פרויקט במבט חטוף
 
-**OmniRoute** — פרוקסי/נתב AI מאוחד. נקודת קצה אחת, 160+ ספקי LLM, חזרה אוטומטית.
+**OmniRoute** — פרוקסי/נתב AI מאוחד. נקודת קצה אחת, 329 ספקי LLM, חזרה אוטומטית.
 
-| שכבה          | מיקום                   | מטרה                                                             |
-| ------------- | ----------------------- | ---------------------------------------------------------------- |
-| API Routes    | `src/app/api/v1/`       | נתב אפליקציית Next.js — נקודות כניסה                             |
-| Handlers      | `open-sse/handlers/`    | עיבוד בקשות (צ'אט, הטמעות, וכו')                                 |
-| Executors     | `open-sse/executors/`   | הפצת HTTP ספציפית לספק                                           |
-| Translators   | `open-sse/translator/`  | המרת פורמטים (OpenAI↔Claude↔Gemini)                              |
-| Transformer   | `open-sse/transformer/` | API תגובות ↔ השלמות צ'אט                                         |
-| Services      | `open-sse/services/`    | ניתוב קומבו, מגבלות קצב, קאשינג, וכו'                            |
-| Database      | `src/lib/db/`           | מודולי דומיין SQLite (45+ קבצים, 55 מיגרציות)                    |
-| Domain/Policy | `src/domain/`           | מנוע מדיניות, כללי עלות, לוגיקת חזרה                             |
-| MCP Server    | `open-sse/mcp-server/`  | 37 כלים (30 בסיס + 3 זיכרון + 4 מיומנויות), 3 תחבורה, ~13 תחומים |
-| A2A Server    | `src/lib/a2a/`          | פרוטוקול JSON-RPC 2.0 של סוכן                                    |
-| Skills        | `src/lib/skills/`       | מסגרת מיומנויות ניתנת להרחבה                                     |
-| Memory        | `src/lib/memory/`       | זיכרון שיחה מתמשך                                                |
+| שכבה          | מיקום                   | מטרה                                                                      |
+| ------------- | ----------------------- | ------------------------------------------------------------------------- |
+| API Routes    | `src/app/api/v1/`       | נתב אפליקציית Next.js — נקודות כניסה                                      |
+| Handlers      | `open-sse/handlers/`    | עיבוד בקשות (צ'אט, הטמעות, וכו')                                          |
+| Executors     | `open-sse/executors/`   | הפצת HTTP ספציפית לספק                                                    |
+| Translators   | `open-sse/translator/`  | המרת פורמטים (OpenAI↔Claude↔Gemini)                                       |
+| Transformer   | `open-sse/transformer/` | API תגובות ↔ השלמות צ'אט                                                  |
+| Services      | `open-sse/services/`    | ניתוב קומבו, מגבלות קצב, קאשינג, וכו'                                     |
+| Database      | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| Domain/Policy | `src/domain/`           | מנוע מדיניות, כללי עלות, לוגיקת חזרה                                      |
+| MCP Server    | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2A Server    | `src/lib/a2a/`          | פרוטוקול JSON-RPC 2.0 של סוכן                                             |
+| Skills        | `src/lib/skills/`       | מסגרת מיומנויות ניתנת להרחבה                                              |
+| Memory        | `src/lib/memory/`       | זיכרון שיחה מתמשך                                                         |
 
 מונורפו: `src/` (אפליקציית Next.js 16), `open-sse/` (מרחב עבודה של מנוע סטרימינג), `electron/` (אפליקציית שולחן עבודה), `tests/`, `bin/` (נקודת כניסה ל-CLI).
 
@@ -76,7 +76,7 @@ Client → /v1/chat/completions (Next.js route)
 
 נתיבי API עוקבים אחרי תבנית עקבית: `Route → CORS preflight → Zod body validation → Optional auth (extractApiKey/isValidApiKey) → API key policy enforcement → Handler delegation (open-sse)`. אין middleware גלובלי של Next.js — חיתוך הוא ספציפי לנתיב.
 
-**נתיב קומבו** (`open-sse/services/combo.ts`): 14 אסטרטגיות (עדיפות, משוקלל, מילוי ראשון, סיבוב, P2C, אקראי, הכי פחות בשימוש, אופטימיזציה של עלות, מודע לאיפוס, אקראי מחמיר, אוטומטי, lkgp, אופטימיזציה של הקשר, העברת הקשר). כל יעד קורא ל`handleSingleModel()` שמקיף את `handleChatCore()` עם טיפול בשגיאות ספציפי ליעד ובדיקות מפסק מעגל. ראה `docs/routing/AUTO-COMBO.md` עבור ניקוד Auto-Combo של 9 גורמים ו`docs/architecture/RESILIENCE_GUIDE.md` עבור 3 שכבות חוסן.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -378,7 +378,9 @@ git push -u origin feat/your-feature
 
 ## סביבה
 
-- **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, מודולי ES
+- **Runtime**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, מודולי ES
 - **TypeScript**: 5.9+, יעד ES2022, מודול esnext, פתרון bundler
 - **Alias נתיב**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **פורט ברירת מחדל**: 20128 (API + לוח מחוונים באותו פורט)

@@ -39,22 +39,22 @@ npm run test:all
 
 ## プロジェクトの概要
 
-**OmniRoute** — 統一されたAIプロキシ/ルーター。1つのエンドポイント、160以上のLLMプロバイダー、自動フォールバック。
+**OmniRoute** — 統一されたAIプロキシ/ルーター。1つのエンドポイント、329LLMプロバイダー、自動フォールバック。
 
-| レイヤー           | 場所                    | 目的                                                                                  |
-| ------------------ | ----------------------- | ------------------------------------------------------------------------------------- |
-| APIルート          | `src/app/api/v1/`       | Next.js アプリルーター — エントリーポイント                                           |
-| ハンドラー         | `open-sse/handlers/`    | リクエスト処理（チャット、埋め込みなど）                                              |
-| エグゼキューター   | `open-sse/executors/`   | プロバイダー固有のHTTPディスパッチ                                                    |
-| トランスレーター   | `open-sse/translator/`  | フォーマット変換（OpenAI↔Claude↔Gemini）                                              |
-| トランスフォーマー | `open-sse/transformer/` | レスポンスAPI ↔ チャット完了                                                          |
-| サービス           | `open-sse/services/`    | コンボルーティング、レート制限、キャッシングなど                                      |
-| データベース       | `src/lib/db/`           | SQLite ドメインモジュール（45以上のファイル、55のマイグレーション）                   |
-| ドメイン/ポリシー  | `src/domain/`           | ポリシーエンジン、コストルール、フォールバックロジック                                |
-| MCPサーバー        | `open-sse/mcp-server/`  | 37のツール（30のベース + 3のメモリ + 4のスキル）、3つのトランスポート、約13のスコープ |
-| A2Aサーバー        | `src/lib/a2a/`          | JSON-RPC 2.0 エージェントプロトコル                                                   |
-| スキル             | `src/lib/skills/`       | 拡張可能なスキルフレームワーク                                                        |
-| メモリ             | `src/lib/memory/`       | 永続的な会話メモリ                                                                    |
+| レイヤー           | 場所                    | 目的                                                                      |
+| ------------------ | ----------------------- | ------------------------------------------------------------------------- |
+| APIルート          | `src/app/api/v1/`       | Next.js アプリルーター — エントリーポイント                               |
+| ハンドラー         | `open-sse/handlers/`    | リクエスト処理（チャット、埋め込みなど）                                  |
+| エグゼキューター   | `open-sse/executors/`   | プロバイダー固有のHTTPディスパッチ                                        |
+| トランスレーター   | `open-sse/translator/`  | フォーマット変換（OpenAI↔Claude↔Gemini）                                  |
+| トランスフォーマー | `open-sse/transformer/` | レスポンスAPI ↔ チャット完了                                              |
+| サービス           | `open-sse/services/`    | コンボルーティング、レート制限、キャッシングなど                          |
+| データベース       | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| ドメイン/ポリシー  | `src/domain/`           | ポリシーエンジン、コストルール、フォールバックロジック                    |
+| MCPサーバー        | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2Aサーバー        | `src/lib/a2a/`          | JSON-RPC 2.0 エージェントプロトコル                                       |
+| スキル             | `src/lib/skills/`       | 拡張可能なスキルフレームワーク                                            |
+| メモリ             | `src/lib/memory/`       | 永続的な会話メモリ                                                        |
 
 モノレポ: `src/` (Next.js 16 アプリ)、`open-sse/` (ストリーミングエンジンワークスペース)、`electron/` (デスクトップアプリ)、`tests/`、`bin/` (CLI エントリーポイント)。
 
@@ -76,7 +76,7 @@ Client → /v1/chat/completions (Next.js ルート)
 
 API ルートは一貫したパターンに従います: `ルート → CORS プレフライト → Zod ボディバリデーション → オプションの認証 (extractApiKey/isValidApiKey) → API キーポリシーの強制 → ハンドラーデリゲーション (open-sse)`。グローバルな Next.js ミドルウェアはありません — インターセプションはルート固有です。
 
-**コンボルーティング** (`open-sse/services/combo.ts`): 14 の戦略 (優先度、重み付け、フィルファースト、ラウンドロビン、P2C、ランダム、最少使用、コスト最適化、リセット認識、厳密ランダム、自動、lkgp、コンテキスト最適化、コンテキストリレー)。各ターゲットは `handleSingleModel()` を呼び出し、ターゲットごとのエラーハンドリングとサーキットブレーカーチェックで `handleChatCore()` をラップします。9要素の Auto-Combo スコアリングについては `docs/routing/AUTO-COMBO.md` を、3つのレジリエンスレイヤーについては `docs/architecture/RESILIENCE_GUIDE.md` を参照してください。
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -362,7 +362,9 @@ git push -u origin feat/your-feature
 
 ## 環境
 
-- **ランタイム**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
+- **ランタイム**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, ターゲット ES2022, モジュール esnext, 解決バンドラー
 - **パスエイリアス**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **デフォルトポート**: 20128 (API + ダッシュボードが同じポート)

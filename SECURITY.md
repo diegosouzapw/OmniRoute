@@ -48,7 +48,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 | **Authz Pipeline**    | Route classification (PUBLIC / CLIENT_API / MANAGEMENT) — see `docs/architecture/AUTHZ_GUIDE.md`                                          |
 | **Route Guard Tiers** | 3-tier model for management routes (LOCAL_ONLY / ALWAYS_PROTECTED / MANAGEMENT) — see `docs/security/ROUTE_GUARD_TIERS.md`                |
 | **Manage-Scope MCP**  | Remote `/api/mcp/*` access gated by API keys with `manage` scope; `/api/cli-tools/runtime/*` stays strict-loopback. See ROUTE_GUARD_TIERS |
-| **MCP Scopes**        | ~13 granular scopes (read:health, write:combos, execute:completions, etc.) — see `docs/frameworks/MCP-SERVER.md`                          |
+| **MCP Scopes**        | 32 granular scopes (read:health, write:combos, execute:completions, etc.) — see `docs/frameworks/MCP-SERVER.md`                           |
 
 ### 🛡️ Encryption at Rest
 

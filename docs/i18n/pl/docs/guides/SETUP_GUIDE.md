@@ -243,7 +243,7 @@ Dodaj do ustawień MCP:
 }
 ```
 
-**Pełna dokumentacja MCP:** [MCP Server README](../../open-sse/mcp-server/README.md) — 87 narzędzi, konfiguracje IDE, klienci Python/TS/Go.
+**Pełna dokumentacja MCP:** [MCP Server README](../../open-sse/mcp-server/README.md) — 107 narzędzi, 32 scope'y, konfiguracje IDE, klienci Python/TS/Go.
 
 ### Konfiguracja A2A (Agent-to-Agent Protocol)
 

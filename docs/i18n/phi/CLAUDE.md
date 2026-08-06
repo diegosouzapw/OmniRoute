@@ -39,22 +39,22 @@ Para sa buong test matrix, tingnan ang `CONTRIBUTING.md` → "Pagsasagawa ng Mga
 
 ## Proyekto sa Isang Sulyap
 
-**OmniRoute** — pinagsamang AI proxy/router. Isang endpoint, 160+ LLM providers, auto-fallback.
+**OmniRoute** — pinagsamang AI proxy/router. Isang endpoint, 329 LLM providers, auto-fallback.
 
-| Layer         | Lokasyon                | Layunin                                                            |
-| ------------- | ----------------------- | ------------------------------------------------------------------ |
-| API Routes    | `src/app/api/v1/`       | Next.js App Router — mga entry point                               |
-| Handlers      | `open-sse/handlers/`    | Pagproseso ng request (chat, embeddings, atbp)                     |
-| Executors     | `open-sse/executors/`   | Provider-specific HTTP dispatch                                    |
-| Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                           |
-| Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                   |
-| Services      | `open-sse/services/`    | Combo routing, rate limits, caching, atbp                          |
-| Database      | `src/lib/db/`           | SQLite domain modules (45+ files, 55 migrations)                   |
-| Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                          |
-| MCP Server    | `open-sse/mcp-server/`  | 37 tools (30 base + 3 memory + 4 skills), 3 transports, ~13 scopes |
-| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                        |
-| Skills        | `src/lib/skills/`       | Extensible skill framework                                         |
-| Memory        | `src/lib/memory/`       | Persistent conversational memory                                   |
+| Layer         | Lokasyon                | Layunin                                                                   |
+| ------------- | ----------------------- | ------------------------------------------------------------------------- |
+| API Routes    | `src/app/api/v1/`       | Next.js App Router — mga entry point                                      |
+| Handlers      | `open-sse/handlers/`    | Pagproseso ng request (chat, embeddings, atbp)                            |
+| Executors     | `open-sse/executors/`   | Provider-specific HTTP dispatch                                           |
+| Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                  |
+| Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                          |
+| Services      | `open-sse/services/`    | Combo routing, rate limits, caching, atbp                                 |
+| Database      | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                 |
+| MCP Server    | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                               |
+| Skills        | `src/lib/skills/`       | Extensible skill framework                                                |
+| Memory        | `src/lib/memory/`       | Persistent conversational memory                                          |
 
 Monorepo: `src/` (Next.js 16 app), `open-sse/` (streaming engine workspace), `electron/` (desktop app), `tests/`, `bin/` (CLI entry point).
 
@@ -76,7 +76,7 @@ Client → /v1/chat/completions (Next.js route)
 
 Ang mga API route ay sumusunod sa isang pare-parehong pattern: `Route → CORS preflight → Zod body validation → Opsyonal na auth (extractApiKey/isValidApiKey) → pagpapatupad ng patakaran sa API key → Delegasyon ng Handler (open-sse)`. Walang global na Next.js middleware — ang interception ay tiyak sa ruta.
 
-**Combo routing** (`open-sse/services/combo.ts`): 14 na estratehiya (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, reset-aware, strict-random, auto, lkgp, context-optimized, context-relay). Bawat target ay tumatawag sa `handleSingleModel()` na nagbabalot sa `handleChatCore()` na may per-target na error handling at circuit breaker checks. Tingnan ang `docs/routing/AUTO-COMBO.md` para sa 9-factor Auto-Combo scoring at `docs/architecture/RESILIENCE_GUIDE.md` para sa 3 resilience layers.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -318,7 +318,7 @@ Para sa anumang hindi simpleng pagbabago, basahin muna ang kaukulang malalim na 
 | Nabigasyon ng Repo                              | `docs/architecture/REPOSITORY_MAP.md`                             |
 | Arkitektura                                     | `docs/architecture/ARCHITECTURE.md`                               |
 | Sanggunian sa engineering                       | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (9-factor scoring, 14 estratehiya)   | `docs/routing/AUTO-COMBO.md`                                      |
+| Auto-Combo (13-factor scoring, 19 estratehiya)  | `docs/routing/AUTO-COMBO.md`                                      |
 | Resilience (3 mekanismo)                        | `docs/architecture/RESILIENCE_GUIDE.md`                           |
 | Reasoning replay                                | `docs/routing/REASONING_REPLAY.md`                                |
 | Balangkas ng kasanayan                          | `docs/frameworks/SKILLS.md`                                       |
@@ -382,7 +382,9 @@ git push -u origin feat/your-feature
 
 ## Kapaligiran
 
-- **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
+- **Runtime**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, target ES2022, module esnext, resolution bundler
 - **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Default port**: 20128 (API + dashboard sa parehong port)

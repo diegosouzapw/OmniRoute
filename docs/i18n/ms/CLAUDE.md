@@ -39,22 +39,22 @@ Untuk matriks ujian penuh, lihat `CONTRIBUTING.md` → "Menjalankan Ujian". Untu
 
 ## Projek Secara Ringkas
 
-**OmniRoute** — proksi/router AI yang bersatu. Satu titik akhir, 160+ penyedia LLM, auto-fallback.
+**OmniRoute** — proksi/router AI yang bersatu. Satu titik akhir, 329 penyedia LLM, auto-fallback.
 
-| Lapisan       | Lokasi                  | Tujuan                                                               |
-| ------------- | ----------------------- | -------------------------------------------------------------------- |
-| API Routes    | `src/app/api/v1/`       | Penghala Aplikasi Next.js — titik masuk                              |
-| Handlers      | `open-sse/handlers/`    | Pemprosesan permintaan (chat, embeddings, dll)                       |
-| Executors     | `open-sse/executors/`   | Penghantaran HTTP khusus penyedia                                    |
-| Translators   | `open-sse/translator/`  | Penukaran format (OpenAI↔Claude↔Gemini)                              |
-| Transformer   | `open-sse/transformer/` | API Respons ↔ Penyelesaian Chat                                      |
-| Services      | `open-sse/services/`    | Penghalaan combo, had kadar, caching, dll                            |
-| Database      | `src/lib/db/`           | Modul domain SQLite (45+ fail, 55 migrasi)                           |
-| Domain/Policy | `src/domain/`           | Enjin dasar, peraturan kos, logik fallback                           |
-| MCP Server    | `open-sse/mcp-server/`  | 37 alat (30 asas + 3 memori + 4 kemahiran), 3 pengangkutan, ~13 skop |
-| A2A Server    | `src/lib/a2a/`          | Protokol agen JSON-RPC 2.0                                           |
-| Skills        | `src/lib/skills/`       | Rangka kerja kemahiran yang boleh diperluas                          |
-| Memory        | `src/lib/memory/`       | Memori perbualan yang berterusan                                     |
+| Lapisan       | Lokasi                  | Tujuan                                                                    |
+| ------------- | ----------------------- | ------------------------------------------------------------------------- |
+| API Routes    | `src/app/api/v1/`       | Penghala Aplikasi Next.js — titik masuk                                   |
+| Handlers      | `open-sse/handlers/`    | Pemprosesan permintaan (chat, embeddings, dll)                            |
+| Executors     | `open-sse/executors/`   | Penghantaran HTTP khusus penyedia                                         |
+| Translators   | `open-sse/translator/`  | Penukaran format (OpenAI↔Claude↔Gemini)                                   |
+| Transformer   | `open-sse/transformer/` | API Respons ↔ Penyelesaian Chat                                           |
+| Services      | `open-sse/services/`    | Penghalaan combo, had kadar, caching, dll                                 |
+| Database      | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| Domain/Policy | `src/domain/`           | Enjin dasar, peraturan kos, logik fallback                                |
+| MCP Server    | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2A Server    | `src/lib/a2a/`          | Protokol agen JSON-RPC 2.0                                                |
+| Skills        | `src/lib/skills/`       | Rangka kerja kemahiran yang boleh diperluas                               |
+| Memory        | `src/lib/memory/`       | Memori perbualan yang berterusan                                          |
 
 Monorepo: `src/` (aplikasi Next.js 16), `open-sse/` (workspace enjin streaming), `electron/` (aplikasi desktop), `tests/`, `bin/` (titik masuk CLI).
 
@@ -76,7 +76,7 @@ Klien → /v1/chat/completions (laluan Next.js)
 
 Laluan API mengikuti pola yang konsisten: `Laluan → CORS preflight → pengesahan badan Zod → Auth pilihan (extractApiKey/isValidApiKey) → penguatkuasaan polisi kunci API → Delegasi Pengendali (open-sse)`. Tiada middleware global Next.js — pemotongan adalah khusus untuk laluan.
 
-**Penghalaan combo** (`open-sse/services/combo.ts`): 14 strategi (keutamaan, berat, isi dahulu, bulatan, P2C, rawak, paling kurang digunakan, dioptimumkan kos, sedar reset, rawak ketat, auto, lkgp, dioptimumkan konteks, relay konteks). Setiap sasaran memanggil `handleSingleModel()` yang membungkus `handleChatCore()` dengan pengendalian ralat per-sasaran dan semakan pemutus litar. Lihat `docs/routing/AUTO-COMBO.md` untuk penilaian Auto-Combo 9 faktor dan `docs/architecture/RESILIENCE_GUIDE.md` untuk 3 lapisan ketahanan.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -314,7 +314,7 @@ Untuk sebarang perubahan yang tidak remeh, baca analisis mendalam yang sepadan t
 | Navigasi repo                                  | `docs/architecture/REPOSITORY_MAP.md`                             |
 | Seni bina                                      | `docs/architecture/ARCHITECTURE.md`                               |
 | Rujukan kejuruteraan                           | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (penilaian 9 faktor, 14 strategi)   | `docs/routing/AUTO-COMBO.md`                                      |
+| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md` |
 | Ketahanan (3 mekanisme)                        | `docs/architecture/RESILIENCE_GUIDE.md`                           |
 | Ulangan penaakulan                             | `docs/routing/REASONING_REPLAY.md`                                |
 | Rangka kerja kemahiran                         | `docs/frameworks/SKILLS.md`                                       |
@@ -380,7 +380,9 @@ git push -u origin feat/your-feature
 
 ## Persekitaran
 
-- **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, Modul ES
+- **Runtime**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, Modul ES
 - **TypeScript**: 5.9+, sasaran ES2022, modul esnext, resolusi bundler
 - **Alias laluan**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Port lalai**: 20128 (API + papan pemuka pada port yang sama)

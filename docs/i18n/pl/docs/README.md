@@ -110,7 +110,7 @@ Podsystemy wtykowe udostępniane klientom, agentom i operatorom.
 
 Routing combo, scorowanie i replay.
 
-- [AUTO-COMBO.md](routing/AUTO-COMBO.md) — Auto-Combo (scorowanie wieloczynnikowe, 17 strategii).
+- [AUTO-COMBO.md](routing/AUTO-COMBO.md) — Auto-Combo (scorowanie 13-czynnikowe, 19 strategii publicznych).
 - [QUOTA_SHARE.md](routing/QUOTA_SHARE.md) — silnik współdzielenia limitów (quota).
 - [REASONING_REPLAY.md](routing/REASONING_REPLAY.md) — cache replay rozumowania (reasoning).
 

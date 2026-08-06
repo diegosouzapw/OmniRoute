@@ -39,22 +39,22 @@ npm run test:all
 
 ## திட்டம் ஒரு பார்வையில்
 
-**OmniRoute** — ஒருங்கிணைந்த AI பிராக்சி/ரூட்டர். ஒரு முடிவிடம், 160+ LLM வழங்குநர்கள், தானாகவே fallback.
+**OmniRoute** — ஒருங்கிணைந்த AI பிராக்சி/ரூட்டர். ஒரு முடிவிடம், 329 LLM வழங்குநர்கள், தானாகவே fallback.
 
-| அடுக்கு       | இடம்                    | நோக்கம்                                                                         |
-| ------------- | ----------------------- | ------------------------------------------------------------------------------- |
-| API Routes    | `src/app/api/v1/`       | Next.js ஆப் ரூட்டர் — நுழைவு புள்ளிகள்                                          |
-| Handlers      | `open-sse/handlers/`    | கோரிக்கைகளை செயலாக்குதல் (சாட், எம்பெட்டிங்ஸ், மற்றும் பிற)                     |
-| Executors     | `open-sse/executors/`   | வழங்குநர்-சிறப்பு HTTP அனுப்புதல்                                               |
-| Translators   | `open-sse/translator/`  | வடிவ மாற்றம் (OpenAI↔Claude↔Gemini)                                             |
-| Transformer   | `open-sse/transformer/` | பதில்கள் API ↔ சாட் முழுமைகள்                                                   |
-| Services      | `open-sse/services/`    | காம்போ ரூட்டிங், விகித வரம்புகள், கச்சா, மற்றும் பிற                            |
-| Database      | `src/lib/db/`           | SQLite டொமைன் மாடுல்கள் (45+ கோப்புகள், 55 மைக்ரேஷன்கள்)                        |
-| Domain/Policy | `src/domain/`           | கொள்கை இயந்திரம், செலவுக் கட்டுப்பாடுகள், fallback உள்கட்டமைப்பு                |
-| MCP Server    | `open-sse/mcp-server/`  | 37 கருவிகள் (30 அடிப்படை + 3 நினைவகம் + 4 திறன்கள்), 3 போக்குகள், ~13 பரப்புகள் |
-| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 முகவர் புரொட்டோக்கால்                                              |
-| Skills        | `src/lib/skills/`       | விரிவாக்கத்திற்குரிய திறன் கட்டமைப்பு                                           |
-| Memory        | `src/lib/memory/`       | நிலையான உரையாடல் நினைவகம்                                                       |
+| அடுக்கு       | இடம்                    | நோக்கம்                                                                   |
+| ------------- | ----------------------- | ------------------------------------------------------------------------- |
+| API Routes    | `src/app/api/v1/`       | Next.js ஆப் ரூட்டர் — நுழைவு புள்ளிகள்                                    |
+| Handlers      | `open-sse/handlers/`    | கோரிக்கைகளை செயலாக்குதல் (சாட், எம்பெட்டிங்ஸ், மற்றும் பிற)               |
+| Executors     | `open-sse/executors/`   | வழங்குநர்-சிறப்பு HTTP அனுப்புதல்                                         |
+| Translators   | `open-sse/translator/`  | வடிவ மாற்றம் (OpenAI↔Claude↔Gemini)                                       |
+| Transformer   | `open-sse/transformer/` | பதில்கள் API ↔ சாட் முழுமைகள்                                             |
+| Services      | `open-sse/services/`    | காம்போ ரூட்டிங், விகித வரம்புகள், கச்சா, மற்றும் பிற                      |
+| Database      | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| Domain/Policy | `src/domain/`           | கொள்கை இயந்திரம், செலவுக் கட்டுப்பாடுகள், fallback உள்கட்டமைப்பு          |
+| MCP Server    | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 முகவர் புரொட்டோக்கால்                                        |
+| Skills        | `src/lib/skills/`       | விரிவாக்கத்திற்குரிய திறன் கட்டமைப்பு                                     |
+| Memory        | `src/lib/memory/`       | நிலையான உரையாடல் நினைவகம்                                                 |
 
 Monorepo: `src/` (Next.js 16 ஆப்), `open-sse/` (ஸ்ட்ரீமிங் இயந்திர வேலைப்பாடு), `electron/` (டெஸ்க்டாப் ஆப்), `tests/`, `bin/` (CLI நுழைவு புள்ளி).
 
@@ -76,7 +76,7 @@ Client → /v1/chat/completions (Next.js பாதை)
 
 API பாதைகள் ஒரே மாதிரியான வடிவத்தை பின்பற்றுகின்றன: `Route → CORS முன்பார்வை → Zod உடல் சரிபார்ப்பு → விருப்ப அங்கீகாரம் (extractApiKey/isValidApiKey) → API விசை கொள்கை அமலாக்கம் → கைப்பற்றுதல் ஒப்படைப்பு (open-sse)`. உலகளாவிய Next.js மிடில்வேர் இல்லை — இடைமுகம் பாதை-சிறப்பு.
 
-**கம்போ வழிமுறை** (`open-sse/services/combo.ts`): 14 உத்திகள் (முதன்மை, எடை, நிரப்புதல்-முதல், சுற்று-ரொபின், P2C, சீரற்ற, குறைந்த-பயன்பாடு, செலவுக்கேற்ப, மீட்டமைப்பு-அறிவு, கடுமையான-சீரற்ற, தானாக, lkgp, சூழல்-சீரமைக்கப்பட்ட, சூழல்-மாற்று). ஒவ்வொரு இலக்கமும் `handleSingleModel()` ஐ அழைக்கிறது, இது `handleChatCore()` ஐ ஒவ்வொரு இலக்கத்திற்கும் பிழை கையாளுதல் மற்றும் சுற்று முறையீட்டு சரிபார்ப்புடன் சுற்றி விடுகிறது. 9-உயர்தர Auto-Combo மதிப்பீட்டிற்கான `docs/routing/AUTO-COMBO.md` ஐப் பார்க்கவும் மற்றும் 3 நிலைத்தன்மை அடுக்குகளுக்கான `docs/architecture/RESILIENCE_GUIDE.md` ஐப் பார்க்கவும்.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -360,7 +360,9 @@ git push -u origin feat/your-feature
 
 ## சூழல்
 
-- **இயக்க நேரம்**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
+- **இயக்க நேரம்**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, இலக்கு ES2022, மாடுல் esnext, தீர்வு bundler
 - **பாதை அலியாஸ்**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **இயல்புநிலை போர்ட்**: 20128 (API + dashboard ஒரே போர்டில்)

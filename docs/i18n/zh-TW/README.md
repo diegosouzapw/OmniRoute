@@ -12,7 +12,7 @@
 
 # 🚀 OmniRoute — 免費 AI 閘道器
 
-### 開發不停歇。只需單一端點，即可將所有 AI 工具串接至 **290 家模型提供者** — **90+ 家免費**。
+### 開發不停歇。只需單一端點，即可將所有 AI 工具串接至 **329 家模型提供者** — **155 個免費／免驗證目錄項目**。
 
 **將 Claude Code、Codex、Cursor、Cline、Copilot 與 Antigravity 無縫對接至免費的 Claude / GPT / Gemini，支援自動切換備援。**
 
@@ -22,12 +22,12 @@
 
 <br/>
 
-**~1.53B 有記錄的免費 Token/月** — 首月透過註冊獎勵最高可達 **~2.15B** — 聚合所有免費層配額，加上永久免費、無上限的提供者，再輔以智慧壓縮進一步延長每一分 Token 開銷。([統計方法 →](../../reference/FREE_TIERS.md#tldr--how-much-free-inference-does-omniroute-actually-aggregate))
+**~1.53B 有記錄的免費 Token/月** — 首月透過註冊獎勵最高可達 **~2.15B** — 聚合所有免費層配額，加上沒有公開 Token 上限但仍受速率／並發限制的提供者，再輔以智慧壓縮進一步延長每一分 Token 開銷。([統計方法 →](../../reference/FREE_TIERS.md#tldr--how-much-free-inference-does-omniroute-actually-aggregate))
 
 <br/>
 
-[![290 AI Providers](https://img.shields.io/badge/290-AI_Providers-6C5CE7?style=for-the-badge)](#-290-ai-providers--90-free)
-[![90+ Free](https://img.shields.io/badge/90%2B-Free_Tiers-00B894?style=for-the-badge)](#-290-ai-providers--90-free)
+[![329 AI Providers](https://img.shields.io/badge/329-AI_Providers-6C5CE7?style=for-the-badge)](#-329-ai-providers--155-freeno-auth)
+[![155 Free/No-Auth](https://img.shields.io/badge/155-Free%2FNo--Auth-00B894?style=for-the-badge)](#-329-ai-providers--155-freeno-auth)
 [![1.53B Free Tokens/mo](https://img.shields.io/badge/1.53B-Free_Tokens%2Fmo-00B894?style=for-the-badge)](../../reference/FREE_TIERS.md)
 [![Token Savings](https://img.shields.io/badge/up_to_95%25-Token_Savings-E17055?style=for-the-badge)](#%EF%B8%8F-save-1595-tokens--automatically)
 [![19 Strategies](https://img.shields.io/badge/19-Routing_Strategies-0984E3?style=for-the-badge)](#-combos--the-flagship)
@@ -66,14 +66,14 @@
 
 <br/>
 
-[**🚀 快速開始**](#-quick-start) • [**🎯 Combo**](#-combos--the-flagship) • [**🌐 提供者**](#-290-ai-providers--90-free) • [**🔌 CLI 與 MCP**](#-full-cli--a2a--mcp) • [**🗜️ 壓縮**](#%EF%B8%8F-save-1595-tokens--automatically) • [**🌍 網站**](https://omniroute.online)
+[**🚀 快速開始**](#-quick-start) • [**🎯 Combo**](#-combos--the-flagship) • [**🌐 提供者**](#-329-ai-providers--155-freeno-auth) • [**🔌 CLI 與 MCP**](#-full-cli--a2a--mcp) • [**🗜️ 壓縮**](#%EF%B8%8F-save-1595-tokens--automatically) • [**🌍 網站**](https://omniroute.online)
 
 [💥 承諾](#-the-promise) • [🤔 為什麼](#-why-omniroute) • [🏆 優勢](#-what-sets-omniroute-apart) • [🤖 相容 CLI](#-compatible-clis--coding-agents) • [🖥️ 執行平台](#%EF%B8%8F-where-omniroute-runs--anywhere) • [🔒 隱私](#-private--local-first) • [🎬 實際展示](#-omniroute-in-action) • [📚 探索更多](#-explore-more) • [📧 支援](#-support--community)
 
 </div>
 
 <div align="center">
- <b>🌐 支援 41+ 種語言</b>
+ <b>🌐 支援 43 種語言環境</b>
  <table>
   <tr>
     <td align="center"><a href="README.md">🇺🇸</a></td>
@@ -125,11 +125,11 @@
 
 </div>
 
-> 手動堆疊免費層很痛苦 — 數十個 SDK、數十個速率限制，而且你不清楚自己到底有多少配額。OmniRoute 將 **43 個提供者池 / 516 個模型**的**有記錄**免費層聚合為一個真實數字，並在儀表板上即時展示 (`/dashboard/free-tiers`)。
+> 手動堆疊免費層很痛苦 — 數十個 SDK、數十個速率限制，而且你不清楚自己到底有多少配額。OmniRoute 將 **43 個提供者池 / 522 個模型預算項目**的**有記錄**免費層聚合為一個真實數字，並在儀表板上即時展示 (`/dashboard/free-tiers`)。
 
 - **~1.53B 免費 Token/月**（穩定） — 首月透過註冊獎勵最高可達 **~2.15B**。
 - **跨池去重，真實不虛報** — 每個共享免費池僅計算**一次**，絕不以速率限制數據誇大宣傳。（若全天候無上限累計，數字可達 ~10B，但我們堅持僅發布實際可用的真實數據。）
-- **加上不可計數的免費資源** — 永久免費、無 Token 上限的提供者（SiliconFlow、Z.AI GLM-Flash、Kilo、OpenCode Zen…）以及 **$10 OpenRouter 充值**可解鎖 **+24M/月**，兩者獨立列出，絕不誇大統計數字。
+- **加上不可計數的免費資源** — 沒有公開 Token 上限但仍受速率／並發限制的提供者（SiliconFlow、Z.AI GLM-Flash、Kilo、OpenCode Zen…）以及 **$10 OpenRouter 充值**可解鎖 **+24M/月**，兩者獨立列出，絕不誇大統計數字。
 - **按模型細分**，當月**已用/剩餘**即時顯示，以及每個提供者的透明**條款標記**。
 
 ![Free-Tier Budget card (preview mockup)](../../screenshots/free-tier-budget-card.svg)
@@ -144,18 +144,18 @@
 
 </div>
 
-> 單一端點。**290 家提供者。** 讓開發流程暢行無阻 — 由 OmniRoute 自動挑選最划算且可行的最佳方案。
+> 單一端點。**329 家提供者。** 讓開發流程暢行無阻 — 由 OmniRoute 自動挑選最划算且可行的最佳方案。
 
 <table>
   <tr>
-    <td width="33%" valign="top"><b>🚫 告別配額限制</b><br/><sub>跨 290 家提供者毫秒級自動備援。配額用盡？下一個提供者立即接管，實現零中斷體驗。</sub></td>
+    <td width="33%" valign="top"><b>🛡️ 彈性備援</b><br/><sub>上游或配額失敗時嘗試下一條合格路由；實際可用性取決於提供者與候選路由。</sub></td>
     <td width="33%" valign="top"><b>💸 節省高達 95% 的 Token</b><br/><sub>RTK + Caveman 堆疊壓縮可削減 15–95% 的合格 Token（工具密集型會話平均約 89%）。</sub></td>
-    <td width="33%" valign="top"><b>🆓 零成本輕鬆上手</b><br/><sub>90+ 提供者包含免費層，11 家永久免費（Kiro、Qoder、Pollinations、LongCat…）。無須綁定信用卡。</sub></td>
+    <td width="33%" valign="top"><b>🆓 零成本輕鬆上手</b><br/><sub>155 個目錄項目標記為免費／免驗證；條件與限額依提供者而異。</sub></td>
   </tr>
   <tr>
-    <td width="33%" valign="top"><b>🔌 廣泛相容各式工具</b><br/><sub>16+ AI Coding Agent — Claude Code、Codex、Cursor、Cline、Copilot、Antigravity — 單一設定隨插即用。</sub></td>
+    <td width="33%" valign="top"><b>🔌 廣泛相容各式工具</b><br/><sub>33 個編碼工具與代理 — Claude Code、Codex、Cursor、Cline、Copilot、Antigravity — 單一設定隨插即用。</sub></td>
     <td width="33%" valign="top"><b>🧩 單一統一端點</b><br/><sub>OpenAI ↔ Claude ↔ Gemini ↔ Responses API 雙向轉換。將任何工具指向 <code>/v1</code> 即可直接運作。</sub></td>
-    <td width="33%" valign="top"><b>🛡️ 生產級穩定架構</b><br/><sub>斷路器、TLS 指紋隱身、MCP（104 工具）、A2A、對話記憶、護欄、評估套件。</sub></td>
+    <td width="33%" valign="top"><b>🛡️ 生產級穩定架構</b><br/><sub>斷路器、TLS 指紋隱身、MCP（107 工具）、A2A、對話記憶、護欄、評估套件。</sub></td>
   </tr>
 </table>
 
@@ -189,7 +189,7 @@
                           ▼
 ┌──────────────────────────────────────────────────────────┐
 │                  OmniRoute — Smart Router                  │
-│  RTK + Caveman compression · 17 routing strategies         │
+│  RTK + Caveman compression · 19 routing strategies         │
 │  Circuit breakers · TLS stealth · MCP · A2A · Guardrails   │
 └─────────────────────────┬──────────────────────────────────┘
         ┌─────────────┬────┴────────┬─────────────┐
@@ -197,7 +197,7 @@
    SUBSCRIPTION     API KEY        CHEAP          FREE
    Claude Code,     DeepSeek,      GLM $0.5,      Kiro, Qoder,
    Codex, Copilot   Groq, xAI      MiniMax $0.2   Pollinations
-   quota out? ───▶  budget hit? ─▶ budget hit? ─▶ always on
+   quota out? ───▶  budget hit? ─▶ budget hit? ─▶ upstream limits
 ```
 
 </div>
@@ -210,7 +210,7 @@
 
 </div>
 
-> **Combo** 是 OmniRoute 的**自動路由模型鏈結機制**。無論是配額用盡、提供者斷線或成本飆升，Combo 都會自動無縫切換至下一個候選模型。**讓您的 AI 開發流程永遠不中斷！** 🛡️
+> **Combo** 是 OmniRoute 的**自動路由模型鏈結機制**。無論是配額用盡、提供者斷線或成本飆升，Combo 都會嘗試下一個合格候選模型，以提高備援覆蓋；上游可用性不受保證。 🛡️
 
 ### ⚡ 零設定 — 只需將模型設為 `auto`
 
@@ -253,8 +253,8 @@ Combo: "always-on"                         Strategy: priority
   1. cc/claude-opus-4-7   ← subscription (use it fully)
   2. cx/gpt-5.5           ← second subscription
   3. glm/glm-5.1          ← cheap backup ($0.5/1M)
-  4. kr/claude-sonnet-4.5 ← FREE, unlimited (never fails)
-Result: 4 layers of fallback = zero downtime
+  4. kr/claude-sonnet-4.5 ← listed free access; account limits apply
+Result: 4 fallback layers reduce downtime; upstream availability is not guaranteed
 ```
 
 <sub>📖 [Auto-Combo Engine](../../routing/AUTO-COMBO.md) · [Resilience Guide](../../architecture/RESILIENCE_GUIDE.md)</sub>
@@ -269,18 +269,18 @@ Result: 4 layers of fallback = zero downtime
 
 | 功能                       | OmniRoute                                              | 其他路由器  |
 | -------------------------- | ------------------------------------------------------ | ----------- |
-| 🌐 提供者數量              | **290**                                                | 20–100      |
-| 🆓 免費提供者              | **90+（40+ 個永久免費）**                              | 1–5         |
+| 🌐 提供者數量              | **329**                                                | 20–100      |
+| 🆓 免費／免驗證目錄項目    | **155**                                                | 1–5         |
 | 🔀 路由策略                | **19 種**（優先級、加權、成本優化、上下文中繼、融合…） | 1–3         |
 | 🗜️ Token 壓縮              | **RTK + Caveman 堆疊（15–95%）**                       | 無 / 20–40% |
-| 🧰 內建 MCP 伺服器         | **104 工具、3 種傳輸、31 個範圍**                      | 少有        |
+| 🧰 內建 MCP 伺服器         | **107 工具、3 種傳輸、32 個範圍**                      | 少有        |
 | 🤝 A2A 代理協定            | **6 項技能、JSON-RPC 2.0**                             | 無          |
 | 🧠 記憶（FTS5 + 向量）     | **支援**                                               | 少有        |
 | 🛡️ 護欄（PII、注入、視覺） | **支援**                                               | 少有        |
-| ☁️ 雲端代理                | **Codex、Devin、Jules**                                | 無          |
+| ☁️ 雲端代理                | **Codex、Cursor、Devin、Jules**                        | 無          |
 | 🥷 TLS 指紋隱身            | **JA3/JA4 透過 wreq-js**                               | 無          |
 | 🖥️ 多平台                  | **Web · 桌面 · Termux · PWA**                          | 僅 Web      |
-| 🌍 國際化                  | **42 種語言環境**                                      | 0–4         |
+| 🌍 國際化                  | **43 種語言環境**                                      | 0–4         |
 
 <sub>📊 與 LiteLLM、OpenRouter 和 Portkey 的詳細比較 → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](../../comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
@@ -302,7 +302,7 @@ Result: 4 layers of fallback = zero downtime
 - **💸 全方位成本遙測** — 每個端點（包括媒體）上的 `X-OmniRoute-*` 成本/使用量標頭、非 Token 成本引擎、快取命中 `X-OmniRoute-Cost-Saved` 標頭，以及每金鑰 USD 支出配額。→ [API Reference](../../reference/API_REFERENCE.md)
 - **🧠 可控記憶** — 可選的 int8 向量量化（Qdrant + sqlite-vec），記憶預設關閉，以及每請求 `x-omniroute-no-memory` 標頭。→ [Memory](../../frameworks/MEMORY.md)
 - **🛡️ 安全** — 所有 LLM 路由的提示注入防護（由紅隊測試套件支援），加上免費的 DuckDuckGo 最後手段網路搜尋。→ [Guardrails](../../security/GUARDRAILS.md)
-- **🤝 更多提供者和代理** — Cursor Cloud Agent（第 4 個雲端代理）、CodeBuddy CN（`copilot.tencent.com`）、Google Flow 影片生成提供者、新閘道 **DGrid** 和 **Pioneer AI**（Fastino Labs）、入站 **xAI Grok** 轉換器加上 **Grok Build (xAI)** 附 OAuth 匯入令牌流程、GitHub Copilot 提供者上的 GPT-4 / GPT-4o-mini、多模型 **Factory Droid**、**ZenMux Free**（session-cookie 免費層）、**Alibaba DashScope** 文字轉影片（`wan2.7-t2v`）、更新後的 290 提供者目錄、Vertex AI 媒體生成（語音 / 轉錄 / 音樂 / 影片），以及從 CLIProxyAPI 一鍵匯入帳戶。→ [Providers](../../reference/PROVIDER_REFERENCE.md)
+- **🤝 更多提供者和代理** — Cursor Cloud Agent（第 4 個雲端代理）、CodeBuddy CN（`copilot.tencent.com`）、Google Flow 影片生成提供者、新閘道 **DGrid** 和 **Pioneer AI**（Fastino Labs）、入站 **xAI Grok** 轉換器加上 **Grok Build (xAI)** 附 OAuth 匯入令牌流程、GitHub Copilot 提供者上的 GPT-4 / GPT-4o-mini、多模型 **Factory Droid**、**ZenMux Free**（session-cookie 免費層）、**Alibaba DashScope** 文字轉影片（`wan2.7-t2v`）、更新後的 329 提供者目錄、Vertex AI 媒體生成（語音 / 轉錄 / 音樂 / 影片），以及從 CLIProxyAPI 一鍵匯入帳戶。→ [Providers](../../reference/PROVIDER_REFERENCE.md)
 - **⚡ 本地效能與基礎設施** — 一鍵本地 Redis 啟動器（`omniroute redis up`，加上儀表板 Redis 面板）、一鍵 **Cloudflare Workers** 和 **Deno Deploy** 中繼部署器接入代理池，以及可選的 Bifrost Go sidecar，用於卸載最熱門的中繼路徑（`BIFROST_BASE_URL`，逾時時自動備援到 TypeScript 路徑）。→ [Environment](../../reference/ENVIRONMENT.md)
 
 <br/>
@@ -339,28 +339,28 @@ Result: 4 layers of fallback = zero downtime
 <b>＋也相容於</b> · Cline · Antigravity · Windsurf · AMP · Hermes · Qwen CLI · Roo · Continue · <b>任何相容 OpenAI 的工具</b>
 </div>
 
-<sub>📖 所有 16+ 工具的個別設定 → [`docs/reference/CLI-TOOLS.md`](../../reference/CLI-TOOLS.md) · 🧩 OpenCode 插件 → [`@omniroute/opencode-provider`](https://www.npmjs.com/package/@omniroute/opencode-provider)</sub>
+<sub>📖 所有 33 個工具的個別設定 → [`docs/reference/CLI-TOOLS.md`](../../reference/CLI-TOOLS.md) · 🧩 OpenCode 插件 → [`@omniroute/opencode-provider`](https://www.npmjs.com/package/@omniroute/opencode-provider)</sub>
 
 <br/>
 
 <div align="center">
 
-# 🌐 290 個 AI 提供者 — 90+ 免費
+# 🌐 329 個 AI 提供者 — 155 個免費／免驗證
 
 </div>
 
-> 最完整的開源路由器目錄：**290 個提供者**、**90+ 具有免費層**、**40+ 永久免費**。
+> 最完整的開源路由器目錄：**329 個提供者**，其中 **155 個目錄項目標記為免費／免驗證**。
 
 <div align="center">
 
-### 🆓 永久免費 — $0，無需信用卡
+### 🆓 有記錄的免費存取 — 列為 $0 的方案，無需信用卡
 
 <table>
   <tr>
     <td align="center" width="150"><img src="https://img.shields.io/badge/AgentRouter-FF6600?style=flat-square" alt="AgentRouter"/><br/><sub>GPT-5, Claude, Gemini<br/>$100 免費額度</sub></td>
-    <td align="center" width="150"><img src="https://img.shields.io/badge/Qoder_AI-6366F1?style=flat-square" alt="Qoder AI"/><br/><sub>Kimi-K2, DeepSeek-R1<br/>無限 FREE</sub></td>
+    <td align="center" width="150"><img src="https://img.shields.io/badge/Qoder_AI-6366F1?style=flat-square" alt="Qoder AI"/><br/><sub>Kimi-K2, DeepSeek-R1<br/>免費存取；限額依方案</sub></td>
     <td align="center" width="150"><img src="https://img.shields.io/badge/Pollinations-10B981?style=flat-square" alt="Pollinations"/><br/><sub>GPT-5, Claude, Llama 4<br/>無需金鑰</sub></td>
-    <td align="center" width="150"><img src="https://img.shields.io/badge/LongCat-FF7A00?style=flat-square" alt="LongCat"/><br/><sub>Flash-Lite<br/>5000 萬 Token/天 🔥</sub></td>
+    <td align="center" width="150"><img src="https://img.shields.io/badge/LongCat-FF7A00?style=flat-square" alt="LongCat"/><br/><sub>LongCat-2.0<br/>1000 萬一次性額度（需 KYC）</sub></td>
   </tr>
   <tr>
     <td align="center" width="150"><img src="https://img.shields.io/badge/Cloudflare_AI-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare AI"/><br/><sub>50+ 模型<br/>1 萬 neurons/天</sub></td>
@@ -461,7 +461,7 @@ omniroute contexts use default            # ← 切換回本地伺服器
 | 協定                | 端點                                            | 用途                                           |
 | ------------------- | ----------------------------------------------- | ---------------------------------------------- |
 | 🧰 **MCP（stdio）** | `omniroute --mcp`                               | 接入 Claude Desktop、Cursor 等 MCP 客戶端      |
-| 🌊 **MCP（HTTP）**  | `http://localhost:20128/api/mcp/stream`         | 遠端 MCP — **104 工具**、31 範圍、完整稽核軌跡 |
+| 🌊 **MCP（HTTP）**  | `http://localhost:20128/api/mcp/stream`         | 遠端 MCP — **107 工具**、32 範圍、完整稽核軌跡 |
 | 📡 **MCP（SSE）**   | `http://localhost:20128/api/mcp/sse`            | 串流 MCP 傳輸                                  |
 | 🤝 **A2A**          | `http://localhost:20128/.well-known/agent.json` | 代理間通訊，**JSON-RPC 2.0** + SSE，6 技能     |
 
@@ -710,33 +710,33 @@ podman compose --profile base up -d --build
 </div>
 
 <details>
-<summary><b>💰 價格一覽與 $0 免費堆疊（11 個提供者）</b></summary>
+<summary><b>💰 價格一覽與 $0 免費堆疊</b></summary>
 
 <br/>
 
-| 層級                      | 範例                                     | 成本       |
-| ------------------------- | ---------------------------------------- | ---------- |
-| 💳 **訂閱**               | Claude Code Pro / Codex / Copilot        | $10–200/月 |
-| 🔑 **API 金鑰（免費層）** | NVIDIA NIM、Cerebras、Groq               | **免費**   |
-| 💰 **廉價**               | GLM-5 $0.5/1M · MiniMax M2.5 $0.3/1M     | 幾分錢     |
-| 🆓 **永久免費**           | Kiro、Qoder、Qwen、Pollinations、LongCat | **$0**     |
+| 層級                      | 範例                                     | 成本        |
+| ------------------------- | ---------------------------------------- | ----------- |
+| 💳 **訂閱**               | Claude Code Pro / Codex / Copilot        | $10–200/月  |
+| 🔑 **API 金鑰（免費層）** | NVIDIA NIM、Cerebras、Groq               | **免費**    |
+| 💰 **廉價**               | GLM-5 $0.5/1M · MiniMax M2.5 $0.3/1M     | 幾分錢      |
+| 🆓 **有記錄的免費存取**   | Kiro、Qoder、Qwen、Pollinations、LongCat | **列為 $0** |
 
 **$0 免費堆疊 — 組合成一個不可中斷的 Combo：**
 
-| 提供者            | 前綴        | 免費模型                                        | 配額                |
-| ----------------- | ----------- | ----------------------------------------------- | ------------------- |
-| **Kiro**          | `kr/`       | Claude Sonnet 4.5、Haiku 4.5、Opus 4.6          | 50 額度/月          |
-| **Qoder**         | `if/`       | kimi-k2-thinking、qwen3-coder-plus、deepseek-r1 | ♾️ 無限             |
-| **Qwen**          | `qw/`       | qwen3-coder-plus/flash/next                     | ♾️ 無限             |
-| **Pollinations**  | `pol/`      | GPT-5、Claude、Gemini、DeepSeek、Llama 4        | 無需金鑰            |
-| **LongCat**       | `lc/`       | LongCat-Flash-Lite                              | 5000 萬 Token/天 🔥 |
-| **Cloudflare AI** | `cf/`       | 50+ 模型                                        | 1 萬 neurons/天     |
-| **NVIDIA NIM**    | `nvidia/`   | 129 模型                                        | ~40 RPM             |
-| **Cerebras**      | `cerebras/` | Qwen3 235B、GPT-OSS 120B                        | 100 萬 Token/天     |
+| 提供者            | 前綴        | 免費模型                                        | 配額                         |
+| ----------------- | ----------- | ----------------------------------------------- | ---------------------------- |
+| **Kiro**          | `kr/`       | Claude Sonnet 4.5、Haiku 4.5、Opus 4.6          | 50 額度/月                   |
+| **Qoder**         | `if/`       | kimi-k2-thinking、qwen3-coder-plus、deepseek-r1 | 無公開總量；受每日／速率限制 |
+| **Qwen**          | `qw/`       | qwen3-coder-plus/flash/next                     | 無公開總量；受每日／速率限制 |
+| **Pollinations**  | `pol/`      | GPT-5、Claude、Gemini、DeepSeek、Llama 4        | 無需金鑰                     |
+| **LongCat**       | `lc/`       | LongCat-2.0                                     | 1000 萬一次性額度（需 KYC）  |
+| **Cloudflare AI** | `cf/`       | 50+ 模型                                        | 1 萬 neurons/天              |
+| **NVIDIA NIM**    | `nvidia/`   | 129 模型                                        | ~40 RPM                      |
+| **Cerebras**      | `cerebras/` | Qwen3 235B、GPT-OSS 120B                        | 100 萬 Token/天              |
 
 > 💡 儀表板上的"成本"是**節省追蹤器**，不是帳單 — OmniRoute 從不向您收費。使用免費模型顯示的"$290 總成本"意味著**節省了 $290**。
 
-📖 完整免費目錄 → [`docs/reference/FREE_TIERS.md`](../../reference/FREE_TIERS.md) — 25+ 提供者、配額、基本 URL。
+📖 完整免費目錄 → [`docs/reference/FREE_TIERS.md`](../../reference/FREE_TIERS.md) — 43 個提供者池、522 個模型預算項目、配額與基本 URL。
 
 </details>
 
@@ -745,13 +745,13 @@ podman compose --profile base up -d --build
 
 <br/>
 
-**$0 永久免費：**
+**$0 方案（條件與限額依提供者而異）：**
 
 ```
 1. kr/claude-sonnet-4.5   (Kiro — 每帳戶約 50 額度/月)
-2. if/kimi-k2-thinking    (Qoder — 無限)
+2. if/kimi-k2-thinking    (Qoder — 無公開總量；受每日／速率限制)
 3. pol/gpt-5              (Pollinations — 無需金鑰)
-4. lc/longcat-flash-lite  (5000 萬 Token/天備用)
+4. lc/longcat-2.0         (1000 萬一次性額度；需 KYC)
 壓縮：aggressive (~50%) → 加倍您的免費配額 · 成本：$0/月
 ```
 
@@ -781,9 +781,9 @@ podman compose --profile base up -d --build
 
 <br/>
 
-**路由：** 15 種策略 · 任務感知智慧路由 · 思考預算控制 · 萬用字元路由 · 系統提示注入。
+**路由：** 19 種策略 · 任務感知智慧路由 · 思考預算控制 · 萬用字元路由 · 系統提示注入。
 **相容性：** OpenAI ↔ Claude ↔ Gemini ↔ Responses API · 自動 OAuth 重新整理（PKCE，8 個提供者）· 多帳戶輪詢 · Batch + Files API · 即時 OpenAPI 3.0。
-**協定：** MCP（104 工具、3 種傳輸、31 範圍）· A2A（JSON-RPC 2.0、SSE、6 技能）· ACP · 雲端代理（Codex、Devin、Jules）。
+**協定：** MCP（107 工具、3 種傳輸、32 範圍）· A2A（JSON-RPC 2.0、SSE、6 技能）· ACP · 雲端代理（Codex、Cursor、Devin、Jules）。
 **插件：** 自訂插件市場（系統設定的註冊表 URL，附 SSRF 防護擷取）· 安裝/啟用/停用 · Notion + Obsidian 知識庫整合（WebDAV 檔案伺服器、筆記 CRUD）。
 **內嵌服務：** 一鍵安裝和生命週期管理本地 sidecar 服務（CLIProxy、NineRouter）。
 **品質與維運：** 內建 **Evals**（黃金集：精確/包含/正則/自訂）· 護欄（PII、注入、視覺）· 健康儀表板 · p50/p95/p99 遙測 · webhooks · 合規稽核。
@@ -805,9 +805,9 @@ podman compose --profile base up -d --build
 | `DATA_DIR`        | `~/.omniroute` | 資料庫和設定儲存位置      |
 
 **OmniRoute 會向我收費嗎？** 不會 — 它是免費的開源軟體，在您的機器上執行。您只直接向付費提供者付費。OmniRoute 沒有帳單系統。
-**免費提供者真的無限嗎？** 基本上是的 — Qoder、Pollinations、LongCat 和 Cloudflare 是免費的，沒有每帳戶額度上限。Kiro 也是免費的，但每帳戶每月約 50 額度上限。在 Combo 中堆疊多個免費提供者，自動備援讓您以 $0 持續使用。
+**免費提供者真的無限嗎？** 不能保證 — 有些目錄項目沒有公開 Token 上限，但仍可能受到速率、並發、帳戶、地區或服務條款限制。請在使用前查看提供者條款；在 Combo 中堆疊多個免費／免驗證項目可增加備援，但不代表無限或保證可用。
 **壓縮會損害品質嗎？** 不會 — 它只壓縮**輸入**；程式碼、URL、JSON 始終受保護。
-**在被封鎖 AI 的地區能用嗎？** 可以 — 3 層代理 + 1proxy 市場可達所有 290 個提供者。
+**在被封鎖 AI 的地區能用嗎？** 可以嘗試 — 3 層代理 + 1proxy 市場可連接目錄中的 329 個提供者，但實際可用性取決於網路、地區與提供者政策。
 
 📖 [User Guide](../../guides/USER_GUIDE.md) · [API Reference](../../reference/API_REFERENCE.md) · [Environment Config](../../reference/ENVIRONMENT.md)
 
@@ -926,9 +926,9 @@ podman compose --profile base up -d --build
 | [RTK Compression](../../compression/RTK_COMPRESSION.md)                | 命令輸出壓縮、過濾器、信任、驗證、原始輸出恢復                         |
 | [Compression Engines](../../compression/COMPRESSION_ENGINES.md)        | Caveman、RTK、堆疊管線、儀表板/API/MCP 表面                            |
 | [Resilience Guide](../../architecture/RESILIENCE_GUIDE.md)             | 斷路器、冷卻、佇列、反奔湧群、TLS 偽造                                 |
-| [Auto-Combo Engine](../../routing/AUTO-COMBO.md)                       | 9 因素評分、模式包、自我修復                                           |
+| [Auto-Combo Engine](../../routing/AUTO-COMBO.md)                       | 13 因素評分、模式包、自我修復                                          |
 | [Proxy Guide](../../ops/PROXY_GUIDE.md)                                | 3 層代理系統、1proxy 市場、註冊表 CRUD                                 |
-| [Free Tiers](../../reference/FREE_TIERS.md)                            | 25+ 免費 API 提供者整合目錄                                            |
+| [Free Tiers](../../reference/FREE_TIERS.md)                            | 155 個免費／免驗證目錄項目，以及 43 個量化提供者池                     |
 | [Features Gallery](../../guides/FEATURES.md)                           | 附截圖的視覺儀表板導覽                                                 |
 | [Codebase Documentation](../../architecture/CODEBASE_DOCUMENTATION.md) | 初學者友善的程式碼庫導覽                                               |
 
@@ -938,7 +938,7 @@ podman compose --profile base up -d --build
 | -------------------------------------------------- | ---------------------------------------------- |
 | [API Reference](../../reference/API_REFERENCE.md)  | 所有端點附範例                                 |
 | [OpenAPI Spec](../../openapi.yaml)                 | OpenAPI 3.0 規格                               |
-| [MCP Server](../../open-sse/mcp-server/README.md)  | 104 個 MCP 工具、IDE 設定、Python/TS/Go 客戶端 |
+| [MCP Server](../../open-sse/mcp-server/README.md)  | 107 個 MCP 工具、IDE 設定、Python/TS/Go 客戶端 |
 | [MCP Server Guide](../../frameworks/MCP-SERVER.md) | MCP 安裝、傳輸和工具參考                       |
 | [A2A Server](../../src/lib/a2a/README.md)          | JSON-RPC 2.0 協定、技能、串流、任務管理        |
 | [A2A Server Guide](../../frameworks/A2A-SERVER.md) | A2A 代理卡片、任務、技能和串流                 |
@@ -950,7 +950,7 @@ podman compose --profile base up -d --build
 | [Contributing](../../CONTRIBUTING.md)               | 開發設定和指南                   |
 | [Changelog](../../CHANGELOG.md)                     | 完整每個版本的發布歷史           |
 | [Security Policy](../../SECURITY.md)                | 漏洞回報和安全實踐               |
-| [i18n Guide](../../guides/I18N.md)                  | 40+ 語言支援、翻譯工作流程、RTL  |
+| [i18n Guide](../../guides/I18N.md)                  | 43 種語言環境、翻譯工作流程、RTL |
 | [Release Checklist](../../ops/RELEASE_CHECKLIST.md) | 發布前驗證步驟                   |
 | [Coverage Plan](../../ops/COVERAGE_PLAN.md)         | 測試覆蓋率策略和 14,965 測試套件 |
 

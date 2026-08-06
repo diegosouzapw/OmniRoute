@@ -6,9 +6,9 @@ lastUpdated: 2026-06-28
 
 # OmniRoute MCP Server Documentation
 
-> Model Context Protocol server with 104 tools across routing, cache, compression, memory, skills, proxy, pool, and context source operations.
+> Model Context Protocol server with 107 tools across routing, cache, compression, memory, skills, proxy, pool, and context source operations. Scope-based auth currently defines 32 named MCP scopes.
 >
-> Source of truth: `open-sse/mcp-server/server.ts` computes **104 unique tools** with `countUniqueMcpTools()`: 42 canonical definitions (including the six CCR lifecycle tools and the agent-skills trio), plus memory (3), skills (4), GitHub skills (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22), and two RTK-only compression tools.
+> Source of truth: `open-sse/mcp-server/server.ts` computes **107 unique tools** with `countUniqueMcpTools()`: 42 base-registry definitions (including tool search, the six CCR lifecycle tools, and the agent-skills trio), plus memory (3), skills (4), GitHub skills (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22), local corpus (3), and two RTK-only compression tools. Enabled database-backed skills may add dynamic tools at runtime.
 
 ## Installation
 
@@ -82,6 +82,7 @@ Cursor, Cline, and compatible MCP client setup.
 | Tool                   | Scopes           | Description                                                                                                                        |
 | :--------------------- | :--------------- | :--------------------------------------------------------------------------------------------------------------------------------- |
 | `omniroute_web_search` | `execute:search` | Web search through OmniRoute search gateway (Serper/Brave/Perplexity/Exa/Tavily/Google PSE/Linkup/SearchAPI/SearXNG) with failover |
+| `omniroute_tool_search` | `read:tools` | Search the MCP catalog by keyword and return compact signatures for discovery |
 
 ## Advanced Tools (11) — Phase 2
 
@@ -213,21 +214,31 @@ curl -X DELETE http://localhost:20128/api/settings/notion
 | `notion_get_database`        | `read:notion`  | Get database schema by ID                                      |
 | `notion_append_blocks`       | `write:notion` | Append children blocks to a parent block (max 100 per request) |
 
+## Local Corpus Tools (3)
+
+Defined in `open-sse/mcp-server/tools/localCorpusTools.ts`. These tools expose only an explicitly configured, read-only corpus root; absolute paths and traversal outside that root are rejected.
+
+| Tool                  | Scopes              | Description                                                        |
+| :-------------------- | :------------------ | :----------------------------------------------------------------- |
+| `local_corpus_status` | `read:local-corpus` | Report configuration and in-memory index status without the root path |
+| `local_corpus_search` | `read:local-corpus` | Search indexed text files and return relative paths plus snippets  |
+| `local_corpus_read`   | `read:local-corpus` | Read a bounded line range from an allowed relative path            |
+
 ## Agent Skill Catalog Tools (3)
 
-Defined in `open-sse/mcp-server/tools/agentSkillTools.ts`. Backed by `src/lib/agentSkills/catalog`. These tools expose the 42-entry Agent Skills documentation catalog to MCP clients and external agents. Scope: `read:catalog`.
+Defined in `open-sse/mcp-server/tools/agentSkillTools.ts`. Backed by `src/lib/agentSkills/catalog`. These tools expose the 45-entry Agent Skills documentation catalog to MCP clients and external agents. Scope: `read:catalog`.
 
 | Tool                              | Scopes         | Description                                                                                                      |
 | :-------------------------------- | :------------- | :--------------------------------------------------------------------------------------------------------------- |
-| `omniroute_agent_skills_list`     | `read:catalog` | List all 42 agent skills with optional `category` (api\|cli) and `area` filters; returns metadata + coverage     |
+| `omniroute_agent_skills_list`     | `read:catalog` | List all 45 agent skills with optional `category` (api\|cli) and `area` filters; returns metadata + coverage     |
 | `omniroute_agent_skills_get`      | `read:catalog` | Get full metadata + SKILL.md content for a single skill by canonical `id`                                        |
-| `omniroute_agent_skills_coverage` | `read:catalog` | Coverage stats: how many of the 22 API and 20 CLI skills have SKILL.md files on the filesystem vs catalog totals |
+| `omniroute_agent_skills_coverage` | `read:catalog` | Coverage stats: how many of the 23 API, 21 CLI, and 1 config skill have SKILL.md files on the filesystem vs catalog totals |
 
 See [AGENT-SKILLS.md](./AGENT-SKILLS.md) for the full catalog and how external agents consume it.
 
 ## Related Frameworks (v3.8.0)
 
-The MCP tool inventory above (104 unique tools, computed by `countUniqueMcpTools()`) is intentionally
+The MCP tool inventory above (107 unique tools, computed by `countUniqueMcpTools()`) is intentionally
 scoped to runtime routing/cache/compression/memory/skills/proxy/context-source operations. Two adjacent
 frameworks ship alongside the MCP server in v3.8.0 and are documented separately:
 
@@ -287,6 +298,7 @@ MCP tools are authenticated through API key scopes. Scope enforcement is central
 | `read:quota`          | `check_quota`                                                                                                     |
 | `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                            |
 | `read:models`         | `list_models_catalog`                                                                                             |
+| `read:tools`          | `omniroute_tool_search`                                                                                            |
 | `execute:completions` | `route_request`, `test_combo`                                                                                     |
 | `execute:search`      | `web_search`                                                                                                      |
 | `write:budget`        | `set_budget_guard`                                                                                                |
@@ -299,6 +311,7 @@ MCP tools are authenticated through API key scopes. Scope enforcement is central
 | `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                             |
 | `read:notion`         | `notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`           |
 | `write:notion`        | `notion_append_blocks`                                                                                            |
+| `read:local-corpus`   | `local_corpus_status`, `local_corpus_search`, `local_corpus_read`                                                  |
 | `read:memory`         | `memory_search`                                                                                                   |
 | `write:memory`        | `memory_add`, `memory_clear`                                                                                      |
 | `read:skills`         | `skills_list`, `skills_executions`                                                                                |
@@ -369,7 +382,7 @@ MCP tool, prompt, and resource registries can compress descriptions at registrat
 
 Description compression shrinks each tool's metadata; **tool-cardinality reduction** goes one step further by reducing _how many_ tools are announced at all. Advertising fewer tools in the `tools/list` manifest cuts the per-request token cost the client's model pays for the tool catalog ("layer 5" compression). The implementation is a pure, stateless filter in `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), wired into the registration loop in `createMcpServer()` (`open-sse/mcp-server/server.ts`).
 
-**Opt-in, off by default.** The filter only runs when at least one of two environment variables is set; with neither set, all 104 tools are announced unchanged.
+**Opt-in, off by default.** The filter only runs when at least one of two environment variables is set; with neither set, all 107 tools are announced unchanged.
 
 | Variable         | Mode                                                                                    |
 | :--------------- | :-------------------------------------------------------------------------------------- |

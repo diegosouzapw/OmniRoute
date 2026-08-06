@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const SkillCategorySchema = z.enum(["api", "cli"]);
+export const SkillCategorySchema = z.enum(["api", "cli", "config"]);
 
 export const AgentSkillSchema = z.object({
   id: z.string().regex(/^[a-z][a-z0-9-]*$/),
@@ -19,7 +19,8 @@ export const AgentSkillSchema = z.object({
 
 export const SkillCoverageSchema = z.object({
   api: z.object({ have: z.number().int().nonnegative(), total: z.literal(23) }),
-  cli: z.object({ have: z.number().int().nonnegative(), total: z.literal(20) }),
+  cli: z.object({ have: z.number().int().nonnegative(), total: z.literal(21) }),
+  config: z.object({ have: z.number().int().nonnegative(), total: z.literal(1) }),
   totalSkills: z.number().int().nonnegative(),
   generatedAt: z.string().datetime(),
 });

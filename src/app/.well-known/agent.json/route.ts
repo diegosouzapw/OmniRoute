@@ -23,7 +23,7 @@ export async function GET() {
   const agentCard = {
     name: "OmniRoute AI Gateway",
     description:
-      "Intelligent AI routing gateway with 36+ providers, smart fallback, " +
+      "Intelligent AI routing gateway with 327 providers, smart fallback, " +
       "quota tracking, format translation, and auto-managed combos. " +
       "Routes AI requests to the optimal provider based on cost, latency, " +
       "quota availability, and task requirements.",
@@ -52,7 +52,7 @@ export async function GET() {
         id: "quota-management",
         name: "Quota & Cost Management",
         description:
-          "Tracks and manages API quotas across 36+ providers with " +
+          "Tracks and manages API quotas across 327 providers with " +
           "auto-fallback when quotas are exhausted. Provides real-time " +
           "cost tracking and budget enforcement.",
         tags: ["quota", "cost", "monitoring", "budget"],
@@ -106,7 +106,7 @@ export async function GET() {
         id: "list-capabilities",
         name: "List Capabilities",
         description:
-          "Returns the full catalog of 42 OmniRoute agent skills (22 API + 20 CLI) " +
+          "Returns the full catalog of 45 OmniRoute agent skills (23 API + 21 CLI + 1 config) " +
           "with raw URLs for the SKILL.md docs.",
         tags: ["discovery", "capabilities"],
         examples: ["What can you do?", "List your skills", "Show capabilities"],

@@ -39,7 +39,7 @@ För full testmatris, se `CONTRIBUTING.md` → "Köra Tester". För djup arkitek
 
 ## Projekt i Korthet
 
-**OmniRoute** — enad AI-proxy/router. En slutpunkt, 160+ LLM-leverantörer, automatisk återkoppling.
+**OmniRoute** — enad AI-proxy/router. En slutpunkt, 329 LLM-leverantörer, automatisk återkoppling.
 
 | Lager        | Plats                   | Syfte                                                                     |
 | ------------ | ----------------------- | ------------------------------------------------------------------------- |
@@ -49,9 +49,9 @@ För full testmatris, se `CONTRIBUTING.md` → "Köra Tester". För djup arkitek
 | Translators  | `open-sse/translator/`  | Formatkonvertering (OpenAI↔Claude↔Gemini)                                 |
 | Transformer  | `open-sse/transformer/` | Svar API ↔ Chattkompletteringar                                           |
 | Tjänster     | `open-sse/services/`    | Kombinationsrouting, hastighetsgränser, caching, etc                      |
-| Databas      | `src/lib/db/`           | SQLite domänmoduler (45+ filer, 55 migrationer)                           |
+| Databas      | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
 | Domän/Policy | `src/domain/`           | Policy-motor, kostnadsregler, återkopplingslogik                          |
-| MCP-server   | `open-sse/mcp-server/`  | 37 verktyg (30 bas + 3 minne + 4 färdigheter), 3 transporter, ~13 områden |
+| MCP-server   | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
 | A2A-server   | `src/lib/a2a/`          | JSON-RPC 2.0 agentprotokoll                                               |
 | Färdigheter  | `src/lib/skills/`       | Utbyggbar färdighetsramverk                                               |
 | Minne        | `src/lib/memory/`       | Persistent konversationsminne                                             |
@@ -76,7 +76,7 @@ Klient → /v1/chat/completions (Next.js-rutt)
 
 API-rutter följer ett konsekvent mönster: `Rutt → CORS preflight → Zod kroppvalidering → Valfri autentisering (extractApiKey/isValidApiKey) → Tillämpning av API-nyckelpolicy → Hanterardelning (open-sse)`. Ingen global Next.js-mellanprogram — avlyssning är rutt-specifik.
 
-**Kombinationsrouting** (`open-sse/services/combo.ts`): 14 strategier (prioritet, viktad, fyll-först, rund-robin, P2C, slumpmässig, minst-använd, kostnadsoptimerad, reset-medveten, strikt-slumpmässig, auto, lkgp, kontext-optimerad, kontext-relä). Varje mål anropar `handleSingleModel()` som omsluter `handleChatCore()` med felhantering per mål och kretsbrytarkontroller. Se `docs/routing/AUTO-COMBO.md` för 9-faktors Auto-Combo poängsättning och `docs/architecture/RESILIENCE_GUIDE.md` för de 3 motståndslager.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -321,7 +321,7 @@ För alla icke-triviala ändringar, läs den matchande djupdykningen först:
 | Repo-navigering                                     | `docs/architecture/REPOSITORY_MAP.md`                             |
 | Arkitektur                                          | `docs/architecture/ARCHITECTURE.md`                               |
 | Ingenjörsreferens                                   | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (9-faktors poängsättning, 14 strategier) | `docs/routing/AUTO-COMBO.md`                                      |
+| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md` |
 | Motståndskraft (3 mekanismer)                       | `docs/architecture/RESILIENCE_GUIDE.md`                           |
 | Resonansåterspel                                    | `docs/routing/REASONING_REPLAY.md`                                |
 | Kompetensramverk                                    | `docs/frameworks/SKILLS.md`                                       |
@@ -385,7 +385,9 @@ git push -u origin feat/your-feature
 
 ## Miljö
 
-- **Körning**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES-moduler
+- **Körning**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, ES-moduler
 - **TypeScript**: 5.9+, mål ES2022, modul esnext, upplösning bundler
 - **Sökvägsalias**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Standardport**: 20128 (API + dashboard på samma port)

@@ -39,22 +39,22 @@ npm run test:all
 
 ## پروجیکٹ کا ایک نظر میں جائزہ
 
-**OmniRoute** — متحد AI پروکسی/روٹر۔ ایک اینڈپوائنٹ، 160+ LLM فراہم کنندگان، خودکار فیل بیک۔
+**OmniRoute** — متحد AI پروکسی/روٹر۔ ایک اینڈپوائنٹ، 329 LLM فراہم کنندگان، خودکار فیل بیک۔
 
-| پرت           | مقام                    | مقصد                                                                |
-| ------------- | ----------------------- | ------------------------------------------------------------------- |
-| API Routes    | `src/app/api/v1/`       | Next.js ایپ روٹر — داخلے کے پوائنٹس                                 |
-| Handlers      | `open-sse/handlers/`    | درخواست کی پروسیسنگ (چیٹ، ایمبیڈنگز، وغیرہ)                         |
-| Executors     | `open-sse/executors/`   | فراہم کنندہ مخصوص HTTP ڈسپیچ                                        |
-| Translators   | `open-sse/translator/`  | فارمیٹ تبدیلی (OpenAI↔Claude↔Gemini)                                |
-| Transformer   | `open-sse/transformer/` | جوابات API ↔ چیٹ مکملات                                             |
-| Services      | `open-sse/services/`    | کومبو روٹنگ، شرح کی حدود، کیشنگ، وغیرہ                              |
-| Database      | `src/lib/db/`           | SQLite ڈومین ماڈیولز (45+ فائلیں، 55 مائگریشنز)                     |
-| Domain/Policy | `src/domain/`           | پالیسی انجن، لاگت کے قواعد، فیل بیک منطق                            |
-| MCP Server    | `open-sse/mcp-server/`  | 37 ٹولز (30 بنیادی + 3 میموری + 4 مہارتیں)، 3 ٹرانسپورٹس، ~13 دائرے |
-| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 ایجنٹ پروٹوکول                                         |
-| Skills        | `src/lib/skills/`       | توسیع پذیر مہارت کا فریم ورک                                        |
-| Memory        | `src/lib/memory/`       | مستقل مکالماتی یادداشت                                              |
+| پرت           | مقام                    | مقصد                                                                      |
+| ------------- | ----------------------- | ------------------------------------------------------------------------- |
+| API Routes    | `src/app/api/v1/`       | Next.js ایپ روٹر — داخلے کے پوائنٹس                                       |
+| Handlers      | `open-sse/handlers/`    | درخواست کی پروسیسنگ (چیٹ، ایمبیڈنگز، وغیرہ)                               |
+| Executors     | `open-sse/executors/`   | فراہم کنندہ مخصوص HTTP ڈسپیچ                                              |
+| Translators   | `open-sse/translator/`  | فارمیٹ تبدیلی (OpenAI↔Claude↔Gemini)                                      |
+| Transformer   | `open-sse/transformer/` | جوابات API ↔ چیٹ مکملات                                                   |
+| Services      | `open-sse/services/`    | کومبو روٹنگ، شرح کی حدود، کیشنگ، وغیرہ                                    |
+| Database      | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| Domain/Policy | `src/domain/`           | پالیسی انجن، لاگت کے قواعد، فیل بیک منطق                                  |
+| MCP Server    | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 ایجنٹ پروٹوکول                                               |
+| Skills        | `src/lib/skills/`       | توسیع پذیر مہارت کا فریم ورک                                              |
+| Memory        | `src/lib/memory/`       | مستقل مکالماتی یادداشت                                                    |
 
 Monorepo: `src/` (Next.js 16 ایپ)، `open-sse/` (اسٹریمنگ انجن ورک اسپیس)، `electron/` (ڈیسک ٹاپ ایپ)، `tests/`، `bin/` (CLI داخلہ نقطہ)۔
 
@@ -76,7 +76,7 @@ Client → /v1/chat/completions (Next.js route)
 
 API راستے ایک مستقل پیٹرن کی پیروی کرتے ہیں: `Route → CORS preflight → Zod body validation → Optional auth (extractApiKey/isValidApiKey) → API key policy enforcement → Handler delegation (open-sse)`۔ کوئی عالمی Next.js middleware نہیں — مداخلت راستے کے مخصوص ہے۔
 
-**Combo routing** (`open-sse/services/combo.ts`): 14 حکمت عملی (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, reset-aware, strict-random, auto, lkgp, context-optimized, context-relay)۔ ہر ہدف `handleSingleModel()` کو کال کرتا ہے جو `handleChatCore()` کو ہر ہدف کی خرابی کے ہینڈلنگ اور سرکٹ بریکر چیک کے ساتھ لپیٹتا ہے۔ 9-factor Auto-Combo اسکورنگ کے لیے `docs/routing/AUTO-COMBO.md` دیکھیں اور 3 resilience layers کے لیے `docs/architecture/RESILIENCE_GUIDE.md` دیکھیں۔
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -365,7 +365,9 @@ git push -u origin feat/your-feature
 
 ## ماحول
 
-- **رن ٹائم**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25، ES ماڈیولز
+- **رن ٹائم**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25، ES ماڈیولز
 - **ٹائپ اسکرپٹ**: 5.9+، ہدف ES2022، ماڈیول esnext، ریزولوشن بنڈلر
 - **پاتھ ایلیاس**: `@/*` → `src/`، `@omniroute/open-sse` → `open-sse/`، `@omniroute/open-sse/*` → `open-sse/*`
 - **ڈیفالٹ پورٹ**: 20128 (API + ڈیش بورڈ ایک ہی پورٹ پر)

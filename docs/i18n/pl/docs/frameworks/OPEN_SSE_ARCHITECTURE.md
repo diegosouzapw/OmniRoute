@@ -105,7 +105,7 @@ Rozwiązuje żądanie do konkretnej krotki `(provider, model, account, credentia
 
 Dla modeli `auto/*` ten etap dodatkowo:
 
-- Uruchamia algorytm scoringu **9-czynnikowego** (`services/autoCombo/`)
+- Uruchamia algorytm scoringu **13-czynnikowego** (`services/autoCombo/`)
 - Wybiera parę `provider+model` na podstawie health, cost, latency itd.
 
 ### Etap 2: Translate (translator/)
@@ -228,7 +228,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Obsługuje **17 strategii routingu** (zob. `src/shared/constants/routingStrategies.ts`):
+Obsługuje **19 publicznych strategii routingu** (zob. `src/shared/constants/routingStrategies.ts`):
 
 | Strategia           | Zachowanie                                                            |
 | ------------------- | --------------------------------------------------------------------- |
@@ -245,14 +245,17 @@ Obsługuje **17 strategii routingu** (zob. `src/shared/constants/routingStrategi
 | `reset-window`      | Routing oparty o okno resetu                                          |
 | `headroom`          | Najpierw największy pozostały headroom quota                          |
 | `strict-random`     | Prawdziwie jednostajny (bez ważenia jakości)                          |
-| `auto`              | Scoring 9-czynnikowy (`autoCombo/`)                                   |
+| `auto`              | Scoring 13-czynnikowy (`autoCombo/`)                                  |
 | `lkgp`              | Last known good provider najpierw                                     |
 | `context-optimized` | Najlepszy dla żądań long-context                                      |
+| `cache-optimized`   | Preferuj target z najlepszym dopasowaniem prompt cache                |
 | `fusion`            | Fan-out do panelu równolegle, potem synteza przez judge (`fusion.ts`) |
+| `pipeline`          | Sekwencyjnie przekazuj output każdego kroku do następnego             |
 
 ### base.ts (1170 LOC)
 
-**Abstrakcyjny executor**, po którym dziedziczą wszystkie 67 executorów. Zawiera:
+**Abstrakcyjny executor**, po którym dziedziczą moduły implementacji executorów. Katalog ma
+obecnie 89 top-level modułów implementacji. Zawiera:
 
 - `buildUrl()` — domyślna konstrukcja URL (podklasy nadpisują dla custom)
 - `buildHeaders()` — domyślne nagłówki (auth, content-type)
@@ -280,7 +283,7 @@ Serwisy to **skupione, jednozadaniowe moduły**, które handlery komponują ze s
 ### Routing i Combo
 
 - `combo.ts` — punkt wejścia dla żądań routowanych przez combo
-- `services/autoCombo/` — scoring 9-czynnikowy, 8 strategii auto-routingu
+- `services/autoCombo/` — scoring 13-czynnikowy, warianty i mode packs auto-routingu
 - `wildcardRouter.ts` — dopasowanie wildcard routes (`gpt-*`)
 - `modelFamilyFallback.ts` — fallback T5 wewnątrz rodziny modeli
 
@@ -368,7 +371,7 @@ const result = await executor.execute({
 });
 ````
 
-Fabryka jest generowana z `config/providerRegistry.ts`, który wymienia wszystkie 212+ providerów i ich klasę executora.
+Fabryka korzysta z katalogu 329 wpisów providerów oraz wspólnych wartości domyślnych i 89 modułów implementacji executorów.
 
 ---
 
@@ -406,9 +409,9 @@ Typowe tłumaczenia:
 
 `open-sse/mcp-server/` implementuje serwer **Model Context Protocol**:
 
-- **30+ narzędzi** (zarządzanie providerami, combo, memory, cache, compression, 1proxy, skills)
+- **107 deduplikowanych narzędzi** (zarządzanie providerami, combo, memory, cache, compression, 1proxy, skills)
 - **3 transporty**: stdio, SSE, Streamable HTTP
-- **13 scopes** do drobnoziarnistej autoryzacji
+- **32 scopes** do drobnoziarnistej autoryzacji
 
 ### Rejestracja narzędzi
 
@@ -487,7 +490,7 @@ Obsługuje:
 
 | Plik                          | Przeznaczenie                      |
 | ----------------------------- | ---------------------------------- |
-| `providerRegistry.ts`         | 212+ definicji providerów          |
+| `providerRegistry.ts`         | Wspólna konfiguracja rejestru providerów |
 | `providerModels.ts`           | Aliasy modeli, mapowanie formatów  |
 | `constants.ts`                | Timeouty, limity, kody statusu     |
 | `defaultThinkingSignature.ts` | Domyślna sygnatura thinking Claude |
@@ -570,7 +573,7 @@ Silnik routingu ma ścisłe budżety wydajności:
 - [ARCHITECTURE.md](../architecture/ARCHITECTURE.md) — architektura wysokopoziomowa
 - [CODEBASE_DOCUMENTATION.md](../architecture/CODEBASE_DOCUMENTATION.md) — referencja inżynierska
 - [REPOSITORY_MAP.md](../architecture/REPOSITORY_MAP.md) — katalog po katalogu
-- [AUTO-COMBO.md](../routing/AUTO-COMBO.md) — scoring 9-czynnikowy
+- [AUTO-COMBO.md](../routing/AUTO-COMBO.md) — scoring 13-czynnikowy
 - [MCP-SERVER.md](./MCP-SERVER.md) — serwer MCP
 - [A2A-SERVER.md](./A2A-SERVER.md) — serwer A2A
 - Źródło: `open-sse/` (400+ plików, ~143K LOC)

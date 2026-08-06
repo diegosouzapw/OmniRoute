@@ -6,9 +6,9 @@ lastUpdated: 2026-06-28
 
 # Dokumentacja serwera MCP OmniRoute
 
-> Serwer Model Context Protocol z 104 narzędziami obejmującymi routing, cache, kompresję, pamięć, skills, proxy, pool oraz operacje na źródłach kontekstu.
+> Serwer Model Context Protocol z 107 narzędziami obejmującymi routing, cache, kompresję, pamięć, skills, proxy, pool oraz operacje na źródłach kontekstu.
 >
-> Źródło prawdy: `open-sse/mcp-server/server.ts` wylicza **104 unikalne narzędzia** przez `countUniqueMcpTools()`: 42 kanoniczne definicje (w tym sześć narzędzi cyklu życia CCR oraz trio agent-skills), plus memory (3), skills (4), GitHub skills (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22) oraz dwa narzędzia kompresji wyłącznie RTK.
+> Źródło prawdy: `open-sse/mcp-server/server.ts` wylicza **107 unikalne narzędzia** przez `countUniqueMcpTools()`: 42 kanoniczne definicje (w tym sześć narzędzi cyklu życia CCR oraz trio agent-skills), plus memory (3), skills (4), GitHub skills (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22) oraz dwa narzędzia kompresji wyłącznie RTK.
 
 ## Instalacja
 
@@ -227,7 +227,7 @@ Zobacz [AGENT-SKILLS.md](./AGENT-SKILLS.md) po pełny katalog i sposób konsumow
 
 ## Pokrewne frameworki (v3.8.0)
 
-Powyższy inwentarz narzędzi MCP (104 unikalne tools, wyliczane przez `countUniqueMcpTools()`) jest celowo
+Powyższy inwentarz narzędzi MCP (107 unikalne tools, wyliczane przez `countUniqueMcpTools()`) jest celowo
 ograniczony do operacji runtime: routing/cache/compression/memory/skills/proxy/context-source. Dwa sąsiednie
 frameworki dostarczane razem z serwerem MCP w v3.8.0 są udokumentowane osobno:
 
@@ -369,7 +369,7 @@ Rejestry tooli, promptów i resources MCP mogą kompresować opisy w czasie reje
 
 Kompresja opisów zmniejsza metadane każdego toola; **redukcja kardynalności tooli** idzie o krok dalej, ograniczając _ile_ tooli jest w ogóle ogłaszanych. Reklamowanie mniejszej liczby tooli w manifeście `tools/list` tnie koszt tokenów per-request, jaki model klienta płaci za katalog tooli (kompresja „warstwy 5”). Implementacja to czysty, bezstanowy filtr w `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), podpięty do pętli rejestracji w `createMcpServer()` (`open-sse/mcp-server/server.ts`).
 
-**Opt-in, domyślnie wyłączone.** Filtr działa tylko gdy ustawiona jest co najmniej jedna z dwóch zmiennych środowiskowych; bez żadnej wszystkie 104 tools są ogłaszane bez zmian.
+**Opt-in, domyślnie wyłączone.** Filtr działa tylko gdy ustawiona jest co najmniej jedna z dwóch zmiennych środowiskowych; bez żadnej wszystkie 107 tools są ogłaszane bez zmian.
 
 | Variable         | Mode                                                                                         |
 | :--------------- | :------------------------------------------------------------------------------------------- |

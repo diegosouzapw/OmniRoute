@@ -39,22 +39,22 @@ npm run test:all
 
 ## ప్రాజెక్ట్ ఒక చూపులో
 
-**OmniRoute** — ఏకీకృత AI ప్రాక్సీ/రౌటర్. ఒక ఎండ్‌పాయింట్, 160+ LLM ప్రొవైడర్లు, ఆటో-ఫాల్బ్యాక్.
+**OmniRoute** — ఏకీకృత AI ప్రాక్సీ/రౌటర్. ఒక ఎండ్‌పాయింట్, 329 LLM ప్రొవైడర్లు, ఆటో-ఫాల్బ్యాక్.
 
-| పొర              | స్థానం                  | ఉద్దేశ్యం                                                                        |
-| ---------------- | ----------------------- | -------------------------------------------------------------------------------- |
-| API రూట్లు       | `src/app/api/v1/`       | Next.js యాప్ రౌటర్ — ప్రవేశ బిందువులు                                            |
-| హ్యాండ్లర్లు     | `open-sse/handlers/`    | అభ్యర్థన ప్రాసెసింగ్ (చాట్, ఎంబెడింగ్స్, మొదలైనవి)                               |
-| ఎగ్జిక్యూటర్లు   | `open-sse/executors/`   | ప్రొవైడర్-స్పెసిఫిక్ HTTP డిస్పాచ్                                               |
-| అనువాదకులు       | `open-sse/translator/`  | ఫార్మాట్ మార్పిడి (OpenAI↔Claude↔Gemini)                                         |
-| ట్రాన్స్‌ఫార్మర్ | `open-sse/transformer/` | స్పందనలు API ↔ చాట్ పూర్తి చేయడం                                                 |
-| సేవలు            | `open-sse/services/`    | కాంబో రౌటింగ్, రేటు పరిమితులు, కాషింగ్, మొదలైనవి                                 |
-| డేటాబేస్         | `src/lib/db/`           | SQLite డొమైన్ మాడ్యూల్స్ (45+ ఫైళ్లు, 55 మైగ్రేషన్స్)                            |
-| డొమైన్/పాలసీ     | `src/domain/`           | పాలసీ ఇంజిన్, ఖర్చు నియమాలు, ఫాల్బ్యాక్ లాజిక్                                   |
-| MCP సర్వర్       | `open-sse/mcp-server/`  | 37 టూల్స్ (30 బేస్ + 3 మెమరీ + 4 నైపుణ్యాలు), 3 ట్రాన్స్‌పోర్ట్‌లు, ~13 స్కోప్స్ |
-| A2A సర్వర్       | `src/lib/a2a/`          | JSON-RPC 2.0 ఏజెంట్ ప్రోటోకాల్                                                   |
-| నైపుణ్యాలు       | `src/lib/skills/`       | విస్తరించదగిన నైపుణ్య ఫ్రేమ్‌వర్క్                                               |
-| మెమరీ            | `src/lib/memory/`       | స్థిరమైన సంభాషణ మెమరీ                                                            |
+| పొర              | స్థానం                  | ఉద్దేశ్యం                                                                 |
+| ---------------- | ----------------------- | ------------------------------------------------------------------------- |
+| API రూట్లు       | `src/app/api/v1/`       | Next.js యాప్ రౌటర్ — ప్రవేశ బిందువులు                                     |
+| హ్యాండ్లర్లు     | `open-sse/handlers/`    | అభ్యర్థన ప్రాసెసింగ్ (చాట్, ఎంబెడింగ్స్, మొదలైనవి)                        |
+| ఎగ్జిక్యూటర్లు   | `open-sse/executors/`   | ప్రొవైడర్-స్పెసిఫిక్ HTTP డిస్పాచ్                                        |
+| అనువాదకులు       | `open-sse/translator/`  | ఫార్మాట్ మార్పిడి (OpenAI↔Claude↔Gemini)                                  |
+| ట్రాన్స్‌ఫార్మర్ | `open-sse/transformer/` | స్పందనలు API ↔ చాట్ పూర్తి చేయడం                                          |
+| సేవలు            | `open-sse/services/`    | కాంబో రౌటింగ్, రేటు పరిమితులు, కాషింగ్, మొదలైనవి                          |
+| డేటాబేస్         | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| డొమైన్/పాలసీ     | `src/domain/`           | పాలసీ ఇంజిన్, ఖర్చు నియమాలు, ఫాల్బ్యాక్ లాజిక్                            |
+| MCP సర్వర్       | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2A సర్వర్       | `src/lib/a2a/`          | JSON-RPC 2.0 ఏజెంట్ ప్రోటోకాల్                                            |
+| నైపుణ్యాలు       | `src/lib/skills/`       | విస్తరించదగిన నైపుణ్య ఫ్రేమ్‌వర్క్                                        |
+| మెమరీ            | `src/lib/memory/`       | స్థిరమైన సంభాషణ మెమరీ                                                     |
 
 Monorepo: `src/` (Next.js 16 యాప్), `open-sse/` (స్ట్రీమింగ్ ఇంజిన్ వర్క్‌స్పేస్), `electron/` (డెస్క్‌టాప్ యాప్), `tests/`, `bin/` (CLI ప్రవేశ బిందువు).
 
@@ -74,7 +74,7 @@ Client → /v1/chat/completions (Next.js మార్గం)
 
 API మార్గాలు ఒక సుసంగత నమూనాను అనుసరిస్తాయి: `Route → CORS ప్రీఫ్లైట్ → Zod శరీర ధృవీకరణ → ఐచ్ఛిక auth (extractApiKey/isValidApiKey) → API కీ విధానం అమలు → హ్యాండ్లర్ డెలిగేషన్ (open-sse)`. ఏ గ్లోబల్ Next.js మిడ్‌లెయిర్ లేదు — అంతరాయము మార్గానికి ప్రత్యేకంగా ఉంటుంది.
 
-**కాంబో రూటింగ్** (`open-sse/services/combo.ts`): 14 వ్యూహాలు (ప్రాధమికత, బరువైన, ఫిల్-ఫస్ట్, రౌండ్-రాబిన్, P2C, యాదృచ్ఛిక, తక్కువ-ఉపయోగించిన, ఖర్చు-ఆప్టిమైజ్డ్, రీసెట్-అవేర్, కఠిన-యాదృచ్ఛిక, ఆటో, lkgp, సందర్భం-ఆప్టిమైజ్డ్, సందర్భం-రిలే). ప్రతి లక్ష్యం `handleSingleModel()`ను పిలుస్తుంది, ఇది `handleChatCore()`ను లక్ష్యానికి ప్రత్యేకమైన పొరపాటు నిర్వహణ మరియు సర్క్యూట్ బ్రేకర్ తనిఖీలతో చుట్టిస్తుంది. 9-ఫ్యాక్టర్ ఆటో-కాంబో స్కోరింగ్ కోసం `docs/routing/AUTO-COMBO.md`ను మరియు 3 స్థిరత్వ పొరల కోసం `docs/architecture/RESILIENCE_GUIDE.md`ను చూడండి.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -356,7 +356,9 @@ git push -u origin feat/your-feature
 
 ## పరిసరాలు
 
-- **రన్‌టైమ్**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES మాడ్యూల్స్
+- **రన్‌టైమ్**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, ES మాడ్యూల్స్
 - **TypeScript**: 5.9+, లక్ష్యం ES2022, మాడ్యూల్ esnext, రిజల్యూషన్ బండ్లర్
 - **పాత్ అలియాసులు**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **డిఫాల్ట్ పోర్ట్**: 20128 (API + డాష్‌బోర్డ్ ఒకే పోర్ట్‌లో)

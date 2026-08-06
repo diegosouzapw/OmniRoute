@@ -6,13 +6,13 @@ lastUpdated: 2026-06-28
 
 # OmniRoute MCP 服务器文档
 
-> 包含 94 个工具的 MCP 服务器，覆盖路由、缓存、压缩、记忆、技能、代理、连接池和上下文源操作。
+> 包含 107 个工具、32 个权限域的 MCP 服务器，覆盖路由、缓存、压缩、记忆、技能、代理、连接池和上下文源操作。
 >
-> 数据来源：`open-sse/mcp-server/schemas/tools.ts`（34 个基础工具）+ `memoryTools.ts`（3）+ `skillTools.ts`（4）+ `agentSkillTools.ts`（3）+ `poolTools.ts`（6）+ `gamificationTools.ts`（8）+ `pluginTools.ts`（8）+ `notionTools.ts`（6）+ `obsidianTools.ts`（22）= **94**（`TOTAL_MCP_TOOL_COUNT`）。工具注册和权限域绑定逻辑见 `open-sse/mcp-server/server.ts`。
+> 数据来源：`open-sse/mcp-server/server.ts` 使用 `countUniqueMcpTools()` 计算出 **107 个去重工具**：42 个基础注册表定义（包括工具搜索、6 个 CCR 生命周期工具和 agent-skills 三件套），再加上 memory（3）、skills（4）、GitHub skills（3）、pool（6）、gamification（8）、plugins（8）、Notion（6）、Obsidian（22）、local corpus（3）以及 2 个仅用于 RTK 的压缩工具。数据库中启用的技能还可以在运行时添加动态工具。
 
-![MCP tool inventory (104 tools by category)](../diagrams/exported/mcp-tools-104.svg)
+![MCP tool inventory (107 tools by category)](../diagrams/exported/mcp-tools-107.svg)
 
-> 来源：[diagrams/mcp-tools-104.mmd](../diagrams/mcp-tools-104.mmd)（通过 `npm run docs:render-diagrams` 重新生成）。
+> 来源：[diagrams/mcp-tools-107.mmd](../diagrams/mcp-tools-107.mmd)（通过 `npm run docs:render-diagrams` 重新生成）。
 
 ## 安装
 
@@ -33,11 +33,11 @@ omniroute --dev  # MCP 自动在 /mcp 端点启动
 
 MCP 服务器提供三种传输方式，均基于同一个 `createMcpServer()` 工厂：
 
-| 传输               | 位置                                         | 适用场景                                              |
-| :----------------- | :------------------------------------------- | :---------------------------------------------------- |
-| `stdio`            | `open-sse/mcp-server/server.ts`              | IDE 集成（Claude Desktop、Cursor 等）                 |
-| `sse`              | `POST/GET /api/mcp/sse`，通过 `httpTransport` | 需要事件流的浏览器/代理客户端                         |
-| `streamable-http`  | `POST/GET/DELETE /api/mcp/stream`            | 多会话 HTTP 客户端（`mcp-session-id` 头）             |
+| 传输              | 位置                                          | 适用场景                                  |
+| :---------------- | :-------------------------------------------- | :---------------------------------------- |
+| `stdio`           | `open-sse/mcp-server/server.ts`               | IDE 集成（Claude Desktop、Cursor 等）     |
+| `sse`             | `POST/GET /api/mcp/sse`，通过 `httpTransport` | 需要事件流的浏览器/代理客户端             |
+| `streamable-http` | `POST/GET/DELETE /api/mcp/stream`             | 多会话 HTTP 客户端（`mcp-session-id` 头） |
 
 当前生效的 HTTP 传输（`sse` 或 `streamable-http`）由 `mcpTransport` 设置选择。切换传输方式会关闭另一传输上的现有会话。
 
@@ -69,55 +69,55 @@ Claude Desktop、Cursor、Cline 及其他兼容 MCP 客户端的配置，参见 
 
 ## 核心工具（8）— 阶段 1
 
-| 工具                              | 权限域                  | 描述                                                         |
-| :-------------------------------- | :---------------------- | :----------------------------------------------------------- |
-| `omniroute_get_health`            | `read:health`           | 运行时间、内存、熔断器、速率限制、缓存统计                   |
-| `omniroute_list_combos`           | `read:combos`           | 所有已配置 Combo 及其策略（可选指标）                        |
-| `omniroute_get_combo_metrics`     | `read:combos`           | 指定 Combo 的性能指标                                        |
-| `omniroute_switch_combo`          | `write:combos`          | 激活或停用 Combo                                             |
-| `omniroute_check_quota`           | `read:quota`            | 已用/总配额、剩余百分比、重置时间、Token 健康状态            |
-| `omniroute_route_request`         | `execute:completions`   | 通过 OmniRoute 路由发送聊天补全请求                          |
-| `omniroute_cost_report`           | `read:usage`            | 按时间段（会话/天/周/月）的费用报告                          |
-| `omniroute_list_models_catalog`   | `read:models`           | 完整模型目录，包含能力、状态、定价                           |
+| 工具                            | 权限域                | 描述                                              |
+| :------------------------------ | :-------------------- | :------------------------------------------------ |
+| `omniroute_get_health`          | `read:health`         | 运行时间、内存、熔断器、速率限制、缓存统计        |
+| `omniroute_list_combos`         | `read:combos`         | 所有已配置 Combo 及其策略（可选指标）             |
+| `omniroute_get_combo_metrics`   | `read:combos`         | 指定 Combo 的性能指标                             |
+| `omniroute_switch_combo`        | `write:combos`        | 激活或停用 Combo                                  |
+| `omniroute_check_quota`         | `read:quota`          | 已用/总配额、剩余百分比、重置时间、Token 健康状态 |
+| `omniroute_route_request`       | `execute:completions` | 通过 OmniRoute 路由发送聊天补全请求               |
+| `omniroute_cost_report`         | `read:usage`          | 按时间段（会话/天/周/月）的费用报告               |
+| `omniroute_list_models_catalog` | `read:models`         | 完整模型目录，包含能力、状态、定价                |
 
 ## 阶段 1 — 搜索
 
-| 工具                   | 权限域             | 描述                                                                                  |
-| :--------------------- | :----------------- | :------------------------------------------------------------------------------------ |
-| `omniroute_web_search` | `execute:search`   | 通过 OmniRoute 搜索网关进行 Web 搜索（Serper/Brave/Perplexity/Exa/Tavily/Google PSE/Linkup/SearchAPI/SearXNG），支持容灾 |
+| 工具                   | 权限域           | 描述                                                                                                                     |
+| :--------------------- | :--------------- | :----------------------------------------------------------------------------------------------------------------------- |
+| `omniroute_web_search` | `execute:search` | 通过 OmniRoute 搜索网关进行 Web 搜索（Serper/Brave/Perplexity/Exa/Tavily/Google PSE/Linkup/SearchAPI/SearXNG），支持容灾 |
 
 ## 高级工具（11）— 阶段 2
 
-| 工具                                 | 权限域                                 | 描述                                                                 |
-| :----------------------------------- | :------------------------------------- | :------------------------------------------------------------------- |
-| `omniroute_simulate_route`           | `read:health`、`read:combos`           | 包含容灾树的演习路由仿真                                             |
-| `omniroute_set_budget_guard`         | `write:budget`                         | 会话预算，支持降级/阻断/告警动作                                     |
-| `omniroute_set_routing_strategy`     | `write:combos`                         | 在运行时更新 Combo 策略（priority/weighted/auto 等）                 |
-| `omniroute_set_resilience_profile`   | `write:resilience`                     | 应用 `aggressive` / `balanced` / `conservative` 容灾预设文件         |
-| `omniroute_test_combo`               | `execute:completions`、`read:combos`   | 使用真实上游调用对 Combo 中的每个服务商进行实时测试                  |
-| `omniroute_get_provider_metrics`     | `read:health`                          | 每个服务商的指标，含 p50/p95/p99 延迟和熔断器状态                    |
-| `omniroute_best_combo_for_task`      | `read:combos`、`read:health`           | 根据任务类型推荐 Combo，含预算/延迟约束                             |
-| `omniroute_explain_route`            | `read:health`、`read:usage`            | 解释某次请求的路由决策依据（评分因子 + 容灾路径）                   |
-| `omniroute_get_session_snapshot`     | `read:usage`                           | 完整会话快照：费用、Token、热门模型/服务商、错误、预算守卫           |
-| `omniroute_db_health_check`          | `read:health`、`write:resilience`      | 诊断（并可自动修复）数据库异常，如损坏的 Combo 引用/孤儿行          |
-| `omniroute_sync_pricing`             | `pricing:write`                        | 从外部源（LiteLLM）同步定价数据；支持 `dryRun`                      |
+| 工具                               | 权限域                               | 描述                                                         |
+| :--------------------------------- | :----------------------------------- | :----------------------------------------------------------- |
+| `omniroute_simulate_route`         | `read:health`、`read:combos`         | 包含容灾树的演习路由仿真                                     |
+| `omniroute_set_budget_guard`       | `write:budget`                       | 会话预算，支持降级/阻断/告警动作                             |
+| `omniroute_set_routing_strategy`   | `write:combos`                       | 在运行时更新 Combo 策略（priority/weighted/auto 等）         |
+| `omniroute_set_resilience_profile` | `write:resilience`                   | 应用 `aggressive` / `balanced` / `conservative` 容灾预设文件 |
+| `omniroute_test_combo`             | `execute:completions`、`read:combos` | 使用真实上游调用对 Combo 中的每个服务商进行实时测试          |
+| `omniroute_get_provider_metrics`   | `read:health`                        | 每个服务商的指标，含 p50/p95/p99 延迟和熔断器状态            |
+| `omniroute_best_combo_for_task`    | `read:combos`、`read:health`         | 根据任务类型推荐 Combo，含预算/延迟约束                      |
+| `omniroute_explain_route`          | `read:health`、`read:usage`          | 解释某次请求的路由决策依据（评分因子 + 容灾路径）            |
+| `omniroute_get_session_snapshot`   | `read:usage`                         | 完整会话快照：费用、Token、热门模型/服务商、错误、预算守卫   |
+| `omniroute_db_health_check`        | `read:health`、`write:resilience`    | 诊断（并可自动修复）数据库异常，如损坏的 Combo 引用/孤儿行   |
+| `omniroute_sync_pricing`           | `pricing:write`                      | 从外部源（LiteLLM）同步定价数据；支持 `dryRun`               |
 
 ## 缓存工具（2）
 
-| 工具                      | 权限域          | 描述                                     |
-| :------------------------ | :-------------- | :--------------------------------------- |
-| `omniroute_cache_stats`   | `read:cache`    | 语义缓存、提示缓存和幂等性统计           |
-| `omniroute_cache_flush`   | `write:cache`   | 全局或按签名/模型刷新缓存                |
+| 工具                    | 权限域        | 描述                           |
+| :---------------------- | :------------ | :----------------------------- |
+| `omniroute_cache_stats` | `read:cache`  | 语义缓存、提示缓存和幂等性统计 |
+| `omniroute_cache_flush` | `write:cache` | 全局或按签名/模型刷新缓存      |
 
 ## 压缩工具（5）
 
-| 工具                                  | 权限域                | 描述                                                                                                       |
-| :------------------------------------ | :-------------------- | :--------------------------------------------------------------------------------------------------------- |
-| `omniroute_compression_status`        | `read:compression`    | 压缩设置、分析摘要和缓存感知统计（含 `analytics.mcpDescriptionCompression` 元数据）                         |
-| `omniroute_compression_configure`     | `write:compression`   | 配置压缩模式、阈值、目标比例、系统提示保留、MCP 描述压缩开关                                               |
-| `omniroute_set_compression_engine`    | `write:compression`   | 选择活跃引擎（off/caveman/rtk/stacked）及 Caveman/RTK 强度                                                 |
-| `omniroute_list_compression_combos`   | `read:compression`    | 列出已命名的压缩 Combo 及其引擎流水线                                                                      |
-| `omniroute_compression_combo_stats`   | `read:compression`    | 按压缩 Combo 和引擎分组的分析数据                                                                          |
+| 工具                                | 权限域              | 描述                                                                                |
+| :---------------------------------- | :------------------ | :---------------------------------------------------------------------------------- |
+| `omniroute_compression_status`      | `read:compression`  | 压缩设置、分析摘要和缓存感知统计（含 `analytics.mcpDescriptionCompression` 元数据） |
+| `omniroute_compression_configure`   | `write:compression` | 配置压缩模式、阈值、目标比例、系统提示保留、MCP 描述压缩开关                        |
+| `omniroute_set_compression_engine`  | `write:compression` | 选择活跃引擎（off/caveman/rtk/stacked）及 Caveman/RTK 强度                          |
+| `omniroute_list_compression_combos` | `read:compression`  | 列出已命名的压缩 Combo 及其引擎流水线                                               |
+| `omniroute_compression_combo_stats` | `read:compression`  | 按压缩 Combo 和引擎分组的分析数据                                                   |
 
 `omniroute_compression_status` 将 MCP 描述压缩数据单独报告在 `analytics.mcpDescriptionCompression` 下。这些值是 MCP 可列表描述（`tools`、`prompts`、`resources` 和 `resourceTemplates`）的元数据大小估算；不是服务商用量记录，标记为 `source: "mcp_metadata_estimate"`。
 
@@ -140,32 +140,32 @@ Claude Desktop、Cursor、Cline 及其他兼容 MCP 客户端的配置，参见 
 
 ## 1Proxy 工具（3）
 
-| 工具                          | 权限域           | 描述                                                                               |
-| :---------------------------- | :--------------- | :--------------------------------------------------------------------------------- |
-| `omniroute_oneproxy_fetch`    | `read:proxies`   | 从 1proxy 市场获取免费代理（支持协议/国家/质量/数量筛选）                          |
-| `omniroute_oneproxy_rotate`   | `read:proxies`   | 按策略获取下一个可用代理（`random` / `quality` / `sequential`）                    |
-| `omniroute_oneproxy_stats`    | `read:proxies`   | 连接池统计、同步状态、按协议和国家分布                                             |
+| 工具                        | 权限域         | 描述                                                            |
+| :-------------------------- | :------------- | :-------------------------------------------------------------- |
+| `omniroute_oneproxy_fetch`  | `read:proxies` | 从 1proxy 市场获取免费代理（支持协议/国家/质量/数量筛选）       |
+| `omniroute_oneproxy_rotate` | `read:proxies` | 按策略获取下一个可用代理（`random` / `quality` / `sequential`） |
+| `omniroute_oneproxy_stats`  | `read:proxies` | 连接池统计、同步状态、按协议和国家分布                          |
 
 ## 记忆工具（3）
 
 定义在 `open-sse/mcp-server/tools/memoryTools.ts`。认证/权限域通过标准 MCP 权限域管线强制执行。
 
-| 工具                        | 权限域           | 描述                                                                       |
-| :-------------------------- | :--------------- | :------------------------------------------------------------------------- |
-| `omniroute_memory_search`   | `read:memory`    | 按查询/类型/API Key 搜索记忆，强制 Token 预算                              |
-| `omniroute_memory_add`      | `write:memory`   | 添加新的记忆条目（`factual` / `episodic` / `procedural` / `semantic`）     |
-| `omniroute_memory_clear`    | `write:memory`   | 清除某 API Key 的记忆，可选按类型或 `olderThan` 时间戳过滤                 |
+| 工具                      | 权限域         | 描述                                                                   |
+| :------------------------ | :------------- | :--------------------------------------------------------------------- |
+| `omniroute_memory_search` | `read:memory`  | 按查询/类型/API Key 搜索记忆，强制 Token 预算                          |
+| `omniroute_memory_add`    | `write:memory` | 添加新的记忆条目（`factual` / `episodic` / `procedural` / `semantic`） |
+| `omniroute_memory_clear`  | `write:memory` | 清除某 API Key 的记忆，可选按类型或 `olderThan` 时间戳过滤             |
 
 ## 技能工具（4）
 
 定义在 `open-sse/mcp-server/tools/skillTools.ts`。由 `src/lib/skills/registry` + `src/lib/skills/executor` 支撑。
 
-| 工具                            | 权限域             | 描述                                                                     |
-| :------------------------------ | :----------------- | :----------------------------------------------------------------------- |
-| `omniroute_skills_list`         | `read:skills`      | 列出已注册的技能，支持按 API Key、名称或启用状态过滤                     |
-| `omniroute_skills_enable`       | `write:skills`     | 按 ID 启用或禁用某个技能                                                |
-| `omniroute_skills_execute`      | `execute:skills`   | 以给定输入执行技能，返回执行记录                                         |
-| `omniroute_skills_executions`   | `read:skills`      | 列出近期的技能执行历史                                                   |
+| 工具                          | 权限域           | 描述                                                 |
+| :---------------------------- | :--------------- | :--------------------------------------------------- |
+| `omniroute_skills_list`       | `read:skills`    | 列出已注册的技能，支持按 API Key、名称或启用状态过滤 |
+| `omniroute_skills_enable`     | `write:skills`   | 按 ID 启用或禁用某个技能                             |
+| `omniroute_skills_execute`    | `execute:skills` | 以给定输入执行技能，返回执行记录                     |
+| `omniroute_skills_executions` | `read:skills`    | 列出近期的技能执行历史                               |
 
 ## Notion 上下文源（6）
 
@@ -186,30 +186,30 @@ curl http://localhost:20128/api/settings/notion
 curl -X DELETE http://localhost:20128/api/settings/notion
 ```
 
-| 工具                           | 权限域           | 描述                                                 |
-| :----------------------------- | :--------------- | :--------------------------------------------------- |
-| `notion_search`                | `read:notion`    | 跨所有页面和数据库的全文搜索                         |
-| `notion_get_page`              | `read:notion`    | 按 ID 获取页面及其属性                               |
-| `notion_list_block_children`   | `read:notion`    | 列出页面或块的子块                                   |
-| `notion_query_database`        | `read:notion`    | 查询数据库，支持筛选、排序和分页                     |
-| `notion_get_database`          | `read:notion`    | 按 ID 获取数据库 Schema                              |
-| `notion_append_blocks`         | `write:notion`   | 向父块追加子块（每次请求最多 100 个）                |
+| 工具                         | 权限域         | 描述                                  |
+| :--------------------------- | :------------- | :------------------------------------ |
+| `notion_search`              | `read:notion`  | 跨所有页面和数据库的全文搜索          |
+| `notion_get_page`            | `read:notion`  | 按 ID 获取页面及其属性                |
+| `notion_list_block_children` | `read:notion`  | 列出页面或块的子块                    |
+| `notion_query_database`      | `read:notion`  | 查询数据库，支持筛选、排序和分页      |
+| `notion_get_database`        | `read:notion`  | 按 ID 获取数据库 Schema               |
+| `notion_append_blocks`       | `write:notion` | 向父块追加子块（每次请求最多 100 个） |
 
 ## 代理技能目录工具（3）
 
 定义在 `open-sse/mcp-server/tools/agentSkillTools.ts`。由 `src/lib/agentSkills/catalog` 支撑。这些工具将 42 条目代理技能文档目录暴露给 MCP 客户端和外部代理。权限域：`read:catalog`。
 
-| 工具                                | 权限域           | 描述                                                                                                      |
-| :---------------------------------- | :--------------- | :-------------------------------------------------------------------------------------------------------- |
-| `omniroute_agent_skills_list`       | `read:catalog`   | 列出全部 42 个代理技能，支持可选的 `category`（api\|cli）和 `area` 过滤；返回元数据 + 覆盖情况             |
-| `omniroute_agent_skills_get`        | `read:catalog`   | 按规范 `id` 获取单个技能的完整元数据 + SKILL.md 内容                                                      |
-| `omniroute_agent_skills_coverage`   | `read:catalog`   | 覆盖统计：22 个 API 技能和 20 个 CLI 技能中，哪些在文件系统上有 SKILL.md 文件 vs 目录总计                 |
+| 工具                              | 权限域         | 描述                                                                                           |
+| :-------------------------------- | :------------- | :--------------------------------------------------------------------------------------------- |
+| `omniroute_agent_skills_list`     | `read:catalog` | 列出全部 42 个代理技能，支持可选的 `category`（api\|cli）和 `area` 过滤；返回元数据 + 覆盖情况 |
+| `omniroute_agent_skills_get`      | `read:catalog` | 按规范 `id` 获取单个技能的完整元数据 + SKILL.md 内容                                           |
+| `omniroute_agent_skills_coverage` | `read:catalog` | 覆盖统计：22 个 API 技能和 20 个 CLI 技能中，哪些在文件系统上有 SKILL.md 文件 vs 目录总计      |
 
 完整目录及外部代理如何消费，参见 [AGENT-SKILLS.md](./AGENT-SKILLS.md)。
 
 ## 关联框架（v3.8.0）
 
-上述 MCP 工具清单（94 个工具 = 34 核心 + 3 记忆 + 4 技能 + 3 代理技能 + 6 连接池 + 8 游戏化 + 8 插件 + 6 Notion + 22 Obsidian）有意限定于运行时路由/缓存/压缩/记忆/技能/代理/上下文源操作。两个相邻框架随 MCP 服务器在 v3.8.0 中一同发布，并有独立的文档：
+上述 MCP 工具清单当前共 107 个工具；工具族及其计数以 `open-sse/mcp-server/server.ts` 和 `schemas/tools.ts` 为准。该清单有意限定于运行时路由/缓存/压缩/记忆/技能/代理/上下文源操作。两个相邻框架随 MCP 服务器在 v3.8.0 中一同发布，并有独立的文档：
 
 ### 云代理
 
@@ -232,14 +232,14 @@ curl -X DELETE http://localhost:20128/api/settings/notion
 
 ## REST API 端点
 
-| 端点                     | 方法                  | 描述                                                                                                  | 认证                       |
-| :----------------------- | :-------------------- | :---------------------------------------------------------------------------------------------------- | :------------------------- |
-| `/api/mcp/status`        | `GET`                 | 服务器状态：心跳、HTTP 传输状态、审计活动摘要                                                         | 管理（session/admin）      |
-| `/api/mcp/tools`         | `GET`                 | 工具目录（名称、描述、权限域、阶段、源端点）                                                           | 管理                       |
-| `/api/mcp/sse`           | `GET` / `POST`        | SSE 传输端点（由 `mcpEnabled` + `mcpTransport === "sse"` 控制）                                        | API Key + 权限域           |
-| `/api/mcp/stream`        | `POST`/`GET`/`DELETE` | Streamable HTTP 传输（使用 `mcp-session-id` 头；`DELETE` 结束会话）                                    | API Key + 权限域           |
-| `/api/mcp/audit`         | `GET`                 | 来自 `mcp_tool_audit` 的审计日志条目（过滤参数：`limit`、`offset`、`tool`、`success`、`apiKeyId`）      | 管理                       |
-| `/api/mcp/audit/stats`   | `GET`                 | 聚合审计统计（`totalCalls`、`successRate`、`avgDurationMs`、top 工具）                                 | 管理                       |
+| 端点                   | 方法                  | 描述                                                                                               | 认证                  |
+| :--------------------- | :-------------------- | :------------------------------------------------------------------------------------------------- | :-------------------- |
+| `/api/mcp/status`      | `GET`                 | 服务器状态：心跳、HTTP 传输状态、审计活动摘要                                                      | 管理（session/admin） |
+| `/api/mcp/tools`       | `GET`                 | 工具目录（名称、描述、权限域、阶段、源端点）                                                       | 管理                  |
+| `/api/mcp/sse`         | `GET` / `POST`        | SSE 传输端点（由 `mcpEnabled` + `mcpTransport === "sse"` 控制）                                    | API Key + 权限域      |
+| `/api/mcp/stream`      | `POST`/`GET`/`DELETE` | Streamable HTTP 传输（使用 `mcp-session-id` 头；`DELETE` 结束会话）                                | API Key + 权限域      |
+| `/api/mcp/audit`       | `GET`                 | 来自 `mcp_tool_audit` 的审计日志条目（过滤参数：`limit`、`offset`、`tool`、`success`、`apiKeyId`） | 管理                  |
+| `/api/mcp/audit/stats` | `GET`                 | 聚合审计统计（`totalCalls`、`successRate`、`avgDurationMs`、top 工具）                             | 管理                  |
 
 源文件：`src/app/api/mcp/{status,tools,sse,stream,audit,audit/stats}/route.ts`。
 
@@ -251,32 +251,32 @@ SSE 和 Streamable HTTP 两种传输均在设置中启用 MCP 服务器（`mcpEn
 
 MCP 工具通过 API Key 权限域进行认证。权限域执行集中在 `open-sse/mcp-server/scopeEnforcement.ts`。每个工具需要特定的权限域：
 
-| 权限域                  | 工具                                                                                                                |
-| :---------------------- | :------------------------------------------------------------------------------------------------------------------ |
-| `read:health`           | `get_health`、`get_provider_metrics`、`simulate_route`、`explain_route`、`best_combo_for_task`、`db_health_check`    |
-| `read:combos`           | `list_combos`、`get_combo_metrics`、`simulate_route`、`best_combo_for_task`、`test_combo`                            |
-| `write:combos`          | `switch_combo`、`set_routing_strategy`                                                                              |
-| `read:quota`            | `check_quota`                                                                                                       |
-| `read:usage`            | `cost_report`、`get_session_snapshot`、`explain_route`                                                              |
-| `read:models`           | `list_models_catalog`                                                                                               |
-| `execute:completions`   | `route_request`、`test_combo`                                                                                       |
-| `execute:search`        | `web_search`                                                                                                        |
-| `write:budget`          | `set_budget_guard`                                                                                                  |
-| `write:resilience`      | `set_resilience_profile`、`db_health_check`                                                                         |
-| `pricing:write`         | `sync_pricing`                                                                                                      |
-| `read:cache`            | `cache_stats`                                                                                                       |
-| `write:cache`           | `cache_flush`                                                                                                       |
-| `read:compression`      | `compression_status`、`list_compression_combos`、`compression_combo_stats`                                          |
-| `write:compression`     | `compression_configure`、`set_compression_engine`                                                                   |
-| `read:proxies`          | `oneproxy_fetch`、`oneproxy_rotate`、`oneproxy_stats`                                                               |
-| `read:notion`           | `notion_search`、`notion_list_databases`、`notion_get_database`、`notion_query_database`、`notion_read`              |
-| `write:notion`          | `notion_append_blocks`                                                                                              |
-| `read:memory`           | `memory_search`                                                                                                     |
-| `write:memory`          | `memory_add`、`memory_clear`                                                                                        |
-| `read:skills`           | `skills_list`、`skills_executions`                                                                                  |
-| `write:skills`          | `skills_enable`                                                                                                     |
-| `execute:skills`        | `skills_execute`                                                                                                    |
-| `read:catalog`          | `agent_skills_list`、`agent_skills_get`、`agent_skills_coverage`                                                    |
+| 权限域                | 工具                                                                                                              |
+| :-------------------- | :---------------------------------------------------------------------------------------------------------------- |
+| `read:health`         | `get_health`、`get_provider_metrics`、`simulate_route`、`explain_route`、`best_combo_for_task`、`db_health_check` |
+| `read:combos`         | `list_combos`、`get_combo_metrics`、`simulate_route`、`best_combo_for_task`、`test_combo`                         |
+| `write:combos`        | `switch_combo`、`set_routing_strategy`                                                                            |
+| `read:quota`          | `check_quota`                                                                                                     |
+| `read:usage`          | `cost_report`、`get_session_snapshot`、`explain_route`                                                            |
+| `read:models`         | `list_models_catalog`                                                                                             |
+| `execute:completions` | `route_request`、`test_combo`                                                                                     |
+| `execute:search`      | `web_search`                                                                                                      |
+| `write:budget`        | `set_budget_guard`                                                                                                |
+| `write:resilience`    | `set_resilience_profile`、`db_health_check`                                                                       |
+| `pricing:write`       | `sync_pricing`                                                                                                    |
+| `read:cache`          | `cache_stats`                                                                                                     |
+| `write:cache`         | `cache_flush`                                                                                                     |
+| `read:compression`    | `compression_status`、`list_compression_combos`、`compression_combo_stats`                                        |
+| `write:compression`   | `compression_configure`、`set_compression_engine`                                                                 |
+| `read:proxies`        | `oneproxy_fetch`、`oneproxy_rotate`、`oneproxy_stats`                                                             |
+| `read:notion`         | `notion_search`、`notion_list_databases`、`notion_get_database`、`notion_query_database`、`notion_read`           |
+| `write:notion`        | `notion_append_blocks`                                                                                            |
+| `read:memory`         | `memory_search`                                                                                                   |
+| `write:memory`        | `memory_add`、`memory_clear`                                                                                      |
+| `read:skills`         | `skills_list`、`skills_executions`                                                                                |
+| `write:skills`        | `skills_enable`                                                                                                   |
+| `execute:skills`      | `skills_execute`                                                                                                  |
+| `read:catalog`        | `agent_skills_list`、`agent_skills_get`、`agent_skills_coverage`                                                  |
 
 支持通配符权限域：`read:*` 授予全部读权限域，`*` 授予完整访问。
 
@@ -284,17 +284,17 @@ MCP 工具通过 API Key 权限域进行认证。权限域执行集中在 `open-
 
 ## 环境变量
 
-| 变量                                      | 默认值                              | 用途                                                                                                                       |
-| :---------------------------------------- | :---------------------------------- | :------------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_BASE_URL`                      | `http://localhost:20128`            | MCP 服务器调用 OmniRoute 内部 API 时使用的基础 URL                                                                          |
-| `OMNIROUTE_API_KEY`                       | （空）                              | 转发为 `Authorization: Bearer` 给内部 API 调用的 API Key                                                                     |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`            | `false`（仅 `"true"` 启用）         | 启用后，缺少权限域时拒绝工具调用并在审计日志中记录 `scope_denied:<reason>`                                                  |
-| `OMNIROUTE_MCP_SCOPES`                    | （空）                              | 逗号分隔的权限域白名单，视为默认"可用"（当调用方不提供自身权限域时使用）                                                   |
-| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`     | （不设置 = 开启）                   | 设置为 `0/false/off/no` 时，禁用注册时的 MCP 描述压缩                                                                        |
-| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION`   | （不设置 = 开启）                   | 与上文相同开关的别名                                                                                                       |
-| `MCP_TOOL_DENY`                           | （不设置 = 无过滤）                 | 逗号分隔的工具名称，从 `tools/list` 中移除（工具基数精简 — 见下文）                                                        |
-| `MCP_TOOL_ALLOW`                          | （不设置 = 无过滤）                 | 逗号分隔的工具名称，仅保留这些工具（白名单模式 — 见下文）                                                                  |
-| `DATA_DIR`                                | `~/.omniroute`                      | 心跳文件写入 `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                                       |
+| 变量                                    | 默认值                      | 用途                                                                       |
+| :-------------------------------------- | :-------------------------- | :------------------------------------------------------------------------- |
+| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`    | MCP 服务器调用 OmniRoute 内部 API 时使用的基础 URL                         |
+| `OMNIROUTE_API_KEY`                     | （空）                      | 转发为 `Authorization: Bearer` 给内部 API 调用的 API Key                   |
+| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false`（仅 `"true"` 启用） | 启用后，缺少权限域时拒绝工具调用并在审计日志中记录 `scope_denied:<reason>` |
+| `OMNIROUTE_MCP_SCOPES`                  | （空）                      | 逗号分隔的权限域白名单，视为默认"可用"（当调用方不提供自身权限域时使用）   |
+| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | （不设置 = 开启）           | 设置为 `0/false/off/no` 时，禁用注册时的 MCP 描述压缩                      |
+| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | （不设置 = 开启）           | 与上文相同开关的别名                                                       |
+| `MCP_TOOL_DENY`                         | （不设置 = 无过滤）         | 逗号分隔的工具名称，从 `tools/list` 中移除（工具基数精简 — 见下文）        |
+| `MCP_TOOL_ALLOW`                        | （不设置 = 无过滤）         | 逗号分隔的工具名称，仅保留这些工具（白名单模式 — 见下文）                  |
+| `DATA_DIR`                              | `~/.omniroute`              | 心跳文件写入 `${DATA_DIR}/runtime/mcp-heartbeat.json`                      |
 
 ---
 
@@ -313,12 +313,12 @@ MCP 工具、提示和资源注册表可以在注册/列表时压缩描述，以
 
 描述压缩缩小了每个工具的元数据；**工具基数精简**更进一步，减少了_宣布_的工具数量。在 `tools/list` 清单中宣布更少的工具，可降低客户端模型为工具目录支付的每请求 Token 成本（"第 5 层"压缩）。实现为 `open-sse/mcp-server/toolCardinality.ts` 中的纯无状态过滤器（`reduceToolManifest`），接入 `createMcpServer()`（`open-sse/mcp-server/server.ts`）中的注册循环。
 
-**需主动开启，默认关闭。** 仅当设置了两个环境变量中的至少一个时，过滤器才会运行；两者都不设置时，全部 94 个工具按原样宣布。
+**需主动开启，默认关闭。** 仅当设置了两个环境变量中的至少一个时，过滤器才会运行；两者都不设置时，全部 107 个工具按原样宣布。
 
-| 变量               | 模式                                                                              |
-| :----------------- | :-------------------------------------------------------------------------------- |
-| `MCP_TOOL_DENY`    | 黑名单 — 逗号分隔的工具名称，始终从 `tools/list` 中移除                           |
-| `MCP_TOOL_ALLOW`   | 白名单 — 逗号分隔的工具名称；仅保留这些，其余全部移除                             |
+| 变量             | 模式                                                    |
+| :--------------- | :------------------------------------------------------ |
+| `MCP_TOOL_DENY`  | 黑名单 — 逗号分隔的工具名称，始终从 `tools/list` 中移除 |
+| `MCP_TOOL_ALLOW` | 白名单 — 逗号分隔的工具名称；仅保留这些，其余全部移除   |
 
 `deny` 优先于 `allow`。名称以逗号分隔，去除首尾空格，空条目被忽略。示例：
 
@@ -372,32 +372,32 @@ stdio 传输每 5 秒将存活状态持久化到 `${DATA_DIR}/runtime/mcp-heartb
 
 ## 文件
 
-| 文件                                                                       | 用途                                                             |
-| :------------------------------------------------------------------------- | :--------------------------------------------------------------- |
-| `open-sse/mcp-server/server.ts`                                            | MCP 服务器工厂、stdio 入口点、按权限域的工具注册                 |
-| `open-sse/mcp-server/httpTransport.ts`                                     | SSE + Streamable HTTP 传输（会话管理）                            |
-| `open-sse/mcp-server/scopeEnforcement.ts`                                  | 工具权限域评估和调用方解析                                       |
-| `open-sse/mcp-server/audit.ts`                                             | 工具调用审计日志（`mcp_tool_audit`）                              |
-| `open-sse/mcp-server/runtimeHeartbeat.ts`                                  | stdio 心跳写入器（`mcp-heartbeat.json`）                          |
-| `open-sse/mcp-server/descriptionCompressor.ts`                             | 工具/提示/资源注册表的描述压缩                                   |
-| `open-sse/mcp-server/schemas/tools.ts`                                     | Zod Schema + 工具注册表（`MCP_TOOLS`，34 条目）                   |
-| `open-sse/mcp-server/tools/advancedTools.ts`                               | 阶段 2 + 缓存 + 1proxy 工具处理器                                |
-| `open-sse/mcp-server/tools/compressionTools.ts`                            | 压缩工具处理器                                                   |
-| `open-sse/mcp-server/tools/memoryTools.ts`                                 | 记忆工具定义（3 工具）                                            |
-| `open-sse/mcp-server/tools/skillTools.ts`                                  | 技能工具定义（4 工具）                                            |
-| `open-sse/mcp-server/tools/notionTools.ts`                                 | Notion 上下文源工具定义（6 工具）                                 |
-| `open-sse/mcp-server/tools/gamificationTools.ts`                           | 游戏化工具定义（8 工具）                                          |
-| `open-sse/mcp-server/tools/pluginTools.ts`                                 | 插件注册和管理工具（8 工具）                                      |
-| `src/app/api/mcp/status/route.ts`                                          | `/api/mcp/status` 端点                                           |
-| `src/app/api/mcp/tools/route.ts`                                           | `/api/mcp/tools` 端点                                            |
-| `src/app/api/mcp/sse/route.ts`                                             | `/api/mcp/sse` SSE 传输路由                                      |
-| `src/app/api/mcp/stream/route.ts`                                          | `/api/mcp/stream` Streamable HTTP 传输路由                       |
-| `src/app/api/mcp/audit/route.ts`                                           | `/api/mcp/audit` 审计日志查询                                     |
-| `src/app/api/mcp/audit/stats/route.ts`                                     | `/api/mcp/audit/stats` 聚合审计指标                               |
-| `src/lib/notion/api.ts`                                                    | Notion REST API 客户端（重试、超时、错误分类）                    |
-| `src/lib/db/notion.ts`                                                     | Notion Token 持久化（`key_value` 表）                             |
-| `src/app/api/settings/notion/route.ts`                                     | Notion 设置 API（GET/POST/DELETE）                                |
-| `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx`   | Notion Token 管理界面                                             |
-| `tests/unit/notion-api.test.ts`                                            | Notion API 客户端测试（7）                                        |
-| `tests/unit/notion-tools.test.ts`                                          | Notion 工具权限域执行测试（10）                                   |
-| `tests/unit/db/notion.test.mjs`                                            | Notion 数据库模块测试（3）                                        |
+| 文件                                                                     | 用途                                             |
+| :----------------------------------------------------------------------- | :----------------------------------------------- |
+| `open-sse/mcp-server/server.ts`                                          | MCP 服务器工厂、stdio 入口点、按权限域的工具注册 |
+| `open-sse/mcp-server/httpTransport.ts`                                   | SSE + Streamable HTTP 传输（会话管理）           |
+| `open-sse/mcp-server/scopeEnforcement.ts`                                | 工具权限域评估和调用方解析                       |
+| `open-sse/mcp-server/audit.ts`                                           | 工具调用审计日志（`mcp_tool_audit`）             |
+| `open-sse/mcp-server/runtimeHeartbeat.ts`                                | stdio 心跳写入器（`mcp-heartbeat.json`）         |
+| `open-sse/mcp-server/descriptionCompressor.ts`                           | 工具/提示/资源注册表的描述压缩                   |
+| `open-sse/mcp-server/schemas/tools.ts`                                   | Zod Schema + 工具注册表（`MCP_TOOLS`，34 条目）  |
+| `open-sse/mcp-server/tools/advancedTools.ts`                             | 阶段 2 + 缓存 + 1proxy 工具处理器                |
+| `open-sse/mcp-server/tools/compressionTools.ts`                          | 压缩工具处理器                                   |
+| `open-sse/mcp-server/tools/memoryTools.ts`                               | 记忆工具定义（3 工具）                           |
+| `open-sse/mcp-server/tools/skillTools.ts`                                | 技能工具定义（4 工具）                           |
+| `open-sse/mcp-server/tools/notionTools.ts`                               | Notion 上下文源工具定义（6 工具）                |
+| `open-sse/mcp-server/tools/gamificationTools.ts`                         | 游戏化工具定义（8 工具）                         |
+| `open-sse/mcp-server/tools/pluginTools.ts`                               | 插件注册和管理工具（8 工具）                     |
+| `src/app/api/mcp/status/route.ts`                                        | `/api/mcp/status` 端点                           |
+| `src/app/api/mcp/tools/route.ts`                                         | `/api/mcp/tools` 端点                            |
+| `src/app/api/mcp/sse/route.ts`                                           | `/api/mcp/sse` SSE 传输路由                      |
+| `src/app/api/mcp/stream/route.ts`                                        | `/api/mcp/stream` Streamable HTTP 传输路由       |
+| `src/app/api/mcp/audit/route.ts`                                         | `/api/mcp/audit` 审计日志查询                    |
+| `src/app/api/mcp/audit/stats/route.ts`                                   | `/api/mcp/audit/stats` 聚合审计指标              |
+| `src/lib/notion/api.ts`                                                  | Notion REST API 客户端（重试、超时、错误分类）   |
+| `src/lib/db/notion.ts`                                                   | Notion Token 持久化（`key_value` 表）            |
+| `src/app/api/settings/notion/route.ts`                                   | Notion 设置 API（GET/POST/DELETE）               |
+| `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` | Notion Token 管理界面                            |
+| `tests/unit/notion-api.test.ts`                                          | Notion API 客户端测试（7）                       |
+| `tests/unit/notion-tools.test.ts`                                        | Notion 工具权限域执行测试（10）                  |
+| `tests/unit/db/notion.test.mjs`                                          | Notion 数据库模块测试（3）                       |

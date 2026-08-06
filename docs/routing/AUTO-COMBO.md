@@ -163,9 +163,9 @@ The detection helper lives in `src/lib/combos/modelNameCollision.ts`.
 
 The Auto-Combo Engine dynamically selects the best provider/model for each request using a **13-factor scoring function** (defined in `open-sse/services/autoCombo/scoring.ts` → `DEFAULT_WEIGHTS`). All weights sum to **1.0**.
 
-![Auto-Combo 12-factor scoring](../diagrams/exported/auto-combo-12factor.svg)
+![Auto-Combo scoring overview](../diagrams/exported/auto-combo-12factor.svg)
 
-> Source: [diagrams/auto-combo-12factor.mmd](../diagrams/auto-combo-12factor.mmd) (regenerate via `npm run docs:render-diagrams`). Diagram/filename predate the `cacheAffinity` factor added by #8008 and still show 12 factors.
+> Source: [diagrams/auto-combo-12factor.mmd](../diagrams/auto-combo-12factor.mmd) (regenerate via `npm run docs:render-diagrams`). The historical filename predates the additional scoring factors; the current diagram shows all 13 factors.
 
 | Factor                | Default Weight | Description                                                                                                                                                                                 |
 | :-------------------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -255,7 +255,7 @@ OmniRoute's combo engine supports **19 routing strategies** (declared in `src/sh
 | `reset-window`      | Prefer targets whose quota window resets soonest                                                                                                                                          |
 | `headroom`          | Pick the target with the most remaining quota headroom                                                                                                                                    |
 | `strict-random`     | Random without deduplication of repeats                                                                                                                                                   |
-| `auto`              | Use Auto Combo scoring (9-factor) — **recommended**                                                                                                                                       |
+| `auto`              | Use Auto Combo scoring (13-factor) — **recommended**                                                                                                                                      |
 | `lkgp`              | Last-Known-Good Path (sticky route to last successful target)                                                                                                                             |
 | `context-optimized` | Pick target with best fit for current context size                                                                                                                                        |
 | `cache-optimized`   | Reorder targets by prompt-cache affinity — the connection likeliest to already hold this request's cached prefix is tried first (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
@@ -344,7 +344,7 @@ The Auto Combo engine doesn't require pre-defined combos. Instead, `open-sse/ser
 3. Cross-references with `getProviderRegistry()` for model availability + pricing
 4. For each tuple `(provider, model, connection)`, builds a `VirtualAutoComboCandidate`
 5. Picks `connection.defaultModel` (or the registry's first model) as the dispatch target
-6. Scores each candidate using the 9-factor `scorePool()` and the variant's weight pack
+6. Scores each candidate using the 13-factor `scorePool()` and the variant's weight pack
 7. Returns the resulting in-memory `AutoComboConfig` for `handleComboChat()` — never persisted to DB
 
 This means **adding a new provider with `auto/*` enabled automatically expands the candidate pool** — no manual combo editing needed. The virtual combo is rebuilt per request, so newly-added or newly-healthy connections are picked up immediately.
@@ -654,7 +654,7 @@ Including the bare `auto` (default) plus the 6 `AutoVariant` values declared in 
 
 ## How tiers fit Auto-Combo
 
-The 12-factor scoring function (`open-sse/services/autoCombo/scoring.ts`) treats tier
+The 13-factor scoring function (`open-sse/services/autoCombo/scoring.ts`) treats tier
 membership as two signals: `tierPriority` (0.05) and `tierAffinity` (0.05). See the
 canonical [scoring factor table](#how-it-works-persisted-auto-combos) above for the full
 `DEFAULT_WEIGHTS` set — the per-pack overrides (ship-fast/cost-saver/quality-first/
@@ -709,7 +709,7 @@ intentionally excluded from CI because they require live credentials and VPS acc
 
 | File                                                      | Purpose                                                                    |
 | :-------------------------------------------------------- | :------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | 9-factor scoring function, `DEFAULT_WEIGHTS`, pool norm                    |
+| `open-sse/services/autoCombo/scoring.ts`                  | 13-factor scoring function, `DEFAULT_WEIGHTS`, pool norm                   |
 | `open-sse/services/autoCombo/taskFitness.ts`              | Model × task fitness lookup                                                |
 | `open-sse/services/autoCombo/engine.ts`                   | Selection logic, bandit, budget cap                                        |
 | `open-sse/services/autoCombo/selfHealing.ts`              | Exclusion, probes, incident mode                                           |

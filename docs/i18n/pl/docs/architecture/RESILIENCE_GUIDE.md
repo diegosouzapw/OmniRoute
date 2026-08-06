@@ -262,7 +262,7 @@ jest unit-testowalna bez prawdziwego limitera Bottleneck.
 
 ## Inne funkcje odporności
 
-- **18 strategii routingu** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, fusion, pipeline) — zob. [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **19 strategii routingu** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — zob. [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Reset-aware routing** (v3.8.0) — priorytetyzuje połączenia według czasu resetu kwoty.
 - **Background mode degradation** — Responses API `background: true` zdegradowane do sync z ostrzeżeniem.
 - **Dynamic tool limit detection** — wycofuje się z providerów przy trafieniu w limity liczby tooli.
@@ -306,4 +306,4 @@ domyślnym `test:integration` chaos i heap same się pomijają (bez `RUN_CHAOS_I
 
 - [Architecture Guide](./ARCHITECTURE.md) — Architektura systemu i wnętrze
 - [User Guide](../guides/USER_GUIDE.md) — Providery, combo, integracja CLI
-- [Auto-Combo Engine](../routing/AUTO-COMBO.md) — scoring 12-czynnikowy, mode packs
+- [Auto-Combo Engine](../routing/AUTO-COMBO.md) — scoring 13-czynnikowy, mode packs

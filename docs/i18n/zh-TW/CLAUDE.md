@@ -39,22 +39,22 @@ npm run test:all
 
 ## 專案概覽
 
-**OmniRoute** — 統一的 AI 代理/路由器。一個端點，160+ LLM 提供者，自動回退。
+**OmniRoute** — 統一的 AI 代理/路由器。一個端點，329 LLM 提供者，自動回退。
 
-| 層級       | 位置                    | 目的                                                             |
-| ---------- | ----------------------- | ---------------------------------------------------------------- |
-| API 路由   | `src/app/api/v1/`       | Next.js 應用路由 — 入口點                                        |
-| 處理程序   | `open-sse/handlers/`    | 請求處理（聊天、嵌入等）                                         |
-| 執行器     | `open-sse/executors/`   | 特定提供者的 HTTP 調度                                           |
-| 轉換器     | `open-sse/translator/`  | 格式轉換（OpenAI↔Claude↔Gemini）                                 |
-| 轉換器     | `open-sse/transformer/` | 回應 API ↔ 聊天完成                                              |
-| 服務       | `open-sse/services/`    | 組合路由、速率限制、快取等                                       |
-| 資料庫     | `src/lib/db/`           | SQLite 域模組（45+ 文件，55 次遷移）                             |
-| 域/策略    | `src/domain/`           | 策略引擎、成本規則、回退邏輯                                     |
-| MCP 伺服器 | `open-sse/mcp-server/`  | 37 個工具（30 基礎 + 3 記憶 + 4 技能），3 個傳輸，大約 13 個範圍 |
-| A2A 伺服器 | `src/lib/a2a/`          | JSON-RPC 2.0 代理協議                                            |
-| 技能       | `src/lib/skills/`       | 可擴展的技能框架                                                 |
-| 記憶       | `src/lib/memory/`       | 持久化對話記憶                                                   |
+| 層級       | 位置                    | 目的                                                                      |
+| ---------- | ----------------------- | ------------------------------------------------------------------------- |
+| API 路由   | `src/app/api/v1/`       | Next.js 應用路由 — 入口點                                                 |
+| 處理程序   | `open-sse/handlers/`    | 請求處理（聊天、嵌入等）                                                  |
+| 執行器     | `open-sse/executors/`   | 特定提供者的 HTTP 調度                                                    |
+| 轉換器     | `open-sse/translator/`  | 格式轉換（OpenAI↔Claude↔Gemini）                                          |
+| 轉換器     | `open-sse/transformer/` | 回應 API ↔ 聊天完成                                                       |
+| 服務       | `open-sse/services/`    | 組合路由、速率限制、快取等                                                |
+| 資料庫     | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| 域/策略    | `src/domain/`           | 策略引擎、成本規則、回退邏輯                                              |
+| MCP 伺服器 | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2A 伺服器 | `src/lib/a2a/`          | JSON-RPC 2.0 代理協議                                                     |
+| 技能       | `src/lib/skills/`       | 可擴展的技能框架                                                          |
+| 記憶       | `src/lib/memory/`       | 持久化對話記憶                                                            |
 
 Monorepo: `src/`（Next.js 16 應用），`open-sse/`（流媒體引擎工作區），`electron/`（桌面應用），`tests/`，`bin/`（CLI 入口點）。
 
@@ -76,7 +76,7 @@ Monorepo: `src/`（Next.js 16 應用），`open-sse/`（流媒體引擎工作區
 
 API 路由遵循一致的模式：`路由 → CORS 預檢 → Zod 請求體驗證 → 可選認證 (extractApiKey/isValidApiKey) → API 密鑰策略執行 → 處理程序委派 (open-sse)`。沒有全域的 Next.js 中間件 — 攔截是路由特定的。
 
-**組合路由** (`open-sse/services/combo.ts`): 14 種策略（優先級、加權、優先填充、輪詢、P2C、隨機、最少使用、成本優化、重置感知、嚴格隨機、自動、lkgp、上下文優化、上下文中繼）。每個目標呼叫 `handleSingleModel()`，該函數用每個目標的錯誤處理和電路斷路器檢查包裝 `handleChatCore()`。有關 9 因子自動組合評分的資訊，請參見 `docs/routing/AUTO-COMBO.md`，有關 3 層彈性的資訊，請參見 `docs/architecture/RESILIENCE_GUIDE.md`。
+**組合路由** (`open-sse/services/combo.ts`): 19 種公開策略（優先級、加權、優先填充、輪詢、P2C、隨機、最少使用、成本優化、重置感知、重置視窗、餘裕空間、嚴格隨機、自動、lkgp、上下文優化、快取優化、上下文中繼、融合、pipeline）。每個目標呼叫 `handleSingleModel()`，該函數用每個目標的錯誤處理和電路斷路器檢查包裝 `handleChatCore()`。有關 13 因子自動組合評分的資訊，請參見 `docs/routing/AUTO-COMBO.md`，有關 3 層彈性的資訊，請參見 `docs/architecture/RESILIENCE_GUIDE.md`。
 
 ---
 
@@ -363,7 +363,9 @@ git push -u origin feat/your-feature
 
 ## 環境
 
-- **運行時**：Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
+- **運行時**：Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, ES Modules
 - **TypeScript**：5.9+，目標 ES2022，模組 esnext，解析器 bundler
 - **路徑別名**：`@/*` → `src/`，`@omniroute/open-sse` → `open-sse/`，`@omniroute/open-sse/*` → `open-sse/*`
 - **預設埠**：20128（API + 儀表板在同一埠）

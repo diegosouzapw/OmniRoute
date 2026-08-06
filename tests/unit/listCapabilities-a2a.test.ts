@@ -3,7 +3,7 @@
  *
  * Verifies:
  *  - Return shape matches §3.7 contract
- *  - Markdown table contains all 44 skill IDs
+ *  - Markdown table contains all 45 skill IDs
  *  - Coverage bounds are within declared totals
  *  - metadata.source === "agent-skills-catalog"
  *  - metadata.generatedAt is an ISO datetime string
@@ -13,7 +13,11 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { A2ATask } from "../../src/lib/a2a/taskManager.js";
 import { executeListCapabilities } from "../../src/lib/a2a/skills/listCapabilities.js";
-import { API_SKILL_IDS, CLI_SKILL_IDS } from "../../src/lib/agentSkills/catalog.js";
+import {
+  API_SKILL_IDS,
+  CLI_SKILL_IDS,
+  CONFIG_SKILL_IDS,
+} from "../../src/lib/agentSkills/catalog.js";
 
 // Minimal stub — executeListCapabilities only receives the task arg but does not use it
 const stubTask = {} as A2ATask;
@@ -31,20 +35,21 @@ test("executeListCapabilities returns shape matching §3.7 contract", async () =
   const { metadata } = result;
   assert.ok(metadata, "metadata exists");
   assert.equal(metadata.source, "agent-skills-catalog", "metadata.source matches");
-  assert.equal(metadata.totalSkills, 45, "metadata.totalSkills === 45 (44 + config)");
+  assert.equal(metadata.totalSkills, 45, "metadata.totalSkills === 45");
   assert.ok(metadata.coverage, "metadata.coverage exists");
   assert.ok(metadata.coverage.api, "metadata.coverage.api exists");
   assert.ok(metadata.coverage.cli, "metadata.coverage.cli exists");
   assert.equal(metadata.coverage.api.total, 23, "api.total === 23");
-  assert.equal(metadata.coverage.cli.total, 20, "cli.total === 20");
+  assert.equal(metadata.coverage.cli.total, 21, "cli.total === 21");
+  assert.equal(metadata.coverage.config.total, 1, "config.total === 1");
 });
 
-test("executeListCapabilities markdown table contains all 44 API+CLI skill IDs", async () => {
+test("executeListCapabilities markdown table contains all 45 skill IDs", async () => {
   const result = await executeListCapabilities(stubTask);
   const content = result.artifacts[0].content;
 
-  const allIds = [...API_SKILL_IDS, ...CLI_SKILL_IDS] as string[];
-  assert.equal(allIds.length, 44, "API+CLI catalog declares 44 skill IDs");
+  const allIds = [...API_SKILL_IDS, ...CLI_SKILL_IDS, ...CONFIG_SKILL_IDS] as string[];
+  assert.equal(allIds.length, 45, "catalog declares 45 skill IDs");
 
   for (const id of allIds) {
     assert.ok(content.includes(id), `Markdown table missing skill ID: ${id}`);
@@ -63,6 +68,13 @@ test("metadata.coverage.cli.have is within [0, 21]", async () => {
   const { cli } = result.metadata.coverage;
   assert.ok(cli.have >= 0, "cli.have >= 0");
   assert.ok(cli.have <= 21, "cli.have <= 21");
+});
+
+test("metadata.coverage.config.have is within [0, 1]", async () => {
+  const result = await executeListCapabilities(stubTask);
+  const { config } = result.metadata.coverage;
+  assert.ok(config.have >= 0, "config.have >= 0");
+  assert.ok(config.have <= 1, "config.have <= 1");
 });
 
 test("metadata.generatedAt is a valid ISO datetime", async () => {

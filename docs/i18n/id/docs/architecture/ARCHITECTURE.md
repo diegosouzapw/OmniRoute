@@ -13,27 +13,27 @@ Sistem ini menyediakan satu endpoint yang kompatibel dengan OpenAI (`/v1/*`) dan
 
 Kemampuan inti:
 
-- Antarmuka API yang kompatibel dengan OpenAI untuk CLI/tools (100+ penyedia, 16 executor)
+- Antarmuka API yang kompatibel dengan OpenAI untuk CLI/tools (329 entri katalog penyedia, 89 modul implementasi executor)
 - Translasi permintaan/respons antar format penyedia
 - Fallback combo model (urutan multi-model)
 - Langkah combo terstruktur (`provider + model + connection`) dengan pengurutan runtime melalui `compositeTiers`
 - Fallback di tingkat akun (multi-akun per penyedia)
 - Preflight kuota dan pemilihan akun P2C yang sadar kuota pada jalur chat utama
-- Manajemen koneksi penyedia OAuth + API-key (13 modul OAuth)
+- Manajemen koneksi penyedia OAuth + API-key (21 modul implementasi OAuth)
 - Pembuatan embedding melalui `/v1/embeddings` (6 penyedia, 9 model)
 - Pembuatan gambar melalui `/v1/images/generations` (10+ penyedia, 20+ model)
 - Transkripsi audio melalui `/v1/audio/transcriptions` (7 penyedia)
 - Text-to-speech melalui `/v1/audio/speech` (10 penyedia)
 - Pembuatan video melalui `/v1/videos/generations` (ComfyUI + SD WebUI)
 - Pembuatan musik melalui `/v1/music/generations` (ComfyUI)
-- Pencarian web melalui `/v1/search` (5 penyedia)
+- Pencarian web melalui `/v1/search` (12 penyedia)
 - Moderasi melalui `/v1/moderations`
 - Reranking melalui `/v1/rerank`
 - Penguraian think tag (`<think>...</think>`) untuk model penalaran
 - Sanitasi respons untuk kompatibilitas ketat OpenAI SDK
 - Normalisasi peran (developer→system, system→user) untuk kompatibilitas lintas penyedia
 - Konversi output terstruktur (json_schema → Gemini responseSchema)
-- Persistensi lokal untuk penyedia, kunci, alias, combo, pengaturan, harga (26 modul DB)
+- Persistensi lokal untuk penyedia, kunci, alias, combo, pengaturan, harga (111 modul DB tingkat atas)
 - Pelacakan penggunaan/biaya dan pencatatan permintaan
 - Sinkronisasi cloud opsional untuk sinkronisasi multi-perangkat/status
 - Daftar izin/blokir IP untuk kontrol akses API
@@ -54,14 +54,14 @@ Kemampuan inti:
 - Pencatatan audit kepatuhan dengan opsi keluar per API key
 - Kerangka eval untuk penjaminan kualitas LLM
 - Dasbor kesehatan dengan status circuit breaker penyedia secara real-time
-- MCP Server (25 tools) dengan 3 transport (stdio/SSE/Streamable HTTP)
+- MCP Server (107 unique tools, 32 scopes) dengan 3 transport (stdio/SSE/Streamable HTTP)
 - A2A Server (JSON-RPC 2.0 + SSE) dengan skill dan siklus hidup tugas
 - Sistem memori (ekstraksi, injeksi, pengambilan, perangkuman)
 - Sistem skill (registry, executor, sandbox, skill bawaan)
 - Proxy MITM dengan manajemen sertifikat dan penanganan DNS
 - Middleware penjaga injeksi prompt
 - Registry ACP (Agent Communication Protocol)
-- Penyedia OAuth modular (13 modul individual di bawah `src/lib/oauth/providers/`)
+- Penyedia OAuth modular (21 modul implementasi di bawah `src/lib/oauth/providers/`)
 - Skrip uninstall/full-uninstall
 - Aksi perbaikan lingkungan OAuth
 - Jembatan WebSocket untuk klien WS yang kompatibel dengan OpenAI (`/v1/ws`)
@@ -279,7 +279,7 @@ Modul lapisan domain:
 - Pelari eval: `src/lib/domain/evalRunner.ts`
 - Persistensi status domain: `src/lib/db/domainState.ts` — CRUD SQLite untuk rantai fallback, anggaran, riwayat biaya, status lockout, circuit breaker
 
-Modul penyedia OAuth (13 file individual di bawah `src/lib/oauth/providers/`):
+Modul penyedia OAuth (21 modul implementasi di bawah `src/lib/oauth/providers/`):
 
 - Indeks registry: `src/lib/oauth/providers/index.ts`
 - Penyedia individual: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
@@ -662,64 +662,64 @@ flowchart LR
 
 Setiap penyedia memiliki pelaksana khusus yang memperluas `BaseExecutor` (dalam `open-sse/executors/base.ts`), yang menyediakan pembuatan URL, konstruksi header, percobaan ulang dengan backoff eksponensial, kait penyegaran kredensial, dan metode orkestrasi `execute()`.
 
-| Executor               | Provider(s)                                                                                                                                                 | Special Handling                                                     |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `DefaultExecutor`      | OpenAI, Claude, Gemini, Qwen, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA, etc. | Konfigurasi URL/tajuk dinamis per penyedia                               |
-| `AntigravityExecutor`  | Google Antigravity                                                                                                                                          | Custom project/session IDs, Retry-After parsing                      |
-| `CliProxyApiExecutor`  | Penyedia yang kompatibel dengan CLIProxyAPI                                                                                                                            | Penanganan autentikasi dan protokol khusus                                    |
-| `CloudflareAiExecutor` | Cloudflare Workers AI                                                                                                                                       | Injeksi ID Akun, pelacakan penggunaan berbasis Neuron                   |
-| `CodexExecutor`        | OpenAI Codex                                                                                                                                                | Injects system instructions, forces reasoning effort                 |
+| Executor               | Provider(s)                                                                                                                                                 | Special Handling                                                                      |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `DefaultExecutor`      | OpenAI, Claude, Gemini, Qwen, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA, etc. | Konfigurasi URL/tajuk dinamis per penyedia                                            |
+| `AntigravityExecutor`  | Google Antigravity                                                                                                                                          | Custom project/session IDs, Retry-After parsing                                       |
+| `CliProxyApiExecutor`  | Penyedia yang kompatibel dengan CLIProxyAPI                                                                                                                 | Penanganan autentikasi dan protokol khusus                                            |
+| `CloudflareAiExecutor` | Cloudflare Workers AI                                                                                                                                       | Injeksi ID Akun, pelacakan penggunaan berbasis Neuron                                 |
+| `CodexExecutor`        | OpenAI Codex                                                                                                                                                | Injects system instructions, forces reasoning effort                                  |
 | `CursorExecutor`       | Cursor IDE                                                                                                                                                  | Protokol ConnectRPC, pengkodean Protobuf, penandatanganan permintaan melalui checksum |
-| `GithubExecutor`       | GitHub Copilot                                                                                                                                              | Copilot token refresh, VSCode-mimicking headers                      |
-| `KiroExecutor`         | AWS CodeWhisperer/Kiro                                                                                                                                      | Format biner AWS EventStream → konversi SSE                       |
-| `OpenCodeExecutor`     | OpenCode                                                                                                                                                    | Penyiapan penyedia yang kompatibel dengan AI SDK                                     |
-| `PollinationsExecutor` | Pollinations AI                                                                                                                                             | Tidak diperlukan kunci API, permintaan dengan tarif terbatas                           |
-| `PuterExecutor`        | Puter                                                                                                                                                       | Integrasi penyedia berbasis browser                                   |
-| `QoderExecutor`        | Qoder AI                                                                                                                                                    | Dukungan PAT dan OAuth, tingkat gratis multi-model                         |
-| `VertexExecutor`       | Google Vertex AI                                                                                                                                            | Otentikasi akun layanan, titik akhir berbasis wilayah                         |
+| `GithubExecutor`       | GitHub Copilot                                                                                                                                              | Copilot token refresh, VSCode-mimicking headers                                       |
+| `KiroExecutor`         | AWS CodeWhisperer/Kiro                                                                                                                                      | Format biner AWS EventStream → konversi SSE                                           |
+| `OpenCodeExecutor`     | OpenCode                                                                                                                                                    | Penyiapan penyedia yang kompatibel dengan AI SDK                                      |
+| `PollinationsExecutor` | Pollinations AI                                                                                                                                             | Tidak diperlukan kunci API, permintaan dengan tarif terbatas                          |
+| `PuterExecutor`        | Puter                                                                                                                                                       | Integrasi penyedia berbasis browser                                                   |
+| `QoderExecutor`        | Qoder AI                                                                                                                                                    | Dukungan PAT dan OAuth, tingkat gratis multi-model                                    |
+| `VertexExecutor`       | Google Vertex AI                                                                                                                                            | Otentikasi akun layanan, titik akhir berbasis wilayah                                 |
 
 Semua penyedia lain (termasuk node khusus yang kompatibel) menggunakan `DefaultExecutor`.
 
 ## Matriks Kompatibilitas Penyedia
 
-| Provider         | Format           | Auth                  | Stream           | Non-Stream | Token Refresh | Usage API          |
-| ---------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
-| Claude           | claude           | Kunci API / OAuth       | ✅               | ✅         | ✅            | ⚠️ Admin only      |
-| Gemini           | gemini           | Kunci API / OAuth       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
-| Antigravity      | antigravity      | OAuth                 | ✅               | ✅         | ✅            | ✅ API kuota penuh  |
-| OpenAI           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Codex            | openai-responses | OAuth                 | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |
-| GitHub Copilot   | openai           | OAuth + Copilot Token | ✅               | ✅         | ✅            | ✅ Quota snapshots |
-| Cursor           | cursor           | Custom checksum       | ✅               | ✅         | ❌            | ❌                 |
-| Kiro             | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌         | ✅            | ✅ Usage limits    |
-| Qwen             | openai           | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Per request     |
-| Qoder            | openai           | OAuth / PAT           | ✅               | ✅         | ✅            | ⚠️ Per request     |
-| Kilo Code        | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
-| Cline            | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
-| Kimi Coding      | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
-| OpenRouter       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| GLM/Kimi/MiniMax | claude           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| DeepSeek         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Groq             | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| xAI (Grok)       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Mistral          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Perplexity       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Together AI      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Fireworks AI     | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Cerebras         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Cohere           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| NVIDIA NIM       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Cloudflare AI    | openai           | API Token + Acct ID   | ✅               | ✅         | ❌            | ❌                 |
-| Pollinations     | openai           | Tidak ada (tidak ada kunci)         | ✅               | ✅         | ❌            | ❌                 |
-| Scaleway AI      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| LongCat          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Ollama Cloud     | openai           | Kunci API (opsional)| ✅               | ✅         | ❌            | ❌                 |
-| HuggingFace      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Nebius           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| SiliconFlow      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Hyperbolic       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Vertex AI        | gemini           | Service Account       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
-| Puter            | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Provider         | Format           | Auth                        | Stream           | Non-Stream | Token Refresh | Usage API          |
+| ---------------- | ---------------- | --------------------------- | ---------------- | ---------- | ------------- | ------------------ |
+| Claude           | claude           | Kunci API / OAuth           | ✅               | ✅         | ✅            | ⚠️ Admin only      |
+| Gemini           | gemini           | Kunci API / OAuth           | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+| Antigravity      | antigravity      | OAuth                       | ✅               | ✅         | ✅            | ✅ API kuota penuh |
+| OpenAI           | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| Codex            | openai-responses | OAuth                       | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |
+| GitHub Copilot   | openai           | OAuth + Copilot Token       | ✅               | ✅         | ✅            | ✅ Quota snapshots |
+| Cursor           | cursor           | Custom checksum             | ✅               | ✅         | ❌            | ❌                 |
+| Kiro             | kiro             | AWS SSO OIDC                | ✅ (EventStream) | ❌         | ✅            | ✅ Usage limits    |
+| Qwen             | openai           | OAuth                       | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| Qoder            | openai           | OAuth / PAT                 | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| Kilo Code        | openai           | OAuth                       | ✅               | ✅         | ✅            | ❌                 |
+| Cline            | openai           | OAuth                       | ✅               | ✅         | ✅            | ❌                 |
+| Kimi Coding      | openai           | OAuth                       | ✅               | ✅         | ✅            | ❌                 |
+| OpenRouter       | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| GLM/Kimi/MiniMax | claude           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| DeepSeek         | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| Groq             | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| xAI (Grok)       | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| Mistral          | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| Perplexity       | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| Together AI      | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| Fireworks AI     | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| Cerebras         | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| Cohere           | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| NVIDIA NIM       | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| Cloudflare AI    | openai           | API Token + Acct ID         | ✅               | ✅         | ❌            | ❌                 |
+| Pollinations     | openai           | Tidak ada (tidak ada kunci) | ✅               | ✅         | ❌            | ❌                 |
+| Scaleway AI      | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| LongCat          | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| Ollama Cloud     | openai           | Kunci API (opsional)        | ✅               | ✅         | ❌            | ❌                 |
+| HuggingFace      | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| Nebius           | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| SiliconFlow      | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| Hyperbolic       | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
+| Vertex AI        | gemini           | Service Account             | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+| Puter            | openai           | API Key                     | ✅               | ✅         | ❌            | ❌                 |
 
 ## Format Cakupan Terjemahan
 
@@ -755,25 +755,25 @@ Lapisan pemrosesan tambahan dalam alur terjemahan:
 
 ## Titik Akhir API yang Didukung
 
-| Endpoint                                           | Format             | Handler                                                             |
-| -------------------------------------------------- | ------------------ | ------------------------------------------------------------------- |
-| `POST /v1/chat/completions`                        | OpenAI Chat        | `src/sse/handlers/chat.ts`                                          |
-| `POST /v1/messages`                                | Claude Messages    | Same handler (auto-detected)                                        |
-| `POST /v1/responses`                               | OpenAI Responses   | `open-sse/handlers/responsesHandler.ts`                             |
-| `POST /v1/embeddings`                              | OpenAI Embeddings  | `open-sse/handlers/embeddings.ts`                                   |
-| `GET /v1/embeddings`                               | Model listing      | API route                                                           |
-| `POST /v1/images/generations`                      | OpenAI Images      | `open-sse/handlers/imageGeneration.ts`                              |
-| `GET /v1/images/generations`                       | Model listing      | API route                                                           |
-| `POST /v1/providers/{provider}/chat/completions`   | OpenAI Chat        | Per penyedia khusus dengan validasi model                        |
-| `POST /v1/providers/{provider}/embeddings`         | OpenAI Embeddings  | Per penyedia khusus dengan validasi model                        |
-| `POST /v1/providers/{provider}/images/generations` | OpenAI Images      | Per penyedia khusus dengan validasi model                        |
-| `POST /v1/messages/count_tokens`                   | Claude Token Count | API route                                                           |
-| `GET /v1/models`                                   | Daftar Model OpenAI | Rute API (obrolan + penyematan + gambar + model khusus)                |
-| `GET /api/models/catalog`                          | Catalog            | Semua model dikelompokkan berdasarkan penyedia + jenis                               |
-| `POST /v1beta/models/*:streamGenerateContent`      | Gemini native      | API route                                                           |
-| `GET/PUT/DELETE /api/settings/proxy`               | Proxy Config       | Konfigurasi proksi jaringan                                         |
-| `POST /api/settings/proxy/test`                    | Proxy Connectivity | Titik akhir pengujian kesehatan/konektivitas proxy                             |
-| `GET/POST/DELETE /api/provider-models`             | Provider Models    | Metadata model penyedia mendukung model kustom dan terkelola yang tersedia |
+| Endpoint                                           | Format              | Handler                                                                    |
+| -------------------------------------------------- | ------------------- | -------------------------------------------------------------------------- |
+| `POST /v1/chat/completions`                        | OpenAI Chat         | `src/sse/handlers/chat.ts`                                                 |
+| `POST /v1/messages`                                | Claude Messages     | Same handler (auto-detected)                                               |
+| `POST /v1/responses`                               | OpenAI Responses    | `open-sse/handlers/responsesHandler.ts`                                    |
+| `POST /v1/embeddings`                              | OpenAI Embeddings   | `open-sse/handlers/embeddings.ts`                                          |
+| `GET /v1/embeddings`                               | Model listing       | API route                                                                  |
+| `POST /v1/images/generations`                      | OpenAI Images       | `open-sse/handlers/imageGeneration.ts`                                     |
+| `GET /v1/images/generations`                       | Model listing       | API route                                                                  |
+| `POST /v1/providers/{provider}/chat/completions`   | OpenAI Chat         | Per penyedia khusus dengan validasi model                                  |
+| `POST /v1/providers/{provider}/embeddings`         | OpenAI Embeddings   | Per penyedia khusus dengan validasi model                                  |
+| `POST /v1/providers/{provider}/images/generations` | OpenAI Images       | Per penyedia khusus dengan validasi model                                  |
+| `POST /v1/messages/count_tokens`                   | Claude Token Count  | API route                                                                  |
+| `GET /v1/models`                                   | Daftar Model OpenAI | Rute API (obrolan + penyematan + gambar + model khusus)                    |
+| `GET /api/models/catalog`                          | Catalog             | Semua model dikelompokkan berdasarkan penyedia + jenis                     |
+| `POST /v1beta/models/*:streamGenerateContent`      | Gemini native       | API route                                                                  |
+| `GET/PUT/DELETE /api/settings/proxy`               | Proxy Config        | Konfigurasi proksi jaringan                                                |
+| `POST /api/settings/proxy/test`                    | Proxy Connectivity  | Titik akhir pengujian kesehatan/konektivitas proxy                         |
+| `GET/POST/DELETE /api/provider-models`             | Provider Models     | Metadata model penyedia mendukung model kustom dan terkelola yang tersedia |
 
 ## Handler Bypass
 

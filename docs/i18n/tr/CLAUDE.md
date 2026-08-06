@@ -39,22 +39,22 @@ Tam test matrisini görmek için `CONTRIBUTING.md` → "Testleri Çalıştırma"
 
 ## Projeye Genel Bakış
 
-**OmniRoute** — birleşik AI proxy/yönlendirici. Tek uç nokta, 160'tan fazla LLM sağlayıcısı, otomatik geri dönüş.
+**OmniRoute** — birleşik AI proxy/yönlendirici. Tek uç nokta, 329 LLM sağlayıcısı, otomatik geri dönüş.
 
-| Katman        | Konum                   | Amaç                                                           |
-| ------------- | ----------------------- | -------------------------------------------------------------- |
-| API Yolları   | `src/app/api/v1/`       | Next.js Uygulama Yönlendiricisi — giriş noktaları              |
-| İşleyiciler   | `open-sse/handlers/`    | İstek işleme (sohbet, gömme, vb.)                              |
-| Yürütücüler   | `open-sse/executors/`   | Sağlayıcıya özel HTTP dağıtımı                                 |
-| Çeviriciler   | `open-sse/translator/`  | Format dönüşümü (OpenAI↔Claude↔Gemini)                         |
-| Dönüştürücü   | `open-sse/transformer/` | Yanıtlar API ↔ Sohbet Tamamlamaları                            |
-| Hizmetler     | `open-sse/services/`    | Kombinasyon yönlendirme, hız sınırlamaları, önbellekleme, vb.  |
-| Veritabanı    | `src/lib/db/`           | SQLite alan modülleri (45'ten fazla dosya, 55 göç)             |
-| Alan/Politika | `src/domain/`           | Politika motoru, maliyet kuralları, geri dönüş mantığı         |
-| MCP Sunucusu  | `open-sse/mcp-server/`  | 37 araç (30 temel + 3 bellek + 4 beceri), 3 taşıma, ~13 kapsam |
-| A2A Sunucusu  | `src/lib/a2a/`          | JSON-RPC 2.0 ajan protokolü                                    |
-| Beceriler     | `src/lib/skills/`       | Genişletilebilir beceri çerçevesi                              |
-| Bellek        | `src/lib/memory/`       | Kalıcı konuşma belleği                                         |
+| Katman        | Konum                   | Amaç                                                                      |
+| ------------- | ----------------------- | ------------------------------------------------------------------------- |
+| API Yolları   | `src/app/api/v1/`       | Next.js Uygulama Yönlendiricisi — giriş noktaları                         |
+| İşleyiciler   | `open-sse/handlers/`    | İstek işleme (sohbet, gömme, vb.)                                         |
+| Yürütücüler   | `open-sse/executors/`   | Sağlayıcıya özel HTTP dağıtımı                                            |
+| Çeviriciler   | `open-sse/translator/`  | Format dönüşümü (OpenAI↔Claude↔Gemini)                                    |
+| Dönüştürücü   | `open-sse/transformer/` | Yanıtlar API ↔ Sohbet Tamamlamaları                                       |
+| Hizmetler     | `open-sse/services/`    | Kombinasyon yönlendirme, hız sınırlamaları, önbellekleme, vb.             |
+| Veritabanı    | `src/lib/db/`           | 111 top-level SQLite domain modules, 131 migrations                       |
+| Alan/Politika | `src/domain/`           | Politika motoru, maliyet kuralları, geri dönüş mantığı                    |
+| MCP Sunucusu  | `open-sse/mcp-server/`  | 107 unique tools, 3 transports (stdio / SSE / Streamable HTTP), 32 scopes |
+| A2A Sunucusu  | `src/lib/a2a/`          | JSON-RPC 2.0 ajan protokolü                                               |
+| Beceriler     | `src/lib/skills/`       | Genişletilebilir beceri çerçevesi                                         |
+| Bellek        | `src/lib/memory/`       | Kalıcı konuşma belleği                                                    |
 
 Monorepo: `src/` (Next.js 16 uygulaması), `open-sse/` (akış motoru çalışma alanı), `electron/` (masaüstü uygulaması), `tests/`, `bin/` (CLI giriş noktası).
 
@@ -76,7 +76,7 @@ Client → /v1/chat/completions (Next.js route)
 
 API yolları tutarlı bir desen izler: `Route → CORS ön uç → Zod gövde doğrulama → Opsiyonel kimlik doğrulama (extractApiKey/isValidApiKey) → API anahtarı politika uygulaması → İşleyici delegasyonu (open-sse)`. Global Next.js ara yazılımı yok — kesme işlemi yol spesifik.
 
-**Kombinasyon yönlendirmesi** (`open-sse/services/combo.ts`): 14 strateji (öncelik, ağırlıklı, ilk doldur, dairesel, P2C, rastgele, en az kullanılan, maliyet optimize edilmiş, sıfırlama farkında, katı rastgele, otomatik, lkgp, bağlam optimize edilmiş, bağlam iletim). Her hedef `handleSingleModel()` çağrısı yapar ve bu, hedef başına hata işleme ve devre kesici kontrolleri ile `handleChatCore()`'u sarar. 9 faktörlü Auto-Combo puanlaması için `docs/routing/AUTO-COMBO.md` ve 3 dayanıklılık katmanı için `docs/architecture/RESILIENCE_GUIDE.md`'ye bakın.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -294,7 +294,7 @@ Herhangi bir önemsiz değişiklik için, önce ilgili derinlemesine incelemeyi 
 | Repo navigasyonu                                         | `docs/architecture/REPOSITORY_MAP.md`                             |
 | Mimari                                                   | `docs/architecture/ARCHITECTURE.md`                               |
 | Mühendislik referansı                                    | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (9 faktör puanlama, 14 strateji)              | `docs/routing/AUTO-COMBO.md`                                      |
+| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md` |
 | Dayanıklılık (3 mekanizma)                               | `docs/architecture/RESILIENCE_GUIDE.md`                           |
 | Akıl yürütme tekrarları                                  | `docs/routing/REASONING_REPLAY.md`                                |
 | Yetenekler çerçevesi                                     | `docs/frameworks/SKILLS.md`                                       |
@@ -358,7 +358,9 @@ git push -u origin feat/your-feature
 
 ## Ortam
 
-- **Çalışma Zamanı**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modülleri
+- **Çalışma Zamanı**: Node.js ≥20.20.2 <21 |
+  | ≥22.22.2 <23 |
+  | ≥24 <25, ES Modülleri
 - **TypeScript**: 5.9+, hedef ES2022, modül esnext, çözümleyici paketleyici
 - **Yol takma adları**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Varsayılan port**: 20128 (API + kontrol paneli aynı portta)
