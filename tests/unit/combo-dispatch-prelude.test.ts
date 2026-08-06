@@ -457,6 +457,39 @@ test("tryPinnedModelDispatch: serves the pinned response when the pin is healthy
   );
 });
 
+test("tryPinnedModelDispatch: expands the combo system_message template on the pinned path (#5501)", async () => {
+  const ctx = setup({
+    name: "pinned-combo",
+    strategy: "priority",
+    models: [{ model: `${HEALTHY_PROVIDER}/live` }],
+    config: {},
+    system_message: "Model: {{MODEL_ID}}",
+  });
+  ctx.body = {
+    messages: [
+      { role: "system", content: "Model: {{MODEL_ID}}" },
+      { role: "user", content: "hi" },
+    ],
+  };
+  await seedHealthyPinProvider();
+  const seen: string[] = [];
+  const res = await tryPinnedModelDispatch({
+    body: ctx.body,
+    combo: ctx.combo,
+    pinnedModel: `${HEALTHY_PROVIDER}/live`,
+    allCombos: [],
+    config: ctx.config,
+    clientRequestedStream: false,
+    handleSingleModelWithTimeout: async (received: Record<string, unknown>) => {
+      seen.push((received.messages as { content: string }[])[0].content);
+      return okResponse("pinned answer");
+    },
+    log: ctx.log,
+  });
+  assert.ok(res, "the healthy pin must be served");
+  assert.deepEqual(seen, [`Model: ${HEALTHY_PROVIDER}/live`]);
+});
+
 test("tryPinnedModelDispatch: fails over when the pinned model returns a transient status", async () => {
   for (const status of [408, 429, 500, 502, 503, 504]) {
     const ctx = pinCtx();

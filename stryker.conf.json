@@ -181,6 +181,7 @@
       "tests/unit/combo-stream-readiness-fallback.test.ts",
       "tests/unit/combo-streaming-empty-content-failover.test.ts",
       "tests/unit/combo-strict-random-distribution-3959.test.ts",
+      "tests/unit/combo-system-prompt-templates-5501.test.ts",
       "tests/unit/combo-target-defensive-modelstr.test.ts",
       "tests/unit/combo/auto-quota-cutoff.test.ts",
       "tests/unit/combo/auto-status-penalty-4540.test.ts",

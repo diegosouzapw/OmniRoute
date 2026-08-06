@@ -69,6 +69,17 @@ Recent combo improvements:
 - **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
 - **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
 - **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
+- **System prompt templates** — combo `system_message` supports server-side
+  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` and `{{FINGERPRINT}}`
+  placeholders, expanded from the actually-routed target right before dispatch.
+  Allowlisted and non-recursive; unknown placeholders stay literal; empty values
+  expand to empty; client system prompts are never rewritten. `{{FINGERPRINT}}`
+  resolves only for fingerprint-based free providers with a pinned or
+  auto-rotated fingerprint — it expands to empty elsewhere (e.g.
+  single-fingerprint connections, non-fp providers). Expansion covers the
+  standard dispatch loop, round-robin, and pinned context-cache sessions;
+  fusion, chaos, pipeline and nested-execute strategies do not expand
+  placeholders yet.
 
 ![Combos Dashboard](../screenshots/02-combos.png)
 

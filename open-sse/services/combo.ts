@@ -35,6 +35,10 @@ import { buildNoUpstreamResponseDiagnostics, buildRecoveryHint } from "./combo/p
 import { buildTargetTimeoutRunner } from "./combo/targetTimeoutRunner.ts";
 import { recordComboRequest, recordComboShadowRequest, getComboMetrics } from "./comboMetrics.ts";
 import {
+  expandComboSystemPromptIfPresent,
+  resolveTargetFingerprint,
+} from "./comboAgentMiddleware.ts";
+import {
   resolveComboConfig,
   getDefaultComboConfig,
   resolveComboQueueDepth,
@@ -1169,6 +1173,18 @@ export async function handleComboChat({
               }
             }
           }
+          // #5501: server-side template expansion for the combo system_message —
+          // resolved per-target, scoped to combo-injected content only (never
+          // client-owned system messages). Gate: a non-empty combo system_message.
+          attemptBody = expandComboSystemPromptIfPresent(attemptBody, combo, {
+            modelId: modelStr,
+            providerId: provider !== "unknown" ? provider : "",
+            account:
+              typeof target.label === "string" && target.label.trim().length > 0
+                ? target.label.trim()
+                : "",
+            fingerprint: resolveTargetFingerprint(target) ?? "",
+          });
           const result = await handleSingleModelWithTimeout(attemptBody, modelStr, {
             ...targetForAttempt,
             effectiveComboStrategy: strategy,
@@ -2570,6 +2586,18 @@ async function handleRoundRobinCombo({
             );
           }
         }
+
+        // #5501: combo system_message template expansion per target (same gate
+        // as the main iteration loop — round-robin branches here, not executeTarget).
+        attemptBody = expandComboSystemPromptIfPresent(attemptBody, combo, {
+          modelId: modelStr,
+          providerId: provider !== "unknown" ? provider : "",
+          account:
+            typeof target.label === "string" && target.label.trim().length > 0
+              ? target.label.trim()
+              : "",
+          fingerprint: resolveTargetFingerprint(target) ?? "",
+        });
 
         const result = await handleSingleModel(attemptBody, modelStr, {
           ...targetForAttempt,

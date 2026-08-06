@@ -1,0 +1,2 @@
+- **feat(sse):** combo `system_message` supports server-side `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` and `{{FINGERPRINT}}` template expansion from the actually-routed target ([#5501](https://github.com/diegosouzapw/OmniRoute/issues/5501))
+- **feat(sse):** template expansion covers the standard dispatch loop, round-robin and pinned context-cache sessions; fusion, chaos, pipeline and nested-execute strategies do not expand yet ([#5501](https://github.com/diegosouzapw/OmniRoute/issues/5501))
