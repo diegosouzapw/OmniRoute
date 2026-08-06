@@ -51,7 +51,17 @@ export async function handleAdobeFireflyImageGeneration({
     images?: unknown;
     [key: string]: unknown;
   };
-  credentials: { apiKey?: string; accessToken?: string };
+  credentials: {
+    apiKey?: string;
+    accessToken?: string;
+    connectionId?: string;
+    providerSpecificData?: {
+      cookie?: unknown;
+      access_token?: unknown;
+      accessToken?: unknown;
+      browserSessionKey?: unknown;
+    } | null;
+  };
   log?: { info?: (...args: unknown[]) => void; error?: (...args: unknown[]) => void };
   fetchImpl?: typeof fetch;
 }) {
@@ -88,10 +98,7 @@ export async function handleAdobeFireflyImageGeneration({
 
     // Cap uploads by model family (matches MediaViewModel GetSourceImageLimit).
     const { id: resolvedId } = resolveAdobeImageModel(model);
-    const maxRefs =
-      resolvedId.includes("nano-banana") || resolvedId.includes("gpt-image")
-        ? 4
-        : 2;
+    const maxRefs = resolvedId.includes("nano-banana") || resolvedId.includes("gpt-image") ? 4 : 2;
 
     const sourceImageIds = await resolveAdobeSourceImageIds({
       accessToken,
@@ -119,12 +126,12 @@ export async function handleAdobeFireflyImageGeneration({
       aspectRatio: body.aspect_ratio ?? body.aspectRatio ?? body.size,
       quality: body.quality,
       seed: Number.isFinite(seed as number) ? (seed as number) : undefined,
-      negativePrompt:
-        typeof body.negative_prompt === "string" ? body.negative_prompt : undefined,
+      negativePrompt: typeof body.negative_prompt === "string" ? body.negative_prompt : undefined,
       sourceImageIds: sourceImageIds.length ? sourceImageIds : undefined,
       sessionCookie,
       arpSessionId,
       sessionFingerprint: session.fingerprint,
+      sessionBrowserKey: session.browserSessionKey,
       timeoutMs,
       fetchImpl,
       log,

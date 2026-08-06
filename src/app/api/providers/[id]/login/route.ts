@@ -20,7 +20,142 @@ function resolveProviderSlug(connection: Record<string, unknown> | null): string
   return "";
 }
 
-// тФАтФАтФА POST: Start login flow тФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФАтФА
+function isAdobeFireflyProvider(
+  connection: { provider?: unknown } | null,
+  providerSlug: string
+): boolean {
+  const raw = String(connection?.provider || "").trim();
+  return ADOBE_FIREFLY_SLUGS.has(raw) || ADOBE_FIREFLY_SLUGS.has(providerSlug);
+}
+
+/**
+ * Persist JWT + Cookie the way desktop clients (and generate) expect:
+ * multi-line api_key, plus camelCase providerSpecificData for updateProviderConnection.
+ */
+async function persistAdobeFireflyCredentials(
+  connectionId: string,
+  opts: {
+    accessToken?: string;
+    cookie?: string;
+    account?: string;
+    arpSessionId?: string;
+  }
+): Promise<{
+  accessToken: string;
+  cookie: string;
+  credential: string;
+  account: string;
+}> {
+  const accessToken = String(opts.accessToken || "").trim();
+  const cookie = String(opts.cookie || "").trim();
+  const account = String(opts.account || "").trim();
+  const credential =
+    accessToken && cookie
+      ? `${accessToken}\n${cookie}`
+      : accessToken ||
+        cookie ||
+        JSON.stringify({
+          mode: "browser-profile",
+          account,
+          signedInAt: Date.now(),
+        });
+
+  const marker = {
+    mode: "browser-profile",
+    account,
+    signedInAt: Date.now(),
+    arpSessionId: String(opts.arpSessionId || ""),
+  };
+
+  try {
+    // camelCase only — updateProviderConnection / encryptConnectionFields read apiKey +
+    // providerSpecificData (snake_case keys are silently ignored and never persisted).
+    await updateProviderConnection(connectionId, {
+      apiKey: credential,
+      providerSpecificData: {
+        ...marker,
+        cookie: cookie || credential,
+        access_token: accessToken || undefined,
+      },
+    });
+  } catch {
+    /* non-fatal — return credentials to the host app either way */
+  }
+
+  return { accessToken, cookie, credential, account };
+}
+
+function adobeFireflySuccessResponse(data: {
+  accessToken: string;
+  cookie: string;
+  credential: string;
+  account: string;
+  arpSessionId?: string;
+  via: "pure-cdp";
+}): NextResponse {
+  return NextResponse.json({
+    success: true,
+    account: data.account || undefined,
+    accessToken: data.accessToken || undefined,
+    cookie: data.cookie || undefined,
+    arpSessionId: data.arpSessionId || undefined,
+    credential: data.credential,
+    credentials: {
+      access_token: data.accessToken || undefined,
+      cookie: data.cookie || undefined,
+    },
+    via: data.via,
+    persisted: true,
+  });
+}
+
+/**
+ * Adobe Firefly browser sign-in:
+ * pure system Chrome/Edge CDP only (packaged-safe, no Playwright/browser bundle).
+ */
+async function loginAdobeFirefly(
+  connectionId: string,
+  body: { timeout?: unknown; freshSession?: unknown }
+): Promise<NextResponse> {
+  const timeout = typeof body.timeout === "number" ? body.timeout : undefined;
+  const freshSession = typeof body.freshSession === "boolean" ? body.freshSession : true;
+
+  // Pure system-browser CDP is the packaged-safe implementation. Do not open a second browser
+  // after failure: it creates ambiguous success/error races and the packaged runtime has no
+  // reliable Playwright browser bundle.
+  // startAdobeFireflyBrowserLogin always kills its Chrome tree in `finally` (no orphans).
+  try {
+    const { startAdobeFireflyBrowserLogin } =
+      await import("@omniroute/open-sse/services/adobeFireflyBrowserLogin.ts");
+    const pure = await startAdobeFireflyBrowserLogin(timeout, {
+      sessionKey: connectionId,
+      freshSession,
+    });
+    if (pure.success && pure.credentials?.accessToken) {
+      const persisted = await persistAdobeFireflyCredentials(connectionId, {
+        accessToken: pure.credentials.accessToken,
+        cookie: pure.credentials.cookie,
+        account: pure.account,
+      });
+      return adobeFireflySuccessResponse({
+        ...persisted,
+        via: "pure-cdp",
+      });
+    }
+    return NextResponse.json(
+      {
+        success: false,
+        error: pure.error || "Adobe Firefly sign-in did not capture an authenticated IMS JWT.",
+      },
+      { status: 400 }
+    );
+  } catch (err) {
+    const msg = sanitizeErrorMessage(err instanceof Error ? err.message : err);
+    return NextResponse.json({ success: false, error: msg }, { status: 400 });
+  }
+}
+
+// --- POST: Start login flow -------------------------------------------------
 
 export async function POST(
   req: NextRequest,
@@ -39,67 +174,18 @@ export async function POST(
     timeout?: unknown;
     freshSession?: unknown;
   };
-  const timeout = typeof body.timeout === "number" ? body.timeout : undefined;
   const providerSlug = resolveProviderSlug(provider as Record<string, unknown>);
 
-  // Firefly JWTs exist only on firefly-3p Authorization headers. Use one packaged-safe CDP
-  // flow, isolate state by connection, and never fall through to a second browser.
-  if (ADOBE_FIREFLY_SLUGS.has(providerSlug)) {
+  // Adobe Firefly: dedicated JWT capture (never cookies/localStorage alone).
+  if (isAdobeFireflyProvider(provider as { provider?: unknown }, providerSlug)) {
     try {
-      const { startAdobeFireflyBrowserLogin } =
-        await import("@omniroute/open-sse/services/adobeFireflyBrowserLogin.ts");
-      const result = await startAdobeFireflyBrowserLogin(timeout, {
-        sessionKey: id,
-        freshSession: typeof body.freshSession === "boolean" ? body.freshSession : true,
-      });
-      const accessToken = String(result.credentials?.accessToken || "").trim();
-      const cookie = String(result.credentials?.cookie || "").trim();
-      if (result.success && accessToken) {
-        const credential =
-          accessToken && cookie ? `${accessToken}\n${cookie}` : accessToken || cookie;
-        const marker = {
-          mode: "browser-profile",
-          account: result.account || "",
-          signedInAt: Date.now(),
-          arpSessionId: result.arpSessionId || "",
-        };
-        try {
-          await updateProviderConnection(id, {
-            apiKey: credential,
-            providerSpecificData: {
-              ...marker,
-              cookie: cookie || credential,
-              access_token: accessToken || undefined,
-            },
-          });
-        } catch {
-          /* non-fatal — return credentials to the host app either way */
-        }
-        return NextResponse.json({
-          success: true,
-          account: result.account,
-          accessToken: accessToken || undefined,
-          cookie: cookie || undefined,
-          arpSessionId: result.arpSessionId || undefined,
-          credential,
-          credentials: {
-            access_token: accessToken || undefined,
-            cookie: cookie || undefined,
-          },
-          via: "pure-cdp",
-          persisted: true,
-        });
-      }
-      return NextResponse.json(
-        {
-          success: false,
-          error: result.error || "Adobe Firefly sign-in did not capture an authenticated IMS JWT.",
-        },
-        { status: 400 }
-      );
+      return await loginAdobeFirefly(id, body);
     } catch (err) {
       const msg = sanitizeErrorMessage(err instanceof Error ? err.message : err);
-      return NextResponse.json({ success: false, error: msg }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: `Adobe Firefly sign-in error: ${msg}` },
+        { status: 500 }
+      );
     }
   }
 
@@ -110,7 +196,9 @@ export async function POST(
     // missed and returned "No extraction config" without launching a browser.
     const { inAppLoginService } = await import("@omniroute/open-sse/services/inAppLoginService.ts");
 
-    const result = await inAppLoginService.startLogin(providerSlug || id, { timeout });
+    const result = await inAppLoginService.startLogin(providerSlug || id, {
+      timeout: typeof body.timeout === "number" ? body.timeout : undefined,
+    });
 
     // Persist credentials if extraction succeeded
     if (result.success && result.credentials) {

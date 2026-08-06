@@ -31,7 +31,17 @@ export async function handleAdobeFireflyVideoGeneration({
   provider: string;
   providerConfig?: { baseUrl?: string };
   body: Record<string, unknown>;
-  credentials?: { apiKey?: string; accessToken?: string } | null;
+  credentials?: {
+    apiKey?: string;
+    accessToken?: string;
+    connectionId?: string;
+    providerSpecificData?: {
+      cookie?: unknown;
+      access_token?: unknown;
+      accessToken?: unknown;
+      browserSessionKey?: unknown;
+    } | null;
+  } | null;
   log?: { info?: (...args: unknown[]) => void; error?: (...args: unknown[]) => void };
   fetchImpl?: typeof fetch;
 }) {
@@ -104,6 +114,7 @@ export async function handleAdobeFireflyVideoGeneration({
       sessionCookie,
       arpSessionId,
       sessionFingerprint: session.fingerprint,
+      sessionBrowserKey: session.browserSessionKey,
       timeoutMs,
       fetchImpl,
       log,

@@ -15,22 +15,83 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import http from "node:http";
 import { createServer } from "node:net";
 import { join } from "node:path";
-import { decodeAdobeJwtPayload, isAdobeUserAccessToken } from "./adobeFireflyClient.ts";
+import {
+  decodeAdobeJwtPayload,
+  isAdobeUserAccessToken,
+  looksLikeAdobeJwt,
+} from "./adobeFireflyClient.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+
+/**
+ * Loopback HTTP GET that MUST NOT use globalThis.fetch.
+ * OmniRoute patches fetch with a proxy dispatcher (proxyFetch.ts); routing
+ * 127.0.0.1 Chrome DevTools through that proxy yields PROXY_UNREACHABLE /
+ * "Chrome DevTools did not become ready: fetch failed" while Chrome is fine.
+ */
+function loopbackHttpGetJson<T = unknown>(
+  port: number,
+  path: string,
+  timeoutMs = 2000
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const req = http.get(
+      {
+        host: "127.0.0.1",
+        port,
+        path,
+        timeout: Math.max(500, timeoutMs),
+        headers: { Accept: "application/json" },
+      },
+      (res) => {
+        const chunks: Buffer[] = [];
+        res.on("data", (c) => chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c)));
+        res.on("end", () => {
+          const body = Buffer.concat(chunks).toString("utf8");
+          if ((res.statusCode || 0) < 200 || (res.statusCode || 0) >= 300) {
+            reject(new Error(`HTTP ${res.statusCode || 0} ${path}`));
+            return;
+          }
+          try {
+            resolve(JSON.parse(body || "null") as T);
+          } catch (err) {
+            reject(err instanceof Error ? err : new Error(String(err)));
+          }
+        });
+      }
+    );
+    req.on("timeout", () => {
+      req.destroy(new Error(`timeout ${timeoutMs}ms ${path}`));
+    });
+    req.on("error", reject);
+  });
+}
 
 const FIREFLY_HOME_URL = "https://firefly.adobe.com/";
 const FIREFLY_3P_HOST_SUFFIX = "firefly-3p.ff.adobe.io";
 // Bounded quantifiers (Hard Rule: avoid ReDoS on adversarial Authorization headers).
 const ADOBE_BEARER_REGEX =
   /^Bearer\s+(eyJ[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096})/i;
+const ADOBE_JWT_IN_TEXT_REGEX =
+  /eyJ[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}/g;
 
 const DEFAULT_LOGIN_TIMEOUT_MS = 300_000;
 const MIN_LOGIN_TIMEOUT_MS = 15_000;
 const MAX_LOGIN_TIMEOUT_MS = 600_000;
 const POLL_INTERVAL_MS = 400;
-const CDP_READY_TIMEOUT_MS = 30_000;
+/** Interactive sign-in must surface Chrome quickly; 12s is enough if spawn works. */
+const CDP_READY_TIMEOUT_MS = 12_000;
+const CDP_READY_TIMEOUT_RETRY_MS = 20_000;
+/** Risk cookies that go stale and must be re-minted by the SPA (never seed on force warm). */
+const ADOBE_RISK_COOKIE_NAMES = new Set([
+  "fortertoken",
+  "forter",
+  "arkose",
+  "sherlocktoken",
+  "x-arp-session-id",
+]);
 
 export interface AdobeFireflyBrowserLoginResult {
   success: boolean;
@@ -52,7 +113,65 @@ type AdobeFireflyBrowserLog = {
   warn?: (...args: unknown[]) => void;
 };
 
-let cdpBrowserChain: Promise<void> = Promise.resolve();
+/**
+ * Separate queues so a multi-minute background Forter warm cannot block
+ * interactive "Sign in with browser" (and vice versa uses different profile dirs).
+ */
+let interactiveCdpChain: Promise<void> = Promise.resolve();
+let backgroundCdpChain: Promise<void> = Promise.resolve();
+
+/** @deprecated test alias — both chains reset together. */
+export function __resetAdobeFireflyCdpChainsForTests(): void {
+  interactiveCdpChain = Promise.resolve();
+  backgroundCdpChain = Promise.resolve();
+}
+
+/** True when cookie name is a colligo/Forter risk token (must re-mint, never re-seed stale). */
+export function isAdobeRiskCookieName(name: string): boolean {
+  return ADOBE_RISK_COOKIE_NAMES.has(
+    String(name || "")
+      .trim()
+      .toLowerCase()
+  );
+}
+
+/** Epoch ms embedded in forterToken (`…_{ms}__UDF43…`), or 0. */
+export function extractAdobeForterTimestampFromValue(value: string): number {
+  const f = String(value || "").trim();
+  if (!f) return 0;
+  let decoded = f;
+  try {
+    if (/%[0-9A-Fa-f]{2}/.test(decoded)) decoded = decodeURIComponent(decoded);
+  } catch {
+    /* keep */
+  }
+  const m = decoded.match(/_(\d{13})__/);
+  return m ? Number(m[1]) : 0;
+}
+
+/** Drop stale risk cookies from a seed set so force-warm cannot re-inject a dead Forter. */
+export function filterSeedCookiesForWarm(
+  cookies: Array<{ name: string; value: string; domain?: string; path?: string }>,
+  opts?: { dropRiskCookies?: boolean }
+): Array<{ name: string; value: string; domain?: string; path?: string }> {
+  const dropRisk = opts?.dropRiskCookies !== false;
+  return cookies.filter((c) => {
+    if (!c?.name || !c?.value) return false;
+    if (dropRisk && isAdobeRiskCookieName(c.name)) return false;
+    return true;
+  });
+}
+
+/** Pull a user IMS JWT from sessionStorage-ish JSON / raw blobs. */
+export function extractUserJwtFromStorageRaw(raw: string): string {
+  const matches = String(raw || "").match(ADOBE_JWT_IN_TEXT_REGEX) || [];
+  // Prefer longest user tokens (guest tokens are shorter / rejected by isAdobeUserAccessToken).
+  const sorted = [...matches].sort((a, b) => b.length - a.length);
+  for (const tok of sorted) {
+    if (looksLikeAdobeJwt(tok) && isAdobeUserAccessToken(tok)) return tok;
+  }
+  return "";
+}
 
 function resolveAdobeFireflyDataRoot(): string {
   const dataRoot =
@@ -223,16 +342,16 @@ async function waitForCdpReady(
   let lastError = "CDP endpoint not ready";
   while (Date.now() < deadline) {
     try {
-      const res = await fetch(`http://127.0.0.1:${port}/json/version`, {
-        signal: AbortSignal.timeout(2000),
-      });
-      if (res.ok) {
-        const body = (await res.json()) as { webSocketDebuggerUrl?: string };
-        if (body.webSocketDebuggerUrl) {
-          return { webSocketDebuggerUrl: body.webSocketDebuggerUrl };
-        }
+      // Use node:http — never proxy-patched fetch (see loopbackHttpGetJson).
+      const body = await loopbackHttpGetJson<{ webSocketDebuggerUrl?: string }>(
+        port,
+        "/json/version",
+        2000
+      );
+      if (body?.webSocketDebuggerUrl) {
+        return { webSocketDebuggerUrl: body.webSocketDebuggerUrl };
       }
-      lastError = `CDP /json/version HTTP ${res.status}`;
+      lastError = "CDP /json/version missing webSocketDebuggerUrl";
     } catch (err) {
       lastError = err instanceof Error ? err.message : String(err);
     }
@@ -371,16 +490,39 @@ class CdpSocket {
     });
   }
 
-  send(method: string, params?: Record<string, unknown>, sessionId?: string): Promise<unknown> {
+  send(
+    method: string,
+    params?: Record<string, unknown>,
+    sessionId?: string,
+    timeoutMs = 8_000
+  ): Promise<unknown> {
     const id = this.nextId++;
     const msg: Record<string, unknown> = { id, method };
     if (params) msg.params = params;
     if (sessionId) msg.sessionId = sessionId;
     return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject });
+      const timer = setTimeout(
+        () => {
+          if (!this.pending.has(id)) return;
+          this.pending.delete(id);
+          reject(new Error(`CDP timeout after ${timeoutMs}ms: ${method}`));
+        },
+        Math.max(500, timeoutMs)
+      );
+      this.pending.set(id, {
+        resolve: (v) => {
+          clearTimeout(timer);
+          resolve(v);
+        },
+        reject: (e) => {
+          clearTimeout(timer);
+          reject(e);
+        },
+      });
       try {
         this.ws.send(JSON.stringify(msg));
       } catch (err) {
+        clearTimeout(timer);
         this.pending.delete(id);
         reject(err instanceof Error ? err : new Error(String(err)));
       }
@@ -388,6 +530,10 @@ class CdpSocket {
   }
 
   close(): void {
+    for (const [id, p] of this.pending) {
+      this.pending.delete(id);
+      p.reject(new Error("CDP socket closed"));
+    }
     try {
       this.ws.close();
     } catch {
@@ -418,6 +564,8 @@ async function openCdp(url: string): Promise<WebSocket> {
 
 /**
  * Capture Firefly IMS JWT by watching Network.requestWillBeSent on all page targets.
+ * Background warm (`waitForRiskRefresh`) REQUIRES a fresher forterToken — never returns
+ * the same stale risk cookies as "success" (that caused false 408 recovery loops).
  */
 async function captureViaCdp(opts: {
   port: number;
@@ -433,15 +581,69 @@ async function captureViaCdp(opts: {
   arpSessionId: string;
 }> {
   let capturedAccessToken = "";
+  let storageAccessToken = "";
   let capturedArpSessionId = "";
   let latestCookies: CdpCookie[] = [];
-  const pageSockets = new Map<string, CdpSocket>();
+  /** Flatten auto-attach page sessions only — do NOT also open page WebSockets (double-attach freezes Chrome: "Debugger paused in another tab"). */
+  const pageSessionIds = new Set<string>();
   let browserCdp: CdpSocket | null = null;
-  const initialForter =
+  let humanizeDone = false;
+  let riskReloadDone = false;
+  const requireFreshRisk = Boolean(opts.waitForRiskRefresh);
+  // Force warm: after wiping Firefly cookies, any fresh forter (ts within last 10 min) counts.
+  // Baseline from seed is only used for interactive partial-wait comparisons.
+  const seedForterTs = extractAdobeForterTimestampFromValue(
     [...(opts.seedBrowserCookies || []), ...parseCookieHeader(opts.seedCookie || "")].find(
       (cookie) => cookie.name.toLowerCase() === "fortertoken"
-    )?.value || "";
+    )?.value || ""
+  );
+  const baselineForterTs = requireFreshRisk ? 0 : Math.max(seedForterTs, 0);
   const startedAt = Date.now();
+
+  const SPA_JWT_EXPR = `(() => {
+          const out = [];
+          try {
+            for (const key of Object.keys(sessionStorage)) {
+              if (!/adobeid_ims_access_token|clio-playground/i.test(key)) continue;
+              out.push(sessionStorage.getItem(key) || "");
+            }
+            if (out.length === 0) {
+              for (const key of Object.keys(sessionStorage)) {
+                out.push(sessionStorage.getItem(key) || "");
+              }
+            }
+          } catch (e) {}
+          return out.join("\\n");
+        })()`;
+
+  /** MUST be awaited before other session commands or Google OAuth freezes yellow. */
+  const resumeTargetIfNeeded = async (sessionId: string): Promise<void> => {
+    if (!browserCdp || !sessionId) return;
+    try {
+      await browserCdp.send("Runtime.runIfWaitingForDebugger", {}, sessionId);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const setupPageSession = async (sessionId: string): Promise<void> => {
+    if (!browserCdp || !sessionId || pageSessionIds.has(sessionId)) {
+      // Still resume if re-attached / re-entered waiting state.
+      await resumeTargetIfNeeded(sessionId);
+      return;
+    }
+    pageSessionIds.add(sessionId);
+    // Order is critical: resume FIRST, then enable domains (never leave waitingForDebugger).
+    await resumeTargetIfNeeded(sessionId);
+    await browserCdp.send("Network.enable", {}, sessionId).catch(() => undefined);
+    await resumeTargetIfNeeded(sessionId);
+    // Runtime.enable only for force-warm (sessionStorage/JWT evaluate). Interactive login
+    // primarily uses Network Authorization capture; Runtime is enabled on-demand when reading JWT.
+    if (requireFreshRisk) {
+      await browserCdp.send("Runtime.enable", {}, sessionId).catch(() => undefined);
+      await resumeTargetIfNeeded(sessionId);
+    }
+  };
 
   const onEvent = (method: string, params: Record<string, unknown>) => {
     if (method === "Network.requestWillBeSent") {
@@ -461,24 +663,89 @@ async function captureViaCdp(opts: {
     } else if (method === "Target.attachedToTarget") {
       const sessionId = String(params.sessionId || "");
       const targetInfo = params.targetInfo as { type?: string; targetId?: string } | undefined;
-      if (sessionId && targetInfo?.type === "page" && browserCdp) {
-        void browserCdp.send("Network.enable", {}, sessionId).catch(() => undefined);
+      if (!sessionId || !browserCdp) return;
+      if (targetInfo?.type === "page" || targetInfo?.type === "iframe") {
+        // Fire-and-forget async setup but resume is first awaited inside setupPageSession.
+        void setupPageSession(sessionId).catch(() => undefined);
+      } else {
+        void resumeTargetIfNeeded(sessionId).catch(() => undefined);
       }
+    } else if (method === "Target.detachedFromTarget") {
+      const sessionId = String(params.sessionId || "");
+      if (sessionId) pageSessionIds.delete(sessionId);
+    }
+  };
+
+  const readSpaJwtFromSession = async (sessionId: string): Promise<string> => {
+    if (!browserCdp || !sessionId) return "";
+    try {
+      await resumeTargetIfNeeded(sessionId);
+      await browserCdp.send("Runtime.enable", {}, sessionId).catch(() => undefined);
+      await resumeTargetIfNeeded(sessionId);
+      const result = (await browserCdp.send(
+        "Runtime.evaluate",
+        {
+          expression: SPA_JWT_EXPR,
+          returnByValue: true,
+          awaitPromise: false,
+        },
+        sessionId
+      )) as { result?: { value?: string } };
+      return extractUserJwtFromStorageRaw(String(result?.result?.value || ""));
+    } catch {
+      return "";
+    }
+  };
+
+  const nudgeForterSession = async (sessionId: string): Promise<void> => {
+    if (!browserCdp || !sessionId) return;
+    try {
+      await resumeTargetIfNeeded(sessionId);
+      for (const [x, y] of [
+        [140, 180],
+        [420, 260],
+        [700, 340],
+        [520, 420],
+      ] as const) {
+        await browserCdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x, y }, sessionId);
+      }
+      await browserCdp.send(
+        "Input.dispatchMouseEvent",
+        { type: "mousePressed", x: 640, y: 360, button: "left", clickCount: 1 },
+        sessionId
+      );
+      await browserCdp.send(
+        "Input.dispatchMouseEvent",
+        { type: "mouseReleased", x: 640, y: 360, button: "left", clickCount: 1 },
+        sessionId
+      );
+      await browserCdp.send(
+        "Input.dispatchMouseEvent",
+        { type: "mouseWheel", x: 400, y: 300, deltaX: 0, deltaY: 240 },
+        sessionId
+      );
+    } catch {
+      /* ignore */
     }
   };
 
   try {
     const browserWs = await openCdp(opts.browserWsUrl);
     browserCdp = new CdpSocket(browserWs, onEvent);
-    const seed: AdobeBrowserCookie[] = [
+    // Force warm: never re-seed stale forter/arkose/sherlock — SSO cookies only.
+    // Interactive sign-in: seed nothing when freshSession emptied the jar; otherwise full seed ok.
+    const rawSeed: AdobeBrowserCookie[] = [
       ...(opts.seedBrowserCookies || []),
       ...parseCookieHeader(opts.seedCookie || "").map((cookie) => ({
         ...cookie,
         domain: "firefly.adobe.com",
         path: "/",
-        secure: true,
+        secure: true as const,
       })),
     ];
+    const seed: AdobeBrowserCookie[] = (
+      requireFreshRisk ? filterSeedCookiesForWarm(rawSeed, { dropRiskCookies: true }) : rawSeed
+    ) as AdobeBrowserCookie[];
     if (seed.length > 0) {
       await browserCdp
         .send("Storage.setCookies", {
@@ -497,50 +764,95 @@ async function captureViaCdp(opts: {
         })
         .catch(() => undefined);
     }
+    // Force warm: wipe Firefly origin storage so Forter cannot re-hydrate a hours-old token
+    // from cookies/localStorage/IndexedDB. Keep adobelogin.com SSO (AdobeID) intact.
+    if (requireFreshRisk) {
+      try {
+        for (const origin of [
+          "https://firefly.adobe.com",
+          "https://www.firefly.adobe.com",
+          "https://firefly-3p.ff.adobe.io",
+        ]) {
+          await browserCdp
+            .send("Storage.clearDataForOrigin", {
+              origin,
+              storageTypes:
+                "cookies,local_storage,indexeddb,cache_storage,service_workers,shader_cache",
+            })
+            .catch(() => undefined);
+        }
+        const existing = (await browserCdp.send("Storage.getCookies")) as {
+          cookies?: CdpCookie[];
+        };
+        for (const cookie of existing?.cookies || []) {
+          const domain = String(cookie.domain || "")
+            .replace(/^\./, "")
+            .toLowerCase();
+          const isFireflySite =
+            domain === "firefly.adobe.com" ||
+            domain.endsWith(".firefly.adobe.com") ||
+            domain === "ff.adobe.io" ||
+            domain.endsWith(".ff.adobe.io");
+          if (!isFireflySite && !isAdobeRiskCookieName(cookie.name)) continue;
+          if (domain.includes("adobelogin.com") && !isAdobeRiskCookieName(cookie.name)) continue;
+          await browserCdp
+            .send("Storage.deleteCookies", {
+              name: cookie.name,
+              ...(cookie.domain ? { domain: cookie.domain } : { url: FIREFLY_HOME_URL }),
+              path: cookie.path || "/",
+            })
+            .catch(() => undefined);
+        }
+      } catch {
+        /* best-effort */
+      }
+    }
+    // Single browser-level CDP + flatten auto-attach only.
+    // NEVER open /json/list page WebSockets (second debugger → yellow "Debugger paused").
     await browserCdp.send("Target.setDiscoverTargets", { discover: true }).catch(() => undefined);
     await browserCdp
       .send("Target.setAutoAttach", {
         autoAttach: true,
+        // false = do not start targets paused; still resume defensively on attach.
         waitForDebuggerOnStart: false,
         flatten: true,
       })
       .catch(() => undefined);
 
-    const deadline = Date.now() + opts.timeoutMs;
-    while (Date.now() < deadline) {
-      // Attach to every page target listed by the DevTools HTTP API.
-      try {
-        const list = (await fetch(`http://127.0.0.1:${opts.port}/json/list`, {
-          signal: AbortSignal.timeout(2000),
-        }).then((r) => r.json())) as Array<{
-          id?: string;
-          type?: string;
-          url?: string;
-          webSocketDebuggerUrl?: string;
-        }>;
-        for (const t of list) {
-          if (t.type !== "page" || !t.webSocketDebuggerUrl || !t.id) continue;
-          if (pageSockets.has(t.id)) continue;
-          try {
-            const ws = await openCdp(t.webSocketDebuggerUrl);
-            const cdp = new CdpSocket(ws, onEvent);
-            pageSockets.set(t.id, cdp);
-            await cdp.send("Network.enable");
-            if (
-              seed.length > 0 ||
-              !t.url ||
-              t.url === "about:blank" ||
-              t.url.startsWith("chrome://")
-            ) {
-              await cdp.send("Page.enable").catch(() => undefined);
-              await cdp.send("Page.navigate", { url: FIREFLY_HOME_URL }).catch(() => undefined);
-            }
-          } catch {
-            // page may navigate away mid-connect
-          }
+    // Existing pages (Chrome already opened firefly URL) are NOT auto-attached as "new"
+    // targets — attach once via Target.attachToTarget (still one session, no page WS).
+    try {
+      const { targetInfos } = (await browserCdp.send("Target.getTargets")) as {
+        targetInfos?: Array<{ targetId?: string; type?: string; url?: string }>;
+      };
+      for (const t of targetInfos || []) {
+        if ((t.type !== "page" && t.type !== "iframe") || !t.targetId) continue;
+        try {
+          const attached = (await browserCdp.send("Target.attachToTarget", {
+            targetId: t.targetId,
+            flatten: true,
+          })) as { sessionId?: string };
+          const sid = String(attached?.sessionId || "");
+          if (sid) await setupPageSession(sid);
+        } catch {
+          /* target may vanish */
         }
-      } catch {
-        // list may fail briefly while Chrome starts
+      }
+    } catch {
+      /* getTargets may fail briefly */
+    }
+
+    const deadline = Date.now() + opts.timeoutMs;
+    let lastJwtProbeAt = 0;
+    let lastResumeSweepAt = 0;
+    while (Date.now() < deadline) {
+      const now = Date.now();
+      // Resume periodically (not every 400ms spam) — enough to clear accidental waits.
+      if (now - lastResumeSweepAt >= 1_500) {
+        lastResumeSweepAt = now;
+        for (const sid of [...pageSessionIds]) {
+          await resumeTargetIfNeeded(sid);
+        }
       }
 
       try {
@@ -552,42 +864,136 @@ async function captureViaCdp(opts: {
         /* retry while Chrome is settling */
       }
 
+      // Pull SPA sessionStorage JWT. Throttle evaluate so interactive Google login stays smooth
+      // (network Authorization capture is preferred and does not touch the page).
+      if (now - lastJwtProbeAt >= (requireFreshRisk ? 800 : 2_000)) {
+        lastJwtProbeAt = now;
+        for (const sid of pageSessionIds) {
+          const fromStorage = await readSpaJwtFromSession(sid);
+          if (fromStorage) {
+            storageAccessToken = fromStorage;
+            break;
+          }
+        }
+      }
+
+      if (requireFreshRisk && pageSessionIds.size > 0) {
+        const elapsedWarm = Date.now() - startedAt;
+        // Nudge Forter early, then hard-reload once so SDKs re-mint risk tokens.
+        if (!humanizeDone && elapsedWarm >= 2_000) {
+          humanizeDone = true;
+          for (const sid of pageSessionIds) {
+            await nudgeForterSession(sid);
+            break;
+          }
+        } else if (!riskReloadDone && humanizeDone && elapsedWarm >= 12_000) {
+          riskReloadDone = true;
+          for (const sid of pageSessionIds) {
+            await browserCdp.send("Page.reload", { ignoreCache: true }, sid).catch(() => undefined);
+            await new Promise((r) => setTimeout(r, 1_500));
+            await resumeTargetIfNeeded(sid);
+            await nudgeForterSession(sid);
+            break;
+          }
+        }
+      }
+
       const fallbackToken = String(opts.fallbackAccessToken || "").trim();
       const accessToken =
-        capturedAccessToken || (isAdobeUserAccessToken(fallbackToken) ? fallbackToken : "");
+        capturedAccessToken ||
+        storageAccessToken ||
+        (isAdobeUserAccessToken(fallbackToken) ? fallbackToken : "");
       if (accessToken) {
-        if (!opts.waitForRiskRefresh) {
-          return {
-            accessToken,
-            cookies: latestCookies,
-            arpSessionId: capturedArpSessionId,
-          };
-        }
         const elapsed = Date.now() - startedAt;
         const forter = cookieValue(latestCookies, "forterToken");
+        const forterTs = extractAdobeForterTimestampFromValue(forter);
+        const forterAgeMs =
+          forterTs > 0 ? Math.max(0, Date.now() - forterTs) : Number.POSITIVE_INFINITY;
         const hasRiskCookies = Boolean(
           forter &&
           cookieValue(latestCookies, "ff_session_guid") &&
           (cookieValue(latestCookies, "arkose") || cookieValue(latestCookies, "sherlockToken"))
         );
-        const riskAdvanced = Boolean(forter && initialForter && forter !== initialForter);
-        if (hasRiskCookies && elapsed >= 8_000 && (riskAdvanced || elapsed >= 30_000)) {
-          return {
-            accessToken,
-            cookies: latestCookies,
-            arpSessionId: capturedArpSessionId,
-          };
+        // Fresh forter: either newer than baseline, or mint age under 10 minutes (force wipe path).
+        const riskAdvanced =
+          forterTs > 0 &&
+          (baselineForterTs <= 0
+            ? forterAgeMs < 10 * 60_000
+            : forterTs > baselineForterTs || forterAgeMs < 10 * 60_000);
+
+        if (!requireFreshRisk) {
+          // Interactive Sign in: colligo 408s if we store JWT without forter/arkose/sherlock.
+          // Prefer a full risk cookie jar (browser works when these are present). Soft-wait
+          // up to 45s after JWT — WinUI login already allows minutes for OAuth.
+          if (hasRiskCookies && riskAdvanced) {
+            return {
+              accessToken,
+              cookies: latestCookies,
+              arpSessionId: capturedArpSessionId,
+            };
+          }
+          // Last resort: JWT only after 45s (generate will likely 408 until risk cookies exist).
+          if (elapsed >= 45_000) {
+            return {
+              accessToken,
+              cookies: latestCookies,
+              arpSessionId: capturedArpSessionId,
+            };
+          }
+        } else {
+          const minWaitMs = 8_000;
+          if (hasRiskCookies && elapsed >= minWaitMs && riskAdvanced) {
+            return {
+              accessToken,
+              cookies: latestCookies,
+              arpSessionId: capturedArpSessionId,
+            };
+          }
         }
       }
 
       await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
     }
 
+    // Force warm timed out without a fresher forter → hard fail (caller retries / surfaces error).
+    // IMPORTANT: baselineForterTs===0 must NOT accept any timestamped forter — require age < 10 min
+    // (or strictly newer than baseline). Old bug accepted 20h-old forter and colligo 408'd.
+    if (requireFreshRisk) {
+      const forter = cookieValue(latestCookies, "forterToken");
+      const forterTs = extractAdobeForterTimestampFromValue(forter);
+      const forterAgeMs =
+        forterTs > 0 ? Math.max(0, Date.now() - forterTs) : Number.POSITIVE_INFINITY;
+      const riskAdvanced =
+        forterTs > 0 &&
+        (baselineForterTs <= 0
+          ? forterAgeMs < 10 * 60_000
+          : forterTs > baselineForterTs || forterAgeMs < 10 * 60_000);
+      if (!riskAdvanced) {
+        throw new Error(
+          "Adobe Firefly risk session did not refresh (forterToken stale). " +
+            "Re-open Sign in with browser once, or wait and retry generate."
+        );
+      }
+      const token =
+        capturedAccessToken ||
+        storageAccessToken ||
+        (isAdobeUserAccessToken(String(opts.fallbackAccessToken || "").trim())
+          ? String(opts.fallbackAccessToken).trim()
+          : "");
+      if (token) {
+        return {
+          accessToken: token,
+          cookies: latestCookies,
+          arpSessionId: capturedArpSessionId,
+        };
+      }
+    }
+
     const fallbackRaw = String(opts.fallbackAccessToken || "").trim();
     const fallback = isAdobeUserAccessToken(fallbackRaw) ? fallbackRaw : "";
-    if (fallback && latestCookies.length > 0) {
+    if (fallback && latestCookies.length > 0 && !requireFreshRisk) {
       return {
-        accessToken: capturedAccessToken || fallback,
+        accessToken: capturedAccessToken || storageAccessToken || fallback,
         cookies: latestCookies,
         arpSessionId: capturedArpSessionId,
       };
@@ -597,19 +1003,27 @@ async function captureViaCdp(opts: {
         "(open Generate) so the browser sends the Firefly request, then try again."
     );
   } finally {
-    for (const cdp of pageSockets.values()) cdp.close();
+    pageSessionIds.clear();
     browserCdp?.close();
   }
 }
 
 function killProcessTree(child: ChildProcess | null): void {
   if (!child?.pid) return;
+  const pid = child.pid;
+  // Never taskkill our own Node/pkg process or its parent (would kill the backend mid-login).
+  if (pid === process.pid || (typeof process.ppid === "number" && pid === process.ppid)) {
+    return;
+  }
   try {
     if (process.platform === "win32") {
-      spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"], {
+      // /T kills only this PID's descendants — not system Chrome profiles we did not spawn.
+      const killer = spawn("taskkill", ["/pid", String(pid), "/T", "/F"], {
         stdio: "ignore",
         windowsHide: true,
+        detached: true,
       });
+      killer.unref?.();
     } else {
       child.kill("SIGTERM");
       setTimeout(() => {
@@ -629,27 +1043,73 @@ function killProcessTree(child: ChildProcess | null): void {
   }
 }
 
+/**
+ * Background cookie/JWT refresh visibility.
+ *
+ * Default = **offscreen headed** (window parked off-display + minimized + windowsHide).
+ * True `--headless=new` mints Forter/ARP risk sessions colligo rejects → HTTP 408 on
+ * generate while a normal browser still works. Only opt into true headless with
+ * ADOBE_FIREFLY_CHROME_HEADLESS=1 (known-broken for media; debug only).
+ */
+export function adobeFireflyBackgroundUsesHeadlessChrome(): boolean {
+  return process.env.ADOBE_FIREFLY_CHROME_HEADLESS === "1";
+}
+
 export function buildAdobeFireflyBrowserArgs(opts: {
   port: number;
   userDataDir: string;
   interactive: boolean;
   freshSession?: boolean;
 }): string[] {
+  const interactive = opts.interactive === true;
+  // Interactive "Sign in with browser" = real headed UI. Everything else = headless
+  // (or rare opt-in offscreen headed) so image gen / 408 recovery never pops a window.
+  const backgroundHeadless = !interactive && adobeFireflyBackgroundUsesHeadlessChrome();
+
   return [
     `--remote-debugging-port=${opts.port}`,
+    // Force loopback bind so waitForCdpReady (node:http → 127.0.0.1) can connect.
+    "--remote-debugging-address=127.0.0.1",
+    // Chrome 111+ may refuse CDP HTTP (/json/version) without an allow-list.
+    "--remote-allow-origins=*",
     `--user-data-dir=${opts.userDataDir}`,
     "--no-first-run",
     "--no-default-browser-check",
-    ...(opts.interactive && opts.freshSession !== false ? ["--incognito"] : []),
-    ...(opts.interactive ? [] : ["--window-position=-32000,-32000"]),
-    "--window-size=1280,800",
-    opts.interactive ? FIREFLY_HOME_URL : "about:blank",
+    // NOTE: do NOT use --incognito here. Unique user-data-dir already isolates the
+    // session; incognito + remote-debugging is flaky on recent Chrome (CDP port
+    // never binds → ECONNREFUSED while a chrome.exe process still exists).
+    ...(interactive
+      ? [
+          // Prevent attaching to an existing Chrome instance (would drop remote-debugging).
+          "--new-window",
+          "--window-size=1280,800",
+        ]
+      : backgroundHeadless
+        ? [
+            // Silent cookie/JWT warm — ZERO visible window (user requirement).
+            "--headless=new",
+            "--disable-gpu",
+            "--window-size=1280,800",
+          ]
+        : [
+            // Rare Forter debug: headed but parked far off-screen + minimized.
+            "--window-position=-32000,-32000",
+            "--window-size=1280,800",
+            "--start-minimized",
+          ]),
+    // Start on Firefly so risk SDKs load (especially important for background warm).
+    FIREFLY_HOME_URL,
   ];
 }
 
 /**
  * Launch system Chrome/Edge at firefly.adobe.com, intercept firefly-3p
  * Authorization Bearer via CDP, return JWT + useful cookies.
+ *
+ * IMPORTANT: never mass-kill system Chrome via WMI/PowerShell from this path —
+ * that wedged the packaged backend event loop and made login show
+ * "VibeProxy backend is not ready for Adobe Firefly sign-in."
+ * Only kill the child we spawn (killProcessTree in finally / retry).
  */
 async function runAdobeFireflyCdpBrowser(opts: {
   timeoutMs: number;
@@ -674,70 +1134,149 @@ async function runAdobeFireflyCdpBrowser(opts: {
   let child: ChildProcess | null = null;
   try {
     const userDataDir = resolveAdobeFireflyBrowserProfileDir(opts.sessionKey);
-    const port = await getFreeLoopbackPort();
+    // Isolate interactive sign-in profiles so a prior hung CDP instance cannot lock the dir.
+    // freshSession uses a per-attempt suffix; background warm keeps the stable key for SSO reuse.
+    const launchUserDataDir =
+      opts.interactive && opts.freshSession !== false
+        ? `${userDataDir}-login-${Date.now().toString(36)}`
+        : userDataDir;
+    try {
+      mkdirSync(launchUserDataDir, { recursive: true });
+    } catch {
+      /* parent resolve already mkdir'd base */
+    }
 
-    const args = buildAdobeFireflyBrowserArgs({
-      port,
-      userDataDir,
-      interactive: opts.interactive,
-      freshSession: opts.freshSession,
-    });
-
-    child = spawn(browserPath, args, {
-      stdio: "ignore",
-      windowsHide: !opts.interactive,
-      detached: false,
-    });
-
-    // If Chrome exits immediately, fail fast with a clear message.
-    const earlyExit = new Promise<never>((_, reject) => {
-      child?.once("exit", (code) => {
-        reject(new Error(`Browser exited early (code ${code}). Is the executable runnable?`));
-      });
-      child?.once("error", (err) => {
-        reject(new Error(`Failed to launch browser: ${err.message}`));
-      });
-    });
-
-    const ready = waitForCdpReady(port, CDP_READY_TIMEOUT_MS);
-    const { webSocketDebuggerUrl } = await Promise.race([ready, earlyExit]);
-
-    // Detach exit handler so normal user close after capture is fine
-    child.removeAllListeners("exit");
-    child.removeAllListeners("error");
-
-    const captured = await Promise.race([
-      captureViaCdp({
+    let lastError = "Browser failed to start";
+    for (let launchAttempt = 1; launchAttempt <= 2; launchAttempt++) {
+      if (child) {
+        killProcessTree(child);
+        child = null;
+        await new Promise((r) => setTimeout(r, 300));
+      }
+      const port = await getFreeLoopbackPort();
+      // Unique profile per launch attempt so a half-dead previous Chrome cannot lock the dir.
+      const attemptUserDataDir =
+        opts.interactive && opts.freshSession !== false
+          ? `${launchUserDataDir}-a${launchAttempt}`
+          : launchUserDataDir;
+      try {
+        mkdirSync(attemptUserDataDir, { recursive: true });
+      } catch {
+        /* best-effort */
+      }
+      const args = buildAdobeFireflyBrowserArgs({
         port,
-        browserWsUrl: webSocketDebuggerUrl,
-        timeoutMs: opts.timeoutMs,
-        fallbackAccessToken: opts.accessToken,
-        seedCookie: opts.seedCookie,
-        seedBrowserCookies:
-          opts.interactive && opts.freshSession !== false
-            ? []
-            : loadAdobeBrowserCookies(opts.sessionKey),
-        waitForRiskRefresh: !opts.interactive,
-      }),
-      earlyExit,
-    ]);
+        userDataDir: attemptUserDataDir,
+        interactive: opts.interactive,
+        freshSession: opts.freshSession,
+      });
 
-    const cookie = buildAdobeFireflyCookieHeader(captured.cookies);
-    saveAdobeBrowserCookies(opts.sessionKey, captured.cookies);
-    const account = await resolveAdobeAccountLabel(captured.accessToken);
-    opts.log?.info?.(
-      "ADOBE-FIREFLY",
-      `CDP ${opts.interactive ? "sign-in" : "refresh"} captured durable session ` +
-        `(cookieCount=${captured.cookies.length}, arpLen=${captured.arpSessionId.length})`
-    );
+      // Interactive: keep attached (reliable CDP bind on Windows). Background warm may
+      // detach so a long Forter wait does not pin the Node process refcount.
+      // Host job SILENT_BREAKAWAY_OK still prevents Chrome from joining the backend job
+      // (that was killing/wedging VibeProxyServices on Sign in with browser).
+      child = spawn(browserPath, args, {
+        stdio: "ignore",
+        // Interactive sign-in: show Chrome. Background warm: hide spawn console/window
+        // host; headless flags already suppress the browser UI.
+        windowsHide: !opts.interactive,
+        detached: !opts.interactive,
+      });
+      if (!opts.interactive) {
+        try {
+          child.unref?.();
+        } catch {
+          /* ignore */
+        }
+      }
+
+      let exitedEarly = false;
+      let exitCode: number | null = null;
+      const onExit = (code: number | null) => {
+        exitedEarly = true;
+        exitCode = code;
+      };
+      const onErr = (err: Error) => {
+        exitedEarly = true;
+        lastError = `Failed to launch browser: ${err.message}`;
+      };
+      // Attach listeners BEFORE any delay so we never miss a fast exit.
+      child.once("exit", onExit);
+      child.once("error", onErr);
+      // Give Chrome a beat to bind --remote-debugging-port before the first CDP probe.
+      await new Promise((r) => setTimeout(r, 600));
+      if (exitedEarly) {
+        lastError = `Browser exited early (code ${exitCode}). Retrying…`;
+        opts.log?.warn?.("ADOBE-FIREFLY", lastError);
+        continue;
+      }
+
+      try {
+        const cdpWaitMs = launchAttempt === 1 ? CDP_READY_TIMEOUT_MS : CDP_READY_TIMEOUT_RETRY_MS;
+        const { webSocketDebuggerUrl } = await waitForCdpReady(port, cdpWaitMs);
+        if (exitedEarly) {
+          lastError = `Browser exited early (code ${exitCode}). Retrying…`;
+          continue;
+        }
+        child.removeListener("exit", onExit);
+        child.removeListener("error", onErr);
+
+        opts.log?.info?.(
+          "ADOBE-FIREFLY",
+          opts.interactive
+            ? "Chrome ready — complete Adobe/Google sign-in in the window (do not close it)"
+            : "headless CDP warm attached"
+        );
+
+        // Interactive: capture JWT as soon as firefly-3p auth is seen. Soft-wait for risk
+        // cookies is handled inside captureViaCdp; do NOT force risk refresh for interactive
+        // (that blocked login when Forter did not advance).
+        const captured = await captureViaCdp({
+          port,
+          browserWsUrl: webSocketDebuggerUrl,
+          timeoutMs: opts.timeoutMs,
+          fallbackAccessToken: opts.accessToken,
+          seedCookie: opts.seedCookie,
+          seedBrowserCookies:
+            opts.interactive && opts.freshSession !== false
+              ? []
+              : loadAdobeBrowserCookies(opts.sessionKey),
+          waitForRiskRefresh: !opts.interactive,
+        });
+
+        const cookie = buildAdobeFireflyCookieHeader(captured.cookies);
+        // Persist risk cookies under the stable session key (not the -login- temp dir).
+        saveAdobeBrowserCookies(opts.sessionKey, captured.cookies);
+        const account = await resolveAdobeAccountLabel(captured.accessToken);
+        opts.log?.info?.(
+          "ADOBE-FIREFLY",
+          `CDP ${opts.interactive ? "sign-in" : "refresh"} captured durable session ` +
+            `(cookieCount=${captured.cookies.length}, arpLen=${captured.arpSessionId.length})`
+        );
+        return {
+          success: true,
+          credentials: {
+            accessToken: captured.accessToken,
+            ...(cookie ? { cookie } : {}),
+          },
+          ...(captured.arpSessionId ? { arpSessionId: captured.arpSessionId } : {}),
+          ...(account ? { account } : {}),
+        };
+      } catch (err) {
+        lastError = err instanceof Error ? err.message : String(err);
+        if (launchAttempt < 2) {
+          opts.log?.warn?.(
+            "ADOBE-FIREFLY",
+            `Chrome CDP launch attempt ${launchAttempt} failed: ${lastError}; retrying…`
+          );
+          continue;
+        }
+        break;
+      }
+    }
     return {
-      success: true,
-      credentials: {
-        accessToken: captured.accessToken,
-        ...(cookie ? { cookie } : {}),
-      },
-      ...(captured.arpSessionId ? { arpSessionId: captured.arpSessionId } : {}),
-      ...(account ? { account } : {}),
+      success: false,
+      error: sanitizeErrorMessage(lastError),
     };
   } catch (error) {
     return {
@@ -745,6 +1284,9 @@ async function runAdobeFireflyCdpBrowser(opts: {
       error: sanitizeErrorMessage(error instanceof Error ? error.message : error),
     };
   } finally {
+    // Interactive sign-in: leave the window open briefly is not possible after return —
+    // we must kill the CDP-debug Chrome we spawned (it is a dedicated profile instance).
+    // Only our child PID tree is killed — never a system-wide Chrome sweep.
     killProcessTree(child);
     child = null;
   }
@@ -754,7 +1296,9 @@ export async function startAdobeFireflyBrowserLogin(
   requestedTimeout?: unknown,
   opts?: { sessionKey?: string; freshSession?: boolean }
 ): Promise<AdobeFireflyBrowserLoginResult> {
-  const run = cdpBrowserChain.then(() =>
+  // Interactive queue is independent of background warm — long 408 recovery must not
+  // prevent "Sign in with browser" from launching Chrome.
+  const run = interactiveCdpChain.then(() =>
     runAdobeFireflyCdpBrowser({
       timeoutMs: clampAdobeFireflyLoginTimeout(requestedTimeout),
       interactive: true,
@@ -762,7 +1306,7 @@ export async function startAdobeFireflyBrowserLogin(
       freshSession: opts?.freshSession !== false,
     })
   );
-  cdpBrowserChain = run.then(
+  interactiveCdpChain = run.then(
     () => undefined,
     () => undefined
   );
@@ -777,7 +1321,7 @@ export async function refreshAdobeFireflyViaCdp(opts: {
   log?: AdobeFireflyBrowserLog;
   sessionKey?: string;
 }): Promise<AdobeFireflyCdpRefreshResult | null> {
-  const run = cdpBrowserChain.then(async () => {
+  const run = backgroundCdpChain.then(async () => {
     const result = await runAdobeFireflyCdpBrowser({
       timeoutMs: Math.max(15_000, Math.min(120_000, Number(opts.timeoutMs) || 75_000)),
       interactive: false,
@@ -788,14 +1332,20 @@ export async function refreshAdobeFireflyViaCdp(opts: {
     });
     const accessToken = String(result.credentials?.accessToken || "").trim();
     const cookie = String(result.credentials?.cookie || "").trim();
-    if (!result.success || !accessToken || !cookie) return null;
+    if (!result.success || !accessToken || !cookie) {
+      opts.log?.warn?.(
+        "ADOBE-FIREFLY",
+        `CDP background refresh incomplete: ${result.error || "missing token/cookie"}`
+      );
+      return null;
+    }
     return {
       accessToken,
       cookie,
       arpSessionId: String(result.arpSessionId || "").trim(),
     };
   });
-  cdpBrowserChain = run.then(
+  backgroundCdpChain = run.then(
     () => undefined,
     () => undefined
   );

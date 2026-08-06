@@ -5,13 +5,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  adobeFireflyBackgroundUsesHeadlessChrome,
   adobeFireflyBrowserSessionKey,
   accountLabelFromAdobeJwt,
   buildAdobeFireflyBrowserArgs,
   buildAdobeFireflyCookieHeader,
   clampAdobeFireflyLoginTimeout,
   extractAdobeBearerTokenFromAuthorization,
+  extractAdobeForterTimestampFromValue,
+  extractUserJwtFromStorageRaw,
   filterAdobeBrowserCookies,
+  filterSeedCookiesForWarm,
+  isAdobeRiskCookieName,
   resolveAdobeAccountLabel,
   resolveSystemBrowserExecutable,
 } from "../../open-sse/services/adobeFireflyBrowserLogin.ts";
@@ -89,7 +94,7 @@ test("resolveAdobeAccountLabel uses IMS display name and generic fallback", asyn
   assert.equal(fallback, "Adobe account");
 });
 
-test("browser args isolate profiles and make fresh interactive login incognito", () => {
+test("browser args: interactive headed; background offscreen (Forter-safe), headless opt-in only", () => {
   const firstKey = adobeFireflyBrowserSessionKey("connection-a");
   const secondKey = adobeFireflyBrowserSessionKey("connection-b");
   assert.equal(firstKey, adobeFireflyBrowserSessionKey("connection-a"));
@@ -101,17 +106,86 @@ test("browser args isolate profiles and make fresh interactive login incognito",
     interactive: true,
     freshSession: true,
   });
-  assert.ok(interactive.includes("--incognito"));
+  // User-initiated Sign in with browser: real window, never headless.
+  assert.equal(interactive.includes("--headless=new"), false);
+  assert.ok(interactive.includes("--new-window"));
   assert.ok(interactive.includes(`--user-data-dir=C:\\profiles\\${firstKey}`));
   assert.equal(interactive.at(-1), "https://firefly.adobe.com/");
 
-  const background = buildAdobeFireflyBrowserArgs({
-    port: 9223,
-    userDataDir: `C:\\profiles\\${secondKey}`,
-    interactive: false,
-  });
-  assert.equal(background.includes("--incognito"), false);
-  assert.equal(background.at(-1), "about:blank");
+  const prevHeadless = process.env.ADOBE_FIREFLY_CHROME_HEADLESS;
+  delete process.env.ADOBE_FIREFLY_CHROME_HEADLESS;
+  try {
+    // Default background: offscreen headed (colligo accepts; true headless → 408).
+    assert.equal(adobeFireflyBackgroundUsesHeadlessChrome(), false);
+    const background = buildAdobeFireflyBrowserArgs({
+      port: 9223,
+      userDataDir: `C:\\profiles\\${secondKey}`,
+      interactive: false,
+    });
+    assert.equal(background.includes("--headless=new"), false);
+    assert.equal(background.includes("--new-window"), false);
+    assert.ok(background.includes("--window-position=-32000,-32000"));
+    assert.ok(background.includes("--start-minimized"));
+    assert.equal(background.at(-1), "https://firefly.adobe.com/");
+
+    process.env.ADOBE_FIREFLY_CHROME_HEADLESS = "1";
+    assert.equal(adobeFireflyBackgroundUsesHeadlessChrome(), true);
+    const headless = buildAdobeFireflyBrowserArgs({
+      port: 9224,
+      userDataDir: `C:\\profiles\\${secondKey}`,
+      interactive: false,
+    });
+    assert.ok(headless.includes("--headless=new"));
+  } finally {
+    if (prevHeadless === undefined) delete process.env.ADOBE_FIREFLY_CHROME_HEADLESS;
+    else process.env.ADOBE_FIREFLY_CHROME_HEADLESS = prevHeadless;
+  }
+});
+
+test("isAdobeRiskCookieName flags forter/arkose/sherlock", () => {
+  assert.equal(isAdobeRiskCookieName("forterToken"), true);
+  assert.equal(isAdobeRiskCookieName("arkose"), true);
+  assert.equal(isAdobeRiskCookieName("sherlockToken"), true);
+  assert.equal(isAdobeRiskCookieName("ff_session_guid"), false);
+  assert.equal(isAdobeRiskCookieName("aux_sid"), false);
+});
+
+test("filterSeedCookiesForWarm drops risk cookies on force warm", () => {
+  const filtered = filterSeedCookiesForWarm(
+    [
+      { name: "forterToken", value: "stale" },
+      { name: "arkose", value: "a" },
+      { name: "ff_session_guid", value: "sid" },
+      { name: "aux_sid", value: "aux" },
+    ],
+    { dropRiskCookies: true }
+  );
+  assert.deepEqual(filtered.map((c) => c.name).sort(), ["aux_sid", "ff_session_guid"]);
+});
+
+test("extractAdobeForterTimestampFromValue reads embedded ms", () => {
+  const ftr = "abc_1785777856265__UDF43-mnts-ants-x";
+  assert.equal(extractAdobeForterTimestampFromValue(ftr), 1785777856265);
+  assert.equal(extractAdobeForterTimestampFromValue(""), 0);
+});
+
+test("extractUserJwtFromStorageRaw prefers user AdobeID JWT", () => {
+  const guestPayload = Buffer.from(
+    JSON.stringify({ type: "guest", account_type: "guest", user_id: "x@GuestID" })
+  ).toString("base64url");
+  const userPayload = Buffer.from(
+    JSON.stringify({
+      type: "access_token",
+      user_id: "0EB6@AdobeID",
+      client_id: "clio-playground-web",
+      created_at: Date.now(),
+      expires_in: 86400000,
+    })
+  ).toString("base64url");
+  const guest = `eyJhbGciOiJIUzI1NiJ9.${guestPayload}.sig`;
+  const user = `eyJhbGciOiJSUzI1NiJ9.${userPayload}.usersig`;
+  const raw = JSON.stringify({ tokenValue: guest }) + "\n" + JSON.stringify({ access_token: user });
+  assert.equal(extractUserJwtFromStorageRaw(raw), user);
 });
 
 test("filterAdobeBrowserCookies keeps Adobe SSO domains only", () => {
