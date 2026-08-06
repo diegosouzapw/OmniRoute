@@ -1,7 +1,7 @@
 import { skillExecutor } from "./executor";
 import { skillRegistry } from "./registry";
 import { builtinSkills } from "./builtins";
-import { detectProvider } from "./injection";
+import { detectProvider, decodeSkillToolName } from "./injection";
 import { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } from "@omniroute/open-sse/services/webSearchFallback.ts";
 import { OMNIROUTE_WEB_FETCH_FALLBACK_TOOL_NAME } from "@omniroute/open-sse/services/webFetchInterception.ts";
 import { logger } from "../../../open-sse/utils/logger.ts";
@@ -113,9 +113,10 @@ export async function interceptToolCalls(
           };
         }
 
-        const [name, version] = call.name.includes("@")
-          ? call.name.split("@")
-          : [call.name, "latest"];
+        const decodedName = decodeSkillToolName(call.name);
+        const [name, version] = decodedName.includes("@")
+          ? decodedName.split("@")
+          : [decodedName, "latest"];
 
         const skillName = version === "latest" ? name : `${name}@${version}`;
 
@@ -226,7 +227,10 @@ function parseArguments(args: string | Record<string, unknown>): Record<string, 
 }
 
 function isRegisteredCustomSkill(toolName: string, apiKeyId: string): boolean {
-  const [name, version] = toolName.includes("@") ? toolName.split("@", 2) : [toolName, undefined];
+  const decodedName = decodeSkillToolName(toolName);
+  const [name, version] = decodedName.includes("@")
+    ? decodedName.split("@", 2)
+    : [decodedName, undefined];
   const identifier = version ? `${name}@${version}` : name;
   return skillRegistry.getSkill(identifier, apiKeyId) != null;
 }

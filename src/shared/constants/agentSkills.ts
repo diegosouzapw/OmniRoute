@@ -463,4 +463,17 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     icon: "explore",
     isNew: true,
   },
+
+  // ── External (third-party) Skills ─────────────────────────────────────────
+
+  {
+    id: "ponytail",
+    name: "Ponytail (Minimalism Ladder)",
+    description:
+      "External agent skill (MIT, github.com/DietrichGebert/ponytail). Forces the laziest solution that actually works: question whether the task needs to exist at all (YAGNI), reuse what is already in the codebase, reach for the standard library before custom code, native platform features before dependencies, one line before fifty. Climb the ladder on every coding task — writing, adding, refactoring, fixing, reviewing, or designing code, and choosing libraries or dependencies. Supports intensity levels: lite, full (default), ultra. Never cut validation, error handling, security, or accessibility.",
+    category: "external",
+    area: "external",
+    icon: "compress",
+    isNew: true,
+  },
 ];
