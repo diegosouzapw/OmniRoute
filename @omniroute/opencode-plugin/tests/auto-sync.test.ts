@@ -13,6 +13,22 @@ import {
   forceSyncOmniRouteModels,
   type OmniRouteFetchCache,
 } from "../src/index.js";
+import { getLogLevel, setLogLevel } from "../src/logger.js";
+
+async function captureConsole(run: () => Promise<void>): Promise<string[]> {
+  const lines: string[] = [];
+  const originalError = console.error;
+  const originalWarn = console.warn;
+  console.error = (...args: unknown[]) => lines.push(args.map(String).join(" "));
+  console.warn = (...args: unknown[]) => lines.push(args.map(String).join(" "));
+  try {
+    await run();
+  } finally {
+    console.error = originalError;
+    console.warn = originalWarn;
+  }
+  return lines;
+}
 
 test("sanitizeAutoSyncIntervalMs: unset → default 300000", () => {
   assert.equal(sanitizeAutoSyncIntervalMs(undefined), DEFAULT_AUTO_SYNC_INTERVAL_MS);
@@ -35,7 +51,10 @@ test("sanitizeAutoSyncIntervalMs: keeps valid values", () => {
 
 test("parseOmniRoutePluginOptions accepts autoSyncIntervalMs including 0", () => {
   assert.equal(parseOmniRoutePluginOptions({ autoSyncIntervalMs: 0 }).autoSyncIntervalMs, 0);
-  assert.equal(parseOmniRoutePluginOptions({ autoSyncIntervalMs: 120_000 }).autoSyncIntervalMs, 120_000);
+  assert.equal(
+    parseOmniRoutePluginOptions({ autoSyncIntervalMs: 120_000 }).autoSyncIntervalMs,
+    120_000
+  );
 });
 
 test("resolveOmniRoutePluginOptions defaults autoSyncIntervalMs to 300000", () => {
@@ -110,6 +129,76 @@ test("forceSyncOmniRouteModels: fetches, populates cache, returns count", async 
   const entry = [...cache.values()][0];
   assert.equal(entry.rawModels.length, 2);
   assert.equal(entry.expiresAt, 1_000_000 + resolved.modelCacheTtl);
+});
+
+test("forceSyncOmniRouteModels suppresses successful lifecycle output at error level", async () => {
+  const previousLevel = getLogLevel();
+  const cache: OmniRouteFetchCache = new Map();
+  const resolved = resolveOmniRoutePluginOptions({
+    providerId: "omniroute",
+    baseURL: "https://omniroute.example/v1",
+    features: {
+      autoCombos: false,
+      combos: false,
+      compressionMetadata: false,
+      diskCache: false,
+      enrichment: false,
+      logLevel: "error",
+      usableOnly: false,
+    },
+  });
+
+  try {
+    setLogLevel("error");
+    const lines = await captureConsole(async () => {
+      const result = await forceSyncOmniRouteModels({
+        resolved,
+        cache,
+        readAuthJson: async () => ({ omniroute: { type: "api", key: "test-key" } }),
+        fetcher: async () => [{ id: "model-a", object: "model" }],
+      });
+      assert.equal(result.ok, true);
+    });
+
+    assert.deepEqual(lines, []);
+  } finally {
+    setLogLevel(previousLevel);
+  }
+});
+
+test("forceSyncOmniRouteModels preserves successful lifecycle output at info level", async () => {
+  const previousLevel = getLogLevel();
+  const cache: OmniRouteFetchCache = new Map();
+  const resolved = resolveOmniRoutePluginOptions({
+    providerId: "omniroute",
+    baseURL: "https://omniroute.example/v1",
+    features: {
+      autoCombos: false,
+      combos: false,
+      compressionMetadata: false,
+      diskCache: false,
+      enrichment: false,
+      logLevel: "info",
+      usableOnly: false,
+    },
+  });
+
+  try {
+    setLogLevel("info");
+    const lines = await captureConsole(async () => {
+      const result = await forceSyncOmniRouteModels({
+        resolved,
+        cache,
+        readAuthJson: async () => ({ omniroute: { type: "api", key: "test-key" } }),
+        fetcher: async () => [{ id: "model-a", object: "model" }],
+      });
+      assert.equal(result.ok, true);
+    });
+
+    assert.equal(lines.filter((line) => line.includes("force sync ok")).length, 1);
+  } finally {
+    setLogLevel(previousLevel);
+  }
 });
 
 test("forceSyncOmniRouteModels: missing auth returns error", async () => {
