@@ -150,8 +150,17 @@ export function getChatLogArrayTailItems(): number {
   return parsePositiveInt(process.env.CHAT_LOG_ARRAY_TAIL_ITEMS, 24);
 }
 
+/**
+ * Was a hardcoded 6 — trivially too shallow for real Chat Completions tool
+ * calls: `body.choices[0].message.tool_calls[0].function` alone is already
+ * 6 levels deep (body→choices→[i]→message→tool_calls→[i]→function), so
+ * EVERY logged tool call got its `function` field (name + arguments)
+ * replaced outright with the literal string "[MaxDepth]" before the name/
+ * arguments one level further in were ever reached — not an edge case, a
+ * universal truncation of tool-call data in call log artifacts.
+ */
 export function getChatLogMaxDepth(): number {
-  return parsePositiveInt(process.env.CHAT_LOG_MAX_DEPTH, 6);
+  return parsePositiveInt(process.env.CHAT_LOG_MAX_DEPTH, 20);
 }
 
 export function getChatLogMaxObjectKeys(): number {

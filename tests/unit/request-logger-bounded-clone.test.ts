@@ -38,6 +38,40 @@ test("cloneBoundedForLog: nested tools field still exempt", () => {
   assert.equal(result.body.tools.length, 30);
 });
 
+// Regression: a Chat Completions response's tool_calls[].function is 6 levels
+// deep from the response body (body -> choices -> [i] -> message -> tool_calls
+// -> [i] -> function) — the depth cap used to be a hardcoded 6, so every
+// logged tool call's `function` (name + arguments) got replaced outright with
+// the literal string "[MaxDepth]", not just deeply truncated. This broke tool
+// call rendering in the request-detail view for ANY response with a tool
+// call — not an edge case, universal.
+test("cloneBoundedForLog: tool_calls[].function survives at its natural depth (was clobbered to '[MaxDepth]')", () => {
+  const body = {
+    choices: [
+      {
+        index: 0,
+        message: {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_1",
+              type: "function",
+              function: { name: "write", arguments: '{"path":"/tmp/x","content":"hi"}' },
+            },
+          ],
+        },
+      },
+    ],
+  };
+  const result = cloneBoundedForLog(body) as {
+    choices: Array<{ message: { tool_calls: Array<{ function: unknown }> } }>;
+  };
+  const fn = result.choices[0].message.tool_calls[0].function;
+  assert.notEqual(fn, "[MaxDepth]", "function must not be clobbered to the MaxDepth placeholder");
+  assert.deepEqual(fn, { name: "write", arguments: '{"path":"/tmp/x","content":"hi"}' });
+});
+
 test("cloneBoundedForLog: top-level array without key context still truncated", () => {
   const arr = Array.from({ length: 45 }, (_, i) => i);
   const result = cloneBoundedForLog(arr) as unknown[];
