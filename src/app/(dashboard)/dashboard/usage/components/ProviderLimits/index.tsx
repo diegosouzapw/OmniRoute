@@ -45,6 +45,7 @@ const LS_PURCHASE_FILTER = "omniroute:limits:purchaseFilter";
 const LS_STATUS_FILTER = "omniroute:limits:statusFilter";
 const LS_ENV_FILTER = "omniroute:limits:envFilter";
 const LS_PROVIDER_FILTER = "omniroute:limits:providerFilter";
+const LS_LAYOUT_MODE = "omniroute:limits:layoutMode";
 
 const MIN_FETCH_INTERVAL_MS = 30000;
 const QUOTA_BAR_GREEN_THRESHOLD = 50;
@@ -52,6 +53,7 @@ const QUOTA_BAR_YELLOW_THRESHOLD = 20;
 
 type PurchaseTypeKey = "all" | "oauth-free" | "oauth-sub" | "apikey";
 type StatusKey = "all" | "critical" | "alert" | "ok" | "empty";
+type LayoutMode = "full" | "compact";
 
 const PURCHASE_TYPES: Array<{ key: PurchaseTypeKey; labelKey: string; fallback: string }> = [
   { key: "all", labelKey: "purchaseAll", fallback: "All" },
@@ -231,6 +233,10 @@ export default function ProviderLimits({
   const [providerFilter, setProviderFilter] = useState<string>(() => {
     if (typeof window === "undefined") return "all";
     return localStorage.getItem(LS_PROVIDER_FILTER) || "all";
+  });
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => {
+    if (typeof window === "undefined") return "full";
+    return localStorage.getItem(LS_LAYOUT_MODE) === "compact" ? "compact" : "full";
   });
 
   const lastFetchTimeRef = useRef<Record<string, number>>({});
@@ -756,6 +762,18 @@ export default function ProviderLimits({
     }
   }, []);
 
+  const toggleLayoutMode = useCallback(() => {
+    setLayoutMode((current) => {
+      const next = current === "full" ? "compact" : "full";
+      try {
+        localStorage.setItem(LS_LAYOUT_MODE, next);
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
+
   const renderInlineQuotaSummary = (quotas: any[]) => {
     if (!quotas || quotas.length === 0) return null;
     return (
@@ -826,30 +844,55 @@ export default function ProviderLimits({
           </span>
         </div>
 
-        <button
-          onClick={refreshAll}
-          disabled={refreshingAll}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-bg-subtle border border-border text-text-main text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          title={
-            autoRefreshIntervalMs > 0 ? tr("autoRefreshing", "Auto-refreshing") : t("refreshAll")
-          }
-        >
-          <span
-            className={`material-symbols-outlined text-[16px] ${refreshingAll ? "animate-spin" : ""}`}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleLayoutMode}
+            aria-pressed={layoutMode === "compact"}
+            aria-label={
+              layoutMode === "compact"
+                ? "Switch to full quota layout"
+                : "Switch to compact quota layout"
+            }
+            title={
+              layoutMode === "compact"
+                ? "Switch to full quota layout"
+                : "Switch to compact quota layout"
+            }
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bg-subtle border border-border text-text-main text-[13px] cursor-pointer"
           >
-            {autoRefreshIntervalMs > 0 ? "schedule" : "refresh"}
-          </span>
-          {refreshingAll
-            ? tr("refreshing", "Refreshing")
-            : autoRefreshIntervalMs > 0
-              ? `${tr("autoRefreshing", "Auto-refreshing")} ${formatAutoRefreshCountdown(
-                  Math.max(
-                    0,
-                    autoRefreshIntervalMs - (autoRefreshClock - lastRefreshAllAtRef.current)
-                  )
-                )}`
-              : t("refreshAll")}
-        </button>
+            <span className="material-symbols-outlined text-[16px]" aria-hidden>
+              {layoutMode === "compact" ? "view_agenda" : "grid_view"}
+            </span>
+            <span className="hidden sm:inline">
+              {layoutMode === "compact" ? "Compact" : "Full"}
+            </span>
+          </button>
+          <button
+            onClick={refreshAll}
+            disabled={refreshingAll}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-bg-subtle border border-border text-text-main text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            title={
+              autoRefreshIntervalMs > 0 ? tr("autoRefreshing", "Auto-refreshing") : t("refreshAll")
+            }
+          >
+            <span
+              className={`material-symbols-outlined text-[16px] ${refreshingAll ? "animate-spin" : ""}`}
+            >
+              {autoRefreshIntervalMs > 0 ? "schedule" : "refresh"}
+            </span>
+            {refreshingAll
+              ? tr("refreshing", "Refreshing")
+              : autoRefreshIntervalMs > 0
+                ? `${tr("autoRefreshing", "Auto-refreshing")} ${formatAutoRefreshCountdown(
+                    Math.max(
+                      0,
+                      autoRefreshIntervalMs - (autoRefreshClock - lastRefreshAllAtRef.current)
+                    )
+                  )}`
+                : t("refreshAll")}
+          </button>
+        </div>
       </div>
 
       {showFilters && (
@@ -1058,6 +1101,7 @@ export default function ProviderLimits({
           onShowQuota={handleShowQuota}
           redeemingResetCreditId={resetCreditRedemption.redeemingResetCreditId}
           loadingResetCreditsId={resetCreditRedemption.loadingResetCreditsId}
+          compact={layoutMode === "compact"}
         />
       </div>
 

@@ -26,6 +26,7 @@ interface Props {
   quotaVisibility?: Record<string, { hidden?: string[] }>;
   onHideQuota?: (provider: string, quota: any) => void;
   onShowQuota?: (provider: string, quota: any) => void;
+  compact?: boolean;
 }
 
 export default function QuotaCardGrid({
@@ -47,8 +48,40 @@ export default function QuotaCardGrid({
   quotaVisibility,
   onHideQuota,
   onShowQuota,
+  compact = false,
 }: Props) {
   if (connections.length === 0) return null;
+
+  const renderCard = (conn: (typeof connections)[number]) => (
+    <QuotaCard
+      key={conn.id}
+      connection={conn}
+      quota={quotaData[conn.id]}
+      loading={!!loading[conn.id]}
+      error={errors[conn.id] || null}
+      refreshedAt={lastRefreshedAt[conn.id]}
+      emailsVisible={emailsVisible}
+      providerLabel={providerLabels[conn.provider] || conn.provider}
+      onRefresh={() => onRefresh(conn.id, conn.provider)}
+      onOpenCutoff={() => onOpenCutoff(conn)}
+      onOpenResetCredits={() => onOpenResetCredits?.(conn.id, conn.provider)}
+      onToggleActive={(nextActive) => onToggleActive(conn.id, nextActive)}
+      togglingActive={togglingActiveId === conn.id}
+      redeemingResetCredit={redeemingResetCreditId === conn.id}
+      loadingResetCredits={loadingResetCreditsId === conn.id}
+      quotaVisibility={quotaVisibility}
+      onHideQuota={onHideQuota ? (q) => onHideQuota(conn.provider, q) : undefined}
+      onShowQuota={onShowQuota ? (q) => onShowQuota(conn.provider, q) : undefined}
+    />
+  );
+
+  if (compact) {
+    return (
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-3">
+        {connections.map(renderCard)}
+      </div>
+    );
+  }
 
   // Group connections by provider (preserving in-group order), then order the
   // groups deterministically: PROVIDER_ORDER rank → label (locale-aware) →
@@ -81,28 +114,7 @@ export default function QuotaCardGrid({
               </span>
             </h3>
             <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-3">
-              {conns.map((conn) => (
-                <QuotaCard
-                  key={conn.id}
-                  connection={conn}
-                  quota={quotaData[conn.id]}
-                  loading={!!loading[conn.id]}
-                  error={errors[conn.id] || null}
-                  refreshedAt={lastRefreshedAt[conn.id]}
-                  emailsVisible={emailsVisible}
-                  providerLabel={providerLabels[conn.provider] || conn.provider}
-                  onRefresh={() => onRefresh(conn.id, conn.provider)}
-                  onOpenCutoff={() => onOpenCutoff(conn)}
-                  onOpenResetCredits={() => onOpenResetCredits?.(conn.id, conn.provider)}
-                  onToggleActive={(nextActive) => onToggleActive(conn.id, nextActive)}
-                  togglingActive={togglingActiveId === conn.id}
-                  redeemingResetCredit={redeemingResetCreditId === conn.id}
-                  loadingResetCredits={loadingResetCreditsId === conn.id}
-                  quotaVisibility={quotaVisibility}
-                  onHideQuota={onHideQuota ? (q) => onHideQuota(conn.provider, q) : undefined}
-                  onShowQuota={onShowQuota ? (q) => onShowQuota(conn.provider, q) : undefined}
-                />
-              ))}
+              {conns.map(renderCard)}
             </div>
           </div>
         );
