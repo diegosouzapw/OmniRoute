@@ -33,6 +33,7 @@ import { useProviderConnections } from "./hooks/useProviderConnections";
 import { useProviderSettings } from "./hooks/useProviderSettings";
 import { useProviderModels } from "./hooks/useProviderModels";
 import { useCommandCodeAuth } from "./hooks/useCommandCodeAuth";
+import { useConnectionAutoSync } from "./hooks/useConnectionAutoSync";
 import { useExternalLinkFlow } from "./hooks/useExternalLinkFlow";
 import { useAuthFileHandlers } from "./hooks/useAuthFileHandlers";
 import { useModelImportHandlers } from "./hooks/useModelImportHandlers";
@@ -98,6 +99,7 @@ export default function ProviderDetailPageClient() {
   const usesCuratedModelsOnly = providerUsesCuratedModelsOnly(providerId);
   const {
     connections,
+    setConnections,
     providerNode,
     loading,
     retestingId,
@@ -295,6 +297,13 @@ export default function ProviderDetailPageClient() {
     t,
     providerStorageAlias,
   });
+
+  const handleToggleConnectionAutoSync = useConnectionAutoSync(
+    connections,
+    setConnections,
+    notify,
+    t
+  );
 
   // ── model-related effects (loading gate) ────────────────────────────────
   useEffect(() => {
@@ -599,6 +608,8 @@ export default function ProviderDetailPageClient() {
                 handleToggleRateLimit={handleToggleRateLimit}
                 handleToggleQuotaVisibility={handleToggleQuotaVisibility}
                 handleToggleClaudeExtraUsage={handleToggleClaudeExtraUsage}
+                canAutoSync={!usesCuratedModelsOnly && compatibleSupportsModelImport}
+                handleToggleConnectionAutoSync={handleToggleConnectionAutoSync}
                 handleToggleCliproxyapiMode={handleToggleCliproxyapiMode}
                 handleToggleCodexLimit={handleToggleCodexLimit}
                 handleToggleProxyEnabled={handleToggleProxyEnabled}

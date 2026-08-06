@@ -12,16 +12,10 @@ export interface KimiWebModelConfig {
 
 const STATIC_MODEL_CONFIGS: Record<string, KimiWebModelConfig> = {
   k3: {
-    scenario: "SCENARIO_OK_COMPUTER",
-    kimiPlusId: "ok-computer",
-    supportedReasoningEfforts: [
-      "REASONING_EFFORT_LOW",
-      "REASONING_EFFORT_HIGH",
-      "REASONING_EFFORT_MAX",
-    ],
-    defaultReasoningEffort: "REASONING_EFFORT_MAX",
-    supportedContextLengths: ["CONTEXT_LENGTH_L", "CONTEXT_LENGTH_XL"],
-    defaultContextLength: "CONTEXT_LENGTH_L",
+    scenario: "SCENARIO_K2D5",
+    supportedReasoningEfforts: ["REASONING_EFFORT_NONE", "REASONING_EFFORT_LOW"],
+    defaultReasoningEffort: "REASONING_EFFORT_NONE",
+    supportedContextLengths: [],
   },
   k2d6: {
     scenario: "SCENARIO_K2D5",

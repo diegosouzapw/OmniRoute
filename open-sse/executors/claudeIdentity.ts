@@ -357,10 +357,11 @@ export function selectBetaFlags(
   // betas it actually asked for. Opaque clients (clientBetaSet === null) keep them all.
   const allowThinking =
     clientBetaSet === null || clientBetaSet.has("interleaved-thinking-2025-05-14");
-  const allowHeavy =
-    clientBetaSet === null ||
-    clientBetaSet.has("advanced-tool-use-2025-11-20") ||
-    clientBetaSet.has("effort-2025-11-24");
+  // effort-2025-11-24 must NOT imply advanced-tool-use-2025-11-20 (#9505): Claude
+  // Code sends effort on every request and never sends ATU, so treating effort as
+  // a proxy for ATU force-injects the heavy-agent pair the client never negotiated —
+  // the same class of mutation #3415 closed. Opaque clients keep the full set.
+  const allowHeavy = clientBetaSet === null || clientBetaSet.has("advanced-tool-use-2025-11-20");
   const hasSystem =
     !!b.system &&
     (typeof b.system === "string" || (Array.isArray(b.system) && b.system.length > 0));

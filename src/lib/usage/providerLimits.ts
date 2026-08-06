@@ -1,22 +1,23 @@
 import {
-  getAllProviderLimitsCache,
   getProviderConnectionById,
   getProviderConnections,
+  updateProviderConnection,
+} from "@/lib/db/providers";
+import { getSettings, resolveProxyForConnection, updateSettings } from "@/lib/db/settings";
+import {
+  getAllProviderLimitsCache,
   getProviderLimitsCache,
-  getSettings,
-  resolveProxyForConnection,
   setProviderLimitsCache,
   setProviderLimitsCacheBatch,
-  updateProviderConnection,
-  updateSettings,
   type ProviderLimitsCacheEntry,
-} from "@/lib/localDb";
+} from "@/lib/db/providerLimits";
 import { syncToCloud } from "@/lib/cloudSync";
 import { setQuotaCache } from "@/domain/quotaCache";
 import { buildClaudeExtraUsageConnectionUpdate } from "@/lib/providers/claudeExtraUsage";
 import { clearRecoveredProviderState } from "@/sse/services/auth";
 import { getMachineId } from "@/shared/utils/machine";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
+import { mergeProviderLimitsCacheEntry, toProviderLimitsCacheEntry } from "./providerLimitsCache";
 import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
 import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
 import {
@@ -93,22 +94,6 @@ const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;
 const PROVIDER_LIMITS_AUTO_SYNC_SETTING_KEY = "provider_limits_auto_sync_last_run";
 const DEFAULT_PROVIDER_LIMITS_POST_USAGE_REFRESH_DELAY_MS = 5_000;
 const pendingPostUsageRefreshes = new Set<string>();
-
-function toProviderLimitsCacheEntry(
-  usage: JsonRecord,
-  source: SyncSource,
-  fetchedAt = new Date().toISOString()
-): ProviderLimitsCacheEntry {
-  const value = Number(usage.bankedResetCredits);
-  return {
-    quotas: isRecord(usage.quotas) ? usage.quotas : null,
-    plan: usage.plan ?? null,
-    message: typeof usage.message === "string" ? usage.message : null,
-    fetchedAt,
-    source,
-    bankedResetCredits: Number.isFinite(value) ? value : undefined,
-  };
-}
 
 function getProviderLimitsPostUsageRefreshDelayMs(): number {
   const raw = Number(process.env.PROVIDER_LIMITS_POST_USAGE_REFRESH_DELAY_MS ?? "");
@@ -890,30 +875,32 @@ export async function fetchAndPersistProviderLimits(
     allowRotatingRefresh: opts.allowRotatingRefresh,
   });
   const newCache = toProviderLimitsCacheEntry(usage, source);
+  const previous = getProviderLimitsCache(connectionId);
+  const cache = mergeProviderLimitsCacheEntry(connection.provider, newCache, previous);
 
   // Don't persist error-only entries (429 etc.) — would wipe prior good cache.
   // Serve the prior entry instead; only successful fetches update the cache.
-  const fetchFailed = !newCache.quotas && newCache.message;
-  if (fetchFailed) {
-    const previous = getProviderLimitsCache(connectionId);
-    if (previous?.quotas && Object.keys(previous.quotas).length > 0) {
-      const staleUsage: JsonRecord = {
-        ...usage,
-        quotas: previous.quotas,
-        plan: previous.plan ?? usage.plan ?? null,
-        bankedResetCredits: previous.bankedResetCredits,
-        message: null,
-        _stale: true,
-        _staleSince: previous.fetchedAt,
-        _staleReason: newCache.message,
-      };
-      return { connection, usage: staleUsage, cache: previous };
-    }
-    return { connection, usage, cache: newCache };
+  if (cache === previous && newCache.message) {
+    const staleUsage: JsonRecord = {
+      ...usage,
+      quotas: previous.quotas,
+      plan: previous.plan ?? usage.plan ?? null,
+      bankedResetCredits: previous.bankedResetCredits,
+      billing: previous.billing,
+      message: null,
+      _stale: true,
+      _staleSince: previous.fetchedAt,
+      _staleReason: newCache.message,
+    };
+    return { connection, usage: staleUsage, cache: previous };
   }
 
-  setProviderLimitsCache(connectionId, newCache);
-  return { connection, usage, cache: newCache };
+  const mergedUsage: JsonRecord = {
+    ...usage,
+    ...(cache.billing ? { billing: cache.billing } : {}),
+  };
+  setProviderLimitsCache(connectionId, cache);
+  return { connection, usage: mergedUsage, cache };
 }
 
 export async function syncAllProviderLimits(
@@ -942,14 +929,9 @@ export async function syncAllProviderLimits(
   ) => {
     if (result.status === "fulfilled") {
       const { cache } = result.value;
-      // Don't persist error-only entries; show prior cache or pass through.
-      if (!cache.quotas && cache.message) {
-        const previous = getProviderLimitsCache(connectionId);
-        if (previous?.quotas && Object.keys(previous.quotas).length > 0) {
-          caches[connectionId] = previous;
-        } else {
-          caches[connectionId] = cache;
-        }
+      const previous = getProviderLimitsCache(connectionId);
+      if (cache === previous) {
+        caches[connectionId] = cache;
         return;
       }
       cacheEntries.push({ connectionId, entry: cache });
@@ -968,7 +950,8 @@ export async function syncAllProviderLimits(
     const { usage } = await fetchLiveProviderLimitsWithOptions(connection.id, {
       forceRefresh,
     });
-    const cache = toProviderLimitsCacheEntry(usage, source);
+    const nextCache = toProviderLimitsCacheEntry(usage, source);
+    const cache = mergeProviderLimitsCacheEntry(connection.provider, nextCache, existingCache);
     return { connectionId: connection.id, cache };
   };
 

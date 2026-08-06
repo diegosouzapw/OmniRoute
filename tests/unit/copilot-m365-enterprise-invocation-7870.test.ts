@@ -15,7 +15,10 @@ class MockM365WebSocket {
   closed = false;
   listeners = new Map<string, Listener[]>();
 
-  constructor(public url: string, public options: unknown) {
+  constructor(
+    public url: string,
+    public options: unknown
+  ) {
     MockM365WebSocket.instances.push(this);
     queueMicrotask(() => this.emit("open"));
   }
@@ -157,4 +160,22 @@ test("#7870: EDU-tier chat invocation payload stays byte-identical to today (una
   const optionsSets = invocationArgs.optionsSets as string[];
   assert.ok(optionsSets.includes("enable_msa_user"));
   assert.equal(invocationArgs.tone, "");
+});
+
+test("#8971: enterprise-tier chat invocation must send disconnectBehavior=continue", async () => {
+  const invocationArgs = await sendChatInvocation("enterprise");
+  assert.equal(
+    invocationArgs.disconnectBehavior,
+    "continue",
+    `enterprise-tier invocation must carry disconnectBehavior="continue"; got ${JSON.stringify(invocationArgs.disconnectBehavior)}`
+  );
+});
+
+test("#8971: individual (no tier) chat invocation disconnectBehavior remains empty (byte-identical to #4042)", async () => {
+  const invocationArgs = await sendChatInvocation(undefined);
+  assert.equal(
+    invocationArgs.disconnectBehavior,
+    "",
+    `individual-tier invocation must carry disconnectBehavior=""; got ${JSON.stringify(invocationArgs.disconnectBehavior)}`
+  );
 });

@@ -267,8 +267,16 @@ async function buildUnifiedModelsResponseCore(
     const providerIdToPrefix: Record<string, string> = {};
     const nodeIdToProviderType: Record<string, string> = {};
     for (const node of providerNodes) {
-      if (node.prefix) {
-        providerIdToPrefix[node.id] = node.prefix;
+      const resolvedPrefix =
+        node.prefix?.trim() ||
+        node.name
+          ?.trim()
+          ?.toLowerCase()
+          ?.replace(/\s+/g, "-")
+          ?.replace(/[^a-z0-9-]/g, "") ||
+        null;
+      if (resolvedPrefix) {
+        providerIdToPrefix[node.id] = resolvedPrefix;
       }
       if (node.type) {
         nodeIdToProviderType[node.id] = node.type;
@@ -461,7 +469,12 @@ async function buildUnifiedModelsResponseCore(
       }
       Object.assign(
         capabilities,
-        getThinkingCapabilityFields(providerId, modelId, canonical.capabilities.supportsThinking)
+        getThinkingCapabilityFields(
+          providerId,
+          modelId,
+          canonical.capabilities.supportsThinking,
+          registryModel?.supportedThinkingEfforts
+        )
       );
 
       return {

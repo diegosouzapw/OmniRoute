@@ -32,15 +32,12 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-repro-652
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
-const { saveModelsDevCapabilities, clearModelsDevCapabilities } = await import(
-  "../../src/lib/modelsDevSync.ts"
-);
-const { setModelCapabilityOverride, removeModelCapabilityOverride } = await import(
-  "../../src/lib/db/modelCapabilityOverrides.ts"
-);
-const { resolveReasoningBufferedMaxTokens } = await import(
-  "../../open-sse/services/reasoningTokenBuffer.ts"
-);
+const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
+  await import("../../src/lib/modelsDevSync.ts");
+const { setModelCapabilityOverride, removeModelCapabilityOverride } =
+  await import("../../src/lib/db/modelCapabilityOverrides.ts");
+const { resolveReasoningBufferedMaxTokens } =
+  await import("../../open-sse/services/reasoningTokenBuffer.ts");
 
 const PROVIDER = "ollama-cloud";
 const MODEL = "deepseek-v4-flash";
@@ -76,13 +73,15 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("#6524: with only the (wrong) synced catalog data, the buffer still inflates past the real cap", () => {
-  // Documents the known, out-of-scope limitation: nothing in our codebase can
-  // psychically know the real upstream cap before an operator (or a future
-  // self-healing mechanism) supplies a correction. This is the reported symptom's
-  // starting state, not something this fix promises to eliminate on first contact.
+test("#6524: with only the (wrong) synced catalog data, the buffer no longer inflates (#9507)", () => {
+  // #9507: the reasoning-token buffer never enlarges an explicit client
+  // max_tokens, so even with a wrong synced output cap (1048576) the client's
+  // 64000 is forwarded verbatim — which already stays under the real upstream
+  // cap (65536), fully resolving the reporter's symptom without needing an
+  // operator override. (Previously this asserted 96000, the inflation past the
+  // real cap; that inflation is the defect #9507 removes.)
   const result = resolveReasoningBufferedMaxTokens(TARGET, 64000);
-  assert.equal(result, 96000);
+  assert.equal(result, 64000);
 });
 
 test("#6524: an operator-set max_token override now clamps the reasoning buffer to the real cap", () => {

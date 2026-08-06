@@ -1,3 +1,9 @@
+---
+title: "AgentRouter WAF"
+version: 3.8.50
+lastUpdated: 2026-08-03
+---
+
 # agentrouter.org WAF (Web Application Firewall)
 
 The `agentrouter` upstream gateway runs a keyword-based content filter on
@@ -23,22 +29,22 @@ The WAF inspects `messages[].content` only. It does **not** inspect:
 
 ## Always-blocked patterns (case-insensitive)
 
-| Pattern                       | Notes                                  |
-|-------------------------------|----------------------------------------|
-| Any `Lorem ipsum` variant     | Full Latin lorem vocabulary is blocked |
-| `language model` (alone)      | "the language model" and "large language model" pass |
-| `virtual assistant`           | "AI assistant" passes                   |
-| `I'm here to help`            | "here to help" alone also blocks        |
-| `Claude, made by Anthropic`   | Full phrase only                        |
+| Pattern                     | Notes                                                |
+| --------------------------- | ---------------------------------------------------- |
+| Any `Lorem ipsum` variant   | Full Latin lorem vocabulary is blocked               |
+| `language model` (alone)    | "the language model" and "large language model" pass |
+| `virtual assistant`         | "AI assistant" passes                                |
+| `I'm here to help`          | "here to help" alone also blocks                     |
+| `Claude, made by Anthropic` | Full phrase only                                     |
 
 ## Almost-always-blocked patterns
 
-| Pattern           | Notes                                                   |
-|-------------------|---------------------------------------------------------|
-| `placeholder`     | When it stands alone (not as a parameter name, etc.)  |
-| `dummy data`      | Common seed phrase for fixtures                        |
-| `foo bar baz`     | Canonical placeholder phrase                           |
-| Repeated short tokens (`AAA BBB CCC`, `test test test`) | Detector for keyword stuffing |
+| Pattern                                                 | Notes                                                |
+| ------------------------------------------------------- | ---------------------------------------------------- |
+| `placeholder`                                           | When it stands alone (not as a parameter name, etc.) |
+| `dummy data`                                            | Common seed phrase for fixtures                      |
+| `foo bar baz`                                           | Canonical placeholder phrase                         |
+| Repeated short tokens (`AAA BBB CCC`, `test test test`) | Detector for keyword stuffing                        |
 
 ## Behavior under load
 

@@ -166,14 +166,18 @@ export function translateNonStreamingResponse(
           if (!part || typeof part !== "object") continue;
           const partObj = toRecord(part);
           if (partObj.type === "summary_text" && typeof partObj.text === "string") {
-            reasoningContent += partObj.text;
+            // #9500 — reasoning summary parts are discrete segments; join with "\n\n"
+            // (matches extractThinkingFromContent convention) so they don't glue back-to-back.
+            reasoningContent += reasoningContent ? `\n\n${partObj.text}` : partObj.text;
           }
         }
       } else if (itemObj.type === "reasoning" && Array.isArray(itemObj.summary)) {
         for (const part of itemObj.summary) {
           const partObj = toRecord(part);
           if (partObj.type === "summary_text" && typeof partObj.text === "string") {
-            reasoningContent += partObj.text;
+            // #9500 — reasoning summary parts are discrete segments; join with "\n\n"
+            // (matches extractThinkingFromContent convention) so they don't glue back-to-back.
+            reasoningContent += reasoningContent ? `\n\n${partObj.text}` : partObj.text;
           }
         }
       } else if (itemObj.type === "function_call") {
@@ -328,7 +332,9 @@ export function translateNonStreamingResponse(
                 for (const part of content.parts) {
                   const partObj = toRecord(part);
                   if (partObj.thought === true && typeof partObj.text === "string") {
-                    reasoningContent += partObj.text;
+                    // #9500 — Gemini thinking parts are discrete segments; join with "\n\n"
+                    // (matches extractThinkingFromContent convention) so they don't glue back-to-back.
+                    reasoningContent += reasoningContent ? `\n\n${partObj.text}` : partObj.text;
                     continue;
                   }
 

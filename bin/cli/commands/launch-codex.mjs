@@ -1,7 +1,36 @@
-import { spawn } from "node:child_process";
+import { spawn, execFileSync } from "node:child_process";
 import { t } from "../i18n.mjs";
 import { resolveActiveContext } from "../contexts.mjs";
 import { quoteShellArgs } from "../utils/winShellArgs.mjs";
+
+/**
+ * Probe PATH for a Windows executable via `where.exe`, preferring a `.exe` over
+ * a `.cmd`/`.bat` shim. Returns the absolute path to the preferred binary, or
+ * `null` when `where.exe` finds nothing (or cannot run). Mirrors the same probe
+ * in launch.mjs and `locateCommand()` in `src/shared/services/cliRuntime.ts`.
+ *
+ * @param {string} command  bare command name to look up
+ * @returns {Promise<string|null>} absolute path to the preferred match, or null
+ */
+function probeWindowsBinary(command) {
+  try {
+    const out = execFileSync("where.exe", [command], {
+      stdio: ["ignore", "pipe", "ignore"],
+      encoding: "utf8",
+      timeout: 3000,
+      windowsHide: true,
+    });
+    const lines = out
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean);
+    if (lines.length === 0) return null;
+    const winExt = /\.(exe|cmd|bat|com)$/i;
+    return lines.find((l) => winExt.test(l)) || null;
+  } catch {
+    return null;
+  }
+}
 
 /** OpenAI/Codex env keys stripped from the child so a stale OpenAI key/base-url
  *  in the shell can't shadow the omniroute provider (defense-in-depth). Mirrors
@@ -23,11 +52,25 @@ const NO_AUTH_SENTINEL = "omniroute-no-auth";
 // On Windows the `codex` binary is an npm `.cmd` shim that `spawn` cannot resolve
 // without a shell (bare "codex" → ENOENT). Mirror the qodercli Windows fix (#6263):
 // spawn `codex.cmd` through a shell on win32, and the bare binary elsewhere.
-export function resolveCodexSpawn(platform) {
-  if (platform === "win32") {
-    return { command: "codex.cmd", shell: true };
+//
+// #9454: the native codex installer may ship a real `codex.exe` instead of the
+// npm `.cmd` shim. Probe PATH for `codex` first: when `where.exe` resolves a
+// `.exe`, spawn it directly (no shell — cmd.exe would split an absolute path
+// with spaces); otherwise fall back to `codex.cmd` + shell. Off Windows the bare
+// binary is spawned unchanged (no shell, no probe).
+/**
+ * @param {NodeJS.Platform|string} platform
+ * @param {{ probe?: (command: string) => Promise<string|null> }} [opts]  injectable probe for tests
+ * @returns {Promise<{ command: string, shell: true|undefined }>}
+ */
+export async function resolveCodexSpawn(platform, opts = {}) {
+  if (platform !== "win32") return { command: "codex", shell: undefined };
+  const probe = opts.probe ?? probeWindowsBinary;
+  const located = await probe("codex");
+  if (located && /\.exe$/i.test(located)) {
+    return { command: located, shell: undefined };
   }
-  return { command: "codex", shell: undefined };
+  return { command: "codex.cmd", shell: true };
 }
 
 /**
@@ -169,8 +212,9 @@ export async function runLaunchCodexCommand(opts = {}, codexArgs = []) {
   const extraArgs = [...providerArgs, ...profileArgs, ...codexArgs];
   const env = buildCodexEnv(process.env, authToken);
 
+  const { command: codexLaunch, shell: shellValue } = await resolveCodexSpawn(process.platform);
+
   return await new Promise((resolve) => {
-    const { command: codexLaunch, shell: shellValue } = resolveCodexSpawn(process.platform);
     const child = spawn(codexLaunch, quoteCodexArgs(extraArgs, process.platform), {
       env,
       stdio: "inherit",

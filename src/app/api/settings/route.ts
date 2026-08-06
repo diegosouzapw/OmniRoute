@@ -154,10 +154,7 @@ function attemptedKeysOf(body: Record<string, unknown> | null | undefined): stri
   if (!body || typeof body !== "object") return [];
   return Object.keys(body).filter(
     (k) =>
-      k !== "currentPassword" &&
-      k !== "newPassword" &&
-      k !== "password" &&
-      k !== "expectedRevision"
+      k !== "currentPassword" && k !== "newPassword" && k !== "password" && k !== "expectedRevision"
   );
 }
 
@@ -319,7 +316,12 @@ export async function PATCH(request: Request) {
       // honoured before T-011 — when no password is configured yet AND login
       // is currently disabled, allow the first write to set policy (incl.
       // the password itself). Once a hash exists the gate always fires.
-      const isColdBoot = !storedPasswordHash && passwordState.settings.requireLogin === false;
+      // #8950: also treat the request as cold boot when newPassword is present
+      // without a stored hash, so the Security tab's two-step flow (enable
+      // requireLogin first, then set password) does not deadlock.
+      const isColdBoot =
+        !storedPasswordHash &&
+        (passwordState.settings.requireLogin === false || Boolean(body.newPassword));
       if (!isColdBoot) {
         if (!body.currentPassword) {
           emitSettingsFailureAudit(request, actor, "PASSWORD_REQUIRED", attemptedKeys);

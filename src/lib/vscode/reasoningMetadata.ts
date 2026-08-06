@@ -8,7 +8,7 @@ export type VscodeCatalogModel = {
   name?: string;
   root?: string;
   owned_by?: string;
-  capabilities?: Record<string, boolean>;
+  capabilities?: Record<string, boolean | string[]>;
   supportsReasoningEffort?: string[];
   supportedReasoningEfforts?: string[];
   supports_reasoning_effort?: string[];
@@ -66,6 +66,9 @@ function normalizeReasoningEffortValue(value: string) {
 
 function getNativeReasoningEffortValues(model: VscodeCatalogModel) {
   const candidates = [
+    model.owned_by !== "combo" && Array.isArray(model.capabilities?.effort_tiers)
+      ? model.capabilities.effort_tiers
+      : undefined,
     model.supportsReasoningEffort,
     model.supportedReasoningEfforts,
     model.supports_reasoning_effort,
@@ -111,7 +114,7 @@ export function getReasoningEffortValues(model: VscodeCatalogModel) {
   if (!isReasoningCapableModel(model)) return undefined;
 
   const modelId = getCatalogModelName(model);
-  const parsed = parseModel(modelId, "");
+  const parsed = parseModel(modelId);
   const providerId = parsed.provider || model.owned_by || "";
   const providerModelId = parsed.model || model.root || modelId.split("/").pop() || modelId;
   const values = ["none", "low", "medium", "high"];
@@ -179,7 +182,7 @@ export function getReasoningVariantBaseModelId(modelId: string) {
 
 function getCodexGpt56DefaultReasoningEffort(model: VscodeCatalogModel) {
   const modelId = getCatalogModelName(model);
-  const parsed = parseModel(modelId, "");
+  const parsed = parseModel(modelId);
   const providerId = (parsed.provider || model.owned_by || "").trim().toLowerCase();
   if (providerId !== "codex" && providerId !== "cx") return undefined;
 
@@ -194,9 +197,18 @@ function getCodexGpt56DefaultReasoningEffort(model: VscodeCatalogModel) {
 }
 
 export function getDefaultReasoningEffort(model: VscodeCatalogModel, supportedValues?: string[]) {
+  const nativeDefault = normalizeReasoningEffortValue(
+    model.defaultReasoningEffort || model.default_reasoning_effort || ""
+  );
   return (
     inferSelectedReasoningEffort(model, supportedValues) ||
+    (nativeDefault && (!supportedValues?.length || supportedValues.includes(nativeDefault))
+      ? nativeDefault
+      : undefined) ||
     getCodexGpt56DefaultReasoningEffort(model) ||
+    (supportedValues?.includes(DEFAULT_REASONING_EFFORT)
+      ? DEFAULT_REASONING_EFFORT
+      : supportedValues?.[0]) ||
     DEFAULT_REASONING_EFFORT
   );
 }

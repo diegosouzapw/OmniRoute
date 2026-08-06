@@ -64,13 +64,16 @@ test("bare GPT-5.6 model routes through Codex when it is the only active provide
   assert.equal(info.model, GPT_56_CODEX_MODEL);
 });
 
-test("OpenAI remains the historical default when both providers advertise the bare model", async () => {
+// #9275 put the whole gpt-5.6-sol tier set into CODEX_NATIVE_UNPREFIXED_MODELS, so an
+// active Codex connection now claims the bare id ahead of OpenAI. Before, OpenAI won the
+// overlap; the escape hatch is the explicit prefix, covered by the last test in this file.
+test("Codex claims the bare model when both providers advertise it", async () => {
   await seedSyncedModel("codex", GPT_56_CODEX_MODEL);
   await seedSyncedModel("openai", GPT_56_CODEX_MODEL);
 
   const info = await getModelInfoCore(GPT_56_CODEX_MODEL, null);
 
-  assert.equal(info.provider, "openai");
+  assert.equal(info.provider, "codex");
   assert.equal(info.model, GPT_56_CODEX_MODEL);
 });
 
@@ -112,8 +115,20 @@ test("inactive Codex synchronized models do not influence bare-model routing", a
   assert.equal(info.model, GPT_56_CODEX_MODEL);
 });
 
-test("OpenAI remains the historical default for overlapping static models", async () => {
+test("Codex claims an overlapping static model when both connections are active", async () => {
   await seedConnection("codex");
+  await seedConnection("openai");
+
+  const info = await getModelInfoCore("gpt-5.5", null);
+
+  assert.equal(info.provider, "codex");
+  assert.equal(info.model, "gpt-5.5");
+});
+
+// The regression #9275 introduced and this file now guards: the Codex-native set must
+// never claim a bare id when no codex connection is active — an OpenAI-only install
+// would get "no active credentials for provider: codex" for a model OpenAI serves.
+test("a Codex-native bare id stays on OpenAI when no codex connection exists", async () => {
   await seedConnection("openai");
 
   const info = await getModelInfoCore("gpt-5.5", null);

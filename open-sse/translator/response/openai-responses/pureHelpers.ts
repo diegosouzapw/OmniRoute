@@ -166,11 +166,44 @@ export function normalizeUpstreamFailure(data, fallbackType = "server_error") {
 
 export function extractResponsesReasoningSummaryText(item) {
   if (!item || !Array.isArray(item.summary)) return "";
+  // #9500 — reasoning summary parts are discrete segments; join with "\n\n"
+  // (matches extractThinkingFromContent convention). Filter empties so an
+  // empty summary_text element does not produce a dangling separator.
   return item.summary
     .map((part) =>
       part && typeof part === "object" && typeof part.text === "string" ? part.text : ""
     )
-    .join("");
+    .filter((text) => text.length > 0)
+    .join("\n\n");
+}
+
+// #9500 — streaming separator helper. When summary_index increments mid-stream
+// for a given item_id, a new reasoning segment begins; prefix "\n\n" so segments
+// don't arrive back-to-back. Only prefixes when a delta was already emitted for
+// the item AND the index advanced — never on the first segment.
+export function buildResponsesReasoningSummaryDelta(state, data, reasoningDelta) {
+  const itemId = data.item_id != null ? String(data.item_id) : "";
+  const summaryIndex = typeof data.summary_index === "number" ? data.summary_index : null;
+  if (!(state.reasoningSummaryIndex instanceof Map)) {
+    state.reasoningSummaryIndex = new Map();
+  }
+  const lastIndex = itemId ? state.reasoningSummaryIndex.get(itemId) : undefined;
+  const alreadyEmittedForItem = itemId
+    ? state.reasoningItemsWithDelta instanceof Set && state.reasoningItemsWithDelta.has(itemId)
+    : Boolean(state.reasoningDeltaEmitted);
+  let deltaText = reasoningDelta;
+  if (
+    summaryIndex !== null &&
+    lastIndex !== undefined &&
+    summaryIndex > lastIndex &&
+    alreadyEmittedForItem
+  ) {
+    deltaText = `\n\n${reasoningDelta}`;
+  }
+  if (itemId && (lastIndex === undefined || summaryIndex > lastIndex)) {
+    state.reasoningSummaryIndex.set(itemId, summaryIndex);
+  }
+  return deltaText;
 }
 
 // #7095/#7176 — when Codex exposes a reasoning item only as encrypted private

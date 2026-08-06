@@ -7,6 +7,7 @@ import { FORMATS } from "../formats.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
+import { getReadableReasoningValue } from "../../utils/reasoningFields.ts";
 import {
   isInternalReasoningPlaceholder,
   stripInternalReasoningPlaceholder,
@@ -17,6 +18,7 @@ import {
   normalizeOutputIndex,
   normalizeUpstreamFailure,
   getVisibleResponsesReasoningSummaryText,
+  buildResponsesReasoningSummaryDelta,
 } from "./openai-responses/pureHelpers.ts";
 import { createEventEmitter } from "./openai-responses/eventEmitter.ts";
 import { buildResponsesToolCallItem } from "./responsesToolItem.ts";
@@ -80,9 +82,7 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     return flushEvents(state);
   }
 
-  // Capture usage from all chunks that carry it (usage-only chunks OR final chunks with finish_reason)
-  // Normalize Chat Completions format (prompt_tokens/completion_tokens) to Responses API format
-  // (input_tokens/output_tokens) so response.completed always has the fields Codex expects.
+  // Normalize usage from any chunk so response.completed has Responses token fields.
   if (chunk.usage) {
     const u = chunk.usage;
     const input_tokens = u.input_tokens ?? u.prompt_tokens ?? 0;
@@ -193,9 +193,10 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     });
   }
 
-  if (delta.reasoning_content && !isInternalReasoningPlaceholder(delta.reasoning_content)) {
+  const reasoning = getReadableReasoningValue(delta);
+  if (reasoning && !isInternalReasoningPlaceholder(reasoning)) {
     startReasoning(state, emit, idx);
-    emitReasoningDelta(state, emit, delta.reasoning_content);
+    emitReasoningDelta(state, emit, reasoning);
   }
   // Strip the internal reasoning placeholder if the model echoed it
   // through ordinary content (#8081). Only the text-content emission is
@@ -1122,17 +1123,16 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     };
   }
 
-  // Handle true reasoning summary ("Thought for 15s").
-  // Emit as `delta.reasoning_content` — matches the shape used by the
-  // `reasoning_content_text.delta` branch above and is what Chat clients
-  // (OpenCode, Claude Code, Cursor, etc.) actually render in their thinking
-  // panel. A nested `delta.reasoning.summary` object is swallowed by most
-  // stream mergers and never reaches the user.
+  // Handle true reasoning summary ("Thought for 15s"). Emit as `delta.reasoning_content`
+  // — matches the `reasoning_content_text.delta` branch above and is what Chat clients
+  // (OpenCode, Claude Code, Cursor, etc.) render in their thinking panel. A nested
+  // `delta.reasoning.summary` object is swallowed by most stream mergers.
   if (eventType === "response.reasoning_summary_text.delta") {
     const reasoningDelta = data.delta || "";
     if (!reasoningDelta) return null;
     markResponsesReasoningDeltaEmitted(state, data.item_id);
-    return buildResponsesReasoningDeltaChunk(state, reasoningDelta);
+    const deltaText = buildResponsesReasoningSummaryDelta(state, data, reasoningDelta);
+    return buildResponsesReasoningDeltaChunk(state, deltaText);
   }
 
   // #5786 — reasoning summary exposed ONLY as a terminal snapshot on

@@ -12,12 +12,13 @@
  */
 
 import { deleteProxyById, listProxies, updateProxy } from "@/lib/localDb";
-import { createProxyDispatcher, clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
-import { fetch as undiciFetch } from "undici";
 import {
-  decideProxyHealthAction,
-  type ProxyProbeOutcome,
-} from "./decision.ts";
+  createProxyDispatcher,
+  clearDispatcherCache,
+  proxyConfigToUrl,
+} from "@omniroute/open-sse/utils/proxyDispatcher";
+import { fetch as undiciFetch } from "undici";
+import { decideProxyHealthAction, type ProxyProbeOutcome } from "./decision.ts";
 
 // #6246: a HEAD to the public probe target through a legit (often loaded) proxy
 // can exceed a few seconds; the old 5s ceiling produced false negatives that
@@ -87,8 +88,17 @@ async function testOneProxy(proxy: {
   type: string;
   host: string;
   port: number;
+  username?: string;
+  password?: string;
+  family?: string;
 }): Promise<ProxyProbeOutcome> {
-  const proxyUrl = `${proxy.type}://${proxy.host}:${proxy.port}`;
+  let proxyUrl: string | null;
+  try {
+    proxyUrl = proxyConfigToUrl(proxy);
+  } catch {
+    proxyUrl = null;
+  }
+  if (!proxyUrl) return "fail";
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TEST_TIMEOUT_MS);
   try {
@@ -112,7 +122,7 @@ async function testOneProxy(proxy: {
 }
 
 async function sweep(): Promise<void> {
-  const { items: proxies } = await listProxies({ includeSecrets: false });
+  const { items: proxies } = await listProxies({ includeSecrets: true });
   if (proxies.length === 0) return;
 
   const failureMap = getFailureMap();
@@ -161,7 +171,11 @@ async function sweep(): Promise<void> {
         if (await deleteProxyById(id, { force: true }).catch(() => false)) {
           failureMap.delete(id);
           removed++;
-          try { clearDispatcherCache(); } catch { /* non-critical */ }
+          try {
+            clearDispatcherCache();
+          } catch {
+            /* non-critical */
+          }
         }
       }
     }

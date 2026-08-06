@@ -387,12 +387,19 @@ async function runWithSupervisor(
 
   supervisor.start();
 
+  // #9455: persist the supervisor's own PID so `omniroute stop` can SIGTERM it
+  // before the child — the supervisor's SIGTERM handler sets isShuttingDown=true,
+  // kills the child, and exits cleanly, so the child is never respawned after stop.
+  writePidFile("supervisor", process.pid);
+
   process.on("SIGINT", () => {
     killTrayIfActive();
+    cleanupPidFile("supervisor");
     supervisor.stop();
   });
   process.on("SIGTERM", () => {
     killTrayIfActive();
+    cleanupPidFile("supervisor");
     supervisor.stop();
   });
 
