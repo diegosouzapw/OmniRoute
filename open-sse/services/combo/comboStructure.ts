@@ -530,8 +530,6 @@ function hasKnownCompatibleContextLimit(
   return evaluateContextLimit(capabilities, requirements, target.modelStr) === true;
 }
 
-const HARD_COMPAT_REASONS = new Set(["tools", "vision", "structured_output", "output_tokens"]);
-
 /**
  * #8332: vision is a hard requirement, not a soft preference — a target whose vision
  * support is not confirmed can never succeed on an image_url request. Callers
