@@ -779,7 +779,25 @@ export function createSSEStream(options: StreamOptions = {}) {
     // #9315: compute the summary live from every pushed chunk (not just the
     // ones that survive the storage cap below) so a long stream never shows a
     // stale/incomplete "provider response" in the dashboard.
-    format: sourceFormat,
+    //
+    // Real bug: this was unconditionally `sourceFormat` (the CLIENT's wire
+    // format — see this function's own @param doc above). In TRANSLATE mode
+    // the chunks pushed here are the RAW PROVIDER response, whose format is
+    // `targetFormat` (@param "Provider format (for translate mode)"), not
+    // sourceFormat. Whenever a client's format differs from the provider's
+    // (e.g. a Responses-API client routed to a plain-OpenAI-chat-completions
+    // upstream — the OpenClaw/opencode-zen case that surfaced this live), the
+    // reducer picked for `sourceFormat` could never recognize the provider's
+    // actual event shape, so it never left its empty initial state — the
+    // dashboard's "Provider Response" panel permanently showed
+    // `output: []`/empty while "Client Response" (built from
+    // separately-accumulated state, unaffected by this) correctly showed full
+    // content, reading as if the two panels simply disagreed. PASSTHROUGH
+    // mode has no separate provider/client format split — nothing gets
+    // translated, so the provider's raw chunks genuinely ARE in sourceFormat
+    // (and real passthrough callers, e.g. createPassthroughStreamWithLogger,
+    // don't even pass targetFormat) — keep using sourceFormat there.
+    format: mode === STREAM_MODE.TRANSLATE ? targetFormat : sourceFormat,
     fallbackModel: model,
   });
   const clientPayloadCollector = createStructuredSSECollector({

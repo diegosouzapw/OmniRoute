@@ -1098,6 +1098,63 @@ test("createSSEStream passthrough preserves Responses API events and completion 
   assert.equal(onCompletePayload.providerPayload.summary.object, "response");
 });
 
+// Real bug found live (dashboard log id 1786032832181-1c6275, #9315 follow-up):
+// providerPayloadCollector was keyed on `sourceFormat` (the CLIENT's format)
+// instead of `targetFormat` (the PROVIDER's format — see createSSEStream's own
+// @param doc). A Responses-API client routed to a plain-OpenAI-chat-completions
+// upstream (exactly this OpenClaw/opencode-zen combo) fed the provider's real
+// chat.completion.chunk deltas into the Responses-API reducer, which never
+// recognizes them — so the dashboard's "Provider Response" panel stayed stuck
+// empty (`output: []`) forever while "Client Response" correctly showed full
+// content, reading as if the two panels disagreed about the same request.
+test("createSSEStream translate mode: providerPayload summary reflects the PROVIDER's format, not the client's", async () => {
+  let onCompletePayload = null;
+  await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl-1",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "big-pickle",
+        choices: [
+          { index: 0, delta: { role: "assistant", content: "Hello " }, finish_reason: null },
+        ],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl-1",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "big-pickle",
+        choices: [{ index: 0, delta: { content: "world" }, finish_reason: "stop" }],
+        usage: { prompt_tokens: 5, completion_tokens: 2, total_tokens: 7 },
+      })}\n\n`,
+      `data: [DONE]\n\n`,
+    ],
+    {
+      mode: "translate",
+      // Client speaks Responses API; the upstream provider (opencode-zen-style)
+      // speaks plain OpenAI chat-completions — exactly the OpenClaw combo that
+      // surfaced this live.
+      sourceFormat: FORMATS.OPENAI_RESPONSES,
+      targetFormat: FORMATS.OPENAI,
+      provider: "opencode-zen",
+      model: "big-pickle",
+      body: { input: "hi" },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  const summary = onCompletePayload.providerPayload.summary;
+  assert.ok(summary, "providerPayload.summary must not be null/undefined");
+  // The bug's exact symptom: a Responses-API reducer fed chat-completion chunks
+  // never recognizes them, so it stays at "no output" — assert the OPPOSITE.
+  assert.equal(summary.object, "chat.completion");
+  assert.equal(summary.choices?.[0]?.message?.content, "Hello world");
+  assert.equal(summary.choices?.[0]?.finish_reason, "stop");
+});
+
 test("createSSEStream passthrough drops leaked empty chat bootstrap chunks for Responses clients", async () => {
   const text = await readTransformed(
     [
