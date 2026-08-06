@@ -2148,14 +2148,14 @@ export async function markAccountUnavailable(
           errorCode: status,
         });
         rehydrateAlibabaFreeDrainedModelLocks(
-          provider,
+          provider!,
           connectionId,
           persistedProviderSpecificData
         );
         recordModelLockoutFailure(
-          provider,
+          provider!,
           connectionId,
-          model,
+          model!,
           "free_quota_exhausted",
           status,
           0,

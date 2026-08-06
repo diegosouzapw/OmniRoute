@@ -26,7 +26,7 @@ const DASHSCOPE_NON_TEXT_MODEL_TOKEN =
 const DASHSCOPE_VISION_MODEL_TOKEN =
   /(?:^|[-_.\/])(?:i2v|t2v|r2v|vace|kf2v|videoedit|animate|image-edit)(?:$|[-_.\/])/i;
 
-export function isDashscopeTextModelId(value: unknown): value is string {
+export function isDashscopeTextModelId(value: unknown): boolean {
   if (typeof value !== "string") return false;
   const modelId = value.trim().toLowerCase();
   if (!modelId || DASHSCOPE_NON_TEXT_MODEL_TOKEN.test(modelId)) return false;

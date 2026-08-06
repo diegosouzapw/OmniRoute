@@ -59,7 +59,7 @@ function parseQuotaEntry(value: unknown): AlibabaFreeTierQuotaEntry | null {
 
 export function parseAlibabaFreeTierQuotaEntries(payload: unknown): AlibabaFreeTierQuotaEntry[] {
   const root = asRecord(payload);
-  const dataV2 = asRecord(root.data?.DataV2 ?? root.DataV2);
+  const dataV2 = asRecord(asRecord(root.data).DataV2 ?? root.DataV2);
   const inner = asRecord(dataV2.data);
   const payloadData = asRecord(inner.data ?? inner);
   const quotas = payloadData.freeTierQuotas;

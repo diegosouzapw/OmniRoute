@@ -45,6 +45,7 @@ import {
   filterAlibabaFreeMultimodalEligibleModels,
   filterAlibabaFreeVisionEligibleModels,
 } from "../alibabaFreeTierQuotaFetcher.ts";
+import type { AlibabaConnectionLike } from "../alibabaFreeTierQuotaFetcher.ts";
 import {
   isAlibabaFreeTierAudioComboName,
   isAlibabaFreeTierMultimodalComboName,
@@ -188,24 +189,36 @@ async function filterAlibabaFreeDrainedModelIds(
     if (isAlibabaFreeTierVisionComboName(comboName)) {
       return filterAlibabaFreeVisionEligibleModels(
         modelIds,
-        buildAlibabaFreeVisionFilterContext(connections, connectionId)
+        buildAlibabaFreeVisionFilterContext(
+          connections as unknown as readonly AlibabaConnectionLike[],
+          connectionId
+        )
       );
     }
     if (isAlibabaFreeTierMultimodalComboName(comboName)) {
       return filterAlibabaFreeMultimodalEligibleModels(
         modelIds,
-        buildAlibabaFreeMultimodalFilterContext(connections, connectionId)
+        buildAlibabaFreeMultimodalFilterContext(
+          connections as unknown as readonly AlibabaConnectionLike[],
+          connectionId
+        )
       );
     }
     if (isAlibabaFreeTierAudioComboName(comboName)) {
       return filterAlibabaFreeAudioEligibleModels(
         modelIds,
-        buildAlibabaFreeAudioFilterContext(connections, connectionId)
+        buildAlibabaFreeAudioFilterContext(
+          connections as unknown as readonly AlibabaConnectionLike[],
+          connectionId
+        )
       );
     }
     return filterAlibabaFreeEligibleModels(
       modelIds,
-      buildAlibabaFreeTierFilterContext(connections, connectionId),
+      buildAlibabaFreeTierFilterContext(
+        connections as unknown as readonly AlibabaConnectionLike[],
+        connectionId
+      ),
       { strictAllowlist: isAlibabaFreeTierTextComboName(comboName) }
     );
   } catch {

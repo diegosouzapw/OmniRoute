@@ -11,6 +11,11 @@ import { isModelLocked, lockModel } from "./accountFallback.ts";
 
 export type AlibabaBillingMode = "free" | "paid";
 
+type AlibabaConnectionLike = {
+  id: string;
+  providerSpecificData?: Record<string, unknown> | null;
+};
+
 /** ~10 years — free-tier drains are permanent until the operator clears connection state. */
 export const ALIBABA_FREE_DRAINED_LOCK_MS = 10 * 365 * 24 * 60 * 60 * 1000;
 
@@ -146,7 +151,10 @@ export async function isAlibabaFreeTierModelRoutable(
     const providerSpecificData = connection.providerSpecificData as Record<string, unknown>;
     rehydrateAlibabaFreeDrainedModelLocks(provider, connectionId, providerSpecificData);
     if (getAlibabaBillingMode(providerSpecificData) === "free") {
-      const filterContext = buildAlibabaFreeTierFilterContext(connections, connectionId);
+      const filterContext = buildAlibabaFreeTierFilterContext(
+        connections as unknown as readonly AlibabaConnectionLike[],
+        connectionId
+      );
       if (!isAlibabaFreeTierCapableModel(model, filterContext)) return false;
     }
     return !isAlibabaModelFreeDrained(provider, providerSpecificData, model);

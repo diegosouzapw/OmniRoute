@@ -230,13 +230,14 @@ export async function propagateAlibabaFreeTierEligibilityToSiblings(
 
   for (const connection of connections) {
     if (connection.id === sourceConnectionId) continue;
-    if (getAlibabaBillingMode(connection.providerSpecificData) !== "free") continue;
+    const psd = connection.providerSpecificData as Record<string, unknown> | null | undefined;
+    if (getAlibabaBillingMode(psd) !== "free") continue;
 
     const updated = applyAlibabaSharedFreeTierEligibility(
       asRecord(connection.providerSpecificData),
       shared
     );
-    await updateProviderConnection(connection.id, { providerSpecificData: updated });
+    await updateProviderConnection(connection.id as string, { providerSpecificData: updated });
   }
 }
 
@@ -333,7 +334,7 @@ async function postConsoleFreeTierQuota(
 
 function extractTaskId(payload: unknown): string | null {
   const root = asRecord(payload);
-  const dataV2 = asRecord(root.data?.DataV2 ?? root.DataV2);
+  const dataV2 = asRecord(asRecord(root.data).DataV2 ?? root.DataV2);
   const inner = asRecord(dataV2.data);
   const payloadData = asRecord(inner.data ?? inner);
   return toTrimmedString(payloadData.taskId);
