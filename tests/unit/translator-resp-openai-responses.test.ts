@@ -665,6 +665,139 @@ test("OpenAI -> Responses: Python multi-line content with indentation survives t
   assert.ok(newlineCount > 5, "should have many actual newlines in Python code");
 });
 
+test("OpenAI -> Responses: a raw newline byte split across two tool-call argument deltas (fragment boundary lands mid-string, not on a quote/escape) is still escaped correctly", () => {
+  // Real reported bug: escapeJsonStringValues used to track "are we inside a
+  // JSON string" as a LOCAL variable reset on every call instead of state
+  // persisted across chunks for the same tool call. A provider that sends a
+  // raw newline byte (0x0A, not a proper \n escape — Gemini/Gemma-style) mid
+  // fragment worked fine when the whole arguments string arrived in one
+  // chunk, but broke the moment the SSE stream happened to split the
+  // fragment somewhere that wasn't a quote or a complete escape sequence:
+  // the second fragment's call started fresh with inString=false even
+  // though the true position was still inside the "content" string value,
+  // so the raw newline in fragment 2 was never escaped — producing invalid
+  // JSON that JSON.parse rejects outright ("Bad control character in
+  // string literal").
+  const events = collectEvents([
+    {
+      id: "chatcmpl-split-nl",
+      model: "gemma-4-26b-a4b-it",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            tool_calls: [
+              {
+                index: 0,
+                id: "call_split_nl",
+                type: "function",
+                function: {
+                  name: "write",
+                  // Fragment 1 ends mid-string (no closing quote, no
+                  // trailing backslash) — this is the boundary that
+                  // exposed the bug.
+                  arguments: '{"path":"/tmp/x.txt","content":"line1',
+                },
+              },
+            ],
+          },
+          finish_reason: null,
+        },
+      ],
+    },
+    {
+      id: "chatcmpl-split-nl",
+      model: "gemma-4-26b-a4b-it",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            // Fragment 2 starts with a RAW newline byte (real \n, not the
+            // two-char escape) while still inside the "content" string.
+            tool_calls: [{ index: 0, function: { arguments: '\nline2\nline3"}' } }],
+          },
+          finish_reason: "tool_calls",
+        },
+      ],
+      usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 },
+    },
+  ]);
+
+  const done = events.find(
+    (e) => e.event === "response.output_item.done" && e.data.item?.type === "function_call"
+  );
+  assert.ok(done, "should emit output_item.done for function_call");
+
+  const argsStr = done.data.item.arguments;
+  // The bug produced invalid JSON here (raw control character in a JSON
+  // string) — JSON.parse must succeed and round-trip the real newlines.
+  const parsed = JSON.parse(argsStr);
+  assert.equal(parsed.path, "/tmp/x.txt");
+  assert.equal(parsed.content, "line1\nline2\nline3");
+});
+
+test("OpenAI -> Responses: a properly-escaped \\n split exactly between its backslash and the 'n' across two deltas is not corrupted", () => {
+  // Second half of the same bug class as the test above, exercising the
+  // OTHER new state field (pendingEscape, not just inString): a model that
+  // correctly escaped a newline as the two characters `\` + `n` can still
+  // have that pair split across an SSE chunk boundary — fragment 1 ends
+  // with the lone backslash, fragment 2 starts with the "n". The old code's
+  // per-call reset meant fragment 2 saw a bare "n" with no idea it was the
+  // second half of an escape sequence; a naive re-implementation could
+  // easily re-escape or mis-handle it. This must reassemble to exactly one
+  // real newline, not a literal backslash-n or a doubled escape.
+  const events = collectEvents([
+    {
+      id: "chatcmpl-split-esc",
+      model: "gemma-4-26b-a4b-it",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            tool_calls: [
+              {
+                index: 0,
+                id: "call_split_esc",
+                type: "function",
+                function: {
+                  name: "write",
+                  // Ends right after the backslash of a "\n" escape — the "n"
+                  // itself is not yet in this fragment.
+                  arguments: '{"path":"/tmp/y.txt","content":"before\\',
+                },
+              },
+            ],
+          },
+          finish_reason: null,
+        },
+      ],
+    },
+    {
+      id: "chatcmpl-split-esc",
+      model: "gemma-4-26b-a4b-it",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            tool_calls: [{ index: 0, function: { arguments: 'nafter"}' } }],
+          },
+          finish_reason: "tool_calls",
+        },
+      ],
+      usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 },
+    },
+  ]);
+
+  const done = events.find(
+    (e) => e.event === "response.output_item.done" && e.data.item?.type === "function_call"
+  );
+  assert.ok(done, "should emit output_item.done for function_call");
+
+  const parsed = JSON.parse(done.data.item.arguments);
+  assert.equal(parsed.path, "/tmp/y.txt");
+  assert.equal(parsed.content, "before\nafter");
+});
+
 test("OpenAI -> Responses: parallel tool calls with mixed content survive translation", () => {
   const events = collectEvents([
     {
