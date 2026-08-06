@@ -12,27 +12,27 @@ export const PROVIDER_MODELS: Record<string, RegistryModel[]> = new Proxy(
   {} as Record<string, RegistryModel[]>,
   {
     get(_, prop) {
-      if (typeof prop === 'symbol') return undefined;
+      if (typeof prop === "symbol") return undefined;
       return Reflect.get(initModels(), prop, _models);
     },
     has(_, prop) {
-      if (typeof prop === 'symbol') return false;
+      if (typeof prop === "symbol") return false;
       return Reflect.has(initModels(), prop);
     },
     ownKeys() {
       return Reflect.ownKeys(initModels());
     },
     getOwnPropertyDescriptor(_, prop) {
-      if (typeof prop === 'symbol') return undefined;
+      if (typeof prop === "symbol") return undefined;
       return Object.getOwnPropertyDescriptor(initModels(), prop);
     },
     set(_, prop, value) {
-      if (typeof prop === 'symbol') return false;
+      if (typeof prop === "symbol") return false;
       (initModels() as Record<string, RegistryModel[]>)[prop] = value;
       return true;
     },
     deleteProperty(_, prop) {
-      if (typeof prop === 'symbol') return false;
+      if (typeof prop === "symbol") return false;
       return Reflect.deleteProperty(initModels(), prop);
     },
   }
@@ -41,27 +41,27 @@ export const PROVIDER_ID_TO_ALIAS: Record<string, string> = new Proxy(
   {} as Record<string, string>,
   {
     get(_, prop) {
-      if (typeof prop === 'symbol') return undefined;
+      if (typeof prop === "symbol") return undefined;
       return Reflect.get(initAliases(), prop, _aliases);
     },
     has(_, prop) {
-      if (typeof prop === 'symbol') return false;
+      if (typeof prop === "symbol") return false;
       return Reflect.has(initAliases(), prop);
     },
     ownKeys() {
       return Reflect.ownKeys(initAliases());
     },
     getOwnPropertyDescriptor(_, prop) {
-      if (typeof prop === 'symbol') return undefined;
+      if (typeof prop === "symbol") return undefined;
       return Object.getOwnPropertyDescriptor(initAliases(), prop);
     },
     set(_, prop, value) {
-      if (typeof prop === 'symbol') return false;
+      if (typeof prop === "symbol") return false;
       (initAliases() as Record<string, string>)[prop] = value;
       return true;
     },
     deleteProperty(_, prop) {
-      if (typeof prop === 'symbol') return false;
+      if (typeof prop === "symbol") return false;
       return Reflect.deleteProperty(initAliases(), prop);
     },
   }
@@ -90,10 +90,65 @@ export function getDefaultModel(aliasOrId: string): string | null {
   return models?.[0]?.id || null;
 }
 
+/** Score a registry entry by how many capability flags it defines. */
+function modelRichness(m: RegistryModel): number {
+  let score = 0;
+  if (m.supportsXHighEffort !== undefined) score += 10; // critical for effort routing
+  if (m.supportsReasoning !== undefined) score += 5;
+  if (m.contextLength !== undefined) score += 3;
+  if (m.maxOutputTokens !== undefined) score += 2;
+  if (m.supportsVision !== undefined) score += 2;
+  if (m.toolCalling !== undefined) score += 2;
+  if (m.interleavedField !== undefined) score += 1;
+  if (m.unsupportedParams !== undefined) score += 1;
+  return score;
+}
+
+function getGlobalModel(modelId: string): RegistryModel | undefined {
+  // 1. Exact match — collect all, pick the richest
+  let candidates: RegistryModel[] = [];
+  for (const models of Object.values(PROVIDER_MODELS)) {
+    const found = models.find((m) => m.id === modelId);
+    if (found) candidates.push(found);
+  }
+  if (candidates.length > 0) {
+    return candidates.sort((a, b) => modelRichness(b) - modelRichness(a))[0];
+  }
+
+  // 2. Strip provider prefix (e.g. moonshotai/kimi-k3-free -> kimi-k3-free)
+  const basename = modelId.split("/").pop() || modelId;
+  candidates = [];
+  for (const models of Object.values(PROVIDER_MODELS)) {
+    const found = models.find((m) => m.id === basename);
+    if (found) candidates.push(found);
+  }
+  if (candidates.length > 0) {
+    return candidates.sort((a, b) => modelRichness(b) - modelRichness(a))[0];
+  }
+
+  // 3. Substring match for base model name (e.g. kimi-k3-free -> kimi-k3)
+  // Finds the longest matching base model ID; on ties, prefers the richer entry.
+  let bestMatch: RegistryModel | undefined;
+  for (const models of Object.values(PROVIDER_MODELS)) {
+    for (const m of models) {
+      if (basename.startsWith(m.id)) {
+        if (
+          !bestMatch ||
+          m.id.length > bestMatch.id.length ||
+          (m.id.length === bestMatch.id.length && modelRichness(m) > modelRichness(bestMatch))
+        ) {
+          bestMatch = m;
+        }
+      }
+    }
+  }
+  return bestMatch;
+}
+
 export function getProviderModel(aliasOrId: string, modelId: string): RegistryModel | undefined {
   const models = PROVIDER_MODELS[aliasOrId];
-  if (!models) return undefined;
-  return models.find((model) => model.id === modelId);
+  if (!models) return getGlobalModel(modelId);
+  return models.find((model) => model.id === modelId) || getGlobalModel(modelId);
 }
 
 export function isValidModel(
@@ -103,20 +158,20 @@ export function isValidModel(
 ): boolean {
   if (passthroughProviders.has(aliasOrId)) return true;
   const models = PROVIDER_MODELS[aliasOrId];
-  if (!models) return false;
-  return models.some((m) => m.id === modelId);
+  if (!models) return !!getGlobalModel(modelId);
+  return models.some((m) => m.id === modelId) || !!getGlobalModel(modelId);
 }
 
 export function findModelName(aliasOrId: string, modelId: string): string {
   const models = PROVIDER_MODELS[aliasOrId];
-  if (!models) return modelId;
-  const found = models.find((m) => m.id === modelId);
+  if (!models) return getGlobalModel(modelId)?.name || modelId;
+  const found = models.find((m) => m.id === modelId) || getGlobalModel(modelId);
   return found?.name || modelId;
 }
 
 export function getModelTargetFormat(aliasOrId: string, modelId: string): string | null {
   const models = PROVIDER_MODELS[aliasOrId];
-  const found = models?.find((m) => m.id === modelId);
+  const found = models?.find((m) => m.id === modelId) || getGlobalModel(modelId);
   if (found?.targetFormat) return found.targetFormat;
   // #5842: OpenAI "*-pro" reasoning models (o1-pro, gpt-5.x-pro) are only served by
   // the native /v1/responses endpoint — /v1/chat/completions 404s ("only supported
@@ -130,8 +185,11 @@ export function getModelTargetFormat(aliasOrId: string, modelId: string): string
 
 export function getModelStripTypes(aliasOrId: string, modelId: string): string[] {
   const models = PROVIDER_MODELS[aliasOrId];
-  if (!models) return [];
-  const found = models.find((m) => m.id === modelId);
+  if (!models)
+    return Array.isArray(getGlobalModel(modelId)?.strip)
+      ? [...getGlobalModel(modelId)!.strip!]
+      : [];
+  const found = models.find((m) => m.id === modelId) || getGlobalModel(modelId);
   return Array.isArray(found?.strip) ? [...found.strip] : [];
 }
 
@@ -256,7 +314,7 @@ function resolveProviderModelList(aliasOrId: string): {
 
 export function supportsXHighEffort(aliasOrId: string, modelId: string): boolean {
   const { models: providerModels } = resolveProviderModelList(aliasOrId);
-  const model = providerModels?.find((entry) => entry.id === modelId);
+  const model = providerModels?.find((entry) => entry.id === modelId) || getGlobalModel(modelId);
   if (model?.supportsXHighEffort !== undefined) {
     return model.supportsXHighEffort !== false;
   }
