@@ -259,12 +259,61 @@ export function computeFingerprintHash(input: {
 // while still bounding pathological outliers.
 const TEXT_PREVIEW_LENGTH = 8000;
 
+/** Caps every string leaf in a parsed JSON value to `maxLen`, recursing
+ * through arrays/objects — used so re-serializing after truncation always
+ * yields valid JSON (see buildTextPreview's doc comment). */
+function truncateStringsDeep(value: unknown, maxLen: number): unknown {
+  if (typeof value === "string") {
+    return value.length > maxLen ? `${value.slice(0, maxLen)}…` : value;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => truncateStringsDeep(item, maxLen));
+  }
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+      out[key] = truncateStringsDeep(val, maxLen);
+    }
+    return out;
+  }
+  return value;
+}
+
+/**
+ * Bounds a turn's stored text_preview. Plain text turns are safe to slice at
+ * a fixed character offset — a cut-off sentence is still readable. A
+ * tool_use/tool_result turn's `text` is the tool call's raw JSON arguments
+ * (or a stringified result) — see stringifyContent's callers — so slicing
+ * the RAW JSON string at a fixed offset routinely lands mid-string, storing
+ * INVALID JSON. The frontend (src/app/(dashboard)/dashboard/conversations/
+ * page.tsx's toTurn) tries to JSON.parse this for rendering and, on failure,
+ * falls back to showing the raw text verbatim — which for a truncated tool
+ * payload means the still-JSON-escaped text (literal `\n` sequences, quotes,
+ * etc.) shown as-is instead of real line breaks: a genuine large `edit`/
+ * `write` tool call looking like a broken escaping bug rather than a big
+ * diff. Parse first and cap each string VALUE instead, so a truncated
+ * payload is always valid JSON the frontend can actually parse and render.
+ */
+function buildTextPreview(turn: CanonicalTurn): string {
+  if (turn.blockKind === "text" || turn.text.length <= TEXT_PREVIEW_LENGTH) {
+    return turn.text.slice(0, TEXT_PREVIEW_LENGTH);
+  }
+  try {
+    const parsed = JSON.parse(turn.text);
+    return JSON.stringify(truncateStringsDeep(parsed, TEXT_PREVIEW_LENGTH));
+  } catch {
+    // Not valid JSON to begin with (rare/malformed upstream tool call) — a
+    // fixed-offset slice couldn't have preserved parseability either way.
+    return turn.text.slice(0, TEXT_PREVIEW_LENGTH);
+  }
+}
+
 function hashTurnContent(turn: CanonicalTurn): string {
-  return hashHex(`${turn.role} ${turn.text}`);
+  return hashHex(`${turn.role} ${turn.text}`);
 }
 
 function chainNodeId(parentId: string, turn: CanonicalTurn): string {
-  return hashHex(`${parentId} ${hashTurnContent(turn)}`);
+  return hashHex(`${parentId} ${hashTurnContent(turn)}`);
 }
 
 interface NewTurnNode {
@@ -296,7 +345,7 @@ function buildNewNodes(
       parentId: parent === rootId ? null : parent,
       role: turn.role,
       contentHash: hashTurnContent(turn),
-      textPreview: turn.text.slice(0, TEXT_PREVIEW_LENGTH),
+      textPreview: buildTextPreview(turn),
       blockKind: turn.blockKind,
       toolName: turn.toolName,
     });

@@ -620,3 +620,81 @@ test("resolveConversationId: client-supplied X-Omniroute-Session-Id wins outrigh
   });
   assert.equal(second.conversationId, headerValue);
 });
+
+test("resolveConversationId: a plain text turn over the preview bound is simply sliced", async () => {
+  const longText = "y".repeat(9000);
+  const turn = await resolveConversationId({
+    body: { model: "big-pickle", messages: [{ role: "user", content: longText }] },
+    model: "big-pickle",
+    apiKeyId: "key-long-text",
+    clientSessionIdHeader: null,
+    correlationId: nextCorrelationId(),
+  });
+
+  const tree = getConversationTurnTree(turn.conversationId);
+  assert.equal(tree.length, 1);
+  assert.equal(tree[0].textPreview.length, 8000);
+  assert.equal(tree[0].textPreview, longText.slice(0, 8000));
+});
+
+// Real bug (2026-08-06): a tool_use turn's `text` is the tool call's raw
+// JSON `arguments` string (see extractCanonicalTurns/stringifyContent — a
+// JSON string is passed through as-is, never parsed). Slicing that raw JSON
+// at a fixed character offset routinely lands mid-string, storing INVALID
+// JSON — /dashboard/conversations page.tsx's toTurn() then fails to
+// JSON.parse it and falls back to showing the raw, still-escaped text
+// verbatim: a large `edit`/`write`/apply_patch-style tool call with a long
+// `content`/`new_string` field renders with literal `\n` sequences visible
+// instead of real line breaks, looking exactly like a JSON-escaping bug.
+test("resolveConversationId: an oversized tool_use turn stores truncated but still VALID JSON", async () => {
+  const bigContent = "line one\nline two\n".repeat(1000); // well over 8000 chars
+  const args = JSON.stringify({ path: "/tmp/big.md", content: bigContent });
+  assert.ok(
+    args.length > 8000,
+    "the raw arguments JSON must exceed the preview bound for this test"
+  );
+
+  const turn = await resolveConversationId({
+    body: {
+      model: "big-pickle",
+      input: [{ type: "function_call", name: "write", call_id: "c1", arguments: args }],
+    },
+    model: "big-pickle",
+    apiKeyId: "key-big-tool-call",
+    clientSessionIdHeader: null,
+    correlationId: nextCorrelationId(),
+  });
+
+  const tree = getConversationTurnTree(turn.conversationId);
+  assert.equal(tree.length, 1);
+  assert.equal(tree[0].blockKind, "tool_use");
+
+  // The critical assertion: whatever got stored must be re-parseable JSON,
+  // never a mid-string cut fragment.
+  let parsed: { path?: string; content?: string } | undefined;
+  assert.doesNotThrow(() => {
+    parsed = JSON.parse(tree[0].textPreview);
+  }, "stored text_preview for a tool_use turn must always be valid, parseable JSON");
+  assert.equal(parsed?.path, "/tmp/big.md");
+  assert.ok(typeof parsed?.content === "string" && parsed.content.length > 0);
+  // The oversized string value was capped, not the whole serialized blob —
+  // real newlines inside it must survive (they did before truncation too).
+  assert.ok(parsed!.content!.includes("\n"));
+});
+
+test("resolveConversationId: a tool_use turn already within the preview bound is stored untouched", async () => {
+  const args = JSON.stringify({ command: "ls -la" });
+  const turn = await resolveConversationId({
+    body: {
+      model: "big-pickle",
+      input: [{ type: "function_call", name: "exec", call_id: "c1", arguments: args }],
+    },
+    model: "big-pickle",
+    apiKeyId: "key-small-tool-call",
+    clientSessionIdHeader: null,
+    correlationId: nextCorrelationId(),
+  });
+
+  const tree = getConversationTurnTree(turn.conversationId);
+  assert.equal(tree[0].textPreview, args);
+});
