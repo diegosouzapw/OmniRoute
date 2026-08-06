@@ -1053,6 +1053,8 @@ export async function handleChatCore({
     log,
     persistAttemptLogs,
     apiKeyId: apiKeyInfo?.id ?? undefined,
+    cacheDefaultMode: (apiKeyInfo as { cacheDefaultMode?: "legacy" | "bypass" } | null)
+      ?.cacheDefaultMode,
   });
   if (cacheHit) {
     return cacheHit;

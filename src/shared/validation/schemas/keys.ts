@@ -106,6 +106,7 @@ export const updateKeyPermissionsSchema = z
     scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
     allowedEndpoints: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
     streamDefaultMode: z.enum(["legacy", "json"]).optional(),
+    cacheDefaultMode: z.enum(["legacy", "bypass"]).optional(),
     disableNonPublicModels: z.boolean().optional(),
     allowUsageCommand: z.boolean().optional(),
     usageLimitEnabled: z.boolean().optional(),
@@ -131,6 +132,7 @@ export const updateKeyPermissionsSchema = z
       value.scopes === undefined &&
       value.allowedEndpoints === undefined &&
       value.streamDefaultMode === undefined &&
+      value.cacheDefaultMode === undefined &&
       value.disableNonPublicModels === undefined &&
       value.allowUsageCommand === undefined &&
       value.usageLimitEnabled === undefined &&

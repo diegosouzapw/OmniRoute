@@ -481,6 +481,42 @@ Response example:
 }
 ```
 
+### Latency impact
+
+A semantic cache HIT serves the response from cache **without an upstream
+call**, so the reported `X-OmniRoute-Response-Latency` is near-zero
+(regardless of the original upstream latency). Latency-sensitive clients
+(benchmarking, p50/p99 monitoring) should check the
+`X-OmniRoute-Cache-Latency` response header:
+
+| Value | Meaning |
+|-------|---------|
+| `synthetic` | Response served from cache; latency is not real upstream time |
+| *(absent)* | Response from real upstream call |
+
+### Per-key cache bypass
+
+API keys can opt out of semantic cache reads via `cacheDefaultMode`:
+
+| Value | Behavior |
+|-------|----------|
+| `legacy` | Normal cache behavior (default) |
+| `bypass` | Skip cache lookup entirely; always hit upstream |
+
+Set at key creation (`POST /api/keys`) or update (`PATCH /api/keys/[id]`):
+
+```json
+{ "cacheDefaultMode": "bypass" }
+```
+
+### Per-request bypass
+
+Any request can bypass the cache regardless of key settings:
+
+```
+X-OmniRoute-No-Cache: true
+```
+
 ---
 
 ## Dashboard & Management
