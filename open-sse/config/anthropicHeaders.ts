@@ -57,6 +57,11 @@ export const FORWARDABLE_CLIENT_BETAS = Object.freeze([
   "context-1m-2025-08-07",
   "code-execution-2025-08-25",
   "skills-2025-10-02",
+  // effort-2025-11-24 is a client-negotiated beta (Claude Code sends it on every
+  // request). selectBetaFlags no longer force-adds it as a side-effect of the ATU
+  // gate (#9505), so a client that sent it must keep it through the merge —
+  // otherwise its effort negotiation is silently dropped.
+  "effort-2025-11-24",
 ]);
 
 /**

@@ -22,6 +22,7 @@ import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
 import { useSyncedModelsByProvider } from "./hooks/useSyncedModelsByProvider";
+import { useProviderUrlFilters } from "./hooks/useProviderUrlFilters";
 import {
   buildStaticProviderEntries,
   buildCompatibleProviderGroups,
@@ -30,13 +31,12 @@ import {
   shouldFilterProviderEntriesForDisplayMode,
   shouldShowFirstProviderHint,
   shouldShowProviderSection,
-  syncSearchToUrl,
   upsertProviderNodeById,
   loadProviderPageData,
 } from "./providerPageUtils";
-import type { ProviderEntry } from "./providerPageUtils";
+import type { ProviderEntry, OpenRouterProviderStatsEntry } from "./providerPageUtils";
+import { OpenRouterProviderStatsProvider } from "./context/openRouterProviderStatsContext";
 import {
-  readProviderDisplayModePreference,
   shouldSyncProviderDisplayMode,
   writeProviderDisplayModePreference,
   type ProviderDisplayMode,
@@ -192,7 +192,6 @@ export default function ProvidersPage() {
   const [testingMode, setTestingMode] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<any>(null);
   const [providerDisplayMode, setProviderDisplayMode] = useState<ProviderDisplayMode>("all");
-  const [displayModePreferenceReady, setDisplayModePreferenceReady] = useState(false);
   const [oauthEnvRepairStatus, setOauthEnvRepairStatus] = useState<{
     available: boolean;
     missingCount: number;
@@ -202,6 +201,9 @@ export default function ProvidersPage() {
   const [modelSearchQuery, setModelSearchQuery] = useState("");
   const liveModelsByProviderId = useSyncedModelsByProvider();
   const [showFreeOnly, setShowFreeOnly] = useState(false);
+  const [openRouterProviderStats, setOpenRouterProviderStats] = useState<
+    OpenRouterProviderStatsEntry[]
+  >([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   // #4240: media-category (serviceKind) filter — composes with activeCategory,
   // search and configured-only. null = no serviceKind filter.
@@ -228,21 +230,21 @@ export default function ProvidersPage() {
   const addCcCompatibleLabel = t("addCcCompatible");
   const searchParams = useSearchParams();
 
-  useEffect(() => {
-    setProviderDisplayMode(readProviderDisplayModePreference());
-    setDisplayModePreferenceReady(true);
-  }, []);
-
-  useEffect(() => {
-    const searchFromUrl = searchParams.get("search");
-    if (searchFromUrl) {
-      setSearchQuery(searchFromUrl);
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
-    syncSearchToUrl(searchQuery);
-  }, [searchQuery]);
+  const { displayModePreferenceReady } = useProviderUrlFilters({
+    searchParams,
+    providerDisplayMode,
+    setProviderDisplayMode,
+    searchQuery,
+    setSearchQuery,
+    modelSearchQuery,
+    setModelSearchQuery,
+    activeCategory,
+    setActiveCategory,
+    showFreeOnly,
+    setShowFreeOnly,
+    activeServiceKind,
+    setActiveServiceKind,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -257,6 +259,7 @@ export default function ProvidersPage() {
         if (data.expirations) setExpirations(data.expirations);
         if (data.blockedProviders) setBlockedProviders(data.blockedProviders);
         setCodexGlobalServiceMode(getCodexGlobalServiceMode(data.settings));
+        setOpenRouterProviderStats(data.openRouterProviderStats);
       } catch (error) {
         console.log("Error fetching data:", error);
       } finally {
@@ -814,6 +817,7 @@ export default function ProvidersPage() {
     shouldShowFirstProviderHint(connections.length, searchQuery) && !showAllProviders;
 
   return (
+    <OpenRouterProviderStatsProvider entries={openRouterProviderStats}>
     <div className="flex flex-col gap-6">
       {showFirstProviderHint && (
         <Card padding="lg">
@@ -1816,6 +1820,7 @@ export default function ProvidersPage() {
         </div>
       )}
     </div>
+    </OpenRouterProviderStatsProvider>
   );
 }
 

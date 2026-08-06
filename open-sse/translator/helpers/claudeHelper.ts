@@ -153,8 +153,18 @@ export function splitMisplacedToolResults(messages: ClaudeMessage[]): ClaudeMess
 // Fix tool_use/tool_result ordering for Claude API
 // 1. Assistant message with tool_use: remove text AFTER tool_use (Claude doesn't allow)
 // 2. Merge consecutive same-role messages
+// 3. Reconcile tool_result blocks against the immediately previous tool_use message
 export function fixToolUseOrdering(messages: ClaudeMessage[]): ClaudeMessage[] {
-  if (messages.length <= 1) return messages;
+  if (messages.length === 0) return messages;
+  if (
+    messages.length === 1 &&
+    !(
+      Array.isArray(messages[0]?.content) &&
+      messages[0].content.some((block) => block.type === "tool_result")
+    )
+  ) {
+    return messages;
+  }
 
   // Pass 1: Fix assistant messages with tool_use - remove text after tool_use
   for (const msg of messages) {
@@ -216,6 +226,53 @@ export function fixToolUseOrdering(messages: ClaudeMessage[]): ClaudeMessage[] {
         : [{ type: "text", text: msg.content }];
       merged.push({ role: msg.role, content: [...content] });
     }
+  }
+
+  // Claude accepts tool_result only for a tool_use in the immediately previous
+  // assistant message. Compacted cross-model history can retain an output after
+  // dropping its call; keep that output as user text instead of sending an
+  // invalid structured reference or discarding useful context.
+  for (let i = 0; i < merged.length; i++) {
+    const msg = merged[i];
+    if (msg.role !== "user" || !Array.isArray(msg.content)) continue;
+
+    const previous = merged[i - 1];
+    const validIds = new Set<string>(
+      previous?.role === "assistant" && Array.isArray(previous.content)
+        ? previous.content.flatMap((block) =>
+            block.type === "tool_use" && typeof block.id === "string" && block.id ? [block.id] : []
+          )
+        : []
+    );
+    const pairedById = new Map<string, ClaudeContentBlock>();
+    const otherContent: ClaudeContentBlock[] = [];
+
+    for (const block of msg.content) {
+      if (block.type !== "tool_result") {
+        otherContent.push(block);
+        continue;
+      }
+
+      const toolUseId = typeof block.tool_use_id === "string" ? block.tool_use_id : "";
+      if (validIds.has(toolUseId) && !pairedById.has(toolUseId)) {
+        pairedById.set(toolUseId, block);
+        continue;
+      }
+
+      const serialized =
+        typeof block.content === "string"
+          ? block.content
+          : (JSON.stringify(block.content ?? "") ?? "");
+      otherContent.push({
+        type: "text",
+        text: `[Unpaired tool result ${toolUseId || "unknown"}]\n${serialized}`,
+      });
+    }
+
+    const pairedResults = [...validIds].map(
+      (id) => pairedById.get(id) ?? { type: "tool_result", tool_use_id: id, content: "" }
+    );
+    msg.content = [...pairedResults, ...otherContent];
   }
 
   return merged;

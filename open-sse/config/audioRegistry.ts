@@ -14,6 +14,14 @@ interface AudioModel {
 
 export interface AudioProvider {
   id: string;
+  /**
+   * Provider key to look credentials up under. Dynamic provider nodes are exposed
+   * to callers under their `prefix` (that is what appears in `provider/model`),
+   * but their connections are stored under the node **id** — without this the
+   * credential lookup silently misses. Absent for hardcoded providers, where the
+   * id already is the credential key.
+   */
+  credentialProviderId?: string;
   baseUrl: string;
   authType: string;
   authHeader: string;
@@ -564,27 +572,49 @@ export function getSpeechProvider(providerId: string): AudioProvider | null {
 }
 
 export interface ProviderNodeRow {
+  /** provider_node row id — the key its connections (and credentials) are stored under. */
+  id?: string;
   prefix: string;
   name: string;
   baseUrl: string;
   apiType?: string;
 }
 
+/** Hosts reachable only from the operator's machine/Docker network. */
+function isLoopbackNodeHost(baseUrl: string): boolean {
+  try {
+    const hostname = new URL(baseUrl).hostname;
+    return (
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Build a dynamic AudioProvider from a provider_node DB entry.
- * Only used for local providers (localhost/127.0.0.1) — remote nodes are
- * excluded by the caller to prevent auth bypass and SSRF.
+ *
+ * Loopback nodes keep `authType: "none"` — a local Ollama/LM Studio has no key and
+ * must not be blocked on a missing credential. A remote node is the opposite: it is
+ * only reachable when the operator opted in, and it must present the credential
+ * stored on its connection, so it is built as an api-key provider keyed by the node
+ * id (`credentialProviderId`) rather than by the caller-facing prefix.
  */
 export function buildDynamicAudioProvider(node: ProviderNodeRow, audioPath: string): AudioProvider {
   if (!node.prefix || !node.baseUrl) {
     throw new Error(`Invalid provider_node: missing prefix or baseUrl`);
   }
   const baseUrl = node.baseUrl.replace(/\/+$/, "");
+  const isLocal = isLoopbackNodeHost(node.baseUrl);
   return {
     id: node.prefix,
+    ...(node.id ? { credentialProviderId: node.id } : {}),
     baseUrl: `${baseUrl}${audioPath}`,
-    authType: "none",
-    authHeader: "none",
+    authType: isLocal ? "none" : "apikey",
+    authHeader: isLocal ? "none" : "bearer",
     models: [],
   };
 }

@@ -68,9 +68,14 @@ describe("proxyDispatcher connection pool", () => {
   it("keeps enough proxy connections for concurrent SSE streams by default", () => {
     const options = __getProxyDispatcherOptionsForTest({});
     assert.equal(options.connections, 32);
-    assert.equal(options.pipelining, 0);
-    assert.equal(options.keepAliveTimeout, 1);
-    assert.equal(options.keepAliveMaxTimeout, 1);
+    // #9100: the proxy path now keeps sockets alive (no more 1ms TTL) and
+    // pipelines up to 4 requests so concurrent SSE streams multiplex over one
+    // pooled TCP connection per proxy host. Stale sockets are recovered by the
+    // retry-once-with-fresh-socket path in proxyFetch, not by killing idle
+    // sockets after 1ms.
+    assert.equal(options.pipelining, 4);
+    assert.equal(options.keepAliveTimeout, 30000);
+    assert.equal(options.keepAliveMaxTimeout, 60000);
   });
 
   it("allows operators to force a single proxy connection for diagnostics", () => {

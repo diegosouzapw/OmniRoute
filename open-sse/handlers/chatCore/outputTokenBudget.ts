@@ -15,6 +15,7 @@ export type OutputTokenBudgetResult =
       ok: false;
       estimatedInputTokens: number;
       contextLimit: number;
+      maxInputTokens?: number | null;
     };
 
 type OutputTokenAdjustment = { field: string; value?: number; remove?: boolean };
@@ -74,18 +75,42 @@ function adjustOutputTokenFields(
  * cap limits how much is requested, not whether the request fits. Absent /
  * null / non-positive cap values leave behavior byte-identical to before this
  * parameter existed (fail-open).
+ *
+ * `maxInputTokenCap` (the model's own input ceiling, `maxInputTokens`) is an
+ * additional, independent input-only bound enforced on the accept/reject
+ * decision. The total-window check (`contextLimit - input >= 1`) stays in place
+ * and remains responsible for reserving output room; the input cap never
+ * double-counts a requested output. Absent / null / non-positive input caps
+ * leave behavior byte-identical (fail-open).
  */
 export function enforceOutputTokenBudget(
   body: Record<string, unknown> | null | undefined,
   estimatedInputTokens: number,
   contextLimit: number,
   defaultOutputTokens = 0,
-  maxOutputTokenCap?: number | null
+  maxOutputTokenCap?: number | null,
+  maxInputTokenCap?: number | null
 ): OutputTokenBudgetResult {
   const normalizedInputTokens = Math.max(0, Math.ceil(estimatedInputTokens));
   const normalizedContextLimit = Math.max(1, Math.floor(contextLimit));
   const normalizedDefaultOutputTokens = Math.max(0, Math.floor(defaultOutputTokens));
   const availableOutputTokens = normalizedContextLimit - normalizedInputTokens;
+
+  // Independent input-only ceiling: reject when the prompt alone exceeds the
+  // model's declared max input, regardless of remaining output room.
+  const normalizedInputCap = maxInputTokenCap == null ? null : Math.floor(maxInputTokenCap);
+  if (
+    normalizedInputCap !== null &&
+    normalizedInputCap > 0 &&
+    normalizedInputTokens > normalizedInputCap
+  ) {
+    return {
+      ok: false,
+      estimatedInputTokens: normalizedInputTokens,
+      contextLimit: normalizedContextLimit,
+      maxInputTokens: normalizedInputCap,
+    };
+  }
 
   if (availableOutputTokens < 1) {
     return {

@@ -11,15 +11,19 @@ const isWindows = process.platform === "win32";
 
 // Regression guard for #8246: on Windows the `claude` binary is an npm `.cmd`
 // shim that spawn() cannot resolve without a shell (bare "claude" -> ENOENT).
-test("resolveClaudeSpawn: win32 spawns claude.cmd through a shell", () => {
-  const { command, shell } = resolveClaudeSpawn("win32");
+// #9454: the native installer ships only `claude.exe`, so the resolver now
+// probes PATH first. With no probe injected (the production path runs
+// `where.exe`), the default on a non-Windows CI host finds nothing and falls
+// back to the npm `.cmd` shim + shell — pinning that fallback contract here.
+test("resolveClaudeSpawn: win32 falls back to claude.cmd + shell when no .exe is on PATH", async () => {
+  const { command, shell } = await resolveClaudeSpawn("win32", { probe: async () => null });
   assert.equal(command, "claude.cmd");
   assert.equal(shell, true);
 });
 
-test("resolveClaudeSpawn: non-Windows platforms spawn the bare binary without a shell", () => {
+test("resolveClaudeSpawn: non-Windows platforms spawn the bare binary without a shell", async () => {
   for (const platform of ["linux", "darwin", "freebsd"]) {
-    const { command, shell } = resolveClaudeSpawn(platform);
+    const { command, shell } = await resolveClaudeSpawn(platform);
     assert.equal(command, "claude", `${platform} command`);
     assert.equal(shell, undefined, `${platform} shell`);
   }

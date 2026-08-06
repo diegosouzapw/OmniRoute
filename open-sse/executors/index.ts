@@ -152,7 +152,9 @@ const executors = {
   "yuanbao-web": new YuanbaoWebExecutor(),
   ybw: new YuanbaoWebExecutor(), // Alias
   "poe-web": new PoeWebExecutor(),
-  poe: new PoeWebExecutor(), // Alias
+  // #8969: do NOT alias canonical `poe` (API-key / api.poe.com) to PoeWebExecutor.
+  // Registry declares executor:"default"; the hard-coded map previously won and
+  // routed API-key traffic to GraphQL /api/gql_POST → HTTP 405.
   "venice-web": new VeniceWebExecutor(),
   ven: new VeniceWebExecutor(), // Alias
   "notion-web": new NotionWebExecutor(),

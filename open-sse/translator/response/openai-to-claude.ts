@@ -284,6 +284,7 @@ export function openaiToClaudeResponse(chunk, state) {
       // Strip the Claude OAuth prefix from an incoming tool name (if any).
       const incomingName = (() => {
         let n = tc.function?.name || "";
+        n = state.toolNameMap?.get(n) || n;
         if (n.startsWith(CLAUDE_OAUTH_TOOL_PREFIX)) n = n.slice(CLAUDE_OAUTH_TOOL_PREFIX.length);
         return n;
       })();

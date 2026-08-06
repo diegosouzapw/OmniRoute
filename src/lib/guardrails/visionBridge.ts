@@ -241,7 +241,14 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
           typeof settings.visionBridgeModel === "string" && settings.visionBridgeModel.trim()
             ? settings.visionBridgeModel.trim()
             : undefined;
-        const bestModel = await getBestVisionModel({ fixedModel: configuredModel });
+        // Propagate the same resolved credential check used by the adjacent
+        // checkCreds() calls above/below (#8430) — without this, the router
+        // falls back to the real DB-backed hasUsableCredentialsForModel and
+        // ignores an injected `deps.hasUsableCredentials` test/DI override.
+        const bestModel = await getBestVisionModel(
+          { fixedModel: configuredModel },
+          { hasUsableCredentials: checkCreds }
+        );
         if (bestModel && bestModel !== model) {
           const bestUsable = await checkCreds(bestModel);
           // Only block the reroute when we KNOW the target is unusable (false).

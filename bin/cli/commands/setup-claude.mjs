@@ -156,7 +156,16 @@ export async function runSetupClaudeCommand(opts = {}) {
       headers,
       signal: AbortSignal.timeout(10000),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    if (!res.ok) {
+      let detail = `HTTP ${res.status}`;
+      try {
+        const errorBody = await res.json();
+        const serverMsg =
+          errorBody?.error?.message || errorBody?.error || errorBody?.message || "";
+        if (serverMsg) detail += ` — ${serverMsg}`;
+      } catch {}
+      throw new Error(detail);
+    }
     const body = await res.json();
     models = body.data ?? body.models ?? [];
   } catch (err) {

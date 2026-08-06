@@ -13,6 +13,7 @@ import { v1ImageGenerationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { enforceClientApiRouteAuth } from "@/shared/utils/clientApiRouteAuth";
 import { runWithCallLogApiKeyContext } from "@/lib/usage/callLogApiKeyContext";
+import { executeImageWithCredentialFallback } from "@/sse/services/imageCredentialRetry";
 
 /**
  * Handle CORS preflight
@@ -71,7 +72,13 @@ export async function POST(request, { params }) {
     );
   }
 
-  const credentials = await getProviderCredentialsWithQuotaPreflight(rawProvider);
+  const requestedModel = body.model.slice(rawProvider.length + 1);
+  let credentials = await getProviderCredentialsWithQuotaPreflight(
+    rawProvider,
+    null,
+    null,
+    requestedModel
+  );
   if (!credentials) {
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,
@@ -87,13 +94,21 @@ export async function POST(request, { params }) {
     );
   }
 
-  const result = await runWithCallLogApiKeyContext(
-    {
-      apiKeyId: policy.apiKeyInfo?.id ?? null,
-      apiKeyName: policy.apiKeyInfo?.name ?? null,
-    },
-    () => handleImageGeneration({ body, credentials, log })
-  );
+  const execution = await executeImageWithCredentialFallback({
+    provider: rawProvider,
+    requestedModel,
+    credentials,
+    execute: (attemptCredentials) =>
+      runWithCallLogApiKeyContext(
+        {
+          apiKeyId: policy.apiKeyInfo?.id ?? null,
+          apiKeyName: policy.apiKeyInfo?.name ?? null,
+        },
+        () => handleImageGeneration({ body, credentials: attemptCredentials, log })
+      ),
+  });
+  credentials = execution.credentials;
+  const result = execution.result;
 
   if (result.success) {
     await clearRecoveredProviderState(credentials);

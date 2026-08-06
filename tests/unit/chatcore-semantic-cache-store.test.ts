@@ -6,9 +6,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-const { storeSemanticCacheResponse } = await import(
-  "../../open-sse/handlers/chatCore/semanticCacheStore.ts"
-);
+const { storeSemanticCacheResponse } =
+  await import("../../open-sse/handlers/chatCore/semanticCacheStore.ts");
 
 type Stored = { sig: unknown; model: string; response: unknown; tokens: number };
 
@@ -50,6 +49,33 @@ function baseArgs(overrides: Record<string, unknown> = {}) {
   } as Parameters<typeof storeSemanticCacheResponse>[0];
 }
 
+function assertNumericSignatureInputs(
+  deps: Parameters<typeof storeSemanticCacheResponse>[1]
+): void {
+  if (process.env.NODE_ENV === "__semantic_cache_type_contract__") {
+    storeSemanticCacheResponse(
+      {
+        enabled: true,
+        body: {
+          messages: [],
+          // @ts-expect-error temperature is a numeric producer field
+          temperature: "0",
+          top_p: 1,
+        },
+        headers: undefined,
+        translatedResponse: {},
+        model: "gpt-x",
+      },
+      deps
+    );
+  }
+}
+
+test("signature input contract keeps temperature numeric", () => {
+  const { deps } = makeDeps();
+  assertNumericSignatureInputs(deps);
+});
+
 test("happy path → stores under a signature, tokensSaved = prompt + completion", () => {
   const { deps, stored } = makeDeps();
   storeSemanticCacheResponse(baseArgs(), deps);
@@ -57,6 +83,8 @@ test("happy path → stores under a signature, tokensSaved = prompt + completion
   assert.equal(stored[0].model, "gpt-x");
   assert.deepEqual(stored[0].response, { id: "resp-1" });
   assert.equal(stored[0].tokens, 15);
+  const signatureArgs = JSON.parse(String(stored[0].sig).slice("sig:".length)) as unknown[];
+  assert.deepEqual(signatureArgs.slice(2, 4), [0, 1]);
 });
 
 test("disabled → no store, no gate calls past enabled", () => {

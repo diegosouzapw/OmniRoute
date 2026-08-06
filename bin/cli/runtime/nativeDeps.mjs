@@ -152,9 +152,18 @@ export function ensureBetterSqliteRuntime({ silent = false, force = false } = {}
     if (!silent) process.stdout.write("[omniroute][runtime] better-sqlite3 OK\n");
     return { betterSqlite: true };
   }
+  if (!silent) {
+    process.stdout.write(
+      `[omniroute][runtime] Installing better-sqlite3@${BETTER_SQLITE3_VERSION} into runtime...\n`
+    );
+  }
   const ok = npmInstallRuntime([`better-sqlite3@${BETTER_SQLITE3_VERSION}`], { silent });
   if (!ok && !silent) {
-    process.stderr.write("[omniroute][runtime] better-sqlite3 install failed\n");
+    process.stderr.write(
+      "[omniroute][runtime] better-sqlite3 install failed.\n" +
+        "  This usually means npm install scripts are blocked.\n" +
+        "  Try: npm install-scripts approve better-sqlite3\n"
+    );
   }
   return { betterSqlite: ok && hasModule("better-sqlite3") && isBetterSqliteBinaryValid() };
 }

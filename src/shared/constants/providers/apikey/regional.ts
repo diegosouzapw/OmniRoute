@@ -273,7 +273,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     icon: "auto_awesome",
     color: "#6366F1",
     textIcon: "BC",
-    website: "https://baichuan.com",
+    website: "https://www.baichuan-ai.com/",
     hasFree: true,
     freeNote: "Free Baichuan models. Popular Chinese LLM startup.",
     passthroughModels: true,

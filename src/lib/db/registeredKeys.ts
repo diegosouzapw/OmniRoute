@@ -384,6 +384,8 @@ export function validateRegisteredKey(rawKey: string): RegisteredKey | null {
   const today = nowDay();
   const hour = nowHour();
   if (row.last_reset_day !== today || row.last_reset_hour !== hour) {
+    const dailyReset = row.last_reset_day !== today;
+    const hourlyReset = row.last_reset_hour !== hour;
     db.prepare(
       `
       UPDATE registered_keys
@@ -393,6 +395,10 @@ export function validateRegisteredKey(rawKey: string): RegisteredKey | null {
       WHERE id = ?
     `
     ).run(today, hour, today, hour, row.id);
+    if (dailyReset) row.daily_used = 0;
+    if (hourlyReset) row.hourly_used = 0;
+    row.last_reset_day = today;
+    row.last_reset_hour = hour;
   }
 
   // Budget check

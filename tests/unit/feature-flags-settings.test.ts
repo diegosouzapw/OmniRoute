@@ -30,13 +30,13 @@ const {
   isControlPlaneProxyDirectFallbackEnabled,
 } = await import("../../src/shared/utils/featureFlags.ts");
 
-const EXPECTED_FEATURE_FLAG_COUNT = 43;
+const EXPECTED_FEATURE_FLAG_COUNT = 44;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry
 // ──────────────────────────────────────────────────────
 describe("featureFlagDefinitions", () => {
-  it("has exactly 43 flag definitions", () => {
+  it("has exactly 44 flag definitions", () => {
     assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, EXPECTED_FEATURE_FLAG_COUNT);
   });
 
@@ -158,6 +158,17 @@ describe("featureFlagDefinitions", () => {
     assert.strictEqual(def.type, "boolean");
     assert.strictEqual(def.defaultValue, "false");
     assert.strictEqual(def.requiresRestart, false);
+    assert.strictEqual(def.warningLevel, "danger");
+  });
+
+  it("defines remote audio provider nodes as a network boolean flag disabled by default", () => {
+    // Guards the egress default: with this on, /v1/audio/* may reach a provider node
+    // hosted outside localhost. It must never become an implicit default (cf. #3963).
+    const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "AUDIO_REMOTE_PROVIDER_NODES");
+    assert.ok(def, "AUDIO_REMOTE_PROVIDER_NODES should exist");
+    assert.strictEqual(def.category, "network");
+    assert.strictEqual(def.type, "boolean");
+    assert.strictEqual(def.defaultValue, "false");
     assert.strictEqual(def.warningLevel, "danger");
   });
 
@@ -321,7 +332,7 @@ describe("resolveFeatureFlag", () => {
   });
 
   describe("resolveAllFeatureFlags", () => {
-    it("returns all 43 flags", () => {
+    it("returns all 44 flags", () => {
       const all = resolveAllFeatureFlags();
       assert.strictEqual(all.length, EXPECTED_FEATURE_FLAG_COUNT);
     });

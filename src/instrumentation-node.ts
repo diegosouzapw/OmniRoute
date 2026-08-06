@@ -552,6 +552,19 @@ export async function registerNodejs(): Promise<void> {
           console.warn("[STARTUP] Pricing sync failed to start (non-fatal):", msg);
         }),
 
+      // OpenRouter provider stats sync: provider directory + popularity enrichment
+      // for the dashboard Providers page. On by default; opt out with
+      // OPENROUTER_PROVIDER_STATS_ENABLED=false. Non-blocking, never fatal.
+      import("@/lib/catalog/openrouterProviderStats")
+        .then((m) => {
+          const started = m.initOpenRouterProviderStatsSync();
+          if (started) console.log("[STARTUP] OpenRouter provider stats sync initialized");
+        })
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn("[STARTUP] OpenRouter provider stats sync failed to start (non-fatal):", msg);
+        }),
+
       // models.dev capability sync: opt-in via Settings > AI (self-gated by
       // settings.modelsDevSyncEnabled inside initModelsDevSync). Non-blocking, never fatal.
       import("@/lib/modelsDevSync")

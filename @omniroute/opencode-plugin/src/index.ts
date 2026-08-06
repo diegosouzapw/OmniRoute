@@ -4271,7 +4271,7 @@ export function buildStaticProviderEntry(
     // has no corresponding provider block. So bare keys (no `/`) MUST be
     // prefixed with the resolved providerId. Already-prefixed keys
     // (e.g. `cc/claude-opus-4-7`) are left as-is to avoid double-prefixing.
-    models[raw.id.includes("/") ? raw.id : `${opts.providerId}/${raw.id}`] = entry;
+    models[raw.id] = entry;
   }
 
   // Combo entries → stripped LCD shape. Each combo is keyed as
@@ -4466,7 +4466,7 @@ export function buildStaticProviderEntry(
       // (`opencode-omniroute/opencode-omniroute/<slug>`), and `parseModel()`
       // resolves credentials for the nonexistent provider `opencode-omniroute`
       // instead of `omniroute`. See #7976.
-      models[buildComboKey(combo, usedComboKeys, opts.omnirouteProviderId)] = entry;
+      models[buildComboKey(combo, usedComboKeys, opts.omnirouteProviderId).split("/").pop()!] = entry;
 
       // Make this combo's resolved entry available to parent combos
       // that reference it via combo-ref. Use the friendly name since

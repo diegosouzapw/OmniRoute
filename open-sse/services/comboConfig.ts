@@ -98,7 +98,15 @@ const DEFAULT_COMBO_CONFIG = {
   maxRetries: 1,
   retryDelayMs: 2000,
   fallbackDelayMs: 0,
-  concurrencyPerModel: 3, // max simultaneous requests per model (round-robin)
+  // #9100: round-robin combo concurrency was hard-capped at 3 concurrent
+  // requests per model with no override — 5 concurrent requests through a
+  // round-robin combo serialized behind that cap. Now configurable via
+  // COMBO_CONCURRENCY_PER_MODEL (validated to >= 1, clamped to <= 32; default
+  // 3 preserves the historical behavior).
+  concurrencyPerModel: Math.min(
+    Math.max(Number(process.env.COMBO_CONCURRENCY_PER_MODEL) || 3, 1),
+    32
+  ),
   queueTimeoutMs: 120000, // max wait time in semaphore queue (round-robin); raised from 30s for browser-automation providers like gemini-web (#9407)
   queueDepth: DEFAULT_COMBO_QUEUE_DEPTH, // pre-cascade semaphore queue depth (round-robin, #3872)
   handoffThreshold: 0.85,
