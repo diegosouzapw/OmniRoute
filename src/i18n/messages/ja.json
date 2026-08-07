@@ -7776,6 +7776,10 @@
         "label": "圧縮する最小行数",
         "description": "表形式の圧縮をトリガーするために必要な、同質なJSON配列の最小行数。デフォルト: 8。"
       },
+      "compressToolResults": {
+        "label": "__MISSING__:Proactively truncate long tool results",
+        "description": "__MISSING__:Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget."
+      },
       "preserveSystemPrompt": {
         "label": "システムプロンプトを保持"
       },

@@ -421,6 +421,83 @@ describe("EngineConfigPage", () => {
     expect(container.parentNode).toBeTruthy();
   });
 
+  it("loads and saves the Lite proactive truncation switch with emergency-trim copy", async () => {
+    const settingsPuts: Array<Record<string, unknown>> = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        if (url.includes("/api/compression/engines")) {
+          return new Response(
+            JSON.stringify({
+              engines: [
+                {
+                  id: "lite",
+                  name: "Lite",
+                  description: "Lite engine",
+                  icon: "compress",
+                  stackable: true,
+                  stackPriority: 5,
+                  metadata: { description: "Lite metadata" },
+                  configSchema: [
+                    {
+                      key: "compressToolResults",
+                      type: "boolean",
+                      label: "Proactively truncate long tool results",
+                      description:
+                        "Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget.",
+                      defaultValue: true,
+                    },
+                  ],
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          );
+        }
+        if (url.includes("/api/settings/compression")) {
+          if (init?.method === "PUT") {
+            settingsPuts.push(JSON.parse(init.body as string) as Record<string, unknown>);
+          }
+          return new Response(JSON.stringify({ lite: { compressToolResults: false } }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        if (url.includes("/api/context/analytics/engine")) {
+          return new Response(JSON.stringify(ANALYTICS_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({}), { status: 404 });
+      }
+    );
+
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="lite" />);
+      await Promise.resolve();
+    });
+
+    const toggle = container.querySelector("input[type='checkbox']") as HTMLInputElement | null;
+    expect(toggle).not.toBeNull();
+    expect(toggle?.checked).toBe(false);
+    expect(container.textContent).toContain("Emergency overflow protection may still trim content");
+
+    const saveButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Save")
+    );
+    expect(saveButton).toBeTruthy();
+    await act(async () => {
+      saveButton?.click();
+      await Promise.resolve();
+    });
+
+    expect(settingsPuts).toContainEqual({ lite: { compressToolResults: false } });
+  });
+
   it("#8056: headroom minRows is persistable — Save PUTs headroom:{minRows:5}", async () => {
     const settingsPuts: { body: Record<string, unknown> }[] = [];
     vi.spyOn(globalThis, "fetch").mockImplementation(

@@ -7776,6 +7776,10 @@
         "label": "Mínimo de linhas a compactar",
         "description": "Número mínimo de linhas num array JSON homogéneo necessário para acionar a compactação tabular. Predefinição: 8."
       },
+      "compressToolResults": {
+        "label": "__MISSING__:Proactively truncate long tool results",
+        "description": "__MISSING__:Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget."
+      },
       "preserveSystemPrompt": {
         "label": "Preservar prompt do sistema"
       },

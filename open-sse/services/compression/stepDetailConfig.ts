@@ -14,6 +14,8 @@ export function resolveStepDetailConfig(
   config: CompressionConfig | undefined
 ) {
   switch (engine) {
+    case "lite":
+      return config?.lite ?? {};
     case "headroom":
       return config?.headroom ?? {};
     case "session-dedup":

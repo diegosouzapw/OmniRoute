@@ -349,6 +349,7 @@ function runCompression(
     const result = applyLiteCompression(compressionBody, {
       ...options,
       preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
+      ...options?.config?.lite,
     });
     return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
   }

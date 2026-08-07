@@ -194,6 +194,86 @@ describe("replaceImageUrls", () => {
   });
 });
 
+describe("stacked Lite precedence (global config vs explicit step)", () => {
+  const toolContent = `${"word ".repeat(500)}TAIL`;
+  const liteStep = { engine: "lite" };
+  const baseConfig = {
+    enabled: true,
+    defaultMode: "lite",
+    autoTriggerTokens: 0,
+    cacheMinutes: 5,
+    preserveSystemPrompt: true,
+    comboOverrides: {},
+    engines: {},
+    activeComboId: null,
+  };
+
+  it("global compressToolResults=false disables truncation when no step override", () => {
+    const result = applyCompression(
+      { messages: [{ role: "tool", content: toolContent }] },
+      "stacked",
+      {
+        config: {
+          ...baseConfig,
+          lite: { compressToolResults: false },
+          stackedPipeline: [liteStep],
+        },
+      }
+    );
+    const messages = result.body.messages as Array<{ content: string }>;
+    assert.equal(messages[0].content, toolContent.trimEnd());
+    assert.ok(messages[0].content.length > 2000);
+    assert.doesNotMatch(messages[0].content, /\[truncated\]/);
+    assert.ok(!result.stats?.techniquesUsed.includes("tool-compress"));
+  });
+
+  it("explicit step compressToolResults=true overrides global false", () => {
+    const result = applyCompression(
+      { messages: [{ role: "tool", content: toolContent }] },
+      "stacked",
+      {
+        config: {
+          ...baseConfig,
+          lite: { compressToolResults: false },
+          stackedPipeline: [{ engine: "lite", config: { compressToolResults: true } }],
+        },
+      }
+    );
+    const messages = result.body.messages as Array<{ content: string }>;
+    assert.match(messages[0].content, /\.\.\.\[truncated\]$/);
+    assert.ok(messages[0].content.length < toolContent.length);
+    assert.ok(result.stats?.techniquesUsed.includes("tool-compress"));
+  });
+
+  it("explicit step compressToolResults=false overrides global true/default", () => {
+    const result = applyCompression(
+      { messages: [{ role: "tool", content: toolContent }] },
+      "stacked",
+      {
+        config: {
+          ...baseConfig,
+          lite: { compressToolResults: true },
+          stackedPipeline: [{ engine: "lite", config: { compressToolResults: false } }],
+        },
+      }
+    );
+    const messages = result.body.messages as Array<{ content: string }>;
+    assert.equal(messages[0].content, toolContent.trimEnd());
+    assert.doesNotMatch(messages[0].content, /\[truncated\]/);
+    assert.ok(!result.stats?.techniquesUsed.includes("tool-compress"));
+  });
+
+  it("stacked default (no lite config) keeps truncation enabled", () => {
+    const result = applyCompression(
+      { messages: [{ role: "tool", content: toolContent }] },
+      "stacked",
+      { config: { ...baseConfig, stackedPipeline: [liteStep] } }
+    );
+    const messages = result.body.messages as Array<{ content: string }>;
+    assert.match(messages[0].content, /\.\.\.\[truncated\]$/);
+  });
+});
+
 describe("applyLiteCompression", () => {
   it("applies all techniques that match", () => {
     const body = {
@@ -209,6 +289,43 @@ describe("applyLiteCompression", () => {
     assert.ok(result.stats);
     assert.ok(result.stats.techniquesUsed.length >= 2);
     assert.ok(result.stats.savingsPercent > 0);
+  });
+
+  it("keeps proactive tool-result truncation enabled when Lite detail config is missing", () => {
+    const toolContent = `${"word ".repeat(500)}TAIL`;
+    const result = applyCompression({ messages: [{ role: "tool", content: toolContent }] }, "lite");
+    const messages = result.body.messages as Array<{ content: string }>;
+
+    assert.match(messages[0].content, /\.\.\.\[truncated\]$/);
+    assert.ok(messages[0].content.length < toolContent.length);
+  });
+
+  it("can disable only proactive tool-result truncation while other Lite transforms still apply", () => {
+    const toolContent = `${"word ".repeat(500)}TAIL   `;
+    const result = applyCompression(
+      { messages: [{ role: "tool", content: toolContent }] },
+      "lite",
+      {
+        config: {
+          enabled: true,
+          defaultMode: "lite",
+          autoTriggerTokens: 0,
+          cacheMinutes: 5,
+          preserveSystemPrompt: true,
+          comboOverrides: {},
+          engines: {},
+          activeComboId: null,
+          lite: { compressToolResults: false },
+        },
+      }
+    );
+    const messages = result.body.messages as Array<{ content: string }>;
+
+    assert.equal(messages[0].content, toolContent.trimEnd());
+    assert.ok(messages[0].content.length > 2000);
+    assert.doesNotMatch(messages[0].content, /\[truncated\]/);
+    assert.ok(result.stats?.techniquesUsed.includes("whitespace"));
+    assert.ok(!result.stats?.techniquesUsed.includes("tool-compress"));
   });
 
   it("preserves system prompt text when preserveSystemPrompt is enabled", () => {

@@ -7776,6 +7776,10 @@
         "label": "Filas mínimas para compactar",
         "description": "Número mínimo de filas en una matriz JSON homogénea necesario para activar la compactación tabular. Predeterminado: 8."
       },
+      "compressToolResults": {
+        "label": "__MISSING__:Proactively truncate long tool results",
+        "description": "__MISSING__:Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget."
+      },
       "preserveSystemPrompt": {
         "label": "Conservar el prompt del sistema"
       },

@@ -41,6 +41,7 @@ describe("getCompressionSettings", () => {
     assert.equal(typeof settings.cacheMinutes, "number");
     assert.equal(typeof settings.preserveSystemPrompt, "boolean");
     assert.equal(typeof settings.comboOverrides, "object");
+    assert.equal(typeof settings.lite, "object");
     assert.equal(typeof settings.ultra, "object");
   });
 
@@ -54,6 +55,7 @@ describe("getCompressionSettings", () => {
     assert.equal(settings.preserveSystemPromptMode, "always");
     assert.deepEqual(settings.liveZone, { enabled: false });
     assert.deepEqual(settings.comboOverrides, {});
+    assert.equal(settings.lite?.compressToolResults, true);
     assert.equal(settings.ultra?.enabled, false);
     assert.equal(settings.ultra?.compressionRate, 0.5);
     assert.equal(settings.ultra?.minScoreThreshold, 0.3);
@@ -69,6 +71,14 @@ describe("updateCompressionSettings", () => {
     assert.equal(settings.enabled, true);
     // Reset
     await updateCompressionSettings({ enabled: false } as any);
+  });
+
+  it("persists the Lite proactive tool-result truncation switch across reload", async () => {
+    await updateCompressionSettings({ lite: { compressToolResults: false } });
+    core.resetDbInstance();
+
+    const settings = await getCompressionSettings();
+    assert.equal(settings.lite?.compressToolResults, false);
   });
 
   it("updates defaultMode", async () => {

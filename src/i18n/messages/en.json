@@ -7810,6 +7810,10 @@
         "label": "Minimum rows to compact",
         "description": "Minimum rows in a homogeneous JSON array required to trigger tabular compaction. Default: 8."
       },
+      "compressToolResults": {
+        "label": "Proactively truncate long tool results",
+        "description": "Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget."
+      },
       "preserveSystemPrompt": {
         "label": "Preserve system prompt"
       },

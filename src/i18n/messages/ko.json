@@ -7776,6 +7776,10 @@
         "label": "압축할 최소 행 수",
         "description": "테이블 형식 압축을 트리거하는 데 필요한 동질적 JSON 배열의 최소 행 수입니다. 기본값: 8."
       },
+      "compressToolResults": {
+        "label": "__MISSING__:Proactively truncate long tool results",
+        "description": "__MISSING__:Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget."
+      },
       "preserveSystemPrompt": {
         "label": "시스템 프롬프트 유지"
       },

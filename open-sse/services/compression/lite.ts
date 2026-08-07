@@ -17,6 +17,7 @@ interface LiteCompressionOptions {
   model?: string;
   supportsVision?: boolean | null;
   preserveSystemPrompt?: boolean;
+  compressToolResults?: boolean;
 }
 
 function trimTrailingHorizontalWhitespace(line: string): string {
@@ -253,9 +254,11 @@ export function applyLiteCompression(
   current = r2.body;
   if (r2.applied) techniquesApplied.push("system-dedup");
 
-  const r3 = compressToolResults(current);
-  current = r3.body;
-  if (r3.applied) techniquesApplied.push("tool-compress");
+  if (options?.compressToolResults !== false) {
+    const r3 = compressToolResults(current);
+    current = r3.body;
+    if (r3.applied) techniquesApplied.push("tool-compress");
+  }
 
   const r4 = removeRedundantContent(current, options);
   current = r4.body;

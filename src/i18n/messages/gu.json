@@ -7776,6 +7776,10 @@
         "label": "કમ્પેક્ટ કરવા માટે ન્યૂનતમ પંક્તિઓ",
         "description": "ટેબ્યુલર કમ્પેક્શન ટ્રિગર કરવા માટે સજાતીય JSON એરેમાં જરૂરી ન્યૂનતમ પંક્તિઓ. ડિફોલ્ટ: 8."
       },
+      "compressToolResults": {
+        "label": "__MISSING__:Proactively truncate long tool results",
+        "description": "__MISSING__:Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget."
+      },
       "preserveSystemPrompt": {
         "label": "સિસ્ટમ પ્રોમ્પ્ટ સાચવો"
       },

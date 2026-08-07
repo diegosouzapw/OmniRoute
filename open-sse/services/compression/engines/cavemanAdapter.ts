@@ -221,6 +221,14 @@ const LITE_SCHEMA: EngineConfigField[] = [
     label: "Preserve system prompt",
     defaultValue: true,
   },
+  {
+    key: "compressToolResults",
+    type: "boolean",
+    label: "Proactively truncate long tool results",
+    description:
+      "Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget.",
+    defaultValue: true,
+  },
 ];
 
 function validateLiteConfig(config: Record<string, unknown>): EngineValidationResult {
@@ -231,6 +239,7 @@ function validateLiteConfig(config: Record<string, unknown>): EngineValidationRe
   ) {
     errors.push("preserveSystemPrompt must be a boolean");
   }
+  validateBoolean(config, "compressToolResults", errors);
   return { valid: errors.length === 0, errors };
 }
 
@@ -256,6 +265,13 @@ export const liteEngine: CompressionEngine = {
     const result = applyLiteCompression(adapter.body, {
       ...options,
       preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
+      // buildStepOptions() already merges global config.lite with explicit step.config
+      // (step wins) into stepConfig, so consume that single effective value instead of
+      // AND-ing root and step values — an explicit step `true` must override a global `false`.
+      compressToolResults:
+        options?.stepConfig?.compressToolResults ??
+        options?.config?.lite?.compressToolResults ??
+        true,
     });
     return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
   },

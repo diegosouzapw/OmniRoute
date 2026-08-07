@@ -7858,6 +7858,10 @@
         "label": "Минимальное число строк для компактизации",
         "description": "Минимальное количество строк в однородном массиве JSON, необходимое для запуска табличной компактизации. По умолчанию: 8."
       },
+      "compressToolResults": {
+        "label": "__MISSING__:Proactively truncate long tool results",
+        "description": "__MISSING__:Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget."
+      },
       "preserveSystemPrompt": {
         "label": "Сохранять системный промпт"
       },

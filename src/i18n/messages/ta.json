@@ -7776,6 +7776,10 @@
         "label": "சுருக்குவதற்கான குறைந்தபட்ச வரிசைகள்",
         "description": "அட்டவணை சுருக்கத்தைத் தூண்டுவதற்கு ஒரே மாதிரியான JSON வரிசையில் தேவைப்படும் குறைந்தபட்ச வரிசைகள். இயல்புநிலை: 8."
       },
+      "compressToolResults": {
+        "label": "__MISSING__:Proactively truncate long tool results",
+        "description": "__MISSING__:Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget."
+      },
       "preserveSystemPrompt": {
         "label": "சிஸ்டம் பிராம்ப்ட்டைப் பாதுகாக்கவும்"
       },

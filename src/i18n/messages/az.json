@@ -7776,6 +7776,10 @@
         "label": "Kompaktlaşdırmaq üçün minimum sətir sayı",
         "description": "Cədvəl kompaktlaşdırmasını işə salmaq üçün tələb olunan bircins JSON massivindəki minimum sətir sayı. Standart: 8."
       },
+      "compressToolResults": {
+        "label": "__MISSING__:Proactively truncate long tool results",
+        "description": "__MISSING__:Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget."
+      },
       "preserveSystemPrompt": {
         "label": "Sistem promptunu qoru"
       },

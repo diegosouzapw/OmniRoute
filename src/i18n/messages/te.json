@@ -7776,6 +7776,10 @@
         "label": "కంపాక్ట్ చేయడానికి కనీస అడ్డు వరుసలు",
         "description": "టేబులర్ కంపాక్షన్‌ను ట్రిగ్గర్ చేయడానికి సజాతీయ JSON అరేలో అవసరమైన కనీస అడ్డు వరుసలు. డిఫాల్ట్: 8."
       },
+      "compressToolResults": {
+        "label": "__MISSING__:Proactively truncate long tool results",
+        "description": "__MISSING__:Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget."
+      },
       "preserveSystemPrompt": {
         "label": "సిస్టమ్ ప్రాంప్ట్‌ను భద్రపరచండి"
       },

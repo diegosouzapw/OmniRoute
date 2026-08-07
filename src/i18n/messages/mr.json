@@ -7776,6 +7776,10 @@
         "label": "कॉम्पॅक्ट करण्यासाठी किमान ओळी",
         "description": "टॅब्युलर कॉम्पॅक्शन ट्रिगर करण्यासाठी एकसमान JSON ॲरेमध्ये आवश्यक असलेल्या किमान ओळी. डीफॉल्ट: 8."
       },
+      "compressToolResults": {
+        "label": "__MISSING__:Proactively truncate long tool results",
+        "description": "__MISSING__:Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget."
+      },
       "preserveSystemPrompt": {
         "label": "सिस्टम प्रॉम्प्ट जतन करा"
       },

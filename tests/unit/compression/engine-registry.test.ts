@@ -80,10 +80,20 @@ describe("compression engine registry contract", () => {
     // summarizer/threshold fields it previously leaked.
     const liteSchema = liteEngine.getConfigSchema();
     assert.ok(liteSchema.some((field) => field.key === "preserveSystemPrompt"));
+    assert.ok(
+      liteSchema.some((field) => field.key === "compressToolResults" && field.defaultValue === true)
+    );
     assert.ok(!liteSchema.some((field) => field.key === "maxTokensPerMessage"));
     assert.ok(!liteSchema.some((field) => field.key === "summarizerEnabled"));
-    assert.equal(liteEngine.validateConfig({ preserveSystemPrompt: true }).valid, true);
+    assert.equal(
+      liteEngine.validateConfig({
+        preserveSystemPrompt: true,
+        compressToolResults: false,
+      }).valid,
+      true
+    );
     assert.equal(liteEngine.validateConfig({ preserveSystemPrompt: "yes" }).valid, false);
+    assert.equal(liteEngine.validateConfig({ compressToolResults: "no" }).valid, false);
     assert.equal(cavemanEngine.validateConfig({ intensity: "full" }).valid, true);
     assert.equal(cavemanEngine.validateConfig({ intensity: "bad" }).valid, false);
     assert.equal(realRtkEngine.validateConfig({ maxLinesPerResult: 20 }).valid, true);

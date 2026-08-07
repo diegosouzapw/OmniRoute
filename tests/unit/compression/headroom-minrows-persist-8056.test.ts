@@ -67,6 +67,20 @@ function baseConfig(overrides: Partial<CompressionConfig> = {}): CompressionConf
 }
 
 describe("#8056 headroom minRows persistence", () => {
+  it("schema accepts Lite proactive tool-result truncation detail", () => {
+    const result = compressionSettingsUpdateSchema.safeParse({
+      lite: { compressToolResults: false },
+    });
+    assert.equal(result.success, true, JSON.stringify(result.error?.issues));
+  });
+
+  it("schema rejects a non-boolean Lite proactive tool-result truncation detail", () => {
+    const result = compressionSettingsUpdateSchema.safeParse({
+      lite: { compressToolResults: "no" },
+    });
+    assert.equal(result.success, false);
+  });
+
   it("schema accepts headroom.minRows=5", () => {
     const result = compressionSettingsUpdateSchema.safeParse({
       headroom: { minRows: 5 },

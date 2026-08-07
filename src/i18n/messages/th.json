@@ -7776,6 +7776,10 @@
         "label": "จำนวนแถวขั้นต่ำที่จะกระชับข้อมูล",
         "description": "จำนวนแถวขั้นต่ำในอาร์เรย์ JSON ที่เป็นเนื้อเดียวกันซึ่งจำเป็นต่อการทริกเกอร์การกระชับข้อมูลแบบตาราง ค่าเริ่มต้น: 8"
       },
+      "compressToolResults": {
+        "label": "__MISSING__:Proactively truncate long tool results",
+        "description": "__MISSING__:Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget."
+      },
       "preserveSystemPrompt": {
         "label": "คงพรอมต์ระบบไว้"
       },

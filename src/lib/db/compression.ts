@@ -612,6 +612,7 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     stackedPipeline: normalizeStackedPipeline(undefined),
     aggressive: normalizeAggressiveConfig(undefined),
     ultra: normalizeUltraConfig(undefined),
+    lite: { compressToolResults: true },
     headroom: normalizeHeadroomConfig(undefined),
     ...buildDetailConfigDefaults(),
     contextBudget: normalizeContextBudgetConfig(undefined),
@@ -721,6 +722,9 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "ultra":
       case "ultraConfig":
         config.ultra = normalizeUltraConfig(parsed);
+        break;
+      case "lite":
+        config.lite = { compressToolResults: toRecord(parsed).compressToolResults !== false };
         break;
       case "headroom":
       case "headroomConfig":

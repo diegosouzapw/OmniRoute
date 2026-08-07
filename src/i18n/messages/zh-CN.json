@@ -7776,6 +7776,10 @@
         "label": "压缩所需的最小行数",
         "description": "触发表格压缩所需的同构JSON数组的最小行数。默认值: 8。"
       },
+      "compressToolResults": {
+        "label": "主动截断过长的工具结果",
+        "description": "在 Lite 压缩期间截断超过 2,000 个字符的工具结果。当上下文超出模型预算时，紧急溢出保护仍可能裁剪内容。"
+      },
       "preserveSystemPrompt": {
         "label": "保留系统提示词"
       },

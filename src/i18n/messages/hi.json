@@ -7776,6 +7776,10 @@
         "label": "कॉम्पैक्ट करने के लिए न्यूनतम पंक्तियाँ",
         "description": "सारणीबद्ध कॉम्पैक्शन को ट्रिगर करने के लिए सजातीय JSON ऐरे में आवश्यक न्यूनतम पंक्तियाँ। डिफ़ॉल्ट: 8."
       },
+      "compressToolResults": {
+        "label": "__MISSING__:Proactively truncate long tool results",
+        "description": "__MISSING__:Truncates tool results over 2,000 characters during Lite compression. Emergency overflow protection may still trim content when the context exceeds the model budget."
+      },
       "preserveSystemPrompt": {
         "label": "सिस्टम प्रॉम्प्ट सुरक्षित रखें"
       },
