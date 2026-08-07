@@ -2036,35 +2036,34 @@ export async function handleComboChat({
       if (setTry < maxSetRetries) continue;
 
       // All set retries exhausted — return the final error
-	      if (!lastStatus) {
-	        if (recordedAttempts === 0) {
-	          notifyWebhookEvent("request.failed", {
-	            combo: combo.name,
-	            reason: "ALL_TARGETS_SKIPPED",
-	            latencyMs,
-	            fallbackCount,
-	          });
-	          return errorResponseWithComboDiagnostics(
-	            503,
-	            "Service temporarily unavailable: all targets were skipped by pre-dispatch filters",
-	            buildComboDiag("all_targets_skipped"),
-	            { code: "ALL_TARGETS_SKIPPED", type: "service_unavailable" }
-	          );
-	        }
-	        notifyWebhookEvent("request.failed", {
-	          combo: combo.name,
-	          reason: "ALL_ACCOUNTS_INACTIVE",
-	          latencyMs,
-	          fallbackCount,
-	        });
-	        recordComboFailure(effectiveSessionId, combo.name);
-	        return errorResponseWithComboDiagnostics(
-	          503,
-	          "Service temporarily unavailable: all upstream accounts are inactive",
-	          buildComboDiag("all_accounts_inactive"),
-	          { code: "ALL_ACCOUNTS_INACTIVE", type: "service_unavailable" }
-	        );
-	      }
+      if (!lastStatus) {
+        if (recordedAttempts === 0) {
+          notifyWebhookEvent("request.failed", {
+            combo: combo.name,
+            reason: "ALL_TARGETS_SKIPPED",
+            latencyMs,
+            fallbackCount,
+          });
+          return errorResponseWithComboDiagnostics(
+            503,
+            "Service temporarily unavailable: all targets were skipped by pre-dispatch filters",
+            buildComboDiag("all_targets_skipped"),
+            { code: "ALL_TARGETS_SKIPPED", type: "service_unavailable" }
+          );
+        }
+        notifyWebhookEvent("request.failed", {
+          combo: combo.name,
+          reason: "ALL_ACCOUNTS_INACTIVE",
+          latencyMs,
+          fallbackCount,
+        });
+        recordComboFailure(effectiveSessionId, combo.name);
+        return errorResponseWithComboDiagnostics(
+          503,
+          "Service temporarily unavailable: all upstream accounts are inactive",
+          buildComboDiag("all_accounts_inactive"),
+          { code: "ALL_ACCOUNTS_INACTIVE", type: "service_unavailable" }
+        );
       }
 
       const status = lastStatus;
@@ -3016,30 +3015,30 @@ async function handleRoundRobinCombo({
     });
   }
 
-	  if (!lastStatus) {
-	    if (recordedAttempts === 0) {
-	      return new Response(
-	        JSON.stringify({
-	          error: {
-	            message: "Service temporarily unavailable: all targets were skipped by pre-dispatch filters",
-	            type: "service_unavailable",
-	            code: "ALL_TARGETS_SKIPPED",
-	          },
-	        }),
-	        { status: 503, headers: { "Content-Type": "application/json" } }
-	      );
-	    }
-	    return new Response(
-	      JSON.stringify({
-	        error: {
-	          message: "Service temporarily unavailable: all upstream accounts are inactive",
-	          type: "service_unavailable",
-	          code: "ALL_ACCOUNTS_INACTIVE",
-	        },
-	      }),
-	      { status: 503, headers: { "Content-Type": "application/json" } }
-	    );
-	  }
+  if (!lastStatus) {
+    if (recordedAttempts === 0) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Service temporarily unavailable: all targets were skipped by pre-dispatch filters",
+            type: "service_unavailable",
+            code: "ALL_TARGETS_SKIPPED",
+          },
+        }),
+        { status: 503, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: "Service temporarily unavailable: all upstream accounts are inactive",
+          type: "service_unavailable",
+          code: "ALL_ACCOUNTS_INACTIVE",
+        },
+      }),
+      { status: 503, headers: { "Content-Type": "application/json" } }
+    );
+  }
 
   const status = lastStatus;
   const msg = lastError || "All round-robin combo models unavailable";
