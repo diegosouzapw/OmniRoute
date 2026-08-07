@@ -82,6 +82,43 @@ that lets the feed service decide which tier to serve (see
 
 ---
 
+## Getting a supporter key
+
+The activation screen (`/dashboard/radar`) links out to two flows for **obtaining** a
+supporter key. The OSS repo itself never issues one, never runs payment code, and
+**never states a price** — pricing is decided and displayed entirely on the
+destination pages, not in this repo (spec decision D14).
+
+- **"I'm a contributor"** — opens `RADAR_CONTRIBUTOR_CLAIM_URL` (default
+  `https://radar.omniroute.online/auth/github`), a GitHub OAuth claim flow hosted on
+  the private radar server. It verifies the visitor's GitHub account and grants a
+  supporter key to anyone with 5+ merged pull requests or a top-100 contributor spot
+  on the repo.
+- **"Support the project"** — opens `RADAR_SUPPORTER_PLANS_URL` (default
+  `https://radar.omniroute.online/planos`), the payment/plans page.
+
+Both URLs are resolved server-side (`src/lib/radar/links.ts`, same env-override
+pattern as `RADAR_FEED_URL`) and relayed to the dashboard through the existing
+`GET /api/radar/settings` response (`contributorClaimUrl`, `supporterPlansUrl`) — the
+client component never reads `process.env` itself.
+
+| Var                             | Purpose                                                                                      |
+| -------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `RADAR_CONTRIBUTOR_CLAIM_URL`   | Overrides the contributor-claim URL (default `https://radar.omniroute.online/auth/github`).   |
+| `RADAR_SUPPORTER_PLANS_URL`     | Overrides the supporter-plans URL (default `https://radar.omniroute.online/planos`).          |
+
+Once a visitor has a key (`omr_` + 40 hex chars), it is set with `POST
+/api/radar/settings` (`{ supporterKey }`) — the same endpoint documented under
+[Data sync](#data-sync-is-a-separate-opt-in--the-privacy-promise) above.
+
+**Known gap:** the dashboard activation screen does not yet have a dedicated
+key-paste input — pasting a key today requires calling `POST /api/radar/settings`
+directly (curl, a script, or a future UI). This release only adds the two claim/plans
+buttons; the API already accepts and masks the key, but no `<input>` for it exists in
+`src/app/(dashboard)/dashboard/radar/page.tsx` yet.
+
+---
+
 ## Security model
 
 ### Ed25519 signature over exact bytes

@@ -148,7 +148,11 @@ test("T24: all inactive accounts return 503 service_unavailable (not 406)", asyn
 
   assert.equal(result.status, 503);
   const body = (await result.json()) as any;
-  assert.equal(body.error?.code, "ALL_ACCOUNTS_INACTIVE");
+  // isModelAvailable always false means every target is skipped by the
+  // pre-dispatch filter with zero dispatch attempts — the more precise
+  // ALL_TARGETS_SKIPPED classification, not ALL_ACCOUNTS_INACTIVE (which
+  // implies targets were attempted and their accounts found inactive).
+  assert.equal(body.error?.code, "ALL_TARGETS_SKIPPED");
 });
 
 test("combo falls through 400s and reaches the next model", async () => {

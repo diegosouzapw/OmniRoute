@@ -3020,8 +3020,7 @@ async function handleRoundRobinCombo({
       return new Response(
         JSON.stringify({
           error: {
-            message:
-              "Service temporarily unavailable: all targets were skipped by pre-dispatch filters",
+            message: "Service temporarily unavailable: all targets were skipped by pre-dispatch filters",
             type: "service_unavailable",
             code: "ALL_TARGETS_SKIPPED",
           },

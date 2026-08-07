@@ -3,6 +3,13 @@
  * snapshot. Powers the dashboard page's "am I already opted in?" check so
  * a reload doesn't re-show the activation screen (see FIX 3).
  *
+ * Also relays the two F4/T7 "get a supporter key" outbound links
+ * (`contributorClaimUrl`, `supporterPlansUrl` — see `@/lib/radar/links`) so
+ * the client component never reads `process.env` itself. Smallest surface
+ * per spec: no dedicated route, reuses this one. Both are plain public
+ * URLs (no secret, no pricing) — safe to expose alongside the settings
+ * snapshot, gated by the same flag/auth checks below.
+ *
  * POST /api/radar/settings — set Radar opt-in and/or supporter key.
  *
  * Zod-validated body: { optIn?: boolean, supporterKey?: string|null }
@@ -22,6 +29,7 @@ import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { setRadarOptIn, setRadarKey, getRadarSettings } from "@/lib/db/radar";
+import { getContributorClaimUrl, getSupporterPlansUrl } from "@/lib/radar/links";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
 export const dynamic = "force-dynamic";
@@ -75,6 +83,8 @@ export async function GET(request: Request) {
         optIn: settings.optIn,
         hasSupporterKey: settings.supporterKey !== null,
         supporterKeyMasked: maskKey(settings.supporterKey),
+        contributorClaimUrl: getContributorClaimUrl(),
+        supporterPlansUrl: getSupporterPlansUrl(),
       },
       { headers: { ...CORS_HEADERS, "Cache-Control": "no-store" } },
     );

@@ -1275,14 +1275,17 @@ that should be able to run the docs translator.
 Optional add-on gated by the RADAR_ENABLED feature flag (default off — a feature
 flag toggled via Settings/DB, not an env var; see
 [docs/frameworks/RADAR.md](../frameworks/RADAR.md#flag-radar_enabled-default-off)).
-Both variables below are optional overrides used only to point the client at a
-self-hosted or forked feed instead of the default OmniRoute Radar feed. See
-[docs/frameworks/RADAR.md](../frameworks/RADAR.md) for the full module doc.
+The four variables below are optional overrides used only to point the client at a
+self-hosted or forked feed / supporter-key flow instead of the default OmniRoute
+Radar service. See [docs/frameworks/RADAR.md](../frameworks/RADAR.md) for the full
+module doc.
 
-| Variable            | Default                        | Source File                   | Description                                                                                     |
-| -------------------- | ------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------ |
-| `RADAR_FEED_URL`    | `https://radar.omniroute.online`  | `src/lib/radar/sync.ts`       | Base URL of the Radar feed service. Override to point at a self-hosted or forked feed.          |
-| `RADAR_FEED_PUBKEY` | _(pinned default key)_          | `src/lib/radar/pinnedKeys.ts` | Ed25519 public key (base64-DER SPKI or PEM) used to verify feed signatures from a custom feed.   |
+| Variable                       | Default                                          | Source File                   | Description                                                                                     |
+| -------------------------------- | --------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `RADAR_FEED_URL`               | `https://radar.omniroute.online`                 | `src/lib/radar/sync.ts`       | Base URL of the Radar feed service. Override to point at a self-hosted or forked feed.          |
+| `RADAR_FEED_PUBKEY`            | _(pinned default key)_                           | `src/lib/radar/pinnedKeys.ts` | Ed25519 public key (base64-DER SPKI or PEM) used to verify feed signatures from a custom feed.   |
+| `RADAR_CONTRIBUTOR_CLAIM_URL`  | `https://radar.omniroute.online/auth/github`     | `src/lib/radar/links.ts`      | URL the "I'm a contributor" dashboard button opens (GitHub OAuth supporter-key claim flow).      |
+| `RADAR_SUPPORTER_PLANS_URL`    | `https://radar.omniroute.online/planos`          | `src/lib/radar/links.ts`      | URL the "Support the project" dashboard button opens (payment/plans page).                       |
 
 ---
 

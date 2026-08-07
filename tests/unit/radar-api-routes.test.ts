@@ -355,6 +355,7 @@ test("POST /api/radar/sync: authenticated, invalid body => 400", async () => {
 
 // ---------------------------------------------------------------------------
 // FIX 3 — GET /api/radar/settings: { optIn, hasSupporterKey, supporterKeyMasked }
+// F4/T7 — same response also relays contributorClaimUrl/supporterPlansUrl.
 // ---------------------------------------------------------------------------
 
 test("GET /api/radar/settings: flag on, authenticated, default state => optIn false, no key", async () => {
@@ -371,6 +372,9 @@ test("GET /api/radar/settings: flag on, authenticated, default state => optIn fa
   assert.equal(body.optIn, false);
   assert.equal(body.hasSupporterKey, false);
   assert.equal(body.supporterKeyMasked, null);
+  // F4/T7: default claim/plans links are always present, opt-in or not.
+  assert.equal(body.contributorClaimUrl, "https://radar.omniroute.online/auth/github");
+  assert.equal(body.supporterPlansUrl, "https://radar.omniroute.online/planos");
 });
 
 test("GET /api/radar/settings: flag on, authenticated, after opt-in + key => reflects persisted state, never raw key", async () => {
@@ -400,6 +404,28 @@ test("GET /api/radar/settings: flag on, authenticated, after opt-in + key => ref
   assert.equal(body.hasSupporterKey, true);
   assert.equal(body.supporterKeyMasked, "omr_****cdef", "must mask to last 4 hex chars");
   assert.ok(!text.includes(RAW_KEY), "raw key must NEVER appear in the serialized response body");
+});
+
+test("GET /api/radar/settings: F4/T7 claim/plans links honor env overrides (fork-friendly)", async () => {
+  resetStorage();
+  process.env.RADAR_ENABLED = "true";
+  process.env.RADAR_CONTRIBUTOR_CLAIM_URL = "https://fork.example.com/auth/github";
+  process.env.RADAR_SUPPORTER_PLANS_URL = "https://fork.example.com/plans";
+
+  try {
+    const { GET } = await import("../../src/app/api/radar/settings/route.ts");
+    const response = await GET(
+      mockGetRequest("http://localhost:20128/api/radar/settings", await authHeaders()),
+    );
+    const body = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.equal(body.contributorClaimUrl, "https://fork.example.com/auth/github");
+    assert.equal(body.supporterPlansUrl, "https://fork.example.com/plans");
+  } finally {
+    delete process.env.RADAR_CONTRIBUTOR_CLAIM_URL;
+    delete process.env.RADAR_SUPPORTER_PLANS_URL;
+  }
 });
 
 // ---------------------------------------------------------------------------

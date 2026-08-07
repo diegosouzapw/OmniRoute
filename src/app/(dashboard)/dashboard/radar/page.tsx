@@ -125,6 +125,12 @@ export default function RadarPage() {
     campaigns: [],
     tier: null,
   });
+  // F4/T7 — "get a supporter key" outbound links, relayed by
+  // GET /api/radar/settings (server-resolved, see src/lib/radar/links.ts).
+  // Never hardcoded here: this component must never embed an external URL
+  // literal (see tests/unit/radar-referrals-page-tab.test.ts).
+  const [contributorClaimUrl, setContributorClaimUrl] = useState<string | null>(null);
+  const [supporterPlansUrl, setSupporterPlansUrl] = useState<string | null>(null);
 
   // Fetch catalog
   const fetchCatalog = useCallback(async () => {
@@ -183,6 +189,14 @@ export default function RadarPage() {
       if (!settingsRes.ok) throw new Error(`HTTP ${settingsRes.status}`);
       const settingsData = await settingsRes.json();
       setOptIn(settingsData.optIn === true);
+      // F4/T7 — best-effort: keep whatever we already had if the field is
+      // absent (older cached response shape), never fall back to a literal.
+      if (typeof settingsData.contributorClaimUrl === "string") {
+        setContributorClaimUrl(settingsData.contributorClaimUrl);
+      }
+      if (typeof settingsData.supporterPlansUrl === "string") {
+        setSupporterPlansUrl(settingsData.supporterPlansUrl);
+      }
 
       if (settingsData.optIn === true) {
         // Already opted in — load the catalog now so the populated/empty
@@ -352,6 +366,35 @@ export default function RadarPage() {
                 >
                   {activating ? t("activating") : t("activateButton")}
                 </button>
+
+                {/* F4/T7 — "get a supporter key" outbound links. Both open in a
+                    new tab; neither one carries a price/value (D14 — the
+                    only place pricing lives is the destination page). */}
+                {contributorClaimUrl && supporterPlansUrl && (
+                  <div className="w-full pt-6 mt-2 border-t border-border flex flex-col gap-3">
+                    <p className="text-sm font-medium">{t("claimSectionTitle")}</p>
+                    <div className="flex flex-col sm:flex-row gap-3 w-full">
+                      <a
+                        href={contributorClaimUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 px-4 py-2 text-sm font-medium text-center rounded-lg border border-violet-500 text-violet-400 hover:bg-violet-500/10 transition-colors"
+                      >
+                        {t("contributorButton")}
+                      </a>
+                      <a
+                        href={supporterPlansUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 px-4 py-2 text-sm font-medium text-center rounded-lg border border-violet-500 text-violet-400 hover:bg-violet-500/10 transition-colors"
+                      >
+                        {t("supporterButton")}
+                      </a>
+                    </div>
+                    <p className="text-xs text-text-muted text-left">{t("contributorHint")}</p>
+                    <p className="text-xs text-text-muted text-left">{t("supporterHint")}</p>
+                  </div>
+                )}
               </div>
             </Card>
           )}
