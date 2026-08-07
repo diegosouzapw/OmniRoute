@@ -329,7 +329,7 @@ export default function ProviderQuotaWidget({
               className="grid grid-cols-1 gap-4 px-4 py-4 lg:grid-cols-[12rem_minmax(0,1fr)]"
             >
               <div className="flex min-w-0 items-center gap-2 lg:items-start">
-                <ProviderIcon providerId={provider} size={20} />
+                <ProviderIcon providerId={provider} size={18} />
                 <div className="min-w-0">
                   <h3 className="truncate text-sm font-semibold text-text-main">
                     {PROVIDER_LABEL[provider] || provider}

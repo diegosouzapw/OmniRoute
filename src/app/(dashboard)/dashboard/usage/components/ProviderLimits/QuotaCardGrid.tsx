@@ -75,50 +75,52 @@ export default function QuotaCardGrid({
     />
   );
 
-  if (compact) {
+  // Default (non-compact) layout: group connections by provider (preserving
+  // in-group order), then order the groups deterministically: PROVIDER_ORDER
+  // rank → label (locale-aware) → key. Without this the group order followed
+  // first-appearance in the status/reset-sorted list, so groups shuffled
+  // whenever quota refreshed.
+  if (!compact) {
+    const groups = new Map<string, typeof connections>();
+    for (const conn of connections) {
+      const list = groups.get(conn.provider) ?? [];
+      list.push(conn);
+      groups.set(conn.provider, list);
+    }
+    const orderedProviders = [...groups.keys()].sort((a, b) =>
+      compareProviderGroups(a, b, {
+        providerOrder: PROVIDER_ORDER,
+        providerLabels,
+        compare: compareTr,
+      })
+    );
+
     return (
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-3">
-        {connections.map(renderCard)}
+      <div className="columns-1 2xl:columns-2 gap-6 [column-fill:_balance]">
+        {orderedProviders.map((provider) => {
+          const conns = groups.get(provider)!;
+          return (
+            <div key={provider} className="flex flex-col gap-3 break-inside-avoid mb-6">
+              <h3 className="text-sm font-semibold text-text-main flex items-center gap-2">
+                {providerLabels[provider] || provider}
+                <span className="text-xs font-normal text-text-muted">
+                  ({conns.length} account{conns.length !== 1 ? "s" : ""})
+                </span>
+              </h3>
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-3">
+                {conns.map(renderCard)}
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   }
 
-  // Group connections by provider (preserving in-group order), then order the
-  // groups deterministically: PROVIDER_ORDER rank → label (locale-aware) →
-  // key. Without this the group order followed first-appearance in the
-  // status/reset-sorted list, so groups shuffled whenever quota refreshed.
-  const groups = new Map<string, typeof connections>();
-  for (const conn of connections) {
-    const list = groups.get(conn.provider) ?? [];
-    list.push(conn);
-    groups.set(conn.provider, list);
-  }
-  const orderedProviders = [...groups.keys()].sort((a, b) =>
-    compareProviderGroups(a, b, {
-      providerOrder: PROVIDER_ORDER,
-      providerLabels,
-      compare: compareTr,
-    })
-  );
-
+  // Compact mode: flat 3-column card grid, across all connections.
   return (
-    <div className="columns-1 2xl:columns-2 gap-6 [column-fill:_balance]">
-      {orderedProviders.map((provider) => {
-        const conns = groups.get(provider)!;
-        return (
-          <div key={provider} className="flex flex-col gap-3 break-inside-avoid mb-6">
-            <h3 className="text-sm font-semibold text-text-main flex items-center gap-2">
-              {providerLabels[provider] || provider}
-              <span className="text-xs font-normal text-text-muted">
-                ({conns.length} account{conns.length !== 1 ? "s" : ""})
-              </span>
-            </h3>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-3">
-              {conns.map(renderCard)}
-            </div>
-          </div>
-        );
-      })}
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-3">
+      {connections.map(renderCard)}
     </div>
   );
 }
