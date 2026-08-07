@@ -138,6 +138,49 @@ export function backfillResponsesCompletedOutput(
   return true;
 }
 
+/**
+ * Keep the terminal Responses payload compatible with strict clients such as Codex.
+ * Upstreams may expose only input/output counts (or omit usage entirely), while the
+ * client deserializer requires all three canonical token fields.
+ */
+export function normalizeResponsesCompletedUsage(parsed: unknown): boolean {
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return false;
+  const obj = parsed as JsonRecord;
+  if (obj.type !== "response.completed") return false;
+  if (!obj.response || typeof obj.response !== "object" || Array.isArray(obj.response)) {
+    return false;
+  }
+
+  const response = obj.response as JsonRecord;
+  const current =
+    response.usage && typeof response.usage === "object" && !Array.isArray(response.usage)
+      ? (response.usage as JsonRecord)
+      : {};
+  const finiteNumber = (value: unknown): number | null => {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : null;
+  };
+  const inputTokens =
+    finiteNumber(current.input_tokens) ?? finiteNumber(current.prompt_tokens) ?? 0;
+  const outputTokens =
+    finiteNumber(current.output_tokens) ?? finiteNumber(current.completion_tokens) ?? 0;
+  const totalTokens = finiteNumber(current.total_tokens) ?? inputTokens + outputTokens;
+
+  const normalized: JsonRecord = {
+    ...current,
+    input_tokens: inputTokens,
+    output_tokens: outputTokens,
+  };
+  normalized.total_tokens = totalTokens;
+  const changed =
+    !response.usage ||
+    current.input_tokens !== inputTokens ||
+    current.output_tokens !== outputTokens ||
+    current.total_tokens !== totalTokens;
+  response.usage = normalized;
+  return changed;
+}
+
 const RESPONSES_LIFECYCLE_EVENT_TYPES = new Set([
   "response.created",
   "response.in_progress",
@@ -158,7 +201,10 @@ export function stripResponsesLifecycleEcho(parsed: unknown): boolean {
     delete r.instructions;
     changed = true;
   }
-  if ("tools" in r) {
+  // Preserve tools on the terminal snapshot: response.completed is what
+  // Codex CLI rebuilds its tool list from (#8990). Same special-case as
+  // backfillResponsesCompletedOutput. Still stripped on created/in_progress.
+  if (obj.type !== "response.completed" && "tools" in r) {
     delete r.tools;
     changed = true;
   }

@@ -414,6 +414,17 @@ export const TRAE_CONFIG = {
     "Authorize via trae.ai in the popup, or sign in to solo.trae.ai and paste the Cloud-IDE-JWT from the Authorization header (~14-day lifetime).",
 };
 
+// Raycast Pro AI — reverse-engineered, unofficial API. LOCAL / PERSONAL USE ONLY.
+// See docs/security/PUBLIC_CREDS.md pattern: no secrets in repo; credentials from user's Mac.
+export const RAYCAST_CONFIG = {
+  apiEndpoint: "https://backend.raycast.com",
+  chatEndpoint: "/api/v1/ai/chat_completions",
+  modelsEndpoint: "/api/v1/ai/models",
+  clientType: "macos-app",
+  captureInstructions:
+    "macOS only: use Auto-Import (Keychain + Raycast DB) or capture Bearer, X-Raycast-DeviceId, and optional X-Raycast-Signature JWT from backend.raycast.com traffic.",
+};
+
 // Windsurf / Devin CLI Configuration
 //
 // 2026-05-29 (Phase 1 hotfix):

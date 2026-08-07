@@ -27,6 +27,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
+const contextHandoffsDb = await import("../../src/lib/db/contextHandoffs.ts");
 const readCache = await import("../../src/lib/db/readCache.ts");
 
 async function resetStorage() {
@@ -38,8 +39,9 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error: any) {
-      if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
+    } catch (error: unknown) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if ((code === "EBUSY" || code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
         throw error;
@@ -113,7 +115,7 @@ test("editing a combo invalidates the nested-expansion cache within the 10s wind
   const freshVersion = readCache.getCombosCacheVersion();
   assert.equal(cacheStillValid(freshTs, freshVersion), true);
 
-  await combosDb.updateCombo((parent as any).id, { strategy: "round-robin" });
+  await combosDb.updateCombo(String(parent.id), { strategy: "round-robin" });
   assert.equal(
     cacheStillValid(freshTs, freshVersion),
     false,
@@ -133,19 +135,77 @@ test("deleteCombo and reorderCombos also invalidate the cache", async () => {
 
   let ts = Date.now();
   let version = readCache.getCombosCacheVersion();
-  await combosDb.reorderCombos([(b as any).id, (a as any).id]);
-  assert.equal(
-    cacheStillValid(ts, version),
-    false,
-    "reorderCombos must invalidate the cache"
-  );
+  await combosDb.reorderCombos([String(b.id), String(a.id)]);
+  assert.equal(cacheStillValid(ts, version), false, "reorderCombos must invalidate the cache");
 
   ts = Date.now();
   version = readCache.getCombosCacheVersion();
-  await combosDb.deleteCombo((a as any).id);
+  await combosDb.deleteCombo(String(a.id));
+  assert.equal(cacheStillValid(ts, version), false, "deleteCombo must invalidate the cache");
+});
+
+test("reorderCombo side effects follow physical writes even when stored JSON is corrupt", async () => {
+  const combo = await combosDb.createCombo({
+    name: "Corrupt Payload",
+    models: [{ provider: "openai", model: "gpt-4.1" }],
+  });
+  core.getDbInstance().prepare("UPDATE combos SET data = '' WHERE id = ?").run(String(combo.id));
+
+  const before = readCache.getCombosCacheVersion();
+  const reordered = await combosDb.reorderCombos([String(combo.id)]);
+
+  assert.deepEqual(reordered, []);
+  assert.notEqual(
+    readCache.getCombosCacheVersion(),
+    before,
+    "a physical reorder write must preserve the legacy invalidation side effect"
+  );
+});
+
+test("updateCombo preserves the existing session-pin cleanup contract", async () => {
+  const combo = await combosDb.createCombo({
+    name: "Before Rename",
+    models: [{ provider: "openai", model: "gpt-4.1" }],
+  });
+
+  contextHandoffsDb.recordSessionModelUsage(
+    "session-before",
+    "Before Rename",
+    "openai/gpt-4.1",
+    "openai"
+  );
+  contextHandoffsDb.recordSessionModelUsage(
+    "session-after",
+    "After Rename",
+    "openai/gpt-4.1-mini",
+    "openai"
+  );
+
+  await combosDb.updateCombo(String(combo.id), {
+    name: "After Rename",
+    models: [{ provider: "openai", model: "gpt-4.1-mini" }],
+  });
+
+  assert.equal(contextHandoffsDb.getLastSessionModel("session-before", "Before Rename"), null);
+  assert.equal(contextHandoffsDb.getLastSessionModel("session-after", "After Rename"), null);
+});
+
+test("updateCombo does not clear session pins when models are omitted", async () => {
+  const combo = await combosDb.createCombo({
+    name: "Metadata Only",
+    models: [{ provider: "openai", model: "gpt-4.1" }],
+  });
+  contextHandoffsDb.recordSessionModelUsage(
+    "session-metadata",
+    "Metadata Only",
+    "openai/gpt-4.1",
+    "openai"
+  );
+
+  await combosDb.updateCombo(String(combo.id), { description: "metadata change" });
+
   assert.equal(
-    cacheStillValid(ts, version),
-    false,
-    "deleteCombo must invalidate the cache"
+    contextHandoffsDb.getLastSessionModel("session-metadata", "Metadata Only"),
+    "openai/gpt-4.1"
   );
 });

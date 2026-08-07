@@ -235,6 +235,23 @@ export function runActionlint(files) {
  * @param {string} workflowsDir - Path to .github/workflows
  * @returns {{ count: number, diagnostics: unknown[], skipped: boolean }}
  */
+/**
+ * The zizmor version actually doing the auditing, or "unknown".
+ *
+ * Emitted next to the count because the two must be read together. The GitHub runner measured
+ * 1 finding MORE than the devbox on the identical commit (190 vs 189) during the v3.8.49 cycle,
+ * which cost a second rebaseline push: CI installed whatever PyPI served that day while the
+ * devbox had an older build. A count without the version that produced it is not a
+ * reproducible number, and rebaselining against it just moves the disagreement.
+ */
+export function zizmorVersion() {
+  try {
+    return execFileSync("zizmor", ["--version"], { encoding: "utf8" }).trim() || "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
 export function runZizmor(workflowsDir) {
   const args = ["--format", "json"];
   if (fs.existsSync(ZIZMOR_CONFIG)) {
@@ -337,6 +354,9 @@ function main() {
   process.stdout.write(`workflowFindings=${total}\n`);
   process.stdout.write(`actionlintFindings=${actionlintCount}\n`);
   process.stdout.write(`zizmorFindings=${zizmorCount}\n`);
+  // Read this line with the count above: a finding total is only reproducible against the
+  // version that produced it. See zizmorVersion().
+  process.stdout.write(`zizmorVersion=${hasZizmor ? zizmorVersion() : "absent"}\n`);
 
   if (STRICT && total > 0) {
     console.error(`\n[check-workflows] FAIL — ${total} workflow finding(s) total (--strict mode).`);

@@ -184,6 +184,14 @@ export const traeImportSchema = z.object({
   region: z.string().trim().optional(),
 });
 
+export const raycastImportSchema = z.object({
+  accessToken: z.string().trim().min(1, "Raycast bearer token is required"),
+  deviceId: z.string().trim().min(1, "Raycast device ID is required"),
+  aid: z.string().trim().optional(),
+  signatureJwt: z.string().trim().optional(),
+  sigSecret: z.string().trim().optional(),
+});
+
 export const kiroImportSchema = z.object({
   refreshToken: z.string().trim().min(1, "Refresh token is required"),
   region: z.string().trim().default("us-east-1"),

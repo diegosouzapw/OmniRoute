@@ -224,8 +224,12 @@ export function translateRequest(
   // Fix missing tool responses (insert empty tool_result if needed)
   fixMissingToolResponses(result);
 
-  // Strip orphaned tool results (tool_result/role:tool with no matching tool_call)
-  stripOrphanedToolResults(result);
+  // Claude reconciliation preserves orphaned tool output as labelled user text.
+  // Keep the raw result carriers until the target translator can perform that
+  // lossless conversion; other target formats retain the strict orphan filter.
+  if (targetFormat !== FORMATS.CLAUDE) {
+    stripOrphanedToolResults(result);
+  }
 
   // Normalize roles: developer→system unless preserved, system→user for incompatible models.
   // This handles (1) sourceFormat openai with messages containing developer → non-openai target
@@ -258,11 +262,16 @@ export function translateRequest(
     if (directTranslator && sourceFormat !== FORMATS.OPENAI && targetFormat !== FORMATS.OPENAI) {
       // Thread the routed provider id so target translators can apply provider-specific
       // quirks (e.g. Vertex rejects function_call.id — #3440).
+      // Also thread signatureNamespace so Claude→Gemini can re-attach cached
+      // thoughtSignature on tool-use history (#8979 / #2504 parity with the hub path).
+      const hasNs = options?.signatureNamespace != null;
+      const hasProvider = provider != null;
       const directCredentials =
-        provider != null
+        hasNs || hasProvider
           ? {
               ...(credentials && typeof credentials === "object" ? credentials : {}),
-              _provider: provider,
+              ...(hasProvider ? { _provider: provider } : {}),
+              ...(hasNs ? { _signatureNamespace: options.signatureNamespace } : {}),
             }
           : credentials;
       result = directTranslator(model, result, stream, directCredentials);

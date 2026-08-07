@@ -217,6 +217,20 @@ function messageText(content: unknown): string {
   return content.map(contentPartText).filter(Boolean).join("\n");
 }
 
+function buildPromptFromMessages(messages: unknown[]): string {
+  const parts: string[] = [];
+  for (const candidate of messages) {
+    if (!isRecord(candidate)) continue;
+    const role = candidate.role;
+    const text = messageText(candidate.content);
+    if (!text) continue;
+    if (role === "user" || role === "tool") {
+      parts.push(text);
+    }
+  }
+  return parts.join("\n\n");
+}
+
 function latestUserPrompt(messages: unknown[]): string {
   let prompt = "";
   for (const candidate of messages) {
@@ -308,7 +322,9 @@ export function transformToClaude(
   const messages = Array.isArray(body.messages) ? body.messages : [];
   const reasoningEffort = resolveClaudeWebReasoningEffort(body);
   const resolvedModel = model || DEFAULT_CLAUDE_MODEL;
-  const resolvedTurn = turn ?? defaultTurn(latestUserPrompt(messages));
+  const prompt =
+    turn?.prompt ?? (buildPromptFromMessages(messages) || latestUserPrompt(messages));
+  const resolvedTurn = turn ?? defaultTurn(prompt);
 
   if (resolvedTurn.operation === "completion" && !resolvedTurn.prompt.trim()) {
     throw new Error("No user message found in request");

@@ -1,0 +1,1 @@
+- **fix(cli-tools):** keep Apply enabled for active OpenAI-compatible and Anthropic-compatible providers without static catalog entries. (thanks @lazysaltyfish)

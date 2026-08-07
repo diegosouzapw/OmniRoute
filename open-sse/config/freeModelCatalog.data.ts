@@ -19,10 +19,9 @@ import type { FreeModelBudget } from "./freeModelCatalog.ts";
 export const FREE_CATALOG_CURATED_AT = "2026-07-22";
 
 export const FREE_MODEL_BUDGETS: FreeModelBudget[] = [
-  { provider: "agentrouter", modelId: "claude-opus-4-6", displayName: "Claude 4.6 Opus", monthlyTokens: 0, creditTokens: 200000000, freeType: "one-time-initial", poolKey: "agentrouter", tos: "caution" },
-  { provider: "agentrouter", modelId: "claude-haiku-4-5-20251001", displayName: "Claude 4.5 Haiku", monthlyTokens: 0, creditTokens: 200000000, freeType: "one-time-initial", poolKey: "agentrouter", tos: "caution" },
-  { provider: "agentrouter", modelId: "glm-5.1", displayName: "GLM 5.1", monthlyTokens: 0, creditTokens: 200000000, freeType: "one-time-initial", poolKey: "agentrouter", tos: "caution" },
-  { provider: "agentrouter", modelId: "deepseek-v3.2", displayName: "DeepSeek V3.2", monthlyTokens: 0, creditTokens: 200000000, freeType: "one-time-initial", poolKey: "agentrouter", tos: "caution" },
+  { provider: "agentrouter", modelId: "claude-opus-4-8", displayName: "Claude Opus 4.8", monthlyTokens: 0, creditTokens: 200000000, freeType: "one-time-initial", poolKey: "agentrouter", tos: "caution" },
+  { provider: "agentrouter", modelId: "claude-opus-5", displayName: "Claude Opus 5", monthlyTokens: 0, creditTokens: 200000000, freeType: "one-time-initial", poolKey: "agentrouter", tos: "caution" },
+  { provider: "agentrouter", modelId: "gpt-5.6-sol", displayName: "GPT-5.6 Sol", monthlyTokens: 0, creditTokens: 200000000, freeType: "one-time-initial", poolKey: "agentrouter", tos: "caution" },
   { provider: "agy", modelId: "claude-opus-4-6-thinking", displayName: "Claude Opus 4.6 (Thinking)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
   { provider: "agy", modelId: "claude-sonnet-4-6", displayName: "Claude Sonnet 4.6 (Thinking)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
   { provider: "agy", modelId: "gemini-3.1-pro-low", displayName: "Gemini 3.1 Pro (Low)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
@@ -116,10 +115,7 @@ export const FREE_MODEL_BUDGETS: FreeModelBudget[] = [
   { provider: "cerebras", modelId: "zai-glm-4.7", displayName: "GLM 4.7", monthlyTokens: 30000000, creditTokens: 0, freeType: "recurring-daily", poolKey: "cerebras", tos: "caution" },
   { provider: "cerebras", modelId: "gpt-oss-120b", displayName: "GPT OSS 120B", monthlyTokens: 30000000, creditTokens: 0, freeType: "recurring-daily", poolKey: "cerebras", tos: "caution" },
   { provider: "cloudflare-ai", modelId: "@cf/meta/llama-3.3-70b-instruct", displayName: "Llama 3.3 70B (🆓 ~150 resp/day)", monthlyTokens: 30000000, creditTokens: 0, freeType: "recurring-daily", poolKey: "cloudflare-ai", tos: "caution" },
-  { provider: "cloudflare-ai", modelId: "@cf/meta/llama-3.1-8b-instruct", displayName: "Llama 3.1 8B (🆓)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-daily", poolKey: "cloudflare-ai", tos: "caution" },
   { provider: "cloudflare-ai", modelId: "@cf/google/gemma-3-12b-it", displayName: "Gemma 3 12B (🆓)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-daily", poolKey: "cloudflare-ai", tos: "caution" },
-  { provider: "cloudflare-ai", modelId: "@cf/mistral/mistral-7b-instruct-v0.2-lora", displayName: "Mistral 7B (🆓)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-daily", poolKey: "cloudflare-ai", tos: "caution" },
-  { provider: "cloudflare-ai", modelId: "@cf/qwen/qwen2.5-coder-15b-instruct", displayName: "Qwen 2.5 Coder 15B (🆓)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-daily", poolKey: "cloudflare-ai", tos: "caution" },
   { provider: "cloudflare-ai", modelId: "@cf/qwen/qwen2.5-coder-32b-instruct", displayName: "Qwen 2.5 Coder 32B (🆓)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-daily", poolKey: "cloudflare-ai", tos: "caution" },
   { provider: "cloudflare-ai", modelId: "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b", displayName: "DeepSeek R1 Distill 32B (🆓)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-daily", poolKey: "cloudflare-ai", tos: "caution" },
   { provider: "cloudflare-ai", modelId: "@cf/meta/llama-3.3-70b-instruct-fp8-fast", displayName: "Llama 3.3 70B (FP8 Fast 🆓)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-daily", poolKey: "cloudflare-ai", tos: "caution" },

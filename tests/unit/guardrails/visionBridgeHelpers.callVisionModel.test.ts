@@ -6,6 +6,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import dns from "node:dns";
 import { callVisionModel, type VisionModelConfig } from "@/lib/guardrails/visionBridgeHelpers";
+import { createProviderConnection } from "@/lib/db/providers";
+import { resetDbInstance } from "@/lib/db/core";
 
 // Store original fetch
 const originalFetch = globalThis.fetch;
@@ -28,6 +30,37 @@ const originalDnsLookup = dns.promises.lookup;
 }) as typeof dns.promises.lookup;
 process.on("exit", () => {
   (dns.promises as { lookup: unknown }).lookup = originalDnsLookup;
+});
+
+// (#8430) getBestVisionModel now validates that a `fixedModel` has a usable
+// connection (via hasUsableCredentialsForModel, which queries the real DB)
+// before returning it — an unreachable fixedModel falls through to
+// auto-selection and, with nothing else configured either, resolves to `null`,
+// which callVisionModel turns into a hard "No vision-capable provider
+// connected" error before it ever reaches the HTTP call these tests mock.
+// The router/credential-selection logic itself is already covered by
+// visionBridgeRouter.test.ts and repro-8430.test.ts; these tests exercise
+// callVisionModel's own request/response handling, so they just need one
+// usable connection seeded per provider they use ("openai/gpt-4o-mini",
+// "anthropic/claude-3-haiku") so getBestVisionModel resolves the requested
+// fixedModel unchanged instead of null.
+test.before(async () => {
+  await createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "vision-bridge-test-openai",
+    apiKey: "sk-test-openai",
+  });
+  await createProviderConnection({
+    provider: "anthropic",
+    authType: "apikey",
+    name: "vision-bridge-test-anthropic",
+    apiKey: "sk-test-anthropic",
+  });
+});
+
+test.after(() => {
+  resetDbInstance();
 });
 
 test("callVisionModel returns description on success", async () => {
@@ -224,6 +257,11 @@ test("callVisionModel uses correct request body format", async () => {
 
     // Verify request structure
     assert.strictEqual(capturedBody.model, "gpt-4o-mini");
+    assert.strictEqual(
+      capturedBody.stream,
+      false,
+      "the JSON parser requires the internal vision request to opt out of SSE"
+    );
     assert.ok(Array.isArray(capturedBody.messages));
     assert.strictEqual((capturedBody.messages as unknown[]).length, 1);
 

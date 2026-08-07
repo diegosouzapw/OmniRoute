@@ -16,6 +16,7 @@ test("leaf hosts the solver and does not import the host", () => {
   const src = readFileSync(LEAF, "utf8");
   assert.match(src, /export async function solveDuckDuckGoChallenge\b/);
   assert.match(src, /export function makeDuckDuckGoFeSignals\b/);
+  assert.match(src, /type DuckDuckGoChallengeResult\s*=/);
   assert.doesNotMatch(src, /from "\.\.\/duckduckgo-web\.ts"/);
   // The vm sandbox timeout must survive the move (security invariant).
   assert.match(src, /timeout/);
@@ -24,6 +25,7 @@ test("leaf hosts the solver and does not import the host", () => {
 test("host imports the solver back from the leaf", () => {
   const host = readFileSync(HOST, "utf8");
   assert.match(host, /from "\.\/duckduckgo-web\/challenge\.ts"/);
+  assert.doesNotMatch(host, /type DuckDuckGoChallengeResult\s*=/);
 });
 
 test("makeDuckDuckGoFeSignals returns a base64 string", async () => {

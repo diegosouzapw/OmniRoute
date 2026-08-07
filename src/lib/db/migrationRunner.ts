@@ -465,6 +465,13 @@ function isSchemaAlreadyApplied(
       // exists the rebuild ran — skip re-executing the rename/copy/drop, which
       // would fail on the missing proxy_assignments_pre117 table.
       return hasColumn(db, "proxy_assignments", "position");
+    // Retroactive guard for the 135/136 renumber (#8523 landed onto slots already taken
+    // by #8908/#9515): a DB that ran these under the old numbers already has the column,
+    // and a bare ALTER TABLE ADD COLUMN would throw on the re-run under the new number.
+    case "137":
+      return hasColumn(db, "version_manager", "auto_restart_adopted");
+    case "138":
+      return hasColumn(db, "upstream_proxy_config", "fallback_backend");
     default:
       return false;
   }

@@ -1,0 +1,1 @@
+- **fix(pricing):** stop billing reasoning tokens twice. (thanks @yidecode)

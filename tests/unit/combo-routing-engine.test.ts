@@ -187,6 +187,14 @@ test("getComboFromData and getComboModelsFromData resolve combos from array and 
   assert.deepEqual(models, ["openai/gpt-4o-mini", "claude/sonnet"]);
 });
 
+test("getComboModelsFromData strips context-window tags before matching a combo", () => {
+  const combos = [{ name: "alpha", models: ["openai/gpt-4o-mini"] }];
+
+  assert.deepEqual(getComboModelsFromData("alpha[500k]", combos), ["openai/gpt-4o-mini"]);
+  assert.deepEqual(getComboModelsFromData("alpha[1M]", combos), ["openai/gpt-4o-mini"]);
+  assert.equal(getComboModelsFromData("alpha[beta]", combos), null);
+});
+
 test("validateComboDAG rejects circular references and resolveNestedComboModels expands nested combos", () => {
   const combos = [
     { name: "root", models: ["child-a", "openai/gpt-4o-mini"] },
@@ -3136,8 +3144,8 @@ test("#3587 reasoning model gets max_tokens buffer applied", async () => {
 
   assert.equal(result.ok, true);
   assert.equal(bodies.length, 1, "should have called handleSingleModel once");
-  // 4096 * 1.5 = 6144; max(4096+1000, 6144) = 6144
-  assert.equal(bodies[0].max_tokens, 6144, "max_tokens should be buffered for reasoning model");
+  // #9507: buffer never enlarges an explicit client max_tokens; pass-through 4096.
+  assert.equal(bodies[0].max_tokens, 4096, "max_tokens forwarded verbatim (#9507)");
 });
 
 test("#3587 reasoning buffer preserves max_tokens when the full buffer exceeds model cap", async () => {
@@ -3154,8 +3162,8 @@ test("#3587 reasoning buffer preserves max_tokens when the full buffer exceeds m
   );
   assert.equal(
     resolveReasoningBufferedMaxTokens("openai/gemini-high-cap", "4096"),
-    6144,
-    "numeric string max_tokens should be normalized before applying a safe buffer"
+    4096,
+    "numeric string max_tokens is normalized and forwarded verbatim (#9507)"
   );
   assert.equal(
     resolveReasoningBufferedMaxTokens("openai/gemini-high-cap", "not-a-number"),
@@ -3218,8 +3226,8 @@ test("#3587 reasoning buffer is disabled without explicit model capability data"
   );
   assert.equal(
     resolveReasoningBufferedMaxTokens("openai/default-cap-reasoning", 300),
-    1300,
-    "explicit default-sized caps are treated as real capability data"
+    300,
+    "explicit default-sized caps are treated as real capability data, forwarded verbatim (#9507)"
   );
 });
 
@@ -3302,7 +3310,7 @@ test("#3587 round-robin buffer does NOT compound across reasoning models", async
   // Two reasoning models in a round-robin combo. The first fails (400) so the
   // loop falls through to the second. The buffer must be computed from the
   // ORIGINAL max_tokens for each attempt — never from an already-buffered value —
-  // so both attempts see 6144 (4096 * 1.5), not [6144, 9216, ...]. Regression for
+  // so both attempts see the original 4096 (no enlargement per #9507), not a compounded value. Regression for
   // the shared-`body` mutation that compounded the buffer on every RR iteration.
   saveModelsDevCapabilities({
     openai: {
@@ -3345,12 +3353,12 @@ test("#3587 round-robin buffer does NOT compound across reasoning models", async
 
   assert.equal(result.status, 200);
   assert.equal(seen.length, 2, "both reasoning models should have been attempted");
-  // Each attempt buffers from the original 4096 → 6144. No compounding.
-  assert.equal(seen[0].maxTokens, 6144, "first reasoning model buffered from original");
+  // #9507: buffer never enlarges, so each attempt sees the original 4096; no compounding.
+  assert.equal(seen[0].maxTokens, 4096, "first reasoning model forwards original (#9507)");
   assert.equal(
     seen[1].maxTokens,
-    6144,
-    "second reasoning model must ALSO buffer from original 4096, not 6144"
+    4096,
+    "second reasoning model must ALSO forward original 4096, not a buffered value (#9507)"
   );
 });
 

@@ -6,6 +6,7 @@ const { claudeToOpenAIResponse } =
 const { translateNonStreamingResponse } =
   await import("../../open-sse/handlers/responseTranslator.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
+const { filterUsageForFormat } = await import("../../open-sse/utils/usageTracking.ts");
 
 function createState() {
   return {
@@ -13,6 +14,16 @@ function createState() {
     toolNameMap: new Map([["proxy_read_file", "read_file"]]),
   };
 }
+
+type OpenAIUsageResult = {
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+    reasoning_tokens?: number;
+    completion_tokens_details?: { reasoning_tokens?: number };
+  };
+};
 
 test("Claude non-stream: text, thinking and tool_use become OpenAI assistant message", () => {
   const result = translateNonStreamingResponse(
@@ -74,6 +85,51 @@ test("Claude non-stream: end_turn becomes stop and empty text is preserved", () 
   assert.equal(((result as any).choices[0] as any).message.content, "");
   assert.equal((result as any).choices[0].finish_reason, "stop");
   assert.equal((result as any).model, "claude-3-5-haiku");
+});
+
+test("Claude non-stream: usage exposes thinking token details without inflating completion", () => {
+  const result = translateNonStreamingResponse(
+    {
+      id: "msg_thinking",
+      model: "claude-sonnet-4-6",
+      content: [{ type: "text", text: "Final answer" }],
+      stop_reason: "end_turn",
+      usage: {
+        input_tokens: 22,
+        output_tokens: 267,
+        output_tokens_details: { thinking_tokens: 85 },
+      },
+    },
+    FORMATS.CLAUDE,
+    FORMATS.OPENAI
+  ) as OpenAIUsageResult;
+
+  assert.equal(result.usage.completion_tokens, 267);
+  assert.equal(result.usage.reasoning_tokens, 85);
+  assert.equal(result.usage.completion_tokens_details.reasoning_tokens, 85);
+});
+
+test("usage filtering preserves Claude thinking details and OpenAI aliases", () => {
+  const usage = {
+    input_tokens: 22,
+    output_tokens: 267,
+    output_tokens_details: { thinking_tokens: 85 },
+    reasoning_tokens: 85,
+    completion_tokens_details: { reasoning_tokens: 85 },
+  };
+
+  assert.deepEqual(filterUsageForFormat(usage, FORMATS.CLAUDE), {
+    input_tokens: 22,
+    output_tokens: 267,
+    output_tokens_details: { thinking_tokens: 85 },
+  });
+  assert.deepEqual(filterUsageForFormat(usage, FORMATS.OPENAI), {
+    prompt_tokens: 22,
+    completion_tokens: 267,
+    total_tokens: 289,
+    reasoning_tokens: 85,
+    completion_tokens_details: { reasoning_tokens: 85 },
+  });
 });
 
 test("Claude stream: message_start emits initial assistant role chunk", () => {
@@ -209,6 +265,31 @@ test("Claude stream: message_delta maps stop reason and usage including cache to
   assert.equal(result[0].usage.prompt_tokens_details.cached_tokens, 2);
   // cache_creation is exposed for auditing but does NOT inflate prompt_tokens
   assert.equal(result[0].usage.prompt_tokens_details.cache_creation_tokens, 1);
+});
+
+test("Claude stream: message_delta exposes thinking token details", () => {
+  const state = createState();
+  claudeToOpenAIResponse(
+    { type: "message_start", message: { id: "msg-thinking", model: "claude-sonnet-4-6" } },
+    state
+  );
+
+  const result = claudeToOpenAIResponse(
+    {
+      type: "message_delta",
+      delta: { stop_reason: "end_turn" },
+      usage: {
+        input_tokens: 22,
+        output_tokens: 267,
+        output_tokens_details: { thinking_tokens: 85 },
+      },
+    },
+    state
+  );
+
+  assert.equal(result[0].usage.completion_tokens, 267);
+  assert.equal(result[0].usage.reasoning_tokens, 85);
+  assert.equal(result[0].usage.completion_tokens_details.reasoning_tokens, 85);
 });
 
 test("Claude stream: #2215 — short prompt with large cache_creation does not inflate prompt_tokens", () => {

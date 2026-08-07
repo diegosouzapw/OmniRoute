@@ -1,3 +1,9 @@
+---
+title: "Providers Guide: Connect AI Models to OmniRoute"
+version: 3.8.50
+lastUpdated: 2026-08-06
+---
+
 # Providers Guide: Connect AI Models to OmniRoute
 
 > **TL;DR**: A provider is a connection to an AI service (like OpenAI, Anthropic, Google). You need at least one provider to use OmniRoute.

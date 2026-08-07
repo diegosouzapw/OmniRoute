@@ -8,10 +8,11 @@ import {
   formatQuotaLabel,
   formatCountdown,
   normalizePlanTier,
-  resolvePlanValue,
+  buildProviderLimitsResolvedPlans,
   calculatePercentage,
   matchesProviderFilter,
   buildProviderOptions,
+  compareQuotaConnections,
 } from "./utils";
 import Card from "@/shared/components/Card";
 import { CardSkeleton } from "@/shared/components/Loading";
@@ -529,19 +530,20 @@ export default function ProviderLimits({
   );
 
   const sortedConnections = useMemo(() => {
-    return [...filteredConnections].sort(
-      (a, b) => (PROVIDER_ORDER[a.provider] || 99) - (PROVIDER_ORDER[b.provider] || 99)
+    return [...filteredConnections].sort((a, b) =>
+      compareQuotaConnections(a, b, {
+        providerOrder: PROVIDER_ORDER,
+        providerLabels: PROVIDER_LABEL,
+        compare: compareTr,
+      })
     );
   }, [filteredConnections]);
   const visibleQuotaData = useVisibleQuotaData(sortedConnections, quotaData);
 
-  const resolvedPlanByConnection = useMemo(() => {
-    const out: Record<string, string | null> = {};
-    for (const conn of sortedConnections) {
-      out[conn.id] = resolvePlanValue(quotaData[conn.id]?.plan, conn.providerSpecificData);
-    }
-    return out;
-  }, [sortedConnections, quotaData]);
+  const resolvedPlanByConnection = useMemo(
+    () => buildProviderLimitsResolvedPlans(sortedConnections, quotaData),
+    [sortedConnections, quotaData]
+  );
 
   const tierByConnection = useMemo(() => {
     const out: Record<string, ReturnType<typeof normalizePlanTier>> = {};
@@ -653,9 +655,10 @@ export default function ProviderLimits({
       return true;
     });
 
-    // Inside each group we still want "critical first, then alert, then ok,
-    // then empty; tiebreak by soonest reset". Provider order between groups
-    // is enforced separately via PROVIDER_ORDER.
+    // Provider rank stays the outer sort key so each group keeps its fixed
+    // slot (mirrors dashboard/providers determinism); "critical first, then
+    // alert, then ok, then empty; tiebreak by soonest reset" only orders
+    // accounts inside their own provider group.
     const statusRank: Record<StatusKey, number> = {
       critical: 0,
       alert: 1,
@@ -663,14 +666,21 @@ export default function ProviderLimits({
       empty: 3,
       all: 4,
     };
-    return [...filtered].sort((a, b) => {
-      const sa = statusRank[statusByConnection[a.id] || "empty"];
-      const sb = statusRank[statusByConnection[b.id] || "empty"];
-      if (sa !== sb) return sa - sb;
-      const ra = getSoonestResetMs(visibleQuotaData[a.id]?.quotas);
-      const rb = getSoonestResetMs(visibleQuotaData[b.id]?.quotas);
-      return ra - rb;
-    });
+    return [...filtered].sort((a, b) =>
+      compareQuotaConnections(a, b, {
+        providerOrder: PROVIDER_ORDER,
+        providerLabels: PROVIDER_LABEL,
+        compare: compareTr,
+        accountCompare: (x, y) => {
+          const sx = statusRank[statusByConnection[x.id] || "empty"];
+          const sy = statusRank[statusByConnection[y.id] || "empty"];
+          if (sx !== sy) return sx - sy;
+          const rx = getSoonestResetMs(visibleQuotaData[x.id]?.quotas);
+          const ry = getSoonestResetMs(visibleQuotaData[y.id]?.quotas);
+          return rx - ry;
+        },
+      })
+    );
   }, [
     sortedConnections,
     tierByConnection,

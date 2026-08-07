@@ -9,9 +9,11 @@ const { fixToolPairs, stripTrailingAssistantOrphanToolUse } =
 // Regression for the Anthropic 400:
 //   `messages.N: tool_use ids were found without tool_result blocks
 //   immediately after: toolu_...`
-// The CC bridge now invokes fixToolPairs in step 5c before serialization
-// so orphan tool_use blocks from mid-tool-call truncated histories are
-// stripped before reaching Anthropic.
+// The CC bridge invokes fixToolPairs in step 5c before serialization so
+// orphan tool_use blocks from mid-tool-call truncated histories are
+// stripped before reaching Anthropic (or, since #9308, reconciled with a
+// synthetic empty tool_result earlier in step 1 when a following user
+// turn exists — see the dedicated reconciliation test below).
 
 test("fixToolPairs strips orphan tool_use blocks from non-final assistant messages", () => {
   const messages = [
@@ -64,10 +66,20 @@ test("fixToolPairs is idempotent on clean histories", () => {
   assert.deepEqual(once, twice, "idempotent on clean histories");
 });
 
-test("buildAndSignClaudeCodeRequest invokes fixToolPairs via step 5c", async () => {
+test("buildAndSignClaudeCodeRequest reconciles an orphan tool_use with a synthetic tool_result via step 1/5c", async () => {
   // Pass messages via claudeBody (BuildRequestOptions accepts sourceBody/
   // normalizedBody/claudeBody — claudeBody is the path that preserves the
   // shape we expect for an Anthropic-format upstream).
+  //
+  // Contract changed by #9308 (`fix(claude): reconcile compacted tool
+  // results`): `prepareClaudeRequest` (step 1, via `fixToolUseOrdering`)
+  // now reconciles a tool_use against the immediately following user
+  // message *before* step 5c's `fixToolPairs` ever runs, and synthesizes
+  // an empty tool_result for an unanswered tool_use instead of dropping
+  // it — Anthropic only requires a matching tool_result block, so this
+  // keeps the call visible (and the turn valid) rather than discarding
+  // it. By the time step 5c's `fixToolPairs` sees it, the tool_use is no
+  // longer "orphan" and correctly survives.
   const result = await buildAndSignClaudeCodeRequest({
     model: "claude-opus-4-7",
     apiKey: "test-key",
@@ -100,8 +112,28 @@ test("buildAndSignClaudeCodeRequest invokes fixToolPairs via step 5c", async () 
   });
 
   const body = JSON.parse(result.bodyString);
-  const text = JSON.stringify(body.messages);
-  assert.ok(!text.includes("toolu_orphan"), "orphan tool_use must be stripped before send");
+  const messages = body.messages as Array<{
+    role: string;
+    content: Array<Record<string, unknown>>;
+  }>;
+
+  const orphanTurnIndex = messages.findIndex((m) =>
+    m.content?.some((b) => b.type === "tool_use" && b.id === "toolu_orphan")
+  );
+  assert.ok(orphanTurnIndex >= 0, "toolu_orphan tool_use must survive (reconciled, not stripped)");
+
+  const followUp = messages[orphanTurnIndex + 1];
+  const syntheticResult = followUp?.content?.find(
+    (b) => b.type === "tool_result" && b.tool_use_id === "toolu_orphan"
+  );
+  assert.ok(syntheticResult, "orphan tool_use must be paired with a synthetic tool_result");
+  assert.equal(syntheticResult?.content, "", "synthetic tool_result for an orphan must be empty");
+  assert.ok(
+    followUp?.content?.some((b) => b.type === "text" && b.text === "no tool result here"),
+    "original user text must be preserved alongside the synthetic tool_result"
+  );
+
+  const text = JSON.stringify(messages);
   assert.ok(text.includes("toolu_kept"), "paired tool_use must survive");
 });
 

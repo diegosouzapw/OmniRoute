@@ -173,14 +173,26 @@ export const SEARCH_VALIDATOR_CONFIGS: Record<
   // Probe each provider's real fetch endpoint with the same Bearer auth the executor
   // uses; validateSearchProvider maps 200/<500 → valid, 401/403 → invalid key,
   // >=500 → failure (a credit-exhausted / rate-limited key still validates).
-  firecrawl: (apiKey) => ({
-    url: "https://api.firecrawl.dev/v1/scrape",
-    init: {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ url: "https://example.com", formats: ["markdown"] }),
-    },
-  }),
+  firecrawl: (apiKey, providerSpecificData = {}) => {
+    const envBase = process.env.FIRECRAWL_BASE_URL?.trim();
+    const baseUrl = envBase
+      ? envBase.replace(/\/+$/, "")
+      : typeof providerSpecificData?.baseUrl === "string" && providerSpecificData.baseUrl.trim()
+        ? providerSpecificData.baseUrl.trim().replace(/\/+$/, "")
+        : "https://api.firecrawl.dev";
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (apiKey) {
+      headers["Authorization"] = `Bearer ${apiKey}`;
+    }
+    return {
+      url: `${baseUrl}/v1/scrape`,
+      init: {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ url: "https://example.com", formats: ["markdown"] }),
+      },
+    };
+  },
   "jina-reader": (apiKey) => ({
     url: "https://r.jina.ai/https://example.com",
     init: {

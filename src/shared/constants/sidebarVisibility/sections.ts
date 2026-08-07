@@ -463,6 +463,13 @@ const COSTS_ITEMS: readonly SidebarItemDefinition[] = [
     subtitleKey: "freeProviderRankingsSubtitle",
     icon: "leaderboard",
   },
+  {
+    id: "radar",
+    href: "/dashboard/radar",
+    i18nKey: "radar",
+    subtitleKey: "radarSubtitle",
+    icon: "radar",
+  },
 ];
 
 const AUDIT_GROUP: SidebarItemGroup = {

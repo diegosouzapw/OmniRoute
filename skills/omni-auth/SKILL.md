@@ -36,6 +36,37 @@ curl -X POST https://localhost:20128/api/auth/logout \
   -d '{}'
 ```
 
+### GET /api/auth/oidc/login
+
+Start OIDC login for the dashboard admin gate
+
+Builds an authorization URL from the configured OIDC issuer/client (discovered
+via `{issuer}/.well-known/openid-configuration`, falling back to `{issuer}/authorize`),
+sets a short-lived `oidc_state` cookie, and redirects the browser. Password login
+remains available as a fallback while OIDC is enabled.
+
+
+```bash
+curl https://localhost:20128/api/auth/oidc/login \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/auth/oidc/callback
+
+Complete OIDC login for the dashboard admin gate
+
+Validates the `state` cookie, exchanges the authorization `code` for tokens,
+verifies the ID token against the issuer's JWKS (audience = client id), and —
+if `oidcAllowedSubjects` is configured — checks the token's `sub`/`email` against
+that allowlist. On success it mints the same 30-day `auth_token` dashboard-session
+JWT used by password login and redirects to `/dashboard`.
+
+
+```bash
+curl https://localhost:20128/api/auth/oidc/callback \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
 ## Payloads
 
 See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.

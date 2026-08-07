@@ -11,6 +11,7 @@ import { KIE_IMAGE_MODELS } from "./providers/registry/kie/imageModels.ts";
 import { FREEPIK_IMAGE_PROVIDER } from "./providers/registry/freepik/index.ts";
 import { STABILITY_AI_IMAGE_MODELS } from "./providers/registry/stability-ai/imageModels.ts";
 import { GEMINI_IMAGEN_PROVIDER } from "./providers/registry/gemini/imageModels.ts";
+import { CHEAPERINFERENCE_IMAGE_PROVIDER } from "./providers/registry/cheaperinference/imageModels.ts";
 
 interface ImageModelEntry {
   id: string;
@@ -710,9 +711,30 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
         name: "Firefly Runway Gen-4 Image",
         inputModalities: ["text", "image"],
       },
+      // Topaz Labs upscalers (inputMediaUseCase: ["upscaling"]).
+      // Served by firefly-3p /v2/3p-images/upsample — see config/upscaleRegistry.ts.
+      {
+        id: "topaz-standard",
+        name: "Firefly Topaz Upscale (Standard)",
+        inputModalities: ["image"],
+        imageRequired: true,
+      },
+      {
+        id: "topaz-bloom",
+        name: "Firefly Topaz Bloom (Creative Upscale)",
+        inputModalities: ["image"],
+        imageRequired: true,
+      },
     ],
     supportedSizes: ["1:1", "16:9", "9:16", "4:3", "3:4", "1024x1024", "1792x1024", "1024x1792"],
   },
+
+  // Cheaper Inference (OSS-sponsor gateway). Declared AFTER adobe-firefly on
+  // purpose: it shares the nano-banana-pro / nano-banana-2 ids, and parseImageModel
+  // resolves a bare id by first-match over this object's iteration order, so
+  // Firefly keeps the bare ids and these are prefix-only. See the module for the
+  // full collision note.
+  cheaperinference: CHEAPERINFERENCE_IMAGE_PROVIDER,
 
   // Keep Bailian Coding Plan after existing duplicate model owners so adding
   // explicit `bailian-coding-plan/` and `bcp/` routes does not change
@@ -935,7 +957,6 @@ export function getImageModelAliases() {
 export function isRegisteredImageModel(providerId, modelId) {
   return Boolean(findImageModelConfig(providerId, modelId));
 }
-
 export function getImageModelEntry(modelStr) {
   if (!modelStr) return null;
 

@@ -13,6 +13,7 @@
 
 import { FORMATS } from "../translator/formats.ts";
 import { hasAnyReasoningSignal } from "./reasoningFields.ts";
+import { getRegistryEntry } from "../config/providerRegistry.ts";
 
 type SSEPayloadOptions = {
   eventType?: string;
@@ -522,4 +523,25 @@ export function hasActiveDeltaValue(value: unknown): boolean {
     return Object.values(value).some((entry) => hasActiveDeltaValue(entry));
   }
   return value !== null && value !== undefined;
+}
+
+// Claude SSE content_block_start normalization for providers (e.g. MiniMax) whose thinking
+// blocks omit `signature` on the opening event. Strict Anthropic Messages clients deserialize
+// this field before a later signature_delta arrives — inject only the empty envelope
+// placeholder, never synthesize/replace a provider-supplied signature.
+export function injectThinkingSignature(
+  parsed: { type?: string; content_block?: { type?: string; signature?: string } },
+  provider: string | null
+): boolean {
+  if (
+    provider !== null &&
+    getRegistryEntry(provider)?.ensureThinkingSignature === true &&
+    parsed.type === "content_block_start" &&
+    parsed.content_block?.type === "thinking" &&
+    parsed.content_block.signature === undefined
+  ) {
+    parsed.content_block.signature = "";
+    return true;
+  }
+  return false;
 }

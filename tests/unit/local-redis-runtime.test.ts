@@ -3,6 +3,8 @@ import { test } from "node:test";
 
 import {
   REDIS_CONTAINER_NAME,
+  REDIS_DEFAULT_BIND_HOST,
+  buildRedisPublishSpec,
   detectRedisContainerRuntime,
   redisRuntimeUnavailableResponse,
   runRedisRuntimeCommand,
@@ -42,6 +44,29 @@ test("runRedisRuntimeCommand trims command output", async () => {
   );
 
   assert.deepEqual(result, { stdout: "stopped", stderr: "warning" });
+});
+
+// ─── Redis launcher must not publish on 0.0.0.0 ──────────────────────────
+// The launcher starts Redis with no `requirepass`; a bare "6379:6379" publish
+// spec binds every interface and hands the LAN an unauthenticated Redis.
+
+test("buildRedisPublishSpec defaults to loopback, never 0.0.0.0", () => {
+  assert.equal(REDIS_DEFAULT_BIND_HOST, "127.0.0.1");
+  assert.equal(buildRedisPublishSpec(), "127.0.0.1:6379:6379");
+  assert.equal(buildRedisPublishSpec(undefined, "6380"), "127.0.0.1:6380:6379");
+});
+
+test("buildRedisPublishSpec falls back to loopback for empty/blank bind hosts", () => {
+  assert.equal(buildRedisPublishSpec("", "6379"), "127.0.0.1:6379:6379");
+  assert.equal(buildRedisPublishSpec("   ", "6379"), "127.0.0.1:6379:6379");
+  assert.equal(buildRedisPublishSpec("127.0.0.1", ""), "127.0.0.1:6379:6379");
+});
+
+test("buildRedisPublishSpec honours an explicit override and brackets IPv6", () => {
+  // Opt-in exposure is still possible — it just can never be the default.
+  assert.equal(buildRedisPublishSpec("0.0.0.0", "6379"), "0.0.0.0:6379:6379");
+  assert.equal(buildRedisPublishSpec("::1", "6379"), "[::1]:6379:6379");
+  assert.equal(buildRedisPublishSpec("[::1]", "6379"), "[::1]:6379:6379");
 });
 
 test("redisRuntimeUnavailableResponse preserves the route error shape", async () => {

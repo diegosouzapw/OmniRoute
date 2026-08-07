@@ -1,0 +1,1 @@
+- **fix(types):** imported compression analytics statistics from their defining module so TypeScript 7 resolves the existing interface correctly ([#9105](https://github.com/diegosouzapw/OmniRoute/pull/9105))

@@ -110,16 +110,16 @@ describe("KimiWebExecutor", () => {
         };
       };
       assert.equal(request.chat_id, "");
-      assert.equal(request.kimiplus_id, "ok-computer");
-      assert.equal(request.scenario, "SCENARIO_OK_COMPUTER");
+      assert.equal(request.kimiplus_id, undefined);
+      assert.equal(request.scenario, "SCENARIO_K2D5");
       assert.equal(request.model, undefined);
       assert.deepEqual(request.tools, []);
       assert.equal(request.message.blocks[0].text.content, "hi");
       assert.equal(request.options.system_prompt, "Be terse.");
       assert.equal(request.options.thinking, true);
       assert.equal(request.options.enable_plugin, false);
-      assert.equal(request.options.reasoning_effort, "REASONING_EFFORT_MAX");
-      assert.equal(request.options.context_length, "CONTEXT_LENGTH_L");
+      assert.equal(request.options.reasoning_effort, "REASONING_EFFORT_NONE");
+      assert.equal(request.options.context_length, undefined);
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -166,19 +166,18 @@ describe("KimiWebExecutor", () => {
 describe("resolveModelConfig", () => {
   const { resolveModelConfig } = mod;
 
-  it("maps k3 to the current OK Computer route", () => {
+  it("maps k3 to the K2D5 route (same as K2.6, not premium OK Computer)", () => {
     const cfg = resolveModelConfig("k3");
     assert.ok(cfg);
-    assert.equal(cfg.scenario, "SCENARIO_OK_COMPUTER");
-    assert.equal(cfg.kimiPlusId, "ok-computer");
+    assert.equal(cfg.scenario, "SCENARIO_K2D5");
+    assert.equal(cfg.kimiPlusId, undefined);
     assert.deepEqual(cfg.supportedReasoningEfforts, [
+      "REASONING_EFFORT_NONE",
       "REASONING_EFFORT_LOW",
-      "REASONING_EFFORT_HIGH",
-      "REASONING_EFFORT_MAX",
     ]);
-    assert.equal(cfg.defaultReasoningEffort, "REASONING_EFFORT_MAX");
-    assert.deepEqual(cfg.supportedContextLengths, ["CONTEXT_LENGTH_L", "CONTEXT_LENGTH_XL"]);
-    assert.equal(cfg.defaultContextLength, "CONTEXT_LENGTH_L");
+    assert.equal(cfg.defaultReasoningEffort, "REASONING_EFFORT_NONE");
+    assert.deepEqual(cfg.supportedContextLengths, []);
+    assert.equal(cfg.defaultContextLength, undefined);
   });
 
   it("maps k2d6 to the K2D5 route and its exact effort enum", () => {

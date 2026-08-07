@@ -1,0 +1,1 @@
+- fix(providers): detect expired gemini-web sessions via ServiceLogin redirect and add testConnection override (#9407)

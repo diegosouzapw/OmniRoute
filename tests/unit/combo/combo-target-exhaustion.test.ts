@@ -383,6 +383,46 @@ test("gemini 524 DOES exhaust connection (cloudflare timeout)", () => {
   assert.equal(s.exhaustedConnections.has("gemini:gemini-key-abc"), true);
 });
 
+test("generic upstream 504 without combo_target_timeout still exhausts the connection", () => {
+  const s = sets();
+  applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    result: { status: 504, headers: null },
+    fallbackResult: {},
+    errorText: "Gateway Timeout",
+    structuredError: { code: "gateway_timeout", type: "server_error" },
+    sets: s,
+  });
+  assert.ok(
+    s.exhaustedConnections.has("test-dedup-provider:conn-1"),
+    "genuine upstream 504 must retain connection-level exhaustion"
+  );
+  assert.equal(s.exhaustedProviders.size, 0);
+});
+
+test("OmniRoute combo_target_timeout 504 does NOT exhaust connection or provider", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    result: { status: 504, headers: null },
+    fallbackResult: {},
+    errorText: "Model slow-model timed out",
+    structuredError: { code: "combo_target_timeout", type: "combo_target_timeout" },
+    sets: s,
+  });
+  assert.equal(exhausted, false);
+  assert.equal(
+    s.exhaustedConnections.size,
+    0,
+    "local per-target timeout must not poison exhaustedConnections"
+  );
+  assert.equal(
+    s.exhaustedProviders.size,
+    0,
+    "local per-target timeout must not poison exhaustedProviders"
+  );
+});
+
 // #8133/#8137: auth-level failures (401/403) mean THAT connection's credentials are bad.
 // When the target carries a connectionId, only that connection is marked exhausted — sibling
 // connections on the same provider must stay eligible (#8137: whole-provider exhaustion wrongly

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common"
+cd "$BRIDGE_ROOT"
+bridge_test_env node --import tsx/esm --test \
+  tests/unit/executor-devin-cli-agentic-core.test.ts \
+  tests/unit/executor-devin-cli-agentic-acp.test.ts \
+  tests/unit/devin-bridge-network-guard.test.ts \
+  tests/unit/devin-bridge-live-runtime.test.ts

@@ -145,6 +145,25 @@ test("obfuscate_words with empty list is a no-op", () => {
   assert.equal((body.system[0] as { text: string }).text, "opencode");
 });
 
+test("obfuscate_words preserves a message turn with signed thinking", () => {
+  const body = {
+    messages: [
+      {
+        role: "assistant",
+        content: [
+          { type: "thinking", thinking: "private", signature: "signed-by-anthropic" },
+          { type: "text", text: "opencode remains unchanged" },
+        ],
+      },
+    ],
+  };
+  applyTransformPipeline(body, [{ kind: "obfuscate_words", words: ["opencode"] }]);
+  assert.equal(
+    (body.messages[0].content[1] as { text: string }).text,
+    "opencode remains unchanged"
+  );
+});
+
 // ────────────────────────────────────────────────────────────────────────────
 // Pipeline ordering: drop paragraph then obfuscate what survives
 // ────────────────────────────────────────────────────────────────────────────
@@ -542,7 +561,7 @@ const UI_DEFAULTS_SNAPSHOT = {
           entrypoint: "sdk-cli",
           versionFormat: "ex-machina",
           cchAlgo: "sha256-first-user",
-          buildRevision: "250",
+          buildRevision: "1f2",
         },
       ],
     },

@@ -2,18 +2,27 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import type { AgentStateEntry } from "../AgentBridgePageClient";
+import type { AgentStateEntry, AgentBridgeServerState } from "../AgentBridgePageClient";
 import type { MitmTargetView } from "@/mitm/types";
 
 interface SetupWizardProps {
   target: MitmTargetView;
   agentState: AgentStateEntry | undefined;
   serverRunning: boolean;
+  serverState: AgentBridgeServerState;
+  currentMappings: { source: string; target: string }[]; // Current mappings for this agent
   onClose: () => void;
   onDnsToggle: (agentId: string, enabled: boolean) => Promise<void>;
+  onMappingsSave: (agentId: string, mappings: { source: string; target: string }[]) => Promise<void>;
 }
 
 type Step = "verify" | "dns" | "mappings";
+
+interface DetectedModelsResponse {
+  agentId: string;
+  detectedModels: string[];
+  requestCount: number;
+}
 
 /**
  * 3-step setup wizard for a single agent.
@@ -25,13 +34,19 @@ export function SetupWizard({
   target,
   agentState,
   serverRunning,
+  serverState,
+  currentMappings,
   onClose,
   onDnsToggle,
+  onMappingsSave,
 }: SetupWizardProps) {
   const t = useTranslations("agentBridge");
   const tc = useTranslations("common");
   const [step, setStep] = useState<Step>("verify");
   const [enablingDns, setEnablingDns] = useState(false);
+  const [detectedModels, setDetectedModels] = useState<string[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
+  const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -41,7 +56,26 @@ export function SetupWizard({
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  const certTrusted = agentState?.cert_trusted ?? false;
+  // Fetch detected models when we reach the mappings step
+  useEffect(() => {
+    if (step === "mappings") {
+      setLoadingModels(true);
+      fetch(`/api/tools/agent-bridge/agents/${target.id}/detected-models`)
+        .then((res) => res.json())
+        .then((data: DetectedModelsResponse) => {
+          setDetectedModels(data.detectedModels || []);
+        })
+        .catch(() => {
+          setDetectedModels([]);
+        })
+        .finally(() => {
+          setLoadingModels(false);
+        });
+    }
+  }, [step, target.id]);
+
+  // Fix #8656 Issue A: Use server-level cert trust as fallback
+  const certTrusted = agentState?.cert_trusted ?? serverState.certTrusted ?? false;
   const dnsEnabled = agentState?.dns_enabled ?? false;
 
   const handleEnableDns = async () => {
@@ -51,6 +85,44 @@ export function SetupWizard({
       setStep("mappings");
     } finally {
       setEnablingDns(false);
+    }
+  };
+
+  const toggleModelSelection = (model: string) => {
+    setSelectedModels((prev) => {
+      const next = new Set(prev);
+      if (next.has(model)) {
+        next.delete(model);
+      } else {
+        next.add(model);
+      }
+      return next;
+    });
+  };
+
+  const handleAddSelectedModels = async () => {
+    if (selectedModels.size === 0) return;
+
+    // Merge detected models with existing mappings instead of replacing
+    // Filter out models that already exist in current mappings
+    const existingSources = new Set(currentMappings.map((m) => m.source));
+    const newMappings = Array.from(selectedModels)
+      .filter((source) => !existingSources.has(source)) // Only add new ones
+      .map((source) => ({
+        source,
+        target: "", // Will be selected later in the main card
+      }));
+
+    // Combine existing + new mappings
+    const allMappings = [...currentMappings, ...newMappings];
+
+    try {
+      await onMappingsSave(target.id, allMappings);
+      // Wait a bit for the parent to refresh state before closing
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      onClose();
+    } catch {
+      // Error handling in parent component
     }
   };
 
@@ -192,7 +264,49 @@ export function SetupWizard({
                 <span className="material-symbols-outlined text-[20px]">check_circle</span>
                 <p className="text-sm font-medium">{t("wizardStep3Success")}</p>
               </div>
-              <p className="text-sm text-text-muted">{t("wizardStep3Desc")}</p>
+
+              {loadingModels ? (
+                <div className="flex items-center gap-2 text-sm text-text-muted">
+                  <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                  Detecting models from intercepted traffic...
+                </div>
+              ) : detectedModels.length > 0 ? (
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm text-text-muted">
+                    Found {detectedModels.length} model{detectedModels.length !== 1 ? "s" : ""} in intercepted traffic. Select the ones you want to add:
+                  </p>
+                  <div className="rounded-lg border border-border/40 bg-surface p-3 flex flex-col gap-2 max-h-[200px] overflow-y-auto">
+                    {detectedModels.map((model) => (
+                      <label
+                        key={model}
+                        className="flex items-center gap-2 cursor-pointer hover:bg-surface/50 p-2 rounded transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedModels.has(model)}
+                          onChange={() => toggleModelSelection(model)}
+                          className="rounded border-border/50 text-primary focus:ring-2 focus:ring-primary/50"
+                        />
+                        <span className="font-mono text-xs text-text-main">{model}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {selectedModels.size > 0 && (
+                    <p className="text-xs text-text-muted">
+                      {selectedModels.size} model{selectedModels.size !== 1 ? "s" : ""} selected. You&apos;ll map them to OmniRoute models in the next screen.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="rounded-lg border border-border/40 bg-surface/30 p-3">
+                  <p className="text-sm text-text-muted">
+                    No models detected yet. Use {target.name} to make a request, then run this wizard again to auto-detect models from traffic.
+                  </p>
+                  <p className="text-xs text-text-muted mt-2">
+                    Or close this wizard and add mappings manually in the agent card.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -247,13 +361,25 @@ export function SetupWizard({
             )}
 
             {step === "mappings" && (
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-400 transition-colors"
-              >
-                {t("done")}
-              </button>
+              <>
+                {detectedModels.length > 0 && selectedModels.size > 0 ? (
+                  <button
+                    type="button"
+                    onClick={handleAddSelectedModels}
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
+                  >
+                    Add {selectedModels.size} model{selectedModels.size !== 1 ? "s" : ""}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-400 transition-colors"
+                  >
+                    {t("done")}
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>

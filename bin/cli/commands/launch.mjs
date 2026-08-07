@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawn, execFileSync } from "node:child_process";
 import { join } from "node:path";
 import os from "node:os";
 import { t } from "../i18n.mjs";
@@ -92,17 +92,61 @@ export function resolveLaunchTarget(opts = {}) {
 }
 
 /**
- * #8246: on Windows, npm installs claude as a `.cmd` shim — spawn() without a
- * shell cannot resolve PATHEXT shims (and Node refuses to exec `.cmd` directly
- * since CVE-2024-27980), so the Windows path must go through cmd.exe.
+ * Probe PATH for a Windows executable via `where.exe`, preferring a `.exe` over
+ * a `.cmd`/`.bat` shim. Returns the absolute path to the preferred binary, or
+ * `null` when `where.exe` finds nothing (or cannot run).
+ *
+ * The native Anthropic installer (#9454) creates only `claude.exe` (no npm
+ * `.cmd` shim), so the launcher must look for the real PE and spawn it without
+ * a shell. Mirrors the existing `locateCommand()` probe in
+ * `src/shared/services/cliRuntime.ts`.
+ *
+ * @param {string} command  bare command name to look up
+ * @returns {Promise<string|null>} absolute path to the preferred match, or null
+ */
+function probeWindowsBinary(command) {
+  try {
+    const out = execFileSync("where.exe", [command], {
+      stdio: ["ignore", "pipe", "ignore"],
+      encoding: "utf8",
+      timeout: 3000,
+      windowsHide: true,
+    });
+    const lines = out
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean);
+    if (lines.length === 0) return null;
+    const winExt = /\.(exe|cmd|bat|com)$/i;
+    return lines.find((l) => winExt.test(l)) || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * #8246 / #9454: on Windows, npm installs claude as a `.cmd` shim — spawn()
+ * without a shell cannot resolve PATHEXT shims (and Node refuses to exec `.cmd`
+ * directly since CVE-2024-27980), so the npm-shim path must go through cmd.exe.
+ * But the native installer creates only `claude.exe`, which is a real PE that
+ * must NOT go through a shell (cmd.exe would split an absolute path with spaces).
+ *
+ * So probe PATH for `claude` first: when `where.exe` resolves a `.exe`, spawn it
+ * directly (no shell); otherwise fall back to the npm `claude.cmd` + shell. Off
+ * Windows the bare binary is spawned unchanged (no shell, no probe).
  *
  * @param {NodeJS.Platform|string} platform
- * @returns {{ command: string, shell: true|undefined }}
+ * @param {{ probe?: (command: string) => Promise<string|null> }} [opts]  injectable probe for tests
+ * @returns {Promise<{ command: string, shell: true|undefined }>}
  */
-export function resolveClaudeSpawn(platform) {
-  return platform === "win32"
-    ? { command: "claude.cmd", shell: true }
-    : { command: "claude", shell: undefined };
+export async function resolveClaudeSpawn(platform, opts = {}) {
+  if (platform !== "win32") return { command: "claude", shell: undefined };
+  const probe = opts.probe ?? probeWindowsBinary;
+  const located = await probe("claude");
+  if (located && /\.exe$/i.test(located)) {
+    return { command: located, shell: undefined };
+  }
+  return { command: "claude.cmd", shell: true };
 }
 
 /**
@@ -148,8 +192,9 @@ export async function runLaunchCommand(opts = {}, claudeArgs = []) {
     : undefined;
   const env = buildClaudeEnv(process.env, baseUrl, authToken, { configDir });
 
+  const { command, shell } = await resolveClaudeSpawn(process.platform);
+
   return await new Promise((resolve) => {
-    const { command, shell } = resolveClaudeSpawn(process.platform);
     const child = spawn(command, quoteClaudeArgs(claudeArgs, process.platform), {
       env,
       stdio: "inherit",

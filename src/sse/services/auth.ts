@@ -79,6 +79,7 @@ import { getNoAuthHydrationProviderIds } from "./noAuthProviderSiblings";
 import { getResource404Bypass } from "./requestResourceHealth";
 import * as log from "../utils/logger";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
+import { readHeaderValue, type AuthRequestHeaders } from "./headerReader.ts";
 
 type JsonRecord = Record<string, unknown>;
 interface RecoverableConnectionState {
@@ -141,33 +142,6 @@ function toNullableNumber(value: unknown): number | null {
 
 function toBooleanOrDefault(value: unknown, fallback: boolean): boolean {
   return typeof value === "boolean" ? value : fallback;
-}
-
-export function readHeaderValue(
-  headers:
-    | Headers
-    | { get?: (name: string) => string | null }
-    | Record<string, string | string[] | undefined>
-    | null
-    | undefined,
-  name: string
-): string | null {
-  if (!headers) return null;
-
-  if (typeof (headers as Headers).get === "function") {
-    const value = (headers as Headers).get(name) || (headers as Headers).get(name.toLowerCase());
-    return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
-  }
-
-  const recordHeaders = headers as Record<string, string | string[] | undefined>;
-  const value =
-    recordHeaders[name] || recordHeaders[name.toLowerCase()] || recordHeaders[name.toUpperCase()];
-
-  if (Array.isArray(value)) {
-    return typeof value[0] === "string" && value[0].trim().length > 0 ? value[0].trim() : null;
-  }
-
-  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
 
 function normalizeSessionKey(value: unknown, prefix: string): string | null {
@@ -946,10 +920,14 @@ const markMutexes = new Map<string, Promise<void>>();
 // auth.ts uses getNextFromDeckSync inside the provider-scoped selection mutex.
 // Re-export for backwards compat with existing test imports.
 export { fisherYatesShuffle, getNextFromDeckSync as getNextFromDeck };
+// Re-export readHeaderValue and AuthRequestHeaders from headerReader.ts for
+// backwards compat with existing imports (e.g. googApiKeyAuth.ts).
+export { readHeaderValue, type AuthRequestHeaders } from "./headerReader.ts";
 
 const PROVIDER_SEARCH_PAIRS: string[][] = [
   ["nvidia", "nvidia_nim"],
   ["kimi-coding", "kimi-coding-apikey"],
+  ["antigravity", "agy"],
 ];
 /**
  * Resolve provider aliases (e.g., nvidia -> nvidia_nim) for DB lookup
@@ -2051,9 +2029,12 @@ export async function markAccountUnavailable(
         return { shouldFallback: true, cooldownMs: 0 };
       }
 
-      const quotaScope = getQuotaScopeLabelForProvider(provider, model);
+      const usesExactAntigravityLock = provider === "antigravity";
+      const quotaScope = usesExactAntigravityLock
+        ? "model"
+        : getQuotaScopeLabelForProvider(provider, model);
       const antigravityFamilyInferredBaseCooldownMs =
-        provider === "antigravity" && quotaScope === "family" && status === 429
+        !usesExactAntigravityLock && provider === "antigravity" && quotaScope === "family" && status === 429
           ? ANTIGRAVITY_FAMILY_INFERRED_BASE_COOLDOWN_MS
           : null;
       const lockout = recordModelLockoutFailure(
@@ -2076,6 +2057,7 @@ export async function markAccountUnavailable(
               ? fallbackResult.cooldownMs
               : (fallbackResult.quotaResetHintMs ?? null),
           maxCooldownMs: mlSettings.maxCooldownMs,
+          scope: usesExactAntigravityLock ? "exact" : undefined,
           // #6863 vs #7940: exactCooldownMs above is only ever set from a genuine
           // upstream signal (Retry-After/reset header or a parsed quotaResetHintMs) —
           // never a synthetic estimate — so it must bypass maxCooldownMs instead of
@@ -2380,8 +2362,6 @@ export async function clearRecoveredProviderState(
   return { applied: true };
 }
 
-type AuthRequestHeaders = Headers | Record<string, string | string[] | undefined>;
-
 type AuthRequestLike = {
   headers?: AuthRequestHeaders | null;
   url?: string | null;
@@ -2464,13 +2444,16 @@ export function extractApiKey(request: AuthRequestLike, opts?: { allowUrl?: bool
   }
 
   // Issue #2225: Anthropic Messages API clients authenticate via x-api-key.
-  // Gate the fallback on the anthropic-version header so we don't trip up
-  // local-mode requests from non-Anthropic clients that send placeholder
+  // Gate the fallback on anthropic-version OR a claude-code/anthropic user-agent so we
+  // don't trip up local-mode requests from non-Anthropic clients that send placeholder
   // x-api-key values (which would otherwise be rejected as Invalid API key).
   const anthropicVersion =
     readHeaderValue(request?.headers, "anthropic-version") ||
     readHeaderValue(request?.headers, "Anthropic-Version");
-  if (anthropicVersion) {
+  const userAgent =
+    readHeaderValue(request?.headers, "user-agent") ||
+    readHeaderValue(request?.headers, "User-Agent");
+  if (anthropicVersion || (userAgent && /claude-code|claude-cli|anthropic/i.test(userAgent))) {
     const xApiKey =
       readHeaderValue(request?.headers, "x-api-key") ||
       readHeaderValue(request?.headers, "X-Api-Key");

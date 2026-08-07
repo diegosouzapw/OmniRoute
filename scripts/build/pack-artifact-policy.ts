@@ -126,6 +126,9 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   // #7802: imported by scripts/build/postinstall.mjs to repair tls-client-node's
   // native binary (chatgpt-web/claude-web/grok-web/lmarena/perplexity-web transport).
   "scripts/build/fixTlsClientNodeBinary.mjs",
+  // #8859: imported by scripts/build/postinstall.mjs to repair playwright-core's
+  // browser resolution on Termux/Android (no glibc, no bundled browsers).
+  "scripts/build/fixPlaywrightAndroid.mjs",
   // #5227: imported at runtime by bin/cli/commands/serve.mjs (heap auto-calibration).
   "scripts/build/runtime-env.mjs",
   "scripts/build/sync-env.mjs",
@@ -209,6 +212,19 @@ export function normalizeArtifactPath(filePath: string): string {
     .replace(/\/{2,}/g, "/");
 }
 
+/**
+ * Paths that are NEVER publishable, whatever the allowlist says.
+ *
+ * Existence reason: the allowlist grants whole prefixes (e.g.
+ * `@omniroute/opencode-provider/`), so a nested `node_modules` inside an allowed
+ * prefix used to be authorized by it. That shipped 79 MB of devDependencies
+ * (tsup/esbuild/typescript) — 80% of the tarball — whenever the publish ran from
+ * a machine where someone had installed inside that subpackage. `files[]` in
+ * package.json now excludes it at the source; this is the gate that FAILS if it
+ * ever comes back instead of silently allowing it.
+ */
+export const PACK_ARTIFACT_NEVER_ALLOWED_SEGMENTS: string[] = ["node_modules"];
+
 export function findUnexpectedArtifactPaths(
   filePaths: string[],
   { exactPaths = [], prefixPaths = [] }: { exactPaths?: string[]; prefixPaths?: string[] } = {}
@@ -216,13 +232,17 @@ export function findUnexpectedArtifactPaths(
   const normalizedExact = new Set(exactPaths.map(normalizeArtifactPath));
   const normalizedPrefixes = prefixPaths.map(normalizeArtifactPath);
 
+  const hasForbiddenSegment = (filePath: string): boolean =>
+    filePath.split("/").some((segment) => PACK_ARTIFACT_NEVER_ALLOWED_SEGMENTS.includes(segment));
+
   return filePaths
     .map(normalizeArtifactPath)
     .filter(Boolean)
     .filter(
       (filePath) =>
-        !normalizedExact.has(filePath) &&
-        !normalizedPrefixes.some((prefix) => filePath.startsWith(prefix))
+        hasForbiddenSegment(filePath) ||
+        (!normalizedExact.has(filePath) &&
+          !normalizedPrefixes.some((prefix) => filePath.startsWith(prefix)))
     )
     .sort();
 }

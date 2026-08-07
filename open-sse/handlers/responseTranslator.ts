@@ -6,6 +6,10 @@ import {
 import { normalizeOpenAICompatibleFinishReasonString } from "../utils/finishReason.ts";
 import { containsTextualToolCallMarker } from "../utils/textualToolCall.ts";
 import { getAnyReasoningValue } from "../utils/reasoningFields.ts";
+import {
+  caseInsensitiveToolNameLookup,
+  restoreOpenAIToolNames,
+} from "../translator/helpers/toolCallHelper.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -137,10 +141,17 @@ export function translateNonStreamingResponse(
 ): unknown {
   // If already in source format, return as-is
   if (targetFormat === sourceFormat) {
+    if (targetFormat === FORMATS.OPENAI) {
+      restoreOpenAIToolNames(responseBody, toolNameMap);
+    }
     return responseBody;
   }
 
   let intermediateOpenAI = responseBody;
+
+  if (targetFormat === FORMATS.OPENAI) {
+    restoreOpenAIToolNames(intermediateOpenAI, toolNameMap);
+  }
 
   // Handle OpenAI Responses API format
   if (targetFormat === FORMATS.OPENAI_RESPONSES) {
@@ -166,14 +177,18 @@ export function translateNonStreamingResponse(
           if (!part || typeof part !== "object") continue;
           const partObj = toRecord(part);
           if (partObj.type === "summary_text" && typeof partObj.text === "string") {
-            reasoningContent += partObj.text;
+            // #9500 — reasoning summary parts are discrete segments; join with "\n\n"
+            // (matches extractThinkingFromContent convention) so they don't glue back-to-back.
+            reasoningContent += reasoningContent ? `\n\n${partObj.text}` : partObj.text;
           }
         }
       } else if (itemObj.type === "reasoning" && Array.isArray(itemObj.summary)) {
         for (const part of itemObj.summary) {
           const partObj = toRecord(part);
           if (partObj.type === "summary_text" && typeof partObj.text === "string") {
-            reasoningContent += partObj.text;
+            // #9500 — reasoning summary parts are discrete segments; join with "\n\n"
+            // (matches extractThinkingFromContent convention) so they don't glue back-to-back.
+            reasoningContent += reasoningContent ? `\n\n${partObj.text}` : partObj.text;
           }
         }
       } else if (itemObj.type === "function_call") {
@@ -194,7 +209,7 @@ export function translateNonStreamingResponse(
           typeof argsToEmit === "string" ? argsToEmit : JSON.stringify(argsToEmit || {});
         const rawName = toString(itemObj.name);
         // Strip Claude OAuth proxy_ prefix using toolNameMap
-        const resolvedName = toolNameMap?.get(rawName) ?? rawName;
+        const resolvedName = caseInsensitiveToolNameLookup(rawName, toolNameMap) ?? rawName;
         toolCalls.push({
           id: callId,
           type: "function",
@@ -328,7 +343,9 @@ export function translateNonStreamingResponse(
                 for (const part of content.parts) {
                   const partObj = toRecord(part);
                   if (partObj.thought === true && typeof partObj.text === "string") {
-                    reasoningContent += partObj.text;
+                    // #9500 — Gemini thinking parts are discrete segments; join with "\n\n"
+                    // (matches extractThinkingFromContent convention) so they don't glue back-to-back.
+                    reasoningContent += reasoningContent ? `\n\n${partObj.text}` : partObj.text;
                     continue;
                   }
 
@@ -374,7 +391,8 @@ export function translateNonStreamingResponse(
                   if (partObj.functionCall) {
                     const fn = toRecord(partObj.functionCall);
                     const rawName = toString(fn.name);
-                    const restoredName = toolNameMap?.get(rawName) ?? rawName;
+                    const restoredName =
+                      caseInsensitiveToolNameLookup(rawName, toolNameMap) ?? rawName;
                     const nativeId = toString(fn.id);
                     const toolCallId =
                       nativeId.length > 0
@@ -493,7 +511,7 @@ export function translateNonStreamingResponse(
           thinkingContent += toString(blockObj.thinking);
         } else if (blockObj.type === "tool_use") {
           const rawName = toString(blockObj.name);
-          const strippedName = toolNameMap?.get(rawName) ?? rawName;
+          const strippedName = caseInsensitiveToolNameLookup(rawName, toolNameMap) ?? rawName;
           toolCalls.push({
             id: toString(blockObj.id, `call_${Date.now()}_${toolCalls.length}`),
             type: "function",
@@ -547,11 +565,20 @@ export function translateNonStreamingResponse(
         const cacheCreationTokens = toNumber(usage.cache_creation_input_tokens, 0);
         const promptTokens = toNumber(usage.input_tokens, 0) + cachedTokens;
         const completionTokens = toNumber(usage.output_tokens, 0);
+        const reasoningTokens = firstPositiveNumber(
+          toRecord(usage.output_tokens_details).thinking_tokens,
+          toRecord(usage.completion_tokens_details).reasoning_tokens,
+          usage.reasoning_tokens
+        );
         const usageOut: JsonRecord = {
           prompt_tokens: promptTokens,
           completion_tokens: completionTokens,
           total_tokens: promptTokens + completionTokens,
         };
+        if (reasoningTokens > 0) {
+          usageOut.reasoning_tokens = reasoningTokens;
+          usageOut.completion_tokens_details = { reasoning_tokens: reasoningTokens };
+        }
         if (cachedTokens > 0 || cacheCreationTokens > 0) {
           const details: JsonRecord = {};
           if (cachedTokens > 0) details.cached_tokens = cachedTokens;
@@ -664,6 +691,35 @@ function convertOpenAINonStreamingToClaude(openaiResponse: JsonRecord): JsonReco
   if (stopReason === "tool_calls") stopReason = "tool_use";
 
   const usageSrc = toRecord(openaiResponse.usage);
+  const promptTokens = toNumber(usageSrc.prompt_tokens, 0);
+  const outputTokens = toNumber(usageSrc.completion_tokens, 0);
+
+  // Extract cache tokens from prompt_tokens_details (mirrors the streaming
+  // translator in open-sse/translator/response/openai-to-claude.ts lines 119-148).
+  const promptDetails = toRecord(usageSrc.prompt_tokens_details);
+  const cachedTokens = toNumber(promptDetails.cached_tokens, 0);
+  const cacheCreationTokens = toNumber(promptDetails.cache_creation_tokens, 0);
+
+  // OpenAI's prompt_tokens includes all prompt-side tokens (cached + non-cached).
+  // Claude expects input_tokens to be only non-cached tokens, with cached tokens
+  // exposed separately as cache_read_input_tokens.
+  const inputTokens = promptTokens - cachedTokens - cacheCreationTokens;
+
+  const usage: JsonRecord = {
+    input_tokens: inputTokens,
+    output_tokens: outputTokens,
+  };
+
+  // Add cache_read_input_tokens if present
+  if (cachedTokens > 0) {
+    usage.cache_read_input_tokens = cachedTokens;
+  }
+
+  // Add cache_creation_input_tokens if present
+  if (cacheCreationTokens > 0) {
+    usage.cache_creation_input_tokens = cacheCreationTokens;
+  }
+
   const claudeResponse: JsonRecord = {
     id: toString(openaiResponse.id, `msg_${Date.now()}`),
     type: "message",
@@ -672,10 +728,7 @@ function convertOpenAINonStreamingToClaude(openaiResponse: JsonRecord): JsonReco
     content,
     stop_reason: stopReason,
     stop_sequence: null,
-    usage: {
-      input_tokens: toNumber(usageSrc.prompt_tokens, 0),
-      output_tokens: toNumber(usageSrc.completion_tokens, 0),
-    },
+    usage,
   };
 
   return claudeResponse;

@@ -16,7 +16,8 @@ import {
 } from "@/shared/constants/providers";
 
 import { CategoryDot } from "./CategoryDot";
-import { isKimiPartnerProviderId } from "../featuredProviders";
+import { isCheaperInferenceProviderId, isKimiPartnerProviderId } from "../featuredProviders";
+import { useOpenRouterProviderStat } from "../context/openRouterProviderStatsContext";
 
 interface ProviderStats {
   total?: number;
@@ -223,9 +224,12 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
   const isCompatible = isOpenAICompatibleProvider(providerId);
   const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
   const isAnthropicCompatible = isAnthropicCompatibleProvider(providerId) && !isCcCompatible;
-  // Kimi (Moonshot AI) official-partnership highlight (2026-07): UI-only accent,
-  // see featuredProviders.ts — never affects routing/fallback order.
+  // Open Source Friend highlights (Kimi 2026-07, Cheaper Inference 2026-07): UI-only
+  // accents, see featuredProviders.ts — never affect routing/fallback order.
   const isKimiPartner = isKimiPartnerProviderId(provider.id || providerId);
+  const isCheaperInferencePartner = isCheaperInferenceProviderId(provider.id || providerId);
+  const isSponsorPartner = isKimiPartner || isCheaperInferencePartner;
+  const openRouterStat = useOpenRouterProviderStat(provider.id || providerId);
   const codexServiceTierLabel =
     stats.codexServiceTier === "flex"
       ? providerText(t, "codexTierFlexLabel", "Flex")
@@ -264,6 +268,57 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
     >
       <span className="material-symbols-outlined text-[10px] leading-none">verified</span>
       {providerText(t, "kimiOfficialSupporterBadge", "Founding Friend")}
+    </span>
+  ) : null;
+
+  // Cheaper Inference Open Source Friend badge — brand green (#31f889) with a dark
+  // foreground (the green is too bright for white text). Literal Tailwind arbitrary
+  // values must stay in sync with CHEAPERINFERENCE_BRAND_COLOR (featuredProviders.ts).
+  const cheaperInferenceSupporterChip = isCheaperInferencePartner ? (
+    <span
+      key="cheaperinference-supporter"
+      className="inline-flex items-center gap-0.5 rounded-full border border-[#31f889]/40 bg-[#31f889]/15 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide leading-none text-[#0b7a45] dark:text-[#5CF0A6]"
+      title={providerText(
+        t,
+        "cheaperInferenceSupporterTooltip",
+        "Cheaper Inference backs OmniRoute as an Open Source Friend"
+      )}
+    >
+      <span className="material-symbols-outlined text-[10px] leading-none">verified</span>
+      {providerText(t, "cheaperInferenceSupporterBadge", "Open Source Friend")}
+    </span>
+  ) : null;
+
+  const openRouterTooltipBits: string[] = [];
+  if (openRouterStat?.headquarters)
+    openRouterTooltipBits.push(`HQ: ${openRouterStat.headquarters}`);
+  if (openRouterStat?.dataPolicy?.training === false) {
+    openRouterTooltipBits.push(
+      providerText(t, "openRouterNoTraining", "Does not train on prompts")
+    );
+  }
+  if (openRouterStat?.dataPolicy?.retainsPrompts === false) {
+    openRouterTooltipBits.push(providerText(t, "openRouterNoRetention", "Does not retain prompts"));
+  }
+  const openRouterTooltip = openRouterStat
+    ? providerText(t, "openRouterPopularityTooltip", "OpenRouter usage rank #{rank}", {
+        rank: openRouterStat.popularityRank,
+      }) + (openRouterTooltipBits.length ? ` — ${openRouterTooltipBits.join(" · ")}` : "")
+    : "";
+
+  // OpenRouter popularity badge — data refreshed daily from OpenRouter's
+  // provider directory + usage rankings (see src/lib/catalog/openrouterProviderStats.ts).
+  // Absent entirely for providers OpenRouter doesn't track; never affects routing.
+  const openRouterPopularityChip = openRouterStat ? (
+    <span
+      key="openrouter-popularity"
+      className="inline-flex items-center gap-0.5 rounded-full border border-border bg-bg-subtle px-1.5 py-0 text-[9px] font-semibold leading-none text-text-muted"
+      title={openRouterTooltip}
+    >
+      <span className="material-symbols-outlined text-[10px] leading-none">trending_up</span>
+      {providerText(t, "openRouterPopularityBadge", "OR #{rank}", {
+        rank: openRouterStat.popularityRank,
+      })}
     </span>
   ) : null;
 
@@ -318,7 +373,12 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
                 // is a raw (non-token) brand hex, not a theme color. Keep the hex in
                 // sync with KIMI_BRAND_COLOR (featuredProviders.ts).
                 "border-2 border-[#1783FF]/70 hover:border-[#1783FF]/90 shadow-[inset_0_0_0_100px_rgba(23,131,255,0.035),0_4px_16px_-4px_rgba(23,131,255,0.45)]"
-              : "hover:border-primary/40"
+              : isCheaperInferencePartner
+                ? // Cheaper Inference Open Source Friend accent — same construction in
+                  // its brand green (#31f889 = rgb(49,248,137)). Keep in sync with
+                  // CHEAPERINFERENCE_BRAND_COLOR (featuredProviders.ts).
+                  "border-2 border-[#31f889]/70 hover:border-[#31f889]/90 shadow-[inset_0_0_0_100px_rgba(49,248,137,0.035),0_4px_16px_-4px_rgba(49,248,137,0.45)]"
+                : "hover:border-primary/40"
           } ${allDisabled ? "opacity-50" : ""} ${provider.deprecated ? "opacity-60" : ""}`}
         >
           <div className="flex flex-col gap-2 h-full">
@@ -392,9 +452,12 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
               isCompatible ||
               isCcCompatible ||
               isAnthropicCompatible ||
-              isKimiPartner) && (
+              isSponsorPartner ||
+              Boolean(openRouterStat)) && (
               <div className="flex flex-wrap items-center gap-1">
                 {kimiOfficialSupporterChip}
+                {cheaperInferenceSupporterChip}
+                {openRouterPopularityChip}
                 {provider.serviceKinds?.map((k) => (
                   <span
                     key={k}

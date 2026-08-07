@@ -1,0 +1,1 @@
+- **docs:** add low-memory/small VPS optimization guide ([#8237](https://github.com/diegosouzapw/OmniRoute/issues/8237))

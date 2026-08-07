@@ -16,18 +16,54 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { closeSync, mkdtempSync, openSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPT = path.resolve(here, "../../../scripts/ci/should-promote-latest.sh");
 
-/** Run the helper with `version` as argv[1] and `tags` (joined by \n) on stdin. */
+/**
+ * Run the helper with `version` as argv[1] and `tags` (joined by \n) on stdin.
+ *
+ * stdin is a real FILE, not a pipe, and that is the whole point. The script
+ * short-circuits a pre-release VERSION and `exit 0`s WITHOUT ever reading stdin:
+ *
+ *     case "$VERSION" in
+ *       *-*) echo "false"; exit 0 ;;
+ *     esac
+ *
+ * Feeding it through `input:` makes the parent write to a pipe whose reader has
+ * already gone away, so the write raises `spawnSync bash EPIPE` — the test throws
+ * before it can assert anything. It is a race, not load: whether the write lands
+ * before the child exits depends on the 64 KB pipe buffer and the scheduler, which
+ * is why it failed intermittently in CI (#8953, #8966) while passing locally.
+ * Measured deterministically:
+ *
+ *          2 tags (     11 bytes) → ok
+ *        100 tags (    689 bytes) → ok
+ *      5 000 tags ( 43 889 bytes) → ok
+ *     20 000 tags (188 889 bytes) → EPIPE, every time
+ *
+ * A regular file has no reader to lose, so the child may exit whenever it likes.
+ * The script's interface is unchanged — it still reads candidate tags from stdin,
+ * exactly as docker-publish.yml pipes them in.
+ */
 function shouldPromote(version: string, tags: string[]): string {
-  return execFileSync("bash", [SCRIPT, version], {
-    input: tags.join("\n") + (tags.length ? "\n" : ""),
-    encoding: "utf8",
-  }).trim();
+  const dir = mkdtempSync(path.join(os.tmpdir(), "should-promote-latest-"));
+  const stdinPath = path.join(dir, "tags");
+  writeFileSync(stdinPath, tags.join("\n") + (tags.length ? "\n" : ""));
+  const fd = openSync(stdinPath, "r");
+  try {
+    return execFileSync("bash", [SCRIPT, version], {
+      stdio: [fd, "pipe", "pipe"],
+      encoding: "utf8",
+    }).trim();
+  } finally {
+    closeSync(fd);
+    rmSync(dir, { recursive: true, force: true });
+  }
 }
 
 test("#5301 race: new tag not yet synced → still promotes latest", () => {
@@ -66,4 +102,21 @@ test("numeric (not lexical) semver ordering", () => {
 
 test("candidate tags with a leading `v` are normalized", () => {
   assert.equal(shouldPromote("3.8.39", ["v3.8.38", "v3.8.37"]), "true");
+});
+
+test("a pre-release VERSION is decided without reading stdin, at any input size", () => {
+  // The regression guard for the harness itself. The script `exit 0`s on a
+  // pre-release VERSION before touching stdin; with a pipe-backed stdin this
+  // combination raised `spawnSync bash EPIPE` once the payload outgrew the 64 KB
+  // pipe buffer — deterministically at 20 000 tags, and intermittently at CI's
+  // real tag count, which is what reddened #8953 and #8966 on unrelated diffs.
+  //
+  // 20 000 tags ≈ 189 KB, comfortably past the buffer. If someone reverts the
+  // helper to `input:`, this case throws instead of asserting.
+  const manyTags = Array.from({ length: 20_000 }, (_, i) => `3.8.${i}`);
+  assert.equal(shouldPromote("3.8.40-rc.1", manyTags), "false");
+
+  // And the decision itself must not depend on the candidate set at all.
+  assert.equal(shouldPromote("3.8.40-rc.1", []), "false");
+  assert.equal(shouldPromote("4.0.0-beta.2", ["3.8.39"]), "false");
 });

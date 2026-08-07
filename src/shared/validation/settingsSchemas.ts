@@ -118,6 +118,7 @@ export const updateSettingsSchema = z.object({
   baseUrl: z.string().max(500).optional(),
   setupComplete: z.boolean().optional(),
   blockedProviders: z.array(z.string().max(100)).optional(),
+  hidePaidModels: z.boolean().optional(),
   hideHealthCheckLogs: z.boolean().optional(),
   hideEndpointCloudflaredTunnel: z.boolean().optional(),
   hideEndpointTailscaleFunnel: z.boolean().optional(),

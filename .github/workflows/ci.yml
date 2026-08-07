@@ -42,6 +42,18 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
+      # Refuse a PR that targets its own head branch before spending anything on it. #8912 has
+      # head == base == release/v3.8.50: no diff, can never merge, and it sits in the queue with
+      # a full check board attached on every push to that branch. One field comparison.
+      - name: Reject a PR that targets its own branch
+        if: github.event_name == 'pull_request'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/check/check-pr-self-target.mjs
+
       - id: classify
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -125,6 +137,17 @@ jobs:
       - run: npm run check:route-guard-membership
       - run: npm run check:test-discovery
       - run: npm run check:tracked-artifacts
+      # (gap 30) Also lives in quality.yml's PR-only "Merge integrity" job — because the
+      # CHANGELOG half of that job needs a base to diff against. This half does NOT: the
+      # generator either reproduces the committed SKILL.md files or it does not.
+      #
+      # Keeping it PR-only left a real hole. This cycle's merge trains landed in batches with
+      # `--admin`, which bypasses required checks, so three SKILL.md files drifted from the route
+      # catalog, rode the release squash into `main`, and the next cycle's sync-back turned them
+      # into a base-red that blocked EVERY PR into release/v3.8.50 until #8954. Running it here
+      # means a push to `main` catches the drift at the source instead of the next cycle
+      # inheriting it.
+      - run: npm run check:agent-skills-sync
       # WS1.7 (v3.8.49 plan): Dockerfile lint (hadolint, pinned by digest).
       # failure-threshold=error keeps the 5 pre-existing warnings (DL3008/DL3003/
       # DL3016 version pinning / WORKDIR) visible without blocking; any ERROR fails.
@@ -330,8 +353,16 @@ jobs:
           install -m 0755 /tmp/osv/*linux_amd64 "$HOME/.local/bin/osv-scanner"
           # actionlint — official download script
           bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) latest "$HOME/.local/bin"
-          # zizmor — PyPI (pipx preferred, pip --user fallback); lands in ~/.local/bin
-          pipx install zizmor || pip install --user zizmor
+          # zizmor — PyPI (pipx preferred, pip --user fallback); lands in ~/.local/bin.
+          # PINNED on purpose. Unpinned, the runner installed whatever PyPI served that day and
+          # measured 1 finding MORE than the devbox on the identical commit (190 vs 189) during
+          # the v3.8.49 cycle — which cost a second rebaseline push per release, chasing a
+          # number that was never the code's. The ratchet compares counts across machines, so
+          # the auditor version has to be the same on both. Bump this deliberately, and
+          # rebaseline in the same commit: check-workflows.mjs now prints `zizmorVersion=` next
+          # to the count so the new number is traceable to the tool that produced it.
+          ZIZMOR_VERSION=1.25.2
+          pipx install "zizmor==$ZIZMOR_VERSION" || pip install --user "zizmor==$ZIZMOR_VERSION"
           # oasdiff — download latest linux amd64 tarball via gh (authed), extract binary
           rm -rf /tmp/oasd && mkdir -p /tmp/oasd
           gh release download --repo oasdiff/oasdiff --pattern '*linux_amd64.tar.gz' --dir /tmp/oasd
@@ -720,7 +751,13 @@ jobs:
   test-unit:
     name: Unit Tests (${{ matrix.shard }}/8)
     # Same dynamic-runner rule as Build (own-origin only; fallback ubuntu-latest).
-    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
+    # PINNED to hosted, deliberately not on the USE_VPS_RUNNER switch (gap 19). One variable
+    # governed the build and the test jobs, which want OPPOSITE machines: the build needs the
+    # .113's RAM, the tests need the hosted runner's link. Measured on 2026-07-29 —
+    # actions/setup-node took 20m06s on .113 with 4 concurrent runners versus 16s hosted (npm
+    # cache restore saturating the link), while the tests themselves tied, 2m54 vs 2m31. So
+    # self-hosted is strictly worse here and there is nothing to configure.
+    runs-on: ubuntu-latest
     timeout-minutes: 25
     # needs: changes (not build) — this job never downloads the next-build artifact;
     # gating it on Build only serialized ~20min of wall-clock for nothing. Jobs that
@@ -792,7 +829,13 @@ jobs:
   test-vitest:
     name: Vitest (MCP / autoCombo / UI components)
     # Same dynamic-runner rule as Build (own-origin only; fallback ubuntu-latest).
-    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
+    # PINNED to hosted, deliberately not on the USE_VPS_RUNNER switch (gap 19). One variable
+    # governed the build and the test jobs, which want OPPOSITE machines: the build needs the
+    # .113's RAM, the tests need the hosted runner's link. Measured on 2026-07-29 —
+    # actions/setup-node took 20m06s on .113 with 4 concurrent runners versus 16s hosted (npm
+    # cache restore saturating the link), while the tests themselves tied, 2m54 vs 2m31. So
+    # self-hosted is strictly worse here and there is nothing to configure.
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     # needs: changes (not build) — no artifact consumed; see test-unit note.
     needs: changes
@@ -1170,8 +1213,10 @@ jobs:
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
-      # (tsx/esm = QW-b; o alinhamento de ESCOPO do integration com o npm script fica p/ follow-up)
-      - run: node --import tsx/esm --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
+      - name: Integration tests (shard ${{ matrix.shard }}/2)
+        env:
+          TEST_SHARD: ${{ matrix.shard }}/2
+        run: npm run test:integration:ci
 
   test-security:
     name: Security Tests
@@ -1229,6 +1274,8 @@ jobs:
       - name: Generate dashboard
         env:
           EVENT_NAME: ${{ github.event_name }}
+          # Workflow-controlled data (job results), not user input — safe to read here.
+          NEEDS_JSON: ${{ toJSON(needs) }}
         run: |
           status() {
             case "$1" in
@@ -1242,6 +1289,29 @@ jobs:
 
           echo "# 🚀 CI Dashboard" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          # (gap 12) A cancelled job never reported a verdict, and in a long table that reads the
+          # same as a green one. `cancel-in-progress` plus incremental fixing cancels jobs on every
+          # push, and this cycle the Vitest job was cancelled in rounds 1, 2 and 3 — it only ran to
+          # completion in round 4, where it revealed a suite that had been broken the whole cycle
+          # plus two production bugs. A gate that never finishes is indistinguishable from one that
+          # passes, so name them at the TOP instead of leaving them to be spotted mid-table.
+          CANCELLED_JOBS=$(printf '%s' "$NEEDS_JSON" \
+            | jq -r 'to_entries | map(select(.value.result == "cancelled")) | .[].key' 2>/dev/null \
+            | sort | paste -sd", " -) || CANCELLED_JOBS=""
+          if [ -n "$CANCELLED_JOBS" ]; then
+            {
+              echo "> ### ⚫ Cancelled — no verdict was reported"
+              echo ">"
+              echo "> \`$CANCELLED_JOBS\`"
+              echo ">"
+              echo "> These did not fail; they never finished, so nothing was checked. Treat this"
+              echo "> run as INCOMPLETE for those gates. If the cancellation came from"
+              echo "> \`cancel-in-progress\` on a newer push, the newer run covers it — otherwise"
+              echo "> re-run them before reading this dashboard as green."
+              echo ""
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
 
           echo "## 🧱 Core Checks" >> "$GITHUB_STEP_SUMMARY"
           echo "| Job | Status |" >> "$GITHUB_STEP_SUMMARY"

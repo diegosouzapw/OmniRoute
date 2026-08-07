@@ -241,7 +241,14 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
           typeof settings.visionBridgeModel === "string" && settings.visionBridgeModel.trim()
             ? settings.visionBridgeModel.trim()
             : undefined;
-        const bestModel = await getBestVisionModel({ fixedModel: configuredModel });
+        // Propagate the same resolved credential check used by the adjacent
+        // checkCreds() calls above/below (#8430) — without this, the router
+        // falls back to the real DB-backed hasUsableCredentialsForModel and
+        // ignores an injected `deps.hasUsableCredentials` test/DI override.
+        const bestModel = await getBestVisionModel(
+          { fixedModel: configuredModel },
+          { hasUsableCredentials: checkCreds }
+        );
         if (bestModel && bestModel !== model) {
           const bestUsable = await checkCreds(bestModel);
           // Only block the reroute when we KNOW the target is unusable (false).
@@ -310,6 +317,19 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
       logger?.warn?.("VISION-BRIDGE", `Failed to get description for image ${i + 1}: ${message}`);
       return null;
     });
+
+    // 12b. (#8430) When every describe call failed (all null descriptions) in
+    // the combo describe path, the upstream is a confirmed non-vision model that
+    // cannot process raw images — replacing them with an "(unavailable)" stub
+    // is safe here because the upstream can only handle text. The original #4012
+    // preserve-raw behavior only applies to paths where the upstream might still
+    // be vision-capable (reroute path / unknown capability).
+    const allNull = descriptions.every((d) => d === null);
+    if (allNull && comboVisionBridgeDecision === "process") {
+      for (let i = 0; i < descriptions.length; i++) {
+        descriptions[i] = `[Image ${i + 1}]: (unavailable — no vision-capable provider connected)`;
+      }
+    }
 
     // 13. Replace image parts with text descriptions (null → keep original image)
     const modifiedBody = replaceImageParts(

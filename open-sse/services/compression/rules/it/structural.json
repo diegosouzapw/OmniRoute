@@ -1,0 +1,102 @@
+{
+  "language": "it",
+  "category": "structural",
+  "rules": [
+    {
+      "name": "it_purpose",
+      "pattern": "\\b(?:al fine di|allo scopo di|con l'obiettivo di|in modo da poter|in modo da|così da|in maniera tale da)\\b\\s*",
+      "replacement": "per ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_causal",
+      "pattern": "\\b(?:a causa del fatto che|per il fatto che|dal momento che|visto che|dato che|in quanto)\\b\\s*",
+      "replacement": "perché ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_connectors",
+      "pattern": "\\b(?:inoltre|in aggiunta|per di più|d'altra parte|d'altro canto|oltre a ciò)\\b[,]?\\s*",
+      "replacement": "anche ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_emphasis",
+      "pattern": "\\b(?:molto|davvero|veramente|estremamente|parecchio|piuttosto|abbastanza|super)\\s+(?=[a-zàèéìòùA-Z])",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "it_redundant_phrasing",
+      "pattern": "\\bnel caso in cui\\b",
+      "replacement": "se",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_time_redundancy",
+      "pattern": "\\b(?:nel momento in cui|nell'istante in cui|nel periodo in cui)\\b",
+      "replacement": "quando",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_place_redundancy",
+      "pattern": "\\b(?:all'interno di|nell'ambito di|nel contesto di)\\b",
+      "replacement": "in",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_recommendation",
+      "pattern": "\\b(?:ti (?:consiglierei|consiglio|suggerirei|suggerisco) di|sarebbe (?:meglio|opportuno|consigliabile)|converrebbe)\\b\\s*",
+      "replacement": "usa ",
+      "context": "assistant",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "it_possibility",
+      "pattern": "\\b(?:è possibile che|potrebbe essere che|può darsi che)\\b\\s*",
+      "replacement": "forse ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "it_necessity",
+      "pattern": "\\b(?:è necessario che|occorre che|bisogna che|è indispensabile che)\\b\\s*",
+      "replacement": "serve che ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_conclusion",
+      "pattern": "\\b(?:in conclusione|per concludere|riassumendo|in sintesi|tirando le somme)\\b[,:]?\\s*",
+      "replacement": "",
+      "context": "assistant",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "it_double_negation",
+      "pattern": "\\bnon è (?:possibile|fattibile) (?:non |)\\b",
+      "replacement": "non si può ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    }
+  ]
+}

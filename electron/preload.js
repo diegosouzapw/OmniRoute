@@ -106,8 +106,15 @@ const VALID_CHANNELS = {
     "login:start",
     "login:cancel",
     "login:status",
+    "remote-server-prompt:get-initial-url",
   ],
-  send: ["window-minimize", "window-maximize", "window-close"],
+  send: [
+    "window-minimize",
+    "window-maximize",
+    "window-close",
+    "remote-server-prompt:submit",
+    "remote-server-prompt:cancel",
+  ],
   receive: ["server-status", "port-changed", "update-status", "login:status"],
 };
 
@@ -160,6 +167,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // ── Receive (event listeners) ────────────────────────────
   // Fix #6: Returns a disposer function for precise cleanup
+  // "server-status" payloads include remoteUrl when running in Remote Server
+  // Mode (see electron/main.js setRemoteServerUrl) — surfaced here read-only;
+  // the actual URL is configured via the tray menu, not the renderer.
   onServerStatus: (callback) => safeOn("server-status", callback),
   onPortChanged: (callback) => safeOn("port-changed", callback),
   onUpdateStatus: (callback) => safeOn("update-status", callback),

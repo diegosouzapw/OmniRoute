@@ -14,6 +14,10 @@ import {
 } from "@omniroute/open-sse/config/providerModels.ts";
 import { handleChatCore } from "@omniroute/open-sse/handlers/chatCore.ts";
 import {
+  checkResourcePressureGuard,
+  type ResourcePressureGuardResult,
+} from "@omniroute/open-sse/utils/resourcePressure.ts";
+import {
   errorResponse,
   modelCooldownResponse,
   providerCircuitOpenResponse,
@@ -63,6 +67,10 @@ type ExecuteChatWithBreakerOptions = {
   trafficType?: TrafficType;
   [key: string]: any;
 };
+
+type ExecuteChatWithBreakerResult =
+  | { result: any; tlsFingerprintUsed: boolean }
+  | { localResourcePressureResult: ResourcePressureGuardResult; tlsFingerprintUsed: false };
 
 function getHeaderValue(headers: Record<string, unknown> | null | undefined, name: string) {
   if (!headers || typeof headers !== "object") return "";
@@ -368,6 +376,14 @@ export async function checkPipelineGates(
   return null;
 }
 
+export function checkResourcePressureBeforeProviderWork(): ResourcePressureGuardResult | null {
+  try {
+    return checkResourcePressureGuard();
+  } catch {
+    return null;
+  }
+}
+
 export async function executeChatWithBreaker({
   bypassCircuitBreaker,
   breaker,
@@ -396,7 +412,7 @@ export async function executeChatWithBreaker({
   correlationId = null,
   modelPinned = false,
   routingComboId = null,
-}: ExecuteChatWithBreakerOptions): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
+}: ExecuteChatWithBreakerOptions): Promise<ExecuteChatWithBreakerResult> {
   let tlsFingerprintUsed = false;
   const normalizedTrafficType: TrafficType =
     typeof trafficType === "string" && trafficType.trim().toLowerCase() === "shadow"
@@ -409,6 +425,11 @@ export async function executeChatWithBreaker({
   // proxy internally otherwise leave the egress log reading "direct").
   const capture = <T>(fn: () => T): T =>
     appliedProxySink ? runWithAppliedProxyCapture(appliedProxySink, fn) : fn();
+
+  const pressureGuard = checkResourcePressureBeforeProviderWork();
+  if (pressureGuard) {
+    return { localResourcePressureResult: pressureGuard, tlsFingerprintUsed: false };
+  }
 
   try {
     const chatFn = () =>
@@ -434,6 +455,7 @@ export async function executeChatWithBreaker({
             correlationId,
             modelPinned,
             routingComboId,
+            skipResourcePressureGuard: true,
             onCredentialsRefreshed: async (newCreds: any) => {
               await updateProviderCredentials(credentials.connectionId, {
                 accessToken: newCreds.accessToken,
@@ -569,7 +591,8 @@ export function handleNoCredentials(
   provider: string,
   model: string,
   lastError: string | null,
-  lastStatus: number | null
+  lastStatus: number | null,
+  candidateAliases?: readonly string[]
 ) {
   if (credentials?.allRateLimited) {
     const errorMsg = lastError || credentials.lastError || "Unavailable";
@@ -642,7 +665,22 @@ export function handleNoCredentials(
     // all disabled. log level is `warn` rather than `error` because zero active
     // credentials is an expected operator-driven state, not a server fault.
     log.warn("AUTH", `No active credentials for provider: ${provider}`);
-    return errorResponse(HTTP_STATUS.NOT_FOUND, `No active credentials for provider: ${provider}`);
+    // #FIX: surface the candidate aliases (from resolveModelOrError) so the
+    // operator can pick a working provider/model prefix instead of guessing.
+    // Without this, "No active credentials for provider: kiro" leaves the
+    // user staring at a wall — most bugs in this area are actually "wrong
+    // provider was picked", not "the provider is broken".
+    const hint =
+      Array.isArray(candidateAliases) && candidateAliases.length > 0
+        ? ` Try one of: ${candidateAliases
+            .slice(0, 3)
+            .map((a) => `${a}/${model}`)
+            .join(", ")}.`
+        : "";
+    return errorResponse(
+      HTTP_STATUS.NOT_FOUND,
+      `No active credentials for provider: ${provider}.${hint}`
+    );
   }
   log.warn("CHAT", "No more accounts available", { provider });
   return errorResponse(

@@ -2,6 +2,10 @@ import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { isAbortFinishReason } from "../../utils/finishReason.ts";
 import { REVERSE_MAP } from "../../services/claudeCodeToolRemapper.ts";
+import {
+  buildGeminiThoughtSignatureKey,
+  storeGeminiThoughtSignature,
+} from "../../services/geminiThoughtSignatureStore.ts";
 
 function normalizeToolName(name: string): string {
   return REVERSE_MAP[name] ?? name;
@@ -56,6 +60,12 @@ export function geminiToClaudeResponse(chunk, state) {
       const hasThoughtSig = part.thoughtSignature || part.thought_signature;
       const isThought = part.thought === true;
 
+      // Capture thoughtSignature so the next functionCall (or same-part call)
+      // can persist it for Claude→Gemini follow-up turns (#8979 / #2504 parity).
+      if (typeof hasThoughtSig === "string" && hasThoughtSig.length > 0) {
+        state.pendingThoughtSignature = hasThoughtSig;
+      }
+
       // Thinking content → thinking block (always open+close per chunk)
       if (isThought && part.text) {
         // Close any open text block first
@@ -78,6 +88,17 @@ export function geminiToClaudeResponse(chunk, state) {
         continue;
       }
 
+      // Standalone thoughtSignature part (no text / no functionCall): keep
+      // pending and wait for the following functionCall — do not emit to Claude.
+      if (
+        typeof hasThoughtSig === "string" &&
+        hasThoughtSig.length > 0 &&
+        (part.text === undefined || part.text === "") &&
+        !part.functionCall
+      ) {
+        continue;
+      }
+
       // Function call → tool_use block
       if (part.functionCall) {
         // Close any open text block first
@@ -87,9 +108,27 @@ export function geminiToClaudeResponse(chunk, state) {
         }
         const fc = part.functionCall;
         const rawToolName = fc.name;
-        const restoredToolName = normalizeToolName(state.toolNameMap?.get(rawToolName) || rawToolName);
+        const mappedName = state.toolNameMap?.get(rawToolName);
+        // When the toolNameMap provides a match (e.g., lowercase "bash" → "Bash"),
+        // use it directly without passing through normalizeToolName(), which would
+        // reverse TitleCase back to lowercase via REVERSE_MAP (#9568).
+        const restoredToolName = mappedName || normalizeToolName(rawToolName);
         const idx = state.contentBlockIndex++;
         const toolId = fc.id || `toolu_${Date.now()}_${idx}`;
+
+        const signatureForToolCall =
+          (typeof hasThoughtSig === "string" && hasThoughtSig.length > 0 ? hasThoughtSig : null) ||
+          (typeof state.pendingThoughtSignature === "string" &&
+          state.pendingThoughtSignature.length > 0
+            ? state.pendingThoughtSignature
+            : null);
+        if (signatureForToolCall) {
+          storeGeminiThoughtSignature(
+            buildGeminiThoughtSignatureKey(state.signatureNamespace, toolId),
+            signatureForToolCall
+          );
+          state.pendingThoughtSignature = null;
+        }
 
         results.push({
           type: "content_block_start",

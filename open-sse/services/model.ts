@@ -1,5 +1,6 @@
 import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "../config/providerModels.ts";
 import { resolveWildcardAlias } from "./wildcardRouter.ts";
+import { getRegisteredProviderEffortBaseModelId } from "../utils/registeredEffortVariants.ts";
 
 type ProviderModelAliasMap = Record<string, Record<string, string>>;
 type ModelAliasValue = string | { provider?: string; model?: string };
@@ -15,6 +16,16 @@ type ResolvedModelTarget = {
   provider?: string | null;
   model: string | null;
 };
+
+// Client context-window tags are routing hints, not part of provider model IDs.
+const CONTEXT_WINDOW_SUFFIX_RE = /\[(\d+)([kKmM])?\]\s*$/;
+
+export function stripContextWindowSuffix(
+  modelStr: string | null | undefined
+): string | null | undefined {
+  if (typeof modelStr !== "string" || !modelStr) return modelStr;
+  return modelStr.replace(CONTEXT_WINDOW_SUFFIX_RE, "").trimEnd();
+}
 
 // Derive alias→provider mapping from the single source of truth (PROVIDER_ID_TO_ALIAS)
 // This prevents the two maps from drifting out of sync
@@ -43,6 +54,10 @@ ALIAS_TO_PROVIDER_ID["xiaomi"] = "xiaomi-mimo";
 ALIAS_TO_PROVIDER_ID["llamacpp"] = "llama-cpp";
 // agy/ is the short alias for antigravity provider.
 ALIAS_TO_PROVIDER_ID["agy"] = "antigravity";
+// aq/ is the user-visible prefix for the Amazon Q (AWS Builder ID) provider.
+// The canonical provider ID is "amazon-q". Register it so parseModel("aq/<model>")
+// resolves provider = "amazon-q" instead of falling through to the identity fallback.
+ALIAS_TO_PROVIDER_ID["aq"] = "amazon-q";
 
 // Provider-scoped legacy model aliases. Used to normalize provider/model inputs
 // and keep backward compatibility when upstream IDs change.
@@ -120,7 +135,44 @@ for (const [aliasOrId, models] of Object.entries(PROVIDER_MODELS)) {
   }
 }
 const KNOWN_MODEL_IDS = new Set(MODEL_TO_PROVIDERS.keys());
-export const CODEX_NATIVE_UNPREFIXED_MODELS = new Set(["codex-auto-review"]);
+// Bare Codex CLI defaults must always route to the `codex` provider (chatgpt.com
+// OAuth) even when other providers that also catalog the model id (e.g.
+// `agentrouter`, `openai`) are active. The Codex cookie quota on the user's
+// account is the source of truth for capacity, and bare-id requests from
+// `codex` (CLI)/`Codex` (web) would otherwise silently fan out to whichever
+// provider won the inference race — leaving the user wondering why the
+// canonical ChatGPT subscription stopped working. Override per-request by
+// prefixing the model id (e.g. `agentrouter/gpt-5.6-sol`,
+// `openai/gpt-5.6-sol`) — the prefix path always wins.
+export const CODEX_NATIVE_UNPREFIXED_MODELS = new Set([
+  "codex-auto-review",
+  "gpt-5.6-sol",
+  "gpt-5.6-sol-ultra",
+  "gpt-5.6-sol-max",
+  "gpt-5.6-sol-xhigh",
+  "gpt-5.6-sol-high",
+  "gpt-5.6-sol-medium",
+  "gpt-5.6-sol-low",
+  "gpt-5.6-terra",
+  "gpt-5.6-terra-ultra",
+  "gpt-5.6-terra-max",
+  "gpt-5.6-terra-xhigh",
+  "gpt-5.6-terra-high",
+  "gpt-5.6-terra-medium",
+  "gpt-5.6-terra-low",
+  "gpt-5.6-luna",
+  "gpt-5.6-luna-max",
+  "gpt-5.6-luna-xhigh",
+  "gpt-5.6-luna-high",
+  "gpt-5.6-luna-medium",
+  "gpt-5.6-luna-low",
+  "gpt-5.5",
+  "gpt-5.5-xhigh",
+  "gpt-5.5-high",
+  "gpt-5.5-medium",
+  "gpt-5.5-low",
+  "gpt-5.3-codex-spark",
+]);
 
 interface ProviderConnectionLike {
   provider?: unknown;
@@ -294,6 +346,48 @@ async function getActiveSyncedProvidersForModel(modelId: string) {
   }
 }
 
+async function reconcileInferredProvidersWithActiveCatalog(providerIds: string[], modelId: string) {
+  const uniqueProviders = Array.from(new Set(providerIds));
+
+  try {
+    const { reconcileProvidersWithActiveSyncedCatalog } =
+      await import("@/lib/db/models/activeSyncedCatalog");
+
+    const reconciliations = await Promise.all(
+      uniqueProviders.map(async (provider) => {
+        const effortBaseModelId = getRegisteredProviderEffortBaseModelId(provider, modelId);
+
+        const catalogModelId = effortBaseModelId ?? modelId;
+
+        const reconciliation = await reconcileProvidersWithActiveSyncedCatalog(
+          [provider],
+          catalogModelId
+        );
+
+        return {
+          provider,
+          allowed: reconciliation.providers.includes(provider),
+          excluded: reconciliation.excludedProviders.includes(provider),
+        };
+      })
+    );
+
+    return {
+      providers: reconciliations
+        .filter((result) => result.allowed)
+        .map((result) => result.provider),
+      excludedProviders: reconciliations
+        .filter((result) => result.excluded)
+        .map((result) => result.provider),
+    };
+  } catch {
+    return {
+      providers: uniqueProviders,
+      excludedProviders: [],
+    };
+  }
+}
+
 function isTruthyEnv(value: string | undefined) {
   return typeof value === "string" && /^(1|true|yes|on)$/i.test(value.trim());
 }
@@ -391,12 +485,12 @@ export function parseModel(modelStr: string | null | undefined): ParsedModel {
     };
   }
 
-  // Extract [1m] suffix before parsing provider/model
+  // Extract the legacy [1m] marker while stripping all client context tags.
   let extendedContext = false;
-  let cleanStr = modelStr;
-  if (cleanStr.endsWith("[1m]")) {
+  const cleanStripped = stripContextWindowSuffix(modelStr) as string;
+  let cleanStr = cleanStripped;
+  if (/\[1m\]\s*$/i.test(modelStr)) {
     extendedContext = true;
-    cleanStr = cleanStr.slice(0, -4);
   }
   cleanStr = cleanStr.trim();
 
@@ -520,21 +614,52 @@ function parseAliasTarget(target: string): ResolvedModelTarget | null {
 }
 
 async function resolveModelByProviderInference(modelId: string, extendedContext: boolean) {
-  if (CODEX_NATIVE_UNPREFIXED_MODELS.has(modelId)) {
-    return {
-      provider: "codex",
-      model: modelId,
-      extendedContext,
-    };
-  }
-
   const [activeProviders, activeSyncedProviders, preferClaudeCodeForUnprefixedClaudeModels] =
     await Promise.all([
       getActiveProviderSet(),
       getActiveSyncedProvidersForModel(modelId),
       getPreferClaudeCodeForUnprefixedClaudeModels(),
     ]);
-  const providers = getInferredProvidersForModel(modelId, activeSyncedProviders);
+
+  // Codex-native bare ids prefer the ChatGPT subscription, but the preference is only
+  // allowed to PREEMPT another provider when a codex connection is actually active.
+  // Returning "codex" unconditionally (as this did once the set grew past
+  // `codex-auto-review` to cover gpt-5.5 / the gpt-5.6-sol tiers) hands ids that OpenAI
+  // also serves to a provider the operator may not have configured: an OpenAI-only
+  // install fails with "no active credentials for provider: codex" on a model that
+  // works, and an install whose codex connection is merely *inactive* fails the same way.
+  // Ids only codex catalogs (e.g. `codex-auto-review`) keep resolving to codex with no
+  // connection at all — there is no alternative to preempt, and "no codex credentials"
+  // is the honest error. With codex active the preference still beats OpenAI, and an
+  // explicit `openai/…` prefix remains the per-request override either way.
+  if (CODEX_NATIVE_UNPREFIXED_MODELS.has(modelId)) {
+    const codexNativeAlternatives = (MODEL_TO_PROVIDERS.get(modelId) || []).filter(
+      (p) => p !== "codex"
+    );
+    if (codexNativeAlternatives.length === 0 || activeProviders?.has("codex")) {
+      return {
+        provider: "codex",
+        model: modelId,
+        extendedContext,
+      };
+    }
+  }
+
+  const candidateProviders = getInferredProvidersForModel(modelId, activeSyncedProviders);
+  const { providers, excludedProviders } = await reconcileInferredProvidersWithActiveCatalog(
+    candidateProviders,
+    modelId
+  );
+
+  if (providers.length === 0 && excludedProviders.length > 0) {
+    return {
+      provider: null,
+      model: modelId,
+      extendedContext,
+      errorType: "model_not_found",
+      errorMessage: `Model '${modelId}' is not available in the active live catalog for provider(s): ${excludedProviders.join(", ")}.`,
+    };
+  }
   const nonOpenAIProviders = providers.filter((p) => p !== "openai");
 
   // Bare model IDs from Codex CLI do not preserve OmniRoute's `cx/` prefix.
@@ -600,13 +725,34 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
 
   // Canonicalize candidates (deduplicate alias providers pointing to the same provider ID)
   const canonicalCandidates = Array.from(
-    new Set(candidatesToUse.map((p) => resolveProviderAlias(p)).filter((p): p is string => p !== null))
+    new Set(
+      candidatesToUse.map((p) => resolveProviderAlias(p)).filter((p): p is string => p !== null)
+    )
   );
 
   // Filter candidates by active connections configured in the database
   let activeCandidates: string[] = [];
   if (activeProviders && activeProviders.size > 0) {
     activeCandidates = canonicalCandidates.filter((p) => activeProviders.has(p));
+  }
+
+  // An authoritative active live catalog excluded at least one static
+  // candidate, and none of the remaining static candidates has an active
+  // connection. Do not escape the live-catalog decision by selecting an
+  // unrelated inactive provider that happens to share the same static model id.
+  if (
+    activeProviders &&
+    activeProviders.size > 0 &&
+    activeCandidates.length === 0 &&
+    excludedProviders.length > 0
+  ) {
+    return {
+      provider: null,
+      model: modelId,
+      extendedContext,
+      errorType: "model_not_found",
+      errorMessage: `Model '${modelId}' is not available in the active live catalog for provider(s): ${excludedProviders.join(", ")}.`,
+    };
   }
 
   // Auto-pick:

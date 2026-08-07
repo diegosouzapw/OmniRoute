@@ -1,3 +1,9 @@
+---
+title: "Redis Production Configuration Guide"
+version: 3.8.50
+lastUpdated: 2026-08-06
+---
+
 # Redis Production Configuration Guide
 
 ## Overview

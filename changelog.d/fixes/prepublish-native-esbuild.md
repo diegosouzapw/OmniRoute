@@ -1,0 +1,1 @@
+- fix(build): exec native esbuild binary directly in prepublish — esbuild ≥0.25 ships an ELF at bin/esbuild and running it through node crashed every build:cli (dast-smoke red on all PRs)

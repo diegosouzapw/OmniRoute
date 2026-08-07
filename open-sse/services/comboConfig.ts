@@ -61,8 +61,8 @@ export function isComboCooldownWaitEligible(
  * When the combo is wait-eligible (see isComboCooldownWaitEligible), a single target's
  * dispatch can legitimately wait out cooldowns for up to `comboCooldownWait.budgetMs`
  * before it resolves — so the per-target timeout must never be shorter than that budget,
- * or the wait gets cut off mid-retry and the target times out with a synthetic 524
- * (open-sse/services/combo/targetTimeoutRunner.ts) instead of completing the wait. This
+ * or the wait gets cut off mid-retry and the target times out with a synthetic 504
+ * (`combo_target_timeout`, open-sse/services/combo/targetTimeoutRunner.ts) instead of completing the wait. This
  * only raises the *default* floor; an operator's explicit `targetTimeoutMs` on the combo
  * still wins (see resolveComboTargetTimeoutMs).
  */
@@ -98,8 +98,16 @@ const DEFAULT_COMBO_CONFIG = {
   maxRetries: 1,
   retryDelayMs: 2000,
   fallbackDelayMs: 0,
-  concurrencyPerModel: 3, // max simultaneous requests per model (round-robin)
-  queueTimeoutMs: 30000, // max wait time in semaphore queue (round-robin)
+  // #9100: round-robin combo concurrency was hard-capped at 3 concurrent
+  // requests per model with no override — 5 concurrent requests through a
+  // round-robin combo serialized behind that cap. Now configurable via
+  // COMBO_CONCURRENCY_PER_MODEL (validated to >= 1, clamped to <= 32; default
+  // 3 preserves the historical behavior).
+  concurrencyPerModel: Math.min(
+    Math.max(Number(process.env.COMBO_CONCURRENCY_PER_MODEL) || 3, 1),
+    32
+  ),
+  queueTimeoutMs: 120000, // max wait time in semaphore queue (round-robin); raised from 30s for browser-automation providers like gemini-web (#9407)
   queueDepth: DEFAULT_COMBO_QUEUE_DEPTH, // pre-cascade semaphore queue depth (round-robin, #3872)
   handoffThreshold: 0.85,
   handoffModel: "",
@@ -171,6 +179,7 @@ const DEFAULT_COMBO_CONFIG = {
   contextRequirements: undefined as
     | {
         minContextWindow?: number;
+        maxContextWindow?: number;
         preferLargeContext?: boolean;
         contextFilterMode?: "strict" | "lenient";
       }

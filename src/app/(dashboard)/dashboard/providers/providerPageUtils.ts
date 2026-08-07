@@ -15,8 +15,11 @@ import { getModelsByProviderId } from "@/shared/constants/models";
 import { providerHasServiceKind } from "@/lib/providers/serviceKindIndex";
 import { compareTr, matchesAnyToken, matchesSearch } from "@/shared/utils/turkishText";
 import { fetchWithTimeout } from "@/shared/utils/fetchTimeout";
-import type { ProviderDisplayMode } from "./providerPageStorage";
-import { isFeaturedProviderId } from "./featuredProviders";
+import {
+  parseProviderDisplayModePreference,
+  type ProviderDisplayMode,
+} from "./providerPageStorage";
+import { getFeaturedProviderRank } from "./featuredProviders";
 
 export interface ProviderStatsSnapshot {
   total?: number;
@@ -71,20 +74,115 @@ export function shouldShowFirstProviderHint(
 }
 
 export function syncSearchToUrl(searchQuery: string): void {
+  syncProviderFiltersToUrl({ searchQuery });
+}
+
+/** All dashboard summary-chip category keys that are valid in `?cat=`. */
+const PROVIDER_CATEGORY_URL_VALUES = new Set([
+  "oauth",
+  "ide",
+  "free",
+  "no-auth",
+  "upstream-proxy",
+  "apikey",
+  "compatible",
+  "webcookie",
+  "search",
+  "webfetch",
+  "audio",
+  "local",
+  "cloudagent",
+]);
+
+/** Media/service-kind chip keys that are valid in `?media=`. */
+const PROVIDER_SERVICE_KIND_URL_VALUES = new Set([
+  "image",
+  "video",
+  "music",
+  "tts",
+  "stt",
+  "embedding",
+]);
+
+export interface ProviderFilterUrlState {
+  searchQuery?: string;
+  modelSearchQuery?: string;
+  displayMode?: ProviderDisplayMode;
+  category?: string | null;
+  showFreeOnly?: boolean;
+  mediaKind?: string | null;
+}
+
+/**
+ * Reflect the providers dashboard filters in the URL query string via
+ * history.replaceState so a filtered view can be bookmarked/shared:
+ *
+ *   ?search=<name>  provider-name / id search (#8624)
+ *   ?model=<name>   model-name search
+ *   ?mode=all|configured|compact  display mode (All / Configured / Compact)
+ *   ?cat=<key>      active summary category (oauth, ide, free, no-auth, …)
+ *   ?media=<key>    media/service-kind filter (image, video, music, …)
+ *
+ * "Free Tier" is encoded as `?cat=free` (showFreeOnly). Params carrying no
+ * filter are removed so the URL stays canonical and shareable.
+ */
+export function syncProviderFiltersToUrl(state: ProviderFilterUrlState): void {
   if (typeof window === "undefined") return;
 
   const url = new URL(window.location.href);
-  const currentSearch = url.searchParams.get("search") || "";
+  const params = url.searchParams;
+  let changed = false;
 
-  if (searchQuery.trim()) {
-    if (currentSearch !== searchQuery) {
-      url.searchParams.set("search", searchQuery);
-      window.history.replaceState(window.history.state, "", url.toString());
-    }
-  } else if (url.searchParams.has("search")) {
-    url.searchParams.delete("search");
+  const setOrRemove = (key: string, value: string | null | undefined) => {
+    const next = value != null && value.length > 0 ? value : null;
+    const current = params.get(key);
+    if (next === current) return;
+    if (next === null) params.delete(key);
+    else params.set(key, next);
+    changed = true;
+  };
+
+  setOrRemove("search", state.searchQuery?.trim());
+  setOrRemove("model", state.modelSearchQuery?.trim());
+  setOrRemove("mode", state.displayMode && state.displayMode !== "all" ? state.displayMode : null);
+  setOrRemove("cat", state.showFreeOnly ? "free" : state.category || null);
+  setOrRemove("media", state.mediaKind || null);
+
+  if (changed) {
     window.history.replaceState(window.history.state, "", url.toString());
   }
+}
+
+/** Parse the provider dashboard filters back out of URL query params. */
+export function readProviderFiltersFromUrl(params: URLSearchParams): ProviderFilterUrlState {
+  const state: ProviderFilterUrlState = {};
+
+  const search = params.get("search");
+  if (search) state.searchQuery = search;
+
+  const model = params.get("model");
+  if (model) state.modelSearchQuery = model;
+
+  const mode = parseProviderDisplayModePreference(params.get("mode"));
+  if (mode) state.displayMode = mode;
+
+  const category = params.get("cat");
+  if (category && PROVIDER_CATEGORY_URL_VALUES.has(category)) {
+    if (category === "free") {
+      state.showFreeOnly = true;
+      state.category = null;
+    } else {
+      state.showFreeOnly = false;
+      state.category = category;
+    }
+  }
+
+  const media = params.get("media");
+  if (media && PROVIDER_SERVICE_KIND_URL_VALUES.has(media)) {
+    state.mediaKind = media;
+  }
+
+  return state;
 }
 
 export function shouldShowProviderSection(
@@ -109,6 +207,13 @@ const PROVIDER_CONNECTION_ALIASES: Record<string, readonly string[]> = {
   alibaba: ["alibaba-cn"],
   "kimi-coding": ["kimi-coding-apikey"],
 };
+
+export function getProviderConnectionsRequestUrl(providerId: string): string {
+  const hasAliases = (PROVIDER_CONNECTION_ALIASES[providerId]?.length ?? 0) > 0;
+  return hasAliases
+    ? "/api/providers"
+    : `/api/providers?provider=${encodeURIComponent(providerId)}`;
+}
 
 export function connectionBelongsToProviderPage(
   connectionProvider: string | null | undefined,
@@ -165,22 +270,31 @@ export function sortProviderEntriesByName<TProvider>(
 
 /**
  * Sort provider entries alphabetically (via `sortProviderEntriesByName`), then
- * stable-pin any `FEATURED_PROVIDER_IDS` member first — featured entries keep
- * their alphabetical order among themselves, followed by the rest in
- * alphabetical order. Presentation-only (see `featuredProviders.ts`): this must
- * never influence routing/fallback order, only how the dashboard's provider
- * category grids are sorted.
+ * stable-pin sponsors first in explicit rank order (see `featuredProviders.ts`):
+ * rank 1 block, then rank 2, then everything unranked — each block keeping the
+ * alphabetical order established above. Presentation-only: this must never
+ * influence routing/fallback order, only how the dashboard's provider category
+ * grids are sorted.
  */
 export function sortProviderEntriesFeaturedFirst<TProvider>(
   entries: ProviderEntry<TProvider>[]
 ): ProviderEntry<TProvider>[] {
   const sorted = sortProviderEntriesByName(entries);
-  const featured: ProviderEntry<TProvider>[] = [];
+  // A plain "featured first" pin would order Cheaper Inference above Kimi (the
+  // alphabet), which is exactly what the explicit ranks prevent.
+  const ranked: ProviderEntry<TProvider>[] = [];
   const rest: ProviderEntry<TProvider>[] = [];
   for (const entry of sorted) {
-    (isFeaturedProviderId(entry.providerId) ? featured : rest).push(entry);
+    (getFeaturedProviderRank(entry.providerId) === null ? rest : ranked).push(entry);
   }
-  return [...featured, ...rest];
+  // Array.prototype.sort is stable in ES2019+, so equal-rank entries keep the
+  // alphabetical order established above.
+  ranked.sort(
+    (a, b) =>
+      (getFeaturedProviderRank(a.providerId) as number) -
+      (getFeaturedProviderRank(b.providerId) as number)
+  );
+  return [...ranked, ...rest];
 }
 
 export function buildProviderEntries<TProvider = Record<string, unknown>>(
@@ -436,6 +550,28 @@ export interface ProviderPageData {
   expirations: any | null;
   blockedProviders: string[] | null;
   settings: any | null;
+  /** OpenRouter-sourced popularity/identity enrichment, keyed by provider slug. Empty if the sync hasn't run yet or the fetch failed. */
+  openRouterProviderStats: OpenRouterProviderStatsEntry[];
+}
+
+/** Mirrors ProviderPopularityEntry from src/lib/catalog/openrouterProviderStats.ts (kept local to avoid a server-only import from a client component). */
+export interface OpenRouterProviderStatsEntry {
+  slug: string;
+  displayName: string;
+  headquarters?: string;
+  statusPageUrl?: string | null;
+  byokEnabled?: boolean;
+  dataPolicy?: {
+    training?: boolean;
+    retainsPrompts?: boolean;
+    termsOfServiceURL?: string;
+    privacyPolicyURL?: string;
+  };
+  iconUrl?: string;
+  modelCount: number;
+  totalTokens: number;
+  totalRequests: number;
+  popularityRank: number;
 }
 
 // Bound each first-paint request so a single stalled connection cannot freeze
@@ -473,12 +609,14 @@ export async function loadProviderPageData(
     }
   };
 
-  const [connectionsData, nodesData, expirationsData, settingsData] = await Promise.all([
-    safeJson("/api/providers"),
-    safeJson("/api/provider-nodes"),
-    safeJson("/api/providers/expiration"),
-    safeJson("/api/settings", { cache: "no-store" }),
-  ]);
+  const [connectionsData, nodesData, expirationsData, settingsData, openRouterStatsData] =
+    await Promise.all([
+      safeJson("/api/providers"),
+      safeJson("/api/provider-nodes"),
+      safeJson("/api/providers/expiration"),
+      safeJson("/api/settings", { cache: "no-store" }),
+      safeJson("/api/providers/openrouter-stats"),
+    ]);
 
   return {
     connections: Array.isArray(connectionsData?.connections) ? connectionsData.connections : [],
@@ -489,5 +627,8 @@ export async function loadProviderPageData(
       ? settingsData.blockedProviders
       : null,
     settings: settingsData ?? null,
+    openRouterProviderStats: Array.isArray(openRouterStatsData?.data)
+      ? openRouterStatsData.data
+      : [],
   };
 }

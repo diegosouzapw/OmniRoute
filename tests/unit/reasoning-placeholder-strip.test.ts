@@ -46,8 +46,18 @@ test("a chunk with the placeholder mixed into real text strips it (trim only aff
   // only strips the string's own leading/trailing whitespace, not internal gaps.
   assert.equal(
     stripInternalReasoningPlaceholder(`foo ${NON_ANTHROPIC_THINKING_PLACEHOLDER} bar`),
-    "foo  bar",
+    "foo  bar"
   );
+});
+
+test("standalone whitespace-only chunks pass through byte-for-byte when no placeholder is present", () => {
+  for (const chunk of [" ", "\t", "\n", "\n\n", "\r\n"]) {
+    assert.equal(
+      stripInternalReasoningPlaceholder(chunk),
+      chunk,
+      `expected ${JSON.stringify(chunk)} to remain unchanged`
+    );
+  }
 });
 
 test("an empty string stays empty", () => {

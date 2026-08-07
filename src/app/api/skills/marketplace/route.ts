@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSettings } from "@/lib/db/settings";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { getSkillsProviderSetting } from "@/lib/skills/providerSettings";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const POPULAR_BY_PROVIDER = {
   skillsmp: ["web-search", "file-reader", "sql-assistant", "devops-helper", "docs-assistant"],
@@ -55,7 +56,7 @@ export async function GET(request: Request) {
     const data = await res.json();
     return NextResponse.json({ skills: data.data?.skills || data.skills || [] });
   } catch (err: unknown) {
-    const error = err instanceof Error ? err.message : String(err);
+    const error = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
     return NextResponse.json({ error }, { status: 500 });
   }
 }

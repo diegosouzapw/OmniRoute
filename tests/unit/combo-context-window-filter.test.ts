@@ -5,9 +5,8 @@ import os from "node:os";
 import path from "node:path";
 
 // Regression tests for the context-aware combo compatibility filter.
-// Unknown context metadata is only safe as a fallback. Once the context filter
-// has rejected known-too-small targets and a known-capacity target remains,
-// unknown-context targets must not survive over it.
+// Context metadata is advisory: known-fitting targets are preferred, while
+// unknown and catalog-too-small targets remain available for runtime fallback.
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-context-filter-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
@@ -97,7 +96,7 @@ function bigContextBody(tokens: number) {
 
 const noopLog = { info() {}, warn() {}, error() {}, debug() {} };
 
-test("known compatible context target wins over unknown-context targets", () => {
+test("known compatible context target is preferred while unknown targets remain fallback", () => {
   saveModelsDevCapabilities({
     "unit-known-context": {
       tiny: capabilityEntry(8_000),
@@ -118,7 +117,12 @@ test("known compatible context target wins over unknown-context targets", () => 
 
   assert.deepEqual(
     out.map((entry) => entry.modelStr),
-    ["unit-known-context/million"]
+    [
+      "unit-known-context/million",
+      "unit-unknown-context/mystery-a",
+      "unit-known-context/tiny",
+      "unit-unknown-context/mystery-b",
+    ]
   );
 });
 

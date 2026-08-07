@@ -9,9 +9,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
 
+const { handleTestCombo } = await import("../tools/advancedTools.ts");
+
 describe("MCP Advanced Tools", () => {
   beforeEach(() => {
     mockFetch.mockReset();
+    // Re-assert the stub: importing advancedTools.ts triggers OmniRoute's own
+    // startup side effects (DB init, global fetch proxy patch) that overwrite
+    // globalThis.fetch after the top-level vi.stubGlobal() above ran.
+    vi.stubGlobal("fetch", mockFetch);
   });
 
   describe("simulate_route", () => {
@@ -81,6 +87,32 @@ describe("MCP Advanced Tools", () => {
       const combo = combos.find((c: { id?: string }) => c.id === "test-combo");
       expect(combo).toBeDefined();
       expect(combo.models).toHaveLength(2);
+    });
+
+    it("does not send a non-standard 'x-provider' body field upstream (regression, strict providers like Groq reject it with HTTP 400)", async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => [
+            {
+              id: "groq-combo",
+              models: [{ provider: "groq", model: "groq/llama-3.1-8b-instant" }],
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ model: "llama-3.1-8b-instant", cost: 0, usage: {} }),
+        });
+
+      await handleTestCombo({ comboId: "groq-combo", testPrompt: "hi" });
+
+      const chatCompletionsCall = mockFetch.mock.calls.find(([url]) =>
+        String(url).includes("/v1/chat/completions")
+      );
+      expect(chatCompletionsCall).toBeDefined();
+      const sentBody = JSON.parse(chatCompletionsCall![1].body);
+      expect(sentBody).not.toHaveProperty("x-provider");
     });
   });
 

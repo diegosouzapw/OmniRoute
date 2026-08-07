@@ -1,4 +1,5 @@
 const LANGUAGE_HINTS: Record<string, RegExp[]> = {
+  it: [/\b(?:perche|perché|pero|però|cioe|cioè|quindi|potresti|vorrei|adesso|errore|grazie|devo|voglio|questo|quello|anche|sono|molto)\b/i],
   "pt-BR": [/\b(?:voce|você|preciso|arquivo|codigo|código|erro|falha|obrigado)\b/i],
   // NOTE: English-ambiguous words are intentionally excluded — "error" (es) and
   // "configuration" (fr) are identical in English and would misclassify English text.

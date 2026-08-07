@@ -15,7 +15,7 @@ export const perplexity_webProvider: RegistryEntry = {
     { id: "pplx-gpt-5.6-sol", name: "GPT-5.6 Sol (via Perplexity)", toolCalling: false },
     { id: "pplx-gemini", name: "Gemini 3.1 Pro (via Perplexity)", toolCalling: false },
     { id: "pplx-sonnet", name: "Claude Sonnet 5.0 (via Perplexity)", toolCalling: false },
-    { id: "pplx-opus", name: "Claude Opus 4.8 (via Perplexity)", toolCalling: false },
+    { id: "pplx-opus", name: "Claude Opus 5.0 (via Perplexity)", toolCalling: false },
     { id: "pplx-glm", name: "GLM-5.2 (via Perplexity)", toolCalling: false },
     { id: "pplx-kimi", name: "Kimi K2.6 (via Perplexity)", toolCalling: false },
     { id: "pplx-grok-4.5", name: "Grok 4.5 (via Perplexity)", toolCalling: false },

@@ -5,6 +5,10 @@
 
 import { getDbInstance } from "./core";
 import type { AgentBridgeMappingRow } from "./_rowTypes";
+import { setMitmAliasAll } from "./models/mitmAlias";
+
+/** Agents that have a registered alias key in standaloneRouting.cjs::AGENT_ROUTE_CONFIG. */
+const MITM_ALIAS_AGENTS = new Set(["antigravity", "claude-code", "kiro"]);
 
 export function getMappingsForAgent(agentId: string): AgentBridgeMappingRow[] {
   const db = getDbInstance();
@@ -41,7 +45,32 @@ export function setMappings(
 
 export function deleteMapping(agentId: string, source: string): void {
   const db = getDbInstance();
-  db.prepare(
-    "DELETE FROM agent_bridge_mappings WHERE agent_id = ? AND source_model = ?"
-  ).run(agentId, source);
+  db.prepare("DELETE FROM agent_bridge_mappings WHERE agent_id = ? AND source_model = ?").run(
+    agentId,
+    source
+  );
+}
+
+/**
+ * Sync agent_bridge_mappings for the given agent to the key_value table as
+ * mitmAlias entries so the MITM proxy (server.cjs) can read them during
+ * interception.
+ *
+ * Only syncs agents that have a dedicated alias key in
+ * standaloneRouting.cjs::AGENT_ROUTE_CONFIG (antigravity, claude-code, kiro).
+ * Other agents fall through to the antigravity config and don't need their own
+ * entry.
+ *
+ * Fix #8656: model mappings saved via the UI were invisible to the MITM proxy
+ * because the proxy reads from key_value (namespace='mitmAlias'), not from
+ * agent_bridge_mappings.
+ */
+export function syncAgentBridgeMappingsToMitmAlias(agentId: string): void {
+  if (!MITM_ALIAS_AGENTS.has(agentId)) return;
+  const rows = getMappingsForAgent(agentId);
+  const mappings: Record<string, string> = {};
+  for (const row of rows) {
+    mappings[row.source_model] = row.target_model;
+  }
+  setMitmAliasAll(agentId, mappings);
 }
