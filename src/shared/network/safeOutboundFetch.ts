@@ -10,6 +10,18 @@ import {
 
 const DEFAULT_IDEMPOTENT_METHODS = ["GET", "HEAD", "OPTIONS", "PUT", "DELETE"];
 
+// Some upstream providers (Cerebras, Cloudflare AI, Groq observed in practice) routinely take
+// close to 5s to answer a lightweight /models probe, which is indistinguishable from a real
+// outage under the previous fixed 5000ms budget — the connection flaps between "active" and
+// "error" in the dashboard/topology view purely from being near the edge of the timeout, not
+// from any real failure. Configurable via env so it can be tuned per-deployment without a code
+// change; default raised from 5000ms to 8000ms to give slow-but-healthy providers headroom.
+function resolveProbeTimeoutMs(): number {
+  const parsed = parseInt(process.env.OMNIROUTE_PROVIDER_PROBE_TIMEOUT_MS || "", 10);
+  return Number.isFinite(parsed) && parsed >= 1000 ? parsed : 8000;
+}
+const PROVIDER_PROBE_TIMEOUT_MS = resolveProbeTimeoutMs();
+
 export type SafeOutboundFetchGuard = OutboundUrlGuardMode;
 export type SafeOutboundFetchErrorCode =
   | "INVALID_URL"
@@ -47,7 +59,7 @@ type SafeOutboundFetchPresetMap = {
 
 export const SAFE_OUTBOUND_FETCH_PRESETS: SafeOutboundFetchPresetMap = {
   validationRead: {
-    timeoutMs: 5000,
+    timeoutMs: PROVIDER_PROBE_TIMEOUT_MS,
     allowRedirect: false,
     retry: {
       attempts: 2,
@@ -61,7 +73,7 @@ export const SAFE_OUTBOUND_FETCH_PRESETS: SafeOutboundFetchPresetMap = {
     retry: false,
   },
   modelsProbe: {
-    timeoutMs: 5000,
+    timeoutMs: PROVIDER_PROBE_TIMEOUT_MS,
     allowRedirect: false,
     retry: {
       attempts: 2,
