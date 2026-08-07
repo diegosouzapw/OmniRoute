@@ -54,6 +54,7 @@ import {
   normalizeIntelligentRoutingFilter,
   normalizeIntelligentRoutingConfig,
 } from "@/lib/combos/intelligentRouting";
+import { getComboStepTarget } from "@/lib/combos/steps";
 import { resolveServerErrorMessage } from "@/lib/api/serverErrorMessage";
 import { useTranslations } from "next-intl";
 
@@ -570,6 +571,13 @@ function normalizeModelEntry(entry) {
       weight: entry.weight || 0,
     };
   }
+  if (entry?.kind === "provider-wildcard") {
+    return {
+      ...entry,
+      model: getComboStepTarget(entry),
+      weight: entry.weight || 0,
+    };
+  }
   return {
     ...entry,
     model: entry.model,
@@ -580,6 +588,7 @@ function normalizeModelEntry(entry) {
 function getModelString(entry) {
   if (typeof entry === "string") return entry;
   if (entry?.kind === "combo-ref") return entry.comboName;
+  if (entry?.kind === "provider-wildcard") return getComboStepTarget(entry);
   return entry.model;
 }
 
@@ -633,6 +642,37 @@ function formatComboEntryDisplay(
   const normalizedEntry = normalizeModelEntry(entry);
   if (normalizedEntry.kind === "combo-ref") {
     return `Combo → ${normalizedEntry.comboName}`;
+  }
+
+  if (normalizedEntry.kind === "provider-wildcard") {
+    const providerIdentifier = normalizedEntry.providerId;
+    const builderProvider = findBuilderProviderByIdentifier(builderProviders, providerIdentifier);
+    const providerNode = findProviderNodeByIdentifier(providerNodes, providerIdentifier);
+    const providerLabel =
+      builderProvider?.displayName || providerNode?.name || providerIdentifier || "provider";
+    const patternLabel = normalizedEntry.modelPattern || "*";
+    const wildcardLabel = `${providerLabel}/${patternLabel}`;
+
+    if (!includeConnection) {
+      return wildcardLabel;
+    }
+
+    const connectionId = normalizedEntry.connectionId || null;
+    const rawConnectionLabel =
+      (connectionId &&
+        builderProvider?.connections?.find((connection) => connection.id === connectionId)
+          ?.label) ||
+      normalizedEntry.label ||
+      null;
+    const connectionLabel = rawConnectionLabel
+      ? pickDisplayValue([rawConnectionLabel], showFullEmails, rawConnectionLabel)
+      : null;
+
+    if (connectionId) {
+      return `${wildcardLabel} · ${connectionLabel || `acct ${connectionId.slice(0, 8)}`}`;
+    }
+
+    return `${wildcardLabel} · dynamic account`;
   }
 
   const parsed = parseQualifiedModel(normalizedEntry.model);
@@ -3420,15 +3460,25 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                         <div className="text-[10px] text-text-muted truncate">
                           {entry.kind === "combo-ref"
                             ? getI18nOrFallback(t, "builderComboRefStep", "Nested combo reference")
-                            : entry.connectionId
-                              ? getI18nOrFallback(t, "builderPinnedAccount", "Pinned account")
-                              : entry.providerId
-                                ? getI18nOrFallback(
-                                    t,
-                                    "builderDynamicAccountShort",
-                                    "Dynamic account"
-                                  )
-                                : getI18nOrFallback(t, "builderLegacyEntry", "Legacy model entry")}
+                            : entry.kind === "provider-wildcard"
+                              ? getI18nOrFallback(
+                                  t,
+                                  "builderProviderWildcard",
+                                  "All matching provider models"
+                                )
+                              : entry.connectionId
+                                ? getI18nOrFallback(t, "builderPinnedAccount", "Pinned account")
+                                : entry.providerId
+                                  ? getI18nOrFallback(
+                                      t,
+                                      "builderDynamicAccountShort",
+                                      "Dynamic account"
+                                    )
+                                  : getI18nOrFallback(
+                                      t,
+                                      "builderLegacyEntry",
+                                      "Legacy model entry"
+                                    )}
                         </div>
                       </div>
 
@@ -4542,19 +4592,25 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                                     "builderComboRefStep",
                                     "Nested combo reference"
                                   )
-                                : entry.connectionId
-                                  ? getI18nOrFallback(t, "builderPinnedAccount", "Pinned account")
-                                  : entry.providerId
-                                    ? getI18nOrFallback(
-                                        t,
-                                        "builderDynamicAccountShort",
-                                        "Dynamic account"
-                                      )
-                                    : getI18nOrFallback(
-                                        t,
-                                        "builderLegacyEntry",
-                                        "Legacy model entry"
-                                      )}
+                                : entry.kind === "provider-wildcard"
+                                  ? getI18nOrFallback(
+                                      t,
+                                      "builderProviderWildcard",
+                                      "All matching provider models"
+                                    )
+                                  : entry.connectionId
+                                    ? getI18nOrFallback(t, "builderPinnedAccount", "Pinned account")
+                                    : entry.providerId
+                                      ? getI18nOrFallback(
+                                          t,
+                                          "builderDynamicAccountShort",
+                                          "Dynamic account"
+                                        )
+                                      : getI18nOrFallback(
+                                          t,
+                                          "builderLegacyEntry",
+                                          "Legacy model entry"
+                                        )}
                               {strategy === "weighted" && entry.weight > 0
                                 ? ` · ${entry.weight}%`
                                 : ""}

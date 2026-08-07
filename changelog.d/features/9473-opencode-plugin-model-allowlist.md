@@ -1,0 +1,1 @@
+- **feat(opencode-plugin):** added `features.visibleModels` (allowlist) and `features.hiddenModels` (blocklist) to `@omniroute/opencode-plugin` — curate the OpenCode TUI/CLI model picker from 600+ catalog entries down to an operator-defined ID list that persists in `opencode.json` across config resets ([#9473](https://github.com/diegosouzapw/OmniRoute/issues/9473))

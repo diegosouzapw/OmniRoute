@@ -17,7 +17,6 @@ import { CLI_TOOLS } from "../../src/shared/constants/cliTools.ts";
 
 const RETIRED_PUBLIC_MODELS = [
   "gemini-3-pro-preview",
-  "gemini-3.1-pro-high",
   "gemini-2.5-pro",
   "gemini-2.5-computer-use-preview-10-2025",
 ] as const;
@@ -82,7 +81,7 @@ test("AGY free-model metadata excludes unavailable Gemini 2.5 Pro", () => {
   );
 });
 
-test("Antigravity and AGY expose gemini-pro-agent as the only Gemini 3.1 Pro High id", () => {
+test("Antigravity and AGY expose gemini-pro-agent and gemini-3.1-pro-high as callable Gemini 3.1 Pro High ids", () => {
   const antigravityModels = new Map(
     ANTIGRAVITY_PUBLIC_MODELS.map((model) => [model.id, model.name])
   );
@@ -91,7 +90,7 @@ test("Antigravity and AGY expose gemini-pro-agent as the only Gemini 3.1 Pro Hig
 
   assert.equal(antigravityModels.has("gemini-3.1-pro-high"), false);
   assert.equal(agyModels.has("gemini-3.1-pro-high"), false);
-  assert.equal(isUserCallableAntigravityModelId("gemini-3.1-pro-high"), false);
+  assert.equal(isUserCallableAntigravityModelId("gemini-3.1-pro-high"), true);
   assert.equal(isUserCallableAgyModelId("gemini-3.1-pro-high"), false);
   assert.deepEqual(getAntigravityModelFallbacks("gemini-3.1-pro-high"), []);
   assert.equal(

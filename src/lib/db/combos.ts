@@ -1,359 +1,91 @@
 /**
- * db/combos.js — Combo CRUD operations.
+ * Compatibility facade for combo persistence.
+ *
+ * Application code keeps the existing function-level API while persistence is
+ * delegated through the domain repository contract. Cross-cutting write effects
+ * remain here instead of becoming part of the portable repository surface.
  */
 
-import { v4 as uuidv4 } from "uuid";
-import { getDbInstance } from "./core";
+import type { ComboRecord } from "@/domain/persistence/comboRepositories";
 import { backupDbFile } from "./backup";
+import { clearSessionModelHistoryForCombo } from "./contextHandoffs";
+import { getDbInstance } from "./core";
 import { invalidateDbCache } from "./readCache";
 import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
-import { normalizeComboRecord } from "@/lib/combos/steps";
-import { clearSessionModelHistoryForCombo } from "./contextHandoffs";
-import { validateComboInvariant } from "@/lib/combos/invariants";
+import { routingConfigRepositories } from "./repositories/routingConfigRepositories";
 
-type JsonRecord = Record<string, unknown>;
+const repository = routingConfigRepositories.combos;
 
-function asRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
+export function getCombos(limit?: number, offset?: number): Promise<ComboRecord[]> {
+  return repository.list(limit, offset);
 }
 
-function getSerializedData(value: unknown): string | null {
-  const row = asRecord(value);
-  return typeof row.data === "string" ? row.data : null;
-}
-
-function getSortOrder(value: unknown): number | null {
-  const row = asRecord(value);
-  return typeof row.sort_order === "number" ? row.sort_order : null;
-}
-
-function withSortOrder(payload: string, sortOrder: number | null): JsonRecord {
-  const parsed = JSON.parse(payload) as JsonRecord;
-  if (typeof sortOrder === "number") {
-    parsed.sortOrder = sortOrder;
-  }
-  return parsed;
-}
-
-function getComboNameSet(
-  db: ReturnType<typeof getDbInstance>,
-  extraNames: string[] = []
-): Set<string> {
-  const rows = db.prepare("SELECT name FROM combos").all();
-  const names = new Set<string>();
-
-  for (const row of rows) {
-    const record = asRecord(row);
-    if (typeof record.name === "string" && record.name.trim().length > 0) {
-      names.add(record.name.trim());
-    }
-  }
-
-  for (const name of extraNames) {
-    if (typeof name === "string" && name.trim().length > 0) {
-      names.add(name.trim());
-    }
-  }
-
-  return names;
-}
-
-function normalizeStoredCombo(
-  combo: JsonRecord,
-  db: ReturnType<typeof getDbInstance>,
-  extraNames: string[] = []
-) {
-  return normalizeComboRecord(combo, {
-    allCombos: getComboNameSet(db, extraNames),
-  });
-}
-
-function parseComboRow(row: unknown): JsonRecord | null {
-  const payload = getSerializedData(row);
-  if (!payload) return null;
-  const parsed = withSortOrder(payload, getSortOrder(row));
-  // Merge deduplicated column values back into the record
-  const record = asRecord(row);
-  if (record.context_cache_protection !== undefined && record.context_cache_protection !== null) {
-    // Column is authoritative when explicitly enabled (1).
-    // When column is 0 (unset default) preserve the JSON blob value
-    // to avoid silently disabling the feature on pre-migration rows.
-    if (record.context_cache_protection === 1) {
-      parsed.context_cache_protection = true;
-    }
-    // Column is 0 — keep existing JSON blob value
-  }
-  return parsed;
-}
-
-function getNextSortOrder() {
-  const db = getDbInstance();
-  const row = db.prepare("SELECT COALESCE(MAX(sort_order), 0) AS sort_order FROM combos").get();
-  const sortOrder = getSortOrder(row);
-  return (sortOrder ?? 0) + 1;
-}
-
-export async function getCombos(limit?: number, offset?: number) {
-  const db = getDbInstance();
-  let sql =
-    "SELECT id, data, sort_order, context_cache_protection FROM combos ORDER BY sort_order ASC, name COLLATE NOCASE ASC";
-  const params: unknown[] = [];
-  if (limit !== undefined) {
-    sql += " LIMIT ? OFFSET ?";
-    params.push(limit, offset ?? 0);
-  }
-  const rawCombos = db
-    .prepare(sql)
-    .all(...params)
-    .map((row) => parseComboRow(row))
-    .filter((row): row is JsonRecord => row !== null);
-
-  const comboNames = rawCombos
-    .map((combo) => (typeof combo.name === "string" ? combo.name.trim() : ""))
-    .filter((name): name is string => name.length > 0);
-
-  return rawCombos.map((combo) =>
-    normalizeComboRecord(combo, {
-      allCombos: comboNames,
-    })
-  );
-}
-
+/** Keep the existing synchronous facade contract while repository APIs become async. */
 export function getCombosCount(): number {
-  const db = getDbInstance();
-  const row = db.prepare("SELECT count(*) as cnt FROM combos").get() as { cnt: number };
-  return row.cnt;
+  return routingConfigRepositories.legacySync.getCombosCount();
 }
 
-export async function getComboById(id: string) {
-  const db = getDbInstance();
-  const row = db
-    .prepare("SELECT data, sort_order, context_cache_protection FROM combos WHERE id = ?")
-    .get(id);
-  const combo = parseComboRow(row);
-  if (!combo) return null;
-  return normalizeStoredCombo(combo, db, typeof combo.name === "string" ? [combo.name] : []);
+export function getComboById(id: string): Promise<ComboRecord | null> {
+  return repository.findById(id);
 }
 
-export async function getComboByName(name: string) {
-  const db = getDbInstance();
-  const row = db
-    .prepare("SELECT data, sort_order, context_cache_protection FROM combos WHERE name = ?")
-    .get(name);
-  const combo = parseComboRow(row);
-  if (!combo) return null;
-  return normalizeStoredCombo(combo, db, [name]);
+export function getComboByName(name: string): Promise<ComboRecord | null> {
+  return repository.findByName(name);
 }
 
-// #4446: case-insensitive name lookup. The opencode dispatch path forwards a
-// lowercased combo slug (e.g. "master-light") for a combo provisioned as
-// "MASTER-LIGHT"; the default BINARY collation of getComboByName misses it.
-// Used only as a fallback after the exact match fails, so it cannot change the
-// resolution of any combo that already resolves today.
-export async function getComboByNameInsensitive(name: string) {
-  const db = getDbInstance();
-  const row = db
-    .prepare(
-      "SELECT data, sort_order, context_cache_protection FROM combos WHERE name = ? COLLATE NOCASE"
-    )
-    .get(name);
-  const combo = parseComboRow(row);
-  if (!combo) return null;
-  const storedName = typeof combo.name === "string" ? combo.name : name;
-  return normalizeStoredCombo(combo, db, [storedName]);
+export function getComboByNameInsensitive(name: string): Promise<ComboRecord | null> {
+  return repository.findByNameInsensitive(name);
 }
 
-export async function createCombo(data: JsonRecord) {
-  const db = getDbInstance();
-  const now = new Date().toISOString();
-  const sortOrder = typeof data.sortOrder === "number" ? data.sortOrder : getNextSortOrder();
-  const comboId = typeof data.id === "string" && data.id.trim().length > 0 ? data.id : uuidv4();
-  const combo = normalizeStoredCombo(
-    {
-      ...data,
-      id: comboId,
-      name: data.name,
-      models: data.models || [],
-      strategy: data.strategy || "priority",
-      config: data.config || {},
-      isHidden: Boolean(data.isHidden),
-      sortOrder,
-      createdAt: now,
-      updatedAt: now,
-    },
-    db,
-    typeof data.name === "string" ? [data.name] : []
-  );
-
-  validateComboInvariant(combo);
-  const contextCache = data.context_cache_protection ? 1 : 0;
-  db.prepare(
-    "INSERT INTO combos (id, name, data, sort_order, created_at, updated_at, context_cache_protection) VALUES (?, ?, ?, ?, ?, ?, ?)"
-  ).run(combo.id, combo.name, JSON.stringify(combo), sortOrder, now, now, contextCache);
-
+export async function createCombo(data: ComboRecord): Promise<ComboRecord> {
+  const combo = await repository.create(data);
   invalidateDbCache("combos");
   backupDbFile("pre-write");
   return combo;
 }
 
-export async function updateCombo(id: string, data: JsonRecord) {
-  const db = getDbInstance();
-  const existing = db
-    .prepare("SELECT data, sort_order, context_cache_protection FROM combos WHERE id = ?")
-    .get(id);
-  if (!existing) return null;
+export async function updateCombo(id: string, data: ComboRecord): Promise<ComboRecord | null> {
+  const result = await repository.update(id, data);
+  if (!result) return null;
 
-  const current = parseComboRow(existing);
-  if (!current) return null;
-  const sortOrder =
-    typeof data.sortOrder === "number"
-      ? data.sortOrder
-      : typeof current.sortOrder === "number"
-        ? current.sortOrder
-        : getNextSortOrder();
-  const merged: JsonRecord = {
-    ...current,
-    ...data,
-    sortOrder,
-    updatedAt: new Date().toISOString(),
-  };
-  // Remove fields explicitly set to null (for deletion support)
-  for (const key of Object.keys(data)) {
-    if (data[key] === null) {
-      delete merged[key];
-    }
-  }
-  const currentName = typeof current.name === "string" ? current.name : "";
-  const nextName =
-    typeof merged["name"] === "string" && merged["name"].trim().length > 0
-      ? merged["name"]
-      : currentName;
-  const normalizedMerged = normalizeStoredCombo({ ...merged, name: nextName }, db, [nextName]);
-  validateComboInvariant({
-    ...normalizedMerged,
-    ...data,
-    name: nextName,
-    models: normalizedMerged.models,
-  });
-  const contextCacheProtection = normalizedMerged.context_cache_protection ? 1 : 0;
-
-  db.prepare(
-    "UPDATE combos SET name = ?, data = ?, sort_order = ?, updated_at = ?, context_cache_protection = ? WHERE id = ?"
-  ).run(
-    nextName,
-    JSON.stringify(normalizedMerged),
-    sortOrder,
-    normalizedMerged.updatedAt,
-    contextCacheProtection,
-    id
-  );
-
-  // Invalidate stale context-cache pins when combo targets change.
-  // Without this, sessions pinned to removed models keep routing there forever.
-  if (data.models !== undefined) {
-    const cleared = clearSessionModelHistoryForCombo(currentName);
-    if (cleared > 0) {
-      // Also clear under the new name if the combo was renamed
-      if (nextName !== currentName) {
-        clearSessionModelHistoryForCombo(nextName);
-      }
+  if (result.modelsFieldProvided) {
+    const cleared = clearSessionModelHistoryForCombo(result.previousName);
+    if (cleared > 0 && result.currentName !== result.previousName) {
+      clearSessionModelHistoryForCombo(result.currentName);
     }
   }
 
   invalidateDbCache("combos");
   backupDbFile("pre-write");
-  return normalizedMerged;
+  return result.combo;
 }
 
-export async function reorderCombos(comboIds: string[]) {
-  const db = getDbInstance();
-  const rows = db
-    .prepare(
-      "SELECT id, name, data, sort_order FROM combos ORDER BY sort_order ASC, name COLLATE NOCASE ASC"
-    )
-    .all();
-  if (rows.length === 0) return [];
-
-  const existingIds = new Set(
-    rows
-      .map((row) => {
-        const record = asRecord(row);
-        return typeof record.id === "string" ? record.id : null;
-      })
-      .filter((id): id is string => id !== null)
-  );
-
-  const seen = new Set<string>();
-  const requestedIds = comboIds.filter((id) => {
-    if (!existingIds.has(id) || seen.has(id)) return false;
-    seen.add(id);
-    return true;
-  });
-
-  const orderedIds = [
-    ...requestedIds,
-    ...rows
-      .map((row) => {
-        const record = asRecord(row);
-        return typeof record.id === "string" ? record.id : null;
-      })
-      .filter((id): id is string => id !== null && !seen.has(id)),
-  ];
-
-  const update = db.prepare(
-    "UPDATE combos SET data = ?, sort_order = ?, updated_at = ? WHERE id = ?"
-  );
-  const now = new Date().toISOString();
-  const rowById = new Map(
-    rows.map((row) => {
-      const record = asRecord(row);
-      return [String(record.id), row];
-    })
-  );
-  const comboNames = rows
-    .map((row) => {
-      const combo = parseComboRow(row);
-      return combo && typeof combo.name === "string" ? combo.name.trim() : "";
-    })
-    .filter((name): name is string => name.length > 0);
-
-  const reorderTransaction = db.transaction(() => {
-    orderedIds.forEach((id, index) => {
-      const row = rowById.get(id);
-      const combo = row ? parseComboRow(row) : null;
-      if (!combo) return;
-      const sortOrder = index + 1;
-      const updatedCombo = normalizeComboRecord(
-        { ...combo, sortOrder, updatedAt: now },
-        { allCombos: comboNames }
-      );
-      update.run(JSON.stringify(updatedCombo), sortOrder, now, id);
-    });
-  });
-
-  reorderTransaction();
-  invalidateDbCache("combos");
-  backupDbFile("pre-write");
-  return getCombos();
+export async function reorderCombos(comboIds: string[]): Promise<ComboRecord[]> {
+  const result = await repository.reorder(comboIds);
+  if (result.rowsReordered > 0) {
+    invalidateDbCache("combos");
+    backupDbFile("pre-write");
+  }
+  return result.combos;
 }
 
-export async function deleteCombo(id: string) {
-  const db = getDbInstance();
-  const result = db.prepare("DELETE FROM combos WHERE id = ?").run(id);
-  if (result.changes === 0) return false;
+export async function deleteCombo(id: string): Promise<boolean> {
+  const deleted = await repository.deleteById(id);
+  if (!deleted) return false;
+
   invalidateDbCache("combos");
   invalidateReasoningRoutingRuleCache();
   backupDbFile("pre-write");
   return true;
 }
 
-export async function deleteComboByName(name: string) {
-  const combo = await getComboByName(name);
+export async function deleteComboByName(name: string): Promise<boolean> {
+  const combo = await repository.findByName(name);
   if (!combo || typeof combo.id !== "string") return false;
   return deleteCombo(combo.id);
 }
 
-export function setActiveCombo(name: string, db = getDbInstance()) {
+export function setActiveCombo(name: string, db = getDbInstance()): void {
   db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', 'activeCombo', ?)"
   ).run(JSON.stringify(name));

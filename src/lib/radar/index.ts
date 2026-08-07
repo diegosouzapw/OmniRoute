@@ -10,8 +10,9 @@
  */
 
 import { FREE_MODEL_BUDGETS } from "@omniroute/open-sse/config/freeModelCatalog";
-import { RadarFeedSchema, type RadarFeed } from "./feedSchema";
+import { RadarFeedSchema, type RadarFeed, type RadarReferral } from "./feedSchema";
 import { applyFeed, type MergedEntry, type FeedModel } from "./applyFeed";
+import { findDefaultReferral } from "./referrals";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { getRadarCache } from "@/lib/db/radar";
 
@@ -130,5 +131,69 @@ export function getRadarCatalog(deps: GetRadarCatalogDeps = {}): RadarCatalogRes
   };
 }
 
+// ---------------------------------------------------------------------------
+// getRadarReferrals / getDefaultReferralFor
+// ---------------------------------------------------------------------------
+
+export interface RadarReferralsResult {
+  fixed: RadarReferral[];
+  campaigns: RadarReferral[];
+}
+
+const EMPTY_REFERRALS: RadarReferralsResult = { fixed: [], campaigns: [] };
+
+/** Injectable deps for testing — mirrors GetRadarCatalogDeps. */
+export interface GetRadarReferralsDeps {
+  getFlag?: (key: string) => boolean;
+  getCache?: () => { version: string; tier: string; payload: string; fetchedAt: string } | null;
+}
+
+/**
+ * Return the referral links section of the cached Radar feed.
+ *
+ * Never throws — returns `{fixed:[],campaigns:[]}` when: the flag is off,
+ * there is no cache yet, the cached payload fails defensive re-validation,
+ * or the cached feed predates the `referrals` section (old-feed compat —
+ * the schema's `.default()` already covers this, this is a second line of
+ * defense for a payload that fails to parse at all).
+ */
+export function getRadarReferrals(deps: GetRadarReferralsDeps = {}): RadarReferralsResult {
+  const { getFlag = isFeatureFlagEnabled, getCache: getCacheFn = getRadarCache } = deps;
+
+  if (!getFlag("RADAR_ENABLED")) {
+    return EMPTY_REFERRALS;
+  }
+
+  const cache = getCacheFn();
+  if (!cache) {
+    return EMPTY_REFERRALS;
+  }
+
+  let feed: RadarFeed;
+  try {
+    const parsed = JSON.parse(cache.payload);
+    feed = RadarFeedSchema.parse(parsed);
+  } catch {
+    return EMPTY_REFERRALS;
+  }
+
+  return feed.referrals ?? EMPTY_REFERRALS;
+}
+
+/**
+ * Return the fixed, isDefault:true referral link for `provider`, or `null`
+ * when there isn't one (flag off, no cache, or no matching default). Only
+ * looks at `fixed` referrals — see `findDefaultReferral` in `./referrals.ts`.
+ */
+export function getDefaultReferralFor(
+  provider: string,
+  deps: GetRadarReferralsDeps = {},
+): RadarReferral | null {
+  const { fixed } = getRadarReferrals(deps);
+  return findDefaultReferral(fixed, provider);
+}
+
 // Re-export merge types for convenience
 export { applyFeed, type MergedEntry, type FeedModel } from "./applyFeed";
+export { findDefaultReferral } from "./referrals";
+export type { RadarReferral } from "./feedSchema";

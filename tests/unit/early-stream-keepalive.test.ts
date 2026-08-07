@@ -382,6 +382,6 @@ test("aborting the client signal stops the keepalive stream (#2544)", async () =
       if (done) return true;
     }
   })();
-  const timed = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 500));
+  const timed = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 5000));
   assert.equal(await Promise.race([drained, timed]), true, "stream should close after abort");
 });

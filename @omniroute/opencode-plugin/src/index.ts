@@ -177,6 +177,8 @@ const featuresSchema = z
     mcpToken: z.string().min(1).optional(),
     fetchInterceptor: z.boolean().optional(),
     usableOnly: z.boolean().optional(),
+    visibleModels: z.array(z.string().min(1)).optional(),
+    hiddenModels: z.array(z.string().min(1)).optional(),
     diskCache: z.boolean().optional(),
     providerTag: z.boolean().optional(),
     debugLog: z.boolean().optional(),
@@ -241,6 +243,11 @@ export const OMNIROUTE_FEATURE_DEFAULTS = {
   // default-OFF (read sites use `features.X === true`)
   compressionMetadata: false,
   usableOnly: false,
+  // Array flags: unset/empty = no filter. These are not boolean toggles —
+  // they are operator-curated model-ID lists applied in the dynamic and static
+  // hooks alongside usableOnly (all filters AND together).
+  // visibleModels: undefined,  // allowlist — only listed IDs pass
+  // hiddenModels: undefined,  // blocklist — listed IDs are dropped
   mcpAutoEmit: false,
   debugLog: false,
   startupDebug: false,
@@ -2826,6 +2833,118 @@ export function isUsableCombo(
   return false;
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// #9473 — Model allowlist / blocklist filter helpers
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Pre-compiled filter structure for the model allowlist/blocklist.
+ *
+ * "exact" holds full raw IDs (e.g. "cc/claude-opus-4-7") for O(1) match.
+ * "suffixes" holds bare model IDs (e.g. "claude-opus-4-7") that match any
+ * "{prefix}/claude-opus-4-7" — so operators can curate by model name without
+ * knowing the provider prefix.
+ */
+export interface ModelListFilter {
+  exact: Set<string>;
+  suffixes: Set<string>;
+}
+
+/**
+ * Compile a string[] of model IDs into a pre-computed filter structure.
+ * Returns undefined when the list is empty or undefined — the "no filter"
+ * state that callers use as a passthrough.
+ *
+ * IDs containing a "/" are stored in "exact"; bare IDs (no slash) go into
+ * "suffixes" and match any "{prefix}/<suffix>" at check time.
+ */
+export function compileModelListFilter(list?: string[]): ModelListFilter | undefined {
+  if (!list || list.length === 0) return undefined;
+  const exact = new Set<string>();
+  const suffixes = new Set<string>();
+  for (const id of list) {
+    if (id.includes("/")) {
+      exact.add(id);
+    } else {
+      suffixes.add(id);
+    }
+  }
+  if (exact.size === 0 && suffixes.size === 0) return undefined;
+  return { exact, suffixes };
+}
+
+/**
+ * Decide whether a raw model ID passes the allowlist/blocklist filter.
+ *
+ * Rules (all filters AND together with usableOnly):
+ *   - No visible filter and no hidden filter → keep (passthrough).
+ *   - Visible filter set: id must match either the exact set or the suffix
+ *     set (bare suffix "claude-opus-4-7" matches any "{prefix}/claude-opus-4-7").
+ *   - Hidden filter set: id must NOT match either the exact or suffix set.
+ *   - If id is in BOTH visible and hidden → DROP (deny wins — safer).
+ *   - No-slash ids (e.g. combo names like "claude-primary") are checked
+ *     against the exact set directly, and against the suffix set as a bare
+ *     match.
+ *
+ * Pure function — exported so static + dynamic hooks share the same
+ * verdict logic without divergence.
+ */
+export function passesModelAllowlist(
+  id: string,
+  visible?: ModelListFilter,
+  hidden?: ModelListFilter
+): boolean {
+  // Hidden filter takes precedence (deny wins over allow).
+  if (hidden) {
+    if (hidden.exact.has(id) || matchesSuffix(id, hidden.suffixes)) return false;
+  }
+  // Visible filter: if set, id must match.
+  if (visible) {
+    if (!visible.exact.has(id) && !matchesSuffix(id, visible.suffixes)) return false;
+  }
+  return true;
+}
+
+/**
+ * Decide whether a combo passes the allowlist filter. A combo keeps when
+ * AT LEAST ONE of its members matches the visible filter. When no visible
+ * filter is set, all combos pass. Combos with zero resolvable members pass
+ * (mirrors `isUsableCombo` semantics).
+ */
+export function passesComboAllowlist(
+  combo: OmniRouteRawCombo,
+  visible?: ModelListFilter
+): boolean {
+  if (!visible) return true;
+  const steps = Array.isArray(combo.models) ? combo.models : [];
+  if (steps.length === 0) return true;
+  let sawResolvableMember = false;
+  for (const step of steps) {
+    if (step?.kind === "combo-ref") continue;
+    const modelId = typeof step?.model === "string" ? step.model : "";
+    if (modelId.length === 0) continue;
+    sawResolvableMember = true;
+    if (visible.exact.has(modelId) || matchesSuffix(modelId, visible.suffixes)) return true;
+  }
+  // No resolvable member → can't prove it should be hidden; keep.
+  if (!sawResolvableMember) return true;
+  // Every resolvable member failed the allowlist → drop.
+  return false;
+}
+
+/**
+ * Check whether a raw model ID matches any suffix in the set.
+ * For an id like `cc/claude-opus-4-7`, the suffix after the first `/`
+ * is checked against the suffixes set. For a bare id like `claude-primary`,
+ * the id itself is checked against the suffixes set.
+ */
+function matchesSuffix(id: string, suffixes: Set<string>): boolean {
+  if (suffixes.size === 0) return false;
+  const slash = id.indexOf("/");
+  const suffix = slash > 0 ? id.slice(slash + 1) : id;
+  return suffixes.has(suffix);
+}
+
 /**
  * Slugify a combo display name into a copy/paste-friendly URL-safe segment.
  * Lowercases, replaces any run of non-alphanumeric chars with a single dash,
@@ -3009,6 +3128,9 @@ export function createOmniRouteProviderHook(
   const wantCompressionMeta = features.compressionMetadata === true;
   const wantUsableOnly = features.usableOnly === true;
   const wantProviderTag = features.providerTag !== false;
+  // #9473: model allowlist/blocklist — compile once per hook instance.
+  const visibleFilter = compileModelListFilter(features.visibleModels);
+  const hiddenFilter = compileModelListFilter(features.hiddenModels);
   const now = deps.now ?? Date.now;
   // T-07: cache holds RAW fetch results (not pre-derived ModelV2) so that
   // the config-shim hook can share the same cache and derive its stripped
@@ -3243,6 +3365,8 @@ export function createOmniRouteProviderHook(
         if (!entry.id) continue;
         if (canonicalDedup.has(entry.id)) continue;
         if (usable && !isUsableRawModelId(entry.id, usable, rawEnrichment)) continue;
+        // #9473: allowlist/blocklist filter (AND with usableOnly).
+        if (!passesModelAllowlist(entry.id, visibleFilter, hiddenFilter)) continue;
         const model = mapRawModelToModelV2(entry, {
           // #6859: server-facing id — NOT the OC-gate-prefixed `resolved.providerId`.
           providerId: resolved.omnirouteProviderId,
@@ -3318,6 +3442,8 @@ export function createOmniRouteProviderHook(
         if (!combo.id) return false;
         if (combo.isHidden === true) return false;
         if (usable && !isUsableCombo(combo, usable)) return false;
+        // #9473: combo allowlist — drop when no member matches visible filter.
+        if (visibleFilter && !passesComboAllowlist(combo, visibleFilter)) return false;
         return true;
       });
       // Resolved nested combos keyed by their friendly name, so parent
@@ -4135,6 +4261,9 @@ export function buildStaticProviderEntry(
     wantUsableOnly && connections && connections.length > 0
       ? usableProviderAliasSet(connections, enrichment)
       : undefined;
+  // #9473: model allowlist/blocklist — compile once per static-block build.
+  const visibleFilter = compileModelListFilter(opts.features?.visibleModels);
+  const hiddenFilter = compileModelListFilter(opts.features?.hiddenModels);
   // Provider-tag suffix — default-on, opt-out via `features.providerTag: false`.
   // Prepends e.g. `Claude - ` to enriched raw-model names so the picker
   // can tell `cc/claude-opus-4-7` (Anthropic) apart from `kr/claude-opus-4-7`
@@ -4172,6 +4301,8 @@ export function buildStaticProviderEntry(
     // Skip canonical-named twins when the alias-keyed enriched row exists.
     if (canonicalDedup.has(raw.id)) continue;
     if (usable && !isUsableRawModelId(raw.id, usable, enrichment)) continue;
+    // #9473: allowlist/blocklist filter (AND with usableOnly).
+    if (!passesModelAllowlist(raw.id, visibleFilter, hiddenFilter)) continue;
     const caps = raw.capabilities ?? {};
     // Enrichment overlay: `/api/pricing/models` carries human display names
     // (e.g. "Claude Opus 4.7" for raw id "cc/claude-opus-4-7"). The OC TUI
@@ -4324,6 +4455,8 @@ export function buildStaticProviderEntry(
     if (!combo.id) return false;
     if (combo.isHidden === true) return false;
     if (usable && !isUsableCombo(combo, usable)) return false;
+    // #9473: combo allowlist — drop when no member matches visible filter.
+    if (visibleFilter && !passesComboAllowlist(combo, visibleFilter)) return false;
     return true;
   });
 

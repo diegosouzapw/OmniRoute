@@ -4,12 +4,16 @@
  * NEVER proxies the private feed server. The browser talks only to this
  * local endpoint; sync happens server-side via POST /api/radar/sync.
  *
- * Flag off => 404 (the surface doesn't exist when disabled).
+ * Flag off => 404 (the surface doesn't exist when disabled), checked BEFORE
+ * auth so flag-off inertia stays byte-identical (no auth required to learn
+ * the surface doesn't exist). Unauthenticated access once the flag is on
+ * => 401 (management route — dashboard session or a management-scoped key).
  */
 
 import { NextResponse } from "next/server";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { getRadarCatalog } from "@/lib/radar";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
@@ -20,12 +24,19 @@ export async function OPTIONS() {
   return handleCorsOptions();
 }
 
-export async function GET() {
-  // Flag gate — surface doesn't exist when disabled
+export async function GET(request: Request) {
+  // Flag gate — surface doesn't exist when disabled. MUST run before auth.
   if (!isFeatureFlagEnabled("RADAR_ENABLED")) {
     return NextResponse.json(
       buildErrorBody(404, "Not found"),
       { status: 404, headers: CORS_HEADERS },
+    );
+  }
+
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json(
+      buildErrorBody(401, "Unauthorized"),
+      { status: 401, headers: CORS_HEADERS },
     );
   }
 

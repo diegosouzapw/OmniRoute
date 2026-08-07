@@ -2318,7 +2318,11 @@ test("handleComboChat returns a 503 when every model is unavailable before execu
 
   const payload = (await result.json()) as any;
   assert.equal(result.status, 503);
-  assert.equal(payload.error.code, "ALL_ACCOUNTS_INACTIVE");
+  // isModelAvailable always false means every target is skipped by the
+  // pre-dispatch filter with zero dispatch attempts — the more precise
+  // ALL_TARGETS_SKIPPED classification, not ALL_ACCOUNTS_INACTIVE (which
+  // implies targets were attempted and their accounts found inactive).
+  assert.equal(payload.error.code, "ALL_TARGETS_SKIPPED");
 });
 
 test("handleComboChat treats provider circuit breaker responses as ordinary target failures", async () => {
@@ -2847,7 +2851,10 @@ test("handleComboChat round-robin resolves nested combos and returns inactive wh
 
   const payload = (await result.json()) as any;
   assert.equal(result.status, 503);
-  assert.equal(payload.error.code, "ALL_ACCOUNTS_INACTIVE");
+  // isModelAvailable always false means every nested target is skipped by the
+  // pre-dispatch filter with zero dispatch attempts — ALL_TARGETS_SKIPPED,
+  // not ALL_ACCOUNTS_INACTIVE (see the analogous priority-strategy test above).
+  assert.equal(payload.error.code, "ALL_TARGETS_SKIPPED");
 });
 
 test("handleComboChat round-robin treats provider circuit breaker responses as ordinary target failures", async () => {

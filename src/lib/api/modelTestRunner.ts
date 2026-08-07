@@ -12,6 +12,11 @@ import { getCustomModels } from "@/lib/localDb";
 import { getProviderNodeById } from "@/lib/db/providers";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { withRateLimit } from "@omniroute/open-sse/services/rateLimitManager";
+import {
+  isCreditsExhausted,
+  isDailyQuotaExhausted,
+} from "@omniroute/open-sse/services/accountFallback";
+import { looksLikeQuotaExhausted } from "@/shared/utils/classify429";
 
 const INTERNAL_ORIGIN = "http://omniroute.internal";
 export const DEFAULT_MODEL_TEST_TIMEOUT_MS = 30_000;
@@ -294,6 +299,7 @@ export interface SingleModelTestResult {
   error?: string;
   rateLimited?: boolean;
   isTransient?: boolean;
+  isQuota?: boolean;
   isTimeout?: boolean;
   retryAfter?: number;
 }
@@ -320,6 +326,43 @@ function isRateLimitMessage(message: string): boolean {
 
 function isBotBlockMessage(message: string): boolean {
   return /cloudflare|bot management|recaptcha|cf-chl|just a moment/i.test(message);
+}
+
+/**
+ * Classify an error message for quota signals (#9511).
+ *
+ * Distinguishes three outcomes:
+ * 1. Daily-quota exhausted → isQuota + isTransient (resets tomorrow)
+ * 2. Credits/balance exhausted → isQuota only (needs top-up, not transient)
+ * 3. Other errors → no quota flags (still auto-hidable)
+ *
+ * Reuses the routing path's existing quota vocabulary from accountFallback.ts
+ * and classify429.ts instead of inventing a new vocabulary.
+ */
+export function classifyTestErrorQuota(
+  errorText: string
+): { isQuota?: boolean; isTransient?: boolean } {
+  const trimmed = typeof errorText === "string" ? errorText.trim() : "";
+  if (!trimmed) return {};
+
+  // Check daily-quota FIRST — it's the more specific (transient) classification
+  // and should win over credits-exhausted if both match.
+  if (isDailyQuotaExhausted(trimmed)) {
+    return { isQuota: true, isTransient: true };
+  }
+
+  // Credits-exhausted is terminal — isQuota but NOT isTransient.
+  if (isCreditsExhausted(trimmed)) {
+    return { isQuota: true };
+  }
+
+  // Broad quota wording from classify429 (catches patterns not in the
+  // accountFallback signals, e.g. "quota exceeded", "billing cap").
+  if (looksLikeQuotaExhausted(trimmed)) {
+    return { isQuota: true };
+  }
+
+  return {};
 }
 
 /**
@@ -506,7 +549,11 @@ export async function runSingleModelTest(
     if (streamError) {
       const error = sanitizeErrorMessage(streamError.message) || "Upstream stream failed";
       const rateLimited = streamError.statusCode === 429 || isRateLimitMessage(error);
-      const isBotBlock = streamError.statusCode === 403 || isBotBlockMessage(error);
+      // #9511: Check quota BEFORE bot-block — 403 with quota wording is a quota
+      // error, not a bot-block. A bare 403 status without quota/bot wording still
+      // falls through to the generic error branch.
+      const quotaFlags = classifyTestErrorQuota(error);
+      const isBotBlock = !quotaFlags.isQuota && (streamError.statusCode === 403 || isBotBlockMessage(error));
       return {
         modelId: fullModelStr,
         status: rateLimited ? "rate_limited" : "error",
@@ -515,7 +562,8 @@ export async function runSingleModelTest(
         httpStatus: streamError.statusCode ?? 502,
         error,
         ...(rateLimited ? { rateLimited: true } : {}),
-        ...(rateLimited || isBotBlock ? { isTransient: true } : {}),
+        ...(rateLimited || isBotBlock || quotaFlags.isTransient ? { isTransient: true } : {}),
+        ...(quotaFlags.isQuota ? { isQuota: true } : {}),
       };
     }
     if (timedOut && !responseText) {
@@ -565,6 +613,10 @@ export async function runSingleModelTest(
   } finally {
     clearTimeout(timeoutHandle);
   }
+  // #9511: classify quota signals on the generic error branch so that
+  // 401/402/403 "insufficient balance" / "quota exhausted" errors are
+  // NOT auto-hidden by Test All.
+  const quotaFlags = classifyTestErrorQuota(errorMsg);
   return {
     modelId: fullModelStr,
     status: "error",
@@ -572,5 +624,7 @@ export async function runSingleModelTest(
     statusCode: res.status,
     httpStatus: res.status,
     error: errorMsg,
+    ...(quotaFlags.isTransient ? { isTransient: true } : {}),
+    ...(quotaFlags.isQuota ? { isQuota: true } : {}),
   };
 }

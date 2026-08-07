@@ -27,7 +27,8 @@ import { normalizeModelCatalogSource } from "@/shared/utils/modelCatalogSearch";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
-import { resolveDashboardProviderInfo } from "../providerPageUtils";
+import { resolveDashboardProviderInfo, resolveProviderHeaderLink } from "../providerPageUtils";
+import { findDefaultReferral } from "@/lib/radar/referrals";
 import { type ConnectionRowConnection } from "./components/ConnectionRow";
 import { useProviderConnections } from "./hooks/useProviderConnections";
 import { useProviderSettings } from "./hooks/useProviderSettings";
@@ -213,6 +214,39 @@ export default function ProviderDetailPageClient() {
       openAiCompatibleName: t("openaiCompatibleName"),
     },
   });
+
+  // D28 — Radar default referral link ("Pegue seus créditos grátis"). Fetched
+  // from the LOCAL /api/radar/referrals route only (never talks to the
+  // private feed server directly) — same client-fetch pattern the Radar
+  // dashboard page already uses for its own data. This keeps the providers
+  // page decoupled from @/lib/radar (DB-touching, Node-only): a 404 (flag
+  // off) or 401/network failure just leaves `referralUrl` null, and
+  // `resolveProviderHeaderLink` below then falls back to the static catalog
+  // website — byte-identical to before this feature existed.
+  const [referralUrl, setReferralUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/radar/referrals");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        const fixed = Array.isArray(data?.fixed) ? data.fixed : [];
+        const match = findDefaultReferral(fixed, providerId);
+        setReferralUrl(match?.url ?? null);
+      } catch {
+        // Best-effort only — never blocks rendering of the provider page.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [providerId]);
+  const { website: providerHeaderWebsite, isReferralLink } = resolveProviderHeaderLink(
+    providerInfo?.website,
+    referralUrl
+  );
   const providerSupportsOAuth =
     providerInfo?.toggleAuthType === "oauth" || providerInfo?.toggleAuthType === "free";
   const subscriptionRisk = providerInfo?.subscriptionRisk === true;
@@ -463,12 +497,13 @@ export default function ProviderDetailPageClient() {
     <div className="flex flex-col gap-8">
       <ProviderPageHeader
         providerId={providerId}
-        providerInfo={providerInfo}
+        providerInfo={{ ...providerInfo, website: providerHeaderWebsite }}
         connectionsCount={connections.length}
         isOpenAICompatible={isOpenAICompatible}
         isAnthropicProtocolCompatible={isAnthropicProtocolCompatible}
         onOpenTutorial={() => setShowTutorialModal(true)}
         t={t}
+        isReferralLink={isReferralLink}
       />
 
       {providerId === "zed" && (

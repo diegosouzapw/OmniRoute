@@ -66,7 +66,7 @@ export interface ComboControlCenterTargetHealth {
 
 export interface ComboControlCenterTarget {
   id: string;
-  kind: "model" | "combo-ref";
+  kind: "model" | "combo-ref" | "provider-wildcard";
   index: number;
   label: string;
   model: string;
@@ -134,6 +134,9 @@ function getStepTags(step: ComboStep): string[] {
 function getStepLabel(step: ComboStep): string {
   if (step.label) return step.label;
   if (step.kind === "combo-ref") return `Combo → ${step.comboName}`;
+  if (step.kind === "provider-wildcard") {
+    return `All ${step.providerId}/${step.modelPattern}`;
+  }
   return step.model;
 }
 
@@ -153,12 +156,19 @@ export function getComboControlCenterTargets(
   }
 
   return steps.map((step, index) => {
-    const model = step.kind === "combo-ref" ? step.comboName : step.model;
+    const model =
+      step.kind === "combo-ref"
+        ? step.comboName
+        : step.kind === "provider-wildcard"
+          ? `${step.providerId}/${step.modelPattern}`
+          : step.model;
     const healthEntry = healthByStepId.get(step.id) || healthByModel.get(model) || null;
     const provider =
       step.kind === "model"
         ? step.providerId || providerFromModel(step.model) || healthEntry?.provider || null
-        : null;
+        : step.kind === "provider-wildcard"
+          ? step.providerId
+          : null;
 
     return {
       id: step.id,
@@ -167,7 +177,10 @@ export function getComboControlCenterTargets(
       label: getStepLabel(step),
       model,
       provider,
-      connectionId: step.kind === "model" ? step.connectionId || null : null,
+      connectionId:
+        step.kind === "model" || step.kind === "provider-wildcard"
+          ? step.connectionId || null
+          : null,
       weight: step.weight || 0,
       tags: getStepTags(step),
       health: healthEntry,
@@ -252,7 +265,9 @@ export function summarizeComboControlCenter(
     strategy: combo.strategy || "priority",
     isActive: combo.isActive !== false,
     targetCount: targets.length,
-    modelTargetCount: targets.filter((target) => target.kind === "model").length,
+    modelTargetCount: targets.filter(
+      (target) => target.kind === "model" || target.kind === "provider-wildcard"
+    ).length,
     nestedComboCount: targets.filter((target) => target.kind === "combo-ref").length,
     providerCount: providers.size,
     totalRequests,

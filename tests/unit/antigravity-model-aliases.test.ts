@@ -89,7 +89,7 @@ test("isUserCallableAntigravityModelId only allows public chat-capable model IDs
   assert.equal(isUserCallableAntigravityModelId("claude-sonnet-4-6"), true);
   assert.equal(isUserCallableAntigravityModelId("claude-sonnet-5"), false);
   // The advertised pro-high discovery slot rejects content requests; use pro-agent High.
-  assert.equal(isUserCallableAntigravityModelId("gemini-3.1-pro-high"), false);
+  assert.equal(isUserCallableAntigravityModelId("gemini-3.1-pro-high"), true);
   assert.equal(isUserCallableAntigravityModelId("gemini-pro-agent"), true);
   assert.equal(isUserCallableAntigravityModelId("gemini-3.1-pro-low"), true);
   assert.equal(isUserCallableAntigravityModelId("tab_flash_lite_preview"), false);

@@ -6,7 +6,10 @@ import {
 import { normalizeOpenAICompatibleFinishReasonString } from "../utils/finishReason.ts";
 import { containsTextualToolCallMarker } from "../utils/textualToolCall.ts";
 import { getAnyReasoningValue } from "../utils/reasoningFields.ts";
-import { restoreOpenAIToolNames } from "../translator/helpers/toolCallHelper.ts";
+import {
+  caseInsensitiveToolNameLookup,
+  restoreOpenAIToolNames,
+} from "../translator/helpers/toolCallHelper.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -206,7 +209,7 @@ export function translateNonStreamingResponse(
           typeof argsToEmit === "string" ? argsToEmit : JSON.stringify(argsToEmit || {});
         const rawName = toString(itemObj.name);
         // Strip Claude OAuth proxy_ prefix using toolNameMap
-        const resolvedName = toolNameMap?.get(rawName) ?? rawName;
+        const resolvedName = caseInsensitiveToolNameLookup(rawName, toolNameMap) ?? rawName;
         toolCalls.push({
           id: callId,
           type: "function",
@@ -388,7 +391,8 @@ export function translateNonStreamingResponse(
                   if (partObj.functionCall) {
                     const fn = toRecord(partObj.functionCall);
                     const rawName = toString(fn.name);
-                    const restoredName = toolNameMap?.get(rawName) ?? rawName;
+                    const restoredName =
+                      caseInsensitiveToolNameLookup(rawName, toolNameMap) ?? rawName;
                     const nativeId = toString(fn.id);
                     const toolCallId =
                       nativeId.length > 0
@@ -507,7 +511,7 @@ export function translateNonStreamingResponse(
           thinkingContent += toString(blockObj.thinking);
         } else if (blockObj.type === "tool_use") {
           const rawName = toString(blockObj.name);
-          const strippedName = toolNameMap?.get(rawName) ?? rawName;
+          const strippedName = caseInsensitiveToolNameLookup(rawName, toolNameMap) ?? rawName;
           toolCalls.push({
             id: toString(blockObj.id, `call_${Date.now()}_${toolCalls.length}`),
             type: "function",
@@ -687,6 +691,35 @@ function convertOpenAINonStreamingToClaude(openaiResponse: JsonRecord): JsonReco
   if (stopReason === "tool_calls") stopReason = "tool_use";
 
   const usageSrc = toRecord(openaiResponse.usage);
+  const promptTokens = toNumber(usageSrc.prompt_tokens, 0);
+  const outputTokens = toNumber(usageSrc.completion_tokens, 0);
+
+  // Extract cache tokens from prompt_tokens_details (mirrors the streaming
+  // translator in open-sse/translator/response/openai-to-claude.ts lines 119-148).
+  const promptDetails = toRecord(usageSrc.prompt_tokens_details);
+  const cachedTokens = toNumber(promptDetails.cached_tokens, 0);
+  const cacheCreationTokens = toNumber(promptDetails.cache_creation_tokens, 0);
+
+  // OpenAI's prompt_tokens includes all prompt-side tokens (cached + non-cached).
+  // Claude expects input_tokens to be only non-cached tokens, with cached tokens
+  // exposed separately as cache_read_input_tokens.
+  const inputTokens = promptTokens - cachedTokens - cacheCreationTokens;
+
+  const usage: JsonRecord = {
+    input_tokens: inputTokens,
+    output_tokens: outputTokens,
+  };
+
+  // Add cache_read_input_tokens if present
+  if (cachedTokens > 0) {
+    usage.cache_read_input_tokens = cachedTokens;
+  }
+
+  // Add cache_creation_input_tokens if present
+  if (cacheCreationTokens > 0) {
+    usage.cache_creation_input_tokens = cacheCreationTokens;
+  }
+
   const claudeResponse: JsonRecord = {
     id: toString(openaiResponse.id, `msg_${Date.now()}`),
     type: "message",
@@ -695,10 +728,7 @@ function convertOpenAINonStreamingToClaude(openaiResponse: JsonRecord): JsonReco
     content,
     stop_reason: stopReason,
     stop_sequence: null,
-    usage: {
-      input_tokens: toNumber(usageSrc.prompt_tokens, 0),
-      output_tokens: toNumber(usageSrc.completion_tokens, 0),
-    },
+    usage,
   };
 
   return claudeResponse;

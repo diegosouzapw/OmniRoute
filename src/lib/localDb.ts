@@ -89,6 +89,7 @@ export {
   reorderCombos,
   deleteCombo,
 } from "./db/combos";
+export * from "./db/ccrBlocks";
 export * from "./db/compressionCacheStats";
 export * from "./db/compressionCombos";
 export * from "./db/compressionContextBudget";

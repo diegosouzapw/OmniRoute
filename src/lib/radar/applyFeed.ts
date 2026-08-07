@@ -51,6 +51,30 @@ export interface MergedEntry {
    * Absent for entries disabled by other means or still enabled.
    */
   disabledBy?: "radar";
+  /**
+   * Context window size in tokens. Only present on entries that carry feed
+   * data (origin "radar"/"local" merged from a feed entry); undefined for
+   * baseline-only entries.
+   */
+  contextWindow?: number | null;
+  /** Capability flags reported by the feed. Undefined for baseline-only entries. */
+  capabilities?: {
+    tools: boolean;
+    vision: boolean;
+    thinking: boolean;
+  };
+  /** Rate/quota limits reported by the feed. Undefined for baseline-only entries. */
+  limits?: {
+    rpm: number | null;
+    rpd: number | null;
+    tpm: number | null;
+    tpd: number | null;
+  };
+  /** Setup guide (key URL + steps) reported by the feed. Undefined for baseline-only entries. */
+  setup?: {
+    keyUrl: string | null;
+    steps: string[];
+  } | null;
 }
 
 /**
@@ -254,6 +278,18 @@ function mergeOne(
   if (!overriddenKeys.has("creditTokens")) {
     // Feed doesn't have creditTokens; keep baseline
   }
+  if (!overriddenKeys.has("contextWindow")) {
+    result.contextWindow = feed.contextWindow;
+  }
+  if (!overriddenKeys.has("capabilities")) {
+    result.capabilities = feed.capabilities;
+  }
+  if (!overriddenKeys.has("limits")) {
+    result.limits = feed.limits;
+  }
+  if (!overriddenKeys.has("setup")) {
+    result.setup = feed.setup;
+  }
 
   // Apply local overrides (rule 1: they win)
   if (overrides) {
@@ -265,6 +301,10 @@ function mergeOne(
     if (overrides.tos !== undefined) result.tos = overrides.tos;
     if (overrides.trainsOnPrompts !== undefined) result.trainsOnPrompts = overrides.trainsOnPrompts;
     if (overrides.enabled !== undefined) result.enabled = overrides.enabled;
+    if (overrides.contextWindow !== undefined) result.contextWindow = overrides.contextWindow;
+    if (overrides.capabilities !== undefined) result.capabilities = overrides.capabilities;
+    if (overrides.limits !== undefined) result.limits = overrides.limits;
+    if (overrides.setup !== undefined) result.setup = overrides.setup;
   }
 
   // Origin: "local" if user has overrides, else "radar" (feed updated it)
@@ -292,9 +332,16 @@ function feedModelToMerged(
     trainsOnPrompts: overrides?.trainsOnPrompts ?? (feed.trainsOnPrompts ?? undefined),
     enabled: overrides?.enabled ?? feed.enabled,
     origin: overrides ? "local" : "radar",
+    contextWindow: overrides?.contextWindow ?? feed.contextWindow,
+    capabilities: overrides?.capabilities ?? feed.capabilities,
+    limits: overrides?.limits ?? feed.limits,
+    setup: overrides?.setup ?? feed.setup,
   };
 
-  if (!feed.enabled) {
+  // Rule 2 (feed disable) — but rule 1 (local override wins) takes precedence,
+  // matching mergeOne(): only force-disable when the user has NOT explicitly
+  // overridden `enabled` locally.
+  if (!feed.enabled && overrides?.enabled === undefined) {
     entry.enabled = false;
     entry.disabledBy = "radar";
   }

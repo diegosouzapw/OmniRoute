@@ -37,10 +37,22 @@ type OpenAIToolCallLike = {
 export function buildChangedToolNameMap(
   toolNameMap: Map<string, string>
 ): Map<string, string> | null {
-  const changedEntries = [...toolNameMap.entries()].filter(
-    ([sanitizedName, originalName]) => sanitizedName !== originalName
-  );
-  return changedEntries.length > 0 ? new Map(changedEntries) : null;
+  if (toolNameMap.size === 0) return null;
+
+  const result = new Map<string, string>();
+  for (const [sanitizedName, originalName] of toolNameMap.entries()) {
+    result.set(sanitizedName, originalName);
+    // Add lowercase-keyed alias so Gemini's lowercased tool names find the original.
+    // Gemini always lowercases tool names in functionCall responses, so even identity
+    // entries (Bash → Bash) need a lowercase key ("bash" → "Bash") for the response
+    // translator to look them up (#9568).
+    const lower = sanitizedName.toLowerCase();
+    if (lower !== sanitizedName && !result.has(lower)) {
+      result.set(lower, originalName);
+    }
+  }
+
+  return result;
 }
 
 export function extractClientThoughtSignature(toolCall: unknown): string | null {

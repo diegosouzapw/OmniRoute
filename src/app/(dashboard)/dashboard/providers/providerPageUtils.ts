@@ -511,6 +511,43 @@ export function buildCompactProviderEntries<TProvider>(
   return visibleEntries;
 }
 
+/**
+ * Result of `resolveProviderHeaderLink` — decides whether the provider name
+ * link on the detail page header (`ProviderPageHeader`) points at the
+ * static catalog `website` or at a Radar referral link.
+ */
+export interface ProviderHeaderLink {
+  /** Effective URL for the header link, or `undefined` for no link at all. */
+  website: string | undefined;
+  /** True when `website` came from a Radar default referral, not the static catalog. */
+  isReferralLink: boolean;
+}
+
+/**
+ * Pure decision function for the provider-name link (D28 — referral links).
+ * Deliberately DB-free and Radar-module-free: it takes the already-resolved
+ * referral URL (or `undefined`/`null` when none applies) as a plain string
+ * so this file — and the providers dashboard that depends on it — never has
+ * to import `@/lib/radar` (which pulls in `better-sqlite3`, Node-only) to
+ * render. The caller (`ProviderDetailPageClient`) is the one place allowed
+ * to fetch the referral, via the local `/api/radar/referrals` route — same
+ * pattern the Radar dashboard page already uses for its own data.
+ *
+ * With `RADAR_ENABLED` off, or no cache, or no default referral for the
+ * provider, `referralUrl` is `null`/`undefined` and this returns the exact
+ * same `website` the catalog already provided — byte-identical to today's
+ * behavior.
+ */
+export function resolveProviderHeaderLink(
+  staticWebsite: string | null | undefined,
+  referralUrl: string | null | undefined
+): ProviderHeaderLink {
+  if (referralUrl) {
+    return { website: referralUrl, isReferralLink: true };
+  }
+  return { website: staticWebsite ?? undefined, isReferralLink: false };
+}
+
 export function resolveDashboardProviderInfo(
   providerId: string,
   options?: {

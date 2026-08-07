@@ -192,6 +192,53 @@ export const switchComboTool: McpToolDefinition<typeof switchComboInput, typeof 
     sourceEndpoints: ["/api/combos"],
   };
 
+// --- Tool 4b: omniroute_create_combo ---
+export const createComboInput = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .max(100)
+    .describe("Unique combo name (letters, numbers, spaces, -, _, /, ., [ and ])"),
+  description: z.string().max(2000).optional().describe("Optional human-readable description"),
+  strategy: z
+    .enum(ROUTING_STRATEGY_VALUES)
+    .optional()
+    .describe("Routing strategy (default: priority)"),
+  models: z
+    .array(
+      z.object({
+        provider: z.string().describe("Provider name (e.g., 'claude', 'gemini')"),
+        model: z.string().describe("Model ID for that provider"),
+      })
+    )
+    .min(1)
+    .describe("Ordered model chain; order defines priority"),
+});
+
+export const createComboOutput = z.object({
+  success: z.boolean(),
+  combo: z.object({
+    id: z.string(),
+    name: z.string(),
+    strategy: z.string(),
+    enabled: z.boolean(),
+  }),
+});
+
+export const createComboTool: McpToolDefinition<typeof createComboInput, typeof createComboOutput> =
+  {
+    name: "omniroute_create_combo",
+    description:
+      "Registers a new combo (model chain) with a name, ordered model list, and optional routing strategy. Full validation (name collisions, nested-combo DAG, composite tiers) is enforced by the combos API.",
+    inputSchema: createComboInput,
+    outputSchema: createComboOutput,
+    scopes: ["write:combos"],
+    auditLevel: "full",
+    phase: 1,
+    sourceEndpoints: ["/api/combos"],
+  };
+
 // --- Tool 5: omniroute_check_quota ---
 export const checkQuotaInput = z.object({
   provider: z
@@ -1460,6 +1507,7 @@ export const MCP_TOOLS = [
   listCombosTool,
   getComboMetricsTool,
   switchComboTool,
+  createComboTool,
   checkQuotaTool,
   routeRequestTool,
   costReportTool,

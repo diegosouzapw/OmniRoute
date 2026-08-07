@@ -14,6 +14,7 @@ import {
   getModelLockoutInfo,
   getRuntimeProviderProfile,
   hasPerModelQuota,
+  isAccountSemaphoreFull,
   isModelLocked,
   MODEL_ACCESS_DENIED_PATTERNS,
   recordModelLockoutFailure,
@@ -1009,6 +1010,20 @@ export async function handleComboChat({
           const gateResult = checkCredentialGate(connectionId, provider, modelStr);
           if (gateResult.allowed === false) {
             logCredentialSkip(log, modelStr, gateResult.reason || "Credential gate blocked");
+            if (i > 0) fallbackCount++;
+            return null;
+          }
+
+          // Concurrency gate: fail-fast skip when connection is at max_concurrent capacity (e.g. Featherless 1/1)
+          const maxConcurrentCap = await lookupPositiveCap(connectionId);
+          if (
+            maxConcurrentCap &&
+            isAccountSemaphoreFull(provider, connectionId, maxConcurrentCap)
+          ) {
+            log.info(
+              "COMBO",
+              `Skipping ${modelStr} — connection ${connectionId} is at max concurrency cap (${maxConcurrentCap})`
+            );
             if (i > 0) fallbackCount++;
             return null;
           }
@@ -2022,15 +2037,26 @@ export async function handleComboChat({
 
       // All set retries exhausted — return the final error
       if (!lastStatus) {
+        if (recordedAttempts === 0) {
+          notifyWebhookEvent("request.failed", {
+            combo: combo.name,
+            reason: "ALL_TARGETS_SKIPPED",
+            latencyMs,
+            fallbackCount,
+          });
+          return errorResponseWithComboDiagnostics(
+            503,
+            "Service temporarily unavailable: all targets were skipped by pre-dispatch filters",
+            buildComboDiag("all_targets_skipped"),
+            { code: "ALL_TARGETS_SKIPPED", type: "service_unavailable" }
+          );
+        }
         notifyWebhookEvent("request.failed", {
           combo: combo.name,
           reason: "ALL_ACCOUNTS_INACTIVE",
           latencyMs,
           fallbackCount,
         });
-        // Silent-stop fix: bump the failure counter so the session pin clears on the 3rd
-        // consecutive all-inactive cascade; buildRecoveryHint emits `switch-combo` with a
-        // next-step that points the user at /dashboard/providers.
         recordComboFailure(effectiveSessionId, combo.name);
         return errorResponseWithComboDiagnostics(
           503,
@@ -2990,6 +3016,18 @@ async function handleRoundRobinCombo({
   }
 
   if (!lastStatus) {
+    if (recordedAttempts === 0) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Service temporarily unavailable: all targets were skipped by pre-dispatch filters",
+            type: "service_unavailable",
+            code: "ALL_TARGETS_SKIPPED",
+          },
+        }),
+        { status: 503, headers: { "Content-Type": "application/json" } }
+      );
+    }
     return new Response(
       JSON.stringify({
         error: {

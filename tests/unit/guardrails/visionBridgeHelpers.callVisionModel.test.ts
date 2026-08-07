@@ -257,6 +257,11 @@ test("callVisionModel uses correct request body format", async () => {
 
     // Verify request structure
     assert.strictEqual(capturedBody.model, "gpt-4o-mini");
+    assert.strictEqual(
+      capturedBody.stream,
+      false,
+      "the JSON parser requires the internal vision request to opt out of SSE"
+    );
     assert.ok(Array.isArray(capturedBody.messages));
     assert.strictEqual((capturedBody.messages as unknown[]).length, 1);
 

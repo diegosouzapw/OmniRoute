@@ -234,8 +234,12 @@ const urlPath =
     ? decodeURIComponent(MITM_SERVER_URL.pathname.slice(1))
     : decodeURIComponent(MITM_SERVER_URL.pathname);
 
-const cwdPath = path.join(process.cwd(), "src", "mitm", "server.cjs");
-const MITM_SERVER_PATH = fs.existsSync(cwdPath) ? cwdPath : urlPath;
+// Lazy-resolve to avoid module-level fs.existsSync + process.cwd() at module scope,
+// which causes Turbopack's NFT tracer to follow the path into the entire src/ tree.
+function resolveMitmServerPath(): string {
+  const cwdPath = path.join(/* turbopackIgnore: true */ process.cwd(), "src", "mitm", "server.cjs");
+  return fs.existsSync(cwdPath) ? cwdPath : urlPath;
+}
 
 // Check if a PID is alive
 function isProcessAlive(pid: number): boolean {
@@ -607,7 +611,7 @@ async function startMitmInternal(
     }
   }
 
-  serverProcess = spawn(process.execPath, [MITM_SERVER_PATH], {
+  serverProcess = spawn(process.execPath, [resolveMitmServerPath()], {
     windowsHide: true,
     env: {
       ...process.env,

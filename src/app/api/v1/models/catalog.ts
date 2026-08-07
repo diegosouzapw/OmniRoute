@@ -37,7 +37,8 @@ import {
   createBuiltinAutoCombo,
   isPaidTierAutoId,
 } from "@omniroute/open-sse/services/autoCombo/builtinCatalog";
-import { getAllSyncedAvailableModels, type SyncedAvailableModel } from "@/lib/db/models";
+import type { SyncedAvailableModel } from "@/lib/db/models";
+import { getAllActiveSyncedModels } from "@/lib/db/models/activeSyncedCatalog";
 import { getModelCatalogCacheVersion } from "@/lib/db/readCache";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
@@ -135,8 +136,8 @@ export async function getUnifiedModelsResponse(
   // #6408 fast path: reject unauthorized callers first (auth state is per-request
   // and MUST NOT be cached), then coalesce identical concurrent requests + short-
   // TTL memoize the serialized JSON body.
+  let settingsForAuth: Record<string, any> = {};
   try {
-    let settingsForAuth: Record<string, any> = {};
     try {
       settingsForAuth = await getSettings();
     } catch {}
@@ -160,7 +161,11 @@ export async function getUnifiedModelsResponse(
     return await resolveCachedCatalogResponse(
       request,
       { corsHeaders, diagnosticHeaders },
-      buildCatalogPayload
+      buildCatalogPayload,
+      {
+        hideAutoCombos: settingsForAuth?.hideAutoCombos === true,
+        hideNoThinkVariants: settingsForAuth?.hideNoThinkVariants === true,
+      }
     );
   } catch (err) {
     // Hard rule #12: never put a raw err.message/err.stack in a response body.
@@ -235,6 +240,10 @@ async function buildUnifiedModelsResponseCore(
     // exempt. Combos + auto/* + synced/custom/alias-backed rows also stay unfiltered —
     // extending v1 scope to those requires per-entry pricing lookup not available today.
     const hidePaid = settings.hidePaidModels === true;
+    // #9418: Opt-in filter — skip the entire auto/* synthesis loop when the operator
+    // does not want built-in virtual combos advertised in the catalog. User-defined
+    // combos are unaffected; routing still works for ids sent explicitly.
+    const hideAuto = settings.hideAutoCombos === true;
     const shouldHidePaid = (providerKey: string, modelId: string, pricing?: unknown): boolean => {
       if (!hidePaid) return false;
       const provider = aliasToProviderId[providerKey] || providerKey;
@@ -568,6 +577,7 @@ async function buildUnifiedModelsResponseCore(
           connections,
           prefixMode,
           aliasToProviderId,
+          hideNoThinkVariants: settings.hideNoThinkVariants === true,
         });
         return finalizeCatalogResponse(request, quotaFinal, () => undefined, {
           ...corsHeaders,
@@ -585,47 +595,51 @@ async function buildUnifiedModelsResponseCore(
     // #4164 entry is emitted instead, so the id is never dropped.
     // #4235 Phase B: also advertise the curated `auto/<category>[:<tier>]` combos.
     // #6453: also advertise the `auto/<family>` combos (auto/glm, auto/minimax, ...).
-    for (const autoId of [
-      ...Object.keys(AUTO_TEMPLATE_VARIANTS),
-      ...AUTO_SUFFIX_VARIANTS,
-      ...AUTO_FAMILY_IDS,
-    ]) {
-      if (blockedProviders.has("auto") || listedIds.has(autoId)) continue; // #5192
-      // #6328 (follow-up to #6495 / #6512): REMOVE — not just hide — paid-tier
-      // auto/* ids (auto/pro-* + auto/*:pro) from the advertised catalog when the
-      // operator opts into hidePaidModels. The candidate-pool filter in
-      // virtualFactory (#6512) still gates request-time routing for the rest.
-      if (hidePaid && isPaidTierAutoId(autoId)) continue;
-      listedIds.add(autoId);
-      const baseAutoEntry = {
-        id: autoId,
-        object: "model",
-        created: timestamp,
-        owned_by: "combo",
-        permission: [],
-        root: autoId,
-        parent: null,
-      };
-      try {
-        const suffix = autoId.replace(/^auto\/?/, "");
-        const virtualCombo = await createBuiltinAutoCombo(autoId, suffix);
-        const contextLength = virtualCombo.advertisedContextLength || 128000;
-        const maxOutputTokens = virtualCombo.advertisedMaxOutputTokens || 8192;
-        models.push({
-          ...baseAutoEntry,
-          context_length: contextLength,
-          max_input_tokens: contextLength,
-          max_output_tokens: maxOutputTokens,
-          capabilities: {
-            tool_calling: true,
-            reasoning: true,
-            thinking: true,
-            temperature: true,
-          },
-        });
-      } catch (err) {
-        console.log(`[catalog] Could not materialize built-in auto model ${autoId}:`, err);
-        models.push(baseAutoEntry);
+    // #9418: skip the entire loop when hideAutoCombos is on — the ids are still
+    // routable when sent explicitly, just not advertised in the catalog.
+    if (!hideAuto) {
+      for (const autoId of [
+        ...Object.keys(AUTO_TEMPLATE_VARIANTS),
+        ...AUTO_SUFFIX_VARIANTS,
+        ...AUTO_FAMILY_IDS,
+      ]) {
+        if (blockedProviders.has("auto") || listedIds.has(autoId)) continue; // #5192
+        // #6328 (follow-up to #6495 / #6512): REMOVE — not just hide — paid-tier
+        // auto/* ids (auto/pro-* + auto/*:pro) from the advertised catalog when the
+        // operator opts into hidePaidModels. The candidate-pool filter in
+        // virtualFactory (#6512) still gates request-time routing for the rest.
+        if (hidePaid && isPaidTierAutoId(autoId)) continue;
+        listedIds.add(autoId);
+        const baseAutoEntry = {
+          id: autoId,
+          object: "model",
+          created: timestamp,
+          owned_by: "combo",
+          permission: [],
+          root: autoId,
+          parent: null,
+        };
+        try {
+          const suffix = autoId.replace(/^auto\/?/, "");
+          const virtualCombo = await createBuiltinAutoCombo(autoId, suffix);
+          const contextLength = virtualCombo.advertisedContextLength || 128000;
+          const maxOutputTokens = virtualCombo.advertisedMaxOutputTokens || 8192;
+          models.push({
+            ...baseAutoEntry,
+            context_length: contextLength,
+            max_input_tokens: contextLength,
+            max_output_tokens: maxOutputTokens,
+            capabilities: {
+              tool_calling: true,
+              reasoning: true,
+              thinking: true,
+              temperature: true,
+            },
+          });
+        } catch (err) {
+          console.log(`[catalog] Could not materialize built-in auto model ${autoId}:`, err);
+          models.push(baseAutoEntry);
+        }
       }
     }
 
@@ -663,7 +677,7 @@ async function buildUnifiedModelsResponseCore(
 
     let syncedModelsByProvider: Record<string, SyncedAvailableModel[]> = {};
     try {
-      syncedModelsByProvider = await getAllSyncedAvailableModels();
+      syncedModelsByProvider = await getAllActiveSyncedModels();
     } catch (e) {
       // DB unavailable — log and fall through; static models remain as defaults.
       console.log("[catalog] Could not fetch synced available models:", e);
@@ -1495,6 +1509,7 @@ async function buildUnifiedModelsResponseCore(
       connections,
       prefixMode,
       aliasToProviderId,
+      hideNoThinkVariants: settings.hideNoThinkVariants === true,
     });
 
     const getDefaultContextFallback = (model: any): number | undefined => {

@@ -1,0 +1,1 @@
+- **feat(catalog):** added opt-in settings `hideAutoCombos` and `hideNoThinkVariants` (default off) to filter built-in `auto/*` virtual combos and `no-think/*` gateway variants from the `/v1/models` catalog — user-defined combos and original provider models stay listed; routing is unaffected ([#9418](https://github.com/diegosouzapw/OmniRoute/issues/9418))

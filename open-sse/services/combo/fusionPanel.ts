@@ -10,7 +10,7 @@
  * literal `auto/*` string panel member already behaves via the single-
  * dispatch safety net in src/sse/handlers/chat.ts.
  */
-import { normalizeComboStep } from "../../../src/lib/combos/steps.ts";
+import { getComboModelString, normalizeComboStep } from "../../../src/lib/combos/steps.ts";
 import { executeComboRefUnit } from "./runtimeUnits.ts";
 import type {
   ComboCollectionLike,
@@ -51,7 +51,11 @@ export function extractFusionPanelSpec(
       panel.push(step.comboName);
       return;
     }
-    panel.push(step.model);
+    // #8894 widened ComboStep with ComboProviderWildcardStep, which carries a
+    // modelPattern instead of a model. getComboModelString() already resolves any
+    // step shape (and returns null for the ones with no concrete model id).
+    const modelStr = getComboModelString(step);
+    if (modelStr) panel.push(modelStr);
   });
   return { panel, comboRefUnits };
 }

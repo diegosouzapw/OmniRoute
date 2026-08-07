@@ -201,16 +201,43 @@ function calculateSpecificityMatch(
   }
 }
 
+/**
+ * Pool-wide maxima used to normalize cost/latency/stability factors. These are
+ * identical for every candidate in a given pool, so callers scoring many
+ * candidates against the same pool should compute this ONCE via
+ * computePoolMaxima() and pass it to calculateFactors — recomputing it inside
+ * a per-candidate loop turns an O(n) scoring pass into O(n^2) (#OOM incident:
+ * a zero-config "auto" combo with no explicit candidatePool can expand the
+ * pool to 1000s of provider/model targets, at which point the repeated
+ * `pool.map()` + spread here dominates heap churn and can OOM the process).
+ */
+export interface PoolMaxima {
+  maxCost: number;
+  maxLatency: number;
+  maxStdDev: number;
+}
+
+export function computePoolMaxima(pool: ProviderCandidate[]): PoolMaxima {
+  let maxCost = 0.001;
+  let maxLatency = 1;
+  let maxStdDev = 0.001;
+  for (const p of pool) {
+    if (p.costPer1MTokens > maxCost) maxCost = p.costPer1MTokens;
+    if (p.p95LatencyMs > maxLatency) maxLatency = p.p95LatencyMs;
+    if (p.latencyStdDev > maxStdDev) maxStdDev = p.latencyStdDev;
+  }
+  return { maxCost, maxLatency, maxStdDev };
+}
+
 export function calculateFactors(
   candidate: ProviderCandidate,
   pool: ProviderCandidate[],
   taskType: string,
   getTaskFitness: (model: string, taskType: string) => number,
-  manifestHint?: RoutingHint | null
+  manifestHint?: RoutingHint | null,
+  precomputedMaxima?: PoolMaxima
 ): ScoringFactors {
-  const maxCost = Math.max(...pool.map((p) => p.costPer1MTokens), 0.001);
-  const maxLatency = Math.max(...pool.map((p) => p.p95LatencyMs), 1);
-  const maxStdDev = Math.max(...pool.map((p) => p.latencyStdDev), 0.001);
+  const { maxCost, maxLatency, maxStdDev } = precomputedMaxima ?? computePoolMaxima(pool);
 
   // Every factor is contractually [0,1]. clamp01 guards against bad telemetry
   // (negative quota / cost / latency, NaN, out-of-range candidate-supplied
@@ -245,9 +272,17 @@ export function scorePool(
   getTaskFitness: (model: string, taskType: string) => number = () => 0.5,
   manifestHint?: RoutingHint | null
 ): ScoredProvider[] {
+  const poolMaxima = computePoolMaxima(pool);
   return pool
     .map((candidate) => {
-      const factors = calculateFactors(candidate, pool, taskType, getTaskFitness, manifestHint);
+      const factors = calculateFactors(
+        candidate,
+        pool,
+        taskType,
+        getTaskFitness,
+        manifestHint,
+        poolMaxima
+      );
       return {
         provider: candidate.provider,
         model: candidate.model,

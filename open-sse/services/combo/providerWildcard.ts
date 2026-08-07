@@ -31,7 +31,7 @@
 
 import { wildcardMatch } from "../wildcardRouter.ts";
 import { getProviderModels } from "../../config/providerModels.ts";
-import { getSyncedAvailableModels } from "../../../src/lib/db/models.ts";
+import { getActiveSyncedCatalog } from "../../../src/lib/db/models/activeSyncedCatalog.ts";
 import type { ComboLike } from "./types.ts";
 
 /** Sentinel pattern used for "all models of a provider". */
@@ -116,39 +116,18 @@ function parseWildcardEntry(entry: unknown): ProviderWildcardSpec | null {
 }
 
 /**
- * Collect candidate model IDs for a provider from two sources:
- *  1. Synced available models in the DB (runtime-dynamic; custom/OAuth providers)
- *  2. Static provider registry (built-in providers bundled with the release)
- *
- * The union is deduped by model id.
+ * Collect candidate model IDs using the active synced catalog as the
+ * authoritative source when it is non-empty. Static registry models remain a
+ * fail-open fallback when no active usable catalog exists.
  */
 async function collectProviderModelIds(providerId: string): Promise<string[]> {
-  const seen = new Set<string>();
-  const ids: string[] = [];
+  const liveCatalog = await getActiveSyncedCatalog(providerId);
 
-  // 1. Synced DB models (highest priority — reflects the live catalog)
-  try {
-    const synced = await getSyncedAvailableModels(providerId);
-    for (const m of synced) {
-      if (m.id && !seen.has(m.id)) {
-        seen.add(m.id);
-        ids.push(m.id);
-      }
-    }
-  } catch {
-    // Non-fatal — DB may be offline in tests or at early init.
+  if (liveCatalog.authoritative) {
+    return liveCatalog.models.map((model) => model.id);
   }
 
-  // 2. Static registry models (fallback / built-in providers)
-  const registryModels = getProviderModels(providerId);
-  for (const m of registryModels) {
-    if (m.id && !seen.has(m.id)) {
-      seen.add(m.id);
-      ids.push(m.id);
-    }
-  }
-
-  return ids;
+  return getProviderModels(providerId).map((model) => model.id);
 }
 
 /**

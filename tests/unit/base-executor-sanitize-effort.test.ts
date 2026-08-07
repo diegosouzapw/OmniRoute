@@ -416,6 +416,24 @@ test("sanitizeReasoningEffortForProvider: codex with xhigh passes through unchan
   assert.equal((result as any).reasoning_effort, "xhigh");
 });
 
+test("sanitizeReasoningEffortForProvider: codex maps OMP minimal to low across carriers", () => {
+  const body = {
+    model: "gpt-5.6-terra",
+    reasoning_effort: "minimal",
+    reasoning: { effort: "minimal", summary: "auto" },
+    output_config: { effort: "minimal" },
+    input: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "codex", "gpt-5.6-terra", null) as Record<
+    string,
+    unknown
+  >;
+
+  assert.equal(result.reasoning_effort, "low");
+  assert.deepEqual(result.reasoning, { effort: "low", summary: "auto" });
+  assert.deepEqual(result.output_config, { effort: "low" });
+});
+
 test("sanitizeReasoningEffortForProvider: no-op when reasoning_effort absent", () => {
   const body = { model: "mimo-v2.5-pro", messages: [] };
   const result = sanitizeReasoningEffortForProvider(body, "xiaomi-mimo", "mimo-v2.5-pro", null);
