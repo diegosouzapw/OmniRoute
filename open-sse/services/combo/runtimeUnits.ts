@@ -1,7 +1,14 @@
-// Nested combo runtime unit execution — see combo.ts for integration.
+/**
+ * @file runtimeUnits.ts
+ * @description Nested combo runtime unit execution — see combo.ts for integration.
+ *
+ * @changes
+ * - [2026-07-24] [Composer] - Skip execute-mode units at concurrency cap before dispatch
+ */
 import { errorResponse } from "../../utils/error.ts";
 import { recordComboRequest } from "../comboMetrics.ts";
 import { resolveDelayMs } from "./comboPredicates.ts";
+import { isRuntimeUnitAtConcurrencyCap } from "./runtimeUnitCapacity.ts";
 import { validateResponseQuality, releaseQualityClone } from "./validateQuality.ts";
 import type { ResponseValidationConfig } from "./responseValidation.ts";
 import type {
@@ -190,6 +197,15 @@ export async function executeRuntimeUnitCombo(args: {
   let fallbackCount = 0;
 
   for (const unit of orderedUnits) {
+    if (await isRuntimeUnitAtConcurrencyCap(unit, args.allCombos)) {
+      args.log.info(
+        "COMBO",
+        `Skipping ${unit.kind} ${unitDisplayName(unit)} — concurrency cap reached`
+      );
+      fallbackCount += 1;
+      continue;
+    }
+
     for (let retry = 0; retry <= maxRetries; retry += 1) {
       if (args.signal?.aborted)
         return { response: errorResponse(499, "Client disconnected"), unit };

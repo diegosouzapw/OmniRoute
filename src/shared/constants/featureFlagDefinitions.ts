@@ -258,7 +258,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
 
-  // ──────────────── Runtime (15) ────────────────
+  // ──────────────── Runtime (16) ────────────────
   {
     key: "RESPONSES_PASSTHROUGH_DROP_COMMENTARY",
     label: "Drop Responses Commentary",
@@ -439,6 +439,19 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     description:
       "Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally.",
     descriptionI18nKey: "featureFlagExposeFunctionalGatewayMirrorsDescription",
+    category: "runtime",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "info",
+  },
+
+  {
+    key: "NEWAPI_AGGREGATOR_BALANCE",
+    label: "New-API Aggregator Balance",
+    description:
+      "Enable balance detection for New-API / One-API / Sub2API aggregator compatible nodes. When enabled, compatible nodes with the aggregator flag set will report their balance in the dashboard and quota-preflight routing.",
+    descriptionI18nKey: "featureFlagNewApiAggregatorBalanceDescription",
     category: "runtime",
     defaultValue: "false",
     type: "boolean",

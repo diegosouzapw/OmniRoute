@@ -1,4 +1,4 @@
--- Migration 135: Auto-restart-adopted toggle for embedded services
+-- Migration 137: Auto-restart-adopted toggle for embedded services
 --
 -- When a supervisor's probeBeforeSpawn finds a healthy instance already
 -- listening on its port, it adopts that process instead of spawning a new

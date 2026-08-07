@@ -4,6 +4,7 @@ const CLAUDE_CODE_COMPATIBLE_PROVIDER_PREFIX = "anthropic-compatible-cc-";
 import { normalizeExcludedModelPatterns } from "@/domain/connectionModelRules";
 import { normalizeRoutingTags } from "@/domain/tagRouter";
 import { normalizeOpenRouterPreset } from "@/shared/constants/openRouterPreset";
+import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 
 export const CODEX_REASONING_EFFORT_VALUES = [
   "none",
@@ -255,6 +256,30 @@ export function normalizeProviderSpecificData(
       delete normalized.excludedModels;
     }
     delete normalized.excluded_models;
+  }
+
+  // #8369: connection-level custom upstream headers — sanitize each key against the
+  // forbidden-header denylist and drop entries with non-string or empty values.
+  if ("customHeaders" in normalized) {
+    const raw = normalized.customHeaders;
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+      const cleaned: Record<string, string> = {};
+      for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+        const trimmedKey = key.trim();
+        if (!trimmedKey) continue;
+        if (isForbiddenCustomHeaderName(trimmedKey)) continue;
+        if (typeof value === "string" && value.trim().length > 0) {
+          cleaned[trimmedKey] = value.trim();
+        }
+      }
+      if (Object.keys(cleaned).length > 0) {
+        normalized.customHeaders = cleaned;
+      } else {
+        delete normalized.customHeaders;
+      }
+    } else {
+      delete normalized.customHeaders;
+    }
   }
 
   return Object.keys(normalized).length > 0 ? normalized : undefined;

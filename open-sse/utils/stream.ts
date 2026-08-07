@@ -70,7 +70,10 @@ import {
   hasUnsupportedReasoningSignal,
 } from "./reasoningFields.ts";
 import { applyThinkTag, flushThink, initThinkState } from "./thinkTagParser.ts";
-import { restoreOpenAIToolNames } from "../translator/helpers/toolCallHelper.ts";
+import {
+  caseInsensitiveToolNameLookup,
+  restoreOpenAIToolNames,
+} from "../translator/helpers/toolCallHelper.ts";
 import { normalizeFinalOpenAIStreamChunk } from "./openAIStreamChunk.ts";
 
 /**
@@ -578,7 +581,7 @@ function restoreClaudePassthroughToolUseName(parsed: JsonRecord, toolNameMap: un
       : null;
   if (!block || block.type !== "tool_use" || typeof block.name !== "string") return false;
 
-  const restoredName = toolNameMap.get(block.name) ?? block.name;
+  const restoredName = caseInsensitiveToolNameLookup(block.name, toolNameMap) ?? block.name;
   if (restoredName === block.name) return false;
   block.name = restoredName;
   return true;

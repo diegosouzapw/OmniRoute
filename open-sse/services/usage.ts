@@ -228,7 +228,7 @@ export async function getUsageForProvider(
     case "ha":
       return await getHyperAgentUsage(apiKey || accessToken, providerSpecificData);
     case "firecrawl":
-      return await getFirecrawlUsage(id || "", apiKey);
+      return await getFirecrawlUsage(id || "", apiKey, connection);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }

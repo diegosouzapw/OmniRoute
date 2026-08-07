@@ -130,6 +130,7 @@ export function validationBadgeProps(result: string): {
 /** A single model's outcome from a `/api/models/test-all` response. */
 export interface TestAllModelOutcome {
   status: "ok" | "error";
+  isQuota?: boolean;
   shouldHide: boolean;
 }
 type TestAllEntryStatus = "ok" | "error" | "slow";
@@ -159,16 +160,21 @@ export function evaluateTestAllEntry(
         rateLimited?: boolean;
         isTimeout?: boolean;
         isTransient?: boolean;
+        isQuota?: boolean;
       }
     | null
     | undefined,
   autoHideFailed: boolean
 ): TestAllModelOutcome {
   const ok = entry?.status === "ok";
-  const transient = [entry?.rateLimited, entry?.isTimeout, entry?.isTransient].some(Boolean);
+  const transient = [entry?.rateLimited, entry?.isTimeout, entry?.isTransient, entry?.isQuota].some(Boolean);
   return {
     status: ok ? "ok" : "error",
-    // Hide only persistent failures. Transient (rate-limited, timeout) are
+    // #9511: quota errors (isQuota) are surfaced on the icon but kept visible
+    // so an evening Test All on a free-tier provider doesn't silently wipe the
+    // catalog for the next day.
+    ...(entry?.isQuota ? { isQuota: true } : {}),
+    // Hide only persistent failures. Transient (rate-limited, timeout, quota) are
     // surfaced on the icon but kept visible so a single throttled batch test
     // does not silently wipe the catalog.
     shouldHide: !ok && autoHideFailed && !transient,
@@ -223,6 +229,7 @@ export const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   "databricks",
   "snowflake",
   "searxng-search",
+  "firecrawl",
   "petals",
   "comfyui",
   // #7447 — Moonshot/Kimi's international host (api.moonshot.ai) rejects
@@ -244,6 +251,7 @@ export const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   "xiaomi-mimo": "https://token-plan-sgp.xiaomimimo.com/v1",
   siliconflow: "https://api.siliconflow.com/v1",
   "searxng-search": "http://localhost:8888/search",
+  firecrawl: "https://api.firecrawl.dev",
   petals: "https://chat.petals.dev/api/v1/generate",
   comfyui: "http://localhost:8188",
   // #7447 — default stays the international host so existing/new
@@ -328,6 +336,8 @@ export function getProviderBaseUrlHint(
       return t ? t("snowflakeBaseUrlHint") : undefined;
     case "searxng-search":
       return t ? t("searxngBaseUrlHint") : undefined;
+    case "firecrawl":
+      return t ? t("firecrawlBaseUrlHint") : undefined;
     default:
       return undefined;
   }
@@ -343,6 +353,7 @@ export function getProviderBaseUrlPlaceholder(providerId?: string | null) {
     case "bailian-coding-plan":
     case "xiaomi-mimo":
     case "comfyui":
+    case "firecrawl":
       return getProviderBaseUrlDefault(providerId);
     case "siliconflow":
       return "https://api.siliconflow.cn/v1";

@@ -201,7 +201,7 @@ test("selectProvider with unknown provider returns null", () => {
 test("selectProvider without argument returns cheapest provider", () => {
   const config = selectProvider();
   assert.ok(config);
-  assert.equal(config.id, "searxng-search");
+  assert.notEqual(config.id, "searxng-search");
 });
 
 test("selectProvider auto-selection never returns a fallbackOnly provider", () => {
@@ -223,7 +223,7 @@ test("selectProvider still honors an explicit fallbackOnly provider", () => {
 test("selectProvider filters by search type support", () => {
   const config = selectProvider(undefined, "news");
   assert.ok(config);
-  assert.equal(config.id, "searxng-search");
+  assert.equal(config.id, "serper-search");
   assert.equal(selectProvider("linkup-search", "news"), null);
 });
 

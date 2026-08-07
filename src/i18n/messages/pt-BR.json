@@ -5475,6 +5475,13 @@
     "newApiUserIdLabel": "ID de Usuário New-API",
     "newApiUserIdPlaceholder": "ex.: 12345",
     "newApiUserIdHint": "Valor do cabeçalho New-Api-User do AgentRouter, usado junto com a chave de API do console para consultar o saldo de cota.",
+    "newApiAggregatorToggleLabel": "Gateway Agregador",
+    "newApiAggregatorToggleHint": "Ativar detecção de saldo para nós agregadores New-API / One-API / Sub2API. O painel mostrará o badge de saldo e o roteamento de pré-voo de cota ignorará contas esgotadas.",
+    "newApiAggregatorConsoleApiKeyHint": "Token de Acesso do Sistema para o endpoint /api/user/self do agregador. Não é a chave de API de roteamento.",
+    "newApiAggregatorUserIdHint": "Valor do cabeçalho New-Api-User usado para consultar o saldo de cota do usuário do agregador.",
+    "newApiAggregatorQuotaPerUnitLabel": "Cota por Unidade",
+    "newApiAggregatorQuotaPerUnitHint": "Unidades de crédito New-API por $1 (padrão: 500000). Substitua se seu agregador usar uma taxa diferente.",
+    "featureFlagNewApiAggregatorBalanceDescription": "Ativar detecção de saldo para nós compatíveis de agregadores New-API / One-API / Sub2API",
     "cpaModeDisabledTitle": "Habilitar backend CLIProxyAPI para emulação OAuth mais profunda do Claude Code",
     "cpaModeEnabledTitle": "Usando CLIProxyAPI para uma emulação mais profunda do Claude Code (uTLS, multi-conta, perfis de dispositivo)",
     "customUserAgentHint": "Override opcional enviado upstream como cabeçalho User-Agent desta conexão.",
@@ -5590,6 +5597,7 @@
     "tagGroupPlaceholder": "ex.: personal, work, team-a",
     "testModel": "Test Model",
     "testingModel": "Testing Model",
+    "modelTestQuotaTooltip": "Cota esgotada — reinicia amanhã ou precisa de recarga",
     "toggleOffShort": "OFF",
     "toggleOnShort": "ON",
     "tokenExpiredBadge": "Expirado",
@@ -5955,7 +5963,8 @@
       "kimi-coding": "Conecte o Kimi Coding com o fluxo OAuth existente.",
       "kiro": "Nível gratuito: 50 créditos/mês (~25K–100K tokens). ⚠️ Os Termos de Serviço (ToS) do Kiro proíbem o uso de proxy/harness de terceiros.",
       "codex": "Conecte o OpenAI Codex com o fluxo OAuth existente.",
-      "qwen": "Conecte o Qwen Code com o fluxo OAuth existente."
+      "qwen": "Conecte o Qwen Code com o fluxo OAuth existente.",
+      "unorouter": "Crie uma chave de API em https://unorouter.ai e cole aqui como Bearer token."
     },
     "passthroughModelsDescription": "{provider} aceita IDs de modelo nativos do provedor. Importe de /models ou adicione IDs personalizados para roteamento.",
     "bedrockModelsDescription": "Os modelos Amazon Bedrock têm escopo definido por região da AWS. Importe de /models ou adicione IDs de modelo Bedrock habilitados na região selecionada.",
@@ -10850,7 +10859,9 @@
       "goNow": "Ir agora",
       "message": "O MITM Proxy agora vive no AgentBridge.",
       "title": "Esta página foi movida"
-    }
+    },
+    "noMappingsDesc": "Nenhum mapeamento de modelo configurado ainda. Adicione mapeamentos para rotear as requisições do agente pelo OmniRoute.",
+    "addMapping": "Adicionar mapeamento"
   },
   "providerStats": {
     "unknownError": "Erro desconhecido",
@@ -11526,7 +11537,10 @@
     "noSavedProxiesError": "Nenhum proxy salvo encontrado. Adicione proxies em Configurações → Proxy primeiro.",
     "updateProviderFailed": "Falha ao atualizar provedor",
     "providerEnabled": "{provider} ativado",
-    "providerDisabled": "{provider} desativado"
+    "providerDisabled": "{provider} desativado",
+    "providerAdded": "{provider} adicionado",
+    "add": "Adicionar",
+    "manualApiKey": "Usar uma chave de API manual"
   },
   "gamification": {
     "leaderboardScopes": {

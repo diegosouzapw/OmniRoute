@@ -1,4 +1,4 @@
--- Migration 136: Dario failover backend selection for upstream_proxy_config
+-- Migration 138: Dario failover backend selection for upstream_proxy_config
 --
 -- Adds `fallback_backend` so a provider whose mode is 'fallback' can choose
 -- WHICH embedded proxy handles the retry leg — CLIProxyAPI (the historical,

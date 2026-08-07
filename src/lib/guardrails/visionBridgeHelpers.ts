@@ -592,10 +592,6 @@ async function callVisionModelSingle(
         headers,
         body: JSON.stringify({
           model: requestModel,
-          // Explicit non-stream: OmniRoute's resolveStreamFlag otherwise defaults
-          // an absent `stream` to true for OpenAI-format self-loop calls, which
-          // turns the describe response into an SSE stream (the root cause of
-          // the "is not valid JSON" failure observed with cmd/xiaomi/mimo-v2.5).
           stream: false,
           messages: [
             {

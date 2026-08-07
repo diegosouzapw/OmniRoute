@@ -250,7 +250,7 @@ test("chat completions route emits early keepalive while waiting for stream read
   await seedHealthyConnection();
 
   globalThis.fetch = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 2200));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     return new Response(
       [
         `data: ${JSON.stringify({
@@ -274,10 +274,7 @@ test("chat completions route emits early keepalive while waiting for stream read
   assert.match(response.headers.get("content-type") || "", /text\/event-stream/);
 
   const body = await readAll(response);
-  assert.match(
-    body,
-    /data: \{"id":"chatcmpl-keepalive","object":"chat\.completion\.chunk"/
-  );
+  assert.match(body, /data: \{"id":"chatcmpl-keepalive","object":"chat\.completion\.chunk"/);
   assert.match(body, /OK/);
   assert.match(body, /\[DONE\]/);
 });
@@ -286,7 +283,7 @@ test("chat completions route returns JSON without early SSE framing when stream 
   await seedHealthyConnection();
 
   globalThis.fetch = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 2200));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     return Response.json({
       id: "chatcmpl-slow-json",
       choices: [

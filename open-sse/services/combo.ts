@@ -14,6 +14,7 @@ import {
   getModelLockoutInfo,
   getRuntimeProviderProfile,
   hasPerModelQuota,
+  isAccountSemaphoreFull,
   isModelLocked,
   MODEL_ACCESS_DENIED_PATTERNS,
   recordModelLockoutFailure,
@@ -1009,6 +1010,20 @@ export async function handleComboChat({
           const gateResult = checkCredentialGate(connectionId, provider, modelStr);
           if (gateResult.allowed === false) {
             logCredentialSkip(log, modelStr, gateResult.reason || "Credential gate blocked");
+            if (i > 0) fallbackCount++;
+            return null;
+          }
+
+          // Concurrency gate: fail-fast skip when connection is at max_concurrent capacity (e.g. Featherless 1/1)
+          const maxConcurrentCap = await lookupPositiveCap(connectionId);
+          if (
+            maxConcurrentCap &&
+            isAccountSemaphoreFull(provider, connectionId, maxConcurrentCap)
+          ) {
+            log.info(
+              "COMBO",
+              `Skipping ${modelStr} — connection ${connectionId} is at max concurrency cap (${maxConcurrentCap})`
+            );
             if (i > 0) fallbackCount++;
             return null;
           }

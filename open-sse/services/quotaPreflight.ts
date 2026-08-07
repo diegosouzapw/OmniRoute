@@ -18,6 +18,10 @@
  * it — once you invoke preflight, it runs the fetcher and evaluates.
  */
 
+import { isCompatibleProviderConnectionId } from "@/shared/utils/compatibleProviderId";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { fetchNewApiAggregatorQuota } from "./newApiAggregatorQuotaFetcher.ts";
+
 export interface PreflightQuotaResult {
   proceed: boolean;
   reason?: string;
@@ -231,6 +235,29 @@ export function evaluateQuotaCutoff(
   return quotaPercentCutoffResult(quota, thresholds);
 }
 
+/**
+ * Resolve a dynamic quota fetcher for compatible-provider connections that
+ * opt in to New-API / One-API / Sub2API aggregator balance detection.
+ * Returns the fetcher when both the feature flag and the connection's
+ * aggregator flag are true; otherwise returns undefined.
+ */
+export function resolveDynamicQuotaFetcher(
+  provider: string,
+  connection: Record<string, unknown>
+): QuotaFetcher | undefined {
+  // Dynamic dispatch only for compatible-provider connection IDs
+  if (!isCompatibleProviderConnectionId(provider)) return undefined;
+
+  // Connection must opt in via providerSpecificData.newApiAggregatorBalance
+  const psd = connection?.providerSpecificData as Record<string, unknown> | undefined;
+  if (!psd || psd.newApiAggregatorBalance !== true) return undefined;
+
+  // Feature flag must be enabled
+  if (!isFeatureFlagEnabled("NEWAPI_AGGREGATOR_BALANCE")) return undefined;
+
+  return fetchNewApiAggregatorQuota;
+}
+
 export async function preflightQuota(
   provider: string,
   connectionId: string,
@@ -239,9 +266,14 @@ export async function preflightQuota(
 ): Promise<PreflightQuotaResult> {
   // No legacy enable-flag gate here — the caller decides when to invoke us
   // (see file-level docstring). When there's no fetcher we proceed silently.
-  const fetcher = getQuotaFetcher(provider);
+  let fetcher = getQuotaFetcher(provider);
   if (!fetcher) {
-    return { proceed: true };
+    // Dynamic fallback: for compatible-provider connections with the
+    // aggregator flag + feature flag, use the generalized New-API fetcher.
+    fetcher = resolveDynamicQuotaFetcher(provider, connection);
+    if (!fetcher) {
+      return { proceed: true };
+    }
   }
 
   let quota: QuotaInfo | null = null;

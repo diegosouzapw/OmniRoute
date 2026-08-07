@@ -1,3 +1,10 @@
+/**
+ * @file steps.ts
+ * @description Combo step normalization helpers for model, combo-ref, provider-wildcard, and routing metadata.
+ *
+ * @changes
+ * - [2026-07-25] [Composer] - Preserve provider-wildcard steps during combo normalization
+ */
 type JsonRecord = Record<string, unknown>;
 
 export const COMBO_SCHEMA_VERSION = 2;
@@ -28,7 +35,18 @@ export interface ComboRefStep {
   label?: string;
 }
 
-export type ComboStep = ComboModelStep | ComboRefStep;
+export interface ComboProviderWildcardStep {
+  id: string;
+  kind: "provider-wildcard";
+  providerId: string;
+  modelPattern: string;
+  connectionId?: string | null;
+  allowedConnectionIds?: string[] | null;
+  weight: number;
+  label?: string;
+}
+
+export type ComboStep = ComboModelStep | ComboRefStep | ComboProviderWildcardStep;
 
 type ComboCollectionLike =
   | Array<{ name?: unknown } | string>
@@ -103,6 +121,18 @@ function parseProviderId(model: string): string | null {
   return providerId.length > 0 ? providerId : null;
 }
 
+function parseProviderWildcardPattern(
+  target: string
+): { providerId: string; modelPattern: string } | null {
+  const trimmed = target.trim();
+  const slashIndex = trimmed.indexOf("/");
+  if (slashIndex <= 0) return null;
+  const providerId = trimmed.slice(0, slashIndex).trim();
+  const modelPattern = trimmed.slice(slashIndex + 1).trim();
+  if (!providerId || !modelPattern.includes("*")) return null;
+  return { providerId, modelPattern };
+}
+
 function toFullModelString(model: string, providerId?: string | null): string {
   const trimmedModel = model.trim();
   if (trimmedModel.includes("/")) return trimmedModel;
@@ -124,12 +154,9 @@ function buildStepId(
   index: number,
   seed: string
 ) {
-  const parts = [
-    slugify(comboName || "combo"),
-    kind === "combo-ref" ? "ref" : "model",
-    String(index + 1),
-    slugify(seed),
-  ];
+  const kindSlug =
+    kind === "combo-ref" ? "ref" : kind === "provider-wildcard" ? "wildcard" : "model";
+  const parts = [slugify(comboName || "combo"), kindSlug, String(index + 1), slugify(seed)];
   return parts.join("-").slice(0, 200);
 }
 
@@ -187,6 +214,11 @@ export function getComboStepTarget(
 
   if (!isRecord(value)) return null;
   if (value.kind === "combo-ref") return toTrimmedString(value.comboName);
+  if (value.kind === "provider-wildcard") {
+    const providerId = toTrimmedString(value.providerId);
+    const modelPattern = toTrimmedString(value.modelPattern) || "*";
+    return providerId ? `${providerId}/${modelPattern}` : null;
+  }
 
   const rawModel = toTrimmedString(value.model);
   if (!rawModel) return null;
@@ -223,6 +255,22 @@ export function normalizeComboStep(
       };
     }
 
+    const wildcardPattern = parseProviderWildcardPattern(target);
+    if (wildcardPattern) {
+      return {
+        id: buildStepId(
+          "provider-wildcard",
+          comboName,
+          index,
+          `${wildcardPattern.providerId}/${wildcardPattern.modelPattern}`
+        ),
+        kind: "provider-wildcard",
+        providerId: wildcardPattern.providerId,
+        modelPattern: wildcardPattern.modelPattern,
+        weight: 0,
+      };
+    }
+
     const providerId = parseProviderId(target);
     return {
       id: buildStepId("model", comboName, index, target),
@@ -252,6 +300,41 @@ export function normalizeComboStep(
     };
   }
 
+  if (value.kind === "provider-wildcard") {
+    const providerId =
+      toTrimmedString(value.providerId) ||
+      toTrimmedString(value.provider) ||
+      parseProviderId(toTrimmedString(value.model) || "");
+    if (!providerId) return null;
+    const modelPattern = toTrimmedString(value.modelPattern) || "*";
+    const connectionId =
+      value.connectionId === null ? null : toTrimmedString(value.connectionId) || undefined;
+    const allowedConnectionIds = Array.isArray(value.allowedConnectionIds)
+      ? value.allowedConnectionIds
+          .map((connId) => toTrimmedString(connId))
+          .filter((connId): connId is string => !!connId)
+      : undefined;
+    return {
+      id:
+        explicitId ||
+        buildStepId(
+          "provider-wildcard",
+          comboName,
+          index,
+          connectionId
+            ? `${providerId}/${modelPattern}:${connectionId}`
+            : `${providerId}/${modelPattern}`
+        ),
+      kind: "provider-wildcard",
+      providerId,
+      modelPattern,
+      ...(connectionId !== undefined ? { connectionId } : {}),
+      weight,
+      ...(label ? { label } : {}),
+      ...(allowedConnectionIds && allowedConnectionIds.length > 0 ? { allowedConnectionIds } : {}),
+    };
+  }
+
   const rawModel = toTrimmedString(value.model);
   if (!rawModel) return null;
   const isExplicitModel = value.kind === "model";
@@ -260,6 +343,36 @@ export function normalizeComboStep(
     toTrimmedString(value.providerId) ||
     toTrimmedString(value.provider) ||
     parseProviderId(rawModel);
+
+  const wildcardPattern = parseProviderWildcardPattern(rawModel);
+  if (wildcardPattern) {
+    const connectionId =
+      value.connectionId === null ? null : toTrimmedString(value.connectionId) || undefined;
+    const allowedConnectionIds = Array.isArray(value.allowedConnectionIds)
+      ? value.allowedConnectionIds
+          .map((connId) => toTrimmedString(connId))
+          .filter((connId): connId is string => !!connId)
+      : undefined;
+    return {
+      id:
+        explicitId ||
+        buildStepId(
+          "provider-wildcard",
+          comboName,
+          index,
+          connectionId
+            ? `${wildcardPattern.providerId}/${wildcardPattern.modelPattern}:${connectionId}`
+            : `${wildcardPattern.providerId}/${wildcardPattern.modelPattern}`
+        ),
+      kind: "provider-wildcard",
+      providerId: wildcardPattern.providerId,
+      modelPattern: wildcardPattern.modelPattern,
+      ...(connectionId !== undefined ? { connectionId } : {}),
+      weight,
+      ...(label ? { label } : {}),
+      ...(allowedConnectionIds && allowedConnectionIds.length > 0 ? { allowedConnectionIds } : {}),
+    };
+  }
 
   if (!isExplicitModel && shouldTreatAsComboRef(rawModel, providerId, options)) {
     return {

@@ -5,7 +5,7 @@
  * credits into the standard `{ plan, quotas }` response.
  */
 
-import { fetchFirecrawlQuota, type FirecrawlQuota } from "../firecrawlQuotaFetcher.ts";
+import { fetchFirecrawlQuota, getFirecrawlBaseUrl, type FirecrawlQuota } from "../firecrawlQuotaFetcher.ts";
 import { createQuotaFromUsage, parseResetTime } from "./quota.ts";
 
 function createFirecrawlPlanQuota(q: FirecrawlQuota) {
@@ -29,13 +29,22 @@ function createFirecrawlPlanQuota(q: FirecrawlQuota) {
   };
 }
 
-export async function getFirecrawlUsage(connectionId: string, apiKey?: string) {
+export async function getFirecrawlUsage(connectionId: string, apiKey?: string, connection?: Record<string, unknown>) {
   if (!connectionId) {
     return { message: "Firecrawl: connection id unavailable." };
   }
 
+  const customBase = getFirecrawlBaseUrl(connection);
+  if (customBase) {
+    return {
+      plan: "Firecrawl · Self-Hosted Local",
+      quotas: {},
+      message: `Connected to self-hosted Firecrawl instance (${customBase})`,
+    };
+  }
+
   try {
-    const live = await fetchFirecrawlQuota(connectionId, { apiKey });
+    const live = await fetchFirecrawlQuota(connectionId, connection);
     if (!live) {
       return { message: "Firecrawl API key not available or credit usage unavailable." };
     }

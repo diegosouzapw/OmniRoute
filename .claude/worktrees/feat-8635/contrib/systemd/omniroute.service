@@ -1,0 +1,19 @@
+[Unit]
+Description=OmniRoute AI Proxy
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=$(which omniroute) start
+Restart=on-failure
+RestartSec=5
+Environment=NODE_ENV=production
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

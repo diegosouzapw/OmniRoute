@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { Badge, Button, Input, Modal, Select } from "@/shared/components";
+import { Badge, Button, Input, Modal, Select, Toggle } from "@/shared/components";
 import {
   CLIENT_IDENTITY_PROFILE_OPTIONS,
   getClientIdentityProfileHeaders,
 } from "@/shared/constants/clientIdentityProfiles";
+import NewApiAggregatorFields from "../[id]/components/modals/NewApiAggregatorFields";
 
 type CompatibleMode = "openai" | "anthropic" | "cc";
 type CompatibleProviderNode = { id: string } & Record<string, unknown>;
@@ -29,6 +30,10 @@ interface CompatibleFormState {
   modelsPath: string;
   iconUrl: string;
   clientIdentityProfile: string;
+  newApiAggregatorBalance: boolean;
+  consoleApiKey: string;
+  newApiUserId: string;
+  quotaPerUnit: string;
 }
 
 const CC_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
@@ -83,6 +88,10 @@ function createInitialForm(mode: CompatibleMode): CompatibleFormState {
     modelsPath: "",
     iconUrl: "",
     clientIdentityProfile: "default",
+    newApiAggregatorBalance: false,
+    consoleApiKey: "",
+    newApiUserId: "",
+    quotaPerUnit: "",
   };
 }
 
@@ -199,6 +208,26 @@ export default function AddCompatibleProviderModal({
       const identityHeaders = getClientIdentityProfileHeaders(formData.clientIdentityProfile);
       if (Object.keys(identityHeaders).length > 0) body.customHeaders = identityHeaders;
 
+      // Aggregator gateway fields (#9415)
+      if (formData.newApiAggregatorBalance) {
+        body.providerSpecificData = {
+          ...(body.providerSpecificData as Record<string, unknown> | undefined),
+          newApiAggregatorBalance: true,
+        };
+        if (formData.consoleApiKey.trim()) {
+          (body.providerSpecificData as Record<string, unknown>).consoleApiKey =
+            formData.consoleApiKey.trim();
+        }
+        if (formData.newApiUserId.trim()) {
+          (body.providerSpecificData as Record<string, unknown>).newApiUserId =
+            formData.newApiUserId.trim();
+        }
+        const parsedQuotaPerUnit = parseInt(formData.quotaPerUnit, 10);
+        if (Number.isFinite(parsedQuotaPerUnit) && parsedQuotaPerUnit > 0) {
+          (body.providerSpecificData as Record<string, unknown>).quotaPerUnit = parsedQuotaPerUnit;
+        }
+      }
+
       const res = await fetch("/api/provider-nodes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -300,6 +329,25 @@ export default function AddCompatibleProviderModal({
           onChange={(e) => setFormData({ ...formData, iconUrl: e.target.value })}
           placeholder="https://example.com/logo.png"
           hint={t("iconUrlHint")}
+        />
+
+        <Toggle
+          label={t("newApiAggregatorToggleLabel")}
+          description={t("newApiAggregatorToggleHint")}
+          checked={formData.newApiAggregatorBalance}
+          onChange={(checked: boolean) =>
+            setFormData({ ...formData, newApiAggregatorBalance: checked })
+          }
+        />
+        <NewApiAggregatorFields
+          enabled={formData.newApiAggregatorBalance}
+          values={{
+            consoleApiKey: formData.consoleApiKey,
+            newApiUserId: formData.newApiUserId,
+            quotaPerUnit: formData.quotaPerUnit,
+          }}
+          onChange={(patch) => setFormData({ ...formData, ...patch })}
+          t={t}
         />
 
         <button

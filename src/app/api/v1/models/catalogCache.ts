@@ -80,13 +80,18 @@ const catalogInFlight = new Map<string, InFlightBuild>();
 
 let _catalogBuilderRuns = 0;
 
-function buildCatalogCacheKey(request: Request): string {
+function buildCatalogCacheKey(
+  request: Request,
+  catalogSettings?: { hideAutoCombos?: boolean; hideNoThinkVariants?: boolean }
+): string {
   const url = new URL(request.url);
   const prefix = url.searchParams.get("prefix") || "";
   const apiKey = extractApiKey(request) || "";
   const isCodex = isCodexModelCatalogClient(request) ? "1" : "0";
   const configuredOnly = url.searchParams.get("configuredOnly") === "true" ? "1" : "0";
-  return `${prefix}|${isCodex}|${apiKey}|${configuredOnly}`;
+  const hideAuto = catalogSettings?.hideAutoCombos ? "1" : "0";
+  const hideNoThink = catalogSettings?.hideNoThinkVariants ? "1" : "0";
+  return `${prefix}|${isCodex}|${apiKey}|${configuredOnly}|${hideAuto}|${hideNoThink}`;
 }
 
 // Tracks the model-catalog cache version (src/lib/db/readCache.ts) as of the last
@@ -223,12 +228,13 @@ function runBuilder(
 export async function resolveCachedCatalogResponse(
   request: Request,
   headerSources: { corsHeaders: Record<string, string>; diagnosticHeaders: Record<string, string> },
-  buildPayload: (request: Request) => Promise<CatalogPayload>
+  buildPayload: (request: Request) => Promise<CatalogPayload>,
+  catalogSettings?: { hideAutoCombos?: boolean; hideNoThinkVariants?: boolean }
 ): Promise<Response> {
   const { corsHeaders, diagnosticHeaders } = headerSources;
   dropCatalogCacheIfStateChanged();
 
-  const cacheKey = buildCatalogCacheKey(request);
+  const cacheKey = buildCatalogCacheKey(request, catalogSettings);
   const now = Date.now();
   const cached = catalogCache.get(cacheKey);
 

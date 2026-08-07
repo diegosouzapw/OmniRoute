@@ -102,6 +102,44 @@ describe("session-dedup engine", () => {
     assert.equal(messages[2].content, "bye");
   });
 
+  it("O(n²) guard: a huge multi-thousand-line message stays bounded in time and memory", () => {
+    // Regression for the OOM incident: an agent conversation embedded a large
+    // line-numbered file view (a tool result pasting a multi-thousand-line file
+    // back into the chat) repeated across messages. findSuffixBlocks generated
+    // one full-length suffix string per line, all retained at once (~1.7GB of
+    // live strings), OOM-killing the heap.
+    // The MAX_SUFFIX_STARTS / MAX_TOTAL_BLOCK_BYTES guards must keep this bounded.
+    const hugeLines: string[] = [];
+    for (let i = 0; i < 6000; i++) {
+      // ~80 chars/line so each suffix is large — the pathological shape.
+      hugeLines.push(`${i}:               "config_snapshot": { "value": ${i}, "pad": "xxxxxxxxxxxxxx" }`);
+    }
+    const hugeContent = hugeLines.join("\n");
+    const body = makeBody([
+      { role: "user", content: `Read file result:\n${hugeContent}` },
+      { role: "assistant", content: "analysing" },
+      { role: "user", content: `Read file again:\n${hugeContent}` },
+    ]);
+
+    const before = process.memoryUsage().heapUsed;
+    const t0 = Date.now();
+    const result = sessionDedupEngine.apply(body as Record<string, unknown>);
+    const elapsed = Date.now() - t0;
+    const grew = process.memoryUsage().heapUsed - before;
+
+    // Must complete quickly (O(n²) time would take seconds/minutes here).
+    assert.ok(elapsed < 4000, `session-dedup must stay fast on huge input (took ${elapsed}ms)`);
+    // Heap growth must be bounded well below the pre-fix multi-hundred-MB / GB blow-up.
+    // Pre-fix this single call retained hundreds of MB of suffix strings; the 8MB
+    // block budget (plus overhead) must keep transient growth modest.
+    assert.ok(
+      grew < 120 * 1024 * 1024,
+      `heap growth must stay bounded (grew ${(grew / 1048576).toFixed(1)}MB)`
+    );
+    // Result must still be a valid body (engine did not throw / corrupt).
+    assert.ok(Array.isArray((result.body as Record<string, unknown>).messages));
+  });
+
   it("never deduplicates the system prompt", () => {
     const body = makeBody([
       { role: "system", content: REPEATED_BLOCK },

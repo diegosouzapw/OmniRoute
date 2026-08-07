@@ -10,8 +10,14 @@ import os from "node:os";
 import path from "node:path";
 import { NextRequest } from "next/server";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-9033-repro-"));
-process.env.DATA_DIR = TEST_DATA_DIR;
+const TEST_DATA_DIR = path.join(process.env.DATA_DIR!, "probe-9033-repro");
+// NOTE: Not reassigning process.env.DATA_DIR at module scope because
+// node --test spawns test files as worker threads sharing process.env.
+// A module-level DATA_DIR override would leak to ALL concurrently running
+// workers, causing them to share the same SQLite file and race on it (#9541).
+// isolateDataDir.ts (--import) already set DATA_DIR to a unique temp dir per
+// process; we use a subdirectory within it instead.
+
 process.env.JWT_SECRET = "test-secret-9033";
 
 const core = await import("../../../src/lib/db/core.ts");

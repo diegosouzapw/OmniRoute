@@ -287,9 +287,9 @@ async function waitFor(fn, timeoutMs = 30000) {
   return null;
 }
 
-async function waitForAsyncSideEffects() {
-  await new Promise((resolve) => setImmediate(resolve));
-  await new Promise((resolve) => setTimeout(resolve, 10));
+async function flushAsyncSideEffects() {
+  // setImmediate rounds drain the event loop more reliably than setTimeout under CI load.
+  for (let i = 0; i < 5; i++) await new Promise((resolve) => setImmediate(resolve));
 }
 
 async function getLatestCallLog() {
@@ -363,7 +363,7 @@ async function invokeChatCore({
       onCredentialsRefreshed,
       onRequestSuccess,
     } as any);
-    await waitForAsyncSideEffects();
+    await flushAsyncSideEffects();
 
     return { result, calls, call: calls.at(-1) };
   } finally {
@@ -376,7 +376,7 @@ test.afterEach(async () => {
   restorePipelineCaptureEnv();
   clearPendingRequests();
   resetAccountSemaphores();
-  await waitForAsyncSideEffects();
+  await flushAsyncSideEffects();
   await resetStorage();
 });
 
@@ -385,7 +385,7 @@ test.after(async () => {
   restorePipelineCaptureEnv();
   clearPendingRequests();
   resetAccountSemaphores();
-  await waitForAsyncSideEffects();
+  await flushAsyncSideEffects();
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
@@ -443,7 +443,7 @@ test("chatCore times out upstream execution before provider response headers", a
     assert.equal(pendingDetail?.providerRequest?.model, "gpt-4o-mini");
     assert.deepEqual(pendingDetail?.providerRequest?.messages, body.messages);
     const result = await invocation;
-    await waitForAsyncSideEffects();
+    await flushAsyncSideEffects();
 
     assert.equal(upstreamBodies[0]?.model, "gpt-4o-mini");
     assert.deepEqual(upstreamBodies[0]?.messages, body.messages);
@@ -472,7 +472,7 @@ test("chatCore can disable pipeline stream chunk capture through environment", a
 
   assert.equal(result.success, true);
   await result.response.text();
-  await waitForAsyncSideEffects();
+  await flushAsyncSideEffects();
 
   const detail = await waitFor(getLatestCallLog);
   assert.ok(detail, "expected call log detail to be persisted");
@@ -1702,7 +1702,7 @@ test("chatCore returns a semantic cache HIT for repeated deterministic requests"
   const payload = (await second.result.response.json()) as any;
   assert.equal(payload.choices[0].message.content, "cached-once");
 
-  await waitForAsyncSideEffects();
+  await flushAsyncSideEffects();
   const semanticLog = await waitFor(async () => {
     const rows = await getCallLogs({ limit: 10 });
     const hit = rows.find((row) => row.cacheSource === "semantic");
@@ -2632,7 +2632,7 @@ test("chatCore releases account semaphore slots when upstream execution throws",
     },
   });
 
-  await waitForAsyncSideEffects();
+  await flushAsyncSideEffects();
 
   assert.equal(result.success, false);
   assert.equal(result.status, 502);
@@ -2709,7 +2709,7 @@ test("chatCore caches streaming response and serves cache HIT on repeat", async 
   assert.equal(first.result.success, true);
   // Consume the stream to trigger onStreamComplete and cache write
   await first.result.response.text();
-  await waitForAsyncSideEffects();
+  await flushAsyncSideEffects();
 
   // Second request with same body should get cache HIT (JSON, not SSE)
   const second = await invokeChatCore({
@@ -2762,7 +2762,7 @@ test("chatCore does not cache streaming response when temperature > 0", async ()
   });
 
   await first.result.response.text();
-  await waitForAsyncSideEffects();
+  await flushAsyncSideEffects();
 
   const second = await invokeChatCore({
     provider: "openai",
@@ -2804,7 +2804,7 @@ test("chatCore skips streaming cache when X-OmniRoute-No-Cache header is set", a
   });
 
   await first.result.response.text();
-  await waitForAsyncSideEffects();
+  await flushAsyncSideEffects();
 
   // Verify nothing was cached
   const sig = generateSignature("gpt-4o-mini", sharedBody.messages, 0, 1);

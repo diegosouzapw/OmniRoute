@@ -1,7 +1,7 @@
 // Characterization of the providers.ts catalog split (god-file decomposition): the host became a
 // barrel that re-exports 10 data catalogs now living under constants/providers/*, and APIKEY is
 // merged from 6 semantic family files (apikey/<family>.ts). Locks: the public surface (every catalog
-// + helpers still exported), the spread-merge integrity (196 APIKEY entries, no loss/dup), and that
+// + helpers still exported), the spread-merge integrity (197 APIKEY entries, no loss/dup), and that
 // load-time Zod validation still runs. Pure-data move → behavior must be identical.
 // Count was 171 before obsolete provider removals (PR #6675: glhf/kluster/cablyai/inclusionai etc.,
 // 171->167) plus #6126 (ClinePass dual-auth): the API-key-only APIKEY_PROVIDERS_GATEWAYS entry was
@@ -17,7 +17,7 @@
 // sarvam+plamo in regional) to 193, then #8170 (inception/typhoon — inception in frontier-labs,
 // typhoon in regional) to 195, then Firecrawl dual search+fetch under SEARCH_PROVIDERS.firecrawl
 // (removed specialty-media duplicate) to 194, #8861 (Xiaomi MiMo Token Plan, regional) to 195, and
-// the Cheaper Inference gateway (OSS-sponsor reseller, gateways family) to 196.
+// the Cheaper Inference gateway (OSS-sponsor reseller, gateways family) to 197 (UnoRouter, #9009).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
@@ -46,12 +46,12 @@ test("barrel still exports every catalog + key helpers", () => {
   }
 });
 
-test("APIKEY_PROVIDERS merges the 6 family files into 196 entries (no loss / no dup)", async () => {
+test("APIKEY_PROVIDERS merges the 6 family files into 197 entries (no loss / no dup)", async () => {
   const keys = Object.keys((P as Record<string, object>).APIKEY_PROVIDERS);
-  assert.equal(keys.length, 196);
-  assert.equal(new Set(keys).size, 196, "duplicate keys after spread-merge");
+  assert.equal(keys.length, 197);
+  assert.equal(new Set(keys).size, 197, "duplicate keys after spread-merge");
   // the merged object's entry-count equals the sum of the 6 semantic family files; families are a
-  // strict partition (every provider in exactly one), so the sum must be exactly 196.
+  // strict partition (every provider in exactly one), so the sum must be exactly 197.
   const families: [string, string][] = [
     ["gateways", "APIKEY_PROVIDERS_GATEWAYS"],
     ["frontier-labs", "APIKEY_PROVIDERS_FRONTIER"],
@@ -71,7 +71,7 @@ test("APIKEY_PROVIDERS merges the 6 family files into 196 entries (no loss / no 
       seen.add(k);
     }
   }
-  assert.equal(famTotal, 196, "families must partition all 196 providers");
+  assert.equal(famTotal, 197, "families must partition all 197 providers");
 });
 
 test("AI_PROVIDERS Proxy aggregates all sections; lookups resolve", () => {

@@ -1547,8 +1547,7 @@ async function handleSingleModelChat(
         // the next client retry select another eligible account without deleting a
         // pin that may already have moved to a healthy connection.
         const isTerminalStreamEarlyEof =
-          result.errorCode === "STREAM_EARLY_EOF" ||
-          result.errorType === "stream_early_eof";
+          result.errorCode === "STREAM_EARLY_EOF" || result.errorType === "stream_early_eof";
 
         if (isTerminalStreamEarlyEof && runtimeOptions.sessionAffinityKey) {
           try {
@@ -1769,7 +1768,8 @@ async function handleSingleModelChat(
 
         const mlSettings = resolveModelLockoutSettings(runtimeOptions.cachedSettings);
         if (mlSettings.enabled && mlSettings.errorCodes.includes(result.status)) {
-          // Lock this model on this connection until tomorrow 00:00
+          // Lock until tomorrow 00:00. Antigravity meters per exact model (#8630).
+          const lockScope = provider === "antigravity" ? "exact" : undefined;
           const lockResult = recordModelLockoutFailure(
             provider,
             credentials.connectionId,
@@ -1778,10 +1778,7 @@ async function handleSingleModelChat(
             result.status,
             0,
             providerProfile,
-            {
-              maxCooldownMs: mlSettings.maxCooldownMs,
-              scope: provider === "antigravity" ? "exact" : undefined,
-            }
+            { maxCooldownMs: mlSettings.maxCooldownMs, scope: lockScope }
           );
 
           log.info(

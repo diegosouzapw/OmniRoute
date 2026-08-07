@@ -104,6 +104,19 @@ export function parseFirecrawlCreditUsage(data: unknown): FirecrawlQuota | null 
   };
 }
 
+export function getFirecrawlBaseUrl(connection?: Record<string, unknown>): string | null {
+  const envBase = process.env.FIRECRAWL_BASE_URL?.trim();
+  if (envBase && !envBase.includes("api.firecrawl.dev")) {
+    return envBase.replace(/\/+$/, "");
+  }
+  const providerData = toRecord(connection?.providerSpecificData);
+  const connBase = typeof connection?.baseUrl === "string" ? connection.baseUrl : providerData?.baseUrl;
+  if (typeof connBase === "string" && connBase.trim() && !connBase.includes("api.firecrawl.dev")) {
+    return connBase.trim().replace(/\/+$/, "");
+  }
+  return null;
+}
+
 export async function fetchFirecrawlQuota(
   connectionId: string,
   connection?: Record<string, unknown>
@@ -111,6 +124,21 @@ export async function fetchFirecrawlQuota(
   const cached = quotaCache.get(connectionId);
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
     return cached.quota;
+  }
+
+  const customBase = getFirecrawlBaseUrl(connection);
+  if (customBase) {
+    return {
+      used: 0,
+      total: 0,
+      percentUsed: 0,
+      resetAt: null,
+      remainingCredits: 0,
+      planCredits: 0,
+      extraCreditsInferred: 0,
+      overPlan: false,
+      limitReached: false,
+    };
   }
 
   const apiKey = extractFirecrawlApiKey(connection);

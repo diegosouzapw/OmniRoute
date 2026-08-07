@@ -1,0 +1,1 @@
+- fix(translator): add case-insensitive fallback for upstream tool call name lookups (#9575)

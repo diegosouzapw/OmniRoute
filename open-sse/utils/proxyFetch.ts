@@ -382,6 +382,10 @@ export function resolveProxyForRequest(targetUrl) {
 
   const contextProxy = proxyContext.getStore();
   if (contextProxy) {
+    // #9551: NO_PROXY must bypass context-proxy too
+    if (target && noProxyMatch(targetUrl)) {
+      return { source: "direct", proxyUrl: null };
+    }
     return { source: "context", proxyUrl: proxyConfigToUrl(contextProxy) };
   }
 

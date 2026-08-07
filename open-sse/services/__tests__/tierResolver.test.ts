@@ -192,12 +192,17 @@ describe("TierResolver", () => {
     });
 
     it("uses cache for repeated models", () => {
-      classifyTiers([
+      clearTierCache();
+      const results = classifyTiers([
         { provider: "openai", model: "gpt-4o" },
         { provider: "openai", model: "gpt-4o" },
       ]);
-      // If cache works, second call should be instant; test passes if no error
-      expect(true).toBe(true);
+      // Observable effect of the cache: the duplicate resolves to the same tier and only
+      // ONE entry is memoized (getTierStats counts cache entries, not classify calls).
+      assert.equal(results.length, 2);
+      assert.equal(results[0].tier, results[1].tier);
+      const stats = getTierStats();
+      assert.equal(stats.free + stats.cheap + stats.premium, 1);
     });
   });
 

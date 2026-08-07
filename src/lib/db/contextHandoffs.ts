@@ -22,6 +22,7 @@ type JsonRecord = Record<string, unknown>;
 
 interface StatementLike<TRow = unknown> {
   get: (...params: unknown[]) => TRow | undefined;
+  all: (...params: unknown[]) => TRow[];
   run: (...params: unknown[]) => { changes: number };
 }
 
@@ -252,4 +253,41 @@ export function deleteSessionModelHistory(sessionId: string, comboName: string):
     .prepare("DELETE FROM session_model_history WHERE session_id = ? AND combo_name = ?")
     .run(sessionId, comboName);
   return result.changes ?? 0;
+}
+
+/**
+ * Get usage counts for ALL models in a session's history.
+ * Returns a Map<{model}> -> {count} for least-used strategy.
+ *
+ * Queries the session_model_history table and aggregates by model_str.
+ * Can optionally filter by connectionId if provided.
+ *
+ * @param connectionId - Optional connection ID to filter by. If not provided, returns all connections.
+ * @returns Promise<Map<string, number>> of model strings to their usage count.
+ */
+export async function getSessionModelUsageCounts(
+  connectionId?: string
+): Promise<Map<string, number>> {
+  const db = getDbInstance() as any;
+
+  let sql = `SELECT model_str, COUNT(*) as count 
+             FROM session_model_history 
+             WHERE 1=1`;
+  const params: unknown[] = [];
+
+  if (connectionId) {
+    sql += ` AND connection_id = ?`;
+    params.push(connectionId);
+  }
+
+  sql += ` GROUP BY model_str ORDER BY count ASC`;
+
+  const rows = db.prepare(sql).all(...params) as Array<{ model_str: string; count: number }>;
+
+  const usageMap = new Map<string, number>();
+  rows.forEach((row: { model_str: string; count: number }) => {
+    usageMap.set(row.model_str, row.count);
+  });
+
+  return usageMap;
 }

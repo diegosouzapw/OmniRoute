@@ -96,6 +96,37 @@ export function normalizeOpenAIToolNames(body: unknown, maxLength: number): Tool
   return aliases;
 }
 
+/**
+ * Case-insensitive fallback for tool name lookups from upstream responses.
+ *
+ * Many upstream providers/models return tool call names in lowercase (e.g., "bash")
+ * even when the tool definition used PascalCase ("Bash"). This helper tries an exact
+ * match first (fast path for well-behaved providers), then falls back to a
+ * case-insensitive scan over the map entries.
+ *
+ * Returns the mapped value on match, or `undefined` when no entry matches.
+ */
+export function caseInsensitiveToolNameLookup(
+  name: string,
+  map: Map<string, string> | null | undefined
+): string | undefined {
+  if (!map || !name) return undefined;
+
+  // Fast path: exact match (PascalCase-preserving providers)
+  const exact = map.get(name);
+  if (exact !== undefined) return exact;
+
+  // Fallback: case-insensitive scan
+  const lowerName = name.toLowerCase();
+  for (const [key, value] of map) {
+    if (key.toLowerCase() === lowerName) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
 /** Restore normalized function names in OpenAI Chat Completions responses. */
 export function restoreOpenAIToolNames(body: unknown, aliases: unknown): boolean {
   if (!(aliases instanceof Map) || aliases.size === 0) return false;
@@ -108,7 +139,7 @@ export function restoreOpenAIToolNames(body: unknown, aliases: unknown): boolean
     for (const toolCall of calls) {
       const fn = toRecord(toRecord(toolCall)?.function);
       if (!fn || typeof fn.name !== "string") continue;
-      const original = aliases.get(fn.name);
+      const original = caseInsensitiveToolNameLookup(fn.name, aliases);
       if (typeof original !== "string" || original === fn.name) continue;
       fn.name = original;
       changed = true;

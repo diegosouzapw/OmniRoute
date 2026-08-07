@@ -259,7 +259,14 @@ async function captureViaCdp(opts: {
       if (capturedAccessToken) return;
       const request = params.request as
         { url?: string; headers?: Record<string, string> } | undefined;
-      if (!request?.url || !request.url.includes(FIREFLY_3P_HOST_SUFFIX)) return;
+      if (!request?.url) return;
+      let host: string;
+      try {
+        host = new URL(request.url).hostname.toLowerCase();
+      } catch {
+        return;
+      }
+      if (host !== FIREFLY_3P_HOST_SUFFIX && !host.endsWith(`.${FIREFLY_3P_HOST_SUFFIX}`)) return;
       const headers = request.headers || {};
       const auth = headers.Authorization || headers.authorization || headers.AUTHORIZATION || "";
       const token = extractAdobeBearerTokenFromAuthorization(auth);

@@ -1,0 +1,259 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common"
+fail() { printf 'FAIL: %s\n' "$1" >&2; exit 1; }
+bridge_prepare_sandbox
+compose_config=(docker compose -f "$BRIDGE_COMPOSE" --env-file /dev/null --profile offline --profile live-devin config)
+config="$("${compose_config[@]}")"
+config_json="$("${compose_config[@]}" --format json)"
+for forbidden in "$HOME/.claude" "$HOME/.claude.json" "$HOME/.ssh" "/var/run/docker.sock"; do
+  [[ "$config" != *"$forbidden"* ]] || fail "forbidden host mount appears in compose: $forbidden"
+done
+grep -q 'user: 10001:10001' <<<"$config" || fail "runtime is not non-root"
+grep -q 'read_only: true' <<<"$config" || fail "runtime root filesystem is not read-only"
+grep -q 'internal: true' <<<"$config" || fail "internal network is missing"
+grep -q 'CLAUDE_CONFIG_DIR: /home/bridge/.claude-devin-isolated' <<<"$config" || fail "isolated Claude config is missing"
+node -e '
+  const fs = require("node:fs");
+  const config = JSON.parse(fs.readFileSync(0, "utf8"));
+  const liveNetworks = Object.keys(config.services["omniroute-live"].networks || {}).sort();
+  if (JSON.stringify(liveNetworks) !== JSON.stringify(["bridge-internal", "devin-guard-internal"])) {
+    throw new Error(`live runtime network escape: ${liveNetworks.join(",")}`);
+  }
+  const guardNetworks = Object.keys(config.services["network-guard"].networks || {}).sort();
+  if (JSON.stringify(guardNetworks) !== JSON.stringify(["devin-guard-internal", "guard-egress"])) {
+    throw new Error(`network guard topology mismatch: ${guardNetworks.join(",")}`);
+  }
+  const claudeGuard = config.services["claude-egress-guard"];
+  if (JSON.stringify(Object.keys(claudeGuard.networks || {})) !== JSON.stringify(["bridge-internal"])) {
+    throw new Error("Claude egress guard must remain on the internal network only");
+  }
+  if (config.services["network-guard"].environment.GUARD_POLICY !== "devin") {
+    throw new Error("Devin network guard policy mismatch");
+  }
+  if (claudeGuard.environment.GUARD_POLICY !== "deny-all") {
+    throw new Error("Claude egress guard is not deny-all");
+  }
+  for (const guardName of ["network-guard", "claude-egress-guard"]) {
+    const guard = config.services[guardName];
+    const env = config.services[guardName].environment;
+    if (env.GUARD_ALLOW_SUFFIXES || env.GUARD_ALLOW_HOSTS) {
+      throw new Error(`${guardName} exposes mutable host allowlists`);
+    }
+    if (!guard.healthcheck?.test) throw new Error(`${guardName} has no healthcheck`);
+    const auditMount = (guard.volumes || []).find((mount) => mount.target === "/guard-audit");
+    if (!auditMount || auditMount.type !== "bind" || !auditMount.source.includes("/.sandbox/guard-audit/")) {
+      throw new Error(`${guardName} does not use its guard-only audit bind`);
+    }
+  }
+  const runtimeNames = ["omniroute", "claude", "contract", "omniroute-live", "claude-live"];
+  for (const serviceName of [...runtimeNames, "network-guard", "claude-egress-guard"]) {
+    const service = config.services[serviceName];
+    if (String(service.user) !== "10001:10001" || !service.read_only) {
+      throw new Error(`${serviceName} is not non-root and read-only`);
+    }
+  }
+  for (const serviceName of runtimeNames) {
+    const service = config.services[serviceName];
+    if ((service.volumes || []).some((mount) => mount.target === "/guard-audit")) {
+      throw new Error(`${serviceName} can mutate guard audit evidence`);
+    }
+    const namedVolumes = (service.volumes || []).filter((mount) => mount.type === "volume");
+    const hasClaudeConfig = namedVolumes.some(
+      (mount) => mount.target === "/home/bridge/.claude-devin-isolated",
+    );
+    const hasDevinAuth = namedVolumes.some(
+      (mount) => mount.target === "/home/bridge/.local/share/devin",
+    );
+    const expectsClaudeConfig = serviceName === "claude" || serviceName === "claude-live";
+    const expectsDevinAuth = serviceName === "omniroute-live";
+    if (hasClaudeConfig !== expectsClaudeConfig) {
+      throw new Error(`${serviceName} Claude config volume ownership mismatch`);
+    }
+    if (hasDevinAuth !== expectsDevinAuth) {
+      throw new Error(`${serviceName} Devin auth volume ownership mismatch`);
+    }
+    for (const key of [
+      "ANTHROPIC_MODEL",
+      "ANTHROPIC_DEFAULT_SONNET_MODEL",
+      "ANTHROPIC_DEFAULT_OPUS_MODEL",
+      "ANTHROPIC_DEFAULT_HAIKU_MODEL",
+      "CLAUDE_CODE_SUBAGENT_MODEL",
+    ]) {
+      if (!String(service.environment[key] || "").startsWith("devin-cli-agentic/")) {
+        throw new Error(`${serviceName} has a non-Devin model alias in ${key}`);
+      }
+    }
+  }
+  if (config.services["omniroute-live"].depends_on["network-guard"].condition !== "service_healthy") {
+    throw new Error("omniroute-live does not wait for a healthy Devin guard");
+  }
+  for (const serviceName of ["claude", "claude-live"]) {
+    if (config.services[serviceName].depends_on["claude-egress-guard"].condition !== "service_healthy") {
+      throw new Error(`${serviceName} does not wait for a healthy Claude guard`);
+    }
+  }
+  const liveEnv = config.services["omniroute-live"].environment;
+  if (liveEnv.DEVIN_BRIDGE_PROXY_URL !== "http://network-guard:8080") {
+    throw new Error("trusted Devin bridge proxy is missing");
+  }
+  for (const key of ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY"]) {
+    if (liveEnv[key]) throw new Error(`omniroute-live must not inherit ${key}`);
+  }
+  for (const serviceName of runtimeNames.filter((name) => name !== "omniroute-live")) {
+    if (config.services[serviceName].environment.DEVIN_BRIDGE_PROXY_URL) {
+      throw new Error(`${serviceName} received the Devin bridge proxy setting`);
+    }
+  }
+  for (const serviceName of ["claude", "claude-live"]) {
+    const env = config.services[serviceName].environment;
+    if (
+      env.NODE_USE_ENV_PROXY !== "1" ||
+      env.HTTP_PROXY !== "http://claude-egress-guard:8080" ||
+      env.HTTPS_PROXY !== "http://claude-egress-guard:8080" ||
+      env.NO_PROXY !== "omniroute"
+    ) {
+      throw new Error(`${serviceName} does not use the deny-all Claude guard`);
+    }
+    if (env.HTTP_PROXY === "http://network-guard:8080") {
+      throw new Error(`${serviceName} received the Devin-capable guard`);
+    }
+  }
+' <<<"$config_json" || fail "structured compose isolation checks failed"
+node --input-type=module -e '
+  import { pathToFileURL } from "node:url";
+  const policy = await import(pathToFileURL(process.argv[1]));
+  const allowed = [
+    "devin.ai",
+    "api.devin.ai",
+    "cognition.ai",
+    "api.cognition.ai",
+    "server.codeium.com",
+    "unleash.codeium.com",
+  ];
+  const denied = [
+    "evildevin.ai",
+    "codeium.com",
+    "api.codeium.com",
+    "o123.ingest.sentry.io",
+    "api.anthropic.com",
+    "claude.ai",
+  ];
+  for (const hostname of allowed) {
+    if (!policy.isAllowedGuardHostname(hostname, "devin")) throw new Error(`denied ${hostname}`);
+  }
+  for (const hostname of denied) {
+    if (policy.isAllowedGuardHostname(hostname, "devin")) throw new Error(`allowed ${hostname}`);
+  }
+  if (policy.isAllowedGuardHostname("api.devin.ai", "deny-all")) {
+    throw new Error("deny-all guard allowed Devin traffic");
+  }
+' "$BRIDGE_ROOT/docker/devin-bridge/network-guard/policy.mjs" || fail "network guard policy checks failed"
+bridge_test_env node --import tsx/esm --input-type=module -e '
+  import { pathToFileURL } from "node:url";
+  const { buildDevinChildEnv } = await import(pathToFileURL(process.argv[1]));
+  const home = process.env.DEVIN_AGENTIC_HOME;
+  const trusted = buildDevinChildEnv({}, {
+    DEVIN_AGENTIC_HOME: home,
+    DEVIN_BRIDGE_PROXY_URL: "http://network-guard:8080",
+    HTTP_PROXY: "http://user:password@host-proxy.example:3128",
+    HTTPS_PROXY: "http://user:password@host-proxy.example:3128",
+    ALL_PROXY: "socks5://host-proxy.example:1080",
+  });
+  if (
+    trusted.HTTP_PROXY !== "http://network-guard:8080" ||
+    trusted.HTTPS_PROXY !== "http://network-guard:8080" ||
+    trusted.ALL_PROXY
+  ) {
+    throw new Error("trusted child proxy derivation failed");
+  }
+  const untrusted = buildDevinChildEnv({}, {
+    DEVIN_AGENTIC_HOME: home,
+    DEVIN_BRIDGE_PROXY_URL: "http://user:password@network-guard:8080",
+    HTTP_PROXY: "http://host-proxy.example:3128",
+  });
+  if (untrusted.HTTP_PROXY || untrusted.HTTPS_PROXY) {
+    throw new Error("untrusted child proxy was inherited");
+  }
+' "$BRIDGE_ROOT/open-sse/executors/devin-cli-agentic.ts" || \
+  fail "Devin child proxy boundary checks failed"
+bridge_assert_devin_auth_status 0 $'Logged in (via Devin)\n' || fail "clean auth fixture was rejected"
+if bridge_assert_devin_auth_status 0 $'Logged in (via Devin)\nFailed to fetch from server\n' 2>/dev/null; then
+  fail "server-fetch auth failure was accepted"
+fi
+if bridge_assert_devin_auth_status 0 $'Logged out\n' 2>/dev/null; then
+  fail "logged-out auth fixture was accepted"
+fi
+if bridge_assert_devin_auth_status 0 $'Not Logged in (via Devin)\n' 2>/dev/null; then
+  fail "misleading auth fixture was accepted"
+fi
+selected_model="$(printf '%s' '{"models":[{"family_uid":"swe-1.7"},{"modelUid":"swe-1.7-lightning"}]}' | \
+  node --import tsx/esm "$BRIDGE_ROOT/scripts/devin-bridge/select-live-model.mjs")"
+[[ "$selected_model" == swe-1-7-lightning ]] || fail "live model normalization or preference failed"
+if printf '%s' '{"models":[{"family_uid":"unknown.9"}]}' | \
+  node --import tsx/esm "$BRIDGE_ROOT/scripts/devin-bridge/select-live-model.mjs" >/dev/null 2>&1; then
+  fail "unknown normalized live model was accepted"
+fi
+grep -q 'bridge_run_devin auth login --force-manual-token-flow' \
+  "$BRIDGE_ROOT/scripts/devin-bridge/login-devin" || fail "manual token login flow is missing"
+if grep -Eqi 'read[[:space:]].*token|printf[[:space:]].*token|echo[[:space:]].*token' \
+  "$BRIDGE_ROOT/scripts/devin-bridge/login-devin"; then
+  fail "login script could expose a token"
+fi
+grep -q 'bridge_check_devin_auth' "$BRIDGE_ROOT/scripts/devin-bridge/test-live-devin" || \
+  fail "live test bypasses strict auth status"
+grep -q 'bridge_check_devin_auth' "$BRIDGE_ROOT/scripts/devin-bridge/launch" || \
+  fail "normal launch bypasses strict auth status"
+grep -q 'up -d --wait network-guard claude-egress-guard' "$BRIDGE_ROOT/scripts/devin-bridge/launch" || \
+  fail "normal launch does not start the audited Claude egress guard"
+grep -qx '\.sandbox' "$BRIDGE_ROOT/.dockerignore" || fail ".sandbox is not excluded from builds"
+if [[ "${1:-}" == --static ]]; then printf 'PASS: static bridge isolation checks passed\n'; exit 0; fi
+trap bridge_cleanup_compose EXIT
+bridge_cleanup_compose
+bridge_reset_claude_egress_audit
+docker compose -f "$BRIDGE_COMPOSE" --profile offline up -d --wait claude-egress-guard
+docker compose -f "$BRIDGE_COMPOSE" --profile offline run --rm --no-deps claude bash -ceu '
+  test "$(id -u)" = 10001
+  test "$HOME" = /home/bridge
+  test "$CLAUDE_CONFIG_DIR" = /home/bridge/.claude-devin-isolated
+  test "$ANTHROPIC_BASE_URL" = http://omniroute:20128
+  test "$ANTHROPIC_AUTH_TOKEN" = sk-local-devin-gateway
+  test -z "${ANTHROPIC_API_KEY:-}${CLAUDE_CODE_OAUTH_TOKEN:-}${AWS_ACCESS_KEY_ID:-}${AWS_SECRET_ACCESS_KEY:-}${GOOGLE_APPLICATION_CREDENTIALS:-}${AZURE_OPENAI_API_KEY:-}"
+  test ! -e /var/run/docker.sock
+  if touch /bridge-must-remain-read-only 2>/dev/null; then
+    echo "container root filesystem is writable" >&2; exit 1
+  fi
+  for host in api.anthropic.com claude.ai; do
+    if node -e "require(\"net\").connect(443,process.argv[1]).on(\"connect\",()=>process.exit(0)).on(\"error\",()=>process.exit(1)).setTimeout(1500,()=>process.exit(1))" "$host"; then
+      echo "unexpected network access to $host" >&2; exit 1
+    fi
+  done
+'
+docker compose -f "$BRIDGE_COMPOSE" --profile offline run --rm --no-deps claude \
+  node --input-type=module -e '
+  async function expectProxyDenial(request) {
+    try {
+      const response = await request;
+      if (response.status !== 403) {
+        throw new Error(`unexpected proxy response: ${response.status}`);
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith("unexpected proxy response:")) {
+        throw error;
+      }
+    }
+  }
+  await expectProxyDenial(fetch("https://api.anthropic.com", {
+    signal: AbortSignal.timeout(3000),
+  }));
+  await expectProxyDenial(fetch("https://claude.ai", {
+    signal: AbortSignal.timeout(3000),
+  }));
+'
+bridge_cleanup_compose
+bridge_assert_claude_guard_denials "$BRIDGE_CLAUDE_AUDIT" || \
+  fail "Claude proxy denial audit proof failed"
+bridge_export_guard_audit "$BRIDGE_CLAUDE_AUDIT" claude-egress-verifier.jsonl
+trap - EXIT
+bridge_reset_claude_egress_audit
+printf 'PASS: runtime bridge isolation checks passed\n'

@@ -47,6 +47,7 @@ export function applyCatalogPostFilters(
     connections: any;
     prefixMode: string;
     aliasToProviderId: Record<string, string>;
+    hideNoThinkVariants?: boolean;
   }
 ): Array<Record<string, any>> {
   let finalModels = models;
@@ -71,10 +72,14 @@ export function applyCatalogPostFilters(
 
   // Advertise no-thinking gateway variants (Fase 8.1). Derived from the already
   // key-filtered list, so a variant only appears when its real model is permitted.
-  finalModels = appendNoThinkingVariants(
-    finalModels,
-    ctx.prefixMode === "canonical" ? ctx.aliasToProviderId : undefined
-  );
+  // #9418: skip when hideNoThinkVariants is on — the ids are still routable when
+  // sent explicitly, just not advertised in the catalog.
+  if (!ctx.hideNoThinkVariants) {
+    finalModels = appendNoThinkingVariants(
+      finalModels,
+      ctx.prefixMode === "canonical" ? ctx.aliasToProviderId : undefined
+    );
+  }
 
   // Advertise `claude/<id>` discovery-mirror aliases so Claude Code's gateway
   // model discovery (which only lists `claude`/`anthropic`-prefixed ids) can see

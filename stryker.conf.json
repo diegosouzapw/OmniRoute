@@ -208,6 +208,7 @@
       "tests/unit/executor-antigravity.test.ts",
       "tests/unit/executor-web-cookie-sweep.test.ts",
       "tests/unit/format-provider-error-cause.test.ts",
+      "tests/unit/forwarded-header-budget.test.ts",
       "tests/unit/gemini-web-missing-browser-3516.test.ts",
       "tests/unit/grok-cli-oauth.test.ts",
       "tests/unit/guardrails-api-3496.test.ts",

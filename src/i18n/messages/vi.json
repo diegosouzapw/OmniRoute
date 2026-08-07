@@ -5955,7 +5955,8 @@
       "kimi-coding": "Kết nối Kimi Coding bằng luồng OAuth hiện có.",
       "kiro": "Gói miễn phí: 50 tín dụng/tháng (khoảng 25–100 nghìn token). ⚠️ Điều khoản Kiro cấm sử dụng proxy/harness của bên thứ ba.",
       "codex": "Kết nối OpenAI Codex bằng luồng OAuth hiện có.",
-      "qwen": "Kết nối Qwen Code bằng luồng OAuth hiện có."
+      "qwen": "Kết nối Qwen Code bằng luồng OAuth hiện có.",
+      "unorouter": "Tạo khóa API tại https://unorouter.ai, sau đó dán vào đây dưới dạng Bearer token."
     },
     "passthroughModelsDescription": "{provider} chấp nhận ID mô hình gốc của nhà cung cấp. Nhập từ /models hoặc thêm ID tùy chỉnh để định tuyến.",
     "bedrockModelsDescription": "Các mô hình Amazon Bedrock được giới hạn theo vùng AWS. Nhập từ /models hoặc thêm ID mô hình Bedrock được bật trong vùng đã chọn.",
@@ -10850,7 +10851,9 @@
       "goNow": "Đi ngay",
       "message": "MITM Proxy hiện nằm trong AgentBridge.",
       "title": "Trang này đã được di chuyển"
-    }
+    },
+    "noMappingsDesc": "Chưa cấu hình ánh xạ mô hình nào. Hãy thêm ánh xạ để định tuyến yêu cầu của agent qua OmniRoute.",
+    "addMapping": "Thêm ánh xạ"
   },
   "providerStats": {
     "unknownError": "Lỗi không xác định",
@@ -11526,7 +11529,10 @@
     "noSavedProxiesError": "Không tìm thấy proxy đã lưu. Hãy thêm proxy trong Cài đặt → Proxy trước.",
     "updateProviderFailed": "Không thể cập nhật nhà cung cấp",
     "providerEnabled": "Đã bật {provider}",
-    "providerDisabled": "Đã tắt {provider}"
+    "providerDisabled": "Đã tắt {provider}",
+    "providerAdded": "Đã thêm {provider}",
+    "add": "Thêm",
+    "manualApiKey": "Dùng khóa API thủ công"
   },
   "gamification": {
     "leaderboardScopes": {

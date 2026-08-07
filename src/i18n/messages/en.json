@@ -5487,6 +5487,13 @@
     "newApiUserIdLabel": "New-API User ID",
     "newApiUserIdPlaceholder": "e.g. 12345",
     "newApiUserIdHint": "AgentRouter New-Api-User header value, used together with the console API key to fetch quota balance.",
+    "newApiAggregatorToggleLabel": "Aggregator Gateway",
+    "newApiAggregatorToggleHint": "Enable balance detection for New-API / One-API / Sub2API aggregator nodes. The dashboard will show the balance badge and quota-preflight routing will skip exhausted accounts.",
+    "newApiAggregatorConsoleApiKeyHint": "System Access Token for the aggregator's /api/user/self endpoint. Not the routing API key.",
+    "newApiAggregatorUserIdHint": "New-Api-User header value used to fetch the aggregator user's quota balance.",
+    "newApiAggregatorQuotaPerUnitLabel": "Quota Per Unit",
+    "newApiAggregatorQuotaPerUnitHint": "New-API credit units per $1 (default: 500000). Override if your aggregator uses a different rate.",
+    "featureFlagNewApiAggregatorBalanceDescription": "Enable balance detection for New-API / One-API / Sub2API aggregator compatible nodes",
     "cpaModeDisabledTitle": "CLIProxyAPI compatibility mode is disabled",
     "cpaModeEnabledTitle": "CLIProxyAPI compatibility mode is enabled",
     "customUserAgentHint": "Custom User Agent Hint",
@@ -5602,6 +5609,7 @@
     "tagGroupPlaceholder": "Tag Group Placeholder",
     "testModel": "Test Model",
     "testingModel": "Testing Model",
+    "modelTestQuotaTooltip": "Quota exhausted — resets tomorrow or needs a top-up",
     "toggleOffShort": "Off",
     "toggleOnShort": "On",
     "tokenExpiredBadge": "Token Expired Badge",
@@ -11529,7 +11537,10 @@
     "noSavedProxiesError": "No saved proxies found. Add proxies in Settings → Proxy first.",
     "updateProviderFailed": "Failed to update provider",
     "providerEnabled": "{provider} enabled",
-    "providerDisabled": "{provider} disabled"
+    "providerDisabled": "{provider} disabled",
+    "providerAdded": "{provider} added",
+    "add": "Add",
+    "manualApiKey": "Use a manual API key"
   },
   "gamification": {
     "leaderboardScopes": {

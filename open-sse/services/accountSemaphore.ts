@@ -343,6 +343,24 @@ export function getStats(): Record<string, AccountSemaphoreStatsEntry> {
 }
 
 /**
+ * Check if an account semaphore key is currently at or over its max concurrency limit.
+ * Returns true if running >= maxConcurrency or blocked.
+ */
+export function isAccountSemaphoreFull(
+  provider: string,
+  accountKey: string,
+  maxConcurrency?: number | null
+): boolean {
+  if (isBypassed(maxConcurrency)) return false;
+  const key = buildAccountSemaphoreKey({ provider, accountKey });
+  const gate = gates.get(key);
+  if (!gate) return false;
+  const effectiveCap = maxConcurrency ?? gate.maxConcurrency;
+  if (isBypassed(effectiveCap)) return false;
+  return gate.running >= effectiveCap || isBlocked(gate);
+}
+
+/**
  * Reset a single key and reject queued waiters.
  */
 export function reset(semaphoreKey: string): void {

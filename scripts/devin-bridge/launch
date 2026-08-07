@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common"
+trap bridge_cleanup_compose EXIT
+bridge_cleanup_compose
+bridge_prepare_sandbox
+"$(dirname "$0")/verify-anthropic-isolation"
+bridge_reset_claude_egress_audit
+bridge_reset_devin_egress_audit
+docker compose -f "$BRIDGE_COMPOSE" --profile live-devin up -d --wait network-guard claude-egress-guard
+bridge_check_devin_auth
+bridge_run_devin models list --format json >"$BRIDGE_SANDBOX/evidence/live-models.json"
+devin_model="$(node --import tsx/esm "$BRIDGE_ROOT/scripts/devin-bridge/select-live-model.mjs" \
+  <"$BRIDGE_SANDBOX/evidence/live-models.json")"
+export DEVIN_BRIDGE_MODEL="devin-cli-agentic/$devin_model"
+export DEVIN_BRIDGE_SONNET_MODEL="${DEVIN_BRIDGE_SONNET_MODEL:-$DEVIN_BRIDGE_MODEL}"
+export DEVIN_BRIDGE_OPUS_MODEL="${DEVIN_BRIDGE_OPUS_MODEL:-$DEVIN_BRIDGE_MODEL}"
+export DEVIN_BRIDGE_HAIKU_MODEL="${DEVIN_BRIDGE_HAIKU_MODEL:-$DEVIN_BRIDGE_MODEL}"
+export DEVIN_BRIDGE_SUBAGENT_MODEL="${DEVIN_BRIDGE_SUBAGENT_MODEL:-$DEVIN_BRIDGE_MODEL}"
+docker compose -f "$BRIDGE_COMPOSE" --profile live-devin up -d --wait omniroute-live
+docker compose -f "$BRIDGE_COMPOSE" --profile live-devin run --rm --no-deps \
+  claude-live claude
+bridge_cleanup_compose
+bridge_assert_devin_guard_audit "$BRIDGE_DEVIN_AUDIT"
+bridge_assert_zero_claude_egress "$BRIDGE_CLAUDE_AUDIT"
+bridge_export_guard_audit "$BRIDGE_DEVIN_AUDIT" egress.jsonl
+bridge_export_guard_audit "$BRIDGE_CLAUDE_AUDIT" claude-egress.jsonl
+trap - EXIT

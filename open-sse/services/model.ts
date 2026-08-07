@@ -1,5 +1,6 @@
 import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "../config/providerModels.ts";
 import { resolveWildcardAlias } from "./wildcardRouter.ts";
+import { getRegisteredProviderEffortBaseModelId } from "../utils/registeredEffortVariants.ts";
 
 type ProviderModelAliasMap = Record<string, Record<string, string>>;
 type ModelAliasValue = string | { provider?: string; model?: string };
@@ -53,6 +54,10 @@ ALIAS_TO_PROVIDER_ID["xiaomi"] = "xiaomi-mimo";
 ALIAS_TO_PROVIDER_ID["llamacpp"] = "llama-cpp";
 // agy/ is the short alias for antigravity provider.
 ALIAS_TO_PROVIDER_ID["agy"] = "antigravity";
+// aq/ is the user-visible prefix for the Amazon Q (AWS Builder ID) provider.
+// The canonical provider ID is "amazon-q". Register it so parseModel("aq/<model>")
+// resolves provider = "amazon-q" instead of falling through to the identity fallback.
+ALIAS_TO_PROVIDER_ID["aq"] = "amazon-q";
 
 // Provider-scoped legacy model aliases. Used to normalize provider/model inputs
 // and keep backward compatibility when upstream IDs change.
@@ -341,6 +346,48 @@ async function getActiveSyncedProvidersForModel(modelId: string) {
   }
 }
 
+async function reconcileInferredProvidersWithActiveCatalog(providerIds: string[], modelId: string) {
+  const uniqueProviders = Array.from(new Set(providerIds));
+
+  try {
+    const { reconcileProvidersWithActiveSyncedCatalog } =
+      await import("@/lib/db/models/activeSyncedCatalog");
+
+    const reconciliations = await Promise.all(
+      uniqueProviders.map(async (provider) => {
+        const effortBaseModelId = getRegisteredProviderEffortBaseModelId(provider, modelId);
+
+        const catalogModelId = effortBaseModelId ?? modelId;
+
+        const reconciliation = await reconcileProvidersWithActiveSyncedCatalog(
+          [provider],
+          catalogModelId
+        );
+
+        return {
+          provider,
+          allowed: reconciliation.providers.includes(provider),
+          excluded: reconciliation.excludedProviders.includes(provider),
+        };
+      })
+    );
+
+    return {
+      providers: reconciliations
+        .filter((result) => result.allowed)
+        .map((result) => result.provider),
+      excludedProviders: reconciliations
+        .filter((result) => result.excluded)
+        .map((result) => result.provider),
+    };
+  } catch {
+    return {
+      providers: uniqueProviders,
+      excludedProviders: [],
+    };
+  }
+}
+
 function isTruthyEnv(value: string | undefined) {
   return typeof value === "string" && /^(1|true|yes|on)$/i.test(value.trim());
 }
@@ -597,19 +644,22 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
       };
     }
   }
-  // #FIX: synced catalogs (populated from `/v1/models` per connection) can
-  // claim ownership of models the provider does not actually serve (e.g. a
-  // `kiro` upstream briefly advertising `claude-opus-5` before it was
-  // vendored into the registry). Without this filter the bare-routing path
-  // would forward traffic to providers that 404 on the upstream call.
-  // Auto-discovery still wins when no static registry entry exists for the
-  // model id — only entries that conflict with the static catalog are dropped.
-  const staticCatalogProviders = MODEL_TO_PROVIDERS.get(modelId) || [];
-  const validatedSyncedProviders =
-    staticCatalogProviders.length > 0
-      ? activeSyncedProviders.filter((p) => staticCatalogProviders.includes(p))
-      : activeSyncedProviders;
-  const providers = getInferredProvidersForModel(modelId, validatedSyncedProviders);
+
+  const candidateProviders = getInferredProvidersForModel(modelId, activeSyncedProviders);
+  const { providers, excludedProviders } = await reconcileInferredProvidersWithActiveCatalog(
+    candidateProviders,
+    modelId
+  );
+
+  if (providers.length === 0 && excludedProviders.length > 0) {
+    return {
+      provider: null,
+      model: modelId,
+      extendedContext,
+      errorType: "model_not_found",
+      errorMessage: `Model '${modelId}' is not available in the active live catalog for provider(s): ${excludedProviders.join(", ")}.`,
+    };
+  }
   const nonOpenAIProviders = providers.filter((p) => p !== "openai");
 
   // Bare model IDs from Codex CLI do not preserve OmniRoute's `cx/` prefix.
@@ -684,6 +734,25 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
   let activeCandidates: string[] = [];
   if (activeProviders && activeProviders.size > 0) {
     activeCandidates = canonicalCandidates.filter((p) => activeProviders.has(p));
+  }
+
+  // An authoritative active live catalog excluded at least one static
+  // candidate, and none of the remaining static candidates has an active
+  // connection. Do not escape the live-catalog decision by selecting an
+  // unrelated inactive provider that happens to share the same static model id.
+  if (
+    activeProviders &&
+    activeProviders.size > 0 &&
+    activeCandidates.length === 0 &&
+    excludedProviders.length > 0
+  ) {
+    return {
+      provider: null,
+      model: modelId,
+      extendedContext,
+      errorType: "model_not_found",
+      errorMessage: `Model '${modelId}' is not available in the active live catalog for provider(s): ${excludedProviders.join(", ")}.`,
+    };
   }
 
   // Auto-pick:

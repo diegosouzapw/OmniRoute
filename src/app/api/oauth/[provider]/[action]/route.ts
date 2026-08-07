@@ -574,12 +574,7 @@ export async function POST(
 
       // Poll for token (through proxy if configured)
       let result;
-      if (NO_PKCE_DEVICE_CODE_PROVIDERS.has(provider)) {
-        // Non-PKCE device providers do not receive a code verifier.
-        result = await runWithProxyContextOrDirect(proxy, () =>
-          (pollForToken as any)(provider, deviceCode)
-        );
-      } else if (provider === "ghe-copilot") {
+      if (provider === "ghe-copilot") {
         // GHE Copilot needs gheUrl threaded through poll → postExchange
         const gheUrl =
           extraData && typeof extraData === "object" ? (extraData as any).gheUrl : undefined;
@@ -588,6 +583,11 @@ export async function POST(
         }
         result = await runWithProxyContextOrDirect(proxy, () =>
           (pollForToken as any)(provider, deviceCode, null, gheUrl ? { gheUrl } : undefined)
+        );
+      } else if (NO_PKCE_DEVICE_CODE_PROVIDERS.has(provider)) {
+        // Non-PKCE device providers do not receive a code verifier.
+        result = await runWithProxyContextOrDirect(proxy, () =>
+          (pollForToken as any)(provider, deviceCode)
         );
       } else if (provider === "kiro" || provider === "amazon-q") {
         // Kiro needs extraData (clientId, clientSecret) from device code response
