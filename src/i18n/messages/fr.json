@@ -937,7 +937,7 @@
   "disabled": "Désactivé",
   "featureFlagOmnirouteEmergencyFallbackDescription": "Router les requêtes ayant épuisé leur budget vers le fournisseur/modèle de secours gratuit d'urgence.",
   "featureFlagArenaEloSyncEnabledDescription": "Activer la synchronisation périodique de l'ELO du classement Arena AI pour les classements d'intelligence des modèles.",
-  "featureFlagExposeCcDiscoveryAliasesDescription": "Afficher les identifiants miroir claude/&lt;provider&gt;/&lt;model&gt; dans /v1/models afin que la découverte de modèles de la passerelle Claude Code répertorie les modèles non-Claude. Attention : cette option double les entrées du catalogue pour tous les clients lorsqu'elle est activée globalement.",
+  "featureFlagExposeCcDiscoveryAliasesDescription": "Afficher les identifiants miroir claude/<provider>/<model> dans /v1/models afin que la découverte de modèles de la passerelle Claude Code répertorie les modèles non-Claude. Attention : cette option double les entrées du catalogue pour tous les clients lorsqu'elle est activée globalement.",
   "sidebar": {
     "home": "Accueil",
     "dashboard": "Tableau de bord",
@@ -1094,6 +1094,8 @@
     "costsFreeTiersSubtitle": "Allocations mensuelles de jetons gratuits",
     "freeProviderRankings": "Classement des fournisseurs gratuits",
     "freeProviderRankingsSubtitle": "Meilleurs fournisseurs gratuits classés selon les scores ELO des modèles",
+    "radar": "Catalogue Radar",
+    "radarSubtitle": "Catalogue de modèles gratuit enrichi par la communauté",
     "costsQuotaShare": "Quota Sharing",
     "costsPricing": "Pricing",
     "logsProxy": "Proxy Logs",
@@ -1230,9 +1232,7 @@
     "alwaysVisible": "Toujours visible",
     "groupSeparatorLabel": "Séparateur",
     "discovery": "Découverte",
-    "discoverySubtitle": "Analyser les fournisseurs pour un accès gratuit",
-    "radar": "Catalogue Radar",
-    "radarSubtitle": "Catalogue de modèles gratuit enrichi par la communauté"
+    "discoverySubtitle": "Analyser les fournisseurs pour un accès gratuit"
   },
   "webhooks": {
     "title": "Webhooks",
@@ -2513,6 +2513,14 @@
       "auto": "Auto",
       "always": "Toujours"
     },
+    "ccDiscoveryInfoButton": "Comment activer la découverte dans Claude Code",
+    "ccDiscoveryInfoTooltip": "Afficher les modèles non-Claude sous forme d'identifiants miroir claude/<provider>/<model> afin que la découverte de modèles de la passerelle Claude Code puisse les répertorier. Cette option double les entrées du catalogue pour tous les clients lorsqu'elle est activée globalement.",
+    "ccDiscoveryInfoLink": "Ouvrir les indicateurs de fonctionnalités",
+    "ccOnboardingTitle": "settings.json pour la découverte des modèles de la passerelle",
+    "ccOnboardingCopy": "Copier",
+    "ccOnboardingCopied": "Copié",
+    "ccOnboardingKeyPlaceholder": "<votre clé API OmniRoute>",
+    "ccOnboardingWindowNote": "Claude Code suppose une fenêtre de contexte de 200K pour tout identifiant de modèle qu'il ne reconnaît pas. Pour un modèle dont la fenêtre réelle est différente, ajoutez CLAUDE_CODE_AUTO_COMPACT_WINDOW juste en dessous afin que le compactage automatique ne se déclenche pas trop tôt.",
     "failedSave": "Échec de l'enregistrement",
     "profileSyncTitle": "Synchronisation automatique des profils CLI",
     "profileSyncDescription": "Une fois les modèles de fournisseurs synchronisés, régénérer automatiquement les profils d'outils CLI à partir du catalogue en direct. Désactivé par défaut — seuls les fichiers de profil sont écrits ; la configuration active/par défaut n'est jamais modifiée.",
@@ -2969,15 +2977,7 @@
     "copilotPasteInto": "Coller dans :",
     "copilotReloadInstruction": "Rechargez ensuite VS Code et définissez la clé API dans l'invite de saisie.",
     "wireApiChatCompletions": "Achèvements de chat (/chat/completions)",
-    "wireApiResponses": "API de réponses (/réponses)",
-    "ccDiscoveryInfoButton": "Comment activer la découverte dans Claude Code",
-    "ccDiscoveryInfoTooltip": "Afficher les modèles non-Claude sous forme d'identifiants miroir claude/&lt;provider&gt;/&lt;model&gt; afin que la découverte de modèles de la passerelle Claude Code puisse les répertorier. Cette option double les entrées du catalogue pour tous les clients lorsqu'elle est activée globalement.",
-    "ccDiscoveryInfoLink": "Ouvrir les indicateurs de fonctionnalités",
-    "ccOnboardingTitle": "settings.json pour la découverte des modèles de la passerelle",
-    "ccOnboardingCopy": "Copier",
-    "ccOnboardingCopied": "Copié",
-    "ccOnboardingKeyPlaceholder": "<votre clé API OmniRoute>",
-    "ccOnboardingWindowNote": "Claude Code suppose une fenêtre de contexte de 200K pour tout identifiant de modèle qu'il ne reconnaît pas. Pour un modèle dont la fenêtre réelle est différente, ajoutez CLAUDE_CODE_AUTO_COMPACT_WINDOW juste en dessous afin que le compactage automatique ne se déclenche pas trop tôt."
+    "wireApiResponses": "API de réponses (/réponses)"
   },
   "combos": {
     "title": "Combinaisons",
@@ -5201,6 +5201,18 @@
     "interceptFetchHint": "Réécrire les appels d'outils natifs web_fetch vers le point de terminaison /v1/web/fetch d'OmniRoute.",
     "interceptionLoadError": "Échec du chargement des paramètres d'interception : {error}",
     "interceptionSaveError": "Échec de l'enregistrement des paramètres d'interception : {error}",
+    "ccAliasSectionTitle": "Exposer dans Claude Code (claude/…)",
+    "ccAliasSectionHint": "Afficher les modèles de ce fournisseur sous forme d'identifiants miroir claude/<provider>/<model> afin que la découverte de modèles de la passerelle Claude Code puisse les répertorier. Cette option est désactivée par défaut ; son activation double les entrées du catalogue pour tous les clients.",
+    "ccAliasProviderLevelLabel": "Valeur par défaut du fournisseur",
+    "ccAliasModelOverridesLabel": "Surcharges par modèle",
+    "ccAliasModelOverrideAriaLabel": "Surcharge pour {modelId}",
+    "ccAliasStateInherit": "Hériter",
+    "ccAliasStateOn": "Activé",
+    "ccAliasStateOff": "Désactivé",
+    "ccAliasAddModelPlaceholder": "ID du modèle (par ex. gpt-4o)",
+    "ccAliasAddModelButton": "Ajouter une surcharge",
+    "ccAliasLoadError": "Échec du chargement des paramètres d'alias de découverte : {error}",
+    "ccAliasSaveError": "Échec de l'enregistrement du paramètre d'alias de découverte : {error}",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeaderName": "Header name",
@@ -5475,6 +5487,13 @@
     "newApiUserIdLabel": "ID utilisateur New-API",
     "newApiUserIdPlaceholder": "ex. 12345",
     "newApiUserIdHint": "Valeur de l'en-tête New-Api-User d'AgentRouter, utilisée avec la clé API de la console pour récupérer le solde du quota.",
+    "newApiAggregatorToggleLabel": "__MISSING__:Aggregator Gateway",
+    "newApiAggregatorToggleHint": "__MISSING__:Enable balance detection for New-API / One-API / Sub2API aggregator nodes. The dashboard will show the balance badge and quota-preflight routing will skip exhausted accounts.",
+    "newApiAggregatorConsoleApiKeyHint": "__MISSING__:System Access Token for the aggregator's /api/user/self endpoint. Not the routing API key.",
+    "newApiAggregatorUserIdHint": "__MISSING__:New-Api-User header value used to fetch the aggregator user's quota balance.",
+    "newApiAggregatorQuotaPerUnitLabel": "__MISSING__:Quota Per Unit",
+    "newApiAggregatorQuotaPerUnitHint": "__MISSING__:New-API credit units per $1 (default: 500000). Override if your aggregator uses a different rate.",
+    "featureFlagNewApiAggregatorBalanceDescription": "__MISSING__:Enable balance detection for New-API / One-API / Sub2API aggregator compatible nodes",
     "cpaModeDisabledTitle": "Cpa Mode Disabled Title",
     "cpaModeEnabledTitle": "Cpa Mode Enabled Title",
     "customUserAgentHint": "Custom User Agent Hint",
@@ -5590,6 +5609,7 @@
     "tagGroupPlaceholder": "Tag Group Placeholder",
     "testModel": "Test Model",
     "testingModel": "Testing Model",
+    "modelTestQuotaTooltip": "__MISSING__:Quota exhausted — resets tomorrow or needs a top-up",
     "toggleOffShort": "Toggle Off Short",
     "toggleOnShort": "Toggle On Short",
     "tokenExpiredBadge": "Token Expired Badge",
@@ -5759,6 +5779,7 @@
     "onboardingProviderDescriptions": {
       "360ai": "Obtenez une clé API sur ai.360.cn",
       "agentrouter": "Obtenez 200 $ de crédits gratuits sur https://agentrouter.org/register — aucune carte de crédit requise.",
+      "unorouter": "__MISSING__:Create an API key at https://unorouter.ai, then paste it here as a Bearer token.",
       "agnes": "Obtenez une clé API sur agnes-ai.com",
       "aimlapi": "Offre gratuite suspendue (2026) — L'API AI/ML est désormais uniquement pay-as-you-go (recharge minimale de 20 $) ; pas de crédits gratuits récurrents.",
       "ai21": "10 $ de crédits d'essai à l'inscription (valables 3 mois), aucune carte de crédit requise",
@@ -5998,28 +6019,16 @@
     "doubaoWebDesc": "Chat IA ByteDance via dola.com",
     "overrideBaseUrlAdvanced": "Avancé : remplacer l'URL de base",
     "overrideBaseUrlHint": "Avancé : pointer ce fournisseur intégré vers un endpoint personnalisé. Laisser vide pour utiliser la valeur par défaut.",
+    "apiProtocolLabel": "Protocole API",
+    "apiProtocolDefault": "Compatible avec OpenAI (par défaut)",
+    "apiProtocolHint": "Certains fournisseurs publient les mêmes modèles via plusieurs protocoles. Conservez la valeur par défaut sauf si vous avez besoin de l'alternative.",
     "bulkAddFormatHintCloudflare": "Une clé par ligne. Format : name|accountId|apiKey (ID de compte Cloudflare + jeton d'API).",
     "lmarenaWebCookieHint": "Ouvrez arena.ai, connectez-vous, puis copiez l'en-tête Cookie complet depuis une requête Réseau. Incluez arena-auth-prod-v1.0 et arena-auth-prod-v1.1 (et les fragments suivants s'ils sont présents), de préférence avec cf_clearance. Ne collez pas uniquement le cookie arena-auth-prod-v1 vide. Facultatif : providerSpecificData.recaptchaV3Token si create-evaluation renvoie toujours 403.",
     "kimiOfficialSupporterBadge": "Ami fondateur",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) est l'ami open source fondateur d'OmniRoute",
     "cheaperInferenceSupporterBadge": "Ami open source",
     "cheaperInferenceSupporterTooltip": "Cheaper Inference soutient OmniRoute en tant qu'ami open source",
-    "kimiPartnerLinkNote": "Lien partenaire — soutient OmniRoute sans frais supplémentaires pour vous",
-    "ccAliasSectionTitle": "Exposer dans Claude Code (claude/…)",
-    "ccAliasSectionHint": "Afficher les modèles de ce fournisseur sous forme d'identifiants miroir claude/&lt;provider&gt;/&lt;model&gt; afin que la découverte de modèles de la passerelle Claude Code puisse les répertorier. Cette option est désactivée par défaut ; son activation double les entrées du catalogue pour tous les clients.",
-    "ccAliasProviderLevelLabel": "Valeur par défaut du fournisseur",
-    "ccAliasModelOverridesLabel": "Surcharges par modèle",
-    "ccAliasModelOverrideAriaLabel": "Surcharge pour {modelId}",
-    "ccAliasStateInherit": "Hériter",
-    "ccAliasStateOn": "Activé",
-    "ccAliasStateOff": "Désactivé",
-    "ccAliasAddModelPlaceholder": "ID du modèle (par ex. gpt-4o)",
-    "ccAliasAddModelButton": "Ajouter une surcharge",
-    "ccAliasLoadError": "Échec du chargement des paramètres d'alias de découverte : {error}",
-    "ccAliasSaveError": "Échec de l'enregistrement du paramètre d'alias de découverte : {error}",
-    "apiProtocolLabel": "Protocole API",
-    "apiProtocolDefault": "Compatible avec OpenAI (par défaut)",
-    "apiProtocolHint": "Certains fournisseurs publient les mêmes modèles via plusieurs protocoles. Conservez la valeur par défaut sauf si vous avez besoin de l'alternative."
+    "kimiPartnerLinkNote": "Lien partenaire — soutient OmniRoute sans frais supplémentaires pour vous"
   },
   "settings": {
     "title": "Paramètres",
@@ -7984,7 +7993,7 @@
     "renderedTokens": "Page générée · ≈ {tokens, number} tokens",
     "renderedImageAlt": "Page dense générée, {width}×{height}px",
     "gatesTitle": "Quand il se déclenche",
-    "gatesDescription": "Sécurisé par défaut (fail-closed) : chaque barrière doit être franchie, sinon la requête passe sans modification (chaque omission est enregistrée sous <code>skip:&lt;reason&gt;</code>).",
+    "gatesDescription": "Sécurisé par défaut (fail-closed) : chaque barrière doit être franchie, sinon la requête passe sans modification (chaque omission est enregistrée sous <code>skip:<reason></code>).",
     "gates": {
       "model": {
         "label": "Modèle",
@@ -8467,6 +8476,16 @@
   },
   "usage": {
     "title": "Utilisation",
+    "grokExtraUsageCredits": "__MISSING__:Extra Usage Credits",
+    "grokAutoTopUp": "__MISSING__:Auto Top-Up",
+    "grokAutoTopUpUnavailable": "__MISSING__:Unavailable",
+    "grokAutoTopUpEnabled": "__MISSING__:Enabled",
+    "grokAutoTopUpDisabled": "__MISSING__:Disabled",
+    "grokAutoTopUpAt": "__MISSING__:at",
+    "grokAutoTopUpAdd": "__MISSING__:add",
+    "grokAutoTopUpMax": "__MISSING__:max",
+    "grokAutoTopUpMonth": "__MISSING__:month",
+    "grokAdditionalCredits": "__MISSING__:Additional Credits",
     "loggerTab": "Enregistreur",
     "proxyTab": "Procuration",
     "budgetManagement": "Gestion budgétaire",
@@ -10769,6 +10788,8 @@
     "sourceModel": "Modèle source (natif de l'agent)",
     "targetModel": "Modèle cible (OmniRoute)",
     "noMappings": "Aucune correspondance de modèle configurée. Lancez l'assistant de configuration pour détecter automatiquement les modèles.",
+    "noMappingsDesc": "__MISSING__:No model mappings configured yet. Add mappings to route agent requests through OmniRoute.",
+    "addMapping": "__MISSING__:Add mapping",
     "selectModel": "Sélectionner…",
     "saveMappings": "Enregistrer les correspondances",
     "setupWizard": "Assistant de configuration",
@@ -11516,7 +11537,10 @@
     "noSavedProxiesError": "Aucun proxy enregistré trouvé. Ajoutez d'abord des proxys dans Paramètres → Proxy.",
     "updateProviderFailed": "Échec de la mise à jour du fournisseur",
     "providerEnabled": "{provider} activé",
-    "providerDisabled": "{provider} désactivé"
+    "providerDisabled": "{provider} désactivé",
+    "providerAdded": "__MISSING__:{provider} added",
+    "add": "__MISSING__:Add",
+    "manualApiKey": "__MISSING__:Use a manual API key"
   },
   "gamification": {
     "leaderboardScopes": {
@@ -11707,6 +11731,7 @@
     "danger": "Danger",
     "requiresRestart": "Nécessite un redémarrage",
     "source": "Source",
+    "ccDiscoveryAliasesEnvWarning": "Actif via la variable d'environnement EXPOSE_CC_DISCOVERY_ALIASES : cette valeur remplace tout réglage du tableau de bord ci-dessous.",
     "resetFlag": "Réinitialiser {label} à la valeur par défaut",
     "reset": "Réinitialiser",
     "loadFailed": "Échec du chargement des indicateurs de fonctionnalité",
@@ -11863,8 +11888,7 @@
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "Activer l'accès réseau dans le bac à sable des compétences."
       }
-    },
-    "ccDiscoveryAliasesEnvWarning": "Actif via la variable d'environnement EXPOSE_CC_DISCOVERY_ALIASES : cette valeur remplace tout réglage du tableau de bord ci-dessous."
+    }
   },
   "comboControl": {
     "title": "Centre de contrôle Combo",
