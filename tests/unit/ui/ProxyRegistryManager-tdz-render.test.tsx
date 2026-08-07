@@ -23,5 +23,7 @@ describe("ProxyRegistryManager (TDZ regression #5918)", () => {
     const html = renderToString(React.createElement(ProxyRegistryManager));
     // The heading key is rendered via the mocked translator (key echo).
     expect(html).toContain("title");
+    expect(html).toContain("w-full border-t border-border");
+    expect(html).toContain("flex w-full flex-wrap items-center justify-end gap-2");
   });
 });
