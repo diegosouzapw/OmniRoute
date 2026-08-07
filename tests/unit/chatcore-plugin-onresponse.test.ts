@@ -7,9 +7,8 @@ import { test, after } from "node:test";
 import assert from "node:assert/strict";
 
 const { registerHook, unregisterHook } = await import("../../src/lib/plugins/hooks.ts");
-const { runPluginOnResponseHook } = await import(
-  "../../open-sse/handlers/chatCore/pluginOnResponse.ts"
-);
+const { runPluginOnResponseHook, runPluginOnStreamCompleteHook } =
+  await import("../../open-sse/handlers/chatCore/pluginOnResponse.ts");
 
 async function waitFor(pred: () => boolean, timeoutMs = 2000): Promise<void> {
   const deadline = Date.now() + timeoutMs;
@@ -20,6 +19,7 @@ async function waitFor(pred: () => boolean, timeoutMs = 2000): Promise<void> {
 
 after(() => {
   unregisterHook("onResponse", "test-onresponse-plugin");
+  unregisterHook("onStreamComplete", "test-onstreamcomplete-plugin");
 });
 
 test("no registered hooks → resolves without throwing (no-op)", async () => {
@@ -100,4 +100,141 @@ test("a throwing hook never rejects the caller (fail-open)", async () => {
     })
   );
   await new Promise((r) => setTimeout(r, 30));
+});
+
+// ── onStreamComplete hook tests (#9571) ──
+
+test("onStreamComplete: no registered hooks resolves without throwing (no-op)", async () => {
+  const start = Date.now();
+  await assert.doesNotReject(
+    runPluginOnStreamCompleteHook({
+      status: 200,
+      usage: { prompt_tokens: 10, completion_tokens: 20 },
+      ttft: 150,
+      model: "gpt-4",
+      provider: "openai",
+      errorCode: undefined,
+      startTime: start - 500,
+    })
+  );
+});
+
+test("onStreamComplete: registered hook receives usage + timing payload", async () => {
+  let captured: Record<string, unknown> | undefined;
+  registerHook(
+    "onStreamComplete",
+    "test-onstreamcomplete-plugin",
+    async (payload: Record<string, unknown>) => {
+      captured = payload;
+    }
+  );
+
+  const startTime = Date.now() - 500;
+  await runPluginOnStreamCompleteHook({
+    status: 200,
+    usage: { prompt_tokens: 42, completion_tokens: 100, reasoning_tokens: 5 },
+    ttft: 200,
+    model: "claude-3-opus",
+    provider: "anthropic",
+    errorCode: undefined,
+    startTime,
+  });
+
+  await waitFor(() => captured !== undefined);
+  assert.ok(captured, "expected onStreamComplete hook to be invoked");
+
+  // payload shape: status, usage, timing, model, provider
+  assert.equal(captured!.status, 200);
+  assert.ok(captured!.usage, "usage should be present");
+  assert.equal((captured!.usage as Record<string, number>).prompt_tokens, 42);
+  assert.equal((captured!.usage as Record<string, number>).completion_tokens, 100);
+  assert.equal((captured!.usage as Record<string, number>).reasoning_tokens, 5);
+
+  assert.ok(captured!.timing, "timing should be present");
+  const timing = captured!.timing as Record<string, number>;
+  assert.equal(timing.ttft, 200);
+  assert.ok(timing.latencyMs > 450, "latencyMs should be near 500");
+
+  assert.equal(captured!.model, "claude-3-opus");
+  assert.equal(captured!.provider, "anthropic");
+  assert.equal(captured!.errorCode, undefined);
+});
+
+test("onStreamComplete: payload includes cache token fields when present", async () => {
+  let captured: Record<string, unknown> | undefined;
+  registerHook(
+    "onStreamComplete",
+    "test-onstreamcomplete-plugin",
+    async (payload: Record<string, unknown>) => {
+      captured = payload;
+    }
+  );
+
+  await runPluginOnStreamCompleteHook({
+    status: 200,
+    usage: {
+      prompt_tokens: 50,
+      completion_tokens: 30,
+      cache_read_input_tokens: 20,
+      cache_creation_input_tokens: 10,
+    },
+    ttft: 100,
+    model: "gpt-4",
+    provider: "openai",
+    errorCode: undefined,
+    startTime: Date.now(),
+  });
+
+  await waitFor(() => captured !== undefined);
+  assert.ok(captured);
+  const usage = captured!.usage as Record<string, number>;
+  assert.equal(usage.cache_read_input_tokens, 20);
+  assert.equal(usage.cache_creation_input_tokens, 10);
+});
+
+test("onStreamComplete: throwing hook never rejects the caller (fail-open)", async () => {
+  registerHook("onStreamComplete", "test-onstreamcomplete-plugin", async () => {
+    throw new Error("stream-complete-boom");
+  });
+
+  await assert.doesNotReject(
+    runPluginOnStreamCompleteHook({
+      status: 500,
+      usage: undefined,
+      ttft: undefined,
+      model: "gpt-4",
+      provider: "openai",
+      errorCode: "upstream_error",
+      startTime: Date.now(),
+    })
+  );
+  await new Promise((r) => setTimeout(r, 30));
+});
+
+test("onStreamComplete: errorCode is passed through when provided", async () => {
+  let captured: Record<string, unknown> | undefined;
+  registerHook(
+    "onStreamComplete",
+    "test-onstreamcomplete-plugin",
+    async (payload: Record<string, unknown>) => {
+      captured = payload;
+    }
+  );
+
+  await runPluginOnStreamCompleteHook({
+    status: 502,
+    usage: undefined,
+    ttft: undefined,
+    model: "grok-3",
+    provider: "xai",
+    errorCode: "upstream_timeout",
+    startTime: Date.now(),
+  });
+
+  await waitFor(() => captured !== undefined);
+  assert.ok(captured);
+  assert.equal(captured!.status, 502);
+  assert.equal(captured!.errorCode, "upstream_timeout");
+  assert.equal(captured!.model, "grok-3");
+  assert.equal(captured!.provider, "xai");
 });

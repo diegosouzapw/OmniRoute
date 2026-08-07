@@ -40,6 +40,7 @@ export const BUILTIN_EVENTS = [
   "onActivate",
   "onDeactivate",
   "onUninstall",
+  "onStreamComplete",
 ] as const;
 
 export type BuiltinEvent = (typeof BUILTIN_EVENTS)[number];
@@ -251,6 +252,35 @@ export interface Plugin {
   onActivate?: (payload: unknown) => Promise<void> | void;
   onDeactivate?: (payload: unknown) => Promise<void> | void;
   onUninstall?: (payload: unknown) => Promise<void> | void;
+  onStreamComplete?: (payload: PluginOnStreamCompletePayload) => Promise<void> | void;
+}
+
+// ── onStreamComplete event types ──
+
+export type PluginOnStreamCompletePayload = {
+  status: number;
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    reasoning_tokens?: number;
+    cache_read_input_tokens?: number;
+    cache_creation_input_tokens?: number;
+  };
+  timing?: {
+    latencyMs: number;
+    ttft?: number;
+  };
+  model?: string;
+  provider?: string;
+  errorCode?: string;
+};
+
+/**
+ * Run onStreamComplete hooks — fire-and-forget notification with usage/timing data.
+ * Called when an SSE stream is fully consumed and usage/timing data is available.
+ */
+export async function runOnStreamComplete(payload: PluginOnStreamCompletePayload): Promise<void> {
+  await emitHook("onStreamComplete", payload);
 }
 
 /**

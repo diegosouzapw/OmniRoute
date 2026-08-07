@@ -245,7 +245,10 @@ import { recordCompressionCacheStats } from "./chatCore/compressionCacheStats.ts
 import { writeCavemanOutputAnalytics } from "./chatCore/cavemanOutputAnalytics.ts";
 import { scheduleQuotaShareConsumption } from "./chatCore/quotaShareConsumption.ts";
 import { emitRequestGamificationEvent } from "./chatCore/gamificationEvent.ts";
-import { runPluginOnResponseHook } from "./chatCore/pluginOnResponse.ts";
+import {
+  runPluginOnResponseHook,
+  runPluginOnStreamCompleteHook,
+} from "./chatCore/pluginOnResponse.ts";
 import { scheduleStreamingQuotaShareConsumption } from "./chatCore/streamingQuotaShare.ts";
 import { recordStreamingUsageStats } from "./chatCore/streamingUsageStats.ts";
 import { recordStreamingCost } from "./chatCore/streamingCost.ts";
@@ -4894,6 +4897,17 @@ export async function handleChatCore({
       apiKeyId: apiKeyInfo?.id ?? undefined,
       streamUsage,
       log,
+    });
+
+    // Plugin onStreamComplete hook — fire-and-forget, fail-open (#9571)
+    runPluginOnStreamCompleteHook({
+      status: normalizedStreamStatus,
+      usage: streamUsage as Record<string, unknown> | undefined,
+      ttft,
+      model,
+      provider,
+      errorCode: streamErrorCode,
+      startTime,
     });
   };
 
