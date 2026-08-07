@@ -1,25 +1,18 @@
-# Memory Analysis — OmniRoute
+# Memory Analysis: OmniRoute RSS Spike and OOM
 
-## 1. Executive Summary
+## Overview
 
-OmniRoute exhibits severe memory bloat leading to OOM crashes and launchd restart loops under specific load patterns (e.g. tool-use requests routed to vision/non-tool models like `qwen2.5vl` with priority-only strategy).
+Investigation into Node.js heap growth, stream retention, and recursive error handling causing memory bloat and OOM termination.
 
-## 2. Root Causes of Memory Growth
+## Potential Bottlenecks
 
-1. **Retry Storm & Accumulated State**: When a request fails (e.g. capability mismatch or 400 error), retry handlers accumulate error objects, request payloads, and stream buffers in closures.
-2. **Stream Buffering**: Unconsumed or un-closed SSE/HTTP streams retaining buffers in memory.
-3. **Event Listener Leaks**: Dynamic registration of event handlers on global event emitters without cleanup.
-4. **Context Cache Bloat**: Caching large multi-turn prompt contexts (`context_cache_protection`) in memory without TTL or size eviction limits.
-5. **SQLite Connection & Transaction Leaks**: Unclosed statements or uncommitted long-running transactions accumulating log entries and metrics.
+1. **Unbounded Retry Queues**: Failed requests due to model capability mismatches trigger infinite retry loops, retaining request payloads and SSE stream buffers in closure scopes.
+2. **Event Listener Leaks**: Persistent event listeners attached to global event emitters or stream handlers without proper removal.
+3. **SQLite Connection/Statement Caching**: Unprepared or un-finalized statement handles or large query result caching accumulating in memory.
+4. **Context Cache Protection**: Caching large conversation contexts indefinitely without LRU eviction policy.
 
-## 3. V8 & GC Observations
+## Mitigation Strategy
 
-- RSS grows unboundedly past 2GB+, exceeding container/launchd limits.
-- V8 Heap GC fails to collect retained objects because closures hold strong references to streaming request contexts and retry queues.
-
-## 4. Remediation Strategy
-
-- Implement strict payload and error size limits on retries.
-- Enforce stream cleanup and timeout guards.
-- Disable or bound `context_cache_protection` in unstable scenarios.
-- Add periodic heap diagnostics and memory watermarks.
+- Implement strict max retry limits with exponential backoff.
+- Ensure all SSE streams and network request bodies are explicitly destroyed/consumed on error.
+- Add V8 heap metrics and RSS threshold monitoring.

@@ -2,7 +2,8 @@
  * modelIntelligence.ts — DB domain module for model task-fitness scores.
  *
  * Persists per-model intelligence from arena ELO, models.dev tier rankings,
- * and user overrides. Resolution chain: user_override → arena_elo → models_dev_tier.
+ * user overrides, and local adaptive learning. Resolution chain:
+ * user_override → adaptive_learning → arena_elo → models_dev_tier.
  *
  * @see Migration 097_model_intelligence.sql
  */
@@ -42,18 +43,22 @@ function rowToEntry(row: Record<string, unknown>): ModelIntelligenceEntry {
 
 // ──────────────── CRUD ────────────────
 
-export function getModelIntelligence(model: string, category: string): ModelIntelligenceEntry | null {
+export function getModelIntelligence(
+  model: string,
+  category: string
+): ModelIntelligenceEntry | null {
   const db = getDbInstance();
   const row = db
     .prepare(
       `SELECT * FROM model_intelligence
        WHERE model = ? AND category = ?
-         AND source IN ('user_override', 'arena_elo', 'models_dev_tier')
+         AND source IN ('user_override', 'adaptive_learning', 'arena_elo', 'models_dev_tier')
          AND (expires_at IS NULL OR datetime(expires_at) > datetime('now'))
        ORDER BY CASE source
          WHEN 'user_override' THEN 1
-         WHEN 'arena_elo' THEN 2
-         WHEN 'models_dev_tier' THEN 3
+         WHEN 'adaptive_learning' THEN 2
+         WHEN 'arena_elo' THEN 3
+         WHEN 'models_dev_tier' THEN 4
        END
        LIMIT 1`
     )
@@ -119,17 +124,13 @@ export function deleteExpiredIntelligence(source?: string): number {
   }
 
   const where = conditions.join(" AND ");
-  const result = db
-    .prepare(`DELETE FROM model_intelligence WHERE ${where}`)
-    .run(...params);
+  const result = db.prepare(`DELETE FROM model_intelligence WHERE ${where}`).run(...params);
   return result.changes ?? 0;
 }
 
 export function deleteModelIntelligenceBySource(source: string): number {
   const db = getDbInstance();
-  const result = db
-    .prepare(`DELETE FROM model_intelligence WHERE source = ?`)
-    .run(source);
+  const result = db.prepare(`DELETE FROM model_intelligence WHERE source = ?`).run(source);
   return result.changes ?? 0;
 }
 
@@ -158,7 +159,9 @@ export function listModelIntelligence(filters?: {
   return rows.map(rowToEntry);
 }
 
-export function bulkUpsertModelIntelligence(entries: Array<Omit<ModelIntelligenceEntry, "syncedAt">>): number {
+export function bulkUpsertModelIntelligence(
+  entries: Array<Omit<ModelIntelligenceEntry, "syncedAt">>
+): number {
   if (entries.length === 0) return 0;
 
   const db = getDbInstance();
@@ -201,11 +204,7 @@ export function getResolvedTaskFitness(model: string, category: string): number 
  * @param category - Task category
  * @param score - Fitness score [0..1]
  */
-export function setUserFitnessOverrideEntry(
-  model: string,
-  category: string,
-  score: number,
-): void {
+export function setUserFitnessOverrideEntry(model: string, category: string, score: number): void {
   upsertModelIntelligence({
     model: model.toLowerCase(),
     source: "user_override",
@@ -224,9 +223,6 @@ export function setUserFitnessOverrideEntry(
  * @param category - Task category
  * @returns true if an entry was deleted
  */
-export function deleteUserFitnessOverrideEntry(
-  model: string,
-  category: string,
-): boolean {
+export function deleteUserFitnessOverrideEntry(model: string, category: string): boolean {
   return deleteModelIntelligence(model.toLowerCase(), "user_override", category.toLowerCase());
 }

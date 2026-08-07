@@ -62,6 +62,11 @@ export function parseAutoConfig(combo: ComboLike, eligibleTargets: ResolvedCombo
   );
   const resetWindowConfig = resolveResetWindowConfig(autoConfigSource);
   const slaPolicy = resolveSlaRoutingPolicy(autoConfigSource);
+  // #8874: local-model unload policy. `memory-first` (default) unloads the previous
+  // Ollama model BEFORE dispatching the new one (minimal VRAM); `availability-first`
+  // loads the new model first and only unloads the previous one after the new request
+  // succeeds (better for big-memory boxes / agent workloads where a single 502 matters).
+  const unloadStrategy = resolveOllamaUnloadStrategy(autoConfigSource);
 
   return {
     routingStrategy,
@@ -73,5 +78,20 @@ export function parseAutoConfig(combo: ComboLike, eligibleTargets: ResolvedCombo
     modePack,
     resetWindowConfig,
     slaPolicy,
+    unloadStrategy,
   };
+}
+
+export type OllamaUnloadStrategy = "memory-first" | "availability-first";
+
+/**
+ * Resolve the Ollama unload policy from a combo's auto-config source.
+ * `availability-first` only when explicitly configured; everything else defaults
+ * to `memory-first` (best for 16–24GB boxes). Reused by the combo dispatch path
+ * so the RAM-manager hooks read the SAME policy the auto-router scored under.
+ */
+export function resolveOllamaUnloadStrategy(
+  source: Record<string, unknown> | null | undefined
+): OllamaUnloadStrategy {
+  return source?.unloadStrategy === "availability-first" ? "availability-first" : "memory-first";
 }

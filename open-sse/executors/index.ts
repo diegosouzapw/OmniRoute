@@ -69,6 +69,7 @@ import { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 import { ZenmuxFreeExecutor } from "./zenmux-free.ts";
 import { HyperAgentExecutor } from "./hyperagent.ts";
 import { XaiExecutor } from "./xai.ts";
+import { OllamaExecutor } from "./ollama.ts";
 import { PromptQlExecutor } from "./promptql.ts";
 
 const executors = {
@@ -166,6 +167,8 @@ const executors = {
   nw: new NotionWebExecutor(), // Alias
   promptql: new PromptQlExecutor(),
   pql: new PromptQlExecutor(), // Alias
+  "ollama-local": new OllamaExecutor(),
+  ollama: new OllamaExecutor(),
   "v0-vercel-web": new V0VercelWebExecutor(),
   v0: new V0VercelWebExecutor(), // Alias
   "kimi-web": new KimiWebExecutor(),
@@ -295,3 +298,4 @@ export { XaiExecutor } from "./xai.ts";
 export { MoonshotExecutor } from "./moonshot.ts";
 export { CheaperInferenceExecutor } from "./cheaperinference.ts";
 export { PromptQlExecutor } from "./promptql.ts";
+export { OllamaExecutor } from "./ollama.ts";

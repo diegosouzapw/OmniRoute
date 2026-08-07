@@ -465,6 +465,10 @@ function isSchemaAlreadyApplied(
       // exists the rebuild ran — skip re-executing the rename/copy/drop, which
       // would fail on the missing proxy_assignments_pre117 table.
       return hasColumn(db, "proxy_assignments", "position");
+    case "134":
+      // Combo adaptation state v2 rebuild (keyed on model_str). If the new
+      // per-model shape is already present, the rebuild ran — skip it.
+      return hasColumn(db, "combo_adaptation_state", "model_str");
     default:
       return false;
   }

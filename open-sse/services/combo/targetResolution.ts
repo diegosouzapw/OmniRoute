@@ -38,6 +38,7 @@ import {
   getConversationCacheKey,
   isTaskRoutingStrategy,
   reorderByTaskWeight,
+  rotateByTaskFit,
 } from "../taskAwareRouting.ts";
 import { errorResponseWithComboDiagnostics } from "../../utils/error.ts";
 import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker";
@@ -123,6 +124,12 @@ export interface ResolvedComboTargetPipeline {
   /** Session-stickiness result — the attempt loop reads `.messageHash` on success/failure. */
   sticky: ApplyStickinessResult;
   preScreenMap: Map<string, PreScreenResult>;
+  /**
+   * Intent-classified task type for the request (adaptive learning). Present for
+   * the `auto` strategy (computed inside resolveAutoStrategyOrder); undefined for
+   * every other strategy, which the adaptation layer maps to "default".
+   */
+  taskType?: string;
 }
 
 export type ResolveComboTargetPipelineResult =
@@ -410,7 +417,7 @@ async function orderByStrategy(
   initialOrderedTargets: ResolvedComboTarget[]
 ): Promise<
   | { earlyResponse: Response }
-  | { orderedTargets: ResolvedComboTarget[]; autoUsedExplicitRouter: boolean }
+  | { orderedTargets: ResolvedComboTarget[]; autoUsedExplicitRouter: boolean; taskType?: string }
 > {
   const { strategy, body, combo, settings, config, log } = deps;
   if (strategy === "auto") {
@@ -429,6 +436,7 @@ async function orderByStrategy(
     return {
       orderedTargets: autoResult.orderedTargets,
       autoUsedExplicitRouter: autoResult.autoUsedExplicitRouter,
+      taskType: autoResult.taskType,
     };
   }
   const orderedTargets = await applyStrategyOrdering(strategy, initialOrderedTargets, {
@@ -554,11 +562,18 @@ function applyTaskAwareOrdering(
   orderedTargets: ResolvedComboTarget[],
   autoUsedExplicitRouter: boolean
 ): ResolvedComboTarget[] {
-  const { strategy, body, log } = deps;
+  const { strategy, body, log, combo } = deps;
   if (!isTaskRoutingStrategy(strategy)) return orderedTargets;
   const task = classifyTask(body);
   const conversationCacheKey = getConversationCacheKey(body);
-  const taskReordered = reorderByTaskWeight(orderedTargets, task);
+  // Task-aware reordering for auto combos rotates the primary pick among the
+  // top task-fit models instead of deterministically pinning one model per task
+  // level. The plain (non-auto) task-aware strategies keep the historical
+  // best-fit-first behavior so their contract is unchanged.
+  const isAutoRotated = strategy === "auto" && !autoUsedExplicitRouter;
+  const taskReordered = isAutoRotated
+    ? rotateByTaskFit(combo.name, orderedTargets, task)
+    : reorderByTaskWeight(orderedTargets, task);
   // #4945 regression guard: when an explicit auto router (lkgp/cost/…) pinned
   // orderedTargets[0], keep that primary choice and let task-aware refine only
   // the fallback tail — otherwise task weighting silently defeats the operator's
@@ -707,7 +722,7 @@ export async function resolveComboTargetPipeline(
 
   const ordering = await orderByStrategy(deps, orderedTargets);
   if ("earlyResponse" in ordering) return ordering;
-  const { autoUsedExplicitRouter } = ordering;
+  const { autoUsedExplicitRouter, taskType } = ordering;
 
   const continuity = await applyContinuityFilters(deps, ordering.orderedTargets);
   if ("earlyResponse" in continuity) return continuity;
@@ -734,5 +749,6 @@ export async function resolveComboTargetPipeline(
     getWeightedStepKeyForTarget,
     sticky: continuity.sticky,
     preScreenMap,
+    taskType,
   };
 }

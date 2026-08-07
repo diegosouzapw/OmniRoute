@@ -5,6 +5,7 @@
  */
 
 import { recordProviderUsage } from "./autoCombo/providerDiversity";
+import { recordComboAdaptationOutcome } from "../../src/lib/db/comboAdaptation";
 
 interface ModelMetrics {
   requests: number;
@@ -82,6 +83,26 @@ export interface ComboRequestTargetMeta {
   providerId?: string | null;
   connectionId?: string | null;
   label?: string | null;
+}
+
+/**
+ * Quality-learning signals forwarded from the combo attempt loop into the
+ * adaptation layer (PR1). recordComboRequest stays a cheap telemetry sink — it
+ * only forwards already-computed values, never classifies or parses bodies.
+ */
+export interface ComboLearningSignals {
+  /** Auto-branch computed task type; omitted → "default". */
+  taskType?: string;
+  /** True when the request carried tool definitions. */
+  hasTools?: boolean;
+  /** True when the successful response included a tool call. */
+  toolCallSucceeded?: boolean;
+  /** True for a 200-but-empty / quality-rejected response. */
+  isEmptyResponse?: boolean;
+  /** Emitted output tokens, when observable. */
+  tokensOut?: number;
+  /** True when the failure was a QUALITY failure, not infra. */
+  qualityFailure?: boolean;
 }
 
 function toNonEmptyString(value: unknown): string | null {
@@ -201,7 +222,10 @@ function evictOldestMetric(
   let oldestTime = Infinity;
   for (const [name, entry] of targetMap) {
     const t = entry.lastUsedAt ? new Date(entry.lastUsedAt).getTime() : Date.now();
-    if (t < oldestTime) { oldestTime = t; oldest = name; }
+    if (t < oldestTime) {
+      oldestTime = t;
+      oldest = name;
+    }
   }
   if (oldest) {
     targetMap.delete(oldest);
@@ -211,23 +235,26 @@ function evictOldestMetric(
   }
 }
 
-const _metricsCleanupTimer = setInterval(() => {
-  const now = Date.now();
-  for (const [name, entry] of metrics) {
-    const lastUsed = entry.lastUsedAt ? new Date(entry.lastUsedAt).getTime() : now;
-    if (now - lastUsed > METRICS_TTL_MS) {
-      metrics.delete(name);
-      shadowMetrics.delete(name);
+const _metricsCleanupTimer = setInterval(
+  () => {
+    const now = Date.now();
+    for (const [name, entry] of metrics) {
+      const lastUsed = entry.lastUsedAt ? new Date(entry.lastUsedAt).getTime() : now;
+      if (now - lastUsed > METRICS_TTL_MS) {
+        metrics.delete(name);
+        shadowMetrics.delete(name);
+      }
     }
-  }
-  for (const [name, entry] of shadowMetrics) {
-    const lastUsed = entry.lastUsedAt ? new Date(entry.lastUsedAt).getTime() : now;
-    if (now - lastUsed > METRICS_TTL_MS) {
-      metrics.delete(name);
-      shadowMetrics.delete(name);
+    for (const [name, entry] of shadowMetrics) {
+      const lastUsed = entry.lastUsedAt ? new Date(entry.lastUsedAt).getTime() : now;
+      if (now - lastUsed > METRICS_TTL_MS) {
+        metrics.delete(name);
+        shadowMetrics.delete(name);
+      }
     }
-  }
-}, 5 * 60 * 1000); // every 5 minutes
+  },
+  5 * 60 * 1000
+); // every 5 minutes
 _metricsCleanupTimer.unref?.(); // Don't prevent process exit
 
 /**
@@ -250,12 +277,14 @@ export function recordComboRequest(
     fallbackCount = 0,
     strategy = "priority",
     target,
+    learning,
   }: {
     success: boolean;
     latencyMs: number;
     fallbackCount?: number;
     strategy?: string;
     target?: ComboRequestTargetMeta | null;
+    learning?: ComboLearningSignals | null;
   }
 ): void {
   if (!metrics.has(comboName) && metrics.size >= MAX_METRICS_ENTRIES) {
@@ -285,6 +314,26 @@ export function recordComboRequest(
     if (usedProvider) recordProviderUsage(usedProvider);
   } else {
     combo.totalFailures++;
+  }
+
+  // Persist per-model adaptation state (counters, learned score, backoff cooldown).
+  // Best-effort: a DB hiccup must never break the in-memory metrics path.
+  if (modelStr) {
+    try {
+      recordComboAdaptationOutcome(comboName, modelStr, {
+        success,
+        latencyMs,
+        taskType: learning?.taskType,
+        hasTools: learning?.hasTools,
+        toolCallSucceeded: learning?.toolCallSucceeded,
+        isEmptyResponse: learning?.isEmptyResponse,
+        tokensOut: learning?.tokensOut,
+        qualityFailure: learning?.qualityFailure,
+        firstPass: fallbackCount === 0,
+      });
+    } catch {
+      // non-fatal — in-memory metrics already recorded the outcome
+    }
   }
 
   if (!modelStr) return;

@@ -1,4 +1,5 @@
 import { getDbInstance, rowToCamel } from "./core";
+import { recordPinRepinned } from "./pinEffectiveness";
 
 export interface HandoffPayload {
   id?: string;
@@ -187,6 +188,16 @@ export function recordSessionModelUsage(
   connectionId?: string
 ): void {
   const db = getDbInstance() as unknown as DbLike;
+  // PR2A: count a "forced re-pin" when the session's pin moves to a different
+  // model — this is exactly what context-cache pinning exists to minimise.
+  try {
+    const previous = getLastSessionModel(sessionId, comboName);
+    if (previous !== null && previous !== modelStr) {
+      recordPinRepinned(comboName);
+    }
+  } catch {
+    // fail-open
+  }
   db.prepare(
     `INSERT INTO session_model_history
       (session_id, combo_name, model_str, provider, connection_id)

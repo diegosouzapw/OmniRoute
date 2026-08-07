@@ -140,6 +140,15 @@ async function cleanup(): Promise<void> {
     } catch {
       /* feature unused */
     }
+
+    // Stop quota cache background refresh
+    try {
+      const { stopBackgroundRefresh } = await import("@/domain/quotaCache");
+      stopBackgroundRefresh();
+      console.log("[Shutdown] Quota cache background refresh stopped.");
+    } catch (err) {
+      console.warn(`[Shutdown] Failed to stop quota cache: ${err.message}`);
+    }
   } catch (err) {
     console.error("[Shutdown] Error during cleanup:", (err as Error).message);
   }

@@ -151,6 +151,15 @@ async function startServer() {
   } catch (err) {
     startupLog.warn({ error: getErrorMessage(err) }, "Arena ELO sync could not initialize");
   }
+
+  // Adaptive learning flush (PR1): publish per-model quality learning into the
+  // fitness chain. Idempotent, unref'd timer; never fatal.
+  try {
+    const { startAdaptiveLearningFlusher } = await import("./lib/db/adaptiveLearning");
+    startAdaptiveLearningFlusher();
+  } catch (err) {
+    startupLog.warn({ error: getErrorMessage(err) }, "Adaptive learning flusher could not start");
+  }
 }
 
 // Start the server initialization

@@ -18,6 +18,7 @@ import {
   getOrSetConversationAffinityIndex,
   isTaskRoutingStrategy,
   reorderByTaskWeight,
+  rotateByTaskFit,
   scoreModelForTask,
   TASK_LEVEL_WEIGHT,
   comboConversationAffinity,
@@ -248,6 +249,80 @@ describe("reorderByTaskWeight", () => {
     const out = reorderByTaskWeight(targets, task, new Set());
     assert.equal(out[0].stepId, "step-0");
     assert.equal(out[1].stepId, "step-1");
+  });
+});
+
+// ── rotateByTaskFit ───────────────────────────────────────────────────────────
+
+describe("rotateByTaskFit", () => {
+  const light = classifyTask({
+    messages: [{ role: "user", content: "quick rewrite this sentence" }],
+    max_tokens: 300,
+  });
+  const comboName = "rotate-test-combo";
+
+  it("rotates the primary pick across successive calls (no single-model pinning)", () => {
+    const targets = [
+      makeTarget("anthropic/claude-opus-4.6", 0),
+      makeTarget("anthropic/claude-haiku-4.5", 1),
+      makeTarget("deepseek/deepseek-chat", 2),
+    ];
+    const first = rotateByTaskFit(comboName, targets, light);
+    const second = rotateByTaskFit(comboName, targets, light);
+    const third = rotateByTaskFit(comboName, targets, light);
+
+    // All three candidates remain present.
+    assert.equal(first.length, 3);
+    assert.equal(second.length, 3);
+    assert.equal(third.length, 3);
+
+    // The leading model changes across calls, proving rotation.
+    assert.notEqual(first[0].modelStr, second[0].modelStr);
+    assert.notEqual(second[0].modelStr, third[0].modelStr);
+    assert.notEqual(first[0].modelStr, third[0].modelStr);
+
+    // Leading models always come from the task-fit pool (haiku/opus/deepseek).
+    const leadIds = new Set([first[0].modelStr, second[0].modelStr, third[0].modelStr]);
+    assert.equal(leadIds.size, 3);
+  });
+
+  it("keeps per-combo counters independent", () => {
+    const targets = [makeTarget("m1", 0), makeTarget("m2", 1), makeTarget("m3", 2)];
+    const a1 = rotateByTaskFit("combo-a", targets, light);
+    const b1 = rotateByTaskFit("combo-b", targets, light);
+    const a2 = rotateByTaskFit("combo-a", targets, light);
+    const b2 = rotateByTaskFit("combo-b", targets, light);
+    // First call on each combo picks the same lead (both counters start at 0).
+    assert.equal(a1[0].modelStr, b1[0].modelStr);
+    // Second call on each combo also advances identically — combo-b did not
+    // steal a turn from combo-a (independent counters).
+    assert.equal(a2[0].modelStr, b2[0].modelStr);
+    // The rotator does advance within each combo.
+    assert.notEqual(a1[0].modelStr, a2[0].modelStr);
+  });
+
+  it("returns same reference for single-target list", () => {
+    const targets = [makeTarget("anthropic/claude-haiku-4.5", 0)];
+    const out = rotateByTaskFit(comboName, targets, light);
+    assert.strictEqual(out, targets);
+  });
+
+  it("never drops targets and preserves original order within a model group", () => {
+    const targets = [
+      makeTarget("anthropic/claude-haiku-4.5", 0),
+      makeTarget("anthropic/claude-opus-4.6", 1),
+      makeTarget("deepseek/deepseek-chat", 2),
+      makeTarget("anthropic/claude-haiku-4.5", 3),
+    ];
+    const out = rotateByTaskFit(comboName, targets, light);
+    assert.equal(out.length, 4);
+    // Duplicate model entries stay contiguous (same model grouped together).
+    const haikuIdxs = out
+      .map((t, i) => ({ t, i }))
+      .filter(({ t }) => t.modelStr === "anthropic/claude-haiku-4.5")
+      .map(({ i }) => i);
+    assert.equal(haikuIdxs.length, 2);
+    assert.equal(Math.abs(haikuIdxs[0] - haikuIdxs[1]), 1);
   });
 });
 

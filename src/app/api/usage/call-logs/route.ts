@@ -4,7 +4,7 @@ import { getCallLogs } from "@/lib/usageDb";
 import { getCompletedDetails, getPendingById } from "@/lib/usage/usageHistory";
 import { getProviderConnections } from "@/lib/localDb";
 import { getProviderNodes } from "@/models";
-import { matchesSearch } from "@/shared/utils/turkishText";
+import { filterCallLogEntries } from "@/shared/utils/callLogsFilter";
 
 type CallLogListRowsInput = {
   logs: any[];
@@ -170,15 +170,12 @@ export async function GET(request: Request) {
       completedDetails: getCompletedDetails().values(),
     });
 
-    // When correlationId filter is set, also filter in-memory entries
-    // (active + completed) that don't match — getCallLogs already filters
-    // the DB rows but activeEntries/completedEntries bypass it.
-    if (filter.correlationId) {
-      const cid = filter.correlationId;
-      return NextResponse.json(rows.filter((r: any) => matchesSearch(r.correlationId || "", cid)));
-    }
-
-    return NextResponse.json(rows);
+    // getCallLogs already filters the DB rows, but in-memory entries
+    // (active + completed) bypass it. Re-apply the filters over the merged
+    // list so combo-scoped views don't leak requests that ran outside the
+    // combo (e.g. grok-cli via another combo in vivanta-ollama's recent
+    // decisions).
+    return NextResponse.json(filterCallLogEntries(rows, filter));
   } catch (error) {
     console.error("[API ERROR] /api/usage/call-logs failed:", error);
     return NextResponse.json({ error: "Failed to fetch call logs" }, { status: 500 });

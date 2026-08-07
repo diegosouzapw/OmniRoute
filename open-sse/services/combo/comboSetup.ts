@@ -15,12 +15,17 @@ import {
   resolveUniversalHandoffConfig,
   SKIP_UNIVERSAL_HANDOFF_FLAG,
 } from "../contextHandoff.ts";
-import { getLastSessionModel } from "../../../src/lib/db/contextHandoffs.ts";
+import {
+  deleteSessionModelHistory,
+  getLastSessionModel,
+} from "../../../src/lib/db/contextHandoffs.ts";
 import { applyComboAgentMiddleware } from "../comboAgentMiddleware.ts";
 import { resolveComboSetupConfig, resolveComboTargetTimeoutMsForCombo } from "../comboConfig.ts";
 import { resolveResilienceSettings } from "../../../src/lib/resilience/settings";
 import { FETCH_TIMEOUT_MS } from "../../config/constants.ts";
 import { deriveComboSessionKey } from "./autoStrategy.ts";
+import { validatePinnedModelForRequest } from "./pinValidation.ts";
+import { recordPinInvalid, recordPinKept } from "../../../src/lib/db/pinEffectiveness.ts";
 import type { ComboContext } from "./context.ts";
 
 export interface ComboSetup {
@@ -50,7 +55,10 @@ export interface ComboSetup {
  * Extracted from phaseComboSetup to keep that function under the complexity ceiling and to
  * further the combo god-file decomposition.
  */
-function resolveContextCachePin(ctx: ComboContext): {
+function resolveContextCachePin(
+  ctx: ComboContext,
+  minContextWindow?: number
+): {
   effectiveSessionId: string | null;
   pinnedModel: string | null;
 } {
@@ -66,9 +74,31 @@ function resolveContextCachePin(ctx: ComboContext): {
   ) {
     const pinned = getLastSessionModel(effectiveSessionId, combo.name);
     if (pinned) {
-      ctx.body = { ...ctx.body, model: pinned };
-      pinnedModel = pinned;
-      log.info("COMBO", `[#401] Context cache: pinned model=${pinned} (server-side)`);
+      // PR2A — capability-aware pin validation: a pin is only honored when the
+      // pinned model can actually serve THIS request (tools/vision/context),
+      // is not in adaptation cooldown, and is not quality-degraded vs the best
+      // alternative. Otherwise the pin is dropped here so normal routing (which
+      // re-pins the winning model) takes over — fixes the "pinned to a model
+      // that 400s every tool turn, pin never cleared" loop.
+      const validation = validatePinnedModelForRequest({
+        pinnedModel: pinned,
+        comboName: combo.name,
+        body: ctx.body,
+        minContextWindow,
+      });
+      if (validation.keep) {
+        recordPinKept(combo.name);
+        ctx.body = { ...ctx.body, model: pinned };
+        pinnedModel = pinned;
+        log.info("COMBO", `[#401] Context cache: pinned model=${pinned} (server-side)`);
+      } else {
+        recordPinInvalid(combo.name, validation.reason ?? "unknown");
+        deleteSessionModelHistory(effectiveSessionId, combo.name);
+        log.warn(
+          "COMBO",
+          `[PR2A] Dropping context-cache pin for "${combo.name}": ${validation.reason}`
+        );
+      }
     }
   }
   return { effectiveSessionId, pinnedModel };
@@ -91,8 +121,15 @@ export function phaseComboSetup(ctx: ComboContext): ComboSetup {
     relayOptions?.universalHandoffConfig as Record<string, unknown> | null | undefined
   );
 
+  // Use config cascade before dispatch so all strategies, pinned context routes,
+  // and round-robin targets share the same timeout policy.
+  const config = resolveComboSetupConfig(combo, settings);
+
   // Server-side context cache pinning (rewrites ctx.body when a model is pinned).
-  const { effectiveSessionId, pinnedModel } = resolveContextCachePin(ctx);
+  const { effectiveSessionId, pinnedModel } = resolveContextCachePin(
+    ctx,
+    config.contextRequirements?.minContextWindow
+  );
 
   // ── Combo Agent Middleware (#399 + #401) ────────────────────────────────
   // Apply system_message override, tool_filter_regex.
@@ -105,9 +142,6 @@ export function phaseComboSetup(ctx: ComboContext): ComboSetup {
   ctx.body = agentBody;
   const clientRequestedStream = ctx.body?.stream === true;
 
-  // Use config cascade before dispatch so all strategies, pinned context routes,
-  // and round-robin targets share the same timeout policy.
-  const config = resolveComboSetupConfig(combo, settings);
   const comboTargetTimeoutMs = resolveComboTargetTimeoutMsForCombo(
     config,
     FETCH_TIMEOUT_MS,

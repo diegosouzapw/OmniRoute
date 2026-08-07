@@ -14,6 +14,12 @@ export const naraProvider: RegistryEntry = buildOpenAiCompatibleRegistryEntry({
   models: [
     { id: "tencent-hy3", name: "Tencent Hy3", contextLength: 1000000 },
     { id: "mistral-large", name: "Mistral Large", contextLength: 252000, toolCalling: true },
-    { id: "mistral-medium-3-5", name: "Mistral Medium 3.5", contextLength: 256000, toolCalling: true, supportsVision: true },
+    {
+      id: "mistral-medium-3-5",
+      name: "Mistral Medium 3.5",
+      contextLength: 256000,
+      toolCalling: true,
+      vision: true,
+    },
   ],
 });

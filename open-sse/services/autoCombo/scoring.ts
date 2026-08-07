@@ -105,6 +105,12 @@ export interface ProviderCandidate {
   resetWindowAffinity?: number;
   connectionPoolSize?: number;
   connectionId?: string;
+  /**
+   * True when the candidate's model is already loaded in memory/VRAM (e.g. an
+   * Ollama model currently resident), so the router can avoid a switch that would
+   * pay a cold-start load cost for an only-marginally-better alternative.
+   */
+  isWarm?: boolean;
 }
 
 export interface ScoredProvider {

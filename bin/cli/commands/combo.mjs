@@ -1,9 +1,13 @@
 import { Option } from "commander";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
 import { printHeading } from "../io.mjs";
 import { withRuntime } from "../runtime.mjs";
 import { t } from "../i18n.mjs";
 import { apiFetch } from "../api.mjs";
 import { emit } from "../output.mjs";
+
+const CLI_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 
 const VALID_STRATEGIES = [
   "priority",
@@ -144,7 +148,195 @@ export function registerCombo(program) {
       if (exitCode !== 0) process.exit(exitCode);
     });
 
+  combo
+    .command("health [name]")
+    .description("Explain live routing state for a combo (pins, cooldown, warm, scores)")
+    .option("--range <range>", "Time range for events/telemetry: 1h|24h|7d|30d", "24h")
+    .option("--json", "Output as JSON")
+    .action(async (name, opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runComboHealthCommand(name, { ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
   extendComboSuggest(combo);
+}
+
+const STATE_STYLES = {
+  pinned: { icon: "●", color: "\x1b[32m" },
+  warm: { icon: "●", color: "\x1b[36m" },
+  cooldown: { icon: "●", color: "\x1b[33m" },
+  idle: { icon: "○", color: "\x1b[2m" },
+};
+
+function bareModel(model) {
+  if (!model) return "-";
+  const slash = model.lastIndexOf("/");
+  return slash >= 0 ? model.slice(slash + 1) : model;
+}
+
+function fmtPct(value) {
+  if (value == null || !Number.isFinite(value)) return "-";
+  return `${(value * 100).toFixed(0)}%`;
+}
+
+function fmtMs(value) {
+  if (value == null || !Number.isFinite(value) || value <= 0) return "-";
+  return `${Math.round(value)}ms`;
+}
+
+function fmtTime(ts) {
+  if (!ts) return "-";
+  const normalized = String(ts).replace("T", " ");
+  return normalized.length >= 19 ? normalized.slice(11, 19) : normalized;
+}
+
+function renderComboHealth(combo) {
+  const dim = (text) => `\x1b[2m${text}\x1b[0m`;
+  const { overview, selection, targets, events, pinEffectiveness } = combo;
+
+  console.log(
+    `\n  \x1b[1m${combo.comboName}\x1b[0m  ${dim(`strategy: ${combo.strategy} · enabled: ${combo.enabled ? "yes" : "no"}`)}`
+  );
+  console.log(
+    `  ${dim("requests:")} ${overview.totalRequests}  ${dim("success:")} ${fmtPct(
+      overview.successRate
+    )}  ${dim("avg:")} ${fmtMs(overview.avgLatencyMs)}  ${dim("sessions:")} ${
+      overview.activeSessions
+    }`
+  );
+
+  const methodLabel =
+    selection.method === "pinned"
+      ? `\x1b[32m● pinned → ${bareModel(selection.pinnedModel)}\x1b[0m`
+      : `\x1b[2m○ priority${selection.nextFallback ? ` → ${bareModel(selection.nextFallback)}` : ""}\x1b[0m`;
+  console.log(`\n  ${dim("selection:")} ${methodLabel}`);
+  for (const note of selection.notes) {
+    console.log(`    ${dim("•")} ${note}`);
+  }
+
+  if (pinEffectiveness) {
+    const lifetime =
+      pinEffectiveness.avgLifetimeMs != null && Number.isFinite(pinEffectiveness.avgLifetimeMs)
+        ? `${Math.round(pinEffectiveness.avgLifetimeMs / 60000)}m`
+        : "-";
+    const invalidBadge =
+      pinEffectiveness.invalidCount > 0 ? " \x1b[33m(invalidated some)\x1b[0m" : "";
+    console.log(
+      `\n  ${dim("pin effectiveness:")} kept ${pinEffectiveness.keptCount} · invalid ${
+        pinEffectiveness.invalidCount
+      } · repinned ${pinEffectiveness.repinnedCount} · avg lifetime ${lifetime}${invalidBadge}`
+    );
+    if (pinEffectiveness.invalidCount > 0 && pinEffectiveness.lastInvalidReason) {
+      console.log(
+        `    ${dim(`last invalid (${fmtTime(pinEffectiveness.lastInvalidAt)}): ${pinEffectiveness.lastInvalidReason}`)}`
+      );
+    }
+  }
+
+  console.log("\n  Targets:");
+  console.log(
+    `    ${"#".padEnd(3)} ${"Model".padEnd(22)} ${"State".padEnd(9)} ${"Pins".padEnd(4)} ${"Req".padEnd(4)} ${"Success".padEnd(8)} ${"Avg".padEnd(8)} ${"Learned".padEnd(7)} Notes`
+  );
+  for (const target of targets) {
+    const style = STATE_STYLES[target.state] ?? STATE_STYLES.idle;
+    const cap = target.capability;
+    const notes = [];
+    if (target.stateReason) notes.push(target.stateReason);
+    if (cap) {
+      if (!cap.toolCalling) notes.push("tools:no");
+      if (cap.supportsVision) notes.push("vision");
+      if (cap.contextLength) notes.push(`ctx:${Math.round(cap.contextLength / 1024)}k`);
+    }
+    const learned =
+      target.learnedScore != null && Number.isFinite(target.learnedScore)
+        ? target.learnedScore.toFixed(2)
+        : "-";
+    console.log(
+      `    ${style.color}${style.icon}\x1b[0m ${String(target.order).padEnd(2)} ${bareModel(
+        target.model
+      ).padEnd(22)} ${target.state.padEnd(9)} ${String(target.pinnedSessions).padEnd(4)} ${String(
+        target.requests || "-"
+      ).padEnd(
+        4
+      )} ${fmtPct(target.successRate).padEnd(8)} ${fmtMs(target.avgLatencyMs).padEnd(8)} ${learned.padEnd(
+        7
+      )} ${dim(notes.join(" · "))}`
+    );
+  }
+
+  if (events.length > 0) {
+    console.log(`\n  Recent events:`);
+    for (const event of events) {
+      const statusColor = event.ok ? "\x1b[32m" : "\x1b[31m";
+      const duration = event.durationMs > 0 ? ` ${dim(`(${event.durationMs}ms)`)}` : "";
+      const error = event.error ? `  ${dim(event.error)}` : "";
+      console.log(
+        `    ${dim(fmtTime(event.time))}  ${bareModel(event.model).padEnd(22)} ${statusColor}${event.status}\x1b[0m${duration}${error}`
+      );
+    }
+  }
+}
+
+export async function runComboHealthCommand(name, opts = {}) {
+  const range = ["1h", "24h", "7d", "30d"].includes(opts.range) ? opts.range : "24h";
+
+  try {
+    return await withRuntime(async ({ kind, api }) => {
+      let response;
+
+      if (kind === "http") {
+        const query = new URLSearchParams({ range });
+        if (name) query.set("comboName", name);
+        const res = await api(`/api/usage/combo-state?${query}`, {
+          retry: false,
+          timeout: 15000,
+          acceptNotOk: true,
+        });
+        if (res.status === 404) {
+          console.error(`Combo '${name}' not found.`);
+          return 1;
+        }
+        if (!res.ok) {
+          console.error(`Failed to fetch combo state (HTTP ${res.status}).`);
+          return 1;
+        }
+        response = await res.json();
+      } else {
+        const { buildComboStateResponse } = await import(`${CLI_ROOT}/src/lib/usage/comboState.ts`);
+        response = await buildComboStateResponse({
+          range,
+          ...(name ? { comboName: name } : {}),
+        });
+      }
+
+      if (response.combos.length === 0) {
+        if (name) {
+          console.error(`Combo '${name}' not found.`);
+        } else {
+          console.error("No combos configured.");
+        }
+        return 1;
+      }
+
+      if (opts.json || opts.output === "json") {
+        console.log(JSON.stringify(response, null, 2));
+        return 0;
+      }
+
+      printHeading(`Combo health (${range})`);
+      for (const combo of response.combos) renderComboHealth(combo);
+      if (!response.ollamaReachable) {
+        console.log(
+          `\n  \x1b[33m⚠\x1b[0m ${"ollama not reachable — warm/loaded state unavailable"}`
+        );
+      }
+      return 0;
+    });
+  } catch (err) {
+    console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
+    return 1;
+  }
 }
 
 export async function runComboListCommand(opts = {}) {

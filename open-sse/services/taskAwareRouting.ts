@@ -389,6 +389,56 @@ export function reorderByTaskWeight(
   return reordered.every((t, i) => t === targets[i]) ? targets : reordered;
 }
 
+// ── Task-fit rotation state ──────────────────────────────────────────────────
+
+/**
+ * Rotating per-combo counters used to cycle the primary (first-tried) target
+ * among the top task-fit models instead of always pinning the single best fit.
+ * Without this, `reorderByTaskWeight` deterministically promotes the same model
+ * for every request of a given task level, so a combo can get stuck retrying the
+ * same failing turn on the same model.
+ */
+const taskFitRotators = new Map<string, number>();
+const TASK_FIT_ROTATION_POOL_SIZE = 3;
+const MAX_TASK_FIT_ROTATORS = 500;
+
+function advanceTaskFitRotator(comboName: string): number {
+  const next = (taskFitRotators.get(comboName) ?? 0) + 1;
+  taskFitRotators.set(comboName, next);
+  if (taskFitRotators.size > MAX_TASK_FIT_ROTATORS) {
+    const oldest = taskFitRotators.keys().next().value;
+    if (oldest !== undefined) taskFitRotators.delete(oldest);
+  }
+  return next;
+}
+
+/**
+ * Reorder `targets` by task fit (same ranking as `reorderByTaskWeight`), then
+ * rotate which task-fit model leads the queue. The rotation advances per combo,
+ * so consecutive requests cycle through the top task-appropriate models rather
+ * than always trying the same one first. Stable: targets of the chosen model
+ * keep their relative order; ties keep original order.
+ */
+export function rotateByTaskFit(
+  comboName: string,
+  targets: ResolvedComboTarget[],
+  task: TaskClassification = classifyTask({}),
+  poolSize: number = TASK_FIT_ROTATION_POOL_SIZE
+): ResolvedComboTarget[] {
+  if (!Array.isArray(targets) || targets.length <= 1) return targets;
+
+  const reordered = reorderByTaskWeight(targets, task);
+  const uniqueModels = Array.from(new Map(reordered.map((t) => [t.modelStr, t])).values());
+  const pool = Math.max(1, Math.min(poolSize, uniqueModels.length));
+  const picked = uniqueModels[(taskFitRotators.get(comboName) ?? 0) % pool];
+  advanceTaskFitRotator(comboName);
+
+  if (!picked) return reordered;
+  const head = reordered.filter((t) => t.modelStr === picked.modelStr);
+  const tail = reordered.filter((t) => t.modelStr !== picked.modelStr);
+  return [...head, ...tail];
+}
+
 // ── Conversation affinity (cache-key derivation) ──────────────────────────────
 
 function normalizeFingerprintText(value: unknown): string {

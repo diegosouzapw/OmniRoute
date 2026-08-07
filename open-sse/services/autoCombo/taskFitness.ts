@@ -353,6 +353,19 @@ export function getTaskFitnessWithSource(
     return { score: userOverride, source: "user_override" };
   }
 
+  // Local adaptive learning (PR1): accumulated per-model per-taskType quality
+  // observed on this gateway, published by the adaptive-learning flush. Ranks
+  // below an explicit user override, above the static arena_elo / models.dev
+  // layers. Expired entries are excluded by getModelIntelligenceBySource.
+  const adaptiveLearning = queryModelIntelligence(
+    normalizedModel,
+    normalizedTask,
+    "adaptive_learning"
+  );
+  if (adaptiveLearning !== null) {
+    return { score: adaptiveLearning, source: "adaptive_learning" };
+  }
+
   // Try arena_elo with the literal model id first (e.g. "mimo-v2.5"). If that's
   // a miss and the model id carries a "-free" suffix (e.g. "mimo-v2.5-free"),
   // try the un-suffixed base id so free-tier variants inherit the arena_elo

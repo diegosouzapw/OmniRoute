@@ -1,0 +1,764 @@
+{
+  "created_at": "2026-08-02T19:50:24.010171",
+  "combos": [
+    {
+      "id": "41cc9c72-7885-4a49-b2a1-4b0fe8d8bb62",
+      "name": "vivanta-core",
+      "data": {
+        "name": "vivanta-core",
+        "strategy": "priority",
+        "models": [
+          {
+            "id": "vc-groq-0",
+            "kind": "model",
+            "model": "groq/llama-3.3-70b-versatile",
+            "providerId": "groq",
+            "weight": 100
+          },
+          {
+            "id": "vc-groq-1",
+            "kind": "model",
+            "model": "groq/openai/gpt-oss-20b",
+            "providerId": "groq",
+            "weight": 95
+          },
+          {
+            "id": "vc-gemini-2",
+            "kind": "model",
+            "model": "gemini/gemini-3-flash-preview",
+            "providerId": "gemini",
+            "weight": 80
+          },
+          {
+            "id": "vc-gemini-3",
+            "kind": "model",
+            "model": "gemini/gemini-3.1-flash-lite",
+            "providerId": "gemini",
+            "weight": 80
+          },
+          {
+            "id": "vc-gemini-4",
+            "kind": "model",
+            "model": "gemini/gemini-3.5-flash",
+            "providerId": "gemini",
+            "weight": 75
+          },
+          {
+            "id": "vc-nvidia-5",
+            "kind": "model",
+            "model": "nvidia/nvidia/nemotron-3-ultra-550b-a55b",
+            "providerId": "nvidia",
+            "weight": 60
+          },
+          {
+            "id": "vc-nvidia-6",
+            "kind": "model",
+            "model": "nvidia/z-ai/glm-5.2",
+            "providerId": "nvidia",
+            "weight": 60
+          },
+          {
+            "id": "vc-nvidia-7",
+            "kind": "model",
+            "model": "nvidia/deepseek-ai/deepseek-v4-pro",
+            "providerId": "nvidia",
+            "weight": 55
+          },
+          {
+            "id": "vc-nvidia-8",
+            "kind": "model",
+            "model": "nvidia/nvidia/nemotron-3-super-120b-a12b",
+            "providerId": "nvidia",
+            "weight": 55
+          },
+          {
+            "id": "vc-xiaomi-mimo-token-plan-9",
+            "kind": "model",
+            "model": "xiaomi-mimo-token-plan/mimo-v2.5",
+            "providerId": "xiaomi-mimo-token-plan",
+            "weight": 40
+          },
+          {
+            "id": "vc-xiaomi-mimo-token-plan-10",
+            "kind": "model",
+            "model": "xiaomi-mimo-token-plan/mimo-v2.5-pro",
+            "providerId": "xiaomi-mimo-token-plan",
+            "weight": 35
+          },
+          {
+            "id": "vc-openrouter-backup",
+            "kind": "model",
+            "model": "openrouter/anthropic/claude-3-haiku",
+            "providerId": "openrouter",
+            "weight": 20
+          },
+          {
+            "id": "vc-pollinations-backup",
+            "kind": "model",
+            "model": "pollinations/gpt-oss-20b",
+            "providerId": "pollinations",
+            "weight": 10
+          }
+        ],
+        "capabilities": {
+          "tool_calling": true,
+          "reasoning": true,
+          "thinking": true
+        },
+        "sortOrder": 0,
+        "updatedAt": "2026-07-31T14:19:40.857Z",
+        "version": 2,
+        "id": "41cc9c72-7885-4a49-b2a1-4b0fe8d8bb62"
+      },
+      "sort_order": 0,
+      "created_at": "2026-07-26T22:54:47.662043",
+      "updated_at": "2026-08-01 15:22:35",
+      "system_message": null,
+      "tool_filter_regex": null,
+      "context_cache_protection": 0
+    },
+    {
+      "id": "7b1be04b-2e0e-4ec5-9dd4-ab75a3a52a59",
+      "name": "vivanta-core-2",
+      "data": {
+        "name": "vivanta-core-2",
+        "strategy": "priority",
+        "models": [
+          {
+            "id": "vivanta-core-2-model-1-groq-qwen-qwen3-6-27b",
+            "kind": "model",
+            "model": "groq/qwen/qwen3.6-27b",
+            "providerId": "groq",
+            "weight": 100
+          },
+          {
+            "id": "vivanta-core-2-model-2-gemini-gemini-3-flash-preview",
+            "kind": "model",
+            "model": "gemini/gemini-3-flash-preview",
+            "providerId": "gemini",
+            "weight": 96
+          },
+          {
+            "id": "vivanta-core-2-model-3-groq-openai-gpt-oss-20b",
+            "kind": "model",
+            "model": "groq/openai/gpt-oss-20b",
+            "providerId": "groq",
+            "weight": 95
+          },
+          {
+            "id": "vivanta-core-2-model-4-gemini-gemini-3-1-flash-lite",
+            "kind": "model",
+            "model": "gemini/gemini-3.1-flash-lite",
+            "providerId": "gemini",
+            "weight": 94
+          },
+          {
+            "id": "vivanta-core-2-model-5-cerebras-gpt-oss-120b",
+            "kind": "model",
+            "model": "cerebras/gpt-oss-120b",
+            "providerId": "cerebras",
+            "weight": 88
+          },
+          {
+            "id": "vivanta-core-2-model-6-cerebras-zai-glm-4-7",
+            "kind": "model",
+            "model": "cerebras/zai-glm-4.7",
+            "providerId": "cerebras",
+            "weight": 85
+          },
+          {
+            "id": "vivanta-core-2-model-7-groq-llama-3-3-70b-versatile",
+            "kind": "model",
+            "model": "groq/llama-3.3-70b-versatile",
+            "providerId": "groq",
+            "weight": 80
+          },
+          {
+            "id": "vivanta-core-2-model-8-gemini-gemini-3-5-flash",
+            "kind": "model",
+            "model": "gemini/gemini-3.5-flash",
+            "providerId": "gemini",
+            "weight": 75
+          },
+          {
+            "id": "vivanta-core-2-model-9-nvidia-z-ai-glm-5-2",
+            "kind": "model",
+            "model": "nvidia/z-ai/glm-5.2",
+            "providerId": "nvidia",
+            "weight": 70
+          },
+          {
+            "id": "vivanta-core-2-model-10-nvidia-nvidia-nemotron-3-super-120b-a12b",
+            "kind": "model",
+            "model": "nvidia/nvidia/nemotron-3-super-120b-a12b",
+            "providerId": "nvidia",
+            "weight": 65
+          },
+          {
+            "id": "vivanta-core-2-model-11-kg-kilo-auto-balanced",
+            "kind": "model",
+            "model": "kg/kilo-auto/balanced",
+            "providerId": "kg",
+            "weight": 60
+          },
+          {
+            "id": "vivanta-core-2-model-12-pol-gemini",
+            "kind": "model",
+            "model": "pol/gemini",
+            "providerId": "pol",
+            "weight": 55
+          },
+          {
+            "id": "vivanta-core-2-model-13-ds-deepseek-v4-flash",
+            "kind": "model",
+            "model": "ds/deepseek-v4-flash",
+            "providerId": "ds",
+            "weight": 40
+          },
+          {
+            "id": "vivanta-core-2-model-14-ds-deepseek-v4-pro",
+            "kind": "model",
+            "model": "ds/deepseek-v4-pro",
+            "providerId": "ds",
+            "weight": 30
+          }
+        ],
+        "capabilities": {
+          "tool_calling": true,
+          "reasoning": true,
+          "thinking": true
+        },
+        "sortOrder": 0,
+        "updatedAt": "2026-07-31T09:46:50.537Z",
+        "version": 2
+      },
+      "sort_order": 0,
+      "created_at": "2026-07-27T08:13:05.032022",
+      "updated_at": "2026-07-31T09:46:50.537Z",
+      "system_message": null,
+      "tool_filter_regex": null,
+      "context_cache_protection": 0
+    },
+    {
+      "id": "d0e12dab-f188-41b2-841d-6a7bdba8287d",
+      "name": "vivanta-deepseek",
+      "data": {
+        "name": "vivanta-deepseek",
+        "strategy": "priority",
+        "models": [
+          {
+            "id": "vivanta-deepseek-model-1-ds-deepseek-v4-flash",
+            "kind": "model",
+            "model": "ds/deepseek-v4-flash",
+            "providerId": "ds",
+            "weight": 100
+          },
+          {
+            "id": "vivanta-deepseek-model-2-ds-deepseek-v4-pro",
+            "kind": "model",
+            "model": "ds/deepseek-v4-pro",
+            "providerId": "ds",
+            "weight": 90
+          },
+          {
+            "id": "vivanta-deepseek-model-3-pol-deepseek",
+            "kind": "model",
+            "model": "pol/deepseek",
+            "providerId": "pol",
+            "weight": 60
+          }
+        ],
+        "sortOrder": 1,
+        "updatedAt": "2026-07-31T09:46:54.701Z",
+        "version": 2,
+        "is_active": 0
+      },
+      "sort_order": 1,
+      "created_at": "2026-07-27T08:25:56.422766",
+      "updated_at": "2026-07-31T09:46:54.701Z",
+      "system_message": null,
+      "tool_filter_regex": null,
+      "context_cache_protection": 0
+    },
+    {
+      "id": "69db4394-5e75-4f14-89c6-7c5ad89f4516",
+      "name": "Google",
+      "data": {
+        "name": "Google",
+        "models": [
+          {
+            "id": "goog-0-03362dfb",
+            "kind": "model",
+            "model": "gemini/gemini-3.1-pro-preview",
+            "providerId": "gemini",
+            "weight": 100
+          },
+          {
+            "id": "goog-1-04664a5a",
+            "kind": "model",
+            "model": "gemini/gemini-3-flash-preview",
+            "providerId": "gemini",
+            "weight": 95
+          },
+          {
+            "id": "goog-2-1c614cb3",
+            "kind": "model",
+            "model": "gemini/gemini-3.1-flash-lite",
+            "providerId": "gemini",
+            "weight": 90
+          },
+          {
+            "id": "goog-3-fef48436",
+            "kind": "model",
+            "model": "gemini/gemini-3.5-flash",
+            "providerId": "gemini",
+            "weight": 85
+          },
+          {
+            "id": "goog-4-5bf64bc0",
+            "kind": "model",
+            "model": "gemini/gemini-2.5-pro",
+            "providerId": "gemini",
+            "weight": 60
+          },
+          {
+            "id": "goog-5-d8a9d914",
+            "kind": "model",
+            "model": "gemini/gemini-2.5-flash",
+            "providerId": "gemini",
+            "weight": 55
+          },
+          {
+            "id": "goog-6-f2c572d5",
+            "kind": "model",
+            "model": "gemini/gemini-2.5-flash-lite",
+            "providerId": "gemini",
+            "weight": 50
+          }
+        ],
+        "strategy": "auto",
+        "config": {
+          "maxRetries": 2,
+          "retryDelayMs": 1000,
+          "handoffThreshold": 0.85,
+          "handoffModel": "",
+          "maxMessagesForSummary": 30,
+          "trackMetrics": true,
+          "reasoningTokenBufferEnabled": true,
+          "zeroLatencyOptimizationsEnabled": false,
+          "candidatePool": ["gemini", "groq", "cerebras", "openrouter"],
+          "weights": {
+            "quota": 0.16,
+            "health": 0.2,
+            "costInv": 0.16,
+            "latencyInv": 0.12,
+            "taskFit": 0.08,
+            "stability": 0.05,
+            "tierPriority": 0.05,
+            "tierAffinity": 0.05,
+            "specificityMatch": 0.05,
+            "contextAffinity": 0.08,
+            "cacheAffinity": 0,
+            "resetWindowAffinity": 0
+          },
+          "modePack": "ship-fast",
+          "explorationRate": 0.1,
+          "routerStrategy": "rules",
+          "slaHardConstraints": false
+        },
+        "context_cache_protection": true,
+        "context_length": 200000,
+        "id": "69db4394-5e75-4f14-89c6-7c5ad89f4516",
+        "isHidden": false,
+        "sortOrder": 2,
+        "createdAt": "2026-07-23T12:04:38.302Z",
+        "updatedAt": "2026-07-31T07:49:07.250Z",
+        "version": 2
+      },
+      "sort_order": 2,
+      "created_at": "2026-07-23T12:04:38.302Z",
+      "updated_at": "2026-07-31T07:49:07.250Z",
+      "system_message": null,
+      "tool_filter_regex": null,
+      "context_cache_protection": 1
+    },
+    {
+      "id": "70e8797d-99b2-4418-84e8-9d4550286538",
+      "name": "glm-5.2",
+      "data": {
+        "name": "glm-5.2",
+        "strategy": "priority",
+        "models": [
+          {
+            "id": "glm-0-69e0d373",
+            "kind": "model",
+            "model": "nvidia/z-ai/glm-5.2",
+            "providerId": "nvidia",
+            "weight": 100
+          },
+          {
+            "id": "glm-1-657a25c7",
+            "kind": "model",
+            "model": "nvidia/nvidia/nemotron-3-super-120b-a12b",
+            "providerId": "nvidia",
+            "weight": 70
+          },
+          {
+            "id": "glm-2-fa43c19c",
+            "kind": "model",
+            "model": "cerebras/zai-glm-4.7",
+            "providerId": "cerebras",
+            "weight": 60
+          },
+          {
+            "id": "glm-3-73d46cc0",
+            "kind": "model",
+            "model": "gemini/gemini-3-flash-preview",
+            "providerId": "gemini",
+            "weight": 55
+          },
+          {
+            "id": "glm-4-887b1628",
+            "kind": "model",
+            "model": "groq/qwen/qwen3.6-27b",
+            "providerId": "groq",
+            "weight": 50
+          }
+        ],
+        "capabilities": {
+          "tool_calling": true,
+          "reasoning": true,
+          "thinking": true
+        },
+        "sortOrder": 4,
+        "updatedAt": "2026-07-31T07:49:07.233Z",
+        "version": 2
+      },
+      "sort_order": 4,
+      "created_at": "2026-07-28T17:58:31.003026Z",
+      "updated_at": "2026-07-31T07:49:07.233Z",
+      "system_message": null,
+      "tool_filter_regex": null,
+      "context_cache_protection": 0
+    },
+    {
+      "id": "83de8749-855c-43fd-83e4-650e6fd31acd",
+      "name": "vivanta-code",
+      "data": {
+        "name": "vivanta-code",
+        "models": [
+          {
+            "id": "vivanta-code-model-1-nvidia-nvidia-nemotron-3-ultra-550b-a55b",
+            "kind": "model",
+            "model": "nvidia/nvidia/nemotron-3-ultra-550b-a55b",
+            "providerId": "nvidia",
+            "weight": 0
+          },
+          {
+            "id": "vivanta-code-model-2-nvidia-deepseek-ai-deepseek-v4-pro",
+            "kind": "model",
+            "model": "nvidia/deepseek-ai/deepseek-v4-pro",
+            "providerId": "nvidia",
+            "weight": 0
+          },
+          {
+            "id": "vivanta-code-model-3-nvidia-nvidia-nemotron-3-super-120b-a12b",
+            "kind": "model",
+            "model": "nvidia/nvidia/nemotron-3-super-120b-a12b",
+            "providerId": "nvidia",
+            "weight": 0
+          },
+          {
+            "id": "vivanta-code-model-4-xiaomi-mimo-token-plan-mimo-v2-5-pro",
+            "kind": "model",
+            "model": "xiaomi-mimo-token-plan/mimo-v2.5-pro",
+            "providerId": "xiaomi-mimo-token-plan",
+            "weight": 0
+          },
+          {
+            "id": "vivanta-code-model-5-nvidia-deepseek-ai-deepseek-v4-flash",
+            "kind": "model",
+            "model": "nvidia/deepseek-ai/deepseek-v4-flash",
+            "providerId": "nvidia",
+            "weight": 0
+          },
+          {
+            "id": "vivanta-code-model-6-groq-llama-3-3-70b-versatile",
+            "kind": "model",
+            "model": "groq/llama-3.3-70b-versatile",
+            "providerId": "groq",
+            "weight": 0
+          },
+          {
+            "id": "vivanta-code-model-7-cerebras-gpt-oss-120b",
+            "kind": "model",
+            "model": "cerebras/gpt-oss-120b",
+            "providerId": "cerebras",
+            "weight": 0
+          }
+        ],
+        "strategy": "auto",
+        "config": {},
+        "id": "83de8749-855c-43fd-83e4-650e6fd31acd",
+        "isHidden": false,
+        "sortOrder": 5,
+        "createdAt": "2026-08-01T14:43:27.470Z",
+        "updatedAt": "2026-08-01T14:49:16.149Z",
+        "version": 2,
+        "isActive": true
+      },
+      "sort_order": 5,
+      "created_at": "2026-08-01T14:43:27.470Z",
+      "updated_at": "2026-08-01T14:49:16.149Z",
+      "system_message": null,
+      "tool_filter_regex": null,
+      "context_cache_protection": 0
+    }
+  ],
+  "provider_connections": [
+    {
+      "provider": "groq",
+      "name": "Groq Первичный",
+      "is_active": 1,
+      "test_status": "error"
+    },
+    {
+      "provider": "openrouter",
+      "name": "OpenRouter Первичный",
+      "is_active": 1,
+      "test_status": "error"
+    },
+    {
+      "provider": "huggingface",
+      "name": "HuggingFace Первичный",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "opencode-go",
+      "name": "OpenCode Go Первичный",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "gemini",
+      "name": "Gemini (Google AI Studio) Первичный",
+      "is_active": 1,
+      "test_status": "error"
+    },
+    {
+      "provider": "mistral",
+      "name": "Mistral Первичный",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "blackbox",
+      "name": "Blackbox AI Первичный",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "llm7",
+      "name": "LLM7.io Первичный",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "cerebras",
+      "name": "Cerebras",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "kiro",
+      "name": null,
+      "is_active": 0,
+      "test_status": "active"
+    },
+    {
+      "provider": "kimi-coding",
+      "name": null,
+      "is_active": 0,
+      "test_status": "active"
+    },
+    {
+      "provider": "kilocode",
+      "name": "egork2503@gmail.com",
+      "is_active": 0,
+      "test_status": "active"
+    },
+    {
+      "provider": "cline",
+      "name": "Егор Коростелев",
+      "is_active": 1,
+      "test_status": "active"
+    },
+    {
+      "provider": "trae",
+      "name": "egork2503@gmail.com",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "opencode",
+      "name": "OpenCode Account 1",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "ollama-local",
+      "name": "Ollama mac local",
+      "is_active": 1,
+      "test_status": "error"
+    },
+    {
+      "provider": "pollinations",
+      "name": "Pollinations AI Первичный",
+      "is_active": 1,
+      "test_status": "error"
+    },
+    {
+      "provider": "deepseek",
+      "name": "DeepSeek Первичный",
+      "is_active": 1,
+      "test_status": "error"
+    },
+    {
+      "provider": "kilo-gateway",
+      "name": "Kilo Gateway Free",
+      "is_active": 1,
+      "test_status": "error"
+    },
+    {
+      "provider": "siliconflow",
+      "name": "SiliconFlow Free",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "nvidia",
+      "name": "NVIDIA NIM Free",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "nvidia",
+      "name": "NVIDIA Key 1 (DeepSeek V4 Pro Max)",
+      "is_active": 1,
+      "test_status": "error"
+    },
+    {
+      "provider": "nvidia",
+      "name": "NVIDIA Key 2 (DeepSeek V4 Pro Max)",
+      "is_active": 1,
+      "test_status": "error"
+    },
+    {
+      "provider": "xiaomi-mimo-token-plan",
+      "name": "Xiaomi MiMo Token Plan",
+      "is_active": 1,
+      "test_status": "active"
+    },
+    {
+      "provider": "qoder",
+      "name": "Qoder egork2503 (OpenHands)",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "qoder",
+      "name": "Qoder egork2503 (OpenCode)",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "qoder",
+      "name": "Qoder egork2503 (OmniRoute)",
+      "is_active": 1,
+      "test_status": "error"
+    },
+    {
+      "provider": "qoder",
+      "name": "Qoder printedbyek (OpenHands)",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "qoder",
+      "name": "Qoder printedbyek (OpenCode)",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "qoder",
+      "name": "Qoder printedbyek (OmniRoute)",
+      "is_active": 1,
+      "test_status": "error"
+    },
+    {
+      "provider": "qoder",
+      "name": "Qoder Nikulinatatiana420 (OpenHands)",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "qoder",
+      "name": "Qoder Nikulinatatiana420 (OpenCode)",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "qoder",
+      "name": "Qoder Nikulinatatiana420 (OmniRoute)",
+      "is_active": 1,
+      "test_status": "error"
+    },
+    {
+      "provider": "qoder",
+      "name": "Qoder egorichkrypto78 (OpenHands)",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "qoder",
+      "name": "Qoder egorichkrypto78 (OpenCode)",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "qoder",
+      "name": "Qoder egorichkrypto78 (OmniRoute)",
+      "is_active": 1,
+      "test_status": "error"
+    },
+    {
+      "provider": "qoder",
+      "name": "Qoder korosteleved2503 (OpenHands)",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "qoder",
+      "name": "Qoder korosteleved2503 (OpenCode)",
+      "is_active": 0,
+      "test_status": "error"
+    },
+    {
+      "provider": "qoder",
+      "name": "Qoder korosteleved2503 (OmniRoute)",
+      "is_active": 1,
+      "test_status": "error"
+    }
+  ],
+  "compression_assignments": [
+    {
+      "combo": "glm-5.2",
+      "compression": "Standard Savings"
+    },
+    {
+      "combo": "vivanta-core",
+      "compression": "Standard Savings"
+    }
+  ]
+}

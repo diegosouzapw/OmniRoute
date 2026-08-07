@@ -47,6 +47,8 @@ export interface RegistryModel {
   name: string;
   aliases?: readonly string[];
   toolCalling?: boolean;
+  vision?: boolean;
+  contextWindow?: number;
   supportsReasoning?: boolean;
   supportsVision?: boolean;
   supportsXHighEffort?: boolean;
