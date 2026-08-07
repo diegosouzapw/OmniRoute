@@ -155,7 +155,11 @@ function stripInternalToolEnvelopeText(content: string): string {
   const markerRegex =
     /to=(?:functions\.[A-Za-z0-9_.-]+|multi_tool_use\.[A-Za-z0-9_.-]+|[A-Za-z_][A-Za-z0-9_]*)/g;
 
-  while (true) {
+  let iterationCount = 0;
+  const maxIterations = 1000;
+
+  while (iterationCount < maxIterations) {
+    iterationCount++;
     const match = markerRegex.exec(sanitized);
     if (!match || match.index < 0) break;
 
@@ -166,6 +170,11 @@ function stripInternalToolEnvelopeText(content: string): string {
       markerRegex.lastIndex = 0;
       continue;
     }
+  }
+
+  if (iterationCount >= maxIterations) {
+    console.warn(`responseSanitizer: max iterations (${maxIterations}) reached, possible infinite loop`);
+  }
 
     const jsonEnd = findBalancedJsonEnd(sanitized, jsonStart);
     if (jsonEnd < 0) {

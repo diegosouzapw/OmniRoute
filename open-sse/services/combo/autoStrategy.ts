@@ -65,6 +65,21 @@ export const STATUS_SOFT_DEPRIORITIZE_FACTOR = Number(
   process.env.STATUS_SOFT_DEPRIORITIZE_FACTOR ?? "0.5"
 );
 
+// #8874: Warm bonus factor. When a candidate's model is already loaded in VRAM
+// (isWarm — local Ollama model currently resident), its auto-combo score is
+// multiplied by this factor (>1) so the router stays on the warm model instead
+// of paying an unload/load/cold-start cycle for a marginally-better alternative.
+// Override via WARM_BONUS_FACTOR env var (default 1.2).
+export const WARM_BONUS_FACTOR = Number(process.env.WARM_BONUS_FACTOR ?? "1.2");
+
+// #8874: Switch cost factor. A cold candidate (model NOT currently loaded) is
+// multiplied by this factor (<1) when a warm alternative exists in the pool,
+// encoding the cost of switching (unload + load + cold-start TTFT). Together
+// with WARM_BONUS_FACTOR this suppresses "dribble" between near-equal models:
+// a cold model must beat the warm one by enough to justify the switch.
+// Override via SWITCH_COST_FACTOR env var (default 0.9).
+export const SWITCH_COST_FACTOR = Number(process.env.SWITCH_COST_FACTOR ?? "0.9");
+
 // G2: Module-level registry of active combo execution candidates.
 // Maps executionKey → Map<stepId, candidate mutable ref>.
 // Populated by buildAutoCandidates registrations; cleaned up after each execution.
@@ -350,9 +365,38 @@ export function scoreAutoTargets(
   manifestHint?: RoutingHint | null
 ) {
   const targetByExecutionKey = new Map(targets.map((target) => [target.executionKey, target]));
+  // Filter by capabilities before scoring
+  const requiredCapabilities = {
+    tools: request?.tools && request.tools.length > 0,
+    vision: request?.messages?.some((msg) => msg.role === "user" && msg.content.some((c) => c.type === "image_url")),
+  };
   const activeCandidates = candidates.filter((candidate) => candidate.quotaCutoffBlocked !== true);
+  const filteredCandidates = filterTargetsByCapabilities(
+    activeCandidates.map((c) => {
+      const baseTarget = targets.find(
+        (target) =>
+          target.stepId === candidate.stepId ||
+          (target.provider === candidate.provider && target.modelStr === candidate.modelStr)
+      );
+      if (!baseTarget) return null;
+      return {
+        ...baseTarget,
+        stepId: candidate.stepId,
+        executionKey: candidate.executionKey,
+        modelStr: candidate.modelStr,
+        provider: candidate.provider,
+        connectionId: candidate.connectionId ?? baseTarget.connectionId,
+      };
+    }).filter(Boolean) as ResolvedComboTarget[],
+    requiredCapabilities
+  ).map((target) => activeCandidates.find((c) => {
+    return (
+      c.stepId === target.stepId ||
+      (c.provider === target.provider && c.modelStr === target.modelStr)
+    );
+  })!).filter(Boolean);
 
-  return activeCandidates
+  return filteredCandidates
     .map((candidate) => {
       const baseTarget =
         targetByExecutionKey.get(candidate.executionKey) ||
@@ -388,6 +432,14 @@ export function scoreAutoTargets(
       // score would tie a healthy provider's. The penalty pushes it strictly below.
       if ("statusPenalty" in candidate && candidate.statusPenalty === true) {
         score *= STATUS_SOFT_DEPRIORITIZE_FACTOR;
+      }
+      // #8874: warm-bonus + switch-cost. The warm (already-in-VRAM) model is boosted;
+      // every cold candidate is penalized when a warm alternative exists, so the router
+      // doesn't bounce between near-equal models paying a cold-start load each time.
+      if (candidate.isWarm === true) {
+        score *= WARM_BONUS_FACTOR;
+      } else if (activeCandidates.some((other) => other.isWarm === true)) {
+        score *= SWITCH_COST_FACTOR;
       }
       return {
         target,

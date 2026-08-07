@@ -1118,26 +1118,46 @@ async function* readChatGptSseEvents(
     }
   }
 
+  let retryCount = 0;
+  const maxRetries = 10;
+  const timeoutMs = 30000;
+  const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("SSE stream timeout")), timeoutMs));
+
   try {
-    while (true) {
+    while (retryCount < maxRetries) {
       if (signal?.aborted) return;
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
+      try {
+        const { value, done } = await Promise.race([reader.read(), timeout]);
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
 
-      while (true) {
-        const idx = buffer.indexOf("\n");
-        if (idx < 0) break;
-        const rawLine = buffer.slice(0, idx);
-        buffer = buffer.slice(idx + 1);
-        const line = rawLine.endsWith("\r") ? rawLine.slice(0, -1) : rawLine;
-
+        let lineCount = 0;
+        const maxLines = 10000;
+        while (lineCount < maxLines) {
+          lineCount++;
+          const idx = buffer.indexOf("\n");
+          if (idx < 0) break;
+          const rawLine = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 1);
+          const line = rawLine.endsWith("\r") ? rawLine.slice(0, -1) : rawLine;
+        if (lineCount >= maxLines) {
+          console.warn(`chatgpt-web: max lines (${maxLines}) reached, possible infinite loop`);
+          break;
+        }
         if (line === "") {
           const parsed = flush();
           if (parsed === "done") return;
           if (parsed) yield parsed;
           continue;
         }
+      }
+    } catch (err) {
+      retryCount++;
+      if (retryCount >= maxRetries) {
+        throw new Error(`SSE stream failed after ${maxRetries} retries: ${err.message}`);
+      }
+      await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // Exponential backoff
+    }
         if (line.startsWith("event:")) {
           eventName = line.slice(6).trim();
         } else if (line.startsWith("data:")) {
@@ -1146,7 +1166,8 @@ async function* readChatGptSseEvents(
       }
     }
 
-    buffer += decoder.decode();
+    const chunk = decoder.decode(value, { stream: true });
+    buffer += chunk;
     if (buffer.trim().startsWith("data:")) {
       dataLines.push(buffer.trim().slice(5).trimStart());
     }
