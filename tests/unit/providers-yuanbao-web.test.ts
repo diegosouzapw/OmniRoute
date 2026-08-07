@@ -183,6 +183,91 @@ test("non-streaming request collects content and reasoning", async () => {
   }
 });
 
+test("streaming request handles text events with content field (upstream format change)", async () => {
+  // Upstream Yuanbao API changed text-event field from `msg` to `content`.
+  // The parser MUST handle both formats.
+  const original = globalThis.fetch;
+  const calls: string[] = [];
+  globalThis.fetch = (async (url: string | URL | Request) => {
+    calls.push(String(url));
+    if (String(url).includes("/conversation/create")) {
+      return new Response(JSON.stringify({ id: "conv-content" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(
+      makeSSEBody([
+        'data: {"type":"think","content":"deep think..."}\n',
+        'data: {"type":"text","content":"New content format answer"}\n',
+        'data: {"type":"text","content":" with more"}\n',
+        'data: {"stopReason":"stop"}\n',
+      ]),
+      { status: 200, headers: { "Content-Type": "text/event-stream" } }
+    );
+  }) as typeof fetch;
+
+  try {
+    const exec = new YuanbaoWebExecutor();
+    const { response } = await exec.execute({
+      model: "deepseek-v3",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: true,
+      credentials: creds("hy_source=web; hy_user=u1; hy_token=t1"),
+      signal: null,
+    });
+    assert.equal(response.status, 200);
+    const text = await readStreamText(response);
+    assert.match(text, /"reasoning_content":"deep think\.\.\."/);
+    assert.match(text, /"content":"New content format answer"/);
+    assert.match(text, /"content":" with more"/);
+    assert.match(text, /"finish_reason":"stop"/);
+    assert.match(text, /data: \[DONE\]/);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("non-streaming request collects content from content field", async () => {
+  // Same content-field format in non-streaming path.
+  const original = globalThis.fetch;
+  globalThis.fetch = (async (url: string | URL | Request) => {
+    if (String(url).includes("/conversation/create")) {
+      return new Response(JSON.stringify({ id: "conv-ns-content" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(
+      makeSSEBody([
+        'data: {"type":"think","content":"think-part"}\n',
+        'data: {"type":"text","content":"ContentFieldAnswer"}\n',
+        'data: {"stopReason":"stop"}\n',
+      ]),
+      { status: 200, headers: { "Content-Type": "text/event-stream" } }
+    );
+  }) as typeof fetch;
+
+  try {
+    const exec = new YuanbaoWebExecutor();
+    const { response } = await exec.execute({
+      model: "hunyuan-t1",
+      body: { messages: [{ role: "user", content: "q" }] },
+      stream: false,
+      credentials: creds("hy_source=web; hy_user=u1; hy_token=t1"),
+      signal: null,
+    });
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as {
+      choices: Array<{ message: { content: string; reasoning_content?: string } }>;
+    };
+    assert.equal(body.choices[0].message.content, "ContentFieldAnswer");
+    assert.equal(body.choices[0].message.reasoning_content, "think-part");
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
 test("upstream 401 on conversation create surfaces an auth error (no stack leak)", async () => {
   const original = globalThis.fetch;
   globalThis.fetch = (async () =>

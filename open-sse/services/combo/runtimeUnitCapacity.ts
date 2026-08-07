@@ -9,7 +9,12 @@
 import { isAccountSemaphoreFull } from "../accountSemaphore.ts";
 import { resolveComboTargets } from "./comboStructure.ts";
 import { lookupPositiveCap } from "./concurrencyCaps.ts";
-import type { ComboCollectionLike, ComboLike, ResolvedComboUnit } from "./types.ts";
+import type {
+  ComboCollectionLike,
+  ComboLike,
+  HiddenModelsByProvider,
+  ResolvedComboUnit,
+} from "./types.ts";
 
 type CapLookup = (connectionId: string) => Promise<number | null>;
 
@@ -45,7 +50,12 @@ async function isConnectionAtConcurrencyCap(
 export async function isRuntimeUnitAtConcurrencyCap(
   unit: ResolvedComboUnit,
   allCombos: ComboCollectionLike,
-  lookupCap: CapLookup = lookupPositiveCap
+  lookupCap: CapLookup = lookupPositiveCap,
+  // Threaded from the caller so the hidden-model snapshot resolved once per
+  // request is reused. Without it resolveComboTargets falls back to its default
+  // getHiddenModelsByProvider(), i.e. a fresh full key_value read per nested
+  // combo-ref unit on EVERY request (#8878 threaded the other call sites).
+  hiddenModelsByProvider?: HiddenModelsByProvider
 ): Promise<boolean> {
   if (unit.kind === "model") {
     if (!unit.connectionId || !unit.provider) return false;
@@ -55,7 +65,7 @@ export async function isRuntimeUnitAtConcurrencyCap(
   const childCombo = findComboByName(allCombos, unit.comboName);
   if (!childCombo) return false;
 
-  const targets = resolveComboTargets(childCombo, allCombos, 1);
+  const targets = resolveComboTargets(childCombo, allCombos, 1, hiddenModelsByProvider);
   const byConnection = new Map<string, { provider: string; connectionId: string }>();
   for (const target of targets) {
     if (!target.connectionId || !target.provider) continue;

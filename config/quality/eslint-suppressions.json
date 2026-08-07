@@ -1,5 +1,4 @@
 {
-  "_comment": "Congelamento da divida ESLint da migracao TypeScript 7 (release/v3.8.50, 2026-08-05; regenerado 2026-08-06 apos prune de entradas orfas). Gerado pelo modo nativo `eslint --suppress-all --suppressions-location config/quality/eslint-suppressions.json` (NODE_OPTIONS=--max-old-space-size=12288). Politica: violacao PRE-EXISTENTE fica suprimida aqui; violacao NOVA (fora deste arquivo) e vermelho imediato e deve ser corrigida, nunca adicionada. Entradas que deixarem de ocorrer sao podadas com `eslint --prune-suppressions` (o job 'No new ESLint warnings' falha com supressoes orfas). A baseline eslintWarnings em config/quality/quality-baseline.json e 0 — o valor real medido com estas supressoes aplicadas.",
   "open-sse/executors/blackbox-web.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -2080,11 +2079,6 @@
       "count": 5
     }
   },
-  "tests/unit/combo-cache-invalidation.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 5
-    }
-  },
   "tests/unit/combo-context-length.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
@@ -3324,11 +3318,6 @@
     }
   },
   "tests/unit/vertex-express-apikey.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
-  "tests/unit/vertex-functioncall-id-3440.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
     }

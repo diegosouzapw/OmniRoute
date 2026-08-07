@@ -137,7 +137,9 @@ function normalizeRuntimeStep(
       : {}),
     weight,
     label,
-    prompt: step.prompt || null,
+    // `prompt` is a per-step pipeline input and only exists on a model step —
+    // #8894 widened the union with ComboProviderWildcardStep, which has no prompt.
+    prompt: (step.kind === "model" ? step.prompt : null) || null,
   } satisfies ResolvedComboTarget;
 }
 

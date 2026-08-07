@@ -510,8 +510,14 @@ test("v1 image edit POST executes Codex through the configured connection proxy"
     host: "127.0.0.1",
     port: 1,
   });
+  // #9100: the reachability probe is NON-BLOCKING — dispatch is optimistic and the
+  // probe aborts the request only while it is still in flight (t14 pattern). The
+  // mock must stay pending: an instantly-throwing fetch would settle the race
+  // first and surface as a generic 502 upstream error instead of the proxy 503.
+  // Never resolved on purpose so the aborted continuation cannot proceed.
   globalThis.fetch = async () => {
-    throw new Error("Direct fetch must not run when the configured proxy is unreachable");
+    await new Promise(() => {});
+    throw new Error("unreachable");
   };
 
   const response = await imageEditRoute.POST(
@@ -537,8 +543,11 @@ test("v1 image generation POST resolves proxy and executes with proxy context wh
     port: 1, // intentionally unreachable — proves proxy path was taken
   });
 
+  // #9100 non-blocking probe: keep the request in flight so the fast-fail can
+  // abort it with the proxy-specific 503 (see the edit-route case above).
   globalThis.fetch = async () => {
-    throw new Error("fetch should not be called — proxy fast-fail should trigger first");
+    await new Promise(() => {});
+    throw new Error("unreachable");
   };
 
   const response = await imageRoute.POST(

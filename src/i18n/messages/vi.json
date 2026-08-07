@@ -6020,7 +6020,15 @@
     "ccAliasAddModelPlaceholder": "Id mô hình (ví dụ: gpt-4o)",
     "ccAliasAddModelButton": "Thêm ghi đè",
     "ccAliasLoadError": "Không tải được cài đặt bí danh khám phá: {error}",
-    "ccAliasSaveError": "Không lưu được cài đặt bí danh khám phá: {error}"
+    "ccAliasSaveError": "Không lưu được cài đặt bí danh khám phá: {error}",
+    "newApiAggregatorToggleLabel": "Cổng tổng hợp",
+    "newApiAggregatorToggleHint": "Bật phát hiện số dư cho các node tổng hợp New-API / One-API / Sub2API. Bảng điều khiển sẽ hiển thị huy hiệu số dư và định tuyến quota-preflight sẽ bỏ qua các tài khoản đã cạn.",
+    "newApiAggregatorConsoleApiKeyHint": "System Access Token cho endpoint /api/user/self của bộ tổng hợp. Không phải khóa API định tuyến.",
+    "newApiAggregatorUserIdHint": "Giá trị header New-Api-User dùng để lấy số dư quota của người dùng bộ tổng hợp.",
+    "newApiAggregatorQuotaPerUnitLabel": "Quota mỗi đơn vị",
+    "newApiAggregatorQuotaPerUnitHint": "Số đơn vị tín dụng New-API cho mỗi 1 USD (mặc định: 500000). Ghi đè nếu bộ tổng hợp của bạn dùng tỷ lệ khác.",
+    "featureFlagNewApiAggregatorBalanceDescription": "Bật phát hiện số dư cho các node tương thích New-API / One-API / Sub2API",
+    "modelTestQuotaTooltip": "Đã hết quota — sẽ đặt lại vào ngày mai hoặc cần nạp thêm"
   },
   "settings": {
     "title": "Cài đặt",

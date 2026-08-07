@@ -1488,6 +1488,29 @@
       "stream": "devin://acp/stdio"
     }
   },
+  "devin-cli-agentic": {
+    "format": "claude",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "devin://acp/stdio",
+      "stream": "devin://acp/stdio"
+    }
+  },
   "dgrid": {
     "format": "openai",
     "headers": {
@@ -4274,6 +4297,52 @@
       "stream": "https://chat.qwen.ai/api/v2/chat/completions"
     }
   },
+  "raycast": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://backend.raycast.com/api/v1/ai",
+      "stream": "https://backend.raycast.com/api/v1/ai"
+    }
+  },
+  "regolo": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.regolo.ai",
+      "stream": "https://api.regolo.ai"
+    }
+  },
   "reka": {
     "format": "openai",
     "headers": {
@@ -4827,6 +4896,29 @@
     "url": {
       "nonStream": "https://hermes.ai.unturf.com/v1/chat/completions",
       "stream": "https://hermes.ai.unturf.com/v1/chat/completions"
+    }
+  },
+  "unorouter": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.unorouter.ai/v1/chat/completions",
+      "stream": "https://api.unorouter.ai/v1/chat/completions"
     }
   },
   "upstage": {

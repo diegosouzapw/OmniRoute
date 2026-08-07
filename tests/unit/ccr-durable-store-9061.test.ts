@@ -119,6 +119,32 @@ describe("CCR engine survives losing its in-memory map (#9061)", () => {
     );
   });
 
+  it("re-admits the disk row into the fresh map (the enforceGlobalBudget arity bug)", async () => {
+    // The restart path re-admits a disk-served block through the same budgets a fresh
+    // store would face. #9061 called enforceGlobalBudget(entry.bytes) with ONE argument
+    // against a (owner, bytes) signature: `bytes` arrived undefined, `ccrTotalBytes +
+    // undefined` is NaN, and `NaN <= MAX` is false — so the re-admit never happened and
+    // the map stayed empty, re-reading from disk on every single retrieve. Typecheck
+    // caught the arity; this pins the observable behaviour.
+    const text = "z".repeat(2_000);
+    const stored = ccr.tryStoreBlock(text, "principal-readmit");
+    assert.equal(stored.stored, true);
+    await ccr.flushCcrDurableWrites();
+
+    const restarted = await import(`${ccrPath}?restart=9061-readmit`);
+    assert.equal(
+      restarted.getCcrStoreStats("principal-readmit").entries,
+      0,
+      "a fresh instance starts with an empty map"
+    );
+    assert.equal(restarted.retrieveBlock(stored.hash, "principal-readmit"), text);
+    assert.equal(
+      restarted.getCcrStoreStats("principal-readmit").entries,
+      1,
+      "the disk-served block must be re-admitted into the map, not re-read every time"
+    );
+  });
+
   it("keeps the principal boundary across the restart", async () => {
     const text = "y".repeat(2_000);
     const stored = ccr.tryStoreBlock(text, "principal-a");

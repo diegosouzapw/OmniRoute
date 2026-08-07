@@ -232,13 +232,19 @@ export async function callVisionModel(
   imageDataUri: string,
   config: VisionModelConfig,
   apiKey?: string,
-  routerConfig?: Partial<import("./visionBridgeRouter").VisionBridgeRouterConfig>
+  routerConfig?: Partial<import("./visionBridgeRouter").VisionBridgeRouterConfig>,
+  deps?: import("./visionBridgeRouter").VisionBridgeRouterDeps
 ): Promise<string> {
-  // Auto-select the best vision model
-  const modelToUse = await getBestVisionModel({
-    fixedModel: config.model,
-    ...routerConfig,
-  });
+  // Auto-select the best vision model. `deps` is the router's existing
+  // injectable credential-check seam — without forwarding it, tests (and any
+  // embedder) cannot keep model selection away from the live connections DB.
+  const modelToUse = await getBestVisionModel(
+    {
+      fixedModel: config.model,
+      ...routerConfig,
+    },
+    deps
+  );
   // (#8430) When no vision-capable provider has usable credentials on this
   // instance, surface a clear error instead of attempting a describe call that
   // would fail with an opaque auth/serde error upstream.
@@ -248,7 +254,7 @@ export async function callVisionModel(
   let lastError: Error | null = null;
 
   // Try primary model + fallbacks
-  const modelsToTry = [modelToUse, ...(await getFallbackModels(modelToUse, routerConfig))];
+  const modelsToTry = [modelToUse, ...(await getFallbackModels(modelToUse, routerConfig, deps))];
   const maxAttempts = Math.min(modelsToTry.length, routerConfig?.maxFallbackAttempts ?? 3);
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {

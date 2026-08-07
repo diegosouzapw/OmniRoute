@@ -58,7 +58,7 @@ Repository map and Reference Documentation sections below.
 | Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                                |
 | Database      | `src/lib/db/`           | SQLite domain modules (130 migrations)                                                                                                                  |
 | Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                               |
-| MCP Server    | `open-sse/mcp-server/`  | 104 tools (42 base + memory/skill/agentSkill/pool/notion/obsidian/gamification/plugin modules), 3 transports (stdio / SSE / Streamable HTTP), 31 scopes |
+| MCP Server    | `open-sse/mcp-server/`  | 105 tools (42 base + memory/skill/agentSkill/pool/notion/obsidian/gamification/plugin modules), 3 transports (stdio / SSE / Streamable HTTP), 31 scopes |
 | A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                             |
 | Skills        | `src/lib/skills/`       | Extensible skill framework                                                                                                                              |
 | Memory        | `src/lib/memory/`       | Persistent conversational memory                                                                                                                        |
