@@ -469,6 +469,7 @@ const COSTS_ITEMS: readonly SidebarItemDefinition[] = [
     i18nKey: "radar",
     subtitleKey: "radarSubtitle",
     icon: "radar",
+    featureFlagKey: "RADAR_ENABLED",
   },
 ];
 

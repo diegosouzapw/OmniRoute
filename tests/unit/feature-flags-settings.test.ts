@@ -30,13 +30,13 @@ const {
   isControlPlaneProxyDirectFallbackEnabled,
 } = await import("../../src/shared/utils/featureFlags.ts");
 
-const EXPECTED_FEATURE_FLAG_COUNT = 45;
+const EXPECTED_FEATURE_FLAG_COUNT = 46;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry
 // ──────────────────────────────────────────────────────
 describe("featureFlagDefinitions", () => {
-  it("has exactly 45 flag definitions", () => {
+  it("has exactly 46 flag definitions", () => {
     assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, EXPECTED_FEATURE_FLAG_COUNT);
   });
 
@@ -332,7 +332,7 @@ describe("resolveFeatureFlag", () => {
   });
 
   describe("resolveAllFeatureFlags", () => {
-    it("returns all 45 flags", () => {
+    it("returns all 46 flags", () => {
       const all = resolveAllFeatureFlags();
       assert.strictEqual(all.length, EXPECTED_FEATURE_FLAG_COUNT);
     });

@@ -1281,7 +1281,7 @@ self-hosted or forked feed instead of the default OmniRoute Radar feed. See
 
 | Variable            | Default                        | Source File                   | Description                                                                                     |
 | -------------------- | ------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------ |
-| `RADAR_FEED_URL`    | `https://radar.omniroute.dev`  | `src/lib/radar/sync.ts`       | Base URL of the Radar feed service. Override to point at a self-hosted or forked feed.          |
+| `RADAR_FEED_URL`    | `https://radar.omniroute.online`  | `src/lib/radar/sync.ts`       | Base URL of the Radar feed service. Override to point at a self-hosted or forked feed.          |
 | `RADAR_FEED_PUBKEY` | _(pinned default key)_          | `src/lib/radar/pinnedKeys.ts` | Ed25519 public key (base64-DER SPKI or PEM) used to verify feed signatures from a custom feed.   |
 
 ---

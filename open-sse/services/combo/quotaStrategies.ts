@@ -45,7 +45,7 @@ import {
   type QuotaFetchCacheConfig,
 } from "./quotaScoring.ts";
 import { rankByHeadroom, type HeadroomSaturation } from "./headroomRanking.ts";
-import { preferAntigravityConnectionsWithStoredProject } from "../antigravityProjectPersistence.ts";
+import { preferAntigravityConnectionsWithStoredProject } from "../antigravityProjectPersist.ts";
 import { isQuotaExhaustedForRequest } from "../../../src/domain/quotaCache.ts";
 
 const RESET_AWARE_CONNECTION_CACHE_TTL_MS = 30_000;

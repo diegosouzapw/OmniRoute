@@ -107,6 +107,11 @@ export const COLLECTORS = [
     glob: "open-sse/services/__tests__/antigravity-quota-family.test.ts",
     sources: ["vitest.mcp.config.ts"],
   },
+  // #8890 landed this suite here without wiring a runner, so it had never run once.
+  {
+    glob: "open-sse/services/__tests__/fail-fast-concurrency-gate.test.ts",
+    sources: ["vitest.mcp.config.ts"],
+  },
   { glob: "tests/unit/autoCombo/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/lib/memory/__tests__/generic-backend.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "tests/unit/encryption.spec.ts", sources: ["vitest.mcp.config.ts"] },

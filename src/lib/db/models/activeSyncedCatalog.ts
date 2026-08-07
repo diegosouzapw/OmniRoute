@@ -1,6 +1,10 @@
 import { providerUsesAuthoritativeLiveCatalog } from "@omniroute/open-sse/config/providerRegistry";
 import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.ts";
-import { getSyncedAvailableModelsByConnection, type SyncedAvailableModel } from "../models";
+import {
+  getSyncedAvailableModels,
+  getSyncedAvailableModelsByConnection,
+  type SyncedAvailableModel,
+} from "../models";
 import { getRawProviderConnections } from "../providers";
 
 export type ActiveSyncedCatalog = {
@@ -102,11 +106,26 @@ export async function getActiveSyncedCatalog(providerId: string): Promise<Active
       .map((connection) => connection.id);
 
     const models = collectModelsForConnections(modelsByConnection, activeConnectionIds);
+    if (models.length > 0) {
+      return {
+        authoritative: providerUsesAuthoritativeLiveCatalog(providerId),
+        models,
+      };
+    }
 
-    return {
-      authoritative: models.length > 0 && providerUsesAuthoritativeLiveCatalog(providerId),
-      models,
-    };
+    // No ACTIVE CONNECTION carries a catalog for this provider — but a provider
+    // NODE can: nodes live in `provider_nodes`, never in `provider_connections`,
+    // so filtering by active connection ids drops their synced catalog entirely.
+    // Before #9294 this path read the provider-wide key_value set, and losing it
+    // took every node's runtime metadata with it (supportedThinkingEfforts, so
+    // `-high`/`-low` effort suffixes stopped resolving, plus contextWindow /
+    // maxInputTokens used by the combo context-window filter).
+    //
+    // Fall back to that provider-wide set, and deliberately keep it
+    // NON-authoritative: #9294's live-catalog gating is about what an active
+    // connection actually serves, so a node-backed catalog must inform metadata
+    // without ever being used to reject a model as unavailable.
+    return { authoritative: false, models: await getSyncedAvailableModels(storedProviderId) };
   } catch {
     return { authoritative: false, models: [] };
   }

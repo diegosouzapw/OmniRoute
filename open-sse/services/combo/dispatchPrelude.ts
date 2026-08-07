@@ -619,6 +619,7 @@ export async function tryRuntimeUnitDispatch(args: {
     nesting: nestingContext,
     baseOptions: buildBaseOptions(args),
     runCombo: args.runCombo,
+    hiddenModelsByProvider: args.hiddenModelsByProvider,
   });
   recordRuntimeUnitStickySuccess({
     strategy,

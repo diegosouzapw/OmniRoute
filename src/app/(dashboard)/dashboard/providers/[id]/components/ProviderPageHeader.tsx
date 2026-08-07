@@ -27,6 +27,14 @@ interface ProviderPageHeaderProps {
   isAnthropicProtocolCompatible: boolean;
   onOpenTutorial: () => void;
   t: ProviderMessageTranslator;
+  /**
+   * True when `providerInfo.website` was overridden with a Radar default
+   * referral link (D28 — referral links / free credits), rather than the
+   * static catalog `website`. Reuses the same discreet "Partner link" note
+   * as the pre-existing Kimi partnership link — both are the same kind of
+   * "this link supports OmniRoute" disclosure.
+   */
+  isReferralLink?: boolean;
 }
 
 export default function ProviderPageHeader({
@@ -37,6 +45,7 @@ export default function ProviderPageHeader({
   isAnthropicProtocolCompatible,
   onOpenTutorial,
   t,
+  isReferralLink = false,
 }: ProviderPageHeaderProps) {
   // Kimi (Moonshot AI) official-partnership aff links (2026-07): the header
   // website link doubles as the CTA for kimi-coding/kimi-web/moonshot's
@@ -45,6 +54,9 @@ export default function ProviderPageHeader({
   // reads as a monetized link, not just "visit provider website" like every
   // other card. UI-only — never affects routing/fallback (featuredProviders.ts).
   const isKimiPartnerLink = isKimiPartnerProviderId(providerInfo.id);
+  // D28: any Radar-driven default referral gets the exact same discreet
+  // disclosure treatment as the Kimi partner link.
+  const showPartnerNote = isKimiPartnerLink || isReferralLink;
   const kimiPartnerLinkNote = providerText(
     t,
     "kimiPartnerLinkNote",
@@ -88,9 +100,9 @@ export default function ProviderPageHeader({
               rel="noopener noreferrer"
               className="text-3xl font-semibold tracking-tight hover:underline inline-flex items-center gap-2"
               style={{ color: providerInfo.color }}
-              title={isKimiPartnerLink ? kimiPartnerLinkNote : undefined}
+              title={showPartnerNote ? kimiPartnerLinkNote : undefined}
               aria-label={
-                isKimiPartnerLink ? `${providerInfo.name} — ${kimiPartnerLinkNote}` : undefined
+                showPartnerNote ? `${providerInfo.name} — ${kimiPartnerLinkNote}` : undefined
               }
             >
               {providerInfo.name}
@@ -103,7 +115,7 @@ export default function ProviderPageHeader({
             <p className="text-text-muted">
               {t("connectionCountLabel", { count: connectionsCount })}
             </p>
-            {isKimiPartnerLink && providerInfo.website && (
+            {showPartnerNote && providerInfo.website && (
               <span className="text-[10px] font-medium uppercase tracking-wide text-text-muted/70">
                 {kimiPartnerLinkNote}
               </span>

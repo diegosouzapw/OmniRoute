@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/shared/components";
+import { shouldAutoSyncOnOpen } from "@/lib/radar/autoSync";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -38,6 +39,24 @@ interface RadarMergedEntry {
 }
 
 type PageState = "flag_off" | "optin_pending" | "empty" | "populated";
+
+/** D28 — referral links / free credits. Client-side mirror of RadarReferral. */
+interface RadarReferralItem {
+  provider: string;
+  url: string;
+  kind: "fixo" | "campanha";
+  validUntil: string | null;
+  requiredAction: string | null;
+  isDefault: boolean;
+}
+
+interface RadarReferralsState {
+  fixed: RadarReferralItem[];
+  campaigns: RadarReferralItem[];
+  tier: string | null;
+}
+
+type RadarTabId = "catalog" | "referrals";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -100,6 +119,12 @@ export default function RadarPage() {
   const [optIn, setOptIn] = useState<boolean | null>(null);
   const [activating, setActivating] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [activeTab, setActiveTab] = useState<RadarTabId>("catalog");
+  const [referrals, setReferrals] = useState<RadarReferralsState>({
+    fixed: [],
+    campaigns: [],
+    tier: null,
+  });
 
   // Fetch catalog
   const fetchCatalog = useCallback(async () => {
@@ -126,32 +151,53 @@ export default function RadarPage() {
     }
   }, [t]);
 
-  // Fetch settings to determine opt-in state
+  // D28 — fetch the referral links section ("Pegue seus créditos grátis").
+  // Best-effort: flag off => 404, no cache => empty shape; either way this
+  // never blocks rendering of the rest of the page.
+  const fetchReferrals = useCallback(async () => {
+    try {
+      const res = await fetch("/api/radar/referrals");
+      if (!res.ok) return;
+      const data = await res.json();
+      setReferrals({
+        fixed: Array.isArray(data.fixed) ? data.fixed : [],
+        campaigns: Array.isArray(data.campaigns) ? data.campaigns : [],
+        tier: data.tier ?? null,
+      });
+    } catch {
+      // Best-effort only.
+    }
+  }, []);
+
+  // Fetch settings to determine opt-in state (GET /api/radar/settings — FIX 3:
+  // previously there was no settings GET, so an already-opted-in operator saw
+  // the activation screen on every reload).
   const fetchSettings = useCallback(async () => {
     try {
-      // We don't have a GET /api/radar/settings — infer from catalog response:
-      // If catalog returns meta=null and entries are baseline-only, user hasn't opted in.
-      // A 404 means flag is off.
-      const res = await fetch("/api/radar/catalog");
-      if (res.status === 404) {
+      const settingsRes = await fetch("/api/radar/settings");
+      if (settingsRes.status === 404) {
+        // Flag off
         setOptIn(false);
         return;
       }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setEntries(data.entries || []);
-      setMeta(data.meta || null);
-      // If meta is null, the user hasn't synced yet (or hasn't opted in).
-      // We need to check opt-in state. Since there's no GET endpoint for settings,
-      // we infer: if flag is on and we got baseline, user may or may not be opted in.
-      // The activation flow handles this — we show the activation screen if meta is null.
-      setOptIn(null); // unknown — will determine from user action
+      if (!settingsRes.ok) throw new Error(`HTTP ${settingsRes.status}`);
+      const settingsData = await settingsRes.json();
+      setOptIn(settingsData.optIn === true);
+
+      if (settingsData.optIn === true) {
+        // Already opted in — load the catalog now so the populated/empty
+        // state renders immediately instead of waiting for a manual sync.
+        await fetchCatalog();
+        // D28 — load the referral links in parallel; best-effort, never
+        // blocks the catalog state above.
+        void fetchReferrals();
+      }
     } catch {
       setOptIn(null);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchCatalog, fetchReferrals]);
 
   useEffect(() => {
     fetchSettings();
@@ -167,7 +213,11 @@ export default function RadarPage() {
       const data = await res.json();
       if (data.status === "updated" || data.status === "stale") {
         await fetchCatalog();
-      } else if (data.status === "error") {
+        void fetchReferrals();
+      } else if (data.status === "error" || data.status === "too_large") {
+        // "too_large" reuses the generic sync-failed copy — the feed exceeded the
+        // client-side size cap (10MB), which is operationally the same as any
+        // other sync failure from the operator's point of view.
         setError(data.reason || t("syncFailed"));
       } else if (data.status === "disabled") {
         setError(t("flagDisabled"));
@@ -179,7 +229,20 @@ export default function RadarPage() {
     } finally {
       setSyncing(false);
     }
-  }, [t, fetchCatalog]);
+  }, [t, fetchCatalog, fetchReferrals]);
+
+  // Auto-sync on open: when the operator is already opted in and the cached
+  // feed is stale (or absent), refresh it automatically once per mount so the
+  // page always shows current data without requiring the manual Sync button
+  // (spec: dados atualizados a cada abrir da página). The ref guards against
+  // re-firing when `meta` updates after the sync itself.
+  const autoSyncFiredRef = useRef(false);
+  useEffect(() => {
+    if (loading || syncing || optIn !== true || autoSyncFiredRef.current) return;
+    if (!shouldAutoSyncOnOpen(meta?.fetchedAt ?? null, Date.now())) return;
+    autoSyncFiredRef.current = true;
+    void handleSync();
+  }, [loading, syncing, optIn, meta, handleSync]);
 
   // Activate opt-in
   const handleActivate = useCallback(async () => {
@@ -293,8 +356,120 @@ export default function RadarPage() {
             </Card>
           )}
 
+          {/* D28 — tab bar. Only shown once opted in (empty/populated) — the
+              activation gate above is a single full-screen step, not a tab. */}
+          {(pageState === "empty" || pageState === "populated") && (
+            <div className="flex gap-2 border-b border-border" role="tablist">
+              <button
+                role="tab"
+                aria-selected={activeTab === "catalog"}
+                onClick={() => setActiveTab("catalog")}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === "catalog"
+                    ? "border-violet-500 text-violet-400"
+                    : "border-transparent text-text-muted hover:text-text-main"
+                }`}
+              >
+                {t("catalogTab")}
+              </button>
+              <button
+                role="tab"
+                aria-selected={activeTab === "referrals"}
+                onClick={() => setActiveTab("referrals")}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === "referrals"
+                    ? "border-violet-500 text-violet-400"
+                    : "border-transparent text-text-muted hover:text-text-main"
+                }`}
+              >
+                {t("freeCreditsTab")}
+              </button>
+            </div>
+          )}
+
+          {/* Free credits tab (D28 — referral links) */}
+          {(pageState === "empty" || pageState === "populated") && activeTab === "referrals" && (
+            <div className="flex flex-col gap-6">
+              <p className="text-sm text-text-muted">{t("freeCreditsSubtitle")}</p>
+
+              {referrals.fixed.length === 0 ? (
+                <Card>
+                  <p className="text-text-muted text-center py-6">{t("fixedLinksEmpty")}</p>
+                </Card>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {referrals.fixed.map((referral) => (
+                    <Card key={`${referral.provider}:fixed`} padding="sm">
+                      <div className="flex flex-col gap-2">
+                        <span className="font-medium">{referral.provider}</span>
+                        {referral.requiredAction && (
+                          <p className="text-xs text-text-muted">
+                            {t("requiredActionLabel")} {referral.requiredAction}
+                          </p>
+                        )}
+                        <a
+                          href={referral.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-sm font-medium text-violet-400 hover:underline w-fit"
+                        >
+                          {t("claimButton")}
+                          <span className="material-symbols-outlined text-sm">open_in_new</span>
+                        </a>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              <div>
+                <h3 className="text-lg font-semibold mb-3">{t("campaignsTitle")}</h3>
+                {referrals.campaigns.length === 0 ? (
+                  <Card>
+                    <p className="text-text-muted text-center py-6">
+                      {referrals.tier === "community"
+                        ? t("campaignsUpsellCommunity")
+                        : t("campaignsEmpty")}
+                    </p>
+                  </Card>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {referrals.campaigns.map((referral, idx) => (
+                      <Card key={`${referral.provider}:campaign:${idx}`} padding="sm">
+                        <div className="flex flex-col gap-2">
+                          <span className="font-medium">{referral.provider}</span>
+                          {referral.requiredAction && (
+                            <p className="text-xs text-text-muted">
+                              {t("requiredActionLabel")} {referral.requiredAction}
+                            </p>
+                          )}
+                          {referral.validUntil && (
+                            <p className="text-xs text-amber-400">
+                              {t("campaignsValidUntil", {
+                                date: new Date(referral.validUntil).toLocaleDateString(),
+                              })}
+                            </p>
+                          )}
+                          <a
+                            href={referral.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-sm font-medium text-violet-400 hover:underline w-fit"
+                          >
+                            {t("claimButton")}
+                            <span className="material-symbols-outlined text-sm">open_in_new</span>
+                          </a>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Empty cache — opted in but no data yet */}
-          {pageState === "empty" && (
+          {pageState === "empty" && activeTab === "catalog" && (
             <Card>
               <div className="flex flex-col items-center gap-4 py-12 text-center">
                 <p className="text-text-muted">{t("emptyState")}</p>
@@ -310,7 +485,7 @@ export default function RadarPage() {
           )}
 
           {/* Populated catalog table */}
-          {pageState === "populated" && (
+          {pageState === "populated" && activeTab === "catalog" && (
             <Card>
               <div className="overflow-x-auto">
                 <table className="w-full">

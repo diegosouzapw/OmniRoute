@@ -5,13 +5,15 @@
  * verification, schema validation, version floor). Returns the status
  * object. Never proxies the feed URL to the client.
  *
- * Flag off => 404.
+ * Flag off => 404, checked BEFORE auth (byte-identical flag-off inertia).
+ * Unauthenticated access once the flag is on => 401.
  */
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { syncRadar } from "@/lib/radar/sync";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
@@ -26,11 +28,18 @@ export async function OPTIONS() {
 }
 
 export async function POST(request: Request) {
-  // Flag gate
+  // Flag gate — MUST run before auth (byte-identical flag-off inertia).
   if (!isFeatureFlagEnabled("RADAR_ENABLED")) {
     return NextResponse.json(
       buildErrorBody(404, "Not found"),
       { status: 404, headers: CORS_HEADERS },
+    );
+  }
+
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json(
+      buildErrorBody(401, "Unauthorized"),
+      { status: 401, headers: CORS_HEADERS },
     );
   }
 

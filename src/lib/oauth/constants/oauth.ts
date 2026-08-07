@@ -531,6 +531,10 @@ export const PROVIDERS = {
   KIRO: "kiro",
   AMAZON_Q: "amazon-q",
   CURSOR: "cursor",
+  // #8895 — registered in src/lib/oauth/providers/index.ts but missing here, so
+  // every consumer reading PROVIDERS (onboarding wizard, test-connection routing)
+  // did not know Raycast Pro exists as an OAuth provider.
+  RAYCAST: "raycast",
   KILOCODE: "kilocode",
   CLINE: "cline",
   CLINEPASS: "clinepass",

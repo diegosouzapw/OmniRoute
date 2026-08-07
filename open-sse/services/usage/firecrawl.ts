@@ -5,7 +5,11 @@
  * credits into the standard `{ plan, quotas }` response.
  */
 
-import { fetchFirecrawlQuota, getFirecrawlBaseUrl, type FirecrawlQuota } from "../firecrawlQuotaFetcher.ts";
+import {
+  fetchFirecrawlQuota,
+  getFirecrawlBaseUrl,
+  type FirecrawlQuota,
+} from "../firecrawlQuotaFetcher.ts";
 import { createQuotaFromUsage, parseResetTime } from "./quota.ts";
 
 function createFirecrawlPlanQuota(q: FirecrawlQuota) {
@@ -29,7 +33,11 @@ function createFirecrawlPlanQuota(q: FirecrawlQuota) {
   };
 }
 
-export async function getFirecrawlUsage(connectionId: string, apiKey?: string, connection?: Record<string, unknown>) {
+export async function getFirecrawlUsage(
+  connectionId: string,
+  apiKey?: string,
+  connection?: Record<string, unknown>
+) {
   if (!connectionId) {
     return { message: "Firecrawl: connection id unavailable." };
   }
@@ -44,7 +52,12 @@ export async function getFirecrawlUsage(connectionId: string, apiKey?: string, c
   }
 
   try {
-    const live = await fetchFirecrawlQuota(connectionId, connection);
+    // The explicit `apiKey` argument was silently dropped when #91bb6aa619 moved
+    // this to fetchFirecrawlQuota(connectionId, connection): the fetcher reads the
+    // key off the connection record, so a caller that passes the key directly —
+    // without a connection carrying it — always got "API key not available".
+    const resolvedConnection = apiKey ? { ...(connection || {}), apiKey } : connection;
+    const live = await fetchFirecrawlQuota(connectionId, resolvedConnection);
     if (!live) {
       return { message: "Firecrawl API key not available or credit usage unavailable." };
     }

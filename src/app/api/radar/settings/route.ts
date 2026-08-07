@@ -1,18 +1,27 @@
 /**
+ * GET /api/radar/settings — read the current Radar opt-in + supporter-key
+ * snapshot. Powers the dashboard page's "am I already opted in?" check so
+ * a reload doesn't re-show the activation screen (see FIX 3).
+ *
  * POST /api/radar/settings — set Radar opt-in and/or supporter key.
  *
  * Zod-validated body: { optIn?: boolean, supporterKey?: string|null }
  * Key shape: "omr_" + 40 hex chars.
  *
- * NEVER echoes the key back — returns a masked form instead.
- * Flag off => 404.
+ * NEVER echoes the raw key back on either verb — GET returns a masked form
+ * ("omr_****" + last 4 hex chars) and a `hasSupporterKey` boolean; POST
+ * returns the same masked form.
+ *
+ * Flag off => 404, checked BEFORE auth (byte-identical flag-off inertia).
+ * Unauthenticated access once the flag is on => 401.
  */
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
-import { setRadarOptIn, setRadarKey } from "@/lib/db/radar";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { setRadarOptIn, setRadarKey, getRadarSettings } from "@/lib/db/radar";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
 export const dynamic = "force-dynamic";
@@ -43,12 +52,54 @@ export async function OPTIONS() {
   return handleCorsOptions();
 }
 
-export async function POST(request: Request) {
-  // Flag gate
+export async function GET(request: Request) {
+  // Flag gate — MUST run before auth (byte-identical flag-off inertia).
   if (!isFeatureFlagEnabled("RADAR_ENABLED")) {
     return NextResponse.json(
       buildErrorBody(404, "Not found"),
       { status: 404, headers: CORS_HEADERS },
+    );
+  }
+
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json(
+      buildErrorBody(401, "Unauthorized"),
+      { status: 401, headers: CORS_HEADERS },
+    );
+  }
+
+  try {
+    const settings = getRadarSettings();
+    return NextResponse.json(
+      {
+        optIn: settings.optIn,
+        hasSupporterKey: settings.supporterKey !== null,
+        supporterKeyMasked: maskKey(settings.supporterKey),
+      },
+      { headers: { ...CORS_HEADERS, "Cache-Control": "no-store" } },
+    );
+  } catch (err: unknown) {
+    const { sanitizeErrorMessage } = await import("@omniroute/open-sse/utils/error");
+    return NextResponse.json(
+      buildErrorBody(500, sanitizeErrorMessage(err) || "Failed to load Radar settings"),
+      { status: 500, headers: CORS_HEADERS },
+    );
+  }
+}
+
+export async function POST(request: Request) {
+  // Flag gate — MUST run before auth (byte-identical flag-off inertia).
+  if (!isFeatureFlagEnabled("RADAR_ENABLED")) {
+    return NextResponse.json(
+      buildErrorBody(404, "Not found"),
+      { status: 404, headers: CORS_HEADERS },
+    );
+  }
+
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json(
+      buildErrorBody(401, "Unauthorized"),
+      { status: 401, headers: CORS_HEADERS },
     );
   }
 
@@ -83,6 +134,17 @@ export async function POST(request: Request) {
   try {
     if (optIn !== undefined) {
       setRadarOptIn(optIn);
+      if (optIn) {
+        // Opting in is the moment the daily background sync becomes wanted —
+        // arm the scheduler lazily so a flag-off/opt-out install never even
+        // creates the timer (Radar inertia contract). Never fatal.
+        try {
+          const { ensureRadarSyncScheduler } = await import("@/lib/radar/scheduler");
+          ensureRadarSyncScheduler();
+        } catch {
+          // Scheduler is best-effort; manual sync keeps working without it.
+        }
+      }
     }
     if (supporterKey !== undefined) {
       setRadarKey(supporterKey);

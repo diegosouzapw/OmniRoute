@@ -12272,7 +12272,17 @@
     "disabledByFeed": "Disabled by Radar feed",
     "capTools": "Tools",
     "capVision": "Vision",
-    "capThinking": "Thinking"
+    "capThinking": "Thinking",
+    "catalogTab": "Catalog",
+    "freeCreditsTab": "Free credits",
+    "freeCreditsSubtitle": "Referral links from Radar-tracked providers — using them costs you nothing extra and helps support OmniRoute.",
+    "fixedLinksEmpty": "No referral links available yet. Sync Radar to check for updates.",
+    "requiredActionLabel": "What to do:",
+    "claimButton": "Claim credits",
+    "campaignsTitle": "Limited-time campaigns",
+    "campaignsEmpty": "No active campaigns right now — check back later.",
+    "campaignsUpsellCommunity": "Limited-time campaigns are a supporter extra. Everything on this page's fixed links stays free for everyone.",
+    "campaignsValidUntil": "Valid until {date}"
   },
   "radarSetupPage": {
     "title": "Provider Setup",
