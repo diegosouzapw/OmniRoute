@@ -69,12 +69,6 @@ export const RENAMED_MIGRATION_COMPATIBILITY = [
     toVersion: "059",
     toName: "manifest_routing",
   },
-  {
-    fromVersion: "134",
-    fromName: "ccr_blocks",
-    toVersion: "139",
-    toName: "ccr_blocks",
-  },
 ] as const;
 
 export const LEGACY_VERSION_SLOT_MIGRATIONS = [
