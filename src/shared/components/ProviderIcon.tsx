@@ -171,6 +171,7 @@ const KNOWN_SVGS = new Set([
   "openadapter",
   "openai",
   "openclaw",
+  "openference",
   "opencode",
   "openrouter",
   "orcarouter",

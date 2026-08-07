@@ -723,6 +723,7 @@ export async function checkConnection(conn) {
     "amazon-q",
     "gitlab-duo",
     "claude",
+    "openference",
   ]);
   const isRotatingProvider = ROTATING_REFRESH_PROVIDERS.has(
     String(conn.provider || "").toLowerCase()

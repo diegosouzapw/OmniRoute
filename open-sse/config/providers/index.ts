@@ -121,6 +121,8 @@ import { chatgpt_webProvider } from "./registry/chatgpt-web/index.ts";
 import { openrouterProvider } from "./registry/openrouter/index.ts";
 import { cheaperinferenceProvider } from "./registry/cheaperinference/index.ts";
 import { openvectaProvider } from "./registry/openvecta/index.ts";
+import { openferenceProvider } from "./registry/openference/index.ts";
+import { openference_apiProvider } from "./registry/openference-api/index.ts";
 import { orcarouterProvider } from "./registry/orcarouter/index.ts";
 import { copilot_webProvider } from "./registry/copilot-web/index.ts";
 import { copilot_m365_webProvider } from "./registry/copilot-m365-web/index.ts";
@@ -345,6 +347,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   openrouter: openrouterProvider,
   cheaperinference: cheaperinferenceProvider,
   openvecta: openvectaProvider,
+  openference: openferenceProvider,
+  "openference-api": openference_apiProvider,
   orcarouter: orcarouterProvider,
   "copilot-web": copilot_webProvider,
   "copilot-m365-web": copilot_m365_webProvider,
