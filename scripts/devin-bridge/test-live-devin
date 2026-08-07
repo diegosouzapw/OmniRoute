@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common"
+[[ "${ENABLE_LIVE_DEVIN_TESTS:-}" == 1 ]] || { echo 'Set ENABLE_LIVE_DEVIN_TESTS=1' >&2; exit 1; }
+trap bridge_cleanup_compose EXIT
+bridge_cleanup_compose
+bridge_reset_live_fixture
+"$(dirname "$0")/verify-anthropic-isolation" --static
+docker compose -f "$BRIDGE_COMPOSE" --profile live-devin up -d --wait network-guard
+bridge_check_devin_auth
+models_file="$BRIDGE_SANDBOX/evidence/live-models.json"
+if [[ -n "${DEVIN_BRIDGE_DISCOVERED_MODEL:-}" ]]; then
+  devin_model="$DEVIN_BRIDGE_DISCOVERED_MODEL"
+else
+  for attempt in 1 2 3; do
+    if bridge_run_devin models list --format json >"$models_file"; then
+      break
+    fi
+    [[ "$attempt" == 3 ]] && exit 1
+    sleep 1
+  done
+  devin_model="$(node --import tsx/esm "$BRIDGE_ROOT/scripts/devin-bridge/select-live-model.mjs" \
+    <"$models_file")"
+fi
+export DEVIN_BRIDGE_MODEL="devin-cli-agentic/$devin_model"
+export DEVIN_BRIDGE_SONNET_MODEL="$DEVIN_BRIDGE_MODEL"
+export DEVIN_BRIDGE_OPUS_MODEL="$DEVIN_BRIDGE_MODEL"
+export DEVIN_BRIDGE_HAIKU_MODEL="$DEVIN_BRIDGE_MODEL"
+export DEVIN_BRIDGE_SUBAGENT_MODEL="$DEVIN_BRIDGE_MODEL"
+docker compose -f "$BRIDGE_COMPOSE" --profile live-devin up --abort-on-container-exit --exit-code-from claude-live claude-live
+bridge_cleanup_compose
+bridge_assert_devin_guard_audit "$BRIDGE_DEVIN_AUDIT"
+bridge_assert_zero_claude_egress "$BRIDGE_CLAUDE_AUDIT"
+bridge_export_guard_audit "$BRIDGE_DEVIN_AUDIT" egress.jsonl
+bridge_export_guard_audit "$BRIDGE_CLAUDE_AUDIT" claude-egress.jsonl
+trap - EXIT
+printf 'PASS: live model %s was discovered and validated by three scenarios\n' "$devin_model"

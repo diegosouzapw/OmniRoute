@@ -132,7 +132,9 @@ test("execute (non-stream) parses <tool> reply into OpenAI tool_calls", async ()
     assert.equal(choice.finish_reason, "tool_calls");
     assert.equal(choice.message.tool_calls.length, 1);
     assert.equal(choice.message.tool_calls[0].function.name, "get_weather");
-    assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), { city: "Paris" });
+    assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), {
+      city: "Paris",
+    });
     assert.ok(
       !String(choice.message.content || "").includes("<tool>"),
       "raw tool block stripped from content"
@@ -142,8 +144,9 @@ test("execute (non-stream) parses <tool> reply into OpenAI tool_calls", async ()
   }
 });
 
-test("execute (non-stream) parses bare JSON reply into OpenAI tool_calls", async () => {
-  const mock = installMock('{"name":"getWeather","arguments":{"city":"Paris"}}');
+test("execute (non-stream) does NOT promote bare JSON reply to tool_calls (#9343)", async () => {
+  const bareJson = '{"name":"getWeather","arguments":{"city":"Paris"}}';
+  const mock = installMock(bareJson);
   try {
     const executor = new DeepSeekWebExecutor();
     const result = await executor.execute({
@@ -156,11 +159,17 @@ test("execute (non-stream) parses bare JSON reply into OpenAI tool_calls", async
     assert.ok(result.response.ok);
     const json = JSON.parse(await result.response.text());
     const choice = json.choices[0];
-    assert.equal(choice.finish_reason, "tool_calls");
-    assert.equal(choice.message.tool_calls.length, 1);
-    assert.equal(choice.message.tool_calls[0].function.name, "get_weather");
-    assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), { city: "Paris" });
-    assert.equal(choice.message.content, null, "bare JSON tool call is stripped from content");
+    assert.equal(
+      choice.finish_reason,
+      "stop",
+      "bare JSON with no <tool> envelope must not be promoted to a tool call"
+    );
+    assert.ok(!choice.message.tool_calls, "no tool_calls on a bare JSON reply (#9343)");
+    assert.equal(
+      choice.message.content,
+      bareJson,
+      "bare JSON must be preserved verbatim as content, not stripped or promoted"
+    );
   } finally {
     mock.restore();
   }

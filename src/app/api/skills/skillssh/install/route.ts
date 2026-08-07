@@ -5,6 +5,7 @@ import { skillRegistry } from "@/lib/skills/registry";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { fetchSkillMd } from "@/lib/skills/skillssh";
 import { getSkillsProviderSetting } from "@/lib/skills/providerSettings";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const skillsshInstallSchema = z.object({
   name: z.string().min(1).max(64),
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, id: skill.id });
   } catch (err: unknown) {
-    const error = err instanceof Error ? err.message : String(err);
+    const error = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
     return NextResponse.json({ error }, { status: 500 });
   }
 }

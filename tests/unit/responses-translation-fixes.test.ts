@@ -126,6 +126,29 @@ test("Codex Responses input: null input normalizes to an empty list (not [null])
   assert.deepEqual(body.input, []);
 });
 
+test("Codex Responses input: additional_tools drops unsupported content", () => {
+  const body: Record<string, unknown> = {
+    input: [
+      {
+        type: "additional_tools",
+        role: "developer",
+        content: [{ type: "input_text", text: "unsupported wrapper content" }],
+        tools: [{ type: "function", name: "terminal", parameters: { type: "object" } }],
+      },
+    ],
+  };
+
+  normalizeCodexResponsesInput(body);
+
+  assert.deepEqual(body.input, [
+    {
+      type: "additional_tools",
+      role: "developer",
+      tools: [{ type: "function", name: "terminal", parameters: { type: "object" } }],
+    },
+  ]);
+});
+
 test("Codex Responses input: assistant history normalized to output_text (OpenAI/Codex rejects input_text on assistant turns)", () => {
   const body: Record<string, unknown> = {
     input: [

@@ -22,6 +22,7 @@ import { gitlabDuo } from "./gitlab-duo";
 import { kiro } from "./kiro";
 import { cursor } from "./cursor";
 import { trae } from "./trae";
+import { raycast } from "./raycast";
 import { kilocode } from "./kilocode";
 import { cline } from "./cline";
 import { windsurf } from "./windsurf";
@@ -45,6 +46,7 @@ export const PROVIDERS = {
   "amazon-q": kiro,
   cursor,
   trae,
+  raycast,
   kilocode,
   cline,
   // clinepass reuses the Cline WorkOS OAuth flow 1:1 (same api.cline.bot host, same token

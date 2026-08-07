@@ -1,6 +1,11 @@
 import { FORMATS } from "../../translator/formats.ts";
 import { isClaudeCodeCompatibleProvider } from "../../services/claudeCodeCompatible.ts";
+import { isResponsesEndpointPath } from "../../utils/responsesEndpoint.ts";
 import { getHeaderValueCaseInsensitive } from "./headers.ts";
+
+export { isResponsesEndpointPath };
+
+export const XAI_API_PROVIDERS = new Set(["xai", "xai-oauth", "xao"]);
 
 export function shouldUseNativeCodexPassthrough({
   provider,
@@ -13,10 +18,29 @@ export function shouldUseNativeCodexPassthrough({
 }): boolean {
   if (provider !== "codex") return false;
   if (sourceFormat !== FORMATS.OPENAI_RESPONSES) return false;
-  let normalizedEndpoint = String(endpointPath || "");
-  while (normalizedEndpoint.endsWith("/")) normalizedEndpoint = normalizedEndpoint.slice(0, -1);
-  const segments = normalizedEndpoint.split("/");
-  return segments.includes("responses");
+  return isResponsesEndpointPath(endpointPath);
+}
+
+export function shouldUseNativeXaiResponsesPassthrough({
+  provider,
+  sourceFormat,
+  endpointPath,
+}: {
+  provider?: string | null;
+  sourceFormat?: string | null;
+  endpointPath?: string | null;
+}): boolean {
+  if (!provider || !XAI_API_PROVIDERS.has(provider)) return false;
+  if (sourceFormat !== FORMATS.OPENAI_RESPONSES) return false;
+  return isResponsesEndpointPath(endpointPath);
+}
+
+export function stampNativeResponsesPassthroughBody(
+  body: Record<string, unknown>,
+  mode: "codex" | "xai"
+): Record<string, unknown> {
+  if (mode === "codex") return { ...body, _nativeCodexPassthrough: true };
+  return { ...body, _nativeXaiResponsesPassthrough: true };
 }
 
 /**

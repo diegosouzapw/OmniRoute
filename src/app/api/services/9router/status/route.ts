@@ -37,6 +37,8 @@ export async function GET(request: Request = new Request("http://localhost/")): 
       apiKeyMasked: apiKey ? maskApiKey(apiKey) : null,
       autoStart: row?.autoStart ?? false,
       providerExpose: row?.providerExpose ?? false,
+      adopted: liveStatus?.adopted ?? false,
+      autoRestartAdopted: row?.autoRestartAdopted ?? false,
     };
 
     if (reveal === "key") {

@@ -4,6 +4,9 @@ const DISPATCHER_CACHE_KEY = Symbol.for("omniroute.proxyDispatcher.cache");
 const DEFAULT_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.default");
 const RETRY_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.retry");
 
+/** Upper bound on cached per-URL proxy dispatchers; oldest entries are evicted first. */
+const MAX_DISPATCHER_CACHE_ENTRIES = 512;
+
 type DispatcherCache = Map<string, Dispatcher>;
 type GlobalWithDispatcherCache = typeof globalThis & {
   [DISPATCHER_CACHE_KEY]?: DispatcherCache;
@@ -121,4 +124,23 @@ export function clearDispatcherCache(): void {
 
 export function __cacheProxyDispatcherForTest(key: string, dispatcher: Dispatcher): void {
   getDispatcherCache().set(key, dispatcher);
+}
+
+/**
+ * Insert a dispatcher into the per-URL cache, evicting the oldest entry (and
+ * closing it) first when the cache is at capacity. This keeps the cache bounded
+ * on proxies that rotate through many URLs while guaranteeing that
+ * `clearDispatcherCache()` can still close every registered dispatcher.
+ */
+export function setDispatcherCacheEntry(key: string, dispatcher: Dispatcher): void {
+  const cache = getDispatcherCache();
+  if (cache.size >= MAX_DISPATCHER_CACHE_ENTRIES) {
+    const oldest = cache.keys().next().value;
+    if (oldest !== undefined) {
+      const evicted = cache.get(oldest);
+      cache.delete(oldest);
+      closeDispatcher(evicted);
+    }
+  }
+  cache.set(key, dispatcher);
 }

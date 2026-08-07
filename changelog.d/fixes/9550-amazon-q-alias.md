@@ -1,0 +1,1 @@
+- fix(model): add "aq" alias for amazon-q provider so parseModel resolves it instead of falling back to OpenAI (#9550)

@@ -29,14 +29,14 @@ function createSseResponse(events: string[]) {
   });
 }
 
-async function waitForAsyncSideEffects() {
-  await new Promise((resolve) => setImmediate(resolve));
-  await new Promise((resolve) => setTimeout(resolve, 20));
+async function flushAsyncSideEffects() {
+  // setImmediate rounds drain the event loop more reliably than setTimeout under CI load.
+  for (let i = 0; i < 5; i++) await new Promise((resolve) => setImmediate(resolve));
 }
 
 test.afterEach(async () => {
   globalThis.fetch = originalFetch;
-  await waitForAsyncSideEffects();
+  await flushAsyncSideEffects();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });

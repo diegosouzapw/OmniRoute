@@ -548,7 +548,6 @@ export async function handleTestCombo(args: { comboId: string; testPrompt: strin
                 messages: [{ role: "user", content: prompt }],
                 max_tokens: 50,
                 stream: false,
-                "x-provider": model.provider,
               }),
             })
           );

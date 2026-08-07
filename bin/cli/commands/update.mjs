@@ -181,6 +181,28 @@ export async function runUpdateCommand(opts = {}) {
     // --include=optional keeps the optionalDependencies (better-sqlite3, keytar,
     // tls-client, llmlingua SLM stack) on update so an omit=optional config can't drop them.
     execSync("npm install -g omniroute@latest --include=optional", { stdio: "inherit" });
+    // Trust-but-verify: `npm install -g` exits 0 even when a shadowing local install
+    // (e.g. ~/node_modules/omniroute ahead of the global prefix on PATH) means the
+    // binary the user actually runs was not touched. Re-read the running binary's
+    // version and warn instead of lying about success (#9475).
+    const afterVersion = await getCurrentVersion();
+    if (afterVersion && compareVersions(afterVersion, latest) < 0) {
+      printError(
+        `Global install updated to ${latest}, but the running binary still reports ${afterVersion}.`
+      );
+      console.log(
+        "  A local `node_modules/omniroute` is likely shadowing the global install on PATH."
+      );
+      console.log("  Diagnose with:");
+      console.log("    which -a omniroute");
+      console.log("    command -v omniroute");
+      console.log("    npm prefix -g");
+      console.log(
+        "  Then remove the shadowing local copy (e.g. `npm uninstall omniroute` from its directory)"
+      );
+      console.log("  or reorder PATH so the global bin comes first.");
+      return 1;
+    }
     printSuccess(`Updated to version ${latest}`);
     printInfo("Run `omniroute --version` to verify.");
     return 0;

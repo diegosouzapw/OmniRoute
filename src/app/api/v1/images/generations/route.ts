@@ -19,7 +19,8 @@ import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1ImageGenerationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
-import { getAllCustomModels, resolveProxyForConnection } from "@/lib/localDb";
+import { getAllCustomModels } from "@/lib/db/models";
+import { resolveProxyForConnection } from "@/lib/db/settings";
 import { resolveImageRouteModel } from "@/lib/images/imageRouteModel";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
@@ -28,6 +29,7 @@ import { generateRequestId } from "@/shared/utils/requestId";
 import { getSpecialtyModelsResponse } from "@/app/api/v1/_shared/specialtyCatalog";
 import { enforceClientApiRouteAuth } from "@/shared/utils/clientApiRouteAuth";
 import { runWithCallLogApiKeyContext } from "@/lib/usage/callLogApiKeyContext";
+import { executeImageWithCredentialFallback } from "@/sse/services/imageCredentialRetry";
 
 export const dynamic = "force-dynamic";
 
@@ -121,7 +123,7 @@ async function postHandler(request, context) {
   body.model = await resolveImageRouteModel(body.model);
 
   // Parse model to get provider
-  let { provider } = parseImageModel(body.model);
+  let { provider, model: requestedModel } = parseImageModel(body.model);
   let isCustomModel = false;
 
   // If not in built-in registry, check custom models tagged for images
@@ -136,6 +138,7 @@ async function postHandler(request, context) {
           const fullId = `${providerId}/${model.id}`;
           if (fullId === body.model) {
             provider = providerId;
+            requestedModel = model.id;
             isCustomModel = true;
             break;
           }
@@ -184,7 +187,12 @@ async function postHandler(request, context) {
   // Get credentials — skip for local providers (authType: "none")
   let credentials = null;
   if (providerConfig && providerConfig.authType !== "none") {
-    credentials = await getProviderCredentialsWithQuotaPreflight(provider);
+    credentials = await getProviderCredentialsWithQuotaPreflight(
+      provider,
+      null,
+      null,
+      requestedModel
+    );
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
@@ -200,7 +208,12 @@ async function postHandler(request, context) {
       );
     }
   } else if (isCustomModel) {
-    credentials = await getProviderCredentialsWithQuotaPreflight(provider);
+    credentials = await getProviderCredentialsWithQuotaPreflight(
+      provider,
+      null,
+      null,
+      requestedModel
+    );
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
@@ -219,47 +232,59 @@ async function postHandler(request, context) {
     // #6928: best-effort per-connection base-URL override lookup for local
     // no-auth media providers (ComfyUI). A connection is optional here — unlike
     // the authType !== "none" branch above, we never 400 when none exists.
-    const localCredentials = await getProviderCredentialsWithQuotaPreflight(provider);
+    const localCredentials = await getProviderCredentialsWithQuotaPreflight(
+      provider,
+      null,
+      null,
+      requestedModel
+    );
     if (localCredentials && !isAllRateLimitedCredentials(localCredentials)) {
       credentials = localCredentials;
     }
   }
 
-  // Resolve proxy for the connection if credentials exist (#1904)
-  let proxyInfo = null;
-  if (credentials?.connectionId) {
-    try {
-      proxyInfo = await resolveProxyForConnection(credentials.connectionId);
-    } catch {
-      log.debug("PROXY", `Failed to resolve proxy for image provider: ${provider}`);
-    }
-  }
+  const execution = await executeImageWithCredentialFallback({
+    provider,
+    requestedModel,
+    credentials,
+    execute: async (attemptCredentials) => {
+      let proxyInfo = null;
+      if (attemptCredentials?.connectionId) {
+        try {
+          proxyInfo = await resolveProxyForConnection(attemptCredentials.connectionId);
+        } catch {
+          log.debug("PROXY", `Failed to resolve proxy for image provider: ${provider}`);
+        }
+      }
 
-  const generateImage = () =>
-    runWithCallLogApiKeyContext(
-      {
-        apiKeyId: policy.apiKeyInfo?.id ?? null,
-        apiKeyName: policy.apiKeyInfo?.name ?? null,
-      },
-      () =>
-        handleImageGeneration({
-          body,
-          credentials,
-          log,
-          ...(isCustomModel && { resolvedProvider: provider }),
-          signal: request.signal,
-          clientHeaders: publicBaseUrlHeaders(request.headers),
-        })
-    );
+      const generateImage = () =>
+        runWithCallLogApiKeyContext(
+          {
+            apiKeyId: policy.apiKeyInfo?.id ?? null,
+            apiKeyName: policy.apiKeyInfo?.name ?? null,
+          },
+          () =>
+            handleImageGeneration({
+              body,
+              credentials: attemptCredentials,
+              log,
+              ...(isCustomModel && { resolvedProvider: provider }),
+              signal: request.signal,
+              clientHeaders: publicBaseUrlHeaders(request.headers),
+            })
+        );
 
-  // Execute with proxy context when available, direct otherwise (#1904)
-  const result = await (credentials?.connectionId
-    ? runWithProxyContext(proxyInfo?.proxy || null, generateImage).catch((err: any) => ({
-        success: false,
-        status: err.statusCode || 500,
-        error: err.message,
-      }))
-    : generateImage());
+      return attemptCredentials?.connectionId
+        ? runWithProxyContext(proxyInfo?.proxy || null, generateImage).catch((err: any) => ({
+            success: false,
+            status: err.statusCode || 500,
+            error: err.message,
+          }))
+        : generateImage();
+    },
+  });
+  credentials = execution.credentials;
+  const result = execution.result;
 
   if (result.success) {
     await clearRecoveredProviderState(credentials);

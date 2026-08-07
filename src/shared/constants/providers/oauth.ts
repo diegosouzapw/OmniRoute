@@ -171,6 +171,19 @@ export const OAUTH_PROVIDERS = {
     authHint:
       "Trae is an AI-native IDE by ByteDance (SOLO remote agent). Authorize via trae.ai in the popup, or sign in at solo.trae.ai and paste the Cloud-IDE-JWT (sent as 'Authorization: Cloud-IDE-JWT <token>', ~14-day lifetime) as the access token; web_id/biz_user_id/user_unique_id/scope/tenant/region propagate via providerSpecificData. No headless refresh for pasted tokens — re-paste on expiry.",
   },
+  raycast: {
+    id: "raycast",
+    alias: "rc",
+    name: "Raycast Pro AI",
+    icon: "terminal",
+    color: "#FF6363",
+    textIcon: "RC",
+    website: "https://raycast.com/ai",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint:
+      "Unofficial integration — uses your Raycast Pro subscription via credentials from the macOS app (Auto-Import or manual capture). May break on Raycast updates. Not for redistribution; personal use only.",
+  },
   "kimi-coding": {
     id: "kimi-coding",
     alias: "kmc",

@@ -24,7 +24,11 @@ type UseApiKeySaveParams = {
   setShowImportModal: (open: boolean) => void;
   setShowAddApiKeyModal: (open: boolean) => void;
   setSiliconFlowInitialBaseUrl: (url: string | undefined) => void;
-  notify: { success: (msg: string) => void; error: (msg: string) => void; info?: (msg: string) => void };
+  notify: {
+    success: (msg: string) => void;
+    error: (msg: string) => void;
+    info?: (msg: string) => void;
+  };
   t: ProviderMessageTranslator;
 };
 
@@ -137,11 +141,17 @@ export function useApiKeySave({
           }
           return null;
         }
+        // Even if the server returned an error, the connection may have been
+        // persisted (e.g. post-commit housekeeping failed after the DB write).
+        // Refresh the list so the UI picks it up on next render.
+        void fetchConnections();
         const data = await res.json().catch(() => ({}));
         const errorMsg = data.error?.message || data.error || t("failedSaveConnection");
         return errorMsg;
       } catch (error) {
         console.log("Error saving connection:", error);
+        // The connection may still have been persisted despite the network error.
+        void fetchConnections();
         return t("failedSaveConnectionRetry");
       }
     },

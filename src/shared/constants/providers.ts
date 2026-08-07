@@ -74,6 +74,7 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "getgoapi",
   "laozhang",
   "vercel-ai-gateway",
+  "unorouter",
   "agentrouter",
   "thebai",
   "fenayai",
@@ -122,7 +123,7 @@ export const VIDEO_PROVIDER_IDS = new Set([
 // IDE Providers: editors with built-in AI subscription (separate section in UI).
 // These providers live in OAUTH_PROVIDERS but render under "IDE Providers"
 // instead of "OAuth Providers" to avoid visual duplication.
-export const IDE_PROVIDER_IDS = new Set(["cursor", "zed", "trae"]);
+export const IDE_PROVIDER_IDS = new Set(["cursor", "zed", "trae", "raycast"]);
 
 export const EMBEDDING_RERANK_PROVIDER_IDS = new Set(["voyage-ai", "jina-ai"]);
 
@@ -178,6 +179,7 @@ export function isSelfHostedChatProvider(providerId: unknown): boolean {
 // cyclomatic complexity flat as this list grows — see g4f.space (#6650).
 const EXPLICIT_OPTIONAL_APIKEY_PROVIDER_IDS = new Set([
   "searxng-search",
+  "firecrawl",
   "pollinations",
   "copilot-web",
   "hackclub",

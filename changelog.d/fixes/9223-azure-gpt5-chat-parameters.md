@@ -1,0 +1,1 @@
+- **fix(azure):** normalize GPT-5 chat completion parameters. (thanks @royanrosyad85)

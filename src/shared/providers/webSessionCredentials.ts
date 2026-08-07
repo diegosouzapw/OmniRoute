@@ -98,10 +98,15 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
   },
   "muse-spark-web": {
     kind: "cookie",
-    credentialName: "abra_sess",
-    placeholder: "abra_sess=...; other=value",
+    // #9502: the WS protocol (#7528) needs both the ecto_1_sess cookie (GraphQL
+    // warmup/mode-switch) and a separate ecto1:... WS auth token (Authorization
+    // query param on wss://gateway.meta.ai/ws/clippy). The executor extracts the
+    // ecto1: token from the apiKey field via /ecto1:[^\s;]+/i.
+    credentialName: "ecto_1_sess + ecto1: WS auth token",
+    placeholder:
+      "ecto_1_sess=...; ecto1:... (WS auth token from meta.ai DevTools → Network → WS → clippy)",
     acceptsFullCookieHeader: true,
-    storageKeys: ["cookie", "abra_sess"],
+    storageKeys: ["cookie", "ecto_1_sess", "abra_sess"],
   },
   "hailuo-web": {
     kind: "token",
@@ -295,7 +300,7 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     hintFallback:
       "Open arena.ai, sign in, then copy the full Cookie header from a Network request. Include arena-auth-prod-v1.0 and arena-auth-prod-v1.1 (and further chunks if present), preferably with cf_clearance. Do not paste only the empty arena-auth-prod-v1 cookie. Optional: providerSpecificData.recaptchaV3Token if create-evaluation still returns 403.",
   },
-  "promptql": {
+  promptql: {
     kind: "token",
     credentialName: "Bearer JWT (optional: projectId, session Cookie)",
     placeholder: "eyJ...  (Authorization Bearer from prompt.ql.app)",
@@ -313,7 +318,8 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "token", "access_token", "accessToken"],
   },
-} satisfies Record<keyof typeof WEB_COOKIE_PROVIDERS, WebSessionCredentialRequirement>;
+} satisfies Record<string, WebSessionCredentialRequirement> &
+  Record<keyof typeof WEB_COOKIE_PROVIDERS, WebSessionCredentialRequirement>;
 
 export function getWebSessionCredentialRequirement(
   providerId: unknown

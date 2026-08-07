@@ -4,10 +4,17 @@
  * models/; this file re-exports their public APIs for backward compatibility.
  */
 
+import { isRetiredGitHubCopilotModelId } from "@omniroute/open-sse/config/providers/registry/github/retiredModels.ts";
+
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
 import { getProviderConnectionsCount } from "./providers";
-import { type JsonRecord, asRecord, toNonEmptyString, getKeyValue } from "./models/shared";
+import { type JsonRecord, getKeyValue } from "./models/shared";
+import {
+  normalizeSyncedAvailableModels,
+  type SyncedAvailableModel,
+  type SyncedAvailableModelInput,
+} from "./models/synced";
 import {
   readCompatList,
   writeCompatList,
@@ -40,6 +47,7 @@ export {
   deleteModelAliasesForProvider,
 } from "./models/aliases";
 export { getMitmAlias, setMitmAliasAll } from "./models/mitmAlias";
+export type { SyncedAvailableModel } from "./models/synced";
 
 // ──────────────── Custom Models ────────────────
 
@@ -318,104 +326,6 @@ export async function removeCustomModel(providerId: string, modelId: string) {
 // Each connection stores its own model list. Reads union across all connections
 // for a provider. Deleting a connection removes only its models.
 
-export interface SyncedAvailableModel {
-  id: string;
-  name: string;
-  source: "imported";
-  apiFormat?: string;
-  targetFormat?: string;
-  upstreamProtocol?: string;
-  supportedEndpoints?: string[];
-  supportedThinkingEfforts?: string[];
-  defaultThinkingEffort?: string;
-  inputTokenLimit?: number;
-  outputTokenLimit?: number;
-  description?: string;
-  supportsThinking?: boolean;
-  alwaysThinking?: boolean;
-  supportsTools?: boolean;
-  supportsVideo?: boolean;
-  // #4264: image-input capability captured at sync time (e.g. OpenRouter
-  // `architecture.input_modalities`/`modality`) so the catalog can surface vision.
-  supportsVision?: boolean;
-}
-
-type SyncedAvailableModelInput = Omit<SyncedAvailableModel, "source"> & {
-  source?: string;
-};
-
-function normalizeSyncedAvailableModel(model: unknown): SyncedAvailableModel | null {
-  const record = asRecord(model);
-  const id =
-    toNonEmptyString(record.id) || toNonEmptyString(record.name) || toNonEmptyString(record.model);
-  if (!id) return null;
-
-  const name =
-    toNonEmptyString(record.name) ||
-    toNonEmptyString(record.displayName) ||
-    toNonEmptyString(record.model) ||
-    id;
-  const supportedEndpoints = Array.isArray(record.supportedEndpoints)
-    ? Array.from(
-        new Set(
-          record.supportedEndpoints
-            .map((endpoint) => toNonEmptyString(endpoint))
-            .filter((endpoint): endpoint is string => Boolean(endpoint))
-        )
-      ).sort()
-    : undefined;
-
-  return {
-    id,
-    name,
-    source: "imported",
-    ...(toNonEmptyString(record.apiFormat)
-      ? { apiFormat: toNonEmptyString(record.apiFormat)! }
-      : {}),
-    ...(toNonEmptyString(record.targetFormat)
-      ? { targetFormat: toNonEmptyString(record.targetFormat)! }
-      : {}),
-    ...(toNonEmptyString(record.upstreamProtocol)
-      ? { upstreamProtocol: toNonEmptyString(record.upstreamProtocol)! }
-      : {}),
-    ...(supportedEndpoints && supportedEndpoints.length > 0 ? { supportedEndpoints } : {}),
-    ...(Array.isArray(record.supportedThinkingEfforts)
-      ? {
-          supportedThinkingEfforts: record.supportedThinkingEfforts.filter(
-            (effort): effort is string => typeof effort === "string" && effort.length > 0
-          ),
-        }
-      : {}),
-    ...(toNonEmptyString(record.defaultThinkingEffort)
-      ? { defaultThinkingEffort: toNonEmptyString(record.defaultThinkingEffort)! }
-      : {}),
-    ...(typeof record.inputTokenLimit === "number"
-      ? { inputTokenLimit: record.inputTokenLimit }
-      : {}),
-    ...(typeof record.outputTokenLimit === "number"
-      ? { outputTokenLimit: record.outputTokenLimit }
-      : {}),
-    ...(typeof record.description === "string" ? { description: record.description } : {}),
-    ...(typeof record.supportsThinking === "boolean"
-      ? { supportsThinking: record.supportsThinking }
-      : {}),
-    ...(record.alwaysThinking === true ? { alwaysThinking: true } : {}),
-    ...(typeof record.supportsTools === "boolean" ? { supportsTools: record.supportsTools } : {}),
-    ...(typeof record.supportsVideo === "boolean" ? { supportsVideo: record.supportsVideo } : {}),
-    ...(record.supportsVision === true ? { supportsVision: true } : {}),
-  };
-}
-
-function normalizeSyncedAvailableModels(models: unknown): SyncedAvailableModel[] {
-  if (!Array.isArray(models)) return [];
-  const deduped = new Map<string, SyncedAvailableModel>();
-  for (const model of models) {
-    const normalized = normalizeSyncedAvailableModel(model);
-    if (normalized) deduped.set(normalized.id, normalized);
-  }
-  return Array.from(deduped.values());
-}
-
 /**
  * Get synced available models for a specific provider connection.
  */
@@ -432,7 +342,7 @@ export async function getSyncedAvailableModelsForConnection(
   if (!value) return [];
   try {
     const models = JSON.parse(value);
-    return normalizeSyncedAvailableModels(models);
+    return normalizeSyncedAvailableModels(models, providerId);
   } catch {
     return [];
   }
@@ -454,7 +364,7 @@ export async function getSyncedAvailableModels(
   for (const row of rows) {
     const { key, value } = getKeyValue(row);
     if (!key || value === null) continue;
-    const models = normalizeSyncedAvailableModels(JSON.parse(value));
+    const models = normalizeSyncedAvailableModels(JSON.parse(value), providerId);
     for (const m of models) {
       if (m.id) map.set(m.id, m);
     }
@@ -481,7 +391,7 @@ export async function getSyncedAvailableModelsByConnection(
     if (!key || value === null || !key.startsWith(prefix)) continue;
     try {
       const connectionId = key.slice(prefix.length);
-      result[connectionId] = normalizeSyncedAvailableModels(JSON.parse(value));
+      result[connectionId] = normalizeSyncedAvailableModels(JSON.parse(value), providerId);
     } catch {
       // Ignore malformed legacy entries.
     }
@@ -506,7 +416,7 @@ export async function getAllSyncedAvailableModels(): Promise<
     if (!key || value === null) continue;
     const providerId = key.split(":")[0];
     if (!byProvider.has(providerId)) byProvider.set(providerId, new Map());
-    const models = normalizeSyncedAvailableModels(JSON.parse(value));
+    const models = normalizeSyncedAvailableModels(JSON.parse(value), providerId);
     const map = byProvider.get(providerId)!;
     for (const m of models) {
       if (m.id) map.set(m.id, m);
@@ -549,7 +459,8 @@ export async function getActiveProvidersWithSyncedModel(modelId: string): Promis
 
   return rows
     .map((row) => row.provider)
-    .filter((provider): provider is string => typeof provider === "string" && provider.length > 0);
+    .filter((provider): provider is string => typeof provider === "string" && provider.length > 0)
+    .filter((provider) => !isRetiredGitHubCopilotModelId(provider, modelId));
 }
 
 /**
@@ -570,7 +481,7 @@ export async function replaceSyncedAvailableModelsForConnection(
   // the synced store so they remain listed-but-hidden across re-syncs instead of
   // churning back on through the managed-alias path ("Auto Sync Enabling all
   // Models"). See getModelIsDeleted for the legacy-row caveat.
-  const normalizedModels = normalizeSyncedAvailableModels(models).filter(
+  const normalizedModels = normalizeSyncedAvailableModels(models, providerId).filter(
     (m) => !getModelIsDeleted(providerId, m.id)
   );
   if (normalizedModels.length === 0) {
@@ -617,7 +528,7 @@ export async function removeSyncedAvailableModel(
         continue;
       }
 
-      const models = normalizeSyncedAvailableModels(parsedModels);
+      const models = normalizeSyncedAvailableModels(parsedModels, providerId);
       const filtered = models.filter((m) => m.id !== modelId);
       if (filtered.length !== models.length) {
         removedAny = true;
@@ -946,35 +857,45 @@ export function getModelIsHidden(providerId: string, modelId: string): boolean {
  */
 export function getHiddenModelsByProvider(): Map<string, Set<string>> {
   const db = getDbInstance();
-  const result = new Map<string, Set<string>>();
-
-  // Query all rows from key_value for both namespaces
+  const visibilityByProvider = new Map<string, Map<string, boolean>>();
   const rows = db
     .prepare(
-      "SELECT key, value FROM key_value WHERE namespace IN ('modelCompatOverrides', 'customModels')"
+      "SELECT namespace, key, value FROM key_value WHERE namespace IN ('modelCompatOverrides', 'customModels')"
     )
-    .all() as Array<{ key: string; value: string | null }>;
+    .all() as Array<{ namespace: string; key: string; value: string | null }>;
 
-  for (const row of rows) {
-    if (!row.value) continue;
-    try {
-      const parsed = JSON.parse(row.value);
-      if (!Array.isArray(parsed)) continue;
-      for (const entry of parsed) {
-        if (entry && typeof entry === "object" && entry.isHidden) {
-          const modelId = entry.id;
-          if (typeof modelId === "string" && modelId.length > 0) {
-            if (!result.has(row.key)) result.set(row.key, new Set());
-            result.get(row.key)!.add(modelId);
+  for (const namespace of ["modelCompatOverrides", "customModels"]) {
+    for (const row of rows) {
+      if (row.namespace !== namespace || !row.value) continue;
+      try {
+        const parsed = JSON.parse(row.value);
+        if (!Array.isArray(parsed)) continue;
+        for (const entry of parsed) {
+          if (!entry || typeof entry !== "object") continue;
+          const modelId = (entry as { id?: unknown }).id;
+          if (typeof modelId !== "string" || modelId.length === 0) continue;
+          if (!Object.prototype.hasOwnProperty.call(entry, "isHidden")) continue;
+          let visibility = visibilityByProvider.get(row.key);
+          if (!visibility) {
+            visibility = new Map<string, boolean>();
+            visibilityByProvider.set(row.key, visibility);
           }
+          visibility.set(modelId, Boolean((entry as { isHidden?: unknown }).isHidden));
         }
+      } catch {
+        // Skip malformed entries
       }
-    } catch {
-      // Skip malformed entries
     }
   }
 
-  return result;
+  return new Map(
+    [...visibilityByProvider].flatMap(([providerId, visibility]) => {
+      const hiddenModels = [...visibility].flatMap(([modelId, isHidden]) =>
+        isHidden ? [modelId] : []
+      );
+      return hiddenModels.length > 0 ? [[providerId, new Set(hiddenModels)] as const] : [];
+    })
+  );
 }
 
 /**

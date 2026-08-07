@@ -24,6 +24,7 @@ import {
   readCompressionRequestHeader,
   withCompressionHeaderEcho,
 } from "@/shared/utils/compressionHeaderEcho";
+import { resolveModelAliasOnBody } from "@/lib/modelAliasResolver";
 
 let initPromise = null;
 
@@ -135,14 +136,23 @@ export async function POST(request) {
           if (!shapeCheck.success) {
             const issue = shapeCheck.error.issues[0];
             const field = issue?.path?.length ? issue.path.join(".") : "body";
-            return finishAdmission(errorResponse(400, `${field}: ${issue?.message ?? "Invalid request"}`));
+            return finishAdmission(
+              errorResponse(400, `${field}: ${issue?.message ?? "Invalid request"}`)
+            );
           }
         }
 
         const structuralAdmission = admitChatStructure(parsedBody, admission.lease);
         if (structuralAdmission.admit === false) {
           admission.lease?.release();
-          return structuralAdmission.response;
+          return finishAdmission(structuralAdmission.response);
+        }
+
+        // Resolve model alias before forwarding to handleChat
+        if (parsedBody && typeof parsedBody === "object") {
+          await resolveModelAliasOnBody(parsedBody).catch(() => {
+            /* swallow — fall through with original model */
+          });
         }
         admission.lease = structuralAdmission.lease;
 

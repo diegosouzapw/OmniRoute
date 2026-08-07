@@ -1,6 +1,7 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { CLAUDE_OAUTH_TOOL_PREFIX } from "../request/openai-to-claude.ts";
+import { caseInsensitiveToolNameLookup } from "../helpers/toolCallHelper.ts";
 import { hasToolCallShim, applyToolCallShimToBuffer } from "../helpers/toolCallShim.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { isAbortFinishReason } from "../../utils/finishReason.ts";
@@ -284,6 +285,7 @@ export function openaiToClaudeResponse(chunk, state) {
       // Strip the Claude OAuth prefix from an incoming tool name (if any).
       const incomingName = (() => {
         let n = tc.function?.name || "";
+        n = caseInsensitiveToolNameLookup(n, state.toolNameMap) ?? n;
         if (n.startsWith(CLAUDE_OAUTH_TOOL_PREFIX)) n = n.slice(CLAUDE_OAUTH_TOOL_PREFIX.length);
         return n;
       })();

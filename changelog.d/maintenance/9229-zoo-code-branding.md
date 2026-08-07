@@ -1,0 +1,1 @@
+- **docs(readme):** replace Roo Code branding with Zoo Code. (thanks @taltas)

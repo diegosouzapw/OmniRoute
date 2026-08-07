@@ -39,7 +39,10 @@ describe("stripResponsesLifecycleEcho", () => {
     assert.deepEqual(event.response, {});
   });
 
-  it("strips fields from response.completed (preserving usage)", () => {
+  it("strips instructions but PRESERVES tools on response.completed (#8990)", () => {
+    // response.completed is the terminal snapshot Codex CLI rebuilds its tool
+    // list from — stripping tools here left the client with zero tools. Same
+    // special-case precedent as backfillResponsesCompletedOutput.
     const event = {
       type: "response.completed",
       response: {
@@ -54,8 +57,10 @@ describe("stripResponsesLifecycleEcho", () => {
     const changed = stripResponsesLifecycleEcho(event);
 
     assert.equal(changed, true);
+    // instructions is still stripped (the >100KB size lever, not reported broken).
     assert.equal("instructions" in event.response, false);
-    assert.equal("tools" in event.response, false);
+    // tools MUST survive on the terminal snapshot.
+    assert.deepEqual(event.response.tools, [{ name: "bash" }]);
     // Usage must survive — downstream tracking depends on it.
     assert.deepEqual(event.response.usage, {
       input_tokens: 100,

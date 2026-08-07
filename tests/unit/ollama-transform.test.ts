@@ -100,6 +100,50 @@ test("transformToOllama handles string tool_call id normally", async () => {
   assert.ok(toolCallLine, "Should produce a tool call line");
 });
 
+test("transformToOllama passes through non-ok shared responses without rewriting status or body", async () => {
+  const errorBody = {
+    error: {
+      message: "Request too large for current capacity",
+      type: "server_error",
+      code: "admission_oversized",
+    },
+  };
+  const upstream = new Response(JSON.stringify(errorBody), {
+    status: 503,
+    headers: {
+      "Content-Type": "application/json",
+      "Retry-After": "1",
+    },
+  });
+
+  const result = transformToOllama(upstream, "llama3.2");
+  assert.equal(result.status, 503);
+  assert.equal(result.headers.get("Retry-After"), "1");
+  assert.match(String(result.headers.get("Content-Type") || ""), /application\/json/i);
+
+  const payload = await result.json();
+  assert.equal(payload.error?.code, "admission_oversized");
+  assert.equal(payload.error?.type, "server_error");
+  assert.equal(payload.error?.message, "Request too large for current capacity");
+});
+
+test("transformToOllama leaves successful non-SSE responses untouched", async () => {
+  const body = { choices: [{ message: { role: "assistant", content: "hello" } }] };
+  const upstream = new Response(JSON.stringify(body), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+      "X-Sentinel": "preserved",
+    },
+  });
+
+  const result = transformToOllama(upstream, "llama3.2");
+  assert.equal(result, upstream);
+  assert.equal(result.status, 200);
+  assert.equal(result.headers.get("X-Sentinel"), "preserved");
+  assert.deepEqual(await result.json(), body);
+});
+
 test("transformToOllama emits reasoning aliases as native thinking", async () => {
   const inputSSE = [
     `data: ${JSON.stringify({

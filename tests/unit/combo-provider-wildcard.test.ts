@@ -43,7 +43,21 @@ function makeCombo(models: unknown[], name = "test-combo") {
 }
 
 // Seed synced models for a provider into the DB.
-async function seedSyncedModels(providerId: string, connectionId: string, modelIds: string[]) {
+async function seedSyncedModels(
+  providerId: string,
+  connectionId: string,
+  modelIds: string[],
+  isActive = true
+) {
+  const db = core.getDbInstance();
+  const now = new Date().toISOString();
+
+  db.prepare(
+    `INSERT OR REPLACE INTO provider_connections
+       (id, provider, is_active, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?)`
+  ).run(connectionId, providerId, isActive ? 1 : 0, now, now);
+
   await replaceSyncedAvailableModelsForConnection(
     providerId,
     connectionId,
@@ -345,4 +359,50 @@ test("expandProviderWildcardsInCombo: three providers mixed with explicit entrie
   assert.equal((result.models[2] as any).model, `${p1}/m-b`);
   assert.equal((result.models[3] as any).model, `${p2}/m-c`);
   assert.equal(result.models[4], "openai/gpt-4o");
+});
+
+test("#8926: active synced catalog replaces static wildcard entries", async () => {
+  const providerId = "github";
+  const liveModelId = "live-only-model-8926";
+
+  await seedSyncedModels(providerId, "github-live-8926", [liveModelId]);
+
+  const result = await expandProviderWildcardsInCombo(
+    makeCombo([`${providerId}/*`], "github-live-authority-8926")
+  );
+
+  assert.deepEqual(
+    result.models.map((entry) => (entry as { model: string }).model),
+    [`${providerId}/${liveModelId}`],
+    "an active non-empty synced catalog must replace, not union with, static models"
+  );
+
+  const aliasResult = await expandProviderWildcardsInCombo(
+    makeCombo(["gh/*"], "github-live-alias-8926")
+  );
+
+  assert.deepEqual(
+    aliasResult.models.map((entry) => (entry as { model: string }).model),
+    [`gh/${liveModelId}`],
+    "the public provider alias must use the canonical provider's active catalog"
+  );
+});
+
+test("#8926: inactive synced catalog does not override static wildcard fallback", async () => {
+  const providerId = "openai";
+  const inactiveModelId = "inactive-only-model-8926";
+
+  await seedSyncedModels(providerId, "openai-inactive-8926", [inactiveModelId], false);
+
+  const result = await expandProviderWildcardsInCombo(
+    makeCombo([`${providerId}/*`], "openai-static-fallback-8926")
+  );
+
+  const expanded = result.models.map((entry) => (entry as { model: string }).model);
+
+  assert.ok(expanded.length > 0, "static fallback should remain available");
+  assert.ok(
+    !expanded.includes(`${providerId}/${inactiveModelId}`),
+    "an inactive connection must not make its synced catalog authoritative"
+  );
 });

@@ -1,0 +1,1 @@
+- fix(search): mark searxng-search as fallbackOnly to prevent auto-select without instance (#9543)

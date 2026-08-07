@@ -73,7 +73,12 @@ const CC_VISION_MODEL_PATTERNS: readonly RegExp[] = [
   // Anthropic
   /claude-fable/i, // claude-fable-5 (not covered by claude-opus/sonnet/haiku-4)
   // OpenAI
-  /gpt-5/i, // gpt-5.6, gpt-5.5, gpt-5.3-codex
+  /gpt-5/i, // gpt-5.6, gpt-5.5, gpt-5.4, gpt-5.4-mini, gpt-5.3-codex
+  // NOTE: gpt-5.4-mini and gpt-5.3-codex deliberately stay inside the `/gpt-5/`
+  // family — both accept image input on the OpenAI API, and there is no
+  // verified Command Code backend data marking them text-only. Excluding them
+  // without evidence would re-create #4071 (image stripped from a model that
+  // can see it). Revisit only with per-model CC registry capability data.
   // Sakana
   /fugu/i, // sakana/fugu-ultra
 ];
@@ -105,9 +110,36 @@ function isCommandCodeVisionModel(model?: string | null): boolean {
  *
  * OpenAI-compatible:  { type: "image_url", image_url: { url: "..." } }
  * Command Code CLI:   { type: "image", image: "..." }
+ * AI SDK image:       { type: "image", image: "data:...;base64,..." } (#1330)
+ * Anthropic image:    { type: "image", source: { type: "base64", media_type, data } }
+ *                     or { type: "image", source: { type: "url", url } }
+ *
+ * The Anthropic-shaped block is common for Claude-Code-compatible clients
+ * (e.g. Zoo Code) that send Messages-style content arrays to the
+ * OpenAI `/v1/chat/completions` surface. Without this branch the image was
+ * silently dropped before reaching the upstream vision model.
  */
 function extractImageUrl(part: JsonRecord): string | undefined {
-  if (part.type === "image") return stringValue(part.image);
+  if (part.type === "image") {
+    const direct = stringValue(part.image);
+    if (direct) return direct;
+
+    // Anthropic source block: { source: { type: "base64", media_type, data } } or
+    // { source: { type: "url", url } }.
+    const source = isRecord(part.source) ? part.source : null;
+    if (source) {
+      if (source.type === "base64") {
+        const mediaType = stringValue(source.media_type) || "image/png";
+        const data = stringValue(source.data);
+        if (data) return `data:${mediaType};base64,${data}`;
+      }
+      if (source.type === "url") {
+        const url = stringValue(source.url);
+        if (url) return url;
+      }
+    }
+    return undefined;
+  }
   if (part.type === "image_url") {
     if (isRecord(part.image_url)) return stringValue(part.image_url.url);
     return stringValue(part.image_url);

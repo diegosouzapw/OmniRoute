@@ -10,6 +10,7 @@
  * Auth: Bearer token via Authorization header
  */
 
+import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getTaskManager } from "@/lib/a2a/taskManager";
 import { logRoutingDecision } from "@/lib/a2a/routingLogger";
@@ -64,6 +65,20 @@ function toMessageArray(raw: unknown): A2AMessage[] | null {
 
 // ============ Auth ============
 
+/**
+ * Constant-time comparison of the presented bearer token against the configured
+ * key. A plain `===` short-circuits on the first differing byte, leaking the
+ * length of the shared prefix through response timing; `timingSafeEqual` does
+ * not. It requires equal-length buffers, so mismatched lengths are rejected up
+ * front (the length itself is not secret).
+ */
+function tokensMatch(provided: string, expected: string): boolean {
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
+
 function authenticate(req: NextRequest): boolean {
   // If no API key is configured, allow all requests
   const configuredKey = process.env.OMNIROUTE_API_KEY;
@@ -71,7 +86,7 @@ function authenticate(req: NextRequest): boolean {
 
   const authHeader = req.headers.get("authorization") || "";
   const token = authHeader.replace(/^Bearer\s+/i, "");
-  return token === configuredKey;
+  return tokensMatch(token, configuredKey);
 }
 
 // ============ JSON-RPC Helpers ============
@@ -106,7 +121,6 @@ async function rejectIfA2ADisabled(id: string | number | null) {
 // ============ Route Handler ============
 
 export async function POST(req: NextRequest) {
-  console.log("==> HIT A2A ROUTER:", req.url);
   // Auth check
   if (!authenticate(req)) {
     return jsonRpcError(null, -32600, "Unauthorized: missing or invalid API key");

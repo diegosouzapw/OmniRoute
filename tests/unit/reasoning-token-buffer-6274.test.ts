@@ -10,6 +10,10 @@
  *
  * Kept standalone against the pure `resolveReasoningBufferedMaxTokens` rather than
  * extending the frozen `combo-routing-engine.test.ts` god-file.
+ *
+ * #9507 update: the #3587 headroom heuristic was removed — the buffer never
+ * enlarges an explicit client max_tokens. The assertions at/above the trigger
+ * threshold now expect pass-through (256 -> 256, 32000 -> 32000).
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -90,17 +94,20 @@ test("#6274 reasoning buffer does not inflate probe-sized max_tokens", () => {
     REASONING_BUFFER_MIN_TRIGGER - 1,
     "budgets below REASONING_BUFFER_MIN_TRIGGER are respected verbatim"
   );
-  // At the threshold, headroom resumes: max(256 + 1000, ceil(256 * 1.5)) = 1256.
+  // Issue #9507: the buffer must NEVER enlarge a client's explicit max_tokens.
+  // Previously the #3587 headroom heuristic rewrote these upward
+  // (256 -> 1256, 32000 -> 48000); that violated the #1761 contract that
+  // upward adjustment must be opt-in. The over-cap clamp still narrows.
   assert.equal(
     resolveReasoningBufferedMaxTokens("zhipu/glm-5.2", REASONING_BUFFER_MIN_TRIGGER),
-    1256,
-    "budgets at the threshold receive reasoning headroom"
+    REASONING_BUFFER_MIN_TRIGGER,
+    "budgets at the threshold are forwarded verbatim (#9507)"
   );
-  // A realistic reasoning budget still gets buffered: max(32000 + 1000, 48000) = 48000.
+  // A realistic reasoning budget is forwarded verbatim, not enlarged.
   assert.equal(
     resolveReasoningBufferedMaxTokens("zhipu/glm-5.2", 32000),
-    48000,
-    "genuine reasoning budgets keep the #3587 headroom"
+    32000,
+    "genuine reasoning budgets are forwarded verbatim (#9507)"
   );
 });
 

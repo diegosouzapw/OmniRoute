@@ -4,6 +4,7 @@ import { skillRegistry } from "@/lib/skills/registry";
 import { z } from "zod";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const updateSkillSchema = z.object({
   enabled: z.boolean().optional(),
@@ -22,7 +23,7 @@ export async function DELETE(_request: Request, props: { params: Promise<{ id: s
     }
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
-    const error = err instanceof Error ? err.message : String(err);
+    const error = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
     return NextResponse.json({ error }, { status: 500 });
   }
 }
@@ -71,7 +72,7 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
       mode: validation.data.mode,
     });
   } catch (err: unknown) {
-    const error = err instanceof Error ? err.message : String(err);
+    const error = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
     return NextResponse.json({ error }, { status: 500 });
   }
 }

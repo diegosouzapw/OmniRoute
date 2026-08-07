@@ -4,14 +4,8 @@ import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotat
 import { createBuiltinAutoCombo } from "@omniroute/open-sse/services/autoCombo/builtinCatalog.ts";
 import * as log from "../utils/logger";
 import { updateProviderCredentials } from "../services/tokenRefresh";
-import {
-  detectFormatFromEndpoint,
-  getTargetFormat,
-} from "@omniroute/open-sse/services/provider.ts";
-import {
-  getModelTargetFormat,
-  PROVIDER_ID_TO_ALIAS,
-} from "@omniroute/open-sse/config/providerModels.ts";
+import { detectFormatFromEndpoint } from "@omniroute/open-sse/services/provider.ts";
+import { resolveChatCoreTargetFormat } from "@omniroute/open-sse/handlers/chatCore/targetFormat.ts";
 import { handleChatCore } from "@omniroute/open-sse/handlers/chatCore.ts";
 import {
   checkResourcePressureGuard,
@@ -305,12 +299,25 @@ export async function resolveModelOrError(
         ? ((modelInfo as { apiFormat?: string }).apiFormat as string)
         : undefined
       : undefined;
-  const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
-  let targetFormat = getModelTargetFormat(providerAlias, model) || getTargetFormat(provider);
-  if (apiFormat === "responses") {
-    targetFormat = "openai-responses";
-    log.info("ROUTING", `Custom model apiFormat=responses → targetFormat=openai-responses`);
-  }
+  // customModelTargetFormat: #2905 per-model wire-format override for custom models,
+  // injected by getModelInfo. Must be threaded into the same resolution formula
+  // chatCore.ts uses (static registry > custom-model DB override > provider default) —
+  // a model that's ALSO a static registry entry (e.g. a Vertex Claude model with no
+  // per-model registry targetFormat) otherwise silently drops the DB override and
+  // falls through to the provider default, breaking response translation.
+  const customModelTargetFormat: string | undefined =
+    modelInfo && typeof modelInfo === "object" && "targetFormat" in modelInfo
+      ? typeof (modelInfo as { targetFormat?: unknown }).targetFormat === "string"
+        ? ((modelInfo as { targetFormat?: string }).targetFormat as string)
+        : undefined
+      : undefined;
+  const { alias: providerAlias, targetFormat } = resolveChatCoreTargetFormat({
+    provider,
+    resolvedModel: model,
+    apiFormat,
+    customModelTargetFormat,
+    providerSpecificData: undefined,
+  });
 
   const ctxTag = extendedContext && providerAlias === "claude" ? " [1m]" : "";
   if (modelStr !== `${provider}/${model}`) {
@@ -405,6 +412,7 @@ export async function executeChatWithBreaker({
   comboExecutionKey,
   extendedContext,
   modelApiFormat,
+  modelTargetFormat,
   providerProfile,
   cachedSettings,
   skipUpstreamRetry = false,
@@ -437,7 +445,13 @@ export async function executeChatWithBreaker({
         runWithProxyContext(proxyInfo?.proxy || null, () =>
           (handleChatCore as any)({
             body: { ...body, model: `${provider}/${model}` },
-            modelInfo: { provider, model, extendedContext, apiFormat: modelApiFormat },
+            modelInfo: {
+              provider,
+              model,
+              extendedContext,
+              apiFormat: modelApiFormat,
+              targetFormat: modelTargetFormat,
+            },
             credentials: refreshedCredentials,
             log: handlerLog,
             clientRawRequest,

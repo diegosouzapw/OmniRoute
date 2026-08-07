@@ -1,0 +1,1 @@
+- fix(vertex): route Claude models to native rawPredict endpoint and respect custom targetFormat overrides (#8994)

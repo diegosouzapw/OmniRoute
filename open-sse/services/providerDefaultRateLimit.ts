@@ -11,8 +11,10 @@
  * API (#6846 Phase 1). Every other provider still gets zero behavior change; the
  * whole path is a no-op unless an entry (or a resolved override, see below) exists.
  *
- * Wired as a pre-schedule gate in `withRateLimit` (rateLimitManager.ts). Bottleneck
- * still applies on top — this only adds a floor for header-less providers.
+ * Composed into the rolling lease gate in `withRateLimit` (rateLimitManager.ts).
+ * The exported acquire helpers remain available for provider-specific callers
+ * and tests, while the main request path acquires global and provider scopes
+ * atomically.
  */
 import { SlidingWindowLimiter, type RateLimitWindow } from "./slidingWindowLimiter.ts";
 

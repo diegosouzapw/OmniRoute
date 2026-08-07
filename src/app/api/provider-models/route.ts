@@ -9,6 +9,7 @@ import {
   updateCustomModel,
   getModelCompatOverrides,
   mergeModelCompatOverride,
+  getHiddenModelsByProvider,
   type ModelCompatPatch,
 } from "@/lib/localDb";
 import {
@@ -81,7 +82,21 @@ export async function GET(request) {
           })
         : models;
 
-    return Response.json({ models: modelsWithContextOverride, modelCompatOverrides });
+    // #9203: surface the unified hidden-model map (customModels.isHidden +
+    // modelCompatOverrides.isHidden) so the client can filter every model source
+    // (system catalog, fallback, aliases, auto-fetched) — not just custom rows.
+    const hiddenModelsByProvider: Record<string, string[]> = {};
+    for (const [providerId, hiddenModelIds] of getHiddenModelsByProvider()) {
+      if (hiddenModelIds.size > 0) {
+        hiddenModelsByProvider[providerId] = [...hiddenModelIds];
+      }
+    }
+
+    return Response.json({
+      models: modelsWithContextOverride,
+      modelCompatOverrides,
+      hiddenModelsByProvider,
+    });
   } catch {
     return Response.json(
       { error: { message: "Failed to fetch provider models", type: "server_error" } },

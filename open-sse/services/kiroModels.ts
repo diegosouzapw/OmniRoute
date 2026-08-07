@@ -56,6 +56,12 @@ function toNonEmptyString(value: unknown): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+export type KiroPromptCaching = {
+  supportsPromptCaching: boolean;
+  minimumTokensPerCacheCheckpoint: number | null;
+  maximumCacheCheckpointsPerRequest: number | null;
+};
+
 export type KiroModel = {
   id: string;
   name: string;
@@ -68,7 +74,27 @@ export type KiroModel = {
   rateMultiplier?: number;
   upstreamModelId?: string;
   description?: string;
+  promptCaching?: KiroPromptCaching;
 };
+
+function toNonNegativeInteger(value: unknown): number | null {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : null;
+}
+
+function parsePromptCaching(value: unknown): KiroPromptCaching | undefined {
+  const promptCaching = asRecord(value);
+  if (typeof promptCaching.supportsPromptCaching !== "boolean") return undefined;
+
+  return {
+    supportsPromptCaching: promptCaching.supportsPromptCaching,
+    minimumTokensPerCacheCheckpoint: toNonNegativeInteger(
+      promptCaching.minimumTokensPerCacheCheckpoint
+    ),
+    maximumCacheCheckpointsPerRequest: toNonNegativeInteger(
+      promptCaching.maximumCacheCheckpointsPerRequest
+    ),
+  };
+}
 
 export type KiroModelsResult = {
   models: KiroModel[];
@@ -98,7 +124,8 @@ export function parseKiroModels(data: unknown): KiroModel[] {
     if (!id || seen.has(id)) continue;
     seen.add(id);
     const name = toNonEmptyString(item.modelName) || toNonEmptyString(item.name) || id;
-    models.push({ id, name, owned_by: "kiro" });
+    const promptCaching = parsePromptCaching(item.promptCaching);
+    models.push({ id, name, owned_by: "kiro", ...(promptCaching && { promptCaching }) });
   }
 
   return models;
@@ -162,6 +189,7 @@ function expandKiroModels(data: unknown): KiroModel[] {
     const tokenLimits = asRecord(item.tokenLimits);
     const contextLength = Number(tokenLimits.maxInputTokens) || 200000;
     const rateMultiplier = Number(item.rateMultiplier);
+    const promptCaching = parsePromptCaching(item.promptCaching);
 
     for (const variant of buildVariants(upstreamId, display)) {
       if (seen.has(variant.id)) continue;
@@ -172,6 +200,7 @@ function expandKiroModels(data: unknown): KiroModel[] {
         rateMultiplier: Number.isFinite(rateMultiplier) ? rateMultiplier : 1.0,
         upstreamModelId: upstreamId,
         description: toNonEmptyString(item.description) || "",
+        ...(promptCaching && { promptCaching }),
       });
     }
   }

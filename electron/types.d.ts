@@ -14,11 +14,15 @@ export interface AppInfo {
   platform: "win32" | "darwin" | "linux";
   isDev: boolean;
   port: number;
+  /** Set when Remote Server Mode is active (tray → Remote Server → Connect…). */
+  remoteServerUrl: string | null;
 }
 
 export interface ServerStatus {
   status: "starting" | "running" | "stopped" | "restarting" | "error";
   port: number;
+  /** Present only while connected to a remote server instead of the embedded one. */
+  remoteUrl?: string;
 }
 
 export interface ElectronAPI {

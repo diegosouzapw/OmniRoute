@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+set -euo pipefail
+BRIDGE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+BRIDGE_COMPOSE="$BRIDGE_ROOT/docker/devin-bridge/compose.yml"
+BRIDGE_SANDBOX="$BRIDGE_ROOT/.sandbox"
+BRIDGE_GUARD_AUDIT_ROOT="$BRIDGE_SANDBOX/guard-audit"
+BRIDGE_CLAUDE_AUDIT="$BRIDGE_GUARD_AUDIT_ROOT/claude/egress.jsonl"
+BRIDGE_DEVIN_AUDIT="$BRIDGE_GUARD_AUDIT_ROOT/devin/egress.jsonl"
+BRIDGE_RUNTIME_POLICY="$BRIDGE_ROOT/scripts/devin-bridge/runtime-policy.mjs"
+bridge_prepare_sandbox() {
+  mkdir -p "$BRIDGE_SANDBOX/home" "$BRIDGE_SANDBOX/test-data" \
+    "$BRIDGE_SANDBOX/e2e-workspace" "$BRIDGE_SANDBOX/live-workspace" \
+    "$BRIDGE_SANDBOX/evidence" "$BRIDGE_GUARD_AUDIT_ROOT/claude" \
+    "$BRIDGE_GUARD_AUDIT_ROOT/devin"
+  chmod 0777 "$BRIDGE_SANDBOX/e2e-workspace" "$BRIDGE_SANDBOX/live-workspace" \
+    "$BRIDGE_SANDBOX/evidence"
+  chmod 01777 "$BRIDGE_GUARD_AUDIT_ROOT/claude" "$BRIDGE_GUARD_AUDIT_ROOT/devin"
+}
+bridge_reset_guard_audit() {
+  local audit_path="$1"
+  local audit_dir
+  local temp_path
+  bridge_prepare_sandbox
+  audit_dir="$(dirname "$audit_path")"
+  temp_path="$(mktemp "$audit_dir/.egress.jsonl.XXXXXX")"
+  chmod 0666 "$temp_path"
+  mv -f "$temp_path" "$audit_path"
+}
+bridge_reset_claude_egress_audit() {
+  bridge_reset_guard_audit "$BRIDGE_CLAUDE_AUDIT"
+}
+bridge_reset_devin_egress_audit() {
+  bridge_reset_guard_audit "$BRIDGE_DEVIN_AUDIT"
+}
+bridge_reset_e2e_fixture() {
+  bridge_prepare_sandbox
+  cp -R "$BRIDGE_ROOT/tests/fixtures/devin-bridge/e2e-workspace/." \
+    "$BRIDGE_SANDBOX/e2e-workspace/"
+  rm -f "$BRIDGE_SANDBOX/e2e-workspace/.e2e-hook.log" \
+    "$BRIDGE_SANDBOX/evidence/claude-stream.jsonl" \
+    "$BRIDGE_SANDBOX/evidence/mock-acp.jsonl"
+  bridge_reset_claude_egress_audit
+}
+bridge_reset_live_fixture() {
+  bridge_prepare_sandbox
+  cp -R "$BRIDGE_ROOT/tests/fixtures/devin-bridge/e2e-workspace/." \
+    "$BRIDGE_SANDBOX/live-workspace/"
+  rm -f "$BRIDGE_SANDBOX/live-workspace/.e2e-hook.log" \
+    "$BRIDGE_SANDBOX/evidence/live-analysis.jsonl" \
+    "$BRIDGE_SANDBOX/evidence/live-fix.jsonl" \
+    "$BRIDGE_SANDBOX/evidence/live-command.jsonl" \
+    "$BRIDGE_SANDBOX/evidence/live-models.json" \
+    "$BRIDGE_SANDBOX/evidence/egress.jsonl"
+  bridge_reset_claude_egress_audit
+  bridge_reset_devin_egress_audit
+}
+bridge_test_env() {
+  bridge_prepare_sandbox
+  env HOME="$BRIDGE_SANDBOX/home" DATA_DIR="$BRIDGE_SANDBOX/test-data" SQLITE_FILE="$BRIDGE_SANDBOX/test-data/storage.sqlite" DEVIN_AGENTIC_HOME="$BRIDGE_SANDBOX/home" "$@"
+}
+
+bridge_run_devin() {
+  docker compose -f "$BRIDGE_COMPOSE" --profile live-devin run --rm --no-deps \
+    omniroute-live sh -ceu '
+      trusted_proxy=http://network-guard:8080
+      test "${DEVIN_BRIDGE_PROXY_URL:-}" = "$trusted_proxy"
+      export HTTP_PROXY="$trusted_proxy" HTTPS_PROXY="$trusted_proxy"
+      unset ALL_PROXY NO_PROXY http_proxy https_proxy all_proxy no_proxy
+      exec devin "$@"
+    ' bridge-devin "$@"
+}
+
+bridge_assert_devin_auth_status() {
+  local exit_status="$1"
+  local output="$2"
+  printf '%s' "$output" | node --input-type=module -e '
+    import { pathToFileURL } from "node:url";
+    import fs from "node:fs";
+    const policy = await import(pathToFileURL(process.argv[1]));
+    const result = policy.validateDevinAuthStatus(process.argv[2], fs.readFileSync(0, "utf8"));
+    if (!result.ok) throw new Error(result.error);
+  ' "$BRIDGE_RUNTIME_POLICY" "$exit_status"
+}
+
+bridge_check_devin_auth() {
+  local output
+  local exit_status
+  set +e
+  output="$(bridge_run_devin auth status 2>&1)"
+  exit_status=$?
+  set -e
+  bridge_assert_devin_auth_status "$exit_status" "$output"
+  printf 'PASS: Devin authentication confirmed\n'
+}
+
+bridge_assert_zero_claude_egress() {
+  local audit_path="$1"
+  bridge_validate_guard_audit claude-zero "$audit_path"
+}
+
+bridge_assert_claude_guard_denials() {
+  local audit_path="$1"
+  bridge_validate_guard_audit claude-denials "$audit_path"
+}
+
+bridge_assert_devin_guard_audit() {
+  local audit_path="$1"
+  bridge_validate_guard_audit devin-allowed "$audit_path"
+}
+
+bridge_validate_guard_audit() {
+  local kind="$1"
+  local audit_path="$2"
+  node --input-type=module -e '
+    import { pathToFileURL } from "node:url";
+    const policy = await import(pathToFileURL(process.argv[1]));
+    policy.validateAuditFile(process.argv[2], process.argv[3], process.argv[4]);
+  ' "$BRIDGE_RUNTIME_POLICY" "$kind" "$audit_path" "$(id -u)"
+}
+
+bridge_export_guard_audit() {
+  local audit_path="$1"
+  local evidence_name="$2"
+  cp "$audit_path" "$BRIDGE_SANDBOX/evidence/$evidence_name"
+  chmod 0644 "$BRIDGE_SANDBOX/evidence/$evidence_name"
+}
+
+bridge_cleanup_compose() {
+  docker compose -f "$BRIDGE_COMPOSE" --profile offline --profile live-devin \
+    down --remove-orphans >/dev/null 2>&1 || true
+}

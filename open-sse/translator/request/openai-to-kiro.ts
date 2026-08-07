@@ -14,6 +14,7 @@ import {
 import {
   resolveKiroModelAlias,
   supportsKiroAdaptiveThinking,
+  supportsKiroNativeReasoning,
 } from "./openai-to-kiro/adaptiveThinking.ts";
 
 /**
@@ -46,6 +47,69 @@ function wrapSystemReminder(text: string): string {
   return `<system-reminder>\n${text}\n</system-reminder>`;
 }
 
+/** Kiro rejects a `toolSpecification.description` longer than ~10000 chars. */
+const KIRO_TOOL_DESC_MAX = 10000;
+
+/** OpenAI- and Anthropic-shaped tool declarations, as clients actually send them. */
+type KiroToolInput = {
+  name?: string;
+  description?: string;
+  parameters?: unknown;
+  input_schema?: unknown;
+  function?: { name?: string; description?: string; parameters?: unknown };
+};
+
+/**
+ * Build Kiro `toolSpecification` entries, relocating any oversized description
+ * out of the schema and returning it separately.
+ *
+ * Kiro answers a raw upstream 400 for a description over
+ * {@link KIRO_TOOL_DESC_MAX}, so the schema keeps a pointer and the full text is
+ * handed back to be prepended to the current turn's content — the same
+ * relocation kiro-gateway performs in
+ * `converters_core.py::process_tools_with_long_descriptions`.
+ *
+ * The docs are *returned* rather than stashed on the message object, because the
+ * tool-bearing user turn is moved into `history` on every multi-turn request
+ * (see the currentMessage promotion below). Carrying them on the message lost
+ * them there — the model then saw only the pointer and no documentation — and
+ * also leaked an unknown `_toolDocs` field into the upstream payload, which Kiro
+ * rejects.
+ */
+function buildKiroToolSpecs(tools: KiroToolInput[]): {
+  specs: Array<Record<string, unknown>>;
+  docs: string;
+} {
+  const docs: string[] = [];
+  const specs = tools.map((t) => {
+    const name = t.function?.name || t.name;
+    let description = t.function?.description || t.description || "";
+
+    if (!description.trim()) {
+      description = `Tool: ${name}`;
+    }
+
+    if (description.length > KIRO_TOOL_DESC_MAX) {
+      docs.push(`## Tool: ${name}\n\n${description}`);
+      description = `[Full documentation in system prompt under '## Tool: ${name}']`;
+    }
+
+    return {
+      toolSpecification: {
+        name,
+        description,
+        inputSchema: {
+          json: normalizeKiroToolSchema(
+            t.function?.parameters || t.parameters || t.input_schema || {}
+          ),
+        },
+      },
+    };
+  });
+
+  return { specs, docs: docs.join("\n\n---\n\n") };
+}
+
 /**
  * Convert OpenAI messages to Kiro format
  * Rules: system/tool/user -> user role, merge consecutive same roles
@@ -60,6 +124,7 @@ function convertMessages(messages, tools, model) {
   let pendingImages: Array<{ format: string; source: { bytes: string } }> = [];
   let currentRole = null;
   let toolsAttached = false;
+  let toolDocs = "";
 
   // Only Claude models support images in Kiro. Kiro also routes non-Claude
   // models (deepseek, minimax, glm, qwen3-coder-next) that do not accept image
@@ -89,7 +154,6 @@ function convertMessages(messages, tools, model) {
             tools?: Array<Record<string, unknown>>;
           };
         };
-        _toolDocs?: string;
       } = {
         userInputMessage: {
           content: content,
@@ -118,39 +182,9 @@ function convertMessages(messages, tools, model) {
         if (!userMsg.userInputMessage.userInputMessageContext) {
           userMsg.userInputMessage.userInputMessageContext = {};
         }
-        // Kiro API rejects requests with tool descriptions > ~10000 chars.
-        // Move long descriptions to system prompt (same approach as kiro-gateway).
-        const TOOL_DESC_MAX = 10000;
-        const toolDocs: string[] = [];
-        userMsg.userInputMessage.userInputMessageContext.tools = tools.map((t) => {
-          const name = t.function?.name || t.name;
-          let description = t.function?.description || t.description || "";
-
-          if (!description.trim()) {
-            description = `Tool: ${name}`;
-          }
-
-          if (description.length > TOOL_DESC_MAX) {
-            toolDocs.push(`## Tool: ${name}\n\n${description}`);
-            description = `[Full documentation in system prompt under '## Tool: ${name}']`;
-          }
-
-          return {
-            toolSpecification: {
-              name,
-              description,
-              inputSchema: {
-                json: normalizeKiroToolSchema(
-                  t.function?.parameters || t.parameters || t.input_schema || {}
-                ),
-              },
-            },
-          };
-        });
-        // Attach tool docs to message so buildKiroPayload can prepend to content
-        if (toolDocs.length > 0) {
-          userMsg._toolDocs = toolDocs.join("\n\n---\n\n");
-        }
+        const built = buildKiroToolSpecs(tools);
+        userMsg.userInputMessage.userInputMessageContext.tools = built.specs;
+        if (built.docs) toolDocs = built.docs;
         toolsAttached = true;
       }
 
@@ -370,21 +404,9 @@ function convertMessages(messages, tools, model) {
     if (!currentMessage.userInputMessage.userInputMessageContext) {
       currentMessage.userInputMessage.userInputMessageContext = {};
     }
-    currentMessage.userInputMessage.userInputMessageContext.tools = tools.map((t) => {
-      const name = t.function?.name || t.name;
-      const description = t.function?.description || t.description || `Tool: ${name}`;
-      return {
-        toolSpecification: {
-          name,
-          description,
-          inputSchema: {
-            json: normalizeKiroToolSchema(
-              t.function?.parameters || t.parameters || t.input_schema || {}
-            ),
-          },
-        },
-      };
-    });
+    const built = buildKiroToolSpecs(tools);
+    currentMessage.userInputMessage.userInputMessageContext.tools = built.specs;
+    if (built.docs) toolDocs = built.docs;
     toolsAttached = true;
   }
 
@@ -577,7 +599,7 @@ function convertMessages(messages, tools, model) {
     alternatingHistory.push(item);
   }
 
-  return { history: alternatingHistory, currentMessage, toolsAttached };
+  return { history: alternatingHistory, currentMessage, toolsAttached, toolDocs };
 }
 
 /** Kiro's accepted reasoning-effort levels (`output_config.effort`). */
@@ -723,7 +745,7 @@ export function buildKiroPayload(model, body, stream, credentials) {
     }
   }
 
-  const { history, currentMessage, toolsAttached } = convertMessages(
+  const { history, currentMessage, toolsAttached, toolDocs } = convertMessages(
     messages,
     tools,
     normalizedModel
@@ -735,8 +757,10 @@ export function buildKiroPayload(model, body, stream, credentials) {
   const timestamp = new Date().toISOString();
   finalContent = `[Context: Current time is ${timestamp}]\n\n${finalContent}`;
 
-  // Prepend tool documentation for tools with long descriptions (moved from toolSpecification)
-  const toolDocs = (currentMessage as { _toolDocs?: string } | null)?._toolDocs;
+  // Prepend documentation for tools whose description was relocated out of
+  // `toolSpecification` (see buildKiroToolSpecs). Driven by convertMessages'
+  // return value, not the message object, so the docs survive the tool-bearing
+  // turn being moved into `history` on a multi-turn request.
   if (toolDocs) {
     finalContent = `# Tool Documentation\n\n${toolDocs}\n\n---\n\n${finalContent}`;
   }
@@ -763,6 +787,7 @@ export function buildKiroPayload(model, body, stream, credentials) {
       topP?: number;
     };
     additionalModelRequestFields?: {
+      reasoning?: { effort: string };
       thinking?: { type: string; display?: string };
       output_config?: { effort: string };
       max_tokens?: number;
@@ -847,29 +872,43 @@ export function buildKiroPayload(model, body, stream, credentials) {
   //      thinking:{type:"adaptive"} + a clamped max_tokens), forwarded to AWS by
   //      the Kiro executor's transformRequest allowlist — the graded effort lever,
   //      gated on Kiro's adaptive-thinking allowlist (#6576), not supportsReasoning().
+  // GPT-5.6 models use the native `reasoning:{effort}` field instead. They must
+  // not receive the Claude `output_config`/`thinking` envelope: Kiro rejects it
+  // as an unknown field for the GPT-5.6 family.
   const requestedEffort = resolveKiroEffort(body) || (modelRequestsThinking ? "high" : "");
-  const kiroEffort = supportsKiroAdaptiveThinking(normalizedModel) ? requestedEffort : "";
+  const usesNativeReasoning = supportsKiroNativeReasoning(normalizedModel);
+  const usesAdaptiveThinking = supportsKiroAdaptiveThinking(normalizedModel);
+  const kiroEffort = usesNativeReasoning || usesAdaptiveThinking ? requestedEffort : "";
   if (kiroEffort) {
-    // `<thinking_mode>` / `<max_thinking_length>` are Kiro/CodeWhisperer prompt
-    // conventions (NOT Anthropic API params); the length is a soft hint (the hard
-    // enable signal is `<thinking_mode>`), clamped to the model's thinking cap.
-    const thinkingLength = capThinkingBudget(normalizedModel, thinkingLengthForEffort(kiroEffort));
-    const directive =
-      `<thinking_mode>enabled</thinking_mode>` +
-      `<max_thinking_length>${thinkingLength}</max_thinking_length>`;
-    payload.conversationState.currentMessage.userInputMessage.content = `${directive}\n\n${payload.conversationState.currentMessage.userInputMessage.content}`;
-
     const fields: {
-      output_config: { effort: string };
-      thinking: { type: string; display: string };
+      reasoning?: { effort: string };
+      output_config?: { effort: string };
+      thinking?: { type: string; display: string };
       max_tokens?: number;
-    } = {
-      output_config: { effort: kiroEffort },
-      thinking: { type: "adaptive", display: "summarized" },
-    };
+    } = usesNativeReasoning
+      ? { reasoning: { effort: kiroEffort } }
+      : {
+          output_config: { effort: kiroEffort },
+          thinking: { type: "adaptive", display: "summarized" },
+        };
+
+    if (usesAdaptiveThinking) {
+      // `<thinking_mode>` / `<max_thinking_length>` are Kiro/CodeWhisperer prompt
+      // conventions (NOT Anthropic API params); the length is a soft hint (the hard
+      // enable signal is `<thinking_mode>`), clamped to the model's thinking cap.
+      const thinkingLength = capThinkingBudget(
+        normalizedModel,
+        thinkingLengthForEffort(kiroEffort)
+      );
+      const directive =
+        `<thinking_mode>enabled</thinking_mode>` +
+        `<max_thinking_length>${thinkingLength}</max_thinking_length>`;
+      payload.conversationState.currentMessage.userInputMessage.content = `${directive}\n\n${payload.conversationState.currentMessage.userInputMessage.content}`;
+    }
+
     // Forward max_tokens only when the client set one, clamped to the model's
     // output window (floor 1024) — matches pi-kiro and avoids an over-budget reject.
-    if (maxTokens > 0) {
+    if (usesAdaptiveThinking && maxTokens > 0) {
       const capped = capMaxOutputTokens(normalizedModel, maxTokens) ?? maxTokens;
       fields.max_tokens = Math.max(Math.floor(capped), 1024);
     }

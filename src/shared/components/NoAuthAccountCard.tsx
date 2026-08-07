@@ -19,6 +19,8 @@ interface NoAuthAccountCardProps {
   savingEnabled?: boolean;
   onEnabledChange?: (enabled: boolean) => void;
   providerProxyControl?: ReactNode;
+  showManualKeyInput?: boolean;
+  onManualApiKeyAdd?: (apiKey: string) => Promise<void>;
 }
 
 interface Connection {
@@ -99,6 +101,7 @@ export default function NoAuthAccountCard({
   savingEnabled = false,
   onEnabledChange,
   providerProxyControl,
+  onManualApiKeyAdd,
 }: NoAuthAccountCardProps) {
   const t = useTranslations("noAuthProvider");
   const resolvedDescription = description || t("accountDescription");
@@ -116,6 +119,9 @@ export default function NoAuthAccountCard({
   const [proxyUsername, setProxyUsername] = useState("");
   const [proxyPassword, setProxyPassword] = useState("");
   const [savingProxy, setSavingProxy] = useState(false);
+  const [manualApiKey, setManualApiKey] = useState("");
+  const [addingManualKey, setAddingManualKey] = useState(false);
+  const [showManualKeyInput, setShowManualKeyInput] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
   const fetchConnections = useCallback(async () => {
@@ -209,6 +215,23 @@ export default function NoAuthAccountCard({
       console.error("Failed to add account:", err);
     } finally {
       setAdding(false);
+    }
+  };
+
+   const handleAddManualApiKey = async () => {
+    if (!manualApiKey.trim()) return;
+    setAddingManualKey(true);
+    try {
+      if (onManualApiKeyAdd) {
+        await onManualApiKeyAdd(manualApiKey.trim());
+      }
+      setManualApiKey("");
+      setShowManualKeyInput(false);
+      await fetchConnections();
+    } catch (err) {
+      console.error("Failed to add manual API key:", err);
+    } finally {
+      setAddingManualKey(false);
     }
   };
 
@@ -375,6 +398,45 @@ export default function NoAuthAccountCard({
             <Button size="sm" icon="add" onClick={handleAddAccount} disabled={adding || !enabled}>
               {adding ? t("adding") : resolvedAddLabel}
             </Button>
+            {showManualKeyInput && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="password"
+                  value={manualApiKey}
+                  onChange={(e) => setManualApiKey(e.target.value)}
+                  placeholder="Paste API key..."
+                  className="rounded-md border border-black/10 bg-bg px-2 py-1 text-xs dark:border-white/10"
+                  disabled={addingManualKey || !enabled}
+                />
+                <Button
+                  size="sm"
+                  icon="add"
+                  onClick={handleAddManualApiKey}
+                  disabled={addingManualKey || !manualApiKey.trim() || !enabled}
+                >
+                  {addingManualKey ? t("adding") : t("add")}
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowManualKeyInput(false);
+                    setManualApiKey("");
+                  }}
+                  className="rounded p-1 text-text-muted hover:bg-black/5 dark:hover:bg-white/5"
+                >
+                  <span className="material-symbols-outlined text-[16px]">close</span>
+                </button>
+              </div>
+            )}
+            {!showManualKeyInput && onManualApiKeyAdd && (
+              <button
+                type="button"
+                onClick={() => setShowManualKeyInput(true)}
+                className="rounded-md px-2 py-1 text-xs text-text-muted transition-colors hover:bg-black/5 hover:text-text-main dark:hover:bg-white/5"
+              >
+                {t("manualApiKey")}
+              </button>
+            )}
           </div>
         </div>
 
@@ -541,12 +603,14 @@ export default function NoAuthAccountCard({
                 )}
                 <div className="flex justify-end gap-2 pt-1">
                   <button
+                    type="button"
                     onClick={() => setProxyAccountId(null)}
                     className="rounded-md px-3 py-1.5 text-xs text-text-muted transition-colors hover:bg-black/5 hover:text-text-main dark:hover:bg-white/5"
                   >
                     {t("cancel")}
                   </button>
                   <button
+                    type="button"
                     onClick={handleSaveProxy}
                     disabled={savingProxy}
                     className="rounded-md bg-primary/10 px-3 py-1.5 text-xs text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"

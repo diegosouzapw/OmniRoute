@@ -1,0 +1,1 @@
+- fix(ci): include combo-matrix tests in test-integration job (#9531)

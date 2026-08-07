@@ -37,6 +37,13 @@
  */
 
 import crypto from "node:crypto";
+import {
+  deleteAllCcrBlocks,
+  deleteCcrBlockRow,
+  loadCcrBlock,
+  persistCcrBlock,
+  touchCcrBlock,
+} from "../../../../../src/lib/db/ccrBlocks.ts";
 import { createCompressionStats } from "../../stats.ts";
 import { queryBlock, type CcrQuery } from "./ccrQuery.ts";
 import { injectCcrProtocolInstruction } from "./protocolInstruction.ts";
@@ -61,7 +68,12 @@ const RETRIEVAL_THRESHOLD = 3;
  * ramp (only the >= threshold cliff remains — the legacy binary behavior).
  */
 const RETRIEVAL_RAMP_FACTOR_DEFAULT = 2;
-/** Maximum number of entries in the principal-scoped, LRU-ordered store. */
+/**
+ * Maximum number of entries in the LRU-ordered store, across every principal. The store
+ * is keyed per principal, but this cap is not: the only per-principal cap is
+ * `MAX_CCR_PRINCIPAL_BYTES`. Eviction under this cap takes the storing principal's own
+ * blocks first (see `enforceGlobalBudget`).
+ */
 export const MAX_CCR_ENTRIES = 5_000;
 export const MAX_CCR_BLOCK_BYTES = 2 * 1024 * 1024;
 export const MAX_CCR_PRINCIPAL_BYTES = 16 * 1024 * 1024;
@@ -105,6 +117,12 @@ export type StoreCcrBlockResult =
       reason: "block_too_large" | "principal_budget_exceeded" | "global_budget_exceeded";
     };
 
+export function isCcrStoreRejection(
+  result: StoreCcrBlockResult
+): result is Extract<StoreCcrBlockResult, { stored: false }> {
+  return result.stored === false;
+}
+
 export interface CcrStoreStats {
   storage: "memory";
   entries: number;
@@ -143,6 +161,151 @@ const ANON = "__anon__";
 
 function buildStoreKey(hash: string, principalId?: string): string {
   return `${principalId ?? ANON} ${hash}`;
+}
+
+// ─── durable second tier (#9061) ──────────────────────────────────────────────
+
+/**
+ * The map above is the hot cache. It loses entries to cross-principal LRU eviction, to
+ * the TTL, to restarts, and to a retrieve landing on another instance, while
+ * `fidelityGateStep` waives fidelity checks for sampling engines on the grounds that
+ * their drop is "CCR-recoverable", and the protocol instruction promises the model a
+ * verbatim block. These helpers put the block on disk so that promise survives.
+ *
+ * Every one of them is best-effort: a store without a usable database (compression
+ * preview, unit tests, a read-only volume) degrades to today's in-memory behaviour
+ * rather than failing the request.
+ *
+ * Three guards keep this from changing what the deployment stores at rest more than it
+ * has to. They follow the call-log artifact path, which faced the same question:
+ *
+ *   1. Blocks over `MAX_DURABLE_BLOCK_BYTES` stay memory-only. `MAX_CCR_BLOCK_BYTES` is
+ *      2 MB, and 5,000 of those would be 10 GB of prompt text in SQLite. 512 KB is the
+ *      ceiling #1647 already set on call artifacts for this exact reason.
+ *   2. No durable tier on a cloud runtime, which has no local disk to write to.
+ *   3. `COMPRESSION_CCR_DURABLE_STORE=false` turns it off. The content is prompt text, and an
+ *      operator who does not want that on disk needs a switch that is not a rebuild.
+ *
+ * The switch defaults to on because the model is already told, by the CCR protocol
+ * instruction, that it can retrieve the block verbatim. Leaving it off by default would
+ * keep that promise hollow for everyone who never reads this file.
+ */
+const MAX_DURABLE_BLOCK_BYTES = 512 * 1024;
+
+/** Matches the detection call-log artifacts use (`callLogArtifacts.ts`). */
+const isCloudRuntime = typeof globalThis.caches === "object" && globalThis.caches !== null;
+
+function durableTierEnabled(): boolean {
+  return !isCloudRuntime && process.env.COMPRESSION_CCR_DURABLE_STORE !== "false";
+}
+
+const loggedDurableErrors = new Set<string>();
+
+function warnDurableError(operation: string, error: unknown): void {
+  if (process.env.NODE_ENV === "test") return;
+  if (loggedDurableErrors.has(operation)) return;
+  if (loggedDurableErrors.size >= 20) {
+    const first = loggedDurableErrors.values().next().value;
+    if (first !== undefined) loggedDurableErrors.delete(first);
+  }
+  loggedDurableErrors.add(operation);
+  const message = error instanceof Error ? error.message : String(error);
+  console.warn(`[ccr] durable ${operation} failed: ${message}`);
+}
+
+/**
+ * Writes are deferred off the request path. Measured on this repo, a synchronous
+ * `persistCcrBlock` costs 0.032 ms at the 600-char minimum block but 1.77 ms at 500 KB,
+ * past the 1 ms this engine declares in its metadata, and roughly 7x the sha256 it
+ * already pays over the same bytes. The block is in the map before the defer runs, so an
+ * in-process retrieve never waits for the disk; only a crash inside that tick loses the
+ * durable copy, and the client's next request re-stores it under the same hash.
+ *
+ * Persist and delete share this queue so they cannot reorder: `setImmediate` is FIFO, and
+ * a delete that overtook its own persist would resurrect the block it just removed.
+ */
+const MAX_PENDING_DURABLE_WRITES = 1_000;
+let pendingDurableWrites = 0;
+let droppedDurableWrites = 0;
+
+function deferDurable(operation: string, work: () => void, droppable = false): void {
+  // Backpressure. A burst faster than SQLite drains would otherwise queue without bound
+  // and hold every block's content live in the closure. Dropping a persist is safe: the
+  // block is still in the map, and the client re-stores it under the same hash on its
+  // next request. Deletes are never dropped, or a deleted block would come back.
+  if (droppable && pendingDurableWrites >= MAX_PENDING_DURABLE_WRITES) {
+    droppedDurableWrites++;
+    return;
+  }
+  pendingDurableWrites++;
+  setImmediate(() => {
+    pendingDurableWrites--;
+    try {
+      work();
+    } catch (error) {
+      warnDurableError(operation, error);
+    }
+  });
+}
+
+function persistEntry(entry: CcrEntry): void {
+  if (!durableTierEnabled()) return;
+  if (entry.bytes > MAX_DURABLE_BLOCK_BYTES) return;
+  const snapshot = { ...entry };
+  deferDurable("persist", () => persistCcrBlock(snapshot), true);
+}
+
+function forgetEntry(hash: string, principalId: string): void {
+  if (!durableTierEnabled()) return;
+  deferDurable("delete", () => deleteCcrBlockRow(principalId, hash));
+}
+
+/**
+ * Read a block the map no longer holds and put it back in the map, so the LRU/byte
+ * accounting keeps working from there. Returns null when there is no durable row, which
+ * is also what a missing database looks like.
+ */
+function rehydrateEntry(hash: string, principalId: string, now: number): CcrEntry | null {
+  if (!durableTierEnabled()) return null;
+  let row: ReturnType<typeof loadCcrBlock>;
+  try {
+    row = loadCcrBlock(principalId, hash, now);
+  } catch (error) {
+    warnDurableError("load", error);
+    return null;
+  }
+  if (!row) return null;
+
+  const entry: CcrEntry = {
+    hash: row.hash,
+    principalId: row.principalId,
+    content: row.content,
+    bytes: row.bytes,
+    chars: row.chars,
+    lines: row.lines,
+    contentType: row.contentType,
+    source: row.source as CcrEntrySource,
+    createdAt: row.createdAt,
+    lastAccessedAt: now,
+    expiresAt: row.expiresAt,
+  };
+
+  // Re-admit through the same budgets a fresh store would face. If the block no longer
+  // fits, it stays on disk and is served straight from the row instead of being cached.
+  const { principalId: owner, bytes } = entry;
+  if (enforcePrincipalBudget(owner, bytes) && enforceGlobalBudget(owner, bytes)) {
+    const key = buildStoreKey(hash, principalId === ANON ? undefined : principalId);
+    ccrStore.set(key, entry);
+    ccrTotalBytes += entry.bytes;
+    principalBytesMap.set(entry.principalId, principalBytes(entry.principalId) + entry.bytes);
+  }
+
+  try {
+    touchCcrBlock(entry.principalId, hash, now);
+  } catch (error) {
+    warnDurableError("touch", error);
+  }
+  return entry;
 }
 
 function readLifecycleCounters(principalId: string): CcrLifecycleCounters {
@@ -192,7 +355,12 @@ function removeEntry(key: string, reason?: "expired" | "capacity"): boolean {
   if (remainingPrincipalBytes === 0) principalBytesMap.delete(entry.principalId);
   else principalBytesMap.set(entry.principalId, remainingPrincipalBytes);
   const counters = mutableLifecycleCounters(entry.principalId);
-  if (reason === "expired") counters.expiredEvictions++;
+  if (reason === "expired") {
+    counters.expiredEvictions++;
+    // Expiry is the one eviction that means the block is finished. Capacity eviction is
+    // not: that block stays on disk, which is the point of the durable tier (#9061).
+    forgetEntry(entry.hash, entry.principalId);
+  }
   if (reason === "capacity") counters.capacityEvictions++;
   return true;
 }
@@ -257,12 +425,30 @@ function enforcePrincipalBudget(owner: string, bytes: number): boolean {
   return principalBytes(owner) + bytes <= MAX_CCR_PRINCIPAL_BYTES;
 }
 
-function enforceGlobalBudget(bytes: number): boolean {
-  while (
-    (ccrStore.size >= MAX_CCR_ENTRIES || ccrTotalBytes + bytes > MAX_CCR_GLOBAL_BYTES) &&
-    evictOldestMatching(() => true)
-  ) {
-    // Enforce both entry and global byte caps with LRU eviction.
+/**
+ * Enforce the entry and global byte caps, giving up the storing principal's own
+ * least-recently-used blocks before anyone else's.
+ *
+ * The caps here are global while the only per-principal cap is `MAX_CCR_PRINCIPAL_BYTES`,
+ * so nothing bounds a principal's entry *count*. Blocks start at `DEFAULT_MIN_CHARS`, so
+ * 5,000 of them is around 3 MB, under a fifth of one principal's 16 MB byte allowance,
+ * and enough to exhaust the shared entry budget on its own. Evicting the globally oldest
+ * entry from there took a block from whoever had been quiet longest, because LRU keeps
+ * promoting the busy principal's own entries to the tail.
+ *
+ * Preferring `owner` keeps the global bound exactly as strict and makes a principal pay
+ * for its own pressure first. Falling back to any principal preserves the previous
+ * behaviour for the case that actually needs it: a newcomer storing into a store held
+ * entirely by others, which would otherwise never fit.
+ */
+function enforceGlobalBudget(owner: string, bytes: number): boolean {
+  const overBudget = () =>
+    ccrStore.size >= MAX_CCR_ENTRIES || ccrTotalBytes + bytes > MAX_CCR_GLOBAL_BYTES;
+
+  while (overBudget()) {
+    if (evictOldestMatching((entry) => entry.principalId === owner)) continue;
+    if (evictOldestMatching(() => true)) continue;
+    break;
   }
   return ccrTotalBytes + bytes <= MAX_CCR_GLOBAL_BYTES;
 }
@@ -300,7 +486,7 @@ export function tryStoreBlock(
     return rejectStore(hash, owner, "principal_budget_exceeded");
   }
 
-  if (!enforceGlobalBudget(bytes)) {
+  if (!enforceGlobalBudget(owner, bytes)) {
     return rejectStore(hash, owner, "global_budget_exceeded");
   }
 
@@ -321,6 +507,7 @@ export function tryStoreBlock(
   ccrStore.set(key, entry);
   ccrTotalBytes += bytes;
   principalBytesMap.set(owner, principalBytes(owner) + bytes);
+  persistEntry(entry);
   return { stored: true, hash, metadata: publicMetadata(entry) };
 }
 
@@ -330,7 +517,9 @@ export function storeBlock(
   options: StoreCcrBlockOptions = {}
 ): string {
   const result = tryStoreBlock(text, principalId, options);
-  if (!result.stored) throw new RangeError(`CCR store rejected block: ${result.reason}`);
+  if (isCcrStoreRejection(result)) {
+    throw new RangeError(`CCR store rejected block: ${result.reason}`);
+  }
   return result.hash;
 }
 
@@ -341,7 +530,12 @@ export function storeBlock(
 export function retrieveBlock(hash: string, principalId?: string, now = Date.now()): string | null {
   const key = buildStoreKey(hash, principalId);
   const entry = getActiveEntry(key, now);
-  if (!entry) return null;
+  if (!entry) {
+    // Miss in the hot cache is not proof the block is gone (#9061): LRU eviction, the TTL
+    // sweep, a restart, or another instance all land here while the row is still on disk.
+    const restored = rehydrateEntry(hash, principalId ?? ANON, now);
+    return restored ? restored.content : null;
+  }
   entry.lastAccessedAt = now;
   ccrStore.delete(key);
   ccrStore.set(key, entry);
@@ -404,6 +598,14 @@ export function resetCcrStore(): void {
   principalBytesMap.clear();
   ccrTotalBytes = 0;
   lifecycleByPrincipal.clear();
+  // Through the same queue as persist/delete, so a reset cannot overtake a write it was
+  // meant to clear.
+  deferDurable("reset", deleteAllCcrBlocks);
+}
+
+/** Resolves once the deferred durable writes queued so far have run. */
+export function flushCcrDurableWrites(): Promise<void> {
+  return new Promise((resolve) => setImmediate(resolve));
 }
 
 export function inspectCcrBlock(
@@ -438,7 +640,11 @@ export function listCcrBlocks(
 }
 
 export function deleteCcrBlock(hash: string, principalId?: string, _now = Date.now()): boolean {
-  return removeEntry(buildStoreKey(hash, principalId));
+  const removedFromCache = removeEntry(buildStoreKey(hash, principalId));
+  // An explicit delete must reach the durable tier too, otherwise the next retrieve
+  // rehydrates the block the caller just deleted.
+  forgetEntry(hash, principalId ?? ANON);
+  return removedFromCache;
 }
 
 export function getCcrStoreStats(principalId?: string, now = Date.now()): CcrStoreStats {

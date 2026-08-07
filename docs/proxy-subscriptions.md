@@ -1,3 +1,9 @@
+---
+title: "Operator Proxy Subscriptions (Karing-style)"
+version: 3.8.50
+lastUpdated: 2026-08-06
+---
+
 # Operator Proxy Subscriptions (Karing-style)
 
 > Feature design + implementation notes for OmniRoute's operator-level proxy
