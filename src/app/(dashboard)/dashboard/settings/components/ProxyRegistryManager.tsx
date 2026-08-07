@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { z } from "zod";
 import { Button, Card, Modal } from "@/shared/components";
@@ -52,7 +52,7 @@ const EMPTY_FORM = {
   family: "auto",
 };
 
-const BULK_IMPORT_TEMPLATE = `# Proxy Bulk Import
+const BULK_IMPORT_PLACEHOLDER = `# Proxy Bulk Import
 # ─────────────────────────────────────────────────────────────────────────────
 # FORMAT 1 — Pipe-delimited (full control):
 #   NAME|HOST|PORT|USERNAME|PASSWORD|TYPE|REGION|STATUS|NOTES
@@ -96,10 +96,23 @@ const BULK_IMPORT_TEMPLATE = `# Proxy Bulk Import
 
 export default function ProxyRegistryManager({
   onRedeployRelay,
+  showVercelRelay = false,
+  showDenoRelay = false,
+  showCloudflareRelay = false,
+  onOpenVercelRelay,
+  onOpenDenoRelay,
+  onOpenCloudflareRelay,
 }: {
   onRedeployRelay?: (proxy: ProxyItem) => void;
+  showVercelRelay?: boolean;
+  showDenoRelay?: boolean;
+  showCloudflareRelay?: boolean;
+  onOpenVercelRelay?: () => void;
+  onOpenDenoRelay?: () => void;
+  onOpenCloudflareRelay?: () => void;
 } = {}) {
   const t = useTranslations("proxyRegistry");
+  const settingsT = useTranslations("settings");
   const [items, setItems] = useState<ProxyItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -135,7 +148,7 @@ export default function ProxyRegistryManager({
   const [poolLoaded, setPoolLoaded] = useState(false);
   const [poolSaving, setPoolSaving] = useState(false);
   const [bulkImportOpen, setBulkImportOpen] = useState(false);
-  const [bulkImportText, setBulkImportText] = useState(BULK_IMPORT_TEMPLATE);
+  const [bulkImportText, setBulkImportText] = useState("");
   const [bulkImportParsed, setBulkImportParsed] = useState<ParsedProxyEntry[]>([]);
   const [bulkImportErrors, setBulkImportErrors] = useState<ParseError[]>([]);
   const [bulkImportSkipped, setBulkImportSkipped] = useState(0);
@@ -146,6 +159,32 @@ export default function ProxyRegistryManager({
     updated: number;
     failed: number;
   } | null>(null);
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [relayMenuOpen, setRelayMenuOpen] = useState(false);
+  const actionsRef = useRef<HTMLDivElement | null>(null);
+  const relayRef = useRef<HTMLDivElement | null>(null);
+
+  const showAnyRelay = showVercelRelay || showDenoRelay || showCloudflareRelay;
+
+  useEffect(() => {
+    if (!actionsOpen && !relayMenuOpen) return;
+    const onMouseDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (actionsOpen && actionsRef.current && !actionsRef.current.contains(target)) {
+        setActionsOpen(false);
+      }
+      if (relayMenuOpen && relayRef.current && !relayRef.current.contains(target)) {
+        setRelayMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, [actionsOpen, relayMenuOpen]);
+
+  const closeActions = () => {
+    setActionsOpen(false);
+    setRelayMenuOpen(false);
+  };
 
   const editingId = useMemo(() => form.id || "", [form.id]);
 
@@ -724,7 +763,7 @@ export default function ProxyRegistryManager({
   };
 
   const openBulkImport = () => {
-    setBulkImportText(BULK_IMPORT_TEMPLATE);
+    setBulkImportText("");
     setBulkImportParsed([]);
     setBulkImportErrors([]);
     setBulkImportSkipped(0);
@@ -736,49 +775,13 @@ export default function ProxyRegistryManager({
   return (
     <>
       <Card className="p-6">
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div>
+        <div className="mb-4 flex flex-col gap-3">
+          <div className="w-full min-w-0">
             <h3 className="text-lg font-semibold">{t("title")}</h3>
             <p className="text-sm text-text-muted">{t("description")}</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="secondary"
-              icon="upgrade"
-              onClick={handleMigrate}
-              loading={migrating}
-              data-testid="proxy-registry-import-legacy"
-            >
-              {t("importLegacy")}
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              icon="upload_file"
-              onClick={openBulkImport}
-              data-testid="proxy-registry-open-bulk-import"
-            >
-              {t("bulkImport")}
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              icon="account_tree"
-              onClick={() => setBulkOpen(true)}
-              data-testid="proxy-registry-open-bulk"
-            >
-              {t("bulkAssign")}
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              icon="hub"
-              onClick={openPool}
-              data-testid="proxy-registry-open-pool"
-            >
-              {t("managePool")}
-            </Button>
+          <div className="w-full border-t border-border" aria-hidden="true" />
+          <div className="flex w-full flex-wrap items-center justify-end gap-2">
             <ProxyBatchActions
               selectedCount={selectedIds.size}
               batchDeleting={batchDeleting}
@@ -788,6 +791,152 @@ export default function ProxyRegistryManager({
               onBatchActivate={handleBatchActivate}
               onAutoTestAll={handleAutoTestAll}
             />
+            <Button
+              size="sm"
+              variant="secondary"
+              icon="hub"
+              onClick={openPool}
+              data-testid="proxy-registry-open-pool"
+            >
+              {t("managePool")}
+            </Button>
+            {showAnyRelay && (
+              <div className="relative inline-flex items-center" ref={relayRef}>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  icon="rocket_launch"
+                  iconRight="expand_more"
+                  onClick={() => {
+                    setRelayMenuOpen((value) => !value);
+                    setActionsOpen(false);
+                  }}
+                  aria-haspopup="menu"
+                  aria-expanded={relayMenuOpen}
+                  data-testid="proxy-registry-deploy-relay"
+                >
+                  {settingsT("deployRelayButton")}
+                </Button>
+                {relayMenuOpen && (
+                  <div
+                    className="absolute right-0 top-full z-50 mt-1 w-56 rounded-md border border-border bg-surface p-1 shadow-xl"
+                    role="menu"
+                  >
+                    {showVercelRelay && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon="cloud_upload"
+                        fullWidth
+                        className="justify-start"
+                        onClick={() => {
+                          onOpenVercelRelay?.();
+                          closeActions();
+                        }}
+                      >
+                        {settingsT("vercelRelayButton")}
+                      </Button>
+                    )}
+                    {showDenoRelay && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon="terminal"
+                        fullWidth
+                        className="justify-start"
+                        onClick={() => {
+                          onOpenDenoRelay?.();
+                          closeActions();
+                        }}
+                      >
+                        {settingsT("denoRelayButton")}
+                      </Button>
+                    )}
+                    {showCloudflareRelay && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon="cloud"
+                        fullWidth
+                        className="justify-start"
+                        onClick={() => {
+                          onOpenCloudflareRelay?.();
+                          closeActions();
+                        }}
+                      >
+                        {settingsT("cloudflareRelayButton")}
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="relative inline-flex items-center" ref={actionsRef}>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  setActionsOpen((value) => !value);
+                  setRelayMenuOpen(false);
+                }}
+                aria-label="More actions"
+                aria-haspopup="menu"
+                aria-expanded={actionsOpen}
+                data-testid="proxy-registry-more-actions"
+              >
+                ⋯
+              </Button>
+              {actionsOpen && (
+                <div
+                  className="absolute right-0 top-full z-50 mt-1 w-56 rounded-md border border-border bg-surface p-1 shadow-xl"
+                  role="menu"
+                >
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    icon="upload_file"
+                    fullWidth
+                    className="justify-start"
+                    onClick={() => {
+                      openBulkImport();
+                      closeActions();
+                    }}
+                    data-testid="proxy-registry-open-bulk-import"
+                  >
+                    {t("bulkImport")}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    icon="upload_file"
+                    fullWidth
+                    className="justify-start"
+                    onClick={() => {
+                      handleMigrate();
+                      closeActions();
+                    }}
+                    loading={migrating}
+                    data-testid="proxy-registry-import-legacy"
+                  >
+                    {t("importLegacy")}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    icon="account_tree"
+                    fullWidth
+                    className="justify-start"
+                    onClick={() => {
+                      setBulkOpen(true);
+                      closeActions();
+                    }}
+                    data-testid="proxy-registry-open-bulk"
+                  >
+                    {t("bulkAssign")}
+                  </Button>
+                </div>
+              )}
+            </div>
             <Button
               size="sm"
               icon="add"
@@ -1322,9 +1471,10 @@ export default function ProxyRegistryManager({
           <div>
             <textarea
               data-testid="proxy-registry-bulk-import-textarea"
-              className="w-full px-3 py-2 rounded bg-bg-subtle border border-border font-mono text-xs leading-relaxed"
+              className="w-full px-3 py-2 rounded bg-bg-subtle border border-border font-mono text-xs leading-relaxed placeholder:whitespace-pre-wrap placeholder:text-text-muted/70"
               rows={14}
               value={bulkImportText}
+              placeholder={BULK_IMPORT_PLACEHOLDER}
               onChange={(e) => {
                 setBulkImportText(e.target.value);
                 setBulkImportParsedOnce(false);
