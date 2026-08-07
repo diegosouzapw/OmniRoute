@@ -7993,7 +7993,7 @@
     "renderedTokens": "Wyrenderowana strona · ≈ {tokens, number} tokenów",
     "renderedImageAlt": "Wyrenderowana gęsta strona, {width}×{height}px",
     "gatesTitle": "Kiedy się uruchamia",
-    "gatesDescription": "Fail-closed: każda bramka musi zostać zaliczona, w przeciwnym razie żądanie przechodzi nienaruszone (każde pominięcie jest rejestrowane jako <code>skip:<reason></code>).",
+    "gatesDescription": "Fail-closed: każda bramka musi zostać zaliczona, w przeciwnym razie żądanie przechodzi nienaruszone (każde pominięcie jest rejestrowane jako <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Model",

@@ -7993,7 +7993,7 @@
     "renderedTokens": "रेंडर किया गया पेज · ≈ {tokens, number} टोकन",
     "renderedImageAlt": "रेंडर किया गया सघन पेज, {width}×{height}px",
     "gatesTitle": "यह कब ट्रिगर होता है",
-    "gatesDescription": "Fail-closed: प्रत्येक गेट पास होना चाहिए, अन्यथा अनुरोध बिना किसी बदलाव के आगे बढ़ जाता है (प्रत्येक स्किप को <code>skip:<reason></code> के रूप में रिकॉर्ड किया जाता है)।",
+    "gatesDescription": "Fail-closed: प्रत्येक गेट पास होना चाहिए, अन्यथा अनुरोध बिना किसी बदलाव के आगे बढ़ जाता है (प्रत्येक स्किप को <code>skip:&lt;reason&gt;</code> के रूप में रिकॉर्ड किया जाता है)।",
     "gates": {
       "model": {
         "label": "मॉडल",

@@ -7993,7 +7993,7 @@
     "renderedTokens": "דף מרונדר · ≈ {tokens, number} טוקנים",
     "renderedImageAlt": "דף צפוף מרונדר, {width}×{height}px",
     "gatesTitle": "מתי זה מופעל",
-    "gatesDescription": "Fail-closed: כל שער חייב לעבור, אחרת הבקשה עוברת ללא שינוי (כל דילוג מתועד כ-<code>skip:<reason></code>).",
+    "gatesDescription": "Fail-closed: כל שער חייב לעבור, אחרת הבקשה עוברת ללא שינוי (כל דילוג מתועד כ-<code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "מודל",

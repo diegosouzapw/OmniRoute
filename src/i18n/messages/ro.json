@@ -7993,7 +7993,7 @@
     "renderedTokens": "Pagină randată · ≈ {tokens, number} tokeni",
     "renderedImageAlt": "Pagină densă randată, {width}×{height}px",
     "gatesTitle": "Când se declanșează",
-    "gatesDescription": "Fail-closed: fiecare poartă trebuie să treacă, altfel cererea trece neatinsă (fiecare omitere este înregistrată ca <code>skip:<reason></code>).",
+    "gatesDescription": "Fail-closed: fiecare poartă trebuie să treacă, altfel cererea trece neatinsă (fiecare omitere este înregistrată ca <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Model",

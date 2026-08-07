@@ -7993,7 +7993,7 @@
     "renderedTokens": "Renderöity sivu · ≈ {tokens, number} tokenia",
     "renderedImageAlt": "Renderöity tiheä sivu, {width}×{height}px",
     "gatesTitle": "Milloin se aktivoituu",
-    "gatesDescription": "Fail-closed: jokaisen portin on mentävä läpi, tai pyyntö pääsee läpi koskemattomana (jokainen ohitus tallennetaan muodossa <code>skip:<reason></code>).",
+    "gatesDescription": "Fail-closed: jokaisen portin on mentävä läpi, tai pyyntö pääsee läpi koskemattomana (jokainen ohitus tallennetaan muodossa <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Malli",

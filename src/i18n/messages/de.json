@@ -7993,7 +7993,7 @@
     "renderedTokens": "Gerenderte Seite · ≈ {tokens, number} Token",
     "renderedImageAlt": "Gerenderte dichte Seite, {width}×{height}px",
     "gatesTitle": "Wann es ausgelöst wird",
-    "gatesDescription": "Fail-closed: Jedes Gate muss bestanden werden, andernfalls wird die Anfrage unverändert durchgelassen (jeder Übersprung wird als <code>skip:<reason></code> erfasst).",
+    "gatesDescription": "Fail-closed: Jedes Gate muss bestanden werden, andernfalls wird die Anfrage unverändert durchgelassen (jeder Übersprung wird als <code>skip:&lt;reason&gt;</code> erfasst).",
     "gates": {
       "model": {
         "label": "Modell",

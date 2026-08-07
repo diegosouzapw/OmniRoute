@@ -7993,7 +7993,7 @@
     "renderedTokens": "صفحه رندرشده · ≈ {tokens, number} توکن",
     "renderedImageAlt": "صفحه متراکم رندرشده، {width}×{height}px",
     "gatesTitle": "زمان فعال‌سازی",
-    "gatesDescription": "Fail-closed: همه گیت‌ها باید تأیید شوند، در غیر این صورت درخواست بدون تغییر عبور می‌کند (هر رد شدن به‌صورت <code>skip:<reason></code> ثبت می‌شود).",
+    "gatesDescription": "Fail-closed: همه گیت‌ها باید تأیید شوند، در غیر این صورت درخواست بدون تغییر عبور می‌کند (هر رد شدن به‌صورت <code>skip:&lt;reason&gt;</code> ثبت می‌شود).",
     "gates": {
       "model": {
         "label": "مدل",

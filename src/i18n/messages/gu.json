@@ -7993,7 +7993,7 @@
     "renderedTokens": "રેન્ડર કરેલ પૃષ્ઠ · ≈ {tokens, number} ટોકન્સ",
     "renderedImageAlt": "રેન્ડર કરેલ ગાઢ પૃષ્ઠ, {width}×{height}px",
     "gatesTitle": "જ્યારે તે સક્રિય થાય છે",
-    "gatesDescription": "Fail-closed: દરેક ગેટ પાસ થવો આવશ્યક છે, અથવા વિનંતી યથાવત પસાર થાય છે (દરેક સ્કીપ <code>skip:<reason></code> તરીકે રેકોર્ડ થાય છે).",
+    "gatesDescription": "Fail-closed: દરેક ગેટ પાસ થવો આવશ્યક છે, અથવા વિનંતી યથાવત પસાર થાય છે (દરેક સ્કીપ <code>skip:&lt;reason&gt;</code> તરીકે રેકોર્ડ થાય છે).",
     "gates": {
       "model": {
         "label": "મોડેલ",

@@ -7993,7 +7993,7 @@
     "renderedTokens": "Página renderizada · ≈ {tokens, number} tokens",
     "renderedImageAlt": "Página densa renderizada, {width}×{height}px",
     "gatesTitle": "Quando é acionado",
-    "gatesDescription": "Falha fechada: todos os gates devem passar, ou a requisição passa inalterada (cada desvio é registrado como <code>skip:<reason></code>).",
+    "gatesDescription": "Falha fechada: todos os gates devem passar, ou a requisição passa inalterada (cada desvio é registrado como <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Modelo",

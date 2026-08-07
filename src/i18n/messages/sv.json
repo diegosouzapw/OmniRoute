@@ -7993,7 +7993,7 @@
     "renderedTokens": "Renderad sida · ≈ {tokens, number} tokens",
     "renderedImageAlt": "Renderad tät sida, {width}×{height}px",
     "gatesTitle": "När den aktiveras",
-    "gatesDescription": "Fail-closed: varje gate måste passera, annars släpps begäran igenom orörd (varje överhopp registreras som <code>skip:<reason></code>).",
+    "gatesDescription": "Fail-closed: varje gate måste passera, annars släpps begäran igenom orörd (varje överhopp registreras som <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Modell",

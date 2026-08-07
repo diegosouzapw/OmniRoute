@@ -7993,7 +7993,7 @@
     "renderedTokens": "렌더링된 페이지 · ≈ {tokens, number} 토큰",
     "renderedImageAlt": "렌더링된 조밀한 페이지, {width}×{height}px",
     "gatesTitle": "실행 시점",
-    "gatesDescription": "Fail-closed: 모든 게이트를 통과해야 하며, 그렇지 않으면 요청이 수정되지 않은 상태로 통과됩니다(각 건너뛰기는 <code>skip:<reason></code>으로 기록됨).",
+    "gatesDescription": "Fail-closed: 모든 게이트를 통과해야 하며, 그렇지 않으면 요청이 수정되지 않은 상태로 통과됩니다(각 건너뛰기는 <code>skip:&lt;reason&gt;</code>으로 기록됨).",
     "gates": {
       "model": {
         "label": "모델",

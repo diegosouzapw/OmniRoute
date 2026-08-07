@@ -7993,7 +7993,7 @@
     "renderedTokens": "レンダリングされたページ · 約 {tokens, number} トークン",
     "renderedImageAlt": "レンダリングされた高密度ページ、{width}×{height}px",
     "gatesTitle": "実行されるタイミング",
-    "gatesDescription": "フェイルクローズ：すべてのゲートを通過する必要があります。そうでない場合、リクエストは変更されずにそのまま通過します（各スキップは <code>skip:<reason></code> として記録されます）。",
+    "gatesDescription": "フェイルクローズ：すべてのゲートを通過する必要があります。そうでない場合、リクエストは変更されずにそのまま通過します（各スキップは <code>skip:&lt;reason&gt;</code> として記録されます）。",
     "gates": {
       "model": {
         "label": "モデル",

@@ -7993,7 +7993,7 @@
     "renderedTokens": "Rendered page · ≈ {tokens, number} tokens",
     "renderedImageAlt": "Rendered dense page, {width}×{height}px",
     "gatesTitle": "When it fires",
-    "gatesDescription": "Fail-closed: every gate must pass, or the request passes through untouched (each skip is recorded as <code>skip:<reason></code>).",
+    "gatesDescription": "Fail-closed: every gate must pass, or the request passes through untouched (each skip is recorded as <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Model",

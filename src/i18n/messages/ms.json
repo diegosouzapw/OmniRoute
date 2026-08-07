@@ -7993,7 +7993,7 @@
     "renderedTokens": "Halaman yang dirender · ≈ {tokens, number} token",
     "renderedImageAlt": "Halaman padat yang dirender, {width}×{height}px",
     "gatesTitle": "Apabila ia dicetuskan",
-    "gatesDescription": "Gagal-tertutup: setiap get mesti lulus, atau permintaan akan dilalui tanpa diubah (setiap langkauan direkodkan sebagai <code>skip:<reason></code>).",
+    "gatesDescription": "Gagal-tertutup: setiap get mesti lulus, atau permintaan akan dilalui tanpa diubah (setiap langkauan direkodkan sebagai <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Model",

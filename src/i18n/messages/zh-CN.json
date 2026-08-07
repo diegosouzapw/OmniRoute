@@ -7993,7 +7993,7 @@
     "renderedTokens": "渲染页面· ≈ {tokens, number} 个Token",
     "renderedImageAlt": "渲染的密集页面，{width}×{height}px",
     "gatesTitle": "触发时机",
-    "gatesDescription": "故障闭合（Fail-closed）：必须通过所有关卡，否则请求将原样透传（每次跳过均记录为 <code>skip:<reason></code>）。",
+    "gatesDescription": "故障闭合（Fail-closed）：必须通过所有关卡，否则请求将原样透传（每次跳过均记录为 <code>skip:&lt;reason&gt;</code>）。",
     "gates": {
       "model": {
         "label": "模型",

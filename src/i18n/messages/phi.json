@@ -7993,7 +7993,7 @@
     "renderedTokens": "Na-render na page · ≈ {tokens, number} na token",
     "renderedImageAlt": "Na-render na siksik na page, {width}×{height}px",
     "gatesTitle": "Kapag nag-trigger ito",
-    "gatesDescription": "Fail-closed: dapat pumasa ang bawat gate, kung hindi ay dadaan ang request nang walang bago (ang bawat paglaktaw ay naitatala bilang <code>skip:<reason></code>).",
+    "gatesDescription": "Fail-closed: dapat pumasa ang bawat gate, kung hindi ay dadaan ang request nang walang bago (ang bawat paglaktaw ay naitatala bilang <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Modelo",

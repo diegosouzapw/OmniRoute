@@ -7993,7 +7993,7 @@
     "renderedTokens": "Renderelt oldal · ≈ {tokens, number} token",
     "renderedImageAlt": "Renderelt sűrű oldal, {width}×{height}px",
     "gatesTitle": "Mikor aktiválódik",
-    "gatesDescription": "Fail-closed: minden kapunak sikeresnek kell lennie, különben a kérés érintetlenül megy át (minden kihagyás <code>skip:<reason></code> formában kerül rögzítésre).",
+    "gatesDescription": "Fail-closed: minden kapunak sikeresnek kell lennie, különben a kérés érintetlenül megy át (minden kihagyás <code>skip:&lt;reason&gt;</code> formában kerül rögzítésre).",
     "gates": {
       "model": {
         "label": "Modell",

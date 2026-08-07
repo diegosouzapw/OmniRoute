@@ -7993,7 +7993,7 @@
     "renderedTokens": "Trang đã kết xuất · ≈ {tokens, number} token",
     "renderedImageAlt": "Trang nội dung dày đặc đã kết xuất, {width}×{height}px",
     "gatesTitle": "Điều kiện kích hoạt",
-    "gatesDescription": "Đóng khi không đạt: mọi điều kiện đều phải đạt, nếu không yêu cầu sẽ được chuyển tiếp nguyên trạng (mỗi lần bỏ qua được ghi là <code>skip:<reason></code>).",
+    "gatesDescription": "Đóng khi không đạt: mọi điều kiện đều phải đạt, nếu không yêu cầu sẽ được chuyển tiếp nguyên trạng (mỗi lần bỏ qua được ghi là <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Mô hình",

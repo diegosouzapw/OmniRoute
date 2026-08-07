@@ -7993,7 +7993,7 @@
     "renderedTokens": "Página renderizada · ≈ {tokens, number} tokens",
     "renderedImageAlt": "Página densa renderizada, {width}×{height}px",
     "gatesTitle": "Cuándo se activa",
-    "gatesDescription": "Cierre por fallo: cada filtro debe pasar, o la solicitud pasa sin cambios (cada omisión se registra como <code>skip:<reason></code>).",
+    "gatesDescription": "Cierre por fallo: cada filtro debe pasar, o la solicitud pasa sin cambios (cada omisión se registra como <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Modelo",

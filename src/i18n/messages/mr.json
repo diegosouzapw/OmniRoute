@@ -7993,7 +7993,7 @@
     "renderedTokens": "रेंडर केलेले पेज · ≈ {tokens, number} टोकन्स",
     "renderedImageAlt": "रेंडर केलेले दाट पेज, {width}×{height}px",
     "gatesTitle": "हे कधी ट्रिगर होते",
-    "gatesDescription": "Fail-closed: प्रत्येक गेट पास होणे आवश्यक आहे, अन्यथा विनंतीमध्ये कोणताही बदल न होता ती पुढे जाते (प्रत्येक वगळणे <code>skip:<reason></code> म्हणून नोंदवले जाते).",
+    "gatesDescription": "Fail-closed: प्रत्येक गेट पास होणे आवश्यक आहे, अन्यथा विनंतीमध्ये कोणताही बदल न होता ती पुढे जाते (प्रत्येक वगळणे <code>skip:&lt;reason&gt;</code> म्हणून नोंदवले जाते).",
     "gates": {
       "model": {
         "label": "मॉडेल",

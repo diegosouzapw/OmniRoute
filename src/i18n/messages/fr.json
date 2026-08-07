@@ -7993,7 +7993,7 @@
     "renderedTokens": "Page générée · ≈ {tokens, number} tokens",
     "renderedImageAlt": "Page dense générée, {width}×{height}px",
     "gatesTitle": "Quand il se déclenche",
-    "gatesDescription": "Sécurisé par défaut (fail-closed) : chaque barrière doit être franchie, sinon la requête passe sans modification (chaque omission est enregistrée sous <code>skip:<reason></code>).",
+    "gatesDescription": "Sécurisé par défaut (fail-closed) : chaque barrière doit être franchie, sinon la requête passe sans modification (chaque omission est enregistrée sous <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Modèle",

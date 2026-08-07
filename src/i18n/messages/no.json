@@ -7993,7 +7993,7 @@
     "renderedTokens": "Rendret side · ≈ {tokens, number} tokens",
     "renderedImageAlt": "Rendret tett side, {width}×{height}px",
     "gatesTitle": "Når den utløses",
-    "gatesDescription": "Fail-closed: alle porter må passere, ellers slipper forespørselen gjennom uberørt (hvert hopp registreres som <code>skip:<reason></code>).",
+    "gatesDescription": "Fail-closed: alle porter må passere, ellers slipper forespørselen gjennom uberørt (hvert hopp registreres som <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Modell",

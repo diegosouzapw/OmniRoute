@@ -7993,7 +7993,7 @@
     "renderedTokens": "Vykreslená stránka · ≈ {tokens, number} tokenů",
     "renderedImageAlt": "Vykreslená hustá stránka, {width}×{height}px",
     "gatesTitle": "Kdy se aktivuje",
-    "gatesDescription": "Fail-closed: každá kontrola musí projít, jinak požadavek projde beze změny (každé přeskočení se zaznamená jako <code>skip:<reason></code>).",
+    "gatesDescription": "Fail-closed: každá kontrola musí projít, jinak požadavek projde beze změny (každé přeskočení se zaznamená jako <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Model",

@@ -7993,7 +7993,7 @@
     "renderedTokens": "Pagina renderizzata · ≈ {tokens, number} token",
     "renderedImageAlt": "Pagina densa renderizzata, {width}×{height}px",
     "gatesTitle": "Quando si attiva",
-    "gatesDescription": "Fail-closed: ogni gate deve essere superato, altrimenti la richiesta passa inalterata (ogni skip viene registrato come <code>skip:<reason></code>).",
+    "gatesDescription": "Fail-closed: ogni gate deve essere superato, altrimenti la richiesta passa inalterata (ogni skip viene registrato come <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Modello",

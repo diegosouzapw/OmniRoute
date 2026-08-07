@@ -7993,7 +7993,7 @@
     "renderedTokens": "Зрендерена сторінка · ≈ {tokens, number} токенів",
     "renderedImageAlt": "Зрендерена щільна сторінка, {width}×{height}px",
     "gatesTitle": "Коли спрацьовує",
-    "gatesDescription": "Fail-closed: кожен фільтр має бути пройдено, інакше запит проходить без змін (кожен пропуск записується як <code>skip:<reason></code>).",
+    "gatesDescription": "Fail-closed: кожен фільтр має бути пройдено, інакше запит проходить без змін (кожен пропуск записується як <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Модель",

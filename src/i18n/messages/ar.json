@@ -7993,7 +7993,7 @@
     "renderedTokens": "صفحة معروضة · ≈ {tokens, number} رمز",
     "renderedImageAlt": "صفحة كثيفة معروضة، {width}×{height} بكسل",
     "gatesTitle": "متى يتم التفعيل",
-    "gatesDescription": "الفشل المغلق: يجب أن تجتاز كل بوابة، وإلا يمر الطلب دون تغيير (يتم تسجيل كل تخطٍ كـ <code>skip:<reason></code>).",
+    "gatesDescription": "الفشل المغلق: يجب أن تجتاز كل بوابة، وإلا يمر الطلب دون تغيير (يتم تسجيل كل تخطٍ كـ <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "النموذج",

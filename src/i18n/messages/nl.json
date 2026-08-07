@@ -7993,7 +7993,7 @@
     "renderedTokens": "Gerenderde pagina · ≈ {tokens, number} tokens",
     "renderedImageAlt": "Gerenderde dichte pagina, {width}×{height}px",
     "gatesTitle": "Wanneer het activeert",
-    "gatesDescription": "Fail-closed: elke poort moet slagen, anders wordt het verzoek ongewijzigd doorgelaten (elke overslaande actie wordt geregistreerd als <code>skip:<reason></code>).",
+    "gatesDescription": "Fail-closed: elke poort moet slagen, anders wordt het verzoek ongewijzigd doorgelaten (elke overslaande actie wordt geregistreerd als <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Model",

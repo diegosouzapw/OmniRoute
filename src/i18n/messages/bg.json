@@ -7993,7 +7993,7 @@
     "renderedTokens": "Рендерирана страница · ≈ {tokens, number} токена",
     "renderedImageAlt": "Рендерирана плътна страница, {width}×{height}px",
     "gatesTitle": "Кога се задейства",
-    "gatesDescription": "Fail-closed: всяко условие трябва да бъде изпълнено, в противен случай заявката преминава непроменена (всяко пропускане се записва като <code>skip:<reason></code>).",
+    "gatesDescription": "Fail-closed: всяко условие трябва да бъде изпълнено, в противен случай заявката преминава непроменена (всяко пропускане се записва като <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Модел",

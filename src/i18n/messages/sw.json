@@ -7993,7 +7993,7 @@
     "renderedTokens": "Ukurasa uliotolewa · ≈ tokeni {tokens, number}",
     "renderedImageAlt": "Ukurasa mnene uliotolewa, {width}×{height}px",
     "gatesTitle": "Inapowashwa",
-    "gatesDescription": "Fail-closed: kila lango lazima lipite, au ombi linapita bila kuguswa (kila kuruka hurekodiwa kama <code>skip:<reason></code>).",
+    "gatesDescription": "Fail-closed: kila lango lazima lipite, au ombi linapita bila kuguswa (kila kuruka hurekodiwa kama <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Modeli",

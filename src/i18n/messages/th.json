@@ -7993,7 +7993,7 @@
     "renderedTokens": "หน้าที่เรนเดอร์แล้ว · ≈ {tokens, number} โทเค็น",
     "renderedImageAlt": "หน้าที่เรนเดอร์แบบหนาแน่น, {width}×{height}px",
     "gatesTitle": "เมื่อทำงาน",
-    "gatesDescription": "Fail-closed: ทุกเกตต้องผ่าน ไม่เช่นนั้นคำขอจะผ่านไปโดยไม่มีการเปลี่ยนแปลง (การข้ามแต่ละครั้งจะถูกบันทึกเป็น <code>skip:<reason></code>)",
+    "gatesDescription": "Fail-closed: ทุกเกตต้องผ่าน ไม่เช่นนั้นคำขอจะผ่านไปโดยไม่มีการเปลี่ยนแปลง (การข้ามแต่ละครั้งจะถูกบันทึกเป็น <code>skip:&lt;reason&gt;</code>)",
     "gates": {
       "model": {
         "label": "โมเดล",

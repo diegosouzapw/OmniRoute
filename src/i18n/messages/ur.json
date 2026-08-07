@@ -7993,7 +7993,7 @@
     "renderedTokens": "رینڈر شدہ صفحہ · ≈ {tokens, number} ٹوکنز",
     "renderedImageAlt": "رینڈر شدہ گنجان صفحہ، {width}×{height}px",
     "gatesTitle": "یہ کب فعال ہوتا ہے",
-    "gatesDescription": "فیل کلوزڈ: ہر گیٹ کا پاس ہونا ضروری ہے، ورنہ درخواست بغیر کسی تبدیلی کے گزر جاتی ہے (ہر اسکپ کو <code>skip:<reason></code> کے طور پر ریکارڈ کیا جاتا ہے)۔",
+    "gatesDescription": "فیل کلوزڈ: ہر گیٹ کا پاس ہونا ضروری ہے، ورنہ درخواست بغیر کسی تبدیلی کے گزر جاتی ہے (ہر اسکپ کو <code>skip:&lt;reason&gt;</code> کے طور پر ریکارڈ کیا جاتا ہے)۔",
     "gates": {
       "model": {
         "label": "ماڈل",

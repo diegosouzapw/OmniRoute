@@ -7993,7 +7993,7 @@
     "renderedTokens": "Render edilmiş səhifə · ≈ {tokens, number} token",
     "renderedImageAlt": "Render edilmiş sıx səhifə, {width}×{height}px",
     "gatesTitle": "Nə vaxt işə düşür",
-    "gatesDescription": "Fail-closed: hər bir yoxlamadan keçilməlidir, əks halda sorğu toxunulmadan ötürülür (hər bir ötürmə <code>skip:<reason></code> kimi qeydə alınır).",
+    "gatesDescription": "Fail-closed: hər bir yoxlamadan keçilməlidir, əks halda sorğu toxunulmadan ötürülür (hər bir ötürmə <code>skip:&lt;reason&gt;</code> kimi qeydə alınır).",
     "gates": {
       "model": {
         "label": "Model",

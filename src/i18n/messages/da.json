@@ -7993,7 +7993,7 @@
     "renderedTokens": "Renderet side · ≈ {tokens, number} tokens",
     "renderedImageAlt": "Renderet tæt side, {width}×{height}px",
     "gatesTitle": "Når den udløses",
-    "gatesDescription": "Fail-closed: hver kontrol skal bestås, ellers går anmodningen igennem uberørt (hvert spring registreres som <code>skip:<reason></code>).",
+    "gatesDescription": "Fail-closed: hver kontrol skal bestås, ellers går anmodningen igennem uberørt (hvert spring registreres som <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Model",

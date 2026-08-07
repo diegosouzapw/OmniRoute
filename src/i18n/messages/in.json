@@ -7993,7 +7993,7 @@
     "renderedTokens": "Halaman terender · ≈ {tokens, number} token",
     "renderedImageAlt": "Halaman padat terender, {width}×{height}px",
     "gatesTitle": "Saat dipicu",
-    "gatesDescription": "Gagal-tertutup: setiap gerbang harus lolos, atau permintaan akan diteruskan tanpa diubah (setiap pengabaian dicatat sebagai <code>skip:<reason></code>).",
+    "gatesDescription": "Gagal-tertutup: setiap gerbang harus lolos, atau permintaan akan diteruskan tanpa diubah (setiap pengabaian dicatat sebagai <code>skip:&lt;reason&gt;</code>).",
     "gates": {
       "model": {
         "label": "Model",

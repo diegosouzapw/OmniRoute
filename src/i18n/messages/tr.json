@@ -7993,7 +7993,7 @@
     "renderedTokens": "İşlenen sayfa · ≈ {tokens, number} token",
     "renderedImageAlt": "İşlenen yoğun sayfa, {width}×{height}px",
     "gatesTitle": "Ne zaman tetiklenir",
-    "gatesDescription": "Fail-closed: her denetimden geçilmelidir, aksi takdirde istek değiştirilmeden iletilir (her atlama <code>skip:<reason></code> olarak kaydedilir).",
+    "gatesDescription": "Fail-closed: her denetimden geçilmelidir, aksi takdirde istek değiştirilmeden iletilir (her atlama <code>skip:&lt;reason&gt;</code> olarak kaydedilir).",
     "gates": {
       "model": {
         "label": "Model",
