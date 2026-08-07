@@ -8,6 +8,7 @@ import {
   extractModelTestResponseText,
   runSingleModelTest,
   resolveModelTestTimeoutMs,
+  classifyTestErrorQuota,
 } from "@/lib/api/modelTestRunner.ts";
 
 // ---------------------------------------------------------------------------
@@ -54,14 +55,16 @@ test("parseRetryAfterHeader parses an HTTP-date into a non-negative seconds delt
 });
 
 // ---------------------------------------------------------------------------
-// detectTestKind — picks the right test endpoint (chat / embeddings / rerank)
-// from the model id + custom-model metadata. Rerank must win over embedding.
+// detectTestKind — picks the right test endpoint (chat / embeddings / rerank /
+// audio-transcriptions) from the model id + custom-model metadata. Audio wins over
+// both, then rerank wins over embedding.
 // ---------------------------------------------------------------------------
 
 test("detectTestKind defaults to a plain chat test for ordinary models", () => {
   assert.deepEqual(detectTestKind("openai/gpt-4o", null), {
     isRerank: false,
     isEmbedding: false,
+    isAudioTranscription: false,
   });
 });
 
@@ -82,6 +85,7 @@ test("detectTestKind detects rerank by id and by metadata, and rerank wins over 
   assert.deepEqual(detectTestKind("jina/jina-reranker-v2", null), {
     isRerank: true,
     isEmbedding: false,
+    isAudioTranscription: false,
   });
   // apiFormat metadata drives detection even when the id is opaque
   assert.equal(detectTestKind("vendor/opaque-model", { apiFormat: "rerank" }).isRerank, true);
@@ -93,6 +97,61 @@ test("detectTestKind detects rerank by id and by metadata, and rerank wins over 
   const both = detectTestKind("vendor/rerank-embedding-hybrid", null);
   assert.equal(both.isRerank, true);
   assert.equal(both.isEmbedding, false);
+});
+
+test("detectTestKind detects audio transcription from metadata, and it wins over rerank/embedding", () => {
+  // Audio nodes are detected from metadata only — there is no id heuristic, because an
+  // OpenAI-compatible audio node commonly exposes opaque model ids (e.g. a gateway that
+  // returns GUIDs from /models).
+  assert.deepEqual(detectTestKind("vendor/opaque-model", { apiFormat: "audio-transcriptions" }), {
+    isRerank: false,
+    isEmbedding: false,
+    isAudioTranscription: true,
+  });
+  assert.equal(
+    detectTestKind("vendor/opaque-model", { supportedEndpoints: ["audio-transcriptions"] })
+      .isAudioTranscription,
+    true
+  );
+
+  // An audio node must not be probed as embedding/rerank just because its id happens to
+  // match those heuristics — otherwise the Check hits the wrong endpoint.
+  const audioLookingLikeEmbedding = detectTestKind("vendor/text-embedding-whisper", {
+    apiFormat: "audio-transcriptions",
+  });
+  assert.equal(audioLookingLikeEmbedding.isAudioTranscription, true);
+  assert.equal(audioLookingLikeEmbedding.isEmbedding, false);
+  assert.equal(audioLookingLikeEmbedding.isRerank, false);
+});
+
+test("detectTestKind falls back to the provider node's configured apiType", () => {
+  // Imported/synced models carry no per-model metadata (they come straight from the
+  // upstream /models list, often as opaque ids). The node's own apiType is then the only
+  // signal for which endpoint the Play button may probe — without it the runner defaults
+  // to chat and an audio-only node answers "All AI backends exhausted for chat".
+  const audio = detectTestKind("vendor/0123456789abcdef", null, "audio-transcriptions");
+  assert.equal(audio.isAudioTranscription, true);
+  assert.equal(audio.isEmbedding, false);
+  assert.equal(audio.isRerank, false);
+
+  const embeddings = detectTestKind("vendor/opaque-guid", null, "embeddings");
+  assert.equal(embeddings.isEmbedding, true);
+  assert.equal(embeddings.isAudioTranscription, false);
+
+  // A chat node (or no node at all) keeps the plain chat default.
+  assert.deepEqual(detectTestKind("vendor/opaque-guid", null, "chat"), {
+    isRerank: false,
+    isEmbedding: false,
+    isAudioTranscription: false,
+  });
+
+  // Per-model metadata still wins when present.
+  const modelSaysAudio = detectTestKind(
+    "vendor/opaque-guid",
+    { apiFormat: "audio-transcriptions" },
+    "chat"
+  );
+  assert.equal(modelSaysAudio.isAudioTranscription, true);
 });
 
 test("extractProviderErrorMessage includes upstream details when generic error is unhelpful", () => {
@@ -243,4 +302,76 @@ test("resolveModelTestTimeoutMs gives GitHub Phi-4 Reasoning up to 60 seconds", 
     resolveModelTestTimeoutMs("github-models", "microsoft/phi-4-reasoning", 90_000),
     90_000
   );
+});
+
+// ---------------------------------------------------------------------------
+// classifyTestErrorQuota — #9511 quota classification for Test All auto-hide.
+// Distinguishes three outcomes:
+//   1. Daily-quota exhausted → isQuota + isTransient (resets tomorrow)
+//   2. Credits/balance exhausted → isQuota only (needs top-up, not transient)
+//   3. Other errors → no quota flags (still auto-hidable)
+// ---------------------------------------------------------------------------
+
+test("classifyTestErrorQuota: credits-exhausted signals produce isQuota without isTransient", () => {
+  const creditsSignals = [
+    "insufficient_balance",
+    "insufficient balance",
+    "insufficient_quota",
+    "insufficient account balance",
+    "credits exhausted",
+    "out of credits",
+    "credit_balance_too_low",
+    "your credit balance is too low",
+    "payment required",
+    "billing_hard_limit_reached",
+    "exceeded your current quota",
+    "free tier of the model has been exhausted",
+  ];
+  for (const signal of creditsSignals) {
+    const result = classifyTestErrorQuota(signal);
+    assert.equal(result.isQuota, true, `signal="${signal}" should be isQuota`);
+    assert.equal(result.isTransient, undefined, `signal="${signal}" should NOT be isTransient`);
+  }
+});
+
+test("classifyTestErrorQuota: daily-quota signals produce isQuota + isTransient", () => {
+  const dailySignals = [
+    "today's quota has been exceeded",
+    "daily quota exhausted",
+    "Resource exhausted. Try again tomorrow.",
+  ];
+  for (const signal of dailySignals) {
+    const result = classifyTestErrorQuota(signal);
+    assert.equal(result.isQuota, true, `signal="${signal}" should be isQuota`);
+    assert.equal(result.isTransient, true, `signal="${signal}" should be isTransient`);
+  }
+});
+
+test("classifyTestErrorQuota: generic errors produce no quota flags", () => {
+  const genericErrors = [
+    "invalid model",
+    "model not found",
+    "unauthorized",
+    "forbidden",
+    "bad request",
+    "internal server error",
+  ];
+  for (const msg of genericErrors) {
+    const result = classifyTestErrorQuota(msg);
+    assert.equal(result.isQuota, undefined, `msg="${msg}" should NOT be isQuota`);
+    assert.equal(result.isTransient, undefined, `msg="${msg}" should NOT be isTransient`);
+  }
+});
+
+test("classifyTestErrorQuota: empty/null input produces no quota flags", () => {
+  assert.deepEqual(classifyTestErrorQuota(""), {});
+  assert.deepEqual(classifyTestErrorQuota("   "), {});
+});
+
+test("classifyTestErrorQuota: daily-quota wins over credits-exhausted (isTransient=true)", () => {
+  // If an error text matches both daily-quota and credits-exhausted signals,
+  // daily-quota wins — it's the more specific (transient) classification.
+  const result = classifyTestErrorQuota("daily quota exhausted, insufficient balance");
+  assert.equal(result.isQuota, true);
+  assert.equal(result.isTransient, true);
 });

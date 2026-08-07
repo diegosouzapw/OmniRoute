@@ -450,3 +450,38 @@ test("provider window costs prefer recorded USD history over repricing usage tok
   assert.equal(result.rows[0].apiKeyName, "Recorded USD Key");
   assert.equal(result.rows[0].costUsd, 17);
 });
+
+test("provider window costs aggregate many usage rows in SQL without per-row scans", async () => {
+  await localDb.updatePricing({
+    "featherless-ai": {
+      "glm-5.2": { input: 1, output: 1, cached: 0, cache_creation: 0, reasoning: 0 },
+    },
+  });
+
+  const key = await apiKeys.createApiKey("Featherless Key", "machine-featherless-agg");
+
+  for (let index = 0; index < 250; index += 1) {
+    await usageHistory.saveRequestUsage({
+      provider: "featherless-ai",
+      model: "glm-5.2",
+      connectionId: "featherless-conn",
+      apiKeyId: key.id,
+      apiKeyName: "Featherless Key",
+      tokens: { input: 1_000, output: 0 },
+      timestamp: new Date(Date.parse("2026-06-26T10:00:00.000Z") + index * 1_000).toISOString(),
+    });
+  }
+
+  const result = await getProviderWindowCostBreakdown({
+    provider: "featherless-ai",
+    connectionId: "featherless-conn",
+    now: Date.parse("2026-06-28T12:00:00.000Z"),
+  });
+
+  assert.equal(result.rows.length, 1);
+  assert.equal(result.rows[0].requests, 250);
+  assert.equal(result.rows[0].promptTokens, 250_000);
+  assert.equal(result.rows[0].costUsd, 0.25);
+  assert.equal(result.rows[0].models.length, 1);
+  assert.equal(result.rows[0].models[0].requests, 250);
+});

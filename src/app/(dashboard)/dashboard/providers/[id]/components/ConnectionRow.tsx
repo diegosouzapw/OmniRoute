@@ -71,6 +71,13 @@ export interface ConnectionRowProps {
   isCcCompatible?: boolean;
   cliproxyapiEnabled?: boolean;
   onToggleCliproxyapiMode?: (enabled?: boolean) => void;
+  /** Provider-level upstream proxy routing mode (native/CLIProxyAPI/Dario/fallback). */
+  upstreamProxyMode?: "native" | "cliproxyapi" | "dario" | "fallback";
+  upstreamProxyFallbackBackend?: "cliproxyapi" | "dario";
+  onSetUpstreamProxyMode?: (
+    mode: "native" | "cliproxyapi" | "dario" | "fallback",
+    fallbackBackend?: "cliproxyapi" | "dario"
+  ) => void;
   onRetest: () => void;
   isRetesting?: boolean;
   onEdit: () => void;
@@ -341,6 +348,9 @@ export default function ConnectionRow({
   codexGlobalServiceMode,
   isCcCompatible,
   cliproxyapiEnabled,
+  upstreamProxyMode,
+  upstreamProxyFallbackBackend,
+  onSetUpstreamProxyMode,
   isFirst,
   isLast,
   isSelected,
@@ -511,7 +521,11 @@ export default function ConnectionRow({
     ? isClaudeExtraUsageBlockEnabled("claude", connection.providerSpecificData)
     : false;
   const codexPlanLabel = getCodexPlanLabel(!!isCodex, connection.providerSpecificData);
-  const cliproxyapiDeepMode = !!cliproxyapiEnabled;
+  // #dario: this control is now a full mode selector (native/CLIProxyAPI/
+  // Dario/fallback), not a binary toggle — cliproxyapiEnabled/
+  // onToggleCliproxyapiMode are kept on the props interface for any other
+  // consumer but are no longer read here.
+  const effectiveUpstreamProxyMode = upstreamProxyMode ?? "native";
   const autoSyncEnabled = !!(connection.providerSpecificData as Record<string, unknown> | undefined)
     ?.autoSync;
 
@@ -673,21 +687,47 @@ export default function ConnectionRow({
                 </button>
               </>
             )}
-            {isCcCompatible && (
+            {/* #dario: upstream proxy routing selector. Gated on isClaude (the
+                real, built-in "claude" provider — the primary intended use
+                case for CLIProxyAPI/Dario failover) OR isCcCompatible (a
+                custom Claude-Code-protocol-compatible node). Previously this
+                only checked isCcCompatible, which never covered the built-in
+                Claude provider at all — the control was unreachable for the
+                one connection type it was actually built for. */}
+            {(isClaude || isCcCompatible) && (
               <>
                 <span className="text-text-muted/30 select-none">|</span>
-                <button
-                  onClick={() => onToggleCliproxyapiMode?.(!cliproxyapiDeepMode)}
-                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
-                    cliproxyapiDeepMode
-                      ? "bg-indigo-500/15 text-indigo-500 hover:bg-indigo-500/25"
-                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
-                  }`}
-                  title={cliproxyapiDeepMode ? t("cpaModeEnabledTitle") : t("cpaModeDisabledTitle")}
+                <select
+                  value={effectiveUpstreamProxyMode}
+                  onChange={(e) =>
+                    onSetUpstreamProxyMode?.(
+                      e.target.value as "native" | "cliproxyapi" | "dario" | "fallback"
+                    )
+                  }
+                  className="text-xs font-medium rounded px-1.5 py-0.5 border-0 bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/70 hover:text-text-muted cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/30"
+                  title="Upstream proxy routing for Claude Code traffic"
                 >
-                  <span className="material-symbols-outlined text-[13px]">swap_horiz</span>
-                  CPA {cliproxyapiDeepMode ? t("toggleOnShort") : t("toggleOffShort")}
-                </button>
+                  <option value="native">Native</option>
+                  <option value="cliproxyapi">CLIProxyAPI</option>
+                  <option value="dario">Dario</option>
+                  <option value="fallback">Fallback</option>
+                </select>
+                {effectiveUpstreamProxyMode === "fallback" && (
+                  <select
+                    value={upstreamProxyFallbackBackend ?? "cliproxyapi"}
+                    onChange={(e) =>
+                      onSetUpstreamProxyMode?.(
+                        "fallback",
+                        e.target.value as "cliproxyapi" | "dario"
+                      )
+                    }
+                    className="text-xs font-medium rounded px-1.5 py-0.5 border-0 bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/70 hover:text-text-muted cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/30"
+                    title="Fallback retry backend"
+                  >
+                    <option value="cliproxyapi">→ CLIProxyAPI</option>
+                    <option value="dario">→ Dario</option>
+                  </select>
+                )}
               </>
             )}
             {isCodex && (

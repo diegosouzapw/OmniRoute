@@ -234,6 +234,12 @@ export async function getSettings() {
     // (`:free` suffix, zero-price pricing, or FREE_MODEL_BUDGETS membership). Default
     // false preserves prior behaviour; opt-in only.
     hidePaidModels: false,
+    // #9418: Opt-in filter that hides auto/* virtual combos from the /v1/models catalog.
+    // User-defined combos are unaffected; routing still works for hidden ids sent explicitly.
+    hideAutoCombos: false,
+    // #9418: Opt-in filter that hides no-think/* gateway variants from the /v1/models catalog.
+    // Routing still works for hidden ids sent explicitly.
+    hideNoThinkVariants: false,
     // #6977: Opt-in per-connection auto-ping that warms a Codex OAuth connection's
     // quota window right after it resets, so the first real request doesn't land in
     // a cold window. `connections` maps connection id -> enabled. Default empty map

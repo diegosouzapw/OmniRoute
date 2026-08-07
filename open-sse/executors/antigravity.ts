@@ -13,6 +13,7 @@ import {
   getAntigravityOAuthUserAgent,
 } from "../services/antigravityHeaders.ts";
 import { classify429, decide429, type Decision } from "../services/antigravity429Engine.ts";
+import { lockExactModel } from "../services/accountFallback.ts";
 import {
   shouldRetryWithCredits,
   shouldUseCreditsFirst,
@@ -1424,6 +1425,7 @@ export class AntigravityExecutor extends BaseExecutor {
     const {
       response,
       url,
+      model,
       headers,
       transformedBody,
       credentials,
@@ -1443,10 +1445,9 @@ export class AntigravityExecutor extends BaseExecutor {
       // 1. Try to parse explicit retry time from message
       const parsedRetryMs = this.parseRetryFromErrorMessage(errorMessage);
 
-      // 2. Classify 429, then decide the final retry time BEFORE the credits
-      //    retry so that full_quota_exhausted can skip the credits attempt
-      //    entirely (avoids ~41s hold on an already-exhausted account) and
-      //    persist the cooldown to DB for post-restart routing.
+      // 2. Classify 429, then decide the final retry time BEFORE the credits retry so
+      //    full_quota_exhausted can skip the credits attempt entirely (avoids ~41s hold
+      //    on an already-exhausted account) and locks only this exact model.
       const category = classify429(errorMessage);
       const decision: Decision = decide429(category, parsedRetryMs);
       const retryMs = decision.retryAfterMs;
@@ -1460,10 +1461,9 @@ export class AntigravityExecutor extends BaseExecutor {
         !creditsRetryState.attempted &&
         shouldRetryWithCredits(credentials?.accessToken || "", creditsMode);
 
-      // Retry mode gets one credits attempt before the account cooldown is persisted.
-      // All other full-quota paths fail closed immediately.
+      // Retry mode gets one credits attempt before the exact-model lock is persisted.
       if (decision.kind === "full_quota_exhausted" && retryMs && !creditsRetryEligible) {
-        markConnectionQuotaExhausted(accountId, retryMs);
+        lockExactModel(this.provider, accountId, model, "quota_exhausted", retryMs);
       }
 
       if (category === "quota_exhausted" && creditsAlreadyInjected) {

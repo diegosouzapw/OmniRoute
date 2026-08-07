@@ -252,6 +252,16 @@ export function sanitizeReasoningEffortForProvider(
   const effortStr = typeof c.effort === "string" ? c.effort.toLowerCase() : "";
   const modelStr = model || "";
 
+  // Oh My Pi exposes `minimal`, while Codex's Responses API starts at `low`.
+  // Normalize every carrier before the Codex executor sends the upstream request.
+  if (provider === "codex" && effortStr === "minimal") {
+    log?.info?.(
+      "REASONING_SANITIZE",
+      `${provider}/${modelStr}: normalized reasoning_effort minimal → low`
+    );
+    return writeEffortValue(b, "low", c);
+  }
+
   const githubOptIn =
     provider === "github" && GITHUB_REASONING_EFFORT_OPT_IN_PATTERN.test(modelStr);
   const rejecting =

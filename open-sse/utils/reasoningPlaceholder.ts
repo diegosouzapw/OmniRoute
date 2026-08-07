@@ -21,6 +21,8 @@ export function isInternalReasoningPlaceholder(value: unknown): boolean {
  * real content, or streamed deltas glue together with their spaces eaten.
  */
 export function stripInternalReasoningPlaceholder(value: string): string {
+  if (!value.includes(NON_ANTHROPIC_THINKING_PLACEHOLDER)) return value;
+
   const stripped = value.replaceAll(NON_ANTHROPIC_THINKING_PLACEHOLDER, "");
   return stripped.trim() === "" ? "" : stripped;
 }

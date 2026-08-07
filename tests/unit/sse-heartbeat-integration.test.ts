@@ -103,7 +103,7 @@ test("integration: openai-chunk heartbeat is valid JSON parseable by SDKs", asyn
     const { value, done } = await readWithTimeout(reader);
     if (done) break;
     const chunk = decodeChunk(value);
-    if (chunk.startsWith("data: ") && chunk.includes("omniroute-keepalive")) {
+    if (chunk.startsWith("data: ") && chunk.includes("chatcmpl-keepalive")) {
       const jsonStr = chunk.slice(6, chunk.indexOf("\n\n"));
       const parsed = JSON.parse(jsonStr); // must not throw
       assert.equal(parsed.object, "chat.completion.chunk");

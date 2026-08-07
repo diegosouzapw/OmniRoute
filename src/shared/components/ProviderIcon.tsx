@@ -216,6 +216,7 @@ const KNOWN_SVGS = new Set([
   "trae",
   "udio",
   "uncloseai",
+  "unorouter",
   "upstage",
   "v0",
   "veoaifree-web",

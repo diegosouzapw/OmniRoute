@@ -7,19 +7,14 @@ type ClaudeMessage = {
 // Anthropic requires each user tool_result turn to immediately follow the
 // assistant turn containing the matching tool_use. OpenAI-compatible clients can
 // send intervening user text before a later role:"tool" message, so repair the
-// ordering here and drop true orphan results.
+// ordering here while preserving unmatched output for the Claude-format pass.
 export function enforceToolResultAdjacency(messages: ClaudeMessage[]): ClaudeMessage[] {
   const assistantByToolUseId = indexAssistantToolUses(messages);
   const resultsByAssistant = new Map<ClaudeMessage, ClaudeContentBlock[]>();
   const strippedMessages: ClaudeMessage[] = [];
 
   for (const msg of messages) {
-    stripAndCollectToolResults(
-      msg,
-      assistantByToolUseId,
-      resultsByAssistant,
-      strippedMessages
-    );
+    stripAndCollectToolResults(msg, assistantByToolUseId, resultsByAssistant, strippedMessages);
   }
 
   return insertAdjacentToolResults(strippedMessages, resultsByAssistant);
@@ -53,8 +48,19 @@ function stripAndCollectToolResults(
   for (const block of msg.content) {
     if (block.type !== "tool_result") {
       remainingBlocks.push(block);
-    } else {
-      collectMatchedToolResult(block, assistantByToolUseId, resultsByAssistant);
+      continue;
+    }
+
+    if (!collectMatchedToolResult(block, assistantByToolUseId, resultsByAssistant)) {
+      const toolUseId = typeof block.tool_use_id === "string" ? block.tool_use_id : "";
+      const serialized =
+        typeof block.content === "string"
+          ? block.content
+          : (JSON.stringify(block.content ?? "") ?? "");
+      remainingBlocks.push({
+        type: "text",
+        text: `[Unpaired tool result ${toolUseId || "unknown"}]\n${serialized}`,
+      });
     }
   }
 
@@ -67,16 +73,17 @@ function collectMatchedToolResult(
   block: ClaudeContentBlock,
   assistantByToolUseId: Map<string, ClaudeMessage>,
   resultsByAssistant: Map<ClaudeMessage, ClaudeContentBlock[]>
-): void {
+): boolean {
   const toolUseId = typeof block.tool_use_id === "string" ? block.tool_use_id : "";
   const assistant = toolUseId ? assistantByToolUseId.get(toolUseId) : undefined;
-  if (!assistant) return;
+  if (!assistant) return false;
 
   const grouped = resultsByAssistant.get(assistant) ?? [];
-  if (grouped.some((toolResult) => toolResult.tool_use_id === toolUseId)) return;
+  if (grouped.some((toolResult) => toolResult.tool_use_id === toolUseId)) return false;
 
   grouped.push(block);
   resultsByAssistant.set(assistant, grouped);
+  return true;
 }
 
 function insertAdjacentToolResults(

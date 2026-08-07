@@ -12,6 +12,7 @@ process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-embed-combo-reject-
 const { createCombo } = await import("../../src/lib/db/combos.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 const { createEmbeddingResponse } = await import("../../src/lib/embeddings/service.ts");
+const { mergeModelCompatOverride } = await import("../../src/lib/db/models.ts");
 
 test.after(() => {
   // Release the SQLite handle so the native test runner can exit (CLAUDE.md #3).
@@ -75,4 +76,22 @@ test("createEmbeddingResponse allows a uniform-dimension embedding combo to proc
     /incompatible vector dimensions/,
     "uniform combo must not trip the dimension guard"
   );
+});
+
+test("createEmbeddingResponse excludes hidden leaves before embedding family validation and dispatch", async () => {
+  mergeModelCompatOverride("nebius", "Qwen/Qwen3-Embedding-8B", { isHidden: true });
+  await createCombo({
+    name: "partial-hidden-embeds-combo",
+    strategy: "priority",
+    models: ["nebius/Qwen/Qwen3-Embedding-8B", "openai/text-embedding-3-small"],
+  });
+
+  const res = await createEmbeddingResponse({
+    model: "partial-hidden-embeds-combo",
+    input: "hello world",
+  });
+  const body = JSON.stringify(await res.json());
+
+  assert.doesNotMatch(body, /incompatible vector dimensions/);
+  assert.doesNotMatch(body, /Qwen3-Embedding-8B/);
 });

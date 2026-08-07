@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
 import { getSettings, updateSettings } from "@/lib/localDb";
 import {
   hasManagementPasswordConfigured,
@@ -8,6 +10,24 @@ import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { getNodeRuntimeSupport } from "@/shared/utils/nodeRuntimeSupport.ts";
 import { updateRequireLoginSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+
+function getJwtSecret(): Uint8Array | null {
+  const secret = process.env.JWT_SECRET?.trim();
+  return secret ? new TextEncoder().encode(secret) : null;
+}
+
+async function checkSessionAuthenticated(): Promise<boolean> {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("auth_token")?.value;
+    const secret = getJwtSecret();
+    if (!token || !secret) return false;
+    await jwtVerify(token, secret);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 // Node.js compatibility check — reflect the supported secure runtime floors used by CLI/CI.
 function getNodeCompatibility() {
@@ -28,10 +48,12 @@ export async function GET() {
   try {
     const settings = await getSettings();
     const requireLogin = settings.requireLogin !== false;
+    const authenticated = await checkSessionAuthenticated();
     const hasPassword = hasManagementPasswordConfigured(settings);
     const setupComplete = !!settings.setupComplete;
     const oidcEnabled = !!settings.oidcEnabled;
     return NextResponse.json({
+      authenticated,
       requireLogin,
       hasPassword,
       setupComplete,
@@ -42,6 +64,7 @@ export async function GET() {
     console.error("[API] Error fetching require-login settings:", error);
     return NextResponse.json(
       {
+        authenticated: false,
         requireLogin: true,
         hasPassword: true,
         setupComplete: true,

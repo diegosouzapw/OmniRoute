@@ -323,6 +323,23 @@ function isContext1mModel(model: unknown): boolean {
   );
 }
 
+export function shouldUseMidConversationSystem(
+  body: Record<string, unknown> | null | undefined,
+  model?: string | null
+): boolean {
+  const payload = body || {};
+  const hasSystem =
+    !!payload.system &&
+    (typeof payload.system === "string" ||
+      (Array.isArray(payload.system) && payload.system.length > 0));
+  const hasTools = Array.isArray(payload.tools) && payload.tools.length > 0;
+  const effectiveModel = model ?? (typeof payload.model === "string" ? payload.model : "");
+
+  return (
+    hasSystem && hasTools && matchesModelPrefix(effectiveModel, CONTEXT_1M_BETA_MODEL_PREFIXES)
+  );
+}
+
 /**
  * Pick the anthropic-beta flag set that matches the request shape. Real CLI
  * uses three patterns: minimal probe, structured-output, and full agent.
@@ -374,8 +391,7 @@ export function selectBetaFlags(
   const isFullAgent = hasTools && hasSystem;
   const effectiveModel = model ?? (typeof b.model === "string" ? b.model : "");
   const isHeavyAgent = isFullAgent && isHeavyAgentModel(effectiveModel);
-  const isOpusAgent =
-    isFullAgent && matchesModelPrefix(effectiveModel, CONTEXT_1M_BETA_MODEL_PREFIXES);
+  const isOpusAgent = shouldUseMidConversationSystem(b, effectiveModel);
   const isContext1m = isFullAgent && isContext1mModel(effectiveModel);
 
   const flags: string[] = [];

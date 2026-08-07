@@ -10,6 +10,21 @@ import assert from "node:assert/strict";
 const { assembleStreamingPipeline } =
   await import("../../open-sse/handlers/chatCore/streamingPipeline.ts");
 
+type PipeWithDisconnectParameters = Parameters<
+  typeof import("../../open-sse/utils/streamHandler.ts").pipeWithDisconnect
+>;
+type ShapeForClientFormatParameters = Parameters<
+  typeof import("../../open-sse/utils/sseHeartbeat.ts").shapeForClientFormat
+>;
+
+function assertPipelineInputContracts(args: Parameters<typeof assembleStreamingPipeline>[0]) {
+  const providerResponse: PipeWithDisconnectParameters[0] = args.providerResponse;
+  const transformStream: PipeWithDisconnectParameters[1] = args.transformStream;
+  const streamController: PipeWithDisconnectParameters[2] = args.streamController;
+  const clientResponseFormat: ShapeForClientFormatParameters[0] = args.clientResponseFormat;
+  return { providerResponse, transformStream, streamController, clientResponseFormat };
+}
+
 // A fake stream: each pipeThrough appends the transform's tag and returns a new fake stream.
 function fakeStream(tag: string, log: string[]) {
   return {
@@ -50,6 +65,30 @@ function baseArgs(over: Record<string, unknown> = {}) {
     ...over,
   } as Parameters<typeof assembleStreamingPipeline>[0];
 }
+
+test("pipeline arguments preserve the dependency parameter contracts", () => {
+  const args = baseArgs({
+    providerResponse: new Response(),
+    transformStream: new TransformStream<Uint8Array, Uint8Array>(),
+    streamController: {
+      signal: new AbortController().signal,
+      startTime: Date.now(),
+      isConnected: () => true,
+      handleDisconnect: () => {},
+      handleComplete: () => {},
+      markClientTerminalSeen: () => {},
+      handleError: () => {},
+      abort: () => {},
+      clientResponseFormat: "openai",
+    },
+    clientResponseFormat: "openai",
+  });
+  const contracts = assertPipelineInputContracts(args);
+  assert.ok(contracts.providerResponse instanceof Response);
+  assert.ok(contracts.transformStream instanceof TransformStream);
+  assert.equal(contracts.streamController.clientResponseFormat, "openai");
+  assert.equal(contracts.clientResponseFormat, "openai");
+});
 
 test("baseline (no pii, no progress, no echo) → only heartbeat in the chain", () => {
   const { deps, log } = makeDeps();

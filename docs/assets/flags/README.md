@@ -1,3 +1,9 @@
+---
+title: "Flag icons"
+version: 3.8.50
+lastUpdated: 2026-08-06
+---
+
 # Flag icons
 
 SVG country flags used by the language selector in the root `README.md`.

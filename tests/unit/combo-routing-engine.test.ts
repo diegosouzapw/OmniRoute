@@ -187,6 +187,14 @@ test("getComboFromData and getComboModelsFromData resolve combos from array and 
   assert.deepEqual(models, ["openai/gpt-4o-mini", "claude/sonnet"]);
 });
 
+test("getComboModelsFromData strips context-window tags before matching a combo", () => {
+  const combos = [{ name: "alpha", models: ["openai/gpt-4o-mini"] }];
+
+  assert.deepEqual(getComboModelsFromData("alpha[500k]", combos), ["openai/gpt-4o-mini"]);
+  assert.deepEqual(getComboModelsFromData("alpha[1M]", combos), ["openai/gpt-4o-mini"]);
+  assert.equal(getComboModelsFromData("alpha[beta]", combos), null);
+});
+
 test("validateComboDAG rejects circular references and resolveNestedComboModels expands nested combos", () => {
   const combos = [
     { name: "root", models: ["child-a", "openai/gpt-4o-mini"] },
@@ -2310,7 +2318,11 @@ test("handleComboChat returns a 503 when every model is unavailable before execu
 
   const payload = (await result.json()) as any;
   assert.equal(result.status, 503);
-  assert.equal(payload.error.code, "ALL_ACCOUNTS_INACTIVE");
+  // isModelAvailable always false means every target is skipped by the
+  // pre-dispatch filter with zero dispatch attempts — the more precise
+  // ALL_TARGETS_SKIPPED classification, not ALL_ACCOUNTS_INACTIVE (which
+  // implies targets were attempted and their accounts found inactive).
+  assert.equal(payload.error.code, "ALL_TARGETS_SKIPPED");
 });
 
 test("handleComboChat treats provider circuit breaker responses as ordinary target failures", async () => {
@@ -2839,7 +2851,10 @@ test("handleComboChat round-robin resolves nested combos and returns inactive wh
 
   const payload = (await result.json()) as any;
   assert.equal(result.status, 503);
-  assert.equal(payload.error.code, "ALL_ACCOUNTS_INACTIVE");
+  // isModelAvailable always false means every nested target is skipped by the
+  // pre-dispatch filter with zero dispatch attempts — ALL_TARGETS_SKIPPED,
+  // not ALL_ACCOUNTS_INACTIVE (see the analogous priority-strategy test above).
+  assert.equal(payload.error.code, "ALL_TARGETS_SKIPPED");
 });
 
 test("handleComboChat round-robin treats provider circuit breaker responses as ordinary target failures", async () => {
@@ -3137,11 +3152,7 @@ test("#3587 reasoning model gets max_tokens buffer applied", async () => {
   assert.equal(result.ok, true);
   assert.equal(bodies.length, 1, "should have called handleSingleModel once");
   // #9507: buffer never enlarges an explicit client max_tokens; pass-through 4096.
-  assert.equal(
-    bodies[0].max_tokens,
-    4096,
-    "max_tokens forwarded verbatim for reasoning model (#9507)"
-  );
+  assert.equal(bodies[0].max_tokens, 4096, "max_tokens forwarded verbatim (#9507)");
 });
 
 test("#3587 reasoning buffer preserves max_tokens when the full buffer exceeds model cap", async () => {

@@ -457,9 +457,12 @@ function transformYuanbaoStream(
             if (event.type === "think" && event.content) {
               ensureRole();
               emit({ reasoning_content: event.content });
-            } else if (event.type === "text" && typeof event.msg === "string" && event.msg) {
-              ensureRole();
-              emit({ content: event.msg });
+            } else if (event.type === "text") {
+              const text = event.msg ?? event.content;
+              if (text) {
+                ensureRole();
+                emit({ content: text });
+              }
             }
           }
         }
@@ -498,7 +501,10 @@ async function collectYuanbaoResponse(
         const event = parseYuanbaoDataLine(line);
         if (!event) continue;
         if (event.type === "think" && event.content) reasoning += event.content;
-        else if (event.type === "text" && typeof event.msg === "string") content += event.msg;
+        else if (event.type === "text") {
+          const text = event.msg ?? event.content;
+          if (text) content += text;
+        }
       }
     }
   } finally {

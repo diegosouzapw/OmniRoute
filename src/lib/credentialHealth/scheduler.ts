@@ -200,7 +200,9 @@ export async function sweep(): Promise<void> {
   state.sweepInProgress = true;
 
   try {
-    // Get all provider connections (API-key + OAuth)
+    // Get active provider connections only (API-key + OAuth). Disabled
+    // connections are excluded from routing and must not consume health-check
+    // concurrency or delay the scheduler with avoidable upstream timeouts.
     let connections: Array<{
       id: string;
       provider: string;
@@ -208,7 +210,7 @@ export async function sweep(): Promise<void> {
     }>;
 
     try {
-      const raw = await getProviderConnections({});
+      const raw = await getProviderConnections({ isActive: true });
       connections = (Array.isArray(raw) ? raw : []).filter(
         (conn: any) => conn && conn.id && (conn.authType === "apikey" || conn.authType === "oauth")
       ) as Array<{

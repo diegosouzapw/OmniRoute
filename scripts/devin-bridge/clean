@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common"
+if [[ "${1:-}" == "--all" ]]; then
+  docker compose -f "$BRIDGE_COMPOSE" --profile offline --profile live-devin down \
+    --remove-orphans --volumes
+  printf 'Containers, networks, and bridge-owned named volumes were removed.\n'
+else
+  docker compose -f "$BRIDGE_COMPOSE" --profile offline --profile live-devin down \
+    --remove-orphans
+  printf 'Containers and networks stopped. Named auth/config volumes were preserved; use --all to remove them.\n'
+fi

@@ -33,6 +33,7 @@ import { getTaskFitness } from "../autoCombo/taskFitness.ts";
 import {
   calculateFactors,
   calculateScore,
+  computePoolMaxima,
   type ProviderCandidate,
   type ScoringWeights,
 } from "../autoCombo/scoring.ts";
@@ -351,6 +352,11 @@ export function scoreAutoTargets(
 ) {
   const targetByExecutionKey = new Map(targets.map((target) => [target.executionKey, target]));
   const activeCandidates = candidates.filter((candidate) => candidate.quotaCutoffBlocked !== true);
+  // Computed once per scoring pass, not per candidate — see computePoolMaxima's
+  // doc comment (scoring.ts) for the O(n^2) OOM this avoids on large auto-combo
+  // candidate pools (#OOM incident, zero-config auto combo expanding to 1000s
+  // of provider/model targets).
+  const poolMaxima = computePoolMaxima(activeCandidates as unknown as ProviderCandidate[]);
 
   return activeCandidates
     .map((candidate) => {
@@ -373,10 +379,11 @@ export function scoreAutoTargets(
       };
       const factors = calculateFactors(
         candidate as ProviderCandidate,
-        activeCandidates,
+        activeCandidates as unknown as ProviderCandidate[],
         taskType ?? "general",
         getTaskFitness,
-        manifestHint ?? undefined
+        manifestHint ?? undefined,
+        poolMaxima
       );
       let score = calculateScore(factors, weights);
       // B17: Quota Share soft-policy deprioritization
@@ -447,11 +454,16 @@ export async function expandAutoComboCandidatePool(
           .filter((p): p is string => typeof p === "string" && p.length > 0)
       ),
     ];
+    // Pre-build a Set of already-present modelStr values so candidate-pool
+    // expansion doesn't turn into O(n^2) per provider. See #OOM incident
+    // (zero-config auto combo expanding to 1000s of provider/model targets).
+    const seenModelStrs = new Set(eligibleTargets.map((t) => t.modelStr));
     for (const providerId of providerIds) {
       const providerModels = getProviderModels(providerId);
       for (const model of providerModels) {
         const modelStr = `${providerId}/${model.id}`;
-        if (!eligibleTargets.some((t) => t.modelStr === modelStr)) {
+        if (!seenModelStrs.has(modelStr)) {
+          seenModelStrs.add(modelStr);
           eligibleTargets.push({
             kind: "model",
             stepId: modelStr,

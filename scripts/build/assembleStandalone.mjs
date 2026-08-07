@@ -48,6 +48,10 @@
 import fs from "node:fs/promises";
 import fsSync from "node:fs";
 import path from "node:path";
+import {
+  colocateLlmlinguaOptionals,
+  SEED_PACKAGES,
+} from "./colocateOptionals.mjs";
 
 /**
  * Check whether a path exists (async).
@@ -736,6 +740,19 @@ export function assembleStandalone({
   // 6. Optionally copy native assets + extra modules (synchronous)
   if (copyNatives) {
     copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir);
+
+    // #9166: dynamically imported LLMLingua packages are not reliably traced
+    // into the standalone bundle. Copy their complete dependency closure from
+    // the installed root tree without overwriting packages already traced by
+    // Next.js. Include transformers here so its ONNX runtime closure is also
+    // guaranteed in Docker/standalone builds.
+    colocateLlmlinguaOptionals({
+      rootDir: projectRoot,
+      targetNodeModulesDir: path.join(resolvedOutDir, "node_modules"),
+      seeds: [...SEED_PACKAGES, "@huggingface/transformers"],
+      log: (message) =>
+        console.log(`[assembleStandalone] ${message.trim()}`),
+    });
   }
 
   // 7. Optionally dereference Turbopack hashed-module symlinks so the bundle is

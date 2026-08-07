@@ -28,24 +28,13 @@ process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 const core = await import("../../src/lib/db/core.ts");
 
 // Import routes under test
-const stateRoute = await import(
-  "../../src/app/api/tools/agent-bridge/state/route.ts"
-);
-const serverRoute = await import(
-  "../../src/app/api/tools/agent-bridge/server/route.ts"
-);
-const agentsRoute = await import(
-  "../../src/app/api/tools/agent-bridge/agents/route.ts"
-);
-const agentIdRoute = await import(
-  "../../src/app/api/tools/agent-bridge/agents/[id]/route.ts"
-);
-const detectRoute = await import(
-  "../../src/app/api/tools/agent-bridge/agents/[id]/detect/route.ts"
-);
-const upstreamCaRoute = await import(
-  "../../src/app/api/tools/agent-bridge/upstream-ca/route.ts"
-);
+const stateRoute = await import("../../src/app/api/tools/agent-bridge/state/route.ts");
+const serverRoute = await import("../../src/app/api/tools/agent-bridge/server/route.ts");
+const agentsRoute = await import("../../src/app/api/tools/agent-bridge/agents/route.ts");
+const agentIdRoute = await import("../../src/app/api/tools/agent-bridge/agents/[id]/route.ts");
+const detectRoute =
+  await import("../../src/app/api/tools/agent-bridge/agents/[id]/detect/route.ts");
+const upstreamCaRoute = await import("../../src/app/api/tools/agent-bridge/upstream-ca/route.ts");
 const routeGuard = await import("../../src/server/authz/routeGuard.ts");
 
 function resetDb() {
@@ -59,7 +48,11 @@ test.beforeEach(() => {
 });
 
 test.after(() => {
-  try { fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true }); } catch { /* noop */ }
+  try {
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  } catch {
+    /* noop */
+  }
 });
 
 // ── routeGuard classification ──────────────────────────────────────────────
@@ -80,13 +73,24 @@ test("routeGuard: /api/tools/agent-bridge/ is SPAWN_CAPABLE", () => {
 
 // ── GET /state ─────────────────────────────────────────────────────────────
 
-test("GET /state: returns server + agents shape", async () => {
+test("GET /state: returns both legacy (server/agents) and new (serverState/agentStates) keys (#8656)", async () => {
   const res = await stateRoute.GET();
   assert.equal(res.status, 200);
-  const body = await res.json() as Record<string, unknown>;
-  assert.ok("server" in body, "body.server missing");
+  const body = (await res.json()) as Record<string, unknown>;
+
+  // Legacy keys (integration test + settings/mitm depend on these)
+  assert.ok("server" in body, "body.server missing — breaks backward compat");
   assert.ok("agents" in body, "body.agents missing");
   assert.ok(Array.isArray(body.agents), "agents should be array");
+
+  // New keys (#8656 fix — what UI actually reads)
+  assert.ok("serverState" in body, "body.serverState missing");
+  assert.ok("agentStates" in body, "body.agentStates missing");
+  assert.ok(Array.isArray(body.agentStates), "agentStates should be array");
+  assert.ok("bypassPatterns" in body, "body.bypassPatterns missing");
+  assert.ok(Array.isArray(body.bypassPatterns), "bypassPatterns should be array");
+  assert.ok("mappings" in body, "body.mappings missing");
+  assert.equal(typeof body.mappings, "object", "mappings should be object");
 });
 
 test("GET /state: error responses do not leak stack traces", async () => {
@@ -107,7 +111,7 @@ test("POST /server: invalid body returns 400", async () => {
     })
   );
   assert.equal(res.status, 400);
-  const body = await res.json() as Record<string, unknown>;
+  const body = (await res.json()) as Record<string, unknown>;
   assert.ok("error" in body);
   const errMsg = (body.error as Record<string, unknown>)?.message as string;
   assert.ok(typeof errMsg === "string");
@@ -130,7 +134,7 @@ test("POST /server: missing body returns 400", async () => {
 test("GET /agents: returns agents array with expected shape", async () => {
   const res = await agentsRoute.GET();
   assert.equal(res.status, 200);
-  const body = await res.json() as { agents: unknown[] };
+  const body = (await res.json()) as { agents: unknown[] };
   assert.ok(Array.isArray(body.agents));
   assert.ok(body.agents.length >= 9, `Expected ≥9 agents, got ${body.agents.length}`);
   const first = body.agents[0] as Record<string, unknown>;
@@ -144,27 +148,25 @@ test("GET /agents: returns agents array with expected shape", async () => {
 // ── GET /agents/[id] ───────────────────────────────────────────────────────
 
 test("GET /agents/[id]: returns 404 for unknown id", async () => {
-  const res = await agentIdRoute.GET(
-    new Request("http://localhost/"),
-    { params: { id: "nonexistent-agent" } }
-  );
+  const res = await agentIdRoute.GET(new Request("http://localhost/"), {
+    params: { id: "nonexistent-agent" },
+  });
   assert.equal(res.status, 404);
-  const body = await res.json() as Record<string, unknown>;
+  const body = (await res.json()) as Record<string, unknown>;
   const errMsg = (body.error as Record<string, unknown>)?.message as string;
   assert.ok(!errMsg.includes("at /"), "stack trace leaked in 404 message");
 });
 
 test("GET /agents/[id]: returns agent detail for 'copilot'", async () => {
-  const res = await agentIdRoute.GET(
-    new Request("http://localhost/"),
-    { params: { id: "copilot" } }
-  );
+  const res = await agentIdRoute.GET(new Request("http://localhost/"), {
+    params: { id: "copilot" },
+  });
   // resolveTarget searches by hostname, not agent id directly; 'copilot' may return 404
   // if resolveTarget doesn't match by id. In current implementation resolveTarget checks hosts.
   // Acceptable: either 200 with agent or 404 — but NOT a 500.
   assert.ok(res.status === 200 || res.status === 404, `Unexpected status: ${res.status}`);
   if (res.status === 200) {
-    const body = await res.json() as Record<string, unknown>;
+    const body = (await res.json()) as Record<string, unknown>;
     assert.ok("detection" in body);
   }
 });
@@ -181,7 +183,7 @@ test("PATCH /agents/[id]: invalid body returns 400", async () => {
     { params: { id: "antigravity" } }
   );
   assert.equal(res.status, 400);
-  const body = await res.json() as Record<string, unknown>;
+  const body = (await res.json()) as Record<string, unknown>;
   const errMsg = (body.error as Record<string, unknown>)?.message as string;
   assert.ok(!errMsg.includes("at /"), "stack trace in 400 error");
 });
@@ -196,36 +198,33 @@ test("PATCH /agents/[id]: valid body persists setup_completed", async () => {
     { params: { id: "antigravity" } }
   );
   assert.equal(res.status, 200);
-  const body = await res.json() as Record<string, unknown>;
+  const body = (await res.json()) as Record<string, unknown>;
   assert.equal((body as Record<string, unknown>).ok, true);
 });
 
 // ── GET /agents/[id]/detect ────────────────────────────────────────────────
 
 test("GET /detect: returns installed:false for unknown id", async () => {
-  const res = await detectRoute.GET(
-    new Request("http://localhost/"),
-    { params: { id: "unknown-agent-xyz" } }
-  );
+  const res = await detectRoute.GET(new Request("http://localhost/"), {
+    params: { id: "unknown-agent-xyz" },
+  });
   assert.equal(res.status, 404);
 });
 
 test("GET /detect: returns detection result for valid id", async () => {
-  const res = await detectRoute.GET(
-    new Request("http://localhost/"),
-    { params: { id: "copilot" } }
-  );
+  const res = await detectRoute.GET(new Request("http://localhost/"), {
+    params: { id: "copilot" },
+  });
   assert.equal(res.status, 200);
-  const body = await res.json() as Record<string, unknown>;
+  const body = (await res.json()) as Record<string, unknown>;
   assert.ok("installed" in body);
   assert.ok(typeof body.installed === "boolean");
 });
 
 test("GET /detect: error response does not leak stack trace", async () => {
-  const res = await detectRoute.GET(
-    new Request("http://localhost/"),
-    { params: { id: "unknown-id-test" } }
-  );
+  const res = await detectRoute.GET(new Request("http://localhost/"), {
+    params: { id: "unknown-id-test" },
+  });
   const text = await res.text();
   assert.ok(!text.includes("at /"), "stack trace leaked in detect response");
 });
@@ -236,7 +235,7 @@ test("GET /upstream-ca: returns null when not configured", async () => {
   delete process.env.AGENTBRIDGE_UPSTREAM_CA_CERT;
   const res = await upstreamCaRoute.GET();
   assert.equal(res.status, 200);
-  const body = await res.json() as { path: string | null };
+  const body = (await res.json()) as { path: string | null };
   // path is either null or whatever AGENTBRIDGE_UPSTREAM_CA_CERT is set to
   assert.ok(body.path === null || typeof body.path === "string");
 });
@@ -250,7 +249,7 @@ test("POST /upstream-ca: non-existent file returns 400", async () => {
     })
   );
   assert.equal(res.status, 400);
-  const body = await res.json() as Record<string, unknown>;
+  const body = (await res.json()) as Record<string, unknown>;
   const errMsg = (body.error as Record<string, unknown>)?.message as string;
   assert.ok(!errMsg.includes("at /"), "stack trace leaked in 400 body");
 });
@@ -268,13 +267,13 @@ test("POST /upstream-ca: valid file persists path", async () => {
     })
   );
   assert.equal(res.status, 200);
-  const body = await res.json() as Record<string, unknown>;
+  const body = (await res.json()) as Record<string, unknown>;
   assert.equal(body.ok, true);
   assert.equal(body.path, tmpFile);
 
   // Verify GET returns the stored path
   const getRes = await upstreamCaRoute.GET();
-  const getBody = await getRes.json() as { path: string | null };
+  const getBody = (await getRes.json()) as { path: string | null };
   assert.equal(getBody.path, tmpFile);
 });
 

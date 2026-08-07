@@ -1,22 +1,41 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
 let tmpDir: string;
 let origHome: string | undefined;
+let origPath: string | undefined;
 
 test.before(() => {
   tmpDir = mkdtempSync(join(tmpdir(), "omniroute-tray-test-"));
   origHome = process.env.HOME;
   // Redirecionar HOME para tmpDir para isolar testes de autostart
   process.env.HOME = tmpDir;
+
+  // HOME alone does NOT isolate this test: `enable()`/`disable()` shell out to
+  // `systemctl --user enable|start` and `systemctl --user disable --now
+  // omniroute.service`, which reach the caller's real systemd bus (XDG_RUNTIME_DIR,
+  // not HOME) and therefore stopped and disabled the developer's REAL omniroute
+  // service every time this suite ran. Shadow systemctl/loginctl with failing
+  // stubs so `isSystemdUserAvailable()` is false and the systemd branch is skipped;
+  // the XDG desktop-file branch still runs and is properly isolated by HOME.
+  // Same rationale documented at length in tests/unit/cli/autostart-linux.test.ts.
+  origPath = process.env.PATH;
+  const stubBin = join(tmpDir, "stub-bin");
+  mkdirSync(stubBin, { recursive: true });
+  for (const name of ["systemctl", "loginctl"]) {
+    writeFileSync(join(stubBin, name), "#!/bin/sh\nexit 1\n", { mode: 0o755 });
+  }
+  process.env.PATH = `${stubBin}:${origPath ?? ""}`;
 });
 
 test.after(() => {
   if (origHome === undefined) delete process.env.HOME;
   else process.env.HOME = origHome;
+  if (origPath === undefined) delete process.env.PATH;
+  else process.env.PATH = origPath;
   try {
     rmSync(tmpDir, { recursive: true, force: true });
   } catch {}

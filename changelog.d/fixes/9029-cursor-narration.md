@@ -1,0 +1,1 @@
+- fix(cursor): preserve tool context across multi-turn conversations when client lacks conversation_id (#9029)

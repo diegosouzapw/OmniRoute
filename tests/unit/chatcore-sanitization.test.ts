@@ -84,9 +84,9 @@ function ensureLegacyMemoryTable() {
   `);
 }
 
-async function waitForAsyncMemoryFlush() {
-  await new Promise((resolve) => setImmediate(resolve));
-  await new Promise((resolve) => setTimeout(resolve, 10));
+async function flushAsyncSideEffects() {
+  // setImmediate rounds drain the event loop more reliably than setTimeout under CI load.
+  for (let i = 0; i < 5; i++) await new Promise((resolve) => setImmediate(resolve));
 }
 
 async function invokeChatCore({
@@ -647,7 +647,7 @@ test("chatCore does not share or persist memories when apiKeyInfo is missing", a
     },
   });
 
-  await waitForAsyncMemoryFlush();
+  await flushAsyncSideEffects();
 
   const localMemoriesResult = await listMemories({ apiKeyId: "local" });
   const localMemories = Array.isArray(localMemoriesResult)
@@ -751,7 +751,7 @@ test("chatCore extracts memories from Claude content arrays and Responses output
 
   assert.equal(responsesResult.result.success, true);
 
-  await waitForAsyncMemoryFlush();
+  await flushAsyncSideEffects();
 
   const claudeMemoriesResult = await listMemories({ apiKeyId: claudeKeyId });
   const responsesMemoriesResult = await listMemories({ apiKeyId: responsesKeyId });
@@ -819,7 +819,7 @@ test("chatCore request memory extraction for responses input ignores assistant i
 
   assert.equal(responsesResult.result.success, true);
 
-  await waitForAsyncMemoryFlush();
+  await flushAsyncSideEffects();
 
   const memoriesResult = await listMemories({ apiKeyId: responsesKeyId });
   const memories = Array.isArray(memoriesResult) ? memoriesResult : (memoriesResult.data ?? []);

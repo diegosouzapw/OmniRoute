@@ -1,0 +1,1 @@
+- fix(tests): update stale nightly compat fixtures and goldens to match current source constants (#8901)

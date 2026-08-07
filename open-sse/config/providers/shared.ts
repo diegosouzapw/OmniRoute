@@ -139,8 +139,19 @@ export interface RegistryEntry {
   clientVersion?: string;
   timeoutMs?: number;
   passthroughModels?: boolean;
+  /**
+   * Whether a non-empty synchronized live model list is exhaustive enough
+   * to reject static registry IDs that it omits.
+   *
+   * Defaults to true. Set this explicitly to false for providers whose
+   * discovery endpoint is known to return only a partial subset of the models
+   * that the provider can route.
+   */
+  liveCatalogAuthoritative?: boolean;
   /** Default context window for all models in this provider (can be overridden per-model) */
   defaultContextLength?: number;
+  /** Maximum OpenAI-compatible function name length accepted by this provider. */
+  toolNameMaxLength?: number;
   /** Optional session pool config for rate limit management */
   poolConfig?: Record<string, unknown>;
   /**
@@ -177,6 +188,12 @@ export interface RegistryEntry {
    * standard OpenAI array-shaped content untouched (see openai-responses.ts).
    */
   requiresPlainStringContent?: boolean;
+  /**
+   * Anthropic-compatible providers that omit the required `signature` field
+   * from streamed thinking block starts. The passthrough stream adds only an
+   * empty placeholder; later provider `signature_delta` events remain intact.
+   */
+  ensureThinkingSignature?: boolean;
   /**
    * Protocolos alternativos que este provedor aceita (ex.: um endpoint
    * Anthropic-compatible alem do OpenAI-compatible padrao). A conexao escolhe

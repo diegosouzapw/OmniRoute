@@ -177,56 +177,19 @@ export function extractResponsesReasoningSummaryText(item) {
     .join("\n\n");
 }
 
-// #9500 — streaming separator helper. When summary_index increments mid-stream
-// for a given item_id, a new reasoning segment begins; prefix "\n\n" so segments
-// don't arrive back-to-back. Only prefixes when a delta was already emitted for
-// the item AND the index advanced — never on the first segment.
-export function buildResponsesReasoningSummaryDelta(state, data, reasoningDelta) {
-  const itemId = data.item_id != null ? String(data.item_id) : "";
-  const summaryIndex = typeof data.summary_index === "number" ? data.summary_index : null;
-  if (!(state.reasoningSummaryIndex instanceof Map)) {
-    state.reasoningSummaryIndex = new Map();
-  }
-  const lastIndex = itemId ? state.reasoningSummaryIndex.get(itemId) : undefined;
-  const alreadyEmittedForItem = itemId
-    ? state.reasoningItemsWithDelta instanceof Set && state.reasoningItemsWithDelta.has(itemId)
-    : Boolean(state.reasoningDeltaEmitted);
-  let deltaText = reasoningDelta;
-  if (
-    summaryIndex !== null &&
-    lastIndex !== undefined &&
-    summaryIndex > lastIndex &&
-    alreadyEmittedForItem
-  ) {
-    deltaText = `\n\n${reasoningDelta}`;
-  }
-  if (itemId && (lastIndex === undefined || summaryIndex > lastIndex)) {
-    state.reasoningSummaryIndex.set(itemId, summaryIndex);
-  }
-  return deltaText;
-}
-
-// #7095/#7176 — when Codex exposes a reasoning item only as encrypted private
-// reasoning (no plaintext summary), chat clients would otherwise see nothing in
-// their thinking panel. Reconciles two goals that used to be in tension:
-//   - #7095 wants a visible placeholder in the chat client.
-//   - #7176 wants the upstream response item left untouched, so `encrypted_content`
-//     (needed by Codex for subsequent requests) is never overwritten by a
-//     fabricated `summary`.
-// This function computes the placeholder text WITHOUT mutating `item` — callers
-// use the returned text for synthetic client-facing events only.
-const ENCRYPTED_REASONING_PLACEHOLDER =
-  "Codex is reasoning, but the upstream Responses API exposed this reasoning block only as encrypted private reasoning. OmniRoute cannot recover the plaintext.";
-
+// #7095/#7176/#7243 — when Codex exposes a reasoning item only as encrypted
+// private reasoning (no plaintext summary), callers may synthesize client-facing
+// reasoning summary events from this helper. Reconciles three goals:
+//   - #7176: never mutate the upstream item — `encrypted_content` (needed by
+//     Codex for subsequent requests) must not be overwritten with a fabricated
+//     `summary`.
+//   - #7095: real plaintext summaries from upstream are forwarded to chat
+//     clients that render a thinking panel.
+//   - #7243: when upstream provides no plaintext summary, do NOT fabricate an
+//     alarming error-like paragraph into `reasoning_summary_text.delta` — clients
+//     would display it as if it were real reasoning. Return empty so synthetic
+//     summary events are suppressed; the reasoning item (with `encrypted_content`)
+//     still arrives on `response.output_item.done`.
 export function getVisibleResponsesReasoningSummaryText(item) {
-  const existingSummary = extractResponsesReasoningSummaryText(item);
-  if (existingSummary) return existingSummary;
-
-  const hasEncryptedReasoning =
-    item &&
-    item.type === "reasoning" &&
-    typeof item.encrypted_content === "string" &&
-    item.encrypted_content.length > 0;
-
-  return hasEncryptedReasoning ? ENCRYPTED_REASONING_PLACEHOLDER : "";
+  return extractResponsesReasoningSummaryText(item);
 }

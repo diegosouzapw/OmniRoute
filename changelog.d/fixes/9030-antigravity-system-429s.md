@@ -1,0 +1,1 @@
+- fix(sse): move Antigravity client system content to first user message to avoid upstream 429 RESOURCE_EXHAUSTED on oversized systemInstruction (#9030)

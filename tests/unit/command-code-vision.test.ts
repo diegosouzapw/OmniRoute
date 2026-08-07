@@ -506,3 +506,195 @@ for (const [name, model] of VISION_CASES) {
     assert.equal(parts[1].type, "image");
   });
 }
+
+// ── Anthropic-shaped image blocks (Zoo Code / Claude-Code-compatible clients) ──
+
+test("vision model mimo-v2.5 preserves Anthropic source.base64 image block", async () => {
+  // Zoo Code sends Messages-API-shaped content blocks to the OpenAI
+  // /v1/chat/completions surface: { type:"image", source:{ base64 } }.
+  // The vision-bridge guardrail skips vision-capable models (cmd/xiaomi/mimo-v2.5
+  // resolves supportsVision=true via the mimo-v2.5 leaf spec), so the raw block
+  // must survive to the executor and be converted to CC CLI { type:"image" }.
+  const calls = captureFetch(
+    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
+  );
+
+  await getExecutor("command-code").execute({
+    model: "xiaomi/mimo-v2.5",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: {
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Gambar apa ini?" },
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/png",
+                data: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+              },
+            },
+          ],
+        },
+      ],
+    },
+  });
+
+  const content = userContent(calls);
+  assert.ok(Array.isArray(content), "user content must be an array");
+  const parts = content as Record<string, unknown>[];
+  assert.equal(parts.length, 2, "text + image parts preserved");
+  assert.equal(parts[0].type, "text");
+  assert.equal(parts[1].type, "image");
+  assert.equal(
+    parts[1].image,
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+    "base64 payload is rebuilt into a CC CLI data URL"
+  );
+});
+
+test("vision model preserves Anthropic source.url image block", async () => {
+  const calls = captureFetch(
+    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
+  );
+
+  await getExecutor("command-code").execute({
+    model: "xiaomi/mimo-v2.5",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: {
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Look" },
+            {
+              type: "image",
+              source: { type: "url", url: "https://example.com/img.png" },
+            },
+          ],
+        },
+      ],
+    },
+  });
+
+  const content = userContent(calls);
+  assert.ok(Array.isArray(content));
+  const parts = content as Record<string, unknown>[];
+  assert.equal(parts.length, 2);
+  assert.equal(parts[1].type, "image");
+  assert.equal(parts[1].image, "https://example.com/img.png");
+});
+
+test("text-only model deepseek-v4-flash strips Anthropic source.base64 image block", async () => {
+  const calls = captureFetch(
+    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
+  );
+
+  await getExecutor("command-code").execute({
+    model: "deepseek/deepseek-v4-flash",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: {
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Text only" },
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/png",
+                data: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+              },
+            },
+          ],
+        },
+      ],
+    },
+  });
+
+  const content = userContent(calls);
+  // Text-only model: content flattened to plain string, image stripped.
+  assert.equal(typeof content, "string");
+  assert.equal(content, "Text only");
+});
+
+// ── conservative vision family lock (gpt-5.4-mini / gpt-5.3-codex) ─────
+//
+// These two ids stay INSIDE the `/gpt-5/` vision family: both accept image
+// input on the OpenAI API, and there is no verified Command Code backend data
+// marking them text-only. These tests pin that conservative behavior so a
+// future "narrow the regex" change cannot silently strip images from models
+// that can see them (the #4071 regression class). Revisit ONLY with per-model
+// CC registry capability data proving they are text-only.
+
+test("gpt-5.4-mini keeps image parts (conservative vision family lock)", async () => {
+  const calls = captureFetch(
+    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
+  );
+
+  await getExecutor("command-code").execute({
+    model: "gpt-5.4-mini",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: {
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "What's in this?" },
+            {
+              type: "image_url",
+              image_url: { url: "https://example.com/img.png" },
+            },
+          ],
+        },
+      ],
+    },
+  });
+
+  const content = userContent(calls);
+  assert.ok(Array.isArray(content), "gpt-5.4-mini must be treated as vision-capable");
+  const parts = content as Record<string, unknown>[];
+  assert.equal(parts.length, 2);
+  assert.equal(parts[1].type, "image");
+  assert.equal(parts[1].image, "https://example.com/img.png");
+});
+
+test("gpt-5.3-codex keeps image parts (conservative vision family lock)", async () => {
+  const calls = captureFetch(
+    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
+  );
+
+  await getExecutor("command-code").execute({
+    model: "gpt-5.3-codex",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: {
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Describe" },
+            {
+              type: "image_url",
+              image_url: { url: "https://example.com/img.png" },
+            },
+          ],
+        },
+      ],
+    },
+  });
+
+  const content = userContent(calls);
+  assert.ok(Array.isArray(content), "gpt-5.3-codex must be treated as vision-capable");
+  const parts = content as Record<string, unknown>[];
+  assert.equal(parts.length, 2);
+  assert.equal(parts[1].type, "image");
+  assert.equal(parts[1].image, "https://example.com/img.png");
+});

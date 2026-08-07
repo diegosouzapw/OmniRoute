@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { mapNvidiaGlm52ReasoningParams } from "./base/reasoningEffort.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
@@ -18,6 +20,7 @@ import {
 import { isOfficialAnthropicBaseUrl } from "../utils/anthropicHost.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import { stripUnsupportedParams } from "../translator/paramSupport.ts";
+import { normalizeOpenAIToolNames } from "../translator/helpers/toolCallHelper.ts";
 import {
   injectReasoningContentForThinkingModel,
   shouldInjectReasoningContentPlaceholder,
@@ -28,6 +31,7 @@ import {
   getTargetFormat,
   isClaudeCodeCompatible,
 } from "../services/provider.ts";
+import { ensureToolMessageNames } from "./kimiToolNames.ts";
 import { getSapResourceGroup } from "../config/sap.ts";
 import {
   normalizeBailianMessagesUrl,
@@ -40,6 +44,10 @@ import {
   normalizeOpenAIChatUrl,
   getOpenRouterConnectionPreset,
 } from "./default/urlNormalizers.ts";
+import {
+  isPoeMessagesEligibleModel,
+  resolvePoeUpstreamUrl,
+} from "../config/providers/registry/poe/index.ts";
 import { buildMaritalkChatUrl } from "../config/maritalk.ts";
 import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
@@ -58,6 +66,38 @@ import { resolveAlibabaProviderBaseUrl } from "@/shared/constants/alibabaProvide
 import { usesCcWireImage } from "../services/ccWireImageBuiltins.ts";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
+
+const NVIDIA_TOOL_CALL_ID_PATTERN = /^[A-Za-z0-9]{9}$/;
+
+function normalizeNvidiaToolCallId(id: unknown): unknown {
+  if (id === null || id === undefined) return id;
+  const value = String(id);
+  if (NVIDIA_TOOL_CALL_ID_PATTERN.test(value)) return value;
+  return createHash("sha256").update(value).digest("hex").slice(0, 9);
+}
+
+function normalizeNvidiaToolCallIds(body: unknown): void {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return;
+  const messages = (body as Record<string, unknown>).messages;
+  if (!Array.isArray(messages)) return;
+
+  for (const message of messages) {
+    if (!message || typeof message !== "object" || Array.isArray(message)) continue;
+    const record = message as Record<string, unknown>;
+    if (Array.isArray(record.tool_calls)) {
+      for (const toolCall of record.tool_calls) {
+        if (!toolCall || typeof toolCall !== "object" || Array.isArray(toolCall)) continue;
+        const call = toolCall as Record<string, unknown>;
+        if (call.id !== null && call.id !== undefined) {
+          call.id = normalizeNvidiaToolCallId(call.id);
+        }
+      }
+    }
+    if (record.tool_call_id !== null && record.tool_call_id !== undefined) {
+      record.tool_call_id = normalizeNvidiaToolCallId(record.tool_call_id);
+    }
+  }
+}
 
 /**
  * Apply operator-configured per-provider custom headers onto an outgoing header
@@ -285,6 +325,36 @@ export class DefaultExecutor extends BaseExecutor {
       case "glm-coding-apikey":
         // #7364: format override extracted to zaiFormatOverride.ts (file-size ratchet).
         return resolveZaiUrl(credentials, (fallback) => this.resolveBaseUrl(credentials, fallback));
+      case "poe": {
+        // #8969: Poe API-key surfaces — Chat Completions, Responses, and
+        // Claude-only Messages. Prefer the responses marker from
+        // resolveExecutionCredentials (incoming /v1/responses), then the
+        // registry Claude targetFormat → messagesUrl, else chat/completions.
+        // GPT models must never hit /v1/messages (Poe rejects non-Claude there).
+        const psd = credentials?.providerSpecificData;
+        const manualBaseUrl =
+          typeof psd?.baseUrl === "string" && psd.baseUrl.trim() ? psd.baseUrl.trim() : null;
+        const forceResponses = psd?._omnirouteForceResponsesUpstream === true;
+        const modelTarget = getModelTargetFormat("poe", model);
+        const connectionTarget =
+          typeof psd?.targetFormat === "string" ? (psd.targetFormat as string) : null;
+        const effectiveTarget = modelTarget || connectionTarget;
+
+        let protocol: "chat" | "responses" | "messages" = "chat";
+        if (forceResponses || effectiveTarget === "openai-responses") {
+          protocol = "responses";
+        } else if (effectiveTarget === "claude" && isPoeMessagesEligibleModel(model)) {
+          protocol = "messages";
+        }
+
+        return resolvePoeUpstreamUrl({
+          protocol,
+          configuredBaseUrl: manualBaseUrl,
+          responsesBaseUrl: this.config.responsesBaseUrl,
+          messagesUrl: this.config.messagesUrl,
+          defaultChatUrl: this.config.baseUrl,
+        });
+      }
       case "claude":
       case "glm":
       case "glmt":
@@ -601,8 +671,26 @@ export class DefaultExecutor extends BaseExecutor {
   transformRequest(model, body, stream, credentials) {
     const cleanedBody = super.transformRequest(model, body, stream, credentials);
     let withDefaults = applyProviderRequestDefaults(cleanedBody, this.config.requestDefaults);
+
+    // ponytail: backfill missing tool message names for strict OpenAI-compatible providers.
+    // Kimi K3 and some BYOK endpoints reject tool messages whose `name` field was stripped
+    // during combo routing or format translation. Build a tool_call_id → function.name
+    // lookup from assistant messages and restore missing names before forwarding.
+    if (
+      withDefaults &&
+      typeof withDefaults === "object" &&
+      !Array.isArray(withDefaults) &&
+      Array.isArray((withDefaults as Record<string, unknown>).messages)
+    ) {
+      withDefaults = ensureToolMessageNames(withDefaults as Record<string, unknown>);
+    }
+
     withDefaults = this.applyJsonSchemaFallback(withDefaults);
     withDefaults = this.defaultResponsesTextFormat(withDefaults);
+
+    if (this.provider === "nvidia") {
+      normalizeNvidiaToolCallIds(withDefaults);
+    }
 
     // Port of decolua/9router commit d652300e:
     // Cerebras returns 400 (wrong_api_format), Mistral returns 422
@@ -786,6 +874,34 @@ export class DefaultExecutor extends BaseExecutor {
           : model;
       if (shouldInjectReasoningContentPlaceholder(this.provider, outboundModel)) {
         withDefaults = injectReasoningContentForThinkingModel(withDefaults);
+      }
+    }
+
+    const toolNameMaxLength = getRegistryEntry(this.provider)?.toolNameMaxLength;
+    if (
+      toolNameMaxLength &&
+      withDefaults &&
+      typeof withDefaults === "object" &&
+      !Array.isArray(withDefaults)
+    ) {
+      const toolNameMap = normalizeOpenAIToolNames(withDefaults, toolNameMaxLength);
+      if (toolNameMap.size > 0) {
+        const existingToolNameMap =
+          (withDefaults as Record<string, unknown>)._toolNameMap instanceof Map
+            ? ((withDefaults as Record<string, unknown>)._toolNameMap as Map<string, string>)
+            : null;
+        const responseToolNameMap = existingToolNameMap
+          ? new Map(existingToolNameMap)
+          : new Map<string, string>();
+        for (const [alias, original] of toolNameMap) {
+          responseToolNameMap.set(alias, original);
+        }
+        Object.defineProperty(withDefaults, "_toolNameMap", {
+          value: responseToolNameMap,
+          enumerable: false,
+          configurable: true,
+          writable: true,
+        });
       }
     }
 

@@ -80,7 +80,7 @@ export interface ProviderModelsSectionProps {
   clearingModels: boolean;
   modelFilter: string;
   testingModelId: string | null;
-  modelTestStatus: Record<string, "ok" | "error">;
+  modelTestStatus: Record<string, "ok" | "error" | "quota">;
   onModelTestStatusChange: (modelId: string, status: "ok" | "error") => void;
   testingAll: boolean;
   testProgress: { done: number; total: number } | null;

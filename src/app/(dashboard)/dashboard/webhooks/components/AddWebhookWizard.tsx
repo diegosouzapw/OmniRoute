@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal } from "@/shared/components";
 import { Step1ChooseIntegration } from "./steps/Step1ChooseIntegration";
 import {
@@ -12,6 +12,7 @@ import {
 } from "./steps/Step2ConfigureIntegration";
 import { Step3EventsAndTest } from "./steps/Step3EventsAndTest";
 import { HowItWorksSidebar } from "./HowItWorksSidebar";
+import type { WebhookItem } from "./WebhookCard";
 import type { WebhookKind } from "./shared/IntegrationCard";
 
 interface AddWebhookWizardProps {
@@ -19,6 +20,7 @@ interface AddWebhookWizardProps {
   onClose: () => void;
   onCreated: () => void;
   t: (key: string, opts?: Record<string, unknown>) => string;
+  editingWebhook?: WebhookItem | null;
 }
 
 const STEPS = [1, 2, 3] as const;
@@ -45,22 +47,56 @@ const INITIAL: WizardState = {
   description: "",
 };
 
-function step2Valid(state: WizardState): boolean {
+function stateFromWebhook(webhook: WebhookItem | null | undefined): WizardState {
+  if (!webhook) return INITIAL;
+
+  return {
+    kind: webhook.kind,
+    slack: { webhookUrl: webhook.kind === "slack" ? webhook.url : "" },
+    telegram: { botToken: "", chatId: webhook.kind === "telegram" ? webhook.url : "" },
+    discord: { webhookUrl: webhook.kind === "discord" ? webhook.url : "" },
+    custom: { endpointUrl: webhook.kind === "custom" ? webhook.url : "", secretKey: "" },
+    events: webhook.events.length > 0 ? webhook.events : ["*"],
+    enabled: webhook.enabled,
+    description: webhook.description,
+  };
+}
+
+function step2Valid(state: WizardState, isEditing: boolean): boolean {
   const { kind } = state;
   if (kind === "slack") return state.slack.webhookUrl.trim().length > 0;
-  if (kind === "telegram")
-    return state.telegram.botToken.trim().length > 0 && state.telegram.chatId.trim().length > 0;
+  if (kind === "telegram") {
+    return (
+      state.telegram.chatId.trim().length > 0 &&
+      (isEditing || state.telegram.botToken.trim().length > 0)
+    );
+  }
   if (kind === "discord") return state.discord.webhookUrl.trim().length > 0;
   if (kind === "custom") return state.custom.endpointUrl.trim().length > 0;
   return false;
 }
 
-export function AddWebhookWizard({ isOpen, onClose, onCreated, t }: AddWebhookWizardProps) {
+export function AddWebhookWizard({
+  isOpen,
+  onClose,
+  onCreated,
+  t,
+  editingWebhook,
+}: AddWebhookWizardProps) {
+  const isEditing = Boolean(editingWebhook);
   const [step, setStep] = useState(1);
   const [state, setState] = useState<WizardState>(INITIAL);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdId, setCreatedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setStep(1);
+    setState(stateFromWebhook(editingWebhook));
+    setError(null);
+    setCreatedId(editingWebhook?.id ?? null);
+  }, [editingWebhook, isOpen]);
 
   const handleClose = () => {
     if (saving) return;
@@ -77,7 +113,11 @@ export function AddWebhookWizard({ isOpen, onClose, onCreated, t }: AddWebhookWi
     if (kind === "slack") return { kind, url: state.slack.webhookUrl };
     if (kind === "discord") return { kind, url: state.discord.webhookUrl };
     if (kind === "telegram") {
-      return { kind, url: state.telegram.chatId, metadata: { botToken: state.telegram.botToken } };
+      const payload: Record<string, unknown> = { kind, url: state.telegram.chatId };
+      if (state.telegram.botToken.trim()) {
+        payload.metadata = { botToken: state.telegram.botToken };
+      }
+      return payload;
     }
     const payload: Record<string, unknown> = { kind, url: state.custom.endpointUrl };
     if (state.custom.secretKey.trim()) payload.secret = state.custom.secretKey.trim();
@@ -126,6 +166,7 @@ export function AddWebhookWizard({ isOpen, onClose, onCreated, t }: AddWebhookWi
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          ...buildConfigPayload(),
           events: state.events,
           enabled: state.enabled,
           description: state.description,
@@ -142,7 +183,7 @@ export function AddWebhookWizard({ isOpen, onClose, onCreated, t }: AddWebhookWi
     }
   };
 
-  const canGoNext = step === 1 ? true : step === 2 ? step2Valid(state) : true;
+  const canGoNext = step === 1 ? true : step === 2 ? step2Valid(state, isEditing) : true;
 
   const stepTitle =
     step === 1
@@ -155,7 +196,7 @@ export function AddWebhookWizard({ isOpen, onClose, onCreated, t }: AddWebhookWi
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={`${t("addWebhook")} — ${stepTitle}`}
+      title={`${t(isEditing ? "editWebhook" : "addWebhook")} — ${stepTitle}`}
       size="xl"
       footer={
         <div className="flex w-full items-center justify-between">
@@ -243,6 +284,7 @@ export function AddWebhookWizard({ isOpen, onClose, onCreated, t }: AddWebhookWi
               onChangeDiscord={(v) => setState((s) => ({ ...s, discord: v }))}
               onChangeCustom={(v) => setState((s) => ({ ...s, custom: v }))}
               t={t}
+              isEditing={isEditing}
             />
           )}
           {step === 3 && (

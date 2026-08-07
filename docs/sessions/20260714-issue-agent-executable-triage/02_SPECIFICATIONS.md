@@ -1,3 +1,9 @@
+---
+title: "Issue-Agent Executable Triage: Specifications"
+version: 3.8.50
+lastUpdated: 2026-08-06
+---
+
 # Issue-Agent Executable Triage: Specifications
 
 Machine status: `in_progress`

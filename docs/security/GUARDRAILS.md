@@ -23,12 +23,12 @@ request. Blocking is an explicit decision (`block: true`), never an accident.
 The registry auto-loads four guardrails in priority order on import
 (see `registry.ts` → `registerDefaultGuardrails()`):
 
-| Priority | Name                 | Stage(s)       | File                  |
-| -------- | -------------------- | -------------- | --------------------- |
-| `5`      | `vision-bridge`       | `preCall`      | `visionBridge.ts`     |
-| `10`     | `pii-masker`          | `pre` + `post` | `piiMasker.ts`        |
-| `20`     | `prompt-injection`    | `preCall`      | `promptInjection.ts`  |
-| `95`     | `credential-masker`   | `pre` + `post` | `credentialMasker.ts` |
+| Priority | Name                | Stage(s)       | File                  |
+| -------- | ------------------- | -------------- | --------------------- |
+| `5`      | `vision-bridge`     | `preCall`      | `visionBridge.ts`     |
+| `10`     | `pii-masker`        | `pre` + `post` | `piiMasker.ts`        |
+| `20`     | `prompt-injection`  | `preCall`      | `promptInjection.ts`  |
+| `95`     | `credential-masker` | `pre` + `post` | `credentialMasker.ts` |
 
 Lower priority numbers run **first**.
 
@@ -44,6 +44,11 @@ Flow:
 1. Skip if the target model already supports vision (unless it appears in the
    forced-bridge list `isVisionBridgeForcedModel`).
 2. Extract image parts via `extractImageParts(messages)`. Skip if none.
+   `extractImageParts` recognizes all three image shapes: OpenAI `image_url`,
+   Anthropic base64 `source.type:"base64"`, and Anthropic URL
+   `source.type:"url"` — so Claude-Code-compatible clients (e.g. Zoo Code)
+   sending `{ type: "image", source: { type: "url", url } }` are described
+   instead of silently dropped.
 3. Load runtime config from `getSettings()` (`visionBridgeEnabled`,
    `visionBridgeModel`, `visionBridgePrompt`, `visionBridgeTimeout`,
    `visionBridgeMaxImages`).
@@ -52,6 +57,15 @@ Flow:
    in their place — failed images become `[Image N]: (unavailable)`.
 5. Return `modifiedPayload` + meta (`imagesProcessed`, `processingTimeMs`,
    `visionModel`).
+
+**Self-loop admission bypass:** when the describe call routes through OmniRoute's
+own `/v1` self-loop (non-standard provider model), the sub-request sends
+`x-omniroute-admission-bypass: internal` and is authenticated with the resolved
+self-loop credential — the local `sk_omniroute` sentinel in local mode, or the
+operator-configured `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` env key (#1350) so
+`REQUIRE_API_KEY=true` deployments can still run the describe call. The bypass
+is only honored for those exact credentials, so external clients cannot use the
+header to skip admission.
 
 Defaults live in `src/shared/constants/visionBridgeDefaults.ts`. The guardrail
 exposes a `deps` constructor option so tests can inject fake `getSettings` and
@@ -82,11 +96,11 @@ Detects adversarial structures in user-supplied content and enforces the
 configured policy. Behavior is driven by environment variables and constructor
 options:
 
-| Setting         | Env var                                         | Default | Effect                                  |
-| --------------- | ----------------------------------------------- | ------- | --------------------------------------- |
-| Enabled         | `INPUT_SANITIZER_ENABLED`                       | `true`  | When `false`, guardrail short-circuits. |
-| Mode            | `INJECTION_GUARD_MODE` / `INPUT_SANITIZER_MODE` | `warn`  | Injection policy: `block`, `warn`, or `log`. (`redact` is accepted for back-compat but does **not** strip injection text; request PII rewrite is controlled by `PII_REDACTION_ENABLED`.) |
-| Block threshold | `blockThreshold` option / `INPUT_SANITIZER_BLOCK_THRESHOLD` (alias `INJECTION_GUARD_BLOCK_THRESHOLD`) | `high`  | Minimum severity required to block. Medium is observe-only at default. |
+| Setting         | Env var                                                                                               | Default | Effect                                                                                                                                                                                   |
+| --------------- | ----------------------------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Enabled         | `INPUT_SANITIZER_ENABLED`                                                                             | `true`  | When `false`, guardrail short-circuits.                                                                                                                                                  |
+| Mode            | `INJECTION_GUARD_MODE` / `INPUT_SANITIZER_MODE`                                                       | `warn`  | Injection policy: `block`, `warn`, or `log`. (`redact` is accepted for back-compat but does **not** strip injection text; request PII rewrite is controlled by `PII_REDACTION_ENABLED`.) |
+| Block threshold | `blockThreshold` option / `INPUT_SANITIZER_BLOCK_THRESHOLD` (alias `INJECTION_GUARD_BLOCK_THRESHOLD`) | `high`  | Minimum severity required to block. Medium is observe-only at default.                                                                                                                   |
 
 **Mode precedence** (`getMode`): caller `options.mode` →
 `INJECTION_GUARD_MODE` **DB feature-flag override** (Dashboard → Settings →
@@ -252,15 +266,15 @@ Guardrails that throw are recorded with `error: <message>` and logged via
 
 Environment variables read by the built-in guardrails:
 
-| Variable                              | Used by                          | Effect                                                                                           |
-| ------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `INPUT_SANITIZER_ENABLED`             | `prompt-injection`               | Set `false` to disable detection entirely.                                                       |
-| `INPUT_SANITIZER_MODE`                | `prompt-injection`               | Injection policy: `warn`, `block`, or `log`. Legacy value `redact` does not rewrite injection text. |
-| `INJECTION_GUARD_MODE`                | `prompt-injection`               | Mode for the injection guard; also a DB feature flag that **overrides** the env vars (DB > ENV). |
-| `INPUT_SANITIZER_BLOCK_THRESHOLD`     | `prompt-injection`               | Minimum severity that `MODE=block` rejects: `high` (default), `medium`, or `low`.                |
-| `INJECTION_GUARD_BLOCK_THRESHOLD`     | `prompt-injection`               | Legacy alias for `INPUT_SANITIZER_BLOCK_THRESHOLD`.                                              |
-| `PII_REDACTION_ENABLED`               | `pii-masker`                     | When `true`, request PII is redacted (independent of injection mode).                            |
-| `PII_RESPONSE_SANITIZATION` / `_MODE` | `pii-masker` (downstream)        | Controls response-side masker behavior.                                                          |
+| Variable                              | Used by                   | Effect                                                                                              |
+| ------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------- |
+| `INPUT_SANITIZER_ENABLED`             | `prompt-injection`        | Set `false` to disable detection entirely.                                                          |
+| `INPUT_SANITIZER_MODE`                | `prompt-injection`        | Injection policy: `warn`, `block`, or `log`. Legacy value `redact` does not rewrite injection text. |
+| `INJECTION_GUARD_MODE`                | `prompt-injection`        | Mode for the injection guard; also a DB feature flag that **overrides** the env vars (DB > ENV).    |
+| `INPUT_SANITIZER_BLOCK_THRESHOLD`     | `prompt-injection`        | Minimum severity that `MODE=block` rejects: `high` (default), `medium`, or `low`.                   |
+| `INJECTION_GUARD_BLOCK_THRESHOLD`     | `prompt-injection`        | Legacy alias for `INPUT_SANITIZER_BLOCK_THRESHOLD`.                                                 |
+| `PII_REDACTION_ENABLED`               | `pii-masker`              | When `true`, request PII is redacted (independent of injection mode).                               |
+| `PII_RESPONSE_SANITIZATION` / `_MODE` | `pii-masker` (downstream) | Controls response-side masker behavior.                                                             |
 
 The Vision Bridge reads runtime config from the DB-backed settings store
 (`getSettings()`), not env vars: `visionBridgeEnabled`, `visionBridgeModel`,

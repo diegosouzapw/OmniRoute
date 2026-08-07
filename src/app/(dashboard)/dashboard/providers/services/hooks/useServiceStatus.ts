@@ -16,6 +16,15 @@ export interface ServiceStatus {
   autoStart: boolean;
   apiKeyMasked?: string | null;
   providerExpose?: boolean;
+  /**
+   * True when the running process was adopted from an already-listening
+   * instance rather than spawned by this supervisor — it has no piped
+   * stdout/stderr, so the Logs panel stays empty until it's replaced by a
+   * real spawn (Stop then Start, or automatically via autoRestartAdopted).
+   */
+  adopted: boolean;
+  /** When true, an adopted process is immediately killed and re-spawned. */
+  autoRestartAdopted: boolean;
 }
 
 interface UseServiceStatusResult {

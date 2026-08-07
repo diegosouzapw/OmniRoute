@@ -129,6 +129,8 @@ export default function EditConnectionModal({
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
     newApiUserId: "",
+    newApiAggregatorBalance: false,
+    quotaPerUnit: "",
     ...EMPTY_GLM_TEAM_QUOTA_FIELDS,
     ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
@@ -266,6 +268,10 @@ export default function EditConnectionModal({
       );
       const existingConsoleApiKey = stringField(connection.providerSpecificData?.consoleApiKey);
       const existingNewApiUserId = stringField(connection.providerSpecificData?.newApiUserId);
+      const existingQuotaPerUnit =
+        connection.providerSpecificData?.quotaPerUnit != null
+          ? String(connection.providerSpecificData.quotaPerUnit)
+          : "";
       setFormData({
         name: connection.name || "",
         priority: connection.priority || 1,
@@ -314,6 +320,8 @@ export default function EditConnectionModal({
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
         newApiUserId: existingNewApiUserId,
+        newApiAggregatorBalance: connection.providerSpecificData?.newApiAggregatorBalance === true,
+        quotaPerUnit: existingQuotaPerUnit,
         glmOrganizationId: existingGlmOrganizationId,
         glmProjectId: existingGlmProjectId,
         opencodeGoWorkspaceId: existingOpenCodeGoWorkspaceId,

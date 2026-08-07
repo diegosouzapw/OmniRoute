@@ -927,6 +927,7 @@ export { readHeaderValue, type AuthRequestHeaders } from "./headerReader.ts";
 const PROVIDER_SEARCH_PAIRS: string[][] = [
   ["nvidia", "nvidia_nim"],
   ["kimi-coding", "kimi-coding-apikey"],
+  ["antigravity", "agy"],
 ];
 /**
  * Resolve provider aliases (e.g., nvidia -> nvidia_nim) for DB lookup
@@ -2028,9 +2029,12 @@ export async function markAccountUnavailable(
         return { shouldFallback: true, cooldownMs: 0 };
       }
 
-      const quotaScope = getQuotaScopeLabelForProvider(provider, model);
+      const usesExactAntigravityLock = provider === "antigravity";
+      const quotaScope = usesExactAntigravityLock
+        ? "model"
+        : getQuotaScopeLabelForProvider(provider, model);
       const antigravityFamilyInferredBaseCooldownMs =
-        provider === "antigravity" && quotaScope === "family" && status === 429
+        !usesExactAntigravityLock && provider === "antigravity" && quotaScope === "family" && status === 429
           ? ANTIGRAVITY_FAMILY_INFERRED_BASE_COOLDOWN_MS
           : null;
       const lockout = recordModelLockoutFailure(
@@ -2053,6 +2057,7 @@ export async function markAccountUnavailable(
               ? fallbackResult.cooldownMs
               : (fallbackResult.quotaResetHintMs ?? null),
           maxCooldownMs: mlSettings.maxCooldownMs,
+          scope: usesExactAntigravityLock ? "exact" : undefined,
           // #6863 vs #7940: exactCooldownMs above is only ever set from a genuine
           // upstream signal (Retry-After/reset header or a parsed quotaResetHintMs) —
           // never a synthetic estimate — so it must bypass maxCooldownMs instead of
@@ -2439,13 +2444,16 @@ export function extractApiKey(request: AuthRequestLike, opts?: { allowUrl?: bool
   }
 
   // Issue #2225: Anthropic Messages API clients authenticate via x-api-key.
-  // Gate the fallback on the anthropic-version header so we don't trip up
-  // local-mode requests from non-Anthropic clients that send placeholder
+  // Gate the fallback on anthropic-version OR a claude-code/anthropic user-agent so we
+  // don't trip up local-mode requests from non-Anthropic clients that send placeholder
   // x-api-key values (which would otherwise be rejected as Invalid API key).
   const anthropicVersion =
     readHeaderValue(request?.headers, "anthropic-version") ||
     readHeaderValue(request?.headers, "Anthropic-Version");
-  if (anthropicVersion) {
+  const userAgent =
+    readHeaderValue(request?.headers, "user-agent") ||
+    readHeaderValue(request?.headers, "User-Agent");
+  if (anthropicVersion || (userAgent && /claude-code|claude-cli|anthropic/i.test(userAgent))) {
     const xApiKey =
       readHeaderValue(request?.headers, "x-api-key") ||
       readHeaderValue(request?.headers, "X-Api-Key");

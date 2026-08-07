@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { listMemories, createMemory, getMemoryTokensUsed } from "@/lib/memory/store";
+import { memoryManager } from "@/lib/memory";
 import { memoryCache } from "@/lib/memory/cache";
 import { MemoryType } from "@/lib/memory/types";
 import { parsePaginationParams, buildPaginatedResponse } from "@/shared/types/pagination";
@@ -38,14 +39,15 @@ export async function GET(request: Request) {
     const type = (searchParams.get("type") as any) || undefined;
     const sessionId = searchParams.get("sessionId") || undefined;
 
-    const result = await listMemories({
+    const result = await memoryManager.list({
       apiKeyId,
       type,
       sessionId,
       query,
       limit: paginationParams.limit,
-      offset,
-      page: offset === undefined ? paginationParams.page : undefined,
+      offset:
+        offset ??
+        (offset === undefined ? undefined : (paginationParams.page - 1) * paginationParams.limit),
     });
 
     // Total tokens across all memories (computed in SQL inside the domain module
@@ -98,7 +100,15 @@ export async function POST(request: Request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json(validation.error, { status: 400 });
     }
-    const memoryId = await createMemory(validation.data);
+    const memoryId = await memoryManager.create({
+      apiKeyId: validation.data.apiKeyId,
+      sessionId: validation.data.sessionId,
+      type: validation.data.type,
+      key: validation.data.key,
+      content: validation.data.content,
+      metadata: validation.data.metadata,
+      expiresAt: validation.data.expiresAt,
+    });
     return NextResponse.json({ success: true, id: memoryId });
   } catch (err: unknown) {
     const message = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));

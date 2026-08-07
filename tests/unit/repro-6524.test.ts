@@ -11,14 +11,14 @@
  * `getExplicitModelOutputCap` clamp source): the clamp math itself is correct, but
  * `getExplicitModelOutputCap()` only ever read the unvalidated synced
  * `limit_output` (or registry/static fallbacks) — it ignored the operator-settable
- * `max_token` capability override (`src/lib/db/modelCapabilityOverrides.ts`,
+ * `max_output_tokens` capability override (`src/lib/db/modelCapabilityOverrides.ts`,
  * `/api/model-capability-overrides`) that `getResolvedModelCapabilities()` already
  * consulted. That inconsistency meant an operator manually correcting a bad synced
  * output cap (the existing, already-shipped remediation path for wrong catalog
  * data) had no effect on the reasoning buffer, which kept inflating past the real
  * cap regardless.
  *
- * Fix: `getExplicitModelOutputCap()` now checks the same `max_token` override
+ * Fix: `getExplicitModelOutputCap()` now checks the same `max_output_tokens` override
  * before falling back to synced/registry/static data, via a helper shared with
  * `getResolvedModelCapabilities()`.
  */
@@ -84,10 +84,10 @@ test("#6524: with only the (wrong) synced catalog data, the buffer no longer inf
   assert.equal(result, 64000);
 });
 
-test("#6524: an operator-set max_token override now clamps the reasoning buffer to the real cap", () => {
+test("#6524: an operator-set max_output_tokens override clamps the reasoning buffer", () => {
   assert.ok(
-    setModelCapabilityOverride(TARGET, "max_token", REAL_UPSTREAM_OUTPUT_CAP),
-    "expected the max_token override to be written"
+    setModelCapabilityOverride(TARGET, "max_output_tokens", REAL_UPSTREAM_OUTPUT_CAP),
+    "expected the max_output_tokens override to be written"
   );
   try {
     const result = resolveReasoningBufferedMaxTokens(TARGET, 64000);
@@ -97,6 +97,6 @@ test("#6524: an operator-set max_token override now clamps the reasoning buffer 
         `(reproduces reported 64000 -> 96000 inflation, upstream then 400s)`
     );
   } finally {
-    removeModelCapabilityOverride(TARGET, "max_token");
+    removeModelCapabilityOverride(TARGET, "max_output_tokens");
   }
 });

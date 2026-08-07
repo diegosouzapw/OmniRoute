@@ -192,6 +192,29 @@ export class CursorSessionManager {
     if (oldest) this.close(oldest);
   }
 
+  /**
+   * Find a session that has one of the specified tool call IDs pending.
+   * Only matches sessions in "awaiting_tool_result" state.
+   * Transitions the found session to "running" (same as acquire).
+   * This is used when the client doesn't provide conversation_id
+   * (OpenAI-compatible clients), so we match by content instead of key.
+   * Returns undefined if no session has any of the given IDs pending.
+   */
+  findByToolCallIds(toolCallIds: string[]): CursorSession | undefined {
+    this.evictExpired();
+    for (const id of toolCallIds) {
+      for (const session of this.sessions.values()) {
+        if (session.state === "awaiting_tool_result" && session.pendingToolCalls.has(id)) {
+          this.clearIdleTimer(session);
+          session.state = "running";
+          session.lastActivityTs = Date.now();
+          return session;
+        }
+      }
+    }
+    return undefined;
+  }
+
   // ─── Test / introspection helpers ────────────────────────────────────────
 
   size(): number {

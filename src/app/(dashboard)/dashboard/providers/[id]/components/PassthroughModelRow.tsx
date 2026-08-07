@@ -23,6 +23,10 @@ export interface PassthroughModelRowProps {
   fullModel: string;
   provider: string;
   alias?: string | null;
+  // Upstream-provided friendly name (`name` in the /models payload). Gateways that
+  // expose opaque model ids (GUID-style presets) still send a readable name — show it
+  // instead of "Click to set alias" so the list is not a wall of hex.
+  displayName?: string | null;
   source?: string;
   isFree?: boolean;
   isHidden?: boolean;
@@ -40,7 +44,7 @@ export interface PassthroughModelRowProps {
   onToggleHidden?: (modelId: string, hidden: boolean) => Promise<void>;
   togglingHidden?: boolean;
   onTestModel?: (modelId: string, fullModel: string) => Promise<void>;
-  testStatus?: "ok" | "error" | null;
+  testStatus?: "ok" | "error" | "quota" | null;
   testingModel?: boolean;
 }
 
@@ -52,6 +56,7 @@ export default function PassthroughModelRow({
   modelId,
   fullModel,
   alias,
+  displayName,
   source,
   isFree,
   isHidden,
@@ -76,6 +81,11 @@ export default function PassthroughModelRow({
   const [editing, setEditing] = useState(false);
   const [aliasValue, setAliasValue] = useState(alias || "");
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Only useful when it actually differs from the id — otherwise we would just print
+  // the opaque id twice.
+  const upstreamName =
+    displayName && displayName !== modelId && displayName !== fullModel ? displayName : null;
 
   useEffect(() => {
     if (editing && inputRef.current) {
@@ -151,10 +161,12 @@ export default function PassthroughModelRow({
                     ? providerText(t, "clickToEditAlias", "Alias: {alias} (click to edit)", {
                         alias,
                       })
-                    : providerText(t, "clickToSetAlias", "Click to set alias")
+                    : upstreamName
+                      ? `${upstreamName} — ${providerText(t, "clickToSetAlias", "Click to set alias")}`
+                      : providerText(t, "clickToSetAlias", "Click to set alias")
                 }
               >
-                {alias || providerText(t, "clickToSetAlias", "Click to set alias")}
+                {alias || upstreamName || providerText(t, "clickToSetAlias", "Click to set alias")}
               </span>
             )}
           </span>
@@ -183,15 +195,17 @@ export default function PassthroughModelRow({
             <button
               onClick={() => onTestModel(modelId, fullModel)}
               disabled={testingModel}
-              className={`rounded p-0.5 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${testStatus === "ok" ? "text-green-500" : testStatus === "error" ? "text-red-500" : "text-text-muted hover:text-primary"}`}
+              className={`rounded p-0.5 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${testStatus === "ok" ? "text-green-500" : testStatus === "quota" ? "text-amber-500" : testStatus === "error" ? "text-red-500" : "text-text-muted hover:text-primary"}`}
               title={
                 testingModel
                   ? t("testingModel")
                   : testStatus === "ok"
                     ? "OK"
-                    : testStatus === "error"
-                      ? "Error"
-                      : t("testModel")
+                    : testStatus === "quota"
+                      ? t("modelTestQuotaTooltip")
+                      : testStatus === "error"
+                        ? "Error"
+                        : t("testModel")
               }
             >
               {testingModel ? (
@@ -200,6 +214,8 @@ export default function PassthroughModelRow({
                 </span>
               ) : testStatus === "ok" ? (
                 <span className="material-symbols-outlined text-sm">check_circle</span>
+              ) : testStatus === "quota" ? (
+                <span className="material-symbols-outlined text-sm">warning</span>
               ) : testStatus === "error" ? (
                 <span className="material-symbols-outlined text-sm">error</span>
               ) : (

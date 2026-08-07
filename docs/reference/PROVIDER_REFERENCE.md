@@ -117,7 +117,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `azure-ai` | `azure-ai` | Azure AI Foundry | API key, enterprise | [link](https://learn.microsoft.com/azure/ai-foundry) | Use your Azure AI Foundry key. Base URL can be https://<resource>.services.ai.azure.com/openai/v1/ or https://<resource>.openai.azure.com/openai/v1/. |
 | `azure-openai` | `azure` | Azure OpenAI | API key, enterprise | [link](https://azure.microsoft.com/products/ai-services/openai-service) | Use your Azure OpenAI API key. Base URL should be your resource endpoint, for example https://my-resource.openai.azure.com. |
 | `bai` | `bai` | b.ai | API key | [link](https://b.ai) | Bearer API key for the b.ai OpenAI-compatible LLM gateway (distinct from TheB.AI). Create a key at https://docs.b.ai, then use https://api.b.ai/v1 as the OpenAI-compatible base URL. |
-| `baichuan` | `baichuan` | Baichuan | API key | [link](https://baichuan.com) | Get API key at platform.baichuan-ai.com |
+| `baichuan` | `baichuan` | Baichuan | API key | [link](https://www.baichuan-ai.com/) | Get API key at platform.baichuan-ai.com |
 | `baidu` | `baidu` | Baidu (ERNIE) | API key | [link](https://ernie.baidu.com/) | Get API key at console.bce.baidu.com |
 | `bailian-coding-plan` | `bcp` | Alibaba Token Plan | API key | [link](https://www.alibabacloud.com/help/en/model-studio/token-plan-overview) | — |
 | `baseten` | `baseten` | Baseten | API key | [link](https://baseten.co) | $30 free trial credits for GPU inference |

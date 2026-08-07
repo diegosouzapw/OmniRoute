@@ -20,6 +20,7 @@ import {
   openaiResponsesToOpenAIRequest,
 } from "../../open-sse/translator/request/openai-responses.ts";
 import { convertResponsesApiFormat } from "../../open-sse/translator/helpers/responsesApiHelper.ts";
+import { buildKiroPayload } from "../../open-sse/translator/request/openai-to-kiro.ts";
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
@@ -59,6 +60,34 @@ test("Responses -> Chat preserves reasoning.effort via the helper wrapper", () =
   );
   assert.equal(out.reasoning_effort, "medium");
   assert.equal(out.reasoning, undefined);
+});
+
+test("Responses -> Kiro preserves literal Max for GPT-5.6 models", () => {
+  for (const model of ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"]) {
+    const converted = asRecord(
+      convertResponsesApiFormat(
+        {
+          model: `kr/${model}`,
+          input: "hello",
+          reasoning: { effort: "max" },
+        },
+        null,
+        "kiro"
+      )
+    );
+
+    assert.equal(converted.reasoning_effort, "max");
+
+    const payload = buildKiroPayload(model, converted, false, null);
+    assert.equal(payload.additionalModelRequestFields?.reasoning?.effort, "max");
+    assert.equal(payload.additionalModelRequestFields?.output_config, undefined);
+    assert.equal(payload.additionalModelRequestFields?.thinking, undefined);
+    assert.equal(payload.additionalModelRequestFields?.max_tokens, undefined);
+    assert.doesNotMatch(
+      payload.conversationState.currentMessage.userInputMessage.content,
+      /<thinking_mode>/
+    );
+  }
 });
 
 test("Responses -> Chat does not overwrite an explicit reasoning_effort", () => {

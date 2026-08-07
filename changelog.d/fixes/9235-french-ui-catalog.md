@@ -1,0 +1,1 @@
+- **fix(i18n):** completed the French UI catalog by adding all missing keys and replacing every placeholder translation ([#9235](https://github.com/diegosouzapw/OmniRoute/pull/9235)) — thanks @alex-jordan547

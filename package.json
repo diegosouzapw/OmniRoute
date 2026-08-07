@@ -23,6 +23,7 @@
     ".env.example",
     "scripts/build/postinstall.mjs",
     "scripts/build/fixTlsClientNodeBinary.mjs",
+    "scripts/build/fixPlaywrightAndroid.mjs",
     "bin/cli/runtime/",
     "scripts/postinstall.mjs",
     "scripts/build/postinstallSupport.mjs",
@@ -189,6 +190,7 @@
     "check:bundle-size": "node scripts/check/check-bundle-size.mjs",
     "check:circular-deps": "node scripts/check/check-circular-deps.mjs",
     "check:mutation-ratchet": "node scripts/check/check-mutation-ratchet.mjs",
+    "check:rtl-ratchet": "node scripts/check/check-rtl-ratchet.mjs",
     "check:licenses": "node scripts/check/check-licenses.mjs",
     "check:pr-evidence": "node scripts/check/check-pr-evidence.mjs",
     "check:vuln-ratchet": "node scripts/check/check-vuln-ratchet.mjs",
@@ -208,6 +210,7 @@
     "backfill-aggregation": "node --import tsx src/scripts/backfillAggregation.ts",
     "env:sync": "node scripts/dev/sync-env.mjs",
     "test:integration": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 tests/integration/*.test.ts \"tests/integration/combo-matrix/*.test.ts\"",
+    "test:integration:ci": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 --test-shard=$TEST_SHARD tests/integration/*.test.ts \"tests/integration/combo-matrix/*.test.ts\"",
     "test:combo:matrix": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 \"tests/integration/combo-matrix/*.test.ts\"",
     "test:combo:live": "cross-env RUN_COMBO_LIVE=1 DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 \"tests/integration/combo-live/*.live.test.ts\"",
     "test:combo:live:vps": "node scripts/test/combo-live-vps.mjs",
@@ -322,7 +325,7 @@
     "@atjsh/llmlingua-2": "2.0.3",
     "@huggingface/transformers": "3.5.2",
     "@tensorflow/tfjs": "4.22.0",
-    "better-sqlite3": "^13.0.1",
+    "better-sqlite3": "^13.0.2",
     "js-tiktoken": "^1.0.20",
     "keytar": "^7.9.0",
     "tls-client-node": "^0.2.0",
@@ -398,6 +401,15 @@
       "omniroute",
       "sharp"
     ]
+  },
+  "allowScripts": {
+    "better-sqlite3": true,
+    "esbuild": true,
+    "@swc/core": true,
+    "@parcel/watcher": true,
+    "keytar": true,
+    "protobufjs": true,
+    "unrs-resolver": true
   },
   "overrides": {
     "dompurify": "^3.4.12",
