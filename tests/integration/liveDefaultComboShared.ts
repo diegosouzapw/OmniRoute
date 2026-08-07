@@ -114,11 +114,19 @@ export async function getDefaultComboModelTargets(): Promise<ComboModelTarget[]>
 
 // Skip (never fail) any model whose provider connection isn't currently
 // active — this suite's job is breadth across the real combo, not blocking
-// the whole run on one unrelated provider outage.
+// the whole run on one unrelated provider outage. baseUrl/apiKey default to
+// the module-level omniroute-beta target but can be overridden (see
+// sendModelRequest — same rationale, used by the wire-capture suite's
+// dedicated container).
 export async function filterActiveModelTargets(
-  targets: ComboModelTarget[]
+  targets: ComboModelTarget[],
+  options: SendModelRequestOptions = {}
 ): Promise<{ active: ComboModelTarget[]; skipped: string[] }> {
-  const res = await apiFetch("/api/providers");
+  const baseUrl = options.baseUrl ?? BASE_URL;
+  const apiKey = options.apiKey ?? API_KEY;
+  const res = await fetch(`${baseUrl}/api/providers`, {
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+  });
   if (!res.ok) return { active: targets, skipped: [] };
 
   const data = await res.json();
@@ -161,14 +169,25 @@ export interface ModelRequestResult {
   error?: string;
 }
 
+export interface SendModelRequestOptions {
+  baseUrl?: string;
+  apiKey?: string;
+}
+
 // Deliberately lighter than liveGeminiShared's sendAndValidate (no retry
 // loop, one fixed prompt pair): this suite's job is breadth across every
-// model in the real combo, not depth on any single provider.
+// model in the real combo, not depth on any single provider. baseUrl/apiKey
+// default to the module-level omniroute-beta target but can be overridden —
+// e.g. by the wire-capture suite, which points requests at its own
+// dedicated throwaway container instead (see liveContainerHarness.ts).
 export async function sendModelRequest(
   model: string,
   stream: boolean,
-  apiFormat: "chat" | "responses" = "chat"
+  apiFormat: "chat" | "responses" = "chat",
+  options: SendModelRequestOptions = {}
 ): Promise<ModelRequestResult> {
+  const baseUrl = options.baseUrl ?? BASE_URL;
+  const apiKey = options.apiKey ?? API_KEY;
   const endpoint = apiFormat === "responses" ? "/v1/responses" : "/v1/chat/completions";
   const messages: Message[] = [genSystemMessage(), genUserMessage()];
   const body =
@@ -182,9 +201,9 @@ export async function sendModelRequest(
   const start = performance.now();
 
   try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
+    const response = await fetch(`${baseUrl}${endpoint}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify(body),
       signal: controller.signal,
     });

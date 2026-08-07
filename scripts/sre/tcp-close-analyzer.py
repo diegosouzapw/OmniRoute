@@ -17,8 +17,8 @@ parsing the libpcap file format and IPv4/TCP headers directly. Good enough
 for this one question; not a general-purpose pcap toolkit.
 
 ────────────────────────────────────────────────────────────────────────────
-CAPTURING (run this yourself — needs root/sudo for CAP_NET_RAW; also see
---show-capture-cmd)
+CAPTURING (run this yourself — needs root/sudo for CAP_NET_RAW, UNLESS you
+use the rootless method below; also see --show-capture-cmd)
 ────────────────────────────────────────────────────────────────────────────
 
 Rootless Podman gotcha: there is usually NO `podman3`/`podmanN` bridge
@@ -32,6 +32,24 @@ container's OWN namespace via its PID instead:
     PID=$(podman inspect omniroute-dev --format '{{.State.Pid}}')
     sudo nsenter -t "$PID" -n tcpdump -i any -w /tmp/omniroute-capture.pcap \\
         'host <omniroute-container-ip> and port 20128'
+
+Rootless alternative (NO sudo needed): a bare `nsenter -t $PID -n` fails
+with "Invalid argument" for a rootless container, because its network
+namespace lives inside a user namespace you're not in yet. `podman unshare`
+puts you in that same user namespace first, so `nsenter --net=` against the
+container's netns path succeeds as a plain user — verified working live
+(captured a real `POST /v1/chat/completions` request body in cleartext this
+way, no root at any point):
+
+    NETNS=$(podman inspect omniroute-dev --format '{{.NetworkSettings.SandboxKey}}')
+    podman unshare nsenter --net="$NETNS" -- \\
+        tcpdump -i any -w /tmp/omniroute-capture.pcap 'port 20128'
+
+No `sudo chmod` needed afterward either, since the file was never
+root-owned. This is also what
+tests/integration/wireCapture.ts + liveContainerHarness.ts automate for the
+live wire-capture test suite (its own dedicated throwaway container, not
+omniroute-dev) — see RUN_LIVE_WIRE_CAPTURE=1 in that test file.
 
 Find the container's IP first with:
     podman inspect omniroute-dev --format '{{.NetworkSettings.Networks}}'
