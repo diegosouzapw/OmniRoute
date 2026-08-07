@@ -472,6 +472,11 @@ function isSchemaAlreadyApplied(
       return hasColumn(db, "version_manager", "auto_restart_adopted");
     case "138":
       return hasColumn(db, "upstream_proxy_config", "fallback_backend");
+    case "139":
+      // Retroactive guard for the 134 → 139 renumber: ccr_blocks landed on the 134
+      // slot already taken by proxy_logs_egress_ip. A DB that already applied
+      // ccr_blocks under the old 134 number has the table — skip the re-run.
+      return hasTable(db, "ccr_blocks");
     default:
       return false;
   }
