@@ -110,9 +110,7 @@ export async function cleanupComboConnectionRefs(connectionId: string) {
         changed = true;
       }
       if (Array.isArray(out.allowedConnectionIds)) {
-        const filtered = out.allowedConnectionIds.filter(
-          (id: string) => id !== connectionId
-        );
+        const filtered = out.allowedConnectionIds.filter((id: string) => id !== connectionId);
         if (filtered.length !== out.allowedConnectionIds.length) {
           out = { ...out, allowedConnectionIds: filtered };
           changed = true;
