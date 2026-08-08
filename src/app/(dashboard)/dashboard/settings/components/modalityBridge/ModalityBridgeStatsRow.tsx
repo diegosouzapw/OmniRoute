@@ -19,11 +19,12 @@ interface ModalityBridgeStatsRowProps {
 function parseStats(value: unknown): BridgeStats | null {
   if (!value || typeof value !== "object") return null;
   const record = value as Record<string, unknown>;
+  const lastUsedAt = record.lastUsedAt;
+  if (lastUsedAt !== null && typeof lastUsedAt !== "string") return null;
   if (
     typeof record.bridged !== "number" ||
     typeof record.cacheHits !== "number" ||
-    typeof record.failures !== "number" ||
-    (record.lastUsedAt !== null && typeof record.lastUsedAt !== "string")
+    typeof record.failures !== "number"
   ) {
     return null;
   }
@@ -31,7 +32,7 @@ function parseStats(value: unknown): BridgeStats | null {
     bridged: record.bridged,
     cacheHits: record.cacheHits,
     failures: record.failures,
-    lastUsedAt: record.lastUsedAt,
+    lastUsedAt: typeof lastUsedAt === "string" ? lastUsedAt : null,
   };
 }
 

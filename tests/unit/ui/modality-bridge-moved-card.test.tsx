@@ -21,9 +21,6 @@ vi.mock("@/shared/components", () => ({
 vi.mock("@/app/(dashboard)/dashboard/settings/components/ThinkingBudgetTab", () => ({
   default: () => null,
 }));
-vi.mock("@/app/(dashboard)/dashboard/settings/components/VisionBridgeSettingsTab", () => ({
-  default: () => <div data-testid="legacy-vision-card">legacy</div>,
-}));
 vi.mock("@/app/(dashboard)/dashboard/settings/components/SystemPromptTab", () => ({
   default: () => null,
 }));
@@ -122,7 +119,7 @@ describe("Modality Bridge relocation and shortcuts", () => {
     expect(card.querySelector('a[href="/dashboard/settings/modality-bridge"]')).toBeTruthy();
 
     const page = await render(<SettingsAiPage />);
-    expect(page.querySelector('[data-testid="legacy-vision-card"]')).toBeNull();
+    expect(page.textContent).not.toContain("visionBridgeEnabledLabel");
     expect(page.textContent).toContain("modalityBridgeMovedTitle");
   });
 
