@@ -4,26 +4,19 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Card, Button } from "@/shared/components";
 import { matchesSearch } from "@/shared/utils/turkishText";
+import {
+  toModelOverrideTargets,
+  type PricingCatalogProvider,
+} from "@/lib/modelCapabilityOverrideTargets";
 
 type ModelOverrideKey = "context_length" | "max_input_tokens" | "max_output_tokens";
 type StatusTone = "success" | "error" | "info";
 
-type ModelOverrideTarget = {
-  target: string;
-  provider: string;
-  modelId: string;
-  label: string;
-};
+type ModelOverrideTarget = import("@/lib/modelCapabilityOverrideTargets").ModelOverrideTarget;
 
 interface PricingCatalogModel {
   id: string;
   name: string;
-}
-
-interface PricingCatalogProvider {
-  id: string;
-  alias: string;
-  models: PricingCatalogModel[];
 }
 
 interface ModelCapabilityOverride {
@@ -120,22 +113,11 @@ function useModelCapabilityOverridesData() {
   return { catalog, overrides, loading, statusMessage, saveOverride, removeOverride };
 }
 
-function toTargets(catalog: Record<string, PricingCatalogProvider>): ModelOverrideTarget[] {
-  return Object.values(catalog).flatMap((provider) =>
-    provider.models.map((model) => ({
-      target: `${provider.id}/${model.id}`,
-      provider: provider.id,
-      modelId: model.id,
-      label: `${provider.id}/${model.id}`,
-    }))
-  );
-}
-
 export default function ModelCapabilityOverridesTab() {
   const t = useTranslations("settings");
   const { catalog, overrides, loading, statusMessage, saveOverride, removeOverride } =
     useModelCapabilityOverridesData();
-  const targets = useMemo(() => toTargets(catalog), [catalog]);
+  const targets = useMemo(() => toModelOverrideTargets(catalog), [catalog]);
 
   if (loading) return <div className="text-sm text-text-muted animate-pulse">{t("loading")}</div>;
 

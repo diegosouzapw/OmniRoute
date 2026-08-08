@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getAllCustomModels, getAllSyncedAvailableModels, getPricing } from "@/lib/localDb";
+import { getProviderPrefixIndex } from "@/lib/providerNodePrefixes";
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -28,6 +29,12 @@ export async function GET() {
   try {
     const catalog: Record<string, any> = {};
 
+    // Pre-load compatible-provider node public prefixes once (shared across the
+    // whole catalog build — never N lookups per model). Only uniquely-routable
+    // prefixes are exposed as public targets (reserved/ambiguous are not).
+    const { nodeToPrefix, prefixToNode, eligibleNodeIds, compatibleNodeIds } =
+      await getProviderPrefixIndex();
+
     // ── 1. Registry models (hardcoded) ──────────────────────────────
     for (const entry of Object.values(REGISTRY)) {
       const alias = entry.alias || entry.id;
@@ -54,6 +61,13 @@ export async function GET() {
       return providerId;
     };
 
+    // A compatible provider node should surface under its configured public
+    // prefix, never its generated `openai-compatible-chat-<uuid>` node id
+    // (#9557). The internal `id` (node id) is preserved for PricingTab and
+    // runtime capability lookup. Only a uniquely-routable non-reserved winner
+    // is Model-Overrides eligible (marked explicitly); a compatible node that
+    // is reserved/losing/no-prefix is marked ineligible and skipped by the
+    // Model-Overrides helper.
     const ensureCatalogProvider = (providerId: string, alias: string) => {
       if (!catalog[alias]) {
         catalog[alias] = {
@@ -64,6 +78,11 @@ export async function GET() {
           format: "openai",
           models: [],
         };
+        const prefix = nodeToPrefix.get(providerId);
+        if (prefix) catalog[alias].displayPrefix = prefix;
+        if (compatibleNodeIds.has(providerId)) {
+          catalog[alias].modelOverrideEligible = eligibleNodeIds.has(providerId);
+        }
       }
       return catalog[alias];
     };
@@ -111,6 +130,13 @@ export async function GET() {
     }
 
     // ── 4. Pricing-only models (DB) ─────────────────────────────────
+    // Pricing may be keyed by the node's public prefix (what the operator typed)
+    // or by the internal node id. When keyed by a uniquely-routable public
+    // prefix, reconcile it to that node so the model list merges into the
+    // canonical compatible-provider entry instead of duplicating it, and
+    // preserve the original pricing namespace as `pricingKey` so PricingTab can
+    // read/save/reset against it. Reserved / ambiguous prefixes have no single
+    // routable node and stay as-is.
     let pricingData: Record<string, any> = {};
     try {
       pricingData = await getPricing();
@@ -118,7 +144,10 @@ export async function GET() {
       /* DB may not be ready */
     }
 
-    for (const [providerAlias, models] of Object.entries(pricingData)) {
+    for (const [rawProviderAlias, models] of Object.entries(pricingData)) {
+      // `rawProviderAlias` is the original pricing namespace the operator used.
+      const pricingKey = rawProviderAlias;
+      const providerAlias = prefixToNode.get(rawProviderAlias) || rawProviderAlias;
       if (!catalog[providerAlias]) {
         catalog[providerAlias] = {
           id: providerAlias,
@@ -128,6 +157,16 @@ export async function GET() {
           format: "openai",
           models: [],
         };
+        const prefix = nodeToPrefix.get(providerAlias);
+        if (prefix) catalog[providerAlias].displayPrefix = prefix;
+        if (compatibleNodeIds.has(providerAlias)) {
+          catalog[providerAlias].modelOverrideEligible = eligibleNodeIds.has(providerAlias);
+        }
+      }
+      // When the entry is keyed internally by the node id but priced under a
+      // public prefix, remember the original pricing namespace for PricingTab.
+      if (pricingKey !== providerAlias && !catalog[providerAlias].pricingKey) {
+        catalog[providerAlias].pricingKey = pricingKey;
       }
 
       const existingIds = new Set(catalog[providerAlias].models.map((m) => m.id));
