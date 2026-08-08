@@ -190,10 +190,26 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
+/**
+ * Whether an `error` field carries a real failure signal. A key-presence check
+ * (`!= null`) false-positives on benign values some backends emit on every
+ * chunk (`{}`, `""`, `false`, `0`) — e.g. tool-call turns where a chunk with
+ * real tool_calls content also carries `"error": {}`. Only substantive values
+ * are treated as upstream failures.
+ */
+function isSubstantiveError(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  if (typeof value === "string") return value.trim().length > 0;
+  if (typeof value === "object" && !Array.isArray(value)) {
+    return Object.keys(value as Record<string, unknown>).length > 0;
+  }
+  return value === true;
+}
+
 function isStreamingUpstreamError(parsed: unknown, eventType: string): boolean {
   if (eventType === "response.failed" || eventType === "error") return true;
   if (!isRecord(parsed)) return false;
-  if (parsed.error != null) return true;
+  if (isSubstantiveError(parsed.error)) return true;
 
   const nestedResponse = isRecord(parsed.response) ? parsed.response : null;
   return nestedResponse?.status === "failed" && nestedResponse.error != null;
