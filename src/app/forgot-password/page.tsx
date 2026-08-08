@@ -48,14 +48,12 @@ export default function ForgotPasswordPage() {
                   </span>
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-lg font-semibold mb-1">Reset via App Data</h2>
-                  <p className="text-sm text-text-muted mb-3">
-                    Delete the settings file from the app data directory to reset your password:
-                  </p>
+                  <h2 className="text-lg font-semibold mb-1">{t("resetViaAppDataTitle")}</h2>
+                  <p className="text-sm text-text-muted mb-3">{t("resetViaAppDataDescription")}</p>
                   <ol className="text-sm text-text-muted space-y-2 list-decimal list-inside mb-3">
-                    <li>Quit the OmniRoute desktop app completely</li>
+                    <li>{t("quitDesktopApp")}</li>
                     <li>
-                      Navigate to the app data directory:
+                      {t("navigateToAppDataDirectory")}
                       {dataDir ? (
                         <div className="bg-black/30 rounded-lg p-2 mt-1 font-mono text-xs text-green-400 border border-white/5 break-all">
                           {dataDir}
@@ -63,7 +61,7 @@ export default function ForgotPasswordPage() {
                       ) : (
                         <div className="bg-black/30 rounded-lg p-2 mt-1 font-mono text-xs text-green-400 border border-white/5">
                           <span className="text-text-muted/60">
-                            (Check your system app data folder)
+                            {t("checkSystemAppDataFolder")}
                           </span>
                         </div>
                       )}
@@ -73,7 +71,7 @@ export default function ForgotPasswordPage() {
                       <code className="bg-black/30 px-1 rounded text-text-main">settings.json</code>{" "}
                       ({t("orRemovePasswordHashField")})
                     </li>
-                    <li>Relaunch the OmniRoute desktop app — it will start fresh setup</li>
+                    <li>{t("relaunchDesktopFreshSetup")}</li>
                   </ol>
                 </div>
               </div>
@@ -88,14 +86,14 @@ export default function ForgotPasswordPage() {
                   </span>
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-lg font-semibold mb-1">Alternative: Set New Password</h2>
+                  <h2 className="text-lg font-semibold mb-1">{t("alternativeSetPasswordTitle")}</h2>
                   <p className="text-sm text-text-muted mb-3">
-                    Set a new initial password via the server environment file:
+                    {t("alternativeSetPasswordDescription")}
                   </p>
                   <ol className="text-sm text-text-muted space-y-2 list-decimal list-inside mb-3">
-                    <li>Quit the OmniRoute desktop app completely</li>
+                    <li>{t("quitDesktopApp")}</li>
                     <li>
-                      Open{" "}
+                      {t("openServerEnvFilePrefix")}{" "}
                       <code className="bg-black/30 px-1 rounded text-text-main">server.env</code> in
                       the data directory
                       {dataDir && (
@@ -115,7 +113,7 @@ export default function ForgotPasswordPage() {
                       <code className="bg-black/30 px-1 rounded text-text-main">settings.json</code>{" "}
                       from the data directory
                     </li>
-                    <li>Relaunch the OmniRoute desktop app</li>
+                    <li>{t("relaunchDesktopApp")}</li>
                   </ol>
                 </div>
               </div>

@@ -6,12 +6,34 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Card, Toggle } from "@/shared/components";
 import { useServiceStatus } from "../hooks/useServiceStatus";
+
+type ServiceMessageTranslator = ((key: string, values?: Record<string, unknown>) => string) & {
+  has?: (key: string) => boolean;
+};
+
+function serviceText(
+  t: ServiceMessageTranslator,
+  key: string,
+  fallback: string,
+  values?: Record<string, unknown>
+): string {
+  if (typeof t.has === "function" && t.has(key)) return t(key, values);
+  if (values) {
+    return Object.entries(values).reduce(
+      (acc, [name, value]) => acc.replaceAll(`{${name}}`, String(value)),
+      fallback
+    );
+  }
+  return fallback;
+}
 
 const NAME = "cliproxy";
 
 export function CliproxyProviderExposureCard() {
+  const t = useTranslations("embeddedServices");
   const { data, mutate } = useServiceStatus(NAME);
   const [pending, setPending] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -28,14 +50,30 @@ export function CliproxyProviderExposureCard() {
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         const errorMsg =
-          body?.error?.message ?? body?.message ?? `Failed to update (HTTP ${res.status})`;
+          body?.error?.message ??
+          body?.message ??
+          serviceText(
+            t,
+            "cliproxyProviderExposureUpdateFailed",
+            "Failed to update (HTTP {status})",
+            {
+              status: res.status,
+            }
+          );
         setMsg({ ok: false, text: errorMsg });
         return;
       }
       setMsg(null);
       mutate();
     } catch {
-      setMsg({ ok: false, text: "Network error — could not update provider exposure setting" });
+      setMsg({
+        ok: false,
+        text: serviceText(
+          t,
+          "cliproxyProviderExposureNetworkFailed",
+          "Network error — could not update provider exposure setting"
+        ),
+      });
     } finally {
       setPending(false);
     }
@@ -48,10 +86,15 @@ export function CliproxyProviderExposureCard() {
           <span className="material-symbols-outlined text-sky-500 text-xl">hub</span>
         </div>
         <div>
-          <h3 className="font-medium text-sm">Provider Exposure</h3>
+          <h3 className="font-medium text-sm">
+            {serviceText(t, "cliproxyProviderExposureTitle", "Provider Exposure")}
+          </h3>
           <p className="text-xs text-text-muted">
-            Expose CLIProxyAPI models as a routing target under the{" "}
-            <code className="font-mono bg-bg-subtle px-1 rounded">cliproxyapi/</code> prefix.
+            {serviceText(
+              t,
+              "cliproxyProviderExposureDescription",
+              "Expose CLIProxyAPI models as a routing target under the cliproxyapi/ prefix."
+            )}
           </p>
         </div>
       </div>
@@ -74,16 +117,23 @@ export function CliproxyProviderExposureCard() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm">
-            Expose as{" "}
+            {serviceText(t, "cliproxyProviderExposureLabel", "Expose as")}{" "}
             <code className="font-mono bg-bg-subtle px-1 rounded text-xs">cliproxyapi/...</code>
           </p>
           <p className="text-xs text-text-muted mt-0.5">
-            When enabled, discovered models appear in provider selects across OmniRoute.
+            {serviceText(
+              t,
+              "cliproxyProviderExposureHint",
+              "When enabled, discovered models appear in provider selects across OmniRoute."
+            )}
           </p>
         </div>
-        <Toggle checked={data?.providerExpose ?? false} onChange={handleToggle} disabled={pending || !data} />
+        <Toggle
+          checked={data?.providerExpose ?? false}
+          onChange={handleToggle}
+          disabled={pending || !data}
+        />
       </div>
     </Card>
   );
 }
-

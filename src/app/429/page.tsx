@@ -1,22 +1,25 @@
 import ErrorPageScaffold from "@/shared/components/ErrorPageScaffold";
+import { useTranslations } from "next-intl";
 
 export default function TooManyRequestsPage() {
+  const t = useTranslations("publicSystem");
+
   return (
     <ErrorPageScaffold
       code="429"
       icon="hourglass_top"
-      title="Too Many Requests"
-      description="Rate limits were exceeded for this client, key, or provider."
+      title={t("statusPages.429.title")}
+      description={t("statusPages.429.description")}
       suggestions={[
-        "Wait for cooldown and retry after the suggested interval.",
-        "Switch to a combo with fallback providers.",
-        "Tune provider resilience/rate-limit profiles in settings.",
+        t("statusPages.429.suggestion1"),
+        t("statusPages.429.suggestion2"),
+        t("statusPages.429.suggestion3"),
       ]}
       primaryAction={{
         href: "/dashboard/settings?tab=resilience",
-        label: "Open Resilience Settings",
+        label: t("statusPages.429.primaryAction"),
       }}
-      secondaryAction={{ href: "/dashboard/combos", label: "Open Combos" }}
+      secondaryAction={{ href: "/dashboard/combos", label: t("statusPages.429.secondaryAction") }}
     />
   );
 }

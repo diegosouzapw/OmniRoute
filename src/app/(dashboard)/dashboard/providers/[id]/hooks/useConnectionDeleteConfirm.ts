@@ -11,6 +11,8 @@
  */
 
 import { useCallback, useState } from "react";
+import { useTranslations } from "next-intl";
+import { providerText } from "../providerPageHelpers";
 
 export interface ConnectionDeleteConfirmTarget {
   id: string;
@@ -34,6 +36,7 @@ export function useConnectionDeleteConfirm(
   fetchConnections: () => Promise<void>,
   notify: NotifyLike
 ): ConnectionDeleteConfirmState {
+  const t = useTranslations("providers");
   const [connection, setConnection] = useState<ConnectionDeleteConfirmTarget | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -56,24 +59,24 @@ export function useConnectionDeleteConfirm(
     try {
       const res = await fetch(`/api/providers/${connectionId}`, { method: "DELETE" });
       if (res.ok) {
-        notify.success("Connection deleted");
+        notify.success(providerText(t, "connectionDeleted", "Connection deleted"));
         await fetchConnections();
       } else {
         const data = await res.json().catch(() => ({}));
         const message =
           (typeof data?.error === "string" && data.error) ||
           data?.error?.message ||
-          "Failed to delete connection";
+          providerText(t, "failedDeleteConnection", "Failed to delete connection");
         notify.error(message);
       }
     } catch (error) {
       console.error("Error deleting connection:", error);
-      notify.error("Failed to delete connection");
+      notify.error(providerText(t, "failedDeleteConnection", "Failed to delete connection"));
     } finally {
       setDeleting(false);
       setConnection(null);
     }
-  }, [connection, fetchConnections, notify]);
+  }, [connection, fetchConnections, notify, t]);
 
   return { connection, deleting, request, confirm, cancel };
 }

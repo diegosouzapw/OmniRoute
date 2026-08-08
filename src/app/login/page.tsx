@@ -276,7 +276,7 @@ export default function LoginPage() {
                   className="w-full h-11 text-sm font-medium"
                   onClick={() => (window.location.href = "/api/auth/oidc/login")}
                 >
-                  {t("continueWithOidc") || "Continue with OIDC"}
+                  {t("continueWithOidc")}
                 </Button>
               </div>
             )}

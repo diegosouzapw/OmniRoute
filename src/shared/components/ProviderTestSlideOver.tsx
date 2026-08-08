@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 import {
   LlmChatCard,
@@ -34,8 +35,8 @@ interface ProviderTestSlideOverProps {
 type TabKey = "test" | "logs";
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
-  { key: "test", label: "Test", icon: "play_arrow" },
-  { key: "logs", label: "Logs", icon: "receipt_long" },
+  { key: "test", label: "test", icon: "play_arrow" },
+  { key: "logs", label: "logs", icon: "receipt_long" },
 ];
 
 export default function ProviderTestSlideOver(props: ProviderTestSlideOverProps) {
@@ -50,6 +51,7 @@ function ProviderTestSlideOverPanel({
   staticIconPath,
   initialTab = "test",
 }: ProviderTestSlideOverProps) {
+  const t = useTranslations("providerTest");
   const [tab, setTab] = useState<TabKey>(initialTab);
   const [model, setModel] = useState<string>("");
   const [selectedKey, setSelectedKey] = useState<string>("");
@@ -88,7 +90,7 @@ function ProviderTestSlideOverPanel({
       />
       <div
         role="dialog"
-        aria-label={`Test ${provider.name}`}
+        aria-label={t("dialogLabel", { provider: provider.name })}
         className="relative w-full sm:w-[640px] md:w-[720px] lg:w-[820px] max-w-full bg-surface border-l border-black/10 dark:border-white/10 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200"
       >
         <SlideOverHeader
@@ -145,6 +147,7 @@ function SlideOverHeader({
   color: string;
   onClose: () => void;
 }) {
+  const t = useTranslations("providerTest");
   return (
     <div className="flex items-center gap-3 px-4 py-3 border-b border-black/5 dark:border-white/5 shrink-0">
       <div
@@ -168,7 +171,7 @@ function SlideOverHeader({
               <span>·</span>
               <span className="flex items-center gap-0.5 text-text-muted/70">
                 <span className="material-symbols-outlined text-[12px]">block</span>
-                deprecated
+                {t("deprecated")}
               </span>
             </>
           )}
@@ -177,7 +180,7 @@ function SlideOverHeader({
               <span>·</span>
               <span className="flex items-center gap-0.5 text-amber-500">
                 <span className="material-symbols-outlined text-[12px]">info</span>
-                risk
+                {t("risk")}
               </span>
             </>
           )}
@@ -186,7 +189,7 @@ function SlideOverHeader({
       <button
         type="button"
         onClick={onClose}
-        aria-label="Close"
+        aria-label={t("close")}
         className="p-1.5 rounded-lg text-text-muted hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
       >
         <span className="material-symbols-outlined text-[20px]">close</span>
@@ -212,11 +215,12 @@ function TestToolbar({
   keys: { id: string; key: string; name?: string }[];
   controls: LlmChatControls | null;
 }) {
+  const t = useTranslations("providerTest");
   const hasMessages = controls?.hasMessages ?? false;
   return (
     <div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-black/5 dark:border-white/5 bg-bg-subtle/30 shrink-0">
       <div className="flex items-center gap-1.5 min-w-0 flex-1">
-        <label className="text-[11px] text-text-muted shrink-0">Model:</label>
+        <label className="text-[11px] text-text-muted shrink-0">{t("model")}:</label>
         <select
           value={model}
           onChange={(e) => onModelChange(e.target.value)}
@@ -232,13 +236,13 @@ function TestToolbar({
       </div>
       {keys.length > 0 && (
         <div className="flex items-center gap-1.5">
-          <label className="text-[11px] text-text-muted shrink-0">Key:</label>
+          <label className="text-[11px] text-text-muted shrink-0">{t("key")}:</label>
           <select
             value={selectedKey}
             onChange={(e) => onSelectedKeyChange(e.target.value)}
             className="rounded-md border border-border bg-bg-subtle text-xs px-2 py-1 text-text-main focus:outline-none focus:ring-1 focus:ring-primary"
           >
-            <option value="">(default)</option>
+            <option value="">({t("defaultKey")})</option>
             {keys.map((k) => (
               <option key={k.id} value={k.key}>
                 {k.name ?? k.id}
@@ -252,10 +256,10 @@ function TestToolbar({
           type="button"
           onClick={() => controls?.clear()}
           className="text-[11px] text-text-muted hover:text-text-main transition-colors flex items-center gap-1"
-          title="Clear conversation"
+          title={t("clearConversation")}
         >
           <span className="material-symbols-outlined text-[14px]">delete_sweep</span>
-          Clear
+          {t("clear")}
         </button>
       )}
     </div>
@@ -263,26 +267,27 @@ function TestToolbar({
 }
 
 function SlideOverTabs({ tab, onChange }: { tab: TabKey; onChange: (next: TabKey) => void }) {
+  const translate = useTranslations("providerTest");
   return (
     <div
       role="tablist"
       className="flex items-center gap-1 px-4 pt-2 border-b border-black/5 dark:border-white/5 shrink-0"
     >
-      {TABS.map((t) => {
-        const active = t.key === tab;
+      {TABS.map((tabItem) => {
+        const active = tabItem.key === tab;
         return (
           <button
-            key={t.key}
+            key={tabItem.key}
             role="tab"
             type="button"
             aria-selected={active}
-            onClick={() => onChange(t.key)}
+            onClick={() => onChange(tabItem.key)}
             className={`relative flex items-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors ${
               active ? "text-accent" : "text-text-muted hover:text-text-main"
             }`}
           >
-            <span className="material-symbols-outlined text-[16px]">{t.icon}</span>
-            <span>{t.label}</span>
+            <span className="material-symbols-outlined text-[16px]">{tabItem.icon}</span>
+            <span>{translate(`tabs.${tabItem.label}`)}</span>
             {active && (
               <span
                 aria-hidden
@@ -324,7 +329,10 @@ interface LogEntry {
   apiKeyId?: string;
 }
 
-function formatRequester(log: LogEntry): { label: string; title: string } {
+function formatRequester(
+  log: LogEntry,
+  unknownRequester: string
+): { label: string; title: string } {
   const name = log.apiKeyName || log.account;
   const keyHint = log.apiKey || log.apiKeyId;
   const masked =
@@ -334,7 +342,7 @@ function formatRequester(log: LogEntry): { label: string; title: string } {
   if (name && masked) return { label: name, title: `${name} (${masked})` };
   if (name) return { label: name, title: name };
   if (masked) return { label: masked, title: keyHint || masked };
-  return { label: "—", title: "unknown requester" };
+  return { label: "—", title: unknownRequester };
 }
 
 type LogsState =
@@ -343,6 +351,7 @@ type LogsState =
   | { status: "error"; message: string };
 
 function LogsTab({ providerId }: { providerId: string }) {
+  const t = useTranslations("providerTest");
   const [state, setState] = useState<LogsState>({ status: "loading" });
   const [expanded, setExpanded] = useState<string | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
@@ -362,7 +371,7 @@ function LogsTab({ providerId }: { providerId: string }) {
         setState({ status: "ready", logs });
       } catch (err) {
         if (cancelled || (err as { name?: string })?.name === "AbortError") return;
-        setState({ status: "error", message: (err as Error).message || "Failed to load logs" });
+        setState({ status: "error", message: (err as Error).message || t("failedToLoadLogs") });
       }
     }
 
@@ -374,7 +383,7 @@ function LogsTab({ providerId }: { providerId: string }) {
       ctrl.abort();
       clearInterval(interval);
     };
-  }, [providerId, refreshTick]);
+  }, [providerId, refreshTick, t]);
 
   const handleRefresh = useCallback(() => setRefreshTick((n) => n + 1), []);
 
@@ -384,14 +393,14 @@ function LogsTab({ providerId }: { providerId: string }) {
         <span className="material-symbols-outlined text-[18px] animate-spin">
           progress_activity
         </span>
-        Loading logs…
+        {t("loadingLogs")}
       </div>
     );
   }
 
   if (state.status === "error") {
     return (
-      <TabPlaceholder icon="error" title="Failed to load logs" body={<p>{state.message}</p>} />
+      <TabPlaceholder icon="error" title={t("failedToLoadLogs")} body={<p>{state.message}</p>} />
     );
   }
 
@@ -399,17 +408,17 @@ function LogsTab({ providerId }: { providerId: string }) {
     return (
       <TabPlaceholder
         icon="receipt_long"
-        title="No logs yet"
+        title={t("noLogsYet")}
         body={
           <>
-            <p>Send a test message from the Test tab — logs for this provider will appear here.</p>
+            <p>{t("noLogsDescription")}</p>
             <a
               href={`/dashboard/logs?connection=${encodeURIComponent(providerId)}`}
               className="mt-2 inline-flex items-center gap-1 text-accent hover:underline"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Open full logs page
+              {t("openFullLogs")}
               <span className="material-symbols-outlined text-[14px]">open_in_new</span>
             </a>
           </>
@@ -427,19 +436,19 @@ function LogsTab({ providerId }: { providerId: string }) {
               <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 animate-ping" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
             </span>
-            <span className="text-emerald-500">Live</span>
+            <span className="text-emerald-500">{t("live")}</span>
           </span>
           <span aria-hidden>·</span>
-          <span>tailing last {state.logs.length}</span>
+          <span>{t("tailingLast", { count: state.logs.length })}</span>
         </span>
         <button
           type="button"
           onClick={handleRefresh}
           className="text-[10px] text-text-muted hover:text-text-main inline-flex items-center gap-1"
-          title="Refresh now"
+          title={t("refreshNow")}
         >
           <span className="material-symbols-outlined text-[14px]">refresh</span>
-          Refresh
+          {t("refresh")}
         </button>
       </div>
       <ul className="flex-1 min-h-0 overflow-y-auto divide-y divide-border/40">
@@ -452,7 +461,7 @@ function LogsTab({ providerId }: { providerId: string }) {
             : typeof log.status === "number"
               ? "text-red-500"
               : "text-text-muted";
-          const requester = formatRequester(log);
+          const requester = formatRequester(log, t("unknownRequester"));
           return (
             <li key={key}>
               <button
@@ -501,7 +510,7 @@ function LogsTab({ providerId }: { providerId: string }) {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Open full logs page
+          {t("openFullLogs")}
           <span className="material-symbols-outlined text-[12px]">open_in_new</span>
         </a>
       </div>
@@ -510,19 +519,20 @@ function LogsTab({ providerId }: { providerId: string }) {
 }
 
 function LogDetail({ log }: { log: LogEntry }) {
-  const requester = formatRequester(log);
+  const t = useTranslations("providerTest");
+  const requester = formatRequester(log, t("unknownRequester"));
   const tokensIn = log.tokens?.in;
   const tokensOut = log.tokens?.out;
   const rows: { label: string; value: string; mono?: boolean }[] = [
-    { label: "Timestamp", value: new Date(log.timestamp).toLocaleString(), mono: true },
-    { label: "Status", value: String(log.status ?? "—") },
-    { label: "Duration", value: formatDurationMs(log.duration) },
-    { label: "Model", value: log.model || "—", mono: true },
-    { label: "Requested model", value: log.requestedModel || "—", mono: true },
-    { label: "Provider", value: log.providerDisplay || log.provider || "—", mono: true },
-    { label: "Requester", value: requester.title, mono: true },
+    { label: t("fields.timestamp"), value: new Date(log.timestamp).toLocaleString(), mono: true },
+    { label: t("fields.status"), value: String(log.status ?? "—") },
+    { label: t("fields.duration"), value: formatDurationMs(log.duration) },
+    { label: t("fields.model"), value: log.model || "—", mono: true },
+    { label: t("fields.requestedModel"), value: log.requestedModel || "—", mono: true },
+    { label: t("fields.provider"), value: log.providerDisplay || log.provider || "—", mono: true },
+    { label: t("fields.requester"), value: requester.title, mono: true },
     {
-      label: "Tokens",
+      label: t("fields.tokens"),
       value:
         tokensIn != null || tokensOut != null ? `in ${tokensIn ?? 0} · out ${tokensOut ?? 0}` : "—",
     },

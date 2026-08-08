@@ -236,12 +236,12 @@ export default function SystemStorageTab() {
       if (res.ok) {
         setClearCacheStatus({
           type: "success",
-          message: t("cacheCleared") || "Cache cleared successfully",
+          message: t("cacheCleared"),
         });
       } else {
         setClearCacheStatus({
           type: "error",
-          message: data?.error || t("clearCacheFailed") || "Failed to clear cache",
+          message: data?.error || t("clearCacheFailed"),
         });
       }
     } catch {
@@ -266,7 +266,7 @@ export default function SystemStorageTab() {
       } else {
         setPurgeLogsStatus({
           type: "error",
-          message: data?.error || t("purgeLogsFailed") || "Failed to purge logs",
+          message: data?.error || t("purgeLogsFailed"),
         });
       }
     } catch {
@@ -1391,7 +1391,7 @@ export default function SystemStorageTab() {
           <span className="material-symbols-outlined text-[18px] text-blue-500" aria-hidden="true">
             build
           </span>
-          <p className="font-medium">{t("maintenance") || "Maintenance"}</p>
+          <p className="font-medium">{t("maintenance")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button
@@ -1403,7 +1403,7 @@ export default function SystemStorageTab() {
             <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
               delete_sweep
             </span>
-            {t("clearCache") || "Clear Cache"}
+            {t("clearCache")}
           </Button>
           <Button
             variant="outline"
@@ -1414,7 +1414,7 @@ export default function SystemStorageTab() {
             <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
               auto_delete
             </span>
-            {t("purgeExpiredLogs") || "Purge Expired Logs"}
+            {t("purgeExpiredLogs")}
           </Button>
           <Button
             variant="outline"
@@ -1469,7 +1469,7 @@ export default function SystemStorageTab() {
             <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
               restart_alt
             </span>
-            {t("resetUsageData") || "Reset Usage Data"}
+            {t("resetUsageData")}
           </Button>
         </div>
         <div className="mt-4 border-t border-border/50 pt-3">
@@ -1543,7 +1543,7 @@ export default function SystemStorageTab() {
         isOpen={resetUsageModalOpen}
         onClose={() => !resetUsageLoading && setResetUsageModalOpen(false)}
         onConfirm={handleResetUsageHistory}
-        title={t("resetUsageData") || "Reset Usage Data"}
+        title={t("resetUsageData")}
         message={
           <div className="space-y-3">
             <p className="text-text-muted">
@@ -1563,7 +1563,7 @@ export default function SystemStorageTab() {
             </select>
           </div>
         }
-        confirmText={resetUsageLoading ? t("resetting") || "Resetting..." : t("reset") || "Reset"}
+        confirmText={resetUsageLoading ? t("resetting") : t("reset")}
         variant="danger"
         loading={resetUsageLoading}
       />

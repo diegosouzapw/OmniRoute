@@ -369,7 +369,10 @@ export default function MemorySkillsTab() {
             role="note"
             data-testid="memory-token-cost-warning"
           >
-            <span className="material-symbols-outlined text-[18px] leading-none mt-0.5" aria-hidden="true">
+            <span
+              className="material-symbols-outlined text-[18px] leading-none mt-0.5"
+              aria-hidden="true"
+            >
               info
             </span>
             <p className="text-xs leading-relaxed">
@@ -540,7 +543,7 @@ export default function MemorySkillsTab() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="p-4 rounded-lg bg-surface/30 border border-border/30">
-            <label className="text-sm font-medium block mb-2">Host</label>
+            <label className="text-sm font-medium block mb-2">{t("host")}</label>
             <input
               value={qdrant.host}
               onChange={(e) => setQdrant((s) => ({ ...s, host: e.target.value }))}
@@ -567,7 +570,7 @@ export default function MemorySkillsTab() {
           </div>
 
           <div className="p-4 rounded-lg bg-surface/30 border border-border/30">
-            <label className="text-sm font-medium block mb-2">Collection</label>
+            <label className="text-sm font-medium block mb-2">{t("collection")}</label>
             <input
               value={qdrant.collection}
               onChange={(e) => setQdrant((s) => ({ ...s, collection: e.target.value }))}
@@ -781,9 +784,7 @@ export default function MemorySkillsTab() {
           </div>
           <div>
             <h3 className="text-lg font-semibold">{t("memorySkillsSkillsmpMarketplace")}</h3>
-            <p className="text-sm text-text-muted">
-              Connect to SkillsMP to discover and install skills from the marketplace.
-            </p>
+            <p className="text-sm text-text-muted">{t("memorySkillsSkillsmpDescription")}</p>
           </div>
           {skillsmpStatus === "saved" && (
             <span className="ml-auto text-xs font-medium text-emerald-500 flex items-center gap-1">
@@ -813,12 +814,12 @@ export default function MemorySkillsTab() {
               disabled={skillsmpSaving}
               className="px-4 py-2 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors"
             >
-              {skillsmpSaving ? "Saving..." : "Save"}
+              {skillsmpSaving ? t("saving") : t("save")}
             </button>
           </div>
           <p className="text-xs text-text-muted mt-2">
-            Get your API key from <span className="text-violet-400">skillsmp.com</span>. Rate limit:
-            500 requests/day.
+            {t("skillsmpApiKeyHintBefore")} <span className="text-violet-400">skillsmp.com</span>
+            {t("skillsmpApiKeyHintAfter", { limit: 500 })}
           </p>
         </div>
       </Card>
@@ -833,9 +834,7 @@ export default function MemorySkillsTab() {
           </div>
           <div>
             <h3 className="text-lg font-semibold">{t("memorySkillsActiveSkillsProvider")}</h3>
-            <p className="text-sm text-text-muted">
-              Choose which provider the Skills page uses for search and install.
-            </p>
+            <p className="text-sm text-text-muted">{t("memorySkillsActiveProviderDescription")}</p>
           </div>
           {skillsProviderStatus === "saved" && (
             <span className="ml-auto text-xs font-medium text-emerald-500 flex items-center gap-1">
@@ -864,10 +863,10 @@ export default function MemorySkillsTab() {
             <p
               className={`text-sm font-medium ${skillsProvider === "skillsmp" ? "text-indigo-400" : ""}`}
             >
-              SkillsMP Marketplace
+              {t("memorySkillsSkillsmpProviderTitle")}
             </p>
             <p className="text-xs text-text-muted mt-0.5 leading-relaxed">
-              Authenticated marketplace (uses your SkillsMP API key).
+              {t("memorySkillsSkillsmpProviderDescription")}
             </p>
           </button>
 
@@ -884,10 +883,10 @@ export default function MemorySkillsTab() {
             <p
               className={`text-sm font-medium ${skillsProvider === "skillssh" ? "text-indigo-400" : ""}`}
             >
-              skills.sh Directory
+              {t("memorySkillsSkillsshProviderTitle")}
             </p>
             <p className="text-xs text-text-muted mt-0.5 leading-relaxed">
-              Public directory provider (no API key required).
+              {t("memorySkillsSkillsshProviderDescription")}
             </p>
           </button>
         </div>

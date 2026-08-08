@@ -13,6 +13,7 @@ import {
   UPSTREAM_HEADERS_UI_MAX,
   headerRowsToRecord,
   compatProtocolLabelKey,
+  providerText,
   type HeaderDraftRow,
 } from "../providerPageHelpers";
 
@@ -353,7 +354,7 @@ export default function ModelCompatPopover({
               {/* Param filters — model-level block/allow (#6625) */}
               <div className="mt-4 space-y-2.5">
                 <label className="block text-[11px] font-semibold text-text-main">
-                  {t("compatParamFiltersLabel") ?? "Param Filters"}
+                  {providerText(t, "compatParamFiltersLabel", "Param Filters")}
                 </label>
                 <div>
                   <input
@@ -369,7 +370,11 @@ export default function ModelCompatPopover({
                     className="mb-1 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-mono text-text-main placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 dark:border-zinc-600 dark:bg-zinc-900"
                   />
                   <p className="text-[10px] text-text-muted">
-                    {t("compatBlockedParamsHint") ?? "Blocked params (stripped from requests)"}
+                    {providerText(
+                      t,
+                      "compatBlockedParamsHint",
+                      "Blocked params (stripped from requests)"
+                    )}
                     {paramSaving && ` ● ${t("compatSaving")}`}
                   </p>
                 </div>
@@ -387,7 +392,11 @@ export default function ModelCompatPopover({
                     className="mb-1 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-mono text-text-main placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 dark:border-zinc-600 dark:bg-zinc-900"
                   />
                   <p className="text-[10px] text-text-muted">
-                    {t("compatAllowedParamsHint") ?? "Allowed params (re-added after deny)"}
+                    {providerText(
+                      t,
+                      "compatAllowedParamsHint",
+                      "Allowed params (re-added after deny)"
+                    )}
                   </p>
                 </div>
               </div>

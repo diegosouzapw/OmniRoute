@@ -429,7 +429,7 @@ export default function A2ADashboardPage() {
                   <th className="text-left py-2 pr-2">{t("tableTask")}</th>
                   <th className="text-left py-2 pr-2">{t("tableSkill")}</th>
                   <th className="text-left py-2 pr-2">{t("tableState")}</th>
-                  <th className="text-left py-2 pr-2">{t("tablePhase") || "FSM Status"}</th>
+                  <th className="text-left py-2 pr-2">{t("tablePhase")}</th>
                   <th className="text-left py-2 pr-2">{t("tableUpdated")}</th>
                   <th className="text-left py-2">{t("tableActions")}</th>
                 </tr>

@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+import { chaosText, type ChaosTranslator } from "../chaosI18n";
+
 export interface ChaosModelResult {
   providerId: string;
   providerName: string;
@@ -26,14 +29,24 @@ export interface ChaosTestResult {
  * complexity/size ratchet (config/quality/complexity-baseline.json).
  */
 export function ChaosTestResultsPanel({ result }: { result: ChaosTestResult }) {
+  const t = useTranslations("chaosConfig") as ChaosTranslator;
+  const resultsTitle = chaosText(
+    t,
+    "testResults",
+    `Test Results — ${result.mode} mode (${result.totalProviders} providers)`,
+    { mode: result.mode, count: result.totalProviders }
+  );
+  const startedLabel = chaosText(
+    t,
+    "started",
+    `Started: ${new Date(result.startedAt).toLocaleTimeString()}`,
+    { time: new Date(result.startedAt).toLocaleTimeString() }
+  );
+
   return (
     <div className="p-3 rounded-lg border border-border bg-surface/40 space-y-3">
-      <h3 className="text-sm font-bold text-text-main">
-        Test Results — {result.mode} mode ({result.totalProviders} providers)
-      </h3>
-      <div className="text-xs text-text-muted">
-        Started: {new Date(result.startedAt).toLocaleTimeString()}
-      </div>
+      <h3 className="text-sm font-bold text-text-main">{resultsTitle}</h3>
+      <div className="text-xs text-text-muted">{startedLabel}</div>
       {result.models.map((model, idx) => (
         <div
           key={idx}

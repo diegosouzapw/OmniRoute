@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Card, Button } from "@/shared/components";
 
 interface ToolState {
@@ -24,6 +25,7 @@ interface UpdateInfo {
 }
 
 export default function CliproxyapiToolCard({ isExpanded = false, onToggle = () => {} }) {
+  const t = useTranslations("cliTools");
   const [toolState, setToolState] = useState<ToolState | null>(null);
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
@@ -71,7 +73,7 @@ export default function CliproxyapiToolCard({ isExpanded = false, onToggle = () 
       });
       const data = await res.json();
       if (res.ok) {
-        setMessage({ type: "success", text: data.message || `${action} succeeded` });
+        setMessage({ type: "success", text: data.message || t("cliproxyapiActionSucceeded") });
         await fetchStatus();
         if (action === "install" || action === "restart") await fetchUpdateInfo();
       } else {
@@ -79,11 +81,14 @@ export default function CliproxyapiToolCard({ isExpanded = false, onToggle = () 
           type: "error",
           text:
             (typeof data.error === "string" ? data.error : data.error?.message) ||
-            `${action} failed`,
+            t("cliproxyapiActionFailed"),
         });
       }
     } catch (err) {
-      setMessage({ type: "error", text: err instanceof Error ? err.message : "Request failed" });
+      setMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : t("cliproxyapiRequestFailed"),
+      });
     } finally {
       setLoading(null);
     }
@@ -93,14 +98,26 @@ export default function CliproxyapiToolCard({ isExpanded = false, onToggle = () 
     if (!toolState) return null;
     const s = toolState.status;
     const map: Record<string, { label: string; color: string }> = {
-      running: { label: "Running", color: "bg-green-500/10 text-green-600 dark:text-green-400" },
-      stopped: { label: "Stopped", color: "bg-zinc-500/10 text-zinc-500 dark:text-zinc-400" },
+      running: {
+        label: t("cliproxyapiStatusRunning"),
+        color: "bg-green-500/10 text-green-600 dark:text-green-400",
+      },
+      stopped: {
+        label: t("cliproxyapiStatusStopped"),
+        color: "bg-zinc-500/10 text-zinc-500 dark:text-zinc-400",
+      },
       not_installed: {
-        label: "Not Installed",
+        label: t("cliproxyapiStatusNotInstalled"),
         color: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
       },
-      installed: { label: "Installed", color: "bg-blue-500/10 text-blue-600 dark:text-blue-400" },
-      error: { label: "Error", color: "bg-red-500/10 text-red-600 dark:text-red-400" },
+      installed: {
+        label: t("cliproxyapiStatusInstalled"),
+        color: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+      },
+      error: {
+        label: t("cliproxyapiStatusError"),
+        color: "bg-red-500/10 text-red-600 dark:text-red-400",
+      },
     };
     const badge = map[s] || map.not_installed;
     return (
@@ -125,9 +142,7 @@ export default function CliproxyapiToolCard({ isExpanded = false, onToggle = () 
               <h3 className="font-medium text-sm">CLIProxyAPI</h3>
               {statusBadge()}
             </div>
-            <p className="text-xs text-text-muted truncate">
-              Upstream proxy fallback (Go-based OAuth)
-            </p>
+            <p className="text-xs text-text-muted truncate">{t("cliproxyapiDescription")}</p>
           </div>
         </div>
         <span
@@ -161,7 +176,10 @@ export default function CliproxyapiToolCard({ isExpanded = false, onToggle = () 
                   system_update
                 </span>
                 <span className="text-sm text-yellow-700 dark:text-yellow-300">
-                  Update available: v{updateInfo.current} → v{updateInfo.latest}
+                  {t("cliproxyapiUpdateAvailable", {
+                    current: updateInfo.current,
+                    latest: updateInfo.latest,
+                  })}
                 </span>
               </div>
               <Button
@@ -170,32 +188,34 @@ export default function CliproxyapiToolCard({ isExpanded = false, onToggle = () 
                 onClick={() => apiCall("install", { version: updateInfo.latest })}
                 loading={loading === "install"}
               >
-                Update
+                {t("cliproxyapiUpdate")}
               </Button>
             </div>
           )}
 
           <div className="grid grid-cols-3 gap-3">
             <div className="p-3 rounded-lg bg-bg-secondary">
-              <p className="text-xs text-text-muted mb-1">Version</p>
+              <p className="text-xs text-text-muted mb-1">{t("cliproxyapiVersion")}</p>
               <p className="text-sm font-medium">
-                {toolState?.installedVersion ? `v${toolState.installedVersion}` : "Not installed"}
+                {toolState?.installedVersion
+                  ? `v${toolState.installedVersion}`
+                  : t("cliproxyapiNotInstalledValue")}
               </p>
             </div>
             <div className="p-3 rounded-lg bg-bg-secondary">
-              <p className="text-xs text-text-muted mb-1">Health</p>
+              <p className="text-xs text-text-muted mb-1">{t("cliproxyapiHealth")}</p>
               <p
                 className={`text-sm font-medium ${toolState?.healthStatus === "healthy" ? "text-green-600 dark:text-green-400" : toolState?.healthStatus === "unhealthy" ? "text-red-600 dark:text-red-400" : "text-text-muted"}`}
               >
                 {toolState?.healthStatus === "healthy"
-                  ? `Healthy`
+                  ? t("cliproxyapiHealthy")
                   : toolState?.healthStatus === "unhealthy"
-                    ? "Unhealthy"
-                    : "Unknown"}
+                    ? t("cliproxyapiUnhealthy")
+                    : t("cliproxyapiUnknown")}
               </p>
             </div>
             <div className="p-3 rounded-lg bg-bg-secondary">
-              <p className="text-xs text-text-muted mb-1">Port</p>
+              <p className="text-xs text-text-muted mb-1">{t("cliproxyapiPort")}</p>
               <p className="text-sm font-mono">{toolState?.port || 8317}</p>
             </div>
           </div>
@@ -209,7 +229,7 @@ export default function CliproxyapiToolCard({ isExpanded = false, onToggle = () 
                 loading={loading === "install"}
               >
                 <span className="material-symbols-outlined text-[14px] mr-1">download</span>
-                Install
+                {t("cliproxyapiInstall")}
               </Button>
             )}
             {toolState?.status === "running" ? (
@@ -220,7 +240,7 @@ export default function CliproxyapiToolCard({ isExpanded = false, onToggle = () 
                 loading={loading === "stop"}
               >
                 <span className="material-symbols-outlined text-[14px] mr-1">stop</span>
-                Stop
+                {t("cliproxyapiStop")}
               </Button>
             ) : toolState?.installedVersion ? (
               <Button
@@ -230,7 +250,7 @@ export default function CliproxyapiToolCard({ isExpanded = false, onToggle = () 
                 loading={loading === "start"}
               >
                 <span className="material-symbols-outlined text-[14px] mr-1">play_arrow</span>
-                Start
+                {t("cliproxyapiStart")}
               </Button>
             ) : null}
             {toolState?.status === "running" && (
@@ -241,7 +261,7 @@ export default function CliproxyapiToolCard({ isExpanded = false, onToggle = () 
                 loading={loading === "restart"}
               >
                 <span className="material-symbols-outlined text-[14px] mr-1">restart_alt</span>
-                Restart
+                {t("cliproxyapiRestart")}
               </Button>
             )}
             <Button
@@ -251,7 +271,7 @@ export default function CliproxyapiToolCard({ isExpanded = false, onToggle = () 
               loading={loading === "check"}
             >
               <span className="material-symbols-outlined text-[14px] mr-1">sync</span>
-              Check Updates
+              {t("cliproxyapiCheckUpdates")}
             </Button>
           </div>
         </div>

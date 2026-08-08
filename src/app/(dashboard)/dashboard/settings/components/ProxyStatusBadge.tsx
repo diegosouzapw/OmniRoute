@@ -1,10 +1,13 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 interface ProxyStatusBadgeProps {
   status?: string;
 }
 
 export function ProxyStatusBadge({ status }: ProxyStatusBadgeProps) {
+  const t = useTranslations("settings");
   const isInactive = status === "inactive";
   return (
     <span
@@ -17,7 +20,7 @@ export function ProxyStatusBadge({ status }: ProxyStatusBadgeProps) {
       <span
         className={`w-1.5 h-1.5 rounded-full ${isInactive ? "bg-red-400" : "bg-emerald-400"}`}
       />
-      {isInactive ? "Inactive" : "Active"}
+      {isInactive ? t("proxyStatusInactive") : t("proxyStatusActive")}
     </span>
   );
 }

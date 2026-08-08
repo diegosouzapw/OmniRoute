@@ -316,11 +316,13 @@ export function useModelVisibilityHandlers({
         // extractApiErrorMessage coerces any object-shaped `error` (e.g. a Zod
         // format object) to a string so notify.error never hands the toast a
         // non-string child (React #31 → frozen page).
-        notify.error(extractApiErrorMessage(data, "Model test failed"));
+        notify.error(
+          extractApiErrorMessage(data, providerText(t, "modelTestFailed", "Model test failed"))
+        );
         setModelTestStatus((prev) => ({ ...prev, [modelId]: "error" }));
       }
     } catch (err) {
-      notify.error("Network error testing model");
+      notify.error(providerText(t, "modelTestNetworkError", "Network error testing model"));
       setModelTestStatus((prev) => ({ ...prev, [modelId]: "error" }));
     } finally {
       setTestingModelId(null);

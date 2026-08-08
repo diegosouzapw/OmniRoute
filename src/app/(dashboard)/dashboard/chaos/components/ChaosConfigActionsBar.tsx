@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { chaosText, type ChaosTranslator } from "../chaosI18n";
 
 /**
  * Save/Reset + Test-run action buttons for the Chaos Mode config page.
@@ -22,7 +23,7 @@ export function ChaosConfigActionsBar({
   onReset: () => void;
   onTest: () => void;
 }) {
-  const t = useTranslations("chaosConfig");
+  const t = useTranslations("chaosConfig") as ChaosTranslator;
 
   return (
     <>
@@ -66,7 +67,7 @@ export function ChaosConfigActionsBar({
           ) : (
             <span className="material-symbols-outlined text-[16px]">play_arrow</span>
           )}
-          {testing ? "Running..." : t("testButton")}
+          {testing ? chaosText(t, "running", "Running...") : t("testButton")}
         </button>
       </div>
     </>

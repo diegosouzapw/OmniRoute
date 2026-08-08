@@ -1,7 +1,7 @@
 "use client";
 
 import { Modal } from "@/shared/components";
-import type { ProviderMessageTranslator } from "../providerPageHelpers";
+import { providerText, type ProviderMessageTranslator } from "../providerPageHelpers";
 
 type KimiCodeAuthMethodModalProps = {
   isOpen: boolean;
@@ -50,7 +50,9 @@ export default function KimiCodeAuthMethodModal({
           <div className="flex items-start gap-3">
             <span className="material-symbols-outlined mt-0.5 text-primary">key</span>
             <div className="min-w-0 flex-1">
-              <h3 className="mb-1 font-semibold">Kimi Code API Key</h3>
+              <h3 className="mb-1 font-semibold">
+                {providerText(t, "kimiCodeApiKeyLabel", "Kimi Code API Key")}
+              </h3>
               <p className="text-sm text-text-muted">{t("apiKeySecure")}</p>
             </div>
           </div>

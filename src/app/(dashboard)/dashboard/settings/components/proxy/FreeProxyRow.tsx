@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 export interface FreeProxyRowData {
   id: string;
   source: string;
@@ -28,6 +30,7 @@ export default function FreeProxyRow({
   onAddToPool,
   adding,
 }: FreeProxyRowProps) {
+  const t = useTranslations("settings");
   const qualityColor =
     proxy.qualityScore == null
       ? "text-text-muted"
@@ -46,7 +49,7 @@ export default function FreeProxyRow({
           onChange={() => onToggleSelect(proxy.id)}
           className="rounded"
           disabled={proxy.inPool}
-          aria-label={`Select ${proxy.host}:${proxy.port}`}
+          aria-label={t("proxyFreePoolSelectProxy", { endpoint: `${proxy.host}:${proxy.port}` })}
         />
       </td>
       <td className="px-3 py-2 text-text-muted text-xs">{proxy.source}</td>
@@ -64,16 +67,16 @@ export default function FreeProxyRow({
       <td className="px-3 py-2">
         {proxy.inPool ? (
           <span className="px-2 py-0.5 rounded text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-            in pool
+            {t("proxyFreePoolInPool")}
           </span>
         ) : (
           <button
             onClick={() => onAddToPool(proxy.id)}
             disabled={adding}
-            aria-label={`Add ${proxy.host}:${proxy.port} to pool`}
+            aria-label={t("proxyFreePoolAddProxy", { endpoint: `${proxy.host}:${proxy.port}` })}
             className="px-2 py-0.5 rounded text-xs bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25 disabled:opacity-50"
           >
-            {adding ? "..." : "⊕"}
+            {adding ? t("proxyFreePoolAdding") : "⊕"}
           </button>
         )}
       </td>

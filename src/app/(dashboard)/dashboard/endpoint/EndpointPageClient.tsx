@@ -534,7 +534,10 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
       if (!cloudConfigured) {
         setCloudStatus({
           type: "warning",
-          message: "Cloud sync is not configured on this instance.",
+          message: translateOrFallback(
+            "cloudSyncNotConfigured",
+            "Cloud sync is not configured on this instance."
+          ),
         });
         return;
       }
@@ -1822,7 +1825,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
           <div className="flex items-center gap-2 mb-3">
             <span className="material-symbols-outlined text-sm text-primary">hub</span>
             <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
-              {t("categoryCore") || "Core APIs"}
+              {t("categoryCore")}
             </h3>
             <div className="flex-1 h-px bg-border/50" />
           </div>
@@ -1843,7 +1846,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               icon="code"
               iconColor="text-indigo-500"
               iconBg="bg-indigo-500/10"
-              title={t("responses") || "Responses API"}
+              title={t("responses")}
               path="/v1/responses"
               models={endpointData.chat}
               copy={copy}
@@ -1855,7 +1858,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               icon="text_fields"
               iconColor="text-orange-500"
               iconBg="bg-orange-500/10"
-              title={t("completionsLegacy") || "Completions (Legacy)"}
+              title={t("completionsLegacy")}
               path="/v1/completions"
               models={endpointData.chat}
               copy={copy}
@@ -1867,7 +1870,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               icon="psychology"
               iconColor="text-violet-500"
               iconBg="bg-violet-500/10"
-              title={t("messagesApi") || "Messages"}
+              title={t("messagesApi")}
               path="/v1/messages"
               models={null}
               badge="Anthropic"
@@ -1883,7 +1886,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
           <div className="flex items-center gap-2 mb-3">
             <span className="material-symbols-outlined text-sm text-purple-400">perm_media</span>
             <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
-              {t("categoryMedia") || "Media & Multi-Modal"}
+              {t("categoryMedia")}
             </h3>
             <div className="flex-1 h-px bg-border/50" />
           </div>
@@ -1916,7 +1919,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               icon="edit_square"
               iconColor="text-violet-500"
               iconBg="bg-violet-500/10"
-              title={t("imageEdits") || "Image Edits"}
+              title={t("imageEdits")}
               path="/v1/images/edits"
               models={endpointData.images}
               copy={copy}
@@ -1952,7 +1955,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               icon="music_note"
               iconColor="text-fuchsia-500"
               iconBg="bg-fuchsia-500/10"
-              title={t("musicGeneration") || "Music Generation"}
+              title={t("musicGeneration")}
               path="/v1/music/generations"
               models={endpointData.music}
               copy={copy}
@@ -1964,7 +1967,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               icon="videocam"
               iconColor="text-red-500"
               iconBg="bg-red-500/10"
-              title={t("videoGeneration") || "Video Generation"}
+              title={t("videoGeneration")}
               path="/v1/videos/generations"
               models={endpointData.video}
               copy={copy}
@@ -1983,7 +1986,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                 travel_explore
               </span>
               <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
-                {t("categorySearch") || "Search & Discovery"}
+                {t("categorySearch")}
               </h3>
               <div className="flex-1 h-px bg-border/50" />
             </div>
@@ -1992,7 +1995,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                 icon="search"
                 iconColor="text-cyan-500"
                 iconBg="bg-cyan-500/10"
-                title={t("webSearch") || "Web Search"}
+                title={t("webSearch")}
                 path="/v1/search"
                 models={searchProviders.map((p) => ({ id: p.id, owned_by: p.id, type: "search" }))}
                 copy={copy}
@@ -2008,7 +2011,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
           <div className="flex items-center gap-2 mb-3">
             <span className="material-symbols-outlined text-sm text-amber-400">build</span>
             <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
-              {t("categoryUtility") || "Utility & Management"}
+              {t("categoryUtility")}
             </h3>
             <div className="flex-1 h-px bg-border/50" />
           </div>
@@ -2041,7 +2044,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               icon="view_list"
               iconColor="text-teal-500"
               iconBg="bg-teal-500/10"
-              title={t("batchApi") || "Batch API"}
+              title={t("batchApi")}
               path="/v1/batches"
               models={null}
               badge="OpenAI"
@@ -2053,7 +2056,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               icon="folder"
               iconColor="text-yellow-500"
               iconBg="bg-yellow-500/10"
-              title={t("filesApi") || "Files API"}
+              title={t("filesApi")}
               path="/v1/files"
               models={null}
               copy={copy}
@@ -2064,7 +2067,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               icon="list"
               iconColor="text-teal-500"
               iconBg="bg-teal-500/10"
-              title={t("listModels") || "List Models"}
+              title={t("listModels")}
               path="/v1/models"
               models={null}
               copy={copy}

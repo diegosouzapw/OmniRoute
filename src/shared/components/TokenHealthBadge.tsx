@@ -13,10 +13,10 @@ import { useState, useEffect } from "react";
 import { STATUS_HEX } from "@/shared/constants/statusColors";
 
 const STATUS_MAP = {
-  healthy: { icon: "check_circle", color: STATUS_HEX.success, tooltip: "All tokens healthy" },
-  warning: { icon: "warning", color: STATUS_HEX.warning, tooltip: "Some tokens need attention" },
-  error: { icon: "error", color: STATUS_HEX.error, tooltip: "Token refresh failures detected" },
-  unknown: { icon: "help", color: STATUS_HEX.muted, tooltip: "Health status unknown" },
+  healthy: { icon: "check_circle", color: STATUS_HEX.success, tooltipKey: "allHealthy" },
+  warning: { icon: "warning", color: STATUS_HEX.warning, tooltipKey: "needsAttention" },
+  error: { icon: "error", color: STATUS_HEX.error, tooltipKey: "refreshFailures" },
+  unknown: { icon: "help", color: STATUS_HEX.muted, tooltipKey: "unknown" },
 };
 
 export default function TokenHealthBadge() {
@@ -54,7 +54,7 @@ export default function TokenHealthBadge() {
     >
       <button
         className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-surface/30 transition-colors"
-        title={status.tooltip}
+        title={t(`tokenHealthTooltips.${status.tooltipKey}`)}
       >
         <span className="material-symbols-outlined text-[18px]" style={{ color: status.color }}>
           {status.icon}

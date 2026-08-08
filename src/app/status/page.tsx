@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Spinner } from "@/shared/components/Loading";
 
 interface HealthPayload {
@@ -18,43 +19,48 @@ interface HealthPayload {
   error?: string;
 }
 
-function formatUptime(seconds?: number) {
-  if (!seconds || seconds <= 0) return "0m";
+function formatUptime(
+  seconds: number | undefined,
+  format: (key: string, values?: Record<string, number>) => string
+) {
+  if (!seconds || seconds <= 0) return format("status.uptimeMinutes", { minutes: 0 });
   const total = Math.floor(seconds);
   const hours = Math.floor(total / 3600);
   const minutes = Math.floor((total % 3600) / 60);
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
+  if (hours > 0) return format("status.uptimeHoursMinutes", { hours, minutes });
+  return format("status.uptimeMinutes", { minutes });
 }
 
 export default function StatusPage() {
+  const t = useTranslations("publicSystem");
+  const tc = useTranslations("common");
   const [loading, setLoading] = useState(true);
   const [health, setHealth] = useState<HealthPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function loadHealth() {
+  const loadHealth = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const response = await fetch("/api/monitoring/health", { cache: "no-store" });
       const data = (await response.json()) as HealthPayload;
       if (!response.ok) {
-        setError(data.error || "Failed to load system health.");
+        setError(data.error || t("status.failedToLoad"));
         setHealth(null);
         return;
       }
       setHealth(data);
     } catch {
-      setError("Unable to reach health endpoint. Check connectivity and retry.");
+      setError(t("status.unableToReachHealth"));
       setHealth(null);
     } finally {
       setLoading(false);
     }
-  }
+  }, [t]);
 
   useEffect(() => {
     void loadHealth();
-  }, []);
+  }, [loadHealth]);
 
   const providerStats = useMemo(() => {
     const providers = Object.entries(health?.providerHealth || {});
@@ -69,16 +75,14 @@ export default function StatusPage() {
       <section className="max-w-4xl mx-auto space-y-6">
         <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">System Status</h1>
-            <p className="text-text-muted mt-1">
-              Live operational snapshot for OmniRoute core services.
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight">{t("status.title")}</h1>
+            <p className="text-text-muted mt-1">{t("status.description")}</p>
           </div>
           <button
             onClick={() => void loadHealth()}
             className="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-br from-primary to-primary-hover text-white transition-all duration-200 motion-reduce:transition-none"
           >
-            Refresh
+            {tc("refresh")}
           </button>
         </header>
 
@@ -89,14 +93,14 @@ export default function StatusPage() {
             aria-live="polite"
           >
             <Spinner size="md" />
-            <span className="text-text-muted">Loading health metrics...</span>
+            <span className="text-text-muted">{t("status.loadingHealth")}</span>
           </div>
         )}
 
         {!loading && error && (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6" role="alert">
             <h2 className="text-lg font-semibold text-red-600 dark:text-red-400">
-              Health Check Failed
+              {t("status.healthCheckFailed")}
             </h2>
             <p className="mt-2 text-sm text-text-muted">{error}</p>
             <div className="mt-4 flex flex-wrap gap-2">
@@ -104,13 +108,13 @@ export default function StatusPage() {
                 href="/offline"
                 className="px-3 py-2 rounded-lg border border-border text-sm font-medium hover:bg-bg-alt transition-colors"
               >
-                Open Connectivity Help
+                {t("status.openConnectivityHelp")}
               </Link>
               <Link
                 href="/maintenance"
                 className="px-3 py-2 rounded-lg border border-border text-sm font-medium hover:bg-bg-alt transition-colors"
               >
-                Maintenance Info
+                {t("status.maintenanceInfo")}
               </Link>
             </div>
           </div>
@@ -120,32 +124,43 @@ export default function StatusPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="rounded-xl border border-border bg-surface p-4">
-                <p className="text-xs uppercase tracking-wide text-text-muted">Service</p>
-                <p className="mt-2 text-xl font-semibold">{health.status || "unknown"}</p>
+                <p className="text-xs uppercase tracking-wide text-text-muted">
+                  {t("status.service")}
+                </p>
+                <p className="mt-2 text-xl font-semibold">{health.status || t("status.unknown")}</p>
               </div>
               <div className="rounded-xl border border-border bg-surface p-4">
-                <p className="text-xs uppercase tracking-wide text-text-muted">Version</p>
-                <p className="mt-2 text-xl font-semibold">{health.system?.version || "n/a"}</p>
+                <p className="text-xs uppercase tracking-wide text-text-muted">{tc("version")}</p>
+                <p className="mt-2 text-xl font-semibold">
+                  {health.system?.version || t("status.notAvailable")}
+                </p>
               </div>
               <div className="rounded-xl border border-border bg-surface p-4">
-                <p className="text-xs uppercase tracking-wide text-text-muted">Uptime</p>
-                <p className="mt-2 text-xl font-semibold">{formatUptime(health.system?.uptime)}</p>
+                <p className="text-xs uppercase tracking-wide text-text-muted">{tc("uptime")}</p>
+                <p className="mt-2 text-xl font-semibold">
+                  {formatUptime(health.system?.uptime, t)}
+                </p>
               </div>
               <div className="rounded-xl border border-border bg-surface p-4">
-                <p className="text-xs uppercase tracking-wide text-text-muted">Providers Tracked</p>
+                <p className="text-xs uppercase tracking-wide text-text-muted">
+                  {t("status.providersTracked")}
+                </p>
                 <p className="mt-2 text-xl font-semibold">{providerStats.total}</p>
               </div>
             </div>
 
             <div className="rounded-xl border border-border bg-surface p-6">
-              <h2 className="text-lg font-semibold">Provider Circuit Breaker State</h2>
+              <h2 className="text-lg font-semibold">{t("status.circuitBreakerState")}</h2>
               <p className="text-sm text-text-muted mt-1">
                 OPEN: {providerStats.open} · HALF_OPEN: {providerStats.halfOpen} · CLOSED:{" "}
                 {providerStats.closed}
               </p>
               <p className="mt-4 text-xs text-text-muted">
-                Last update:{" "}
-                {health.timestamp ? new Date(health.timestamp).toLocaleString() : "n/a"}
+                {t("status.lastUpdate", {
+                  timestamp: health.timestamp
+                    ? new Date(health.timestamp).toLocaleString()
+                    : t("status.notAvailable"),
+                })}
               </p>
             </div>
           </>

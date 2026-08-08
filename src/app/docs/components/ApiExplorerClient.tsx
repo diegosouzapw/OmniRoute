@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import {
   OPENAPI_ENDPOINTS,
   OPENAPI_TAGS,
@@ -88,6 +89,8 @@ const EXAMPLE_BODIES: Record<string, string> = {
 };
 
 export function ApiExplorerClient() {
+  const t = useTranslations("docs");
+  const te = useTranslations("endpoint");
   const [selected, setSelected] = useState<OpenApiEndpoint | null>(null);
   const [baseUrl, setBaseUrl] = useState("http://localhost:20128");
   const [apiKey, setApiKey] = useState("");
@@ -130,13 +133,17 @@ export function ApiExplorerClient() {
       const contentType = res.headers.get("content-type") || "";
 
       if (contentType.includes("text/event-stream")) {
-        setResponse("SSE stream started — check the terminal/devtools for real-time output.");
+        setResponse(t("apiExplorerSseStarted"));
       } else {
         const data = await res.json();
         setResponse(JSON.stringify(data, null, 2));
       }
     } catch (err) {
-      setResponse(`Error: ${err instanceof Error ? err.message : "Request failed"}`);
+      setResponse(
+        t("apiExplorerError", {
+          message: err instanceof Error ? err.message : te("requestFailed"),
+        })
+      );
     } finally {
       setLoading(false);
     }
@@ -157,7 +164,7 @@ export function ApiExplorerClient() {
               className={`px-2.5 py-1 text-xs rounded-full border transition-colors
                 ${!filterTag ? "bg-primary/10 text-primary border-primary/20" : "border-border text-text-muted hover:text-text-main"}`}
             >
-              All
+              {te("all")}
             </button>
             {OPENAPI_TAGS.map((tag) => (
               <button
@@ -211,7 +218,7 @@ export function ApiExplorerClient() {
               <span className="font-mono text-sm text-text-main">{selected.path}</span>
               {selected.requiresAuth && (
                 <span className="px-1.5 py-0.5 text-[10px] font-mono rounded border border-amber-500/30 bg-amber-500/10 text-amber-600">
-                  auth
+                  {t("apiExplorerAuth")}
                 </span>
               )}
             </div>
@@ -222,7 +229,7 @@ export function ApiExplorerClient() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-text-muted block mb-1">Base URL</label>
+                <label className="text-xs text-text-muted block mb-1">{te("baseUrl")}</label>
                 <input
                   type="text"
                   value={baseUrl}
@@ -231,7 +238,7 @@ export function ApiExplorerClient() {
                 />
               </div>
               <div>
-                <label className="text-xs text-text-muted block mb-1">API Key</label>
+                <label className="text-xs text-text-muted block mb-1">{te("apiKey")}</label>
                 <input
                   type="password"
                   value={apiKey}
@@ -244,7 +251,7 @@ export function ApiExplorerClient() {
 
             {selected.method !== "GET" && selected.hasRequestBody && (
               <div>
-                <label className="text-xs text-text-muted block mb-1">Request Body</label>
+                <label className="text-xs text-text-muted block mb-1">{te("requestBody")}</label>
                 <textarea
                   value={requestBody}
                   onChange={(e) => setRequestBody(e.target.value)}
@@ -259,12 +266,14 @@ export function ApiExplorerClient() {
               disabled={loading}
               className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
-              {loading ? "Sending..." : "Send Request"}
+              {loading ? te("sending") : te("sendRequest")}
             </button>
 
             {response !== null && (
               <div>
-                <label className="text-xs text-text-muted block mb-1">Response</label>
+                <label className="text-xs text-text-muted block mb-1">
+                  {t("apiExplorerResponseLabel")}
+                </label>
                 <pre className="bg-bg-subtle p-4 rounded-lg overflow-x-auto text-xs font-mono text-text-main max-h-80">
                   {response}
                 </pre>
@@ -274,10 +283,8 @@ export function ApiExplorerClient() {
         ) : (
           <div className="text-center py-16 text-text-muted">
             <span className="material-symbols-outlined text-4xl mb-2 block">api</span>
-            <p className="text-lg font-medium">Select an endpoint to explore</p>
-            <p className="text-sm mt-1">
-              Choose an API from the sidebar to see details and try it live
-            </p>
+            <p className="text-lg font-medium">{t("apiExplorerSelectEndpoint")}</p>
+            <p className="text-sm mt-1">{t("apiExplorerChooseApi")}</p>
           </div>
         )}
       </div>

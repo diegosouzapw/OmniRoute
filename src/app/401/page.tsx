@@ -1,19 +1,25 @@
 import ErrorPageScaffold from "@/shared/components/ErrorPageScaffold";
+import { useTranslations } from "next-intl";
 
 export default function UnauthorizedPage() {
+  const t = useTranslations("publicSystem");
+
   return (
     <ErrorPageScaffold
       code="401"
       icon="lock"
-      title="Unauthorized"
-      description="Authentication is required to access this resource."
+      title={t("statusPages.401.title")}
+      description={t("statusPages.401.description")}
       suggestions={[
-        "Sign in again and retry the operation.",
-        "For API calls, confirm the Bearer token is present and valid.",
-        "If the token was recently rotated, update your client credentials.",
+        t("statusPages.401.suggestion1"),
+        t("statusPages.401.suggestion2"),
+        t("statusPages.401.suggestion3"),
       ]}
-      primaryAction={{ href: "/login", label: "Go to Login" }}
-      secondaryAction={{ href: "/dashboard/api-manager", label: "Manage API Keys" }}
+      primaryAction={{ href: "/login", label: t("statusPages.401.primaryAction") }}
+      secondaryAction={{
+        href: "/dashboard/api-manager",
+        label: t("statusPages.401.secondaryAction"),
+      }}
     />
   );
 }

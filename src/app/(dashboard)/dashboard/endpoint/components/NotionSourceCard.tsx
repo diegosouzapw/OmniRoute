@@ -12,6 +12,18 @@ export default function NotionSourceCard() {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [expanded, setExpanded] = useState(false);
 
+  const translateOrFallback = (key: string, fallback: string) => {
+    try {
+      const translated = t(key as never);
+      if (!translated || translated === key || translated === `endpoint.${key}`) {
+        return fallback;
+      }
+      return translated;
+    } catch {
+      return fallback;
+    }
+  };
+
   const fetchConfig = useCallback(async () => {
     try {
       const res = await fetch("/api/settings/notion");
@@ -37,7 +49,10 @@ export default function NotionSourceCard() {
 
   const handleSaveToken = async () => {
     if (!token.trim()) {
-      setMessage({ type: "error", text: "Please enter a Notion integration token" });
+      setMessage({
+        type: "error",
+        text: translateOrFallback("notionEnterToken", "Please enter a Notion integration token"),
+      });
       return;
     }
     setBusy(true);
@@ -53,11 +68,20 @@ export default function NotionSourceCard() {
         setConnected(true);
         setMessage({ type: "success", text: data.message });
       } else {
-        setMessage({ type: "error", text: data.error ?? "Failed to connect" });
+        setMessage({
+          type: "error",
+          text: data.error ?? translateOrFallback("notionConnectFailed", "Failed to connect"),
+        });
         setConnected(false);
       }
     } catch (err) {
-      setMessage({ type: "error", text: err instanceof Error ? err.message : "Connection failed" });
+      setMessage({
+        type: "error",
+        text:
+          err instanceof Error
+            ? err.message
+            : translateOrFallback("notionConnectionFailed", "Connection failed"),
+      });
     } finally {
       setBusy(false);
     }
@@ -74,10 +98,19 @@ export default function NotionSourceCard() {
         setToken("");
         setMessage({ type: "success", text: data.message });
       } else {
-        setMessage({ type: "error", text: data.error ?? "Failed to disconnect" });
+        setMessage({
+          type: "error",
+          text: data.error ?? translateOrFallback("notionDisconnectFailed", "Failed to disconnect"),
+        });
       }
     } catch (err) {
-      setMessage({ type: "error", text: err instanceof Error ? err.message : "Disconnect failed" });
+      setMessage({
+        type: "error",
+        text:
+          err instanceof Error
+            ? err.message
+            : translateOrFallback("notionDisconnectFailed", "Disconnect failed"),
+      });
     } finally {
       setBusy(false);
     }
@@ -97,11 +130,16 @@ export default function NotionSourceCard() {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-semibold text-sm">Notion</span>
               <Badge variant={connected ? "success" : "default"}>
-                {connected ? "Connected" : "Not connected"}
+                {connected
+                  ? translateOrFallback("notionConnected", "Connected")
+                  : translateOrFallback("notionNotConnected", "Not connected")}
               </Badge>
             </div>
             <p className="text-xs text-text-muted mt-0.5">
-              Search, read, query, and write to Notion through routed AI models
+              {translateOrFallback(
+                "notionDescription",
+                "Search, read, query, and write to Notion through routed AI models"
+              )}
             </p>
           </div>
           <span
@@ -131,7 +169,10 @@ export default function NotionSourceCard() {
             {!connected ? (
               <div className="flex flex-col gap-2">
                 <label className="text-xs text-text-muted font-medium">
-                  Notion Internal Integration Token
+                  {translateOrFallback(
+                    "notionIntegrationToken",
+                    "Notion Internal Integration Token"
+                  )}
                 </label>
                 <div className="flex gap-2">
                   <Input
@@ -143,11 +184,14 @@ export default function NotionSourceCard() {
                     className="font-mono text-sm flex-1"
                   />
                   <Button onClick={handleSaveToken} loading={busy} variant="primary" size="sm">
-                    Connect
+                    {translateOrFallback("notionConnect", "Connect")}
                   </Button>
                 </div>
                 <p className="text-[10px] text-text-muted">
-                  Create an Internal Integration at{" "}
+                  {translateOrFallback(
+                    "notionIntegrationHelp",
+                    "Create an Internal Integration at"
+                  )}{" "}
                   <code className="text-primary font-mono bg-surface/80 px-1 rounded">
                     https://www.notion.so/profile/integrations
                   </code>
@@ -156,7 +200,10 @@ export default function NotionSourceCard() {
             ) : (
               <div className="flex items-center gap-2">
                 <span className="text-xs text-text-muted flex-1">
-                  Token configured. Notion tools are available via MCP.
+                  {translateOrFallback(
+                    "notionTokenConfigured",
+                    "Token configured. Notion tools are available via MCP."
+                  )}
                 </span>
                 <Button
                   onClick={handleDisconnect}
@@ -165,7 +212,7 @@ export default function NotionSourceCard() {
                   size="sm"
                   className="border-red-500/30! text-red-400! hover:bg-red-500/10!"
                 >
-                  Disconnect
+                  {translateOrFallback("notionDisconnect", "Disconnect")}
                 </Button>
               </div>
             )}

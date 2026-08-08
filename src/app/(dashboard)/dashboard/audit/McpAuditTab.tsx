@@ -122,23 +122,23 @@ export default function McpAuditTab() {
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {[
             {
-              label: "Calls (24h)",
+              label: t("mcpMetricCalls24h"),
               value: stats.totalCalls.toLocaleString(),
               icon: "terminal",
             },
             {
-              label: "Success rate",
+              label: t("mcpMetricSuccessRate"),
               value: `${Math.round(stats.successRate * 100)}%`,
               icon: "check_circle",
               highlight: stats.successRate >= 0.9,
             },
             {
-              label: "Avg duration",
+              label: t("mcpMetricAvgDuration"),
               value: `${Math.round(stats.avgDurationMs)}ms`,
               icon: "timer",
             },
             {
-              label: "Top tool",
+              label: t("mcpMetricTopTool"),
               value: stats.topTools[0]?.tool ?? "—",
               icon: "star",
             },

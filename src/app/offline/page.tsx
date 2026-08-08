@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 function subscribeToOnline(callback: () => void) {
   window.addEventListener("online", callback);
@@ -13,6 +14,7 @@ function subscribeToOnline(callback: () => void) {
 }
 
 export default function OfflinePage() {
+  const t = useTranslations("publicSystem");
   const isOnline = useSyncExternalStore(
     subscribeToOnline,
     () => navigator.onLine,
@@ -25,10 +27,8 @@ export default function OfflinePage() {
         <span className="material-symbols-outlined text-5xl text-primary mb-3" aria-hidden="true">
           wifi_off
         </span>
-        <h1 className="text-2xl font-semibold">Connectivity Issue</h1>
-        <p className="mt-3 text-text-muted leading-relaxed">
-          OmniRoute cannot reach the network right now. Check your internet, VPN, or proxy settings.
-        </p>
+        <h1 className="text-2xl font-semibold">{t("offline.title")}</h1>
+        <p className="mt-3 text-text-muted leading-relaxed">{t("offline.description")}</p>
 
         <div
           className={`mt-6 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm border ${
@@ -41,7 +41,9 @@ export default function OfflinePage() {
           <span className="material-symbols-outlined text-base" aria-hidden="true">
             {isOnline ? "wifi" : "wifi_off"}
           </span>
-          <span>{isOnline ? "Connection restored" : "Offline mode detected"}</span>
+          <span>
+            {isOnline ? t("offline.connectionRestored") : t("offline.offlineModeDetected")}
+          </span>
         </div>
 
         <div className="mt-8 flex flex-col sm:flex-row gap-3">
@@ -49,13 +51,13 @@ export default function OfflinePage() {
             onClick={() => window.location.reload()}
             className="inline-flex items-center justify-center px-6 py-3 rounded-lg text-white text-sm font-semibold bg-gradient-to-br from-primary to-primary-hover hover:shadow-elevated transition-all duration-200 motion-reduce:transition-none"
           >
-            Retry Connection
+            {t("offline.retryConnection")}
           </button>
           <Link
             href="/status"
             className="inline-flex items-center justify-center px-6 py-3 rounded-lg text-sm font-semibold border border-border hover:bg-bg-alt transition-colors duration-200 motion-reduce:transition-none"
           >
-            Open Status Page
+            {t("offline.openStatusPage")}
           </Link>
         </div>
       </section>

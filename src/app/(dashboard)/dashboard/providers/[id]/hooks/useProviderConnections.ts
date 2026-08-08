@@ -30,7 +30,7 @@ import {
   connectionBelongsToProviderPage,
   getProviderConnectionsRequestUrl,
 } from "../../providerPageUtils";
-import { normalizeCodexLimitPolicy } from "../providerPageHelpers";
+import { normalizeCodexLimitPolicy, providerText } from "../providerPageHelpers";
 import { useProviderQuotaVisibility } from "./useProviderQuotaVisibility";
 import { useReorderByAvailability } from "./useReorderByAvailability";
 import {
@@ -399,7 +399,14 @@ export function useProviderConnections(
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        notify.error(data.error || "Failed to update Claude extra-usage policy");
+        notify.error(
+          data.error ||
+            providerText(
+              t,
+              "failedUpdateClaudeExtraUsagePolicy",
+              "Failed to update Claude extra-usage policy"
+            )
+        );
         return;
       }
 
@@ -429,12 +436,26 @@ export function useProviderConnections(
       );
       notify.success(
         enabled
-          ? "Claude extra-usage blocking enabled (extra usage will be blocked)"
-          : "Claude extra-usage blocking disabled (extra usage is allowed)"
+          ? providerText(
+              t,
+              "claudeExtraUsageBlockingEnabled",
+              "Claude extra-usage blocking enabled (extra usage will be blocked)"
+            )
+          : providerText(
+              t,
+              "claudeExtraUsageBlockingDisabled",
+              "Claude extra-usage blocking disabled (extra usage is allowed)"
+            )
       );
     } catch (error) {
       console.error("Error toggling Claude extra-usage policy:", error);
-      notify.error("Failed to update Claude extra-usage policy");
+      notify.error(
+        providerText(
+          t,
+          "failedUpdateClaudeExtraUsagePolicy",
+          "Failed to update Claude extra-usage policy"
+        )
+      );
     }
   };
 
@@ -468,7 +489,10 @@ export function useProviderConnections(
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        notify.error(data.error || "Failed to update Codex limit policy");
+        notify.error(
+          data.error ||
+            providerText(t, "failedUpdateCodexLimitPolicy", "Failed to update Codex limit policy")
+        );
         return;
       }
 
@@ -485,18 +509,36 @@ export function useProviderConnections(
             : connection
         )
       );
-      notify.success("Codex limit policy updated");
+      notify.success(providerText(t, "codexLimitPolicyUpdated", "Codex limit policy updated"));
     } catch (error) {
       console.error("Error toggling Codex quota policy:", error);
-      notify.error("Failed to update Codex limit policy");
+      notify.error(
+        providerText(t, "failedUpdateCodexLimitPolicy", "Failed to update Codex limit policy")
+      );
     }
   };
 
-  const UPSTREAM_PROXY_MODE_MESSAGES: Record<UpstreamProxyMode, string> = {
-    native: "Requests now use native OmniRoute (direct)",
-    cliproxyapi: "Requests now route through CLIProxyAPI (deeper emulation)",
-    dario: "Requests now route through Dario (Claude subscription proxy)",
-    fallback: "Requests try native first, retrying via the configured backend on failure",
+  const upstreamProxyModeMessages: Record<UpstreamProxyMode, string> = {
+    native: providerText(
+      t,
+      "cliproxyRoutingDisabled",
+      "Requests now use native OmniRoute (direct)"
+    ),
+    cliproxyapi: providerText(
+      t,
+      "cliproxyRoutingEnabled",
+      "Requests now route through CLIProxyAPI (deeper emulation)"
+    ),
+    dario: providerText(
+      t,
+      "darioRoutingEnabled",
+      "Requests now route through Dario (Claude subscription proxy)"
+    ),
+    fallback: providerText(
+      t,
+      "upstreamProxyFallbackEnabled",
+      "Requests try native first, retrying via the configured backend on failure"
+    ),
   };
 
   const handleSetUpstreamProxyMode = async (
@@ -518,7 +560,14 @@ export function useProviderConnections(
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        notify.error(data.error || "Failed to update upstream proxy routing");
+        notify.error(
+          data.error ||
+            providerText(
+              t,
+              "failedUpdateUpstreamProxyRouting",
+              "Failed to update upstream proxy routing"
+            )
+        );
         return;
       }
 
@@ -526,9 +575,15 @@ export function useProviderConnections(
       if (mode === "fallback" && fallbackBackend) {
         setUpstreamProxyFallbackBackendState(fallbackBackend);
       }
-      notify.success(UPSTREAM_PROXY_MODE_MESSAGES[mode]);
+      notify.success(upstreamProxyModeMessages[mode]);
     } catch {
-      notify.error("Failed to update upstream proxy routing");
+      notify.error(
+        providerText(
+          t,
+          "failedUpdateUpstreamProxyRouting",
+          "Failed to update upstream proxy routing"
+        )
+      );
     }
   };
 
@@ -706,10 +761,10 @@ export function useProviderConnections(
         if (onAfter) await onAfter();
       } else {
         const data = await res.json();
-        notify.error(data.error || "Batch delete failed");
+        notify.error(data.error || providerText(t, "batchDeleteFailed", "Batch delete failed"));
       }
     } catch {
-      notify.error("Network error during batch delete");
+      notify.error(providerText(t, "batchDeleteNetworkError", "Network error during batch delete"));
     } finally {
       setBatchDeleting(false);
     }
@@ -731,7 +786,11 @@ export function useProviderConnections(
         });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data.error?.message || data.error || "Batch update failed");
+          throw new Error(
+            data.error?.message ||
+              data.error ||
+              providerText(t, "batchUpdateFailed", "Batch update failed")
+          );
         }
         const data = await res.json();
         updated += data.updated ?? 0;
@@ -752,7 +811,10 @@ export function useProviderConnections(
         );
       }
     } catch (error: any) {
-      notify.error(error?.message || "Network error during batch update");
+      notify.error(
+        error?.message ||
+          providerText(t, "batchUpdateNetworkError", "Network error during batch update")
+      );
     } finally {
       setBatchUpdating(null);
     }
@@ -847,7 +909,13 @@ export function useProviderConnections(
       const proxiesData = await proxiesRes.json();
       const savedProxies = (proxiesData?.items || []).filter((p: any) => p.status === "active");
       if (savedProxies.length === 0) {
-        notify.error("No saved proxies found. Add proxies in Settings → Proxy first.");
+        notify.error(
+          providerText(
+            t,
+            "noSavedProxies",
+            "No saved proxies found. Add proxies in Settings → Proxy first."
+          )
+        );
         return;
       }
 
@@ -898,11 +966,16 @@ export function useProviderConnections(
       await fetchConnections();
       const tagLabel = tagFilter ? `"${tagFilter}" ` : "";
       notify.success(
-        `Distributed ${assigned} proxy assignment(s) across ${tagLabel}${sorted.length} connection(s).`
+        providerText(
+          t,
+          "proxiesDistributed",
+          "Distributed {assigned} proxy assignment(s) across {tagLabel}{total} connection(s).",
+          { assigned, tagLabel, total: sorted.length }
+        )
       );
     } catch (err) {
       console.error("Error distributing proxies:", err);
-      notify.error("Failed to distribute proxies.");
+      notify.error(providerText(t, "failedDistributeProxies", "Failed to distribute proxies."));
     } finally {
       setDistributingProxies(false);
     }

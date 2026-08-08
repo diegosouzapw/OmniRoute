@@ -7,38 +7,38 @@ import { APP_CONFIG } from "@/shared/constants/appConfig";
 
 const footerLinks = {
   product: [
-    { label: "Features", href: "#features" },
-    { label: "Pricing", href: "#pricing" },
+    { key: "featuresLink", href: "#features" },
+    { key: "pricing", href: "#pricing" },
     {
-      label: "Changelog",
+      key: "changelog",
       href: "https://github.com/diegosouzapw/OmniRoute/releases",
       external: true,
     },
   ],
   resources: [
-    { label: "Documentation", href: "/docs" },
-    { label: "API Reference", href: "/docs#api-reference" },
+    { key: "documentation", href: "/docs" },
+    { key: "apiReference", href: "/docs#api-reference" },
     {
-      label: "Help Center",
+      key: "helpCenter",
       href: "https://github.com/diegosouzapw/OmniRoute/discussions",
       external: true,
     },
   ],
   company: [
-    { label: "About", href: "https://github.com/diegosouzapw/OmniRoute", external: true },
-    { label: "Blog", href: "https://github.com/diegosouzapw/OmniRoute/releases", external: true },
+    { key: "about", href: "https://github.com/diegosouzapw/OmniRoute", external: true },
+    { key: "blog", href: "https://github.com/diegosouzapw/OmniRoute/releases", external: true },
     {
-      label: "Contact",
+      key: "contact",
       href: "https://github.com/diegosouzapw/OmniRoute/issues/new/choose",
       external: true,
     },
-    { label: "Terms", href: "/terms" },
-    { label: "Privacy", href: "/privacy" },
+    { key: "terms", href: "/terms" },
+    { key: "privacy", href: "/privacy" },
   ],
 };
 
 export default function Footer() {
-  const t = useTranslations("stats");
+  const t = useTranslations("landing");
   const renderFooterLink = (link) => {
     if (link.external) {
       return (
@@ -48,7 +48,7 @@ export default function Footer() {
           rel="noopener noreferrer"
           className="hover:text-primary transition-colors"
         >
-          {link.label}
+          {t(link.key)}
         </a>
       );
     }
@@ -77,9 +77,7 @@ export default function Footer() {
               </div>
               <span className="text-xl font-bold text-text-main">{APP_CONFIG.name}</span>
             </div>
-            <p className="text-text-muted mb-6 max-w-sm font-light">
-              The unified interface for modern AI infrastructure. Secure, observable, and scalable.
-            </p>
+            <p className="text-text-muted mb-6 max-w-sm font-light">{t("footerDescription")}</p>
             {/* Social links */}
             <div className="flex gap-4">
               <a
@@ -87,7 +85,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-primary transition-colors"
-                aria-label="Community Discussions"
+                aria-label={t("communityDiscussions")}
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z" />
@@ -112,7 +110,7 @@ export default function Footer() {
             <h4 className="font-semibold text-text-main mb-4">{t("product")}</h4>
             <ul className="flex flex-col gap-3 text-sm text-text-muted font-light">
               {footerLinks.product.map((link) => (
-                <li key={link.label}>{renderFooterLink(link)}</li>
+                <li key={link.key}>{renderFooterLink(link)}</li>
               ))}
             </ul>
           </div>
@@ -122,7 +120,7 @@ export default function Footer() {
             <h4 className="font-semibold text-text-main mb-4">{t("resources")}</h4>
             <ul className="flex flex-col gap-3 text-sm text-text-muted font-light">
               {footerLinks.resources.map((link) => (
-                <li key={link.label}>{renderFooterLink(link)}</li>
+                <li key={link.key}>{renderFooterLink(link)}</li>
               ))}
             </ul>
           </div>
@@ -132,7 +130,7 @@ export default function Footer() {
             <h4 className="font-semibold text-text-main mb-4">{t("company")}</h4>
             <ul className="flex flex-col gap-3 text-sm text-text-muted font-light">
               {footerLinks.company.map((link) => (
-                <li key={link.label}>{renderFooterLink(link)}</li>
+                <li key={link.key}>{renderFooterLink(link)}</li>
               ))}
             </ul>
           </div>
@@ -141,17 +139,17 @@ export default function Footer() {
         {/* Bottom */}
         <div className="border-t border-border pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-text-muted">
-            © {new Date().getFullYear()} {APP_CONFIG.name} Inc. All rights reserved.
+            {t("copyright", { year: new Date().getFullYear() })}
           </p>
           <div className="flex gap-6 text-sm text-text-muted">
             <Link href="/docs" className="hover:text-primary transition-colors">
-              Documentation
+              {t("documentation")}
             </Link>
             <Link href="/terms" className="hover:text-primary transition-colors">
-              Terms
+              {t("terms")}
             </Link>
             <Link href="/privacy" className="hover:text-primary transition-colors">
-              Privacy
+              {t("privacy")}
             </Link>
             <a
               href="https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE"
@@ -159,7 +157,7 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="hover:text-primary transition-colors"
             >
-              License
+              {t("license")}
             </a>
           </div>
         </div>

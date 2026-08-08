@@ -42,9 +42,7 @@ export default function AutoRoutingAnalyticsTab() {
   if (!stats) {
     return (
       <Card>
-        <div className="text-center py-8 text-text-muted">
-          No auto-routing analytics available. Make requests using the auto/ prefix to see metrics.
-        </div>
+        <div className="text-center py-8 text-text-muted">{t("autoRoutingNoDataAvailable")}</div>
       </Card>
     );
   }
@@ -110,7 +108,9 @@ export default function AutoRoutingAnalyticsTab() {
             const percentage = stats.totalRequests > 0 ? (count / stats.totalRequests) * 100 : 0;
             return (
               <div key={variant} className="flex items-center gap-3">
-                <div className="w-32 text-sm font-medium capitalize">{variant || "default"}</div>
+                <div className="w-32 text-sm font-medium capitalize">
+                  {variant || t("defaultVariantLabel")}
+                </div>
                 <div className="flex-1 h-3 bg-border rounded-full overflow-hidden">
                   <div
                     className="h-full bg-indigo-500 rounded-full transition-all"
@@ -133,9 +133,9 @@ export default function AutoRoutingAnalyticsTab() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left py-2 px-3 font-medium">Provider</th>
-                <th className="text-right py-2 px-3 font-medium">Requests</th>
-                <th className="text-right py-2 px-3 font-medium">Share</th>
+                <th className="text-left py-2 px-3 font-medium">{t("chartProvider")}</th>
+                <th className="text-right py-2 px-3 font-medium">{t("chartRequests")}</th>
+                <th className="text-right py-2 px-3 font-medium">{t("chartShare")}</th>
               </tr>
             </thead>
             <tbody>

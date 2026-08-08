@@ -21,6 +21,7 @@ import {
   effectivePreserveForProtocol,
   effectiveUpstreamHeadersForProtocol,
   formatProviderModelsErrorResponse,
+  providerText,
   targetFormatBadgeI18nKey,
   type CompatModelRow,
   type CompatByProtocolMap,
@@ -285,17 +286,32 @@ export default function CustomModelsSection({
 
       if (!res.ok) {
         const detail = await formatProviderModelsErrorResponse(res);
-        throw new Error(detail || "Failed to save model endpoint settings");
+        throw new Error(
+          detail ||
+            providerText(
+              t,
+              "failedSaveModelEndpointSettings",
+              "Failed to save model endpoint settings"
+            )
+        );
       }
 
       await fetchCustomModels();
       onModelsChanged?.();
-      notify.success("Saved model endpoint settings");
+      notify.success(
+        providerText(t, "savedModelEndpointSettings", "Saved model endpoint settings")
+      );
       cancelEdit();
     } catch (e) {
       console.error("Failed to save custom model:", e);
       notify.error(
-        e instanceof Error && e.message ? e.message : "Failed to save model endpoint settings"
+        e instanceof Error && e.message
+          ? e.message
+          : providerText(
+              t,
+              "failedSaveModelEndpointSettings",
+              "Failed to save model endpoint settings"
+            )
       );
     } finally {
       setSavingModelId(null);
@@ -305,7 +321,9 @@ export default function CustomModelsSection({
   const saveEdit = async (modelId: string) => {
     if (!editingModelId || editingModelId !== modelId) return;
     if (!editingEndpoints.length) {
-      notify.error("Select at least one supported endpoint");
+      notify.error(
+        providerText(t, "selectSupportedEndpoint", "Select at least one supported endpoint")
+      );
       return;
     }
 
@@ -429,7 +447,7 @@ export default function CustomModelsSection({
                     : ep === "embeddings"
                       ? `📐 ${t("supportedEndpointEmbeddings")}`
                       : ep === "rerank"
-                        ? "Rerank"
+                        ? providerText(t, "rerankEndpoint", "Rerank")
                         : ep === "images"
                           ? `🖼️ ${t("supportedEndpointImages")}`
                           : `🔊 ${t("supportedEndpointAudio")}`}
@@ -661,7 +679,7 @@ export default function CustomModelsSection({
                                   : ep === "embeddings"
                                     ? `📐 ${t("supportedEndpointEmbeddings")}`
                                     : ep === "rerank"
-                                      ? "Rerank"
+                                      ? providerText(t, "rerankEndpoint", "Rerank")
                                       : ep === "images"
                                         ? `🖼️ ${t("supportedEndpointImages")}`
                                         : `🔊 ${t("supportedEndpointAudio")}`}

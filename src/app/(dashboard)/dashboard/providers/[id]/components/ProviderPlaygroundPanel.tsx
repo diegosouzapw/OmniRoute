@@ -6,6 +6,7 @@
 // a single-kind panel or the LlmChatCard for standard LLM providers.
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { LlmChatCard } from "@/app/(dashboard)/dashboard/media-providers/components/LlmChatCard";
 import { ServiceKindTabs } from "@/app/(dashboard)/dashboard/media-providers/components/ServiceKindTabs";
 import { EmbeddingExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/EmbeddingExampleCard";
@@ -18,6 +19,7 @@ import { VideoExampleCard } from "@/app/(dashboard)/dashboard/media-providers/co
 import { MusicExampleCard } from "@/app/(dashboard)/dashboard/media-providers/components/MusicExampleCard";
 import type { ServiceKind } from "@/shared/constants/providers";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { providerText } from "../providerPageHelpers";
 
 export const MEDIA_SERVICE_KINDS: ServiceKind[] = [
   "embedding",
@@ -56,12 +58,12 @@ export function renderKindPanel(kind: ServiceKind, providerId: string): JSX.Elem
 }
 
 export default function ProviderPlaygroundPanel({ providerId }: { providerId: string }) {
+  const t = useTranslations("providers");
   // Resolve serviceKinds from AI_PROVIDERS.
   // For providers without explicit serviceKinds (most LLM providers), we infer
   // "llm" as the default.
   const providerEntry = AI_PROVIDERS[providerId as keyof typeof AI_PROVIDERS] as
-    | (Record<string, unknown> & { serviceKinds?: string[] })
-    | undefined;
+    (Record<string, unknown> & { serviceKinds?: string[] }) | undefined;
 
   const rawKinds: string[] = providerEntry?.serviceKinds ?? [];
 
@@ -93,7 +95,7 @@ export default function ProviderPlaygroundPanel({ providerId }: { providerId: st
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-lg font-semibold">Playground</h2>
+      <h2 className="text-lg font-semibold">{providerText(t, "playgroundTitle", "Playground")}</h2>
       <ServiceKindTabs
         kinds={playgroundableKinds}
         activeKind={activeKind}

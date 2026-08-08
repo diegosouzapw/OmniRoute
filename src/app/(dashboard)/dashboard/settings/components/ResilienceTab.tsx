@@ -702,7 +702,7 @@ function ComboCooldownWaitCard({
     setDraft(value);
   }, [value]);
 
-  const title = t("resilienceComboCooldownWaitTitle") || "Combo cooldown wait";
+  const title = t("resilienceComboCooldownWaitTitle");
   const desc =
     t("resilienceComboCooldownWaitDesc") ||
     "For all combo strategies: wait out a short transient cooldown and re-dispatch instead of returning a 429 immediately. Never waits on quota_exhausted.";
@@ -735,7 +735,7 @@ function ComboCooldownWaitCard({
         {editing ? (
           <>
             <BooleanField
-              label={t("resilienceEnableServerWait") || "Enabled"}
+              label={t("resilienceEnableServerWait")}
               description={
                 t("resilienceComboCooldownWaitToggleDesc") ||
                 "All combo strategies; never waits on quota_exhausted."
@@ -744,20 +744,20 @@ function ComboCooldownWaitCard({
               onChange={(enabled) => setDraft((prev) => ({ ...prev, enabled }))}
             />
             <NumberField
-              label={t("resilienceComboCooldownMaxWaitMs") || "Max wait per attempt"}
+              label={t("resilienceComboCooldownMaxWaitMs")}
               value={draft.maxWaitMs}
               min={0}
               suffix="ms"
               onChange={(maxWaitMs) => setDraft((prev) => ({ ...prev, maxWaitMs }))}
             />
             <NumberField
-              label={t("resilienceMaxAttempts") || "Max attempts"}
+              label={t("resilienceMaxAttempts")}
               value={draft.maxAttempts}
               min={0}
               onChange={(maxAttempts) => setDraft((prev) => ({ ...prev, maxAttempts }))}
             />
             <NumberField
-              label={t("resilienceComboCooldownBudgetMs") || "Total wait budget"}
+              label={t("resilienceComboCooldownBudgetMs")}
               value={draft.budgetMs}
               min={0}
               suffix="ms"
@@ -767,31 +767,23 @@ function ComboCooldownWaitCard({
         ) : (
           <>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">
-                {t("resilienceEnableServerWait") || "Enabled"}
-              </div>
+              <div className="text-xs text-text-muted">{t("resilienceEnableServerWait")}</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {value.enabled ? t("statusEnabled") : t("statusDisabled")}
               </div>
             </div>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">
-                {t("resilienceComboCooldownMaxWaitMs") || "Max wait per attempt"}
-              </div>
+              <div className="text-xs text-text-muted">{t("resilienceComboCooldownMaxWaitMs")}</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {formatMs(value.maxWaitMs)}
               </div>
             </div>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">
-                {t("resilienceMaxAttempts") || "Max attempts"}
-              </div>
+              <div className="text-xs text-text-muted">{t("resilienceMaxAttempts")}</div>
               <div className="mt-1 text-sm font-semibold text-text-main">{value.maxAttempts}</div>
             </div>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">
-                {t("resilienceComboCooldownBudgetMs") || "Total wait budget"}
-              </div>
+              <div className="text-xs text-text-muted">{t("resilienceComboCooldownBudgetMs")}</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {formatMs(value.budgetMs)}
               </div>
@@ -820,8 +812,7 @@ function QuotaShareConcurrencyLimitCard({
     setDraft(value);
   }, [value]);
 
-  const title =
-    t("resilienceQuotaShareConcurrencyTitle") || "Quota-share per-connection concurrency";
+  const title = t("resilienceQuotaShareConcurrencyTitle");
   const desc =
     t("resilienceQuotaShareConcurrencyDesc") ||
     "For quota-share combos only: when a connection sets a Max Concurrent cap, serialize concurrent requests to that subscription account so it is never flooded past its ceiling — excess requests wait in the queue instead of getting a 429. The cap comes from each connection's Max Concurrent field; this switch only enables/disables honoring it.";
@@ -853,7 +844,7 @@ function QuotaShareConcurrencyLimitCard({
       <div className="grid grid-cols-1 gap-3">
         {editing ? (
           <BooleanField
-            label={t("resilienceEnableServerWait") || "Enabled"}
+            label={t("resilienceEnableServerWait")}
             description={
               t("resilienceQuotaShareConcurrencyToggleDesc") ||
               "Quota-share combos only; honors each connection's Max Concurrent cap."
@@ -863,9 +854,7 @@ function QuotaShareConcurrencyLimitCard({
           />
         ) : (
           <div className="rounded-xl border border-border bg-bg-subtle p-4">
-            <div className="text-xs text-text-muted">
-              {t("resilienceEnableServerWait") || "Enabled"}
-            </div>
+            <div className="text-xs text-text-muted">{t("resilienceEnableServerWait")}</div>
             <div className="mt-1 text-sm font-semibold text-text-main">
               {value.enabled ? t("statusEnabled") : t("statusDisabled")}
             </div>

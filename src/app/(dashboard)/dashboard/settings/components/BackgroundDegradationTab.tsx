@@ -93,18 +93,12 @@ export default function BackgroundDegradationTab() {
           </span>
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-semibold">
-            {t("backgroundDegradationTitle") || "Background Task Degradation"}
-          </h3>
-          <p className="text-sm text-text-muted">
-            {t("backgroundDegradationDesc") ||
-              "Auto-redirect background requests (titles, summaries) to cheaper models"}
-          </p>
+          <h3 className="text-lg font-semibold">{t("backgroundDegradationTitle")}</h3>
+          <p className="text-sm text-text-muted">{t("backgroundDegradationDesc")}</p>
         </div>
         {status === "saved" && (
           <span className="text-xs font-medium text-emerald-500 flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">check_circle</span>{" "}
-            {t("saved") || "Saved"}
+            <span className="material-symbols-outlined text-[14px]">check_circle</span> {t("saved")}
           </span>
         )}
       </div>
@@ -112,9 +106,7 @@ export default function BackgroundDegradationTab() {
       {/* Toggle */}
       <div className="flex items-center justify-between p-4 rounded-lg bg-surface/30 border border-border/30 mb-4">
         <div>
-          <p className="text-sm font-medium">
-            {t("enableDegradation") || "Enable Background Degradation"}
-          </p>
+          <p className="text-sm font-medium">{t("enableDegradation")}</p>
           <p className="text-xs text-text-muted mt-0.5">
             {t("enableDegradationHint") ||
               "Automatically use cheaper models for background utility tasks"}
@@ -124,7 +116,7 @@ export default function BackgroundDegradationTab() {
           checked={config.enabled}
           onChange={(enabled) => save({ enabled })}
           disabled={loading || saving}
-          ariaLabel={t("enableDegradation") || "Enable Background Degradation"}
+          ariaLabel={t("enableDegradation")}
         />
       </div>
 
@@ -133,9 +125,7 @@ export default function BackgroundDegradationTab() {
         <div className="flex items-center gap-4 p-3 rounded-lg bg-sky-500/5 border border-sky-500/20 mb-4">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[16px] text-sky-400">analytics</span>
-            <span className="text-xs text-text-muted">
-              {t("tasksDetected") || "Tasks detected"}:
-            </span>
+            <span className="text-xs text-text-muted">{t("tasksDetected")}:</span>
             <span className="text-sm font-mono font-semibold text-sky-400">
               {config.stats.detected}
             </span>
@@ -148,7 +138,7 @@ export default function BackgroundDegradationTab() {
           {/* Degradation Map */}
           <div className="mb-4">
             <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2">
-              {t("degradationMap") || "Model Degradation Map"}
+              {t("degradationMap")}
             </p>
 
             {/* Add new mapping */}
@@ -157,23 +147,19 @@ export default function BackgroundDegradationTab() {
                 <ModelSelectField
                   value={newFrom}
                   onChange={setNewFrom}
-                  placeholder={t("premiumModel") || "Premium model"}
+                  placeholder={t("premiumModel")}
                 />
               </div>
               <span className="text-text-muted text-lg">→</span>
               <div className="flex-1">
-                <ModelSelectField
-                  value={newTo}
-                  onChange={setNewTo}
-                  placeholder={t("cheapModel") || "Cheap model"}
-                />
+                <ModelSelectField value={newTo} onChange={setNewTo} placeholder={t("cheapModel")} />
               </div>
               <button
                 onClick={addMapping}
                 disabled={saving || !newFrom.trim() || !newTo.trim()}
                 className="px-3 py-2 rounded-lg text-sm font-medium bg-sky-500/10 text-sky-500 hover:bg-sky-500/20 disabled:opacity-50 transition-all"
               >
-                {t("add") || "Add"}
+                {t("add")}
               </button>
             </div>
 
@@ -206,15 +192,14 @@ export default function BackgroundDegradationTab() {
               <span className="material-symbols-outlined text-[14px] group-open:rotate-90 transition-transform">
                 chevron_right
               </span>
-              {t("detectionPatterns") || "Detection Patterns"} (
-              {config.detectionPatterns?.length || 0})
+              {t("detectionPatterns")} ({config.detectionPatterns?.length || 0})
             </summary>
 
             {/* Add new pattern */}
             <div className="flex items-center gap-2 mb-3">
               <input
                 type="text"
-                placeholder={t("newPattern") || 'e.g. "generate a title"'}
+                placeholder={t("newPattern")}
                 value={newPattern}
                 onChange={(e) => setNewPattern(e.target.value)}
                 className="flex-1 px-3 py-2 rounded-lg text-sm bg-surface border border-border/50 focus:border-sky-500/50 focus:outline-none"
@@ -224,7 +209,7 @@ export default function BackgroundDegradationTab() {
                 disabled={saving || !newPattern.trim()}
                 className="px-3 py-2 rounded-lg text-sm font-medium bg-sky-500/10 text-sky-500 hover:bg-sky-500/20 disabled:opacity-50 transition-all"
               >
-                {t("add") || "Add"}
+                {t("add")}
               </button>
             </div>
 

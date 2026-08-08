@@ -27,22 +27,17 @@ export default function BootstrapBanner() {
       <span className="text-amber-500 dark:text-amber-400 text-base shrink-0 mt-0.5">⚠️</span>
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-amber-900 dark:text-amber-300">
-          Running in zero-config mode
+          {t("zeroConfigBannerTitle")}
         </p>
         <p className="mt-0.5 text-amber-800/80 dark:text-amber-200/80">
-          OmniRoute auto-generated secure encryption keys on first launch. They are persisted to{" "}
-          <code className="font-mono bg-amber-200/50 dark:bg-amber-500/20 px-1 rounded text-xs">
-            {dataDir}
-          </code>
-          . No action is required — your data is encrypted and safe. To use custom keys, add{" "}
-          <code className="font-mono bg-amber-200/50 dark:bg-amber-500/20 px-1 rounded text-xs">
-            JWT_SECRET
-          </code>{" "}
-          and{" "}
-          <code className="font-mono bg-amber-200/50 dark:bg-amber-500/20 px-1 rounded text-xs">
-            STORAGE_ENCRYPTION_KEY
-          </code>{" "}
-          to that file.
+          {t.rich("zeroConfigBannerBody", {
+            dataDir,
+            code: (chunks) => (
+              <code className="font-mono bg-amber-200/50 dark:bg-amber-500/20 px-1 rounded text-xs">
+                {chunks}
+              </code>
+            ),
+          })}
         </p>
       </div>
       <button

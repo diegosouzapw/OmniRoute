@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 export interface ProviderModel {
   id: string;
@@ -29,6 +30,7 @@ interface UseProviderModelsResult {
  * `providerId` changes).
  */
 export function useProviderModels(providerId: string): UseProviderModelsResult {
+  const t = useTranslations("providers");
   const [models, setModels] = useState<ProviderModel[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +51,7 @@ export function useProviderModels(providerId: string): UseProviderModelsResult {
           const body = (await res.json().catch(() => null)) as {
             error?: { message?: string };
           } | null;
-          const msg = body?.error?.message ?? `HTTP ${res.status}`;
+          const msg = body?.error?.message ?? `${t("providerTestFailed")} (HTTP ${res.status})`;
           if (!cancelled) setError(msg);
           return;
         }
@@ -113,7 +115,7 @@ export function useProviderModels(providerId: string): UseProviderModelsResult {
     return () => {
       cancelled = true;
     };
-  }, [providerId]);
+  }, [providerId, t]);
 
   return { models, loading, error };
 }

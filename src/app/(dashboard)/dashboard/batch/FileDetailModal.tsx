@@ -4,22 +4,24 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/components";
 
-function relativeTime(ts: number): string {
+type FileTranslator = ReturnType<typeof useTranslations>;
+
+function relativeTime(ts: number, t: FileTranslator): string {
   const diffMs = Date.now() - ts * 1000;
   const diffSec = Math.round(diffMs / 1000);
-  if (diffSec < 60) return `${diffSec}s ago`;
+  if (diffSec < 60) return t("batchRelativeTimeAgo", { value: `${diffSec}s` });
   const diffMin = Math.round(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffMin < 60) return t("batchRelativeTimeAgo", { value: `${diffMin}m` });
   const diffHr = Math.round(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
+  if (diffHr < 24) return t("batchRelativeTimeAgo", { value: `${diffHr}h` });
   const diffDays = Math.round(diffHr / 24);
-  return `${diffDays}d ago`;
+  return t("batchRelativeTimeAgo", { value: `${diffDays}d` });
 }
 
-function relativeExpiration(ts: number | null): string {
-  if (!ts) return "Never";
+function relativeExpiration(ts: number | null, t: FileTranslator): string {
+  if (!ts) return t("batchFilesNeverExpires");
   const diffMs = ts * 1000 - Date.now();
-  if (diffMs <= 0) return "Expired";
+  if (diffMs <= 0) return t("expirationBadgeExpired");
   const diffSec = Math.round(diffMs / 1000);
   if (diffSec < 60) return `${diffSec}s`;
   const diffMin = Math.round(diffSec / 60);
@@ -54,6 +56,22 @@ interface BatchRecord {
   errorFileId?: string | null;
   model?: string | null;
 }
+
+const BATCH_STATUS_TRANSLATION_KEYS: Record<string, string> = {
+  completed: "batchStatusCompleted",
+  completed_with_failures: "batchStatusCompletedWithFailures",
+  failed: "batchStatusFailed",
+  in_progress: "batchStatusInProgress",
+  in_progress_with_failures: "batchStatusInProgressWithFailures",
+  finalizing: "batchStatusFinalizing",
+  finalizing_with_failures: "batchStatusFinalizingWithFailures",
+  validating: "batchStatusValidating",
+  cancelling: "batchStatusCancelling",
+  cancelled: "batchStatusCancelled",
+  cancelled_with_failures: "batchStatusCancelledWithFailures",
+  expired: "batchStatusExpired",
+  expired_with_failures: "batchStatusExpiredWithFailures",
+};
 
 interface FileDetailModalProps {
   file: FileRecord;
@@ -133,7 +151,7 @@ export default function FileDetailModal({
             </span>
             <div>
               <h2 className="text-base font-semibold text-[var(--color-text-main)]">
-                File Contents
+                {t("batchFileContents")}
               </h2>
               <div className="flex items-center gap-2 mt-0.5">
                 <p className="text-xs text-[var(--color-text-muted)] font-mono">{file.id}</p>
@@ -164,7 +182,7 @@ export default function FileDetailModal({
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-[var(--color-bg-alt)] border border-[var(--color-border)]">
             <div className="flex flex-col gap-0.5">
               <span className="text-[10px] uppercase tracking-wider font-medium text-[var(--color-text-muted)]">
-                Size
+                {t("batchFilesSizeColumn")}
               </span>
               <span className="text-sm text-[var(--color-text-main)]">
                 {formatBytes(file.bytes)}
@@ -172,24 +190,24 @@ export default function FileDetailModal({
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[10px] uppercase tracking-wider font-medium text-[var(--color-text-muted)]">
-                Purpose
+                {t("batchFilesPurpose")}
               </span>
               <span className="text-sm text-[var(--color-text-main)]">{file.purpose}</span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[10px] uppercase tracking-wider font-medium text-[var(--color-text-muted)]">
-                Created
+                {t("batchDetailCreated")}
               </span>
               <span className="text-sm text-[var(--color-text-main)]">
-                {createdAtTs ? relativeTime(createdAtTs) : "—"}
+                {createdAtTs ? relativeTime(createdAtTs, t) : "—"}
               </span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[10px] uppercase tracking-wider font-medium text-[var(--color-text-muted)]">
-                Expires
+                {t("batchFilesExpires")}
               </span>
               <span className="text-sm text-[var(--color-text-main)]">
-                {expiresAtTs ? relativeExpiration(expiresAtTs) : "Never"}
+                {expiresAtTs ? relativeExpiration(expiresAtTs, t) : t("batchFilesNeverExpires")}
               </span>
             </div>
           </div>
@@ -198,7 +216,7 @@ export default function FileDetailModal({
           {relatedBatches.length > 0 && (
             <div>
               <h3 className="text-[11px] uppercase tracking-wider font-medium text-[var(--color-text-muted)] mb-2">
-                Used by {relatedBatches.length} batch{relatedBatches.length > 1 ? "es" : ""}
+                {t("batchFileUsedByCount", { count: relatedBatches.length })}
               </h3>
               <div className="space-y-1.5">
                 {relatedBatches.map((b) => (
@@ -219,7 +237,9 @@ export default function FileDetailModal({
                             : "bg-gray-500/15 text-gray-400 border-gray-500/25"
                       }`}
                     >
-                      {b.status.replaceAll("_", " ")}
+                      {BATCH_STATUS_TRANSLATION_KEYS[b.status]
+                        ? t(BATCH_STATUS_TRANSLATION_KEYS[b.status])
+                        : b.status.replaceAll("_", " ")}
                     </span>
                   </div>
                 ))}
@@ -231,7 +251,7 @@ export default function FileDetailModal({
           <div className="flex-1 flex flex-col min-h-[300px]">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-                Preview
+                {t("batchFilePreview")}
               </h3>
               {contents && (
                 <button
@@ -241,7 +261,7 @@ export default function FileDetailModal({
                   <span className="material-symbols-outlined text-[14px]">
                     {copied ? "check" : "content_copy"}
                   </span>
-                  {copied ? "Copied!" : "Copy"}
+                  {copied ? t("copied") : t("copy")}
                 </button>
               )}
             </div>
@@ -259,7 +279,7 @@ export default function FileDetailModal({
                   {isTruncated && (
                     <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/25 rounded-lg text-xs text-yellow-400 flex items-center gap-2">
                       <span className="material-symbols-outlined text-[16px]">warning</span>
-                      Showing first 1000 lines ({lineCount} total lines)
+                      {t("batchFilePreviewTruncated", { shown: 1000, total: lineCount })}
                     </div>
                   )}
                 </div>
@@ -281,7 +301,7 @@ export default function FileDetailModal({
               className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-[var(--color-accent)] text-white hover:opacity-90 transition-opacity"
             >
               <span className="material-symbols-outlined text-[18px]">download</span>
-              Download Full File
+              {t("batchFileDownloadFull")}
             </Button>
           </div>
         </div>

@@ -413,7 +413,7 @@ export default function ModelRow({
                   : testStatus === "quota"
                     ? t("modelTestQuotaTooltip")
                     : testStatus === "error"
-                      ? "Error"
+                      ? providerText(t, "errorShort", "Error")
                       : t("testModel")
             }
           >

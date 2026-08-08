@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   TYPE_COLORS,
   LEVEL_COLORS,
@@ -14,6 +15,7 @@ import { formatDuration as formatLatency } from "@/shared/utils/formatting";
  * Extracted from ProxyLogger.js for maintainability.
  */
 export default function ProxyLogDetail({ log, onClose }) {
+  const t = useTranslations("proxyLog");
   useEffect(() => {
     const handler = (e) => {
       if (e.key === "Escape") onClose();
@@ -52,7 +54,7 @@ export default function ProxyLogDetail({ log, onClose }) {
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Proxy log detail"
+      aria-label={t("detailAriaLabel")}
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
@@ -68,12 +70,12 @@ export default function ProxyLogDetail({ log, onClose }) {
             >
               {log.status}
             </span>
-            <span className="font-bold text-lg">Proxy Event</span>
+            <span className="font-bold text-lg">{t("event")}</span>
           </div>
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
-            aria-label="Close proxy detail modal"
+            aria-label={t("close")}
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -83,31 +85,39 @@ export default function ProxyLogDetail({ log, onClose }) {
           {/* Metadata Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-bg-subtle rounded-xl border border-border">
             <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Time</div>
+              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                {t("time")}
+              </div>
               <div className="text-sm font-medium">{formatDate(log.timestamp)}</div>
             </div>
             <div>
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                Latency
+                {t("latency")}
               </div>
               <div className="text-sm font-medium">{formatLatency(log.latencyMs)}</div>
             </div>
             <div>
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                Client IP
+                {t("clientIp")}
               </div>
               <div className="text-sm font-medium font-mono text-emerald-400">
                 {log.clientIp || "—"}
               </div>
             </div>
             <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Proxy</div>
+              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                {t("proxy")}
+              </div>
               <div className="text-sm font-medium font-mono text-primary">
-                {log.proxy ? `${log.proxy.type}://${log.proxy.host}:${log.proxy.port}` : "Direct"}
+                {log.proxy
+                  ? `${log.proxy.type}://${log.proxy.host}:${log.proxy.port}`
+                  : t("direct")}
               </div>
             </div>
             <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Type</div>
+              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                {t("type")}
+              </div>
               <span
                 className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
                 style={{ backgroundColor: typeColor.bg, color: typeColor.text }}
@@ -116,7 +126,9 @@ export default function ProxyLogDetail({ log, onClose }) {
               </span>
             </div>
             <div>
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Level</div>
+              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                {t("level")}
+              </div>
               <span
                 className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
                 style={{ backgroundColor: levelColor.bg, color: levelColor.text }}
@@ -126,7 +138,7 @@ export default function ProxyLogDetail({ log, onClose }) {
             </div>
             <div>
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                Provider
+                {t("provider")}
               </div>
               {log.provider ? (
                 <span
@@ -141,7 +153,7 @@ export default function ProxyLogDetail({ log, onClose }) {
             </div>
             <div>
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                TLS Fingerprint
+                {t("tlsFingerprint")}
               </div>
               {log.tlsFingerprint ? (
                 <span
@@ -151,12 +163,12 @@ export default function ProxyLogDetail({ log, onClose }) {
                   <span style={{ fontSize: "12px" }}>🔒</span> Chrome 124
                 </span>
               ) : (
-                <div className="text-sm text-text-muted">Direct (native)</div>
+                <div className="text-sm text-text-muted">{t("directNative")}</div>
               )}
             </div>
             <div className="col-span-2">
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                Target URL
+                {t("targetUrl")}
               </div>
               <div className="text-sm font-medium font-mono text-text-muted break-all">
                 {log.targetUrl || "—"}
@@ -168,7 +180,7 @@ export default function ProxyLogDetail({ log, onClose }) {
           {log.error && (
             <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30">
               <div className="text-[10px] text-red-400 uppercase tracking-wider mb-1 font-bold">
-                Error
+                {t("error")}
               </div>
               <div className="text-sm text-red-300 font-mono">{log.error}</div>
             </div>
@@ -178,7 +190,7 @@ export default function ProxyLogDetail({ log, onClose }) {
           {log.proxy && (
             <div className="p-4 rounded-xl bg-bg-subtle border border-border">
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-2 font-bold">
-                Proxy Configuration
+                {t("configuration")}
               </div>
               <pre className="text-xs font-mono text-text-primary bg-black/20 rounded-lg p-3 overflow-x-auto">
                 {JSON.stringify(log.proxy, null, 2)}

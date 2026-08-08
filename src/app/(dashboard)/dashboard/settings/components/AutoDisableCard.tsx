@@ -38,7 +38,7 @@ export default function AutoDisableCard() {
       const savedData = await res.json();
       setData(savedData);
       setEditMode(false);
-      notify.success(t("savedSuccessfully") || "Saved successfully");
+      notify.success(t("savedSuccessfully"));
     } catch (err) {
       notify.error(err instanceof Error ? err.message : "Error saving");
     } finally {

@@ -1,0 +1,1 @@
+- **fix(i18n):** localized hardcoded web UI copy across public pages, dashboard views, and shared components, with complete French and Vietnamese coverage ([#9245](https://github.com/diegosouzapw/OmniRoute/pull/9245)) — thanks @alex-jordan547

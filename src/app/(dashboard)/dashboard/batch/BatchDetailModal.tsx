@@ -4,7 +4,9 @@ import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useBatchActions } from "./components/useBatchActions";
 
-function relativeTime(ts: number): string {
+type BatchTranslator = ReturnType<typeof useTranslations>;
+
+function relativeTime(ts: number, t: BatchTranslator): string {
   const diffMs = Date.now() - ts * 1000;
   const isFuture = diffMs < 0;
   const absDiffMs = Math.abs(diffMs);
@@ -22,8 +24,9 @@ function relativeTime(ts: number): string {
     }
   }
 
-  if (isFuture) return `in ${res}`;
-  return `${res} ago`;
+  return isFuture
+    ? t("batchRelativeTimeIn", { value: res })
+    : t("batchRelativeTimeAgo", { value: res });
 }
 
 interface BatchRecord {
@@ -93,6 +96,22 @@ const STATUS_LABELS: Record<string, string> = {
   expired_with_failures: "expired (partial)",
 };
 
+const STATUS_TRANSLATION_KEYS: Record<string, string> = {
+  completed: "batchStatusCompleted",
+  completed_with_failures: "batchStatusCompletedWithFailures",
+  failed: "batchStatusFailed",
+  in_progress: "batchStatusInProgress",
+  in_progress_with_failures: "batchStatusInProgressWithFailures",
+  finalizing: "batchStatusFinalizing",
+  finalizing_with_failures: "batchStatusFinalizingWithFailures",
+  validating: "batchStatusValidating",
+  cancelling: "batchStatusCancelling",
+  cancelled: "batchStatusCancelled",
+  cancelled_with_failures: "batchStatusCancelledWithFailures",
+  expired: "batchStatusExpired",
+  expired_with_failures: "batchStatusExpiredWithFailures",
+};
+
 function effectiveStatus(batch: BatchRecord): string {
   const hasFailed = (batch.requestCountsFailed ?? 0) > 0;
   if (!hasFailed) return batch.status;
@@ -106,10 +125,12 @@ function effectiveStatus(batch: BatchRecord): string {
   return map[batch.status] ?? batch.status;
 }
 
-function StatusBadge({ batch }: { batch: BatchRecord }) {
+function StatusBadge({ batch, t }: { batch: BatchRecord; t: BatchTranslator }) {
   const key = effectiveStatus(batch);
   const cls = STATUS_STYLES[key] ?? "bg-gray-500/15 text-gray-400 border-gray-500/25";
-  const label = STATUS_LABELS[key] ?? key.replace(/_/g, " ");
+  const label = STATUS_TRANSLATION_KEYS[key]
+    ? t(STATUS_TRANSLATION_KEYS[key])
+    : (STATUS_LABELS[key] ?? key.replace(/_/g, " "));
   return (
     <span className={`inline-block px-2 py-0.5 rounded-md text-xs font-medium border ${cls}`}>
       {label}
@@ -141,12 +162,24 @@ function formatTs(ts: number | null | undefined): string {
   });
 }
 
-export default function BatchDetailModal({ batch, files, onClose, onActionDone }: BatchDetailModalProps) {
+export default function BatchDetailModal({
+  batch,
+  files,
+  onClose,
+  onActionDone,
+}: BatchDetailModalProps) {
   const t = useTranslations("common");
 
   // ── Action hook (F7) ─────────────────────────────────────────────────────────
-  const { cancelling, retrying, error: actionError, cancel, retry, downloadHrefOutput, downloadHrefErrors } =
-    useBatchActions({ onRefresh: onActionDone, t });
+  const {
+    cancelling,
+    retrying,
+    error: actionError,
+    cancel,
+    retry,
+    downloadHrefOutput,
+    downloadHrefErrors,
+  } = useBatchActions({ onRefresh: onActionDone, t });
 
   // ── Status flags ──────────────────────────────────────────────────────────────
   const isTerminal = ["completed", "failed", "cancelled", "expired"].includes(batch.status);
@@ -195,8 +228,11 @@ export default function BatchDetailModal({ batch, files, onClose, onActionDone }
               pending_actions
             </span>
             <div>
-              <h2 id="batch-detail-modal-title" className="text-base font-semibold text-[var(--color-text-main)]">
-                Batch Details
+              <h2
+                id="batch-detail-modal-title"
+                className="text-base font-semibold text-[var(--color-text-main)]"
+              >
+                {t("batchDetailsTitle")}
               </h2>
               <div className="flex items-center gap-2 mt-0.5">
                 <p className="text-xs text-[var(--color-text-muted)] font-mono">{batch.id}</p>
@@ -227,16 +263,18 @@ export default function BatchDetailModal({ batch, files, onClose, onActionDone }
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <div className="flex flex-col gap-0.5">
               <span className="text-[11px] uppercase tracking-wider font-medium text-[var(--color-text-muted)]">
-                Status
+                {t("status")}
               </span>
-              <StatusBadge batch={batch} />
+              <StatusBadge batch={batch} t={t} />
             </div>
             <Field label={t("batchDetailEndpoint")} value={batch.endpoint} />
             {batch.model && <Field label={t("batchDetailModel")} value={batch.model} />}
             <Field label={t("batchDetailWindow")} value={batch.completionWindow} />
             <Field
               label={t("batchDetailCreated")}
-              value={<span title={formatTs(batch.createdAt)}>{relativeTime(batch.createdAt)}</span>}
+              value={
+                <span title={formatTs(batch.createdAt)}>{relativeTime(batch.createdAt, t)}</span>
+              }
             />
           </div>
 
@@ -245,7 +283,7 @@ export default function BatchDetailModal({ batch, files, onClose, onActionDone }
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-[var(--color-text-muted)] uppercase tracking-wider font-medium">
-                  Progress
+                  {t("batchProgress")}
                 </span>
                 <span className="text-[var(--color-text-muted)]">
                   {completed} / {total} ({pct}%)
@@ -262,17 +300,9 @@ export default function BatchDetailModal({ batch, files, onClose, onActionDone }
                 />
               </div>
               <div className="flex gap-4 text-xs text-[var(--color-text-muted)]">
-                <span>
-                  <span className="text-emerald-400 font-medium">{completed}</span> completed
-                </span>
-                {failed > 0 && (
-                  <span>
-                    <span className="text-red-400 font-medium">{failed}</span> failed
-                  </span>
-                )}
-                <span>
-                  <span className="font-medium">{total - completed - failed}</span> pending
-                </span>
+                <span>{t("batchCompletedCount", { count: completed })}</span>
+                {failed > 0 && <span>{t("batchFailedCount", { count: failed })}</span>}
+                <span>{t("batchPendingCount", { count: total - completed - failed })}</span>
               </div>
             </div>
           )}
@@ -280,19 +310,19 @@ export default function BatchDetailModal({ batch, files, onClose, onActionDone }
           {/* Timestamps */}
           <div>
             <h3 className="text-[11px] uppercase tracking-wider font-medium text-[var(--color-text-muted)] mb-3">
-              Timeline
+              {t("batchTimeline")}
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
               {[
-                { label: "Created", ts: batch.createdAt },
-                { label: "In Progress", ts: batch.inProgressAt },
-                { label: "Finalizing", ts: batch.finalizingAt },
-                { label: "Completed", ts: batch.completedAt },
-                { label: "Failed", ts: batch.failedAt },
-                { label: "Expires", ts: batch.expiresAt },
-                { label: "Expired", ts: batch.expiredAt },
-                { label: "Cancelling", ts: batch.cancellingAt },
-                { label: "Cancelled", ts: batch.cancelledAt },
+                { label: t("batchDetailCreated"), ts: batch.createdAt },
+                { label: t("batchTimelineInProgress"), ts: batch.inProgressAt },
+                { label: t("batchTimelineFinalizing"), ts: batch.finalizingAt },
+                { label: t("batchTimelineCompleted"), ts: batch.completedAt },
+                { label: t("batchTimelineFailed"), ts: batch.failedAt },
+                { label: t("batchTimelineExpires"), ts: batch.expiresAt },
+                { label: t("batchTimelineExpired"), ts: batch.expiredAt },
+                { label: t("batchTimelineCancelling"), ts: batch.cancellingAt },
+                { label: t("batchTimelineCancelled"), ts: batch.cancelledAt },
               ]
                 .filter((t) => t.ts)
                 .map(({ label, ts }) => (
@@ -315,9 +345,21 @@ export default function BatchDetailModal({ batch, files, onClose, onActionDone }
             </h3>
             <div className="space-y-2">
               {[
-                { role: "Input", fileId: batch.inputFileId, record: inputFile },
-                { role: "Output", fileId: batch.outputFileId, record: outputFile },
-                { role: "Errors", fileId: batch.errorFileId, record: errorFile },
+                {
+                  role: t("filesListUsedByRoleInput"),
+                  fileId: batch.inputFileId,
+                  record: inputFile,
+                },
+                {
+                  role: t("filesListUsedByRoleOutput"),
+                  fileId: batch.outputFileId,
+                  record: outputFile,
+                },
+                {
+                  role: t("filesListUsedByRoleError"),
+                  fileId: batch.errorFileId,
+                  record: errorFile,
+                },
               ]
                 .filter((f) => f.fileId)
                 .map(({ role, fileId, record }) => (
@@ -350,7 +392,7 @@ export default function BatchDetailModal({ batch, files, onClose, onActionDone }
                         className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] transition-colors"
                       >
                         <span className="material-symbols-outlined text-[13px]">download</span>
-                        Download
+                        {t("filesListDownload")}
                       </a>
                     </div>
                   </div>
@@ -362,7 +404,7 @@ export default function BatchDetailModal({ batch, files, onClose, onActionDone }
           {batch.usage && (
             <div>
               <h3 className="text-[11px] uppercase tracking-wider font-medium text-[var(--color-text-muted)] mb-3">
-                Token Usage
+                {t("batchTokenUsage")}
               </h3>
               <pre className="p-3 rounded-lg bg-[var(--color-bg-alt)] border border-[var(--color-border)] text-xs font-mono text-[var(--color-text-main)] overflow-x-auto">
                 {JSON.stringify(batch.usage, null, 2)}
@@ -374,7 +416,7 @@ export default function BatchDetailModal({ batch, files, onClose, onActionDone }
           {batch.errors && (
             <div>
               <h3 className="text-[11px] uppercase tracking-wider font-medium text-red-400 mb-3">
-                Errors
+                {t("errors")}
               </h3>
               <pre className="p-3 rounded-lg bg-red-500/5 border border-red-500/20 text-xs font-mono text-red-300 overflow-x-auto">
                 {JSON.stringify(batch.errors, null, 2)}
@@ -386,7 +428,7 @@ export default function BatchDetailModal({ batch, files, onClose, onActionDone }
           {batch.metadata && Object.keys(batch.metadata).length > 0 && (
             <div>
               <h3 className="text-[11px] uppercase tracking-wider font-medium text-[var(--color-text-muted)] mb-3">
-                Metadata
+                {t("batchMetadata")}
               </h3>
               <div className="space-y-1">
                 {Object.entries(batch.metadata).map(([k, v]) => (
@@ -438,7 +480,7 @@ export default function BatchDetailModal({ batch, files, onClose, onActionDone }
                   if (
                     window.confirm(
                       t("batchDetailActionRetry") +
-                        ` (${batch.requestCountsFailed} ${t("batchActionRetry")})?`,
+                        ` (${batch.requestCountsFailed} ${t("batchActionRetry")})?`
                     )
                   ) {
                     const result = await retry({

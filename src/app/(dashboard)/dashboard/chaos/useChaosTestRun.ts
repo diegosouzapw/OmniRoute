@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useTranslations } from "next-intl";
+import { chaosText, type ChaosTranslator } from "./chaosI18n";
 import type { ChaosTestResult } from "./components/ChaosTestResultsPanel";
 import type { ChaosPageConfig, ChaosPageMessage } from "./chaosPageTypes";
 
@@ -10,8 +11,11 @@ import type { ChaosPageConfig, ChaosPageMessage } from "./chaosPageTypes";
  * of the page component to keep it under the complexity/size ratchet
  * (config/quality/complexity-baseline.json).
  */
-export function useChaosTestRun(config: ChaosPageConfig, setMessage: (message: ChaosPageMessage) => void) {
-  const t = useTranslations("chaosConfig");
+export function useChaosTestRun(
+  config: ChaosPageConfig,
+  setMessage: (message: ChaosPageMessage) => void
+) {
+  const t = useTranslations("chaosConfig") as ChaosTranslator;
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<ChaosTestResult | null>(null);
 
@@ -34,11 +38,17 @@ export function useChaosTestRun(config: ChaosPageConfig, setMessage: (message: C
         const data: ChaosTestResult = await res.json();
         setTestResult(data);
       } else {
-        const err = await res.json().catch(() => ({ error: "Unknown error" }));
-        setMessage({ type: "error", text: err.error || "Test failed" });
+        const err = await res.json().catch(() => ({ error: null }));
+        setMessage({
+          type: "error",
+          text: err.error || chaosText(t, "testFailed", "Test failed"),
+        });
       }
     } catch (err: any) {
-      setMessage({ type: "error", text: err.message || "Test failed" });
+      setMessage({
+        type: "error",
+        text: err.message || chaosText(t, "testFailed", "Test failed"),
+      });
     } finally {
       setTesting(false);
     }

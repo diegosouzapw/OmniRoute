@@ -50,11 +50,13 @@ function ProviderBar({
   count,
   total,
   costUsd,
+  queriesLabel,
 }: {
   provider: string;
   count: number;
   total: number;
   costUsd: number;
+  queriesLabel: string;
 }) {
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
   return (
@@ -62,7 +64,7 @@ function ProviderBar({
       <div className="flex justify-between text-sm">
         <span className="font-medium text-text">{provider}</span>
         <span className="text-text-muted">
-          {count} queries · ${costUsd.toFixed(4)}
+          {count} {queriesLabel} · ${costUsd.toFixed(4)}
         </span>
       </div>
       <div className="h-2 rounded-full bg-bg-muted overflow-hidden">
@@ -99,7 +101,7 @@ export default function SearchAnalyticsTab() {
     return (
       <div className="flex items-center justify-center py-16 text-text-muted">
         <span className="material-symbols-outlined animate-spin mr-2">progress_activity</span>
-        Loading search analytics…
+        {t("searchAnalyticsLoading")}
       </div>
     );
   }
@@ -108,9 +110,11 @@ export default function SearchAnalyticsTab() {
     return (
       <div className="card p-6 text-center text-text-muted">
         <span className="material-symbols-outlined text-[32px] mb-2 block">search_off</span>
-        {error || "No search data available yet."}
+        {error || t("searchAnalyticsNoData")}
         <p className="text-xs mt-2">
-          Search requests will appear here after the first search via /v1/search.
+          {t.rich("searchAnalyticsNoDataDescription", {
+            code: (chunks) => <code className="bg-bg-muted px-1 rounded">{chunks}</code>,
+          })}
         </p>
       </div>
     );
@@ -126,25 +130,29 @@ export default function SearchAnalyticsTab() {
           icon="manage_search"
           label={t("searchAnalyticsTotalSearches")}
           value={stats.total.toLocaleString()}
-          sub={`${stats.today} today`}
+          sub={t("searchAnalyticsToday", { count: stats.today })}
         />
         <StatCard
           icon="cached"
           label={t("searchAnalyticsCacheHitRate")}
           value={`${stats.cacheHitRate}%`}
-          sub={`${stats.cached} cached requests`}
+          sub={t("searchAnalyticsCachedRequests", { count: stats.cached })}
         />
         <StatCard
           icon="attach_money"
           label={t("searchAnalyticsTotalCost")}
           value={`$${stats.totalCostUsd.toFixed(4)}`}
-          sub="search API costs"
+          sub={t("searchAnalyticsApiCosts")}
         />
         <StatCard
           icon="timer"
           label={t("searchAnalyticsAvgResponse")}
           value={`${stats.avgDurationMs}ms`}
-          sub={stats.errors > 0 ? `${stats.errors} errors` : "No errors"}
+          sub={
+            stats.errors > 0
+              ? t("searchAnalyticsErrors", { count: stats.errors })
+              : t("searchAnalyticsNoErrors")
+          }
         />
       </div>
 
@@ -153,7 +161,7 @@ export default function SearchAnalyticsTab() {
         <div className="card p-5">
           <h3 className="font-semibold text-text mb-4 flex items-center gap-2">
             <span className="material-symbols-outlined text-primary text-[20px]">hub</span>
-            Provider Breakdown
+            {t("searchAnalyticsProviderBreakdown")}
           </h3>
           <div className="flex flex-col gap-4">
             {providers.map(([prov, data]) => (
@@ -163,6 +171,7 @@ export default function SearchAnalyticsTab() {
                 count={data.count}
                 total={stats.total}
                 costUsd={data.costUsd}
+                queriesLabel={t("searchAnalyticsQueries")}
               />
             ))}
           </div>
@@ -177,8 +186,9 @@ export default function SearchAnalyticsTab() {
           </span>
           <p className="font-medium text-text">{t("searchAnalyticsNoSearchesYet")}</p>
           <p className="text-sm mt-1">
-            Use <code className="bg-bg-muted px-1 rounded">POST /v1/search</code> to start routing
-            web searches.
+            {t.rich("searchAnalyticsEmptyDescription", {
+              code: (chunks) => <code className="bg-bg-muted px-1 rounded">{chunks}</code>,
+            })}
           </p>
         </div>
       )}
@@ -189,8 +199,9 @@ export default function SearchAnalyticsTab() {
           check_circle
         </span>
         <span>
-          <strong>Free tier available:</strong> Serper (2,500/mo), Brave (2,000/mo), Exa (1,000/mo),
-          Tavily (1,000/mo) — total 6,500+ free searches/month with automatic failover.
+          {t.rich("searchAnalyticsFreeTier", {
+            strong: (chunks) => <strong>{chunks}</strong>,
+          })}
         </span>
       </div>
     </div>

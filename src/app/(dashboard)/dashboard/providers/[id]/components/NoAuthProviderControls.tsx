@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { NoAuthAccountCard, NoAuthProviderCard } from "@/shared/components";
 import { getProviderAlias, supportsNoAuthProviderProxy } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
+import { providerText } from "../providerPageHelpers";
 
 const ACCOUNT_PROVIDER_NAMES: Record<string, string> = {
   mimocode: "MiMoCode",
@@ -153,7 +154,10 @@ export default function NoAuthProviderControls({
                 const res = await fetch("/api/dahl/tokens", { method: "POST" });
                 const data = await res.json();
                 if (!res.ok || !data.token) {
-                  throw new Error(data?.error || "Failed to create Dahl token");
+                  throw new Error(
+                    data?.error ||
+                      providerText(t, "createDahlTokenFailed", "Failed to create Dahl token")
+                  );
                 }
                 return data.token as string;
               }

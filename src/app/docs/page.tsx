@@ -1,79 +1,90 @@
 import Link from "next/link";
 import { Metadata } from "next";
 import { source } from "@/lib/source";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "OmniRoute Documentation",
-  description:
-    "Everything you need to route, compress, and scale your AI — setup guides, API reference, compression, deployment, and more.",
-  openGraph: {
-    title: "OmniRoute Documentation",
-    description:
-      "Comprehensive docs for OmniRoute AI gateway — setup, API, compression, deployment, and more.",
-    type: "website",
-    url: "https://omniroute.online/docs",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "OmniRoute Documentation",
-    description: "Comprehensive docs for OmniRoute AI gateway",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("docs");
+  return {
+    title: t("homeTitle"),
+    description: t("homeMetadataDescription"),
+    openGraph: {
+      title: t("homeTitle"),
+      description: t("homeMetadataDescription"),
+      type: "website",
+      url: "https://omniroute.online/docs",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("homeTitle"),
+      description: t("homeTwitterDescription"),
+    },
+  };
+}
 
 const featuredLinks = [
   {
     href: "/docs/getting-started/quick-start",
-    title: "Quick Start",
+    titleKey: "featuredQuickStartTitle",
     icon: "rocket_launch",
-    desc: "Get OmniRoute running in 3 minutes",
+    descriptionKey: "featuredQuickStartDescription",
   },
   {
     href: "/docs/getting-started/auto-combo-guide",
-    title: "Auto-Combo Guide",
+    titleKey: "featuredAutoComboTitle",
     icon: "auto_awesome",
-    desc: "Let OmniRoute pick the best AI for you",
+    descriptionKey: "featuredAutoComboDescription",
   },
   {
     href: "/docs/getting-started/providers-guide",
-    title: "Providers Guide",
+    titleKey: "featuredProvidersTitle",
     icon: "link",
-    desc: "Connect AI providers in minutes",
+    descriptionKey: "featuredProvidersDescription",
   },
 ];
 
 const sections = [
   {
-    title: "For Non-Tech Users",
-    subtitle: "Get started quickly — no technical background needed",
+    titleKey: "nonTechUsersTitle",
+    subtitleKey: "nonTechUsersSubtitle",
     icon: "rocket_launch",
     color: "green",
     folders: ["getting-started", "guides"],
   },
   {
-    title: "For Tech Users",
-    subtitle: "Deep dive into architecture, APIs, and internals",
+    titleKey: "techUsersTitle",
+    subtitleKey: "techUsersSubtitle",
     icon: "code",
     color: "blue",
-    folders: ["architecture", "reference", "frameworks", "routing", "security", "compression", "ops"],
+    folders: [
+      "architecture",
+      "reference",
+      "frameworks",
+      "routing",
+      "security",
+      "compression",
+      "ops",
+    ],
   },
 ];
 
-export default function DocsHomePage() {
+export default async function DocsHomePage() {
+  const t = await getTranslations("docs");
   const pages = source.getPages();
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <div className="text-center mb-16 mt-8">
-        <h1 className="text-4xl font-bold text-fd-foreground mb-5">OmniRoute Documentation</h1>
-        <p className="text-lg text-fd-muted-foreground mb-6">
-          Everything you need to route, compress, and scale your AI
-        </p>
+        <h1 className="text-4xl font-bold text-fd-foreground mb-5">{t("homeTitle")}</h1>
+        <p className="text-lg text-fd-muted-foreground mb-6">{t("homeDescription")}</p>
         <p className="text-sm text-fd-muted-foreground">
-          Press{" "}
-          <kbd className="px-1.5 py-0.5 bg-fd-muted border border-fd-border rounded font-mono text-xs">
-            Ctrl K
-          </kbd>{" "}
-          to search the docs
+          {t.rich("homeSearchHint", {
+            kbd: (chunks) => (
+              <kbd className="px-1.5 py-0.5 bg-fd-muted border border-fd-border rounded font-mono text-xs">
+                {chunks}
+              </kbd>
+            ),
+          })}
         </p>
       </div>
 
@@ -89,9 +100,9 @@ export default function DocsHomePage() {
               {link.icon}
             </span>
             <span className="font-semibold text-fd-foreground group-hover:text-fd-primary transition-colors">
-              {link.title}
+              {t(link.titleKey)}
             </span>
-            <span className="text-sm text-fd-muted-foreground mt-2">{link.desc}</span>
+            <span className="text-sm text-fd-muted-foreground mt-2">{t(link.descriptionKey)}</span>
           </Link>
         ))}
       </div>
@@ -103,7 +114,7 @@ export default function DocsHomePage() {
           );
           return (
             <div
-              key={section.title}
+              key={section.titleKey}
               className="border border-fd-border rounded-xl p-6 hover:border-fd-primary/30 transition-colors bg-fd-card/50"
             >
               <div className="flex items-center gap-3 mb-4">
@@ -111,8 +122,10 @@ export default function DocsHomePage() {
                   {section.icon}
                 </span>
                 <div>
-                  <h2 className="text-base font-semibold text-fd-foreground">{section.title}</h2>
-                  <p className="text-sm text-fd-muted-foreground">{section.subtitle}</p>
+                  <h2 className="text-base font-semibold text-fd-foreground">
+                    {t(section.titleKey)}
+                  </h2>
+                  <p className="text-sm text-fd-muted-foreground">{t(section.subtitleKey)}</p>
                 </div>
               </div>
               <ul className="space-y-2.5">

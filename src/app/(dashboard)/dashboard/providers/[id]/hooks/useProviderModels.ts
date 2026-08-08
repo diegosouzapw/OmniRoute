@@ -16,7 +16,7 @@
 import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useNotificationStore } from "@/store/notificationStore";
-import type { CompatModelRow } from "../providerPageHelpers";
+import { providerText, type CompatModelRow } from "../providerPageHelpers";
 
 // ──── types ─────────────────────────────────────────────────────────────────
 
@@ -79,11 +79,13 @@ export function useProviderModels(
           notify.success(t("setAliasSuccess", { alias }));
         } else {
           const data = await res.json().catch(() => ({}));
-          notify.error(data?.error?.message || "Failed to set alias");
+          notify.error(
+            data?.error?.message || providerText(t, "failedSetAlias", "Failed to set alias")
+          );
         }
       } catch (error) {
         console.log("Error setting alias:", error);
-        notify.error("Network error setting alias");
+        notify.error(providerText(t, "networkErrorSettingAlias", "Network error setting alias"));
       }
     },
     [fetchAliases, t, notify]
@@ -100,11 +102,13 @@ export function useProviderModels(
           notify.success(t("deleteAliasSuccess", { alias }));
         } else {
           const data = await res.json().catch(() => ({}));
-          notify.error(data?.error?.message || "Failed to delete alias");
+          notify.error(
+            data?.error?.message || providerText(t, "failedDeleteAlias", "Failed to delete alias")
+          );
         }
       } catch (error) {
         console.log("Error deleting alias:", error);
-        notify.error("Network error deleting alias");
+        notify.error(providerText(t, "networkErrorDeletingAlias", "Network error deleting alias"));
       }
     },
     [fetchAliases, t, notify]
@@ -113,10 +117,9 @@ export function useProviderModels(
   const fetchProviderModelMeta = useCallback(async () => {
     if (isSearchProvider) return;
     try {
-      const res = await fetch(
-        `/api/provider-models?provider=${encodeURIComponent(providerId)}`,
-        { cache: "no-store" }
-      );
+      const res = await fetch(`/api/provider-models?provider=${encodeURIComponent(providerId)}`, {
+        cache: "no-store",
+      });
       if (!res.ok) return;
       const data = await res.json();
       setModelMeta({

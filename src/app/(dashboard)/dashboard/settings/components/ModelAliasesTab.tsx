@@ -82,26 +82,23 @@ export default function ModelAliasesTab() {
           </span>
         </div>
         <div>
-          <h3 className="text-lg font-semibold">{t("modelAliasesTitle") || "Model Aliases"}</h3>
-          <p className="text-sm text-text-muted">
-            {t("modelAliasesDesc") || "Auto-forward deprecated model IDs to their replacements"}
-          </p>
+          <h3 className="text-lg font-semibold">{t("modelAliasesTitle")}</h3>
+          <p className="text-sm text-text-muted">{t("modelAliasesDesc")}</p>
         </div>
         {status === "saved" && (
           <span className="ml-auto text-xs font-medium text-emerald-500 flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">check_circle</span>{" "}
-            {t("saved") || "Saved"}
+            <span className="material-symbols-outlined text-[14px]">check_circle</span> {t("saved")}
           </span>
         )}
       </div>
 
       {/* Add custom alias */}
       <div className="p-4 rounded-lg bg-surface/30 border border-border/30 mb-4">
-        <p className="text-sm font-medium mb-3">{t("addCustomAlias") || "Add Custom Alias"}</p>
+        <p className="text-sm font-medium mb-3">{t("addCustomAlias")}</p>
         <div className="flex items-center gap-2">
           <input
             type="text"
-            placeholder={t("deprecatedModelId") || "Deprecated model ID"}
+            placeholder={t("deprecatedModelId")}
             value={newFrom}
             onChange={(e) => setNewFrom(e.target.value)}
             className="flex-1 px-3 py-2 rounded-lg text-sm bg-surface border border-border/50 focus:border-amber-500/50 focus:outline-none"
@@ -109,7 +106,7 @@ export default function ModelAliasesTab() {
           <span className="text-text-muted text-lg">→</span>
           <input
             type="text"
-            placeholder={t("newModelId") || "New model ID"}
+            placeholder={t("newModelId")}
             value={newTo}
             onChange={(e) => setNewTo(e.target.value)}
             className="flex-1 px-3 py-2 rounded-lg text-sm bg-surface border border-border/50 focus:border-amber-500/50 focus:outline-none"
@@ -119,7 +116,7 @@ export default function ModelAliasesTab() {
             disabled={saving || !newFrom.trim() || !newTo.trim()}
             className="px-4 py-2 rounded-lg text-sm font-medium bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 disabled:opacity-50 transition-all"
           >
-            {t("add") || "Add"}
+            {t("add")}
           </button>
         </div>
       </div>
@@ -128,7 +125,7 @@ export default function ModelAliasesTab() {
       {customEntries.length > 0 && (
         <div className="mb-4">
           <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2">
-            {t("customAliases") || "Custom Aliases"}
+            {t("customAliases")}
           </p>
           <div className="rounded-lg border border-border/30 divide-y divide-border/20">
             {customEntries.map(([from, to]) => (
@@ -157,7 +154,7 @@ export default function ModelAliasesTab() {
           <span className="material-symbols-outlined text-[14px] group-open:rotate-90 transition-transform">
             chevron_right
           </span>
-          {t("builtInAliases") || "Built-in Aliases"} ({builtInEntries.length})
+          {t("builtInAliases")} ({builtInEntries.length})
         </summary>
         <div className="rounded-lg border border-border/30 divide-y divide-border/20 max-h-60 overflow-y-auto">
           {builtInEntries.map(([from, to]) => (

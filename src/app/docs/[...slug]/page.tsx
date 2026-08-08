@@ -10,6 +10,7 @@ import path from "node:path";
 import { marked } from "marked";
 import { sanitizeDocsHtml } from "@/lib/docsSanitizer";
 import { resolveSafeI18nSectionDir } from "@/lib/docsI18nPath";
+import { getTranslations } from "next-intl/server";
 
 // ── Locale detection ────────────────────────────────────────────────────────
 
@@ -111,9 +112,10 @@ export async function generateMetadata(props: {
   const params = await props.params;
   const page = source.getPage(params.slug);
   if (!page) return {};
+  const t = await getTranslations("docs");
 
   return {
-    title: `${page.data.title} — OmniRoute Docs`,
-    description: page.data.description ?? `OmniRoute documentation: ${page.data.title}`,
+    title: t("pageMetadataTitle", { title: page.data.title }),
+    description: page.data.description ?? t("pageMetadataDescription", { title: page.data.title }),
   };
 }

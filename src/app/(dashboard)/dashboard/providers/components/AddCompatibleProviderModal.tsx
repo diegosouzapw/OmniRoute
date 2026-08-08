@@ -8,6 +8,7 @@ import {
   CLIENT_IDENTITY_PROFILE_OPTIONS,
   getClientIdentityProfileHeaders,
 } from "@/shared/constants/clientIdentityProfiles";
+import { providerText } from "../[id]/providerPageHelpers";
 import NewApiAggregatorFields from "../[id]/components/modals/NewApiAggregatorFields";
 
 type CompatibleMode = "openai" | "anthropic" | "cc";
@@ -274,7 +275,10 @@ export default function AddCompatibleProviderModal({
         method: data.method ?? null,
       });
     } catch {
-      setValidationResult({ valid: false, error: "Network error" });
+      setValidationResult({
+        valid: false,
+        error: providerText(t, "networkError", "Network error"),
+      });
     } finally {
       setValidating(false);
     }

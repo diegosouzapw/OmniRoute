@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { createProviderConnection } from "@/models";
 import { parseTraeCallbackQuery } from "./parseCallback";
 
@@ -29,7 +30,7 @@ import { parseTraeCallbackQuery } from "./parseCallback";
  * authorize URL; Trae echoes it back as `loginTraceID`. The modal verifies
  * the echoed state before trusting the postMessage.
  */
-function htmlClose(message: Record<string, unknown>): NextResponse {
+function htmlClose(message: Record<string, unknown>, t: (key: string) => string): NextResponse {
   // Embedding values: only emit the small/sanitized status payload — never the
   // raw token. We post to the loopback origin pair (localhost + 127.0.0.1) on
   // this same port rather than "*": Trae forces the callback onto 127.0.0.1,
@@ -40,10 +41,12 @@ function htmlClose(message: Record<string, unknown>): NextResponse {
     type: "trae-oauth-callback",
     ...message,
   }).replace(/</g, "\\u003c");
+  const title = message.success ? t("traeAuthorizationSuccess") : t("traeAuthorizationFailed");
+  const body = message.success ? t("closeAuthorizationWindow") : t("returnToDashboard");
   return new NextResponse(
     `<!doctype html><html><body style="font:16px sans-serif;padding:40px">
-      <h2 style="margin:0 0 8px">Trae authorization ${message.success ? "✓" : "failed"}</h2>
-      <p>${message.success ? "You can close this window." : "Return to the dashboard."}</p>
+      <h2 style="margin:0 0 8px">${title}</h2>
+      <p>${body}</p>
       <script>
         (function () {
           try {
@@ -64,21 +67,25 @@ function htmlClose(message: Record<string, unknown>): NextResponse {
 }
 
 export async function GET(request: Request) {
+  const t = await getTranslations("auth");
   const url = new URL(request.url);
   const q = url.searchParams;
   const parsed = parseTraeCallbackQuery(q);
   if (!parsed.ok) {
-    return htmlClose({ success: false, error: parsed.error });
+    return htmlClose({ success: false, error: parsed.error }, t);
   }
   try {
     const connection: any = await createProviderConnection(parsed.record);
-    return htmlClose({
-      success: true,
-      connectionId: connection.id,
-      loginTraceId: q.get("loginTraceID") || null,
-    });
+    return htmlClose(
+      {
+        success: true,
+        connectionId: connection.id,
+        loginTraceId: q.get("loginTraceID") || null,
+      },
+      t
+    );
   } catch (err: any) {
     console.error("[trae callback] error:", err);
-    return htmlClose({ success: false, error: "Internal error during callback" });
+    return htmlClose({ success: false, error: "Internal error during callback" }, t);
   }
 }

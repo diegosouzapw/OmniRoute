@@ -320,7 +320,7 @@ export default function AuthzSection() {
                     onClick={() => handleRemovePrefix(prefix)}
                     disabled={locked || submitting}
                   >
-                    Remove
+                    {t("authz.remove")}
                   </Button>
                 </li>
               );

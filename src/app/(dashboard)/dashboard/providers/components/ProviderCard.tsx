@@ -31,17 +31,17 @@ interface ProviderStats {
   codexServiceTier?: "default" | "priority" | "flex" | null;
 }
 
-const KIND_LABEL: Record<string, string> = {
-  llm: "Chat",
-  embedding: "Embed",
-  image: "Image",
-  imageToText: "I→T",
-  tts: "TTS",
-  stt: "STT",
-  webSearch: "Search",
-  webFetch: "Fetch",
-  video: "Video",
-  music: "Music",
+const KIND_LABEL_KEYS: Record<string, { key: string; fallback: string }> = {
+  llm: { key: "serviceKindChat", fallback: "Chat" },
+  embedding: { key: "serviceKindEmbedding", fallback: "Embed" },
+  image: { key: "serviceKindImage", fallback: "Image" },
+  imageToText: { key: "serviceKindImageToText", fallback: "I→T" },
+  tts: { key: "serviceKindTts", fallback: "TTS" },
+  stt: { key: "serviceKindStt", fallback: "STT" },
+  webSearch: { key: "serviceKindWebSearch", fallback: "Search" },
+  webFetch: { key: "serviceKindWebFetch", fallback: "Fetch" },
+  video: { key: "serviceKindVideo", fallback: "Video" },
+  music: { key: "serviceKindMusic", fallback: "Music" },
 };
 
 /** Maps a compatible-provider `apiType` to its `KIND_LABEL` key (#6936: non-chat
@@ -167,6 +167,10 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
   const t = useTranslations("providers");
   const tc = useTranslations("common");
   const tp = useTranslations("miniPlayground");
+  const kindLabel = (kind: string) => {
+    const entry = KIND_LABEL_KEYS[kind];
+    return entry ? providerText(t, entry.key, entry.fallback) : kind;
+  };
   const [testExpanded, setTestExpanded] = useState<boolean>(false);
   const innerRef = useRef<HTMLDivElement>(null);
   const linkElementRef = useRef<HTMLAnchorElement>(null);
@@ -463,15 +467,15 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
                     key={k}
                     className="text-[10px] px-1.5 py-0.5 rounded bg-bg-subtle border border-border text-text-muted leading-none"
                   >
-                    {KIND_LABEL[k] ?? k}
+                    {kindLabel(k)}
                   </span>
                 ))}
                 {isCompatible && (
                   <Badge variant="default" size="sm">
                     {provider.apiType === "responses"
                       ? t("responses")
-                      : (KIND_LABEL[COMPATIBLE_API_TYPE_KIND[provider.apiType ?? ""] ?? ""] ??
-                        t("chat"))}
+                      : kindLabel(COMPATIBLE_API_TYPE_KIND[provider.apiType ?? ""] ?? "") ||
+                        t("chat")}
                   </Badge>
                 )}
                 {isCcCompatible && (

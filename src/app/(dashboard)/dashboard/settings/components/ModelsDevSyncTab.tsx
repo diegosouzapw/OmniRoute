@@ -85,7 +85,7 @@ export default function ModelsDevSyncTab() {
           });
           fetchStatus();
         } else {
-          setFeedback({ type: "error", message: result.error || "Sync failed" });
+          setFeedback({ type: "error", message: result.error || t("syncFailed") });
         }
       } else {
         setFeedback({ type: "error", message: "Sync request failed" });
@@ -110,7 +110,7 @@ export default function ModelsDevSyncTab() {
       });
       if (!res.ok) {
         setEnabled(!newVal);
-        setFeedback({ type: "error", message: t("enableSyncError") || "Failed to update" });
+        setFeedback({ type: "error", message: t("enableSyncError") });
       } else {
         setFeedback({ type: "success", message: "Settings saved" });
       }
@@ -136,7 +136,7 @@ export default function ModelsDevSyncTab() {
       if (!res.ok) {
         setIntervalHours(oldInterval);
         setDraftIntervalHours(oldInterval);
-        setFeedback({ type: "error", message: t("enableSyncError") || "Failed to update" });
+        setFeedback({ type: "error", message: t("enableSyncError") });
       } else {
         setFeedback({ type: "success", message: "Interval updated" });
       }

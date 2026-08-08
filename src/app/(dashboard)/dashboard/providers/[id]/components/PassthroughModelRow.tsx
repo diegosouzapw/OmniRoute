@@ -204,7 +204,7 @@ export default function PassthroughModelRow({
                     : testStatus === "quota"
                       ? t("modelTestQuotaTooltip")
                       : testStatus === "error"
-                        ? "Error"
+                        ? providerText(t, "errorShort", "Error")
                         : t("testModel")
               }
             >

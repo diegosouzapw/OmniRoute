@@ -1,19 +1,22 @@
 import ErrorPageScaffold from "@/shared/components/ErrorPageScaffold";
+import { useTranslations } from "next-intl";
 
 export default function RequestTimeoutPage() {
+  const t = useTranslations("publicSystem");
+
   return (
     <ErrorPageScaffold
       code="408"
       icon="timer_off"
-      title="Request Timeout"
-      description="The server did not receive a complete request in time."
+      title={t("statusPages.408.title")}
+      description={t("statusPages.408.description")}
       suggestions={[
-        "Retry the request with a smaller payload.",
-        "Check your network stability and VPN/proxy latency.",
-        "For long operations, enable streaming or split the request.",
+        t("statusPages.408.suggestion1"),
+        t("statusPages.408.suggestion2"),
+        t("statusPages.408.suggestion3"),
       ]}
-      primaryAction={{ href: "/dashboard/endpoint", label: "Open Endpoint Guide" }}
-      secondaryAction={{ href: "/status", label: "Check Network Status" }}
+      primaryAction={{ href: "/dashboard/endpoint", label: t("statusPages.408.primaryAction") }}
+      secondaryAction={{ href: "/status", label: t("statusPages.408.secondaryAction") }}
     />
   );
 }
