@@ -10,6 +10,8 @@ test("theoldllm dispatches through its provider proxy assignment", async () => {
     port: 8080,
     username: "user",
     password: "secret",
+    family: "ipv4",
+    name: "residential-primary",
   };
   let observedProxy: unknown = null;
   let fetchCalls = 0;
