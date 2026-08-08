@@ -523,6 +523,12 @@ exhausts its bounds of `10,000` visited nodes or depth `12`.
 Each process uses a process-local guard to reserve limited heavyweight capacity before retaining
 and parsing a large request body. A heavyweight lease remains held for the lifetime of an SSE
 response.
+
+When capacity is busy, a heavyweight request first waits up to
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (default `5000`, `0` disables the wait) for a slot to free up
+before answering the retryable `503`. The bounded wait exists so agent-style clients
+(OpenCode, Claude Code, Cursor) that fan out heavy sub-requests concurrently serialize the burst
+instead of burning their whole retry budget on immediate rejections and dying mid-task.
 Current heavyweight lease occupancy is not surfaced in the dashboard.
 Settings → Resilience → Request Queue → Concurrent Requests does not control this; that setting
 governs a separate provider request-queue mechanism.
@@ -530,13 +536,18 @@ governs a separate provider request-queue mechanism.
 **Fix:**
 
 1. Retry first. Clients should honor `Retry-After` and use backoff rather than immediately
-   repeating the request.
+   repeating the request. Note that with the default `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000`
+   a heavy request already waited up to 5 seconds before the `503`, so a client retry loop should
+   back off beyond that instead of hammering.
 2. If normal deployment traffic repeatedly exhausts the guard, you can cautiously raise
    `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` from its default of `1`. Increase it one step at a time,
    restart OmniRoute after each change, and observe memory headroom under representative load.
    Every additional heavyweight request can increase concurrent V8 heap use and container or
    host OOM risk. No value is safe for every deployment; validate the setting against your own
    traffic and memory limits rather than assuming that `2` is universally safe.
+3. Prefer widening the wait (`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`) over raising the in-flight
+   limit when bursts are short: waiting costs latency, while an extra concurrent heavyweight
+   request costs heap residency for the whole request lifetime.
 
 See the [environment-variable reference](../reference/ENVIRONMENT.md#4-security--authentication)
 for the authoritative admission settings. Loosening the heavyweight classification thresholds

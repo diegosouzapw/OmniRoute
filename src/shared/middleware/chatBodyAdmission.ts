@@ -15,6 +15,11 @@ function parsePositiveInt(value: string | undefined, fallback: number): number {
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+function parseNonNegativeInt(value: string | undefined, fallback: number): number {
+  const parsed = Number.parseInt(String(value), 10);
+  return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
 export const CHAT_LARGE_BODY_BYTES = parsePositiveInt(
   process.env.OMNIROUTE_CHAT_LARGE_BODY_BYTES,
   256 * 1024
@@ -28,6 +33,18 @@ export const CHAT_HARD_MAX_BODY_BYTES = parsePositiveInt(
 const CHAT_MAX_HEAVY_IN_FLIGHT = parsePositiveInt(
   process.env.OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT,
   1
+);
+
+/**
+ * How long a heavy request waits for heavyweight capacity before giving up with a
+ * retryable 503. Agent loops (OpenCode, Claude Code, Cursor…) fan out sub-requests
+ * that routinely land on the admission gate together; an immediate 503 makes the
+ * client burn its retry budget in seconds and the agent dies mid-task. A short
+ * bounded wait serializes the burst instead. `0` (legacy) rejects immediately.
+ */
+export const CHAT_ADMISSION_QUEUE_MAX_MS = parseNonNegativeInt(
+  process.env.OMNIROUTE_CHAT_ADMISSION_QUEUE_MS,
+  5000
 );
 
 export const CHAT_HEAVY_MESSAGE_COUNT = parsePositiveInt(
@@ -71,10 +88,13 @@ export interface ChatAdmissionLease {
 /**
  * Process-local heavyweight reservation. The capacity check and increment execute in one
  * synchronous JavaScript turn, making acquisition atomic within an OmniRoute process.
- * Queueing is intentionally separate: unavailable capacity is a retryable 503.
+ * Unavailable capacity is a bounded wait (see `acquireHeavyWithin`) and only then a
+ * retryable 503, so short agent bursts serialize instead of killing the client's
+ * retry budget.
  */
 export class ChatAdmissionController {
   #activeHeavy = 0;
+  #waiters: Array<() => void> = [];
 
   constructor(readonly maxHeavyInFlight = 1) {
     if (!Number.isSafeInteger(maxHeavyInFlight) || maxHeavyInFlight < 1) {
@@ -98,8 +118,39 @@ export class ChatAdmissionController {
         if (released) return;
         released = true;
         this.#activeHeavy = Math.max(0, this.#activeHeavy - 1);
+        this.#waiters.shift()?.();
       },
     };
+  }
+
+  /**
+   * Wait up to `timeoutMs` for heavyweight capacity, retrying atomically on each
+   * release. Resolves `null` when the deadline expires with no capacity freed, in
+   * which case the caller answers the retryable 503. `timeoutMs <= 0` is the
+   * legacy immediate-reject path. Waiters are served FIFO.
+   */
+  async acquireHeavyWithin(timeoutMs: number): Promise<ChatAdmissionLease | null> {
+    const deadline = Date.now() + Math.max(0, Math.floor(timeoutMs));
+    for (;;) {
+      const lease = this.tryAcquireHeavy();
+      if (lease) return lease;
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) return null;
+      let resolver: (() => void) | null = null;
+      const released = new Promise<void>((resolve) => {
+        resolver = () => resolve();
+        this.#waiters.push(resolver);
+      });
+      const timedOut = await Promise.race([
+        released.then(() => false),
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(true), remaining)),
+      ]);
+      if (resolver) {
+        const index = this.#waiters.indexOf(resolver);
+        if (index >= 0) this.#waiters.splice(index, 1);
+      }
+      if (timedOut) return null;
+    }
   }
 }
 
@@ -208,7 +259,7 @@ function estimateStructureTokens(value: unknown, limit: number): TokenEstimate {
   return { tokens, exhausted: stack.length > 0 && tokens < limit };
 }
 
-export function admitChatStructure(
+export async function admitChatStructure(
   body: unknown,
   lease: ChatAdmissionLease | null,
   options: {
@@ -217,8 +268,9 @@ export function admitChatStructure(
     heavyMessages?: number;
     heavyTools?: number;
     heavyTokens?: number;
+    queueMs?: number;
   } = {}
-): ChatStructureAdmission {
+): Promise<ChatStructureAdmission> {
   if (!body || typeof body !== "object" || Array.isArray(body)) return { admit: true, lease };
 
   const record = body as Record<string, unknown>;
@@ -249,7 +301,9 @@ export function admitChatStructure(
     estimatedTokens >= heavyTokens;
   if (!heavy || lease) return { admit: true, lease };
 
-  const acquired = (options.controller ?? defaultAdmissionController).tryAcquireHeavy();
+  const acquired = await (options.controller ?? defaultAdmissionController).acquireHeavyWithin(
+    options.queueMs ?? 0
+  );
   return acquired
     ? { admit: true, lease: acquired }
     : { admit: false, response: structuralRejectionResponse(503, maxMessages) };
@@ -361,11 +415,13 @@ export async function admitChatRequest(
     controller?: ChatAdmissionController;
     largeBodyBytes?: number;
     hardMaxBytes?: number;
+    queueMs?: number;
   } = {}
 ): Promise<ChatRequestAdmission> {
   const controller = options.controller ?? defaultAdmissionController;
   const largeBodyBytes = options.largeBodyBytes ?? CHAT_LARGE_BODY_BYTES;
   const hardMaxBytes = options.hardMaxBytes ?? CHAT_HARD_MAX_BODY_BYTES;
+  const queueMs = options.queueMs ?? 0;
   const internalBypass = isInternalAdmissionBypass(request);
   const contentLength = parseContentLength(request.headers.get("content-length"));
 
@@ -411,15 +467,15 @@ export async function admitChatRequest(
   }
 
   let lease: ChatAdmissionLease | null = null;
-  const reserve = (): boolean => {
+  const reserve = async (): Promise<boolean> => {
     if (lease) return true;
-    lease = controller.tryAcquireHeavy();
+    lease = await controller.acquireHeavyWithin(queueMs);
     return lease !== null;
   };
 
   // A known-large declaration can reserve before ingestion. Unknown lengths are boundedly
   // sniffed below; this avoids consuming scarce heavyweight capacity for small chunked bodies.
-  if (contentLength !== null && contentLength >= largeBodyBytes && !reserve()) {
+  if (contentLength !== null && contentLength >= largeBodyBytes && !(await reserve())) {
     return { admit: false, response: rejectionResponse(503, hardMaxBytes) };
   }
 
@@ -438,7 +494,7 @@ export async function admitChatRequest(
         lease?.release();
         return { admit: false, response: rejectionResponse(413, hardMaxBytes) };
       }
-      if (totalBytes >= largeBodyBytes && !reserve()) {
+      if (totalBytes >= largeBodyBytes && !(await reserve())) {
         await reader.cancel("chat admission capacity unavailable").catch(() => undefined);
         return { admit: false, response: rejectionResponse(503, hardMaxBytes) };
       }

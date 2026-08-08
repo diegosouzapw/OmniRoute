@@ -17,6 +17,7 @@ import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveTh
 import {
   admitChatRequest,
   admitChatStructure,
+  CHAT_ADMISSION_QUEUE_MAX_MS,
   releaseChatAdmissionAfterHandler,
   releaseChatAdmissionWhenDone,
 } from "@/shared/middleware/chatBodyAdmission";
@@ -99,7 +100,9 @@ export async function POST(request) {
   // Reserve heavyweight capacity atomically and ingest the body with a hard byte bound
   // BEFORE JSON parsing. Missing or dishonest Content-Length values cannot bypass
   // the actual-byte limit. Capacity exhaustion is retryable rather than process-fatal.
-  const admissionResult = await admitChatRequest(request);
+  const admissionResult = await admitChatRequest(request, {
+    queueMs: CHAT_ADMISSION_QUEUE_MAX_MS,
+  });
   if (admissionResult.admit === false) return admissionResult.response;
   const admission = admissionResult;
   request = admission.request;
@@ -142,7 +145,9 @@ export async function POST(request) {
           }
         }
 
-        const structuralAdmission = admitChatStructure(parsedBody, admission.lease);
+        const structuralAdmission = await admitChatStructure(parsedBody, admission.lease, {
+          queueMs: CHAT_ADMISSION_QUEUE_MAX_MS,
+        });
         if (structuralAdmission.admit === false) {
           admission.lease?.release();
           return finishAdmission(structuralAdmission.response);
