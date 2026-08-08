@@ -20,6 +20,7 @@ import {
 } from "@omniroute/open-sse/handlers/chatCore/ccDiscoveryAliasStrip.ts";
 import { getModelsByProviderId } from "@omniroute/open-sse/config/providerModels.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { getProviderById, getProviderByAlias } from "@/shared/constants/providers";
 import { getCachedProviderNodes } from "@/lib/db/readCache";
 import { getComboByName } from "@/lib/db/combos";
 import {
@@ -137,6 +138,22 @@ export async function resolveCcDiscoveryAliasStripWith(
 }
 
 /**
+ * True when `prefix` names a provider the router can actually reach.
+ *
+ * Deliberately broader than the `open-sse` REGISTRY alone: enterprise-cloud
+ * providers such as `azure-ai` / `azure-openai` live only in the provider
+ * CATALOG (src/shared/constants/providers/…) yet route fine, so a registry-only
+ * check made the request path reject `claude/azure-ai/<model>` ids that the
+ * catalog had already advertised — see cc-discovery-alias-routable-prefix.test.ts.
+ */
+export function isRoutableProviderPrefix(prefix: string): boolean {
+  if (!prefix) return false;
+  if (getRegistryEntry(prefix) !== null) return true;
+  if (getProviderById(prefix) !== undefined) return true;
+  return getProviderByAlias(prefix) !== null;
+}
+
+/**
  * Production entry point: build the real lookups and resolve. Cheap-exit for any
  * id that does not start with `claude/` (the overwhelmingly common case) so a
  * normal request pays only a single `startsWith` check.
@@ -169,7 +186,7 @@ export async function resolveCcDiscoveryAliasStrip(
 
   const result = await resolveCcDiscoveryAliasStripWith(modelStr, {
     claudeModelIds,
-    isRegistryProvider: (prefix) => getRegistryEntry(prefix) !== null,
+    isRegistryProvider: (prefix) => isRoutableProviderPrefix(prefix),
     customProviderPrefixes,
     getCombo: (name) => getComboByName(name),
     gateGlobal: () => globalEnabled,
