@@ -24,12 +24,7 @@ import {
 import { translateRequest } from "../../open-sse/translator/index.ts";
 import { getResolvedModelCapabilities } from "../../src/lib/modelCapabilities.ts";
 
-const EXPECTED_MODELS = [
-  "kimi-k3",
-  "kimi-k2.7-code",
-  "kimi-k2.7-code-highspeed",
-  "kimi-k2.6",
-];
+const EXPECTED_MODELS = ["kimi-k3", "kimi-k2.7-code", "kimi-k2.7-code-highspeed", "kimi-k2.6"];
 
 function registryModelIds(provider: string): string[] {
   const entry = getRegistryEntry(provider);
@@ -188,6 +183,53 @@ test("Moonshot K3 participates in reasoning replay", () => {
     }),
     true
   );
+});
+
+test("Responses history preserves authentic reasoning for native Moonshot K3", () => {
+  for (const provider of ["moonshot", "kimi"]) {
+    const output = translateRequest(
+      "openai-responses",
+      "openai",
+      "kimi-k3",
+      {
+        model: "kimi-k3",
+        reasoning: { effort: "max" },
+        input: [
+          {
+            role: "user",
+            content: [{ type: "input_text", text: "Call search." }],
+          },
+          {
+            type: "reasoning",
+            summary: [{ type: "summary_text", text: "I should search first." }],
+          },
+          {
+            type: "function_call",
+            call_id: "call_1",
+            name: "search",
+            arguments: "{}",
+          },
+          {
+            type: "function_call_output",
+            call_id: "call_1",
+            output: "found",
+          },
+        ],
+      },
+      false,
+      null,
+      provider
+    ) as { messages: Array<Record<string, unknown>> };
+
+    assert.equal(output.messages[1].reasoning_content, "I should search first.");
+    assert.deepEqual(output.messages[1].tool_calls, [
+      {
+        id: "call_1",
+        type: "function",
+        function: { name: "search", arguments: "{}" },
+      },
+    ]);
+  }
 });
 
 test("video_url is preserved only for Moonshot's OpenAI-compatible extension", () => {

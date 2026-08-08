@@ -84,6 +84,10 @@ export function hasValidContent(msg: ClaudeMessage): boolean {
     return msg.content.some(
       (block) =>
         (block.type === "text" && block.text?.trim()) ||
+        (block.type === "thinking" && block.thinking?.trim()) ||
+        (block.type === "redacted_thinking" &&
+          typeof block.data === "string" &&
+          block.data.trim()) ||
         block.type === "tool_use" ||
         block.type === "tool_result" ||
         // #7777: media-only user turns are real content — dropping them

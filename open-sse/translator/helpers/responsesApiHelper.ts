@@ -2,10 +2,16 @@
  * Convert OpenAI Responses API format to standard chat completions format.
  * Delegates to the canonical translator to avoid logic duplication.
  */
+import { requiresReasoningReplay } from "../../services/reasoningCache.ts";
 import { openaiResponsesToOpenAIRequest } from "../request/openai-responses.ts";
 import { toRecord } from "../request/openai-responses/helpers.ts";
 
-export function convertResponsesApiFormat(body, credentials = null, provider = null) {
+export function convertResponsesApiFormat(
+  body: Record<string, unknown>,
+  credentials: unknown = null,
+  provider: unknown = null,
+  model: unknown = null
+): Record<string, unknown> {
   const bodyModel = toRecord(body).model;
   const requestedModel =
     typeof bodyModel === "string" && bodyModel.trim().length > 0
@@ -13,5 +19,25 @@ export function convertResponsesApiFormat(body, credentials = null, provider = n
         ? bodyModel
         : `${provider}/${bodyModel}`
       : provider;
-  return openaiResponsesToOpenAIRequest(requestedModel, body, null, credentials);
+  const credentialRecord =
+    credentials && typeof credentials === "object" && !Array.isArray(credentials)
+      ? (credentials as Record<string, unknown>)
+      : {};
+  const translationCredentials = requiresReasoningReplay({
+    provider: String(provider ?? ""),
+    model: String(model ?? ""),
+    allowLegacyFallback: false,
+  })
+    ? { ...credentialRecord, _preserveReasoningContent: true }
+    : credentials;
+  const converted = openaiResponsesToOpenAIRequest(
+    requestedModel,
+    body,
+    null,
+    translationCredentials
+  );
+  if (!converted || typeof converted !== "object" || Array.isArray(converted)) {
+    throw new TypeError("Responses request conversion must produce an object");
+  }
+  return converted as Record<string, unknown>;
 }

@@ -79,3 +79,165 @@ test("Kimi Anthropic preserves an explicit empty thinking block", () => {
     thinking: "",
   });
 });
+
+test("Responses history preserves Kimi reasoning before a tool call", () => {
+  const translated = translateRequest(
+    FORMATS.OPENAI_RESPONSES,
+    FORMATS.CLAUDE,
+    "k3-256k",
+    {
+      model: "k3-256k",
+      max_output_tokens: 4096,
+      reasoning: { effort: "high" },
+      input: [
+        {
+          role: "user",
+          content: [{ type: "input_text", text: "Call ping, then answer DONE." }],
+        },
+        {
+          id: "rs_1",
+          type: "reasoning",
+          summary: [{ type: "summary_text", text: "I should call ping first." }],
+        },
+        {
+          id: "fc_1",
+          type: "function_call",
+          call_id: "call_1",
+          name: "ping",
+          arguments: "{}",
+        },
+        {
+          type: "function_call_output",
+          call_id: "call_1",
+          output: "pong",
+        },
+      ],
+    },
+    false,
+    {},
+    "kimi-coding-apikey"
+  ) as KimiClaudeRequest;
+
+  assert.deepEqual(translated.messages[1].content[0], {
+    type: "thinking",
+    thinking: "I should call ping first.",
+  });
+  assert.deepEqual(translated.messages[1].content[1], {
+    type: "tool_use",
+    id: "call_1",
+    name: "proxy_ping",
+    input: {},
+  });
+});
+
+test("Responses history preserves Kimi reasoning on completed assistant turns", () => {
+  const translated = translateRequest(
+    FORMATS.OPENAI_RESPONSES,
+    FORMATS.CLAUDE,
+    "k3-256k",
+    {
+      model: "k3-256k",
+      max_output_tokens: 4096,
+      reasoning: { effort: "high" },
+      input: [
+        {
+          role: "user",
+          content: [{ type: "input_text", text: "Remember cobalt-orchid." }],
+        },
+        {
+          id: "rs_1",
+          type: "reasoning",
+          summary: [{ type: "summary_text", text: "I should retain the nonce." }],
+        },
+        {
+          type: "message",
+          role: "assistant",
+          content: [{ type: "output_text", text: "Noted." }],
+        },
+        {
+          role: "user",
+          content: [{ type: "input_text", text: "What was it?" }],
+        },
+      ],
+    },
+    false,
+    {},
+    "kimi-coding-apikey"
+  ) as KimiClaudeRequest;
+
+  assert.deepEqual(translated.messages[1].content, [
+    { type: "thinking", thinking: "I should retain the nonce." },
+    { type: "text", text: "Noted." },
+  ]);
+});
+
+test("Responses history preserves Kimi reasoning before a custom tool call", () => {
+  const translated = translateRequest(
+    FORMATS.OPENAI_RESPONSES,
+    FORMATS.CLAUDE,
+    "k3-256k",
+    {
+      model: "k3-256k",
+      reasoning: { effort: "high" },
+      input: [
+        {
+          type: "reasoning",
+          summary: [{ type: "summary_text", text: "I should apply the patch." }],
+        },
+        {
+          type: "custom_tool_call",
+          call_id: "call_1",
+          name: "apply_patch",
+          input: "*** Begin Patch",
+        },
+        {
+          type: "custom_tool_call_output",
+          call_id: "call_1",
+          output: "Done",
+        },
+      ],
+    },
+    false,
+    {},
+    "kimi-coding-apikey"
+  ) as KimiClaudeRequest;
+
+  assert.deepEqual(translated.messages[0].content[0], {
+    type: "thinking",
+    thinking: "I should apply the patch.",
+  });
+});
+
+test("Responses history does not carry reasoning across a user boundary", () => {
+  const translated = translateRequest(
+    FORMATS.OPENAI_RESPONSES,
+    FORMATS.CLAUDE,
+    "k3-256k",
+    {
+      model: "k3-256k",
+      reasoning: { effort: "high" },
+      input: [
+        {
+          role: "user",
+          content: [{ type: "input_text", text: "First turn" }],
+        },
+        {
+          type: "reasoning",
+          summary: [{ type: "summary_text", text: "Prior turn reasoning." }],
+        },
+        {
+          role: "user",
+          content: [{ type: "input_text", text: "Next turn" }],
+        },
+      ],
+    },
+    false,
+    {},
+    "kimi-coding-apikey"
+  ) as KimiClaudeRequest;
+
+  assert.deepEqual(translated.messages[1].content, [
+    { type: "thinking", thinking: "Prior turn reasoning." },
+  ]);
+  assert.deepEqual(translated.messages[2].content, [{ type: "text", text: "Next turn" }]);
+});

@@ -64,6 +64,8 @@ const REASONING_REPLAY_MODEL_PATTERNS = [
 ];
 
 const DEEPSEEK_V4_MODEL_PATTERN = /deepseek[-/]v4[-.](flash|pro)/i;
+const K3_REASONING_REPLAY_MODEL_PATTERN = /(?:^|\/)(?:kimi-)?k3(?:$|-)/i;
+const NATIVE_K27_REASONING_REPLAY_MODEL_PATTERN = /(?:^|\/)kimi-k2\.7-code(?:$|-)/i;
 
 export function isDeepSeekReasoningModel(params: {
   provider: string;
@@ -93,6 +95,14 @@ export function requiresReasoningReplay(params: {
   // Explicit model signal from models.dev (preferred source of truth).
   if (normalizedInterleavedField === "reasoning_content") return true;
   if (normalizedInterleavedField === "reasoning_details") return false;
+
+  if (K3_REASONING_REPLAY_MODEL_PATTERN.test(normalizedModel)) return true;
+  if (
+    (normalizedProvider === "moonshot" || normalizedProvider === "kimi") &&
+    NATIVE_K27_REASONING_REPLAY_MODEL_PATTERN.test(normalizedModel)
+  ) {
+    return true;
+  }
 
   // DeepSeek legacy reasoner family has an inverse contract: do not replay.
   if (/deepseek-reasoner/i.test(normalizedModel) || /deepseek-r1/i.test(normalizedModel)) {

@@ -73,6 +73,19 @@ function toolOutputContentToString(output: unknown): string {
   return parts.join("\n");
 }
 
+function getReasoningSummaryText(item: JsonRecord): string {
+  if (!Array.isArray(item.summary)) return "";
+  return item.summary
+    .map((part) => toString(toRecord(part).text))
+    .filter((text) => text.length > 0)
+    .join("\n\n");
+}
+
+function appendReasoningContent(current: unknown, next: string): string {
+  const existing = typeof current === "string" ? current : "";
+  return existing ? `${existing}\n\n${next}` : next;
+}
+
 /**
  * Convert OpenAI Responses API request to OpenAI Chat Completions format
  */
@@ -83,13 +96,13 @@ export function openaiResponsesToOpenAIRequest(
   credentials: unknown
 ): unknown {
   void stream;
-  void credentials;
   const collapseToPlainString = requiresPlainStringContent(extractProviderHint(model));
 
   const root = toRecord(body);
   if (root.input === undefined) return body;
   const credentialRecord = toRecord(credentials);
   const storeEnabled = isOpenAIResponsesStoreEnabled(credentialRecord.providerSpecificData);
+  const preserveReasoningContent = credentialRecord._preserveReasoningContent === true;
   const rawInputItems = normalizeResponsesInputForChat(root.input);
 
   // Tools may be declared at the Responses top level or in one or more
@@ -204,6 +217,7 @@ export function openaiResponsesToOpenAIRequest(
   // Group items by conversation turn
   let currentAssistantMsg: JsonRecord | null = null;
   let pendingToolResults: JsonRecord[] = [];
+  let pendingReasoningContent = "";
 
   // Upstream providers reject messages:[] with "400: at least one message is required".
   // When the client sends input:[] (empty), inject a placeholder user message — mirrors
@@ -220,10 +234,19 @@ export function openaiResponsesToOpenAIRequest(
     const itemType = toString(item.type) || (item.role ? "message" : "");
 
     if (itemType === "message") {
+      const role = toString(item.role);
       // Flush pending assistant message with tool calls
       if (currentAssistantMsg) {
         messages.push(currentAssistantMsg);
         currentAssistantMsg = null;
+      }
+      if (role !== "assistant" && pendingReasoningContent) {
+        messages.push({
+          role: "assistant",
+          content: null,
+          reasoning_content: pendingReasoningContent,
+        });
+        pendingReasoningContent = "";
       }
 
       // Flush pending tool results
@@ -269,7 +292,12 @@ export function openaiResponsesToOpenAIRequest(
           })
         : item.content;
 
-      messages.push({ role: toString(item.role), content });
+      const message: JsonRecord = { role, content };
+      if (role === "assistant" && pendingReasoningContent) {
+        message.reasoning_content = pendingReasoningContent;
+        pendingReasoningContent = "";
+      }
+      messages.push(message);
       continue;
     }
 
@@ -294,6 +322,10 @@ export function openaiResponsesToOpenAIRequest(
           content: null,
           tool_calls: [],
         };
+        if (pendingReasoningContent) {
+          currentAssistantMsg.reasoning_content = pendingReasoningContent;
+          pendingReasoningContent = "";
+        }
       }
 
       const toolCalls = Array.isArray(currentAssistantMsg.tool_calls)
@@ -353,6 +385,10 @@ export function openaiResponsesToOpenAIRequest(
           content: null,
           tool_calls: [],
         };
+        if (pendingReasoningContent) {
+          currentAssistantMsg.reasoning_content = pendingReasoningContent;
+          pendingReasoningContent = "";
+        }
       }
       const toolCalls = Array.isArray(currentAssistantMsg.tool_calls)
         ? currentAssistantMsg.tool_calls
@@ -401,7 +437,21 @@ export function openaiResponsesToOpenAIRequest(
     }
 
     if (itemType === "reasoning") {
-      // Skip reasoning items - they are display-only metadata
+      // Responses reasoning summaries are normally display metadata. Preserve them only
+      // when the routed upstream explicitly requires prior reasoning to continue a turn.
+      if (preserveReasoningContent) {
+        const reasoning = getReasoningSummaryText(item);
+        if (reasoning) {
+          if (currentAssistantMsg) {
+            currentAssistantMsg.reasoning_content = appendReasoningContent(
+              currentAssistantMsg.reasoning_content,
+              reasoning
+            );
+          } else {
+            pendingReasoningContent = appendReasoningContent(pendingReasoningContent, reasoning);
+          }
+        }
+      }
       continue;
     }
 
@@ -429,6 +479,13 @@ export function openaiResponsesToOpenAIRequest(
   // Flush remainder
   if (currentAssistantMsg) {
     messages.push(currentAssistantMsg);
+  }
+  if (pendingReasoningContent) {
+    messages.push({
+      role: "assistant",
+      content: null,
+      reasoning_content: pendingReasoningContent,
+    });
   }
   if (pendingToolResults.length > 0) {
     for (const toolResult of pendingToolResults) {
