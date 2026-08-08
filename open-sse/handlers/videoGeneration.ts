@@ -13,11 +13,10 @@ import { vertexGenerateVideo } from "../executors/vertexMedia.ts";
 import { handleGoogleFlowVideoGeneration } from "./videoGeneration/googleFlowHandler.ts";
 import { handleDeepinfraVideoGeneration } from "./videoGeneration/deepinfraHandler.ts";
 import { handleLeonardoVideoGeneration } from "./videoGeneration/leonardoHandler.ts";
-import { handleDashscopeVideoGeneration } from "./videoGeneration/dashscopeHandler.ts";
-import { handleNovitaVideoGeneration } from "./videoGeneration/novitaHandler.ts";
 import { handleXaiVideoGeneration } from "./videoGeneration/xaiGrokImagineHandler.ts";
 import { handleSegmindVideoGeneration } from "./videoGeneration/providers/segmind.ts";
 import { handleAdobeFireflyVideoGeneration } from "./videoGeneration/adobeFireflyHandler.ts";
+import { handleOpenAIVideoGeneration } from "./videoGeneration/openai.ts";
 import { getExecutor } from "../executors/index.ts";
 import { getKieTaskId, isJsonObject, parseKieResultJson } from "../utils/kieTask.ts";
 import {
@@ -34,12 +33,58 @@ import {
 } from "../utils/comfyuiClient.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import {
+  FetchTimeoutError,
+  fetchWithTimeout,
+  getConfiguredTimeout,
+} from "@/shared/utils/fetchTimeout";
+
+/**
+ * Resolve the base URL for OpenAI-compatible video generation endpoints.
+ * Prefers providerSpecificData.baseUrl (from custom node config), falls back to
+ * top-level credentials.baseUrl, then to the provided fallback.
+ */
+export function resolveVideoBaseUrl(
+  credentials:
+    { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null } | null | undefined,
+  fallback: string
+): string {
+  const psd = credentials?.providerSpecificData;
+  const psdBaseUrl =
+    psd && typeof psd === "object" && typeof psd.baseUrl === "string" && psd.baseUrl.trim()
+      ? psd.baseUrl.trim()
+      : null;
+  const topLevelBaseUrl =
+    typeof credentials?.baseUrl === "string" && credentials.baseUrl.trim()
+      ? credentials.baseUrl.trim()
+      : null;
+  const nodeBaseUrl = psdBaseUrl || topLevelBaseUrl;
+
+  if (!nodeBaseUrl) return fallback;
+
+  // Trim trailing slashes
+  let normalized = nodeBaseUrl;
+  while (normalized.endsWith("/")) normalized = normalized.slice(0, -1);
+  if (normalized.endsWith("/videos/generations")) return normalized;
+  const stripped = normalized.replace(/\/videos\/generations$/, "");
+  return `${stripped}/videos/generations`;
+}
 
 /**
  * Handle video generation request
  */
-export async function handleVideoGeneration({ body, credentials, log }) {
-  const { provider, model } = parseVideoModel(body.model);
+
+/**
+ * Handle video generation request
+ */
+export async function handleVideoGeneration({ body, credentials, log, resolvedProvider = null }) {
+  let { provider, model } = parseVideoModel(body.model);
+  if (resolvedProvider) {
+    provider = resolvedProvider;
+    model = body.model.startsWith(provider + "/")
+      ? body.model.slice(provider.length + 1)
+      : body.model;
+  }
 
   if (!provider) {
     return {
@@ -51,11 +96,38 @@ export async function handleVideoGeneration({ body, credentials, log }) {
 
   const providerConfig = getVideoProvider(provider);
   if (!providerConfig) {
-    return {
-      success: false,
-      status: 400,
-      error: `Unknown video provider: ${provider}`,
+    if (!resolvedProvider) {
+      return {
+        success: false,
+        status: 400,
+        error: `Unknown video provider: ${provider}`,
+      };
+    }
+    // Custom OpenAI-compatible provider node — dispatch via the generic handler
+    // with a synthetic config (mirrors the images route custom-model path).
+    if (log)
+      log.info("VIDEO", `Custom model ${provider}/${model} — using OpenAI-compatible handler`);
+    const syntheticConfig = {
+      id: provider,
+      baseUrl: resolveVideoBaseUrl(
+        credentials,
+        "http://generative.language.googleapis.com/v1beta/openai/videos/generations"
+      ),
+      authType: "apikey",
+      authHeader: "bearer",
+      format: "openai-video",
     };
+    return handleOpenAIVideoGeneration({
+      model,
+      body,
+      credentials,
+      provider,
+      providerConfig: syntheticConfig,
+      log,
+    });
+  }
+  if (providerConfig.format === "openai-video") {
+    return handleOpenAIVideoGeneration({ model, provider, providerConfig, body, credentials, log });
   }
 
   if (providerConfig.format === "vertex-veo") {
@@ -158,7 +230,10 @@ export async function handleVideoGeneration({ body, credentials, log }) {
       log,
     });
   }
-
+  if (resolvedProvider) {
+    // Custom provider with no matching built-in format — use OpenAI-compatible fallback
+    return handleOpenAIVideoGeneration({ model, provider, providerConfig, body, credentials, log });
+  }
   return {
     success: false,
     status: 400,

@@ -249,6 +249,7 @@ export const providerModelMutationSchema = z.object({
         "audio-transcriptions",
         "audio-speech",
         "images-generations",
+        "videos",
       ])
     )
     .default(["chat"]),
