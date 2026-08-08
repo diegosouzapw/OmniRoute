@@ -32,6 +32,19 @@ export const APIKEY_PROVIDERS_INFERENCE = {
     freeNote:
       "Free credits on signup for OpenAI-compatible inference across LLMs, embeddings, and reasoning models",
   },
+  // Openference — OpenAI-compatible AI inference gateway (https://openference.com/).
+  // API-key auth via Authorization: Bearer sk-… on the same gateway as OAuth JWTs.
+  "openference-api": {
+    id: "openference-api",
+    alias: "ofa",
+    name: "Openference API",
+    icon: "openference",
+    color: "#6366F1",
+    textIcon: "OF",
+    website: "https://openference.com",
+    hasFree: true,
+    freeNote: "Free plan: 3-day trial with open-source models — no credit card required",
+  },
   fireworks: {
     id: "fireworks",
     alias: "fireworks",

@@ -172,4 +172,22 @@ export const OAUTH_TEST_CONFIG = {
     extraHeaders: { "User-Agent": "OmniRoute", Accept: "application/vnd.github+json" },
     refreshable: true,
   },
+  // Openference: first-party OAuth gateway — list models to verify the JWT without
+  // consuming inference quota. 402 (no active plan) still means auth succeeded.
+  openference: {
+    url: "https://api.openference.com/v1/models",
+    method: "GET",
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    refreshable: true,
+    acceptStatuses: [402],
+  },
+  of: {
+    url: "https://api.openference.com/v1/models",
+    method: "GET",
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    refreshable: true,
+    acceptStatuses: [402],
+  },
 };

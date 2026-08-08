@@ -28,6 +28,7 @@ import { cline } from "./cline";
 import { windsurf } from "./windsurf";
 import { grokCli } from "./grok-cli";
 import { xaiOauth } from "./xai-oauth";
+import { openference } from "./openference";
 import { codebuddyCn } from "./codebuddy-cn";
 import { zed } from "./zed";
 import { zedHosted } from "./zed-hosted";
@@ -60,6 +61,7 @@ export const PROVIDERS = {
   // under this one entry (#7013) — see grok-cli.ts's mapTokens for the dispatch.
   "grok-cli": grokCli,
   "xai-oauth": xaiOauth,
+  openference,
   "codebuddy-cn": codebuddyCn,
   // Zed IDE credential bridge — uses keychain import, not standard OAuth
   zed,

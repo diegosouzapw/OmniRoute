@@ -29,6 +29,19 @@ export const OAUTH_PROVIDERS = {
     authHint:
       "Sign in with xAI to use api.x.ai models such as Grok 4.5. This is separate from Grok Build JWT sessions, which use cli-chat-proxy.grok.com and grok-build model aliases.",
   },
+  openference: {
+    id: "openference",
+    alias: "of",
+    name: "Openference",
+    icon: "openference",
+    color: "#6366F1",
+    textIcon: "OF",
+    website: "https://openference.com",
+    hasFree: true,
+    freeNote: "Free plan: 3-day trial with open-source models — no credit card required",
+    authHint:
+      "Sign in with your Openference account to route requests through api.openference.com. An active plan is required for inference — OAuth may authenticate but return 402 without one.",
+  },
   "grok-cli": {
     id: "grok-cli",
     alias: "gc",
