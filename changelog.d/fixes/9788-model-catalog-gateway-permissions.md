@@ -1,0 +1,1 @@
+- **fix(api):** Model catalogs no longer expose functional gateway mirrors unless the API key permits the mirror's final public model ID ([#9788](https://github.com/diegosouzapw/OmniRoute/pull/9788)) — thanks @xz-dev

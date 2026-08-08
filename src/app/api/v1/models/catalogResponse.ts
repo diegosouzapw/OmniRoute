@@ -12,7 +12,10 @@ import { appendNoThinkingVariants } from "@omniroute/open-sse/utils/noThinkingAl
 import { appendClaudeEffortVariants } from "@omniroute/open-sse/utils/claudeEffortVariants";
 import { appendSyncedEffortVariants } from "@omniroute/open-sse/utils/syncedEffortVariants";
 import { appendCcDiscoveryAliases } from "@omniroute/open-sse/utils/ccDiscoveryAliases";
-import { appendFunctionalGatewayMirrors } from "@omniroute/open-sse/utils/functionalGatewayMirrors";
+import {
+  appendFunctionalGatewayMirrors,
+  isFunctionalGatewayMirror,
+} from "@omniroute/open-sse/utils/functionalGatewayMirrors";
 import { isCcAliasGlobalEnabled, getCcAliasSettingsBulk } from "@/lib/db/ccDiscoveryAliases";
 import { buildCcAliasPredicate } from "./ccAliasPredicate";
 import {
@@ -29,6 +32,7 @@ import {
   enrichCatalogModelEntry,
 } from "@/lib/modelMetadataRegistry";
 import { isModelCatalogNamesEnabled } from "@/shared/utils/featureFlags";
+import { extractApiKey } from "@/sse/services/auth";
 import { maybeOmitCatalogModelName } from "./catalogHelpers";
 import { isCodexModelCatalogClient } from "./catalogRequest";
 
@@ -149,6 +153,31 @@ export function applyCatalogPostFilters(
 }
 
 /**
+ * Functional-gateway mirrors remain gateway-prefixed through request-time policy
+ * enforcement, so they must authorize that final public ID. Other synthetic IDs
+ * are normalized back to their base model before policy enforcement and keep the
+ * base model's permission by design.
+ */
+export async function filterUnauthorizedFunctionalGatewayMirrors(
+  models: Array<Record<string, unknown>>,
+  apiKey: string,
+  isModelAllowed: (key: string, modelId: string) => Promise<boolean>
+): Promise<Array<Record<string, unknown>>> {
+  const filtered: Array<Record<string, unknown>> = [];
+  for (const model of models) {
+    if (!isFunctionalGatewayMirror(model)) {
+      filtered.push(model);
+      continue;
+    }
+
+    if (typeof model.id === "string" && (await isModelAllowed(apiKey, model.id))) {
+      filtered.push(model);
+    }
+  }
+  return filtered;
+}
+
+/**
  * Enrich the selected models and serialise the catalog response.
  *
  * Shared by the full build and by the quota-exclusive short-circuit so both emit a
@@ -156,12 +185,25 @@ export function applyCatalogPostFilters(
  * context length for non-combo entries; the quota path passes a no-op because its
  * entries are all `owned_by: "combo"`, which skips enrichment entirely.
  */
-export function finalizeCatalogResponse(
+export async function finalizeCatalogResponse(
   request: Request,
   finalModels: Array<Record<string, unknown>>,
   getContextFallback: (model: Record<string, unknown>) => number | undefined,
   headers: Record<string, string>
-): Response {
+): Promise<Response> {
+  const apiKey = extractApiKey(request);
+  if (apiKey) {
+    const { getApiKeyMetadata, isModelAllowedForKey } = await import("@/lib/db/apiKeys");
+    const keyMeta = await getApiKeyMetadata(apiKey);
+    if (keyMeta && keyMeta.id !== "env-key" && !keyMeta.allowedQuotas?.length) {
+      finalModels = await filterUnauthorizedFunctionalGatewayMirrors(
+        finalModels,
+        apiKey,
+        isModelAllowedForKey
+      );
+    }
+  }
+
   const includeModelNames = isModelCatalogNamesEnabled();
   const enrichedModels = disambiguateCatalogModelNames(
     finalModels.map((model) => {
