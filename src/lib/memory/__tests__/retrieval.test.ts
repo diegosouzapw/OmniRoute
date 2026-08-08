@@ -73,6 +73,13 @@ const API_KEY_ID = "test-api-key-fts5";
  */
 function setupSchema(db: InstanceType<typeof Database>) {
   db.exec(`
+    CREATE TABLE IF NOT EXISTS key_value (
+      namespace TEXT NOT NULL,
+      key TEXT NOT NULL,
+      value TEXT NOT NULL,
+      PRIMARY KEY (namespace, key)
+    );
+
     CREATE TABLE IF NOT EXISTS memories (
       id INTEGER PRIMARY KEY,
       api_key_id TEXT NOT NULL,
@@ -143,7 +150,7 @@ function insertMemory(
   );
 }
 
-describe("Memory Retrieval — FTS5 integration", () => {
+describe("Memory Retrieval — FTS5 integration (pre-existing broken test infrastructure)", () => {
   let db: InstanceType<typeof Database>;
   let savedDb: unknown;
 

@@ -1,0 +1,1 @@
+- **test(cli):** OpenCode plugin suite realigned to the bare-key static-catalog contract from #9178/#9175 (21 tests were red on every opencode-plugin CI run; 287/287 after) ([#9614](https://github.com/diegosouzapw/OmniRoute/pull/9614))

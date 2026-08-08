@@ -48,19 +48,15 @@ test("lint-guard carries the quality-ratchet engine (collect → ratchet → req
 
 test("fast-gates carries the deterministic ratchets and security scanners from the main rail", () => {
   const block = jobBlock("fast-gates");
+  // #8542: all gates run inside a single aggregation step's bash loop.
+  // Check that the gate names appear in the arrays or the loop body.
   for (const needle of [
-    "npm run check:cycles",
-    "npm run check:lockfile",
-    "npm run check:duplication",
-    "npm run check:dead-code",
-    "npm run check:type-coverage",
-    "npm run check:compression-budget",
-    "npm run check:secrets -- --ratchet",
-    "npm run check:vuln-ratchet -- --ratchet",
-    "npm run check:workflows -- --ratchet",
-    "npm run check:openapi-breaking -- --ratchet",
+    "cycles lockfile duplication dead-code type-coverage compression-budget",
+    "secrets vuln-ratchet workflows openapi-breaking",
+    "typecheck:core",
+    "check:dashboard-typecheck",
   ]) {
-    assert.ok(block.includes(needle), `fast-gates must run "${needle}"`);
+    assert.ok(block.includes(needle), `fast-gates must contain "${needle}"`);
   }
   assert.ok(
     block.includes(
@@ -86,7 +82,7 @@ test("fast-gates carries the deterministic ratchets and security scanners from t
 
 test("the complexity ratchet stays on the release rail (G0's written validation criterion)", () => {
   assert.ok(
-    jobBlock("fast-gates").includes("npm run check:complexity-ratchets"),
+    jobBlock("fast-gates").includes("complexity-ratchets"),
     "a complexity regression in a PR→release/** must be blocked by fast-gates"
   );
 });

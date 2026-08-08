@@ -33,6 +33,11 @@ function mkPkg(
  *   @tensorflow/tfjs   → dep @tensorflow/tfjs-core → dep long
  *   js-tiktoken        → dep base64-js
  *   @huggingface/transformers present at root as a (stale) 4.2.0
+ *
+ * Each mock package gets a resolvable entrypoint so that isPackageIntact (which
+ * checks entrypoint integrity via require.resolve) can validate the co-located
+ * copy. The `main` field and corresponding index.js mirror what real npm
+ * packages ship.
  */
 function buildRoot(rootDir: string): void {
   const rootNm = join(rootDir, "node_modules");
@@ -40,6 +45,7 @@ function buildRoot(rootDir: string): void {
     rootNm,
     "@atjsh/llmlingua-2",
     {
+      main: "dist/index.js",
       dependencies: { "es-toolkit": "^1.38.0" },
       peerDependencies: {
         "@huggingface/transformers": "*",
@@ -49,12 +55,27 @@ function buildRoot(rootDir: string): void {
     },
     { "dist/index.js": "export const llmlingua = true;\n" }
   );
-  mkPkg(rootNm, "es-toolkit", {});
-  mkPkg(rootNm, "@tensorflow/tfjs", { dependencies: { "@tensorflow/tfjs-core": "4.22.0" } });
-  mkPkg(rootNm, "@tensorflow/tfjs-core", { dependencies: { long: "^5.0.0" } });
-  mkPkg(rootNm, "long", {});
-  mkPkg(rootNm, "js-tiktoken", { dependencies: { "base64-js": "^1.5.1" } });
-  mkPkg(rootNm, "base64-js", {});
+  mkPkg(rootNm, "es-toolkit", { main: "index.js" }, { "index.js": "export const esToolkit = true;\n" });
+  mkPkg(
+    rootNm,
+    "@tensorflow/tfjs",
+    { main: "index.js", dependencies: { "@tensorflow/tfjs-core": "4.22.0" } },
+    { "index.js": "export const tfjs = true;\n" }
+  );
+  mkPkg(
+    rootNm,
+    "@tensorflow/tfjs-core",
+    { main: "index.js", dependencies: { long: "^5.0.0" } },
+    { "index.js": "export const tfjsCore = true;\n" }
+  );
+  mkPkg(rootNm, "long", { main: "index.js" }, { "index.js": "export const long = true;\n" });
+  mkPkg(
+    rootNm,
+    "js-tiktoken",
+    { main: "index.js", dependencies: { "base64-js": "^1.5.1" } },
+    { "index.js": "export const tiktoken = true;\n" }
+  );
+  mkPkg(rootNm, "base64-js", { main: "index.js" }, { "index.js": "export const base64 = true;\n" });
   // Root transformers is the STALE 4.x line — the bug we must not propagate into dist.
   mkPkg(rootNm, "@huggingface/transformers", { version: "4.2.0" });
 }

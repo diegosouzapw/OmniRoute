@@ -188,16 +188,18 @@ export async function runUpdateCommand(opts = {}) {
     const afterVersion = await getCurrentVersion();
     if (afterVersion && compareVersions(afterVersion, latest) < 0) {
       printError(
-        `Global install updated to ${latest}, but the running binary still reports ${afterVersion}.`,
+        `Global install updated to ${latest}, but the running binary still reports ${afterVersion}.`
       );
       console.log(
-        "  A local `node_modules/omniroute` is likely shadowing the global install on PATH.",
+        "  A local `node_modules/omniroute` is likely shadowing the global install on PATH."
       );
       console.log("  Diagnose with:");
       console.log("    which -a omniroute");
       console.log("    command -v omniroute");
       console.log("    npm prefix -g");
-      console.log("  Then remove the shadowing local copy (e.g. `npm uninstall omniroute` from its directory)");
+      console.log(
+        "  Then remove the shadowing local copy (e.g. `npm uninstall omniroute` from its directory)"
+      );
       console.log("  or reorder PATH so the global bin comes first.");
       return 1;
     }

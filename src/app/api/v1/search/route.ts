@@ -300,6 +300,8 @@ async function postHandler(request: Request, context: unknown) {
         alternateProvider: alternateProviderId,
         alternateCredentials,
         log,
+        connectionId: credentials?.connectionId || undefined,
+        apiKeyId: policy.apiKeyInfo?.id || undefined,
       });
 
       if (!result.success) {

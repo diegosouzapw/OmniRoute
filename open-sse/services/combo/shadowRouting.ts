@@ -16,13 +16,14 @@
 import { secureRandomFloat } from "../../../src/shared/utils/secureRandom";
 import { recordComboShadowRequest } from "../comboMetrics.ts";
 import { isRecord } from "./comboData.ts";
-import { resolveNestedComboTargets } from "./comboStructure.ts";
+import { filterVisibleComboTargets, resolveNestedComboTargets } from "./comboStructure.ts";
 import { toRecordedTarget } from "./comboPredicates.ts";
 import type {
   ComboLike,
   ComboCollectionLike,
   ComboLogger,
   HandleSingleModel,
+  HiddenModelsByProvider,
   IsModelAvailable,
   ResolvedComboTarget,
   ShadowRoutingConfig,
@@ -47,7 +48,8 @@ function normalizeShadowRoutingConfig(config: Record<string, unknown>): ShadowRo
 export function resolveShadowTargets(
   combo: ComboLike,
   config: Record<string, unknown>,
-  allCombos: ComboCollectionLike
+  allCombos: ComboCollectionLike,
+  hiddenModelsByProvider?: HiddenModelsByProvider
 ): ResolvedComboTarget[] {
   const shadowConfig = normalizeShadowRoutingConfig(config);
   if (!shadowConfig.enabled || shadowConfig.targets.length === 0) return [];
@@ -58,7 +60,10 @@ export function resolveShadowTargets(
     name: `${combo.name}:shadow`,
     models: shadowConfig.targets,
   };
-  return resolveNestedComboTargets(shadowCombo, allCombos, new Set([combo.name]), 0, ["shadow"])
+  return filterVisibleComboTargets(
+    resolveNestedComboTargets(shadowCombo, allCombos, new Set([combo.name]), 0, ["shadow"]),
+    hiddenModelsByProvider
+  )
     .slice(0, shadowConfig.maxTargets)
     .map((target) => ({
       ...target,

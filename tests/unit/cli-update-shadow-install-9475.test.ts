@@ -6,7 +6,9 @@ import { fileURLToPath } from "node:url";
 
 const update = await import("../../bin/cli/commands/update.mjs");
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const REAL_VERSION = JSON.parse(readFileSync(path.join(REPO_ROOT, "package.json"), "utf-8")).version;
+const REAL_VERSION = JSON.parse(
+  readFileSync(path.join(REPO_ROOT, "package.json"), "utf-8")
+).version;
 const FAKE_BIN = path.join(REPO_ROOT, ".fakebin-9475");
 
 test("runUpdateCommand claims success without verifying the running binary version changed (#9475)", async () => {
@@ -25,7 +27,7 @@ test("runUpdateCommand claims success without verifying the running binary versi
       assert.fail(
         "runUpdateCommand claimed Updated to version 3.8.99 (exit 0) but the running binary is still " +
           realVersion +
-          " — the resolved/shadowing install was not actually updated. Must re-verify getCurrentVersion() after install or warn the user.",
+          " — the resolved/shadowing install was not actually updated. Must re-verify getCurrentVersion() after install or warn the user."
       );
     }
     assert.ok(true);

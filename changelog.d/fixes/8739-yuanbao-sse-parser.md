@@ -1,0 +1,1 @@
+- fix(yuanbao-web): accept `content` field in SSE text events (upstream format change) (#8739)

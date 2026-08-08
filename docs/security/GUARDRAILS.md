@@ -1,13 +1,13 @@
 ---
 title: "Guardrails"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.50
+lastUpdated: 2026-08-07
 ---
 
 # Guardrails
 
 > **Source of truth:** `src/lib/guardrails/`
-> **Last updated:** 2026-06-28 — v3.8.40 (injection-guard coverage + 16 KB scan bound + red-team)
+> **Last updated:** 2026-08-07 — v3.8.50 (Modality Bridge PR-1: mode selector, task-aware prompt, describe cache, transparency header + stats)
 
 Guardrails enforce safety, policy, and content transformations at the boundary
 between OmniRoute and upstream providers. Each guardrail can inspect (and
@@ -32,31 +32,107 @@ The registry auto-loads four guardrails in priority order on import
 
 Lower priority numbers run **first**.
 
-### Vision Bridge (`visionBridge.ts`)
+### Vision Bridge (`visionBridge.ts`) — Modality Bridge PR-1
 
-Intercepts image-bearing requests aimed at **non-vision models** and replaces
-the image parts with text descriptions produced by a configurable vision model
-before the upstream call. This lets text-only providers transparently handle
+Intercepts image-bearing requests aimed at **non-vision models** and either
+reroutes the whole request to a vision-capable model or replaces the image
+parts with text descriptions produced by a configurable vision model before
+the upstream call. This lets text-only providers transparently handle
 multimodal payloads.
 
 Flow:
 
 1. Skip if the target model already supports vision (unless it appears in the
    forced-bridge list `isVisionBridgeForcedModel`).
-2. Extract image parts via `extractImageParts(messages)`. Skip if none.
-   `extractImageParts` recognizes all three image shapes: OpenAI `image_url`,
-   Anthropic base64 `source.type:"base64"`, and Anthropic URL
-   `source.type:"url"` — so Claude-Code-compatible clients (e.g. Zoo Code)
-   sending `{ type: "image", source: { type: "url", url } }` are described
-   instead of silently dropped.
-3. Load runtime config from `getSettings()` (`visionBridgeEnabled`,
-   `visionBridgeModel`, `visionBridgePrompt`, `visionBridgeTimeout`,
-   `visionBridgeMaxImages`).
-4. Cap images at `maxImages`, call the vision model **in parallel**
-   (`Promise.allSettled`), and inject `[Image N]: <description>` text parts
-   in their place — failed images become `[Image N]: (unavailable)`.
-5. Return `modifiedPayload` + meta (`imagesProcessed`, `processingTimeMs`,
-   `visionModel`).
+2. Extract image parts via `extractImageParts(messages)`
+   (`visionBridgeHelpers.ts`), which delegates to the **unified media
+   detector** `detectMediaParts()` in `open-sse/utils/mediaParts.ts` — the
+   single source of truth shared with the combo compatibility filter.
+   Extraction is allowlisted to top-level parts of the shapes
+   `replaceImageParts` can splice back (the extract↔replace contract): OpenAI
+   `image_url`, Anthropic base64 `source.type:"base64"`, Anthropic URL
+   `source.type:"url"`, and Responses API `input_image`. Nested hits and
+   indicator-only shapes are combo-filter material and are never extracted.
+   Skip if none found.
+3. Resolve runtime config via `resolveVisionBridgeRuntimeSettings()`
+   (`src/shared/constants/modalityBridgeDefaults.ts`): new `modalityBridge*`
+   settings keys win; legacy `visionBridge*` keys remain a **one-cycle
+   fallback** (rollback window). Skip before any media traversal when the
+   bridge is disabled.
+4. Mode selector (`modalityBridgeVisionMode`, see table below) decides
+   reroute vs describe. Reroute returns `modifiedPayload` with only `model`
+   swapped, plus meta `{ rerouted, fromModel, toModel, imagesKept }`.
+5. Describe path: cap images at `maxImages`, compose the task-aware prompt,
+   consult the describe cache, call the vision model **in parallel**
+   (`Promise.allSettled`), and inject `[Image N]: <description>` text parts in
+   their place. A failed describe yields `null` and the original image part is
+   **preserved** (#4012) — except on the combo describe path when every
+   describe failed, where a confirmed non-vision upstream gets an
+   `(unavailable — no vision-capable provider connected)` stub instead (#8430).
+6. Return `modifiedPayload` + meta (`imagesProcessed`, `descriptions`,
+   `processingTimeMs`, `visionModel`).
+
+#### Mode selector (`modalityBridgeVisionMode`)
+
+| Mode       | Default | Behavior                                                                                                                                                                                                                                                |
+| ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auto`     | ✔       | Legacy heuristic, untouched (#6640/#7204): non-combo/`auto/` models reroute to the best vision model unless the original model already has usable credentials (then describe); combo targets always describe.                                           |
+| `describe` |         | Always describe — the reroute block is skipped entirely; the user's chosen model always answers.                                                                                                                                                        |
+| `reroute`  |         | Force reroute: the keep-credentialed-model guard is bypassed. The reroute-**target** credential guard still applies — when no usable vision target exists, the request falls through to describe so raw images never reach a text-only backend (#8430). |
+
+Forced modes short-circuit **before** the auto heuristic runs; `auto` behavior
+is byte-identical to the pre-PR-1 guardrail.
+
+#### Task-aware describe prompt (`modalityBridgeVisionTaskAware`)
+
+Default **true**. `composeVisionPrompt()` (`visionBridgeHelpers.ts`) appends
+the text of the **last user message** (truncated to 500 chars) to the base
+describe prompt, steering the description toward what the user actually asked
+(codex-vision-proxy pattern) and asking the vision model to transcribe visible
+text. With the flag off — or no user text — the base prompt is used unchanged.
+
+#### Describe cache (`modalityBridge/bridgeCache.ts`)
+
+In-memory LRU + TTL cache for describe outputs, shared process-wide.
+Key = `sha256(imageRef + composedPrompt + configuredBridgeModel)` with
+length-prefix framing (no field-boundary collisions). The model component is
+the **configured** bridge model, not the model that actually answered —
+`callVisionModel` may fall back internally, and keying per attempt would
+fragment the cache. Failed describes are never cached. Settings:
+
+| Key                             | Default | Range   |
+| ------------------------------- | ------- | ------- |
+| `modalityBridgeCacheEnabled`    | `true`  | —       |
+| `modalityBridgeCacheTtlMinutes` | `60`    | 1–1440  |
+| `modalityBridgeCacheMaxEntries` | `200`   | 10–5000 |
+
+#### Settings schema + migration
+
+The new `modalityBridge*` keys are Zod-validated in `updateSettingsSchema`
+(`src/shared/validation/settingsSchemas.ts`): `modalityBridgeVisionEnabled`,
+`modalityBridgeVisionMode`, `modalityBridgeVisionModel`,
+`modalityBridgeVisionTaskAware`, `modalityBridgeVisionPrompt`,
+`modalityBridgeVisionTimeout`, `modalityBridgeVisionMaxImages`, the
+`modalityBridgeCache*` trio, and the PR-3-reserved `modalityBridgeAudio*`
+group. Migration `141_modality_bridge_settings.sql` copies existing legacy
+`visionBridge*` values to the matching new keys (idempotent, never overwrites
+an operator-set `modalityBridge*` value); the legacy keys stay accepted as a
+read fallback for one release cycle.
+
+#### Transparency header + stats
+
+Describe-transformed responses carry
+`x-omniroute-modality-bridge: image->text;model=<visionModel>;parts=<n>`
+(built by `buildModalityBridgeHeader()` in `modalityBridge/bridgeStats.ts`,
+stamped by `withModalityBridgeHeader()` in `src/sse/handlers/chatHelpers.ts`).
+Rerouted requests get **no** header — the payload was untouched and the model
+swap is already visible in the response body's `model` field.
+
+`GET /api/modality-bridge/stats` (management auth, same tier as
+`GET /api/settings`) returns the in-memory per-modality counters
+`{ bridged, cacheHits, failures, lastUsedAt }` for `vision` (and the
+PR-3-reserved `audio`). Counters reset on process restart by design
+(telemetry, not accounting).
 
 **Self-loop admission bypass:** when the describe call routes through OmniRoute's
 own `/v1` self-loop (non-standard provider model), the sub-request sends
@@ -67,8 +143,10 @@ operator-configured `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` env key (#1350) so
 is only honored for those exact credentials, so external clients cannot use the
 header to skip admission.
 
-Defaults live in `src/shared/constants/visionBridgeDefaults.ts`. The guardrail
-exposes a `deps` constructor option so tests can inject fake `getSettings` and
+Legacy defaults live in `src/shared/constants/visionBridgeDefaults.ts`; the
+new mode/task-aware/cache defaults and the settings resolver live in
+`src/shared/constants/modalityBridgeDefaults.ts`. The guardrail exposes a
+`deps` constructor option so tests can inject fake `getSettings` and
 `callVisionModel` implementations.
 
 ### PII Masker (`piiMasker.ts`)

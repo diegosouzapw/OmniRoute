@@ -151,6 +151,22 @@ test("extractApiKey extracts a path-scoped token from /api/v1/vscode/combos/<tok
   assert.equal(extractApiKey(req), "sk-test-path-token");
 });
 
+test("extractApiKey accepts x-api-key without anthropic-version when User-Agent is claude-code (#8655)", () => {
+  const req = makeRequest({
+    "x-api-key": "sk-omniroute-test-key",
+    "User-Agent": "claude-code/0.2.29 node/v20.18.0 darwin-x64",
+  });
+  assert.equal(extractApiKey(req), "sk-omniroute-test-key");
+});
+
+test("extractApiKey accepts x-api-key without anthropic-version when User-Agent is @anthropic-ai/sdk (#8655)", () => {
+  const req = makeRequest({
+    "x-api-key": "sk-omniroute-test-key",
+    "User-Agent": "anthropic-typescript/0.25.0",
+  });
+  assert.equal(extractApiKey(req), "sk-omniroute-test-key");
+});
+
 test("extractApiKey does NOT extract a query-string token (#3300 security follow-up)", () => {
   // Query-string fallbacks (?token / ?key / ?apiKey / ?api_key) were removed —
   // a credential in the query string leaks into access logs / Referer headers.

@@ -49,10 +49,56 @@ const DEFAULT_USER_AGENT =
 const DEFAULT_SEC_CH_UA =
   '"Not;A=Brand";v="8", "Chromium";v="150", "Google Chrome";v="150"';
 const DEFAULT_POLL_INTERVAL_MS = 3000;
-const DEFAULT_IMAGE_TIMEOUT_MS = 180_000;
+/**
+ * Poll budget for image generate-async. Multi-ref gpt-image / nano jobs commonly
+ * exceed 3 minutes (upload + colligo + render at detailLevel 5). 180s was the
+ * previous default and produced widespread 504s on listing assets with screenshots.
+ */
+export const DEFAULT_IMAGE_TIMEOUT_MS = 300_000;
 const DEFAULT_VIDEO_TIMEOUT_MS = 300_000;
+/** Extra poll budget per uploaded reference blob (large screenshots + image2image). */
+export const ADOBE_FIREFLY_IMAGE_TIMEOUT_PER_REF_MS = 60_000;
+export const ADOBE_FIREFLY_IMAGE_TIMEOUT_MAX_MS = 600_000;
+/**
+ * gpt-image family accepts subject refs, but the live SPA and colligo are reliable
+ * with 1–2 only. Sending 3–4+ (e.g. Store listing "5 screenshots") often hangs until
+ * poll timeout. Nano multi-ref composition supports more via usage "general".
+ */
+export const ADOBE_FIREFLY_GPT_IMAGE_MAX_REFS = 2;
+export const ADOBE_FIREFLY_NANO_MAX_REFS = 4;
+export const ADOBE_FIREFLY_GENERIC_IMAGE_MAX_REFS = 2;
 const FIREFLY_ORIGIN = "https://firefly.adobe.com";
 const FIREFLY_REFERER = "https://firefly.adobe.com/";
+
+/** Cap reference uploads by Firefly image model family. */
+export function adobeFireflyMaxImageRefs(model: string): number {
+  const raw = String(model || "").toLowerCase();
+  if (raw.includes("nano-banana") || raw.includes("nanobanana") || raw.includes("gemini-flash")) {
+    return ADOBE_FIREFLY_NANO_MAX_REFS;
+  }
+  if (raw.includes("gpt-image") || raw.includes("gptimage")) {
+    return ADOBE_FIREFLY_GPT_IMAGE_MAX_REFS;
+  }
+  return ADOBE_FIREFLY_GENERIC_IMAGE_MAX_REFS;
+}
+
+/**
+ * Resolve poll timeout: explicit body.timeout_ms wins; else base + per-ref budget.
+ * Covers multi-screenshot listing jobs without unbounded waits.
+ */
+export function adobeFireflyImageTimeoutMs(opts?: {
+  timeoutMs?: number;
+  refCount?: number;
+}): number {
+  const explicit = Number(opts?.timeoutMs);
+  if (Number.isFinite(explicit) && explicit > 0) {
+    return Math.min(ADOBE_FIREFLY_IMAGE_TIMEOUT_MAX_MS, Math.floor(explicit));
+  }
+  const refs = Math.max(0, Math.floor(Number(opts?.refCount) || 0));
+  const budget =
+    DEFAULT_IMAGE_TIMEOUT_MS + refs * ADOBE_FIREFLY_IMAGE_TIMEOUT_PER_REF_MS;
+  return Math.min(ADOBE_FIREFLY_IMAGE_TIMEOUT_MAX_MS, budget);
+}
 
 export type AdobeFireflyImageModelId =
   | "nano-banana-pro"
@@ -716,9 +762,14 @@ export function buildAdobeImagePayload(opts: {
     };
     if (opts.sourceImageIds?.length) {
       // gpt-image subject references (mask path uses separate mask blob when present).
+      // Cap to wire-stable count — extra subject blobs stall colligo until poll 504.
+      const refIds = opts.sourceImageIds
+        .map((id) => String(id))
+        .filter(Boolean)
+        .slice(0, ADOBE_FIREFLY_GPT_IMAGE_MAX_REFS);
       payload.generationMetadata = { module: "image2image", submodule: "ff-image-generate" };
-      payload.referenceBlobs = opts.sourceImageIds.map((id) => ({
-        id: String(id),
+      payload.referenceBlobs = refIds.map((id) => ({
+        id,
         usage: "subject",
       }));
       payload.modelSpecificPayload = {};
@@ -751,8 +802,16 @@ export function buildAdobeImagePayload(opts: {
   if (Object.keys(genSettings).length) payload.generationSettings = genSettings;
 
   if (opts.sourceImageIds?.length) {
-    payload.referenceBlobs = opts.sourceImageIds.map((id) => ({
-      id: String(id),
+    const maxRefs =
+      opts.modelSpec.family === "generic"
+        ? ADOBE_FIREFLY_GENERIC_IMAGE_MAX_REFS
+        : ADOBE_FIREFLY_NANO_MAX_REFS;
+    const refIds = opts.sourceImageIds
+      .map((id) => String(id))
+      .filter(Boolean)
+      .slice(0, maxRefs);
+    payload.referenceBlobs = refIds.map((id) => ({
+      id,
       usage: "general",
     }));
     // Flux / Seedream / Runway image historically used image2image; nano keeps text2image.
@@ -1967,7 +2026,7 @@ async function sleep(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function pollAdobeJob(opts: {
+export async function pollAdobeJob(opts: {
   pollUrl: string;
   accessToken: string;
   kind: "image" | "video";
@@ -2167,11 +2226,15 @@ export async function adobeFireflyGenerateImage(opts: {
   }
   pollUrl = normalizeAdobePollUrl(pollUrl);
 
+  const pollTimeoutMs = adobeFireflyImageTimeoutMs({
+    timeoutMs: opts.timeoutMs,
+    refCount: opts.sourceImageIds?.length ?? 0,
+  });
   const { mediaUrl, latest } = await pollAdobeJob({
     pollUrl,
     accessToken: opts.accessToken,
     kind: "image",
-    timeoutMs: opts.timeoutMs && opts.timeoutMs > 0 ? opts.timeoutMs : DEFAULT_IMAGE_TIMEOUT_MS,
+    timeoutMs: pollTimeoutMs,
     fetchImpl,
     log: opts.log,
   });

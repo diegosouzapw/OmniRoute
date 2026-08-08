@@ -7,9 +7,8 @@ import { test, after } from "node:test";
 import assert from "node:assert/strict";
 
 const { registerHook, unregisterHook } = await import("../../src/lib/plugins/hooks.ts");
-const { runPluginOnResponseHook } = await import(
-  "../../open-sse/handlers/chatCore/pluginOnResponse.ts"
-);
+const { runPluginOnResponseHook } =
+  await import("../../open-sse/handlers/chatCore/pluginOnResponse.ts");
 
 async function waitFor(pred: () => boolean, timeoutMs = 2000): Promise<void> {
   const deadline = Date.now() + timeoutMs;
@@ -83,6 +82,49 @@ test("streaming success path passes streamed flag without materialized body", as
   await waitFor(() => captured !== undefined);
   assert.deepEqual(captured!.response, { status: 200, streamed: true });
   assert.equal((captured!.response as { data?: unknown }).data, undefined);
+});
+
+test("headers passed to the hook are visible in PluginContext", async () => {
+  let captured: Record<string, unknown> | undefined;
+  registerHook("onResponse", "test-ctx-headers", async (ctx: Record<string, unknown>) => {
+    captured = ctx;
+    return {};
+  });
+
+  const testHeaders = { "x-trace-id": "abc-123", "x-session-id": "sess-789" };
+  await runPluginOnResponseHook({
+    requestId: "req-headers",
+    body: { messages: [{ role: "user", content: "hi" }] },
+    model: "gpt-4o",
+    provider: "openai",
+    apiKeyInfo: null,
+    headers: testHeaders,
+    response: { status: 200, data: { ok: true } },
+  });
+
+  await waitFor(() => captured !== undefined);
+  assert.ok(captured, "expected the onResponse hook to be invoked");
+  assert.deepEqual(captured!.headers, testHeaders);
+});
+
+test("no headers arg → backward compatible (undefined in ctx)", async () => {
+  let captured: Record<string, unknown> | undefined;
+  registerHook("onResponse", "test-ctx-noheaders", async (ctx: Record<string, unknown>) => {
+    captured = ctx;
+    return {};
+  });
+
+  await runPluginOnResponseHook({
+    requestId: "req-noheaders",
+    body: { messages: [{ role: "user", content: "hi" }] },
+    model: "gpt-4o",
+    provider: "openai",
+    apiKeyInfo: null,
+    response: { status: 200, data: { ok: true } },
+  });
+
+  await waitFor(() => captured !== undefined);
+  assert.equal(captured!.headers, undefined);
 });
 
 test("a throwing hook never rejects the caller (fail-open)", async () => {

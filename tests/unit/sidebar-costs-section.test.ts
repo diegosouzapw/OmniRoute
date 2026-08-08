@@ -12,12 +12,12 @@ test("costs section exists in SIDEBAR_SECTIONS", () => {
   assert.ok(section, "costs section must exist");
 });
 
-test("costs section has exactly 5 items in the correct order", () => {
+test("costs section has exactly 6 items in the correct order", () => {
   const section = findSection("costs");
   assert.ok(section, "costs section must exist");
 
   const items = sidebarVisibility.getSectionItems(section);
-  assert.equal(items.length, 5, "costs section must have 5 items");
+  assert.equal(items.length, 6, "costs section must have 6 items");
 
   const itemIds = items.map((i) => i.id);
   assert.deepEqual(itemIds, [
@@ -26,6 +26,7 @@ test("costs section has exactly 5 items in the correct order", () => {
     "costs-budget",
     "costs-free-tiers",
     "free-provider-rankings",
+    "radar",
   ]);
 });
 
@@ -42,6 +43,7 @@ test("costs section items have correct hrefs", () => {
     { id: "costs-budget", href: "/dashboard/costs/budget" },
     { id: "costs-free-tiers", href: "/dashboard/free-tiers" },
     { id: "free-provider-rankings", href: "/dashboard/free-provider-rankings" },
+    { id: "radar", href: "/dashboard/radar" },
   ]);
 });
 
@@ -94,4 +96,78 @@ test("costs section titleKey is costsSection", () => {
   assert.ok(section, "costs section must exist");
   assert.equal(section.titleKey, "costsSection");
   assert.equal(section.titleFallback, "Costs");
+});
+
+// ---------------------------------------------------------------------------
+// FIX 5 — the "radar" sidebar item must be gated on the RADAR_ENABLED feature
+// flag (Sidebar.tsx has no built-in feature-flag awareness, so the item
+// definition carries an opt-in `featureFlagKey`, and a small pure filter
+// helper decides visibility given a resolved flags map).
+// ---------------------------------------------------------------------------
+
+test("FIX5: radar item declares featureFlagKey RADAR_ENABLED", () => {
+  const section = findSection("costs");
+  assert.ok(section, "costs section must exist");
+
+  const radarItem = sidebarVisibility.getSectionItems(section).find((i) => i.id === "radar");
+  assert.ok(radarItem, "radar item must exist in costs section");
+  assert.equal(radarItem.featureFlagKey, "RADAR_ENABLED");
+});
+
+test("FIX5: no other costs-section item declares a featureFlagKey (no regression)", () => {
+  const section = findSection("costs");
+  assert.ok(section, "costs section must exist");
+
+  const otherItems = sidebarVisibility
+    .getSectionItems(section)
+    .filter((i) => i.id !== "radar");
+
+  for (const item of otherItems) {
+    assert.equal(
+      item.featureFlagKey,
+      undefined,
+      `${item.id} must not be flag-gated (unexpected regression)`
+    );
+  }
+});
+
+test("FIX5: isSidebarItemVisibleForFlags — flag off => item hidden", () => {
+  const section = findSection("costs");
+  assert.ok(section, "costs section must exist");
+  const radarItem = sidebarVisibility.getSectionItems(section).find((i) => i.id === "radar")!;
+
+  assert.equal(
+    sidebarVisibility.isSidebarItemVisibleForFlags(radarItem, { RADAR_ENABLED: false }),
+    false
+  );
+});
+
+test("FIX5: isSidebarItemVisibleForFlags — flag on => item visible", () => {
+  const section = findSection("costs");
+  assert.ok(section, "costs section must exist");
+  const radarItem = sidebarVisibility.getSectionItems(section).find((i) => i.id === "radar")!;
+
+  assert.equal(
+    sidebarVisibility.isSidebarItemVisibleForFlags(radarItem, { RADAR_ENABLED: true }),
+    true
+  );
+});
+
+test("FIX5: isSidebarItemVisibleForFlags — flag unknown (not yet loaded) fails open => visible", () => {
+  const section = findSection("costs");
+  assert.ok(section, "costs section must exist");
+  const radarItem = sidebarVisibility.getSectionItems(section).find((i) => i.id === "radar")!;
+
+  assert.equal(sidebarVisibility.isSidebarItemVisibleForFlags(radarItem, {}), true);
+});
+
+test("FIX5: isSidebarItemVisibleForFlags — items without featureFlagKey are always visible", () => {
+  const section = findSection("costs");
+  assert.ok(section, "costs section must exist");
+  const costsItem = sidebarVisibility.getSectionItems(section).find((i) => i.id === "costs")!;
+
+  assert.equal(
+    sidebarVisibility.isSidebarItemVisibleForFlags(costsItem, { RADAR_ENABLED: false }),
+    true
+  );
 });

@@ -19,15 +19,21 @@ test("isVertexGeminiProvider matches only the vertex provider ids", () => {
   assert.equal(h.isVertexGeminiProvider(undefined), false);
 });
 
-test("buildChangedToolNameMap keeps only renamed entries, else null", () => {
+test("buildChangedToolNameMap includes all entries with lowercase aliases", () => {
   const changed = h.buildChangedToolNameMap(
     new Map([
-      ["a", "a"],
+      ["Bash", "Bash"],
       ["b_sanitized", "b"],
     ])
   );
-  assert.deepEqual([...(changed ?? new Map()).entries()], [["b_sanitized", "b"]]);
-  assert.equal(h.buildChangedToolNameMap(new Map([["a", "a"]])), null);
+  const entries = [...(changed ?? new Map()).entries()];
+  // Identity entry ("Bash" → "Bash") is included, plus lowercase alias ("bash" → "Bash")
+  assert.ok(entries.some(([k]) => k === "Bash"));
+  assert.ok(entries.some(([k, v]) => k === "bash" && v === "Bash"));
+  // Renamed entry is included as before
+  assert.ok(entries.some(([k, v]) => k === "b_sanitized" && v === "b"));
+  // Empty map still returns null
+  assert.equal(h.buildChangedToolNameMap(new Map()), null);
 });
 
 test("extractClientThoughtSignature reads the first non-empty signature field", () => {

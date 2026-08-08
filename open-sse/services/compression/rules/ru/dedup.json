@@ -1,0 +1,30 @@
+{
+  "language": "ru",
+  "category": "dedup",
+  "rules": [
+    {
+      "name": "thought_repetition",
+      "pattern": "([^.!?]+[.!?])\\s+\\1",
+      "replacement": "$1",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "full"
+    },
+    {
+      "name": "word_duplication",
+      "pattern": "\\b(\\w+)\\s+\\1\\b",
+      "replacement": "$1",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "synonymous_repetition",
+      "pattern": "\\b(проблема|ошибка)\\b[^.!?]*\\b(проблема|ошибка)\\b",
+      "replacement": "$1",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "full"
+    }
+  ]
+}

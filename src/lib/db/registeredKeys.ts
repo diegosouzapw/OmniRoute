@@ -318,8 +318,7 @@ export function issueRegisteredKey(
 export function getRegisteredKey(id: string): RegisteredKey | null {
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM registered_keys WHERE id = ?").get(id) as
-    | RegisteredKeyRow
-    | undefined;
+    RegisteredKeyRow | undefined;
   return row ? (rowToCamel(row) as unknown as RegisteredKey) : null;
 }
 
@@ -477,16 +476,14 @@ export function setAccountKeyLimit(
 export function getProviderKeyLimit(provider: string): ProviderKeyLimit | null {
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM provider_key_limits WHERE provider = ?").get(provider) as
-    | ProviderKeyLimitRow
-    | undefined;
+    ProviderKeyLimitRow | undefined;
   return row ? (rowToCamel(row) as unknown as ProviderKeyLimit) : null;
 }
 
 export function getAccountKeyLimit(accountId: string): AccountKeyLimit | null {
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM account_key_limits WHERE account_id = ?").get(accountId) as
-    | AccountKeyLimitRow
-    | undefined;
+    AccountKeyLimitRow | undefined;
   return row ? (rowToCamel(row) as unknown as AccountKeyLimit) : null;
 }
 

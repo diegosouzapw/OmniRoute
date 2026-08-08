@@ -82,7 +82,9 @@ test("admin token: allowed on admin route", async () => {
 });
 
 test("invalid/expired access token is rejected with 401", async () => {
-  const bad = await requireManagementAuth(req("GET", "/api/v1/models", "oma_live_not_a_real_token"));
+  const bad = await requireManagementAuth(
+    req("GET", "/api/v1/models", "oma_live_not_a_real_token")
+  );
   assert.equal(bad?.status, 401);
 
   const past = new Date(Date.now() - 60_000).toISOString();

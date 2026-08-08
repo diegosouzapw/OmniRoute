@@ -139,6 +139,15 @@ export interface RegistryEntry {
   clientVersion?: string;
   timeoutMs?: number;
   passthroughModels?: boolean;
+  /**
+   * Whether a non-empty synchronized live model list is exhaustive enough
+   * to reject static registry IDs that it omits.
+   *
+   * Defaults to true. Set this explicitly to false for providers whose
+   * discovery endpoint is known to return only a partial subset of the models
+   * that the provider can route.
+   */
+  liveCatalogAuthoritative?: boolean;
   /** Default context window for all models in this provider (can be overridden per-model) */
   defaultContextLength?: number;
   /** Maximum OpenAI-compatible function name length accepted by this provider. */
@@ -262,16 +271,14 @@ export const GPT_5_6_API_CAPABILITIES = {
   maxOutputTokens: 128000,
 } as const;
 
-// Codex's live catalog reports a 272K input context window for GPT-5.6.
-// Keep the input and output limits explicit for catalog consumers that expose them separately.
 export const GPT_5_6_CODEX_CAPABILITIES = {
   targetFormat: "openai-responses",
   toolCalling: true,
   supportsReasoning: true,
   supportsVision: true,
   supportsXHighEffort: true,
-  contextLength: 272000,
-  maxInputTokens: 272000,
+  contextLength: 1050000,
+  maxInputTokens: 922000,
   maxOutputTokens: 128000,
 } as const;
 

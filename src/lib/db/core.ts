@@ -13,6 +13,7 @@ import {
   openDatabaseAsync,
 } from "./adapters/driverFactory";
 import path from "path";
+import { retryProbeIfTransient } from "./probeUtils";
 import fs from "fs";
 import { resolveWritableDataDir, getLegacyDotDataDir } from "../dataPaths";
 import { runMigrations } from "./migrationRunner";
@@ -1142,18 +1143,19 @@ export function getDbInstance(): SqliteDatabase {
             `Original error: ${message}`
         );
       }
-      preservedCriticalState = captureCriticalDbState(sqliteFile);
-
-      // SAFETY: Never delete the database — rename to backup so data can be recovered.
-      // The old code would silently destroy all user data on any probe failure.
-      const failedPath = sqliteFile + `.probe-failed-${Date.now()}`;
-      try {
-        fs.renameSync(sqliteFile, failedPath);
-        console.warn(`[DB] Renamed corrupt DB to ${path.basename(failedPath)}`);
-        failedProbePath = failedPath;
-        failedProbeMessage = message;
-      } catch {
-        /* ok */
+      if (!retryProbeIfTransient(sqliteFile, e, openSqliteDatabase, closeProbeIfSafe)) {
+        preservedCriticalState = captureCriticalDbState(sqliteFile);
+        // SAFETY: Never delete the database — rename to backup so data can be recovered.
+        // The old code would silently destroy all user data on any probe failure.
+        const failedPath = sqliteFile + `.probe-failed-${Date.now()}`;
+        try {
+          fs.renameSync(sqliteFile, failedPath);
+          console.warn(`[DB] Renamed corrupt DB to ${path.basename(failedPath)}`);
+          failedProbePath = failedPath;
+          failedProbeMessage = message;
+        } catch {
+          /* ok */
+        }
       }
     }
   }

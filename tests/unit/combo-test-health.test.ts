@@ -38,7 +38,7 @@ test("combo test helper builds a small streaming model probe", () => {
 
 test("combo test helper ignores keepalives and extracts streamed model content", () => {
   const text = extractComboTestStreamText(
-    ': omniroute-keepalive\n\ndata: {"choices":[{"delta":{"content":"O"}}]}\n\n' +
+    ': keepalive\n\ndata: {"choices":[{"delta":{"content":"O"}}]}\n\n' +
       'data: {"choices":[{"delta":{"content":"K"}}]}\n\ndata: [DONE]\n\n'
   );
   assert.equal(text, "OK");

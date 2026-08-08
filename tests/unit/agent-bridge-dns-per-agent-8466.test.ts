@@ -66,7 +66,8 @@ test("no-agentId call sites: still Antigravity-only but Windows-aware (#8656)", 
     // (Windows-aware) instead of hardcoded /etc/hosts. Still Antigravity-only
     // semantics (checks all 4 Antigravity hosts), but reads the correct file.
     const pathStr = String(p);
-    const isHostsFile = pathStr === "/etc/hosts" || pathStr.includes("System32\\drivers\\etc\\hosts");
+    const isHostsFile =
+      pathStr === "/etc/hosts" || pathStr.includes("System32\\drivers\\etc\\hosts");
     if (isHostsFile) {
       // Claude Code host spoofed, but NO Antigravity host present. The legacy
       // Antigravity-only check should still return false (unchanged semantics).
@@ -94,9 +95,8 @@ test("diagnose route: threads ?agentId= query param through to getMitmStatus", a
     return realReadFileSync(p, enc);
   });
 
-  const { GET } = await import(
-    "../../src/app/api/tools/agent-bridge/diagnose/route.ts?probe=8466-route"
-  );
+  const { GET } =
+    await import("../../src/app/api/tools/agent-bridge/diagnose/route.ts?probe=8466-route");
   const res = await GET(
     new Request("http://localhost/api/tools/agent-bridge/diagnose?agentId=claude-code")
   );

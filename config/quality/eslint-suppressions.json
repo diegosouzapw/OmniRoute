@@ -81,7 +81,7 @@
   },
   "open-sse/handlers/search.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 34
+      "count": 33
     }
   },
   "open-sse/handlers/sseParser.ts": {
@@ -244,11 +244,6 @@
     }
   },
   "open-sse/services/opencodeQuotaFetcher.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "open-sse/services/rateLimitManager.ts": {
     "no-restricted-syntax": {
       "count": 1
     }
@@ -903,17 +898,7 @@
       "count": 1
     }
   },
-  "src/app/api/v1/audio/speech/route.ts": {
-    "no-restricted-imports": {
-      "count": 1
-    }
-  },
   "src/app/api/v1/audio/transcriptions/route.ts": {
-    "no-restricted-imports": {
-      "count": 1
-    }
-  },
-  "src/app/api/v1/audio/translations/route.ts": {
     "no-restricted-imports": {
       "count": 1
     }
@@ -961,11 +946,6 @@
   "src/app/api/v1/images/edits/route.ts": {
     "no-restricted-imports": {
       "count": 2
-    }
-  },
-  "src/app/api/v1/images/generations/route.ts": {
-    "no-restricted-imports": {
-      "count": 1
     }
   },
   "src/app/api/v1/management/proxies/assignments/route.ts": {
@@ -1376,21 +1356,8 @@
       "count": 1
     }
   },
-  "src/sse/handlers/chat.ts": {
-    "no-restricted-imports": {
-      "count": 1
-    }
-  },
   "src/sse/handlers/chatHelpers.ts": {
     "no-restricted-imports": {
-      "count": 1
-    }
-  },
-  "src/sse/services/auth.ts": {
-    "no-restricted-imports": {
-      "count": 1
-    },
-    "no-restricted-syntax": {
       "count": 1
     }
   },
@@ -2095,11 +2062,6 @@
     }
   },
   "tests/unit/combo-builder-options-route.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 5
-    }
-  },
-  "tests/unit/combo-cache-invalidation.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 5
     }
@@ -3229,7 +3191,7 @@
   },
   "tests/unit/translator-claude-to-gemini.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 17
+      "count": 15
     }
   },
   "tests/unit/translator-claude-to-openai.test.ts": {
@@ -3343,11 +3305,6 @@
     }
   },
   "tests/unit/vertex-express-apikey.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
-  "tests/unit/vertex-functioncall-id-3440.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
     }

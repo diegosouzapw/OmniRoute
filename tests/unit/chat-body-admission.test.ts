@@ -7,6 +7,7 @@ const {
   admitChatRequest,
   admitChatStructure,
   ChatAdmissionController,
+  CHAT_HARD_MAX_MESSAGES,
   releaseChatAdmissionAfterHandler,
   releaseChatAdmissionWhenDone,
   resolveSelfLoopBearer,
@@ -95,7 +96,7 @@ test("a byte-light request above the tool threshold is rejected when heavy capac
   occupied.release();
 });
 
-test("a request above the hard history cap returns structured compact-required 413", async () => {
+test("an opt-in history cap still returns the structured compact-required 413", async () => {
   const controller = new ChatAdmissionController(1);
   const result = admitChatStructure(
     { messages: Array.from({ length: 3 }, () => ({ role: "user", content: "x" })) },
@@ -110,6 +111,58 @@ test("a request above the hard history cap returns structured compact-required 4
   assert.equal(payload.error.code, "chat_history_too_large");
   assert.equal(payload.error.reason, "message_limit");
   assert.equal(controller.activeHeavy, 0);
+});
+
+// A message-count ceiling is deployment policy, not a universal default. With no cap
+// configured, a long conversation must reach compression and the bounded heavyweight path
+// rather than a terminal 413 the client cannot retry out of.
+test("no history cap is enforced by default; long conversations are admitted", async () => {
+  assert.equal(CHAT_HARD_MAX_MESSAGES, 0, "the shipped default must not cap history");
+
+  const controller = new ChatAdmissionController(1);
+  const result = admitChatStructure(
+    { messages: Array.from({ length: 5_000 }, () => ({ role: "user", content: "x" })) },
+    null,
+    { controller, heavyMessages: 200, heavyTools: 64, heavyTokens: 32_000 }
+  );
+
+  assert.equal(result.admit, true, "a 5,000-message conversation must not be rejected outright");
+  if (!result.admit) return;
+  assert.equal(controller.activeHeavy, 1, "it is still admitted through heavyweight capacity");
+  result.lease?.release();
+});
+
+test("an uncapped oversized conversation still yields to occupied heavyweight capacity", async () => {
+  const controller = new ChatAdmissionController(1);
+  const occupied = controller.tryAcquireHeavy();
+  assert.ok(occupied);
+
+  const result = admitChatStructure(
+    { messages: Array.from({ length: 5_000 }, () => ({ role: "user", content: "x" })) },
+    null,
+    { controller, maxMessages: 0, heavyMessages: 200, heavyTools: 64, heavyTokens: 32_000 }
+  );
+
+  assert.equal(result.admit, false);
+  if (result.admit) return;
+  assert.equal(result.response.status, 503, "backpressure is retryable, not a terminal 413");
+  assert.equal(result.response.headers.get("retry-after"), "1");
+  const payload = await result.response.json();
+  assert.equal(payload.error.code, "chat_admission_busy");
+  assert.equal(payload.error.reason, "structure_limit");
+  occupied.release();
+});
+
+test("maxMessages: 0 explicitly disables the history cap", () => {
+  const controller = new ChatAdmissionController(1);
+  const result = admitChatStructure(
+    { messages: Array.from({ length: 3 }, () => ({ role: "user", content: "x" })) },
+    null,
+    { controller, maxMessages: 0, heavyMessages: 1, heavyTools: 10, heavyTokens: 10_000 }
+  );
+
+  assert.equal(result.admit, true);
+  if (result.admit) result.lease?.release();
 });
 
 test("a conservative token estimate classifies string messages and tool schemas as heavy", () => {

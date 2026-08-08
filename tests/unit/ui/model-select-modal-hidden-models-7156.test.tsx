@@ -10,7 +10,9 @@ vi.mock("next-intl", () => ({
 
 const roots: Array<{ root: ReturnType<typeof createRoot>; el: HTMLDivElement }> = [];
 
-async function render(props: React.ComponentProps<typeof ModelSelectModal>): Promise<HTMLDivElement> {
+async function render(
+  props: React.ComponentProps<typeof ModelSelectModal>
+): Promise<HTMLDivElement> {
   const el = document.createElement("div");
   document.body.appendChild(el);
   const root = createRoot(el);
@@ -42,8 +44,10 @@ beforeEach(() => {
     "fetch",
     vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.includes("/api/combos")) return new Response(JSON.stringify({ combos: [] }), { status: 200 });
-      if (url.includes("/api/provider-nodes")) return new Response(JSON.stringify({ nodes: mockNodes }), { status: 200 });
+      if (url.includes("/api/combos"))
+        return new Response(JSON.stringify({ combos: [] }), { status: 200 });
+      if (url.includes("/api/provider-nodes"))
+        return new Response(JSON.stringify({ nodes: mockNodes }), { status: 200 });
       if (url.includes("/api/provider-models")) {
         return new Response(
           JSON.stringify({
@@ -64,14 +68,21 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  for (const { root, el } of roots.splice(0)) { act(() => root.unmount()); el.remove(); }
+  for (const { root, el } of roots.splice(0)) {
+    act(() => root.unmount());
+    el.remove();
+  }
   vi.unstubAllGlobals();
   vi.clearAllMocks();
 });
 
 async function flush() {
-  await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
-  await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
+  await act(async () => {
+    await new Promise((r) => setTimeout(r, 0));
+  });
+  await act(async () => {
+    await new Promise((r) => setTimeout(r, 0));
+  });
 }
 
 describe("ModelSelectModal hidden-model filtering (#7156)", () => {
@@ -83,9 +94,12 @@ describe("ModelSelectModal hidden-model filtering (#7156)", () => {
       ],
     };
     const el = await render({
-      isOpen: true, onClose: vi.fn(), onSelect: vi.fn(),
+      isOpen: true,
+      onClose: vi.fn(),
+      onSelect: vi.fn(),
       activeProviders: [{ provider: "requesty", id: "conn-1" }],
-      modelAliases: {}, title: "Add model to combo",
+      modelAliases: {},
+      title: "Add model to combo",
     });
     await flush();
     expect(el.textContent).toContain("Visible Model");
@@ -97,9 +111,12 @@ describe("ModelSelectModal unified hidden-model filtering (#9203)", () => {
   it("hides a system catalog model flagged in the unified hidden map", async () => {
     mockHidden = { claude: ["claude-sonnet-4-6"] };
     const el = await render({
-      isOpen: true, onClose: vi.fn(), onSelect: vi.fn(),
+      isOpen: true,
+      onClose: vi.fn(),
+      onSelect: vi.fn(),
       activeProviders: [{ provider: "claude", id: "claude-conn" }],
-      modelAliases: {}, title: "Add model to combo",
+      modelAliases: {},
+      title: "Add model to combo",
     });
     await flush();
     // claude is a system-catalog provider — its entries come from the bundled catalog.
@@ -110,7 +127,9 @@ describe("ModelSelectModal unified hidden-model filtering (#9203)", () => {
   it("hides a hidden passthrough alias model", async () => {
     mockHidden = { requesty: ["alias-hidden"] };
     const el = await render({
-      isOpen: true, onClose: vi.fn(), onSelect: vi.fn(),
+      isOpen: true,
+      onClose: vi.fn(),
+      onSelect: vi.fn(),
       activeProviders: [{ provider: "requesty", id: "conn-1" }],
       modelAliases: {
         "Visible Alias": "requesty/alias-visible",
@@ -127,7 +146,9 @@ describe("ModelSelectModal unified hidden-model filtering (#9203)", () => {
     mockNodes = [{ id: "openai-compatible-demo", name: "Demo Node", prefix: "demo-prefix" }];
     mockHidden = { "openai-compatible-demo": ["node-hidden"] };
     const el = await render({
-      isOpen: true, onClose: vi.fn(), onSelect: vi.fn(),
+      isOpen: true,
+      onClose: vi.fn(),
+      onSelect: vi.fn(),
       activeProviders: [{ provider: "openai-compatible-demo", id: "conn-demo" }],
       modelAliases: {
         "Node Visible": "openai-compatible-demo/node-visible",
@@ -149,9 +170,12 @@ describe("ModelSelectModal unified hidden-model filtering (#9203)", () => {
     };
     mockHidden = { "openai-compatible-demo": ["custom-map-hidden"] };
     const el = await render({
-      isOpen: true, onClose: vi.fn(), onSelect: vi.fn(),
+      isOpen: true,
+      onClose: vi.fn(),
+      onSelect: vi.fn(),
       activeProviders: [{ provider: "openai-compatible-demo", id: "conn-demo" }],
-      modelAliases: {}, title: "Add model to combo",
+      modelAliases: {},
+      title: "Add model to combo",
     });
     await flush();
     expect(el.textContent).toContain("Custom Visible");
@@ -165,9 +189,12 @@ describe("ModelSelectModal unified hidden-model filtering (#9203)", () => {
     ];
     mockHidden = { "openai-compatible-demo": ["live-hidden"] };
     const el = await render({
-      isOpen: true, onClose: vi.fn(), onSelect: vi.fn(),
+      isOpen: true,
+      onClose: vi.fn(),
+      onSelect: vi.fn(),
       activeProviders: [{ provider: "openai-compatible-demo", id: "conn-demo" }],
-      modelAliases: {}, title: "Add model to combo",
+      modelAliases: {},
+      title: "Add model to combo",
     });
     await flush();
     expect(el.textContent).toContain("Live Visible");
@@ -180,9 +207,12 @@ describe("ModelSelectModal unified hidden-model filtering (#9203)", () => {
     // mockHidden is empty object — simulates an older/unchanged API response.
     mockModels = { requesty: [{ id: "m1", name: "Model One", source: "imported" }] };
     const el = await render({
-      isOpen: true, onClose: vi.fn(), onSelect: vi.fn(),
+      isOpen: true,
+      onClose: vi.fn(),
+      onSelect: vi.fn(),
       activeProviders: [{ provider: "requesty", id: "conn-1" }],
-      modelAliases: {}, title: "Add model to combo",
+      modelAliases: {},
+      title: "Add model to combo",
     });
     await flush();
     expect(el.textContent).toContain("Model One");
@@ -194,8 +224,10 @@ describe("ModelSelectModal unified hidden-model filtering (#9203)", () => {
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
         const url = String(input);
-        if (url.includes("/api/combos")) return new Response(JSON.stringify({ combos: [] }), { status: 200 });
-        if (url.includes("/api/provider-nodes")) return new Response(JSON.stringify({ nodes: [] }), { status: 200 });
+        if (url.includes("/api/combos"))
+          return new Response(JSON.stringify({ combos: [] }), { status: 200 });
+        if (url.includes("/api/provider-nodes"))
+          return new Response(JSON.stringify({ nodes: [] }), { status: 200 });
         if (url.includes("/api/provider-models")) {
           return new Response(
             JSON.stringify({
@@ -210,9 +242,12 @@ describe("ModelSelectModal unified hidden-model filtering (#9203)", () => {
       })
     );
     const el = await render({
-      isOpen: true, onClose: vi.fn(), onSelect: vi.fn(),
+      isOpen: true,
+      onClose: vi.fn(),
+      onSelect: vi.fn(),
       activeProviders: [{ provider: "requesty", id: "conn-1" }],
-      modelAliases: {}, title: "Add model to combo",
+      modelAliases: {},
+      title: "Add model to combo",
     });
     await flush();
     expect(el.textContent).toContain("Model One");
@@ -220,21 +255,20 @@ describe("ModelSelectModal unified hidden-model filtering (#9203)", () => {
 
   it("scopes hidden models per provider (same id visible under another provider)", async () => {
     mockModels = {
-      requesty: [
-        { id: "shared-model", name: "Requesty Shared", source: "imported" },
-      ],
-      "openai-compatible-demo": [
-        { id: "shared-model", name: "Demo Shared", source: "manual" },
-      ],
+      requesty: [{ id: "shared-model", name: "Requesty Shared", source: "imported" }],
+      "openai-compatible-demo": [{ id: "shared-model", name: "Demo Shared", source: "manual" }],
     };
     mockHidden = { requesty: ["shared-model"] };
     const el = await render({
-      isOpen: true, onClose: vi.fn(), onSelect: vi.fn(),
+      isOpen: true,
+      onClose: vi.fn(),
+      onSelect: vi.fn(),
       activeProviders: [
         { provider: "requesty", id: "conn-1" },
         { provider: "openai-compatible-demo", id: "conn-demo" },
       ],
-      modelAliases: {}, title: "Add model to combo",
+      modelAliases: {},
+      title: "Add model to combo",
     });
     await flush();
     expect(el.textContent).not.toContain("Requesty Shared");

@@ -5,6 +5,8 @@ export interface FirecrawlSearchParams {
   searchType: string;
   maxResults: number;
   token?: string;
+  baseUrl?: string;
+  providerSpecificData?: Record<string, unknown>;
   country?: string;
   language?: string;
   timeRange?: string;
@@ -68,7 +70,11 @@ export function buildFirecrawlSearchRequest(
   params: FirecrawlSearchParams
 ): { url: string; init: RequestInit } {
   const envBase = process.env.FIRECRAWL_BASE_URL?.trim().replace(/\/+$/, "");
-  const url = envBase ? `${envBase}/v2/search` : config.baseUrl;
+  const providerData = params.providerSpecificData as Record<string, unknown> | undefined;
+  const paramBase = typeof params.baseUrl === "string" ? params.baseUrl : providerData?.baseUrl;
+  const customBase = typeof paramBase === "string" && paramBase.trim() ? paramBase.trim().replace(/\/+$/, "") : undefined;
+  const rawBase = envBase || customBase;
+  const url = rawBase ? `${rawBase}/v2/search` : config.baseUrl;
   const { includes, excludes } = parseDomainFilter(params.domainFilter);
   const source = params.searchType === "news" ? "news" : "web";
 

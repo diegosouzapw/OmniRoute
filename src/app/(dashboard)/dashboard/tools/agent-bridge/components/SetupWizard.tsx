@@ -293,7 +293,7 @@ export function SetupWizard({
                   </div>
                   {selectedModels.size > 0 && (
                     <p className="text-xs text-text-muted">
-                      {selectedModels.size} model{selectedModels.size !== 1 ? "s" : ""} selected. You'll map them to OmniRoute models in the next screen.
+                      {selectedModels.size} model{selectedModels.size !== 1 ? "s" : ""} selected. You&apos;ll map them to OmniRoute models in the next screen.
                     </p>
                   )}
                 </div>

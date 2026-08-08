@@ -191,6 +191,23 @@ export function getReasoningTokensOrNull(tokens: unknown): number | null {
   return null;
 }
 
+/**
+ * Return non-cached (fresh) input tokens, or `null` if the provider didn't
+ * report any. Command Code reports this as `inputTokenDetails.noCacheTokens`.
+ * Informational only — the value is already included in prompt_tokens, so it
+ * must never be added to metering totals (see commandCode.ts usageFromCommandCode).
+ */
+export function getNoCacheTokens(tokens: unknown): number | null {
+  const tokenRecord = asRecord(tokens);
+  const promptDetails = getPromptTokenDetails(tokenRecord);
+  if (hasAnyKey(tokenRecord, ["no_cache_tokens"]) || hasAnyKey(promptDetails, ["noCacheTokens"])) {
+    return toFiniteNumber(
+      tokenRecord.no_cache_tokens ?? promptDetails.noCacheTokens ?? tokenRecord.noCacheTokens
+    );
+  }
+  return null;
+}
+
 export function formatUsageLog(tokens: unknown): string {
   const input = getLoggedInputTokens(tokens);
   const output = getLoggedOutputTokens(tokens);

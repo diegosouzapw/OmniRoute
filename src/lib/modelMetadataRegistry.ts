@@ -345,13 +345,12 @@ function resolveCatalogPricing(
   // Consulted only when models.dev returned nothing, matching the order
   // already implemented in db/settings/pricing.ts::getPricing().
   try {
-    const litellm = getSyncedPricing() as Record<
+    const litellm = getSyncedPricing() as unknown as Record<
       string,
       Record<string, Record<string, number>>
     >;
     const providerPricing =
-      findInsensitive(litellm, provider) ||
-      findInsensitive(litellm, provider.replace(/-cn$/, ""));
+      findInsensitive(litellm, provider) || findInsensitive(litellm, provider.replace(/-cn$/, ""));
     if (providerPricing) {
       const modelPricing =
         findInsensitive(providerPricing, model) ||

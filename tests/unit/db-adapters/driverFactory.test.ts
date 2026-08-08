@@ -62,7 +62,9 @@ describe("driverFactory", () => {
 
     test(
       "prefers better-sqlite3 when it loads",
-      { skip: betterSqliteLoads ? undefined : "better-sqlite3 is not available in this environment" },
+      {
+        skip: betterSqliteLoads ? undefined : "better-sqlite3 is not available in this environment",
+      },
       () => {
         const adapter = tryOpenSync(":memory:");
         assert.ok(adapter);

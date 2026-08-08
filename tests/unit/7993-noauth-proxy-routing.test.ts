@@ -110,7 +110,7 @@ test("#7993 a canonical 'opencode/<model>' resolved combo/catalog target egresse
 
   try {
     const result = await exec.execute({
-      model: "grok-code",
+      model: "deepseek-v4-flash-free",
       body: { messages: [{ role: "user", content: "hi" }], stream: false },
       stream: false,
       signal: null,

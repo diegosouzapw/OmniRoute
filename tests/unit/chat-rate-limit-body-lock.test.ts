@@ -32,8 +32,8 @@ test.after(async () => {
 test("handleChat applies body-derived retry-after to the runtime limiter", async () => {
   const connection = await seedConnection("openai", { apiKey: "sk-openai-body-retry" });
 
-  globalThis.fetch = async () =>
-    new Response(
+  globalThis.fetch = async () => {
+    return new Response(
       JSON.stringify({
         error: {
           message: "Rate limit exceeded. Please retry after 20s.",
@@ -44,6 +44,7 @@ test("handleChat applies body-derived retry-after to the runtime limiter", async
         headers: { "Content-Type": "application/json" },
       }
     );
+  };
 
   const response = await handleChat(
     buildRequest({
@@ -65,7 +66,7 @@ test("handleChat applies body-derived retry-after to the runtime limiter", async
     "gpt-4.1"
   );
   assert.ok(limiterState, "expected limiter state to exist for the active connection");
-  assert.equal(limiterState.reservoir, 0, "body-derived retry-after should drain the limiter");
+  assert.equal(limiterState.reservoir, null, "RPM is enforced by the rolling lease gate");
 });
 
 test("handleChat tolerates non-JSON rate-limit bodies without breaking fallback flow", async () => {

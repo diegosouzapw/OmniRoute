@@ -2,16 +2,19 @@ import { randomUUID, createHash } from "crypto";
 import { extractGoogApiKeyHeader } from "./googApiKeyAuth.ts";
 import {
   getCachedRawProviderConnections,
-  getProviderConnections,
   getCachedProviderNodes,
-  validateApiKey,
+  getCachedSettings,
+} from "@/lib/db/readCache";
+import {
+  getProviderConnections,
   updateProviderConnection,
   resetConnectionBackoff,
-  getSettings,
-  getCachedSettings,
   touchConnectionLastUsed,
   clearConnectionErrorIfUnchanged,
-} from "@/lib/localDb";
+} from "@/lib/db/providers";
+import { validateApiKey } from "@/lib/db/apiKeys";
+import { getSettings } from "@/lib/db/settings";
+import { toNumber } from "@/shared/utils/numeric";
 import {
   createLazyConnectionView,
   toProviderConnection,
@@ -123,15 +126,6 @@ function asRecord(value: unknown): JsonRecord {
 
 function toStringOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
-
-function toNumber(value: unknown, fallback = 0): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
-  return fallback;
 }
 
 function toNullableNumber(value: unknown): number | null {
@@ -781,9 +775,15 @@ function providerCanUseSyntheticNoAuthFallback(providerId: string): boolean {
 
 async function maybeSyntheticNoAuthFallback(
   providerId: string,
-  excludedConnectionIds: Set<string>
+  excludedConnectionIds: Set<string>,
+  allowedConnections: string[] | null = null
 ) {
   if (!providerCanUseSyntheticNoAuthFallback(providerId)) return null;
+  // #9057: a key pinned to specific connections via allowedConnections must
+  // NOT receive the synthetic "noauth" connection — the synthetic id is
+  // never in an explicit allowlist, so returning it would let a restricted
+  // key reach free providers (felo-chat, etc.) that it should not access.
+  if (Array.isArray(allowedConnections) && allowedConnections.length > 0) return null;
   if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) return null;
   // #4954: hydrate per-account proxy/rotation config off the connection row so
   // no-auth executors (opencode, mimocode) actually honor configured proxies.
@@ -927,6 +927,8 @@ export { readHeaderValue, type AuthRequestHeaders } from "./headerReader.ts";
 const PROVIDER_SEARCH_PAIRS: string[][] = [
   ["nvidia", "nvidia_nim"],
   ["kimi-coding", "kimi-coding-apikey"],
+  // The model layer canonicalizes `agy/` to `antigravity`, but the Antigravity
+  // CLI card stores its connection under `agy`. Same account, either id serves.
   ["antigravity", "agy"],
 ];
 /**
@@ -1010,7 +1012,14 @@ export async function getProviderCredentials(
         excludeConnectionId,
         options.excludeConnectionIds
       );
-      return await maybeSyntheticNoAuthFallback(resolvedId, excludedForNoAuth);
+      // #9057: when allowedConnections is set, the synthetic "noauth" connection
+      // is never in the explicit allowlist, so we must NOT return it — fall through
+      // to the normal connection-selection path so the connection allowlist is
+      // respected (the no-auth provider will be rejected if it has no real connections
+      // matching the allowlist, or a real connection row will be selected if present).
+      if (!allowedConnections || allowedConnections.length === 0) {
+        return await maybeSyntheticNoAuthFallback(resolvedId, excludedForNoAuth);
+      }
     }
 
     const allowSuppressedConnections = options.allowSuppressedConnections === true;
@@ -1137,7 +1146,8 @@ export async function getProviderCredentials(
         if (terminalConnections.length === allConnections.length) {
           const syntheticFallback = await maybeSyntheticNoAuthFallback(
             resolvedId,
-            excludedConnectionIds
+            excludedConnectionIds,
+            allowedConnections
           );
           if (syntheticFallback) return syntheticFallback;
 
@@ -1157,7 +1167,8 @@ export async function getProviderCredentials(
       }
       const syntheticFallback = await maybeSyntheticNoAuthFallback(
         resolvedId,
-        excludedConnectionIds
+        excludedConnectionIds,
+        allowedConnections
       );
       if (syntheticFallback) return syntheticFallback;
       log.warn("AUTH", `No credentials for ${provider}`);
@@ -1356,7 +1367,8 @@ export async function getProviderCredentials(
       }
       const syntheticFallback = await maybeSyntheticNoAuthFallback(
         resolvedId,
-        excludedConnectionIds
+        excludedConnectionIds,
+        allowedConnections
       );
       if (syntheticFallback) return syntheticFallback;
       log.warn("AUTH", `${provider} | all ${connections.length} accounts unavailable`);
@@ -2029,9 +2041,12 @@ export async function markAccountUnavailable(
         return { shouldFallback: true, cooldownMs: 0 };
       }
 
-      const quotaScope = getQuotaScopeLabelForProvider(provider, model);
+      const usesExactAntigravityLock = provider === "antigravity";
+      const quotaScope = usesExactAntigravityLock
+        ? "model"
+        : getQuotaScopeLabelForProvider(provider, model);
       const antigravityFamilyInferredBaseCooldownMs =
-        provider === "antigravity" && quotaScope === "family" && status === 429
+        !usesExactAntigravityLock && provider === "antigravity" && quotaScope === "family" && status === 429
           ? ANTIGRAVITY_FAMILY_INFERRED_BASE_COOLDOWN_MS
           : null;
       const lockout = recordModelLockoutFailure(
@@ -2054,6 +2069,7 @@ export async function markAccountUnavailable(
               ? fallbackResult.cooldownMs
               : (fallbackResult.quotaResetHintMs ?? null),
           maxCooldownMs: mlSettings.maxCooldownMs,
+          scope: usesExactAntigravityLock ? "exact" : undefined,
           // #6863 vs #7940: exactCooldownMs above is only ever set from a genuine
           // upstream signal (Retry-After/reset header or a parsed quotaResetHintMs) —
           // never a synthetic estimate — so it must bypass maxCooldownMs instead of
@@ -2440,13 +2456,16 @@ export function extractApiKey(request: AuthRequestLike, opts?: { allowUrl?: bool
   }
 
   // Issue #2225: Anthropic Messages API clients authenticate via x-api-key.
-  // Gate the fallback on the anthropic-version header so we don't trip up
-  // local-mode requests from non-Anthropic clients that send placeholder
+  // Gate the fallback on anthropic-version OR a claude-code/anthropic user-agent so we
+  // don't trip up local-mode requests from non-Anthropic clients that send placeholder
   // x-api-key values (which would otherwise be rejected as Invalid API key).
   const anthropicVersion =
     readHeaderValue(request?.headers, "anthropic-version") ||
     readHeaderValue(request?.headers, "Anthropic-Version");
-  if (anthropicVersion) {
+  const userAgent =
+    readHeaderValue(request?.headers, "user-agent") ||
+    readHeaderValue(request?.headers, "User-Agent");
+  if (anthropicVersion || (userAgent && /claude-code|claude-cli|anthropic/i.test(userAgent))) {
     const xApiKey =
       readHeaderValue(request?.headers, "x-api-key") ||
       readHeaderValue(request?.headers, "X-Api-Key");

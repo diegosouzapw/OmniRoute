@@ -27,13 +27,13 @@ test("#9474: claude-code is advertised as a browser flow (not device)", () => {
   assert.match(
     oauthCli,
     /\{\s*id:\s*"claude-code",\s*name:\s*"Claude Code \(OAuth\)",\s*flow:\s*"browser"\s*\}/,
-    "claude-code must be labeled flow: \"browser\" (Anthropic uses a browser PKCE flow)"
+    'claude-code must be labeled flow: "browser" (Anthropic uses a browser PKCE flow)'
   );
   // And it must NOT be labeled device.
   assert.doesNotMatch(
     oauthCli,
     /\{\s*id:\s*"claude-code",\s*name:\s*"Claude Code \(OAuth\)",\s*flow:\s*"device"\s*\}/,
-    "claude-code must not be labeled flow: \"device\""
+    'claude-code must not be labeled flow: "device"'
   );
 });
 

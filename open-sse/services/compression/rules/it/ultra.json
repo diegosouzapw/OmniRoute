@@ -1,0 +1,106 @@
+{
+  "language": "it",
+  "category": "ultra",
+  "rules": [
+    {
+      "name": "it_articles",
+      "pattern": "\\b(?:[Ii]l|[Ll]o|[Ll]a|[Ii]|[Gg]li|[Ll]e|[Uu]n|[Uu]no|[Uu]na)\\s+(?=[a-zàèéìòù])",
+      "flags": "g",
+      "replacement": "",
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "full"
+    },
+    {
+      "name": "it_leader_phrases",
+      "pattern": "^(?:posso|possiamo|vado a|andiamo a|proviamo a|fammi|lasciami|si può)\\s+(?=[a-zàèéìòù])",
+      "replacement": "",
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "full"
+    },
+    {
+      "name": "it_ultra_database",
+      "pattern": "\\bbase(?:e|) dati\\b|\\bbase di dati\\b",
+      "replacement": "DB",
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "full"
+    },
+    {
+      "name": "it_ultra_config",
+      "pattern": "\\bconfigurazion(?:e|i)\\b",
+      "replacement": "config",
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "full"
+    },
+    {
+      "name": "it_ultra_function",
+      "pattern": "\\bfunzion(?:e|i)\\b",
+      "replacement": "fn",
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "it_ultra_variable",
+      "pattern": "\\bvariabil(?:e|i)\\b",
+      "replacement": "var",
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "it_ultra_application",
+      "pattern": "\\bapplicazion(?:e|i)\\b",
+      "replacement": "app",
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "full"
+    },
+    {
+      "name": "it_ultra_implementation",
+      "pattern": "\\bimplementazion(?:e|i)\\b",
+      "replacement": "impl",
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "it_ultra_directory",
+      "pattern": "\\b(?:cartell(?:a|e)|director(?:y|ies))\\b",
+      "replacement": "dir",
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "full"
+    },
+    {
+      "name": "it_ultra_error",
+      "pattern": "\\bmessaggio di errore\\b",
+      "replacement": "errore",
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "full"
+    },
+    {
+      "name": "it_copula_drop",
+      "pattern": "\\b(?:che )?(?:è|sono) (?:un|una|il|la|lo|gli|le)\\s+(?=[a-zàèéìòù])",
+      "replacement": "",
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "it_ultra_environment",
+      "pattern": "\\bambiente di (?:sviluppo|produzione)\\b",
+      "replacementMap": {
+        "ambiente di sviluppo": "dev",
+        "ambiente di produzione": "prod"
+      },
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "ultra"
+    }
+  ]
+}

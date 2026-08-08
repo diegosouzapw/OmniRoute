@@ -79,14 +79,14 @@ test("catalog /v1/models: exact provider-grouped order (blocks === distinct owne
   const conn2 = await seedConnection("anthropic");
   const conn3 = await seedConnection("opencode");
 
-  await modelsDb.replaceSyncedAvailableModelsForConnection("openai", (conn1 as any).id, [
+  await modelsDb.replaceSyncedAvailableModelsForConnection("openai", (conn1 as { id: string }).id, [
     { id: "gpt-4", name: "GPT-4" },
     { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo" },
   ]);
-  await modelsDb.replaceSyncedAvailableModelsForConnection("anthropic", (conn2 as any).id, [
+  await modelsDb.replaceSyncedAvailableModelsForConnection("anthropic", (conn2 as { id: string }).id, [
     { id: "claude-3-opus", name: "Claude 3 Opus" },
   ]);
-  await modelsDb.replaceSyncedAvailableModelsForConnection("opencode", (conn3 as any).id, [
+  await modelsDb.replaceSyncedAvailableModelsForConnection("opencode", (conn3 as { id: string }).id, [
     { id: "kimi-k2", name: "Kimi K2" },
     { id: "glm-4", name: "GLM-4" },
   ]);
@@ -120,7 +120,7 @@ test("catalog /v1/models: exact provider-grouped order (blocks === distinct owne
 
 test("catalog /v1/models: combo block appears first", async () => {
   const conn = await seedConnection("openai");
-  await modelsDb.replaceSyncedAvailableModelsForConnection("openai", (conn as any).id, [
+  await modelsDb.replaceSyncedAvailableModelsForConnection("openai", (conn as { id: string }).id, [
     { id: "gpt-4", name: "GPT-4" },
   ]);
   await combosDb.createCombo({

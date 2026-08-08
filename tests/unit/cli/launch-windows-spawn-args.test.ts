@@ -66,7 +66,11 @@ test("quoteClaudeArgs: exact win32 encoding (golden)", () => {
     ["", '""'],
   ];
   for (const [input, expected] of golden) {
-    assert.equal(quoteClaudeArgs([input], "win32")[0], expected, `encoding of ${JSON.stringify(input)}`);
+    assert.equal(
+      quoteClaudeArgs([input], "win32")[0],
+      expected,
+      `encoding of ${JSON.stringify(input)}`
+    );
   }
 });
 
@@ -89,7 +93,7 @@ test(
       // to a node script. Printing argv as JSON keeps the oracle exact.
       writeFileSync(join(dir, "argv.mjs"), "console.log(JSON.stringify(process.argv.slice(2)));\n");
       const probe = join(dir, "probe.cmd");
-      writeFileSync(probe, ['@echo off', 'node "%~dp0argv.mjs" %*'].join("\r\n") + "\r\n");
+      writeFileSync(probe, ["@echo off", 'node "%~dp0argv.mjs" %*'].join("\r\n") + "\r\n");
 
       const args = [
         "-p",

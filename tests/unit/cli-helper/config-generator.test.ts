@@ -1,6 +1,6 @@
-import { describe, it } from "node:test";
+import { describe, it, mock } from "node:test";
 import assert from "node:assert";
-import { readFileSync } from "node:fs";
+import fs, { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import * as generator from "../../../src/lib/cli-helper/config-generator/index.ts";
 
@@ -23,9 +23,7 @@ function readUiHermesRoleIds(): string[] {
 }
 
 function readEnMessages(): { cliTools?: Record<string, string> } {
-  const enJsonPath = fileURLToPath(
-    new URL("../../../src/i18n/messages/en.json", import.meta.url)
-  );
+  const enJsonPath = fileURLToPath(new URL("../../../src/i18n/messages/en.json", import.meta.url));
   return JSON.parse(readFileSync(enJsonPath, "utf-8"));
 }
 
@@ -49,9 +47,8 @@ describe("config-generator", () => {
 
   describe("assertSafeCatalogUrl (SSRF guard, CodeQL #326)", () => {
     it("allows the loopback OmniRoute target (the legitimate default) and returns a URL", async () => {
-      const { assertSafeCatalogUrl } = await import(
-        "../../../src/lib/cli-helper/config-generator/opencode.ts"
-      );
+      const { assertSafeCatalogUrl } =
+        await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
       // The catalog source IS the user's own OmniRoute — localhost must stay allowed.
       assert.doesNotThrow(() => assertSafeCatalogUrl("http://localhost:20128/v1/models"));
       assert.doesNotThrow(() => assertSafeCatalogUrl("http://127.0.0.1:20128/v1/models"));
@@ -62,26 +59,21 @@ describe("config-generator", () => {
     });
 
     it("allows a public OmniRoute Cloud target", async () => {
-      const { assertSafeCatalogUrl } = await import(
-        "../../../src/lib/cli-helper/config-generator/opencode.ts"
-      );
+      const { assertSafeCatalogUrl } =
+        await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
       assert.doesNotThrow(() => assertSafeCatalogUrl("https://api.omniroute.online/v1/models"));
     });
 
     it("blocks the cloud-metadata SSRF→IAM pivot (169.254.169.254)", async () => {
-      const { assertSafeCatalogUrl } = await import(
-        "../../../src/lib/cli-helper/config-generator/opencode.ts"
-      );
+      const { assertSafeCatalogUrl } =
+        await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
       assert.throws(() => assertSafeCatalogUrl("http://169.254.169.254/v1/models"));
-      assert.throws(() =>
-        assertSafeCatalogUrl("http://metadata.google.internal/v1/models")
-      );
+      assert.throws(() => assertSafeCatalogUrl("http://metadata.google.internal/v1/models"));
     });
 
     it("blocks non-http(s) protocols and embedded credentials", async () => {
-      const { assertSafeCatalogUrl } = await import(
-        "../../../src/lib/cli-helper/config-generator/opencode.ts"
-      );
+      const { assertSafeCatalogUrl } =
+        await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
       assert.throws(() => assertSafeCatalogUrl("file:///etc/passwd"));
       assert.throws(() => assertSafeCatalogUrl("http://user:pass@example.com/v1/models"));
     });
@@ -231,7 +223,9 @@ describe("config-generator", () => {
       assert.ok(arrayMatch, "could not locate HERMES_ROLES array in HermesAgentToolCard.tsx");
       const body = arrayMatch[1];
       const roleEntries = Array.from(
-        body.matchAll(/id:\s*"([a-z0-9_]+)"[\s\S]*?labelKey:\s*"([A-Za-z0-9]+)"[\s\S]*?descriptionKey:\s*"([A-Za-z0-9]+)"/g)
+        body.matchAll(
+          /id:\s*"([a-z0-9_]+)"[\s\S]*?labelKey:\s*"([A-Za-z0-9]+)"[\s\S]*?descriptionKey:\s*"([A-Za-z0-9]+)"/g
+        )
       ).map((m) => ({ id: m[1], labelKey: m[2], descriptionKey: m[3] }));
       assert.ok(roleEntries.length > 0, "expected at least one role entry to be parsed");
 
@@ -350,10 +344,20 @@ describe("config-generator", () => {
     }
 
     const SAMPLE_CATALOG: unknown[] = [
-      { id: "ds/deepseek-v4-flash", owned_by: "deepseek", context_length: 1_000_000, max_input_tokens: 1_000_000 },
+      {
+        id: "ds/deepseek-v4-flash",
+        owned_by: "deepseek",
+        context_length: 1_000_000,
+        max_input_tokens: 1_000_000,
+      },
       { id: "llama3", owned_by: "llama", max_context_window_tokens: 8192 },
       { id: "MASTER", owned_by: "combo", context_length: 131072, max_input_tokens: 131072 },
-      { id: "Opencode FREE Omni", owned_by: "combo", context_length: 200000, max_input_tokens: 160000 },
+      {
+        id: "Opencode FREE Omni",
+        owned_by: "combo",
+        context_length: 200000,
+        max_input_tokens: 160000,
+      },
       // Combo whose targets have no known context — generator must NOT
       // fabricate a default. The model is emitted without limit.context.
       { id: "NO_CTX_COMBO", owned_by: "combo" },
@@ -381,9 +385,8 @@ describe("config-generator", () => {
     it("emits limit.context from the catalog (no hardcoded fallback)", async () => {
       const stub = stubFetchOnce(makeCatalogResponse(SAMPLE_CATALOG));
       try {
-        const { generateOpencodeConfig } = await import(
-          "../../../src/lib/cli-helper/config-generator/opencode.ts"
-        );
+        const { generateOpencodeConfig } =
+          await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         const out = await generateOpencodeConfig({
           baseUrl: "http://localhost:20128",
           apiKey: "sk-test",
@@ -403,9 +406,8 @@ describe("config-generator", () => {
     it("does NOT fabricate a default context when the catalog has no entry", async () => {
       const stub = stubFetchOnce(makeCatalogResponse(SAMPLE_CATALOG));
       try {
-        const { generateOpencodeConfig } = await import(
-          "../../../src/lib/cli-helper/config-generator/opencode.ts"
-        );
+        const { generateOpencodeConfig } =
+          await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         const out = await generateOpencodeConfig({
           baseUrl: "http://localhost:20128",
           apiKey: "sk-test",
@@ -429,9 +431,8 @@ describe("config-generator", () => {
     it("prefers max_context_window_tokens when context_length is absent", async () => {
       const stub = stubFetchOnce(makeCatalogResponse(SAMPLE_CATALOG));
       try {
-        const { generateOpencodeConfig } = await import(
-          "../../../src/lib/cli-helper/config-generator/opencode.ts"
-        );
+        const { generateOpencodeConfig } =
+          await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         const out = await generateOpencodeConfig({
           baseUrl: "http://localhost:20128",
           apiKey: "sk-test",
@@ -454,9 +455,8 @@ describe("config-generator", () => {
         throw new Error("ECONNREFUSED");
       }) as typeof fetch;
       try {
-        const { generateOpencodeConfig } = await import(
-          "../../../src/lib/cli-helper/config-generator/opencode.ts"
-        );
+        const { generateOpencodeConfig } =
+          await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         let threw = false;
         try {
           await generateOpencodeConfig({
@@ -479,9 +479,8 @@ describe("config-generator", () => {
     it("writes a top-level model prefixed with provider id when options.model is supplied", async () => {
       const stub = stubFetchOnce(makeCatalogResponse(SAMPLE_CATALOG));
       try {
-        const { generateOpencodeConfig } = await import(
-          "../../../src/lib/cli-helper/config-generator/opencode.ts"
-        );
+        const { generateOpencodeConfig } =
+          await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         const out = await generateOpencodeConfig({
           baseUrl: "http://localhost:20128",
           apiKey: "sk-test",
@@ -494,15 +493,54 @@ describe("config-generator", () => {
       }
     });
 
+    it("propagates vision capability from the live catalog for issue #8960", async () => {
+      const modelId = "cx/gpt-5.6-sol-medium-issue-8960";
+      const stub = stubFetchOnce(
+        makeCatalogResponse([
+          {
+            id: modelId,
+            owned_by: "codex",
+            context_length: 272000,
+            max_output_tokens: 128000,
+            capabilities: {
+              vision: true,
+              reasoning: true,
+              tool_calling: true,
+            },
+            input_modalities: ["text", "image"],
+            output_modalities: ["text"],
+          },
+        ])
+      );
+      try {
+        const { generateOpencodeConfig } = await import(
+          "../../../src/lib/cli-helper/config-generator/opencode.ts"
+        );
+        const out = await generateOpencodeConfig({
+          baseUrl: "http://localhost:20128",
+          apiKey: "sk-test",
+        });
+        const cfg = JSON.parse(out);
+        const model = cfg.provider.omniroute.models[modelId];
+
+        assert.strictEqual(
+          model.attachment,
+          true,
+          "a catalog model with vision/image input must remain attachment-capable in opencode.json"
+        );
+      } finally {
+        stub.restore();
+      }
+    });
+
     it("auto-pulls the Opencode FREE Omni combo context (the user-reported case)", async () => {
       // Regression guard: the catalog's min-of-targets for combos must be
       // reflected verbatim. No hardcoded 128K, no fallback that overrides
       // the catalog's actual value.
       const stub = stubFetchOnce(makeCatalogResponse(SAMPLE_CATALOG));
       try {
-        const { generateOpencodeConfig } = await import(
-          "../../../src/lib/cli-helper/config-generator/opencode.ts"
-        );
+        const { generateOpencodeConfig } =
+          await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         const out = await generateOpencodeConfig({
           baseUrl: "http://localhost:20128",
           apiKey: "sk-test",
@@ -515,6 +553,104 @@ describe("config-generator", () => {
         );
       } finally {
         stub.restore();
+      }
+    });
+
+    it("#8849 emits a complete limit for catalog metadata without fabricating one", async () => {
+      const catalog = [
+        { id: "context-only", context_length: 131072 },
+        { id: "context-input", context_length: 131072, max_input_tokens: 100000 },
+        {
+          id: "context-input-output",
+          context_length: 131072,
+          max_input_tokens: 100000,
+          max_output_tokens: 32768,
+        },
+        { id: "no-metadata" },
+      ];
+      const stub = stubFetchOnce(makeCatalogResponse(catalog));
+      try {
+        const { generateOpencodeConfig } =
+          await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
+        const out = await generateOpencodeConfig({
+          baseUrl: "http://localhost:20128",
+          apiKey: "sk-test",
+          providerId: "issue8849",
+        });
+        const models = JSON.parse(out).provider.issue8849.models;
+
+        assert.deepStrictEqual(models["context-only"].limit, {
+          context: 131072,
+          output: 8192,
+        });
+        assert.deepStrictEqual(models["context-input"].limit, {
+          context: 131072,
+          input: 100000,
+          output: 8192,
+        });
+        assert.deepStrictEqual(models["context-input-output"].limit, {
+          context: 131072,
+          input: 100000,
+          output: 32768,
+        });
+        assert.strictEqual(models["no-metadata"].limit, undefined);
+
+        for (const model of Object.values(models) as Array<{ limit?: { output?: number } }>) {
+          assert.ok(
+            model.limit === undefined ||
+              (typeof model.limit.output === "number" && model.limit.output > 0),
+            "every emitted limit must contain a positive output"
+          );
+        }
+      } finally {
+        stub.restore();
+      }
+    });
+
+    it("#8849 preserves manual output precedence over catalog and fallback values", async () => {
+      const existingConfig = {
+        provider: {
+          issue8849: {
+            models: {
+              "manual-vs-catalog": { limit: { output: 16384 } },
+              "manual-vs-fallback": { limit: { output: 4096 } },
+            },
+          },
+        },
+      };
+      mock.method(fs, "existsSync", () => true);
+      mock.method(fs, "readFileSync", () => JSON.stringify(existingConfig));
+      const stub = stubFetchOnce(
+        makeCatalogResponse([
+          {
+            id: "manual-vs-catalog",
+            context_length: 131072,
+            max_output_tokens: 32768,
+          },
+          { id: "manual-vs-fallback", context_length: 131072 },
+        ])
+      );
+      try {
+        const { generateOpencodeConfig } =
+          await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
+        const out = await generateOpencodeConfig({
+          baseUrl: "http://localhost:20128",
+          apiKey: "sk-test",
+          providerId: "issue8849",
+        });
+        const models = JSON.parse(out).provider.issue8849.models;
+
+        assert.deepStrictEqual(models["manual-vs-catalog"].limit, {
+          context: 131072,
+          output: 16384,
+        });
+        assert.deepStrictEqual(models["manual-vs-fallback"].limit, {
+          context: 131072,
+          output: 4096,
+        });
+      } finally {
+        stub.restore();
+        mock.restoreAll();
       }
     });
   });

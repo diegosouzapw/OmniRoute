@@ -13,7 +13,10 @@ test("Dockerfile's --ignore-scripts npm ci is compensated for tls-client-node's 
 
   assert.match(
     dockerfile,
-    /npm ci --no-audit --no-fund --legacy-peer-deps --ignore-scripts/,
+    // Flag-order tolerant on purpose: the assertion is about the --ignore-scripts
+    // PRECONDITION, not the exact flag list. #9185 inserted --include=optional
+    // (LLMLingua optional deps) and broke the literal pin without touching intent.
+    /npm ci(?: --[\w-]+(?:=[\w-]+)?)* --ignore-scripts/,
     "expected the builder stage to install with --ignore-scripts (precondition of #7802)"
   );
 

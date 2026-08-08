@@ -160,8 +160,7 @@ export async function runSetupClaudeCommand(opts = {}) {
       let detail = `HTTP ${res.status}`;
       try {
         const errorBody = await res.json();
-        const serverMsg =
-          errorBody?.error?.message || errorBody?.error || errorBody?.message || "";
+        const serverMsg = errorBody?.error?.message || errorBody?.error || errorBody?.message || "";
         if (serverMsg) detail += ` — ${serverMsg}`;
       } catch {}
       throw new Error(detail);

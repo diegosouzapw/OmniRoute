@@ -144,6 +144,9 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
 
 export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
   // gemini-3.1-pro-low is not aliased: the upstream accepts it verbatim.
+  // gemini-3.1-pro-high: the discovery slot returns HTTP 400 on v1internal;
+  // the live upstream id is gemini-pro-agent (see ANTIGRAVITY_PUBLIC_MODELS).
+  "gemini-3.1-pro-high": "gemini-pro-agent",
   "gemini-3-pro-image-preview": "gemini-3-pro-image",
   // Legacy Claude display ids → current upstream ids. NOTE: an earlier comment here
   // assumed Claude was removed from Antigravity 2.0 and would 404; discussion #3184

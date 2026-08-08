@@ -394,7 +394,7 @@ export const WEB_COOKIE_PROVIDERS = {
     riskNoticeVariant: "webCookie",
     authHint: "Paste the full Cookie header from chat.z.ai (must include the token=<JWT> cookie)",
   },
-  "promptql": {
+  promptql: {
     id: "promptql",
     alias: "pql",
     name: "PromptQL (Unofficial/Experimental)",

@@ -20,7 +20,7 @@
  */
 import { errorResponse, sanitizeErrorMessage } from "../utils/error.ts";
 import { extractTextContent } from "../translator/helpers/geminiHelper.ts";
-import type { ComboLogger, HandleSingleModel } from "./combo/types.ts";
+import type { ComboLogger, HandleSingleModel, ResolvedComboTarget } from "./combo/types.ts";
 
 // Fusion tuning. Overridable per-combo via combo.config.fusionTuning.
 export const FUSION_DEFAULTS = {
@@ -108,10 +108,7 @@ export function appendUserTurn(body: Body, text: string): Body {
   } else if (Array.isArray(body.input)) {
     next.input = [...(body.input as unknown[]), { role: "user", content: text }];
   } else if (Array.isArray(body.contents)) {
-    next.contents = [
-      ...(body.contents as unknown[]),
-      { role: "user", parts: [{ text }] },
-    ];
+    next.contents = [...(body.contents as unknown[]), { role: "user", parts: [{ text }] }];
   } else {
     next.messages = [{ role: "user", content: text }];
   }
@@ -159,10 +156,7 @@ export function isToolBearingRequest(body: Body): boolean {
 type Sentinel = { __timeout?: true; __error?: unknown };
 
 // Resolve a Response (or sentinel) within ms; the loser keeps running but is ignored.
-function withTimeout(
-  promise: Promise<Response>,
-  ms: number
-): Promise<Response | Sentinel> {
+function withTimeout(promise: Promise<Response>, ms: number): Promise<Response | Sentinel> {
   return new Promise((resolve) => {
     const t = setTimeout(() => resolve({ __timeout: true }), ms);
     Promise.resolve(promise)
@@ -224,15 +218,32 @@ export function collectPanel(
   });
 }
 
+export type FusionModel = ResolvedComboTarget | string;
+
 export type HandleFusionChatOptions = {
   body: Body;
-  models: string[];
+  models: FusionModel[];
   handleSingleModel: HandleSingleModel;
   log: ComboLogger;
   comboName?: string;
   judgeModel?: string | null;
+  judgeTarget?: ResolvedComboTarget | null;
   tuning?: FusionTuning | null;
 };
+
+function getFusionModelString(model: FusionModel): string {
+  return typeof model === "string" ? model : model.modelStr;
+}
+
+function dispatchFusionModel(
+  handleSingleModel: HandleSingleModel,
+  body: Body,
+  model: FusionModel
+): Promise<Response> {
+  return typeof model === "string"
+    ? handleSingleModel(body, model)
+    : handleSingleModel(body, model.modelStr, model);
+}
 
 /**
  * Handle a fusion combo: fan the prompt out to every panel model in parallel,
@@ -260,6 +271,7 @@ export async function handleFusionChat({
   log,
   comboName,
   judgeModel,
+  judgeTarget,
   tuning,
 }: HandleFusionChatOptions): Promise<Response> {
   const panel = Array.isArray(models) ? models.filter(Boolean) : [];
@@ -269,7 +281,7 @@ export async function handleFusionChat({
 
   // A single-model fusion has nothing to fuse — just answer directly.
   if (panel.length === 1) {
-    return handleSingleModel(body, panel[0]);
+    return dispatchFusionModel(handleSingleModel, body, panel[0]);
   }
 
   // Reject an oversized panel BEFORE fan-out (issue #1905): fanning out N
@@ -296,10 +308,10 @@ export async function handleFusionChat({
   // gracefully via the answers.length===1 branch below (issue #6454).
   const minPanel = Math.min(Math.max(1, cfg.minPanel), panel.length);
   const hasExplicitJudge = Boolean(judgeModel && judgeModel.trim());
-  const judge = hasExplicitJudge ? (judgeModel as string).trim() : panel[0];
+  const judge = hasExplicitJudge ? (judgeModel as string).trim() : getFusionModelString(panel[0]);
   log.info(
     "FUSION",
-    `Combo "${comboName ?? ""}" | panel=${panel.length} [${panel.join(", ")}] | judge=${judge} | quorum=${minPanel}`
+    `Combo "${comboName ?? ""}" | panel=${panel.length} [${panel.map(getFusionModelString).join(", ")}] | judge=${judge} | quorum=${minPanel}`
   );
 
   // Tool-bearing requests get no value from panel synthesis — panel members
@@ -322,8 +334,8 @@ export async function handleFusionChat({
   void _tc;
   const panelBody: Body = { ...rest, stream: false };
   const t0 = Date.now();
-  const calls = panel.map((m) =>
-    withTimeout(handleSingleModel(panelBody, m), cfg.panelHardTimeoutMs)
+  const calls = panel.map((target) =>
+    withTimeout(dispatchFusionModel(handleSingleModel, panelBody, target), cfg.panelHardTimeoutMs)
   );
   const settled = await collectPanel(calls, { ...cfg, minPanel });
   log.info("FUSION", `fan-out collected in ${Date.now() - t0}ms`);
@@ -333,7 +345,7 @@ export async function handleFusionChat({
   const failures: Array<{ model: string; reason: string }> = [];
   for (let i = 0; i < settled.length; i++) {
     const res = settled[i];
-    const model = panel[i];
+    const model = getFusionModelString(panel[i]);
     if (!res) {
       log.warn("FUSION", `Panel ${model} dropped (straggler/timeout)`);
       failures.push({ model, reason: "straggler_dropped" });
@@ -399,10 +411,7 @@ export async function handleFusionChat({
     // synthesizing from a single source through itself would be redundant —
     // answer directly with the lone survivor (issue #6454).
     if (!hasExplicitJudge) {
-      log.info(
-        "FUSION",
-        `Only ${answers[0].model} succeeded — answering directly (no fusion)`
-      );
+      log.info("FUSION", `Only ${answers[0].model} succeeded — answering directly (no fusion)`);
       return handleSingleModel(body, answers[0].model);
     }
     // An explicit judgeModel IS configured: honor it even with a single
@@ -421,8 +430,8 @@ export async function handleFusionChat({
   // SURVIVOR: prefer panel[0] when it survived, otherwise the first survivor.
   const effectiveJudge = hasExplicitJudge
     ? judge
-    : answers.some((a) => a.model === panel[0])
-      ? panel[0]
+    : answers.some((a) => a.model === getFusionModelString(panel[0]))
+      ? getFusionModelString(panel[0])
       : answers[0].model;
 
   if (answers.length === 1) {
@@ -435,5 +444,7 @@ export async function handleFusionChat({
   // 4. Judge analyzes + writes one final answer (streams to client if requested).
   const judgeBody = appendUserTurn(body, buildJudgePrompt(answers));
   log.info("FUSION", `Judging ${answers.length} answers with ${effectiveJudge}`);
-  return handleSingleModel(judgeBody, effectiveJudge);
+  return judgeTarget
+    ? handleSingleModel(judgeBody, judgeTarget.modelStr, judgeTarget)
+    : handleSingleModel(judgeBody, effectiveJudge);
 }

@@ -25,7 +25,10 @@ test("allows up to N requests in the window and blocks the (N+1)-th", () => {
 
   const blocked = limiter.tryAcquire("k", win);
   assert.equal(blocked.allowed, false, "the 4th request in a 3/1000ms window is blocked");
-  assert.ok(blocked.retryAfterMs > 0 && blocked.retryAfterMs <= 1000, "retryAfterMs points at the oldest hit expiry");
+  assert.ok(
+    blocked.retryAfterMs > 0 && blocked.retryAfterMs <= 1000,
+    "retryAfterMs points at the oldest hit expiry"
+  );
 });
 
 test("the window slides: a slot frees once the oldest hit ages out", () => {
@@ -39,7 +42,11 @@ test("the window slides: a slot frees once the oldest hit ages out", () => {
   assert.equal(limiter.tryAcquire("k", win).allowed, false, "2/1000ms is saturated at t=400");
 
   clock.advance(601); // t=1001 — the t=0 hit (>1000ms old) ages out
-  assert.equal(limiter.tryAcquire("k", win).allowed, true, "a slot frees once the oldest hit leaves the window");
+  assert.equal(
+    limiter.tryAcquire("k", win).allowed,
+    true,
+    "a slot frees once the oldest hit leaves the window"
+  );
 });
 
 test("retryAfterMs reflects when the oldest in-window hit expires", () => {
@@ -60,7 +67,11 @@ test("keys are isolated from one another", () => {
   const win = { requests: 1, windowMs: 1000 };
 
   assert.equal(limiter.tryAcquire("a", win).allowed, true);
-  assert.equal(limiter.tryAcquire("b", win).allowed, true, "key b is unaffected by key a being saturated");
+  assert.equal(
+    limiter.tryAcquire("b", win).allowed,
+    true,
+    "key b is unaffected by key a being saturated"
+  );
   assert.equal(limiter.tryAcquire("a", win).allowed, false);
 });
 
@@ -78,7 +89,11 @@ test("reset clears a single key's history", () => {
   assert.equal(limiter.tryAcquire("k", win).allowed, true);
   assert.equal(limiter.tryAcquire("k", win).allowed, false);
   limiter.reset("k");
-  assert.equal(limiter.tryAcquire("k", win).allowed, true, "history cleared → slot available again");
+  assert.equal(
+    limiter.tryAcquire("k", win).allowed,
+    true,
+    "history cleared → slot available again"
+  );
 });
 
 test("blocked attempts do not consume a slot (no double counting)", () => {
@@ -92,5 +107,53 @@ test("blocked attempts do not consume a slot (no double counting)", () => {
   limiter.tryAcquire("k", win);
   limiter.tryAcquire("k", win);
   clock.advance(1001);
-  assert.equal(limiter.tryAcquire("k", win).allowed, true, "only the single successful hit aged out");
+  assert.equal(
+    limiter.tryAcquire("k", win).allowed,
+    true,
+    "only the single successful hit aged out"
+  );
+});
+
+test("multi-scope acquisition is atomic", () => {
+  const clock = fakeClock();
+  const limiter = new SlidingWindowLimiter({ now: clock.now });
+  const global = { key: "global", window: { requests: 2, windowMs: 1000 } };
+  const provider = { key: "provider:openference", window: { requests: 1, windowMs: 1000 } };
+
+  const first = limiter.tryAcquireMany([global, provider]);
+  assert.equal(first.allowed, true);
+
+  const blocked = limiter.tryAcquireMany([global, provider]);
+  assert.equal(blocked.allowed, false, "the provider scope blocks the second request");
+
+  clock.advance(1001);
+  const second = limiter.tryAcquireMany([global, provider]);
+  assert.equal(second.allowed, true);
+});
+
+test("releasing an un-dispatched multi-scope lease returns every scope", () => {
+  const limiter = new SlidingWindowLimiter();
+  const scopes = [
+    { key: "global", window: { requests: 1, windowMs: 1000 } },
+    { key: "provider", window: { requests: 1, windowMs: 1000 } },
+  ];
+
+  const result = limiter.tryAcquireMany(scopes);
+  assert.equal(result.allowed, true);
+  result.lease?.release();
+  assert.equal(limiter.tryAcquireMany(scopes).allowed, true);
+});
+
+test("rolling leases do not reset as a burst at a fixed boundary", () => {
+  const clock = fakeClock();
+  const limiter = new SlidingWindowLimiter({ now: clock.now });
+  const window = { key: "global", window: { requests: 2, windowMs: 1000 } };
+
+  assert.equal(limiter.tryAcquireMany([window]).allowed, true); // t=0
+  clock.advance(900);
+  assert.equal(limiter.tryAcquireMany([window]).allowed, true); // t=900
+  assert.equal(limiter.tryAcquireMany([window]).allowed, false);
+  clock.advance(100);
+  assert.equal(limiter.tryAcquireMany([window]).allowed, true, "only the t=0 lease returned");
+  assert.equal(limiter.tryAcquireMany([window]).allowed, false, "the t=900 lease remains active");
 });

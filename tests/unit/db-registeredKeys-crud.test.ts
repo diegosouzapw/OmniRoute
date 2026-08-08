@@ -223,18 +223,14 @@ test("validateRegisteredKey resets budget counters on a fresh window", async () 
   if (!("rawKey" in issued)) return;
 
   const db = core.getDbInstance();
-  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 10);
-  const previousHour = new Date(Date.now() - 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 13);
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const previousHour = new Date(Date.now() - 60 * 60 * 1000).toISOString().slice(0, 13);
 
   rk.incrementRegisteredKeyUsage(issued.id);
   rk.incrementRegisteredKeyUsage(issued.id);
   rk.incrementRegisteredKeyUsage(issued.id);
   db.prepare(
-    `UPDATE registered_keys SET daily_used = ?, hourly_used = ?, last_reset_day = ?, last_reset_hour = ? WHERE id = ?`,
+    `UPDATE registered_keys SET daily_used = ?, hourly_used = ?, last_reset_day = ?, last_reset_hour = ? WHERE id = ?`
   ).run(3, 3, yesterday, previousHour, issued.id);
 
   // First validation of the new window must be accepted (not rejected against the

@@ -234,71 +234,11 @@ export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal):
   return controller.signal;
 }
 
-function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
-  const thinking = body.thinking as Record<string, unknown> | undefined;
-  return thinking?.type === "enabled" || thinking?.type === "adaptive";
-}
-
-/**
- * Collect every `thinkingConfig` object in a transformed request body that holds
- * a thinking budget, wherever the provider's envelope nests it:
- *   - body.generationConfig.thinkingConfig            (native Gemini / openai→gemini)
- *   - body.request.generationConfig.thinkingConfig    (Antigravity Cloud Code envelope)
- * Returns only objects that actually carry a `thinkingBudget`/`thinking_budget`
- * field — a request without thinking config is never mutated.
- */
-function collectThinkingConfigs(body: unknown): Array<Record<string, unknown>> {
-  if (!body || typeof body !== "object") return [];
-  const root = body as Record<string, unknown>;
-  const configs: Array<Record<string, unknown>> = [];
-  const envelopes: unknown[] = [
-    root.generationConfig,
-    (root.request as Record<string, unknown> | undefined)?.generationConfig,
-  ];
-  for (const env of envelopes) {
-    if (!env || typeof env !== "object") continue;
-    const tc = (env as Record<string, unknown>).thinkingConfig;
-    if (tc && typeof tc === "object") {
-      const tcr = tc as Record<string, unknown>;
-      if ("thinkingBudget" in tcr || "thinking_budget" in tcr) configs.push(tcr);
-    }
-  }
-  return configs;
-}
-
-/**
- * Read the first thinking budget found in the body (any supported nest / naming).
- * Returns null when the body carries no readable numeric budget.
- */
-function readNestedThinkingBudget(body: unknown): number | null {
-  for (const tc of collectThinkingConfigs(body)) {
-    const raw = tc.thinkingBudget ?? tc.thinking_budget;
-    const n = Number(raw);
-    if (Number.isFinite(n)) return n;
-  }
-  return null;
-}
-
-/**
- * Clamp every thinking budget in the body down to `max` (only lowers; never
- * raises a budget already below max). Mutates in place. Returns true when at
- * least one budget was actually lowered (i.e. a retry would send a different
- * body) — false means the 400 was not caused by an over-max budget we hold, so
- * retrying would resend an identical body and loop.
- */
-function clampNestedThinkingBudget(body: unknown, max: number): boolean {
-  let changed = false;
-  for (const tc of collectThinkingConfigs(body)) {
-    for (const key of ["thinkingBudget", "thinking_budget"] as const) {
-      const n = Number(tc[key]);
-      if (Number.isFinite(n) && n > max) {
-        tc[key] = max;
-        changed = true;
-      }
-    }
-  }
-  return changed;
-}
+import {
+  hasActiveClaudeThinking,
+  readNestedThinkingBudget,
+  clampNestedThinkingBudget,
+} from "../utils/thinkingBudget.ts";
 
 /**
  * Strip the OmniRoute provider prefix from tool model fields (e.g.
@@ -324,7 +264,11 @@ export function stripVersionedToolModelPrefix(tools: unknown): void {
   for (const t of tools as Array<Record<string, unknown>>) {
     if (typeof t.model !== "string") continue;
     const model = t.model;
-    if (typeof t.type === "string" && /^[a-z][a-z0-9_]*_\d{8}$/.test(t.type) && model.includes("/")) {
+    if (
+      typeof t.type === "string" &&
+      /^[a-z][a-z0-9_]*_\d{8}$/.test(t.type) &&
+      model.includes("/")
+    ) {
       t.model = model.split("/").pop();
     } else {
       const prefix = CLAUDE_TOOL_MODEL_PREFIXES.find((candidate) => model.startsWith(candidate));
@@ -1571,7 +1515,8 @@ export class BaseExecutor {
           if (/content[_-]blocked/i.test(wafErrText)) {
             retryAttemptsByUrl[urlIndex] = (retryAttemptsByUrl[urlIndex] ?? 0) + 1;
             const wafAttempt = retryAttemptsByUrl[urlIndex];
-            const wafBackoff = BaseExecutor.WAF_RETRY_CONFIG.delayMs *
+            const wafBackoff =
+              BaseExecutor.WAF_RETRY_CONFIG.delayMs *
               Math.pow(BaseExecutor.WAF_RETRY_CONFIG.backoffMultiplier, wafAttempt - 1);
             log?.debug?.(
               "WAF_RETRY",

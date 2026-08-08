@@ -1,0 +1,1 @@
+- feat(copilot): add approval gate for runOmniRouteCli commands (#8461)

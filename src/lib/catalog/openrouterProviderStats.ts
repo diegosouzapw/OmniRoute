@@ -161,7 +161,10 @@ export function computeProviderPopularity(
     }
   }
 
-  const bySlug = new Map<string, { modelCount: number; totalTokens: number; totalRequests: number }>();
+  const bySlug = new Map<
+    string,
+    { modelCount: number; totalTokens: number; totalRequests: number }
+  >();
   for (const row of catalogRows) {
     const key = `${row.permaslug}::${row.endpoint.variant ?? "standard"}`;
     const usage = usageByKey.get(key);
@@ -303,7 +306,9 @@ function startPeriodicSync(intervalMs?: number): void {
   refreshOpenRouterProviderStats()
     .then((result) => {
       if (result.ok) {
-        console.log(`[OpenRouterProviderStats] Initial sync complete: ${result.data.length} providers`);
+        console.log(
+          `[OpenRouterProviderStats] Initial sync complete: ${result.data.length} providers`
+        );
       } else {
         console.warn(`[OpenRouterProviderStats] Initial sync failed: ${result.error}`);
       }
@@ -332,9 +337,7 @@ function startPeriodicSync(intervalMs?: number): void {
  */
 export function initOpenRouterProviderStatsSync(): boolean {
   if (!getEffectiveOpenRouterProviderStatsEnabled()) {
-    console.log(
-      "[OpenRouterProviderStats] Disabled via OPENROUTER_PROVIDER_STATS_ENABLED=false."
-    );
+    console.log("[OpenRouterProviderStats] Disabled via OPENROUTER_PROVIDER_STATS_ENABLED=false.");
     return false;
   }
   startPeriodicSync();

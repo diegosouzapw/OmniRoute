@@ -8,6 +8,7 @@ import {
   extractModelTestResponseText,
   runSingleModelTest,
   resolveModelTestTimeoutMs,
+  classifyTestErrorQuota,
 } from "@/lib/api/modelTestRunner.ts";
 
 // ---------------------------------------------------------------------------
@@ -301,4 +302,76 @@ test("resolveModelTestTimeoutMs gives GitHub Phi-4 Reasoning up to 60 seconds", 
     resolveModelTestTimeoutMs("github-models", "microsoft/phi-4-reasoning", 90_000),
     90_000
   );
+});
+
+// ---------------------------------------------------------------------------
+// classifyTestErrorQuota — #9511 quota classification for Test All auto-hide.
+// Distinguishes three outcomes:
+//   1. Daily-quota exhausted → isQuota + isTransient (resets tomorrow)
+//   2. Credits/balance exhausted → isQuota only (needs top-up, not transient)
+//   3. Other errors → no quota flags (still auto-hidable)
+// ---------------------------------------------------------------------------
+
+test("classifyTestErrorQuota: credits-exhausted signals produce isQuota without isTransient", () => {
+  const creditsSignals = [
+    "insufficient_balance",
+    "insufficient balance",
+    "insufficient_quota",
+    "insufficient account balance",
+    "credits exhausted",
+    "out of credits",
+    "credit_balance_too_low",
+    "your credit balance is too low",
+    "payment required",
+    "billing_hard_limit_reached",
+    "exceeded your current quota",
+    "free tier of the model has been exhausted",
+  ];
+  for (const signal of creditsSignals) {
+    const result = classifyTestErrorQuota(signal);
+    assert.equal(result.isQuota, true, `signal="${signal}" should be isQuota`);
+    assert.equal(result.isTransient, undefined, `signal="${signal}" should NOT be isTransient`);
+  }
+});
+
+test("classifyTestErrorQuota: daily-quota signals produce isQuota + isTransient", () => {
+  const dailySignals = [
+    "today's quota has been exceeded",
+    "daily quota exhausted",
+    "Resource exhausted. Try again tomorrow.",
+  ];
+  for (const signal of dailySignals) {
+    const result = classifyTestErrorQuota(signal);
+    assert.equal(result.isQuota, true, `signal="${signal}" should be isQuota`);
+    assert.equal(result.isTransient, true, `signal="${signal}" should be isTransient`);
+  }
+});
+
+test("classifyTestErrorQuota: generic errors produce no quota flags", () => {
+  const genericErrors = [
+    "invalid model",
+    "model not found",
+    "unauthorized",
+    "forbidden",
+    "bad request",
+    "internal server error",
+  ];
+  for (const msg of genericErrors) {
+    const result = classifyTestErrorQuota(msg);
+    assert.equal(result.isQuota, undefined, `msg="${msg}" should NOT be isQuota`);
+    assert.equal(result.isTransient, undefined, `msg="${msg}" should NOT be isTransient`);
+  }
+});
+
+test("classifyTestErrorQuota: empty/null input produces no quota flags", () => {
+  assert.deepEqual(classifyTestErrorQuota(""), {});
+  assert.deepEqual(classifyTestErrorQuota("   "), {});
+});
+
+test("classifyTestErrorQuota: daily-quota wins over credits-exhausted (isTransient=true)", () => {
+  // If an error text matches both daily-quota and credits-exhausted signals,
+  // daily-quota wins — it's the more specific (transient) classification.
+  const result = classifyTestErrorQuota("daily quota exhausted, insufficient balance");
+  assert.equal(result.isQuota, true);
+  assert.equal(result.isTransient, true);
 });

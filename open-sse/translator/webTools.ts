@@ -356,24 +356,18 @@ export function toArgumentsString(value: unknown): string {
   }
 }
 
-/**
- * Serialize an OpenAI `tools` array into a system-prompt block that instructs the
- * web UI model how to invoke a tool (emit a `<tool>{...}</tool>` block). Returns an
- * empty string when there are no usable tools.
- *
- * Each invocation generates a per-request nonce that is embedded in the tool format
- * instructions. The parser (parseToolCallsFromText) requires this nonce in the model's
- * `<tool>` JSON to distinguish legitimate tool calls from bare JSON, code-fenced JSON,
- * or copy-attacked envelopes (#9343).
- */
-export function serializeToolsToPrompt(tools: unknown): string {
-  if (!Array.isArray(tools) || tools.length === 0) return "";
+export interface SerializeToolOptions {
+  /** Hardened mode for thinking/reasoning models: repeat the instruction
+   * both before AND after the tool list, use a more distinctive tag format,
+   * and explicitly tell the model not to claim tools are unavailable. */
+  hardened?: boolean;
+}
 
-  const nonce = getToolNonce(tools);
-  if (!nonce) return "";
+// ── Tool list rendering (shared between standard and hardened) ─────────────────
 
+function renderToolList(tools: OpenAIToolDef[]): string[] {
   const lines: string[] = [];
-  for (const t of tools as OpenAIToolDef[]) {
+  for (const t of tools) {
     const fn = t?.function;
     if (!fn?.name) continue;
     const desc = typeof fn.description === "string" && fn.description ? fn.description : "";
@@ -387,8 +381,46 @@ export function serializeToolsToPrompt(tools: unknown): string {
       `- ${fn.name}${desc ? `: ${desc}` : ""}${params ? `\n  parameters: ${params}` : ""}`
     );
   }
+  return lines;
+}
 
+/**
+ * Serialize an OpenAI `tools` array into a system-prompt block that instructs the
+ * web UI model how to invoke a tool (emit a `<tool>{...}</tool>` block). Returns an
+ * empty string when there are no usable tools.
+ *
+ * When `options.hardened` is set (intended for thinking/reasoning models), the
+ * contract is more emphatic: the `<tool>` format example is shown before the tool
+ * list, an explicit "IMPORTANT" directive is appended after the list, and the
+ * model is told not to claim tools are unavailable.
+ */
+export function serializeToolsToPrompt(tools: unknown, options?: SerializeToolOptions): string {
+  if (!Array.isArray(tools) || tools.length === 0) return "";
+
+  // #9343: the per-request nonce is mandatory in BOTH modes — the parser rejects
+  // any <tool> JSON without the matching `_nonce` binding.
+  const nonce = getToolNonce(tools);
+  if (!nonce) return "";
+
+  const defs = tools as OpenAIToolDef[];
+  const lines = renderToolList(defs);
   if (lines.length === 0) return "";
+
+  if (options?.hardened) {
+    return [
+      "You have access to the following tools and you MUST use them when appropriate.",
+      "",
+      `<tool>{"name": "<tool_name>", "arguments": { ... }, "_nonce": "${nonce}"}</tool>`,
+      `Every tool call MUST include the secret binding "_nonce": "${nonce}" exactly as shown.`,
+      "",
+      "Available tools:",
+      ...lines,
+      "",
+      "IMPORTANT: You CAN and MUST use these tools. Do NOT say you cannot use tools or that",
+      "tools are unavailable — you have them and they are ready. If a task requires a tool,",
+      "call it using the TOOL block format described above.",
+    ].join("\n");
+  }
 
   return [
     "You can call tools. To call a tool, reply with a single line containing a <tool> block",
@@ -514,13 +546,14 @@ interface ToolPrepResult {
  */
 export function prepareToolMessages(
   bodyObj: Record<string, unknown>,
-  messages: Array<{ role: string; content: unknown }>
+  messages: Array<{ role: string; content: unknown }>,
+  options?: SerializeToolOptions
 ): ToolPrepResult {
   const requestedTools = bodyObj.tools;
   const hasTools = Array.isArray(requestedTools) && requestedTools.length > 0;
   if (!hasTools) return { hasTools: false, requestedTools, effectiveMessages: messages };
 
-  const toolPrompt = serializeToolsToPrompt(requestedTools);
+  const toolPrompt = serializeToolsToPrompt(requestedTools, options);
   return {
     hasTools: true,
     requestedTools,

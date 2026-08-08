@@ -2,10 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { ReadonlyURLSearchParams } from "next/navigation";
-import {
-  readProviderFiltersFromUrl,
-  syncProviderFiltersToUrl,
-} from "../providerPageUtils";
+import { readProviderFiltersFromUrl, syncProviderFiltersToUrl } from "../providerPageUtils";
 import {
   readProviderDisplayModePreference,
   type ProviderDisplayMode,

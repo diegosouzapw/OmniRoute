@@ -72,6 +72,7 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+!.env.devin-bridge.example
 !.env.homolog.example
 # Provider API keys (never commit)
 *.api-key
@@ -209,6 +210,8 @@ scripts/i18n/_pending-keys.json
 .agents/
 .antigravitycli/
 .claude/
+!tests/fixtures/devin-bridge/e2e-workspace/.claude/
+!tests/fixtures/devin-bridge/e2e-workspace/.claude/**
 
 # PR Reviews and local feedback files
 pr_reviews*.json
@@ -248,6 +251,8 @@ _artifacts/
 
 # CI/local quality artifacts (eslint-results.json, quality-ratchet.md, etc.)
 .artifacts/
+# Isolated Devin bridge workspaces, evidence, and test databases
+.sandbox/
 
 # Homologation E2E suite (npm run homolog) — real-environment credentials + report output
 .env.homolog
@@ -260,3 +265,7 @@ docker-compose.yml.bak
 # output/**/.playwright-cli/ (covered above), but anything written directly to
 # output/ would otherwise show up as untracked.
 /output/
+
+# _tasks e um repo git SEPARADO (ver AGENTS.md). _tasks/ (com barra) NAO ignora um
+# SYMLINK _tasks; /_tasks (ancorado) cobre symlink/dir na raiz (incidente 2026-08-08).
+/_tasks

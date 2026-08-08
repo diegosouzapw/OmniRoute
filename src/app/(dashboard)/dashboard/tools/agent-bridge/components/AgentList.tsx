@@ -4,7 +4,11 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { AgentCard } from "./AgentCard";
 import type { MitmTargetView } from "@/mitm/types";
-import type { AgentStateEntry, AgentMappingsMap, AgentBridgeServerState } from "../AgentBridgePageClient";
+import type {
+  AgentStateEntry,
+  AgentMappingsMap,
+  AgentBridgeServerState,
+} from "../AgentBridgePageClient";
 import type { MappingRow } from "./ModelMappingTable";
 
 interface AgentListProps {

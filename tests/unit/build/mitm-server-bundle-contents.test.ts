@@ -19,10 +19,7 @@ const repoRoot = path.resolve(new URL(".", import.meta.url).pathname, "../../.."
 test("EXTRA_MODULE_ENTRIES ships every relative require() of MITM server.cjs (#9451)", async () => {
   const serverSrc = fs.readFileSync(path.join(repoRoot, "src/mitm/server.cjs"), "utf8");
   const relRequires = [...serverSrc.matchAll(/require\("\.\/([^"]+)"\)/g)].map((m) => m[1]);
-  assert.ok(
-    relRequires.length > 0,
-    "server.cjs has relative require() calls to check (sanity)"
-  );
+  assert.ok(relRequires.length > 0, "server.cjs has relative require() calls to check (sanity)");
 
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "mitm-bundle-"));
   try {
@@ -40,9 +37,7 @@ test("EXTRA_MODULE_ENTRIES ships every relative require() of MITM server.cjs (#9
 
 test("EXTRA_MODULE_ENTRIES ships every dynamic import() of MITM _internal shims (#9451)", async () => {
   const internalDir = path.join(repoRoot, "src/mitm/_internal");
-  const shimFiles = fs
-    .readdirSync(internalDir)
-    .filter((f) => f.endsWith(".cjs"));
+  const shimFiles = fs.readdirSync(internalDir).filter((f) => f.endsWith(".cjs"));
   assert.ok(shimFiles.length > 0, "src/mitm/_internal has shim files to check (sanity)");
 
   // Collect bare-specifier (non-relative, non-node:) dynamic imports across all shims.

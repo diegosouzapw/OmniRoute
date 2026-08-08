@@ -128,8 +128,5 @@ test("no drops or dupes: every row present exactly once", () => {
   ];
   const out = sortCatalogModelsProviderGrouped(input);
   assert.equal(out.length, input.length);
-  assert.deepEqual(
-    out.map((m) => m.id).sort(),
-    input.map((m) => m.id).sort()
-  );
+  assert.deepEqual(out.map((m) => m.id).sort(), input.map((m) => m.id).sort());
 });

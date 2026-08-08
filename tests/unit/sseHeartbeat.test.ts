@@ -23,11 +23,17 @@ test("sseCommentsEnabled defaults to true when the env var is unset", () => {
   withEnv(undefined, () => assert.equal(sseCommentsEnabled(), true));
 });
 
-test("sseCommentsEnabled is false only when set to 'off' (case-insensitive)", () => {
+test("sseCommentsEnabled is false for 'off', 'false', '0', 'no' (case-insensitive)", () => {
   withEnv("off", () => assert.equal(sseCommentsEnabled(), false));
   withEnv("OFF", () => assert.equal(sseCommentsEnabled(), false));
+  withEnv("false", () => assert.equal(sseCommentsEnabled(), false));
+  withEnv("FALSE", () => assert.equal(sseCommentsEnabled(), false));
+  withEnv("0", () => assert.equal(sseCommentsEnabled(), false));
+  withEnv("no", () => assert.equal(sseCommentsEnabled(), false));
+  withEnv("NO", () => assert.equal(sseCommentsEnabled(), false));
   withEnv("on", () => assert.equal(sseCommentsEnabled(), true));
-  withEnv("false", () => assert.equal(sseCommentsEnabled(), true));
+  withEnv("yes", () => assert.equal(sseCommentsEnabled(), true));
+  withEnv("1", () => assert.equal(sseCommentsEnabled(), true));
 });
 
 test("shapeForClientFormat maps known client formats", () => {

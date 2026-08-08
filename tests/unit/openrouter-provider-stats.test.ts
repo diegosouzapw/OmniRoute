@@ -54,13 +54,34 @@ describe("computeProviderPopularity (pure join/aggregation)", () => {
       { slug: "cerebras", displayName: "Cerebras", headquarters: "US" },
     ];
     const catalog = [
-      { permaslug: "deepseek/deepseek-v4-flash", endpoint: { variant: "standard", provider_slug: "deepinfra" } },
-      { permaslug: "qwen/qwen3-max", endpoint: { variant: "standard", provider_slug: "deepinfra" } },
-      { permaslug: "deepseek/deepseek-v4-flash", endpoint: { variant: "standard", provider_slug: "cerebras" } },
+      {
+        permaslug: "deepseek/deepseek-v4-flash",
+        endpoint: { variant: "standard", provider_slug: "deepinfra" },
+      },
+      {
+        permaslug: "qwen/qwen3-max",
+        endpoint: { variant: "standard", provider_slug: "deepinfra" },
+      },
+      {
+        permaslug: "deepseek/deepseek-v4-flash",
+        endpoint: { variant: "standard", provider_slug: "cerebras" },
+      },
     ];
     const rankings = [
-      { model_permaslug: "deepseek/deepseek-v4-flash", variant: "standard", total_prompt_tokens: 100, total_completion_tokens: 20, count: 5 },
-      { model_permaslug: "qwen/qwen3-max", variant: "standard", total_prompt_tokens: 900, total_completion_tokens: 100, count: 50 },
+      {
+        model_permaslug: "deepseek/deepseek-v4-flash",
+        variant: "standard",
+        total_prompt_tokens: 100,
+        total_completion_tokens: 20,
+        count: 5,
+      },
+      {
+        model_permaslug: "qwen/qwen3-max",
+        variant: "standard",
+        total_prompt_tokens: 900,
+        total_completion_tokens: 100,
+        count: 50,
+      },
     ];
 
     const result = computeProviderPopularity(directory, catalog, rankings);
@@ -132,12 +153,22 @@ describe("getOpenRouterProviderStats / refreshOpenRouterProviderStats (cache + T
       }
       if (url.includes("catalog/models")) {
         return jsonResponse({
-          data: [{ permaslug: "m/1", endpoint: { variant: "standard", provider_slug: "deepinfra" } }],
+          data: [
+            { permaslug: "m/1", endpoint: { variant: "standard", provider_slug: "deepinfra" } },
+          ],
         });
       }
       if (url.includes("rankings/models")) {
         return jsonResponse({
-          data: [{ model_permaslug: "m/1", variant: "standard", total_prompt_tokens: 10, total_completion_tokens: 5, count: 1 }],
+          data: [
+            {
+              model_permaslug: "m/1",
+              variant: "standard",
+              total_prompt_tokens: 10,
+              total_completion_tokens: 5,
+              count: 1,
+            },
+          ],
         });
       }
       throw new Error(`Unexpected URL: ${url}`);
@@ -175,7 +206,8 @@ describe("getOpenRouterProviderStats / refreshOpenRouterProviderStats (cache + T
 
   it("falls back to stale cache when the refresh fetch fails", async () => {
     mockFetch(async (url: string) => {
-      if (url.includes("all-providers")) return jsonResponse({ data: [{ slug: "cerebras", displayName: "Cerebras" }] });
+      if (url.includes("all-providers"))
+        return jsonResponse({ data: [{ slug: "cerebras", displayName: "Cerebras" }] });
       if (url.includes("catalog/models")) return jsonResponse({ data: [] });
       return jsonResponse({ data: [] });
     });
