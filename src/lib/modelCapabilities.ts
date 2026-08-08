@@ -121,6 +121,7 @@ export interface ResolvedModelCapabilities {
   supportsThinking: boolean | null;
   supportsTools: boolean | null;
   supportsVision: boolean | null;
+  supportsAudio: boolean | null;
   supportsMaxTokens: boolean;
   attachment: boolean | null;
   structuredOutput: boolean | null;
@@ -540,6 +541,25 @@ function resolveVisionCapability(
 }
 
 /**
+ * Resolve whether a chat model accepts audio input.
+ *
+ * Explicit catalog metadata wins. Synced input modalities are authoritative
+ * only when they contain at least one declared modality; an empty list means
+ * that no source knows the answer and remains `null` so Audio Bridge can act
+ * conservatively.
+ */
+export function resolveAudioCapability(
+  spec: Pick<ModelSpec, "supportsAudio"> | undefined,
+  registryModel: { supportsAudio?: boolean } | null,
+  modalitiesInput: readonly string[]
+): boolean | null {
+  if (typeof registryModel?.supportsAudio === "boolean") return registryModel.supportsAudio;
+  if (typeof spec?.supportsAudio === "boolean") return spec.supportsAudio;
+  if (modalitiesInput.length === 0) return null;
+  return modalitiesInput.some((entry) => String(entry).toLowerCase().includes("audio"));
+}
+
+/**
  * Issue #6524: an operator-set `max_output_tokens` capability override (see
  * `src/lib/db/modelCapabilityOverrides.ts`) is the manual escape hatch for a
  * wrong/stale synced `limit_output` value (e.g. a provider's models.dev catalog
@@ -719,6 +739,7 @@ export function getResolvedModelCapabilities(
     lookupKey,
     customVisionOverride
   );
+  const supportsAudio = resolveAudioCapability(spec, registryModel, modalitiesInput);
 
   // #8250: when resolve promoted vision over a contradictory attachment=false,
   // expose attachment=true so catalog / Vision Bridge / clients see one verdict.
@@ -736,6 +757,7 @@ export function getResolvedModelCapabilities(
     supportsThinking,
     supportsTools,
     supportsVision,
+    supportsAudio,
     supportsMaxTokens: heuristicMaxTokens(lookupKey),
     attachment,
     structuredOutput: synced?.structured_output ?? null,

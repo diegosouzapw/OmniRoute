@@ -32,6 +32,10 @@ vi.mock(
   "@/app/(dashboard)/dashboard/settings/components/modalityBridge/ModalityBridgeVisionTab",
   () => ({ default: () => <div data-testid="vision-tab">vision</div> })
 );
+vi.mock(
+  "@/app/(dashboard)/dashboard/settings/components/modalityBridge/ModalityBridgeAudioTab",
+  () => ({ default: () => <div data-testid="audio-tab">audio</div> })
+);
 
 const roots: Array<{ root: Root; el: HTMLDivElement }> = [];
 
@@ -63,7 +67,8 @@ describe("Modality Bridge settings page", () => {
     navigation.search = "tab=audio";
     const el = renderPage();
     expect(el.querySelectorAll('[role="tab"]')).toHaveLength(3);
-    expect(el.textContent).toContain("modalityBridgeAudioComingSoon");
+    expect(el.querySelector('[data-testid="audio-tab"]')).toBeTruthy();
+    expect(el.textContent).not.toContain("modalityBridgeAudioComingSoon");
     expect(el.querySelector('[role="tab"][aria-selected="true"]')?.textContent).toContain(
       "modalityBridgeAudioTab"
     );

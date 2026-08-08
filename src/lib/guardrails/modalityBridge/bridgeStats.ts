@@ -48,6 +48,12 @@ interface GuardrailMetaEntry {
   meta?: Record<string, unknown> | null;
 }
 
+function headerModelToken(value: unknown): string {
+  return String(value ?? "unknown")
+    .slice(0, 200)
+    .replace(/[^A-Za-z0-9._~/-]/g, "_");
+}
+
 /** Response header value for a describe-bridged request; null when untouched. */
 export function buildModalityBridgeHeader(results: GuardrailMetaEntry[]): string | null {
   const segments: string[] = [];
@@ -59,12 +65,16 @@ export function buildModalityBridgeHeader(results: GuardrailMetaEntry[]): string
       !meta.rerouted
     ) {
       segments.push(
-        `image->text;model=${String(meta.visionModel ?? "unknown")};parts=${meta.imagesProcessed}`
+        `image->text;model=${headerModelToken(meta.visionModel)};parts=${meta.imagesProcessed}`
       );
     }
-    if (r.guardrail === "audio-bridge" && typeof meta.clipsProcessed === "number") {
+    if (
+      r.guardrail === "audio-bridge" &&
+      typeof meta.clipsProcessed === "number" &&
+      !meta.rerouted
+    ) {
       segments.push(
-        `audio->text;model=${String(meta.sttModel ?? "unknown")};parts=${meta.clipsProcessed}`
+        `audio->text;model=${headerModelToken(meta.sttModel)};parts=${meta.clipsProcessed}`
       );
     }
   }

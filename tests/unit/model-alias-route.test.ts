@@ -11,6 +11,7 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || "model-alias-route-jwt";
 
 const core = await import("../../src/lib/db/core.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
 const localDb = await import("../../src/lib/localDb.ts");
 const route = await import("../../src/app/api/models/alias/route.ts");
 const catalogRoute = await import("../../src/app/api/models/catalog/route.ts");
@@ -86,6 +87,15 @@ test("model alias route requires a dashboard session when management auth is ena
 });
 
 test("api models catalog route reuses the unified catalog diagnostics headers", async () => {
+  await providersDb.createProviderConnection({
+    provider: "deepgram",
+    authType: "apikey",
+    name: "deepgram-audio-catalog",
+    apiKey: "dg-test",
+    isActive: true,
+    testStatus: "active",
+  });
+  v1Catalog.__resetCatalogBuilderRunsForTest();
   const response = await catalogRoute.GET(
     new Request("http://localhost/api/models/catalog", {
       headers: { "x-request-id": "req-model-catalog-1" },
@@ -98,6 +108,11 @@ test("api models catalog route reuses the unified catalog diagnostics headers", 
   assert.match(response.headers.get("X-Model-Catalog-Version") || "", /^model-metadata-v1:/);
   assert.equal(typeof body.catalog, "object");
   assert.equal(typeof body.catalogVersion, "string");
+  const nova = body.catalog.deepgram.models.find(
+    (model: { id?: string }) => model.id === "deepgram/nova-3"
+  );
+  assert.equal(nova.type, "audio");
+  assert.equal(nova.subtype, "transcription");
 });
 
 test("v1 models catalog emits diagnostics headers alongside the OpenAI-compatible list", async () => {

@@ -50,6 +50,7 @@ export interface RegistryModel {
   supportsReasoning?: boolean;
   supportedThinkingEfforts?: readonly string[];
   supportsVision?: boolean;
+  supportsAudio?: boolean;
   supportsXHighEffort?: boolean;
   maxOutputTokens?: number;
   targetFormat?: string;

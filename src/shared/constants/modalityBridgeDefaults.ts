@@ -34,6 +34,16 @@ export interface VisionBridgeRuntimeSettings {
   cacheMaxEntries: number;
 }
 
+export interface AudioBridgeRuntimeSettings {
+  enabled: boolean;
+  model: string;
+  timeoutMs: number;
+  maxClips: number;
+  cacheEnabled: boolean;
+  cacheTtlMinutes: number;
+  cacheMaxEntries: number;
+}
+
 // Typed candidate pickers: a stored value of the wrong type (e.g. the string
 // "off" in a boolean field) is skipped so the next candidate/default wins.
 function pickBoolean(...values: unknown[]): boolean | undefined {
@@ -75,6 +85,25 @@ export function resolveVisionBridgeRuntimeSettings(
     maxImages:
       pickNumber(s.modalityBridgeVisionMaxImages, s.visionBridgeMaxImages) ??
       VISION_BRIDGE_DEFAULTS.maxImagesPerRequest,
+    cacheEnabled:
+      pickBoolean(s.modalityBridgeCacheEnabled) ?? MODALITY_BRIDGE_DEFAULTS.cacheEnabled,
+    cacheTtlMinutes:
+      pickNumber(s.modalityBridgeCacheTtlMinutes) ?? MODALITY_BRIDGE_DEFAULTS.cacheTtlMinutes,
+    cacheMaxEntries:
+      pickNumber(s.modalityBridgeCacheMaxEntries) ?? MODALITY_BRIDGE_DEFAULTS.cacheMaxEntries,
+  };
+}
+
+/** Resolve persisted Audio Bridge settings with the shared PR-1 defaults. */
+export function resolveAudioBridgeRuntimeSettings(
+  settings: Record<string, unknown> | null | undefined
+): AudioBridgeRuntimeSettings {
+  const s = settings ?? {};
+  return {
+    enabled: pickBoolean(s.modalityBridgeAudioEnabled) ?? MODALITY_BRIDGE_DEFAULTS.audioEnabled,
+    model: pickString(s.modalityBridgeAudioModel) ?? MODALITY_BRIDGE_DEFAULTS.audioModel,
+    timeoutMs: pickNumber(s.modalityBridgeAudioTimeout) ?? MODALITY_BRIDGE_DEFAULTS.audioTimeoutMs,
+    maxClips: pickNumber(s.modalityBridgeAudioMaxClips) ?? MODALITY_BRIDGE_DEFAULTS.audioMaxClips,
     cacheEnabled:
       pickBoolean(s.modalityBridgeCacheEnabled) ?? MODALITY_BRIDGE_DEFAULTS.cacheEnabled,
     cacheTtlMinutes:
