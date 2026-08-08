@@ -61,11 +61,30 @@ function resolvePinnedBackend(input: ExecuteWebFetchInput): WebFetchProviderId |
   return backend ? FETCH_BACKEND_TO_PROVIDER[backend] : undefined;
 }
 
+export function normalizeWebFetchCredentials(value: unknown): WebFetchCredentials | null {
+  if (!value || typeof value !== "object") return null;
+  const credentials = value as Record<string, unknown>;
+  if (credentials.allRateLimited === true || credentials.allExpired === true) return null;
+
+  const providerSpecificData =
+    credentials.providerSpecificData &&
+    typeof credentials.providerSpecificData === "object" &&
+    !Array.isArray(credentials.providerSpecificData)
+      ? (credentials.providerSpecificData as Record<string, unknown>)
+      : undefined;
+
+  return {
+    ...(typeof credentials.apiKey === "string" && { apiKey: credentials.apiKey }),
+    ...(typeof credentials.baseUrl === "string" && { baseUrl: credentials.baseUrl }),
+    ...(providerSpecificData && { providerSpecificData }),
+  };
+}
+
 async function resolveCredentials(
   providerId: WebFetchProviderId
 ): Promise<WebFetchCredentials | null> {
   try {
-    return (await getProviderCredentialsWithQuotaPreflight(providerId)) ?? null;
+    return normalizeWebFetchCredentials(await getProviderCredentialsWithQuotaPreflight(providerId));
   } catch {
     return null;
   }
