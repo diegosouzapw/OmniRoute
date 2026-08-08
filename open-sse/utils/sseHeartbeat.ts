@@ -79,7 +79,8 @@ export function sseCommentsEnabled(): boolean {
   if (typeof process === "undefined") return true;
   const v = process.env.OMNIROUTE_SSE_COMMENTS;
   if (v === undefined || v === "") return true;
-  return v.trim().toLowerCase() !== "off";
+  const normalized = v.trim().toLowerCase();
+  return normalized !== "off" && normalized !== "false" && normalized !== "0" && normalized !== "no";
 }
 
 export function createSseHeartbeatTransform({

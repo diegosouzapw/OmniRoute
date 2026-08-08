@@ -45,6 +45,13 @@ test("classify429: Antigravity 'Individual quota reached' body returns 'quota_ex
   assert.equal(classify429({ status: 429, body: { error: { message: body } } }), "quota_exhausted");
 });
 
+test("classify429: auth-layer synthetic 'have exhausted their quota' returns 'quota_exhausted' (#9269)", () => {
+  const body = "All antigravity accounts have exhausted their quota (reset after 5m)";
+  assert.equal(looksLikeQuotaExhausted(body), true);
+  assert.equal(classify429({ status: 429, body }), "quota_exhausted");
+  assert.equal(classify429({ status: 429, body: { error: { message: body } } }), "quota_exhausted");
+});
+
 test("classify429: Google RESOURCE_EXHAUSTED with a billing-period reset is quota exhausted", () => {
   const body = "Resource has been exhausted (e.g. check quota). (reset after 24h)";
   assert.equal(looksLikeQuotaExhausted(body), true);

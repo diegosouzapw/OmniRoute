@@ -603,7 +603,7 @@ export interface ProviderNodeRow {
 }
 
 /** Hosts reachable only from the operator's machine/Docker network. */
-function isLoopbackNodeHost(baseUrl: string): boolean {
+export function isLoopbackNodeHost(baseUrl: string): boolean {
   try {
     const hostname = new URL(baseUrl).hostname;
     return (

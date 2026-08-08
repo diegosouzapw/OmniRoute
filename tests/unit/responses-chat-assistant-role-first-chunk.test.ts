@@ -40,13 +40,21 @@ test("Responses->Chat: first tool_call chunk announces role=assistant", () => {
   );
   assert.equal(first.choices[0].delta.tool_calls[0].function.name, "get_weather");
 
-  // Subsequent argument deltas must NOT repeat the role announcement.
+  // #9168: arguments deltas are buffered until output_item.done for schema normalization.
   const next = openaiResponsesToOpenAIResponse(
     { type: "response.function_call_arguments.delta", delta: '{"x":1}' },
     state
   );
-  assert.ok(next, "should emit a chunk for arguments.delta");
-  assert.equal(next.choices[0].delta.role, undefined, "only the first delta announces the role");
+  assert.equal(next, null, "arguments delta should buffer until output_item.done");
+
+  // The args are emitted at output_item.done, and the role is not re-announced.
+  const done = openaiResponsesToOpenAIResponse(
+    { type: "response.output_item.done", item: { type: "function_call", call_id: "call_abc", name: "get_weather" } },
+    state
+  );
+  assert.ok(done, "should emit a chunk for output_item.done");
+  assert.equal(done.choices[0].delta.role, undefined, "role announcement already happened on first chunk");
+  assert.equal(done.choices[0].delta.tool_calls[0].function.arguments, '{"x":1}');
 });
 
 test("Responses->Chat: first text chunk announces role=assistant", () => {

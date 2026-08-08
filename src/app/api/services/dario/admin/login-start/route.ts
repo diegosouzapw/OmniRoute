@@ -8,23 +8,29 @@
  * posts the displayed code to /login-complete.
  */
 
+import { z } from "zod";
 import { forwardToDarioAdmin, requireAdminAuth } from "../_lib";
 import { createErrorResponse } from "@/lib/api/errorResponse";
+
+const LoginStartBodySchema = z.object({
+  alias: z.string().trim().min(1).optional(),
+});
+type LoginStartBody = z.infer<typeof LoginStartBodySchema>;
 
 export async function POST(request: Request): Promise<Response> {
   const authResponse = await requireAdminAuth(request);
   if (authResponse) return authResponse;
 
-  let body: { alias?: string } = {};
+  let body: LoginStartBody = {};
   try {
     if (request.body !== null) {
-      const parsed = await request.json();
-      if (parsed && typeof parsed === "object") body = parsed as { alias?: string };
+      const parsed = LoginStartBodySchema.safeParse(await request.json());
+      if (parsed.success) body = parsed.data;
     }
   } catch {
     return createErrorResponse({ status: 400, message: "Invalid JSON body" });
   }
 
-  const forwardBody = typeof body.alias === "string" && body.alias.trim() ? { alias: body.alias.trim() } : {};
+  const forwardBody = body.alias ? { alias: body.alias } : {};
   return forwardToDarioAdmin({ method: "POST", path: "/admin/login/start", body: forwardBody });
 }

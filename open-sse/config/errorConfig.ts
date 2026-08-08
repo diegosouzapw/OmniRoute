@@ -149,6 +149,18 @@ export const ERROR_RULES: ErrorRule[] = [
     backoff: true,
     reason: "quota_exhausted",
   },
+  {
+    id: "out_of_extra_usage",
+    text: "out of extra usage",
+    backoff: true,
+    reason: "quota_exhausted",
+  },
+  {
+    id: "extra_usage_required",
+    text: "extra usage required",
+    backoff: true,
+    reason: "quota_exhausted",
+  },
   { id: "capacity", text: "capacity", backoff: true, reason: "model_capacity" },
   { id: "overloaded", text: "overloaded", backoff: true, reason: "model_capacity" },
   { id: "high_demand", text: "high demand", backoff: true, reason: "model_capacity" },

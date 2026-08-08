@@ -14,9 +14,13 @@
  */
 
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
-import { sanitizeErrorMessage } from "../utils/error.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
 import { prepareToolMessages } from "../translator/webTools.ts";
 import { buildToolModeResponse } from "./chatgptWebTools.ts";
+import {
+  checkGeminiWebUnsupportedControls,
+  GEMINI_WEB_UNSUPPORTED_CONTROL_CODE,
+} from "./gemini-web/capabilities.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -403,6 +407,33 @@ export class GeminiWebExecutor extends BaseExecutor {
   async execute(input: ExecuteInput) {
     const { model, body, stream, credentials, signal, log, onCredentialsRefreshed } = input;
     const requestBody = body as GeminiRequestBody;
+
+    // #9356: fail fast on controls this provider cannot honor (reasoning_effort
+    // above "minimal", forced tool_choice). Runs before the credential check and
+    // before Playwright launches — the request is unservable no matter which
+    // cookie is used, and answering 200 with ordinary prose made agents believe
+    // their reasoning/tool requirements had been met. See ./gemini-web/capabilities.ts.
+    const violation = checkGeminiWebUnsupportedControls(body as Record<string, unknown>);
+    if (violation) {
+      log?.warn?.(
+        "GEMINI-WEB",
+        `Rejected request: "${violation.param}" is not supported by this provider`
+      );
+      return {
+        response: new Response(
+          JSON.stringify(
+            buildErrorBody(400, violation.message, null, {
+              type: "invalid_request_error",
+              code: GEMINI_WEB_UNSUPPORTED_CONTROL_CODE,
+            })
+          ),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        ),
+        url: GEMINI_URL,
+        headers: {},
+        transformedBody: body,
+      };
+    }
 
     const cookie = resolveGeminiWebCookie(credentials);
     if (!cookie) {

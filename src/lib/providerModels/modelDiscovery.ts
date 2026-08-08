@@ -112,7 +112,8 @@ function parseEffortList(rawList: unknown): string[] | undefined {
         .map((entry) => {
           const entryParsed = effortEntrySchema.safeParse(entry);
           if (!entryParsed.success) return null;
-          const raw = typeof entryParsed.data === "string" ? entryParsed.data : entryParsed.data.effort;
+          const raw =
+            typeof entryParsed.data === "string" ? entryParsed.data : entryParsed.data.effort;
           return raw.length > 0 ? normalizeSupportedEffort(raw) : null;
         })
         .filter((effort): effort is string => effort !== null)
@@ -142,6 +143,16 @@ export function detectSupportedThinkingEfforts(record: JsonRecord): string[] | u
       );
       if (efforts.length > 0) return efforts;
     }
+  }
+
+  // #9160: fall back to `capabilities.effort_tiers` before the legacy fields.
+  // OmniRoute's own catalog surfaces effort tiers inside `capabilities.effort_tiers`,
+  // which the existing `parseEffortList` already handles (string arrays).
+  const capabilitiesRecord = asRecord(record.capabilities);
+  const capabilitiesParsed = effortListSchema.safeParse(capabilitiesRecord.effort_tiers);
+  if (capabilitiesParsed.success) {
+    const fromCapabilities = parseEffortList(capabilitiesRecord.effort_tiers);
+    if (fromCapabilities) return fromCapabilities;
   }
 
   // #8347: fall back to `supported_reasoning_levels`, then `thinking.levels` — in that

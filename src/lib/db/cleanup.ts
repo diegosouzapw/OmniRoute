@@ -253,14 +253,15 @@ export async function cleanupMemoryEntries(): Promise<CleanupResult> {
 
 /**
  * Clean up old domain_cost_history based on retention settings. (#6848)
- * Uses unix-epoch `timestamp` column (INTEGER).
+ * The `timestamp` column stores epoch milliseconds (saveCostEntry default
+ * is Date.now()), so the cutoff must be in milliseconds to match. (#9625)
  */
 export async function cleanupDomainCostHistory(): Promise<CleanupResult> {
   const db = getDbInstance();
   const retention = getRetentionSettings();
 
   const retentionDays = retention.domainCostHistory;
-  const cutoffEpoch = Math.floor(Date.now() / 1000) - retentionDays * 86_400;
+  const cutoffEpoch = Date.now() - retentionDays * 86_400_000;
 
   const result: CleanupResult = { deleted: 0, errors: 0 };
 

@@ -134,7 +134,7 @@ export function LlmChatCard({
 }: Props) {
   const t = useTranslations("miniPlayground");
   const { keys } = useApiKey();
-  const { models } = useProviderModels(providerId);
+  const { models, loading, error, retry } = useProviderModels(providerId);
 
   const [internalSelectedKey, setInternalSelectedKey] = useState<string>("");
   const [internalModel, setInternalModel] = useState<string>(initialModel ?? "");
@@ -392,15 +392,31 @@ export function LlmChatCard({
             <select
               value={model || firstModel}
               onChange={(e) => setModel(e.target.value)}
-              className="min-w-0 flex-1 rounded-md border border-border bg-bg-subtle text-xs px-2 py-1 text-text-main focus:outline-none focus:ring-1 focus:ring-primary"
+              disabled={loading}
+              className="min-w-0 flex-1 rounded-md border border-border bg-bg-subtle text-xs px-2 py-1 text-text-main focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60"
             >
-              {modelOptions.length === 0 && <option value="">{initialModel || "—"}</option>}
+              {modelOptions.length === 0 && !loading && <option value="">{initialModel || "—"}</option>}
+              {loading && <option value="">{t("loading") ?? "Loading…"}</option>}
               {modelOptions.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.id}
                 </option>
               ))}
             </select>
+            {error && (
+              <span className="text-xs text-red-500 flex items-center gap-1" role="alert">
+                <span className="truncate max-w-[180px]" title={String(error)}>
+                  {String(error)}
+                </span>
+                <button
+                  type="button"
+                  onClick={retry}
+                  className="shrink-0 text-xs text-primary hover:text-primary-strong underline"
+                >
+                  {t("retry") ?? "Retry"}
+                </button>
+              </span>
+            )}
           </div>
           {/* Key select */}
           {keys.length > 0 && (

@@ -90,6 +90,15 @@ const NATIVE_ASSET_ENTRIES = [
     dest: ["node_modules", "better-sqlite3", "build"],
   },
   {
+    // #8847: Bun (and npx -g global installs) resolve better-sqlite3's native
+    // binary from prebuilds/ instead of build/Release/, so the compiled build/
+    // copy alone leaves a hollow package that falls back to sql.js (OOM under
+    // Bun). Ship the prebuilds alongside the compiled binary.
+    label: "better-sqlite3 prebuilds (Bun / global installs)",
+    src: ["node_modules", "better-sqlite3", "prebuilds"],
+    dest: ["node_modules", "better-sqlite3", "prebuilds"],
+  },
+  {
     // TPROXY IP_TRANSPARENT addon (Fase 3 / Epic A). Built by build-tproxy-native
     // before assembly; Linux-only + opt-in, so the source is absent on non-Linux
     // builds → syncNativeAssetsToDir skips it gracefully. The runtime loader

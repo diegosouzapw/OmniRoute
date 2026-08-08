@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 export interface ProviderModel {
   id: string;
@@ -18,6 +18,8 @@ interface UseProviderModelsResult {
   models: ProviderModel[];
   loading: boolean;
   error: string | null;
+  /** Re-runs the model fetch for the current provider. Useful for a Retry action. */
+  retry: () => void;
 }
 
 /**
@@ -32,15 +34,14 @@ export function useProviderModels(providerId: string): UseProviderModelsResult {
   const [models, setModels] = useState<ProviderModel[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  // Cancels any in-flight load (component unmount or a retry superseding the
+  // previous request) so a stale response never overwrites a newer one.
+  const cleanupRef = useRef<(() => void) | null>(null);
 
-  useEffect(() => {
-    if (!providerId) {
-      setLoading(false);
-      return;
-    }
-
+  const load = useCallback(() => {
+    cleanupRef.current?.();
     let cancelled = false;
-    const load = async () => {
+    const run = async () => {
       setLoading(true);
       setError(null);
       try {
@@ -109,11 +110,33 @@ export function useProviderModels(providerId: string): UseProviderModelsResult {
         if (!cancelled) setLoading(false);
       }
     };
-    void load();
-    return () => {
+    void run();
+    const cleanup = () => {
       cancelled = true;
     };
+    cleanupRef.current = cleanup;
+    return cleanup;
   }, [providerId]);
 
-  return { models, loading, error };
+  useEffect(() => {
+    if (!providerId) {
+      setLoading(false);
+      return;
+    }
+    return load();
+  }, [providerId, load]);
+
+  // Release the current in-flight cleanup on unmount so no state updates leak.
+  useEffect(() => {
+    return () => {
+      cleanupRef.current?.();
+    };
+  }, []);
+
+  const retry = useCallback(() => {
+    if (!providerId) return;
+    load();
+  }, [providerId, load]);
+
+  return { models, loading, error, retry };
 }

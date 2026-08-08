@@ -775,9 +775,15 @@ function providerCanUseSyntheticNoAuthFallback(providerId: string): boolean {
 
 async function maybeSyntheticNoAuthFallback(
   providerId: string,
-  excludedConnectionIds: Set<string>
+  excludedConnectionIds: Set<string>,
+  allowedConnections: string[] | null = null
 ) {
   if (!providerCanUseSyntheticNoAuthFallback(providerId)) return null;
+  // #9057: a key pinned to specific connections via allowedConnections must
+  // NOT receive the synthetic "noauth" connection — the synthetic id is
+  // never in an explicit allowlist, so returning it would let a restricted
+  // key reach free providers (felo-chat, etc.) that it should not access.
+  if (Array.isArray(allowedConnections) && allowedConnections.length > 0) return null;
   if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) return null;
   // #4954: hydrate per-account proxy/rotation config off the connection row so
   // no-auth executors (opencode, mimocode) actually honor configured proxies.
@@ -1006,7 +1012,14 @@ export async function getProviderCredentials(
         excludeConnectionId,
         options.excludeConnectionIds
       );
-      return await maybeSyntheticNoAuthFallback(resolvedId, excludedForNoAuth);
+      // #9057: when allowedConnections is set, the synthetic "noauth" connection
+      // is never in the explicit allowlist, so we must NOT return it — fall through
+      // to the normal connection-selection path so the connection allowlist is
+      // respected (the no-auth provider will be rejected if it has no real connections
+      // matching the allowlist, or a real connection row will be selected if present).
+      if (!allowedConnections || allowedConnections.length === 0) {
+        return await maybeSyntheticNoAuthFallback(resolvedId, excludedForNoAuth);
+      }
     }
 
     const allowSuppressedConnections = options.allowSuppressedConnections === true;
@@ -1133,7 +1146,8 @@ export async function getProviderCredentials(
         if (terminalConnections.length === allConnections.length) {
           const syntheticFallback = await maybeSyntheticNoAuthFallback(
             resolvedId,
-            excludedConnectionIds
+            excludedConnectionIds,
+            allowedConnections
           );
           if (syntheticFallback) return syntheticFallback;
 
@@ -1153,7 +1167,8 @@ export async function getProviderCredentials(
       }
       const syntheticFallback = await maybeSyntheticNoAuthFallback(
         resolvedId,
-        excludedConnectionIds
+        excludedConnectionIds,
+        allowedConnections
       );
       if (syntheticFallback) return syntheticFallback;
       log.warn("AUTH", `No credentials for ${provider}`);
@@ -1352,7 +1367,8 @@ export async function getProviderCredentials(
       }
       const syntheticFallback = await maybeSyntheticNoAuthFallback(
         resolvedId,
-        excludedConnectionIds
+        excludedConnectionIds,
+        allowedConnections
       );
       if (syntheticFallback) return syntheticFallback;
       log.warn("AUTH", `${provider} | all ${connections.length} accounts unavailable`);

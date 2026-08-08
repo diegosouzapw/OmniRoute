@@ -28,6 +28,7 @@
  * pickup, rather than relying on any undocumented hot-reload behavior.
  */
 
+import { z } from "zod";
 import { NextResponse } from "next/server";
 import fs from "node:fs";
 import path from "node:path";
@@ -38,6 +39,11 @@ import { getProviderConnections, getProviderConnectionById } from "@/lib/db/prov
 import { getDarioHomeDir } from "@/lib/services/installers/dario";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+
+const ImportBodySchema = z.object({
+  connectionId: z.string().trim().min(1).optional(),
+  alias: z.string().trim().min(1).optional(),
+});
 
 const ALIAS_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_\-.]{0,63}$/;
 
@@ -82,15 +88,16 @@ export async function POST(request: Request): Promise<Response> {
   const authResponse = await requireAdminAuth(request);
   if (authResponse) return authResponse;
 
-  let body: unknown;
+  let raw: unknown;
   try {
-    body = await request.json();
+    raw = await request.json();
   } catch {
     return createErrorResponse({ status: 400, message: "Invalid JSON body" });
   }
 
-  const b = (body || {}) as Record<string, unknown>;
-  const connectionId = typeof b.connectionId === "string" ? b.connectionId : null;
+  const parsed = ImportBodySchema.safeParse(raw ?? {});
+  const b = parsed.success ? parsed.data : {};
+  const connectionId = b.connectionId ?? null;
   if (!connectionId) {
     return createErrorResponse({ status: 400, message: "connectionId is required" });
   }
@@ -112,10 +119,7 @@ export async function POST(request: Request): Promise<Response> {
     });
   }
 
-  let alias =
-    typeof b.alias === "string" && b.alias.trim()
-      ? b.alias.trim()
-      : safeAliasFromSource(conn.email as string | null, connectionId);
+  let alias = b.alias || safeAliasFromSource(conn.email as string | null, connectionId);
   if (!ALIAS_PATTERN.test(alias)) {
     alias = safeAliasFromSource(conn.email as string | null, connectionId);
   }

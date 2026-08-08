@@ -57,9 +57,7 @@ test.after(async () => {
 // ── D1.1: Migration file ────────────────────────────────────────────────────
 
 test("migration 086 file exists and contains quota_pool_connections DDL", () => {
-  const migrationPath = path.resolve(
-    "src/lib/db/migrations/087_quota_pool_connections.sql"
-  );
+  const migrationPath = path.resolve("src/lib/db/migrations/087_quota_pool_connections.sql");
   assert.ok(fs.existsSync(migrationPath), `migration file not found: ${migrationPath}`);
 
   const sql = fs.readFileSync(migrationPath, "utf8");
@@ -153,14 +151,14 @@ test("updatePool without connectionIds leaves join rows untouched", () => {
 
 // ── D1.4: deletePool removes join rows ────────────────────────────────────
 
-test("deletePool removes quota_pool_connections rows", () => {
+test("deletePool removes quota_pool_connections rows", async () => {
   const pool = poolsDb.createPool({
     connectionId: "del-a",
     name: "To Delete",
     connectionIds: ["del-a", "del-b"],
   });
 
-  const deleted = poolsDb.deletePool(pool.id);
+  const deleted = await poolsDb.deletePool(pool.id);
   assert.equal(deleted, true, "deletePool should return true");
 
   // Pool should be gone.

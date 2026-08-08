@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { memoryManager } from "@/lib/memory/manager";
+// Import through the module index, NOT "@/lib/memory/manager" directly: the index's
+// import-time side effect is what calls memoryManager.register(sqliteBackend). Importing
+// the bare manager gives an EMPTY registry, so every handler here threw
+// `Primary backend "sqlite" not registered` and returned 500 (#8752).
+import { memoryManager } from "@/lib/memory";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { MemoryUpdatePutSchema } from "@/shared/schemas/memory";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";

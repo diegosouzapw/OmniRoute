@@ -1,0 +1,1 @@
+- fix(resilience): failed connection test now sets a short cooldown so connections recover after transient outages (#9623)

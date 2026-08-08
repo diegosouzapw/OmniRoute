@@ -62,6 +62,12 @@ const { getHandoff } = await import("../../../src/lib/db/contextHandoffs.ts");
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const CODEX_COMBO_NAME = "m-relay-codex-quota";
+// The control test needs its OWN combo name. resetStorage() unlinks the DB file
+// between tests, but the previous better-sqlite3 handle survives the unlink and
+// keeps writing to the same inode, so reusing the name here failed with
+// `UNIQUE constraint failed: combos.name` — a test-isolation defect, not a
+// routing one (the assertion below does not depend on the name).
+const CONTROL_COMBO_NAME = "m-relay-openai-control";
 const SESSION_HEADER_VALUE = "relay-codex-quota-001";
 const SESSION_ID = `ext:${SESSION_HEADER_VALUE}`;
 
@@ -71,8 +77,7 @@ const CODEX_RESPONSES_HOST = "chatgpt.com/backend-api/codex/responses";
 
 // Summary JSON that parseHandoffJSON will successfully parse.
 const CODEX_SUMMARY_JSON = JSON.stringify({
-  summary:
-    "User is implementing a TypeScript context-relay codex quota-handoff test using TDD.",
+  summary: "User is implementing a TypeScript context-relay codex quota-handoff test using TDD.",
   keyDecisions: ["codex provider selected", "quota threshold at 90%"],
   taskProgress: "writing deterministic integration test for codex handoff",
   activeEntities: ["combo.ts", "codexQuotaFetcher.ts", "contextHandoff.ts"],
@@ -142,11 +147,11 @@ function buildCodexUsageBody(
 
 // ── Request builder ───────────────────────────────────────────────────────────
 
-function codexRequest(withSessionId = true) {
+function codexRequest(withSessionId = true, comboName = CODEX_COMBO_NAME) {
   return buildRequest({
     headers: withSessionId ? { "x-session-id": SESSION_HEADER_VALUE } : {},
     body: {
-      model: CODEX_COMBO_NAME,
+      model: comboName,
       stream: false,
       messages: [{ role: "user", content: "Write a TypeScript hello world." }],
     },
@@ -259,9 +264,7 @@ test("context-relay codex quota handoff: fires and expiresAt matches session-win
     name: CODEX_COMBO_NAME,
     strategy: "context-relay",
     config: { maxRetries: 0, retryDelayMs: 0, stickyRoundRobinLimit: 1 },
-    models: [
-      { id: "rc-codex-1", kind: "model", providerId: "codex", model: "gpt-5.3-codex" },
-    ],
+    models: [{ id: "rc-codex-1", kind: "model", providerId: "codex", model: "gpt-5.3-codex" }],
   });
 
   // 4. Compute quota reset times (future timestamps).
@@ -328,12 +331,10 @@ test("context-relay codex quota handoff: does NOT fire when provider is openai (
   await seedConnection("openai", { apiKey: "sk-openai-control-no-codex-block" });
 
   await combosDb.createCombo({
-    name: CODEX_COMBO_NAME,
+    name: CONTROL_COMBO_NAME,
     strategy: "context-relay",
     config: { maxRetries: 0, retryDelayMs: 0, stickyRoundRobinLimit: 1 },
-    models: [
-      { id: "rc-openai-ctrl", kind: "model", providerId: "openai", model: "gpt-4o-mini" },
-    ],
+    models: [{ id: "rc-openai-ctrl", kind: "model", providerId: "openai", model: "gpt-4o-mini" }],
   });
 
   const seenUrls: string[] = [];
@@ -342,7 +343,7 @@ test("context-relay codex quota handoff: does NOT fire when provider is openai (
     return buildOpenAIResponse("assistant reply ok");
   };
 
-  const r = await handleChat(codexRequest(true));
+  const r = await handleChat(codexRequest(true, CONTROL_COMBO_NAME));
   assert.equal(r.status, 200, "openai request must return 200");
 
   // Give setImmediate time to fire if the block were incorrectly entered.
@@ -358,7 +359,7 @@ test("context-relay codex quota handoff: does NOT fire when provider is openai (
   // No codex quota handoff record in DB.
   // (The universal handoff also does not fire because no prior model is seeded,
   // so getLastSessionModel returns null → no model switch detected.)
-  const handoff = getHandoff(SESSION_ID, CODEX_COMBO_NAME);
+  const handoff = getHandoff(SESSION_ID, CONTROL_COMBO_NAME);
   assert.equal(
     handoff,
     null,

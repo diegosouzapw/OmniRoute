@@ -67,6 +67,14 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   // ~60s against a budget that only resets at UTC midnight.
   /daily free allocation/i,
 
+  // OmniRoute auth-layer synthetic 429 (Issue #9269).
+  // Body: "All antigravity accounts have exhausted their quota (reset after 5m)"
+  // Produced by auth.ts line 1477 when every account for a provider has
+  // exhausted its quota. Without this pattern, the message is classified as
+  // a transient rate-limit and the combo loop burns retries against the
+  // same provider instead of falling back to a healthy one.
+  /have exhausted their quota/i,
+
   // Modal-hosted OpenAI-compatible endpoints (e.g. self-hosted Kimi K3).
   // Body: {"error":"usage limit reached"}, no nested "message"/"quota"/
   // "daily" wording. Without this pattern the 429 falls through to
