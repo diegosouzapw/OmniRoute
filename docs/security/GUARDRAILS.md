@@ -1,13 +1,13 @@
 ---
 title: "Guardrails"
 version: 3.8.50
-lastUpdated: 2026-08-07
+lastUpdated: 2026-08-08
 ---
 
 # Guardrails
 
 > **Source of truth:** `src/lib/guardrails/`
-> **Last updated:** 2026-08-07 — v3.8.50 (Modality Bridge PR-1: mode selector, task-aware prompt, describe cache, transparency header + stats)
+> **Last updated:** 2026-08-08 — v3.8.50 (Modality Bridge PR-2: dashboard settings page, live stats, test action, and media-provider shortcuts)
 
 Guardrails enforce safety, policy, and content transformations at the boundary
 between OmniRoute and upstream providers. Each guardrail can inspect (and
@@ -133,6 +133,22 @@ swap is already visible in the response body's `model` field.
 `{ bridged, cacheHits, failures, lastUsedAt }` for `vision` (and the
 PR-3-reserved `audio`). Counters reset on process restart by design
 (telemetry, not accounting).
+
+#### Dashboard configuration
+
+The dedicated dashboard page is
+`/dashboard/settings/modality-bridge`. Its URL-addressable `Vision`, `Audio`,
+and `Video` tabs preserve query parameters while switching the `tab` value.
+The Vision tab is live: it exposes enablement, mode, model selection (including
+the automatic default), task-aware prompting, advanced timeout/image/cache
+limits, runtime counters, and a guarded sample request. Audio and Video are
+explicit placeholders: Audio is reserved for PR-3, while Video remains tracked
+in issue `#9760`.
+
+The former Vision Bridge card under AI settings is a compatibility link to the
+new page; it no longer owns a second copy of the form. Media Providers also
+links Image-to-Text and Speech-to-Text workflows to the corresponding Modality
+Bridge tabs without removing the existing Speech-to-Text playground.
 
 **Self-loop admission bypass:** when the describe call routes through OmniRoute's
 own `/v1` self-loop (non-standard provider model), the sub-request sends
@@ -355,9 +371,16 @@ Environment variables read by the built-in guardrails:
 | `PII_RESPONSE_SANITIZATION` / `_MODE` | `pii-masker` (downstream) | Controls response-side masker behavior.                                                             |
 
 The Vision Bridge reads runtime config from the DB-backed settings store
-(`getSettings()`), not env vars: `visionBridgeEnabled`, `visionBridgeModel`,
-`visionBridgePrompt`, `visionBridgeTimeout`, `visionBridgeMaxImages`. Defaults
-live in `src/shared/constants/visionBridgeDefaults.ts`.
+(`getSettings()`), not env vars. The primary keys are
+`modalityBridgeVisionEnabled`, `modalityBridgeVisionMode`,
+`modalityBridgeVisionModel`, `modalityBridgeVisionTaskAware`,
+`modalityBridgeVisionPrompt`, `modalityBridgeVisionTimeout`,
+`modalityBridgeVisionMaxImages`, `modalityBridgeCacheEnabled`,
+`modalityBridgeCacheTtlMinutes`, and `modalityBridgeCacheMaxEntries`. The legacy
+`visionBridge*` keys are accepted only as the documented one-cycle read
+fallback; dashboard writes use the primary keys. Defaults and the fallback
+resolver live in `src/shared/constants/modalityBridgeDefaults.ts`, with legacy
+constants retained in `src/shared/constants/visionBridgeDefaults.ts`.
 
 ## Custom Guardrails
 

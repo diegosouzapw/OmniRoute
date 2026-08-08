@@ -19,6 +19,8 @@ export interface ModelSelectFieldProps {
   ariaLabel?: string;
   /** Render a plain text fallback (custom option / off-catalog) — default true. */
   allowCustom?: boolean;
+  /** Let operators select the empty-value placeholder (for Auto/default semantics). */
+  allowEmpty?: boolean;
   className?: string;
 }
 
@@ -43,6 +45,7 @@ export default function ModelSelectField({
   placeholder,
   ariaLabel,
   allowCustom = true,
+  allowEmpty = false,
   className,
 }: ModelSelectFieldProps) {
   const [state, setState] = useState<FetchState>({ status: "loading", options: [] });
@@ -95,6 +98,7 @@ export default function ModelSelectField({
       onChange={(e) => onChange(e.target.value)}
       options={options}
       placeholder={state.status === "loading" ? "Loading models…" : placeholder || "Select a model"}
+      placeholderDisabled={!allowEmpty}
       disabled={disabled || state.status === "loading"}
       aria-label={ariaLabel}
       className={className}

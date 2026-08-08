@@ -8,6 +8,8 @@ const LEGACY_TAB_ROUTES: Record<string, string> = {
   "feature-flags": "/dashboard/settings/feature-flags",
   cache: "/dashboard/settings/cache",
   general: "/dashboard/settings/general",
+  modalityBridge: "/dashboard/settings/modality-bridge",
+  "modality-bridge": "/dashboard/settings/modality-bridge",
   resilience: "/dashboard/settings/resilience",
   routing: "/dashboard/settings/routing",
   security: "/dashboard/settings/security",

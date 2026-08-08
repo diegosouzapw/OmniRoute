@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/components";
 import MediaProviderHeader from "../../components/MediaProviderHeader";
@@ -39,7 +40,10 @@ interface MediaProviderPageClientProps {
 function renderPlayground(
   kind: MediaKind,
   providerId: string,
-  imageToTextCopy: { title: string; description: React.ReactNode }
+  bridgeCopy: {
+    imageToText: { title: string; description: React.ReactNode; cta: string };
+    sttCta: string;
+  }
 ) {
   switch (kind) {
     case "embedding":
@@ -49,7 +53,17 @@ function renderPlayground(
     case "tts":
       return <TtsExampleCard providerId={providerId} />;
     case "stt":
-      return <SttExampleCard providerId={providerId} />;
+      return (
+        <div className="flex flex-col gap-3">
+          <SttExampleCard providerId={providerId} />
+          <Link
+            href="/dashboard/settings/modality-bridge?tab=audio"
+            className="text-xs text-primary hover:underline"
+          >
+            {bridgeCopy.sttCta}
+          </Link>
+        </div>
+      );
     case "webSearch":
       return <WebSearchExampleCard providerId={providerId} />;
     case "webFetch":
@@ -66,9 +80,15 @@ function renderPlayground(
         <div className="flex flex-col gap-2 border border-dashed border-border rounded-xl p-6">
           <div className="flex items-center gap-2 text-text-muted">
             <span className="material-symbols-outlined text-[20px]">image_search</span>
-            <h3 className="text-sm font-medium">{imageToTextCopy.title}</h3>
+            <h3 className="text-sm font-medium">{bridgeCopy.imageToText.title}</h3>
           </div>
-          <p className="text-xs text-text-muted">{imageToTextCopy.description}</p>
+          <p className="text-xs text-text-muted">{bridgeCopy.imageToText.description}</p>
+          <Link
+            href="/dashboard/settings/modality-bridge?tab=vision"
+            className="text-xs text-primary hover:underline"
+          >
+            {bridgeCopy.imageToText.cta}
+          </Link>
         </div>
       );
     default:
@@ -197,10 +217,14 @@ export default function MediaProviderPageClient({
 
       {/* Playground */}
       {renderPlayground(activeKind, providerId, {
-        title: t("imageToText"),
-        description: t.rich("imageToTextComingSoon", {
-          code: (chunks) => <code className="font-mono bg-bg-subtle px-1 rounded">{chunks}</code>,
-        }),
+        imageToText: {
+          title: t("imageToText"),
+          description: t.rich("imageToTextComingSoon", {
+            code: (chunks) => <code className="rounded bg-bg-subtle px-1 font-mono">{chunks}</code>,
+          }),
+          cta: t("imageToTextBridgeCta"),
+        },
+        sttCta: t("sttBridgeCta"),
       })}
     </div>
   );

@@ -669,6 +669,13 @@ const CONFIGURATION_ITEMS: readonly SidebarItemDefinition[] = [
     icon: "auto_awesome",
   },
   {
+    id: "settings-modality-bridge",
+    href: "/dashboard/settings/modality-bridge",
+    i18nKey: "settingsModalityBridge",
+    subtitleKey: "settingsModalityBridgeSubtitle",
+    icon: "image_search",
+  },
+  {
     id: "settings-routing",
     href: "/dashboard/settings/routing",
     i18nKey: "globalRouting",

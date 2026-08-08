@@ -16,6 +16,8 @@ interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>
   error?: React.ReactNode;
   hint?: React.ReactNode;
   selectClassName?: string;
+  /** Keep the placeholder selectable after a real value is chosen. */
+  placeholderDisabled?: boolean;
 }
 
 export default function Select({
@@ -30,6 +32,7 @@ export default function Select({
   required = false,
   className,
   selectClassName,
+  placeholderDisabled = true,
   id: externalId,
   children,
   ...props
@@ -75,7 +78,7 @@ export default function Select({
           {...props}
         >
           {!children && (placeholder ?? t("selectOption")) && (
-            <option value="" disabled className="bg-surface text-text-muted">
+            <option value="" disabled={placeholderDisabled} className="bg-surface text-text-muted">
               {placeholder ?? t("selectOption")}
             </option>
           )}
