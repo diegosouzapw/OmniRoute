@@ -1,0 +1,1 @@
+- fix(build): add build-next-isolated.mjs sibling imports to package.json files array

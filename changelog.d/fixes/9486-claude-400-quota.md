@@ -1,0 +1,1 @@
+- fix(providers): classify 400 out of extra usage as quota_exhausted for Anthropic OAuth

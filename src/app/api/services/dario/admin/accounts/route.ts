@@ -11,8 +11,14 @@
  * and never reaches the browser.
  */
 
+import { z } from "zod";
+
 import { forwardToDarioAdmin, requireAdminAuth } from "../_lib";
 import { createErrorResponse } from "@/lib/api/errorResponse";
+
+const DeleteAccountBodySchema = z.object({
+  alias: z.string().trim().min(1).optional(),
+});
 
 export async function GET(request: Request): Promise<Response> {
   const authResponse = await requireAdminAuth(request);
@@ -29,9 +35,9 @@ export async function DELETE(request: Request): Promise<Response> {
 
   if (!alias && request.body !== null) {
     try {
-      const parsed = await request.json();
-      if (parsed && typeof parsed === "object" && typeof (parsed as { alias?: unknown }).alias === "string") {
-        alias = (parsed as { alias: string }).alias.trim();
+      const parsed = DeleteAccountBodySchema.safeParse(await request.json());
+      if (parsed.success && parsed.data.alias) {
+        alias = parsed.data.alias;
       }
     } catch {
       /* fall through to the missing-alias error below */

@@ -25,6 +25,7 @@ import {
 } from "./streamHelpers.ts";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { buildOmniRouteSseMetadataComment } from "@/domain/omnirouteResponseMeta";
+import { sseCommentsEnabled } from "./sseHeartbeat.ts";
 import {
   createStructuredSSECollector,
   buildStreamSummaryFromEvents,
@@ -1001,6 +1002,11 @@ export function createSSEStream(options: StreamOptions = {}) {
     controller: TransformStreamDefaultController,
     finalUsage: UsageTokenRecord | Record<string, unknown> | null | undefined
   ) => {
+    // Skip SSE metadata comment lines when OMNIROUTE_SSE_COMMENTS is disabled
+    // (e.g., "off", "false", "0", "no"). Strict OpenAI-compatible clients that
+    // JSON.parse every SSE line will crash on `: x-omniroute-*` comment lines.
+    if (!sseCommentsEnabled()) return;
+
     const costUsd = finalUsage ? await calculateCost(provider, model, finalUsage) : 0;
     const comment = buildOmniRouteSseMetadataComment({
       provider,

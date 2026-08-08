@@ -112,7 +112,7 @@ export function geminiToClaudeResponse(chunk, state) {
         // When the toolNameMap provides a match (e.g., lowercase "bash" → "Bash"),
         // use it directly without passing through normalizeToolName(), which would
         // reverse TitleCase back to lowercase via REVERSE_MAP (#9568).
-        const restoredToolName = mappedName || normalizeToolName(rawToolName);
+        const restoredToolName = mappedName ?? normalizeToolName(rawToolName);
         const idx = state.contentBlockIndex++;
         const toolId = fc.id || `toolu_${Date.now()}_${idx}`;
 

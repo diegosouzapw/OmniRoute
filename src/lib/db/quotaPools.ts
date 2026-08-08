@@ -11,8 +11,32 @@
 import { getDbInstance } from "./core";
 // Phase B2: auto-mint/prune quotaShared-* combos when pool allocations change.
 // Imported lazily (dynamic import in the hook) to avoid circular-dependency
-// risk between db/ and quota/ modules. The import is fire-and-forget; combo
-// failures never break pool CRUD.
+// risk between db/ and quota/ modules. Sync hooks are fire-and-forget; deletion
+// awaits its guarded cleanup while metadata is available. Combo failures never
+// break pool CRUD.
+const quotaComboMaintenance = new Map<string, Promise<unknown>>();
+const deletingPools = new Set<string>();
+
+/** Reset module-level state for test isolation. Call in test.after() hooks. */
+export function resetQuotaPoolsModuleState(): void {
+  deletingPools.clear();
+  quotaComboMaintenance.clear();
+}
+
+function serializeQuotaComboMaintenance<T>(
+  poolId: string,
+  operation: () => Promise<T>
+): Promise<T> {
+  const previous = quotaComboMaintenance.get(poolId);
+  const current = previous ? previous.catch(() => undefined).then(operation) : operation();
+  quotaComboMaintenance.set(poolId, current);
+  const cleanup = () => {
+    if (quotaComboMaintenance.get(poolId) === current) quotaComboMaintenance.delete(poolId);
+  };
+  void current.then(cleanup, cleanup);
+  return current;
+}
+
 async function syncQuotaCombosGuarded(poolId: string): Promise<void> {
   try {
     const { syncQuotaCombos } = await import("@/lib/quota/quotaCombos");
@@ -400,7 +424,7 @@ export function createPool(input: PoolCreate): QuotaPool {
   );
 
   // Phase B2: fire-and-forget combo sync; failures are logged but never thrown.
-  void syncQuotaCombosGuarded(id);
+  void serializeQuotaComboMaintenance(id, () => syncQuotaCombosGuarded(id));
 
   return result;
 }
@@ -412,6 +436,8 @@ export function createPool(input: PoolCreate): QuotaPool {
  * connection_id (primary) is synced to connectionIds[0].
  */
 export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
+  if (deletingPools.has(id)) return null;
+
   const database = getDb();
   const existing = database
     .prepare<PoolRow>(
@@ -475,7 +501,7 @@ export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
   const result = rowToPool(existing, getAllocations(id));
 
   // Phase B2: fire-and-forget combo sync; failures are logged but never thrown.
-  void syncQuotaCombosGuarded(id);
+  void serializeQuotaComboMaintenance(id, () => syncQuotaCombosGuarded(id));
 
   return result;
 }
@@ -485,28 +511,38 @@ export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
  * Also removes join rows in quota_pool_connections.
  * Returns true if a row was deleted, false if not found.
  */
-export function deletePool(id: string): boolean {
-  // Phase B2: remove quota combos BEFORE deleting the pool row so that
-  // removeQuotaCombosForPool can still resolve the pool name → slug.
-  void removeQuotaCombosGuarded(id);
+export async function deletePool(id: string): Promise<boolean> {
+  if (deletingPools.has(id)) return false;
+  const exists = getDb().prepare<{ id: string }>("SELECT id FROM quota_pools WHERE id = ?").get(id);
+  if (!exists) return false;
+  deletingPools.add(id);
 
-  const database = getDb();
-  const doDelete = database.transaction(() => {
-    database.prepare("DELETE FROM quota_pool_connections WHERE pool_id = ?").run(id);
-    // Prune this pool id from every key's allowed_quotas JSON array.
-    database
-      .prepare(
-        `UPDATE api_keys SET allowed_quotas = COALESCE(
+  const deletion = serializeQuotaComboMaintenance(id, async () => {
+    // Phase B2: remove quota combos BEFORE deleting the pool row so that
+    // removeQuotaCombosForPool can still resolve the pool name → slug.
+    await removeQuotaCombosGuarded(id);
+
+    const database = getDb();
+    const doDelete = database.transaction(() => {
+      database.prepare("DELETE FROM quota_pool_connections WHERE pool_id = ?").run(id);
+      // Prune this pool id from every key's allowed_quotas JSON array.
+      database
+        .prepare(
+          `UPDATE api_keys SET allowed_quotas = COALESCE(
          (SELECT json_group_array(value) FROM json_each(api_keys.allowed_quotas) WHERE value != ?),
          '[]')
        WHERE allowed_quotas IS NOT NULL AND allowed_quotas != '[]'
          AND EXISTS (SELECT 1 FROM json_each(api_keys.allowed_quotas) WHERE value = ?)`
-      )
-      .run(id, id);
-    return database.prepare("DELETE FROM quota_pools WHERE id = ?").run(id);
+        )
+        .run(id, id);
+      return database.prepare("DELETE FROM quota_pools WHERE id = ?").run(id);
+    });
+    const result = doDelete();
+    return result.changes > 0;
   });
-  const result = doDelete();
-  return result.changes > 0;
+  const clearDeleting = () => deletingPools.delete(id);
+  void deletion.then(clearDeleting, clearDeleting);
+  return deletion;
 }
 
 /**
@@ -546,6 +582,8 @@ export function deletePool(id: string): boolean {
  * Runs atomically: all pool writes are inside a single SQLite transaction.
  */
 export function upsertAllocations(poolId: string, allocations: PoolAllocation[]): void {
+  if (deletingPools.has(poolId)) return;
+
   const database = getDb();
 
   // Normalize: when all weights are 0, distribute equally so the pool is usable
@@ -602,7 +640,7 @@ export function upsertAllocations(poolId: string, allocations: PoolAllocation[])
 
   // Phase B2: fire-and-forget combo sync for the target pool only; failures are
   // logged but never thrown. Sibling pools' combos are synced on their own lifecycle.
-  void syncQuotaCombosGuarded(poolId);
+  void serializeQuotaComboMaintenance(poolId, () => syncQuotaCombosGuarded(poolId));
 }
 
 /**

@@ -1376,7 +1376,7 @@ async function buildUnifiedModelsResponseCore(
           continue;
         }
 
-        // #8958: honor the compatible-provider node prefix (as the synced/custom
+        // #8958/#9034: honor the compatible-provider node prefix (as the synced/custom
         // loops do) so an alias-backed entry publishes `prefix/model` instead of the
         // raw provider-node UUID. Without the providerIdToPrefix lookup, `alias` fell
         // through to `providerKey` (the UUID) and the dedupe below — which only checks

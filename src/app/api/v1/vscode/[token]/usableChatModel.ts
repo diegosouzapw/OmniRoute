@@ -13,6 +13,9 @@
 // happen once.
 
 export type UsableChatModelCandidate = {
+	id?: string;
+	root?: string;
+	name?: string;
 	owned_by?: string;
 	parent?: string | null;
 	type?: string;
@@ -44,9 +47,19 @@ function excludesTextOutputModality(model: UsableChatModelCandidate) {
 	);
 }
 
+function isBuiltinAutoModel(model: UsableChatModelCandidate): boolean {
+	const id = model.id || model.root || model.name || "";
+	const normalized = id.trim().toLowerCase();
+	return normalized === "auto" || normalized.startsWith("auto/");
+}
+
 export function isUsableChatModel(model: UsableChatModelCandidate) {
 	if (typeof model.owned_by === "string" && model.owned_by.trim().toLowerCase() === "combo") {
-		return false;
+		// Allow built-in auto-routing models (e.g. auto, auto/best-coding)
+		// while still excluding operator-created combos.
+		if (!isBuiltinAutoModel(model)) {
+			return false;
+		}
 	}
 	if (typeof model.parent === "string" && model.parent.length > 0) return false;
 	if (typeof model.type === "string" && model.type !== "chat") return false;

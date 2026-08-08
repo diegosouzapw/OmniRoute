@@ -714,6 +714,20 @@ async function handleChatImplementation(
     ) => {
       if (isComboLiveTest) return true;
 
+      // #9057: for keys with model restrictions (allowedModels or disableNonPublicModels),
+      // run isModelAllowedForKey even for auto/* models. The API-key policy gate
+      // (validateModelAccess in apiKeyPolicy.ts) treats auto/* as a virtual combo and
+      // skips isModelAllowedForKey, so the per-candidate check here is the only
+      // enforcement point during combo routing. Without it, a key with
+      // disableNonPublicModels=true can reach free/prohibited models through auto/*.
+      const hasModelRestrictions =
+        apiKeyInfo &&
+        (Boolean(apiKeyInfo.allowedModels?.length) || apiKeyInfo.disableNonPublicModels === true);
+      if (hasModelRestrictions && apiKey) {
+        const modelAllowed = await isModelAllowedForKey(apiKey, modelString);
+        if (!modelAllowed) return false;
+      }
+
       // Use getModelInfo to resolve custom prefixes, but prefer the combo
       // target's providerId when available — the model string's provider
       // prefix may differ from the credential provider ID (e.g. model

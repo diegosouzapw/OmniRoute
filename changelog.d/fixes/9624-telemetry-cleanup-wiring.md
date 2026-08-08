@@ -1,0 +1,1 @@
+- fix(db): wire telemetry cleanup scheduler in Next.js startup path (#9624)

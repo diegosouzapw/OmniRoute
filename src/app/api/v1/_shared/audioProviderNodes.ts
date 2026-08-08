@@ -24,6 +24,7 @@ import { getCachedProviderNodes } from "@/lib/db/readCache";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import {
   buildDynamicAudioProvider,
+  isLoopbackNodeHost,
   type AudioProvider,
   type ProviderNodeRow,
 } from "@omniroute/open-sse/config/audioRegistry.ts";
@@ -35,19 +36,7 @@ export const AUDIO_REMOTE_NODES_FLAG = "AUDIO_REMOTE_PROVIDER_NODES";
  * Loopback / private-range hosts that never leave the operator's machine or
  * Docker network. `::1` stays excluded, matching the previous SSRF hardening.
  */
-export function isLocalAudioNodeHost(baseUrl: string): boolean {
-  try {
-    const hostname = new URL(baseUrl).hostname;
-    return (
-      hostname === "localhost" ||
-      hostname === "127.0.0.1" ||
-      // Strictly 172.16.0.0/12 (Docker/local)
-      /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname)
-    );
-  } catch {
-    return false;
-  }
-}
+export { isLoopbackNodeHost as isLocalAudioNodeHost };
 
 /**
  * Pure selection step — no DB, no flag lookup, so the policy is directly testable.
@@ -72,7 +61,7 @@ export function selectAudioProviderNodes(
       return false;
     }
     if (!node.baseUrl) return false;
-    return isLocalAudioNodeHost(node.baseUrl) || allowRemote;
+    return isLoopbackNodeHost(node.baseUrl) || allowRemote;
   });
 
   const providers: AudioProvider[] = [];

@@ -1,0 +1,1 @@
+- fix(build): include better-sqlite3 prebuilds in standalone bun bundle

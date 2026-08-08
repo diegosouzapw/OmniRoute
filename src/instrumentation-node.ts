@@ -306,6 +306,7 @@ export async function registerNodejs(): Promise<void> {
     { applyRuntimeSettings },
     { startRuntimeConfigHotReload },
     { startSpendBatchWriter },
+    { startCleanupScheduler },
     { registerDefaultGuardrails },
     { ensurePersistentManagementPasswordHash },
     { skillExecutor },
@@ -320,6 +321,7 @@ export async function registerNodejs(): Promise<void> {
     import("@/lib/config/runtimeSettings"),
     import("@/lib/config/hotReload"),
     import("@/lib/spend/batchWriter"),
+    import("@/lib/db/cleanup"),
     import("@/lib/guardrails"),
     import("@/lib/auth/managementPassword"),
     import("@/lib/skills/executor"),
@@ -487,6 +489,17 @@ export async function registerNodejs(): Promise<void> {
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn("[STARTUP] Could not initialize vacuum scheduler (non-fatal):", msg);
+  }
+
+  // Retention cleanup scheduler (#4691/#6988, #9624): runs the general retention
+  // cleanup once after startup and then every 6 hours. Previously this was only
+  // wired into the unused src/server-init.ts, so telemetry tables grew unboundedly
+  // even with retention.autoCleanupEnabled=true. Idempotent (guarded internally).
+  try {
+    startCleanupScheduler();
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Could not start cleanup scheduler (non-fatal):", msg);
   }
 
   // Warm the model catalog's durable, apiKey-independent sub-caches at

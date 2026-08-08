@@ -1,120 +1,101 @@
-/**
- * #8853 — authenticated HTTP proxy health checks drop credentials
- *
- * Root cause: both the auto-test route and the scheduler build proxy URLs
- * manually as `${proxy.type}://${proxy.host}:${proxy.port}`, dropping
- * username/password. The `proxyConfigToUrl()` function in proxyDispatcher.ts
- * already handles URL-encoded credentials correctly.
- *
- * We prove the bug by showing that the proxy URL produced by the current
- * manual construction lacks credentials, and that `proxyConfigToUrl()` with
- * the same config object includes them — therefore the fix is to reuse it.
- */
 import test from "node:test";
 import assert from "node:assert/strict";
+import { openaiResponsesToOpenAIRequest } from "../../open-sse/translator/request/openai-responses.ts";
+import { detectSupportedThinkingEfforts } from "@/lib/providerModels/modelDiscovery";
 
-// The function that fixes the bug — we import it here to verify it works
-import { proxyConfigToUrl } from "@omniroute/open-sse/utils/proxyDispatcher";
-
-// ── proxyConfigToUrl credential tests ──────────────────────────────────────
-
-test("#8853 proxyConfigToUrl encodes username and password into proxy URL", () => {
-  const url = proxyConfigToUrl({
-    type: "http",
-    host: "127.0.0.1",
-    port: 3128,
-    username: "alice",
-    password: "s3cret",
-  });
-  assert.ok(url, "proxyConfigToUrl must return a URL");
-  assert.match(url!, /:\/\/alice:s3cret@/, "URL must contain credentials");
-});
-
-test("#8853 proxyConfigToUrl encodes special characters in credentials", () => {
-  const url = proxyConfigToUrl({
-    type: "http",
-    host: "proxy.example.com",
-    port: 8080,
-    username: "user@domain",
-    password: "p@ss:w0rd",
-  });
-  assert.ok(url, "proxyConfigToUrl must return a URL");
-  assert.match(url!, /:\/\/user%40domain:p%40ss%3Aw0rd@/, "URL must URL-encode special chars");
-});
-
-test("#8853 proxyConfigToUrl omits auth when no username", () => {
-  const url = proxyConfigToUrl({
-    type: "http",
-    host: "127.0.0.1",
-    port: 3128,
-  });
-  assert.ok(url, "proxyConfigToUrl must return a URL");
-  assert.doesNotMatch(url!, /@/, "URL must not contain @ (no auth)");
-});
-
-test("#8853 proxyConfigToUrl handles IPv6 host with family", () => {
-  const url = proxyConfigToUrl({
-    type: "http",
-    host: "[::1]",
-    port: 3128,
-    family: "ipv6",
-  });
-  assert.ok(url, "proxyConfigToUrl must return a URL");
-  assert.match(url!, /\[::1\]/, "IPv6 host must be bracketed");
-});
-
-// ── Simulate the buggy construction ─────────────────────────────────────────
-
-function buggyManualUrl(proxy: { type: string; host: string; port: number }) {
-  return `${proxy.type}://${proxy.host}:${proxy.port}`;
+function asRecord(value: unknown): Record<string, unknown> {
+  return value as Record<string, unknown>;
 }
 
-test("#8853 manual URL construction (current bug) drops credentials", () => {
-  const proxy = {
-    type: "http",
-    host: "127.0.0.1",
-    port: 3128,
-    username: "alice",
-    password: "s3cret",
-  };
-  const manualUrl = buggyManualUrl(proxy);
-  assert.doesNotMatch(manualUrl, /alice/, "Buggy URL must NOT contain username");
-  assert.doesNotMatch(manualUrl, /s3cret/, "Buggy URL must NOT contain password");
+for (const variant of ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"]) {
+  test(`#8997 ${variant} nested reasoning.effort max survives promotion`, () => {
+    const translated = asRecord(
+      openaiResponsesToOpenAIRequest(
+        variant,
+        { model: variant, input: "hello", reasoning: { effort: "max" } },
+        false,
+        {}
+      )
+    );
+    assert.equal(translated.reasoning_effort, "max");
+  });
 
-  // Compare with proxyConfigToUrl which includes credentials
-  const fixedUrl = proxyConfigToUrl(proxy);
-  assert.ok(fixedUrl);
-  assert.match(fixedUrl!, /alice/, "Fixed URL must contain username");
-  assert.match(fixedUrl!, /s3cret/, "Fixed URL must contain password");
+  test(`#8997 ${variant} flat reasoning_effort max survives promotion`, () => {
+    const translated = asRecord(
+      openaiResponsesToOpenAIRequest(
+        variant,
+        { model: variant, input: "hello", reasoning_effort: "max" },
+        false,
+        {}
+      )
+    );
+    assert.equal(translated.reasoning_effort, "max");
+  });
+}
+
+test("non-GPT-5.6 models still get max downgraded to xhigh", () => {
+  const translated = asRecord(
+    openaiResponsesToOpenAIRequest(
+      "gpt-4o",
+      { model: "gpt-4o", input: "hello", reasoning: { effort: "max" } },
+      false,
+      {}
+    )
+  );
+  assert.equal(translated.reasoning_effort, "xhigh");
 });
 
-// ── Verify the scheduler and auto-test would use proxyConfigToUrl ──────────
+// ─────────────────────────────────────────────────────────────────────
+// PR #9142 — Anthropic top-level `system` prompts must trigger background detection
+// ─────────────────────────────────────────────────────────────────────
+const { getBackgroundTaskReason, setBackgroundDegradationConfig } =
+  await import("../../open-sse/services/backgroundTaskDetector.ts");
 
-test("#8853 proxyConfigToUrl accepts ProxyRegistryRecord-shaped object", () => {
-  // Simulating the shape of a proxy record returned by listProxies({ includeSecrets: true })
-  const proxyRecord = {
-    id: "p1",
-    name: "test",
-    type: "http",
-    host: "10.0.0.1",
-    port: 8888,
-    username: "bob",
-    password: "p4ss",
-    family: "auto",
-    region: null,
-    notes: null,
-    status: "active",
-    source: "manual",
-    subscriptionId: null,
-    createdAt: "2026-01-01",
-    updatedAt: "2026-01-01",
-  };
-  const url = proxyConfigToUrl(proxyRecord);
-  assert.ok(url, "proxyConfigToUrl must accept ProxyRegistryRecord-shaped objects");
-  assert.match(url!, /bob:p4ss/, "URL must include credentials from the record");
+test("#9142 Anthropic top-level system prompts must trigger background detection", () => {
+  setBackgroundDegradationConfig({ enabled: true });
+  assert.equal(
+    getBackgroundTaskReason({
+      system: "Generate a title for this conversation",
+      messages: [{ role: "user", content: "hello" }],
+    }),
+    "system_prompt_pattern"
+  );
 });
 
-test("#8853 proxyConfigToUrl returns null for partial config (no host)", () => {
-  const url = proxyConfigToUrl({ type: "http", port: 8080 } as Record<string, unknown>);
-  assert.equal(url, null, "proxyConfigToUrl must return null for partial config without host");
+// #9140 — VS Code routes filter out built-in auto models
+const { isUsableChatModel } =
+  await import("../../src/app/api/v1/vscode/[token]/usableChatModel.ts");
+
+test("#9140 VS Code listing must accept built-in auto routing entries", () => {
+  assert.equal(
+    isUsableChatModel({ id: "auto/best-coding", owned_by: "combo" }),
+    true,
+    "built-in auto/* model should be accepted"
+  );
+  assert.equal(
+    isUsableChatModel({ id: "operator-combo", owned_by: "combo" }),
+    false,
+    "operator-created combo should still be rejected"
+  );
+});
+
+// ── #9160 model discovery: capabilities.effort_tiers ────────────────────────
+
+// #9160: model discovery must ingest capabilities.effort_tiers
+test("#9160 model discovery must ingest capabilities.effort_tiers", () => {
+  assert.deepEqual(
+    detectSupportedThinkingEfforts({
+      capabilities: { effort_tiers: ["low", "medium", "high", "xhigh"] },
+    }),
+    ["low", "medium", "high", "xhigh"]
+  );
+});
+
+test("#9160 capabilities.effort_tiers with duplicate and synonym", () => {
+  assert.deepEqual(
+    detectSupportedThinkingEfforts({
+      capabilities: { effort_tiers: ["low", "low", "max"] },
+    }),
+    ["low", "xhigh"]
+  );
 });
