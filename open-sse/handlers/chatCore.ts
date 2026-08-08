@@ -4340,9 +4340,14 @@ export async function handleChatCore({
     try {
       const firstChoice = translatedResponse?.choices?.[0];
       const msg = firstChoice?.message;
+      // The response being cached now will be replayed as history on the *next*
+      // turn, where the read side (translator/index.ts) keys the lookup by the
+      // message's real position in that future `messages` array — i.e. right
+      // after everything the client sent this turn.
+      const bodyMessages = (body as { messages?: unknown[] } | null | undefined)?.messages;
       cacheReasoningFromAssistantMessage(msg, provider, model, {
         requestId: skillRequestId,
-        messageIndex: 0,
+        messageIndex: Array.isArray(bodyMessages) ? bodyMessages.length : 0,
       });
     } catch {
       // Cache capture is non-critical — never block the response
@@ -4767,12 +4772,15 @@ export async function handleChatCore({
     // with tool_calls so it can be replayed on subsequent turns (DeepSeek V4, Kimi K2, etc.)
     if (normalizedStreamStatus === 200 && streamResponseBody) {
       try {
-        const body = streamResponseBody as Record<string, unknown>;
-        const choices = body.choices as { message?: Record<string, unknown> }[] | undefined;
+        const streamBody = streamResponseBody as Record<string, unknown>;
+        const choices = streamBody.choices as { message?: Record<string, unknown> }[] | undefined;
         const msg = choices?.[0]?.message;
+        // See the non-streaming capture above: messageIndex must match the
+        // position this message will occupy in the *next* turn's history.
+        const bodyMessages = (body as { messages?: unknown[] } | null | undefined)?.messages;
         cacheReasoningFromAssistantMessage(msg, provider, model, {
           requestId: skillRequestId,
-          messageIndex: 0,
+          messageIndex: Array.isArray(bodyMessages) ? bodyMessages.length : 0,
         });
       } catch {
         // Cache capture is non-critical — never block the stream
