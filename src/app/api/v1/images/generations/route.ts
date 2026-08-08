@@ -19,6 +19,7 @@ import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1ImageGenerationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
+import { getComboByName } from "@/lib/db/combos";
 import { getAllCustomModels } from "@/lib/db/models";
 import { resolveProxyForConnection } from "@/lib/db/settings";
 import { resolveImageRouteModel } from "@/lib/images/imageRouteModel";
@@ -115,6 +116,24 @@ async function postHandler(request, context) {
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
   if (policy.rejection) return policy.rejection;
+
+  // #9239: Detect combo name and divert to full image combo execution.
+  // Checks before resolveImageRouteModel so we skip single-target flattening.
+  if (body.model && typeof body.model === "string" && !body.model.includes("/")) {
+    const combo = await getComboByName(body.model as string);
+    if (combo) {
+      const { executeImageCombo } = await import(
+        "@omniroute/open-sse/services/imageCombo"
+      );
+      return executeImageCombo(
+        body.model as string,
+        body,
+        { request, policy },
+        startTime,
+        log
+      );
+    }
+  }
 
   // #3205/#3215: resolve a combo/alias name (`image`) or a user-prefixed custom image
   // model (`myImg/gpt-image-2`) to its internal `<nodeId>/<model>` form so the
