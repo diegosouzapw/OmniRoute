@@ -12,27 +12,58 @@
  */
 
 import type { ClaudeContentBlock, ClaudeMessage } from "./claudeMessageTypes.ts";
-import { extractSystemRoleMessages } from "./claudeSystemRole.ts";
+import { extractSystemRoleMessages, relocateHoistedCacheBoundary } from "./claudeSystemRole.ts";
 import { splitMisplacedToolResults } from "../../translator/helpers/claudeHelper.ts";
 
 type LoggerLike = { debug?: (...args: unknown[]) => void } | null | undefined;
 
+/**
+ * Carries a replaced block's `cache_control` onto its substitute. Rewriting a marked block into a
+ * plain text block would otherwise drop the breakpoint the client (or the #9436 hoist) put there.
+ */
+function withCacheControl(
+  replacement: ClaudeContentBlock,
+  original: ClaudeContentBlock
+): ClaudeContentBlock {
+  if (original.cache_control != null) replacement.cache_control = original.cache_control;
+  return replacement;
+}
+
 export function extractSystemMessagesToBody(payload: Record<string, unknown>) {
   if (!Array.isArray(payload.messages)) return;
   const messages = payload.messages as ClaudeMessage[];
-  const systemMessages = messages.filter((m) => {
-    const role = String(m.role || "").toLowerCase();
-    return role === "system" || role === "developer";
-  });
+  const isSystemRole = (role: unknown): boolean => {
+    const normalized = String(role || "").toLowerCase();
+    return normalized === "system" || normalized === "developer";
+  };
+  const systemMessages = messages.filter((m) => isSystemRole(m.role));
   if (systemMessages.length === 0) return;
   const extraBlocks: ClaudeContentBlock[] = [];
-  for (const sm of systemMessages) {
+  // Same in-order walk as extractSystemRoleMessages: re-anchoring a hoisted `cache_control`
+  // needs the messages that precede it and stay behind (#9436).
+  const preceding: ClaudeMessage[] = [];
+  for (const sm of messages) {
+    if (!isSystemRole(sm.role)) {
+      preceding.push(sm);
+      continue;
+    }
     if (typeof sm.content === "string" && sm.content.length > 0) {
       extraBlocks.push({ type: "text", text: sm.content });
     } else if (Array.isArray(sm.content)) {
       for (const block of sm.content as ClaudeContentBlock[]) {
         if (block?.type === "text" && typeof block.text === "string" && block.text.length > 0) {
-          extraBlocks.push(block);
+          // Blocks are pushed by reference here (the sibling implementation spreads them), so
+          // only a block whose marker actually moves is copied.
+          if (
+            block.cache_control != null &&
+            relocateHoistedCacheBoundary(block.cache_control, preceding) !== "kept"
+          ) {
+            const withoutMarker: ClaudeContentBlock = { ...block };
+            delete withoutMarker.cache_control;
+            extraBlocks.push(withoutMarker);
+          } else {
+            extraBlocks.push(block);
+          }
         }
       }
     }
@@ -47,10 +78,7 @@ export function extractSystemMessagesToBody(payload: Record<string, unknown>) {
       payload.system = extraBlocks;
     }
   }
-  payload.messages = messages.filter((m) => {
-    const role = String(m.role || "").toLowerCase();
-    return role !== "system" && role !== "developer";
-  });
+  payload.messages = messages.filter((m) => !isSystemRole(m.role));
 }
 
 export function normalizeClaudeUpstreamMessages(
@@ -104,7 +132,7 @@ export function normalizeClaudeUpstreamMessages(
           const fileName =
             (block.file as Record<string, unknown>)?.name ?? block.name ?? "attachment";
           if (typeof fileContent === "string" && fileContent.length > 0) {
-            return [{ type: "text", text: `[${fileName}]\n${fileContent}` }];
+            return [withCacheControl({ type: "text", text: `[${fileName}]\n${fileContent}` }, block)];
           }
         }
         return [block];
@@ -126,7 +154,9 @@ export function normalizeClaudeUpstreamMessages(
                   .join("\n")
               : JSON.stringify(resultContent);
         if (resultText.length > 0) {
-          return [{ type: "text", text: `[Tool Result: ${toolId}]\n${resultText}` }];
+          return [
+            withCacheControl({ type: "text", text: `[Tool Result: ${toolId}]\n${resultText}` }, block),
+          ];
         }
         return [];
       }
