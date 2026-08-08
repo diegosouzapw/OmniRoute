@@ -55,10 +55,12 @@ test("direct Anthropic API providers clamp Opus 5 disabled thinking to high effo
     for (const effort of ["xhigh", "max"]) {
       const body = {
         model: "claude-opus-5",
+        request_marker: "preserve-me",
         thinking: { type: "disabled" },
         output_config: { effort, format: "compact" },
       };
       const result = normalizeClaudeDisabledThinkingEffort(body, "claude-opus-5", provider);
+      assert.equal(result.request_marker, "preserve-me");
       assert.deepEqual(result.thinking, { type: "disabled" });
       assert.deepEqual(result.output_config, { effort: "high", format: "compact" });
     }
