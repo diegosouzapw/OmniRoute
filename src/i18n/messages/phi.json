@@ -5976,6 +5976,8 @@
     "lmarenaWebCookieHint": "Buksan ang arena.ai, mag-sign in, pagkatapos ay kopyahin ang buong Cookie header mula sa isang Network request. Isama ang arena-auth-prod-v1.0 at arena-auth-prod-v1.1 (at iba pang mga chunk kung mayroon), mas mainam kung may cf_clearance. Huwag i-paste ang walang lamang arena-auth-prod-v1 cookie lamang. Opsyonal: providerSpecificData.recaptchaV3Token kung nagbabalik pa rin ng 403 ang create-evaluation.",
     "kimiOfficialSupporterBadge": "Tagapagtatag na Kaibigan",
     "kimiOfficialSupporterTooltip": "Ang Kimi (Moonshot AI) ang tagapagtatag na open source na kaibigan ng OmniRoute",
+    "cheaperInferenceSupporterBadge": "Kaibigan ng Open Source",
+    "cheaperInferenceSupporterTooltip": "Sinusuportahan ng Cheaper Inference ang OmniRoute bilang Kaibigan ng Open Source",
     "kimiPartnerLinkNote": "Link ng kasosyo — sumusuporta sa OmniRoute nang walang karagdagang gastos sa iyo",
     "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
     "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
@@ -12180,5 +12182,6 @@
     "cta": "Kumuha ng Kimi Code",
     "partnerLinkNote": "Link ng kasosyo",
     "dismissAriaLabel": "I-dismiss"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

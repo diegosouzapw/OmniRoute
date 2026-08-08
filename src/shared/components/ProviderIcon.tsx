@@ -81,6 +81,7 @@ const KNOWN_SVGS = new Set([
   "cartesia",
   "cerebras",
   "charm-hyper",
+  "cheaperinference",
   "chipotle",
   "chutes",
   "clarifai",

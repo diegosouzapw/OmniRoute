@@ -1,0 +1,16 @@
+#!/usr/bin/expect -f
+# Auto-confirms opencode prompts
+set timeout -1
+spawn opencode {*}$argv
+
+expect {
+  "Are you sure you want to run this command?" {
+    send "yes\r"
+    exp_continue
+  }
+  "Allow opencode to" {
+    send "yes\r"
+    exp_continue
+  }
+  eof
+}

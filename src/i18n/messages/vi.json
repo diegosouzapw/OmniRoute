@@ -6001,6 +6001,8 @@
     "lmarenaWebCookieHint": "Mở arena.ai, đăng nhập, sau đó sao chép toàn bộ header Cookie từ một yêu cầu mạng. Bao gồm arena-auth-prod-v1.0 và arena-auth-prod-v1.1 (và các phần tiếp theo nếu có), ưu tiên kèm theo cf_clearance. Không chỉ dán cookie arena-auth-prod-v1 trống. Tùy chọn: providerSpecificData.recaptchaV3Token nếu create-evaluation vẫn trả về 403.",
     "kimiOfficialSupporterBadge": "Người Bạn Sáng Lập",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) là người bạn mã nguồn mở sáng lập của OmniRoute",
+    "cheaperInferenceSupporterBadge": "Người bạn mã nguồn mở",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference hỗ trợ OmniRoute với tư cách là người bạn mã nguồn mở",
     "kimiPartnerLinkNote": "Partner link — supports OmniRoute at no extra cost to you",
     "ccAliasSectionTitle": "Hiển thị trong Claude Code (claude/…)",
     "ccAliasSectionHint": "Công bố các mô hình của nhà cung cấp này dưới dạng id phản chiếu claude/&lt;provider&gt;/&lt;model&gt; để tính năng khám phá mô hình qua gateway của Claude Code có thể liệt kê chúng. Mặc định tắt — bật lên sẽ nhân đôi số mục trong danh mục với mọi client.",
@@ -12205,5 +12207,6 @@
     "cta": "Get Kimi Code",
     "partnerLinkNote": "Partner link",
     "dismissAriaLabel": "Dismiss"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "Công bố các id phản chiếu &lt;gateway-alias&gt;/&lt;model&gt; trên /v1/models cho các mô hình có chủ sở hữu chuẩn không có thông tin xác thực hoạt động nhưng một cổng chuyển tiếp có thông tin xác thực hoạt động định tuyến được chúng. Cảnh báo: khi bật, số mục trong danh mục tăng lên với mọi client."
 }

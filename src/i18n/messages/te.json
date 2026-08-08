@@ -5976,6 +5976,8 @@
     "lmarenaWebCookieHint": "arena.aiని తెరవండి, సైన్ ఇన్ చేయండి, ఆపై నెట్‌వర్క్ అభ్యర్థన నుండి పూర్తి Cookie హెడర్‌ను కాపీ చేయండి. arena-auth-prod-v1.0 మరియు arena-auth-prod-v1.1 (మరియు మరిన్ని భాగాలు ఉంటే వాటిని) చేర్చండి, ప్రాధాన్యంగా cf_clearanceతో. కేవలం ఖాళీ arena-auth-prod-v1 కుకీని మాత్రమే పేస్ట్ చేయవద్దు. ఐచ్ఛికం: create-evaluation ఇప్పటికీ 403ని అందిస్తే providerSpecificData.recaptchaV3Token.",
     "kimiOfficialSupporterBadge": "వ్యవస్థాపక మిత్రుడు",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) అనేది OmniRoute యొక్క వ్యవస్థాపక ఓపెన్ సోర్స్ మిత్రుడు",
+    "cheaperInferenceSupporterBadge": "ఓపెన్ సోర్స్ స్నేహితుడు",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference ఓపెన్ సోర్స్ స్నేహితురాలిగా OmniRoute కు మద్దతు ఇస్తోంది",
     "kimiPartnerLinkNote": "భాగస్వామి లింక్ — మీకు ఎటువంటి అదనపు ఖర్చు లేకుండా OmniRouteకు మద్దతు ఇస్తుంది",
     "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
     "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
@@ -12180,5 +12182,6 @@
     "cta": "Kimi Code పొందండి",
     "partnerLinkNote": "భాగస్వామి లింక్",
     "dismissAriaLabel": "తీసివేయి"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

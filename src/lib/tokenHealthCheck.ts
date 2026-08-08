@@ -20,6 +20,7 @@ import {
 } from "@/lib/localDb";
 import {
   getAccessToken,
+  getDeprecationNotice,
   supportsTokenRefresh,
   isUnrecoverableRefreshError,
   refreshCopilotToken,
@@ -422,6 +423,33 @@ export async function checkConnection(conn) {
     terminalStatuses.has(conn.testStatus.toLowerCase()) &&
     !isRecoverableGithubCopilotNoRefresh
   ) {
+    return;
+  }
+
+  // Deprecated upstream (see DEPRECATED_PROVIDERS in tokenRefresh): the provider is not
+  // routable, so refreshing kept a credential alive that could never answer a request.
+  // Surface that as a terminal state naming the migration, instead of the silent
+  // `Skipping … (refresh unsupported)` that dropping it from supportsTokenRefresh alone
+  // would produce — which would leave the row at "active" forever, doing nothing.
+  //
+  // Placed AFTER the terminal-status guard above, which makes this idempotent for free:
+  // once marked "expired" the connection is skipped on every later sweep, so this writes
+  // exactly once instead of rewriting the same reason each cycle.
+  const deprecation = getDeprecationNotice(String(conn.provider || ""));
+  if (deprecation) {
+    const now = new Date().toISOString();
+    await updateProviderConnection(conn.id, {
+      testStatus: "expired",
+      lastHealthCheckAt: now,
+      lastError: deprecation.reason,
+      lastErrorAt: now,
+      lastErrorType: "provider_deprecated",
+      lastErrorSource: "oauth",
+      errorCode: "provider_deprecated",
+    });
+    log(
+      `${LOG_PREFIX} ${conn.provider}/${getConnectionLogLabel(conn)} is a deprecated provider; marking expired (migrate to ${deprecation.migrateTo})`
+    );
     return;
   }
 

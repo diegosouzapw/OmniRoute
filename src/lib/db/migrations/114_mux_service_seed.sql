@@ -5,7 +5,10 @@
 -- framework, same shape as 9Router (071) and CLIProxyAPI (016/017).
 -- Seeds a `not_installed` / `auto_start=0` placeholder row so the dashboard
 -- tab and /api/services/mux/status have a row to read before install.
-
+-- Guard: ensure columns added in migration 071 exist (runner may skip 071 on fresh DBs).
+ALTER TABLE version_manager ADD COLUMN last_sync_at TEXT;
+ALTER TABLE version_manager ADD COLUMN logs_buffer_path TEXT;
+ALTER TABLE version_manager ADD COLUMN provider_expose INTEGER NOT NULL DEFAULT 0;
 INSERT OR IGNORE INTO version_manager
   (tool, status, port, auto_start, auto_update, provider_expose)
 VALUES

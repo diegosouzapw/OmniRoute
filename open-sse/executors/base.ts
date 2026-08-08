@@ -34,6 +34,7 @@ import {
   resolveAccountKey,
   isFreeVariantModel,
 } from "../services/openrouterFreeWindow.ts";
+import { gateOutboundRequest } from "../services/wafRateLimit.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 import type { Session } from "../services/sessionPool/session.ts";
 import { SessionPool } from "../services/sessionPool/sessionPool.ts";
@@ -45,6 +46,7 @@ import {
 } from "../services/apiKeyRotator.ts";
 import type { KeyHealth } from "../services/apiKeyRotator.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
+import { usesCcWireImage } from "../services/ccWireImageBuiltins.ts";
 import {
   runWithOnPersist,
   getRefreshLeadMs,
@@ -249,7 +251,10 @@ function collectThinkingConfigs(body: unknown): Array<Record<string, unknown>> {
   if (!body || typeof body !== "object") return [];
   const root = body as Record<string, unknown>;
   const configs: Array<Record<string, unknown>> = [];
-  const envelopes: unknown[] = [root.generationConfig, (root.request as Record<string, unknown> | undefined)?.generationConfig];
+  const envelopes: unknown[] = [
+    root.generationConfig,
+    (root.request as Record<string, unknown> | undefined)?.generationConfig,
+  ];
   for (const env of envelopes) {
     if (!env || typeof env !== "object") continue;
     const tc = (env as Record<string, unknown>).thinkingConfig;
@@ -445,6 +450,12 @@ export class BaseExecutor {
     );
   }
 
+  protected usesClaudeCodeProtocol(credentials: ProviderCredentials | null): boolean {
+    if (!isClaudeCodeCompatible(this.provider)) return false;
+    const format = this.resolveAlternate(credentials)?.format;
+    return format !== "openai" && format !== "openai-responses";
+  }
+
   /**
    * Resolve the effective API key via extra-keys round-robin rotation.
    * Mutates `credentials.providerSpecificData.selectedKeyId` on rotation.
@@ -589,6 +600,15 @@ export class BaseExecutor {
 
   // Intra-URL retry config: retry same URL before falling back to next node
   static readonly RETRY_CONFIG = { maxAttempts: 2, delayMs: 2000 };
+  // WAF (400 content-blocked) retry config: agentrouter.org's WAF is burst-sensitive
+  // and recovers after a short cooldown. Use exponential backoff with a higher
+  // starting delay than the generic 429 retry (which is 2s) because the WAF
+  // needs more time to clear its per-IP suspicion bucket.
+  static readonly WAF_RETRY_CONFIG = {
+    maxAttempts: 2,
+    delayMs: 1500,
+    backoffMultiplier: 2,
+  };
   // Timeout for receiving the initial upstream response headers. Once the response
   // starts streaming, STREAM_IDLE_TIMEOUT_MS / Undici bodyTimeout handle stalls.
   static FETCH_START_TIMEOUT_MS = FETCH_TIMEOUT_MS;
@@ -834,15 +854,16 @@ export class BaseExecutor {
         );
       }
 
-      const ccRequestDefaults = isClaudeCodeCompatible(this.provider)
+      const usesClaudeCodeProtocol = this.usesClaudeCodeProtocol(requestCredentials);
+      const fingerprintProvider =
+        usesCcWireImage(this.provider) && !usesClaudeCodeProtocol ? "codex" : this.provider;
+      const ccRequestDefaults = usesClaudeCodeProtocol
         ? getClaudeCodeCompatibleRequestDefaults(requestCredentials?.providerSpecificData)
         : {};
       const shouldForwardExtendedContext =
-        extendedContext &&
-        modelSupportsContext1mBeta(model) &&
-        !isClaudeCodeCompatible(this.provider);
+        extendedContext && modelSupportsContext1mBeta(model) && !usesClaudeCodeProtocol;
       const shouldForwardCcCompatibleContext1m =
-        isClaudeCodeCompatible(this.provider) &&
+        usesClaudeCodeProtocol &&
         ccRequestDefaults.context1m === true &&
         !modelHasNativeContext1m(model);
       if (shouldForwardExtendedContext || shouldForwardCcCompatibleContext1m) {
@@ -922,8 +943,8 @@ export class BaseExecutor {
           !activeCredentials?.apiKey;
 
         if (
-          this.provider === "claude" &&
-          (isClaudeCodeClient || hasClaudeOAuthToken) &&
+          ((this.provider === "claude" && (isClaudeCodeClient || hasClaudeOAuthToken)) ||
+            usesClaudeCodeProtocol) &&
           typeof transformedBody === "object" &&
           transformedBody !== null
         ) {
@@ -1200,6 +1221,11 @@ export class BaseExecutor {
             if (ccKeysLower.has(key.toLowerCase())) delete headers[key];
           }
           Object.assign(headers, ccHeaders);
+          if (usesCcWireImage(this.provider) && usesClaudeCodeProtocol) {
+            delete headers["Authorization"];
+            headers["x-api-key"] =
+              activeCredentials?.apiKey || activeCredentials?.accessToken || "";
+          }
           delete headers["X-Stainless-Helper-Method"];
 
           // OS/arch follow the host running the signed binary. Runtime version
@@ -1246,7 +1272,7 @@ export class BaseExecutor {
             // (tool_result must be in immediately next message).
             // Only apply for Claude/Claude-compatible — OpenAI allows results
             // spread across multiple subsequent messages.
-            const isClaude = this.provider === "claude" || isClaudeCodeCompatible(this.provider);
+            const isClaude = this.provider === "claude" || usesClaudeCodeProtocol;
             // For Claude, fixToolAdjacency may strip tool_use blocks whose
             // tool_result isn't in the next message; re-run fixToolPairs to
             // drop any tool_result orphaned by that strip (discussion #2410).
@@ -1265,7 +1291,7 @@ export class BaseExecutor {
         // at this final dispatch point — the single chokepoint every Claude
         // routing mode (grouped/raw/combo) and the native passthrough share,
         // before fingerprinting and CCH signing serialize the body.
-        if (this.provider === "claude" || isClaudeCodeCompatible(this.provider)) {
+        if (this.provider === "claude" || usesClaudeCodeProtocol) {
           enforceThinkingTemperature(transformedBody as Record<string, unknown>);
         }
 
@@ -1282,7 +1308,7 @@ export class BaseExecutor {
         // `contextEditingDisabled` (set by the 400-fallback) suppresses re-injection
         // when a fresh `transformedBody` is built for a retry/fallback URL.
         if (
-          (this.provider === "claude" || isClaudeCodeCompatible(this.provider)) &&
+          (this.provider === "claude" || usesClaudeCodeProtocol) &&
           contextEditing?.enabled &&
           !contextEditingDisabled
         ) {
@@ -1298,17 +1324,17 @@ export class BaseExecutor {
         let bodyString = JSON.stringify(transformedBody);
 
         const shouldFingerprint =
-          isCliCompatEnabled(this.provider) ||
+          isCliCompatEnabled(fingerprintProvider) ||
           (this.provider === "claude" && (isClaudeCodeClient || hasClaudeOAuthToken));
         if (shouldFingerprint) {
-          const fingerprinted = applyFingerprint(this.provider, headers, transformedBody);
+          const fingerprinted = applyFingerprint(fingerprintProvider, headers, transformedBody);
           finalHeaders = fingerprinted.headers;
           bodyString = fingerprinted.bodyString;
         }
 
         // CCH signing — replaces the cch=00000 placeholder in the billing
         // header with an xxHash64 integrity token over the serialized body.
-        if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
+        if (usesClaudeCodeProtocol || this.provider === "claude") {
           bodyString = await signRequestBody(bodyString);
         }
 
@@ -1373,6 +1399,13 @@ export class BaseExecutor {
           recordFreeWindowAttempt(openrouterFreeWindowAccountKey);
         }
 
+        // WAF burst guard: agentrouter.org's content filter becomes more
+        // aggressive after rapid requests. Enforce a small inter-request gap
+        // to avoid tripping it. See open-sse/services/wafRateLimit.ts.
+        if (this.provider === "agentrouter") {
+          await gateOutboundRequest(`agentrouter:${url}`);
+        }
+
         let response = await fetchWithStartTimeout(url, fetchOptions);
 
         if (openrouterFreeWindowAccountKey) {
@@ -1396,7 +1429,7 @@ export class BaseExecutor {
             contextEditingDisabled = true;
             delete (transformedBody as Record<string, unknown>).context_management;
             let retryBody = JSON.stringify(transformedBody);
-            if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
+            if (usesClaudeCodeProtocol || this.provider === "claude") {
               retryBody = await signRequestBody(retryBody);
             }
             log?.debug?.(
@@ -1435,7 +1468,7 @@ export class BaseExecutor {
             thinkingBudgetClampedMax = upstreamMax;
             if (clampNestedThinkingBudget(transformedBody, upstreamMax)) {
               let retryBody = JSON.stringify(transformedBody);
-              if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
+              if (usesClaudeCodeProtocol || this.provider === "claude") {
                 retryBody = await signRequestBody(retryBody);
               }
               log?.info?.(
@@ -1466,7 +1499,7 @@ export class BaseExecutor {
             strippedFields.add(offending);
             delete (transformedBody as Record<string, unknown>)[offending];
             let retryBody = JSON.stringify(transformedBody);
-            if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
+            if (usesClaudeCodeProtocol || this.provider === "claude") {
               retryBody = await signRequestBody(retryBody);
             }
             log?.debug?.(
@@ -1491,7 +1524,7 @@ export class BaseExecutor {
                   addParamToBlocklist(this.provider, autoLearned, model);
                   delete (transformedBody as Record<string, unknown>)[autoLearned];
                   let retryBody = JSON.stringify(transformedBody);
-                  if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
+                  if (usesClaudeCodeProtocol || this.provider === "claude") {
                     retryBody = await signRequestBody(retryBody);
                   }
                   log?.info?.(
@@ -1507,6 +1540,34 @@ export class BaseExecutor {
                 );
               }
             }
+          }
+        }
+
+        // Intra-URL retry: agentrouter.org WAF returns 400 content-blocked
+        // intermittently (burst-sensitive, recovers after cooldown). Retry the
+        // same URL with exponential backoff before falling through to the
+        // 429/401/fallback chain. See docs/security/AGENTROUTER_WAF.md.
+        if (
+          !skipUpstreamRetry &&
+          response.status === HTTP_STATUS.BAD_REQUEST &&
+          (retryAttemptsByUrl[urlIndex] ?? 0) < BaseExecutor.WAF_RETRY_CONFIG.maxAttempts
+        ) {
+          const wafErrText = await response
+            .clone()
+            .text()
+            .catch(() => "");
+          if (/content[_-]blocked/i.test(wafErrText)) {
+            retryAttemptsByUrl[urlIndex] = (retryAttemptsByUrl[urlIndex] ?? 0) + 1;
+            const wafAttempt = retryAttemptsByUrl[urlIndex];
+            const wafBackoff = BaseExecutor.WAF_RETRY_CONFIG.delayMs *
+              Math.pow(BaseExecutor.WAF_RETRY_CONFIG.backoffMultiplier, wafAttempt - 1);
+            log?.debug?.(
+              "WAF_RETRY",
+              `400 content-blocked intra-retry ${wafAttempt}/${BaseExecutor.WAF_RETRY_CONFIG.maxAttempts} on ${url} — waiting ${wafBackoff}ms`
+            );
+            await new Promise((resolve) => setTimeout(resolve, wafBackoff));
+            urlIndex--; // re-run this urlIndex on the next loop iteration
+            continue;
           }
         }
 

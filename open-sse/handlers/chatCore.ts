@@ -71,6 +71,7 @@ import { checkHeapPressureGuard } from "../utils/heapPressure.ts";
 import { normalizeHeaders } from "../utils/headers.ts";
 import { resolveChatCoreRequestFormat } from "./chatCore/requestFormat.ts";
 import { resolveChatCoreTargetFormat } from "./chatCore/targetFormat.ts";
+import { stripStore, usesClaudeBridge } from "./chatCore/agentRouterProtocol.ts";
 import { defaultClaudeToolType } from "./chatCore/claudeToolDefaults.ts";
 import { injectSystemPrompt, injectCustomSystemPrompt } from "../services/systemPrompt.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
@@ -341,7 +342,6 @@ import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 import {
   buildClaudeCodeCompatibleRequest,
-  isClaudeCodeCompatibleProvider,
   resolveClaudeCodeCompatibleSessionId,
 } from "../services/claudeCodeCompatible.ts";
 import { setGeminiThoughtSignatureMode } from "../services/geminiThoughtSignatureStore.ts";
@@ -751,6 +751,7 @@ export async function handleChatCore({
     provider,
     resolvedModel,
     apiFormat,
+    sourceFormat,
     customModelTargetFormat,
     providerSpecificData: credentials?.providerSpecificData,
   });
@@ -1920,7 +1921,7 @@ export async function handleChatCore({
 
   let translatedBody = body;
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
-  const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
+  const isClaudeCodeCompatible = usesClaudeBridge(provider, targetFormat, credentials);
   const isClaudeCodeSemanticPassthrough = isClaudeCodeSemanticPassthroughRequest({
     provider,
     sourceFormat,
@@ -2496,10 +2497,7 @@ export async function handleChatCore({
     log?.debug?.("PARAMS", `Renamed max_completion_tokens to max_tokens for ${model}`);
   }
 
-  // OpenAI's `store` parameter is not supported by most compatible providers and breaks them
-  if (provider !== "openai" && "store" in translatedBody) {
-    delete translatedBody.store;
-  }
+  stripStore(translatedBody, provider, targetFormat);
 
   // Chat clients may send stream_options.include_usage, but OpenAI Responses
   // upstreams (including Azure AI Foundry /responses) reject stream_options.

@@ -1,4 +1,5 @@
-import { Inter } from "next/font/google";
+// Google Fonts disabled in dev mode (Turbopack can't resolve internal font path).
+// Using CSS system-font stack instead.
 import "./globals.css";
 import { ThemeProvider } from "@/shared/components/ThemeProvider";
 import { NextIntlClientProvider } from "next-intl";
@@ -11,10 +12,8 @@ import { PwaRegister } from "@/shared/components/PwaRegister";
 import { LocaleAutoDetect } from "@/shared/components/LocaleAutoDetect";
 import { BasePathNetworkProvider } from "@/shared/components/BasePathNetworkProvider";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
+// Stub: no Google Font loaded; CSS falls back to system-ui / sans-serif.
+const inter = { variable: "" } as { variable: string };
 
 export const viewport: Viewport = {
   themeColor: "#0b0f1a",

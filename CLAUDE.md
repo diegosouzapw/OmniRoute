@@ -45,7 +45,7 @@ For full test matrix, see `CONTRIBUTING.md` → "Running Tests". For deep archit
 | Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                                                |
 | Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                                        |
 | Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                                |
-| Database      | `src/lib/db/`           | SQLite domain modules (95 files, 110 migrations)                                                                                                        |
+| Database      | `src/lib/db/`           | SQLite domain modules (130 migrations)                                                                                                                  |
 | Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                               |
 | MCP Server    | `open-sse/mcp-server/`  | 104 tools (42 base + memory/skill/agentSkill/pool/notion/obsidian/gamification/plugin modules), 3 transports (stdio / SSE / Streamable HTTP), 31 scopes |
 | A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                             |
@@ -72,7 +72,7 @@ Client → /v1/chat/completions (Next.js route)
 
 API routes follow a consistent pattern: `Route → CORS preflight → Zod body validation → Optional auth (extractApiKey/isValidApiKey) → API key policy enforcement → Handler delegation (open-sse)`. No global Next.js middleware — interception is route-specific.
 
-**Combo routing** (`open-sse/services/combo.ts`): 18 strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks. The `fusion` strategy is the exception: it fans out to a panel of models in parallel, then a judge model synthesizes one final answer (`open-sse/services/fusion.ts`). See `docs/routing/AUTO-COMBO.md` for the 12-factor Auto-Combo scoring + the full strategy table and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
+**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks. The `fusion` strategy is the exception: it fans out to a panel of models in parallel, then a judge model synthesizes one final answer (`open-sse/services/fusion.ts`). See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring + the full strategy table and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -332,7 +332,7 @@ For any non-trivial change, read the matching deep-dive first:
 | Repo navigation                               | `docs/architecture/REPOSITORY_MAP.md`                   |
 | Architecture                                  | `docs/architecture/ARCHITECTURE.md`                     |
 | Engineering reference                         | `docs/architecture/CODEBASE_DOCUMENTATION.md`           |
-| Auto-Combo (12-factor scoring, 18 strategies) | `docs/routing/AUTO-COMBO.md`                            |
+| Auto-Combo (13-factor scoring, 19 strategies) | `docs/routing/AUTO-COMBO.md`                            |
 | Resilience (3 mechanisms)                     | `docs/architecture/RESILIENCE_GUIDE.md`                 |
 | Reasoning replay                              | `docs/routing/REASONING_REPLAY.md`                      |
 | Skills framework                              | `docs/frameworks/SKILLS.md`                             |
@@ -461,9 +461,17 @@ own dedicated branch, and you MUST confirm the base branch with the operator bef
    git fetch origin "$BASE_BRANCH"
    git worktree add ".claude/worktrees/${TASK##*/}" -b "$TASK" "origin/$BASE_BRANCH"
    cd ".claude/worktrees/${TASK##*/}"
-   # symlink node_modules from the main checkout to skip a per-worktree npm install:
-   ln -s "$(git -C <main_checkout> rev-parse --show-toplevel)/node_modules" node_modules
+   # Reuse the main checkout's node_modules to skip a per-worktree npm install.
+   # HARD LINKS (`cp -al`), never a symlink: ~5s for the whole tree and near-zero extra
+   # disk (the inodes are shared), and unlike a symlink it does not break the dev server.
+   cp -al "$(git -C <main_checkout> rev-parse --show-toplevel)/node_modules" node_modules
    ```
+
+   **Never `ln -s` node_modules.** Turbopack rejects a symlink that resolves outside the
+   project root, so `npm run dev` dies with a FATAL panic (`Symlink [project]/node_modules
+   is invalid, it points out of the filesystem root`) while typecheck, lint and the test
+   runners all keep passing — the error names "filesystem root", not the worktree, so it
+   reads like a Next/build bug and costs real time to trace (incident 2026-07-31, #9043).
 
    In Claude Code prefer the native `EnterWorktree` tool (it already creates worktrees under
    `.claude/worktrees/`): create the worktree with the command above, then call `EnterWorktree`

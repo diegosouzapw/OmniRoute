@@ -5976,6 +5976,8 @@
     "lmarenaWebCookieHint": "سایت arena.ai را باز کنید، وارد شوید، سپس هدر کامل Cookie را از یک درخواست Network کپی کنید. شامل arena-auth-prod-v1.0 و arena-auth-prod-v1.1 (و بخش‌های بعدی در صورت وجود)، ترجیحاً همراه با cf_clearance. فقط کوکی خالی arena-auth-prod-v1 را جای‌گذاری نکنید. اختیاری: providerSpecificData.recaptchaV3Token اگر create-evaluation همچنان خطای 403 برمی‌گرداند.",
     "kimiOfficialSupporterBadge": "دوست بنیان‌گذار",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) دوست بنیان‌گذار متن‌باز OmniRoute است",
+    "cheaperInferenceSupporterBadge": "دوست متن‌باز",
+    "cheaperInferenceSupporterTooltip": "‏Cheaper Inference از OmniRoute به‌عنوان دوست متن‌باز حمایت می‌کند",
     "kimiPartnerLinkNote": "لینک همکاری — پشتیبانی از OmniRoute بدون هزینه اضافی برای شما",
     "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
     "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
@@ -12180,5 +12182,6 @@
     "cta": "دریافت Kimi Code",
     "partnerLinkNote": "لینک همکاری",
     "dismissAriaLabel": "بستن"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

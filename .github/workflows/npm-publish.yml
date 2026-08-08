@@ -159,6 +159,17 @@ jobs:
       # `head_sha` is the tree-equality guarantee: same commit, same tree.
       # Best-effort by design (retention is 1 day): every miss falls through to the build
       # step below, which is why the dynamic runner above matters as the backstop.
+      #
+      # The `head_repository.full_name == env.REPO` clause is a supply-chain guard, not a
+      # filter refinement. This artifact becomes the published npm tarball. `pull_request`
+      # runs from forks execute in THIS repository's context and upload their own
+      # `next-build` built from fork-controlled source, and the runs API returns them for a
+      # matching `head_sha` — 57 such runs exist in this repo today. Without the clause,
+      # anything that made a fork's head commit coincide with the publish commit could put
+      # attacker-built bytes on npm. Requiring the run to originate from this repository
+      # excludes every fork run while keeping the fast path intact (verified: the same
+      # single run is selected either way for the current tip).
+      # CodeQL: actions/artifact-poisoning/critical.
       - name: Reuse CI's next-build artifact (skips the heavy rebuild)
         if: steps.resolve.outputs.skip != 'true'
         continue-on-error: true
@@ -168,14 +179,36 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           set -uo pipefail
-          RUN=$(gh api "repos/$REPO/actions/runs?head_sha=$HEAD_SHA&per_page=100" \
-            --jq '[.workflow_runs[] | select(.name == "CI" and .conclusion == "success")] | .[0].id // empty') || RUN=""
-          if [ -z "$RUN" ]; then
-            echo "::notice::no successful CI run for $HEAD_SHA — falling back to a full build"
+          # The question is "which run HAS the artifact", not "which run passed" (gap 16).
+          # Requiring `conclusion == "success"` on the whole run discarded a perfectly good tree
+          # whenever any unrelated shard went red — one flaky test then pushed the publish into
+          # the 40-minute build this step exists to avoid. The artifact is only uploaded if the
+          # Build job itself succeeded, so its PRESENCE is the accurate signal; the run's overall
+          # conclusion is noise from jobs that have nothing to do with the tree.
+          #
+          # `head_repository.full_name == env.REPO` stays, and it is not a filter refinement:
+          # this tree becomes the published npm tarball, and fork `pull_request` runs execute in
+          # THIS repository's context uploading their own next-build. That clause is the
+          # supply-chain guard (CodeQL actions/artifact-poisoning).
+          CANDIDATES=$(gh api "repos/$REPO/actions/runs?head_sha=$HEAD_SHA&per_page=100" \
+            --jq '[.workflow_runs[]
+                   | select(.name == "CI"
+                            and .head_repository.full_name == env.REPO)]
+                  | sort_by(.run_started_at) | reverse | .[0:5] | .[].id') || CANDIDATES=""
+          if [ -z "$CANDIDATES" ]; then
+            echo "::notice::no CI run from this repository for $HEAD_SHA — falling back to a full build"
             exit 0
           fi
-          if ! gh run download "$RUN" --repo "$REPO" --name next-build --dir /tmp/next-build; then
-            echo "::notice::next-build artifact unavailable for run $RUN (expired?) — falling back to a full build"
+          RUN=""
+          for candidate in $CANDIDATES; do
+            if gh run download "$candidate" --repo "$REPO" --name next-build --dir /tmp/next-build 2>/dev/null; then
+              RUN="$candidate"
+              break
+            fi
+            echo "  run $candidate carries no usable next-build — trying the next"
+          done
+          if [ -z "$RUN" ]; then
+            echo "::notice::none of the candidate runs still carries next-build (1-day retention) — falling back to a full build"
             exit 0
           fi
           tar -xzf /tmp/next-build/e2e-build.tar.gz -C .
@@ -222,6 +255,18 @@ jobs:
       - name: Boot-smoke the tarball before ANY publish
         if: steps.resolve.outputs.skip != 'true'
         run: npm run check:pack-boot
+
+      # The boot-smoke above proves a CLEAN install boots. It does not prove the path that
+      # actually broke us: installing over an existing version, where ~110 SQLite migrations
+      # run against a populated database. v3.8.48 shipped as a hotfix because the published
+      # 3.8.47 crashed on boot, and the v3.8.49 upgrade path was first exercised end-to-end
+      # by hand on a real 3.8.48 box (VPS .16) — after publishing, which is exactly backwards.
+      # Runs BEFORE `npm stage publish` so a broken upgrade never reaches the registry at all;
+      # a staged package that is never approved simply expires, with no `npm deprecate` needed.
+      - name: Prove clean-install AND upgrade-over-previous both boot
+        if: steps.resolve.outputs.skip != 'true'
+        timeout-minutes: 30
+        run: npm run check:install-upgrade
 
       # WS1.3 (D2, v3.8.49 plan): STAGED publishing by default — `npm stage publish`
       # parks the exact bytes on the registry WITHOUT making them installable; the

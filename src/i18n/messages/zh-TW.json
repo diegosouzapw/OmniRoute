@@ -5976,6 +5976,8 @@
     "lmarenaWebCookieHint": "開啟 arena.ai，登入後從網路請求中複製完整的 Cookie 標頭。請包含 arena-auth-prod-v1.0 和 arena-auth-prod-v1.1（以及後續區塊，如有），最好附帶 cf_clearance。請勿僅貼上空白的 arena-auth-prod-v1 cookie。可選：若 create-evaluation 仍然回傳 403，可提供 providerSpecificData.recaptchaV3Token。",
     "kimiOfficialSupporterBadge": "創始好友",
     "kimiOfficialSupporterTooltip": "Kimi（Moonshot AI）是 OmniRoute 的創始開源好友",
+    "cheaperInferenceSupporterBadge": "開源好友",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference 作為開源好友支持 OmniRoute",
     "kimiPartnerLinkNote": "合作夥伴連結 — 支援 OmniRoute，您無需額外付費",
     "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
     "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
@@ -12180,5 +12182,6 @@
     "cta": "取得 Kimi Code",
     "partnerLinkNote": "合作夥伴連結",
     "dismissAriaLabel": "關閉"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

@@ -88,7 +88,42 @@ function buildFullSkill(curated: (typeof CURATED_SKILLS)[number]): AgentSkill {
 }
 
 function deriveCatalog(): AgentSkill[] {
-  return CURATED_SKILLS.map(buildFullSkill);
+  const catalog = CURATED_SKILLS.map(buildFullSkill);
+
+  // Dynamically load skills from filesystem that aren't in CURATED_SKILLS
+  try {
+    const skillsDir = path.resolve(process.cwd(), "skills");
+    if (fs.existsSync(skillsDir)) {
+      const entries = fs.readdirSync(skillsDir, { withFileTypes: true });
+      const curatedIds = new Set(CURATED_SKILLS.map((s) => s.id));
+
+      for (const entry of entries) {
+        if (entry.isDirectory() && !curatedIds.has(entry.name)) {
+          const skillPath = path.join(skillsDir, entry.name, "SKILL.md");
+          if (fs.existsSync(skillPath)) {
+            const raw = fs.readFileSync(skillPath, "utf-8");
+            const parsed = parseMarkdownFrontmatter(raw);
+
+            catalog.push({
+              id: entry.name,
+              name: parsed.frontmatter.name || entry.name,
+              description:
+                parsed.frontmatter.description || `Dynamically loaded skill: ${entry.name}`,
+              category: "config",
+              area: "config-codex-cli" as any,
+              isNew: true,
+              rawUrl: `file://${skillPath}`,
+              githubUrl: `file://${skillPath}`,
+            });
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Failed to dynamically load skills:", e);
+  }
+
+  return catalog;
 }
 
 // ── Public API ───────────────────────────────────────────────────────────────
@@ -131,11 +166,13 @@ export function computeCoverage(): SkillCoverage {
 
   let presentIds: Set<string>;
   try {
-    const entries = fs.readdirSync(skillsDir, { withFileTypes: true });
+    const entries = fs.readdirSync(/*turbopackIgnore: true*/ skillsDir, { withFileTypes: true });
     presentIds = new Set(
       entries
         .filter((e) => e.isDirectory())
-        .filter((e) => fs.existsSync(path.join(skillsDir, e.name, "SKILL.md")))
+        .filter((e) =>
+          fs.existsSync(/*turbopackIgnore: true*/ path.join(skillsDir, e.name, "SKILL.md"))
+        )
         .map((e) => e.name)
     );
   } catch {
@@ -182,7 +219,7 @@ export async function fetchSkillMarkdown(id: string): Promise<SkillMarkdown> {
 
   // 1. Try filesystem first
   try {
-    const raw = fs.readFileSync(localPath, "utf-8");
+    const raw = fs.readFileSync(/*turbopackIgnore: true*/ localPath, "utf-8");
     const parsed = parseMarkdownFrontmatter(raw);
     return {
       id,

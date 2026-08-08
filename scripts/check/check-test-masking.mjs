@@ -436,6 +436,22 @@ function resolveBase() {
   return null;
 }
 
+/**
+ * Whether the per-file diff subchecks should be skipped for being too large to be a
+ * reviewable unit. Exported so the threshold behavior is testable without a repo: the
+ * boundary is what matters, and an off-by-one here either blocks a release or silently
+ * disables the check on a big-but-legitimate PR.
+ *
+ * `max <= 0` disables the skip entirely (always analyze) — a deliberate escape hatch.
+ */
+export function shouldSkipDiffSubchecks(changedCount, max) {
+  const n = Number(changedCount);
+  const cap = Number(max);
+  if (!Number.isFinite(n) || n < 0) return false;
+  if (!Number.isFinite(cap) || cap <= 0) return false;
+  return n > cap;
+}
+
 function main() {
   // (#6404) Absolute floor scan — runs unconditionally, PR or not, so a tautology
   // that is already merged into the base (and thus invisible to the diff-only
@@ -506,6 +522,34 @@ function main() {
     .split("\n")
     .map((s) => s.trim())
     .filter((f) => TEST_RE.test(f) && fs.existsSync(f));
+
+  // (gap 6) A release PR is not a reviewable unit, and this is where that stops being free.
+  // Releases squash-merge into `main`, so a release PR's merge-base is the PREVIOUS cycle's
+  // fork point and the diff spans the whole cycle. In the v3.8.49 run that was ~1277 changed
+  // test files, each costing a `git show base:file` process plus a full regex pass — the check
+  // ran twice without finishing, >30 min pegged on one core, and the release waited on it.
+  //
+  // Every one of those files was already gated by this same check on its own PR during the
+  // cycle. Re-analyzing the aggregate buys nothing and blocks the release, so above the
+  // threshold the per-file diff subchecks are skipped — LOUDLY, naming the count, because a
+  // silent skip is how a gate becomes indistinguishable from a passing one (that is gap 12,
+  // and it cost two production bugs this cycle).
+  //
+  // The floor is untouched: scanBareTautologies() above already ran unconditionally over all
+  // tracked test files (3977 files, ~1 s), so nothing here lowers absolute coverage.
+  const maxChangedTests = Number(process.env.TEST_MASKING_MAX_CHANGED_TESTS || 300);
+  if (shouldSkipDiffSubchecks(changed.length + renamePerFile.length, maxChangedTests)) {
+    console.log(
+      `[test-masking] ${changed.length} teste(s) modificado(s) + ${renamePerFile.length} ` +
+        `renomeado(s) excede o teto de ${maxChangedTests} — pulando os subchecks de diff.\n` +
+        `  Um diff desse tamanho é um PR de release (base = main, merge-base = fork do ciclo ` +
+        `anterior por causa do squash), não uma unidade revisável.\n` +
+        `  Cada um desses arquivos já passou por este mesmo gate no PR de origem.\n` +
+        `  O scan absoluto de tautologias rodou sobre TODOS os testes rastreados e está OK.\n` +
+        `  Para forçar a análise completa: TEST_MASKING_MAX_CHANGED_TESTS=999999`
+    );
+    return;
+  }
 
   const perFile = [...renamePerFile];
   for (const file of changed) {

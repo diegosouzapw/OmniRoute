@@ -94,12 +94,30 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
         newCredentials.error === "refresh_token_reused" ||
         newCredentials.error === "invalid_grant"
       ) {
+        // A deprecated provider reuses the unrecoverable contract so callers stop
+        // retrying, but "Refresh token expired" would be a lie: the token is fine, the
+        // provider is gone. Say that, and say where to go — the operator otherwise
+        // re-authenticates in a loop against something that no longer exists.
+        const isDeprecated = newCredentials.code === "provider_deprecated";
+        const reason =
+          isDeprecated && typeof newCredentials.reason === "string"
+            ? newCredentials.reason
+            : "Refresh token expired. Please re-authenticate this account.";
         await updateProviderConnection(id, {
-          testStatus: "invalid",
-          lastError: "Refresh token expired. Please re-authenticate this account.",
+          testStatus: isDeprecated ? "expired" : "invalid",
+          lastError: reason,
+          ...(isDeprecated
+            ? { lastErrorType: "provider_deprecated", errorCode: "provider_deprecated" }
+            : {}),
         });
         return NextResponse.json(
-          { error: "Token refresh failed — provider returned no new token", requiresReauth: true },
+          {
+            error: isDeprecated
+              ? "This provider was deprecated and can no longer be refreshed"
+              : "Token refresh failed — provider returned no new token",
+            requiresReauth: true,
+            ...(isDeprecated ? { deprecated: true, migrateTo: newCredentials.migrateTo } : {}),
+          },
           { status: 401 }
         );
       }

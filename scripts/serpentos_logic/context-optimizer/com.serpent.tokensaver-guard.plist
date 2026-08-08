@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.serpent.tokensaver-guard</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/usr/bin/osascript</string>
+		<string>/Users/work/serpentos/scripts/context-optimizer/tokensaver-guard.applescript</string>
+	</array>
+	<key>StartInterval</key>
+	<integer>600</integer>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardOutPath</key>
+	<string>/Users/work/.tokensaver/guard.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/work/.tokensaver/guard.log</string>
+</dict>
+</plist>

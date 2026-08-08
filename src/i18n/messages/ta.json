@@ -5976,6 +5976,8 @@
     "lmarenaWebCookieHint": "arena.ai-ஐத் திறந்து, உள்நுழைந்து, பின்னர் Network கோரிக்கையிலிருந்து முழு Cookie தலைப்பை நகலெடுக்கவும். arena-auth-prod-v1.0 மற்றும் arena-auth-prod-v1.1 (மற்றும் கூடுதல் பகுதிகள் இருந்தால்) ஆகியவற்றைச் சேர்க்கவும், முன்னுரிமையாக cf_clearance உடன். வெற்று arena-auth-prod-v1 குக்கியை மட்டும் ஒட்ட வேண்டாம். விருப்பத்தேர்வு: create-evaluation இன்னும் 403-ஐ வழங்கினால் providerSpecificData.recaptchaV3Token.",
     "kimiOfficialSupporterBadge": "நிறுவன நண்பர்",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) என்பது OmniRoute இன் நிறுவன திறந்த மூல நண்பர் ஆகும்",
+    "cheaperInferenceSupporterBadge": "திறந்த மூல நண்பர்",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference ஒரு திறந்த மூல நண்பராக OmniRoute-ஐ ஆதரிக்கிறது",
     "kimiPartnerLinkNote": "பங்குதாரர் இணைப்பு — உங்களுக்கு எந்த கூடுதல் கட்டணமும் இன்றி OmniRoute-ஐ ஆதரிக்கிறது",
     "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
     "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
@@ -12180,5 +12182,6 @@
     "cta": "Kimi Code-ஐப் பெறுங்கள்",
     "partnerLinkNote": "பங்குதாரர் இணைப்பு",
     "dismissAriaLabel": "நிராகரி"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

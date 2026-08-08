@@ -25,6 +25,56 @@ const git = (args) => execFileSync("git", args, { cwd: ROOT, encoding: "utf8" })
 
 const ROLLUP_TYPES = new Set(["chore", "ci", "test", "refactor", "build", "docs", "style"]);
 
+/**
+ * Pick the commit that OPENED the current development cycle, and use that as the range base.
+ *
+ * `git describe --tags` is wrong here, and wrong in a way that hides work rather than
+ * announcing itself. Releases reach `main` by SQUASH, so no commit on a release branch is
+ * ever an ancestor of the tag — `v3.8.49..HEAD` therefore re-lists the un-squashed history
+ * of every prior cycle. Measured on release/v3.8.50 at 7eca04fd12:
+ *
+ *     v3.8.49..HEAD ............ 1361 commits
+ *     cycle open..HEAD .........   22 commits
+ *
+ * 62× the real range. The report drowns in noise, which is exactly how a previous
+ * reconciliation let ~200 PRs through with no CHANGELOG bullet.
+ *
+ * Resolved by CONTENT, not by commit message: the cycle opens when package.json first
+ * carries this version, so `git log -S` on that exact string finds it regardless of how the
+ * subject was worded. The wording has already changed once —
+ * `chore(release): bump v3.8.49 (development cycle version)` became
+ * `chore(release): open v3.8.50 development cycle` — and a message-matching resolver would
+ * have silently fallen back to the broken tag base on the newer format.
+ *
+ * Falls back to the tag with an explicit stderr warning, so a shallow clone or a rewritten
+ * history degrades loudly instead of quietly reproducing the original bug.
+ */
+export function resolveCycleBase(version, runGit = git) {
+  let openCommit = "";
+  try {
+    // Oldest commit that introduced this version string = the cycle-open commit.
+    const hits = runGit(["log", "--format=%H", "-S", `"version": "${version}"`, "--", "package.json"]);
+    openCommit = hits ? hits.split("\n").filter(Boolean).pop() : "";
+  } catch {
+    openCommit = "";
+  }
+  if (openCommit) return { base: openCommit, source: "cycle-open" };
+
+  let tag = "";
+  try {
+    tag = runGit(["describe", "--tags", "--abbrev=0"]);
+  } catch {
+    tag = "";
+  }
+  process.stderr.write(
+    `[list-uncovered-commits] WARNING: could not find the commit that opened v${version} ` +
+      `(searched package.json for the version string). Falling back to ` +
+      `${tag || "the repository root"} — because releases squash-merge, that range re-lists ` +
+      `previous cycles and the report below will contain noise.\n`
+  );
+  return { base: tag, source: "tag-fallback" };
+}
+
 export function refsOf(subject) {
   return [...subject.matchAll(/#(\d+)/g)].map((m) => Number(m[1]));
 }
@@ -137,9 +187,10 @@ export function changelogRefWindow(changelog, version) {
 
 function main(argv) {
   const jsonOut = argv.includes("--json");
-  const lastTag = git(["describe", "--tags", "--abbrev=0"]);
   const version = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8")).version;
-  const log = git(["log", "--no-merges", `${lastTag}..HEAD`, "--pretty=format:%h%x09%s"]);
+  const { base, source } = resolveCycleBase(version);
+  const lastTag = base ? git(["rev-parse", "--short", base]) : base;
+  const log = git(["log", "--no-merges", `${base}..HEAD`, "--pretty=format:%h%x09%s"]);
   const commits = log
     ? log.split("\n").map((l) => {
         const [hash, subject] = l.split("\t");
@@ -153,14 +204,19 @@ function main(argv) {
 
   if (jsonOut) {
     process.stdout.write(
-      JSON.stringify({ version, lastTag, total: commits.length, covered, uncovered }, null, 2) +
-        "\n"
+      JSON.stringify(
+        { version, base: lastTag, baseSource: source, total: commits.length, covered, uncovered },
+        null,
+        2
+      ) + "\n"
     );
     return;
   }
   const bulletsWorthy = uncovered.filter((c) => !c.rollup);
   const rollupCandidates = uncovered.filter((c) => c.rollup);
-  process.stdout.write(`# Uncovered-commit reconciliation — v${version} (${lastTag}..HEAD)\n\n`);
+  process.stdout.write(
+    `# Uncovered-commit reconciliation — v${version} (${lastTag}..HEAD, base from ${source})\n\n`
+  );
   process.stdout.write(
     `Commits: ${commits.length} · covered: ${covered} · uncovered: ${uncovered.length}\n\n`
   );

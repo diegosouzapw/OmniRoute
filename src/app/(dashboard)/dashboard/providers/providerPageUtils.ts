@@ -16,7 +16,7 @@ import { providerHasServiceKind } from "@/lib/providers/serviceKindIndex";
 import { compareTr, matchesAnyToken, matchesSearch } from "@/shared/utils/turkishText";
 import { fetchWithTimeout } from "@/shared/utils/fetchTimeout";
 import type { ProviderDisplayMode } from "./providerPageStorage";
-import { isFeaturedProviderId } from "./featuredProviders";
+import { getFeaturedProviderRank } from "./featuredProviders";
 
 export interface ProviderStatsSnapshot {
   total?: number;
@@ -165,22 +165,31 @@ export function sortProviderEntriesByName<TProvider>(
 
 /**
  * Sort provider entries alphabetically (via `sortProviderEntriesByName`), then
- * stable-pin any `FEATURED_PROVIDER_IDS` member first — featured entries keep
- * their alphabetical order among themselves, followed by the rest in
- * alphabetical order. Presentation-only (see `featuredProviders.ts`): this must
- * never influence routing/fallback order, only how the dashboard's provider
- * category grids are sorted.
+ * stable-pin sponsors first in explicit rank order (see `featuredProviders.ts`):
+ * rank 1 block, then rank 2, then everything unranked — each block keeping the
+ * alphabetical order established above. Presentation-only: this must never
+ * influence routing/fallback order, only how the dashboard's provider category
+ * grids are sorted.
  */
 export function sortProviderEntriesFeaturedFirst<TProvider>(
   entries: ProviderEntry<TProvider>[]
 ): ProviderEntry<TProvider>[] {
   const sorted = sortProviderEntriesByName(entries);
-  const featured: ProviderEntry<TProvider>[] = [];
+  // A plain "featured first" pin would order Cheaper Inference above Kimi (the
+  // alphabet), which is exactly what the explicit ranks prevent.
+  const ranked: ProviderEntry<TProvider>[] = [];
   const rest: ProviderEntry<TProvider>[] = [];
   for (const entry of sorted) {
-    (isFeaturedProviderId(entry.providerId) ? featured : rest).push(entry);
+    (getFeaturedProviderRank(entry.providerId) === null ? rest : ranked).push(entry);
   }
-  return [...featured, ...rest];
+  // Array.prototype.sort is stable in ES2019+, so equal-rank entries keep the
+  // alphabetical order established above.
+  ranked.sort(
+    (a, b) =>
+      (getFeaturedProviderRank(a.providerId) as number) -
+      (getFeaturedProviderRank(b.providerId) as number)
+  );
+  return [...ranked, ...rest];
 }
 
 export function buildProviderEntries<TProvider = Record<string, unknown>>(

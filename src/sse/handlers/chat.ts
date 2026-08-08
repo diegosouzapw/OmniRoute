@@ -1326,7 +1326,8 @@ async function handleSingleModelChat(
           provider,
           model,
           lastError,
-          lastStatus
+          lastStatus,
+          resolved.candidateAliases
         );
         const lastFailedConnectionId =
           excludedConnectionIds.size > 0
