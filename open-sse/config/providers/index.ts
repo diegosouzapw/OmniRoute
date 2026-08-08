@@ -14,6 +14,7 @@ import { notion_webProvider } from "./registry/notion-web/index.ts";
 import { anthropicProvider } from "./registry/anthropic/index.ts";
 import { sambanovaProvider } from "./registry/sambanova/index.ts";
 import { puterProvider } from "./registry/puter/index.ts";
+import { deepaiProvider } from "./registry/deepai/index.ts";
 import { upstageProvider } from "./registry/upstage/index.ts";
 import { nebiusProvider } from "./registry/nebius/index.ts";
 import { fireworksProvider } from "./registry/fireworks/index.ts";
@@ -239,6 +240,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   sambanova: sambanovaProvider,
   puter: puterProvider,
   upstage: upstageProvider,
+  deepai: deepaiProvider,
   nebius: nebiusProvider,
   fireworks: fireworksProvider,
   llamagate: llamagateProvider,

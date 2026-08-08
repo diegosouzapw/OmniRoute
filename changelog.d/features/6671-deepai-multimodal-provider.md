@@ -1,0 +1,1 @@
+- **feat(providers):** add DeepAI as paid API-key image provider ([#6671](https://github.com/diegosouzapw/OmniRoute/issues/6671))

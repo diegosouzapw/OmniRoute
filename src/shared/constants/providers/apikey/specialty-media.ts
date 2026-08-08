@@ -287,4 +287,17 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
     authHint: "X-API-Key from agent.tinyfish.ai/api-keys",
     serviceKinds: ["webFetch"],
   },
+  deepai: {
+    id: "deepai",
+    alias: "deepai",
+    name: "DeepAI",
+    icon: "psychology",
+    color: "#4A90D9",
+    textIcon: "DA",
+    website: "https://deepai.org",
+    authHint:
+      "Use your DeepAI API key. Get one at deepai.org — requires a Pro subscription ($9.99/mo).",
+    apiHint:
+      "DeepAI uses per-endpoint REST calls (e.g. /api/text2img) instead of OpenAI chat/completions. OmniRoute adapts OpenAI image generation requests to DeepAI's /api/{slug} endpoints.",
+  },
 };
