@@ -276,17 +276,25 @@ export function sanitizeReasoningEffortForProvider(
     return stripEffortValue(b, c);
   }
 
-  // Native DeepSeek (api.deepseek.com) — V4 thinking mode accepts reasoning_effort
-  // ONLY as {high, max} (its own top tier is literally "max"). OmniRoute's internal
-  // scale is low|medium|high|xhigh where xhigh is the top, so map onto DeepSeek's
-  // vocabulary: xhigh → max (top→top), low|medium → high (below the enum floor).
-  // high/max pass through unchanged. Without this, the claude→openai translator's
-  // xhigh (and max-normalized-to-xhigh below) reaches DeepSeek as an unknown value,
-  // silently dropping the client's requested effort. This is the INVERSE of the
-  // OpenRouter-DeepSeek path, whose normalized API expects xhigh, not max (pi#4055).
+  // Native DeepSeek (api.deepseek.com) — V4 thinking mode uses the native
+  // {low, high, max} vocabulary on Flash and {high, max} on Pro. OmniRoute's
+  // internal top tier xhigh maps to DeepSeek's literal max. Pro's unsupported
+  // low/medium values still clamp to high; Flash's documented low tier passes
+  // through. This is the INVERSE of the OpenRouter-DeepSeek path, whose
+  // normalized API expects xhigh, not max (pi#4055). `none` is already the
+  // OpenAI no-thinking carrier and passes through unchanged.
   if (provider === "deepseek") {
+    // Match the Flash family even when the sanitizer sees a suffixed or prefixed
+    // id — exact-match would silently clamp Flash `low → high` if a future route
+    // forwards the raw catalog id (`deepseek-v4-flash-low`) before resolution
+    // (#9485 review).
+    const isFlash = modelStr.toLowerCase().startsWith("deepseek-v4-flash");
     const mapped =
-      effortStr === "xhigh" ? "max" : effortStr === "low" || effortStr === "medium" ? "high" : null;
+      effortStr === "xhigh"
+        ? "max"
+        : effortStr === "medium" || (effortStr === "low" && !isFlash)
+          ? "high"
+          : null;
     if (mapped && mapped !== effortStr) {
       log?.info?.(
         "REASONING_SANITIZE",

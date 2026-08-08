@@ -85,19 +85,24 @@ export function getThinkingCapabilityFields(
   providerId: string,
   modelId: string,
   resolvedThinking?: boolean | null,
-  supportedThinkingEfforts?: readonly string[]
+  supportedThinkingEfforts?: readonly string[],
+  /** When true, skip the canonical effort-tier fallback — used for static registry
+   * models that declare `supportsReasoning` but no explicit tier list, so the
+   * catalog does not synthesize unresolvable `<prefix>/<model>-{tier}` ids. */
+  skipCanonicalEffortFallback = false
 ): Record<string, boolean | string[]> {
   const supportsThinking = resolvedThinking;
   if (typeof supportsThinking !== "boolean") return {};
+  const hasDeclaredTiers =
+    supportedThinkingEfforts && supportedThinkingEfforts.length > 0;
   return {
     thinking: supportsThinking,
     supportsThinking,
-    ...(supportsThinking
+    ...(supportsThinking && (hasDeclaredTiers || !skipCanonicalEffortFallback)
       ? {
-          effort_tiers:
-            supportedThinkingEfforts && supportedThinkingEfforts.length > 0
-              ? [...supportedThinkingEfforts]
-              : extendCodexGpt56EffortValues(providerId, modelId, CANONICAL_EFFORT_VALUES),
+          effort_tiers: hasDeclaredTiers
+            ? [...supportedThinkingEfforts!]
+            : extendCodexGpt56EffortValues(providerId, modelId, CANONICAL_EFFORT_VALUES),
         }
       : {}),
   };

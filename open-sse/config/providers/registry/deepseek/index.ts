@@ -9,7 +9,17 @@ export const deepseekProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "bearer",
   models: [
-    { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
-    { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
+    {
+      id: "deepseek-v4-pro",
+      name: "DeepSeek V4 Pro",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["none", "high", "max"],
+    },
+    {
+      id: "deepseek-v4-flash",
+      name: "DeepSeek V4 Flash",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["none", "low", "high", "max"],
+    },
   ],
 };

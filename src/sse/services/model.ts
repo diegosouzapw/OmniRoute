@@ -123,6 +123,37 @@ function isSyncedEffortSkippedProvider(providerId: string): boolean {
   return SYNCED_EFFORT_SKIP_PROVIDER_PREFIXES.some((prefix) => providerId.startsWith(prefix));
 }
 
+/** Resolve a suffix against an explicitly tiered static registry model. */
+function resolveRegistryModelIdAndEffort(
+  providerId: string,
+  modelId: string
+): { modelId: string; effort: string | null } {
+  if (isSyncedEffortSkippedProvider(providerId)) return { modelId, effort: null };
+
+  const registryModels = REGISTRY[providerId]?.models;
+  if (!Array.isArray(registryModels)) return { modelId, effort: null };
+  if (registryModels.some((candidate) => candidate?.id === modelId)) {
+    return { modelId, effort: null };
+  }
+
+  for (const candidate of registryModels) {
+    if (!Array.isArray(candidate?.supportedThinkingEfforts)) continue;
+    const attempt = splitSyncedEffortSuffix(modelId, candidate.supportedThinkingEfforts);
+    if (attempt.effort && attempt.baseModel === candidate.id) {
+      return { modelId: attempt.baseModel, effort: attempt.effort };
+    }
+  }
+
+  return { modelId, effort: null };
+}
+
+function findRegistryModel(providerId: string, modelId: string): any {
+  const registryModels = REGISTRY[providerId]?.models;
+  return Array.isArray(registryModels)
+    ? registryModels.find((candidate) => candidate?.id === modelId)
+    : undefined;
+}
+
 /**
  * #7694: when `modelId` has no direct synced-model match, try stripping a trailing
  * `-{effort}` token by testing it against each candidate synced model's OWN declared
@@ -194,7 +225,11 @@ function copySyncedThinkingMetadata(metadata: RuntimeModelMeta, syncedMatch: any
     metadata.supportsThinking = syncedMatch.supportsThinking;
   }
   if (syncedMatch?.alwaysThinking === true) metadata.alwaysThinking = true;
-  if (Array.isArray(syncedMatch?.supportedThinkingEfforts)) {
+  // Only let a non-empty synced effort list override the static registry fallback;
+  // an empty array from an incomplete synced discovery must not erase registry-declared
+  // tiers (#9485 review).
+  if (Array.isArray(syncedMatch?.supportedThinkingEfforts) &&
+    syncedMatch.supportedThinkingEfforts.length > 0) {
     metadata.supportedThinkingEfforts = syncedMatch.supportedThinkingEfforts;
   }
   if (typeof syncedMatch?.defaultThinkingEffort === "string") {
@@ -202,8 +237,22 @@ function copySyncedThinkingMetadata(metadata: RuntimeModelMeta, syncedMatch: any
   }
 }
 
-function buildRuntimeModelMeta(customMatch: any, syncedMatch: any): RuntimeModelMeta {
+function copyRegistryThinkingMetadata(metadata: RuntimeModelMeta, registryMatch: any): void {
+  if (typeof registryMatch?.supportsReasoning === "boolean") {
+    metadata.supportsThinking = registryMatch.supportsReasoning;
+  }
+  if (Array.isArray(registryMatch?.supportedThinkingEfforts)) {
+    metadata.supportedThinkingEfforts = [...registryMatch.supportedThinkingEfforts];
+  }
+}
+
+function buildRuntimeModelMeta(
+  customMatch: any,
+  syncedMatch: any,
+  registryMatch: any
+): RuntimeModelMeta {
   const metadata = resolveRuntimeFormats(customMatch, syncedMatch);
+  copyRegistryThinkingMetadata(metadata, registryMatch);
   copySyncedThinkingMetadata(metadata, syncedMatch);
   return metadata;
 }
@@ -226,16 +275,32 @@ async function lookupModelMeta(
     // #7694: no direct match on the raw modelId? try a synced-declared `-{effort}`
     // suffix before falling back to the literal id, so `<prefix>/<model>-<tier>`
     // resolves to the real base model + a resolved effort.
-    const { modelId: resolvedModelId, effort } = resolveSyncedModelIdAndEffort(
+    let { modelId: resolvedModelId, effort } = resolveSyncedModelIdAndEffort(
       providerId,
       modelId,
       syncedModels
     );
 
+    // Short-circuit registry suffix resolution when the raw id is already a direct
+    // custom or synced model — otherwise a model literally named
+    // `deepseek-v4-flash-low` gets rewritten to `deepseek-v4-flash` + effort `low`
+    // and its custom/synced metadata (apiFormat/targetFormat) is dropped (#9485 review).
+    if (
+      !effort &&
+      resolvedModelId === modelId &&
+      !findCustomModelMeta(customModels, modelId) &&
+      !findSyncedModelMeta(syncedModels, modelId)
+    ) {
+      const registryResolution = resolveRegistryModelIdAndEffort(providerId, modelId);
+      resolvedModelId = registryResolution.modelId;
+      effort = registryResolution.effort;
+    }
+
     // Custom models remain explicit operator overrides even when live discovery
     // is authoritative for the provider.
     const customMatch = findCustomModelMeta(customModels, resolvedModelId);
     const syncedMatch = findSyncedModelMeta(syncedModels, resolvedModelId);
+    const registryMatch = findRegistryModel(providerId, resolvedModelId);
     const effortBaseModelId = getRegisteredProviderEffortBaseModelId(providerId, modelId);
 
     const liveBackedEffortVariant =
@@ -244,7 +309,7 @@ async function lookupModelMeta(
     const available =
       !liveCatalog.authoritative || Boolean(customMatch || syncedMatch || liveBackedEffortVariant);
 
-    const metadata = buildRuntimeModelMeta(customMatch, syncedMatch);
+    const metadata = buildRuntimeModelMeta(customMatch, syncedMatch, registryMatch);
     if (effort) metadata.resolvedThinkingEffort = effort;
 
     return { modelId: resolvedModelId, metadata, available };

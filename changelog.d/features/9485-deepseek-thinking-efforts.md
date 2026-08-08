@@ -1,0 +1,1 @@
+- **feat(providers):** add native DeepSeek V4 Flash and Pro thinking-effort aliases for their documented per-model tiers, including Combo Builder exposure ([#9485](https://github.com/diegosouzapw/OmniRoute/pull/9485)).
