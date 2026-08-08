@@ -39,7 +39,8 @@ snap="$(ops_find_snapshot "$ID")"
 
 # Policy definition tables present in BOTH the snapshot and the live DB. GLOB
 # keeps `_` literal; we drop usage counters / logs so accounting isn't rewound.
-readarray -t tables < <(
+tables=()
+while IFS= read -r t; do tables+=("$t"); done < <(
   sqlite3 "$snap/storage.sqlite" \
     "SELECT name FROM sqlite_master WHERE type='table' AND name GLOB 'api_key*' \
        AND name NOT GLOB '*counter*' AND name NOT GLOB '*_log*' ORDER BY name;"

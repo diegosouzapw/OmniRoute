@@ -253,6 +253,39 @@ export const managementPolicy: RoutePolicy = {
       return allow({ kind: "management_key", id: "cli", label: "local-cli-token" });
     }
 
+    // MCP path carve-out (#9159): accept mcp:connect, manage, or admin
+    // scope for /api/mcp/* from any origin (loopback, private LAN, or remote).
+    // Loopback/LAN requests skip the Tier 1 bypass gate above, so with
+    // requireLogin=true they would fall through to the generic API-key check
+    // which only accepts manage/admin -- rejecting mcp:connect-only keys.
+    // This carve-out mirrors the existing Tier 1 MCP check but without the
+    // locality guard, so it catches the loopback/LAN requests that the Tier 1
+    // gate does not reach.
+    if (path.startsWith("/api/mcp/")) {
+      const apiKey = extractApiKey(ctx.request as unknown as Request, { allowUrl: false });
+      if (apiKey) {
+        try {
+          if (await isValidApiKey(apiKey)) {
+            const meta = await getApiKeyMetadata(apiKey);
+            if (meta && hasMcpConnectOrManageScope(meta.scopes)) {
+              const grantedBy = meta.scopes.includes("admin")
+                ? "admin"
+                : meta.scopes.includes("manage")
+                  ? "manage"
+                  : "mcp-connect";
+              return allow({
+                kind: "management_key",
+                id: meta.id,
+                label: `api-key-${grantedBy}-scope-mcp-carve-out`,
+              });
+            }
+          }
+        } catch {
+          return reject(503, "AUTH_BACKEND_UNAVAILABLE", "Service temporarily unavailable");
+        }
+      }
+    }
+
     // Tier 2: always-protected routes skip the requireLogin=false bypass.
     if (!isAlwaysProtectedPath(path) && !(await isAuthRequired(ctx.request))) {
       return allow({ kind: "anonymous", id: "anonymous", label: "auth-disabled" });

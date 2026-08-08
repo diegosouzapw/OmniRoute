@@ -76,6 +76,7 @@ test("Codex keeps matched outputs and removes orphaned outputs from mixed input"
     { type: "function_call_output", call_id: "call_orphan", output: "orphaned" },
   ]);
 
+  assert.equal(result.length, 2);
   assert.deepEqual(toolOutputs(result), [
     { type: "function_call_output", call_id: "call_keep", output: "ok" },
   ]);

@@ -14,6 +14,7 @@ import {
   isAnthropicCompatibleProvider,
   isClaudeCodeCompatibleProvider,
   supportsApiKeyOnFreeProvider,
+  supportsDualAuthProvider,
 } from "@/shared/constants/providers";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import {
@@ -260,6 +261,7 @@ export default function ProviderDetailPageClient() {
   } = useConnectionGate({ providerId, subscriptionRisk });
 
   const providerSupportsPat = supportsApiKeyOnFreeProvider(providerId);
+  const supportsDualAuth = supportsDualAuthProvider(providerId);
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
   const providerAlias = getProviderAlias(providerId);
   const isFreeNoAuth =
@@ -548,6 +550,7 @@ export default function ProviderDetailPageClient() {
             isCompatible={isCompatible}
             isCommandCode={isCommandCode}
             isOAuth={isOAuth}
+            supportsDualAuth={supportsDualAuth}
             providerSupportsPat={providerSupportsPat}
             connections={connections}
             batchTesting={batchTesting}
@@ -594,6 +597,7 @@ export default function ProviderDetailPageClient() {
               isCompatible={isCompatible}
               isCommandCode={isCommandCode}
               providerId={providerId}
+              supportsDualAuth={supportsDualAuth}
               providerSupportsPat={providerSupportsPat}
               commandCodeAuthState={commandCodeAuthState}
               gateConnectionFlow={gateConnectionFlow}

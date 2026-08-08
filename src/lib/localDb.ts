@@ -95,6 +95,7 @@ export * from "./db/compressionCombos";
 export * from "./db/compressionContextBudget";
 export * from "./db/compressionRunTelemetry";
 export * from "./db/jobRegistryDb";
+export * from "./db/connectionRuntimeState";
 export * from "./db/modelContextOverrides";
 
 export {
@@ -818,5 +819,7 @@ export {
   getRadarSettings,
   setRadarOptIn,
   setRadarKey,
+  getRadarReferralsCache,
+  setRadarReferralsCache,
 } from "./db/radar";
-export type { RadarCache, RadarSettings } from "./db/radar";
+export type { RadarCache, RadarSettings, RadarReferralsCache } from "./db/radar";

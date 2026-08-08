@@ -1,5 +1,6 @@
 import initializeCloudSync from "@/shared/services/initializeCloudSync";
 import { startModelSyncScheduler } from "@/shared/services/modelSyncScheduler";
+import { startWarmupScheduler } from "@/lib/warmupScheduler";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 import { getJobRegistry } from "@/lib/jobRegistry";
 import { registerBudgetResetJob } from "@/lib/jobs/budgetResetJob";
@@ -33,16 +34,16 @@ export async function ensureCloudSyncInitialized() {
       await initializeCloudSync();
       startModelSyncScheduler();
 
-      // startAll() runs each interval job's first tick synchronously, so it has to
-      // come after initializeCloudSync(). The old wiring got that ordering two
-      // different ways: the budget reset was started right here, and the health
-      // check's first sweep sat behind a 10s timer. Awaiting the init is a firmer
-      // guarantee than the timer was.
-      const registry = getJobRegistry();
-      registerBudgetResetJob(registry);
-      registerTokenHealthCheck(registry);
-      await registry.startAll();
-
+	      // startAll() runs each interval job's first tick synchronously, so it has to
+	      // come after initializeCloudSync(). The old wiring got that ordering two
+	      // different ways: the budget reset was started right here, and the health
+	      // check's first sweep sat behind a 10s timer. Awaiting the init is a firmer
+	      // guarantee than the timer was.
+	      const registry = getJobRegistry();
+	      registerBudgetResetJob(registry);
+	      registerTokenHealthCheck(registry);
+	      await registry.startAll();
+	      startWarmupScheduler();
       initialized = true;
     } catch (error) {
       console.error("[ServerInit] Error initializing background sync services:", error);

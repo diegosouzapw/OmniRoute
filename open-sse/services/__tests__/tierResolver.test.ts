@@ -199,10 +199,10 @@ describe("TierResolver", () => {
       ]);
       // Observable effect of the cache: the duplicate resolves to the same tier and only
       // ONE entry is memoized (getTierStats counts cache entries, not classify calls).
-      assert.equal(results.length, 2);
-      assert.equal(results[0].tier, results[1].tier);
+      expect(results).toHaveLength(2);
+      expect(results[0].tier).toBe(results[1].tier);
       const stats = getTierStats();
-      assert.equal(stats.free + stats.cheap + stats.premium, 1);
+      expect(stats.free + stats.cheap + stats.premium).toBe(1);
     });
   });
 

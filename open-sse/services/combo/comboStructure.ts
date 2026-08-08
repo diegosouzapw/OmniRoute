@@ -18,6 +18,7 @@ import { getHiddenModelsByProvider } from "../../../src/lib/db/models";
 import { getComboModelString, normalizeComboStep } from "../../../src/lib/combos/steps.ts";
 import { getProviderByAlias, getProviderById } from "../../../src/shared/constants/providers.ts";
 import { estimateTokens } from "../contextManager.ts";
+import { containsMediaKind } from "../../utils/mediaParts.ts";
 import { getResolvedModelCapabilities } from "../modelCapabilities.ts";
 import { parseModel, stripContextWindowSuffix } from "../model.ts";
 import { dedupeTargetsByExecutionKey, isRecord } from "./comboData.ts";
@@ -483,21 +484,15 @@ function estimateRequestInputTokens(body: Record<string, unknown>): number {
   return Object.keys(estimatePayload).length > 0 ? estimateTokens(estimatePayload) : 0;
 }
 
-function valueContainsImagePart(value: unknown, depth = 0): boolean {
-  if (depth > 8 || value === null || value === undefined) return false;
-  if (typeof value === "string") return value.startsWith("data:image/");
-  if (Array.isArray(value)) return value.some((entry) => valueContainsImagePart(entry, depth + 1));
-  if (!isRecord(value)) return false;
-
-  const type = typeof value.type === "string" ? value.type.toLowerCase() : null;
-  if (type === "image" || type === "image_url" || type === "input_image") return true;
-  if ("image_url" in value || "input_image" in value) return true;
-
-  const source = isRecord(value.source) ? value.source : null;
-  const mediaType = typeof source?.media_type === "string" ? source.media_type.toLowerCase() : "";
-  if (mediaType.startsWith("image/")) return true;
-
-  return Object.values(value).some((entry) => valueContainsImagePart(entry, depth + 1));
+function valueContainsImagePart(value: unknown): boolean {
+  // Delegates to the unified media detector (open-sse/utils/mediaParts.ts) —
+  // single source of truth shared with the vision-bridge guardrail. The
+  // detector keeps this filter's legacy permissive matches (image-ish `type`
+  // in any casing, bare `image_url`/`input_image` keys, source.media_type
+  // image/*, bare data:image strings, recursion capped at depth 8) via
+  // "image_indicator" parts. containsMediaKind short-circuits on the first
+  // hit — this runs on every request, so no full-part collection here.
+  return containsMediaKind([{ content: [value] }], "image");
 }
 
 export function deriveRequestCompatibilityRequirements(

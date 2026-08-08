@@ -47,7 +47,8 @@
  */
 
 import { cpSync, existsSync, mkdirSync, readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { createRequire } from "node:module";
+import { dirname, join, sep } from "node:path";
 
 /**
  * Entry packages of the SLM optional stack (the closure roots). `@huggingface/transformers` is
@@ -97,6 +98,33 @@ export function computeDependencyClosure(nodeModulesDir, seeds = SEED_PACKAGES) 
 }
 
 /**
+ * A package in the target tree counts as PRESENT only when its entrypoint
+ * resolves from inside that tree — the same contract the Dockerfile's
+ * post-build guard enforces. Next's file tracing can materialize a package
+ * PARTIALLY (the package.json lands, the files its `main` points at do not),
+ * and a directory-level `existsSync` check then skips the package forever
+ * while the runtime dies with "Cannot find module <pkg>/dist/index.js".
+ *
+ * @param {string} targetNodeModulesDir
+ * @param {string} name
+ * @returns {boolean}
+ */
+function isPackageIntact(targetNodeModulesDir, name) {
+  if (!existsSync(join(targetNodeModulesDir, name))) return false;
+  try {
+    const probe = createRequire(
+      join(targetNodeModulesDir, "__colocate_probe__.js")
+    );
+    const resolved = probe.resolve(name);
+    // A resolution that walked past the target into an ancestor tree does not
+    // prove the target copy is usable.
+    return resolved.startsWith(targetNodeModulesDir + sep);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Co-locate the SLM optional dependency closure from `<rootDir>/node_modules`
  * into a standalone bundle's `node_modules`.
  *
@@ -142,11 +170,12 @@ export function colocateLlmlinguaOptionals({
 
   const closure = computeDependencyClosure(rootNm, seeds);
 
-  // Check the complete closure rather than only the entry package. A partially
-  // populated bundle must still receive any missing transitive dependencies.
+  // Check the complete closure rather than only the entry package, and judge
+  // presence by entrypoint integrity — a partially traced directory (see
+  // isPackageIntact) must still receive its missing files.
   if (
     closure.length > 0 &&
-    closure.every((name) => existsSync(join(targetNm, name)))
+    closure.every((name) => isPackageIntact(targetNm, name))
   ) {
     return { skipped: true, reason: "already co-located" };
   }
@@ -155,11 +184,18 @@ export function colocateLlmlinguaOptionals({
 
   for (const name of closure) {
     const dest = join(targetNm, name);
-    if (existsSync(dest)) continue;
+    if (isPackageIntact(targetNm, name)) continue;
 
     try {
       mkdirSync(dirname(dest), { recursive: true });
-      cpSync(join(rootNm, name), dest, { recursive: true });
+      // force:false merges into a partially traced directory: files the trace
+      // already materialized are kept, missing ones (the package payload) are
+      // filled in from the root tree.
+      cpSync(join(rootNm, name), dest, {
+        recursive: true,
+        force: false,
+        errorOnExist: false,
+      });
       copied++;
     } catch (err) {
       log(

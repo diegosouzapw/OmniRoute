@@ -1,19 +1,26 @@
 /**
  * tests/unit/radar-referrals-route.test.ts
  *
- * TDD regression guard for GET /api/radar/referrals (D28 — referral links /
+ * TDD regression guard for GET /api/radar/referrals (D28 -- referral links /
  * free credits, client side). Mirrors tests/unit/radar-api-routes.test.ts:
  *
  *  - Flag off => 404, checked BEFORE auth (byte-identical inertia).
  *  - Flag on, no auth => 401.
  *  - Flag on, authenticated, no cache => 200 with { fixed: [], campaigns:
  *    [], tier: null }.
- *  - Flag on, authenticated, cached feed with referrals => 200 with the
- *    cached fixed/campaigns + tier.
+ *  - Flag on, authenticated, cached referrals feed => 200 with the cached
+ *    fixed/campaigns + tier.
+ *  - Sync-on-read: the route triggers `syncRadarReferrals()` inline when the
+ *    cache is stale/missing (opt-in false in every test here, so the
+ *    triggered sync always self-gates to a safe `opt_out` no-op -- this
+ *    proves the trigger never touches the network in these tests while
+ *    still exercising the code path).
  *  - Error responses never leak stack traces (Hard Rule #12).
  *
- * NEVER proxies the private feed server — this route only reads the local
- * cache written by POST /api/radar/sync.
+ * NEVER proxies the private feed server directly -- this route's own source
+ * contains no `fetch(` call; the network only happens inside
+ * `syncRadarReferrals()` (`src/lib/radar/referralsSync.ts`), which this
+ * route calls but never inlines.
  */
 
 import test from "node:test";
@@ -69,18 +76,12 @@ function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-function baseFeed(): Record<string, unknown> {
+function baseReferralsFeed(): Record<string, unknown> {
   return {
-    feed: "omniroute-radar",
+    feed: "omniroute-radar-referrals",
     schemaVersion: 1,
-    version: "2026-08-07.1",
     generatedAt: new Date().toISOString(),
-    tier: "live",
-    counts: { providers: 0, models: 0 },
-    providers: [],
-    models: [],
-    quirks: [],
-    totals: { dedupedTokensPerMonth: 0, modelCount: 0, poolCount: 0 },
+    referrals: { fixed: [], campaigns: [] },
   };
 }
 
@@ -114,7 +115,7 @@ test("GET /api/radar/referrals: flag on, no auth => 401", async () => {
   assert.ok(!JSON.stringify(body).includes("at /"), "Response must not leak stack traces");
 });
 
-test("GET /api/radar/referrals: flag on, authenticated, no cache => 200 empty shape", async () => {
+test("GET /api/radar/referrals: flag on, authenticated, no cache => 200 empty shape (sync-on-read no-ops: opt-in false)", async () => {
   resetStorage();
   process.env.RADAR_ENABLED = "true";
 
@@ -128,12 +129,12 @@ test("GET /api/radar/referrals: flag on, authenticated, no cache => 200 empty sh
   assert.equal(body.tier, null);
 });
 
-test("GET /api/radar/referrals: flag on, authenticated, cached feed => returns fixed/campaigns/tier", async () => {
+test("GET /api/radar/referrals: flag on, authenticated, cached referrals feed => returns fixed/campaigns/tier", async () => {
   resetStorage();
   process.env.RADAR_ENABLED = "true";
 
   const feed = {
-    ...baseFeed(),
+    ...baseReferralsFeed(),
     referrals: {
       fixed: [
         {
@@ -148,11 +149,15 @@ test("GET /api/radar/referrals: flag on, authenticated, cached feed => returns f
       campaigns: [],
     },
   };
-  radarDb.setRadarCache({
-    version: "2026-08-07.1",
+  radarDb.setRadarReferralsCache({
+    generatedAt: feed.generatedAt as string,
     tier: "live",
     payload: JSON.stringify(feed),
     signature: "test-signature",
+    // Fresh timestamp -- inside the 1h staleness window, so sync-on-read
+    // does NOT overwrite this row (opt-in is false anyway, but this also
+    // proves the "not stale" branch is exercised, not just "opt_out").
+    fetchedAt: new Date().toISOString(),
   });
 
   const { GET } = await import("../../src/app/api/radar/referrals/route.ts");
@@ -164,6 +169,49 @@ test("GET /api/radar/referrals: flag on, authenticated, cached feed => returns f
   assert.equal(body.fixed[0].provider, "groq");
   assert.deepEqual(body.campaigns, []);
   assert.equal(body.tier, "live");
+});
+
+test("GET /api/radar/referrals: stale cached referrals feed still served (sync-on-read triggers but opt-in false => no-op, cache untouched)", async () => {
+  resetStorage();
+  process.env.RADAR_ENABLED = "true";
+
+  const feed = {
+    ...baseReferralsFeed(),
+    referrals: {
+      fixed: [
+        {
+          provider: "cerebras",
+          url: "https://cerebras.ai/?ref=omniroute",
+          kind: "fixo",
+          validUntil: null,
+          requiredAction: null,
+          isDefault: true,
+        },
+      ],
+      campaigns: [],
+    },
+  };
+  const staleFetchedAt = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(); // 2h ago
+  radarDb.setRadarReferralsCache({
+    generatedAt: feed.generatedAt as string,
+    tier: "community",
+    payload: JSON.stringify(feed),
+    signature: "test-signature",
+    fetchedAt: staleFetchedAt,
+  });
+
+  const { GET } = await import("../../src/app/api/radar/referrals/route.ts");
+  const response = await GET(mockGetRequest(undefined, await authHeaders()));
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.fixed.length, 1, "stale cache is still served while the sync-on-read no-ops");
+  assert.equal(body.fixed[0].provider, "cerebras");
+  assert.equal(body.tier, "community");
+
+  // The no-op sync must never have overwritten fetchedAt/cache contents.
+  const cacheAfter = radarDb.getRadarReferralsCache();
+  assert.equal(cacheAfter?.fetchedAt, staleFetchedAt);
 });
 
 test("GET /api/radar/referrals: never proxies the private feed server (route source has no upstream fetch)", async () => {

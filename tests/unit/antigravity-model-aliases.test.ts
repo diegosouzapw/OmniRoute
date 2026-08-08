@@ -209,10 +209,16 @@ test("AntigravityExecutor.transformRequest sends Claude through Gemini-compatibl
   if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
   const request = result.request as any;
   assert.deepEqual(request.contents, [{ role: "user", parts: [{ text: "Hello" }] }]);
-  // Capped to MAX_ANTIGRAVITY_OUTPUT_TOKENS (16384) by the executor (#4636) to avoid
-  // the Antigravity Cloud Code 400 on maxOutputTokens > 16384, overriding the
-  // thinkingBudget+1 bump (which would otherwise be 32769).
-  assert.equal(request.generationConfig.maxOutputTokens, 16384);
+  // The thinkingBudget+1 bump lands on 32769 and survives, because this model
+  // declares a limit above it. Asserting the declared limit first means a
+  // catalogue change fails here with the reason rather than with a bare number
+  // mismatch. The old fallback of 16384 (#4636) now applies only to models the
+  // catalogue does not know, which is the case the Antigravity 400 was about.
+  const declared = ANTIGRAVITY_PUBLIC_MODELS.find(
+    (m) => m.id === "claude-opus-4-6-thinking"
+  )?.maxOutputTokens;
+  assert.equal(declared, 65536, "claude-opus-4-6-thinking's declared output limit moved");
+  assert.equal(request.generationConfig.maxOutputTokens, 32769);
   assert.equal(request.generationConfig.temperature, 0.5);
   assert.equal(request.generationConfig.topK, 40);
   assert.equal(request.generationConfig.topP, 1);

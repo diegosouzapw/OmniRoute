@@ -48,17 +48,16 @@ import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { createHookContext, runHooks, initPreRequestRegistry } from "@/lib/middleware/registry";
 import { rejectPeerRequest } from "@/shared/resilience/peerRouting";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
-import { updateCombo } from "@/lib/db/combos";
+import { getComboByName, updateCombo } from "@/lib/db/combos";
 import { isModelAllowedForKey } from "@/lib/db/apiKeys";
 import { promoteSuccessfulComboModel } from "@/lib/combos/autoPromote";
 import {
   deleteSessionAccountAffinity,
   evictSessionAccountAffinityForConnection,
-  getCachedSettings,
-  getCombos,
-  getCombosCacheVersion,
   getSessionAccountAffinity,
-} from "@/lib/localDb";
+} from "@/lib/db/sessionAccountAffinity";
+import { getCachedSettings, getCombosCacheVersion } from "@/lib/db/readCache";
+import { getCombos } from "@/lib/db/combos";
 import { resolveModelLockoutSettings } from "@/lib/resilience/modelLockoutSettings";
 import {
   ensureOpenAIStoreSessionFallback,
@@ -78,7 +77,9 @@ import {
   withSessionHeader,
   withSelectedConnectionHeader,
   withCorrelationId,
+  withModalityBridgeHeader,
 } from "./chatHelpers";
+import { buildModalityBridgeHeader } from "@/lib/guardrails/modalityBridge/bridgeStats";
 import {
   isAntigravityMissingProjectError,
   PROVIDER_BREAKER_FAILURE_STATUSES,
@@ -462,10 +463,14 @@ async function handleChatImplementation(
   // image-registry match is only image-only when the same provider/model pair is
   // absent from the chat catalog.
   const imageModel = getImageModelEntry(modelStr);
+  // Exact stored combo names take precedence over colliding bare image aliases.
+  // Keep this narrower than getComboForModel() so mappings and synthetic aliases
+  // retain their existing resolution order.
+  const isExactStoredCombo = imageModel ? Boolean(await getComboByName(modelStr)) : false;
   const isChatCatalogModel = imageModel
     ? getModelsByProviderId(imageModel.provider).some((model) => model.id === imageModel.model)
     : false;
-  if (imageModel && !isChatCatalogModel) {
+  if (imageModel && !isExactStoredCombo && !isChatCatalogModel) {
     log.warn("CHAT", `Rejecting image-generation model on chat endpoint: ${modelStr}`);
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,
@@ -541,6 +546,10 @@ async function handleChatImplementation(
     isModelAllowedForKey,
     log,
   }));
+  // Modality Bridge transparency (Task 9): non-null only when a pre-call bridge
+  // guardrail transformed the payload (describe path) — stamped on the main
+  // success exits below via withModalityBridgeHeader().
+  const modalityBridgeHeader = buildModalityBridgeHeader(preCallGuardrails.results);
   telemetry.endPhase();
 
   // T08: per-key active session limit (0 = unlimited).
@@ -704,6 +713,20 @@ async function handleChatImplementation(
       }
     ) => {
       if (isComboLiveTest) return true;
+
+      // #9057: for keys with model restrictions (allowedModels or disableNonPublicModels),
+      // run isModelAllowedForKey even for auto/* models. The API-key policy gate
+      // (validateModelAccess in apiKeyPolicy.ts) treats auto/* as a virtual combo and
+      // skips isModelAllowedForKey, so the per-candidate check here is the only
+      // enforcement point during combo routing. Without it, a key with
+      // disableNonPublicModels=true can reach free/prohibited models through auto/*.
+      const hasModelRestrictions =
+        apiKeyInfo &&
+        (Boolean(apiKeyInfo.allowedModels?.length) || apiKeyInfo.disableNonPublicModels === true);
+      if (hasModelRestrictions && apiKey) {
+        const modelAllowed = await isModelAllowedForKey(apiKey, modelString);
+        if (!modelAllowed) return false;
+      }
 
       // Use getModelInfo to resolve custom prefixes, but prefer the combo
       // target's providerId when available — the model string's provider
@@ -904,7 +927,10 @@ async function handleChatImplementation(
         if (fallbackResponse.ok) {
           log.info("GLOBAL_FALLBACK", `Global fallback ${fallbackModel} succeeded`);
           recordTelemetry(telemetry);
-          return withSessionHeader(fallbackResponse, sessionId);
+          return withModalityBridgeHeader(
+            withSessionHeader(fallbackResponse, sessionId),
+            modalityBridgeHeader
+          );
         }
         log.warn(
           "GLOBAL_FALLBACK",
@@ -941,7 +967,10 @@ async function handleChatImplementation(
         });
       } catch {}
     }
-    return withCorrelationId(withSessionHeader(response, sessionId), reqId);
+    return withModalityBridgeHeader(
+      withCorrelationId(withSessionHeader(response, sessionId), reqId),
+      modalityBridgeHeader
+    );
   }
   telemetry.endPhase();
 
@@ -952,7 +981,7 @@ async function handleChatImplementation(
     const providerPrefix = resolvedModelStr.split("/")[0];
     if (providerPrefix) {
       try {
-        const { getComboByName } = await import("@/lib/localDb");
+        const { getComboByName } = await import("@/lib/db/combos");
         const routingCombo = await getComboByName(providerPrefix);
         if (routingCombo?.id) {
           routingComboId = routingCombo.id;
@@ -983,7 +1012,10 @@ async function handleChatImplementation(
     false
   );
   recordTelemetry(telemetry);
-  return withCorrelationId(withSessionHeader(response, sessionId), reqId);
+  return withModalityBridgeHeader(
+    withCorrelationId(withSessionHeader(response, sessionId), reqId),
+    modalityBridgeHeader
+  );
 }
 
 export const handleChat = chatAdmission.withChatAdmission(handleChatImplementation);
@@ -1284,7 +1316,15 @@ async function handleSingleModelChat(
             );
       preselectedCredentials = null;
 
-      if (!credentials || "allRateLimited" in credentials || !credentials.connectionId) {
+      // #9467: also treat the auth layer's allExpired verdict as a no-credentials
+      // outcome (auth.ts produces it; without this check an all-expired pool fell
+      // through to a connectionless dispatch).
+      if (
+        !credentials ||
+        "allRateLimited" in credentials ||
+        "allExpired" in credentials ||
+        !credentials.connectionId
+      ) {
         if (credentials?.allRateLimited) {
           const retryDecision = getCooldownAwareRetryDecision({
             retryAfter: credentials.retryAfter,
@@ -1313,7 +1353,7 @@ async function handleSingleModelChat(
             requestRetryBudgetLeftMs = Math.max(0, requestRetryBudgetLeftMs - retryDecision.waitMs);
             log.info(
               "COOLDOWN_RETRY",
-              `${provider}/${model} cooldown elapsed — restarting request attempt ${requestRetryAttempt}/${retrySettings.maxRetries}`
+              `${provider}/${model} cooldown elapsed — restarting request attempt ${requestRetryAttempt + 1}/${retrySettings.maxRetries}`
             );
             continue requestAttemptLoop;
           }

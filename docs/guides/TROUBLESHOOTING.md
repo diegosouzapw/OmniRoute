@@ -489,6 +489,59 @@ Provider profiles support these settings:
 
 When many concurrent requests hit a rate-limited provider, OmniRoute uses mutex + auto rate-limiting to serialize requests and prevent cascading failures. This is automatic for API key providers.
 
+### Chat requests fail with 503 / chat_admission_busy
+
+**Symptoms:**
+
+- The chat completions endpoint returns a retryable `503` response whose error code is
+  `chat_admission_busy`.
+- The response includes `Retry-After`; the byte-based path uses 2 seconds, while the
+  structure-based path uses 1 second and includes `reason: "structure_limit"`.
+- This can happen while another heavyweight chat or long-running streaming response is still
+  in flight.
+
+The byte-based response body is:
+
+```json
+{
+  "error": {
+    "message": "Chat admission capacity is temporarily unavailable. Retry shortly.",
+    "type": "server_error",
+    "code": "chat_admission_busy"
+  }
+}
+```
+
+The structure-based response uses the same type and code, with the message
+`Structurally heavy chat request capacity is busy; retry shortly.` and
+`reason: "structure_limit"`.
+At the default thresholds, a request is structurally heavy when it has at least `200` messages,
+at least `64` tools, or at least `32,000` estimated tokens, or when bounded structure estimation
+exhausts its bounds of `10,000` visited nodes or depth `12`.
+
+**Cause:** This is deliberate load shedding inside OmniRoute, not an upstream-provider failure.
+Each process uses a process-local guard to reserve limited heavyweight capacity before retaining
+and parsing a large request body. A heavyweight lease remains held for the lifetime of an SSE
+response.
+Current heavyweight lease occupancy is not surfaced in the dashboard.
+Settings → Resilience → Request Queue → Concurrent Requests does not control this; that setting
+governs a separate provider request-queue mechanism.
+
+**Fix:**
+
+1. Retry first. Clients should honor `Retry-After` and use backoff rather than immediately
+   repeating the request.
+2. If normal deployment traffic repeatedly exhausts the guard, you can cautiously raise
+   `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` from its default of `1`. Increase it one step at a time,
+   restart OmniRoute after each change, and observe memory headroom under representative load.
+   Every additional heavyweight request can increase concurrent V8 heap use and container or
+   host OOM risk. No value is safe for every deployment; validate the setting against your own
+   traffic and memory limits rather than assuming that `2` is universally safe.
+
+See the [environment-variable reference](../reference/ENVIRONMENT.md#4-security--authentication)
+for the authoritative admission settings. Loosening the heavyweight classification thresholds
+can let expensive requests bypass this guard and is riskier than a cautious in-flight increase.
+
 ---
 
 ## Optional RAG / LLM failure taxonomy (16 problems)

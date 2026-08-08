@@ -111,6 +111,59 @@ function buildKiroToolSpecs(tools: KiroToolInput[]): {
 }
 
 /**
+ * Does this message carry Anthropic-style `tool_result` content blocks? Such a
+ * user message is part of an open tool-result batch rather than new user input.
+ */
+function carriesToolResults(msg): boolean {
+  return Array.isArray(msg?.content) && msg.content.some((c) => c.type === "tool_result");
+}
+
+/**
+ * Lookahead for issue #8903: is the text-only assistant message at `index`
+ * genuinely sandwiched inside a tool-result batch?
+ *
+ * True only when a later `tool` message (or a `tool_result` content block on a
+ * user message) still belongs to the same assistant turn — i.e. it appears
+ * before the conversation moves on with real user text or a new assistant
+ * tool-call turn. Consecutive text-only assistant messages are skipped so a
+ * `tool -> assistant -> assistant -> tool` run still counts as interleaved.
+ *
+ * Returning false for the ordinary `tool -> assistant(final reply)` shape is
+ * what keeps that reply on the normal flush path instead of being deferred.
+ */
+function hasFollowingToolResult(messages, index: number): boolean {
+  for (let j = index + 1; j < messages.length; j++) {
+    const next = messages[j];
+    if (next.role === "tool") return true;
+
+    if (next.role === "user") {
+      const blocks = Array.isArray(next.content) ? next.content : [];
+      // A user message carrying only tool_result blocks is still part of the
+      // batch; one with real text ends it.
+      if (blocks.some((c) => c.type === "tool_result")) {
+        const hasText = blocks.some((c) => (c.type === "text" || c.text) && c.text?.trim());
+        if (!hasText) return true;
+      }
+      return false;
+    }
+
+    if (next.role === "assistant") {
+      const isTextOnly =
+        (!next.tool_calls || next.tool_calls.length === 0) &&
+        !(Array.isArray(next.content) && next.content.some((c) => c.type === "tool_use"));
+      // Skip further text-only assistant messages; a new tool-call turn ends
+      // the current batch.
+      if (isTextOnly) continue;
+      return false;
+    }
+
+    // system or any other role ends the batch
+    return false;
+  }
+  return false;
+}
+
+/**
  * Convert OpenAI messages to Kiro format
  * Rules: system/tool/user -> user role, merge consecutive same roles
  */
@@ -121,6 +174,11 @@ function convertMessages(messages, tools, model) {
   let pendingUserContent = [];
   let pendingAssistantContent = [];
   let pendingToolResults = [];
+  // Text-only assistant turns that arrived in the middle of an open tool-result
+  // batch. They are held back so the batch stays contiguous, then emitted as
+  // their own assistant turn right after the batch flushes — see
+  // `interruptsOpenToolBatch` below (issue #8903).
+  let deferredAssistantContent: string[] = [];
   let pendingImages: Array<{ format: string; source: { bytes: string } }> = [];
   let currentRole = null;
   let toolsAttached = false;
@@ -193,6 +251,19 @@ function convertMessages(messages, tools, model) {
       pendingUserContent = [];
       pendingToolResults = [];
       pendingImages = [];
+
+      // The tool batch is now closed, so any assistant text that was held back
+      // to keep it contiguous can be emitted as its own turn (issue #8903).
+      // Without this the deferred text would sit in a queue nothing drains and
+      // be silently dropped from the transcript.
+      if (deferredAssistantContent.length > 0) {
+        history.push({
+          assistantResponseMessage: {
+            content: deferredAssistantContent.join("\n\n").trim() || "(empty)",
+          },
+        });
+        deferredAssistantContent = [];
+      }
     } else if (currentRole === "assistant") {
       const content = pendingAssistantContent.join("\n\n").trim() || "(empty)";
       const assistantMsg = {
@@ -215,11 +286,64 @@ function convertMessages(messages, tools, model) {
     }
 
     // If role changes, flush pending
+    //
+    // Exception: a text-only assistant message must not split a batch of tool
+    // results that answers a single assistant turn. `tool` is normalized to
+    // `user` above, so `tool -> assistant -> tool` looks like two role changes
+    // and the interleaved flush would emit the first tool result and drop the
+    // rest, leaving advertised `toolUses` without matching `toolResults`.
+    // Bedrock rejects that transcript with 400 "Expected toolResult blocks"
+    // (issue #8903). Defer the assistant text instead so the tool batch stays
+    // contiguous; the text is re-emitted as its own assistant turn as soon as
+    // the batch flushes.
+    //
+    // The lookahead matters: without it, an ordinary trailing assistant reply
+    // (`tool -> assistant`, with no further tool message) would also be
+    // deferred and its text lost. Only a genuine sandwich qualifies.
+    const isTextOnlyAssistant =
+      msg.role === "assistant" &&
+      (!msg.tool_calls || msg.tool_calls.length === 0) &&
+      !(Array.isArray(msg.content) && msg.content.some((c) => c.type === "tool_use"));
+    const interruptsOpenToolBatch =
+      isTextOnlyAssistant &&
+      currentRole === "user" &&
+      pendingToolResults.length > 0 &&
+      hasFollowingToolResult(messages, i);
+
+    if (interruptsOpenToolBatch) {
+      const deferredText =
+        typeof msg.content === "string"
+          ? msg.content.trim()
+          : Array.isArray(msg.content)
+            ? msg.content
+                .filter((c) => c.type === "text" || c.text)
+                .map((c) => c.text || "")
+                .join("\n")
+                .trim()
+            : "";
+      if (deferredText) deferredAssistantContent.push(deferredText);
+      continue;
+    }
+
+    // Once assistant text has been deferred, the tool batch is logically over
+    // as soon as a message arrives that is not itself a tool result. Flush now
+    // so the pending batch + deferred assistant turn are emitted before the new
+    // user text, instead of that text merging into the tool-result turn and
+    // leaving the deferred reply stranded after it (issue #8903).
+    if (
+      deferredAssistantContent.length > 0 &&
+      currentRole === "user" &&
+      msg.role !== "tool" &&
+      !carriesToolResults(msg)
+    ) {
+      flushPending();
+      currentRole = null;
+    }
+
     if (role !== currentRole && currentRole !== null) {
       flushPending();
     }
     currentRole = role;
-
     if (role === "user") {
       // Extract content
       let content = "";

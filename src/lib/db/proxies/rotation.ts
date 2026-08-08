@@ -195,7 +195,7 @@ function fetchAlivePoolRows(
   matchAnyScopeId: boolean
 ): JsonRecord[] {
   const baseSelect =
-    "SELECT p.id, p.type, p.host, p.port, p.username, p.password, p.notes, p.family, a.position AS __pos, a.id AS __aid " +
+    "SELECT p.id, p.name, p.type, p.host, p.port, p.username, p.password, p.notes, p.family, a.position AS __pos, a.id AS __aid " +
     "FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = ? ";
   const order = " ORDER BY a.position ASC, a.id ASC";
   if (matchAnyScopeId) {

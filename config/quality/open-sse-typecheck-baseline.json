@@ -1,0 +1,176 @@
+{
+  "open-sse/executors/azure-openai.ts": {
+    "TS2345": 1
+  },
+  "open-sse/executors/chatgpt-web.ts": {
+    "TS2339": 1
+  },
+  "open-sse/executors/claude-web/stream.ts": {
+    "TS2322": 1,
+    "TS2345": 1
+  },
+  "open-sse/executors/copilot-web.ts": {
+    "TS2353": 1
+  },
+  "open-sse/executors/deepseek-web.ts": {
+    "TS2352": 1
+  },
+  "open-sse/executors/default.ts": {
+    "TS2352": 1
+  },
+  "open-sse/executors/duckduckgo-web.ts": {
+    "TS2345": 2
+  },
+  "open-sse/executors/duckduckgo-web/challenge.ts": {
+    "TS2304": 1
+  },
+  "open-sse/executors/edgeTts.ts": {
+    "TS2345": 1
+  },
+  "open-sse/executors/gemini-business.ts": {
+    "TS2339": 1
+  },
+  "open-sse/executors/ghe-copilot.ts": {
+    "TS2554": 1
+  },
+  "open-sse/executors/inner-ai.ts": {
+    "TS2352": 2
+  },
+  "open-sse/executors/theoldllm.ts": {
+    "TS2322": 1
+  },
+  "open-sse/executors/veoaifree-web.ts": {
+    "TS2322": 1
+  },
+  "open-sse/executors/windsurf.ts": {
+    "TS2322": 1
+  },
+  "open-sse/handlers/chatCore.ts": {
+    "TS2339": 30,
+    "TS2322": 1,
+    "TS2345": 11
+  },
+  "open-sse/handlers/chatCore/claudeUpstreamMessages.ts": {
+    "TS2345": 1
+  },
+  "open-sse/handlers/chatCore/clientUsageBuffer.ts": {
+    "TS2345": 1
+  },
+  "open-sse/handlers/chatCore/clineResponseEnvelope.ts": {
+    "TS2698": 1
+  },
+  "open-sse/handlers/chatCore/compressionAnalyticsWrite.ts": {
+    "TS2724": 1
+  },
+  "open-sse/handlers/chatCore/nonStreamingResponseHeaders.ts": {
+    "TS2322": 2
+  },
+  "open-sse/handlers/chatCore/sanitization.ts": {
+    "TS2339": 1,
+    "TS2537": 1
+  },
+  "open-sse/handlers/chatCore/semanticCacheStore.ts": {
+    "TS2345": 1
+  },
+  "open-sse/handlers/chatCore/streamingPipeline.ts": {
+    "TS2345": 2
+  },
+  "open-sse/handlers/chatCore/streamingSemanticCacheStore.ts": {
+    "TS2345": 1
+  },
+  "open-sse/handlers/chatCore/thinkingSignatureRecovery.ts": {
+    "TS2339": 2
+  },
+  "open-sse/handlers/imageGeneration.ts": {
+    "TS2554": 2
+  },
+  "open-sse/handlers/responsesHandler.ts": {
+    "TS2339": 1,
+    "TS2345": 1
+  },
+  "open-sse/handlers/sseParser.ts": {
+    "TS2322": 2
+  },
+  "open-sse/handlers/videoGeneration.ts": {
+    "TS2339": 2
+  },
+  "open-sse/mcp-server/tools/compressionTools.ts": {
+    "TS2339": 2
+  },
+  "open-sse/services/__tests__/specificityDetector.test.ts": {
+    "TS2353": 2
+  },
+  "open-sse/services/browserBackedChat.ts": {
+    "TS2322": 1,
+    "TS2794": 1
+  },
+  "open-sse/services/claudeAdaptiveThinking.ts": {
+    "TS2352": 2
+  },
+  "open-sse/services/comboManifestMetrics.ts": {
+    "TS2307": 1
+  },
+  "open-sse/services/compression/engines/ccr/index.ts": {
+    "TS2339": 1
+  },
+  "open-sse/services/payloadRules.ts": {
+    "TS2677": 1
+  },
+  "open-sse/services/tokenLimitCounter.ts": {
+    "TS2551": 1
+  },
+  "open-sse/transformer/responsesTransformer.ts": {
+    "TS2339": 1
+  },
+  "open-sse/utils/stream.ts": {
+    "TS2339": 7,
+    "TS2345": 1,
+    "TS2556": 1
+  },
+  "src/app/api/v1/_shared/mediaGenerationRoute.ts": {
+    "TS2339": 2
+  },
+  "src/app/api/v1/models/catalog.ts": {
+    "TS2345": 1
+  },
+  "src/app/api/v1/models/catalogVision.ts": {
+    "TS2322": 1
+  },
+  "src/app/api/v1/videos/generations/route.ts": {
+    "TS2322": 1,
+    "TS2345": 1
+  },
+  "src/lib/guardrails/visionBridge.ts": {
+    "TS2345": 1
+  },
+  "src/lib/providers/codexFastTier.ts": {
+    "TS2367": 1
+  },
+  "src/lib/skills/builtins.ts": {
+    "TS2322": 1
+  },
+  "src/lib/skills/injection.ts": {
+    "TS2339": 1
+  },
+  "src/lib/skills/webFetchExecution.ts": {
+    "TS2322": 1
+  },
+  "src/lib/streamingPiiTransform.ts": {
+    "TS2345": 1
+  },
+  "src/shared/providers/webSessionCredentials.ts": {
+    "TS2353": 1,
+    "TS2322": 1
+  },
+  "src/shared/validation/helpers.ts": {
+    "TS2339": 1
+  },
+  "src/sse/handlers/chat.ts": {
+    "TS2352": 1,
+    "TS2322": 2,
+    "TS2339": 1
+  },
+  "src/sse/services/model.ts": {
+    "TS2339": 4
+  }
+}

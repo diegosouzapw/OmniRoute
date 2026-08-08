@@ -339,8 +339,12 @@ test("KiroExecutor keeps cache tokens that arrive without input/output totals", 
   const chunks = parseSSEJsonChunks(await transformed.text());
   const finish = chunks.find((chunk) => chunk.choices?.[0]?.finish_reason);
 
-  assert.equal(finish.usage.cache_read_input_tokens, 900);
-  assert.equal(finish.usage.cache_creation_input_tokens, undefined);
+  assert.deepEqual(finish.usage, {
+    prompt_tokens: 19999,
+    completion_tokens: 1,
+    total_tokens: 20000,
+    cache_read_input_tokens: 900,
+  });
 });
 
 // snake_case spellings appear on some Kiro frames; a cache count must not be

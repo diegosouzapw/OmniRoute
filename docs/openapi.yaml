@@ -5294,6 +5294,19 @@ paths:
         "200":
           description: Caches cleared
 
+  /api/modality-bridge/stats:
+    get:
+      tags: [System]
+      summary: Get Modality Bridge telemetry
+      description: In-memory per-modality bridge counters (bridged, cacheHits, failures, lastUsedAt). Counters reset on process restart.
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Per-modality bridge stats (vision, audio)
+        "401":
+          description: Unauthorized
+
   /api/cache/stats:
     get:
       tags: [System]

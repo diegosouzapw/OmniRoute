@@ -472,6 +472,16 @@ function isSchemaAlreadyApplied(
       return hasColumn(db, "version_manager", "auto_restart_adopted");
     case "138":
       return hasColumn(db, "upstream_proxy_config", "fallback_backend");
+    case "140":
+      // Retroactive guard for the connection_runtime_state migration renumbered
+      // 135 -> 140 (#9449 landed onto the slot already taken by #8908's
+      // 135_migrate_model_capability_max_token.sql — the same recurring
+      // numbering-race class as the 135/136 -> 137/138 renumber above). A DB
+      // that already ran this under the old 135 number has the table, and a
+      // bare CREATE TABLE re-run would otherwise just no-op (IF NOT EXISTS)
+      // but still burn a version-tracking slot mismatch — guard it the same
+      // way as the other renumbers for consistency.
+      return hasTable(db, "connection_runtime_state");
     default:
       return false;
   }
