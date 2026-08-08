@@ -58,7 +58,7 @@ Repository map and Reference Documentation sections below.
 | Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                                |
 | Database      | `src/lib/db/`           | SQLite domain modules (130 migrations)                                                                                                                  |
 | Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                               |
-| MCP Server    | `open-sse/mcp-server/`  | 104 tools (42 base + memory/skill/agentSkill/pool/notion/obsidian/gamification/plugin modules), 3 transports (stdio / SSE / Streamable HTTP), 31 scopes |
+| MCP Server    | `open-sse/mcp-server/`  | 105 tools (42 base + memory/skill/agentSkill/pool/notion/obsidian/gamification/plugin modules), 3 transports (stdio / SSE / Streamable HTTP), 31 scopes |
 | A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                             |
 | Skills        | `src/lib/skills/`       | Extensible skill framework                                                                                                                              |
 | Memory        | `src/lib/memory/`       | Persistent conversational memory                                                                                                                        |
@@ -399,6 +399,7 @@ For any non-trivial change, read the matching deep-dive first:
 | Resilience (3 mechanisms)                     | `docs/architecture/RESILIENCE_GUIDE.md`                 |
 | Reasoning replay                              | `docs/routing/REASONING_REPLAY.md`                      |
 | Skills framework                              | `docs/frameworks/SKILLS.md`                             |
+| Radar (free-model catalog overlay)            | `docs/frameworks/RADAR.md`                              |
 | Memory system (FTS5 + Qdrant)                 | `docs/frameworks/MEMORY.md`                             |
 | Cloud agents                                  | `docs/frameworks/CLOUD_AGENT.md`                        |
 | Guardrails (PII / injection / vision)         | `docs/security/GUARDRAILS.md`                           |
@@ -427,7 +428,7 @@ For any non-trivial change, read the matching deep-dive first:
 | What                    | Command                                                                     |
 | ----------------------- | --------------------------------------------------------------------------- |
 | Unit tests              | `npm run test:unit`                                                         |
-| Single file             | `node --import tsx/esm --test tests/unit/your-file.test.ts`                      |
+| Single file             | `node --import tsx/esm --test tests/unit/your-file.test.ts`                 |
 | Vitest (MCP, autoCombo) | `npm run test:vitest`                                                       |
 | E2E (Playwright)        | `npm run test:e2e`                                                          |
 | Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                                                |

@@ -59,10 +59,7 @@ describe("CCR eviction stays inside the storing principal (#9146)", () => {
     }
 
     const stats = getCcrStoreStats("principal-busy");
-    assert.ok(
-      stats.entries <= MAX_CCR_ENTRIES,
-      `entry cap must still hold, got ${stats.entries}`
-    );
+    assert.ok(stats.entries <= MAX_CCR_ENTRIES, `entry cap must still hold, got ${stats.entries}`);
   });
 
   it("falls back to another principal's blocks when the storing one has none", () => {

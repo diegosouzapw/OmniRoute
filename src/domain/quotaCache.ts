@@ -10,6 +10,9 @@
  *   - Active accounts (quota > 0%): refetch every 5 minutes
  *   - Exhausted accounts: refetch every 5 minutes (or immediately after resetAt passes)
  *
+ * @changes
+ * - [2026-07-24] [Composer] - Scope Antigravity per-model exhaustion to exact model + family weekly windows
+ *
  * @module domain/quotaCache
  */
 
@@ -236,6 +239,43 @@ export function __clearForTests() {
   getState().cache.clear();
 }
 
+function resolveAntigravityQuotaWindowsForModel(
+  quotaNames: string[],
+  requestedModel: string
+): string[] {
+  const requestedFamily = getAntigravityQuotaFamily(requestedModel);
+  const cleanRequestedModel = requestedModel.replace(/^(antigravity|agy)\//, "");
+  const bareModel = cleanRequestedModel.includes("/")
+    ? cleanRequestedModel.slice(cleanRequestedModel.lastIndexOf("/") + 1)
+    : cleanRequestedModel;
+
+  if (requestedFamily === "other") {
+    return quotaNames.filter((windowName) => {
+      const bare = windowName.replace(/^(antigravity|agy)\//, "");
+      return bare === bareModel || bare === cleanRequestedModel;
+    });
+  }
+
+  const familyAggregates =
+    requestedFamily === "gemini"
+      ? ["gemini_weekly"]
+      : requestedFamily === "claude"
+        ? ["claude_gpt_weekly"]
+        : [];
+
+  const exactWindows = quotaNames.filter((windowName) => {
+    const bare = windowName.replace(/^(antigravity|agy)\//, "");
+    return bare === bareModel;
+  });
+  const aggregateWindows = familyAggregates.filter((key) => quotaNames.includes(key));
+  const scoped = [...exactWindows, ...aggregateWindows];
+  if (scoped.length > 0) return scoped;
+
+  return quotaNames.filter(
+    (windowName) => getAntigravityQuotaFamily(windowName) === requestedFamily
+  );
+}
+
 function isAntigravityQuotaExhausted(
   connectionId: string,
   entry: QuotaCacheEntry,
@@ -244,18 +284,13 @@ function isAntigravityQuotaExhausted(
   if (!requestedModel) return entry.exhausted;
   const quotaNames = Object.keys(entry.quotas || {});
   if (quotaNames.length === 0) return entry.exhausted;
-  const requestedFamily = getAntigravityQuotaFamily(requestedModel);
-  const cleanRequestedModel = requestedModel.replace(/^(antigravity|agy)\//, "");
-  const matchingWindows = quotaNames.filter((windowName) => {
-    if (requestedFamily === "other") {
-      return windowName.replace(/^(antigravity|agy)\//, "") === cleanRequestedModel;
-    }
-    return getAntigravityQuotaFamily(windowName) === requestedFamily;
-  });
+  const matchingWindows = resolveAntigravityQuotaWindowsForModel(quotaNames, requestedModel);
   return (
     matchingWindows.length > 0 &&
     matchingWindows.every(
-      (windowName) => getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
+      (windowName) =>
+        getQuotaWindowStatus(connectionId, windowName, DEFAULT_QUOTA_THRESHOLD_PERCENT)
+          ?.reachedThreshold
     )
   );
 }
@@ -273,7 +308,9 @@ function isCodexQuotaExhausted(
   return (
     scopedWindowNames.length > 0 &&
     scopedWindowNames.every(
-      (windowName) => getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
+      (windowName) =>
+        getQuotaWindowStatus(connectionId, windowName, DEFAULT_QUOTA_THRESHOLD_PERCENT)
+          ?.reachedThreshold
     )
   );
 }
@@ -512,7 +549,11 @@ export function getQuotaWindowStatus(
     usedPercentage,
     resetAt,
     // If reset time has already passed, avoid stale cached percentages blocking selection.
-    reachedThreshold: windowExpired ? false : usedPercentage >= thresholdPercent,
+    reachedThreshold: windowExpired
+      ? false
+      : remainingPercentage <= 0
+        ? true
+        : usedPercentage >= thresholdPercent,
   };
 }
 

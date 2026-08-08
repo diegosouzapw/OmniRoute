@@ -159,9 +159,7 @@ async function runBrowserFlow(def, opts) {
   }
   const result = await exchangeRes.json();
   const conn = result.connection ?? {};
-  process.stdout.write(
-    `Authorized: ${conn.email ?? conn.displayName ?? conn.id ?? "connected"}\n`
-  );
+  process.stdout.write(`Authorized: ${conn.email ?? conn.displayName ?? conn.id ?? "connected"}\n`);
 }
 
 async function safeErrorBody(res) {

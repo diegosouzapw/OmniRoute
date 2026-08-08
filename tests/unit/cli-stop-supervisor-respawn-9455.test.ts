@@ -145,10 +145,7 @@ test("Defect 1b: pid.mjs SERVICES array must include supervisor so killAllSubpro
     else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
   }
 
-  const pidSrc = fs.readFileSync(
-    path.join(process.cwd(), "bin/cli/utils/pid.mjs"),
-    "utf8"
-  );
+  const pidSrc = fs.readFileSync(path.join(process.cwd(), "bin/cli/utils/pid.mjs"), "utf8");
   assert.ok(
     /SERVICES\s*=\s*\[[^\]]*"supervisor"[^\]]*\]/.test(pidSrc),
     'pid.mjs SERVICES array must include "supervisor"'

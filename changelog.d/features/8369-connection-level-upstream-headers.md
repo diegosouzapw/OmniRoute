@@ -1,0 +1,1 @@
+- **feat(providers):** add connection-level custom upstream headers via `provider_specific_data.customHeaders` — applied to every request through that connection, with model-level headers overriding on the same case-insensitive name. (thanks @Benson-mk)

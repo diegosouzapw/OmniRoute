@@ -234,6 +234,12 @@ export async function getSettings() {
     // (`:free` suffix, zero-price pricing, or FREE_MODEL_BUDGETS membership). Default
     // false preserves prior behaviour; opt-in only.
     hidePaidModels: false,
+    // #9418: Opt-in filter that hides auto/* virtual combos from the /v1/models catalog.
+    // User-defined combos are unaffected; routing still works for hidden ids sent explicitly.
+    hideAutoCombos: false,
+    // #9418: Opt-in filter that hides no-think/* gateway variants from the /v1/models catalog.
+    // Routing still works for hidden ids sent explicitly.
+    hideNoThinkVariants: false,
     // #6977: Opt-in per-connection auto-ping that warms a Codex OAuth connection's
     // quota window right after it resets, so the first real request doesn't land in
     // a cold window. `connections` maps connection id -> enabled. Default empty map
@@ -241,6 +247,8 @@ export async function getSettings() {
     // connection on, since pinging burns a small amount of real quota (Hard Rule #20
     // spirit: never mutate/consume on the operator's behalf by default).
     codexAutoPing: { connections: {} },
+    // #8848: opt-in per-connection Claude proactive warmup (empty = off for everyone).
+    claudeWarmup: { connections: {} },
   };
   for (const row of rows) {
     const record = toRecord(row);
@@ -296,10 +304,7 @@ export async function updateSettings(
   );
   const tx = db.transaction(() => {
     const currentRevision = readSettingsRevision(db);
-    if (
-      options?.expectedRevision !== undefined &&
-      options.expectedRevision !== currentRevision
-    ) {
+    if (options?.expectedRevision !== undefined && options.expectedRevision !== currentRevision) {
       throw new SettingsRevisionConflictError(currentRevision);
     }
     for (const [key, value] of Object.entries(updates)) {

@@ -42,7 +42,10 @@ test("#9502: web-session credential spec for muse-spark-web mentions the ecto1: 
 });
 
 test("#9502: the Missing Authorization error message guides the user to the ecto1: token", () => {
-  assert.ok(/Missing Authorization.*ecto1:/.test(executor), "missing-auth error must name the ecto1: token");
+  assert.ok(
+    /Missing Authorization.*ecto1:/.test(executor),
+    "missing-auth error must name the ecto1: token"
+  );
 });
 
 test("#9502: a cookie-only credential (no ecto1: token) is rejected with 400 — the actual user failure", async () => {

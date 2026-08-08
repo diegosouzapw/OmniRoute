@@ -1,0 +1,1 @@
+- **fix(proxy):** isolate new proxy credential fields from browser and password-manager autofill after form reset ([#8883](https://github.com/diegosouzapw/OmniRoute/pull/8883)) — thanks @xiaoyaner0201

@@ -1,3 +1,9 @@
+---
+title: "OmniRoute Roadmap"
+version: 3.8.50
+lastUpdated: 2026-08-06
+---
+
 # OmniRoute Roadmap
 
 > Version-gated, not date-gated: each milestone ships when its quality gates pass.

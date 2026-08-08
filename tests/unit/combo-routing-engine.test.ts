@@ -3145,7 +3145,7 @@ test("#3587 reasoning model gets max_tokens buffer applied", async () => {
   assert.equal(result.ok, true);
   assert.equal(bodies.length, 1, "should have called handleSingleModel once");
   // #9507: buffer never enlarges an explicit client max_tokens; pass-through 4096.
-  assert.equal(bodies[0].max_tokens, 4096, "max_tokens forwarded verbatim for reasoning model (#9507)");
+  assert.equal(bodies[0].max_tokens, 4096, "max_tokens forwarded verbatim (#9507)");
 });
 
 test("#3587 reasoning buffer preserves max_tokens when the full buffer exceeds model cap", async () => {

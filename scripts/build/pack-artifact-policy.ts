@@ -126,6 +126,9 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   // #7802: imported by scripts/build/postinstall.mjs to repair tls-client-node's
   // native binary (chatgpt-web/claude-web/grok-web/lmarena/perplexity-web transport).
   "scripts/build/fixTlsClientNodeBinary.mjs",
+  // #8859: imported by scripts/build/postinstall.mjs to repair playwright-core's
+  // browser resolution on Termux/Android (no glibc, no bundled browsers).
+  "scripts/build/fixPlaywrightAndroid.mjs",
   // #5227: imported at runtime by bin/cli/commands/serve.mjs (heap auto-calibration).
   "scripts/build/runtime-env.mjs",
   "scripts/build/sync-env.mjs",

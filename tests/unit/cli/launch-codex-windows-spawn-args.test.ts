@@ -76,7 +76,7 @@ test("quoteCodexArgs: exact win32 encoding (golden)", () => {
 });
 
 test("quoteCodexArgs does not mutate the caller's array", () => {
-  const input = ["-c", "model_provider=\"omniroute\""];
+  const input = ["-c", 'model_provider="omniroute"'];
   quoteCodexArgs(input, "win32");
   assert.deepEqual(input, ["-c", 'model_provider="omniroute"']);
 });

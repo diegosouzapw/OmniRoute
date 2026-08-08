@@ -109,9 +109,7 @@ export function shouldConfirmSelectAll(
  * id (before any passthrough/node alias prefixing), so a single helper covers
  * system, fallback, alias, node-alias, custom and auto-fetched rows alike.
  */
-export function parseHiddenModelsByProvider(
-  raw: unknown
-): Map<string, Set<string>> {
+export function parseHiddenModelsByProvider(raw: unknown): Map<string, Set<string>> {
   const result = new Map<string, Set<string>>();
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return result;
 

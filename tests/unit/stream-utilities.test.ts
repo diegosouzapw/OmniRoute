@@ -230,16 +230,11 @@ test("createPassthroughStreamWithLogger synthesizes reasoning summary events fro
   assert.match(result, /event: response\.output_item\.done/);
 });
 
-// Reconciles #7095 (xz-dev — chat clients never saw ANY signal that Codex was
-// reasoning when the upstream Responses API exposed only encrypted private
-// reasoning) with #7176 (JxnLexn — mutating `item.summary` with a fabricated
-// placeholder corrupted the response item forwarded downstream, discarding the
-// `encrypted_content` shape Codex needs for follow-up requests). Both goals are
-// satisfied simultaneously: the client-facing synthetic delta/part events still
-// carry the placeholder text, but the forwarded `response.output_item.done`
-// payload is untouched — `encrypted_content` survives and no `summary` is
-// fabricated onto the wire item.
-test("createPassthroughStreamWithLogger shows a placeholder for encrypted reasoning items without mutating the forwarded item", async () => {
+// #7176/#7243 — encrypted-only reasoning must not mutate the forwarded item and
+// must not fabricate alarming placeholder text into client-visible reasoning
+// summary streams. The reasoning item (with `encrypted_content`) still reaches
+// the client on `response.output_item.done` for continuation.
+test("createPassthroughStreamWithLogger suppresses synthetic summary for encrypted-only reasoning without mutating the forwarded item", async () => {
   const transform = createPassthroughStreamWithLogger(
     "codex",
     null,
@@ -275,9 +270,9 @@ test("createPassthroughStreamWithLogger shows a placeholder for encrypted reason
     result += decoder.decode(value);
   }
 
-  // #7095: chat clients still see the placeholder via the synthetic events.
-  assert.match(result, /event: response\.reasoning_summary_text\.delta/);
-  assert.match(result, /Codex is reasoning/);
+  // #7243: no fabricated reasoning summary deltas when upstream has no plaintext.
+  assert.doesNotMatch(result, /event: response\.reasoning_summary_text\.delta/);
+  assert.doesNotMatch(result, /Codex is reasoning/);
 
   // #7176: the forwarded response.output_item.done payload is untouched —
   // encrypted_content survives intact and no fabricated `summary` is present.
@@ -332,9 +327,9 @@ test("createPassthroughStreamWithLogger backfills completed output with encrypte
     result += decoder.decode(value);
   }
 
-  // The placeholder still reached the client (#7095).
-  assert.match(result, /event: response\.reasoning_summary_text\.delta/);
-  assert.match(result, /Codex is reasoning/);
+  // #7243: no fabricated reasoning summary deltas when upstream has no plaintext.
+  assert.doesNotMatch(result, /event: response\.reasoning_summary_text\.delta/);
+  assert.doesNotMatch(result, /Codex is reasoning/);
 
   // The item re-serialized into the completed snapshot carries the original
   // encrypted_content and never a fabricated summary (#7176).

@@ -44,6 +44,16 @@ const PAGE_SIZE = 50;
 
 // ──── types ─────────────────────────────────────────────────────────────────
 
+/**
+ * Upstream proxy routing mode for Claude-Code-compatible providers. `native`
+ * uses OmniRoute's own executor; `cliproxyapi`/`dario` route every request
+ * through that backend directly; `fallback` tries native first and retries
+ * via `fallbackBackend` on failure. Mirrors the `mode` enum in
+ * src/app/api/upstream-proxy/[providerId]/route.ts.
+ */
+export type UpstreamProxyMode = "native" | "cliproxyapi" | "dario" | "fallback";
+export type UpstreamProxyFallbackBackend = "cliproxyapi" | "dario";
+
 export type BatchTestResults = {
   error: string | null;
   results: any[];
@@ -70,6 +80,8 @@ export interface UseProviderConnectionsReturn {
   proxyConfig: any;
   connProxyMap: Record<string, { proxy: any; level: string } | null>;
   cpaProviderEnabled: boolean;
+  upstreamProxyMode: UpstreamProxyMode;
+  upstreamProxyFallbackBackend: UpstreamProxyFallbackBackend;
   refreshingId: string | null;
 
   // Setters (minimal surface for UI)
@@ -97,6 +109,10 @@ export interface UseProviderConnectionsReturn {
   handleToggleClaudeExtraUsage: (connectionId: string, enabled: boolean) => Promise<void>;
   handleToggleCodexLimit: (connectionId: string, field: string, enabled: boolean) => Promise<void>;
   handleToggleCliproxyapiMode: (connectionId: string, enabled: boolean) => Promise<void>;
+  handleSetUpstreamProxyMode: (
+    mode: UpstreamProxyMode,
+    fallbackBackend?: UpstreamProxyFallbackBackend
+  ) => Promise<void>;
   handleToggleProxyEnabled: (connectionId: string, proxyEnabled: boolean) => Promise<void>;
   handleTogglePerKeyProxyEnabled: (
     connectionId: string,
@@ -177,8 +193,14 @@ export function useProviderConnections(
     Record<string, { proxy: any; level: string } | null>
   >({});
 
-  // ── CLIProxyAPI state ───────────────────────────────────────────────────
-  const [cpaProviderEnabled, setCpaProviderEnabled] = useState(false);
+  // ── Upstream proxy routing state (native / CLIProxyAPI / Dario / fallback) ─
+  const [upstreamProxyMode, setUpstreamProxyModeState] = useState<UpstreamProxyMode>("native");
+  const [upstreamProxyFallbackBackend, setUpstreamProxyFallbackBackendState] =
+    useState<UpstreamProxyFallbackBackend>("cliproxyapi");
+  // Legacy derived flag — kept for any consumer still reading a plain
+  // enabled/disabled signal instead of the full mode.
+  const cpaProviderEnabled =
+    upstreamProxyMode === "cliproxyapi" || upstreamProxyMode === "fallback";
 
   // ── token refresh state ─────────────────────────────────────────────────
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
@@ -276,26 +298,21 @@ export function useProviderConnections(
     }
   }, [loading, connections, loadConnProxies]);
 
-  // CLIProxyAPI upstream proxy config
+  // Upstream proxy routing config (native / CLIProxyAPI / Dario / fallback)
   useEffect(() => {
     if (!isCcCompatible) return;
 
-    fetch(`/api/settings`)
-      .then((r) => r.json())
-      .then(() => {
-        // Check if this provider has CLIProxyAPI routing enabled
-      })
-      .catch(() => {});
-
     fetch(`/api/upstream-proxy/${providerId}`)
-      .then((r) => {
-        if (!r.ok) return null;
-        return r.json();
-      })
+      .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (data?.enabled && (data.mode === "cliproxyapi" || data.mode === "fallback")) {
-          setCpaProviderEnabled(true);
-        }
+        if (!data) return;
+        const validModes: UpstreamProxyMode[] = ["cliproxyapi", "dario", "fallback"];
+        const mode: UpstreamProxyMode =
+          data.enabled && validModes.includes(data.mode) ? data.mode : "native";
+        setUpstreamProxyModeState(mode);
+        setUpstreamProxyFallbackBackendState(
+          data.fallbackBackend === "dario" ? "dario" : "cliproxyapi"
+        );
       })
       .catch(() => {});
   }, [isCcCompatible, providerId]);
@@ -475,29 +492,50 @@ export function useProviderConnections(
     }
   };
 
-  const handleToggleCliproxyapiMode = async (_connectionId: string, enabled: boolean) => {
+  const UPSTREAM_PROXY_MODE_MESSAGES: Record<UpstreamProxyMode, string> = {
+    native: "Requests now use native OmniRoute (direct)",
+    cliproxyapi: "Requests now route through CLIProxyAPI (deeper emulation)",
+    dario: "Requests now route through Dario (Claude subscription proxy)",
+    fallback: "Requests try native first, retrying via the configured backend on failure",
+  };
+
+  const handleSetUpstreamProxyMode = async (
+    mode: UpstreamProxyMode,
+    fallbackBackend?: UpstreamProxyFallbackBackend
+  ) => {
     try {
       const res = await fetch(`/api/upstream-proxy/${providerId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: enabled ? "cliproxyapi" : "native", enabled }),
+        body: JSON.stringify({
+          mode,
+          enabled: mode !== "native",
+          ...(mode === "fallback"
+            ? { fallbackBackend: fallbackBackend ?? upstreamProxyFallbackBackend }
+            : {}),
+        }),
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        notify.error(data.error || "Failed to update CLIProxyAPI routing");
+        notify.error(data.error || "Failed to update upstream proxy routing");
         return;
       }
 
-      setCpaProviderEnabled(enabled);
-      notify.success(
-        enabled
-          ? "Requests now route through CLIProxyAPI (deeper emulation)"
-          : "Requests now use native OmniRoute (direct)"
-      );
+      setUpstreamProxyModeState(mode);
+      if (mode === "fallback" && fallbackBackend) {
+        setUpstreamProxyFallbackBackendState(fallbackBackend);
+      }
+      notify.success(UPSTREAM_PROXY_MODE_MESSAGES[mode]);
     } catch {
-      notify.error("Failed to update CLIProxyAPI routing");
+      notify.error("Failed to update upstream proxy routing");
     }
+  };
+
+  // Legacy binary wrapper — kept so existing callers (and the "exposes all
+  // expected handler functions" hook test) keep working unchanged.
+  const handleToggleCliproxyapiMode = async (_connectionId: string, enabled: boolean) => {
+    await handleSetUpstreamProxyMode(enabled ? "cliproxyapi" : "native");
   };
 
   const handleToggleProxyEnabled = async (connectionId: string, proxyEnabled: boolean) => {
@@ -892,6 +930,8 @@ export function useProviderConnections(
     proxyConfig,
     connProxyMap,
     cpaProviderEnabled,
+    upstreamProxyMode,
+    upstreamProxyFallbackBackend,
     refreshingId,
     reorderingByAvailability,
 
@@ -917,6 +957,7 @@ export function useProviderConnections(
     handleToggleClaudeExtraUsage,
     handleToggleCodexLimit,
     handleToggleCliproxyapiMode,
+    handleSetUpstreamProxyMode,
     handleToggleProxyEnabled,
     handleTogglePerKeyProxyEnabled,
     handleRetestConnection,

@@ -12,12 +12,7 @@ interface TelegramConfigFormProps {
   isEditing?: boolean;
 }
 
-export function TelegramConfigForm({
-  value,
-  onChange,
-  t,
-  isEditing,
-}: TelegramConfigFormProps) {
+export function TelegramConfigForm({ value, onChange, t, isEditing }: TelegramConfigFormProps) {
   return (
     <div className="space-y-4">
       <div>

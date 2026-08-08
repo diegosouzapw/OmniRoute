@@ -61,6 +61,14 @@ const FULL_QUOTA_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
 export function classify429(errorMessage: string): Category {
   const lower = (errorMessage || "").toLowerCase();
 
+  // Cloud Code may report an exhausted-capacity message with a zero reset
+  // window for a burst/RPM throttle. The explicit zero reset is stronger
+  // evidence than the generic wording, so retry briefly instead of applying
+  // the durable quota cooldown.
+  if (/\breset\s+(?:after|in)\s+0s\b/.test(lower)) {
+    return "rate_limited";
+  }
+
   // Check for quota exhaustion first (most specific)
   for (const kw of QUOTA_EXHAUSTED_KEYWORDS) {
     if (lower.includes(kw)) return "quota_exhausted";

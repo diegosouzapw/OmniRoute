@@ -290,9 +290,12 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
   ) : null;
 
   const openRouterTooltipBits: string[] = [];
-  if (openRouterStat?.headquarters) openRouterTooltipBits.push(`HQ: ${openRouterStat.headquarters}`);
+  if (openRouterStat?.headquarters)
+    openRouterTooltipBits.push(`HQ: ${openRouterStat.headquarters}`);
   if (openRouterStat?.dataPolicy?.training === false) {
-    openRouterTooltipBits.push(providerText(t, "openRouterNoTraining", "Does not train on prompts"));
+    openRouterTooltipBits.push(
+      providerText(t, "openRouterNoTraining", "Does not train on prompts")
+    );
   }
   if (openRouterStat?.dataPolicy?.retainsPrompts === false) {
     openRouterTooltipBits.push(providerText(t, "openRouterNoRetention", "Does not retain prompts"));

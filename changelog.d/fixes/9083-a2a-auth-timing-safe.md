@@ -1,0 +1,1 @@
+- **fix(a2a):** the A2A JSON-RPC router now compares the bearer token against `OMNIROUTE_API_KEY` in constant time (`crypto.timingSafeEqual`) instead of `===`, closing a token-length timing side-channel, and no longer logs the request URL to server logs on every call ([#9083](https://github.com/diegosouzapw/OmniRoute/pull/9083))

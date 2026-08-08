@@ -8,7 +8,7 @@ import {
   getCustomModels,
 } from "@/lib/localDb";
 import { getCachedSettings } from "@/lib/localDb";
-import { getSyncedAvailableModels } from "@/lib/db/models";
+import { getActiveSyncedCatalog } from "@/lib/db/models/activeSyncedCatalog";
 import {
   parseModel,
   getModelInfoCore,
@@ -16,6 +16,7 @@ import {
   stripContextWindowSuffix,
 } from "@omniroute/open-sse/services/model.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { getRegisteredProviderEffortBaseModelId } from "@omniroute/open-sse/utils/registeredEffortVariants.ts";
 
 export { parseModel, stripContextWindowSuffix };
 
@@ -259,15 +260,18 @@ function buildRuntimeModelMeta(
 async function lookupModelMeta(
   providerId: string,
   modelId: string
-): Promise<{ modelId: string; metadata: RuntimeModelMeta }> {
+): Promise<{
+  modelId: string;
+  metadata: RuntimeModelMeta;
+  available: boolean;
+}> {
   try {
-    const [customModels, syncedModels] = await Promise.all([
+    const [customModels, liveCatalog] = await Promise.all([
       getCustomModels(providerId),
-      getSyncedAvailableModels(providerId),
+      getActiveSyncedCatalog(providerId),
     ]);
-    // #7694: no direct match on the raw modelId? try a synced-declared `-{effort}`
-    // suffix before falling back to the literal id, so `<prefix>/<model>-<tier>`
-    // resolves to the real base model + a resolved effort.
+    const syncedModels = liveCatalog.models;
+
     // #7694: no direct match on the raw modelId? try a synced-declared `-{effort}`
     // suffix before falling back to the literal id, so `<prefix>/<model>-<tier>`
     // resolves to the real base model + a resolved effort.
@@ -276,6 +280,7 @@ async function lookupModelMeta(
       modelId,
       syncedModels
     );
+
     // Short-circuit registry suffix resolution when the raw id is already a direct
     // custom or synced model — otherwise a model literally named
     // `deepseek-v4-flash-low` gets rewritten to `deepseek-v4-flash` + effort `low`
@@ -290,16 +295,26 @@ async function lookupModelMeta(
       resolvedModelId = registryResolution.modelId;
       effort = registryResolution.effort;
     }
-    // #7364: exact match first; retain the case-insensitive custom-model fallback
-    // while also consulting the API-synced catalog for Kimi runtime metadata.
+
+    // Custom models remain explicit operator overrides even when live discovery
+    // is authoritative for the provider.
     const customMatch = findCustomModelMeta(customModels, resolvedModelId);
     const syncedMatch = findSyncedModelMeta(syncedModels, resolvedModelId);
     const registryMatch = findRegistryModel(providerId, resolvedModelId);
+    const effortBaseModelId = getRegisteredProviderEffortBaseModelId(providerId, modelId);
+
+    const liveBackedEffortVariant =
+      effortBaseModelId !== null && syncedModels.some((model) => model.id === effortBaseModelId);
+
+    const available =
+      !liveCatalog.authoritative || Boolean(customMatch || syncedMatch || liveBackedEffortVariant);
+
     const metadata = buildRuntimeModelMeta(customMatch, syncedMatch, registryMatch);
     if (effort) metadata.resolvedThinkingEffort = effort;
-    return { modelId: resolvedModelId, metadata };
+
+    return { modelId: resolvedModelId, metadata, available };
   } catch {
-    return { modelId, metadata: {} };
+    return { modelId, metadata: {}, available: true };
   }
 }
 
@@ -328,8 +343,23 @@ export async function getModelInfo(modelStr) {
 
   const attachRuntimeModelMeta = async (info: any) => {
     if (!info?.provider || !info?.model) return info;
-    const { modelId, metadata } = await lookupModelMeta(String(info.provider), String(info.model));
+
+    const providerId = String(info.provider);
+    const requestedModelId = String(info.model);
+    const { modelId, metadata, available } = await lookupModelMeta(providerId, requestedModelId);
+
+    if (!available) {
+      return {
+        provider: null,
+        model: requestedModelId,
+        extendedContext: info.extendedContext,
+        errorType: "model_not_found",
+        errorMessage: `Model '${requestedModelId}' is not available in the active live catalog for provider '${providerId}'.`,
+      };
+    }
+
     const resolvedInfo = modelId !== info.model ? { ...info, model: modelId } : info;
+
     return Object.keys(metadata).length > 0 ? { ...resolvedInfo, ...metadata } : resolvedInfo;
   };
 

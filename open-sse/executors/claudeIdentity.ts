@@ -378,8 +378,7 @@ export function selectBetaFlags(
   // Code sends effort on every request and never sends ATU, so treating effort as
   // a proxy for ATU force-injects the heavy-agent pair the client never negotiated —
   // the same class of mutation #3415 closed. Opaque clients keep the full set.
-  const allowHeavy =
-    clientBetaSet === null || clientBetaSet.has("advanced-tool-use-2025-11-20");
+  const allowHeavy = clientBetaSet === null || clientBetaSet.has("advanced-tool-use-2025-11-20");
   const hasSystem =
     !!b.system &&
     (typeof b.system === "string" || (Array.isArray(b.system) && b.system.length > 0));

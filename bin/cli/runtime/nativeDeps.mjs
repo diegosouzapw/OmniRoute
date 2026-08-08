@@ -94,10 +94,12 @@ export function isBetterSqliteBinaryValid() {
     const magic = buf.toString("hex");
     const os = platform();
     let formatOk;
-    if (os === "linux") formatOk = magic.startsWith("7f454c46"); // ELF
+    if (os === "linux")
+      formatOk = magic.startsWith("7f454c46"); // ELF
     else if (os === "darwin")
       formatOk = magic.startsWith("cffaedfe") || magic.startsWith("cefaedfe"); // Mach-O
-    else if (os === "win32") formatOk = magic.startsWith("4d5a"); // PE/MZ
+    else if (os === "win32")
+      formatOk = magic.startsWith("4d5a"); // PE/MZ
     else formatOk = true;
     if (!formatOk) return false;
     // File-format magic bytes alone do not guarantee the binary was built for the Node ABI

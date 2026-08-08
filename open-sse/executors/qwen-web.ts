@@ -47,8 +47,8 @@ const BX_UMIDTOKEN_FALLBACK = "T2gA0000000000000000000000000000000000000000";
 // header the upstream returns HTTP 200 with `{"success":false,"data":{"code":"Bad_Request"}}`
 // for every completion request, even with a valid session. The version string is
 // the SPA build identifier shipped in the React client's `version` request header.
-// Pinned from a live capture (2026-07); bump if Qwen ships a breaking change.
-const QWEN_SPA_VERSION = "0.2.66";
+// Pinned from a live capture (2026-08); bump if Qwen ships a breaking change.
+const QWEN_SPA_VERSION = "0.2.81";
 
 const MODEL_ALIASES: Record<string, string> = {
   // Legacy OmniRoute ids → current upstream catalog (GET /api/models).

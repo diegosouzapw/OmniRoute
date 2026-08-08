@@ -528,9 +528,6 @@ const getExpectedParentPaths = (): string[] => {
   ].filter(Boolean);
 };
 
-// Cache expected parent paths at module startup (avoid recalculation on every checkKnownPath call)
-const EXPECTED_PARENT_PATHS = getExpectedParentPaths();
-
 const getExtraPaths = () =>
   String(process.env.CLI_EXTRA_PATHS || "")
     .split(path.delimiter)
@@ -820,7 +817,7 @@ export const checkKnownPath = async (commandPath: string) => {
     const isWithinExpected = await isLocationTrusted(
       commandPath,
       realPath,
-      EXPECTED_PARENT_PATHS,
+      getExpectedParentPaths(),
       isPathWithin,
       fs.realpath
     );

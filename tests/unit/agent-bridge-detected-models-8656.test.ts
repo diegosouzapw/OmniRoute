@@ -89,8 +89,7 @@ test("GET /detected-models: returns unique source models from intercepted traffi
 
   try {
     const { GET } = await import(
-      "../../src/app/api/tools/agent-bridge/agents/[id]/detected-models/route.ts?t=" +
-        Date.now()
+      "../../src/app/api/tools/agent-bridge/agents/[id]/detected-models/route.ts?t=" + Date.now()
     );
 
     const res = await GET(
@@ -109,14 +108,8 @@ test("GET /detected-models: returns unique source models from intercepted traffi
     assert.equal(body.agentId, "cursor", "agentId should be cursor");
     assert.ok(Array.isArray(body.detectedModels), "detectedModels should be array");
     assert.equal(body.detectedModels.length, 2, "Should have 2 unique models (duplicates removed)");
-    assert.ok(
-      body.detectedModels.includes("gpt-4-turbo"),
-      "Should include gpt-4-turbo"
-    );
-    assert.ok(
-      body.detectedModels.includes("claude-3-opus"),
-      "Should include claude-3-opus"
-    );
+    assert.ok(body.detectedModels.includes("gpt-4-turbo"), "Should include gpt-4-turbo");
+    assert.ok(body.detectedModels.includes("claude-3-opus"), "Should include claude-3-opus");
     assert.equal(body.requestCount, 3, "Should have 3 cursor requests");
   } finally {
     // Clean up buffer
@@ -126,8 +119,7 @@ test("GET /detected-models: returns unique source models from intercepted traffi
 
 test("GET /detected-models: returns empty array for agent with no traffic", async () => {
   const { GET } = await import(
-    "../../src/app/api/tools/agent-bridge/agents/[id]/detected-models/route.ts?t=" +
-      Date.now()
+    "../../src/app/api/tools/agent-bridge/agents/[id]/detected-models/route.ts?t=" + Date.now()
   );
 
   const res = await GET(
@@ -150,8 +142,7 @@ test("GET /detected-models: returns empty array for agent with no traffic", asyn
 
 test("GET /detected-models: returns 404 for invalid agent id", async () => {
   const { GET } = await import(
-    "../../src/app/api/tools/agent-bridge/agents/[id]/detected-models/route.ts?t=" +
-      Date.now()
+    "../../src/app/api/tools/agent-bridge/agents/[id]/detected-models/route.ts?t=" + Date.now()
   );
 
   const res = await GET(

@@ -1,0 +1,1 @@
+- **fix(translator):** restore original tool name casing in Gemini/Antigravity response translators ([#9568](https://github.com/diegosouzapw/OmniRoute/issues/9568))

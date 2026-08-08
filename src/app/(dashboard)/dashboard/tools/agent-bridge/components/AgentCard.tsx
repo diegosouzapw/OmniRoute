@@ -21,7 +21,6 @@ function hasAcceptedRisk(agentId: string): boolean {
   }
 }
 
-
 interface AgentCardProps {
   target: MitmTargetView;
   agentState: AgentStateEntry | undefined;

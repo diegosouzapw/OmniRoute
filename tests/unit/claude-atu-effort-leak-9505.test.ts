@@ -3,20 +3,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { selectBetaFlags } = await import(
-  "../../open-sse/executors/claudeIdentity.ts"
-);
-const { mergeClientAnthropicBeta } = await import(
-  "../../open-sse/config/anthropicHeaders.ts"
-);
+const { selectBetaFlags } = await import("../../open-sse/executors/claudeIdentity.ts");
+const { mergeClientAnthropicBeta } = await import("../../open-sse/config/anthropicHeaders.ts");
 
 function fullAgentBody(model: string) {
   return {
     model,
     system: "You are a coding agent.",
-    tools: [
-      { name: "read_file", description: "x", input_schema: { type: "object" } },
-    ],
+    tools: [{ name: "read_file", description: "x", input_schema: { type: "object" } }],
   };
 }
 
@@ -44,10 +38,7 @@ test("#9505 client sends effort only -> effort still survives the merge", () => 
 });
 
 test("#9505 client sends advanced-tool-use explicitly -> ATU preserved", () => {
-  const out = pipeline(
-    "claude-opus-5",
-    "claude-code-20250219,advanced-tool-use-2025-11-20"
-  );
+  const out = pipeline("claude-opus-5", "claude-code-20250219,advanced-tool-use-2025-11-20");
   assert.ok(
     out.split(",").includes("advanced-tool-use-2025-11-20"),
     "must keep ATU when client requested it"

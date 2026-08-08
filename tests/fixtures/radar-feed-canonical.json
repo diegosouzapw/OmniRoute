@@ -1,0 +1,136 @@
+{
+  "feed": "omniroute-radar",
+  "schemaVersion": 1,
+  "version": "2026.08.01.1",
+  "generatedAt": "2026-08-01T12:00:00Z",
+  "tier": "community",
+  "counts": {
+    "providers": 2,
+    "models": 3
+  },
+  "providers": [
+    {
+      "id": "groq",
+      "name": "Groq"
+    },
+    {
+      "id": "gemini",
+      "name": "Google Gemini"
+    }
+  ],
+  "models": [
+    {
+      "provider": "groq",
+      "modelId": "llama-3.3-70b-versatile",
+      "displayName": "Llama 3.3 70B Versatile",
+      "familyId": "llama-3.3-70b",
+      "freeType": "recurring-daily",
+      "budget": {
+        "kind": "per_model",
+        "tokensPerMonth": 1000000
+      },
+      "limits": {
+        "rpm": 30,
+        "rpd": 14400,
+        "tpm": 6000,
+        "tpd": null
+      },
+      "contextWindow": 131072,
+      "capabilities": {
+        "tools": true,
+        "vision": false,
+        "thinking": false
+      },
+      "trainsOnPrompts": null,
+      "tosRisk": "ok",
+      "setup": {
+        "keyUrl": "https://console.groq.com/keys",
+        "steps": [
+          "Crie uma conta gratuita no console da Groq",
+          "Gere uma API key na página de keys",
+          "Adicione a key no OmniRoute com o provider groq"
+        ]
+      },
+      "enabled": true
+    },
+    {
+      "provider": "gemini",
+      "modelId": "gemini-2.5-flash",
+      "displayName": "Gemini 2.5 Flash",
+      "familyId": "gemini-2.5-flash",
+      "freeType": "recurring-daily",
+      "budget": {
+        "kind": "shared_pool",
+        "poolId": "gemini-free-pool",
+        "tokensPerMonth": 500000
+      },
+      "limits": {
+        "rpm": 15,
+        "rpd": 1000,
+        "tpm": 250000,
+        "tpd": 250000
+      },
+      "contextWindow": 1048576,
+      "capabilities": {
+        "tools": true,
+        "vision": true,
+        "thinking": true
+      },
+      "trainsOnPrompts": false,
+      "tosRisk": "ok",
+      "setup": {
+        "keyUrl": "https://aistudio.google.com/apikey",
+        "steps": [
+          "Gere uma API key no Google AI Studio",
+          "Adicione a key no OmniRoute com o provider gemini"
+        ]
+      },
+      "enabled": true
+    },
+    {
+      "provider": "gemini",
+      "modelId": "gemini-2.0-flash",
+      "displayName": "Gemini 2.0 Flash (keyless)",
+      "familyId": "gemini-2.0-flash",
+      "freeType": "keyless",
+      "budget": {
+        "kind": "rate_only"
+      },
+      "limits": {
+        "rpm": null,
+        "rpd": null,
+        "tpm": null,
+        "tpd": null
+      },
+      "contextWindow": 1048576,
+      "capabilities": {
+        "tools": true,
+        "vision": true,
+        "thinking": false
+      },
+      "trainsOnPrompts": true,
+      "tosRisk": "caution",
+      "setup": null,
+      "enabled": true
+    }
+  ],
+  "quirks": [
+    {
+      "slug": "gemini-free-pool-shares-limit",
+      "title": "Limite gratuito da Gemini compartilhado entre modelos",
+      "body": "Os modelos gratuitos do Gemini compartilham o mesmo pool diário. Modelos marcados com o pool 'gemini-free-pool' somam seus consumos — a cota pode esgotar antes do teto individual de cada modelo.",
+      "severity": "warn",
+      "targets": [
+        {
+          "provider": "gemini",
+          "modelGlob": "gemini-2.5-flash"
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "dedupedTokensPerMonth": 1500000,
+    "modelCount": 3,
+    "poolCount": 1
+  }
+}

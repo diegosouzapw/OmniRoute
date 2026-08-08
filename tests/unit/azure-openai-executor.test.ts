@@ -32,6 +32,22 @@ test("AzureOpenAIExecutor strips duplicated /openai suffixes from configured bas
   );
 });
 
+test("AzureOpenAIExecutor ignores non-string credential base URLs", () => {
+  const executor = new AzureOpenAIExecutor();
+  executor.config.baseUrl = "https://fallback-resource.openai.azure.com";
+
+  const url = executor.buildUrl("deploy-1", false, 0, {
+    providerSpecificData: {
+      baseUrl: { host: "untrusted.example.com" },
+    },
+  });
+
+  assert.equal(
+    url,
+    "https://fallback-resource.openai.azure.com/openai/deployments/deploy-1/chat/completions?api-version=2024-12-01-preview"
+  );
+});
+
 test("AzureOpenAIExecutor uses api-key auth headers instead of Bearer auth", () => {
   const executor = new AzureOpenAIExecutor();
   const headers = executor.buildHeaders({ apiKey: "azure-key-123" }, true);

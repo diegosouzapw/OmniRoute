@@ -372,8 +372,16 @@ export class QoderExecutor extends BaseExecutor {
 
     const { text, isError, errorMessage } = parseQoderCliResult(run.stdout);
     if (isError) {
+      // When qodercli exits 0 but returns is_error=true with an empty result,
+      // the real upstream error is almost always on stderr. Surface it instead
+      // of the generic "qodercli returned an error" fallback (#9319).
+      let effectiveError = errorMessage;
+      if (errorMessage === "qodercli returned an error" && run.stderr.trim()) {
+        const stderrTrimmed = run.stderr.trim().slice(0, 300);
+        effectiveError = `qodercli returned an error: ${stderrTrimmed}`;
+      }
       return {
-        response: createQoderErrorResponse(parseQoderCliFailure(errorMessage)),
+        response: createQoderErrorResponse(parseQoderCliFailure(effectiveError)),
         url,
         headers: {},
         transformedBody: body,

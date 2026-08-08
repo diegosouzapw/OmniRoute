@@ -22,12 +22,10 @@ const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/exe
 const { DefaultExecutor } = await import("../../open-sse/executors/default.ts");
 const { PoeWebExecutor } = await import("../../open-sse/executors/poe-web.ts");
 const { getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
-const { resolveExecutionCredentials } = await import(
-  "../../open-sse/handlers/chatCore/executionCredentials.ts"
-);
-const { POE_DEFAULT_BASE_URL, resolvePoeUpstreamUrl } = await import(
-  "../../open-sse/config/providers/registry/poe/index.ts"
-);
+const { resolveExecutionCredentials } =
+  await import("../../open-sse/handlers/chatCore/executionCredentials.ts");
+const { POE_DEFAULT_BASE_URL, resolvePoeUpstreamUrl } =
+  await import("../../open-sse/config/providers/registry/poe/index.ts");
 const core = await import("../../src/lib/db/core.ts");
 
 test.after(() => {
@@ -127,37 +125,40 @@ test("#8969: buildUrl routes chat / responses / messages correctly", () => {
 });
 
 test("#8969: resolvePoeUpstreamUrl normalizes registry-default / bare-host /v1/ / trailing-slash bases", () => {
-  const cases: Array<{ base: string | null | undefined; protocol: "chat" | "responses" | "messages"; expected: string }> =
-    [
-      { base: undefined, protocol: "chat", expected: CHAT_URL },
-      { base: null, protocol: "chat", expected: CHAT_URL },
-      { base: "https://api.poe.com", protocol: "chat", expected: CHAT_URL },
-      { base: "https://api.poe.com/", protocol: "chat", expected: CHAT_URL },
-      { base: "https://api.poe.com/v1", protocol: "chat", expected: CHAT_URL },
-      { base: "https://api.poe.com/v1/", protocol: "chat", expected: CHAT_URL },
-      {
-        base: "https://api.poe.com/v1/chat/completions",
-        protocol: "chat",
-        expected: CHAT_URL,
-      },
-      {
-        base: "https://api.poe.com/v1/chat/completions/",
-        protocol: "chat",
-        expected: CHAT_URL,
-      },
-      { base: "https://api.poe.com/v1", protocol: "responses", expected: RESPONSES_URL },
-      { base: "https://api.poe.com/", protocol: "messages", expected: MESSAGES_URL },
-      {
-        base: "https://custom.example/v1/chat/completions",
-        protocol: "responses",
-        expected: "https://custom.example/v1/responses",
-      },
-      {
-        base: "https://custom.example/v1",
-        protocol: "messages",
-        expected: "https://custom.example/v1/messages",
-      },
-    ];
+  const cases: Array<{
+    base: string | null | undefined;
+    protocol: "chat" | "responses" | "messages";
+    expected: string;
+  }> = [
+    { base: undefined, protocol: "chat", expected: CHAT_URL },
+    { base: null, protocol: "chat", expected: CHAT_URL },
+    { base: "https://api.poe.com", protocol: "chat", expected: CHAT_URL },
+    { base: "https://api.poe.com/", protocol: "chat", expected: CHAT_URL },
+    { base: "https://api.poe.com/v1", protocol: "chat", expected: CHAT_URL },
+    { base: "https://api.poe.com/v1/", protocol: "chat", expected: CHAT_URL },
+    {
+      base: "https://api.poe.com/v1/chat/completions",
+      protocol: "chat",
+      expected: CHAT_URL,
+    },
+    {
+      base: "https://api.poe.com/v1/chat/completions/",
+      protocol: "chat",
+      expected: CHAT_URL,
+    },
+    { base: "https://api.poe.com/v1", protocol: "responses", expected: RESPONSES_URL },
+    { base: "https://api.poe.com/", protocol: "messages", expected: MESSAGES_URL },
+    {
+      base: "https://custom.example/v1/chat/completions",
+      protocol: "responses",
+      expected: "https://custom.example/v1/responses",
+    },
+    {
+      base: "https://custom.example/v1",
+      protocol: "messages",
+      expected: "https://custom.example/v1/messages",
+    },
+  ];
 
   for (const { base, protocol, expected } of cases) {
     assert.equal(

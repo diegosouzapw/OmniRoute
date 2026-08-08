@@ -711,6 +711,20 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
         name: "Firefly Runway Gen-4 Image",
         inputModalities: ["text", "image"],
       },
+      // Topaz Labs upscalers (inputMediaUseCase: ["upscaling"]).
+      // Served by firefly-3p /v2/3p-images/upsample — see config/upscaleRegistry.ts.
+      {
+        id: "topaz-standard",
+        name: "Firefly Topaz Upscale (Standard)",
+        inputModalities: ["image"],
+        imageRequired: true,
+      },
+      {
+        id: "topaz-bloom",
+        name: "Firefly Topaz Bloom (Creative Upscale)",
+        inputModalities: ["image"],
+        imageRequired: true,
+      },
     ],
     supportedSizes: ["1:1", "16:9", "9:16", "4:3", "3:4", "1024x1024", "1792x1024", "1024x1792"],
   },
@@ -943,7 +957,6 @@ export function getImageModelAliases() {
 export function isRegisteredImageModel(providerId, modelId) {
   return Boolean(findImageModelConfig(providerId, modelId));
 }
-
 export function getImageModelEntry(modelStr) {
   if (!modelStr) return null;
 

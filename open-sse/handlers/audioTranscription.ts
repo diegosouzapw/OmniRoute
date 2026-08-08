@@ -337,6 +337,78 @@ async function handleGladiaTranscription(providerConfig, file, modelId, token) {
 }
 
 /**
+ * Handle Soniox transcription (async: upload file → create job → poll → get transcript)
+ */
+async function handleSonioxTranscription(providerConfig, file, modelId, token) {
+  const authHeaders = buildAuthHeaders(providerConfig, token);
+
+  const { body: uploadBody, contentType: uploadContentType } = await buildMultipartBody(file, {});
+  const uploadRes = await fetch("https://api.soniox.com/v1/files", {
+    method: "POST",
+    headers: { ...authHeaders, "Content-Type": uploadContentType },
+    body: uploadBody,
+  });
+  if (!uploadRes.ok) {
+    return upstreamErrorResponse(uploadRes, await uploadRes.text());
+  }
+  const fileId = (await uploadRes.json()).id;
+
+  const createRes = await fetch(providerConfig.baseUrl, {
+    method: "POST",
+    headers: { ...authHeaders, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: modelId,
+      file_id: fileId,
+      enable_language_identification: true,
+    }),
+  });
+  if (!createRes.ok) {
+    return upstreamErrorResponse(createRes, await createRes.text());
+  }
+  const { id: transcriptionId } = await createRes.json();
+
+  const statusUrl = `${providerConfig.baseUrl}/${transcriptionId}`;
+  const maxWait = 120_000;
+  const start = Date.now();
+  let completed = false;
+  while (Date.now() - start < maxWait) {
+    await new Promise((r) => setTimeout(r, 2000));
+    const pollRes = await fetch(statusUrl, { headers: authHeaders });
+    if (!pollRes.ok) {
+      continue;
+    }
+    const result = await pollRes.json();
+    if (result.status === "completed") {
+      completed = true;
+      break;
+    }
+    if (result.status === "error") {
+      return errorResponse(
+        500,
+        result.error_message || result.error || "Soniox transcription failed"
+      );
+    }
+  }
+  if (!completed) {
+    return errorResponse(504, "Soniox transcription timed out after 120s");
+  }
+
+  const transcriptRes = await fetch(`${statusUrl}/transcript`, { headers: authHeaders });
+  if (!transcriptRes.ok) {
+    return upstreamErrorResponse(transcriptRes, await transcriptRes.text());
+  }
+  const transcript = await transcriptRes.json();
+  const text =
+    typeof transcript.text === "string" && transcript.text.length > 0
+      ? transcript.text
+      : Array.isArray(transcript.tokens)
+        ? transcript.tokens.map((t: { text?: string }) => t.text ?? "").join("")
+        : "";
+
+  return Response.json({ text }, { headers: { ...CORS_HEADERS } });
+}
+
+/**
  * Handle Nvidia NIM transcription
  * Multipart POST, transform response to { text }
  */
@@ -733,6 +805,10 @@ export async function handleAudioTranscription({
 
   if (providerConfig.format === "gladia") {
     return handleGladiaTranscription(providerConfig, file, modelId, token);
+  }
+
+  if (providerConfig.format === "soniox") {
+    return handleSonioxTranscription(providerConfig, file, modelId, token);
   }
 
   if (providerConfig.format === "nvidia-asr") {

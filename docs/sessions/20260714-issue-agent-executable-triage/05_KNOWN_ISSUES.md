@@ -1,3 +1,9 @@
+---
+title: "Issue-Agent Executable Triage: Known Issues"
+version: 3.8.50
+lastUpdated: 2026-08-06
+---
+
 # Issue-Agent Executable Triage: Known Issues
 
 Machine status: `open`

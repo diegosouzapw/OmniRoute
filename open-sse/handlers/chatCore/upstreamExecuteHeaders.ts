@@ -12,6 +12,7 @@
 import { getModelUpstreamExtraHeaders } from "@/lib/db/models";
 import { resolveModelAlias } from "../../services/modelDeprecation.ts";
 import { CPA_FORCE_FAST_MODE_HEADER, shouldRequestClaudeFastMode } from "@/lib/providers/claudeFastMode";
+import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 
 export function buildUpstreamHeadersForExecute(opts: {
   modelToCall: string;
@@ -21,6 +22,7 @@ export function buildUpstreamHeadersForExecute(opts: {
   resolvedModel: string;
   sourceFormat: string;
   connectionCustomUserAgent: string;
+  connectionCustomHeaders?: Record<string, string>;
   settings: unknown;
 }): Record<string, string> {
   const {
@@ -31,6 +33,7 @@ export function buildUpstreamHeadersForExecute(opts: {
     resolvedModel,
     sourceFormat,
     connectionCustomUserAgent,
+    connectionCustomHeaders,
     settings,
   } = opts;
 
@@ -52,6 +55,23 @@ export function buildUpstreamHeadersForExecute(opts: {
     upstreamHeaders["User-Agent"] = connectionCustomUserAgent;
     if ("user-agent" in upstreamHeaders) {
       upstreamHeaders["user-agent"] = connectionCustomUserAgent;
+    }
+  }
+
+  // #8369: merge connection-level custom headers UNDER model-level so model-level wins on the
+  // same case-insensitive header name. Forbidden header names (hop-by-hop, auth) are silently
+  // skipped via isForbiddenCustomHeaderName().
+  if (connectionCustomHeaders) {
+    for (const [key, value] of Object.entries(connectionCustomHeaders)) {
+      const keyLower = key.trim().toLowerCase();
+      if (!keyLower) continue;
+      if (isForbiddenCustomHeaderName(key)) continue;
+      const existingKey = Object.keys(upstreamHeaders).find(
+        (k) => k.toLowerCase() === keyLower
+      );
+      if (!existingKey) {
+        upstreamHeaders[key] = value;
+      }
     }
   }
 

@@ -8,7 +8,11 @@
  * Alertas deduplicados por sessão (janela de 5min).
  */
 
-import { registerQuotaFetcher, type QuotaFetcher } from "./quotaPreflight.ts";
+import {
+  registerQuotaFetcher,
+  resolveDynamicQuotaFetcher,
+  type QuotaFetcher,
+} from "./quotaPreflight.ts";
 import { getSessionInfo } from "./sessionManager.ts";
 
 export { registerQuotaFetcher };
@@ -199,7 +203,12 @@ function scheduleNextPoll(sessionId: string, intervalMs: number): void {
     }
 
     try {
-      const fetcher = quotaFetcherRegistry.get(provider);
+      let fetcher = quotaFetcherRegistry.get(provider);
+      // Dynamic fallback: for compatible-provider connections with the
+      // aggregator flag + feature flag, use the generalized New-API fetcher.
+      if (!fetcher && current.connectionSnapshot) {
+        fetcher = resolveDynamicQuotaFetcher(provider, current.connectionSnapshot);
+      }
       if (!fetcher) {
         current.status = current.lastQuotaPercent === null ? "idle" : current.status;
         scheduleNextPoll(sessionId, NORMAL_INTERVAL_MS);

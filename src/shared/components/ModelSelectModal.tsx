@@ -116,9 +116,9 @@ export default function ModelSelectModal({
   // modelCompatOverrides.isHidden) from `/api/provider-models`, normalized so
   // the picker hides every model source the operator flagged — not just custom
   // rows that carry their own `isHidden` flag.
-  const [hiddenModelsByProvider, setHiddenModelsByProvider] = useState<
-    Map<string, Set<string>>
-  >(new Map());
+  const [hiddenModelsByProvider, setHiddenModelsByProvider] = useState<Map<string, Set<string>>>(
+    new Map()
+  );
   // Models discovered live from a custom provider's upstream `/models` endpoint,
   // keyed by provider id. Merged into the alias/custom/fallback list below and
   // tagged with the `auto` source badge. Ported from upstream PR
@@ -555,11 +555,9 @@ export default function ModelSelectModal({
     if (
       shouldConfirmSelectAll(toAdd.length) &&
       !confirm(
-        labelOrFallback(
-          "selectAllConfirm",
-          `Add ${toAdd.length} models to this combo?`,
-          { count: toAdd.length }
-        )
+        labelOrFallback("selectAllConfirm", `Add ${toAdd.length} models to this combo?`, {
+          count: toAdd.length,
+        })
       )
     ) {
       return;

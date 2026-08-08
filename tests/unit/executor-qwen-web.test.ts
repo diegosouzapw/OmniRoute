@@ -180,7 +180,7 @@ describe("QwenWebExecutor (v2 migration)", () => {
     const completionCall = calls.find((call) => call.url.includes("/api/v2/chat/completions"));
     assert.ok(completionCall, "chat/completions call must have been made");
     const headers = completionCall!.init.headers as Record<string, string>;
-    assert.equal(headers.version, "0.2.66", "SPA build version header present");
+    assert.equal(headers.version, "0.2.81", "SPA build version header present");
   });
 
   it("maps the thinking phase to reasoning_content, not the answer content", async () => {

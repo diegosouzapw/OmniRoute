@@ -30,12 +30,27 @@ const STREAMING_RESPONSE_HEADER_DENYLIST = new Set([
   "x-accel-buffering",
 ]);
 
+const DEFAULT_FORWARDED_HEADER_BUDGET_BYTES = 768;
+
+/**
+ * Resolve the forwarded upstream response-header budget from an optional string value
+ * (typically `process.env.OMNIROUTE_FORWARDING_HEADER_BUDGET_BYTES`). Returns the
+ * default of 768 when the input is unset, empty, or non-positive.
+ * Extracted as a pure function so unit tests can pass values directly without
+ * module-cache manipulation.
+ */
+export function resolveForwardedHeaderBudget(env?: string): number {
+  const parsed = Number.parseInt(String(env ?? process.env.OMNIROUTE_FORWARDING_HEADER_BUDGET_BYTES), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_FORWARDED_HEADER_BUDGET_BYTES;
+}
+
 /**
  * Keep upstream-derived headers comfortably below common reverse-proxy response-header limits.
  * This budget includes each header name, separator, value, and trailing CRLF. OmniRoute's own
  * response metadata and framework/security headers are added separately.
+ * Override with `OMNIROUTE_FORWARDING_HEADER_BUDGET_BYTES`.
  */
-export const MAX_FORWARDED_UPSTREAM_RESPONSE_HEADER_BYTES = 768;
+export const MAX_FORWARDED_UPSTREAM_RESPONSE_HEADER_BYTES = resolveForwardedHeaderBudget();
 const MAX_LOGGED_DROPPED_RESPONSE_HEADERS = 20;
 const responseHeaderEncoder = new TextEncoder();
 

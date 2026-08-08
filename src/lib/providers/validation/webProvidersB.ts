@@ -278,8 +278,7 @@ export async function validateGeminiWebProvider({ apiKey, providerSpecificData =
         return {
           valid: true,
           error: null,
-          warning:
-            "Cookie accepted. Full verification requires browser test on first chat.",
+          warning: "Cookie accepted. Full verification requires browser test on first chat.",
         };
       }
       return { valid: true, error: null };
@@ -342,7 +341,10 @@ export async function validateCopilotWebProvider({ apiKey, providerSpecificData 
   }
 }
 
-export function extractM365CredentialParts(raw: string, providerSpecificData: Record<string, unknown>) {
+export function extractM365CredentialParts(
+  raw: string,
+  providerSpecificData: Record<string, unknown>
+) {
   const text = raw.trim();
   const parts: Record<string, string> = {};
 
@@ -361,9 +363,10 @@ export function extractM365CredentialParts(raw: string, providerSpecificData: Re
   if (/^wss:\/\//i.test(text)) {
     try {
       const url = new URL(text);
-      const hostOk = /^(?:[\w-]+\.)*(?:m365\.cloud\.microsoft|copilot\.microsoft\.com|substrate\.office\.com)$/i.test(
-        url.hostname
-      );
+      const hostOk =
+        /^(?:[\w-]+\.)*(?:m365\.cloud\.microsoft|copilot\.microsoft\.com|substrate\.office\.com)$/i.test(
+          url.hostname
+        );
       if (hostOk && url.pathname.startsWith("/m365Copilot/Chathub/")) {
         parts.access_token ||= url.searchParams.get("access_token") || "";
         parts.chathubPath ||= decodeURIComponent(
@@ -382,7 +385,9 @@ export function extractM365CredentialParts(raw: string, providerSpecificData: Re
       (typeof providerSpecificData.access_token === "string"
         ? providerSpecificData.access_token
         : "") ||
-      (typeof providerSpecificData.accessToken === "string" ? providerSpecificData.accessToken : ""),
+      (typeof providerSpecificData.accessToken === "string"
+        ? providerSpecificData.accessToken
+        : ""),
     chathubPath:
       parts.chathubPath ||
       parts.userTenant ||
@@ -394,10 +399,7 @@ export function extractM365CredentialParts(raw: string, providerSpecificData: Re
 }
 
 // ── Microsoft 365 Copilot Web token validator ──
-export async function validateCopilotM365WebProvider({
-  apiKey,
-  providerSpecificData = {},
-}: any) {
+export async function validateCopilotM365WebProvider({ apiKey, providerSpecificData = {} }: any) {
   const { accessToken, chathubPath } = extractM365CredentialParts(
     String(apiKey || ""),
     providerSpecificData

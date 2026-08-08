@@ -87,9 +87,18 @@ export function obfuscateInBody(body: Record<string, unknown>): void {
       if (typeof content === "string") {
         msg.content = obfuscateSensitiveWords(content);
       } else if (Array.isArray(content)) {
-        for (const block of content as Array<Record<string, unknown>>) {
-          if (typeof block.text === "string") {
-            block.text = obfuscateSensitiveWords(block.text);
+        // Anthropic verifies a signature over a thinking turn. Mutating a text
+        // sibling in that same turn invalidates it and makes the next request
+        // fail with `Invalid signature in thinking block`.
+        const blocks = content as Array<Record<string, unknown>>;
+        const hasSignedThinking = blocks.some(
+          (block) => block?.type === "thinking" || block?.type === "redacted_thinking"
+        );
+        if (!hasSignedThinking) {
+          for (const block of blocks) {
+            if (typeof block.text === "string") {
+              block.text = obfuscateSensitiveWords(block.text);
+            }
           }
         }
       }

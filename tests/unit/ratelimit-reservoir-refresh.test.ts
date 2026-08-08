@@ -85,15 +85,20 @@ test("reservoir keeps refreshing after updateSettings() touches an already-heart
   // number of event-loop ticks: Bottleneck's own updateSettings() goes through
   // at least one real setTimeout(0) (yieldLoop) before storeOptions reflects the
   // new value.
+  // #9604 replaced Bottleneck's fixed-window reservoir with the rolling lease gate
+  // (open-sse/services/rollingRpmGate.ts), so `reservoir` is null now and pinning it
+  // would assert a mechanism that no longer exists. What must still hold — and what
+  // the Bottleneck heartbeat bug actually broke — is that the limiter SURVIVES the
+  // header-learned updateSettings() and keeps admitting work (steps 3 and 4 below).
   const pollDeadline = Date.now() + 2000;
   let state = await rateLimitManager.__getLimiterStateForTests(PROVIDER, CONNECTION_ID, null);
-  while (state?.reservoir !== 2 && Date.now() < pollDeadline) {
+  while (!state && Date.now() < pollDeadline) {
     await wait(10);
     state = await rateLimitManager.__getLimiterStateForTests(PROVIDER, CONNECTION_ID, null);
   }
-  assert.equal(state?.reservoir, 2, "reservoir must land at 2 before the slots below are consumed");
+  assert.ok(state, "the limiter must still exist after the header-learned update");
 
-  // 3. Consume both reservoir slots.
+  // 3. Consume the learned capacity.
   assert.equal(
     await rateLimitManager.withRateLimit(PROVIDER, CONNECTION_ID, null, async () => "slot-1"),
     "slot-1"
@@ -103,10 +108,9 @@ test("reservoir keeps refreshing after updateSettings() touches an already-heart
     "slot-2"
   );
 
-  // 4. Reservoir is now 0. A healthy Bottleneck heartbeat refills it ~1s later
-  // from the reservoirRefreshInterval/reservoirRefreshAmount configured above.
-  // Race a 3rd request against a 5s timer: if the heartbeat died (unfixed bug),
-  // the request stays QUEUED forever and the timer wins instead.
+  // 4. Capacity is spent. Race a 3rd request against a 5s timer: if the limiter
+  // stopped pacing after updateSettings() (the original bug) the request stays
+  // queued forever and the timer wins instead.
   const RACE_TIMEOUT_MS = 5000;
   let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<"timed-out">((resolve) => {
@@ -125,8 +129,8 @@ test("reservoir keeps refreshing after updateSettings() touches an already-heart
   assert.equal(
     result,
     "slot-3",
-    'reservoir must refresh ~1s after being exhausted; "timed-out" means the Bottleneck ' +
-      "heartbeat died after updateSettings() and the reservoir never refilled " +
-      "(node_modules/bottleneck/lib/LocalDatastore.js _startHeartbeat clearInterval-without-null bug)"
+    'capacity must recover after being exhausted; "timed-out" means the limiter stopped ' +
+      "admitting work after the header-learned updateSettings() — the failure shape of the " +
+      "original Bottleneck heartbeat bug (LocalDatastore _startHeartbeat clearInterval-without-null)"
   );
 });

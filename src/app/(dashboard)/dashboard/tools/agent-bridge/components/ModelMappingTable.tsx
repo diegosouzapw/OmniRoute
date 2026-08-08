@@ -55,7 +55,8 @@ export function ModelMappingTable({ agentId, mappings, onSave }: ModelMappingTab
       {rows.length === 0 ? (
         <div className="rounded-lg border border-border/40 bg-surface/30 px-4 py-6 text-center">
           <p className="text-xs text-text-muted mb-3">
-            {t("noMappingsDesc") || "No model mappings configured yet. Add mappings to route agent requests through OmniRoute."}
+            {t("noMappingsDesc") ||
+              "No model mappings configured yet. Add mappings to route agent requests through OmniRoute."}
           </p>
           <button
             type="button"

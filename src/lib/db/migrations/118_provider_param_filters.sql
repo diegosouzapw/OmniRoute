@@ -5,3 +5,4 @@
 --   { block: string[], allow: string[], models?: { [modelId]: { block?: string[], allow?: string[] } }, autoLearn?: boolean }
 --
 -- See: src/lib/db/paramFilters.ts
+SELECT 1;

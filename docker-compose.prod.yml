@@ -29,7 +29,7 @@
 services:
   # ── Redis (Rate Limiter Backend) ──────────────────────────────────
   redis:
-    image: redis:8.6.2-alpine
+    image: redis:8.6.5-alpine
     container_name: omniroute-redis-prod
     restart: unless-stopped
     volumes:

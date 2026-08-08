@@ -153,3 +153,25 @@ test("registerFirecrawlQuotaFetcher registers firecrawl for preflight", async ()
 
   invalidateFirecrawlQuotaCache(connectionId);
 });
+
+test("fetchFirecrawlQuota bypasses cloud fetch when FIRECRAWL_BASE_URL is set", async () => {
+  const originalEnv = process.env.FIRECRAWL_BASE_URL;
+  try {
+    process.env.FIRECRAWL_BASE_URL = "http://localhost:3002/";
+    const connectionId = `fc-selfhosted-${Date.now()}`;
+    let fetchCalled = false;
+    globalThis.fetch = async () => {
+      fetchCalled = true;
+      return creditUsageResponse(100, 1000);
+    };
+
+    const quota = await fetchFirecrawlQuota(connectionId, { apiKey: "local-key" });
+    assert.ok(quota);
+    assert.equal(quota!.used, 0);
+    assert.equal(quota!.total, 0);
+    assert.equal(fetchCalled, false);
+    invalidateFirecrawlQuotaCache(connectionId);
+  } finally {
+    process.env.FIRECRAWL_BASE_URL = originalEnv;
+  }
+});

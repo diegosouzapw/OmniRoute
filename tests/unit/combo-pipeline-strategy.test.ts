@@ -16,6 +16,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "combo-pipeline-test-secret";
 
 const { handleComboChat } = await import("../../open-sse/services/combo.ts");
+const modelsDb = await import("../../src/lib/db/models.ts");
 
 const noop = () => {};
 const log = { info: noop, warn: noop, debug: noop, error: noop };
@@ -101,6 +102,55 @@ test("pipeline: 2 steps — step 1 gets the original input, step 2 gets step 1's
   assert.equal(res.status, 200);
   const json = (await res.json()) as { choices: Array<{ message: { content: string } }> };
   assert.equal(json.choices[0].message.content, "FINAL_B");
+});
+
+test("pipeline: skips hidden steps without dispatching them", async () => {
+  modelsDb.mergeModelCompatOverride("p", "hidden-step", { isHidden: true });
+  const seen: string[] = [];
+
+  const res = await handleComboChat({
+    body: { messages: [{ role: "user", content: "hi" }] },
+    combo: pipelineCombo([{ model: "p/a" }, { model: "p/hidden-step" }, { model: "p/b" }]),
+    handleSingleModel: async (_body: Body, model: string) => {
+      seen.push(model);
+      return okResponse(`answer-${model}`);
+    },
+    log,
+    settings: {},
+    allCombos: [],
+  });
+
+  assert.equal(res.status, 200);
+  assert.deepEqual(seen, ["p/a", "p/b"]);
+});
+
+test("pipeline: preserves explicit providers when filtering structured steps", async () => {
+  modelsDb.mergeModelCompatOverride("nvidia", "openai/gpt-oss-120b", { isHidden: true });
+  const seen: string[] = [];
+
+  const res = await handleComboChat({
+    body: { messages: [{ role: "user", content: "hi" }] },
+    combo: {
+      name: "structured-pipeline-combo",
+      strategy: "pipeline",
+      models: [
+        { model: "p/a" },
+        { model: "openai/gpt-oss-120b", providerId: "nvidia" },
+        { model: "p/b" },
+      ],
+      config: {},
+    },
+    handleSingleModel: async (_body: Body, model: string) => {
+      seen.push(model);
+      return okResponse(`answer-${model}`);
+    },
+    log,
+    settings: {},
+    allCombos: [],
+  });
+
+  assert.equal(res.status, 200);
+  assert.deepEqual(seen, ["p/a", "p/b"]);
 });
 
 test("pipeline: 3-step chain threads output → input correctly", async () => {
@@ -202,4 +252,30 @@ test("pipeline: a single-step pipeline runs the one model directly and streams t
   // Single step is the final step → keeps the client's stream flag.
   assert.equal(seenBodies[0].stream, true);
   assert.equal(res.status, 200);
+});
+
+test("pipeline: dispatches visible structured steps with their provider identity", async () => {
+  const targets: Array<{ model: string; providerId?: string | null }> = [];
+  const res = await handleComboChat({
+    body: { messages: [{ role: "user", content: "hi" }] },
+    combo: {
+      name: "structured-pipeline-dispatch",
+      strategy: "pipeline",
+      models: [{ model: "vendor/model", providerId: "nvidia" }],
+      config: {},
+    },
+    handleSingleModel: async (_body: Body, model: string, target) => {
+      targets.push({
+        model,
+        providerId: target && "providerId" in target ? target.providerId : undefined,
+      });
+      return okResponse("done");
+    },
+    log,
+    settings: {},
+    allCombos: [],
+  });
+
+  assert.equal(res.status, 200);
+  assert.deepEqual(targets, [{ model: "vendor/model", providerId: "nvidia" }]);
 });

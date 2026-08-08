@@ -69,11 +69,12 @@ test("T26: sourceFormat=claude applies Anthropic Messages non-stream default (#2
   assert.equal(resolveStreamFlag(undefined, "application/json, text/event-stream", "claude"), true);
 });
 
-test("T26: non-claude sourceFormat preserves pre-#2325 streaming default", () => {
-  // OpenAI / Gemini / Codex callers keep the existing streaming-by-default heuristic
+test("T26: OpenAI sourceFormat now applies spec default (stream=false when omitted)", () => {
+  // OpenAI Chat Completions contract: omitted `stream` defaults to false.
+  // Gemini / Codex callers keep the existing streaming-by-default heuristic
   // so we don't break SDKs that omit `stream` and expect SSE.
-  assert.equal(resolveStreamFlag(undefined, undefined, "openai"), true);
-  assert.equal(resolveStreamFlag(undefined, "*/*", "openai"), true);
+  assert.equal(resolveStreamFlag(undefined, undefined, "openai"), false);
+  assert.equal(resolveStreamFlag(undefined, "*/*", "openai"), false);
   assert.equal(resolveStreamFlag(undefined, "application/json", "openai"), false);
   assert.equal(resolveStreamFlag(undefined, undefined, "gemini"), true);
   assert.equal(resolveStreamFlag(undefined, undefined, "codex"), true);

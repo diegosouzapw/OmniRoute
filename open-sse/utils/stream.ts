@@ -70,7 +70,10 @@ import {
   hasUnsupportedReasoningSignal,
 } from "./reasoningFields.ts";
 import { applyThinkTag, flushThink, initThinkState } from "./thinkTagParser.ts";
-import { restoreOpenAIToolNames } from "../translator/helpers/toolCallHelper.ts";
+import {
+  caseInsensitiveToolNameLookup,
+  restoreOpenAIToolNames,
+} from "../translator/helpers/toolCallHelper.ts";
 import { normalizeFinalOpenAIStreamChunk } from "./openAIStreamChunk.ts";
 
 /**
@@ -578,7 +581,7 @@ function restoreClaudePassthroughToolUseName(parsed: JsonRecord, toolNameMap: un
       : null;
   if (!block || block.type !== "tool_use" || typeof block.name !== "string") return false;
 
-  const restoredName = toolNameMap.get(block.name) ?? block.name;
+  const restoredName = caseInsensitiveToolNameLookup(block.name, toolNameMap) ?? block.name;
   if (restoredName === block.name) return false;
   block.name = restoredName;
   return true;
@@ -687,7 +690,8 @@ export function createSSEStream(options: StreamOptions = {}) {
   // Responses API, Anthropic SSE, and Antigravity/cloudcode terminate on
   // their own protocol events (response.completed / message_stop / last
   // response candidate respectively).
-  const shouldEmitDoneTerminator = !clientExpectsResponsesStream && !clientExpectsClaudeStream && !clientExpectsAntigravityStream;
+  const shouldEmitDoneTerminator =
+    !clientExpectsResponsesStream && !clientExpectsClaudeStream && !clientExpectsAntigravityStream;
 
   let buffer = "";
   let usage: UsageTokenRecord | null = null;
@@ -1047,9 +1051,9 @@ export function createSSEStream(options: StreamOptions = {}) {
       return;
     }
 
-    // #7095/#7176 reconciliation: compute the visible placeholder WITHOUT
-    // mutating `item` — the encrypted reasoning item (and its `encrypted_content`,
-    // required by Codex for subsequent requests) is forwarded to the client intact.
+    // #7176/#7243: only synthesize summary events from real upstream plaintext —
+    // never mutate `item` and never fabricate alarming placeholder text for
+    // encrypted-only reasoning (`encrypted_content` still forwards intact).
     const visibleSummary = getVisibleResponsesReasoningSummaryText(item);
 
     if (!visibleSummary) {
@@ -2460,11 +2464,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   usage,
                   responseBody,
                   providerPayload: providerPayloadCollector.build(
-                    buildStreamSummaryFromEvents(
-                      providerPayloadCollector.getEvents(),
-                      sourceFormat,
-                      model
-                    ),
+                    responseBody,
                     { includeEvents: false }
                   ),
                   clientPayload: clientPayloadCollector.build(responseBody, {
@@ -2735,11 +2735,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                 usage: state?.usage,
                 responseBody,
                 providerPayload: providerPayloadCollector.build(
-                  buildStreamSummaryFromEvents(
-                    providerPayloadCollector.getEvents(),
-                    targetFormat,
-                    model
-                  ),
+                  responseBody,
                   { includeEvents: false }
                 ),
                 clientPayload: clientPayloadCollector.build(responseBody, {
@@ -2782,7 +2778,7 @@ export function createSSETransformStreamWithLogger(
   body: unknown = null,
   onComplete: ((payload: StreamCompletePayload) => void) | null = null,
   apiKeyInfo: unknown = null,
-  onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
+  onFailure: ((payload: StreamFailurePayload) => boolean | void | Promise<void>) | null = null,
   copilotCompatibleReasoning = false,
   suppressThinkClose = false,
   customToolNames: ReadonlySet<string> = new Set(),
@@ -2817,7 +2813,7 @@ export function createPassthroughStreamWithLogger(
   body: unknown = null,
   onComplete: ((payload: StreamCompletePayload) => void) | null = null,
   apiKeyInfo: unknown = null,
-  onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
+  onFailure: ((payload: StreamFailurePayload) => boolean | void | Promise<void>) | null = null,
   clientResponseFormat: string | null = null,
   requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null
 ) {

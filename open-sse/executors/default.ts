@@ -31,6 +31,7 @@ import {
   getTargetFormat,
   isClaudeCodeCompatible,
 } from "../services/provider.ts";
+import { ensureToolMessageNames } from "./kimiToolNames.ts";
 import { getSapResourceGroup } from "../config/sap.ts";
 import {
   normalizeBailianMessagesUrl,
@@ -670,6 +671,20 @@ export class DefaultExecutor extends BaseExecutor {
   transformRequest(model, body, stream, credentials) {
     const cleanedBody = super.transformRequest(model, body, stream, credentials);
     let withDefaults = applyProviderRequestDefaults(cleanedBody, this.config.requestDefaults);
+
+    // ponytail: backfill missing tool message names for strict OpenAI-compatible providers.
+    // Kimi K3 and some BYOK endpoints reject tool messages whose `name` field was stripped
+    // during combo routing or format translation. Build a tool_call_id → function.name
+    // lookup from assistant messages and restore missing names before forwarding.
+    if (
+      withDefaults &&
+      typeof withDefaults === "object" &&
+      !Array.isArray(withDefaults) &&
+      Array.isArray((withDefaults as Record<string, unknown>).messages)
+    ) {
+      withDefaults = ensureToolMessageNames(withDefaults as Record<string, unknown>);
+    }
+
     withDefaults = this.applyJsonSchemaFallback(withDefaults);
     withDefaults = this.defaultResponsesTextFormat(withDefaults);
 

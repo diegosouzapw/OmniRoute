@@ -114,7 +114,18 @@ test("P1: GitHub Copilot sub-token is refreshed by tokenHealthCheck", async () =
 test("P1: tokenHealthCheck checks copilotTokenExpiresAt before refreshing", async () => {
   const src = await read("src/lib/tokenHealthCheck.ts");
   assert.match(src, /copilotTokenExpiresAt/, "must check copilotTokenExpiresAt");
-  assert.match(src, /toLowerCase\(\)\s*===\s*["']github["']/, "must be gated on github provider");
+  // The gate must still lowercase-normalize conn.provider (#6947), but it is no
+  // longer a single `=== "github"` literal: GHE Copilot shares the exact same
+  // shape (GitHub-style access token, no refresh_token, short-lived Copilot
+  // sub-token), so the branch is now driven by a provider Set. Accept either
+  // form — the invariant under test is the normalized provider gate, not which
+  // syntax expresses it.
+  assert.match(
+    src,
+    /toLowerCase\(\)\s*===\s*["']github["']|_PROVIDERS\.has\(\s*String\([^)]*\)\s*\.toLowerCase\(\)\s*\)/,
+    "must be gated on a lowercase-normalized provider check (=== \"github\" literal " +
+      "or a *_PROVIDERS Set membership test covering github/ghe-copilot)"
+  );
 });
 
 // ─── P1: case-insensitive provider comparisons (regression for #6947) ────────

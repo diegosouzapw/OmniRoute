@@ -17,9 +17,8 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-9507-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
-const { resolveReasoningBufferedMaxTokens } = await import(
-  "../../open-sse/services/reasoningTokenBuffer.ts"
-);
+const { resolveReasoningBufferedMaxTokens } =
+  await import("../../open-sse/services/reasoningTokenBuffer.ts");
 
 test.after(() => {
   core.resetDbInstance();

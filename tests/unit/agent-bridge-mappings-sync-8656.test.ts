@@ -45,10 +45,7 @@ test.after(() => {
 
 test("syncAgentBridgeMappingsToMitmAlias: copies antigravity mappings to key_value", async () => {
   // Dynamic import after DB reset
-  const {
-    setMappings,
-    syncAgentBridgeMappingsToMitmAlias,
-  } = await import(
+  const { setMappings, syncAgentBridgeMappingsToMitmAlias } = await import(
     "../../src/lib/db/agentBridgeMappings.ts?t=" + Date.now()
   );
 
@@ -82,17 +79,12 @@ test("syncAgentBridgeMappingsToMitmAlias: copies antigravity mappings to key_val
 });
 
 test("syncAgentBridgeMappingsToMitmAlias: skips agents not in MITM_ALIAS_AGENTS", async () => {
-  const {
-    setMappings,
-    syncAgentBridgeMappingsToMitmAlias,
-  } = await import(
+  const { setMappings, syncAgentBridgeMappingsToMitmAlias } = await import(
     "../../src/lib/db/agentBridgeMappings.ts?t=" + Date.now()
   );
 
   // Arrange: save mappings for cursor (not in MITM_ALIAS_AGENTS)
-  setMappings("cursor", [
-    { source: "gpt-4o", target: "openai/gpt-4o" },
-  ]);
+  setMappings("cursor", [{ source: "gpt-4o", target: "openai/gpt-4o" }]);
 
   // Act: sync should skip cursor (no-op)
   syncAgentBridgeMappingsToMitmAlias("cursor");
@@ -102,25 +94,16 @@ test("syncAgentBridgeMappingsToMitmAlias: skips agents not in MITM_ALIAS_AGENTS"
     "../../src/lib/db/models/mitmAlias.ts?t=" + Date.now()
   );
   const alias = await getAlias();
-  assert.equal(
-    alias["cursor"],
-    undefined,
-    "cursor should not have a mitmAlias entry"
-  );
+  assert.equal(alias["cursor"], undefined, "cursor should not have a mitmAlias entry");
 });
 
 test("syncAgentBridgeMappingsToMitmAlias: replaces existing mitmAlias entry", async () => {
-  const {
-    setMappings,
-    syncAgentBridgeMappingsToMitmAlias,
-  } = await import(
+  const { setMappings, syncAgentBridgeMappingsToMitmAlias } = await import(
     "../../src/lib/db/agentBridgeMappings.ts?t=" + Date.now()
   );
 
   // Arrange: save initial mappings and sync
-  setMappings("antigravity", [
-    { source: "gpt-oss-120b-medium", target: "openai/gpt-4o" },
-  ]);
+  setMappings("antigravity", [{ source: "gpt-oss-120b-medium", target: "openai/gpt-4o" }]);
   syncAgentBridgeMappingsToMitmAlias("antigravity");
 
   // Act: save different mappings and sync again
@@ -142,17 +125,12 @@ test("syncAgentBridgeMappingsToMitmAlias: replaces existing mitmAlias entry", as
 });
 
 test("syncAgentBridgeMappingsToMitmAlias: empty mappings clear key_value entry", async () => {
-  const {
-    setMappings,
-    syncAgentBridgeMappingsToMitmAlias,
-  } = await import(
+  const { setMappings, syncAgentBridgeMappingsToMitmAlias } = await import(
     "../../src/lib/db/agentBridgeMappings.ts?t=" + Date.now()
   );
 
   // Arrange: save some mappings first
-  setMappings("antigravity", [
-    { source: "gpt-oss-120b-medium", target: "openai/gpt-4o" },
-  ]);
+  setMappings("antigravity", [{ source: "gpt-oss-120b-medium", target: "openai/gpt-4o" }]);
   syncAgentBridgeMappingsToMitmAlias("antigravity");
 
   // Act: clear mappings and sync
@@ -165,25 +143,16 @@ test("syncAgentBridgeMappingsToMitmAlias: empty mappings clear key_value entry",
   );
   const alias = await getAlias("antigravity");
   assert.ok(alias, "antigravity mitmAlias entry should still exist (empty object)");
-  assert.equal(
-    Object.keys(alias).length,
-    0,
-    "antigravity mitmAlias should have no mappings"
-  );
+  assert.equal(Object.keys(alias).length, 0, "antigravity mitmAlias should have no mappings");
 });
 
 test("syncAgentBridgeMappingsToMitmAlias: works for claude-code agent", async () => {
-  const {
-    setMappings,
-    syncAgentBridgeMappingsToMitmAlias,
-  } = await import(
+  const { setMappings, syncAgentBridgeMappingsToMitmAlias } = await import(
     "../../src/lib/db/agentBridgeMappings.ts?t=" + Date.now()
   );
 
   // Arrange: save and sync for claude-code
-  setMappings("claude-code", [
-    { source: "claude-sonnet-4", target: "openai/gpt-4o" },
-  ]);
+  setMappings("claude-code", [{ source: "claude-sonnet-4", target: "openai/gpt-4o" }]);
   syncAgentBridgeMappingsToMitmAlias("claude-code");
 
   // Assert

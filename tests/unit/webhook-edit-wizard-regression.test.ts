@@ -27,7 +27,10 @@ test("webhook wizard title reflects add versus edit mode", () => {
 });
 
 test("editing an existing webhook reuses the current webhook payload", () => {
-  assert.match(wizardSource, /function stateFromWebhook\(webhook: WebhookItem \| null \| undefined\)/);
+  assert.match(
+    wizardSource,
+    /function stateFromWebhook\(webhook: WebhookItem \| null \| undefined\)/
+  );
   assert.match(wizardSource, /setState\(stateFromWebhook\(editingWebhook\)\);/);
   assert.match(wizardSource, /setCreatedId\(editingWebhook\?\.id \?\? null\);/);
   assert.match(wizardSource, /\.\.\.buildConfigPayload\(\),/);

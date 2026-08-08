@@ -857,35 +857,45 @@ export function getModelIsHidden(providerId: string, modelId: string): boolean {
  */
 export function getHiddenModelsByProvider(): Map<string, Set<string>> {
   const db = getDbInstance();
-  const result = new Map<string, Set<string>>();
-
-  // Query all rows from key_value for both namespaces
+  const visibilityByProvider = new Map<string, Map<string, boolean>>();
   const rows = db
     .prepare(
-      "SELECT key, value FROM key_value WHERE namespace IN ('modelCompatOverrides', 'customModels')"
+      "SELECT namespace, key, value FROM key_value WHERE namespace IN ('modelCompatOverrides', 'customModels')"
     )
-    .all() as Array<{ key: string; value: string | null }>;
+    .all() as Array<{ namespace: string; key: string; value: string | null }>;
 
-  for (const row of rows) {
-    if (!row.value) continue;
-    try {
-      const parsed = JSON.parse(row.value);
-      if (!Array.isArray(parsed)) continue;
-      for (const entry of parsed) {
-        if (entry && typeof entry === "object" && entry.isHidden) {
-          const modelId = entry.id;
-          if (typeof modelId === "string" && modelId.length > 0) {
-            if (!result.has(row.key)) result.set(row.key, new Set());
-            result.get(row.key)!.add(modelId);
+  for (const namespace of ["modelCompatOverrides", "customModels"]) {
+    for (const row of rows) {
+      if (row.namespace !== namespace || !row.value) continue;
+      try {
+        const parsed = JSON.parse(row.value);
+        if (!Array.isArray(parsed)) continue;
+        for (const entry of parsed) {
+          if (!entry || typeof entry !== "object") continue;
+          const modelId = (entry as { id?: unknown }).id;
+          if (typeof modelId !== "string" || modelId.length === 0) continue;
+          if (!Object.prototype.hasOwnProperty.call(entry, "isHidden")) continue;
+          let visibility = visibilityByProvider.get(row.key);
+          if (!visibility) {
+            visibility = new Map<string, boolean>();
+            visibilityByProvider.set(row.key, visibility);
           }
+          visibility.set(modelId, Boolean((entry as { isHidden?: unknown }).isHidden));
         }
+      } catch {
+        // Skip malformed entries
       }
-    } catch {
-      // Skip malformed entries
     }
   }
 
-  return result;
+  return new Map(
+    [...visibilityByProvider].flatMap(([providerId, visibility]) => {
+      const hiddenModels = [...visibility].flatMap(([modelId, isHidden]) =>
+        isHidden ? [modelId] : []
+      );
+      return hiddenModels.length > 0 ? [[providerId, new Set(hiddenModels)] as const] : [];
+    })
+  );
 }
 
 /**

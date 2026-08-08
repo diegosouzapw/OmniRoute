@@ -151,6 +151,16 @@ async function startServer() {
   } catch (err) {
     startupLog.warn({ error: getErrorMessage(err) }, "Arena ELO sync could not initialize");
   }
+
+  // Radar daily feed sync: only arms itself when RADAR_ENABLED AND the user
+  // opt-in are already on (a flag-off boot stays timer-free — Radar inertia
+  // contract). Non-blocking, never fatal.
+  try {
+    const { initRadarSyncScheduler } = await import("./lib/radar/scheduler");
+    initRadarSyncScheduler();
+  } catch (err) {
+    startupLog.warn({ error: getErrorMessage(err) }, "Radar sync scheduler could not initialize");
+  }
 }
 
 // Start the server initialization

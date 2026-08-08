@@ -117,7 +117,7 @@ describe("OpencodeExecutor per-account proxy + rotation (#4954)", () => {
     installFetchStub([200]);
 
     const result = await exec.execute({
-      model: "grok-code",
+      model: "deepseek-v4-flash-free",
       body: { messages: [{ role: "user", content: "hi" }], stream: false },
       stream: false,
       signal: null,
@@ -146,7 +146,7 @@ describe("OpencodeExecutor per-account proxy + rotation (#4954)", () => {
     installFetchStub([429, 200]);
 
     const result = await exec.execute({
-      model: "grok-code",
+      model: "deepseek-v4-flash-free",
       body: { messages: [{ role: "user", content: "hi" }], stream: false },
       stream: false,
       signal: null,
@@ -186,7 +186,7 @@ describe("OpencodeExecutor per-account proxy + rotation (#4954)", () => {
     };
 
     await exec.execute({
-      model: "grok-code",
+      model: "deepseek-v4-flash-free",
       body: { messages: [{ role: "user", content: "hi" }], stream: false },
       stream: false,
       signal: null,
@@ -226,7 +226,7 @@ describe("OpencodeExecutor per-account proxy + rotation (#4954)", () => {
     const sink: { proxy: any } = { proxy: null };
     await runWithAppliedProxyCapture(sink, () =>
       exec.execute({
-        model: "grok-code",
+        model: "deepseek-v4-flash-free",
         body: { messages: [{ role: "user", content: "hi" }], stream: false },
         stream: false,
         signal: null,

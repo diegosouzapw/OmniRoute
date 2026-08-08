@@ -10,8 +10,7 @@ import type { OpenRouterProviderStatsEntry } from "../providerPageUtils";
  * for providers OpenRouter doesn't know about simply get `undefined`.
  */
 const EMPTY_STATS_MAP: ReadonlyMap<string, OpenRouterProviderStatsEntry> = new Map();
-const Context =
-  createContext<ReadonlyMap<string, OpenRouterProviderStatsEntry>>(EMPTY_STATS_MAP);
+const Context = createContext<ReadonlyMap<string, OpenRouterProviderStatsEntry>>(EMPTY_STATS_MAP);
 
 export function OpenRouterProviderStatsProvider({
   entries,

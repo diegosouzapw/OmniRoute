@@ -1,5 +1,5 @@
 import { z } from "zod";
-
+import { MemoryType } from "@/lib/memory/types";
 /** Schema estendido para PUT /api/settings/memory (D9). */
 export const MemorySettingsExtendedSchema = z
   .object({
@@ -17,13 +17,17 @@ export const MemorySettingsExtendedSchema = z
     rerankEnabled: z.boolean().optional(),
     rerankProviderModel: z.string().nullable().optional(),
     vectorStore: z.enum(["sqlite-vec", "qdrant", "auto"]).optional(),
+    // Phase 1-2: MemoryBackend provider pattern
+    primaryBackend: z.string().optional(),
+    fallbackBackends: z.array(z.string()).optional(),
+    backendConfigs: z.record(z.string(), z.record(z.string(), z.unknown())).optional(),
   })
   .strict();
 
 /** PUT /api/memory/[id] body (D6 plano §5.3). */
 export const MemoryUpdatePutSchema = z
   .object({
-    type: z.enum(["factual", "episodic", "procedural", "semantic"]).optional(),
+    type: z.nativeEnum(MemoryType).optional(),
     key: z.string().min(1).optional(),
     content: z.string().min(1).optional(),
     metadata: z.record(z.string(), z.unknown()).optional(),

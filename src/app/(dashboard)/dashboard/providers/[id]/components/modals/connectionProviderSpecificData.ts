@@ -26,8 +26,10 @@ type FormData = QuotaScrapingFieldValues &
     excludedModels: string;
     importFreeModelsOnly: boolean;
     m365Tier?: M365TierValue;
+    newApiAggregatorBalance: boolean;
     newApiUserId: string;
     passthroughModels: boolean;
+    quotaPerUnit: string;
     region: string;
     routingTags: string;
     tag?: string;
@@ -92,6 +94,16 @@ export function buildAddProviderSpecificData(options: {
     assignGlmTeamQuotaProviderData(isGlm, formData, data);
   } else if (isCloudflare && formData.accountId.trim()) data.accountId = formData.accountId.trim();
   if (isCcCompatible) assignCcCompatibleRequestDefaults(data, formData);
+  // #9415 — New-API / One-API / Sub2API aggregator balance detection
+  if (formData.newApiAggregatorBalance) {
+    data.newApiAggregatorBalance = true;
+    if (formData.consoleApiKey.trim()) data.consoleApiKey = formData.consoleApiKey.trim();
+    if (formData.newApiUserId.trim()) data.newApiUserId = formData.newApiUserId.trim();
+    const parsedQuotaPerUnit = parseInt(formData.quotaPerUnit, 10);
+    if (Number.isFinite(parsedQuotaPerUnit) && parsedQuotaPerUnit > 0) {
+      data.quotaPerUnit = parsedQuotaPerUnit;
+    }
+  }
   return Object.keys(data).length > 0 ? data : undefined;
 }
 
@@ -146,5 +158,20 @@ export function assignEditApiKeyProviderSpecificData(options: {
       o.target.requestDefaults,
       o.formData
     );
+  }
+  // #9415 — New-API / One-API / Sub2API aggregator balance detection
+  if (o.formData.newApiAggregatorBalance) {
+    o.target.newApiAggregatorBalance = true;
+    o.target.consoleApiKey = o.formData.consoleApiKey.trim() || undefined;
+    o.target.newApiUserId = o.formData.newApiUserId.trim() || undefined;
+    const parsedQuotaPerUnit = parseInt(o.formData.quotaPerUnit, 10);
+    if (Number.isFinite(parsedQuotaPerUnit) && parsedQuotaPerUnit > 0) {
+      o.target.quotaPerUnit = parsedQuotaPerUnit;
+    } else {
+      o.target.quotaPerUnit = undefined;
+    }
+  } else {
+    o.target.newApiAggregatorBalance = undefined;
+    o.target.quotaPerUnit = undefined;
   }
 }

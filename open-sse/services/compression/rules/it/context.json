@@ -1,0 +1,70 @@
+{
+  "language": "it",
+  "category": "context",
+  "rules": [
+    {
+      "name": "it_context_setup",
+      "pattern": "\\b(?:ecco (?:qui )?il codice|questo è il codice|qui sotto (?:c'è |trovi )?il codice|di seguito il codice|ti allego il codice)\\b\\s*[:.]?\\s*",
+      "replacement": "Codice:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_intent",
+      "pattern": "\\b(?:il mio obiettivo è|quello che (?:mi serve|voglio|devo fare) è|quello che sto cercando di fare è|l'idea è (?:quella di |))\\b\\s*",
+      "replacement": "Obiettivo:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_error_report",
+      "pattern": "\\b(?:mi (?:dà|da) (?:questo |il seguente |)errore|ricevo (?:questo |il seguente |)errore|ottengo (?:questo |il seguente |)errore|l'errore che (?:mi dà|ricevo) è)\\b\\s*[:.]?\\s*",
+      "replacement": "Errore:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_expected_behavior",
+      "pattern": "\\b(?:quello che mi aspetto è|dovrebbe (?:invece |)(?:fare|succedere|restituire)|il comportamento atteso è)\\b\\s*[:.]?\\s*",
+      "replacement": "Atteso:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_already_tried",
+      "pattern": "\\b(?:ho (?:già |)provato a|ho tentato di|ho cercato di)\\b\\s*",
+      "replacement": "Provato:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_question_directive",
+      "pattern": "\\b(?:mi (?:sapresti |sai |puoi |)dire (?:se|come|cosa|quando|perché)|(?:sai|sapresti) (?:dirmi )?(?:se|come|cosa|quando|perché))\\b\\s*",
+      "replacement": "",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_environment_preamble",
+      "pattern": "\\b(?:sto (?:lavorando|usando|utilizzando)|nel mio (?:progetto|sistema|ambiente))\\b\\s*",
+      "replacement": "",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "full"
+    },
+    {
+      "name": "it_scope_note",
+      "pattern": "\\b(?:tieni (?:presente|conto) che|considera che|nota che|da notare che)\\b\\s*",
+      "replacement": "NB:",
+      "context": "all",
+      "category": "context",
+      "minIntensity": "lite"
+    }
+  ]
+}

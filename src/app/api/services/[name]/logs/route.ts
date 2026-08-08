@@ -45,6 +45,10 @@ async function getOrInitNamedSupervisor(name: string) {
     const { getOrInitSupervisor } = await import("../../bifrost/_lib");
     return getOrInitSupervisor();
   }
+  if (name === "dario") {
+    const { getOrInitSupervisor } = await import("../../dario/_lib");
+    return getOrInitSupervisor();
+  }
 
   return null;
 }

@@ -13,7 +13,12 @@ import { parseRetryAfterFromBody } from "./accountFallback.ts";
 import { getAntigravityQuotaFamily } from "./antigravityQuotaFamily.ts";
 import { getProviderCategory } from "../config/providerRegistry.ts";
 import { getCodexRateLimitKey } from "../executors/codex.ts";
-import { awaitProviderDefaultSlot, setProviderQuotaOverrides } from "./providerDefaultRateLimit.ts";
+import {
+  getProviderDefaultRateLimit,
+  setProviderQuotaOverrides,
+} from "./providerDefaultRateLimit.ts";
+import { keyContainsConnection, RollingRpmGate } from "./rollingRpmGate.ts";
+import { toNumber } from "@/shared/utils/numeric";
 import {
   DEFAULT_RESILIENCE_SETTINGS,
   resolveResilienceSettings,
@@ -39,25 +44,36 @@ interface LearnedLimitEntry {
 interface LimiterUpdateSettings {
   maxConcurrent?: number | null;
   minTime: number;
-  reservoir?: number | null;
-  reservoirRefreshAmount?: number | null;
-  reservoirRefreshInterval?: number | null;
 }
 
 type JsonRecord = Record<string, unknown>;
+type QueueTimeoutReason = "local-queue" | "upstream-cooldown";
 
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
-function toNumber(value: unknown, fallback = 0): number {
-  const parsed =
-    typeof value === "number"
-      ? value
-      : typeof value === "string" && value.trim().length > 0
-        ? Number(value)
-        : Number.NaN;
-  return Number.isFinite(parsed) ? parsed : fallback;
+function createQueueTimeoutError(
+  provider: string,
+  model: string | null,
+  maxWaitMs: number,
+  reason: QueueTimeoutReason = "local-queue",
+  cause?: unknown
+) {
+  const target = model ? `${provider}/${model}` : provider;
+  const message =
+    reason === "upstream-cooldown"
+      ? `Request dropped after waiting ${maxWaitMs}ms for an upstream rate-limit cooldown for ${target}. ` +
+        `The provider cooldown outlasted OmniRoute's local wait budget; this is not local queue saturation.`
+      : `Request dropped after exceeding the local rate-limit queue budget maxWaitMs (${maxWaitMs}ms) for ` +
+        `${target} — this is OmniRoute's request queue ` +
+        `(resilienceSettings.requestQueue.maxWaitMs), not an upstream timeout. Raise it in ` +
+        `Settings → Resilience if this is queue saturation rather than a slow provider.`;
+  const queueErr = new Error(message, cause === undefined ? undefined : { cause }) as Error & {
+    code?: string;
+  };
+  queueErr.code = "RATE_LIMIT_QUEUE_TIMEOUT";
+  return queueErr;
 }
 
 function isNodeTestRunnerChild(): boolean {
@@ -101,16 +117,15 @@ let initialized = false;
 let currentRequestQueueSettings: RequestQueueSettings = DEFAULT_RESILIENCE_SETTINGS.requestQueue;
 
 // Watchdog: detect Bottleneck limiters that are wedged (queue has work, but no
-// jobs are dispatched). When the reservoir/refresh state desyncs from reality,
-// this catches it and force-resets so traffic isn't stuck forever.
+// jobs are dispatched). RPM admission happens before Bottleneck, so a queued
+// Bottleneck job with no active work is a concurrency scheduler failure.
 const lastDispatchAt = new Map<string, number>();
+let nextJobTraceId = 1;
 let watchdogInterval: ReturnType<typeof setInterval> | null = null;
 const WATCHDOG_INTERVAL_MS = 30_000;
-// Threshold has to exceed any *legitimate* gap between dispatches:
-//  - default reservoirRefreshInterval is 60s
-//  - adaptive minTime can climb to ~60s for 1-RPM providers (see updateFromHeaders)
-// 120s gives a 2× margin against both, while still catching the actual wedge
-// case we observed (queue stalled for 3+ minutes with no progress).
+// Threshold has to exceed any legitimate gap caused by adaptive minTime while
+// still catching the actual wedge case we observed (queue stalled for 3+
+// minutes with no progress).
 const WEDGE_THRESHOLD_MS = 120_000;
 
 /**
@@ -128,18 +143,9 @@ function isAutoEnableActive(settings: RequestQueueSettings): boolean {
   return settings.autoEnableApiKeyProviders;
 }
 
-// Sentinels for "no rate limit" / effectively infinite capacity. The reservoir
-// value uses Number.MAX_SAFE_INTEGER so the bucket can never realistically be
-// exhausted; maxConcurrent uses a smaller-but-still-vast ceiling since
-// Bottleneck tracks concurrent jobs in memory and an unbounded number would
-// risk internal counter overflow under sustained pressure.
-const EFFECTIVELY_INFINITE = Number.MAX_SAFE_INTEGER;
+// Bottleneck handles concurrency and pacing. RPM is enforced by the rolling
+// lease limiter above rather than by a fixed-window reservoir.
 const EFFECTIVELY_INFINITE_CONCURRENCY = 1000;
-
-// Resolve an RPM override. 0 or missing means "infinite" (no rate cap).
-function resolveRpm(override: number | undefined | null): number {
-  return typeof override === "number" && override > 0 ? override : EFFECTIVELY_INFINITE;
-}
 
 // Resolve a minTime override. 0 or missing means "no minimum gap".
 function resolveMinTime(override: number | undefined | null): number {
@@ -152,15 +158,9 @@ function resolveMaxConcurrent(override: number | undefined | null): number {
 }
 
 function buildLimiterDefaults() {
-  // 0 or missing values mean "infinite" / no rate limit applies. This treats
-  // the global request-queue settings the same way per-connection overrides
-  // are interpreted (see resolveRpm / resolveMinTime / resolveMaxConcurrent).
   return {
     maxConcurrent: resolveMaxConcurrent(currentRequestQueueSettings.concurrentRequests),
     minTime: resolveMinTime(currentRequestQueueSettings.minTimeBetweenRequestsMs),
-    reservoir: resolveRpm(currentRequestQueueSettings.requestsPerMinute),
-    reservoirRefreshAmount: resolveRpm(currentRequestQueueSettings.requestsPerMinute),
-    reservoirRefreshInterval: 60 * 1000,
   };
 }
 
@@ -271,12 +271,18 @@ function reconcileEnabledConnections(
 
 function watchdogTick() {
   const now = Date.now();
+  rpmGate.cleanupExpired(now);
   // Clean up idle limiters that haven't been used recently
   for (const [key, limiter] of Array.from(limiters)) {
     const lastUsed = limiterLastUsed.get(key) ?? 0;
     if (now - lastUsed > INACTIVE_LIMITER_MS) {
       const counts = limiter.counts();
-      if (counts.QUEUED === 0 && counts.RUNNING === 0 && counts.EXECUTING === 0) {
+      if (
+        counts.RECEIVED === 0 &&
+        counts.QUEUED === 0 &&
+        counts.RUNNING === 0 &&
+        counts.EXECUTING === 0
+      ) {
         limiters.delete(key);
         lastDispatchAt.delete(key);
         limiterLastUsed.delete(key);
@@ -289,7 +295,10 @@ function watchdogTick() {
   }
   for (const [key, limiter] of Array.from(limiters)) {
     const counts = limiter.counts();
-    if (counts.QUEUED === 0) continue;
+    // RECEIVED-only work is still active and must not be evicted. Once a job
+    // is stably queued, Bottleneck reports it in QUEUED with RECEIVED=0; that
+    // is the state the wedge detector is designed to recover.
+    if (counts.RECEIVED > 0 || counts.QUEUED === 0) continue;
     if (counts.RUNNING > 0 || counts.EXECUTING > 0) continue;
     const lastDispatch = lastDispatchAt.get(key);
     // No heartbeat yet → seed it and skip this tick. Prevents false wedge
@@ -302,7 +311,7 @@ function watchdogTick() {
     if (stalledMs < WEDGE_THRESHOLD_MS) continue;
 
     warnRateLimit(
-      `🚨 [RATE-LIMIT] WEDGED: ${key} queued=${counts.QUEUED} running=0 executing=0 stalled=${stalledMs}ms — force-resetting`
+      `🚨 [RATE-LIMIT] WEDGED: ${key} received=${counts.RECEIVED} queued=${counts.QUEUED} running=0 executing=0 stalled=${stalledMs}ms — force-resetting`
     );
     // Live incident (log id 1784465227489-a2cbc0): disconnect() releases the
     // heartbeat timer but does NOT reject the QUEUED jobs already sitting on
@@ -353,15 +362,38 @@ export function stopRateLimitWatchdog(): void {
   watchdogInterval = null;
 }
 
+export function __installLimiterForTests(
+  provider: string,
+  connectionId: string,
+  limiter: Bottleneck,
+  model = null
+): void {
+  const key = getLimiterKey(provider, connectionId, model);
+  limiters.set(key, limiter);
+  lastDispatchAt.set(key, Date.now());
+  limiterLastUsed.set(key, Date.now());
+}
+
+export function __runRateLimitWatchdogForTests(): void {
+  watchdogTick();
+}
+
+export function __getLimiterForTests(provider: string, connectionId: string, model = null) {
+  return getLimiter(provider, connectionId, model);
+}
+
+export function __setLastDispatchAtForTests(
+  provider: string,
+  connectionId: string,
+  model: string | null,
+  timestamp: number
+): void {
+  lastDispatchAt.set(getLimiterKey(provider, connectionId, model), timestamp);
+}
+
 function evictWedgeLimiter(key: string, limiter: Bottleneck): void {
   if (limiters.get(key) !== limiter) return;
-  limiters.delete(key);
-  lastDispatchAt.delete(key);
-  limiterLastUsed.delete(key);
-  trackAsyncOperation(limiter.disconnect());
-  trackAsyncOperation(
-    limiter.stop({ dropWaitingJobs: true, dropErrorMessage: "rate-limit-watchdog-wedge-reset" })
-  );
+  evictLimiterAndDropQueued(key, limiter, "rate-limit-watchdog-wedge-reset");
 }
 
 /**
@@ -422,13 +454,10 @@ export async function initializeRateLimits() {
     // budget + concurrency cap (nvidia today). No-op for every provider without
     // an entry in either providerQuotaOverrides or PROVIDER_DEFAULT_RATE_LIMITS.
     setProviderQuotaOverrides(resilience.providerQuotaOverrides);
-    const { explicitCount, autoCount } = reconcileEnabledConnections(
-      connections as unknown[],
-      currentRequestQueueSettings
-    );
-    await updateAllLimiterSettings();
 
-    // Load per-connection rate limit overrides
+    // Load per-connection rate limit overrides before reconciliation can create
+    // any limiter. The RPM gate reads these overrides at admission time, and
+    // Bottleneck still needs the non-RPM connection settings immediately.
     connectionRateLimitOverrides.clear();
     for (const conn of connections as Array<Record<string, unknown>>) {
       const overrides = conn.rateLimitOverrides;
@@ -436,6 +465,12 @@ export async function initializeRateLimits() {
         connectionRateLimitOverrides.set(String(conn.id), overrides as Record<string, number>);
       }
     }
+
+    const { explicitCount, autoCount } = reconcileEnabledConnections(
+      connections as unknown[],
+      currentRequestQueueSettings
+    );
+    updateAllLimiterSettings();
 
     if (explicitCount > 0 || autoCount > 0) {
       logRateLimit(
@@ -474,22 +509,14 @@ export function enableRateLimitProtection(connectionId) {
  */
 export function disableRateLimitProtection(connectionId) {
   enabledConnections.delete(connectionId);
-  // Evict limiters for this connection from the cache. Do NOT call limiter.stop() —
-  // it permanently rejects future .schedule() calls with "This limiter has been stopped",
-  // and in-flight requests holding a reference to the old instance would fail with 502.
-  // Call disconnect() (not stop()) to release Bottleneck's internal heartbeat timer
-  // without permanently poisoning the instance for any remaining in-flight jobs.
-  // Eviction-only would leak the heartbeat timer until GC; disconnect() releases it
-  // synchronously so the runtime memory footprint stays flat under heavy connection churn.
-  // .stop() is reserved exclusively for SIGTERM/SIGINT shutdown (see shutdownLimiters).
+  // Drop queued jobs before evicting the limiter. Otherwise disconnect() leaves
+  // callers waiting on an instance that is no longer reachable from the cache.
   for (const [key, limiter] of Array.from(limiters)) {
-    if (key.includes(connectionId)) {
-      limiters.delete(key);
-      lastDispatchAt.delete(key);
-      limiterLastUsed.delete(key);
-      trackAsyncOperation(limiter.disconnect());
+    if (keyContainsConnection(key, connectionId)) {
+      evictLimiterAndDropQueued(key, limiter, "rate-limit-connection-disabled");
     }
   }
+  rpmGate.clearConnection(connectionId);
 }
 
 /**
@@ -517,13 +544,11 @@ export function refreshConnectionRateLimits(connectionId, overrides) {
   }
   // Evict limiters referencing this connection so they get recreated on next use
   for (const [key, limiter] of Array.from(limiters)) {
-    if (key.includes(connectionId)) {
-      limiters.delete(key);
-      lastDispatchAt.delete(key);
-      limiterLastUsed.delete(key);
-      trackAsyncOperation(limiter.disconnect());
+    if (keyContainsConnection(key, connectionId)) {
+      evictLimiterAndDropQueued(key, limiter, "rate-limit-settings-refresh");
     }
   }
+  rpmGate.clearConnection(connectionId);
 }
 
 /**
@@ -546,6 +571,15 @@ function getLimiterKey(provider, connectionId, model = null) {
   return `${provider}:${connectionId}`;
 }
 
+const rpmGate = new RollingRpmGate({
+  getGlobalRpm: () => currentRequestQueueSettings.requestsPerMinute,
+  getProviderWindow: getProviderDefaultRateLimit,
+  getConnectionRpm: (connectionId) => connectionRateLimitOverrides.get(connectionId)?.rpm,
+  getLimiterKey,
+  createQueueTimeoutError: (provider, model, maxWaitMs, reason) =>
+    createQueueTimeoutError(provider, model, maxWaitMs, reason),
+});
+
 function getLimiter(provider, connectionId, model = null) {
   const key = getLimiterKey(provider, connectionId, model);
 
@@ -554,23 +588,14 @@ function getLimiter(provider, connectionId, model = null) {
     const overrides = connectionRateLimitOverrides.get(connectionId);
     if (overrides) {
       // 0 (or missing) means "no override — fall through to buildLimiterDefaults()".
-      // Without this guard, an rpm of 0 sets reservoir=0, which Bottleneck treats
-      // as "depleted" and blocks ALL requests indefinitely. Treating 0 as "use
-      // default" lets users effectively disable per-connection limits without
-      // globally raising the system default.
       if (typeof overrides.maxConcurrent === "number" && overrides.maxConcurrent > 0) {
         defaults.maxConcurrent = overrides.maxConcurrent;
       }
       if (typeof overrides.minTime === "number" && overrides.minTime > 0) {
         defaults.minTime = overrides.minTime;
       }
-      if (typeof overrides.rpm === "number" && overrides.rpm > 0) {
-        defaults.reservoir = overrides.rpm;
-        defaults.reservoirRefreshAmount = overrides.rpm;
-        defaults.reservoirRefreshInterval = 60 * 1000;
-      }
       // TODO: TPM/TPD integration — requires a token-bucket vs request-bucket
-      // separation (Bottleneck's reservoir is request-count, not token-count).
+      // separation. RPM is handled by the rolling lease gate below.
       // When added, treat 0/missing the same way: fall through to system default.
     }
     const limiter = new Bottleneck({
@@ -593,6 +618,15 @@ function getLimiter(provider, connectionId, model = null) {
   return limiters.get(key);
 }
 
+function evictLimiterAndDropQueued(key: string, limiter: Bottleneck, reason: string): void {
+  if (limiters.get(key) === limiter) {
+    limiters.delete(key);
+    lastDispatchAt.delete(key);
+    limiterLastUsed.delete(key);
+  }
+  trackAsyncOperation(limiter.stop({ dropWaitingJobs: true, dropErrorMessage: reason }));
+}
+
 /**
  * Acquire a rate limit slot before making a request.
  * If rate limiting is disabled for this connection, returns immediately.
@@ -604,32 +638,7 @@ function getLimiter(provider, connectionId, model = null) {
  * @param {AbortSignal} signal - Optional abort signal to cancel waiting
  * @returns {Promise<unknown>} Result of fn()
  */
-async function getQueueHealthSnapshot(key: string, limiter: Bottleneck) {
-  const counts = limiter.counts();
-  let reservoirRemaining: number | null = null;
-  try {
-    reservoirRemaining = await limiter.currentReservoir();
-  } catch {
-    // Snapshot logging must never affect request handling.
-  }
-  const lastDispatch = lastDispatchAt.get(key);
-  return {
-    queued: counts.QUEUED,
-    running: counts.RUNNING,
-    executing: counts.EXECUTING,
-    reservoirRemaining,
-    lastDispatchAgeMs: lastDispatch ? Date.now() - lastDispatch : null,
-  };
-}
-
-export async function withRateLimit(
-  provider,
-  connectionId,
-  model,
-  fn,
-  signal = null,
-  retryAfterWedge = true
-) {
+export async function withRateLimit(provider, connectionId, model, fn, signal = null) {
   if (!enabledConnections.has(connectionId)) {
     return fn();
   }
@@ -642,18 +651,20 @@ export async function withRateLimit(
     throw err;
   }
 
-  // Proactive sliding-window fallback for header-less providers with a declared cap
-  // (Fase 8.2). No-op unless PROVIDER_DEFAULT_RATE_LIMITS has an entry for `provider`.
-  await awaitProviderDefaultSlot(
+  const maxWaitMs = currentRequestQueueSettings.maxWaitMs;
+  const queueStartedAt = Date.now();
+  const rpmLease = await rpmGate.acquire(
     provider,
     connectionId,
+    model,
     signal,
-    currentRequestQueueSettings.maxWaitMs
+    maxWaitMs,
+    queueStartedAt
   );
-
   const limiter = getLimiter(provider, connectionId, model);
-  const maxWaitMs = currentRequestQueueSettings.maxWaitMs;
-  const scheduleOpts = maxWaitMs && maxWaitMs > 0 ? { expiration: maxWaitMs } : {};
+  const key = getLimiterKey(provider, connectionId, model);
+  const jobId = `${key}:job-${nextJobTraceId++}`;
+  const scheduleOpts = { id: jobId };
 
   // Issue #6593: opt-in admission cap — fast-reject before Bottleneck's
   // schedule() (and before any downstream compression/prompt work runs) when
@@ -664,11 +675,50 @@ export async function withRateLimit(
     model ? `${provider}/${model}` : provider
   );
   if (admissionErr) {
+    rpmLease?.release();
     logRateLimit(
       `🚧 [RATE-LIMIT] ${getLimiterKey(provider, connectionId, model)} — queue full, rejecting fast (maxQueueDepth=${currentRequestQueueSettings.maxQueueDepth})`
     );
     throw admissionErr;
   }
+
+  let dispatched = false;
+  let queueExpired = false;
+  let dispatchCancelled = false;
+  let queueTimer: ReturnType<typeof setTimeout> | undefined;
+  const remainingWaitMs =
+    maxWaitMs > 0 ? Math.max(1, maxWaitMs - (Date.now() - queueStartedAt)) : 0;
+  const queueTimeoutPromise =
+    remainingWaitMs > 0
+      ? new Promise<never>((_, reject) => {
+          queueTimer = setTimeout(() => {
+            if (dispatched) return;
+            queueExpired = true;
+            logRateLimit(
+              `⏰ [RATE-LIMIT] ${key} — job exceeded ${Math.ceil(maxWaitMs / 1000)}s queue wait budget, dropping`
+            );
+            reject(new Error("rate-limit-queue-timeout"));
+          }, remainingWaitMs);
+        })
+      : null;
+  const scheduled = limiter.schedule(scheduleOpts, async () => {
+    if (queueExpired) {
+      throw createQueueTimeoutError(provider, model, maxWaitMs);
+    }
+    if (dispatchCancelled) {
+      const error = new Error("The operation was aborted before limiter dispatch");
+      error.name = "AbortError";
+      throw error;
+    }
+    if (signal?.aborted) {
+      const error = new Error("The operation was aborted before limiter dispatch");
+      error.name = "AbortError";
+      throw error;
+    }
+    dispatched = true;
+    if (queueTimer) clearTimeout(queueTimer);
+    return fn();
+  });
 
   try {
     if (signal) {
@@ -676,18 +726,26 @@ export async function withRateLimit(
       const abortPromise = new Promise<never>((_, reject) => {
         const onAbort = () => {
           const reason = signal.reason;
-          // Preserve native Error reasons (including AbortController's
-          // read-only DOMException) instead of mutating or wrapping them.
+          // Reject before evicting the queued job so the caller observes its
+          // abort reason instead of Bottleneck's internal drop error.
           if (reason instanceof Error) {
             reject(reason);
-            return;
+          } else {
+            const err = new Error(
+              typeof reason === "string" ? reason : "The operation was aborted"
+            );
+            err.name = "AbortError";
+            if (reason !== undefined) {
+              (err as Error & { cause?: unknown }).cause = reason;
+            }
+            reject(err);
           }
-          const err = new Error(typeof reason === "string" ? reason : "The operation was aborted");
-          err.name = "AbortError";
-          if (reason !== undefined) {
-            (err as Error & { cause?: unknown }).cause = reason;
+          if (!dispatched) {
+            dispatchCancelled = true;
+            if (queueTimer) clearTimeout(queueTimer);
+            // Leave the cancelled job in Bottleneck so queued peers are not dropped.
+            // Its scheduled callback will consume one queue turn and exit before fn().
           }
-          reject(err);
         };
         if (signal.aborted) {
           onAbort();
@@ -698,51 +756,30 @@ export async function withRateLimit(
       });
 
       try {
-        return await Promise.race([limiter.schedule(scheduleOpts, fn), abortPromise]);
+        const races: Promise<unknown>[] = [scheduled, abortPromise];
+        if (queueTimeoutPromise) races.push(queueTimeoutPromise);
+        return await Promise.race(races);
       } finally {
         if (abortListener) {
           signal.removeEventListener("abort", abortListener);
         }
       }
     } else {
-      return await limiter.schedule(scheduleOpts, fn);
+      return await (queueTimeoutPromise
+        ? Promise.race([scheduled, queueTimeoutPromise])
+        : scheduled);
     }
   } catch (err) {
-    // Bottleneck's raw `This job timed out after <maxWaitMs> ms.` is
-    // indistinguishable from an upstream gateway timeout, so it leaks into 502
-    // bodies / call-log `last_error` and gets misdiagnosed as a provider outage
-    // (#4165). Rewrite it into a clear, OmniRoute-owned error (knob named,
-    // upstream disclaimed, original kept as `cause`, `code` for classification).
-    // If the limiter is idle with capacity after the expiry, the scheduler is wedged.
-    // Reset it and retry this never-dispatched function once on a fresh limiter.
-    if (err?.message?.includes("This job timed out")) {
-      const key = getLimiterKey(provider, connectionId, model);
-      const queueState = await getQueueHealthSnapshot(key, limiter);
-      logRateLimit(
-        `⏰ [RATE-LIMIT] ${key} — job expired after ${Math.ceil((maxWaitMs || 0) / 1000)}s in queue, dropping`
-      );
-      const limiterIsWedged =
-        retryAfterWedge &&
-        queueState.running === 0 &&
-        queueState.executing === 0 &&
-        typeof queueState.reservoirRemaining === "number" &&
-        queueState.reservoirRemaining > 0 &&
-        typeof queueState.lastDispatchAgeMs === "number" &&
-        queueState.lastDispatchAgeMs >= Math.max(1, maxWaitMs || 0);
-      if (limiterIsWedged) {
-        logRateLimit(`🔄 [RATE-LIMIT] ${key} — recovering idle limiter after queue expiry`);
-        evictWedgeLimiter(key, limiter);
-        return withRateLimit(provider, connectionId, model, fn, signal, false);
-      }
-      const queueErr = new Error(
-        `Request dropped after exceeding the local rate-limit queue budget maxWaitMs (${maxWaitMs}ms) for ` +
-          `${model ? `${provider}/${model}` : provider} — this is OmniRoute's request queue ` +
-          `(resilienceSettings.requestQueue.maxWaitMs), not an upstream timeout. Raise it in ` +
-          `Settings → Resilience if this is queue saturation rather than a slow provider.`,
+    if (queueTimer) clearTimeout(queueTimer);
+    if (!dispatched) rpmLease?.release();
+    if (err?.message === "rate-limit-upstream-429") {
+      const rateLimitErr = new Error(
+        `Request dropped while the ${provider} connection was under an upstream rate-limit cooldown`,
         { cause: err }
-      ) as Error & { code?: string };
-      queueErr.code = "RATE_LIMIT_QUEUE_TIMEOUT";
-      throw queueErr;
+      ) as Error & { code?: string; status?: number };
+      rateLimitErr.code = "RATE_LIMIT_UPSTREAM_429";
+      rateLimitErr.status = 429;
+      throw rateLimitErr;
     }
     // The watchdog's stop({ dropWaitingJobs: true }) wedge-recovery (above) rejects
     // queued jobs with this exact message. Rewrite it the same way as the timeout
@@ -758,6 +795,9 @@ export async function withRateLimit(
       ) as Error & { code?: string };
       wedgeErr.code = "RATE_LIMIT_QUEUE_WEDGED";
       throw wedgeErr;
+    }
+    if (err?.message === "rate-limit-queue-timeout") {
+      throw createQueueTimeoutError(provider, model, maxWaitMs);
     }
     throw err;
   }
@@ -802,20 +842,12 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
       `🚫 [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — 429 received, pausing for ${Math.ceil(retryAfterMs / 1000)}s, dropping ${counts.QUEUED} queued request(s)`
     );
 
-    // Evict from the cache so follow-up learning from the same error body
-    // can materialize a fresh limiter immediately. Do NOT call limiter.stop() —
-    // it permanently rejects future .schedule() calls with "This limiter has been stopped".
-    // In-flight requests holding a reference to the evicted instance will fail (they
-    // were already going to fail — the 429 means the API rejected them), but future
-    // requests will get a fresh Bottleneck instance via getLimiter().
-    // Call disconnect() (not stop()) to release Bottleneck's internal heartbeat timer
-    // without permanently poisoning the instance for any remaining in-flight jobs.
-    // Without disconnect() here, every 429 leaks a heartbeat timer until GC reclaims
-    // the abandoned Bottleneck; under sustained quota pressure that is a real leak.
-    limiters.delete(limiterKey);
-    lastDispatchAt.delete(limiterKey);
-    limiterLastUsed.delete(limiterKey);
-    trackAsyncOperation(limiter.disconnect());
+    rpmGate.block(provider, connectionId, model, retryAfterMs);
+
+    // Evict from the cache before stopping so follow-up requests get a fresh
+    // instance. Stopping the unreachable instance rejects its queued jobs and
+    // releases its heartbeat without poisoning the replacement limiter.
+    evictLimiterAndDropQueued(limiterKey, limiter, "rate-limit-upstream-429");
     return;
   }
 
@@ -830,28 +862,31 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
 
   // Normal response — update limiter from headers
   if (!isNaN(limit) && limit > 0) {
-    const resetMs = parseResetTime(resetStr) || 60000;
-
     // Calculate optimal minTime from RPM limit
     const minTime = Math.max(0, Math.floor(60000 / limit) - 10); // Small buffer
 
     const updates: LimiterUpdateSettings = { minTime };
+    const resetMs = parseResetTime(resetStr) || 60000;
 
-    // If remaining is low (< 10% of limit), set reservoir to throttle immediately
+    // Keep adaptive pacing from response headers, but do not mutate an RPM
+    // reservoir. RPM admission is enforced by the rolling lease gate.
     if (!isNaN(remaining)) {
       if (remaining < limit * 0.1) {
-        updates.reservoir = remaining;
-        updates.reservoirRefreshAmount = limit;
-        updates.reservoirRefreshInterval = resetMs;
+        rpmGate.learnHeaderWindow(
+          provider,
+          connectionId,
+          model,
+          remaining,
+          resetMs,
+          Date.now() + resetMs
+        );
         logRateLimit(
           `⚠️ [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — ${remaining}/${limit} remaining, throttling`
         );
       } else if (remaining > limit * 0.5) {
         // Plenty of headroom — relax the limiter
         updates.minTime = 0;
-        updates.reservoir = null;
-        updates.reservoirRefreshAmount = null;
-        updates.reservoirRefreshInterval = null;
+        rpmGate.clearLearnedHeaderWindow(provider, connectionId, model);
       }
     }
 
@@ -984,6 +1019,8 @@ export async function __resetRateLimitManagerForTests() {
   }
   limiters.clear();
   enabledConnections.clear();
+  connectionRateLimitOverrides.clear();
+  rpmGate.reset();
   initialized = false;
   lastDispatchAt.clear();
   limiterLastUsed.clear();
@@ -1088,17 +1125,10 @@ export function updateFromResponseBody(provider, connectionId, responseBody, sta
   const { retryAfterMs, reason } = parseRetryAfterFromBody(responseBody);
 
   if (retryAfterMs && retryAfterMs > 0) {
-    const limiter = getLimiter(provider, connectionId, model);
+    getLimiter(provider, connectionId, model);
     logRateLimit(
       `🚫 [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — body-parsed retry: ${Math.ceil(retryAfterMs / 1000)}s (${reason})`
     );
-
-    trackAsyncOperation(
-      applyLimiterSettings(limiter, {
-        reservoir: 0,
-        reservoirRefreshAmount: 60,
-        reservoirRefreshInterval: retryAfterMs,
-      })
-    );
+    rpmGate.block(provider, connectionId, model, retryAfterMs);
   }
 }

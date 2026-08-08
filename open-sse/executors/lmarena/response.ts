@@ -165,7 +165,7 @@ function baseChunk(model: string) {
 }
 
 function enqueueSse(controller: ReadableStreamDefaultController, chunk: Record<string, unknown>) {
-  controller.enqueue(`data: ${JSON.stringify(chunk)}\n\n`);
+  controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(chunk)}\n\n`));
 }
 
 function emitStopAndDone(controller: ReadableStreamDefaultController, model: string) {
@@ -173,7 +173,7 @@ function emitStopAndDone(controller: ReadableStreamDefaultController, model: str
     ...baseChunk(model),
     choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
   });
-  controller.enqueue("data: [DONE]\n\n");
+  controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
   controller.close();
 }
 
@@ -213,7 +213,7 @@ export function createOpenAIArenaStream(opts: {
   model: string;
   signal?: AbortSignal;
   log?: { error?: (scope: string, msg: string) => void };
-}): ReadableStream<Uint8Array | string> {
+}): ReadableStream<Uint8Array> {
   const { reader, model, signal, log } = opts;
   const decoder = new TextDecoder();
   let buffer = "";

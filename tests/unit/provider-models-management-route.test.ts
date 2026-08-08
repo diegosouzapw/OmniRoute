@@ -62,9 +62,14 @@ test("provider-models GET returns an empty hiddenModelsByProvider map with no hi
 
 test("provider-models GET surfaces hidden custom and catalog-override models per provider", async () => {
   // Hidden custom model (customModels namespace).
-  await modelsDb.addCustomModel("openai", "gpt-hidden", "GPT Hidden", "manual", "chat-completions", [
-    "chat",
-  ]);
+  await modelsDb.addCustomModel(
+    "openai",
+    "gpt-hidden",
+    "GPT Hidden",
+    "manual",
+    "chat-completions",
+    ["chat"]
+  );
   await providerModelsRoute.PATCH(
     buildPatchRequest("http://localhost/api/provider-models?provider=openai&modelId=gpt-hidden", {
       isHidden: true,
@@ -120,7 +125,9 @@ test("provider-models GET keeps the original models and modelCompatOverrides con
   assert.ok(Array.isArray(body.models));
   assert.ok(Array.isArray(body.modelCompatOverrides));
   assert.ok(
-    body.modelCompatOverrides!.some((override) => override.id === "claude-sonnet-4-6" && override.isHidden)
+    body.modelCompatOverrides!.some(
+      (override) => override.id === "claude-sonnet-4-6" && override.isHidden
+    )
   );
   assert.deepEqual(body.hiddenModelsByProvider, {
     claude: ["claude-sonnet-4-6"],

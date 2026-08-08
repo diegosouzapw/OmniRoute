@@ -1,0 +1,1 @@
+- **feat(api):** add plugins marketplace install endpoint with checksum verification ([#6752](https://github.com/diegosouzapw/OmniRoute/issues/6752))

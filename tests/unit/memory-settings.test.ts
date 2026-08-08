@@ -31,6 +31,10 @@ describe("memory settings helpers", () => {
       rerankEnabled: DEFAULT_MEMORY_SETTINGS.rerankEnabled,
       rerankProviderModel: DEFAULT_MEMORY_SETTINGS.rerankProviderModel,
       vectorStore: DEFAULT_MEMORY_SETTINGS.vectorStore,
+      // Phase 1-2: MemoryBackend provider pattern
+      primaryBackend: DEFAULT_MEMORY_SETTINGS.primaryBackend,
+      fallbackBackends: DEFAULT_MEMORY_SETTINGS.fallbackBackends,
+      backendConfigs: DEFAULT_MEMORY_SETTINGS.backendConfigs,
     });
   });
 

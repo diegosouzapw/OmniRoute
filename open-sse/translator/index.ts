@@ -14,6 +14,7 @@ import {
   resolveConnectionCacheOverride,
 } from "../utils/cacheControlPolicy.ts";
 import { requiresAuthenticReasoningContent } from "../utils/reasoningContentInjector.ts";
+import { isInternalReasoningPlaceholder } from "../utils/reasoningPlaceholder.ts";
 import {
   coerceToolSchemas,
   injectEmptyReasoningContentForToolCalls,
@@ -25,6 +26,7 @@ import { bootstrapTranslatorRegistry } from "./bootstrap.ts";
 import { hasThinkingConfig, normalizeThinkingConfig } from "../services/provider.ts";
 import { applyThinkingBudget } from "../services/thinkingBudget.ts";
 import { applyReasoningRuleDirective } from "@/lib/reasoningRouting/policy";
+import { getModelPreserveVideoUrl } from "@/lib/db/models/modelPreserveVideoUrl";
 import { getResolvedModelCapabilities, supportsReasoning } from "../services/modelCapabilities.ts";
 import { normalizeRoles } from "../services/roleNormalizer.ts";
 import { hoistLeadingSystemMessage } from "./helpers/strictSystemHoist.ts";
@@ -368,8 +370,9 @@ export function translateRequest(
         providerHonorsOpenAIFormatCacheControl(provider, connectionCacheOverride),
       // #4849 regression guard: keep client reasoning_content for replay providers.
       preserveReasoningContent: isReasoner,
-      // Moonshot's Chat API accepts its own OpenAI-compatible `video_url` block.
-      preserveVideoUrl: normalizedProvider === "moonshot" || normalizedProvider === "kimi",
+      // Per-provider/model preserveVideoUrl flag from compat overrides.
+      // Falls back to true for moonshot/kimi when unset (legacy behavior).
+      preserveVideoUrl: getModelPreserveVideoUrl(normalizedProvider, options?.model ?? "") ?? (normalizedProvider === "moonshot" || normalizedProvider === "kimi"),
     });
   }
 
@@ -481,10 +484,11 @@ export function translateRequest(
         !hasNonEmptyReasoningContent(msg);
 
       if (!hasToolCalls && !hasToolUseBlocks && !shouldReplayReasoningOnly) {
-        // Strip empty reasoning_content on non-tool-call messages we are NOT
-        // replaying (e.g. non-DeepSeek targets); an empty string has no meaningful
-        // value to send and may confuse some upstreams.
-        if (msg.reasoning_content === "") {
+        // Strip empty or placeholder reasoning_content on non-tool-call messages
+        // we are NOT replaying. The placeholder is request scaffolding, never
+        // real reasoning — forwarding it makes the model continue its chain of
+        // thought FROM that text (echo → empty stop, #9573).
+        if (msg.reasoning_content === "" || isInternalReasoningPlaceholder(msg.reasoning_content)) {
           delete msg.reasoning_content;
         }
         continue;
@@ -526,9 +530,17 @@ export function translateRequest(
       }
 
       // ── OpenAI-format message ──
-      // Skip if client already provided real reasoning_content
+      // Skip if client already provided real reasoning_content. The internal
+      // replay placeholder is NOT real reasoning: drop it and fall through to
+      // the cache lookup so it can be replaced with genuine cached reasoning.
+      // Forwarding it makes the model continue its chain of thought from that
+      // text (echo → empty stop), and the echo re-poisons cache + client
+      // history (#9573).
       if (hasNonEmptyReasoningContent(msg)) {
-        continue;
+        if (!isInternalReasoningPlaceholder(msg.reasoning_content)) {
+          continue;
+        }
+        delete msg.reasoning_content;
       }
 
       const cacheKey = hasToolCalls
@@ -551,19 +563,17 @@ export function translateRequest(
         continue;
       }
 
-      // Cache miss fallback — use a non-empty placeholder.
-      // Empty string causes DeepSeek V4+ to reject with 400:
-      // "reasoning_content in the thinking mode must be passed back to the API."
-      // Note: injectEmptyReasoningContentForToolCalls may have pre-set
-      // reasoning_content="" before the cache lookup, so we check for
-      // both undefined AND empty string here.
-      //
-      // Applies to tool-call messages AND to plain (non-tool-call) assistant turns
-      // on DeepSeek replay targets (#1682). Without the placeholder on plain turns,
-      // a multi-turn text conversation whose reasoning_content the client stripped
-      // is forwarded to DeepSeek without the field and rejected with 400.
+      // Cache miss fallback — previously injected a non-empty placeholder
+      // (NON_ANTHROPIC_THINKING_PLACEHOLDER) to dodge an alleged DeepSeek V4 400
+      // on missing reasoning_content. The placeholder is the root cause of this
+      // bug: the model echoes it as its own reasoning and stops (empty turns),
+      // and the echo re-poisons the cache + client history (#9573). Empirically,
+      // deepseek-v4-flash accepts an ABSENT reasoning_content field (the 400 is
+      // specific to empty-string, and even that is endpoint-dependent). Omit
+      // the field instead; providers that genuinely enforce the contract
+      // (kimi-coding, moonshot authentic-reasoning) have their own paths above.
       if ((hasToolCalls || shouldReplayReasoningOnly) && !msg.reasoning_content) {
-        msg.reasoning_content = NON_ANTHROPIC_THINKING_PLACEHOLDER;
+        delete msg.reasoning_content;
       }
     }
   } else if (

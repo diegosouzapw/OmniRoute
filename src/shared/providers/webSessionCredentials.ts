@@ -103,7 +103,8 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     // query param on wss://gateway.meta.ai/ws/clippy). The executor extracts the
     // ecto1: token from the apiKey field via /ecto1:[^\s;]+/i.
     credentialName: "ecto_1_sess + ecto1: WS auth token",
-    placeholder: "ecto_1_sess=...; ecto1:... (WS auth token from meta.ai DevTools → Network → WS → clippy)",
+    placeholder:
+      "ecto_1_sess=...; ecto1:... (WS auth token from meta.ai DevTools → Network → WS → clippy)",
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "ecto_1_sess", "abra_sess"],
   },
