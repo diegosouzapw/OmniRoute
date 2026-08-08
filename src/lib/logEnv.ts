@@ -116,7 +116,7 @@ export function getCallLogsTableMaxRows(): number {
 }
 
 export function getCallLogPipelineCaptureStreamChunks(): boolean {
-  return parseBoolean(process.env.CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS, true);
+  return parseBoolean(process.env.CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS, false);
 }
 
 export function getCallLogPipelineMaxSizeBytes(): number {

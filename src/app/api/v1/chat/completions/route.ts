@@ -108,8 +108,8 @@ export async function POST(request) {
   try {
     // One-line marker for diagnosing 413 / Server-Action interceptions.
     // Logs only when Content-Length is present so debug noise stays low for
-    // typical chat payloads. Toggle off via OMNIROUTE_LOG_REQUEST_SHAPE=0.
-    if (process.env.OMNIROUTE_LOG_REQUEST_SHAPE !== "0") {
+    // typical chat payloads. Opt-in via OMNIROUTE_LOG_REQUEST_SHAPE=1.
+    if (process.env.OMNIROUTE_LOG_REQUEST_SHAPE === "1") {
       const ct = request.headers.get("content-type") ?? "";
       const cl = request.headers.get("content-length");
       if (cl && Number(cl) > 256 * 1024) {
@@ -135,7 +135,9 @@ export async function POST(request) {
           if (!shapeCheck.success) {
             const issue = shapeCheck.error.issues[0];
             const field = issue?.path?.length ? issue.path.join(".") : "body";
-            return finishAdmission(errorResponse(400, `${field}: ${issue?.message ?? "Invalid request"}`));
+            return finishAdmission(
+              errorResponse(400, `${field}: ${issue?.message ?? "Invalid request"}`)
+            );
           }
         }
 
