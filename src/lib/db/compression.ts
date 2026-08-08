@@ -168,6 +168,10 @@ function normalizeRtkConfig(value: unknown): RtkConfig {
       typeof record.applyToAssistantMessages === "boolean"
         ? record.applyToAssistantMessages
         : DEFAULT_RTK_CONFIG.applyToAssistantMessages,
+    enableRenderers:
+      typeof record.enableRenderers === "boolean"
+        ? record.enableRenderers
+        : (DEFAULT_RTK_CONFIG.enableRenderers ?? false),
     enabledFilters: Array.isArray(record.enabledFilters)
       ? record.enabledFilters.filter((filter): filter is string => typeof filter === "string")
       : DEFAULT_RTK_CONFIG.enabledFilters,
