@@ -186,10 +186,10 @@ Runs on pull requests only.
 
 Runs after `build`. Blocks merge on failure.
 
-| Suite            | Validates                                               | Blocking                                                                   |
-| ---------------- | ------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `test:vitest`    | MCP server (94 tools), autoCombo, cache — vitest runner | Yes                                                                        |
-| `test:vitest:ui` | UI component tests — vitest runner                      | **Advisory** (`continue-on-error: true`) — failing until Fase 6A UI triage |
+| Suite            | Validates                                               | Blocking                                                                                                      |
+| ---------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `test:vitest`    | MCP server (94 tools), autoCombo, cache — vitest runner | Yes                                                                                                           |
+| `test:vitest:ui` | UI component tests — vitest runner                      | **Blocking** — pre-existing failures are explicitly excluded in `vitest.config.ts`; new failures fail the job |
 
 ### Nightly workflows (scheduled, advisory)
 
@@ -401,7 +401,7 @@ several "obvious" merges turned out to hide debt and are **not** clean drop-ins.
 
 - `check:openapi-security-tiers` (advisory) — ❌ **NOT cleanly flippable.** It exits 0 but warns that several `traffic-inspector` routes under `LOCAL_ONLY_API_PREFIXES` lack the `x-loopback-only: true` annotation. Enforcing it requires adding those annotations to `openapi.yaml` first.
 - `typecheck:noimplicit:core` (advisory) — largely subsumed by the blocking `check:type-coverage` ratchet. Flip to a ratchet or drop the redundant second `tsc` pass.
-- `test:vitest:ui` (advisory, 14 parked fails) — fix-and-block or delete; don't leave rotting.
+- `test:vitest:ui` (now **blocking**) — pre-existing failures are explicitly excluded in `vitest.config.ts` with `// #8618` tracking comments; new failures fail the job.
 - `check:secrets` (gitleaks, blocking ratchet frozen at 3 documented false-positives) — allowlist the 3 to reach 0, or demote to advisory. Overlaps GitHub native secret-scanning + `check:public-creds`.
 - `check:pr-evidence` (blocking, greps PR-body prose) — high false-positive risk; weakens Hard Rule #18 enforcement if dropped, so this is a genuine policy call.
 - `semgrep` (advisory standalone) — overlaps CodeQL for the OWASP families; wire its baseline to a ratchet or drop.

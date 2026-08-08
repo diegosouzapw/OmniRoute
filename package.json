@@ -222,7 +222,7 @@
     "test:e2e": "node scripts/dev/run-playwright-tests.mjs test tests/e2e/*.spec.ts",
     "test:protocols:e2e": "node scripts/dev/run-protocol-clients-tests.mjs",
     "test:vitest": "vitest run --config vitest.mcp.config.ts",
-    "test:vitest:ui": "vitest run --config vitest.config.ts tests/unit/ui",
+    "test:vitest:ui": "vitest run --config vitest.config.ts",
     "test:mutation": "stryker run",
     "test:ecosystem": "node scripts/dev/run-ecosystem-tests.mjs",
     "test:system": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 tests/e2e/system-failover.test.ts",

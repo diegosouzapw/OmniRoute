@@ -627,7 +627,7 @@ procedures are in [`docs/architecture/QUALITY_GATES.md`](docs/architecture/QUALI
   complexity) must not regress vs `quality-baseline.json`. Update via
   `npm run quality:ratchet -- --update` when a metric genuinely improves.
 - Job `test-vitest` runs `npm run test:vitest` (MCP tools, autoCombo, cache) — blocking.
-  `test:vitest:ui` is advisory until UI component tests are triaged.
+  `test:vitest:ui` has been blocking since PR #7127.
 
 **Allowlist policy (short form):** Fix the cause; use the allowlist only for pre-existing
 violations you cannot fix in the same PR. Add a comment with justification + issue number.

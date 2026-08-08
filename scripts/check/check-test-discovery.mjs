@@ -118,12 +118,38 @@ export const COLLECTORS = [
   { glob: "src/shared/components/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/shared/hooks/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/app/(dashboard)/**/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
-  // vitest.config.ts via test:vitest:ui (roda com path-filter `tests/unit/ui`, então o
-  // conjunto EFETIVO é a interseção do include `tests/unit/**/*.test.tsx` com o filtro)
+  // vitest.config.ts via test:vitest:ui. The script uses the config-wide include list.
   {
-    glob: "tests/unit/ui/**/*.test.tsx",
+    glob: "tests/unit/**/*.test.tsx",
     sources: ["package.json", "vitest.config.ts"],
-    anchors: { "package.json": "tests/unit/ui", "vitest.config.ts": "tests/unit/**/*.test.tsx" },
+    anchors: { "package.json": "test:vitest:ui", "vitest.config.ts": "tests/unit/**/*.test.tsx" },
+  },
+  // vitest.config.ts include — open-sse/__tests__ files collected by vitest.config.ts.
+  // These were previously listed as orphans because the COLLECTORS only modelled the
+  // tests/unit/**/*.test.tsx include; the open-sse globs were missing. Both the top-level
+  // glob and the more-specific services sub-path glob from vitest.config.ts are listed so
+  // the drift-check anchors remain exact matches to the config file text.
+  {
+    glob: "open-sse/**/__tests__/**/*.test.ts",
+    sources: ["vitest.config.ts"],
+    anchors: { "vitest.config.ts": "open-sse/**/__tests__/**/*.test.ts" },
+  },
+  // vitest.config.ts include — src/lib/memory and src/lib/skills __tests__ collected by vitest.config.ts.
+  {
+    glob: "src/lib/memory/__tests__/**/*.test.ts",
+    sources: ["vitest.config.ts"],
+    anchors: { "vitest.config.ts": "src/lib/memory/__tests__/**/*.test.ts" },
+  },
+  {
+    glob: "src/lib/skills/__tests__/**/*.test.ts",
+    sources: ["vitest.config.ts"],
+    anchors: { "vitest.config.ts": "src/lib/skills/__tests__/**/*.test.ts" },
+  },
+  // vitest.config.ts include — single-file entry for the .test.ts encryption file.
+  {
+    glob: "tests/unit/encryption.test.ts",
+    sources: ["vitest.config.ts"],
+    anchors: { "vitest.config.ts": "tests/unit/encryption.test.ts" },
   },
   // Playwright — test:e2e (o script passa tests/e2e/*.spec.ts; testMatch **/*.spec.ts)
   { glob: "tests/e2e/*.spec.ts", sources: ["package.json"] },
