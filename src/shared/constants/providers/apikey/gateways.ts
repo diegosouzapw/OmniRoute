@@ -95,6 +95,111 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
       "Create an API key at https://app.requesty.ai, then paste it here as a Bearer token. " +
       "OpenAI-compatible endpoint at https://router.requesty.ai/v1, with a live /v1/models catalog.",
   },
+  "zylo-api": {
+    id: "zylo-api",
+    alias: "zylo",
+    name: "Zylo API",
+    icon: "hub",
+    color: "#2563EB",
+    textIcon: "ZY",
+    passthroughModels: true,
+    website: "https://zyloai.net",
+    hasFree: true,
+    freeNote:
+      "Basic plan: 10 RPM, 7,200 requests/day and 200,000 tokens/day; limited to Basic text models.",
+    apiHint:
+      "Create a free Zylo API key at https://zyloai.net, then use https://api.zyloai.net/v1 as the OpenAI-compatible base URL.",
+  },
+  unorouter: {
+    id: "unorouter",
+    alias: "unorouter",
+    name: "UnoRouter",
+    icon: "router",
+    color: "#7C3AED",
+    textIcon: "UR",
+    passthroughModels: true,
+    website: "https://unorouter.com",
+    hasFree: true,
+    freeNote:
+      "Models with the :free suffix do not debit balance; limit is 1 request/minute per free model per user.",
+    apiHint:
+      "Create an UnoRouter token, then use https://api.unorouter.com/v1 as the OpenAI-compatible base URL.",
+  },
+  fastrouter: {
+    id: "fastrouter",
+    alias: "fastrouter",
+    name: "FastRouter",
+    icon: "speed",
+    color: "#F97316",
+    textIcon: "FR",
+    passthroughModels: true,
+    website: "https://fastrouter.ai",
+    hasFree: true,
+    freeNote:
+      "Models with the :free suffix allow 10 requests/day per organization and model; availability may change.",
+    apiHint:
+      "Create a FastRouter API key, then use https://api.fastrouter.ai/api/v1 as the OpenAI-compatible base URL.",
+  },
+  anyapi: {
+    id: "anyapi",
+    alias: "anyapi",
+    name: "AnyAPI AI",
+    icon: "hub",
+    color: "#0EA5E9",
+    textIcon: "AA",
+    passthroughModels: true,
+    website: "https://anyapi.ai",
+    hasFree: true,
+    freeNote:
+      "Free plan: 100,000 ANY Tokens/day and 100 RPM for eligible Free/Basic models; no credit card required.",
+    apiHint:
+      "Create and verify an AnyAPI account, then use https://api.anyapi.ai/v1 as the OpenAI-compatible base URL.",
+  },
+  electronhub: {
+    id: "electronhub",
+    alias: "electronhub",
+    name: "Electron Hub",
+    icon: "hub",
+    color: "#22C55E",
+    textIcon: "EH",
+    passthroughModels: true,
+    website: "https://www.electronhub.ai",
+    hasFree: true,
+    freeNote:
+      "Free plan: 5 RPM, $0.25 weekly credits and 10 Neutrinos/day for :free models; family budgets also apply.",
+    apiHint:
+      "Create a free API key at https://app.electronhub.ai, then use https://api.electronhub.ai/v1 as the OpenAI-compatible base URL.",
+  },
+  llmgateway: {
+    id: "llmgateway",
+    alias: "llmgateway",
+    name: "LLM Gateway",
+    icon: "router",
+    color: "#6366F1",
+    textIcon: "LG",
+    passthroughModels: true,
+    website: "https://llmgateway.io",
+    hasFree: true,
+    freeNote:
+      "Hosted Free plan: free-priced models are limited to 5 requests per 10 minutes when the account has no credits.",
+    apiHint:
+      "Create an LLM Gateway API key, then use https://api.llmgateway.io/v1 as the OpenAI-compatible base URL.",
+  },
+  "llm-kiwi": {
+    id: "llm-kiwi",
+    alias: "llmkiwi",
+    name: "LLM.Kiwi",
+    icon: "hub",
+    color: "#84CC16",
+    textIcon: "LK",
+    passthroughModels: true,
+    website: "https://llm.kiwi",
+    hasFree: true,
+    freeNote:
+      "Free plan exposes auto and hrLLM; the published 40 requests/hour limit applies to hrLLM.",
+    apiHint:
+      "Create a free LLM.Kiwi key, then use https://api.llm.kiwi/v1 as the OpenAI-compatible base URL.",
+  },
   dgrid: {
     id: "dgrid",
     alias: "dgrid",
