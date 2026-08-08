@@ -865,11 +865,12 @@ describe("Reasoning Replay Cache — Translator Replay", () => {
         }),
       },
     });
-    // NOTE: the non-tool-call cache key is built as `getAssistantMessageCacheKey(result, 0)`
-    // — the message index is hardcoded to 0 in the translator, so the key is always
-    // `request:<id>:message:0` regardless of the assistant message's actual position.
+    // The non-tool-call cache key is built as `getAssistantMessageCacheKey(result, messageIndex)`
+    // where messageIndex is the assistant message's real position in the `messages`
+    // array (index 1 here: user, assistant, user) — matching what the write side
+    // (chatCore.ts) now caches under once the response is generated.
     cacheReasoning(
-      "request:req-plain-1:message:0",
+      "request:req-plain-1:message:1",
       "deepseek",
       "deepseek-v4-pro",
       "Real cached plain-turn reasoning"
@@ -897,6 +898,60 @@ describe("Reasoning Replay Cache — Translator Replay", () => {
       "Real cached plain-turn reasoning",
       "plain DeepSeek assistant turn should replay the real cached reasoning when present"
     );
+    assert.equal(getReasoningCacheServiceStats().replays, 1);
+  });
+
+  it("write side (chatCore's messageIndex) and read side (translateRequest) agree on the same key end-to-end", () => {
+    // Regression for a mismatch where chatCore.ts always cached under
+    // `messageIndex: 0` (the position of the response within *its own* choices
+    // array) while translateRequest's read side looked up the message's real
+    // position in the *next* turn's full history — the two never agreed once a
+    // conversation went past its first assistant turn, so replay silently
+    // fell back to the placeholder in real multi-turn usage.
+    clearReasoningCacheAll();
+    clearModelsDevCapabilities();
+    saveModelsDevCapabilities({
+      deepseek: {
+        "deepseek-v4-pro": buildCapability({
+          interleaved_field: "reasoning_content",
+          reasoning: true,
+          tool_call: true,
+        }),
+      },
+    });
+
+    // Turn 1: the incoming request has a single user message (length 1), so
+    // the assistant response chatCore is about to cache will occupy index 1
+    // once it's appended to history for turn 2 — mirroring
+    // `messageIndex: bodyMessages.length` in chatCore.ts.
+    const turn1RequestBody = { messages: [{ role: "user", content: "hi" }] };
+    cacheReasoningFromAssistantMessage(
+      { role: "assistant", content: "Hello! How can I help?", reasoning_content: "real reasoning" },
+      "deepseek",
+      "deepseek-v4-pro",
+      { requestId: "req-e2e-1", messageIndex: turn1RequestBody.messages.length }
+    );
+
+    // Turn 2: client replays the full history including the cached assistant
+    // turn, now genuinely at index 1.
+    const translated = translateRequest(
+      FORMATS.OPENAI,
+      FORMATS.OPENAI,
+      "deepseek-v4-pro",
+      {
+        request_id: "req-e2e-1",
+        messages: [
+          { role: "user", content: "hi" },
+          { role: "assistant", content: "Hello! How can I help?" },
+          { role: "user", content: "tell me more" },
+        ],
+      },
+      false,
+      null,
+      "deepseek"
+    );
+
+    assert.equal(translated.messages[1].reasoning_content, "real reasoning");
     assert.equal(getReasoningCacheServiceStats().replays, 1);
   });
 });
