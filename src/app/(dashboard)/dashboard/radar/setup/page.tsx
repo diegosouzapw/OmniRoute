@@ -1,10 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useState, useEffect, useCallback } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/shared/components";
+import {
+  firstProviderConnectionId,
+  providerConnectionsRequestUrl,
+  type RadarSetupConnection,
+} from "@/lib/radar/setupConnections";
+import type { RadarLocalizedText } from "@/lib/radar/feedSchema";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -14,17 +20,16 @@ import { Card } from "@/shared/components";
  * Localized text: either a plain string or an {en, pt?} object.
  * The renderer resolves the best locale with EN fallback (D25 compat).
  */
-type LocalizedText = string | { en: string; pt?: string };
-
 interface SetupInfo {
   keyUrl: string | null;
-  steps: LocalizedText[];
+  steps: RadarLocalizedText[];
 }
 
 interface ProviderSetupData {
   provider: string;
   setup: SetupInfo | null;
   configured: boolean;
+  connectionId: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -32,9 +37,9 @@ interface ProviderSetupData {
 // ---------------------------------------------------------------------------
 
 /** Resolve a LocalizedText to a display string. */
-function resolveText(text: LocalizedText, locale: string): string {
+function resolveText(text: RadarLocalizedText, locale: string): string {
   if (typeof text === "string") return text;
-  if (locale === "pt" && text.pt) return text.pt;
+  if (locale.toLowerCase().startsWith("pt") && text.pt) return text.pt;
   return text.en;
 }
 
@@ -44,9 +49,9 @@ function resolveText(text: LocalizedText, locale: string): string {
 
 export default function RadarSetupPage() {
   const t = useTranslations("radarSetupPage");
+  const locale = useLocale();
   const searchParams = useSearchParams();
   const provider = searchParams.get("provider");
-  const locale = "en"; // Could be derived from next-intl locale later
 
   const [setupData, setSetupData] = useState<ProviderSetupData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,18 +68,25 @@ export default function RadarSetupPage() {
 
     async function load() {
       try {
-        const res = await fetch("/api/radar/catalog");
+        const [res, connectionsRes] = await Promise.all([
+          fetch("/api/radar/catalog"),
+          fetch(providerConnectionsRequestUrl(provider)),
+        ]);
         if (res.status === 404) {
           setError(t("flagDisabled"));
           setLoading(false);
           return;
         }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!connectionsRes.ok) throw new Error(`HTTP ${connectionsRes.status}`);
         const data = await res.json();
+        const connectionsData = (await connectionsRes.json()) as {
+          connections?: RadarSetupConnection[];
+        };
 
         // Find ALL entries for this provider and extract setup from the first one that has it
         const providerEntries = data.entries.filter(
-          (e: { provider: string }) => e.provider === provider,
+          (e: { provider: string }) => e.provider === provider
         );
 
         if (providerEntries.length === 0) {
@@ -85,17 +97,19 @@ export default function RadarSetupPage() {
 
         // Find setup info from feed entries (they carry the setup field)
         const entryWithSetup = providerEntries.find(
-          (e: { setup?: SetupInfo | null }) => e.setup && (e.setup.steps.length > 0 || e.setup.keyUrl),
+          (e: { setup?: SetupInfo | null }) =>
+            e.setup && (e.setup.steps.length > 0 || e.setup.keyUrl)
         );
 
-        // Check if provider is configured (has connections)
-        // We infer this from whether the provider exists in the catalog at all
-        // The actual connection check would need a separate API — for now we show
-        // the guide regardless
+        const connectionId = firstProviderConnectionId(
+          Array.isArray(connectionsData.connections) ? connectionsData.connections : [],
+          provider
+        );
         setSetupData({
           provider,
           setup: entryWithSetup?.setup ?? null,
-          configured: false, // Will be enriched when connection-status API is available
+          configured: connectionId !== null,
+          connectionId,
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : t("loadFailed"));
@@ -109,15 +123,11 @@ export default function RadarSetupPage() {
 
   // Test connection — uses the EXISTING connection-test endpoint
   const handleTestConnection = useCallback(async () => {
-    if (!provider) return;
+    if (!setupData?.connectionId) return;
     setTesting(true);
     setTestResult(null);
     try {
-      // The existing test endpoint is POST /api/providers/[id]/test
-      // We need the connection ID — for now we use the provider ID as a proxy.
-      // In a full implementation, the setup page would list connections for
-      // this provider and test each one. Here we test the first connection.
-      const res = await fetch(`/api/providers/${encodeURIComponent(provider)}/test`, {
+      const res = await fetch(`/api/providers/${encodeURIComponent(setupData.connectionId)}/test`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
@@ -136,7 +146,7 @@ export default function RadarSetupPage() {
     } finally {
       setTesting(false);
     }
-  }, [provider, t]);
+  }, [setupData?.connectionId, t]);
 
   if (!provider) {
     return (
@@ -165,9 +175,7 @@ export default function RadarSetupPage() {
         <p className="text-sm text-text-muted mt-1">{t("setupSubtitle")}</p>
       </div>
 
-      {error && (
-        <div className="p-3 rounded-lg bg-red-500/10 text-red-400 text-sm">{error}</div>
-      )}
+      {error && <div className="p-3 rounded-lg bg-red-500/10 text-red-400 text-sm">{error}</div>}
 
       {loading ? (
         <div className="flex items-center justify-center min-h-[200px]">
@@ -248,15 +256,13 @@ export default function RadarSetupPage() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleTestConnection}
-                  disabled={testing}
+                  disabled={testing || !setupData.connectionId}
                   className="px-4 py-2 text-sm font-medium rounded-lg border border-violet-500 text-violet-400 hover:bg-violet-500/10 transition-colors disabled:opacity-50"
                 >
                   {testing ? t("testing") : t("testButton")}
                 </button>
                 {testResult && (
-                  <span
-                    className={`text-sm ${testResult.ok ? "text-green-400" : "text-red-400"}`}
-                  >
+                  <span className={`text-sm ${testResult.ok ? "text-green-400" : "text-red-400"}`}>
                     {testResult.message}
                   </span>
                 )}

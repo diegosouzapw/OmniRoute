@@ -103,9 +103,7 @@ export function setRadarCache(entry: {
 export function getRadarSettings(): RadarSettings {
   const db = getDbInstance();
   const row = db
-    .prepare(
-      "SELECT opt_in, supporter_key_encrypted, updated_at FROM radar_settings WHERE id = 1"
-    )
+    .prepare("SELECT opt_in, supporter_key_encrypted, updated_at FROM radar_settings WHERE id = 1")
     .get() as { opt_in: number; supporter_key_encrypted: string | null; updated_at: string };
 
   return {
@@ -120,9 +118,9 @@ export function getRadarSettings(): RadarSettings {
  */
 export function setRadarOptIn(optIn: boolean): void {
   const db = getDbInstance();
-  db.prepare(
-    "UPDATE radar_settings SET opt_in = ?, updated_at = datetime('now') WHERE id = 1"
-  ).run(optIn ? 1 : 0);
+  db.prepare("UPDATE radar_settings SET opt_in = ?, updated_at = datetime('now') WHERE id = 1").run(
+    optIn ? 1 : 0
+  );
 }
 
 /**
@@ -133,9 +131,20 @@ export function setRadarOptIn(optIn: boolean): void {
 export function setRadarKey(key: string | null): void {
   const db = getDbInstance();
   const encrypted = key !== null ? encrypt(key) : null;
-  db.prepare(
+  const updateKey = db.prepare(
     "UPDATE radar_settings SET supporter_key_encrypted = ?, updated_at = datetime('now') WHERE id = 1"
-  ).run(encrypted);
+  );
+  const clearCatalogCache = db.prepare("DELETE FROM radar_feed_cache WHERE id = 1");
+  const clearReferralsCache = db.prepare("DELETE FROM radar_referrals_cache WHERE id = 1");
+
+  db.transaction(() => {
+    updateKey.run(encrypted);
+    // Both signed feeds are entitlement-sensitive. Clearing their cached
+    // variants forces the next sync/read to resolve the new key server-side
+    // instead of serving data fetched under the previous entitlement.
+    clearCatalogCache.run();
+    clearReferralsCache.run();
+  })();
 }
 
 // ---------------------------------------------------------------------------

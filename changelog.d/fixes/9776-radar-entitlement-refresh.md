@@ -1,0 +1,1 @@
+- **fix(radar):** refresh signed catalog/referral caches when supporter entitlement changes, preserve the one-time live-to-community downgrade, and test real provider connection IDs from the setup tour

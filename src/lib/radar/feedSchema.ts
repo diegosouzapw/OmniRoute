@@ -43,6 +43,16 @@ export type RadarTier = z.infer<typeof RadarTierSchema>;
 
 const IntNullable = z.number().int().nullable();
 
+/** D25: English is canonical; Portuguese is an optional localized companion. */
+export const RadarLocalizedTextSchema = z.union([
+  z.string(), // compatibility with schema-v1 feeds published before D25
+  z.object({
+    en: z.string().min(1),
+    pt: z.string().min(1).optional(),
+  }),
+]);
+export type RadarLocalizedText = z.infer<typeof RadarLocalizedTextSchema>;
+
 /**
  * Budget is a discriminated union on `kind`:
  *   - per_model: tokensPerMonth (positive int)
@@ -80,7 +90,7 @@ const CapabilitiesSchema = z.object({
 const SetupSchema = z
   .object({
     keyUrl: z.string().url().nullable(),
-    steps: z.array(z.string()),
+    steps: z.array(RadarLocalizedTextSchema),
   })
   .nullable();
 
@@ -167,8 +177,8 @@ const QuirkTargetSchema = z.object({
 
 const QuirkSchema = z.object({
   slug: z.string(),
-  title: z.string(),
-  body: z.string(),
+  title: RadarLocalizedTextSchema,
+  body: RadarLocalizedTextSchema,
   severity: SeverityEnum,
   targets: z.array(QuirkTargetSchema),
 });
@@ -182,10 +192,9 @@ export const RadarFeedSchema = z.object({
   schemaVersion: z.literal(1),
   version: z.string(),
   generatedAt: z.string().datetime(),
-  // NOTE: this body field is ALWAYS "live", by design — the community tier
-  // is the exact same signed bytes served from an older snapshot, and there
-  // is only one signed artifact per version (rewriting this field
-  // server-side per request would break the exact-bytes Ed25519 signature).
+  // NOTE: this body field is not the entitlement decision. The server can
+  // publish separate exact-byte live/community artifacts for one version,
+  // while the selected request tier is still communicated by the header.
   // The tier ACTUALLY served is decided by the server per-request based on
   // the Authorization key, and is surfaced via the `x-omniroute-feed-tier`
   // response header instead. NEVER read this field for UI/display — use the

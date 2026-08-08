@@ -118,7 +118,11 @@ test("RadarReferralsFeedSchema: rejects missing referrals section", () => {
   const feed = baseReferralsFeed();
   delete (feed as Record<string, unknown>).referrals;
   const result = referralsFeedSchema.RadarReferralsFeedSchema.safeParse(feed);
-  assert.equal(result.success, false, "referrals section is required (no old-feed compat needed here)");
+  assert.equal(
+    result.success,
+    false,
+    "referrals section is required (no old-feed compat needed here)"
+  );
 });
 
 test("RadarReferralsFeedSchema: rejects a non-https referral url", () => {
@@ -215,7 +219,10 @@ test("syncRadarReferrals: valid signature => cache updated, payload byte-identic
     },
     fetch: (() =>
       Promise.resolve(
-        mockResponse(bytes, { "x-omniroute-feed-signature": sig, "x-omniroute-feed-tier": "community" })
+        mockResponse(bytes, {
+          "x-omniroute-feed-signature": sig,
+          "x-omniroute-feed-tier": "community",
+        })
       )) as unknown as typeof globalThis.fetch,
     now: () => new Date("2026-08-07T12:05:00.000Z"),
   });
@@ -296,32 +303,47 @@ test("syncRadarReferrals: valid sig over garbage JSON => invalid_schema, cache u
 // syncRadarReferrals — generatedAt floor (replay/no-op guard)
 // ===========================================================================
 
-test("syncRadarReferrals: same generatedAt as cache => stale, cache untouched", async () => {
+test("syncRadarReferrals: same generatedAt with a new served tier replaces the cache", async () => {
   const feed = baseReferralsFeed("2026-08-07T12:00:00.000Z");
+  (feed.referrals as { campaigns: Array<Record<string, unknown>> }).campaigns = [
+    {
+      provider: "groq",
+      url: "https://groq.com/?campaign=live",
+      kind: "campanha",
+      validUntil: null,
+      requiredAction: null,
+      isDefault: false,
+    },
+  ];
   const bytes = feedBytes(feed);
   const sig = signBytes(bytes);
-  let cacheWritten = false;
+  const cacheStore: referralsSync.RadarReferralsCacheEntry[] = [];
 
   const result = await referralsSync.syncRadarReferrals({
     getFlag: () => true,
-    getSettings: () => ({ optIn: true, supporterKey: null }),
+    getSettings: () => ({ optIn: true, supporterKey: "omr_" + "a".repeat(40) }),
     getCache: () => ({
       generatedAt: "2026-08-07T12:00:00.000Z",
       tier: "community",
       payload: "{}",
       signature: "old-sig",
     }),
-    setCache: () => {
-      cacheWritten = true;
+    setCache: (entry) => {
+      cacheStore.push(entry);
     },
     fetch: (() =>
       Promise.resolve(
-        mockResponse(bytes, { "x-omniroute-feed-signature": sig })
+        mockResponse(bytes, {
+          "x-omniroute-feed-signature": sig,
+          "x-omniroute-feed-tier": "live",
+        })
       )) as unknown as typeof globalThis.fetch,
   });
 
-  assert.equal(result.status, "stale");
-  assert.equal(cacheWritten, false);
+  assert.equal(result.status, "updated");
+  assert.equal(cacheStore.length, 1);
+  assert.equal(cacheStore[0]!.tier, "live");
+  assert.equal(cacheStore[0]!.payload, bytes.toString("utf-8"));
 });
 
 test("syncRadarReferrals: older generatedAt than cache => stale (replay rejected)", async () => {
@@ -487,7 +509,9 @@ test("syncRadarReferrals: header absent => falls back to 'community' (no body ti
       cacheStore.push(entry);
     },
     fetch: (() =>
-      Promise.resolve(mockResponse(bytes, { "x-omniroute-feed-signature": sig }))) as unknown as typeof globalThis.fetch,
+      Promise.resolve(
+        mockResponse(bytes, { "x-omniroute-feed-signature": sig })
+      )) as unknown as typeof globalThis.fetch,
   });
 
   assert.equal(result.status, "updated");
@@ -596,7 +620,9 @@ test("syncRadarReferrals: HTTP non-200 => error mentioning the status code", asy
     getFlag: () => true,
     getSettings: () => ({ optIn: true, supporterKey: null }),
     fetch: (() =>
-      Promise.resolve(mockResponse(Buffer.from("Internal Server Error"), {}, 500))) as unknown as typeof globalThis.fetch,
+      Promise.resolve(
+        mockResponse(Buffer.from("Internal Server Error"), {}, 500)
+      )) as unknown as typeof globalThis.fetch,
   });
 
   assert.equal(result.status, "error");
@@ -646,7 +672,8 @@ test("FIX: oversized body without a trustworthy Content-Length header => too_lar
     setCache: () => {
       setCacheCalled = true;
     },
-    fetch: (() => Promise.resolve(mockResponse(oversized, {}))) as unknown as typeof globalThis.fetch,
+    fetch: (() =>
+      Promise.resolve(mockResponse(oversized, {}))) as unknown as typeof globalThis.fetch,
   });
 
   assert.deepEqual(result, { status: "too_large" });

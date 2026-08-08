@@ -165,7 +165,9 @@ test("setRadarKey encrypts at rest and getRadarSettings decrypts", () => {
   assert.equal(settings.supporterKey, clearKey, "getRadarSettings must return the clear key");
 
   // Direct DB query to prove encryption at rest
-  interface SettingsRow { supporter_key_encrypted: string | null }
+  interface SettingsRow {
+    supporter_key_encrypted: string | null;
+  }
   const row = db
     .prepare("SELECT supporter_key_encrypted FROM radar_settings WHERE id = 1")
     .get() as SettingsRow;
@@ -195,6 +197,36 @@ test("setRadarKey(null) clears the key", () => {
     .prepare("SELECT supporter_key_encrypted FROM radar_settings WHERE id = 1")
     .get() as { supporter_key_encrypted: string | null };
   assert.equal(cleared.supporter_key_encrypted, null, "DB value must be null");
+});
+
+test("changing the supporter key invalidates the entitlement-sensitive referrals cache", () => {
+  radar.setRadarCache({
+    version: "2026.08.07.1",
+    tier: "live",
+    payload: '{"models":[]}',
+    signature: "catalog-live-signature",
+  });
+  radar.setRadarReferralsCache({
+    generatedAt: "2026-08-07T12:00:00.000Z",
+    tier: "live",
+    payload: '{"referrals":{"fixed":[],"campaigns":[{"provider":"groq"}]}}',
+    signature: "live-signature",
+  });
+  assert.ok(radar.getRadarReferralsCache(), "precondition: live referrals cache exists");
+  assert.ok(radar.getRadarCache(), "precondition: live catalog cache exists");
+
+  radar.setRadarKey("omr_" + "d".repeat(40));
+
+  assert.equal(
+    radar.getRadarReferralsCache(),
+    null,
+    "a new key must force the next referrals read to resolve entitlement server-side"
+  );
+  assert.equal(
+    radar.getRadarCache(),
+    null,
+    "a new key must force the next catalog sync to resolve entitlement server-side"
+  );
 });
 
 test("setRadarKey uses existing AES-256-GCM encryption from encryption.ts", () => {
@@ -271,7 +303,9 @@ test("second setRadarReferralsCache REPLACES the row (still single row)", () => 
   assert.equal(result.tier, "live", "must have the second tier");
   assert.equal(result.payload, '{"new":true}', "must have the second payload");
 
-  const count = db.prepare("SELECT COUNT(*) AS c FROM radar_referrals_cache").get() as { c: number };
+  const count = db.prepare("SELECT COUNT(*) AS c FROM radar_referrals_cache").get() as {
+    c: number;
+  };
   assert.equal(count.c, 1, "must have exactly one row");
 });
 

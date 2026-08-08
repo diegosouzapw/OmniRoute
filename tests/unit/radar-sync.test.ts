@@ -409,6 +409,35 @@ test("syncRadar: version floor — incoming older => stale", async () => {
   assert.equal(cacheWritten, false, "cache must NOT be overwritten with older version");
 });
 
+test("syncRadar: an entitlement downgrade replaces a newer live cache with community", async () => {
+  const sig = signBytes(FIXTURE_BYTES);
+  const cacheStore: syncMod.RadarCacheEntry[] = [];
+
+  const result = await syncMod.syncRadar({
+    getFlag: () => true,
+    getSettings: () => ({ optIn: true, supporterKey: "omr_" + "a".repeat(40) }),
+    getCache: () => ({
+      version: "2026.08.02.1",
+      tier: "live",
+      payload: "{}",
+      signature: "old-live-sig",
+    }),
+    setCache: (entry) => cacheStore.push(entry),
+    fetch: (() =>
+      Promise.resolve(
+        mockResponse(FIXTURE_BYTES, {
+          "x-omniroute-feed-signature": sig,
+          "x-omniroute-feed-tier": "community",
+        })
+      )) as unknown as typeof globalThis.fetch,
+  });
+
+  assert.equal(result.status, "updated");
+  assert.equal(cacheStore.length, 1);
+  assert.equal(cacheStore[0]!.tier, "community");
+  assert.equal(cacheStore[0]!.version, "2026.08.01.1");
+});
+
 test("syncRadar: version floor — incoming newer => updated", async () => {
   // Modify fixture to have a newer version
   const fixtureObj = JSON.parse(FIXTURE_STRING);

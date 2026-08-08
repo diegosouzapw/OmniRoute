@@ -1,13 +1,13 @@
 ---
 title: "Radar Free-Model Catalog"
 version: 3.8.50
-lastUpdated: 2026-08-07
+lastUpdated: 2026-08-08
 ---
 
 # Radar Free-Model Catalog
 
 > **Source of truth:** `src/lib/radar/`, `src/lib/db/radar.ts`, `src/app/api/radar/`
-> **Last updated:** 2026-08-07 — v3.8.50
+> **Last updated:** 2026-08-08 — v3.8.50
 
 Radar is an **optional add-on** that overlays a signed, freshly-curated free-model
 catalog on top of the release baseline (`FREE_MODEL_BUDGETS` in
@@ -20,6 +20,23 @@ baseline entry; it only refreshes limits/status fields at read time and can laye
 newly-discovered free models between releases. The baseline catalog itself is never
 mutated on disk — see [Read-time overlay merge rules](#read-time-overlay-merge-rules)
 below.
+
+---
+
+## Delivery status in v3.8.50
+
+The following status distinguishes what this OSS release implements from later Radar
+workstreams. It is a code-level status, not a promise that a particular hosted deployment
+or external integration is currently available.
+
+| Area                             | Status in this release                                                                                                                                                                                                 |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Signed catalog client            | Implemented behind `RADAR_ENABLED`, with separate opt-in, Ed25519 verification, local encrypted settings/cache, non-destructive overlay, scheduler, and dashboard.                                                     |
+| Contributor activation           | The dashboard links to the server-hosted GitHub claim flow and accepts an existing `omr_…` key. Contributor eligibility is resolved by the private service; the OSS client contains no GitHub token or issuance logic. |
+| Supporter-key activation         | Implemented. The raw key is validated, encrypted at rest, masked on reads, and sent only by the server-side sync. Changing or clearing the key invalidates both entitlement-sensitive feed caches.                     |
+| Referral links                   | Implemented as a separately signed, hourly-refreshed feed. Fixed links are available to the community tier immediately; limited campaigns remain live-tier data.                                                       |
+| Payments and transactional email | Not implemented in the OSS client. Purchase, donation, receipt review, and mail delivery belong to the private service and its later operational workstream.                                                           |
+| Research-agent workstream        | Not part of this client release. Curated feed contents remain server-side data; no autonomous research agent runs in an OmniRoute installation.                                                                        |
 
 ---
 
@@ -67,7 +84,8 @@ When both are on, the sync path is:
    plain, unauthenticated-by-default GET. OmniRoute never posts usage data, provider
    configuration, or model traffic to the feed service.
 3. The response is verified, validated, and cached locally (see
-   [Security model](#security-model)). Nothing else touches the network for Radar.
+   [Security model](#security-model)). Radar has exactly two server-side network paths:
+   `syncRadar()` for the catalog and `syncRadarReferrals()` for the standalone referrals feed.
 
 The **supporter key** is an optional Bearer token (`radar_settings.supporter_key`)
 that lets the feed service decide which tier to serve (see
@@ -77,6 +95,9 @@ that lets the feed service decide which tier to serve (see
   helpers (`src/lib/db/encryption.ts`) used for provider credentials.
 - Set via `POST /api/radar/settings` (`{ supporterKey: "omr_" + 40 hex chars }`) and
   **never echoed back** — the response returns a masked form (`omr_****abcd`).
+- Changing or clearing it atomically invalidates both the catalog and referrals caches. The
+  next sync/read resolves the new entitlement server-side; saving a key does not itself make
+  a network request or consume a single-use activation key.
 - Sent to the feed service as a Bearer token on the sync GET — nothing else about the
   key ever leaves the client.
 
@@ -102,10 +123,10 @@ pattern as `RADAR_FEED_URL`) and relayed to the dashboard through the existing
 `GET /api/radar/settings` response (`contributorClaimUrl`, `supporterPlansUrl`) — the
 client component never reads `process.env` itself.
 
-| Var                             | Purpose                                                                                      |
-| -------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `RADAR_CONTRIBUTOR_CLAIM_URL`   | Overrides the contributor-claim URL (default `https://radar.omniroute.online/auth/github`).   |
-| `RADAR_SUPPORTER_PLANS_URL`     | Overrides the supporter-plans URL (default `https://radar.omniroute.online/planos`).          |
+| Var                           | Purpose                                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------------------------- |
+| `RADAR_CONTRIBUTOR_CLAIM_URL` | Overrides the contributor-claim URL (default `https://radar.omniroute.online/auth/github`). |
+| `RADAR_SUPPORTER_PLANS_URL`   | Overrides the supporter-plans URL (default `https://radar.omniroute.online/planos`).        |
 
 Once a visitor has a key (`omr_` + 40 hex chars), the activation screen
 (`src/app/(dashboard)/dashboard/radar/page.tsx`) has a paste-key input as the primary
@@ -117,7 +138,7 @@ as a UX nicety; the server's Zod schema is the authoritative check either way. O
 key is set, the activation screen shows the masked form (`supporterKeyMasked` from
 `GET /api/radar/settings`) instead of an empty input, with a "change key" control to
 paste a new one — the raw key is never redisplayed. The two claim/plans buttons above
-remain the way to *obtain* a key in the first place; this input is where an operator
+remain the way to _obtain_ a key in the first place; this input is where an operator
 who already has one activates it.
 
 ---
@@ -207,11 +228,11 @@ handle.
 ### The served tier comes from a response header, not the signed body
 
 The signed feed **body**'s `tier` field is always `"live"` — the feed service ships
-**one signed artifact per version**, so the body cannot carry a per-request tier
-without invalidating the Ed25519 signature (re-signing per request would defeat the
-point of a pinned, cacheable, verifiable artifact). The tier actually served for a
-given request is instead carried in the **`x-omniroute-feed-tier` response header**,
-decided server-side from the request's `Authorization` key.
+**two signed artifacts per version**: live includes current campaigns and community
+omits them. Each artifact is signed over its own exact bytes. The body still does not
+serve as the entitlement decision; the tier actually selected for a request is carried
+in the **`x-omniroute-feed-tier` response header**, decided server-side from the request's
+`Authorization` key.
 
 `syncRadar()` (`src/lib/radar/sync.ts::parseServedTierHeader()`) is the single place
 that resolves the tier a client should trust:
@@ -223,7 +244,7 @@ that resolves the tier a client should trust:
 2. Fall back to the signed body's `tier` field (always `"live"`) only when step 1
    yields nothing.
 3. The resolved tier is what gets cached and returned as `{ status: "updated",
-   version, tier }` — this is the value the dashboard shows, never the raw body
+version, tier }` — this is the value the dashboard shows, never the raw body
    field.
 
 ---
@@ -265,18 +286,18 @@ Every merged entry carries an `origin` field the UI renders as a badge:
 
 Five local routes back the UI, all under `src/app/api/radar/`:
 
-| Route                   | Method | Purpose                                                                                          |
-| ----------------------- | ------ | -------------------------------------------------------------------------------------------------- |
-| `/api/radar/catalog`    | GET    | Returns the merged catalog (`getRadarCatalog()`) from the local cache.                            |
-| `/api/radar/sync`       | POST   | Triggers `syncRadar()` server-side; returns the resulting status.                                 |
-| `/api/radar/settings`   | GET    | Returns `{ optIn, hasSupporterKey, supporterKeyMasked }` — never the raw key.                     |
-| `/api/radar/settings`   | POST   | Sets opt-in and/or the (encrypted) supporter key.                                                 |
-| `/api/radar/referrals`  | GET    | Returns `{ fixed, campaigns, tier }` from the local cache — see [Referral links](#referral-links-free-credits) below. |
+| Route                  | Method | Purpose                                                                                                               |
+| ---------------------- | ------ | --------------------------------------------------------------------------------------------------------------------- |
+| `/api/radar/catalog`   | GET    | Returns the merged catalog (`getRadarCatalog()`) from the local cache.                                                |
+| `/api/radar/sync`      | POST   | Triggers `syncRadar()` server-side; returns the resulting status.                                                     |
+| `/api/radar/settings`  | GET    | Returns `{ optIn, hasSupporterKey, supporterKeyMasked }` — never the raw key.                                         |
+| `/api/radar/settings`  | POST   | Sets opt-in and/or the (encrypted) supporter key.                                                                     |
+| `/api/radar/referrals` | GET    | Returns `{ fixed, campaigns, tier }` from the local cache — see [Referral links](#referral-links-free-credits) below. |
 
 **Hard rule: these routes never proxy the feed service.** The browser only ever talks
-to the local OmniRoute server; `syncRadar()` is the single module in the whole client
-that touches the network for Radar (`src/lib/radar/sync.ts`), and it always runs
-server-side, never client-side. This keeps the feed URL and any supporter key
+to the local OmniRoute server. The two modules that touch the Radar service are
+`src/lib/radar/sync.ts` (catalog) and `src/lib/radar/referralsSync.ts` (referrals); both
+always run server-side, never client-side. This keeps the feed URL and any supporter key
 out of client-facing network traffic entirely.
 
 All five routes return `404` when `RADAR_ENABLED` is off (see
@@ -348,11 +369,13 @@ touches the network for referrals, mirroring `syncRadar()`'s contract exactly: f
 Ed25519 signature over the exact response bytes (`verifyFeedBytes`), validates against
 `RadarReferralsFeedSchema`, and caches into the `radar_referrals_cache` table
 (migration `142_radar_referrals_cache.sql`) — a table entirely separate from the
-catalog's `radar_feed_cache`. A 10 MB response cap and a `generatedAt` floor (an
-incoming feed with a `generatedAt` no newer than the cached one is treated as `stale`
-and never overwrites the cache — guards against a replay of an older signed artifact)
-mirror the catalog sync's own `MAX_FEED_BYTES`/version-floor guards. Never throws —
-always returns a status object; errors never carry a stack trace in `reason`.
+catalog's `radar_feed_cache`. A 10 MB response cap and a `generatedAt` floor reject an
+incoming feed older than the cached one, guarding against replay of an older signed
+artifact. An equal timestamp is accepted: the server intentionally gives the community
+and live referral variants the same deterministic `generatedAt`, so the signed payload
+and served tier can change after a supporter-key change without the underlying link set
+changing. Never throws — always returns a status object; errors never carry a stack trace
+in `reason`.
 
 Two triggers keep the referrals cache warm, both independent of the catalog's own
 24h cadence:

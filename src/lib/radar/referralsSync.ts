@@ -18,10 +18,7 @@
  * Deps are injectable for testing.
  */
 
-import {
-  RadarReferralsFeedSchema,
-  type RadarReferralsFeed,
-} from "./referralsFeedSchema";
+import { RadarReferralsFeedSchema, type RadarReferralsFeed } from "./referralsFeedSchema";
 import { RadarTierSchema, type RadarTier } from "./feedSchema";
 import { verifyFeedBytes } from "./verify";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
@@ -144,9 +141,10 @@ export function shouldSyncReferralsOnRead(
  *  4. Verify Ed25519 signature over exact bytes (same pinned key as the
  *     catalog feed — one key pins both artifacts).
  *  5. Parse+validate with RadarReferralsFeedSchema.
- *  6. Replay guard: incoming `generatedAt` must be strictly newer than the
- *     cache (a same/older `generatedAt` is a no-op — nothing changed, or a
- *     stale replay — either way the cache is left untouched).
+ *  6. Replay guard: reject an incoming `generatedAt` older than the cache.
+ *     Equal timestamps remain valid because the community and live referral
+ *     variants deliberately share one deterministic `generatedAt`; the
+ *     served tier can still change after the supporter key changes.
  *  7. Cache the result.
  *
  * @param deps - Injectable dependencies for testing.
@@ -262,7 +260,8 @@ export async function syncRadarReferrals(
       return { status: "invalid_schema" };
     }
 
-    // Step 7: generatedAt floor — replay/no-op guard.
+    // Step 7: generatedAt floor — reject older signed replays. Equal
+    // timestamps are accepted because entitlement variants share generatedAt.
     let existingCache: RadarReferralsCacheEntry | null = null;
     if (getCacheFn) {
       existingCache = getCacheFn();
@@ -274,7 +273,7 @@ export async function syncRadarReferrals(
     if (existingCache) {
       const existingMs = Date.parse(existingCache.generatedAt);
       const incomingMs = Date.parse(feed.generatedAt);
-      if (Number.isFinite(existingMs) && Number.isFinite(incomingMs) && incomingMs <= existingMs) {
+      if (Number.isFinite(existingMs) && Number.isFinite(incomingMs) && incomingMs < existingMs) {
         return { status: "stale" };
       }
     }
@@ -282,7 +281,8 @@ export async function syncRadarReferrals(
     // Step 8: Resolve served tier — the body carries no `tier` field at all
     // for this feed, so the header is the only source; absent/garbage header
     // degrades to the least-privileged "community" default.
-    const servedTier = parseServedTierHeader(res.headers.get("x-omniroute-feed-tier")) ?? "community";
+    const servedTier =
+      parseServedTierHeader(res.headers.get("x-omniroute-feed-tier")) ?? "community";
 
     // Step 9: Cache the result
     const cacheEntry: RadarReferralsCacheEntry = {

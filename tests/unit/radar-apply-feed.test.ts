@@ -15,11 +15,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
-  applyFeed,
-  type MergedEntry,
-  type FeedModel,
-} from "../../src/lib/radar/applyFeed.ts";
+import { applyFeed, type MergedEntry, type FeedModel } from "../../src/lib/radar/applyFeed.ts";
 import {
   getRadarCatalog,
   baselineToMergedEntries,
@@ -70,7 +66,9 @@ function makeBaseline(): MergedEntry[] {
   ];
 }
 
-function makeFeedModel(overrides: Partial<FeedModel> & { provider: string; modelId: string }): FeedModel {
+function makeFeedModel(
+  overrides: Partial<FeedModel> & { provider: string; modelId: string }
+): FeedModel {
   return {
     displayName: overrides.displayName ?? overrides.modelId,
     familyId: null,
@@ -116,7 +114,7 @@ test("rule 1: feed does NOT overwrite a local override field", () => {
   });
 
   const groq = result.find(
-    (e) => e.provider === "groq" && e.modelId === "llama-3.3-70b-versatile",
+    (e) => e.provider === "groq" && e.modelId === "llama-3.3-70b-versatile"
   )!;
 
   // Local override fields must survive
@@ -150,7 +148,7 @@ test("rule 2: feed enabled:false disables entry and carries disabledBy provenanc
   });
 
   const groq = result.find(
-    (e) => e.provider === "groq" && e.modelId === "llama-3.3-70b-versatile",
+    (e) => e.provider === "groq" && e.modelId === "llama-3.3-70b-versatile"
   )!;
 
   assert.equal(groq.enabled, false);
@@ -191,9 +189,7 @@ test("rule 3: user-added entry not in feed survives untouched", () => {
     tombstones: new Set(),
   });
 
-  const custom = result.find(
-    (e) => e.provider === "custom" && e.modelId === "my-local-model",
-  )!;
+  const custom = result.find((e) => e.provider === "custom" && e.modelId === "my-local-model")!;
 
   assert.equal(custom.displayName, "My Local Model");
   assert.equal(custom.monthlyTokens, 50_000);
@@ -242,7 +238,7 @@ test("rule 3b: user-added entry that IS in the feed merges with rule 1", () => {
   });
 
   const groq = result.filter(
-    (e) => e.provider === "groq" && e.modelId === "llama-3.3-70b-versatile",
+    (e) => e.provider === "groq" && e.modelId === "llama-3.3-70b-versatile"
   );
 
   // Should be deduplicated to ONE entry
@@ -262,7 +258,7 @@ test("rule 3b: user-added entry that IS in the feed merges with rule 1", () => {
 test("rule 4: tombstone prevents feed from resurrecting a deleted entry", () => {
   // Baseline has an entry for gemini, but user deleted it
   const baseline = makeBaseline().filter(
-    (e) => !(e.provider === "gemini" && e.modelId === "gemini-2.5-flash"),
+    (e) => !(e.provider === "gemini" && e.modelId === "gemini-2.5-flash")
   );
 
   const feed: FeedModel[] = [
@@ -283,9 +279,7 @@ test("rule 4: tombstone prevents feed from resurrecting a deleted entry", () => 
     tombstones,
   });
 
-  const gemini = result.find(
-    (e) => e.provider === "gemini" && e.modelId === "gemini-2.5-flash",
-  );
+  const gemini = result.find((e) => e.provider === "gemini" && e.modelId === "gemini-2.5-flash");
 
   // Must NOT be resurrected
   assert.equal(gemini, undefined);
@@ -353,9 +347,7 @@ test("applyFeed: feed-only entry is added with origin 'radar'", () => {
     tombstones: new Set(),
   });
 
-  const added = result.find(
-    (e) => e.provider === "new-provider" && e.modelId === "new-model",
-  );
+  const added = result.find((e) => e.provider === "new-provider" && e.modelId === "new-model");
 
   assert.ok(added, "feed-only entry should be present");
   assert.equal(added.displayName, "Brand New Model");
@@ -388,7 +380,7 @@ test("applyFeed: feed fields merge over baseline where no local override", () =>
   });
 
   const groq = result.find(
-    (e) => e.provider === "groq" && e.modelId === "llama-3.3-70b-versatile",
+    (e) => e.provider === "groq" && e.modelId === "llama-3.3-70b-versatile"
   )!;
 
   // Feed values win when no local override
@@ -440,7 +432,7 @@ test("applyFeed: duplicate key (baseline + feed) produces single merged entry", 
   });
 
   const groqEntries = result.filter(
-    (e) => e.provider === "groq" && e.modelId === "llama-3.3-70b-versatile",
+    (e) => e.provider === "groq" && e.modelId === "llama-3.3-70b-versatile"
   );
 
   assert.equal(groqEntries.length, 1, "should be deduplicated to one entry");
@@ -465,9 +457,7 @@ test("rule 4b: tombstoned entry removed even when baseline has it", () => {
     tombstones,
   });
 
-  const groq = result.find(
-    (e) => e.provider === "groq" && e.modelId === "llama-3.3-70b-versatile",
-  );
+  const groq = result.find((e) => e.provider === "groq" && e.modelId === "llama-3.3-70b-versatile");
 
   assert.equal(groq, undefined, "tombstoned entry should be excluded");
 });
@@ -494,9 +484,7 @@ test("origin switches to 'radar' when feed updates a baseline entry", () => {
     tombstones: new Set(),
   });
 
-  const gemini = result.find(
-    (e) => e.provider === "gemini" && e.modelId === "gemini-2.5-flash",
-  )!;
+  const gemini = result.find((e) => e.provider === "gemini" && e.modelId === "gemini-2.5-flash")!;
 
   assert.equal(gemini.origin, "radar");
   assert.equal(gemini.displayName, "Updated Gemini");
@@ -612,7 +600,7 @@ test("getRadarCatalog: valid cache returns merged entries with meta", () => {
 
   // The feed has groq:llama-3.3-70b-versatile, which merges over baseline
   const groq = result.entries.find(
-    (e) => e.provider === "groq" && e.modelId === "llama-3.3-70b-versatile",
+    (e) => e.provider === "groq" && e.modelId === "llama-3.3-70b-versatile"
   )!;
 
   assert.equal(groq.displayName, "Feed Groq Name");
@@ -714,7 +702,7 @@ test("FIX2 mergeOne path: contextWindow/capabilities/limits/setup survive merge 
   });
 
   const groq = result.find(
-    (e) => e.provider === "groq" && e.modelId === "llama-3.3-70b-versatile",
+    (e) => e.provider === "groq" && e.modelId === "llama-3.3-70b-versatile"
   )!;
 
   assert.equal(groq.contextWindow, 131072);
@@ -758,13 +746,11 @@ test("FIX2 feedModelToMerged path: contextWindow/capabilities/limits/setup survi
 });
 
 // ===========================================================================
-// FIX 4 — feedModelToMerged() must honor an `enabled` local override instead
-// of unconditionally forcing `enabled:false` when the feed disables the model.
-// mergeOne() already gets this right (overrides applied AFTER rule 2); this
-// pins the same semantics on the feed-only path.
+// Feed `enabled:false` is the safety exception to local override precedence:
+// a model confirmed dead upstream must not be resurrected locally.
 // ===========================================================================
 
-test("FIX4: feed-only entry with local override enabled:true wins over feed enabled:false", () => {
+test("rule 2: feed-only entry stays disabled even with local enabled:true", () => {
   const baseline = makeBaseline();
   const feed: FeedModel[] = [
     makeFeedModel({
@@ -786,11 +772,11 @@ test("FIX4: feed-only entry with local override enabled:true wins over feed enab
   });
 
   const entry = result.find(
-    (e) => e.provider === "new-provider" && e.modelId === "disabled-model",
+    (e) => e.provider === "new-provider" && e.modelId === "disabled-model"
   )!;
 
-  assert.equal(entry.enabled, true, "local override must win over feed disable");
-  assert.equal(entry.disabledBy, undefined, "must not carry radar disabledBy when overridden on");
+  assert.equal(entry.enabled, false, "a local override must not resurrect a dead upstream model");
+  assert.equal(entry.disabledBy, "radar");
 });
 
 test("FIX4: feed-only entry with NO override still gets disabled with disabledBy provenance", () => {
@@ -811,7 +797,7 @@ test("FIX4: feed-only entry with NO override still gets disabled with disabledBy
   });
 
   const entry = result.find(
-    (e) => e.provider === "new-provider" && e.modelId === "disabled-model-2",
+    (e) => e.provider === "new-provider" && e.modelId === "disabled-model-2"
   )!;
 
   assert.equal(entry.enabled, false);
