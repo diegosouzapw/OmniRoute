@@ -64,3 +64,11 @@ test("messagesToPrompt still drops empty tool results without crashing (#4712)",
   assert.match(prompt, /hello/);
   assert.match(prompt, /world/);
 });
+
+test("messagesToPrompt ignores malformed assistant tool calls", () => {
+  const prompt = messagesToPrompt([
+    { role: "assistant", content: "thinking", tool_calls: { id: "not-an-array" } },
+    { role: "user", content: "continue" },
+  ]);
+  assert.match(prompt, /continue/);
+});
