@@ -129,7 +129,7 @@ export function useModelImportHandlers({
     });
 
     try {
-      const res = await fetch(`/api/providers/${importTargetId}/models?refresh=true`);
+      const res = await fetch(`/api/providers/${importTargetId}/models?refresh=true&chatOnly=true`);
       const data = await res.json();
       if (!res.ok) {
         setImportProgress((prev) => ({

@@ -32,12 +32,6 @@ const BUILT_IN_ALIASES: Record<string, string> = {
   "claude-3-5-sonnet-latest": "claude-sonnet-4-20250514",
   "claude-3-5-haiku-latest": "claude-3-5-sonnet-20241022",
 
-  // OpenAI legacy → current
-  "gpt-4-turbo-preview": "gpt-4-turbo",
-  "gpt-4-0125-preview": "gpt-4-turbo",
-  "gpt-4-1106-preview": "gpt-4-turbo",
-  "gpt-3.5-turbo-0125": "gpt-3.5-turbo",
-
   // Kimi/Moonshot — Fireworks long-path aliases (#265)
   "accounts/fireworks/models/kimi-k2p5": "moonshotai/Kimi-K2.5",
   "fireworks/accounts/fireworks/models/kimi-k2p5": "moonshotai/Kimi-K2.5",
@@ -70,10 +64,7 @@ const BUILT_IN_ALIASES: Record<string, string> = {
 // root cause (both instances read/write one store), mirroring the #5312 pattern already
 // applied to thinkingBudget.ts and backgroundTaskDetector.ts (and systemPrompt.ts #2470).
 const CUSTOM_ALIASES_GLOBAL_KEY = "__omniroute_customAliases__";
-const _aliasStore = globalThis as unknown as Record<
-  string,
-  Record<string, string> | undefined
->;
+const _aliasStore = globalThis as unknown as Record<string, Record<string, string> | undefined>;
 
 function customAliases(): Record<string, string> {
   if (!_aliasStore[CUSTOM_ALIASES_GLOBAL_KEY]) {

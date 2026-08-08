@@ -85,6 +85,55 @@ test("provider-level synced model deletion removes only that provider", async ()
   ]);
 });
 
+test("OpenAI import excludes deprecated and shutdown models from new selections", async () => {
+  const result = await importManagedModels({
+    providerId: "openai",
+    connectionId: "openai-conn",
+    mode: "sync",
+    fetchedModels: [
+      { id: "gpt-5.6-sol", name: "GPT-5.6 Sol" },
+      { id: "gpt-5.2-codex", name: "GPT-5.2 Codex" },
+      { id: "gpt-5.3-chat-latest", name: "GPT-5.3 Chat" },
+    ],
+  });
+
+  assert.deepEqual(
+    result.discoveredModels.map((model) => model.id),
+    ["gpt-5.6-sol"]
+  );
+  assert.deepEqual(
+    (await modelsDb.getSyncedAvailableModels("openai")).map((model) => model.id),
+    ["gpt-5.6-sol"]
+  );
+});
+
+test("OpenAI import excludes image and video generation models from chat selections", async () => {
+  const result = await importManagedModels({
+    providerId: "openai",
+    connectionId: "openai-media-conn",
+    mode: "sync",
+    fetchedModels: [
+      { id: "gpt-5.6-sol", name: "GPT-5.6 Sol" },
+      { id: "gpt-image-2", name: "GPT Image 2" },
+      { id: "sora-2-pro", name: "Sora 2 Pro" },
+      {
+        id: "vendor-image-model",
+        name: "Vendor Image Model",
+        supportedEndpoints: ["/v1/images/generations"],
+      },
+    ],
+  });
+
+  assert.deepEqual(
+    result.discoveredModels.map((model) => model.id),
+    ["gpt-5.6-sol"]
+  );
+  assert.deepEqual(
+    (await modelsDb.getSyncedAvailableModels("openai")).map((model) => model.id),
+    ["gpt-5.6-sol"]
+  );
+});
+
 test("pruning stale connection available models during import", async () => {
   const db = core.getDbInstance();
   // Insert connections

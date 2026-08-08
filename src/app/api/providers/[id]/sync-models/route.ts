@@ -330,6 +330,7 @@ async function fetchProviderModelsForSync(request: Request, connectionId: string
     "?refresh=true&excludeCustom=true";
   const headers = {
     cookie: request.headers.get("cookie") || "",
+    "x-omniroute-model-surface": "chat",
     ...buildModelSyncInternalHeaders(),
   };
 

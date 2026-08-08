@@ -6,6 +6,8 @@ import {
 } from "@/lib/db/models";
 import { CANONICAL_EFFORT_VALUES } from "@/shared/reasoning/effortStandardization";
 import { isObsoleteKiroModelAlias } from "@omniroute/open-sse/services/kiroModels.ts";
+import { filterChatSelectableModels } from "@omniroute/open-sse/services/modelEndpointPolicy.ts";
+import { filterSelectableModels } from "@omniroute/open-sse/services/modelLifecycle.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -293,7 +295,10 @@ export async function persistDiscoveredModels(
   connectionId: string,
   models: unknown
 ): Promise<SyncedAvailableModel[]> {
-  const normalized = normalizeDiscoveredModels(models);
+  const normalized = filterChatSelectableModels(
+    providerId,
+    filterSelectableModels(providerId, normalizeDiscoveredModels(models))
+  );
   await replaceSyncedAvailableModelsForConnection(providerId, connectionId, normalized);
   return normalized;
 }

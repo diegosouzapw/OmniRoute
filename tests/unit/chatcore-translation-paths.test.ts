@@ -2010,7 +2010,7 @@ test("chatCore 429 lets account fallback apply the configured resilience cooldow
   assert.ok(cooldownRemaining > 0 && cooldownRemaining <= 2_000);
 });
 
-test("chatCore falls back to the next family model when the requested model is unavailable", async () => {
+test("chatCore does not substitute an OpenAI model after model-unavailable", async () => {
   const { calls, result } = await invokeChatCore({
     provider: "openai",
     model: "gpt-5.1",
@@ -2026,18 +2026,16 @@ test("chatCore falls back to the next family model when the requested model is u
           headers: { "Content-Type": "application/json" },
         });
       }
-      return buildOpenAIResponse(false, "family fallback ok");
+      return buildOpenAIResponse(false, "unexpected fallback");
     },
   });
 
-  const payload = (await result.response.json()) as any;
-  assert.equal(result.success, true);
-  assert.equal(calls.length, 2);
-  assert.equal(calls[1].body.model, "gpt-5.1-mini");
-  assert.equal(payload.choices[0].message.content, "family fallback ok");
+  assert.equal(result.success, false);
+  assert.equal(result.status, 404);
+  assert.equal(calls.length, 1);
 });
 
-test("chatCore falls back to a larger-context sibling when the request overflows context", async () => {
+test("chatCore does not substitute an OpenAI model after context overflow", async () => {
   saveModelsDevCapabilities({
     unknown: {
       "gpt-5": capabilityEntry(128_000),
@@ -2061,15 +2059,13 @@ test("chatCore falls back to a larger-context sibling when the request overflows
           headers: { "Content-Type": "application/json" },
         });
       }
-      return buildOpenAIResponse(false, "larger context fallback");
+      return buildOpenAIResponse(false, "unexpected fallback");
     },
   });
 
-  const payload = (await result.response.json()) as any;
-  assert.equal(result.success, true);
-  assert.equal(calls.length, 2);
-  assert.equal(calls[1].body.model, "gpt-4o");
-  assert.equal(payload.choices[0].message.content, "larger context fallback");
+  assert.equal(result.success, false);
+  assert.equal(result.status, 400);
+  assert.equal(calls.length, 1);
 });
 
 test("chatCore parses upstream SSE payloads for non-streaming requests", async () => {
@@ -2135,7 +2131,7 @@ test("chatCore rejects malformed non-streaming JSON payloads", async () => {
   assert.equal(result.error, "Invalid JSON response from provider");
 });
 
-test("chatCore falls back after an empty-content success response", async () => {
+test("chatCore does not substitute an OpenAI model after empty content", async () => {
   const { calls, result } = await invokeChatCore({
     provider: "openai",
     model: "gpt-5.1",
@@ -2165,18 +2161,16 @@ test("chatCore falls back after an empty-content success response", async () => 
           }
         );
       }
-      return buildOpenAIResponse(false, "empty-content fallback ok");
+      return buildOpenAIResponse(false, "unexpected fallback");
     },
   });
 
-  const payload = (await result.response.json()) as any;
-  assert.equal(result.success, true);
-  assert.equal(calls.length, 2);
-  assert.equal(calls[1].body.model, "gpt-5.1-mini");
-  assert.equal(payload.choices[0].message.content, "empty-content fallback ok");
+  assert.equal(result.success, false);
+  assert.equal(result.status, 502);
+  assert.equal(calls.length, 1);
 });
 
-test("chatCore returns a gateway error when the empty-content fallback responds with invalid JSON", async () => {
+test("chatCore returns a gateway error without probing another OpenAI model", async () => {
   const { result, calls } = await invokeChatCore({
     provider: "openai",
     model: "gpt-5.1",
@@ -2217,8 +2211,7 @@ test("chatCore returns a gateway error when the empty-content fallback responds 
   assert.equal(result.success, false);
   assert.equal(result.status, 502);
   assert.equal(result.error, "Provider returned empty content");
-  assert.equal(calls.length, 2);
-  assert.equal(calls[1].body.model, "gpt-5.1-mini");
+  assert.equal(calls.length, 1);
 });
 
 test("chatCore records Claude prompt cache and cache usage metadata in call logs", async () => {
