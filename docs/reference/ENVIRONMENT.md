@@ -1300,3 +1300,14 @@ Used by `src/lib/vncSession/manifest.ts` to configure Docker-based headless Chro
 | `OMNIROUTE_VNC_READY_MS`              | `45000`                       | `src/lib/vncSession/manifest.ts`  | Browser readiness timeout (ms).                                                |
 | `OMNIROUTE_VNC_HARVEST_MS`            | `20000`                       | `src/lib/vncSession/manifest.ts`  | Harvest/cleanup timeout (ms).                                                  |
 | `VIBEPROXY_DATA_DIR`                  | _(unset)_                     | `open-sse/services/notionThreadSessions.ts` | Directory for Notion thread session persistence.                               |
+
+### Telegram Mini App
+
+Used by `src/lib/telegram/*` and `src/app/api/telegram/update/route.ts` for the inbound bot webhook and Mini App chat proxy. All optional — the endpoint returns 503 when `TELEGRAM_BOT_TOKEN` is unset.
+
+| Variable                       | Default                    | Source File                              | Description                                                                             |
+| ------------------------------ | -------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------- |
+| `TELEGRAM_BOT_TOKEN`           | _(unset)_                  | `src/lib/telegram/config.ts`             | Bot token from @BotFather (`<numeric_id>:<secret>`). Enables the inbound webhook; doubles as the HMAC secret for Mini App `initData` verification. |
+| `TELEGRAM_DEFAULT_MODEL`       | `auto/chat`                | `src/lib/telegram/chatProxy.ts`          | Model used for Telegram chat replies.                                                    |
+| `TELEGRAM_BOT_API_BASE`        | `https://api.telegram.org` | `src/lib/telegram/config.ts`             | Bot API base URL override (proxies / self-hosted Bot API servers).                       |
+| `TELEGRAM_WEBHOOK_TIMEOUT_MS`  | `60000`                    | `src/lib/telegram/config.ts`             | Timeout (ms) for outbound Bot API calls (`sendMessage`/`setWebhook`).                    |

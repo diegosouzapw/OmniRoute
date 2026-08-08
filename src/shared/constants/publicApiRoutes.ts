@@ -25,6 +25,11 @@ const PUBLIC_API_ROUTE_PREFIXES = [
   // collect/chaos/route.ts. Do not widen this prefix to cover other
   // /api/skills/collect/* routes without the same per-handler auth.
   "/api/skills/collect/chaos",
+  // Telegram Bot API update webhook + Mini App proxy. Telegram POSTs updates
+  // here without any dashboard cookie/API key; the handler enforces its own
+  // auth (503 when TELEGRAM_BOT_TOKEN is unset; 401 on invalid initData
+  // HMAC). See src/app/api/telegram/update/route.ts. Do not widen.
+  "/api/telegram/",
 ];
 
 const PUBLIC_READONLY_API_ROUTE_PREFIXES = [
