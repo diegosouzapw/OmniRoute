@@ -747,8 +747,19 @@ export function openaiResponsesToOpenAIRequest(
   delete result.prompt_cache_retention;
 
   if (namespaceToolIdentityMap.size > 0) {
-    // chatCore extracts and deletes this transient side channel before dispatch.
+    // chatCore extracts and deletes these transient side channels before dispatch.
     // Non-enumerability keeps internal request metadata off the upstream wire.
+    //
+    // Two properties on purpose (#9780): `_toolNameMap` is also the alias
+    // channel for openai-to-claude/gemini, which overwrite it on a pivot, so
+    // the identity map needs a name of its own. `_toolNameMap` stays populated
+    // for the existing consumers (executors/base.ts, cliproxyapi, antigravity).
+    Object.defineProperty(result, "_namespaceToolIdentityMap", {
+      value: namespaceToolIdentityMap,
+      enumerable: false,
+      configurable: true,
+      writable: true,
+    });
     Object.defineProperty(result, "_toolNameMap", {
       value: namespaceToolIdentityMap,
       enumerable: false,

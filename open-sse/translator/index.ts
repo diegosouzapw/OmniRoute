@@ -318,7 +318,27 @@ export function translateRequest(
                   ...(hasProvider ? { _provider: provider } : {}),
                 }
               : credentials;
-          result = fromOpenAI(model, result, stream, translationCredentials);
+          // #9780 — carry the Responses namespace identity map across the pivot.
+          // Target translators return a brand-new object (buildKiroPayload et
+          // al.), dropping the non-enumerable property step 1 attached; the
+          // #7936 seam then gets null and namespace sub-tool calls come back
+          // flattened, which Codex rejects with `unsupported call: <name>`.
+          const identityMap = (result as Record<string, unknown>)._namespaceToolIdentityMap;
+          const translated = fromOpenAI(model, result, stream, translationCredentials);
+          if (
+            identityMap instanceof Map &&
+            translated &&
+            typeof translated === "object" &&
+            !((translated as Record<string, unknown>)._namespaceToolIdentityMap instanceof Map)
+          ) {
+            Object.defineProperty(translated, "_namespaceToolIdentityMap", {
+              value: identityMap,
+              enumerable: false,
+              configurable: true,
+              writable: true,
+            });
+          }
+          result = translated;
         }
       }
     }

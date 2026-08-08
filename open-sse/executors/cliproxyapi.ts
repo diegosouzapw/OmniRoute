@@ -408,12 +408,13 @@ export class CliproxyapiExecutor extends BaseExecutor {
 
     input.log?.info?.("CPA", `CLIProxyAPI → ${url} (model: ${input.model}, shape: ${shape})`);
 
-    // _toolNameMap is an in-memory channel to chatCore for response-side
-    // tool name restoration; never send it over the wire.
+    // _toolNameMap and _namespaceToolIdentityMap are in-memory channels to
+    // chatCore for response-side tool name restoration; never send them over
+    // the wire.
     const wireBody =
       transformedBody && typeof transformedBody === "object"
         ? JSON.stringify(transformedBody, (key, value) =>
-            key === "_toolNameMap" ? undefined : value
+            key === "_toolNameMap" || key === "_namespaceToolIdentityMap" ? undefined : value
           )
         : JSON.stringify(transformedBody);
 

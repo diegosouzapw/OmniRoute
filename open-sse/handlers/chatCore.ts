@@ -2254,8 +2254,19 @@ export async function handleChatCore({
   // the latter is a Kiro/Claude passthrough alias channel with string values,
   // while namespace identities carry `{namespace, name}` for the #7936 response
   // seam. Extract first because Kiro merge may reuse `_toolNameMap` below.
+  //
+  // #9780 — prefer the dedicated channel: on a pivot the openai->claude/gemini
+  // step publishes its own alias map on `_toolNameMap`, so that property alone
+  // yields aliases here. The `_toolNameMap` read stays as the fallback for the
+  // non-pivot producers (executors/base.ts, cliproxyapi.ts, antigravity).
+  const namespaceIdentityMap = translatedBody._namespaceToolIdentityMap;
   const requestToolIdentityMap =
-    translatedBody._toolNameMap instanceof Map ? translatedBody._toolNameMap : null;
+    namespaceIdentityMap instanceof Map
+      ? namespaceIdentityMap
+      : translatedBody._toolNameMap instanceof Map
+        ? translatedBody._toolNameMap
+        : null;
+  delete translatedBody._namespaceToolIdentityMap;
   delete translatedBody._toolNameMap;
 
   // Kiro: sanitize tool schemas before dispatch. Kiro returns 400 "Improperly
