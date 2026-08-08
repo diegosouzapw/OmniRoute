@@ -1,4 +1,7 @@
-import { getEncoding, type Tiktoken } from "js-tiktoken";
+import type { Tiktoken } from "js-tiktoken";
+import { createRequire } from "module";
+
+const _require = createRequire(import.meta.url);
 
 export type TokenizerEncoding = "cl100k_base" | "o200k_base";
 
@@ -41,9 +44,15 @@ export function resolveTokenizerEncoding(context?: TokenizerContext): TokenizerE
 function getEncoder(encoding: TokenizerEncoding): Tiktoken {
   const cached = encoders.get(encoding);
   if (cached) return cached;
-  const created = getEncoding(encoding);
-  encoders.set(encoding, created);
-  return created;
+  let tiktoken: { getEncoding: (name: string) => Tiktoken } | null = null;
+  try {
+    tiktoken ??= _require("js-tiktoken") as { getEncoding: (name: string) => Tiktoken };
+    const created = tiktoken.getEncoding(encoding);
+    encoders.set(encoding, created);
+    return created;
+  } catch {
+    throw new Error(`js-tiktoken not available: cannot create encoder for ${encoding}`);
+  }
 }
 
 /**
