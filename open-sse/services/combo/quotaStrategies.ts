@@ -89,9 +89,7 @@ async function getQuotaAwareConnectionsForTarget(
               ? (connections as Array<Record<string, unknown>>)
               : [];
             if (provider === "antigravity" || provider === "agy") {
-              activeConnections = preferAntigravityConnectionsWithStoredProject(
-                activeConnections
-              ) as Array<Record<string, unknown>>;
+              activeConnections = preferAntigravityConnectionsWithStoredProject(activeConnections);
             }
             if (
               !resetAwareConnectionCache.has(provider) &&

@@ -14,3 +14,4 @@
 -- falls back to the existing native web-search-bypass defaults in webSearchFallback.ts).
 --
 -- See: src/lib/db/interceptionRules.ts
+SELECT 1;
