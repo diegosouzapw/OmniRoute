@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { searchSkillsSh } from "@/lib/skills/skillssh";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 export async function GET(request: Request) {
   if (!(await isAuthenticated(request))) {
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
       })),
     });
   } catch (err: unknown) {
-    const error = err instanceof Error ? err.message : String(err);
+    const error = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
     return NextResponse.json({ error }, { status: 500 });
   }
 }

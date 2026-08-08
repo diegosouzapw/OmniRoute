@@ -10,6 +10,7 @@ import { promisify } from "node:util";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const execFileAsync = promisify(execFile);
+import { classifyCommand } from "./commandClassification";
 import { createCombo, getCombos, updateCombo } from "@/lib/db/combos";
 import { getProviderConnections } from "@/lib/db/providers";
 import { createApiKey, revokeApiKey, getApiKeys } from "@/lib/db/apiKeys";
@@ -390,6 +391,16 @@ export const COPILOT_TOOLS: CopilotTool[] = [
         const argv = (trimmedCmd.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) || []).map((arg) =>
           arg.replace(/^["']|["']$/g, "")
         );
+
+        // 🔒 Approval gate: classify command before executing
+        const classified = classifyCommand(argv);
+        if (!classified) {
+          return `Command \`${trimmedCmd}\` is not recognized and cannot be executed. Use an allowed command or rephrase your request.`;
+        }
+        if (classified.category !== "read-only") {
+          return `⚠️ **${classified.category.toUpperCase()}** command blocked: \`${trimmedCmd}\`\n${classified.rule.reason}\n\nThis command was not executed. If you need to run it, please use the terminal directly.`;
+        }
+
         const { stdout } = await execFileAsync(cliPath, argv, {
           encoding: "utf-8",
           timeout: 30000,

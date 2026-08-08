@@ -1,0 +1,1 @@
+- fix(cli): re-verify running binary version after `omniroute update` install and warn instead of lying about success when a local install shadows the global one (#9475)

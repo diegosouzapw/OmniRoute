@@ -34,7 +34,14 @@ async function runRepairAction(opts, cmd) {
   if (ok) {
     process.stdout.write("✓ better-sqlite3 repaired OK\n");
   } else {
-    process.stderr.write("✗ Repair failed — check npm availability\n");
+    process.stderr.write("✗ Repair failed\n");
+    process.stderr.write(
+      "  Possible causes:\n" +
+        "  • npm not available — check that Node.js/npm are on your PATH\n" +
+        "  • npm install scripts are blocked — run: npm install-scripts approve better-sqlite3\n" +
+        "  • Network issue — check your internet connection\n" +
+        "  Try: npm install-scripts ls  (to see if better-sqlite3 is blocked)\n"
+    );
     process.exit(1);
   }
 }

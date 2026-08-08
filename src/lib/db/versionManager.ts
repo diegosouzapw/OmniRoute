@@ -16,6 +16,7 @@ interface VersionManagerRow {
   management_key?: unknown;
   auto_update?: unknown;
   auto_start?: unknown;
+  auto_restart_adopted?: unknown;
   last_health_check?: unknown;
   last_update_check?: unknown;
   health_status?: unknown;
@@ -65,6 +66,13 @@ interface VersionManagerTool {
   managementKey: string | null;
   autoUpdate: boolean;
   autoStart: boolean;
+  /**
+   * When true, an adopted (unsupervised, pre-existing) process is
+   * immediately killed and replaced with a fresh spawn this supervisor
+   * actually owns — trading a brief restart for working log capture.
+   * Defaults off: adoption alone is already the safe, non-disruptive choice.
+   */
+  autoRestartAdopted: boolean;
   lastHealthCheck: string | null;
   lastUpdateCheck: string | null;
   healthStatus: string;
@@ -120,6 +128,10 @@ function rowToVersionManager(row: VersionManagerRow): VersionManagerTool {
     autoUpdate:
       record.auto_update === 1 || record.auto_update === true || record.auto_update === "1",
     autoStart: record.auto_start === 1 || record.auto_start === true || record.auto_start === "1",
+    autoRestartAdopted:
+      record.auto_restart_adopted === 1 ||
+      record.auto_restart_adopted === true ||
+      record.auto_restart_adopted === "1",
     lastHealthCheck:
       record.last_health_check === null
         ? null
@@ -170,8 +182,7 @@ export async function getVersionManagerStatus(): Promise<VersionManagerTool[]> {
 export async function getVersionManagerTool(tool: string): Promise<VersionManagerTool | null> {
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM version_manager WHERE tool = ?").get(tool) as
-    | VersionManagerRow
-    | undefined;
+    VersionManagerRow | undefined;
   if (!row) return null;
   return rowToVersionManager(row);
 }
@@ -260,6 +271,7 @@ export async function updateVersionManagerTool(
     "managementKey",
     "autoUpdate",
     "autoStart",
+    "autoRestartAdopted",
     "healthStatus",
     "configOverrides",
     "errorMessage",
@@ -278,7 +290,12 @@ export async function updateVersionManagerTool(
     if (key === "configOverrides") {
       sets.push("config_overrides = @configOverrides");
       params.configOverrides = stringifyConfigOverrides(value as Record<string, unknown> | null);
-    } else if (key === "autoUpdate" || key === "autoStart" || key === "providerExpose") {
+    } else if (
+      key === "autoUpdate" ||
+      key === "autoStart" ||
+      key === "autoRestartAdopted" ||
+      key === "providerExpose"
+    ) {
       sets.push(`${dbKey} = @${key}`);
       params[key] = value === true ? 1 : 0;
     } else if (value === null) {
@@ -356,6 +373,7 @@ const SERVICE_FIELD_WHITELIST: Set<string> = new Set([
   "port",
   "apiKey",
   "autoStart",
+  "autoRestartAdopted",
   "autoUpdate",
   "healthStatus",
   "errorMessage",

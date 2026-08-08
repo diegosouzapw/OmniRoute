@@ -98,6 +98,23 @@ test("AgentRouter explicit connection protocol overrides the inferred inbound pr
   assert.equal(r.targetFormat, FORMATS.CLAUDE);
 });
 
+test("#8994: customModelTargetFormat takes precedence over apiFormat='responses'", () => {
+  // When a Vertex Claude model has customModelTargetFormat="claude" and the
+  // handler also receives apiFormat="responses", the model-level override
+  // must win — otherwise the request body is translated to OpenAI Responses
+  // format (which Vertex's Claude endpoint cannot parse).
+  const r = resolveChatCoreTargetFormat({
+    provider: "vertex",
+    resolvedModel: "claude-sonnet-4-6",
+    apiFormat: "responses",
+    sourceFormat: FORMATS.OPENAI,
+    customModelTargetFormat: "claude",
+    providerSpecificData: undefined,
+  });
+  // BUG: apiFormat short-circuits before customModelTargetFormat is checked
+  assert.equal(r.targetFormat, "claude", "model-level targetFormat must win over apiFormat");
+});
+
 test("unmapped provider → alias falls back to the provider id", () => {
   const r = resolveChatCoreTargetFormat({
     provider: "some-unmapped-provider",

@@ -17,6 +17,7 @@ export { MODEL_COMPAT_PROTOCOL_KEYS, type ModelCompatProtocolKey };
 export type ModelCompatPerProtocol = {
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean;
+  preserveVideoUrl?: boolean;
   /** Merged into upstream HTTP requests for this model (after default auth headers). */
   upstreamHeaders?: Record<string, string>;
 };
@@ -76,6 +77,7 @@ export function deepMergeCompatByProtocol(
     const hasDelta =
       Object.prototype.hasOwnProperty.call(deltas, "normalizeToolCallId") ||
       Object.prototype.hasOwnProperty.call(deltas, "preserveOpenAIDeveloperRole") ||
+      Object.prototype.hasOwnProperty.call(deltas, "preserveVideoUrl") ||
       Object.prototype.hasOwnProperty.call(deltas, "upstreamHeaders");
     if (!hasDelta) continue;
     const cur: ModelCompatPerProtocol = { ...(out[key] || {}) };
@@ -84,6 +86,9 @@ export function deepMergeCompatByProtocol(
     }
     if ("preserveOpenAIDeveloperRole" in deltas) {
       cur.preserveOpenAIDeveloperRole = Boolean(deltas.preserveOpenAIDeveloperRole);
+    }
+    if ("preserveVideoUrl" in deltas) {
+      cur.preserveVideoUrl = Boolean(deltas.preserveVideoUrl);
     }
     if ("upstreamHeaders" in deltas) {
       const uh = deltas.upstreamHeaders;
@@ -105,6 +110,7 @@ export type ModelCompatOverride = {
   id: string;
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean;
+  preserveVideoUrl?: boolean;
   compatByProtocol?: CompatByProtocolMap;
   upstreamHeaders?: Record<string, string>;
   isHidden?: boolean;
@@ -159,6 +165,7 @@ export function getModelCompatOverrides(providerId: string): ModelCompatOverride
 export type ModelCompatPatch = {
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean | null;
+  preserveVideoUrl?: boolean | null;
   compatByProtocol?: CompatByProtocolMap;
   /** Replace top-level extra headers for override-only rows; omit to leave unchanged. */
   upstreamHeaders?: Record<string, string> | null;
@@ -195,6 +202,13 @@ export function mergeModelCompatOverride(
       next.preserveOpenAIDeveloperRole = Boolean(patch.preserveOpenAIDeveloperRole);
     }
   }
+  if ("preserveVideoUrl" in patch) {
+    if (patch.preserveVideoUrl === null) {
+      delete next.preserveVideoUrl;
+    } else {
+      next.preserveVideoUrl = Boolean(patch.preserveVideoUrl);
+    }
+  }
   if (patch.compatByProtocol && Object.keys(patch.compatByProtocol).length > 0) {
     const merged = deepMergeCompatByProtocol(next.compatByProtocol, patch.compatByProtocol);
     if (compatByProtocolHasEntries(merged)) next.compatByProtocol = merged;
@@ -211,6 +225,7 @@ export function mergeModelCompatOverride(
   }
   const filtered = list.filter((e) => e.id !== modelId);
   const hasPreserveFlag = Object.prototype.hasOwnProperty.call(next, "preserveOpenAIDeveloperRole");
+  const hasVideoUrlFlag = Object.prototype.hasOwnProperty.call(next, "preserveVideoUrl");
   const hasTopUpstream = next.upstreamHeaders && Object.keys(next.upstreamHeaders).length > 0;
   if ("isHidden" in patch) {
     if (patch.isHidden === null) {
@@ -231,6 +246,7 @@ export function mergeModelCompatOverride(
   if (
     next.normalizeToolCallId ||
     hasPreserveFlag ||
+    hasVideoUrlFlag ||
     hasHiddenFlag ||
     hasDeletedFlag ||
     compatByProtocolHasEntries(next.compatByProtocol) ||

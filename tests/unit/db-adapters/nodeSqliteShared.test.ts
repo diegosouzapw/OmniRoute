@@ -80,6 +80,46 @@ test("createNodeSqliteAdapterFromDatabase uses savepoints for transactions", () 
   assert.equal(db.execCalls[1].startsWith("RELEASE "), true);
 });
 
+test("createNodeSqliteAdapterFromDatabase uses BEGIN IMMEDIATE outside transactions", () => {
+  const db = new FakeDb();
+  const adapter = createNodeSqliteAdapterFromDatabase(db, ":memory:");
+
+  adapter.immediate(() => {});
+
+  assert.deepEqual(db.execCalls, ["BEGIN IMMEDIATE", "COMMIT"]);
+});
+
+test("createNodeSqliteAdapterFromDatabase rolls back failed immediate transactions", () => {
+  const db = new FakeDb();
+  const adapter = createNodeSqliteAdapterFromDatabase(db, ":memory:");
+
+  assert.throws(() =>
+    adapter.immediate(() => {
+      throw new Error("fail");
+    })
+  );
+
+  assert.deepEqual(db.execCalls, ["BEGIN IMMEDIATE", "ROLLBACK"]);
+});
+
+test("createNodeSqliteAdapterFromDatabase nests transactions in immediate savepoints", () => {
+  const db = new FakeDb();
+  const adapter = createNodeSqliteAdapterFromDatabase(db, ":memory:");
+
+  adapter.immediate(() => {
+    const nested = adapter.transaction(() => {
+      throw new Error("inner failure");
+    });
+    assert.throws(() => nested());
+  });
+
+  assert.equal(db.execCalls[0], "BEGIN IMMEDIATE");
+  assert.match(db.execCalls[1], /^SAVEPOINT /);
+  assert.match(db.execCalls[2], /^ROLLBACK TO /);
+  assert.match(db.execCalls[3], /^RELEASE /);
+  assert.equal(db.execCalls[4], "COMMIT");
+});
+
 test("createNodeSqliteAdapterFromDatabase finalizes cached statements on close", () => {
   const db = new FakeDb();
   let closedHookCalls = 0;

@@ -8,15 +8,17 @@ import {
   getCustomModels,
 } from "@/lib/localDb";
 import { getCachedSettings } from "@/lib/localDb";
-import { getSyncedAvailableModels } from "@/lib/db/models";
+import { getActiveSyncedCatalog } from "@/lib/db/models/activeSyncedCatalog";
 import {
   parseModel,
   getModelInfoCore,
   splitSyncedEffortSuffix,
+  stripContextWindowSuffix,
 } from "@omniroute/open-sse/services/model.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { getRegisteredProviderEffortBaseModelId } from "@omniroute/open-sse/utils/registeredEffortVariants.ts";
 
-export { parseModel };
+export { parseModel, stripContextWindowSuffix };
 
 /**
  * Reserved provider prefixes — built-in provider ids + aliases. User-defined
@@ -140,7 +142,10 @@ function resolveSyncedModelIdAndEffort(
   }
   if (findSyncedModelMeta(syncedModels, modelId)) return { modelId, effort: null };
 
-  for (const candidate of syncedModels as Array<{ id?: unknown; supportedThinkingEfforts?: unknown }>) {
+  for (const candidate of syncedModels as Array<{
+    id?: unknown;
+    supportedThinkingEfforts?: unknown;
+  }>) {
     if (typeof candidate?.id !== "string" || !Array.isArray(candidate.supportedThinkingEfforts)) {
       continue;
     }
@@ -206,12 +211,18 @@ function buildRuntimeModelMeta(customMatch: any, syncedMatch: any): RuntimeModel
 async function lookupModelMeta(
   providerId: string,
   modelId: string
-): Promise<{ modelId: string; metadata: RuntimeModelMeta }> {
+): Promise<{
+  modelId: string;
+  metadata: RuntimeModelMeta;
+  available: boolean;
+}> {
   try {
-    const [customModels, syncedModels] = await Promise.all([
+    const [customModels, liveCatalog] = await Promise.all([
       getCustomModels(providerId),
-      getSyncedAvailableModels(providerId),
+      getActiveSyncedCatalog(providerId),
     ]);
+    const syncedModels = liveCatalog.models;
+
     // #7694: no direct match on the raw modelId? try a synced-declared `-{effort}`
     // suffix before falling back to the literal id, so `<prefix>/<model>-<tier>`
     // resolves to the real base model + a resolved effort.
@@ -220,15 +231,25 @@ async function lookupModelMeta(
       modelId,
       syncedModels
     );
-    // #7364: exact match first; retain the case-insensitive custom-model fallback
-    // while also consulting the API-synced catalog for Kimi runtime metadata.
+
+    // Custom models remain explicit operator overrides even when live discovery
+    // is authoritative for the provider.
     const customMatch = findCustomModelMeta(customModels, resolvedModelId);
     const syncedMatch = findSyncedModelMeta(syncedModels, resolvedModelId);
+    const effortBaseModelId = getRegisteredProviderEffortBaseModelId(providerId, modelId);
+
+    const liveBackedEffortVariant =
+      effortBaseModelId !== null && syncedModels.some((model) => model.id === effortBaseModelId);
+
+    const available =
+      !liveCatalog.authoritative || Boolean(customMatch || syncedMatch || liveBackedEffortVariant);
+
     const metadata = buildRuntimeModelMeta(customMatch, syncedMatch);
     if (effort) metadata.resolvedThinkingEffort = effort;
-    return { modelId: resolvedModelId, metadata };
+
+    return { modelId: resolvedModelId, metadata, available };
   } catch {
-    return { modelId, metadata: {} };
+    return { modelId, metadata: {}, available: true };
   }
 }
 
@@ -257,8 +278,23 @@ export async function getModelInfo(modelStr) {
 
   const attachRuntimeModelMeta = async (info: any) => {
     if (!info?.provider || !info?.model) return info;
-    const { modelId, metadata } = await lookupModelMeta(String(info.provider), String(info.model));
+
+    const providerId = String(info.provider);
+    const requestedModelId = String(info.model);
+    const { modelId, metadata, available } = await lookupModelMeta(providerId, requestedModelId);
+
+    if (!available) {
+      return {
+        provider: null,
+        model: requestedModelId,
+        extendedContext: info.extendedContext,
+        errorType: "model_not_found",
+        errorMessage: `Model '${requestedModelId}' is not available in the active live catalog for provider '${providerId}'.`,
+      };
+    }
+
     const resolvedInfo = modelId !== info.model ? { ...info, model: modelId } : info;
+
     return Object.keys(metadata).length > 0 ? { ...resolvedInfo, ...metadata } : resolvedInfo;
   };
 
@@ -396,13 +432,21 @@ export async function getCombo(modelStr) {
  */
 export async function getComboForModel(modelStr) {
   // 1. Existing behavior — exact combo name match
-  const combo = await getCombo(modelStr);
+  let combo = await getCombo(modelStr);
   if (combo) return combo;
+
+  // Client context tags are ignored only after exact lookup, preserving literal
+  // combo names such as "Claude [1m]" while allowing "Claude[500k]" to use "Claude".
+  const baseModelStr = stripContextWindowSuffix(modelStr);
+  if (baseModelStr && baseModelStr !== modelStr) {
+    combo = await getCombo(baseModelStr);
+    if (combo) return combo;
+  }
 
   // 2. NEW — check model-combo mappings table (pattern match)
   try {
     const { resolveComboForModel } = await import("@/lib/localDb");
-    const mapped = await resolveComboForModel(modelStr);
+    const mapped = await resolveComboForModel(baseModelStr || modelStr);
     if (mapped && (mapped as any).models?.length > 0) {
       return mapped;
     }

@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { deleteMemory, getMemory, updateMemory } from "@/lib/memory/store";
+// Import through the module index, NOT "@/lib/memory/manager" directly: the index's
+// import-time side effect is what calls memoryManager.register(sqliteBackend). Importing
+// the bare manager gives an EMPTY registry, so every handler here threw
+// `Primary backend "sqlite" not registered` and returned 500 (#8752).
+import { memoryManager } from "@/lib/memory";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { MemoryUpdatePutSchema } from "@/shared/schemas/memory";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
@@ -11,7 +15,7 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
 
   try {
     const { id } = await props.params;
-    const success = await deleteMemory(id);
+    const success = await memoryManager.delete(id);
     if (!success) {
       return NextResponse.json({ error: "Memory not found" }, { status: 404 });
     }
@@ -28,7 +32,7 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 
   try {
     const { id } = await props.params;
-    const memory = await getMemory(id);
+    const memory = await memoryManager.get(id);
     if (!memory) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
@@ -49,7 +53,7 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
   } catch {
     return NextResponse.json(
       { error: { message: "Invalid JSON body", details: [] } },
-      { status: 400 },
+      { status: 400 }
     );
   }
 
@@ -60,12 +64,12 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
 
   try {
     const { id } = await props.params;
-    const existing = await getMemory(id);
+    const existing = await memoryManager.get(id);
     if (!existing) {
       return NextResponse.json({ error: { message: "Memory not found" } }, { status: 404 });
     }
 
-    await updateMemory(id, validation.data);
+    await memoryManager.update(id, validation.data);
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     const message = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));

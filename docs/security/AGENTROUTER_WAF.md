@@ -1,3 +1,9 @@
+---
+title: "AgentRouter WAF"
+version: 3.8.50
+lastUpdated: 2026-08-03
+---
+
 # agentrouter.org WAF (Web Application Firewall)
 
 The `agentrouter` upstream gateway runs a keyword-based content filter on

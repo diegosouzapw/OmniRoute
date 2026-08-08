@@ -128,6 +128,20 @@ export function ensureCacheControlOnLastUserMessage(body: Record<string, unknown
   const messages = body.messages as Array<Record<string, unknown>> | undefined;
   if (!Array.isArray(messages) || messages.length === 0) return;
 
+  const system = body.system as Array<Record<string, unknown>> | undefined;
+  const systemCacheControlCount = Array.isArray(system)
+    ? system.filter((block) => block.cache_control).length
+    : 0;
+
+  for (const message of messages) {
+    const content = message.content as Array<Record<string, unknown>> | undefined;
+    if (Array.isArray(content) && content.some((block) => block.cache_control)) {
+      return;
+    }
+  }
+
+  if (systemCacheControlCount >= MAX_CACHE_CONTROL_BLOCKS) return;
+
   // Find the last user message
   for (let i = messages.length - 1; i >= 0; i--) {
     if (String(messages[i].role) === "user") {

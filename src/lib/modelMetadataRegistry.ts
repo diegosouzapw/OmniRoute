@@ -2,7 +2,11 @@ import { randomUUID } from "node:crypto";
 import { parseModel } from "@omniroute/open-sse/services/model.ts";
 import { getModelInfo } from "@/sse/services/model";
 import { getModelAliases } from "@/lib/db/models";
-import { getResolvedModelCapabilities, isNonChatCatalogSurface } from "@/lib/modelCapabilities";
+import {
+  getResolvedModelCapabilities,
+  getResolvedModelContextOverride,
+  isNonChatCatalogSurface,
+} from "@/lib/modelCapabilities";
 import {
   getAuthoritativeContextWindow,
   getAuthoritativeProviderContextWindow,
@@ -12,6 +16,7 @@ import {
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "@/shared/constants/models";
 import { getSyncStatus, getSyncedCapability, getModelsDevPricing } from "@/lib/modelsDevSync";
+import { getSyncedPricing } from "@/lib/pricingSync";
 import { getPricingForModel as getDefaultPricingForModel } from "@/shared/constants/pricing";
 import {
   CANONICAL_EFFORT_VALUES,
@@ -335,6 +340,44 @@ function resolveCatalogPricing(
     // pricing lookup must never break catalog assembly
   }
 
+  // LiteLLM-synced pricing (`pricing_synced` namespace) — Layer 3 in the
+  // documented resolution order (user > models.dev > LiteLLM > defaults).
+  // Consulted only when models.dev returned nothing, matching the order
+  // already implemented in db/settings/pricing.ts::getPricing().
+  try {
+    const litellm = getSyncedPricing() as unknown as Record<
+      string,
+      Record<string, Record<string, number>>
+    >;
+    const providerPricing =
+      findInsensitive(litellm, provider) || findInsensitive(litellm, provider.replace(/-cn$/, ""));
+    if (providerPricing) {
+      const modelPricing =
+        findInsensitive(providerPricing, model) ||
+        findInsensitive(providerPricing, model.replace(/\./g, "-")) ||
+        findInsensitive(
+          providerPricing,
+          model.includes("/") ? model.split("/").pop() || model : model
+        );
+      if (modelPricing && typeof modelPricing === "object") {
+        const input = modelPricing.input;
+        const output = modelPricing.output;
+        if (typeof input === "number" || typeof output === "number") {
+          const pricing: Record<string, number> = {};
+          if (typeof input === "number") pricing.input = input;
+          if (typeof output === "number") pricing.output = output;
+          if (typeof modelPricing.cached === "number") pricing.cached = modelPricing.cached;
+          if (typeof modelPricing.cache_creation === "number") {
+            pricing.cache_creation = modelPricing.cache_creation;
+          }
+          return pricing;
+        }
+      }
+    }
+  } catch {
+    // pricing lookup must never break catalog assembly
+  }
+
   try {
     const defaults = getDefaultPricingForModel(provider, model) as Record<string, number> | null;
     if (defaults && (typeof defaults.input === "number" || typeof defaults.output === "number")) {
@@ -378,6 +421,7 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
     getAuthoritativeContextWindow(metadata.model) ??
     getAuthoritativeContextWindow(model);
   const specialtySurface = isNonChatCatalogSurface(entry.type);
+  const persistedContextWindow = getResolvedModelContextOverride({ provider, model });
   const capabilityFields = {
     ...(typeof metadata.capabilities.vision === "boolean"
       ? { vision: metadata.capabilities.vision }
@@ -446,16 +490,21 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
 
   if (
     !specialtySurface &&
-    (typeof nextEntry.context_length !== "number" || authoritativeContextWindow !== null) &&
+    (typeof nextEntry.context_length !== "number" ||
+      authoritativeContextWindow !== null ||
+      persistedContextWindow !== null) &&
     typeof metadata.limits.contextWindow === "number"
   ) {
     nextEntry.context_length = metadata.limits.contextWindow;
+  } else if (specialtySurface && persistedContextWindow !== null) {
+    // Exact persisted overrides are authoritative for every surface of the model.
+    nextEntry.context_length = persistedContextWindow;
   } else if (
     specialtySurface &&
     authoritativeContextWindow !== null &&
     typeof authoritativeContextWindow === "number"
   ) {
-    // Only authoritative static windows may decorate specialty rows.
+    // Only authoritative static windows may otherwise decorate specialty rows.
     nextEntry.context_length = authoritativeContextWindow;
   } else if (specialtySurface && typeof nextEntry.context_length === "number") {
     // Keep an explicit source-provided context if the emitter already set one.

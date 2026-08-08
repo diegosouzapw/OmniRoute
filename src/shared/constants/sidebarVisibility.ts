@@ -126,6 +126,21 @@ export function getSidebarIconAccent(id: string): string {
   );
 }
 
+/**
+ * Decide whether a sidebar item should be shown given a resolved feature-flag
+ * map. Items without `featureFlagKey` are always visible. Fails OPEN when the
+ * flag isn't present in the map (e.g. `/api/settings` hasn't returned yet, or
+ * an older server response predates the flag) — a missing entry must never
+ * hide an unrelated item.
+ */
+export function isSidebarItemVisibleForFlags(
+  item: Pick<SidebarItemDefinition, "featureFlagKey">,
+  flags: Record<string, boolean>
+): boolean {
+  if (!item.featureFlagKey) return true;
+  return flags[item.featureFlagKey] !== false;
+}
+
 export function getSectionItems(
   section: SidebarSectionDefinition | { children: readonly SidebarSectionChild[] }
 ): readonly SidebarItemDefinition[] {

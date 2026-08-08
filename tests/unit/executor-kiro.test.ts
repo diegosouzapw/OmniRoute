@@ -241,6 +241,222 @@ test("KiroExecutor.transformEventStreamToSSE converts text, tool calls, usage an
   assert.match(text, /\[DONE\]/);
 });
 
+test("KiroExecutor normalizes Bedrock cache-token fields from a metricsEvent", async () => {
+  const executor = new KiroExecutor();
+  const response = buildEventStreamResponse([
+    buildEventFrame("assistantResponseEvent", { content: "cached" }),
+    buildEventFrame("metricsEvent", {
+      inputTokens: 7,
+      outputTokens: 2,
+      cacheReadInputTokens: 1024,
+      cacheWriteInputTokens: 256,
+    }),
+  ]);
+
+  const transformed = executor.transformEventStreamToSSE(response, "kiro-model");
+  const chunks = parseSSEJsonChunks(await transformed.text());
+  const finish = chunks.find((chunk) => chunk.choices?.[0]?.finish_reason);
+
+  assert.deepEqual(finish.usage, {
+    prompt_tokens: 7,
+    completion_tokens: 2,
+    total_tokens: 9,
+    cache_read_input_tokens: 1024,
+    cache_creation_input_tokens: 256,
+  });
+});
+
+test("KiroExecutor does not invent cache tokens for the live API-key event shape", async () => {
+  const executor = new KiroExecutor();
+  const response = buildEventStreamResponse([
+    buildEventFrame("assistantResponseEvent", {
+      content: "live-shaped response",
+      modelId: "claude-sonnet-4.5",
+    }),
+    buildEventFrame("metadataEvent", { stopReason: "END_TURN" }),
+    buildEventFrame("contextUsageEvent", { contextUsagePercentage: 4.93 }),
+    buildEventFrame("meteringEvent", {
+      unit: "credit",
+      unitPlural: "credits",
+      usage: 0.022,
+    }),
+  ]);
+
+  const transformed = executor.transformEventStreamToSSE(response, "kiro-model");
+  const chunks = parseSSEJsonChunks(await transformed.text());
+  const finish = chunks.find((chunk) => chunk.choices?.[0]?.finish_reason);
+
+  assert.equal(finish.usage.cache_read_input_tokens, undefined);
+  assert.equal(finish.usage.cache_creation_input_tokens, undefined);
+});
+
+// The cache-field fix in d205650a7 landed inside the `metricsEvent` branch, but
+// live API-key traffic (the test above) sends no `metricsEvent` at all — it sends
+// a `metadataEvent`. The corrected code was therefore unreachable in production
+// and cache stats stayed empty. Usage extraction now accepts both frames.
+test("KiroExecutor reads usage and cache tokens from a metadataEvent frame", async () => {
+  const executor = new KiroExecutor();
+  const response = buildEventStreamResponse([
+    buildEventFrame("assistantResponseEvent", { content: "cached reply" }),
+    buildEventFrame("metadataEvent", {
+      stopReason: "END_TURN",
+      usage: {
+        inputTokens: 12,
+        outputTokens: 3,
+        cacheReadInputTokens: 2048,
+        cacheWriteInputTokens: 512,
+      },
+    }),
+  ]);
+
+  const transformed = executor.transformEventStreamToSSE(response, "kiro-model");
+  const chunks = parseSSEJsonChunks(await transformed.text());
+  const finish = chunks.find((chunk) => chunk.choices?.[0]?.finish_reason);
+
+  assert.deepEqual(finish.usage, {
+    prompt_tokens: 12,
+    completion_tokens: 3,
+    total_tokens: 15,
+    cache_read_input_tokens: 2048,
+    cache_creation_input_tokens: 512,
+  });
+});
+
+// Cache counts can arrive on a frame carrying no input/output totals. Dropping
+// the frame (the old behavior, gated on `inputTokens > 0 || outputTokens > 0`)
+// lost the cache accounting entirely.
+test("KiroExecutor keeps cache tokens that arrive without input/output totals", async () => {
+  const executor = new KiroExecutor();
+  const response = buildEventStreamResponse([
+    buildEventFrame("assistantResponseEvent", { content: "hi" }),
+    buildEventFrame("contextUsageEvent", { contextUsagePercentage: 10 }),
+    buildEventFrame("metadataEvent", {
+      usage: { cacheReadInputTokens: 900 },
+    }),
+  ]);
+
+  const transformed = executor.transformEventStreamToSSE(response, "kiro-model");
+  const chunks = parseSSEJsonChunks(await transformed.text());
+  const finish = chunks.find((chunk) => chunk.choices?.[0]?.finish_reason);
+
+  assert.deepEqual(finish.usage, {
+    prompt_tokens: 19999,
+    completion_tokens: 1,
+    total_tokens: 20000,
+    cache_read_input_tokens: 900,
+  });
+});
+
+// snake_case spellings appear on some Kiro frames; a cache count must not be
+// dropped just because it is not the Bedrock camelCase spelling.
+test("KiroExecutor accepts snake_case cache token spellings", async () => {
+  const executor = new KiroExecutor();
+  const response = buildEventStreamResponse([
+    buildEventFrame("assistantResponseEvent", { content: "ok" }),
+    buildEventFrame("metadataEvent", {
+      usage: {
+        prompt_tokens: 5,
+        completion_tokens: 1,
+        cache_read_input_tokens: 64,
+        cache_creation_input_tokens: 32,
+      },
+    }),
+  ]);
+
+  const transformed = executor.transformEventStreamToSSE(response, "kiro-model");
+  const chunks = parseSSEJsonChunks(await transformed.text());
+  const finish = chunks.find((chunk) => chunk.choices?.[0]?.finish_reason);
+
+  assert.deepEqual(finish.usage, {
+    prompt_tokens: 5,
+    completion_tokens: 1,
+    total_tokens: 6,
+    cache_read_input_tokens: 64,
+    cache_creation_input_tokens: 32,
+  });
+});
+
+// Live generateAssistantResponse sends NO token counts — only
+// contextUsageEvent.contextUsagePercentage plus a meteringEvent credit figure.
+// The synthesized usage is therefore an estimate, and the context budget the
+// percentage applies to decides it. A fixed 200000 undercounts claude-sonnet-5
+// (1M window) by 5x, and those numbers feed usage_history and the API-key
+// token-limit counters.
+test("KiroExecutor scales the usage estimate by the model's own context window", async () => {
+  const executor = new KiroExecutor();
+  const estimateFor = async (model) => {
+    const response = buildEventStreamResponse([
+      buildEventFrame("assistantResponseEvent", { content: "x".repeat(400) }),
+      buildEventFrame("contextUsageEvent", { contextUsagePercentage: 10 }),
+    ]);
+    const chunks = parseSSEJsonChunks(
+      await executor.transformEventStreamToSSE(response, model).text()
+    );
+    return chunks.find((chunk) => chunk.choices?.[0]?.finish_reason).usage;
+  };
+
+  // 10% of 200000, with the 100-token completion carved out of the total.
+  assert.deepEqual(await estimateFor("claude-sonnet-4.5"), {
+    prompt_tokens: 19900,
+    completion_tokens: 100,
+    total_tokens: 20000,
+  });
+
+  // 10% of 1000000 — a fixed 200000 budget would have reported 20000 here.
+  assert.deepEqual(await estimateFor("claude-sonnet-5"), {
+    prompt_tokens: 99900,
+    completion_tokens: 100,
+    total_tokens: 100000,
+  });
+
+  // 10% of 272000.
+  assert.equal((await estimateFor("gpt-5.6-sol")).total_tokens, 27200);
+
+  // Registry models without their own contextLength inherit defaultContextLength,
+  // and an unknown id falls back to the same budget rather than reporting zero.
+  assert.equal((await estimateFor("glm-5")).total_tokens, 20000);
+  assert.equal((await estimateFor("not-a-kiro-model")).total_tokens, 20000);
+});
+
+// The percentage already covers the whole context, so adding a separately
+// estimated completion on top would double-count it and inflate total_tokens
+// past what Kiro reported.
+test("KiroExecutor carves the completion estimate out of the reported total", async () => {
+  const executor = new KiroExecutor();
+  const response = buildEventStreamResponse([
+    buildEventFrame("assistantResponseEvent", { content: "y".repeat(800) }),
+    buildEventFrame("contextUsageEvent", { contextUsagePercentage: 5 }),
+  ]);
+
+  const chunks = parseSSEJsonChunks(
+    await executor.transformEventStreamToSSE(response, "claude-sonnet-4.5").text()
+  );
+  const usage = chunks.find((chunk) => chunk.choices?.[0]?.finish_reason).usage;
+
+  // 5% of 200000 is 10000 and must stay the total, not become 10000 + 200.
+  assert.equal(usage.total_tokens, 10000);
+  assert.equal(usage.completion_tokens, 200);
+  assert.equal(usage.prompt_tokens, 9800);
+});
+
+// With no percentage there is no total to split, so the output estimate has to
+// stand on its own instead of being silently dropped.
+test("KiroExecutor still reports a completion estimate without a context percentage", async () => {
+  const executor = new KiroExecutor();
+  const response = buildEventStreamResponse([
+    buildEventFrame("assistantResponseEvent", { content: "z".repeat(400) }),
+  ]);
+
+  const chunks = parseSSEJsonChunks(
+    await executor.transformEventStreamToSSE(response, "claude-sonnet-4.5").text()
+  );
+  const usage = chunks.find((chunk) => chunk.choices?.[0]?.finish_reason).usage;
+
+  assert.equal(usage.prompt_tokens, 0);
+  assert.equal(usage.completion_tokens, 100);
+  assert.equal(usage.total_tokens, 100);
+});
+
 test("KiroExecutor.transformEventStreamToSSE surfaces native reasoning frames as reasoning_content", async () => {
   const executor = new KiroExecutor();
   // Verified live wire format: Kiro streams adaptive-thinking reasoning as a

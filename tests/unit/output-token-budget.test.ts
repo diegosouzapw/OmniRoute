@@ -6,6 +6,10 @@ import { enforceOutputTokenBudget } from "../../open-sse/handlers/chatCore/outpu
 test("rejects a prompt that cannot leave one output token", () => {
   const result = enforceOutputTokenBudget({ max_tokens: 8192 }, 527_058, 128_000);
 
+  assert.equal(result.ok, false);
+  if (result.ok) assert.fail("expected the rejected output-budget branch");
+  assert.equal(result.estimatedInputTokens, 527_058);
+  assert.equal(result.contextLimit, 128_000);
   assert.deepEqual(result, {
     ok: false,
     estimatedInputTokens: 527_058,

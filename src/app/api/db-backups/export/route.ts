@@ -34,21 +34,39 @@ export async function GET(request: Request) {
     const db = getDbInstance();
     await db.backup(tmpPath);
 
-    const fileBuffer = fs.readFileSync(tmpPath);
+    const { size: fileSize } = fs.statSync(tmpPath);
+    const readStream = fs.createReadStream(tmpPath);
 
-    // Cleanup temp file
-    try {
-      fs.unlinkSync(tmpPath);
-    } catch {
-      /* best effort */
-    }
+    // Cleanup temp file on completion, error, or client abort
+    const cleanup = () => {
+      readStream.destroy();
+      fs.unlink(tmpPath, () => {});
+    };
+    request.signal.addEventListener("abort", cleanup, { once: true });
 
-    return new Response(fileBuffer, {
+    const webStream = new ReadableStream({
+      start(controller) {
+        readStream.on("data", (chunk) => controller.enqueue(chunk));
+        readStream.on("end", () => {
+          controller.close();
+          cleanup();
+        });
+        readStream.on("error", (err) => {
+          controller.error(err);
+          cleanup();
+        });
+      },
+      cancel() {
+        cleanup();
+      },
+    });
+
+    return new Response(webStream, {
       status: 200,
       headers: {
         "Content-Type": "application/octet-stream",
         "Content-Disposition": `attachment; filename="${exportFilename}"`,
-        "Content-Length": String(fileBuffer.length),
+        "Content-Length": String(fileSize),
         "Cache-Control": "no-cache, no-store",
       },
     });

@@ -1,0 +1,8 @@
+{
+  "name": "devin-bridge-e2e-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test math.test.js"
+  }
+}

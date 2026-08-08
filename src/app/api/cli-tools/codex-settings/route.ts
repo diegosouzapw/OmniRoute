@@ -266,14 +266,15 @@ export async function POST(request: Request) {
       delete parsed._root.model_reasoning_effort;
     }
 
-    const normalizedBaseUrl = normalizeCodexBaseUrl(baseUrl, wireApi || "chat");
+    const effectiveWireApi = wireApi ?? "responses";
+    const normalizedBaseUrl = normalizeCodexBaseUrl(baseUrl, effectiveWireApi);
 
     // Always create a custom provider to reliably pass wire_api and use OMNIROUTE_API_KEY
     parsed._root.model_provider = "omniroute";
     parsed._sections["model_providers.omniroute"] = {
       name: "OmniRoute",
       base_url: normalizedBaseUrl,
-      wire_api: wireApi || "chat",
+      wire_api: effectiveWireApi,
       env_key: "OPENAI_API_KEY",
     };
     delete parsed._root.openai_base_url;

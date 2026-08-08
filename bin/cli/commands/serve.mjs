@@ -16,7 +16,7 @@ import {
   resolveMaxOldSpaceMb,
   calibrateHeapFallbackMb,
   buildServerNodeOptions,
-  buildNodeHeapArgs,
+  buildNodeRuntimeArgs,
 } from "../../../scripts/build/runtime-env.mjs";
 import { resolveTlsOptions } from "../../../scripts/dev/tls-options.mjs";
 
@@ -269,7 +269,7 @@ function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
   // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
   const server = spawn(
     process.versions.bun ? process.execPath : "node",
-    [...(process.versions.bun ? [] : buildNodeHeapArgs(process.env, memoryLimit)), serverJs],
+    process.versions.bun ? [serverJs] : buildNodeRuntimeArgs(process.env, memoryLimit, serverJs),
     {
       cwd: APP_DIR,
       env,
@@ -289,7 +289,7 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
   // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
   const server = spawn(
     process.versions.bun ? process.execPath : "node",
-    [...(process.versions.bun ? [] : buildNodeHeapArgs(process.env, memoryLimit)), serverJs],
+    process.versions.bun ? [serverJs] : buildNodeRuntimeArgs(process.env, memoryLimit, serverJs),
     {
       cwd: APP_DIR,
       env,
@@ -387,12 +387,19 @@ async function runWithSupervisor(
 
   supervisor.start();
 
+  // #9455: persist the supervisor's own PID so `omniroute stop` can SIGTERM it
+  // before the child — the supervisor's SIGTERM handler sets isShuttingDown=true,
+  // kills the child, and exits cleanly, so the child is never respawned after stop.
+  writePidFile("supervisor", process.pid);
+
   process.on("SIGINT", () => {
     killTrayIfActive();
+    cleanupPidFile("supervisor");
     supervisor.stop();
   });
   process.on("SIGTERM", () => {
     killTrayIfActive();
+    cleanupPidFile("supervisor");
     supervisor.stop();
   });
 

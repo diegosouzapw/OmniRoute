@@ -7,11 +7,13 @@ import { comboRuntimeConfigSchema } from "@/shared/validation/schemas/combo";
 // production schema changes shape.
 describe("Combo Context Requirements", () => {
   describe("Schema Validation", () => {
-    it("should accept valid minContextWindow", () => {
+    it("should accept valid minContextWindow and maxContextWindow", () => {
       const schema = comboRuntimeConfigSchema;
 
       const valid = [
         { contextRequirements: { minContextWindow: 8192 } },
+        { contextRequirements: { maxContextWindow: 32000 } },
+        { contextRequirements: { minContextWindow: 8192, maxContextWindow: 128000 } },
         { contextRequirements: { minContextWindow: 32000 } },
         { contextRequirements: { minContextWindow: 128000 } },
         { contextRequirements: { minContextWindow: 1000000 } },
@@ -25,13 +27,16 @@ describe("Combo Context Requirements", () => {
       }
     });
 
-    it("should reject invalid minContextWindow", () => {
+    it("should reject invalid minContextWindow or maxContextWindow", () => {
       const schema = comboRuntimeConfigSchema;
 
       const invalid = [
         { contextRequirements: { minContextWindow: -1 } },
         { contextRequirements: { minContextWindow: 20_000_000 } },
         { contextRequirements: { minContextWindow: "invalid" } },
+        { contextRequirements: { maxContextWindow: -1 } },
+        { contextRequirements: { maxContextWindow: 20_000_000 } },
+        { contextRequirements: { maxContextWindow: "invalid" } },
       ];
 
       for (const input of invalid) {

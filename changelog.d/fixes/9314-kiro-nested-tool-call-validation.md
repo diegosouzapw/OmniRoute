@@ -1,0 +1,1 @@
+- **fix(kiro):** validate completed nested tool-call payloads before forwarding them. (thanks @SemonCat)

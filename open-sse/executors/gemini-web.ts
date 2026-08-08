@@ -349,6 +349,30 @@ export class GeminiWebExecutor extends BaseExecutor {
   }
 
   /**
+   * testConnection — validates the cookie format without making a network call
+   * or launching Playwright. Returns true when the cookie is non-empty and
+   * contains at least one name=value pair with a non-empty value. This is a
+   * lightweight pre-check before the browser automation path; full session
+   * validation is done by validateGeminiWebProvider in the connection test
+   * flow (#9407).
+   */
+  async testConnection(
+    credentials: Record<string, unknown>,
+    _signal?: AbortSignal
+  ): Promise<boolean> {
+    try {
+      const cookie = resolveGeminiWebCookie(
+        credentials as unknown as ExecuteInput["credentials"]
+      );
+      if (!cookie) return false;
+      const pairs = parseCookies(cookie);
+      return pairs.some((p) => p.value.length > 0);
+    } catch {
+      return false;
+    }
+  }
+
+  /**
    * Read the live Playwright cookie jar back after a successful run and, if
    * Google rotated any of the __Secure-1PSID* cookies, forward the merged
    * cookie string through onCredentialsRefreshed so it gets persisted to the
@@ -587,6 +611,30 @@ export class GeminiWebExecutor extends BaseExecutor {
                 "X-Omni-Fallback-Hint": "connection_cooldown",
               },
             }
+          ),
+          url: GEMINI_URL,
+          headers: {},
+          transformedBody: body,
+        };
+      }
+      // #9407: Playwright selector/click timeout errors are terminal — they indicate
+      // the page DOM does not match expectations (e.g. Gemini changed their UI or
+      // the session is so expired it lands on a different page). Return 400 so the
+      // account-fallback system does NOT retry this request as a transient 5xx.
+      if (
+        error instanceof Error &&
+        (error.name === "TimeoutError" ||
+          rawMessage.includes("waitForSelector") ||
+          rawMessage.includes("Timeout") ||
+          rawMessage.includes("actionability") ||
+          rawMessage.includes("interception"))
+      ) {
+        return {
+          response: new Response(
+            JSON.stringify({
+              error: sanitizeErrorMessage(rawMessage),
+            }),
+            { status: 400, headers: { "Content-Type": "application/json" } }
           ),
           url: GEMINI_URL,
           headers: {},

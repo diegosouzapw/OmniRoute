@@ -38,6 +38,9 @@ const residualKeys = [
   "settings.routingInvalidJson",
   "settings.routingJsonEditorLabel",
   "settings.routingTransformsFootnote",
+  "providers.darioRoutingEnabled",
+  "providers.upstreamProxyFallbackEnabled",
+  "providers.failedUpdateUpstreamProxyRouting",
 ];
 
 test("hardcoded UI residual keys exist in required catalogs", () => {
@@ -78,4 +81,23 @@ test("request log dates follow the active locale without duplicating rotated acc
     source,
     /\}\)\}\s*\{formatConnectionId\(codexAccountRotation\.finalConnectionId\)\}/
   );
+});
+
+test("upstream proxy notifications preserve all four localized routing modes", () => {
+  const source = readRepoFile(
+    "src/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderConnections.ts"
+  );
+
+  for (const mode of ["native", "cliproxyapi", "dario", "fallback"]) {
+    assert.match(source, new RegExp(`\\b${mode}: providerText\\(`));
+  }
+  for (const key of [
+    "cliproxyRoutingDisabled",
+    "cliproxyRoutingEnabled",
+    "darioRoutingEnabled",
+    "upstreamProxyFallbackEnabled",
+    "failedUpdateUpstreamProxyRouting",
+  ]) {
+    assert.match(source, new RegExp(`"${key}"`));
+  }
 });

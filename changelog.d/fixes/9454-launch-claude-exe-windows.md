@@ -1,0 +1,1 @@
+- fix(cli): probe PATH for claude.exe/codex.exe on Windows before falling back to the .cmd shim (#9454)

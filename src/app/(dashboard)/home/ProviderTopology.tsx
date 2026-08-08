@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Handle, Position, type Node, type Edge, type NodeTypes } from "@xyflow/react";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
@@ -58,7 +59,7 @@ function ProviderNode({ data }: { data: ProviderNodeData }) {
 
   return (
     <div
-      className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border-2 transition-all duration-300 bg-bg"
+      className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border-2 transition-all duration-300 bg-bg cursor-pointer hover:scale-105 active:scale-95 shadow-sm hover:shadow-md"
       style={{
         borderColor: error ? RED : active ? color : healthy ? GREEN : "var(--color-border)",
         boxShadow: error
@@ -216,9 +217,7 @@ function buildLayout(
       return 4;
     };
     const d = rank(a) - rank(b);
-    return d !== 0
-      ? d
-      : a.provider.toLowerCase().localeCompare(b.provider.toLowerCase()); // ASCII kasıtlı
+    return d !== 0 ? d : a.provider.toLowerCase().localeCompare(b.provider.toLowerCase()); // ASCII kasıtlı
   });
 
   let provIdx = 0;
@@ -330,6 +329,21 @@ export default function ProviderTopology({
     [providers]
   );
 
+  const router = useRouter();
+
+  const handleNodeClick = useCallback(
+    (_event: React.MouseEvent, node: Node) => {
+      if (node.type !== "provider") return;
+      const providerId =
+        (node.data as ProviderNodeData | undefined)?.providerId ||
+        node.id.replace(/^provider-/, "");
+      if (providerId) {
+        router.push(`/dashboard/providers/${providerId}`);
+      }
+    },
+    [router]
+  );
+
   const containerClass =
     "h-[300px] w-full min-w-0 rounded-xl border border-border bg-bg-subtle/20 overflow-hidden sm:h-[420px]";
 
@@ -351,6 +365,7 @@ export default function ProviderTopology({
       nodeTypes={nodeTypes}
       fitKey={providersKey}
       className={containerClass}
+      onNodeClick={handleNodeClick}
     />
   );
 }

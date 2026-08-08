@@ -44,7 +44,6 @@ const SENTINEL_PREPARE_URL = `${CHATGPT_BASE}/backend-api/sentinel/chat-requirem
 const SENTINEL_CR_URL = `${CHATGPT_BASE}/backend-api/sentinel/chat-requirements`;
 const CONV_URL = `${CHATGPT_BASE}/backend-api/f/conversation`;
 const USER_LAST_USED_MODEL_CONFIG_URL = `${CHATGPT_BASE}/backend-api/settings/user_last_used_model_config`;
-
 const DEFAULT_PRO_POLL_TIMEOUT_MS = 20 * 60_000;
 const DEFAULT_PRO_POLL_INTERVAL_MS = 4_000;
 
@@ -2263,7 +2262,7 @@ interface ResolverContext {
   deviceId: string;
   cookie: string;
   signal?: AbortSignal | null;
-  log?: { debug?: (tag: string, msg: string) => void; warn?: (tag: string, msg: string) => void };
+  log?: Partial<Record<"debug" | "info" | "warn", (tag: string, msg: string) => void>>;
   /**
    * Absolute base URL that downstream clients should use to fetch cached
    * images served by /v1/chatgpt-web/image/<id>. Derived from the inbound
@@ -2697,9 +2696,10 @@ async function pollForAsyncImage(
         const message = node?.message;
         const parts = message?.content?.parts;
         if (!Array.isArray(parts)) continue;
-        const pointers = extractImagePointers(parts).map(
-          (pointer) => ({ pointer, messageId: message?.id })
-        );
+        const pointers = extractImagePointers(parts).map((pointer) => ({
+          pointer,
+          messageId: message?.id,
+        }));
         if (pointers.length === 0) continue;
         const at = message?.create_time ?? 0;
         if (!newest || at >= newest.at) newest = { pointers, at };
@@ -2816,11 +2816,14 @@ export class ChatGptWebExecutor extends BaseExecutor {
       };
     }
 
-    // Tool-call emulation (#5240): inject a `<tool>` contract when `tools` are
-    // present; parsed back on the response side. Mirrors qwen-web/perplexity-web.
+    // Tool-call emulation (#5240, #7679): inject a `<tool>` contract when tools
+    // are present; parsed back on the response side. Hardened for thinking models.
+    const resolvedModel = resolveChatGptModel(model, body, credentials.providerSpecificData);
+    const modelSlug = resolvedModel.slug;
     const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(
       (body || {}) as Record<string, unknown>,
-      messages as Array<{ role: string; content: unknown }>
+      messages as Array<{ role: string; content: unknown }>,
+      { hardened: isThinkingCapableModel(model, modelSlug) }
     );
 
     if (!credentials.apiKey) {
@@ -2918,12 +2921,9 @@ export class ChatGptWebExecutor extends BaseExecutor {
       log
     );
 
-    // 2a''. Resolve model + effort and apply thinking-effort preference for
-    // thinking-capable models. Dedicated thinking models mirror the browser's
-    // user-config PATCH; GPT-5.5 Pro sends the effort with the conversation
-    // body because the Pro standard/extended budget is part of that turn.
-    const resolvedModel = resolveChatGptModel(model, body, credentials.providerSpecificData);
-    const modelSlug = resolvedModel.slug;
+    // 2a''. Apply thinking-effort preference for thinking models.
+    // Dedicated thinking models mirror the browser's user-config PATCH;
+    // GPT-5.5 Pro effort is sent with the conversation body.
     const requestedEffort = resolvedModel.effort;
     if (requestedEffort && isThinkingCapableModel(model, modelSlug)) {
       await setUserThinkingEffort(

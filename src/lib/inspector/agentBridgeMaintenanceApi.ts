@@ -33,8 +33,11 @@ async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 /** Run the capture-pipeline self-test (server/cert/dns reachability). */
-export function runDiagnose(): Promise<DiagnoseResult> {
-  return requestJson<DiagnoseResult>("/api/tools/agent-bridge/diagnose");
+export function runDiagnose(agentId?: string): Promise<DiagnoseResult> {
+  const url = agentId
+    ? `/api/tools/agent-bridge/diagnose?agentId=${encodeURIComponent(agentId)}`
+    : "/api/tools/agent-bridge/diagnose";
+  return requestJson<DiagnoseResult>(url);
 }
 
 /** Untrust + remove the MITM root CA from the OS store (explicit, idempotent). */

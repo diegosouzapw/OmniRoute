@@ -14,6 +14,7 @@ import {
   resolveConnectionCacheOverride,
 } from "../utils/cacheControlPolicy.ts";
 import { requiresAuthenticReasoningContent } from "../utils/reasoningContentInjector.ts";
+import { isInternalReasoningPlaceholder } from "../utils/reasoningPlaceholder.ts";
 import {
   coerceToolSchemas,
   injectEmptyReasoningContentForToolCalls,
@@ -25,6 +26,7 @@ import { bootstrapTranslatorRegistry } from "./bootstrap.ts";
 import { hasThinkingConfig, normalizeThinkingConfig } from "../services/provider.ts";
 import { applyThinkingBudget } from "../services/thinkingBudget.ts";
 import { applyReasoningRuleDirective } from "@/lib/reasoningRouting/policy";
+import { getModelPreserveVideoUrl } from "@/lib/db/models/modelPreserveVideoUrl";
 import { getResolvedModelCapabilities, supportsReasoning } from "../services/modelCapabilities.ts";
 import { normalizeRoles } from "../services/roleNormalizer.ts";
 import { hoistLeadingSystemMessage } from "./helpers/strictSystemHoist.ts";
@@ -164,6 +166,29 @@ function isReasoningOnlyReplayTarget(provider: unknown, model: unknown): boolean
   );
 }
 
+/**
+ * Upstreams that reject an ABSENT reasoning_content on replay turns, so the
+ * placeholder must survive the cache miss.
+ *
+ * #9573/#9610 removed the placeholder globally because the model echoed it as
+ * its own reasoning and stopped (empty turns). That holds for DeepSeek, where
+ * an absent field was verified to be accepted — but Xiaomi MiMo still 400s
+ * ("Param Incorrect: The reasoning_content in the thinking mode must be passed
+ * back to the API", 9router#1321/#1337), so omitting the field there trades one
+ * live bug for another. Keep the placeholder only for those providers; the echo
+ * that comes back is still stripped on the way in by
+ * isInternalReasoningPlaceholder(), so it never re-poisons cache or history.
+ */
+function requiresReasoningContentPresence(provider: unknown, model: unknown): boolean {
+  const normalizedProvider = String(provider ?? "")
+    .trim()
+    .toLowerCase();
+  const normalizedModel = String(model ?? "")
+    .trim()
+    .toLowerCase();
+  return normalizedProvider === "xiaomi-mimo" || /(^|\/)mimo/i.test(normalizedModel);
+}
+
 /** @param options.normalizeToolCallId - When true, use 9-char tool call ids (e.g. Mistral); when false, leave ids as-is */
 /** @param options.preserveDeveloperRole - undefined/true: keep developer for OpenAI format (default); false: map to system */
 /** @param options.preserveCacheControl - When true, preserve client-side cache_control markers (for Claude Code, etc.) */
@@ -224,8 +249,12 @@ export function translateRequest(
   // Fix missing tool responses (insert empty tool_result if needed)
   fixMissingToolResponses(result);
 
-  // Strip orphaned tool results (tool_result/role:tool with no matching tool_call)
-  stripOrphanedToolResults(result);
+  // Claude reconciliation preserves orphaned tool output as labelled user text.
+  // Keep the raw result carriers until the target translator can perform that
+  // lossless conversion; other target formats retain the strict orphan filter.
+  if (targetFormat !== FORMATS.CLAUDE) {
+    stripOrphanedToolResults(result);
+  }
 
   // Normalize roles: developer→system unless preserved, system→user for incompatible models.
   // This handles (1) sourceFormat openai with messages containing developer → non-openai target
@@ -258,11 +287,16 @@ export function translateRequest(
     if (directTranslator && sourceFormat !== FORMATS.OPENAI && targetFormat !== FORMATS.OPENAI) {
       // Thread the routed provider id so target translators can apply provider-specific
       // quirks (e.g. Vertex rejects function_call.id — #3440).
+      // Also thread signatureNamespace so Claude→Gemini can re-attach cached
+      // thoughtSignature on tool-use history (#8979 / #2504 parity with the hub path).
+      const hasNs = options?.signatureNamespace != null;
+      const hasProvider = provider != null;
       const directCredentials =
-        provider != null
+        hasNs || hasProvider
           ? {
               ...(credentials && typeof credentials === "object" ? credentials : {}),
-              _provider: provider,
+              ...(hasProvider ? { _provider: provider } : {}),
+              ...(hasNs ? { _signatureNamespace: options.signatureNamespace } : {}),
             }
           : credentials;
       result = directTranslator(model, result, stream, directCredentials);
@@ -359,8 +393,11 @@ export function translateRequest(
         providerHonorsOpenAIFormatCacheControl(provider, connectionCacheOverride),
       // #4849 regression guard: keep client reasoning_content for replay providers.
       preserveReasoningContent: isReasoner,
-      // Moonshot's Chat API accepts its own OpenAI-compatible `video_url` block.
-      preserveVideoUrl: normalizedProvider === "moonshot" || normalizedProvider === "kimi",
+      // Per-provider/model preserveVideoUrl flag from compat overrides.
+      // Falls back to true for moonshot/kimi when unset (legacy behavior).
+      preserveVideoUrl:
+        getModelPreserveVideoUrl(normalizedProvider, normalizedModel) ??
+        (normalizedProvider === "moonshot" || normalizedProvider === "kimi"),
     });
   }
 
@@ -472,10 +509,11 @@ export function translateRequest(
         !hasNonEmptyReasoningContent(msg);
 
       if (!hasToolCalls && !hasToolUseBlocks && !shouldReplayReasoningOnly) {
-        // Strip empty reasoning_content on non-tool-call messages we are NOT
-        // replaying (e.g. non-DeepSeek targets); an empty string has no meaningful
-        // value to send and may confuse some upstreams.
-        if (msg.reasoning_content === "") {
+        // Strip empty or placeholder reasoning_content on non-tool-call messages
+        // we are NOT replaying. The placeholder is request scaffolding, never
+        // real reasoning — forwarding it makes the model continue its chain of
+        // thought FROM that text (echo → empty stop, #9573).
+        if (msg.reasoning_content === "" || isInternalReasoningPlaceholder(msg.reasoning_content)) {
           delete msg.reasoning_content;
         }
         continue;
@@ -517,9 +555,17 @@ export function translateRequest(
       }
 
       // ── OpenAI-format message ──
-      // Skip if client already provided real reasoning_content
+      // Skip if client already provided real reasoning_content. The internal
+      // replay placeholder is NOT real reasoning: drop it and fall through to
+      // the cache lookup so it can be replaced with genuine cached reasoning.
+      // Forwarding it makes the model continue its chain of thought from that
+      // text (echo → empty stop), and the echo re-poisons cache + client
+      // history (#9573).
       if (hasNonEmptyReasoningContent(msg)) {
-        continue;
+        if (!isInternalReasoningPlaceholder(msg.reasoning_content)) {
+          continue;
+        }
+        delete msg.reasoning_content;
       }
 
       const cacheKey = hasToolCalls
@@ -542,19 +588,21 @@ export function translateRequest(
         continue;
       }
 
-      // Cache miss fallback — use a non-empty placeholder.
-      // Empty string causes DeepSeek V4+ to reject with 400:
-      // "reasoning_content in the thinking mode must be passed back to the API."
-      // Note: injectEmptyReasoningContentForToolCalls may have pre-set
-      // reasoning_content="" before the cache lookup, so we check for
-      // both undefined AND empty string here.
-      //
-      // Applies to tool-call messages AND to plain (non-tool-call) assistant turns
-      // on DeepSeek replay targets (#1682). Without the placeholder on plain turns,
-      // a multi-turn text conversation whose reasoning_content the client stripped
-      // is forwarded to DeepSeek without the field and rejected with 400.
+      // Cache miss fallback — previously injected a non-empty placeholder
+      // (NON_ANTHROPIC_THINKING_PLACEHOLDER) to dodge an alleged DeepSeek V4 400
+      // on missing reasoning_content. The placeholder is the root cause of this
+      // bug: the model echoes it as its own reasoning and stops (empty turns),
+      // and the echo re-poisons the cache + client history (#9573). Empirically,
+      // deepseek-v4-flash accepts an ABSENT reasoning_content field (the 400 is
+      // specific to empty-string, and even that is endpoint-dependent). Omit
+      // the field instead; providers that genuinely enforce the contract
+      // (kimi-coding, moonshot authentic-reasoning) have their own paths above.
       if ((hasToolCalls || shouldReplayReasoningOnly) && !msg.reasoning_content) {
-        msg.reasoning_content = NON_ANTHROPIC_THINKING_PLACEHOLDER;
+        if (requiresReasoningContentPresence(normalizedProvider, normalizedModel)) {
+          msg.reasoning_content = NON_ANTHROPIC_THINKING_PLACEHOLDER;
+        } else {
+          delete msg.reasoning_content;
+        }
       }
     }
   } else if (

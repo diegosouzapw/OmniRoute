@@ -111,11 +111,18 @@ const VERCEL_CTX = {
 };
 
 test("proxyFetch routes a vercel-type context through the relay endpoint with relay headers", async () => {
+  // #9100: the relay branch now egresses through the pooled undici Agent
+  // (deps.undiciFetch) instead of `originalFetch`, so the test injects the
+  // relay sink via deps to keep the dispatch hermetic.
   const response = await runWithProxyContext(VERCEL_CTX, () =>
-    proxyFetch("https://api.anthropic.com/v1/messages?x=1", {
-      method: "POST",
-      headers: { "x-existing": "keep-me" },
-    })
+    proxyFetch(
+      "https://api.anthropic.com/v1/messages?x=1",
+      {
+        method: "POST",
+        headers: { "x-existing": "keep-me" },
+      },
+      { undiciFetch: relaySink as never }
+    )
   );
 
   // The canned relay response proves the relay sink (originalFetch) was hit and the

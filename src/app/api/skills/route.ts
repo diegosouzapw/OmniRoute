@@ -4,6 +4,7 @@ import { parsePaginationParams, buildPaginatedResponse } from "@/shared/types/pa
 import { getSkillsProviderSetting } from "@/lib/skills/providerSettings";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { matchesSearch } from "@/shared/utils/turkishText";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const POPULAR_BY_PROVIDER = {
   skillsmp: ["web-search", "file-reader", "sql-assistant", "devops-helper", "docs-assistant"],
@@ -56,7 +57,7 @@ export async function GET(request?: Request) {
       popularDefaults: POPULAR_BY_PROVIDER[provider],
     });
   } catch (err: unknown) {
-    const error = err instanceof Error ? err.message : String(err);
+    const error = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
     return NextResponse.json({ error }, { status: 500 });
   }
 }

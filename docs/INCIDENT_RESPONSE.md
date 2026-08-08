@@ -1,3 +1,9 @@
+---
+title: "Incident Response Runbook — OmniRoute (2026-06-18)"
+version: 3.8.50
+lastUpdated: 2026-08-06
+---
+
 # Incident Response Runbook — OmniRoute (2026-06-18)
 
 **Status**: Authoritative. The 71-pillar audit (L61) references this doc

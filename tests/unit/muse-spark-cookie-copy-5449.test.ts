@@ -19,12 +19,12 @@ const webCookie = readFileSync(
 const executor = readFileSync(join(root, "open-sse", "executors", "muse-spark-web.ts"), "utf8");
 
 test("provider form hint points at the live ecto_1_sess cookie, not retired abra_sess", () => {
+  // #9502: the hint now names BOTH the ecto_1_sess cookie and the ecto1: WS auth
+  // token; the live-cookie-name guard (ecto_1_sess present, retired abra_sess
+  // absent) still holds.
+  assert.ok(webCookie.includes("ecto_1_sess"), "muse-spark authHint must name ecto_1_sess");
   assert.ok(
-    webCookie.includes("Paste your ecto_1_sess value"),
-    "muse-spark authHint must name ecto_1_sess"
-  );
-  assert.ok(
-    !webCookie.includes("Paste your abra_sess"),
+    !/Paste your abra_sess/.test(webCookie),
     "muse-spark authHint must not name the retired abra_sess cookie"
   );
 });

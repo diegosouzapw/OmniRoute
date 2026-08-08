@@ -372,6 +372,21 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     models: [],
   },
 
+  // Ollama Local — OpenAI-compatible embeddings endpoint. Ollama exposes its
+  // own model catalog, but these common embedding models are useful defaults
+  // for model selection and validation.
+  "ollama-local": {
+    id: "ollama-local",
+    baseUrl: "http://localhost:11434/v1/embeddings",
+    authType: "none",
+    authHeader: "none",
+    models: [
+      { id: "embeddinggemma", name: "EmbeddingGemma" },
+      { id: "nomic-embed-text", name: "Nomic Embed Text" },
+      { id: "bge-m3", name: "BGE M3" },
+    ],
+  },
+
   // Issue #6660: Mixedbread AI — OpenAI-compatible /v1/embeddings, free tier
   // available (API key via signup, no card required). Model ids are the
   // upstream-qualified "mixedbread-ai/<model>" form, mirroring how `together`/

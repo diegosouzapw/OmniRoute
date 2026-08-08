@@ -934,7 +934,8 @@ test("provider models route retries Antigravity discovery endpoints before retur
     // After PR #2219, the discovery flow calls loadCodeAssist first as a project
     // bootstrap; treat all bootstrap calls as non-fatal failures so the test
     // exercises the discovery retry path.
-    if (urlString.includes("/v1internal:loadCodeAssist")) {
+    // onboardUser is a bootstrap hop too (ff012ff420) — else it eats the single 503 below.
+    if (urlString.includes(":loadCodeAssist") || urlString.includes(":onboardUser")) {
       return new Response("nope", { status: 503 });
     }
     seenUrls.push(urlString);
@@ -983,6 +984,8 @@ test("provider models route retries Antigravity discovery endpoints before retur
     "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
   ]);
   assert.deepEqual(body.models, [
+    // #9106: both alias ids are user-callable now, so the upstream echo survives the filter.
+    { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro (High)" },
     { id: "gemini-pro-agent", name: "Gemini 3.1 Pro (High)" },
     { id: "gemini-3.6-flash-high", name: "Gemini 3.6 Flash (High)" },
     { id: "gemini-3.6-flash-medium", name: "Gemini 3.6 Flash (Medium)" },

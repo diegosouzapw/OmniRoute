@@ -1,4 +1,62 @@
+import type { AdaptiveAdmissionPublicSnapshot } from "@omniroute/open-sse/services/admission/runtime.ts";
+
 type JsonRecord = Record<string, unknown>;
+
+/** Low-card adaptive-admission health summary — no tenant/request/body/queue details. */
+export type AdaptiveAdmissionHealthSummary = {
+  mode: AdaptiveAdmissionPublicSnapshot["mode"];
+  currentLimit: number;
+  minLimit: number;
+  maxLimit: number;
+  activeCost: number;
+  activeCount: number;
+  queuedCost: number;
+  queuedCount: number;
+  admittedCount: number;
+  rejectedCount: number;
+  wouldAdmitCount: number;
+  wouldQueueCount: number;
+  wouldRejectCount: number;
+  utilization: number;
+  pressure: AdaptiveAdmissionPublicSnapshot["pressure"];
+  resourceSeverity: AdaptiveAdmissionPublicSnapshot["resourceSeverity"];
+  resourceReason: AdaptiveAdmissionPublicSnapshot["resourceReason"];
+  resourceObservedAtMs: number;
+  pressureGuardRejectCount: number;
+  shutdown: boolean;
+};
+
+/**
+ * Explicit allowlisted projection of the public adaptive-admission snapshot.
+ * Never spreads the snapshot — extra keys (tenant, body, queue items, paths) are dropped.
+ */
+export function projectAdaptiveAdmissionSummary(
+  snapshot: AdaptiveAdmissionPublicSnapshot | null | undefined
+): AdaptiveAdmissionHealthSummary | null {
+  if (!snapshot || typeof snapshot !== "object") return null;
+  return {
+    mode: snapshot.mode,
+    currentLimit: snapshot.currentLimit,
+    minLimit: snapshot.minLimit,
+    maxLimit: snapshot.maxLimit,
+    activeCost: snapshot.activeCost,
+    activeCount: snapshot.activeCount,
+    queuedCost: snapshot.queuedCost,
+    queuedCount: snapshot.queuedCount,
+    admittedCount: snapshot.admittedCount,
+    rejectedCount: snapshot.rejectedCount,
+    wouldAdmitCount: snapshot.wouldAdmitCount,
+    wouldQueueCount: snapshot.wouldQueueCount,
+    wouldRejectCount: snapshot.wouldRejectCount,
+    utilization: snapshot.utilization,
+    pressure: snapshot.pressure,
+    resourceSeverity: snapshot.resourceSeverity,
+    resourceReason: snapshot.resourceReason,
+    resourceObservedAtMs: snapshot.resourceObservedAtMs,
+    pressureGuardRejectCount: snapshot.pressureGuardRejectCount,
+    shutdown: snapshot.shutdown,
+  };
+}
 
 interface CircuitBreakerStatus {
   name: string;
@@ -88,6 +146,8 @@ interface BuildHealthPayloadOptions {
     unknown: number;
     stale: number;
   };
+  /** Optional injected public adaptive-admission snapshot; projected, never raw-spread. */
+  adaptiveAdmission?: AdaptiveAdmissionPublicSnapshot | null;
 }
 
 function limitMonitors(monitors: QuotaMonitorSnapshot[], maxItems = 8): QuotaMonitorSnapshot[] {
@@ -227,6 +287,7 @@ export function buildHealthPayload({
   activeSessions,
   activeSessionsByKey = {},
   credentialHealth,
+  adaptiveAdmission = null,
 }: BuildHealthPayloadOptions) {
   const timestamp = new Date().toISOString();
   const system = {
@@ -321,6 +382,7 @@ export function buildHealthPayload({
     },
     sessions: buildSessionsSummary({ activeSessions, activeSessionsByKey }),
     credentialHealth, // may be undefined if credentialHealth module not loaded
+    adaptiveAdmission: projectAdaptiveAdmissionSummary(adaptiveAdmission),
     dedup: {
       inflightRequests,
     },

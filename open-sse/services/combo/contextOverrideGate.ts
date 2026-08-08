@@ -16,14 +16,13 @@
  * pool to one provider and producing a hard 503 with no fallback once that
  * provider's quota is exhausted. An operator-set or auto-discovered override
  * reflects the real capacity, so it supersedes both catalog limits. Uses the
- * raw override (`getModelContextOverride` returns `null` when none is set) —
+ * resolved exact override (`getResolvedModelContextOverride` returns `null` when none is set) —
  * NOT `getModelContextLimitForModelString`, which falls back to
  * `contextWindow` and would therefore bypass the `maxInputTokens` cap for
  * every model, not just overridden ones.
  */
 
-import { getModelContextOverride } from "../../../src/lib/db/modelContextOverrides";
-import { parseModel } from "../model.ts";
+import { getResolvedModelContextOverride } from "../../../src/lib/modelCapabilities";
 
 /**
  * Resolve the context-fit verdict from a persisted per-model override, if one
@@ -36,8 +35,7 @@ function resolveContextOverrideVerdict(
   requiredContextTokens: number
 ): boolean | undefined {
   if (!modelStr) return undefined;
-  const parsed = parseModel(modelStr);
-  const override = getModelContextOverride(parsed.provider, parsed.model);
+  const override = getResolvedModelContextOverride(modelStr);
   if (override == null) return undefined;
   return override >= requiredContextTokens;
 }

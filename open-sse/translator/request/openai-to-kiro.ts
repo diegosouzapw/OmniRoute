@@ -14,6 +14,7 @@ import {
 import {
   resolveKiroModelAlias,
   supportsKiroAdaptiveThinking,
+  supportsKiroNativeReasoning,
 } from "./openai-to-kiro/adaptiveThinking.ts";
 
 /**
@@ -46,6 +47,122 @@ function wrapSystemReminder(text: string): string {
   return `<system-reminder>\n${text}\n</system-reminder>`;
 }
 
+/** Kiro rejects a `toolSpecification.description` longer than ~10000 chars. */
+const KIRO_TOOL_DESC_MAX = 10000;
+
+/** OpenAI- and Anthropic-shaped tool declarations, as clients actually send them. */
+type KiroToolInput = {
+  name?: string;
+  description?: string;
+  parameters?: unknown;
+  input_schema?: unknown;
+  function?: { name?: string; description?: string; parameters?: unknown };
+};
+
+/**
+ * Build Kiro `toolSpecification` entries, relocating any oversized description
+ * out of the schema and returning it separately.
+ *
+ * Kiro answers a raw upstream 400 for a description over
+ * {@link KIRO_TOOL_DESC_MAX}, so the schema keeps a pointer and the full text is
+ * handed back to be prepended to the current turn's content — the same
+ * relocation kiro-gateway performs in
+ * `converters_core.py::process_tools_with_long_descriptions`.
+ *
+ * The docs are *returned* rather than stashed on the message object, because the
+ * tool-bearing user turn is moved into `history` on every multi-turn request
+ * (see the currentMessage promotion below). Carrying them on the message lost
+ * them there — the model then saw only the pointer and no documentation — and
+ * also leaked an unknown `_toolDocs` field into the upstream payload, which Kiro
+ * rejects.
+ */
+function buildKiroToolSpecs(tools: KiroToolInput[]): {
+  specs: Array<Record<string, unknown>>;
+  docs: string;
+} {
+  const docs: string[] = [];
+  const specs = tools.map((t) => {
+    const name = t.function?.name || t.name;
+    let description = t.function?.description || t.description || "";
+
+    if (!description.trim()) {
+      description = `Tool: ${name}`;
+    }
+
+    if (description.length > KIRO_TOOL_DESC_MAX) {
+      docs.push(`## Tool: ${name}\n\n${description}`);
+      description = `[Full documentation in system prompt under '## Tool: ${name}']`;
+    }
+
+    return {
+      toolSpecification: {
+        name,
+        description,
+        inputSchema: {
+          json: normalizeKiroToolSchema(
+            t.function?.parameters || t.parameters || t.input_schema || {}
+          ),
+        },
+      },
+    };
+  });
+
+  return { specs, docs: docs.join("\n\n---\n\n") };
+}
+
+/**
+ * Does this message carry Anthropic-style `tool_result` content blocks? Such a
+ * user message is part of an open tool-result batch rather than new user input.
+ */
+function carriesToolResults(msg): boolean {
+  return Array.isArray(msg?.content) && msg.content.some((c) => c.type === "tool_result");
+}
+
+/**
+ * Lookahead for issue #8903: is the text-only assistant message at `index`
+ * genuinely sandwiched inside a tool-result batch?
+ *
+ * True only when a later `tool` message (or a `tool_result` content block on a
+ * user message) still belongs to the same assistant turn — i.e. it appears
+ * before the conversation moves on with real user text or a new assistant
+ * tool-call turn. Consecutive text-only assistant messages are skipped so a
+ * `tool -> assistant -> assistant -> tool` run still counts as interleaved.
+ *
+ * Returning false for the ordinary `tool -> assistant(final reply)` shape is
+ * what keeps that reply on the normal flush path instead of being deferred.
+ */
+function hasFollowingToolResult(messages, index: number): boolean {
+  for (let j = index + 1; j < messages.length; j++) {
+    const next = messages[j];
+    if (next.role === "tool") return true;
+
+    if (next.role === "user") {
+      const blocks = Array.isArray(next.content) ? next.content : [];
+      // A user message carrying only tool_result blocks is still part of the
+      // batch; one with real text ends it.
+      if (blocks.some((c) => c.type === "tool_result")) {
+        const hasText = blocks.some((c) => (c.type === "text" || c.text) && c.text?.trim());
+        if (!hasText) return true;
+      }
+      return false;
+    }
+
+    if (next.role === "assistant") {
+      const isTextOnly =
+        (!next.tool_calls || next.tool_calls.length === 0) &&
+        !(Array.isArray(next.content) && next.content.some((c) => c.type === "tool_use"));
+      // Skip further text-only assistant messages; a new tool-call turn ends
+      // the current batch.
+      if (isTextOnly) continue;
+      return false;
+    }
+
+    // system or any other role ends the batch
+    return false;
+  }
+  return false;
+}
+
 /**
  * Convert OpenAI messages to Kiro format
  * Rules: system/tool/user -> user role, merge consecutive same roles
@@ -57,9 +174,15 @@ function convertMessages(messages, tools, model) {
   let pendingUserContent = [];
   let pendingAssistantContent = [];
   let pendingToolResults = [];
+  // Text-only assistant turns that arrived in the middle of an open tool-result
+  // batch. They are held back so the batch stays contiguous, then emitted as
+  // their own assistant turn right after the batch flushes — see
+  // `interruptsOpenToolBatch` below (issue #8903).
+  let deferredAssistantContent: string[] = [];
   let pendingImages: Array<{ format: string; source: { bytes: string } }> = [];
   let currentRole = null;
   let toolsAttached = false;
+  let toolDocs = "";
 
   // Only Claude models support images in Kiro. Kiro also routes non-Claude
   // models (deepseek, minimax, glm, qwen3-coder-next) that do not accept image
@@ -89,7 +212,6 @@ function convertMessages(messages, tools, model) {
             tools?: Array<Record<string, unknown>>;
           };
         };
-        _toolDocs?: string;
       } = {
         userInputMessage: {
           content: content,
@@ -118,39 +240,9 @@ function convertMessages(messages, tools, model) {
         if (!userMsg.userInputMessage.userInputMessageContext) {
           userMsg.userInputMessage.userInputMessageContext = {};
         }
-        // Kiro API rejects requests with tool descriptions > ~10000 chars.
-        // Move long descriptions to system prompt (same approach as kiro-gateway).
-        const TOOL_DESC_MAX = 10000;
-        const toolDocs: string[] = [];
-        userMsg.userInputMessage.userInputMessageContext.tools = tools.map((t) => {
-          const name = t.function?.name || t.name;
-          let description = t.function?.description || t.description || "";
-
-          if (!description.trim()) {
-            description = `Tool: ${name}`;
-          }
-
-          if (description.length > TOOL_DESC_MAX) {
-            toolDocs.push(`## Tool: ${name}\n\n${description}`);
-            description = `[Full documentation in system prompt under '## Tool: ${name}']`;
-          }
-
-          return {
-            toolSpecification: {
-              name,
-              description,
-              inputSchema: {
-                json: normalizeKiroToolSchema(
-                  t.function?.parameters || t.parameters || t.input_schema || {}
-                ),
-              },
-            },
-          };
-        });
-        // Attach tool docs to message so buildKiroPayload can prepend to content
-        if (toolDocs.length > 0) {
-          userMsg._toolDocs = toolDocs.join("\n\n---\n\n");
-        }
+        const built = buildKiroToolSpecs(tools);
+        userMsg.userInputMessage.userInputMessageContext.tools = built.specs;
+        if (built.docs) toolDocs = built.docs;
         toolsAttached = true;
       }
 
@@ -159,6 +251,19 @@ function convertMessages(messages, tools, model) {
       pendingUserContent = [];
       pendingToolResults = [];
       pendingImages = [];
+
+      // The tool batch is now closed, so any assistant text that was held back
+      // to keep it contiguous can be emitted as its own turn (issue #8903).
+      // Without this the deferred text would sit in a queue nothing drains and
+      // be silently dropped from the transcript.
+      if (deferredAssistantContent.length > 0) {
+        history.push({
+          assistantResponseMessage: {
+            content: deferredAssistantContent.join("\n\n").trim() || "(empty)",
+          },
+        });
+        deferredAssistantContent = [];
+      }
     } else if (currentRole === "assistant") {
       const content = pendingAssistantContent.join("\n\n").trim() || "(empty)";
       const assistantMsg = {
@@ -181,11 +286,64 @@ function convertMessages(messages, tools, model) {
     }
 
     // If role changes, flush pending
+    //
+    // Exception: a text-only assistant message must not split a batch of tool
+    // results that answers a single assistant turn. `tool` is normalized to
+    // `user` above, so `tool -> assistant -> tool` looks like two role changes
+    // and the interleaved flush would emit the first tool result and drop the
+    // rest, leaving advertised `toolUses` without matching `toolResults`.
+    // Bedrock rejects that transcript with 400 "Expected toolResult blocks"
+    // (issue #8903). Defer the assistant text instead so the tool batch stays
+    // contiguous; the text is re-emitted as its own assistant turn as soon as
+    // the batch flushes.
+    //
+    // The lookahead matters: without it, an ordinary trailing assistant reply
+    // (`tool -> assistant`, with no further tool message) would also be
+    // deferred and its text lost. Only a genuine sandwich qualifies.
+    const isTextOnlyAssistant =
+      msg.role === "assistant" &&
+      (!msg.tool_calls || msg.tool_calls.length === 0) &&
+      !(Array.isArray(msg.content) && msg.content.some((c) => c.type === "tool_use"));
+    const interruptsOpenToolBatch =
+      isTextOnlyAssistant &&
+      currentRole === "user" &&
+      pendingToolResults.length > 0 &&
+      hasFollowingToolResult(messages, i);
+
+    if (interruptsOpenToolBatch) {
+      const deferredText =
+        typeof msg.content === "string"
+          ? msg.content.trim()
+          : Array.isArray(msg.content)
+            ? msg.content
+                .filter((c) => c.type === "text" || c.text)
+                .map((c) => c.text || "")
+                .join("\n")
+                .trim()
+            : "";
+      if (deferredText) deferredAssistantContent.push(deferredText);
+      continue;
+    }
+
+    // Once assistant text has been deferred, the tool batch is logically over
+    // as soon as a message arrives that is not itself a tool result. Flush now
+    // so the pending batch + deferred assistant turn are emitted before the new
+    // user text, instead of that text merging into the tool-result turn and
+    // leaving the deferred reply stranded after it (issue #8903).
+    if (
+      deferredAssistantContent.length > 0 &&
+      currentRole === "user" &&
+      msg.role !== "tool" &&
+      !carriesToolResults(msg)
+    ) {
+      flushPending();
+      currentRole = null;
+    }
+
     if (role !== currentRole && currentRole !== null) {
       flushPending();
     }
     currentRole = role;
-
     if (role === "user") {
       // Extract content
       let content = "";
@@ -370,21 +528,9 @@ function convertMessages(messages, tools, model) {
     if (!currentMessage.userInputMessage.userInputMessageContext) {
       currentMessage.userInputMessage.userInputMessageContext = {};
     }
-    currentMessage.userInputMessage.userInputMessageContext.tools = tools.map((t) => {
-      const name = t.function?.name || t.name;
-      const description = t.function?.description || t.description || `Tool: ${name}`;
-      return {
-        toolSpecification: {
-          name,
-          description,
-          inputSchema: {
-            json: normalizeKiroToolSchema(
-              t.function?.parameters || t.parameters || t.input_schema || {}
-            ),
-          },
-        },
-      };
-    });
+    const built = buildKiroToolSpecs(tools);
+    currentMessage.userInputMessage.userInputMessageContext.tools = built.specs;
+    if (built.docs) toolDocs = built.docs;
     toolsAttached = true;
   }
 
@@ -577,7 +723,7 @@ function convertMessages(messages, tools, model) {
     alternatingHistory.push(item);
   }
 
-  return { history: alternatingHistory, currentMessage, toolsAttached };
+  return { history: alternatingHistory, currentMessage, toolsAttached, toolDocs };
 }
 
 /** Kiro's accepted reasoning-effort levels (`output_config.effort`). */
@@ -723,7 +869,7 @@ export function buildKiroPayload(model, body, stream, credentials) {
     }
   }
 
-  const { history, currentMessage, toolsAttached } = convertMessages(
+  const { history, currentMessage, toolsAttached, toolDocs } = convertMessages(
     messages,
     tools,
     normalizedModel
@@ -735,8 +881,10 @@ export function buildKiroPayload(model, body, stream, credentials) {
   const timestamp = new Date().toISOString();
   finalContent = `[Context: Current time is ${timestamp}]\n\n${finalContent}`;
 
-  // Prepend tool documentation for tools with long descriptions (moved from toolSpecification)
-  const toolDocs = (currentMessage as { _toolDocs?: string } | null)?._toolDocs;
+  // Prepend documentation for tools whose description was relocated out of
+  // `toolSpecification` (see buildKiroToolSpecs). Driven by convertMessages'
+  // return value, not the message object, so the docs survive the tool-bearing
+  // turn being moved into `history` on a multi-turn request.
   if (toolDocs) {
     finalContent = `# Tool Documentation\n\n${toolDocs}\n\n---\n\n${finalContent}`;
   }
@@ -763,6 +911,7 @@ export function buildKiroPayload(model, body, stream, credentials) {
       topP?: number;
     };
     additionalModelRequestFields?: {
+      reasoning?: { effort: string };
       thinking?: { type: string; display?: string };
       output_config?: { effort: string };
       max_tokens?: number;
@@ -847,29 +996,43 @@ export function buildKiroPayload(model, body, stream, credentials) {
   //      thinking:{type:"adaptive"} + a clamped max_tokens), forwarded to AWS by
   //      the Kiro executor's transformRequest allowlist — the graded effort lever,
   //      gated on Kiro's adaptive-thinking allowlist (#6576), not supportsReasoning().
+  // GPT-5.6 models use the native `reasoning:{effort}` field instead. They must
+  // not receive the Claude `output_config`/`thinking` envelope: Kiro rejects it
+  // as an unknown field for the GPT-5.6 family.
   const requestedEffort = resolveKiroEffort(body) || (modelRequestsThinking ? "high" : "");
-  const kiroEffort = supportsKiroAdaptiveThinking(normalizedModel) ? requestedEffort : "";
+  const usesNativeReasoning = supportsKiroNativeReasoning(normalizedModel);
+  const usesAdaptiveThinking = supportsKiroAdaptiveThinking(normalizedModel);
+  const kiroEffort = usesNativeReasoning || usesAdaptiveThinking ? requestedEffort : "";
   if (kiroEffort) {
-    // `<thinking_mode>` / `<max_thinking_length>` are Kiro/CodeWhisperer prompt
-    // conventions (NOT Anthropic API params); the length is a soft hint (the hard
-    // enable signal is `<thinking_mode>`), clamped to the model's thinking cap.
-    const thinkingLength = capThinkingBudget(normalizedModel, thinkingLengthForEffort(kiroEffort));
-    const directive =
-      `<thinking_mode>enabled</thinking_mode>` +
-      `<max_thinking_length>${thinkingLength}</max_thinking_length>`;
-    payload.conversationState.currentMessage.userInputMessage.content = `${directive}\n\n${payload.conversationState.currentMessage.userInputMessage.content}`;
-
     const fields: {
-      output_config: { effort: string };
-      thinking: { type: string; display: string };
+      reasoning?: { effort: string };
+      output_config?: { effort: string };
+      thinking?: { type: string; display: string };
       max_tokens?: number;
-    } = {
-      output_config: { effort: kiroEffort },
-      thinking: { type: "adaptive", display: "summarized" },
-    };
+    } = usesNativeReasoning
+      ? { reasoning: { effort: kiroEffort } }
+      : {
+          output_config: { effort: kiroEffort },
+          thinking: { type: "adaptive", display: "summarized" },
+        };
+
+    if (usesAdaptiveThinking) {
+      // `<thinking_mode>` / `<max_thinking_length>` are Kiro/CodeWhisperer prompt
+      // conventions (NOT Anthropic API params); the length is a soft hint (the hard
+      // enable signal is `<thinking_mode>`), clamped to the model's thinking cap.
+      const thinkingLength = capThinkingBudget(
+        normalizedModel,
+        thinkingLengthForEffort(kiroEffort)
+      );
+      const directive =
+        `<thinking_mode>enabled</thinking_mode>` +
+        `<max_thinking_length>${thinkingLength}</max_thinking_length>`;
+      payload.conversationState.currentMessage.userInputMessage.content = `${directive}\n\n${payload.conversationState.currentMessage.userInputMessage.content}`;
+    }
+
     // Forward max_tokens only when the client set one, clamped to the model's
     // output window (floor 1024) — matches pi-kiro and avoids an over-budget reject.
-    if (maxTokens > 0) {
+    if (usesAdaptiveThinking && maxTokens > 0) {
       const capped = capMaxOutputTokens(normalizedModel, maxTokens) ?? maxTokens;
       fields.max_tokens = Math.max(Math.floor(capped), 1024);
     }

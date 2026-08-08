@@ -1,0 +1,1 @@
+- **feat(providers):** support max reasoning effort for opencode-zen DeepSeek models (#9318)

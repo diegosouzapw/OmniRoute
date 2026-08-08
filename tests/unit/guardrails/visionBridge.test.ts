@@ -6,7 +6,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { VisionBridgeGuardrail } = await import("../../../src/lib/guardrails/visionBridge.ts");
+const { VisionBridgeGuardrail, resolveVisionComboName } =
+  await import("../../../src/lib/guardrails/visionBridge.ts");
 const { resetGuardrailsForTests } = await import("../../../src/lib/guardrails/registry.ts");
 const { getResolvedModelCapabilities } = await import("../../../src/lib/modelCapabilities.ts");
 import type { GuardrailContext } from "../../../src/lib/guardrails/base.ts";
@@ -93,6 +94,14 @@ test("VisionBridgeGuardrail is enabled by default", () => {
 test("VisionBridgeGuardrail can be disabled via constructor", () => {
   const guardrail = createGuardrail({ enabled: false });
   assert.strictEqual(guardrail.enabled, false);
+});
+
+test("resolveVisionComboName accepts only non-empty string mapping names", () => {
+  assert.equal(resolveVisionComboName({ comboName: "vision-fallback" }), "vision-fallback");
+  assert.equal(resolveVisionComboName({ name: "legacy-fallback" }), "legacy-fallback");
+  assert.equal(resolveVisionComboName({ comboName: { nested: true } }), null);
+  assert.equal(resolveVisionComboName({ comboName: 42 }), null);
+  assert.equal(resolveVisionComboName({ comboName: "" }), null);
 });
 
 // ── VB-S05: Vision Bridge disabled via settings ────────────────────────────
@@ -428,7 +437,7 @@ test("VB-S07: reroutes base64 image to vision model", async () => {
 
 // ── VB-S03: Fail-open on vision error (via combo mapping path) ────────────
 
-test("VB-S03: preserves the original image when the vision API fails (#4012)", async () => {
+test("VB-S03/#8430: combo-mapping describe failure replaces the image with an error stub (not preserved)", async () => {
   shouldVisionFail = true;
   const guardrail = createGuardrail({
     deps: {
@@ -464,12 +473,22 @@ test("VB-S03: preserves the original image when the vision API fails (#4012)", a
     text?: string;
   }>;
 
-  // #4012: a failed describe must NOT replace the image with an "(unavailable)"
-  // stub — the original image is preserved so a vision-capable upstream can see it.
+  // SEMANTIC CHANGE (#8430): in the combo describe path (forced here via
+  // checkModelHasComboMapping), when EVERY describe call fails, the upstream is
+  // a confirmed non-vision model that cannot handle raw images — the raw
+  // image_url part is now replaced with an "(unavailable)" error stub instead
+  // of being preserved. The original #4012 preserve-raw behavior still applies
+  // to the reroute path, where the upstream model might still be vision-capable
+  // (see tests/unit/vision-bridge-preserve-on-failure-4012.test.ts, updated by
+  // the same #8430 commit).
   const imagePart = content.find((p) => p.type === "image_url");
-  assert.ok(imagePart, "original image_url part must be preserved on describe failure");
+  assert.strictEqual(
+    imagePart,
+    undefined,
+    "raw image_url must be replaced when every describe call fails in the combo path"
+  );
   const unavailPart = content.find((p) => p.type === "text" && p.text?.includes("unavailable"));
-  assert.strictEqual(unavailPart, undefined);
+  assert.ok(unavailPart, "an 'unavailable' error stub should be present when describe fails");
 });
 
 test("VB-S03: logs warning when vision API fails (via combo mapping)", async () => {
@@ -771,21 +790,11 @@ test("VB-CRED-02: does NOT reroute to a vision model known to lack credentials",
 });
 
 test("isProviderConnectionUsable rejects noauth without api key", async () => {
-  const { isProviderConnectionUsable } = await import(
-    "../../../src/lib/guardrails/visionBridge.ts"
-  );
-  assert.strictEqual(
-    isProviderConnectionUsable({ authType: "noauth", apiKey: null }),
-    false
-  );
-  assert.strictEqual(
-    isProviderConnectionUsable({ authType: "apikey", apiKey: "sk-real" }),
-    true
-  );
-  assert.strictEqual(
-    isProviderConnectionUsable({ authType: "oauth", refreshToken: "rt" }),
-    true
-  );
+  const { isProviderConnectionUsable } =
+    await import("../../../src/lib/guardrails/visionBridge.ts");
+  assert.strictEqual(isProviderConnectionUsable({ authType: "noauth", apiKey: null }), false);
+  assert.strictEqual(isProviderConnectionUsable({ authType: "apikey", apiKey: "sk-real" }), true);
+  assert.strictEqual(isProviderConnectionUsable({ authType: "oauth", refreshToken: "rt" }), true);
   assert.strictEqual(
     isProviderConnectionUsable({ authType: "apikey", apiKey: "x", testStatus: "banned" }),
     false

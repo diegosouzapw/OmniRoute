@@ -250,7 +250,13 @@ test("chat completions route emits early keepalive while waiting for stream read
   await seedHealthyConnection();
 
   globalThis.fetch = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 2200));
+    // Must exceed resolveKeepaliveThreshold()'s DEFAULT_THRESHOLD_MS (2000ms) for
+    // openai/* — otherwise withEarlyStreamKeepalive takes the FAST path, forwards
+    // the handler response as-is and no keepalive frame is ever emitted. The old
+    // 100ms only worked while unrelated handler latency happened to push the
+    // total past the threshold, which made this assertion incidental rather than
+    // deterministic; it stopped holding once the handler got faster.
+    await new Promise((resolve) => setTimeout(resolve, 2_400));
     return new Response(
       [
         `data: ${JSON.stringify({
@@ -274,10 +280,7 @@ test("chat completions route emits early keepalive while waiting for stream read
   assert.match(response.headers.get("content-type") || "", /text\/event-stream/);
 
   const body = await readAll(response);
-  assert.match(
-    body,
-    /data: \{"id":"omniroute-keepalive","object":"chat\.completion\.chunk"/
-  );
+  assert.match(body, /data: \{"id":"chatcmpl-keepalive","object":"chat\.completion\.chunk"/);
   assert.match(body, /OK/);
   assert.match(body, /\[DONE\]/);
 });
@@ -286,7 +289,7 @@ test("chat completions route returns JSON without early SSE framing when stream 
   await seedHealthyConnection();
 
   globalThis.fetch = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 2200));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     return Response.json({
       id: "chatcmpl-slow-json",
       choices: [

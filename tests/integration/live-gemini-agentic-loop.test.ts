@@ -1,5 +1,9 @@
 /**
- * tests/integration/live-gemini-agentic-loop.test.ts
+ * @file live-gemini-agentic-loop.test.ts
+ * @description Live 3-turn Gemini combo agentic loop with cooldown-wait + keepalive.
+ *
+ * @changes
+ * - [2026-07-28] [Cursor Grok 4.5] - Match brand-neutral STARTUP_THINKING_TEXT (✨)
  *
  * Live test: a REAL, streaming, 3-turn agentic tool-calling flow against the
  * "default" gemini combo (strategy=auto, 2 gemma-4 targets), scripted to
@@ -58,9 +62,9 @@ const TURN_TIMEOUT_MS = 700_000;
 const FILLER_TOKENS_PER_TURN = 10_000;
 const MODEL_A = "gemma-4-31b-it";
 const MODEL_B = "gemma-4-26b-a4b-it";
-const SYNTHETIC_MODEL_MARKER = "omniroute";
+const SYNTHETIC_MODEL_MARKER = "keepalive";
 // Must match STARTUP_THINKING_TEXT in open-sse/utils/earlyStreamKeepalive.ts.
-const STARTUP_THINKING_SUBSTRING = "OmniRoute:";
+const STARTUP_THINKING_SUBSTRING = "✨";
 
 // Node's global fetch (undici) has its own client-side headersTimeout that
 // defaults to 300_000ms — the SAME order of magnitude as comboCooldownWait's

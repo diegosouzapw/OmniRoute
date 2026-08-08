@@ -166,6 +166,13 @@ export interface ChatInvocationOptions {
   tone?: string;
   /** Tier-specific allowed message types; defaults to {@link ALLOWED_MESSAGE_TYPES}. */
   allowedMessageTypes?: readonly string[];
+  /**
+   * Tier-specific disconnect behavior sent in every type:4 chat invocation. The work
+   * Surface rejects any value other than exactly "continue" (#8971). Defaults to ""
+   * for individual/consumer/EDU tiers; {@link resolveChatInvocationOverrides} returns
+   * "continue" for the enterprise tier.
+   */
+  disconnectBehavior?: string;
 }
 
 /**
@@ -178,18 +185,21 @@ export function resolveChatInvocationOverrides(tier: string | undefined): {
   optionsSets: string[];
   tone: string;
   allowedMessageTypes: readonly string[];
+  disconnectBehavior: string;
 } {
   if (tier === "enterprise") {
     return {
       optionsSets: [...M365_ENTERPRISE_OPTION_SETS],
       tone: "Magic",
       allowedMessageTypes: [...ALLOWED_MESSAGE_TYPES, ...M365_ENTERPRISE_EXTRA_MESSAGE_TYPES],
+      disconnectBehavior: "continue",
     };
   }
   return {
     optionsSets: [...M365_DEFAULT_OPTION_SETS],
     tone: "",
     allowedMessageTypes: ALLOWED_MESSAGE_TYPES,
+    disconnectBehavior: "",
   };
 }
 
@@ -253,7 +263,7 @@ export function buildChatInvocation(opts: ChatInvocationOptions): Record<string,
         isSbsSupported: false,
         tone: opts.tone ?? "",
         renderReferencesBehindEOS: true,
-        disconnectBehavior: "",
+        disconnectBehavior: opts.disconnectBehavior ?? "",
       },
     ],
   };

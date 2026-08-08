@@ -15,6 +15,10 @@ export interface MemorySettings {
   rerankEnabled: boolean;
   rerankProviderModel: string | null;
   vectorStore: "sqlite-vec" | "qdrant" | "auto";
+  // Phase 1-2: MemoryBackend provider pattern
+  primaryBackend: string;
+  fallbackBackends: string[];
+  backendConfigs: Record<string, Record<string, unknown>>;
 }
 
 export const DEFAULT_MEMORY_SETTINGS: MemorySettings = {
@@ -37,6 +41,10 @@ export const DEFAULT_MEMORY_SETTINGS: MemorySettings = {
   rerankEnabled: false,
   rerankProviderModel: null,
   vectorStore: "auto",
+  // Phase 1-2: MemoryBackend defaults
+  primaryBackend: "sqlite",
+  fallbackBackends: [],
+  backendConfigs: {},
 };
 
 let cachedMemorySettings: MemorySettings | null = null;
@@ -100,13 +108,32 @@ export function normalizeMemorySettings(rawSettings: Record<string, unknown> = {
       rawSettings.memoryTransformersEnabled,
       DEFAULT_MEMORY_SETTINGS.transformersEnabled
     ),
-    staticEnabled: toBoolean(rawSettings.memoryStaticEnabled, DEFAULT_MEMORY_SETTINGS.staticEnabled),
-    rerankEnabled: toBoolean(rawSettings.memoryRerankEnabled, DEFAULT_MEMORY_SETTINGS.rerankEnabled),
+    staticEnabled: toBoolean(
+      rawSettings.memoryStaticEnabled,
+      DEFAULT_MEMORY_SETTINGS.staticEnabled
+    ),
+    rerankEnabled: toBoolean(
+      rawSettings.memoryRerankEnabled,
+      DEFAULT_MEMORY_SETTINGS.rerankEnabled
+    ),
     rerankProviderModel: normalizeNullableString(
       rawSettings.memoryRerankProviderModel,
       DEFAULT_MEMORY_SETTINGS.rerankProviderModel
     ),
     vectorStore: normalizeVectorStore(rawSettings.memoryVectorStore),
+    // Phase 1-2: MemoryBackend fields
+    primaryBackend:
+      typeof rawSettings.memoryPrimaryBackend === "string"
+        ? rawSettings.memoryPrimaryBackend
+        : DEFAULT_MEMORY_SETTINGS.primaryBackend,
+    fallbackBackends: Array.isArray(rawSettings.memoryFallbackBackends)
+      ? rawSettings.memoryFallbackBackends.filter((v): v is string => typeof v === "string")
+      : DEFAULT_MEMORY_SETTINGS.fallbackBackends,
+    backendConfigs:
+      typeof rawSettings.memoryBackendConfigs === "object" &&
+      rawSettings.memoryBackendConfigs !== null
+        ? (rawSettings.memoryBackendConfigs as Record<string, Record<string, unknown>>)
+        : DEFAULT_MEMORY_SETTINGS.backendConfigs,
   };
 }
 
@@ -132,6 +159,11 @@ export function toMemorySettingsUpdates(
   if (settings.rerankProviderModel !== undefined)
     updates.memoryRerankProviderModel = settings.rerankProviderModel;
   if (settings.vectorStore !== undefined) updates.memoryVectorStore = settings.vectorStore;
+  // Phase 1-2: MemoryBackend fields
+  if (settings.primaryBackend !== undefined) updates.memoryPrimaryBackend = settings.primaryBackend;
+  if (settings.fallbackBackends !== undefined)
+    updates.memoryFallbackBackends = settings.fallbackBackends;
+  if (settings.backendConfigs !== undefined) updates.memoryBackendConfigs = settings.backendConfigs;
 
   return updates;
 }

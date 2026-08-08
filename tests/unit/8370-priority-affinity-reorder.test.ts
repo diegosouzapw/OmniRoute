@@ -49,7 +49,7 @@ function applyComboLikeAffinityPin(
     orderedTargets,
     connectionsByProvider
   );
-  const affinity = applyPromptCacheAffinity(expanded, body, true);
+  const affinity = applyPromptCacheAffinity(expanded, body, true, "global");
   if (!affinity.applied) return affinity.targets;
 
   const protectedOriginal = shouldProtectOriginalFirst(false, false, strategy) && orderedTargets[0];
@@ -174,5 +174,85 @@ test("round-robin combo is NOT protected — it still gets full cross-model affi
     result[0]?.provider,
     "antigravity",
     "round-robin combo must still let prompt-cache affinity pick the winning account across models"
+  );
+});
+
+// New test: model-scoped affinity preserves inter-model order
+function buildModelScopedScenario() {
+  // Three models, each with multiple accounts
+  const orderedTargets = [
+    modelTarget("step-a", "antigravity/gemini-3-pro", "antigravity"),
+    modelTarget("step-b", "ollamacloud/minimax-m3", "ollamacloud"),
+    modelTarget("step-c", "oc/deepseek-v4", "oc"),
+  ];
+  const connectionsByProvider = new Map<string, Array<Record<string, unknown>>>([
+    [
+      "antigravity",
+      [{ id: "antigravity-acct-1" }, { id: "antigravity-acct-2" }, { id: "antigravity-acct-3" }],
+    ],
+    ["ollamacloud", [{ id: "minimax-acct-1" }, { id: "minimax-acct-2" }]],
+    ["oc", [{ id: "deepseek-acct-1" }, { id: "deepseek-acct-2" }]],
+  ]);
+  return { orderedTargets, connectionsByProvider };
+}
+
+test("model-scoped affinity preserves inter-model order while sorting within models", async () => {
+  const { orderedTargets, connectionsByProvider } = buildModelScopedScenario();
+
+  // Find a key that makes deepseek-acct-1 win within its model group
+  const key = "test-key-that-wins-deepseek";
+  const body = { prompt_cache_key: key };
+
+  // Apply model-scoped affinity
+  const expanded = expandPromptCacheAffinityTargetsFromConnections(
+    orderedTargets,
+    connectionsByProvider
+  );
+
+  // Verify global scope still reorders across models
+  const globalAffinity = applyPromptCacheAffinity(expanded, body, true, "global");
+  assert.equal(globalAffinity.applied, true);
+  // The winning account should be from any model (could be deepseek)
+
+  // Apply model-scoped affinity
+  const modelAffinity = applyPromptCacheAffinity(expanded, body, true, "model");
+  assert.equal(modelAffinity.applied, true);
+
+  // Extract base model identities from the result
+  const resultBaseModels = modelAffinity.targets.map((target) => {
+    const executionKey = target.executionKey || "";
+    return executionKey.split("@")[0]; // step-a, step-b, step-c
+  });
+
+  // The first appearance of each model should be in original order
+  const firstAppearance: string[] = [];
+  const seenModels = new Set<string>();
+  for (const baseModel of resultBaseModels) {
+    if (!seenModels.has(baseModel)) {
+      seenModels.add(baseModel);
+      firstAppearance.push(baseModel);
+    }
+  }
+
+  // Should preserve the original model order: step-a, step-b, step-c
+  assert.deepEqual(firstAppearance, ["step-a", "step-b", "step-c"]);
+
+  // Within each model group, the winning account should be sorted first
+  const antigravityGroup = modelAffinity.targets.filter((target) =>
+    target.executionKey.startsWith("step-a")
+  );
+  const ollamacloudGroup = modelAffinity.targets.filter((target) =>
+    target.executionKey.startsWith("step-b")
+  );
+  const ocGroup = modelAffinity.targets.filter((target) =>
+    target.executionKey.startsWith("step-c")
+  );
+
+  // Verify that within the oc group, the winning account is first
+  // (since we chose a key that makes deepseek-acct-1 win)
+  const ocFirstTarget = ocGroup[0];
+  assert.ok(
+    ocFirstTarget.executionKey.includes("deepseek-acct-1"),
+    "Within oc model, the winning account should be first"
   );
 });

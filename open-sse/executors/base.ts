@@ -234,89 +234,45 @@ export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal):
   return controller.signal;
 }
 
-function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
-  const thinking = body.thinking as Record<string, unknown> | undefined;
-  return thinking?.type === "enabled" || thinking?.type === "adaptive";
-}
+import {
+  hasActiveClaudeThinking,
+  readNestedThinkingBudget,
+  clampNestedThinkingBudget,
+} from "../utils/thinkingBudget.ts";
 
 /**
- * Collect every `thinkingConfig` object in a transformed request body that holds
- * a thinking budget, wherever the provider's envelope nests it:
- *   - body.generationConfig.thinkingConfig            (native Gemini / openai→gemini)
- *   - body.request.generationConfig.thinkingConfig    (Antigravity Cloud Code envelope)
- * Returns only objects that actually carry a `thinkingBudget`/`thinking_budget`
- * field — a request without thinking config is never mutated.
+ * Strip the OmniRoute provider prefix from tool model fields (e.g.
+ * `cc/claude-opus-4-8` → `claude-opus-4-8`). Versioned built-in tool types carry
+ * an 8-digit date suffix (`advisor_20260301`, `bash_20250124`); non-versioned
+ * server tools (Task/subagent, web_search) carry the same prefixed model. The
+ * real Claude CLI sends a bare model id there, never a prefixed one, so a leaked
+ * OmniRoute prefix makes Anthropic reject the request.
+ *
+ * Two mechanisms, applied to any tool with a string `model`:
+ * 1. Versioned built-in types (`type` matches `_\d{8}$`): strip the last path
+ *    segment (`model.split("/").pop()`), matching legacy behavior for kiro/ etc.
+ * 2. Any tool whose model starts with a 9router Claude provider prefix
+ *    (`cc/`, `claude/`): strip exactly that prefix (`slice`), preserving foreign
+ *    providers such as `openrouter/anthropic/...` — mirrors upstream
+ *    normalizeClaudeServerToolModels (9router#2649).
+ * Mutates in place.
  */
-function collectThinkingConfigs(body: unknown): Array<Record<string, unknown>> {
-  if (!body || typeof body !== "object") return [];
-  const root = body as Record<string, unknown>;
-  const configs: Array<Record<string, unknown>> = [];
-  const envelopes: unknown[] = [
-    root.generationConfig,
-    (root.request as Record<string, unknown> | undefined)?.generationConfig,
-  ];
-  for (const env of envelopes) {
-    if (!env || typeof env !== "object") continue;
-    const tc = (env as Record<string, unknown>).thinkingConfig;
-    if (tc && typeof tc === "object") {
-      const tcr = tc as Record<string, unknown>;
-      if ("thinkingBudget" in tcr || "thinking_budget" in tcr) configs.push(tcr);
-    }
-  }
-  return configs;
-}
+const CLAUDE_TOOL_MODEL_PREFIXES = ["cc/", "claude/"] as const;
 
-/**
- * Read the first thinking budget found in the body (any supported nest / naming).
- * Returns null when the body carries no readable numeric budget.
- */
-function readNestedThinkingBudget(body: unknown): number | null {
-  for (const tc of collectThinkingConfigs(body)) {
-    const raw = tc.thinkingBudget ?? tc.thinking_budget;
-    const n = Number(raw);
-    if (Number.isFinite(n)) return n;
-  }
-  return null;
-}
-
-/**
- * Clamp every thinking budget in the body down to `max` (only lowers; never
- * raises a budget already below max). Mutates in place. Returns true when at
- * least one budget was actually lowered (i.e. a retry would send a different
- * body) — false means the 400 was not caused by an over-max budget we hold, so
- * retrying would resend an identical body and loop.
- */
-function clampNestedThinkingBudget(body: unknown, max: number): boolean {
-  let changed = false;
-  for (const tc of collectThinkingConfigs(body)) {
-    for (const key of ["thinkingBudget", "thinking_budget"] as const) {
-      const n = Number(tc[key]);
-      if (Number.isFinite(n) && n > max) {
-        tc[key] = max;
-        changed = true;
-      }
-    }
-  }
-  return changed;
-}
-
-/**
- * Strip the OmniRoute provider prefix from versioned built-in tool model
- * fields (e.g. `cc/claude-opus-4-8` → `claude-opus-4-8`). Versioned built-in
- * tool types carry an 8-digit date suffix (`advisor_20260301`, `bash_20250124`);
- * the real Claude CLI sends a bare model id there, never a prefixed one, so a
- * leaked OmniRoute prefix makes Anthropic reject the request. Mutates in place.
- */
 export function stripVersionedToolModelPrefix(tools: unknown): void {
   if (!Array.isArray(tools)) return;
   for (const t of tools as Array<Record<string, unknown>>) {
+    if (typeof t.model !== "string") continue;
+    const model = t.model;
     if (
       typeof t.type === "string" &&
       /^[a-z][a-z0-9_]*_\d{8}$/.test(t.type) &&
-      typeof t.model === "string" &&
-      t.model.includes("/")
+      model.includes("/")
     ) {
-      t.model = t.model.split("/").pop();
+      t.model = model.split("/").pop();
+    } else {
+      const prefix = CLAUDE_TOOL_MODEL_PREFIXES.find((candidate) => model.startsWith(candidate));
+      if (prefix) t.model = model.slice(prefix.length);
     }
   }
 }
@@ -1559,7 +1515,8 @@ export class BaseExecutor {
           if (/content[_-]blocked/i.test(wafErrText)) {
             retryAttemptsByUrl[urlIndex] = (retryAttemptsByUrl[urlIndex] ?? 0) + 1;
             const wafAttempt = retryAttemptsByUrl[urlIndex];
-            const wafBackoff = BaseExecutor.WAF_RETRY_CONFIG.delayMs *
+            const wafBackoff =
+              BaseExecutor.WAF_RETRY_CONFIG.delayMs *
               Math.pow(BaseExecutor.WAF_RETRY_CONFIG.backoffMultiplier, wafAttempt - 1);
             log?.debug?.(
               "WAF_RETRY",

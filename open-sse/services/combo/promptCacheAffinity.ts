@@ -266,14 +266,32 @@ export function shouldProtectOriginalFirst(
 }
 
 /**
- * Order eligible targets using rendezvous hashing. The original order is used
- * as the final tie-breaker, so targets sharing one account identity remain
- * stable without using modelStr as the affinity identity.
+ * Extract the base model identity from a target's executionKey or modelStr.
+ * This strips any per-connection suffix (@connectionId) to identify the model itself.
+ */
+function getBaseModelIdentity(target: ResolvedComboTarget): string {
+  // executionKey format: "stepId@connectionId" when expanded, or just "stepId"
+  const executionKey = target.executionKey || "";
+  const baseExecutionKey = executionKey.split("@")[0];
+
+  // modelStr format: "provider/model" or "provider/model:version"
+  const modelStr = target.modelStr || "";
+
+  // Use executionKey as primary (preserves stepId grouping), fall back to modelStr
+  return baseExecutionKey || modelStr;
+}
+
+/**
+ * Order eligible targets using rendezvous hashing.
+ * @param scope - "model": sort only within same-model groups, preserving inter-model order;
+ *               "global": sort across all targets (original behavior).
+ *               Defaults to "global" for backward compatibility.
  */
 export function applyPromptCacheAffinity(
   targets: ResolvedComboTarget[],
   body: Record<string, unknown> | null | undefined,
-  enabled: boolean = true
+  enabled: boolean = true,
+  scope: "model" | "global" = "global"
 ): PromptCacheAffinityResult {
   const resolution = enabled ? resolvePromptCacheAffinityKey(body) : null;
   if (!resolution || targets.length <= 1) {
@@ -290,19 +308,61 @@ export function applyPromptCacheAffinity(
     index,
     identity: promptCacheTargetIdentity(target),
     score: rendezvousScore(resolution.key, promptCacheTargetIdentity(target)),
+    baseModel: scope === "model" ? getBaseModelIdentity(target) : null,
   }));
 
-  ranked.sort((a, b) => {
-    if (a.score > b.score) return -1;
-    if (a.score < b.score) return 1;
-    const identityOrder = a.identity.localeCompare(b.identity);
-    return identityOrder !== 0 ? identityOrder : a.index - b.index;
-  });
+  if (scope === "model") {
+    // Group by base model identity, preserving original group order
+    const groups = new Map<string, typeof ranked>();
+    const groupOrder: string[] = [];
 
-  return {
-    targets: ranked.map((entry) => entry.target),
-    applied: true,
-    source: resolution.source,
-    fingerprint: resolution.fingerprint,
-  };
+    for (const entry of ranked) {
+      // baseModel is guaranteed non-null when scope === "model" (see map above)
+      const baseModel = entry.baseModel as string;
+      if (!groups.has(baseModel)) {
+        groups.set(baseModel, []);
+        groupOrder.push(baseModel);
+      }
+      groups.get(baseModel)!.push(entry);
+    }
+
+    // Sort within each group by score, then identity, then original index
+    const sortedGroups = groupOrder.map((baseModel) => {
+      const group = groups.get(baseModel)!;
+      return group.sort((a, b) => {
+        if (a.score > b.score) return -1;
+        if (a.score < b.score) return 1;
+        const identityOrder = a.identity.localeCompare(b.identity);
+        return identityOrder !== 0 ? identityOrder : a.index - b.index;
+      });
+    });
+
+    // Flatten groups in original order
+    const sortedTargets = sortedGroups.flatMap((group) => group.map((entry) => entry.target));
+
+    // Check if the order actually changed (for applied flag)
+    const orderChanged = !targets.every((target, i) => target === sortedTargets[i]);
+
+    return {
+      targets: sortedTargets,
+      applied: orderChanged, // Only true if the order actually changed
+      source: resolution.source,
+      fingerprint: resolution.fingerprint,
+    };
+  } else {
+    // Original global sorting behavior
+    ranked.sort((a, b) => {
+      if (a.score > b.score) return -1;
+      if (a.score < b.score) return 1;
+      const identityOrder = a.identity.localeCompare(b.identity);
+      return identityOrder !== 0 ? identityOrder : a.index - b.index;
+    });
+
+    return {
+      targets: ranked.map((entry) => entry.target),
+      applied: true,
+      source: resolution.source,
+      fingerprint: resolution.fingerprint,
+    };
+  }
 }

@@ -143,6 +143,7 @@ export function toRegistryProxyResolution(row: unknown, level: ProxyScope, level
       username: record.username,
       password: record.password,
       family: typeof record.family === "string" ? record.family : "auto",
+      ...(typeof record.name === "string" && record.name ? { name: record.name } : {}),
       ...(relayAuth !== undefined ? { relayAuth } : {}),
     },
     level,

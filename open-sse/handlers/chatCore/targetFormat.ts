@@ -22,6 +22,7 @@ export function resolveChatCoreTargetFormat(opts: {
   sourceFormat?: string;
   customModelTargetFormat: string | undefined;
   providerSpecificData: unknown;
+  nativeXaiResponsesPassthrough?: boolean;
 }) {
   const {
     provider,
@@ -30,6 +31,7 @@ export function resolveChatCoreTargetFormat(opts: {
     sourceFormat,
     customModelTargetFormat,
     providerSpecificData,
+    nativeXaiResponsesPassthrough = false,
   } = opts;
   const alias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   const modelTargetFormat = getModelTargetFormat(alias, resolvedModel);
@@ -44,13 +46,16 @@ export function resolveChatCoreTargetFormat(opts: {
       sourceFormat === FORMATS.CLAUDE)
       ? sourceFormat
       : undefined;
-  const targetFormat =
-    apiFormat === "responses"
+  // #8994: model-level targetFormat overrides (from registry or custom-model DB override)
+  // take precedence over apiFormat="responses" — otherwise Vertex Claude models with
+  // targetFormat="claude" get wrongly routed to OpenAI Responses format.
+  let targetFormat =
+    modelTargetFormat ||
+    customModelTargetFormat ||
+    (apiFormat === "responses"
       ? FORMATS.OPENAI_RESPONSES
-      : modelTargetFormat ||
-        customModelTargetFormat ||
-        inferredAgentRouterTargetFormat ||
-        getTargetFormat(provider, providerSpecificData);
+      : inferredAgentRouterTargetFormat || getTargetFormat(provider, providerSpecificData));
+  if (nativeXaiResponsesPassthrough) targetFormat = FORMATS.OPENAI_RESPONSES;
   return { alias, targetFormat };
 }
 

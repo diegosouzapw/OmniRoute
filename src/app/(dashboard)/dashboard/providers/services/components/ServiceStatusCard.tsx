@@ -83,6 +83,19 @@ export function ServiceStatusCard({ name }: ServiceStatusCardProps) {
         )}
       </div>
 
+      {/* Adopted-process note — English literal, not an i18n key; see
+          AutoRestartAdoptedToggle.tsx's header comment for why. */}
+      {data.adopted && (
+        <p className="mt-2 text-xs text-yellow-600 dark:text-yellow-400 flex items-start gap-1">
+          <span className="material-symbols-outlined text-[14px] shrink-0 mt-0.5">info</span>
+          <span>
+            This process was adopted from an already-running instance, not started by this
+            supervisor — live log tailing isn&apos;t available until you restart it (Stop, then
+            Start), or turn on Auto-restart adopted process below.
+          </span>
+        </p>
+      )}
+
       {data.lastError && <p className="mt-2 text-xs text-red-500 break-words">{data.lastError}</p>}
     </Card>
   );

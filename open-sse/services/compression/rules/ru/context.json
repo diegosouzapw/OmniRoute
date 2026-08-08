@@ -1,0 +1,38 @@
+{
+  "language": "ru",
+  "category": "context",
+  "rules": [
+    {
+      "name": "subject_omission",
+      "pattern": "^(?:Я |Мы |Вы )(?:можем|должны|будем|хотим|нужно)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "context",
+      "minIntensity": "full"
+    },
+    {
+      "name": "known_fact_hedging",
+      "pattern": "(?<=\\.)\\s*(?:Возможно|Наверное|Может быть),\\s+",
+      "replacement": "",
+      "context": "assistant",
+      "category": "context",
+      "minIntensity": "full"
+    },
+    {
+      "name": "redundant_clarification",
+      "pattern": "\\b(?:как я уже говорил|как уже упоминалось|как было сказано)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "context",
+      "minIntensity": "full"
+    },
+    {
+      "name": "obvious_continuation",
+      "pattern": "\\b(?:далее|затем|после этого|в итоге)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "context",
+      "minIntensity": "ultra"
+    }
+  ]
+}

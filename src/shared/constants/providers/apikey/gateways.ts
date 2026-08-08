@@ -45,6 +45,17 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     freeNote: "$200 free credits on signup - multi-model routing gateway",
     apiHint: "Get $200 free credits at https://agentrouter.org/register — no credit card required.",
   },
+  unorouter: {
+    id: "unorouter",
+    alias: "unorouter",
+    name: "UnoRouter",
+    icon: "unorouter",
+    color: "#8B5CF6",
+    textIcon: "UR",
+    passthroughModels: true,
+    website: "https://unorouter.ai",
+    apiHint: "Create an API key at https://unorouter.ai, then paste it here as a Bearer token.",
+  },
   "command-code": {
     id: "command-code",
     alias: "cmd",
@@ -223,14 +234,14 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     textIcon: "DA",
     website: "https://inference.dahl.global",
     hasFree: true,
-    freeNote: "Free — MiniMax M2.7, Kimi K2.6. Click 'Add Account' to auto-generate a token.",
-    authHint: "Click 'Add Account' to auto-generate a token.",
-    apiHint: "No manual API key needed. Click 'Add Account' to auto-generate a token.",
+    freeNote: "Free — MiniMax M2.7, Kimi K2.6. Click 'Add Account' to auto-generate a token, or add your own API key.",
+    authHint: "Click 'Add Account' to auto-generate a token, or add a manual API key.",
+    apiHint: "Auto-generate a token or paste your own API key.",
     apiKeyUrl: "https://inference.dahl.global/tokens",
     passthroughModels: false,
     managedAccount: true,
     notice: {
-      text: "Dahl auto-generates tokens via https://inference.dahl.global/tokens. No signup needed. Rate limits apply.",
+      text: "Dahl auto-generates tokens via https://inference.dahl.global/tokens. No signup needed. Rate limits apply. You can also add your own API key.",
     },
   },
   puter: {
@@ -295,8 +306,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     textIcon: "G4F",
     website: "https://g4f.space",
     hasFree: true,
-    freeNote:
-      "Free no-key reverse proxy to Groq (gpt4free project) — rate-limited to 5 req/min.",
+    freeNote: "Free no-key reverse proxy to Groq (gpt4free project) — rate-limited to 5 req/min.",
     passthroughModels: true,
     authHint:
       "No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits.",
@@ -310,8 +320,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     textIcon: "G4F",
     website: "https://g4f.space",
     hasFree: true,
-    freeNote:
-      "Free no-key reverse proxy to Gemini (gpt4free project) — rate-limited to 5 req/min.",
+    freeNote: "Free no-key reverse proxy to Gemini (gpt4free project) — rate-limited to 5 req/min.",
     passthroughModels: true,
     authHint:
       "No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits.",
@@ -340,8 +349,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     textIcon: "G4F",
     website: "https://g4f.space",
     hasFree: true,
-    freeNote:
-      "Free no-key hosted Ollama gateway (gpt4free project) — rate-limited to 5 req/min.",
+    freeNote: "Free no-key hosted Ollama gateway (gpt4free project) — rate-limited to 5 req/min.",
     passthroughModels: true,
     authHint:
       "No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits.",
@@ -759,7 +767,8 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     website: "https://ainative.studio",
     hasFree: true,
     freeNote: "Free tier ~10M tokens/month (claimed) across Qwen3, Llama 4, DeepSeek R1 and more.",
-    authHint: "Create a free API key at ainative.studio (no card), then paste it here as a Bearer token.",
+    authHint:
+      "Create a free API key at ainative.studio (no card), then paste it here as a Bearer token.",
     apiHint:
       "OpenAI-compatible endpoint at https://api.ainative.studio/api/v1 with a public /models catalog (84 models). OmniRoute lists models via passthrough.",
   },
@@ -774,7 +783,8 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     website: "https://www.aionlabs.ai",
     hasFree: true,
     freeNote: "Free tier ~20k tokens/day across the Aion reasoning models.",
-    authHint: "Create a free API key at aionlabs.ai (no card), then paste it here as a Bearer token.",
+    authHint:
+      "Create a free API key at aionlabs.ai (no card), then paste it here as a Bearer token.",
     apiHint:
       "OpenAI-compatible endpoint at https://api.aionlabs.ai/v1 with a public /models catalog carrying context and pricing.",
   },
@@ -788,7 +798,8 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     passthroughModels: true,
     website: "https://routeway.ai",
     hasFree: true,
-    freeNote: "Free models (:free suffix) at ~5 RPM / 200 RPD across Llama, Nemotron, Step and Laguna.",
+    freeNote:
+      "Free models (:free suffix) at ~5 RPM / 200 RPD across Llama, Nemotron, Step and Laguna.",
     authHint: "Create a free API key at routeway.ai, then paste it here as a Bearer token.",
     apiHint:
       "OpenAI-compatible endpoint at https://api.routeway.ai/v1 with a public /models catalog (236 models). Cloudflare fronts the API and requires a browser-style User-Agent.",
@@ -804,8 +815,22 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     website: "https://bynara.id",
     hasFree: true,
     freeNote: "Free tier is a shared 5M tokens/day pool; some models are gated behind credit/plan.",
-    authHint: "Get a free API key via NaraRouter's Telegram channel, then paste it here as a Bearer token.",
+    authHint:
+      "Get a free API key via NaraRouter's Telegram channel, then paste it here as a Bearer token.",
     apiHint:
       "OpenAI-compatible endpoint at https://router.bynara.id/v1. Free-tier models are pinned; others need credit.",
+  },
+  regolo: {
+    id: "regolo",
+    alias: "regolo",
+    name: "Regolo AI",
+    icon: "hub",
+    color: "#6366F1",
+    textIcon: "RG",
+    website: "https://regolo.ai",
+    passthroughModels: true,
+    authHint: "Get your Regolo API key from regolo.ai, then paste it here as a Bearer token.",
+    apiHint:
+      "OpenAI-compatible endpoint at https://api.regolo.ai/v1 with dynamic model discovery (19 models).",
   },
 };

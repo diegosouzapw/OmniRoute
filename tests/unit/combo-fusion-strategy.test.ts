@@ -16,6 +16,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "combo-fusion-test-secret";
 
 const { handleComboChat } = await import("../../open-sse/services/combo.ts");
+const modelsDb = await import("../../src/lib/db/models.ts");
 
 const noop = () => {};
 const log = { info: noop, warn: noop, debug: noop, error: noop };
@@ -222,6 +223,91 @@ test("fusion: honors an explicit judgeModel even with a single surviving panel a
   );
   assert.equal(seen[seen.length - 1], "p/judge");
   assert.equal(res.status, 200);
+});
+
+test("fusion: preserves explicit providers when filtering structured panel targets", async () => {
+  modelsDb.mergeModelCompatOverride("nvidia", "openai/gpt-oss-120b", { isHidden: true });
+  const seen: string[] = [];
+
+  const res = await handleComboChat({
+    body: { messages: [{ role: "user", content: "Q" }] },
+    combo: {
+      name: "structured-fusion-combo",
+      strategy: "fusion",
+      models: [
+        { model: "openai/gpt-oss-120b", providerId: "nvidia" },
+        { model: "p/a" },
+        { model: "p/b" },
+      ],
+      config: {},
+    },
+    handleSingleModel: async (_body: Body, model: string) => {
+      seen.push(model);
+      return okResponse(`answer-${model}`);
+    },
+    log,
+    settings: {},
+    allCombos: [],
+  });
+
+  assert.equal(res.status, 200);
+  assert.deepEqual(seen, ["p/a", "p/b", "p/a"]);
+});
+
+test("fusion: dispatches visible structured panel targets with their provider identity", async () => {
+  const targets: Array<{ model: string; providerId?: string | null }> = [];
+
+  const res = await handleComboChat({
+    body: { messages: [{ role: "user", content: "Q" }] },
+    combo: {
+      name: "structured-fusion-dispatch",
+      strategy: "fusion",
+      models: [
+        { model: "vendor/model-a", providerId: "nvidia" },
+        { model: "vendor/model-b", providerId: "nvidia" },
+      ],
+      config: {},
+    },
+    handleSingleModel: async (_body: Body, model: string, target) => {
+      targets.push({
+        model,
+        providerId: target && "providerId" in target ? target.providerId : undefined,
+      });
+      return okResponse(`answer-${model}`);
+    },
+    log,
+    settings: {},
+    allCombos: [],
+  });
+
+  assert.equal(res.status, 200);
+  assert.deepEqual(targets.slice(0, 2), [
+    { model: "vendor/model-a", providerId: "nvidia" },
+    { model: "vendor/model-b", providerId: "nvidia" },
+  ]);
+});
+
+test("fusion: never dispatches hidden panel members or a hidden explicit judge", async () => {
+  modelsDb.mergeModelCompatOverride("p", "hidden-panel", { isHidden: true });
+  modelsDb.mergeModelCompatOverride("p", "hidden-judge", { isHidden: true });
+  const seen: string[] = [];
+
+  const res = await handleComboChat({
+    body: { messages: [{ role: "user", content: "Q" }] },
+    combo: fusionCombo(["p/hidden-panel", "p/a", "p/b"], {
+      judgeModel: "p/hidden-judge",
+    }),
+    handleSingleModel: async (_body: Body, model: string) => {
+      seen.push(model);
+      return okResponse(`answer-${model}`);
+    },
+    log,
+    settings: {},
+    allCombos: [],
+  });
+
+  assert.equal(res.status, 200);
+  assert.deepEqual(seen, ["p/a", "p/b", "p/a"]);
 });
 
 test("fusion: returns 503 when the whole panel fails", async () => {

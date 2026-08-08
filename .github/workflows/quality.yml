@@ -151,52 +151,6 @@ jobs:
           key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'eslint.complexity-ratchets.config.mjs', 'config/quality/eslint-suppressions.json', 'package-lock.json') }}
           restore-keys: |
             eslint-${{ runner.os }}-
-      - run: npm run check:provider-consistency
-      - run: npm run check:fetch-targets
-      # docs-all / openapi-routes / docs-symbols live in docs-gates (path-filtered).
-      - run: npm run check:deps
-      - run: npm run check:file-size
-      - run: npm run check:error-helper
-      - run: npm run check:migration-numbering
-      - run: npm run check:public-creds
-      - run: npm run check:db-rules
-      - run: npm run check:known-symbols
-      - run: npm run check:route-guard-membership
-      - run: npm run check:test-discovery
-      - run: npm run check:test-runner-api
-      # Guards tap.testFiles drift: a covering unit test absent from stryker.conf.json
-      # tap.testFiles makes its module's mutants survive on a cold nightly-mutation run,
-      # false-failing the blocking mutationScore ratchet. See check-mutation-test-coverage.mjs.
-      - run: npm run check:mutation-test-coverage
-      - run: npm run check:any-budget:t11
-      # Build-scope guard: fails if worktrees/cruft leak into the tsconfig include
-      # scope (would OOM `next build`). Instant. See incident 2026-06-25 / #5031.
-      - run: npm run check:build-scope
-      # Pack-policy (unexpected-files allowlist) WITHOUT a build — catches a stray file
-      # leaking into the npm tarball (v3.8.36: 6 ops bin/*.sh) per-PR instead of only on
-      # the release PR's heavy Package Artifact job.
-      - run: npm run check:pack-policy
-      # Complexity + cognitive-complexity: ONE ESLint walk (both baselines still
-      # enforced separately by ruleId). Avoids two cold tree walks on fast-path.
-      - run: npm run check:complexity-ratchets
-      # ── G0 (trilho .50): gates do trilho A que faltavam no trilho B ──────────────
-      # The god-file refactor happens in PRs→release/**; without these, the release
-      # rail never sees a new import cycle, dead code, duplication or a security
-      # regression until the release PR to main. Deliberately NOT brought here:
-      # bundle-size (self-skips without a build — this rail's build job is advisory
-      # and uploads nothing, so it would be dead configuration) and the coverage
-      # run (fast-unit already runs the full suite; the coverage ratchet stays on
-      # the main rail via --allow-missing in lint-guard).
-      - run: npm run check:cycles
-      - run: npm run check:lockfile
-      - name: Duplication ratchet
-        run: npm run check:duplication
-      - name: Dead-code ratchet (knip)
-        run: npm run check:dead-code
-      - name: Type coverage ratchet
-        run: npm run check:type-coverage
-      - name: Compression budget ratchet
-        run: npm run check:compression-budget
       # Security scanners — same hardened install as ci.yml quality-extended
       # (gh release download = authenticated, 5000 req/hr; curl to api.github.com
       # is rate-limited to 60/hr and silently no-ops when throttled). The blocking
@@ -240,26 +194,63 @@ jobs:
           "$HOME/.local/bin/osv-scanner" --version || true
           "$HOME/.local/bin/oasdiff" --version || true
           zizmor --version || true
-      - name: Secret scan (gitleaks, ratchet, blocking)
-        run: npm run check:secrets -- --ratchet
-      - name: Vulnerability ratchet (osv-scanner, ratchet, blocking)
-        run: npm run check:vuln-ratchet -- --ratchet
-      - name: Workflow lint (actionlint+zizmor, ratchet, blocking)
-        run: npm run check:workflows -- --ratchet
-      # BASE_REF is read by the script from the env (never interpolated into a
-      # shell body) — workflow-injection-safe. actions/checkout fetches remote
-      # refs, not a local branch named github.base_ref, so prefix origin/ or this
-      # gate self-skips every PR with reason=base-unresolved.
-      - name: OpenAPI breaking-change (oasdiff, ratchet, blocking)
+      # Quality gates (all, non-fail-fast) — #8542: replaces 17 bare check:* steps,
+      # 6 G0 gates, 4 ratchet gates, and 3 typecheck steps with a single aggregation
+      # step. Each gate runs in a loop with ::group::; failures are collected and
+      # reported at the end. set -uo pipefail (NOT set -e) so one failing gate does
+      # not abort the job and mask every later gate. Release-added gates are folded
+      # in: open-sse typecheck (#8781) and file-size base-relative mode (#8522).
+      - name: Quality gates (all, non-fail-fast)
         env:
+          # #8522: base-relative file-size mode on PR events — inherited drift (base
+          # already over frozen cap) must not red an innocent PR. Unset on
+          # workflow_dispatch (no PR base) → absolute comparison.
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           BASE_REF: ${{ github.base_ref && format('origin/{0}', github.base_ref) || '' }}
-        run: npm run check:openapi-breaking -- --ratchet
-      - name: Typecheck (core)
-        run: npm run typecheck:core
-      # #7033: dashboard-scoped typecheck gate — src/app/(dashboard) TSX is not
-      # covered by typecheck:core's curated allowlist. See check-dashboard-typecheck.mjs.
-      - name: Typecheck (dashboard)
-        run: npm run check:dashboard-typecheck
+        run: |
+          set -uo pipefail
+          gates=(
+            provider-consistency fetch-targets deps file-size error-helper
+            migration-numbering public-creds db-rules known-symbols
+            route-guard-membership test-discovery test-runner-api
+            mutation-test-coverage any-budget:t11 build-scope pack-policy
+            complexity-ratchets
+            cycles lockfile duplication dead-code type-coverage compression-budget
+            # #8781: open-sse workspace typecheck gate — the workspace imports @/ which
+            # escapes to src/ via undeclared path aliases. See check-open-sse-typecheck.mjs.
+            open-sse-typecheck
+          )
+          ratchet_gates=(
+            secrets vuln-ratchet workflows openapi-breaking
+          )
+          failed=()
+          for g in "${gates[@]}"; do
+            echo "::group::check:$g"
+            # #8522: file-size is base-relative on PR events (compare against
+            # max(frozen, base)) so inherited drift doesn't red an innocent PR;
+            # workflow_dispatch (no PR base) falls back to absolute comparison.
+            if [ "$g" = "file-size" ] && [ -n "${PR_BASE_SHA:-}" ]; then
+              npm run "check:$g" -- --base-ref "$PR_BASE_SHA" || failed+=("$g")
+            else
+              npm run "check:$g" || failed+=("$g")
+            fi
+            echo "::endgroup::"
+          done
+          for g in "${ratchet_gates[@]}"; do
+            echo "::group::check:$g (ratchet)"
+            npm run "check:$g" -- --ratchet || failed+=("$g")
+            echo "::endgroup::"
+          done
+          echo "::group::typecheck:core"
+          npm run typecheck:core || failed+=("typecheck:core")
+          echo "::endgroup::"
+          echo "::group::check:dashboard-typecheck"
+          npm run check:dashboard-typecheck || failed+=("check:dashboard-typecheck")
+          echo "::endgroup::"
+          if (( ${#failed[@]} )); then
+            printf '::error::%d gate(s) failed: %s\n' "${#failed[@]}" "${failed[*]}"
+            exit 1
+          fi
       # WS4.2 (v3.8.49 plan): TypeScript 7 native-compiler SHADOW — advisory only.
       # TS7 went GA 2026-07-08 with 8-12x type-check speedups; its Compiler API only
       # arrives in 7.1, so typescript-eslint / type-coverage / Stryker stay on 6.x

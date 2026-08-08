@@ -8,7 +8,11 @@ import { applyCorsHeaders } from "../cors/origins";
 import { validateBrowserMutationOrigin } from "../origin/publicOrigin";
 import { classifyRoute } from "./classify";
 import { validateDashboardCsrfToken } from "./csrf";
-import { classifyStampedPeerLocality } from "./peerStamp";
+import {
+  classifyStampedPeerLocality,
+  resolveStampedPeer,
+  resolveStampedViaProxy,
+} from "./peerStamp";
 import { checkRequestIP } from "@omniroute/open-sse/services/ipFilter.ts";
 import { clientApiPolicy } from "./policies/clientApi";
 import { managementPolicy } from "./policies/management";
@@ -347,8 +351,23 @@ export async function runAuthzPipeline(
   // external surface. Loopback is exempt so the local operator can never lock
   // themselves out of the dashboard (they can always fix the list from
   // localhost). checkIP is a no-op when the filter is disabled.
+  //
+  // D1 (#9033): on a direct connection the proxy runtime has no socket, so
+  // checkRequestIP reads only forwarding headers + undefined request.ip and
+  // falls to "unknown", never blocking the blacklisted client. Resolve the
+  // trusted peer IP from the authenticated stamp and pass it to checkRequestIP,
+  // but only when NOT behind a reverse proxy (the via-proxy marker means the
+  // peer IP is the proxy hop, e.g. 127.0.0.1, and the real client is in XFF).
   if (peerLocality !== "loopback") {
-    const ipVerdict = checkRequestIP(request);
+    const trustedPeerIp = resolveStampedPeer(
+      request.headers.get(PEER_IP_HEADER),
+      process.env.OMNIROUTE_PEER_STAMP_TOKEN
+    );
+    const viaProxy = resolveStampedViaProxy(
+      request.headers.get(VIA_PROXY_HEADER),
+      process.env.OMNIROUTE_PEER_STAMP_TOKEN
+    );
+    const ipVerdict = checkRequestIP(request, viaProxy ? null : trustedPeerIp);
     if (!ipVerdict.allowed) {
       const blocked = NextResponse.json(
         { error: ipVerdict.reason || "Access denied" },

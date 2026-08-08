@@ -146,3 +146,43 @@ test("request exceeding every known context window returns a 400 earlyResponse",
   assert.equal(body.diagnostics?.terminalReason, "context_length_exceeded");
   assert.equal(body.diagnostics?.attempted, 0);
 });
+
+// #8790: maxContextWindow rejects every target whose known context window
+// exceeds the configured ceiling. When that empties the pool, the
+// context-requirements guard (applyContinuityFilters → #8786's
+// buildEmptyComboTargetsPayload) must surface a 404 context_requirements_exhausted
+// early response instead of letting an empty orderedTargets[] fall through to the
+// attempt loop.
+test("maxContextWindow rejecting every target returns a 404 context_requirements_exhausted earlyResponse", async () => {
+  saveModelsDevCapabilities({
+    "unit-target-resolution-max": {
+      big1: capabilityEntry(500_000),
+      big2: capabilityEntry(1_000_000),
+    },
+  });
+
+  const result = await resolveComboTargetPipeline(
+    deps({
+      combo: {
+        id: "c3",
+        name: "max-context-window-exhausted",
+        models: ["unit-target-resolution-max/big1", "unit-target-resolution-max/big2"],
+        config: {},
+      },
+      config: {
+        contextRequirements: { maxContextWindow: 128_000, contextFilterMode: "strict" },
+      },
+    })
+  );
+
+  assert.ok("earlyResponse" in result, "expected a context-requirements-exhausted early response");
+  if (!("earlyResponse" in result)) return;
+  assert.equal(result.earlyResponse.status, 404);
+  const body = (await result.earlyResponse.json()) as {
+    error?: { code?: string };
+    diagnostics?: { terminalReason?: string; excluded?: unknown[] };
+  };
+  assert.equal(body.error?.code, "model_not_found");
+  assert.equal(body.diagnostics?.terminalReason, "context_requirements_exhausted");
+  assert.equal(body.diagnostics?.excluded?.length, 2);
+});

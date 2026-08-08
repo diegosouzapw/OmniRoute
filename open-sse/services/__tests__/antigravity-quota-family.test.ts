@@ -7,7 +7,10 @@ import {
   clearAllModelLockouts,
   getModelLockoutInfo,
   isModelLocked,
+  lockModelIfPerModelQuota,
+  lockExactModel,
   recordModelLockoutFailure,
+  clearModelLock,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 
 const provider = "antigravity";
@@ -72,6 +75,38 @@ describe("Antigravity account quota-family cooldown", () => {
 
     expect(isModelLocked(provider, "account-a", "cloud/claude-opus-4")).toBe(true);
     expect(isModelLocked(provider, "account-a", "gemini-3.5-flash-low")).toBe(false);
+  });
+
+  it("can isolate a confirmed Antigravity quota exhaustion to one exact model", () => {
+    lockExactModel(
+      provider,
+      "account-a",
+      "claude-opus-4-6-thinking",
+      "quota_exhausted",
+      60_000
+    );
+
+    expect(isModelLocked(provider, "account-a", "claude-opus-4-6-thinking")).toBe(true);
+    expect(isModelLocked(provider, "account-a", "claude-sonnet-4-6-thinking")).toBe(false);
+    expect(isModelLocked(provider, "account-a", "gemini-3.5-flash-medium")).toBe(false);
+
+    expect(clearModelLock(provider, "account-a", "claude-opus-4-6-thinking")).toBe(true);
+    expect(isModelLocked(provider, "account-a", "claude-opus-4-6-thinking")).toBe(false);
+  });
+
+  it("uses an exact model lock for Antigravity in the generic per-model quota path", () => {
+    expect(
+      lockModelIfPerModelQuota(
+        provider,
+        "account-a",
+        "claude-opus-4-6-thinking",
+        "quota_exhausted",
+        60_000
+      )
+    ).toBe(true);
+
+    expect(isModelLocked(provider, "account-a", "claude-opus-4-6-thinking")).toBe(true);
+    expect(isModelLocked(provider, "account-a", "claude-sonnet-4-6-thinking")).toBe(false);
   });
 
   it("honors exact upstream cooldowns and otherwise uses bounded inferred cooldown", () => {

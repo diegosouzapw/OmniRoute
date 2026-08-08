@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common"
+[[ "${ENABLE_LIVE_DEVIN_TESTS:-}" == 1 ]] || { echo 'Set ENABLE_LIVE_DEVIN_TESTS=1' >&2; exit 1; }
+trap bridge_cleanup_compose EXIT
+bridge_cleanup_compose
+bridge_prepare_sandbox
+bridge_reset_devin_egress_audit
+docker compose -f "$BRIDGE_COMPOSE" --profile live-devin up -d --wait network-guard
+bridge_run_devin auth login --force-manual-token-flow
+bridge_cleanup_compose
+trap - EXIT
+exec env ENABLE_LIVE_DEVIN_TESTS=1 "$(dirname "$0")/test-live-devin"

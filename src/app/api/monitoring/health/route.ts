@@ -56,6 +56,7 @@ export async function GET() {
       sessionManagerModule,
       credentialHealthModule,
       localHealthModule,
+      adaptiveAdmissionModule,
       settingsResult,
       connectionsResult,
     ] = await Promise.allSettled([
@@ -67,6 +68,7 @@ export async function GET() {
       import("@omniroute/open-sse/services/sessionManager.ts"),
       import("@/lib/credentialHealth/cache"),
       import("@/lib/localHealthCheck"),
+      import("@omniroute/open-sse/services/admission/runtime.ts"),
       getCachedSettings(),
       getProviderConnections(),
     ]);
@@ -145,6 +147,14 @@ export async function GET() {
         : {};
     const settings = settingsResult.status === "fulfilled" ? settingsResult.value : {};
     const connections = connectionsResult.status === "fulfilled" ? connectionsResult.value : [];
+    const adaptiveAdmission =
+      adaptiveAdmissionModule.status === "fulfilled"
+        ? readHealthValue(
+            "adaptive admission",
+            () => adaptiveAdmissionModule.value.getAdaptiveAdmissionRuntime().snapshot(),
+            null
+          )
+        : null;
 
     const payload = buildHealthPayload({
       appVersion: APP_CONFIG.version,
@@ -169,6 +179,7 @@ export async function GET() {
       activeSessions,
       activeSessionsByKey,
       credentialHealth,
+      adaptiveAdmission,
     });
 
     healthPayloadCache = { payload, expiresAt: Date.now() + HEALTH_PAYLOAD_TTL_MS };
@@ -186,6 +197,7 @@ export async function GET() {
       lockouts: [],
       quotaMonitor: { ...fallbackQuotaMonitorSummary, monitors: [] },
       sessions: { activeCount: 0, stickyBoundCount: 0, byApiKey: {}, top: [] },
+      adaptiveAdmission: null,
       dedup: { inflightRequests: 0 },
     });
   }

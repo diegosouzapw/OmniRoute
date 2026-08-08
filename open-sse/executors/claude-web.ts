@@ -213,14 +213,21 @@ function makeErrorResponse(
     details?: unknown;
     type?: string;
     code?: string;
+    extraHeaders?: Record<string, string>;
   }
 ): Response {
   const body = buildErrorBody(status, message, options?.details);
   if (options?.type) body.error.type = options.type;
   if (options?.code) body.error.code = options.code;
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (options?.extraHeaders) {
+    for (const [key, value] of Object.entries(options.extraHeaders)) {
+      headers[key] = value;
+    }
+  }
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers,
   });
 }
 
@@ -302,7 +309,12 @@ async function errorResponseForTransport(
     return makeErrorResponse(401, "Session expired or invalid");
   }
   if (result.status === 429) {
-    return makeErrorResponse(429, "Rate limited by Claude Web API");
+    const extraHeaders: Record<string, string> = {};
+    const upstreamRetryAfter = result.headers.get("retry-after");
+    if (upstreamRetryAfter) {
+      extraHeaders["Retry-After"] = upstreamRetryAfter;
+    }
+    return makeErrorResponse(429, "Rate limited by Claude Web API", { extraHeaders });
   }
   if (isClaudeWebChallenge({ ...result, bodyText })) {
     return makeErrorResponse(403, "Claude Web returned a Cloudflare browser challenge", {

@@ -1,0 +1,101 @@
+{
+  "language": "ru",
+  "category": "structural",
+  "rules": [
+    {
+      "name": "problem_phrasing",
+      "pattern": "\\b(?:проблема заключается в том, что|дело в том, что|суть в том, что)\\b\\s*",
+      "replacement": "проблема: ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "causality_verbose",
+      "pattern": "\\b(?:это приводит к тому, что|это означает, что|из этого следует, что)\\b\\s*",
+      "replacement": "→ ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "purpose_phrases",
+      "pattern": "\\b(?:для того чтобы|с целью того чтобы)\\b\\s*",
+      "replacement": "чтобы ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "causality_phrases",
+      "pattern": "\\b(?:в связи с тем, что|по причине того, что|ввиду того, что)\\b\\s*",
+      "replacement": "из-за ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "concession_phrases",
+      "pattern": "\\b(?:несмотря на то, что|хотя и)\\b\\s*",
+      "replacement": "хотя ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "note_phrases",
+      "pattern": "\\b(?:стоит отметить, что|следует иметь в виду, что|важно понимать, что|необходимо учитывать, что)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "redundant_directive",
+      "pattern": "\\b(?:важно помнить|не забывайте|помните о том)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "approximation",
+      "pattern": "\\b(?:примерно|приблизительно)\\b\\s*",
+      "replacement": "≈ ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "forbidden_abbreviations_dots",
+      "pattern": "\\b(?:т\\.к\\.|т\\.е\\.|и т\\.д\\.|и т\\.п\\.|см\\.|напр\\.|и др\\.|в т\\.ч\\.)\\b",
+      "replacement": "",
+      "replacementMap": {
+        "т.к.": "так как",
+        "т.е.": "то есть",
+        "и т.д.": "",
+        "и т.п.": "",
+        "см.": "см",
+        "напр.": "например",
+        "и др.": "",
+        "в т.ч.": ""
+      },
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "forbidden_abbreviations_dash",
+      "pattern": "\\b(?:кол-во|к-рый|св-во)\\b",
+      "replacement": "",
+      "replacementMap": {
+        "кол-во": "количество",
+        "к-рый": "который",
+        "св-во": "свойство"
+      },
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    }
+  ]
+}

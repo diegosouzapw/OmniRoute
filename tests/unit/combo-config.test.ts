@@ -326,7 +326,7 @@ test("resolveComboTargetTimeoutMs falls back to the saner combo default when uns
 
 // #7360 / #7301: any strategy with comboCooldownWait enabled waits out cooldowns for up
 // to comboCooldownWait.budgetMs, so the per-target timeout floor must cover that budget
-// (DEFAULT_COMBO_TARGET_TIMEOUT_MS alone would cut a long wait short into a 524).
+// (DEFAULT_COMBO_TARGET_TIMEOUT_MS alone would cut a long wait short into a 504 combo_target_timeout).
 test("isComboCooldownWaitEligible engages for every strategy when the feature is enabled", () => {
   for (const strategy of ALL_COMBO_STRATEGIES) {
     assert.equal(isComboCooldownWaitEligible(strategy, { enabled: true }), true);
@@ -359,7 +359,12 @@ test("resolveComboTargetTimeoutMsForCombo raises the floor to cover the cooldown
 
   // Explicit per-combo targetTimeoutMs still wins over the derived floor.
   assert.equal(
-    resolveComboTargetTimeoutMsForCombo({ targetTimeoutMs: 45000 }, 600000, "auto", comboCooldownWait),
+    resolveComboTargetTimeoutMsForCombo(
+      { targetTimeoutMs: 45000 },
+      600000,
+      "auto",
+      comboCooldownWait
+    ),
     45000
   );
 

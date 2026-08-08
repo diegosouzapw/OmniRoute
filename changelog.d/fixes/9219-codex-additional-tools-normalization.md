@@ -1,0 +1,1 @@
+- **fix(codex):** normalize additional_tools passthrough items. (thanks @SalyyS1)

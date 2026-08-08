@@ -1,0 +1,86 @@
+{
+  "language": "ru",
+  "category": "filler",
+  "rules": [
+    {
+      "name": "pleasantries",
+      "pattern": "\\b(?:конечно|с радостью|рад помочь|могу помочь|обязательно|безусловно|разумеется)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "polite_framing",
+      "pattern": "\\b(?:пожалуйста|если хотите|если можно|будьте добры|будьте любезны|прошу вас)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "verbal_wrapping",
+      "pattern": "\\b(?:давайте разберём|давайте посмотрим|попробуем разобраться|постараюсь помочь)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "assistant",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "hedging",
+      "pattern": "\\b(?:возможно|наверное|может быть|скорее всего|вероятно|видимо|похоже)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "filler_adverbs",
+      "pattern": "\\b(?:в целом|на самом деле|в принципе|как правило|по сути|фактически|буквально)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "empty_qualifiers",
+      "pattern": "\\b(?:удобный|хороший|эффективный|мощный|отличный|прекрасный)(?!\\s+(?:вариант|способ|решение|метод|инструмент))\\b",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "redundant_openers",
+      "pattern": "^(?:Привет|Здравствуйте|Добрый день|Доброе утро|Добрый вечер)\\s*[,.!?\\s]?\\s*",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "excessive_gratitude",
+      "pattern": "\\b(?:Большое спасибо|Огромное спасибо|Спасибо заранее|Заранее благодарю|Очень признателен)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "softeners",
+      "pattern": "\\b(?:немного|немножко|чуть-чуть|слегка|несколько|как-то)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "assistant_fillers",
+      "pattern": "^(?:Вот|Ниже|Это|Здесь)\\s+(?:есть|находится)?\\s*",
+      "replacement": "",
+      "context": "assistant",
+      "category": "filler",
+      "minIntensity": "lite"
+    }
+  ]
+}

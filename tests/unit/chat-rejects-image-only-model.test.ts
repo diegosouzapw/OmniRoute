@@ -11,8 +11,11 @@ import assert from "node:assert/strict";
 import { createChatPipelineHarness } from "../integration/_chatPipelineHarness.ts";
 
 const harness = await createChatPipelineHarness("chat-rejects-image-only-model");
-const { buildRequest, handleChat, resetStorage } = harness as {
+const { buildRequest, combosDb, handleChat, resetStorage } = harness as {
   buildRequest: (opts: { body: unknown }) => Request;
+  combosDb: {
+    createCombo: (data: Record<string, unknown>) => Promise<unknown>;
+  };
   handleChat: (req: Request) => Promise<Response>;
   resetStorage: () => void | Promise<void>;
 };
@@ -69,6 +72,32 @@ test("POST /v1/chat/completions with a chat model still reaches routing (guard i
     const body = (await res.json()) as { error?: { message?: string } };
     const msg = body?.error?.message || JSON.stringify(body);
     assert.doesNotMatch(msg, /image-generation model/i, "chat model must not trip the image guard");
+  }
+});
+
+test("POST /v1/chat/completions routes a stored chat combo whose name is an image alias (#8986)", async () => {
+  await combosDb.createCombo({
+    name: "fast",
+    strategy: "priority",
+    models: ["openai/gpt-4o"],
+  });
+
+  const request = buildRequest({
+    body: {
+      model: "fast",
+      messages: [{ role: "user", content: "hi" }],
+    },
+  });
+
+  const res = await handleChat(request);
+  if (res.status === 400) {
+    const body = (await res.json()) as { error?: { message?: string } };
+    const msg = body?.error?.message || JSON.stringify(body);
+    assert.doesNotMatch(
+      msg,
+      /image-generation model/i,
+      "a stored chat combo must take precedence over a colliding image alias"
+    );
   }
 });
 

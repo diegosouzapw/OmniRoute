@@ -89,10 +89,12 @@ export {
   reorderCombos,
   deleteCombo,
 } from "./db/combos";
+export * from "./db/ccrBlocks";
 export * from "./db/compressionCacheStats";
 export * from "./db/compressionCombos";
 export * from "./db/compressionContextBudget";
 export * from "./db/compressionRunTelemetry";
+export * from "./db/connectionRuntimeState";
 export * from "./db/modelContextOverrides";
 
 export {
@@ -809,3 +811,14 @@ export * from "./db/relayProbeStats"; // Relay probe latency/health stats (#6909
 export * from "./db/ccDiscoveryAliases"; // Claude Code discovery-alias gate (flag + per-provider/model overrides)
 export * from "./db/ccDiscoveryMetrics"; // Claude Code discovery-alias usage counters (alias requests + discovery hits)
 export * from "./db/functionalGatewayMirrors"; // Functional-gateway mirror gate (flag + per-provider/model overrides)
+// Radar client — local feed cache + settings (opt-in, encrypted supporter key)
+export {
+  getRadarCache,
+  setRadarCache,
+  getRadarSettings,
+  setRadarOptIn,
+  setRadarKey,
+  getRadarReferralsCache,
+  setRadarReferralsCache,
+} from "./db/radar";
+export type { RadarCache, RadarSettings, RadarReferralsCache } from "./db/radar";

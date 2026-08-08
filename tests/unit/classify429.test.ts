@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   classify429,
   looksLikeQuotaExhausted,
+  classify429FromError,
   parseRetryAfter,
   retryAfterFromResponse,
   type FailureKind,
@@ -39,6 +40,13 @@ test("classify429: Antigravity 'Individual quota reached' body returns 'quota_ex
   const body =
     "Individual quota reached. Contact your administrator to enable overages. " +
     "Resets in 164h27m24s.";
+  assert.equal(looksLikeQuotaExhausted(body), true);
+  assert.equal(classify429({ status: 429, body }), "quota_exhausted");
+  assert.equal(classify429({ status: 429, body: { error: { message: body } } }), "quota_exhausted");
+});
+
+test("classify429: auth-layer synthetic 'have exhausted their quota' returns 'quota_exhausted' (#9269)", () => {
+  const body = "All antigravity accounts have exhausted their quota (reset after 5m)";
   assert.equal(looksLikeQuotaExhausted(body), true);
   assert.equal(classify429({ status: 429, body }), "quota_exhausted");
   assert.equal(classify429({ status: 429, body: { error: { message: body } } }), "quota_exhausted");
@@ -194,8 +202,14 @@ test("classify429: Modal-hosted endpoint 'usage limit reached' body returns 'quo
     "quota_exhausted"
   );
   // Trailing punctuation/whitespace must still match.
-  assert.equal(classify429({ status: 429, body: { error: "usage limit reached." } }), "quota_exhausted");
-  assert.equal(classify429({ status: 429, body: { error: "usage limit reached " } }), "quota_exhausted");
+  assert.equal(
+    classify429({ status: 429, body: { error: "usage limit reached." } }),
+    "quota_exhausted"
+  );
+  assert.equal(
+    classify429({ status: 429, body: { error: "usage limit reached " } }),
+    "quota_exhausted"
+  );
 });
 
 test("classify429: qualified transient 'usage limit reached' messages stay rate_limit", () => {
@@ -276,4 +290,156 @@ test("retryAfterFromResponse: case-insensitive header lookup", () => {
   assert.equal(retryAfterFromResponse({ headers: { "RETRY-AFTER": "60s" } }), 60);
   assert.equal(retryAfterFromResponse({ headers: {} }), null);
   assert.equal(retryAfterFromResponse({}), null);
+});
+
+// --- Gemini free-tier 429s carrying google.rpc.RetryInfo (#9504) ---
+
+/** Real captured Gemini free-tier 429 (issue #9504), parameterized by quotaId/delay. */
+function geminiFreeTier429(quotaId: string, retryDelay: string) {
+  return {
+    error: {
+      code: 429,
+      message:
+        "You exceeded your current quota, please check your plan and billing details. " +
+        "For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. " +
+        "* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, " +
+        "limit: 15, model: gemini-3.5-flash-lite\nPlease retry in 38.922534355s.",
+      status: "RESOURCE_EXHAUSTED",
+      details: [
+        {
+          "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+          violations: [
+            {
+              quotaMetric: "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+              quotaId,
+              quotaValue: "15",
+            },
+          ],
+        },
+        { "@type": "type.googleapis.com/google.rpc.RetryInfo", retryDelay },
+      ],
+    },
+  };
+}
+
+test("classify429: Gemini free-tier 429 with a short RetryInfo window is a rate limit", () => {
+  // The generic "exceeded your current quota ... check your plan" preamble
+  // matches three QUOTA_PATTERNS, but Google's own RetryInfo says the window
+  // clears in seconds. Every quotaId variant captured in #9504 ships a short
+  // retryDelay, including the confusingly day-named one.
+  const cases = [
+    ["GenerateRequestsPerMinutePerProjectPerModel-FreeTier", "38s"],
+    ["GenerateRequestsPerDayPerProjectPerModel-FreeTier", "29s"],
+    ["GenerateContentInputTokensPerModelPerMinute-FreeTier", "0s"],
+    ["GenerateRequestsPerMinutePerProjectPerModel-FreeTier", "38.922534355s"],
+  ] as const;
+  for (const [quotaId, retryDelay] of cases) {
+    const body = geminiFreeTier429(quotaId, retryDelay);
+    assert.equal(
+      classify429({ status: 429, body }),
+      "rate_limit",
+      `${quotaId} retryDelay=${retryDelay}`
+    );
+  }
+});
+
+test("classify429FromError: the production message-only shape is a rate limit", () => {
+  // This is the shape the live path actually delivers: parseUpstreamError
+  // reduces the upstream body to error.message, and chat.ts classifies
+  // classify429FromError({ status, message }). The RetryInfo details are
+  // already gone by then, so the hint must be read from Google's phrasing.
+  const message =
+    "You exceeded your current quota, please check your plan and billing details. " +
+    "For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\n" +
+    "* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, " +
+    "limit: 15, model: gemini-3.5-flash-lite\nPlease retry in 38.922534355s.";
+  assert.equal(classify429FromError({ status: 429, message }), "rate_limit");
+  assert.equal(classify429({ status: 429, body: message }), "rate_limit");
+});
+
+test("classify429: short RetryInfo window wins for string bodies too", () => {
+  // The account-fallback path classifies the parsed body, so the same
+  // payload may arrive as pre-stringified JSON.
+  const body = JSON.stringify(
+    geminiFreeTier429("GenerateRequestsPerMinutePerProjectPerModel-FreeTier", "14s")
+  );
+  assert.equal(classify429({ status: 429, body }), "rate_limit");
+});
+
+test("classify429: the bare RetryInfo @type and non-second units are honored", () => {
+  // Repo fixtures carry the short "@type": "google.rpc.RetryInfo" form, and
+  // the shared delay grammar (#7940) accepts ms/m/h as well as seconds.
+  const cases = [
+    ["google.rpc.RetryInfo", "45s", "rate_limit"],
+    ["type.googleapis.com/google.rpc.RetryInfo", "1500ms", "rate_limit"],
+    ["type.googleapis.com/google.rpc.RetryInfo", "30m", "rate_limit"],
+    ["type.googleapis.com/google.rpc.RetryInfo", "3h", "quota_exhausted"],
+  ] as const;
+  for (const [type, retryDelay, expected] of cases) {
+    const body = {
+      error: {
+        message: "You exceeded your current quota, please check your plan and billing details.",
+        details: [{ "@type": type, retryDelay }],
+      },
+    };
+    assert.equal(classify429({ status: 429, body }), expected, `${type} ${retryDelay}`);
+  }
+});
+
+test("classify429: a terminal credits signal is never downgraded by a retry hint", () => {
+  // Credits/billing exhaustion does not clear on a timer, so a short
+  // upstream hint must not flip it into a 60s retry loop.
+  const cases = [
+    "Individual quota reached. Contact your administrator to enable overages. Resets in 164h27m24s.",
+    "INSUFFICIENT_G1_CREDITS_BALANCE",
+    "Out of credits - top up your account.",
+    "you have used up your daily free allocation of 10,000 neurons",
+  ];
+  for (const message of cases) {
+    const body = {
+      error: {
+        message,
+        details: [{ "@type": "type.googleapis.com/google.rpc.RetryInfo", retryDelay: "20s" }],
+      },
+    };
+    assert.equal(classify429({ status: 429, body }), "quota_exhausted", message.slice(0, 40));
+  }
+});
+
+test("classify429: an hours-scale RetryInfo window keeps the quota classification", () => {
+  const body = geminiFreeTier429("GenerateRequestsPerDayPerProjectPerModel-FreeTier", "7200s");
+  assert.equal(classify429({ status: 429, body }), "quota_exhausted");
+});
+
+test("classify429: quota keywords with no retry hint at all stay quota exhausted", () => {
+  // Neither a RetryInfo detail nor Google's "Please retry in Ns" phrasing:
+  // with no declared window there is nothing to contradict the keywords.
+  const body = {
+    error: {
+      code: 429,
+      message:
+        "You exceeded your current quota, please check your plan and billing details. " +
+        "* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests.",
+      status: "RESOURCE_EXHAUSTED",
+      details: [
+        {
+          "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+          violations: [{ quotaId: "GenerateRequestsPerDayPerProjectPerModel-FreeTier" }],
+        },
+      ],
+    },
+  };
+  assert.equal(classify429({ status: 429, body }), "quota_exhausted");
+});
+
+test("classify429: retryDelay outside a RetryInfo detail is ignored", () => {
+  // The field name alone must not trigger the short-window path when it is
+  // not an upstream google.rpc.RetryInfo declaration.
+  const body = {
+    error: {
+      message: "You exceeded your current quota, please check your plan and billing details.",
+      retryDelay: "10s",
+    },
+  };
+  assert.equal(classify429({ status: 429, body }), "quota_exhausted");
 });

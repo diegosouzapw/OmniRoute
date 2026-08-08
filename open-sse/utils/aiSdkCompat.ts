@@ -130,6 +130,16 @@ export function resolveStreamFlag(
     return false;
   }
 
+  // OpenAI Chat Completions: omitted `stream` defaults to false per the OpenAI
+  // contract. A client that says nothing is asking for a JSON object, not an
+  // SSE event stream. Honor a pure text/event-stream Accept as an explicit SSE
+  // opt-in; otherwise default to non-stream. The application/json check above
+  // already handles the Vercel/OpenAI SDK mixed-signature case.
+  if (sourceFormat === "openai") {
+    if (acceptsEventStream) return true;
+    return false;
+  }
+
   // No explicit stream param — preserve OmniRoute's streaming default unless
   // the client explicitly asks for JSON and does not also accept SSE.
   return !clientWantsJsonResponse(acceptHeader);

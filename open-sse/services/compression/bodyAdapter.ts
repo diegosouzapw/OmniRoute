@@ -400,13 +400,24 @@ export function adaptBodyForCompression(
       });
 
       const cleanedInput = nextInput.filter((item) => {
-        if (!isRecord(item) || item.type !== "function_call") return true;
+        if (!isRecord(item)) return true;
+        const t = item.type;
+        if (
+          t !== "function_call" &&
+          t !== "custom_tool_call" &&
+          t !== "local_shell_call" &&
+          t !== "apply_patch_call"
+        ) {
+          return true;
+        }
         if (typeof item.call_id !== "string" || item.call_id.length === 0) return true;
         const hadMappedOutput = mappings.some((mapping) => {
           const original = mapping.item;
           return (
             (original.type === "function_call_output" ||
-              original.type === "custom_tool_call_output") &&
+              original.type === "custom_tool_call_output" ||
+              original.type === "local_shell_call_output" ||
+              original.type === "apply_patch_call_output") &&
             original.call_id === item.call_id
           );
         });

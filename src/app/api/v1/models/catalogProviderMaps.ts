@@ -1,6 +1,6 @@
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
-import { parseModel } from "@omniroute/open-sse/services/model";
+import { parseModel, resolveCanonicalProviderModel } from "@omniroute/open-sse/services/model";
 
 // Alias <-> providerId resolution maps for the unified model catalog. Extracted
 // verbatim from ./catalog.ts. `FALLBACK_ALIAS_TO_PROVIDER` is also consumed directly by
@@ -77,6 +77,7 @@ export type AliasMaps = ReturnType<typeof buildAliasMaps>;
 export type ProviderPrefixedTarget = {
   modelStr?: string;
   provider?: string | null;
+  providerId?: string | null;
 };
 
 /**
@@ -142,20 +143,30 @@ export function getComboTargetModelId(
   maps: AliasMaps,
   target: ProviderPrefixedTarget
 ): { providerId: string; modelId: string } | null {
-  const rawProvider = typeof target.provider === "string" ? target.provider.trim() : "";
+  const rawProvider =
+    typeof target.providerId === "string"
+      ? target.providerId.trim()
+      : typeof target.provider === "string"
+        ? target.provider.trim()
+        : "";
   const modelStr = typeof target.modelStr === "string" ? target.modelStr.trim() : "";
   if (!rawProvider || rawProvider === "unknown" || !modelStr) return null;
 
   const providerId = resolveCanonicalProviderId(maps.aliasToProviderId, rawProvider);
   if (!providerId || providerId === "unknown") return null;
 
+  let modelId = modelStr;
   for (const prefix of getProviderPrefixes(maps, providerId, rawProvider)) {
     const prefixWithSlash = `${prefix}/`;
     if (modelStr.startsWith(prefixWithSlash)) {
-      const modelId = modelStr.slice(prefixWithSlash.length).trim();
-      return modelId ? { providerId, modelId } : null;
+      modelId = modelStr.slice(prefixWithSlash.length).trim();
+      break;
     }
   }
 
-  return { providerId, modelId: modelStr };
+  if (!modelId) return null;
+  const canonical = resolveCanonicalProviderModel(providerId, modelId);
+  return canonical.provider && canonical.model
+    ? { providerId: canonical.provider, modelId: canonical.model }
+    : null;
 }

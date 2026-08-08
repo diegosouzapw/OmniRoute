@@ -36,7 +36,7 @@ export default function LoginPage() {
           const data = await res.json();
           if (data.nodeVersion) setNodeVersion(data.nodeVersion);
           if (data.nodeCompatible === false) setNodeCompatible(false);
-          if (data.requireLogin === false) {
+          if (data.authenticated === true || data.requireLogin === false) {
             router.push("/dashboard");
             router.refresh();
             return;

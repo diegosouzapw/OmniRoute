@@ -22,8 +22,7 @@ const LOCAL_DB_IMPORT_RESTRICTION = {
 
 const EXECUTOR_IMPORT_RESTRICTION = {
   regex: "^(?:@omniroute/)?open-sse/executors(?:/|$)",
-  message:
-    "Executor implementations must stay behind an open-sse handler or service boundary.",
+  message: "Executor implementations must stay behind an open-sse handler or service boundary.",
 };
 
 const PROP_TYPES_RESTRICTION = {
@@ -165,6 +164,14 @@ const eslintConfig = [
       // their files move mid-scan, so never lint them from the main checkout.
       ".claude/**",
       ".omnivscodeagent/**",
+      // _tasks/ — planning/handoff/research artifacts (gitignored, external code)
+      "_tasks/**",
+      // .agents/ — skill definitions + their helper scripts (gitignored; the
+      // canonical copy lives here and is symlinked into .claude/).
+      ".agents/**",
+      // .source/ — fumadocs codegen output (@ts-nocheck + bundler-only import
+      // query params like `?collection=docs`, which are not valid TS on their own).
+      ".source/**",
       // VS Code extension and its large test fixtures
       "vscode-extension/**",
       "_references/**",

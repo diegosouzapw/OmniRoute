@@ -1,3 +1,5 @@
+import { stripInternalReasoningPlaceholder } from "./reasoningPlaceholder.ts";
+
 type JsonRecord = Record<string, unknown>;
 
 export function asReasoningRecord(value: unknown): JsonRecord {
@@ -68,5 +70,18 @@ export function copyOpenAICompatibleReasoningFields(source: JsonRecord, target: 
   if (!getReadableReasoningValue(target)) {
     const mirrored = getUnsupportedReasoningValue(source);
     if (mirrored) target.reasoning_content = mirrored;
+  }
+  // ponytail: the internal replay placeholder is request scaffolding, never
+  // real reasoning — models echo it and it poisons client history + the cache
+  // (#8081 echo). Strip it from anything we forward to the client.
+  if (typeof target.reasoning_content === "string") {
+    const stripped = stripInternalReasoningPlaceholder(target.reasoning_content);
+    if (stripped === "") delete target.reasoning_content;
+    else if (stripped !== target.reasoning_content) target.reasoning_content = stripped;
+  }
+  if (typeof target.reasoning === "string") {
+    const stripped = stripInternalReasoningPlaceholder(target.reasoning);
+    if (stripped === "") delete target.reasoning;
+    else if (stripped !== target.reasoning) target.reasoning = stripped;
   }
 }

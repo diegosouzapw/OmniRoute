@@ -119,9 +119,11 @@ test("HuggingChat executor is registered", () => {
 
 test("Poe Web executor is registered", () => {
   assert.ok(hasSpecializedExecutor("poe-web"));
-  assert.ok(hasSpecializedExecutor("poe"));
   const executor = getExecutor("poe-web");
   assert.ok(executor instanceof PoeWebExecutor);
+  // #8969: canonical API-key `poe` must not route through PoeWebExecutor.
+  assert.equal(hasSpecializedExecutor("poe"), false);
+  assert.ok(!(getExecutor("poe") instanceof PoeWebExecutor));
 });
 
 test("Venice Web executor is registered", () => {
