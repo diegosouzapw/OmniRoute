@@ -225,6 +225,23 @@ import { digitaloceanProvider } from "./registry/digitalocean/index.ts";
 import { hcnsecProvider } from "./registry/hcnsec/index.ts";
 import { promptqlProvider } from "./registry/promptql/index.ts";
 import { hyperagentProvider } from "./registry/hyperagent/index.ts";
+import { zyloApiProvider } from "./registry/zylo-api/index.ts";
+import { unorouterProvider } from "./registry/unorouter/index.ts";
+import { poolsideProvider } from "./registry/poolside/index.ts";
+import { fastrouterProvider } from "./registry/fastrouter/index.ts";
+import { anyapiProvider } from "./registry/anyapi/index.ts";
+import { electronhubProvider } from "./registry/electronhub/index.ts";
+import { llmgatewayProvider } from "./registry/llmgateway/index.ts";
+import { llmKiwiProvider } from "./registry/llm-kiwi/index.ts";
+import { literouterProvider } from "./registry/literouter/index.ts";
+import { mnnAiProvider } from "./registry/mnn-ai/index.ts";
+import { meganovaAiProvider } from "./registry/meganova-ai/index.ts";
+import { mixlayerProvider } from "./registry/mixlayer/index.ts";
+import { spekaProvider } from "./registry/speka/index.ts";
+import { tokenreplyProvider } from "./registry/tokenreply/index.ts";
+import { yoloAutoProvider } from "./registry/yolo-auto/index.ts";
+import { dxntProvider } from "./registry/dxnt/index.ts";
+import { cloudcodeOneProvider } from "./registry/cloudcode-one/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -450,6 +467,22 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   digitalocean: digitaloceanProvider,
   hcnsec: hcnsecProvider,
   promptql: promptqlProvider,
-  hyperagent: hyperagentProvider,
+  "zylo-api": zyloApiProvider,
+  unorouter: unorouterProvider,
+  poolside: poolsideProvider,
+  fastrouter: fastrouterProvider,
+  anyapi: anyapiProvider,
+  electronhub: electronhubProvider,
+  llmgateway: llmgatewayProvider,
+  "llm-kiwi": llmKiwiProvider,
+  literouter: literouterProvider,
+  "mnn-ai": mnnAiProvider,
+  "meganova-ai": meganovaAiProvider,
+  mixlayer: mixlayerProvider,
+  speka: spekaProvider,
+  tokenreply: tokenreplyProvider,
+  "yolo-auto": yoloAutoProvider,
+  dxnt: dxntProvider,
+  "cloudcode-one": cloudcodeOneProvider,
   unorouter: unorouterProvider,
 };
