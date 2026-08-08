@@ -108,13 +108,9 @@ export function mapModel(model: string): string {
 const TOKEN_SEED = "oldllm-client-2026";
 const UA_PREFIX = CHROME_UA.slice(0, 20); // "Mozilla/5.0 (Windows"
 
-type TheOldLlmProxy = {
-  type?: string;
-  host: string;
-  port: number;
-  username?: string | null;
-  password?: string | null;
-} | null;
+type TheOldLlmProxy = Awaited<
+  ReturnType<typeof import("../../src/lib/db/proxies").resolveProxyForProvider>
+>;
 
 interface TheOldLlmFetchDependencies {
   resolveProxy: () => Promise<TheOldLlmProxy>;
