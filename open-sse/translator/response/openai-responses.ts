@@ -790,6 +790,48 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
 
 function openaiResponsesToOpenAIResponseStream(chunk, state) {
   if (!chunk) {
+    if (
+      state.currentToolCallNeedsNormalization &&
+      state.currentToolCallArgsBuffer &&
+      state.currentToolCallName
+    ) {
+      const toolSchema = state.toolSchemas?.get(state.currentToolCallName);
+      const argsToEmit = stripEmptyOptionalToolArgs(
+        state.currentToolCallArgsBuffer,
+        state.currentToolCallName,
+        toolSchema
+      );
+      const argsStr =
+        typeof argsToEmit === "string" ? argsToEmit : JSON.stringify(argsToEmit ?? {});
+      state.currentToolCallArgsBuffer = "";
+      state.currentToolCallNeedsNormalization = false;
+      state.finishReasonSent = true;
+      state.finishReason = "tool_calls";
+      const common = {
+        id: state.chatId,
+        object: "chat.completion.chunk",
+        created: state.created,
+        model: state.model || "gpt-4",
+      };
+      return [
+        {
+          ...common,
+          choices: [
+            {
+              index: 0,
+              delta: {
+                tool_calls: [{ index: state.toolCallIndex, function: { arguments: argsStr } }],
+              },
+              finish_reason: null,
+            },
+          ],
+        },
+        {
+          ...common,
+          choices: [{ index: 0, delta: {}, finish_reason: "tool_calls" }],
+        },
+      ];
+    }
     // Flush: send final chunk with finish_reason
     if (!state.finishReasonSent && state.started) {
       state.finishReasonSent = true;
@@ -874,6 +916,8 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     if (state.currentToolCallId) state.toolCallIdsSeen.add(state.currentToolCallId);
 
     const toolName = normalizeToolName(item.name);
+    state.currentToolCallName = toolName;
+    state.currentToolCallNeedsNormalization = toolName === "Agent";
     if (!toolName) {
       // Some Responses providers briefly emit placeholder/empty tool names.
       // Defer emission until output_item.done in case the final name is populated there.
@@ -917,7 +961,7 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     if (!argsDelta) return null;
 
     state.currentToolCallArgsBuffer = (state.currentToolCallArgsBuffer || "") + argsDelta;
-    if (state.currentToolCallDeferred) return null;
+    if (state.currentToolCallDeferred || state.currentToolCallNeedsNormalization) return null;
 
     return {
       id: state.chatId,
@@ -951,6 +995,8 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     const callId = item.call_id || state.currentToolCallId || fallbackToolCallId();
     const toolName = normalizeToolName(item.name);
     const toolSchema = state.toolSchemas?.get(toolName);
+    const shouldNormalizeArguments = toolName === "Agent";
+    state.currentToolCallNeedsNormalization = shouldNormalizeArguments;
 
     // Track this call_id so response.completed doesn't synthesize a duplicate
     if (!state.toolCallIdsSeen) state.toolCallIdsSeen = new Set();
@@ -967,7 +1013,13 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
 
       state.toolCallIndex++;
 
-      const argsToEmit = stripEmptyOptionalToolArgs(item.arguments, toolName, toolSchema);
+      const terminalArguments =
+        typeof item.arguments === "string"
+          ? item.arguments.length > 0
+            ? item.arguments
+            : buffered
+          : (item.arguments ?? buffered);
+      const argsToEmit = stripEmptyOptionalToolArgs(terminalArguments, toolName, toolSchema);
 
       const argsStr =
         argsToEmit != null
@@ -1006,10 +1058,20 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     state.toolCallIndex++;
     state.currentToolCallArgsBuffer = ""; // reset for next tool call
     state.currentToolCallId = null;
+    const needsNormalization = state.currentToolCallNeedsNormalization === true;
+    state.currentToolCallNeedsNormalization = false;
+    state.currentToolCallName = "";
 
-    // Only emit if arguments exist in the done event AND they weren't already streamed via deltas
-    if (item.arguments != null && !buffered) {
-      const argsToEmit = stripEmptyOptionalToolArgs(item.arguments, toolName, toolSchema);
+    // Nullable omission sentinels must be normalized before any argument bytes reach the client.
+    // Other tool calls retain immediate argument streaming.
+    if ((needsNormalization || !buffered) && (item.arguments != null || buffered)) {
+      const terminalArguments =
+        typeof item.arguments === "string"
+          ? item.arguments.length > 0
+            ? item.arguments
+            : buffered
+          : (item.arguments ?? buffered);
+      const argsToEmit = stripEmptyOptionalToolArgs(terminalArguments, toolName, toolSchema);
 
       const argsStr = typeof argsToEmit === "string" ? argsToEmit : JSON.stringify(argsToEmit);
       if (argsStr) {
@@ -1058,8 +1120,9 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
         responseUsage.reasoning_tokens ||
         0;
 
-      // prompt_tokens = input_tokens + cache_read + cache_creation (all prompt-side tokens)
-      const promptTokens = inputTokens + cacheReadTokens + cacheCreationTokens;
+      const promptTokens =
+        inputTokens +
+        ("cache_read_input_tokens" in responseUsage ? cacheReadTokens + cacheCreationTokens : 0);
 
       state.usage = {
         prompt_tokens: promptTokens,

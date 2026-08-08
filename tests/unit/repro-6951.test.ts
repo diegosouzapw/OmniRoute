@@ -11,15 +11,12 @@ import assert from "node:assert/strict";
 // and the end-to-end schema threading from the request's `tools[]` into the streaming
 // call sites in `openai-responses.ts` (response.output_item.done handling).
 
-const { stripEmptyOptionalToolArgs } = await import(
-  "../../open-sse/translator/response/openai-responses/pureHelpers.ts"
-);
-const { extractToolSchemaMap } = await import(
-  "../../open-sse/translator/response/openai-responses/toolSchemas.ts"
-);
-const { openaiResponsesToOpenAIResponse } = await import(
-  "../../open-sse/translator/response/openai-responses.ts"
-);
+const { stripEmptyOptionalToolArgs } =
+  await import("../../open-sse/translator/response/openai-responses/pureHelpers.ts");
+const { extractToolSchemaMap } =
+  await import("../../open-sse/translator/response/openai-responses/toolSchemas.ts");
+const { openaiResponsesToOpenAIResponse } =
+  await import("../../open-sse/translator/response/openai-responses.ts");
 
 const AGENT_SCHEMA = {
   type: "object",
@@ -101,13 +98,22 @@ test("6951: extractToolSchemaMap builds a name->schema map from Chat Completions
   assert.equal(extractToolSchemaMap({}), null);
 });
 
+test("6951: extractToolSchemaMap accepts Claude input_schema tools", () => {
+  const body = { tools: [{ name: "Agent", input_schema: AGENT_SCHEMA }] };
+  const map = extractToolSchemaMap(body);
+  assert.equal(map?.get("Agent"), AGENT_SCHEMA);
+});
+
 test("6951: RED->GREEN — schema threaded end-to-end strips the default-valued isolation arg", () => {
   // Simulates createSSEStream's TranslateState carrying `toolSchemas` extracted from the
   // request body, as wired in open-sse/utils/stream.ts.
   const state = { toolSchemas: new Map([["Agent", AGENT_SCHEMA]]) };
 
   openaiResponsesToOpenAIResponse(
-    { type: "response.output_item.added", item: { type: "function_call", call_id: "call_1", name: "Agent" } },
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_1", name: "Agent" },
+    },
     state
   );
   const done = openaiResponsesToOpenAIResponse(
