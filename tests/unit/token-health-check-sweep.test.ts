@@ -104,8 +104,12 @@ test("sweep() skips re-entrant calls while a previous sweep is still in flight",
   assert.equal(isSweeping(), true, "first sweep should mark sweeping=true immediately");
 
   const start = Date.now();
-  await sweep(); // second, concurrent call — must be skipped by the guard
+  const skippedCount = await sweep(); // second, concurrent call — must be skipped by the guard
   const elapsedMs = Date.now() - start;
+
+  // The job registry records this as records_affected, so a skipped sweep has
+  // to report nothing rather than inheriting the in-flight sweep's count.
+  assert.equal(skippedCount, 0, "a skipped sweep reports 0 connections swept");
 
   // With 21 connections and a 300ms inter-batch stagger, a REAL second
   // sweep would take >= 300ms to clear the single batch gap. The guard must
@@ -130,8 +134,9 @@ test("sweep() resets the sweeping flag after a normal completion, allowing the n
   process.env.HEALTHCHECK_STAGGER_MS = "0";
   await createNoOpOauthConnections(2, "sequential");
 
-  await sweep();
+  const sweptCount = await sweep();
   assert.equal(isSweeping(), false, "flag resets after first sweep completes");
+  assert.equal(sweptCount, 2, "sweep reports how many connections it swept");
 
   // A second, fully sequential call must not be skipped by leftover state —
   // it should run and complete normally rather than hang or short-circuit.
@@ -144,7 +149,8 @@ test("sweep() resets the sweeping flag even when there are no connections to pro
   process.env.HEALTHCHECK_STAGGER_MS = "0";
   // No connections created — sweep() takes the early `connections.length === 0` return.
 
-  await sweep();
+  const emptyCount = await sweep();
 
   assert.equal(isSweeping(), false, "sweeping flag must be false after an empty sweep");
+  assert.equal(emptyCount, 0, "an empty sweep reports 0 connections swept");
 });

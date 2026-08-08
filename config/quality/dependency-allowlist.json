@@ -44,6 +44,7 @@
     "commander",
     "concurrently",
     "cross-env",
+    "cron-parser",
     "csv-stringify",
     "ctrf",
     "dompurify",

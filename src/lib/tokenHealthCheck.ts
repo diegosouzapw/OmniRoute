@@ -267,7 +267,7 @@ function isEnvFlagEnabled(name: string): boolean {
   return TRUE_ENV_VALUES.has(value.trim().toLowerCase());
 }
 
-function isHealthCheckDisabled(): boolean {
+export function isHealthCheckDisabled(): boolean {
   return (
     isEnvFlagEnabled("OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK") ||
     isBuildProcess() ||
@@ -421,16 +421,18 @@ export function stopTokenHealthCheck() {
 }
 
 // ── Core sweep (batch concurrent) ──────────────────────────────────────────
-export async function sweep() {
+/** Returns the number of connections swept, which the job registry records. */
+export async function sweep(): Promise<number> {
   const state = getHCState();
   if (state.sweeping) {
-    return log(`${LOG_PREFIX} Sweep skipped — previous sweep still in progress`);
+    log(`${LOG_PREFIX} Sweep skipped — previous sweep still in progress`);
+    return 0;
   }
   state.sweeping = true;
   try {
     const connections = await getProviderConnections({ authType: "oauth" });
 
-    if (!connections || connections.length === 0) return;
+    if (!connections || connections.length === 0) return 0;
 
     const staggerMs = parseInt(process.env.HEALTHCHECK_STAGGER_MS || "3000", 10);
     const total = connections.length;
@@ -471,8 +473,10 @@ export async function sweep() {
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
     }
+    return total;
   } catch (err) {
     logError(`${LOG_PREFIX} Sweep error:`, err.message);
+    return 0;
   } finally {
     state.sweeping = false;
   }
@@ -1045,8 +1049,3 @@ export async function checkConnection(conn) {
     );
   }
 }
-
-// Auto-start when imported
-initTokenHealthCheck();
-
-export default initTokenHealthCheck;

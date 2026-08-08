@@ -265,6 +265,7 @@
     "bottleneck": "^2.19.5",
     "clsx": "^2.1.1",
     "commander": "^15.0.0",
+    "cron-parser": "^5.6.2",
     "csv-stringify": "^6.7.0",
     "dompurify": "^3.4.13",
     "express": "^5.2.1",
