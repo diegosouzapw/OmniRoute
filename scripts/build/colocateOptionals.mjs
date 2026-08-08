@@ -157,9 +157,7 @@ export function colocateLlmlinguaOptionals({
   if (!existsSync(targetNm)) {
     return {
       skipped: true,
-      reason: targetNodeModulesDir
-        ? "no target node_modules"
-        : "no standalone dist/node_modules",
+      reason: targetNodeModulesDir ? "no target node_modules" : "no standalone dist/node_modules",
     };
   }
 
@@ -198,9 +196,7 @@ export function colocateLlmlinguaOptionals({
       });
       copied++;
     } catch (err) {
-      log(
-        `  ⚠️  LLMLingua optional co-location failed for ${name}: ${err.message}`
-      );
+      log(`  ⚠️  LLMLingua optional co-location failed for ${name}: ${err.message}`);
     }
   }
 

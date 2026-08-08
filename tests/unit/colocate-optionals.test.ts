@@ -196,6 +196,41 @@ test("colocateLlmlinguaOptionals skips when there is no standalone dist bundle",
   }
 });
 
+test("colocateLlmlinguaOptionals fills a Next-traced stub (package.json only, no dist) instead of skipping it", () => {
+  // Reproduces a real build failure: Next.js's own standalone trace can create
+  // a stub directory for a dynamically-imported optional dependency it
+  // references but can't fully bundle — just package.json, no actual code.
+  // The old skip check (`existsSync(dest)`) treated that stub as "already
+  // co-located" and never copied the real dist/ output, so
+  // require.resolve('@atjsh/llmlingua-2') found a package.json with no
+  // matching main file at runtime.
+  const root = mkdtempSync(join(tmpdir(), "omniroute-colocate-stub-"));
+  try {
+    buildRoot(root);
+    const distNm = join(root, "dist", "node_modules");
+    mkPkg(distNm, "@huggingface/transformers", { version: "3.5.2" });
+
+    // Simulate the Next-traced stub: directory exists, package.json only.
+    const stubDir = join(distNm, "@atjsh", "llmlingua-2");
+    mkdirSync(stubDir, { recursive: true });
+    writeFileSync(
+      join(stubDir, "package.json"),
+      readFileSync(join(root, "node_modules", "@atjsh", "llmlingua-2", "package.json"), "utf8")
+    );
+    assert.ok(!existsSync(join(stubDir, "dist", "index.js")), "stub must start without dist/");
+
+    const result = colocateLlmlinguaOptionals({ rootDir: root });
+    assert.equal(result.skipped, false, "must not treat the stub as already co-located");
+
+    assert.ok(
+      existsSync(join(stubDir, "dist", "index.js")),
+      "the real dist/index.js must be filled in, not left missing behind the stub"
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("SEED_PACKAGES excludes transformers (it is a dist-pinned peer, not a seed)", () => {
   assert.ok(!SEED_PACKAGES.includes("@huggingface/transformers"));
   assert.deepEqual(SEED_PACKAGES, ["@atjsh/llmlingua-2", "@tensorflow/tfjs", "js-tiktoken"]);
