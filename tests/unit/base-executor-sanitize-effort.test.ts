@@ -3,8 +3,6 @@ import assert from "node:assert/strict";
 
 const { sanitizeReasoningEffortForProvider } = await import("../../open-sse/executors/base.ts");
 const { DefaultExecutor } = await import("../../open-sse/executors/default.ts");
-const { translateRequest } = await import("../../open-sse/translator/index.ts");
-const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 
 function makeLog() {
   const messages: Array<[string, string]> = [];
@@ -23,8 +21,12 @@ test("sanitizeReasoningEffortForProvider: xiaomi-mimo preserves xhigh by default
   };
   const result = sanitizeReasoningEffortForProvider(body, "xiaomi-mimo", "mimo-v2.5-pro", log);
   assert.equal(result, body, "xhigh passes through unless the model explicitly opts out");
-  assert.equal((result as any).reasoning_effort, "xhigh");
-  assert.equal((result as any).model, "mimo-v2.5-pro", "other fields preserved");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "xhigh");
+  assert.equal(
+    (result as Record<string, unknown>).model,
+    "mimo-v2.5-pro",
+    "other fields preserved"
+  );
   assert.equal(log.messages.length, 0);
 });
 
@@ -41,10 +43,10 @@ test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek preserves xhigh", 
     null
   );
   assert.equal(result, body);
-  assert.equal((result as any).reasoning_effort, "xhigh");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "xhigh");
 });
 
-test("sanitizeReasoningEffortForProvider: explicit xhigh opt-out downgrades to high", () => {
+test("sanitizeReasoningEffortForProvider: explicit xhigh opt-out maps to max for max-native providers", () => {
   const log = makeLog();
   const body = {
     model: "claude-opus-4-6",
@@ -53,10 +55,10 @@ test("sanitizeReasoningEffortForProvider: explicit xhigh opt-out downgrades to h
   };
   const result = sanitizeReasoningEffortForProvider(body, "claude", "claude-opus-4-6", log);
   assert.notEqual(result, body, "must return a new object when mutating");
-  assert.equal((result as any).reasoning_effort, "high");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
   assert.ok(
-    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /xhigh → high/.test(m)),
-    "logs the downgrade"
+    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /xhigh → max/.test(m)),
+    "logs the mapping"
   );
 });
 
@@ -73,10 +75,10 @@ test("sanitizeReasoningEffortForProvider: Anthropic-compatible dynamic provider 
     null
   );
   assert.notEqual(result, body, "must return a new object when mutating");
-  assert.equal((result as any).reasoning_effort, "high");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "high");
 });
 
-test("sanitizeReasoningEffortForProvider: xiaomi-mimo normalizes max → xhigh by default", () => {
+test("sanitizeReasoningEffortForProvider: xiaomi-mimo passes max through (new default)", () => {
   const log = makeLog();
   const body = {
     model: "mimo-v2.5-pro",
@@ -84,11 +86,11 @@ test("sanitizeReasoningEffortForProvider: xiaomi-mimo normalizes max → xhigh b
     messages: [{ role: "user", content: "hi" }],
   };
   const result = sanitizeReasoningEffortForProvider(body, "xiaomi-mimo", "mimo-v2.5-pro", log);
-  assert.equal((result as any).reasoning_effort, "xhigh");
-  assert.ok(
-    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /max → xhigh/.test(m)),
-    "logs the normalization"
-  );
+  // xiaomi-mimo has supportsXHighEffort: undefined (not explicitly false), so max
+  // passes through unchanged — the upstream decides whether to accept or reject.
+  assert.equal(result, body, "max passes through unchanged for models not flagged as rejecting it");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
+  assert.equal(log.messages.length, 0);
 });
 
 test("sanitizeReasoningEffortForProvider: Ollama Cloud preserves max", () => {
@@ -100,47 +102,8 @@ test("sanitizeReasoningEffortForProvider: Ollama Cloud preserves max", () => {
   };
   const result = sanitizeReasoningEffortForProvider(body, "ollama-cloud", "glm-5.2", log);
   assert.equal(result, body, "Ollama Cloud accepts max literally");
-  assert.equal((result as any).reasoning_effort, "max");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
   assert.equal(log.messages.length, 0);
-});
-
-test("end-to-end: Anthropic output_config.effort=max reaches Ollama Cloud as max (not xhigh)", () => {
-  // Bug: the claude→openai translator previously normalized max → xhigh, and the
-  // sanitizer could not recover the original intent because the carrier was already
-  // xhigh. Ollama Cloud accepts max literally but rejects xhigh (HTTP 400).
-  // The translator must pass max through verbatim and the sanitizer must keep it.
-  const translated = translateRequest(
-    FORMATS.CLAUDE,
-    FORMATS.OPENAI,
-    "gemma4:31b",
-    {
-      model: "gemma4:31b",
-      messages: [{ role: "user", content: "hi" }],
-      output_config: { effort: "max" },
-    },
-    false,
-    null,
-    "ollama-cloud"
-  ) as Record<string, unknown>;
-
-  assert.equal(
-    translated.reasoning_effort,
-    "max",
-    "translator must pass max through verbatim instead of rewriting it to xhigh"
-  );
-
-  const sanitized = sanitizeReasoningEffortForProvider(
-    translated,
-    "ollama-cloud",
-    "gemma4:31b",
-    null
-  ) as Record<string, unknown>;
-
-  assert.equal(
-    sanitized.reasoning_effort,
-    "max",
-    "Ollama Cloud accepts max literally — no downgrade, no rewrite to xhigh"
-  );
 });
 
 test("sanitizeReasoningEffortForProvider: Ollama Cloud preserves nested max", () => {
@@ -151,11 +114,11 @@ test("sanitizeReasoningEffortForProvider: Ollama Cloud preserves nested max", ()
   };
   const result = sanitizeReasoningEffortForProvider(body, "ollama-cloud", "glm-5.2", null);
   assert.equal(result, body, "Ollama Cloud accepts max literally");
-  assert.equal((result as any).reasoning.effort, "max");
-  assert.equal((result as any).reasoning.summary, "auto");
+  assert.equal((result as Record<string, unknown>).reasoning.effort, "max");
+  assert.equal((result as Record<string, unknown>).reasoning.summary, "auto");
 });
 
-test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek normalizes max → xhigh", () => {
+test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek passes max through (new default)", () => {
   const log = makeLog();
   const body = {
     model: "deepseek/deepseek-v4-pro",
@@ -168,12 +131,11 @@ test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek normalizes max →
     "deepseek/deepseek-v4-pro",
     log
   );
-  assert.notEqual(result, body, "must return a new object when mutating");
-  assert.equal((result as any).reasoning_effort, "xhigh");
-  assert.ok(
-    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /max → xhigh/.test(m)),
-    "logs the normalization"
-  );
+  // New default: max passes through. OpenRouter DeepSeek is not flagged as
+  // rejecting max, so the upstream decides.
+  assert.equal(result, body, "max passes through unchanged");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
+  assert.equal(log.messages.length, 0);
 });
 
 test("sanitizeReasoningEffortForProvider: OpenRouter Claude opt-out aliases downgrade max → high", () => {
@@ -190,14 +152,14 @@ test("sanitizeReasoningEffortForProvider: OpenRouter Claude opt-out aliases down
     log
   );
   assert.notEqual(result, body, "must return a new object when mutating");
-  assert.equal((result as any).reasoning_effort, "high");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "high");
   assert.ok(
     log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /max → high/.test(m)),
     "logs the downgrade"
   );
 });
 
-test("sanitizeReasoningEffortForProvider: OpenAI-compatible Gemini normalizes max → xhigh", () => {
+test("sanitizeReasoningEffortForProvider: OpenAI-compatible Gemini passes max through (new default)", () => {
   const log = makeLog();
   const body = {
     model: "gemini-3.1-pro-preview",
@@ -210,15 +172,12 @@ test("sanitizeReasoningEffortForProvider: OpenAI-compatible Gemini normalizes ma
     "gemini-3.1-pro-preview",
     log
   );
-  assert.notEqual(result, body, "must return a new object when mutating");
-  assert.equal((result as any).reasoning_effort, "xhigh");
-  assert.ok(
-    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /max → xhigh/.test(m)),
-    "logs the normalization"
-  );
+  assert.equal(result, body, "max passes through unchanged for unknown providers");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
+  assert.equal(log.messages.length, 0);
 });
 
-test("sanitizeReasoningEffortForProvider: nested OpenAI reasoning max normalizes to xhigh", () => {
+test("sanitizeReasoningEffortForProvider: nested OpenAI reasoning max passes through (new default)", () => {
   const body = {
     model: "gemini-3.1-pro-preview",
     reasoning: { effort: "max", summary: "auto" },
@@ -230,9 +189,13 @@ test("sanitizeReasoningEffortForProvider: nested OpenAI reasoning max normalizes
     "gemini-3.1-pro-preview",
     null
   );
-  assert.equal((result as any).reasoning.effort, "xhigh");
-  assert.equal((result as any).reasoning.summary, "auto", "other reasoning fields preserved");
-  assert.equal((result as any).reasoning_effort, undefined);
+  assert.equal(result, body, "max passes through unchanged");
+  assert.equal((result as Record<string, unknown>).reasoning.effort, "max");
+  assert.equal(
+    (result as Record<string, unknown>).reasoning.summary,
+    "auto",
+    "other reasoning fields preserved"
+  );
 });
 
 test("sanitizeReasoningEffortForProvider: claude preserves max for Opus/Sonnet and downgrades Haiku", () => {
@@ -287,8 +250,12 @@ test("sanitizeReasoningEffortForProvider: xiaomi-mimo preserves nested xhigh by 
   };
   const result = sanitizeReasoningEffortForProvider(body, "xiaomi-mimo", "mimo-v2.5-pro", null);
   assert.equal(result, body);
-  assert.equal((result as any).reasoning.effort, "xhigh");
-  assert.equal((result as any).reasoning.summary, "auto", "other reasoning fields preserved");
+  assert.equal((result as Record<string, unknown>).reasoning.effort, "xhigh");
+  assert.equal(
+    (result as Record<string, unknown>).reasoning.summary,
+    "auto",
+    "other reasoning fields preserved"
+  );
 });
 
 test("sanitizeReasoningEffortForProvider: explicit xhigh opt-out preserves Responses shape", () => {
@@ -298,8 +265,8 @@ test("sanitizeReasoningEffortForProvider: explicit xhigh opt-out preserves Respo
     input: [],
   };
   const result = sanitizeReasoningEffortForProvider(body, "claude", "claude-opus-4-6", null);
-  assert.equal((result as any).reasoning.effort, "high");
-  assert.equal((result as any).reasoning_effort, undefined);
+  assert.equal((result as Record<string, unknown>).reasoning.effort, "max");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, undefined);
 });
 
 test("sanitizeReasoningEffortForProvider: mistral/devstral strips reasoning_effort entirely", () => {
@@ -310,7 +277,11 @@ test("sanitizeReasoningEffortForProvider: mistral/devstral strips reasoning_effo
     messages: [],
   };
   const result = sanitizeReasoningEffortForProvider(body, "mistral", "devstral-2512", log);
-  assert.equal((result as any).reasoning_effort, undefined, "reasoning_effort must be stripped");
+  assert.equal(
+    (result as Record<string, unknown>).reasoning_effort,
+    undefined,
+    "reasoning_effort must be stripped"
+  );
   assert.ok(
     log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /removed/.test(m)),
     "logs the removal"
@@ -326,7 +297,7 @@ test("sanitizeReasoningEffortForProvider: github/claude-opus-4.6 preserves reaso
     messages: [],
   };
   const result = sanitizeReasoningEffortForProvider(body, "github", "claude-opus-4-6", null);
-  assert.equal((result as any).reasoning_effort, "high");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "high");
 });
 
 test("sanitizeReasoningEffortForProvider: github/claude-opus-4.7 still strips (#791)", () => {
@@ -336,7 +307,7 @@ test("sanitizeReasoningEffortForProvider: github/claude-opus-4.7 still strips (#
     messages: [],
   };
   const result = sanitizeReasoningEffortForProvider(body, "github", "claude-opus-4.7", null);
-  assert.equal((result as any).reasoning_effort, undefined);
+  assert.equal((result as Record<string, unknown>).reasoning_effort, undefined);
 });
 
 test("sanitizeReasoningEffortForProvider: rejecting providers strip max before normalization", () => {
@@ -393,7 +364,11 @@ test("sanitizeReasoningEffortForProvider: mistral/devstral strips reasoning obje
     messages: [],
   };
   const result = sanitizeReasoningEffortForProvider(body, "mistral", "devstral-2512", null);
-  assert.equal((result as any).reasoning, undefined, "reasoning object dropped when emptied");
+  assert.equal(
+    (result as Record<string, unknown>).reasoning,
+    undefined,
+    "reasoning object dropped when emptied"
+  );
 });
 
 test("sanitizeReasoningEffortForProvider: mistral/devstral preserves reasoning when other fields remain", () => {
@@ -403,7 +378,7 @@ test("sanitizeReasoningEffortForProvider: mistral/devstral preserves reasoning w
     messages: [],
   };
   const result = sanitizeReasoningEffortForProvider(body, "mistral", "devstral-2512", null);
-  assert.deepEqual((result as any).reasoning, { summary: "auto" });
+  assert.deepEqual((result as Record<string, unknown>).reasoning, { summary: "auto" });
 });
 
 test("sanitizeReasoningEffortForProvider: codex with xhigh passes through unchanged", () => {
@@ -413,7 +388,7 @@ test("sanitizeReasoningEffortForProvider: codex with xhigh passes through unchan
     messages: [],
   };
   const result = sanitizeReasoningEffortForProvider(body, "codex", "gpt-5.5-xhigh", null);
-  assert.equal((result as any).reasoning_effort, "xhigh");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "xhigh");
 });
 
 test("sanitizeReasoningEffortForProvider: codex maps OMP minimal to low across carriers", () => {
@@ -444,7 +419,7 @@ test("sanitizeReasoningEffortForProvider: handles unknown providers as pass-thro
   const body = { model: "some-model", reasoning_effort: "xhigh", messages: [] };
   const result = sanitizeReasoningEffortForProvider(body, "unknown-provider", "some-model", null);
   assert.equal(result, body);
-  assert.equal((result as any).reasoning_effort, "xhigh");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "xhigh");
 });
 
 test("sanitizeReasoningEffortForProvider: non-object body returns unchanged", () => {
@@ -452,6 +427,103 @@ test("sanitizeReasoningEffortForProvider: non-object body returns unchanged", ()
   assert.equal(sanitizeReasoningEffortForProvider("string", "xiaomi-mimo", "x", null), "string");
   const arr: unknown[] = [];
   assert.equal(sanitizeReasoningEffortForProvider(arr, "xiaomi-mimo", "x", null), arr);
+});
+
+// ── #8057: max passes through by default for unknown models ──────────────────
+// New models should work immediately without waiting for a whitelist update.
+
+test("sanitizeReasoningEffortForProvider: completely unknown model passes max through (#8057)", () => {
+  const body = {
+    model: "brand-new-model-2026",
+    reasoning_effort: "max",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "some-new-provider",
+    "brand-new-model-2026",
+    null
+  );
+  assert.equal(result, body, "unknown models must not have max rewritten");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
+});
+
+test("sanitizeReasoningEffortForProvider: unknown model max passes through on all proxy types (#8057)", () => {
+  for (const provider of [
+    "tokenrouter",
+    "zemux",
+    "openrouter",
+    "openai-compatible-test",
+    "custom-proxy",
+  ]) {
+    const body = {
+      model: "future-model-v5",
+      reasoning_effort: "max",
+      messages: [],
+    };
+    const result = sanitizeReasoningEffortForProvider(body, provider, "future-model-v5", null);
+    assert.equal(result, body, `${provider}: max must pass through for unknown models`);
+    assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
+  }
+});
+
+test("sanitizeReasoningEffortForProvider: proxy-prefixed kimi-k3 resolves and preserves max", () => {
+  // TokenRouter sends moonshotai/kimi-k3-free — global fallback resolves it to kimi-k3,
+  // which has supportsXHighEffort: false + supportsMax: true via supportsMaxEffortForProvider.
+  const body = {
+    model: "moonshotai/kimi-k3-free",
+    reasoning_effort: "max",
+    messages: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "tokenrouter",
+    "moonshotai/kimi-k3-free",
+    null
+  );
+  assert.equal(result, body, "kimi-k3 behind tokenrouter must keep max");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
+});
+
+test("sanitizeReasoningEffortForProvider: proxy-prefixed kimi-k3 xhigh maps to max (not high)", () => {
+  // When Claude Code sends xhigh for kimi-k3 behind a proxy, it should map to max
+  // (the model's highest tier), not downgrade to high.
+  const log = makeLog();
+  const body = {
+    model: "moonshotai/kimi-k3-free",
+    reasoning_effort: "xhigh",
+    messages: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "tokenrouter",
+    "moonshotai/kimi-k3-free",
+    log
+  );
+  assert.notEqual(result, body, "must return a new object when mutating");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
+  assert.ok(
+    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /xhigh → max/.test(m)),
+    "logs the xhigh → max mapping"
+  );
+});
+
+test("sanitizeReasoningEffortForProvider: Claude Haiku max degrades to high (explicitly flagged)", () => {
+  // Claude Haiku is explicitly flagged as supportsXHighEffort: false and NOT in
+  // supportsMaxEffortForProvider, so max should degrade to high.
+  const body = {
+    model: "claude-haiku-4-5-20251001",
+    reasoning_effort: "max",
+    messages: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "claude",
+    "claude-haiku-4-5-20251001",
+    null
+  );
+  assert.notEqual(result, body);
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "high");
 });
 
 // ── NVIDIA NIM GLM-5.2 (#7215) ─────────────────────────────────────────────
@@ -578,8 +650,12 @@ test("sanitizeReasoningEffortForProvider: native deepseek maps xhigh → max", (
   };
   const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-pro", log);
   assert.notEqual(result, body, "must return a new object when mutating");
-  assert.equal((result as any).reasoning_effort, "max");
-  assert.equal((result as any).model, "deepseek-v4-pro", "other fields preserved");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
+  assert.equal(
+    (result as Record<string, unknown>).model,
+    "deepseek-v4-pro",
+    "other fields preserved"
+  );
   assert.ok(
     log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /xhigh → max/.test(m)),
     "logs the xhigh → max mapping"
@@ -595,7 +671,7 @@ test("sanitizeReasoningEffortForProvider: native deepseek preserves max", () => 
   };
   const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-flash", log);
   assert.equal(result, body, "max is DeepSeek's native top tier — passes through unchanged");
-  assert.equal((result as any).reasoning_effort, "max");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
   assert.equal(log.messages.length, 0);
 });
 
@@ -607,7 +683,11 @@ test("sanitizeReasoningEffortForProvider: native deepseek clamps low → high", 
   };
   const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-pro", null);
   assert.notEqual(result, body, "must return a new object when mutating");
-  assert.equal((result as any).reasoning_effort, "high", "below the {high, max} floor → high");
+  assert.equal(
+    (result as Record<string, unknown>).reasoning_effort,
+    "high",
+    "below the {high, max} floor → high"
+  );
 });
 
 test("sanitizeReasoningEffortForProvider: native deepseek clamps medium → high", () => {
@@ -617,7 +697,7 @@ test("sanitizeReasoningEffortForProvider: native deepseek clamps medium → high
     messages: [{ role: "user", content: "hi" }],
   };
   const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-pro", null);
-  assert.equal((result as any).reasoning_effort, "high");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "high");
 });
 
 test("sanitizeReasoningEffortForProvider: native deepseek preserves high unchanged", () => {
@@ -628,7 +708,7 @@ test("sanitizeReasoningEffortForProvider: native deepseek preserves high unchang
   };
   const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-pro", null);
   assert.equal(result, body, "high is already valid — passes through unchanged");
-  assert.equal((result as any).reasoning_effort, "high");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "high");
 });
 
 test("sanitizeReasoningEffortForProvider: native deepseek maps nested reasoning.effort xhigh → max", () => {
@@ -638,9 +718,13 @@ test("sanitizeReasoningEffortForProvider: native deepseek maps nested reasoning.
     input: [],
   };
   const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-pro", null);
-  assert.equal((result as any).reasoning.effort, "max");
-  assert.equal((result as any).reasoning.summary, "auto", "other reasoning fields preserved");
-  assert.equal((result as any).reasoning_effort, undefined);
+  assert.equal((result as Record<string, unknown>).reasoning.effort, "max");
+  assert.equal(
+    (result as Record<string, unknown>).reasoning.summary,
+    "auto",
+    "other reasoning fields preserved"
+  );
+  assert.equal((result as Record<string, unknown>).reasoning_effort, undefined);
 });
 
 test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek still preserves xhigh (not native)", () => {
@@ -658,7 +742,7 @@ test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek still preserves xh
     null
   );
   assert.equal(result, body);
-  assert.equal((result as any).reasoning_effort, "xhigh");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "xhigh");
 });
 
 // ── opencode-go DeepSeek V4 Pro effort variants (#4647) ──────────────────────
@@ -675,7 +759,7 @@ test("sanitizeReasoningEffortForProvider: opencode-go DeepSeek V4 Pro preserves 
   };
   const result = sanitizeReasoningEffortForProvider(body, "opencode-go", "deepseek-v4-pro", null);
   assert.equal(result, body, "opencode-go DeepSeek max must pass through unchanged");
-  assert.equal((result as any).reasoning_effort, "max");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
 });
 
 test("sanitizeReasoningEffortForProvider: opencode-go DeepSeek V4 Pro preserves variant suffix levels", () => {
@@ -692,27 +776,27 @@ test("sanitizeReasoningEffortForProvider: opencode-go DeepSeek V4 Pro preserves 
       null
     );
     assert.equal(
-      (result as any).reasoning_effort,
+      (result as Record<string, unknown>).reasoning_effort,
       level,
       `opencode-go deepseek-v4-pro-${level} preserves reasoning_effort=${level}`
     );
   }
 });
 
-test("sanitizeReasoningEffortForProvider: opencode-go with non-DeepSeek model still normalizes max → xhigh", () => {
-  // The opt-in must be scoped to DeepSeek models on opencode-go only — other
-  // opencode-go models (e.g. glm/kimi/mimo) follow the default xhigh policy.
+test("sanitizeReasoningEffortForProvider: opencode-go with non-DeepSeek model passes max through (new default)", () => {
+  // opencode-go non-DeepSeek models are not explicitly flagged as rejecting max,
+  // so max passes through unchanged under the new default.
   const body = {
     model: "mimo-v2.5-pro",
     reasoning_effort: "max",
     messages: [],
   };
   const result = sanitizeReasoningEffortForProvider(body, "opencode-go", "mimo-v2.5-pro", null);
-  assert.notEqual(result, body);
-  assert.equal((result as any).reasoning_effort, "xhigh");
+  assert.equal(result, body, "max passes through unchanged");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
 });
 
-test("sanitizeReasoningEffortForProvider: #7044 output_config.effort (Claude native) xhigh is downgraded, not bypassed", () => {
+test("sanitizeReasoningEffortForProvider: #7044 output_config.effort (Claude native) xhigh is mapped to max, not bypassed", () => {
   const log = makeLog();
   const body = {
     model: "claude-opus-4-6",
@@ -722,17 +806,17 @@ test("sanitizeReasoningEffortForProvider: #7044 output_config.effort (Claude nat
   const result = sanitizeReasoningEffortForProvider(body, "claude", "claude-opus-4-6", log);
   assert.notEqual(result, body, "must return a new object when mutating");
   assert.equal(
-    (result as any).output_config.effort,
-    "high",
-    "xhigh downgraded to high on the output_config carrier"
+    (result as Record<string, unknown>).output_config.effort,
+    "max",
+    "xhigh mapped to max on the output_config carrier"
   );
   assert.ok(
-    !("reasoning_effort" in (result as any)),
+    !("reasoning_effort" in (result as Record<string, unknown>)),
     "no spurious reasoning_effort injected when only output_config was present"
   );
   assert.ok(
-    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /xhigh → high/.test(m)),
-    "logs the downgrade"
+    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /xhigh → max/.test(m)),
+    "logs the mapping"
   );
 });
 
@@ -744,5 +828,5 @@ test("sanitizeReasoningEffortForProvider: #7044 output_config.effort high passes
   };
   const result = sanitizeReasoningEffortForProvider(body, "claude", "claude-opus-4-6", null);
   assert.equal(result, body, "high is supported — body returned unchanged");
-  assert.equal((result as any).output_config.effort, "high");
+  assert.equal((result as Record<string, unknown>).output_config.effort, "high");
 });
