@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import Select from "./Select";
 import Input from "./Input";
 
-interface ApiModel {
+export interface ApiModel {
   provider: string;
   model: string;
   fullModel?: string;
+  type?: string;
+  subtype?: string;
 }
 
 export interface ModelSelectFieldProps {
@@ -21,6 +23,8 @@ export interface ModelSelectFieldProps {
   allowCustom?: boolean;
   /** Let operators select the empty-value placeholder (for Auto/default semantics). */
   allowEmpty?: boolean;
+  /** Optional catalog predicate, e.g. restrict the picker to STT models. */
+  modelFilter?: (model: ApiModel) => boolean;
   className?: string;
 }
 
@@ -46,6 +50,7 @@ export default function ModelSelectField({
   ariaLabel,
   allowCustom = true,
   allowEmpty = false,
+  modelFilter,
   className,
 }: ModelSelectFieldProps) {
   const [state, setState] = useState<FetchState>({ status: "loading", options: [] });
@@ -57,7 +62,8 @@ export default function ModelSelectField({
       .then((data) => {
         if (cancelled) return;
         const models: ApiModel[] = Array.isArray(data?.models) ? data.models : [];
-        const options = models.map((m) => {
+        const filteredModels = modelFilter ? models.filter(modelFilter) : models;
+        const options = filteredModels.map((m) => {
           const full = m.fullModel || `${m.provider}/${m.model}`;
           return { value: full, label: full };
         });
@@ -69,7 +75,7 @@ export default function ModelSelectField({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [modelFilter]);
 
   if (state.status === "error" && allowCustom) {
     return (
