@@ -6,9 +6,8 @@ const { WEB_COOKIE_PROVIDERS } = await import("../../src/shared/constants/provid
 const { WEB_SESSION_CREDENTIAL_REQUIREMENTS } = await import(
   "../../src/shared/providers/webSessionCredentials.ts"
 );
-const { GeminiBusinessExecutor, parseStreamResponse } = await import(
-  "../../open-sse/executors/gemini-business.ts"
-);
+const { GeminiBusinessExecutor, parseStreamResponse, resolveGeminiBusinessCookie } =
+  await import("../../open-sse/executors/gemini-business.ts");
 
 // ─── Provider metadata ──────────────────────────────────────────────────────
 
@@ -47,6 +46,22 @@ test("Gemini Business credential requirements use __Secure-1PSID cookies", () =>
 test("GeminiBusinessExecutor constructs with the correct provider", () => {
   const ex = new GeminiBusinessExecutor();
   assert.equal((ex as unknown as { provider: string }).provider, "gemini-business");
+});
+
+test("Gemini Business preserves supported legacy cookie credential placements", () => {
+  assert.equal(
+    resolveGeminiBusinessCookie({ cookie: "  __Secure-1PSID=legacy  " }),
+    "__Secure-1PSID=legacy"
+  );
+  assert.equal(
+    resolveGeminiBusinessCookie({
+      providerSpecificData: {
+        "__Secure-1PSID": "__Secure-1PSID=psid",
+        "__Secure-1PSIDTS": "__Secure-1PSIDTS=psidts",
+      },
+    }),
+    "__Secure-1PSID=psid; __Secure-1PSIDTS=psidts"
+  );
 });
 
 test("GeminiBusinessExecutor.execute returns 401 when no cookies are provided", async () => {
