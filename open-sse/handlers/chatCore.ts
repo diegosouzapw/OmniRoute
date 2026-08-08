@@ -734,7 +734,10 @@ export async function handleChatCore({
   // wins; native Claude passthrough is left untouched (it carries its own `thinking`),
   // and non-thinking base models are cleaned up later by normalizeThinkingForModel().
   // Extracted to chatCore/claudeEffortVariant.ts (#3501); mutates body in place and returns the
-  // stripped model + an optional log line, keeping behaviour byte-identical.
+  // stripped model + an optional log line. The strip is unconditional (byte-identical to the
+  // original behavior) for the claude/Claude-Code-compatible lane; for any other provider it
+  // additionally requires isKnownClaudeEffortBaseModel(baseModel) to verify the base id is a
+  // real, effort-capable Claude model before stripping (vertex-claude-catalog-dispatch fix).
   {
     const effortVariant = applyClaudeEffortVariant({
       provider,

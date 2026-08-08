@@ -80,6 +80,7 @@ import { isNoAuthProviderBlockedBySettings } from "./noAuthProviderSettings";
 import { resolveAccountProxiesFromRegistry } from "./noAuthProxyResolution";
 import { getNoAuthHydrationProviderIds } from "./noAuthProviderSiblings";
 import { getResource404Bypass } from "./requestResourceHealth";
+import { isVertexConnectionWidePermissionDenied } from "./vertexErrorClassifier";
 import * as log from "../utils/logger";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
 import { readHeaderValue, type AuthRequestHeaders } from "./headerReader.ts";
@@ -2030,7 +2031,10 @@ export async function markAccountUnavailable(
         ? "model"
         : getQuotaScopeLabelForProvider(provider, model);
       const antigravityFamilyInferredBaseCooldownMs =
-        !usesExactAntigravityLock && provider === "antigravity" && quotaScope === "family" && status === 429
+        !usesExactAntigravityLock &&
+        provider === "antigravity" &&
+        quotaScope === "family" &&
+        status === 429
           ? ANTIGRAVITY_FAMILY_INFERRED_BASE_COOLDOWN_MS
           : null;
       const lockout = recordModelLockoutFailure(
@@ -2124,7 +2128,14 @@ export async function markAccountUnavailable(
         : rawCooldownMs;
 
     // ── #3027: per-model subscription/permission 403 → model-only lockout ──
-    if (isPerModelQuotaProvider && status === 403 && provider && model && !terminalStatus) {
+    if (
+      isPerModelQuotaProvider &&
+      status === 403 &&
+      provider &&
+      model &&
+      !terminalStatus &&
+      !(provider === "vertex" && isVertexConnectionWidePermissionDenied(errorText))
+    ) {
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,

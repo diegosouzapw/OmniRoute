@@ -65,6 +65,17 @@ export function formatClaudeEffortLabel(level: string): string {
 }
 
 /**
+ * Whether `bareModelId` (no provider prefix, no effort suffix) is a real,
+ * effort-capable Claude-family model — the single source of truth used both to
+ * decide whether the catalog should advertise an effort variant AND whether
+ * dispatch-time stripping should unwind one back to this model.
+ */
+export function isKnownClaudeEffortBaseModel(bareModelId: string): boolean {
+  const spec = getModelSpec(bareModelId);
+  return spec?.supportsThinking === true && CLAUDE_NAME_RE.test(bareModelId);
+}
+
+/**
  * Whether the catalog should advertise reasoning-effort variants for this entry.
  *
  * Rule: a thinking-capable Claude-family base model. Combos are virtual, and ids
@@ -84,10 +95,7 @@ export function shouldExposeClaudeEffortVariants(
   if (CLAUDE_EFFORT_SUFFIX_RE.test(id)) return false;
 
   const name = bareModelName(id);
-  const spec = getModelSpec(name);
-  if (!spec) return false;
-
-  return spec.supportsThinking === true && CLAUDE_NAME_RE.test(name);
+  return isKnownClaudeEffortBaseModel(name);
 }
 
 /**
