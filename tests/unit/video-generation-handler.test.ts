@@ -581,3 +581,55 @@ test("handleVideoGeneration rejects Runway models that require promptImage", asy
   assert.equal(result.status, 400);
   assert.match(result.error, /requires promptImage/i);
 });
+test("handleVideoGeneration uses OpenAI-compatible handler for resolved custom video providers", async () => {
+  const originalFetch = globalThis.fetch;
+  let captured;
+
+  globalThis.fetch = async (url, options = {}) => {
+    captured = {
+      url: String(url),
+      body: JSON.parse(String(options.body || "{}")),
+      headers: options.headers,
+    };
+
+    return new Response(
+      JSON.stringify({
+        created: Math.floor(Date.now() / 1000),
+        data: [{ url: "https://custom.example.com/video.mp4", format: "mp4" }],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await handleVideoGeneration({
+      body: {
+        model: "custom-provider/super-video",
+        prompt: "a cat playing piano",
+        duration: 5,
+      },
+      credentials: {
+        apiKey: "custom-video-key",
+        providerSpecificData: {
+          baseUrl: "https://custom.example.com/v1/videos/generations",
+        },
+      },
+      resolvedProvider: "custom-provider",
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(captured.url, "https://custom.example.com/v1/videos/generations");
+    assert.equal(captured.headers.Authorization, "Bearer custom-video-key");
+    assert.deepEqual(captured.body, {
+      model: "super-video",
+      prompt: "a cat playing piano",
+      duration: 5,
+    });
+    assert.deepEqual(result.data.data, [
+      { url: "https://custom.example.com/video.mp4", format: "mp4" },
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

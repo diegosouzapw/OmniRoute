@@ -1,6 +1,7 @@
 import { handleVideoGeneration } from "@omniroute/open-sse/handlers/videoGeneration.ts";
 import { resolveVideoCredentialProvider } from "@omniroute/open-sse/handlers/videoGeneration/googleFlow.ts";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
+import { getAllCustomModels } from "@/lib/db/models";
 import {
   getProviderCredentialsWithQuotaPreflight,
   clearRecoveredProviderState,
@@ -88,7 +89,31 @@ async function postHandler(request, context) {
   if (policy.rejection) return policy.rejection;
 
   // Parse model to get provider
-  const { provider } = parsedModel;
+  let { provider, model: requestedModel } = parsedModel;
+  let isCustomModel = false;
+  if (!provider) {
+    // Custom OpenAI-compatible provider nodes (mirrors images route): scan the
+    // dynamic model registry for a matching `${nodeId}/${modelId}` entry.
+    try {
+      const customModelsMap = (await getAllCustomModels()) as Record<string, any>;
+      for (const [providerId, models] of Object.entries(customModelsMap)) {
+        if (!Array.isArray(models)) continue;
+        for (const model of models) {
+          if (!model?.id || !Array.isArray(model.supportedEndpoints)) continue;
+          if (!model.supportedEndpoints.includes("videos")) continue;
+          const fullId = `${providerId}/${model.id}`;
+          if (fullId === body.model) {
+            provider = providerId;
+            requestedModel = model.id;
+            isCustomModel = true;
+            break;
+          }
+        }
+      }
+    } catch {
+      // registry read failure — fall through to invalid-model error below
+    }
+  }
   if (!provider) {
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,
@@ -116,11 +141,32 @@ async function postHandler(request, context) {
     if (isAllRateLimitedCredentials(credentials)) {
       return rateLimitedProviderResponse(provider, credentials);
     }
+  } else if (isCustomModel) {
+    credentials = await getProviderCredentialsWithQuotaPreflight(
+      provider,
+      null,
+      null,
+      requestedModel
+    );
+    if (!credentials) {
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        `No credentials for custom video provider: ${provider}`
+      );
+    }
+    if (isAllRateLimitedCredentials(credentials)) {
+      return rateLimitedProviderResponse(provider, credentials);
+    }
   } else if (providerConfig?.authType === "none") {
     credentials = await resolveLocalOverrideCredentials(provider);
   }
 
-  const result: MediaGenerationResultLike = await handleVideoGeneration({ body, credentials, log });
+  const result: MediaGenerationResultLike = await handleVideoGeneration({
+    body,
+    credentials,
+    log,
+    ...(isCustomModel && { resolvedProvider: provider }),
+  });
 
   if (isMediaGenerationFailure(result)) {
     return failedMediaGenerationResponse(result, "Video generation provider error");
