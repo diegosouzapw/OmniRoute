@@ -25,7 +25,6 @@ import {
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
 import { cleanupProviderModelsAfterConnectionDelete } from "@/lib/db/models";
-import { cleanupComboConnectionRefs } from "@/lib/db/combos";
 import {
   refreshConnectionRateLimits,
   enableRateLimitProtection,
@@ -365,13 +364,6 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       await cleanupProviderModelsAfterConnectionDelete(connection.provider, id);
     } catch (e) {
       console.error(`Failed to clean up models for deleted ${connection.provider} connection:`, e);
-    }
-
-    // Remove stale connectionId references from combo route steps.
-    try {
-      await cleanupComboConnectionRefs(id);
-    } catch (e) {
-      console.error("Failed to clean up combo route refs for deleted connection:", e);
     }
 
     // Auto sync to Cloud if enabled

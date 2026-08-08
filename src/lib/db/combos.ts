@@ -96,39 +96,60 @@ export function setActiveCombo(name: string, db = getDbInstance()): void {
  * Called after a provider connection is removed so combo routes don't carry
  * stale references.
  */
-export async function cleanupComboConnectionRefs(connectionId: string) {
+export async function cleanupComboConnectionRefs(connectionIds: string | string[]) {
+  const deletedConnectionIds = new Set(
+    (Array.isArray(connectionIds) ? connectionIds : [connectionIds]).filter(Boolean)
+  );
+
+  if (deletedConnectionIds.size === 0) return 0;
+
   const combos = await getCombos();
   let touched = 0;
+
   for (const combo of combos) {
     if (!Array.isArray(combo.models)) continue;
+
     let changed = false;
+
     const models = (combo.models as unknown as Record<string, unknown>[]).map((step) => {
       let out = step;
-      if (out.connectionId === connectionId) {
+
+      if (typeof out.connectionId === "string" && deletedConnectionIds.has(out.connectionId)) {
         const { connectionId: _, ...rest } = out;
         out = rest;
         changed = true;
       }
+
       if (Array.isArray(out.allowedConnectionIds)) {
         const filtered = out.allowedConnectionIds.filter(
-          (id: string) => id !== connectionId
+          (id) => typeof id !== "string" || !deletedConnectionIds.has(id)
         );
+
         if (filtered.length !== out.allowedConnectionIds.length) {
-          out = { ...out, allowedConnectionIds: filtered };
+          out = {
+            ...out,
+            allowedConnectionIds: filtered,
+          };
           changed = true;
         }
       }
+
       return out;
     });
+
     if (changed && typeof combo.id === "string") {
       try {
         const { id, ...rest } = combo;
-        await updateCombo(combo.id, { ...rest, models });
+        await updateCombo(combo.id, {
+          ...rest,
+          models,
+        });
         touched++;
       } catch {
         // One combo failing should not block cleanup of the rest.
       }
     }
   }
+
   return touched;
 }
