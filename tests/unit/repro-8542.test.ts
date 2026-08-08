@@ -9,15 +9,29 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "../..");
 const WORKFLOW = resolve(repoRoot, ".github/workflows/quality.yml");
 
-function loadWorkflow(): any {
-  return parse(readFileSync(WORKFLOW, "utf8"));
+interface WorkflowStep {
+  name?: string;
+  run?: string;
+  "continue-on-error"?: boolean;
+}
+
+interface WorkflowDocument {
+  jobs?: Record<string, { steps?: WorkflowStep[] }>;
+}
+
+function loadWorkflow(): WorkflowDocument {
+  return parse(readFileSync(WORKFLOW, "utf8")) as WorkflowDocument;
 }
 
 function invokesGate(run: string): boolean {
   if (!run) return false;
-  return /npm run (check:|typecheck:)/.test(run) || /npm run "check/.test(run) || /npm run \\"check/.test(run);
+  return (
+    /npm run (check:|typecheck:)/.test(run) ||
+    /npm run "check/.test(run) ||
+    /npm run \\"check/.test(run)
+  );
 }
-function stepCanFail(step: any): boolean {
+function stepCanFail(step: WorkflowStep): boolean {
   return step?.["continue-on-error"] !== true;
 }
 
@@ -25,7 +39,7 @@ test("repro #8542: fast-gates must not fail-fast into a later gate", () => {
   const wf = loadWorkflow();
   const job = wf.jobs?.["fast-gates"];
   assert.ok(job, "fast-gates job must exist");
-  const steps: any[] = job.steps ?? [];
+  const steps: WorkflowStep[] = job.steps ?? [];
   assert.ok(steps.length >= 5, `fast-gates must have >=5 steps, got ${steps.length}`);
 
   const gateSteps = steps.map((s, i) => ({ s, i })).filter(({ s }) => invokesGate(s?.run ?? ""));

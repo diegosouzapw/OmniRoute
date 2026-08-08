@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { openaiResponsesToOpenAIRequest } from "../../open-sse/translator/request/openai-responses.ts";
+import { detectSupportedThinkingEfforts } from "../../src/lib/providerModels/modelDiscovery.ts";
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
@@ -42,7 +43,6 @@ test("non-GPT-5.6 models still get max downgraded to xhigh", () => {
     )
   );
   assert.equal(translated.reasoning_effort, "xhigh");
-<<<<<<< HEAD
 });
 
 // ─────────────────────────────────────────────────────────────────────
@@ -61,12 +61,10 @@ test("#9142 Anthropic top-level system prompts must trigger background detection
     "system_prompt_pattern"
   );
 });
-=======
 
 // #9140 — VS Code routes filter out built-in auto models
-const { isUsableChatModel } = await import(
-  "../../src/app/api/v1/vscode/[token]/usableChatModel.ts"
-);
+const { isUsableChatModel } =
+  await import("../../src/app/api/v1/vscode/[token]/usableChatModel.ts");
 
 test("#9140 VS Code listing must accept built-in auto routing entries", () => {
   assert.equal(
@@ -79,14 +77,10 @@ test("#9140 VS Code listing must accept built-in auto routing entries", () => {
     false,
     "operator-created combo should still be rejected"
   );
->>>>>>> origin/release/v3.8.50
-
-
 });
 
 // ── #9160 model discovery: capabilities.effort_tiers ────────────────────────
 
-// #9160: model discovery must ingest capabilities.effort_tiers
 test("#9160 model discovery must ingest capabilities.effort_tiers", () => {
   assert.deepEqual(
     detectSupportedThinkingEfforts({
@@ -103,4 +97,4 @@ test("#9160 capabilities.effort_tiers with duplicate and synonym", () => {
     }),
     ["low", "xhigh"]
   );
-
+});

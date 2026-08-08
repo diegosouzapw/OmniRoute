@@ -255,10 +255,7 @@ test("buildAdobeImagePayload attaches referenceBlobs like live adobe_atach_image
     { id: "2a4f1025-e0dc-4671-a11a-7dfd3c07bd94", usage: "general" },
     { id: "84c11d1a-e798-4300-a63e-c06504ca2068", usage: "general" },
   ]);
-  assert.equal(
-    (nano.generationMetadata as Record<string, unknown>).module,
-    "text2image"
-  );
+  assert.equal((nano.generationMetadata as Record<string, unknown>).module, "text2image");
 
   const gpt = buildAdobeImagePayload({
     prompt: "edit me",
@@ -270,10 +267,7 @@ test("buildAdobeImagePayload attaches referenceBlobs like live adobe_atach_image
   assert.deepEqual(gpt.referenceBlobs, [
     { id: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee", usage: "subject" },
   ]);
-  assert.equal(
-    (gpt.generationMetadata as Record<string, unknown>).module,
-    "image2image"
-  );
+  assert.equal((gpt.generationMetadata as Record<string, unknown>).module, "image2image");
 
   // gpt-image: only first 2 subject refs survive (extra screenshots hang colligo).
   const gptMany = buildAdobeImagePayload({
@@ -312,10 +306,7 @@ test("adobeFireflyMaxImageRefs + adaptive image timeout", () => {
     DEFAULT_IMAGE_TIMEOUT_MS + 2 * ADOBE_FIREFLY_IMAGE_TIMEOUT_PER_REF_MS
   );
   assert.equal(adobeFireflyImageTimeoutMs({ timeoutMs: 120_000, refCount: 5 }), 120_000);
-  assert.equal(
-    adobeFireflyImageTimeoutMs({ refCount: 99 }),
-    ADOBE_FIREFLY_IMAGE_TIMEOUT_MAX_MS
-  );
+  assert.equal(adobeFireflyImageTimeoutMs({ refCount: 99 }), ADOBE_FIREFLY_IMAGE_TIMEOUT_MAX_MS);
 });
 
 test("extractAdobeSourceImageSources reads Media page image fields", () => {
@@ -369,10 +360,10 @@ test("resolveAdobeSourceImageIds uploads data URLs then returns blob ids", async
       const headers = init?.headers as Record<string, string>;
       assert.match(String(headers["content-type"] || headers["Content-Type"] || ""), /image\//);
       assert.ok(init?.body);
-      return new Response(
-        JSON.stringify({ images: [{ id: `blob-${uploadCalls}` }] }),
-        { status: 200, headers: { "content-type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ images: [{ id: `blob-${uploadCalls}` }] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
     throw new Error(`unexpected fetch ${u}`);
   };
@@ -476,8 +467,7 @@ test("buildAdobeSubmitNonce is sha256(user_id + prompt[:256])", async () => {
       type: "access_token",
       client_id: "clio-playground-web",
     })
-  )
-    .toString("base64url");
+  ).toString("base64url");
   const header = Buffer.from(JSON.stringify({ alg: "none" })).toString("base64url");
   const token = `${header}.${payload}.${"x".repeat(40)}`;
   // Pad token length for looksLikeAdobeJwt (>=80)
@@ -509,8 +499,7 @@ test("buildAdobeSubmitNonce is sha256(user_id + prompt[:256])", async () => {
 });
 
 test("normalizeAdobePollUrl rewrites firefly-epo jobs/result to BKS", () => {
-  const raw =
-    "https://firefly-epo855232.adobe.io/jobs/result/4ae9fd2a-0864-46dd-9834-cfc16e91faa6";
+  const raw = "https://firefly-epo855232.adobe.io/jobs/result/4ae9fd2a-0864-46dd-9834-cfc16e91faa6";
   const out = normalizeAdobePollUrl(raw);
   assert.match(out, /^https:\/\/bks-epo8552\.adobe\.io\/v2\/jobs\/result\/4ae9fd2a/);
   assert.match(out, /host=firefly-epo855232\.adobe\.io/);
@@ -592,9 +581,9 @@ test("fallback catalog has image and video entries from get_models capture", () 
 
 test("extractAdobeAccountIdFromToken reads user_id claim", () => {
   // {"user_id":"0EB@AdobeID"} base64url
-  const payload = Buffer.from(JSON.stringify({ user_id: "0EB@AdobeID", type: "access_token" })).toString(
-    "base64url"
-  );
+  const payload = Buffer.from(
+    JSON.stringify({ user_id: "0EB@AdobeID", type: "access_token" })
+  ).toString("base64url");
   const jwt = `eyJhbGciOiJub25lIn0.${payload}.sig`;
   assert.equal(extractAdobeAccountIdFromToken(jwt), "0EB@AdobeID");
 });
@@ -602,18 +591,7 @@ test("extractAdobeAccountIdFromToken reads user_id claim", () => {
 // --- Handlers (mocked fetch) ----------------------------------------------
 
 function jsonResponse(status: number, body: unknown, headerMap: Record<string, string> = {}) {
-  return {
-    ok: status >= 200 && status < 300,
-    status,
-    headers: {
-      get: (name: string) => {
-        const key = Object.keys(headerMap).find((k) => k.toLowerCase() === name.toLowerCase());
-        return key ? headerMap[key] : null;
-      },
-    },
-    json: async () => body,
-    text: async () => JSON.stringify(body),
-  } as unknown as Response;
+  return new Response(JSON.stringify(body) ?? null, { status, headers: headerMap });
 }
 
 test("handleAdobeFireflyImageGeneration returns 400 when prompt is missing", async () => {
@@ -779,13 +757,19 @@ test("guest JWT without AdobeID is detected", () => {
   const emptyPayload = Buffer.from("{}").toString("base64url");
   const guestJwt = `eyJhbGciOiJub25lIn0.${emptyPayload}.sig`;
   // Pad to lookLikeAdobeJwt length if needed
-  const longGuest = `eyJhbGciOiJSUzI1NiJ9.${Buffer.from(JSON.stringify({ client_id: "clio-playground-web" })).toString("base64url")}.` + "x".repeat(40);
+  const longGuest =
+    `eyJhbGciOiJSUzI1NiJ9.${Buffer.from(JSON.stringify({ client_id: "clio-playground-web" })).toString("base64url")}.` +
+    "x".repeat(40);
   assert.equal(isAdobeGuestAccessToken(longGuest), true);
   const userJwt =
     `eyJhbGciOiJSUzI1NiJ9.` +
-    Buffer.from(JSON.stringify({ user_id: "0EB@AdobeID", type: "access_token", client_id: "clio-playground-web" })).toString(
-      "base64url"
-    ) +
+    Buffer.from(
+      JSON.stringify({
+        user_id: "0EB@AdobeID",
+        type: "access_token",
+        client_id: "clio-playground-web",
+      })
+    ).toString("base64url") +
     `.` +
     "y".repeat(40);
   assert.equal(isAdobeGuestAccessToken(userJwt), false);
@@ -832,7 +816,13 @@ test("cookie exchange rejects guest IMS tokens", async () => {
 });
 
 test("isAdobeTransientSubmitError detects 408 system under load", () => {
-  assert.equal(isAdobeTransientSubmitError(408, '{"error_code":"timeout_error","message":"system under load"}'), true);
+  assert.equal(
+    isAdobeTransientSubmitError(
+      408,
+      '{"error_code":"timeout_error","message":"system under load"}'
+    ),
+    true
+  );
   assert.equal(isAdobeTransientSubmitError(429, "rate"), true);
   assert.equal(isAdobeTransientSubmitError(400, "bad request"), false);
   assert.ok(generateAdobeNonce().length === 64);
@@ -880,11 +870,7 @@ test("image submit retries on 408 then succeeds", async () => {
       if (submits < 3) {
         return jsonResponse(408, { error_code: "timeout_error", message: "system under load" });
       }
-      return jsonResponse(
-        200,
-        { links: { result: { href: "https://poll.example/job/r1" } } },
-        {}
-      );
+      return jsonResponse(200, { links: { result: { href: "https://poll.example/job/r1" } } }, {});
     }
     if (u.includes("poll.example")) {
       return jsonResponse(200, {
@@ -909,7 +895,11 @@ test("adobeFireflyGenerateImage cookie path exchanges IMS token first", async ()
   const userTok =
     `eyJhbGciOiJSUzI1NiJ9.` +
     Buffer.from(
-      JSON.stringify({ user_id: "0EB@AdobeID", type: "access_token", client_id: "clio-playground-web" })
+      JSON.stringify({
+        user_id: "0EB@AdobeID",
+        type: "access_token",
+        client_id: "clio-playground-web",
+      })
     ).toString("base64url") +
     `.` +
     "s".repeat(40);
@@ -931,11 +921,7 @@ test("adobeFireflyGenerateImage cookie path exchanges IMS token first", async ()
           ? (init.headers as Record<string, string>).Authorization
           : auth;
       assert.equal(headerAuth, `Bearer ${userTok}`);
-      return jsonResponse(
-        200,
-        {},
-        { "x-override-status-link": "https://poll.example/job/c1" }
-      );
+      return jsonResponse(200, {}, { "x-override-status-link": "https://poll.example/job/c1" });
     }
     if (String(url).includes("poll.example")) {
       return jsonResponse(200, {

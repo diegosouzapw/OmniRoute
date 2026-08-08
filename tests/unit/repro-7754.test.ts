@@ -13,22 +13,18 @@ test("#7754 auto/best-free never leaks the combo name as a model", async () => {
   // The combo id is the modelStr by design (routing resolves it back), but the
   // models array must never contain it as a target model.
   const leak = models.filter(
-    (m: any) =>
+    (m) =>
       (m.id || "") === "auto/best-free" ||
       (m.model || "") === "auto/best-free" ||
       (m.modelStr || "") === "auto/best-free"
   );
-  assert.equal(
-    leak.length,
-    0,
-    `combo name leaked as a target model: ${JSON.stringify(leak)}`
-  );
+  assert.equal(leak.length, 0, `combo name leaked as a target model: ${JSON.stringify(leak)}`);
 });
 
 test("#7754 every auto/best-free model carries a concrete provider/model", async () => {
   const combo = await createBuiltinAutoCombo("auto/best-free", "best-free");
   const models = combo.models || [];
-  for (const m of models as any[]) {
+  for (const m of models) {
     assert.ok(
       m.model && m.model !== "auto/best-free",
       `model missing concrete id: ${JSON.stringify(m)}`
@@ -51,7 +47,7 @@ test("#7754 empty free-tier pool degrades with a clear 503, not a name leak", as
     assert.equal(combo.candidatePool?.length || 0, 0);
   } else {
     // Non-empty pool must not leak.
-    const leak = models.filter((m: any) => (m.model || "") === "auto/best-free");
+    const leak = models.filter((m) => (m.model || "") === "auto/best-free");
     assert.equal(leak.length, 0);
   }
 });
