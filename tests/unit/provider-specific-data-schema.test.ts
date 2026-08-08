@@ -42,6 +42,36 @@ test("provider schemas reject non-boolean openaiStoreEnabled values", () => {
   assert.equal(updated.success, false);
 });
 
+test("provider schemas accept boolean preserveEncryptedReasoning in providerSpecificData", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "codex",
+    apiKey: "token",
+    name: "Codex",
+    providerSpecificData: { preserveEncryptedReasoning: true },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: { preserveEncryptedReasoning: false },
+  });
+
+  assert.equal(created.success, true);
+  assert.equal(updated.success, true);
+});
+
+test("provider schemas reject non-boolean preserveEncryptedReasoning values", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "codex",
+    apiKey: "token",
+    name: "Codex",
+    providerSpecificData: { preserveEncryptedReasoning: "yes" },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: { preserveEncryptedReasoning: 1 },
+  });
+
+  assert.equal(created.success, false);
+  assert.equal(updated.success, false);
+});
+
 test("provider schemas accept boolean CC-compatible request defaults", () => {
   const created = createProviderSchema.safeParse({
     provider: "anthropic-compatible-cc-demo",

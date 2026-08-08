@@ -32,6 +32,7 @@ import {
 } from "../config/codexIdentity.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
+import { applyResponsesInputPolicy } from "../services/responsesInputPolicy.ts";
 import { normalizeCodexVerbosity } from "../services/codexVerbosity.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
@@ -222,90 +223,6 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
   }
 }
 
-/**
- * Strip server-generated item IDs from the input array.
- *
- * The Codex /codex/responses endpoint does not persist response items even when
- * store=true is sent. When proxy clients (e.g. OpenClaw) include response items
- * from previous turns in the input array, those items carry server-assigned IDs
- * (prefixed with "rs_", "fc_", "resp_", "msg_"). The Codex backend tries to
- * validate these IDs against its persistence store and returns 404 when the items
- * are not found (because store was effectively false).
- *
- * This function:
- *   1. Removes bare string references ("rs_abc123") from the input array
- *   2. Removes object items with type "item_reference" (explicit stored-item refs)
- *   3. Strips the "id" field from any object in input whose id matches a
- *      server-generated prefix (rs_, fc_, resp_, msg_) — so the content is
- *      preserved but the backend won't try to look it up
- */
-export function stripStoredItemReferences(body: Record<string, unknown>): void {
-  if (Array.isArray(body.input) && body.input.length === 0) {
-    body.input = [
-      {
-        type: "message",
-        role: "user",
-        content: [{ type: "input_text", text: "continue" }],
-      },
-    ];
-  }
-
-  if (!Array.isArray(body.input)) return;
-
-  const SERVER_ID_PATTERN = /^(rs|fc|resp|msg)_/;
-  let strippedCount = 0;
-
-  body.input = body.input.filter((item) => {
-    // Bare string references: "rs_abc123", "resp_abc123"
-    if (typeof item === "string" && SERVER_ID_PATTERN.test(item)) {
-      strippedCount++;
-      return false;
-    }
-
-    // Object references: { type: "item_reference", id: "rs_..." }
-    if (
-      item &&
-      typeof item === "object" &&
-      !Array.isArray(item) &&
-      (item as Record<string, unknown>).type === "item_reference"
-    ) {
-      strippedCount++;
-      return false;
-    }
-
-    // Reasoning blobs (encrypted_content) are unusable with store=false since
-    // previous_response_id is deleted — strip them to avoid wasting context
-    // tokens (O(n^2) growth across agentic turns).
-    if (
-      item &&
-      typeof item === "object" &&
-      !Array.isArray(item) &&
-      (item as Record<string, unknown>).type === "reasoning"
-    ) {
-      strippedCount++;
-      return false;
-    }
-
-    // Object items with server-generated IDs: strip the id field but keep the item.
-    // e.g. { id: "rs_...", type: "reasoning", summary: [...] } → keep content, remove id
-    // e.g. { id: "fc_...", type: "function_call", ... } → keep content, remove id
-    if (item && typeof item === "object" && !Array.isArray(item)) {
-      const record = item as Record<string, unknown>;
-      if (typeof record.id === "string" && SERVER_ID_PATTERN.test(record.id)) {
-        delete record.id;
-        strippedCount++;
-      }
-    }
-
-    return true;
-  });
-
-  if (strippedCount > 0) {
-    console.debug(
-      `[Codex] stripStoredItemReferences: sanitized ${strippedCount} server-generated ID(s) from input`
-    );
-  }
-}
 
 function stripOrphanedCodexFunctionCallOutputs(body: Record<string, unknown>): void {
   if (!Array.isArray(body.input)) return;
@@ -1296,7 +1213,7 @@ export class CodexExecutor extends BaseExecutor {
     }
 
     // Issue #1832 & #1853: Map messages to input for clients like Cursor 5.5 that use responses/compact but send messages instead of input.
-    // This MUST run before convertSystemToDeveloperRole and stripStoredItemReferences.
+    // This MUST run before convertSystemToDeveloperRole.
     if (!body.input && Array.isArray(body.messages)) {
       body.input = body.messages.map((msg: ResponsesMessageInput) => ({
         type: "message",
@@ -1419,11 +1336,6 @@ export class CodexExecutor extends BaseExecutor {
       preserveCustomTools: nativeCodexPassthrough,
     });
 
-    // Strip stored response item references (rs_, resp_, msg_ IDs) from input.
-    // The /codex/responses endpoint does not persist responses even with store=true,
-    // so any references to previous response items would cause 404 errors.
-    stripStoredItemReferences(body);
-
     // Issue #806: Even for native passthrough, some clients (purist completions) might indiscriminately inject
     // a `messages` or `prompt` array which the strict Codex Responses schema rejects.
     delete body.messages;
@@ -1514,6 +1426,11 @@ export class CodexExecutor extends BaseExecutor {
     // but the upstream Codex API strictly rejects them as unsupported parameters.
     delete body.session_id;
     delete body.conversation_id;
+
+    applyResponsesInputPolicy(
+      body,
+      credentials?.providerSpecificData?.preserveEncryptedReasoning === true
+    );
 
     if (nativeCodexPassthrough) {
       return body;

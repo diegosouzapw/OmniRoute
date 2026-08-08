@@ -538,6 +538,80 @@ test("chatCore honors providerSpecificData.apiType for legacy openai-compatible 
   assert.equal(payload.choices[0].message.content, "ok");
 });
 
+test("chatCore applies Responses input policy to openai-compatible targets", async () => {
+  const reasoningItems = [
+    { id: "rs_valid", type: "reasoning", encrypted_content: "encrypted-blob" },
+    { type: "reasoning", encrypted_content: "" },
+    { type: "reasoning", summary: [{ text: "not self-contained" }] },
+    { type: "item_reference", id: "rs_reference" },
+    { id: "fc_call", type: "function_call", call_id: "call_1", name: "search", arguments: "{}" },
+  ];
+
+  for (const preserveEncryptedReasoning of [false, true]) {
+    const { call, result } = await invokeChatCore({
+      provider: "openai-compatible-sp-openai",
+      model: "gpt-5.4",
+      endpoint: "/v1/responses",
+      credentials: {
+        apiKey: "sk-test",
+        providerSpecificData: {
+          apiType: "responses",
+          baseUrl: "https://proxy.example.com/v1",
+          prefix: "sp-openai",
+          preserveEncryptedReasoning,
+        },
+      },
+      body: { model: "gpt-5.4", stream: false, input: reasoningItems },
+      responseFormat: "openai-responses",
+    });
+
+    assert.equal(result.success, true);
+    const input = call.body.input as Array<Record<string, unknown>>;
+    assert.deepEqual(
+      input.filter((item) => item.type === "reasoning"),
+      preserveEncryptedReasoning ? [{ type: "reasoning", encrypted_content: "encrypted-blob" }] : []
+    );
+    assert.equal(
+      input.some((item) => item.type === "item_reference"),
+      false
+    );
+    assert.equal(input.find((item) => item.type === "function_call")?.id, undefined);
+  }
+});
+
+test("chatCore preserves opted-in encrypted reasoning for Codex", async () => {
+  const { call, result } = await invokeChatCore({
+    provider: "codex",
+    model: "gpt-5.1-codex",
+    endpoint: "/v1/responses",
+    credentials: {
+      accessToken: "codex-token",
+      providerSpecificData: { preserveEncryptedReasoning: true },
+    },
+    body: {
+      model: "gpt-5.1-codex",
+      stream: false,
+      input: [
+        { id: "rs_valid", type: "reasoning", encrypted_content: "encrypted-blob" },
+        { type: "reasoning", encrypted_content: "" },
+        { type: "item_reference", id: "rs_reference" },
+        { type: "message", role: "user", content: [{ type: "input_text", text: "continue" }] },
+      ],
+    },
+    responseFormat: "openai-responses",
+  });
+
+  assert.equal(result.success, true);
+  assert.deepEqual(
+    call.body.input.filter((item) => item.type === "reasoning"),
+    [{ type: "reasoning", encrypted_content: "encrypted-blob" }]
+  );
+  assert.equal(
+    call.body.input.some((item) => item.type === "item_reference"),
+    false
+  );
+});
+
 test("chatCore helper exports detect responses passthrough paths and token expiry windows", () => {
   assert.equal(
     shouldUseNativeCodexPassthrough({

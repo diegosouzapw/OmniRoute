@@ -20,6 +20,29 @@ const SENSITIVE_KEYS = new Set([
 
 type JsonRecord = Record<string, unknown>;
 
+const ENCRYPTED_REASONING_KEY = "encrypted_content";
+
+function encryptedReasoningOmissionMarker(length?: number): string {
+  return length === undefined
+    ? "[omitted: encrypted reasoning]"
+    : `[omitted: encrypted reasoning, ${length} chars]`;
+}
+
+// Matches a JSON string field in captured SSE text. Alternatives inside the value are disjoint,
+// keeping the scan linear even for large encrypted blobs.
+const SERIALIZED_ENCRYPTED_REASONING_RE = /(\"encrypted_content\"\s*:\s*\")((?:\\.|[^\"\\])*)\"/g;
+const STREAM_CHUNK_TIMESTAMP_RE = /^\[\d{2}:\d{2}:\d{2}\.\d{3}\] /;
+
+export function omitEncryptedReasoningFromLogChunks(chunks: string[]): string[] {
+  const combined = chunks.map((chunk) => chunk.replace(STREAM_CHUNK_TIMESTAMP_RE, "")).join("");
+  let found = false;
+  const omitted = combined.replace(SERIALIZED_ENCRYPTED_REASONING_RE, (_match, prefix: string) => {
+    found = true;
+    return `${prefix}${encryptedReasoningOmissionMarker()}\"`;
+  });
+  return found ? [omitted] : chunks;
+}
+
 /**
  * True for any binary/opaque byte view (Uint8Array, Buffer, DataView, other
  * typed arrays). `Array.isArray()` returns false for these, so callers that
@@ -54,6 +77,28 @@ export function normalizePayloadForLog(payload: unknown): unknown {
   } catch {
     return { _rawText: payload };
   }
+}
+
+/**
+ * Remove opaque encrypted reasoning from log copies. The value is replayable by clients but
+ * provides no useful diagnostics, so retaining its size is sufficient for observability.
+ */
+export function omitEncryptedReasoningForLog(payload: unknown): unknown {
+  if (!payload || typeof payload !== "object") return payload;
+  if (isOpaqueBinary(payload)) return describeOpaqueBinary(payload);
+  if (Array.isArray(payload)) return payload.map(omitEncryptedReasoningForLog);
+
+  const omitted: JsonRecord = {};
+  for (const [key, value] of Object.entries(payload)) {
+    if (key === ENCRYPTED_REASONING_KEY && typeof value === "string" && value.length > 0) {
+      omitted[key] = encryptedReasoningOmissionMarker(value.length);
+    } else if (typeof value === "object" && value !== null) {
+      omitted[key] = omitEncryptedReasoningForLog(value);
+    } else {
+      omitted[key] = value;
+    }
+  }
+  return omitted;
 }
 
 export function redactPayload(payload: unknown): unknown {
@@ -100,7 +145,8 @@ export function sanitizePayloadPII(payload: unknown): unknown {
 export function protectPayloadForLog(payload: unknown): unknown {
   if (payload === null || payload === undefined) return null;
   const normalized = normalizePayloadForLog(payload);
-  const piiSanitized = sanitizePayloadPII(normalized);
+  const reasoningOmitted = omitEncryptedReasoningForLog(normalized);
+  const piiSanitized = sanitizePayloadPII(reasoningOmitted);
   return redactPayload(piiSanitized);
 }
 

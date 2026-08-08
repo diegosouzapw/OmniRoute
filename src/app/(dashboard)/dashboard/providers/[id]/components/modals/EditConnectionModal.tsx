@@ -127,6 +127,7 @@ export default function EditConnectionModal({
     codexReasoningEffort: "medium",
     codexServiceTier: "default" as CodexServiceTier,
     codexOpenaiStoreEnabled: false,
+    preserveEncryptedReasoning: false,
     consoleApiKey: "",
     newApiUserId: "",
     newApiAggregatorBalance: false,
@@ -193,6 +194,13 @@ export default function EditConnectionModal({
   const openRouterPreset = useOpenRouterPresetControl(provider, t);
   const setOpenRouterPreset = openRouterPreset.setValue;
   const isCodex = provider === "codex";
+  const isResponsesConnection =
+    isCodex ||
+    provider === "openai" ||
+    (isOpenAICompatibleProvider(provider) &&
+      (provider.startsWith("openai-compatible-responses-") ||
+        connectionProviderSpecificData?.apiType === "responses" ||
+        formData.targetFormat === "openai-responses"));
   const isClaude = provider === "claude";
   const isAntigravityFamily = provider === "antigravity" || provider === "agy";
   const localProviderMetadata = getLocalProviderMetadata(provider);
@@ -318,6 +326,8 @@ export default function EditConnectionModal({
         codexReasoningEffort: codexRequestDefaults.reasoningEffort,
         codexServiceTier: codexRequestDefaults.serviceTier ?? "default",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
+        preserveEncryptedReasoning:
+          connection.providerSpecificData?.preserveEncryptedReasoning === true,
         consoleApiKey: existingConsoleApiKey,
         newApiUserId: existingNewApiUserId,
         newApiAggregatorBalance: connection.providerSpecificData?.newApiAggregatorBalance === true,
@@ -611,6 +621,10 @@ export default function EditConnectionModal({
           updates.providerSpecificData.targetFormat = formData.targetFormat || null;
         }
       }
+      if (isResponsesConnection && updates.providerSpecificData) {
+        updates.providerSpecificData.preserveEncryptedReasoning =
+          formData.preserveEncryptedReasoning === true;
+      }
       const freeOnlyChanged =
         showFreeModelsToggle &&
         formData.importFreeModelsOnly !==
@@ -642,6 +656,19 @@ export default function EditConnectionModal({
     !testResult?.valid && testResult?.diagnosis?.type
       ? ERROR_TYPE_LABELS[testResult.diagnosis.type] || null
       : null;
+
+  const preserveEncryptedReasoningToggle = isResponsesConnection ? (
+    <Toggle
+      checked={formData.preserveEncryptedReasoning}
+      onChange={(checked) => setFormData({ ...formData, preserveEncryptedReasoning: checked })}
+      label={providerText(t, "preserveEncryptedReasoningLabel", "Preserve encrypted reasoning")}
+      description={providerText(
+        t,
+        "preserveEncryptedReasoningDescription",
+        "Forward encrypted Responses reasoning items supplied by the client."
+      )}
+    />
+  ) : null;
 
   return (
     <Modal isOpen={isOpen} title={t("editConnection")} onClose={onClose}>
@@ -736,6 +763,7 @@ export default function EditConnectionModal({
               description={t("importFreeModelsOnlyHint")}
             />
           )}
+          {preserveEncryptedReasoningToggle}
           <Toggle
             checked={formData.disableCooling}
             onChange={(checked) => setFormData({ ...formData, disableCooling: checked })}

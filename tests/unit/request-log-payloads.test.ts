@@ -1,3 +1,4 @@
+import { protectPipelinePayloads } from "../../src/lib/usage/callLogs/format.ts";
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -32,6 +33,46 @@ test("normalizes JSON strings before log protection and redacts sensitive keys",
       apiKey: "[REDACTED]",
     },
   });
+});
+
+test("omits encrypted reasoning values from structured log payloads", () => {
+  const encryptedContent = "encrypted".repeat(128);
+  const payload = {
+    output: [
+      {
+        type: "reasoning",
+        encrypted_content: encryptedContent,
+        reasoning_content: "visible diagnostic reasoning",
+      },
+    ],
+  };
+
+  const protectedPayload = protectPayloadForLog(payload) as typeof payload;
+
+  assert.equal(
+    protectedPayload.output[0].encrypted_content,
+    `[omitted: encrypted reasoning, ${encryptedContent.length} chars]`
+  );
+  assert.equal(protectedPayload.output[0].reasoning_content, "visible diagnostic reasoning");
+  assert.equal(payload.output[0].encrypted_content, encryptedContent);
+});
+
+test("omits encrypted reasoning split across captured SSE chunks", () => {
+  const encryptedContent = "opaque-replay-state".repeat(128);
+  const protectedPipeline = protectPipelinePayloads({
+    streamChunks: {
+      provider: [
+        '[12:00:00.000] data: {"type":"response.completed","response":{"output":[{"type":"reasoning","encrypted_',
+        `[12:00:00.001] content":"${encryptedContent}","summary":[]}]}}\n\n`,
+      ],
+    },
+  });
+
+  const storedChunks = protectedPipeline?.streamChunks?.provider ?? [];
+  assert.equal(storedChunks.length, 1);
+  assert.equal(storedChunks[0].includes(encryptedContent), false);
+  assert.equal(storedChunks[0].includes("[omitted: encrypted reasoning]"), true);
+  assert.equal(storedChunks[0].includes('"summary":[]'), true);
 });
 
 test("wraps raw text payloads in JSON-safe objects", () => {
