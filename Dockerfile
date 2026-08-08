@@ -93,7 +93,15 @@ RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
 # build from 17min to 9min on the same 32-core box. Webpack stays available as the
 # escape hatch: `--build-arg`/-e OMNIROUTE_USE_TURBOPACK=0.
 # See docs/ops/QUALITY_GATE_PLAYBOOK.md Parte 6.
-ENV OMNIROUTE_USE_TURBOPACK=1
+#
+# Declared as ARG+ENV, not a bare ENV: a bare ENV shadows any same-named ARG for
+# the rest of the stage, so `--build-arg OMNIROUTE_USE_TURBOPACK=0` was silently
+# ignored and the escape hatch above only ever worked via `-e` at runtime, never
+# at build time. Turbopack compiles in native Rust memory that lives outside the
+# V8 heap, so OMNIROUTE_BUILD_MEMORY_MB cannot bound it and a memory-constrained
+# build host gets SIGKILLed by the cgroup OOM killer with no error message.
+ARG OMNIROUTE_USE_TURBOPACK=1
+ENV OMNIROUTE_USE_TURBOPACK="${OMNIROUTE_USE_TURBOPACK}"
 
 # Next.js basePath is fixed at build time; pass OMNIROUTE_BASE_PATH here when the
 # image should serve under a reverse-proxy subpath without a runtime patch.

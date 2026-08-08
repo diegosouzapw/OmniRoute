@@ -1,0 +1,1 @@
+- **fix(docker):** `--build-arg OMNIROUTE_USE_TURBOPACK=0` now reaches the builder stage — a bare `ENV` was shadowing the `ARG`, so the documented webpack escape hatch was silently ignored and memory-constrained hosts were OOM-killed with no error output ([#9695](https://github.com/diegosouzapw/OmniRoute/pull/9695))
