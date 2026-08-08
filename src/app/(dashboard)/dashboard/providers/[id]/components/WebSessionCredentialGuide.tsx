@@ -111,16 +111,16 @@ export default function WebSessionCredentialGuide({
             <li>
               {providerText(
                 t,
-                "webSessionGuideStep2",
-                "Open the browser developer tools and inspect a request made by the web app."
+                "webSessionGuideStep2Fast",
+                "Fast path: install the Cookie Editor extension (chromewebstore.google.com → Cookie Editor), open it on the {provider} tab, find {credential} (select all numbered chunks if split), and click Export → Copy with the export format set to “Cookie header”.",
+                { provider: providerName, credential: requirement.credentialName }
               )}
             </li>
             <li>
               {providerText(
                 t,
-                "webSessionGuideStep3",
-                "Copy the required credential from the provider's own domain. For cookies, copy only the Cookie header value and omit Cookie:.",
-                { credential: requirement.credentialName }
+                "webSessionGuideStep3Manual",
+                "Manual path: open the browser developer tools (F12 → Network), refresh the page, open an authenticated request, and copy the Cookie header value from Request Headers — omit the Cookie: prefix."
               )}
             </li>
             <li>
