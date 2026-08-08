@@ -17,7 +17,7 @@ export const SYSTRAY_VERSION = "2.1.4";
 const SYSTRAY_SPEC = `${SYSTRAY_PACKAGE}@${SYSTRAY_VERSION}`;
 
 export function resolveSystrayBinName(platform: NodeJS.Platform): string | null {
-  if (platform === "win32") return null;
+  if (platform === "win32") return "tray_windows_release.exe";
   if (platform === "darwin") return "tray_darwin_release";
   return "tray_linux_release";
 }
@@ -45,7 +45,6 @@ export function chmodSystrayBinAt(runtimeRoot: string, platform: NodeJS.Platform
 }
 
 export async function loadSystray(): Promise<(new (...args: unknown[]) => unknown) | null> {
-  if (process.platform === "win32") return null; // Windows uses tray.ps1 instead
   ensureRuntimeDir();
   if (!isInstalled()) {
     try {

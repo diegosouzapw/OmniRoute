@@ -6,7 +6,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { VisionBridgeGuardrail } = await import("../../../src/lib/guardrails/visionBridge.ts");
+const { VisionBridgeGuardrail, resolveVisionComboName } =
+  await import("../../../src/lib/guardrails/visionBridge.ts");
 const { resetGuardrailsForTests } = await import("../../../src/lib/guardrails/registry.ts");
 const { getResolvedModelCapabilities } = await import("../../../src/lib/modelCapabilities.ts");
 import type { GuardrailContext } from "../../../src/lib/guardrails/base.ts";
@@ -93,6 +94,14 @@ test("VisionBridgeGuardrail is enabled by default", () => {
 test("VisionBridgeGuardrail can be disabled via constructor", () => {
   const guardrail = createGuardrail({ enabled: false });
   assert.strictEqual(guardrail.enabled, false);
+});
+
+test("resolveVisionComboName accepts only non-empty string mapping names", () => {
+  assert.equal(resolveVisionComboName({ comboName: "vision-fallback" }), "vision-fallback");
+  assert.equal(resolveVisionComboName({ name: "legacy-fallback" }), "legacy-fallback");
+  assert.equal(resolveVisionComboName({ comboName: { nested: true } }), null);
+  assert.equal(resolveVisionComboName({ comboName: 42 }), null);
+  assert.equal(resolveVisionComboName({ comboName: "" }), null);
 });
 
 // ── VB-S05: Vision Bridge disabled via settings ────────────────────────────

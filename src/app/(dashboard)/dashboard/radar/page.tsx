@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/shared/components";
 import { shouldAutoSyncOnOpen } from "@/lib/radar/autoSync";
+import { isValidSupporterKeyFormat } from "@/lib/radar/supporterKey";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -132,6 +133,18 @@ export default function RadarPage() {
   const [contributorClaimUrl, setContributorClaimUrl] = useState<string | null>(null);
   const [supporterPlansUrl, setSupporterPlansUrl] = useState<string | null>(null);
 
+  // Paste-key activation — the primary path on the activation screen: paste
+  // an already-obtained supporter key (`omr_` + 40 hex) to activate opt-in
+  // AND the supporter tier in a single POST. `hasSupporterKey`/
+  // `supporterKeyMasked` mirror GET /api/radar/settings so a key set out of
+  // band (e.g. a direct curl call before this UI existed) shows the masked
+  // form instead of an empty input — the raw key is never displayed.
+  const [keyInput, setKeyInput] = useState("");
+  const [keySubmitting, setKeySubmitting] = useState(false);
+  const [hasSupporterKey, setHasSupporterKey] = useState(false);
+  const [supporterKeyMasked, setSupporterKeyMasked] = useState<string | null>(null);
+  const [showKeyForm, setShowKeyForm] = useState(false);
+
   // Fetch catalog
   const fetchCatalog = useCallback(async () => {
     setLoading(true);
@@ -189,6 +202,10 @@ export default function RadarPage() {
       if (!settingsRes.ok) throw new Error(`HTTP ${settingsRes.status}`);
       const settingsData = await settingsRes.json();
       setOptIn(settingsData.optIn === true);
+      setHasSupporterKey(settingsData.hasSupporterKey === true);
+      setSupporterKeyMasked(
+        typeof settingsData.supporterKeyMasked === "string" ? settingsData.supporterKeyMasked : null,
+      );
       // F4/T7 — best-effort: keep whatever we already had if the field is
       // absent (older cached response shape), never fall back to a literal.
       if (typeof settingsData.contributorClaimUrl === "string") {
@@ -278,6 +295,40 @@ export default function RadarPage() {
     }
   }, [t, handleSync]);
 
+  // Activate with a pasted supporter key — the primary path on this screen.
+  // Submitting a key both sets it AND opts in, in a single POST (pasting a
+  // key unlocks the activation screen). Client-side format validation is a
+  // UX nicety only — the server (Zod) always revalidates.
+  const handleSubmitKey = useCallback(async () => {
+    setError("");
+    const trimmed = keyInput.trim();
+    if (!isValidSupporterKeyFormat(trimmed)) {
+      setError(t("keyInvalidFormatError"));
+      return;
+    }
+    setKeySubmitting(true);
+    try {
+      const res = await fetch("/api/radar/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ optIn: true, supporterKey: trimmed }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setOptIn(true);
+      setHasSupporterKey(true);
+      setSupporterKeyMasked(typeof data.supporterKey === "string" ? data.supporterKey : null);
+      setKeyInput("");
+      setShowKeyForm(false);
+      // After activation, trigger a sync so the live tier catalog loads.
+      await handleSync();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("activationFailed"));
+    } finally {
+      setKeySubmitting(false);
+    }
+  }, [keyInput, t, handleSync]);
+
   // Determine effective state
   const flagOn = optIn !== false || entries.length > 0 || meta !== null;
   const pageState = resolveRadarPageState(
@@ -359,6 +410,51 @@ export default function RadarPage() {
                     <span>{t("privacyLocalOnly")}</span>
                   </div>
                 </div>
+
+                {/* Paste-key activation — primary path: pasting an already-obtained
+                    supporter key both sets it AND opts in (unlocks this screen).
+                    The raw key is NEVER displayed — once set, only the masked
+                    form (supporterKeyMasked) is shown, with a "change key" escape
+                    hatch to paste a new one. */}
+                <div className="w-full flex flex-col gap-3 text-left">
+                  <p className="text-sm font-medium">{t("keySectionTitle")}</p>
+                  {hasSupporterKey && !showKeyForm ? (
+                    <div className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border">
+                      <span className="font-mono text-sm text-text-muted">
+                        {supporterKeyMasked}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowKeyForm(true)}
+                        className="text-sm text-violet-400 hover:underline shrink-0"
+                      >
+                        {t("changeKeyButton")}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="text"
+                        value={keyInput}
+                        onChange={(e) => setKeyInput(e.target.value)}
+                        placeholder="omr_..."
+                        aria-label={t("keySectionTitle")}
+                        className="flex-1 px-3 py-2 text-sm font-mono rounded-lg border border-border bg-transparent focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSubmitKey}
+                        disabled={keySubmitting || keyInput.trim().length === 0}
+                        className="px-6 py-2 bg-violet-500 hover:bg-violet-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 shrink-0"
+                      >
+                        {keySubmitting ? t("activating") : t("activateWithKeyButton")}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="w-full h-px bg-border" />
+
                 <button
                   onClick={handleActivate}
                   disabled={activating}

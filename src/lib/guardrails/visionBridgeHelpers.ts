@@ -1,6 +1,7 @@
 /**
  * Vision Bridge helper functions for image processing.
  */
+import { detectMediaParts, type MediaPart } from "@omniroute/open-sse/utils/mediaParts";
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 import { resolveSelfLoopBearer } from "@/shared/middleware/chatBodyAdmission";
@@ -118,53 +119,37 @@ export type RequestContentPart =
  * vision-bridge guardrail, so the image was silently dropped by a text-only
  * executor instead of being described.
  */
+/**
+ * Shapes `replaceImageParts` knows how to splice: top-level content parts
+ * whose `type` is `image_url`, `image`, or `input_image`. Everything else the
+ * detector reports (nested hits, `data_uri_string`, `image_indicator`) is
+ * combo-filter material only — extracting it would desync the positional
+ * description consumption in visionBridge (descriptions would shift onto the
+ * wrong images).
+ */
+const REPLACEABLE_IMAGE_SHAPES: ReadonlySet<MediaPart["shape"]> = new Set([
+  "image_url",
+  "image_base64",
+  "image_source_url",
+  "input_image",
+]);
+
 export function extractImageParts(messages: RequestMessage[]): ImagePart[] {
-  const results: ImagePart[] = [];
-
-  if (!Array.isArray(messages)) {
-    return results;
-  }
-
-  for (let msgIdx = 0; msgIdx < messages.length; msgIdx++) {
-    const message = messages[msgIdx];
-    if (!message || !Array.isArray(message.content)) {
-      continue;
-    }
-
-    for (let partIdx = 0; partIdx < message.content.length; partIdx++) {
-      const part = message.content[partIdx];
-
-      if (part?.type === "image_url" && part.image_url?.url) {
-        results.push({
-          messageIndex: msgIdx,
-          partIndex: partIdx,
-          imageUrl: part.image_url.url,
-          imageType: "image_url",
-        });
-      } else if (part?.type === "image" && part.source?.type === "base64") {
-        const { media_type, data } = part.source;
-        const dataUri = `data:${media_type};base64,${data}`;
-        results.push({
-          messageIndex: msgIdx,
-          partIndex: partIdx,
-          imageUrl: dataUri,
-          imageType: "image",
-        });
-      } else if (part?.type === "image" && part.source?.type === "url") {
-        const url = part.source.url;
-        if (url) {
-          results.push({
-            messageIndex: msgIdx,
-            partIndex: partIdx,
-            imageUrl: url,
-            imageType: "url",
-          });
-        }
-      }
-    }
-  }
-
-  return results;
+  // Delegates to the unified detector (open-sse/utils/mediaParts.ts) so the
+  // guardrail and the combo compatibility filter share one source of truth.
+  // Extraction is ALLOWLISTED to top-level (non-nested) parts whose shape
+  // replaceImageParts can splice back — the extract↔replace contract: every
+  // extracted part MUST be replaceable, in the same order, or the positional
+  // descriptions shift onto the wrong images.
+  return detectMediaParts(messages)
+    .filter((p) => p.kind === "image" && !p.nested && REPLACEABLE_IMAGE_SHAPES.has(p.shape))
+    .map((p) => ({
+      messageIndex: p.messageIndex,
+      partIndex: p.partIndex,
+      imageUrl: p.ref,
+      imageType:
+        p.shape === "image_base64" ? "image" : p.shape === "image_source_url" ? "url" : "image_url",
+    }));
 }
 
 /**
@@ -221,6 +206,19 @@ export interface VisionModelConfig {
   prompt: string;
   timeoutMs: number;
   maxImages: number;
+}
+
+/** Task-aware focus hint (codex-vision-proxy pattern): steer the description
+ * toward what the user actually asked, instead of a generic caption. */
+export function composeVisionPrompt(
+  basePrompt: string,
+  lastUserText: string | undefined,
+  taskAware: boolean
+): string {
+  const text = (lastUserText ?? "").trim();
+  if (!taskAware || !text) return basePrompt;
+  const hint = text.length > 500 ? `${text.slice(0, 500)}…` : text;
+  return `${basePrompt}\n\nThe user asked: "${hint}". Focus your description on what is relevant to answering this, and transcribe any text visible in the image.`;
 }
 
 /**
@@ -703,7 +701,12 @@ export function replaceImageParts(
     const newContent: RequestContentPart[] = [];
 
     for (const part of message.content) {
-      if (part?.type === "image_url" || part?.type === "image") {
+      // `input_image` (Responses API) is read through a widened type: it is
+      // not part of the historical RequestContentPart union but MUST be
+      // replaceable — extractImageParts allowlists it, and every extracted
+      // part needs a matching splice here (extract↔replace contract).
+      const partType = (part as { type?: string } | null | undefined)?.type;
+      if (partType === "image_url" || partType === "image" || partType === "input_image") {
         if (descriptionIndex < descriptions.length) {
           const description = descriptions[descriptionIndex];
           descriptionIndex++;

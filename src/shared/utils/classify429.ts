@@ -124,13 +124,122 @@ export function looksLikeQuotaExhausted(body: unknown): boolean {
 }
 
 /**
+ * A declared upstream retry window at or beyond this is treated as
+ * long-period exhaustion. One hour mirrors the circuit breaker's
+ * `quota_exhausted` cooldown bucket (`cooldownByKind`, wired in
+ * src/sse/handlers/chat.ts, chatHelpers.ts and
+ * open-sse/services/accountFallback.ts): the long bucket is only the right
+ * lock when the upstream's own window is at least that long.
+ */
+const QUOTA_SCALE_RETRY_DELAY_SECONDS = 3600;
+
+/**
+ * Quota signals that stay terminal no matter what retry hint accompanies
+ * them. Credits/billing exhaustion does not clear on a timer, so a short
+ * upstream hint must never downgrade these to a 60s retry loop.
+ */
+const TERMINAL_QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
+  /INSUFFICIENT_G1_CREDITS_BALANCE/i,
+  /credit.*exhaust/i,
+  /out of credits/i,
+  /billing.*cap/i,
+  /insufficient.*quota/i,
+  /individual quota reached/i,
+  /enable overages/i,
+  /daily free allocation/i,
+];
+
+/**
+ * Parse an upstream delay string ("38s", "26.66s", "1500ms", "2m", "1h",
+ * or a bare number of seconds) into seconds.
+ *
+ * Deliberately mirrors `parseDelayString` in
+ * open-sse/services/retryAfterJson.ts (#7940) rather than importing it:
+ * open-sse already imports this module (accountFallback.ts), so the
+ * reverse import would close a dependency cycle. Keep the two grammars in
+ * step when either changes.
+ */
+function parseDelaySeconds(value: unknown): number | null {
+  if (!value) return null;
+  const str = String(value).trim();
+  const ms = /^(\d+(?:\.\d+)?)\s*ms$/i.exec(str);
+  if (ms) return Number.parseFloat(ms[1]) / 1000;
+  const sec = /^(\d+(?:\.\d+)?)\s*s$/i.exec(str);
+  if (sec) return Number.parseFloat(sec[1]);
+  const min = /^(\d+(?:\.\d+)?)\s*m$/i.exec(str);
+  if (min) return Number.parseFloat(min[1]) * 60;
+  const hr = /^(\d+(?:\.\d+)?)\s*h$/i.exec(str);
+  if (hr) return Number.parseFloat(hr[1]) * 3600;
+  const bare = Number.parseFloat(str);
+  return Number.isFinite(bare) ? bare : null;
+}
+
+/**
+ * Upstream-declared retry window in seconds, when the 429 carries one.
+ *
+ * Google APIs (Gemini `generativelanguage`, Vertex) attach a
+ * `google.rpc.RetryInfo` detail whose `retryDelay` Duration states exactly
+ * how long the throttle lasts, and repeat the same hint in the human
+ * message ("Please retry in 38.922534355s"). Gemini free-tier
+ * per-minute/per-token 429s open with the same "You exceeded your current
+ * quota, please check your plan and billing details" preamble as genuine
+ * long-window exhaustion, so `QUOTA_PATTERNS` cannot tell them apart —
+ * even the PerDay-named `quotaId` ships retryDelay values of ~30-50s
+ * (#9504). The declared window is the authoritative signal.
+ *
+ * Both carriers are read because the two live call paths deliver different
+ * shapes: `accountFallback` classifies the parsed body (details intact),
+ * while `chat.ts` classifies `result.rawMessage`, which
+ * `parseUpstreamError` has already reduced to `error.message` text.
+ * Structural matching keeps an unrelated `retryDelay` key from triggering
+ * the hint; the text form is anchored on Google's exact phrasing, matching
+ * the precedent in accountFallback's cooldown parser.
+ */
+function upstreamRetryDelaySeconds(body: unknown): number | null {
+  let root: unknown = body;
+  if (typeof body === "string") {
+    const phrase = /please retry in (\d+(?:\.\d+)?)\s*s/i.exec(body);
+    if (phrase) return Number.parseFloat(phrase[1]);
+    try {
+      root = JSON.parse(body);
+    } catch {
+      return null;
+    }
+  }
+  if (root === null || typeof root !== "object") return null;
+  const error = (root as { error?: unknown }).error;
+  const errorRecord =
+    error !== null && typeof error === "object" ? (error as Record<string, unknown>) : {};
+  const details = errorRecord.details ?? (root as Record<string, unknown>).details;
+  for (const detail of Array.isArray(details) ? details : []) {
+    if (detail === null || typeof detail !== "object") continue;
+    const entry = detail as Record<string, unknown>;
+    if (!String(entry["@type"] ?? "").includes("RetryInfo")) continue;
+    const seconds = parseDelaySeconds(entry.retryDelay);
+    if (seconds !== null && seconds >= 0) return seconds;
+  }
+  const message = errorRecord.message;
+  if (typeof message === "string") {
+    const phrase = /please retry in (\d+(?:\.\d+)?)\s*s/i.exec(message);
+    if (phrase) return Number.parseFloat(phrase[1]);
+  }
+  return null;
+}
+
+/**
  * Classify a 429 (or any) response into a `FailureKind`.
  *
  * Decision order:
  * 1. status !== 429 → `"transient"` (don't pretend to know more than
  *    the caller does about non-429 failures).
- * 2. body matches a quota keyword → `"quota_exhausted"`.
- * 3. otherwise → `"rate_limit"` (default for 429 — even without
+ * 2. body carries a terminal credits/billing signal → `"quota_exhausted"`
+ *    regardless of any retry hint: those do not clear on a timer.
+ * 3. body declares a sub-hour retry window → `"rate_limit"` even when
+ *    generic quota keywords match: the upstream said the throttle clears
+ *    in seconds, so the long lockout bucket would overshoot its own reset
+ *    by 60-360x (#9504).
+ * 4. body matches a quota keyword → `"quota_exhausted"`.
+ * 5. otherwise → `"rate_limit"` (default for 429 — even without
  *    Retry-After, a 429 is per definition a rate-limit signal).
  *
  * @param response - the upstream response with status, optional headers,
@@ -143,6 +252,14 @@ export function classify429(response: {
   body?: unknown;
 }): FailureKind {
   if (response.status !== 429) return "transient";
+  const text = bodyToText(response.body);
+  if (text && TERMINAL_QUOTA_PATTERNS.some((pat) => pat.test(text))) {
+    return "quota_exhausted";
+  }
+  const declaredDelay = upstreamRetryDelaySeconds(response.body);
+  if (declaredDelay !== null && declaredDelay < QUOTA_SCALE_RETRY_DELAY_SECONDS) {
+    return "rate_limit";
+  }
   if (looksLikeQuotaExhausted(response.body)) return "quota_exhausted";
   return "rate_limit";
 }

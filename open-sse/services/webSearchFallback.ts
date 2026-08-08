@@ -1,7 +1,10 @@
 import { FORMATS } from "../translator/formats.ts";
 
 export const OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME = "omniroute_web_search";
-const WEB_SEARCH_TOOL_TYPES = new Set(["web_search", "web_search_preview"]);
+// Prefix match — Anthropic sends date-suffixed variants (web_search_20250305, …).
+// The other two detectors (openai-responses/helpers.ts, webSearchRouting.ts) already
+// use /^web_search/ prefix matching; this aligns the fallback detector with them.
+const WEB_SEARCH_TOOL_TYPES = /^web_search/;
 const SEARCH_CONTEXT_DEFAULTS: Record<string, number> = {
   low: 5,
   medium: 8,
@@ -27,13 +30,13 @@ function toRecord(value: unknown): JsonRecord {
 function isBuiltInWebSearchTool(tool: unknown): tool is JsonRecord {
   const toolRecord = toRecord(tool);
   const toolType = typeof toolRecord.type === "string" ? toolRecord.type : "";
-  return WEB_SEARCH_TOOL_TYPES.has(toolType) && !toolRecord.function;
+  return WEB_SEARCH_TOOL_TYPES.test(toolType) && !toolRecord.function;
 }
 
 function isBuiltInWebSearchToolChoice(toolChoice: unknown): boolean {
   const choice = toRecord(toolChoice);
   const toolType = typeof choice.type === "string" ? choice.type : "";
-  return WEB_SEARCH_TOOL_TYPES.has(toolType);
+  return WEB_SEARCH_TOOL_TYPES.test(toolType);
 }
 
 function buildFallbackDescription(tool: JsonRecord): string {

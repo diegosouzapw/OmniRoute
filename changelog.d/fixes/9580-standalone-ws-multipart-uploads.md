@@ -1,0 +1,1 @@
+- **fix(standalone):** multipart uploads (`POST /v1/audio/transcriptions`) no longer hang — the WebDAV wrapper hands non-WebDAV requests to Next synchronously instead of losing the start of a streaming body ([#9580](https://github.com/diegosouzapw/OmniRoute/pull/9580))

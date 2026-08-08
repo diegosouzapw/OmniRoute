@@ -1,0 +1,1 @@
+- **fix(cli):** default omitted Codex CLI wire API settings to Responses and clear stale Chat state after reset ([#8876](https://github.com/diegosouzapw/OmniRoute/pull/8876)) — thanks @xiaoyaner0201

@@ -4403,11 +4403,11 @@ export function buildStaticProviderEntry(
       entry.release_date = raw.release_date;
     }
 
-    // OC's static-catalog reader parses each key on `/` and rejects the
-    // entire provider block if ANY key resolves to a parsed providerID that
-    // has no corresponding provider block. So bare keys (no `/`) MUST be
-    // prefixed with the resolved providerId. Already-prefixed keys
-    // (e.g. `cc/claude-opus-4-7`) are left as-is to avoid double-prefixing.
+    // #9175: OC's `getModel` looks the model up by BARE id — the part after
+    // the first `/` in the user's request — so a dict key with an embedded
+    // provider prefix (`<providerId>/<raw-id>`) is unreachable. Keys are the
+    // raw id verbatim; ids that already contain `/` (e.g. `cc/claude-opus-4-7`)
+    // keep it because the slash is part of the upstream model id itself.
     models[raw.id] = entry;
   }
 

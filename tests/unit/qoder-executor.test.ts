@@ -391,6 +391,44 @@ test("QoderExecutor: stream calls pass through successful SSE responses", async 
   }
 });
 
+test("QoderExecutor: surfaces qodercli stderr when is_error=true with empty result (#9319)", async () => {
+  const prevBin = process.env.CLI_QODER_BIN;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "qodercli-stub-"));
+  const stub = path.join(dir, "qodercli");
+  // Stub that exits 0 but writes is_error:true and empty result to stdout,
+  // and meaningful error to stderr — simulating qodercli CLI failure where
+  // the real upstream error is only on stderr.
+  fs.writeFileSync(
+    stub,
+    [
+      "#!/bin/sh",
+      'echo \'{"type":"result","subtype":"success","is_error":true,"result":""}\'',
+      'echo "upstream Cosy signing failed (invalid workspace)" >&2',
+      "exit 0",
+    ].join("\n"),
+    { mode: 0o755 }
+  );
+  process.env.CLI_QODER_BIN = stub;
+  try {
+    const executor = new QoderExecutor();
+    const { response } = await executor.execute({
+      model: "qwen3-coder-plus",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: { apiKey: "pt-0pUI-test-token" },
+    });
+    const payload = (await response.json()) as { error: { message: string } };
+    // The response should surface the stderr content, not just the generic
+    // "qodercli returned an error" fallback.
+    assert.match(payload.error.message, /upstream Cosy signing failed/);
+    assert.equal(response.status, 502);
+  } finally {
+    if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
+    else process.env.CLI_QODER_BIN = prevBin;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("QoderExecutor: neutralizes incompatible tool_choice when Qwen thinking is active", () => {
   const executor = new QoderExecutor();
   const result = executor.transformRequest("qwen3-coder-plus", {

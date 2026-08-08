@@ -146,6 +146,26 @@ That `78-95%` number applies when both RTK and Caveman can reduce the same input
 Caveman response output mode is separate: when enabled, use Caveman's own output savings (`65%`
 average, `~75%` headline, `22-87%` range). Total billing savings depend on your prompt/output mix.
 
+### What "eligible" actually means
+
+The 15-95% headline range is real, but it only applies to **redundant or verbose** content — repeated
+error lines, a build log that spams the same warning, an oversized `grep`/file-read dump. It does
+**not** mean every request saves that much.
+
+Verified empirically (`tests/unit/compression/stacked-compression-tool-result-savings.test.ts`): a
+`stacked` (RTK + Caveman) run against an Anthropic-shape `tool_result` block containing 300 identical
+error lines produced **95.93% token savings / 96.26% character savings** — squarely in the advertised
+range. But the same pipeline run against normal, non-redundant tool output (a clean `grep` match list,
+a short file read, ordinary conversational text) correctly produces **near-zero savings**, because
+there is nothing repetitive to remove and `validateCompression()` (`validation.ts`) refuses to ship a
+rewrite that would drop or alter code blocks, URLs, headings, versions, or ALL-CAPS constant identifiers.
+
+This is expected, safe behavior, not a bug: a coding session that mostly reads/greps clean files will
+see modest total savings even with compression fully enabled, while a session that hits a failing
+loop or a chatty linter will see the full 78-95% range on that traffic. Don't use a single session's
+low aggregate savings percentage as evidence compression is misconfigured — check whether the
+underlying tool output was actually redundant first.
+
 ---
 
 ## Token Savings Visualization

@@ -2463,12 +2463,18 @@ export function createSSEStream(options: StreamOptions = {}) {
                   status: 200,
                   usage,
                   responseBody,
+                  // #9315 switched the summary to the accumulated responseBody to avoid
+                  // stale/truncated event data — but responseBody here is synthesized in
+                  // chat-completion shape, which loses the Responses API `response` object.
+                  // Keep the events-derived summary for OPENAI_RESPONSES only.
                   providerPayload: providerPayloadCollector.build(
-                    buildStreamSummaryFromEvents(
-                      providerPayloadCollector.getEvents(),
-                      sourceFormat,
-                      model
-                    ),
+                    sourceFormat === FORMATS.OPENAI_RESPONSES
+                      ? buildStreamSummaryFromEvents(
+                          providerPayloadCollector.getEvents(),
+                          sourceFormat,
+                          model
+                        )
+                      : responseBody,
                     { includeEvents: false }
                   ),
                   clientPayload: clientPayloadCollector.build(responseBody, {
@@ -2738,12 +2744,16 @@ export function createSSEStream(options: StreamOptions = {}) {
                 status: 200,
                 usage: state?.usage,
                 responseBody,
+                // Same OPENAI_RESPONSES carve-out as the passthrough branch above —
+                // the synthesized chat-shaped responseBody drops the `response` object.
                 providerPayload: providerPayloadCollector.build(
-                  buildStreamSummaryFromEvents(
-                    providerPayloadCollector.getEvents(),
-                    targetFormat,
-                    model
-                  ),
+                  targetFormat === FORMATS.OPENAI_RESPONSES
+                    ? buildStreamSummaryFromEvents(
+                        providerPayloadCollector.getEvents(),
+                        targetFormat,
+                        model
+                      )
+                    : responseBody,
                   { includeEvents: false }
                 ),
                 clientPayload: clientPayloadCollector.build(responseBody, {
@@ -2786,7 +2796,7 @@ export function createSSETransformStreamWithLogger(
   body: unknown = null,
   onComplete: ((payload: StreamCompletePayload) => void) | null = null,
   apiKeyInfo: unknown = null,
-  onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
+  onFailure: ((payload: StreamFailurePayload) => boolean | void | Promise<void>) | null = null,
   copilotCompatibleReasoning = false,
   suppressThinkClose = false,
   customToolNames: ReadonlySet<string> = new Set(),
@@ -2821,7 +2831,7 @@ export function createPassthroughStreamWithLogger(
   body: unknown = null,
   onComplete: ((payload: StreamCompletePayload) => void) | null = null,
   apiKeyInfo: unknown = null,
-  onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
+  onFailure: ((payload: StreamFailurePayload) => boolean | void | Promise<void>) | null = null,
   clientResponseFormat: string | null = null,
   requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null
 ) {

@@ -107,15 +107,18 @@ client component never reads `process.env` itself.
 | `RADAR_CONTRIBUTOR_CLAIM_URL`   | Overrides the contributor-claim URL (default `https://radar.omniroute.online/auth/github`).   |
 | `RADAR_SUPPORTER_PLANS_URL`     | Overrides the supporter-plans URL (default `https://radar.omniroute.online/planos`).          |
 
-Once a visitor has a key (`omr_` + 40 hex chars), it is set with `POST
-/api/radar/settings` (`{ supporterKey }`) — the same endpoint documented under
-[Data sync](#data-sync-is-a-separate-opt-in--the-privacy-promise) above.
-
-**Known gap:** the dashboard activation screen does not yet have a dedicated
-key-paste input — pasting a key today requires calling `POST /api/radar/settings`
-directly (curl, a script, or a future UI). This release only adds the two claim/plans
-buttons; the API already accepts and masks the key, but no `<input>` for it exists in
-`src/app/(dashboard)/dashboard/radar/page.tsx` yet.
+Once a visitor has a key (`omr_` + 40 hex chars), the activation screen
+(`src/app/(dashboard)/dashboard/radar/page.tsx`) has a paste-key input as the primary
+path: pasting a key and submitting sends `POST /api/radar/settings`
+(`{ optIn: true, supporterKey }`) in one call — pasting a key both sets it and opts in,
+unlocking the screen. The format (`omr_` + 40 hex chars) is checked client-side first
+with the shared `isValidSupporterKeyFormat()` helper (`src/lib/radar/supporterKey.ts`)
+as a UX nicety; the server's Zod schema is the authoritative check either way. Once a
+key is set, the activation screen shows the masked form (`supporterKeyMasked` from
+`GET /api/radar/settings`) instead of an empty input, with a "change key" control to
+paste a new one — the raw key is never redisplayed. The two claim/plans buttons above
+remain the way to *obtain* a key in the first place; this input is where an operator
+who already has one activates it.
 
 ---
 
@@ -296,36 +299,84 @@ auth state — only the masked form and a `hasSupporterKey` boolean.
 
 ## Referral links (free credits)
 
-The server-published feed carries a `referrals` section (server-side D28 work, already
-in production — this section documents the **client** consumption only):
+Referral links are served from a **standalone, always-current** feed —
+`GET /v1/referrals/latest` — separate from the catalog feed. This is deliberate: the
+catalog feed on the community tier is a snapshot that can be up to 30 days old, so a
+referral link extracted from it used to lag the server's real link list by the same
+amount (a newly-added referral wouldn't reach a free/community user for up to a month).
+The referrals feed removes that delay by syncing on its own, much shorter cadence.
 
 ```ts
-referrals: {
-  fixed: RadarReferral[],      // present in EVERY tier, including community
-  campaigns: RadarReferral[],  // only populated on the live (supporter) tier;
-                                // the community artifact always publishes []
+// GET /v1/referrals/latest response body (Ed25519-signed, same pinned key as
+// the catalog feed):
+{
+  feed: "omniroute-radar-referrals",
+  schemaVersion: 1,
+  generatedAt: string,           // ISO — deterministic: max(updatedAt) across referral
+                                  // links, so two identical requests produce the exact
+                                  // same signed bytes/signature
+  referrals: {
+    fixed: RadarReferral[],      // present in EVERY tier, including no-auth/community
+    campaigns: RadarReferral[],  // only populated for a valid live (supporter) Bearer
+                                  // key; no-auth/expired-key requests get []
+  },
 }
 // RadarReferral = { provider, url, kind: "fixo" | "campanha", validUntil,
 //                    requiredAction, isDefault }
 ```
 
-The client never decides which tier it received or which referrals belong in which
-tier — the server already publishes two artifacts (`live`/`community`) with
-`campaigns` gated server-side, same principle as the [tiers](#tiers-community-and-live)
-section above. `RadarFeedSchema` (`src/lib/radar/feedSchema.ts`) validates `referrals`
-as a whole-object `.default({fixed:[],campaigns:[]})`, and `campaigns` defaults
-independently inside it — so a feed cached before this section existed on the server
-still parses cleanly, and `campaigns` alone can also be absent without failing
-validation. Every `RadarReferral.url` must be `https://` — a `http://` url fails
-schema validation.
+Unlike the catalog feed, this body carries no `tier` field at all — the server decides
+what to include per-request based on the `Authorization` key, so the
+`x-omniroute-feed-tier` response header is the ONLY source for the served tier
+(`referralsSync.ts::syncRadarReferrals`); an absent/unrecognized header degrades to
+`"community"`, the least-privileged assumption. `RadarReferralsFeedSchema`
+(`src/lib/radar/referralsFeedSchema.ts`) validates the whole body, reusing the same
+per-referral `RadarReferralSchema` exported from `feedSchema.ts` so both feeds validate
+individual referrals identically. Every `RadarReferral.url` must be `https://` — a
+`http://` url fails schema validation.
+
+The OLD catalog-embedded `referrals` field on `RadarFeedSchema` (`feedSchema.ts`) is
+kept for backward-compat with already-cached catalog feeds, but `getRadarReferrals()`
+no longer reads it — see [Accessor](#accessor) below.
+
+### Sync
+
+`syncRadarReferrals()` (`src/lib/radar/referralsSync.ts`) is the ONLY module that
+touches the network for referrals, mirroring `syncRadar()`'s contract exactly: flag off
+→ `disabled`; opt-in false → `opt_out`; downloads `${RADAR_FEED_URL}/v1/referrals/latest`
+(same `RADAR_FEED_URL`/`RADAR_FEED_PUBKEY` fork overrides as the catalog), verifies the
+Ed25519 signature over the exact response bytes (`verifyFeedBytes`), validates against
+`RadarReferralsFeedSchema`, and caches into the `radar_referrals_cache` table
+(migration `142_radar_referrals_cache.sql`) — a table entirely separate from the
+catalog's `radar_feed_cache`. A 10 MB response cap and a `generatedAt` floor (an
+incoming feed with a `generatedAt` no newer than the cached one is treated as `stale`
+and never overwrites the cache — guards against a replay of an older signed artifact)
+mirror the catalog sync's own `MAX_FEED_BYTES`/version-floor guards. Never throws —
+always returns a status object; errors never carry a stack trace in `reason`.
+
+Two triggers keep the referrals cache warm, both independent of the catalog's own
+24h cadence:
+
+- **Sync-on-read** — `GET /api/radar/referrals` itself calls `syncRadarReferrals()`
+  inline whenever the cache is missing or older than `REFERRALS_STALE_MS` (1h,
+  `shouldSyncReferralsOnRead()`), before serving the response. This is what makes fixed
+  links "always current" for the very next dashboard load, without waiting on any
+  background timer.
+- **Scheduler side-sync** — `radarSchedulerTick()` (`scheduler.ts`) independently
+  evaluates referrals staleness on the same hourly tick used for the catalog, calling
+  `syncRadarReferrals()` when due. This runs regardless of whether the catalog itself
+  was due that tick, and never affects `RadarTickResult`'s shape (best-effort side
+  effect only, swallowed on error).
 
 ### Accessor
 
 `src/lib/radar/index.ts` exports two read-only accessors, both never throwing (same
-defensive contract as `getRadarCatalog()` — flag off, no cache, or a corrupt/old cached
+defensive contract as `getRadarCatalog()` — flag off, no cache, or a corrupt cached
 payload all resolve to the empty shape instead of an error):
 
-- `getRadarReferrals()` → `{ fixed: RadarReferral[], campaigns: RadarReferral[] }`.
+- `getRadarReferrals()` → `{ fixed: RadarReferral[], campaigns: RadarReferral[] }`,
+  reading from `radar_referrals_cache` (via `getRadarReferralsCache()`) and validating
+  through `RadarReferralsFeedSchema` — **not** the catalog cache.
 - `getDefaultReferralFor(provider)` → the `fixed` referral with `isDefault: true` for
   that provider, or `null`. Only looks at `fixed` — a campaign is never used as a
   provider's "default" link.
@@ -340,11 +391,13 @@ server-only; the providers dashboard imports `referrals.ts` directly instead of
 ### `GET /api/radar/referrals`
 
 Follows the exact same gate order as every other Radar route: `RADAR_ENABLED` off →
-`404` (checked first, byte-identical inertia); unauthenticated → `401`; otherwise `200`
-with `{ fixed, campaigns, tier }` — `tier` comes straight from the cache row and is
-purely informative (drives the UI's soft upsell copy below), the route does no
-gating of its own. Never proxies the feed server — same local-cache-only contract as
-`/api/radar/catalog`.
+`404` (checked first, byte-identical inertia); unauthenticated → `401`; otherwise
+triggers a sync-on-read (see above) when stale, then `200` with
+`{ fixed, campaigns, tier }` — `tier` comes straight from the (possibly just-refreshed)
+cache row and is purely informative (drives the UI's soft upsell copy below). Never
+proxies the feed server directly — the route's own source contains no `fetch(` call;
+the network only ever happens inside `syncRadarReferrals()`, same local-cache-only
+principle as `/api/radar/catalog`.
 
 ### Dashboard UI — "Free credits" tab on `/dashboard/radar`
 
@@ -411,6 +464,16 @@ No other code changes are required — `verifyFeedBytes()` picks up the override
 automatically (`getFeedPublicKeys()` in `src/lib/radar/pinnedKeys.ts`), and version
 comparison, schema validation, and the merge rules apply identically to a self-hosted
 feed.
+
+Referral links (see [Referral links (free credits)](#referral-links-free-credits)
+above) are a separate, optional artifact: a fork that only serves `/v1/catalog/latest`
+still works fully — `syncRadarReferrals()` degrades to `{ status: "error" }` on a `404`
+from `/v1/referrals/latest` and the cache simply stays empty, so
+`GET /api/radar/referrals` keeps returning `{ fixed: [], campaigns: [], tier: null }`
+instead of failing the rest of the page. To also offer referral links, serve
+`GET /v1/referrals/latest` satisfying `RadarReferralsFeedSchema`
+(`src/lib/radar/referralsFeedSchema.ts`) and sign it with the same Ed25519 key pair as
+the catalog feed.
 
 ---
 

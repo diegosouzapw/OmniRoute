@@ -1,0 +1,46 @@
+{
+  "language": "ru",
+  "category": "ultra",
+  "rules": [
+    {
+      "name": "ultra_compression_conjunctions",
+      "pattern": "\\b(?:однако|тем не менее|в то время как)\\b\\s*",
+      "replacement": "—",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "ultra_compression_articles",
+      "pattern": "\\b(?:является|представляет собой)\\b\\s*",
+      "replacement": "—",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "ultra_compression_verbs",
+      "pattern": "\\b(?:необходимо|требуется|нужно)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "ultra_punctuation",
+      "pattern": "[,:;]\\s+",
+      "replacement": " ",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "ultra_lowercase",
+      "pattern": "(?<=\\.)\\s+([А-ЯЁ])",
+      "replacement": " $1",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    }
+  ]
+}

@@ -249,6 +249,8 @@ export async function executeWebSearch(
       alternateProvider: alternateProviderId,
       alternateCredentials,
       log,
+      connectionId: credentials?.connectionId || undefined,
+      apiKeyId: input.apiKeyId || undefined,
     });
 
     if (!result.success || !result.data) {

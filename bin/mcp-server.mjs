@@ -3,7 +3,7 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -43,7 +43,15 @@ export async function startMcpCli(rootDir = ROOT) {
   }
 
   // `tsx` loader is only required for local `.ts` fallback; JS entry works without it.
-  const loaderArgs = mcpEntry.endsWith(".ts") ? ["--import", "tsx"] : [];
+  const tsxLoaderArgs = mcpEntry.endsWith(".ts") ? ["--import", "tsx"] : [];
+  // Preload the stdout/stderr console guard before mcpEntry's own module graph evaluates —
+  // DB init (a side effect of createMcpServer()'s tool registration) logs via plain
+  // console.log, and by the time any code inside mcpEntry itself could redirect it, that
+  // module's own (hoisted) imports have already run. Loading the guard first, in a separate
+  // module, is the only point early enough to guarantee it never leaks into the JSON-RPC
+  // stream on stdout.
+  const consoleGuard = pathToFileURL(join(__dirname, "mcpStdioConsoleGuard.mjs")).href;
+  const loaderArgs = ["--import", consoleGuard, ...tsxLoaderArgs];
 
   await new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [...loaderArgs, mcpEntry], {

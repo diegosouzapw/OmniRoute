@@ -96,7 +96,14 @@ const HttpsUrlSchema = z
   .url()
   .refine((v) => v.startsWith("https://"), { message: "Referral url must use https://" });
 
-const RadarReferralSchema = z.object({
+/**
+ * Exported so `referralsFeedSchema.ts` (the standalone `/v1/referrals/latest`
+ * feed schema) can reuse the exact same per-referral shape instead of
+ * duplicating it — one definition, two feeds (the catalog's legacy embedded
+ * `referrals` section below, kept for backward-compat with old cached
+ * catalog feeds, and the live referrals-only feed).
+ */
+export const RadarReferralSchema = z.object({
   provider: z.string(),
   url: HttpsUrlSchema,
   kind: ReferralKindEnum,
@@ -210,4 +217,3 @@ export type RadarProvider = z.infer<typeof ProviderSchema>;
 export type RadarQuirk = z.infer<typeof QuirkSchema>;
 export type RadarBudget = z.infer<typeof BudgetSchema>;
 export type RadarReferral = z.infer<typeof RadarReferralSchema>;
-export type RadarReferrals = z.infer<typeof RadarReferralsSchema>;

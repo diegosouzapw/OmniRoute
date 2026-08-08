@@ -119,7 +119,8 @@ function serializeMessage(
       "unsupported_role"
     );
   }
-  const label = role === "assistant" ? "Assistant" : role === "system" ? "System" : "User";
+  // role was just narrowed to "user" | "assistant" by the guard above ("system" throws).
+  const label = role === "assistant" ? "Assistant" : "User";
   const content = record.content;
 
   if (typeof content === "string") return `[${label}]\n${content}`;

@@ -151,7 +151,8 @@ export function supportsMaxEffortForProvider(provider: string, model: string): b
   // Ollama Cloud also accepts literal max (for example GLM 5.2 supports
   // low|medium|high|max|none) and rejects xhigh.
   const isOpencodeGoDeepSeek =
-    provider === "opencode-go" && model.toLowerCase().includes("deepseek");
+    (provider === "opencode-go" || provider === "opencode-zen") &&
+    model.toLowerCase().includes("deepseek");
   const isOllamaCloud = provider === "ollama-cloud";
   const isMoonshotK3 =
     (provider === "moonshot" || provider === "kimi") && /^kimi-k3(?:$|-)/i.test(model);

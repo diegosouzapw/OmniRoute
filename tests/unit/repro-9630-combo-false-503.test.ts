@@ -1,8 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
-  handleComboChat,
-} from "../../open-sse/services/combo.ts";
+import { handleComboChat } from "../../open-sse/services/combo.ts";
 import { getCircuitBreaker, STATE } from "../../src/shared/utils/circuitBreaker.js";
 
 function okResponse() {
@@ -27,14 +25,18 @@ test("#9630: combo returns 503 when circuit breaker is OPEN but other healthy ta
       strategy: "priority",
       models: ["openai/gpt-4", "anthropic/claude-opus-5"],
     },
-    handleSingleModel: async (_body: any, modelStr: string) => {
-      assert.equal(modelStr, "anthropic/claude-opus-5", "should skip openai breaker and try anthropic");
+    handleSingleModel: async (_body, modelStr) => {
+      assert.equal(
+        modelStr,
+        "anthropic/claude-opus-5",
+        "should skip openai breaker and try anthropic"
+      );
       return okResponse();
     },
     isModelAvailable: async () => true,
-    log: { info: () => {}, warn: () => {}, debug: () => {}, error: () => {} } as any,
+    log: { info: () => {}, warn: () => {}, debug: () => {}, error: () => {} },
     settings: null,
-    relayOptions: null as any,
+    relayOptions: null,
     allCombos: null,
   });
 
@@ -63,17 +65,22 @@ test("#9630: combo returns truthful error, not false ALL_ACCOUNTS_INACTIVE, when
       strategy: "priority",
       models: ["openai/gpt-4", "anthropic/claude-opus-5"],
     },
-    handleSingleModel: async () => { throw new Error("should not be called"); },
+    handleSingleModel: async () => {
+      throw new Error("should not be called");
+    },
     isModelAvailable: async () => true,
-    log: { info: () => {}, warn: () => {}, debug: () => {}, error: () => {} } as any,
+    log: { info: () => {}, warn: () => {}, debug: () => {}, error: () => {} },
     settings: null,
-    relayOptions: null as any,
+    relayOptions: null,
     allCombos: null,
   });
 
   assert.equal(result.status, 503);
   const body = await result.json();
   // The diagnostic should NOT claim ALL_ACCOUNTS_INACTIVE when no real dispatch was attempted
-  assert.notEqual(body.error?.code, "ALL_ACCOUNTS_INACTIVE", 
-    "should not claim ALL_ACCOUNTS_INACTIVE when all targets were gated by pre-dispatch checks");
+  assert.notEqual(
+    body.error?.code,
+    "ALL_ACCOUNTS_INACTIVE",
+    "should not claim ALL_ACCOUNTS_INACTIVE when all targets were gated by pre-dispatch checks"
+  );
 });

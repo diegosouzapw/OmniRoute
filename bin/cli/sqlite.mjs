@@ -130,7 +130,7 @@ async function openSqliteDatabase(dbPath, options = {}) {
   try {
     return new loaded.Database(dbPath, options);
   } catch (error) {
-    throw createSqliteNativeError(error);
+    return openWithSyncDriverFallback(dbPath, options, error);
   }
 }
 

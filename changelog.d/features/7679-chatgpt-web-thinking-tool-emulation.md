@@ -1,0 +1,1 @@
+- **feat(chatgpt-web):** harden prompt-emulated tool contract for thinking models (#7679 — thanks @horacecar)
