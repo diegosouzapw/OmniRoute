@@ -5,10 +5,7 @@ import {
   AI_PROVIDERS,
   USAGE_SUPPORTED_PROVIDERS,
   FREE_APIKEY_PROVIDER_IDS,
-  supportsDualAuthProvider,
 } from "../../src/shared/constants/providers.ts";
-import { isManagedProviderConnectionId } from "../../src/lib/providers/catalog.ts";
-import { connectionMatchesProviderCard } from "../../src/app/(dashboard)/dashboard/providers/providerPageUtils.ts";
 import { REGISTRY } from "../../open-sse/config/providerRegistry.ts";
 import { getExecutor } from "../../open-sse/executors/index.ts";
 import { CodeBuddyCnExecutor } from "../../open-sse/executors/codebuddy-cn.ts";
@@ -18,6 +15,98 @@ import {
 } from "../../src/lib/oauth/constants/oauth.ts";
 import PROVIDERS_MAP from "../../src/lib/oauth/providers/index.ts";
 import { supportsTokenRefresh } from "../../open-sse/services/tokenRefresh.ts";
+
+const SENSITIVE_CONTENT_REJECTION =
+  "抱歉，系统检测到您当前输入的信息存在敏感内容，我无法响应您的请求，请检查后重新输入";
+
+type CapturedRequest = {
+  url: string;
+  init?: RequestInit;
+  body: Record<string, unknown>;
+};
+
+async function executeWithMockedUpstream(
+  body: Record<string, unknown>,
+  responses: Response[]
+): Promise<{ calls: CapturedRequest[]; responseBody: string; status: number }> {
+  const originalFetch = globalThis.fetch;
+  const calls: CapturedRequest[] = [];
+  globalThis.fetch = async (url: string | URL | Request, init?: RequestInit) => {
+    calls.push({
+      url: String(url),
+      init,
+      body: JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown>,
+    });
+    const response = responses.shift();
+    assert.ok(response, "unexpected extra upstream dispatch");
+    return response;
+  };
+
+  try {
+    const executor = new CodeBuddyCnExecutor();
+    const result = await executor.execute({
+      model: "glm-5.2",
+      body,
+      stream: false,
+      credentials: { accessToken: "test-token" },
+    });
+    const response = result instanceof Response ? result : result.response;
+    return { calls, responseBody: await response.clone().text(), status: response.status };
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+}
+
+function rejectionResponse(message = SENSITIVE_CONTENT_REJECTION): Response {
+  return new Response(JSON.stringify({ error: { message } }), {
+    status: 400,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+function successResponse(): Response {
+  return new Response("data: [DONE]\n\n", {
+    status: 200,
+    headers: { "Content-Type": "text/event-stream" },
+  });
+}
+
+function toolRequestBody(reasoningEffort?: string): Record<string, unknown> {
+  return {
+    model: "glm-5.2",
+    messages: [{ role: "user", content: "Use one of the tools" }],
+    stream: false,
+    tools: [
+      {
+        type: "function",
+        function: {
+          name: "read_file",
+          description: "Read a file from disk. ".repeat(2000),
+          parameters: {
+            type: "object",
+            properties: {
+              path: { type: "string", description: "The file path" },
+            },
+            required: ["path"],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
+          name: "run_workflow",
+          description: "Run a named workflow. ".repeat(2000),
+          parameters: {
+            type: "object",
+            properties: { name: { type: "string" } },
+          },
+        },
+      },
+    ],
+    tool_choice: { type: "function", function: { name: "read_file" } },
+    ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
+  };
+}
 
 test("codebuddy-cn is registered as an OAuth provider in the UI catalog", () => {
   const p = AI_PROVIDERS["codebuddy-cn"];
@@ -151,6 +240,175 @@ test("CodeBuddyCnExecutor strips reasoning_effort when caller asks for none/off"
   }
 });
 
+test("CodeBuddyCnExecutor retries a sensitive-content rejection with compact tools", async () => {
+  const input = toolRequestBody();
+  const { calls, status } = await executeWithMockedUpstream(input, [
+    rejectionResponse(),
+    successResponse(),
+  ]);
+
+  assert.equal(status, 200);
+  assert.equal(calls.length, 2, "known rejection should dispatch exactly one compact retry");
+  assert.deepEqual(calls[0].body.tools, input.tools, "the first request must remain unchanged");
+
+  const retryTools = calls[1].body.tools as Array<Record<string, any>>;
+  assert.deepEqual(
+    retryTools.map((tool) => tool.function.name),
+    ["read_file", "run_workflow"],
+    "the retry must preserve tool order and names"
+  );
+  assert.equal("description" in retryTools[0].function, false);
+  assert.equal("description" in retryTools[1].function, false);
+  assert.deepEqual(
+    retryTools.map((tool) => tool.function.parameters),
+    (input.tools as Array<Record<string, any>>).map((tool) => tool.function.parameters),
+    "parameter schemas, including nested descriptions, must remain unchanged"
+  );
+  assert.deepEqual(calls[1].body.tool_choice, input.tool_choice);
+  assert.deepEqual(calls[1].body.messages, input.messages);
+  assert.equal(calls[1].body.stream, true);
+  for (const call of calls) {
+    assert.equal(call.body.reasoning_effort, undefined);
+    assert.equal(call.body.reasoning_summary, undefined);
+  }
+});
+
+test("CodeBuddyCnExecutor sends successful tool requests once without compacting them", async () => {
+  const input = toolRequestBody();
+  const { calls, status } = await executeWithMockedUpstream(input, [successResponse()]);
+
+  assert.equal(status, 200);
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls[0].body.tools, input.tools);
+});
+
+test("CodeBuddyCnExecutor does not retry the rejection without tools", async () => {
+  const input = {
+    model: "glm-5.2",
+    messages: [{ role: "user", content: "hello" }],
+  };
+  const { calls, status } = await executeWithMockedUpstream(input, [rejectionResponse()]);
+
+  assert.equal(status, 400);
+  assert.equal(calls.length, 1);
+});
+
+test("CodeBuddyCnExecutor does not retry unrelated 400 responses with tools", async () => {
+  const { calls, status } = await executeWithMockedUpstream(toolRequestBody(), [
+    rejectionResponse("Invalid tool schema"),
+  ]);
+
+  assert.equal(status, 400);
+  assert.equal(calls.length, 1);
+});
+
+test("CodeBuddyCnExecutor does not retry sensitive rejection for normal-sized tools", async () => {
+  const input = toolRequestBody();
+  for (const tool of input.tools as Array<Record<string, any>>) {
+    tool.function.description = "A normal-sized tool description";
+  }
+  const { calls, status } = await executeWithMockedUpstream(input, [rejectionResponse()]);
+
+  assert.equal(status, 400);
+  assert.equal(calls.length, 1);
+});
+
+test("CodeBuddyCnExecutor does not retry an already-compacted tool request", async () => {
+  const input = toolRequestBody();
+  for (const tool of input.tools as Array<Record<string, any>>) {
+    delete tool.function.description;
+  }
+  const { calls, status } = await executeWithMockedUpstream(input, [rejectionResponse()]);
+
+  assert.equal(status, 400);
+  assert.equal(calls.length, 1);
+});
+
+test("CodeBuddyCnExecutor stops after a rejected compact retry", async () => {
+  const secondRejection = new Response(
+    JSON.stringify({ error: { message: SENSITIVE_CONTENT_REJECTION }, request_id: "second" }),
+    { status: 400, headers: { "Content-Type": "application/json" } }
+  );
+  const { calls, responseBody, status } = await executeWithMockedUpstream(toolRequestBody(), [
+    rejectionResponse(),
+    secondRejection,
+  ]);
+
+  assert.equal(status, 400);
+  assert.equal(calls.length, 2);
+  assert.equal(JSON.parse(responseBody).request_id, "second");
+});
+
+test("CodeBuddyCnExecutor reuses refreshed credentials for the compact retry", async () => {
+  const originalFetch = globalThis.fetch;
+  let refreshCalls = 0;
+  const chatAuthorizations: string[] = [];
+  globalThis.fetch = async (url: string | URL | Request, init?: RequestInit) => {
+    if (String(url).includes("/auth/token/refresh")) {
+      refreshCalls++;
+      return new Response(
+        JSON.stringify({
+          code: 0,
+          data: {
+            accessToken: "fresh-access-token",
+            refreshToken: "rotated-refresh-token",
+            expiresIn: 3600,
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const headers = init?.headers as Record<string, string>;
+    chatAuthorizations.push(headers.Authorization);
+    return chatAuthorizations.length === 1 ? rejectionResponse() : successResponse();
+  };
+
+  try {
+    const executor = new CodeBuddyCnExecutor();
+    const result = await executor.execute({
+      model: "glm-5.2",
+      body: toolRequestBody(),
+      stream: false,
+      credentials: {
+        accessToken: "expired-access-token",
+        refreshToken: "original-refresh-token",
+        expiresAt: "2000-01-01T00:00:00.000Z",
+      },
+    });
+    const response = result instanceof Response ? result : result.response;
+
+    assert.equal(response.status, 200);
+    assert.equal(refreshCalls, 1, "the compact retry must not rotate credentials again");
+    assert.deepEqual(chatAuthorizations, [
+      "Bearer fresh-access-token",
+      "Bearer fresh-access-token",
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("CodeBuddyCnExecutor preserves reasoning transformations on compact retries", async () => {
+  for (const [effort, expectedEffort, expectedSummary] of [
+    ["high", "high", "auto"],
+    ["none", undefined, undefined],
+    ["off", undefined, undefined],
+  ] as const) {
+    const { calls, status } = await executeWithMockedUpstream(toolRequestBody(effort), [
+      rejectionResponse(),
+      successResponse(),
+    ]);
+
+    assert.equal(status, 200);
+    assert.equal(calls.length, 2);
+    for (const call of calls) {
+      assert.equal(call.body.reasoning_effort, expectedEffort, `${effort} reasoning_effort`);
+      assert.equal(call.body.reasoning_summary, expectedSummary, `${effort} reasoning_summary`);
+    }
+  }
+});
+
 test("codebuddy-cn OAuth provider is wired with device_code flow and GET-poll on state", async () => {
   assert.equal(OAUTH_PROVIDER_IDS.CODEBUDDY_CN, "codebuddy-cn");
   const map = PROVIDERS_MAP as Record<string, any>;
@@ -268,22 +526,11 @@ test("codebuddy-cn is in USAGE_SUPPORTED_PROVIDERS and quota handler parses Tenc
   }
 });
 
-test("codebuddy-cn stays OAuth-primary while the managed gate accepts its API-key path", () => {
-  assert.equal(
+test("codebuddy-cn is treated as a managed dual-auth provider (oauth + apikey accepted by POST /api/providers)", async () => {
+  // The provider creation gate trusts FREE_APIKEY_PROVIDER_IDS to admit
+  // OAuth-category providers that also accept a direct API key (like qoder).
+  assert.ok(
     FREE_APIKEY_PROVIDER_IDS.has("codebuddy-cn"),
-    false,
-    "codebuddy-cn must not be classified as PAT-primary"
+    "codebuddy-cn must be admitted by the dual-auth gate"
   );
-  assert.equal(supportsDualAuthProvider("codebuddy-cn"), true);
-  assert.equal(isManagedProviderConnectionId("codebuddy-cn"), true);
-  for (const authType of ["apikey", "api_key"]) {
-    assert.equal(
-      connectionMatchesProviderCard(
-        { provider: "codebuddy-cn", authType },
-        "codebuddy-cn",
-        "oauth"
-      ),
-      true
-    );
-  }
 });
