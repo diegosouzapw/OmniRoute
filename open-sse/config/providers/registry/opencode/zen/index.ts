@@ -85,14 +85,13 @@ export const opencode_zenProvider: RegistryEntry = {
     { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude", supportsVision: false },
 
     // ── Free Tier ──────────────────────────────────────────────
+    // #6998 (2026-07-14): upstream free tier rotated — minimax-m2.5-free,
+    // nemotron-3-super-free and qwen3.6-plus-free were delisted (401). Replaced
+    // by the 4 entries below with upstream-verified limits.
     { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
-    { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
-    { id: "nemotron-3-super-free", name: "Nemotron 3 Super Free", contextLength: 1000000 },
-    {
-      id: "qwen3.6-plus-free",
-      name: "Qwen3.6 Plus Free",
-      targetFormat: "claude",
-      contextLength: 200000,
-    },
+    { id: "mimo-v2.5-free", name: "MiMo V2.5 Free", contextLength: 200000 },
+    { id: "hy3-free", name: "HY3 Free", contextLength: 200000 },
+    { id: "nemotron-3-ultra-free", name: "Nemotron 3 Ultra Free", contextLength: 1000000 },
+    { id: "north-mini-code-free", name: "North Mini Code Free", contextLength: 200000 },
   ],
 };

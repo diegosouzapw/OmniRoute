@@ -33,10 +33,6 @@ export const FREE_APIKEY_PROVIDER_IDS = new Set([
   "mimocode",
   "opencode",
   "dahl",
-  // codebuddy-cn is OAuth-primary but the Tencent gateway also accepts a direct
-  // API key (Authorization: Bearer). Admit it through the same managed-provider
-  // gate so POST /api/providers accepts the dual-auth shape.
-  "codebuddy-cn",
   // auggie is a fully local, credential-less CLI passthrough (auth handled by
   // `auggie login` outside OmniRoute). Admitted here purely so POST /api/providers
   // accepts an optional connection row for display/priority/testStatus tracking —
@@ -46,6 +42,14 @@ export const FREE_APIKEY_PROVIDER_IDS = new Set([
 
 export function supportsApiKeyOnFreeProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && FREE_APIKEY_PROVIDER_IDS.has(providerId);
+}
+
+// OAuth-primary providers that also accept a direct API key. Keep these out of
+// FREE_APIKEY_PROVIDER_IDS so the dashboard's primary action remains OAuth.
+const DUAL_AUTH_PROVIDER_IDS = new Set(["clinepass", "codebuddy-cn"]);
+
+export function supportsDualAuthProvider(providerId: unknown): boolean {
+  return typeof providerId === "string" && DUAL_AUTH_PROVIDER_IDS.has(providerId);
 }
 
 // Web / Cookie Providers

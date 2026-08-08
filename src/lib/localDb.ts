@@ -94,6 +94,7 @@ export * from "./db/compressionCacheStats";
 export * from "./db/compressionCombos";
 export * from "./db/compressionContextBudget";
 export * from "./db/compressionRunTelemetry";
+export * from "./db/connectionRuntimeState";
 export * from "./db/modelContextOverrides";
 
 export {

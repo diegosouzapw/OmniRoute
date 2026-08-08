@@ -177,46 +177,113 @@ function normalizeWindowPercentUsed(value: unknown): number | null {
   return clamp01(numericValue);
 }
 
+type QuotaWindowSnapshot = { percentUsed: number | null; resetAt: string | null };
+
+/**
+ * Pick the first candidate that actually carries a reset instant, falling back
+ * to the first present candidate. A window can be structurally present but
+ * carry `resetAt: null` (e.g. Codex's `window7d` placeholder when the upstream
+ * only reported the primary limit); a plain `a || b` short-circuit would let
+ * that empty window shadow a sibling that does know when it resets — #9330.
+ */
+function pickWindowWithResetAt(
+  ...candidates: Array<QuotaWindowSnapshot | null>
+): QuotaWindowSnapshot | null {
+  return candidates.find((candidate) => candidate?.resetAt) ?? candidates.find(Boolean) ?? null;
+}
+
 function getNamedQuotaWindow(
   quota: unknown,
   windowName: ResetWindowName
-): { percentUsed: number | null; resetAt: string | null } | null {
+): QuotaWindowSnapshot | null {
   if (!quota || !isRecord(quota)) return null;
 
   if (windowName === "session") return getQuotaWindow(quota, "window5h");
   if (windowName === "weekly") {
-    return getQuotaWindow(quota, "window7d") || getQuotaWindow(quota, "windowWeekly");
+    return pickWindowWithResetAt(
+      getQuotaWindow(quota, "window7d"),
+      getQuotaWindow(quota, "windowWeekly")
+    );
   }
   if (windowName === "monthly") return getQuotaWindow(quota, "windowMonthly");
 
   return null;
 }
 
-function getWindowsMapQuotaWindow(
-  quota: unknown,
-  windowName: ResetWindowName
-): { percentUsed: number | null; resetAt: string | null } | null {
-  if (!quota || !isRecord(quota) || !isRecord(quota.windows)) return null;
-  const candidates = Object.entries(quota.windows)
-    .map(([key, value]) => ({ key: key.toLowerCase(), value }))
-    .filter(({ key }) => key === windowName || key.startsWith(`${windowName} `));
-
-  if (candidates.length === 0) return null;
-  candidates.sort((a, b) => a.key.localeCompare(b.key));
-  const window = candidates[0].value;
+function toWindowSnapshot(window: unknown): QuotaWindowSnapshot | null {
   if (!isRecord(window)) return null;
-
   return {
     percentUsed: normalizeWindowPercentUsed(window.percentUsed),
     resetAt: normalizeResetAt(window.resetAt),
   };
 }
 
+/**
+ * Every entry of the snapshot's `windows` map, name lower-cased.
+ *
+ * Deliberately reads `windows` only, never Codex's wider `allWindows`: for a
+ * Spark request `fetchCodexQuota` narrows `windows` to the Spark scope on
+ * purpose, and pulling the normal-scope entries back in would rank a request
+ * against a window it cannot spend.
+ */
+function getQuotaWindowEntries(
+  quota: unknown
+): Array<{ key: string; window: QuotaWindowSnapshot }> {
+  if (!quota || !isRecord(quota) || !isRecord(quota.windows)) return [];
+  const entries: Array<{ key: string; window: QuotaWindowSnapshot }> = [];
+  for (const [key, value] of Object.entries(quota.windows)) {
+    const window = toWindowSnapshot(value);
+    if (window) entries.push({ key: key.toLowerCase(), window });
+  }
+  return entries;
+}
+
+function getWindowsMapQuotaWindow(
+  quota: unknown,
+  windowName: ResetWindowName
+): QuotaWindowSnapshot | null {
+  const candidates = getQuotaWindowEntries(quota).filter(
+    ({ key }) => key === windowName || key.startsWith(`${windowName} `)
+  );
+
+  if (candidates.length === 0) return null;
+  candidates.sort((a, b) => a.key.localeCompare(b.key));
+  // Prefer a candidate that knows when it resets (e.g. "weekly" vs a scoped
+  // "weekly (spark)" placeholder without a resetAt) — #9330.
+  return pickWindowWithResetAt(
+    ...candidates.filter(({ window }) => window.resetAt).map(({ window }) => window),
+    candidates[0].window
+  );
+}
+
 function resolveQuotaWindowByName(
   quota: unknown,
   windowName: ResetWindowName
-): { percentUsed: number | null; resetAt: string | null } | null {
-  return getNamedQuotaWindow(quota, windowName) || getWindowsMapQuotaWindow(quota, windowName);
+): QuotaWindowSnapshot | null {
+  return pickWindowWithResetAt(
+    getNamedQuotaWindow(quota, windowName),
+    getWindowsMapQuotaWindow(quota, windowName)
+  );
+}
+
+/**
+ * Earliest reset instant across EVERY window a snapshot exposes, regardless of
+ * how the provider named it.
+ *
+ * Last-resort normalizer for #9330: providers routed through
+ * `genericQuotaFetcher.convertUsageToQuotaInfo` key their `windows` map by
+ * MODEL ID (Antigravity: "gemini-3-flash", "claude-sonnet-5", …), so none of
+ * the canonical "weekly" | "session" | "monthly" lookups match. Without this
+ * those accounts resolved to `Infinity` ("never resets") and were sorted behind
+ * a Codex account whose secondary window was 26 days out.
+ */
+function getEarliestWindowResetMs(quota: unknown): number {
+  let earliest = Infinity;
+  for (const { window } of getQuotaWindowEntries(quota)) {
+    const resetMs = parseResetTimeMs(window.resetAt);
+    if (Number.isFinite(resetMs)) earliest = Math.min(earliest, resetMs);
+  }
+  return earliest;
 }
 
 function getResetUrgency(resetAt: string | null | undefined, windowMs: number): number {
@@ -276,6 +343,23 @@ export function scoreResetAwareQuota(
   return { score };
 }
 
+/**
+ * Absolute epoch-ms instant at which the configured quota window next resets,
+ * or `Infinity` when the snapshot exposes no parseable reset (which sorts the
+ * target last under the `reset-window` strategy).
+ *
+ * Resolution order — each step only runs when the previous one found nothing:
+ *   1. the configured windows, by canonical name (structural `window5h` /
+ *      `window7d` / `windowWeekly` / `windowMonthly` fields, then a `windows`
+ *      map keyed by "weekly" | "session" | "monthly");
+ *   2. the earliest reset across every entry of the `windows` map, whatever the
+ *      provider named them (Antigravity keys its map by model id — #9330);
+ *   3. the single-signal top-level `quota.resetAt`.
+ *
+ * Step 2 sits ahead of step 3 deliberately: `quota.resetAt` is populated from
+ * the most-USED window, which is not necessarily the one resetting soonest, and
+ * is left null entirely while every window is still at 0% used.
+ */
 export function getResetWindowTimestampMs(quota: unknown, windows: ResetWindowName[]): number {
   if (!quota || !isRecord(quota) || quota.limitReached === true) return Infinity;
 
@@ -289,10 +373,34 @@ export function getResetWindowTimestampMs(quota: unknown, windows: ResetWindowNa
   }
 
   if (!Number.isFinite(selectedResetMs)) {
+    selectedResetMs = getEarliestWindowResetMs(quota);
+  }
+
+  if (!Number.isFinite(selectedResetMs)) {
     selectedResetMs = parseResetTimeMs(normalizeResetAt(quota.resetAt));
   }
 
   return Number.isFinite(selectedResetMs) ? selectedResetMs : Infinity;
+}
+
+/**
+ * Milliseconds remaining until the configured window resets — the uniform
+ * metric the `reset-window` strategy sorts on (ascending: soonest first).
+ *
+ * Normalizing to a duration (rather than comparing raw epoch timestamps) keeps
+ * every provider on one scale and collapses already-elapsed resets to 0, so a
+ * snapshot that is stale by three days ties with one that reset a second ago
+ * instead of jumping the queue by virtue of being older. `Infinity` means "no
+ * known reset" and sorts last.
+ */
+export function getResetWindowRemainingMs(
+  quota: unknown,
+  windows: ResetWindowName[],
+  now: number = Date.now()
+): number {
+  const resetMs = getResetWindowTimestampMs(quota, windows);
+  if (!Number.isFinite(resetMs)) return Infinity;
+  return Math.max(0, resetMs - now);
 }
 
 function getResetWindowHorizonMs(windows: ResetWindowName[]): number {

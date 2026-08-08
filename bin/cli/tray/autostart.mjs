@@ -167,6 +167,10 @@ export function getAutostartStatus() {
       linger: tryReadLingerEnabled(),
     };
   }
+  if (process.platform === "win32") {
+    const winMechanism = isAutostartEnabled() ? "vbs-startup" : null;
+    return { enabled: isAutostartEnabled(), mechanism: winMechanism };
+  }
   return { enabled: isAutostartEnabled(), mechanism: null };
 }
 

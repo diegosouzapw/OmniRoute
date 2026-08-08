@@ -32,7 +32,7 @@ export default function CodexToolCard({
   const [selectedModel, setSelectedModel] = useState("gpt-5.6-sol");
   const [modelMappings, setModelMappings] = useState<Record<string, string>>({});
   const [reasoningEffort, setReasoningEffort] = useState("xhigh");
-  const [wireApi, setWireApi] = useState("chat");
+  const [wireApi, setWireApi] = useState("responses");
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTarget, setModalTarget] = useState<string | null>(null); // null = default model, string = mapping key
   const [modelAliases, setModelAliases] = useState({});
@@ -78,6 +78,10 @@ export default function CodexToolCard({
 
   // Parse config content
   useEffect(() => {
+    if (codexStatus && !codexStatus.config) {
+      setWireApi("responses");
+    }
+
     if (codexStatus?.config) {
       const modelMatch = codexStatus.config.match(/^model\s*=\s*"([^"]+)"/im);
       if (modelMatch) setSelectedModel(modelMatch[1]);
@@ -86,7 +90,7 @@ export default function CodexToolCard({
       if (effortMatch) setReasoningEffort(effortMatch[1]);
 
       const wireMatch = codexStatus.config.match(/^wire_api\s*=\s*"([^"]+)"/im);
-      if (wireMatch) setWireApi(wireMatch[1]);
+      setWireApi(wireMatch?.[1] || "responses");
 
       const newMappings: Record<string, string> = {};
       const migrationsBlock = codexStatus.config.split("[notice.model_migrations]")[1];

@@ -645,7 +645,7 @@ for (const s of statuses) {
 }
 
 // Force re-check a specific proxy
-invalidateProxyHealth("http://user:pass@1.2.3.4:8080");
+invalidateProxyHealth("http://user:pass@203.0.113.7:8080");
 ```
 
 The `stale` flag is `true` when the cache entry has exceeded `HEALTH_CACHE_TTL_MS` and the next request will trigger a fresh check.
@@ -807,7 +807,7 @@ When a proxy consistently fails, mark it manually so the rotator will skip it:
 ```ts
 import { failOneproxyProxy } from "omniroute/oneproxyRotator";
 
-const removed = await failOneproxyProxy("1.2.3.4", 8080);
+const removed = await failOneproxyProxy("203.0.113.7", 8080);
 if (removed) {
   console.log("Proxy marked as failed; rotator will skip it");
 }

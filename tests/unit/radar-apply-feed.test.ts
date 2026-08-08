@@ -687,3 +687,133 @@ test("baselineToMergedEntries: converts FreeModelBudget shape to MergedEntry", (
   assert.equal(entries[0].origin, "baseline");
   assert.equal(entries[0].enabled, true);
 });
+
+// ===========================================================================
+// FIX 2 — extended feed fields (contextWindow/capabilities/limits/setup)
+// must survive the merge on BOTH code paths (mergeOne + feedModelToMerged).
+// ===========================================================================
+
+test("FIX2 mergeOne path: contextWindow/capabilities/limits/setup survive merge over a baseline entry", () => {
+  const baseline = makeBaseline();
+  const feed: FeedModel[] = [
+    makeFeedModel({
+      provider: "groq",
+      modelId: "llama-3.3-70b-versatile",
+      contextWindow: 131072,
+      capabilities: { tools: true, vision: true, thinking: false },
+      limits: { rpm: 30, rpd: 14400, tpm: 6000, tpd: null },
+      setup: { keyUrl: "https://console.groq.com/keys", steps: ["Sign up", "Create key"] },
+    }),
+  ];
+
+  const result = applyFeed({
+    baseline,
+    feed,
+    localOverrides: new Map(),
+    tombstones: new Set(),
+  });
+
+  const groq = result.find(
+    (e) => e.provider === "groq" && e.modelId === "llama-3.3-70b-versatile",
+  )!;
+
+  assert.equal(groq.contextWindow, 131072);
+  assert.deepEqual(groq.capabilities, { tools: true, vision: true, thinking: false });
+  assert.deepEqual(groq.limits, { rpm: 30, rpd: 14400, tpm: 6000, tpd: null });
+  assert.deepEqual(groq.setup, {
+    keyUrl: "https://console.groq.com/keys",
+    steps: ["Sign up", "Create key"],
+  });
+});
+
+test("FIX2 feedModelToMerged path: contextWindow/capabilities/limits/setup survive for a feed-only entry", () => {
+  const baseline = makeBaseline();
+  const feed: FeedModel[] = [
+    makeFeedModel({
+      provider: "new-provider",
+      modelId: "new-model",
+      contextWindow: 65536,
+      capabilities: { tools: false, vision: true, thinking: true },
+      limits: { rpm: null, rpd: 100, tpm: null, tpd: null },
+      setup: { keyUrl: "https://new-provider.example/keys", steps: ["Step A"] },
+    }),
+  ];
+
+  const result = applyFeed({
+    baseline,
+    feed,
+    localOverrides: new Map(),
+    tombstones: new Set(),
+  });
+
+  const added = result.find((e) => e.provider === "new-provider" && e.modelId === "new-model")!;
+
+  assert.equal(added.contextWindow, 65536);
+  assert.deepEqual(added.capabilities, { tools: false, vision: true, thinking: true });
+  assert.deepEqual(added.limits, { rpm: null, rpd: 100, tpm: null, tpd: null });
+  assert.deepEqual(added.setup, {
+    keyUrl: "https://new-provider.example/keys",
+    steps: ["Step A"],
+  });
+});
+
+// ===========================================================================
+// FIX 4 — feedModelToMerged() must honor an `enabled` local override instead
+// of unconditionally forcing `enabled:false` when the feed disables the model.
+// mergeOne() already gets this right (overrides applied AFTER rule 2); this
+// pins the same semantics on the feed-only path.
+// ===========================================================================
+
+test("FIX4: feed-only entry with local override enabled:true wins over feed enabled:false", () => {
+  const baseline = makeBaseline();
+  const feed: FeedModel[] = [
+    makeFeedModel({
+      provider: "new-provider",
+      modelId: "disabled-model",
+      enabled: false,
+    }),
+  ];
+
+  const localOverrides = new Map<string, Partial<MergedEntry>>([
+    ["new-provider:disabled-model", { enabled: true }],
+  ]);
+
+  const result = applyFeed({
+    baseline,
+    feed,
+    localOverrides,
+    tombstones: new Set(),
+  });
+
+  const entry = result.find(
+    (e) => e.provider === "new-provider" && e.modelId === "disabled-model",
+  )!;
+
+  assert.equal(entry.enabled, true, "local override must win over feed disable");
+  assert.equal(entry.disabledBy, undefined, "must not carry radar disabledBy when overridden on");
+});
+
+test("FIX4: feed-only entry with NO override still gets disabled with disabledBy provenance", () => {
+  const baseline = makeBaseline();
+  const feed: FeedModel[] = [
+    makeFeedModel({
+      provider: "new-provider",
+      modelId: "disabled-model-2",
+      enabled: false,
+    }),
+  ];
+
+  const result = applyFeed({
+    baseline,
+    feed,
+    localOverrides: new Map(),
+    tombstones: new Set(),
+  });
+
+  const entry = result.find(
+    (e) => e.provider === "new-provider" && e.modelId === "disabled-model-2",
+  )!;
+
+  assert.equal(entry.enabled, false);
+  assert.equal(entry.disabledBy, "radar");
+});

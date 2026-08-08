@@ -6020,7 +6020,15 @@
     "ccAliasAddModelPlaceholder": "Id mô hình (ví dụ: gpt-4o)",
     "ccAliasAddModelButton": "Thêm ghi đè",
     "ccAliasLoadError": "Không tải được cài đặt bí danh khám phá: {error}",
-    "ccAliasSaveError": "Không lưu được cài đặt bí danh khám phá: {error}"
+    "ccAliasSaveError": "Không lưu được cài đặt bí danh khám phá: {error}",
+    "newApiAggregatorToggleLabel": "Cổng tổng hợp",
+    "newApiAggregatorToggleHint": "Bật phát hiện số dư cho các node tổng hợp New-API / One-API / Sub2API. Bảng điều khiển sẽ hiển thị huy hiệu số dư và định tuyến quota-preflight sẽ bỏ qua các tài khoản đã cạn.",
+    "newApiAggregatorConsoleApiKeyHint": "System Access Token cho endpoint /api/user/self của bộ tổng hợp. Không phải khóa API định tuyến.",
+    "newApiAggregatorUserIdHint": "Giá trị header New-Api-User dùng để lấy số dư quota của người dùng bộ tổng hợp.",
+    "newApiAggregatorQuotaPerUnitLabel": "Quota mỗi đơn vị",
+    "newApiAggregatorQuotaPerUnitHint": "Số đơn vị tín dụng New-API cho mỗi 1 USD (mặc định: 500000). Ghi đè nếu bộ tổng hợp của bạn dùng tỷ lệ khác.",
+    "featureFlagNewApiAggregatorBalanceDescription": "Bật phát hiện số dư cho các node tương thích New-API / One-API / Sub2API",
+    "modelTestQuotaTooltip": "Đã hết quota — sẽ đặt lại vào ngày mai hoặc cần nạp thêm"
   },
   "settings": {
     "title": "Cài đặt",
@@ -12253,6 +12261,11 @@
     "privacyLocalOnly": "Tất cả xử lý diễn ra trên phiên bản OmniRoute của bạn",
     "activateButton": "Kích hoạt",
     "activating": "Đang kích hoạt...",
+    "claimSectionTitle": "Don't have a supporter key yet?",
+    "contributorButton": "I'm a contributor",
+    "contributorHint": "Verify your GitHub account — 5+ merged pull requests or a top-100 contributor spot unlocks a free supporter key.",
+    "supporterButton": "Support the project",
+    "supporterHint": "Support OmniRoute to get a supporter key with the live catalog and extra perks.",
     "colProvider": "Nhà cung cấp",
     "colModel": "Mô hình",
     "colQuota": "Hạn ngạch",
@@ -12264,7 +12277,17 @@
     "disabledByFeed": "Bị vô hiệu hóa bởi nguồn cấp dữ liệu Radar",
     "capTools": "Công cụ",
     "capVision": "Tầm nhìn",
-    "capThinking": "Suy nghĩ"
+    "capThinking": "Suy nghĩ",
+    "catalogTab": "Catalog",
+    "freeCreditsTab": "Free credits",
+    "freeCreditsSubtitle": "Referral links from Radar-tracked providers — using them costs you nothing extra and helps support OmniRoute.",
+    "fixedLinksEmpty": "No referral links available yet. Sync Radar to check for updates.",
+    "requiredActionLabel": "What to do:",
+    "claimButton": "Claim credits",
+    "campaignsTitle": "Limited-time campaigns",
+    "campaignsEmpty": "No active campaigns right now — check back later.",
+    "campaignsUpsellCommunity": "Limited-time campaigns are a supporter extra. Everything on this page's fixed links stays free for everyone.",
+    "campaignsValidUntil": "Valid until {date}"
   },
   "radarSetupPage": {
     "title": "Thiết lập nhà cung cấp",

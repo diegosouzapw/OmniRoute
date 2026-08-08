@@ -658,10 +658,24 @@ async function applyPromptCacheStage(
     promptCacheAffinityEnabled && resolvePromptCacheAffinityKey(body)
       ? await expandPromptCacheAffinityTargets(orderedTargets)
       : orderedTargets;
+
+  // Determine affinity scope: restrict to model-level for deterministic strategies
+  // to preserve operator-defined model order; keep global for cross-model
+  // strategies. Per #8370, lkgp/auto/cache-optimized explicitly support promoting
+  // a previously-successful model ahead of the declared order, so they must stay
+  // cross-model ("global") rather than be locked into a single model step.
+  const modelOrderPreservingStrategies = new Set<string>([
+    "priority",
+    "weighted",
+    "fill-first",
+    "quota-share",
+  ]);
+  const isDeterministicStrategy = modelOrderPreservingStrategies.has(strategy);
   const promptCacheAffinity = applyPromptCacheAffinity(
     promptCacheAffinityTargets,
     body,
-    promptCacheAffinityEnabled
+    promptCacheAffinityEnabled,
+    isDeterministicStrategy ? "model" : "global"
   );
   if (!promptCacheAffinity.applied) return orderedTargets;
   const protectedOriginal =

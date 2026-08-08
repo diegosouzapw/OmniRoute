@@ -85,6 +85,42 @@ const SetupSchema = z
   .nullable();
 
 // ---------------------------------------------------------------------------
+// Referral (D28 — referral links / free credits)
+// ---------------------------------------------------------------------------
+
+const ReferralKindEnum = z.enum(["fixo", "campanha"]);
+
+/** Referral URLs are always required to be https:// (never plain http). */
+const HttpsUrlSchema = z
+  .string()
+  .url()
+  .refine((v) => v.startsWith("https://"), { message: "Referral url must use https://" });
+
+const RadarReferralSchema = z.object({
+  provider: z.string(),
+  url: HttpsUrlSchema,
+  kind: ReferralKindEnum,
+  validUntil: z.string().nullable(),
+  requiredAction: z.string().nullable(),
+  isDefault: z.boolean(),
+});
+
+/**
+ * `referrals` is a whole-object `.default()` (not just a per-field default)
+ * so a cached feed downloaded before this section existed on the server
+ * still parses cleanly — `parsed.referrals` resolves to `{fixed:[],
+ * campaigns:[]}` instead of failing validation. `campaigns` also defaults
+ * independently so a feed that has `referrals.fixed` but omits `campaigns`
+ * (e.g. an intermediate server rollout) still parses.
+ */
+const RadarReferralsSchema = z
+  .object({
+    fixed: z.array(RadarReferralSchema).default([]),
+    campaigns: z.array(RadarReferralSchema).default([]),
+  })
+  .default({ fixed: [], campaigns: [] });
+
+// ---------------------------------------------------------------------------
 // Model
 // ---------------------------------------------------------------------------
 
@@ -156,6 +192,7 @@ export const RadarFeedSchema = z.object({
   providers: z.array(ProviderSchema),
   models: z.array(ModelSchema),
   quirks: z.array(QuirkSchema),
+  referrals: RadarReferralsSchema,
   totals: z.object({
     dedupedTokensPerMonth: z.number().int(),
     modelCount: z.number().int(),
@@ -172,3 +209,5 @@ export type RadarModel = z.infer<typeof ModelSchema>;
 export type RadarProvider = z.infer<typeof ProviderSchema>;
 export type RadarQuirk = z.infer<typeof QuirkSchema>;
 export type RadarBudget = z.infer<typeof BudgetSchema>;
+export type RadarReferral = z.infer<typeof RadarReferralSchema>;
+export type RadarReferrals = z.infer<typeof RadarReferralsSchema>;

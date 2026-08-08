@@ -1356,21 +1356,8 @@
       "count": 1
     }
   },
-  "src/sse/handlers/chat.ts": {
-    "no-restricted-imports": {
-      "count": 1
-    }
-  },
   "src/sse/handlers/chatHelpers.ts": {
     "no-restricted-imports": {
-      "count": 1
-    }
-  },
-  "src/sse/services/auth.ts": {
-    "no-restricted-imports": {
-      "count": 1
-    },
-    "no-restricted-syntax": {
       "count": 1
     }
   },
@@ -2075,11 +2062,6 @@
     }
   },
   "tests/unit/combo-builder-options-route.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 5
-    }
-  },
-  "tests/unit/combo-cache-invalidation.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 5
     }
@@ -3323,11 +3305,6 @@
     }
   },
   "tests/unit/vertex-express-apikey.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
-  "tests/unit/vertex-functioncall-id-3440.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
     }

@@ -28,6 +28,17 @@ const DEFAULT_FEED_BASE_URL = "https://radar.omniroute.online";
 
 const SYNC_TIMEOUT_MS = 30_000;
 
+/**
+ * Hard cap on the Radar feed response body. The signed feed is a small JSON
+ * document (KB-scale) — anything past this is either a misconfigured/hostile
+ * `RADAR_FEED_URL` or an upstream serving garbage. Enforced both via a
+ * `Content-Length` preflight (skip reading the body entirely when the
+ * server already declares an oversized payload) AND a running-total check
+ * while reading the body (an absent/lying Content-Length must not bypass
+ * the cap).
+ */
+const MAX_FEED_BYTES = 10 * 1024 * 1024; // 10 MB
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -38,6 +49,7 @@ export type SyncStatus =
   | { status: "invalid_signature" }
   | { status: "invalid_schema" }
   | { status: "stale" }
+  | { status: "too_large" }
   | { status: "updated"; version: string; tier: string }
   | { status: "error"; reason: string };
 
@@ -189,8 +201,54 @@ export async function syncRadar(deps: SyncDeps = {}): Promise<SyncStatus> {
       return { status: "error", reason: `Feed request failed with status ${res.status}` };
     }
 
-    // Step 4: Read exact bytes + signature header
-    const rawBytes = Buffer.from(await res.arrayBuffer());
+    // Step 3b: Content-Length preflight — skip reading an already-oversized
+    // body entirely. The header is untrusted (may be absent or wrong), so
+    // this is a fast-path only; the real enforcement is the running-total
+    // check below.
+    const contentLengthHeader = res.headers.get("content-length");
+    if (contentLengthHeader !== null) {
+      const declaredLength = Number(contentLengthHeader);
+      if (Number.isFinite(declaredLength) && declaredLength > MAX_FEED_BYTES) {
+        return { status: "too_large" };
+      }
+    }
+
+    // Step 4: Read exact bytes + signature header, enforcing MAX_FEED_BYTES
+    // while reading so an absent/lying Content-Length cannot bypass the cap.
+    // Concatenating the accumulated chunks preserves the exact bytes needed
+    // for signature verification below.
+    let rawBytes: Buffer;
+    const body = res.body as ReadableStream<Uint8Array> | null | undefined;
+    if (body && typeof body.getReader === "function") {
+      const reader = body.getReader();
+      const chunks: Uint8Array[] = [];
+      let total = 0;
+      let tooLarge = false;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          total += value.byteLength;
+          if (total > MAX_FEED_BYTES) {
+            tooLarge = true;
+            await reader.cancel().catch(() => {});
+            break;
+          }
+          chunks.push(value);
+        }
+      }
+      if (tooLarge) {
+        return { status: "too_large" };
+      }
+      rawBytes = Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)));
+    } else {
+      const buffered = Buffer.from(await res.arrayBuffer());
+      if (buffered.byteLength > MAX_FEED_BYTES) {
+        return { status: "too_large" };
+      }
+      rawBytes = buffered;
+    }
+
     const signature = res.headers.get("x-omniroute-feed-signature") ?? "";
 
     // Step 5: Verify signature

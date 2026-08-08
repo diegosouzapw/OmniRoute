@@ -46,13 +46,15 @@ export function resolveChatCoreTargetFormat(opts: {
       sourceFormat === FORMATS.CLAUDE)
       ? sourceFormat
       : undefined;
+  // #8994: model-level targetFormat overrides (from registry or custom-model DB override)
+  // take precedence over apiFormat="responses" — otherwise Vertex Claude models with
+  // targetFormat="claude" get wrongly routed to OpenAI Responses format.
   let targetFormat =
-    apiFormat === "responses"
+    modelTargetFormat ||
+    customModelTargetFormat ||
+    (apiFormat === "responses"
       ? FORMATS.OPENAI_RESPONSES
-      : modelTargetFormat ||
-        customModelTargetFormat ||
-        inferredAgentRouterTargetFormat ||
-        getTargetFormat(provider, providerSpecificData);
+      : inferredAgentRouterTargetFormat || getTargetFormat(provider, providerSpecificData));
   if (nativeXaiResponsesPassthrough) targetFormat = FORMATS.OPENAI_RESPONSES;
   return { alias, targetFormat };
 }

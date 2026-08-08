@@ -18,6 +18,7 @@ import type {
   ComboNestingContext,
   HandleComboChatOptions,
   HandleSingleModel,
+  HiddenModelsByProvider,
   IsModelAvailable,
   ResolvedComboRefTarget,
   ResolvedComboUnit,
@@ -186,6 +187,7 @@ export async function executeRuntimeUnitCombo(args: {
   nesting: ComboNestingContext;
   baseOptions: HandleComboChatOptions;
   runCombo: RuntimeUnitRunner;
+  hiddenModelsByProvider?: HiddenModelsByProvider;
 }): Promise<RuntimeUnitExecutionResult> {
   const maxRetries = Number(args.config.maxRetries ?? 1);
   const retryDelayMs = resolveDelayMs(args.config.retryDelayMs, 2000);
@@ -197,7 +199,14 @@ export async function executeRuntimeUnitCombo(args: {
   let fallbackCount = 0;
 
   for (const unit of orderedUnits) {
-    if (await isRuntimeUnitAtConcurrencyCap(unit, args.allCombos)) {
+    if (
+      await isRuntimeUnitAtConcurrencyCap(
+        unit,
+        args.allCombos,
+        undefined,
+        args.hiddenModelsByProvider
+      )
+    ) {
       args.log.info(
         "COMBO",
         `Skipping ${unit.kind} ${unitDisplayName(unit)} — concurrency cap reached`

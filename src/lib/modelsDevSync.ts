@@ -14,7 +14,12 @@
  *   3. LiteLLM sync (`pricing_synced` namespace)
  *   4. Hardcoded defaults (`pricing.ts`)
  *
- * Opt-in via MODELS_DEV_SYNC_ENABLED=true (default: false).
+ * Opt-in, default off. Enabled either from Dashboard > Settings > AI or with
+ * MODELS_DEV_SYNC_ENABLED, which wins over that setting whenever it is set to
+ * anything non-empty, in either direction, so a deployment can pin the sync on
+ * or off regardless of what is stored. Unset or empty, it defers to the
+ * setting. On for "1", "true", "yes" or "on" in any casing; every other value
+ * is off.
  */
 
 import { getDbInstance } from "./db/core";
@@ -70,6 +75,8 @@ interface SyncResult {
 // ─── Configuration ───────────────────────────────────────
 
 const MODELS_DEV_API_URL = "https://models.dev/api.json";
+
+const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
 
 const parsedInterval = parseInt(process.env.MODELS_DEV_SYNC_INTERVAL || "86400", 10);
 const SYNC_INTERVAL_MS =
@@ -670,8 +677,32 @@ export async function initModelsDevSync(): Promise<void> {
   const { getSettings } = await import("./localDb");
   const settings = await getSettings();
 
-  if (settings.modelsDevSyncEnabled !== true) {
-    console.log("[MODELS_DEV] Disabled (enable via Settings > AI)");
+  // Until now the docblock above advertised MODELS_DEV_SYNC_ENABLED and nothing
+  // read it: the only control was the stored setting, so an operator following
+  // that line got silence whichever value they set. This makes the variable real.
+  //
+  // An explicit env value decides, in either direction, and only an unset or
+  // empty one defers to the setting. That means a deployment can pin the sync
+  // off from its compose file or unit even when a previous operator left the
+  // dashboard toggle on, which is the case a force-on-only variable cannot
+  // express and the reason for choosing this shape.
+  //
+  // It is worth being plain that this is a third resolution pattern rather than
+  // a reuse of an existing one, because the two in the tree solve different
+  // problems: shared/utils/featureFlags.ts::resolveFeatureFlag puts the DB
+  // override ABOVE the env var, so a deployment cannot override an operator's
+  // stored choice at all; db/ccDiscoveryAliases.ts::getCcAliasGlobalState reads
+  // only "1" and "true" and can force a flag ON, letting every other value
+  // including "false" fall through to the DB. Neither can turn a
+  // dashboard-enabled switch off from the environment. Following either one
+  // here would leave the variable unable to do the thing it is being added for.
+  const envValue = process.env.MODELS_DEV_SYNC_ENABLED?.trim();
+  const enabled = envValue
+    ? TRUE_ENV_VALUES.has(envValue.toLowerCase())
+    : settings.modelsDevSyncEnabled === true;
+
+  if (!enabled) {
+    console.log("[MODELS_DEV] Disabled (enable via Settings > AI or MODELS_DEV_SYNC_ENABLED=true)");
     return;
   }
 

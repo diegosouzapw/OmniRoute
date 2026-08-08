@@ -156,7 +156,8 @@ export function supportsMaxEffortForProvider(provider: string, model: string): b
   // Ollama Cloud also accepts literal max (for example GLM 5.2 supports
   // low|medium|high|max|none) and rejects xhigh.
   const isOpencodeGoDeepSeek =
-    provider === "opencode-go" && resolvedModelId.toLowerCase().includes("deepseek");
+    (provider === "opencode-go" || provider === "opencode-zen") &&
+    resolvedModelId.toLowerCase().includes("deepseek");
   const isOllamaCloud = provider === "ollama-cloud";
   // Kimi K3 only accepts literal max and rejects xhigh natively. Apply this mapping
   // regardless of provider so that OpenAI-compatible proxies (e.g. TokenRouter)

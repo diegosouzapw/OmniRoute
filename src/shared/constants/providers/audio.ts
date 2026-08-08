@@ -21,6 +21,15 @@ export const AUDIO_ONLY_PROVIDERS = {
     textIcon: "AA",
     website: "https://assemblyai.com",
   },
+  soniox: {
+    id: "soniox",
+    alias: "sx",
+    name: "Soniox",
+    icon: "mic",
+    color: "#5B5BD6",
+    textIcon: "SX",
+    website: "https://soniox.com",
+  },
   elevenlabs: {
     id: "elevenlabs",
     alias: "el",

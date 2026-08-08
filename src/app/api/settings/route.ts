@@ -5,6 +5,7 @@ import { getRuntimePorts } from "@/lib/runtime/ports";
 import { updateSettingsSchema } from "@/shared/validation/settingsSchemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { resolveModelLockoutSettings } from "@/lib/resilience/modelLockoutSettings";
 import {
   validateProxyUrl,
@@ -220,6 +221,12 @@ export async function GET(request: Request) {
         cloudConfigured: Boolean(cloudUrl),
         cloudUrl,
         machineId,
+        // Sidebar.tsx has no server-side feature-flag access (client component);
+        // this piggy-backs the RADAR_ENABLED gate onto the settings payload the
+        // sidebar already fetches on mount, so the "radar" item can hide itself
+        // without a dedicated round trip. See sidebarVisibility.ts's
+        // `isSidebarItemVisibleForFlags()`.
+        radarEnabled: isFeatureFlagEnabled("RADAR_ENABLED"),
         ...(cliproxyapiModelMapping !== null
           ? { cliproxyapi_model_mapping: cliproxyapiModelMapping }
           : {}),

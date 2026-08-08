@@ -54,8 +54,21 @@ export function buildAccountSemaphoreKey({
   return `${String(provider)}:${String(accountKey)}`;
 }
 
+/**
+ * Effective positive cap, or null when the semaphore is bypassed (unset/<=0).
+ *
+ * Narrowing companion of {@link isBypassed}: that one returns a plain boolean, so
+ * TypeScript cannot narrow `number | null` to `number` in its else-branch (a
+ * `x is null | undefined` predicate would be unsound — 0 bypasses too). Callers
+ * that need the VALUE after the guard go through here instead of casting.
+ */
+function resolveActiveCap(maxConcurrency?: number | null): number | null {
+  if (maxConcurrency == null || maxConcurrency <= 0) return null;
+  return maxConcurrency;
+}
+
 function isBypassed(maxConcurrency?: number | null): boolean {
-  return maxConcurrency == null || maxConcurrency <= 0;
+  return resolveActiveCap(maxConcurrency) === null;
 }
 
 function createNoopReleaseFn(): () => void {
@@ -192,7 +205,8 @@ export function acquire(
     maxQueueSize = DEFAULT_MAX_QUEUE_SIZE,
   }: AcquireAccountSemaphoreOptions = {}
 ): Promise<() => void> {
-  if (isBypassed(maxConcurrency)) {
+  const activeCap = resolveActiveCap(maxConcurrency);
+  if (activeCap === null) {
     return Promise.resolve(createNoopReleaseFn());
   }
 
@@ -200,7 +214,7 @@ export function acquire(
     return Promise.reject(makeAbortError(signal));
   }
 
-  const gate = ensureGate(semaphoreKey, maxConcurrency);
+  const gate = ensureGate(semaphoreKey, activeCap);
   clearCleanupTimer(gate);
 
   if (gate.running < gate.maxConcurrency && !isBlocked(gate)) {

@@ -42,9 +42,25 @@ export const CHAT_HEAVY_ESTIMATED_TOKENS = parsePositiveInt(
   process.env.OMNIROUTE_CHAT_HEAVY_ESTIMATED_TOKENS,
   32_000
 );
+/**
+ * Optional per-deployment history cap. `0` (the default) disables it.
+ *
+ * A fixed message count is a *deployment policy*, not a universal property of a chat request:
+ * the same 900-message conversation is trivial on a 16 GB host and fatal in a 1 GB container.
+ * Enforcing one here rejected conversations before OmniRoute's own compression pipeline — the
+ * component that exists precisely to make them servable — ever ran, and returned a terminal 413
+ * that no client can retry its way out of. Message count is also not an input the caller fully
+ * controls: translation from other protocols expands a single turn into several `messages[]`
+ * entries, so the metric an operator caps is partly manufactured by OmniRoute itself.
+ *
+ * What actually bounds heap growth is the heavyweight lease below (bounded concurrency through
+ * the allocation-heavy path) plus the heap-pressure shed in the chat handler. Both remain in
+ * force for every request, including large ones. Constrained deployments that still want a hard
+ * ceiling opt in with `OMNIROUTE_CHAT_HARD_MAX_MESSAGES`.
+ */
 export const CHAT_HARD_MAX_MESSAGES = parsePositiveInt(
   process.env.OMNIROUTE_CHAT_HARD_MAX_MESSAGES,
-  800
+  0
 );
 
 export interface ChatAdmissionLease {
@@ -209,7 +225,9 @@ export function admitChatStructure(
   const messages = Array.isArray(record.messages) ? record.messages : [];
   const tools = Array.isArray(record.tools) ? record.tools : [];
   const maxMessages = options.maxMessages ?? CHAT_HARD_MAX_MESSAGES;
-  if (messages.length > maxMessages) {
+  // Opt-in only: `0`/unset means no history cap, so oversized conversations reach the
+  // compression pipeline and the bounded heavyweight path instead of a terminal 413.
+  if (maxMessages > 0 && messages.length > maxMessages) {
     return { admit: false, response: structuralRejectionResponse(413, maxMessages) };
   }
 

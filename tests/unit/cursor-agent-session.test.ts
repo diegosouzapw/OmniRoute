@@ -253,6 +253,111 @@ test("CursorSessionManager.close clears unanswered pendingToolCalls", () => {
   assert.equal(m.size(), 0);
 });
 
+// ─── findByToolCallIds — content-based session matching ────────────────────
+//
+// These tests validate the fix for #9029: when the client does not provide
+// conversation_id, every turn gets a random UUID and acquire() fails. The
+// fallback findByToolCallIds matches by tool_call_id content instead.
+
+test("CursorSessionManager.findByToolCallIds finds an awaiting session by tool call ID", () => {
+  const m = new CursorSessionManager();
+  const { req } = mockReq();
+  const { client } = mockClient();
+  const session = m.open("conv-find", client, req, new Map());
+  session.pendingToolCalls.set("call_abc", {
+    execMsgId: 1,
+    execId: "exec-1",
+    toolName: "get_weather",
+  });
+  m.release(session, "awaiting_tool_result");
+
+  const found = m.findByToolCallIds(["call_abc", "call_other"]);
+  assert.equal(found, session);
+  // Must transition to "running" (same as acquire() does)
+  assert.equal(found?.state, "running");
+});
+
+test("CursorSessionManager.findByToolCallIds returns undefined when no IDs match", () => {
+  const m = new CursorSessionManager();
+  const { req } = mockReq();
+  const { client } = mockClient();
+  const session = m.open("conv-nomatch", client, req, new Map());
+  session.pendingToolCalls.set("call_xyz", {
+    execMsgId: 1,
+    execId: "exec-1",
+    toolName: "tool",
+  });
+  m.release(session, "awaiting_tool_result");
+
+  const found = m.findByToolCallIds(["call_nonexistent"]);
+  assert.equal(found, undefined);
+});
+
+test("CursorSessionManager.findByToolCallIds returns undefined for running session", () => {
+  const m = new CursorSessionManager();
+  const { req } = mockReq();
+  const { client } = mockClient();
+  const session = m.open("conv-running", client, req, new Map());
+  session.pendingToolCalls.set("call_abc", {
+    execMsgId: 1,
+    execId: "exec-1",
+    toolName: "tool",
+  });
+  // NOT released, so state is still "running" — not eligible
+
+  const found = m.findByToolCallIds(["call_abc"]);
+  assert.equal(found, undefined);
+});
+
+test("findByToolCallIds matches session even when acquire fails due to different conversation_id (#9029)", () => {
+  const m = new CursorSessionManager();
+
+  // Turn 1: session opens with conv-a and releases awaiting tool result
+  const r1 = mockReq();
+  const c1 = mockClient();
+  const s1 = m.open("conv-a", c1.client, r1.req, new Map());
+  s1.pendingToolCalls.set("call_p1", {
+    execMsgId: 1,
+    execId: "exec-1",
+    toolName: "tool_a",
+  });
+  m.release(s1, "awaiting_tool_result");
+
+  // Turn 2: client sends tool result with a DIFFERENT conversation_id
+  // (random UUID because OpenAI client doesn't provide conversation_id).
+  // acquire() fails — this is the bug.
+  const acquired = m.acquire("random-uuid-xyz");
+  assert.equal(acquired, undefined, "acquire with different ID must return undefined (the bug)");
+
+  // findByToolCallIds finds the session by tool_call_id content matching
+  const found = m.findByToolCallIds(["call_p1"]);
+  assert.equal(found, s1, "findByToolCallIds must find session by tool call ID");
+  assert.equal(found.state, "running", "found session must transition to running");
+});
+
+test("findByToolCallIds matches first matching session across multiple sessions", () => {
+  const m = new CursorSessionManager();
+
+  const r1 = mockReq();
+  const c1 = mockClient();
+  const s1 = m.open("conv-1", c1.client, r1.req, new Map());
+  s1.pendingToolCalls.set("call_1", { execMsgId: 1, execId: "e1", toolName: "t1" });
+  m.release(s1, "awaiting_tool_result");
+
+  const r2 = mockReq();
+  const c2 = mockClient();
+  const s2 = m.open("conv-2", c2.client, r2.req, new Map());
+  s2.pendingToolCalls.set("call_2", { execMsgId: 2, execId: "e2", toolName: "t2" });
+  m.release(s2, "awaiting_tool_result");
+
+  // Should find conv-1 first because it has "call_1"
+  const found = m.findByToolCallIds(["call_1", "call_2"]);
+  assert.equal(found, s1);
+  // conv-2 session should still be available
+  const found2 = m.findByToolCallIds(["call_2"]);
+  assert.equal(found2, s2);
+});
+
 test("CursorSessionManager.open replaces an existing session for the same conversation", () => {
   const m = new CursorSessionManager();
   const r1 = mockReq();

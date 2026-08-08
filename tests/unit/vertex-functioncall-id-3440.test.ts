@@ -20,6 +20,11 @@ const { buildGeminiThoughtSignatureKey, storeGeminiThoughtSignature } =
 
 type UnknownRecord = Record<string, unknown>;
 
+/** Shape of the translated Gemini request the three finders below walk. */
+interface GeminiRequestLike {
+  contents?: Array<{ parts?: UnknownRecord[] }>;
+}
+
 const CLAUDE_SIGNATURE_NAMESPACE = "regression-3440";
 
 function seedClaudeThoughtSignature() {
@@ -29,7 +34,7 @@ function seedClaudeThoughtSignature() {
   );
 }
 
-function findFunctionCall(result: any): UnknownRecord | undefined {
+function findFunctionCall(result: GeminiRequestLike): UnknownRecord | undefined {
   for (const content of result.contents ?? []) {
     for (const part of content.parts ?? []) {
       if (part?.functionCall) return part.functionCall as UnknownRecord;
@@ -38,7 +43,7 @@ function findFunctionCall(result: any): UnknownRecord | undefined {
   return undefined;
 }
 
-function findFunctionCallPart(result: any): UnknownRecord | undefined {
+function findFunctionCallPart(result: GeminiRequestLike): UnknownRecord | undefined {
   for (const content of result.contents ?? []) {
     for (const part of content.parts ?? []) {
       if (part?.functionCall) return part as UnknownRecord;
@@ -47,7 +52,7 @@ function findFunctionCallPart(result: any): UnknownRecord | undefined {
   return undefined;
 }
 
-function findFunctionResponse(result: any): UnknownRecord | undefined {
+function findFunctionResponse(result: GeminiRequestLike): UnknownRecord | undefined {
   for (const content of result.contents ?? []) {
     for (const part of content.parts ?? []) {
       if (part?.functionResponse) return part.functionResponse as UnknownRecord;
