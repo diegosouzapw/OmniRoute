@@ -672,6 +672,21 @@ export default function RequestLoggerDetail({
                   <div className="text-sm text-text-muted">\u2014</div>
                 )}
               </div>
+              <div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  Conversation
+                </div>
+                {detail?.sessionTag || log.sessionTag ? (
+                  <div
+                    className="text-sm font-mono select-all"
+                    title={detail?.sessionTag || log.sessionTag}
+                  >
+                    {(detail?.sessionTag || log.sessionTag).slice(0, 20)}\u2026
+                  </div>
+                ) : (
+                  <div className="text-sm text-text-muted">\u2014</div>
+                )}
+              </div>
             </div>
           )}
 

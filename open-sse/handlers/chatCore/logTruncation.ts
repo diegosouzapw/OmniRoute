@@ -3,11 +3,11 @@ import {
   getChatLogMaxDepth,
   getChatLogArrayTailItems,
   getChatLogMaxObjectKeys,
+  getChatLogMaxBodyBytes,
 } from "@/lib/logEnv";
 import { estimateSizeFast } from "../../utils/estimateSize.ts";
 
 export const MEMORY_EXTRACTION_TEXT_LIMIT = 64 * 1024;
-const MAX_LOG_BODY_CHARS = 8 * 1024; // 8KB cap for logged request/response bodies
 
 export function capMemoryExtractionText(value: string): string {
   if (value.length <= MEMORY_EXTRACTION_TEXT_LIMIT) return value;
@@ -60,9 +60,10 @@ export function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
 
 /**
  * Truncate a large object for logging. If its JSON representation exceeds
- * MAX_LOG_BODY_CHARS, return a lightweight summary instead of the full clone.
- * This prevents persistAttemptLogs from holding multi-MB references to
- * translatedBody across 17 call sites per request.
+ * the configured max body size (getChatLogMaxBodyBytes()), return a
+ * lightweight summary instead of the full clone. This prevents
+ * persistAttemptLogs from holding multi-MB references to translatedBody
+ * across 17 call sites per request.
  *
  * When the summarized object carries a `tools` definition, re-attach it
  * (bounded via `cloneBoundedChatLogPayload`) so the request-details view can
@@ -75,8 +76,9 @@ export function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
 export function truncateForLog(value: unknown): Record<string, unknown> | null | undefined {
   if (value === null || value === undefined) return value as null | undefined;
   if (typeof value !== "object") return value as unknown as Record<string, unknown>;
-  const estimatedSize = estimateSizeFast(value);
-  if (estimatedSize <= MAX_LOG_BODY_CHARS) return value as Record<string, unknown>;
+  const maxBodyBytes = getChatLogMaxBodyBytes();
+  const estimatedSize = estimateSizeFast(value, maxBodyBytes);
+  if (estimatedSize <= maxBodyBytes) return value as Record<string, unknown>;
   // Object is too large — return a summary instead of a deep clone
   const obj = value as Record<string, unknown>;
   const summary: Record<string, unknown> = {

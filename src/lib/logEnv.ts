@@ -158,6 +158,16 @@ export function getChatLogMaxObjectKeys(): number {
   return parseNonNegativeInt(process.env.CHAT_LOG_MAX_OBJECT_KEYS, 80);
 }
 
+/**
+ * Was a hardcoded/default 8KB — trivially exceeded by any real multi-turn
+ * agentic conversation, meaning the dashboard's "Full Conversation" panel
+ * could only ever show a placeholder instead of the actual messages for
+ * nearly every logged row of any conversation with real substance.
+ */
+export function getChatLogMaxBodyBytes(): number {
+  return parsePositiveInt(process.env.CHAT_LOG_MAX_BODY_KB, 1024) * 1024;
+}
+
 export function isChatDebugFileEnabled(): boolean {
   if (parseBoolean(process.env.CHAT_DEBUG_FILE, false)) return true;
   return process.env.APP_LOG_LEVEL?.trim().toLowerCase() === "debug";

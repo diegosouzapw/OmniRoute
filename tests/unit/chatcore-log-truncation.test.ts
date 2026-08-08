@@ -242,3 +242,35 @@ test("truncateForLog leaves small requests with `tools` unchanged (no regression
   // untouched — same reference, not a summary or a clone
   assert.equal(result, small);
 });
+
+/**
+ * Real bug: the 8KB cap on logged request/response bodies was hardcoded,
+ * trivially exceeded by any real multi-turn agentic conversation — the
+ * dashboard's "Full Conversation" panel could only ever show a placeholder
+ * instead of the actual messages for nearly every logged row of any
+ * conversation with real substance. CHAT_LOG_MAX_BODY_KB makes this
+ * configurable; this pins that truncateForLog() actually reads it (not a
+ * baked-in literal) by proving a payload just over the OLD 8KB default
+ * survives untouched under a raised limit, then gets summarized again once
+ * the limit is lowered below it.
+ */
+test("truncateForLog honors a configured CHAT_LOG_MAX_BODY_KB instead of a hardcoded cap", () => {
+  const saved = process.env.CHAT_LOG_MAX_BODY_KB;
+  const payload = {
+    model: "gpt-4o",
+    // ~12KB of content — comfortably over the old hardcoded 8KB cap.
+    messages: [{ role: "user", content: "x".repeat(12 * 1024) }],
+  };
+  try {
+    process.env.CHAT_LOG_MAX_BODY_KB = "1"; // 1KB — payload must be summarized
+    const summarized = truncateForLog(payload) as Record<string, unknown>;
+    assert.equal(summarized._truncated, true, "expected summarization under a 1KB limit");
+
+    process.env.CHAT_LOG_MAX_BODY_KB = "64"; // 64KB — payload must pass through untouched
+    const untouched = truncateForLog(payload);
+    assert.equal(untouched, payload, "expected the payload untouched under a 64KB limit");
+  } finally {
+    if (saved === undefined) delete process.env.CHAT_LOG_MAX_BODY_KB;
+    else process.env.CHAT_LOG_MAX_BODY_KB = saved;
+  }
+});
