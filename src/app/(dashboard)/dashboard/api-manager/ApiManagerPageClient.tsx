@@ -98,6 +98,22 @@ function validateKeyName(
   return { valid: true };
 }
 
+function formatProviderModelPermissionCount(
+  providerCount: number,
+  modelCount: number,
+  t: (key: string, values?: Record<string, unknown>) => string,
+  tc: (key: string) => string
+): string {
+  const providerLabel =
+    providerCount > 0
+      ? `${providerCount} ${tc(providerCount === 1 ? "provider" : "providers")}`
+      : "";
+  const modelLabel = modelCount > 0 ? t("modelsCount", { count: modelCount }) : "";
+  return (
+    [providerLabel, modelLabel].filter(Boolean).join(" · ") || t("selectedCount", { count: 0 })
+  );
+}
+
 interface AccessSchedule {
   enabled: boolean;
   from: string;
@@ -1040,7 +1056,15 @@ export default function ApiManagerPageClient() {
           (() => {
             const renderKeyRow = (key: ApiKey) => {
               const stats = usageStats[key.id];
-              const isRestricted = Array.isArray(key.allowedModels) && key.allowedModels.length > 0;
+              const isRestricted = isKeyRestricted(key);
+              const isModelRestricted =
+                key.modelAccessMode === "restricted" ||
+                (Array.isArray(key.allowedModels) && key.allowedModels.length > 0);
+              const { providerWildcards, exactModels } = restoreProviderScopeSelection(
+                Array.isArray(key.allowedModels) ? key.allowedModels : []
+              );
+              const providerCount = providerWildcards.length;
+              const modelCount = exactModels.length;
               const hasComboRestrictions =
                 Array.isArray(key.allowedCombos) && key.allowedCombos.length > 0;
               const hasConnectionRestrictions =
@@ -1140,13 +1164,13 @@ export default function ApiManagerPageClient() {
                         </span>
                       )}
                       {/* Existing badges */}
-                      {isRestricted ? (
+                      {isModelRestricted ? (
                         <button
                           onClick={() => handleOpenPermissions(key)}
                           className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium hover:bg-amber-500/20 transition-colors"
                         >
                           <span className="material-symbols-outlined text-[14px]">lock</span>
-                          {t("modelsCount", { count: key.allowedModels!.length })}
+                          {formatProviderModelPermissionCount(providerCount, modelCount, t, tc)}
                         </button>
                       ) : (
                         <button
@@ -1997,17 +2021,23 @@ const PermissionsModal = memo(function PermissionsModal({
   const selectedProviderCount = selectedProviderScopes.length;
   const selectedModelCount = selectedExactModels.length;
   const selectedCount = selectedModels.length;
+  const selectedPermissionCount = formatProviderModelPermissionCount(
+    selectedProviderCount,
+    selectedModelCount,
+    t,
+    tc
+  );
 
   const totalModels = allModels.length;
   const hasClaudeCodeDefaultSelected =
     !allowAll && selectedModels.includes(CLAUDE_CODE_DEFAULT_MODEL_ID);
-  const orderedSelectedModels = useMemo(() => {
-    if (!hasClaudeCodeDefaultSelected) return selectedModels;
+  const orderedSelectedProviderScopes = useMemo(() => {
+    if (!hasClaudeCodeDefaultSelected) return selectedProviderScopes;
     return [
       CLAUDE_CODE_DEFAULT_MODEL_ID,
-      ...selectedModels.filter((modelId) => modelId !== CLAUDE_CODE_DEFAULT_MODEL_ID),
+      ...selectedProviderScopes.filter((scope) => scope !== CLAUDE_CODE_DEFAULT_MODEL_ID),
     ];
-  }, [hasClaudeCodeDefaultSelected, selectedModels]);
+  }, [hasClaudeCodeDefaultSelected, selectedProviderScopes]);
   const visibleClaudeCodeFamilies = useMemo(
     () =>
       CLAUDE_CODE_DEFAULT_FAMILIES.filter(
@@ -2105,9 +2135,11 @@ const PermissionsModal = memo(function PermissionsModal({
               ? t("allowAllDesc")
               : !modelsLoaded
                 ? t("restrictLoading")
-                : totalModels === 0
-                  ? t("restrictCatalogUnavailable", { selectedCount })
-                  : t("restrictDesc", { selectedCount, totalModels })}
+                : selectedProviderCount > 0
+                  ? selectedPermissionCount
+                  : totalModels === 0
+                    ? t("restrictCatalogUnavailable", { selectedCount })
+                    : t("restrictDesc", { selectedCount, totalModels })}
           </p>
         </div>
 
@@ -2620,13 +2652,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {!allowAll && selectedCount > 0 && (
           <div className="flex flex-col gap-1.5 p-2 bg-primary/5 rounded-lg border border-primary/20">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-primary">
-                {selectedProviderCount > 0 && selectedModelCount > 0
-                  ? `${selectedProviderCount} ${tc(selectedProviderCount === 1 ? "provider" : "providers")} · ${t("modelsCount", { count: selectedModelCount })}`
-                  : selectedProviderCount > 0
-                    ? `${selectedProviderCount} ${tc(selectedProviderCount === 1 ? "provider" : "providers")}`
-                    : `${t("modelsCount", { count: selectedModelCount })}`}
-              </span>
+              <span className="text-xs font-medium text-primary">{selectedPermissionCount}</span>
               <div className="flex gap-1">
                 <button
                   onClick={handleSelectAllModels}
@@ -2642,107 +2668,140 @@ const PermissionsModal = memo(function PermissionsModal({
                 </button>
               </div>
             </div>
-            <div className="flex flex-wrap gap-1 max-h-28 overflow-y-auto content-start">
-              {orderedSelectedModels.map((modelId) => {
-                if (modelId === CLAUDE_CODE_DEFAULT_MODEL_ID) {
-                  return (
-                    <div key={modelId} className="flex flex-col gap-1 basis-full">
-                      <span className="inline-flex w-fit items-center gap-0.5 px-1.5 py-0.5 bg-primary/10 text-text-main text-[10px] rounded border border-primary/35">
+            {selectedProviderCount > 0 && (
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                  {tc("providers")}
+                </span>
+                <div className="flex flex-wrap gap-1">
+                  {orderedSelectedProviderScopes.map((scope) => {
+                    if (scope === CLAUDE_CODE_DEFAULT_MODEL_ID) {
+                      return (
+                        <div key={scope} className="flex flex-col gap-1 basis-full">
+                          <span className="inline-flex w-fit items-center gap-0.5 px-1.5 py-0.5 bg-primary/10 text-text-main text-[10px] rounded border border-primary/35">
+                            <button
+                              type="button"
+                              onClick={() => setClaudeCodeFamiliesExpanded((prev) => !prev)}
+                              className="inline-flex items-center gap-1 font-mono text-text-main"
+                              title={t("expandClaudeCodeFamilies")}
+                              aria-expanded={claudeCodeFamiliesExpanded}
+                            >
+                              <span className="truncate max-w-[140px]" title={scope}>
+                                {CLAUDE_CODE_DEFAULT_MODEL_NAME}
+                              </span>
+                              <span className="material-symbols-outlined text-[12px] text-primary">
+                                {claudeCodeFamiliesExpanded ? "expand_less" : "expand_more"}
+                              </span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleModel(scope)}
+                              className="text-text-muted hover:text-red-500 transition-colors"
+                              title={t("removeClaudeCodeDefault")}
+                            >
+                              <span className="material-symbols-outlined text-[12px]">close</span>
+                            </button>
+                          </span>
+
+                          {claudeCodeFamiliesExpanded && (
+                            <div className="relative ml-2 flex flex-wrap gap-1 pl-5 animate-in fade-in slide-in-from-top-1 duration-150">
+                              <span
+                                aria-hidden="true"
+                                className="pointer-events-none absolute left-1.5 top-0 bottom-1 w-px bg-primary/25"
+                              />
+                              <span
+                                aria-hidden="true"
+                                className="pointer-events-none absolute left-1.5 top-3 h-px w-3 bg-primary/25"
+                              />
+                              {visibleClaudeCodeFamilies.map((family) => {
+                                const canBlock = family.id !== "other";
+                                return (
+                                  <span
+                                    key={family.id}
+                                    className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] rounded border ${
+                                      canBlock
+                                        ? "bg-white dark:bg-surface text-text-main border-border"
+                                        : "bg-black/5 dark:bg-white/5 text-text-muted border-border"
+                                    }`}
+                                    title={
+                                      canBlock
+                                        ? `Allow ${family.label} family through Claude Code default`
+                                        : "Catch-all for other Claude Code models"
+                                    }
+                                  >
+                                    <span className="font-mono">{family.label}</span>
+                                    {canBlock && (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleBlockClaudeCodeFamily(
+                                            family.id as ClaudeCodeBlockableFamilyId
+                                          )
+                                        }
+                                        className="text-text-muted hover:text-red-500 transition-colors"
+                                        title={`Block ${family.label} family`}
+                                      >
+                                        <span className="material-symbols-outlined text-[12px]">
+                                          close
+                                        </span>
+                                      </button>
+                                    )}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    const provider = scope.slice(0, -2);
+                    return (
+                      <span
+                        key={scope}
+                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-primary/10 text-text-main text-[10px] rounded border border-primary/35"
+                        title={scope}
+                      >
+                        <span className="font-mono truncate max-w-[120px]">{provider}</span>
                         <button
                           type="button"
-                          onClick={() => setClaudeCodeFamiliesExpanded((prev) => !prev)}
-                          className="inline-flex items-center gap-1 font-mono text-text-main"
-                          title={t("expandClaudeCodeFamilies")}
-                          aria-expanded={claudeCodeFamiliesExpanded}
-                        >
-                          <span className="truncate max-w-[140px]" title={modelId}>
-                            {getModelDisplayName(modelId)}
-                          </span>
-                          <span className="material-symbols-outlined text-[12px] text-primary">
-                            {claudeCodeFamiliesExpanded ? "expand_less" : "expand_more"}
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleToggleModel(modelId)}
+                          onClick={() => handleToggleModel(scope)}
                           className="text-text-muted hover:text-red-500 transition-colors"
-                          title={t("removeClaudeCodeDefault")}
                         >
                           <span className="material-symbols-outlined text-[12px]">close</span>
                         </button>
                       </span>
-
-                      {claudeCodeFamiliesExpanded && (
-                        <div className="relative ml-2 flex flex-wrap gap-1 pl-5 animate-in fade-in slide-in-from-top-1 duration-150">
-                          <span
-                            aria-hidden="true"
-                            className="pointer-events-none absolute left-1.5 top-0 bottom-1 w-px bg-primary/25"
-                          />
-                          <span
-                            aria-hidden="true"
-                            className="pointer-events-none absolute left-1.5 top-3 h-px w-3 bg-primary/25"
-                          />
-                          {visibleClaudeCodeFamilies.map((family) => {
-                            const canBlock = family.id !== "other";
-                            return (
-                              <span
-                                key={family.id}
-                                className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] rounded border ${
-                                  canBlock
-                                    ? "bg-white dark:bg-surface text-text-main border-border"
-                                    : "bg-black/5 dark:bg-white/5 text-text-muted border-border"
-                                }`}
-                                title={
-                                  canBlock
-                                    ? `Allow ${family.label} family through Claude Code default`
-                                    : "Catch-all for other Claude Code models"
-                                }
-                              >
-                                <span className="font-mono">{family.label}</span>
-                                {canBlock && (
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleBlockClaudeCodeFamily(
-                                        family.id as ClaudeCodeBlockableFamilyId
-                                      )
-                                    }
-                                    className="text-text-muted hover:text-red-500 transition-colors"
-                                    title={`Block ${family.label} family`}
-                                  >
-                                    <span className="material-symbols-outlined text-[12px]">
-                                      close
-                                    </span>
-                                  </button>
-                                )}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                }
-
-                return (
-                  <span
-                    key={modelId}
-                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white dark:bg-surface text-text-main text-[10px] rounded border border-border"
-                  >
-                    <span className="font-mono truncate max-w-[120px]" title={modelId}>
-                      {getModelDisplayName(modelId)}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleToggleModel(modelId)}
-                      className="text-text-muted hover:text-red-500 transition-colors"
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {selectedModelCount > 0 && (
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                  {tc("models")}
+                </span>
+                <div className="flex flex-wrap gap-1 max-h-28 overflow-y-auto content-start">
+                  {selectedExactModels.map((modelId) => (
+                    <span
+                      key={modelId}
+                      className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white dark:bg-surface text-text-main text-[10px] rounded border border-border"
                     >
-                      <span className="material-symbols-outlined text-[12px]">close</span>
-                    </button>
-                  </span>
-                );
-              })}
-            </div>
+                      <span className="font-mono truncate max-w-[120px]" title={modelId}>
+                        {getModelDisplayName(modelId)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleModel(modelId)}
+                        className="text-text-muted hover:text-red-500 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[12px]">close</span>
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
