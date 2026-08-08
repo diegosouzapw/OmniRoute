@@ -18,6 +18,15 @@ export const FETCH_TIMEOUT_MS = upstreamTimeouts.fetchTimeoutMs;
 // idle for this duration. Override with STREAM_IDLE_TIMEOUT_MS env var.
 export const STREAM_IDLE_TIMEOUT_MS = upstreamTimeouts.streamIdleTimeoutMs;
 
+// Grace period (ms) a client-disconnect finalization waits for the stream's own
+// completion bookkeeping to land before persisting a 499. See #9653 — a client
+// that closes right after reading a fully-completed SSE stream can otherwise
+// race OmniRoute's own completion callback, resulting in a false 499 with zero
+// token usage for a request that actually delivered its full response. Set
+// STREAM_DISCONNECT_GRACE_PERIOD_MS=0 to disable and restore the old
+// immediate-fail behavior.
+export const STREAM_DISCONNECT_GRACE_PERIOD_MS = upstreamTimeouts.streamDisconnectGracePeriodMs;
+
 // Timeout for the first non-ping SSE event. Inherits REQUEST_TIMEOUT_MS when
 // set, unless STREAM_READINESS_TIMEOUT_MS is specified directly. This must stay
 // conservative for large prompts and slow first-byte reasoning providers.
@@ -65,27 +74,27 @@ export const PROVIDERS: Record<string, LegacyProvider> = new Proxy(
   {} as Record<string, LegacyProvider>,
   {
     get(_, prop) {
-      if (typeof prop === 'symbol') return undefined;
+      if (typeof prop === "symbol") return undefined;
       return Reflect.get(initProviders(), prop, _providers);
     },
     has(_, prop) {
-      if (typeof prop === 'symbol') return false;
+      if (typeof prop === "symbol") return false;
       return Reflect.has(initProviders(), prop);
     },
     ownKeys() {
       return Reflect.ownKeys(initProviders());
     },
     getOwnPropertyDescriptor(_, prop) {
-      if (typeof prop === 'symbol') return undefined;
+      if (typeof prop === "symbol") return undefined;
       return Object.getOwnPropertyDescriptor(initProviders(), prop);
     },
     set(_, prop, value) {
-      if (typeof prop === 'symbol') return false;
+      if (typeof prop === "symbol") return false;
       (initProviders() as Record<string, LegacyProvider>)[prop] = value;
       return true;
     },
     deleteProperty(_, prop) {
-      if (typeof prop === 'symbol') return false;
+      if (typeof prop === "symbol") return false;
       return Reflect.deleteProperty(initProviders(), prop);
     },
   }
