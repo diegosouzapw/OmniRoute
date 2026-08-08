@@ -46,7 +46,7 @@ export function sanitizeChatRequestBody(
   }
 
   if (Array.isArray(body.tools)) {
-    body.tools = body.tools.filter((tool: Record<string, unknown>) => {
+    const tools = body.tools.filter((tool: Record<string, unknown>) => {
       const toolType = typeof tool.type === "string" ? tool.type : "";
       if (toolType && toolType !== "function" && !tool.function && tool.name === undefined) {
         return true;
@@ -56,7 +56,7 @@ export function sanitizeChatRequestBody(
       return name && String(name).trim().length > 0;
     });
 
-    body.tools = body.tools.map((tool) => sanitizeOpenAITool(tool) as (typeof body.tools)[number]);
+    body.tools = tools.map((tool) => sanitizeOpenAITool(tool));
   }
 
   return body;

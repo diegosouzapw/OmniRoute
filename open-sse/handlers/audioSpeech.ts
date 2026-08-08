@@ -229,6 +229,35 @@ async function handleDeepgramSpeech(providerConfig, body, modelId, token) {
 }
 
 /**
+ * Handle Soniox TTS (OpenAI speech shape → Soniox /tts, returns raw audio bytes)
+ */
+async function handleSonioxSpeech(providerConfig, body, modelId, token) {
+  const fmt = typeof body.response_format === "string" ? body.response_format : "mp3";
+  const audioFormat = fmt === "pcm" ? "pcm_s16le" : fmt;
+
+  const res = await fetch(providerConfig.baseUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...buildAuthHeaders(providerConfig, token),
+    },
+    body: JSON.stringify({
+      text: body.input,
+      model: modelId,
+      ...(body.voice ? { voice: body.voice } : {}),
+      audio_format: audioFormat,
+    }),
+  });
+
+  if (!res.ok) {
+    return upstreamErrorResponse(res, await res.text());
+  }
+
+  const contentType = fmt === "wav" ? "audio/wav" : fmt === "opus" ? "audio/opus" : "audio/mpeg";
+  return audioStreamResponse(res, contentType);
+}
+
+/**
  * Handle ElevenLabs TTS
  * POST {baseUrl}/{voice_id} with { text, model_id }
  * voice_id is mapped from the OpenAI `voice` parameter
@@ -844,6 +873,10 @@ export async function handleAudioSpeech({
 
     if (providerConfig.format === "deepgram") {
       return handleDeepgramSpeech(providerConfig, body, modelId, token);
+    }
+
+    if (providerConfig.format === "soniox-tts") {
+      return handleSonioxSpeech(providerConfig, body, modelId, token);
     }
 
     if (providerConfig.format === "elevenlabs") {

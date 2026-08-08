@@ -97,6 +97,22 @@ test("Radar inertia — flag off means zero behavioral delta", async (t) => {
       mockPostRequest("http://localhost:20128/api/radar/settings", { optIn: true }),
     );
     assert.equal(settingsRes.status, 404, "POST /api/radar/settings must 404 when disabled");
+
+    // Paste-key activation UI: the new page.tsx form submits optIn+supporterKey
+    // together in one POST. Same 404-before-anything-else gate must apply to
+    // that combined shape — pasting a key with the flag off must be a no-op,
+    // never touching the DB or the Zod body validation.
+    const settingsWithKeyRes = await settingsPost(
+      mockPostRequest("http://localhost:20128/api/radar/settings", {
+        optIn: true,
+        supporterKey: "omr_abcdef01234567890abcdef01234567890abcdef",
+      }),
+    );
+    assert.equal(
+      settingsWithKeyRes.status,
+      404,
+      "POST /api/radar/settings with optIn+supporterKey together must also 404 when disabled",
+    );
   });
 
   await t.test("RADAR_ENABLED resolves to 'false' with no DB override", () => {

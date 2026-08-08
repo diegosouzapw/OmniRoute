@@ -111,7 +111,9 @@ test("#6859: createOmniRouteProviderHook end-to-end — catalog keys/providerID 
 // `opencode-omniroute`. Confirmed against the issue's own curl repro
 // (`model: "opencode-omniroute/hermes-smart-stack"` → "No active
 // credentials for provider: opencode-omniroute").
-test("#7976: buildStaticProviderEntry keys bare-slug combo ids with the unprefixed omnirouteProviderId (no double OC-gate prefix)", () => {
+// #9175 tightened this further: OC's `getModel` looks models up by BARE id,
+// so combo dict keys now carry NO prefix at all (not even `omniroute/`).
+test("#7976/#9175: buildStaticProviderEntry keys combos by bare slug (no prefix at all — never the OC-gate providerId)", () => {
   const resolved = resolveOmniRoutePluginOptions({ providerId: "omniroute" });
   assert.equal(resolved.providerId, "opencode-omniroute");
   assert.equal(resolved.omnirouteProviderId, "omniroute");
@@ -131,7 +133,7 @@ test("#7976: buildStaticProviderEntry keys bare-slug combo ids with the unprefix
     "sk-test"
   );
 
-  assert.deepEqual(Object.keys(block.models), ["omniroute/hermes-smart-stack"]);
+  assert.deepEqual(Object.keys(block.models), ["hermes-smart-stack"]);
   assert.equal(
     block.models["opencode-omniroute/hermes-smart-stack"],
     undefined,

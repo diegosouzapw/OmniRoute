@@ -10,6 +10,7 @@ import {
 import {
   isClaudeCodeCompatibleProvider,
   supportsApiKeyOnFreeProvider,
+  supportsDualAuthProvider,
 } from "@/shared/constants/providers";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { providerHasServiceKind } from "@/lib/providers/serviceKindIndex";
@@ -240,6 +241,7 @@ export function connectionMatchesProviderCard(
   if (cardAuthType === "free") return true;
   if (
     supportsApiKeyOnFreeProvider(providerId) ||
+    supportsDualAuthProvider(providerId) ||
     OAUTH_CARD_API_KEY_CONNECTION_PROVIDER_IDS.has(providerId)
   ) {
     return conn.authType === "oauth" || conn.authType === "apikey" || conn.authType === "api_key";

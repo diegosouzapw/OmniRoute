@@ -84,9 +84,10 @@ export default function FreePoolTab() {
         fetch("/api/settings/free-proxies/stats"),
       ]);
       if (proxiesRes.ok) {
-        const data = await proxiesRes.json();
-        setProxies(data.items || []);
-        setTotal(data.total ?? 0);
+        const body = await proxiesRes.json();
+        const payload = body?.data ?? body;
+        setProxies(payload.proxies ?? payload.items ?? []);
+        setTotal(payload.total ?? 0);
       }
       if (statsRes.ok) {
         const data = await statsRes.json();

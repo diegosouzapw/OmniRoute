@@ -12,11 +12,25 @@
  * network sync when the cache is older than the daily window computed by
  * `nextSyncTime()`. `syncRadar()` re-checks flag/opt-in internally, so a
  * mid-flight settings change degrades to a no-op instead of an errant fetch.
+ *
+ * Referrals (`GET /v1/referrals/latest`) piggyback on the SAME hourly tick,
+ * but on their own much shorter staleness window (`REFERRALS_STALE_MS`, 1h —
+ * see `referralsSync.ts`) so they stay close to real-time instead of
+ * inheriting the catalog's daily cadence. This is independent of, and never
+ * gates on, the catalog's own due-ness — the two feeds sync on separate
+ * schedules within the same tick. It is deliberately NOT reflected in
+ * `RadarTickResult` (best-effort, fire-and-await side effect only) so the
+ * existing catalog-sync result shape/assertions stay unchanged.
  */
 
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
-import { getRadarCache, getRadarSettings } from "@/lib/db/radar";
+import { getRadarCache, getRadarSettings, getRadarReferralsCache } from "@/lib/db/radar";
 import { nextSyncTime, syncRadar, type SyncStatus } from "./sync";
+import {
+  syncRadarReferrals,
+  shouldSyncReferralsOnRead,
+  type ReferralsSyncStatus,
+} from "./referralsSync";
 
 /** How often the scheduler re-evaluates staleness (NOT the sync cadence). */
 export const RADAR_SCHEDULER_TICK_MS = 60 * 60 * 1000; // hourly
@@ -31,12 +45,33 @@ export interface RadarSchedulerDeps {
   getSettings?: () => { optIn: boolean };
   getCache?: () => { fetchedAt: string } | null;
   sync?: () => Promise<SyncStatus>;
+  /** Referrals cache reader — separate from `getCache` (the catalog cache). */
+  getReferralsCache?: () => { fetchedAt: string } | null;
+  /** Referrals sync — separate from `sync` (the catalog sync). */
+  syncReferrals?: () => Promise<ReferralsSyncStatus>;
   now?: () => number;
   setIntervalFn?: typeof setInterval;
   clearIntervalFn?: typeof clearInterval;
 }
 
 let timer: ReturnType<typeof setInterval> | null = null;
+
+/**
+ * Best-effort referrals sync, gated on its own (shorter) staleness window.
+ * Never throws — `syncRadarReferrals()` already never throws by contract,
+ * this is defense in depth so a scheduler tick can never fail because of
+ * the referrals side-sync.
+ */
+async function maybeSyncReferrals(deps: RadarSchedulerDeps, nowMs: number): Promise<void> {
+  try {
+    const referralsCache = (deps.getReferralsCache ?? getRadarReferralsCache)();
+    if (!shouldSyncReferralsOnRead(referralsCache?.fetchedAt ?? null, nowMs)) return;
+    await (deps.syncReferrals ?? syncRadarReferrals)();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[RADAR_SYNC] Referrals side-sync failed (non-fatal):", msg);
+  }
+}
 
 /**
  * One scheduler evaluation. Exported for tests and for the immediate
@@ -52,8 +87,13 @@ export async function radarSchedulerTick(deps: RadarSchedulerDeps = {}): Promise
   const settings = (deps.getSettings ?? getRadarSettings)();
   if (!settings.optIn) return { action: "skipped", reason: "opt_out" };
 
-  const cache = (deps.getCache ?? getRadarCache)();
   const nowMs = (deps.now ?? Date.now)();
+
+  // Referrals sync on their own staleness window — independent of the
+  // catalog's due-ness below, same tick.
+  await maybeSyncReferrals(deps, nowMs);
+
+  const cache = (deps.getCache ?? getRadarCache)();
   if (nowMs < nextSyncTime(cache?.fetchedAt ?? null).getTime()) {
     return { action: "skipped", reason: "not_due" };
   }

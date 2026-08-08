@@ -61,7 +61,7 @@ type KiroStreamState = {
   contextUsagePercentage?: number;
   hasContextUsage?: boolean;
   hasMeteringEvent?: boolean;
-  usage?: UsageSummary;
+  usage?: Partial<UsageSummary>;
   hasReasoningContent?: boolean;
   reasoningChunkCount?: number;
   // Inline-thinking splitter state (populated only when thinkingExpected=true).
@@ -185,8 +185,7 @@ function resolveKiroMaxInputTokens(model: string): number {
  * inflate `total_tokens`.
  */
 function ensureKiroUsage(state: KiroStreamState, model: string) {
-  if (state.usage) return;
-
+  if (state.usage?.total_tokens !== undefined) return;
   const estimatedOutputTokens =
     state.totalContentLength && state.totalContentLength > 0
       ? Math.max(1, Math.floor(state.totalContentLength / 4))
@@ -198,11 +197,11 @@ function ensureKiroUsage(state: KiroStreamState, model: string) {
       : 0;
 
   if (estimatedTotalTokens <= 0 && estimatedOutputTokens <= 0) return;
-
   // Without a percentage there is no total to split, so the output estimate is
   // all that is known and stands on its own.
   if (estimatedTotalTokens <= 0) {
     state.usage = {
+      ...state.usage,
       prompt_tokens: 0,
       completion_tokens: estimatedOutputTokens,
       total_tokens: estimatedOutputTokens,
@@ -213,6 +212,7 @@ function ensureKiroUsage(state: KiroStreamState, model: string) {
   const promptTokens = Math.max(0, estimatedTotalTokens - estimatedOutputTokens);
 
   state.usage = {
+    ...state.usage,
     prompt_tokens: promptTokens,
     completion_tokens: estimatedOutputTokens,
     total_tokens: promptTokens + estimatedOutputTokens,

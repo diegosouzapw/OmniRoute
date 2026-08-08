@@ -129,7 +129,7 @@ export function createBunSqliteAdapter(db: BunSqliteDatabaseLike, filePath: stri
       try {
         db.exec("PRAGMA wal_checkpoint(TRUNCATE)");
       } catch {}
-      fs.copyFileSync(filePath, destination);
+      await fs.promises.copyFile(filePath, destination);
     },
 
     checkpoint(mode = "TRUNCATE"): void {

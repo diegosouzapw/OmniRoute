@@ -490,9 +490,10 @@ export async function handleChatCore({
     model,
     provider,
     apiKeyInfo,
+    headers: clientRawRequest?.headers,
     log,
   });
-  if (pluginGate.blocked) {
+  if (pluginGate.blocked === true) {
     return {
       success: false,
       status: 403,
@@ -1886,7 +1887,7 @@ export async function handleChatCore({
     modelOutputCap,
     toPositiveInteger(resolveInputTokenCapForGate({ provider, model: effectiveModel }, { isCombo }))
   );
-  if (!outputBudget.ok) {
+  if (outputBudget.ok === false) {
     const exceededInputCap = outputBudget.maxInputTokens !== undefined;
     const message =
       `Input exceeds ${exceededInputCap ? "maximum input tokens" : "context window"} for ${provider}/${effectiveModel}: ` +
@@ -4625,6 +4626,7 @@ export async function handleChatCore({
       model,
       provider,
       apiKeyInfo,
+      headers: clientRawRequest?.headers,
       response: { status: 200, data: translatedResponse },
     });
 
@@ -5015,6 +5017,7 @@ export async function handleChatCore({
     model,
     provider,
     apiKeyInfo,
+    headers: clientRawRequest?.headers,
     response: { status: 200, streamed: true },
   });
 

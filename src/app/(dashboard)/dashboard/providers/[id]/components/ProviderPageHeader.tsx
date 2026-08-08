@@ -5,6 +5,7 @@ import Link from "next/link";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { getHeaderIconProviderId, providerText } from "../providerPageHelpers";
 import type { ProviderMessageTranslator } from "../providerPageHelpers";
+import type { ProviderNotice } from "@/lib/providers/catalog";
 import { isKimiPartnerProviderId } from "../../featuredProviders";
 
 interface ProviderInfo {
@@ -17,6 +18,8 @@ interface ProviderInfo {
   iconUrl?: string;
   /** Short text-badge fallback (e.g. "OC"/"AC"/"CC") shown if `iconUrl` fails to load. */
   textIcon?: string;
+  /** Optional registration/API-key URL hints rendered as links (#9270). */
+  notice?: ProviderNotice;
 }
 
 interface ProviderPageHeaderProps {
@@ -62,6 +65,22 @@ export default function ProviderPageHeader({
     "kimiPartnerLinkNote",
     "Partner link — supports OmniRoute at no extra cost to you"
   );
+
+  // Resolve the API-key registration link: prefer apiKeyUrl, fall back to
+  // signupUrl, hide when neither is set (#9270).
+  const noticeUrl = providerInfo.notice?.apiKeyUrl || providerInfo.notice?.signupUrl;
+  const apiKeyLink = noticeUrl ? (
+    <a
+      href={noticeUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-sm font-medium underline underline-offset-2 opacity-70 hover:opacity-100 transition-opacity inline-flex items-center gap-1"
+      style={{ color: providerInfo.color }}
+    >
+      <span className="material-symbols-outlined text-base">open_in_new</span>
+      {t("getApiKey")}
+    </a>
+  ) : null;
 
   return (
     <div>
@@ -120,6 +139,7 @@ export default function ProviderPageHeader({
                 {kimiPartnerLinkNote}
               </span>
             )}
+            {apiKeyLink}
             {providerId === "adapta-web" && (
               <button
                 onClick={onOpenTutorial}

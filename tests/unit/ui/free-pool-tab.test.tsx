@@ -46,7 +46,11 @@ function okJson(data: unknown) {
 function setupFetch(items: unknown[] = [], stats = defaultStats) {
   const mockFetch = vi.fn((url: string) => {
     if (String(url).includes("/stats")) return okJson({ stats });
-    return okJson({ items });
+    // Real contract: { success, data: { proxies, total, hasMore, stats, syncErrors } }
+    return okJson({
+      success: true,
+      data: { proxies: items, total: items.length, hasMore: false, stats, syncErrors: {} },
+    });
   });
   vi.stubGlobal("fetch", mockFetch);
   return mockFetch;
@@ -232,7 +236,7 @@ describe("FreePoolTab data loading", () => {
   it("disabling a source re-fetches with sources= filter", async () => {
     const mockFetch = vi.fn((url: string) => {
       if (String(url).includes("/stats")) return okJson({ stats: defaultStats });
-      return okJson({ items: [] });
+      return okJson({ success: true, data: { proxies: [], total: 0, hasMore: false, stats: defaultStats, syncErrors: {} } });
     });
     vi.stubGlobal("fetch", mockFetch);
 
@@ -285,7 +289,7 @@ describe("FreePoolTab sync error surfacing (#5595)", () => {
         });
       }
       if (String(url).includes("/stats")) return okJson({ stats: defaultStats });
-      return okJson({ items: [] });
+      return okJson({ success: true, data: { proxies: [], total: 0, hasMore: false, stats: defaultStats, syncErrors: {} } });
     });
     vi.stubGlobal("fetch", mockFetch);
 

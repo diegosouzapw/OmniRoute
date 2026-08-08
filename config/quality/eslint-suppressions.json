@@ -81,7 +81,7 @@
   },
   "open-sse/handlers/search.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 34
+      "count": 33
     }
   },
   "open-sse/handlers/sseParser.ts": {
@@ -1356,21 +1356,8 @@
       "count": 1
     }
   },
-  "src/sse/handlers/chat.ts": {
-    "no-restricted-imports": {
-      "count": 1
-    }
-  },
   "src/sse/handlers/chatHelpers.ts": {
     "no-restricted-imports": {
-      "count": 1
-    }
-  },
-  "src/sse/services/auth.ts": {
-    "no-restricted-imports": {
-      "count": 1
-    },
-    "no-restricted-syntax": {
       "count": 1
     }
   },

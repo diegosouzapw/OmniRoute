@@ -5,7 +5,10 @@ import {
   AI_PROVIDERS,
   USAGE_SUPPORTED_PROVIDERS,
   FREE_APIKEY_PROVIDER_IDS,
+  supportsDualAuthProvider,
 } from "../../src/shared/constants/providers.ts";
+import { isManagedProviderConnectionId } from "../../src/lib/providers/catalog.ts";
+import { connectionMatchesProviderCard } from "../../src/app/(dashboard)/dashboard/providers/providerPageUtils.ts";
 import { REGISTRY } from "../../open-sse/config/providerRegistry.ts";
 import { getExecutor } from "../../open-sse/executors/index.ts";
 import { CodeBuddyCnExecutor } from "../../open-sse/executors/codebuddy-cn.ts";
@@ -105,7 +108,11 @@ test("CodeBuddyCnExecutor.transformRequest forces stream:true and leaves reasoni
     false,
     "plain request must not inject reasoning_effort (opt-in only)"
   );
-  assert.notEqual(body.reasoning_summary, "auto", "plain request must not inject reasoning_summary");
+  assert.notEqual(
+    body.reasoning_summary,
+    "auto",
+    "plain request must not inject reasoning_summary"
+  );
 });
 
 test("CodeBuddyCnExecutor preserves explicit reasoning_effort", () => {
@@ -136,13 +143,17 @@ test("CodeBuddyCnExecutor strips reasoning_effort when caller asks for none/off"
       false,
       `reasoning_effort must be omitted for ${effort}`
     );
-    assert.notEqual(body.reasoning_summary, "auto", `reasoning_summary must not be auto for ${effort}`);
+    assert.notEqual(
+      body.reasoning_summary,
+      "auto",
+      `reasoning_summary must not be auto for ${effort}`
+    );
   }
 });
 
 test("codebuddy-cn OAuth provider is wired with device_code flow and GET-poll on state", async () => {
   assert.equal(OAUTH_PROVIDER_IDS.CODEBUDDY_CN, "codebuddy-cn");
-  const map = (PROVIDERS_MAP as Record<string, any>);
+  const map = PROVIDERS_MAP as Record<string, any>;
   const cb = map["codebuddy-cn"];
   assert.ok(cb, "PROVIDERS map must include 'codebuddy-cn'");
   assert.equal(cb.flowType, "device_code");
@@ -187,9 +198,7 @@ test("codebuddy-cn token refresh handler is wired in tokenRefresh.ts", () => {
 
 test("codebuddy-cn is in USAGE_SUPPORTED_PROVIDERS and quota handler parses Tencent accounts", async () => {
   assert.ok(USAGE_SUPPORTED_PROVIDERS.includes("codebuddy-cn"));
-  const { getCodeBuddyCnUsage } = await import(
-    "../../open-sse/services/usage/codebuddy-cn.ts"
-  );
+  const { getCodeBuddyCnUsage } = await import("../../open-sse/services/usage/codebuddy-cn.ts");
 
   const origFetch = globalThis.fetch;
   // Compose a mixed payload: one refill (CycleEndTime << DeductionEndTime) and
@@ -259,11 +268,22 @@ test("codebuddy-cn is in USAGE_SUPPORTED_PROVIDERS and quota handler parses Tenc
   }
 });
 
-test("codebuddy-cn is treated as a managed dual-auth provider (oauth + apikey accepted by POST /api/providers)", async () => {
-  // The provider creation gate trusts FREE_APIKEY_PROVIDER_IDS to admit
-  // OAuth-category providers that also accept a direct API key (like qoder).
-  assert.ok(
+test("codebuddy-cn stays OAuth-primary while the managed gate accepts its API-key path", () => {
+  assert.equal(
     FREE_APIKEY_PROVIDER_IDS.has("codebuddy-cn"),
-    "codebuddy-cn must be admitted by the dual-auth gate"
+    false,
+    "codebuddy-cn must not be classified as PAT-primary"
   );
+  assert.equal(supportsDualAuthProvider("codebuddy-cn"), true);
+  assert.equal(isManagedProviderConnectionId("codebuddy-cn"), true);
+  for (const authType of ["apikey", "api_key"]) {
+    assert.equal(
+      connectionMatchesProviderCard(
+        { provider: "codebuddy-cn", authType },
+        "codebuddy-cn",
+        "oauth"
+      ),
+      true
+    );
+  }
 });

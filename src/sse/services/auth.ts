@@ -2,16 +2,19 @@ import { randomUUID, createHash } from "crypto";
 import { extractGoogApiKeyHeader } from "./googApiKeyAuth.ts";
 import {
   getCachedRawProviderConnections,
-  getProviderConnections,
   getCachedProviderNodes,
-  validateApiKey,
+  getCachedSettings,
+} from "@/lib/db/readCache";
+import {
+  getProviderConnections,
   updateProviderConnection,
   resetConnectionBackoff,
-  getSettings,
-  getCachedSettings,
   touchConnectionLastUsed,
   clearConnectionErrorIfUnchanged,
-} from "@/lib/localDb";
+} from "@/lib/db/providers";
+import { validateApiKey } from "@/lib/db/apiKeys";
+import { getSettings } from "@/lib/db/settings";
+import { toNumber } from "@/shared/utils/numeric";
 import {
   createLazyConnectionView,
   toProviderConnection,
@@ -124,15 +127,6 @@ function asRecord(value: unknown): JsonRecord {
 
 function toStringOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
-
-function toNumber(value: unknown, fallback = 0): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
-  return fallback;
 }
 
 function toNullableNumber(value: unknown): number | null {
@@ -928,6 +922,8 @@ export { readHeaderValue, type AuthRequestHeaders } from "./headerReader.ts";
 const PROVIDER_SEARCH_PAIRS: string[][] = [
   ["nvidia", "nvidia_nim"],
   ["kimi-coding", "kimi-coding-apikey"],
+  // The model layer canonicalizes `agy/` to `antigravity`, but the Antigravity
+  // CLI card stores its connection under `agy`. Same account, either id serves.
   ["antigravity", "agy"],
 ];
 /**
@@ -2035,7 +2031,10 @@ export async function markAccountUnavailable(
         ? "model"
         : getQuotaScopeLabelForProvider(provider, model);
       const antigravityFamilyInferredBaseCooldownMs =
-        !usesExactAntigravityLock && provider === "antigravity" && quotaScope === "family" && status === 429
+        !usesExactAntigravityLock &&
+        provider === "antigravity" &&
+        quotaScope === "family" &&
+        status === 429
           ? ANTIGRAVITY_FAMILY_INFERRED_BASE_COOLDOWN_MS
           : null;
       const lockout = recordModelLockoutFailure(

@@ -88,7 +88,14 @@ function makePool() {
 /**
  * Drive ONE consumption through the real non-streaming hot-path hook.
  * scheduleQuotaShareConsumption → scheduleRecordConsumption (setImmediate) →
- * recordConsumption. We await a macrotask tick so the setImmediate fires.
+ * recordConsumption.
+ *
+ * The hook is deliberately fire-and-forget: it hands recordConsumption to
+ * setImmediate and never exposes the resulting promise, so there is nothing here
+ * to await. A macrotask tick gets the setImmediate callback to fire, but
+ * recordConsumption then awaits the store singleton and two SQLite writes of its
+ * own. Callers must poll for the recorded state instead of assuming a fixed
+ * delay covers those.
  */
 async function consumeViaHotPath(model: string, requests: number) {
   for (let i = 0; i < requests; i++) {
@@ -102,10 +109,35 @@ async function consumeViaHotPath(model: string, requests: number) {
       usage: { prompt_tokens: 5, completion_tokens: 5 },
       estimatedCost: 0,
     });
-    // Let the setImmediate-scheduled recordConsumption run before the next iteration.
+    // Let the setImmediate-scheduled recordConsumption start before the next iteration.
     await new Promise((r) => setImmediate(r));
-    await new Promise((r) => setTimeout(r, 5));
   }
+}
+
+/**
+ * Await the enforce decision the consumptions above are expected to produce.
+ *
+ * Returns as soon as the decision matches, and returns the last decision it saw
+ * once the deadline passes, so a genuinely broken plumbing path still fails on
+ * the caller's own assertion rather than on a timeout.
+ *
+ * The deadline is deliberately far larger than the drain ever needs: it costs
+ * nothing when the decision arrives (the loop exits on the first match) and only
+ * delays the report when the plumbing is actually broken, so there is no reason
+ * to pick a value a slow CI box could outrun.
+ */
+async function enforceUntil(
+  input: Parameters<typeof enforceQuotaShare>[0],
+  expected: "allow" | "block",
+  timeoutMs = 30_000
+) {
+  const deadline = Date.now() + timeoutMs;
+  let decision = await enforceQuotaShare(input);
+  while (decision.kind !== expected && Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 5));
+    decision = await enforceQuotaShare(input);
+  }
+  return decision;
 }
 
 // ---------------------------------------------------------------------------
@@ -119,13 +151,16 @@ test("hot-path: model cap blocks after N consumptions driven through scheduleQuo
   await consumeViaHotPath(MODEL_M, CAP_N);
 
   // The enforce PRE-hook (with model, as chatCore now calls it) must block on model M.
-  const blocked = await enforceQuotaShare({
-    apiKeyId: KEY_A,
-    connectionId: CONN_ID,
-    provider: PROVIDER,
-    model: MODEL_M,
-    estimatedCost: {},
-  });
+  const blocked = await enforceUntil(
+    {
+      apiKeyId: KEY_A,
+      connectionId: CONN_ID,
+      provider: PROVIDER,
+      model: MODEL_M,
+      estimatedCost: {},
+    },
+    "block"
+  );
   assert.equal(blocked.kind, "block", "model M must be blocked after N hot-path consumptions");
   assert.ok(
     "reason" in blocked && blocked.reason.includes("model-cap"),

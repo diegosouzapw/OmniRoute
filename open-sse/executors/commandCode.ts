@@ -461,14 +461,31 @@ function applyEventToAggregateOrThrow(event: JsonRecord, state: AggregateState):
 function usageFromCommandCode(usage: JsonRecord | null) {
   if (!usage) return undefined;
   const details = isRecord(usage.inputTokenDetails) ? usage.inputTokenDetails : {};
-  const prompt =
-    (numberValue(usage.inputTokens) || 0) + (numberValue(details.cacheReadTokens) || 0);
+  const cacheRead = numberValue(details.cacheReadTokens) || 0;
+  const noCache = numberValue(details.noCacheTokens) || 0;
+  // Command Code's totalUsage.inputTokens is the FULL prompt total and already
+  // includes the cached portion (noCacheTokens + cacheReadTokens = inputTokens),
+  // so we must NOT add cacheRead back — that would double-count. There is no
+  // cache-write field in the upstream payload, so cache creation stays unset.
+  const inputTokens = numberValue(usage.inputTokens) || 0;
+  const prompt = inputTokens;
   const completion = numberValue(usage.outputTokens) || 0;
-  return {
+  const result: JsonRecord = {
     prompt_tokens: prompt,
     completion_tokens: completion,
     total_tokens: prompt + completion,
   };
+  // Surface the cache breakdown as informational fields so logUsage prints
+  // `| cache_read=X | no_cache=Y` and appendRequestLog persists them. These are
+  // NOT added to prompt_tokens (already included) — metering stays accurate.
+  if (cacheRead > 0) result.cache_read_input_tokens = cacheRead;
+  if (noCache > 0) result.no_cache_tokens = noCache;
+  // Keep reasoning_token_details (reasoningTokens) when present so stream.ts's
+  // extractUsage can surface it as reasoning_tokens.
+  const reasoningDetails = isRecord(usage.reasoningTokenDetails) ? usage.reasoningTokenDetails : {};
+  const reasoning = numberValue(reasoningDetails.reasoningTokens);
+  if (reasoning !== undefined && reasoning > 0) result.reasoning_tokens = reasoning;
+  return result;
 }
 
 function createStreamResponse(
@@ -549,6 +566,22 @@ function createStreamResponse(
             state.finishReason = mapFinishReason(event.finishReason);
             state.usage = isRecord(event.totalUsage) ? event.totalUsage : null;
             controller.enqueue(sse(chatCompletionChunk(id, model, {}, state.finishReason)));
+            // Emit a standards-compliant usage-only chunk (choices: []) before
+            // [DONE] when upstream reported usage. stream.ts's extractUsage
+            // recognizes this shape (see stream.ts:1661) and logs the ACTUAL
+            // token counts (in/out/cache_read/no_cache) instead of estimates.
+            const usagePayload = usageFromCommandCode(state.usage);
+            if (usagePayload) {
+              controller.enqueue(
+                sse({
+                  id,
+                  object: "chat.completion.chunk",
+                  model,
+                  usage: usagePayload,
+                  choices: [],
+                })
+              );
+            }
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));
             closed = true;
             controller.close();

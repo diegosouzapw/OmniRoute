@@ -30,12 +30,11 @@ import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { setRadarOptIn, setRadarKey, getRadarSettings } from "@/lib/db/radar";
 import { getContributorClaimUrl, getSupporterPlansUrl } from "@/lib/radar/links";
+import { SUPPORTER_KEY_REGEX } from "@/lib/radar/supporterKey";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-const SUPPORTER_KEY_REGEX = /^omr_[0-9a-f]{40}$/;
 
 const SettingsBodySchema = z.object({
   optIn: z.boolean().optional(),

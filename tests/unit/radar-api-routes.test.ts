@@ -406,6 +406,57 @@ test("GET /api/radar/settings: flag on, authenticated, after opt-in + key => ref
   assert.ok(!text.includes(RAW_KEY), "raw key must NEVER appear in the serialized response body");
 });
 
+// ---------------------------------------------------------------------------
+// Paste-key activation UI (Radar activation screen) — opt-in + supporterKey
+// submitted TOGETHER in a single POST, the shape the new page.tsx paste-key
+// form sends (pasting a key both sets it AND activates opt-in in one call).
+// ---------------------------------------------------------------------------
+
+test("POST /api/radar/settings: opt-in+key submitted together => both persist, POST response masked, GET reflects both, raw key never in either body", async () => {
+  resetStorage();
+  process.env.RADAR_ENABLED = "true";
+
+  const settingsRoute = await import("../../src/app/api/radar/settings/route.ts");
+  const headers = await authHeaders();
+  const RAW_KEY = "omr_1234567890abcdef1234567890abcdef12345678";
+
+  const postResponse = await settingsRoute.POST(
+    mockPostRequest(
+      "http://localhost:20128/api/radar/settings",
+      { optIn: true, supporterKey: RAW_KEY },
+      headers,
+    ),
+  );
+  const postText = await postResponse.text();
+  const postBody = JSON.parse(postText);
+
+  assert.equal(postResponse.status, 200);
+  assert.equal(postBody.ok, true);
+  assert.equal(postBody.optIn, true, "opt-in must be persisted in the same call");
+  assert.equal(
+    postBody.supporterKey,
+    "omr_****5678",
+    "POST response must mask the key, never echo it raw"
+  );
+  assert.ok(
+    !postText.includes(RAW_KEY),
+    "raw key must NEVER appear in the POST response body"
+  );
+
+  // Persistence check — a fresh GET must reflect BOTH fields set by the single POST.
+  const getResponse = await settingsRoute.GET(
+    mockGetRequest("http://localhost:20128/api/radar/settings", headers),
+  );
+  const getText = await getResponse.text();
+  const getBody = JSON.parse(getText);
+
+  assert.equal(getResponse.status, 200);
+  assert.equal(getBody.optIn, true, "opt-in must persist across requests");
+  assert.equal(getBody.hasSupporterKey, true, "supporter key must persist across requests");
+  assert.equal(getBody.supporterKeyMasked, "omr_****5678");
+  assert.ok(!getText.includes(RAW_KEY), "raw key must NEVER appear in the GET response body");
+});
+
 test("GET /api/radar/settings: F4/T7 claim/plans links honor env overrides (fork-friendly)", async () => {
   resetStorage();
   process.env.RADAR_ENABLED = "true";

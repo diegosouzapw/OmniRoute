@@ -6,6 +6,7 @@ import { appendRequestLog } from "@/lib/usageDb";
 import {
   getLoggedInputTokens,
   getLoggedOutputTokens,
+  getNoCacheTokens,
   getPromptCacheCreationTokens,
   getPromptCacheReadTokens,
 } from "@/lib/usage/tokenAccounting";
@@ -290,6 +291,7 @@ export function normalizeUsage(usage) {
   assignNumber("cache_read_input_tokens", usage?.cache_read_input_tokens);
   assignNumber("cache_creation_input_tokens", usage?.cache_creation_input_tokens);
   assignNumber("cached_tokens", usage?.cached_tokens);
+  assignNumber("no_cache_tokens", usage?.no_cache_tokens);
   assignNumber("reasoning_tokens", usage?.reasoning_tokens);
   // xAI's exact provider-reported cost (port of decolua/9router#2453, capability A —
   // @ryanngit). Ticks → USD conversion happens in costCalculator.ts, not here.
@@ -416,6 +418,9 @@ export function extractUsage(chunk) {
         chunk.usage.input_tokens_details?.cached_tokens ??
         chunk.usage.prompt_cache_hit_tokens ??
         chunk.usage.cached_tokens,
+      cache_read_input_tokens: chunk.usage.cache_read_input_tokens,
+      cache_creation_input_tokens: chunk.usage.cache_creation_input_tokens,
+      no_cache_tokens: chunk.usage.no_cache_tokens,
       reasoning_tokens:
         chunk.usage.completion_tokens_details?.reasoning_tokens ??
         chunk.usage.output_tokens_details?.reasoning_tokens ??
@@ -608,6 +613,11 @@ export function logUsage(
 
   const cacheCreation = getPromptCacheCreationTokens(usage);
   if (cacheCreation) msg += ` | cache_create=${cacheCreation}`;
+
+  // Non-cached (fresh) input tokens — informational only, already included in
+  // prompt_tokens (Command Code reports inputTokenDetails.noCacheTokens).
+  const noCache = getNoCacheTokens(usage);
+  if (noCache) msg += ` | no_cache=${noCache}`;
 
   const reasoning = usage.reasoning_tokens;
   if (reasoning) msg += ` | reasoning=${reasoning}`;
