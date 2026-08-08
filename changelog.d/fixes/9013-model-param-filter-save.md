@@ -1,0 +1,1 @@
+- **fix(dashboard):** model-level allowed/blocked param edits now persist when the compatibility popover is closed by clicking outside, and a failed save no longer clears the edit or reports success ([#9013](https://github.com/diegosouzapw/OmniRoute/pull/9013))

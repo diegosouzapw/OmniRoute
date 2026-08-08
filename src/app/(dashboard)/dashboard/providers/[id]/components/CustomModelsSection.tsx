@@ -695,6 +695,8 @@ export default function CustomModelsSection({
                   </button>
                   <ModelCompatPopover
                     t={t}
+                    providerId={providerId}
+                    modelId={model.id!}
                     effectiveModelNormalize={(p) =>
                       effectiveNormalizeForProtocol(model.id!, p, customMap, overrideMap)
                     }
