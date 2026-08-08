@@ -13,7 +13,6 @@
 
 export interface SyncedModelRow {
   id?: unknown;
-  [key: string]: unknown;
 }
 
 /**
