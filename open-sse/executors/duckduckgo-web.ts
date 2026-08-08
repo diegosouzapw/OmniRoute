@@ -137,7 +137,22 @@ interface DuckDuckGoModelCapabilities {
   reasoningEffort: string | null;
 }
 
+type DuckDuckGoRequestMessage = Record<string, unknown> & {
+  role: string;
+  content: unknown;
+};
+
 let durablePublicKey: JsonWebKey | null = null;
+
+export function normalizeDuckDuckGoMessages(value: unknown): DuckDuckGoRequestMessage[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((message) => {
+    if (!message || typeof message !== "object" || Array.isArray(message)) return [];
+    const record = message as Record<string, unknown>;
+    if (typeof record.role !== "string") return [];
+    return [{ ...record, role: record.role, content: record.content }];
+  });
+}
 
 function extractDuckDuckGoContent(data: unknown): string {
   if (!data || typeof data !== "object") return "";
@@ -440,14 +455,12 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
     const { model, body, stream, signal, upstreamExtraHeaders } = input;
     const upstreamModel = normalizeDuckDuckGoModel(model);
     const bodyObj = (body || {}) as Record<string, unknown>;
-    const rawMessages = Array.isArray((body as { messages?: unknown[] } | null)?.messages)
-      ? ((body as { messages: unknown[] }).messages as Array<Record<string, unknown>>)
-      : [];
+    const rawMessages = normalizeDuckDuckGoMessages(bodyObj.messages);
     const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(
       bodyObj,
       rawMessages
     );
-    const messages = effectiveMessages as Array<Record<string, unknown>>;
+    const messages = effectiveMessages;
     const isStreaming = stream !== false;
     const upstreamHeaders = upstreamExtraHeaders || {};
 
