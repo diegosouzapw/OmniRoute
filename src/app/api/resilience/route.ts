@@ -111,9 +111,15 @@ function normalizeLegacyPatch(body: JsonRecord): ResilienceSettingsPatch {
 }
 
 async function syncRuntimeSettings(resilienceSettings: ResilienceSettings) {
-  const { applyRequestQueueSettings } =
-    await import("@omniroute/open-sse/services/rateLimitManager");
+  const [{ applyRequestQueueSettings }, { setProviderQuotaOverrides }] = await Promise.all([
+    import("@omniroute/open-sse/services/rateLimitManager"),
+    import("@omniroute/open-sse/services/providerDefaultRateLimit"),
+  ]);
   await applyRequestQueueSettings(resilienceSettings.requestQueue);
+  // #6846 Phase 2: re-apply per-provider RPM/concurrency overrides on the hot
+  // path so a PATCH takes effect without a process restart. Mirrors the call in
+  // rateLimitManager.ts::initializeRateLimits() (startup).
+  setProviderQuotaOverrides(resilienceSettings.providerQuotaOverrides);
 }
 
 /**
@@ -136,6 +142,7 @@ export async function GET() {
       comboCooldownWait: resilience.comboCooldownWait,
       quotaShareConcurrencyLimit: resilience.quotaShareConcurrencyLimit,
       providerCooldown: resilience.providerCooldown,
+      providerQuotaOverrides: resilience.providerQuotaOverrides,
       legacy: buildLegacyResilienceCompat(resilience),
     });
   } catch (err: unknown) {
@@ -208,6 +215,12 @@ export async function PATCH(request) {
             providerCooldown: body.providerCooldown as ResilienceSettingsPatch["providerCooldown"],
           }
         : {}),
+      ...(body.providerQuotaOverrides
+        ? {
+            providerQuotaOverrides:
+              body.providerQuotaOverrides as ResilienceSettingsPatch["providerQuotaOverrides"],
+          }
+        : {}),
       ...normalizeLegacyPatch(body),
     });
 
@@ -245,6 +258,7 @@ export async function PATCH(request) {
       comboCooldownWait: nextResilience.comboCooldownWait,
       quotaShareConcurrencyLimit: nextResilience.quotaShareConcurrencyLimit,
       providerCooldown: nextResilience.providerCooldown,
+      providerQuotaOverrides: nextResilience.providerQuotaOverrides,
       legacy: buildLegacyResilienceCompat(nextResilience),
     });
   } catch (err: unknown) {

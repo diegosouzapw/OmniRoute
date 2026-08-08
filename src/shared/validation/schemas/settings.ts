@@ -158,6 +158,21 @@ export const updateResilienceSchema = z
       .strict()
       .optional(),
     defaults: legacyResilienceDefaultsSchema.optional(),
+    // #6846 Phase 2: per-provider operator overrides for the header-less
+    // "provider default" static budget (open-sse/services/providerDefaultRateLimit.ts)
+    // and its companion per-connection concurrency cap. Mirrors
+    // ProviderQuotaOverrideSettings in src/lib/resilience/settings/types.ts.
+    providerQuotaOverrides: z
+      .record(
+        z.string().min(1),
+        z
+          .object({
+            rpm: z.number().int().min(1).optional(),
+            concurrency: z.number().int().min(1).optional(),
+          })
+          .strict()
+      )
+      .optional(),
   })
   .strict()
   .superRefine((value, ctx) => {
@@ -170,7 +185,8 @@ export const updateResilienceSchema = z
       !value.quotaShareConcurrencyLimit &&
       !value.providerCooldown &&
       !value.profiles &&
-      !value.defaults
+      !value.defaults &&
+      !value.providerQuotaOverrides
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
