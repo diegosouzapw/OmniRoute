@@ -22,7 +22,10 @@ const EXECUTOR_PATH = "../../open-sse/executors/claude-web.ts";
 
 /** Calls __setTlsFetchOverrideForTesting with the given mock, resets on finish. */
 async function withTlsMock<T>(
-  mock: (url: string, options: Record<string, unknown>) => Promise<{
+  mock: (
+    url: string,
+    options: Record<string, unknown>
+  ) => Promise<{
     status: number;
     headers: Headers;
     text: string | null;

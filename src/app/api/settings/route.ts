@@ -155,10 +155,7 @@ function attemptedKeysOf(body: Record<string, unknown> | null | undefined): stri
   if (!body || typeof body !== "object") return [];
   return Object.keys(body).filter(
     (k) =>
-      k !== "currentPassword" &&
-      k !== "newPassword" &&
-      k !== "password" &&
-      k !== "expectedRevision"
+      k !== "currentPassword" && k !== "newPassword" && k !== "password" && k !== "expectedRevision"
   );
 }
 

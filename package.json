@@ -432,6 +432,11 @@
     "@hono/node-server": "^2.0.5",
     "fast-uri": "^3.1.5",
     "body-parser": "^2.3.0",
+    "tar": "^7.5.21",
+    "socket.io-parser": "^4.2.7",
+    "brace-expansion@1": "^1.1.18",
+    "brace-expansion@2": "^2.1.4",
+    "brace-expansion@5": "^5.0.9",
     "@yarnpkg/parsers": {
       "js-yaml": "^4.3.1"
     },
@@ -447,6 +452,7 @@
     "adm-zip": "^0.6.0",
     "promptfoo": {
       "js-yaml": "^5.2.2",
+      "undici": "^7.29.0",
       "@apidevtools/json-schema-ref-parser": {
         "js-yaml": "^4.3.1"
       },

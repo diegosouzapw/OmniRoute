@@ -15,7 +15,10 @@ class MockM365WebSocket {
   closed = false;
   listeners = new Map<string, Listener[]>();
 
-  constructor(public url: string, public options: unknown) {
+  constructor(
+    public url: string,
+    public options: unknown
+  ) {
     MockM365WebSocket.instances.push(this);
     queueMicrotask(() => this.emit("open"));
   }

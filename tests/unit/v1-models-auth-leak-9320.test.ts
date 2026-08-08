@@ -15,9 +15,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-9320-models-auth-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-9320-models-auth-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "test-secret-9320";
 
@@ -61,11 +59,7 @@ test("#9320 FIXED: anonymous GET /v1/models returns 401 when auth is configured"
   );
 
   // After fix: anonymous requests must be rejected with 401 when auth is configured
-  assert.equal(
-    res.status,
-    401,
-    `expected 401 for anonymous request, got ${res.status}`
-  );
+  assert.equal(res.status, 401, `expected 401 for anonymous request, got ${res.status}`);
   const body = await res.json();
   assert.ok(body.error, "response must carry an error object");
 });
@@ -92,8 +86,6 @@ test("#9320: authenticated request (valid API key) returns 200 with models", asy
   // With a valid API key, the catalog should be accessible
   if (res.status !== 200) {
     // If the fix is in place, this should return 200
-    console.log(
-      `[INFO] Authenticated request returned status ${res.status}`
-    );
+    console.log(`[INFO] Authenticated request returned status ${res.status}`);
   }
 });

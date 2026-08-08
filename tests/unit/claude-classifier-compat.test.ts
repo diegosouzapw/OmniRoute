@@ -25,9 +25,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const { updateSettings } = await import("../../src/lib/db/settings.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
-const { shouldDefaultAllowClassifier, buildDefaultAllowClaudeMessage } = await import(
-  "../../open-sse/handlers/chatCore/claudeClassifierCompat.ts"
-);
+const { shouldDefaultAllowClassifier, buildDefaultAllowClaudeMessage } =
+  await import("../../open-sse/handlers/chatCore/claudeClassifierCompat.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 
 const originalFetch = globalThis.fetch;
@@ -123,7 +122,12 @@ test("detector: always does NOT fire for normal chat without classifier marker (
 
 test("detector: always fires when classifier marker is present", () => {
   const classifier = {
-    system: [{ type: "text", text: "You are a security monitor for autonomous AI coding agents. Evaluate the following action." }],
+    system: [
+      {
+        type: "text",
+        text: "You are a security monitor for autonomous AI coding agents. Evaluate the following action.",
+      },
+    ],
     stop_sequences: ["</block>"],
   };
   assert.equal(

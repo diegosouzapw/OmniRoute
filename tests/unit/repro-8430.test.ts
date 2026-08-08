@@ -48,11 +48,17 @@ function createPayload(o: Record<string, unknown> = {}): Record<string, unknown>
   };
 }
 
-test.beforeEach(() => { resetGuardrailsForTests({ registerDefaults: false }); });
+test.beforeEach(() => {
+  resetGuardrailsForTests({ registerDefaults: false });
+});
 
 test("8430a: getBestVisionModel returns null when every vision-capable candidate is unusable", async () => {
   const model = await getBestVisionModel({}, { hasUsableCredentials: async () => false });
-  assert.strictEqual(model, null, `no vision provider reachable, but returned unreachable '${model}'`);
+  assert.strictEqual(
+    model,
+    null,
+    `no vision provider reachable, but returned unreachable '${model}'`
+  );
 });
 
 test("8430b: fixedModel describe-path target must not be an unreachable model", async () => {
@@ -75,5 +81,9 @@ test("8430c: describe path does not forward raw image when no vision provider is
   };
   const content = modified.messages[0].content;
   const imagePart = content.find((p) => p.type === "image_url" || p.type === "image");
-  assert.strictEqual(imagePart, undefined, "raw image forwarded with no clear error (ask #2 unimplemented)");
+  assert.strictEqual(
+    imagePart,
+    undefined,
+    "raw image forwarded with no clear error (ask #2 unimplemented)"
+  );
 });

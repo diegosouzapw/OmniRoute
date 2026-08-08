@@ -12,9 +12,8 @@ import { join } from "node:path";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-8989-repro-"));
 
-const { MODEL_MAP, THINKING_MAP } = await import(
-  "../../open-sse/executors/perplexity-web/protocol.ts"
-);
+const { MODEL_MAP, THINKING_MAP } =
+  await import("../../open-sse/executors/perplexity-web/protocol.ts");
 
 // ── Guard: MODEL_MAP must use "copilot" ────────────────────────────────────
 // The backend downgrades "search" to CONCISE, drops model_preference and ends
@@ -25,11 +24,7 @@ test("MODEL_MAP catalog entries must post mode 'copilot' (#8989)", () => {
     .filter(([, [mode]]) => mode !== "copilot")
     .map(([model, [mode]]) => `${model}=${mode}`);
 
-  assert.deepEqual(
-    offenders,
-    [],
-    `Catalog models using wrong mode: ${offenders.join(", ")}`
-  );
+  assert.deepEqual(offenders, [], `Catalog models using wrong mode: ${offenders.join(", ")}`);
 });
 
 test("MODEL_MAP/THINKING_MAP: pplx-opus resolves to Claude Opus 5 (#8989)", () => {
