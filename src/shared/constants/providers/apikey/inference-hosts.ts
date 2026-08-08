@@ -32,6 +32,21 @@ export const APIKEY_PROVIDERS_INFERENCE = {
     freeNote:
       "Free credits on signup for OpenAI-compatible inference across LLMs, embeddings, and reasoning models",
   },
+  poolside: {
+    id: "poolside",
+    alias: "poolside",
+    name: "Poolside",
+    icon: "memory",
+    color: "#111827",
+    textIcon: "PS",
+    passthroughModels: true,
+    website: "https://poolside.ai",
+    hasFree: true,
+    freeNote:
+      "Laguna S 2.1 and XS 2.1 are free during Preview; no public numeric quota is published.",
+    apiHint:
+      "Create a free developer API key, then use https://inference.poolside.ai/v1 as the OpenAI-compatible base URL.",
+  },
   fireworks: {
     id: "fireworks",
     alias: "fireworks",

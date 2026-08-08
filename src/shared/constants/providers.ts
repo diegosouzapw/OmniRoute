@@ -92,6 +92,22 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "g4f-pollinations",
   "g4f-ollama",
   "g4f-nvidia",
+  "zylo-api",
+  "unorouter",
+  "fastrouter",
+  "anyapi",
+  "electronhub",
+  "llmgateway",
+  "llm-kiwi",
+  "literouter",
+  "mnn-ai",
+  "meganova-ai",
+  "mixlayer",
+  "speka",
+  "tokenreply",
+  "yolo-auto",
+  "dxnt",
+  "cloudcode-one",
 ]);
 
 export const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
