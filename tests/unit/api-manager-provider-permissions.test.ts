@@ -635,6 +635,12 @@ test("R4: provider selection helpers emit canonical provider/* and keep other ex
       modelAccessMode: "all" | "restricted";
       allowedModels: string[];
     };
+    formatProviderModelPermissionSummary?: (
+      providerCount: number,
+      modelCount: number,
+      t: (key: string, values?: Record<string, unknown>) => string,
+      tc: (key: string) => string
+    ) => string;
   };
 
   assert.equal(
@@ -662,6 +668,25 @@ test("R4: provider selection helpers emit canonical provider/* and keep other ex
     "function",
     "UI must expose buildModelAccessSavePayload for modelAccessMode + allowedModels"
   );
+  assert.equal(
+    typeof utils.formatProviderModelPermissionSummary,
+    "function",
+    "UI must expose one provider/model summary formatter for every display surface"
+  );
+
+  const t = (key: string, values?: Record<string, unknown>) => {
+    if (key === "modelsCount") return `${values?.count} model${values?.count === 1 ? "" : "s"}`;
+    if (key === "selectedCount") return `${values?.count} selected`;
+    return key;
+  };
+  const tc = (key: string) => key;
+  assert.deepEqual(pageUtils.restoreProviderScopeSelection(["codex/*", "openai/gpt-4.1"]), {
+    providerWildcards: ["codex/*"],
+    exactModels: ["openai/gpt-4.1"],
+  });
+  assert.equal(utils.formatProviderModelPermissionSummary!(1, 1, t, tc), "1 provider · 1 model");
+  assert.equal(utils.formatProviderModelPermissionSummary!(1, 0, t, tc), "1 provider");
+  assert.equal(utils.formatProviderModelPermissionSummary!(0, 2, t, tc), "2 models");
 
   // Selecting ollama-cloud adds canonical wildcard; coexists with openai exact.
   assert.deepEqual(utils.toggleProviderWildcardSelection!(["openai/gpt-4.1"], "ollama-cloud"), [

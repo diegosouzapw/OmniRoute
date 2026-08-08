@@ -12,9 +12,12 @@ import {
   isKeyActive,
   isExpired,
   isRestricted as isKeyRestricted,
+  buildModelAccessSavePayload,
   classifyKeyStatus,
   computeApiKeyCounts,
+  formatProviderModelPermissionSummary,
   formatUsdCost,
+  restoreProviderScopeSelection,
   toLocalDateTimeInputValue,
   toggleKeyVisibility,
 } from "./apiManagerPageUtils";
@@ -29,7 +32,6 @@ import { ChaosModeAccessToggle } from "./components/ChaosModeAccessToggle";
 import { BypassProviderQuotaToggle } from "./components/BypassProviderQuotaToggle";
 import ProviderModelPermissionList from "./components/ProviderModelPermissionList";
 import ReasoningRoutingRules from "@/shared/components/ReasoningRoutingRules";
-import { buildModelAccessSavePayload, restoreProviderScopeSelection } from "./apiManagerPageUtils";
 
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 200;
@@ -96,22 +98,6 @@ function validateKeyName(
     };
   }
   return { valid: true };
-}
-
-function formatProviderModelPermissionCount(
-  providerCount: number,
-  modelCount: number,
-  t: (key: string, values?: Record<string, unknown>) => string,
-  tc: (key: string) => string
-): string {
-  const providerLabel =
-    providerCount > 0
-      ? `${providerCount} ${tc(providerCount === 1 ? "provider" : "providers")}`
-      : "";
-  const modelLabel = modelCount > 0 ? t("modelsCount", { count: modelCount }) : "";
-  return (
-    [providerLabel, modelLabel].filter(Boolean).join(" · ") || t("selectedCount", { count: 0 })
-  );
 }
 
 interface AccessSchedule {
@@ -1170,7 +1156,7 @@ export default function ApiManagerPageClient() {
                           className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium hover:bg-amber-500/20 transition-colors"
                         >
                           <span className="material-symbols-outlined text-[14px]">lock</span>
-                          {formatProviderModelPermissionCount(providerCount, modelCount, t, tc)}
+                          {formatProviderModelPermissionSummary(providerCount, modelCount, t, tc)}
                         </button>
                       ) : (
                         <button
@@ -2021,7 +2007,7 @@ const PermissionsModal = memo(function PermissionsModal({
   const selectedProviderCount = selectedProviderScopes.length;
   const selectedModelCount = selectedExactModels.length;
   const selectedCount = selectedModels.length;
-  const selectedPermissionCount = formatProviderModelPermissionCount(
+  const selectedPermissionSummary = formatProviderModelPermissionSummary(
     selectedProviderCount,
     selectedModelCount,
     t,
@@ -2136,7 +2122,7 @@ const PermissionsModal = memo(function PermissionsModal({
               : !modelsLoaded
                 ? t("restrictLoading")
                 : selectedProviderCount > 0
-                  ? selectedPermissionCount
+                  ? selectedPermissionSummary
                   : totalModels === 0
                     ? t("restrictCatalogUnavailable", { selectedCount })
                     : t("restrictDesc", { selectedCount, totalModels })}
@@ -2652,7 +2638,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {!allowAll && selectedCount > 0 && (
           <div className="flex flex-col gap-1.5 p-2 bg-primary/5 rounded-lg border border-primary/20">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-primary">{selectedPermissionCount}</span>
+              <span className="text-xs font-medium text-primary">{selectedPermissionSummary}</span>
               <div className="flex gap-1">
                 <button
                   onClick={handleSelectAllModels}

@@ -160,8 +160,7 @@ test("provider wildcard permissions render separately from exact models", () => 
   assert.match(source, /const isModelRestricted =/);
   assert.match(source, /const providerCount = providerWildcards\.length;/);
   assert.match(source, /const modelCount = exactModels\.length;/);
-  assert.match(source, /formatProviderModelPermissionCount\(\s*providerCount,/);
-  assert.match(source, /providerCount === 1 \? "provider" : "providers"/);
+  assert.match(source, /formatProviderModelPermissionSummary\(\s*providerCount,/);
   assert.doesNotMatch(source, /modelsCount\", \{ count: key\.allowedModels!\.length \}/);
 
   const summaryStart = source.indexOf("{/* Selected Models Summary");
@@ -169,10 +168,21 @@ test("provider wildcard permissions render separately from exact models", () => 
   const summary = source.slice(summaryStart, summaryEnd);
   assert.match(summary, /\{tc\("providers"\)\}/);
   assert.match(summary, /\{tc\("models"\)\}/);
-  assert.match(summary, /\{selectedPermissionCount\}/);
+  assert.match(summary, /\{selectedPermissionSummary\}/);
   assert.match(summary, /orderedSelectedProviderScopes\.map/);
   assert.match(summary, /selectedExactModels\.map/);
   assert.doesNotMatch(summary, /orderedSelectedModels\.map/);
+
+  const infoBannerStart = source.indexOf(
+    "{/* Info Banner */}",
+    source.indexOf("const PermissionsModal")
+  );
+  const infoBannerEnd = source.indexOf("{/* Key Active Toggle */}", infoBannerStart);
+  const infoBanner = source.slice(infoBannerStart, infoBannerEnd);
+  assert.match(
+    infoBanner,
+    /selectedProviderCount > 0\s*\? selectedPermissionSummary\s*:\s*totalModels === 0/
+  );
 });
 
 test("self-service API key scope labels do not expose missing placeholders", () => {

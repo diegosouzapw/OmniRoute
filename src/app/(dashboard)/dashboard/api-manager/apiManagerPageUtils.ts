@@ -258,6 +258,22 @@ export function restoreProviderScopeSelection(
   return { providerWildcards, exactModels };
 }
 
+export function formatProviderModelPermissionSummary(
+  providerCount: number,
+  modelCount: number,
+  t: (key: string, values?: Record<string, unknown>) => string,
+  tc: (key: string) => string
+): string {
+  const providerLabel =
+    providerCount > 0
+      ? `${providerCount} ${tc(providerCount === 1 ? "provider" : "providers")}`
+      : "";
+  const modelLabel = modelCount > 0 ? t("modelsCount", { count: modelCount }) : "";
+  return (
+    [providerLabel, modelLabel].filter(Boolean).join(" · ") || t("selectedCount", { count: 0 })
+  );
+}
+
 /**
  * Persisted payload for the model access section. Allow All always saves an
  * empty allow-list with mode "all"; Restrict (including zero selections)
