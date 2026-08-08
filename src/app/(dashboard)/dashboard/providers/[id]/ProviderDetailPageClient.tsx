@@ -52,6 +52,7 @@ import CoolingConnectionsPanel from "./components/CoolingConnectionsPanel";
 import ConnectionsHeaderToolbar from "./components/ConnectionsHeaderToolbar";
 import ProviderAccountRoutingCard from "../../settings/components/ProviderAccountRoutingCard";
 import ZedImportCard from "./components/ZedImportCard";
+import CursorAgentNudge from "./components/CursorAgentNudge";
 import ProviderPageHeader from "./components/ProviderPageHeader";
 import CompatibleNodeCard from "./components/CompatibleNodeCard";
 import ProviderModalsPanel from "./components/ProviderModalsPanel";
@@ -511,6 +512,7 @@ export default function ProviderDetailPageClient() {
       {providerId === "zed" && (
         <ZedImportCard fetchConnections={fetchConnections} notify={notify} />
       )}
+      {providerId === "cursor" && <CursorAgentNudge />}
       {isCompatible && providerNode && (
         <CompatibleNodeCard
           providerId={providerId}

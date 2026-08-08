@@ -479,7 +479,13 @@ export function parseDeepSeekToolCalls(
     // A missing _nonce is tolerated for backward compatibility.
     if (nonce) {
       const parsed = parseLooseJsonObject(inner);
-      if (parsed && typeof parsed.name === "string" && parsed._nonce !== undefined && parsed._nonce !== nonce) continue;
+      if (
+        parsed &&
+        typeof parsed.name === "string" &&
+        parsed._nonce !== undefined &&
+        parsed._nonce !== nonce
+      )
+        continue;
     }
 
     toolCalls.push({

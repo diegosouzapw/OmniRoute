@@ -29,9 +29,11 @@ function extractSystemTexts(body: Record<string, unknown> | null | undefined): s
   if (typeof system === "string") return [system];
   if (Array.isArray(system)) {
     return system
-      .map((part) => (part && typeof (part as { text?: unknown }).text === "string"
-        ? ((part as { text: string }).text)
-        : ""))
+      .map((part) =>
+        part && typeof (part as { text?: unknown }).text === "string"
+          ? (part as { text: string }).text
+          : ""
+      )
       .filter(Boolean);
   }
   return [];

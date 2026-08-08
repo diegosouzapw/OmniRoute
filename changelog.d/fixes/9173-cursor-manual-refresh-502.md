@@ -1,0 +1,1 @@
+- fix(cursor): the manual "Refresh" button on Cursor connections now calls the dedicated Cursor renewal route instead of silently returning a 502 every time (#9173)

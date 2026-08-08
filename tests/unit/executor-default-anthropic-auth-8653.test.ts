@@ -154,7 +154,10 @@ test("anthropic provider with accessToken-only (OAuth mode): Authorization Beare
 
 test("claude provider with apiKey on default baseUrl: x-api-key only, respects existing behavior", () => {
   const executor = new DefaultExecutor("claude");
-  const headers = executor.buildHeaders({ apiKey: "claude-key" } as Record<string, unknown>, true) as Record<string, string>;
+  const headers = executor.buildHeaders(
+    { apiKey: "claude-key" } as Record<string, unknown>,
+    true
+  ) as Record<string, string>;
   assert.equal(headers["x-api-key"], "claude-key");
   assert.equal(headers["Authorization"], undefined);
 });

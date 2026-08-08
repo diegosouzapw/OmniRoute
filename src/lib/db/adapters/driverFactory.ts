@@ -56,11 +56,23 @@ function requireSqliteDriver(moduleName: string): unknown {
 
 type NodeSqliteOptions = {
   readOnly?: boolean;
+  timeout?: number;
 };
 
+// Forwards `readOnly` and, independently, `timeout` — the latter is node:sqlite's
+// busy-timeout equivalent to better-sqlite3's `timeout`, natively supported by
+// `DatabaseSync` since Node v24.0.0. Previously this dropped `timeout` entirely,
+// so a caller's busy-timeout was only honored on the better-sqlite3 driver, not
+// on the node:sqlite fallback (see src/lib/cursor/tokenExtractor.ts::tryIdeAuth).
 function toNodeSqliteOptions(options?: Record<string, unknown>): NodeSqliteOptions | undefined {
-  if (options?.readonly !== true) return undefined;
-  return { readOnly: true };
+  const nodeOptions: NodeSqliteOptions = {};
+  if (options?.readonly === true) {
+    nodeOptions.readOnly = true;
+  }
+  if (typeof options?.timeout === "number") {
+    nodeOptions.timeout = options.timeout;
+  }
+  return Object.keys(nodeOptions).length > 0 ? nodeOptions : undefined;
 }
 
 /**

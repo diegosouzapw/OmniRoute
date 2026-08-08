@@ -161,7 +161,7 @@ describe("deepseekWebTools — strict prompt", () => {
     const prompt = serializeDeepSeekToolPrompt(TOOLS);
     assert.ok(prompt.includes("todowrite"));
     assert.ok(prompt.includes("get_weather"));
-    assert.ok(prompt.includes('_nonce'), "includes nonce binding");
+    assert.ok(prompt.includes("_nonce"), "includes nonce binding");
     assert.ok(prompt.includes('<tool>{"name"'), "shows the canonical format");
     assert.ok(/never|not|do not/i.test(prompt), "warns against alternative formats");
   });

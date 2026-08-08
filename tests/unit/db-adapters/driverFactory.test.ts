@@ -171,6 +171,68 @@ describe("driverFactory", () => {
       adapter.close();
     });
 
+    // Cursor renewal plan, Task 2 Step 5: tryIdeAuth() now passes a
+    // busy-timeout to tryOpenSync() on every driver path, since it's invoked
+    // from an unattended sweep tick (not just the human-attended auto-import
+    // modal) and needs a bounded retry window on a WAL-lock collision.
+    // toNodeSqliteOptions() previously forwarded ONLY readOnly, silently
+    // dropping `timeout` on the node:sqlite fallback path.
+    test("forced node:sqlite path forwards both readOnly and timeout to DatabaseSync (busy-timeout fix)", (t) => {
+      const databasePath = createTempDatabasePath(t);
+
+      // Seed a real file with the (unmodified) forced node:sqlite driver first.
+      const writer = forceNodeSqlite()(databasePath);
+      assert.ok(writer);
+      writer.exec("CREATE TABLE items (value TEXT)");
+      writer.prepare("INSERT INTO items VALUES (?)").run("seed");
+      writer.close();
+
+      const { DatabaseSync: RealDatabaseSync } = require("node:sqlite") as {
+        DatabaseSync: new (
+          p: string,
+          options?: Record<string, unknown>
+        ) => {
+          close(): void;
+          prepare(sql: string): { get(...p: unknown[]): unknown };
+        };
+      };
+
+      let capturedOptions: Record<string, unknown> | undefined;
+      const openWithCapturingNodeSqlite = createSyncDriverFactory((moduleName: string) => {
+        if (moduleName === "better-sqlite3") {
+          throw new Error("forced better-sqlite3 load failure");
+        }
+        if (moduleName === "node:sqlite") {
+          return {
+            DatabaseSync: function FakeDatabaseSync(p: string, options?: Record<string, unknown>) {
+              capturedOptions = options;
+              return new RealDatabaseSync(p, options);
+            },
+          };
+        }
+        throw new Error(`unexpected driver load: ${moduleName}`);
+      });
+
+      const reader = openWithCapturingNodeSqlite(databasePath, {
+        readonly: true,
+        fileMustExist: true,
+        timeout: 2000,
+      });
+      assert.ok(reader);
+      assert.equal(reader.driver, "node:sqlite");
+      assert.deepEqual(
+        capturedOptions,
+        { readOnly: true, timeout: 2000 },
+        "toNodeSqliteOptions must forward BOTH readOnly and timeout, and nothing else (e.g. not fileMustExist)"
+      );
+      assert.equal(
+        (reader.prepare("SELECT value FROM items").get() as { value: string }).value,
+        "seed",
+        "the forced node:sqlite path must still open successfully with a timeout option set"
+      );
+      reader.close();
+    });
+
     test("forced node:sqlite backup preserves WAL-backed data", async (t) => {
       const sourcePath = createTempDatabasePath(t);
       const destinationPath = path.join(path.dirname(sourcePath), "backup.sqlite");

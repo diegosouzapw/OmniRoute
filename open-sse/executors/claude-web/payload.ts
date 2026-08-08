@@ -322,8 +322,7 @@ export function transformToClaude(
   const messages = Array.isArray(body.messages) ? body.messages : [];
   const reasoningEffort = resolveClaudeWebReasoningEffort(body);
   const resolvedModel = model || DEFAULT_CLAUDE_MODEL;
-  const prompt =
-    turn?.prompt ?? (buildPromptFromMessages(messages) || latestUserPrompt(messages));
+  const prompt = turn?.prompt ?? (buildPromptFromMessages(messages) || latestUserPrompt(messages));
   const resolvedTurn = turn ?? defaultTurn(prompt);
 
   if (resolvedTurn.operation === "completion" && !resolvedTurn.prompt.trim()) {

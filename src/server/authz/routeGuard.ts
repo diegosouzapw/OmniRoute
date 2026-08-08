@@ -22,7 +22,10 @@
  */
 
 import { getAuthzBypassSnapshot } from "@/lib/config/runtimeSettings";
-import { SPAWN_CAPABLE_PREFIXES } from "@/shared/constants/spawnCapablePrefixes";
+import {
+  SPAWN_CAPABLE_PREFIXES,
+  SPAWN_CAPABLE_PATTERNS,
+} from "@/shared/constants/spawnCapablePrefixes";
 import { VNC_ROUTE_PREFIX } from "@/lib/vncSession/manifest";
 
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
@@ -50,11 +53,12 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   "/api/local/", // T-12: 1-click local service launchers (Redis today; spawns podman/docker) — loopback-enforced by isLocalRequestAllowed() in src/lib/security/localEndpoints.ts (Hard Rules #15 + #17)
   "/api/headroom/start", // Headroom token-saver proxy lifecycle: spawns headroom-ai python CLI (Hard Rules #15 + #17)
   "/api/headroom/stop", // Headroom token-saver proxy lifecycle: sends SIGTERM/SIGKILL to managed PID (Hard Rules #15 + #17)
-  "/api/oauth/cursor/auto-import", // spawns `execFile("which", ["cursor"])` to verify a local Cursor install before importing creds — RCE-via-tunnel surface (Hard Rules #15 + #17, found by 6A.8 route-guard gate). Specific path only: the rest of /api/oauth/ (browser redirect/callback flows) must stay remote-reachable.
+  "/api/oauth/cursor/auto-import", // spawns execFile("which", argv-array-of-one-arg "cursor") to verify a local Cursor install before importing creds — RCE-via-tunnel surface (Hard Rules #15 + #17, found by 6A.8 route-guard gate). Specific path only: the rest of /api/oauth/ (browser redirect/callback flows) must stay remote-reachable. Note: this comment intentionally avoids a literal closing square bracket character — check-openapi-security-tiers.mjs's naive regex parser for this array stops at the first one it finds, silently truncating its view of every entry after this one.
   "/api/skills/collect/", // Skill Collector CLI detection: GET .../detect probes getCliRuntimeStatus() per CLI_TOOL_IDS entry, which spawns a child process to check each tool — RCE-via-tunnel surface (Hard Rules #15 + #17, PR #6294 review).
   "/api/discovery/", // Discovery tool (opt-in provider scanner): the scan route makes outbound probes to provider endpoints (SSRF-adjacent) and the whole surface is an admin research tool — strict-loopback only, no manage-scope bypass (NOT in LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES). See _tasks/features-v3.8.42/gaps/DISCOVERY_TOOL_DESIGN.md.
   VNC_ROUTE_PREFIX, // #7892: /api/vnc-session/* spawns Docker containers via child_process.spawn (src/lib/vncSession/service.ts) — RCE-via-tunnel surface (Hard Rules #15 + #17), same CVE class (GHSA-fhh6-4qxv-rpqj).
   "/api/acp/agents", // ACP custom-agent registry: POST registers a client-chosen `binary`; GET / POST {action:"refresh"} runs detectInstalledAgents() -> execFileSync(probe.command, probe.args, { shell }) transitively (src/lib/acp/registry.ts) — RCE-via-tunnel surface (Hard Rules #15 + #17, #7948)
+  "/api/providers/cursor/agent-availability", // credential-free dashboard-nudge check: spawns `cursor-agent status --format json` via checkCursorAgentAvailability()/getCachedCursorAgentAvailability() (src/lib/cursor/renewal.ts) — RCE-via-tunnel surface (Hard Rules #15 + #17). Narrow-scoped like /login and /refresh-cursor, not the whole /api/providers/ tree. Placed under /api/providers/ rather than /api/oauth/ because /api/oauth/ is PUBLIC-classified and never reaches this LOCAL_ONLY gate.
 ];
 
 /**
@@ -62,24 +66,37 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
  * parameter, so a flat prefix in `LOCAL_ONLY_API_PREFIXES` cannot target them
  * without over-broadening (e.g. locking the entire `/api/providers/` subtree,
  * which remote dashboards legitimately use for provider CRUD). These are matched
- * by regex instead.
+ * by regex instead against the concrete resolved path — which is already
+ * `request.nextUrl.pathname` (see `runAuthzPipeline`/`classifyRoute`), the
+ * SAME string Next.js's own file-based router uses to resolve the `[id]`
+ * dynamic segment, so there is no decode/normalization mismatch between what
+ * this regex sees and what actually gets dispatched to the route handler.
  *
  *   - `POST /api/providers/{id}/login` launches a headful Playwright Chromium
  *     (a child process) to drive a web-cookie login. Loopback enforcement must
  *     happen unconditionally before any auth check (Hard Rules #15 + #17), so a
  *     leaked JWT via tunnel cannot trigger a browser spawn.
+ *   - `POST /api/providers/{id}/refresh-cursor` nudges `cursor-agent`
+ *     (`--list-models`/`status`, via `src/lib/cursor/renewal.ts`) as part of
+ *     a manual Cursor session renewal attempt — the same RCE-via-tunnel
+ *     surface (Hard Rules #15 + #17). The rest of `/api/providers/`,
+ *     including the generic `/refresh` route, intentionally stays
+ *     remote-reachable — only this Cursor-specific spawn-capable path is
+ *     gated, matching the `/login` precedent's narrow-scoping rationale.
  */
 export const LOCAL_ONLY_API_PATTERNS: ReadonlyArray<RegExp> = [
   /^\/api\/providers\/[^/]+\/login\/?$/,
+  /^\/api\/providers\/[^/]+\/refresh-cursor\/?$/,
 ];
 
-// `SPAWN_CAPABLE_PREFIXES` (the spawn-capable deny-list) now lives in the
-// server-free leaf module `@/shared/constants/spawnCapablePrefixes` so that
-// client-reachable validation schemas can import it without pulling this module's
-// server runtime (runtimeSettings → localDb → ioredis) into the browser bundle.
+// `SPAWN_CAPABLE_PREFIXES` / `SPAWN_CAPABLE_PATTERNS` (the spawn-capable
+// deny-lists) now live in the server-free leaf module
+// `@/shared/constants/spawnCapablePrefixes` so that client-reachable
+// validation schemas can import them without pulling this module's server
+// runtime (runtimeSettings → localDb → ioredis) into the browser bundle.
 // Imported above for the runtime check in `isLocalOnlyBypassableByManageScope`;
 // re-exported here so existing `@/server/authz/routeGuard` importers keep working.
-export { SPAWN_CAPABLE_PREFIXES };
+export { SPAWN_CAPABLE_PREFIXES, SPAWN_CAPABLE_PATTERNS };
 
 /**
  * Compile-time default of the manage-scope bypass list. Kept as an exported
@@ -174,9 +191,7 @@ export function isPrivateLanHost(hostHeader: string | null): boolean {
  *   triggers the auto-update flow (spawns git checkout + npm install + pm2).
  *   Hard Rules #15/#17 still apply to POST.
  */
-export const LOCAL_ONLY_API_GET_EXEMPTIONS: ReadonlySet<string> = new Set([
-  "/api/system/version",
-]);
+export const LOCAL_ONLY_API_GET_EXEMPTIONS: ReadonlySet<string> = new Set(["/api/system/version"]);
 
 /** Safe HTTP methods that can be exempted for read-only paths. */
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
@@ -221,6 +236,13 @@ export function isLocalOnlyPath(path: string, method?: string): boolean {
  * O(1) (no I/O, no async). Hot-reload SLA: <50 ms — satisfied structurally.
  */
 export function isLocalOnlyBypassableByManageScope(path: string): boolean {
+  // Precise, unconditional early-deny for regex-matched spawn-capable routes
+  // (e.g. /api/providers/{id}/login, /api/providers/{id}/refresh-cursor).
+  // Unlike the flat-prefix defence-in-depth check below, this has the
+  // concrete resolved `path` already, so it's an exact match — no
+  // reachability heuristics needed.
+  if (SPAWN_CAPABLE_PATTERNS.some((re) => re.test(path))) return false;
+
   const snapshot = getAuthzBypassSnapshot();
   if (!snapshot.enabled) return false;
   return snapshot.prefixes.some((p) => {

@@ -9,12 +9,12 @@ lastUpdated: 2026-08-05
 OmniRoute uses four distinct credential families for management access. This guide
 distinguishes them by purpose, scope, and locality.
 
-| Credential              | Scope              | Locality      | Use Case                          |
-|-------------------------|--------------------|---------------|-----------------------------------|
-| Dashboard JWT session   | Full management    | Localhost      | Web dashboard login               |
-| CLI machine-id token    | Full management    | Per-machine    | `omniroute` CLI commands          |
-| Scoped `oma_` token     | Configurable scope | External       | Automation / CI / API access      |
-| Manage-scope API key    | `manage` scope     | External       | Management API calls              |
+| Credential            | Scope              | Locality    | Use Case                     |
+| --------------------- | ------------------ | ----------- | ---------------------------- |
+| Dashboard JWT session | Full management    | Localhost   | Web dashboard login          |
+| CLI machine-id token  | Full management    | Per-machine | `omniroute` CLI commands     |
+| Scoped `oma_` token   | Configurable scope | External    | Automation / CI / API access |
+| Manage-scope API key  | `manage` scope     | External    | Management API calls         |
 
 ## Dashboard JWT Session
 

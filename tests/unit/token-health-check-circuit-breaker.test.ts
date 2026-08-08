@@ -79,11 +79,48 @@ test("isInRefreshBackoff false when no circuit recorded", () => {
 });
 
 test("expired connections still track expiredRetryCount AND the circuit", () => {
-  const update = buildRefreshFailureUpdate(
-    { testStatus: "expired", expiredRetryCount: 1 },
-    NOW
-  );
+  const update = buildRefreshFailureUpdate({ testStatus: "expired", expiredRetryCount: 1 }, NOW);
   assert.equal(update.testStatus, "expired");
   assert.equal(update.expiredRetryCount, 2);
   assert.equal(update.providerSpecificData.refreshCircuit.streak, 1);
+});
+
+// Cursor renewal plan, Task 3 Step 1: buildRefreshFailureUpdate() gained an
+// optional 3rd `overrides` param so Cursor's failure path (which has no
+// refresh_token by design) can use a distinct errorCode ("cursor_session_stale"
+// instead of "refresh_failed") and force testStatus:"active" even when the
+// connection's prior testStatus was already "expired" — without touching any
+// other provider's error taxonomy or default behavior.
+test("buildRefreshFailureUpdate applies overrides on top of the defaults, leaving every existing caller (which passes no 3rd arg) byte-identical", () => {
+  const withOverrides = buildRefreshFailureUpdate(
+    { testStatus: "expired", expiredRetryCount: 0 },
+    NOW,
+    {
+      errorCode: "cursor_session_stale",
+      lastErrorType: "cursor_session_stale",
+      lastError: "Cursor session unchanged — no newer token found on this host.",
+      testStatus: "active",
+    }
+  );
+  assert.equal(withOverrides.errorCode, "cursor_session_stale");
+  assert.equal(withOverrides.lastErrorType, "cursor_session_stale");
+  assert.equal(
+    withOverrides.lastError,
+    "Cursor session unchanged — no newer token found on this host."
+  );
+  assert.equal(
+    withOverrides.testStatus,
+    "active",
+    "the override must force non-terminal status even though wasExpired (prior testStatus) was true"
+  );
+  // wasExpired-derived bookkeeping (retry count, circuit streak) is untouched
+  // by the testStatus override — only the persisted field itself is replaced.
+  assert.equal(withOverrides.expiredRetryCount, 1);
+  assert.equal(withOverrides.providerSpecificData.refreshCircuit.streak, 1);
+
+  const withoutOverrides = buildRefreshFailureUpdate({ testStatus: "active" }, NOW);
+  assert.equal(withoutOverrides.errorCode, "refresh_failed");
+  assert.equal(withoutOverrides.lastErrorType, "token_refresh_failed");
+  assert.equal(withoutOverrides.lastError, "Health check: token refresh failed");
+  assert.equal(withoutOverrides.testStatus, "active");
 });

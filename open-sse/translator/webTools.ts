@@ -457,10 +457,7 @@ export function parseToolCallsFromText(
   requestedTools?: unknown
 ): { content: string; toolCalls: OpenAIToolCall[] | null } {
   const requestedToolNames = getRequestedToolNames(requestedTools);
-  if (
-    typeof text !== "string" ||
-    (!text.includes("<tool>") && !text.includes("<tool_call"))
-  ) {
+  if (typeof text !== "string" || (!text.includes("<tool>") && !text.includes("<tool_call"))) {
     return { content: text ?? "", toolCalls: null };
   }
 

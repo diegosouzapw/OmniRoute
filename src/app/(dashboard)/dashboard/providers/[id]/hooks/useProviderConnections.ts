@@ -597,11 +597,23 @@ export function useProviderConnections(
     if (refreshingId) return;
     setRefreshingId(connectionId);
     try {
-      const res = await fetch(`/api/providers/${connectionId}/refresh`, { method: "POST" });
+      const conn = connections.find((c) => c.id === connectionId);
+      const isCursor = conn?.provider === "cursor";
+      // Cursor has no refresh_token by design — the generic /refresh route's
+      // getAccessToken() call always 502s for it. The dedicated route nudges
+      // cursor-agent and re-scrapes IDE/agent credential sources instead.
+      const url = isCursor
+        ? `/api/providers/${connectionId}/refresh-cursor`
+        : `/api/providers/${connectionId}/refresh`;
+      const res = await fetch(url, { method: "POST" });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success) {
-        notify.success(t("tokenRefreshed"));
-        await fetchConnections();
+        if (isCursor && data.unchanged) {
+          notify.info(t("cursorSessionUnchanged"));
+        } else {
+          notify.success(t("tokenRefreshed"));
+          await fetchConnections();
+        }
       } else {
         notify.error(data.error || t("tokenRefreshFailed"));
       }

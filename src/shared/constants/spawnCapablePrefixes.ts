@@ -36,3 +36,32 @@ export const SPAWN_CAPABLE_PREFIXES: ReadonlyArray<string> = [
   "/api/headroom/stop", // kills tracked PID — must never be bypassable (Hard Rules #15 + #17)
   "/api/vnc-session", // #7892: spawns Docker containers via child_process.spawn (src/lib/vncSession/service.ts) — must never be whitelistable via manage-scope bypass (Hard Rules #15 + #17)
 ];
+
+/**
+ * Regex-matched companion to `SPAWN_CAPABLE_PREFIXES`, for spawn-capable
+ * routes whose spawn-capable segment sits AFTER a dynamic path parameter
+ * (e.g. `/api/providers/{id}/refresh-cursor`) — a flat prefix would either
+ * miss them entirely or require over-broadening the shared `/api/providers/`
+ * prefix (used for legitimate remote provider CRUD). Mirrors the
+ * `LOCAL_ONLY_API_PREFIXES`/`LOCAL_ONLY_API_PATTERNS` split already
+ * established in `routeGuard.ts` for this exact shape. Checked against a
+ * CONCRETE resolved request path — an exact regex match, no approximation.
+ */
+export const SPAWN_CAPABLE_PATTERNS: ReadonlyArray<RegExp> = [
+  /^\/api\/providers\/[^/]+\/login\/?$/, // pre-existing gap: in LOCAL_ONLY_API_PATTERNS today but never in a spawn-capable deny-list
+  /^\/api\/providers\/[^/]+\/refresh-cursor\/?$/, // spawns cursor-agent via renewal.ts (Hard Rules #15 + #17)
+  /^\/api\/providers\/cursor\/agent-availability\/?$/, // static path (no dynamic segment), but kept in this array alongside its /api/providers/ siblings rather than the flat SPAWN_CAPABLE_PREFIXES array — spawns cursor-agent status via checkCursorAgentAvailability()/getCachedCursorAgentAvailability() (Hard Rules #15 + #17)
+];
+
+/**
+ * Companion to `SPAWN_CAPABLE_PATTERNS`, used ONLY by the zod-level candidate
+ * bypass-prefix check (`settingsSchemas.ts`), which validates a candidate
+ * BYPASS PREFIX STRING (not a concrete path) at `PATCH /api/settings` time —
+ * general prefix-vs-regex reachability is undecidable, so this conservatively
+ * treats the shared literal ancestor of the dynamic/static-segment patterns
+ * as off-limits. Intentionally coarser than `SPAWN_CAPABLE_PATTERNS`'s exact
+ * per-route match, but costs nothing security-wise: the runtime check in
+ * `isLocalOnlyBypassableByManageScope` (Layer 2) is the actual enforcement
+ * boundary and stays exact. `SPAWN_CAPABLE_PREFIXES` itself is untouched.
+ */
+export const SPAWN_CAPABLE_PATTERN_ANCESTORS: ReadonlyArray<string> = ["/api/providers/"];

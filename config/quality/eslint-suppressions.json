@@ -49,11 +49,6 @@
       "count": 3
     }
   },
-  "open-sse/handlers/chatCore.ts": {
-    "no-restricted-imports": {
-      "count": 1
-    }
-  },
   "open-sse/handlers/chatCore/codexFailover.ts": {
     "no-restricted-imports": {
       "count": 1
@@ -316,6 +311,11 @@
   "src/app/(dashboard)/dashboard/playground/components/tabs/ApiTab.tsx": {
     "react-hooks/exhaustive-deps": {
       "count": 1
+    }
+  },
+  "src/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderConnections.ts": {
+    "react-hooks/set-state-in-effect": {
+      "count": 2
     }
   },
   "src/app/(dashboard)/dashboard/settings/components/AppearanceTab.tsx": {

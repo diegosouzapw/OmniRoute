@@ -1,0 +1,1 @@
+- feat(cursor): proactively renew Cursor sessions before their ~24h token expires via the token health-check sweep, nudging `cursor-agent` and re-scraping IDE/agent credential sources so connections stop silently expiring (#9173)

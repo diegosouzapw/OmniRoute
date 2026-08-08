@@ -34,7 +34,8 @@
     "open-sse/mcp-server/scopeEnforcement.ts",
     "open-sse/translator/registry.ts",
     "open-sse/handlers/responseSanitizer.ts",
-    "open-sse/handlers/responseTranslator.ts"
+    "open-sse/handlers/responseTranslator.ts",
+    "src/lib/tokenHealthCheckCursor.ts"
   ],
   "exclude": ["node_modules", ".next", "app.__qa_backup", "vscode-extension"]
 }

@@ -39,22 +39,24 @@ spawn-capable route: a leaked token over a tunnel still can't reach the spawn.
 `check-route-guard-membership` gate enumerates every `route.ts` under the
 spawn-capable prefixes and fails CI if any is not classified local-only.
 
-| Prefix / pattern                    | Why it's local-only                                                                      | Manage-scope bypassable?      |
-| ----------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------- |
-| `/api/mcp/`                         | MCP server — spawns stdio bridges + SSE handlers                                         | **Yes** (only one)            |
-| `/api/cli-tools/runtime/`           | CLI tool runtime — executes arbitrary plugin code                                        | No — spawn-capable            |
-| `/api/services/`                    | Embedded services (9router/CLIProxy) — `npm install` + spawn                             | No — spawn-capable            |
-| `/dashboard/providers/services/`    | Reverse proxy to embedded-service UIs                                                    | No                            |
-| `/api/copilot/`                     | Unauthenticated LLM driver — CLI-only by default                                         | Operator opt-in: manage/admin |
-| `/api/tools/agent-bridge/`          | AgentBridge — spawns MITM server + DNS edits                                             | No — spawn-capable            |
-| `/api/tools/traffic-inspector/`     | Traffic Inspector — http-proxy listener + system proxy                                   | No — spawn-capable            |
-| `/api/plugins/`, `/api/plugins`     | Plugins — load/execute via `worker_threads` + `child_process`                            | No — spawn-capable            |
-| `/api/system/version`               | Auto-update (POST only; GET/HEAD/OPTIONS exempt) — spawns `git checkout` + `npm install` | No                            |
-| `/api/db-backups/exportAll`         | Spawns `tar` for the export archive                                                      | No                            |
-| `/api/local/`                       | 1-click local launchers (Redis today) — spawns podman/docker                             | No — spawn-capable            |
-| `/api/headroom/start`, `/stop`      | Headroom proxy lifecycle — spawns python CLI / signals PID                               | No — spawn-capable            |
-| `/api/oauth/cursor/auto-import`     | `execFile("which", ["cursor"])` before importing creds                                   | No                            |
-| `/api/providers/{id}/login` (regex) | Launches a headful Playwright Chromium for web-cookie login                              | No                            |
+| Prefix / pattern                             | Why it's local-only                                                                                                                                                                                                                                   | Manage-scope bypassable?      |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `/api/mcp/`                                  | MCP server — spawns stdio bridges + SSE handlers                                                                                                                                                                                                      | **Yes** (only one)            |
+| `/api/cli-tools/runtime/`                    | CLI tool runtime — executes arbitrary plugin code                                                                                                                                                                                                     | No — spawn-capable            |
+| `/api/services/`                             | Embedded services (9router/CLIProxy) — `npm install` + spawn                                                                                                                                                                                          | No — spawn-capable            |
+| `/dashboard/providers/services/`             | Reverse proxy to embedded-service UIs                                                                                                                                                                                                                 | No                            |
+| `/api/copilot/`                              | Unauthenticated LLM driver — CLI-only by default                                                                                                                                                                                                      | Operator opt-in: manage/admin |
+| `/api/tools/agent-bridge/`                   | AgentBridge — spawns MITM server + DNS edits                                                                                                                                                                                                          | No — spawn-capable            |
+| `/api/tools/traffic-inspector/`              | Traffic Inspector — http-proxy listener + system proxy                                                                                                                                                                                                | No — spawn-capable            |
+| `/api/plugins/`, `/api/plugins`              | Plugins — load/execute via `worker_threads` + `child_process`                                                                                                                                                                                         | No — spawn-capable            |
+| `/api/system/version`                        | Auto-update (POST only; GET/HEAD/OPTIONS exempt) — spawns `git checkout` + `npm install`                                                                                                                                                              | No                            |
+| `/api/db-backups/exportAll`                  | Spawns `tar` for the export archive                                                                                                                                                                                                                   | No                            |
+| `/api/local/`                                | 1-click local launchers (Redis today) — spawns podman/docker                                                                                                                                                                                          | No — spawn-capable            |
+| `/api/headroom/start`, `/stop`               | Headroom proxy lifecycle — spawns python CLI / signals PID                                                                                                                                                                                            | No — spawn-capable            |
+| `/api/oauth/cursor/auto-import`              | `execFile("which", ["cursor"])` before importing creds                                                                                                                                                                                                | No                            |
+| `/api/providers/{id}/login` (regex)          | Launches a headful Playwright Chromium for web-cookie login                                                                                                                                                                                           | No                            |
+| `/api/providers/{id}/refresh-cursor` (regex) | Manual Cursor session renewal — nudges `cursor-agent` (`--list-models`/`status` via `src/lib/cursor/renewal.ts`); the rest of `/api/providers/`, including the generic `/refresh`, intentionally stays remote-reachable                               | No — spawn-capable            |
+| `/api/providers/cursor/agent-availability`   | Dashboard install-nudge check — spawns `cursor-agent status --format json` via `checkCursorAgentAvailability()`/`getCachedCursorAgentAvailability()` (`src/lib/cursor/renewal.ts`); credential-free response (`{cursorAgentAvailable: boolean}` only) | No — spawn-capable            |
 
 **Response on violation:** `403 LOCAL_ONLY`
 
@@ -84,15 +86,15 @@ ever be added), and it is deliberately excluded from
 carve-out exactly as before; `mcp:connect` is a lower-privilege alternative
 for remote MCP-only callers who should not need broad management access.
 
-| Request                                          | Path                       | Result              |
-| ------------------------------------------------- | -------------------------- | ------------------- |
-| Non-loopback, no Bearer                           | `/api/mcp/*`               | 403 LOCAL_ONLY      |
-| Non-loopback, Bearer with `manage` scope          | `/api/mcp/*`               | Allow               |
-| Non-loopback, Bearer with `mcp:connect` scope     | `/api/mcp/*`               | Allow               |
-| Non-loopback, Bearer without `manage`/`mcp:connect` | `/api/mcp/*`             | 403 LOCAL_ONLY      |
-| Non-loopback, Bearer with `mcp:connect` scope     | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY      |
-| Non-loopback, Bearer with `manage` scope          | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY      |
-| Loopback, any/no Bearer                           | any LOCAL_ONLY             | Allow (gate passes) |
+| Request                                             | Path                       | Result              |
+| --------------------------------------------------- | -------------------------- | ------------------- |
+| Non-loopback, no Bearer                             | `/api/mcp/*`               | 403 LOCAL_ONLY      |
+| Non-loopback, Bearer with `manage` scope            | `/api/mcp/*`               | Allow               |
+| Non-loopback, Bearer with `mcp:connect` scope       | `/api/mcp/*`               | Allow               |
+| Non-loopback, Bearer without `manage`/`mcp:connect` | `/api/mcp/*`               | 403 LOCAL_ONLY      |
+| Non-loopback, Bearer with `mcp:connect` scope       | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY      |
+| Non-loopback, Bearer with `manage` scope            | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY      |
+| Loopback, any/no Bearer                             | any LOCAL_ONLY             | Allow (gate passes) |
 
 #### Operator guidance & auditing
 
@@ -110,7 +112,14 @@ operator responsibilities remain:
   only with a `manage`-scoped API key. The `SPAWN_CAPABLE_PREFIXES` can never be
   added to the bypass list — the zod schema rejects them and
   `isLocalOnlyBypassableByManageScope` denies them at runtime (defence-in-depth),
-  which is what the dashboard means by "cannot be made bypassable".
+  which is what the dashboard means by "cannot be made bypassable". Dynamic-segment
+  and static-path spawn-capable routes under `/api/providers/` (e.g. `/login`,
+  `/refresh-cursor`) are covered by the regex-based `SPAWN_CAPABLE_PATTERNS` /
+  `SPAWN_CAPABLE_PATTERN_ANCESTORS` companion in
+  `src/shared/constants/spawnCapablePrefixes.ts`, not by the flat
+  `SPAWN_CAPABLE_PREFIXES` array — the flat array would have to cover the
+  entire `/api/providers/` prefix to catch them, over-broadening a route tree
+  remote dashboards legitimately use for provider CRUD.
 
 **Auditing access** — to verify nothing off-host is reaching these routes:
 

@@ -101,7 +101,7 @@ export interface InjectBillingHeaderOp {
    *   - static-zero: emit "00000" (relay endpoints don't validate)
    */
   cchAlgo: "sha256-first-user" | "xxhash64-body" | "static-zero";
-  /** Override the embedded `cc_version=` value. Defaults to `2.1.219`. */
+  /** Override the embedded `cc_version=` value. Defaults to CLAUDE_CODE_CLIENT_VERSION. */
   version?: string;
   /** Override its captured build revision. Defaults to a computed compatibility suffix. */
   buildRevision?: string;

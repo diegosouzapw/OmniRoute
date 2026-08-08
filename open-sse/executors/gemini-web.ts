@@ -365,9 +365,7 @@ export class GeminiWebExecutor extends BaseExecutor {
     _signal?: AbortSignal
   ): Promise<boolean> {
     try {
-      const cookie = resolveGeminiWebCookie(
-        credentials as unknown as ExecuteInput["credentials"]
-      );
+      const cookie = resolveGeminiWebCookie(credentials as unknown as ExecuteInput["credentials"]);
       if (!cookie) return false;
       const pairs = parseCookies(cookie);
       return pairs.some((p) => p.value.length > 0);

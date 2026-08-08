@@ -1744,6 +1744,16 @@ paths:
         "200":
           description: Provider model list
 
+  /api/providers/cursor/agent-availability:
+    get:
+      tags: [Providers]
+      summary: Check cursor-agent availability
+      description: "Credential-free, informational check for whether cursor-agent is installed and authenticated on this host — backs the dashboard's dismissible install-nudge banner. Returns only cursorAgentAvailable (boolean); never tokens or machineId."
+      x-loopback-only: true
+      responses:
+        "200":
+          description: Availability result
+
   /api/providers/test-batch:
     post:
       tags: [Providers]
