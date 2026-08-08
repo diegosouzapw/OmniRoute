@@ -9,6 +9,7 @@
  */
 
 import Bottleneck from "bottleneck";
+import { applyBottleneckDoExpirePatch } from "./bottleneckPatch.ts";
 import { parseRetryAfterFromBody } from "./accountFallback.ts";
 import { getAntigravityQuotaFamily } from "./antigravityQuotaFamily.ts";
 import { getProviderCategory } from "../config/providerRegistry.ts";
@@ -441,6 +442,8 @@ function trackAsyncOperation<T>(promise: Promise<T>): Promise<T> {
 export async function initializeRateLimits() {
   if (initialized) return;
   initialized = true;
+  // Fix Bottleneck v2.19.5 doExpire bug before any limiter is created.
+  applyBottleneckDoExpirePatch();
 
   try {
     const { getCachedProviderConnections, getSettings } = await import("@/lib/localDb");
@@ -636,9 +639,36 @@ function evictLimiterAndDropQueued(key: string, limiter: Bottleneck, reason: str
  * @param {string} model - Model name (optional, for per-model limits)
  * @param {Function} fn - The async function to execute (e.g., executor.execute)
  * @param {AbortSignal} signal - Optional abort signal to cancel waiting
+ * @param {boolean} retryAfterWedge - When a queue expiry leaves the limiter idle
+ *   with capacity, evict it and retry once on a fresh instance. Turned off on the
+ *   recursive retry so a wedged scheduler cannot loop forever.
  * @returns {Promise<unknown>} Result of fn()
  */
-export async function withRateLimit(provider, connectionId, model, fn, signal = null) {
+async function getQueueHealthSnapshot(key: string, limiter: Bottleneck) {
+  const counts = limiter.counts();
+  let reservoirRemaining: number | null = null;
+  try {
+    reservoirRemaining = await limiter.currentReservoir();
+  } catch {
+    // Snapshot logging must never affect request handling.
+  }
+  const lastDispatch = lastDispatchAt.get(key);
+  return {
+    queued: counts.QUEUED,
+    running: counts.RUNNING,
+    executing: counts.EXECUTING,
+    reservoirRemaining,
+    lastDispatchAgeMs: lastDispatch ? Date.now() - lastDispatch : null,
+  };
+}
+export async function withRateLimit(
+  provider,
+  connectionId,
+  model,
+  fn,
+  signal = null,
+  retryAfterWedge = true
+) {
   if (!enabledConnections.has(connectionId)) {
     return fn();
   }
@@ -772,6 +802,62 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
   } catch (err) {
     if (queueTimer) clearTimeout(queueTimer);
     if (!dispatched) rpmLease?.release();
+    // Bottleneck's raw `This job timed out after <maxWaitMs> ms.` is
+    // indistinguishable from an upstream gateway timeout, so it leaks into 502
+    // bodies / call-log `last_error` and gets misdiagnosed as a provider outage
+    // (#4165). Rewrite it into a clear, OmniRoute-owned error (knob named,
+    // upstream disclaimed, original kept as `cause`, `code` for classification).
+    // If the limiter is idle with capacity after the expiry, the scheduler is wedged.
+    // Reset it and retry this never-dispatched function once on a fresh limiter.
+    if (err?.message?.includes("This job timed out")) {
+      const key = getLimiterKey(provider, connectionId, model);
+      const queueState = await getQueueHealthSnapshot(key, limiter);
+      logRateLimit(
+        `⏰ [RATE-LIMIT] ${key} — job expired after ${Math.ceil((maxWaitMs || 0) / 1000)}s in queue, dropping`
+      );
+      const limiterIsWedged =
+        retryAfterWedge &&
+        queueState.running === 0 &&
+        queueState.executing === 0 &&
+        typeof queueState.reservoirRemaining === "number" &&
+        queueState.reservoirRemaining > 0 &&
+        typeof queueState.lastDispatchAgeMs === "number" &&
+        queueState.lastDispatchAgeMs >= Math.max(1, maxWaitMs || 0);
+      if (limiterIsWedged) {
+        logRateLimit(`[RATE-LIMIT] ${key} — recovering idle limiter after queue expiry`);
+        evictWedgeLimiter(key, limiter);
+        return withRateLimit(provider, connectionId, model, fn, signal, false);
+      }
+      // Diagnostic: detect Bottleneck doExpire bug (capacity leak).
+      // When the bug triggers, jobs get stuck in RUNNING state (States.running > 0)
+      // but nothing is actually executing. This is a different failure mode from
+      // the idle wedge above (which has running=0).
+      if (
+        retryAfterWedge &&
+        queueState.running > 0 &&
+        queueState.executing === 0 &&
+        (queueState.reservoirRemaining === null || queueState.reservoirRemaining > 0) &&
+        typeof queueState.lastDispatchAgeMs === "number" &&
+        queueState.lastDispatchAgeMs >= Math.max(1, maxWaitMs || 0)
+      ) {
+        logRateLimit(
+          `[RATE-LIMIT] ${key} — probable Bottleneck doExpire capacity leak: ` +
+            `running=${queueState.running}, executing=0, reservoir=${queueState.reservoirRemaining}. ` +
+            `Evicting limiter to recover.`
+        );
+        evictWedgeLimiter(key, limiter);
+        return withRateLimit(provider, connectionId, model, fn, signal, false);
+      }
+      const queueErr = new Error(
+        `Request dropped after exceeding the local rate-limit queue budget maxWaitMs (${maxWaitMs}ms) for ` +
+          `${model ? `${provider}/${model}` : provider} — this is OmniRoute's request queue ` +
+          `(resilienceSettings.requestQueue.maxWaitMs), not an upstream timeout. Raise it in ` +
+          `Settings → Resilience if this is queue saturation rather than a slow provider.`,
+        { cause: err }
+      ) as Error & { code?: string };
+      queueErr.code = "RATE_LIMIT_QUEUE_TIMEOUT";
+      throw queueErr;
+    }
     if (err?.message === "rate-limit-upstream-429") {
       const rateLimitErr = new Error(
         `Request dropped while the ${provider} connection was under an upstream rate-limit cooldown`,
