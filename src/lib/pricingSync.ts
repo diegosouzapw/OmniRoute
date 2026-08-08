@@ -11,7 +11,7 @@
  */
 
 import { getDbInstance } from "./db/core";
-import { invalidateDbCache } from "./db/readCache";
+import { invalidateDbCache, getModelCatalogCacheVersion } from "./db/readCache";
 import { backupDbFile } from "./db/backup";
 
 // ─── Types ───────────────────────────────────────────────
@@ -232,10 +232,27 @@ function toRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 }
 
+// getSyncedPricing() re-ran the SELECT + JSON.parse of the pricing_synced
+// blobs on every call — resolveCatalogPricing() calls it per model lookup, so
+// each call rebuilt a fresh object and findInsensitive() (WeakMap keyed by
+// object identity) rebuilt its lowercase index per lookup, emitting hundreds
+// of 'case-insensitive key collision' warnings per second and pinning CPU.
+// Memoized here, invalidated via the same modelCatalogCacheVersion signal
+// saveSyncedPricing/clearSyncedPricing already bump through
+// invalidateDbCache("pricing") — mirrors getModelsDevPricing() in
+// modelsDevSync.ts.
+let pricingMemo: PricingByProvider | null = null;
+let pricingMemoVersion = -1; // -1: never equals a real cacheVersion (starts at 0), guarantees a miss on the first call
+
 /**
  * Read synced pricing from `pricing_synced` namespace.
  */
 export function getSyncedPricing(): PricingByProvider {
+  const currentVersion = getModelCatalogCacheVersion();
+  if (pricingMemo !== null && pricingMemoVersion === currentVersion) {
+    return pricingMemo;
+  }
+
   const db = getDbInstance();
   const rows = db
     .prepare("SELECT key, value FROM key_value WHERE namespace = 'pricing_synced'")
@@ -252,6 +269,8 @@ export function getSyncedPricing(): PricingByProvider {
       console.warn(`[PRICING_SYNC] Corrupted data for provider "${key}", skipping`);
     }
   }
+  pricingMemo = synced;
+  pricingMemoVersion = currentVersion;
   return synced;
 }
 
