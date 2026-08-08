@@ -379,6 +379,20 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days.",
   },
+  "tinycms-web": {
+    id: "tinycms-web",
+    alias: "tcw",
+    name: "TinyCMS Web (Free/Sub)",
+    icon: "layers",
+    color: "#ED8936",
+    textIcon: "TC",
+    website: "https://site.tinycms.xyz",
+    hasFree: true,
+    freeNote:
+      "Free tier has access to GPT 5.4, Gemini 3.5, and Grok 4.20 models. No login required. Subscription grants 300 requests/day for advanced models.",
+    authHint:
+      "Go to site.tinycms.xyz, open DevTools → Application → Local Storage, copy the value of 'app-config-uuid' (starts with 'R'), and paste it here.",
+  },
   "zai-web": {
     id: "zai-web",
     alias: "zw",

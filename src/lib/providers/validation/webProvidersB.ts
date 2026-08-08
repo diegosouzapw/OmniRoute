@@ -679,3 +679,34 @@ export async function validateInnerAiProvider({ apiKey, providerSpecificData = {
     return toValidationErrorResult(error);
   }
 }
+
+export async function validateTinyCmsWebProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const raw = typeof apiKey === "string" ? apiKey.trim() : "";
+    if (!raw || !raw.startsWith("R")) {
+      return { valid: false, error: "TinyCMS UUID must start with 'R'" };
+    }
+
+    const response = await validationRead("https://gov.freegpt.win/api/challenge", {
+      headers: applyCustomUserAgent(
+        {
+          uuid: raw,
+          "x-origin": "https://gov.freegpt.win",
+          Accept: "application/json",
+        },
+        providerSpecificData
+      ),
+    });
+
+    if (!response.ok) {
+      return {
+        valid: false,
+        error: `TinyCMS UUID validation status: ${response.status} (invalid/expired UUID)`,
+      };
+    }
+
+    return { valid: true, error: null };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
