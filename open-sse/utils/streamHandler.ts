@@ -168,6 +168,13 @@ function getErrorMessage(error: unknown): string {
 }
 
 function getErrorStatusCode(error: unknown): number {
+  const errorName =
+    error && typeof error === "object" && typeof (error as { name?: unknown }).name === "string"
+      ? (error as { name: string }).name
+      : "";
+  if (errorName === "TimeoutError" || errorName === "BodyTimeoutError") {
+    return 504;
+  }
   if (error && typeof error === "object" && "statusCode" in error) {
     const statusCode = Number((error as { statusCode?: unknown }).statusCode);
     if (Number.isFinite(statusCode) && statusCode >= 400 && statusCode <= 599) {
@@ -175,6 +182,13 @@ function getErrorStatusCode(error: unknown): number {
     }
   }
   return 502;
+}
+
+function isDeadlineAbortReason(reason: unknown): reason is Error {
+  return (
+    reason instanceof Error &&
+    (reason.name === "TimeoutError" || reason.name === "BodyTimeoutError")
+  );
 }
 
 function hasClientTerminalSseMarker(text: string, clientResponseFormat?: string | null): boolean {
@@ -369,6 +383,15 @@ export function createStreamController({
 
   if (clientAbortSignal && typeof clientAbortSignal.addEventListener === "function") {
     const handleClientAbort = () => {
+      const reason = clientAbortSignal.reason;
+      if (isDeadlineAbortReason(reason)) {
+        // An AbortSignal can represent an OmniRoute-owned deadline as well as
+        // a caller disconnect. Preserve deadline failures as 504; classifying
+        // them as client disconnects writes a misleading 499 to the call log.
+        abortController.abort(reason);
+        controller.handleError(reason);
+        return;
+      }
       controller.handleDisconnect(getClientAbortReason());
     };
     if (clientAbortSignal.aborted) {

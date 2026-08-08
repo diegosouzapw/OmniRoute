@@ -1,285 +1,365 @@
 /**
- * ZaiWebExecutor — Z.ai Web Chat (chat.z.ai, free web-session/cookie auth)
+ * ZaiWebExecutor — Z.ai consumer chat (chat.z.ai).
  *
- * Distinct from the existing API-key `zai`/`glm`/`glm-cn`/`glmt` providers
- * (Anthropic/OpenAI-compatible `api.z.ai`, see `providers/apikey/regional.ts`).
- * This executor targets the *consumer chat* frontend at chat.z.ai — the same
- * product family as `chatglm.cn` (Zhipu AI), but the international domain —
- * so users without an API key can drive it for free via their browser session,
- * modeled on the `chatglm-web` credential entry (#4056) and the `doubao-web` /
- * `venice-web` cookie executors.
+ * The consumer frontend stores a Bearer JWT in localStorage and requires a
+ * browser-issued CAPTCHA proof for chat completions. The browser transport is
+ * the default; callers with a short-lived proof can use the direct HTTP path.
  *
- * Endpoint: POST https://chat.z.ai/api/v2/chat/completions
- *           (the older unversioned `/api/chat/completions` path is stale and
- *           404s model-independently as of 2026-07 — see #8014)
- * Auth:     full Cookie header from chat.z.ai (must contain the `token` JWT).
- *           Sent both as `Cookie` and as `Authorization: Bearer <token>` —
- *           the SPA's own fetch client sets both, and stripping either one
- *           has been reported (upstream repos) to 401 the request.
- * Response: SSE. Frames are z.ai's internal envelope
- *           `{"type":"chat:completion","data":{"delta_content":"...","phase":"answer","done":false}}`
- *           — mirrored from the shared Zhipu chatglm.cn/chat.z.ai frontend
- *           protocol. Some deployments/models pass through an already
- *           OpenAI-shaped `{"choices":[{"delta":{"content":"..."}}]}` frame
- *           instead, so the parser accepts both shapes defensively.
+ * Completions go to /api/v2/chat/completions; the older unversioned
+ * /api/chat/completions path is stale and 404s model-independently (#8014).
  */
+import { createHash, randomUUID } from "node:crypto";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { configureZaiBrowserRequest } from "./zai-web/browserAutomation.ts";
+import {
+  asRecord,
+  browserModelName,
+  browserPrompt,
+  buildZaiCompletionUrl,
+  buildZaiHeaders,
+  buildZaiNewChatBody,
+  buildZaiRequestBody,
+  buildZaiSignature,
+  collectZaiImageUrls,
+  describeZaiBrowserFailure,
+  extractZaiToken,
+  extractZaiUserId,
+  foldMessages,
+  getZaiModelCapabilities,
+  latestUserPrompt,
+  parseZaiFrontendVersion,
+  resolveZaiCaptchaVerifyParam,
+  resolveZaiThinkingConfig,
+  resolveZaiVlmConfig,
+  unprefixedModelId,
+  zaiImageFileName,
+  ZAI_BASE_URL,
+  ZAI_CHAT_URL,
+  ZAI_DEFAULT_FE_VERSION,
+  ZAI_DEFAULT_MODEL,
+  ZAI_FE_VERSION_CACHE_TTL_MS,
+  ZAI_NEW_CHAT_URL,
+  ZAI_USER_AGENT,
+  type ZaiReasoningEffort,
+  type ZaiThinkingConfig,
+  type ZaiVlmConfig,
+} from "./zai-web/protocol.ts";
+import {
+  buildZaiStreamingBody,
+  collectZaiNonStreaming,
+  makeZaiChunkEmitter,
+} from "./zai-web/stream.ts";
+import { browserBackedChat } from "../services/browserBackedChat.ts";
+import { CursorImageError, resolveCursorImages } from "../utils/cursorImages.ts";
 import {
   makeExecutorErrorResult as makeErrorResult,
-  normalizeCookie,
   sanitizeErrorMessage,
 } from "../utils/error.ts";
 
-const BASE_URL = "https://chat.z.ai";
-const CHAT_URL = `${BASE_URL}/api/v2/chat/completions`;
-const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
+export {
+  buildZaiSignature,
+  describeZaiBrowserFailure,
+  extractZaiCaptchaVerifyParam,
+  extractZaiToken,
+  extractZaiUserId,
+  foldMessages,
+  getZaiModelCapabilities,
+  parseZaiFrontendVersion,
+  resolveZaiThinkingConfig,
+  resolveZaiVlmConfig,
+} from "./zai-web/protocol.ts";
+export type {
+  ZaiModelCapabilities,
+  ZaiReasoningEffort,
+  ZaiThinkingConfig,
+  ZaiVlmConfig,
+} from "./zai-web/protocol.ts";
+export { parseZaiFrame } from "./zai-web/stream.ts";
+export type { ZaiDelta } from "./zai-web/stream.ts";
 
-/** Extract the `token` cookie value (JWT) from a full Cookie header string. */
-export function extractZaiToken(rawCookie: string): string {
-  const cookie = normalizeCookie(rawCookie.trim());
-  if (!cookie) return "";
-  const match = cookie.match(/(?:^|;\s*)token=([^;]+)/);
-  if (match) return match[1].trim();
-  // Users may paste the bare JWT with no `token=` prefix.
-  return cookie.includes(";") || cookie.includes("=") ? "" : cookie;
+let cachedFeVersion: { value: string; expiresAt: number } | null = null;
+
+type ZaiBrowserAttachments = NonNullable<Parameters<typeof browserBackedChat>[0]["attachments"]>;
+
+/** Decode the request's image URLs into browser upload attachments. */
+async function resolveZaiBrowserAttachments(
+  imageUrls: string[],
+  body: unknown
+): Promise<
+  { attachments: ZaiBrowserAttachments } | { errorResult: ReturnType<typeof makeErrorResult> }
+> {
+  try {
+    const images = await resolveCursorImages(imageUrls);
+    return {
+      attachments: images.map((image, index) => ({
+        name: zaiImageFileName(image.mimeType, index),
+        mimeType: image.mimeType,
+        buffer: image.data,
+      })),
+    };
+  } catch (error) {
+    const message =
+      error instanceof CursorImageError
+        ? error.message
+        : sanitizeErrorMessage(error instanceof Error ? error.message : "invalid image input");
+    return {
+      errorResult: makeErrorResult(
+        error instanceof CursorImageError ? error.status : 400,
+        `Z.ai image input error: ${message}`,
+        body,
+        ZAI_CHAT_URL
+      ),
+    };
+  }
 }
 
 /**
- * One parsed delta out of a z.ai SSE frame: either a content/reasoning chunk
- * or a signal that the stream has finished.
+ * The call-log body for a browser-transport turn. There is no real upstream
+ * request payload to record here, so this reconstructs the equivalent shape the
+ * signed-API path logs, from the settings the browser UI was driven with.
  */
-export interface ZaiDelta {
-  content: string;
-  reasoning: string;
-  done: boolean;
-}
-
-/** Parse an already OpenAI-shaped `{choices:[{delta}]}` pass-through frame. */
-function parseOpenAiShapedFrame(choices: Array<Record<string, unknown>>): ZaiDelta {
-  const delta = (choices[0]?.delta ?? {}) as Record<string, unknown>;
-  const finishReason = choices[0]?.finish_reason;
+function buildZaiBrowserAuditBody(input: {
+  messages: Array<{ role: string; content: unknown }>;
+  modelId: string;
+  thinkingConfig: ZaiThinkingConfig;
+  vlmConfig: ZaiVlmConfig;
+  imageCount: number;
+}): Record<string, unknown> {
+  const { thinkingConfig: thinking, vlmConfig: vlm } = input;
   return {
-    content: typeof delta.content === "string" ? delta.content : "",
-    reasoning: typeof delta.reasoning_content === "string" ? delta.reasoning_content : "",
-    done: finishReason != null,
+    browser_backed: true,
+    image_count: input.imageCount,
+    model: input.modelId,
+    messages: foldMessages(input.messages),
+    enable_thinking: thinking.enabled,
+    auto_web_search: vlm.websiteModeEnabled ? false : vlm.webSearchEnabled,
+    vlm_tools_enable: vlm.toolsEnabled,
+    vlm_web_search_enable: vlm.websiteModeEnabled && vlm.webSearchEnabled,
+    vlm_website_mode: vlm.websiteModeEnabled,
+    ...(thinking.enabled && thinking.effortSupported ? { reasoning_effort: thinking.effort } : {}),
   };
 }
 
-/** Parse the z.ai / chatglm internal `{data:{delta_content,phase,done}}` envelope. */
-function parseInternalEnvelopeFrame(
-  frame: Record<string, unknown>,
-  data: Record<string, unknown>
-): ZaiDelta | null {
-  const phase = String(data.phase ?? "");
-  const deltaContent = data.delta_content ?? data.edit_content ?? data.content;
-  const done =
-    data.done === true ||
-    phase === "done" ||
-    phase === "finish" ||
-    String(frame.type ?? "") === "chat:completion:finish";
-
-  if (typeof deltaContent === "string" && deltaContent) {
-    const isThinking = phase === "thinking";
-    return {
-      content: isThinking ? "" : deltaContent,
-      reasoning: isThinking ? deltaContent : "",
-      done,
-    };
-  }
-  if (done) return { content: "", reasoning: "", done: true };
-  return null;
+/**
+ * Drive-the-real-UI options for chat.z.ai: which selectors to type into and click,
+ * and the localStorage token the page reads at boot. `beforeSubmit` flips the
+ * Deep Think / web-search / tools switches to match the request.
+ */
+function buildZaiBrowserChatOptions(input: {
+  attachments: ZaiBrowserAttachments;
+  messages: Array<{ role: string; content: unknown }>;
+  modelId: string;
+  signal?: AbortSignal | null;
+  thinkingConfig: ZaiThinkingConfig;
+  token: string;
+  vlmConfig: ZaiVlmConfig;
+}): Parameters<typeof browserBackedChat>[0] {
+  const poolKey = `zai-web:${createHash("sha256").update(input.token).digest("hex").slice(0, 24)}`;
+  return {
+    poolKey,
+    chatUrl: ZAI_CHAT_URL,
+    chatPageUrl: `${ZAI_BASE_URL}/?model=${encodeURIComponent(browserModelName(input.modelId))}`,
+    userMessage: browserPrompt(input.messages),
+    localStorage: { token: input.token },
+    localStorageOrigin: ZAI_BASE_URL,
+    cookieDomain: "chat.z.ai",
+    chatUrlMatchDomain: "chat.z.ai",
+    userAgent: ZAI_USER_AGENT,
+    locale: "en-US",
+    timezone: "Asia/Seoul",
+    inputSelector: "#chat-input",
+    submitButtonSelector: '[aria-label="Send Message"] button:not([disabled])',
+    submitButtonMode: "dom",
+    attachments: input.attachments,
+    beforeSubmit: (page) =>
+      configureZaiBrowserRequest(page, {
+        modelId: input.modelId,
+        thinking: input.thinkingConfig,
+        vlm: input.vlmConfig,
+      }),
+    postSubmitWaitMs: 30_000,
+    signal: input.signal,
+    reuseContext: true,
+  };
 }
+
+/** What either transport hands back: the upstream stream plus its call-log pair. */
+type ZaiTransportResult = {
+  upstream: Response;
+  auditHeaders: Record<string, string>;
+  auditBody: Record<string, unknown>;
+};
+
+type ZaiResolvedRequest = {
+  captchaVerifyParam: string;
+  imageUrls: string[];
+  messages: Array<{ role: string; content: unknown }>;
+  modelId: string;
+  prompt: string;
+  thinkingConfig: ZaiThinkingConfig;
+  token: string;
+  userId: string;
+  vlmConfig: ZaiVlmConfig;
+};
 
 /**
- * Parse a single decoded z.ai SSE `data:` JSON payload into a normalized
- * delta. Handles both the internal `{data:{delta_content,phase,done}}`
- * envelope and a pass-through OpenAI-shaped `{choices:[{delta}]}` frame.
+ * Validate the credential and body, and resolve everything both transports need.
+ *
+ * All four rejections are client errors that must never reach the upstream: no
+ * usable session token, no user turn, an image sent to a text-only model, and a
+ * JWT with no user id (which the signed-API path needs to build its signature).
  */
-export function parseZaiFrame(raw: unknown): ZaiDelta | null {
-  if (!raw || typeof raw !== "object") return null;
-  const frame = raw as Record<string, unknown>;
+function resolveZaiRequest(
+  input: ExecuteInput
+): { request: ZaiResolvedRequest } | { errorResult: ReturnType<typeof makeErrorResult> } {
+  const { body, credentials, model } = input;
+  const bodyObj = (body || {}) as Record<string, unknown>;
+  const fail = (message: string) => ({
+    errorResult: makeErrorResult(400, message, body, ZAI_CHAT_URL),
+  });
 
-  const choices = frame.choices as Array<Record<string, unknown>> | undefined;
-  if (Array.isArray(choices) && choices.length > 0) {
-    return parseOpenAiShapedFrame(choices);
+  const rawCredential = String(credentials?.apiKey ?? credentials?.accessToken ?? "").trim();
+  const token = extractZaiToken(rawCredential);
+  if (!token) {
+    return fail(
+      'Missing Z.ai web-session credential — copy the "token" value from chat.z.ai Local Storage.'
+    );
   }
 
-  const data = (frame.data ?? frame) as Record<string, unknown>;
-  return parseInternalEnvelopeFrame(frame, data);
-}
-
-export function foldMessages(
-  messages: Array<{ role: string; content: unknown }>
-): Array<{ role: string; content: string }> {
-  return messages.map((m) => ({
-    role: m.role,
-    content: typeof m.content === "string" ? m.content : JSON.stringify(m.content ?? ""),
-  }));
-}
-
-/** Split a chunk of decoded SSE text into complete `data:` payload strings. */
-function extractSseDataPayloads(buffer: { text: string }, incoming: string): string[] {
-  buffer.text += incoming;
-  const lines = buffer.text.split("\n");
-  buffer.text = lines.pop() || "";
-  const payloads: string[] = [];
-  for (const line of lines) {
-    if (!line.startsWith("data:")) continue;
-    const data = line.slice(5).trim();
-    if (!data || data === "[DONE]") continue;
-    payloads.push(data);
+  const messages = (bodyObj.messages as Array<{ role: string; content: unknown }>) || [];
+  const prompt = latestUserPrompt(messages);
+  const imageUrls = collectZaiImageUrls(messages);
+  if (!prompt && imageUrls.length === 0) {
+    return fail("Z.ai requires at least one user message");
   }
-  return payloads;
-}
 
-/** Parse a raw SSE payload string into a normalized delta, or null if unusable. */
-function parseSsePayload(data: string): ZaiDelta | null {
-  try {
-    return parseZaiFrame(JSON.parse(data));
-  } catch {
-    return null;
+  const modelId = (bodyObj.model as string) || model || ZAI_DEFAULT_MODEL;
+  if (imageUrls.length > 0 && !getZaiModelCapabilities(modelId).vision) {
+    return fail(
+      `Z.ai model ${unprefixedModelId(modelId)} does not accept image input; use GLM-5V-Turbo.`
+    );
   }
-}
 
-/**
- * Read the upstream SSE body to completion, invoking `onDelta` for every
- * parsed delta. Returns true when `onDelta` signalled the stream ended
- * (returned true), false when the body was exhausted without a done delta.
- */
-async function drainSseDeltas(
-  sourceBody: ReadableStream<Uint8Array>,
-  onDelta: (delta: ZaiDelta) => boolean
-): Promise<boolean> {
-  const decoder = new TextDecoder();
-  const reader = sourceBody.getReader();
-  const buffer = { text: "" };
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) return false;
-    const payloads = extractSseDataPayloads(buffer, decoder.decode(value, { stream: true }));
-    for (const raw of payloads) {
-      const delta = parseSsePayload(raw);
-      if (delta && onDelta(delta)) return true;
-    }
+  const userId = extractZaiUserId(token);
+  if (!userId) {
+    return fail(
+      "Invalid Z.ai web-session credential — its JWT payload does not contain the required user id."
+    );
   }
-}
 
-type ChunkEmitter = (
-  controller: ReadableStreamDefaultController,
-  delta: Record<string, unknown>,
-  finish?: string | null
-) => void;
-
-/** Emit role/reasoning/content/stop chunks for one delta. Returns true when the stream ended. */
-function emitDeltaChunks(
-  controller: ReadableStreamDefaultController,
-  delta: ZaiDelta,
-  emitChunk: ChunkEmitter,
-  roleState: { emitted: boolean }
-): boolean {
-  if (!roleState.emitted && (delta.content || delta.reasoning)) {
-    roleState.emitted = true;
-    emitChunk(controller, { role: "assistant", content: "" });
-  }
-  if (delta.reasoning) emitChunk(controller, { reasoning_content: delta.reasoning });
-  if (delta.content) emitChunk(controller, { content: delta.content });
-  if (delta.done) {
-    emitChunk(controller, {}, "stop");
-    controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
-    controller.close();
-    return true;
-  }
-  return false;
+  return {
+    request: {
+      captchaVerifyParam: resolveZaiCaptchaVerifyParam(credentials, bodyObj),
+      imageUrls,
+      messages,
+      modelId,
+      prompt,
+      thinkingConfig: resolveZaiThinkingConfig(modelId, bodyObj),
+      token,
+      userId,
+      vlmConfig: resolveZaiVlmConfig(modelId, bodyObj),
+    },
+  };
 }
 
 export class ZaiWebExecutor extends BaseExecutor {
   constructor() {
-    super("zai-web", { id: "zai-web", baseUrl: BASE_URL });
+    super("zai-web", { id: "zai-web", baseUrl: ZAI_BASE_URL });
   }
 
-  private buildZaiHeaders(rawCookie: string, token: string): Record<string, string> {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      Accept: "text/event-stream",
-      "User-Agent": USER_AGENT,
-      Origin: BASE_URL,
-      Referer: `${BASE_URL}/`,
-    };
-    if (rawCookie) headers.Cookie = rawCookie;
-    if (token) headers.Authorization = `Bearer ${token}`;
-    return headers;
-  }
-
-  private buildRequestBody(
-    messages: Array<{ role: string; content: unknown }>,
-    modelId: string
-  ): Record<string, unknown> {
-    return {
-      stream: true,
-      model: modelId,
-      messages: foldMessages(messages),
-      params: {},
-      features: {
-        image_generation: false,
-        web_search: false,
-        auto_web_search: false,
-      },
-    };
-  }
-
-  /** Drain the streaming response body into an OpenAI-shaped SSE ReadableStream. */
-  private buildStreamingBody(
-    sourceBody: ReadableStream<Uint8Array>,
-    modelId: string,
-    emitChunk: ChunkEmitter,
-    signal: AbortSignal | null | undefined
-  ): ReadableStream {
-    return new ReadableStream({
-      async start(controller) {
-        const roleState = { emitted: false };
-        try {
-          const ended = await drainSseDeltas(sourceBody, (delta) =>
-            emitDeltaChunks(controller, delta, emitChunk, roleState)
-          );
-          if (ended) return; // emitDeltaChunks already sent [DONE] and closed
-          if (!roleState.emitted) emitChunk(controller, { role: "assistant", content: "" });
-          emitChunk(controller, {}, "stop");
-          controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
-          controller.close();
-        } catch (err) {
-          if (!signal?.aborted) {
-            try {
-              controller.error(err);
-            } catch {
-              /* controller already closed */
-            }
-          }
-        }
-      },
-    });
-  }
-
-  /** Drain the response body and aggregate all deltas into a single answer/reasoning pair. */
-  private async collectNonStreaming(
-    sourceBody: ReadableStream<Uint8Array>
-  ): Promise<{ answer: string; reasoning: string }> {
-    let answer = "";
-    let reasoning = "";
-    try {
-      await drainSseDeltas(sourceBody, (delta) => {
-        if (delta.reasoning) reasoning += delta.reasoning;
-        if (delta.content) answer += delta.content;
-        return delta.done;
-      });
-    } catch {
-      /* best-effort — return what we have */
+  private async resolveFrontendVersion(signal?: AbortSignal | null): Promise<string> {
+    if (cachedFeVersion && cachedFeVersion.expiresAt > Date.now()) {
+      return cachedFeVersion.value;
     }
-    return { answer, reasoning };
+    let version = ZAI_DEFAULT_FE_VERSION;
+    try {
+      const response = await fetch(`${ZAI_BASE_URL}/`, {
+        headers: { Accept: "text/html", "User-Agent": ZAI_USER_AGENT },
+        signal,
+      });
+      if (response.ok) {
+        version = parseZaiFrontendVersion(await response.text()) ?? version;
+      }
+    } catch {
+      // The current verified version remains a safe fallback when homepage probing fails.
+    }
+    cachedFeVersion = {
+      value: version,
+      expiresAt: Date.now() + ZAI_FE_VERSION_CACHE_TTL_MS,
+    };
+    return version;
   }
 
-  /** POST the chat request upstream. Returns either the upstream Response or an error result. */
+  private async createRemoteChat(input: {
+    messages: Array<{ role: string; content: unknown }>;
+    modelId: string;
+    token: string;
+    enableThinking: boolean;
+    reasoningEffort: ZaiReasoningEffort;
+    vlmConfig: ZaiVlmConfig;
+    signal?: AbortSignal | null;
+    originalBody: unknown;
+  }): Promise<
+    { chatId: string; userMessageId: string } | { errorResult: ReturnType<typeof makeErrorResult> }
+  > {
+    const { userMessageId, payload } = buildZaiNewChatBody(
+      input.messages,
+      input.modelId,
+      input.enableThinking,
+      input.reasoningEffort,
+      input.vlmConfig
+    );
+    let response: Response;
+    try {
+      response = await fetch(ZAI_NEW_CHAT_URL, {
+        method: "POST",
+        headers: buildZaiHeaders(input.token, {
+          accept: "application/json",
+        }),
+        body: JSON.stringify(payload),
+        signal: input.signal,
+      });
+    } catch (error) {
+      const message = sanitizeErrorMessage(
+        error instanceof Error ? error.message : "unknown network error"
+      );
+      return {
+        errorResult: makeErrorResult(
+          502,
+          `Z.ai chat creation failed: ${message}`,
+          input.originalBody,
+          ZAI_NEW_CHAT_URL
+        ),
+      };
+    }
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      return {
+        errorResult: makeErrorResult(
+          response.status,
+          `Z.ai chat creation error: ${sanitizeErrorMessage(errorText)}`,
+          input.originalBody,
+          ZAI_NEW_CHAT_URL
+        ),
+      };
+    }
+    const result = asRecord(await response.json().catch(() => null));
+    const chatId = typeof result?.id === "string" ? result.id : "";
+    if (!chatId) {
+      return {
+        errorResult: makeErrorResult(
+          502,
+          "Z.ai chat creation returned no chat id",
+          input.originalBody,
+          ZAI_NEW_CHAT_URL
+        ),
+      };
+    }
+    return { chatId, userMessageId };
+  }
+
   private async fetchUpstream(
+    completionUrl: string,
     reqHeaders: Record<string, string>,
     reqBody: Record<string, unknown>,
     body: unknown,
@@ -287,81 +367,191 @@ export class ZaiWebExecutor extends BaseExecutor {
   ): Promise<{ upstream: Response } | { errorResult: ReturnType<typeof makeErrorResult> }> {
     let upstream: Response;
     try {
-      upstream = await fetch(CHAT_URL, {
+      upstream = await fetch(completionUrl, {
         method: "POST",
         headers: reqHeaders,
         body: JSON.stringify(reqBody),
         signal,
       });
-    } catch (err) {
+    } catch (error) {
+      const message = sanitizeErrorMessage(
+        error instanceof Error ? error.message : "unknown network error"
+      );
       return {
-        errorResult: makeErrorResult(
-          502,
-          `Z.ai fetch failed: ${err instanceof Error ? err.message : "unknown"}`,
-          body,
-          CHAT_URL
-        ),
+        errorResult: makeErrorResult(502, `Z.ai fetch failed: ${message}`, body, ZAI_CHAT_URL),
       };
     }
 
     if (!upstream.ok) {
-      const errText = await upstream.text().catch(() => "");
+      const errorText = await upstream.text().catch(() => "");
       return {
         errorResult: makeErrorResult(
           upstream.status,
-          `Z.ai error: ${sanitizeErrorMessage(errText)}`,
+          `Z.ai error: ${sanitizeErrorMessage(errorText)}`,
           body,
-          CHAT_URL
+          ZAI_CHAT_URL
         ),
       };
     }
     return { upstream };
   }
 
-  private makeChunkEmitter(id: string, created: number, modelId: string): ChunkEmitter {
-    return (controller, delta, finish = null) => {
-      const chunk = {
-        id,
-        object: "chat.completion.chunk",
-        created,
-        model: modelId,
-        choices: [{ index: 0, delta, finish_reason: finish }],
+  private async fetchThroughBrowser(input: {
+    body: unknown;
+    messages: Array<{ role: string; content: unknown }>;
+    modelId: string;
+    imageUrls: string[];
+    signal?: AbortSignal | null;
+    thinkingConfig: ZaiThinkingConfig;
+    token: string;
+    vlmConfig: ZaiVlmConfig;
+  }): Promise<ZaiTransportResult | { errorResult: ReturnType<typeof makeErrorResult> }> {
+    const resolved = await resolveZaiBrowserAttachments(input.imageUrls, input.body);
+    if ("errorResult" in resolved) return resolved;
+    const { attachments } = resolved;
+
+    let result: Awaited<ReturnType<typeof browserBackedChat>>;
+    try {
+      result = await browserBackedChat(buildZaiBrowserChatOptions({ ...input, attachments }));
+    } catch (error) {
+      const message = sanitizeErrorMessage(
+        error instanceof Error ? error.message : "browser transport unavailable"
+      );
+      return {
+        errorResult: makeErrorResult(
+          502,
+          `Z.ai browser transport failed: ${message}`,
+          input.body,
+          ZAI_CHAT_URL
+        ),
       };
-      controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(chunk)}\n\n`));
+    }
+
+    if (result.status < 200 || result.status >= 300) {
+      return {
+        errorResult: makeErrorResult(
+          result.status || 502,
+          describeZaiBrowserFailure(result),
+          input.body,
+          ZAI_CHAT_URL
+        ),
+      };
+    }
+
+    return {
+      upstream: new Response(new Uint8Array(result.body), {
+        status: result.status,
+        headers: {
+          "Content-Type": result.contentType || "text/event-stream",
+        },
+      }),
+      auditHeaders: {
+        Authorization: "Bearer [REDACTED]",
+        "X-OmniRoute-Transport": "browser",
+      },
+      auditBody: buildZaiBrowserAuditBody({
+        messages: input.messages,
+        modelId: input.modelId,
+        thinkingConfig: input.thinkingConfig,
+        vlmConfig: input.vlmConfig,
+        imageCount: attachments.length,
+      }),
+    };
+  }
+
+  /**
+   * Signed-API transport: create a chat server-side, then POST the completion with
+   * a CAPTCHA proof and a per-request signature. Only reachable when the caller
+   * supplied a proof and sent no images.
+   */
+  private async fetchViaSignedApi(
+    request: ZaiResolvedRequest,
+    input: ExecuteInput
+  ): Promise<ZaiTransportResult | { errorResult: ReturnType<typeof makeErrorResult> }> {
+    const { body, signal } = input;
+    const bodyObj = (body || {}) as Record<string, unknown>;
+    const { messages, modelId, prompt, thinkingConfig, token, userId, vlmConfig } = request;
+
+    const frontendVersion = await this.resolveFrontendVersion(signal);
+    const createdChat = await this.createRemoteChat({
+      messages,
+      modelId,
+      token,
+      enableThinking: thinkingConfig.enabled,
+      reasoningEffort: thinkingConfig.effort,
+      vlmConfig,
+      signal,
+      originalBody: body,
+    });
+    if ("errorResult" in createdChat) return createdChat;
+
+    const timestamp = Date.now();
+    const requestId = randomUUID();
+    const signature = buildZaiSignature({ prompt, requestId, timestamp, userId });
+    const completionUrl = buildZaiCompletionUrl({ requestId, timestamp, token, userId });
+    const reqHeaders = buildZaiHeaders(token, {
+      accept: "text/event-stream",
+      frontendVersion,
+      signature,
+    });
+    const reqBody = buildZaiRequestBody({
+      body: bodyObj,
+      captchaVerifyParam: request.captchaVerifyParam,
+      chatId: createdChat.chatId,
+      messages,
+      modelId,
+      prompt,
+      userMessageId: createdChat.userMessageId,
+      enableThinking: thinkingConfig.enabled,
+      reasoningEffort: thinkingConfig.effort,
+      reasoningEffortSupported: thinkingConfig.effortSupported,
+      vlmConfig,
+    });
+    const fetched = await this.fetchUpstream(completionUrl, reqHeaders, reqBody, body, signal);
+    if ("errorResult" in fetched) return fetched;
+
+    return {
+      upstream: fetched.upstream,
+      auditHeaders: {
+        ...reqHeaders,
+        Authorization: "Bearer [REDACTED]",
+        "X-Signature": "[REDACTED]",
+      },
+      auditBody: { ...reqBody, captcha_verify_param: "[REDACTED]" },
     };
   }
 
   async execute(input: ExecuteInput) {
-    const { body, credentials, signal, stream: wantStream } = input;
-    const bodyObj = (body || {}) as Record<string, unknown>;
+    const { body, signal, stream: wantStream } = input;
 
-    const rawCookie = normalizeCookie(String(credentials?.apiKey ?? "").trim());
-    const token = extractZaiToken(rawCookie);
-    if (!rawCookie && !token) {
-      return makeErrorResult(
-        400,
-        "Missing Z.ai session — paste the full Cookie header from chat.z.ai (must contain token=<JWT>).",
-        body,
-        CHAT_URL
-      );
-    }
+    const resolved = resolveZaiRequest(input);
+    if ("errorResult" in resolved) return resolved.errorResult;
+    const request = resolved.request;
+    const { imageUrls, messages, modelId, thinkingConfig, token, vlmConfig } = request;
 
-    const messages = (bodyObj.messages as Array<{ role: string; content: unknown }>) || [];
-    const modelId = (bodyObj.model as string) || "glm-4.6";
-    const reqBody = this.buildRequestBody(messages, modelId);
-    const reqHeaders = this.buildZaiHeaders(rawCookie, token);
-
-    const fetched = await this.fetchUpstream(reqHeaders, reqBody, body, signal);
+    const useSignedApi = Boolean(request.captchaVerifyParam) && imageUrls.length === 0;
+    const fetched = useSignedApi
+      ? await this.fetchViaSignedApi(request, input)
+      : await this.fetchThroughBrowser({
+          body,
+          imageUrls,
+          messages,
+          modelId,
+          signal,
+          thinkingConfig,
+          token,
+          vlmConfig,
+        });
     if ("errorResult" in fetched) return fetched.errorResult;
-    const { upstream } = fetched;
+    const { upstream, auditHeaders, auditBody } = fetched;
 
     const id = `chatcmpl-zai-${Date.now()}`;
     const created = Math.floor(Date.now() / 1000);
-    const sourceBody = upstream.body ?? new ReadableStream({ start: (c) => c.close() });
-    const emitChunk = this.makeChunkEmitter(id, created, modelId);
-
+    const sourceBody =
+      upstream.body ?? new ReadableStream({ start: (controller) => controller.close() });
+    const emitChunk = makeZaiChunkEmitter(id, created, modelId);
     if (wantStream) {
-      const outStream = this.buildStreamingBody(sourceBody, modelId, emitChunk, signal);
+      const outStream = buildZaiStreamingBody(sourceBody, emitChunk, signal);
       return {
         response: new Response(outStream, {
           headers: {
@@ -370,13 +560,22 @@ export class ZaiWebExecutor extends BaseExecutor {
             Connection: "keep-alive",
           },
         }),
-        url: CHAT_URL,
-        headers: reqHeaders,
-        transformedBody: reqBody,
+        url: ZAI_CHAT_URL,
+        headers: auditHeaders,
+        transformedBody: auditBody,
       };
     }
 
-    const { answer, reasoning } = await this.collectNonStreaming(sourceBody);
+    let answer: string;
+    let reasoning: string;
+    try {
+      ({ answer, reasoning } = await collectZaiNonStreaming(sourceBody));
+    } catch (error) {
+      const message = sanitizeErrorMessage(
+        error instanceof Error ? error.message : "invalid upstream stream"
+      );
+      return makeErrorResult(502, `Z.ai stream failed: ${message}`, body, ZAI_CHAT_URL);
+    }
     const message: Record<string, unknown> = { role: "assistant", content: answer };
     if (reasoning) message.reasoning_content = reasoning;
     const completion = {
@@ -390,9 +589,9 @@ export class ZaiWebExecutor extends BaseExecutor {
       response: new Response(JSON.stringify(completion), {
         headers: { "Content-Type": "application/json" },
       }),
-      url: CHAT_URL,
-      headers: reqHeaders,
-      transformedBody: reqBody,
+      url: ZAI_CHAT_URL,
+      headers: auditHeaders,
+      transformedBody: auditBody,
     };
   }
 }

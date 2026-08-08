@@ -381,12 +381,11 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
   // ── Z.ai Web (#4056) ────────────────────────────────────────
   config(
     "zai-web",
-    "Z.ai Web (Free)",
+    "Z.ai Web",
     "https://chat.z.ai/",
     "https://chat.z.ai",
-    [{ type: "cookie", name: "token", domain: ".z.ai" }],
-    "Log in to Z.ai at chat.z.ai. The session token will be extracted.",
-    { cookieDomain: ".z.ai" }
+    [{ type: "localStorage", key: "token" }],
+    'Log in to Z.ai at chat.z.ai. OmniRoute extracts the Local Storage value named "token"; chat CAPTCHA is handled by the browser transport.'
   ),
 ];
 

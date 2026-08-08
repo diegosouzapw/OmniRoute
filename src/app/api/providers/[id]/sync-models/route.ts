@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getCachedProviderConnectionById } from "@/lib/localDb";
-import { getSyncedAvailableModelsForConnection } from "@/lib/db/models";
+import {
+  deleteImportedCustomModels,
+  deleteSyncedAvailableModelsForProvider,
+  getSyncedAvailableModelsForConnection,
+} from "@/lib/db/models";
 import { selectModelsForImport } from "@/shared/utils/freeModels";
 import {
   importManagedModels,
@@ -394,6 +398,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     logProvider = toNonEmptyString(connection.provider) || "unknown";
     channelLabel = getModelSyncChannelLabel(connection);
     if (providerUsesCuratedModelsOnly(logProvider)) {
+      const [removedSyncedLists, removedImportedModelIds] = await Promise.all([
+        deleteSyncedAvailableModelsForProvider(logProvider),
+        deleteImportedCustomModels(logProvider),
+      ]);
       return NextResponse.json({
         provider: logProvider,
         connectionId: id,
@@ -402,6 +410,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         syncedModels: 0,
         availableModelsCount: 0,
         models: [],
+        cleanup: {
+          removedSyncedLists,
+          removedImportedModels: removedImportedModelIds.length,
+        },
       });
     }
     const previousSyncedAvailableModelsForConnection = await getSyncedAvailableModelsForConnection(

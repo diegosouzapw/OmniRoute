@@ -8,11 +8,8 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
-const {
-  TOKEN_EXTRACTION_CONFIGS,
-  getExtractionConfig,
-  listExtractionConfigs,
-} = await import("../../open-sse/services/tokenExtractionConfig.ts");
+const { TOKEN_EXTRACTION_CONFIGS, getExtractionConfig, listExtractionConfigs } =
+  await import("../../open-sse/services/tokenExtractionConfig.ts");
 
 describe("tokenExtractionConfig", () => {
   it("exports TOKEN_EXTRACTION_CONFIGS as a Map", () => {
@@ -101,6 +98,12 @@ describe("tokenExtractionConfig", () => {
       assert.ok(cfg !== undefined, `getExtractionConfig("${id}") returned undefined`);
       assert.equal(cfg?.providerId, id);
     }
+  });
+
+  it("extracts zai-web auth from localStorage rather than a cookie", () => {
+    const cfg = getExtractionConfig("zai-web");
+    assert.deepEqual(cfg?.tokenSources, [{ type: "localStorage", key: "token" }]);
+    assert.match(cfg?.instructions ?? "", /CAPTCHA/);
   });
 
   it("listExtractionConfigs returns all configs as an array", () => {
