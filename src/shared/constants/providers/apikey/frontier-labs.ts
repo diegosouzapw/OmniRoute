@@ -275,4 +275,19 @@ export const APIKEY_PROVIDERS_FRONTIER = {
       "Writer Palmyra is OpenAI-compatible at https://api.writer.com/v1. palmyra-x5 offers a 1M-token context window.",
     hasFree: false,
   },
+  "muse-code": {
+    id: "muse-code",
+    alias: "mc",
+    name: "Muse Code (Meta)",
+    icon: "auto_awesome",
+    color: "#0866FF",
+    textIcon: "MC",
+    website: "https://github.com/meta-llama/llama-stack",
+    authHint:
+      "Use your META_API_KEY env var as a Bearer token. Muse Code CLI uses the OpenAI Responses API wire format (POST /responses).",
+    apiHint:
+      "Muse Code is OpenAI-compatible. OmniRoute routes chat traffic through the Responses API and exposes the proprietary model catalog at /v1/muse-code/models.",
+    passthroughModels: true,
+    hasFree: false,
+  },
 };

@@ -3405,6 +3405,26 @@
       "stream": "https://api.morphllm.com/v1/chat/completions"
     }
   },
+  "muse-code": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {}
+  },
   "muse-spark-web": {
     "format": "openai",
     "headers": {
