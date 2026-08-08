@@ -15,6 +15,7 @@ export interface ModelSpec {
   supportsThinking?: boolean;
   supportsTools?: boolean;
   supportsVision?: boolean;
+  supportsAudio?: boolean;
   // Model defaults to adaptive thinking and REJECTS an explicit `thinking.type:"disabled"`
   // (upstream returns 400). Used to normalize the request when a combo/route substitutes
   // this model after the client already chose `disabled`. See issue #3554.
