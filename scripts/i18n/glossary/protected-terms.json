@@ -1,5 +1,5 @@
 {
-  "description": "Product/provider/model/protocol/header/CLI/env/identifier names that must appear verbatim (untranslated) inside any zh-CN localized string that mentions them. Distinct from untranslatable-keys.json, which excludes whole KEYS from drift checks at key-granularity; this list is consumed by scripts/i18n/check-glossary-consistency.mjs to flag a VALUE that mentions the concept but altered/translated the protected term itself.",
+  "description": "Product/provider/model/protocol/header/CLI/env/identifier names that must appear verbatim (untranslated) inside any localized string that mentions them (gated locales: zh-CN, ko). Distinct from untranslatable-keys.json, which excludes whole KEYS from drift checks at key-granularity; this list is consumed by scripts/i18n/check-glossary-consistency.mjs to flag a VALUE that mentions the concept but altered/translated the protected term itself. Known incorrect renderings live per-locale: legacy zh-CN entries in the checker's KNOWN_MISTRANSLATIONS map, newer locales in `protectedTermMistranslations` inside scripts/i18n/glossary/<locale>.json.",
   "terms": [
     "OmniRoute",
     "OAuth",
@@ -20,6 +20,15 @@
     "CLI",
     "Docker",
     "Electron",
-    "Playwright"
+    "Playwright",
+    "ngrok",
+    "Anthropic",
+    "Claude",
+    "Gemini",
+    "Antigravity",
+    "Tailscale",
+    "VACUUM",
+    "socks5",
+    "ZIP"
   ]
 }
