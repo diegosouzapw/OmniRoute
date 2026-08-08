@@ -16,6 +16,7 @@ const core = await import("../../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../../src/lib/db/apiKeys.ts");
 const settingsDb = await import("../../../src/lib/db/settings.ts");
 const modelSync = await import("../../../src/shared/services/modelSyncScheduler.ts");
+const internalServiceAuth = await import("../../../src/lib/api/internalServiceAuth.ts");
 
 const ORIGINAL_JWT = process.env.JWT_SECRET;
 const ORIGINAL_INITIAL = process.env.INITIAL_PASSWORD;
@@ -144,6 +145,26 @@ test("managementPolicy: rejects 401 when auth required and no credentials", asyn
     assert.equal(out.status, 401);
     assert.equal(out.code, "AUTH_001");
   }
+});
+
+test("managementPolicy: allows a valid internal service token only from loopback", async () => {
+  process.env.JWT_SECRET = "test-jwt-secret-for-mgmt-policy";
+  process.env.INITIAL_PASSWORD = "initial-pass";
+  process.env.OMNIROUTE_INTERNAL_SERVICE_TOKEN = "internal-service-token-0123456789";
+  await settingsDb.updateSettings({ requireLogin: true });
+  const policy = await loadPolicy();
+  const headers = new Headers({
+    [internalServiceAuth.INTERNAL_SERVICE_AUTH_HEADER]: "internal-service-token-0123456789",
+  });
+
+  const loopback = await policy.evaluate(
+    ctx(headers, "GET", "/api/combos", { socket: { remoteAddress: "127.0.0.1" } })
+  );
+  assert.equal(loopback.allow, true);
+
+  const remote = await policy.evaluate(remoteCtx(headers, "GET", "/api/combos"));
+  assert.equal(remote.allow, false);
+  delete process.env.OMNIROUTE_INTERNAL_SERVICE_TOKEN;
 });
 
 test("managementPolicy: rejects client API keys for dashboard access", async () => {

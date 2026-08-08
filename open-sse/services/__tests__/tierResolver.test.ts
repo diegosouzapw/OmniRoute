@@ -3,8 +3,7 @@
  * Tests: classifyTier, setTierConfig, clearTierCache, getTierStats, classifyTiers
  */
 
-import { describe, it, beforeEach } from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, expect, beforeEach } from "vitest";
 import {
   classifyTier,
   setTierConfig,
@@ -27,94 +26,94 @@ describe("TierResolver", () => {
   describe("classifyTier - free providers", () => {
     it("classifies Kiro as free", () => {
       const result = classifyTier("kiro", "claude-sonnet-4.5");
-      assert.equal(result.tier, PROVIDER_TIER.FREE);
-      assert.equal(result.hasFreeTier, true);
+      expect(result.tier).toBe(PROVIDER_TIER.FREE);
+      expect(result.hasFreeTier).toBe(true);
     });
 
     it("classifies Qoder as free", () => {
       const result = classifyTier("qoder", "kimi-k2-thinking");
-      assert.equal(result.tier, PROVIDER_TIER.FREE);
-      assert.equal(result.hasFreeTier, true);
+      expect(result.tier).toBe(PROVIDER_TIER.FREE);
+      expect(result.hasFreeTier).toBe(true);
     });
 
     it("classifies Pollinations as free", () => {
       const result = classifyTier("pollinations", "gpt-5");
-      assert.equal(result.tier, PROVIDER_TIER.FREE);
-      assert.equal(result.hasFreeTier, true);
+      expect(result.tier).toBe(PROVIDER_TIER.FREE);
+      expect(result.hasFreeTier).toBe(true);
     });
 
     it("classifies LongCat as free", () => {
       const result = classifyTier("longcat", "LongCat-2.0");
-      assert.equal(result.tier, PROVIDER_TIER.FREE);
-      assert.equal(result.hasFreeTier, true);
+      expect(result.tier).toBe(PROVIDER_TIER.FREE);
+      expect(result.hasFreeTier).toBe(true);
     });
 
     it("classifies Cloudflare AI as free", () => {
       const result = classifyTier("cloudflare-ai", "llama-3.3-70b");
-      assert.equal(result.tier, PROVIDER_TIER.FREE);
-      assert.equal(result.hasFreeTier, true);
+      expect(result.tier).toBe(PROVIDER_TIER.FREE);
+      expect(result.hasFreeTier).toBe(true);
     });
 
     it("classifies NVIDIA NIM as free", () => {
       const result = classifyTier("nvidia-nim", "llama-3.1-8b");
-      assert.equal(result.tier, PROVIDER_TIER.FREE);
-      assert.equal(result.hasFreeTier, true);
+      expect(result.tier).toBe(PROVIDER_TIER.FREE);
+      expect(result.hasFreeTier).toBe(true);
     });
 
     it("classifies Cerebras as free", () => {
       const result = classifyTier("cerebras", "llama-3.1-70b");
-      assert.equal(result.tier, PROVIDER_TIER.FREE);
-      assert.equal(result.hasFreeTier, true);
+      expect(result.tier).toBe(PROVIDER_TIER.FREE);
+      expect(result.hasFreeTier).toBe(true);
     });
 
     it("classifies Groq as free", () => {
       const result = classifyTier("groq", "llama-3.3-70b");
-      assert.equal(result.tier, PROVIDER_TIER.FREE);
-      assert.equal(result.hasFreeTier, true);
+      expect(result.tier).toBe(PROVIDER_TIER.FREE);
+      expect(result.hasFreeTier).toBe(true);
     });
 
     it("sets costPer1MInput to 0 for free providers", () => {
       const result = classifyTier("kiro", "claude-sonnet-4.5");
-      assert.equal(result.costPer1MInput, 0);
-      assert.equal(result.costPer1MOutput, 0);
+      expect(result.costPer1MInput).toBe(0);
+      expect(result.costPer1MOutput).toBe(0);
     });
   });
 
   describe("classifyTier - cost-based classification", () => {
     it("classifies DeepSeek as cheap ($0.27/M < $1.00/M)", () => {
       const result = classifyTier("deepseek", "deepseek-chat");
-      assert.equal(result.tier, PROVIDER_TIER.CHEAP);
-      assert.ok(result.costPer1MInput <= 1.0);
+      expect(result.tier).toBe(PROVIDER_TIER.CHEAP);
+      expect(result.costPer1MInput).toBeLessThanOrEqual(1.0);
     });
 
     it("classifies GLM as cheap ($0.60/M < $1.00/M)", () => {
       const result = classifyTier("glm", "glm-4.7");
-      assert.equal(result.tier, PROVIDER_TIER.CHEAP);
-      assert.ok(result.costPer1MInput <= 1.0);
+      expect(result.tier).toBe(PROVIDER_TIER.CHEAP);
+      expect(result.costPer1MInput).toBeLessThanOrEqual(1.0);
     });
 
     it("classifies MiniMax as cheap ($0.20/M < $1.00/M)", () => {
       const result = classifyTier("minimax", "minimax-m2.1");
-      assert.equal(result.tier, PROVIDER_TIER.CHEAP);
-      assert.ok(result.costPer1MInput <= 1.0);
+      expect(result.tier).toBe(PROVIDER_TIER.CHEAP);
+      expect(result.costPer1MInput).toBeLessThanOrEqual(1.0);
     });
 
     it("classifies GPT-4o as premium ($2.50/M > $1.00/M)", () => {
       const result = classifyTier("openai", "gpt-4o");
-      assert.equal(result.tier, PROVIDER_TIER.PREMIUM);
-      assert.ok(result.costPer1MInput > 1.0);
+      expect(result.tier).toBe(PROVIDER_TIER.PREMIUM);
+      expect(result.costPer1MInput).toBeGreaterThan(1.0);
     });
 
     it("classifies Claude Opus as premium ($15.00/M > $1.00/M)", () => {
       const result = classifyTier("anthropic", "claude-opus-4-7");
-      assert.equal(result.tier, PROVIDER_TIER.PREMIUM);
-      assert.ok(result.costPer1MInput > 1.0);
+      expect(result.tier).toBe(PROVIDER_TIER.PREMIUM);
+      expect(result.costPer1MInput).toBeGreaterThan(1.0);
     });
 
     it("defaults unknown providers to premium", () => {
       const result = classifyTier("unknown-provider", "unknown-model");
-      assert.equal(result.tier, PROVIDER_TIER.PREMIUM);
-      assert.equal(result.costPer1MInput, 5.0); // default premium pricing
+      expect(result.tier).toBe(PROVIDER_TIER.PREMIUM);
+      expect(result.costPer1MInput).toBe(5.0); // default premium pricing
     });
   });
 
@@ -122,8 +121,8 @@ describe("TierResolver", () => {
     it("respects provider-level tier override", () => {
       setTierConfig({ providerOverrides: [{ provider: "openai", tier: "cheap" }] });
       const result = classifyTier("openai", "gpt-4o");
-      assert.equal(result.tier, PROVIDER_TIER.CHEAP);
-      assert.ok(result.reason.includes("override"));
+      expect(result.tier).toBe(PROVIDER_TIER.CHEAP);
+      expect(result.reason.includes("override")).toBe(true);
     });
 
     it("respects model-level glob pattern override", () => {
@@ -131,7 +130,7 @@ describe("TierResolver", () => {
         modelOverrides: [{ provider: "openai", modelPattern: "gpt-4o-mini*", tier: "cheap" }],
       });
       const result = classifyTier("openai", "gpt-4o-mini-2024-07-18");
-      assert.equal(result.tier, PROVIDER_TIER.CHEAP);
+      expect(result.tier).toBe(PROVIDER_TIER.CHEAP);
     });
 
     it("glob pattern gpt-4o-mini* matches gpt-4o-mini-2024-07-18", () => {
@@ -139,15 +138,15 @@ describe("TierResolver", () => {
         modelOverrides: [{ provider: "openai", modelPattern: "gpt-4o-mini*", tier: "cheap" }],
       });
       const result = classifyTier("openai", "gpt-4o-mini-2024-07-18");
-      assert.equal(result.tier, PROVIDER_TIER.CHEAP);
+      expect(result.tier).toBe(PROVIDER_TIER.CHEAP);
     });
 
     it("config change invalidates cache", () => {
       const before = classifyTier("openai", "gpt-4o");
-      assert.equal(before.tier, PROVIDER_TIER.PREMIUM);
+      expect(before.tier).toBe(PROVIDER_TIER.PREMIUM);
       setTierConfig({ providerOverrides: [{ provider: "openai", tier: "free" }] });
       const after = classifyTier("openai", "gpt-4o");
-      assert.equal(after.tier, PROVIDER_TIER.FREE);
+      expect(after.tier).toBe(PROVIDER_TIER.FREE);
     });
   });
 
@@ -157,15 +156,15 @@ describe("TierResolver", () => {
       const t0 = performance.now();
       classifyTier("openai", "gpt-4o");
       const elapsed = performance.now() - t0;
-      assert.ok(elapsed < 0.1, "cache hit should be <0.1ms");
+      expect(elapsed, "cache hit should be <0.1ms").toBeLessThan(0.1);
     });
 
     it("clearTierCache() forces re-classification", () => {
       const first = classifyTier("openai", "gpt-4o");
       clearTierCache();
       const second = classifyTier("openai", "gpt-4o");
-      assert.equal(first.tier, second.tier);
-      assert.ok(second.costPer1MInput > 0);
+      expect(first.tier).toBe(second.tier);
+      expect(second.costPer1MInput).toBeGreaterThan(0);
     });
   });
 
@@ -185,20 +184,25 @@ describe("TierResolver", () => {
         { provider: "unknown", model: "unknown-model" },
       ];
       const results = classifyTiers(targets);
-      assert.equal(results.length, 9);
-      assert.equal(results[0].tier, PROVIDER_TIER.FREE); // kiro
-      assert.equal(results[1].tier, PROVIDER_TIER.PREMIUM); // openai gpt-4o ($2.50/M)
-      assert.equal(results[2].tier, PROVIDER_TIER.CHEAP); // deepseek
-      assert.equal(results[8].tier, PROVIDER_TIER.PREMIUM); // unknown
+      expect(results.length).toBe(9);
+      expect(results[0].tier).toBe(PROVIDER_TIER.FREE); // kiro
+      expect(results[1].tier).toBe(PROVIDER_TIER.PREMIUM); // openai gpt-4o ($2.50/M)
+      expect(results[2].tier).toBe(PROVIDER_TIER.CHEAP); // deepseek
+      expect(results[8].tier).toBe(PROVIDER_TIER.PREMIUM); // unknown
     });
 
     it("uses cache for repeated models", () => {
-      classifyTiers([
+      clearTierCache();
+      const results = classifyTiers([
         { provider: "openai", model: "gpt-4o" },
         { provider: "openai", model: "gpt-4o" },
       ]);
-      // If cache works, second call should be instant; test passes if no error
-      assert.ok(true);
+      // Observable effect of the cache: the duplicate resolves to the same tier and only
+      // ONE entry is memoized (getTierStats counts cache entries, not classify calls).
+      expect(results).toHaveLength(2);
+      expect(results[0].tier).toBe(results[1].tier);
+      const stats = getTierStats();
+      expect(stats.free + stats.cheap + stats.premium).toBe(1);
     });
   });
 
@@ -208,8 +212,8 @@ describe("TierResolver", () => {
       classifyTier("kiro", "claude-sonnet-4.5");
       classifyTier("deepseek", "deepseek-chat");
       const stats = getTierStats();
-      assert.ok(stats[PROVIDER_TIER.FREE] >= 1);
-      assert.ok(stats[PROVIDER_TIER.CHEAP] >= 1);
+      expect(stats[PROVIDER_TIER.FREE]).toBeGreaterThanOrEqual(1);
+      expect(stats[PROVIDER_TIER.CHEAP]).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -227,58 +231,64 @@ describe("TierResolver", () => {
         "cerebras",
         "groq",
       ]) {
-        assert.ok(LEGACY_FREE_PROVIDERS.includes(id), `expected ${id} in LEGACY_FREE_PROVIDERS`);
+        expect(LEGACY_FREE_PROVIDERS.includes(id), `expected ${id} in LEGACY_FREE_PROVIDERS`).toBe(
+          true
+        );
       }
     });
 
     it("deriveNoAuthFreeProviders includes all chat-tier noAuth providers", () => {
       const derived = deriveNoAuthFreeProviders();
       // opencode + mimocode are the ones the bug report called out
-      assert.ok(derived.includes("opencode"), "opencode should be in derived noAuth-free list");
-      assert.ok(derived.includes("mimocode"), "mimocode should be in derived noAuth-free list");
-      assert.ok(derived.includes("duckduckgo-web"));
+      expect(derived.includes("opencode"), "opencode should be in derived noAuth-free list").toBe(
+        true
+      );
+      expect(derived.includes("mimocode"), "mimocode should be in derived noAuth-free list").toBe(
+        true
+      );
+      expect(derived.includes("duckduckgo-web")).toBe(true);
     });
 
     it("deriveNoAuthFreeProviders excludes non-LLM noAuth providers", () => {
       const derived = deriveNoAuthFreeProviders();
-      assert.ok(
-        !derived.includes("veoaifree-web"),
+      expect(
+        derived.includes("veoaifree-web"),
         "veoaifree-web (serviceKinds: video) must not be classified as chat-free"
-      );
+      ).toBe(false);
     });
 
     it("DEFAULT_TIER_CONFIG.freeProviders contains the union of legacy + noAuth-derived", () => {
       const expected = new Set([...LEGACY_FREE_PROVIDERS, ...deriveNoAuthFreeProviders()]);
       const actual = new Set(DEFAULT_TIER_CONFIG.freeProviders);
-      assert.deepEqual(actual, expected, "freeProviders must be the union, deduplicated");
+      expect(actual).toEqual(expected);
     });
 
     it("classifyTier classifies opencode/big-pickle as free via noAuth derivation", () => {
       // No provider override, no cost-based match (big-pickle has no KNOWN_MODEL_PRICING row).
       // The fix is that 'opencode' is now in freeProviders.
       const result = classifyTier("opencode", "big-pickle");
-      assert.equal(result.tier, PROVIDER_TIER.FREE);
-      assert.equal(result.hasFreeTier, true);
+      expect(result.tier).toBe(PROVIDER_TIER.FREE);
+      expect(result.hasFreeTier).toBe(true);
     });
 
     it("classifyTier classifies mimocode/mimo-auto as free via noAuth derivation", () => {
       const result = classifyTier("mimocode", "mimo-auto");
-      assert.equal(result.tier, PROVIDER_TIER.FREE);
-      assert.equal(result.hasFreeTier, true);
+      expect(result.tier).toBe(PROVIDER_TIER.FREE);
+      expect(result.hasFreeTier).toBe(true);
     });
 
     it("classifyTier still returns cheap for paid glm-5.1 (no regression)", () => {
       // glm-5.1 is not in freeProviders, costs $0.50/M → cheap tier.
       // Make sure the new noAuth derivation didn't accidentally pull it into free.
       const result = classifyTier("opencode-go", "glm-5.1");
-      assert.equal(result.tier, PROVIDER_TIER.CHEAP);
+      expect(result.tier).toBe(PROVIDER_TIER.CHEAP);
     });
 
     it("userConfig.freeProviders is merged on top of the noAuth-derived list", () => {
       // Re-merge with a new free provider (e.g. local-llama) and confirm it's added.
       setTierConfig({ freeProviders: ["local-llama"] });
       const result = classifyTier("local-llama", "anything");
-      assert.equal(result.tier, PROVIDER_TIER.FREE);
+      expect(result.tier).toBe(PROVIDER_TIER.FREE);
       clearTierCache();
     });
   });

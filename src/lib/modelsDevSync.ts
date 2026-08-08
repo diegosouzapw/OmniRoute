@@ -14,11 +14,16 @@
  *   3. LiteLLM sync (`pricing_synced` namespace)
  *   4. Hardcoded defaults (`pricing.ts`)
  *
- * Opt-in via MODELS_DEV_SYNC_ENABLED=true (default: false).
+ * Opt-in, default off. Enabled either from Dashboard > Settings > AI or with
+ * MODELS_DEV_SYNC_ENABLED, which wins over that setting whenever it is set to
+ * anything non-empty, in either direction, so a deployment can pin the sync on
+ * or off regardless of what is stored. Unset or empty, it defers to the
+ * setting. On for "1", "true", "yes" or "on" in any casing; every other value
+ * is off.
  */
 
 import { getDbInstance } from "./db/core";
-import { invalidateDbCache } from "./db/readCache";
+import { invalidateDbCache, getModelCatalogCacheVersion } from "./db/readCache";
 import { backupDbFile } from "./db/backup";
 
 import {
@@ -70,6 +75,8 @@ interface SyncResult {
 // ─── Configuration ───────────────────────────────────────
 
 const MODELS_DEV_API_URL = "https://models.dev/api.json";
+
+const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
 
 const parsedInterval = parseInt(process.env.MODELS_DEV_SYNC_INTERVAL || "86400", 10);
 const SYNC_INTERVAL_MS =
@@ -193,10 +200,25 @@ function mapCapabilityRecord(record: Record<string, unknown>): ModelCapabilityEn
   };
 }
 
+// #8697: getModelsDevPricing() re-ran the SELECT + JSON.parse of ~180 blobs on
+// every call — called once per catalog model (up to ~6091x) instead of once per
+// request, freezing the whole server 41-54s on a cold /v1/models rebuild.
+// Memoized here, invalidated via the same modelCatalogCacheVersion signal
+// save/clearModelsDevPricing already bump through invalidateDbCache("pricing") —
+// reusing the existing pattern (getCachedRawProviderConnections et al. in
+// db/readCache.ts) instead of introducing a new invalidation mechanism.
+let pricingMemo: PricingByProvider | null = null;
+let pricingMemoVersion = -1; // -1: never equals a real cacheVersion (starts at 0), guarantees a miss on the first call
+
 /**
  * Read synced pricing from `models_dev_pricing` namespace.
  */
 export function getModelsDevPricing(): PricingByProvider {
+  const currentVersion = getModelCatalogCacheVersion();
+  if (pricingMemo !== null && pricingMemoVersion === currentVersion) {
+    return pricingMemo;
+  }
+
   const db = getDbInstance();
   const rows = db
     .prepare("SELECT key, value FROM key_value WHERE namespace = 'models_dev_pricing'")
@@ -213,6 +235,8 @@ export function getModelsDevPricing(): PricingByProvider {
       console.warn(`[MODELS_DEV] Corrupted pricing data for provider "${key}", skipping`);
     }
   }
+  pricingMemo = synced;
+  pricingMemoVersion = currentVersion;
   return synced;
 }
 
@@ -354,44 +378,26 @@ export function getSyncedCapability(
 ): ModelCapabilityEntry | null {
   if (!provider || !modelId) return null;
 
-  // Fast path: every provider is in the in-memory cache, skip SQLite entirely.
-  if (cachedCapabilitiesLoadedAll) {
-    const lookupCached = (p: string) => cachedCapabilities?.[p]?.[modelId] ?? null;
-    const directCached = lookupCached(provider);
-    if (directCached) return directCached;
-    const fallbacks = SYNCED_CAPABILITY_FALLBACK_ALIASES[provider];
-    if (fallbacks) {
-      for (const alt of fallbacks) {
-        const found = lookupCached(alt);
-        if (found) return found;
-      }
-    }
-    return null;
+  // #8697-adjacent: this used to hit SQLite with a per-model SELECT on every cold
+  // call, relying on some other caller (getSyncedCapabilities() with no args) to have
+  // already warmed the whole-table cache first — no such caller sits in the /v1/models
+  // catalog build path, so a cold rebuild ran one SQLite round-trip per model per call
+  // site instead of one bulk read for the whole rebuild. Self-warm here instead of
+  // depending on an external caller.
+  if (!cachedCapabilitiesLoadedAll) {
+    getSyncedCapabilities();
   }
 
-  // Cold path: hit SQLite. Prepare the statement once, reuse for every alias.
-  const db = getDbInstance();
-  ensureCapabilitiesTable();
-  const stmt = db.prepare(
-    "SELECT * FROM model_capabilities WHERE provider = ? AND model_id = ? LIMIT 1"
-  );
-  const lookupDb = (p: string): ModelCapabilityEntry | null => {
-    const row = stmt.get(p, modelId);
-    if (!row) return null;
-    return mapCapabilityRecord(toRecord(row));
-  };
-
-  const direct = lookupDb(provider);
-  if (direct) return direct;
-
+  const lookupCached = (p: string) => cachedCapabilities?.[p]?.[modelId] ?? null;
+  const directCached = lookupCached(provider);
+  if (directCached) return directCached;
   const fallbacks = SYNCED_CAPABILITY_FALLBACK_ALIASES[provider];
   if (fallbacks) {
     for (const alt of fallbacks) {
-      const found = lookupDb(alt);
+      const found = lookupCached(alt);
       if (found) return found;
     }
   }
-
   return null;
 }
 
@@ -671,8 +677,32 @@ export async function initModelsDevSync(): Promise<void> {
   const { getSettings } = await import("./localDb");
   const settings = await getSettings();
 
-  if (settings.modelsDevSyncEnabled !== true) {
-    console.log("[MODELS_DEV] Disabled (enable via Settings > AI)");
+  // Until now the docblock above advertised MODELS_DEV_SYNC_ENABLED and nothing
+  // read it: the only control was the stored setting, so an operator following
+  // that line got silence whichever value they set. This makes the variable real.
+  //
+  // An explicit env value decides, in either direction, and only an unset or
+  // empty one defers to the setting. That means a deployment can pin the sync
+  // off from its compose file or unit even when a previous operator left the
+  // dashboard toggle on, which is the case a force-on-only variable cannot
+  // express and the reason for choosing this shape.
+  //
+  // It is worth being plain that this is a third resolution pattern rather than
+  // a reuse of an existing one, because the two in the tree solve different
+  // problems: shared/utils/featureFlags.ts::resolveFeatureFlag puts the DB
+  // override ABOVE the env var, so a deployment cannot override an operator's
+  // stored choice at all; db/ccDiscoveryAliases.ts::getCcAliasGlobalState reads
+  // only "1" and "true" and can force a flag ON, letting every other value
+  // including "false" fall through to the DB. Neither can turn a
+  // dashboard-enabled switch off from the environment. Following either one
+  // here would leave the variable unable to do the thing it is being added for.
+  const envValue = process.env.MODELS_DEV_SYNC_ENABLED?.trim();
+  const enabled = envValue
+    ? TRUE_ENV_VALUES.has(envValue.toLowerCase())
+    : settings.modelsDevSyncEnabled === true;
+
+  if (!enabled) {
+    console.log("[MODELS_DEV] Disabled (enable via Settings > AI or MODELS_DEV_SYNC_ENABLED=true)");
     return;
   }
 

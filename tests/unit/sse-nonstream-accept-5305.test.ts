@@ -1,9 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import {
-  resolveStreamFlag,
-  acceptHeaderForcesStream,
-} from "../../open-sse/utils/aiSdkCompat.ts";
+import { resolveStreamFlag, acceptHeaderForcesStream } from "../../open-sse/utils/aiSdkCompat.ts";
 
 // #5305: the Vercel AI SDK / OpenAI SDK non-stream path (doGenerate/generateText)
 // OMITS `stream` in the body and sends `Accept: application/json, text/event-stream`,
@@ -42,16 +39,20 @@ describe("#5305 acceptHeaderForcesStream — route-level Accept streaming opt-in
 
 describe("#5305 resolveStreamFlag — openai non-stream with mixed Accept", () => {
   it("defaults to NON-stream (JSON) for openai + omitted stream + `application/json, text/event-stream`", () => {
-    assert.equal(resolveStreamFlag(undefined, "application/json, text/event-stream", "openai"), false);
+    assert.equal(
+      resolveStreamFlag(undefined, "application/json, text/event-stream", "openai"),
+      false
+    );
   });
 
   it("keeps streaming for openai + omitted stream + pure text/event-stream Accept", () => {
     assert.equal(resolveStreamFlag(undefined, "text/event-stream", "openai"), true);
   });
 
-  it("keeps streaming for openai + omitted stream + no/`*/*` Accept (legacy default unchanged)", () => {
-    assert.equal(resolveStreamFlag(undefined, undefined, "openai"), true);
-    assert.equal(resolveStreamFlag(undefined, "*/*", "openai"), true);
+  it("defaults to non-streaming for openai + omitted stream + no/`*/*` Accept (OpenAI spec compliant)", () => {
+    // OpenAI Chat Completions contract: omitted `stream` defaults to false.
+    assert.equal(resolveStreamFlag(undefined, undefined, "openai"), false);
+    assert.equal(resolveStreamFlag(undefined, "*/*", "openai"), false);
   });
 
   it("explicit body stream:true still wins over a json-leaning Accept", () => {

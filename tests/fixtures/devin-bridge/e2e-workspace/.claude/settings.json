@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Skill|Read|Edit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/log-tool.mjs",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

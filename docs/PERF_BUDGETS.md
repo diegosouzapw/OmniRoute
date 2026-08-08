@@ -1,3 +1,9 @@
+---
+title: "Performance Budgets — OmniRoute (2026-06-18)"
+version: 3.8.50
+lastUpdated: 2026-08-06
+---
+
 # Performance Budgets — OmniRoute (2026-06-18)
 
 **Status**: Authoritative. SLO targets that the 71-pillar audit (L13)

@@ -5,6 +5,7 @@ import { getRuntimePorts } from "@/lib/runtime/ports";
 import { updateSettingsSchema } from "@/shared/validation/settingsSchemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { resolveModelLockoutSettings } from "@/lib/resilience/modelLockoutSettings";
 import {
   validateProxyUrl,
@@ -220,6 +221,12 @@ export async function GET(request: Request) {
         cloudConfigured: Boolean(cloudUrl),
         cloudUrl,
         machineId,
+        // Sidebar.tsx has no server-side feature-flag access (client component);
+        // this piggy-backs the RADAR_ENABLED gate onto the settings payload the
+        // sidebar already fetches on mount, so the "radar" item can hide itself
+        // without a dedicated round trip. See sidebarVisibility.ts's
+        // `isSidebarItemVisibleForFlags()`.
+        radarEnabled: isFeatureFlagEnabled("RADAR_ENABLED"),
         ...(cliproxyapiModelMapping !== null
           ? { cliproxyapi_model_mapping: cliproxyapiModelMapping }
           : {}),
@@ -319,7 +326,12 @@ export async function PATCH(request: Request) {
       // honoured before T-011 — when no password is configured yet AND login
       // is currently disabled, allow the first write to set policy (incl.
       // the password itself). Once a hash exists the gate always fires.
-      const isColdBoot = !storedPasswordHash && passwordState.settings.requireLogin === false;
+      // #8950: also treat the request as cold boot when newPassword is present
+      // without a stored hash, so the Security tab's two-step flow (enable
+      // requireLogin first, then set password) does not deadlock.
+      const isColdBoot =
+        !storedPasswordHash &&
+        (passwordState.settings.requireLogin === false || Boolean(body.newPassword));
       if (!isColdBoot) {
         if (!body.currentPassword) {
           emitSettingsFailureAudit(request, actor, "PASSWORD_REQUIRED", attemptedKeys);

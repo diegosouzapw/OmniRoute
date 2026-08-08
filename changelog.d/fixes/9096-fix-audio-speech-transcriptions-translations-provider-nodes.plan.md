@@ -1,0 +1,1 @@
+- fix(providers): admit audio-speech/audio-transcriptions apiType in audio route provider-node filters (#9096)

@@ -98,6 +98,21 @@ test("GithubExecutor.buildUrl routes unlisted Codex models to /responses (9route
   );
 });
 
+test("GithubExecutor.buildUrl routes gpt-5.6-sol/terra/luna to /responses (regression)", () => {
+  // These models were registered in the `gh` registry without targetFormat, so
+  // getModelTargetFormat returned null and requests fell through to
+  // /chat/completions -> upstream 400 "model is not accessible via the
+  // /chat/completions endpoint". They only support /responses upstream.
+  const executor = new GithubExecutor();
+  for (const model of ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"]) {
+    assert.equal(
+      executor.buildUrl(model, true),
+      "https://api.githubcopilot.com/responses",
+      `${model} must route to /responses`
+    );
+  }
+});
+
 test("GithubExecutor.transformRequest injects JSON response instructions for Claude and strips reasoning fields", () => {
   const executor = new GithubExecutor();
   const body = {

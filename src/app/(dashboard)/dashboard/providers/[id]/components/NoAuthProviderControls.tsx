@@ -93,6 +93,36 @@ export default function NoAuthProviderControls({
     [blockedProviders, noAuthT, notify, providerAlias, providerId, providerName]
   );
 
+  const handleManualApiKeyAdd = useCallback(
+    async (apiKey: string) => {
+      setSavingEnabled(true);
+      try {
+        const response = await fetch("/api/providers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            provider: "dahl",
+            apiKey: apiKey.trim(),
+            name: "Dahl Manual",
+            priority: 1,
+            isActive: true,
+            testStatus: "unknown",
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data?.error?.message || data?.error || noAuthT("updateProviderFailed"));
+        }
+        notify.success(noAuthT("providerAdded", { provider: providerName }));
+      } catch (error) {
+        notify.error(error instanceof Error ? error.message : noAuthT("updateProviderFailed"));
+      } finally {
+        setSavingEnabled(false);
+      }
+    },
+    [noAuthT, notify, providerName]
+  );
+
   const accountProviderName = ACCOUNT_PROVIDER_NAMES[providerId];
   const host = providerProxy?.host;
   const providerProxyControl = supportsNoAuthProviderProxy(providerId) ? (
@@ -129,6 +159,8 @@ export default function NoAuthProviderControls({
               }
             : undefined
         }
+        showManualKeyInput={providerId === "dahl"}
+        onManualApiKeyAdd={providerId === "dahl" ? handleManualApiKeyAdd : undefined}
         enabled={enabled}
         savingEnabled={savingEnabled}
         onEnabledChange={handleEnabledChange}

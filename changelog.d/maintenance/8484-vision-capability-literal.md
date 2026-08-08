@@ -1,0 +1,1 @@
+- **fix(types):** preserve the literal `capabilities.vision: true` contract for catalog vision fields so custom-model capability composition remains type-safe under TypeScript 7 ([#9121](https://github.com/diegosouzapw/OmniRoute/pull/9121))

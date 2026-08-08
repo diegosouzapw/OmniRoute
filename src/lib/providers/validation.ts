@@ -65,6 +65,7 @@ import {
   validateDeepgramProvider,
   validateAssemblyAIProvider,
   validateRevAiProvider,
+  validateSonioxProvider,
   validateElevenLabsProvider,
   validateInworldProvider,
   validateKieProvider,
@@ -188,6 +189,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
     "rev-ai": validateRevAiProvider,
+    soniox: validateSonioxProvider,
     "fal-ai": ({ apiKey, providerSpecificData }: any) =>
       validateImageProviderApiKey({ provider: "fal-ai", apiKey, providerSpecificData }),
     "stability-ai": ({ apiKey, providerSpecificData }: any) =>
@@ -211,15 +213,30 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     oci: validateOciProvider,
     sap: validateSapProvider,
     bedrock: validateBedrockProvider,
-    modal: ({ apiKey, providerSpecificData }: any) =>
-      validateOpenAILikeProvider({
+    modal: ({ apiKey, providerSpecificData }: any) => {
+      // Modal is bring-your-own-deploy — it requires a Base URL pointing to the user's
+      // OpenAI-compatible Modal app. Without it, validateOpenAILikeProvider would build an
+      // empty probe URL and trip parseOutboundUrl with a raw guard error ("Invalid outbound
+      // URL: "). Surface an actionable message instead. See #9102.
+      const baseUrl = (providerSpecificData?.baseUrl || "").trim();
+      if (!baseUrl) {
+        return {
+          valid: false,
+          error:
+            "Modal requires a Base URL pointing to your OpenAI-compatible Modal app " +
+            "(e.g. https://<workspace>--<app>.modal.run/v1). " +
+            "Fill in the \"Base URL override\" field.",
+        };
+      }
+      return validateOpenAILikeProvider({
         provider: "modal",
         apiKey,
         providerSpecificData,
-        baseUrl: normalizeBaseUrl(providerSpecificData?.baseUrl || ""),
+        baseUrl: normalizeBaseUrl(baseUrl),
         modelId: MODAL_DEFAULT_VALIDATION_MODEL_ID,
         isLocal,
-      }),
+      });
+    },
     "nous-research": validateNousResearchProvider,
     poe: validatePoeProvider,
     clarifai: validateClarifaiProvider,

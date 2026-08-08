@@ -755,11 +755,13 @@ describe("Reasoning Replay Cache — Translator Replay", () => {
     assert.equal(translated.messages[1].reasoning_content, undefined);
   });
 
-  it("should replace empty-string reasoning_content with NON_ANTHROPIC_THINKING_PLACEHOLDER on cache miss", async () => {
+  it("should drop empty-string reasoning_content on cache miss", async () => {
     // Regression: injectEmptyReasoningContentForToolCalls (schemaCoercion.ts) pre-sets
-    // reasoning_content="" before the cache lookup. The old condition
-    // `msg.reasoning_content === undefined` never fired on cache miss, leaving the
-    // empty string in place. DeepSeek V4+ rejects "" with a 400.
+    // reasoning_content="" before the cache lookup, and DeepSeek V4+ rejects "" with a
+    // 400 — so the empty string must not survive the miss. #9573/#9610 replaced the
+    // former NON_ANTHROPIC_THINKING_PLACEHOLDER injection with omitting the field: the
+    // placeholder was echoed back by the model as its own reasoning (empty stop) and
+    // re-poisoned cache + client history, while an ABSENT field is accepted.
     clearReasoningCacheAll();
     clearModelsDevCapabilities();
     saveModelsDevCapabilities({
@@ -771,9 +773,6 @@ describe("Reasoning Replay Cache — Translator Replay", () => {
         }),
       },
     });
-
-    const { NON_ANTHROPIC_THINKING_PLACEHOLDER } =
-      await import("../../open-sse/translator/helpers/claudeHelper.ts");
 
     // No cache entry → cache miss
     const translated = translateRequest(
@@ -805,16 +804,17 @@ describe("Reasoning Replay Cache — Translator Replay", () => {
 
     assert.equal(
       translated.messages[1].reasoning_content,
-      NON_ANTHROPIC_THINKING_PLACEHOLDER,
-      "empty reasoning_content should be replaced with placeholder on cache miss"
+      undefined,
+      "empty reasoning_content should be dropped (not placeholder-filled) on cache miss"
     );
   });
 
-  it("should inject placeholder for a plain (non-tool-call) DeepSeek turn missing reasoning_content (#1682)", async () => {
+  it("should omit reasoning_content for a plain (non-tool-call) DeepSeek turn missing it (#1682)", async () => {
     // Regression (#1682): a multi-turn text conversation where the prior assistant
     // turn has NO tool calls and the client (e.g. Cursor) stripped reasoning_content
-    // from history. DeepSeek V4+ still requires reasoning_content on every assistant
-    // message in thinking mode, so without a placeholder the upstream returns 400.
+    // from history. #9573/#9610 established that DeepSeek's 400 is specific to an
+    // EMPTY-STRING reasoning_content, not an absent field — so the field is now
+    // omitted here instead of carrying the self-poisoning placeholder.
     clearReasoningCacheAll();
     clearModelsDevCapabilities();
     saveModelsDevCapabilities({
@@ -826,9 +826,6 @@ describe("Reasoning Replay Cache — Translator Replay", () => {
         }),
       },
     });
-
-    const { NON_ANTHROPIC_THINKING_PLACEHOLDER } =
-      await import("../../open-sse/translator/helpers/claudeHelper.ts");
 
     const translated = translateRequest(
       FORMATS.OPENAI,
@@ -849,8 +846,8 @@ describe("Reasoning Replay Cache — Translator Replay", () => {
 
     assert.equal(
       translated.messages[1].reasoning_content,
-      NON_ANTHROPIC_THINKING_PLACEHOLDER,
-      "plain DeepSeek assistant turn missing reasoning_content should get the placeholder"
+      undefined,
+      "plain DeepSeek assistant turn missing reasoning_content should keep the field absent"
     );
   });
 

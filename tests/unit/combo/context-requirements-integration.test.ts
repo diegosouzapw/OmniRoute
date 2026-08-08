@@ -65,6 +65,29 @@ describe("Context Requirements Integration", () => {
     assert.equal(result.length, 0);
   });
 
+  it("should filter targets above maxContextWindow in strict mode", () => {
+    const targets = [
+      { modelStr: "claude-opus-4-5", provider: "anthropic", weight: 1 }, // 200k
+      { modelStr: "claude-sonnet-4-5", provider: "anthropic", weight: 1 }, // 200k
+      { modelStr: "claude-sonnet-4-6", provider: "anthropic", weight: 1 }, // 1000k (1M)
+      { modelStr: "claude-opus-4-6", provider: "anthropic", weight: 1 }, // 1000k (1M)
+    ];
+
+    const requirements = {
+      maxContextWindow: 500000,
+      contextFilterMode: "strict" as const,
+    };
+
+    const result = applyContextRequirements(targets, requirements, mockLog);
+    assert.equal(result.length, 2);
+    assert.ok(
+      result.every(
+        (target) => target.modelStr === "claude-opus-4-5" || target.modelStr === "claude-sonnet-4-5"
+      ),
+      "Should only include targets with context window <= 500000"
+    );
+  });
+
   it("should handle lenient mode with unknown context models", () => {
     const targets = [
       { modelStr: "gpt-4o", provider: "openai", weight: 1 },

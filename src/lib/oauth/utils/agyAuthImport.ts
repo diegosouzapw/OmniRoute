@@ -214,6 +214,7 @@ export async function createConnectionFromAgyToken(
           resolvedEmail ||
           "Antigravity CLI (imported)",
         testStatus: "active",
+        isActive: true,
         providerSpecificData: {
           ...toRecord(existing.providerSpecificData),
           clientProfile: "cli",

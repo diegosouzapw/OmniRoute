@@ -255,7 +255,7 @@ test("vscode combos route resolves combo names through Ollama api/show", async (
   assert.equal(body.model, "show-combo");
   assert.equal(body.modelfile, "FROM show-combo");
   assert.equal(body.details.family, "show-combo");
-  assert.equal(body.model_info.context_length, 272000);
+  assert.equal(body.model_info.context_length, 1050000);
   assert.deepEqual(body.supportsReasoningEffort, ["none", "low", "medium", "high", "xhigh"]);
   assert.equal(body.model_info.capabilities.reasoning, true);
 });
@@ -290,7 +290,7 @@ test("vscode tokenized combos root route exposes importable combo metadata", asy
   assert.equal(response.status, 200);
   assert.ok(combo, "expected balanced-load in combo root response");
   assert.equal(combo.url.includes("/responses#models.ai.azure.com"), true);
-  assert.equal(combo.maxInputTokens, 272000);
+  assert.equal(combo.maxInputTokens, 922000);
   assert.equal(combo.toolCalling, true);
   assert.deepEqual(combo.supportsReasoningEffort, ["none", "low", "medium", "high", "xhigh"]);
 });
@@ -767,9 +767,7 @@ test("vscode tokenized tags route only exposes usable canonical chat models", as
     );
     assert.ok(
       !catalogModel.api_format ||
-        ["chat-completions", "responses", "openai-responses"].includes(
-          catalogModel.api_format
-        ),
+        ["chat-completions", "responses", "openai-responses"].includes(catalogModel.api_format),
       `tag ${tagModel.name} should use a text-generation API format`
     );
     assert.ok(
@@ -1075,7 +1073,7 @@ test("vscode tokenized api/show route exposes explicit reasoning effort metadata
   assert.equal(body.configurationSchema?.properties?.reasoningEffort?.default, "low");
   assert.equal(body.model_info["general.basename"], "Codex GPT 5.6 Sol (Default)");
   assert.equal(body.model_info["general.architecture"], "codex");
-  assert.equal(body.model_info["codex.context_length"], 272000);
+  assert.equal(body.model_info["codex.context_length"], 1050000);
   assert.deepEqual(body.model_info.supports_reasoning_effort, [
     "low",
     "medium",
@@ -1161,7 +1159,7 @@ test("vscode tokenized /chat/completions route applies the path token and codex 
   // error code mapping is "model_not_found" (open-sse/config/errorConfig.ts:29).
   assert.equal(response.status, 404);
   assert.equal(body.error?.code, "model_not_found");
-  assert.equal(body.error?.message, "No active credentials for provider: codex");
+  assert.equal(body.error?.message, "No active credentials for provider: codex.");
 });
 
 test("vscode tokenized /responses route applies the path token and codex tier rewrite", async () => {
@@ -1192,7 +1190,7 @@ test("vscode tokenized /responses route applies the path token and codex tier re
   // Upstream port decolua/9router#336: see chat/completions sibling test above.
   assert.equal(response.status, 404);
   assert.equal(body.error?.code, "model_not_found");
-  assert.equal(body.error?.message, "No active credentials for provider: codex");
+  assert.equal(body.error?.message, "No active credentials for provider: codex.");
 });
 
 test("vscode tokenized api/show route preserves the selected reasoning effort for codex variants", async () => {

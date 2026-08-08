@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common"
+bridge_prepare_sandbox
+docker compose -f "$BRIDGE_COMPOSE" --profile offline build

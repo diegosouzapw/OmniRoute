@@ -23,14 +23,18 @@ import { stripVersionedToolModelPrefix } from "../../open-sse/executors/base.ts"
 
 type AnyRecord = Record<string, unknown>;
 const schemaOf = (tools: unknown, i = 0): AnyRecord =>
-  ((tools as AnyRecord[])[i].input_schema as AnyRecord);
+  (tools as AnyRecord[])[i].input_schema as AnyRecord;
 
 describe("sanitizeClaudeToolSchemas", () => {
   it("drops a non-array enum placeholder", () => {
     const tools = [
-      { name: "x", input_schema: { type: "object", properties: { m: { type: "string", enum: "[MaxDepth]" } } } },
+      {
+        name: "x",
+        input_schema: { type: "object", properties: { m: { type: "string", enum: "[MaxDepth]" } } },
+      },
     ];
-    const props = (schemaOf(sanitizeClaudeToolSchemas(tools)).properties as AnyRecord).m as AnyRecord;
+    const props = (schemaOf(sanitizeClaudeToolSchemas(tools)).properties as AnyRecord)
+      .m as AnyRecord;
     assert.equal("enum" in props, false);
   });
 
@@ -43,7 +47,10 @@ describe("sanitizeClaudeToolSchemas", () => {
   });
 
   it("replaces a placeholder property value with a permissive schema", () => {
-    const s = sanitizeClaudeToolSchema({ type: "object", properties: { a: "[MaxDepth]" } }) as AnyRecord;
+    const s = sanitizeClaudeToolSchema({
+      type: "object",
+      properties: { a: "[MaxDepth]" },
+    }) as AnyRecord;
     assert.deepEqual((s.properties as AnyRecord).a, {});
   });
 
@@ -58,32 +65,49 @@ describe("cloakThirdPartyToolNames", () => {
     const body: AnyRecord = { tools: [{ name: "mixture_of_agents" }] };
     cloakThirdPartyToolNames(body);
     assert.equal((body.tools as AnyRecord[])[0].name, "MixtureOfAgents");
-    assert.equal((body._toolNameMap as Map<string, string>).get("MixtureOfAgents"), "mixture_of_agents");
+    assert.equal(
+      (body._toolNameMap as Map<string, string>).get("MixtureOfAgents"),
+      "mixture_of_agents"
+    );
   });
 
   it("maps known harness names to Claude Code canonical names", () => {
-    const body: AnyRecord = { tools: [{ name: "read_file" }, { name: "write_file" }, { name: "terminal" }] };
+    const body: AnyRecord = {
+      tools: [{ name: "read_file" }, { name: "write_file" }, { name: "terminal" }],
+    };
     cloakThirdPartyToolNames(body);
-    assert.deepEqual((body.tools as AnyRecord[]).map((t) => t.name), ["Read", "Write", "Bash"]);
+    assert.deepEqual(
+      (body.tools as AnyRecord[]).map((t) => t.name),
+      ["Read", "Write", "Bash"]
+    );
   });
 
   it("PascalCases unmapped snake_case names", () => {
     const body: AnyRecord = { tools: [{ name: "honcho_profile" }, { name: "lcm_expand_query" }] };
     cloakThirdPartyToolNames(body);
-    assert.deepEqual((body.tools as AnyRecord[]).map((t) => t.name), ["HonchoProfile", "LcmExpandQuery"]);
+    assert.deepEqual(
+      (body.tools as AnyRecord[]).map((t) => t.name),
+      ["HonchoProfile", "LcmExpandQuery"]
+    );
   });
 
   it("leaves genuine Claude Code tool names untouched", () => {
     const body: AnyRecord = { tools: [{ name: "Bash" }, { name: "Read" }, { name: "TodoWrite" }] };
     cloakThirdPartyToolNames(body);
-    assert.deepEqual((body.tools as AnyRecord[]).map((t) => t.name), ["Bash", "Read", "TodoWrite"]);
+    assert.deepEqual(
+      (body.tools as AnyRecord[]).map((t) => t.name),
+      ["Bash", "Read", "TodoWrite"]
+    );
     assert.equal((body._toolNameMap as Map<string, string> | undefined)?.size ?? 0, 0);
   });
 
   it("dedupes canonical-name collisions", () => {
     const body: AnyRecord = { tools: [{ name: "search_files" }, { name: "grep_search" }] };
     cloakThirdPartyToolNames(body);
-    assert.deepEqual((body.tools as AnyRecord[]).map((t) => t.name), ["Grep", "Grep2"]);
+    assert.deepEqual(
+      (body.tools as AnyRecord[]).map((t) => t.name),
+      ["Grep", "Grep2"]
+    );
   });
 
   it("remaps tool_use blocks in message history consistently", () => {
@@ -125,15 +149,15 @@ describe("cloakThirdPartyToolNames", () => {
     // Anthropic requires tools.N.web_search_20250305.name === "web_search".
     assert.equal((body.tools as AnyRecord[])[0].name, "web_search");
     // No reverse-map entry needed because nothing was cloaked.
-    assert.equal((body._toolNameMap as Map<string, string> | undefined)?.has("WebSearch") ?? false, false);
+    assert.equal(
+      (body._toolNameMap as Map<string, string> | undefined)?.has("WebSearch") ?? false,
+      false
+    );
   });
 
   it("still cloaks a genuine third-party tool sitting next to a server tool", () => {
     const body: AnyRecord = {
-      tools: [
-        { type: "web_search_20250305", name: "web_search" },
-        { name: "mixture_of_agents" },
-      ],
+      tools: [{ type: "web_search_20250305", name: "web_search" }, { name: "mixture_of_agents" }],
     };
     cloakThirdPartyToolNames(body);
     assert.equal((body.tools as AnyRecord[])[0].name, "web_search");
@@ -217,9 +241,7 @@ describe("cloakThirdPartyToolNames — defensive null guards", () => {
       ],
     };
     cloakThirdPartyToolNames(body);
-    const block = (
-      (body.messages as Array<AnyRecord>)[1].content as Array<AnyRecord>
-    )[0];
+    const block = ((body.messages as Array<AnyRecord>)[1].content as Array<AnyRecord>)[0];
     assert.equal(block.name, "Read");
   });
 });
@@ -248,7 +270,10 @@ describe("cloakThirdPartyToolNames — non-mutating + skip option", () => {
   it("leaves names matched by the skip predicate untouched", () => {
     const body: AnyRecord = { tools: [{ name: "mcp_call" }, { name: "read_file" }] };
     cloakThirdPartyToolNames(body, { skip: (n) => n.startsWith("mcp_") });
-    assert.deepEqual((body.tools as AnyRecord[]).map((t) => t.name), ["mcp_call", "Read"]);
+    assert.deepEqual(
+      (body.tools as AnyRecord[]).map((t) => t.name),
+      ["mcp_call", "Read"]
+    );
   });
 });
 
@@ -266,7 +291,10 @@ describe("review fixes — schema sanitizer scalar / default / numeric", () => {
   it("preserves the valid `default` keyword on the Claude path", () => {
     const s = sanitizeClaudeToolSchema({
       type: "object",
-      properties: { mode: { type: "string", default: "replace" }, all: { type: "boolean", default: false } },
+      properties: {
+        mode: { type: "string", default: "replace" },
+        all: { type: "boolean", default: false },
+      },
     }) as AnyRecord;
     const p = s.properties as AnyRecord;
     assert.equal((p.mode as AnyRecord).default, "replace");
@@ -283,7 +311,10 @@ describe("review fixes — schema sanitizer scalar / default / numeric", () => {
   });
 
   it("still coerces a placeholder to {} in a real subschema slot", () => {
-    const s = sanitizeClaudeToolSchema({ type: "object", additionalProperties: "[MaxDepth]" }) as AnyRecord;
+    const s = sanitizeClaudeToolSchema({
+      type: "object",
+      additionalProperties: "[MaxDepth]",
+    }) as AnyRecord;
     assert.deepEqual(s.additionalProperties, {});
   });
 });
@@ -291,7 +322,12 @@ describe("review fixes — schema sanitizer scalar / default / numeric", () => {
 describe("review fixes — established aliases + kill-switch", () => {
   it("uses the established Claude Code aliases on the cloak path", () => {
     const body: AnyRecord = {
-      tools: [{ name: "subagents" }, { name: "session_status" }, { name: "webfetch" }, { name: "todowrite" }],
+      tools: [
+        { name: "subagents" },
+        { name: "session_status" },
+        { name: "webfetch" },
+        { name: "todowrite" },
+      ],
     };
     cloakThirdPartyToolNames(body);
     assert.deepEqual(
@@ -346,14 +382,82 @@ describe("native claude OAuth path — versioned built-in tool model prefix stri
     assert.equal(tools[0].model, "claude-opus-4-8");
   });
 
-  it("leaves non-versioned tool types untouched even with a prefixed model", () => {
+  it("normalizes a non-versioned tool carrying a cc/ or claude/ prefixed model (upstream #2649)", () => {
+    // Non-versioned server tools (Task/subagent, web_search) leak the same
+    // provider-prefixed model the versioned ones do; Anthropic rejects both.
+    // Foreign prefixes (openrouter/...) are preserved.
     const tools: AnyRecord[] = [
       { type: "custom", name: "x", model: "cc/claude-opus-4-8" },
       { type: "advisor_2026", name: "y", model: "cc/claude-opus-4-8" }, // not 8 digits
+      { type: "custom", name: "z", model: "claude/claude-sonnet-4-6" },
+      { type: "custom", name: "w", model: "openrouter/anthropic/claude-opus-4.1" },
     ];
     stripVersionedToolModelPrefix(tools);
-    assert.equal(tools[0].model, "cc/claude-opus-4-8", "non-versioned type untouched");
-    assert.equal(tools[1].model, "cc/claude-opus-4-8", "short date suffix untouched");
+    assert.equal(tools[0].model, "claude-opus-4-8", "cc/ stripped from non-versioned type");
+    assert.equal(tools[1].model, "claude-opus-4-8", "cc/ stripped from short date suffix");
+    assert.equal(tools[2].model, "claude-sonnet-4-6", "claude/ stripped from non-versioned type");
+    assert.equal(
+      tools[3].model,
+      "openrouter/anthropic/claude-opus-4.1",
+      "foreign prefix preserved"
+    );
+  });
+
+  it("strips cc/ prefix from a NON-versioned server tool (Task/subagent)", () => {
+    const tools: AnyRecord[] = [
+      {
+        name: "Task",
+        description: "Launch a subagent",
+        model: "cc/claude-opus-4-8",
+        input_schema: { type: "object" },
+      },
+    ];
+    stripVersionedToolModelPrefix(tools);
+    assert.equal(tools[0].model, "claude-opus-4-8", "cc/ stripped from non-versioned Task tool");
+  });
+
+  it("strips claude/ prefix from a NON-versioned server tool", () => {
+    const tools: AnyRecord[] = [
+      {
+        name: "Task",
+        description: "Launch a subagent",
+        model: "claude/claude-sonnet-4-6",
+        input_schema: { type: "object" },
+      },
+    ];
+    stripVersionedToolModelPrefix(tools);
+    assert.equal(
+      tools[0].model,
+      "claude-sonnet-4-6",
+      "claude/ stripped from non-versioned Task tool"
+    );
+  });
+
+  it("preserves other-provider prefixes on a non-versioned tool (openrouter/...)", () => {
+    const tools: AnyRecord[] = [
+      {
+        name: "Task",
+        model: "openrouter/anthropic/claude-opus-4.1",
+        input_schema: { type: "object" },
+      },
+    ];
+    stripVersionedToolModelPrefix(tools);
+    assert.equal(
+      tools[0].model,
+      "openrouter/anthropic/claude-opus-4.1",
+      "foreign prefix preserved"
+    );
+  });
+
+  it("is idempotent across repeated runs", () => {
+    const tools: AnyRecord[] = [
+      { name: "Task", model: "claude/claude-sonnet-4-6", input_schema: { type: "object" } },
+      { type: "advisor_20260301", name: "advisor", model: "cc/claude-opus-4-8" },
+    ];
+    stripVersionedToolModelPrefix(tools);
+    const first = JSON.stringify(tools);
+    stripVersionedToolModelPrefix(tools);
+    assert.equal(JSON.stringify(tools), first, "second run is a no-op");
   });
 
   it("is a no-op for non-array input", () => {

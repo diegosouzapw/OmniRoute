@@ -15,14 +15,38 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { validateGeminiWebProvider } = await import(
-  "../../src/lib/providers/validation/webProvidersB.ts"
-);
+const { validateGeminiWebProvider } =
+  await import("../../src/lib/providers/validation/webProvidersB.ts");
 
 const originalFetch = globalThis.fetch;
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
+});
+
+// #9407 refined this contract: a redirect to accounts.google.com/ServiceLogin is
+// specifically an EXPIRED session (valid:false with re-paste guidance), while other
+// public accounts.google.com paths remain valid-with-warning. The original #7859
+// regression (public redirect must not fall through to the generic catch → invalid)
+// is still covered — by the non-ServiceLogin variant below.
+test("gemini-web validator: 302 redirect to ServiceLogin → expired session (#9407)", async () => {
+  globalThis.fetch = async (url) => {
+    const target = String(url);
+    if (target.includes("gemini.google.com/app")) {
+      return new Response(null, {
+        status: 302,
+        headers: { location: "https://accounts.google.com/ServiceLogin" },
+      });
+    }
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const result = await validateGeminiWebProvider({
+    apiKey: "__Secure-1PSID=eyJvalidsession",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Session expired/i);
 });
 
 test("gemini-web validator: 302 redirect to a PUBLIC host → valid (regression #7859)", async () => {
@@ -31,7 +55,7 @@ test("gemini-web validator: 302 redirect to a PUBLIC host → valid (regression 
     if (target.includes("gemini.google.com/app")) {
       return new Response(null, {
         status: 302,
-        headers: { location: "https://accounts.google.com/ServiceLogin" },
+        headers: { location: "https://accounts.google.com/signin/continue" },
       });
     }
     throw new Error(`unexpected fetch: ${target}`);

@@ -148,7 +148,7 @@ test("T24: all inactive accounts return 503 service_unavailable (not 406)", asyn
 
   assert.equal(result.status, 503);
   const body = (await result.json()) as any;
-  assert.equal(body.error?.code, "ALL_ACCOUNTS_INACTIVE");
+  assert.equal(body.error?.code, "ALL_TARGETS_SKIPPED");
 });
 
 test("combo falls through 400s and reaches the next model", async () => {

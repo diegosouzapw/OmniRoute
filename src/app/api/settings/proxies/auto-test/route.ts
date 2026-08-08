@@ -2,7 +2,7 @@ import { z } from "zod";
 import { deleteProxyById, listProxies, updateProxy } from "@/lib/localDb";
 import { createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { createProxyDispatcher } from "@omniroute/open-sse/utils/proxyDispatcher";
+import { createProxyDispatcher, proxyConfigToUrl } from "@omniroute/open-sse/utils/proxyDispatcher";
 import { fetch as undiciFetch } from "undici";
 import { resolveHealthCheckStatusWrite } from "@/lib/proxyHealth/statusPolicy";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -33,8 +33,26 @@ async function testSingleProxy(proxy: {
   type: string;
   host: string;
   port: number;
+  username?: string;
+  password?: string;
+  family?: string;
 }): Promise<TestResult> {
-  const proxyUrl = `${proxy.type}://${proxy.host}:${proxy.port}`;
+  let proxyUrl: string | null;
+  try {
+    proxyUrl = proxyConfigToUrl(proxy);
+  } catch {
+    proxyUrl = null;
+  }
+  if (!proxyUrl) {
+    return {
+      proxyId: proxy.id,
+      host: proxy.host,
+      port: proxy.port,
+      alive: false,
+      latencyMs: null,
+      error: "Invalid proxy config (check type, host, port)",
+    };
+  }
   const start = Date.now();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TEST_TIMEOUT_MS);
@@ -99,7 +117,7 @@ export async function POST(request: Request) {
   const { ids: specificIds, autoRemove } = validation.data;
 
   try {
-    const result = await listProxies({ includeSecrets: false });
+    const result = await listProxies({ includeSecrets: true });
     const allProxies = result.items;
     const proxiesToTest = specificIds
       ? allProxies.filter((p) => specificIds.includes(p.id))

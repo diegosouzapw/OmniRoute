@@ -219,6 +219,26 @@ function registerPluginInOpenCodeConfig({
  * failure.
  */
 /**
+ * Resolve the provider id used for `opencode auth login --provider <id>`.
+ *
+ * The bundled @omniroute/opencode-plugin registers its provider under
+ * `opencode-<id>` (the `opencode-` prefix is required by OpenCode >=1.17.8's
+ * native-adapter gate). The auth login command must use the prefixed form
+ * because OpenCode resolves `--provider <id>` against the provider id the
+ * plugin actually registered.
+ *
+ * Idempotent: if the id already starts with `opencode-`, it passes through
+ * unchanged. This protects users who manually worked around the bug with
+ * `--provider opencode-omniroute`.
+ *
+ * @param {string} providerId
+ * @returns {string}
+ */
+export function resolveOpenCodeAuthProviderId(providerId) {
+  return providerId.startsWith("opencode-") ? providerId : `opencode-${providerId}`;
+}
+
+/**
  * Pure resolver for the `opencode auth login` spawn descriptor. Extracted so the
  * platform-branching logic is unit-testable without mocking child_process or
  * mutating process.platform.
@@ -231,21 +251,23 @@ function registerPluginInOpenCodeConfig({
  */
 export function resolveOpenCodeAuthSpawn(providerId, platform = process.platform) {
   const isWin = platform === "win32";
+  const authProviderId = resolveOpenCodeAuthProviderId(providerId);
   return {
     command: isWin ? "opencode.cmd" : "opencode",
-    args: ["auth", "login", "--provider", providerId],
+    args: ["auth", "login", "--provider", authProviderId],
     options: { stdio: "inherit", shell: isWin },
   };
 }
 
 export function runOpenCodeAuth(providerId) {
+  const authProviderId = resolveOpenCodeAuthProviderId(providerId);
   const { command, args, options } = resolveOpenCodeAuthSpawn(providerId);
   const res = spawnSync(command, args, options);
   if (res.error) {
     // ENOENT = opencode is not on PATH
     if (res.error.code === "ENOENT") {
       printInfo(
-        `opencode CLI not found on PATH. Run \`opencode auth login --provider ${providerId}\` manually after installing OpenCode.`
+        `opencode CLI not found on PATH. Run \`opencode auth login --provider ${authProviderId}\` manually after installing OpenCode.`
       );
       return 1;
     }
@@ -343,7 +365,8 @@ export async function runSetupOpenCodeCommand(opts = {}) {
   if (wantsAuth) {
     if (nonInteractive) {
       printInfo(`Skipping \`opencode auth login\` (non-interactive mode).`);
-      printInfo(`Run manually: opencode auth login --provider ${providerId}`);
+      const authProviderId = resolveOpenCodeAuthProviderId(providerId);
+      printInfo(`Run manually: opencode auth login --provider ${authProviderId}`);
     } else {
       printHeading("Authenticating with OpenCode");
       const authExit = runOpenCodeAuth(providerId);
@@ -352,8 +375,9 @@ export async function runSetupOpenCodeCommand(opts = {}) {
       }
     }
   } else {
+    const authProviderId = resolveOpenCodeAuthProviderId(providerId);
     printInfo(
-      `Next step: opencode auth login --provider ${providerId}   (pass --auth to do this automatically)`
+      `Next step: opencode auth login --provider ${authProviderId}   (pass --auth to do this automatically)`
     );
   }
 

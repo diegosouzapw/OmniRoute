@@ -68,10 +68,9 @@ export function __setProxyFallbackTestHooks(hooks: ProxyFallbackTestHooks | null
  * Build a full proxy URL string from a proxy record's fields.
  */
 function proxyRecordToUrl(proxy: ProxyShape): string {
-  const auth =
-    proxy.username
-      ? `${encodeURIComponent(proxy.username)}:${encodeURIComponent(proxy.password || "")}@`
-      : "";
+  const auth = proxy.username
+    ? `${encodeURIComponent(proxy.username)}:${encodeURIComponent(proxy.password || "")}@`
+    : "";
   return `${proxy.type}://${auth}${proxy.host}:${proxy.port}`;
 }
 
@@ -278,15 +277,21 @@ export async function testProxiesAgainstTarget(
   );
 
   return results.map((r) =>
-    r.status === "fulfilled"
-      ? r.value
-      : { proxyUrl: "unknown", ok: false, latencyMs: null }
+    r.status === "fulfilled" ? r.value : { proxyUrl: "unknown", ok: false, latencyMs: null }
   );
 }
 
 // ---------------------------------------------------------------------------
 // Find working proxy (with caching)
 // ---------------------------------------------------------------------------
+
+// #9100: single-flight probe dedup. Under concurrent failures (e.g. 5 parallel
+// chat requests all hitting a dead pinned proxy), every request would otherwise
+// probe the whole proxy pool simultaneously — a thundering herd of TCP connects
+// that throttles the very proxies it is trying to reach. Concurrent
+// findWorkingProxy calls for the same cache key share ONE probe promise;
+// mirrors the proxyHealthInflight pattern in src/lib/proxyHealth.ts.
+const inflightProbes = new Map<string, Promise<string | null>>();
 
 /**
  * Find a working proxy for the given target hostname and URL.
@@ -318,46 +323,64 @@ export async function findWorkingProxy(
     PROXY_FALLBACK_CACHE.delete(cacheKey);
   }
 
-  // Collect candidates
-  const candidates = await (proxyFallbackTestHooks?.getProxyCandidates ?? getProxyCandidates)(
-    targetUrl
-  );
-  if (candidates.length === 0) {
-    return null;
+  // #9100: single-flight — if a probe for this cache key is already running,
+  // share its promise instead of starting another (thundering-herd guard).
+  const existingProbe = inflightProbes.get(cacheKey);
+  if (existingProbe) {
+    return existingProbe;
   }
 
-  // Test all in parallel, return first that works
-  const results = await Promise.allSettled(
-    candidates.map(async (proxyUrl) => {
-      const { ok } = await (proxyFallbackTestHooks?.testSingleProxy ?? testSingleProxy)(
+  const probe = (async (): Promise<string | null> => {
+    // Collect candidates
+    const candidates = await (proxyFallbackTestHooks?.getProxyCandidates ?? getProxyCandidates)(
+      targetUrl
+    );
+    if (candidates.length === 0) {
+      return null;
+    }
+
+    // Test all in parallel, return first that works
+    const results = await Promise.allSettled(
+      candidates.map(async (proxyUrl) => {
+        const { ok } = await (proxyFallbackTestHooks?.testSingleProxy ?? testSingleProxy)(
+          proxyUrl,
+          targetUrl
+        );
+        return { proxyUrl, ok };
+      })
+    );
+
+    const working = results.find((r) => r.status === "fulfilled" && r.value.ok);
+
+    if (working && working.status === "fulfilled") {
+      const proxyUrl = working.value.proxyUrl;
+      // Cache the working proxy
+      PROXY_FALLBACK_CACHE.set(cacheKey, {
         proxyUrl,
-        targetUrl
-      );
-      return { proxyUrl, ok };
-    })
-  );
+        expiresAt: Date.now() + CACHE_TTL_MS,
+      });
+      return proxyUrl;
+    }
 
-  const working = results.find(
-    (r) => r.status === "fulfilled" && r.value.ok
-  );
-
-  if (working && working.status === "fulfilled") {
-    const proxyUrl = working.value.proxyUrl;
-    // Cache the working proxy
+    // All failed — cache the negative result to avoid re-probing too often
     PROXY_FALLBACK_CACHE.set(cacheKey, {
-      proxyUrl,
+      proxyUrl: "",
       expiresAt: Date.now() + CACHE_TTL_MS,
     });
-    return proxyUrl;
+
+    return null;
+  })();
+
+  inflightProbes.set(cacheKey, probe);
+  try {
+    return await probe;
+  } finally {
+    // Only the owning caller removes the entry — a later caller that picked up
+    // the shared promise must not delete it out from under the first caller.
+    if (inflightProbes.get(cacheKey) === probe) {
+      inflightProbes.delete(cacheKey);
+    }
   }
-
-  // All failed — cache the negative result to avoid re-probing too often
-  PROXY_FALLBACK_CACHE.set(cacheKey, {
-    proxyUrl: "",
-    expiresAt: Date.now() + CACHE_TTL_MS,
-  });
-
-  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -373,9 +396,7 @@ export async function findWorkingProxy(
  * @param _connectionId  Optional connection ID (reserved for future use).
  * @returns A proxy resolution result with level "autoSelect", or null.
  */
-export async function selectWorkingProxyFallback(
-  _connectionId?: string
-): Promise<{
+export async function selectWorkingProxyFallback(_connectionId?: string): Promise<{
   proxy: { type: string; host: string; port: number; username: string; password: string } | null;
   level: string;
   levelId: string | null;

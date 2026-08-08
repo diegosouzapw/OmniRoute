@@ -11,10 +11,12 @@ import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { validateProviderApiKey } from "@/lib/providers/validation";
 import { getCliRuntimeStatus } from "@/shared/services/cliRuntime";
+import { buildQoderCliNotFoundHint } from "@omniroute/open-sse/services/qoderCliResolve.ts";
 // Use the shared open-sse token refresh with built-in dedup/race-condition cache
 import { getAccessToken } from "@omniroute/open-sse/services/tokenRefresh.ts";
 import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import { saveCallLog } from "@/lib/usageDb";
+import { shouldHideLogs } from "@/lib/tokenHealthCheck";
 import { logProxyEvent } from "@/lib/proxyLogger";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { isGitLabDirectAccessDisabled } from "@/lib/oauth/gitlab";
@@ -205,7 +207,9 @@ async function getProviderRuntimeStatus(connection: any) {
 
     const runtimeMessage = runtime.installed
       ? `Local CLI runtime is installed but not runnable (${runtime.reason || "healthcheck_failed"})`
-      : "Local CLI runtime is not installed";
+      : provider === "qoder"
+        ? buildQoderCliNotFoundHint(runtime.reason || "not_found")
+        : "Local CLI runtime is not installed";
 
     return {
       ...runtime,
@@ -743,18 +747,21 @@ export async function testSingleConnection(connectionId: string, validationModel
 
   // Log to Logger tab (call_logs table)
   try {
-    saveCallLog({
-      method: "POST",
-      path: "/api/providers/test",
-      status: result.valid ? 200 : result.statusCode || 401,
-      model: "connection-test",
-      provider,
-      connectionId,
-      duration: latencyMs,
-      error: result.valid ? null : result.error || null,
-      sourceFormat: "test",
-      targetFormat: "test",
-    }).catch(() => {});
+    const hideLogs = await shouldHideLogs();
+    if (!hideLogs) {
+      saveCallLog({
+        method: "POST",
+        path: "/api/providers/test",
+        status: result.valid ? 200 : result.statusCode || 401,
+        model: "connection-test",
+        provider,
+        connectionId,
+        duration: latencyMs,
+        error: result.valid ? null : result.error || null,
+        sourceFormat: "test",
+        targetFormat: "test",
+      }).catch(() => {});
+    }
   } catch {}
 
   // Log to Proxy tab (proxy_logs table)

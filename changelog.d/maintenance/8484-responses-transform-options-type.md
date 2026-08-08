@@ -1,0 +1,1 @@
+- Preserve the Responses API transform options contract under TypeScript 7.

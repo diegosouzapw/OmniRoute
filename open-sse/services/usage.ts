@@ -66,6 +66,7 @@ import { getVertexUsage } from "./usage/vertex.ts";
 import { getXiaomiMimoUsage } from "./usage/xiaomi-mimo.ts";
 import { getXaiUsage } from "./usage/xai.ts";
 import { getXaiOauthUsage } from "./usage/xaiOauth.ts";
+import { getGrokCliUsage } from "./usage/grokCli.ts";
 import { getFirecrawlUsage } from "./usage/firecrawl.ts";
 
 type JsonRecord = Record<string, unknown>;
@@ -116,6 +117,7 @@ export const USAGE_FETCHER_PROVIDERS = [
   "xai",
   "xai-oauth",
   "xao",
+  "grok-cli",
   "vertex",
   "vertex-partner",
   "codebuddy-cn",
@@ -210,6 +212,8 @@ export async function getUsageForProvider(
     case "xai-oauth":
     case "xao":
       return await getXaiOauthUsage(id || "", accessToken, connection);
+    case "grok-cli":
+      return await getGrokCliUsage(accessToken);
     case "codebuddy-cn":
       return await getCodeBuddyCnUsage(accessToken, apiKey, providerSpecificData);
     case "promptql":
@@ -224,7 +228,7 @@ export async function getUsageForProvider(
     case "ha":
       return await getHyperAgentUsage(apiKey || accessToken, providerSpecificData);
     case "firecrawl":
-      return await getFirecrawlUsage(id || "", apiKey);
+      return await getFirecrawlUsage(id || "", apiKey, connection);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }

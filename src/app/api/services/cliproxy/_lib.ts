@@ -22,6 +22,10 @@ export async function getOrInitSupervisor(): Promise<ServiceSupervisor> {
     healthIntervalMs: 5_000,
     stopTimeoutMs: 15_000,
     logsBufferBytes: 5_242_880,
+    // #6205: mirrors bootstrap.ts's own supervisor construction — adopt a
+    // healthy prior instance instead of crashing on-demand creation (e.g. a
+    // direct API hit before bootstrap runs) into a raw EADDRINUSE.
+    probeBeforeSpawn: true,
   });
 
   registerSupervisor(sup);

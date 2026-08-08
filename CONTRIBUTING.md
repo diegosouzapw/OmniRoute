@@ -2,6 +2,11 @@
 
 Thank you for your interest in contributing! This guide covers everything you need to get started.
 
+For the official per-change workflow, start with the
+[Contribution Golden Path](docs/dev/CONTRIBUTION_GOLDEN_PATH.md). It maps provider, routing,
+UI/UX, i18n, CLI, database, and build/deploy changes to their contracts, focused tests, CI
+coverage, and reconciliation steps.
+
 ---
 
 ## Development Setup
@@ -10,6 +15,12 @@ Thank you for your interest in contributing! This guide covers everything you ne
 
 - **Node.js** `>=22.22.3 <23`, or `>=24.0.0 <27` (recommended: 24 LTS)
 - **npm** 10+
+
+> **npm v11+ users (Node 24+):** After `npm install`, verify native modules were installed:
+> `node -e "require('better-sqlite3')"`. If it fails with `MODULE_NOT_FOUND`,
+> run `npm approve-scripts better-sqlite3 && npm install`. See
+> [Troubleshooting](docs/guides/TROUBLESHOOTING.md#npm-v11-better-sqlite3-not-installed-cannot-find-module).
+
 - **Git**
 
 ### Clone & Install
@@ -198,10 +209,11 @@ Coverage notes:
 
 ### Pull Request Requirements
 
-Before opening a PR, run the focused loop for what you changed. The full unit suite
-(4 CI shards), Vitest, the **60%+** coverage gate, and the production build are CI's
-responsibility — running them locally adds no signal the PR checks will not already
-give you, and on smaller machines it can saturate the host (#8084):
+Before opening a PR, use the
+[Contribution Golden Path](docs/dev/CONTRIBUTION_GOLDEN_PATH.md) to run the focused loop for
+what you changed. The full unit suite (4 CI shards), Vitest, the **60%+** coverage gate, and
+the production build are CI's responsibility — running them locally adds no signal the PR
+checks will not already give you, and on smaller machines it can saturate the host (#8084):
 
 - Run the test files that cover your change: `node --import tsx/esm --test tests/unit/<file>.test.ts`
 - Run `npm run lint`
@@ -271,7 +283,7 @@ src/                        # TypeScript (.ts / .tsx)
 │   ├── a2a/                # Agent-to-Agent v0.3 protocol server
 │   ├── acp/                # Agent Communication Protocol registry
 │   ├── compliance/         # Compliance policy engine
-│   ├── db/                 # SQLite database layer (21 modules + 16 migrations)
+│   ├── db/                 # SQLite domain modules + 130 migrations
 │   ├── memory/             # Persistent conversational memory
 │   ├── oauth/              # OAuth providers, services, and utilities
 │   ├── skills/             # Extensible skill framework
@@ -281,7 +293,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM proxy (cert, DNS, target routing)
 ├── shared/
 │   ├── components/         # React components (.tsx)
-│   ├── constants/          # Provider definitions (177), MCP scopes, 14 routing strategies
+│   ├── constants/          # Provider definitions (290), MCP scopes, 19 routing strategies
 │   ├── utils/              # Circuit breaker, sanitizer, auth helpers
 │   └── validation/         # Zod v4 schemas
 └── sse/                    # SSE proxy pipeline
@@ -289,7 +301,7 @@ src/                        # TypeScript (.ts / .tsx)
 open-sse/                   # @omniroute/open-sse workspace
 ├── executors/              # 14 provider-specific request executors
 ├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
-├── mcp-server/             # MCP server (25 tools, 3 transports, 10 scopes)
+├── mcp-server/             # MCP server (104 tools, 3 transports, 31 scopes)
 ├── services/               # 36+ services (combo, autoCombo, rateLimitManager, etc.)
 ├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
 ├── transformer/            # Responses API transformer

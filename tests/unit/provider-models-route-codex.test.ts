@@ -159,11 +159,11 @@ test("provider models route merges live Codex models with the local catalog then
   assert.equal(body.discoveredCandidateCount, undefined);
   assert.deepEqual(seenRequests, [
     {
-      url: "https://chatgpt.com/backend-api/codex/models?client_version=0.144.1",
+      url: "https://chatgpt.com/backend-api/codex/models?client_version=0.146.0",
       authorization: "Bearer codex-access-token",
       workspaceId: "account-123",
       originator: "codex_cli_rs",
-      userAgent: "codex-cli/0.144.1 (Windows 10.0.26200; x64)",
+      userAgent: "codex-cli/0.146.0 (Windows 10.0.26200; x64)",
     },
     {
       url: "https://raw.githubusercontent.com/openai/codex/refs/heads/main/codex-rs/models-manager/models.json",
@@ -181,10 +181,11 @@ test("provider models route merges live Codex models with the local catalog then
   // merge conservatively — the smaller of live vs. pinned wins, never the
   // larger, so a stale/inflated live number can never make OmniRoute promise
   // more context than the account can actually serve (#7012). Here the pinned
-  // GPT-5.6 Codex contract (272000/128000, see GPT_5_6_CODEX_CAPABILITIES) is
-  // smaller than the live payload's 999999/999999, so the pinned value wins.
+  // GPT-5.6 Codex contract (922000/128000, see GPT_5_6_CODEX_CAPABILITIES —
+  // raised from 272000 in #9432) is smaller than the live payload's
+  // 999999/999999, so the pinned value wins.
   assert.equal(liveModel?.name, "GPT 5.6 Sol Live");
-  assert.equal(liveModel?.inputTokenLimit, 272000);
+  assert.equal(liveModel?.inputTokenLimit, 922000);
   assert.equal(liveModel?.outputTokenLimit, 128000);
   assert.equal(liveModel?.apiFormat, "responses");
   assert.deepEqual(liveModel?.supportedEndpoints, ["responses"]);

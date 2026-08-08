@@ -1,0 +1,218 @@
+name: omniroute-devin-bridge
+
+x-isolated-environment: &isolated-environment
+  HOME: /home/bridge
+  CLAUDE_CONFIG_DIR: /home/bridge/.claude-devin-isolated
+  DEVIN_AGENTIC_HOME: /home/bridge
+  DATA_DIR: /home/bridge/.omniroute-isolated
+  SQLITE_FILE: /home/bridge/.omniroute-isolated/storage.sqlite
+  ANTHROPIC_BASE_URL: http://omniroute:20128
+  ANTHROPIC_AUTH_TOKEN: sk-local-devin-gateway
+  CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
+  DISABLE_TELEMETRY: "1"
+  DISABLE_ERROR_REPORTING: "1"
+  DISABLE_AUTOUPDATER: "1"
+  CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY: "1"
+  DEVIN_BRIDGE_MODEL: ${DEVIN_BRIDGE_MODEL:-devin-cli-agentic/swe-1-7}
+  ANTHROPIC_MODEL: ${DEVIN_BRIDGE_MODEL:-devin-cli-agentic/swe-1-7}
+  ANTHROPIC_DEFAULT_SONNET_MODEL: ${DEVIN_BRIDGE_SONNET_MODEL:-devin-cli-agentic/swe-1-7}
+  ANTHROPIC_DEFAULT_OPUS_MODEL: ${DEVIN_BRIDGE_OPUS_MODEL:-devin-cli-agentic/swe-1-7}
+  ANTHROPIC_DEFAULT_HAIKU_MODEL: ${DEVIN_BRIDGE_HAIKU_MODEL:-devin-cli-agentic/swe-1-7}
+  CLAUDE_CODE_SUBAGENT_MODEL: ${DEVIN_BRIDGE_SUBAGENT_MODEL:-devin-cli-agentic/swe-1-7}
+  REQUIRE_API_KEY: "true"
+  OMNIROUTE_API_KEY: sk-local-devin-gateway
+
+x-runtime: &runtime
+  image: omniroute-devin-bridge:local
+  build:
+    context: ../..
+    dockerfile: docker/devin-bridge/Dockerfile
+    args:
+      CLAUDE_CODE_VERSION: 2.1.220
+      DEVIN_CLI_VERSION: 3000.2.17
+  user: "10001:10001"
+  read_only: true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,nodev,size=256m
+    - /opt/omniroute/.source:rw,nosuid,nodev,size=16m,uid=10001,gid=10001
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  environment: *isolated-environment
+  networks: [bridge-internal]
+
+services:
+  omniroute:
+    <<: *runtime
+    profiles: [offline]
+    hostname: omniroute
+    environment:
+      <<: *isolated-environment
+      CLI_DEVIN_AGENTIC_BIN: /opt/omniroute/docker/devin-bridge/mock-devin.mjs
+      DEVIN_BRIDGE_MOCK_LOG: /evidence/mock-acp.jsonl
+    command: ["npm", "run", "start"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:20128/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 2s
+      timeout: 2s
+      retries: 60
+    volumes:
+      - omniroute-offline-data:/home/bridge/.omniroute-isolated
+      - ../../.sandbox/evidence:/evidence
+      - ./mock-devin.mjs:/opt/omniroute/docker/devin-bridge/mock-devin.mjs:ro
+
+  claude:
+    <<: *runtime
+    profiles: [offline]
+    depends_on:
+      omniroute:
+        condition: service_healthy
+      claude-egress-guard:
+        condition: service_healthy
+    working_dir: /workspace
+    command: ["bash", "/opt/omniroute/docker/devin-bridge/run-claude-e2e.sh"]
+    environment:
+      <<: *isolated-environment
+      NODE_USE_ENV_PROXY: "1"
+      HTTP_PROXY: http://claude-egress-guard:8080
+      HTTPS_PROXY: http://claude-egress-guard:8080
+      NO_PROXY: omniroute
+    volumes:
+      - claude-isolated-config:/home/bridge/.claude-devin-isolated
+      - ../../.sandbox/e2e-workspace:/workspace
+      - ../../.sandbox/evidence:/evidence
+      - ./run-claude-e2e.sh:/opt/omniroute/docker/devin-bridge/run-claude-e2e.sh:ro
+
+  contract:
+    <<: *runtime
+    profiles: [offline]
+    depends_on:
+      omniroute:
+        condition: service_healthy
+    command: ["node", "/opt/omniroute/docker/devin-bridge/run-contract.mjs"]
+    volumes:
+      - ./run-contract.mjs:/opt/omniroute/docker/devin-bridge/run-contract.mjs:ro
+
+  claude-egress-guard:
+    image: node:26.0.0-bookworm-slim
+    profiles: [offline, live-devin]
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    command: ["node", "/guard/proxy.mjs"]
+    environment:
+      GUARD_LISTEN: 0.0.0.0:8080
+      GUARD_POLICY: deny-all
+      GUARD_LOG: /guard-audit/egress.jsonl
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(8080,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
+      interval: 1s
+      timeout: 1s
+      retries: 15
+    volumes:
+      - ./network-guard:/guard:ro
+      - ../../.sandbox/guard-audit/claude:/guard-audit
+    networks: [bridge-internal]
+
+  network-guard:
+    image: node:26.0.0-bookworm-slim
+    profiles: [live-devin]
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    command: ["node", "/guard/proxy.mjs"]
+    environment:
+      GUARD_LISTEN: 0.0.0.0:8080
+      GUARD_POLICY: devin
+      GUARD_LOG: /guard-audit/egress.jsonl
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(8080,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
+      interval: 1s
+      timeout: 1s
+      retries: 15
+    volumes:
+      - ./network-guard:/guard:ro
+      - ../../.sandbox/guard-audit/devin:/guard-audit
+    networks: [devin-guard-internal, guard-egress]
+
+  omniroute-live:
+    <<: *runtime
+    profiles: [live-devin]
+    hostname: omniroute
+    depends_on:
+      network-guard:
+        condition: service_healthy
+    environment:
+      <<: *isolated-environment
+      CLI_DEVIN_AGENTIC_BIN: /usr/local/bin/devin
+      DEVIN_BRIDGE_PROXY_URL: http://network-guard:8080
+    networks: [bridge-internal, devin-guard-internal]
+    command: ["npm", "run", "start"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:20128/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 2s
+      timeout: 2s
+      retries: 60
+    volumes:
+      - devin-auth:/home/bridge/.local/share/devin
+      - omniroute-live-data:/home/bridge/.omniroute-isolated
+
+  claude-live:
+    <<: *runtime
+    profiles: [live-devin]
+    depends_on:
+      omniroute-live:
+        condition: service_healthy
+      claude-egress-guard:
+        condition: service_healthy
+    working_dir: /workspace
+    command: ["bash", "/opt/omniroute/docker/devin-bridge/run-claude-live-e2e.sh"]
+    environment:
+      <<: *isolated-environment
+      NODE_USE_ENV_PROXY: "1"
+      HTTP_PROXY: http://claude-egress-guard:8080
+      HTTPS_PROXY: http://claude-egress-guard:8080
+      NO_PROXY: omniroute
+    volumes:
+      - claude-isolated-config:/home/bridge/.claude-devin-isolated
+      - ../../.sandbox/live-workspace:/workspace
+      - ../../.sandbox/evidence:/evidence
+      - ./run-claude-live-e2e.sh:/opt/omniroute/docker/devin-bridge/run-claude-live-e2e.sh:ro
+
+networks:
+  bridge-internal:
+    internal: true
+  devin-guard-internal:
+    internal: true
+  guard-egress: {}
+
+volumes:
+  claude-isolated-config: {}
+  devin-auth: {}
+  omniroute-offline-data: {}
+  omniroute-live-data: {}

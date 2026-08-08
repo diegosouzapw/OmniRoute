@@ -1,0 +1,1 @@
+- **feat(providers):** native xAI Agent Tools passthrough on `/v1/responses` for `xai` / `xai-oauth` (`xao`) — forward `web_search` + `x_search` to `api.x.ai` instead of rewriting or rejecting them ([#8964](https://github.com/diegosouzapw/OmniRoute/issues/8964))

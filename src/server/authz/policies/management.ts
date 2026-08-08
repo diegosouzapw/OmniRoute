@@ -7,8 +7,12 @@ import { allow, reject } from "../context";
 import { extractApiKey, isValidApiKey } from "../../../sse/services/auth";
 import { getApiKeyMetadata } from "../../../lib/db/apiKeys";
 import { hasManageScope } from "../../../lib/api/requireManagementAuth";
-import { hasMcpConnectOrManageScope, MCP_CONNECT_SCOPE } from "../../../shared/constants/managementScopes";
+import {
+  hasMcpConnectOrManageScope,
+  MCP_CONNECT_SCOPE,
+} from "../../../shared/constants/managementScopes";
 import { evaluateAccessTokenAuth } from "../accessTokenAuth";
+import { isInternalServiceRequest } from "../../../lib/api/internalServiceAuth";
 import { CLI_TOKEN_HEADER, PEER_IP_HEADER, VIA_PROXY_HEADER } from "../headers";
 import { resolveStampedPeer, resolveStampedViaProxy } from "../peerStamp";
 import {
@@ -145,7 +149,11 @@ export const managementPolicy: RoutePolicy = {
     //
     // Anonymous (no Bearer / invalid key / wrong scope / no session) requests
     // still hit the same 403 LOCAL_ONLY they did before.
-    if (isLocalOnlyPath(path, ctx.request?.method) && !isLoopbackRequest(ctx) && !isPrivateLanRequest(ctx)) {
+    if (
+      isLocalOnlyPath(path, ctx.request?.method) &&
+      !isLoopbackRequest(ctx) &&
+      !isPrivateLanRequest(ctx)
+    ) {
       if (isLocalOnlyBypassableByManageScope(path)) {
         // Management auth is header-only — a URL-borne token must never satisfy a
         // manage-scope bypass of a LOCAL_ONLY route. See #3300 follow-up.
@@ -233,8 +241,49 @@ export const managementPolicy: RoutePolicy = {
       return allow({ kind: "management_key", id: "model-sync", label: "internal-model-sync" });
     }
 
+    if (isLoopbackRequest(ctx) && isInternalServiceRequest(ctx.request as unknown as Request)) {
+      return allow({
+        kind: "management_key",
+        id: "internal-service",
+        label: "internal-service-token",
+      });
+    }
+
     if (hasValidCliToken(ctx)) {
       return allow({ kind: "management_key", id: "cli", label: "local-cli-token" });
+    }
+
+    // MCP path carve-out (#9159): accept mcp:connect, manage, or admin
+    // scope for /api/mcp/* from any origin (loopback, private LAN, or remote).
+    // Loopback/LAN requests skip the Tier 1 bypass gate above, so with
+    // requireLogin=true they would fall through to the generic API-key check
+    // which only accepts manage/admin -- rejecting mcp:connect-only keys.
+    // This carve-out mirrors the existing Tier 1 MCP check but without the
+    // locality guard, so it catches the loopback/LAN requests that the Tier 1
+    // gate does not reach.
+    if (path.startsWith("/api/mcp/")) {
+      const apiKey = extractApiKey(ctx.request as unknown as Request, { allowUrl: false });
+      if (apiKey) {
+        try {
+          if (await isValidApiKey(apiKey)) {
+            const meta = await getApiKeyMetadata(apiKey);
+            if (meta && hasMcpConnectOrManageScope(meta.scopes)) {
+              const grantedBy = meta.scopes.includes("admin")
+                ? "admin"
+                : meta.scopes.includes("manage")
+                  ? "manage"
+                  : "mcp-connect";
+              return allow({
+                kind: "management_key",
+                id: meta.id,
+                label: `api-key-${grantedBy}-scope-mcp-carve-out`,
+              });
+            }
+          }
+        } catch {
+          return reject(503, "AUTH_BACKEND_UNAVAILABLE", "Service temporarily unavailable");
+        }
+      }
     }
 
     // Tier 2: always-protected routes skip the requireLogin=false bypass.

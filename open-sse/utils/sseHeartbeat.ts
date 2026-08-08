@@ -1,3 +1,10 @@
+/**
+ * @file sseHeartbeat.ts
+ * @description Mid-stream SSE heartbeat transform (comment / Anthropic ping / OpenAI chunk).
+ *
+ * @changes
+ * - [2026-07-28] [Cursor Grok 4.5] - Brand-neutral default OpenAI keepalive id/model
+ */
 export const DEFAULT_SSE_HEARTBEAT_INTERVAL_MS = 15_000;
 
 export const HEARTBEAT_SHAPES = {
@@ -37,10 +44,10 @@ function buildHeartbeatPayload(
       return 'data: {"type":"response.in_progress"}\n\n';
     case HEARTBEAT_SHAPES.OPENAI_CHUNK: {
       const payload = {
-        id: opts.chunkId ?? "omniroute-keepalive",
+        id: opts.chunkId ?? "chatcmpl-keepalive",
         object: "chat.completion.chunk",
         created: Math.floor(Date.now() / 1000),
-        model: opts.chunkModel ?? "omniroute",
+        model: opts.chunkModel ?? "keepalive",
         choices: [{ index: 0, delta: {}, finish_reason: null }],
       };
       return `data: ${JSON.stringify(payload)}\n\n`;
@@ -72,7 +79,8 @@ export function sseCommentsEnabled(): boolean {
   if (typeof process === "undefined") return true;
   const v = process.env.OMNIROUTE_SSE_COMMENTS;
   if (v === undefined || v === "") return true;
-  return v.trim().toLowerCase() !== "off";
+  const normalized = v.trim().toLowerCase();
+  return normalized !== "off" && normalized !== "false" && normalized !== "0" && normalized !== "no";
 }
 
 export function createSseHeartbeatTransform({

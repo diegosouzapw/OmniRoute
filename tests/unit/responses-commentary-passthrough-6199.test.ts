@@ -173,10 +173,7 @@ test("commentary-phase output text is NOT forwarded when dropping is enabled (#6
     "commentary-phase text must be dropped from the passthrough stream"
   );
   // The commentary item announcement / completion must not leak either.
-  assert.ok(
-    !output.includes("msg_commentary"),
-    "commentary item events must be dropped entirely"
-  );
+  assert.ok(!output.includes("msg_commentary"), "commentary item events must be dropped entirely");
   // The real answer must always be forwarded.
   assert.ok(output.includes(FINAL_TEXT), "the final answer text must be forwarded");
   assert.ok(output.includes("msg_final"), "the final answer item must be forwarded");
@@ -193,4 +190,177 @@ test("commentary passes through when dropping is disabled (gate/regression) (#61
     "with the flag disabled, commentary text must pass through untouched"
   );
   assert.ok(output.includes(FINAL_TEXT), "the final answer text must still be forwarded");
+});
+
+test("response.completed always includes total_tokens for strict Codex clients", async () => {
+  const output = await readTransformed(
+    [
+      sse({
+        type: "response.completed",
+        response: {
+          id: "resp_codex_usage",
+          status: "completed",
+          output: [],
+          usage: {
+            input_tokens: 88,
+            output_tokens: 6,
+            input_tokens_details: { cached_tokens: 0 },
+            output_tokens_details: { reasoning_tokens: 0 },
+          },
+        },
+      }),
+    ],
+    PASSTHROUGH_RESPONSES_OPTIONS
+  );
+
+  const completedLine = output
+    .split(/\r?\n/)
+    .find((line) => line.startsWith("data:") && line.includes('"response.completed"'));
+  assert.ok(completedLine, "the terminal Responses event must be forwarded");
+
+  const completed = JSON.parse(completedLine.slice(5).trim());
+  assert.deepEqual(completed.response.usage, {
+    input_tokens: 88,
+    output_tokens: 6,
+    total_tokens: 94,
+    input_tokens_details: { cached_tokens: 0 },
+    output_tokens_details: { reasoning_tokens: 0 },
+  });
+});
+
+test("response.completed normalizes usage when lifecycle echoes are stripped", async () => {
+  const output = await readTransformed(
+    [
+      sse({
+        type: "response.completed",
+        response: {
+          id: "resp_agentrouter_live_shape",
+          status: "completed",
+          instructions: "echoed upstream instructions",
+          tools: [{ type: "function", name: "echoed_tool" }],
+          output: [],
+          usage: {
+            prompt_tokens: 91,
+            completion_tokens: 0,
+            input_tokens: 91,
+            output_tokens: 0,
+            cache_read_input_tokens: 0,
+            cache_creation_input_tokens: 0,
+          },
+        },
+      }),
+    ],
+    PASSTHROUGH_RESPONSES_OPTIONS
+  );
+
+  const completedLine = output
+    .split(/\r?\n/)
+    .find((line) => line.startsWith("data:") && line.includes('"response.completed"'));
+  assert.ok(completedLine, "the terminal Responses event must be forwarded");
+
+  const completed = JSON.parse(completedLine.slice(5).trim());
+  assert.equal("instructions" in completed.response, false);
+  // #8990 (commit c996dc93c2) deliberately stopped stripping `tools` from the
+  // TERMINAL snapshot — Codex CLI rebuilds its tool list from response.completed.
+  // stripResponsesLifecycleEcho still strips it on created/in_progress.
+  assert.deepEqual(completed.response.tools, [{ type: "function", name: "echoed_tool" }]);
+  assert.equal(completed.response.usage.total_tokens, 91);
+});
+
+test("response.completed synthesizes zero usage when upstream omits usage", async () => {
+  const completed = {
+    type: "response.completed",
+    response: { id: "resp_codex_no_usage", status: "completed", output: [] },
+  };
+  const output = await readTransformed(
+    [`data: ${JSON.stringify(completed)}`],
+    PASSTHROUGH_RESPONSES_OPTIONS
+  );
+  const completedLine = output
+    .split(/\r?\n/)
+    .find((line) => line.startsWith("data:") && line.includes('"response.completed"'));
+  assert.ok(completedLine, "the terminal Responses event must be forwarded");
+  const forwarded = JSON.parse(completedLine.slice(5).trim());
+  assert.deepEqual(forwarded.response.usage, {
+    input_tokens: 0,
+    output_tokens: 0,
+    total_tokens: 0,
+  });
+});
+
+test("buffered response.completed normalizes IDs and usage independently", async () => {
+  const completed = {
+    type: "response.completed",
+    response: {
+      id: 12345,
+      status: "completed",
+      output: [],
+      usage: { input_tokens: 12, output_tokens: 3 },
+    },
+  };
+  const output = await readTransformed(
+    [`data: ${JSON.stringify(completed)}`],
+    PASSTHROUGH_RESPONSES_OPTIONS
+  );
+  const completedLine = output
+    .split(/\r?\n/)
+    .find((line) => line.startsWith("data:") && line.includes('"response.completed"'));
+  assert.ok(completedLine, "the buffered terminal Responses event must be forwarded");
+
+  const forwarded = JSON.parse(completedLine.slice(5).trim());
+  assert.equal(forwarded.response.id, "12345");
+  assert.deepEqual(forwarded.response.usage, {
+    input_tokens: 12,
+    output_tokens: 3,
+    total_tokens: 15,
+  });
+});
+
+test("Claude to Responses translation includes canonical Codex usage", async () => {
+  const output = await readTransformed(
+    [
+      sse({
+        type: "message_start",
+        message: {
+          id: "msg_agentrouter_claude",
+          type: "message",
+          role: "assistant",
+          model: "gpt-5.6-sol",
+          usage: { input_tokens: 88, output_tokens: 0 },
+        },
+      }),
+      sse({
+        type: "content_block_start",
+        index: 0,
+        content_block: { type: "text", text: "" },
+      }),
+      sse({
+        type: "content_block_delta",
+        index: 0,
+        delta: { type: "text_delta", text: "probe-ok" },
+      }),
+      sse({ type: "content_block_stop", index: 0 }),
+      sse({
+        type: "message_delta",
+        delta: { stop_reason: "end_turn", stop_sequence: null },
+        usage: { output_tokens: 6 },
+      }),
+      sse({ type: "message_stop" }),
+    ],
+    {
+      mode: "translate",
+      targetFormat: "claude",
+      sourceFormat: "openai-responses",
+      provider: "agentrouter",
+      body: { model: "agentrouter/gpt-5.6-sol" },
+    }
+  );
+  const completedLine = output
+    .split(/\r?\n/)
+    .find((line) => line.startsWith("data:") && line.includes('"response.completed"'));
+  assert.ok(completedLine, "the translated terminal event must be emitted");
+  const completed = JSON.parse(completedLine.slice(5).trim());
+  assert.equal(completed.response.usage.input_tokens, 88);
+  assert.equal(completed.response.usage.output_tokens, 6);
+  assert.equal(completed.response.usage.total_tokens, 94);
 });

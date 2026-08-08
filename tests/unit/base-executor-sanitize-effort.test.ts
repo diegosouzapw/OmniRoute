@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 const { sanitizeReasoningEffortForProvider } = await import("../../open-sse/executors/base.ts");
 const { DefaultExecutor } = await import("../../open-sse/executors/default.ts");
+const { translateRequest } = await import("../../open-sse/translator/index.ts");
+const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 
 function makeLog() {
   const messages: Array<[string, string]> = [];
@@ -100,6 +102,45 @@ test("sanitizeReasoningEffortForProvider: Ollama Cloud preserves max", () => {
   assert.equal(result, body, "Ollama Cloud accepts max literally");
   assert.equal((result as any).reasoning_effort, "max");
   assert.equal(log.messages.length, 0);
+});
+
+test("end-to-end: Anthropic output_config.effort=max reaches Ollama Cloud as max (not xhigh)", () => {
+  // Bug: the claude→openai translator previously normalized max → xhigh, and the
+  // sanitizer could not recover the original intent because the carrier was already
+  // xhigh. Ollama Cloud accepts max literally but rejects xhigh (HTTP 400).
+  // The translator must pass max through verbatim and the sanitizer must keep it.
+  const translated = translateRequest(
+    FORMATS.CLAUDE,
+    FORMATS.OPENAI,
+    "gemma4:31b",
+    {
+      model: "gemma4:31b",
+      messages: [{ role: "user", content: "hi" }],
+      output_config: { effort: "max" },
+    },
+    false,
+    null,
+    "ollama-cloud"
+  ) as Record<string, unknown>;
+
+  assert.equal(
+    translated.reasoning_effort,
+    "max",
+    "translator must pass max through verbatim instead of rewriting it to xhigh"
+  );
+
+  const sanitized = sanitizeReasoningEffortForProvider(
+    translated,
+    "ollama-cloud",
+    "gemma4:31b",
+    null
+  ) as Record<string, unknown>;
+
+  assert.equal(
+    sanitized.reasoning_effort,
+    "max",
+    "Ollama Cloud accepts max literally — no downgrade, no rewrite to xhigh"
+  );
 });
 
 test("sanitizeReasoningEffortForProvider: Ollama Cloud preserves nested max", () => {
@@ -373,6 +414,24 @@ test("sanitizeReasoningEffortForProvider: codex with xhigh passes through unchan
   };
   const result = sanitizeReasoningEffortForProvider(body, "codex", "gpt-5.5-xhigh", null);
   assert.equal((result as any).reasoning_effort, "xhigh");
+});
+
+test("sanitizeReasoningEffortForProvider: codex maps OMP minimal to low across carriers", () => {
+  const body = {
+    model: "gpt-5.6-terra",
+    reasoning_effort: "minimal",
+    reasoning: { effort: "minimal", summary: "auto" },
+    output_config: { effort: "minimal" },
+    input: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "codex", "gpt-5.6-terra", null) as Record<
+    string,
+    unknown
+  >;
+
+  assert.equal(result.reasoning_effort, "low");
+  assert.deepEqual(result.reasoning, { effort: "low", summary: "auto" });
+  assert.deepEqual(result.output_config, { effort: "low" });
 });
 
 test("sanitizeReasoningEffortForProvider: no-op when reasoning_effort absent", () => {

@@ -65,7 +65,7 @@ test("getComboForModel treats an exact bracketed name as a combo before model su
   assert.equal(parsedAsModel.model, "Claude");
 });
 
-test("getComboForModel does not strip bracket suffix when no exact bracketed combo exists", async () => {
+test("getComboForModel falls back to the base combo when no exact context-tagged combo exists", async () => {
   await combosDb.createCombo({
     name: "Claude",
     models: [{ provider: "claude", model: "claude-sonnet-4-6" }],
@@ -74,7 +74,7 @@ test("getComboForModel does not strip bracket suffix when no exact bracketed com
   const resolved = await sseModelService.getComboForModel("Claude [1m]");
   const parsedAsModel = sseModelService.parseModel("Claude [1m]");
 
-  assert.equal(resolved, null);
+  assert.equal(resolved?.name, "Claude");
   assert.equal(parsedAsModel.extendedContext, true);
   assert.equal(parsedAsModel.model, "Claude");
 });

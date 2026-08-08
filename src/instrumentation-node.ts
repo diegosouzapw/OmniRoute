@@ -543,6 +543,19 @@ export async function registerNodejs(): Promise<void> {
           console.warn("[STARTUP] Arena ELO sync failed to start (non-fatal):", msg);
         }),
 
+      // Radar daily feed sync: only arms itself when RADAR_ENABLED AND the user
+      // opt-in are already on (flag-off boot stays timer-free — Radar inertia
+      // contract). Non-blocking, never fatal.
+      import("@/lib/radar/scheduler")
+        .then((m) => {
+          const started = m.initRadarSyncScheduler();
+          if (started) console.log("[STARTUP] Radar sync scheduler initialized");
+        })
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn("[STARTUP] Radar sync scheduler failed to start (non-fatal):", msg);
+        }),
+
       // Pricing sync: opt-in external pricing data (self-gated by PRICING_SYNC_ENABLED inside
       // initPricingSync). Non-blocking, never fatal.
       import("@/lib/pricingSync")
@@ -550,6 +563,22 @@ export async function registerNodejs(): Promise<void> {
         .catch((err: unknown) => {
           const msg = err instanceof Error ? err.message : String(err);
           console.warn("[STARTUP] Pricing sync failed to start (non-fatal):", msg);
+        }),
+
+      // OpenRouter provider stats sync: provider directory + popularity enrichment
+      // for the dashboard Providers page. On by default; opt out with
+      // OPENROUTER_PROVIDER_STATS_ENABLED=false. Non-blocking, never fatal.
+      import("@/lib/catalog/openrouterProviderStats")
+        .then((m) => {
+          const started = m.initOpenRouterProviderStatsSync();
+          if (started) console.log("[STARTUP] OpenRouter provider stats sync initialized");
+        })
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn(
+            "[STARTUP] OpenRouter provider stats sync failed to start (non-fatal):",
+            msg
+          );
         }),
 
       // models.dev capability sync: opt-in via Settings > AI (self-gated by
@@ -578,6 +607,18 @@ export async function registerNodejs(): Promise<void> {
         .catch((err: unknown) => {
           const msg = err instanceof Error ? err.message : String(err);
           console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
+        }),
+
+      // MemoryBackend provider pattern (PR #8752): initialize configured memory
+      // backends from settings (sqlite, obsidian, notion, custom HTTP, etc.).
+      // Reads the DB settings synchronously (non-blocking, never fatal). Must
+      // run after the DB is ready AND after getSettings/applyRuntimeSettings so
+      // memory backend config is hydrated.
+      import("@/lib/memory/index")
+        .then((m) => m.initMemoryBackends())
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn("[STARTUP] memory backend initialization failed (non-fatal):", msg);
         }),
 
       // Backup schedule (#8513): execute `backup-schedule.json` cron server-side.

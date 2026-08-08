@@ -1,0 +1,1 @@
+- fix(build): lazy-resolve module-level fs paths to avoid Turbopack NFT whole-source trace (#9560)

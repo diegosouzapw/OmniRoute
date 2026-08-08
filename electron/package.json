@@ -37,13 +37,14 @@
     "plist": "^4.0.0",
     "form-data": "^4.0.6",
     "js-yaml": "^4.2.0",
-    "undici": "^7.28.0"
+    "undici": "^7.29.0"
   },
   "build": {
     "appId": "online.omniroute.desktop",
     "productName": "OmniRoute",
     "copyright": "Copyright © 2025 OmniRoute",
-    "buildDependenciesFromSource": true,
+    "buildDependenciesFromSource": false,
+    "npmRebuild": false,
     "directories": {
       "output": "dist-electron",
       "buildResources": "assets"
@@ -59,8 +60,13 @@
       "loginManager.js",
       "processTree.js",
       "sqlite-inspection.js",
+      "remoteServerPromptPreload.js",
+      "remoteServerPromptRenderer.js",
       "lib/resolveServerEntry.js",
       "lib/resolveNodeHelper.js",
+      "lib/resolveRemoteServerUrl.js",
+      "lib/remoteServerPreferences.js",
+      "assets/remoteServerPrompt.html",
       "package.json",
       "node_modules/**/*"
     ],

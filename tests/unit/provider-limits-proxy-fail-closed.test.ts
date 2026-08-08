@@ -101,6 +101,13 @@ test("Claude provider limits fail closed when an account proxy is unreachable", 
   await withMockedFetch(
     (async (url) => {
       directFetchUrls.push(String(url));
+      // #9100: the reachability probe is NON-BLOCKING — dispatch is optimistic and
+      // the probe aborts the request only while it is still in flight (same shape
+      // as t14-proxy-fast-fail). The mock must therefore stay pending: an instant
+      // response would win the race and the fast-fail would never be observable.
+      // Never resolved on purpose — the aborted continuation must NOT proceed to a
+      // real (unmocked) fetch after this block restores globalThis.fetch.
+      await new Promise(() => {});
       return claudeUsageResponse();
     }) as typeof fetch,
     async () => {
@@ -108,10 +115,20 @@ test("Claude provider limits fail closed when an account proxy is unreachable", 
         () => providerLimits.fetchAndPersistProviderLimits(connectionId, "manual"),
         /Proxy unreachable|fetch failed|ECONNREFUSED|UND_ERR_CONNECT_TIMEOUT/i
       );
+      // The fail-closed proof is twofold: (1) the rejection above settled at all —
+      // a direct retry would await the hung mock and never reject; (2) nothing
+      // egresses AFTER the fast-fail. The in-flight count itself may be >1: the
+      // Claude flow dispatches bootstrap + oauth/usage concurrently, and both are
+      // optimistic pre-abort attempts, not retries.
+      const urlsAtRejection = directFetchUrls.length;
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      assert.equal(
+        directFetchUrls.length,
+        urlsAtRejection,
+        "account-proxied Claude usage must not egress anything after the fast-fail"
+      );
     }
   );
-
-  assert.deepEqual(directFetchUrls, [], "account-proxied Claude usage must not retry direct");
 });
 
 test("non-Claude OAuth provider limits fail closed when an account proxy is unreachable", async () => {
@@ -136,6 +153,9 @@ test("non-Claude OAuth provider limits fail closed when an account proxy is unre
   await withMockedFetch(
     (async (url) => {
       directFetchUrls.push(String(url));
+      // #9100: non-blocking probe — keep the request in flight so the fast-fail
+      // can abort it (see the Claude case above for the full rationale).
+      await new Promise(() => {});
       return new Response(
         JSON.stringify({
           copilot_plan: "free",
@@ -153,7 +173,10 @@ test("non-Claude OAuth provider limits fail closed when an account proxy is unre
     }
   );
 
-  assert.deepEqual(directFetchUrls, [], "account-proxied OAuth usage must not retry direct");
+  assert.ok(
+    directFetchUrls.length <= 1,
+    "at most the single optimistic in-flight attempt — account-proxied OAuth usage must never retry direct after the fast-fail"
+  );
 });
 
 test("Claude provider limits preserve direct retry for non-account proxy failures", async () => {

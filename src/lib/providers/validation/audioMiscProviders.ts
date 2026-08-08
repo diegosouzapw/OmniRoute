@@ -80,6 +80,22 @@ export async function validateRevAiProvider({ apiKey, providerSpecificData = {} 
   }
 }
 
+export async function validateSonioxProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const response = await validationRead("https://api.soniox.com/v1/transcriptions", {
+      method: "GET",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+    });
+    if (response.ok) return { valid: true, error: null };
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
 export async function validateElevenLabsProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
     // Lightweight auth check endpoint

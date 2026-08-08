@@ -27,6 +27,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { z } from "zod";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import { resolveSearchProxy, executeProviderFetch } from "./search/searchProxy.ts";
 
 export interface SearchResult {
   title: string;
@@ -96,6 +97,9 @@ interface SearchHandlerOptions {
   alternateProvider?: string;
   alternateCredentials?: Record<string, any> | null;
   log?: any;
+  /** Connection ID (proxy resolution + call-log attribution) and API key ID (per-key proxy). */
+  connectionId?: string;
+  apiKeyId?: string;
 }
 
 // ── Constants ────────────────────────────────────────────────────────────
@@ -1195,6 +1199,8 @@ export async function handleSearch(options: SearchHandlerOptions): Promise<Searc
     alternateProvider,
     alternateCredentials,
     log,
+    connectionId,
+    apiKeyId,
   } = options;
   const startTime = Date.now();
 
@@ -1238,7 +1244,15 @@ export async function handleSearch(options: SearchHandlerOptions): Promise<Searc
   }
 
   // 4. Try primary provider
-  const result = await tryProvider(primaryConfig, requestParams, credentials, startTime, log);
+  const result = await tryProvider(
+    primaryConfig,
+    requestParams,
+    credentials,
+    startTime,
+    log,
+    connectionId,
+    apiKeyId
+  );
 
   if (result.success) return result;
 
@@ -1256,12 +1270,15 @@ export async function handleSearch(options: SearchHandlerOptions): Promise<Searc
       );
     }
 
+    // Resolve alternate connection proxy independently so primary context never leaks
     const fallbackResult = await tryProvider(
       alternateConfig,
       requestParams,
       alternateCredentials,
       startTime,
-      log
+      log,
+      alternateCredentials?.connectionId,
+      apiKeyId
     );
 
     if (fallbackResult.success) return fallbackResult;
@@ -1374,7 +1391,9 @@ async function tryProvider(
   params: Omit<SearchRequestParams, "token">,
   credentials: Record<string, any>,
   globalStartTime: number,
-  log?: any
+  log?: any,
+  connectionId?: string,
+  apiKeyId?: string
 ): Promise<SearchHandlerResult> {
   const startTime = Date.now();
   const providerSpecificData =
@@ -1421,6 +1440,10 @@ async function tryProvider(
     };
   }
 
+  // Resolve proxy for the selected connection (see search/searchProxy.ts for the
+  // resolveProxyForConnection precedence chain: per-key, account, provider, combo, global).
+  const { proxy, proxyLevel } = await resolveSearchProxy(connectionId, apiKeyId, config.id);
+
   // Timeout: min of provider timeout and remaining global timeout
   const remainingGlobal = GLOBAL_TIMEOUT_MS - (Date.now() - globalStartTime);
   const timeout = Math.min(config.timeoutMs, Math.max(remainingGlobal, 1000));
@@ -1431,105 +1454,22 @@ async function tryProvider(
     log.info("SEARCH", `${config.id} | query: "${query.slice(0, 80)}" | type: ${searchType}`);
   }
 
-  try {
-    const response = await fetch(url, { ...init, signal: controller.signal });
-    clearTimeout(timer);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      if (log) {
-        log.error("SEARCH", `${config.id} error ${response.status}: ${errorText.slice(0, 200)}`);
-      }
-
-      saveCallLog({
-        method: config.method,
-        path: "/v1/search",
-        status: response.status,
-        model: config.id,
-        provider: config.id,
-        duration: Date.now() - startTime,
-        requestType: "search",
-        error: errorText.slice(0, 500),
-        requestBody: {
-          query: query.slice(0, 200),
-          search_type: searchType,
-          max_results: maxResults,
-        },
-      }).catch(() => {
-        /* non-critical — logging must not block search response */
-      });
-
-      return {
-        success: false,
-        status: response.status,
-        error: `Search provider ${config.id} returned ${response.status}`,
-      };
-    }
-
-    const data = await response.json();
-    const normalized = normalizeResponse(config.id, data, query, searchType);
-    // Enforce max_results — some providers return more than requested
-    const results = normalized.results.slice(0, maxResults);
-    const totalResults = normalized.totalResults;
-    const duration = Date.now() - startTime;
-
-    saveCallLog({
-      method: config.method,
-      path: "/v1/search",
-      status: 200,
-      model: config.id,
-      provider: config.id,
-      duration,
-      requestType: "search",
-      tokens: { prompt_tokens: 0, completion_tokens: 0 },
-      requestBody: { query: query.slice(0, 200), search_type: searchType, max_results: maxResults },
-      responseBody: { results_count: results.length, cached: false },
-    }).catch(() => {
-      /* non-critical — logging must not block search response */
-    });
-
-    return {
-      success: true,
-      data: {
-        provider: config.id,
-        query,
-        results,
-        answer: null,
-        usage: { queries_used: 1, search_cost_usd: config.costPerQuery },
-        metrics: {
-          response_time_ms: duration,
-          upstream_latency_ms: duration,
-          total_results_available: totalResults,
-        },
-        errors: [],
-      },
-    };
-  } catch (err: any) {
-    clearTimeout(timer);
-
-    const isTimeout = err.name === "AbortError";
-    if (log) {
-      log.error("SEARCH", `${config.id} ${isTimeout ? "timeout" : "fetch error"}: ${err.message}`);
-    }
-
-    saveCallLog({
-      method: config.method,
-      path: "/v1/search",
-      status: isTimeout ? 504 : 502,
-      model: config.id,
-      provider: config.id,
-      duration: Date.now() - startTime,
-      requestType: "search",
-      error: err.message,
-      requestBody: { query: query.slice(0, 200), search_type: searchType, max_results: maxResults },
-    }).catch(() => {
-      /* non-critical — logging must not block search response */
-    });
-
-    return {
-      success: false,
-      status: isTimeout ? 504 : 502,
-      error: `Search provider ${isTimeout ? "timeout" : "error"}: ${sanitizeErrorMessage(err.message)}`,
-    };
-  }
+  // Delegate the fetch + response handling (proxy fetch, call-log, sanitized
+  // proxy event, result shaping) to the shared chokepoint in searchProxy.ts.
+  return executeProviderFetch({
+    config,
+    url,
+    init,
+    controller,
+    timer,
+    query,
+    searchType,
+    maxResults,
+    startTime,
+    connectionId,
+    proxy,
+    proxyLevel,
+    log,
+    normalize: normalizeResponse,
+  });
 }

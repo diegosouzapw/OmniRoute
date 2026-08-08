@@ -14,7 +14,10 @@ interface RequestMessage {
 type RequestContentPart =
   | { type: "text"; text: string }
   | { type: "image_url"; image_url: { url: string; detail?: string } }
-  | { type: "image"; source: { type: "base64"; media_type: string; data: string } };
+  | {
+      type: "image";
+      source: { type: "base64"; media_type: string; data: string } | { type: "url"; url: string };
+    };
 
 test("extractImageParts returns empty array for messages without images", () => {
   const messages: RequestMessage[] = [{ role: "user", content: "Hello, how are you?" }];
@@ -140,4 +143,65 @@ test("extractImageParts preserves order of images", () => {
   assert.strictEqual(result[0].partIndex, 1);
   assert.strictEqual(result[1].partIndex, 3);
   assert.strictEqual(result[2].partIndex, 4);
+});
+
+test("extractImageParts detects Anthropic-style image source url", () => {
+  // Zoo Code / Claude-Code-compatible clients can send
+  // { type: "image", source: { type: "url", url } } to the OpenAI surface.
+  const messages: RequestMessage[] = [
+    {
+      role: "user",
+      content: [
+        { type: "text", text: "What's in this?" },
+        {
+          type: "image",
+          source: { type: "url", url: "https://example.com/photo.png" },
+        },
+      ],
+    },
+  ];
+  const result = extractImageParts(messages);
+  assert.strictEqual(result.length, 1);
+  assert.strictEqual(result[0].imageUrl, "https://example.com/photo.png");
+  assert.strictEqual(result[0].imageType, "url");
+  assert.strictEqual(result[0].messageIndex, 0);
+  assert.strictEqual(result[0].partIndex, 1);
+});
+
+test("extractImageParts ignores image source url when url is empty", () => {
+  const messages: RequestMessage[] = [
+    {
+      role: "user",
+      content: [
+        { type: "image", source: { type: "url", url: "" } },
+        { type: "text", text: "No image here" },
+      ],
+    },
+  ];
+  const result = extractImageParts(messages);
+  assert.deepStrictEqual(result, []);
+});
+
+test("extractImageParts supports both base64 and url source blocks in one message", () => {
+  const messages: RequestMessage[] = [
+    {
+      role: "user",
+      content: [
+        {
+          type: "image",
+          source: { type: "base64", media_type: "image/png", data: "AAA=" },
+        },
+        {
+          type: "image",
+          source: { type: "url", url: "https://example.com/B.png" },
+        },
+      ],
+    },
+  ];
+  const result = extractImageParts(messages);
+  assert.strictEqual(result.length, 2);
+  assert.strictEqual(result[0].imageType, "image");
+  assert.strictEqual(result[0].imageUrl, "data:image/png;base64,AAA=");
+  assert.strictEqual(result[1].imageType, "url");
+  assert.strictEqual(result[1].imageUrl, "https://example.com/B.png");
 });

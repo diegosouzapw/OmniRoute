@@ -81,12 +81,34 @@ function getCopilotTokenExpiryMs(expiresAt: unknown): number {
   return 0;
 }
 
+// Providers whose OAuth flow yields only a GitHub-style access token (no
+// refresh_token) plus a short-lived Copilot sub-token: github.com Copilot and
+// GHE Copilot (device-code flow against the enterprise host) both fit this
+// shape. Keep both in sync — adding a github-token-only provider elsewhere
+// (e.g. new GHE-flavored Copilot variant) must also list it here.
+const GITHUB_ACCESS_TOKEN_ONLY_PROVIDERS = new Set(["github", "ghe-copilot"]);
+
 function isGitHubAccessTokenOnlyConnection(conn: any): boolean {
   return (
-    String(conn?.provider || "").toLowerCase() === "github" &&
+    GITHUB_ACCESS_TOKEN_ONLY_PROVIDERS.has(String(conn?.provider || "").toLowerCase()) &&
     typeof conn?.accessToken === "string" &&
     conn.accessToken.trim().length > 0
   );
+}
+
+/**
+ * Resolve the Copilot token endpoint base URL for a connection. github.com
+ * Copilot always uses api.github.com; GHE Copilot uses its own per-enterprise
+ * host stored in providerSpecificData.gheUrl at connect time.
+ */
+function getCopilotTokenBaseUrl(conn: any): string {
+  if (String(conn?.provider || "").toLowerCase() === "ghe-copilot") {
+    const gheUrl = conn?.providerSpecificData?.gheUrl;
+    if (typeof gheUrl === "string" && gheUrl.trim().length > 0) {
+      return `${gheUrl.trim().replace(/\/+$/, "")}/api/v3`;
+    }
+  }
+  return "https://api.github.com";
 }
 
 function canClearGitHubNoRefreshTokenState(conn: any): boolean {
@@ -105,6 +127,7 @@ function canClearGitHubNoRefreshTokenState(conn: any): boolean {
 // hammering the upstream (and stops flooding the logs) instead of looping.
 const REFRESH_CIRCUIT_BASE_MIN = 5;
 const REFRESH_CIRCUIT_MAX_MIN = 240; // cap at 4h
+const TRANSIENT_REFRESH_RETRY_MIN = 2; // flat 2-minute retry for network/timeout errors
 
 export function getRefreshBackoffUntil(streak: number, now: string): string {
   const steps = Math.max(0, streak - 1);
@@ -126,7 +149,12 @@ export function buildRefreshFailureUpdate(conn: any, now: string) {
   // Circuit breaker: increment the consecutive-failure streak and set an
   // exponential backoff window so the next sweep skips this connection instead
   // of retrying every 60s. Cleared by a successful refresh (clearRefreshCircuit).
-  const prevStreak = conn.providerSpecificData?.refreshCircuit?.streak ?? 0;
+  // Guard: providerSpecificData may be a primitive or null - treat as empty.
+  const psd =
+    typeof conn.providerSpecificData === "object" && conn.providerSpecificData !== null
+      ? conn.providerSpecificData
+      : {};
+  const prevStreak = psd.refreshCircuit?.streak ?? 0;
   const streak = prevStreak + 1;
 
   return {
@@ -141,8 +169,67 @@ export function buildRefreshFailureUpdate(conn: any, now: string) {
     lastErrorSource: "oauth",
     errorCode: "refresh_failed",
     providerSpecificData: {
-      ...(conn.providerSpecificData || {}),
+      ...psd,
       refreshCircuit: { streak, until: getRefreshBackoffUntil(streak, now), lastFailAt: now },
+    },
+    ...(wasExpired ? { expiredRetryCount: retryCount, expiredRetryAt: now } : {}),
+  };
+}
+
+/**
+ * Build a flat-retry update for a transient refresh failure (network timeout,
+ * connection reset, DNS failure). Unlike buildRefreshFailureUpdate, this does
+ * NOT increment the exponential streak -- transient errors should not
+ * accumulate into a 4-hour backoff. Uses the longer of the existing backoff
+ * and a flat 2-minute transient window: a longer permanent backoff (e.g. 4h
+ * from exponential) is preserved to avoid prematurely shortening the circuit
+ * breaker, while a shorter or absent backoff is extended to the transient
+ * window.
+ */
+export function buildTransientRefreshRetryUpdate(conn: any, now: string) {
+  const wasExpired = conn.testStatus === "expired";
+  const retryCount = (conn.expiredRetryCount ?? 0) + (wasExpired ? 1 : 0);
+  // Preserve existing streak from any prior permanent failures so a transient
+  // error does not reset the exponential backoff ladder.
+  // Guard: providerSpecificData may be a primitive or null - treat as empty.
+  const psd =
+    typeof conn.providerSpecificData === "object" && conn.providerSpecificData !== null
+      ? conn.providerSpecificData
+      : {};
+  const existingCircuit = psd.refreshCircuit;
+  const existingStreak = existingCircuit?.streak ?? 0;
+  const parsedExistingUntil = existingCircuit?.until
+    ? new Date(existingCircuit.until).getTime()
+    : 0;
+  // Guard against NaN from malformed date strings - treat as no existing backoff.
+  const existingUntil = Number.isFinite(parsedExistingUntil) ? parsedExistingUntil : 0;
+  const transientUntil = new Date(now).getTime() + TRANSIENT_REFRESH_RETRY_MIN * 60 * 1000;
+  // Use the longer of the two: preserve an existing permanent backoff
+  // (e.g. 4h from exponential) or extend to the transient window.
+  const useTransient = existingUntil <= transientUntil;
+  const until = useTransient
+    ? new Date(transientUntil).toISOString()
+    : (existingCircuit?.until ?? new Date(transientUntil).toISOString());
+  return {
+    lastHealthCheckAt: now,
+    testStatus: wasExpired ? "expired" : "active",
+    lastError: "Health check: token refresh transient error (network/timeout)",
+    lastErrorAt: now,
+    lastErrorType: "token_refresh_transient",
+    lastErrorSource: "oauth",
+    errorCode: "refresh_transient",
+    providerSpecificData: {
+      ...psd,
+      refreshCircuit: {
+        streak: existingStreak,
+        until,
+        lastFailAt: now,
+        // Always set the transient flag for observability. When the existing
+        // backoff is longer (useTransient=false), the transient error occurred
+        // but the permanent backoff was preserved - flag it as false so
+        // observers can distinguish this from a pure transient retry.
+        transient: useTransient,
+      },
     },
     ...(wasExpired ? { expiredRetryCount: retryCount, expiredRetryAt: now } : {}),
   };
@@ -210,7 +297,7 @@ let cacheTimestamp = 0;
 let pendingHideLogs: Promise<boolean> | null = null;
 const CACHE_TTL = 30_000; // Cache settings for 30 seconds
 
-async function shouldHideLogs(): Promise<boolean> {
+export async function shouldHideLogs(): Promise<boolean> {
   if (
     isEnvFlagEnabled("OMNIROUTE_HIDE_HEALTHCHECK_LOGS") ||
     isBuildProcess() ||
@@ -283,7 +370,12 @@ declare global {
 }
 function getHCState() {
   if (!globalThis.__omnirouteTokenHC) {
-    globalThis.__omnirouteTokenHC = { initialized: false, interval: null, sweeping: false };
+    globalThis.__omnirouteTokenHC = {
+      initialized: false,
+      interval: null,
+      initTimeout: null,
+      sweeping: false,
+    };
   }
   return globalThis.__omnirouteTokenHC;
 }
@@ -299,12 +391,14 @@ export function initTokenHealthCheck() {
   log(`${LOG_PREFIX} Starting proactive token health-check (tick every ${TICK_MS / 1000}s)`);
 
   const timer = setTimeout(() => {
+    state.initTimeout = null;
     sweep();
     state.interval = setInterval(sweep, TICK_MS);
     if (state.interval && typeof state.interval === "object" && "unref" in state.interval) {
       (state.interval as { unref?: () => void }).unref?.();
     }
   }, 10_000);
+  state.initTimeout = timer;
   if (timer && typeof timer === "object" && "unref" in timer) {
     (timer as { unref?: () => void }).unref?.();
   }
@@ -315,6 +409,10 @@ export function initTokenHealthCheck() {
  */
 export function stopTokenHealthCheck() {
   const state = getHCState();
+  if (state.initTimeout) {
+    clearTimeout(state.initTimeout);
+    state.initTimeout = null;
+  }
   if (state.interval) {
     clearInterval(state.interval);
     state.interval = null;
@@ -488,7 +586,8 @@ export async function checkConnection(conn) {
         const copilotResult = await refreshCopilotToken(
           conn.accessToken,
           healthCheckLog,
-          proxyConfig
+          proxyConfig,
+          getCopilotTokenBaseUrl(conn)
         );
         if (copilotResult?.token) {
           refreshedProviderSpecificData = {
@@ -528,9 +627,18 @@ export async function checkConnection(conn) {
         });
       }
 
-      log(
-        `${LOG_PREFIX} ${conn.provider}/${getConnectionLogLabel(conn)} has no refresh token but has a GitHub access token; keeping connection active`
-      );
+      // Steady-state ticks stay silent: this path runs once per TICK_MS (60s) for
+      // EVERY github/ghe-copilot connection, so an unconditional line here emits
+      // ~1440 entries/day per connection all saying the same nothing-changed thing.
+      // Only report when the sweep actually did work — a Copilot sub-token refresh
+      // attempt — so a genuine refresh failure still surfaces in the log.
+      if (copilotAboutToExpire) {
+        log(
+          `${LOG_PREFIX} ${conn.provider}/${getConnectionLogLabel(conn)} Copilot token ${
+            refreshedProviderSpecificData ? "refreshed" : "refresh FAILED"
+          } (no refresh token; connection stays active)`
+        );
+      }
       return;
     }
 
@@ -674,52 +782,128 @@ export async function checkConnection(conn) {
   type ConnectionUpdate = Parameters<typeof updateProviderConnection>[1];
 
   let persistedResult: RefreshResultShape | null = null;
-  const result = await getAccessToken(
-    conn.provider,
-    credentials,
-    healthCheckLog,
-    proxyConfig,
-    async (refreshResult: RefreshResultShape) => {
-      const now = new Date().toISOString();
-      const updateData: ConnectionUpdate = {
-        accessToken: refreshResult.accessToken,
-        lastHealthCheckAt: now,
-        testStatus: "active",
-        lastError: null,
-        lastErrorAt: null,
-        lastErrorType: null,
-        lastErrorSource: null,
-        errorCode: null,
-        expiredRetryCount: null,
-        expiredRetryAt: null,
-      };
-      if (refreshResult.refreshToken) {
-        updateData.refreshToken = refreshResult.refreshToken;
+  let result: RefreshResultShape | null;
+  try {
+    result = await getAccessToken(
+      conn.provider,
+      credentials,
+      healthCheckLog,
+      proxyConfig,
+      async (refreshResult: RefreshResultShape) => {
+        const now = new Date().toISOString();
+        const updateData: ConnectionUpdate = {
+          accessToken: refreshResult.accessToken,
+          lastHealthCheckAt: now,
+          testStatus: "active",
+          lastError: null,
+          lastErrorAt: null,
+          lastErrorType: null,
+          lastErrorSource: null,
+          errorCode: null,
+          expiredRetryCount: null,
+          expiredRetryAt: null,
+        };
+        if (refreshResult.refreshToken) {
+          updateData.refreshToken = refreshResult.refreshToken;
+        }
+        if (refreshResult.expiresAt) {
+          updateData.expiresAt = refreshResult.expiresAt;
+          updateData.tokenExpiresAt = refreshResult.expiresAt;
+        } else if (refreshResult.expiresIn) {
+          const expiresAt = new Date(Date.now() + refreshResult.expiresIn * 1000).toISOString();
+          updateData.expiresAt = expiresAt;
+          updateData.tokenExpiresAt = expiresAt;
+        }
+        // Merge new providerSpecificData and ALWAYS clear the refresh circuit
+        // breaker streak on a successful refresh.
+        const mergedProviderData = {
+          ...(conn.providerSpecificData || {}),
+          ...(refreshResult.providerSpecificData || {}),
+        };
+        const clearedProviderData = clearRefreshCircuit(mergedProviderData);
+        if (clearedProviderData !== undefined) {
+          updateData.providerSpecificData = clearedProviderData;
+        } else if (refreshResult.providerSpecificData) {
+          updateData.providerSpecificData = mergedProviderData;
+        }
+        try {
+          await updateProviderConnection(conn.id, updateData);
+        } catch (dbErr) {
+          // DB write failed after successful refresh - log but do not throw.
+          // The outer catch would misclassify this as a network error.
+          logWarn(
+            `${LOG_PREFIX} ~ ${conn.provider}/${getConnectionLogLabel(conn)} DB write failed after successful refresh` +
+              ` (${dbErr instanceof Error ? dbErr.message : String(dbErr)}); token not persisted`
+          );
+          return;
+        }
+        // Mark as persisted AFTER the DB write succeeds.
+        persistedResult = refreshResult;
       }
-      if (refreshResult.expiresAt) {
-        updateData.expiresAt = refreshResult.expiresAt;
-        updateData.tokenExpiresAt = refreshResult.expiresAt;
-      } else if (refreshResult.expiresIn) {
-        const expiresAt = new Date(Date.now() + refreshResult.expiresIn * 1000).toISOString();
-        updateData.expiresAt = expiresAt;
-        updateData.tokenExpiresAt = expiresAt;
-      }
-      // Merge new providerSpecificData and ALWAYS clear the refresh circuit
-      // breaker streak on a successful refresh.
-      const mergedProviderData = {
-        ...(conn.providerSpecificData || {}),
-        ...(refreshResult.providerSpecificData || {}),
-      };
-      const clearedProviderData = clearRefreshCircuit(mergedProviderData);
-      if (clearedProviderData !== undefined) {
-        updateData.providerSpecificData = clearedProviderData;
-      } else if (refreshResult.providerSpecificData) {
-        updateData.providerSpecificData = mergedProviderData;
-      }
-      await updateProviderConnection(conn.id, updateData);
-      persistedResult = refreshResult;
+    );
+  } catch (err) {
+    // If onPersist already wrote a successful result, do not overwrite it.
+    if (persistedResult) {
+      logWarn(
+        `${LOG_PREFIX} ~ ${conn.provider}/${getConnectionLogLabel(conn)} refresh error after successful persist` +
+          ` (${err instanceof Error ? err.message : String(err)}); ignoring`
+      );
+      return;
     }
-  );
+    // Classify: only network/timeout errors are transient. Programming errors
+    // and DB failures fall through to the exponential backoff path.
+    const errObj = typeof err === "object" && err !== null ? err : {};
+    const errName = err instanceof Error ? err.name : String(errObj.name ?? "");
+    const errMsg = err instanceof Error ? err.message : String(err);
+    const errCode = String(errObj.code ?? "");
+    // Also check err.cause for wrapped fetch errors.
+    const errCause = errObj.cause instanceof Error ? errObj.cause.message : "";
+    const errCauseCode = String(errObj.cause?.code ?? "");
+    const combinedMsg = `${errMsg} ${errCause}`;
+    const combinedCode = `${errCode} ${errCauseCode}`;
+    const isTransientNetworkError =
+      errName === "AbortError" ||
+      errName === "TimeoutError" ||
+      /ETIMEDOUT|ECONNREFUSED|ECONNRESET|ECONNABORTED|EPIPE|EHOSTUNREACH|ENETUNREACH|ENOTCONN|ENOTFOUND|EAI_AGAIN|ERR_NETWORK|ERR_SOCKET|ERR_CONNECTION|socket hang up|fetch failed/i.test(
+        combinedMsg
+      ) ||
+      /ETIMEDOUT|ECONNREFUSED|ECONNRESET|ECONNABORTED|EPIPE|EHOSTUNREACH|ENETUNREACH|ENOTCONN|ENOTFOUND|EAI_AGAIN|ERR_NETWORK|ERR_SOCKET|ERR_CONNECTION/i.test(
+        combinedCode
+      );
+    if (isTransientNetworkError) {
+      const transientNow = new Date().toISOString();
+      const updateData = buildTransientRefreshRetryUpdate(conn, transientNow);
+      try {
+        await updateProviderConnection(conn.id, updateData);
+      } catch (dbErr) {
+        logWarn(
+          `${LOG_PREFIX} ~ ${conn.provider}/${getConnectionLogLabel(conn)} DB write failed after transient error` +
+            ` (${dbErr instanceof Error ? dbErr.message : String(dbErr)}); state not persisted`
+        );
+      }
+      logWarn(
+        `${LOG_PREFIX} ~ ${conn.provider}/${getConnectionLogLabel(conn)} refresh transient error` +
+          ` (${err instanceof Error ? err.message : String(err)}); retry in ${TRANSIENT_REFRESH_RETRY_MIN}min`
+      );
+    } else {
+      // Non-transient error: apply standard exponential backoff.
+      const failNow = new Date().toISOString();
+      const updateData = buildRefreshFailureUpdate(conn, failNow);
+      try {
+        await updateProviderConnection(conn.id, updateData);
+      } catch (dbErr) {
+        logWarn(
+          `${LOG_PREFIX} ~ ${conn.provider}/${getConnectionLogLabel(conn)} DB write failed after permanent error` +
+            ` (${dbErr instanceof Error ? dbErr.message : String(dbErr)}); state not persisted`
+        );
+      }
+      logWarn(
+        `${LOG_PREFIX} ~ ${conn.provider}/${getConnectionLogLabel(conn)} refresh error` +
+          ` (${err instanceof Error ? err.message : String(err)}); applying exponential backoff`
+      );
+    }
+    return;
+  }
 
   const now = new Date().toISOString();
 

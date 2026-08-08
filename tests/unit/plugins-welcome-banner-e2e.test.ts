@@ -51,9 +51,8 @@ function createFixturePlugin(name: string, opts?: { onResponse?: boolean; onRequ
 // ── Manifest validation ──
 
 test("plugin manifest validation", async (t) => {
-  const { validateManifest, safeValidateManifest, applyDefaults } = await import(
-    "../../src/lib/plugins/manifest.ts"
-  );
+  const { validateManifest, safeValidateManifest, applyDefaults } =
+    await import("../../src/lib/plugins/manifest.ts");
 
   await t.test("valid manifest parses with defaults", () => {
     const result = validateManifest({
@@ -136,8 +135,22 @@ test("plugin hooks system", async (t) => {
 
   await t.test("registerHook registers and sorts by priority", () => {
     const calls: string[] = [];
-    registerHook("onRequest", "plugin-b", () => { calls.push("b"); }, 200);
-    registerHook("onRequest", "plugin-a", () => { calls.push("a"); }, 100);
+    registerHook(
+      "onRequest",
+      "plugin-b",
+      () => {
+        calls.push("b");
+      },
+      200
+    );
+    registerHook(
+      "onRequest",
+      "plugin-a",
+      () => {
+        calls.push("a");
+      },
+      100
+    );
     const hooks = getHooks("onRequest");
     assert.equal(hooks.length, 2);
     assert.equal(hooks[0].pluginName, "plugin-a");
@@ -174,9 +187,30 @@ test("plugin hooks system", async (t) => {
 
   await t.test("emitHook calls all handlers in order", async () => {
     const order: number[] = [];
-    registerHook("onTest", "h1", () => { order.push(1); }, 100);
-    registerHook("onTest", "h2", () => { order.push(2); }, 200);
-    registerHook("onTest", "h3", () => { order.push(3); }, 150);
+    registerHook(
+      "onTest",
+      "h1",
+      () => {
+        order.push(1);
+      },
+      100
+    );
+    registerHook(
+      "onTest",
+      "h2",
+      () => {
+        order.push(2);
+      },
+      200
+    );
+    registerHook(
+      "onTest",
+      "h3",
+      () => {
+        order.push(3);
+      },
+      150
+    );
     await emitHook("onTest", {});
     assert.deepEqual(order, [1, 3, 2]);
     resetHooks();
@@ -184,8 +218,22 @@ test("plugin hooks system", async (t) => {
 
   await t.test("emitHook swallows handler errors", async () => {
     const calls: string[] = [];
-    registerHook("onErr", "bad", () => { throw new Error("boom"); }, 100);
-    registerHook("onErr", "good", () => { calls.push("ok"); }, 200);
+    registerHook(
+      "onErr",
+      "bad",
+      () => {
+        throw new Error("boom");
+      },
+      100
+    );
+    registerHook(
+      "onErr",
+      "good",
+      () => {
+        calls.push("ok");
+      },
+      200
+    );
     await emitHook("onErr", {});
     assert.deepEqual(calls, ["ok"]);
     resetHooks();
@@ -203,7 +251,14 @@ test("plugin hooks system", async (t) => {
   await t.test("emitHookBlocking returns early on blocked", async () => {
     const calls: string[] = [];
     registerHook("onBlock2", "blocker", () => ({ blocked: true, response: { error: "no" } }), 100);
-    registerHook("onBlock2", "after", () => { calls.push("after"); }, 200);
+    registerHook(
+      "onBlock2",
+      "after",
+      () => {
+        calls.push("after");
+      },
+      200
+    );
     const result = await emitHookBlocking("onBlock2", {});
     assert.equal(result.blocked, true);
     assert.equal(calls.length, 0);
@@ -212,7 +267,13 @@ test("plugin hooks system", async (t) => {
 
   await t.test("runOnRequest delegates to emitHookBlocking", async () => {
     registerHook("onRequest", "req", () => ({ metadata: { seen: true } }), 100);
-    const result = await runOnRequest({ requestId: "1", body: {}, model: "gpt-4", provider: "openai", metadata: {} });
+    const result = await runOnRequest({
+      requestId: "1",
+      body: {},
+      model: "gpt-4",
+      provider: "openai",
+      metadata: {},
+    });
     assert.deepEqual(result.metadata, { seen: true });
     resetHooks();
   });
@@ -230,7 +291,14 @@ test("plugin hooks system", async (t) => {
 
   await t.test("runOnError is fire-and-forget", async () => {
     let called = false;
-    registerHook("onError", "err-handler", () => { called = true; }, 100);
+    registerHook(
+      "onError",
+      "err-handler",
+      () => {
+        called = true;
+      },
+      100
+    );
     await runOnError(
       { requestId: "1", body: {}, model: "gpt-4", provider: "openai", metadata: {} },
       new Error("test")
@@ -248,24 +316,39 @@ test("plugin hooks system", async (t) => {
     resetHooks();
   });
 
-  await t.test("BUILTIN_EVENTS has all 14 events (incl. lifecycle)", () => {
-    assert.equal(BUILTIN_EVENTS.length, 14);
-    assert.ok(BUILTIN_EVENTS.includes("onRequest"));
-    assert.ok(BUILTIN_EVENTS.includes("onResponse"));
-    assert.ok(BUILTIN_EVENTS.includes("onError"));
-    assert.ok(BUILTIN_EVENTS.includes("onModelSelect"));
-    assert.ok(BUILTIN_EVENTS.includes("onComboResolve"));
-    assert.ok(BUILTIN_EVENTS.includes("onRateLimit"));
-    assert.ok(BUILTIN_EVENTS.includes("onQuotaExhaust"));
-    assert.ok(BUILTIN_EVENTS.includes("onProviderError"));
-    assert.ok(BUILTIN_EVENTS.includes("onStreamStart"));
-    assert.ok(BUILTIN_EVENTS.includes("onStreamEnd"));
-    // Lifecycle events added in #3473.
-    assert.ok(BUILTIN_EVENTS.includes("onInstall"));
-    assert.ok(BUILTIN_EVENTS.includes("onActivate"));
-    assert.ok(BUILTIN_EVENTS.includes("onDeactivate"));
-    assert.ok(BUILTIN_EVENTS.includes("onUninstall"));
+  await t.test("BUILTIN_EVENTS contains only emitted/public plugin events", () => {
+    assert.deepEqual(BUILTIN_EVENTS, [
+      "onRequest",
+      "onResponse",
+      "onError",
+      "onInstall",
+      "onActivate",
+      "onDeactivate",
+      "onUninstall",
+      // #9668: fire-and-forget stream telemetry hook (runOnStreamCompleteHooks)
+      "onStreamComplete",
+    ]);
     resetHooks();
+  });
+
+  await t.test("BUILTIN_EVENTS does not advertise events with no emission path", () => {
+    for (const deadEvent of [
+      "onModelSelect",
+      "onComboResolve",
+      "onRateLimit",
+      "onQuotaExhaust",
+      "onProviderError",
+      "onStreamStart",
+      "onStreamEnd",
+    ]) {
+      assert.equal((BUILTIN_EVENTS as readonly string[]).includes(deadEvent), false, deadEvent);
+    }
+  });
+
+  await t.test("lifecycle events remain represented because manager emits them", () => {
+    for (const event of ["onInstall", "onActivate", "onDeactivate", "onUninstall"] as const) {
+      assert.ok(BUILTIN_EVENTS.includes(event));
+    }
   });
 });
 
@@ -296,9 +379,7 @@ test("welcome banner PoC plugin lifecycle", async (t) => {
   await t.test("onResponse injects banner into response", async () => {
     const mod = await import(join(pluginDir, "index.mjs"));
     const response = {
-      choices: [
-        { message: { role: "assistant", content: "Hello!" } },
-      ],
+      choices: [{ message: { role: "assistant", content: "Hello!" } }],
     };
     const result = await mod.plugin.onResponse({}, response);
     assert.ok(result.choices[0].message.content.includes("[Welcome to OmniRoute"));
@@ -308,9 +389,7 @@ test("welcome banner PoC plugin lifecycle", async (t) => {
   await t.test("onResponse handles streaming delta", async () => {
     const mod = await import(join(pluginDir, "index.mjs"));
     const response = {
-      choices: [
-        { delta: { content: "stream chunk" } },
-      ],
+      choices: [{ delta: { content: "stream chunk" } }],
     };
     const result = await mod.plugin.onResponse({}, response);
     assert.ok(result.choices[0].delta.content.includes("[Welcome to OmniRoute"));

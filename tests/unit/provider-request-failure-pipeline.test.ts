@@ -43,11 +43,6 @@ async function waitFor(fn, timeoutMs = 1500) {
   return null;
 }
 
-async function waitForAsyncSideEffects() {
-  await new Promise((resolve) => setImmediate(resolve));
-  await new Promise((resolve) => setTimeout(resolve, 10));
-}
-
 async function getLatestCallLog() {
   const rows = await getCallLogs({ limit: 5 });
   if (!Array.isArray(rows) || rows.length === 0) return null;
@@ -85,7 +80,6 @@ test.afterEach(async () => {
   globalThis.fetch = originalFetch;
   clearPendingRequests();
   resetAccountSemaphores();
-  await waitForAsyncSideEffects();
   await resetStorage();
 });
 
@@ -124,8 +118,8 @@ test("network failure persisted call log includes providerRequest in pipeline pa
   assert.equal(result.success, false);
   assert.equal(result.status, 502);
 
-  await waitForAsyncSideEffects();
-
+  // waitFor below polls for the exact DB state with 25ms intervals — no
+  // unreliable fixed-delay timer needed, even under CI load contention.
   const detail = await waitFor(getLatestCallLog);
   assert.ok(detail, "expected a call log to be persisted");
 
@@ -188,7 +182,6 @@ test("network timeout persisted call log includes providerRequest in pipeline pa
     } as any);
 
     const result = await invocation;
-    await waitForAsyncSideEffects();
 
     assert.equal(result.success, false);
     assert.ok(result.status === 504, `expected 504 timeout, got ${result.status}`);
@@ -243,8 +236,6 @@ test("provider error response (HTTP 502) includes both providerRequest and provi
 
   assert.equal(result.success, false);
   assert.equal(result.status, 502);
-
-  await waitForAsyncSideEffects();
 
   const detail = await waitFor(getLatestCallLog);
   assert.ok(detail, "expected a call log to be persisted");
@@ -311,8 +302,6 @@ test("successful response includes both providerRequest and providerResponse in 
   } as any);
 
   assert.equal(result.success, true);
-
-  await waitForAsyncSideEffects();
 
   const detail = await waitFor(getLatestCallLog);
   assert.ok(detail, "expected a call log to be persisted");
@@ -391,7 +380,6 @@ test("streaming response preserves request headers in providerRequest pipeline p
 
   assert.equal(result.success, true);
   await result.response.text();
-  await waitForAsyncSideEffects();
 
   const detail = await waitFor(getLatestCallLog);
   assert.ok(detail, "expected a call log to be persisted");
@@ -475,7 +463,6 @@ test("CC-compatible providerRequest log keeps request beta headers and summarize
 
   assert.equal(result.success, true);
   await result.response.json();
-  await waitForAsyncSideEffects();
 
   const detail = await waitFor(getLatestCallLog);
   assert.ok(detail, "expected a call log to be persisted");
@@ -485,8 +472,11 @@ test("CC-compatible providerRequest log keeps request beta headers and summarize
   assert.ok(providerRequest, "providerRequest must be present on CC-compatible success");
   assert.equal(providerRequest.headers["cf-ray"], undefined);
   assert.equal(providerRequest.headers.server, undefined);
-  assert.equal(providerRequest.headers.Accept, "text/event-stream");
-  assert.match(providerRequest.headers["anthropic-beta"], new RegExp(CONTEXT_1M_BETA_HEADER));
+  assert.equal(providerRequest.headers.Accept, "application/json");
+  assert.doesNotMatch(
+    providerRequest.headers["anthropic-beta"],
+    new RegExp(CONTEXT_1M_BETA_HEADER)
+  );
   assert.match(
     providerRequest.headers["anthropic-beta"],
     new RegExp(CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA)

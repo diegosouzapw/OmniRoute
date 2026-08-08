@@ -8,7 +8,7 @@ import { ModelMappingTable } from "./ModelMappingTable";
 import { SetupWizard } from "./SetupWizard";
 import { RiskNoticeModal } from "@/shared/components/RiskNoticeModal";
 import type { MitmTargetView } from "@/mitm/types";
-import type { AgentStateEntry } from "../AgentBridgePageClient";
+import type { AgentStateEntry, AgentBridgeServerState } from "../AgentBridgePageClient";
 import type { MappingRow } from "./ModelMappingTable";
 
 const RISK_STORAGE_KEY_PREFIX = "omniroute-agentbridge-risk-dismissed-";
@@ -21,11 +21,11 @@ function hasAcceptedRisk(agentId: string): boolean {
   }
 }
 
-
 interface AgentCardProps {
   target: MitmTargetView;
   agentState: AgentStateEntry | undefined;
   serverRunning: boolean;
+  serverState: AgentBridgeServerState;
   mappings: MappingRow[];
   onDnsToggle: (agentId: string, enabled: boolean) => Promise<void>;
   onMappingsSave: (agentId: string, mappings: MappingRow[]) => Promise<void>;
@@ -38,6 +38,7 @@ export function AgentCard({
   target,
   agentState,
   serverRunning,
+  serverState,
   mappings,
   onDnsToggle,
   onMappingsSave,
@@ -50,7 +51,9 @@ export function AgentCard({
 
   const dnsEnabled = agentState?.dns_enabled ?? false;
   const setupCompleted = agentState?.setup_completed ?? false;
-  const certTrusted = agentState?.cert_trusted ?? false;
+  // Fix #8656 Issue A: Use server-level cert trust as fallback
+  // (one server cert applies to all agents; agentState.cert_trusted is never written to DB)
+  const certTrusted = agentState?.cert_trusted ?? serverState.certTrusted ?? false;
   const isInvestigating = target.viability === "investigating";
 
   const getStatusBadge = () => {
@@ -250,8 +253,11 @@ export function AgentCard({
           target={target}
           agentState={agentState}
           serverRunning={serverRunning}
+          serverState={serverState}
+          currentMappings={mappings}
           onClose={() => setWizardOpen(false)}
           onDnsToggle={onDnsToggle}
+          onMappingsSave={onMappingsSave}
         />
       )}
 

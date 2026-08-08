@@ -180,6 +180,27 @@ test("extractUsageFromResponse totals Claude prompt tokens with cache read and c
   });
 });
 
+test("extractUsageFromResponse surfaces Claude thinking tokens without inflating completion", () => {
+  const usage = extractUsageFromResponse(
+    {
+      usage: {
+        input_tokens: 22,
+        output_tokens: 267,
+        output_tokens_details: { thinking_tokens: 85 },
+      },
+    },
+    "claude"
+  );
+
+  assert.deepEqual(usage, {
+    prompt_tokens: 22,
+    completion_tokens: 267,
+    cache_read_input_tokens: 0,
+    cache_creation_input_tokens: 0,
+    reasoning_tokens: 85,
+  });
+});
+
 test("extractUsageFromResponse reads Gemini usageMetadata and thinking tokens", () => {
   const usage = extractUsageFromResponse(
     {
@@ -194,7 +215,7 @@ test("extractUsageFromResponse reads Gemini usageMetadata and thinking tokens", 
 
   assert.deepEqual(usage, {
     prompt_tokens: 11,
-    completion_tokens: 5,
+    completion_tokens: 7,
     reasoning_tokens: 2,
   });
 });
@@ -240,6 +261,20 @@ test("extractUsage reads response.completed with prompt_tokens_details.cached_to
   assert.equal(usage.completion_tokens, 50);
   assert.equal(usage.cached_tokens, 30);
   assert.equal(usage.reasoning_tokens, 10);
+});
+
+test("extractUsage surfaces Claude message_delta thinking tokens", () => {
+  const usage = extractUsage({
+    type: "message_delta",
+    usage: {
+      input_tokens: 22,
+      output_tokens: 267,
+      output_tokens_details: { thinking_tokens: 85 },
+    },
+  });
+
+  assert.equal(usage.reasoning_tokens, 85);
+  assert.equal(usage.completion_tokens, 267);
 });
 
 test("extractUsage reads response.done with input_tokens_details and output_tokens_details", () => {
@@ -389,7 +424,7 @@ test("extractUsage reads top-level Gemini usageMetadata from a streaming chunk",
   });
 
   assert.equal(usage.prompt_tokens, 120);
-  assert.equal(usage.completion_tokens, 60);
+  assert.equal(usage.completion_tokens, 72);
   assert.equal(usage.total_tokens, 180);
   assert.equal(usage.cached_tokens, 30);
   assert.equal(usage.reasoning_tokens, 12);
@@ -412,7 +447,7 @@ test("extractUsage reads Antigravity usageMetadata wrapped inside a response env
 
   assert.notEqual(usage, null);
   assert.equal(usage.prompt_tokens, 200);
-  assert.equal(usage.completion_tokens, 75);
+  assert.equal(usage.completion_tokens, 93);
   assert.equal(usage.total_tokens, 275);
   assert.equal(usage.cached_tokens, 40);
   assert.equal(usage.reasoning_tokens, 18);

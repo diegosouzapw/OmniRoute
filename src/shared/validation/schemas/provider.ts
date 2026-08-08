@@ -394,6 +394,17 @@ export const providerNodeValidateSchema = z.object({
   apiKey: z.string().trim().optional(),
   type: z.enum(["openai-compatible", "anthropic-compatible"]).optional(),
   compatMode: z.enum(["cc"]).optional(),
+  apiType: z
+    .enum([
+      "chat",
+      "responses",
+      "embeddings",
+      "rerank",
+      "audio-transcriptions",
+      "audio-speech",
+      "images-generations",
+    ])
+    .optional(),
   chatPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
   modelsPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
   modelId: z.string().trim().max(200).optional().or(z.literal("")),

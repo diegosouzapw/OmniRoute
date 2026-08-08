@@ -54,6 +54,11 @@ export function resetRequestDetailLogsTableExistsCache(): void {
 
 /** Returns true if detailed logging is enabled in settings */
 export async function isDetailedLoggingEnabled(): Promise<boolean> {
+  const envOverride = process.env.ENABLE_REQUEST_LOGS;
+  if (envOverride !== undefined) {
+    return envOverride.trim().toLowerCase() === "true";
+  }
+
   try {
     const settings = await getSettings();
     const val = settings.call_log_pipeline_enabled;
@@ -120,8 +125,7 @@ export function getRequestDetailLogById(id: string): RequestDetailLog | null {
   if (!requestDetailLogsTableExists()) return null;
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM request_detail_logs WHERE id = ?").get(id) as
-    | Record<string, unknown>
-    | undefined;
+    Record<string, unknown> | undefined;
   return row ? mapDetailedLogRow(row) : null;
 }
 

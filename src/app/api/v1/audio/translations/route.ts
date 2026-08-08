@@ -8,13 +8,11 @@ import {
 import {
   parseTranslationModel,
   getTranslationProvider,
-  buildDynamicAudioProvider,
-  type ProviderNodeRow,
 } from "@omniroute/open-sse/config/audioRegistry.ts";
+import { resolveDynamicAudioProviders } from "@/app/api/v1/_shared/audioProviderNodes";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
-import { getCachedProviderNodes } from "@/lib/localDb";
 import {
   isAllRateLimitedCredentials,
   rateLimitedProviderResponse,
@@ -59,29 +57,13 @@ export async function POST(request) {
   const policy = await enforceApiKeyPolicy(request, model as string);
   if (policy.rejection) return policy.rejection;
 
-  // Load local provider_nodes for audio routing (only localhost — prevents auth bypass/SSRF)
-  let dynamicProviders: ReturnType<typeof buildDynamicAudioProvider>[] = [];
-  try {
-    const nodes = await getCachedProviderNodes();
-    dynamicProviders = (Array.isArray(nodes) ? (nodes as unknown as ProviderNodeRow[]) : [])
-      .filter((n: ProviderNodeRow) => {
-        if (n.apiType !== "chat" && n.apiType !== "responses") return false;
-        try {
-          const hostname = new URL(n.baseUrl).hostname;
-          // Strictly matching 172.16.0.0/12 (Docker/local) and explicitly blocking ::1 per SSRF hardening
-          return (
-            hostname === "localhost" ||
-            hostname === "127.0.0.1" ||
-            /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname)
-          );
-        } catch {
-          return false;
-        }
-      })
-      .map((n) => buildDynamicAudioProvider(n, "/audio/translations"));
-  } catch {
-    // DB error — fall back to hardcoded providers only
-  }
+  // Translation is served by the transcription-capable nodes (Whisper-style
+  // endpoints expose both), plus general chat/responses gateways. Remote hosts are
+  // opt-in (default OFF).
+  const dynamicProviders = await resolveDynamicAudioProviders(
+    "/audio/translations",
+    "audio-transcriptions"
+  );
 
   const { provider, model: resolvedModel } = parseTranslationModel(
     model as string,
@@ -101,7 +83,8 @@ export async function POST(request) {
   // Get credentials — skip for local providers (authType: "none")
   let credentials = null;
   if (providerConfig && providerConfig.authType !== "none") {
-    credentials = await getProviderCredentialsWithQuotaPreflight(provider);
+    const credentialKey = providerConfig.credentialProviderId || provider;
+    credentials = await getProviderCredentialsWithQuotaPreflight(credentialKey);
     if (!credentials) {
       return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
     }

@@ -4,11 +4,14 @@ data/
 **/db.json
 
 # VS Code extension test runtime (large binary, not needed in npm package)
-app/vscode-extension/
 **/data/
 **/db.json
 
-# Source code (pre-built app/ is published instead)
+# Source code (pre-built dist/ is published instead)
+#
+# NOTA (2026-08-05): as entradas `app/*` foram removidas — o diretorio `app/`
+# foi renomeado para `dist/` na Layer 1 e nao existe mais. Elas sugeriam um
+# layout que ja nao e o do projeto.
 #
 # NOTE (#3578 / #3821-review): package.json "files" is the source of truth for what
 # ships. It now allowlists the backend source closure the MCP server needs at runtime
@@ -49,8 +52,6 @@ scripts/
 .vscode/
 .agents/
 .env*
-app/.env
-app/.env*
 eslint.config.mjs
 prettier.config.mjs
 postcss.config.mjs
@@ -82,8 +83,6 @@ bun.lock
 *.deb
 *.rpm
 electron/
-app/electron/
-app/vscode-extension/
 
 # Subprojects
 clipr/
@@ -93,10 +92,6 @@ vscode-extension/
 
 # Root-level underscore-prefixed directories (private/draft — never publish)
 /_*/
-app/_*/
-app/coverage/
-app/logs/
-app/tests/
 
 # Consistent with .gitignore and .dockerignore
 .DS_Store

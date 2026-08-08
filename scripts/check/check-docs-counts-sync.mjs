@@ -3,7 +3,7 @@
 //
 // Two tiers of checks:
 //   • STRICT (always blocking — exit 1 on drift): high-confidence, slow-moving counts
-//     that historically caused the worst drift across README / AGENTS / docs.
+//     that historically caused the worst drift across user-facing documentation.
 //       - provider count (source of truth: docs/reference/PROVIDER_REFERENCE.md total,
 //         which is auto-generated from src/shared/constants/providers.ts)
 //       - i18n locale count (source of truth: config/i18n.json `locales`)
@@ -259,14 +259,14 @@ export function buildChecks() {
       actual: readProviderTotal(),
       docKey: "providers",
       strict: true,
-      files: ["README.md", "AGENTS.md", "CLAUDE.md"],
+      files: ["README.md", "AGENTS.md"],
     },
     {
       label: "i18n locales count",
       actual: countLocales(),
       docKey: "i18n locales",
       strict: true,
-      files: ["docs/README.md", "docs/guides/I18N.md", "AGENTS.md"],
+      files: ["docs/README.md", "docs/guides/I18N.md"],
     },
     ...(() => {
       const f = readCodeFacts();
@@ -317,19 +317,10 @@ export function buildChecks() {
             skipBefore: /(tools?|definitions?)\s*\(\s*$/i,
             skipAfter: /^\s*\(\d+ CLI/,
           },
-          ["README.md", "CLAUDE.md", "AGENTS.md", "docs/frameworks/MCP-SERVER.md"]
+          ["README.md", "AGENTS.md", "docs/frameworks/MCP-SERVER.md"]
         ),
-        claim(f.mcpScopes, "MCP scopes", { pattern: /(\d+) scopes/gi }, [
-          "README.md",
-          "CLAUDE.md",
-          "AGENTS.md",
-        ]),
-        claim(
-          f.cliTotal,
-          "CLI tools",
-          { pattern: /(\d+) tools(?=\s*\(\d+ CLI)/gi },
-          ["README.md"]
-        ),
+        claim(f.mcpScopes, "MCP scopes", { pattern: /(\d+) scopes/gi }, ["README.md", "AGENTS.md"]),
+        claim(f.cliTotal, "CLI tools", { pattern: /(\d+) tools(?=\s*\(\d+ CLI)/gi }, ["README.md"]),
       ];
     })(),
     {

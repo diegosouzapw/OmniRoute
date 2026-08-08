@@ -1,0 +1,1 @@
+- chore(quality): add an RTL layout ratchet — counts physical directional Tailwind classes (ml/mr/pl/pr/left/right/text-left/border-l/rounded-l) that do not mirror under `dir=rtl`, seeded at 1011 so the backlog behind `tests/unit/ui/rtl-logical-classes.test.tsx` ("#3541, partial, core layout") cannot grow while it is worked through

@@ -32,3 +32,22 @@ export function isAntigravityMissingProjectError(
     result.errorType === "oauth_missing_project_id"
   );
 }
+
+/**
+ * Keep stream-readiness routing decisions on the stable gate diagnostic.
+ * The operator-facing error can contain arbitrary upstream words such as
+ * "quota" or "retry after", which must not change account/combo classification.
+ */
+export function resolveStreamReadinessClassificationError(
+  result: {
+    classificationError?: unknown;
+    error?: unknown;
+    errorCode?: unknown;
+  },
+  fallback = "Antigravity stream ended before useful content"
+): string {
+  for (const value of [result.classificationError, result.error, result.errorCode]) {
+    if (typeof value === "string" && value.trim()) return value;
+  }
+  return fallback;
+}

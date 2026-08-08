@@ -299,6 +299,15 @@ async function checkNativeBinary(rootDir) {
       "Release",
       "better_sqlite3.node"
     ),
+    path.join(
+      rootDir,
+      "dist",
+      "node_modules",
+      "better-sqlite3",
+      "build",
+      "Release",
+      "better_sqlite3.node"
+    ),
     path.join(rootDir, "node_modules", "better-sqlite3", "build", "Release", "better_sqlite3.node"),
   ];
   const binaryPath = candidates.find((candidate) => fs.existsSync(candidate));
@@ -395,7 +404,10 @@ async function checkServerLiveness(options = {}) {
   // First attempt: configured health endpoint (may require auth token).
   const primary = await probeUrl(url);
   if (primary.ok) {
-    return ok("Server liveness", "Server health endpoint is reachable", { url, status: primary.status });
+    return ok("Server liveness", "Server health endpoint is reachable", {
+      url,
+      status: primary.status,
+    });
   }
 
   // #6162: /api/health and /api/health/degradation require a management token.
@@ -426,7 +438,12 @@ async function checkServerLiveness(options = {}) {
     return ok(
       "Server liveness",
       `Server reachable (health endpoint returned ${primary.status}, likely requires MANAGEMENT_TOKEN)`,
-      { primaryUrl: url, primaryStatus: primary.status, fallbackUrl, fallbackStatus: fallback.status }
+      {
+        primaryUrl: url,
+        primaryStatus: primary.status,
+        fallbackUrl,
+        fallbackStatus: fallback.status,
+      }
     );
   }
 
@@ -439,8 +456,7 @@ async function checkServerLiveness(options = {}) {
 
 export async function collectDoctorChecks(context = {}, options = {}) {
   const rootDir =
-    context.rootDir ||
-    path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+    context.rootDir || path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
   const dataDir = resolveDataDir();
   const dbPath = resolveStoragePath(dataDir);
 

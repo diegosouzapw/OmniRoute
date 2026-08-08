@@ -26,8 +26,8 @@ test("systray2 is pinned to a 2.x version (PR #1080 fix)", () => {
   assert.match(SYSTRAY_VERSION, /^2\./, `expected systray2@2.x, got ${SYSTRAY_VERSION}`);
 });
 
-test("resolveSystrayBinName returns null on win32 and a *_release name elsewhere", () => {
-  assert.equal(resolveSystrayBinName("win32"), null);
+test("resolveSystrayBinName returns *_release name on all platforms (#8609)", () => {
+  assert.equal(resolveSystrayBinName("win32"), "tray_windows_release.exe");
   assert.equal(resolveSystrayBinName("darwin"), "tray_darwin_release");
   assert.equal(resolveSystrayBinName("linux"), "tray_linux_release");
 });
@@ -63,12 +63,12 @@ test("chmodSystrayBinAt is a no-op when the binary doesn't exist", () => {
   }
 });
 
-test("chmodSystrayBinAt skips win32 (uses PowerShell tray, no Go binary)", () => {
+test("chmodSystrayBinAt returns missing on win32 when binary is absent (#8609)", () => {
   const root = mkdtempSync(join(tmpdir(), "omniroute-systray-bin-"));
   try {
     const result = chmodSystrayBinAt(root, "win32");
     assert.equal(result.changed, false);
-    assert.equal(result.reason, "win32-skip");
+    assert.equal(result.reason, "missing");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
