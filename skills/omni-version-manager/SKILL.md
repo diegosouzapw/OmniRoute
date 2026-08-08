@@ -116,6 +116,19 @@ curl -X POST https://localhost:20128/api/services/9router/auto-start \
   -d '{}'
 ```
 
+### POST /api/services/9router/auto-restart-adopted
+
+Toggle 9Router auto-restart-when-adopted
+
+When enabled, an externally-adopted (not OmniRoute-spawned) 9Router process is restarted under OmniRoute's own supervisor on the next health-check cycle instead of being left as adopted-only. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/9router/auto-restart-adopted \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
 ### POST /api/services/cliproxy/install
 
 Install CLIProxyAPI from npm
@@ -200,6 +213,19 @@ When enabled, CLIProxyAPI starts automatically on the next OmniRoute boot. **LOC
 
 ```bash
 curl -X POST https://localhost:20128/api/services/cliproxy/auto-start \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/cliproxy/auto-restart-adopted
+
+Toggle CLIProxyAPI auto-restart-when-adopted
+
+When enabled, an externally-adopted (not OmniRoute-spawned) CLIProxyAPI process is restarted under OmniRoute's own supervisor on the next health-check cycle instead of being left as adopted-only. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/cliproxy/auto-restart-adopted \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -294,6 +320,19 @@ curl -X POST https://localhost:20128/api/services/mux/auto-start \
   -d '{}'
 ```
 
+### POST /api/services/mux/auto-restart-adopted
+
+Toggle Mux auto-restart-when-adopted
+
+When enabled, an externally-adopted (not OmniRoute-spawned) Mux process is restarted under OmniRoute's own supervisor on the next health-check cycle instead of being left as adopted-only. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/mux/auto-restart-adopted \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
 ### POST /api/services/bifrost/install
 
 Install Bifrost
@@ -378,6 +417,193 @@ When enabled, Bifrost starts automatically on the next OmniRoute boot. **LOCAL_O
 
 ```bash
 curl -X POST https://localhost:20128/api/services/bifrost/auto-start \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/bifrost/auto-restart-adopted
+
+Toggle Bifrost auto-restart-when-adopted
+
+When enabled, an externally-adopted (not OmniRoute-spawned) Bifrost process is restarted under OmniRoute's own supervisor on the next health-check cycle instead of being left as adopted-only. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/bifrost/auto-restart-adopted \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/dario/install
+
+Install Dario from npm
+
+Installs the `@askalf/dario` npm package (Claude-account-pool proxy) under DATA_DIR/services/dario/. Uses execFile (no shell interpolation — hard rule #13). **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/dario/install \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/dario/start
+
+Start Dario
+
+Spawns the Dario process. Idempotent if already running. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/dario/start \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/dario/stop
+
+Stop Dario
+
+Gracefully stops Dario. Idempotent — returns a stopped status even if no supervisor is currently tracking the process. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/dario/stop \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/dario/restart
+
+Restart Dario
+
+Equivalent to stop() then start() under the operation lock. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/dario/restart \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/dario/update
+
+Update Dario to a newer npm version
+
+Stops the service (if running), installs the newer npm version, then restarts it if it was running before the update. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/dario/update \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/services/dario/status
+
+Get Dario status
+
+Returns combined live supervisor state and DB metadata, including the auto-start / auto-restart-adopted flags and whether an update is available. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl https://localhost:20128/api/services/dario/status \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/services/dario/auto-start
+
+Toggle Dario auto-start
+
+When enabled, Dario starts automatically on the next OmniRoute boot. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/dario/auto-start \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/dario/auto-restart-adopted
+
+Toggle Dario auto-restart-when-adopted
+
+When enabled, an externally-adopted (not OmniRoute-spawned) Dario process is restarted under OmniRoute's own supervisor on the next health-check cycle instead of being left as adopted-only. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/dario/auto-restart-adopted \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/dario/admin/login-start
+
+Start a Dario account-pool login (device-code style)
+
+Forwards to the running Dario instance's `POST /admin/login/start` using the stored admin token. The operator opens the returned `authorize_url`, approves in their own Claude account, then posts the displayed code to `/admin/login-complete`. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/dario/admin/login-start \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/dario/admin/login-complete
+
+Complete a Dario account-pool login
+
+Forwards to the running Dario instance's `POST /admin/login/complete`. On success the account becomes routable immediately (Dario hot-reloads its pool). **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/dario/admin/login-complete \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/services/dario/admin/accounts
+
+List Dario account-pool accounts
+
+Forwards to the running Dario instance's `GET /admin/accounts`. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl https://localhost:20128/api/services/dario/admin/accounts \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### DELETE /api/services/dario/admin/accounts
+
+Remove a Dario account-pool account
+
+Forwards to the running Dario instance's `DELETE /admin/accounts/<alias>`. The alias is taken from a `?alias=` query param or a `{ alias }` JSON body. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X DELETE https://localhost:20128/api/services/dario/admin/accounts \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/services/dario/admin/import-from-omniroute
+
+List OmniRoute claude connections eligible for Dario import
+
+Returns eligible OmniRoute `claude` OAuth provider connections (metadata only — id/name/email/org tier, never tokens) so the UI can offer a picker when more than one exists. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl https://localhost:20128/api/services/dario/admin/import-from-omniroute \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/services/dario/admin/import-from-omniroute
+
+Import an OmniRoute claude connection's OAuth tokens into Dario
+
+Writes the source connection's access/refresh token pair directly into Dario's own account-file store (`~/.dario/accounts/<alias>.json`), reusing the shared Claude Code OAuth client_id, then restarts the Dario supervisor so it picks up the new account. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/dario/admin/import-from-omniroute \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'

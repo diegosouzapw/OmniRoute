@@ -57,6 +57,30 @@ test("getComboControlCenterTargets normalizes legacy, structured and nested comb
   assert.equal(targets[2].label, "Combo → cheap-fallback");
 });
 
+test("getComboControlCenterTargets normalizes provider-wildcard steps", () => {
+  const targets = getComboControlCenterTargets({
+    name: "alibabafree",
+    models: [
+      {
+        id: "alibaba-main",
+        kind: "provider-wildcard",
+        providerId: "alibaba",
+        modelPattern: "*",
+        connectionId: "conn-main",
+        weight: 0,
+        label: "main",
+      },
+    ],
+  });
+
+  assert.equal(targets.length, 1);
+  assert.equal(targets[0].kind, "provider-wildcard");
+  assert.equal(targets[0].model, "alibaba/*");
+  assert.equal(targets[0].provider, "alibaba");
+  assert.equal(targets[0].connectionId, "conn-main");
+  assert.equal(targets[0].label, "main");
+});
+
 test("summarizeComboControlCenter combines health and runtime metrics", () => {
   const summary = summarizeComboControlCenter(
     {

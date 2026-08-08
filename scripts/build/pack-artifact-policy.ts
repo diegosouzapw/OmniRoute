@@ -93,6 +93,10 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   // runtime; shipped via package.json "files", so it must be allowed here.
   "bin/aliasResolverHook.mjs",
   "bin/mcp-server.mjs",
+  // #9281: stdout/stderr console guard preloaded via `node --import` by
+  // bin/mcp-server.mjs before the MCP entry's module graph evaluates — without it
+  // the published CLI's `omniroute --mcp` crashes on the pathToFileURL() import.
+  "bin/mcpStdioConsoleGuard.mjs",
   "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",
   "bin/reset-password.mjs",
@@ -126,6 +130,9 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   // #7802: imported by scripts/build/postinstall.mjs to repair tls-client-node's
   // native binary (chatgpt-web/claude-web/grok-web/lmarena/perplexity-web transport).
   "scripts/build/fixTlsClientNodeBinary.mjs",
+  // #8859: imported by scripts/build/postinstall.mjs to repair playwright-core's
+  // browser resolution on Termux/Android (no glibc, no bundled browsers).
+  "scripts/build/fixPlaywrightAndroid.mjs",
   // #5227: imported at runtime by bin/cli/commands/serve.mjs (heap auto-calibration).
   "scripts/build/runtime-env.mjs",
   "scripts/build/sync-env.mjs",
@@ -180,6 +187,10 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "bin/cli/utils/storageKeyProvision.mjs",
   "bin/cli/utils/versionFastPath.mjs",
   "bin/mcp-server.mjs",
+  // #9281: stdout/stderr console guard preloaded via `node --import` by
+  // bin/mcp-server.mjs before the MCP entry's module graph evaluates — without it
+  // the published CLI's `omniroute --mcp` crashes on the pathToFileURL() import.
+  "bin/mcpStdioConsoleGuard.mjs",
   "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",
   // #7808: aliasResolver + its hook file. bin/omniroute.mjs imports

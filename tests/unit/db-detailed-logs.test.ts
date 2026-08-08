@@ -9,6 +9,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const ORIGINAL_PII_ENABLED = process.env.PII_RESPONSE_SANITIZATION;
 const ORIGINAL_PII_MODE = process.env.PII_RESPONSE_SANITIZATION_MODE;
+const ORIGINAL_ENABLE_REQUEST_LOGS = process.env.ENABLE_REQUEST_LOGS;
 process.env.PII_RESPONSE_SANITIZATION = "true";
 process.env.PII_RESPONSE_SANITIZATION_MODE = "redact";
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "task-303-detailed-secret";
@@ -44,6 +45,7 @@ async function resetStorage() {
 }
 
 test.beforeEach(async () => {
+  delete process.env.ENABLE_REQUEST_LOGS;
   await resetStorage();
 });
 
@@ -63,12 +65,32 @@ test.after(async () => {
   } else {
     process.env.PII_RESPONSE_SANITIZATION_MODE = ORIGINAL_PII_MODE;
   }
+
+  if (ORIGINAL_ENABLE_REQUEST_LOGS === undefined) {
+    delete process.env.ENABLE_REQUEST_LOGS;
+  } else {
+    process.env.ENABLE_REQUEST_LOGS = ORIGINAL_ENABLE_REQUEST_LOGS;
+  }
 });
 
 test("isDetailedLoggingEnabled follows the stored setting", async () => {
   assert.equal(await detailedLogsDb.isDetailedLoggingEnabled(), false);
 
   await settingsDb.updateSettings({ call_log_pipeline_enabled: "true" });
+
+  assert.equal(await detailedLogsDb.isDetailedLoggingEnabled(), true);
+});
+
+test("ENABLE_REQUEST_LOGS=false disables detailed logging despite the stored setting", async () => {
+  await settingsDb.updateSettings({ call_log_pipeline_enabled: "true" });
+  process.env.ENABLE_REQUEST_LOGS = "false";
+
+  assert.equal(await detailedLogsDb.isDetailedLoggingEnabled(), false);
+});
+
+test("ENABLE_REQUEST_LOGS=true enables detailed logging despite the stored setting", async () => {
+  await settingsDb.updateSettings({ call_log_pipeline_enabled: "false" });
+  process.env.ENABLE_REQUEST_LOGS = "true";
 
   assert.equal(await detailedLogsDb.isDetailedLoggingEnabled(), true);
 });

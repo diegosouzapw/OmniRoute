@@ -12,6 +12,7 @@ import {
   listCombosInput,
   getComboMetricsInput,
   switchComboInput,
+  createComboInput,
   checkQuotaInput,
   routeRequestInput,
   costReportInput,
@@ -46,6 +47,7 @@ import {
   type McpToolExtraLike,
 } from "./scopeEnforcement.ts";
 import { getMcpHttpAuthHeadersForInternalFetch } from "./httpAuthContext.ts";
+import { getInternalServiceAuthHeaders } from "../../src/lib/api/internalServiceAuth.ts";
 import {
   handleSimulateRoute,
   handleSetBudgetGuard,
@@ -203,6 +205,9 @@ export async function omniRouteFetch(path: string, options: RequestInit = {}): P
     ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
     ...getMcpHttpAuthHeadersForInternalFetch(),
     ...((options.headers as Record<string, string>) || {}),
+    // Authenticate only the server-to-server hop. This does not replace or
+    // weaken the caller identity forwarded above.
+    ...getInternalServiceAuthHeaders(),
   };
 
   const signal = options.signal || AbortSignal.timeout(10000);
@@ -385,6 +390,27 @@ async function handleSwitchCombo(args: { comboId: string; active: boolean }) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     await logToolCall("omniroute_switch_combo", args, null, Date.now() - start, false, msg);
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}
+
+async function handleCreateCombo(args: {
+  name: string;
+  description?: string;
+  strategy?: string;
+  models: { provider: string; model: string }[];
+}) {
+  const start = Date.now();
+  try {
+    const result = await omniRouteFetch("/api/combos", {
+      method: "POST",
+      body: JSON.stringify(args),
+    });
+    await logToolCall("omniroute_create_combo", args, result, Date.now() - start, true);
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await logToolCall("omniroute_create_combo", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
 }
@@ -731,6 +757,17 @@ export function createMcpServer(): McpServer {
     },
     withScopeEnforcement("omniroute_switch_combo", (args) =>
       handleSwitchCombo(switchComboInput.parse(args))
+    )
+  );
+
+  server.registerTool(
+    "omniroute_create_combo",
+    {
+      description: "Registers a new combo (model chain) with name, models, and strategy",
+      inputSchema: createComboInput,
+    },
+    withScopeEnforcement("omniroute_create_combo", (args) =>
+      handleCreateCombo(createComboInput.parse(args))
     )
   );
 
@@ -1366,6 +1403,10 @@ export function createMcpServer(): McpServer {
  * Called when `omniroute --mcp` is used.
  */
 export async function startMcpStdio(): Promise<void> {
+  // Stdout is reserved for JSON-RPC — bin/mcpStdioConsoleGuard.mjs is preloaded via
+  // `node --import` (see bin/mcp-server.mjs) so console.log/warn already redirect to
+  // stderr before this module's own imports evaluate (DB init happens as a side effect of
+  // createMcpServer()'s tool registration, earlier than any code placed here could catch).
   const server = createMcpServer();
   const transport = new StdioServerTransport();
   const version = process.env.npm_package_version || "1.8.1";

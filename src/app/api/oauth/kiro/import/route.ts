@@ -217,11 +217,15 @@ export async function POST(request: Request) {
       testStatus: "active",
       isActive: true,
     };
-    const connection: any = await upsertImportedKiroConnection(targetProvider, record, {
-      profileArn: resolvedProfileArn,
-      clientId: providerSpecificData.clientId,
-      email,
-    });
+    // Only include clientId in the identity for IDC imports where it is genuinely
+    // unique per account (#2059). For Builder ID / social imports the OIDC clientId
+    // comes from a machine-wide cached OIDC registration (shared across all accounts
+    // on the same machine), so using it for identity matching would cause different
+    // accounts to overwrite each other (#9435). Without clientId, the identity
+    // matching falls through to the email field, which correctly distinguishes imports.
+    const identity: Record<string, unknown> = { profileArn: resolvedProfileArn, email };
+    if (isIdc) identity.clientId = providerSpecificData.clientId;
+    const connection: any = await upsertImportedKiroConnection(targetProvider, record, identity);
 
     // Auto sync to Cloud if enabled
     await syncToCloudIfEnabled();

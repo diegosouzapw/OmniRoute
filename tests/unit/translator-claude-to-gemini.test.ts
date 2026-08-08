@@ -5,6 +5,15 @@ const { claudeToGeminiRequest } =
   await import("../../open-sse/translator/request/claude-to-gemini.ts");
 const { DEFAULT_SAFETY_SETTINGS } =
   await import("../../open-sse/translator/helpers/geminiHelper.ts");
+const {
+  buildGeminiThoughtSignatureKey,
+  storeGeminiThoughtSignature,
+  clearGeminiThoughtSignatures,
+} = await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
+
+test.beforeEach(() => {
+  clearGeminiThoughtSignatures();
+});
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -34,6 +43,10 @@ function getFunctionResponse(part: unknown) {
 }
 
 test("Claude -> Gemini maps system, thinking, tool use, tool result and tools", () => {
+  // Native functionCall requires a cached thoughtSignature (#8979 / #3688).
+  const ns = "conn-claude-gemini-map";
+  storeGeminiThoughtSignature(buildGeminiThoughtSignatureKey(ns, "tu_1"), "SIG_MAP_WEATHER");
+
   const result = claudeToGeminiRequest(
     "gemini-2.5-pro",
     {
@@ -72,7 +85,8 @@ test("Claude -> Gemini maps system, thinking, tool use, tool result and tools", 
       top_p: 0.8,
       thinking: { type: "enabled", budget_tokens: 512 },
     },
-    false
+    false,
+    { _signatureNamespace: ns }
   );
 
   assert.deepEqual(result.systemInstruction, {
@@ -82,6 +96,7 @@ test("Claude -> Gemini maps system, thinking, tool use, tool result and tools", 
   assert.equal(result.contents[0].role, "model");
   assert.deepEqual(result.contents[0].parts[0] as any, { thought: true, text: "need tool" });
   assert.deepEqual(result.contents[0].parts[1] as any, {
+    thoughtSignature: "SIG_MAP_WEATHER",
     functionCall: { id: "tu_1", name: "weather", args: { city: "Tokyo" } },
   });
   assert.deepEqual(result.contents[1].parts[0] as any, {
@@ -162,7 +177,10 @@ test("Claude -> Gemini converts text and base64 images to Gemini parts", () => {
   ]);
 });
 
-test("Claude -> Gemini injects a fallback thoughtSignature on tool-call batches without thinking", () => {
+test("Claude -> Gemini omits unsigned functionCall instead of injecting a fake thoughtSignature (#8979)", () => {
+  // After #1410 / #8979: never inject a fake signature. Without a cached
+  // thoughtSignature, native functionCall parts are omitted (context mode)
+  // so Gemini 3+ does not return HTTP 400.
   const result = claudeToGeminiRequest(
     "gemini-2.5-flash",
     {
@@ -176,15 +194,20 @@ test("Claude -> Gemini injects a fallback thoughtSignature on tool-call batches 
     false
   );
 
-  assert.equal(result.contents.length, 1);
-  assert.equal(result.contents[0].role, "model");
-  assert.equal((result.contents[0].parts[0] as any).functionCall.name, "read_file");
-  assert.equal((result.contents[0].parts[0] as any).thoughtSignature, undefined);
+  assert.equal(result.contents.length, 0);
+  assert.equal(
+    JSON.stringify(result).includes('"functionCall"'),
+    false,
+    "signature-less tool_use must not become a native functionCall"
+  );
 });
 
 test("Claude -> Gemini sanitizes long tool names and exposes a restore map", () => {
   const longToolName =
     "mcp__filesystem__read_multiple_files_with_validation_and_metadata_bundle_v2";
+  const ns = "conn-claude-gemini-long";
+  storeGeminiThoughtSignature(buildGeminiThoughtSignatureKey(ns, "tu_long_1"), "SIG_LONG_TOOL");
+
   const result = claudeToGeminiRequest(
     "gemini-2.5-pro",
     {
@@ -214,7 +237,8 @@ test("Claude -> Gemini sanitizes long tool names and exposes a restore map", () 
         },
       ],
     },
-    false
+    false,
+    { _signatureNamespace: ns }
   );
 
   const sanitizedToolName = (result as any).tools[0].functionDeclarations[0].name as string;

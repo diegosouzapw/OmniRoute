@@ -10,8 +10,24 @@ const DEFAULT_IMAGE = "docker.io/redis:7-alpine";
 const DEFAULT_NAME = "omniroute-redis";
 const DEFAULT_PORT = "6379";
 const DEFAULT_VOLUME = "omniroute-redis-data";
+// The launcher starts Redis without AUTH unless --password is given, so the
+// published port stays on loopback. `-p 6379:6379` would bind 0.0.0.0 and hand
+// the whole LAN an unauthenticated Redis.
+const DEFAULT_BIND = "127.0.0.1";
 
 const RUNTIME_PREFERENCE = ["podman", "docker"];
+
+/**
+ * Build the `-p` publish spec for the Redis container.
+ * Always host-qualified so the runtime never falls back to 0.0.0.0.
+ */
+export function buildRedisPublishSpec(bind = DEFAULT_BIND, port = DEFAULT_PORT) {
+  const host = String(bind || DEFAULT_BIND).trim() || DEFAULT_BIND;
+  const hostPort = String(port || DEFAULT_PORT).trim() || DEFAULT_PORT;
+  // Bracket IPv6 literals (e.g. ::1) so `host:port:port` stays unambiguous.
+  const normalizedHost = host.includes(":") && !host.startsWith("[") ? `[${host}]` : host;
+  return `${normalizedHost}:${hostPort}:6379`;
+}
 
 async function detectRuntime() {
   for (const candidate of RUNTIME_PREFERENCE) {
@@ -27,7 +43,14 @@ async function detectRuntime() {
 
 async function containerExists(runtime, name) {
   try {
-    const { stdout } = await execFile(runtime, ["ps", "-a", "--filter", `name=^${name}$`, "--format", "{{.Names}}"]);
+    const { stdout } = await execFile(runtime, [
+      "ps",
+      "-a",
+      "--filter",
+      `name=^${name}$`,
+      "--format",
+      "{{.Names}}",
+    ]);
     return stdout.trim() === name;
   } catch {
     return false;
@@ -36,7 +59,13 @@ async function containerExists(runtime, name) {
 
 async function containerRunning(runtime, name) {
   try {
-    const { stdout } = await execFile(runtime, ["ps", "--filter", `name=^${name}$`, "--format", "{{.Names}}"]);
+    const { stdout } = await execFile(runtime, [
+      "ps",
+      "--filter",
+      `name=^${name}$`,
+      "--format",
+      "{{.Names}}",
+    ]);
     return stdout.trim() === name;
   } catch {
     return false;
@@ -100,6 +129,11 @@ export function registerRedis(program) {
     .command("up")
     .description("Start the local Redis container")
     .option("-p, --port <port>", "Host port to expose", DEFAULT_PORT)
+    .option(
+      "-b, --bind <host>",
+      "Host interface to publish on (use 0.0.0.0 only together with --password)",
+      DEFAULT_BIND
+    )
     .option("-n, --name <name>", "Container name", DEFAULT_NAME)
     .option("-i, --image <image>", "Container image", DEFAULT_IMAGE)
     .option("--no-pull", "Skip pulling the image if it is missing")
@@ -160,6 +194,7 @@ export async function runRedisUpCommand(opts = {}) {
 
   const name = opts.name || DEFAULT_NAME;
   const port = opts.port || DEFAULT_PORT;
+  const bind = opts.bind || DEFAULT_BIND;
   const image = opts.image || DEFAULT_IMAGE;
 
   const exists = await containerExists(runtime, name);
@@ -186,7 +221,11 @@ export async function runRedisUpCommand(opts = {}) {
     info(`Checking if image '${image}' is present locally…`);
     let present = false;
     try {
-      const { stdout } = await execFile(runtime, ["images", "--format", "{{.Repository}}:{{.Tag}}"]);
+      const { stdout } = await execFile(runtime, [
+        "images",
+        "--format",
+        "{{.Repository}}:{{.Tag}}",
+      ]);
       present = stdout.split("\n").some((line) => line.trim() === image);
     } catch {
       // ignore — fall through to pull
@@ -205,10 +244,14 @@ export async function runRedisUpCommand(opts = {}) {
   const args = [
     "run",
     "-d",
-    "--name", name,
-    "--restart", "unless-stopped",
-    "-p", `${port}:6379`,
-    "-v", `${DEFAULT_VOLUME}:/data`,
+    "--name",
+    name,
+    "--restart",
+    "unless-stopped",
+    "-p",
+    buildRedisPublishSpec(bind, port),
+    "-v",
+    `${DEFAULT_VOLUME}:/data`,
   ];
   if (opts.password) {
     args.push("-e", `REDIS_PASSWORD=${opts.password}`);
@@ -219,8 +262,13 @@ export async function runRedisUpCommand(opts = {}) {
   info(`Launching ${runtime} run ${args.join(" ")}`);
   try {
     await execFile(runtime, args);
-    success(`Container '${name}' is now running on redis://127.0.0.1:${port}`);
-    info(`Set OMNIROUTE_REDIS_URL=redis://127.0.0.1:${port} in your .env to wire OmniRoute to it.`);
+    success(`Container '${name}' is now running on redis://${bind}:${port}`);
+    info(`Set OMNIROUTE_REDIS_URL=redis://${bind}:${port} in your .env to wire OmniRoute to it.`);
+    if (bind !== DEFAULT_BIND && !opts.password) {
+      info(
+        `Warning: '${bind}' publishes Redis beyond loopback without AUTH. Re-run with --password <secret>.`
+      );
+    }
     return 0;
   } catch (err) {
     fail(`Failed to launch container: ${err.message}`);
@@ -267,7 +315,13 @@ export async function runRedisStatusCommand(opts = {}) {
 
   const exists = await containerExists(runtime, name);
   if (!exists) {
-    console.log(JSON.stringify({ runtime, name, port, exists: false, running: false, reachable: false }, null, 2));
+    console.log(
+      JSON.stringify(
+        { runtime, name, port, exists: false, running: false, reachable: false },
+        null,
+        2
+      )
+    );
     return 0;
   }
 
@@ -285,7 +339,9 @@ export async function runRedisStatusCommand(opts = {}) {
   console.log(`  Running:     ${running ? "yes" : "no"}`);
   console.log(`  Reachable:   ${reachable ? "yes" : "no"} (port ${port})`);
   if (running && !reachable) {
-    warn("Container is running but the port is not reachable. Is REDIS_PASSWORD set or another process bound?");
+    warn(
+      "Container is running but the port is not reachable. Is REDIS_PASSWORD set or another process bound?"
+    );
   }
   if (!running) {
     info(`Run 'omniroute redis up' to launch it.`);

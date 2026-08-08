@@ -7,6 +7,7 @@ import { NinerouterInstallWizard } from "../components/NinerouterInstallWizard";
 import { NinerouterProviderExposureCard } from "../components/NinerouterProviderExposureCard";
 import { NinerouterModelList } from "../components/NinerouterModelList";
 import { AutoStartToggle } from "../components/AutoStartToggle";
+import { AutoRestartAdoptedToggle } from "../components/AutoRestartAdoptedToggle";
 import { ApiKeyField } from "../components/ApiKeyField";
 import { NinerouterEmbedFrame } from "../components/NinerouterEmbedFrame";
 import { useServiceStatus } from "../hooks/useServiceStatus";
@@ -30,6 +31,7 @@ export function NinerouterServiceTab() {
       <ServiceStatusCard name={NAME} />
       <ServiceLifecycleButtons name={NAME} />
       <AutoStartToggle name={NAME} />
+      <AutoRestartAdoptedToggle name={NAME} />
       <ApiKeyField name={NAME} serviceLabel="9Router" showReveal={true} />
       <NinerouterProviderExposureCard />
       <NinerouterModelList />

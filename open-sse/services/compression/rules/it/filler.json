@@ -1,0 +1,94 @@
+{
+  "language": "it",
+  "category": "filler",
+  "rules": [
+    {
+      "name": "it_polite_framing",
+      "pattern": "\\b(?:per favore|per cortesia|ti (?:pre|)gherei di|potresti|puoi|riusciresti a|ti dispiacerebbe|se puoi|se ti va|quando puoi|gentilmente)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_pleasantries",
+      "pattern": "\\b(?:ciao|buongiorno|buonasera|buon pomeriggio|salve|grazie mille|grazie tante|ti ringrazio|grazie)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_hedging",
+      "pattern": "\\b(?:credo che|penso che|mi sembra che|mi pare che|direi che|secondo me|a mio (?:parere|avviso)|forse|magari|probabilmente|presumibilmente|verosimilmente)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_filler_adverbs",
+      "pattern": "\\b(?:sostanzialmente|essenzialmente|fondamentalmente|praticamente|in realtà|in effetti|letteralmente|semplicemente|diciamo|insomma|comunque|appunto|ovviamente|chiaramente)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_self_reference",
+      "pattern": "^(?:sto cercando di|vorrei|volevo|avrei bisogno di|ho bisogno di|mi servirebbe|mi serve|vorrei sapere se|volevo sapere se|voglio)\\b\\s*",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_verbose_request",
+      "pattern": "\\b(?:potresti spiegarmi|puoi spiegarmi|mi spieghi|mi puoi spiegare|potresti dettagliare|puoi dettagliare|mi sapresti dire|sapresti dirmi|mi dici)\\b\\s*",
+      "replacement": "spiega ",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_assistant_servility",
+      "pattern": "\\b(?:certamente|assolutamente|volentieri|con piacere|sarei felice di aiutarti|sono felice di aiutarti|ottima domanda|bella domanda|buona domanda)\\b[,.!]?\\s*",
+      "replacement": "",
+      "context": "assistant",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_assistant_preamble",
+      "pattern": "^(?:ecco|ecco qui|ecco a te|allora|dunque|bene)\\b[,:]?\\s*",
+      "replacement": "",
+      "context": "assistant",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_closing_offer",
+      "pattern": "\\b(?:fammi sapere se (?:hai bisogno|ti serve|vuoi)[^.!?]*|se hai (?:altre |ulteriori )?(?:domande|dubbi)[^.!?]*|spero (?:che )?(?:questo )?(?:ti )?(?:sia (?:stato )?d'aiuto|aiuti)[^.!?]*)[.!?]\\s*",
+      "replacement": "",
+      "context": "assistant",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "it_apology",
+      "pattern": "\\b(?:mi scuso per|scusa per|chiedo scusa per|mi dispiace per)\\b[^.!?]*[.!?]\\s*",
+      "replacement": "",
+      "context": "assistant",
+      "category": "filler",
+      "minIntensity": "full"
+    },
+    {
+      "name": "it_softeners",
+      "pattern": "\\b(?:un attimo|un momento|se non ti dispiace|se non è troppo disturbo|se possibile)\\b[,.]?\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    }
+  ]
+}

@@ -90,7 +90,7 @@ export function __resetHttpBackedChatOverrideForTesting(): void {
 
 // Helper to make Playwright waitForTimeout abortable via AbortSignal
 function waitWithSignal(ms: number, signal?: AbortSignal | null): Promise<void> {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     if (signal?.aborted) return reject(new DOMException("Aborted", "AbortError"));
     const onAbort = () => {
       clearTimeout(timer);

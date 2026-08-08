@@ -48,13 +48,14 @@ test("createStreamFailureFinalizers: caller classification survives into respons
     persistFailureUsage: () => {},
   });
 
-  handleStreamFailure({
+  const handled = handleStreamFailure({
     status: 502,
     message: "Upstream stream error",
     code: "stream_pipeline_error",
     type: "stream_error",
   });
 
+  assert.equal(handled, true, "the callback contract reports that the stream failure was handled");
   const body = captured as { error: { type?: string; code?: string } };
   assert.equal(body.error.type, "stream_error");
   assert.equal(body.error.code, "stream_pipeline_error");

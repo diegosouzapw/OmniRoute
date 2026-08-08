@@ -8,19 +8,21 @@
  * getComboModelsFromData, validateComboDAG, resolveNestedComboModels,
  * filterTargetsByRequestCompatibility) are re-exported from combo.ts for the
  * ~20 external consumers (chatCore.ts, the /api/combos routes, embeddings, etc.).
+ * Context-window metadata is advisory: known-fitting targets are ordered first,
+ * while catalog-too-small targets remain available for runtime fallback.
  * No barrel import — depends only on sibling leaves.
  */
 
 import { getModelContextLimit } from "../../../src/lib/modelCapabilities";
+import { getHiddenModelsByProvider } from "../../../src/lib/db/models";
 import { getComboModelString, normalizeComboStep } from "../../../src/lib/combos/steps.ts";
-import {
-  getProviderByAlias,
-  getProviderById,
-} from "../../../src/shared/constants/providers.ts";
+import { getProviderByAlias, getProviderById } from "../../../src/shared/constants/providers.ts";
 import { estimateTokens } from "../contextManager.ts";
+import { containsMediaKind } from "../../utils/mediaParts.ts";
 import { getResolvedModelCapabilities } from "../modelCapabilities.ts";
-import { parseModel } from "../model.ts";
+import { parseModel, stripContextWindowSuffix } from "../model.ts";
 import { dedupeTargetsByExecutionKey, isRecord } from "./comboData.ts";
+import { isComboModelVisible } from "./comboVisibility.ts";
 import { getTargetProvider, MAX_COMBO_DEPTH } from "./comboPredicates.ts";
 import { evaluateContextLimit } from "./contextOverrideGate.ts";
 import { hasEstimableContent } from "./knownContextOverflow.ts";
@@ -35,6 +37,7 @@ import type {
   ComboLike,
   ComboLogger,
   ComboRuntimeStep,
+  HiddenModelsByProvider,
   NestedComboMode,
   ResolvedComboTarget,
   ResolvedComboUnit,
@@ -135,13 +138,28 @@ function normalizeRuntimeStep(
       : {}),
     weight,
     label,
+    // `prompt` is a per-step pipeline input and only exists on a model step —
+    // #8894 widened the union with ComboProviderWildcardStep, which has no prompt.
+    prompt: (step.kind === "model" ? step.prompt : null) || null,
   } satisfies ResolvedComboTarget;
 }
 
-function getDirectComboTargets(combo: ComboLike): ResolvedComboTarget[] {
-  return getOrderedTopLevelRuntimeSteps(combo, null).filter(
-    (entry): entry is ResolvedComboTarget => entry?.kind === "model"
+function isComboTargetVisible(
+  target: ResolvedComboTarget,
+  hiddenModelsByProvider: HiddenModelsByProvider
+): boolean {
+  return isComboModelVisible(
+    target.modelStr,
+    target.providerId || target.provider,
+    hiddenModelsByProvider
   );
+}
+
+export function filterVisibleComboTargets(
+  targets: ResolvedComboTarget[],
+  hiddenModelsByProvider: HiddenModelsByProvider = getHiddenModelsByProvider()
+): ResolvedComboTarget[] {
+  return targets.filter((target) => isComboTargetVisible(target, hiddenModelsByProvider));
 }
 
 function getTopLevelRuntimeSteps(
@@ -323,7 +341,8 @@ export function getComboModelsFromData(
   modelStr: string,
   combosData: ComboCollectionLike
 ): string[] | null {
-  const combo = getComboFromData(modelStr, combosData);
+  const baseModelStr = stripContextWindowSuffix(modelStr);
+  const combo = getComboFromData(baseModelStr || modelStr, combosData);
   if (!combo) return null;
   return combo.models.map((m) => normalizeModelEntry(m).model);
 }
@@ -465,21 +484,15 @@ function estimateRequestInputTokens(body: Record<string, unknown>): number {
   return Object.keys(estimatePayload).length > 0 ? estimateTokens(estimatePayload) : 0;
 }
 
-function valueContainsImagePart(value: unknown, depth = 0): boolean {
-  if (depth > 8 || value === null || value === undefined) return false;
-  if (typeof value === "string") return value.startsWith("data:image/");
-  if (Array.isArray(value)) return value.some((entry) => valueContainsImagePart(entry, depth + 1));
-  if (!isRecord(value)) return false;
-
-  const type = typeof value.type === "string" ? value.type.toLowerCase() : null;
-  if (type === "image" || type === "image_url" || type === "input_image") return true;
-  if ("image_url" in value || "input_image" in value) return true;
-
-  const source = isRecord(value.source) ? value.source : null;
-  const mediaType = typeof source?.media_type === "string" ? source.media_type.toLowerCase() : "";
-  if (mediaType.startsWith("image/")) return true;
-
-  return Object.values(value).some((entry) => valueContainsImagePart(entry, depth + 1));
+function valueContainsImagePart(value: unknown): boolean {
+  // Delegates to the unified media detector (open-sse/utils/mediaParts.ts) —
+  // single source of truth shared with the vision-bridge guardrail. The
+  // detector keeps this filter's legacy permissive matches (image-ish `type`
+  // in any casing, bare `image_url`/`input_image` keys, source.media_type
+  // image/*, bare data:image strings, recursion capped at depth 8) via
+  // "image_indicator" parts. containsMediaKind short-circuits on the first
+  // hit — this runs on every request, so no full-part collection here.
+  return containsMediaKind([{ content: [value] }], "image");
 }
 
 export function deriveRequestCompatibilityRequirements(
@@ -517,9 +530,7 @@ function hasKnownCompatibleContextLimit(
   return evaluateContextLimit(capabilities, requirements, target.modelStr) === true;
 }
 
-function hasOnlyContextWindowFailures(reasons: string[]): boolean {
-  return reasons.length > 0 && reasons.every((reason) => reason === "context_window");
-}
+const HARD_COMPAT_REASONS = new Set(["tools", "vision", "structured_output", "output_tokens"]);
 
 /**
  * #8332: vision is a hard requirement, not a soft preference — a target whose vision
@@ -604,12 +615,6 @@ export type CompatFilterOptions = {
   failOpen?: boolean;
 };
 
-const HARD_COMPAT_REASONS = new Set(["tools", "vision", "structured_output"]);
-
-function hasHardCapabilityFailure(reasons: string[]): boolean {
-  return reasons.some((reason) => HARD_COMPAT_REASONS.has(reason));
-}
-
 /**
  * Summarize a capability-filter exhaustion for a 400-class combo error (#8488).
  * Returns null when the empty pool is not attributable to hard requirements.
@@ -680,73 +685,42 @@ export function filterTargetsByRequestCompatibility(
   if (!needsFiltering) return targets;
 
   const rejected: Array<{ target: ResolvedComboTarget; reasons: string[] }> = [];
-  const compatible = targets.filter((target) => {
+  const targetReasons = new Map<ResolvedComboTarget, string[]>();
+  for (const target of targets) {
     const reasons = getTargetCompatibilityFailures(target, requirements);
-    if (reasons.length === 0) return true;
-    rejected.push({ target, reasons });
-    return false;
-  });
+    targetReasons.set(target, reasons);
+    if (reasons.length > 0) rejected.push({ target, reasons });
+  }
 
-  // Unknown context limits are safe only as a fallback. If this request already
-  // filtered at least one known-too-small target and known-good targets remain,
-  // prefer the known-good set over unknown metadata gaps. If no known-good
-  // context target remains, fall back to the strategy order for context-only
-  // candidates instead of letting unknown metadata be the only survivors.
-  const rejectedForContextWindow = rejected.some((entry) =>
+  // Context metadata is advisory. Keep every target that has no hard capability
+  // mismatch, but prefer targets whose known limit fits. A stale catalog entry must
+  // never remove the only target that could accept the request at runtime.
+  const compatible = targets.filter((target) => {
+    const reasons = targetReasons.get(target) || [];
+    return !reasons.some((reason) => HARD_COMPAT_REASONS.has(reason));
+  });
+  const hadKnownTooSmallContextTarget = rejected.some((entry) =>
     entry.reasons.includes("context_window")
   );
-  if (requirements.requiredContextTokens > 0 && rejectedForContextWindow) {
+  if (
+    requirements.requiredContextTokens > 0 &&
+    hadKnownTooSmallContextTarget &&
+    compatible.length > 1
+  ) {
     const knownContextCompatible = compatible.filter((target) =>
       hasKnownCompatibleContextLimit(target, requirements)
     );
-
     if (knownContextCompatible.length > 0 && knownContextCompatible.length < compatible.length) {
-      const knownContextCompatibleTargets = new Set(knownContextCompatible);
-      for (const target of compatible) {
-        if (!knownContextCompatibleTargets.has(target)) {
-          rejected.push({ target, reasons: ["context_window_unknown"] });
-        }
-      }
-
-      log.info(
-        "COMBO",
-        `${label}: kept ${knownContextCompatible.length}/${targets.length} targets for request requirements`
-      );
-      log.debug?.(
-        "COMBO",
-        `${label}: rejected targets ${rejected
-          .map((entry) => `${entry.target.modelStr}(${entry.reasons.join("+")})`)
-          .join(", ")}`
-      );
-      return knownContextCompatible;
-    }
-
-    if (knownContextCompatible.length === 0 && compatible.length > 0) {
-      const rejectedByTarget = new Map(rejected.map((entry) => [entry.target, entry.reasons]));
-      const contextOnlyFallback = targets.filter((target) => {
-        const reasons = rejectedByTarget.get(target);
-        return !reasons || hasOnlyContextWindowFailures(reasons);
-      });
-
-      if (contextOnlyFallback.length > compatible.length) {
-        log.warn(
-          "COMBO",
-          `${label}: no known-compatible context target remains; preserving strategy order for context-only candidates`
-        );
-        log.debug?.(
-          "COMBO",
-          `${label}: rejected targets ${rejected
-            .map((entry) => `${entry.target.modelStr}(${entry.reasons.join("+")})`)
-            .join(", ")}`
-        );
-        return contextOnlyFallback;
-      }
+      const knownSet = new Set(knownContextCompatible);
+      return [...knownContextCompatible, ...compatible.filter((target) => !knownSet.has(target))];
     }
   }
 
   if (compatible.length === targets.length) return targets;
   if (compatible.length === 0) {
-    const hardRejected = rejected.some((entry) => hasHardCapabilityFailure(entry.reasons));
+    const hardRejected = rejected.some((entry) =>
+      entry.reasons.some((r) => HARD_COMPAT_REASONS.has(r))
+    );
     const failOpen = options?.failOpen === true;
 
     log.debug?.(
@@ -834,36 +808,50 @@ export function sortTargetsByContextSize(targets: ResolvedComboTarget[]) {
 export function resolveComboTargets(
   combo: ComboLike,
   allCombos: ComboCollectionLike,
-  maxDepth: number = MAX_COMBO_DEPTH
+  maxDepth: number = MAX_COMBO_DEPTH,
+  hiddenModelsByProvider: HiddenModelsByProvider = getHiddenModelsByProvider()
 ): ResolvedComboTarget[] {
-  return allCombos
-    ? resolveNestedComboTargets(combo, allCombos, new Set<string>(), 0, [], maxDepth)
-    : getDirectComboTargets(combo);
+  return filterVisibleComboTargets(
+    allCombos
+      ? resolveNestedComboTargets(combo, allCombos, new Set<string>(), 0, [], maxDepth)
+      : getOrderedTopLevelRuntimeSteps(combo, null).filter(
+          (entry): entry is ResolvedComboTarget => entry?.kind === "model"
+        ),
+    hiddenModelsByProvider
+  );
 }
 
 export function resolveComboRuntimeUnits(
   combo: ComboLike,
   allCombos: ComboCollectionLike,
   mode: NestedComboMode,
-  maxDepth: number = MAX_COMBO_DEPTH
+  maxDepth: number = MAX_COMBO_DEPTH,
+  hiddenModelsByProvider: HiddenModelsByProvider = getHiddenModelsByProvider()
 ): ResolvedComboUnit[] {
-  if (mode === "flatten" || !allCombos) return resolveComboTargets(combo, allCombos, maxDepth);
+  if (mode === "flatten" || !allCombos)
+    return resolveComboTargets(combo, allCombos, maxDepth, hiddenModelsByProvider);
   validateComboDAG(combo.name, allCombos, new Set<string>(), 0, maxDepth);
-  return getOrderedTopLevelRuntimeSteps(combo, allCombos);
+  return getOrderedTopLevelRuntimeSteps(combo, allCombos).filter(
+    (unit) => unit.kind === "combo-ref" || isComboTargetVisible(unit, hiddenModelsByProvider)
+  );
 }
 
 export function resolveWeightedStepGroups(
   combo: ComboLike,
-  allCombos: ComboCollectionLike
+  allCombos: ComboCollectionLike,
+  hiddenModelsByProvider: HiddenModelsByProvider = getHiddenModelsByProvider()
 ): Array<{ step: ComboRuntimeStep; targets: ResolvedComboTarget[] }> {
   return getOrderedTopLevelRuntimeSteps(combo, allCombos)
     .map((step) => ({
       step,
-      targets: !allCombos
-        ? step.kind === "model"
-          ? [step]
-          : []
-        : expandRuntimeStep(step, allCombos, new Set([combo.name])),
+      targets: filterVisibleComboTargets(
+        !allCombos
+          ? step.kind === "model"
+            ? [step]
+            : []
+          : expandRuntimeStep(step, allCombos, new Set([combo.name])),
+        hiddenModelsByProvider
+      ),
     }))
     .filter((group) => group.targets.length > 0);
 }

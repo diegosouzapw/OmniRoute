@@ -180,6 +180,24 @@ export function getRegistryEntry(provider: string): RegistryEntry | null {
   return REGISTRY[provider] || _byAlias.get(provider) || null;
 }
 
+/**
+ * Decide whether a non-empty live catalog may exclude omitted static models
+ * during request routing and wildcard expansion.
+ *
+ * Live discovery is authoritative by default, including for dynamic providers.
+ * Providers with intentionally partial discovery must explicitly opt out in
+ * their registry entry.
+ */
+export function providerUsesAuthoritativeLiveCatalog(provider: string): boolean {
+  const entry = getRegistryEntry(provider);
+
+  if (entry && typeof entry.liveCatalogAuthoritative === "boolean") {
+    return entry.liveCatalogAuthoritative;
+  }
+
+  return true;
+}
+
 /** Get all registered provider IDs */
 export function getRegisteredProviders(): string[] {
   return Object.keys(REGISTRY);

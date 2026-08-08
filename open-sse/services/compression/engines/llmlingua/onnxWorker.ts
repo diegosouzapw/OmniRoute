@@ -84,7 +84,68 @@ async function getCompressor(entry: LlmlinguaModelEntry, modelPath?: string): Pr
     logger: () => {},
   });
 
-  return promptCompressor;
+  return { compressor: promptCompressor, oai };
+}
+
+/**
+ * Chunk-overflow guard for the BERT position-embedding table.
+ *
+ * The library's chunkContext() splits input at `max_seq_length - 2` = 510
+ * o200k (tiktoken) tokens, then decodes each chunk to text and re-tokenizes it
+ * with the model's wordpiece tokenizer for inference. The round-trip can
+ * EXPAND (510 tiktoken tokens → 516 wordpiece tokens observed), and the
+ * expanded sequence (plus [CLS]/[SEP]) overruns the model's
+ * max_position_embeddings=512 → onnxruntime fails with a broadcast error on
+ * `/bert/embeddings/Add_1` (512 by 516) and the whole call fail-opens.
+ *
+ * Fix: never hand the library a single text larger than MAX_SEG_TOKENS
+ * o200k tokens. The library then emits one chunk per call and the wordpiece
+ * round-trip stays safely under 512. Sentence-boundary backtracking keeps the
+ * cuts at natural breaks so compression quality is unaffected.
+ *
+ * Empirically measured on the TinyBERT meetingbank model: o200k→wordpiece
+ * expansion ≈ 1.09x, so cap 450 → max ~494 wordpiece (incl. [CLS]/[SEP]),
+ * while cap 470 → ~514 and overflows the position-embedding table.
+ */
+const MAX_SEG_TOKENS = 450;
+
+async function compressSegmented(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  compressor: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  oai: any,
+  text: string,
+  rate: number
+): Promise<string> {
+  const tokens = oai.encode(text);
+  if (tokens.length <= MAX_SEG_TOKENS) {
+    return compressor.compress(text, { rate });
+  }
+
+  const segments: string[] = [];
+  const END_TOKENS = new Set([".", "\n", "!", "?", ";"]);
+  let st = 0;
+  while (st < tokens.length) {
+    let ed = Math.min(st + MAX_SEG_TOKENS, tokens.length);
+    // Backtrack to the last sentence boundary inside the segment (≤ 80 tokens back).
+    for (let j = 0; j < Math.min(80, ed - st); j++) {
+      // js-tiktoken/lite exposes only encode/decode — decode a single-token slice.
+      const tok = oai.decode(tokens.slice(ed - 1 - j, ed - j));
+      if (END_TOKENS.has(tok)) {
+        ed = ed - j;
+        break;
+      }
+    }
+    if (ed <= st) ed = Math.min(st + MAX_SEG_TOKENS, tokens.length); // no boundary — hard cut
+    segments.push(oai.decode(tokens.slice(st, ed)));
+    st = ed;
+  }
+
+  const out: string[] = [];
+  for (const seg of segments) {
+    out.push(await compressor.compress(seg, { rate }));
+  }
+  return out.join("\n");
 }
 
 if (parentPort) {
@@ -104,9 +165,9 @@ if (parentPort) {
         });
       }
 
-      const compressor = await pending;
+      const { compressor, oai } = await pending;
       const rate = typeof msg.compressionRate === "number" ? msg.compressionRate : 0.5;
-      const out: string = await compressor.compress(text, { rate });
+      const out: string = await compressSegmented(compressor, oai, text, rate);
 
       parentPort!.postMessage({ id, ok: true, text: out });
     } catch {

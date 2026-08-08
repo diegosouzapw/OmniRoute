@@ -1,0 +1,1 @@
+- **feat(electron):** Desktop app can now attach to an already-running OmniRoute server (e.g. a Docker/OrbStack container) instead of always spawning its own bundled server — configurable via the tray's "Remote Server → Connect to Remote Server…" or the `OMNIROUTE_REMOTE_URL` env var ([#8799](https://github.com/diegosouzapw/OmniRoute/pull/8799)) — thanks @soulhakr

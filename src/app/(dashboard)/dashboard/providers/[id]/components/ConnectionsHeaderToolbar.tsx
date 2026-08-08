@@ -10,6 +10,7 @@ type ConnectionsHeaderToolbarProps = {
   isCompatible: boolean;
   isCommandCode: boolean;
   isOAuth: boolean;
+  supportsDualAuth: boolean;
   providerSupportsPat: boolean;
   connections: any[]; // ConnectionRowConnection[]
   batchTesting: boolean;
@@ -57,6 +58,7 @@ export default function ConnectionsHeaderToolbar({
   isCompatible,
   isCommandCode,
   isOAuth,
+  supportsDualAuth,
   providerSupportsPat,
   connections,
   batchTesting,
@@ -268,7 +270,7 @@ export default function ConnectionsHeaderToolbar({
         )}
         {!isCompatible ? (
           <>
-            {isCommandCode || providerId === "clinepass" ? (
+            {isCommandCode || supportsDualAuth ? (
               <>
                 <Button
                   size="sm"

@@ -1,0 +1,1 @@
+- **feat(providers):** make video_url passthrough configurable per provider/model via compat override ([#9248](https://github.com/diegosouzapw/OmniRoute/issues/9248)) — thanks @HellFiveOsborn

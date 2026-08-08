@@ -1,0 +1,1 @@
+- **fix(providers):** GitHub Copilot no longer re-imports or routes cached Gemini 2.5 Pro and Gemini 3 Flash model IDs after their retirement ([#9103](https://github.com/diegosouzapw/OmniRoute/pull/9103))

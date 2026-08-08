@@ -8,6 +8,7 @@ export const nvidiaProvider: RegistryEntry = {
   baseUrl: "https://integrate.api.nvidia.com/v1/chat/completions",
   authType: "apikey",
   authHeader: "bearer",
+  toolNameMaxLength: 64,
   // #6773: nvidia multiplexes 17 models from 9 different upstream vendors
   // (z-ai/, minimaxai/, deepseek-ai/, qwen/, mistralai/, stepfun-ai/,
   // moonshotai/, openai/, nvidia/) behind ONE connection — mark it passthrough

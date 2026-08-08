@@ -620,3 +620,110 @@ export function buildProviderOptions(
   }
   return Array.from(seen).sort(compare);
 }
+
+// --- Deterministic quota-card ordering -------------------------------------
+// Mirrors the dashboard/providers rule (`providerPageUtils.ts::
+// sortProviderEntriesByName`): every level of ordering must end in a stable,
+// data-independent tiebreak so cards never re-flow between refreshes.
+//
+// Before this, `visibleConnections` globally sorted ALL connections by
+// status then soonest reset, and QuotaCardGrid grouped by first-appearance —
+// so each provider group's position was decided by whichever of its accounts
+// happened to sort first (status/reset change every refresh → groups
+// shuffled). Provider rank is now a sort key again, so a group's position is
+// fixed by PROVIDER_ORDER and account status/reset only orders accounts
+// inside their own group.
+
+export interface QuotaOrderConnection {
+  id?: unknown;
+  provider?: unknown;
+  name?: unknown;
+  email?: unknown;
+  displayName?: unknown;
+}
+
+/** Label/name key: providers-page `getProviderSortLabel` — case-insensitive display name. */
+function quotaConnLabel(conn: QuotaOrderConnection): string {
+  const name = typeof conn.name === "string" ? conn.name : "";
+  const provider = typeof conn.provider === "string" ? conn.provider : "";
+  return (name || provider).toLowerCase();
+}
+
+/** Technical tiebreak key: providers-page `providerId.localeCompare(...)` — ASCII on purpose. */
+function quotaConnTiebreak(conn: QuotaOrderConnection): string {
+  const email = typeof conn.email === "string" ? conn.email : "";
+  const id = typeof conn.id === "string" ? conn.id : String(conn.id ?? "");
+  return email || id;
+}
+
+function providerRank(provider: unknown, providerOrder: Record<string, number>): number {
+  const key = typeof provider === "string" ? provider : "";
+  return providerOrder[key] ?? 99;
+}
+
+/**
+ * Order connections for the quota card grid. Levels (first non-zero wins):
+ *   1. `PROVIDER_ORDER` rank — keeps each provider group glued to its fixed slot.
+ *   2. Provider label (locale-aware, case-insensitive) — orders unranked providers.
+ *   3. Provider key ASCII — deterministic tiebreak between aliased/equal labels.
+ *   4. `accountCompare` (optional) — in-group intent (critical-first, soonest reset).
+ *   5. Account label, then email/id ASCII — so equal-status accounts never shuffle.
+ */
+export function compareQuotaConnections<T extends QuotaOrderConnection>(
+  a: T,
+  b: T,
+  opts: {
+    providerOrder: Record<string, number>;
+    providerLabels?: Record<string, string>;
+    accountCompare?: (a: T, b: T) => number;
+    compare?: (a: string, b: string) => number;
+  }
+): number {
+  const cmp = opts.compare ?? ((x: string, y: string) => x.localeCompare(y));
+  const labels = opts.providerLabels ?? {};
+
+  const ra = providerRank(a.provider, opts.providerOrder);
+  const rb = providerRank(b.provider, opts.providerOrder);
+  if (ra !== rb) return ra - rb;
+
+  const pa = typeof a.provider === "string" ? a.provider : "";
+  const pb = typeof b.provider === "string" ? b.provider : "";
+  const providerLabelCmp = cmp(labels[pa] ?? pa, labels[pb] ?? pb);
+  if (providerLabelCmp !== 0) return providerLabelCmp;
+  if (pa !== pb) return pa < pb ? -1 : 1;
+
+  if (opts.accountCompare) {
+    const acc = opts.accountCompare(a, b);
+    if (acc !== 0) return acc;
+  }
+
+  const accountLabelCmp = cmp(quotaConnLabel(a), quotaConnLabel(b));
+  if (accountLabelCmp !== 0) return accountLabelCmp;
+  const ta = quotaConnTiebreak(a);
+  const tb = quotaConnTiebreak(b);
+  return ta < tb ? -1 : ta > tb ? 1 : 0;
+}
+
+/**
+ * Order provider group keys for rendering. Same provider-level rule as
+ * `compareQuotaConnections` (rank → label → key), used by QuotaCardGrid to
+ * place group headers deterministically.
+ */
+export function compareProviderGroups(
+  a: string,
+  b: string,
+  opts: {
+    providerOrder: Record<string, number>;
+    providerLabels?: Record<string, string>;
+    compare?: (a: string, b: string) => number;
+  }
+): number {
+  const cmp = opts.compare ?? ((x: string, y: string) => x.localeCompare(y));
+  const labels = opts.providerLabels ?? {};
+  const ra = providerRank(a, opts.providerOrder);
+  const rb = providerRank(b, opts.providerOrder);
+  if (ra !== rb) return ra - rb;
+  const labelCmp = cmp(labels[a] ?? a, labels[b] ?? b);
+  if (labelCmp !== 0) return labelCmp;
+  return a < b ? -1 : a > b ? 1 : 0;
+}

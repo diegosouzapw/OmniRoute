@@ -42,6 +42,7 @@ x-common: &common
     - LIVE_WS_HOST=${LIVE_WS_HOST:-0.0.0.0}
     - LIVE_WS_ALLOWED_ORIGINS=${LIVE_WS_ALLOWED_ORIGINS:-http://localhost:20128,http://127.0.0.1:20128}
     - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+    - NODE_OPTIONS=--max-old-space-size=2048
   volumes:
     - ./data:/app/data
   healthcheck:
@@ -54,11 +55,17 @@ x-common: &common
 services:
   # ── Redis (Rate Limiter Backend) ──────────────────────────────────
   redis:
-    image: docker.io/library/redis:7-alpine
+    image: docker.io/library/redis:8.6.5-alpine
     container_name: omniroute-redis
     restart: unless-stopped
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      # Loopback-only by default: this Redis has no `requirepass`, and the app
+      # containers reach it over the compose network (redis:6379), so the
+      # published port exists purely for host-side tooling (redis-cli, a local
+      # `npm run dev`). A bare "6379:6379" binds 0.0.0.0 — that puts an
+      # unauthenticated Redis on every LAN interface. Override REDIS_BIND_HOST
+      # only together with a password (`--requirepass`).
+      - "${REDIS_BIND_HOST:-127.0.0.1}:${REDIS_PORT:-6379}:6379"
     volumes:
       - redis-data:/data
     command: redis-server --save 60 1 --loglevel warning

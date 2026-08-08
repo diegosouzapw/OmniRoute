@@ -341,15 +341,59 @@ describe("enforceCacheControlLimit", () => {
 });
 
 describe("ensureCacheControlOnLastUserMessage", () => {
-  it("does not throw on a valid messages array", () => {
+  it("adds a breakpoint to the last user message when messages have none", () => {
     const body = {
+      system: [
+        { type: "text", text: "s1", cache_control: { type: "ephemeral" } },
+        { type: "text", text: "s2", cache_control: { type: "ephemeral" } },
+      ],
       messages: [
         { role: "user", content: [{ type: "text", text: "Hello" }] },
         { role: "assistant", content: [{ type: "text", text: "Hi!" }] },
         { role: "user", content: [{ type: "text", text: "Follow up" }] },
       ],
     };
-    assert.doesNotThrow(() => ensureCacheControlOnLastUserMessage(body));
+
+    ensureCacheControlOnLastUserMessage(body);
+
+    assert.deepEqual(body.messages[2].content[0].cache_control, { type: "ephemeral" });
+  });
+
+  it("keeps an existing message breakpoint without adding another", () => {
+    const body = {
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Hello",
+              cache_control: { type: "ephemeral" },
+            },
+          ],
+        },
+        { role: "user", content: [{ type: "text", text: "Follow up" }] },
+      ],
+    };
+
+    ensureCacheControlOnLastUserMessage(body);
+
+    assert.equal(body.messages[1].content[0].cache_control, undefined);
+  });
+
+  it("does not exceed four surviving system and message breakpoints", () => {
+    const body = {
+      system: Array.from({ length: 4 }, (_, index) => ({
+        type: "text",
+        text: `s${index}`,
+        cache_control: { type: "ephemeral" },
+      })),
+      messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
+    };
+
+    ensureCacheControlOnLastUserMessage(body);
+
+    assert.equal(body.messages[0].content[0].cache_control, undefined);
   });
 
   it("handles body without messages without throwing", () => {

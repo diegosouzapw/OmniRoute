@@ -726,6 +726,37 @@ function markResponsesReasoningDeltaEmitted(state, itemId) {
   state.reasoningItemsWithDelta.add(id);
 }
 
+// #9500 — streaming separator helper. When summary_index increments mid-stream
+// for a given item_id, a new reasoning segment begins; prefix "\n\n" so segments
+// don't arrive back-to-back. Only prefixes when a delta was already emitted for
+// the item AND the index advanced — never on the first segment. Lives here (not
+// in pureHelpers.ts) because it reads and mutates stream state, which the pure
+// leaf must not hold.
+function buildResponsesReasoningSummaryDelta(state, data, reasoningDelta) {
+  const itemId = data.item_id != null ? String(data.item_id) : "";
+  const summaryIndex = typeof data.summary_index === "number" ? data.summary_index : null;
+  if (!(state.reasoningSummaryIndex instanceof Map)) {
+    state.reasoningSummaryIndex = new Map();
+  }
+  const lastIndex = itemId ? state.reasoningSummaryIndex.get(itemId) : undefined;
+  const alreadyEmittedForItem = itemId
+    ? state.reasoningItemsWithDelta instanceof Set && state.reasoningItemsWithDelta.has(itemId)
+    : Boolean(state.reasoningDeltaEmitted);
+  let deltaText = reasoningDelta;
+  if (
+    summaryIndex !== null &&
+    lastIndex !== undefined &&
+    summaryIndex > lastIndex &&
+    alreadyEmittedForItem
+  ) {
+    deltaText = `\n\n${reasoningDelta}`;
+  }
+  if (itemId && (lastIndex === undefined || summaryIndex > lastIndex)) {
+    state.reasoningSummaryIndex.set(itemId, summaryIndex);
+  }
+  return deltaText;
+}
+
 // #5786 — build a Chat-format reasoning delta chunk in the shape the client renders in
 // its thinking panel (`reasoning_content`, or `reasoning_text` for Copilot-compatible
 // clients). Mirrors the `response.reasoning_summary_text.delta` branch.
@@ -1122,17 +1153,16 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     };
   }
 
-  // Handle true reasoning summary ("Thought for 15s").
-  // Emit as `delta.reasoning_content` — matches the shape used by the
-  // `reasoning_content_text.delta` branch above and is what Chat clients
-  // (OpenCode, Claude Code, Cursor, etc.) actually render in their thinking
-  // panel. A nested `delta.reasoning.summary` object is swallowed by most
-  // stream mergers and never reaches the user.
+  // Handle true reasoning summary ("Thought for 15s"). Emit as `delta.reasoning_content`
+  // — matches the `reasoning_content_text.delta` branch above and is what Chat clients
+  // (OpenCode, Claude Code, Cursor, etc.) render in their thinking panel. A nested
+  // `delta.reasoning.summary` object is swallowed by most stream mergers.
   if (eventType === "response.reasoning_summary_text.delta") {
     const reasoningDelta = data.delta || "";
     if (!reasoningDelta) return null;
     markResponsesReasoningDeltaEmitted(state, data.item_id);
-    return buildResponsesReasoningDeltaChunk(state, reasoningDelta);
+    const deltaText = buildResponsesReasoningSummaryDelta(state, data, reasoningDelta);
+    return buildResponsesReasoningDeltaChunk(state, deltaText);
   }
 
   // #5786 — reasoning summary exposed ONLY as a terminal snapshot on
@@ -1155,10 +1185,8 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
       !(state.reasoningItemsWithDelta instanceof Set && state.reasoningItemsWithDelta.size > 0);
     if (emittedForItem || emittedWithoutItemId) return null;
 
-    // #7095/#7176 reconciliation: computed WITHOUT mutating `item`, so an
-    // encrypted-only reasoning item (and its `encrypted_content`) is never
-    // rewritten with a fabricated `summary` — the placeholder only feeds this
-    // synthetic client-facing delta chunk.
+    // #7176/#7243: only synthesize from real upstream plaintext — never mutate
+    // `item` and never fabricate placeholder text for encrypted-only reasoning.
     const summaryText = getVisibleResponsesReasoningSummaryText(item);
     if (!summaryText) return null;
     return buildResponsesReasoningDeltaChunk(state, summaryText);

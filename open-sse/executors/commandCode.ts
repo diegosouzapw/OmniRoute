@@ -73,7 +73,12 @@ const CC_VISION_MODEL_PATTERNS: readonly RegExp[] = [
   // Anthropic
   /claude-fable/i, // claude-fable-5 (not covered by claude-opus/sonnet/haiku-4)
   // OpenAI
-  /gpt-5/i, // gpt-5.6, gpt-5.5, gpt-5.3-codex
+  /gpt-5/i, // gpt-5.6, gpt-5.5, gpt-5.4, gpt-5.4-mini, gpt-5.3-codex
+  // NOTE: gpt-5.4-mini and gpt-5.3-codex deliberately stay inside the `/gpt-5/`
+  // family — both accept image input on the OpenAI API, and there is no
+  // verified Command Code backend data marking them text-only. Excluding them
+  // without evidence would re-create #4071 (image stripped from a model that
+  // can see it). Revisit only with per-model CC registry capability data.
   // Sakana
   /fugu/i, // sakana/fugu-ultra
 ];
@@ -105,9 +110,36 @@ function isCommandCodeVisionModel(model?: string | null): boolean {
  *
  * OpenAI-compatible:  { type: "image_url", image_url: { url: "..." } }
  * Command Code CLI:   { type: "image", image: "..." }
+ * AI SDK image:       { type: "image", image: "data:...;base64,..." } (#1330)
+ * Anthropic image:    { type: "image", source: { type: "base64", media_type, data } }
+ *                     or { type: "image", source: { type: "url", url } }
+ *
+ * The Anthropic-shaped block is common for Claude-Code-compatible clients
+ * (e.g. Zoo Code) that send Messages-style content arrays to the
+ * OpenAI `/v1/chat/completions` surface. Without this branch the image was
+ * silently dropped before reaching the upstream vision model.
  */
 function extractImageUrl(part: JsonRecord): string | undefined {
-  if (part.type === "image") return stringValue(part.image);
+  if (part.type === "image") {
+    const direct = stringValue(part.image);
+    if (direct) return direct;
+
+    // Anthropic source block: { source: { type: "base64", media_type, data } } or
+    // { source: { type: "url", url } }.
+    const source = isRecord(part.source) ? part.source : null;
+    if (source) {
+      if (source.type === "base64") {
+        const mediaType = stringValue(source.media_type) || "image/png";
+        const data = stringValue(source.data);
+        if (data) return `data:${mediaType};base64,${data}`;
+      }
+      if (source.type === "url") {
+        const url = stringValue(source.url);
+        if (url) return url;
+      }
+    }
+    return undefined;
+  }
   if (part.type === "image_url") {
     if (isRecord(part.image_url)) return stringValue(part.image_url.url);
     return stringValue(part.image_url);
@@ -429,14 +461,31 @@ function applyEventToAggregateOrThrow(event: JsonRecord, state: AggregateState):
 function usageFromCommandCode(usage: JsonRecord | null) {
   if (!usage) return undefined;
   const details = isRecord(usage.inputTokenDetails) ? usage.inputTokenDetails : {};
-  const prompt =
-    (numberValue(usage.inputTokens) || 0) + (numberValue(details.cacheReadTokens) || 0);
+  const cacheRead = numberValue(details.cacheReadTokens) || 0;
+  const noCache = numberValue(details.noCacheTokens) || 0;
+  // Command Code's totalUsage.inputTokens is the FULL prompt total and already
+  // includes the cached portion (noCacheTokens + cacheReadTokens = inputTokens),
+  // so we must NOT add cacheRead back — that would double-count. There is no
+  // cache-write field in the upstream payload, so cache creation stays unset.
+  const inputTokens = numberValue(usage.inputTokens) || 0;
+  const prompt = inputTokens;
   const completion = numberValue(usage.outputTokens) || 0;
-  return {
+  const result: JsonRecord = {
     prompt_tokens: prompt,
     completion_tokens: completion,
     total_tokens: prompt + completion,
   };
+  // Surface the cache breakdown as informational fields so logUsage prints
+  // `| cache_read=X | no_cache=Y` and appendRequestLog persists them. These are
+  // NOT added to prompt_tokens (already included) — metering stays accurate.
+  if (cacheRead > 0) result.cache_read_input_tokens = cacheRead;
+  if (noCache > 0) result.no_cache_tokens = noCache;
+  // Keep reasoning_token_details (reasoningTokens) when present so stream.ts's
+  // extractUsage can surface it as reasoning_tokens.
+  const reasoningDetails = isRecord(usage.reasoningTokenDetails) ? usage.reasoningTokenDetails : {};
+  const reasoning = numberValue(reasoningDetails.reasoningTokens);
+  if (reasoning !== undefined && reasoning > 0) result.reasoning_tokens = reasoning;
+  return result;
 }
 
 function createStreamResponse(
@@ -517,6 +566,22 @@ function createStreamResponse(
             state.finishReason = mapFinishReason(event.finishReason);
             state.usage = isRecord(event.totalUsage) ? event.totalUsage : null;
             controller.enqueue(sse(chatCompletionChunk(id, model, {}, state.finishReason)));
+            // Emit a standards-compliant usage-only chunk (choices: []) before
+            // [DONE] when upstream reported usage. stream.ts's extractUsage
+            // recognizes this shape (see stream.ts:1661) and logs the ACTUAL
+            // token counts (in/out/cache_read/no_cache) instead of estimates.
+            const usagePayload = usageFromCommandCode(state.usage);
+            if (usagePayload) {
+              controller.enqueue(
+                sse({
+                  id,
+                  object: "chat.completion.chunk",
+                  model,
+                  usage: usagePayload,
+                  choices: [],
+                })
+              );
+            }
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));
             closed = true;
             controller.close();

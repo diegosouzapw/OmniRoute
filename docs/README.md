@@ -105,6 +105,7 @@ Pluggable subsystems exposed to clients, agents, and operators.
 - [PLUGINS.md](frameworks/PLUGINS.md) — CLI plugin system overview.
 - [PLUGIN_SDK.md](frameworks/PLUGIN_SDK.md) — plugin SDK reference.
 - [PLUGIN_MARKETPLACE.md](frameworks/PLUGIN_MARKETPLACE.md) — plugin marketplace.
+- [RADAR.md](frameworks/RADAR.md) — Radar free-model catalog overlay (optional, off by default).
 
 ## routing/
 

@@ -268,7 +268,12 @@ test("Command Code data: SSE lines aggregate into non-stream ChatCompletion JSON
   assert.equal(json.choices[0].message.reasoning_content, "because");
   assert.equal(json.choices[0].message.tool_calls[0].function.arguments, JSON.stringify({ id: 7 }));
   assert.equal(json.choices[0].finish_reason, "length");
-  assert.deepEqual(json.usage, { prompt_tokens: 5, completion_tokens: 5, total_tokens: 10 });
+  assert.deepEqual(json.usage, {
+    prompt_tokens: 3,
+    completion_tokens: 5,
+    total_tokens: 8,
+    cache_read_input_tokens: 2,
+  });
 });
 
 test("Command Code executor surfaces upstream and streamed errors", async () => {
@@ -384,4 +389,126 @@ test("Command Code non-stream aggregation throws when the final error event lack
       body: { messages: [{ role: "user", content: "Hi" }] },
     });
   }, /boom/);
+});
+
+test("Command Code usage chunk surfaces cache_read and no_cache for the stream pipeline", async () => {
+  globalThis.fetch = async () =>
+    commandCodeStream([
+      { type: "text-delta", text: "Hi" },
+      {
+        type: "finish",
+        finishReason: "stop",
+        totalUsage: {
+          inputTokens: 10,
+          inputTokenDetails: { noCacheTokens: 6, cacheReadTokens: 4 },
+          outputTokens: 6,
+        },
+      },
+    ]);
+
+  const { response } = await getExecutor("command-code").execute({
+    model: "gpt-5.4-mini",
+    stream: true,
+    credentials: { apiKey: "cc_test_key" },
+    body: { messages: [{ role: "user", content: "Hi" }] },
+  });
+
+  const sse = await response.text();
+  const chunks = parseSsePayloads(sse);
+  const usageChunk = chunks.find(
+    (chunk) => Array.isArray(chunk.choices) && chunk.choices.length === 0
+  );
+  assert.ok(usageChunk, "expected a usage-only chunk (choices: []) in the stream");
+
+  // The usage-only chunk feeds stream.ts's extractUsage, which surfaces
+  // cache_read_input_tokens / no_cache_tokens into the [USAGE] line.
+  const { extractUsage } = await import("../../open-sse/utils/usageTracking.ts");
+  const extracted = extractUsage(usageChunk);
+  assert.ok(extracted, "extractUsage should recognize the usage-only chunk");
+  assert.equal(extracted.prompt_tokens, 10);
+  assert.equal(extracted.completion_tokens, 6);
+  assert.equal(extracted.cache_read_input_tokens, 4);
+  assert.equal(extracted.no_cache_tokens, 6);
+});
+
+test("Command Code stream emits a usage-only chunk with actual tokens before [DONE]", async () => {
+  globalThis.fetch = async () =>
+    commandCodeStream([
+      { type: "text-delta", text: "Hi" },
+      {
+        type: "finish",
+        finishReason: "stop",
+        totalUsage: {
+          inputTokens: 10,
+          inputTokenDetails: { cacheReadTokens: 4, cacheCreationTokens: 2 },
+          outputTokens: 6,
+          reasoningTokenDetails: { reasoningTokens: 1 },
+        },
+      },
+    ]);
+
+  const { response } = await getExecutor("command-code").execute({
+    model: "gpt-5.4-mini",
+    stream: true,
+    credentials: { apiKey: "cc_test_key" },
+    body: { messages: [{ role: "user", content: "Hi" }] },
+  });
+
+  const sse = await response.text();
+  const chunks = parseSsePayloads(sse);
+
+  // Find the usage-only chunk: choices must be [] and usage must carry the
+  // actual upstream numbers. prompt_tokens = inputTokens (10) — cacheRead 4 is
+  // already included in that 10, so it is reported separately, NOT re-added.
+  const usageChunk = chunks.find(
+    (chunk) => Array.isArray(chunk.choices) && chunk.choices.length === 0
+  );
+  assert.ok(usageChunk, "expected a usage-only chunk (choices: []) in the stream");
+  assert.deepEqual(usageChunk.usage, {
+    prompt_tokens: 10,
+    completion_tokens: 6,
+    total_tokens: 16,
+    cache_read_input_tokens: 4,
+    reasoning_tokens: 1,
+  });
+  // The usage chunk must come before the [DONE] marker.
+  assert.match(sse, /"usage":/);
+  const doneIndex = sse.indexOf("data: [DONE]");
+  const usageIndex = sse.indexOf(`"choices":[]`);
+  assert.ok(usageIndex > -1 && usageIndex < doneIndex, "usage chunk must precede [DONE]");
+});
+
+test("Command Code non-stream usage keeps inputTokens as prompt_tokens and reports cache separately", async () => {
+  globalThis.fetch = async () =>
+    commandCodeStream(
+      [
+        { type: "text-delta", text: "ok" },
+        {
+          type: "finish",
+          finishReason: "stop",
+          totalUsage: {
+            inputTokens: 5,
+            inputTokenDetails: { noCacheTokens: 2, cacheReadTokens: 3 },
+            outputTokens: 2,
+          },
+        },
+      ],
+      { sse: true }
+    );
+
+  const { response } = await getExecutor("command-code").execute({
+    model: "gpt-5.4-mini",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: { messages: [{ role: "user", content: "Hi" }] },
+  });
+
+  const json = await response.json();
+  assert.deepEqual(json.usage, {
+    prompt_tokens: 5,
+    completion_tokens: 2,
+    total_tokens: 7,
+    cache_read_input_tokens: 3,
+    no_cache_tokens: 2,
+  });
 });

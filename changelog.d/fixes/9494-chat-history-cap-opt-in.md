@@ -1,0 +1,1 @@
+- fix(api): make the 800-message chat history cap opt-in so long conversations reach compression instead of a terminal 413 (#9494)

@@ -6,9 +6,8 @@ import { test, afterEach } from "node:test";
 import assert from "node:assert/strict";
 
 const { registerHook, unregisterHook } = await import("../../src/lib/plugins/hooks.ts");
-const { runPluginOnRequestHook } = await import(
-  "../../open-sse/handlers/chatCore/pluginOnRequest.ts"
-);
+const { runPluginOnRequestHook } =
+  await import("../../open-sse/handlers/chatCore/pluginOnRequest.ts");
 
 const PLUGIN = "test-onrequest-plugin";
 
@@ -30,6 +29,31 @@ function baseArgs(overrides: Record<string, unknown> = {}) {
 test("no registered hooks → pass-through (blocked:false, no body)", async () => {
   const gate = await runPluginOnRequestHook(baseArgs());
   assert.equal(gate.blocked, false);
+});
+
+test("headers passed to the hook are visible in PluginContext", async () => {
+  let capturedCtx: Record<string, unknown> | undefined;
+  registerHook("onRequest", "test-ctx-headers", async (ctx: Record<string, unknown>) => {
+    capturedCtx = ctx;
+    return {};
+  });
+  const testHeaders = { "x-trace-id": "abc-123", "x-request-id": "req-456" };
+  const gate = await runPluginOnRequestHook(baseArgs({ headers: testHeaders }));
+  assert.equal(gate.blocked, false);
+  assert.ok(capturedCtx, "expected the hook to be invoked");
+  assert.deepEqual(capturedCtx!.headers, testHeaders);
+});
+
+test("no headers arg → backward compatible (undefined in ctx)", async () => {
+  let capturedCtx: Record<string, unknown> | undefined;
+  registerHook("onRequest", "test-ctx-noheaders", async (ctx: Record<string, unknown>) => {
+    capturedCtx = ctx;
+    return {};
+  });
+  const gate = await runPluginOnRequestHook(baseArgs());
+  assert.equal(gate.blocked, false);
+  assert.ok(capturedCtx, "expected the hook to be invoked");
+  assert.equal(capturedCtx!.headers, undefined);
 });
 
 test("a blocking hook → blocked:true with a 403 JSON Response", async () => {
@@ -61,6 +85,7 @@ test("a body-rewriting hook → blocked:false with the new body", async () => {
   const gate = await runPluginOnRequestHook(baseArgs());
   assert.equal(gate.blocked, false);
   if (gate.blocked) return;
+  assert.equal("response" in gate, false);
   assert.deepEqual(gate.body, rewritten);
 });
 

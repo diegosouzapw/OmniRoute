@@ -183,6 +183,11 @@ Per environment:
   ships slim by design.
 - **VPS (PM2)** — install into the app's `node_modules`, then restart the process so the
   worker re-probes the gate.
+- **Raw Next standalone (`npm run build` → `.build/next/standalone/server.js`)** — the
+  standalone trace ships NEITHER the worker nor the optional deps, so the engine silently
+  fail-opens. `scripts/build/colocate-standalone.mjs` re-applies both (worker esbuild +
+  optional-dep closure into the standalone tree); it runs automatically via the
+  `postbuild` npm hook after every build. Idempotent, fail-soft when deps are absent.
 
 **Verify it is active:** with LLMLingua selected, real prose actually shrinks (the engine
 stops fail-opening), and the first request triggers the model download into

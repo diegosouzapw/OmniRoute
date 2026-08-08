@@ -719,7 +719,7 @@ async function handleKieImageGeneration({
     baseUrl = `${providerConfig.baseUrl.replace(/\/$/, "")}/api/v1/jobs/createTask`;
     const input: Record<string, unknown> = {
       prompt,
-      aspect_ratio: mapImageSize(size, "1:1"),
+      aspect_ratio: mapImageSize(size),
     };
     if (imageUrl) {
       input.image_url = imageUrl;
@@ -737,7 +737,7 @@ async function handleKieImageGeneration({
 
     payload = {
       prompt,
-      size: mapImageSize(size, "1:1"),
+      size: mapImageSize(size),
       nVariants: body.n || 1,
     };
   }

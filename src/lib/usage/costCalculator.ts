@@ -161,8 +161,12 @@ export function computeCostFromPricing(
   const outputTokens = tokens.output ?? tokens.completion_tokens ?? tokens.output_tokens ?? 0;
   cost += outputTokens * (outputPrice / 1_000_000);
 
+  // completion_tokens is reasoning-inclusive. Reasoning is already billed at
+  // the output rate above, so a dedicated price contributes only its premium.
   const reasoningTokens = tokens.reasoning ?? tokens.reasoning_tokens ?? 0;
-  if (reasoningTokens > 0) cost += reasoningTokens * (reasoningPrice / 1_000_000);
+  if (reasoningTokens > 0 && pricing.reasoning !== undefined && pricing.reasoning !== null) {
+    cost += reasoningTokens * ((reasoningPrice - outputPrice) / 1_000_000);
+  }
 
   if (cacheCreationTokens > 0) cost += cacheCreationTokens * (cacheCreationPrice / 1_000_000);
 

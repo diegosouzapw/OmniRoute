@@ -11,6 +11,12 @@
  *
  * Fix: in "auto" mode, the SECURITY_MONITOR_MARKER system-prompt text is now a
  * necessary condition. `stop_sequences` alone is no longer sufficient.
+ *
+ * Follow-up (#9276): "always" mode previously short-circuited EVERY Claude-format
+ * request unconditionally, regardless of signal shape. That let a normal chat
+ * request through /v1/messages be silently swallowed by an operator's "always"
+ * opt-in. The unconditional `if (mode === "always") return true` branch was
+ * removed — "always" now requires the same SECURITY_MONITOR_MARKER as "auto".
  */
 
 import test from "node:test";
@@ -52,7 +58,7 @@ test("issue #8189: 'auto' mode still short-circuits when the security-monitor ma
   );
 });
 
-test("issue #8189: 'always' mode is unaffected — every Claude-format request still short-circuits (operator opted in)", () => {
+test("issue #9276: 'always' mode does NOT short-circuit without the security-monitor marker (narrowed to match 'auto')", () => {
   const body = {
     system: "You are a helpful assistant that writes CMS page templates.",
     stop_sequences: ["</block>"],
@@ -60,16 +66,29 @@ test("issue #8189: 'always' mode is unaffected — every Claude-format request s
   };
   assert.equal(
     shouldDefaultAllowClassifier(FORMATS.CLAUDE, body, "always"),
+    false,
+    "mode='always' must NOT short-circuit a request with no security-monitor marker, even " +
+      "with stop_sequences=['</block>'] — #9276 removed the unconditional always-mode return"
+  );
+});
+
+test("issue #9276: 'always' mode still short-circuits when the security-monitor marker is present (operator opted in)", () => {
+  const body = {
+    system:
+      "You are a security monitor for autonomous AI coding agents. Evaluate the following action.",
+    stop_sequences: [],
+    messages: [{ role: "user", content: "<transcript>Bash rm -rf /</transcript>" }],
+  };
+  assert.equal(
+    shouldDefaultAllowClassifier(FORMATS.CLAUDE, body, "always"),
     true,
-    "mode='always' must short-circuit every Claude-format request regardless of signal shape"
+    "mode='always' must still short-circuit when the security-monitor marker is present"
   );
 });
 
 test("issue #8189: 'off' mode (shipped default) never short-circuits", () => {
   const body = {
-    system: [
-      { type: "text", text: "You are a security monitor for autonomous AI coding agents." },
-    ],
+    system: [{ type: "text", text: "You are a security monitor for autonomous AI coding agents." }],
     stop_sequences: ["</block>"],
   };
   assert.equal(shouldDefaultAllowClassifier(FORMATS.CLAUDE, body, "off"), false);

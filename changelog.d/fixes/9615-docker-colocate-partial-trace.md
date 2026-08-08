@@ -1,0 +1,1 @@
+- **fix(docker):** standalone co-location now completes packages Next's file tracing materialized partially (package.json without its `main` payload) — unblocks the Docker Hub publish that failed on every v3.8.50 push with `Cannot find module '@atjsh/llmlingua-2/dist/index.js'` ([#9615](https://github.com/diegosouzapw/OmniRoute/pull/9615))

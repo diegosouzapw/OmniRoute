@@ -2,7 +2,9 @@ import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "
 import { join } from "node:path";
 import { resolveDataDir } from "../data-dir.mjs";
 
-const SERVICES = ["server", "mitm", "tunnel/cloudflared", "tunnel/tailscale"];
+// #9455: "supervisor" must be tracked so killAllSubprocesses() can stop the
+// supervisor process, not just the child server it spawned (and respawns).
+const SERVICES = ["server", "supervisor", "mitm", "tunnel/cloudflared", "tunnel/tailscale"];
 
 function getServicePidPath(service) {
   return join(resolveDataDir(), service, ".pid");

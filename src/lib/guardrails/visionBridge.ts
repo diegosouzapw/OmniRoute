@@ -11,14 +11,17 @@ import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import {
   extractImageParts,
   callVisionModel as defaultCallVisionModel,
+  composeVisionPrompt,
   replaceImageParts,
 } from "./visionBridgeHelpers";
 import {
-  VISION_BRIDGE_DEFAULTS,
   getVisionBridgeConfig,
   isVisionBridgeForcedModel,
 } from "@/shared/constants/visionBridgeDefaults";
+import { resolveVisionBridgeRuntimeSettings } from "@/shared/constants/modalityBridgeDefaults";
 import { getBestVisionModel } from "./visionBridgeRouter";
+import { bridgeCacheKey, getSharedBridgeCacheFor } from "./modalityBridge/bridgeCache";
+import { recordBridgeUse } from "./modalityBridge/bridgeStats";
 import {
   isProviderConnectionUsable,
   hasUsableCredentialsForModel,
@@ -27,6 +30,11 @@ import {
 export { isProviderConnectionUsable, hasUsableCredentialsForModel };
 
 type ComboVisionBridgeDecision = "process" | "skip" | "not-combo";
+
+export function resolveVisionComboName(mapping: Record<string, unknown>): string | null {
+  const comboName = mapping.comboName ?? mapping.name ?? null;
+  return typeof comboName === "string" && comboName.length > 0 ? comboName : null;
+}
 
 /// Check if a combo model should trigger vision bridge processing.
 /// Resolves combo targets and returns:
@@ -45,7 +53,7 @@ async function getComboVisionBridgeDecision(model: string): Promise<ComboVisionB
     if (!combo) {
       const mapping = await resolveComboForModel(model);
       if (!mapping) return "not-combo";
-      const comboName = mapping.comboName ?? mapping.name ?? null;
+      const comboName = resolveVisionComboName(mapping);
       if (!comboName) return "not-combo";
       combo = await getComboByName(comboName);
     }
@@ -87,6 +95,30 @@ async function getComboVisionBridgeDecision(model: string): Promise<ComboVisionB
     // On error, try to process images (conservative)
     return "process";
   }
+}
+
+/**
+ * Extract the text of the LAST user message that carries any (string content,
+ * or the first `type: "text"` part of an array content). Used as the
+ * task-aware focus hint for the describe path.
+ */
+function extractLastUserText(messages: unknown[]): string | undefined {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const message = messages[i] as { role?: unknown; content?: unknown } | null | undefined;
+    if (message?.role !== "user") continue;
+    if (typeof message.content === "string" && message.content.trim()) {
+      return message.content;
+    }
+    if (Array.isArray(message.content)) {
+      for (const part of message.content) {
+        const p = part as { type?: unknown; text?: unknown } | null | undefined;
+        if (p?.type === "text" && typeof p.text === "string" && p.text.trim()) {
+          return p.text;
+        }
+      }
+    }
+  }
+  return undefined;
 }
 
 export interface VisionBridgeDependencies {
@@ -184,13 +216,7 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
       return { block: false };
     }
 
-    // 6. Check for images using helper (extractImageParts returns empty if no images)
-    const imageParts = extractImageParts(messages as Parameters<typeof extractImageParts>[0]);
-    if (imageParts.length === 0) {
-      return { block: false };
-    }
-
-    // 7. Get settings (injectable for testing)
+    // 6. Get settings (injectable for testing)
     const getSettings = this.deps.getSettings ?? defaultGetSettings;
     let settings: Record<string, unknown> = {};
     try {
@@ -199,9 +225,18 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
       // If getSettings fails, use defaults
     }
 
-    // 8. Check if Vision Bridge is enabled in settings
-    const enabled = settings.visionBridgeEnabled ?? VISION_BRIDGE_DEFAULTS.enabled;
-    if (!enabled) {
+    // 7. Resolve runtime settings (new modalityBridge* keys win; legacy
+    // visionBridge* keys stay a one-cycle fallback) and check enabled —
+    // BEFORE any media traversal, so a disabled bridge never pays the
+    // per-request deep scan of every message content part.
+    const runtime = resolveVisionBridgeRuntimeSettings(settings);
+    if (!runtime.enabled) {
+      return { block: false };
+    }
+
+    // 8. Check for images using helper (extractImageParts returns empty if no images)
+    const imageParts = extractImageParts(messages as Parameters<typeof extractImageParts>[0]);
+    if (imageParts.length === 0) {
       return { block: false };
     }
 
@@ -221,9 +256,16 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
     // request with model=auto would land on a text-only model (#7871). Keeping
     // "auto" is never the answer there, so the keep-credentialed-model skip
     // below does not apply to auto — only the reroute-target credential guard.
-    if ((comboVisionBridgeDecision === "not-combo" || isAuto) && !forceVisionBridge) {
+    const rerouteEligible =
+      (comboVisionBridgeDecision === "not-combo" || isAuto) && !forceVisionBridge;
+    // Forced modes short-circuit BEFORE the auto heuristic (#6640/#7204 untouched):
+    // - "describe" skips the whole reroute block → straight to the describe path.
+    // - "reroute" skips only the keep-credentialed-model guard; the reroute-target
+    //   credential guard still applies, and with no usable target it falls through
+    //   to describe (raw images must never reach a text-only backend — #8430).
+    if (rerouteEligible && runtime.mode !== "describe") {
       const checkCreds = this.deps.hasUsableCredentials ?? hasUsableCredentialsForModel;
-      const originalUsable = await checkCreds(model);
+      const originalUsable = runtime.mode === "reroute" ? false : await checkCreds(model);
 
       if (originalUsable === true && !isAuto) {
         // Keep the credentialed model; describe images below if needed.
@@ -233,15 +275,25 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
         );
       } else {
         // Honor an explicit operator override from the Vision Bridge settings tab
-        // (settings.visionBridgeModel) as the fixed reroute target, for consistency
-        // with the combo/describe path below (step 10) which always honors it via
-        // getVisionBridgeConfig. When unset, auto-select the fastest available
-        // vision-capable model from available providers.
-        const configuredModel =
-          typeof settings.visionBridgeModel === "string" && settings.visionBridgeModel.trim()
-            ? settings.visionBridgeModel.trim()
-            : undefined;
-        const bestModel = await getBestVisionModel({ fixedModel: configuredModel });
+        // as the fixed reroute target, for consistency with the combo/describe
+        // path below (step 10) which always honors it via getVisionBridgeConfig.
+        // New modalityBridgeVisionModel wins over legacy visionBridgeModel (same
+        // precedence as resolveVisionBridgeRuntimeSettings — runtime.model can't
+        // be used here because it backfills the default and this path must
+        // auto-select the fastest available vision-capable model when unset).
+        const rawConfiguredModel = [
+          settings.modalityBridgeVisionModel,
+          settings.visionBridgeModel,
+        ].find((value): value is string => typeof value === "string" && value.trim().length > 0);
+        const configuredModel = rawConfiguredModel?.trim();
+        // Propagate the same resolved credential check used by the adjacent
+        // checkCreds() calls above/below (#8430) — without this, the router
+        // falls back to the real DB-backed hasUsableCredentialsForModel and
+        // ignores an injected `deps.hasUsableCredentials` test/DI override.
+        const bestModel = await getBestVisionModel(
+          { fixedModel: configuredModel },
+          { hasUsableCredentials: checkCreds }
+        );
         if (bestModel && bestModel !== model) {
           const bestUsable = await checkCreds(bestModel);
           // Only block the reroute when we KNOW the target is unusable (false).
@@ -272,13 +324,15 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
       // Fall through: describe images as text (or no-op if describe path can't run)
     }
 
-    // 10. Get configuration
+    // 10. Get configuration — fed from the resolved runtime values so the new
+    // modalityBridge* keys are honored; getVisionBridgeConfig keeps producing
+    // the same VisionModelConfig shape callVisionModel expects.
     const config = getVisionBridgeConfig({
-      visionBridgeEnabled: settings.visionBridgeEnabled as boolean | undefined,
-      visionBridgeModel: settings.visionBridgeModel as string | undefined,
-      visionBridgePrompt: settings.visionBridgePrompt as string | undefined,
-      visionBridgeTimeout: settings.visionBridgeTimeout as number | undefined,
-      visionBridgeMaxImages: settings.visionBridgeMaxImages as number | undefined,
+      visionBridgeEnabled: runtime.enabled,
+      visionBridgeModel: runtime.model,
+      visionBridgePrompt: runtime.prompt,
+      visionBridgeTimeout: runtime.timeoutMs,
+      visionBridgeMaxImages: runtime.maxImages,
     });
 
     // 11. Limit images
@@ -289,10 +343,30 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
     const logger = context.log;
     const startTime = Date.now();
 
+    // Task-aware focus hint: append the LAST user question so the description
+    // targets what the user actually asked instead of a generic caption.
+    const lastUserText = extractLastUserText(messages);
+    const composedPrompt = composeVisionPrompt(config.prompt, lastUserText, runtime.taskAware);
+    const describeConfig = { ...config, prompt: composedPrompt };
+
+    // Shared describe cache (sha256 of contentRef+prompt+model): the same image
+    // with the same prompt/model is described once per TTL. Failures are never
+    // cached — a throw inside the map happens before the cache write. The model
+    // component is the CONFIGURED bridge model (config.model — the bridge-config
+    // identity), not the model that actually produced the description:
+    // callVisionModel may fall back internally to another vision model, and
+    // keying by attempt would fragment the cache and leak router state into the
+    // key. Intentional and stable — do not "fix" this to key per attempt.
+    const cache = runtime.cacheEnabled ? getSharedBridgeCacheFor(runtime) : null;
+
     // Process all images in parallel using Promise.allSettled for fail-partial behavior
     const results = await Promise.allSettled(
       limitedParts.map(async (imagePart, i) => {
-        const description = await callVision(imagePart.imageUrl, config);
+        const key = cache ? bridgeCacheKey(imagePart.imageUrl, composedPrompt, config.model) : null;
+        const cached = key && cache ? cache.get(key) : undefined;
+        const description = cached ?? (await callVision(imagePart.imageUrl, describeConfig));
+        if (cached === undefined && key && cache) cache.set(key, description);
+        recordBridgeUse("vision", { cacheHit: cached !== undefined });
         return `[Image ${i + 1}]: ${description}`;
       })
     );
@@ -308,6 +382,7 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
       const message =
         result.reason instanceof Error ? result.reason.message : String(result.reason);
       logger?.warn?.("VISION-BRIDGE", `Failed to get description for image ${i + 1}: ${message}`);
+      recordBridgeUse("vision", { failure: true });
       return null;
     });
 

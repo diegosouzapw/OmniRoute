@@ -88,6 +88,7 @@ import type {
   ComboRuntimeStep,
   HandleSingleModel,
   IsModelAvailable,
+  HiddenModelsByProvider,
   ResolvedComboTarget,
 } from "./types.ts";
 
@@ -111,6 +112,7 @@ export interface ResolveComboTargetPipelineDeps {
    * this leaf), so importing it directly would create an import cycle.
    */
   buildAutoCandidates: ResolveAutoStrategyDeps["buildAutoCandidates"];
+  hiddenModelsByProvider?: HiddenModelsByProvider;
 }
 
 export interface ResolvedComboTargetPipeline {
@@ -204,10 +206,15 @@ async function collectWeightedEligibility(
   expandedCombo: ComboLike,
   expandedAllCombos: ComboCollectionLike,
   resilienceSettings: ResilienceSettings,
-  isModelAvailable?: IsModelAvailable
+  isModelAvailable?: IsModelAvailable,
+  hiddenModelsByProvider?: HiddenModelsByProvider
 ): Promise<{ stepGroups: WeightedStepGroups; weightedEligibleKeys: Set<string> }> {
   const weightedEligibleKeys = new Set<string>();
-  const stepGroups = resolveWeightedStepGroups(expandedCombo, expandedAllCombos);
+  const stepGroups = resolveWeightedStepGroups(
+    expandedCombo,
+    expandedAllCombos,
+    hiddenModelsByProvider
+  );
   for (const group of stepGroups) {
     const availability = await Promise.all(
       group.targets.map((target) =>
@@ -260,7 +267,8 @@ async function resolveWeightedSelection(
       expandedCombo,
       expandedAllCombos,
       deps.resilienceSettings,
-      deps.isModelAvailable
+      deps.isModelAvailable,
+      deps.hiddenModelsByProvider
     );
     stepGroups = eligibility.stepGroups;
     weightedEligibleKeys = eligibility.weightedEligibleKeys;
@@ -351,7 +359,8 @@ function logTargetPoolSize(
  * auto routing (pipeline disabled, below token threshold, or dispatch failure).
  */
 async function dispatchSmartPipeline(
-  deps: ResolveComboTargetPipelineDeps
+  deps: ResolveComboTargetPipelineDeps,
+  availableModels: readonly string[]
 ): Promise<Response | null> {
   const { body, combo, strategy, config, settings, signal, log } = deps;
   if (strategy !== "auto") return null;
@@ -362,6 +371,7 @@ async function dispatchSmartPipeline(
     const pipelineRaw = await handlePipelineCombo({
       body,
       combo,
+      availableModels,
       handleChatCore: deps.handleSingleModelWithTimeout,
       log: {
         info: log.info,
@@ -648,10 +658,24 @@ async function applyPromptCacheStage(
     promptCacheAffinityEnabled && resolvePromptCacheAffinityKey(body)
       ? await expandPromptCacheAffinityTargets(orderedTargets)
       : orderedTargets;
+
+  // Determine affinity scope: restrict to model-level for deterministic strategies
+  // to preserve operator-defined model order; keep global for cross-model
+  // strategies. Per #8370, lkgp/auto/cache-optimized explicitly support promoting
+  // a previously-successful model ahead of the declared order, so they must stay
+  // cross-model ("global") rather than be locked into a single model step.
+  const modelOrderPreservingStrategies = new Set<string>([
+    "priority",
+    "weighted",
+    "fill-first",
+    "quota-share",
+  ]);
+  const isDeterministicStrategy = modelOrderPreservingStrategies.has(strategy);
   const promptCacheAffinity = applyPromptCacheAffinity(
     promptCacheAffinityTargets,
     body,
-    promptCacheAffinityEnabled
+    promptCacheAffinityEnabled,
+    isDeterministicStrategy ? "model" : "global"
   );
   if (!promptCacheAffinity.applied) return orderedTargets;
   const protectedOriginal =
@@ -687,7 +711,8 @@ export async function resolveComboTargetPipeline(
       : resolveComboTargets(
           expandedCombo,
           expandedAllCombos,
-          clampComboDepth(config.maxComboDepth)
+          clampComboDepth(config.maxComboDepth),
+          deps.hiddenModelsByProvider
         );
 
   orderedTargets = await applyRequestTagRouting(orderedTargets, body, log);
@@ -699,7 +724,10 @@ export async function resolveComboTargetPipeline(
 
   logTargetPoolSize(strategy, allCombos, orderedTargets, stickyWeightedKey, log);
 
-  const pipelineResponse = await dispatchSmartPipeline(deps);
+  const pipelineResponse = await dispatchSmartPipeline(
+    deps,
+    orderedTargets.map((target) => target.modelStr)
+  );
   if (pipelineResponse) return { earlyResponse: pipelineResponse };
 
   const ordering = await orderByStrategy(deps, orderedTargets);

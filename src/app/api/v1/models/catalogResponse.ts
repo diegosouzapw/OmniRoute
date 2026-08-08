@@ -23,6 +23,7 @@ import { buildFunctionalGatewayPredicate } from "./functionalGatewayPredicate";
 import { getPassthroughProviders, REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 import { dedupeExactCatalogIds } from "./catalogDedupe";
+import { sortCatalogModelsProviderGrouped } from "./catalogOrder";
 import {
   disambiguateCatalogModelNames,
   enrichCatalogModelEntry,
@@ -46,6 +47,7 @@ export function applyCatalogPostFilters(
     connections: any;
     prefixMode: string;
     aliasToProviderId: Record<string, string>;
+    hideNoThinkVariants?: boolean;
   }
 ): Array<Record<string, any>> {
   let finalModels = models;
@@ -70,10 +72,14 @@ export function applyCatalogPostFilters(
 
   // Advertise no-thinking gateway variants (Fase 8.1). Derived from the already
   // key-filtered list, so a variant only appears when its real model is permitted.
-  finalModels = appendNoThinkingVariants(
-    finalModels,
-    ctx.prefixMode === "canonical" ? ctx.aliasToProviderId : undefined
-  );
+  // #9418: skip when hideNoThinkVariants is on — the ids are still routable when
+  // sent explicitly, just not advertised in the catalog.
+  if (!ctx.hideNoThinkVariants) {
+    finalModels = appendNoThinkingVariants(
+      finalModels,
+      ctx.prefixMode === "canonical" ? ctx.aliasToProviderId : undefined
+    );
+  }
 
   // Advertise `claude/<id>` discovery-mirror aliases so Claude Code's gateway
   // model discovery (which only lists `claude`/`anthropic`-prefixed ids) can see
@@ -116,8 +122,7 @@ export function applyCatalogPostFilters(
           ctx.connections.filter((c) => c.provider === provider),
           modelId
         ),
-      gatewayHasConnection: (provider) =>
-        ctx.connections.some((c) => c.provider === provider),
+      gatewayHasConnection: (provider) => ctx.connections.some((c) => c.provider === provider),
       canonicalOwnerHasConnection: (owner) =>
         hasEligibleConnectionForModel(
           ctx.connections.filter((c) => c.provider === owner),
@@ -171,6 +176,12 @@ export function finalizeCatalogResponse(
       return maybeOmitCatalogModelName(listedModel, includeModelNames);
     })
   );
+  // Canonical provider-grouped publication: one contiguous block per provider,
+  // combos pinned first. Stable — preserves combo sort_order, connection priority,
+  // and equal-id audio twins. Grouped by owned_by (canonical identity), not the
+  // routing alias prefix. Applied after enrichment/disambiguation so the final
+  // serialized order is what every consumer sees; cached as part of the body.
+  const orderedModels = sortCatalogModelsProviderGrouped(enrichedModels);
   // Codex CLI compatibility: its model-catalog refresh (codex_models_manager) does
   // GET /v1/models?client_version=<v> and decodes a JSON object with a TOP-LEVEL
   // `models` array, so the OpenAI-standard `{object,data}` shape makes it fail with
@@ -187,7 +198,7 @@ export function finalizeCatalogResponse(
   // keeps codex on its built-in model info — same inference as today, minus the error.
   const responseBody: Record<string, unknown> = {
     object: "list",
-    data: enrichedModels,
+    data: orderedModels,
   };
   if (isCodexModelCatalogClient(request)) {
     responseBody.models = [];

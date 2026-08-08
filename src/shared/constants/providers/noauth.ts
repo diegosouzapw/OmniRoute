@@ -3,6 +3,24 @@
  * Pure data literal; re-exported by the providers.ts barrel. No behavior change.
  */
 export const NOAUTH_PROVIDERS = {
+  "devin-cli-agentic": {
+    id: "devin-cli-agentic",
+    alias: "dva",
+    name: "Devin CLI Agentic Bridge",
+    icon: "terminal",
+    color: "#635BFF",
+    textIcon: "DV",
+    website: "https://docs.devin.ai/work-with-devin/devin-cli",
+    noAuth: true,
+    hasFree: false,
+    serviceKinds: ["llm"],
+    isLocalCli: true,
+    toolCalling: "emulated",
+    authHint: "Authentication is owned by the official Devin CLI in its isolated bridge volume.",
+    notice: {
+      text: "This provider accepts only the official Devin CLI over local ACP stdio and never falls back to another provider.",
+    },
+  },
   opencode: {
     id: "opencode",
     alias: "oc",

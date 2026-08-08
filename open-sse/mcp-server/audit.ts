@@ -206,8 +206,27 @@ function toString(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
+/**
+ * Test-only seam: the production load path uses `createRequire()` (so the
+ * Electron/global-install resolution works — #8959), which `vi.doMock` cannot
+ * intercept (it only patches Vitest's ESM module graph). Tests inject a
+ * throwing/mocked loader here to exercise the node:sqlite fallback.
+ */
+let betterSqliteLoaderForTests: (() => unknown) | null = null;
+export function __setBetterSqliteLoaderForTests(loader: (() => unknown) | null): void {
+  betterSqliteLoaderForTests = loader;
+}
+
 async function openBetterSqliteAuditDb(dbPath: string): Promise<AuditDatabase> {
-  const Database = (await import("better-sqlite3")).default as unknown as new (
+  let mod: unknown;
+  if (betterSqliteLoaderForTests) {
+    mod = betterSqliteLoaderForTests();
+  } else {
+    const { createRequire } = await import("node:module");
+    const _require = createRequire(import.meta.url);
+    mod = _require("better-sqlite3");
+  }
+  const Database = ((mod as { default?: unknown })?.default || mod) as unknown as new (
     dbPath: string
   ) => AuditDatabase;
   return new Database(dbPath);

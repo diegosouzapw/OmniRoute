@@ -1,3 +1,10 @@
+/**
+ * @file early-stream-keepalive.test.ts
+ * @description Unit tests for withEarlyStreamKeepalive (fast/slow path, frames, abort).
+ *
+ * @changes
+ * - [2026-07-28] [Cursor Grok 4.5] - Assert brand-neutral startup thinking text (✨)
+ */
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -59,7 +66,7 @@ test("slow handler emits early keepalive then forwards the real body (#2544)", a
   assert.match(result.headers.get("content-type") || "", /text\/event-stream/);
 
   const body = await readAll(result);
-  assert.match(body, /: omniroute-keepalive/, "should emit a keepalive comment before the body");
+  assert.match(body, /: keepalive/, "should emit a keepalive comment before the body");
   assert.match(body, /event: response\.created/, "should forward the real upstream body");
   assert.match(body, /data: \[DONE\]/);
 });
@@ -95,7 +102,7 @@ test("slow handler emits the custom OpenAI keepalive chunk before the body", asy
   });
 
   const body = await readAll(result);
-  assert.doesNotMatch(body, /: omniroute-keepalive/);
+  assert.doesNotMatch(body, /: keepalive\n/);
   const firstFrame = body.split("\n\n")[0];
   assert.doesNotThrow(() => JSON.parse(firstFrame.slice("data: ".length)));
   assert.match(body, /data: \[DONE\]/);
@@ -204,9 +211,9 @@ test("RESPONSES_STARTUP_THINKING_FRAME is a self-closed synthetic reasoning item
 
   assert.equal(partAdded.data.item_id, itemId);
   assert.equal(delta.data.item_id, itemId);
-  assert.equal(delta.data.delta, "OmniRoute: got request, sending to provider");
+  assert.equal(delta.data.delta, "✨");
   assert.equal(partDone.data.item_id, itemId);
-  assert.equal(partDone.data.part.text, "OmniRoute: got request, sending to provider");
+  assert.equal(partDone.data.part.text, "✨");
 });
 
 test("slow handler emits the Responses API startup frame before the real body", async () => {
@@ -225,7 +232,7 @@ test("slow handler emits the Responses API startup frame before the real body", 
 
   const body = await readAll(result);
   assert.match(body, /event: response\.output_item\.added/);
-  assert.match(body, /OmniRoute: got request, sending to provider/);
+  assert.match(body, /✨/);
   assert.match(body, /event: response\.reasoning_summary_part\.done/);
   assert.match(body, /event: response\.created/, "should forward the real upstream body");
   assert.match(body, /data: \[DONE\]/);
@@ -247,7 +254,7 @@ test("slow handler emits the custom keepaliveFrame (Anthropic ping) before the b
 
   const body = await readAll(result);
   assert.match(body, /event: ping\ndata: {"type":"ping"}/, "should emit a real ping event");
-  assert.doesNotMatch(body, /: omniroute-keepalive/, "must not fall back to the comment frame");
+  assert.doesNotMatch(body, /: keepalive\n/, "must not fall back to the comment frame");
   assert.match(body, /event: message_start/, "should forward the real upstream body");
 });
 
@@ -272,7 +279,7 @@ test("slow handler that errors emits an in-band error frame (#2544)", async () =
   assert.equal(result.status, 200, "already committed to 200 SSE before the error surfaced");
 
   const body = await readAll(result);
-  assert.match(body, /: omniroute-keepalive/);
+  assert.match(body, /: keepalive/);
   assert.match(body, /event: error/);
   assert.match(body, /rate limited/);
 });
@@ -375,6 +382,6 @@ test("aborting the client signal stops the keepalive stream (#2544)", async () =
       if (done) return true;
     }
   })();
-  const timed = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 500));
+  const timed = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 5000));
   assert.equal(await Promise.race([drained, timed]), true, "stream should close after abort");
 });

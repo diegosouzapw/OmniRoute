@@ -90,6 +90,19 @@ test("bypass predicate: true for native Codex passthrough", () => {
   );
 });
 
+test("bypass predicate: true when native Responses passthrough flag is set (#8964 xAI)", () => {
+  // Callers OR codex|xai into nativeCodexPassthrough (existing flag = "any native lane").
+  assert.equal(
+    supportsNativeWebSearchFallbackBypass({
+      provider: "xai-oauth",
+      sourceFormat: "openai-responses",
+      targetFormat: "openai-responses",
+      nativeCodexPassthrough: true,
+    }),
+    true
+  );
+});
+
 test("bypass predicate: true for Gemini target", () => {
   assert.equal(
     supportsNativeWebSearchFallbackBypass({

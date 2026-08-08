@@ -22,7 +22,13 @@ const CRASH_FAST_THRESHOLD_MS = 5_000;
 export function buildServiceSpawnOptions(
   env: NodeJS.ProcessEnv | undefined,
   cwd: string | undefined
-): { env: NodeJS.ProcessEnv | undefined; cwd: string | undefined; detached: boolean; stdio: ["ignore", "pipe", "pipe"]; windowsHide: boolean } {
+): {
+  env: NodeJS.ProcessEnv | undefined;
+  cwd: string | undefined;
+  detached: boolean;
+  stdio: ["ignore", "pipe", "pipe"];
+  windowsHide: boolean;
+} {
   return {
     env,
     cwd,
@@ -39,6 +45,7 @@ export class ServiceSupervisor extends EventEmitter {
   private startedAt: string | null = null;
   private lastError: string | null = null;
   private childProcess: ChildProcess | null = null;
+  private adopted: boolean = false;
   private readonly buffer: RingBuffer;
   private readonly checker: HealthChecker;
   private operationLock: Promise<void> = Promise.resolve();
@@ -65,6 +72,7 @@ export class ServiceSupervisor extends EventEmitter {
       health: this.health,
       startedAt: this.startedAt,
       lastError: this.lastError,
+      adopted: this.adopted,
     };
   }
 
@@ -81,6 +89,7 @@ export class ServiceSupervisor extends EventEmitter {
 
       this.setState("starting");
       this.lastError = null;
+      this.adopted = false;
 
       // Pre-spawn probe (#6205): avoid a raw EADDRINUSE crash when a prior
       // instance is still holding the port. A healthy instance is adopted; a
@@ -91,23 +100,32 @@ export class ServiceSupervisor extends EventEmitter {
         const decision = decidePreSpawn(probe, this.config.port);
 
         if (decision.action === "adopt") {
-          // Something healthy already serves this port — treat it as running
-          // rather than spawning a duplicate that would die with EADDRINUSE.
-          // We didn't spawn it, so there's no ChildProcess handle to read a
-          // pid from — resolve one from the OS instead. Best-effort: if
-          // resolution fails, pid stays null rather than blocking adoption,
-          // but downstream liveness checks that key off pid will only trust
-          // this instance once a real pid is on record.
+          // Something healthy already serves this port. We didn't spawn it,
+          // so there's no ChildProcess handle to read a pid from — resolve
+          // one from the OS instead. Best-effort: if resolution fails, pid
+          // stays null rather than blocking adoption, but downstream
+          // liveness checks that key off pid will only trust this instance
+          // once a real pid is on record.
           const adoptedPid = await resolvePortPid(this.config.port);
-          this.checker.start();
-          this.startedAt = new Date().toISOString();
-          this.pid = adoptedPid;
-          this.setState("running");
-          await setToolStatus(this.config.tool, "running", adoptedPid ?? undefined);
-          return this.getStatus();
-        }
 
-        if (decision.action === "error") {
+          // Auto-restart-adopted (opt-in, default off): instead of keeping
+          // the unsupervised process, kill it and fall through to a real
+          // spawn below so this supervisor actually owns the child and can
+          // capture its stdout/stderr for the Logs panel. An adopted process
+          // otherwise stays log-silent for its entire lifetime — adoption
+          // never attaches a pipe because there's nothing to pipe from.
+          if (row?.autoRestartAdopted && adoptedPid) {
+            await this.killAdoptedPid(adoptedPid, this.config.stopTimeoutMs);
+          } else {
+            this.checker.start();
+            this.startedAt = new Date().toISOString();
+            this.pid = adoptedPid;
+            this.adopted = true;
+            this.setState("running");
+            await setToolStatus(this.config.tool, "running", adoptedPid ?? undefined);
+            return this.getStatus();
+          }
+        } else if (decision.action === "error") {
           this.lastError = sanitizeErrorMessage(decision.message);
           this.setState("error");
           await setToolStatus(this.config.tool, "error", undefined, this.lastError);
@@ -170,6 +188,7 @@ export class ServiceSupervisor extends EventEmitter {
       this.pid = null;
       this.childProcess = null;
       this.startedAt = null;
+      this.adopted = false;
       this.setState("stopped");
       await setToolStatus(this.config.tool, "stopped");
 
@@ -236,6 +255,38 @@ export class ServiceSupervisor extends EventEmitter {
         resolve();
       });
     });
+  }
+
+  /**
+   * Kill a process this supervisor did NOT spawn (no ChildProcess handle —
+   * just a pid resolved from the OS during adoption). Used by the
+   * auto-restart-adopted path: SIGTERM, poll for exit via the harmless
+   * signal-0 existence probe, escalate to SIGKILL after `timeoutMs`. Mirrors
+   * `killChild()`'s SIGTERM→SIGKILL escalation but without a `child.once("exit")`
+   * event to await, since we don't own the process handle.
+   */
+  private async killAdoptedPid(pid: number, timeoutMs: number): Promise<void> {
+    try {
+      process.kill(pid, "SIGTERM");
+    } catch {
+      return; // already gone
+    }
+
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      try {
+        process.kill(pid, 0); // signal 0: existence probe, throws once the process is gone
+      } catch {
+        return;
+      }
+      await new Promise((r) => setTimeout(r, 200));
+    }
+
+    try {
+      process.kill(pid, "SIGKILL");
+    } catch {
+      // already gone
+    }
   }
 
   private async handleExit(

@@ -123,6 +123,8 @@ export default function AddApiKeyModal({
     accountId: "",
     consoleApiKey: "",
     newApiUserId: "",
+    newApiAggregatorBalance: false,
+    quotaPerUnit: "",
     ...EMPTY_GLM_TEAM_QUOTA_FIELDS,
     ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,

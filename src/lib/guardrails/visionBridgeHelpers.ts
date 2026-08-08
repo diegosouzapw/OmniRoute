@@ -1,8 +1,10 @@
 /**
  * Vision Bridge helper functions for image processing.
  */
+import { detectMediaParts, type MediaPart } from "@omniroute/open-sse/utils/mediaParts";
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
 import { getRuntimePorts } from "@/lib/runtime/ports";
+import { resolveSelfLoopBearer } from "@/shared/middleware/chatBodyAdmission";
 import { getBestVisionModel, getFallbackModels, recordLatency } from "./visionBridgeRouter";
 /**
  * Provider to environment variable mapping for API key resolution.
@@ -89,7 +91,7 @@ export interface ImagePart {
   messageIndex: number;
   partIndex: number;
   imageUrl: string;
-  imageType: "image_url" | "image";
+  imageType: "image_url" | "image" | "url";
 }
 
 export interface RequestMessage {
@@ -100,49 +102,54 @@ export interface RequestMessage {
 export type RequestContentPart =
   | { type: "text"; text: string }
   | { type: "image_url"; image_url: { url: string; detail?: string } }
-  | { type: "image"; source: { type: "base64"; media_type: string; data: string } };
+  | {
+      type: "image";
+      source: { type: "base64"; media_type: string; data: string } | { type: "url"; url: string };
+    };
 
 /**
  * Extract image parts from messages array.
- * Supports both OpenAI image_url format and base64 image format.
+ * Supports OpenAI image_url format, base64 image format, and Anthropic-style
+ * image source blocks with either `source.type: "base64"` or `source.type: "url"`.
+ *
+ * The URL-source branch mirrors the executor-level handling in
+ * `open-sse/executors/commandCode.ts::extractImageUrl` — without it, a
+ * Claude-Code-compatible client (e.g. Zoo Code) sending
+ * `{ type: "image", source: { type: "url", url } }` was invisible to the
+ * vision-bridge guardrail, so the image was silently dropped by a text-only
+ * executor instead of being described.
  */
+/**
+ * Shapes `replaceImageParts` knows how to splice: top-level content parts
+ * whose `type` is `image_url`, `image`, or `input_image`. Everything else the
+ * detector reports (nested hits, `data_uri_string`, `image_indicator`) is
+ * combo-filter material only — extracting it would desync the positional
+ * description consumption in visionBridge (descriptions would shift onto the
+ * wrong images).
+ */
+const REPLACEABLE_IMAGE_SHAPES: ReadonlySet<MediaPart["shape"]> = new Set([
+  "image_url",
+  "image_base64",
+  "image_source_url",
+  "input_image",
+]);
+
 export function extractImageParts(messages: RequestMessage[]): ImagePart[] {
-  const results: ImagePart[] = [];
-
-  if (!Array.isArray(messages)) {
-    return results;
-  }
-
-  for (let msgIdx = 0; msgIdx < messages.length; msgIdx++) {
-    const message = messages[msgIdx];
-    if (!message || !Array.isArray(message.content)) {
-      continue;
-    }
-
-    for (let partIdx = 0; partIdx < message.content.length; partIdx++) {
-      const part = message.content[partIdx];
-
-      if (part?.type === "image_url" && part.image_url?.url) {
-        results.push({
-          messageIndex: msgIdx,
-          partIndex: partIdx,
-          imageUrl: part.image_url.url,
-          imageType: "image_url",
-        });
-      } else if (part?.type === "image" && part.source?.type === "base64") {
-        const { media_type, data } = part.source;
-        const dataUri = `data:${media_type};base64,${data}`;
-        results.push({
-          messageIndex: msgIdx,
-          partIndex: partIdx,
-          imageUrl: dataUri,
-          imageType: "image",
-        });
-      }
-    }
-  }
-
-  return results;
+  // Delegates to the unified detector (open-sse/utils/mediaParts.ts) so the
+  // guardrail and the combo compatibility filter share one source of truth.
+  // Extraction is ALLOWLISTED to top-level (non-nested) parts whose shape
+  // replaceImageParts can splice back — the extract↔replace contract: every
+  // extracted part MUST be replaceable, in the same order, or the positional
+  // descriptions shift onto the wrong images.
+  return detectMediaParts(messages)
+    .filter((p) => p.kind === "image" && !p.nested && REPLACEABLE_IMAGE_SHAPES.has(p.shape))
+    .map((p) => ({
+      messageIndex: p.messageIndex,
+      partIndex: p.partIndex,
+      imageUrl: p.ref,
+      imageType:
+        p.shape === "image_base64" ? "image" : p.shape === "image_source_url" ? "url" : "image_url",
+    }));
 }
 
 /**
@@ -201,6 +208,19 @@ export interface VisionModelConfig {
   maxImages: number;
 }
 
+/** Task-aware focus hint (codex-vision-proxy pattern): steer the description
+ * toward what the user actually asked, instead of a generic caption. */
+export function composeVisionPrompt(
+  basePrompt: string,
+  lastUserText: string | undefined,
+  taskAware: boolean
+): string {
+  const text = (lastUserText ?? "").trim();
+  if (!taskAware || !text) return basePrompt;
+  const hint = text.length > 500 ? `${text.slice(0, 500)}…` : text;
+  return `${basePrompt}\n\nThe user asked: "${hint}". Focus your description on what is relevant to answering this, and transcribe any text visible in the image.`;
+}
+
 /**
  * Call the vision model to get an image description.
  * Supports both OpenAI-compatible and Anthropic API formats.
@@ -210,13 +230,19 @@ export async function callVisionModel(
   imageDataUri: string,
   config: VisionModelConfig,
   apiKey?: string,
-  routerConfig?: Partial<import("./visionBridgeRouter").VisionBridgeRouterConfig>
+  routerConfig?: Partial<import("./visionBridgeRouter").VisionBridgeRouterConfig>,
+  deps?: import("./visionBridgeRouter").VisionBridgeRouterDeps
 ): Promise<string> {
-  // Auto-select the best vision model
-  const modelToUse = await getBestVisionModel({
-    fixedModel: config.model,
-    ...routerConfig,
-  });
+  // Auto-select the best vision model. `deps` is the router's existing
+  // injectable credential-check seam — without forwarding it, tests (and any
+  // embedder) cannot keep model selection away from the live connections DB.
+  const modelToUse = await getBestVisionModel(
+    {
+      fixedModel: config.model,
+      ...routerConfig,
+    },
+    deps
+  );
   // (#8430) When no vision-capable provider has usable credentials on this
   // instance, surface a clear error instead of attempting a describe call that
   // would fail with an opaque auth/serde error upstream.
@@ -226,7 +252,7 @@ export async function callVisionModel(
   let lastError: Error | null = null;
 
   // Try primary model + fallbacks
-  const modelsToTry = [modelToUse, ...(await getFallbackModels(modelToUse, routerConfig))];
+  const modelsToTry = [modelToUse, ...(await getFallbackModels(modelToUse, routerConfig, deps))];
   const maxAttempts = Math.min(modelsToTry.length, routerConfig?.maxFallbackAttempts ?? 3);
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -249,6 +275,197 @@ export async function callVisionModel(
 
   // All models failed
   throw lastError || new Error("All vision models failed");
+}
+
+/**
+ * Unwrap the detailed-log/diagnostics envelope that some OmniRoute paths attach
+ * to provider responses (`{ _streamed, _format, summary: {...} }`). Returns the
+ * inner `summary` object when present, otherwise the value unchanged.
+ */
+function unwrapVisionSummary(value: unknown): unknown {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const record = value as Record<string, unknown>;
+    if (record.summary && typeof record.summary === "object") {
+      return record.summary;
+    }
+  }
+  return value;
+}
+
+/**
+ * Parse a vision-bridge response body that may be:
+ *   1. Plain JSON (`{ choices: [...] }` / `{ content: [...] }`)
+ *   2. An SSE stream of `data: {...}` lines (forceStream providers, or
+ *      OmniRoute's self-loop when the `stream` default kicks in)
+ *   3. The `{ _streamed, _format, summary }` diagnostics envelope
+ *
+ * For SSE input, aggregates `delta.content` / `delta.reasoning_content`
+ * (OpenAI-compatible) and `delta.text` (Anthropic-style `content_block_delta`)
+ * across all chunks into a single chat.completion-shaped object. Returns `null`
+ * when the body yields nothing usable.
+ */
+function parseSseVisionBody(rawBody: string): unknown {
+  const trimmed = String(rawBody || "").trim();
+  if (!trimmed) return null;
+
+  // Direct JSON (normal non-stream response).
+  try {
+    return unwrapVisionSummary(JSON.parse(trimmed));
+  } catch {
+    // Fall through to SSE aggregation.
+  }
+
+  const contentParts: string[] = [];
+  const reasoningParts: string[] = [];
+  const anthropicTextParts: string[] = [];
+  let sawChoices = false;
+
+  for (const line of trimmed.split(/\r?\n/)) {
+    const lineTrimmed = line.trim();
+    if (!lineTrimmed.startsWith("data:")) continue;
+    const payload = lineTrimmed.slice(5).trim();
+    if (!payload || payload === "[DONE]") continue;
+
+    let chunk: Record<string, unknown>;
+    try {
+      chunk = JSON.parse(payload);
+    } catch {
+      continue; // Ignore malformed lines and keep scanning.
+    }
+    if (!chunk || typeof chunk !== "object") continue;
+
+    const unwrapped = unwrapVisionSummary(chunk) as Record<string, unknown>;
+
+    // Error-only SSE chunk (`data: {"error":{...}}` with no choices) — surface
+    // the upstream message instead of a generic "empty or invalid response".
+    if (unwrapped.error != null && !Array.isArray(unwrapped.choices)) {
+      const err = unwrapped.error;
+      let message = "";
+      if (typeof err === "string") {
+        message = err;
+      } else if (typeof err === "object" && !Array.isArray(err)) {
+        message = (err as { message?: unknown }).message
+          ? String((err as { message?: unknown }).message)
+          : JSON.stringify(err);
+      } else {
+        message = String(err);
+      }
+      throw new Error(`Vision API error: ${message}`);
+    }
+
+    const choice = (unwrapped.choices as Array<Record<string, unknown>> | undefined)?.[0];
+    if (choice) sawChoices = true;
+
+    const delta = choice?.delta as Record<string, unknown> | undefined;
+    if (typeof delta?.content === "string" && delta.content.length > 0) {
+      contentParts.push(delta.content);
+    }
+    if (typeof delta?.reasoning_content === "string" && delta.reasoning_content.length > 0) {
+      reasoningParts.push(delta.reasoning_content);
+    }
+
+    // Some providers put a full message (not a delta) in the final chunk.
+    const message = choice?.message as Record<string, unknown> | undefined;
+    if (typeof message?.content === "string" && message.content.length > 0) {
+      contentParts.push(message.content);
+    }
+    if (typeof message?.reasoning_content === "string" && message.reasoning_content.length > 0) {
+      reasoningParts.push(message.reasoning_content);
+    }
+
+    // Anthropic-style streaming: `content_block_delta` with `delta.text`.
+    if (Array.isArray(unwrapped.content)) {
+      for (const block of unwrapped.content as Array<Record<string, unknown>>) {
+        if (typeof block?.text === "string" && block.text.length > 0) {
+          anthropicTextParts.push(block.text);
+        }
+      }
+    }
+  }
+
+  if (
+    contentParts.length === 0 &&
+    reasoningParts.length === 0 &&
+    anthropicTextParts.length === 0 &&
+    !sawChoices
+  ) {
+    return null;
+  }
+
+  const content = contentParts.join("").trim();
+  const reasoning = reasoningParts.join("").trim();
+  const anthropicText = anthropicTextParts.join("").trim();
+
+  if (anthropicText && !content) {
+    return { content: [{ type: "text", text: anthropicText }] };
+  }
+
+  const message: Record<string, unknown> = { role: "assistant", content };
+  if (reasoning) message.reasoning_content = reasoning;
+  return { choices: [{ message }] };
+}
+
+/**
+ * Read a vision-model HTTP response body tolerantly: try `json()` first, then
+ * fall back to text/SSE parsing. Some OpenAI-compatible backends (including
+ * OmniRoute's own self-loop and forceStream providers) reply with a `data:`
+ * SSE stream even for `stream: false`, which makes `response.json()` throw
+ * `Unexpected token 'd'`.
+ */
+async function readVisionResponseBody(response: Response): Promise<unknown> {
+  try {
+    // JSON path — also unwrap the { _streamed, summary } diagnostics envelope
+    // that some OmniRoute capture paths attach to provider responses.
+    return unwrapVisionSummary(await response.json());
+  } catch {
+    // Not JSON — attempt SSE / envelope parsing from the raw text.
+  }
+
+  let rawText = "";
+  try {
+    if (typeof (response as Response & { text?: unknown }).text === "function") {
+      rawText = await response.text();
+    }
+  } catch {
+    rawText = "";
+  }
+
+  const parsed = parseSseVisionBody(rawText);
+  if (parsed === null) {
+    throw new Error("Vision API returned empty or invalid response");
+  }
+  return parsed;
+}
+
+/**
+ * Extract the description text from an OpenAI-compatible vision response.
+ * Falls back to `reasoning_content` when `content` is empty — reasoning models
+ * (e.g. xiaomi/mimo-v2.5) can exhaust `max_tokens` on chain-of-thought and
+ * return `content: null` with a complete analysis in `reasoning_content`.
+ */
+function extractOpenAICompatibleContent(data: unknown): string {
+  const record = data as {
+    choices?: Array<{ message?: { content?: unknown; reasoning_content?: unknown } }>;
+    error?: { message?: string };
+  } | null;
+
+  if (!record || typeof record !== "object" || Array.isArray(record)) {
+    throw new Error("Vision API returned invalid response");
+  }
+
+  if (record.error) {
+    throw new Error(`Vision API error: ${record.error.message || JSON.stringify(record.error)}`);
+  }
+
+  const message = record.choices?.[0]?.message;
+  const content = typeof message?.content === "string" ? message.content.trim() : "";
+  if (content) return content;
+
+  const reasoning =
+    typeof message?.reasoning_content === "string" ? message.reasoning_content.trim() : "";
+  if (reasoning) return reasoning;
+
+  throw new Error("Vision API returned empty or invalid response");
 }
 
 /**
@@ -348,10 +565,29 @@ async function callVisionModelSingle(
       const selfLoopApiKey = resolvedApiKey || "sk_omniroute";
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
+        // Explicit JSON opt-in: without `Accept: application/json` OmniRoute's
+        // self-loop defaults to SSE (resolveStreamFlag's legacy default) and the
+        // describe call would receive a `data:` stream that response.json() can't
+        // parse (`Unexpected token 'd'`), failing the whole vision-bridge
+        // describe path. Pair with `stream: false` below.
+        Accept: "application/json",
         Authorization: `Bearer ${selfLoopApiKey}`,
       };
       if (useFullModelId) {
         headers["x-omniroute-disabled-guardrails"] = "vision-bridge";
+        // Internal self-loop sub-request: the parent request already holds the
+        // single heavyweight admission lease (`CHAT_MAX_HEAVY_IN_FLIGHT=1`), so a
+        // large base64-image describe body would be rejected with 503
+        // `chat_admission_busy` before it is described. The route only honors
+        // this header for trusted self-loop credentials (the local
+        // `sk_omniroute` sentinel OR the operator-configured env key), so
+        // external clients cannot use it to bypass admission.
+        headers["x-omniroute-admission-bypass"] = "internal";
+        // The admission bypass honors the env key when set (REQUIRE_API_KEY=true
+        // deployments) and the `sk_omniroute` sentinel otherwise. Force the same
+        // resolved credential so the bypass holds even when a real vision key is
+        // configured for the vision model's provider.
+        headers["Authorization"] = `Bearer ${resolveSelfLoopBearer()}`;
       }
 
       response = await fetch(`${baseUrl}/chat/completions`, {
@@ -360,6 +596,7 @@ async function callVisionModelSingle(
         headers,
         body: JSON.stringify({
           model: requestModel,
+          stream: false,
           messages: [
             {
               role: "user",
@@ -387,7 +624,7 @@ async function callVisionModelSingle(
       throw new Error(`Vision API error ${response.status}: ${errorText}`);
     }
 
-    const data = await response.json();
+    const data = await readVisionResponseBody(response);
 
     if (isAnthropic) {
       // Anthropic response format: { content: [{ type: "text", text: "..." }] }
@@ -410,24 +647,11 @@ async function callVisionModelSingle(
 
       return content.trim();
     } else {
-      // OpenAI-compatible response format: { choices: [{ message: { content: "..." } }] }
-      const openaiData = data as {
-        choices?: Array<{ message?: { content?: string } }>;
-        error?: { message?: string };
-      };
-
-      if (openaiData.error) {
-        throw new Error(
-          `Vision API error: ${openaiData.error.message || JSON.stringify(openaiData.error)}`
-        );
-      }
-
-      const content = openaiData.choices?.[0]?.message?.content;
-      if (!content || typeof content !== "string") {
-        throw new Error("Vision API returned empty or invalid response");
-      }
-
-      return content.trim();
+      // OpenAI-compatible response format. Falls back to reasoning_content when
+      // content is null — reasoning models (e.g. xiaomi/mimo-v2.5) can exhaust
+      // max_tokens on chain-of-thought and return content: null with the full
+      // analysis in reasoning_content.
+      return extractOpenAICompatibleContent(data);
     }
   } catch (error) {
     clearTimeout(timeoutId);
@@ -477,7 +701,12 @@ export function replaceImageParts(
     const newContent: RequestContentPart[] = [];
 
     for (const part of message.content) {
-      if (part?.type === "image_url" || part?.type === "image") {
+      // `input_image` (Responses API) is read through a widened type: it is
+      // not part of the historical RequestContentPart union but MUST be
+      // replaceable — extractImageParts allowlists it, and every extracted
+      // part needs a matching splice here (extract↔replace contract).
+      const partType = (part as { type?: string } | null | undefined)?.type;
+      if (partType === "image_url" || partType === "image" || partType === "input_image") {
         if (descriptionIndex < descriptions.length) {
           const description = descriptions[descriptionIndex];
           descriptionIndex++;

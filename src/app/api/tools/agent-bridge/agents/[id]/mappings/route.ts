@@ -4,15 +4,20 @@
  * LOCAL_ONLY: registered in routeGuard.ts
  */
 import { AgentBridgeMappingPutSchema } from "@/shared/schemas/agentBridge";
-import { getMappingsForAgent, setMappings } from "@/lib/db/agentBridgeMappings";
+import {
+  getMappingsForAgent,
+  setMappings,
+  syncAgentBridgeMappingsToMitmAlias,
+} from "@/lib/db/agentBridgeMappings";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
-type Params = { params: { id: string } };
+type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Params): Promise<Response> {
   try {
-    const mappings = getMappingsForAgent(params.id);
+    const { id } = await params;
+    const mappings = getMappingsForAgent(id);
     return Response.json({ mappings });
   } catch (err) {
     const msg = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
@@ -38,8 +43,12 @@ export async function PUT(request: Request, { params }: Params): Promise<Respons
   }
 
   try {
-    setMappings(params.id, parsed.data.mappings);
-    const mappings = getMappingsForAgent(params.id);
+    const { id } = await params;
+    setMappings(id, parsed.data.mappings);
+    // Fix #8656: Sync to mitmAlias in key_value table so the MITM proxy
+    // (server.cjs) reads user-configured mappings during interception.
+    syncAgentBridgeMappingsToMitmAlias(id);
+    const mappings = getMappingsForAgent(id);
     return Response.json({ ok: true, mappings });
   } catch (err) {
     const msg = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));

@@ -1,0 +1,1 @@
+- Removed the unused `RadarReferrals` type export left by the radar referral-links feature (#9697), returning the dead-code ratchet to its 227 baseline.

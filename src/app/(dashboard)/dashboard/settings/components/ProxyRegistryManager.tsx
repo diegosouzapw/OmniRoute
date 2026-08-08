@@ -1014,6 +1014,9 @@ export default function ProxyRegistryManager({
               <input
                 className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"
                 value={form.username}
+                autoComplete="off"
+                data-1p-ignore="true"
+                data-lpignore="true"
                 placeholder={editingId ? t("usernamePlaceholderEdit") : ""}
                 onChange={(e) => setForm((prev) => ({ ...prev, username: e.target.value }))}
               />
@@ -1024,6 +1027,9 @@ export default function ProxyRegistryManager({
                 type="password"
                 className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"
                 value={form.password}
+                autoComplete="new-password"
+                data-1p-ignore="true"
+                data-lpignore="true"
                 placeholder={editingId ? t("passwordPlaceholderEdit") : ""}
                 onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
               />

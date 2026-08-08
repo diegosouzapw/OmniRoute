@@ -1,0 +1,1 @@
+- **fix(opencode):** generate schema-complete model limits so OpenCode accepts catalog entries without an explicit output cap ([#8869](https://github.com/diegosouzapw/OmniRoute/pull/8869)) — thanks @xiaoyaner0201

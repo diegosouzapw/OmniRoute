@@ -5,6 +5,7 @@ import Link from "next/link";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { getHeaderIconProviderId, providerText } from "../providerPageHelpers";
 import type { ProviderMessageTranslator } from "../providerPageHelpers";
+import type { ProviderNotice } from "@/lib/providers/catalog";
 import { isKimiPartnerProviderId } from "../../featuredProviders";
 
 interface ProviderInfo {
@@ -17,6 +18,8 @@ interface ProviderInfo {
   iconUrl?: string;
   /** Short text-badge fallback (e.g. "OC"/"AC"/"CC") shown if `iconUrl` fails to load. */
   textIcon?: string;
+  /** Optional registration/API-key URL hints rendered as links (#9270). */
+  notice?: ProviderNotice;
 }
 
 interface ProviderPageHeaderProps {
@@ -27,6 +30,14 @@ interface ProviderPageHeaderProps {
   isAnthropicProtocolCompatible: boolean;
   onOpenTutorial: () => void;
   t: ProviderMessageTranslator;
+  /**
+   * True when `providerInfo.website` was overridden with a Radar default
+   * referral link (D28 — referral links / free credits), rather than the
+   * static catalog `website`. Reuses the same discreet "Partner link" note
+   * as the pre-existing Kimi partnership link — both are the same kind of
+   * "this link supports OmniRoute" disclosure.
+   */
+  isReferralLink?: boolean;
 }
 
 export default function ProviderPageHeader({
@@ -37,6 +48,7 @@ export default function ProviderPageHeader({
   isAnthropicProtocolCompatible,
   onOpenTutorial,
   t,
+  isReferralLink = false,
 }: ProviderPageHeaderProps) {
   // Kimi (Moonshot AI) official-partnership aff links (2026-07): the header
   // website link doubles as the CTA for kimi-coding/kimi-web/moonshot's
@@ -45,11 +57,30 @@ export default function ProviderPageHeader({
   // reads as a monetized link, not just "visit provider website" like every
   // other card. UI-only — never affects routing/fallback (featuredProviders.ts).
   const isKimiPartnerLink = isKimiPartnerProviderId(providerInfo.id);
+  // D28: any Radar-driven default referral gets the exact same discreet
+  // disclosure treatment as the Kimi partner link.
+  const showPartnerNote = isKimiPartnerLink || isReferralLink;
   const kimiPartnerLinkNote = providerText(
     t,
     "kimiPartnerLinkNote",
     "Partner link — supports OmniRoute at no extra cost to you"
   );
+
+  // Resolve the API-key registration link: prefer apiKeyUrl, fall back to
+  // signupUrl, hide when neither is set (#9270).
+  const noticeUrl = providerInfo.notice?.apiKeyUrl || providerInfo.notice?.signupUrl;
+  const apiKeyLink = noticeUrl ? (
+    <a
+      href={noticeUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-sm font-medium underline underline-offset-2 opacity-70 hover:opacity-100 transition-opacity inline-flex items-center gap-1"
+      style={{ color: providerInfo.color }}
+    >
+      <span className="material-symbols-outlined text-base">open_in_new</span>
+      {t("getApiKey")}
+    </a>
+  ) : null;
 
   return (
     <div>
@@ -88,9 +119,9 @@ export default function ProviderPageHeader({
               rel="noopener noreferrer"
               className="text-3xl font-semibold tracking-tight hover:underline inline-flex items-center gap-2"
               style={{ color: providerInfo.color }}
-              title={isKimiPartnerLink ? kimiPartnerLinkNote : undefined}
+              title={showPartnerNote ? kimiPartnerLinkNote : undefined}
               aria-label={
-                isKimiPartnerLink ? `${providerInfo.name} — ${kimiPartnerLinkNote}` : undefined
+                showPartnerNote ? `${providerInfo.name} — ${kimiPartnerLinkNote}` : undefined
               }
             >
               {providerInfo.name}
@@ -103,11 +134,12 @@ export default function ProviderPageHeader({
             <p className="text-text-muted">
               {t("connectionCountLabel", { count: connectionsCount })}
             </p>
-            {isKimiPartnerLink && providerInfo.website && (
+            {showPartnerNote && providerInfo.website && (
               <span className="text-[10px] font-medium uppercase tracking-wide text-text-muted/70">
                 {kimiPartnerLinkNote}
               </span>
             )}
+            {apiKeyLink}
             {providerId === "adapta-web" && (
               <button
                 onClick={onOpenTutorial}

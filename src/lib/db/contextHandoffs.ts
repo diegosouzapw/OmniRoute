@@ -22,6 +22,7 @@ type JsonRecord = Record<string, unknown>;
 
 interface StatementLike<TRow = unknown> {
   get: (...params: unknown[]) => TRow | undefined;
+  all: (...params: unknown[]) => TRow[];
   run: (...params: unknown[]) => { changes: number };
 }
 

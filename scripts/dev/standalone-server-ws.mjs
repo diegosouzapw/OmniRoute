@@ -3,7 +3,7 @@ import net from "node:net";
 import { randomUUID } from "node:crypto";
 import { createResponsesWsProxy } from "./responses-ws-proxy.mjs";
 import { ensurePeerStampToken, wrapRequestListenerWithPeerStamp } from "./peer-stamp.mjs";
-import { maybeHandleWebdav } from "./webdav-handler.mjs";
+import { maybeHandleWebdav, WEBDAV_PREFIX } from "./webdav-handler.mjs";
 import methodGuard from "./http-method-guard.cjs";
 import headResponseGuard from "./head-response-guard.cjs";
 import { resolveTlsOptions, createServerListener } from "./tls-options.mjs";
@@ -122,14 +122,20 @@ function wrapUpgradeListener(server, listener) {
  * Returns true if the request was handled; the wrapped listener is never called.
  */
 function wrapRequestListenerWithWebdav(listener) {
-  return async function webdavAwareRequestHandler(req, res) {
-    try {
-      const handled = await maybeHandleWebdav(req, res);
-      if (handled) return;
-    } catch {
-      // Never block a request on WebDAV errors — fall through to Next
+  return function webdavAwareRequestHandler(req, res) {
+    if (!(req.url || "").startsWith(WEBDAV_PREFIX)) {
+      return listener.call(this, req, res);
     }
-    return listener.call(this, req, res);
+    const self = this;
+    (async () => {
+      try {
+        const handled = await maybeHandleWebdav(req, res);
+        if (handled) return;
+      } catch {
+        // Never block a request on WebDAV errors — fall through to Next
+      }
+      return listener.call(self, req, res);
+    })();
   };
 }
 

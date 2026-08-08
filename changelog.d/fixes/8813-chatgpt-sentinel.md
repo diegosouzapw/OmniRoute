@@ -1,0 +1,1 @@
+- fix(errorClassifier): classify ChatGPT Web SENTINEL_BLOCKED 403 as terminal FORBIDDEN, enabling proper combo fallback (#8813)

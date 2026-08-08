@@ -4,13 +4,18 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { AgentCard } from "./AgentCard";
 import type { MitmTargetView } from "@/mitm/types";
-import type { AgentStateEntry, AgentMappingsMap } from "../AgentBridgePageClient";
+import type {
+  AgentStateEntry,
+  AgentMappingsMap,
+  AgentBridgeServerState,
+} from "../AgentBridgePageClient";
 import type { MappingRow } from "./ModelMappingTable";
 
 interface AgentListProps {
   targets: MitmTargetView[];
   agentStates: AgentStateEntry[];
   serverRunning: boolean;
+  serverState: AgentBridgeServerState;
   mappingsMap: AgentMappingsMap;
   onDnsToggle: (agentId: string, enabled: boolean) => Promise<void>;
   onMappingsSave: (agentId: string, mappings: MappingRow[]) => Promise<void>;
@@ -26,6 +31,7 @@ export function AgentList({
   targets,
   agentStates,
   serverRunning,
+  serverState,
   mappingsMap,
   onDnsToggle,
   onMappingsSave,
@@ -130,6 +136,7 @@ export function AgentList({
               target={target}
               agentState={stateByAgent[target.id]}
               serverRunning={serverRunning}
+              serverState={serverState}
               mappings={mappingsMap[target.id] ?? []}
               onDnsToggle={onDnsToggle}
               onMappingsSave={onMappingsSave}
