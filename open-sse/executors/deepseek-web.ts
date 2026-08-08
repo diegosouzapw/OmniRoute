@@ -515,7 +515,6 @@ export function messagesToPrompt(
   historyWindow = 0
 ): string {
   if (messages.length === 0) return "";
-
   const systemParts: string[] = [];
   const conversation: Array<{ role: string; text: string }> = [];
   const callNameById = new Map<string, string>();
@@ -527,8 +526,9 @@ export function messagesToPrompt(
     } else if (m.role === "user" || m.role === "assistant") {
       if (text) conversation.push({ role: m.role, text });
       if (m.role === "user") lastUserContent = text;
-      const calls = Array.isArray((m as { tool_calls?: unknown }).tool_calls)
-        ? (m as { tool_calls: Array<{ id?: string; function?: { name?: string } }> }).tool_calls
+      const toolCalls = (m as { tool_calls?: unknown }).tool_calls;
+      const calls = Array.isArray(toolCalls)
+        ? (toolCalls as Array<{ id?: string; function?: { name?: string } }>)
         : [];
       for (const c of calls) {
         if (c?.id && typeof c.function?.name === "string") callNameById.set(c.id, c.function.name);
