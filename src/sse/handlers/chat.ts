@@ -1346,10 +1346,21 @@ async function handleSingleModelChat(
         }
 
         const breakerFailureStatus = Number(lastStatus ?? credentials?.lastErrorCode);
+        // lastError is a string here - check for proxy_unreachable tag embedded
+        // by tagProxyUnreachable in proxyFetch.ts.
+        const isNetworkError =
+          typeof lastError === "string" &&
+          (lastError.includes("proxy_unreachable") || lastError.includes("PROXY_UNREACHABLE"));
+        const isQueueTimeout =
+          typeof lastError === "string" &&
+          (lastError.includes("RATE_LIMIT_QUEUE_TIMEOUT") ||
+            lastError.includes("RATE_LIMIT_QUEUE_WEDGED"));
         if (
           !forceLiveComboTest &&
           credentials?.allRateLimited &&
-          PROVIDER_BREAKER_FAILURE_STATUSES.has(breakerFailureStatus)
+          PROVIDER_BREAKER_FAILURE_STATUSES.has(breakerFailureStatus) &&
+          !isNetworkError &&
+          !isQueueTimeout
         ) {
           breaker._onFailure();
         }

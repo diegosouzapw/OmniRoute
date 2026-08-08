@@ -146,12 +146,12 @@ const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
  *   this intentionally differs from `isProviderFailureCode` (accountFallback.ts), which
  *   INCLUDES 429 for connection-cooldown purposes and must not be changed here.
  * - When the next combo target is on the SAME provider, don't trip the provider breaker:
- *   a different model on that provider may still succeed. #8376: EXCEPT when the failure
- *   itself is a transport-level "proxy unreachable" event (`isProxyUnreachable`) — a dead
- *   upstream proxy poisons every account on that provider identically, so a different
- *   model on the same provider will fail the exact same way. Without this override a
- *   homogeneous same-provider combo pool never trips the breaker and instead burns every
- *   attempt against the same dead proxy until it hits the 503 max-retry limit.
+ *   a different model on that provider may still succeed.
+ * - Network-layer errors (ECONNREFUSED, ETIMEDOUT, etc., signalled via `isProxyUnreachable`)
+ *   must NOT trip the provider breaker. We never reached the provider — the provider itself
+ *   may be healthy; only the network path is broken. Per-model lockout (handled by
+ *   recordModelLockoutFailure) is the correct resilience response. This lets combo routing
+ *   fail over to the next target without poisoning the entire provider.
  * - G-02 / #2743: when the fallback result carries `skipProviderBreaker` (an embedded
  *   service supervisor outage signalled via `X-Omni-Fallback-Hint: connection_cooldown`)
  *   apply connection cooldown ONLY — never trip the whole-provider breaker.
@@ -176,17 +176,27 @@ export function shouldRecordProviderBreakerFailure(args: {
   skipProviderBreaker?: boolean;
   requestScopedFailure?: boolean;
   error?: unknown;
-  /** #8376: transport-level "proxy unreachable" signal — overrides the `sameProviderNext`
-   * exemption only; every other AND-term still gates the trip. */
+  /**
+   * #8376: transport-level "proxy unreachable" signal (ECONNREFUSED,
+   * ETIMEDOUT, etc.). These are NETWORK-layer errors — we never reached
+   * the provider — so they must NOT trip the provider-level circuit
+   * breaker. The provider itself may be healthy; only the network path
+   * is broken. Per-model lockout (handled separately by
+   * recordModelLockoutFailure) is the correct resilience response.
+   */
   isProxyUnreachable?: boolean;
 }): boolean {
   return (
     (!args.isStreamReadinessFailure || args.isStreamEarlyEof === true) &&
     PROVIDER_BREAKER_FAILURE_STATUSES.has(args.status) &&
-    (!args.sameProviderNext || args.isProxyUnreachable === true) &&
+    !args.sameProviderNext &&
     !args.skipProviderBreaker &&
     !args.requestScopedFailure &&
-    !isLocalStreamLifecycleError(args.error)
+    !isLocalStreamLifecycleError(args.error) &&
+    // Network-layer errors (ECONNREFUSED, ETIMEDOUT, etc.) must not trip
+    // the provider circuit breaker. The provider may be healthy; only the
+    // network path is broken. Per-model lockout handles these.
+    !args.isProxyUnreachable
   );
 }
 
