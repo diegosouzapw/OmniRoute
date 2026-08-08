@@ -59,6 +59,7 @@ import EmptyConnectionsPlaceholder from "./components/EmptyConnectionsPlaceholde
 import UpstreamProxyCard from "./components/UpstreamProxyCard";
 import SearchProviderCard from "./components/SearchProviderCard";
 import NoAuthProviderControls from "./components/NoAuthProviderControls";
+import AnonymousFallbackToggle from "./components/AnonymousFallbackToggle";
 // providerText used by UpstreamProxyCard (Phase 1t.7)
 
 export default function ProviderDetailPageClient() {
@@ -536,6 +537,12 @@ export default function ProviderDetailPageClient() {
               label: providerInfo?.name || providerId,
             })
           }
+        />
+      )}
+      {!isUpstreamProxyProvider && !isFreeNoAuth && (
+        <AnonymousFallbackToggle
+          providerId={providerId}
+          providerName={providerInfo?.name || providerId}
         />
       )}
       {!isUpstreamProxyProvider && !isFreeNoAuth && (
