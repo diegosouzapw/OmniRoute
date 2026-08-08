@@ -146,8 +146,19 @@ export function getChatLogTextLimit(): number {
   return parsePositiveInt(process.env.CHAT_LOG_TEXT_LIMIT, 64 * 1024);
 }
 
+/**
+ * Was a hardcoded/default 24 — real agentic CLIs with many MCP servers
+ * routinely declare 40-50+ tools in a single `tools[]` array (a live
+ * OpenClaw session logged 47), so the tail-24 default silently dropped the
+ * array's earlier entries behind an `_omniroute_truncated_array` marker —
+ * including, in one traced case, the tool actually being called
+ * (`apply_patch`), making its declared shape unrecoverable from the call
+ * log even though the call itself succeeded. Bumped to comfortably cover
+ * real large tool lists with headroom; same configurable-override pattern
+ * as the sibling CHAT_LOG_TEXT_LIMIT/CHAT_LOG_MAX_BODY_KB vars.
+ */
 export function getChatLogArrayTailItems(): number {
-  return parsePositiveInt(process.env.CHAT_LOG_ARRAY_TAIL_ITEMS, 24);
+  return parsePositiveInt(process.env.CHAT_LOG_ARRAY_TAIL_ITEMS, 128);
 }
 
 export function getChatLogMaxDepth(): number {
