@@ -1,13 +1,13 @@
 /** db/models/compat.ts — model-compat overrides (normalizeToolCallId, per-protocol flags, upstream headers). */
 
 import { getDbInstance } from "../core";
-import { backupDbFile } from "../backup";
 import {
   MODEL_COMPAT_PROTOCOL_KEYS,
   type ModelCompatProtocolKey,
 } from "@/shared/constants/modelCompat";
 import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
 import { getKeyValue } from "./shared";
+import { finishModelCatalogWriteWithBackup } from "./modelCatalogWriteSignals";
 
 /** Built-in / alias models: tool-call + developer-role flags without a full custom row */
 const MODEL_COMPAT_NAMESPACE = "modelCompatOverrides";
@@ -43,7 +43,7 @@ function isValidUpstreamHeaderName(k: string): boolean {
 
 /** Sanitize user-provided upstream header map (used when persisting and when reading for requests). */
 export function sanitizeUpstreamHeadersMap(
-  raw: Record<string, unknown> | null | undefined
+  raw: Record<string, unknown> | null | undefined,
 ): Record<string, string> {
   const out: Record<string, string> = {};
   if (!raw || typeof raw !== "object") return out;
@@ -67,7 +67,7 @@ export function sanitizeUpstreamHeadersMap(
 
 export function deepMergeCompatByProtocol(
   prev: CompatByProtocolMap | undefined,
-  patch: Partial<Record<ModelCompatProtocolKey, Partial<ModelCompatPerProtocol>>>
+  patch: Partial<Record<ModelCompatProtocolKey, Partial<ModelCompatPerProtocol>>>,
 ): CompatByProtocolMap {
   const out: CompatByProtocolMap = { ...(prev || {}) };
   for (const key of Object.keys(patch) as ModelCompatProtocolKey[]) {
@@ -146,16 +146,16 @@ export function writeCompatList(providerId: string, list: ModelCompatOverride[])
   if (list.length === 0) {
     db.prepare("DELETE FROM key_value WHERE namespace = ? AND key = ?").run(
       MODEL_COMPAT_NAMESPACE,
-      providerId
+      providerId,
     );
   } else {
     db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
       MODEL_COMPAT_NAMESPACE,
       providerId,
-      JSON.stringify(list)
+      JSON.stringify(list),
     );
   }
-  backupDbFile("pre-write");
+  finishModelCatalogWriteWithBackup();
 }
 
 export function getModelCompatOverrides(providerId: string): ModelCompatOverride[] {
@@ -185,7 +185,7 @@ export function compatByProtocolHasEntries(map: CompatByProtocolMap | undefined)
 export function mergeModelCompatOverride(
   providerId: string,
   modelId: string,
-  patch: ModelCompatPatch
+  patch: ModelCompatPatch,
 ) {
   const list = readCompatList(providerId);
   const idx = list.findIndex((e) => e.id === modelId);

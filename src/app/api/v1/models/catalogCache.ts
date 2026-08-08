@@ -14,6 +14,7 @@
  */
 import { getModelCatalogCacheVersion } from "@/lib/db/readCache";
 import { extractApiKey } from "@/sse/services/auth";
+import { after } from "next/server";
 
 import { isCodexModelCatalogClient } from "./catalogRequest";
 
@@ -32,12 +33,26 @@ export type CatalogPayload = {
   cacheTTL: number;
 };
 
+export type CatalogRefreshTask = () => Promise<void>;
+export type CatalogRefreshScheduler = (task: CatalogRefreshTask) => void;
+
 /**
- * A client with a short discovery timeout (Claude Code allows 3 s) must never
- * wait on a full rebuild. Once a cached 200 expires it is still served
- * immediately for up to this long while a background refresh repopulates it.
- * Bounded so a refresh that keeps failing cannot pin an old catalog forever —
- * past this window callers fall back to waiting, same as a cold cache.
+ * Per-call cache policy. Request-context routes inject Next.js `after()` as the
+ * scheduler; unit tests and direct non-framework callers can inject a deterministic
+ * scheduler without making the cache branch on runner-specific environment variables.
+ */
+export type CatalogCachePolicy = {
+  getStaleWhileRevalidateMs?: () => number;
+  scheduleBackgroundRefresh?: CatalogRefreshScheduler;
+};
+
+/**
+ * Production stale-while-revalidate window.
+ *
+ * A successful snapshot remains eligible indefinitely after the 60-second fresh TTL.
+ * TTL expiry requests return that last success and schedule one refresh. Database state
+ * changes are different: the version signal below hard-invalidates every snapshot and
+ * makes the next request await a current-generation build.
  */
 export const CATALOG_STALE_WHILE_REVALIDATE_MS = 30_000;
 
@@ -158,6 +173,27 @@ function storePayload(
 }
 
 /**
+ * Default background refresh scheduler. Uses Next.js `after()` to schedule the
+ * refresh one macrotask later, so the stale response that triggered this call is
+ * handed back before the builder's synchronous prologue runs. Falls back to
+ * setImmediate when `after()` is unavailable (direct test/startup callers).
+ */
+function defaultBackgroundRefreshScheduler(task: CatalogRefreshTask): void {
+  try {
+    after(task);
+  } catch {
+    setImmediate(() => void task());
+  }
+}
+
+/** Current SWR policy value; defaults to `CATALOG_STALE_WHILE_REVALIDATE_MS`. */
+let staleWhileRevalidateMsAccessor = () => CATALOG_STALE_WHILE_REVALIDATE_MS;
+
+export function getCatalogStaleWhileRevalidateMs(): number {
+  return staleWhileRevalidateMsAccessor();
+}
+
+/**
  * Kick off a background rebuild so an expired-but-stale-eligible entry can be
  * refreshed without the current request waiting on it. Reuses catalogInFlight —
  * no second coalescing mechanism — so a concurrent cold/stale request for the
@@ -253,7 +289,7 @@ export async function resolveCachedCatalogResponse(
   if (
     cached &&
     cached.status === 200 &&
-    now - cached.expiresAt <= CATALOG_STALE_WHILE_REVALIDATE_MS
+    now - cached.expiresAt <= staleWhileRevalidateMsAccessor()
   ) {
     scheduleBackgroundRefresh(cacheKey, request, buildPayload);
     return new Response(cached.body, {
@@ -295,6 +331,7 @@ export function __resetCatalogBuilderRunsForTest(): void {
   catalogCache.clear();
   catalogInFlight.clear();
   lastSeenCatalogCacheVersion = getModelCatalogCacheVersion();
+  staleWhileRevalidateMsAccessor = () => CATALOG_STALE_WHILE_REVALIDATE_MS;
 }
 
 /** Counts full builder executions — proves concurrent requests share one run (#6408). */
@@ -348,4 +385,14 @@ export function __forceCatalogInFlightRejectionForTest(request: Request, error: 
     generation: getModelCatalogCacheVersion(),
     promise: rejected,
   });
+}
+
+/** Injects the SWR policy accessor without environment-dependent behavior. */
+export function __setCatalogStaleWhileRevalidateAccessorForTest(accessor: () => number): void {
+  staleWhileRevalidateMsAccessor = accessor;
+}
+
+/** Backward-compatible scalar policy hook retained for focused tests. */
+export function __setCatalogStaleWhileRevalidateMsForTest(ms: number): void {
+  staleWhileRevalidateMsAccessor = () => ms;
 }

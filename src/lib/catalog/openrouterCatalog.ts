@@ -9,6 +9,7 @@
 
 import fs from "fs";
 import path from "path";
+import { invalidateModelCatalogCache } from "@/lib/db/readCache";
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/models";
 const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -169,6 +170,7 @@ export async function refreshOpenRouterCatalog(): Promise<{
   try {
     const data = await fetchFromAPI();
     writeCache(data);
+    invalidateModelCatalogCache();
     return { data, ok: true };
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);

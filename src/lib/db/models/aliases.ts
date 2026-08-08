@@ -1,8 +1,8 @@
 /** db/models/aliases.ts — model alias CRUD (modelAliases namespace, providerAliases namespace). */
 
 import { getDbInstance } from "../core";
-import { backupDbFile } from "../backup";
 import { getKeyValue } from "./shared";
+import { finishModelCatalogWriteWithBackup } from "./modelCatalogWriteSignals";
 
 export async function getModelAliases() {
   const db = getDbInstance();
@@ -21,15 +21,15 @@ export async function getModelAliases() {
 export async function setModelAlias(alias: string, model: unknown) {
   const db = getDbInstance();
   db.prepare(
-    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('modelAliases', ?, ?)"
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('modelAliases', ?, ?)",
   ).run(alias, JSON.stringify(model));
-  backupDbFile("pre-write");
+  finishModelCatalogWriteWithBackup();
 }
 
 export async function deleteModelAlias(alias: string) {
   const db = getDbInstance();
   db.prepare("DELETE FROM key_value WHERE namespace = 'modelAliases' AND key = ?").run(alias);
-  backupDbFile("pre-write");
+  finishModelCatalogWriteWithBackup();
 }
 
 /**

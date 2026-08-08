@@ -9,6 +9,7 @@
  */
 
 import { getDbInstance } from "./core";
+import { invalidateModelCatalogCache } from "./readCache";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -113,7 +114,11 @@ export function listGroups(): QuotaGroup[] {
  */
 export function renameGroup(id: string, name: string): boolean {
   const result = getDb().prepare("UPDATE quota_groups SET name = ? WHERE id = ?").run(name, id);
-  return result.changes > 0;
+  if (result.changes > 0) {
+    invalidateModelCatalogCache();
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -130,7 +135,7 @@ export function deleteGroup(id: string): boolean {
   // Protect the seed group.
   if (id === "group-demo") {
     throw new Error(
-      "Cannot delete the protected seed group 'group-demo'. Reassign its pools to another group first."
+      "Cannot delete the protected seed group 'group-demo'. Reassign its pools to another group first.",
     );
   }
 

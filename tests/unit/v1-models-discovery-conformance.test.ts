@@ -108,27 +108,29 @@ test("3. stale-first: an expired 200 entry within the staleness window is served
   );
 });
 
-test("4. beyond the staleness window, the response waits for a fresh build again", async () => {
+test("4. an ordinary TTL expiry remains stale-first regardless of snapshot age", async () => {
   const makeRequest = () => new Request("http://localhost/v1/models");
 
   const res1 = await v1ModelsCatalog.getUnifiedModelsResponse(makeRequest());
   assert.equal(res1.status, 200);
+  const body1 = await res1.text();
   const runsAfterFirst = v1ModelsCatalog.__getCatalogBuilderRunsForTest();
   assert.equal(runsAfterFirst, 1);
 
-  // Push the entry's age past CATALOG_STALE_WHILE_REVALIDATE_MS.
-  v1ModelsCatalog.__expireCatalogCacheForTest(
-    v1ModelsCatalog.CATALOG_STALE_WHILE_REVALIDATE_MS + 5_000
-  );
+  // Age well past the historical 30-second bound. Ordinary expiry must not turn a
+  // refresh failure into a client-visible cold-build wait.
+  v1ModelsCatalog.__expireCatalogCacheForTest(24 * 60 * 60 * 1000);
 
   const res2 = await v1ModelsCatalog.getUnifiedModelsResponse(makeRequest());
   assert.equal(res2.status, 200);
+  assert.equal(await res2.text(), body1);
   assert.equal(
     v1ModelsCatalog.__getCatalogBuilderRunsForTest(),
-    runsAfterFirst + 1,
-    "past the staleness window, the builder must run again BEFORE the response is returned " +
-      "(a refresh that keeps failing must not pin a stale catalog forever)"
+    runsAfterFirst,
+    "ordinary TTL expiry must return the last successful snapshot before refreshing"
   );
+  await v1ModelsCatalog.__flushCatalogBackgroundRefreshForTest();
+  assert.equal(v1ModelsCatalog.__getCatalogBuilderRunsForTest(), runsAfterFirst + 1);
 });
 
 test("5. a cached non-200 entry is never served as stale", async () => {

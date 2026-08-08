@@ -1,3 +1,5 @@
+import { after } from "next/server";
+
 import { getUnifiedModelsResponse } from "./catalog";
 
 /**
@@ -31,5 +33,11 @@ export async function HEAD() {
  * GET /v1/models - OpenAI compatible models list
  */
 export async function GET(request: Request) {
-  return getUnifiedModelsResponse(request);
+  return getUnifiedModelsResponse(
+    request,
+    {},
+    {
+      scheduleBackgroundRefresh: (task) => after(task),
+    }
+  );
 }
