@@ -811,7 +811,12 @@ jobs:
 
   test-bun-sqlite:
     name: Bun SQLite Compatibility
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.os == 'windows-latest' }}
     timeout-minutes: 10
     needs: changes
     if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
@@ -824,6 +829,15 @@ jobs:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
+      - name: Install Bun (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          powershell -c "iwr bun.sh/install.ps1 -useb | iex"
+          echo "$env:USERPROFILE\.bun\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+      - name: Install Bun (non-Windows)
+        if: runner.os != 'Windows'
+        run: npm install -g bun
       - run: npm run test:bun:db
 
   test-vitest:

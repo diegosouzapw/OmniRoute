@@ -1,0 +1,1 @@
+- feat(ci): add windows-latest leg to test-bun-sqlite job (#8468)
