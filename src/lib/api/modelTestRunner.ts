@@ -21,9 +21,7 @@ import { looksLikeQuotaExhausted } from "@/shared/utils/classify429";
 const INTERNAL_ORIGIN = "http://omniroute.internal";
 export const DEFAULT_MODEL_TEST_TIMEOUT_MS = 30_000;
 const DOLA_PRO_TEST_TIMEOUT_MS = 90_000;
-const GITHUB_PHI_REASONING_TEST_TIMEOUT_MS = 60_000;
 const DOUBAO_WEB_PROVIDER_ID = "doubao-web";
-const GITHUB_MODELS_PROVIDER_ID = "github-models";
 const SLOW_WEB_TEST_MODELS = new Set(["dola-pro"]);
 const STREAMING_CHAT_TEST_MAX_TOKENS = 64;
 
@@ -102,10 +100,6 @@ export function resolveModelTestTimeoutMs(
 
   if (normalizedProviderId === DOUBAO_WEB_PROVIDER_ID && SLOW_WEB_TEST_MODELS.has(modelLeafId)) {
     return Math.max(requestedTimeoutMs, DOLA_PRO_TEST_TIMEOUT_MS);
-  }
-
-  if (normalizedProviderId === GITHUB_MODELS_PROVIDER_ID && modelLeafId === "phi-4-reasoning") {
-    return Math.max(requestedTimeoutMs, GITHUB_PHI_REASONING_TEST_TIMEOUT_MS);
   }
 
   return requestedTimeoutMs;

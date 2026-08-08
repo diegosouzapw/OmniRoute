@@ -2162,33 +2162,6 @@
       "stream": "https://api.githubcopilot.com/chat/completions"
     }
   },
-  "github-models": {
-    "format": "openai",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "X-GitHub-Api-Version": "2026-03-10"
-      },
-      "nonStream": {
-        "Accept": "application/vnd.github+json",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "X-GitHub-Api-Version": "2026-03-10"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "X-GitHub-Api-Version": "2026-03-10"
-      }
-    },
-    "url": {
-      "nonStream": "https://models.github.ai/inference/chat/completions",
-      "stream": "https://models.github.ai/inference/chat/completions"
-    }
-  },
   "gitlab-duo": {
     "format": "openai",
     "headers": {

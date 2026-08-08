@@ -124,7 +124,7 @@ Content-Type: application/json
 }
 ```
 
-可用服务商：Nebius、OpenAI、Mistral、Together AI、Fireworks、NVIDIA、**OpenRouter**、**GitHub Models**。
+可用服务商：Nebius、OpenAI、Mistral、Together AI、Fireworks、NVIDIA、**OpenRouter**。
 
 ```bash
 # 列出所有嵌入模型

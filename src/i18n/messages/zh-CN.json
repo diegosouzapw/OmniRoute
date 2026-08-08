@@ -5793,7 +5793,6 @@
       "friendliai": "无服务器推理免费层—无需信用卡",
       "gemini": "永久免费：Gemini 2.5 Flash每天 1,500 次请求—无需信用卡，在aistudio.google.com获取密钥",
       "gigachat": "使用API Key连接GigaChat (Sber)。",
-      "github-models": "在github.com/settings/tokens创建具有 'models: read' 作用域的GitHub PAT",
       "gitlab": "用于公共Code Suggestions API的GitLab个人访问令牌。不使用gitlab.com时请配置自托管Base URL。",
       "gitlawb-gmi": "从Gitlawb Opengateway控制面板获取您的API Key。",
       "gitlawb": "从Gitlawb Opengateway控制面板获取您的API Key。",

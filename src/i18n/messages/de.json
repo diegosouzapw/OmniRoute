@@ -5793,7 +5793,6 @@
       "friendliai": "Kostenlose Stufe für serverlose Inferenz – keine Kreditkarte erforderlich",
       "gemini": "Für immer kostenlos: 1.500 Anfragen/Tag für Gemini 2.5 Flash — keine Kreditkarte, Schlüssel unter aistudio.google.com anfordern",
       "gigachat": "GigaChat (Sber) mit einem API-Schlüssel verbinden.",
-      "github-models": "Erstellen Sie einen GitHub-PAT mit dem Scope 'models: read' unter github.com/settings/tokens",
       "gitlab": "Persönliches GitLab-Zugriffstoken für die öffentliche Code Suggestions API. Konfigurieren Sie eine selbstgehostete Basis-URL, wenn Sie nicht gitlab.com verwenden.",
       "gitlawb-gmi": "Holen Sie sich Ihren API-Schlüssel aus dem Gitlawb Opengateway-Dashboard.",
       "gitlawb": "Holen Sie sich Ihren API-Schlüssel aus dem Gitlawb Opengateway-Dashboard.",

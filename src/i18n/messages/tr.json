@@ -5793,7 +5793,6 @@
       "friendliai": "Sunucusuz çıkarım için ücretsiz katman — kredi kartı gerekmez",
       "gemini": "Sonsuza kadar ücretsiz: Gemini 2.5 Flash için günlük 1.500 istek — kredi kartı gerekmez, anahtarı aistudio.google.com adresinden alın",
       "gigachat": "GigaChat'i (Sber) bir API anahtarı ile bağlayın.",
-      "github-models": "github.com/settings/tokens adresinde 'models: read' kapsamına sahip bir GitHub PAT oluşturun",
       "gitlab": "Genel Code Suggestions API'si için GitLab kişisel erişim belirteci. gitlab.com kullanmadığınızda barındırılan bir temel URL yapılandırın.",
       "gitlawb-gmi": "API anahtarınızı Gitlawb Opengateway panelinden alın.",
       "gitlawb": "API anahtarınızı Gitlawb Opengateway panelinden alın.",

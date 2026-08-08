@@ -5838,7 +5838,6 @@
       "friendliai": "Free tier for serverless inference — no credit card required",
       "gemini": "Free forever: 1,500 req/day for Gemini 2.5 Flash — no credit card, get key at aistudio.google.com",
       "gigachat": "Connect GigaChat (Sber) with an API key.",
-      "github-models": "Create a GitHub PAT with 'models: read' scope at github.com/settings/tokens",
       "gitlab": "GitLab personal access token for the public Code Suggestions API. Configure a self-hosted base URL when not using gitlab.com.",
       "gitlawb-gmi": "Get your API key from Gitlawb Opengateway dashboard.",
       "gitlawb": "Get your API key from Gitlawb Opengateway dashboard.",

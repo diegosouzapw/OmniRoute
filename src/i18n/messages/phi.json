@@ -5793,7 +5793,6 @@
       "friendliai": "Libreng tier para sa serverless inference — walang kinakailangang credit card",
       "gemini": "Libre magpakailanman: 1,500 req/araw para sa Gemini 2.5 Flash — walang credit card, kumuha ng key sa aistudio.google.com",
       "gigachat": "Ikonekta ang GigaChat (Sber) gamit ang isang API key.",
-      "github-models": "Gumawa ng GitHub PAT na may 'models: read' na scope sa github.com/settings/tokens",
       "gitlab": "GitLab personal access token para sa pampublikong Code Suggestions API. Mag-configure ng self-hosted na base URL kapag hindi gumagamit ng gitlab.com.",
       "gitlawb-gmi": "Kumuha ng iyong API key mula sa Gitlawb Opengateway dashboard.",
       "gitlawb": "Kumuha ng iyong API key mula sa Gitlawb Opengateway dashboard.",

@@ -199,21 +199,21 @@ test("applyProviderTag: providerDisplayName present (short) → label prefix pre
   assert.equal(m.name, "Claude - Claude Sonnet 4.6");
 });
 
-test("applyProviderTag: providerDisplayName too long → falls back to UPPER(alias) prefix", () => {
+test("applyProviderTag: providerDisplayName too long → falls back to title-cased alias prefix", () => {
   const m = baseModel();
-  m.name = "GPT 5";
+  m.name = "ERNIE 5.1";
   applyProviderTag(m as never, {
-    providerDisplayName: "GitHub Models",
-    providerAlias: "ghm",
+    providerDisplayName: "Baidu Qianfan",
+    providerAlias: "qianfan",
   });
-  assert.equal(m.name, "GHM - GPT 5");
+  assert.equal(m.name, "Qianfan - ERNIE 5.1");
 });
 
 test("applyProviderTag: long displayName + no alias → uses long label rather than dropping prefix", () => {
   const m = baseModel();
-  m.name = "GPT 5";
-  applyProviderTag(m as never, { providerDisplayName: "GitHub Models" });
-  assert.equal(m.name, "GitHub Models - GPT 5");
+  m.name = "ERNIE 5.1";
+  applyProviderTag(m as never, { providerDisplayName: "Baidu Qianfan" });
+  assert.equal(m.name, "Baidu Qianfan - ERNIE 5.1");
 });
 
 test("applyProviderTag: only providerAlias known → UPPER(alias) prefix", () => {
@@ -402,11 +402,7 @@ test("provider hook: enrichment fetcher NOT called when features.enrichment:fals
   );
   const out = await hook.models!({} as never, { auth: apiAuth("sk") as never });
   assert.equal(called, 0, "enrichment fetcher NOT called when gated off");
-  assert.equal(
-    out["omniroute/claude-sonnet-4-6"].name,
-    "claude-sonnet-4-6",
-    "raw id preserved"
-  );
+  assert.equal(out["omniroute/claude-sonnet-4-6"].name, "claude-sonnet-4-6", "raw id preserved");
 });
 
 test("provider hook: compression metadata fetcher NOT called by default (opt-in)", async () => {
@@ -514,8 +510,7 @@ test("config hook: features.mcpAutoEmit:true writes mcp entry with provider apiK
   const input: { provider?: Record<string, unknown>; mcp?: Record<string, unknown> } = {};
   await hook(input as never);
   const entry = input.mcp?.["opencode-omniroute"] as
-    | { type: string; url: string; enabled: boolean; headers: Record<string, string> }
-    | undefined;
+    { type: string; url: string; enabled: boolean; headers: Record<string, string> } | undefined;
   assert.ok(entry, "mcp entry written");
   assert.equal(entry.type, "remote");
   assert.equal(

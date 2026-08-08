@@ -1,4 +1,4 @@
-<svg viewBox="0 0 1200 842" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OmniRoute free-tier budget: about 1.53 billion free tokens per month steady, up to about 2.15 billion in your first month with signup credits, aggregated from the documented free tiers of 43 provider pools and 460+ models behind one endpoint, live on /dashboard/free-tiers. Honest pool-deduped math: each shared free pool is counted once — counting every rate limit 24/7 would read about 10B, which we don't publish; 15 providers carry a ToS flag so you decide. Budget bar of the 19 countable free pools with per-model breakdown: Mistral Large 3 1B, GPT-4o mini 150M, Gemini 2.5 Flash 60M, GLM 4.7 30M, Llama 3.3 70B 30M, Grok-3 24M, DeepSeek V4 Pro 20M, GPT-4.1 18M, Llama 4 Scout 15M, GPT-4o 7M, MiniMax-M2.7 6M, Arcee Trinity 5M, and more. First month adds one-time signup credits of about 626M (vertex 300M, agentrouter 200M, predibase 25M, together 25M, glm-cn 20M, doubao 15M, ai21 10M, longcat 10M, deepseek 5M, hyperbolic 5M, nscale 5M). Plus the un-countable: permanently-free no-token-cap providers (SiliconFlow, Z.AI GLM-Flash, Kilo, OpenCode Zen, baidu and more) and a $10 OpenRouter top-up unlocking +24M per month, surfaced separately so they never inflate the headline. Live used/remaining and per-model breakdown on the dashboard.">
+<svg viewBox="0 0 1200 842" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OmniRoute free-tier budget: about 1.51 billion free tokens per month steady, up to about 2.13 billion in your first month with signup credits, aggregated from the documented free tiers of 42 provider pools and 498 models behind one endpoint, live on /dashboard/free-tiers. Honest pool-deduped math: each shared free pool is counted once — counting every rate limit 24/7 would read about 10B, which we don't publish; 15 providers carry a ToS flag so you decide. Budget bar with a representative per-model breakdown: Mistral Large 3 1B, GPT-4o mini 150M, Tencent Hy3 150M, Gemini 2.5 Flash 60M, GLM 4.7 30M, Llama 3.3 70B 30M, Grok-3 24M, DeepSeek V4 Pro 20M, Llama 4 Scout 15M, GPT-4o 7M, MiniMax-M2.7 6M, Arcee Trinity 5M, and more. First month adds one-time signup credits of about 626M (vertex 300M, agentrouter 200M, predibase 25M, together 25M, glm-cn 20M, doubao 15M, ai21 10M, longcat 10M, deepseek 5M, hyperbolic 5M, nscale 5M). Plus the un-countable: permanently-free no-token-cap providers (SiliconFlow, Z.AI GLM-Flash, Kilo, OpenCode Zen, baidu and more) and a $10 OpenRouter top-up unlocking +24M per month, surfaced separately so they never inflate the headline. Live used/remaining and per-model breakdown on the dashboard.">
   <defs>
     <pattern id="gridPaperF" width="32" height="32" patternUnits="userSpaceOnUse">
       <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
@@ -60,10 +60,10 @@
       <animate attributeName="opacity" values="0;1;1;0" dur="2.4s" begin="1.6s" repeatCount="indefinite"/>
     </circle>
   </g>
-  <text x="60" y="228" font-family="Consolas, 'Courier New', monospace" font-size="104" font-weight="800" fill="url(#gradBrandF)">~1.53B</text>
+  <text x="60" y="228" font-family="Consolas, 'Courier New', monospace" font-size="104" font-weight="800" fill="url(#gradBrandF)">~1.51B</text>
   <text x="62" y="266" font-family="Consolas, 'Courier New', monospace" font-size="15" letter-spacing="3" font-weight="700" fill="#a1a1aa">FREE TOKENS / MONTH &#183; <tspan fill="#22c55e">STEADY</tspan></text>
-  <text x="62" y="298" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="16" fill="#F7F6FC">up to <tspan font-weight="800" fill="#22c55e">~2.15B</tspan> in your first month &#8212; signup credits</text>
-  <text x="62" y="326" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#71717a">documented free tiers &#183; <tspan fill="#8b5cf6">43 provider pools</tspan> &#183; <tspan fill="#8b5cf6">460+ models</tspan> &#183; one endpoint</text>
+  <text x="62" y="298" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="16" fill="#F7F6FC">up to <tspan font-weight="800" fill="#22c55e">~2.13B</tspan> in your first month &#8212; signup credits</text>
+  <text x="62" y="326" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#71717a">documented free tiers &#183; <tspan fill="#8b5cf6">42 provider pools</tspan> &#183; <tspan fill="#8b5cf6">498 models</tspan> &#183; one endpoint</text>
 
   <!-- ═══ Panel · The honest math ═══ -->
   <rect x="680" y="84" width="460" height="216" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
@@ -74,13 +74,13 @@
   </line>
   <text x="836" y="156" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa">every rate limit &#183; 24/7</text>
   <text x="836" y="176" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#ef4444" opacity="0.85">we don't publish that</text>
-  <text x="704" y="240" font-family="Consolas, 'Courier New', monospace" font-size="34" font-weight="800" fill="#22c55e">~1.53B</text>
+  <text x="704" y="240" font-family="Consolas, 'Courier New', monospace" font-size="34" font-weight="800" fill="#22c55e">~1.51B</text>
   <text x="836" y="224" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa">each shared free pool</text>
   <text x="836" y="244" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#22c55e">counted once &#10003;</text>
   <text x="704" y="280" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#f59e0b"><tspan font-weight="800">15 providers</tspan> ToS-flagged <tspan fill="#71717a">&#8212; we flag it &#183; you decide</tspan></text>
 
-  <!-- ═══ Budget bar · 19 countable pools ═══ -->
-  <text x="60" y="356" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2.5" font-weight="700" fill="#a78bfa">WHERE IT COMES FROM &#183; <tspan fill="#F7F6FC">19 COUNTABLE FREE POOLS</tspan></text>
+  <!-- ═══ Budget bar · countable pools ═══ -->
+  <text x="60" y="356" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2.5" font-weight="700" fill="#a78bfa">WHERE IT COMES FROM &#183; <tspan fill="#F7F6FC">COUNTABLE FREE POOLS</tspan></text>
   <g clip-path="url(#barShapeF)">
     <rect x="60" y="372" width="1080" height="18" fill="#1c2230"/>
     <g clip-path="url(#barRevF)">
@@ -109,9 +109,9 @@
     <animateMotion path="M 60,381 L 1140,381" keyPoints="0;0;1;1" keyTimes="0;0.02;0.24;1" calcMode="linear" dur="10s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.02;0.23;0.26;1" dur="10s" repeatCount="indefinite"/>
   </circle>
-  <text x="60" y="416" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#71717a">each segment = one free pool &#183; widths floored so every provider shows &#183; honest numbers below</text>
+  <text x="60" y="416" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#71717a">representative pool mix &#183; exact live totals and model-level budgets on the dashboard</text>
 
-  <!-- ═══ Per-model grid (19 pools) ═══ -->
+  <!-- ═══ Representative per-model grid ═══ -->
   <g font-family="Consolas, 'Courier New', monospace" font-size="12.5">
     <circle cx="66" cy="452" r="5" fill="#6c5ce7"/><text x="78" y="456" fill="#c9d1d9">Mistral Large 3 <tspan fill="#71717a">1.00B</tspan></text>
     <circle cx="346" cy="452" r="5" fill="#00b894"/><text x="358" y="456" fill="#c9d1d9">GPT-4o mini <tspan fill="#71717a">150M</tspan></text>
@@ -120,7 +120,7 @@
     <circle cx="66" cy="482" r="5" fill="#fdcb6e"/><text x="78" y="486" fill="#c9d1d9">Llama 3.3 70B <tspan fill="#71717a">30M</tspan></text>
     <circle cx="346" cy="482" r="5" fill="#e84393"/><text x="358" y="486" fill="#c9d1d9">Grok-3 <tspan fill="#71717a">24M</tspan></text>
     <circle cx="626" cy="482" r="5" fill="#00cec9"/><text x="638" y="486" fill="#c9d1d9">DeepSeek V4 Pro <tspan fill="#71717a">20M</tspan></text>
-    <circle cx="906" cy="482" r="5" fill="#d63031"/><text x="918" y="486" fill="#c9d1d9">GPT-4.1 <tspan fill="#71717a">18M</tspan></text>
+    <circle cx="906" cy="482" r="5" fill="#d63031"/><text x="918" y="486" fill="#c9d1d9">Tencent Hy3 <tspan fill="#71717a">150M</tspan></text>
     <circle cx="66" cy="512" r="5" fill="#a29bfe"/><text x="78" y="516" fill="#c9d1d9">Llama 4 Scout <tspan fill="#71717a">15M</tspan></text>
     <circle cx="346" cy="512" r="5" fill="#55efc4"/><text x="358" y="516" fill="#c9d1d9">GPT-4o <tspan fill="#71717a">7M</tspan></text>
     <circle cx="626" cy="512" r="5" fill="#74b9ff"/><text x="638" y="516" fill="#c9d1d9">MiniMax-M2.7 <tspan fill="#71717a">6M</tspan></text>

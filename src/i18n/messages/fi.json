@@ -5793,7 +5793,6 @@
       "friendliai": "Ilmainen taso palvelimettomaan päättelyyn — luottokorttia ei vaadita",
       "gemini": "Aina ilmainen: 1 500 pyyntöä/päivä Gemini 2.5 Flashille — ei luottokorttia, hanki avain osoitteesta aistudio.google.com",
       "gigachat": "Yhdistä GigaChat (Sber) API-avaimella.",
-      "github-models": "Luo GitHub PAT -tunniste 'models: read' -käyttöoikeudella osoitteessa github.com/settings/tokens",
       "gitlab": "GitLabin henkilökohtainen käyttöoikeustunniste julkiselle Code Suggestions API:lle. Määritä itse isännöity perus-URL, kun et käytä gitlab.com-palvelua.",
       "gitlawb-gmi": "Hanki API-avaimesi Gitlawb Opengateway -hallintapaneelista.",
       "gitlawb": "Hanki API-avaimesi Gitlawb Opengateway -hallintapaneelista.",

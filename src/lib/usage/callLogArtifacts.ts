@@ -257,7 +257,15 @@ export function deleteCallArtifact(relativePath: string | null): boolean {
   if (!CALL_LOGS_DIR || !relativePath) return false;
 
   try {
-    const absPath = path.join(CALL_LOGS_DIR, relativePath);
+    // Artifact paths originate in SQLite and therefore must be treated as
+    // untrusted data.  Resolve against the configured call_logs directory and
+    // refuse absolute paths or traversal outside that directory.  The
+    // retired-provider purge relies on this guard when replaying its durable
+    // artifact queue after a crash.
+    if (path.isAbsolute(relativePath) || path.win32.isAbsolute(relativePath)) return false;
+    const baseDir = path.resolve(CALL_LOGS_DIR);
+    const absPath = path.resolve(baseDir, relativePath);
+    if (absPath !== baseDir && !absPath.startsWith(`${baseDir}${path.sep}`)) return false;
     if (!fs.existsSync(absPath)) return false;
     fs.rmSync(absPath, { force: true });
     return true;

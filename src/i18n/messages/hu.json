@@ -5793,7 +5793,6 @@
       "friendliai": "Ingyenes csomag szerver nélküli következtetéshez — bankkártya nem szükséges",
       "gemini": "Örökké ingyenes: 1500 kérés/nap a Gemini 2.5 Flash-hez — bankkártya nem szükséges, kulcs beszerzése: aistudio.google.com",
       "gigachat": "Csatlakoztassa a GigaChatet (Sber) egy API-kulccsal.",
-      "github-models": "Hozzon létre egy GitHub PAT-ot 'models: read' hatókörrel a github.com/settings/tokens oldalon",
       "gitlab": "GitLab személyes hozzáférési token a nyilvános Code Suggestions API-hoz. Állítson be saját üzemeltetésű alap URL-t, ha nem a gitlab.com-ot használja.",
       "gitlawb-gmi": "Szerezze be API-kulcsát a Gitlawb Opengateway irányítópultjáról.",
       "gitlawb": "Szerezze be API-kulcsát a Gitlawb Opengateway irányítópultjáról.",

@@ -5793,7 +5793,6 @@
       "friendliai": "સર્વરલેસ ઇન્ફરન્સ માટે મફત સ્તર — કોઈ ક્રેડિટ કાર્ડની જરૂર નથી",
       "gemini": "હંમેશા માટે મફત: Gemini 2.5 Flash માટે દરરોજ 1,500 વિનંતીઓ — કોઈ ક્રેડિટ કાર્ડ નહીં, aistudio.google.com પર કી મેળવો",
       "gigachat": "API કી વડે GigaChat (Sber) ને કનેક્ટ કરો.",
-      "github-models": "github.com/settings/tokens પર 'models: read' સ્કોપ સાથે GitHub PAT બનાવો",
       "gitlab": "સાર્વજનિક Code Suggestions API માટે GitLab વ્યક્તિગત ઍક્સેસ ટોકન. જ્યારે gitlab.com નો ઉપયોગ ન કરી રહ્યા હોવ ત્યારે સેલ્ફ-હોસ્ટેડ બેઝ URL કન્ફિગર કરો.",
       "gitlawb-gmi": "Gitlawb Opengateway ડેશબોર્ડ પરથી તમારી API કી મેળવો.",
       "gitlawb": "Gitlawb Opengateway ડેશબોર્ડ પરથી તમારી API કી મેળવો.",

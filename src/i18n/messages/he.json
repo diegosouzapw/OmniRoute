@@ -5793,7 +5793,6 @@
       "friendliai": "מסלול חינמי להסקה ללא שרת — ללא צורך בכרטיס אשראי",
       "gemini": "חינם לתמיד: 1,500 בקשות/יום עבור Gemini 2.5 Flash — ללא כרטיס אשראי, קבל מפתח ב-aistudio.google.com",
       "gigachat": "חבר את GigaChat (Sber) באמצעות מפתח API.",
-      "github-models": "צור GitHub PAT עם הרשאת 'models: read' ב-github.com/settings/tokens",
       "gitlab": "טוקן גישה אישי של GitLab עבור ה-API הציבורי של Code Suggestions. הגדר כתובת URL בסיסית באירוח עצמי כאשר אינך משתמש ב-gitlab.com.",
       "gitlawb-gmi": "קבל את מפתח ה-API שלך מלוח הבקרה של Gitlawb Opengateway.",
       "gitlawb": "קבל את מפתח ה-API שלך מלוח הבקרה של Gitlawb Opengateway.",

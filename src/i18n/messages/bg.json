@@ -5793,7 +5793,6 @@
       "friendliai": "Безплатен план за serverless inference — не се изисква кредитна карта",
       "gemini": "Безплатно завинаги: 1,500 заявки/ден за Gemini 2.5 Flash — без кредитна карта, вземете ключ на aistudio.google.com",
       "gigachat": "Свържете GigaChat (Sber) с API ключ.",
-      "github-models": "Създайте GitHub PAT с обхват 'models: read' на github.com/settings/tokens",
       "gitlab": "Личен токен за достъп на GitLab за публичния Code Suggestions API. Конфигурирайте self-hosted базов URL адрес, когато не използвате gitlab.com.",
       "gitlawb-gmi": "Вземете своя API ключ от таблото за управление на Gitlawb Opengateway.",
       "gitlawb": "Вземете своя API ключ от таблото за управление на Gitlawb Opengateway.",

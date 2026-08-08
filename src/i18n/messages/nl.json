@@ -5793,7 +5793,6 @@
       "friendliai": "Gratis abonnement voor serverloze inferentie — geen creditcard vereist",
       "gemini": "Altijd gratis: 1.500 verzoeken/dag voor Gemini 2.5 Flash — geen creditcard, haal de sleutel op via aistudio.google.com",
       "gigachat": "Verbind GigaChat (Sber) met een API-sleutel.",
-      "github-models": "Maak een GitHub PAT aan met de scope 'models: read' op github.com/settings/tokens",
       "gitlab": "Persoonlijk toegangstoken van GitLab voor de openbare Code Suggestions-API. Configureer een zelf-gehoste basis-URL als je gitlab.com niet gebruikt.",
       "gitlawb-gmi": "Haal je API-sleutel op uit het Gitlawb Opengateway-dashboard.",
       "gitlawb": "Haal je API-sleutel op uit het Gitlawb Opengateway-dashboard.",

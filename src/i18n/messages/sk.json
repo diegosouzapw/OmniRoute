@@ -5793,7 +5793,6 @@
       "friendliai": "Bezplatná úroveň pre serverless inferenciu — nevyžaduje sa kreditná karta",
       "gemini": "Navždy zadarmo: 1 500 požiadaviek/deň pre Gemini 2.5 Flash — bez kreditnej karty, kľúč získate na aistudio.google.com",
       "gigachat": "Pripojte GigaChat (Sber) pomocou API kľúča.",
-      "github-models": "Vytvorte si GitHub PAT s rozsahom 'models: read' na adrese github.com/settings/tokens",
       "gitlab": "Osobný prístupový token GitLab pre verejné API Code Suggestions. Ak nepoužívate gitlab.com, nakonfigurujte vlastnú základnú URL.",
       "gitlawb-gmi": "Získajte svoj API kľúč z nástenky Gitlawb Opengateway.",
       "gitlawb": "Získajte svoj API kľúč z nástenky Gitlawb Opengateway.",

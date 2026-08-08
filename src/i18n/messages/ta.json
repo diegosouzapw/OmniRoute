@@ -5793,7 +5793,6 @@
       "friendliai": "சர்வர்லெஸ் இன்ஃபெரன்ஸிற்கான இலவச அடுக்கு — கிரெடிட் கார்டு தேவையில்லை",
       "gemini": "எப்போதும் இலவசம்: Gemini 2.5 Flash-க்கு ஒரு நாளைக்கு 1,500 கோரிக்கைகள் — கிரெடிட் கார்டு தேவையில்லை, aistudio.google.com இல் விசையைப் பெறவும்",
       "gigachat": "GigaChat (Sber) ஐ ஒரு API விசையுடன் இணைக்கவும்.",
-      "github-models": "github.com/settings/tokens இல் 'models: read' வரம்புடன் ஒரு GitHub PAT ஐ உருவாக்கவும்",
       "gitlab": "பொது குறியீடு பரிந்துரைகள் API க்கான GitLab தனிப்பட்ட அணுகல் டோக்கன். gitlab.com ஐப் பயன்படுத்தாதபோது சுய-ஹோஸ்ட் செய்யப்பட்ட அடிப்படை URL ஐ உள்ளமைக்கவும்.",
       "gitlawb-gmi": "Gitlawb Opengateway டாஷ்போர்டிலிருந்து உங்கள் API விசையைப் பெறவும்.",
       "gitlawb": "Gitlawb Opengateway டாஷ்போர்டிலிருந்து உங்கள் API விசையைப் பெறவும்.",

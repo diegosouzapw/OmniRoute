@@ -128,7 +128,7 @@ Content-Type: application/json
 }
 ```
 
-Available providers: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA, **OpenRouter**, **GitHub Models**.
+Available providers: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA, **OpenRouter**.
 
 Registry models that advertise multimodal support also accept up to 32 provider-neutral structured
 items. Media item types are `text`, `image`, `audio`, `video`, and `document`. Their media `source`

@@ -369,7 +369,6 @@ const LOBE_PROVIDER_ALIASES = {
   "gemini-web": "Gemini",
   "gemini-business": "Gemini",
   github: "GithubCopilot",
-  "github-models": "Github",
   "github-copilot": "GithubCopilot",
   "ghe-copilot": "GithubCopilot",
   glm: "Zhipu",

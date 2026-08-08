@@ -19,7 +19,6 @@ export const FREE_TIER_BUDGETS: Record<string, number> = {
   cerebras: 30_000_000,
   "api-airforce": 24_000_000,
   "ollama-cloud": 20_000_000,
-  "github-models": 18_000_000,
   groq: 15_000_000,
   bluesminds: 7_200_000,
   sambanova: 6_000_000,

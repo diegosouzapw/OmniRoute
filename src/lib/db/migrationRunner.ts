@@ -482,6 +482,13 @@ function isSchemaAlreadyApplied(
       // but still burn a version-tracking slot mismatch — guard it the same
       // way as the other renumbers for consistency.
       return hasTable(db, "connection_runtime_state");
+    case "143":
+      // Retired-provider purge occupied 135, 136, and 137 on earlier PR revisions.
+      // Preserve those installs while leaving the release migrations in those slots intact.
+      return (
+        hasTable(db, "retired_provider_purge_queue") &&
+        hasTable(db, "retired_provider_purge_artifacts")
+      );
     default:
       return false;
   }

@@ -5793,7 +5793,6 @@
       "friendliai": "Безкоштовний тариф для безсерверного виведення — кредитна картка не потрібна",
       "gemini": "Безкоштовно назавжди: 1500 зап/день для Gemini 2.5 Flash — без кредитної картки, отримайте ключ на aistudio.google.com",
       "gigachat": "Підключіть GigaChat (Сбер) за допомогою API-ключа.",
-      "github-models": "Створіть GitHub PAT з областю видимості 'models: read' на github.com/settings/tokens",
       "gitlab": "Особистий токен доступу GitLab для публічного API Code Suggestions. Налаштуйте власну базову URL-адресу, якщо не використовуєте gitlab.com.",
       "gitlawb-gmi": "Отримайте свій API-ключ на панелі керування Gitlawb Opengateway.",
       "gitlawb": "Отримайте свій API-ключ на панелі керування Gitlawb Opengateway.",
