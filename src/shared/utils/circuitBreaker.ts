@@ -113,12 +113,26 @@ interface CircuitBreakerOptions {
   backoffEscalationCount?: number;
 }
 
-interface TransitionRecord {
+export interface TransitionRecord {
   from: string;
   to: string;
   timestamp: number;
   failureCount: number;
   reason?: string;
+}
+
+export interface CircuitBreakerStatus {
+  name: string;
+  state: string;
+  failureCount: number;
+  lastFailureTime: number | null;
+  retryAfterMs: number;
+  lastFailureKind: string | null;
+  openCycleCount: number;
+  kindFailureCounts: Record<string, number>;
+  degradationThreshold: number;
+  effectiveResetTimeout: number;
+  transitionHistory: TransitionRecord[];
 }
 
 export class CircuitBreaker {
@@ -300,7 +314,7 @@ export class CircuitBreaker {
     return false;
   }
 
-  getStatus() {
+  getStatus(): CircuitBreakerStatus {
     this._refreshOpenState();
     return {
       name: this.name,
@@ -313,6 +327,7 @@ export class CircuitBreaker {
       kindFailureCounts: { ...this.kindFailureCounts },
       degradationThreshold: this.degradationThreshold,
       effectiveResetTimeout: this._effectiveResetTimeout(),
+      transitionHistory: [...this.transitionHistory],
     };
   }
 

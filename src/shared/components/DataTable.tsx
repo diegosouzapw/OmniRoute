@@ -22,13 +22,13 @@ import { useTranslations } from "next-intl";
  *   />
  */
 
-interface DataTableColumn {
+export interface DataTableColumn {
   key: string;
   label: string;
   maxWidth?: string;
 }
 
-interface DataTableRow {
+export interface DataTableRow {
   id?: string | number;
   [key: string]: unknown;
 }
