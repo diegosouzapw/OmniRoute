@@ -203,7 +203,8 @@ test("Responses -> OpenAI: incremental tool call events + response.completed sna
     },
     state
   );
-  assert.ok(args, "should emit args delta chunk");
+  // #9168: arguments deltas are buffered until output_item.done for schema normalization
+  assert.equal(args, null, "args delta should buffer until output_item.done");
 
   openaiResponsesToOpenAIResponse(
     {

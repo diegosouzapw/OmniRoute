@@ -1,0 +1,1 @@
+- fix(translator): buffer and normalize upstream tool-call argument deltas so optional null values are stripped before reaching the client (#9168)

@@ -874,6 +874,7 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     if (state.currentToolCallId) state.toolCallIdsSeen.add(state.currentToolCallId);
 
     const toolName = normalizeToolName(item.name);
+    state.currentToolName = toolName; // track for schema lookup at done time
     if (!toolName) {
       // Some Responses providers briefly emit placeholder/empty tool names.
       // Defer emission until output_item.done in case the final name is populated there.
@@ -919,26 +920,9 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     state.currentToolCallArgsBuffer = (state.currentToolCallArgsBuffer || "") + argsDelta;
     if (state.currentToolCallDeferred) return null;
 
-    return {
-      id: state.chatId,
-      object: "chat.completion.chunk",
-      created: state.created,
-      model: state.model || "gpt-4",
-      choices: [
-        {
-          index: 0,
-          delta: {
-            tool_calls: [
-              {
-                index: state.toolCallIndex,
-                function: { arguments: argsDelta },
-              },
-            ],
-          },
-          finish_reason: null,
-        },
-      ],
-    };
+    // #9168: buffer arguments until output_item.done for schema-aware null normalization
+    // Previously emitted raw null values for optional enum fields (e.g. isolation: null).
+    return null;
   }
 
   // Function call done — emit args chunk from item.arguments when no deltas were received,
@@ -1010,6 +994,35 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     // Only emit if arguments exist in the done event AND they weren't already streamed via deltas
     if (item.arguments != null && !buffered) {
       const argsToEmit = stripEmptyOptionalToolArgs(item.arguments, toolName, toolSchema);
+
+      const argsStr = typeof argsToEmit === "string" ? argsToEmit : JSON.stringify(argsToEmit);
+      if (argsStr) {
+        return {
+          id: state.chatId,
+          object: "chat.completion.chunk",
+          created: state.created,
+          model: state.model || "gpt-4",
+          choices: [
+            {
+              index: 0,
+              delta: {
+                tool_calls: [
+                  {
+                    index: currentIndex,
+                    function: { arguments: argsStr },
+                  },
+                ],
+              },
+              finish_reason: null,
+            },
+          ],
+        };
+      }
+    } else if (buffered) {
+      // #9168: deltas were buffered — normalize against the original client schema
+      // and emit the cleaned arguments once, stripping optional null values that
+      // would otherwise reach the client raw.
+      const argsToEmit = stripEmptyOptionalToolArgs(buffered, toolName, toolSchema);
 
       const argsStr = typeof argsToEmit === "string" ? argsToEmit : JSON.stringify(argsToEmit);
       if (argsStr) {
