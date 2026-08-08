@@ -55,6 +55,7 @@ function buildLlmlinguaRoot(
     rootNm,
     "@atjsh/llmlingua-2",
     {
+      main: "dist/index.js",
       dependencies: {
         "es-toolkit": "^1.38.0",
       },
@@ -221,6 +222,103 @@ test("#9166 standalone assembly never overwrites an already pinned transformers 
         )
       ),
       "missing dependencies from the transformers closure must still be copied"
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("#9166 co-location completes a partially traced package (package.json without its main)", () => {
+  const root = mkdtempSync(
+    join(tmpdir(), "omniroute-docker-llmlingua-partial-9166-")
+  );
+
+  try {
+    buildLlmlinguaRoot(root);
+    const { distDir, standaloneDir } = createStandalone(root);
+
+    // Next's file tracing materializes @atjsh/llmlingua-2 PARTIALLY in the
+    // standalone: the package.json lands (its "main" points at dist/index.js)
+    // but the dist/ payload does not — the exact state the Docker guard hits
+    // ("Cannot find module .../dist/index.js"). A directory-level no-clobber
+    // sees the dir and skips the package forever.
+    mkPkg(join(standaloneDir, "node_modules"), "@atjsh/llmlingua-2", {
+      main: "dist/index.js",
+    });
+
+    assembleStandalone({
+      distDir,
+      outDir: standaloneDir,
+      projectRoot: root,
+      copyNatives: true,
+    });
+
+    assert.ok(
+      existsSync(
+        join(
+          standaloneDir,
+          "node_modules",
+          "@atjsh",
+          "llmlingua-2",
+          "dist",
+          "index.js"
+        )
+      ),
+      "a partially traced package must be completed, not skipped as already present"
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("#9166 co-location is not skipped when every closure dir exists but one is partial", () => {
+  const root = mkdtempSync(
+    join(tmpdir(), "omniroute-docker-llmlingua-partial-all-9166-")
+  );
+
+  try {
+    buildLlmlinguaRoot(root);
+    const { distDir, standaloneDir } = createStandalone(root);
+    const standaloneNm = join(standaloneDir, "node_modules");
+
+    // Every closure package already has a directory in the standalone (so a
+    // directory-level "already co-located" early-exit would fire), but the
+    // llmlingua-2 one is the partial NFT-trace shell without its main.
+    for (const packageName of [
+      "es-toolkit",
+      "@tensorflow/tfjs",
+      "@tensorflow/tfjs-core",
+      "long",
+      "js-tiktoken",
+      "base64-js",
+      "@huggingface/transformers",
+      "onnxruntime-node",
+    ]) {
+      mkPkg(standaloneNm, packageName, { main: "index.js" }, {
+        "index.js": "export {};\n",
+      });
+    }
+    mkPkg(standaloneNm, "@atjsh/llmlingua-2", { main: "dist/index.js" });
+
+    assembleStandalone({
+      distDir,
+      outDir: standaloneDir,
+      projectRoot: root,
+      copyNatives: true,
+    });
+
+    assert.ok(
+      existsSync(
+        join(
+          standaloneDir,
+          "node_modules",
+          "@atjsh",
+          "llmlingua-2",
+          "dist",
+          "index.js"
+        )
+      ),
+      "the closure-wide early-exit must not fire while any member is partial"
     );
   } finally {
     rmSync(root, { recursive: true, force: true });

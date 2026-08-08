@@ -203,6 +203,14 @@ export const updateSettingsSchema = z.object({
       connections: z.record(z.string().max(100), z.boolean()).optional(),
     })
     .optional(),
+  // #8848: opt-in per-connection Claude proactive warmup. `connections` maps a
+  // provider_connections id -> enabled; default is an empty map (off for everyone)
+  // until the operator flips a specific OAuth connection on from the settings UI.
+  claudeWarmup: z
+    .object({
+      connections: z.record(z.string().max(100), z.boolean()).optional(),
+    })
+    .optional(),
   responsesPreviousResponseIdMode: z.enum(RESPONSES_PREVIOUS_RESPONSE_ID_MODES).optional(),
   // Routing settings (#134)
   fallbackStrategy: z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES).optional(),
@@ -322,6 +330,22 @@ export const updateSettingsSchema = z.object({
   visionBridgePrompt: z.string().max(5000).optional(),
   visionBridgeTimeout: z.number().int().min(1000).max(300000).optional(),
   visionBridgeMaxImages: z.number().int().min(1).max(20).optional(),
+  // Modality Bridge settings (new schema — visionBridge* keys above are the
+  // deprecated legacy aliases, kept accepted for one release cycle)
+  modalityBridgeVisionEnabled: z.boolean().optional(),
+  modalityBridgeVisionMode: z.enum(["auto", "describe", "reroute"]).optional(),
+  modalityBridgeVisionModel: z.string().max(200).optional(),
+  modalityBridgeVisionTaskAware: z.boolean().optional(),
+  modalityBridgeVisionPrompt: z.string().max(5000).optional(),
+  modalityBridgeVisionTimeout: z.number().int().min(1000).max(300000).optional(),
+  modalityBridgeVisionMaxImages: z.number().int().min(1).max(20).optional(),
+  modalityBridgeAudioEnabled: z.boolean().optional(),
+  modalityBridgeAudioModel: z.string().max(200).optional(),
+  modalityBridgeAudioTimeout: z.number().int().min(1000).max(300000).optional(),
+  modalityBridgeAudioMaxClips: z.number().int().min(1).max(10).optional(),
+  modalityBridgeCacheEnabled: z.boolean().optional(),
+  modalityBridgeCacheTtlMinutes: z.number().int().min(1).max(1440).optional(),
+  modalityBridgeCacheMaxEntries: z.number().int().min(10).max(5000).optional(),
   // Missing settings
   lkgpEnabled: z.boolean().optional(),
   // #1311: echo the requested alias/combo name in the response model field (opt-in)

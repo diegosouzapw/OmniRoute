@@ -14,6 +14,8 @@ import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { MODELS_DEV_PROVIDER_MAP } from "@/lib/modelsDevSync/transform";
 import { getModelContextOverride } from "@/lib/db/modelContextOverrides";
 import { getModelCapabilityOverride } from "@/lib/db/modelCapabilityOverrides";
+import { getDbInstance } from "@/lib/db/core";
+import { getKeyValue } from "@/lib/db/models/shared";
 import { isVisionModelId } from "@/shared/constants/visionModels";
 import { getUnsupportedParams } from "@omniroute/open-sse/config/providerRegistry.ts";
 import {
@@ -448,17 +450,51 @@ function modalitiesDeclareVision(modalities: readonly string[]): boolean {
   });
 }
 
+/**
+ * #9195: Read the customModels supportsVision override for a given provider/model
+ * pair from the database. Returns true/false when an explicit override exists, or
+ * null if no custom model entry or no explicit flag. Sync read (better-sqlite3).
+ */
+function getCustomModelVisionOverride(provider: string, model: string): boolean | null {
+  try {
+    const db = getDbInstance();
+    const row = db
+      .prepare("SELECT value FROM key_value WHERE namespace = 'customModels' AND key = ?")
+      .get(provider);
+    if (!row) return null;
+    const parsed = getKeyValue(row);
+    if (!parsed.value) return null;
+    const models: Array<{ id: string; supportsVision?: boolean }> = JSON.parse(parsed.value);
+    const entry = models.find((m) => m.id === model);
+    if (entry && typeof entry.supportsVision === "boolean") {
+      return entry.supportsVision;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 function resolveVisionCapability(
   spec: ModelSpec | undefined,
   registryModel: { supportsVision?: boolean } | null,
   synced: SyncedCapabilities,
   modalitiesInput: string[],
   modalitiesOutput: string[],
-  modelId?: string
+  modelId?: string,
+  customVisionOverride?: boolean | null
 ): boolean | null {
   const allModalities = [...modalitiesInput, ...modalitiesOutput].map((entry) =>
     String(entry).toLowerCase()
   );
+
+  // #9195: explicit custom model supportsVision override (from the dashboard
+  // "Vision capable" toggle) is the operator's authoritative choice for a
+  // self-hosted model. Check before the synced/registry/heuristic cascade so
+  // an operator-flagged vision model is never rejected by the Combo vision filter.
+  if (typeof customVisionOverride === "boolean") {
+    return customVisionOverride;
+  }
 
   // Hard override FIRST: a wrong synced `attachment:true` (or image modality) must not
   // win for models the vendor documents as text-only. Beats every branch below so an
@@ -667,13 +703,21 @@ export function getResolvedModelCapabilities(
   // fields keep using the non-leaf `spec` from getStaticSpec() above.
   const visionSpec = getVisionStaticSpec(resolved.model, resolved.rawModel);
 
+  // #9195: read the custom model's supportsVision override from the DB so the
+  // dashboard "Vision capable" toggle affects Combo routing.
+  const customVisionOverride =
+    resolved.provider && resolved.model
+      ? getCustomModelVisionOverride(resolved.provider, resolved.model)
+      : null;
+
   const supportsVision = resolveVisionCapability(
     visionSpec,
     registryModel,
     synced,
     modalitiesInput,
     modalitiesOutput,
-    lookupKey
+    lookupKey,
+    customVisionOverride
   );
 
   // #8250: when resolve promoted vision over a contradictory attachment=false,

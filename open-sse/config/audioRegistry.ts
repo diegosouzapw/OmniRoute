@@ -145,6 +145,19 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
     ],
   },
 
+  soniox: {
+    id: "soniox",
+    baseUrl: "https://api.soniox.com/v1/transcriptions",
+    authType: "apikey",
+    authHeader: "bearer",
+    async: true,
+    format: "soniox",
+    models: [
+      { id: "stt-async-v5", name: "Soniox STT Async v5" },
+      { id: "stt-async-v4", name: "Soniox STT Async v4" },
+    ],
+  },
+
   nvidia: {
     id: "nvidia",
     baseUrl: "https://integrate.api.nvidia.com/v1/audio/transcriptions",
@@ -318,6 +331,15 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "nvidia/fastpitch", name: "FastPitch" },
       { id: "nvidia/tacotron2", name: "Tacotron2" },
     ],
+  },
+
+  soniox: {
+    id: "soniox",
+    baseUrl: "https://tts-rt.soniox.com/tts",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "soniox-tts",
+    models: [{ id: "tts-rt-v1", name: "Soniox TTS RT v1" }],
   },
 
   elevenlabs: {

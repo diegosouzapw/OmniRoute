@@ -218,3 +218,101 @@ test("setRadarKey uses existing AES-256-GCM encryption from encryption.ts", () =
   const parts = body.split(":");
   assert.equal(parts.length, 3, "must have 3 parts (iv:ciphertext:authTag)");
 });
+
+// ---------------------------------------------------------------------------
+// radar_referrals_cache (migration 142) -- standalone `GET /v1/referrals/latest`
+// cache, separate from radar_feed_cache (the catalog feed).
+// ---------------------------------------------------------------------------
+
+test("getRadarReferralsCache returns null when no cache exists", () => {
+  const result = radar.getRadarReferralsCache();
+  assert.equal(result, null, "empty referrals cache must return null");
+});
+
+test("setRadarReferralsCache then getRadarReferralsCache round-trips exactly", () => {
+  const entry = {
+    generatedAt: "2026-08-07T12:00:00.000Z",
+    tier: "live",
+    payload: JSON.stringify({ referrals: { fixed: [], campaigns: [] } }),
+    signature: "ed25519:referrals-sig-abc",
+  };
+
+  radar.setRadarReferralsCache(entry);
+  const result = radar.getRadarReferralsCache();
+
+  assert.ok(result, "referrals cache must not be null after set");
+  assert.equal(result.generatedAt, entry.generatedAt, "generatedAt must round-trip");
+  assert.equal(result.tier, entry.tier, "tier must round-trip");
+  assert.equal(result.payload, entry.payload, "payload must round-trip byte-identically");
+  assert.equal(result.signature, entry.signature, "signature must round-trip");
+  assert.ok(result.fetchedAt, "fetchedAt must be set");
+});
+
+test("second setRadarReferralsCache REPLACES the row (still single row)", () => {
+  const db = core.getDbInstance();
+
+  radar.setRadarReferralsCache({
+    generatedAt: "2026-08-07T10:00:00.000Z",
+    tier: "community",
+    payload: '{"old":true}',
+    signature: "sig-old",
+  });
+
+  radar.setRadarReferralsCache({
+    generatedAt: "2026-08-07T12:00:00.000Z",
+    tier: "live",
+    payload: '{"new":true}',
+    signature: "sig-new",
+  });
+
+  const result = radar.getRadarReferralsCache();
+  assert.ok(result);
+  assert.equal(result.generatedAt, "2026-08-07T12:00:00.000Z", "must have the second generatedAt");
+  assert.equal(result.tier, "live", "must have the second tier");
+  assert.equal(result.payload, '{"new":true}', "must have the second payload");
+
+  const count = db.prepare("SELECT COUNT(*) AS c FROM radar_referrals_cache").get() as { c: number };
+  assert.equal(count.c, 1, "must have exactly one row");
+});
+
+test("setRadarReferralsCache uses fetchedAt when provided", () => {
+  const fixed = "2026-08-07T12:00:00.000Z";
+
+  radar.setRadarReferralsCache({
+    generatedAt: "2026-08-07T12:00:00.000Z",
+    tier: "community",
+    payload: "{}",
+    signature: "sig",
+    fetchedAt: fixed,
+  });
+
+  const result = radar.getRadarReferralsCache();
+  assert.ok(result);
+  assert.equal(result.fetchedAt, fixed, "must use the provided fetchedAt");
+});
+
+test("radar_referrals_cache is independent of radar_feed_cache (separate tables)", () => {
+  radar.setRadarCache({
+    version: "2026.08.01.1",
+    tier: "community",
+    payload: '{"catalog":true}',
+    signature: "catalog-sig",
+  });
+  radar.setRadarReferralsCache({
+    generatedAt: "2026-08-07T12:00:00.000Z",
+    tier: "live",
+    payload: '{"referrals":true}',
+    signature: "referrals-sig",
+  });
+
+  const catalogCache = radar.getRadarCache();
+  const referralsCache = radar.getRadarReferralsCache();
+
+  assert.equal(catalogCache?.payload, '{"catalog":true}');
+  assert.equal(referralsCache?.payload, '{"referrals":true}');
+  assert.notEqual(
+    catalogCache?.payload,
+    referralsCache?.payload,
+    "the two caches must never share storage"
+  );
+});

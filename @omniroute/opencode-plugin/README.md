@@ -30,7 +30,7 @@ omniroute setup opencode --auth
 # 3. Restart OpenCode — /models lists the full live catalog
 ```
 
-The `--auth` flag runs `opencode auth login --provider omniroute` automatically.
+The `--auth` flag runs `opencode auth login --provider opencode-omniroute` automatically.
 Use `--base-url` to point at a non-default OmniRoute address:
 
 ```sh
@@ -84,7 +84,7 @@ Peer dep: `@opencode-ai/plugin` (managed by your OpenCode install).
 ```
 
 ```sh
-opencode auth login --provider omniroute
+opencode auth login --provider opencode-omniroute
 # prompts for the OmniRoute API key, writes to ~/.local/share/opencode/auth.json
 ```
 
@@ -164,8 +164,8 @@ Then in `~/.config/opencode/opencode.json` reference each directory by absolute 
 Paths are relative to `~/.config/opencode/`. Each entry now resolves to a distinct module file, so OC loads them as two separate plugin instances. Authenticate each:
 
 ```sh
-opencode auth login --provider omniroute
-opencode auth login --provider omniroute-preprod
+opencode auth login --provider opencode-omniroute
+opencode auth login --provider opencode-omniroute-preprod
 ```
 
 Each entry gets its own provider id, its own model picker entry, its own slot in `auth.json`, and its own TTL cache. Closures are isolated per plugin instance — no cross-talk.

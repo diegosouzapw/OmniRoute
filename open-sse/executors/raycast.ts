@@ -28,7 +28,14 @@ export class RaycastExecutor extends BaseExecutor {
     return RAYCAST_CHAT_URL;
   }
 
-  buildHeaders(credentials: ProviderCredentials, payload?: string): Record<string, string> {
+  // Not a BaseExecutor.buildHeaders override: Raycast signs headers over the exact
+  // request payload (2nd param is the body string, not the base's `stream` boolean),
+  // and execute() below is fully custom — keep it as a distinct helper so a
+  // polymorphic buildHeaders(credentials, true) call can never land here.
+  private buildRaycastRequestHeaders(
+    credentials: ProviderCredentials,
+    payload?: string
+  ): Record<string, string> {
     const body = payload || "{}";
     return buildRaycastHeaders(body, credentials as JsonRecord);
   }
@@ -44,7 +51,11 @@ export class RaycastExecutor extends BaseExecutor {
       return {
         response: new Response(
           JSON.stringify({
-            error: { message: sanitizeErrorMessage(message), type: "invalid_request_error", code: "" },
+            error: {
+              message: sanitizeErrorMessage(message),
+              type: "invalid_request_error",
+              code: "",
+            },
           }),
           { status: 400, headers: { "Content-Type": "application/json" } }
         ),
@@ -54,7 +65,7 @@ export class RaycastExecutor extends BaseExecutor {
       };
     }
 
-    const headers = this.buildHeaders(credentials as ProviderCredentials, payload);
+    const headers = this.buildRaycastRequestHeaders(credentials as ProviderCredentials, payload);
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders as Record<string, string> | null);
 
     let raycastResponse: Response;

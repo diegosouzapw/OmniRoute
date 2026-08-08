@@ -205,7 +205,7 @@ export async function applyStrategyOrdering(
     if (resolvePromptCacheAffinityKey(body)) {
       orderedTargets = await expandPromptCacheAffinityTargets(orderedTargets);
     }
-    const affinity = applyPromptCacheAffinity(orderedTargets, body);
+    const affinity = applyPromptCacheAffinity(orderedTargets, body, true, "global");
     orderedTargets = affinity.targets;
     log.info(
       "COMBO",

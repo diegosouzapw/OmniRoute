@@ -202,6 +202,7 @@ const KNOWN_SVGS = new Set([
   "sensenova",
   "serper-search",
   "snowflake",
+  "soniox",
   "sparkdesk",
   "stepfun",
   "sumopod",

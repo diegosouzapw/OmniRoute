@@ -2816,11 +2816,14 @@ export class ChatGptWebExecutor extends BaseExecutor {
       };
     }
 
-    // Tool-call emulation (#5240): inject a `<tool>` contract when `tools` are
-    // present; parsed back on the response side. Mirrors qwen-web/perplexity-web.
+    // Tool-call emulation (#5240, #7679): inject a `<tool>` contract when tools
+    // are present; parsed back on the response side. Hardened for thinking models.
+    const resolvedModel = resolveChatGptModel(model, body, credentials.providerSpecificData);
+    const modelSlug = resolvedModel.slug;
     const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(
       (body || {}) as Record<string, unknown>,
-      messages as Array<{ role: string; content: unknown }>
+      messages as Array<{ role: string; content: unknown }>,
+      { hardened: isThinkingCapableModel(model, modelSlug) }
     );
 
     if (!credentials.apiKey) {
@@ -2918,12 +2921,9 @@ export class ChatGptWebExecutor extends BaseExecutor {
       log
     );
 
-    // 2a''. Resolve model + effort and apply thinking-effort preference for
-    // thinking-capable models. Dedicated thinking models mirror the browser's
-    // user-config PATCH; GPT-5.5 Pro sends the effort with the conversation
-    // body because the Pro standard/extended budget is part of that turn.
-    const resolvedModel = resolveChatGptModel(model, body, credentials.providerSpecificData);
-    const modelSlug = resolvedModel.slug;
+    // 2a''. Apply thinking-effort preference for thinking models.
+    // Dedicated thinking models mirror the browser's user-config PATCH;
+    // GPT-5.5 Pro effort is sent with the conversation body.
     const requestedEffort = resolvedModel.effort;
     if (requestedEffort && isThinkingCapableModel(model, modelSlug)) {
       await setUserThinkingEffort(

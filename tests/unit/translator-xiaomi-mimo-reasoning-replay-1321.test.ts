@@ -42,3 +42,53 @@ test("translateRequest replays reasoning_content on plain xiaomi-mimo assistant 
     "plain xiaomi-mimo assistant turn must carry a non-empty reasoning_content"
   );
 });
+
+// Scope guard for the #9573/#9610 <-> 9router#1321 conflict. #9610 removed the
+// placeholder injection globally on the strength of ONE provider's behavior
+// (deepseek-v4-flash was verified to accept an absent reasoning_content), which
+// silently re-broke MiMo. The placeholder is now provider-scoped, so both halves
+// need pinning: widening the scope back to DeepSeek re-opens #9573, narrowing it
+// away from MiMo re-opens 9router#1321.
+test("the reasoning_content placeholder stays scoped: MiMo keeps it, DeepSeek does not (#9573 vs 9router#1321)", () => {
+  const plainHistory = () => ({
+    messages: [
+      { role: "user", content: "hi" },
+      // Plain assistant turn whose reasoning_content the client stripped.
+      { role: "assistant", content: "Hello! How can I help?" },
+      { role: "user", content: "continue" },
+    ],
+  });
+
+  const mimo = translateRequest(
+    FORMATS.OPENAI,
+    FORMATS.OPENAI,
+    "mimo-v2.5-pro",
+    plainHistory(),
+    true,
+    null,
+    "xiaomi-mimo"
+  );
+  const mimoAssistant = mimo.messages.find((m) => m.role === "assistant");
+  assert.equal(
+    typeof mimoAssistant.reasoning_content === "string" &&
+      mimoAssistant.reasoning_content.length > 0,
+    true,
+    "MiMo 400s on an absent reasoning_content — the placeholder must survive the cache miss"
+  );
+
+  const deepseek = translateRequest(
+    FORMATS.OPENAI,
+    FORMATS.OPENAI,
+    "deepseek-v4-flash",
+    plainHistory(),
+    true,
+    null,
+    "deepseek"
+  );
+  const deepseekAssistant = deepseek.messages.find((m) => m.role === "assistant");
+  assert.equal(
+    deepseekAssistant.reasoning_content,
+    undefined,
+    "DeepSeek accepts an absent field; sending the placeholder there is the #9573 echo bug"
+  );
+});

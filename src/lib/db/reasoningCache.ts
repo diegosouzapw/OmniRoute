@@ -81,6 +81,8 @@ export function setReasoningCache(
   reasoning: string,
   ttlMs: number = DEFAULT_TTL_MS
 ): void {
+  const PLACEHOLDER = "(prior reasoning summary unavailable)";
+  if (!reasoning || reasoning.trim() === PLACEHOLDER) return; // ponytail: never store the internal placeholder
   if (reasoning.length > MAX_ENTRY_BYTES) {
     reasoning = reasoning.slice(0, MAX_ENTRY_BYTES);
   }
@@ -110,6 +112,8 @@ export function getReasoningCache(
     )
     .get(toolCallId) as { reasoning: string; provider: string; model: string } | undefined;
 
+  const PLACEHOLDER = "(prior reasoning summary unavailable)";
+  if (row && row.reasoning && row.reasoning.trim() === PLACEHOLDER) return null; // ponytail: never replay the placeholder
   return row ?? null;
 }
 

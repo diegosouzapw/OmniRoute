@@ -4,9 +4,14 @@
  * Provides local cache + settings storage for the OmniRoute Radar client.
  * Nothing here talks to the network (that's the sync layer).
  *
- * Tables (migration 134):
+ * Tables (migration 136):
  *   - radar_feed_cache: single-row signed feed cache
  *   - radar_settings:   opt-in + encrypted supporter key
+ *
+ * Tables (migration 142):
+ *   - radar_referrals_cache: single-row signed referrals feed cache
+ *     (`GET /v1/referrals/latest` — a separate, always-current artifact from
+ *     the catalog feed, see `src/lib/radar/referralsSync.ts`).
  *
  * The supporter key is encrypted at rest with AES-256-GCM using the same
  * `encrypt()`/`decrypt()` helpers from `./encryption.ts` that protect
@@ -32,6 +37,14 @@ export interface RadarSettings {
   optIn: boolean;
   supporterKey: string | null;
   updatedAt: string;
+}
+
+export interface RadarReferralsCache {
+  generatedAt: string;
+  tier: string;
+  payload: string;
+  signature: string;
+  fetchedAt: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -123,4 +136,51 @@ export function setRadarKey(key: string | null): void {
   db.prepare(
     "UPDATE radar_settings SET supporter_key_encrypted = ?, updated_at = datetime('now') WHERE id = 1"
   ).run(encrypted);
+}
+
+// ---------------------------------------------------------------------------
+// radar_referrals_cache
+// ---------------------------------------------------------------------------
+
+/**
+ * Read the cached Radar referrals feed (`GET /v1/referrals/latest`).
+ * Returns null when no referrals feed has been cached yet — separate from,
+ * and never falling back to, the catalog's `radar_feed_cache`.
+ */
+export function getRadarReferralsCache(): RadarReferralsCache | null {
+  const db = getDbInstance();
+  const row = db
+    .prepare(
+      "SELECT generated_at AS generatedAt, tier, payload, signature, fetched_at AS fetchedAt " +
+        "FROM radar_referrals_cache WHERE id = 1"
+    )
+    .get() as RadarReferralsCache | undefined;
+
+  return row ?? null;
+}
+
+/**
+ * Upsert the Radar referrals feed cache (single row). Replaces any existing
+ * entry. If `fetchedAt` is omitted, the current ISO timestamp is used.
+ */
+export function setRadarReferralsCache(entry: {
+  generatedAt: string;
+  tier: string;
+  payload: string;
+  signature: string;
+  fetchedAt?: string;
+}): void {
+  const db = getDbInstance();
+  const fetchedAt = entry.fetchedAt ?? new Date().toISOString();
+
+  db.prepare(
+    `INSERT INTO radar_referrals_cache (id, generated_at, tier, payload, signature, fetched_at)
+     VALUES (1, ?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET
+       generated_at = excluded.generated_at,
+       tier         = excluded.tier,
+       payload      = excluded.payload,
+       signature    = excluded.signature,
+       fetched_at   = excluded.fetched_at`
+  ).run(entry.generatedAt, entry.tier, entry.payload, entry.signature, fetchedAt);
 }

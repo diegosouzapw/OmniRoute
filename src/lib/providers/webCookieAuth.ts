@@ -6,15 +6,74 @@ export function stripCookieInputPrefix(rawValue: string): string {
   return withoutBearer.replace(/^cookie:/i, "").trim();
 }
 
-export function normalizeSessionCookieHeader(rawValue: string, defaultCookieName: string): string {
-  const normalized = stripCookieInputPrefix(rawValue);
-  if (!normalized) return "";
+/**
+ * Parse a JSON array of cookie objects and produce a Cookie header string.
+ *
+ * Accepts the format exported by browser cookie-editor extensions / DevTools:
+ * ```json
+ * [
+ *   {"name":"sso","value":"eyJ0eXAi...","domain":".example.com","path":"/"},
+ *   {"name":"sso-rw","value":"eyJOTHER..."}
+ * ]
+ * ```
+ *
+ * Only `name` and `value` are required. Extra fields (domain, path, expires,
+ * httpOnly, secure, sameSite) are silently ignored — they describe the cookie
+ * but are not part of the `Cookie` request header.
+ *
+ * @param rawValue - The user-provided cookie string (possibly JSON).
+ * @returns A Cookie header string, null if the input is not JSON (pass-through).
+ * @throws {Error} If a JSON entry is missing the required `name` or `value` field.
+ */
+export function parseJsonCookiesToHeader(rawValue: string): string | null {
+  const trimmed = (rawValue || "").trim();
+  if (!trimmed || !trimmed.startsWith("[")) return null;
 
-  if (normalized.includes("=")) {
-    return normalized;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(trimmed);
+  } catch {
+    return null;
   }
 
-  return `${defaultCookieName}=${normalized}`;
+  if (!Array.isArray(parsed)) return null;
+  if (parsed.length === 0) return "";
+
+  const parts: string[] = [];
+  for (let i = 0; i < parsed.length; i++) {
+    const entry = parsed[i];
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      throw new Error(`Invalid cookie JSON at index ${i}: expected an object`);
+    }
+    const record = entry as Record<string, unknown>;
+
+    if (typeof record.name !== "string" || !record.name) {
+      throw new Error(`Invalid cookie JSON at index ${i}: missing required field 'name'`);
+    }
+    if (typeof record.value !== "string") {
+      throw new Error(`Invalid cookie JSON at index ${i}: missing required field 'value'`);
+    }
+
+    parts.push(`${record.name}=${record.value}`);
+  }
+
+  return parts.join("; ");
+}
+
+export function normalizeSessionCookieHeader(rawValue: string, defaultCookieName: string): string {
+  const stripped = stripCookieInputPrefix(rawValue);
+  if (!stripped) return "";
+
+  const jsonResult = parseJsonCookiesToHeader(stripped);
+  if (jsonResult !== null) {
+    return jsonResult;
+  }
+
+  if (stripped.includes("=")) {
+    return stripped;
+  }
+
+  return `${defaultCookieName}=${stripped}`;
 }
 
 /**

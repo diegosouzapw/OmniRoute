@@ -309,6 +309,7 @@ export function stripStoredItemReferences(body: Record<string, unknown>): void {
 
 function stripOrphanedCodexFunctionCallOutputs(body: Record<string, unknown>): void {
   if (!Array.isArray(body.input)) return;
+  const input = body.input;
   // A previous_response_id delegates history resolution to the upstream
   // Responses service, so a matching function_call may legitimately live in
   // that remote response rather than in the local input array.
@@ -317,7 +318,7 @@ function stripOrphanedCodexFunctionCallOutputs(body: Record<string, unknown>): v
   const callIds = new Set<string>();
   let outputCount = 0;
 
-  for (const item of body.input) {
+  for (const item of input) {
     if (!item || typeof item !== "object" || Array.isArray(item)) continue;
     const record = item as Record<string, unknown>;
 
@@ -341,9 +342,7 @@ function stripOrphanedCodexFunctionCallOutputs(body: Record<string, unknown>): v
   }
 
   if (outputCount === 0) return;
-
-  const before = body.input.length;
-  body.input = body.input.filter((item) => {
+  const filteredInput = input.filter((item) => {
     if (!item || typeof item !== "object" || Array.isArray(item)) return true;
     const record = item as Record<string, unknown>;
     if (record.type === "function_call_output" && typeof record.call_id === "string") {
@@ -352,7 +351,8 @@ function stripOrphanedCodexFunctionCallOutputs(body: Record<string, unknown>): v
     return true;
   });
 
-  const removedCount = before - body.input.length;
+  const removedCount = input.length - filteredInput.length;
+  body.input = filteredInput;
   if (removedCount > 0) {
     console.debug(
       `[Codex] stripOrphanedCodexFunctionCallOutputs: removed ${removedCount} orphaned function_call_output item(s)`

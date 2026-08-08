@@ -288,7 +288,7 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
 
     async backup(destination: string): Promise<void> {
       if (dirty) persist();
-      if (filePath !== ":memory:") fs.copyFileSync(filePath, destination);
+      if (filePath !== ":memory:") await fs.promises.copyFile(filePath, destination);
     },
 
     checkpoint(_mode = "TRUNCATE"): void {

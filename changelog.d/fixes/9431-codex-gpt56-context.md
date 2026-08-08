@@ -1,0 +1,1 @@
+- **fix(providers):** Codex GPT-5.6 model metadata reports the 1M context window and 922K input limit ([#9431](https://github.com/diegosouzapw/OmniRoute/issues/9431)).

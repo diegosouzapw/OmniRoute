@@ -38,4 +38,5 @@ test("mergeResponseToolNameMap unions base with executor _toolNameMap", () => {
   assert.equal(merged.get("a"), "1");
   assert.equal(merged.get("b"), "2");
   assert.equal(mergeResponseToolNameMap(base, {}), base);
+  assert.equal(mergeResponseToolNameMap(null, {}), null);
 });

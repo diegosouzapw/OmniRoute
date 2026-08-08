@@ -908,6 +908,31 @@ export function withCorrelationId(response: Response, correlationId: string | nu
   }
 }
 
+/**
+ * Modality Bridge transparency (PR-1 Task 9): stamp the
+ * `x-omniroute-modality-bridge` header on responses whose request payload was
+ * transparently transformed (e.g. image→text describe). `value` comes from
+ * buildModalityBridgeHeader(); null (untouched/rerouted request) is a no-op.
+ * Same try-set/clone-fallback shape as withSessionHeader — the clone reuses
+ * `response.body`, so SSE streams pass through untouched.
+ */
+export function withModalityBridgeHeader(response: Response, value: string | null): Response {
+  if (!response || !value) return response;
+
+  try {
+    response.headers.set("x-omniroute-modality-bridge", value);
+    return response;
+  } catch {
+    const cloned = new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+    cloned.headers.set("x-omniroute-modality-bridge", value);
+    return cloned;
+  }
+}
+
 export function withSelectedConnectionHeader(
   response: Response,
   connectionId: string | null | undefined

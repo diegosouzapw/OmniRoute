@@ -566,3 +566,183 @@ test.describe("modelsDevSync-extended", { concurrency: 1 }, async () => {
     assert.equal(modelsDev.getSyncStatus().lastSync, null);
   });
 });
+
+// MODELS_DEV_SYNC_ENABLED was named in this module's header comment for a long
+// time without ever being read, so the only real switch was a row in the
+// database. A container rebuilt from a fresh volume therefore came up with the
+// sync off no matter what the deployment intended.
+
+test("MODELS_DEV_SYNC_ENABLED=true starts the sync even with the setting off", async () => {
+  const previous = process.env.MODELS_DEV_SYNC_ENABLED;
+  await settingsDb.updateSettings({
+    modelsDevSyncEnabled: false,
+    modelsDevSyncInterval: 15,
+  });
+
+  process.env.MODELS_DEV_SYNC_ENABLED = "true";
+  const modelsDev = await importFresh("init-env-on");
+  mockFetchWith(MOCK_MODELS_DEV_DATA);
+  try {
+    await modelsDev.initModelsDevSync();
+    assert.equal(modelsDev.getSyncStatus().enabled, true);
+    // `enabled` alone would also be true for a sync that started and then
+    // never fetched anything, so pin the fetch actually having run. Assert
+    // the result, not just await it -- waitFor returns null on timeout, and
+    // an unasserted timeout is indistinguishable from success.
+    assert.ok(
+      await waitFor(() => modelsDev.getSyncStatus().lastSync !== null),
+      "expected the initial sync to complete and set lastSync"
+    );
+  } finally {
+    modelsDev.stopPeriodicSync();
+    if (previous === undefined) delete process.env.MODELS_DEV_SYNC_ENABLED;
+    else process.env.MODELS_DEV_SYNC_ENABLED = previous;
+  }
+});
+
+test("the stored setting still starts the sync with no env var present", async () => {
+  const previous = process.env.MODELS_DEV_SYNC_ENABLED;
+  delete process.env.MODELS_DEV_SYNC_ENABLED;
+  await settingsDb.updateSettings({
+    modelsDevSyncEnabled: true,
+    modelsDevSyncInterval: 15,
+  });
+
+  const modelsDev = await importFresh("init-setting-only");
+  mockFetchWith(MOCK_MODELS_DEV_DATA);
+  try {
+    // Without this the test would still pass if the variable were set to
+    // "true", crediting the setting for what the env var did.
+    assert.equal(process.env.MODELS_DEV_SYNC_ENABLED, undefined);
+    await modelsDev.initModelsDevSync();
+    assert.equal(modelsDev.getSyncStatus().enabled, true);
+    assert.ok(
+      await waitFor(() => modelsDev.getSyncStatus().lastSync !== null),
+      "expected the initial sync to complete and set lastSync"
+    );
+  } finally {
+    modelsDev.stopPeriodicSync();
+    if (previous !== undefined) process.env.MODELS_DEV_SYNC_ENABLED = previous;
+  }
+});
+
+test("the usual truthy spellings all start the sync, and nothing else does", async () => {
+  const previous = process.env.MODELS_DEV_SYNC_ENABLED;
+  await settingsDb.updateSettings({
+    modelsDevSyncEnabled: false,
+    modelsDevSyncInterval: 15,
+  });
+
+  // A compose file or unit file is as likely to carry "1" as "true", so all
+  // four spellings work, in any casing and with stray whitespace. Everything
+  // else leaves the sync off rather than guessing at intent.
+  const cases: Array<[string, boolean]> = [
+    ["true", true],
+    ["TRUE", true],
+    ["True", true],
+    ["  true  ", true],
+    ["1", true],
+    ["yes", true],
+    ["on", true],
+    ["ON", true],
+    ["false", false],
+    ["0", false],
+    ["no", false],
+    ["off", false],
+    ["", false],
+    ["truthy", false],
+  ];
+
+  try {
+    for (const [index, [value, expected]] of cases.entries()) {
+      process.env.MODELS_DEV_SYNC_ENABLED = value;
+      // The label becomes a cache-busting URL suffix, so it has to stay
+      // URL-safe; the values themselves carry quotes and whitespace.
+      const modelsDev = await importFresh(`init-env-case-${index}`);
+      if (expected) mockFetchWith(MOCK_MODELS_DEV_DATA);
+      await modelsDev.initModelsDevSync();
+      assert.equal(
+        modelsDev.getSyncStatus().enabled,
+        expected,
+        `MODELS_DEV_SYNC_ENABLED=${JSON.stringify(value)} should ${expected ? "" : "not "}enable the sync`
+      );
+      if (expected) {
+        // `enabled` alone would also be true for a sync that started and
+        // then never fetched anything; pin the fetch actually having run
+        // for each truthy spelling, not just the first one.
+        assert.ok(
+          await waitFor(() => modelsDev.getSyncStatus().lastSync !== null),
+          `MODELS_DEV_SYNC_ENABLED=${JSON.stringify(value)} should have completed a sync`
+        );
+      }
+      modelsDev.stopPeriodicSync();
+    }
+  } finally {
+    if (previous === undefined) delete process.env.MODELS_DEV_SYNC_ENABLED;
+    else process.env.MODELS_DEV_SYNC_ENABLED = previous;
+  }
+});
+
+test("MODELS_DEV_SYNC_ENABLED=false turns the sync off despite a stored setting of true", async () => {
+  // The direction that costs an operator real time if it is wrong: they put
+  // the variable in their compose file expecting a master switch, and the
+  // sync keeps running because the dashboard toggle is still on. An explicit
+  // env value decides in either direction; only an unset one defers.
+  const previous = process.env.MODELS_DEV_SYNC_ENABLED;
+  await settingsDb.updateSettings({
+    modelsDevSyncEnabled: true,
+    modelsDevSyncInterval: 15,
+  });
+
+  process.env.MODELS_DEV_SYNC_ENABLED = "false";
+  const modelsDev = await importFresh("init-env-false-setting-true");
+  mockFetchWith(MOCK_MODELS_DEV_DATA);
+  try {
+    await modelsDev.initModelsDevSync();
+    assert.equal(
+      modelsDev.getSyncStatus().enabled,
+      false,
+      "MODELS_DEV_SYNC_ENABLED=false should disable the sync even with the setting on"
+    );
+    assert.equal(
+      modelsDev.getSyncStatus().lastSync,
+      null,
+      "a disabled sync must not have fetched anything"
+    );
+  } finally {
+    modelsDev.stopPeriodicSync();
+    if (previous === undefined) delete process.env.MODELS_DEV_SYNC_ENABLED;
+    else process.env.MODELS_DEV_SYNC_ENABLED = previous;
+  }
+});
+
+test("an unset MODELS_DEV_SYNC_ENABLED still defers to a stored setting of true", async () => {
+  // The counterpart: without this one, the test above would also pass if the
+  // env var had simply become a hard off switch and the dashboard toggle had
+  // stopped working entirely.
+  const previous = process.env.MODELS_DEV_SYNC_ENABLED;
+  delete process.env.MODELS_DEV_SYNC_ENABLED;
+  await settingsDb.updateSettings({
+    modelsDevSyncEnabled: true,
+    modelsDevSyncInterval: 15,
+  });
+
+  const modelsDev = await importFresh("init-env-unset-setting-true");
+  mockFetchWith(MOCK_MODELS_DEV_DATA);
+  try {
+    await modelsDev.initModelsDevSync();
+    assert.equal(
+      modelsDev.getSyncStatus().enabled,
+      true,
+      "an unset env var should leave the stored setting in charge"
+    );
+    assert.ok(
+      await waitFor(() => modelsDev.getSyncStatus().lastSync !== null),
+      "expected the initial sync to complete and set lastSync"
+    );
+  } finally {
+    modelsDev.stopPeriodicSync();
+    if (previous === undefined) delete process.env.MODELS_DEV_SYNC_ENABLED;
+    else process.env.MODELS_DEV_SYNC_ENABLED = previous;
+  }
+});
