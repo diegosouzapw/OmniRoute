@@ -1083,7 +1083,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
         </div>
       )}
 
-      {/* Pinned Provider Quota Limits (compact, no filters) */}
+      {/* Pinned Provider Quota Limits */}
       {pinProviderQuotaToHome && (
         <Suspense fallback={<CardSkeleton />}>
           <ProviderQuotaWidget
