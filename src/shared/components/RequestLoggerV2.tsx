@@ -124,6 +124,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
         { key: "tps", label: t("columns.tps") },
         { key: "duration", label: t("columns.duration") },
         { key: "time", label: t("columns.time") },
+        { key: "conversation", label: t("columns.conversation") },
       ],
       [t]
     );
@@ -187,6 +188,12 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
     const hasScrolledRef = useRef(false);
     const [providerNodes, setProviderNodes] = useState([]);
     const visibleRef = useRef(true);
+    // Set when handlePrev/handleNext hits the edge of the (possibly stale —
+    // list polling pauses while a detail modal is open) in-memory list, so we
+    // can tell a genuine "no more items" from "more items landed in the
+    // background while the modal was open and we just haven't fetched them
+    // yet" before giving up and closing the modal.
+    const pendingBoundaryNavRef = useRef<null | "prev" | "next">(null);
 
     const [visibleColumns, setVisibleColumns] = useState(() => {
       const defaultVisible = Object.fromEntries(columns.map((c) => [c.key, true]));
@@ -749,9 +756,14 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
             console.error("Failed to open previous log id:", error_);
           });
       } else {
-        closeDetail();
+        // List polling pauses while the modal is open (#background list can
+        // go stale), so hitting the edge of the in-memory array doesn't mean
+        // there's really nothing newer — resync once and let the effect below
+        // decide, instead of assuming this is the last item and closing.
+        pendingBoundaryNavRef.current = "prev";
+        fetchLogs(false);
       }
-    }, [currentLogIndex, sortedLogsForNav]);
+    }, [currentLogIndex, sortedLogsForNav, fetchLogs]);
 
     const handleNext = useCallback(() => {
       const idx = currentLogIndex;
@@ -764,9 +776,43 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
             console.error("Failed to open previous log id:", error_);
           });
       } else {
+        pendingBoundaryNavRef.current = "next";
+        fetchLogs(false);
+      }
+    }, [currentLogIndex, sortedLogsForNav, fetchLogs]);
+
+    // Resolves a pending boundary nav (see handlePrev/handleNext) once a
+    // triggered fetchLogs() resync has landed in sortedLogsForNav. Only fires
+    // when a boundary nav is actually pending, so this is a no-op on the
+    // normal (paused-while-modal-open) list-update cadence.
+    useEffect(() => {
+      const direction = pendingBoundaryNavRef.current;
+      if (!direction || !selectedLog) return;
+      pendingBoundaryNavRef.current = null;
+      const idx = sortedLogsForNav.findIndex((l) => l.id === selectedLog.id);
+      const target =
+        direction === "prev"
+          ? idx > 0
+            ? sortedLogsForNav[idx - 1]
+            : null
+          : idx >= 0 && idx < sortedLogsForNav.length - 1
+            ? sortedLogsForNav[idx + 1]
+            : null;
+      if (target?.id) {
+        openDetail(target)
+          .then((r) => r)
+          .catch((error_) => {
+            console.error("Failed to open adjacent log id:", error_);
+          });
+      } else {
         closeDetail();
       }
-    }, [currentLogIndex, sortedLogsForNav]);
+      // openDetail/closeDetail are plain functions re-created every render
+      // (same as handlePrev/handleNext above and the rest of this file) —
+      // listing them would re-fire this effect on every render instead of
+      // only when sortedLogsForNav/selectedLog actually change.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sortedLogsForNav, selectedLog]);
 
     const toggleDetailLogging = async () => {
       setDetailLoggingLoading(true);
@@ -1240,6 +1286,9 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                         {getSortIndicator("time")}
                       </th>
                     )}
+                    {visibleColumns.conversation && (
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.conversation")}</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/30">
@@ -1561,6 +1610,15 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                         {visibleColumns.time && (
                           <td className="px-3 py-2 text-right text-text-muted">
                             {formatTime(log.timestamp)}
+                          </td>
+                        )}
+                        {visibleColumns.conversation && (
+                          <td className="px-3 py-2 font-mono text-[10px] text-text-muted">
+                            {log.sessionTag ? (
+                              <span title={log.sessionTag}>{log.sessionTag.slice(0, 12)}…</span>
+                            ) : (
+                              <span className="text-text-muted">—</span>
+                            )}
                           </td>
                         )}
                       </tr>

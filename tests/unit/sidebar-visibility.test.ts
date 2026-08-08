@@ -24,6 +24,7 @@ test("system sidebar items: monitoring has activity at top then logs/audit/syste
       "logs-proxy",
       "logs-console",
       "logs-timeline",
+      "conversations",
       "audit",
       "audit-mcp",
       "audit-a2a",

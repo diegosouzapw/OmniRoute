@@ -48,10 +48,7 @@
 import fs from "node:fs/promises";
 import fsSync from "node:fs";
 import path from "node:path";
-import {
-  colocateLlmlinguaOptionals,
-  SEED_PACKAGES,
-} from "./colocateOptionals.mjs";
+import { colocateLlmlinguaOptionals, SEED_PACKAGES } from "./colocateOptionals.mjs";
 
 /**
  * Check whether a path exists (async).
@@ -78,7 +75,7 @@ async function exists(targetPath) {
  * (relative to projectRoot) and destination (relative to outDir) can be joined
  * for either path/platform. @type {{label:string, src:string[], dest:string[]}[]}
  */
-const NATIVE_ASSET_ENTRIES = [
+export const NATIVE_ASSET_ENTRIES = [
   {
     label: "wreq-js native runtime",
     src: ["node_modules", "wreq-js", "rust"],
@@ -88,6 +85,19 @@ const NATIVE_ASSET_ENTRIES = [
     label: "better-sqlite3 native binary",
     src: ["node_modules", "better-sqlite3", "build"],
     dest: ["node_modules", "better-sqlite3", "build"],
+  },
+  {
+    // onnxruntime-node's dist/binding.js dlopen()s a platform-specific
+    // libonnxruntime.so.1 shipped under bin/napi-v3/<platform>/<arch>/ — a
+    // *dynamic* native load Next.js's standalone file trace can't see (same
+    // blind spot class as the LLMLingua closure below, just for a .so instead
+    // of a JS import). Without this the standalone bundle boots with
+    // "Error: libonnxruntime.so.1: cannot open shared object file: No such
+    // file or directory" the first time transformers/llmlingua actually try
+    // to run ONNX inference.
+    label: "onnxruntime-node native binaries (libonnxruntime .so + .node addon)",
+    src: ["node_modules", "onnxruntime-node", "bin"],
+    dest: ["node_modules", "onnxruntime-node", "bin"],
   },
   {
     // TPROXY IP_TRANSPARENT addon (Fase 3 / Epic A). Built by build-tproxy-native
@@ -750,8 +760,7 @@ export function assembleStandalone({
       rootDir: projectRoot,
       targetNodeModulesDir: path.join(resolvedOutDir, "node_modules"),
       seeds: [...SEED_PACKAGES, "@huggingface/transformers"],
-      log: (message) =>
-        console.log(`[assembleStandalone] ${message.trim()}`),
+      log: (message) => console.log(`[assembleStandalone] ${message.trim()}`),
     });
   }
 

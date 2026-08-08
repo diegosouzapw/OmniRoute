@@ -15,7 +15,10 @@ function JsonNode({ data, depth = 0 }: { data: unknown; depth?: number }) {
   if (data === null) return <span className="text-text-muted">null</span>;
   if (typeof data === "boolean") return <span className="text-amber-400">{String(data)}</span>;
   if (typeof data === "number") return <span className="text-blue-400">{String(data)}</span>;
-  if (typeof data === "string") return <span className="text-green-400">&quot;{data}&quot;</span>;
+  if (typeof data === "string")
+    return (
+      <span className="text-green-400 whitespace-pre-wrap break-words">&quot;{data}&quot;</span>
+    );
 
   if (Array.isArray(data)) {
     if (data.length === 0) return <span className="text-text-muted">[]</span>;

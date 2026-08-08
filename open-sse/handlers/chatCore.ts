@@ -170,6 +170,7 @@ import {
   ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
   STREAM_RECOVERY,
   DEFAULT_MAX_TOKENS,
+  STREAM_DISCONNECT_GRACE_PERIOD_MS,
 } from "../config/constants.ts";
 import { createRecoverableStream, makeContinuationBody } from "../services/streamRecovery.ts";
 import {
@@ -416,6 +417,7 @@ export async function handleChatCore({
   skipUpstreamRetry = false,
   createPiiTransform = null,
   correlationId = null,
+  conversationId = null,
   modelPinned = false,
   skipResourcePressureGuard = false,
 }) {
@@ -785,6 +787,7 @@ export async function handleChatCore({
       providerRequest: initialProviderRequest,
       stage: "registered",
       correlationId,
+      sessionTag: conversationId || null,
     }) || generateRequestId();
 
   // Initialize rate limit settings from persisted DB (once, lazy)
@@ -910,7 +913,11 @@ export async function handleChatCore({
       noLogEnabled,
       correlationId,
       modelPinned,
-      sessionTag: explicitSessionIdHeader,
+      // Resolved conversationId (open-sse/services/conversationTracker.ts) wins when
+      // present — it's populated for every request now, not just ones where the
+      // client explicitly sent x-omniroute-session-id. The raw header remains a
+      // fallback for any caller that somehow bypassed conversationId resolution.
+      sessionTag: conversationId || explicitSessionIdHeader,
     });
 
   // Primary path: merge client model id + alias target so config on either key applies; resolved
@@ -4333,9 +4340,14 @@ export async function handleChatCore({
     try {
       const firstChoice = translatedResponse?.choices?.[0];
       const msg = firstChoice?.message;
+      // The response being cached now will be replayed as history on the *next*
+      // turn, where the read side (translator/index.ts) keys the lookup by the
+      // message's real position in that future `messages` array — i.e. right
+      // after everything the client sent this turn.
+      const bodyMessages = (body as { messages?: unknown[] } | null | undefined)?.messages;
       cacheReasoningFromAssistantMessage(msg, provider, model, {
         requestId: skillRequestId,
-        messageIndex: 0,
+        messageIndex: Array.isArray(bodyMessages) ? bodyMessages.length : 0,
       });
     } catch {
       // Cache capture is non-critical — never block the response
@@ -4760,12 +4772,15 @@ export async function handleChatCore({
     // with tool_calls so it can be replayed on subsequent turns (DeepSeek V4, Kimi K2, etc.)
     if (normalizedStreamStatus === 200 && streamResponseBody) {
       try {
-        const body = streamResponseBody as Record<string, unknown>;
-        const choices = body.choices as { message?: Record<string, unknown> }[] | undefined;
+        const streamBody = streamResponseBody as Record<string, unknown>;
+        const choices = streamBody.choices as { message?: Record<string, unknown> }[] | undefined;
         const msg = choices?.[0]?.message;
+        // See the non-streaming capture above: messageIndex must match the
+        // position this message will occupy in the *next* turn's history.
+        const bodyMessages = (body as { messages?: unknown[] } | null | undefined)?.messages;
         cacheReasoningFromAssistantMessage(msg, provider, model, {
           requestId: skillRequestId,
-          messageIndex: 0,
+          messageIndex: Array.isArray(bodyMessages) ? bodyMessages.length : 0,
         });
       } catch {
         // Cache capture is non-critical — never block the stream
@@ -4908,13 +4923,20 @@ export async function handleChatCore({
   });
   const handleStreamFailure = streamFailureFinalizers.handleStreamFailure;
   onPipelineStreamError = streamFailureFinalizers.onPipelineStreamError;
-  onClientDisconnectFinalize = (event) =>
-    handleStreamFailure({
-      status: 499,
-      message: `Client disconnected: ${event.reason}`,
-      code: "client_disconnected",
-      type: "client_disconnected",
-    });
+  // #9653: gives a genuine, race-delayed completion a chance to land (see
+  // createClientDisconnectGraceHandler's doc comment) before persisting a false
+  // 499/0-tokens for a request that actually delivered its full response.
+  onClientDisconnectFinalize = streamFailure.createClientDisconnectGraceHandler({
+    isStreamCompletionRecorded: () => streamCompletionRecorded,
+    gracePeriodMs: STREAM_DISCONNECT_GRACE_PERIOD_MS,
+    finalize: (event) =>
+      handleStreamFailure({
+        status: 499,
+        message: `Client disconnected: ${event.reason}`,
+        code: "client_disconnected",
+        type: "client_disconnected",
+      }),
+  });
 
   // For providers using Responses API format, translate stream back to openai (Chat Completions) format
   // UNLESS client is Droid CLI which expects openai-responses format back

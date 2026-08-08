@@ -29,6 +29,59 @@ export type PipelineStreamErrorHandler = (event: {
   statusCode: number;
 }) => boolean;
 
+export type ClientDisconnectEvent = { reason: string; duration: number };
+
+/**
+ * #9653: a client that closes its connection right after reading a fully-completed
+ * SSE stream can race the stream's own completion bookkeeping — the bytes already
+ * reached the client, but the transform stream's completion callback (which flips
+ * `isStreamCompletionRecorded()` to true) hasn't finished bubbling up yet when the
+ * disconnect handler fires. Persisting immediately in that case records a false
+ * 499 with zero token usage for a request that actually delivered its full response.
+ *
+ * This wraps a disconnect finalizer with a grace period: instead of finalizing
+ * immediately, poll `isStreamCompletionRecorded()` until it flips true (a real
+ * completion landed — nothing more to do) or the deadline passes (genuinely gone —
+ * finalize as a 499 same as before). Pass `gracePeriodMs <= 0` to disable and
+ * finalize immediately, matching the pre-#9653 behavior.
+ */
+export function createClientDisconnectGraceHandler({
+  isStreamCompletionRecorded,
+  gracePeriodMs,
+  finalize,
+  pollIntervalMs = 250,
+  setTimeoutFn = setTimeout,
+}: {
+  isStreamCompletionRecorded: () => boolean;
+  gracePeriodMs: number;
+  finalize: (event: ClientDisconnectEvent) => unknown;
+  pollIntervalMs?: number;
+  setTimeoutFn?: (callback: () => void, ms: number) => unknown;
+}): (event: ClientDisconnectEvent) => boolean {
+  return (event) => {
+    if (isStreamCompletionRecorded()) return true;
+    if (gracePeriodMs <= 0) {
+      finalize(event);
+      return true;
+    }
+
+    const deadline = Date.now() + gracePeriodMs;
+    const poll = () => {
+      if (isStreamCompletionRecorded()) return;
+      if (Date.now() >= deadline) {
+        finalize(event);
+        return;
+      }
+      setTimeoutFn(poll, pollIntervalMs);
+    };
+    setTimeoutFn(poll, pollIntervalMs);
+
+    // Claim "handled" immediately so the caller's own immediate-finalize fallback
+    // doesn't fire while the grace-period poll is still pending.
+    return true;
+  };
+}
+
 export function finalizeStreamRequestLog({
   pendingRequestId,
   model,
@@ -107,9 +160,7 @@ export function createStreamFailureFinalizers({
     const message = failure.message || "Upstream stream error";
     const code = failure.code || failure.type || String(status);
     const classification =
-      failure.code || failure.type
-        ? { code: failure.code, type: failure.type }
-        : undefined;
+      failure.code || failure.type ? { code: failure.code, type: failure.type } : undefined;
 
     if (!isFailureCompletionRecorded()) {
       const errorBody = buildErrorBody(status, message, undefined, classification);

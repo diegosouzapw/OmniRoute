@@ -8,6 +8,9 @@ import {
 } from "@/shared/constants/colors";
 import { formatDuration, formatApiKeyLabel, maskAccount } from "@/shared/utils/formatting";
 import { formatErrorForDisplay } from "@/shared/utils/formatting";
+import { ChatBubble } from "@/app/(dashboard)/dashboard/tools/traffic-inspector/components/chat/ChatBubble";
+import { buildRequestTurns, buildResponseTurns } from "@/mitm/inspector/conversationNormalizer";
+import type { InterceptedRequest, NormalizedTurn } from "@/mitm/inspector/types";
 
 // ─── Payload Code Block ─────────────────────────────────────────────────────
 
@@ -57,6 +60,187 @@ function PayloadSection({ title, json, onCopy, collapsible = true, defaultOpen =
         <pre className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-150 overflow-y-auto leading-relaxed whitespace-pre-wrap break-words">
           {json}
         </pre>
+      )}
+    </div>
+  );
+}
+
+// ─── Conversation context section ───────────────────────────────────────────
+// Renders THIS request's own context (its request body's messages/input, plus
+// its response) — a plain single-request normalization, same shape as the
+// traffic-inspector's ConversationTab, no cross-request reconstruction. While
+// the request is still generating (detail.active === true) the response side
+// shows the partial text captured so far, refreshed on a short poll scoped to
+// just this section.
+const CONVERSATION_ACTIVE_POLL_INTERVAL_MS = 1200;
+
+function asInterceptedResponseBody(responseBody: unknown): InterceptedRequest {
+  return {
+    id: "",
+    source: "custom-host",
+    timestamp: "",
+    method: "POST",
+    host: "",
+    path: "",
+    requestHeaders: {},
+    requestBody: null,
+    requestSize: 0,
+    responseHeaders: {},
+    responseBody: responseBody != null ? JSON.stringify(responseBody) : null,
+    responseSize: 0,
+    status: 0,
+    detectedKind: "llm",
+  };
+}
+
+function ConversationContextSection({ log, detail }) {
+  const [open, setOpen] = useState(true);
+  const [liveDetail, setLiveDetail] = useState(detail);
+  const [liveRefresh, setLiveRefresh] = useState(() => {
+    try {
+      const v = localStorage.getItem("pref:conversationContext:liveRefresh");
+      return v == null ? true : v === "1";
+    } catch {
+      return true;
+    }
+  });
+  const turnsBoxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setLiveDetail(detail);
+  }, [detail]);
+
+  // Same live-poll pattern as the SSE Events section (StreamSection below),
+  // but gated on liveRefresh too: an active request keeps generating either
+  // way, this toggle only controls whether THIS panel keeps fetching/
+  // redrawing while the user reads it.
+  useEffect(() => {
+    if (!liveDetail?.active || !liveRefresh) return;
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const tick = () => {
+      if (cancelled) return;
+      if (document.visibilityState !== "visible") {
+        timeoutId = setTimeout(tick, CONVERSATION_ACTIVE_POLL_INTERVAL_MS);
+        return;
+      }
+      fetch(`/api/logs/${log.id}`, { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (cancelled || !data) return;
+          setLiveDetail(data);
+          if (data.active) timeoutId = setTimeout(tick, CONVERSATION_ACTIVE_POLL_INTERVAL_MS);
+        })
+        .catch(() => {
+          timeoutId = setTimeout(tick, CONVERSATION_ACTIVE_POLL_INTERVAL_MS);
+        });
+    };
+
+    timeoutId = setTimeout(tick, CONVERSATION_ACTIVE_POLL_INTERVAL_MS);
+    return () => {
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [liveDetail?.active, liveRefresh, log.id]);
+
+  const toggleLiveRefresh = () => {
+    const next = !liveRefresh;
+    setLiveRefresh(next);
+    try {
+      localStorage.setItem("pref:conversationContext:liveRefresh", next ? "1" : "0");
+    } catch {}
+  };
+
+  const scrollToBottom = () => {
+    const el = turnsBoxRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      try {
+        el.scrollTop = el.scrollHeight;
+      } catch {}
+    });
+  };
+
+  const requestBody =
+    liveDetail?.requestBody ?? liveDetail?.pipelinePayloads?.clientRequest ?? null;
+  const requestTurns = buildRequestTurns(requestBody) ?? [];
+
+  const responseBody = liveDetail?.responseBody ?? null;
+  const responseTurns: NormalizedTurn[] =
+    responseBody != null
+      ? buildResponseTurns(asInterceptedResponseBody(responseBody))
+      : liveDetail?.partialAssistantText
+        ? [
+            {
+              role: "assistant",
+              blocks: [{ type: "text", text: liveDetail.partialAssistantText }],
+            },
+          ]
+        : [];
+
+  const allTurns: NormalizedTurn[] = [...requestTurns, ...responseTurns];
+
+  // Follow new content as it streams in — same idea as StreamSection's
+  // autoscroll effect, tied to the same liveRefresh toggle.
+  useEffect(() => {
+    if (!liveRefresh || !open) return;
+    scrollToBottom();
+  }, [allTurns.length, liveDetail?.partialAssistantText, liveRefresh, open]);
+
+  if (allTurns.length === 0) return null;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="flex items-center gap-3">
+          <h3 className="text-[11px] text-text-muted uppercase tracking-wider font-bold">
+            Conversation Context
+          </h3>
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
+            aria-label={open ? "Collapse Conversation Context" : "Expand Conversation Context"}
+          >
+            <span className="material-symbols-outlined text-[16px]">
+              {open ? "expand_less" : "expand_more"}
+            </span>
+          </button>
+        </div>
+        {open && (
+          <div className="flex items-center gap-1">
+            {liveDetail?.active && (
+              <button
+                onClick={toggleLiveRefresh}
+                title={liveRefresh ? "Live refresh: on" : "Live refresh: off"}
+                className={`p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors ${liveRefresh ? "text-primary" : ""}`}
+                aria-pressed={liveRefresh}
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  {liveRefresh ? "sync" : "sync_disabled"}
+                </span>
+              </button>
+            )}
+            <button
+              onClick={scrollToBottom}
+              title="Go to bottom"
+              className="p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
+              aria-label="Go to bottom"
+            >
+              <span className="material-symbols-outlined text-[18px]">vertical_align_bottom</span>
+            </button>
+          </div>
+        )}
+      </div>
+      {open && (
+        <div
+          ref={turnsBoxRef}
+          className="rounded-xl bg-black/5 dark:bg-black/30 border border-border max-h-150 overflow-y-auto p-3 space-y-2"
+        >
+          {allTurns.map((turn, i) => (
+            <ChatBubble key={i} turn={turn} />
+          ))}
+        </div>
       )}
     </div>
   );
@@ -348,7 +532,7 @@ export default function RequestLoggerDetail({
   const codexAccountRotation = getCodexAccountRotation(detail);
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[5vh]"
+      className="fixed inset-0 z-50 flex items-start justify-center px-2 pt-[5vh] sm:px-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -356,12 +540,12 @@ export default function RequestLoggerDetail({
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
-        className="relative bg-bg-primary border border-border rounded-xl w-full max-w-225 max-h-[90vh] overflow-y-auto shadow-2xl"
+        className="relative w-full max-w-225 max-h-[90vh] overflow-x-hidden overflow-y-auto rounded-xl border border-border bg-bg-primary shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-border bg-bg-primary/95 backdrop-blur-sm rounded-t-xl">
-          <div className="flex items-center gap-3">
+        <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3 border-b border-border bg-bg-primary/95 backdrop-blur-sm rounded-t-xl sm:px-6 sm:py-4">
+          <div className="flex flex-wrap items-center gap-2 min-w-0 sm:gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 {log.active ? (
@@ -408,23 +592,31 @@ export default function RequestLoggerDetail({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={onPrevious}
-              disabled={!onPrevious}
-              className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
-              aria-label="Previous request"
-            >
-              <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-            </button>
-            <button
-              onClick={onNext}
-              disabled={!onNext}
-              className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
-              aria-label="Next request"
-            >
-              <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-            </button>
+          <div className="flex items-center gap-1 shrink-0">
+            {/* Only rendered when a caller actually wires up navigation (RequestLoggerV2's
+                list view) — a caller with no ordered-list context to navigate through
+                (conversations page, RequestTimeline) passes neither, so there's nothing
+                to show instead of a permanently-disabled dead button. */}
+            {(onPrevious || onNext) && (
+              <>
+                <button
+                  onClick={onPrevious}
+                  disabled={!onPrevious}
+                  className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                  aria-label="Previous request"
+                >
+                  <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                </button>
+                <button
+                  onClick={onNext}
+                  disabled={!onNext}
+                  className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                  aria-label="Next request"
+                >
+                  <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                </button>
+              </>
+            )}
             <button
               onClick={onClose}
               className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
@@ -435,7 +627,7 @@ export default function RequestLoggerDetail({
           </div>
         </div>
 
-        <div className="p-6 flex flex-col gap-6">
+        <div className="p-4 flex flex-col gap-6 sm:p-6">
           {/* Metadata Grid */}
           {log.active ? (
             <div className="flex flex-wrap gap-4 p-4 bg-bg-subtle rounded-xl border border-border">
@@ -672,6 +864,21 @@ export default function RequestLoggerDetail({
                   <div className="text-sm text-text-muted">\u2014</div>
                 )}
               </div>
+              <div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  Conversation
+                </div>
+                {detail?.sessionTag || log.sessionTag ? (
+                  <div
+                    className="text-sm font-mono select-all"
+                    title={detail?.sessionTag || log.sessionTag}
+                  >
+                    {(detail?.sessionTag || log.sessionTag).slice(0, 20)}\u2026
+                  </div>
+                ) : (
+                  <div className="text-sm text-text-muted">\u2014</div>
+                )}
+              </div>
             </div>
           )}
 
@@ -840,6 +1047,8 @@ export default function RequestLoggerDetail({
             </div>
           ) : (
             <>
+              <ConversationContextSection key={log.id} log={log} detail={detail} />
+
               {streamChunks && streamChunks.provider && (
                 <StreamSection
                   title="Provider Event Stream"

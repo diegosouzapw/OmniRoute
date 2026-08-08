@@ -3,15 +3,20 @@
  * Safe for circular references (WeakSet). Iterative frames only (no recursive call stack).
  *
  * Budgets:
- * - ESTIMATE_SIZE_BYTE_LIMIT (256 KiB): early-exit once counted bytes exceed the limit
+ * - byteLimit param (default ESTIMATE_SIZE_BYTE_LIMIT, 256 KiB): early-exit
+ *   once counted bytes exceed the limit — pass the caller's own threshold
+ *   explicitly rather than relying on the default, since a caller comparing
+ *   against a bigger configured limit would otherwise never see a size
+ *   above 256 KiB.
  * - ESTIMATE_SIZE_NODE_BUDGET: max value visits (containers + primitives/elements)
  *
  * Arrays are walked by index frame (never pre-push/copy every element reference).
  * Plain objects yield own enumerable values incrementally (no Object.keys materialization).
- * Node-budget exhaustion returns a value strictly above 256 KiB so callers fail closed.
+ * Node-budget exhaustion returns a value strictly above the effective byteLimit
+ * so callers fail closed.
  */
 
-/** Byte early-exit threshold (256 KiB). */
+/** Default byte early-exit threshold (256 KiB) when a caller doesn't pass its own. */
 export const ESTIMATE_SIZE_BYTE_LIMIT = 262_144;
 
 /**
@@ -74,14 +79,22 @@ function expandContainerFrame(stack: Frame[], frame: Exclude<Frame, ValueFrame>)
   stack.push({ t: "v", v: (frame.o as Record<string, unknown>)[next.value] });
 }
 
-export function estimateSizeFast(value: unknown): number {
+/**
+ * @param byteLimit - early-exit threshold (default ESTIMATE_SIZE_BYTE_LIMIT,
+ * 256 KiB). Pass the actual threshold you're comparing against (see
+ * chatCore/logTruncation.ts::truncateForLog) so raising that threshold
+ * doesn't silently cap what this function is even capable of reporting —
+ * the byte check and the node-budget fail-closed fallback both key off this
+ * value, not the fixed module constant, when a caller supplies one.
+ */
+export function estimateSizeFast(value: unknown, byteLimit = ESTIMATE_SIZE_BYTE_LIMIT): number {
   let bytes = 0;
   let visitsLeft = ESTIMATE_SIZE_NODE_BUDGET;
   const seen = new WeakSet<object>();
   const stack: Frame[] = [{ t: "v", v: value }];
 
   while (stack.length > 0) {
-    if (visitsLeft <= 0) return ESTIMATE_SIZE_BYTE_LIMIT + 1;
+    if (visitsLeft <= 0) return byteLimit + 1;
 
     const frame = stack.pop()!;
     if (!isValueFrame(frame)) {
@@ -96,7 +109,7 @@ export function estimateSizeFast(value: unknown): number {
     const ty = typeof v;
     if (ty === "string" || ty === "number" || ty === "boolean") {
       bytes = addPrimitiveBytes(bytes, v as string | number | boolean);
-      if (bytes > ESTIMATE_SIZE_BYTE_LIMIT) return bytes;
+      if (bytes > byteLimit) return bytes;
       continue;
     }
     if (ty === "object") {

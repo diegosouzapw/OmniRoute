@@ -1,4 +1,5 @@
 import { getPendingById } from "@/lib/usage/usageHistory";
+import { getChatLogMaxDepth } from "@/lib/logEnv";
 import { sanitizeErrorMessage } from "./error.ts";
 
 type JsonRecord = Record<string, unknown>;
@@ -148,7 +149,7 @@ export function cloneBoundedForLog(value: unknown, depth = 0, key: string | null
   if (ArrayBuffer.isView(value)) {
     return `[binary ${(value as ArrayBufferView).byteLength} bytes]`;
   }
-  if (depth >= 6) return "[MaxDepth]";
+  if (depth >= getChatLogMaxDepth()) return "[MaxDepth]";
 
   if (Array.isArray(value)) {
     // Idempotence (#7847): an already-bounded array is [marker, ...tail] — MAX_LOG_ARRAY_ITEMS + 1

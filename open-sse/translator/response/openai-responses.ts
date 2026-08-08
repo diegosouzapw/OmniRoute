@@ -31,6 +31,19 @@ import {
 // normalizeUpstreamFailure is re-exported for external importers (tests).
 export { normalizeUpstreamFailure } from "./openai-responses/pureHelpers.ts";
 
+/** Carries escapeJsonStringValues's scan state (whether we're inside a JSON
+ * string, and whether the fragment ended mid-escape-sequence) across calls
+ * for the SAME tool call — see escapeJsonStringValues's own doc comment for
+ * why this must persist across chunks rather than reset per call. */
+interface JsonStringEscapeState {
+  inString: boolean;
+  pendingEscape: boolean;
+}
+
+function createJsonStringEscapeState(): JsonStringEscapeState {
+  return { inString: false, pendingEscape: false };
+}
+
 /**
  * Escape control characters (newlines, tabs, carriage returns) that appear
  * inside JSON string values, ensuring the resulting string is valid JSON.
@@ -38,18 +51,42 @@ export { normalizeUpstreamFailure } from "./openai-responses/pureHelpers.ts";
  * newlines (0x0A) instead of \n escapes inside tool call argument JSON.
  * Only escapes characters inside string contexts to avoid double-escaping
  * already-proper JSON or corrupting structural newlines.
+ *
+ * `arguments` deltas arrive as arbitrary fragments of one continuous JSON
+ * string (OpenAI's Chat Completions streaming contract only guarantees each
+ * `tool_calls[].function.arguments` delta is the next slice, not that it
+ * starts/ends on a quote or escape boundary) — a large multi-line argument
+ * value routinely gets split mid-string. `escapeState` must therefore be the
+ * SAME object passed in on every call for a given tool call index, not a
+ * fresh `{inString: false}` each time: resetting per call made the
+ * in-string/out-of-string decision (and therefore whether a raw newline
+ * gets escaped) depend on where a chunk boundary happened to fall, which
+ * produced a real, reported bug — a single reassembled arguments string
+ * with a mix of real newlines and literal two-character `\n` sequences,
+ * breaking generated code (e.g. Python) that embeds multi-line content.
  */
-function escapeJsonStringValues(json: string): string {
+function escapeJsonStringValues(json: string, escapeState: JsonStringEscapeState): string {
   let result = "";
-  let inString = false;
+  let { inString, pendingEscape } = escapeState;
 
   for (let i = 0; i < json.length; i++) {
     const ch = json[i];
 
-    // Inside a string, skip over escape sequences
+    // This char is the one immediately following a backslash from a
+    // previous iteration (possibly in a prior fragment) — it's already
+    // "consumed" by that escape sequence, pass it through untouched.
+    if (pendingEscape) {
+      result += ch;
+      pendingEscape = false;
+      continue;
+    }
+
+    // Inside a string, an unescaped backslash starts an escape sequence —
+    // the char AFTER it (next iteration, possibly in the next fragment)
+    // must not be reinterpreted as a quote/control-char in its own right.
     if (inString && ch === "\\") {
-      result += ch + (json[i + 1] ?? "");
-      i++;
+      result += ch;
+      pendingEscape = true;
       continue;
     }
 
@@ -69,6 +106,8 @@ function escapeJsonStringValues(json: string): string {
     result += ch;
   }
 
+  escapeState.inString = inString;
+  escapeState.pendingEscape = pendingEscape;
   return result;
 }
 
@@ -471,6 +510,7 @@ function emitToolCall(state, emit, tc) {
     delete state.funcArgsDone[tcIdx];
     delete state.funcItemAdded[tcIdx];
     delete state.funcItemDone[tcIdx];
+    delete state.funcArgsEscapeState?.[tcIdx];
   }
 
   if (funcName) state.funcNames[tcIdx] = funcName;
@@ -517,7 +557,14 @@ function emitToolCall(state, emit, tc) {
   if (tc.function?.arguments) {
     const refCallId = state.funcCallIds[tcIdx] || newCallId;
     const existingArgs = state.funcArgsBuf[tcIdx] || "";
-    const sanitized = escapeJsonStringValues(tc.function.arguments);
+    if (!state.funcArgsEscapeState) state.funcArgsEscapeState = {};
+    if (!state.funcArgsEscapeState[tcIdx]) {
+      state.funcArgsEscapeState[tcIdx] = createJsonStringEscapeState();
+    }
+    const sanitized = escapeJsonStringValues(
+      tc.function.arguments,
+      state.funcArgsEscapeState[tcIdx]
+    );
     const nextArgs = appendToolCallArgumentDelta(existingArgs, sanitized);
     const emittedDelta = nextArgs.slice(existingArgs.length);
     state.funcArgsBuf[tcIdx] = nextArgs;
