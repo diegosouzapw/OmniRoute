@@ -38,6 +38,7 @@ export async function GET(request: Request) {
         id: model.id,
         name: model.name || model.root || model.id,
         type: model.type || "chat",
+        ...(typeof model.subtype === "string" ? { subtype: model.subtype } : {}),
         custom: model.custom === true,
         ...(model.free === true ? { free: true } : {}),
         ...(model.capabilities ? { capabilities: model.capabilities } : {}),

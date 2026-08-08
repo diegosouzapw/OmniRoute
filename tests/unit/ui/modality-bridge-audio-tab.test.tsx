@@ -28,20 +28,24 @@ describe("ModalityBridgeAudioTab", () => {
     (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
     fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
-      if (url.includes("/api/models")) {
+      if (url.includes("/api/models/catalog")) {
         return Response.json({
-          models: [
-            {
-              provider: "deepgram",
-              model: "nova-3",
-              type: "audio",
-              subtype: "transcription",
+          catalog: {
+            deepgram: {
+              provider: "Deepgram",
+              models: [
+                { id: "deepgram/nova-3", type: "audio", subtype: "transcription" },
+                { id: "deepgram/aura", type: "audio", subtype: "speech" },
+              ],
             },
-            { provider: "deepgram", model: "aura", type: "audio", subtype: "speech" },
-            { provider: "openai", model: "gpt-5.6" },
-          ],
+            openai: {
+              provider: "OpenAI",
+              models: [{ id: "openai/gpt-5.6", type: "chat" }],
+            },
+          },
         });
       }
+      if (url.includes("/api/models")) return Response.json({ models: [] });
       if (url.includes("/api/modality-bridge/stats")) {
         return Response.json({
           vision: { bridged: 0, cacheHits: 0, failures: 0, lastUsedAt: null },
@@ -99,6 +103,7 @@ describe("ModalityBridgeAudioTab", () => {
 
   it("shows only transcription models and exposes selectable Auto", async () => {
     const el = await render();
+    expect(fetchMock).toHaveBeenCalledWith("/api/models/catalog");
     await waitFor(
       () =>
         Array.from(el.querySelectorAll("option")).some(

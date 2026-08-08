@@ -264,4 +264,16 @@ test("audio transparency header is emitted only for transformed clips", () => {
     ]),
     null
   );
+  assert.equal(
+    buildModalityBridgeHeader([
+      {
+        guardrail: "audio-bridge",
+        meta: {
+          clipsProcessed: 1,
+          sttModel: "deepgram/nova-3\r\nx-injected: yes",
+        },
+      },
+    ]),
+    "audio->text;model=deepgram/nova-3__x-injected__yes;parts=1"
+  );
 });

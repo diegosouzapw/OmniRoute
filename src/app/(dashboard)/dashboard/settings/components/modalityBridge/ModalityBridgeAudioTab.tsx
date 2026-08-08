@@ -114,6 +114,7 @@ export default function ModalityBridgeAudioTab() {
           placeholder={t("modalityBridgeAudioModelAuto")}
           allowEmpty
           modelFilter={isSttModel}
+          modelSource="catalog"
           onChange={(value) => void update({ modalityBridgeAudioModel: value })}
           className="text-sm"
         />
