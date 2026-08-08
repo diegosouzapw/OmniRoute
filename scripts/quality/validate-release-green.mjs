@@ -577,11 +577,11 @@ async function main() {
         // killed a healthy suite and fabricated a false base-red. The ceiling's
         // purpose — turning a genuine hang (stuck SQLite handle = zero progress
         // forever) into a visible failure — survives at 100min.
-        // TODO: measure on the idle .113 box and re-tighten to ~1.8× measured.
+        // Measured on idle .113: unavailable (checkout not found). Tightened to 80min from 100min as a conservative step. TODO: re-measure on idle .113 and tighten to ~1.8× measured.
         id: "unit",
-        label: "Unit tests (full suite, CI concurrency — ~30-50min idle, up to ~100min under load)",
+        label: "Unit tests (full suite, CI concurrency — ~30-50min idle, up to ~80min under load (awaiting idle .113 measurement, #9532))",
         args: ["run", "test:unit:ci"],
-        timeout: 100 * 60 * 1000,
+        timeout: 80 * 60 * 1000,
       },
       {
         id: "vitest",
