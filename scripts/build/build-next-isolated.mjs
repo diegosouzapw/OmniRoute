@@ -96,7 +96,16 @@ function runNextBuild() {
     const nextBin = path.join(projectRoot, "node_modules", "next", "dist", "bin", "next");
     const buildEnv = resolveNextBuildEnv(process.env);
     ensureWindowsBuildProfileDirs(buildEnv);
-    const child = spawn(process.execPath, [nextBin, "build", resolveNextBuildBundlerFlag()], {
+    const nextArgs = process.versions.bun
+      ? [
+          "--preload",
+          path.join(projectRoot, "open-sse", "utils", "setupPolyfill.ts"),
+          nextBin,
+          "build",
+          resolveNextBuildBundlerFlag(),
+        ]
+      : [nextBin, "build", resolveNextBuildBundlerFlag()];
+    const child = spawn(process.execPath, nextArgs, {
       cwd: projectRoot,
       stdio: "inherit",
       env: buildEnv,

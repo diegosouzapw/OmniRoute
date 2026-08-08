@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
 import { writePidFile, cleanupPidFile, killAllSubprocesses, isPidRunning } from "../utils/pid.mjs";
 import {
   RESTART_RESET_MS,
@@ -55,7 +55,12 @@ export class ServerSupervisor {
     // stderr so a readiness timeout can surface what the child actually printed.
     this.child = spawn(
       process.versions.bun ? process.execPath : "node",
-      [...(process.versions.bun ? [] : heapArgs), this.serverPath],
+      [
+        ...(process.versions.bun
+          ? ["--preload", join(dirname(this.serverPath), "open-sse/utils/setupPolyfill.ts")]
+          : heapArgs),
+        this.serverPath,
+      ],
       {
         cwd: dirname(this.serverPath),
         env: this.env,

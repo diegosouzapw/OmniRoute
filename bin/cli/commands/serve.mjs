@@ -269,7 +269,12 @@ function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
   // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
   const server = spawn(
     process.versions.bun ? process.execPath : "node",
-    [...(process.versions.bun ? [] : buildNodeHeapArgs(process.env, memoryLimit)), serverJs],
+    [
+      ...(process.versions.bun
+        ? ["--preload", join(APP_DIR, "open-sse/utils/setupPolyfill.ts")]
+        : buildNodeHeapArgs(process.env, memoryLimit)),
+      serverJs,
+    ],
     {
       cwd: APP_DIR,
       env,
@@ -289,7 +294,12 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
   // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
   const server = spawn(
     process.versions.bun ? process.execPath : "node",
-    [...(process.versions.bun ? [] : buildNodeHeapArgs(process.env, memoryLimit)), serverJs],
+    [
+      ...(process.versions.bun
+        ? ["--preload", join(APP_DIR, "open-sse/utils/setupPolyfill.ts")]
+        : buildNodeHeapArgs(process.env, memoryLimit)),
+      serverJs,
+    ],
     {
       cwd: APP_DIR,
       env,
