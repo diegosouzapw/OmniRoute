@@ -77,6 +77,8 @@ export function getSharedBridgeCache(ttlMs: number, maxEntries: number): BridgeC
  * bridge (vision, audio) goes through here so the minutes→ms conversion can
  * never diverge between callers and thrash the singleton on each request.
  */
-export function getSharedBridgeCacheFor(settings: VisionBridgeRuntimeSettings): BridgeCache {
+export function getSharedBridgeCacheFor(
+  settings: Pick<VisionBridgeRuntimeSettings, "cacheTtlMinutes" | "cacheMaxEntries">
+): BridgeCache {
   return getSharedBridgeCache(settings.cacheTtlMinutes * 60_000, settings.cacheMaxEntries);
 }

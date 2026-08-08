@@ -62,7 +62,11 @@ export function buildModalityBridgeHeader(results: GuardrailMetaEntry[]): string
         `image->text;model=${String(meta.visionModel ?? "unknown")};parts=${meta.imagesProcessed}`
       );
     }
-    if (r.guardrail === "audio-bridge" && typeof meta.clipsProcessed === "number") {
+    if (
+      r.guardrail === "audio-bridge" &&
+      typeof meta.clipsProcessed === "number" &&
+      !meta.rerouted
+    ) {
       segments.push(
         `audio->text;model=${String(meta.sttModel ?? "unknown")};parts=${meta.clipsProcessed}`
       );
