@@ -5,6 +5,7 @@ import {
   buildSyncedModelIdsByCanonicalProvider,
   shouldSuppressStaticModelBySyncedCoverage,
 } from "../../src/app/api/v1/models/catalogSyncedCoverage.ts";
+import type { SyncedAvailableModel } from "../../src/lib/db/models/synced.ts";
 
 test("static model covered by synced list IS suppressed (current behavior kept)", () => {
   assert.equal(
@@ -51,16 +52,17 @@ test("no synced models -> nothing suppressed", () => {
 });
 
 test("buildSyncedModelIdsByCanonicalProvider groups synced ids by canonical provider", () => {
+  const syncedModels: Record<string, SyncedAvailableModel[]> = {
+    "command-code": [
+      { id: "gpt-5.6-luna", name: "Luna", source: "imported" },
+      { id: "moonshotai/Kimi-K3", name: "Kimi K3", source: "imported" },
+      { id: "", name: "Invalid", source: "imported" },
+    ],
+    deepseek: [{ id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", source: "imported" }],
+  };
   const byCanonical = buildSyncedModelIdsByCanonicalProvider(
-    {
-      "command-code": [
-        { id: "gpt-5.6-luna" },
-        { id: "moonshotai/Kimi-K3" },
-        { id: "" }, // empty id ignored
-      ],
-      deepseek: [{ id: "deepseek-v4-flash" }],
-    },
-    (aliasOrId, fallback) => aliasOrId === "cmd" ? "command-code" : (fallback || aliasOrId),
+    syncedModels,
+    (aliasOrId, fallback) => (aliasOrId === "cmd" ? "command-code" : fallback || aliasOrId),
     {},
     { "command-code": "cmd" }
   );
