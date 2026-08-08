@@ -78,4 +78,16 @@ describe("betterSqliteAdapter", () => {
     assert.equal(count.cnt, 0, "Rollback deve ter desfeito o insert");
     adapter.close();
   });
+
+  test("expõe o estado da transação sem vazar o driver bruto", () => {
+    const adapter = tryOpenSync(":memory:");
+    if (!adapter || adapter.driver !== "better-sqlite3") return;
+
+    assert.equal(adapter.inTransaction, false);
+    const inspect = adapter.transaction(() => adapter.inTransaction);
+    assert.equal(inspect(), true);
+    assert.equal(adapter.inTransaction, false);
+
+    adapter.close();
+  });
 });

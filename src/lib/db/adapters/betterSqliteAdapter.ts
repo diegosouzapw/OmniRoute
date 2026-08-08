@@ -12,6 +12,10 @@ export function createBetterSqliteAdapter(db: import("better-sqlite3").Database)
       return db.name;
     },
 
+    get inTransaction() {
+      return db.inTransaction;
+    },
+
     prepare(sql: string): PreparedStatement {
       const stmt = db.prepare(sql);
       return {
