@@ -1033,7 +1033,11 @@ export const OmniRoutePlugin: Plugin = async (_input, options) => {
   // Config hook: keep existing catalog shim, and register slash command
   // templates that ask the agent to call the force-sync tool (OpenCode has no
   // Pi-style registerCommand API; tools + command templates are the native path).
-  const baseConfigHook = createOmniRouteConfigHook(resolved, { cache: sharedCache });
+  const baseConfigHook = createOmniRouteConfigHook(resolved, {
+    cache: sharedCache,
+    diskSnapshotReader: defaultDiskSnapshotReader,
+    diskSnapshotWriter: defaultDiskSnapshotWriter,
+  });
   const configWithSyncCommand = async (input: Config) => {
     await baseConfigHook(input);
     const cfg = input as Config & {
@@ -4741,7 +4745,7 @@ export type OmniRouteDiskSnapshotWriter = (
 export type OmniRouteDiskSnapshotReader = (
   providerId: string,
   identityFingerprint: string
-) => Promise<Omit<OmniRouteFetchCacheEntry, "expiresAt"> | undefined>;
+) => Promise<(Omit<OmniRouteFetchCacheEntry, "expiresAt"> & { writtenAt?: number }) | undefined>;
 
 /**
  * Bind a snapshot to the endpoint and effective credential tuple without
@@ -4824,14 +4828,35 @@ export const defaultDiskSnapshotReader: OmniRouteDiskSnapshotReader = async (
         ? parsed.rawCompressionCombos
         : [],
       rawConnections: Array.isArray(parsed.rawConnections) ? parsed.rawConnections : [],
+      writtenAt: typeof parsed.writtenAt === "number" ? parsed.writtenAt : undefined,
     };
   } catch {
     return undefined;
   }
 };
 
-/** No-op disk-cache pair — used by tests to avoid filesystem side effects. */
+/** No-op disk-cache pair — used by tests to avoid filesystem side effects.
+ * Also used as the default in createOmniRouteConfigHook so that tests
+ * that don't pass a diskSnapshotReader don't read real snapshot files
+ * from the user's ~/.local/share/opencode/plugins/ directory.
+ * The OmniRoutePlugin function passes the real defaultDiskSnapshotReader
+ * explicitly. */
+export const noopDiskSnapshotReader: OmniRouteDiskSnapshotReader = async () => undefined;
 export const noopDiskSnapshotWriter: OmniRouteDiskSnapshotWriter = async () => {};
+
+/**
+ * In-flight refresh guard: prevents concurrent refreshes for the same
+ * cacheKey. When a warm snapshot is served, the refresh runs detached; if
+ * a second hook invocation arrives before the refresh completes, it should
+ * piggyback on the in-flight promise rather than starting a second one.
+ * Cleared on settle so it doesn't leak.
+ */
+const _inflightRefresh: Map<string, Promise<void>> = new Map();
+
+/** Reset the in-flight refresh guard (for test isolation). */
+export function _resetInflightRefresh(): void {
+  _inflightRefresh.clear();
+}
 
 // ────────────────────────────────────────────────────────────────────────────
 // Debug logging (features.debugLog)
@@ -5067,7 +5092,6 @@ export function createDebugLoggingFetch(
     }
   };
 }
-export const noopDiskSnapshotReader: OmniRouteDiskSnapshotReader = async () => undefined;
 
 export type OmniRouteReadAuthJson = () => Promise<AuthJsonShape | undefined | null>;
 
@@ -5170,8 +5194,8 @@ export function createOmniRouteConfigHook(
   const compressionMetaFetcher =
     deps.compressionMetaFetcher ?? defaultOmniRouteCompressionMetaFetcher;
   const providersFetcher = deps.providersFetcher ?? defaultOmniRouteProvidersFetcher;
-  const diskSnapshotReader = deps.diskSnapshotReader ?? defaultDiskSnapshotReader;
-  const diskSnapshotWriter = deps.diskSnapshotWriter ?? defaultDiskSnapshotWriter;
+  const diskSnapshotReader = deps.diskSnapshotReader ?? noopDiskSnapshotReader;
+  const diskSnapshotWriter = deps.diskSnapshotWriter ?? noopDiskSnapshotWriter;
   const now = deps.now ?? Date.now;
   const cache: OmniRouteFetchCache = deps.cache ?? new Map();
   const logger = deps.logger ?? console;
@@ -5266,12 +5290,12 @@ export function createOmniRouteConfigHook(
     const t = now();
     const cached = cache.get(cacheKey);
 
-    let rawModels: OmniRouteRawModelEntry[];
-    let rawCombos: OmniRouteRawCombo[];
-    let rawAutoCombos: OmniRouteRawAutoCombo[];
-    let rawEnrichment: OmniRouteEnrichmentMap;
-    let rawCompressionCombos: OmniRouteCompressionCombo[];
-    let rawConnections: OmniRouteProviderConnection[];
+    let rawModels: OmniRouteRawModelEntry[] = [];
+    let rawCombos: OmniRouteRawCombo[] = [];
+    let rawAutoCombos: OmniRouteRawAutoCombo[] = [];
+    let rawEnrichment: OmniRouteEnrichmentMap = new Map();
+    let rawCompressionCombos: OmniRouteCompressionCombo[] = [];
+    let rawConnections: OmniRouteProviderConnection[] = [];
 
     if (cached && cached.expiresAt > t) {
       rawModels = cached.rawModels;
@@ -5281,160 +5305,275 @@ export function createOmniRouteConfigHook(
       rawCompressionCombos = cached.rawCompressionCombos;
       rawConnections = cached.rawConnections;
     } else {
-      // Fail-open fetcher errors: on /v1/models throw, fall back to empty
-      // catalog (still publish a stub block so OC has a complete-shape
-      // entry); on /api/combos throw, publish models-only. Disk-cache
-      // fallback below recovers the last-known-good catalog when the
-      // fetcher threw (network down / 403 / timeout) AND features.diskCache
-      // !== false. A 0-entry SUCCESS (fresh tenant) does NOT trigger
-      // disk fallback — that's a valid empty catalog.
-      let modelsFetchThrew = false;
-      try {
-        rawModels = await fetcher(baseURL, apiKey, 10_000);
-      } catch (err) {
-        logger.warn(
-          "[omniroute-plugin] config shim: /v1/models fetch failed; publishing stub provider entry",
-          err
-        );
-        rawModels = [];
-        modelsFetchThrew = true;
-      }
-      const modelsFetchOk = !modelsFetchThrew && rawModels.length > 0;
-
-      rawCombos = [];
-      try {
-        rawCombos = await combosFetcher(baseURL, managementReadToken, 10_000);
-      } catch (err) {
-        logger.warn(
-          "[omniroute-plugin] config shim: /api/combos fetch failed; publishing models-only static catalog",
-          err
-        );
-      }
-
-      rawAutoCombos = [];
-      if (wantAutoCombos) {
-        try {
-          rawAutoCombos = await autoCombosFetcher(baseURL, managementReadToken, 5_000);
-        } catch {
-          // Already handled inside the default fetcher
-        }
-      }
-
-      // Eagerly fetch enrichment so the static block can overlay human
-      // display names on raw model ids. On OC ≤1.15.5 the dynamic
-      // `provider.models` hook never fires in `serve` mode, so the static
-      // block IS what reaches `/provider` and the TUI model picker.
-      // Gated by `features.enrichment` (default-on). Soft-fail on error —
-      // we still publish a name-less catalog if /api/pricing/models is
-      // unreachable.
-      rawEnrichment = new Map();
-      if (wantEnrichment) {
-        try {
-          rawEnrichment = await enrichmentFetcher(baseURL, managementReadToken, 10_000);
-        } catch (err) {
+      // ─────────────────────────────────────────────────────────────────────
+      // Warm startup: read the disk snapshot before fetching so the provider
+      // registers immediately with the last-known-good catalog. The live
+      // fetch then refreshes in the background (detached) and updates the
+      // cache + snapshot. Gated by features.diskCache (default-on).
+      // ─────────────────────────────────────────────────────────────────────
+      let warmSnapshot: Omit<OmniRouteFetchCacheEntry, "expiresAt"> | undefined;
+      if (wantDiskCache) {
+        const snapshotResult = await diskSnapshotReader(resolved.providerId, snapshotFingerprint);
+        if (snapshotResult && snapshotResult.rawModels.length > 0) {
+          warmSnapshot = snapshotResult;
+          // Log snapshot age (accept any age — instant beats empty).
+          const age = (snapshotResult as { writtenAt?: number }).writtenAt;
+          const ageLabel = typeof age === "number" ? `${Math.round((Date.now() - age) / 3_600_000)}h` : "unknown";
           logger.warn(
-            "[omniroute-plugin] config shim: /api/pricing/models fetch failed; publishing raw-id static catalog",
-            err
+            `[omniroute-plugin] config shim: warm startup from disk snapshot (${snapshotResult.rawModels.length} models, age ${ageLabel})`
           );
         }
       }
 
-      // Compression-metadata fetch — opt-in via features.compressionMetadata.
-      // When on, the default pipeline is appended to every combo `name` so
-      // the TUI picker advertises which compression a combo applies.
-      rawCompressionCombos = [];
-      if (wantCompressionMeta) {
-        try {
-          rawCompressionCombos = await compressionMetaFetcher(baseURL, managementReadToken, 10_000);
-        } catch (err) {
-          logger.warn(
-            "[omniroute-plugin] config shim: /api/context/combos fetch failed; publishing combos without compression suffix",
-            err
-          );
+      // ─────────────────────────────────────────────────────────────────────
+      // Parallel refresh: all six fetchers run concurrently via
+      // Promise.allSettled. Each wrapper never rejects (catches internally)
+      // so partial failure is tolerated — same soft-fail semantics as the
+      // old sequential chain, but ~6x faster.
+      // ─────────────────────────────────────────────────────────────────────
+      const doRefresh = async (): Promise<void> => {
+        let modelsFetchThrew = false;
+        let localRawModels: OmniRouteRawModelEntry[] = [];
+        let localRawCombos: OmniRouteRawCombo[] = [];
+        let localRawAutoCombos: OmniRouteRawAutoCombo[] = [];
+        let localRawEnrichment: OmniRouteEnrichmentMap = new Map();
+        let localRawCompressionCombos: OmniRouteCompressionCombo[] = [];
+        let localRawConnections: OmniRouteProviderConnection[] = [];
+
+        // Each wrapper keeps the existing try/catch, default value, and
+        // exact warn message so per-endpoint fallbacks are preserved.
+        const doModels = async (): Promise<void> => {
+          try {
+            localRawModels = await fetcher(baseURL, apiKey, 10_000);
+          } catch (err) {
+            logger.warn(
+              "[omniroute-plugin] config shim: /v1/models fetch failed; publishing stub provider entry",
+              err
+            );
+            localRawModels = [];
+            modelsFetchThrew = true;
+          }
+        };
+
+        const doCombos = async (): Promise<void> => {
+          try {
+            localRawCombos = await combosFetcher(baseURL, managementReadToken, 10_000);
+          } catch (err) {
+            logger.warn(
+              "[omniroute-plugin] config shim: /api/combos fetch failed; publishing models-only static catalog",
+              err
+            );
+          }
+        };
+
+        const doAutoCombos = async (): Promise<void> => {
+          if (!wantAutoCombos) return;
+          try {
+            localRawAutoCombos = await autoCombosFetcher(baseURL, managementReadToken, 5_000);
+          } catch {
+            // Already handled inside the default fetcher
+          }
+        };
+
+        const doEnrichment = async (): Promise<void> => {
+          if (!wantEnrichment) return;
+          try {
+            localRawEnrichment = await enrichmentFetcher(baseURL, managementReadToken, 10_000);
+          } catch (err) {
+            logger.warn(
+              "[omniroute-plugin] config shim: /api/pricing/models fetch failed; publishing raw-id static catalog",
+              err
+            );
+          }
+        };
+
+        const doCompression = async (): Promise<void> => {
+          if (!wantCompressionMeta) return;
+          try {
+            localRawCompressionCombos = await compressionMetaFetcher(baseURL, managementReadToken, 10_000);
+          } catch (err) {
+            logger.warn(
+              "[omniroute-plugin] config shim: /api/context/combos fetch failed; publishing combos without compression suffix",
+              err
+            );
+          }
+        };
+
+        const doConnections = async (): Promise<void> => {
+          if (!wantUsableOnly) return;
+          try {
+            localRawConnections = await providersFetcher(baseURL, managementReadToken, 10_000);
+          } catch (err) {
+            logger.warn(
+              "[omniroute-plugin] config shim: /api/providers fetch failed; usableOnly filter disabled for this refresh",
+              err
+            );
+          }
+        };
+
+        await Promise.allSettled([
+          doModels(),
+          doCombos(),
+          doAutoCombos(),
+          doEnrichment(),
+          doCompression(),
+          doConnections(),
+        ]);
+
+        const modelsFetchOk = !modelsFetchThrew && localRawModels.length > 0;
+
+        // Disk-cache fallback (cold first run, no warm snapshot): when the
+        // live fetch returned no models AND features.diskCache !== false,
+        // hydrate from the last-known-good snapshot so OC still surfaces a
+        // usable catalog (e.g. IP whitelist drop, offline laptop).
+        if (modelsFetchThrew && wantDiskCache && !warmSnapshot) {
+          const snapshot = await diskSnapshotReader(resolved.providerId, snapshotFingerprint);
+          if (snapshot && snapshot.rawModels.length > 0) {
+            logger.warn(
+              `[omniroute-plugin] config shim: /v1/models unreachable; using stale disk cache (${snapshot.rawModels.length} models)`
+            );
+            localRawModels = snapshot.rawModels;
+            localRawCombos = snapshot.rawCombos;
+            localRawAutoCombos = snapshot.rawAutoCombos ?? [];
+            localRawEnrichment = snapshot.rawEnrichment;
+            localRawCompressionCombos = snapshot.rawCompressionCombos;
+            localRawConnections = snapshot.rawConnections;
+          }
         }
-      }
 
-      // Provider-connections fetch — opt-in via features.usableOnly. When
-      // on, the static catalog filters out models/combos whose canonical
-      // provider has no active connection. Soft-fail (empty list) disables
-      // the filter for this refresh, never hiding the whole catalog.
-      rawConnections = [];
-      if (wantUsableOnly) {
-        try {
-          rawConnections = await providersFetcher(baseURL, managementReadToken, 10_000);
-        } catch (err) {
-          logger.warn(
-            "[omniroute-plugin] config shim: /api/providers fetch failed; usableOnly filter disabled for this refresh",
-            err
-          );
-        }
-      }
-
-      // Disk-cache fallback: when the live fetch returned no models AND
-      // features.diskCache !== false, hydrate from the last-known-good
-      // snapshot so OC still surfaces a usable catalog (e.g. IP whitelist
-      // drop, offline laptop). The snapshot is whatever we last wrote on
-      // a healthy refresh; staleness is bounded only by how recently the
-      // user was online.
-      if (modelsFetchThrew && wantDiskCache) {
-        const snapshot = await diskSnapshotReader(resolved.providerId, snapshotFingerprint);
-        if (snapshot && snapshot.rawModels.length > 0) {
-          logger.warn(
-            `[omniroute-plugin] config shim: /v1/models unreachable; using stale disk cache (${snapshot.rawModels.length} models)`
-          );
-          rawModels = snapshot.rawModels;
-          rawCombos = snapshot.rawCombos;
-          rawAutoCombos = snapshot.rawAutoCombos ?? [];
-          rawEnrichment = snapshot.rawEnrichment;
-          rawCompressionCombos = snapshot.rawCompressionCombos;
-          rawConnections = snapshot.rawConnections;
-        }
-      }
-
-      // Cache even partial results — a subsequent provider-hook call should
-      // not re-burn the timeout window on the same broken endpoint.
-      cache.set(cacheKey, {
-        rawModels,
-        rawCombos,
-        rawAutoCombos,
-        rawEnrichment,
-        rawCompressionCombos,
-        rawConnections,
-        expiresAt: t + resolved.modelCacheTtl,
-      });
-
-      // Startup diagnostics (file-based) — fires at startup via config hook
-      if (resolved.features?.startupDebug === true) {
-        await writeStartupDiagnostics({
-          providerId: resolved.providerId,
-          baseURL,
-          modelCount: rawModels.length,
-          comboCount: rawCombos.length,
-          enrichmentSize: rawEnrichment.size,
-          autoComboCount: rawAutoCombos.length,
-          enrichment: rawEnrichment,
-          autoCombos: rawAutoCombos,
-          features: resolved.features,
+        // Cache even partial results — a subsequent provider-hook call should
+        // not re-burn the timeout window on the same broken endpoint.
+        cache.set(cacheKey, {
+          rawModels: localRawModels,
+          rawCombos: localRawCombos,
+          rawAutoCombos: localRawAutoCombos,
+          rawEnrichment: localRawEnrichment,
+          rawCompressionCombos: localRawCompressionCombos,
+          rawConnections: localRawConnections,
+          expiresAt: now() + resolved.modelCacheTtl,
         });
-      }
 
-      // Disk-cache write: persist the last successful (or any non-empty)
-      // catalog so a subsequent cold start with a failed fetch can recover.
-      // Best-effort; soft-fail keeps us moving when the data dir isn't
-      // writable (e.g. read-only container).
-      if (modelsFetchOk && wantDiskCache) {
-        await diskSnapshotWriter(
-          resolved.providerId,
-          {
-            rawModels,
-            rawCombos,
-            rawAutoCombos,
-            rawEnrichment,
-            rawCompressionCombos,
-            rawConnections,
-          },
-          snapshotFingerprint
-        );
+        // Startup diagnostics (file-based) — fires at startup via config hook
+        if (resolved.features?.startupDebug === true) {
+          await writeStartupDiagnostics({
+            providerId: resolved.providerId,
+            baseURL,
+            modelCount: localRawModels.length,
+            comboCount: localRawCombos.length,
+            enrichmentSize: localRawEnrichment.size,
+            autoComboCount: localRawAutoCombos.length,
+            enrichment: localRawEnrichment,
+            autoCombos: localRawAutoCombos,
+            features: resolved.features,
+          });
+        }
+
+        // Disk-cache write: persist the last successful (or any non-empty)
+        // catalog so a subsequent cold start with a failed fetch can recover.
+        // Best-effort; soft-fail keeps us moving when the data dir isn't
+        // writable (e.g. read-only container). A failed refresh never
+        // overwrites the snapshot (modelsFetchOk gate).
+        if (modelsFetchOk && wantDiskCache) {
+          await diskSnapshotWriter(
+            resolved.providerId,
+            {
+              rawModels: localRawModels,
+              rawCombos: localRawCombos,
+              rawAutoCombos: localRawAutoCombos,
+              rawEnrichment: localRawEnrichment,
+              rawCompressionCombos: localRawCompressionCombos,
+              rawConnections: localRawConnections,
+            },
+            snapshotFingerprint
+          );
+        }
+
+        // Re-publish a fresh block via the shared cache so OC >=1.14.49's
+        // dynamic provider hook picks it up from the cache. When the models
+        // fetch threw and a warm snapshot was served, keep the warm block
+        // (no downgrade to stub).
+        if (modelsFetchOk || !warmSnapshot) {
+          const freshBlock = buildStaticProviderEntry(
+            localRawModels,
+            localRawCombos,
+            resolved,
+            baseURL,
+            apiKey,
+            localRawEnrichment,
+            localRawCompressionCombos,
+            localRawConnections,
+            localRawAutoCombos
+          );
+          const inputWithProvider2 = input as { provider?: Record<string, unknown> };
+          if (inputWithProvider2.provider) {
+            inputWithProvider2.provider[resolved.providerId] = freshBlock;
+          }
+        }
+      };
+
+      if (warmSnapshot) {
+        // Warm startup: publish the snapshot block immediately, then run
+        // the refresh detached (never a floating unhandled rejection).
+        rawModels = warmSnapshot.rawModels;
+        rawCombos = warmSnapshot.rawCombos;
+        rawAutoCombos = warmSnapshot.rawAutoCombos ?? [];
+        rawEnrichment = warmSnapshot.rawEnrichment;
+        rawCompressionCombos = warmSnapshot.rawCompressionCombos;
+        rawConnections = warmSnapshot.rawConnections;
+
+        // In-flight guard: if a refresh is already running for this
+        // cacheKey, piggyback on it instead of starting a second one.
+        const existing = _inflightRefresh.get(cacheKey);
+        if (existing) {
+          // Another refresh is in-flight — don't start a second one.
+          // The existing refresh will update the cache when it completes.
+        } else {
+          const refreshP = doRefresh()
+            .catch((err: unknown) => {
+              logger.warn("[omniroute-plugin] config shim: background refresh failed", err);
+            })
+            .finally(() => {
+              _inflightRefresh.delete(cacheKey);
+            });
+          _inflightRefresh.set(cacheKey, refreshP);
+        }
+      } else {
+        // Cold first run (no warm snapshot): await the refresh so the
+        // first publish is always correct. In-flight guard still applies.
+        const existing = _inflightRefresh.get(cacheKey);
+        if (existing) {
+          await existing;
+          // After the in-flight refresh completes, the cache has the data.
+          const fresh = cache.get(cacheKey);
+          if (fresh) {
+            rawModels = fresh.rawModels;
+            rawCombos = fresh.rawCombos;
+            rawAutoCombos = fresh.rawAutoCombos;
+            rawEnrichment = fresh.rawEnrichment;
+            rawCompressionCombos = fresh.rawCompressionCombos;
+            rawConnections = fresh.rawConnections;
+          }
+        } else {
+          const refreshP = doRefresh()
+            .catch((err: unknown) => {
+              logger.warn("[omniroute-plugin] config shim: refresh failed", err);
+            })
+            .finally(() => {
+              _inflightRefresh.delete(cacheKey);
+            });
+          _inflightRefresh.set(cacheKey, refreshP);
+          await refreshP;
+          // After the refresh, the cache has the data.
+          const fresh = cache.get(cacheKey);
+          if (fresh) {
+            rawModels = fresh.rawModels;
+            rawCombos = fresh.rawCombos;
+            rawAutoCombos = fresh.rawAutoCombos;
+            rawEnrichment = fresh.rawEnrichment;
+            rawCompressionCombos = fresh.rawCompressionCombos;
+            rawConnections = fresh.rawConnections;
+          }
+        }
       }
     }
 

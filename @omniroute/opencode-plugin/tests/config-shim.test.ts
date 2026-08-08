@@ -33,6 +33,7 @@ import {
   createOmniRouteProviderHook,
   OmniRoutePlugin,
   resolveOmniRoutePluginOptions,
+  _resetInflightRefresh,
   type OmniRouteCombosFetcher,
   type OmniRouteEnrichmentEntry,
   type OmniRouteEnrichmentFetcher,
@@ -46,6 +47,16 @@ import {
   type OmniRouteReadAuthJson,
   type OmniRouteStaticProviderEntry,
 } from "../src/index.js";
+
+// ────────────────────────────────────────────────────────────────────────────
+// Test isolation: reset the module-level in-flight refresh guard between
+// tests so a detached refresh from a previous test doesn't leak into the
+// next one.
+// ────────────────────────────────────────────────────────────────────────────
+
+test.beforeEach(() => {
+  _resetInflightRefresh();
+});
 
 // ────────────────────────────────────────────────────────────────────────────
 // Fixtures
@@ -1239,7 +1250,10 @@ test("config: diskCache hydrates stale snapshot when /v1/models throws", async (
   );
   assert.equal(writes, 0, "disk write skipped when live fetch failed");
   assert.ok(
-    logger.entries.some((e) => String(e[0]).includes("using stale disk cache")),
+    logger.entries.some((e) =>
+      String(e[0]).includes("using stale disk cache") ||
+      String(e[0]).includes("warm startup from disk snapshot")
+    ),
     "disk-cache hydration breadcrumb emitted"
   );
 });
