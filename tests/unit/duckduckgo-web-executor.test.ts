@@ -4,6 +4,7 @@ import { FETCH_TIMEOUT_MS } from "../../open-sse/config/constants.ts";
 import {
   DuckDuckGoWebExecutor,
   DUCKDUCKGO_BASE,
+  normalizeDuckDuckGoMessages,
   STATUS_URL,
 } from "../../open-sse/executors/duckduckgo-web.ts";
 
@@ -38,6 +39,21 @@ describe("DuckDuckGoWebExecutor", () => {
   });
 
   describe("execute method validation", () => {
+    it("normalizes only role-bearing request messages without dropping metadata", () => {
+      assert.deepEqual(
+        normalizeDuckDuckGoMessages([
+          { role: "user", content: "hello", name: "caller" },
+          { role: "assistant", tool_calls: [{ id: "call-1" }] },
+          { content: "missing role" },
+          null,
+        ]),
+        [
+          { role: "user", content: "hello", name: "caller" },
+          { role: "assistant", content: undefined, tool_calls: [{ id: "call-1" }] },
+        ]
+      );
+    });
+
     it("should reject empty messages array", async () => {
       const executor = new DuckDuckGoWebExecutor();
 
