@@ -68,7 +68,7 @@ OmniRoute 是基于 Next.js 构建的本地 AI 路由网关和控制台。
 - 提示注入防护中间件
 - 提示压缩管线，含 Caveman、RTK、级联管线、压缩 Combo、语言包和分析
 - ACP（Agent Communication Protocol）注册表
-- 模块化 OAuth 服务商（`src/lib/oauth/providers/` 下 16 个独立模块）
+- 模块化 OAuth 服务商（`src/lib/oauth/providers/` 下 22 个独立模块）
 - 卸载/完全卸载脚本
 - OAuth 环境修复操作
 - OpenAI 兼容 WebSocket 客户端的 WebSocket 桥接（`/v1/ws`）
@@ -323,10 +323,10 @@ flowchart LR
 - 评估运行器：`src/lib/evals/evalRunner.ts`
 - 域状态持久化：`src/lib/db/domainState.ts` — SQLite CRUD，管理容灾链、预算、成本历史、锁定状态、熔断器
 
-OAuth 服务商模块（`src/lib/oauth/providers/` 下 16 个独立文件）：
+OAuth 服务商模块（`src/lib/oauth/providers/` 下 22 个独立文件）：
 
 - 注册表索引：`src/lib/oauth/providers/index.ts`
-- 独立服务商：`claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `agy.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`, `windsurf.ts`, `gitlab-duo.ts`, `trae.ts`
+- 独立服务商：`agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `qoder.ts`, `raycast.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
 - 薄封装层：`src/lib/oauth/providers.ts` — 从独立模块重新导出
 
 ## 5) 嵌入式服务（v3.8.4）
@@ -925,7 +925,7 @@ flowchart LR
 | `PuterExecutor`          | Puter                                                                                                                                                       | 基于浏览器的服务商集成                             |
 | `QoderExecutor`          | Qoder AI                                                                                                                                                    | PAT 和 OAuth 支持、多模型免费层                    |
 | `VertexExecutor`         | Google Vertex AI                                                                                                                                            | 服务帐户认证、基于区域的端点                       |
-| `WindsurfExecutor`       | Windsurf (Codeium)                                                                                                                                          | Codeium OAuth + 会话 Token 刷新                    |
+| `DevinDesktopExecutor` | Devin Desktop | 导入的 API 密钥 + Connect-protobuf 聊天流 |
 
 其余所有服务商（含自定义兼容节点）使用 `DefaultExecutor`。
 
@@ -979,9 +979,9 @@ flowchart LR
 | GLMT (preset)     | claude           | API Key               | ✅             | ✅         | ❌          | ⚠️ 每请求          |
 | Kimi Coding       | openai           | OAuth / API Key       | ✅             | ✅         | ✅          | ❌                 |
 | KIE               | openai           | API Key               | ✅             | ✅         | ❌          | ❌                 |
-| Windsurf          | openai           | OAuth (Codeium)       | ✅             | ✅         | ✅          | ⚠️ 每请求          |
+| Devin Desktop | openai | 导入的 API 密钥 | ✅ (Connect→SSE) | ✅ | ❌ | ⚠️ 每请求 |
 | GitLab Duo        | openai           | OAuth (GitLab)        | ✅             | ✅         | ✅          | ❌                 |
-| Devin CLI         | openai           | OAuth                 | ✅             | ✅         | ✅          | ✅ 任务 API        |
+| Devin CLI | openai | 本地 CLI 登录 | ✅ | ✅ | ❌ | ✅ 任务 API |
 | Codex Cloud       | openai-responses | OAuth                 | ✅             | ❌         | ✅          | ✅ 速率限制        |
 | Jules             | openai           | OAuth                 | ✅             | ✅         | ✅          | ✅ 任务 API        |
 | AgentRouter       | openai           | API Key               | ✅             | ✅         | ❌          | ❌                 |

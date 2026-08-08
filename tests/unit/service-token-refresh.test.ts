@@ -53,7 +53,9 @@ describe("tokenRefresh helpers", () => {
       assert.equal(mod.supportsTokenRefresh("github"), true);
       assert.equal(mod.supportsTokenRefresh("kiro"), true);
       assert.equal(mod.supportsTokenRefresh("cline"), true);
-      assert.equal(mod.supportsTokenRefresh("windsurf"), true);
+      assert.equal(mod.supportsTokenRefresh("devin-desktop"), false);
+      assert.equal(mod.supportsTokenRefresh("devin-cli"), false);
+      assert.equal(mod.supportsTokenRefresh("windsurf"), false);
     });
 
     it("returns false for unknown providers without refreshUrl/tokenUrl", () => {

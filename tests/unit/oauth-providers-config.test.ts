@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import * as os from "node:os";
 
-// Antigravity and Windsurf public defaults come from
+// OAuth provider public defaults come from
 // open-sse/utils/publicCreds.ts — no env override needed in this suite.
 const originalEnv = { ...process.env };
 Object.assign(process.env, {
@@ -28,6 +28,7 @@ const {
   CLINE_CONFIG,
   CODEX_CONFIG,
   CODEBUDDY_CN_CONFIG,
+  DEVIN_DESKTOP_CONFIG,
   ZED_CONFIG,
   CURSOR_CONFIG,
   GHE_COPILOT_CONFIG,
@@ -42,7 +43,6 @@ const {
   QODER_CONFIG,
   RAYCAST_CONFIG,
   TRAE_CONFIG,
-  WINDSURF_CONFIG,
   XAI_OAUTH_CONFIG,
   ZED_HOSTED_CONFIG,
 } = oauthModule;
@@ -68,7 +68,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "kilocode",
   "cline",
   "clinepass",
-  "windsurf",
+  "devin-desktop",
   "devin-cli",
   "grok-cli",
   "xai-oauth",
@@ -100,8 +100,8 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   kilocode: KILOCODE_CONFIG,
   cline: CLINE_CONFIG,
   clinepass: CLINE_CONFIG, // reuses the Cline WorkOS flow (clinepass: cline in providers/index.ts)
-  windsurf: WINDSURF_CONFIG,
-  "devin-cli": WINDSURF_CONFIG,
+  "devin-desktop": DEVIN_DESKTOP_CONFIG,
+  "devin-cli": DEVIN_DESKTOP_CONFIG,
   raycast: RAYCAST_CONFIG,
   trae: TRAE_CONFIG,
   "grok-cli": GROK_BUILD_OAUTH_CONFIG,
@@ -121,7 +121,6 @@ const KIRO_REQUIRED_FIELDS = [
   "socialRefreshUrl",
   "authMethods",
 ];
-
 const REQUIRED_FIELDS_BY_PROVIDER = {
   claude: ["authorizeUrl", "tokenUrl", "redirectUri", "scopes", "clientId"],
   codex: ["authorizeUrl", "tokenUrl", "scope", "clientId"],
@@ -148,8 +147,8 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   kilocode: ["apiBaseUrl", "initiateUrl", "pollUrlBase"],
   cline: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
   clinepass: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
-  windsurf: ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
-  "devin-cli": ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
+  "devin-desktop": ["apiServerUrl", "inferenceUrl", "ideName", "defaultVersion"],
+  "devin-cli": ["apiServerUrl", "inferenceUrl", "ideName", "defaultVersion"],
   trae: ["apiEndpoint", "chatEndpoint", "webUrl"],
   // prettier-ignore
   "xai-oauth": ["authorizeUrl", "tokenUrl", "scope", "codeChallengeMethod", "clientId", "loopbackPort", "callbackPath", "callbackHost"],
@@ -460,6 +459,13 @@ test("device and import-token providers expose the flow-specific fields expected
   assert.equal(CURSOR_CONFIG.dbKeys.machineId, "storage.serviceMachineId");
   assert.equal(PROVIDERS.trae.flowType, "import_token");
   assert.equal(typeof TRAE_CONFIG.apiEndpoint, "string");
+  assert.equal(PROVIDERS["devin-desktop"].flowType, "import_token");
+  assert.equal(PROVIDERS["devin-cli"].flowType, "import_token");
+  assert.equal(DEVIN_DESKTOP_CONFIG.apiServerUrl, "https://server.codeium.com");
+  assert.equal(DEVIN_DESKTOP_CONFIG.inferenceUrl, "https://inference.codeium.com");
+  assert.notEqual(DEVIN_DESKTOP_CONFIG.apiServerUrl, DEVIN_DESKTOP_CONFIG.inferenceUrl);
+  assert.equal("firebaseApiKey" in DEVIN_DESKTOP_CONFIG, false);
+  assert.equal("firebaseTokenUrl" in DEVIN_DESKTOP_CONFIG, false);
   assert.ok(Array.isArray(KIRO_CONFIG.authMethods));
   assert.ok(KIRO_CONFIG.authMethods.includes("builder-id"));
 });

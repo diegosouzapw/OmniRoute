@@ -66,7 +66,7 @@ OmniRoute 是一個建構於 Next.js 上的本地 AI 路由閘道與儀表板。
 - 提示注入防護中介軟體
 - 提示壓縮管線，含 Caveman、RTK、堆疊管線、壓縮組合、語言套件與分析功能
 - ACP（代理通訊協定）註冊表
-- 模組化 OAuth 提供者（19 個獨立模組，位於 `src/lib/oauth/providers/`）
+- 模組化 OAuth 提供者（22 個獨立模組，位於 `src/lib/oauth/providers/`）
 - 解除安裝/完整解除安裝指令碼
 - OAuth 環境修復動作
 - WebSocket 橋接，供 OpenAI 相容的 WS 客戶端使用（`/v1/ws`）
@@ -319,10 +319,10 @@ flowchart LR
 - 評估執行器：`src/lib/evals/evalRunner.ts`
 - 領域狀態持久化：`src/lib/db/domainState.ts` — 備援鏈、預算、成本歷史、鎖定狀態、斷路器的 SQLite CRUD
 
-OAuth 提供者模組（`src/lib/oauth/providers/` 下的 16 個個別檔案）：
+OAuth 提供者模組（`src/lib/oauth/providers/` 下的 22 個個別檔案）：
 
 - 註冊表索引：`src/lib/oauth/providers/index.ts`
-- 個別提供者：`claude.ts`、`codex.ts`、`gemini.ts`、`antigravity.ts`、`agy.ts`、`qoder.ts`、`qwen.ts`、`kimi-coding.ts`、`github.ts`、`kiro.ts`、`cursor.ts`、`kilocode.ts`、`cline.ts`、`windsurf.ts`、`gitlab-duo.ts`、`trae.ts`
+- 個別提供者：`agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `qoder.ts`, `raycast.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
 - 薄包裝層：`src/lib/oauth/providers.ts` — 從個別模組重新匯出
 
 ## 5) 嵌入式服務（v3.8.4）
@@ -902,7 +902,7 @@ flowchart LR
 | `PuterExecutor`          | Puter                                                                                                                                                    | 基於瀏覽器的提供者整合                                     |
 | `QoderExecutor`          | Qoder AI                                                                                                                                                 | PAT 與 OAuth 支援、多模型免費方案                          |
 | `VertexExecutor`         | Google Vertex AI                                                                                                                                         | 服務帳戶驗證、基於區域的端點                               |
-| `WindsurfExecutor`       | Windsurf（Codeium）                                                                                                                                      | Codeium OAuth + 工作階段令牌刷新                           |
+| `DevinDesktopExecutor` | Devin Desktop | 匯入的 API 金鑰 + Connect-protobuf 聊天串流 |
 
 所有其他提供者（包括自訂相容節點）使用 `DefaultExecutor`。
 
@@ -955,9 +955,9 @@ flowchart LR
 | GLMT（預設）       | claude           | API 金鑰              | ✅               | ✅     | ❌       | ⚠️ 每次請求      |
 | Kimi Coding        | openai           | OAuth / API 金鑰      | ✅               | ✅     | ✅       | ❌               |
 | KIE                | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Windsurf           | openai           | OAuth（Codeium）      | ✅               | ✅     | ✅       | ⚠️ 每次請求      |
+| Devin Desktop | openai | 匯入的 API 金鑰 | ✅ (Connect→SSE) | ✅ | ❌ | ⚠️ 每次請求 |
 | GitLab Duo         | openai           | OAuth（GitLab）       | ✅               | ✅     | ✅       | ❌               |
-| Devin CLI          | openai           | OAuth                 | ✅               | ✅     | ✅       | ✅ 任務 API      |
+| Devin CLI | openai | 本機 CLI 登入 | ✅ | ✅ | ❌ | ✅ 任務 API |
 | Codex Cloud        | openai-responses | OAuth                 | ✅               | ❌     | ✅       | ✅ 速率限制      |
 | Jules              | openai           | OAuth                 | ✅               | ✅     | ✅       | ✅ 任務 API      |
 | AgentRouter        | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |

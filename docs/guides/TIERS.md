@@ -21,7 +21,7 @@ it expires.
 | OpenAI Codex (ChatGPT subscription) | Plus/Team includes Codex quota               |
 | GitHub Copilot                      | Per-seat — quota resets monthly              |
 | Cursor IDE                          | Pro plan quota                               |
-| Antigravity / Windsurf              | Built-in quotas                              |
+| Antigravity / Devin Desktop         | Built-in quotas                              |
 
 **Strategy**: route here first for every request that fits the model's
 strengths. Quota tracker monitors approaching reset; combo strategies

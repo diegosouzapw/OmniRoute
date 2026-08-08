@@ -87,7 +87,7 @@ Use \`createCombo\` tool or \`runOmniRouteCli\` to create them.`;
 
 OmniRoute supports 212+ providers across categories:
 - **Free**: Qoder AI, Kiro AI
-- **OAuth** (14): Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, Kimi Coding, Windsurf, etc.
+- **OAuth** (14): Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, Kimi Coding, Devin Desktop, etc.
 - **API Key** (120+): OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, etc.
 - **Self-Hosted** (8+): LM Studio, vLLM, Ollama, Triton, etc.
 - **Custom**: \`openai-compatible-*\` and \`anthropic-compatible-*\`

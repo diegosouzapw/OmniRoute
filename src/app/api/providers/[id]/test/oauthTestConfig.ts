@@ -147,6 +147,13 @@ export const OAUTH_TEST_CONFIG = {
     // connectivity is proven by every chat/completions request.
     checkExpiry: true,
   },
+  "devin-desktop": {
+    // Devin Desktop authentication is import-only: the copied API key has no
+    // refresh token or known expiry. Validate token presence here; real
+    // connectivity is exercised by chat requests.
+    checkExpiry: true,
+    refreshable: false,
+  },
   "grok-cli": {
     // #7610: was entirely absent from OAUTH_TEST_CONFIG, so "Test Connection"
     // always fell through to the generic "Provider test not supported" branch

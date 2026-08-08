@@ -27,9 +27,9 @@ test("grok-cli is NOT import-token-only — the Browser Login tab renders", () =
   assert.ok(!extractSet("IMPORT_TOKEN_ONLY_PROVIDERS").includes("grok-cli"));
 });
 
-test("windsurf/devin-cli stay import-token-only (no regression to the Phase-1 hotfix)", () => {
+test("devin-desktop/devin-cli stay import-token-only", () => {
   const set = extractSet("IMPORT_TOKEN_ONLY_PROVIDERS");
-  assert.ok(set.includes("windsurf"));
+  assert.ok(set.includes("devin-desktop"));
   assert.ok(set.includes("devin-cli"));
 });
 

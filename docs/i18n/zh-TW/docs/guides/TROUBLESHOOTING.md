@@ -432,25 +432,6 @@ curl http://localhost:20128/api/monitoring/health
 
 v3.8.0 版本特有的問題及其目前的解決方法。如果後續修補版本中提供了修復，本條目將會更新或移除。
 
-### Windsurf OAuth 流程失敗，顯示 401
-
-**症狀：**
-
-- 從儀表板完成 Windsurf OAuth 流程時出現「401 unauthorized」
-- 回呼後 Windsurf 提供者卡片仍停留在「需要重新連線」狀態
-
-**原因：**
-
-- `WINDSURF_FIREBASE_API_KEY` 環境變數遺失或為空
-- `WINDSURF_API_KEY` 設定錯誤或指向過期的 Token
-- 本地防火牆/Proxy 阻擋了 OAuth 回呼
-
-**修復方式：**
-
-1. 確認 `.env` 中已設定 `WINDSURF_FIREBASE_API_KEY` 和 `WINDSURF_API_KEY`
-2. 重新啟動 OmniRoute 以載入新的環境變數值
-3. 從**儀表板 → 提供者 → Windsurf → 重新連線**重新執行 OAuth 流程
-
 ### Devin CLI 認證失敗
 
 **症狀：**

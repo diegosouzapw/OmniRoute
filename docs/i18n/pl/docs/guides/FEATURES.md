@@ -22,7 +22,7 @@ Cykl v3.7.x → v3.8.0 dodał auto-routing bez konfiguracji, nowych providerów,
 - 🆕 **Provider Command Code** (#2199) — rejestracja pierwszej klasy z katalogiem modeli i śledzeniem quota
 - 🆕 **Provider Z.AI** — nowy provider w darmowym tierze z etykietami quota
 - 🎬 **Rozszerzenie mediów KIE** — rozszerzony katalog, w tym modele generacji wideo
-- 🔐 **Przepływy OAuth Windsurf + Devin CLI** (#2168) — logowanie przeglądarkowe end-to-end
+- 🔐 **Uwierzytelnianie Devin** — Desktop importuje istniejący klucz API Devin; CLI używa lokalnych poświadczeń `devin auth login`
 - 🆓 **8 nowych darmowych providerów** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
 - 🎯 **Manifest-aware tier routing W1–W4** — manifesty providerów sterują ważonym wyborem tierów
 - 🎨 **Pełna zgodność Cursor z OpenAI** — tool calls, streaming, zarządzanie sesjami end-to-end
@@ -142,7 +142,7 @@ Dashboard do odkrywania i zarządzania agentami CLI. Pokazuje siatkę 16 wbudowa
 - **Odznakami protokołów** — stdio, HTTP itd.
 - **Własnymi agentami** — Rejestruj dowolne narzędzie CLI przez formularz (nazwa, binary, polecenie wersji, argumenty spawn)
 - **CLI Fingerprint Matching** — Przełącznik per provider dopasowujący natywne sygnatury żądań CLI, zmniejszający ryzyko bana przy zachowaniu IP proxy
-- **Agentami opartymi o OAuth** — Windsurf i Devin CLI używają teraz przeglądarkowych przepływów OAuth do uwierzytelniania (v3.8.0+)
+- **Lokalne uwierzytelnianie Devin** — Devin CLI używa `devin auth login`; przepływ OAuth w przeglądarce nie jest wymagany
 
 ---
 

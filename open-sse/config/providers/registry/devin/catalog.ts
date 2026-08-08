@@ -12,6 +12,12 @@ export const DEVIN_MODEL_CATALOG: RegistryModel[] = [
   { id: "claude-5-fable-high", name: "Claude Fable 5 High", contextLength: 1000000 },
   { id: "claude-5-fable-medium", name: "Claude Fable 5 Medium", contextLength: 1000000 },
   { id: "claude-5-fable-low", name: "Claude Fable 5 Low", contextLength: 1000000 },
+  // Claude Opus 5
+  { id: "claude-opus-5-max", name: "Claude Opus 5 Max", contextLength: 1000000 },
+  { id: "claude-opus-5-xhigh", name: "Claude Opus 5 XHigh", contextLength: 1000000 },
+  { id: "claude-opus-5-high", name: "Claude Opus 5 High", contextLength: 1000000 },
+  { id: "claude-opus-5-medium", name: "Claude Opus 5 Medium", contextLength: 1000000 },
+  { id: "claude-opus-5-low", name: "Claude Opus 5 Low", contextLength: 1000000 },
   // Claude Opus 4.8
   { id: "claude-opus-4-8-max", name: "Claude Opus 4.8 Max", contextLength: 1000000 },
   { id: "claude-opus-4-8-xhigh", name: "Claude Opus 4.8 XHigh", contextLength: 1000000 },
@@ -78,6 +84,10 @@ export const DEVIN_MODEL_CATALOG: RegistryModel[] = [
   // Gemini
   { id: "gemini-3-1-pro-high", name: "Gemini 3.1 Pro High", contextLength: 1048576 },
   { id: "gemini-3-1-pro-low", name: "Gemini 3.1 Pro Low", contextLength: 1048576 },
+  { id: "gemini-3-6-flash-high", name: "Gemini 3.6 Flash High" },
+  { id: "gemini-3-6-flash-medium", name: "Gemini 3.6 Flash Medium" },
+  { id: "gemini-3-6-flash-low", name: "Gemini 3.6 Flash Low" },
+  { id: "gemini-3-6-flash-minimal", name: "Gemini 3.6 Flash Minimal" },
   { id: "gemini-3-5-flash-high", name: "Gemini 3.5 Flash High", contextLength: 1048576 },
   { id: "gemini-3-5-flash-medium", name: "Gemini 3.5 Flash Medium", contextLength: 1048576 },
   { id: "gemini-3-5-flash-low", name: "Gemini 3.5 Flash Low", contextLength: 1048576 },
@@ -91,8 +101,19 @@ export const DEVIN_MODEL_CATALOG: RegistryModel[] = [
   { id: "glm-5-2-max", name: "GLM-5.2 Max" },
   { id: "glm-5-2-1m", name: "GLM-5.2 High 1M", contextLength: 1000000 },
   { id: "glm-5-2", name: "GLM-5.2 High" },
+  // Kimi
+  { id: "kimi-k3-max", name: "Kimi K3 Max" },
+  { id: "kimi-k3-high", name: "Kimi K3 High" },
+  { id: "kimi-k3-low", name: "Kimi K3 Low" },
+  { id: "kimi-k2-7", name: "Kimi K2.7", contextLength: 262144 },
+  // Inkling
+  { id: "inkling-max", name: "Inkling Max" },
+  { id: "inkling-xhigh", name: "Inkling XHigh" },
+  { id: "inkling-high", name: "Inkling High" },
+  { id: "inkling-medium", name: "Inkling Medium" },
+  { id: "inkling-low", name: "Inkling Low" },
+  { id: "inkling-none", name: "Inkling None" },
   // Others
   { id: "deepseek-v4", name: "DeepSeek V4 Pro", contextLength: 1048576 },
   { id: "nemotron-3-ultra-nvfp4", name: "Nemotron 3 Ultra", contextLength: 262144 },
-  { id: "kimi-k2-7", name: "Kimi K2.7", contextLength: 262144 },
 ];

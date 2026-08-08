@@ -22,7 +22,7 @@ v3.7.x → v3.8.0 版本週期新增了零設定自動路由、新提供者、OA
 - 🆕 **Command Code 提供者**（#2199）— 一級支援，含模型目錄及配額追蹤
 - 🆕 **Z.AI 提供者** — 新增免費方案提供者，附配額標籤
 - 🎬 **KIE 媒體擴展** — 擴充目錄，納入影片生成模型
-- 🔐 **Windsurf + Devin CLI OAuth 流程**（#2168）— 端到端瀏覽器登入
+- 🔐 **Devin 驗證** — Desktop 匯入現有的 Devin API 金鑰；CLI 使用本機 `devin auth login` 憑證
 - 🆓 **8 個新的免費提供者** — LLM7、Lepton、UncloseAI、BazaarLink、Completions、Enally、FreeTheAi、Command Code
 - 🎯 **清單感知分層路由 W1–W4** — 提供者清單驅動加權層級選擇
 - 🎨 **Cursor 完整 OpenAI 相容性** — 工具呼叫、串流、階段管理端到端
@@ -142,7 +142,7 @@ OpenRouter 連線可在「進階設定」中儲存各連線的 `preset`。設定
 - **協定徽章** — stdio、HTTP 等
 - **自訂代理** — 透過表單註冊任何 CLI 工具（名稱、二進位檔、版本指令、啟動參數）
 - **CLI 指紋比對** — 各提供者開關，用於比對原生 CLI 請求特徵，降低被封風險同時保留代理 IP
-- **OAuth 支援代理** — Windsurf 與 Devin CLI 現使用瀏覽器 OAuth 流程進行驗證（v3.8.0+）
+- **本機 Devin 驗證** — Devin CLI 使用 `devin auth login`；不需要瀏覽器 OAuth 流程
 
 ---
 

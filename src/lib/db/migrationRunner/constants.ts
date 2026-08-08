@@ -69,6 +69,99 @@ export const RENAMED_MIGRATION_COMPATIBILITY = [
     toVersion: "059",
     toName: "manifest_routing",
   },
+  {
+    fromVersion: "123",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "144",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    fromVersion: "124",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "144",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    fromVersion: "125",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "144",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    fromVersion: "126",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "144",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    fromVersion: "127",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "144",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    fromVersion: "128",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "144",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    fromVersion: "131",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "144",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    // 133 collided with 133_call_logs_session_tag once that landed on release/v3.8.49
+    // ahead of this branch; installs that ran this migration from the PR at 133 are
+    // reconciled to 144 here, same as every earlier slot this file has occupied.
+    fromVersion: "133",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "144",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    // 135 was published on this PR branch before release added
+    // 135_migrate_model_capability_max_token. Move the legacy marker first so
+    // the canonical 135 migration can still run without replaying this one.
+    fromVersion: "135",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "144",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    // 136 was published on this PR branch before release added
+    // 136_radar_cache_settings. Move the legacy marker to the next free slot so
+    // the Radar migration can still run without replaying this one.
+    fromVersion: "136",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "144",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    // 139 was published on this PR branch before release added 139_ccr_blocks.
+    // Move that legacy marker so the CCR migration can run without replaying Devin.
+    fromVersion: "139",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "144",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    // 140 was published on this PR before release assigned that slot to
+    // connection_runtime_state. Preserve those installs and free 140 for release.
+    fromVersion: "140",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "144",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    // 143 was published on this PR before #9023 reserved that slot for the
+    // retired-provider purge. Preserve those installs and free 143 for #9023.
+    fromVersion: "143",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "144",
+    toName: "windsurf_to_devin_desktop",
+  },
 ] as const;
 
 export const LEGACY_VERSION_SLOT_MIGRATIONS = [

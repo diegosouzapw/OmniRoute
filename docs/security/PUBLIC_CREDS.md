@@ -1,14 +1,14 @@
 ---
 title: "Public Credentials Handling"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.50
+lastUpdated: 2026-08-07
 ---
 
 # Public Credentials Handling
 
 > **Source of truth:** `open-sse/utils/publicCreds.ts`
 > **Tests:** `tests/unit/publicCreds.test.ts`
-> **Last updated:** 2026-06-28 — v3.8.40
+> **Last updated:** 2026-08-07 — v3.8.50
 > **Audience:** Engineers integrating providers that ship public OAuth client_id / client_secret / Firebase Web API keys in their public CLIs.
 > **Status:** **MANDATORY** for all new code that embeds upstream identifiers.
 
@@ -18,7 +18,7 @@ lastUpdated: 2026-06-28
 - [OAuth 2.0 for native apps (PKCE)](https://developers.google.com/identity/protocols/oauth2/native-app) — OAuth client_id / client_secret for installed apps are public; PKCE provides the actual security.
 - [Firebase API keys](https://firebase.google.com/docs/projects/api-keys) — Web client identifiers are public by design.
 
-OmniRoute must embed these values so users who do not configure `.env` still get a working OAuth flow out of the box. Without an embedded fallback, the Gemini / Antigravity / Windsurf providers stop working for any user who follows the "just clone and run" path.
+OmniRoute must embed these values so users who do not configure `.env` still get a working OAuth flow out of the box. Without an embedded fallback, the Gemini / Antigravity providers stop working for any user who follows the "just clone and run" path.
 
 However, literal values like `AIzaSy…`, `GOCSPX-…`, `…apps.googleusercontent.com` are matched by **GitHub Secret Scanning**, **Semgrep**, and similar pattern scanners. Every release becomes a noisy stream of false positives, push protection blocks legitimate commits, and operators stop trusting the alert feed.
 

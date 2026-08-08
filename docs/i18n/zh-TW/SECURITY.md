@@ -42,7 +42,7 @@ OmniRoute 採用多層式安全模型：
 | ---------------------    | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | **儀表板登入**           | 基於密碼的身分驗證，搭配 JWT Token（HttpOnly Cookie）                                                                                       |
 | **API 金鑰驗證**         | HMAC 簽署金鑰搭配 CRC 驗證                                                                                                                  |
-| **OAuth 2.0 + PKCE**     | 13 個提供者（Claude、Codex、GitHub、Cursor、Antigravity、Gemini、Kimi Coding、Kilo Code、Cline、Kiro、Qoder、Windsurf、GitLab Duo）          |
+| **OAuth 2.0 + PKCE** | 提供者專用的瀏覽器/裝置 OAuth 在支援時使用 PKCE；僅匯入的 Devin 憑證會單獨處理。 |
 | **Token 更新**           | 自動在 OAuth Token 到期前進行更新                                                                                                            |
 | **安全 Cookie**          | 在 HTTPS 環境下設定 `AUTH_COOKIE_SECURE=true`                                                                                               |
 | **授權管道**             | 路由分類（PUBLIC / CLIENT_API / MANAGEMENT）— 請參閱 `docs/architecture/AUTHZ_GUIDE.md`                                                     |
