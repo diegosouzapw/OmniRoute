@@ -80,16 +80,7 @@ export class GeminiBusinessExecutor extends BaseExecutor {
     // Extract cookies from credentials — check apiKey/cookie first, then
     // try each __Secure-1PSID* key in providerSpecificData individually.
     // A user with only __Secure-1PSID (no PSIDTS) is still valid.
-    const directCookie =
-      readCredentialString(credentials?.apiKey) || readCredentialString(credentials?.cookie);
-    const psid = readProviderSpecificString(credentials?.providerSpecificData, [
-      "__Secure-1PSID",
-      "cookie",
-    ]);
-    const psidts = readProviderSpecificString(credentials?.providerSpecificData, [
-      "__Secure-1PSIDTS",
-    ]);
-    const cookie = directCookie || [psid, psidts].filter(Boolean).join("; ");
+    const cookie = resolveGeminiBusinessCookie(credentials);
 
     if (!cookie) {
       return makeErrorResult(
@@ -378,6 +369,15 @@ function readProviderSpecificString(providerSpecificData: unknown, keys: string[
     if (typeof v === "string" && v.trim().length > 0) return v.trim();
   }
   return "";
+}
+
+export function resolveGeminiBusinessCookie(credentials: unknown): string {
+  if (!credentials || typeof credentials !== "object") return "";
+  const data = credentials as Record<string, unknown>;
+  const directCookie = readCredentialString(data.apiKey) || readCredentialString(data.cookie);
+  const psid = readProviderSpecificString(data.providerSpecificData, ["__Secure-1PSID", "cookie"]);
+  const psidts = readProviderSpecificString(data.providerSpecificData, ["__Secure-1PSIDTS"]);
+  return directCookie || [psid, psidts].filter(Boolean).join("; ");
 }
 
 function extractTextContent(content: unknown): string {
