@@ -472,6 +472,8 @@ function isSchemaAlreadyApplied(
       return hasColumn(db, "version_manager", "auto_restart_adopted");
     case "138":
       return hasColumn(db, "upstream_proxy_config", "fallback_backend");
+    case "139":
+      return hasTable(db, "ccr_blocks");
     case "140":
       // Retroactive guard for the connection_runtime_state migration renumbered
       // 135 -> 140 (#9449 landed onto the slot already taken by #8908's

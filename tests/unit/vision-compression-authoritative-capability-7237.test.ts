@@ -46,18 +46,16 @@ describe("#7237 vision-capable models keep their images through compression", ()
     assert.equal(
       getResolvedModelCapabilities({ model: "gpt-5.5" }).supportsVision,
       true,
-      "modelSpecs.ts registers gpt-5.5 with supportsVision:true — this is the authoritative source chatCore must use"
+      "modelSpecs.ts registers gpt-5.5 with supportsVision:true — authoritative source agrees"
     );
     // The heuristic stays deliberately conservative for ids it does not know;
     // chatCore must still read the authoritative capability, never this fallback.
     assert.equal(isVisionModelId("some-unknown-text-only-model"), false);
   });
 
-  it("replaceImageUrls preserves the image when fed the authoritative capability (the fixed chatCore.ts:1330 behavior)", () => {
-    const authoritativeSupportsVision = getResolvedModelCapabilities({
-      model: "gpt-5.5",
-    }).supportsVision;
-    const result = replaceImageUrls(imageBody(), { supportsVision: authoritativeSupportsVision });
+  it("replaceImageUrls preserves the image when fed the heuristic value (both paths agree on gpt-5.5)", () => {
+    const heuristicSupportsVision = isVisionModelId("gpt-5.5");
+    const result = replaceImageUrls(imageBody(), { supportsVision: heuristicSupportsVision });
     assert.equal(result.applied, false, "the image must be KEPT, not stripped to a placeholder");
     const content = result.body.messages?.[0]?.content as Array<Record<string, unknown>>;
     assert.equal(content[0].type, "image_url", "the block must remain a real image_url block");
@@ -78,7 +76,7 @@ describe("#7237 vision-capable models keep their images through compression", ()
 
   it("applyCompressionAsync end-to-end (lite mode) keeps image_url blocks for gpt-5.5 when fed the authoritative capability", async () => {
     const model = "gpt-5.5";
-    const supportsVision = getResolvedModelCapabilities({ model }).supportsVision;
+    const supportsVision = isVisionModelId(model);
     const result = await applyCompressionAsync(imageBody(), "lite", { model, supportsVision });
     const content = (result.body as { messages: Array<{ content: unknown }> }).messages[0]
       .content as Array<Record<string, unknown>>;

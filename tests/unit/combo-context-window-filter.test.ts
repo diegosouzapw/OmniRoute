@@ -192,6 +192,26 @@ test("all known-too-small context targets still fall back to strategy order", ()
   );
 });
 
+test("output-token limits remain a hard compatibility requirement", () => {
+  saveModelsDevCapabilities({
+    "unit-output-limit": {
+      insufficient: capabilityEntryWithLimits(128_000, 128_000, 128),
+      sufficient: capabilityEntryWithLimits(128_000, 128_000, 4_096),
+    },
+  });
+
+  const out = filterTargetsByRequestCompatibility(
+    [target("unit-output-limit/insufficient"), target("unit-output-limit/sufficient")],
+    { messages: [{ role: "user", content: "hello" }], max_tokens: 512 },
+    noopLog
+  );
+
+  assert.deepEqual(
+    out.map((entry) => entry.modelStr),
+    ["unit-output-limit/sufficient"]
+  );
+});
+
 test("known context overflow reports the largest target limit", () => {
   saveModelsDevCapabilities({
     "unit-known-context": {
@@ -415,8 +435,8 @@ test("without an override the small-catalog target is ordered last for the large
       capped: capabilityEntry(8_000),
     },
   });
-  // No override: capped (8K) is genuinely too small and must be filtered out,
-  // guarding the override read-path from masking a real too-small target.
+  // No override: capped (8K) is catalog-too-small, so it stays behind the
+  // known-compatible target while remaining available as a runtime fallback.
   const out = filterTargetsByRequestCompatibility(
     [target("unit-override/capped"), target("unit-override/big")],
     largeContextBody(),
