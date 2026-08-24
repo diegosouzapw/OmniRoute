@@ -567,8 +567,11 @@ export class AuggieExecutor extends BaseExecutor {
         });
 
         let stderrTail = "";
+        let sawOutput = false;
         child.stdout?.on("data", (chunk: Buffer) => {
-          emitDelta(chunk.toString("utf8"));
+          const text = chunk.toString("utf8");
+          if (text.trim().length > 0) sawOutput = true;
+          emitDelta(text);
         });
 
         child.stderr?.on("data", (chunk: Buffer) => {
@@ -582,6 +585,20 @@ export class AuggieExecutor extends BaseExecutor {
             emitError(
               sanitizeErrorMessage(
                 `Auggie CLI exited with code ${code}${stderrTail ? `: ${stderrTail}` : ""}`
+              )
+            );
+            return;
+          }
+          // Exit 0 with NO stdout is a failure, not an empty answer. A missing/not-
+          // logged-in `auggie.cmd` on Windows exits 0 via the cmd shell while writing
+          // only to stderr; emitting `stop` on empty output surfaces as "completed
+          // response with no content" AND keeps the circuit breaker CLOSED, so this
+          // broken provider hijacks every combo fallback. Error out so the breaker
+          // trips and the combo skips to a working provider. (Guard: auggie-empty test.)
+          if (!sawOutput) {
+            emitError(
+              sanitizeErrorMessage(
+                `Auggie CLI produced no output${stderrTail ? `: ${stderrTail}` : " (exit 0, empty stdout — CLI likely missing or not logged in)"}`
               )
             );
             return;
@@ -666,6 +683,24 @@ export class AuggieExecutor extends BaseExecutor {
             buildAuggieErrorResponse(
               sanitizeErrorMessage(
                 `Auggie CLI exited with code ${code}${stderrTail ? `: ${stderrTail}` : ""}`
+              )
+            )
+          );
+          return;
+        }
+        // Empty stdout on a "successful" close is a FAILURE, not an empty answer.
+        // On Windows an uninstalled `auggie.cmd` can exit 0 via the cmd shell while
+        // writing "'auggie.cmd' is not recognized" to stderr and nothing to stdout;
+        // returning that as a `finish_reason: stop` empty completion (a) surfaces to
+        // the client as "model returned a completed response with no content" and
+        // (b) keeps the circuit breaker CLOSED so this broken provider hijacks every
+        // combo fallback. Classify it as an error so the breaker trips and the combo
+        // skips to a working provider. (Regression guard: auggie-empty-output test.)
+        if (stdout.trim().length === 0) {
+          settle(
+            buildAuggieErrorResponse(
+              sanitizeErrorMessage(
+                `Auggie CLI produced no output${stderrTail ? `: ${stderrTail}` : " (exit 0, empty stdout — CLI likely missing or not logged in)"}`
               )
             )
           );

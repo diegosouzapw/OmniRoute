@@ -197,7 +197,18 @@ export function buildOmniRouteSseMetadataComment(
     .filter(([, value]) => typeof value === "string" && value.trim().length > 0)
     .map(([name, value]) => `: ${name.toLowerCase()}=${value}`);
 
-  return lines.length > 0 ? `${lines.join("\n")}\n` : "";
+  // This comment block must be its OWN, fully-delimited SSE event — a blank line
+  // BEFORE it (so it detaches from the preceding data chunk) AND a blank line AFTER
+  // it (so the following `data: [DONE]` starts a fresh event, not a trailing line of
+  // this comment event). SSE dispatches an event only on a blank line: without the
+  // trailing blank line, `: comment…\ndata: [DONE]` is one comment event and the
+  // `[DONE]` data line inside it is never dispatched → a spec-strict parser
+  // (eventsource-parser, used by DeepSeek Harness) reports "stream ended without
+  // [DONE]" (STREAM_CLOSED). Verified 2026-08-22 by parsing the live combo stream:
+  // the last blank-line-split block was `:…\ndata: [DONE]` and [DONE] never fired.
+  // Both edges are blank-line-delimited here; the caller's own `data: [DONE]\n\n`
+  // then stands as its own terminated event.
+  return lines.length > 0 ? `\n${lines.join("\n")}\n\n` : "";
 }
 
 /**

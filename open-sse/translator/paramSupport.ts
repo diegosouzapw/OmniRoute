@@ -93,6 +93,17 @@ const STRIP_RULES: StripRule[] = [
   // to read), hence the fixed cap.
   { provider: "azure-openai", match: /^gpt-4o-mini/i, maxOutputCap: 16384 },
   { provider: "azure-ai", match: /^gpt-4o-mini/i, maxOutputCap: 16384 },
+  // Groq's OpenAI-compatible chat API does not accept the DeepSeek/Claude-style
+  // `thinking` body field and returns 400 "property 'thinking' is unsupported".
+  // A DeepSeek-Harness client (whose deepseek adapter always attaches
+  // `thinking:{type:...}` — even `disabled` still SENDS the field) routed to a groq
+  // model (e.g. qwen/qwen3.6-27b, directly or via a combo) 400s the whole request,
+  // which surfaces to the client as "SSE stream ended without [DONE]" (STREAM_CLOSED)
+  // because the errored stream never emits [DONE]. Strip `thinking` for all groq
+  // models. (Same class already handled for nvidia/minimax-m2.7 (#6102) and github
+  // Claude (#713).) Groq's own reasoning knobs are `reasoning_format`/`reasoning_effort`,
+  // which it DOES accept, so those are left intact.
+  { provider: "groq", match: /.*/, drop: ["thinking"] },
 ];
 
 function matches(rule: StripRule, model: string): boolean {

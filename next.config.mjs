@@ -226,6 +226,13 @@ const nextConfig = {
       "next-intl",
     ],
   },
+  // NOTE (2026-08-22): `outputFileTracing: false` is NOT a valid key in Next.js 16
+  // (the boolean was removed; only Root/Includes/Excludes remain, and tracing is
+  // mandatory for output:"standalone"). The Windows EPERM build failure — the tracer
+  // scanning into `C:\Users\<user>\Application Data` (a self-referencing junction ->
+  // AppData\Roaming, infinite loop) — is fixed OUTSIDE next.config by neutralizing
+  // that legacy junction before the build (see build runbook). watchOptions/snapshot
+  // /tracingExcludes below do NOT stop it (the scan runs in the trace phase).
   outputFileTracingRoot: projectRoot,
   outputFileTracingIncludes: {
     // Migration SQL and compression rule/filter JSON files are read via fs at
@@ -246,7 +253,17 @@ const nextConfig = {
   outputFileTracingExcludes: {
     // Planning/task docs are not runtime assets and can break standalone copies
     // when broad fs/path tracing pulls the whole repository into the NFT graph.
-    "/*": [
+    //
+    // 2026-08-23: key changed from "/*" to "*". "/*" matches only TOP-LEVEL
+    // routes, so none of these excludes applied to nested entries such as
+    // /api/v1/chat/completions — which is why the 2026-08-20 `C:/Users/**` fix
+    // below did not actually stop the walk. Observed the same escape again on
+    // 2026-08-23: `glob error EPERM scandir 'C:\Users\user\Cookies'` and
+    // `EACCES scandir 'C:\Users\user\AppData\Local\Zed\zed-crash-handler-*'`
+    // during an 82-minute build that climbed to 6.9 GB RSS (8 GB cap), drove
+    // free RAM to 1.4 GB against a USB-hosted pagefile, and never emitted
+    // server/ or static/. "*" applies these to every route.
+    "*": [
       "./.git/**/*",
       "./_tasks/**/*",
       "./_references/**/*",
@@ -258,6 +275,18 @@ const nextConfig = {
       "./app.__qa_backup/**/*",
       "./tests/**/*",
       "./logs/**/*",
+      // 2026-08-20: the trace walked OUT of the project into the Windows user
+      // profile and died with an unhandled EPERM on `C:\Users\<user>\Application
+      // Data` — a legacy self-referencing junction that always throws. Entry
+      // point was a nested fake profile inside another app's data dir
+      // (AppData\Roaming\com.differentai.openwork.dev\...\home\AppData\...).
+      // These absolute globs stop the walk before it leaves the project.
+      "C:/Users/**",
+      "**/AppData/**",
+      "**/Application Data/**",
+      "**/.pnpm-store/**",
+      "**/Zed/**",
+      "**/.zed/**",
     ],
   },
   serverExternalPackages: [
@@ -311,11 +340,41 @@ const nextConfig = {
     // TODO: Re-enable after fixing all sub-component useTranslations scope issues
     ignoreBuildErrors: true,
   },
-  webpack(config, { webpack }) {
+  webpack(config, { webpack, dev }) {
     config.ignoreWarnings = [
       ...(config.ignoreWarnings || []),
       isNextIntlExtractorDynamicImportWarning,
     ];
+    // 2026-08-20: Windows-only build failure —
+    //   Error: EPERM: operation not permitted, scandir 'C:\Users\<user>\Application Data'
+    // `Application Data` is a legacy JUNCTION whose target is `AppData\Roaming`,
+    // i.e. it points back at its own parent. Any recursive scan that enters it
+    // recurses until Windows denies access, which webpack surfaces as a compile
+    // error and fails the whole production build. Known upstream issue
+    // (vercel/next.js#62281, prisma/prisma#27934) — there it is triggered by a
+    // custom Prisma output dir; this repo has no Prisma, but the mechanism is the
+    // same walk. `outputFileTracingExcludes` does NOT help: that runs later, in
+    // the tracing phase, while this scan happens during compilation.
+    config.watchOptions = {
+      ...(config.watchOptions || {}),
+      ignored: [
+        ...(Array.isArray(config.watchOptions?.ignored) ? config.watchOptions.ignored : []),
+        "**/Application Data/**",
+        "**/AppData/**",
+        "**/Cookies/**",
+        "**/Local Settings/**",
+        "**/My Documents/**",
+        "**/node_modules/**",
+        "**/Zed/**",
+        "**/.zed/**",
+      ],
+    };
+    // Keep webpack's directory snapshotting inside the project as well — the
+    // scan above is what escapes to the user profile in the first place.
+    config.snapshot = {
+      ...(config.snapshot || {}),
+      managedPaths: [/^(.+?[\\/]node_modules[\\/])/],
+    };
     config.optimization = config.optimization || {};
     config.optimization.splitChunks = {
       ...config.optimization.splitChunks,
@@ -374,6 +433,18 @@ const nextConfig = {
         },
       },
     };
+
+    // 2026-08-23: ModuleConcatenationPlugin (webpack's scope hoisting) is the
+    // anti-wedge lever on this box. Combined with the #3501 god-file splits and
+    // this repo's dense re-export graph, concatenation drives the production
+    // pass into a heap runaway that looks like a hang (0% CPU, no log movement)
+    // — and on a machine whose pagefile lives on USB it swaps instead of
+    // failing fast. Disabling it keeps the build's heap bounded. Production
+    // only: dev never runs this path, and concatenation is harmless there.
+    // No-op under Turbopack, which does not use this plugin.
+    if (!dev) {
+      config.optimization.concatenateModules = false;
+    }
 
     if (isMinimalBuild) {
       // Mirror the turbopack.resolveAlias entries for webpack-built artifacts.

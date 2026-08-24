@@ -153,6 +153,20 @@ test("buildOmniRouteSseMetadataComment emits comment lines compatible with SSE",
   assert.match(comment, /^: x-omniroute-tokens-in=4/m);
   assert.match(comment, /^: x-omniroute-tokens-out=2/m);
   assert.match(comment, /^: x-omniroute-response-cost=0\.0000000000/m);
+
+  // Regression guard: the block MUST be blank-line-delimited on BOTH edges so it is
+  // its own SSE event — a leading blank line detaches it from the preceding data
+  // chunk, and a TRAILING blank line lets the following `data: [DONE]` start a fresh
+  // event instead of being a trailing line of this comment event. Without the trailing
+  // blank line, `: comment…\ndata: [DONE]` is ONE comment event and [DONE] never
+  // dispatches → spec-strict parsers (eventsource-parser / DeepSeek Harness) report
+  // "stream ended without [DONE]" (STREAM_CLOSED). Verified against the live stream.
+  assert.equal(comment[0], "\n", "metadata comment must start with a blank line");
+  assert.match(comment, /^\n: x-omniroute-cache-hit=false/);
+  assert.ok(
+    comment.endsWith("\n\n"),
+    "metadata comment must end with a blank line so [DONE] is its own event"
+  );
 });
 
 test("buildOmniRouteResponseMetaHeaders emits X-OmniRoute-Cost-Saved only when costSavedUsd is provided", () => {

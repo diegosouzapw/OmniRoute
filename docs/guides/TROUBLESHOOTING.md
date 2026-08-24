@@ -62,7 +62,7 @@ Set these in the OmniRoute process environment (the daemon, e.g. via the LaunchA
 
 **How to verify it worked**: run your agent/cron twice in quick succession and confirm both succeed. Before the fix, the second run typically throws `429`/`401`. After the fix, failures (if any) are retried transparently and the call completes. You can also `curl /monitoring/health` and watch the `rateLimitedUntil` field on the provider connections and the `circuitBreakers.providerBreakers[].state` for the affected providers — the state is one of `CLOSED`, `DEGRADED`, `OPEN`, or `HALF_OPEN` (see `src/shared/utils/circuitBreaker.ts`), and a provider that keeps failing will flip `CLOSED → DEGRADED → OPEN` before the reset window lets a probe through (`HALF_OPEN`).
 
-**If you still see 429**: the active account for that provider has genuinely exhausted its *quota* (not just rate). Add a second account for the same provider in the OmniRoute dashboard → Providers → Accounts, or mix in another free provider (e.g. `routeway`, `auggie`). Rotation only helps with transient rate/400/401; a hard quota exhaustion requires a second credential or a different provider.
+**If you still see 429**: the active account for that provider has genuinely exhausted its _quota_ (not just rate). Add a second account for the same provider in the OmniRoute dashboard → Providers → Accounts, or mix in another free provider (e.g. `routeway`, `auggie`). Rotation only helps with transient rate/400/401; a hard quota exhaustion requires a second credential or a different provider.
 
 **If you see 403 on vision models (`auto/vision`, `bazaarlink/*`)**: the connected account lacks a paid plan that includes vision, or the API key has insufficient permissions. Verify in the provider dashboard that the key scope includes vision/multimodal, or connect a paid tier account and keep it as the vision target.
 
@@ -262,6 +262,30 @@ omniroute
 
 > **Note:** This recompiles the native binding against your local Node.js version and CPU architecture, resolving the binary mismatch. The officially supported runtime range is **`>=22.22.2 <23` or `>=24.0.0 <27`** (`SUPPORTED_NODE_RANGE` in `src/shared/utils/nodeRuntimeSupport.ts`, aligned with the `package.json` `engines` field). Node.js 24.x LTS (Krypton) and Node.js 26 are fully supported with `better-sqlite3` v12.x.
 
+### The build or dev server hangs SILENTLY (Node 25)
+
+**Symptoms:**
+
+- `npm run build` (or `scripts/build/build-next-isolated.mjs`) sits at ~51 MB / 0 CPU and prints **nothing** — not even its first log line — and never spawns the build child.
+- The dev server takes far longer than the usual ~150 s to bind, or `/v1/chat/completions` and `/api/health/ping` time out.
+- A companion client (e.g. DeepSeek Harness) hangs on boot with no error.
+
+**Cause:** You are on **Node.js 25** (an odd, non-LTS release). Node 25 is numerically inside the `engines` range (`>=24.0.0 <27`) but is **untested** and silently hangs the Next.js 16 webpack build/dev on some setups (Windows especially). The tell is _silence_ — a Node-version mismatch hangs before the first log, unlike a normal error.
+
+**Fix:**
+
+1. Check the version first — a silent hang is Node 25 until proven otherwise: `node --version`.
+2. Switch to Node 24 LTS. With nvm: `nvm use 24`. **Caveat (Windows):** a standalone Node install earlier on `PATH` can shadow nvm's symlink — verify a _fresh_ shell prints `v24.x`, and if not, remove the standalone Node dir (e.g. `F:\nodejs`) from **both** User and Machine `PATH` (back up `PATH` first). nvm's symlink then takes over.
+3. Pin the runtime for a supervised server by launching it with an explicit Node 24 binary (e.g. `keep-omniroute-alive.ps1` honors `$env:OMNIROUTE_NODE`).
+
+### The production build starts but STALLS in file-tracing (Windows EACCES/EPERM)
+
+**Symptoms:** On Node 24 the build reaches `▲ Next.js … Creating an optimized production build …` then stalls (CPU ~0, `BUILD_ID` never written). stderr shows `glob error EACCES: permission denied, scandir 'C:\Users\<user>\Application Data'` (or an `AppData\...` path).
+
+**Cause:** Next.js output-file-tracing follows a junction **out of the project** into the Windows user profile — commonly via another app's data dir that contains a nested fake home with a self-referencing `Application Data` junction (seen: `AppData\Roaming\com.differentai.openwork.dev\…`). `next.config.mjs` already excludes `**/AppData/**` and `**/Application Data/**`, but the tracer follows the junction before the exclude matches.
+
+**Workaround:** The standalone build is **not required for correctness** — dev mode runs the same code. If you must build, run `npm run check:build-scope` first (must be < 12000 files), and temporarily rename/remove the offending external data dir during the build.
+
 ---
 
 ## Proxy Issues
@@ -341,6 +365,22 @@ via any of the three import flows.
 
 For full details and step-by-step instructions for adding two Kiro accounts side by side,
 see [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
+
+### Client reports "SSE stream ended without [DONE]" (STREAM_CLOSED)
+
+A strict SSE client (e.g. DeepSeek Harness / `eventsource-parser`) reports the stream ended without `[DONE]`. Two distinct causes:
+
+- **The client sent a `thinking` param the provider rejects.** DeepSeek-Harness's adapter always attaches `thinking:{type:…}` (even `disabled` still SENDS the field). Groq's OpenAI API returns `400 property 'thinking' is unsupported`, failing the request/combo; an errored stream never emits `[DONE]`. **Fix:** `open-sse/translator/paramSupport.ts` `STRIP_RULES` drops `thinking` for provider `groq` (all models) before dispatch — same pattern as the nvidia/minimax rule. To strip an unsupported param for a new provider/model, add a rule there (test alongside, e.g. `tests/unit/groq-thinking-strip.test.ts`).
+- **Malformed final SSE framing.** The `: x-omniroute-*` telemetry comment block must be blank-line-delimited on both edges so the trailing `data: [DONE]` is its own event; otherwise a spec-strict parser treats `[DONE]` as a trailing line of the comment event. Handled in `src/domain/omnirouteResponseMeta.ts`. **Diagnose:** capture the raw stream, split on blank lines (`\n\n`) — the final block must be exactly `data: [DONE]`.
+
+### "model returned a completed response with no content" (EMPTY_RESPONSE)
+
+- **A combo landed on a broken provider returning empty-success.** The `aug` (Auggie CLI) provider, when `auggie.cmd` is missing, exits 0 with empty stdout — which used to be logged as `status=success`, returned empty content, and kept the circuit breaker CLOSED so it hijacked every combo fallback. **Fix:** `open-sse/executors/auggie.ts` now treats exit-0-with-empty-output as an error so the breaker trips and the combo skips it. If you see empty completions from a combo, check the app log for which provider "succeeded" with 0 tokens.
+- **A reasoning model spent its whole token budget thinking.** `qwen/qwen3.6-27b` emits a `<think>` block; with a small `max_tokens` the budget is exhausted before any answer. **Fix:** raise `max_tokens` (≥ ~8000).
+
+### Free providers failing (403 / 401 / 429 / 502) and Cloudflare 1010
+
+Free provider connections drift out of service. `groq/*` works but rate-limits under load and can hit a Cloudflare `Error 1010` fingerprint block after heavy testing; `aug/*` needs the Augment CLI (now paid); `tllm/*` / `oc/*` need their dashboard tokens refreshed; `ddgw/*` is rate-limited/anti-abuse. **Do not machine-gun the free providers** — it trips circuit breakers and Cloudflare blocks. Space requests; the resilience layer recovers lazily. The ecosystem's own `legendllm-coding` / `legendllm-reasoning` round-robin combos are the resilient path (they fall back across providers).
 
 ---
 

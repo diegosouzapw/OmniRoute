@@ -189,6 +189,63 @@ test("execute() surfaces a sanitized error when the CLI exits non-zero (non-stre
   }
 });
 
+test("execute() treats exit-0 with EMPTY stdout as an error (streaming)", async () => {
+  // Reproduces the combo-poisoning bug: an uninstalled/not-logged-in `auggie.cmd`
+  // on Windows exits 0 via the cmd shell while writing only to stderr. Emitting a
+  // `stop` on empty output surfaced as "completed response with no content" AND kept
+  // the circuit breaker CLOSED so this broken provider hijacked every combo fallback.
+  const bin = writeFakeBin(
+    "fake-auggie-empty.sh",
+    'echo "auggie.cmd is not recognized" 1>&2\nexit 0'
+  );
+  const prevBin = process.env.AUGGIE_BIN;
+  process.env.AUGGIE_BIN = bin;
+  try {
+    const executor = new AuggieExecutor();
+    const { response } = await executor.execute({
+      model: "claude-sonnet-4.6",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: true,
+      credentials: {} as never,
+    });
+    const events = await readSseEvents(response);
+    const errorEvent = events.find(
+      (e): e is { error: { message: string } } =>
+        typeof e === "object" && e !== null && "error" in e
+    );
+    assert.ok(errorEvent, "empty exit-0 output must surface as an error, not a stop");
+    assert.match(String(errorEvent.error.message), /no output/i);
+  } finally {
+    if (prevBin === undefined) delete process.env.AUGGIE_BIN;
+    else process.env.AUGGIE_BIN = prevBin;
+  }
+});
+
+test("execute() treats exit-0 with EMPTY stdout as an error (non-streaming)", async () => {
+  const bin = writeFakeBin("fake-auggie-empty2.sh", 'echo "not recognized" 1>&2\nexit 0');
+  const prevBin = process.env.AUGGIE_BIN;
+  process.env.AUGGIE_BIN = bin;
+  try {
+    const executor = new AuggieExecutor();
+    const { response } = await executor.execute({
+      model: "claude-sonnet-4.6",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {} as never,
+    });
+    assert.equal(
+      response.status,
+      502,
+      "empty exit-0 output must be a 502 error, not a 200 empty completion"
+    );
+    const body = await response.json();
+    assert.match(String(body.error.message), /no output/i);
+  } finally {
+    if (prevBin === undefined) delete process.env.AUGGIE_BIN;
+    else process.env.AUGGIE_BIN = prevBin;
+  }
+});
+
 // ─── execute(): stream vs non-stream shape ─────────────────────────────────
 
 test("execute() with stream=true returns SSE deltas + [DONE]", async () => {
