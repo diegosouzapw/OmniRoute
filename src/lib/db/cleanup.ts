@@ -431,6 +431,91 @@ export async function cleanupCcrBlocks(): Promise<CleanupResult> {
 }
 
 /**
+ * Clean up conversation_turn_nodes older than the call-log retention window (#12453).
+ *
+ * The nodes are identity-only: the transcript view resolves each turn's display
+ * content from the call_logs row `last_correlation_id` points at. Once
+ * cleanupCallLogs purges that row the node can never render again, so the two
+ * tables share `retention.callLogs` instead of a knob of their own. Deleting an
+ * old node only affects reconnect anchors: a conversation resumed after the
+ * window mints a new id, which is already the documented anchor-miss behavior
+ * of resolveConversationId. `last_seen_at` has no index (migration 156), so
+ * the DELETE is a table scan; it runs once per cleanup cycle.
+ */
+export async function cleanupConversationTurnNodes(): Promise<CleanupResult> {
+  const retention = getRetentionSettings();
+
+  const retentionDays = retention.callLogs;
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+  const cutoffISO = cutoffDate.toISOString();
+
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+
+  try {
+    result.deleted = deleteFromTableBefore(
+      { table: "conversation_turn_nodes", column: "last_seen_at", cutoff: "iso" },
+      cutoffISO
+    );
+
+    console.log(
+      `[Cleanup] Deleted ${result.deleted} conversation_turn_nodes older than ${retentionDays} days`
+    );
+  } catch (err: unknown) {
+    console.error("[Cleanup] Error cleaning conversation_turn_nodes:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
+/**
+ * Sweep agentic_conversations left without any conversation_turn_nodes (#12453).
+ *
+ * Runs after cleanupConversationTurnNodes so a root whose whole chain just
+ * expired goes in the same pass. The `last_seen_at` guard (indexed by
+ * migration 155) keeps a root that createConversation wrote moments ago, before
+ * the same request inserted its nodes, and bounds the NOT EXISTS probe to rows
+ * that are already past the retention window.
+ */
+export async function cleanupAgenticConversations(): Promise<CleanupResult> {
+  const db = getDbInstance();
+  const retention = getRetentionSettings();
+
+  const retentionDays = retention.callLogs;
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+  const cutoffISO = cutoffDate.toISOString();
+
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+
+  try {
+    if (!tableExists("agentic_conversations") || !tableExists("conversation_turn_nodes")) {
+      return result;
+    }
+
+    const stmt = db.prepare(
+      `DELETE FROM agentic_conversations
+       WHERE last_seen_at < ?
+         AND NOT EXISTS (
+           SELECT 1 FROM conversation_turn_nodes n
+           WHERE n.conversation_id = agentic_conversations.id
+         )`
+    );
+    result.deleted = stmt.run(cutoffISO).changes;
+
+    console.log(
+      `[Cleanup] Deleted ${result.deleted} orphaned agentic_conversations older than ${retentionDays} days`
+    );
+  } catch (err: unknown) {
+    console.error("[Cleanup] Error cleaning agentic_conversations:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
+/**
  * Run all cleanup functions if auto-cleanup is enabled.
  */
 export async function runAutoCleanup(): Promise<{
@@ -463,6 +548,8 @@ export async function runAutoCleanup(): Promise<{
     compressionRunTelemetry: await cleanupCompressionRunTelemetry(),
     proxyLogs: await cleanupProxyLogs(),
     ccrBlocks: await cleanupCcrBlocks(),
+    conversationTurnNodes: await cleanupConversationTurnNodes(),
+    agenticConversations: await cleanupAgenticConversations(),
   };
 
   const totalDeleted = Object.values(results).reduce((sum, r) => sum + r.deleted, 0);

@@ -1,0 +1,1 @@
+- **fix(db):** Add `conversation_turn_nodes` and orphaned `agentic_conversations` to the auto-cleanup cycle under the existing `retention.callLogs` window, so identity nodes whose call-log content has already been purged no longer accumulate without bound in `storage.sqlite` (#PENDING — thanks @pacocartones)
