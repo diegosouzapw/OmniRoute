@@ -39,7 +39,9 @@
   "incremental": true,
   "incrementalFile": "reports/mutation/stryker-incremental.json",
   "testRunner": "tap",
-  "plugins": ["@stryker-mutator/tap-runner"],
+  "plugins": [
+    "@stryker-mutator/tap-runner"
+  ],
   "tap": {
     "testFiles": [
       "tests/unit/10085-compatible-generic-vs-uuid-credential.test.ts",
@@ -538,7 +540,11 @@
     ".worktrees",
     ".stryker-tmp"
   ],
-  "reporters": ["progress", "html", "json"],
+  "reporters": [
+    "progress",
+    "html",
+    "json"
+  ],
   "htmlReporter": {
     "fileName": "reports/mutation/mutation.html"
   },

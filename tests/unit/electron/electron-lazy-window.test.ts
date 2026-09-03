@@ -30,7 +30,7 @@ describe("Electron hidden-start window lifecycle", () => {
   });
 
   it("keeps the --hidden argument registered with the login item", () => {
-    const mainJs = readFileSync(join(import.meta.dirname, "../../electron/main.js"), "utf8");
+    const mainJs = readFileSync(join(import.meta.dirname, "../../../electron/main.js"), "utf8");
     assert.match(mainJs, /openAtLogin: true,\s*\n\s*args: \["--hidden"\],/);
     assert.doesNotMatch(mainJs, /openAsHidden/);
   });

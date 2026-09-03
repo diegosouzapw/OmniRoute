@@ -26,7 +26,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { logClientRawRequestRedacted } from "../../src/lib/guardrails/videoBridgeSnapshotRedaction.ts";
+import { logClientRawRequestRedacted } from "../../../src/lib/guardrails/videoBridgeSnapshotRedaction.ts";
 
 const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-video-log-redaction-test-"));
 process.env.DATA_DIR = testDataDir;

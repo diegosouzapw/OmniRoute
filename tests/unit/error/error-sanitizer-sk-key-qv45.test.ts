@@ -21,7 +21,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
-import { redactSensitiveErrorText, sanitizeErrorMessage } from "../../open-sse/utils/error.ts";
+import { redactSensitiveErrorText, sanitizeErrorMessage } from "../../../open-sse/utils/error.ts";
 
 const LEAKY_BODIES = [
   "Incorrect API key provided: sk-proj-AbCdEfGhIjKlMnOpQrStUv. You can find your API key at …",
@@ -77,7 +77,7 @@ describe("the two redaction layers stay in step", () => {
     // thing standing between that body and the caller. Anything the first layer
     // calls a credential, the second must scrub.
     const { shouldPassthroughUpstreamError } =
-      await import("../../open-sse/utils/upstreamErrorPassthrough.ts");
+      await import("../../../open-sse/utils/upstreamErrorPassthrough.ts");
     for (const body of LEAKY_BODIES) {
       const payload = { error: { message: body } };
       const relayedVerbatim = shouldPassthroughUpstreamError(401, payload);
