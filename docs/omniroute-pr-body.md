@@ -7,6 +7,7 @@
 We hit this while moving 64 sub-agents × 16 chats to a `Main` combo that references `nvidia/deepseek-ai/deepseek-v4-pro-0813`. The model is fully in the live catalog (verified via `GET /api/providers/nvidia/models`) and is added to combos via the dashboard model picker, yet the dispatch path returns `400 invalid_request_error` and excludes the provider with `terminalReason: Model 'deepseek-ai/deepseek-v4-pro-0813' is not available in the active live catalog for provider 'nvidia'`. The only workaround is to re-run `POST /api/providers/{id}/sync-models`, which rewrites `syncedAvailableModels` from the upstream catalog — but that is destructive (it dropped 78 non-free models the first time we ran it) and is not what the user did.
 
 Steps to reproduce:
+
 1. Add any model through the provider dashboard "model picker" (it gets stored in `key_value(namespace='customModels')`)
 2. Add that model to a combo (or reference it via `provider/model`)
 3. Send a chat request through the combo
@@ -20,8 +21,8 @@ In `src/lib/db/models.ts:528-552` (`getActiveProvidersWithSyncedModel` and its c
 
 ```ts
 // pseudocode for the fix
-const syncedRows = await keyValueGetAll("syncedAvailableModels");        // current behaviour
-const customRows = await keyValueGetAll("customModels");                 // NEW
+const syncedRows = await keyValueGetAll("syncedAvailableModels"); // current behaviour
+const customRows = await keyValueGetAll("customModels"); // NEW
 const merged = new Map<string, Set<string>>();
 for (const row of [...syncedRows, ...customRows]) {
   const set = merged.get(row.provider) ?? new Set<string>();
