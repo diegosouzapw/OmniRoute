@@ -61,7 +61,7 @@ import { attachLogMeta } from "./cacheUsageMeta.ts";
  * mutually exclusive with the array branch (a message's `content` is one or
  * the other, never both) and uses `String.prototype.replaceAll` against the
  * trusted `fullText` literal to swap every occurrence — see
- * `tests/unit/video-bridge-derived-prompt-redaction.test.ts`.
+ * `tests/unit/video/video-bridge-derived-prompt-redaction.test.ts`.
  */
 export function applyVideoBridgeLogRedaction(
   body: unknown,
