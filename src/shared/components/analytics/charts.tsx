@@ -3,7 +3,6 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import Card from "../Card";
-import { getModelColor } from "@/shared/constants/colors";
 import { PROVIDER_COLORS } from "./chartColors";
 import {
   fmtCompact as fmt,
@@ -49,12 +48,14 @@ export function StatCard({
   label,
   value,
   subValue,
+  tooltip,
   color = "text-text-main",
 }: {
   icon: any;
   label: any;
   value: any;
   subValue?: any;
+  tooltip?: string;
   color?: string;
 }) {
   return (
@@ -63,7 +64,7 @@ export function StatCard({
         <span className="material-symbols-outlined text-[14px] shrink-0">{icon}</span>
         <span className="truncate">{label}</span>
       </div>
-      <span className={`text-2xl font-bold ${color} truncate`} title={String(value)}>
+      <span className={`text-2xl font-bold ${color} truncate`} title={tooltip ?? String(value)}>
         {value}
       </span>
       {subValue && <span className="text-xs text-text-muted truncate">{subValue}</span>}
@@ -75,7 +76,7 @@ export function StatCard({
 
 export type CompactStatSection = {
   title: string;
-  items: Array<{ icon: string; label: string; value: any; color?: string }>;
+  items: Array<{ icon: string; label: string; value: any; tooltip?: string; color?: string }>;
   /** On mobile use 1 column instead of 2 — useful when values can be long (model names, etc.) */
   wideValues?: boolean;
 };
@@ -115,7 +116,7 @@ export function CompactStatGrid({ sections }: { sections: CompactStatSection[] }
                   </div>
                   <span
                     className={`text-sm font-bold text-right ${section.wideValues ? "truncate min-w-0" : "shrink-0"} ${stat.color || "text-text-main"}`}
-                    title={String(stat.value)}
+                    title={stat.tooltip ?? String(stat.value)}
                   >
                     {stat.value}
                   </span>
@@ -421,13 +422,22 @@ export function ApiKeyTable({ byApiKey }) {
                 <td className="px-4 py-2.5 text-right font-mono text-text-muted">
                   {fmtFull(row.requests)}
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono text-primary">
+                <td
+                  className="px-4 py-2.5 text-right font-mono text-primary"
+                  title={fmtFull(row.promptTokens)}
+                >
                   {fmt(row.promptTokens)}
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono text-emerald-500">
+                <td
+                  className="px-4 py-2.5 text-right font-mono text-emerald-500"
+                  title={fmtFull(row.completionTokens)}
+                >
                   {fmt(row.completionTokens)}
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono font-semibold">
+                <td
+                  className="px-4 py-2.5 text-right font-mono font-semibold"
+                  title={fmtFull(row.totalTokens)}
+                >
                   {fmt(row.totalTokens)}
                 </td>
                 <td className="px-4 py-2.5 text-right font-mono text-amber-500">
@@ -499,7 +509,11 @@ export function MostActiveDay7d({ activityMap }) {
           <span className="text-xl font-bold capitalize" style={{ lineHeight: 1.2 }}>
             {data.weekday}
           </span>
-          <span className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>
+          <span
+            className="text-xs mt-1"
+            style={{ color: "var(--color-text-muted)" }}
+            title={fmtFull(data.tokens)}
+          >
             {t("datedTokenCount", { date: data.label, tokens: fmt(data.tokens) })}
           </span>
         </>
@@ -562,7 +576,7 @@ export function WeeklySquares7d({ activityMap }) {
         {t("chartWeekly")}
       </h3>
       <div style={{ display: "flex", alignItems: "flex-end", gap: 6, justifyContent: "center" }}>
-        {days.map((d, i) => (
+        {days.map((d) => (
           <div
             key={d.key}
             style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}
@@ -861,13 +875,22 @@ export function ProviderTable({ byProvider }) {
                   <td className="px-4 py-2.5 text-right font-mono text-text-muted">
                     {fmtFull(p.requests)}
                   </td>
-                  <td className="px-4 py-2.5 text-right font-mono text-primary">
+                  <td
+                    className="px-4 py-2.5 text-right font-mono text-primary"
+                    title={fmtFull(p.promptTokens)}
+                  >
                     {fmt(p.promptTokens)}
                   </td>
-                  <td className="px-4 py-2.5 text-right font-mono text-emerald-500">
+                  <td
+                    className="px-4 py-2.5 text-right font-mono text-emerald-500"
+                    title={fmtFull(p.completionTokens)}
+                  >
                     {fmt(p.completionTokens)}
                   </td>
-                  <td className="px-4 py-2.5 text-right font-mono font-semibold">
+                  <td
+                    className="px-4 py-2.5 text-right font-mono font-semibold"
+                    title={fmtFull(p.totalTokens)}
+                  >
                     {fmt(p.totalTokens)}
                   </td>
                   <td className="px-4 py-2.5 text-right font-mono text-amber-500">

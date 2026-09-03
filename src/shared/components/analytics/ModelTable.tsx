@@ -128,13 +128,22 @@ export function ModelTable({ byModel, summary }: ModelTableProps) {
                 <td className="px-4 py-2.5 text-right font-mono text-text-muted">
                   {fmtFull(m.requests)}
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono text-primary">
+                <td
+                  className="px-4 py-2.5 text-right font-mono text-primary"
+                  title={fmtFull(m.promptTokens)}
+                >
                   {fmt(m.promptTokens)}
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono text-emerald-500">
+                <td
+                  className="px-4 py-2.5 text-right font-mono text-emerald-500"
+                  title={fmtFull(m.completionTokens)}
+                >
                   {fmt(m.completionTokens)}
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono font-semibold">
+                <td
+                  className="px-4 py-2.5 text-right font-mono font-semibold"
+                  title={fmtFull(m.totalTokens)}
+                >
                   {fmt(m.totalTokens)}
                 </td>
                 <td className="px-4 py-2.5 text-right font-mono text-amber-500">
