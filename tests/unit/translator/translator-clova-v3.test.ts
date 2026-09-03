@@ -10,11 +10,11 @@ import assert from "node:assert/strict";
 //
 // Wire docs: https://api.ncloud-docs.com/docs/clovastudio-chatcompletionsv3
 
-const request = await import("../../open-sse/translator/request/openai-to-clova.ts");
-const response = await import("../../open-sse/translator/response/clova-to-openai.ts");
-const registry = await import("../../open-sse/translator/registry.ts");
-const { FORMATS } = await import("../../open-sse/translator/formats.ts");
-const { getExecutor } = await import("../../open-sse/executors/index.ts");
+const request = await import("../../../open-sse/translator/request/openai-to-clova.ts");
+const response = await import("../../../open-sse/translator/response/clova-to-openai.ts");
+const registry = await import("../../../open-sse/translator/registry.ts");
+const { FORMATS } = await import("../../../open-sse/translator/formats.ts");
+const { getExecutor } = await import("../../../open-sse/executors/index.ts");
 
 // ---------------------------------------------------------------------------
 // Request: OpenAI → CLOVA v3

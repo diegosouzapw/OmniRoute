@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { getModelPricing, KNOWN_MODEL_PRICING } from "../../open-sse/services/providerCostData.ts";
+import { getModelPricing, KNOWN_MODEL_PRICING } from "../../../open-sse/services/providerCostData.ts";
 
 test("provider-specific pricing wins over a generic model fallback", () => {
   const genericKey = "provider-price-test-model";

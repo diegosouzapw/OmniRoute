@@ -6,20 +6,20 @@ import {
   getModelsByProviderId,
   supportsClaudeMaxEffort,
   supportsXHighEffort,
-} from "../../open-sse/config/providerModels.ts";
-import { getUnsupportedParams } from "../../open-sse/config/providerRegistry.ts";
-import { modelHasNativeContext1m } from "../../open-sse/config/claudeCodeCompatibleIdentity.ts";
-import { modelSupportsContext1mBeta } from "../../open-sse/config/context1m.ts";
-import { normalizeClaudeAdaptiveThinking } from "../../open-sse/services/claudeAdaptiveThinking.ts";
-import { getNextFamilyFallback } from "../../open-sse/services/modelFamilyFallback.ts";
-import { getModelPricing } from "../../open-sse/services/providerCostData.ts";
-import { getStaticModelsForProvider } from "../../src/lib/providers/staticModels.ts";
-import { getDefaultPricing } from "../../src/shared/constants/pricing.ts";
+} from "../../../open-sse/config/providerModels.ts";
+import { getUnsupportedParams } from "../../../open-sse/config/providerRegistry.ts";
+import { modelHasNativeContext1m } from "../../../open-sse/config/claudeCodeCompatibleIdentity.ts";
+import { modelSupportsContext1mBeta } from "../../../open-sse/config/context1m.ts";
+import { normalizeClaudeAdaptiveThinking } from "../../../open-sse/services/claudeAdaptiveThinking.ts";
+import { getNextFamilyFallback } from "../../../open-sse/services/modelFamilyFallback.ts";
+import { getModelPricing } from "../../../open-sse/services/providerCostData.ts";
+import { getStaticModelsForProvider } from "../../../src/lib/providers/staticModels.ts";
+import { getDefaultPricing } from "../../../src/shared/constants/pricing.ts";
 import {
   getModelSpec,
   normalizeForcedToolChoiceForModel,
   normalizeThinkingForModel,
-} from "../../src/shared/constants/modelSpecs.ts";
+} from "../../../src/shared/constants/modelSpecs.ts";
 
 const MODEL_ID = "claude-fable-5-1";
 const BEDROCK_MODEL_ID = "anthropic.claude-fable-5-1";

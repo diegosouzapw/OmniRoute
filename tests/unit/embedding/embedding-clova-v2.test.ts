@@ -18,11 +18,11 @@ const TEST_DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-clova-embeddings-"))
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.SQLITE_FILE = join(TEST_DATA_DIR, "storage.sqlite");
 
-const registry = await import("../../open-sse/config/embeddingRegistry.ts");
+const registry = await import("../../../open-sse/config/embeddingRegistry.ts");
 const { normalizeClovaEmbeddingV2Response } =
-  await import("../../open-sse/handlers/embeddingStructuredInput.ts");
-const { handleEmbedding } = await import("../../open-sse/handlers/embeddings.ts");
-const { resetDbInstance } = await import("../../src/lib/db/core.ts");
+  await import("../../../open-sse/handlers/embeddingStructuredInput.ts");
+const { handleEmbedding } = await import("../../../open-sse/handlers/embeddings.ts");
+const { resetDbInstance } = await import("../../../src/lib/db/core.ts");
 
 test.after(async () => {
   // handleEmbedding records call logs asynchronously; let those writes settle

@@ -8,7 +8,7 @@ import {
   ensureObscuraServer,
   killSharedObscuraServer,
   isObscuraUsable,
-} from "../../open-sse/services/obscura.ts";
+} from "../../../open-sse/services/obscura.ts";
 
 // #12274 — Obscura-first browser engine. The shared server is process-lifetime;
 // each test resets it so suites run independently. When `obscura` is not
