@@ -454,6 +454,6 @@ Użyj dashboardu albo endpointów REST `/api/mcp/audit` i `/api/mcp/audit/stats`
 | `src/lib/db/notion.ts`                                                   | Persystencja tokenu Notion (tabela `key_value`)                      |
 | `src/app/api/settings/notion/route.ts`                                   | API ustawień Notion (GET/POST/DELETE)                                |
 | `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` | UI zarządzania tokenem Notion                                        |
-| `tests/unit/notion-api.test.ts`                                          | Testy klienta API Notion (7)                                         |
-| `tests/unit/notion-tools.test.ts`                                        | Testy egzekwowania scope tooli Notion (10)                           |
+| `tests/unit/notion/notion-api.test.ts`                                          | Testy klienta API Notion (7)                                         |
+| `tests/unit/notion/notion-tools.test.ts`                                        | Testy egzekwowania scope tooli Notion (10)                           |
 | `tests/unit/db/notion.test.mjs`                                          | Testy modułu DB Notion (3)                                           |

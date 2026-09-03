@@ -384,7 +384,7 @@ Route upstream LLM provider calls through an HTTP or SOCKS5 proxy for egress con
 > `src/lib/providers/validation.ts::directHttpsRequest()` intentionally bypasses the
 > proxy patch for that one validation call using `safeOutboundFetch({ bypassProxyPatch: true })`.
 > This is a documented, scoped exception — it does **not** affect chat/usage egress.
-> The bypass is scope-pinned by `tests/unit/proxy-bypass-scope-guard-3226.test.ts`.
+> The bypass is scope-pinned by `tests/unit/proxy/proxy-bypass-scope-guard-3226.test.ts`.
 
 ---
 

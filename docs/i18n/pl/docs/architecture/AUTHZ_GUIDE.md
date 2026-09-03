@@ -142,7 +142,7 @@ export async function POST(request: Request) {
 
 ### Wzorzec 3 — Dodanie do publicznej allowlisty
 
-Dodaj prefiks do `PUBLIC_API_ROUTE_PREFIXES` (lub `PUBLIC_READONLY_API_ROUTE_PREFIXES` dla GET-only). Zaktualizuj testy jednostkowe w `tests/unit/public-api-routes.test.ts` i `tests/unit/authz/classify.test.ts`.
+Dodaj prefiks do `PUBLIC_API_ROUTE_PREFIXES` (lub `PUBLIC_READONLY_API_ROUTE_PREFIXES` dla GET-only). Zaktualizuj testy jednostkowe w `tests/unit/api/public-api-routes.test.ts` i `tests/unit/authz/classify.test.ts`.
 
 ## Scope'y
 
@@ -188,7 +188,7 @@ Endpointy `/api/v1/agents/tasks/*` oraz `/api/resilience/model-cooldowns` **wyma
 ## Testowanie
 
 - Testy jednostkowe: `tests/unit/authz/` — `classify.test.ts`, `pipeline.test.ts`, `client-api-policy.test.ts`, `management-policy.test.ts`, `public-policy.test.ts`.
-- Publiczna allowlista: `tests/unit/public-api-routes.test.ts`.
+- Publiczna allowlista: `tests/unit/api/public-api-routes.test.ts`.
 - Uruchomienie fokusowane: `node --import tsx/esm --test tests/unit/authz/classify.test.ts`.
 
 ## Debugowanie

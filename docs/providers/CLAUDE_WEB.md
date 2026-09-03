@@ -170,10 +170,10 @@ are capped at 1 MiB (`open-sse/executors/claude-web/stream.ts:17`,
 Run the deterministic Claude Web suite without real credentials:
 
 ```powershell
-node --import tsx/esm --test tests/unit/claude-web-auto-refresh.test.ts tests/unit/claude-web-browser-transport.test.ts tests/unit/claude-web-executor-split.test.ts tests/unit/claude-web-live-alignment.test.ts tests/unit/claude-web-payload-runtime.test.ts tests/unit/claude-web-session.test.ts tests/unit/claude-web-sonnet5-registry-6209.test.ts tests/unit/claude-web-stream.test.ts tests/unit/claude-web-transport.test.ts tests/unit/claude-web.test.ts tests/unit/issue-6662-repro.test.ts
+node --import tsx/esm --test tests/unit/claude/claude-web-auto-refresh.test.ts tests/unit/claude/claude-web-browser-transport.test.ts tests/unit/claude/claude-web-executor-split.test.ts tests/unit/claude/claude-web-live-alignment.test.ts tests/unit/claude/claude-web-payload-runtime.test.ts tests/unit/claude/claude-web-session.test.ts tests/unit/claude/claude-web-sonnet5-registry-6209.test.ts tests/unit/claude/claude-web-stream.test.ts tests/unit/claude/claude-web-transport.test.ts tests/unit/claude/claude-web.test.ts tests/unit/issue/issue-6662-repro.test.ts
 ```
 
-The Playwright-dependent cases in `tests/unit/claude-web-auto-refresh.test.ts` are explicitly
+The Playwright-dependent cases in `tests/unit/claude/claude-web-auto-refresh.test.ts` are explicitly
 skipped. This repository does not currently define a credentialed Claude Web live-test
 script, so those skipped cases are not runtime proof.
 

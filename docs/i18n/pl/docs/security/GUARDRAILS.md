@@ -266,8 +266,8 @@ Kroki:
    wywołaj `guardrailRegistry.register(...)` w runtime — registry zastępuje
    wcześniejszy guardrail o tej samej znormalizowanej nazwie.
 4. Dodaj testy w `tests/unit/` (istniejące przykłady:
-   `tests/unit/guardrails-registry.test.ts`,
-   `tests/unit/prompt-injection-guard.test.ts`,
+   `tests/unit/guardrails/guardrails-registry.test.ts`,
+   `tests/unit/prompt/prompt-injection-guard.test.ts`,
    `tests/unit/guardrails/visionBridge.test.ts`).
 
 ## Testowanie

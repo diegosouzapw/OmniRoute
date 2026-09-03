@@ -38,7 +38,7 @@ the request, and that permission must be linked from the entry.
 4. **Keep the entry minimal.** Record only what a reviewer needs to recognize a
    reintroduction: identifiers, domains, dates and the pull request that did the removal.
    Do not describe how the integration worked.
-5. **The regression guard is `tests/unit/removed-providers-blocklist.test.ts`.** It fails when
+5. **The regression guard is `tests/unit/providers/removed-providers-blocklist.test.ts`.** It fails when
    any identifier or domain below shows up again in the provider catalogs, the executor map or
    the provider registry sources. Add the new identifiers to that test in the same PR that
    adds a row here.
@@ -61,6 +61,6 @@ When a new takedown request arrives:
    keyless provider and [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) for an
    API-key provider with stored connections (add a migration).
 3. Add one row to the table above and the identifiers to
-   `tests/unit/removed-providers-blocklist.test.ts`, in the same PR.
+   `tests/unit/providers/removed-providers-blocklist.test.ts`, in the same PR.
 4. Reply to the operator once the PR is merged, listing what was removed and what OmniRoute
    cannot change (already-published npm and Docker versions, git history, third-party forks).

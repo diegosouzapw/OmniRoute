@@ -25,12 +25,12 @@ test("testImportsModule matches static, dynamic and require imports of the modul
   );
   // dynamic await import, even split across lines
   assert.equal(
-    testImportsModule(`const { y } = await import(\n  "../../open-sse/handlers/chatCore/headers.ts"\n);`, frag),
+    testImportsModule(`const { y } = await import(\n  "../../../open-sse/handlers/chatCore/headers.ts"\n);`, frag),
     true
   );
   // require()
   assert.equal(
-    testImportsModule(`const z = require("../../open-sse/handlers/chatCore/headers.ts");`, frag),
+    testImportsModule(`const z = require("../../../open-sse/handlers/chatCore/headers.ts");`, frag),
     true
   );
   // unrelated module is not matched
@@ -54,9 +54,9 @@ test("findCoverageDrift flags covering unit tests absent from tap.testFiles", ()
   const tapTestFiles = ["tests/unit/chatcore-headers.test.ts"];
   const unitTests = [
     // covers headers, already in tap -> not drift
-    { path: "tests/unit/chatcore-headers.test.ts", content: `await import("../../open-sse/handlers/chatCore/headers.ts");` },
+    { path: "tests/unit/chatcore-headers.test.ts", content: `await import("../../../open-sse/handlers/chatCore/headers.ts");` },
     // covers headers, NOT in tap -> drift
-    { path: "tests/unit/no-memory-header.test.ts", content: `const { isNoMemoryRequested } = await import("../../open-sse/handlers/chatCore/headers.ts");` },
+    { path: "tests/unit/no-memory-header.test.ts", content: `const { isNoMemoryRequested } = await import("../../../open-sse/handlers/chatCore/headers.ts");` },
     // covers idempotency, NOT in tap -> drift
     { path: "tests/unit/idempo.test.ts", content: `import { x } from "@omniroute/open-sse/handlers/chatCore/idempotency";` },
     // covers nothing mutated -> ignored

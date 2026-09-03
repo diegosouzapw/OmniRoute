@@ -192,7 +192,7 @@ export async function POST(request: Request) {
 
 ### Pattern 3 — Adding to the public allowlist
 
-Pick the set by shape, not by convenience. One route goes in `PUBLIC_API_ROUTES_EXACT` (or `PUBLIC_READONLY_CORS_API_ROUTES` for GET-only); only a genuine subtree goes in `PUBLIC_API_ROUTE_PREFIXES`, and it **must end in `/`**. Putting a single route in the prefix list also publishes every adjacent path that shares its leading characters — including dynamic-segment siblings added later (GHSA-74g9-q8f6-793h). Update unit tests at `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` and `tests/unit/authz/classify.test.ts`.
+Pick the set by shape, not by convenience. One route goes in `PUBLIC_API_ROUTES_EXACT` (or `PUBLIC_READONLY_CORS_API_ROUTES` for GET-only); only a genuine subtree goes in `PUBLIC_API_ROUTE_PREFIXES`, and it **must end in `/`**. Putting a single route in the prefix list also publishes every adjacent path that shares its leading characters — including dynamic-segment siblings added later (GHSA-74g9-q8f6-793h). Update unit tests at `tests/unit/api/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` and `tests/unit/authz/classify.test.ts`.
 
 ## Scopes
 
@@ -238,7 +238,7 @@ The `/api/v1/agents/tasks/*` and `/api/resilience/model-cooldowns` endpoints **n
 ## Testing
 
 - Unit tests: `tests/unit/authz/` — `classify.test.ts`, `pipeline.test.ts`, `client-api-policy.test.ts`, `management-policy.test.ts`, `public-policy.test.ts`.
-- Public allowlist: `tests/unit/public-api-routes.test.ts`.
+- Public allowlist: `tests/unit/api/public-api-routes.test.ts`.
 - Run focused: `node --import tsx/esm --test tests/unit/authz/classify.test.ts`.
 
 ## Debugging

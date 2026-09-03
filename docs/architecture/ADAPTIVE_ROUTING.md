@@ -320,21 +320,21 @@ fully with the evaluator absent.
 
 ## 9. Tests
 
-- `tests/unit/routing-events.test.ts` — event normalization, status
+- `tests/unit/routing/routing-events.test.ts` — event normalization, status
   classification, bounded ring buffer, sink fan-out + isolation.
-- `tests/unit/routing-quality.test.ts` — EWMA warmup, failure/success recovery,
+- `tests/unit/routing/routing-quality.test.ts` — EWMA warmup, failure/success recovery,
   anomaly penalties, 429 transient handling, snapshot, reset.
-- `tests/unit/routing-scoring-quality.test.ts` — weight integrity, neutral
+- `tests/unit/routing/routing-scoring-quality.test.ts` — weight integrity, neutral
   default, quality factor ranking.
-- `tests/unit/routing-otel.test.ts` — enable gating, GenAI span payload, async
+- `tests/unit/routing/routing-otel.test.ts` — enable gating, GenAI span payload, async
   flush, drop-under-overload.
-- `tests/unit/routing-events-concurrency.test.ts` — thousands of events, ring
+- `tests/unit/routing/routing-events-concurrency.test.ts` — thousands of events, ring
   buffer boundedness, throwing-sink isolation, interleaved async bursts,
   reset-during-inserts.
-- `tests/unit/routing-adaptive-e2e.test.ts` — deterministic end-to-end loop via
+- `tests/unit/routing/routing-adaptive-e2e.test.ts` — deterministic end-to-end loop via
   the real `scoreAutoTargets` scorer: healthy → degrade → recover → blip, plus
   cold-start and lucky-cold-provider scenarios.
-- `tests/unit/stream-timing.test.ts` — TTFT (first-forwarded-chunk), ITL,
+- `tests/unit/stream/stream-timing.test.ts` — TTFT (first-forwarded-chunk), ITL,
   first-byte vs first-forward, interruption, malformed/empty chunk safety.
 
 ## 10. Pre-existing issues status (Phase 18)

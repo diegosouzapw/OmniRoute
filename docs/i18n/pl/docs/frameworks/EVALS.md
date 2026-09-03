@@ -223,7 +223,7 @@ bramkować release'y wynikami evali:
   zwrócone `PersistedEvalRun.summary`.
 
 Testy pokrywające route i historię leżą w
-`tests/unit/evals-route.test.ts` oraz `tests/unit/evals-history.test.ts`.
+`tests/unit/route/evals-route.test.ts` oraz `tests/unit/misc/evals-history.test.ts`.
 
 ## Punkty rozszerzeń
 

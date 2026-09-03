@@ -67,7 +67,7 @@ Below the threshold the provider is **not** considered cooling; a success clears
 the window. Connection-level entries (`provider:connectionId`) keep the
 exponential `minRetryCooldownMs → maxRetryCooldownMs` backoff instead. Overrides:
 `OMNIROUTE_PROVIDER_BREAKER_{OAUTH,API_KEY}_{FAILURE_THRESHOLD,FAILURE_WINDOW_MS,COOLDOWN_MS}`.
-Regression guard: `tests/unit/provider-cooldown-window-gate.test.ts`.
+Regression guard: `tests/unit/provider/provider-cooldown-window-gate.test.ts`.
 
 ## 2. Connection Cooldown
 
@@ -534,8 +534,8 @@ behavior) and is out of scope for a single-provider rule addition.
    `applyComboTargetExhaustion()`
    (`open-sse/services/combo/targetExhaustion.ts`); without it, `scope`
    still flows through `fallbackResult.ruleScope` but nothing acts on it.
-3. Add unit tests mirroring `tests/unit/upstream-status-restatement.test.ts`
-   and `tests/unit/agentrouter-error-rules.test.ts` (including the
+3. Add unit tests mirroring `tests/unit/upstream/upstream-status-restatement.test.ts`
+   and `tests/unit/agentrouter/agentrouter-error-rules.test.ts` (including the
    not-permanent / not-creditsExhausted guards, and — if the provider needs
    the allowlist — a test asserting `resolveRuleMatchBody()` returns the
    full text only for that provider).

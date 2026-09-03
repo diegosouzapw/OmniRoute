@@ -141,8 +141,8 @@ id `gpt-5.5` is routed through the combo's targets (e.g.
 `acme-responses/gpt-5.5`, `backup-responses/gpt-5.5`) instead of straight to
 a single provider — this reuses the combo-before-rewrite precedence built for
 [#3227/#3233](https://github.com/diegosouzapw/OmniRoute/issues/3227) and is
-regression-tested by `tests/unit/responses-combo-resolution-3227.test.ts` and
-`tests/unit/combo-name-codex-responses-rewrite.test.ts`.
+regression-tested by `tests/unit/responses/responses-combo-resolution-3227.test.ts` and
+`tests/unit/combo/combo-name-codex-responses-rewrite.test.ts`.
 
 Creating or renaming a combo to a name that shadows a real model id is
 **never rejected** — doing so would break this documented workflow. Instead

@@ -465,6 +465,6 @@ Use the dashboard or the `/api/mcp/audit` and `/api/mcp/audit/stats` REST endpoi
 | `src/lib/db/notion.ts`                                                   | Notion token persistence (`key_value` table)                     |
 | `src/app/api/settings/notion/route.ts`                                   | Notion settings API (GET/POST/DELETE)                            |
 | `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` | Notion token management UI                                       |
-| `tests/unit/notion-api.test.ts`                                          | Notion API client tests (7)                                      |
-| `tests/unit/notion-tools.test.ts`                                        | Notion tools scope enforcement tests (10)                        |
+| `tests/unit/notion/notion-api.test.ts`                                          | Notion API client tests (7)                                      |
+| `tests/unit/notion/notion-tools.test.ts`                                        | Notion tools scope enforcement tests (10)                        |
 | `tests/unit/db/notion.test.mjs`                                          | Notion DB module tests (3)                                       |

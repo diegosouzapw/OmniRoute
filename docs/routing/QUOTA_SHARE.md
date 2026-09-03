@@ -351,7 +351,7 @@ Two layers of automated coverage ship with the quota-share engine:
 
 | Suite              | Command                                                                | What it covers                                                                                                                                                                                       |
 | :----------------- | :--------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit (29 tests)    | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR scheduler, saturation gating, concurrency caps, fairShare math, backlog queueing                                                                                                                 |
+| Unit (29 tests)    | `node --import tsx/esm --test tests/unit/quota/quota-share-strategy.test.ts` | DRR scheduler, saturation gating, concurrency caps, fairShare math, backlog queueing                                                                                                                 |
 | Integration matrix | `npm run test:combo:matrix`                                            | End-to-end routing decision through the real combo pipeline; DRR fairness + saturation deprioritization via live seams (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
 The integration matrix runs in CI alongside all 19 public strategies. The unit suite

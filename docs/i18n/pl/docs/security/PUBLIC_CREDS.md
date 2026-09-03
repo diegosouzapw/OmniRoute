@@ -7,7 +7,7 @@ lastUpdated: 2026-06-28
 # Obsługa publicznych poświadczeń
 
 > **Source of truth:** `open-sse/utils/publicCreds.ts`
-> **Tests:** `tests/unit/publicCreds.test.ts`
+> **Tests:** `tests/unit/cc/publicCreds.test.ts`
 > **Last updated:** 2026-06-28 — v3.8.40
 > **Audience:** Inżynierowie integrujący providerów, którzy udostępniają publiczne OAuth client_id / client_secret / klucze Firebase Web API w swoich publicznych CLI.
 > **Status:** **OBOWIĄZKOWE** dla każdego nowego kodu, który osadza identyfikatory upstream.
@@ -81,7 +81,7 @@ Gdy musisz osadzić nową wartość dostarczoną przez upstream, która:
    # PROVIDER_OAUTH_CLIENT_SECRET=
    ```
 
-6. Zaktualizuj `tests/unit/publicCreds.test.ts`, dodając asercję kształtu dla nowego klucza (weryfikuj format, nie literał wartości — wzorzec w istniejących testach).
+6. Zaktualizuj `tests/unit/cc/publicCreds.test.ts`, dodając asercję kształtu dla nowego klucza (weryfikuj format, nie literał wartości — wzorzec w istniejących testach).
 
 7. **Nigdy** nie dodawaj literałów `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` do plików testowych. Używaj stałych `FAKE_*` zbudowanych z fragmentów `.join("")` (patrz istniejące testy).
 
@@ -120,7 +120,7 @@ Wszystkie te warianty w końcu odpala skaner. Używaj `resolvePublicCred()`.
 
 - `RAW_VALUE_PATTERN` w `publicCreds.ts` wylicza prefiksy uruchamiające passthrough (retrokompatybilność). Rozszerzaj go wyłącznie o udokumentowane formaty publicznych poświadczeń, nigdy o sekrety własnościowe.
 - `.env.example` jest objęty skryptem CI `check-env-doc-sync` — gdy usuniesz tu zmienną, upewnij się, że dokumentacja się zgadza.
-- Oba zestawy testów `npm run test:vitest` oraz `node --import tsx/esm --test tests/unit/publicCreds.test.ts` muszą pozostać zielone.
+- Oba zestawy testów `npm run test:vitest` oraz `node --import tsx/esm --test tests/unit/cc/publicCreds.test.ts` muszą pozostać zielone.
 
 ## Kiedy NIE używać tego helpera
 

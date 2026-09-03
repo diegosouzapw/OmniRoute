@@ -157,7 +157,7 @@ property of delete-then-recreate, so prefer a new table name over dropping and r
 
 **A partial failure arrives as HTTP 200 with a non-empty `insertErrors[]`.** That is treated as
 a failure and throws, which is what stops the cursor from advancing past rows BigQuery never
-accepted; `tests/unit/log-export-bigquery.test.ts` pins the behaviour.
+accepted; `tests/unit/log/log-export-bigquery.test.ts` pins the behaviour.
 
 Transport is plain REST — a self-signed RS256 assertion is exchanged for an access token at
 `https://oauth2.googleapis.com/token`, then rows go to `tabledata.insertAll`. No Google SDK is
@@ -177,7 +177,7 @@ how call logs are actually queried:
 Both settings apply at creation time. An existing table keeps whatever layout it already has, so
 point the destination at a new table id if you want to adopt them.
 
-`tests/unit/log-export-bigquery.test.ts` asserts the mapper and the table schema stay in
+`tests/unit/log/log-export-bigquery.test.ts` asserts the mapper and the table schema stay in
 lockstep, so a new call-log column cannot be silently dropped on the way out.
 
 Batches are chunked by **both** row count and serialised bytes. Row count alone is not enough
