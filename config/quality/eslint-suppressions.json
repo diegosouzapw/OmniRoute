@@ -2279,7 +2279,7 @@
       "count": 19
     }
   },
-  "tests/integration/combo-routing-e2e.test.ts": {
+  "tests/integration/e2e/combo-routing-e2e.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 7
     }
@@ -2299,12 +2299,12 @@
       "count": 7
     }
   },
-  "tests/integration/live-gemini-agentic-loop.test.ts": {
+  "tests/integration/live/live-gemini-agentic-loop.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 2
     }
   },
-  "tests/integration/live-gemini-nonstream.test.ts": {
+  "tests/integration/live/live-gemini-nonstream.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
     },
@@ -2312,7 +2312,7 @@
       "count": 1
     }
   },
-  "tests/integration/live-gemini-workload.test.ts": {
+  "tests/integration/live/live-gemini-workload.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
     },
@@ -2320,7 +2320,7 @@
       "count": 1
     }
   },
-  "tests/integration/live-gemini.test.ts": {
+  "tests/integration/live/live-gemini.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 2
     }
@@ -2413,7 +2413,7 @@
       "count": 1
     }
   },
-  "tests/integration/resilience-http-e2e.test.ts": {
+  "tests/integration/e2e/resilience-http-e2e.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
     }

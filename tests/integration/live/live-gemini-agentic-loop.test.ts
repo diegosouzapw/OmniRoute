@@ -50,7 +50,7 @@ import {
   LONG_DOCUMENTS,
   CODE_BLOCKS,
   TOOL_DEFINITION,
-} from "./liveGeminiShared.ts";
+} from "../liveGeminiShared.ts";
 
 // comboCooldownWait budgetMs default (src/lib/resilience/settings.ts) is
 // 300_000ms. A single client request can span a full combo SET retry

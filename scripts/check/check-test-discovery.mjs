@@ -92,6 +92,12 @@ export const COLLECTORS = [
   { glob: "tests/integration/combo-matrix/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:combo:live (gated real-upstream smoke; RUN_COMBO_LIVE=1 + VPS creds)
   { glob: "tests/integration/combo-live/*.live.test.ts", sources: ["package.json"] },
+  // Node native runner — test:integration:e2e (slow hermetic e2e: playwright spawn,
+  // 30s+ startups; out of the default test:integration glob since #12539 tier-split)
+  { glob: "tests/integration/e2e/*.test.ts", sources: ["package.json"] },
+  // Node native runner — test:integration:live (upstream-gated; self-skips without
+  // OMNIROUTE_API_KEY / RUN_LIVE_WIRE_CAPTURE; out of the default glob since #12539)
+  { glob: "tests/integration/live/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:boundary:live (gated real-upstream smoke; RUN_BOUNDARY_LIVE=1,
   // hits omniroute.vhost2.harre.dynv6.net — never runs unopted in CI)
   { glob: "tests/boundary/*.live.test.ts", sources: ["package.json"] },

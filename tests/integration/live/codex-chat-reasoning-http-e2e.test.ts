@@ -17,9 +17,9 @@ process.env.API_KEY_SECRET = "codex-chat-http-e2e-secret-123456";
 process.env.REQUIRE_API_KEY = "false";
 process.env.OMNIROUTE_LOG_REQUEST_SHAPE = "0";
 
-const core = await import("../../src/lib/db/core.ts");
-const providersDb = await import("../../src/lib/db/providers.ts");
-const chatRoute = await import("../../src/app/api/v1/chat/completions/route.ts");
+const core = await import("../../../src/lib/db/core.ts");
+const providersDb = await import("../../../src/lib/db/providers.ts");
+const chatRoute = await import("../../../src/app/api/v1/chat/completions/route.ts");
 
 const originalFetch = globalThis.fetch;
 

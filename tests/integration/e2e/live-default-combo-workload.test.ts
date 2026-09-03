@@ -18,7 +18,7 @@ import {
   getDefaultComboModelTargets,
   filterActiveModelTargets,
   sendModelRequest,
-} from "./liveDefaultComboShared.ts";
+} from "../liveDefaultComboShared.ts";
 
 let modelNames: string[] = [];
 

@@ -99,7 +99,7 @@ test(
   "[cursor-e2e] single-turn plain chat returns assistant text",
   { skip: skipReason },
   async () => {
-    const { CursorExecutor } = await import("../../open-sse/executors/cursor.ts");
+    const { CursorExecutor } = await import("../../../open-sse/executors/cursor.ts");
     const exec = new CursorExecutor();
     const result = await exec.execute({
       model: "auto",
@@ -118,7 +118,7 @@ test(
 );
 
 test("[cursor-e2e] system prompt biases the response", { skip: skipReason }, async () => {
-  const { CursorExecutor } = await import("../../open-sse/executors/cursor.ts");
+  const { CursorExecutor } = await import("../../../open-sse/executors/cursor.ts");
   const exec = new CursorExecutor();
   const result = await exec.execute({
     model: "auto",
@@ -140,7 +140,7 @@ test("[cursor-e2e] system prompt biases the response", { skip: skipReason }, asy
 });
 
 test("[cursor-e2e] tool-use single-turn returns tool_calls", { skip: skipReason }, async () => {
-  const { CursorExecutor } = await import("../../open-sse/executors/cursor.ts");
+  const { CursorExecutor } = await import("../../../open-sse/executors/cursor.ts");
   const exec = new CursorExecutor();
   const result = await exec.execute({
     model: "claude-4.6-sonnet-medium",
@@ -180,7 +180,7 @@ test(
   "[cursor-e2e] streaming SSE delivers chunks before the upstream closes",
   { skip: skipReason },
   async () => {
-    const { CursorExecutor } = await import("../../open-sse/executors/cursor.ts");
+    const { CursorExecutor } = await import("../../../open-sse/executors/cursor.ts");
     const exec = new CursorExecutor();
     const result = await exec.execute({
       model: "auto",
@@ -224,7 +224,7 @@ test(
 // fallback. All were validated end-to-end against the live endpoint.
 
 test("[cursor-e2e] composer-2.5 plain chat returns assistant text", { skip: skipReason }, async () => {
-  const { CursorExecutor } = await import("../../open-sse/executors/cursor.ts");
+  const { CursorExecutor } = await import("../../../open-sse/executors/cursor.ts");
   const exec = new CursorExecutor();
   const result = await exec.execute({
     model: COMPOSER_MODEL,
@@ -247,7 +247,7 @@ test(
   "[cursor-e2e] composer-2.5 surfaces reasoning as reasoning_content",
   { skip: skipReason },
   async () => {
-    const { CursorExecutor } = await import("../../open-sse/executors/cursor.ts");
+    const { CursorExecutor } = await import("../../../open-sse/executors/cursor.ts");
     const exec = new CursorExecutor();
     const result = await exec.execute({
       model: COMPOSER_MODEL,
@@ -276,9 +276,9 @@ test(
   "[cursor-e2e] composer-2.5 multi-turn tool round-trip reuses the h2 session",
   { skip: skipReason },
   async () => {
-    const { CursorExecutor } = await import("../../open-sse/executors/cursor.ts");
+    const { CursorExecutor } = await import("../../../open-sse/executors/cursor.ts");
     const { cursorSessionManager } = await import(
-      "../../open-sse/services/cursorSessionManager.ts"
+      "../../../open-sse/services/cursorSessionManager.ts"
     );
     const exec = new CursorExecutor();
     const conversationId = `e2e-rt-${Date.now()}`;
@@ -340,7 +340,7 @@ test(
   "[cursor-e2e] composer-2.5 cold-resume incorporates a tool result without a live session",
   { skip: skipReason },
   async () => {
-    const { CursorExecutor } = await import("../../open-sse/executors/cursor.ts");
+    const { CursorExecutor } = await import("../../../open-sse/executors/cursor.ts");
     const exec = new CursorExecutor();
     // Brand-new conversation_id with a fabricated prior tool call/result and no
     // session ever opened → acquire() misses, exercising the cold-resume path
@@ -387,7 +387,7 @@ test(
   "[cursor-e2e] composer-2.5 honors response_format json_object",
   { skip: skipReason },
   async () => {
-    const { CursorExecutor } = await import("../../open-sse/executors/cursor.ts");
+    const { CursorExecutor } = await import("../../../open-sse/executors/cursor.ts");
     const exec = new CursorExecutor();
     const result = await exec.execute({
       model: COMPOSER_MODEL,
@@ -417,7 +417,7 @@ test(
   "[cursor-e2e] composer-2.5 streaming delivers incremental chunks",
   { skip: skipReason },
   async () => {
-    const { CursorExecutor } = await import("../../open-sse/executors/cursor.ts");
+    const { CursorExecutor } = await import("../../../open-sse/executors/cursor.ts");
     const exec = new CursorExecutor();
     const result = await exec.execute({
       model: COMPOSER_MODEL,
@@ -452,7 +452,7 @@ test(
   "[cursor-e2e] base64 image_url reaches a vision model (sees the color)",
   { skip: skipReason },
   async () => {
-    const { CursorExecutor } = await import("../../open-sse/executors/cursor.ts");
+    const { CursorExecutor } = await import("../../../open-sse/executors/cursor.ts");
     const exec = new CursorExecutor();
     const png = solidColorPng(64, [255, 0, 0]); // solid red
     const dataUri = `data:image/png;base64,${png.toString("base64")}`;
@@ -493,7 +493,7 @@ test(
   "[cursor-e2e] remote image_url is fetched and reaches a vision model",
   { skip: skipReason },
   async () => {
-    const { CursorExecutor } = await import("../../open-sse/executors/cursor.ts");
+    const { CursorExecutor } = await import("../../../open-sse/executors/cursor.ts");
     const exec = new CursorExecutor();
     const result = await exec.execute({
       model: VISION_MODEL,

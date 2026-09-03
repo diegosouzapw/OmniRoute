@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { ensureTestEnvironment, MODEL, BASE_URL, API_KEY } from "./liveGeminiShared.ts";
+import { ensureTestEnvironment, MODEL, BASE_URL, API_KEY } from "../liveGeminiShared.ts";
 
 const DIRECT_MODEL = process.env.TEST_GEMINI_DIRECT_MODEL || "gemini/gemini-2.0-flash";
 

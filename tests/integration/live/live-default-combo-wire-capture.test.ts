@@ -35,7 +35,7 @@ import {
   getDefaultComboModelTargets,
   filterActiveModelTargets,
   sendModelRequest,
-} from "./liveDefaultComboShared.ts";
+} from "../liveDefaultComboShared.ts";
 
 const skip = !LIVE_CONTAINER_ENABLED
   ? "RUN_LIVE_WIRE_CAPTURE not set — skipping wire-capture live test"

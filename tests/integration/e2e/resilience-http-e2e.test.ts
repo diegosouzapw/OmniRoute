@@ -11,17 +11,17 @@ import { fileURLToPath } from "node:url";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-resilience-http-e2e-"));
 const DASHBOARD_PORT = await getFreePort();
-const REPO_ROOT = fileURLToPath(new URL("../..", import.meta.url));
+const REPO_ROOT = fileURLToPath(new URL("../../..", import.meta.url));
 
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "resilience-http-e2e-secret-123456";
 process.env.REQUIRE_API_KEY = "false";
 
-const core = await import("../../src/lib/db/core.ts");
-const providersDb = await import("../../src/lib/db/providers.ts");
-const combosDb = await import("../../src/lib/db/combos.ts");
-const settingsDb = await import("../../src/lib/db/settings.ts");
+const core = await import("../../../src/lib/db/core.ts");
+const providersDb = await import("../../../src/lib/db/providers.ts");
+const combosDb = await import("../../../src/lib/db/combos.ts");
+const settingsDb = await import("../../../src/lib/db/settings.ts");
 
 function getFreePort() {
   return new Promise<number>((resolve, reject) => {
