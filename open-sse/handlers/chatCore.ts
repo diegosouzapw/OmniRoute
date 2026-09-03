@@ -379,8 +379,10 @@ import {
   updateFromHeaders,
   updateFromResponseBody,
   initializeRateLimits,
+  resolveRequestQueueMaxWaitMs,
 } from "../services/rateLimitManager.ts";
 import * as localLimiterErrors from "../services/rateLimitManager/errors.ts";
+import { rethrowAdmissionError, remainingQueueBudgetMs } from "./chatCore/queueBudget.ts";
 import {
   acquireMany as acquireConcurrencyGates,
   markBlocked as markAccountSemaphoreBlocked,
@@ -3116,6 +3118,12 @@ export async function handleChatCore({
                 stage: "waiting_account_slot",
               });
             }
+            const maxWaitMs = resolveRequestQueueMaxWaitMs(
+              provider,
+              undefined,
+              attemptConnectionId ?? undefined
+            );
+            const gateStartedAt = Date.now();
             const releaseAccountSemaphore = await acquireConcurrencyGates(
               [
                 {
@@ -3132,12 +3140,13 @@ export async function handleChatCore({
                 },
               ],
               {
-                timeoutMs: resilienceSettings.requestQueue.maxWaitMs,
+                timeoutMs: maxWaitMs,
                 maxQueueSize: resilienceSettings.requestQueue.maxQueueDepth,
                 signal: streamController.signal,
               }
-            );
-            trace("post_semaphore");
+            ).catch(rethrowAdmissionError);
+            const remainingAfterGate = remainingQueueBudgetMs(maxWaitMs, gateStartedAt);
+            trace("post_semaphore", { maxWaitMs, remainingAfterGate });
             updatePendingScope(pendingScope, {
               stage: "waiting_rate_limit",
             });
@@ -3186,7 +3195,13 @@ export async function handleChatCore({
                       ),
                   });
                 },
-                streamController.signal
+                streamController.signal,
+                remainingAfterGate,
+                correlationId ?? undefined,
+                {
+                  executor: executor as unknown as { getTimeoutMs?: () => unknown },
+                  providerSpecificData: execCreds?.providerSpecificData,
+                }
               );
               const res = normalizeExecutorResult(rawExecutorResult);
               trace("post_executor", { status: res?.response?.status });

@@ -560,6 +560,7 @@ export const updateProviderConnectionSchema = z
         minTime: rateLimitOverrideNumber(60_000).optional(),
         maxConcurrent: rateLimitOverrideNumber(10_000).optional(),
         maxWaitMs: rateLimitOverrideNumber(120_000).optional(),
+        executionMaxWaitMs: rateLimitOverrideNumber(600_000).optional(),
       })
       .partial()
       .strict()
