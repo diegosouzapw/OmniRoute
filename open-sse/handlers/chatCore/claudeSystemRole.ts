@@ -165,6 +165,61 @@ export function extractSystemRoleMessages(payload: Record<string, unknown>): voi
 }
 
 /**
+ * Hoists the leading run of text-bearing system-role messages (everything
+ * before the first real user/assistant turn) into the top-level `system`
+ * parameter. Anthropic treats `messages[0]` as the initial system prompt
+ * position and rejects any non-directive system-role message there ("use the
+ * top-level 'system' parameter for the initial system prompt"), which is
+ * exactly where the Output Styles injection lands on the mid-conversation
+ * system passthrough (provider `claude` + 1M-context models). Only the leading
+ * run is hoisted so genuine mid-conversation system turns keep their position
+ * and cache prefix; empty (directive-only) messages in the run are left in
+ * place for relocateDirectiveOnlyMessages to handle.
+ */
+export function hoistLeadingTextSystemMessages(payload: Record<string, unknown>): void {
+  if (!Array.isArray(payload.messages) || payload.messages.length === 0) return;
+  const messages = payload.messages as Array<Record<string, unknown>>;
+  const isSystemRole = (role: unknown): boolean =>
+    typeof role === "string" &&
+    (role.toLowerCase() === "system" || role.toLowerCase() === "developer");
+
+  const blocks: Array<Record<string, unknown>> = [];
+  const kept: Array<Record<string, unknown>> = [];
+  let i = 0;
+  for (; i < messages.length; i++) {
+    const m = messages[i];
+    if (m == null || typeof m !== "object" || !isSystemRole(m.role)) break;
+    if (typeof m.content === "string") {
+      if (m.content.length > 0) blocks.push({ type: "text", text: m.content });
+      continue;
+    }
+    if (Array.isArray(m.content) && m.content.length > 0) {
+      let hoisted = false;
+      for (const block of m.content as Array<Record<string, unknown>>) {
+        if (block?.type === "text" && typeof block.text === "string" && block.text.length > 0) {
+          blocks.push({ type: "text", text: block.text });
+          hoisted = true;
+        }
+      }
+      if (!hoisted) kept.push(m);
+      continue;
+    }
+    kept.push(m);
+  }
+  if (blocks.length === 0) return;
+
+  const existing = payload.system;
+  if (typeof existing === "string" && existing.length > 0) {
+    payload.system = [{ type: "text", text: existing }, ...blocks];
+  } else if (Array.isArray(existing)) {
+    payload.system = [...(existing as Array<Record<string, unknown>>), ...blocks];
+  } else {
+    payload.system = blocks;
+  }
+  payload.messages = [...kept, ...messages.slice(i)];
+}
+
+/**
  * Moves a directive-only system message (empty content array + message-level
  * `output_config`, the shape Claude Code clients emit) off `messages[0]`.
  *
