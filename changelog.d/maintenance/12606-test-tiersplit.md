@@ -1,0 +1,1 @@
+- **chore(tests):** split slow hermetic e2e (`tests/integration/e2e/`) and upstream-gated live (`tests/integration/live/`) out of the default `test:integration` glob so the default suite stays fast, and relocate unit suites into per-prefix subdirs with matching collectors ([#12606](https://github.com/diegosouzapw/OmniRoute/pull/12606)) — thanks @backryun

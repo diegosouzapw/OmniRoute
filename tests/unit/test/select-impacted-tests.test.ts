@@ -106,6 +106,23 @@ test("changed unit test under serial/ → run itself", () => {
   assert.deepEqual(sel, ["tests/unit/serial/flaky-once.test.ts"]);
 });
 
+// Relocated prefixes (#12606) must stay in UNIT_SUBDIRS or TIA silently drops them.
+test("changed unit test under moonshot/ → run itself", () => {
+  const sel = selectImpacted({
+    changed: ["tests/unit/moonshot/provider.test.ts"],
+    map: MAP,
+  });
+  assert.deepEqual(sel, ["tests/unit/moonshot/provider.test.ts"]);
+});
+
+test("changed unit test under seekai/ → run itself", () => {
+  const sel = selectImpacted({
+    changed: ["tests/unit/seekai/seekai-provider.test.ts"],
+    map: MAP,
+  });
+  assert.deepEqual(sel, ["tests/unit/seekai/seekai-provider.test.ts"]);
+});
+
 test("changed unit .test.mjs → run itself", () => {
   const sel = selectImpacted({
     changed: ["tests/unit/example.test.mjs"],

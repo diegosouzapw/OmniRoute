@@ -17,7 +17,7 @@ import { pathToFileURL } from "node:url";
 
 import Database from "better-sqlite3";
 
-import { createBetterSqliteAdapter } from "../../src/lib/db/adapters/betterSqliteAdapter.ts";
+import { createBetterSqliteAdapter } from "../../../src/lib/db/adapters/betterSqliteAdapter.ts";
 
 const serial = { concurrency: false };
 
