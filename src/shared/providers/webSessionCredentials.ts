@@ -124,6 +124,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "sessionCookie", "authCookie"],
   },
+  chatplayground: {
+    kind: "cookie",
+    credentialName: "Clerk Session / __client Cookie or JWT",
+    placeholder: "__client=...; __session=... or Clerk Bearer JWT",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "__client", "__session", "sessionToken", "jwt", "apiKey"],
+  },
   "blackbox-web": {
     kind: "cookie",
     credentialName: "__Secure-authjs.session-token",
