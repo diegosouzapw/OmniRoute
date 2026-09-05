@@ -1,7 +1,7 @@
 /**
  * #11804 — the combo loop-safety timer must be cleared on EVERY exit path.
  *
- * `dispatchWithCooldownRetry` (open-sse/services/combo.ts) arms a
+ * `dispatchWithCooldownRetry` (open-sse/services/combo/comboAttemptLoop.ts) arms a
  * `setTimeout(..., loopSafetyMs)` — 10 minutes by default — once per `setTry`
  * iteration, so a combo that never produces a terminal response still answers
  * the client with a 504 instead of hanging forever.
@@ -29,7 +29,10 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const comboSrc = readFileSync(resolve(here, "../../open-sse/services/combo.ts"), "utf8");
+const comboSrc = readFileSync(
+  resolve(here, "../../open-sse/services/combo/comboAttemptLoop.ts"),
+  "utf8"
+);
 
 test("#11804: the loop-safety timer is released in a finally, not only on success", () => {
   assert.match(
