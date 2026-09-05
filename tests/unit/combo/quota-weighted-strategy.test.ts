@@ -27,6 +27,18 @@ const { getCircuitBreaker, resetAllCircuitBreakers } =
   await import("../../../src/shared/utils/circuitBreaker.ts");
 const { applyStrategyOrdering } =
   await import("../../../open-sse/services/combo/applyStrategyOrdering.ts");
+const { resolveComboTargetPipeline } =
+  await import("../../../open-sse/services/combo/targetResolution.ts");
+const { incrementInflight, getInflight, _clearInflightForTest } =
+  await import("../../../open-sse/services/combo/quotaShareInflight.ts");
+const {
+  applySessionStickiness,
+  recordStickyBinding,
+  clearAllStickyBindings,
+  __setStickinessHeadroomFetcherForTests,
+  __setStickinessConnectionFetcherForTests,
+  __setStickinessQuotaCheckerForTests,
+} = await import("../../../open-sse/services/combo/sessionStickiness.ts");
 const { HANDLED_COMBO_STRATEGIES } =
   await import("../../../open-sse/services/combo/strategyDispatch.ts");
 const { comboStrategySchema } = await import("../../../src/shared/validation/schemas.ts");
@@ -43,6 +55,11 @@ afterEach(() => {
   _setSecureRandomFloatSource(null);
   quotaCache.__clearForTests();
   resetAllCircuitBreakers();
+  _clearInflightForTest();
+  clearAllStickyBindings();
+  __setStickinessHeadroomFetcherForTests(null);
+  __setStickinessConnectionFetcherForTests(null);
+  __setStickinessQuotaCheckerForTests(null);
 });
 
 const iso = (ms = 86_400_000) => new Date(Date.now() + ms).toISOString();
@@ -523,4 +540,197 @@ test("applyStrategyOrdering(quota-weighted) uses the orderer", async () => {
   );
   assert.equal(out.orderedTargets[0]?.connectionId, ok);
   assert.equal(out.quotaShareRelease, null);
+});
+
+const pipelineLog = { info() {}, warn() {}, error() {}, debug() {} };
+
+function pinComboModels(provider, model, connectionIds) {
+  return connectionIds.map((connectionId, index) => ({
+    kind: "model",
+    provider,
+    providerId: provider,
+    model,
+    connectionId,
+    id: `step-${index}`,
+  }));
+}
+
+function healthyStickiness() {
+  __setStickinessHeadroomFetcherForTests(async () => ({ util5h: 0.1, util7d: 0.1 }));
+  __setStickinessConnectionFetcherForTests(async () => undefined);
+  __setStickinessQuotaCheckerForTests(() => false);
+}
+
+test("in-flight load on the higher-score account flips the 0.4 draw to the idle twin", async () => {
+  const provider = "agy";
+  const busy = `busy-${randomUUID()}`;
+  const idle = `idle-${randomUUID()}`;
+  registerQuotaFetcher(provider, async () => quotaAt(0.2));
+  incrementInflight(busy);
+  _setSecureRandomFloatSource(() => 0.4);
+  const ordered = await orderTargetsByQuotaWeighted(
+    [makeTarget(provider, busy), makeTarget(provider, idle)],
+    "inflight-flip",
+    {},
+    { warn() {} },
+    null
+  );
+  assert.equal(ordered[0]?.connectionId, idle);
+});
+
+test("applyStrategyOrdering(quota-weighted) does not reserve; pipeline reserves the final [0]", async () => {
+  const provider = "agy";
+  const model = "gemini-3.8-flash-high";
+  const busy = `busy-${randomUUID()}`;
+  const idle = `idle-${randomUUID()}`;
+  registerQuotaFetcher(provider, async () => quotaAt(0.2));
+  incrementInflight(busy);
+  _setSecureRandomFloatSource(() => 0.4);
+  const ordered = await applyStrategyOrdering(
+    "quota-weighted",
+    [makeTarget(provider, busy), makeTarget(provider, idle)],
+    {
+      combo: { id: "c-ord", name: "c-ord", models: [], config: {} },
+      config: {},
+      body: { messages: [] },
+      log: pipelineLog,
+      apiKeyAllowedConnections: null,
+    }
+  );
+  assert.equal(ordered.quotaShareRelease, null);
+  assert.equal(getInflight(idle), 0);
+  assert.equal(getInflight(busy), 1);
+
+  healthyStickiness();
+  const combo = {
+    id: "c-pipe",
+    name: "c-pipe",
+    models: pinComboModels(provider, model, [busy, idle]),
+    config: {},
+  };
+  const result = await resolveComboTargetPipeline({
+    body: { messages: [{ role: "user", content: `new-${randomUUID()}` }] },
+    combo,
+    strategy: "quota-weighted",
+    config: {},
+    settings: null,
+    allCombos: null,
+    relayOptions: null,
+    signal: null,
+    apiKeyAllowedConnections: null,
+    log: pipelineLog,
+    resilienceSettings: { providerCooldown: { enabled: false } },
+    isModelAvailable: undefined,
+    handleSingleModelWithTimeout: async () => new Response("{}"),
+    buildAutoCandidates: async () => [],
+  });
+  assert.equal("earlyResponse" in result, false);
+  if ("earlyResponse" in result) return;
+  assert.equal(result.orderedTargets[0]?.connectionId, idle);
+  assert.ok(result.quotaShareRelease);
+  assert.equal(getInflight(idle), 1);
+  result.quotaShareRelease();
+  assert.equal(getInflight(idle), 0);
+  result.quotaShareRelease();
+  assert.equal(getInflight(idle), 0);
+});
+
+test("sticky pin keeps the old account as [0] even when in-flight would flip the draw", async () => {
+  const provider = "agy";
+  const model = "gemini-3.8-flash-high";
+  const busy = `busy-${randomUUID()}`;
+  const idle = `idle-${randomUUID()}`;
+  registerQuotaFetcher(provider, async () => quotaAt(0.2));
+  incrementInflight(busy);
+  _setSecureRandomFloatSource(() => 0.4);
+  healthyStickiness();
+  const messages = [{ role: "user", content: `sticky-${randomUUID()}` }];
+  const comboName = `qw-sticky-${randomUUID()}`;
+  const probe = await applySessionStickiness(
+    [makeTarget(provider, busy), makeTarget(provider, idle)],
+    messages,
+    comboName
+  );
+  assert.ok(probe.messageHash);
+  recordStickyBinding(probe.messageHash, busy, comboName);
+  const combo = {
+    id: comboName,
+    name: comboName,
+    models: pinComboModels(provider, model, [busy, idle]),
+    config: {},
+  };
+  const result = await resolveComboTargetPipeline({
+    body: { messages },
+    combo,
+    strategy: "quota-weighted",
+    config: {},
+    settings: null,
+    allCombos: null,
+    relayOptions: null,
+    signal: null,
+    apiKeyAllowedConnections: null,
+    log: pipelineLog,
+    resilienceSettings: { providerCooldown: { enabled: false } },
+    isModelAvailable: undefined,
+    handleSingleModelWithTimeout: async () => new Response("{}"),
+    buildAutoCandidates: async () => [],
+  });
+  assert.equal("earlyResponse" in result, false);
+  if ("earlyResponse" in result) return;
+  assert.equal(result.sticky.stuck, true);
+  assert.equal(result.orderedTargets[0]?.connectionId, busy);
+  assert.equal(getInflight(busy), 2);
+  assert.equal(getInflight(idle), 0);
+  result.quotaShareRelease?.();
+  assert.equal(getInflight(busy), 1);
+});
+
+test("hard-empty sticky account is dropped; pipeline reserves the live draw", async () => {
+  const provider = "agy";
+  const model = "gemini-3.8-flash-high";
+  const dead = `dead-${randomUUID()}`;
+  const ok = `ok-${randomUUID()}`;
+  registerQuotaFetcher(provider, async (id) =>
+    id === dead ? quotaAt(1, { limitReached: true }) : quotaAt(0.2)
+  );
+  _setSecureRandomFloatSource(() => 0);
+  healthyStickiness();
+  const messages = [{ role: "user", content: `empty-${randomUUID()}` }];
+  const comboName = `qw-empty-${randomUUID()}`;
+  const probe = await applySessionStickiness(
+    [makeTarget(provider, dead), makeTarget(provider, ok)],
+    messages,
+    comboName
+  );
+  assert.ok(probe.messageHash);
+  recordStickyBinding(probe.messageHash, dead, comboName);
+  const combo = {
+    id: comboName,
+    name: comboName,
+    models: pinComboModels(provider, model, [dead, ok]),
+    config: {},
+  };
+  const result = await resolveComboTargetPipeline({
+    body: { messages },
+    combo,
+    strategy: "quota-weighted",
+    config: {},
+    settings: null,
+    allCombos: null,
+    relayOptions: null,
+    signal: null,
+    apiKeyAllowedConnections: null,
+    log: pipelineLog,
+    resilienceSettings: { providerCooldown: { enabled: false } },
+    isModelAvailable: undefined,
+    handleSingleModelWithTimeout: async () => new Response("{}"),
+    buildAutoCandidates: async () => [],
+  });
+  assert.equal("earlyResponse" in result, false);
+  if ("earlyResponse" in result) return;
+  assert.equal(result.sticky.stuck, false);
+  assert.equal(result.orderedTargets[0]?.connectionId, ok);
+  assert.equal(getInflight(dead), 0);
+  assert.equal(getInflight(ok), 1);
+  result.quotaShareRelease?.();
 });

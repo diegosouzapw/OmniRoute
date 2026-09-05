@@ -1,1 +1,1 @@
-- **feat(combo):** add combo strategy `quota-weighted`: skip exhausted accounts, then weighted-draw by reset-aware leftover ([#12789](https://github.com/diegosouzapw/OmniRoute/pull/12789))
+- **feat(combo):** add combo strategy `quota-weighted`: skip exhausted accounts, then weighted-draw by leftover / in-flight load; existing conversations stay pinned until the account is empty ([#12789](https://github.com/diegosouzapw/OmniRoute/pull/12789))

@@ -47,6 +47,7 @@ import {
 } from "./quotaScoring.ts";
 import { secureRandomFloat, secureRandomInt } from "../../../src/shared/utils/secureRandom.ts";
 import { rankByHeadroom, type HeadroomSaturation } from "./headroomRanking.ts";
+import { getInflight } from "./quotaShareInflight.ts";
 import { preferAntigravityConnectionsWithStoredProject } from "../antigravityProjectPersist.ts";
 import { getQuotaFetchScope } from "../antigravityQuotaFamily.ts";
 import { isQuotaExhaustedForRequest } from "../../../src/domain/quotaCache.ts";
@@ -801,7 +802,10 @@ export async function orderTargetsByQuotaWeighted(
   const selected = poolA.length > 0 ? poolA : poolB;
   if (selected.length === 0) return [];
 
-  const weights = selected.map((entry) => Math.max(0, entry.score));
+  const weights = selected.map((entry) => {
+    const load = getInflight(entry.target.connectionId ?? "");
+    return Math.max(0, entry.score) / (1 + load);
+  });
   const sum = weights.reduce((acc, w) => acc + w, 0);
   let pickIndex: number | null = null;
   if (sum > 0) {

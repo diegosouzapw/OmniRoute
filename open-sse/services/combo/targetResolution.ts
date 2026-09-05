@@ -64,6 +64,7 @@ import {
   expandProviderWildcardsInCollection,
 } from "./providerWildcard.ts";
 import { preScreenTargets, type PreScreenResult } from "./quotaStrategies.ts";
+import { incrementInflight, decrementInflight } from "./quotaShareInflight.ts";
 import { resolveAutoStrategyOrder, type ResolveAutoStrategyDeps } from "./resolveAutoStrategy.ts";
 import {
   MAX_RR_COUNTERS,
@@ -124,10 +125,12 @@ export interface ResolvedComboTargetPipeline {
   sticky: ApplyStickinessResult;
   preScreenMap: Map<string, PreScreenResult>;
   /**
-   * Idempotent release for the in-flight slot quota-share ordering reserved for
-   * its winner (#11371). Null unless the `quota-share` strategy ran. The host MUST
-   * invoke it when the request settles; this pipeline already releases it on any
-   * earlyResponse it produces after selection.
+   * Idempotent release for the in-flight slot reserved for the winner.
+   * Non-null for `quota-share` (reserved inside selectQuotaShareTarget) and for
+   * `quota-weighted` (reserved here on the post-stickiness/cache [0], so a sticky
+   * pin cannot charge the wrong account). The host MUST invoke it when the
+   * request settles; this pipeline already releases it on any earlyResponse it
+   * produces after selection.
    */
   quotaShareRelease: (() => void) | null;
 }
@@ -746,7 +749,8 @@ export async function resolveComboTargetPipeline(
 
   const ordering = await orderByStrategy(deps, orderedTargets);
   if ("earlyResponse" in ordering) return ordering;
-  const { autoUsedExplicitRouter, quotaShareRelease } = ordering;
+  const { autoUsedExplicitRouter } = ordering;
+  let { quotaShareRelease } = ordering;
 
   const continuity = await applyContinuityFilters(deps, ordering.orderedTargets);
   if ("earlyResponse" in continuity) {
@@ -762,6 +766,22 @@ export async function resolveComboTargetPipeline(
     continuity.sticky.stuck,
     autoUsedExplicitRouter
   );
+
+  // quota-weighted reserves AFTER stickiness/cache so the slot matches the
+  // account that will actually be dispatched. quota-share already reserved
+  // inside selectQuotaShareTarget and must not be double-counted.
+  if (strategy === "quota-weighted" && !quotaShareRelease) {
+    const winnerId = orderedTargets[0]?.connectionId ?? "";
+    if (winnerId) {
+      incrementInflight(winnerId);
+      let released = false;
+      quotaShareRelease = () => {
+        if (released) return;
+        released = true;
+        decrementInflight(winnerId);
+      };
+    }
+  }
 
   // Parallel pre-screen: check provider profiles and model availability for all targets
   // Only runs for priority strategy where sequential checking causes latency

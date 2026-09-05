@@ -26,7 +26,8 @@ import type { ComboLike, ComboLogger, ResolvedComboTarget } from "./types.ts";
  *
  * `quotaShareRelease` carries the idempotent release for the in-flight slot that
  * quota-share ordering reserves for its winner (#11371). It is non-null only when
- * the `quota-share` strategy ran; every other strategy leaves it null. The caller
+ * the `quota-share` strategy ran; `quota-weighted` reserves later in
+ * resolveComboTargetPipeline (after stickiness) and leaves this null. The caller
  * MUST invoke it exactly once when the request settles — selection reserves the
  * slot, so dropping the callback leaks the counter monotonically upward and
  * degenerates P2C into "fewest lifetime dispatches".
