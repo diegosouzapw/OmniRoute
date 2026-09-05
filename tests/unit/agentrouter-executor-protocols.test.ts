@@ -84,7 +84,7 @@ test("AgentRouter OpenAI Chat dispatch uses Codex identity without Claude-only b
   assert.equal(captured.url, "https://agentrouter.org/v1/chat/completions");
   assert.equal(captured.headers.get("authorization"), "Bearer test-agentrouter-key");
   assert.equal(captured.headers.get("x-api-key"), null);
-  assert.equal(captured.headers.get("user-agent"), "codex_cli_rs/0.149.0");
+  assert.equal(captured.headers.get("user-agent"), "codex_cli_rs/0.153.4");
   assert.equal(captured.headers.get("originator"), "codex_cli_rs");
   assert.equal(captured.headers.get("x-app"), null);
   assert.equal(captured.headers.get("anthropic-version"), null);
@@ -130,7 +130,7 @@ test("AgentRouter OpenAI Responses dispatch uses the Responses endpoint and Code
   assert.ok(captured);
   assert.equal(captured.url, "https://agentrouter.org/v1/responses");
   assert.equal(captured.headers.get("authorization"), "Bearer test-agentrouter-key");
-  assert.equal(captured.headers.get("user-agent"), "codex_cli_rs/0.149.0");
+  assert.equal(captured.headers.get("user-agent"), "codex_cli_rs/0.153.4");
   assert.equal(captured.headers.get("originator"), "codex_cli_rs");
   assert.equal(captured.headers.get("x-app"), null);
   assert.equal(captured.headers.get("anthropic-beta"), null);
