@@ -234,7 +234,7 @@ function ensureWorker(): Worker {
 
   const { workerFile, execArgv } = resolveWorkerFile();
   const absoluteWorkerFile = path.resolve(workerFile);
-  const w = new Worker(pathToFileURL(absoluteWorkerFile).href, { execArgv });
+  const w = new Worker(pathToFileURL(absoluteWorkerFile), { execArgv });
 
   w.on("message", (reply: WorkerReply) => {
     const entry = pending.get(reply.id);
