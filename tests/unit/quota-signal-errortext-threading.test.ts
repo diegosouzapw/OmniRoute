@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 // #10460 pattern: DATA_DIR must be assigned BEFORE any transitive DB import.
 // accountFallback.ts statically imports `@/lib/db/providers` -> `src/lib/db/core.ts`,
@@ -111,6 +112,89 @@ test("shouldMarkAccountExhaustedFrom429 lets a transient failureKind win over a 
     ),
     false
   );
+});
+
+/**
+ * The cases above pin the helper. This one pins the WIRING, and it is the reason the
+ * fix does anything in production.
+ *
+ * `errorText` is an OPTIONAL 5th parameter, so dropping it at the call site is neither a
+ * type error nor a helper-test failure — exactly the shape of the bug being fixed (a
+ * two-argument helper whose call site silently passes one). Without this case the
+ * production half of the patch could be reverted, or lost in a refactor, with the whole
+ * suite green.
+ *
+ * `handleSingleModelChat` is not exported from `src/sse/handlers/chat.ts`, so the call
+ * cannot be driven or spied without changing the production surface. A source-level
+ * assertion is the precedent for that situation in this suite — see
+ * `tests/unit/api-key-provider-quota-bypass-scope.test.ts`. Parse the argument list
+ * rather than regex-matching the formatted text, so Prettier reflowing the call cannot
+ * turn this guard into a false failure (or, worse, a false pass).
+ */
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+
+/** Top-level (paren/bracket/brace-depth 0) comma split of one argument list. */
+function splitTopLevelArgs(argList: string): string[] {
+  const args: string[] = [];
+  let depth = 0;
+  let current = "";
+  for (const ch of argList) {
+    if (ch === "(" || ch === "[" || ch === "{") depth++;
+    else if (ch === ")" || ch === "]" || ch === "}") depth--;
+    if (ch === "," && depth === 0) {
+      args.push(current.trim());
+      current = "";
+      continue;
+    }
+    current += ch;
+  }
+  if (current.trim().length > 0) args.push(current.trim());
+  return args;
+}
+
+/** Every `fn(...)` call in `source`, returned as its list of top-level arguments. */
+function callSiteArgs(source: string, fn: string): string[][] {
+  const calls: string[][] = [];
+  const needle = `${fn}(`;
+  let from = 0;
+  for (;;) {
+    const start = source.indexOf(needle, from);
+    if (start === -1) break;
+    from = start + needle.length;
+    // Skip the import/declaration forms — only real invocations carry arguments.
+    const before = source.slice(Math.max(0, start - 9), start);
+    if (/\bfunction\s+$/.test(before)) continue;
+    let depth = 1;
+    let i = from;
+    while (i < source.length && depth > 0) {
+      const ch = source[i];
+      if (ch === "(") depth++;
+      else if (ch === ")") depth--;
+      i++;
+    }
+    calls.push(splitTopLevelArgs(source.slice(from, i - 1)));
+  }
+  return calls;
+}
+
+test("chat.ts forwards the upstream body as the 5th argument to shouldMarkAccountExhaustedFrom429", () => {
+  const source = fs.readFileSync(path.join(repoRoot, "src/sse/handlers/chat.ts"), "utf8");
+  const calls = callSiteArgs(source, "shouldMarkAccountExhaustedFrom429").filter(
+    // Drop the `import { … }` specifier, which parses as a zero-argument "call".
+    (args) => args.length > 0
+  );
+
+  assert.equal(
+    calls.length,
+    1,
+    "expected exactly one shouldMarkAccountExhaustedFrom429 call site in chat.ts; " +
+      "a new one must forward errorText too"
+  );
+  assert.deepEqual(calls[0], ["provider", "model", "passthroughModels", "failureKind", "errorStr"]);
+
+  // Pin what `errorStr` is, so the guard cannot pass on a same-named local that no longer
+  // holds the upstream body (chat.ts:2282).
+  assert.match(source, /const errorStr = String\(result\.rawMessage \?\? result\.error \?\? ""\);/);
 });
 
 test.after(() => {
