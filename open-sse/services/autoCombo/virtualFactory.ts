@@ -26,6 +26,8 @@ import {
   type AutoTier,
 } from "./suffixComposition";
 import { classifyTier } from "../tierResolver";
+import { getQualityScore } from "../routing/quality.ts";
+import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker.ts";
 import type { AutoVariant } from "./autoPrefix";
 import { buildFamilyCandidateFilter, type ModelFamily } from "./modelFamily";
 import { getHiddenModelsByProvider } from "@/models";
@@ -111,6 +113,8 @@ export interface VirtualAutoComboCandidate {
   resolvedSupportsVision?: boolean;
   resolvedReasoning?: boolean;
   resolvedSupportsThinking?: boolean;
+  // Feedback quality signal mirrored from ProviderCandidate (scoring.ts:142)
+  quality?: number | null;
   /**
    * Why STRICT_ZERO_COST would exclude this candidate, or null when it would
    * not. Only populated for the read-only inspector build (`skip`), where the
@@ -544,7 +548,7 @@ function yieldVirtualAutoPreparationTurn(): Promise<void> {
   return new Promise((resolve) => setImmediate(resolve));
 }
 
-async function attachPreparedCapabilityValues(
+export async function attachPreparedCapabilityValues(
   candidates: readonly VirtualAutoComboCandidate[],
   state: PreparedCapabilityState
 ): Promise<VirtualAutoComboCandidate[]> {
@@ -591,7 +595,11 @@ async function attachPreparedCapabilityValues(
         await yieldVirtualAutoPreparationTurn();
       }
     }
-    prepared.push({ ...candidate, ...values });
+    prepared.push({
+      ...candidate,
+      ...values,
+      quality: getQualityScore(candidate.provider, candidate.model),
+    });
   }
   return prepared;
 }
@@ -846,7 +854,8 @@ export async function prepareVirtualAutoComboInputs(
  */
 export function computeSnapshotWeights(
   candidates: readonly VirtualAutoComboCandidate[],
-  weights: ScoringWeights
+  weights: ScoringWeights,
+  breakerByProvider?: ReadonlyMap<string, "CLOSED" | "HALF_OPEN" | "OPEN">
 ): Map<string, number> {
   const scores = new Map<string, number>();
   for (const c of candidates) {
@@ -884,8 +893,24 @@ export function computeSnapshotWeights(
     // (no runtime data at snapshot time, so equal baseline)
     if (weights.latencyInv > 0) score += weights.latencyInv * 0.5;
 
-    // health + quota: no runtime telemetry at snapshot time → neutral baseline
-    score += (weights.health + weights.quota) * 0.5;
+    // healthFactor replaces neutral 0.5 when the breaker map covers this provider; else 0.5 preserved
+    let hf: number;
+    if (!breakerByProvider) {
+      hf = 0.5;
+    } else if (!breakerByProvider.has(c.provider)) {
+      hf = 0.5;
+    } else {
+      const state = breakerByProvider.get(c.provider);
+      hf = state === "OPEN" ? 0 : state === "HALF_OPEN" ? 0.5 : 1.0;
+    }
+    score += weights.health * hf;
+    score += weights.quota * 0.5;
+
+    // quality — candidate.quality already 0.5 when cold via getQualityScore, guard neutral if undefined
+    if (weights.quality > 0) {
+      const q = typeof c.quality === "number" && Number.isFinite(c.quality) ? c.quality : 0.5;
+      score += weights.quality * q;
+    }
 
     scores.set(c.modelStr, Math.min(score, 1));
   }
@@ -1086,7 +1111,20 @@ export async function createVirtualAutoComboFromPrepared(
   }
 
   const providerPool = [...new Set(effectivePool.map((c) => c.provider))];
-  const snapshotScores = computeSnapshotWeights(effectivePool, weights);
+  const breakerByProvider = new Map<string, "CLOSED" | "HALF_OPEN" | "OPEN">();
+  for (const c of effectivePool) {
+    if (breakerByProvider.has(c.provider)) continue;
+    try {
+      const state = getCircuitBreaker(c.provider).getStatus().state as string;
+      if (state === "OPEN" || state === "HALF_OPEN" || state === "CLOSED") {
+        breakerByProvider.set(c.provider, state);
+      }
+      // any other state (e.g. DEGRADED) → omit entry → 0.5 neutral
+    } catch {
+      // fail-open: omit entry → 0.5 neutral
+    }
+  }
+  const snapshotScores = computeSnapshotWeights(effectivePool, weights, breakerByProvider);
   const models = effectivePool.map((candidate, index) => ({
     id: `virtual-auto-${variant || "default"}-${index + 1}-${candidate.provider}`,
     kind: "model" as const,

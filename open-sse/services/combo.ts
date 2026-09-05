@@ -79,7 +79,7 @@ import { phaseComboSetup } from "./combo/comboSetup.ts";
 import { checkCredentialGate, logCredentialSkip } from "./credentialGate.ts";
 import { emit } from "../../src/lib/events/eventBus";
 import { notifyWebhookEvent } from "../../src/lib/webhookDispatcher";
-import { type ProviderCandidate } from "./autoCombo/scoring.ts";
+import { projectAccountTier, type ProviderCandidate } from "./autoCombo/scoring.ts";
 import { estimateTokens } from "./contextManager.ts";
 import { getSessionConnection } from "./sessionManager.ts";
 import { getOAuthSessionAvailability } from "./oauthSessionOccupancy.ts";
@@ -647,8 +647,15 @@ export async function buildAutoCandidates(
         latencyStdDev,
         errorRate,
         ...speedTelemetry,
-        accountTier: "standard" as const,
-        quotaResetIntervalSecs: 86400,
+        accountTier: projectAccountTier(connection as Record<string, unknown> | undefined),
+        quotaResetIntervalSecs: (() => {
+          const tierConn = connection as Record<string, unknown> | undefined;
+          const tierPsd = tierConn?.providerSpecificData as Record<string, unknown> | undefined;
+          const rawInterval = tierConn?.quotaResetIntervalSecs ?? tierPsd?.quotaResetIntervalSecs;
+          return typeof rawInterval === "number" && Number.isFinite(rawInterval) && rawInterval > 0
+            ? rawInterval
+            : 86400;
+        })(),
         contextAffinity,
         sessionAvailability,
         resetWindowAffinity,
