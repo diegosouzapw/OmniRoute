@@ -417,6 +417,47 @@ function getBootstrapLatencyMs(modelId: string): number {
   return DEFAULT_MODEL_P95_MS[normalized] ?? 1500;
 }
 
+export function poolMedianP95Ms(
+  stats: Record<string, { p95LatencyMs?: unknown }>
+): number | undefined {
+  const vals = Object.values(stats)
+    .map((st) => Number(st?.p95LatencyMs))
+    .filter((v) => Number.isFinite(v) && v > 0)
+    .sort((a, b) => a - b);
+  return vals.length ? vals[(vals.length - 1) >> 1] : undefined;
+}
+
+const BOOTSTRAP_WARN_WINDOW_MS = 3600_000;
+export let bootstrapLatencyHits = 0; // exported for testability (reset in tests)
+export let bootstrapLatencyTotal = 0;
+let bootstrapWarnedAt = 0;
+export function resetBootstrapCounters(): void {
+  bootstrapLatencyHits = 0;
+  bootstrapLatencyTotal = 0;
+  bootstrapWarnedAt = 0;
+}
+export function bootstrapMs(model: string, poolMedian: number | undefined): number {
+  bootstrapLatencyTotal++;
+  const table = DEFAULT_MODEL_P95_MS[String(model || "").toLowerCase()];
+  if (table !== undefined) return table;
+  bootstrapLatencyHits++;
+  return poolMedian ?? 1500;
+}
+
+// Pure and testable without timers: the throttled 1h warn + cold-start exemption live here.
+export function shouldWarnBootstrap(hits: number, total: number, hasStats: boolean, now: number, lastWarn: number): boolean {
+  if (!hasStats || total === 0) return false;
+  if (hits / total <= 0.3) return false;
+  return now - lastWarn >= BOOTSTRAP_WARN_WINDOW_MS;
+}
+
+function maybeWarnBootstrapDominant(hasStats: boolean): void {
+  if (!shouldWarnBootstrap(bootstrapLatencyHits, bootstrapLatencyTotal, hasStats, Date.now(), bootstrapWarnedAt)) return;
+  bootstrapWarnedAt = Date.now();
+  // eslint-disable-next-line no-console -- throttled operational warn, no request logger in scope
+  console.warn(`[combo] bootstrap latency dominant (${bootstrapLatencyHits}/${bootstrapLatencyTotal}) — scoring runs on guesses`);
+}
+
 export async function buildAutoCandidates(
   targets: ResolvedComboTarget[],
   comboName: string,
@@ -444,6 +485,8 @@ export async function buildAutoCandidates(
   } catch {
     // keep empty stats — auto-combo will use runtime + bootstrap signals
   }
+  const poolMedian = poolMedianP95Ms(historicalLatencyStats);
+  const hasStats = Object.keys(historicalLatencyStats).length > 0;
 
   const uniqueProviders = Array.from(
     new Set(
@@ -530,10 +573,10 @@ export async function buildAutoCandidates(
       const p95LatencyMs = hasHistoricalSignal
         ? Number.isFinite(historicalP95Latency) && historicalP95Latency > 0
           ? historicalP95Latency
-          : getBootstrapLatencyMs(model)
+          : bootstrapMs(model, poolMedian)
         : Number.isFinite(avgLatency) && avgLatency > 0
           ? avgLatency
-          : getBootstrapLatencyMs(model);
+          : bootstrapMs(model, poolMedian);
 
       const errorRate = hasHistoricalSignal
         ? Number.isFinite(historicalSuccessRate) &&
@@ -668,6 +711,7 @@ export async function buildAutoCandidates(
 
   // Filter out candidates whose model is hidden by the user in the dashboard,
   // then drop vendor-retired ids so auto-combo cannot pick them (#11625).
+  maybeWarnBootstrapDominant(hasStats);
   return rejectRetiredAutoComboCandidates(
     candidates.filter((c) => {
       const hiddenModels = hiddenModelsMap.get(c.provider);

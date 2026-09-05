@@ -13,6 +13,16 @@ type PricingByProvider = Record<string, PricingModels>;
 export type PricingSource = "default" | "litellm" | "modelsDev" | "user";
 export type PricingSourceMap = Record<string, Record<string, PricingSource>>;
 
+async function touchPricing(): Promise<void> {
+  invalidateDbCache("pricing");
+  try {
+    const { clearTierCache } = await import("@omniroute/open-sse/services/tierResolver");
+    clearTierCache();
+  } catch {
+    // fail-open: a missed tier invalidation must never break a price write
+  }
+}
+
 function readPricingNamespace(
   db: ReturnType<typeof getDbInstance>,
   namespace: string
@@ -195,7 +205,7 @@ export async function updatePricing(pricingData: PricingByProvider) {
   });
   tx();
   backupDbFile("pre-write");
-  invalidateDbCache("pricing"); // Bust the pricing read cache
+  await touchPricing();
   const updated: PricingByProvider = {};
   const allRows = db.prepare("SELECT key, value FROM key_value WHERE namespace = 'pricing'").all();
   for (const row of allRows) {
@@ -234,6 +244,7 @@ export async function resetPricing(provider: string, model?: string) {
   }
 
   backupDbFile("pre-write");
+  await touchPricing();
   const allRows = db.prepare("SELECT key, value FROM key_value WHERE namespace = 'pricing'").all();
   const result: Record<string, unknown> = {};
   for (const row of allRows) {
@@ -250,5 +261,6 @@ export async function resetAllPricing() {
   const db = getDbInstance();
   db.prepare("DELETE FROM key_value WHERE namespace = 'pricing'").run();
   backupDbFile("pre-write");
+  await touchPricing();
   return {};
 }
