@@ -39,6 +39,7 @@ import {
   type CodexPersistedQuotaState,
 } from "@omniroute/open-sse/services/codexAccount/index.ts";
 import { selectAntigravityQuotaWindowNames } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
+import { isClaudeExtraUsageAllowed } from "@/lib/providers/claudeExtraUsage";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -407,8 +408,10 @@ function isStandardQuotaExhausted(entry: QuotaCacheEntry, now: number): boolean 
 export function isQuotaExhaustedForRequest(
   connectionId: string,
   provider: string,
-  requestedModel: string | null = null
+  requestedModel: string | null = null,
+  providerSpecificData?: unknown
 ): boolean {
+  if (isClaudeExtraUsageAllowed(provider, providerSpecificData)) return false;
   const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return false;
 

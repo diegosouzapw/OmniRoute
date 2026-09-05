@@ -228,7 +228,15 @@ export async function expandTargetsByQuotaAwareConnections(
       ) {
         continue;
       }
-      if (provider && isQuotaExhaustedForRequest(connectionId, provider, target.modelStr || null)) {
+      if (
+        provider &&
+        isQuotaExhaustedForRequest(
+          connectionId,
+          provider,
+          target.modelStr || null,
+          connection?.providerSpecificData
+        )
+      ) {
         continue;
       }
       expandedTargets.push({

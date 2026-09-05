@@ -624,7 +624,11 @@ export async function buildAutoCandidates(
           const cutoffDecision = evaluateQuotaCutoff(
             quota as QuotaInfo | null,
             buildAutoQuotaThresholds(provider, connection, resilienceSettings),
-            { provider, requestedModel: modelStr }
+            {
+              provider,
+              requestedModel: modelStr,
+              providerSpecificData: connection?.providerSpecificData,
+            }
           );
           if (!cutoffDecision.proceed) {
             quotaCutoffBlocked = true;

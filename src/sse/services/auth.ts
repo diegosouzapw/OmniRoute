@@ -47,6 +47,7 @@ import {
   hydrateCodexQuotaCacheForRequest,
   isQuotaExhaustedForRequest,
 } from "@/domain/quotaCache";
+import { isClaudeExtraUsageAllowed } from "@/lib/providers/claudeExtraUsage";
 import {
   getQuotaScopeLabelForProvider,
   isAntigravityQuotaProvider,
@@ -357,6 +358,11 @@ export function evaluateQuotaLimitPolicy(
   connection: ProviderConnectionView,
   requestedModel: string | null = null
 ): { blocked: boolean; reasons: string[]; resetAt: string | null } {
+  // Extra-usage switch is opt-in billing, not a pre-dispatch skip. When the
+  // operator allows extra usage, 5h/weekly bars must not hide the account.
+  if (isClaudeExtraUsageAllowed(provider, connection.providerSpecificData)) {
+    return { blocked: false, reasons: [], resetAt: null };
+  }
   const policy = resolveQuotaLimitPolicy(provider, connection.providerSpecificData);
   if (!policy.enabled || policy.windows.length === 0) {
     return { blocked: false, reasons: [], resetAt: null };
@@ -530,7 +536,12 @@ function getP2CConnectionScore(
     quotaExhausted = cached.exhausted;
   } else {
     quotaBlocked = evaluateQuotaLimitPolicy(provider, connection, requestedModel).blocked;
-    quotaExhausted = isQuotaExhaustedForRequest(connection.id, provider, requestedModel);
+    quotaExhausted = isQuotaExhaustedForRequest(
+      connection.id,
+      provider,
+      requestedModel,
+      connection.providerSpecificData
+    );
   }
 
   const quotaHeadroomPercent = getConnectionQuotaHeadroomPercent(
@@ -1292,8 +1303,15 @@ export async function getProviderCredentials(
         connections,
         allowRateLimitedConnections,
         bypassQuotaPolicy,
-        isQuotaExhausted: (connectionId) =>
-          isQuotaExhaustedForRequest(connectionId, provider, requestedModel),
+        isQuotaExhausted: (connectionId) => {
+          const conn = connections.find((candidate) => candidate.id === connectionId);
+          return isQuotaExhaustedForRequest(
+            connectionId,
+            provider,
+            requestedModel,
+            conn?.providerSpecificData
+          );
+        },
         isQuotaPolicyBlocked: (connection) =>
           evaluateQuotaLimitPolicy(provider, connection as ProviderConnectionView, requestedModel)
             .blocked,
@@ -1772,7 +1790,12 @@ export async function getProviderCredentials(
     const withQuota: typeof policyEligibleConnections = [];
     const exhaustedQuota: typeof policyEligibleConnections = [];
     for (const c of policyEligibleConnections) {
-      const exhausted = isQuotaExhaustedForRequest(c.id, provider, requestedModel);
+      const exhausted = isQuotaExhaustedForRequest(
+        c.id,
+        provider,
+        requestedModel,
+        c.providerSpecificData
+      );
       const existing = quotaResults.get(c.id);
       if (existing) existing.exhausted = exhausted;
       if (!exhausted) {

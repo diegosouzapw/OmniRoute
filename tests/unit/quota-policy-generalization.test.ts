@@ -112,3 +112,21 @@ test("evaluateQuotaLimitPolicy does not block when no quota data exists", () => 
   assert.deepEqual(result.reasons, []);
   assert.equal(result.resetAt, null);
 });
+
+test("evaluateQuotaLimitPolicy does not block Claude extra-usage connections at 5h cutoff", () => {
+  const resetAt = new Date(Date.now() + 60_000).toISOString();
+  quotaCache.setQuotaCache("conn-claude-extra", "claude", {
+    "session (5h)": { remainingPercentage: 1, resetAt },
+  });
+
+  const result = auth.evaluateQuotaLimitPolicy(
+    "claude",
+    buildConnection("conn-claude-extra", {
+      blockExtraUsage: false,
+      limitPolicy: { enabled: true, thresholdPercent: 90, windows: ["session (5h)"] },
+    })
+  );
+
+  assert.equal(result.blocked, false);
+  assert.deepEqual(result.reasons, []);
+});

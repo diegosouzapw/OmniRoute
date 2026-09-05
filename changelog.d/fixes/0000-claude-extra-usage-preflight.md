@@ -1,0 +1,1 @@
+- **fix(claude):** `blockExtraUsage: false` no longer lets 5h quota preflight skip the account; extra usage is billed after the session bar is gone, so the request must reach Anthropic
