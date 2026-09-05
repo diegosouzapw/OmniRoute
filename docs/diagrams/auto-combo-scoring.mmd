@@ -2,7 +2,7 @@
 %% Reflects: open-sse/services/autoCombo/scoring.ts (DEFAULT_WEIGHTS, sum = 1.0)
 %% v3.8.50
 %% svg-title: OmniRoute Auto-Combo 16-factor scoring
-%% svg-description: Flow from an incoming request through eligible candidates, the 15 weighted scoring factors, descending score sort, top-N selection, and sequential dispatch.
+%% svg-description: Flow from an incoming request through eligible candidates, the 16 weighted scoring factors, descending score sort, top-N selection, and sequential dispatch.
 flowchart TB
   Request["Incoming request"] --> Candidates["Eligible candidates<br/>(provider × model × account)"]
   Candidates --> Score["Compute composite score<br/>per candidate"]
@@ -23,6 +23,7 @@ flowchart TB
     f13["resetWindowAffinity (0.0000)"]
     f14["connectionDensity (0.0476)"]
     f15["quality (0.0300)"]
+    f16["reliability (0.0000)"]
   end
 
   Score --> Factors
