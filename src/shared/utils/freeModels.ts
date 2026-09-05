@@ -29,10 +29,10 @@ import { AI_MODELS } from "@/shared/constants/models";
  * import modal's preview disagree with the import route that runs on click.
  *
  * A provider is considered to "have free models" when it appears in the
- * documented free-tier catalog (`FREE_MODEL_BUDGETS`). A single model is
- * considered free when its id carries the OpenRouter-style `:free` suffix, when
- * both its prompt and completion prices are zero, or when its id is listed as a
- * free model for that provider in the catalog.
+ * documented free-tier catalog (`FREE_MODEL_BUDGETS`). A single model is considered free when — for a provider with a documented
+ * free tier — its id carries the OpenRouter-style `:free` suffix or both its
+ * prompt and completion prices are zero (guarded heuristics), or when its id
+ * is listed as a free model for that provider in the shipped catalog.
  *
  * The catalog also records the regime of every entry via `freeType`
  * (`FreeModelFreeType`). A regime can retire a free tier behind a paid key
@@ -84,11 +84,13 @@ export interface FreeModelCandidate {
   isFree?: boolean;
 }
 
-/** Whether a single fetched model qualifies as free for the given provider (id or alias). */
-export function isFreeModel(provider: string, model: FreeModelCandidate): boolean {
-  if (model.isFree === true) return true;
-  if (typeof model.id === "string" && model.id.endsWith(":free")) return true;
-  if (isZeroPrice(model.pricing?.prompt) && isZeroPrice(model.pricing?.completion)) return true;
+function isFreeModelInternal(
+  provider: string,
+  model: FreeModelCandidate,
+  trustedIsFree: boolean
+): boolean {
+  if (model.isFree === true && (trustedIsFree || providerHasFreeModels(provider))) return true;
+  const guarded = providerHasFreeModels(provider);
   if (typeof model.id === "string") {
     const canonical = resolveProviderId(provider);
     if (
@@ -98,7 +100,25 @@ export function isFreeModel(provider: string, model: FreeModelCandidate): boolea
       return true;
     }
   }
+  if (typeof model.id === "string" && model.id.endsWith(":free") && guarded) return true;
+  if (isZeroPrice(model.pricing?.prompt) && isZeroPrice(model.pricing?.completion) && guarded)
+    return true;
   return false;
+}
+
+/** Fetched/synced predicate — guarded heuristics + shipped catalog (untrusted payload). */
+export function isFreeModel(provider: string, model: FreeModelCandidate): boolean {
+  return isFreeModelInternal(provider, model, false);
+}
+
+/** Reusable free predicate for fetched payloads — provider must have a documented free tier. */
+export function isFreeForProvider(provider: string, model: FreeModelCandidate): boolean {
+  return providerHasFreeModels(provider) && isFreeModel(provider, model);
+}
+
+/** Trusted variant for local custom rows — `isFree:true` without provider guard. */
+export function isTrustedCustomFree(provider: string, model: FreeModelCandidate): boolean {
+  return isFreeModelInternal(provider, model, true);
 }
 
 export interface SelectModelsForImportResult<T extends FreeModelCandidate> {
@@ -191,7 +211,7 @@ export function matchesOnlyPaidModels(pattern: string): boolean {
     const fullId = `${m.provider}/${m.model}`;
     if (!regex.test(fullId)) continue;
     matched = true;
-    if (isFreeModel(m.provider, { id: m.model })) return false;
+    if (isFreeForProvider(m.provider, { id: m.model })) return false;
   }
   return matched;
 }
