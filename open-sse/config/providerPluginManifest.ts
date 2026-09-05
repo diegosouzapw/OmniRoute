@@ -1,10 +1,12 @@
 import type { RegistryEntry, RegistryModel } from "./providers/shared.ts";
 import { USAGE_FETCHER_PROVIDERS } from "../services/usage/fetcherProviders.ts";
 import { USAGE_SUPPORTED_PROVIDERS } from "../services/usage/supportedProviders.ts";
+import { hasFreeTierProvider } from "./freeTierProviders.ts";
 
 export type ProviderPluginCapability =
   | "apikey"
   | "custom-executor"
+  | "free-tier"
   | "oauth"
   | "passthrough-models"
   | "responses"
@@ -155,6 +157,12 @@ function capabilitiesFor(entry: RegistryEntry, eligible: boolean): ProviderPlugi
   }
   if (USAGE_SUPPORTED_PROVIDER_SET.has(entry.id)) {
     capabilities.add("usage-supported");
+  }
+  if (
+    hasFreeTierProvider(entry.id) ||
+    (entry.alias !== undefined && hasFreeTierProvider(entry.alias))
+  ) {
+    capabilities.add("free-tier");
   }
 
   return [...capabilities].sort();
