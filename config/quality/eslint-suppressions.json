@@ -416,11 +416,6 @@
       "count": 1
     }
   },
-  "open-sse/services/autoCombo/__tests__/autoCombo.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
   "open-sse/services/autoCombo/chaosEngine.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 2
