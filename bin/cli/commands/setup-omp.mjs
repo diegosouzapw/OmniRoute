@@ -366,7 +366,24 @@ export async function runSetupOmpCommand(opts = {}) {
   return 0;
 }
 
-export function registerSetupOmp(program) {
+/**
+ * Merge the program-level options into the subcommand's options. The root
+ * program declares its own `--api-key` / `--base-url` / `--context` options
+ * (with env fallbacks), so Commander hands `setup-omp --api-key sk-…` to the
+ * PARENT and the subcommand's `opts.apiKey` stays undefined — the flag was
+ * silently ignored and only the env var worked. Subcommand values win.
+ * Pure + testable.
+ */
+export function resolveSetupOmpActionOpts(opts = {}, cmd) {
+  const globals = typeof cmd?.optsWithGlobals === "function" ? cmd.optsWithGlobals() : {};
+  const merged = { ...globals };
+  for (const [key, value] of Object.entries(opts)) {
+    if (value !== undefined) merged[key] = value;
+  }
+  return merged;
+}
+
+export function registerSetupOmp(program, { run = runSetupOmpCommand } = {}) {
   const collect = (value, prev) => prev.concat([value]);
   program
     .command("setup-omp")
@@ -395,8 +412,8 @@ export function registerSetupOmp(program) {
       "--allow-container-write",
       "Write even when the target is inside a container and not mounted from the host"
     )
-    .action(async (opts) => {
-      const code = await runSetupOmpCommand(opts);
+    .action(async (opts, cmd) => {
+      const code = await run(resolveSetupOmpActionOpts(opts, cmd));
       if (code !== 0) process.exit(code);
     });
 }
