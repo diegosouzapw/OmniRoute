@@ -9,13 +9,14 @@ import fs from "fs/promises";
 import { load as yamlLoad, dump as yamlDump } from "js-yaml";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { cliAuthOnlyConfigSchema } from "@/shared/validation/schemas/cli";
-import { getOmpCredentials, saveOmpCredentials, deleteOmpCredentials } from "@/lib/db/omp";
+import { getOmpCredentials, deleteOmpCredentials } from "@/lib/db/omp";
 import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const execAsync = promisify(exec);
 
 const PROVIDER_ID = "omniroute";
+const OMP_API_KEY_ENV = "OMNIROUTE_API_KEY";
 
 const getOmpDir = () => path.join(os.homedir(), ".omp", "agent");
 const getOmpDbPath = () => path.join(getOmpDir(), "agent.db");
@@ -53,6 +54,22 @@ const readModelsYml = async () => {
   }
 };
 
+/**
+ * Strict variant for writes: an unparseable existing models.yml must never be
+ * silently replaced with a fresh document (mirrors `omniroute setup-omp`).
+ */
+const readModelsYmlStrict = async () => {
+  try {
+    const content = await fs.readFile(getOmpModelsYmlPath(), "utf-8");
+    return yamlLoad(content) || {};
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException)?.code === "ENOENT") return {};
+    throw new Error(
+      `Cannot parse existing models.yml: ${error instanceof Error ? error.message : error}`
+    );
+  }
+};
+
 export async function GET(request: Request) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
@@ -77,7 +94,8 @@ export async function GET(request: Request) {
         providers: {
           [PROVIDER_ID]: {
             baseUrl: ymlProvider?.baseUrl || creds.baseUrl,
-            apiKey: ymlProvider?.apiKey || creds.apiKey,
+            // Never echo a stored credential: the file holds the env-var NAME.
+            apiKey: ymlProvider?.apiKey === OMP_API_KEY_ENV ? OMP_API_KEY_ENV : null,
             discovery: ymlProvider?.discovery?.type || null,
           },
         },
@@ -86,10 +104,7 @@ export async function GET(request: Request) {
       configPath: getOmpModelsYmlPath(),
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(error) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(error) } }, { status: 500 });
   }
 }
 
@@ -108,42 +123,40 @@ export async function POST(request: Request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { baseUrl, apiKey } = validation.data;
+    const { baseUrl } = validation.data;
 
-    const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
-    const keyRef = apiKey || "sk_omniroute";
+    const trimmedBaseUrl = baseUrl.replace(/\/+$/, "");
+    const normalizedBaseUrl = trimmedBaseUrl.endsWith("/v1")
+      ? trimmedBaseUrl
+      : `${trimmedBaseUrl}/v1`;
 
     await fs.mkdir(getOmpDir(), { recursive: true });
 
     // 1. Write models.yml — provider config + auto-discovery
-    const modelsYml = await readModelsYml();
+    const modelsYml = await readModelsYmlStrict();
     if (!modelsYml.providers) modelsYml.providers = {};
 
+    // Secret policy (same as `omniroute setup-omp`): the file references the
+    // key by env-var NAME — a submitted key value is accepted for backwards
+    // compatibility with the dashboard form but is NEVER persisted.
     modelsYml.providers[PROVIDER_ID] = {
       baseUrl: normalizedBaseUrl,
-      apiKey: keyRef,
+      apiKey: OMP_API_KEY_ENV,
       api: "openai-completions",
       authHeader: true,
-      disableStrictTools: true,
-      discovery: { type: "proxy" },
+      discovery: { type: "openai-models-list" },
     };
 
     await fs.writeFile(getOmpModelsYmlPath(), yamlDump(modelsYml, { lineWidth: -1 }), "utf-8");
 
-    // 2. Write auth_credentials — so omp sees omniroute as "logged in"
-    saveOmpCredentials(PROVIDER_ID, keyRef, normalizedBaseUrl);
-
     return NextResponse.json({
       success: true,
       message:
-        "Oh My Pi settings applied! Run omp and all OmniRoute models appear under omniroute in /model.",
+        "Oh My Pi settings applied! Export OMNIROUTE_API_KEY, then run omp — all OmniRoute models appear under omniroute in /model.",
       configPath: getOmpModelsYmlPath(),
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(error) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(error) } }, { status: 500 });
   }
 }
 
@@ -172,9 +185,6 @@ export async function DELETE(request: Request) {
       message: "OmniRoute removed from Oh My Pi",
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(error) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(error) } }, { status: 500 });
   }
 }

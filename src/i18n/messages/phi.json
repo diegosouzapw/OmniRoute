@@ -3025,6 +3025,36 @@
           "1": "Itakda ang base URL sa iyong OmniRoute endpoint."
         }
       },
+      "omp": {
+        "steps": {
+          "1": {
+            "title": "Install Oh My Pi",
+            "desc": "Install via curl: curl -fsSL https://omp.sh/install | sh (or via bun: bun install -g @oh-my-pi/pi-coding-agent)"
+          },
+          "2": {
+            "title": "API Key"
+          },
+          "3": {
+            "title": "Configure OmniRoute",
+            "desc": "Run: omniroute setup-omp — writes the omniroute provider into ~/.omp/agent/models.yml and model roles into ~/.omp/agent/config.yml."
+          },
+          "4": {
+            "title": "Select Model"
+          },
+          "5": {
+            "title": "Verify Setup",
+            "desc": "List the models Oh My Pi discovered from OmniRoute: omp models omniroute"
+          },
+          "6": {
+            "title": "Run"
+          }
+        },
+        "notes": {
+          "0": "Oh My Pi reads custom OpenAI-compatible providers from ~/.omp/agent/models.yml. OmniRoute adds itself as a provider with auto-discovery — models appear automatically in omp's /model menu.",
+          "1": "Config paths: ~/.omp/agent/models.yml (providers) and ~/.omp/agent/config.yml (model roles).",
+          "2": "omp's /model picker mirrors OmniRoute's /v1/models one-to-one (combos and image/free-tier catalogs included). Narrow it with `omp models find <pattern>` or pin roles with `omniroute setup-omp --role <role>=<id>`."
+        }
+      },
       "kiro": {
         "steps": {
           "1": {

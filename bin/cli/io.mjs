@@ -17,13 +17,19 @@ export function createPrompt() {
     const suffix = defaultValue ? ` (${defaultValue})` : "";
     return new Promise((resolve) => {
       let settled = false;
+      // Registered per question and REMOVED once the question settles: a wizard
+      // that asks more than ten questions on one prompt (configure omp's role
+      // picker) would otherwise accumulate `close` listeners and trip Node's
+      // MaxListenersExceededWarning mid-wizard.
+      const onClose = () => done(defaultValue);
       const done = (v) => {
         if (!settled) {
           settled = true;
+          rl.off("close", onClose);
           resolve(v);
         }
       };
-      rl.once("close", () => done(defaultValue));
+      rl.once("close", onClose);
       rl.question(`${question}${suffix}: `, (answer) => {
         const trimmed = answer.trim();
         done(trimmed || defaultValue);
@@ -35,9 +41,11 @@ export function createPrompt() {
     return new Promise((resolve) => {
       let settled = false;
       const saved = rl._writeToOutput.bind(rl);
+      const onClose = () => done(""); // non-interactive EOF → empty secret, no hang
       const done = (v) => {
         if (!settled) {
           settled = true;
+          rl.off("close", onClose);
           rl._writeToOutput = saved;
           resolve(v);
         }
@@ -52,7 +60,7 @@ export function createPrompt() {
         // Suppress character echo; allow only newlines through
         if (str === "\r\n" || str === "\n" || str === "\r") rl.output.write("\n");
       };
-      rl.once("close", () => done("")); // non-interactive EOF → empty secret, no hang
+      rl.once("close", onClose);
       rl.question(`${question}: `, (answer) => {
         done(answer.trim());
       });

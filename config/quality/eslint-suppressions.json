@@ -2441,11 +2441,6 @@
       "count": 1
     }
   },
-  "tests/integration/upstream-cli-smoke.int.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "tests/integration/v1-contracts-behavior.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 10

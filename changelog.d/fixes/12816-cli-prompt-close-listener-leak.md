@@ -1,0 +1,1 @@
+- **fix(cli):** `createPrompt()` no longer accumulates a readline `close` listener per question, so wizards that ask more than ten questions on one prompt (the `configure omp` role picker) no longer print `MaxListenersExceededWarning`
