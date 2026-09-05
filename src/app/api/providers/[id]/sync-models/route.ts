@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { defaultLogger as log } from "@omniroute/open-sse/utils/logger";
 import { getCachedProviderConnectionById } from "@/lib/db/readCache";
 import {
   deleteImportedCustomModels,
@@ -6,6 +7,7 @@ import {
   getSyncedAvailableModelsForConnection,
 } from "@/lib/db/models";
 import { selectModelsForImport } from "@/shared/utils/freeModels";
+import { resolveEffectiveAvailableModels } from "@/shared/utils/modelListResolution";
 import {
   importManagedModels,
   type ManagedModelImportMode,
@@ -631,15 +633,25 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       previousSyncedAvailableModels: previousSyncedAvailableModelsForConnection,
     });
 
-    const effectiveAvailableModels =
-      discoveredModels.length > 0 ? discoveredModels : syncedAvailableModels;
+    const effectiveAvailableModels = resolveEffectiveAvailableModels(
+      freeFilterEmpty,
+      discoveredModels,
+      syncedAvailableModels
+    );
+    if (freeFilterEmpty) {
+      log.warn(
+        "SYNC",
+        `freeFilterEmpty: ${allFetchedModels.length} fetched, 0 free — not falling back to stale syncedAvailableModels (${logProvider})`
+      );
+    }
     const modelChanges = summarizeModelChanges(
       previousSyncedAvailableModels,
       effectiveAvailableModels
     );
     const customModelChanges = summarizeModelChanges(previousModels, persistedModels);
-    const syncedModelsCount =
-      effectiveAvailableModels.length > 0
+    const syncedModelsCount = freeFilterEmpty
+      ? 0
+      : effectiveAvailableModels.length > 0
         ? effectiveAvailableModels.length
         : persistedModels.filter((model) => isManagedSyncedModel(model)).length;
     const availableModelsCount = new Set(

@@ -35,7 +35,14 @@ type ProviderHealth = {
   remainingPct: number;
   isExhausted: boolean;
   trend: "improving" | "stable" | "declining";
+  dropReason: "no-snapshot" | null;
 };
+
+export type HealthDropReason =
+  import("../../../open-sse/services/autoCombo/strictZeroCostFilter").StrictZeroCostExclusionReason
+  | "hidePaidModels"
+  | "modelLockout"
+  | "no-snapshot";
 
 type ResolvedComboTargetView = {
   stepId: string;
@@ -119,6 +126,7 @@ function buildProviderHealth(provider: string, snapshots: QuotaSnapshotRow[]): P
       remainingPct: 0,
       isExhausted: false,
       trend: "stable",
+      dropReason: "no-snapshot",
     };
   }
 
@@ -189,6 +197,7 @@ function buildProviderHealth(provider: string, snapshots: QuotaSnapshotRow[]): P
     remainingPct: roundNumber(lastAverage),
     isExhausted,
     trend,
+    dropReason: null,
   };
 }
 

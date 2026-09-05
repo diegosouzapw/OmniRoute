@@ -1,0 +1,1 @@
+- **fix(pool):** empty `auto/*` pools now say why they are empty, and the models listing uses the same paid check as routing ([#12795](https://github.com/diegosouzapw/OmniRoute/pull/12795)) — thanks @maxmad64bis
