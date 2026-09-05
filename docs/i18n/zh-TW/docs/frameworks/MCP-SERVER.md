@@ -404,6 +404,6 @@ stdio 傳輸層每 5 秒將存活狀態持續寫入 `${DATA_DIR}/runtime/mcp-hea
 | `src/lib/db/notion.ts`                                                  | Notion 代碼持久化（`key_value` 表）                              |
 | `src/app/api/settings/notion/route.ts`                                  | Notion 設定 API（GET/POST/DELETE）                               |
 | `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` | Notion 代碼管理 UI                                              |
-| `tests/unit/notion-api.test.ts`                                         | Notion API 客戶端測試（7 個）                                    |
-| `tests/unit/notion-tools.test.ts`                                       | Notion 工具範圍強制執行測試（10 個）                              |
+| `tests/unit/notion/notion-api.test.ts`                                         | Notion API 客戶端測試（7 個）                                    |
+| `tests/unit/notion/notion-tools.test.ts`                                       | Notion 工具範圍強制執行測試（10 個）                              |
 | `tests/unit/db/notion.test.mjs`                                         | Notion DB 模組測試（3 個）                                      |

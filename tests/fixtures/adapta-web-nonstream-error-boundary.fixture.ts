@@ -1,5 +1,5 @@
 // This suite owns process-wide DATA_DIR, plugin, fetch, and DB state. It must run only inside
-// the subprocess launched by tests/unit/adapta-web-nonstream-error-boundary.test.ts.
+// the subprocess launched by tests/unit/executor/adapta-web-nonstream-error-boundary.test.ts.
 import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

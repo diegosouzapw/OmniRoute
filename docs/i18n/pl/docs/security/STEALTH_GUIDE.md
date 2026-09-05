@@ -248,8 +248,8 @@ OmniRoute czyści inbound nagłówki klienta przed forwardem, by żądanie przyc
 ## Testy
 
 - `open-sse/services/__tests__/claudeTlsClient.test.ts` — zachowanie współdzielonego wrappera TLS
-- `tests/unit/anthropic-cache-fingerprint.test.ts` — determinizm fingerprintu
-- `tests/unit/chatgpt-web-source-retirement.test.ts` — wspólne źródło ChatGPT Web pozostaje nieobecne, a Codex Web pozostaje zachowany
+- `tests/unit/anthropic/anthropic-cache-fingerprint.test.ts` — determinizm fingerprintu
+- `tests/unit/chatgpt/chatgpt-web-source-retirement.test.ts` — wspólne źródło ChatGPT Web pozostaje nieobecne, a Codex Web pozostaje zachowany
 
 ---
 

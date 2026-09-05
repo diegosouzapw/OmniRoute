@@ -1,0 +1,1 @@
+- Remove unnecessary Batch test polling waits, require deterministic success responses, and fix pipelined Redis test handshakes so socket-release and concurrent-probe regressions finish reliably.

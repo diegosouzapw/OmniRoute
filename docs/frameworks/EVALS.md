@@ -223,7 +223,7 @@ gate releases on eval results:
   returned `PersistedEvalRun.summary`.
 
 Tests covering the route and history live at
-`tests/unit/evals-route.test.ts` and `tests/unit/evals-history.test.ts`.
+`tests/unit/route/evals-route.test.ts` and `tests/unit/misc/evals-history.test.ts`.
 
 ## Extension Points
 

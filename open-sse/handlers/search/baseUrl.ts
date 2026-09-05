@@ -17,7 +17,7 @@
  *     and a block-metadata check does nothing about that, because the attacker
  *     simply names their own public host.
  *
- * Full coverage: tests/unit/search-baseurl-client-override-3f8g.test.ts.
+ * Full coverage: tests/unit/search/search-baseurl-client-override-3f8g.test.ts.
  */
 
 import { parseAndValidateNonMetadataUrl } from "@/shared/network/outboundUrlGuard";

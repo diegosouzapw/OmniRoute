@@ -140,8 +140,8 @@ id `gpt-5.5` jest routowane przez targety combo (np.
 `acme-responses/gpt-5.5`, `backup-responses/gpt-5.5`) zamiast prosto do
 jednego providera — to wykorzystuje pierwszeństwo combo-before-rewrite zbudowane dla
 [#3227/#3233](https://github.com/diegosouzapw/OmniRoute/issues/3227) i jest
-pokryte testami regresji `tests/unit/responses-combo-resolution-3227.test.ts` oraz
-`tests/unit/combo-name-codex-responses-rewrite.test.ts`.
+pokryte testami regresji `tests/unit/responses/responses-combo-resolution-3227.test.ts` oraz
+`tests/unit/combo/combo-name-codex-responses-rewrite.test.ts`.
 
 Tworzenie lub zmiana nazwy combo na nazwę zacieniającą realne model id
 **nigdy nie jest odrzucane** — to złamałoby ten udokumentowany workflow. Zamiast tego

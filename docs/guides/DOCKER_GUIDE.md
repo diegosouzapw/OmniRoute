@@ -265,7 +265,7 @@ processes total) is sized for the 16 GB / 4 vCPU GitHub-hosted runners the
 publish pipeline uses. At `8` (→ 7 workers) that runner ran out of memory and
 buildkit failed the step with `ResourceExhausted: ... cannot allocate memory`;
 `3` (→ 2 workers) still didn't fit once the per-process RSS was measured
-directly instead of inferred. `tests/unit/docker-build-memory-budget.test.ts`
+directly instead of inferred. `tests/unit/docker/docker-build-memory-budget.test.ts`
 does the arithmetic against the measured figure and fails if either knob
 outgrows the runner.
 

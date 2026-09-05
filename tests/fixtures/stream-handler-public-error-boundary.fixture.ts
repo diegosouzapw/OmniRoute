@@ -1,5 +1,5 @@
 // This suite owns process-wide DATA_DIR, plugin, logger, and DB state. It must run only inside
-// the subprocess launched by tests/unit/stream-handler-public-error-boundary.test.ts.
+// the subprocess launched by tests/unit/stream/stream-handler-public-error-boundary.test.ts.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";

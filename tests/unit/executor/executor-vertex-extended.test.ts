@@ -1,0 +1,351 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { generateKeyPairSync } from "node:crypto";
+
+import { VertexExecutor } from "../../../open-sse/executors/vertex.ts";
+
+const { privateKey } = generateKeyPairSync("rsa", {
+  modulusLength: 2048,
+  privateKeyEncoding: { type: "pkcs8", format: "pem" },
+  publicKeyEncoding: { type: "spki", format: "pem" },
+});
+
+let saCounter = 0;
+
+function createServiceAccountJson({
+  projectId = "vertex-project-123",
+  includeProjectId = true,
+  includeEmail = true,
+  includePrivateKey = true,
+} = {}) {
+  saCounter += 1;
+  const payload = {
+    private_key_id: `kid-${saCounter}`,
+  };
+
+  if (includeProjectId) payload.project_id = projectId;
+  if (includeEmail) {
+    payload.client_email = `svc-${saCounter}@example.iam.gserviceaccount.com`;
+  }
+  if (includePrivateKey) payload.private_key = privateKey;
+
+  return JSON.stringify(payload);
+}
+
+test("VertexExecutor.buildUrl uses project from Service Account JSON and configured region", () => {
+  const executor = new VertexExecutor();
+  const url = executor.buildUrl("gemini-2.5-flash", true, 0, {
+    apiKey: createServiceAccountJson({ projectId: "proj-eu" }),
+    providerSpecificData: { region: "europe-west4" },
+  });
+
+  assert.equal(
+    url,
+    "https://aiplatform.googleapis.com/v1/projects/proj-eu/locations/europe-west4/publishers/google/models/gemini-2.5-flash:streamGenerateContent?alt=sse"
+  );
+});
+
+test("VertexExecutor.buildUrl defaults to us-central1 and unknown-project when project is absent", () => {
+  const executor = new VertexExecutor();
+  const missingProject = executor.buildUrl("gemini-2.5-flash", false, 0, {
+    apiKey: createServiceAccountJson({ includeProjectId: false }),
+    providerSpecificData: {},
+  });
+
+  assert.equal(
+    missingProject,
+    "https://aiplatform.googleapis.com/v1/projects/unknown-project/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent"
+  );
+});
+
+test("VertexExecutor.buildUrl routes a non-JSON Express API key to the project-less publisher endpoint", () => {
+  const executor = new VertexExecutor();
+  const expressUrl = executor.buildUrl("gemini-2.5-flash", false, 0, {
+    apiKey: "express-key-abc",
+  });
+
+  assert.equal(
+    expressUrl,
+    "https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:generateContent?key=express-key-abc"
+  );
+  assert.ok(!expressUrl.includes("/projects/"), "Express key URL must not route through a project path");
+});
+
+test("VertexExecutor.buildUrl routes partner and org-prefixed models to the global partner endpoint", () => {
+  const executor = new VertexExecutor();
+  const deepseek = executor.buildUrl("DeepSeek-V4-Flash", false, 0, {
+    apiKey: createServiceAccountJson({ projectId: "proj-deepseek" }),
+  });
+  const metaLlama = executor.buildUrl("meta/llama-3.1-405b-instruct-maas", true, 0, {
+    apiKey: createServiceAccountJson({ projectId: "proj-llama" }),
+  });
+
+  assert.equal(
+    deepseek,
+    "https://aiplatform.googleapis.com/v1/projects/proj-deepseek/locations/global/endpoints/openapi/chat/completions"
+  );
+  assert.equal(
+    metaLlama,
+    "https://aiplatform.googleapis.com/v1/projects/proj-llama/locations/global/endpoints/openapi/chat/completions"
+  );
+});
+
+test("VertexExecutor.buildUrl routes current-generation Claude models to the native Anthropic rawPredict endpoint (#1985, #8994)", () => {
+  const executor = new VertexExecutor();
+
+  // These model IDs post-date the old pinned "claude-3-5-sonnet" / "claude-3-opus" /
+  // "claude-3-haiku" prefixes and were previously misrouted to the Google-publisher path,
+  // then (once generalized to a "claude-" prefix, #1985) to the generic OpenAI-compatible
+  // partner endpoint. Claude models use Vertex's native Anthropic Messages API
+  // (publishers/anthropic/.../rawPredict) instead — the partner endpoint 404s/"malformed
+  // argument"s for Claude on at least some projects.
+  const claude4Sonnet = executor.buildUrl("claude-sonnet-4-6", false, 0, {
+    apiKey: createServiceAccountJson({ projectId: "proj-claude" }),
+  });
+  const claude4Haiku = executor.buildUrl("claude-haiku-4-5@20251001", true, 0, {
+    apiKey: createServiceAccountJson({ projectId: "proj-claude" }),
+  });
+
+  assert.equal(
+    claude4Sonnet,
+    "https://aiplatform.googleapis.com/v1/projects/proj-claude/locations/us-central1/publishers/anthropic/models/claude-sonnet-4-6:rawPredict"
+  );
+  assert.equal(
+    claude4Haiku,
+    "https://aiplatform.googleapis.com/v1/projects/proj-claude/locations/us-central1/publishers/anthropic/models/claude-haiku-4-5@20251001:rawPredict"
+  );
+});
+
+test("VertexExecutor.buildHeaders includes Bearer token and SSE Accept only for streaming", () => {
+  const executor = new VertexExecutor();
+  const streamHeaders = executor.buildHeaders({ accessToken: "ya29.stream" }, true);
+  const jsonHeaders = executor.buildHeaders({ accessToken: "ya29.json" }, false);
+
+  assert.deepEqual(streamHeaders, {
+    "Content-Type": "application/json",
+    Authorization: "Bearer ya29.stream",
+    Accept: "text/event-stream",
+  });
+  assert.deepEqual(jsonHeaders, {
+    "Content-Type": "application/json",
+    Authorization: "Bearer ya29.json",
+  });
+});
+
+test("VertexExecutor.execute exchanges a JWT for an access token and then calls Vertex", async () => {
+  const executor = new VertexExecutor();
+  const saJson = createServiceAccountJson({ projectId: "proj-run" });
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+
+  globalThis.fetch = async (url, options) => {
+    calls.push({
+      url: String(url),
+      method: options?.method,
+      headers: options?.headers,
+      body: String(options?.body || ""),
+    });
+
+    if (String(url).includes("oauth2.googleapis.com/token")) {
+      return new Response(JSON.stringify({ access_token: "ya29.mock", expires_in: 3600 }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const body = { contents: [{ role: "user", parts: [{ text: "Hello" }] }] };
+    const result = await executor.execute({
+      model: "gemini-2.5-flash",
+      body,
+      stream: false,
+      credentials: {
+        apiKey: saJson,
+        providerSpecificData: { region: "europe-west4" },
+      },
+    });
+
+    assert.equal(result.response.status, 200);
+    assert.equal(
+      result.url,
+      "https://aiplatform.googleapis.com/v1/projects/proj-run/locations/europe-west4/publishers/google/models/gemini-2.5-flash:generateContent"
+    );
+    assert.equal(calls.length, 2);
+    assert.match(calls[0].url, /oauth2\.googleapis\.com\/token$/);
+    assert.match(calls[0].body, /grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer/);
+    assert.match(calls[0].body, /assertion=/);
+    assert.equal(calls[1].headers.Authorization, "Bearer ya29.mock");
+    assert.equal(calls[1].headers["Content-Type"], "application/json");
+    assert.equal(calls[1].body, JSON.stringify(body));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("VertexExecutor.execute skips Service Account parsing when accessToken is already present", async () => {
+  const executor = new VertexExecutor();
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url: String(url), headers: options?.headers });
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const result = await executor.execute({
+      model: "gemini-2.5-flash",
+      body: { contents: [] },
+      stream: true,
+      credentials: {
+        apiKey: "not-json",
+        accessToken: "ya29.existing",
+        providerSpecificData: { region: "us-central1" },
+      },
+    });
+
+    assert.equal(result.response.status, 200);
+    assert.equal(calls.length, 1);
+    assert.match(calls[0].url, /projects\/unknown-project\/locations\/us-central1/);
+    assert.equal(calls[0].headers.Authorization, "Bearer ya29.existing");
+    assert.equal(calls[0].headers.Accept, "text/event-stream");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("VertexExecutor.execute rejects incomplete Service Account JSON clearly", async () => {
+  const executor = new VertexExecutor();
+
+  // A JSON object missing client_email/private_key is treated as a Service Account (not an Express
+  // key) and must fail clearly when minting a JWT. A non-JSON string is an Express key (covered
+  // elsewhere) and is intentionally NOT rejected here.
+  await assert.rejects(
+    () =>
+      executor.execute({
+        model: "gemini-2.5-flash",
+        body: { contents: [] },
+        stream: false,
+        credentials: {
+          apiKey: createServiceAccountJson({ includeEmail: false, includePrivateKey: false }),
+        },
+      }),
+    /missing required fields/
+  );
+});
+
+test("VertexExecutor.execute strips the client's model field and injects anthropic_version for Claude models", async () => {
+  const executor = new VertexExecutor();
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url: String(url), body: String(options?.body || "") });
+    return new Response(
+      JSON.stringify({
+        id: "msg_1",
+        type: "message",
+        role: "assistant",
+        model: "claude-sonnet-4-6",
+        content: [{ type: "text", text: "hi" }],
+        stop_reason: "end_turn",
+        usage: { input_tokens: 3, output_tokens: 1 },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  };
+
+  try {
+    await executor.execute({
+      model: "claude-sonnet-4-6",
+      // rawPredict rejects a body-level "model" field ("Extra inputs are not permitted") since
+      // the model is already encoded in the URL — the openai→claude request translator copies
+      // the client's model field over, so the executor must strip it before sending.
+      body: { model: "vertex/claude-sonnet-4-6", messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {
+        apiKey: createServiceAccountJson({ projectId: "proj-claude" }),
+        accessToken: "ya29.claude",
+      },
+    });
+
+    assert.equal(calls.length, 1);
+    const sentBody = JSON.parse(calls[0].body);
+    assert.equal(sentBody.model, undefined);
+    assert.equal(sentBody.anthropic_version, "vertex-2023-10-16");
+    assert.deepEqual(sentBody.messages, [{ role: "user", content: "hi" }]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("VertexExecutor.execute synthesizes a genuine Anthropic-format SSE stream when rawPredict returns a complete JSON body for a streaming request", async () => {
+  const executor = new VertexExecutor();
+  const originalFetch = globalThis.fetch;
+
+  // rawPredict is a non-streaming endpoint — Vertex can still hand back a complete,
+  // non-chunked JSON body for a request that asked for stream:true. Without synthesis
+  // this reaches the client as a single JSON blob the OpenAI-only jsonToSse fallback
+  // can't parse (it looks for "choices", not Anthropic's "content" shape), producing
+  // "Provider returned empty content" instead of real streamed text.
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        id: "msg_stream_1",
+        type: "message",
+        role: "assistant",
+        model: "claude-sonnet-4-6",
+        content: [{ type: "text", text: "hello" }],
+        stop_reason: "end_turn",
+        stop_sequence: null,
+        usage: { input_tokens: 5, output_tokens: 2 },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+
+  try {
+    const result = await executor.execute({
+      model: "claude-sonnet-4-6",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: true,
+      credentials: {
+        apiKey: createServiceAccountJson({ projectId: "proj-claude" }),
+        accessToken: "ya29.claude",
+      },
+    });
+
+    const response = result.response;
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("content-type"), "text/event-stream");
+
+    const text = await response.text();
+    assert.match(text, /event: message_start/);
+    assert.match(text, /"type":"content_block_delta".*"text":"hello"/);
+    assert.match(text, /event: message_stop/);
+
+    const dataLines = text
+      .split(/\r?\n/)
+      .filter((line) => line.startsWith("data:"))
+      .map((line) => JSON.parse(line.slice(5).trim()));
+    const types = dataLines.map((d) => d.type);
+    assert.deepEqual(types, [
+      "message_start",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_stop",
+      "message_delta",
+      "message_stop",
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
