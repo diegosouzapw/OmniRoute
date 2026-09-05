@@ -24,14 +24,10 @@
  * effort-variant scoping, and Claude-mirror gating are untouched. Pure; no DB/IO.
  */
 
-import { OAUTH_PROVIDERS, NOAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/providers";
-
-/** Canonical provider precedence, keyed by provider id (not alias). Built once. */
-const CANONICAL_PROVIDER_ORDER: readonly string[] = [
-  ...Object.keys(OAUTH_PROVIDERS),
-  ...Object.keys(NOAUTH_PROVIDERS),
-  ...Object.keys(APIKEY_PROVIDERS),
-];
+import {
+  COMBO_GROUP,
+  groupSortPriority,
+} from "@/shared/constants/canonicalProviderOrder";
 
 /**
  * Locale-independent code-unit comparator. UTF-16 code units put uppercase A-Z
@@ -40,9 +36,6 @@ const CANONICAL_PROVIDER_ORDER: readonly string[] = [
 function codeUnitCompare(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }
-
-/** Combo bucket key, distinct from any real provider id. */
-const COMBO_GROUP = " combo";
 
 /**
  * Grouping key for a catalog row: "combo" for combo-owned rows, else owned_by
@@ -57,16 +50,6 @@ function modelGroupKey(model: Record<string, unknown>): string {
   const id = typeof model.id === "string" ? model.id : "";
   const slash = id.indexOf("/");
   return slash > 0 ? id.slice(0, slash) : id;
-}
-
-/**
- * Sort priority for a group key: combo first, then registry precedence, then
- * unknown groups (rank Infinity, ordered among themselves by code unit).
- */
-function groupSortPriority(groupKey: string): number {
-  if (groupKey === COMBO_GROUP) return -1;
-  const idx = CANONICAL_PROVIDER_ORDER.indexOf(groupKey);
-  return idx >= 0 ? idx : Infinity;
 }
 
 /**

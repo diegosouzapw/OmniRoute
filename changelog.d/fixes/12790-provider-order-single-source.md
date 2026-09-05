@@ -1,0 +1,1 @@
+- **fix(providers):** single source for provider order with `xao` ranking alongside `xai-oauth` ([#12790](https://github.com/diegosouzapw/OmniRoute/pull/12790)) — thanks @maxmad64bis

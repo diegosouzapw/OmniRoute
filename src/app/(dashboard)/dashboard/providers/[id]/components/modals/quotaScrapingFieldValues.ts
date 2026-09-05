@@ -7,6 +7,8 @@
  * this file instead; the component re-exports it for existing callers.
  */
 
+import { getProviderConnectionFamilyIds } from "@/shared/constants/providers";
+
 /** Providers whose quota lives behind the Qwen/Model Studio console gateway (#9603). */
 export const QWEN_TOKEN_PLAN_PROVIDERS = new Set(["qwen-cloud-token-plan", "bailian-coding-plan"]);
 
@@ -34,7 +36,8 @@ export function assignQuotaScrapingProviderData(
   if (provider === "ollama-cloud" && values.ollamaCloudUsageCookie.trim()) {
     target.ollamaCloudUsageCookie = values.ollamaCloudUsageCookie.trim();
   } else if (
-    (provider === "alibaba" || provider === "alibaba-cn") &&
+    (provider === "alibaba" ||
+      getProviderConnectionFamilyIds("alibaba").includes(provider)) &&
     values.alibabaConsoleCookie.trim()
   ) {
     target.alibabaConsoleCookie = values.alibabaConsoleCookie.trim();
