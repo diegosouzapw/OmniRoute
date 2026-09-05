@@ -11,7 +11,7 @@
  * Kept as a pure, dependency-light function so the filter is unit-testable in
  * isolation without seeding the DB-backed virtual factory.
  */
-import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
+import { isFreeForProvider } from "@/shared/utils/freeModels";
 
 interface PaidFilterCandidate {
   provider: string;
@@ -22,10 +22,7 @@ interface PaidFilterCandidate {
  * selected model itself qualifies as free — mirrors `shouldHidePaid` in
  * `src/app/api/v1/models/catalog.ts`. */
 function isFreeCandidate(candidate: PaidFilterCandidate): boolean {
-  return (
-    providerHasFreeModels(candidate.provider) &&
-    isFreeModel(candidate.provider, { id: candidate.model })
-  );
+  return isFreeForProvider(candidate.provider, { id: candidate.model });
 }
 
 /**
