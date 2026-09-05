@@ -768,6 +768,8 @@ export function createSSEStream(options: StreamOptions = {}) {
   let passthroughBufferedTextualToolCallContent = "";
   /** Passthrough: whether a usage block was already forwarded to the client (prevents double). */
   let passthroughForwardedUsage = false;
+  /** Translate: whether the flush already emitted the trailing usage-only chunk (prevents double). */
+  let translateForwardedUsage = false;
   // Passthrough Responses SSE: snapshots of items seen via `response.output_item.done`,
   // used to backfill `response.completed.response.output` when upstream returns it
   // empty (which happens when `store: false` — see backfillResponsesCompletedOutput).
@@ -1038,9 +1040,13 @@ export function createSSEStream(options: StreamOptions = {}) {
       const estimated = estimateUsage(body, totalContentLength, sourceFormat);
       itemSanitized.usage = timing.withTps(filterUsageForFormat(estimated, sourceFormat));
       state.usage = estimated;
+      // The finish chunk already carries the estimate — the flush must not
+      // append a second usage-only chunk for the same silent upstream.
+      if (hasValidUsage(estimated)) translateForwardedUsage = true;
     } else if (state?.finishReason && isFinishChunk && state.usage) {
       const buffered = addBufferToUsage(state.usage);
       itemSanitized.usage = timing.withTps(filterUsageForFormat(buffered, sourceFormat));
+      translateForwardedUsage = true;
     }
 
     if (
@@ -2842,8 +2848,41 @@ export function createSSEStream(options: StreamOptions = {}) {
            * emitted once at stream end when merged into the final translated chunk.
            */
 
+          // Estimate usage if provider didn't return valid usage (for translate mode)
+          if (!hasValidUsage(state?.usage) && totalContentLength > 0) {
+            state.usage = estimateUsage(body, totalContentLength, sourceFormat);
+          }
+
           // Send [DONE] (only if not already sent during transform)
           if (!doneSent) {
+            // The upstream stayed silent on usage: emit the estimate as a canonical
+            // trailing usage-only chunk (empty choices) before [DONE], so metered
+            // chat clients still see token counts. A real upstream usage block was
+            // already forwarded inside its own chunk and latches
+            // translateForwardedUsage off. Responses/Claude clients terminate on
+            // their own protocol events, never on data lines — keep this chunk
+            // OpenAI-chat-shaped like the passthrough equivalent.
+            if (
+              sourceFormat === FORMATS.OPENAI &&
+              shouldEmitDoneTerminator &&
+              !translateForwardedUsage &&
+              hasValidUsage(state?.usage)
+            ) {
+              const usageOnlyChunk = {
+                id:
+                  (state as unknown as Record<string, unknown>)?.chatId ?? `chatcmpl-${Date.now()}`,
+                object: "chat.completion.chunk",
+                created: Math.floor(Date.now() / 1000),
+                model,
+                choices: [],
+                usage: timing.withTps(filterUsageForFormat(state.usage, sourceFormat)),
+              };
+              const usageOutput = `data: ${JSON.stringify(usageOnlyChunk)}\n\n`;
+              reqLogger?.appendConvertedChunk?.(usageOutput);
+              forward(controller, encoder.encode(usageOutput));
+              clientPayloadCollector.push(usageOnlyChunk);
+              translateForwardedUsage = true;
+            }
             await emitFinalSseMetadata(controller, state?.usage as Record<string, unknown> | null);
             doneSent = true;
             if (shouldEmitDoneTerminator) {
@@ -2852,11 +2891,6 @@ export function createSSEStream(options: StreamOptions = {}) {
               reqLogger?.appendConvertedChunk?.(doneOutput);
               forward(controller, encoder.encode(doneOutput));
             }
-          }
-
-          // Estimate usage if provider didn't return valid usage (for translate mode)
-          if (!hasValidUsage(state?.usage) && totalContentLength > 0) {
-            state.usage = estimateUsage(body, totalContentLength, sourceFormat);
           }
 
           if (hasValidUsage(state?.usage)) {

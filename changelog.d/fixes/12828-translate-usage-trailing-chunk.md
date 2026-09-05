@@ -1,0 +1,1 @@
+- **fix(sse):** translate-mode streams now emit the estimated token counts as a trailing usage-only chunk before `[DONE]` when the upstream stays silent, so metered chat clients see totals instead of nothing ([#12828](https://github.com/diegosouzapw/OmniRoute/pull/12828)) — thanks @maxmad64bis
