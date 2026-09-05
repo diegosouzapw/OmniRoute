@@ -185,6 +185,9 @@ export function tallyDrift(checks, getContent) {
 function readCodeFacts() {
   const script = [
     'import {computeFreeModelTotals,FREE_MODEL_BUDGETS} from "./open-sse/config/freeModelCatalog.ts";',
+    'import {FREE_TIER_PROVIDER_SET} from "./open-sse/config/freeTierProviders.ts";',
+    'import {generateProviderPluginManifest} from "./open-sse/config/providerPluginManifestRegistry.ts";',
+    'import {REGISTRY} from "./open-sse/config/providers/index.ts";',
     'import {MODE_PACKS} from "./open-sse/services/autoCombo/modePacks.ts";',
     'import {ENGINE_IDS} from "./open-sse/services/compression/engineCatalog.ts";',
     'import {CLI_TOOLS} from "./src/shared/constants/cliTools.ts";',
@@ -232,7 +235,10 @@ function readCodeFacts() {
     "mcpTools:countUniqueMcpTools(cols),mcpScopes:sc.size,providers:pids.size,freeForever:ff.size,",
     "modePacks:Object.keys(MODE_PACKS),",
     "hardStop:FREE_MODEL_BUDGETS.filter(e=>e.hardStopGuaranteed===true).length,",
-    "trainsOnPrompts:FREE_MODEL_BUDGETS.filter(e=>e.trainsOnPrompts===true).length}));",
+    "trainsOnPrompts:FREE_MODEL_BUDGETS.filter(e=>e.trainsOnPrompts===true).length,",
+    "freeTierCount:FREE_TIER_PROVIDER_SET.size,",
+    "freeTierReg:FREE_TIER_PROVIDER_SET.size-[...FREE_TIER_PROVIDER_SET].filter(x=>!(x in REGISTRY)).length,",
+    "manifestFreeTier:generateProviderPluginManifest().providers.filter(p=>p.capabilities.includes(\"free-tier\")).length}));",
   ].join("");
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "docs-counts-"));
   try {
@@ -615,6 +621,23 @@ export function buildChecks() {
           strict: true,
           files: ["docs/reference/PROVIDER_REFERENCE.md"],
           validate: makeProviderReferenceValidator(f.providers),
+        },
+        // Gate: manifest emission vs catalogue intersection. Both numbers are
+        // live code facts from the same spawnSync computeur. The catalogue can
+        // name providers the registry does not serve yet (arcee-ai at
+        // 9d1a896c6), so the leaf raw size is informational — the gate
+        // compares the intersected count, never the raw size, and the script
+        // itself always exists so tallyDrift runs validate (skips null only).
+        {
+          label: "Manifest free-tier capability count (live code)",
+          actual: f.manifestFreeTier,
+          docKey: "free-tier capability",
+          strict: true,
+          files: ["scripts/check/check-docs-counts-sync.mjs"],
+          validate: () => ({
+            ok: f.manifestFreeTier === f.freeTierReg,
+            detail: `manifest ${f.manifestFreeTier} vs leaf∩registry ${f.freeTierReg} (leaf ${f.freeTierCount})`,
+          }),
         },
         {
           label: "SVG canonical numbers (live code)",

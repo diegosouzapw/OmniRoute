@@ -1,0 +1,1 @@
+- **feat(providers):** advertise a `free-tier` capability in the provider plugin manifest for every provider with documented free models, so sidecars and dashboards can filter free-capable providers without reading the quota catalog (#12786).
