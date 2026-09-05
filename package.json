@@ -264,6 +264,7 @@
     "coverage:report": "cross-env NODE_OPTIONS=--max-old-space-size=8192 c8 report --merge-async --output-dir coverage --exclude=tests/** --exclude=**/*.test.* --reporter=text --reporter=text-summary --reporter=html --reporter=json-summary --reporter=lcov",
     "coverage:summary": "node scripts/check/test-report-summary.mjs --input coverage/coverage-summary.json --output coverage/coverage-report.md",
     "check:pr-test-policy": "node scripts/check/check-pr-test-policy.mjs",
+    "check:pricing-freshness": "node scripts/check/check-pricing-freshness.mjs",
     "coverage:report:legacy": "c8 report --output-dir coverage --exclude=open-sse --reporter=text --reporter=text-summary",
     "test:all": "npm run test:unit && npm run test:vitest && npm run test:vitest:ui && npm run test:ecosystem && npm run test:e2e",
     "check": "npm run lint && npm run test",
