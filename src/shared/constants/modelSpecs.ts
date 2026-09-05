@@ -118,6 +118,12 @@ const GEMINI_36_FLASH_MODEL_SPEC = {
 } satisfies ModelSpec;
 
 export const MODEL_SPECS: Record<string, ModelSpec> = {
+  // Public model limits; the Codex registry supplies its smaller OAuth window.
+  // https://developers.openai.com/api/docs/models/gpt-6-astra
+  "gpt-6-astra": {
+    ...GPT_5_6_MODEL_SPEC,
+    aliases: ["openai/gpt-6-astra"],
+  },
   "gpt-5.6": {
     ...GPT_5_6_MODEL_SPEC,
     aliases: ["openai/gpt-5.6"],

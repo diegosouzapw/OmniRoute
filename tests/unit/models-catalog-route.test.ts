@@ -628,15 +628,15 @@ test("v1 models catalog exposes refreshed GitHub Copilot aliases and drops retir
     new Request("http://localhost/api/v1/models")
   );
   const body = (await response.json()) as any;
-  const aliasModel = body.data.find((item) => item.id === "gh/gpt-5.4");
-  const providerModel = body.data.find((item) => item.id === "github/gpt-5.4");
-  const codexModel = body.data.find((item) => item.id === "gh/gpt-5.3-codex");
-  const opusModel = body.data.find((item) => item.id === "github/claude-opus-4.7");
+  const aliasModel = body.data.find((item) => item.id === "gh/gpt-6-astra");
+  const providerModel = body.data.find((item) => item.id === "github/gpt-6-astra");
+  const solModel = body.data.find((item) => item.id === "gh/gpt-5.6-sol");
+  const opusModel = body.data.find((item) => item.id === "github/claude-opus-5");
 
   assert.equal(response.status, 200);
   assert.ok(aliasModel);
   assert.ok(providerModel);
-  assert.ok(codexModel);
+  assert.ok(solModel);
   assert.ok(opusModel);
   assert.equal(providerModel.parent, aliasModel.id);
   assert.equal(
@@ -1295,7 +1295,7 @@ test("v1 models catalog lets provider-specific synced limits beat global static 
   try {
     modelsDevSync.saveModelsDevCapabilities({
       github: {
-        "gpt-5.5": {
+        "gpt-5.6-sol": {
           tool_call: true,
           reasoning: true,
           attachment: true,
@@ -1321,12 +1321,14 @@ test("v1 models catalog lets provider-specific synced limits beat global static 
       new Request("http://localhost/api/v1/models")
     );
     const body = (await response.json()) as any;
-    const model = body.data.find((item) => item.id === "gh/gpt-5.5");
+    const model = body.data.find((item) => item.id === "gh/gpt-5.6-sol");
 
     assert.equal(response.status, 200);
     assert.ok(model);
     assert.equal(model.context_length, 400000);
-    assert.equal(model.max_input_tokens, 272000);
+    // The registry's explicit 922k input cap takes precedence over synced input,
+    // then clamps to the provider-specific total window.
+    assert.equal(model.max_input_tokens, 400000);
     assert.equal(model.max_output_tokens, 128000);
   } finally {
     modelsDevSync.saveModelsDevCapabilities({});

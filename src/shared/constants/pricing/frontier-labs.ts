@@ -3,6 +3,7 @@
  * Pure data; merged by default-pricing.ts via spread (god-file decomposition; semantic split).
  */
 import {
+  GPT_6_ASTRA_PRICING,
   GEMINI_3_7_FLASH_PROMO_PRICING,
   GPT_5_5_PRICING,
   GPT_5_6_LUNA_PRICING,
@@ -20,6 +21,7 @@ import {
 
 export const DEFAULT_PRICING_FRONTIER = {
   openai: {
+    "gpt-6-astra": GPT_6_ASTRA_PRICING,
     "gpt-5.6": GPT_5_6_SOL_PRICING,
     "gpt-5.6-sol": GPT_5_6_SOL_PRICING,
     "gpt-5.6-terra": GPT_5_6_TERRA_PRICING,

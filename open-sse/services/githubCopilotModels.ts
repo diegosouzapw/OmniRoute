@@ -18,6 +18,8 @@
  * offline/unauthed/failed refresh so the import flow never breaks.
  */
 import { getGitHubCopilotChatHeaders } from "../config/providerHeaderProfiles.ts";
+import { githubProvider } from "../config/providers/registry/github/index.ts";
+import { isRetiredGitHubCopilotModelId } from "../config/providers/registry/github/retiredModels.ts";
 
 export const GITHUB_COPILOT_MODELS_URL = "https://api.githubcopilot.com/models";
 
@@ -26,43 +28,11 @@ export const GITHUB_COPILOT_MODELS_URL = "https://api.githubcopilot.com/models";
 // be read, so we fall back to this curated set of known-good chat ids. It is
 // NOT used to gate the LIVE response — see parseGitHubCopilotModels, which keeps
 // every entitled chat model the catalog returns (so newly-entitled models like
-// grok-4.6 / mai-code-1.1-flash / gemini-3.6-flash appear without a code edit).
-export const GITHUB_COPILOT_STATIC_FALLBACK_MODELS = [
-  "claude-fable-5",
-  "claude-opus-5",
-  "claude-opus-4.8-fast",
-  "claude-opus-4.8",
-  "claude-opus-4.7",
-  "claude-opus-4.6",
-  "claude-sonnet-4.6",
-  "claude-opus-4.5",
-  "claude-sonnet-5",
-  "claude-sonnet-4.5",
-  "claude-haiku-4.5",
-  "gemini-3.1-pro-preview",
-  "gemini-3.7-flash",
-  "gemini-3.6-flash",
-  "gemini-3.5-flash",
-  "gpt-5.6-sol",
-  "gpt-5.6-terra",
-  "gpt-5.6-luna",
-  "gpt-5.5",
-  "gpt-5.4",
-  "gpt-5.4-mini",
-  "gpt-5.4-nano",
-  "gpt-5.3-codex",
-  "gpt-5-mini",
-  "gpt-4o-2024-11-20",
-  "gpt-4o-mini",
-  "gpt-4-0125-preview",
-  "kimi-k2.7-code",
-  "mai-code-1-flash",
-  "mai-code-1.1-flash",
-  "mai-code-1-flash-picker",
-  "grok-4.6",
-  "grok-4.5",
-  "oswe-vscode-prime",
-] as const;
+// grok-4.6 / mai-code-1.1-flash / gemini-3.8-flash appear without a code edit).
+// Upstream retirements and explicit local removals are excluded from both results.
+export const GITHUB_COPILOT_STATIC_FALLBACK_MODELS: readonly string[] = Object.freeze(
+  githubProvider.models.map((model) => model.id)
+);
 
 // Back-compat alias: earlier code + tests imported this name. It is now the
 // static FALLBACK catalog, not a live-response gate.
@@ -132,10 +102,9 @@ function isRoutableChatModel(item: RawRecord): boolean {
 /**
  * Parse a Copilot `/models` response into managed chat-model rows. Keeps every
  * entitled CHAT model in the live response (capability-driven filtering) and
- * drops only non-chat rows (embeddings / completion). Because only entitled
- * models appear in the live response, this is exactly the entitlement filter
- * #3121 needs — WITHOUT the old hardcoded id allowlist that silently dropped
- * newly-entitled models (grok-4.6, mai-code-1.1-flash, gemini-3.6-flash, …).
+ * drops non-chat, hidden, policy-disabled, and explicitly retired rows.
+ * Newly entitled models need no allowlist update; announced retirements are
+ * excluded even while upstream continues returning them during the transition.
  */
 export function parseGitHubCopilotModels(data: unknown): GitHubCopilotModel[] {
   const payload = asRecord(data);
@@ -152,6 +121,7 @@ export function parseGitHubCopilotModels(data: unknown): GitHubCopilotModel[] {
     const item = asRecord(value);
     const id = toNonEmptyString(item.id) || toNonEmptyString(item.model);
     if (!id || seen.has(id)) continue;
+    if (isRetiredGitHubCopilotModelId("github", id)) continue;
     if (!isRoutableChatModel(item)) continue;
     seen.add(id);
     const name = toNonEmptyString(item.name) || toNonEmptyString(item.display_name) || id;

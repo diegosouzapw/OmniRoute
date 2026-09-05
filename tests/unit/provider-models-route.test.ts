@@ -683,9 +683,9 @@ test("provider models route returns the updated local catalog for GitHub Copilot
   assert.equal(response.status, 200);
   assert.equal(body.provider, "github");
   assert.equal(body.source, "local_catalog");
-  assert.ok(body.models.some((model) => model.id === "gpt-5.4"));
-  assert.ok(body.models.some((model) => model.id === "gpt-5.3-codex"));
-  assert.ok(body.models.some((model) => model.id === "claude-opus-4.7"));
+  assert.ok(body.models.some((model) => model.id === "gpt-6-astra"));
+  assert.ok(body.models.some((model) => model.id === "gpt-5.6-sol"));
+  assert.ok(body.models.some((model) => model.id === "claude-opus-5"));
   assert.equal(
     body.models.some((model) => model.id === "gpt-5.1"),
     false

@@ -23,8 +23,9 @@ const { getProviderModels } = await import("../../open-sse/config/providerModels
 
 const PROVIDER = "github";
 const CONNECTION_ID = "github-live-catalog-8926";
-const LIVE_MODEL = "gpt-4.1";
-const PHANTOM_MODEL = "oswe-vscode-prime";
+const LIVE_MODEL = "gpt-5.6-sol";
+// Present in both Copilot static catalogs, but absent from this connection's live discovery.
+const PHANTOM_MODEL = "claude-opus-4.8-fast";
 
 function seedProviderCatalog(
   providerId: string,

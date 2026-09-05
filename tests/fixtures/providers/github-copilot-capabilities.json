@@ -1,0 +1,234 @@
+{
+  "retrievedAt": "2026-09-04T23:55:19.266Z",
+  "endpoint": "https://api.githubcopilot.com/models",
+  "models": [
+    {
+      "id": "claude-fable-5.1",
+      "capabilities": {
+        "limits": {
+          "max_context_window_tokens": 1000000,
+          "max_prompt_tokens": 936000,
+          "max_output_tokens": 64000
+        },
+        "supports": {
+          "tool_calls": true,
+          "vision": true,
+          "reasoning_effort": ["low", "medium", "high", "xhigh", "max"],
+          "max_thinking_budget": 32000
+        }
+      },
+      "supported_endpoints": ["/v1/messages", "/chat/completions"]
+    },
+    {
+      "id": "claude-opus-4.8-fast",
+      "capabilities": {
+        "limits": {
+          "max_context_window_tokens": 1000000,
+          "max_prompt_tokens": 936000,
+          "max_output_tokens": 64000
+        },
+        "supports": {
+          "tool_calls": true,
+          "vision": true,
+          "reasoning_effort": ["low", "medium", "high", "xhigh", "max"],
+          "max_thinking_budget": 32000
+        }
+      },
+      "supported_endpoints": ["/v1/messages", "/chat/completions"]
+    },
+    {
+      "id": "claude-opus-4.8",
+      "capabilities": {
+        "limits": {
+          "max_context_window_tokens": 1000000,
+          "max_prompt_tokens": 936000,
+          "max_output_tokens": 64000
+        },
+        "supports": {
+          "tool_calls": true,
+          "vision": true,
+          "reasoning_effort": ["low", "medium", "high", "xhigh", "max"],
+          "max_thinking_budget": 32000
+        }
+      },
+      "supported_endpoints": ["/v1/messages", "/chat/completions"]
+    },
+    {
+      "id": "claude-opus-5",
+      "capabilities": {
+        "limits": {
+          "max_context_window_tokens": 1000000,
+          "max_prompt_tokens": 936000,
+          "max_output_tokens": 64000
+        },
+        "supports": {
+          "tool_calls": true,
+          "vision": true,
+          "reasoning_effort": ["low", "medium", "high", "xhigh", "max"],
+          "max_thinking_budget": 32000
+        }
+      },
+      "supported_endpoints": ["/v1/messages", "/chat/completions"]
+    },
+    {
+      "id": "claude-sonnet-5",
+      "capabilities": {
+        "limits": {
+          "max_context_window_tokens": 1000000,
+          "max_prompt_tokens": 936000,
+          "max_output_tokens": 64000
+        },
+        "supports": {
+          "tool_calls": true,
+          "vision": true,
+          "reasoning_effort": ["low", "medium", "high", "xhigh", "max"],
+          "max_thinking_budget": 32000
+        }
+      },
+      "supported_endpoints": ["/v1/messages", "/chat/completions"]
+    },
+    {
+      "id": "gemini-3.8-flash",
+      "capabilities": {
+        "limits": {
+          "max_context_window_tokens": 1048576,
+          "max_prompt_tokens": 983040,
+          "max_output_tokens": 65536
+        },
+        "supports": {
+          "tool_calls": true,
+          "vision": true,
+          "reasoning_effort": ["low", "medium", "high"]
+        }
+      },
+      "supported_endpoints": ["/chat/completions"]
+    },
+    {
+      "id": "gpt-5.6-luna",
+      "capabilities": {
+        "limits": {
+          "max_context_window_tokens": 1050000,
+          "max_prompt_tokens": 922000,
+          "max_output_tokens": 128000
+        },
+        "supports": {
+          "tool_calls": true,
+          "vision": true,
+          "reasoning_effort": ["none", "low", "medium", "high", "xhigh", "max"]
+        }
+      },
+      "supported_endpoints": ["/responses", "ws:/responses"]
+    },
+    {
+      "id": "gpt-5.6-sol",
+      "capabilities": {
+        "limits": {
+          "max_context_window_tokens": 1050000,
+          "max_prompt_tokens": 922000,
+          "max_output_tokens": 128000
+        },
+        "supports": {
+          "tool_calls": true,
+          "vision": true,
+          "reasoning_effort": ["none", "low", "medium", "high", "xhigh", "max"]
+        }
+      },
+      "supported_endpoints": ["/responses", "ws:/responses"]
+    },
+    {
+      "id": "gpt-5.6-terra",
+      "capabilities": {
+        "limits": {
+          "max_context_window_tokens": 1050000,
+          "max_prompt_tokens": 922000,
+          "max_output_tokens": 128000
+        },
+        "supports": {
+          "tool_calls": true,
+          "vision": true,
+          "reasoning_effort": ["none", "low", "medium", "high", "xhigh", "max"]
+        }
+      },
+      "supported_endpoints": ["/responses", "ws:/responses"]
+    },
+    {
+      "id": "gpt-6-astra",
+      "capabilities": {
+        "limits": {
+          "max_context_window_tokens": 1000000,
+          "max_prompt_tokens": 872000,
+          "max_output_tokens": 128000
+        },
+        "supports": {
+          "tool_calls": true,
+          "vision": true,
+          "reasoning_effort": ["low", "medium", "high", "xhigh", "max"]
+        }
+      },
+      "supported_endpoints": ["/responses", "ws:/responses"]
+    },
+    {
+      "id": "kimi-k2.7-code",
+      "capabilities": {
+        "limits": {
+          "max_context_window_tokens": 256000,
+          "max_prompt_tokens": 224000,
+          "max_output_tokens": 32000
+        },
+        "supports": {
+          "tool_calls": true,
+          "vision": true
+        }
+      },
+      "supported_endpoints": ["/chat/completions"]
+    },
+    {
+      "id": "kimi-k3",
+      "capabilities": {
+        "limits": {
+          "max_context_window_tokens": 1048576,
+          "max_prompt_tokens": 917504,
+          "max_output_tokens": 131072
+        },
+        "supports": {
+          "tool_calls": true,
+          "vision": true,
+          "reasoning_effort": ["low", "high", "max"]
+        }
+      },
+      "supported_endpoints": ["/chat/completions"]
+    },
+    {
+      "id": "mai-code-1.1-flash",
+      "capabilities": {
+        "limits": {
+          "max_context_window_tokens": 256000,
+          "max_prompt_tokens": 128000,
+          "max_output_tokens": 128000
+        },
+        "supports": {
+          "tool_calls": true,
+          "vision": true,
+          "reasoning_effort": ["low", "medium", "high"]
+        }
+      },
+      "supported_endpoints": ["/responses"]
+    },
+    {
+      "id": "claude-haiku-4.5",
+      "capabilities": {
+        "limits": {
+          "max_context_window_tokens": 144000,
+          "max_prompt_tokens": 128000,
+          "max_output_tokens": 32000
+        },
+        "supports": {
+          "tool_calls": true,
+          "vision": true,
+          "max_thinking_budget": 32000
+        }
+      },
+      "supported_endpoints": ["/chat/completions", "/v1/messages"]
+    }
+  ]
+}
