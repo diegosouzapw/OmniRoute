@@ -1,0 +1,1 @@
+- Add an opt-in unit quick tier derived from the full collectors, preserving process isolation, dashboard and serial loaders, and failure reporting without changing the full CI or coverage gates.
