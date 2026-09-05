@@ -125,10 +125,6 @@ function buildBaseOptions(a: PreludeBaseOptionArgs): HandleComboChatOptions {
 
 const TERMINAL_PIN_STATUSES = new Set(["credits_exhausted", "banned", "expired"]);
 
-export function shouldFallbackPinnedStatus(status: number): boolean {
-  return [401, 408, 429, 500, 502, 503, 504].includes(status);
-}
-
 /**
  * Pure decision: should a context-cache pin be DROPPED because its provider has
  * DURABLY fallen? A ccp pin keeps the prompt cache warm by bypassing the combo
@@ -251,7 +247,7 @@ async function evaluatePinnedResponse(args: {
     return null;
   }
   const pinnedStatus = pinnedResult.status || 500;
-  if (!shouldFallbackPinnedStatus(pinnedStatus)) {
+  if (![401, 408, 429, 500, 502, 503, 504].includes(pinnedStatus)) {
     return pinnedResult;
   }
   log.warn(
