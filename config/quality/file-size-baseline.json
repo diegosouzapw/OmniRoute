@@ -1,4 +1,5 @@
 {
+  "_rebaseline_2026_09_10_12828_translate_usage_chunk": "PR #12828 own growth: open-sse/utils/stream.ts 3072->3080 (+8). Translate-mode streams now send the estimated usage as the canonical trailing usage-only chunk before [DONE] when the upstream stays silent (parity with the #12151 passthrough flush), with a latch so a finish chunk that already carried the estimate is not doubled. The chunk builder is shared with the passthrough flush in open-sse/utils/usageOnlyChunk.ts (under cap); what remains is the flush-site wiring. Covered by tests/unit/stream-translate-usage-trailing.test.ts.",
   "_rebaseline_2026_09_06_runtime_quotagroup_nodemap": "Own growth: src/app/(dashboard)/dashboard/runtime/RuntimePageClient.tsx 1201->1222 (+21, check-file-size split-newline). QuotaGroup is a module-level sibling and was reading nodeMap from RuntimePageClient's closure; that identifier is not in scope, so a quota monitor with status error/exhausted/alerting throws ReferenceError. Fix threads nodeMap as a prop (3 call sites + parameter + ProviderNodeEntry import). Prettier wraps the long import and the three QuotaGroup JSX tags. Covered by tests/unit/ui/runtime-page-client.test.tsx (empty monitors stay green; error+exhausted fixtures mount QuotaGroup).",
   "_rebaseline_2026_09_05_claude_extra_usage_preflight": "Own growth: open-sse/services/combo.ts 4080->4084 (+4). buildAutoCandidates now forwards connection.providerSpecificData into evaluateQuotaCutoff so a Claude account with blockExtraUsage=false is not dropped at the 5h bar. Irreducible at the existing cutoff call site; the helper lives in claudeExtraUsage.ts (under cap). Covered by tests/unit/quota-preflight.test.ts.",
   "_rebaseline_2026_09_04_12697_combo_pin_allowlist": "PR #12697 own growth: src/sse/handlers/chat.ts 2454->2458 (+4). checkModelAvailable preflight and handleSingleModelChat now call comboPinAllowlist so a pin-only combo step cannot scan the provider pool after 502/429. Helper lives in src/lib/combos/steps.ts under cap. Covered by tests/unit/combo-pin-implicit-allowlist.test.ts (11/11).",
@@ -436,7 +437,7 @@
     "open-sse/translator/response/openai-responses.ts": 1466,
     "open-sse/utils/cursorAgentProtobuf.ts": 1547,
     "open-sse/utils/proxyFetch.ts": 1271,
-    "open-sse/utils/stream.ts": 3072,
+    "open-sse/utils/stream.ts": 3080,
     "open-sse/vendor/codex-chatgpt-web/adapters/chatgpt-web/browser-worker.ts": 4398,
     "open-sse/vendor/codex-chatgpt-web/bridge.ts": 1335,
     "src/app/(dashboard)/dashboard/HomePageClient.tsx": 1344,

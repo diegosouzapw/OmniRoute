@@ -88,6 +88,7 @@ import { restoreClaudeToolName } from "../services/claudeCodeToolRemapper.ts";
 import { normalizeFinalOpenAIStreamChunk } from "./openAIStreamChunk.ts";
 import { collectClaudeDelta } from "./streamClaudeDelta.ts";
 import { createStreamTiming, type StreamTiming } from "./streamTiming.ts";
+import { buildUsageOnlyChunk } from "./usageOnlyChunk.ts";
 
 /**
  * Race a response body read against a timeout.
@@ -768,6 +769,8 @@ export function createSSEStream(options: StreamOptions = {}) {
   let passthroughBufferedTextualToolCallContent = "";
   /** Passthrough: whether a usage block was already forwarded to the client (prevents double). */
   let passthroughForwardedUsage = false;
+  /** Translate: usage already reached the client, or no trailing usage chunk applies. */
+  let translateForwardedUsage = sourceFormat !== FORMATS.OPENAI || !shouldEmitDoneTerminator;
   // Passthrough Responses SSE: snapshots of items seen via `response.output_item.done`,
   // used to backfill `response.completed.response.output` when upstream returns it
   // empty (which happens when `store: false` — see backfillResponsesCompletedOutput).
@@ -1038,9 +1041,11 @@ export function createSSEStream(options: StreamOptions = {}) {
       const estimated = estimateUsage(body, totalContentLength, sourceFormat);
       itemSanitized.usage = timing.withTps(filterUsageForFormat(estimated, sourceFormat));
       state.usage = estimated;
+      if (hasValidUsage(estimated)) translateForwardedUsage = true; // finish chunk carries it
     } else if (state?.finishReason && isFinishChunk && state.usage) {
       const buffered = addBufferToUsage(state.usage);
       itemSanitized.usage = timing.withTps(filterUsageForFormat(buffered, sourceFormat));
+      translateForwardedUsage = true;
     }
 
     if (
@@ -2565,14 +2570,11 @@ export function createSSEStream(options: StreamOptions = {}) {
               // upstream DID send usage (trailing or in-band), it was forwarded
               // already and passthroughForwardedUsage guards this off.
               if (shouldEmitDoneTerminator && !passthroughForwardedUsage && hasValidUsage(usage)) {
-                const usageOnlyChunk = {
-                  id: passthroughLastChatId ?? passthroughResponsesId ?? `chatcmpl-${Date.now()}`,
-                  object: "chat.completion.chunk",
-                  created: Math.floor(Date.now() / 1000),
+                const usageOnlyChunk = buildUsageOnlyChunk(
+                  passthroughLastChatId ?? passthroughResponsesId,
                   model,
-                  choices: [],
-                  usage: timing.withTps(filterUsageForFormat(usage, sourceFormat || FORMATS.OPENAI)),
-                };
+                  timing.withTps(filterUsageForFormat(usage, sourceFormat || FORMATS.OPENAI))
+                );
                 const usageOutput = `data: ${JSON.stringify(usageOnlyChunk)}\n\n`;
                 reqLogger?.appendConvertedChunk?.(usageOutput);
                 forward(controller, encoder.encode(usageOutput));
@@ -2842,8 +2844,26 @@ export function createSSEStream(options: StreamOptions = {}) {
            * emitted once at stream end when merged into the final translated chunk.
            */
 
+          // Estimate usage if provider didn't return valid usage (for translate mode)
+          if (!hasValidUsage(state?.usage) && totalContentLength > 0) {
+            state.usage = estimateUsage(body, totalContentLength, sourceFormat);
+          }
+
           // Send [DONE] (only if not already sent during transform)
           if (!doneSent) {
+            // Upstream stayed silent on usage: send the estimate as the canonical
+            // trailing usage-only chunk before [DONE], like the passthrough flush.
+            if (!translateForwardedUsage && hasValidUsage(state?.usage)) {
+              const usageOnlyChunk = buildUsageOnlyChunk(
+                (state as unknown as Record<string, unknown>)?.chatId,
+                model,
+                timing.withTps(filterUsageForFormat(state.usage, sourceFormat))
+              );
+              const usageOutput = `data: ${JSON.stringify(usageOnlyChunk)}\n\n`;
+              reqLogger?.appendConvertedChunk?.(usageOutput);
+              forward(controller, encoder.encode(usageOutput));
+              clientPayloadCollector.push(usageOnlyChunk);
+            }
             await emitFinalSseMetadata(controller, state?.usage as Record<string, unknown> | null);
             doneSent = true;
             if (shouldEmitDoneTerminator) {
@@ -2852,11 +2872,6 @@ export function createSSEStream(options: StreamOptions = {}) {
               reqLogger?.appendConvertedChunk?.(doneOutput);
               forward(controller, encoder.encode(doneOutput));
             }
-          }
-
-          // Estimate usage if provider didn't return valid usage (for translate mode)
-          if (!hasValidUsage(state?.usage) && totalContentLength > 0) {
-            state.usage = estimateUsage(body, totalContentLength, sourceFormat);
           }
 
           if (hasValidUsage(state?.usage)) {
