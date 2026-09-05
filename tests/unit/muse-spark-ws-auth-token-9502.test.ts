@@ -4,6 +4,13 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { MuseSparkWebExecutor } from "../../open-sse/executors/muse-spark-web.ts";
+import { shutdownPool } from "../../open-sse/services/browserPool.ts";
+import { resetDbInstance } from "../../src/lib/db/core.ts";
+
+test.after(async () => {
+  await shutdownPool("test");
+  resetDbInstance();
+});
 
 // #9502: the WS migration (#7528) requires a separate ecto1:... auth token the
 // guidance never mentions, so a cookie-only credential (the documented input)
@@ -41,10 +48,10 @@ test("#9502: web-session credential spec for muse-spark-web mentions the ecto1: 
   assert.match(museSection, /ecto1/, "credential spec must mention the ecto1: WS auth token");
 });
 
-test("#9502: the Missing Authorization error message guides the user to the ecto1: token", () => {
+test("#9502: the Missing Authorization error message guides the user to the ecto_1_sess cookie", () => {
   assert.ok(
-    /Missing Authorization.*ecto1:/.test(executor),
-    "missing-auth error must name the ecto1: token"
+    /Missing Authorization.*ecto_1_sess/.test(executor),
+    "missing-auth error must name the ecto_1_sess cookie"
   );
 });
 
