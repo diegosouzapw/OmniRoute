@@ -175,18 +175,15 @@ export async function getMoonshotOpenPlatformUsage(
   };
 }
 
-function balanceQuota(
-  remaining: number,
-  remainingPercentage: number,
-  currency: string
-): UsageQuota {
+function balanceQuota(remaining: number, currency: string): UsageQuota {
+  const leftover = remaining > 0 ? 100 : 0;
   return {
     used: 0,
     total: 0,
     remaining,
-    remainingPercentage,
+    remainingPercentage: leftover,
     resetAt: null,
-    unlimited: true,
+    unlimited: false,
     currency,
   };
 }
@@ -196,9 +193,9 @@ function buildMoonshotBalanceQuotas(
   currency: string
 ): Record<string, UsageQuota> {
   return {
-    available: balanceQuota(quota.availableBalance, quota.limitReached ? 0 : 100, currency),
-    voucher: balanceQuota(quota.voucherBalance, 100, currency),
-    cash: balanceQuota(quota.cashBalance, 100, currency),
+    available: balanceQuota(quota.availableBalance, currency),
+    voucher: balanceQuota(quota.voucherBalance, currency),
+    cash: balanceQuota(quota.cashBalance, currency),
   };
 }
 

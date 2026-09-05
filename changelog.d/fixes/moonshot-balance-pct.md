@@ -1,0 +1,1 @@
+- **fix(dashboard):** Moonshot/Kimi Open Platform voucher and cash leftover percentages follow the bucket balance, so an empty wallet no longer paints those rows as 100% while Available is 0%

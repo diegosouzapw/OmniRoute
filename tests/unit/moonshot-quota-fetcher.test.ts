@@ -137,6 +137,69 @@ test("domestic Moonshot balance is labeled CNY, international USD", async () => 
   invalidateMoonshotQuotaCache(aiId);
 });
 
+test("exhausted available_balance does not leave voucher/cash at 100%", async () => {
+  const connectionId = `ms-empty-pct-${Date.now()}`;
+  globalThis.fetch = async () =>
+    jsonResponse({
+      code: 0,
+      data: { available_balance: 0, voucher_balance: 0, cash_balance: 0 },
+      status: true,
+    });
+  const usage = await getMoonshotOpenPlatformUsage({
+    id: connectionId,
+    provider: COMPAT,
+    apiKey: "sk-test",
+    providerSpecificData: { baseUrl: CN },
+  });
+  assert.equal(usage.quotas?.available?.remaining, 0);
+  assert.equal(usage.quotas?.available?.remainingPercentage, 0);
+  assert.equal(usage.quotas?.voucher?.remaining, 0);
+  assert.equal(usage.quotas?.voucher?.remainingPercentage, 0);
+  assert.equal(usage.quotas?.cash?.remaining, 0);
+  assert.equal(usage.quotas?.cash?.remainingPercentage, 0);
+  invalidateMoonshotQuotaCache(connectionId);
+});
+
+test("voucher leftover is 100% only when that bucket still has money", async () => {
+  const connectionId = `ms-voucher-left-${Date.now()}`;
+  globalThis.fetch = async () =>
+    jsonResponse({
+      code: 0,
+      data: { available_balance: 0, voucher_balance: 5, cash_balance: 0 },
+      status: true,
+    });
+  const usage = await getMoonshotOpenPlatformUsage({
+    id: connectionId,
+    provider: COMPAT,
+    apiKey: "sk-test",
+    providerSpecificData: { baseUrl: CN },
+  });
+  assert.equal(usage.quotas?.available?.remainingPercentage, 0);
+  assert.equal(usage.quotas?.voucher?.remainingPercentage, 100);
+  assert.equal(usage.quotas?.cash?.remainingPercentage, 0);
+  invalidateMoonshotQuotaCache(connectionId);
+});
+
+test("limitReached is derived from availableBalance, so remaining>0 cannot coexist with it", async () => {
+  const connectionId = `ms-limit-eq-${Date.now()}`;
+  globalThis.fetch = async () =>
+    jsonResponse({
+      code: 0,
+      data: { available_balance: 2.5, voucher_balance: 0, cash_balance: 2.5 },
+      status: true,
+    });
+  const usage = await getMoonshotOpenPlatformUsage({
+    id: connectionId,
+    provider: COMPAT,
+    apiKey: "sk-test",
+    providerSpecificData: { baseUrl: CN },
+  });
+  assert.equal(usage.limitReached, false);
+  assert.equal(usage.quotas?.available?.remaining, 2.5);
+  assert.equal(usage.quotas?.available?.remainingPercentage, 100);
+  invalidateMoonshotQuotaCache(connectionId);
+});
+
 test("registerMoonshotQuotaFetcher wires moonshot and kimi ids", () => {
   registerMoonshotQuotaFetcher();
   assert.equal(typeof getQuotaFetcher("moonshot"), "function");
