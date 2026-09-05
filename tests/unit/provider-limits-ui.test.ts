@@ -268,19 +268,25 @@ test("MiniMax quota payloads use generic provider parsing and stale resets still
   assert.equal(providerLimitUtils.formatQuotaLabel(parsed[1].name), "Weekly");
 });
 
-test("GLM quota rows are ordered by session, weekly, then monthly", () => {
-  const parsed = providerLimitUtils.parseQuotaData("glm", {
-    quotas: {
-      mcp_monthly: { used: 10, total: 100, remainingPercentage: 90 },
-      weekly: { used: 20, total: 100, remainingPercentage: 80 },
-      session: { used: 30, total: 100, remainingPercentage: 70 },
-    },
-  });
+test("GLM quota rows are ordered by session, weekly, monthly, then reset cards", () => {
+  for (const provider of ["glm", "glm-cn", "glmt", "zai"]) {
+    const parsed = providerLimitUtils.parseQuotaData(provider, {
+      bankedResetCredits: 2,
+      quotas: {
+        mcp_monthly: { used: 10, total: 100, remainingPercentage: 90 },
+        weekly: { used: 20, total: 100, remainingPercentage: 80 },
+        session: { used: 30, total: 100, remainingPercentage: 70 },
+      },
+    });
 
-  assert.deepEqual(
-    parsed.map((quota) => quota.name),
-    ["session", "weekly", "mcp_monthly"]
-  );
+    assert.deepEqual(
+      parsed.map((quota) => quota.name),
+      ["session", "weekly", "mcp_monthly", "banked_reset_credits"],
+      `${provider} should use GLM family parsing`
+    );
+    assert.equal(parsed[3].creditCount, 2);
+    assert.equal(parsed[3].isResetCredits, true);
+  }
 });
 
 test("OpenRouter credits render as a USD credit count, not a percentage row", () => {
