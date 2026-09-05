@@ -11,6 +11,10 @@ const core = await import("../../src/lib/db/core.ts");
 const proxyLogger = await import("../../src/lib/proxyLogger.ts");
 
 function resetStorage() {
+  // Batched persistence: logProxyEvent() enqueues and flushes on a timer, so a
+  // queued entry from a previous test would otherwise be written into the fresh
+  // DB after the reset. Drain the queue (and stop the timer) before clearing.
+  proxyLogger.flushProxyLogsSync();
   proxyLogger.clearProxyLogs();
   core.closeDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
