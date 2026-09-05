@@ -271,6 +271,30 @@ export async function loadPlugin(
     removeHostScript(hostScriptPath);
   });
 
+  // Escalate SIGTERM -> SIGKILL using a SINGLE shared timer and a SINGLE exit
+  // listener. Attaching `child.once("exit", ...)` per escalation leaks one
+  // listener per hook timeout on a child that survives SIGTERM, tripping
+  // MaxListenersExceededWarning and retaining closures for the process lifetime.
+  let killTimer: NodeJS.Timeout | null = null;
+  const clearKillTimer = (): void => {
+    if (killTimer) {
+      clearTimeout(killTimer);
+      killTimer = null;
+    }
+  };
+  child.once("exit", clearKillTimer);
+  const killEscalate = (): void => {
+    child.kill("SIGTERM");
+    if (killTimer) return; // escalation already pending
+    killTimer = setTimeout(() => {
+      killTimer = null;
+      try {
+        child.kill("SIGKILL");
+      } catch {}
+    }, SIGKILL_GRACE_MS);
+    killTimer.unref?.();
+  };
+
   // Call a hook in the child process with a timeout. Blocking/lifecycle hooks escalate
   // SIGTERM → SIGKILL on timeout; NOTIFICATION_HOOKS only drop the pending call.
   const callHook = (hook: string, payload: unknown, timeout = hookTimeoutMs): Promise<unknown> => {
@@ -291,14 +315,7 @@ export async function loadPlugin(
           resolve(undefined);
           return;
         }
-        child.kill("SIGTERM");
-        // Escalate to SIGKILL if plugin ignores SIGTERM
-        const killTimer = setTimeout(() => {
-          try {
-            child.kill("SIGKILL");
-          } catch {}
-        }, SIGKILL_GRACE_MS);
-        child.once("exit", () => clearTimeout(killTimer));
+        killEscalate();
         reject(new Error(`Plugin hook '${hook}' timed out after ${timeout}ms`));
       }, timeout);
 
@@ -397,14 +414,7 @@ export async function loadPlugin(
   });
 
   const cleanup = () => {
-    child.kill("SIGTERM");
-    // Escalate to SIGKILL after grace period
-    const killTimer = setTimeout(() => {
-      try {
-        child.kill("SIGKILL");
-      } catch {}
-    }, SIGKILL_GRACE_MS);
-    child.once("exit", () => clearTimeout(killTimer));
+    killEscalate();
     removeHostScript(hostScriptPath);
     log.info("loader.cleanup", { name: manifest.name });
   };
