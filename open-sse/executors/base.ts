@@ -312,6 +312,8 @@ export type ExecutorExecuteResult =
       headers?: Record<string, string>;
       transformedBody?: unknown;
       transport?: string;
+      /** Wire model id actually sent upstream (from the serialized body). */
+      model?: unknown;
     };
 
 export class BaseExecutor {
@@ -365,6 +367,36 @@ export class BaseExecutor {
 
   getCountTokensTimeoutMs() {
     return this.getTimeoutMs();
+  }
+
+  /**
+   * Build the upstream URL from the payload-rule-prepared body instead of the
+   * bare executor model id.
+   *
+   * Why this exists: chatCore's prepareUpstreamBody() applies operator payload
+   * rules to the request BODY (including a rewritten `model` for custom-model
+   * aliases, e.g. `gemini-3.7-flash-high` → `gemini-3.7-flash`), but the
+   * executor's `model` argument still carries the ORIGINAL alias. Providers
+   * that put the model in the URL path (Gemini: `/models/{model}:generateContent`)
+   * then send a URL naming the alias while the body names the real id — Google
+   * 404s on the alias. Building the URL from the body keeps the two in lockstep.
+   *
+   * Bodies without a string `model` (and non-rewritten bodies) fall back to the
+   * executor model, so every existing caller behaves exactly as before.
+   */
+  buildUrlForBody(
+    model: string,
+    body: unknown,
+    stream: boolean,
+    urlIndex = 0,
+    credentials: ProviderCredentials | null = null
+  ): string {
+    const bodyModel =
+      body && typeof body === "object" && !Array.isArray(body)
+        ? (body as Record<string, unknown>).model
+        : undefined;
+    const effectiveModel = typeof bodyModel === "string" && bodyModel ? bodyModel : model;
+    return this.buildUrl(effectiveModel, stream, urlIndex, credentials);
   }
 
   buildUrl(
@@ -840,7 +872,12 @@ export class BaseExecutor {
         body,
         activeCredentials
       );
-      const url = this.buildUrl(model, stream, urlIndex, requestCredentials);
+      // Build the URL from the payload-rule-prepared body so providers that put
+      // the model in the URL path (Gemini: /models/{model}:generateContent) stay
+      // in lockstep with a payload-rule-rewritten body.model (custom-model alias
+      // → real upstream id). Falls back to the executor model when the body has
+      // no string model of its own — identical to the previous behavior.
+      const url = this.buildUrlForBody(model, body, stream, urlIndex, requestCredentials);
       const headers = this.buildHeaders(
         requestCredentials,
         stream,
@@ -1708,7 +1745,13 @@ export class BaseExecutor {
           continue;
         }
 
-        return { response, url, headers: finalHeaders, transformedBody: serializedBody };
+        return {
+          response,
+          url,
+          headers: finalHeaders,
+          transformedBody: serializedBody,
+          model: (serializedBody as Record<string, unknown> | null)?.model,
+        };
       } catch (error) {
         // Distinguish timeout errors from other abort errors
         const err = error instanceof Error ? error : new Error(String(error));

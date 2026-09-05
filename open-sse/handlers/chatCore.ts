@@ -3122,6 +3122,20 @@ export async function handleChatCore({
               const res = normalizeExecutorResult(rawExecutorResult);
               trace("post_executor", { status: res?.response?.status });
 
+              // When a payload override rewrote body.model (custom-model alias →
+              // real upstream id, e.g. `gemini-3.7-flash-high` → `gemini-3.7-flash`),
+              // log and track the WIRE model so dashboards/telemetry reflect what
+              // actually shipped and Gemini rate-limit accounting uses the real id
+              // (the executor already built its URL from the same rewritten model).
+              const wireModel =
+                typeof res.model === "string" && res.model ? res.model : modelToCall;
+              if (wireModel !== modelToCall) {
+                log?.debug?.(
+                  "PAYLOAD_RULES",
+                  `Payload rules rewrote model for URL: requested=${modelToCall} wire=${wireModel}`
+                );
+              }
+
               if (
                 provider === "codex" &&
                 attemptConnectionId &&
@@ -3151,7 +3165,7 @@ export async function handleChatCore({
 
               // Track Gemini RPM + RPD request counts for 429 classification
               if (provider === "gemini") {
-                incrementRequestCount(modelToCall);
+                incrementRequestCount(wireModel);
               }
 
               updatePendingScope(pendingScope, {

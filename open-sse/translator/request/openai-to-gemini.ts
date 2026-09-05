@@ -160,6 +160,30 @@ type GeminiToolNameOptions = {
   supportsSignatureBypass?: boolean;
 };
 
+// Gemini 3.x replaced the numeric `thinkingBudget` with the string enum
+// `thinkingConfig.thinkingLevel` (low|medium|high). Extract an explicit level
+// from the incoming OpenAI-format body, honoring both the camelCase and
+// snake_case spellings at the top level and nested under
+// generationConfig.thinkingConfig (the operator payload-override surface).
+// Returns the trimmed non-empty level, or null when no level was supplied — an
+// empty/whitespace string is treated as "no level" so it can never disagree
+// with the extraction that later writes the field onto the request.
+function extractExplicitThinkingLevel(body: Record<string, unknown>): string | null {
+  const gc = body.generationConfig as Record<string, unknown> | undefined;
+  const tc = gc?.thinkingConfig as Record<string, unknown> | undefined;
+  const tcSnake = gc?.thinking_config as Record<string, unknown> | undefined;
+  const candidates = [
+    tc?.thinkingLevel,
+    tcSnake?.thinkingLevel,
+    body.thinkingLevel,
+    body.thinking_level,
+  ];
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && candidate.trim() !== "") return candidate.trim();
+  }
+  return null;
+}
+
 // Core: Convert OpenAI request to Gemini format (base for all variants)
 function openaiToGeminiBase(
   model: string,
@@ -173,6 +197,12 @@ function openaiToGeminiBase(
     generationConfig: {},
     safetySettings: body.safetySettings || DEFAULT_SAFETY_SETTINGS,
   };
+  // Gemini 3.x: an explicit thinkingLevel (from an operator payload override
+  // targeting generationConfig.thinkingConfig.thinkingLevel, or supplied
+  // directly) makes the numeric budget injected below redundant — and Google's
+  // 3.x migration guidance documents `thinkingBudget` as deprecated — so the
+  // level wins and no budget is set. Only the string level is forwarded.
+  const explicitThinkingLevel = extractExplicitThinkingLevel(body);
   const toolNameMap = new Map<string, string>();
   const sanitizeToolName = (name: string) =>
     sanitizeGeminiToolName(name, {
@@ -241,10 +271,12 @@ function openaiToGeminiBase(
       // the pre-#6943 native-defaults contract (thinkingBudget 0 / includeThoughts
       // false must still be present) and crashed callers that read
       // .thinkingConfig.thinkingBudget unconditionally.
-      result.generationConfig.thinkingConfig = {
-        thinkingBudget: budget,
-        includeThoughts: budget !== 0,
-      };
+      // Gemini 3.x exception: an explicit thinkingLevel makes the numeric budget
+      // redundant (the deprecated field is dropped when the level is forwarded), so
+      // only include thinkingBudget when no explicit level was supplied.
+      result.generationConfig.thinkingConfig = explicitThinkingLevel
+        ? { includeThoughts: budget !== 0 }
+        : { thinkingBudget: budget, includeThoughts: budget !== 0 };
     }
     // 2. Claude format: thinking (type: enabled, budget_tokens)
     // Use an explicit numeric check (not truthy) so an explicit `budget_tokens: 0` — the
@@ -264,10 +296,9 @@ function openaiToGeminiBase(
       // but thinkingBudgetCap:24576, meaning it supports thinking via budget).
       // Models not in MODEL_SPECS (thinkingBudgetCap=undefined) default to allowed.
       if (cappedBudget > 0 || getModelSpec(model)?.thinkingBudgetCap !== 0) {
-        result.generationConfig.thinkingConfig = {
-          thinkingBudget: cappedBudget,
-          includeThoughts: cappedBudget !== 0,
-        };
+        result.generationConfig.thinkingConfig = explicitThinkingLevel
+          ? { includeThoughts: cappedBudget !== 0 }
+          : { thinkingBudget: cappedBudget, includeThoughts: cappedBudget !== 0 };
       }
     }
   }
@@ -280,6 +311,8 @@ function openaiToGeminiBase(
   // response translator. (#4170) — this default-injection case is intentionally
   // unconditional (no-knob-at-all still gets includeThoughts:true); the explicit
   // "reasoning_effort: none" off-switch above (#6813) is the supported opt-out.
+  // Gemini 3.x: with an explicit thinkingLevel, only includeThoughts is injected —
+  // the deprecated numeric budget is omitted entirely.
   if (!result.generationConfig.thinkingConfig) {
     const modelLower = model.toLowerCase();
     if (
@@ -294,11 +327,25 @@ function openaiToGeminiBase(
       // Models not in MODEL_SPECS (thinkingBudgetCap=undefined) default to allowed.
       getModelSpec(model)?.thinkingBudgetCap !== 0
     ) {
-      result.generationConfig.thinkingConfig = {
-        thinkingBudget: getDefaultThinkingBudget(model) || capThinkingBudget(model, 24576),
-        includeThoughts: true,
-      };
+      result.generationConfig.thinkingConfig = explicitThinkingLevel
+        ? { includeThoughts: true }
+        : {
+            thinkingBudget: getDefaultThinkingBudget(model) || capThinkingBudget(model, 24576),
+            includeThoughts: true,
+          };
     }
+  }
+
+  // 4. Forward an explicitly-supplied Gemini 3.x thinkingLevel into the request.
+  // extractExplicitThinkingLevel (above) already resolved every supported supply
+  // surface: camelCase and snake_case spellings, at both the top level and nested
+  // under generationConfig.thinkingConfig (the operator payload-override surface).
+  // The deprecated numeric thinkingBudget is never emitted alongside the level.
+  if (explicitThinkingLevel && !result.generationConfig.thinkingConfig?.thinkingLevel) {
+    result.generationConfig.thinkingConfig = {
+      ...result.generationConfig.thinkingConfig,
+      thinkingLevel: explicitThinkingLevel,
+    };
   }
 
   // Build tool_call_id -> name map

@@ -195,6 +195,8 @@ export function normalizeExecutorResult(result: unknown): {
   headers: Record<string, string>;
   transformedBody: unknown;
   transport?: string;
+  /** Wire model id the executor actually sent upstream (undefined if unknown). */
+  model?: unknown;
 } {
   if (isResponseLike(result)) {
     return { response: result, url: "", headers: {}, transformedBody: null };
@@ -213,6 +215,7 @@ export function normalizeExecutorResult(result: unknown): {
     headers?: Record<string, string>;
     transformedBody?: unknown;
     transport?: string;
+    model?: unknown;
   };
   return {
     response: normalized.response,
@@ -220,6 +223,7 @@ export function normalizeExecutorResult(result: unknown): {
     headers: normalized.headers || {},
     transformedBody: normalized.transformedBody ?? null,
     transport: normalized.transport,
+    model: normalized.model,
   };
 }
 
