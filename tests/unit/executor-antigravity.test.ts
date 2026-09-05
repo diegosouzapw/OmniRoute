@@ -36,6 +36,7 @@ type ChatCompletionPayload = {
     prompt_tokens: number;
     completion_tokens: number;
     total_tokens: number;
+    completion_tokens_details?: { reasoning_tokens: number };
   };
 };
 
@@ -479,6 +480,33 @@ test("AntigravityExecutor.collectStreamToResponse turns SSE Gemini chunks into a
     prompt_tokens: 5,
     completion_tokens: 3,
     total_tokens: 8,
+  });
+});
+
+test("AntigravityExecutor.collectStreamToResponse preserves upstream thought token usage", async () => {
+  const executor = new AntigravityExecutor();
+  const response = new Response(
+    'data: {"response":{"candidates":[{"content":{"parts":[{"text":"Done"}]},"finishReason":"STOP"}],"usageMetadata":{"promptTokenCount":5,"candidatesTokenCount":3,"thoughtsTokenCount":7,"totalTokenCount":15}}}\n\n',
+    {
+      status: 200,
+      headers: { "Content-Type": "text/event-stream" },
+    }
+  );
+
+  const result = await executor.collectStreamToResponse(
+    response,
+    "gemini-3.7-pro-high",
+    "https://example.com",
+    { Authorization: "Bearer ag-token" },
+    { request: {} }
+  );
+  const payload = (await result.response.json()) as ChatCompletionPayload;
+
+  assert.deepEqual(payload.usage, {
+    prompt_tokens: 5,
+    completion_tokens: 10,
+    total_tokens: 15,
+    completion_tokens_details: { reasoning_tokens: 7 },
   });
 });
 
