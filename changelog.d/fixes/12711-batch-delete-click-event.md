@@ -1,0 +1,2 @@
+- **fix(dashboard):** batch-deleting provider keys no longer toasts failure after a successful delete when the confirm button's click event is forwarded as `onAfter` ([#12711](https://github.com/diegosouzapw/OmniRoute/pull/12711))
+- **fix(glm):** drop the extra 16th argument to `createSSETransformStreamWithLogger` that TypeScript rejected (TS2554) and that never reached the TransformStream

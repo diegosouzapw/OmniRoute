@@ -349,6 +349,7 @@
       "tests/unit/repro-antigravity-404-family-cooldown-hijack.test.ts",
       "tests/unit/repro-combo-persisted-cooldown-preskip.test.ts",
       "tests/unit/repro-glm-iso-reset-24h-cap.test.ts",
+      "tests/unit/reset-aware-request-scope-12600.test.ts",
       "tests/unit/resilience-connections.test.ts",
       "tests/unit/responses-handler.test.ts",
       "tests/unit/responses-passthrough-openai-compatible.test.ts",
