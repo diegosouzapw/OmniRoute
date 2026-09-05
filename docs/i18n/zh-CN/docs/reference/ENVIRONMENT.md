@@ -317,7 +317,7 @@ OmniRoute 提供两层防护：请求侧的注入扫描和响应侧的 PII 脱�
 > `src/lib/providers/validation.ts::directHttpsRequest()` 有意识地绕过该
 > 代理修补，使用 `safeOutboundFetch({ bypassProxyPatch: true })` 处理那个单独的校验调用。
 > 这是一个有文档记录、范围受限的例外 — 它 **不会** 影响聊天/用量出口。
-> 绕过范围由 `tests/unit/proxy-bypass-scope-guard-3226.test.ts` 固定。
+> 绕过范围由 `tests/unit/proxy/proxy-bypass-scope-guard-3226.test.ts` 固定。
 
 ---
 

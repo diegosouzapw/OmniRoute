@@ -41,7 +41,7 @@ export interface SearchProviderConfig {
    * host the base URL resolves to, so honoring a caller-chosen value hands that
    * key to the caller's server (GHSA-3f8g-pfh9-j687). The invariant
    * "never set alongside authType: apikey" is enforced by
-   * tests/unit/search-baseurl-client-override-3f8g.test.ts.
+   * tests/unit/search/search-baseurl-client-override-3f8g.test.ts.
    */
   allowClientBaseUrlOverride?: boolean;
 }

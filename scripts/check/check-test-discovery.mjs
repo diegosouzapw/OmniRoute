@@ -57,7 +57,7 @@ export const COLLECTORS = [
   // abaixo). Subdir novo: adicione aqui E nos scripts (o drift-check + o gate de
   // órfãos forçam a manutenção em sincronia).
   {
-    glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage}/**/*.test.ts",
+    glob: "tests/unit/{a2a,account,adaptive,admission,adobe,agent,agentSkills,agentrouter,agy,aihorde,alibaba,anthropic,antigravity,api,apikeys,audio,audit,auth,authz,auto,bailian,base,batch,blackbox,bug,build,bulk,cache,call,catalog,cc,chat,chatcore,chatgpt,check,circuit,claude,cli,cli-helper,cline,cliproxyapi,cloud,cloudflare,codex,combo,combos,command,compression,conductor,connection,context,copilot,correctness,cors,credential,crof,cursor,custom,dahl,db,db-adapters,deepseek,dev,devin,docker,dockerfile,docs,domain,duckduckgo,electron,embedding,embeddings,empty,error,exclusive,executor,firecrawl,fix,free,freeProviderRankings,fusion,gamification,gemini,github,gitlab,glm,grok,guardrails,headroom,helpers,home,homolog,i18n,image,inspector,instrumentation,issue,json,kie,kimi,kiro,lib,live,lmarena,local,log,m365,management,mcp,media,memory,microsoft,migration,minimax,misc,mitm,modality,model,models,moonshot,muse,no,noauth,notion,nvidia,oauth,obsidian,ocr,ollama,openai,openapi,opencode,openrouter,pack,perplexity,playground,plugins,pricing,probe,prompt,provider,providers,proxy,proxyfetch,qoder,quota,qwen,radar,rate,rateLimitManager,reasoning,refactor,relay,remote,repro,request,rerank,resilience,resolve,resource,responses,route,router,routing,run,runtime,search,security,seekai,service,services,session,settings,shared,sidebar,skills,socks,sse,stream,sync,synced,system,task,test,thinking,tls,token,tool,topology,tproxy,translator,ts7,uc,ui,upstream,usage,v1,v388,validation,vercel,vertex,video,vision,vscode,web,webhook,windows,xai,zai,zed}/**/*.test.ts",
     sources: ["package.json"],
   },
   // Node native runner — tests/unit/dashboard/** roda numa invocação separada com o hook
@@ -92,6 +92,12 @@ export const COLLECTORS = [
   { glob: "tests/integration/combo-matrix/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:combo:live (gated real-upstream smoke; RUN_COMBO_LIVE=1 + VPS creds)
   { glob: "tests/integration/combo-live/*.live.test.ts", sources: ["package.json"] },
+  // Node native runner — test:integration:e2e (slow hermetic e2e: playwright spawn,
+  // 30s+ startups; out of the default test:integration glob since #12539 tier-split)
+  { glob: "tests/integration/e2e/*.test.ts", sources: ["package.json"] },
+  // Node native runner — test:integration:live (upstream-gated; self-skips without
+  // OMNIROUTE_API_KEY / RUN_LIVE_WIRE_CAPTURE; out of the default glob since #12539)
+  { glob: "tests/integration/live/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:boundary:live (gated real-upstream smoke; RUN_BOUNDARY_LIVE=1,
   // hits omniroute.vhost2.harre.dynv6.net — never runs unopted in CI)
   { glob: "tests/boundary/*.live.test.ts", sources: ["package.json"] },

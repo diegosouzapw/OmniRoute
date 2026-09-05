@@ -7,7 +7,7 @@ lastUpdated: 2026-06-28
 # Sanityzacja komunikatów błędów
 
 > **Source of truth:** `open-sse/utils/error.ts` — `sanitizeErrorMessage`, `buildErrorBody`, `createErrorResult`
-> **Tests:** `tests/unit/error-message-sanitization.test.ts`
+> **Tests:** `tests/unit/error/error-message-sanitization.test.ts`
 > **Last updated:** 2026-06-28 — v3.8.40
 > **Audience:** Każdy inżynier pracujący nad odpowiedziami błędów (trasy HTTP, strumienie SSE, executory, handlery MCP).
 > **Status:** **OBOWIĄZKOWE** dla każdej ścieżki kodu, która zwraca komunikat błędu do klienta.
@@ -116,7 +116,7 @@ const safe = String(err).split("\n")[0];
 
 ## Pokrycie w CI
 
-`tests/unit/error-message-sanitization.test.ts` wymusza:
+`tests/unit/error/error-message-sanitization.test.ts` wymusza:
 
 - Każda trasa pod `/api/model-combo-mappings/*` zwraca sanityzowane body przy 4xx/5xx.
 - `sanitizeErrorMessage` usuwa wieloliniowe stack trace'y.
@@ -168,7 +168,7 @@ Oznacza to, że callsite'y, które demonstracyjnie sanityzują przez ten moduł 
 **Jak obsłużyć nowe wystąpienie:**
 
 1. Potwierdź, że callsite rzeczywiście kieruje komunikat przez `sanitizeErrorMessage` / `buildErrorBody` / jeden z wrapperów opisanych powyżej (przeczytaj łańcuch wywołań od początku do końca — nie ufaj komentarzowi).
-2. Potwierdź, że `tests/unit/error-message-sanitization.test.ts` ćwiczy tę ścieżkę (albo dodaj coverage).
+2. Potwierdź, że `tests/unit/error/error-message-sanitization.test.ts` ćwiczy tę ścieżkę (albo dodaj coverage).
 3. Odrzuć alert przez `gh api ... -X PATCH state=dismissed -f 'dismissed_reason=false positive'` z odniesieniem do tego dokumentu.
 4. **Nie** „naprawiaj” przez wstawianie `.split("\n")[0]` wszędzie — helper jest jedynym źródłem prawdy; duplikowanie wzorca osłabia sanitizer (traci czyszczenie ścieżek, limit długości, koercję typów) dla pozorów uspokojenia skanera.
 

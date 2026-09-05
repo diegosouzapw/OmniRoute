@@ -52,7 +52,7 @@ behavior you changed.
 ```bash
 npm run check:provider-consistency
 npm run check:provider-assets
-node --import tsx/esm --test tests/unit/provider-translate-path-golden.test.ts
+node --import tsx/esm --test tests/unit/provider/provider-translate-path-golden.test.ts
 node --import tsx/esm --test tests/unit/<provider-or-executor>.test.ts
 npm run gen:provider-reference   # when the catalog changes; commit the generated diff
 npm run lint
