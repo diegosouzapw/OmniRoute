@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 
@@ -10,9 +11,12 @@ process.env.API_KEY_SECRET = "test-glm-reset-cards-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const leasesDb = await import("../../src/lib/db/exclusiveConnectionLeases.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const glmResetCards = await import("../../src/lib/usage/glmResetCards.ts");
 const wire = await import("../../open-sse/services/usage/glmResetCards.ts");
 const glmProvider = await import("../../open-sse/config/glmProvider.ts");
+const proxyFetch = await import("../../open-sse/utils/proxyFetch.ts");
 const uiUtils =
   await import("../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils.tsx");
 
@@ -133,6 +137,14 @@ test("z.ai envelopes fail closed despite an HTTP 200 status line", () => {
   assert.equal(wire.isGlmResetCardEnvelopeOk(badToken), false);
   assert.equal(wire.isGlmResetCardEnvelopeOk(EMPTY_LIST_ENVELOPE), true);
   assert.equal(wire.isGlmResetCardEnvelopeOk({ code: 0, success: true }), true);
+  assert.equal(wire.isGlmResetCardListEnvelopeOk(EMPTY_LIST_ENVELOPE), true);
+  assert.equal(wire.isGlmResetCardListEnvelopeOk({ code: 200, success: true }), false);
+  assert.equal(wire.isGlmResetCardListEnvelopeOk({ code: 200, success: true, data: null }), false);
+  assert.equal(wire.isGlmResetCardListEnvelopeOk({ code: 200, success: true, data: {} }), false);
+  assert.equal(
+    wire.isGlmResetCardListEnvelopeOk(listEnvelopeWith({ fiveHourResets: undefined })),
+    false
+  );
 
   assert.equal(wire.getGlmResetCardEnvelopeStatus(missingAuth, 200), 401);
   assert.equal(wire.getGlmResetCardEnvelopeStatus(badToken, 200), 401);
@@ -230,6 +242,195 @@ test("consumeGlmResetCard redeems the listed card with z.ai's wire body, then re
   );
 });
 
+test("GLM reset-card list and redemption run inside the assigned proxy context", async () => {
+  const connection = (await createGlmConnection()) as { id: string };
+  const server = net.createServer((socket) => socket.destroy());
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  const address = server.address();
+  assert.ok(address && typeof address === "object");
+
+  await settingsDb.setProxyForLevel("key", connection.id, {
+    type: "http",
+    host: "127.0.0.1",
+    port: address.port,
+  });
+
+  const sources: string[] = [];
+  globalThis.fetch = async (url) => {
+    sources.push(proxyFetch.resolveProxyForRequest(String(url)).source);
+    const href = String(url);
+    if (href.includes("/customer-package-reset/list")) {
+      return json(listEnvelopeWith({ weekResets: [{ recordId: 124141 }] }));
+    }
+    if (href.includes("/customer-package-reset/use")) {
+      return json({ code: 200, success: true, data: 124141 });
+    }
+    if (href.includes("/monitor/usage/quota/limit")) {
+      return json({ code: 200, success: true, data: { limits: [] } });
+    }
+    return new Response("unexpected", { status: 500 });
+  };
+
+  try {
+    const listed = await glmResetCards.listGlmResetCards(connection.id);
+    assert.equal(listed.availableCount, 1);
+    await glmResetCards.consumeGlmResetCard(connection.id, "redeem-proxied", "124141");
+    assert.ok(sources.length >= 3);
+    assert.ok(sources.every((source) => source === "context"));
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});
+
+test("an unreachable assigned proxy blocks GLM reset-card requests before direct fallback", async () => {
+  const connection = (await createGlmConnection()) as { id: string };
+  const server = net.createServer();
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  const address = server.address();
+  assert.ok(address && typeof address === "object");
+  const deadPort = address.port;
+  await new Promise<void>((resolve) => server.close(() => resolve()));
+
+  await settingsDb.setProxyForLevel("key", connection.id, {
+    type: "http",
+    host: "127.0.0.1",
+    port: deadPort,
+  });
+
+  const sources: string[] = [];
+  globalThis.fetch = async (url) => {
+    sources.push(proxyFetch.resolveProxyForRequest(String(url)).source);
+    return new Promise<Response>(() => {});
+  };
+
+  await assert.rejects(
+    () => glmResetCards.listGlmResetCards(connection.id),
+    (error: unknown) => {
+      assert.ok(error instanceof glmResetCards.GlmResetCardError);
+      assert.equal(error.status, 503);
+      assert.equal(error.code, "proxy_unreachable");
+      assert.equal(error.message, "The connection proxy is unreachable.");
+      assert.doesNotMatch(error.message, /127\.0\.0\.1|:\d{2,5}/);
+      return true;
+    }
+  );
+  assert.deepEqual(sources, ["context"], "an unreachable proxy must never retry directly");
+});
+
+test("GLM reset-card requests remain direct when no proxy is configured", async () => {
+  const connection = (await createGlmConnection()) as { id: string };
+  let source: string | null = null;
+  globalThis.fetch = async (url) => {
+    source = proxyFetch.resolveProxyForRequest(String(url)).source;
+    return json(EMPTY_LIST_ENVELOPE);
+  };
+
+  await glmResetCards.listGlmResetCards(connection.id);
+  assert.equal(source, "direct");
+});
+
+test("an unproxied GLM connection does not inherit an ambient proxy context", async () => {
+  const connection = (await createGlmConnection()) as { id: string };
+  let source: string | null = null;
+  globalThis.fetch = async (url) => {
+    source = proxyFetch.resolveProxyForRequest(String(url)).source;
+    return json(EMPTY_LIST_ENVELOPE);
+  };
+
+  await proxyFetch.runWithProxyContext({ type: "vercel", host: "ambient-proxy.invalid" }, () =>
+    glmResetCards.listGlmResetCards(connection.id)
+  );
+
+  assert.equal(source, "direct");
+});
+
+test("consumeGlmResetCard atomically fences the connection while the wire operation is active", async () => {
+  const connection = (await createGlmConnection()) as { id: string };
+  let releaseList!: () => void;
+  let listStarted!: () => void;
+  const started = new Promise<void>((resolve) => {
+    listStarted = resolve;
+  });
+  const blockedList = new Promise<void>((resolve) => {
+    releaseList = resolve;
+  });
+
+  globalThis.fetch = async (url) => {
+    const href = String(url);
+    if (href.includes("/customer-package-reset/list")) {
+      listStarted();
+      await blockedList;
+      return json(listEnvelopeWith({ weekResets: [{ recordId: 124142 }] }));
+    }
+    if (href.includes("/customer-package-reset/use")) {
+      return json({ code: 200, success: true, data: 124142 });
+    }
+    if (href.includes("/monitor/usage/quota/limit")) {
+      return json({ code: 200, success: true, data: { limits: [] } });
+    }
+    return new Response("unexpected", { status: 500 });
+  };
+
+  const redemption = glmResetCards.consumeGlmResetCard(connection.id, "redeem-fenced");
+  await started;
+
+  const competingLease = leasesDb.acquireExclusiveConnectionLease({
+    leaseOwnerId: `vlo_${"a".repeat(43)}`,
+    apiKeyId: "test-competing-key",
+    provider: "glm",
+    connectionId: connection.id,
+  });
+  assert.equal(competingLease.kind, "CONNECTION_BUSY");
+
+  releaseList();
+  assert.equal((await redemption).outcome, "reset");
+});
+
+test("consumeGlmResetCard releases its operation lease after success and failure", async () => {
+  const connection = (await createGlmConnection()) as { id: string };
+  let failList = false;
+
+  globalThis.fetch = async (url) => {
+    const href = String(url);
+    if (href.includes("/customer-package-reset/list")) {
+      if (failList) throw new Error("list transport failed");
+      return json(listEnvelopeWith({ weekResets: [{ recordId: 124143 }] }));
+    }
+    if (href.includes("/customer-package-reset/use")) {
+      return json({ code: 200, success: true, data: 124143 });
+    }
+    if (href.includes("/monitor/usage/quota/limit")) {
+      return json({ code: 200, success: true, data: { limits: [] } });
+    }
+    return new Response("unexpected", { status: 500 });
+  };
+
+  await glmResetCards.consumeGlmResetCard(connection.id, "redeem-release-success");
+  failList = true;
+  await assert.rejects(() => glmResetCards.listGlmResetCards(connection.id));
+
+  const competingLease = leasesDb.acquireExclusiveConnectionLease({
+    leaseOwnerId: `vlo_${"b".repeat(43)}`,
+    apiKeyId: "test-after-operation",
+    provider: "glm",
+    connectionId: connection.id,
+  });
+  assert.equal(competingLease.kind, "ACQUIRED");
+  if (competingLease.kind === "ACQUIRED") {
+    leasesDb.releaseExclusiveConnectionLease({
+      leaseOwnerId: `vlo_${"b".repeat(43)}`,
+      generation: competingLease.lease.generation,
+      apiKeyId: "test-after-operation",
+    });
+  }
+});
+
 test("consumeGlmResetCard reports committed success when usage refresh fails", async () => {
   const connection = (await createGlmConnection()) as { id: string };
   let uses = 0;
@@ -284,6 +485,74 @@ test("consumeGlmResetCard coalesces concurrent requests with one idempotency key
   assert.deepEqual(second, first);
   assert.equal(lists, 1);
   assert.equal(uses, 1);
+});
+
+test("consumeGlmResetCard coalesces a duplicate that arrives after lease acquisition", async () => {
+  const connection = (await createGlmConnection()) as { id: string };
+  let releaseList!: () => void;
+  let listStarted!: () => void;
+  let lists = 0;
+  let uses = 0;
+  const started = new Promise<void>((resolve) => {
+    listStarted = resolve;
+  });
+  const blockedList = new Promise<void>((resolve) => {
+    releaseList = resolve;
+  });
+
+  globalThis.fetch = async (url) => {
+    const href = String(url);
+    if (href.includes("/customer-package-reset/list")) {
+      lists += 1;
+      listStarted();
+      await blockedList;
+      return json(listEnvelopeWith({ weekResets: [{ recordId: 124144 }] }));
+    }
+    if (href.includes("/customer-package-reset/use")) {
+      uses += 1;
+      return json({ code: 200, success: true, data: 124144 });
+    }
+    if (href.includes("/monitor/usage/quota/limit")) {
+      return json({ code: 200, success: true, data: { limits: [] } });
+    }
+    return new Response("unexpected", { status: 500 });
+  };
+
+  const first = glmResetCards.consumeGlmResetCard(connection.id, "redeem-late-duplicate");
+  await started;
+  const second = glmResetCards.consumeGlmResetCard(connection.id, "redeem-late-duplicate");
+  releaseList();
+
+  assert.deepEqual(await second, await first);
+  assert.equal(lists, 1);
+  assert.equal(uses, 1);
+});
+
+test("an unproxied redemption ignores an ambient proxy context", async () => {
+  const connection = (await createGlmConnection()) as { id: string };
+  const sources: string[] = [];
+
+  globalThis.fetch = async (url) => {
+    sources.push(proxyFetch.resolveProxyForRequest(String(url)).source);
+    const href = String(url);
+    if (href.includes("/customer-package-reset/list")) {
+      return json(listEnvelopeWith({ weekResets: [{ recordId: 124145 }] }));
+    }
+    if (href.includes("/customer-package-reset/use")) {
+      return json({ code: 200, success: true, data: 124145 });
+    }
+    if (href.includes("/monitor/usage/quota/limit")) {
+      return json({ code: 200, success: true, data: { limits: [] } });
+    }
+    return new Response("unexpected", { status: 500 });
+  };
+
+  await proxyFetch.runWithProxyContext({ type: "vercel", host: "ambient-proxy.invalid" }, () =>
+    glmResetCards.consumeGlmResetCard(connection.id, "redeem-direct-context")
+  );
+
+  assert.ok(sources.length >= 3);
+  assert.ok(sources.every((source) => source === "direct"));
 });
 
 test("consumeGlmResetCard retries an ambiguous use with the same card and request id", async () => {
@@ -409,6 +678,12 @@ test("fetchGlmResetCardCount distinguishes an authoritative zero from unknown", 
   globalThis.fetch = async () => {
     throw new Error("network down");
   };
+  assert.equal(await wire.fetchGlmResetCardCount("glm-test-key"), null);
+
+  // A truncated-but-JSON body must stay "unknown", never an authoritative zero.
+  globalThis.fetch = async () => json({ code: 200, success: true });
+  assert.equal(await wire.fetchGlmResetCardCount("glm-test-key"), null);
+  globalThis.fetch = async () => json({ code: 200, success: true, data: {} });
   assert.equal(await wire.fetchGlmResetCardCount("glm-test-key"), null);
 
   globalThis.fetch = async () => json({ code: 401, msg: "token expired or incorrect" });

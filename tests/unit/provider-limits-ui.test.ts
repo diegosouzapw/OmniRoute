@@ -7,6 +7,10 @@ const providerLimitUtils =
   await import("../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils.tsx");
 const providerConstants = await import("../../src/shared/constants/providers.ts");
 const settingsSchemas = await import("../../src/shared/validation/settingsSchemas.ts");
+const resetCreditModal =
+  await import("../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/CodexResetCreditsModal.tsx");
+const resetCreditRedemption =
+  await import("../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/useCodexResetCreditRedemption.ts");
 
 type ParsedQuota = {
   name?: string;
@@ -210,6 +214,69 @@ test("Codex banked reset credits parse as an integer reset-credit counter", () =
   assert.equal(resetCredits.isResetCredits, true);
   assert.equal(resetCredits.isCredits, undefined);
   assert.equal(resetCredits.creditCount, 2);
+});
+
+test("reset-credit modal uses provider-specific titles and confirmations", () => {
+  const tr = (_key: string, fallback: string) => fallback;
+  const upstreamTitle = { selectionToken: "card-1", title: "Bonus card" };
+
+  assert.equal(
+    resetCreditModal.getResetCreditWindowTitle("codex", upstreamTitle, tr),
+    "Bonus card"
+  );
+  assert.equal(
+    resetCreditModal.getResetCreditWindowTitle("glm", upstreamTitle, tr),
+    "5-hour window reset · Bonus card"
+  );
+  assert.equal(
+    resetCreditModal.getResetCreditWindowTitle("zai", { ...upstreamTitle, resetType: "WEEK" }, tr),
+    "Weekly window reset · Bonus card"
+  );
+  assert.match(
+    resetCreditModal.getResetCreditConfirmation("codex", undefined, tr),
+    /Codex usage windows/
+  );
+  assert.match(resetCreditModal.getResetCreditConfirmation("glm", "FIVE_HOUR", tr), /5-hour/);
+  assert.match(resetCreditModal.getResetCreditConfirmation("glm-cn", "WEEK", tr), /weekly/);
+});
+
+test("committed refresh fallback preserves usage windows and decrements only reset cards", () => {
+  const session = { name: "session", used: 50, total: 100 };
+  const entry = {
+    quotas: [
+      session,
+      {
+        name: "banked_reset_credits",
+        isResetCredits: true,
+        remaining: 2,
+        creditCount: 2,
+      },
+    ],
+    raw: { bankedResetCredits: 2, quotas: { session } },
+    plan: "pro",
+  };
+
+  const decremented = resetCreditRedemption.applyCommittedResetCreditFallback(entry);
+  assert.deepEqual(decremented.quotas, [
+    session,
+    {
+      name: "banked_reset_credits",
+      isResetCredits: true,
+      remaining: 1,
+      creditCount: 1,
+    },
+  ]);
+  assert.equal(decremented.raw.bankedResetCredits, 1);
+  assert.deepEqual(decremented.raw.quotas, entry.raw.quotas);
+  assert.equal(decremented.plan, "pro");
+
+  const exhausted = resetCreditRedemption.applyCommittedResetCreditFallback({
+    ...entry,
+    quotas: [{ isResetCredits: true, remaining: 1, creditCount: 1 }],
+    raw: { ...entry.raw, bankedResetCredits: 1 },
+  });
+  assert.deepEqual(exhausted.quotas, []);
+  assert.equal(exhausted.raw.bankedResetCredits, 0);
 });
 
 test("quota labels normalize session and weekly windows while preserving readable titles", () => {

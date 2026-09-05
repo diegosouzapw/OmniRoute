@@ -318,6 +318,112 @@ describe("getGlmUsage team quota parsing", () => {
   });
 });
 
+describe("getGlmUsage reset-card integration", () => {
+  const RESETTABLE_QUOTA_RESPONSE = {
+    code: 200,
+    success: true,
+    data: {
+      limits: [
+        { type: "TOKENS_LIMIT", unit: 3, number: 5, percentage: 10 },
+        { type: "TOKENS_LIMIT", unit: 6, number: 1, percentage: 20 },
+      ],
+      level: "pro",
+    },
+  };
+
+  it("adds the available reset-card count for resettable coding-plan windows", async () => {
+    const originalFetch = globalThis.fetch;
+    const requestedUrls: string[] = [];
+    globalThis.fetch = async (url) => {
+      const requestedUrl = String(url);
+      requestedUrls.push(requestedUrl);
+      if (requestedUrl.includes("customer-package-reset/list")) {
+        return new Response(
+          JSON.stringify({
+            code: 200,
+            success: true,
+            data: {
+              fiveHourResets: [{ recordId: 101 }],
+              weekResets: [{ recordId: 202 }],
+            },
+          }),
+          { status: 200 }
+        );
+      }
+      return new Response(JSON.stringify(RESETTABLE_QUOTA_RESPONSE), { status: 200 });
+    };
+
+    try {
+      const usage = await getGlmUsage("glm-key", { apiRegion: "international" });
+
+      assert.equal(usage.bankedResetCredits, 2);
+      assert.equal(requestedUrls.length, 2);
+      assert.match(requestedUrls[0], /api\/monitor\/usage\/quota\/limit/);
+      assert.match(requestedUrls[1], /customer-package-reset\/list/);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("keeps normal quota data and omits the card count when the auxiliary list fails", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (url) => {
+      if (String(url).includes("customer-package-reset/list")) {
+        throw new Error("auxiliary endpoint unavailable");
+      }
+      return new Response(JSON.stringify(RESETTABLE_QUOTA_RESPONSE), { status: 200 });
+    };
+
+    try {
+      const usage = await getGlmUsage("glm-key", { apiRegion: "international" });
+
+      assert.equal(usage.quotas.session.remainingPercentage, 90);
+      assert.equal(usage.quotas.weekly.remainingPercentage, 80);
+      assert.equal("bankedResetCredits" in usage, false);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("skips the auxiliary request and reports zero when no resettable window exists", async () => {
+    const originalFetch = globalThis.fetch;
+    const requestedUrls: string[] = [];
+    globalThis.fetch = async (url) => {
+      requestedUrls.push(String(url));
+      return new Response(
+        JSON.stringify({
+          code: 200,
+          success: true,
+          data: {
+            limits: [
+              {
+                type: "TIME_LIMIT",
+                unit: 5,
+                usage: 100,
+                currentValue: 25,
+                remaining: 75,
+                percentage: 25,
+              },
+            ],
+            level: "pro",
+          },
+        }),
+        { status: 200 }
+      );
+    };
+
+    try {
+      const usage = await getGlmUsage("glm-key", { apiRegion: "international" });
+
+      assert.equal(usage.bankedResetCredits, 0);
+      assert.equal(requestedUrls.length, 1);
+      assert.match(requestedUrls[0], /api\/monitor\/usage\/quota\/limit/);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+});
+
 describe("getGlmUsage CREDIT_LIMIT (coding-plan subscription keys)", () => {
   // Real-world response from https://api.z.ai/api/monitor/usage/quota/limit
   // for a GLM Coding Max subscription key (2026-08): limits use CREDIT_LIMIT

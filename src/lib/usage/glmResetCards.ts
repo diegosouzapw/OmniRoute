@@ -1,3 +1,9 @@
+import { randomBytes } from "node:crypto";
+
+import {
+  acquireExclusiveConnectionLease,
+  releaseExclusiveConnectionLease,
+} from "@/lib/db/exclusiveConnectionLeases";
 import { getProviderConnectionById } from "@/lib/db/providers";
 import { resolveProxyForConnection } from "@/lib/db/settings";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
@@ -7,12 +13,16 @@ import {
   getGlmResetCardEnvelopeMessage,
   getGlmResetCardEnvelopeStatus,
   isGlmResetCardEnvelopeOk,
+  isGlmResetCardListEnvelopeOk,
   parseGlmResetCards,
   redeemGlmResetCard,
   type GlmResetCard,
 } from "@omniroute/open-sse/services/usage/glmResetCards.ts";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
-import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import {
+  runWithDirectFetchContext,
+  runWithProxyContext,
+} from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -20,6 +30,78 @@ export const GLM_RESET_CARD_PROVIDERS = ["glm", "glm-cn", "glmt", "zai"] as cons
 
 const ATTEMPT_TTL_MS = 10 * 60_000;
 const MAX_ATTEMPTS = 500;
+
+// Short-lived synthetic operation lease: `exclusive_connection_leases` has no FK on
+// api_key_id, so a namespaced synthetic id is schema-legal. The partial unique index
+// on (connection_id) WHERE state = 'ACTIVE' gives an atomic fence around the wire
+// operations that no check-then-act availability probe can provide.
+const OPERATION_LEASE_TTL_MS = 60_000;
+const OPERATION_LEASE_API_KEY_ID = "omniroute:glm-reset-card-operation";
+const OPERATION_LEASE_OWNER_PREFIX = "vlo_";
+
+type ProxyLike = Parameters<typeof runWithProxyContext>[0];
+
+/** A connection with no proxy must go explicitly direct — passing null to
+ * runWithProxyContext would inherit an ambient context instead. */
+function runWithConnectionFetch<T>(proxy: ProxyLike, fn: () => T): T {
+  return proxy ? runWithProxyContext(proxy, fn) : runWithDirectFetchContext(fn);
+}
+
+/** Map transport-layer proxy failures to safe typed errors. Public messages are
+ * static: the underlying error text can embed proxy host:port topology. */
+function toSafeTransportError(error: unknown, fallback: GlmResetCardError): GlmResetCardError {
+  const err = error as { code?: unknown; errorCode?: unknown };
+  const code = typeof err?.code === "string" ? err.code : null;
+  const errorCode = typeof err?.errorCode === "string" ? err.errorCode : null;
+  if (code === "PROXY_UNREACHABLE" || errorCode === "proxy_unreachable") {
+    return new GlmResetCardError(503, "proxy_unreachable", "The connection proxy is unreachable.");
+  }
+  if (code === "PROXY_FAMILY_UNAVAILABLE" || errorCode === "proxy_family_unavailable") {
+    return new GlmResetCardError(
+      502,
+      "proxy_family_unavailable",
+      "No proxy is available for this request."
+    );
+  }
+  if (code === "PROXY_REQUEST_FAILED" || errorCode === "proxy_request_failed") {
+    return new GlmResetCardError(502, "proxy_request_failed", "The proxy request failed.");
+  }
+  if (code === "RELAY_TIMEOUT" || errorCode === "relay_timeout") {
+    return new GlmResetCardError(504, "relay_timeout", "The proxied request timed out.");
+  }
+  return fallback;
+}
+
+/** Atomically claim the connection for one list/use operation. */
+async function withOperationLease<T>(
+  connection: GlmConnectionLike,
+  operation: () => Promise<T>
+): Promise<T> {
+  const leaseOwnerId = OPERATION_LEASE_OWNER_PREFIX + randomBytes(32).toString("base64url");
+  const acquired = acquireExclusiveConnectionLease({
+    leaseOwnerId,
+    apiKeyId: OPERATION_LEASE_API_KEY_ID,
+    provider: connection.provider,
+    connectionId: connection.id,
+    ttlMs: OPERATION_LEASE_TTL_MS,
+  });
+  if (acquired.kind === "CONNECTION_BUSY" || acquired.kind === "OWNER_ALREADY_ACTIVE") {
+    throw new GlmResetCardError(
+      409,
+      "exclusive_lease_active",
+      "Reset-card operations are deferred while an exclusive lease is active."
+    );
+  }
+  try {
+    return await operation();
+  } finally {
+    releaseExclusiveConnectionLease({
+      leaseOwnerId,
+      generation: acquired.lease.generation,
+      apiKeyId: OPERATION_LEASE_API_KEY_ID,
+    });
+  }
+}
 
 type GlmConnectionLike = JsonRecord & {
   id: string;
@@ -124,8 +206,16 @@ async function loadGlmConnection(connectionId: string): Promise<GlmConnectionLik
   return connection;
 }
 
-function assertEnvelopeOk(payload: unknown, httpStatus: number, fallbackMessage: string): void {
-  if (isGlmResetCardEnvelopeOk(payload) && httpStatus < 400) return;
+function assertEnvelopeOk(
+  payload: unknown,
+  httpStatus: number,
+  fallbackMessage: string,
+  requireListData = false
+): void {
+  const envelopeOk = requireListData
+    ? isGlmResetCardListEnvelopeOk(payload)
+    : isGlmResetCardEnvelopeOk(payload);
+  if (envelopeOk && httpStatus < 400) return;
 
   const status = getGlmResetCardEnvelopeStatus(payload, httpStatus);
   if (status === 401 || status === 403) {
@@ -198,10 +288,12 @@ export async function listGlmResetCards(connectionId: string): Promise<GlmResetC
   try {
     const connection = await loadGlmConnection(connectionId);
     const proxyInfo = await resolveProxyForConnection(connection.id);
-    const { response, payload } = await runWithProxyContext(proxyInfo?.proxy ?? null, () =>
-      fetchGlmResetCardList(connection.apiKey as string, getProviderSpecificData(connection))
+    const { response, payload } = await withOperationLease(connection, () =>
+      runWithConnectionFetch(proxyInfo?.proxy ?? null, () =>
+        fetchGlmResetCardList(connection.apiKey as string, getProviderSpecificData(connection))
+      )
     );
-    assertEnvelopeOk(payload, response.status, "The GLM reset-card API returned an error.");
+    assertEnvelopeOk(payload, response.status, "The GLM reset-card API returned an error.", true);
 
     const parsed = parseGlmResetCards(payload);
     return {
@@ -212,10 +304,9 @@ export async function listGlmResetCards(connectionId: string): Promise<GlmResetC
     };
   } catch (error) {
     if (error instanceof GlmResetCardError) throw error;
-    throw new GlmResetCardError(
-      500,
-      "glm_reset_card_list_failed",
-      sanitizeErrorMessage(error) || "Failed to load GLM reset cards."
+    throw toSafeTransportError(
+      error,
+      new GlmResetCardError(500, "glm_reset_card_list_failed", "Failed to load GLM reset cards.")
     );
   }
 }
@@ -224,19 +315,20 @@ async function executeRedemption(
   attempt: RedemptionAttempt,
   connection: GlmConnectionLike,
   requestId: string,
-  proxyConfig: unknown
-): Promise<GlmResetCardConsumeResult> {
+  proxyConfig: ProxyLike
+): Promise<void> {
   const providerSpecificData = getProviderSpecificData(connection);
   const apiKey = connection.apiKey as string;
 
   if (!attempt.card) {
-    const listed = await runWithProxyContext(proxyConfig, () =>
+    const listed = await runWithConnectionFetch(proxyConfig, () =>
       fetchGlmResetCardList(apiKey, providerSpecificData)
     );
     assertEnvelopeOk(
       listed.payload,
       listed.response.status,
-      "The GLM reset-card API returned an error."
+      "The GLM reset-card API returned an error.",
+      true
     );
 
     const { cards } = parseGlmResetCards(listed.payload);
@@ -258,7 +350,7 @@ async function executeRedemption(
   // A transport rejection is ambiguous: z.ai may have committed the card before
   // the response was lost. Keep `attempt.card`, and the next call will retry the
   // exact same body/requestId without relisting.
-  const redeemed = await runWithProxyContext(proxyConfig, () =>
+  const redeemed = await runWithConnectionFetch(proxyConfig, () =>
     redeemGlmResetCard(apiKey, providerSpecificData, attempt.card as GlmResetCard, requestId)
   );
   assertEnvelopeOk(
@@ -266,8 +358,6 @@ async function executeRedemption(
     redeemed.response.status,
     "The GLM reset-card API rejected the redemption."
   );
-
-  return refreshAfterCommit(connection.id);
 }
 
 export async function consumeGlmResetCard(
@@ -286,10 +376,17 @@ export async function consumeGlmResetCard(
   const requestedSelection = normalizeSelection(selectionToken);
   const key = attemptKey(connectionId, requestId);
 
+  pruneAttempts();
+  const activeAttempt = redemptionAttempts.get(key);
+  if (activeAttempt?.inFlight) {
+    assertCompatibleAttempt(activeAttempt, requestedSelection);
+    activeAttempt.expiresAt = Date.now() + ATTEMPT_TTL_MS;
+    return activeAttempt.inFlight;
+  }
+
   try {
     const connection = await loadGlmConnection(connectionId);
     const proxyInfo = await resolveProxyForConnection(connection.id);
-    pruneAttempts();
 
     const existing = redemptionAttempts.get(key);
     if (existing) {
@@ -305,7 +402,14 @@ export async function consumeGlmResetCard(
     };
     redemptionAttempts.set(key, attempt);
 
-    const operation = executeRedemption(attempt, connection, requestId, proxyInfo?.proxy ?? null);
+    const operation = (async () => {
+      await withOperationLease(connection, () =>
+        executeRedemption(attempt, connection, requestId, proxyInfo?.proxy ?? null)
+      );
+      return runWithConnectionFetch(proxyInfo?.proxy ?? null, () =>
+        refreshAfterCommit(connection.id)
+      );
+    })();
     attempt.inFlight = operation;
 
     try {
@@ -314,10 +418,12 @@ export async function consumeGlmResetCard(
       attempt.expiresAt = Date.now() + ATTEMPT_TTL_MS;
       return result;
     } catch (error) {
-      // Keep only ambiguous transport failures after a card has been selected.
-      // Explicit upstream envelopes and local deterministic failures can safely
-      // start over and must never be replayed as success.
-      if (error instanceof GlmResetCardError || !attempt.card) {
+      // Keep ambiguous transport failures after a card has been selected. A lease
+      // conflict is also a retryable local deferral, so it must not discard the
+      // selected card/requestId binding from a previous ambiguous attempt.
+      const retryableLeaseConflict =
+        error instanceof GlmResetCardError && error.code === "exclusive_lease_active";
+      if ((error instanceof GlmResetCardError && !retryableLeaseConflict) || !attempt.card) {
         redemptionAttempts.delete(key);
       } else {
         attempt.expiresAt = Date.now() + ATTEMPT_TTL_MS;
@@ -328,10 +434,9 @@ export async function consumeGlmResetCard(
     }
   } catch (error) {
     if (error instanceof GlmResetCardError) throw error;
-    throw new GlmResetCardError(
-      500,
-      "glm_reset_card_failed",
-      sanitizeErrorMessage(error) || "Failed to redeem GLM reset card."
+    throw toSafeTransportError(
+      error,
+      new GlmResetCardError(500, "glm_reset_card_failed", "Failed to redeem GLM reset card.")
     );
   }
 }

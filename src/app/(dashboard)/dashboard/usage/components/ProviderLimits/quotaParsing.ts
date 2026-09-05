@@ -9,7 +9,7 @@ const CODEX_QUOTA_ORDER: Record<string, number> = {
   gpt_5_3_codex_spark_weekly: 3,
   banked_reset_credits: 4,
 };
-const GLM_FAMILY_PROVIDERS = ["glm", "glm-cn", "glmt", "opencode-go"];
+const GLM_FAMILY_PROVIDERS = ["glm", "glm-cn", "glmt", "zai", "opencode-go"];
 const KIMI_CODING_PROVIDERS = ["kimi-coding", "kimi-coding-apikey"];
 
 /**
@@ -444,7 +444,7 @@ export function isKiloPassDisplayRow(quota: any): boolean {
 
 function parseProviderQuotas(providerId: string, data: any) {
   if (providerId === "github") return parseGithub(data);
-  if (["glm", "glm-cn", "glmt", "opencode-go"].includes(providerId)) return parseGlmFamily(data);
+  if (GLM_FAMILY_PROVIDERS.includes(providerId)) return parseGlmFamily(data);
   if (providerId === "antigravity" || providerId === "agy") return parseAntigravity(data);
   if (providerId === "codex") return parseCodex(data);
   if (providerId === "claude") return parseClaude(data);

@@ -43,18 +43,28 @@ interface ResetCreditRequestState {
 
 // Module-level so the ref-store mutation stays outside any hook body — the
 // immutability rule bars in-callback writes to `state.idempotencyKeysRef.current`.
-function resetIdempotencyKeys(keys: React.MutableRefObject<Record<string, string>>): void {
-  keys.current = {};
+function resetIdempotencyKey(
+  keys: React.MutableRefObject<Record<string, string>>,
+  connectionId: string,
+  selectionToken: string
+): void {
+  delete keys.current[`${connectionId}:${selectionToken}`];
 }
 
 function ensureIdempotencyKey(
   keys: React.MutableRefObject<Record<string, string>>,
+  connectionId: string,
   selectionToken: string
 ): string {
-  const existing = keys.current[selectionToken];
+  const key = `${connectionId}:${selectionToken}`;
+  const existing = keys.current[key];
   if (existing) return existing;
+
+  for (const storedKey of Object.keys(keys.current)) {
+    if (storedKey.startsWith(`${connectionId}:`)) delete keys.current[storedKey];
+  }
   const created = createIdempotencyKey();
-  keys.current[selectionToken] = created;
+  keys.current[key] = created;
   return created;
 }
 
@@ -68,13 +78,31 @@ function getRequestErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
 }
 
+export function applyCommittedResetCreditFallback(entry: any): any {
+  if (!entry) return entry;
+  const quotas = Array.isArray(entry.quotas)
+    ? entry.quotas.flatMap((quota: any) => {
+        if (!quota?.isResetCredits) return [quota];
+        const count = Math.max(0, Number(quota.creditCount ?? quota.remaining ?? 0) - 1);
+        return count > 0 ? [{ ...quota, creditCount: count, remaining: count }] : [];
+      })
+    : entry.quotas;
+  const raw =
+    entry.raw && typeof entry.raw === "object"
+      ? {
+          ...entry.raw,
+          bankedResetCredits: Math.max(0, Number(entry.raw.bankedResetCredits ?? 0) - 1),
+        }
+      : entry.raw;
+  return { ...entry, quotas, raw };
+}
+
 function useOpenCodexResetCredits(
   loadingResetCreditsId: string | null,
   redeemingResetCreditId: string | null,
   setErrors: SetErrors,
   setLoadingResetCreditsId: React.Dispatch<React.SetStateAction<string | null>>,
   setResetCreditPicker: React.Dispatch<React.SetStateAction<ResetCreditPickerState | null>>,
-  idempotencyKeysRef: React.MutableRefObject<Record<string, string>>,
   tr: TranslateUsage
 ) {
   const notify = useNotificationStore();
@@ -89,13 +117,14 @@ function useOpenCodexResetCredits(
       setLoadingResetCreditsId(connectionId);
       setErrors((prev) => ({ ...prev, [connectionId]: null }));
       try {
+        const endpoint = getResetCreditEndpoint(provider);
+        if (!endpoint) return;
         const response = await fetch(
-          `${getResetCreditEndpoint(provider)}?connectionId=${encodeURIComponent(connectionId)}`,
+          `${endpoint}?connectionId=${encodeURIComponent(connectionId)}`,
           { cache: "no-store" }
         );
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || response.statusText);
-        idempotencyKeysRef.current = {};
         setResetCreditPicker({
           connectionId,
           provider,
@@ -116,7 +145,6 @@ function useOpenCodexResetCredits(
       }
     },
     [
-      idempotencyKeysRef,
       loadingResetCreditsId,
       notify,
       redeemingResetCreditId,
@@ -134,11 +162,17 @@ function useRedeemCodexResetCredit(state: ResetCreditRequestState) {
     async (selectionToken: string) => {
       const picker = state.resetCreditPicker;
       if (!picker || state.redeemingResetCreditId || !selectionToken) return;
-      const idempotencyKey = ensureIdempotencyKey(state.idempotencyKeysRef, selectionToken);
+      const idempotencyKey = ensureIdempotencyKey(
+        state.idempotencyKeysRef,
+        picker.connectionId,
+        selectionToken
+      );
       state.setRedeemingResetCreditId(picker.connectionId);
       state.setErrors((prev) => ({ ...prev, [picker.connectionId]: null }));
       try {
-        const response = await fetch(getResetCreditEndpoint(picker.provider), {
+        const endpoint = getResetCreditEndpoint(picker.provider);
+        if (!endpoint) return;
+        const response = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -149,23 +183,36 @@ function useRedeemCodexResetCredit(state: ResetCreditRequestState) {
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || response.statusText);
-        const usage = data.usage || {};
-        state.setQuotaData((prev) => ({
-          ...prev,
-          [picker.connectionId]: {
-            quotas: parseQuotaData(picker.provider, usage),
-            plan: usage.plan || null,
-            message: usage.message || null,
-            raw: usage,
-            stale: usage._stale ? { since: usage._staleSince, reason: usage._staleReason } : null,
-          },
-        }));
+        const refreshPending = data.refreshPending === true && !data.usage;
+        if (refreshPending) {
+          // The upstream redemption already committed but the post-commit quota
+          // refresh failed: keep the existing windows and only decrement the
+          // consumed reset-credit count so success is not reported as failure.
+          state.setQuotaData((prev) => {
+            const entry = prev[picker.connectionId];
+            return entry
+              ? { ...prev, [picker.connectionId]: applyCommittedResetCreditFallback(entry) }
+              : prev;
+          });
+        } else {
+          const usage = data.usage || {};
+          state.setQuotaData((prev) => ({
+            ...prev,
+            [picker.connectionId]: {
+              quotas: parseQuotaData(picker.provider, usage),
+              plan: usage.plan || null,
+              message: usage.message || null,
+              raw: usage,
+              stale: usage._stale ? { since: usage._staleSince, reason: usage._staleReason } : null,
+            },
+          }));
+        }
         state.setLastRefreshedAt((prev) => ({
           ...prev,
           [picker.connectionId]: new Date().toISOString(),
         }));
         state.setResetCreditPicker(null);
-        resetIdempotencyKeys(state.idempotencyKeysRef);
+        resetIdempotencyKey(state.idempotencyKeysRef, picker.connectionId, selectionToken);
         notify.success(state.tr("resetCreditRedeemed", "Reset redeemed"));
       } catch (error) {
         const message = getRequestErrorMessage(
@@ -199,7 +246,6 @@ export function useCodexResetCreditRedemption(
     setErrors,
     setLoadingResetCreditsId,
     setResetCreditPicker,
-    idempotencyKeysRef,
     tr
   );
   const redeemCodexResetCredit = useRedeemCodexResetCredit({

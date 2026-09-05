@@ -156,6 +156,16 @@ export function isGlmResetCardEnvelopeOk(payload: unknown): boolean {
   return record.code === 0 || record.code === 200;
 }
 
+/** A truncated successful list envelope must not become an authoritative empty card list. */
+export function isGlmResetCardListEnvelopeOk(payload: unknown): boolean {
+  if (!isGlmResetCardEnvelopeOk(payload)) return false;
+  const data = (payload as JsonRecord).data;
+  if (data === null || typeof data !== "object" || Array.isArray(data)) return false;
+  // Both reset buckets are always present as arrays in a complete list response.
+  // A `data: {}` truncation must fail closed instead of parsing as zero cards.
+  return GLM_RESET_CARD_BUCKETS.every((bucket) => Array.isArray((data as JsonRecord)[bucket.key]));
+}
+
 export function getGlmResetCardEnvelopeStatus(payload: unknown, httpStatus: number): number {
   const code = toNumber(toRecord(payload).code, 0);
   if (code === 401 || code === 403 || code === 404 || code === 429) return code;
@@ -226,7 +236,7 @@ export async function fetchGlmResetCardCount(
   if (!apiKey) return 0;
   try {
     const { response, payload } = await fetchGlmResetCardList(apiKey, providerSpecificData);
-    if (!response.ok || !isGlmResetCardEnvelopeOk(payload)) return null;
+    if (!response.ok || !isGlmResetCardListEnvelopeOk(payload)) return null;
     return parseGlmResetCards(payload).availableCount;
   } catch {
     return null;

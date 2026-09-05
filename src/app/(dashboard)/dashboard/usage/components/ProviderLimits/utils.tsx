@@ -343,9 +343,13 @@ export function computeCanEditCutoff(quotas: any[]): boolean {
  */
 export const RESET_CREDIT_PROVIDERS = ["codex", "glm", "glm-cn", "glmt", "zai"] as const;
 
-/** The redemption API backing a provider's reset credits. */
-export function getResetCreditEndpoint(provider: string): string {
-  return provider === "codex" ? "/api/usage/codex-reset-credit" : "/api/usage/glm-reset-card";
+/** The redemption API backing a provider's reset credits, if supported. */
+export function getResetCreditEndpoint(provider: string): string | null {
+  if (provider === "codex") return "/api/usage/codex-reset-credit";
+  if (["glm", "glm-cn", "glmt", "zai"].includes(provider)) {
+    return "/api/usage/glm-reset-card";
+  }
+  return null;
 }
 
 export function canProviderRedeemResetCredit(provider: string): boolean {
