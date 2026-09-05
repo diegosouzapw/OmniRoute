@@ -10,6 +10,7 @@ import {
 } from "./promptCacheAffinity.ts";
 import {
   orderTargetsByHeadroom,
+  orderTargetsByQuotaWeighted,
   orderTargetsByResetAwareQuota,
   orderTargetsByResetWindow,
 } from "./quotaStrategies.ts";
@@ -25,7 +26,8 @@ import type { ComboLike, ComboLogger, ResolvedComboTarget } from "./types.ts";
  *
  * `quotaShareRelease` carries the idempotent release for the in-flight slot that
  * quota-share ordering reserves for its winner (#11371). It is non-null only when
- * the `quota-share` strategy ran; every other strategy leaves it null. The caller
+ * the `quota-share` strategy ran; `quota-weighted` reserves later in
+ * resolveComboTargetPipeline (after stickiness) and leaves this null. The caller
  * MUST invoke it exactly once when the request settles — selection reserves the
  * slot, so dropping the callback leaks the counter monotonically upward and
  * degenerates P2C into "fewest lifetime dispatches".
@@ -238,6 +240,18 @@ export async function applyStrategyOrdering(
     log.info(
       "COMBO",
       `Headroom ordering: ${orderedTargets[0]?.modelStr}${orderedTargets[0]?.connectionId ? ` (${orderedTargets[0].connectionId})` : ""} has most free capacity`
+    );
+  } else if (strategy === "quota-weighted") {
+    orderedTargets = await orderTargetsByQuotaWeighted(
+      orderedTargets,
+      combo.name,
+      config,
+      log,
+      apiKeyAllowedConnections
+    );
+    log.info(
+      "COMBO",
+      `Quota-weighted ordering: ${orderedTargets[0]?.modelStr}${orderedTargets[0]?.connectionId ? ` (${orderedTargets[0].connectionId})` : ""} first`
     );
   } else if (strategy === "quota-share") {
     // Internal quota-share combos (qtSd/): delegate to the dedicated module (DRR +

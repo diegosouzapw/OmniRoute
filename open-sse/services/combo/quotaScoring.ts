@@ -313,6 +313,27 @@ function scoreQuotaWindow(
   return remainingWeight * normalizedRemaining + resetPressureWeight * resetPressure;
 }
 
+/**
+ * Fraction of each window still available, 0-1, with the same fallbacks the
+ * score uses: a missing window reads the snapshot-wide percentUsed, and a
+ * snapshot with no usable number at all reads as half spent.
+ *
+ * Shared by the score and the leftover percent on purpose. If the two ever
+ * resolved a window differently, an account could land in one pool while
+ * being ranked as if it belonged to another.
+ */
+function resolveWindowRemaining(quota: Record<string, unknown>) {
+  const overallPercentUsed = clamp01(finiteNumberOrNull(quota.percentUsed) ?? 0.5);
+  const sessionWindow = resolveQuotaWindowByName(quota, "session");
+  const weeklyWindow = resolveQuotaWindowByName(quota, "weekly");
+  return {
+    sessionWindow,
+    weeklyWindow,
+    sessionRemaining: clamp01(1 - (sessionWindow?.percentUsed ?? overallPercentUsed)),
+    weeklyRemaining: clamp01(1 - (weeklyWindow?.percentUsed ?? overallPercentUsed)),
+  };
+}
+
 export function scoreResetAwareQuota(
   quota: unknown,
   config: ReturnType<typeof resolveResetAwareConfig>
@@ -320,11 +341,8 @@ export function scoreResetAwareQuota(
   if (!quota || !isRecord(quota)) return { score: 0.5 };
   if (quota.limitReached === true) return { score: -Infinity };
 
-  const overallPercentUsed = clamp01(finiteNumberOrNull(quota.percentUsed) ?? 0.5);
-  const sessionWindow = resolveQuotaWindowByName(quota, "session");
-  const weeklyWindow = resolveQuotaWindowByName(quota, "weekly");
-  const sessionRemaining = clamp01(1 - (sessionWindow?.percentUsed ?? overallPercentUsed));
-  const weeklyRemaining = clamp01(1 - (weeklyWindow?.percentUsed ?? overallPercentUsed));
+  const { sessionWindow, weeklyWindow, sessionRemaining, weeklyRemaining } =
+    resolveWindowRemaining(quota);
   const sessionScore = scoreQuotaWindow(
     sessionRemaining,
     sessionWindow?.resetAt,
@@ -346,6 +364,13 @@ export function scoreResetAwareQuota(
   }
 
   return { score };
+}
+
+export function getResetAwareRemainingPercent(quota: unknown): number {
+  if (!quota || !isRecord(quota)) return 100;
+  if (quota.limitReached === true) return 0;
+  const { sessionRemaining, weeklyRemaining } = resolveWindowRemaining(quota);
+  return Number((Math.min(sessionRemaining, weeklyRemaining) * 100).toFixed(6));
 }
 
 /**

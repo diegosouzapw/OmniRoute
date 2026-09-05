@@ -226,6 +226,7 @@
       "tests/unit/combo/combo-exhausted-skip.test.ts",
       "tests/unit/combo/combo-target-timeout-standards.test.ts",
       "tests/unit/combo/effective-max-concurrency.test.ts",
+      "tests/unit/combo/quota-weighted-strategy.test.ts",
       "tests/unit/combo/recovery-hint.test.ts",
       "tests/unit/combo/reset-window-strategy-9330.test.ts",
       "tests/unit/complexity-aware-scoring-wiring.test.ts",

@@ -185,6 +185,11 @@ const STRATEGY_GUIDANCE_FALLBACK = {
     avoid: "Avoid when models have similar context lengths or simple tasks.",
     example: "Example: Distribute long conversations across models with large context windows.",
   },
+  "quota-weighted": {
+    when: "Use when several accounts of the same model have quota snapshots and concurrent traffic should land on accounts that still have leftover.",
+    avoid: "Avoid when most accounts have no quota snapshots.",
+    example: "Example: 10 Antigravity Gemini accounts with different 5h/weekly resets; skip empty ones and pick among the rest in proportion to leftover.",
+  },
 };
 
 const ADVANCED_FIELD_HELP_FALLBACK = {
@@ -391,6 +396,15 @@ const STRATEGY_RECOMMENDATIONS_FALLBACK = {
       "Best for long conversations that span multiple requests.",
       "Selects models with appropriate context capacity automatically.",
       "Use when context limits are a bottleneck for your workload.",
+    ],
+  },
+  "quota-weighted": {
+    title: "Quota-weighted account spread",
+    description: "Drops exhausted accounts, keeps a 1% soft floor, then picks the first target in proportion to leftover divided by in-flight load. Existing conversations stay pinned.",
+    tips: [
+      "Keep session stickiness on (the default). New conversations spread by leftover and in-flight load; an existing conversation stays on its account until that account is empty, then rebinds.",
+      "Needs per-account quota snapshots. Missing snapshots stay eligible but only at the reset-aware missing-quota score (0.5).",
+      "The 1% floor is a last-resort pool. An empty A pool still serves B instead of returning 404.",
     ],
   },
 };

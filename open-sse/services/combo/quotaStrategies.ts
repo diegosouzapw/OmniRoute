@@ -41,10 +41,13 @@ import {
   resolveResetWindowConfig,
   getResetAwareProvider,
   scoreResetAwareQuota,
+  getResetAwareRemainingPercent,
   getResetWindowRemainingMs,
   type QuotaFetchCacheConfig,
 } from "./quotaScoring.ts";
+import { secureRandomFloat, secureRandomInt } from "../../../src/shared/utils/secureRandom.ts";
 import { rankByHeadroom, type HeadroomSaturation } from "./headroomRanking.ts";
+import { getInflight } from "./quotaShareInflight.ts";
 import { preferAntigravityConnectionsWithStoredProject } from "../antigravityProjectPersist.ts";
 import { getQuotaFetchScope } from "../antigravityQuotaFamily.ts";
 import { isQuotaExhaustedForRequest } from "../../../src/domain/quotaCache.ts";
@@ -166,7 +169,7 @@ function getTargetConnectionIds(
 
 /**
  * Exported for the connection-aware expansion pipeline stage
- * (connectionAwareExpansion.ts) so all 20 combo strategies can share the
+ * (connectionAwareExpansion.ts) so quota-aware combo strategies can share the
  * A-group per-connection expander without duplicating its logic. The
  * function body is unchanged; only the visibility is widened.
  */
@@ -174,7 +177,8 @@ export async function expandTargetsByQuotaAwareConnections(
   targets: ResolvedComboTarget[],
   comboName: string,
   log: { warn?: (...args: unknown[]) => void },
-  apiKeyAllowedConnectionIds?: string[] | null
+  apiKeyAllowedConnectionIds?: string[] | null,
+  opts?: { skipExhaustionFilter?: boolean }
 ): Promise<{
   connectionById: Map<string, Record<string, unknown>>;
   expandedTargets: ResolvedComboTarget[];
@@ -228,7 +232,11 @@ export async function expandTargetsByQuotaAwareConnections(
       ) {
         continue;
       }
-      if (provider && isQuotaExhaustedForRequest(connectionId, provider, target.modelStr || null)) {
+      if (
+        !opts?.skipExhaustionFilter &&
+        provider &&
+        isQuotaExhaustedForRequest(connectionId, provider, target.modelStr || null)
+      ) {
         continue;
       }
       expandedTargets.push({
@@ -698,4 +706,122 @@ export async function orderTargetsByHeadroom(
     );
     return targets;
   }
+}
+
+type QuotaWeightedScored = {
+  target: ResolvedComboTarget;
+  index: number;
+  score: number;
+  remainingPercent: number;
+};
+
+/**
+ * Weighted draw over positive scores. `r` is in `[0, sum(w))`. First
+ * cumulative weight strictly greater than `r` wins (half-open). Zero or
+ * negative weights are skipped so `r === 0` cannot land on a zero-weight
+ * leading slot. Returns null when every weight is non-positive.
+ */
+export function pickWeightedIndex(weights: number[], r: number): number | null {
+  const positive: Array<{ i: number; w: number }> = [];
+  let sum = 0;
+  for (let i = 0; i < weights.length; i++) {
+    const w = weights[i];
+    if (w > 0) {
+      positive.push({ i, w });
+      sum += w;
+    }
+  }
+  if (positive.length === 0 || sum === 0) return null;
+  let acc = 0;
+  for (const item of positive) {
+    acc += item.w;
+    if (acc > r) return item.i;
+  }
+  return positive[positive.length - 1].i;
+}
+
+function sortByScoreThenIndex(a: QuotaWeightedScored, b: QuotaWeightedScored): number {
+  if (b.score !== a.score) return b.score - a.score;
+  return a.index - b.index;
+}
+
+function resolveQuotaWeightedFloor(configSource: Record<string, unknown> | null | undefined): number {
+  // Number(null) and Number("") are both 0, so an unset or blank key would
+  // switch the floor off instead of taking the default. Only a value that is
+  // actually a number, or a non-empty numeric string, gets to move it.
+  const configured = configSource?.quotaWeightedFloorPercent;
+  const raw =
+    typeof configured === "number" ||
+    (typeof configured === "string" && configured.trim() !== "")
+      ? Number(configured)
+      : Number.NaN;
+  return Number.isFinite(raw) ? Math.max(0, Math.min(100, raw)) : 1;
+}
+
+export async function orderTargetsByQuotaWeighted(
+  targets: ResolvedComboTarget[],
+  comboName: string,
+  configSource: Record<string, unknown> | null | undefined,
+  log: { warn?: (...args: unknown[]) => void },
+  apiKeyAllowedConnectionIds?: string[] | null
+): Promise<ResolvedComboTarget[]> {
+  if (targets.length === 0) return targets;
+
+  const config = resolveResetAwareConfig(configSource);
+  const { connectionById, expandedTargets } = await expandTargetsByQuotaAwareConnections(
+    targets,
+    comboName,
+    log,
+    apiKeyAllowedConnectionIds,
+    { skipExhaustionFilter: true }
+  );
+
+  const liveTargets = expandedTargets.filter((target) => {
+    const state = getCircuitBreaker(target.provider).getStatus().state;
+    return state !== "OPEN";
+  });
+
+  const scoredTargets = await scoreQuotaAwareTargets({
+    comboName,
+    config,
+    connectionById,
+    expandedTargets: liveTargets,
+    log,
+    scoreQuota: (quota) => ({
+      score: scoreResetAwareQuota(quota, config).score,
+      remainingPercent: getResetAwareRemainingPercent(quota),
+    }),
+  });
+
+  const eligible = scoredTargets.filter((entry) => entry.remainingPercent > 0);
+  const floor = resolveQuotaWeightedFloor(configSource);
+  const poolA =
+    floor === 0 ? eligible : eligible.filter((entry) => entry.remainingPercent > floor);
+  const poolB =
+    floor === 0 ? [] : eligible.filter((entry) => entry.remainingPercent > 0 && entry.remainingPercent <= floor);
+  const selected = poolA.length > 0 ? poolA : poolB;
+  if (selected.length === 0) return [];
+
+  const weights = selected.map((entry) => {
+    const load = getInflight(entry.target.connectionId ?? "");
+    return Math.max(0, entry.score) / (1 + load);
+  });
+  const sum = weights.reduce((acc, w) => acc + w, 0);
+  let pickIndex: number | null = null;
+  if (sum > 0) {
+    pickIndex = pickWeightedIndex(weights, secureRandomFloat() * sum);
+  }
+  if (pickIndex === null) {
+    pickIndex = secureRandomInt(selected.length);
+  }
+
+  const winner = selected[pickIndex];
+  const unusedSelected = selected
+    .filter((_, i) => i !== pickIndex)
+    .slice()
+    .sort(sortByScoreThenIndex);
+  const fromA = poolA.length > 0;
+  const unusedB = fromA ? poolB.slice().sort(sortByScoreThenIndex) : [];
+
+  return [winner, ...unusedSelected, ...unusedB].map((entry) => entry.target);
 }
