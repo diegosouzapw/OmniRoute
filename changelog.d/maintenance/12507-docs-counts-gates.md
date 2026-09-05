@@ -1,0 +1,1 @@
+- **docs(checks):** keep doc counts honest — headings, rankings, catalog, weights, quality gate and scoring diagram now covered ([#12507](https://github.com/diegosouzapw/OmniRoute/pull/12507))
