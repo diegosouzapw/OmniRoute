@@ -15,7 +15,11 @@
 
 import { getModelContextLimit } from "../../../src/lib/modelCapabilities";
 import { getHiddenModelsByProvider } from "../../../src/lib/db/models";
-import { getComboModelString, normalizeComboStep } from "../../../src/lib/combos/steps.ts";
+import {
+  getComboModelString,
+  implicitPinAllowlist,
+  normalizeComboStep,
+} from "../../../src/lib/combos/steps.ts";
 import { getProviderByAlias, getProviderById } from "../../../src/shared/constants/providers.ts";
 import { estimateTokens } from "../contextManager.ts";
 import { containsMediaKind } from "../../utils/mediaParts.ts";
@@ -121,6 +125,9 @@ function normalizeRuntimeStep(
   const modelStr = getComboModelString(step);
   if (!modelStr) return null;
 
+  const connectionId = toTrimmedString(step.connectionId);
+  const allowedConnectionIds = implicitPinAllowlist(connectionId, step.allowedConnectionIds);
+
   return {
     kind: "model",
     stepId: step.id,
@@ -128,13 +135,13 @@ function normalizeRuntimeStep(
     modelStr,
     provider: getTargetProvider(modelStr, step.providerId),
     providerId: step.providerId || null,
-    connectionId: step.connectionId || null,
+    connectionId,
     // #3266: a per-step account allowlist scopes round-robin/weighted selection
     // to a subset of the provider's connections. This is the second writer of
     // `allowedConnectionIds` (tag routing is the first); both feed the existing
     // credential-selection filter in auth.ts.
-    ...(Array.isArray(step.allowedConnectionIds) && step.allowedConnectionIds.length > 0
-      ? { allowedConnectionIds: step.allowedConnectionIds }
+    ...(allowedConnectionIds && allowedConnectionIds.length > 0
+      ? { allowedConnectionIds }
       : {}),
     weight,
     label,

@@ -1,4 +1,5 @@
 {
+  "_rebaseline_2026_09_04_12697_combo_pin_allowlist": "PR #12697 own growth: src/sse/handlers/chat.ts 2454->2458 (+4). checkModelAvailable preflight and handleSingleModelChat now call comboPinAllowlist so a pin-only combo step cannot scan the provider pool after 502/429. Helper lives in src/lib/combos/steps.ts under cap. Covered by tests/unit/combo-pin-implicit-allowlist.test.ts (11/11).",
   "_rebaseline_2026_09_03_reset_aware_model_family": "Own growth: open-sse/services/combo.ts 4036->4041 (+5). buildAutoCandidates now keys the reset-aware quota cache by getQuotaFetchScope and spreads requestedModel onto the connection so Gemini windows stay off a Claude-empty Antigravity account. Irreducible wiring at the existing fetchResetAwareQuotaWithCache call site; the family helper itself lives in antigravityQuotaFamily.ts. Covered by tests/unit/reset-aware-request-scope-12600.test.ts.",
   "_rebaseline_2026_09_03_overloaded_not_provider_breaker": "fix/overloaded-not-provider-breaker own growth: open-sse/services/combo.ts 4036->4075 (check-file-size split-newline, +39). Circuit-open pre-skip now records the breaker retryAfter and, when every target was skipped that way, waits the short reset via resolveCircuitOpenWaitDecision (new leaf in comboCooldownRetry.ts) instead of crystallizing ALL_TARGETS_SKIPPED in ~43ms. skippedForCircuitOpen / earliestCircuitOpenRetryMs reset each setTry so a later iteration cannot inherit a stale retryAfter. Irreducible at the existing ALL_TARGETS_SKIPPED chokepoint (same pattern as #7301/#8213 cooldown-wait). Predicate itself lives in circuitBreaker.ts / comboPredicates.ts / chatPredicates.ts, all under cap. Covered by tests/unit/overloaded-not-provider-breaker.test.ts + combo-cooldown-retry.test.ts.",
   "_rebaseline_2026_09_03_12649_free_tier_reaudit_gateways": "PR #12649 (fix/free-tier-quota-reaudit) own growth: src/shared/constants/providers/apikey/gateways.ts 1459->1462 (+3 = the nara authHint rewritten for the re-audited 7M/day plan now wraps to two lines, plus the Prettier reflow of two pre-existing >100-col authHint lines (oneminai, freebuff) that lint-staged enforces on any touch of the file; additive text at the existing registry chokepoint, same god-file no-split rationale as prior gateways.ts rebaselines: #11786 seekai, #10987 logfare, #10531 freebuff). Covered by tests/unit/free-tier-reaudit-2026-09.test.ts and tests/unit/free-providers-batch-2026-07.test.ts.",
@@ -457,7 +458,7 @@
     "src/shared/components/RequestLoggerV2.tsx": 1718,
     "src/shared/constants/providers/apikey/gateways.ts": 1462,
     "src/shared/services/cliRuntime.ts": 1296,
-    "src/sse/handlers/chat.ts": 2454,
+    "src/sse/handlers/chat.ts": 2458,
     "src/sse/services/auth.ts": 3450,
     "tests/unit/account-fallback-service.test.ts": 2453,
     "tests/unit/provider-validation-specialty.test.ts": 4656

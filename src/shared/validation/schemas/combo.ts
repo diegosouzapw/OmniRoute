@@ -29,6 +29,7 @@ export const comboModelStepInputSchema = z.object({
   providerId: z.string().trim().min(1).max(120).optional(),
   model: z.string().trim().min(1).max(300),
   connectionId: z.string().trim().min(1).max(200).nullable().optional(),
+  allowedConnectionIds: z.array(z.string().trim().min(1).max(200)).max(50).optional(),
   tags: z.array(z.string().trim().min(1).max(100)).max(20).optional(),
   // Pipeline strategy (open-sse/services/pipeline.ts): an optional per-step
   // instruction. Steps run in `models` order — each step's output feeds the next

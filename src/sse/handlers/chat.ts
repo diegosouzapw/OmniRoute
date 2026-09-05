@@ -44,6 +44,7 @@ import { isVerifiedNativeCodexRequest } from "@omniroute/open-sse/config/codexId
 import { resolveCompressionSettings } from "@omniroute/open-sse/handlers/chatCore/compressionSettings.ts";
 import type { CompressionExclusions } from "@omniroute/open-sse/services/compression/exclusions.ts";
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
+import { comboPinAllowlist } from "@/lib/combos/steps.ts";
 import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
 import {
   HTTP_STATUS,
@@ -175,7 +176,10 @@ import { registerBailianCodingPlanQuotaFetcher } from "@omniroute/open-sse/servi
 import { registerQwenTokenPlanQuotaFetcher } from "@omniroute/open-sse/services/qwenTokenPlanQuotaFetcher.ts";
 import { registerCrofUsageFetcher } from "@omniroute/open-sse/services/crofUsageFetcher.ts";
 import { registerDeepseekQuotaFetcher } from "@omniroute/open-sse/services/deepseekQuotaFetcher.ts";
-import { registerMoonshotQuotaFetcher, registerMoonshotFetchersForNodes } from "@omniroute/open-sse/services/moonshotQuotaFetcher.ts";
+import {
+  registerMoonshotQuotaFetcher,
+  registerMoonshotFetchersForNodes,
+} from "@omniroute/open-sse/services/moonshotQuotaFetcher.ts";
 import { registerOpenrouterQuotaFetcher } from "@omniroute/open-sse/services/openrouterQuotaFetcher.ts";
 import { registerOpencodeQuotaFetcher } from "@omniroute/open-sse/services/opencodeQuotaFetcher.ts";
 import { registerGrokWebQuotaFetcher } from "@omniroute/open-sse/services/grokQuotaFetcher.ts";
@@ -232,7 +236,7 @@ void import("@/lib/db/providers")
         id: typeof node.id === "string" ? node.id : null,
         prefix: typeof node.prefix === "string" ? node.prefix : null,
         baseUrl: typeof node.baseUrl === "string" ? node.baseUrl : null,
-      })),
+      }))
     );
   })
   .catch((error) => {
@@ -1041,11 +1045,9 @@ async function handleChatImplementation(
       const resolvedModel = modelInfo.model || modelString;
       const githubGate = await ghComboGate(comboPreselectedCredentials, provider, resolvedModel);
       if (githubGate !== null) return githubGate;
-      const hasForcedConnection =
-        typeof target?.connectionId === "string" && target.connectionId.trim().length > 0;
       let allowedConnections = intersectAllowedConnectionIds(
         apiKeyInfo?.allowedConnections ?? null,
-        target?.allowedConnectionIds ?? null
+        comboPinAllowlist(true, target?.connectionId ?? null, target?.allowedConnectionIds ?? null)
       );
 
       // A4: quota-exclusive keys must only use the pool's connection(s).
@@ -1518,12 +1520,14 @@ async function handleSingleModelChat(
   })();
   const forceLiveComboTest = runtimeOptions.forceLiveComboTest === true;
   const bypassProviderQuotaPolicy = hasProviderQuotaBypassScope(apiKeyInfo?.scopes);
-  const hasForcedConnection =
-    typeof runtimeOptions.forcedConnectionId === "string" &&
-    runtimeOptions.forcedConnectionId.trim().length > 0;
+  const forcedConnectionId =
+    typeof runtimeOptions.forcedConnectionId === "string"
+      ? runtimeOptions.forcedConnectionId.trim()
+      : "";
+  const hasForcedConnection = forcedConnectionId.length > 0;
   let effectiveAllowedConnections = intersectAllowedConnectionIds(
     apiKeyInfo?.allowedConnections ?? null,
-    runtimeOptions.allowedConnectionIds ?? null
+    comboPinAllowlist(isCombo, forcedConnectionId || null, runtimeOptions.allowedConnectionIds)
   );
 
   // A4: quota-exclusive keys must only use the pool's connection(s).
@@ -1678,7 +1682,7 @@ async function handleSingleModelChat(
                   : {}),
                 ...(() => {
                   const effectiveForcedId = resolveForcedConnectionForCredentialPool({
-                    forcedConnectionId: runtimeOptions.forcedConnectionId ?? null,
+                    forcedConnectionId: forcedConnectionId || null,
                     excludedConnectionIds,
                     connections: [],
                     allowRateLimitedConnections:
