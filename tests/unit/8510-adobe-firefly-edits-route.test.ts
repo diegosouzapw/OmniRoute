@@ -13,6 +13,12 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-adobe-firefly-edits-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "adobe-firefly-edits-test-secret";
+// The route path cannot thread ensureAdobeFireflySession's allowBrowserRefresh:false seam,
+// and browser Forter-warm is the DEFAULT engine — without this kill switch the route's
+// session-resolve step launches a real headless Chrome at firefly.adobe.com (two live CDP
+// launches + ~3 min of network waits per suite run; both observed in CI logs).
+const PREV_BROWSER_REFRESH = process.env.ADOBE_FIREFLY_BROWSER_REFRESH;
+process.env.ADOBE_FIREFLY_BROWSER_REFRESH = "0";
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
@@ -85,6 +91,8 @@ test.after(() => {
   apiKeysDb.resetApiKeyState();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  if (PREV_BROWSER_REFRESH === undefined) delete process.env.ADOBE_FIREFLY_BROWSER_REFRESH;
+  else process.env.ADOBE_FIREFLY_BROWSER_REFRESH = PREV_BROWSER_REFRESH;
 });
 
 test("#8510 v1 image edit POST uploads Adobe Firefly reference images and dispatches referenceBlobs", async () => {
