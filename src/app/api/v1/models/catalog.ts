@@ -122,7 +122,8 @@ import {
 } from "./catalogRequest";
 import { incrementCcDiscoveryHitCount } from "@/lib/db/ccDiscoveryMetrics";
 import { isUnifiedChatSourceModelSelectable } from "./catalogModelPolicy";
-import { isFreeModel } from "@/shared/utils/freeModels";
+import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
+import { resolveProviderId } from "@/shared/constants/providers";
 import { isModelExposureAllowed } from "@/shared/utils/modelExposureList";
 import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryPolicy";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
@@ -166,6 +167,44 @@ export type { CachedCatalog, BackgroundRefreshScheduler } from "./catalogCache";
 export type CatalogResponseOptions = {
   scheduleBackgroundRefresh?: BackgroundRefreshScheduler;
 };
+
+/**
+ * Pure paid-visibility predicate shared with the `auto/*` pool filter
+ * (`open-sse/services/autoCombo/paidModelFilter.ts`): a model stays visible
+ * when its provider documents free models AND the model itself qualifies as
+ * free — otherwise `hidePaidModels` hides it.
+ */
+export function decideHidePaid(
+  hidePaid: boolean,
+  providerKey: string,
+  modelId: string,
+  pricing?: unknown,
+  isFree?: boolean,
+  aliasMap?: Record<string, string>
+): boolean {
+  if (!hidePaid) return false;
+  const canonical = aliasMap?.[providerKey] || providerKey;
+  let resolved = canonical;
+  try {
+    resolved = resolveProviderId(canonical);
+  } catch {
+    resolved = canonical;
+  }
+  const freeProvider = providerHasFreeModels(resolved) || providerHasFreeModels(canonical);
+  if (
+    freeProvider &&
+    isFreeModel(resolved, { id: modelId, pricing: pricing as never, isFree } as never)
+  ) {
+    return false;
+  }
+  if (
+    freeProvider &&
+    isFreeModel(canonical, { id: modelId, pricing: pricing as never, isFree } as never)
+  ) {
+    return false;
+  }
+  return true;
+}
 
 const BUILTIN_AUTO_YIELD_INTERVAL = 2;
 
@@ -347,16 +386,8 @@ async function buildUnifiedModelsResponseCore(
       modelId: string,
       pricing?: unknown,
       isFree?: boolean
-    ): boolean => {
-      if (!hidePaid) return false;
-      const provider = aliasToProviderId[providerKey] || providerKey;
-      // isFree:true is the first door — custom row kept even when its provider is outside FREE_MODEL_BUDGETS.
-      if (isFreeModel(provider, { id: modelId, pricing: pricing as any, isFree })) return false;
-      // hidePaid is on and model is non-free → hidden. No need to consult FREE_MODEL_BUDGETS
-      // separately: paid on a free-capable provider stays hidden, free on a non-budget provider
-      // already returned above.
-      return true;
-    };
+    ): boolean =>
+      decideHidePaid(hidePaid, providerKey, modelId, pricing, isFree, aliasToProviderId);
     // #11481: opt-in explicit model exposure allow/deny list — same call sites
     // as shouldHidePaid above (mirrored into the auto/* combo candidate pool
     // via open-sse/services/autoCombo/modelExposureFilter.ts, per #6512's

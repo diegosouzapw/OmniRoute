@@ -61,6 +61,12 @@ export interface ComboHealthMetrics {
       remainingPct: number;
       isExhausted: boolean;
       trend: "improving" | "stable" | "declining";
+      dropReason?:
+        | import("../../../open-sse/services/autoCombo/strictZeroCostFilter").StrictZeroCostExclusionReason
+        | "hidePaidModels"
+        | "modelLockout"
+        | "no-snapshot"
+        | null;
     }>;
     worstRemainingPct: number;
   };

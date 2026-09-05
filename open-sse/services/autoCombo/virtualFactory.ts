@@ -30,7 +30,9 @@ import type { AutoVariant } from "./autoPrefix";
 import { buildFamilyCandidateFilter, type ModelFamily } from "./modelFamily";
 import { getHiddenModelsByProvider } from "@/models";
 import { getSyncedAvailableModelsByConnection, getCustomModels } from "@/lib/db/models";
-import { filterPaidOnlyCandidates } from "./paidModelFilter";
+import { filterPaidOnlyCandidatesWithDiagnosis } from "./paidModelFilter";
+import { filterLockoutCandidates } from "./modelLockoutFilter";
+import { isModelLocked } from "../accountFallback";
 import { filterModelExposureCandidates } from "./modelExposureFilter";
 import {
   filterSubscriptionOnlyCandidates,
@@ -749,8 +751,27 @@ export async function prepareVirtualAutoComboInputs(
 
     // #6512 (follow-up to #6328/#6495): when the operator opts into `hidePaidModels`,
     // exclude paid-only backends from EVERY `auto/*` candidate pool.
-    const paidFilteredPool = filterPaidOnlyCandidates(pool, settings.hidePaidModels === true);
+    const { pool: paidFilteredPool, diagnosis: paidDiagnosis } =
+      filterPaidOnlyCandidatesWithDiagnosis(pool, settings.hidePaidModels === true);
+    if (paidDiagnosis && paidDiagnosis.excludedPaid > 0) {
+      log.warn(
+        "AUTO",
+        `hidePaidModels excluded ${paidDiagnosis.excludedPaid}/${paidDiagnosis.total}`
+      );
+    }
     if (paidFilteredPool !== pool) pool = paidFilteredPool;
+
+    // Model lockout (provider + connection + model): drop candidates locked on
+    // every usable connection, rewrite `allowedConnectionIds` to the unlocked
+    // subset otherwise — same subset rewrite the STRICT filter applies below.
+    const lockoutResult = filterLockoutCandidates(pool, { isModelLocked });
+    if (lockoutResult.diagnosis && lockoutResult.diagnosis.excludedLockout > 0) {
+      log.warn(
+        "AUTO",
+        `lockout excluded ${lockoutResult.diagnosis.excludedLockout}/${lockoutResult.diagnosis.total}`
+      );
+    }
+    if (lockoutResult.pool !== pool) pool = lockoutResult.pool;
 
     // #11481: mandatory mirror of the /v1/models exposure allow/deny list —
     // see src/shared/utils/modelExposureList.ts for why (#6512's lesson).
@@ -780,7 +801,35 @@ export async function prepareVirtualAutoComboInputs(
       resolveFreeAccessState,
       ...strictZeroCostThresholds,
     });
-    if (strictFilteredPool !== pool) pool = strictFilteredPool;
+    if (strictFilteredPool !== pool) {
+      const keptIds = new Set(
+        strictFilteredPool.map(
+          (candidate) =>
+            `${candidate.provider}/${candidate.model}/${candidate.connectionId ?? (candidate.allowedConnectionIds ?? []).join("+")}`
+        )
+      );
+      let excluded = 0;
+      let noHardStop = 0;
+      for (const candidate of pool) {
+        const id = `${candidate.provider}/${candidate.model}/${candidate.connectionId ?? (candidate.allowedConnectionIds ?? []).join("+")}`;
+        if (keptIds.has(id)) continue;
+        excluded++;
+        if (
+          classifyStrictZeroCostCandidate(
+            candidate,
+            findBudgetEntry(candidate),
+            resolveFreeAccessState,
+            strictZeroCostThresholds
+          ).outcome === "no-hard-stop"
+        ) {
+          noHardStop++;
+        }
+      }
+      if (excluded > 0) {
+        log.warn("AUTO", `STRICT excluded ${excluded}/${pool.length} (no-hard-stop ${noHardStop})`);
+      }
+      pool = strictFilteredPool;
+    }
 
     // Annotate here rather than in the handler: this is where the thresholds and
     // `resolveFreeAccessState` already live. Doing it downstream would mean a second
