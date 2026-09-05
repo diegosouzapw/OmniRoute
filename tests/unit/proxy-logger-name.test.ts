@@ -47,9 +47,9 @@ test("registry name survives SQLite persist + hydrate", () => {
     proxy: { type: "http", host: "gw-eu.murphyproxies.com", port: 7777, name: "murphy-eu-de" },
   });
 
-  // Force a fresh hydrate from the DB (clear in-memory, re-import module state
-  // by re-running loadFromDb through a fresh module instance is heavy; instead
-  // close + reopen the DB and read what was persisted).
+  // logProxyEvent() enqueues writes on the batched persistence path; force the
+  // flush to SQLite before inspecting the raw row.
+  proxyLogger.flushProxyLogsSync();
   core.closeDbInstance();
   const db = core.getDbInstance();
   const rows = db.prepare("SELECT proxy_name, proxy_host FROM proxy_logs").all();
