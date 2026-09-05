@@ -247,7 +247,7 @@ async function evaluatePinnedResponse(args: {
     return null;
   }
   const pinnedStatus = pinnedResult.status || 500;
-  if (![408, 429, 500, 502, 503, 504].includes(pinnedStatus)) {
+  if (![401, 408, 429, 500, 502, 503, 504].includes(pinnedStatus)) {
     return pinnedResult;
   }
   log.warn(
