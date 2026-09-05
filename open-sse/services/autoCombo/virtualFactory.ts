@@ -26,6 +26,8 @@ import {
   type AutoTier,
 } from "./suffixComposition";
 import { classifyTier } from "../tierResolver";
+import { getQualityScore } from "../routing/quality.ts";
+import { readBreakerStates, snapshotHealthFactor, type BreakerState } from "./snapshotBreaker.ts";
 import type { AutoVariant } from "./autoPrefix";
 import { buildFamilyCandidateFilter, type ModelFamily } from "./modelFamily";
 import { getHiddenModelsByProvider } from "@/models";
@@ -111,6 +113,8 @@ export interface VirtualAutoComboCandidate {
   resolvedSupportsVision?: boolean;
   resolvedReasoning?: boolean;
   resolvedSupportsThinking?: boolean;
+  /** Observed feedback quality 0..1 (the same signal as ProviderCandidate.quality). */
+  quality?: number | null;
   /**
    * Why STRICT_ZERO_COST would exclude this candidate, or null when it would
    * not. Only populated for the read-only inspector build (`skip`), where the
@@ -544,7 +548,7 @@ function yieldVirtualAutoPreparationTurn(): Promise<void> {
   return new Promise((resolve) => setImmediate(resolve));
 }
 
-async function attachPreparedCapabilityValues(
+export async function attachPreparedCapabilityValues(
   candidates: readonly VirtualAutoComboCandidate[],
   state: PreparedCapabilityState
 ): Promise<VirtualAutoComboCandidate[]> {
@@ -591,7 +595,11 @@ async function attachPreparedCapabilityValues(
         await yieldVirtualAutoPreparationTurn();
       }
     }
-    prepared.push({ ...candidate, ...values });
+    prepared.push({
+      ...candidate,
+      ...values,
+      quality: getQualityScore(candidate.provider, candidate.model),
+    });
   }
   return prepared;
 }
@@ -846,7 +854,8 @@ export async function prepareVirtualAutoComboInputs(
  */
 export function computeSnapshotWeights(
   candidates: readonly VirtualAutoComboCandidate[],
-  weights: ScoringWeights
+  weights: ScoringWeights,
+  breakerByProvider?: ReadonlyMap<string, BreakerState>
 ): Map<string, number> {
   const scores = new Map<string, number>();
   for (const c of candidates) {
@@ -884,8 +893,10 @@ export function computeSnapshotWeights(
     // (no runtime data at snapshot time, so equal baseline)
     if (weights.latencyInv > 0) score += weights.latencyInv * 0.5;
 
-    // health + quota: no runtime telemetry at snapshot time → neutral baseline
-    score += (weights.health + weights.quota) * 0.5;
+    // health: build-time breaker state (OPEN 0, CLOSED 1, else neutral 0.5); quota stays neutral
+    score += weights.health * snapshotHealthFactor(breakerByProvider, c.provider);
+    score += weights.quota * 0.5;
+    score += (weights.quality ?? 0) * (Number.isFinite(c.quality) ? Number(c.quality) : 0.5);
 
     scores.set(c.modelStr, Math.min(score, 1));
   }
@@ -1086,7 +1097,8 @@ export async function createVirtualAutoComboFromPrepared(
   }
 
   const providerPool = [...new Set(effectivePool.map((c) => c.provider))];
-  const snapshotScores = computeSnapshotWeights(effectivePool, weights);
+  const breakerStates = readBreakerStates(providerPool);
+  const snapshotScores = computeSnapshotWeights(effectivePool, weights, breakerStates);
   const models = effectivePool.map((candidate, index) => ({
     id: `virtual-auto-${variant || "default"}-${index + 1}-${candidate.provider}`,
     kind: "model" as const,

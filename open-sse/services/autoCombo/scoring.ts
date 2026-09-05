@@ -207,6 +207,19 @@ export function calculateTierScore(
   return Math.min(1, baseScore * 0.8 + resetBonus * 0.2);
 }
 
+/**
+ * Project the account tier from a provider connection row.
+ * Tier whitelist in ONE place: test and combo.ts import this, never mirror it.
+ */
+export function projectAccountTier(
+  row: Record<string, unknown> | undefined
+): "ultra" | "pro" | "standard" | "free" | undefined {
+  const psd = row?.providerSpecificData as Record<string, unknown> | undefined;
+  const raw = row?.accountTier ?? psd?.accountTier;
+  const v = typeof raw === "string" ? raw.toLowerCase() : undefined;
+  return v === "ultra" || v === "pro" || v === "standard" || v === "free" ? v : undefined;
+}
+
 function calculateTierAffinity(
   candidate: ProviderCandidate,
   hint: RoutingHint | undefined | null
