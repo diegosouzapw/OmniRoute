@@ -46,6 +46,15 @@ export interface VacuumSchedulerState {
   lastDurationMs: number | null;
   isRunning: boolean;
   nextRunAt: number | null;
+  /**
+   * Set when another subsystem decided a full VACUUM is warranted but deferred
+   * it to this scheduler's configured window instead of running it inline
+   * (e.g. `cleanup.ts` on an `auto_vacuum = NONE` database, where
+   * `incremental_vacuum` cannot reclaim anything — see #12821). Cleared by the
+   * next successful run. Persisted so the request survives restarts.
+   */
+  fullVacuumRequestedAt: number | null;
+  fullVacuumRequestReason: string | null;
 }
 
 export type ScheduledVacuum = (typeof DEFAULT_DATABASE_SETTINGS)["optimization"]["scheduledVacuum"];
@@ -73,9 +82,12 @@ const STATE_DEFAULTS: VacuumSchedulerState = {
   lastDurationMs: null,
   isRunning: false,
   nextRunAt: null,
+  fullVacuumRequestedAt: null,
+  fullVacuumRequestReason: null,
 };
 
 let timer: ReturnType<typeof setTimeout> | null = null;
+let hydrated = false;
 let currentState: VacuumSchedulerState = { ...STATE_DEFAULTS };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -268,6 +280,9 @@ export async function runNow(): Promise<{ success: boolean; durationMs: number; 
     currentState.lastError = null;
     currentState.lastDurationMs = duration;
     currentState.isRunning = false;
+    // A full rebuild just happened — any deferred request is satisfied.
+    currentState.fullVacuumRequestedAt = null;
+    currentState.fullVacuumRequestReason = null;
     refresh(); // reset the next-run clock from this successful run
     return { success: true, durationMs: duration };
   } catch (err) {
@@ -283,6 +298,54 @@ export async function runNow(): Promise<{ success: boolean; durationMs: number; 
 }
 
 /**
+ * Merge the persisted blob into `currentState` once per process. `init()` does
+ * this too; having it here means an early `requestFullVacuum()` (before
+ * `init()`, e.g. when init failed non-fatally) cannot overwrite a persisted
+ * `lastRunAt` with the in-memory default and pull the next run forward.
+ */
+function hydrateFromPersistedState(): void {
+  if (hydrated) return;
+  hydrated = true;
+  const persisted = loadPersistedState();
+  currentState = {
+    ...STATE_DEFAULTS,
+    ...persisted,
+    isRunning: false, // never resume a "running" state across restarts
+    nextRunAt: null, // recomputed by refresh()
+  };
+}
+
+/**
+ * Record that a full VACUUM is warranted without running it now (#12821).
+ *
+ * Contract: the first request's timestamp is kept (so the UI can show how long
+ * it has been pending), the reason is overwritten with the latest one, and the
+ * request is cleared by the next successful `runNow()` — scheduled or manual.
+ * `scheduledVacuum = never` is honored: the request stays visible in
+ * `getState()`, nothing runs automatically.
+ */
+export function requestFullVacuum(reason: string): VacuumSchedulerState {
+  hydrateFromPersistedState();
+  const firstRequest = currentState.fullVacuumRequestedAt === null;
+  if (firstRequest) currentState.fullVacuumRequestedAt = Date.now();
+  currentState.fullVacuumRequestReason = reason;
+  persistState();
+
+  if (firstRequest) {
+    let when: string;
+    if (readScheduleSettings().scheduledVacuum === "never") {
+      when = "scheduledVacuum is 'never' — run it manually from the Storage page when convenient";
+    } else if (currentState.nextRunAt !== null) {
+      when = `deferred to the scheduled run at ${new Date(currentState.nextRunAt).toISOString()}`;
+    } else {
+      when = "deferred to the next scheduled run";
+    }
+    console.log(`[VacuumScheduler] Full VACUUM requested (${reason}); ${when}.`);
+  }
+  return getState();
+}
+
+/**
  * Initialize the scheduler. Called once from the Next.js
  * `instrumentation-node.ts` register() hook. Safe to call multiple
  * times — the second call is a no-op.
@@ -290,13 +353,8 @@ export async function runNow(): Promise<{ success: boolean; durationMs: number; 
 export function init(): VacuumSchedulerState {
   if (timer) return getState();
 
-  const persisted = loadPersistedState();
-  currentState = {
-    ...STATE_DEFAULTS,
-    ...persisted,
-    isRunning: false, // never resume a "running" state across restarts
-    nextRunAt: null, // recompute below
-  };
+  hydrated = false; // an explicit init() always re-reads the persisted blob
+  hydrateFromPersistedState();
   return refresh();
 }
 
@@ -322,5 +380,6 @@ export function stop(): void {
  */
 export function __resetForTests(): void {
   stop();
+  hydrated = false;
   currentState = { ...STATE_DEFAULTS };
 }

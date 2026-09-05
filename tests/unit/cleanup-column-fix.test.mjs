@@ -57,13 +57,15 @@ test("cleanup: has background scheduler (startCleanupScheduler)", () => {
     source.includes("startCleanupScheduler"),
     "must export startCleanupScheduler for periodic background cleanup"
   );
+  assert.ok(source.includes("CLEANUP_INTERVAL_MS"), "must have a cleanup interval constant");
+  // #12821: reclaim freed pages without a blocking full VACUUM on the serving thread.
   assert.ok(
-    source.includes("CLEANUP_INTERVAL_MS"),
-    "must have a cleanup interval constant"
+    source.includes("incremental_vacuum("),
+    "scheduler must reclaim freed pages via PRAGMA incremental_vacuum after deletes"
   );
   assert.ok(
-    source.includes("VACUUM"),
-    "scheduler must run VACUUM after deletes to reclaim disk space"
+    !/\b(exec|run|prepare)\s*\(\s*[`'"]\s*VACUUM\b/i.test(source),
+    "scheduler must never run a blocking full VACUUM — defer to vacuumScheduler (#12821)"
   );
 });
 
@@ -114,10 +116,7 @@ test("cleanup: a2a_task_events uses correct table name (not 'a2a_events')", () =
 });
 
 test("cleanup: memories uses correct table name (not 'memory_entries')", () => {
-  assert.ok(
-    source.includes("DELETE FROM memories WHERE"),
-    "must use correct table name memories"
-  );
+  assert.ok(source.includes("DELETE FROM memories WHERE"), "must use correct table name memories");
   assert.ok(
     !source.includes("DELETE FROM memory_entries WHERE"),
     "must NOT use non-existent table name memory_entries"
