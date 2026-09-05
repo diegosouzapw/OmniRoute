@@ -1,4 +1,5 @@
 import { getPricingForModel as getDefaultPricingForModel } from "@/shared/constants/pricing";
+import { isFreeModel } from "@/shared/utils/freeModels";
 import type { TierConfig } from "./tierTypes";
 
 export interface ModelPricing {
@@ -38,14 +39,15 @@ export const KNOWN_MODEL_PRICING: Record<string, ModelPricing> = {
 };
 
 export function getModelPricing(provider: string, model: string): ModelPricing {
-  const providerKey = `${provider}/${model}`.toLowerCase();
-  if (KNOWN_MODEL_PRICING[providerKey]) {
-    return KNOWN_MODEL_PRICING[providerKey];
-  }
-  const providerPricing = getDefaultPricingForModel(provider, model);
-  if (providerPricing) {
-    const inputCostPer1M = Number(providerPricing.input);
-    const outputCostPer1M = Number(providerPricing.output);
+  const normalized = String(model || "").split("/").pop()!.toLowerCase();
+  const tableHit =
+    KNOWN_MODEL_PRICING[normalized] ??
+    KNOWN_MODEL_PRICING[`${provider}/${normalized}`.toLowerCase()];
+  if (tableHit) return tableHit;
+  const defaultPricing = getDefaultPricingForModel(provider, model);
+  if (defaultPricing) {
+    const inputCostPer1M = Number(defaultPricing.input);
+    const outputCostPer1M = Number(defaultPricing.output);
     if (Number.isFinite(inputCostPer1M) && Number.isFinite(outputCostPer1M)) {
       return {
         inputCostPer1M,
@@ -54,10 +56,8 @@ export function getModelPricing(provider: string, model: string): ModelPricing {
       };
     }
   }
-  const directKey = model.toLowerCase();
-  if (KNOWN_MODEL_PRICING[directKey]) {
-    return KNOWN_MODEL_PRICING[directKey];
-  }
+  if (isFreeModel(provider, { id: normalized }))
+    return { inputCostPer1M: 0, outputCostPer1M: 0, isFree: true };
   return { inputCostPer1M: 5.0, outputCostPer1M: 15.0, isFree: false };
 }
 

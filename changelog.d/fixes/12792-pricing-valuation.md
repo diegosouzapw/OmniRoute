@@ -1,0 +1,1 @@
+- **fix(routing):** off-table models check the free-model catalog before inheriting premium prices, latency bootstraps from the observed pool median, async tiers read live database pricing with a 90-day freshness gate, and the tier cache invalidates on every pricing write ([#12792](https://github.com/diegosouzapw/OmniRoute/pull/12792)) — thanks @maxmad64bis

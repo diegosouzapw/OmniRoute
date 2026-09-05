@@ -142,3 +142,43 @@ export function getTierStats(): Record<ProviderTier, number> {
   }
   return stats;
 }
+
+export let tierAsyncFallbackTotal = 0; // exported for testability
+
+export async function classifyTierAsync(
+  provider: string,
+  model: string
+): Promise<TierAssignment> {
+  try {
+    const { getPricingForModel } = await import("@/lib/db/settings");
+    const db = await getPricingForModel(provider, model);
+    const input = Number((db as { input?: unknown } | null)?.input);
+    const output = Number((db as { output?: unknown } | null)?.output);
+    if (Number.isFinite(input) && input >= 0) {
+      const out = Number.isFinite(output) && output >= 0 ? output : input;
+      // Same thresholds as the sync path below; a DB $0 lands FREE by threshold
+      // (the DB carries no isFree flag of its own).
+      let tier: ProviderTier;
+      if (input <= currentConfig.defaults.freeThreshold) tier = PROVIDER_TIER.FREE;
+      else if (input <= currentConfig.defaults.cheapThreshold) tier = PROVIDER_TIER.CHEAP;
+      else tier = PROVIDER_TIER.PREMIUM;
+      const sync = getModelPricing(provider, model); // keeps freeQuotaLimit when DB is mute
+      const assignment: TierAssignment = {
+        provider,
+        model,
+        tier,
+        reason: `DB cost-based: $${input}/M input`,
+        costPer1MInput: input,
+        costPer1MOutput: out,
+        hasFreeTier: input === 0,
+        freeQuotaLimit: sync.freeQuotaLimit,
+      };
+      tierCache.set(cacheKey(provider, model), assignment);
+      return assignment;
+    }
+  } catch {
+    // fall through to sync
+  }
+  tierAsyncFallbackTotal++;
+  return classifyTier(provider, model);
+}

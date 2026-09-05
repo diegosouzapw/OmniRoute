@@ -26,6 +26,11 @@ import {
   type AutoTier,
 } from "./suffixComposition";
 import { classifyTier } from "../tierResolver";
+import { getModelPricing } from "../providerCostData";
+
+export function resolveVirtualCost(providerId: string, modelId: string): number {
+  return getModelPricing(providerId, modelId).inputCostPer1M;
+}
 import type { AutoVariant } from "./autoPrefix";
 import { buildFamilyCandidateFilter, type ModelFamily } from "./modelFamily";
 import { getHiddenModelsByProvider } from "@/models";
@@ -105,6 +110,8 @@ export interface VirtualAutoComboCandidate {
   model: string;
   modelStr: string; // e.g., 'openai/gpt-4o'
   costPer1MTokens: number; // from providerRegistry
+  /** Observed failure rate 0..1 when known; null/absent reads fully reliable. */
+  failureRate?: number | null;
   /** Build-local capability snapshot. Runtime calls rebuild it; catalog entries reuse it. */
   resolvedContextLength?: number | null;
   resolvedMaxOutputTokens?: number | null;
@@ -440,7 +447,7 @@ function getNoAuthCandidates(
         connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
         model: modelId,
         modelStr: `${routingPrefix}/${modelId}`,
-        costPer1MTokens: 0,
+        costPer1MTokens: resolveVirtualCost(providerId, modelId),
       });
     }
   }
@@ -718,7 +725,7 @@ export async function prepareVirtualAutoComboInputs(
         allowedConnectionIds,
         model: modelId,
         modelStr: `${providerId}/${modelId}`,
-        costPer1MTokens: 0, // Not used in virtual auto-combo (LKGP uses session stickiness)
+        costPer1MTokens: resolveVirtualCost(providerId, modelId),
       });
     }
   }
@@ -883,6 +890,18 @@ export function computeSnapshotWeights(
     // latencyInv: all candidates get a base score when latency matters
     // (no runtime data at snapshot time, so equal baseline)
     if (weights.latencyInv > 0) score += weights.latencyInv * 0.5;
+
+    // reliability: explicit failure rate wins over the coarser error rate;
+    // absent (null/undefined) reads as fully reliable. Mirrors scoring.ts.
+    if (weights.reliability > 0) {
+      const raw = c.failureRate ?? (c as { errorRate?: unknown }).errorRate;
+      if (raw == null) {
+        score += weights.reliability * 1;
+      } else {
+        const fr = Number(raw);
+        score += weights.reliability * (Number.isFinite(fr) && fr >= 0 ? 1 - Math.min(Math.max(fr, 0), 1) : 1);
+      }
+    }
 
     // health + quota: no runtime telemetry at snapshot time → neutral baseline
     score += (weights.health + weights.quota) * 0.5;

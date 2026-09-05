@@ -315,7 +315,7 @@ export async function resolveAutoStrategyOrder(
   // specificityMatch favor candidates whose tier matches the request.
   const autoManifestHint: RoutingHint | null =
     config.complexityAwareRouting === true
-      ? buildComplexityRoutingHint(
+      ? await buildComplexityRoutingHint(
           eligibleTargets.filter((t) => t.kind === "model"),
           body,
           log
@@ -408,6 +408,7 @@ export async function resolveAutoStrategyOrder(
             modePack,
             budgetCap,
             budgetFallback,
+            estimatedInputTokens,
             explorationRate,
           },
           routableCandidates,
