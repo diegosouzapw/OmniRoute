@@ -9,7 +9,7 @@ const CODEX_QUOTA_ORDER: Record<string, number> = {
   gpt_5_3_codex_spark_weekly: 3,
   banked_reset_credits: 4,
 };
-const GLM_FAMILY_PROVIDERS = ["glm", "glm-cn", "glmt", "opencode-go"];
+const GLM_FAMILY_PROVIDERS = ["glm", "glm-cn", "glmt", "zai", "opencode-go"];
 const KIMI_CODING_PROVIDERS = ["kimi-coding", "kimi-coding-apikey"];
 
 /**
@@ -157,7 +157,7 @@ function parseGithub(data: any) {
 }
 
 function parseGlmFamily(data: any) {
-  return quotaEntries(data).map(([name, quota]) =>
+  const quotas = quotaEntries(data).map(([name, quota]) =>
     normalizeQuotaEntry(name, quota, {
       displayName: quota?.displayName,
       details: Array.isArray(quota?.details) ? quota.details : undefined,
@@ -165,6 +165,14 @@ function parseGlmFamily(data: any) {
         Number(quota?.total || 0) === 100 && quota?.remainingPercentage !== undefined,
     })
   );
+
+  // GLM Coding Plan Reset Cards, surfaced by getGlmUsage alongside the windows.
+  const bankedResetCredits = Number(data?.bankedResetCredits);
+  if (Number.isFinite(bankedResetCredits) && bankedResetCredits > 0) {
+    quotas.push(buildBankedResetCreditsQuota(bankedResetCredits));
+  }
+
+  return quotas;
 }
 
 function buildCreditsQuota(
@@ -436,7 +444,7 @@ export function isKiloPassDisplayRow(quota: any): boolean {
 
 function parseProviderQuotas(providerId: string, data: any) {
   if (providerId === "github") return parseGithub(data);
-  if (["glm", "glm-cn", "glmt", "opencode-go"].includes(providerId)) return parseGlmFamily(data);
+  if (GLM_FAMILY_PROVIDERS.includes(providerId)) return parseGlmFamily(data);
   if (providerId === "antigravity" || providerId === "agy") return parseAntigravity(data);
   if (providerId === "codex") return parseCodex(data);
   if (providerId === "claude") return parseClaude(data);
