@@ -122,7 +122,7 @@ import {
 } from "./catalogRequest";
 import { incrementCcDiscoveryHitCount } from "@/lib/db/ccDiscoveryMetrics";
 import { isUnifiedChatSourceModelSelectable } from "./catalogModelPolicy";
-import { isFreeModel } from "@/shared/utils/freeModels";
+import { isFreeForProvider, isTrustedCustomFree } from "@/shared/utils/freeModels";
 import { isModelExposureAllowed } from "@/shared/utils/modelExposureList";
 import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryPolicy";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
@@ -350,11 +350,9 @@ async function buildUnifiedModelsResponseCore(
     ): boolean => {
       if (!hidePaid) return false;
       const provider = aliasToProviderId[providerKey] || providerKey;
-      // isFree:true is the first door — custom row kept even when its provider is outside FREE_MODEL_BUDGETS.
-      if (isFreeModel(provider, { id: modelId, pricing: pricing as any, isFree })) return false;
-      // hidePaid is on and model is non-free → hidden. No need to consult FREE_MODEL_BUDGETS
-      // separately: paid on a free-capable provider stays hidden, free on a non-budget provider
-      // already returned above.
+      // fetched: free only when provider has a documented free tier — catalog hit or guarded heuristics (`:free`/`0`/`isFree:true`); fetched isFree:true not trusted alone
+      if (isFreeForProvider(provider, { id: modelId, pricing: pricing as any, isFree }))
+        return false;
       return true;
     };
     // #11481: opt-in explicit model exposure allow/deny list — same call sites
@@ -1660,9 +1658,17 @@ async function buildUnifiedModelsResponseCore(
           if (isModelHiddenBulk(providerId, modelId, canonicalProviderId)) continue;
           if (isExcludedByProviderConnections(canonicalProviderId, modelId)) continue;
           // #6328: apply hidePaidModels to user-defined custom rows too.
-          // Custom entries do not carry pricing, so shouldHidePaid() decides
-          // via FREE_MODEL_IDS_BY_PROVIDER — matches synced/PROVIDER_MODELS.
-          if (
+          // fetched: guarded heuristics + catalog; custom isFree:true local is trusted even outside free-tier (F1)
+          if ((model as any)?.isFree === true) {
+            if (
+              !isTrustedCustomFree(canonicalProviderId, {
+                id: modelId,
+                pricing: (model as any).pricing,
+                isFree: true,
+              } as any)
+            )
+              continue;
+          } else if (
             shouldHidePaid(
               canonicalProviderId,
               modelId,

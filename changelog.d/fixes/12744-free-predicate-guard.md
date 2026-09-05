@@ -1,0 +1,1 @@
+- **fix(models):** stop treating provider-supplied `isFree:true`/`:free`/`0/0` flags as trusted unless the provider has a documented free tier — only the shipped free-tier catalog decides otherwise; fetched `isFree:true` trusted only for a free-tier provider, custom `isFree:true` via a trusted path ([#12744](https://github.com/diegosouzapw/OmniRoute/pull/12744))
