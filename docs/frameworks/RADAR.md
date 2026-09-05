@@ -740,7 +740,7 @@ Loose coupling, by design:
   is a **pure** function — `(staticWebsite, referralUrl) => { website, isReferralLink }`
   — with no dependency on `@/lib/radar` or `@/lib/db/*`. `providerPageUtils.ts` as a
   whole stays free of those imports (asserted by
-  `tests/unit/provider-header-referral-link.test.ts`).
+  `tests/unit/provider/provider-header-referral-link.test.ts`).
 - `ProviderDetailPageClient.tsx` (a `"use client"` component) is the one place allowed
   to fetch Radar data — via `fetch("/api/radar/referrals")`, the same local-route
   pattern the Radar dashboard page itself uses — and it computes the default referral

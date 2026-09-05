@@ -423,7 +423,7 @@ Anything else fails: raising a number, adding an entry, changing `cap`/`testCap`
 deleting/rewriting a `_rebaseline_*` note (those notes are the audit trail for why each
 ceiling exists and are stored inside the same `frozen` object as the file entries).
 A bot that could raise a cap would be strictly worse than the status quo. Regression
-guard: `tests/unit/verify-ratchet-bank.test.ts`.
+guard: `tests/unit/misc/verify-ratchet-bank.test.ts`.
 
 The job never pushes to `release/*` — a human merges the PR, so a bad measurement
 cannot land unreviewed.

@@ -7,7 +7,7 @@ lastUpdated: 2026-08-07
 # Public Credentials Handling
 
 > **Source of truth:** `open-sse/utils/publicCreds.ts`
-> **Tests:** `tests/unit/publicCreds.test.ts`
+> **Tests:** `tests/unit/cc/publicCreds.test.ts`
 > **Last updated:** 2026-08-07 — v3.8.50
 > **Audience:** Engineers integrating providers that ship public OAuth client_id / client_secret / Firebase Web API keys in their public CLIs.
 > **Status:** **MANDATORY** for all new code that embeds upstream identifiers.
@@ -82,7 +82,7 @@ When you need to embed a new upstream-provided value that:
    # PROVIDER_OAUTH_CLIENT_SECRET=
    ```
 
-6. Update `tests/unit/publicCreds.test.ts` to add a shape assertion for the new key (verify format, not literal value — see existing tests for the pattern).
+6. Update `tests/unit/cc/publicCreds.test.ts` to add a shape assertion for the new key (verify format, not literal value — see existing tests for the pattern).
 
 7. **Never** add `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` literals to test files. Use the `FAKE_*` constants built from `.join("")` fragments (see existing tests).
 
@@ -121,7 +121,7 @@ These all eventually trip a scanner. Use `resolvePublicCred()`.
 
 - `RAW_VALUE_PATTERN` in `publicCreds.ts` enumerates the prefixes that trigger passthrough (retrocompat). Extend it only for documented public credential formats, never for proprietary secrets.
 - `.env.example` lives in CI's `check-env-doc-sync` script — when you remove a var here, make sure the docs match.
-- The `npm run test:vitest` and `node --import tsx/esm --test tests/unit/publicCreds.test.ts` suites must both stay green.
+- The `npm run test:vitest` and `node --import tsx/esm --test tests/unit/cc/publicCreds.test.ts` suites must both stay green.
 
 ## When NOT to use this helper
 

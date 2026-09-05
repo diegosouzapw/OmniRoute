@@ -1,5 +1,5 @@
 // This suite intentionally owns process-wide DATA_DIR, plugin, and DB state. It must run only
-// inside the subprocess launched by tests/unit/codex-response-failed-boundary.test.ts.
+// inside the subprocess launched by tests/unit/codex/codex-response-failed-boundary.test.ts.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";

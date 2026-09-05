@@ -136,15 +136,15 @@ Run the provider controls without invoking the retired provider:
 
 ```bash
 node --import tsx/esm --test \\
-  tests/unit/chatgpt-web-codex.test.ts \\
-  tests/unit/chatgpt-web-codex-turn-pin.test.ts \\
-  tests/unit/chatgpt-web-environment-double-unescape.test.ts
+  tests/unit/chatgpt/chatgpt-web-codex.test.ts \\
+  tests/unit/chatgpt/chatgpt-web-codex-turn-pin.test.ts \\
+  tests/unit/chatgpt/chatgpt-web-environment-double-unescape.test.ts
 ```
 
 Retirement regression guards live in:
 
-- `tests/unit/chatgpt-web-retirement.test.ts`
-- `tests/unit/chatgpt-web-runtime-block.test.ts`
-- `tests/unit/chatgpt-web-image-handler-retirement.test.ts`
-- `tests/unit/chatgpt-web-source-retirement.test.ts`
-- `tests/unit/migration-168-retire-chatgpt-web.test.ts`
+- `tests/unit/chatgpt/chatgpt-web-retirement.test.ts`
+- `tests/unit/chatgpt/chatgpt-web-runtime-block.test.ts`
+- `tests/unit/chatgpt/chatgpt-web-image-handler-retirement.test.ts`
+- `tests/unit/chatgpt/chatgpt-web-source-retirement.test.ts`
+- `tests/unit/migration/migration-168-retire-chatgpt-web.test.ts`

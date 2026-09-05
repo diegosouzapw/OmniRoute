@@ -398,6 +398,6 @@ stdio 传输每 5 秒将存活状态持久化到 `${DATA_DIR}/runtime/mcp-heartb
 | `src/lib/db/notion.ts`                                                     | Notion Token 持久化（`key_value` 表）                             |
 | `src/app/api/settings/notion/route.ts`                                     | Notion 设置 API（GET/POST/DELETE）                                |
 | `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx`   | Notion Token 管理界面                                             |
-| `tests/unit/notion-api.test.ts`                                            | Notion API 客户端测试（7）                                        |
-| `tests/unit/notion-tools.test.ts`                                          | Notion 工具权限域执行测试（10）                                   |
+| `tests/unit/notion/notion-api.test.ts`                                            | Notion API 客户端测试（7）                                        |
+| `tests/unit/notion/notion-tools.test.ts`                                          | Notion 工具权限域执行测试（10）                                   |
 | `tests/unit/db/notion.test.mjs`                                            | Notion 数据库模块测试（3）                                        |

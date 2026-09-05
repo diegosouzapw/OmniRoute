@@ -32,7 +32,7 @@ const originalNodeEnv = process.env.NODE_ENV;
 const originalVitest = process.env.VITEST;
 process.argv = [
   process.execPath,
-  path.join(process.cwd(), "scripts/ad-hoc/omniroute-boundary-harness.mjs"),
+  path.join(os.tmpdir(), "omniroute-boundary-harness.mjs"),
 ];
 process.execArgv = [];
 process.env.NODE_ENV = "development";

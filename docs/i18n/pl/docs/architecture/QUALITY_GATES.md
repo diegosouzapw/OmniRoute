@@ -301,7 +301,7 @@ Wszystko inne failuje: podniesienie liczby, dodanie wpisu, zmiana `cap`/`testCap
 usunięcie/przepisanie notatki `_rebaseline_*` (te notatki to audit trail dlaczego każdy
 ceiling istnieje i są przechowywane w tym samym obiekcie `frozen` co wpisy plików).
 Bot, który mógłby podnieść cap, byłby ściśle gorszy niż status quo. Guard regresji:
-`tests/unit/verify-ratchet-bank.test.ts`.
+`tests/unit/misc/verify-ratchet-bank.test.ts`.
 
 Job nigdy nie pushuje do `release/*` — człowiek merge’uje PR, więc zły pomiar
 nie może wylądować bez review.
