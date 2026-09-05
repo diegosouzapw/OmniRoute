@@ -417,6 +417,13 @@ test("usage namespace includes Provider Limits UI translation keys", () => {
     "confirmRedeemResetCreditButton",
     "resetCreditRedeemed",
     "resetCreditRedeemFailed",
+    "glmResetCreditsModalTitle",
+    "glmResetCreditsModalExplainer",
+    "glmResetCreditFiveHourTitle",
+    "glmResetCreditWeekTitle",
+    "glmConfirmRedeemResetCredit",
+    "glmConfirmRedeemFiveHourResetCredit",
+    "glmConfirmRedeemWeekResetCredit",
   ]) {
     assert.equal(typeof usage[key], "string", `usage.${key} should be defined in en.json`);
     assert.ok(!usage[key].startsWith("__MISSING__:"), `usage.${key} should not be a placeholder`);
