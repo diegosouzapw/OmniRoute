@@ -339,7 +339,7 @@ export function computeCanEditCutoff(quotas: any[]): boolean {
 
 export function computeCanRedeemResetCredit(provider: string, quotas: any[]): boolean {
   return (
-    provider === "codex" &&
+    (provider === "codex" || provider === "grok-cli") &&
     quotas.some((q: any) => q?.isResetCredits && Number(q.creditCount ?? q.remaining ?? 0) > 0)
   );
 }

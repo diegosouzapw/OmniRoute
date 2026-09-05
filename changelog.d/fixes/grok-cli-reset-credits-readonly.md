@@ -1,0 +1,1 @@
+- **feat(grok-cli):** Provider Limits shows grok-cli banked reset credits from `GetRemainingResets` (including a real zero; a failed RPC omits the row) and the existing View credits button now calls `ConsumerUiSvc/RedeemReset` for grok-cli

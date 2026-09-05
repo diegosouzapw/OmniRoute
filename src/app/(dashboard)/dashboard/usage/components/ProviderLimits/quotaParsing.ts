@@ -147,7 +147,12 @@ function normalizeQuotaEntry(name: string, quota: any = {}, extras: any = {}) {
 }
 
 function parseGeneric(data: any) {
-  return quotaEntries(data).map(([name, quota]) => normalizeQuotaEntry(name, quota));
+  const quotas = quotaEntries(data).map(([name, quota]) => normalizeQuotaEntry(name, quota));
+  const bankedResetCredits = Number(data?.bankedResetCredits);
+  if (Number.isFinite(bankedResetCredits) && bankedResetCredits >= 0) {
+    quotas.push(buildBankedResetCreditsQuota(bankedResetCredits));
+  }
+  return quotas;
 }
 
 function parseGithub(data: any) {

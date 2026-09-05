@@ -32,6 +32,59 @@ function response(value: unknown, init: ResponseInit = {}) {
   });
 }
 
+function grpcFrame(flag: number, payload: Buffer): Buffer {
+  const header = Buffer.alloc(5);
+  header[0] = flag;
+  header.writeUInt32BE(payload.length, 1);
+  return Buffer.concat([header, payload]);
+}
+
+function emptyResetCreditsResponse(): Response {
+  const trailer = Buffer.from("grpc-status:0\r\n", "utf8");
+  return new Response(Buffer.concat([grpcFrame(0x00, Buffer.alloc(0)), grpcFrame(0x80, trailer)]), {
+    status: 200,
+    headers: { "content-type": "application/grpc-web+proto" },
+  });
+}
+
+function encodeVarint(value: number): Buffer {
+  const bytes: number[] = [];
+  let v = BigInt(value);
+  do {
+    let byte = Number(v & 0x7fn);
+    v >>= 7n;
+    if (v !== 0n) byte |= 0x80;
+    bytes.push(byte);
+  } while (v !== 0n);
+  return Buffer.from(bytes);
+}
+
+function encodeTag(fieldNumber: number, wireType: number): Buffer {
+  return encodeVarint((fieldNumber << 3) | wireType);
+}
+
+function encodeLengthDelimited(fieldNumber: number, body: Buffer): Buffer {
+  return Buffer.concat([encodeTag(fieldNumber, 2), encodeVarint(body.length), body]);
+}
+
+function encodeVarintField(fieldNumber: number, value: number): Buffer {
+  return Buffer.concat([encodeTag(fieldNumber, 0), encodeVarint(value)]);
+}
+
+function oneResetTokenResponse(): Response {
+  const token = Buffer.concat([
+    encodeLengthDelimited(1, Buffer.from("test-token-id", "utf8")),
+    encodeVarintField(2, 1786560540),
+    encodeVarintField(3, 1789238940),
+  ]);
+  const payload = encodeLengthDelimited(10, token);
+  const trailer = Buffer.from("grpc-status:0\r\n", "utf8");
+  return new Response(Buffer.concat([grpcFrame(0x00, payload), grpcFrame(0x80, trailer)]), {
+    status: 200,
+    headers: { "content-type": "application/grpc-web+proto" },
+  });
+}
+
 function successFixtures(
   options: {
     tier?: unknown;
@@ -99,6 +152,9 @@ function successFixtures(
         },
       });
     }
+    if (url.includes("prod_mc_billing.ConsumerUiSvc/GetRemainingResets")) {
+      return emptyResetCreditsResponse();
+    }
     return new Response(null, { status: 404 });
   };
 }
@@ -106,6 +162,7 @@ function successFixtures(
 interface UsageResult {
   plan?: string;
   message?: string;
+  bankedResetCredits?: number;
   quotas?: Record<
     string,
     {
@@ -190,15 +247,35 @@ test("grok-cli fetches the fixed read-only surfaces with the full Grok client pr
     additionalCreditsUrl: "https://grok.com/build?_s=usage",
   });
 
+  assert.equal(usage.bankedResetCredits, 0);
+
+  const jsonCalls = calls.filter(
+    (call) => !call.url.includes("prod_mc_billing.ConsumerUiSvc/GetRemainingResets")
+  );
+  const resetCall = calls.find((call) =>
+    call.url.includes("prod_mc_billing.ConsumerUiSvc/GetRemainingResets")
+  );
+  assert.ok(resetCall);
+  assert.equal(resetCall.init.method, "POST");
+  assert.equal(
+    new Headers(resetCall.init.headers).get("content-type"),
+    "application/grpc-web+proto"
+  );
+  assert.equal(new Headers(resetCall.init.headers).get("x-grpc-web"), "1");
+  assert.equal(
+    new Headers(resetCall.init.headers).get("authorization"),
+    "Bearer fixture-access-token"
+  );
+
   assert.deepEqual(
-    calls.map((call) => call.url),
+    jsonCalls.map((call) => call.url),
     [
       "https://cli-chat-proxy.grok.com/v1/user?include=subscription",
       "https://cli-chat-proxy.grok.com/v1/billing?format=credits",
       "https://cli-chat-proxy.grok.com/v1/auto-topup-rule",
     ]
   );
-  for (const { init } of calls) {
+  for (const { init } of jsonCalls) {
     assert.equal(init.method, "GET");
     assert.equal(init.redirect, "error");
     assert.equal(init.body, undefined);
@@ -212,8 +289,8 @@ test("grok-cli fetches the fixed read-only surfaces with the full Grok client pr
     assert.ok(headers.get("x-grok-client-identifier"));
     assert.equal(headers.get("x-grok-client-mode"), "headless");
   }
-  assert.equal(new Headers(calls[0].init.headers).has("x-userid"), false);
-  assert.equal(new Headers(calls[2].init.headers).get("x-userid"), "canonical-user-id");
+  assert.equal(new Headers(jsonCalls[0].init.headers).has("x-userid"), false);
+  assert.equal(new Headers(jsonCalls[2].init.headers).get("x-userid"), "canonical-user-id");
   assert.deepEqual(grokTesting.networkPolicy, {
     method: "GET",
     redirect: "error",
@@ -547,6 +624,28 @@ test("SuperGrokPro explicit null creditUsagePercent still yields a weekly quota 
     resetAt: "2026-08-03T00:00:00.000Z",
     isPercentageOnly: true,
   });
+});
+
+test("grok-cli surfaces bankedResetCredits when GetRemainingResets returns one token", async () => {
+  const fixtureFetch = successFixtures();
+  const usage = await getUsage((async (input: string | URL | Request) => {
+    const url = String(input);
+    if (url.includes("GetRemainingResets")) return oneResetTokenResponse();
+    return fixtureFetch(input);
+  }) as typeof fetch);
+  assert.equal(usage.bankedResetCredits, 1);
+  assert.ok(usage.quotas?.weekly);
+});
+
+test("grok-cli omits bankedResetCredits when GetRemainingResets fails (fail-open)", async () => {
+  const fixtureFetch = successFixtures();
+  const usage = await getUsage((async (input: string | URL | Request) => {
+    const url = String(input);
+    if (url.includes("GetRemainingResets")) return new Response("nope", { status: 404 });
+    return fixtureFetch(input);
+  }) as typeof fetch);
+  assert.equal("bankedResetCredits" in usage, false);
+  assert.ok(usage.quotas?.weekly);
 });
 
 test("SuperGrokPro omitted currentPeriod still yields a weekly bar with null resetAt", async () => {

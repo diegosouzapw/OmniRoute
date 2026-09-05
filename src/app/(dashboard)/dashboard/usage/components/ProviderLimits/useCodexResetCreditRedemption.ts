@@ -80,7 +80,12 @@ function useOpenCodexResetCredits(
   const notify = useNotificationStore();
   return useCallback(
     async (connectionId: string, provider: string) => {
-      if (provider !== "codex" || loadingResetCreditsId || redeemingResetCreditId) return;
+      if (
+        (provider !== "codex" && provider !== "grok-cli") ||
+        loadingResetCreditsId ||
+        redeemingResetCreditId
+      )
+        return;
       setLoadingResetCreditsId(connectionId);
       setErrors((prev) => ({ ...prev, [connectionId]: null }));
       try {
