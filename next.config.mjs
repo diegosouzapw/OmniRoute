@@ -1,6 +1,6 @@
 import createNextIntlPlugin from "next-intl/plugin";
 import { createMDX } from "fumadocs-mdx/next";
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { betterSqlite3AliasFor } from "./scripts/build/better-sqlite3-stub-flag.mjs";
 import { mitmManagerAliasFor } from "./scripts/build/mitm-stub-flag.mjs";
@@ -460,13 +460,19 @@ const nextConfig = {
       // NormalModuleReplacementPlugin swaps the real module for a stub before
       // webpack resolves it, so the privileged source files are never compiled
       // into the standalone output.
+      // BUGFIX (Chat 327, D-1): resource.request resolves relative to the
+      // *importing file's* directory, not the project root -- a bare
+      // "./src/..." string only worked for imports from projectRoot itself.
+      // Use an absolute path (import.meta.url-derived projectRoot, already
+      // defined above) so this resolves correctly regardless of which file
+      // does the importing.
       const replacements = [
-        [/^@\/mitm\/cert\/install$/, "./src/mitm/cert/install.stub.ts"],
-        [/^@\/lib\/zed-oauth\/keychain-reader$/, "./src/lib/zed-oauth/keychain-reader.stub.ts"],
-        [/^@\/lib\/cloudSync$/, "./src/lib/cloudSync.stub.ts"],
+        [/^@\/mitm\/cert\/install$/, join(projectRoot, "src/mitm/cert/install.stub.ts")],
+        [/^@\/lib\/zed-oauth\/keychain-reader$/, join(projectRoot, "src/lib/zed-oauth/keychain-reader.stub.ts")],
+        [/^@\/lib\/cloudSync$/, join(projectRoot, "src/lib/cloudSync.stub.ts")],
         [
           /^@\/lib\/services\/installers\/ninerouter$/,
-          "./src/lib/services/installers/ninerouter.stub.ts",
+          join(projectRoot, "src/lib/services/installers/ninerouter.stub.ts"),
         ],
       ];
       for (const [pattern, stubPath] of replacements) {

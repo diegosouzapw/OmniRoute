@@ -21,3 +21,16 @@ export async function installCert(_sudoPassword: string, _certPath: string): Pro
 export async function uninstallCert(_sudoPassword: string, _certPath: string): Promise<void> {
   throw featureDisabledError(FEATURE);
 }
+
+// BUGFIX (Chat 327): missing entirely -- real consumers
+// (agent-bridge/server, agent-bridge/cert route handlers) import
+// installCertResult by name. Under Turbopack's resolveAlias this produced
+// real "Export installCertResult doesn\'t exist in target module" compile
+// errors, meaning OMNIROUTE_BUILD_PROFILE=minimal could not build via the
+// Turbopack path. Matches the real module\'s signature; still only throws.
+export async function installCertResult(
+  _sudoPassword: string,
+  _certPath: string
+): Promise<never> {
+  throw featureDisabledError(FEATURE);
+}
