@@ -407,6 +407,7 @@ const SCHEMA_SQL = `
     proxy_type TEXT,
     proxy_host TEXT,
     proxy_port INTEGER,
+    proxy_name TEXT,
     level TEXT,
     level_id TEXT,
     provider TEXT,
