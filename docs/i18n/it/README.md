@@ -485,7 +485,7 @@ Radar è opt-in e usa soltanto richieste GET. Il client OmniRoute non carica pro
 - **🗜️ Rafforzamento della compressione** — protezione dall'inflazione attiva per impostazione predefinita, pack Caveman per DE / FR / JA + cinese (wényán), filtri RTK per Gradle e .NET. → [Compressione](../../compression/COMPRESSION_ENGINES.md)
 - **💸 Costo flat-rate trasparente** — i provider in abbonamento / coding plan risultano a **$0** nelle analytics dei costi; budget, quote e routing continuano a fare stime. → [Riferimento API](../../reference/API_REFERENCE.md)
 - **⚖️ Routing Quota-Share** — divide equamente la quota di un account condiviso tra chiavi in pool, in modo work-conserving così le porzioni inattive vengono prestate. → [Guida alla resilienza](../../architecture/RESILIENCE_GUIDE.md)
-- **🤖 Configurazione CLI/agente con un comando** — `setup-*` configura oltre 12 strumenti di coding; `omniroute run` avvia 7 CLI (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI) senza scrivere configurazioni; `omniroute configure` è un selettore interattivo provider+modello con preferiti per contesto. → [Integrazioni CLI](../../guides/CLI-INTEGRATIONS.md)
+- **🤖 Configurazione CLI/agente con un comando** — `setup-*` configura oltre 12 strumenti di coding; `omniroute run` avvia 8 CLI (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI, Oh My Pi) senza scrivere configurazioni; `omniroute configure` è un selettore interattivo provider+modello con preferiti per contesto. → [Integrazioni CLI](../../guides/CLI-INTEGRATIONS.md)
 - **🛰️ Modalità remota** — controlla un OmniRoute remoto con token scoped (`connect` / `contexts` / `tokens`) + helper OAuth `antigravity` per installazioni VPS. → [Modalità remota](../../guides/REMOTE-MODE.md)
 - **🧭 Auto-routing più intelligente** — combo `auto/<category>:<tier>`, **Fusion** (gruppo di modelli + giudice), routing task-aware, override per-request di modello / modalità / budget USD. → [Auto-Combo](../../routing/AUTO-COMBO.md)
 - **🗜️ Compressione pluggable** — 12 motori componibili + Compression Studios: LLMLingua-2, Ultra a due livelli, omniglyph, fidelity gate per passaggio, GCF v3.2, editor drag-reorder. → [Compressione](../../compression/COMPRESSION_ENGINES.md)
@@ -573,7 +573,7 @@ omniroute run qwen     --model glm/glm-5.2 -- -p "reply OK"
 omniroute run gemini   --model glm/glm-5.2 -- --skip-trust -p "reply OK"
 
 # Or pick provider+model interactively and write the tool's own config:
-omniroute configure codex          # also: claude opencode qwen aider goose cline continue kilo
+omniroute configure codex          # also: claude opencode qwen aider goose cline continue kilo 5dive omp
 ```
 
 Ogni comando rispetta il contesto remoto attivo (`omniroute connect <host>`); `--dry-run`

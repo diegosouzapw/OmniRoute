@@ -792,6 +792,10 @@ OPENAI_API_KEY: "{{apiKey}}"`,
         type: "warning",
         text: "Config paths: ~/.omp/agent/models.yml (providers) and ~/.omp/agent/config.yml (model roles) on all platforms (Windows: %USERPROFILE%\\.omp\\agent\\models.yml and %USERPROFILE%\\.omp\\agent\\config.yml)",
       },
+      {
+        type: "info",
+        text: "omp's /model picker mirrors OmniRoute's /v1/models one-to-one (combos and image/free-tier catalogs included). Narrow it with `omp models find <pattern>` or pin roles with `omniroute setup-omp --role <role>=<id>`.",
+      },
     ],
     guideSteps: [
       {

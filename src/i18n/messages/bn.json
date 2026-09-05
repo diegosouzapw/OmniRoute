@@ -3051,7 +3051,8 @@
         },
         "notes": {
           "0": "Oh My Pi reads custom OpenAI-compatible providers from ~/.omp/agent/models.yml. OmniRoute adds itself as a provider with auto-discovery — models appear automatically in omp's /model menu.",
-          "1": "Config paths: ~/.omp/agent/models.yml (providers) and ~/.omp/agent/config.yml (model roles)."
+          "1": "Config paths: ~/.omp/agent/models.yml (providers) and ~/.omp/agent/config.yml (model roles).",
+          "2": "omp's /model picker mirrors OmniRoute's /v1/models one-to-one (combos and image/free-tier catalogs included). Narrow it with `omp models find <pattern>` or pin roles with `omniroute setup-omp --role <role>=<id>`."
         }
       },
       "kiro": {

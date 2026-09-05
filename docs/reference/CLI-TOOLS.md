@@ -542,8 +542,9 @@ The ten roles and how to pin each (values are `omniroute/<id>` with an optional
 | `task`     | `--role task=<id>`                     |
 | `advisor`  | `--role advisor=<id>`                  |
 
-`--roles-all` picks one model per role in a single pass. `--dry-run` previews
-both files without writing; `--backup` snapshots existing files first.
+`--roles-all` assigns the `--model` selection to every role in a single pass.
+`--dry-run` previews both files without writing; a timestamped backup of
+`models.yml` is written before every overwrite (`--no-backup` opts out).
 
 **Verify:**
 
@@ -564,6 +565,13 @@ against a throwaway isolated OMP home).
 - `omniroute run omp` writes nothing durable: it materializes a temporary
   isolated OMP home (removed on exit) and scrubs conflicting `OPENAI_*` /
   `ANTHROPIC_*` variables from the child environment.
+- **What omp sees:** discovery mirrors OmniRoute's `/v1/models` one-to-one, so
+  the `/model` picker lists every model the server enumerates — including
+  image/no-auth catalogs and combo aliases. Combos and providers whose catalog
+  omits `max_output_tokens` (for example `grok-cli`) show omp's defaults for
+  max-out and thinking tiers. Narrow the list with `omp models find <pattern>`
+  and pin roles explicitly; a curated `models:` override per provider is still
+  honoured if you add one by hand.
 
 ---
 
