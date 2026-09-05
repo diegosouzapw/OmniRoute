@@ -223,7 +223,7 @@ export async function fetchGlmResetCardCount(
   apiKey: string,
   providerSpecificData?: unknown
 ): Promise<number | null> {
-  if (!apiKey) return null;
+  if (!apiKey) return 0;
   try {
     const { response, payload } = await fetchGlmResetCardList(apiKey, providerSpecificData);
     if (!response.ok || !isGlmResetCardEnvelopeOk(payload)) return null;
