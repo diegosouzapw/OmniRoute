@@ -57,6 +57,7 @@ omniroute setup-cline        omniroute setup-kilo         omniroute setup-contin
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 omniroute setup-5dive
+omniroute setup-omp
 ```
 
 Each accepts `--remote <url> --api-key <key>` (configure a local tool against a
@@ -68,7 +69,7 @@ writing a root-owned auth profile on the fleet host, so it re-execs through `sud
 and has no remote mode of its own. To launch a CLI with the
 right env injected and no config written at all, use the generic
 `omniroute run <target>` launcher (claude, codex, aider, goose, opencode, qwen,
-gemini — targets and aliases come from `bin/cli/cli-manifest.mjs`); the legacy
+gemini, omp — targets and aliases come from `bin/cli/cli-manifest.mjs`); the legacy
 per-tool launchers `omniroute launch` (Claude Code) and `omniroute launch-codex`
 (Codex) remain available. Gemini CLI is launch-only: it is an `omniroute run`
 target but has no `setup-*`/`configure` recipe.
@@ -373,6 +374,9 @@ cargo install smelt  # Rust-based
 # Pi coding agent
 # see https://github.com/zechnerj/pi-coding-agent for install
 
+# Oh My Pi (omp)
+npm install -g @oh-my-pi/pi-coding-agent
+
 # jcode
 # see https://github.com/1jehuang/jcode for install
 ```
@@ -484,6 +488,82 @@ EOF
 
 > Use `opencode run "your prompt" --model omniroute/claude-sonnet-4-5-thinking --variant high`
 > to send thinking variants.
+
+---
+
+#### Oh My Pi (omp)
+
+[Oh My Pi](https://github.com/can1357/oh-my-pi) is a terminal coding agent that
+reads custom OpenAI-compatible providers from `~/.omp/agent/models.yml`. The
+automated recipe is `omniroute setup-omp` (also reachable as
+`omniroute configure omp`, which adds a per-role model picker first). It writes
+two files under `~/.omp/agent/`:
+
+- `models.yml` — a `providers.omniroute` block with `api: openai-completions`,
+  `baseUrl` including `/v1`, `authHeader: true`, `apiKey: OMNIROUTE_API_KEY`
+  (the environment-variable NAME — the key value never lands on disk) and a
+  structured discovery configuration, so catalog models appear automatically.
+  Existing providers are preserved, a legacy `models.json` is migrated to
+  `models.yml` (never clobbered), and an unparseable `models.yml` is refused
+  rather than overwritten.
+- `config.yml` — optional `modelRoles` merge. Only the roles you select are
+  written; unselected roles and unrelated settings keys stay untouched.
+
+**Install** (pick one; official methods from [oh-my-pi](https://github.com/can1357/oh-my-pi)):
+
+```bash
+# macOS / Linux
+curl -fsSL https://omp.sh/install | sh
+
+# Homebrew
+brew install can1357/tap/omp
+
+# bun (recommended) or npm
+bun install -g @oh-my-pi/pi-coding-agent
+npm install -g @oh-my-pi/pi-coding-agent
+
+# Windows (PowerShell)
+irm https://omp.sh/install.ps1 | iex
+```
+
+The ten roles and how to pin each (values are `omniroute/<id>` with an optional
+`:thinking` suffix; `@alias` references are accepted and quoted in the YAML):
+
+| Role       | Pin it with                            |
+| ---------- | -------------------------------------- |
+| `default`  | `--model <id>` (or `--role default=…`) |
+| `smol`     | `--role smol=<id>`                     |
+| `slow`     | `--role slow=<id>`                     |
+| `vision`   | `--role vision=<id>`                   |
+| `plan`     | `--role plan=<id>`                     |
+| `designer` | `--role designer=<id>`                 |
+| `commit`   | `--role commit=<id>`                   |
+| `tiny`     | `--role tiny=<id>`                     |
+| `task`     | `--role task=<id>`                     |
+| `advisor`  | `--role advisor=<id>`                  |
+
+`--roles-all` picks one model per role in a single pass. `--dry-run` previews
+both files without writing; `--backup` snapshots existing files first.
+
+**Verify:**
+
+```bash
+omniroute setup-omp --dry-run --model <id>          # preview, writes nothing
+omp models omniroute                                # list discovered OmniRoute models
+```
+
+**Test:** `omp -p "reply with the single word OK"` (or
+`omniroute run omp --model glm/glm-5.2 -- -p "reply OK"` for a no-write launch
+against a throwaway isolated OMP home).
+
+**Troubleshooting:**
+
+- **Silent fallback:** if `models.yml` is invalid, omp keeps its built-in
+  providers without an error — run `omp models omniroute`; an empty list means
+  the OmniRoute provider was not loaded. Re-run `omniroute setup-omp` to repair.
+- `omniroute run omp` writes nothing durable: it materializes a temporary
+  isolated OMP home (removed on exit) and scrubs conflicting `OPENAI_*` /
+  `ANTHROPIC_*` variables from the child environment.
 
 ---
 

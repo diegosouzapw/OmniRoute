@@ -544,6 +544,9 @@ Radar è opt-in e usa soltanto richieste GET. Il client OmniRoute non carica pro
     <td align="center" width="76"><img src="../../../public/providers/cli-generic.svg" width="40" alt="Warp AI"/><br/><sub><b>Warp AI</b></sub><br/><sub>                           </sub></td>
     <td align="center" width="76"><img src="../../../public/providers/cli-generic.svg" width="40" alt="Agent Deck"/><br/><sub><b>Agent Deck</b></sub><br/><sub>                           </sub></td>
   </tr>
+  <tr>
+    <td align="center" width="76"><a href="https://github.com/can1357/oh-my-pi"><img src="../../../public/providers/cli-generic.svg" width="40" alt="Oh My Pi"/><br/><sub><b>Oh My Pi</b></sub><br/><sub>                           </sub></a></td>
+  </tr>
 </table>
 </div>
 

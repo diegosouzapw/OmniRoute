@@ -30,6 +30,8 @@ import assert from "node:assert/strict";
 import { spawn, execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { mkdtempSync, mkdirSync, rmSync } from "node:fs";
+import os from "node:os";
 
 const ENABLED = process.env.RUN_CLI_SMOKE === "1";
 const BASE_URL = (process.env.OMNIROUTE_SMOKE_BASE_URL || "http://localhost:20128").replace(
@@ -43,13 +45,17 @@ const TIMEOUT_MS = Number(process.env.OMNIROUTE_SMOKE_TIMEOUT_MS || 120_000);
 const CLI_ENTRY = fileURLToPath(new URL("../../bin/omniroute.mjs", import.meta.url));
 
 /** One-shot, non-interactive invocation per target. Prompts are inert. */
-const SMOKE_TARGETS: Record<string, { args: string[] }> = {
+const SMOKE_TARGETS: Record<string, { args: string[]; setupCommand?: string }> = {
   codex: { args: ["exec", "--skip-git-repo-check", "reply with the single word OK"] },
   aider: { args: ["--message", "reply with the single word OK", "--no-git", "--yes-always"] },
   goose: { args: ["run", "-t", "reply with the single word OK"] },
   opencode: { args: ["run", "reply with the single word OK"] },
   qwen: { args: ["-p", "reply with the single word OK"] },
   gemini: { args: ["--skip-trust", "-p", "reply with the single word OK"] },
+  // omp is provisioned by the REAL `setup-omp` code path into an isolated temp
+  // HOME, then the REAL `omp` binary runs against it directly — the user's own
+  // ~/.omp is never touched.
+  omp: { args: ["-p", "reply with the single word OK"], setupCommand: "setup-omp" },
 };
 
 function selectedTargets(): string[] {
@@ -103,7 +109,11 @@ function classify(exitCode: number | null, output: string): SmokeResult["classif
   if (exitCode === 0) return "pass";
   if (/401|403|unauthorized|invalid[_ ]api[_ ]key/i.test(output)) return "auth";
   if (/5\d\d|upstream|overloaded|rate.?limit|429/i.test(output)) return "upstream";
-  if (/not found|unknown model|unsupported|invalid (option|argument)/i.test(output)) {
+  if (
+    /not found|unknown model|unsupported|invalid (option|argument)|cannot parse|invalid yaml|unparseable/i.test(
+      output
+    )
+  ) {
     return "config";
   }
   return "unknown";
@@ -151,6 +161,104 @@ function runSmoke(target: string): Promise<SmokeResult> {
   });
 }
 
+function spawnCollect(
+  command: string,
+  args: string[],
+  env: NodeJS.ProcessEnv
+): Promise<{ exitCode: number | null; output: string }> {
+  const { promise, resolve } = Promise.withResolvers<{
+    exitCode: number | null;
+    output: string;
+  }>();
+  const child = spawn(command, args, { env, stdio: ["ignore", "pipe", "pipe"] });
+  let output = "";
+  // Integration test against a real binary: the kill timer guards against a
+  // hung child; deterministic time control cannot reap a real process.
+  const timer = setTimeout(() => child.kill("SIGKILL"), TIMEOUT_MS);
+  let settled = false;
+  const finish = (result: { exitCode: number | null; output: string }) => {
+    if (settled) return;
+    settled = true;
+    clearTimeout(timer);
+    resolve(result);
+  };
+  // Attach error first: ENOENT spawn can emit before stdio is wired, and
+  // stdout/stderr are null on that path.
+  child.once("error", (err) => {
+    clearTimeout(timer);
+    finish({ exitCode: null, output: String(err) });
+  });
+  child.stdout?.on("data", (c) => (output += String(c)));
+  child.stderr?.on("data", (c) => (output += String(c)));
+  child.on("exit", (code) => {
+    clearTimeout(timer);
+    setTimeout(() => finish({ exitCode: code, output }), 250);
+  });
+  return promise;
+}
+
+/**
+ * Targets with `setupCommand` are provisioned by the REAL setup recipe into an
+ * isolated temp HOME (XDG_* pinned so nothing escapes into real user state),
+ * then the REAL binary runs against that home directly.
+ */
+async function runSmokeViaSetup(target: string): Promise<SmokeResult> {
+  const spec = SMOKE_TARGETS[target];
+  const home = mkdtempSync(path.join(os.tmpdir(), `omniroute-smoke-${target}-`));
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    HOME: home,
+    // The setup recipe and the omp provider block both read the credential
+    // from OMNIROUTE_API_KEY by name — map the configured env var onto it.
+    OMNIROUTE_API_KEY: process.env[API_KEY_ENV] ?? "",
+    XDG_CONFIG_HOME: path.join(home, ".config"),
+    XDG_STATE_HOME: path.join(home, ".local", "state"),
+    XDG_DATA_HOME: path.join(home, ".local", "share"),
+    XDG_CACHE_HOME: path.join(home, ".cache"),
+  };
+  try {
+    for (const dir of [
+      env.XDG_CONFIG_HOME,
+      env.XDG_STATE_HOME,
+      env.XDG_DATA_HOME,
+      env.XDG_CACHE_HOME,
+    ]) {
+      mkdirSync(dir as string, { recursive: true });
+    }
+    const setup = await spawnCollect(
+      process.execPath,
+      [
+        CLI_ENTRY,
+        spec.setupCommand as string,
+        "--remote",
+        BASE_URL,
+        "--yes",
+        ...(MODEL ? ["--model", MODEL] : []),
+      ],
+      env
+    );
+    if (setup.exitCode !== 0) {
+      const output = redact(setup.output);
+      return {
+        exitCode: setup.exitCode,
+        stdout: output,
+        stderr: "",
+        classification: classify(setup.exitCode, output),
+      };
+    }
+    const run = await spawnCollect(target, [...spec.args], env);
+    const combined = redact(run.output);
+    return {
+      exitCode: run.exitCode,
+      stdout: redact(run.output),
+      stderr: "",
+      classification: classify(run.exitCode, combined),
+    };
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+}
+
 // NOTE: node:test treats `timeout: 0` as "time out immediately", not "no
 // timeout" — size the budget from the per-target cap instead.
 const SWEEP_TIMEOUT_MS = (Object.keys(SMOKE_TARGETS).length + 1) * (TIMEOUT_MS + 30_000);
@@ -176,7 +284,9 @@ test(
           st.skip(`binary '${target}' not installed on this machine`);
           return;
         }
-        const result = await runSmoke(target);
+        const result = SMOKE_TARGETS[target].setupCommand
+          ? await runSmokeViaSetup(target)
+          : await runSmoke(target);
         st.diagnostic(`${target}: exit=${result.exitCode} class=${result.classification}`);
         assert.equal(
           result.classification,
