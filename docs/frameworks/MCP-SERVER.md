@@ -83,6 +83,11 @@ Cursor, Cline, and compatible MCP client setup.
 | `omniroute_x_search`            | `execute:search`      | Search X through xAI/SuperGrok, or choose `xquik-search` for Xquik API results. Requires credentials for the selected backend. |
 | `omniroute_web_fetch`           | `execute:search`      | Fetch web content through the configured fetch providers                                                                       |
 
+The model catalog preserves `context_length` and `max_output_tokens` when the
+provider catalog supplies positive finite numbers. Unknown, zero, or invalid
+limits are omitted rather than reported as a zero-token budget. This applies to
+active connection catalogs (including local fallbacks) and no-auth provider catalogs.
+
 ## Advanced Tools (11) — Phase 2
 
 | Tool                               | Scopes                               | Description                                                                               |

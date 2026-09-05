@@ -12,6 +12,8 @@ type McpCatalogResponse = {
     capabilities: string[];
     status: McpCatalogStatus;
     thinkingEffort?: string;
+    context_length?: number;
+    max_output_tokens?: number;
     pricing?: unknown;
   }>;
   source: string;
@@ -127,6 +129,17 @@ function getConnectionThinkingEffort(connection: ProviderConnectionLike): string
   return rawThinkingEffort || undefined;
 }
 
+function getCatalogTokenLimits(model: JsonRecord) {
+  const limits: Partial<Record<"context_length" | "max_output_tokens", number>> = {};
+  for (const field of ["context_length", "max_output_tokens"] as const) {
+    const value = model[field];
+    if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+      limits[field] = value;
+    }
+  }
+  return limits;
+}
+
 function normalizeProviderModelRecord(
   rawModel: unknown,
   fallbackProvider: string,
@@ -143,6 +156,7 @@ function normalizeProviderModelRecord(
     capabilities: getCatalogModelCapabilities(model),
     status: normalizeCatalogStatus(model, source, warning),
     ...(thinkingEffort ? { thinkingEffort } : {}),
+    ...getCatalogTokenLimits(model),
     pricing: model.pricing,
   };
 }
@@ -155,8 +169,12 @@ function activeProviderConnections(
   return connections.filter((connection) => {
     const provider =
       typeof connection?.provider === "string" ? normalizeProviderId(connection.provider) : null;
-    return !!provider && !!connection?.id && connection.isActive !== false &&
-      (!requestedProvider || provider === requestedProvider);
+    return (
+      !!provider &&
+      !!connection?.id &&
+      connection.isActive !== false &&
+      (!requestedProvider || provider === requestedProvider)
+    );
   });
 }
 
@@ -201,7 +219,8 @@ function maybeCatalogModel(
   requestedCapability: string | null
 ): McpCatalogResponse["models"][number] | null {
   const normalized = normalizeProviderModelRecord(rawModel, spec.provider, source, warning);
-  if (spec.thinkingEffort && !normalized.thinkingEffort) normalized.thinkingEffort = spec.thinkingEffort;
+  if (spec.thinkingEffort && !normalized.thinkingEffort)
+    normalized.thinkingEffort = spec.thinkingEffort;
   if (!normalized.id) return null;
   if (requestedCapability && !normalized.capabilities.includes(requestedCapability)) return null;
   return normalized;
@@ -232,7 +251,10 @@ async function collectCatalogModels(
 
   for (const spec of requestSpecs) {
     const raw = toRecord(await fetchJson(spec.path));
-    const source = toString(raw.source, spec.path.startsWith("/api/providers/") ? "api" : "v1_catalog");
+    const source = toString(
+      raw.source,
+      spec.path.startsWith("/api/providers/") ? "api" : "v1_catalog"
+    );
     const warning = raw.warning ? String(raw.warning) : undefined;
     if (warning) warnings.add(warning);
     sources.add(source);
@@ -249,7 +271,8 @@ export async function getMcpModelsCatalog(
     listProviderConnections?: () => Promise<ProviderConnectionLike[]>;
   } = {}
 ): Promise<McpCatalogResponse> {
-  const fetchJson = deps.fetchJson ?? ((path: string) => import("./server.ts").then((m) => m.omniRouteFetch(path)));
+  const fetchJson =
+    deps.fetchJson ?? ((path: string) => import("./server.ts").then((m) => m.omniRouteFetch(path)));
   const listProviderConnections = deps.listProviderConnections ?? getProviderConnections;
   const aliasMap = buildProviderAliasMap();
   const normalizeProviderId = (value: string) => aliasMap[value] || value;

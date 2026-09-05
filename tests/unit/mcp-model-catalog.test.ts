@@ -147,3 +147,66 @@ test("getMcpModelsCatalog returns empty result when requested provider has no ac
     warning: "No active connections found for provider 'github'.",
   });
 });
+
+for (const source of ["api", "local_catalog"]) {
+  for (const envelope of ["models", "data"]) {
+    test(`getMcpModelsCatalog preserves token limits from ${source} ${envelope}`, async () => {
+      const result = await getMcpModelsCatalog(
+        { provider: "gh", capability: "chat" },
+        {
+          listProviderConnections: async () => [{ id: "conn-github", provider: "github" }],
+          fetchJson: async () => ({
+            source,
+            [envelope]: [
+              { id: "budgeted-model", context_length: 128000, max_output_tokens: 16384 },
+            ],
+          }),
+        }
+      );
+      assert.equal(result.models[0]?.context_length, 128000);
+      assert.equal(result.models[0]?.max_output_tokens, 16384);
+      assert.equal(result.models[0]?.status, source === "local_catalog" ? "degraded" : "available");
+    });
+  }
+}
+
+test("getMcpModelsCatalog preserves token limits for no-auth provider catalogs", async () => {
+  const result = await getMcpModelsCatalog(
+    { provider: "oc" },
+    {
+      listProviderConnections: async () => [],
+      fetchJson: async (path) => {
+        assert.equal(path, "/api/v1/providers/opencode/models");
+        return { data: [{ id: "budgeted-model", context_length: 64000, max_output_tokens: 8192 }] };
+      },
+    }
+  );
+  assert.equal(result.models[0]?.context_length, 64000);
+  assert.equal(result.models[0]?.max_output_tokens, 8192);
+});
+
+test("getMcpModelsCatalog omits unknown or invalid token limits independently", async () => {
+  const invalid = [undefined, null, 0, -1, NaN, Infinity, -Infinity, "128000", true, {}, []];
+  const result = await getMcpModelsCatalog(
+    {},
+    {
+      listProviderConnections: async () => [{ id: "conn-github", provider: "github" }],
+      fetchJson: async () => ({
+        models: invalid.flatMap((value, index) => [
+          { id: `context-${index}`, context_length: value, max_output_tokens: 8192 },
+          { id: `output-${index}`, context_length: 64000, max_output_tokens: value },
+        ]),
+      }),
+    }
+  );
+  assert.equal(result.models.length, invalid.length * 2);
+  for (const model of result.models) {
+    if (model.id.startsWith("context-")) {
+      assert.equal(Object.hasOwn(model, "context_length"), false);
+      assert.equal(model.max_output_tokens, 8192);
+    } else {
+      assert.equal(model.context_length, 64000);
+      assert.equal(Object.hasOwn(model, "max_output_tokens"), false);
+    }
+  }
+});
