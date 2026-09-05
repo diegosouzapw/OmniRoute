@@ -131,7 +131,7 @@ export class CompressionWorkerPool {
   }
   async close(): Promise<void> {
     for (const job of this.queue.splice(0)) job.resolve(unchanged(job.originalBody));
-    await Promise.all([...this.workers].map((slot) => this.remove(slot, true)));
+    await Promise.all([...this.workers].map((slot) => this.remove(slot)));
   }
   private spawn(): PoolWorker {
     const slot: PoolWorker = {
@@ -185,7 +185,7 @@ export class CompressionWorkerPool {
     slot.timeout = null;
     slot.job = null;
     job.resolve(result);
-    slot.idle = setTimeout(() => void this.remove(slot, false), this.idleMs);
+    slot.idle = setTimeout(() => void this.remove(slot), this.idleMs);
     slot.idle.unref();
     this.dispatch();
   }
@@ -193,13 +193,13 @@ export class CompressionWorkerPool {
     const job = slot.job;
     if (job) job.resolve(unchanged(job.originalBody));
     slot.job = null;
-    void this.remove(slot, true).finally(() => this.dispatch());
+    void this.remove(slot).finally(() => this.dispatch());
   }
-  private async remove(slot: PoolWorker, terminate: boolean): Promise<void> {
+  private async remove(slot: PoolWorker): Promise<void> {
     if (!this.workers.delete(slot)) return;
     if (slot.timeout) clearTimeout(slot.timeout);
     if (slot.idle) clearTimeout(slot.idle);
-    if (terminate) await slot.worker.terminate().catch(() => undefined);
+    await slot.worker.terminate().catch(() => undefined);
   }
 }
 
