@@ -18,6 +18,26 @@ function toNonEmptyString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
 
+function isZeroPrice(value: unknown): boolean {
+  if (typeof value === "number") return value === 0;
+  if (typeof value !== "string" || value.trim().length === 0) return false;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed === 0;
+}
+
+function hasLiveFreeEvidence(
+  id: string,
+  record: JsonRecord,
+  promptPrice: string | number | undefined,
+  completionPrice: string | number | undefined
+): boolean {
+  return (
+    record.isFree === true ||
+    id.endsWith(":free") ||
+    (isZeroPrice(promptPrice) && isZeroPrice(completionPrice))
+  );
+}
+
 /**
  * Resolve a positive integer token limit from a list of candidate values.
  * Used to fall back across the differently-named context/output fields that
@@ -328,6 +348,18 @@ export function normalizeDiscoveredModels(
     // models reached the catalog with no vision flag and vision-capable models
     // (which work at request time) showed up as non-vision after import.
     const supportsVision = detectVisionInput(record);
+    const pricing = asRecord(record.pricing);
+    const promptPrice =
+      typeof pricing.prompt === "string" || typeof pricing.prompt === "number"
+        ? pricing.prompt
+        : undefined;
+    const completionPrice =
+      typeof pricing.completion === "string" || typeof pricing.completion === "number"
+        ? pricing.completion
+        : undefined;
+    // Persist only evidence present in this discovery payload. Static catalog
+    // membership is intentionally not evidence about this connection's economics.
+    const isFree = hasLiveFreeEvidence(id, record, promptPrice, completionPrice);
 
     deduped.set(id, {
       id,
@@ -356,6 +388,7 @@ export function normalizeDiscoveredModels(
       ...(record.alwaysThinking === true ? { alwaysThinking: true } : {}),
       ...(typeof record.supportsTools === "boolean" ? { supportsTools: record.supportsTools } : {}),
       ...(typeof record.supportsVideo === "boolean" ? { supportsVideo: record.supportsVideo } : {}),
+      ...(isFree ? { isFree: true } : {}),
       ...(supportsVision ? { supportsVision: true } : {}),
     });
   }
