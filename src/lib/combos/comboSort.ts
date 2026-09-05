@@ -1,5 +1,8 @@
 // src/lib/combos/comboSort.ts
-import { OAUTH_PROVIDERS, NOAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/providers";
+import {
+  CANONICAL_PROVIDER_ORDER,
+  providerRank,
+} from "@/shared/constants/canonicalProviderOrder";
 import type { ComboStep } from "@/lib/combos/steps";
 
 export type { ComboStep };
@@ -17,13 +20,8 @@ export function isValidSortMethod(raw: unknown): raw is SortMethod {
   return VALID_SORT_METHODS.has(raw as string);
 }
 
-// Mirrors CANONICAL_PROVIDER_ORDER from src/app/api/v1/models/catalogOrder.ts — keep in sync.
-// Both are derived from OAUTH+NOAUTH+APIKEY keys; drift would silently diverge catalog vs combo order.
-export const PROVIDER_ORDER: readonly string[] = [
-  ...Object.keys(OAUTH_PROVIDERS),
-  ...Object.keys(NOAUTH_PROVIDERS),
-  ...Object.keys(APIKEY_PROVIDERS),
-];
+// Single source: re-exported from canonicalProviderOrder (was a duplicated derivation).
+export { CANONICAL_PROVIDER_ORDER as PROVIDER_ORDER };
 
 const REFERENCE_SENTINEL = " combo-ref"; // sorts after any real provider id
 
@@ -38,12 +36,6 @@ function nameKey(step: ComboStep): string {
   if (step.kind === "model") return step.model;
   if (step.kind === "provider-wildcard") return `${step.providerId}/${step.modelPattern}`;
   return step.comboName; // combo-ref
-}
-
-/** Stable index for provider ordering; unknown providers go after the known list. */
-function providerRank(providerId: string): number {
-  const idx = PROVIDER_ORDER.indexOf(providerId);
-  return idx === -1 ? PROVIDER_ORDER.length : idx;
 }
 
 /** Synchronous sorts: manual (noop), provider, name. Stable. */

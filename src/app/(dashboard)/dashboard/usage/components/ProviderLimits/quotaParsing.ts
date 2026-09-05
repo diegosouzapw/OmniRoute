@@ -1,4 +1,5 @@
 import { getModelsByProviderId } from "@omniroute/open-sse/config/providerModels.ts";
+import { getProviderConnectionFamilyIds } from "@/shared/constants/providers";
 import { safePercentage } from "@/shared/utils/formatting";
 
 const GLM_QUOTA_ORDER: Record<string, number> = { session: 0, weekly: 1, mcp_monthly: 2 };
@@ -10,7 +11,7 @@ const CODEX_QUOTA_ORDER: Record<string, number> = {
   banked_reset_credits: 4,
 };
 const GLM_FAMILY_PROVIDERS = ["glm", "glm-cn", "glmt", "opencode-go"];
-const KIMI_CODING_PROVIDERS = ["kimi-coding", "kimi-coding-apikey"];
+const KIMI_CODING_PROVIDERS: readonly string[] = getProviderConnectionFamilyIds("kimi-coding");
 
 /**
  * Providers whose quotas already get a deterministic fixed-window order below
