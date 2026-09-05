@@ -1,42 +1,14 @@
-/**
- * usage/glmResetCards.ts — GLM Coding Plan Reset Card wire layer.
- *
- * z.ai sells "Reset Cards" that clear an exhausted GLM coding-plan window (the 5-hour or the
- * weekly one) before it would roll over on its own. z.ai's dashboard drives them through two
- * endpoints that sit next to the quota endpoint this file's sibling `glm.ts` already polls:
- *
- *   GET  /api/biz/customer-package-reset/list?targetType=PERSONAL
- *   POST /api/biz/customer-package-reset/use
- *
- * Both accept the same `Authorization: Bearer <apiKey>` credential as
- * `/api/monitor/usage/quota/limit`, so no new credential type is involved. Verified against
- * the live endpoint: with no auth header it answers `code: 1001` ("Authentication parameter
- * not received in Header"); with a Bearer token it answers `code: 401` ("token expired or
- * incorrect") — i.e. the header is consumed and validated exactly like on the quota route.
- *
- * Like the rest of the z.ai API these endpoints answer HTTP 200 even when they fail and carry
- * the real status inside the body (`success: false` + `code`), so callers must inspect the
- * envelope rather than `response.ok` alone.
- *
- * Transport only: no DB access and no credential lookup. Connection-aware orchestration lives
- * in `src/lib/usage/glmResetCards.ts`.
- */
-
 import { buildGlmResetCardFetch, type GlmResetCardAction } from "../../config/glmProvider.ts";
 import { toNumber, toRecord } from "./scalars.ts";
 
 type JsonRecord = Record<string, unknown>;
 
-/** The target z.ai's dashboard uses for individual coding-plan keys. */
 export const GLM_RESET_CARD_TARGET_TYPE = "PERSONAL";
 
 const GLM_RESET_CARD_TIMEOUT_MS = 15_000;
+const ZAI_TIMESTAMP_PATTERN =
+  /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?$/;
 
-/**
- * Which window a card resets. z.ai groups banked cards into two arrays and echoes the
- * matching `resetType` back in the redeem body (`WEEK` observed on the wire). An item that
- * carries its own `resetType` always wins over the array-derived default.
- */
 export type GlmResetWindow = "FIVE_HOUR" | "WEEK";
 
 const GLM_RESET_CARD_BUCKETS: ReadonlyArray<{ key: string; resetType: GlmResetWindow }> = [
@@ -45,7 +17,6 @@ const GLM_RESET_CARD_BUCKETS: ReadonlyArray<{ key: string; resetType: GlmResetWi
 ];
 
 export interface GlmResetCard {
-  /** z.ai's `recordId`, carried as a string; sent back as a number. */
   id: string;
   resetType: GlmResetWindow;
   expiresAt?: string | null;
@@ -55,7 +26,6 @@ export interface GlmResetCard {
 export interface GlmResetCardList {
   cards: GlmResetCard[];
   availableCount: number;
-  /** When each window was last reset, as reported by z.ai (display only). */
   lastFiveHourResetAt: string | null;
   lastWeekResetAt: string | null;
 }
@@ -69,6 +39,55 @@ function firstString(record: JsonRecord, keys: readonly string[]): string | null
   return null;
 }
 
+function normalizeStatus(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+  return normalized || null;
+}
+
+function isUnavailableCard(record: JsonRecord): boolean {
+  const status = normalizeStatus(
+    record.status ?? record.state ?? record.outcome ?? record.result ?? record.code
+  );
+  if (
+    status &&
+    ["consumed", "redeeming", "redeemed", "used", "expired", "unavailable"].includes(status)
+  ) {
+    return true;
+  }
+  return record.available === false || record.consumed === true || record.redeemed === true;
+}
+
+/** Parse z.ai's timezone-less dashboard timestamp as UTC, while retaining normal ISO support. */
+export function parseGlmResetCardTimestamp(value: string): number | null {
+  const trimmed = value.trim();
+  const zaiMatch = ZAI_TIMESTAMP_PATTERN.exec(trimmed);
+  if (zaiMatch) {
+    const [, year, month, day, hour, minute, second, fraction = "0"] = zaiMatch;
+    const parts = [year, month, day, hour, minute, second].map(Number);
+    const milliseconds = Number(fraction.padEnd(3, "0"));
+    const timestamp = Date.UTC(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5]);
+    const date = new Date(timestamp);
+    if (
+      date.getUTCFullYear() !== parts[0] ||
+      date.getUTCMonth() + 1 !== parts[1] ||
+      date.getUTCDate() !== parts[2] ||
+      date.getUTCHours() !== parts[3] ||
+      date.getUTCMinutes() !== parts[4] ||
+      date.getUTCSeconds() !== parts[5]
+    ) {
+      return null;
+    }
+    return timestamp + milliseconds;
+  }
+
+  const timestamp = Date.parse(trimmed);
+  return Number.isFinite(timestamp) ? timestamp : null;
+}
+
 function parseResetWindow(value: unknown, fallback: GlmResetWindow): GlmResetWindow {
   const normalized = typeof value === "string" ? value.trim().toUpperCase() : "";
   if (normalized === "WEEK" || normalized === "FIVE_HOUR") return normalized;
@@ -77,12 +96,16 @@ function parseResetWindow(value: unknown, fallback: GlmResetWindow): GlmResetWin
 
 function parseResetCard(value: unknown, fallbackType: GlmResetWindow): GlmResetCard | null {
   const record = toRecord(value);
-  if (Object.keys(record).length === 0) return null;
+  if (Object.keys(record).length === 0 || isUnavailableCard(record)) return null;
 
   const id = firstString(record, ["recordId", "id", "packageResetId", "resetId"]);
   if (!id) return null;
 
   const expiresAt = firstString(record, ["expireTime", "expiredTime", "expiresAt", "endTime"]);
+  if (expiresAt) {
+    const expiresAtMs = parseGlmResetCardTimestamp(expiresAt);
+    if (expiresAtMs !== null && expiresAtMs <= Date.now()) return null;
+  }
   const title = firstString(record, ["packageName", "name", "title"]);
 
   return {
@@ -93,25 +116,27 @@ function parseResetCard(value: unknown, fallbackType: GlmResetWindow): GlmResetC
   };
 }
 
-/**
- * Parse the `/customer-package-reset/list` envelope into the cards redeemable right now.
- *
- * Both buckets are read defensively: an account with none left reports them as empty arrays
- * (the common case), and the per-item shape is matched on several key spellings because z.ai
- * only populates it while a card is actually banked.
- */
+function getExpirySortValue(card: GlmResetCard): number {
+  if (!card.expiresAt) return Number.POSITIVE_INFINITY;
+  return parseGlmResetCardTimestamp(card.expiresAt) ?? Number.POSITIVE_INFINITY;
+}
+
 export function parseGlmResetCards(payload: unknown): GlmResetCardList {
   const data = toRecord(toRecord(payload).data);
-  const cards: GlmResetCard[] = [];
+  const parsed: Array<{ card: GlmResetCard; index: number }> = [];
 
   for (const bucket of GLM_RESET_CARD_BUCKETS) {
     const entries = data[bucket.key];
     if (!Array.isArray(entries)) continue;
     for (const entry of entries) {
       const card = parseResetCard(entry, bucket.resetType);
-      if (card) cards.push(card);
+      if (card) parsed.push({ card, index: parsed.length });
     }
   }
+
+  const cards = parsed
+    .sort((a, b) => getExpirySortValue(a.card) - getExpirySortValue(b.card) || a.index - b.index)
+    .map(({ card }) => card);
 
   return {
     cards,
@@ -121,24 +146,23 @@ export function parseGlmResetCards(payload: unknown): GlmResetCardList {
   };
 }
 
-/** True when the z.ai envelope reports success — HTTP 200 alone is not enough. */
+/** HTTP success alone is insufficient: require z.ai's complete application envelope. */
 export function isGlmResetCardEnvelopeOk(payload: unknown): boolean {
-  const record = toRecord(payload);
-  if (record.success === false) return false;
-  const code = toNumber(record.code, 200);
-  return code === 0 || code === 200;
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return false;
+  const record = payload as JsonRecord;
+  if (record.success !== true || typeof record.code !== "number" || !Number.isFinite(record.code)) {
+    return false;
+  }
+  return record.code === 0 || record.code === 200;
 }
 
-/** The upstream status carried inside the envelope, falling back to the HTTP status. */
 export function getGlmResetCardEnvelopeStatus(payload: unknown, httpStatus: number): number {
   const code = toNumber(toRecord(payload).code, 0);
   if (code === 401 || code === 403 || code === 404 || code === 429) return code;
-  // 1001 = "Authentication parameter not received in Header".
   if (code === 1001) return 401;
   return httpStatus;
 }
 
-/** The upstream message carried inside the envelope, if any. */
 export function getGlmResetCardEnvelopeMessage(payload: unknown): string | null {
   const record = toRecord(payload);
   const message = record.msg ?? record.message;
@@ -172,7 +196,6 @@ async function requestGlmResetCards(
   return { response, payload };
 }
 
-/** GET the reset cards banked on this key. */
 export function fetchGlmResetCardList(
   apiKey: string,
   providerSpecificData?: unknown
@@ -180,10 +203,6 @@ export function fetchGlmResetCardList(
   return requestGlmResetCards(apiKey, providerSpecificData, "list");
 }
 
-/**
- * POST a redemption. `requestId` is z.ai's idempotency key — the same value must be reused
- * when retrying so a network retry cannot burn two cards.
- */
 export function redeemGlmResetCard(
   apiKey: string,
   providerSpecificData: unknown,
@@ -199,21 +218,17 @@ export function redeemGlmResetCard(
   });
 }
 
-/**
- * Best-effort count of redeemable cards, for the quota card. Never throws: a key without
- * coding-plan entitlements (or a transient failure) simply reports none, so the quota poll
- * this is folded into keeps rendering.
- */
+/** Null means the auxiliary request failed; zero is an authoritative empty list. */
 export async function fetchGlmResetCardCount(
   apiKey: string,
   providerSpecificData?: unknown
-): Promise<number> {
-  if (!apiKey) return 0;
+): Promise<number | null> {
+  if (!apiKey) return null;
   try {
-    const { payload } = await fetchGlmResetCardList(apiKey, providerSpecificData);
-    if (!isGlmResetCardEnvelopeOk(payload)) return 0;
+    const { response, payload } = await fetchGlmResetCardList(apiKey, providerSpecificData);
+    if (!response.ok || !isGlmResetCardEnvelopeOk(payload)) return null;
     return parseGlmResetCards(payload).availableCount;
   } catch {
-    return 0;
+    return null;
   }
 }

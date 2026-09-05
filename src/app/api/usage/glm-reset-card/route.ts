@@ -23,7 +23,11 @@ function buildErrorResponse(error: unknown) {
     error instanceof GlmResetCardError
       ? sanitizeErrorMessage(error.message) || "GLM reset-card request failed."
       : "GLM reset-card request failed.";
-  console.error("[API] /api/usage/glm-reset-card error:", error);
+  console.error("[API] GLM reset-card request failed", {
+    status,
+    code,
+    message,
+  });
   return NextResponse.json({ ok: false, code, error: message }, { status });
 }
 

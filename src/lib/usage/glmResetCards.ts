@@ -1,4 +1,5 @@
 import { getProviderConnectionById } from "@/lib/db/providers";
+import { resolveProxyForConnection } from "@/lib/db/settings";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
 import { fetchAndPersistProviderLimits } from "@/lib/usage/providerLimits";
 import {
@@ -11,21 +12,14 @@ import {
   type GlmResetCard,
 } from "@omniroute/open-sse/services/usage/glmResetCards.ts";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
-
-/**
- * GLM Coding Plan Reset Cards — connection-aware orchestration.
- *
- * Mirrors `codexResetCredits.ts` (same list/redeem contract, same public shapes) so the
- * Provider Limits UI can drive either provider through one flow. The differences are all
- * upstream-imposed: z.ai authenticates with the connection's API key rather than an OAuth
- * access token (so there is no token-refresh retry), and reports failures inside an
- * HTTP-200 envelope rather than through the status line.
- */
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 type JsonRecord = Record<string, unknown>;
 
-/** GLM providers that resolve usage through the z.ai/bigmodel coding-plan endpoints. */
 export const GLM_RESET_CARD_PROVIDERS = ["glm", "glm-cn", "glmt", "zai"] as const;
+
+const ATTEMPT_TTL_MS = 10 * 60_000;
+const MAX_ATTEMPTS = 500;
 
 type GlmConnectionLike = JsonRecord & {
   id: string;
@@ -44,6 +38,22 @@ export interface GlmResetCardListResult {
   lastFiveHourResetAt: string | null;
   lastWeekResetAt: string | null;
 }
+
+export interface GlmResetCardConsumeResult {
+  outcome: "reset";
+  usage?: JsonRecord;
+  refreshPending?: true;
+}
+
+interface RedemptionAttempt {
+  requestedSelection: string | null;
+  card?: GlmResetCard;
+  inFlight?: Promise<GlmResetCardConsumeResult>;
+  committed?: GlmResetCardConsumeResult;
+  expiresAt: number;
+}
+
+const redemptionAttempts = new Map<string, RedemptionAttempt>();
 
 export class GlmResetCardError extends Error {
   status: number;
@@ -73,10 +83,6 @@ function toPublicCard(card: GlmResetCard): PublicGlmResetCard {
   return { ...metadata, selectionToken: id };
 }
 
-/**
- * `glm-cn` is pinned to the China region the same way the usage dispatcher pins it, so the
- * reset endpoints follow the key's own host instead of defaulting to the international one.
- */
 function getProviderSpecificData(connection: GlmConnectionLike): JsonRecord {
   return {
     ...toRecord(connection.providerSpecificData),
@@ -100,7 +106,6 @@ async function loadGlmConnection(connectionId: string): Promise<GlmConnectionLik
   if (!connection) {
     throw new GlmResetCardError(404, "connection_not_found", "Connection not found.");
   }
-
   if (!isGlmResetCardProvider(connection.provider)) {
     throw new GlmResetCardError(
       400,
@@ -108,7 +113,6 @@ async function loadGlmConnection(connectionId: string): Promise<GlmConnectionLik
       "Reset cards can only be redeemed for GLM coding-plan accounts."
     );
   }
-
   if (!connection.apiKey) {
     throw new GlmResetCardError(
       401,
@@ -124,8 +128,6 @@ function assertEnvelopeOk(payload: unknown, httpStatus: number, fallbackMessage:
   if (isGlmResetCardEnvelopeOk(payload) && httpStatus < 400) return;
 
   const status = getGlmResetCardEnvelopeStatus(payload, httpStatus);
-  const upstreamMessage = getGlmResetCardEnvelopeMessage(payload);
-
   if (status === 401 || status === 403) {
     throw new GlmResetCardError(
       401,
@@ -134,11 +136,58 @@ function assertEnvelopeOk(payload: unknown, httpStatus: number, fallbackMessage:
     );
   }
 
+  const upstreamMessage = getGlmResetCardEnvelopeMessage(payload);
   throw new GlmResetCardError(
     status >= 400 ? status : 502,
     "glm_reset_card_upstream_error",
-    upstreamMessage || fallbackMessage
+    sanitizeErrorMessage(upstreamMessage) || fallbackMessage
   );
+}
+
+function pruneAttempts(now = Date.now()): void {
+  for (const [key, attempt] of redemptionAttempts) {
+    if (!attempt.inFlight && attempt.expiresAt <= now) redemptionAttempts.delete(key);
+  }
+
+  if (redemptionAttempts.size <= MAX_ATTEMPTS) return;
+  for (const [key, attempt] of redemptionAttempts) {
+    if (!attempt.inFlight) redemptionAttempts.delete(key);
+    if (redemptionAttempts.size <= MAX_ATTEMPTS) break;
+  }
+}
+
+function attemptKey(connectionId: string, idempotencyKey: string): string {
+  return `${connectionId}:${idempotencyKey}`;
+}
+
+function normalizeSelection(selectionToken?: string): string | null {
+  return typeof selectionToken === "string" && selectionToken.trim() ? selectionToken.trim() : null;
+}
+
+function assertCompatibleAttempt(
+  attempt: RedemptionAttempt,
+  requestedSelection: string | null
+): void {
+  if (attempt.requestedSelection !== requestedSelection) {
+    throw new GlmResetCardError(
+      409,
+      "idempotency_key_conflict",
+      "This idempotency key is already bound to a different reset-card selection."
+    );
+  }
+}
+
+async function refreshAfterCommit(connectionId: string): Promise<GlmResetCardConsumeResult> {
+  try {
+    const refreshed = await fetchAndPersistProviderLimits(connectionId, "manual", {
+      allowRotatingRefresh: true,
+    });
+    return { outcome: "reset", usage: refreshed.usage };
+  } catch {
+    // Redemption is already irreversible. The caller can preserve its current
+    // quotas and refresh later instead of turning committed success into a 500.
+    return { outcome: "reset", refreshPending: true };
+  }
 }
 
 export async function listGlmResetCards(connectionId: string): Promise<GlmResetCardListResult> {
@@ -148,11 +197,10 @@ export async function listGlmResetCards(connectionId: string): Promise<GlmResetC
 
   try {
     const connection = await loadGlmConnection(connectionId);
-    const { response, payload } = await fetchGlmResetCardList(
-      connection.apiKey as string,
-      getProviderSpecificData(connection)
+    const proxyInfo = await resolveProxyForConnection(connection.id);
+    const { response, payload } = await runWithProxyContext(proxyInfo?.proxy ?? null, () =>
+      fetchGlmResetCardList(connection.apiKey as string, getProviderSpecificData(connection))
     );
-
     assertEnvelopeOk(payload, response.status, "The GLM reset-card API returned an error.");
 
     const parsed = parseGlmResetCards(payload);
@@ -172,24 +220,19 @@ export async function listGlmResetCards(connectionId: string): Promise<GlmResetC
   }
 }
 
-export async function consumeGlmResetCard(
-  connectionId: string,
-  idempotencyKey: string,
-  selectionToken?: string
-): Promise<{ outcome: "reset"; usage: JsonRecord }> {
-  if (!connectionId || typeof connectionId !== "string") {
-    throw new GlmResetCardError(400, "connection_id_required", "connectionId is required.");
-  }
-  if (!idempotencyKey || typeof idempotencyKey !== "string" || !idempotencyKey.trim()) {
-    throw new GlmResetCardError(400, "idempotency_key_required", "idempotencyKey is required.");
-  }
+async function executeRedemption(
+  attempt: RedemptionAttempt,
+  connection: GlmConnectionLike,
+  requestId: string,
+  proxyConfig: unknown
+): Promise<GlmResetCardConsumeResult> {
+  const providerSpecificData = getProviderSpecificData(connection);
+  const apiKey = connection.apiKey as string;
 
-  try {
-    const connection = await loadGlmConnection(connectionId);
-    const providerSpecificData = getProviderSpecificData(connection);
-    const apiKey = connection.apiKey as string;
-
-    const listed = await fetchGlmResetCardList(apiKey, providerSpecificData);
+  if (!attempt.card) {
+    const listed = await runWithProxyContext(proxyConfig, () =>
+      fetchGlmResetCardList(apiKey, providerSpecificData)
+    );
     assertEnvelopeOk(
       listed.payload,
       listed.response.status,
@@ -197,37 +240,92 @@ export async function consumeGlmResetCard(
     );
 
     const { cards } = parseGlmResetCards(listed.payload);
-    const requested =
-      typeof selectionToken === "string" && selectionToken.trim() ? selectionToken.trim() : null;
-    const card = requested ? cards.find((entry) => entry.id === requested) : cards[0];
-
+    const card = attempt.requestedSelection
+      ? cards.find((entry) => entry.id === attempt.requestedSelection)
+      : cards[0];
     if (!card) {
       throw new GlmResetCardError(
         409,
-        requested ? "selected_card_unavailable" : "no_reset_card",
-        requested
+        attempt.requestedSelection ? "selected_card_unavailable" : "no_reset_card",
+        attempt.requestedSelection
           ? "The selected GLM reset card is no longer available."
           : "No GLM reset cards are available."
       );
     }
+    attempt.card = card;
+  }
 
-    const redeemed = await redeemGlmResetCard(
-      apiKey,
-      providerSpecificData,
-      card,
-      idempotencyKey.trim()
-    );
-    assertEnvelopeOk(
-      redeemed.payload,
-      redeemed.response.status,
-      "The GLM reset-card API rejected the redemption."
-    );
+  // A transport rejection is ambiguous: z.ai may have committed the card before
+  // the response was lost. Keep `attempt.card`, and the next call will retry the
+  // exact same body/requestId without relisting.
+  const redeemed = await runWithProxyContext(proxyConfig, () =>
+    redeemGlmResetCard(apiKey, providerSpecificData, attempt.card as GlmResetCard, requestId)
+  );
+  assertEnvelopeOk(
+    redeemed.payload,
+    redeemed.response.status,
+    "The GLM reset-card API rejected the redemption."
+  );
 
-    const refreshed = await fetchAndPersistProviderLimits(connectionId, "manual", {
-      allowRotatingRefresh: true,
-    });
+  return refreshAfterCommit(connection.id);
+}
 
-    return { outcome: "reset", usage: refreshed.usage };
+export async function consumeGlmResetCard(
+  connectionId: string,
+  idempotencyKey: string,
+  selectionToken?: string
+): Promise<GlmResetCardConsumeResult> {
+  if (!connectionId || typeof connectionId !== "string") {
+    throw new GlmResetCardError(400, "connection_id_required", "connectionId is required.");
+  }
+  if (!idempotencyKey || typeof idempotencyKey !== "string" || !idempotencyKey.trim()) {
+    throw new GlmResetCardError(400, "idempotency_key_required", "idempotencyKey is required.");
+  }
+
+  const requestId = idempotencyKey.trim();
+  const requestedSelection = normalizeSelection(selectionToken);
+  const key = attemptKey(connectionId, requestId);
+
+  try {
+    const connection = await loadGlmConnection(connectionId);
+    const proxyInfo = await resolveProxyForConnection(connection.id);
+    pruneAttempts();
+
+    const existing = redemptionAttempts.get(key);
+    if (existing) {
+      assertCompatibleAttempt(existing, requestedSelection);
+      existing.expiresAt = Date.now() + ATTEMPT_TTL_MS;
+      if (existing.committed) return existing.committed;
+      if (existing.inFlight) return existing.inFlight;
+    }
+
+    const attempt: RedemptionAttempt = existing ?? {
+      requestedSelection,
+      expiresAt: Date.now() + ATTEMPT_TTL_MS,
+    };
+    redemptionAttempts.set(key, attempt);
+
+    const operation = executeRedemption(attempt, connection, requestId, proxyInfo?.proxy ?? null);
+    attempt.inFlight = operation;
+
+    try {
+      const result = await operation;
+      attempt.committed = result;
+      attempt.expiresAt = Date.now() + ATTEMPT_TTL_MS;
+      return result;
+    } catch (error) {
+      // Keep only ambiguous transport failures after a card has been selected.
+      // Explicit upstream envelopes and local deterministic failures can safely
+      // start over and must never be replayed as success.
+      if (error instanceof GlmResetCardError || !attempt.card) {
+        redemptionAttempts.delete(key);
+      } else {
+        attempt.expiresAt = Date.now() + ATTEMPT_TTL_MS;
+      }
+      throw error;
+    } finally {
+      attempt.inFlight = undefined;
+    }
   } catch (error) {
     if (error instanceof GlmResetCardError) throw error;
     throw new GlmResetCardError(

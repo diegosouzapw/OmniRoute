@@ -245,7 +245,9 @@ export async function getGlmUsage(apiKey: string, providerSpecificData?: Record<
   // Coding Plan Reset Cards live on a separate endpoint, so surfacing the banked count costs
   // one extra request. Only pay it for keys that actually report a resettable window — a
   // pay-as-you-go key can never hold a card — and keep it best-effort (the helper never
-  // throws), so a card-less account or a transient failure still renders its quotas.
+  // throws). The count is tri-state: a successful list reports a number (0 is an
+  // authoritative "no cards"), while a transport/envelope failure reports null so the
+  // cache layer can preserve the previously known count instead of erasing it.
   const bankedResetCredits = hasResettableGlmWindow(quotas)
     ? await fetchGlmResetCardCount(apiKey, providerSpecificData)
     : 0;
@@ -253,6 +255,6 @@ export async function getGlmUsage(apiKey: string, providerSpecificData?: Record<
   return {
     plan,
     quotas: orderedQuotas,
-    ...(bankedResetCredits > 0 ? { bankedResetCredits } : {}),
+    ...(bankedResetCredits !== null ? { bankedResetCredits } : {}),
   };
 }
