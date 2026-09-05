@@ -12,6 +12,16 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createStreamTiming, type StreamTiming } from "../../open-sse/utils/streamTiming.ts";
 
+// streamTiming samples a high-resolution monotonic clock (performance.now).
+// `setTimeout(N)` does NOT guarantee that clock advances by a full N ms before
+// the callback runs: libuv schedules timers against its own cached loop clock,
+// which can trail performance.now() by a fraction of a millisecond, so a freshly
+// sampled performance.now() delta occasionally lands just under the nominal
+// sleep. Lower-bound timing assertions allow this scheduling slack. Event-loop
+// load only makes timers fire LATE (larger delta), never earlier, so the bound
+// stays safe on slow CI while remaining tight enough to prove a real delay.
+const TIMER_SLACK_MS = 5;
+
 test("ttft() is null when nothing was forwarded", () => {
   const t = createStreamTiming();
   t.markByte();
@@ -25,7 +35,7 @@ test("ttft() measures first-forwarded-chunk latency (byte vs forward distinguish
   await new Promise((r) => setTimeout(r, 20));
   t.markForward(); // first chunk forwarded 20ms later
   const ttft = t.ttftMs();
-  assert.ok(ttft !== null && ttft >= 20 && ttft < 5000, `ttft=${ttft}`);
+  assert.ok(ttft !== null && ttft >= 20 - TIMER_SLACK_MS && ttft < 5000, `ttft=${ttft}`);
   assert.ok(t.firstByteAt !== null);
   assert.ok(t.firstByteAt! < t.firstForwardAt!, "first byte precedes first forward");
 });
@@ -37,7 +47,7 @@ test("avgItlMs() measures mean inter-chunk gap across multiple chunks", async ()
     await new Promise((r) => setTimeout(r, 10));
   }
   const itl = t.avgItlMs();
-  assert.ok(itl !== null && itl >= 8 && itl < 5000, `itl=${itl}`);
+  assert.ok(itl !== null && itl >= 10 - TIMER_SLACK_MS && itl < 5000, `itl=${itl}`);
   assert.equal(t.forwardedChunks, 4);
 });
 
@@ -75,7 +85,7 @@ test("normal completion: totalMs() is monotonic and >= first-forward latency", a
   t.markForward();
   const total = t.totalMs();
   const ttft = t.ttftMs();
-  assert.ok(total >= 15);
+  assert.ok(total >= 15 - TIMER_SLACK_MS, `total=${total}`);
   assert.ok(ttft !== null && ttft <= total, "ttft must be <= total duration");
 });
 

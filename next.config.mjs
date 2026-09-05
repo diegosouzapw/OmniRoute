@@ -195,6 +195,14 @@ const nextConfig = {
   // accept for image-bearing requests; tune via env if a deployment needs
   // more.
   experimental: {
+    // Cap page-data collection workers so Next.js build memory stays bounded
+    // on GitHub Actions hosted runners and Docker containers (#7518, #10060, #11719).
+    cpus:
+      process.env.OMNIROUTE_BUILD_WORKERS !== undefined
+        ? Math.max(1, Number(process.env.OMNIROUTE_BUILD_WORKERS) - 1)
+        : process.env.CI
+          ? 1
+          : undefined,
     serverActions: {
       bodySizeLimit: process.env.OMNIROUTE_SERVER_ACTIONS_BODY_LIMIT || "50mb",
     },
