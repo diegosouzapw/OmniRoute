@@ -185,7 +185,7 @@ export class CompressionWorkerPool {
     slot.timeout = null;
     slot.job = null;
     job.resolve(result);
-    slot.idle = setTimeout(() => void this.remove(slot, false), this.idleMs);
+    slot.idle = setTimeout(() => void this.remove(slot, true), this.idleMs);
     slot.idle.unref();
     this.dispatch();
   }
