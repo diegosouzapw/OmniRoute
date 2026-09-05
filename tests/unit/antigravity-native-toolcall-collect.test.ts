@@ -7,7 +7,7 @@
  * part (usually carrying a `thoughtSignature`), so any tools request collected
  * to an empty stream and was rewritten into a synthetic 502 "Provider returned
  * empty content" — breaking Chatwit Captain Copilot / reply suggestions on
- * agy/gemini-3.7-flash-low while plain text completions kept working.
+ * agy/gemini-3.8-flash-low while plain text completions kept working.
  */
 import test from "node:test";
 import assert from "node:assert/strict";

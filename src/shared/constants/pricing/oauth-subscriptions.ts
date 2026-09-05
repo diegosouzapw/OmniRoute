@@ -13,10 +13,10 @@ import {
   GPT_5_6_TERRA_PRICING,
 } from "./shared-tiers";
 
-const ANTIGRAVITY_GEMINI_3_7_PRICING = {
-  "gemini-3.7-flash-low": GEMINI_3_7_FLASH_PROMO_PRICING,
-  "gemini-3.7-flash-medium": GEMINI_3_7_FLASH_PROMO_PRICING,
-  "gemini-3.7-flash-high": GEMINI_3_7_FLASH_PROMO_PRICING,
+const ANTIGRAVITY_GEMINI_3_8_PRICING = {
+  "gemini-3.8-flash-low": GEMINI_3_7_FLASH_PROMO_PRICING,
+  "gemini-3.8-flash-medium": GEMINI_3_7_FLASH_PROMO_PRICING,
+  "gemini-3.8-flash-high": GEMINI_3_7_FLASH_PROMO_PRICING,
 };
 
 export const DEFAULT_PRICING_OAUTH = {
@@ -293,7 +293,7 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 27.0,
       cache_creation: 4.0,
     },
-    ...ANTIGRAVITY_GEMINI_3_7_PRICING,
+    ...ANTIGRAVITY_GEMINI_3_8_PRICING,
     "claude-sonnet-4-6": {
       input: 3.0,
       output: 15.0,
@@ -316,8 +316,8 @@ export const DEFAULT_PRICING_OAUTH = {
       cache_creation: 0.5,
     },
   },
-  antigravity: ANTIGRAVITY_GEMINI_3_7_PRICING,
-  agy: ANTIGRAVITY_GEMINI_3_7_PRICING,
+  antigravity: ANTIGRAVITY_GEMINI_3_8_PRICING,
+  agy: ANTIGRAVITY_GEMINI_3_8_PRICING,
   gh: {
     "claude-opus-5": CLAUDE_OPUS_5_PRICING,
     "gpt-5": {

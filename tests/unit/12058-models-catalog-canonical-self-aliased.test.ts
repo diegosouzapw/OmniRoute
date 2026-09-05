@@ -37,7 +37,7 @@ type PrefixMode = "alias" | "canonical" | "dual";
 // Both ship this id in their curated static catalog (ANTIGRAVITY_PUBLIC_MODELS /
 // AGY_PUBLIC_MODELS). `antigravity` has `alias: undefined`, `agy` has `alias: "agy"`.
 const SELF_ALIASED_PROVIDERS = ["antigravity", "agy"] as const;
-const STATIC_MODEL_ID = "gemini-3.7-flash-high";
+const STATIC_MODEL_ID = "gemini-3.8-flash-high";
 
 // A self-aliased api-key provider used to exercise the synced / custom /
 // alias-backed loops, which carry the same guard as the static loop.

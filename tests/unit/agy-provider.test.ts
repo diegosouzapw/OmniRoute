@@ -51,9 +51,10 @@ test("agy ships its own live callable model catalog", () => {
   const ids = REGISTRY.agy.models.map((m) => m.id);
   assert.ok(ids.includes("claude-opus-4-6-thinking"), "must expose Claude Opus 4.6 Thinking");
   assert.ok(ids.includes("claude-sonnet-4-6"), "must expose Claude Sonnet 4.6");
-  assert.ok(ids.includes("gemini-3.7-flash-low"), "must expose Gemini 3.7 Flash Low");
-  assert.ok(ids.includes("gemini-3.7-flash-medium"), "must expose Gemini 3.7 Flash Medium");
-  assert.ok(ids.includes("gemini-3.7-flash-high"), "must expose Gemini 3.7 Flash High");
+  assert.ok(ids.includes("gemini-3.8-flash-low"), "must expose Gemini 3.8 Flash Low");
+  assert.ok(ids.includes("gemini-3.8-flash-medium"), "must expose Gemini 3.8 Flash Medium");
+  assert.ok(ids.includes("gemini-3.8-flash-high"), "must expose Gemini 3.8 Flash High");
+  assert.ok(!ids.includes("gemini-3.7-flash-tiered"));
   assert.ok(!ids.includes("gemini-3.6-flash-low"));
   assert.ok(!ids.includes("gemini-3.6-flash-medium"));
   assert.ok(!ids.includes("gemini-3.6-flash-high"));
@@ -82,9 +83,9 @@ test("agy model helpers resolve catalog ids and display names", () => {
   assert.equal(isUserCallableAgyModelId("gemini-2.5-flash"), false);
   assert.equal(isUserCallableAgyModelId("gemini-3.1-pro-high"), false);
   assert.equal(isUserCallableAgyModelId("gemini-pro-agent"), true);
-  assert.equal(isUserCallableAgyModelId("gemini-3.7-flash-low"), true);
-  assert.equal(isUserCallableAgyModelId("gemini-3.7-flash-medium"), true);
-  assert.equal(isUserCallableAgyModelId("gemini-3.7-flash-high"), true);
+  assert.equal(isUserCallableAgyModelId("gemini-3.8-flash-low"), true);
+  assert.equal(isUserCallableAgyModelId("gemini-3.8-flash-medium"), true);
+  assert.equal(isUserCallableAgyModelId("gemini-3.8-flash-high"), true);
   assert.equal(isUserCallableAgyModelId("gemini-3.6-flash-low"), false);
   assert.equal(isUserCallableAgyModelId("gemini-3.6-flash-medium"), false);
   assert.equal(isUserCallableAgyModelId("gemini-3.6-flash-high"), false);
@@ -102,20 +103,24 @@ test("agy model helpers resolve catalog ids and display names", () => {
     "Claude Opus 4.6 (Thinking)"
   );
   assert.equal(getClientVisibleAgyModelName("gemini-pro-agent"), "Gemini 3.1 Pro (High)");
-  assert.equal(getClientVisibleAgyModelName("gemini-3.7-flash-low"), "Gemini 3.7 Flash (Low)");
+  assert.equal(getClientVisibleAgyModelName("gemini-3.8-flash-low"), "Gemini 3.8 Flash (Low)");
   assert.equal(
-    getClientVisibleAgyModelName("gemini-3.7-flash-medium"),
-    "Gemini 3.7 Flash (Medium)"
+    getClientVisibleAgyModelName("gemini-3.8-flash-medium"),
+    "Gemini 3.8 Flash (Medium)"
   );
-  assert.equal(getClientVisibleAgyModelName("gemini-3.7-flash-high"), "Gemini 3.7 Flash (High)");
+  assert.equal(getClientVisibleAgyModelName("gemini-3.8-flash-high"), "Gemini 3.8 Flash (High)");
   assert.equal(getClientVisibleAgyModelName("unknown-model", "Fallback"), "Fallback");
 });
 
-test("agy live discovery accepts new chat models while excluding tab-completion models", () => {
-  assert.equal(isDiscoverableAgyModelId("gemini-new-live-tier"), true);
+test("agy live discovery only accepts the explicit shared catalog", () => {
+  assert.equal(isDiscoverableAgyModelId("gemini-3.8-flash-high"), true);
+  assert.equal(isDiscoverableAgyModelId("gemini-new-live-tier"), false);
+  assert.equal(isDiscoverableAgyModelId("gemini-3.7-flash-tiered"), false);
+  assert.equal(isDiscoverableAgyModelId("gemini-3.7-flash-high"), false);
   assert.equal(isDiscoverableAgyModelId("gemini-3.6-flash-high"), false);
   assert.equal(isDiscoverableAgyModelId("gemini-3-flash-agent"), false);
   assert.equal(isDiscoverableAgyModelId("gemini-2.5-flash"), false);
+  assert.equal(isDiscoverableAgyModelId("gemini-3.1-flash-image"), false);
   assert.equal(isDiscoverableAgyModelId("tab_flash_lite_preview"), false);
   assert.equal(isDiscoverableAgyModelId("tab_jump_flash_lite_preview"), false);
   assert.equal(isDiscoverableAgyModelId(""), false);

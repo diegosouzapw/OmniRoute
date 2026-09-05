@@ -12,9 +12,9 @@ const EXPECTED_GEMINI_3_7_PROMO_PRICING = {
 };
 
 const ACTIVE_FLASH_IDS = [
-  "gemini-3.7-flash-low",
-  "gemini-3.7-flash-medium",
-  "gemini-3.7-flash-high",
+  "gemini-3.8-flash-low",
+  "gemini-3.8-flash-medium",
+  "gemini-3.8-flash-high",
 ] as const;
 
 const RETIRED_ANTIGRAVITY_FLASH_IDS = [
@@ -28,7 +28,7 @@ const RETIRED_ANTIGRAVITY_FLASH_IDS = [
   "gemini-3-flash-agent",
 ] as const;
 
-test("Antigravity provider namespaces price every live Gemini 3.7 Flash tier", () => {
+test("Antigravity provider namespaces price every live Gemini 3.8 Flash tier", () => {
   const pricing = getDefaultPricing() as Record<string, Record<string, unknown>>;
 
   for (const provider of ["ag", "antigravity", "agy"] as const) {

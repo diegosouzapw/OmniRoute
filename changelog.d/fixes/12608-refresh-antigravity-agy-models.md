@@ -1,0 +1,1 @@
+- **fix(providers):** refresh the shared Antigravity/AGY Google Cloud Code catalog to Gemini 3.8 Flash tiers and reject stale upstream discovery entries ([#12608](https://github.com/diegosouzapw/OmniRoute/pull/12608)) — thanks @backryun

@@ -181,10 +181,10 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
   },
-  // ── Gemini 3.7 Flash (current Antigravity/AGY live tiers) ─────────
+  // ── Gemini 3.8 Flash (current Antigravity/AGY live tiers) ─────────
   // The tier suffix configures the thinking budget passed to the upstream
-  // gemini-3.7-flash-tiered backend (high: 24.5k, medium: 8k, low: 1k).
-  "gemini-3.7-flash-high": {
+  // gemini-3.8-flash-tiered backend (high: 24.5k, medium: 8k, low: 1k).
+  "gemini-3.8-flash-high": {
     maxOutputTokens: 65536,
     contextWindow: 1048576,
     defaultThinkingBudget: 24576,
@@ -193,7 +193,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
   },
-  "gemini-3.7-flash-medium": {
+  "gemini-3.8-flash-medium": {
     maxOutputTokens: 65536,
     contextWindow: 1048576,
     defaultThinkingBudget: 8192,
@@ -202,7 +202,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
   },
-  "gemini-3.7-flash-low": {
+  "gemini-3.8-flash-low": {
     maxOutputTokens: 65536,
     contextWindow: 1048576,
     defaultThinkingBudget: 1024,
@@ -211,7 +211,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
   },
-  "gemini-3.7-flash": {
+  "gemini-3.8-flash": {
     maxOutputTokens: 65536,
     contextWindow: 1048576,
     defaultThinkingBudget: 8192,
@@ -219,9 +219,9 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
-    aliases: ["gemini-3.7-flash-tiered"],
+    aliases: ["gemini-3.8-flash-tiered"],
   },
-  "gemini-3.7-flash-tiered": {
+  "gemini-3.8-flash-tiered": {
     maxOutputTokens: 65536,
     contextWindow: 1048576,
     defaultThinkingBudget: 8192,

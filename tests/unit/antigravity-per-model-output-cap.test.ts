@@ -226,7 +226,7 @@ test("a provider-prefixed model id resolves to the model's ceiling, not the fall
   const cases: Array<[string, number]> = [
     ["agy/gemini-3.1-pro-high", 65535],
     ["antigravity/gemini-3.1-pro-high", 65535],
-    ["agy/gemini-3.7-flash-high", 65536],
+    ["agy/gemini-3.8-flash-high", 65536],
     ["agy/gpt-oss-120b-medium", 32768],
   ];
 

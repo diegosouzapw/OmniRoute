@@ -87,9 +87,9 @@ test("credentialed providers expose one logical candidate per visible registry m
   );
   for (const model of [
     "antigravity/claude-sonnet-4-6",
-    "antigravity/gemini-3.7-flash-low",
-    "antigravity/gemini-3.7-flash-medium",
-    "antigravity/gemini-3.7-flash-high",
+    "antigravity/gemini-3.8-flash-low",
+    "antigravity/gemini-3.8-flash-medium",
+    "antigravity/gemini-3.8-flash-high",
   ]) {
     assert.ok(modelStrings.includes(model), `${model} should be eligible for auto routing`);
   }
@@ -121,15 +121,15 @@ test("candidate transparency expands a logical model into per-account rows", asy
 });
 
 test("connection model exclusions narrow only that model's account allowlist", async () => {
-  const { first, second } = await seedConnections(["gemini-3.7-*"]);
+  const { first, second } = await seedConnections(["gemini-3.8-*"]);
 
   const combo = await virtualFactory.createVirtualAutoCombo(undefined);
   const candidates = antigravityCandidates(combo);
   const geminiCandidates = candidates.filter((candidate) =>
-    candidate.model.startsWith("antigravity/gemini-3.7-")
+    candidate.model.startsWith("antigravity/gemini-3.8-")
   );
 
-  assert.ok(geminiCandidates.length >= 3, "Gemini 3.7 candidates should remain available");
+  assert.ok(geminiCandidates.length >= 3, "Gemini 3.8 candidates should remain available");
   for (const candidate of geminiCandidates) {
     assert.deepEqual(candidate.allowedConnectionIds, [second.id]);
   }
@@ -150,9 +150,9 @@ test("hiding the first registry model does not drop the credentialed provider", 
 
   assert.equal(modelStrings.includes("antigravity/claude-sonnet-4-6"), false);
   for (const model of [
-    "antigravity/gemini-3.7-flash-low",
-    "antigravity/gemini-3.7-flash-medium",
-    "antigravity/gemini-3.7-flash-high",
+    "antigravity/gemini-3.8-flash-low",
+    "antigravity/gemini-3.8-flash-medium",
+    "antigravity/gemini-3.8-flash-high",
   ]) {
     assert.ok(modelStrings.includes(model), `${model} should remain after Sonnet is hidden`);
   }
