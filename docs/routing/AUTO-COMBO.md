@@ -184,7 +184,7 @@ See [#7992](https://github.com/diegosouzapw/OmniRoute/issues/7992) and [#7111](h
 
 ## How It Works (Persisted Auto-Combos)
 
-The Auto-Combo Engine dynamically selects the best provider/model for each request using a **16-factor scoring function** (defined in `open-sse/services/autoCombo/scoring.ts` → `DEFAULT_WEIGHTS`). The default weights sum to `1.0`; custom weights are renormalized by `normalizeScoringWeights()`. Three of the sixteen — `cacheAffinity`, `resetWindowAffinity` and `reliability` — carry a default weight of `0`: they are still computed for every candidate, and `cacheAffinity` gates prompt-cache deduplication outside the score, so they are declared factors that simply do not vote by default.
+The Auto-Combo Engine dynamically selects the best provider/model for each request using a **16-factor scoring function** (defined in `open-sse/services/autoCombo/scoring.ts` → `DEFAULT_WEIGHTS`). The default weights sum to `1.0`; custom weights are renormalized by `normalizeScoringWeights()`. Two of the sixteen — `cacheAffinity` and `resetWindowAffinity` — carry a default weight of `0`; `reliability` carries `0` in `DEFAULT_WEIGHTS` but `0.03` in generic packs and `0.04` in `reliability-first`, and `quality` carries `0.02` in packs (`0.03` in `quality-first`): they are still computed for every candidate, and `cacheAffinity` gates prompt-cache deduplication outside the score, so the zero-default factors simply do not vote by default while packs do.
 
 ![Auto-Combo 16-factor scoring](../diagrams/exported/auto-combo-scoring.svg)
 
@@ -217,30 +217,32 @@ The Auto-Combo Engine dynamically selects the best provider/model for each reque
 
 | Factor                | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
-| `quota`               | 0.1333     | 0.1333     | 0.0952        | **0.3524**       | 0.1333            | 0.0476     |
+| `quota`               | 0.1133     | 0.1133     | 0.0752        | **0.3324**       | 0.1133            | 0.0376     |
 | `health`              | 0.2667     | 0.1810     | 0.1714        | 0.2667           | **0.3524**        | **0.4000** |
-| `costInv`             | 0.0476     | **0.3524** | 0.0476        | 0.0952           | 0.0381            | 0.0190     |
-| `latencyInv`          | **0.3048** | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0286     |
+| `costInv`             | 0.0276     | **0.3324** | 0.0276        | 0.0752           | 0.0181            | 0.0140     |
+| `latencyInv`          | **0.3048** | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0186     |
 | `taskFit`             | 0.0952     | 0.0952     | **0.3524**    | 0.0000           | 0.0952            | 0.1905     |
 | `stability`           | 0.0000     | 0.0476     | 0.1429        | 0.0952           | 0.1905            | 0.1714     |
-| `tierPriority`        | 0.0476     | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0190     |
+| `tierPriority`        | 0.0376     | 0.0376     | 0.0276        | 0.0376           | 0.0276            | 0.0040     |
 | `tierAffinity`        | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
 | `specificityMatch`    | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
-| `contextAffinity`     | 0.0095     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0286     |
+| `contextAffinity`     | 0.0095     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0186     |
 | `sessionAvailability` | 0.0476     | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0476     |
 | `resetWindowAffinity` | 0.0000     | 0.0000     | 0.0000        | 0.0000           | 0.0000            | 0.0000     |
 | `connectionDensity`   | 0.0476     | 0.0476     | 0.0476        | 0.0476           | 0.0476            | 0.0476     |
+| `quality`             | 0.02       | 0.02       | **0.03**      | 0.02             | 0.02              | 0.02       |
+| `reliability`         | 0.03       | 0.03       | 0.03          | 0.03             | **0.04**          | 0.03       |
 
 Notes:
 
-- **No pack sets `quality`, and a pack replaces the weight map wholesale** (`weights = pack`, not a merge). `quality` carries `0.03` in `DEFAULT_WEIGHTS`, but under any mode pack it normalizes to `0` — selecting a pack silences the observed-quality signal completely. If you want quality feedback to influence routing, leave `modePack` unset and tune the weights directly. (`cacheAffinity` is also unset by every pack, but it defaults to `0` anyway, so nothing changes there.)
+- **Packs carry `quality` and `reliability`** (`quality 0.02`, `quality-first 0.03`; `reliability 0.03`, `reliability-first 0.04`) and replace the weight map wholesale (`weights = pack`, not a merge). `DEFAULT_WEIGHTS` carries `quality 0.03 / reliability 0`; selecting `balanced`/`default` keeps those defaults, selecting a pack uses the pack's values above. Pool froid therefore contributes `+0.04` generic (`0.03+0.01`), `quality-first +0.045`, `reliability-first +0.05` before observations (`quality 0.5` / `reliability 1` neutrals).
 - `tierAffinity`, `specificityMatch` and `resetWindowAffinity` are explicitly `0` in every pack.
 - Each pack's emphasis at a glance:
   - **ship-fast** → latencyInv 0.3048 + health 0.2667 (low-latency, healthy connections)
-  - **cost-saver** → costInv 0.3524 (cheapest tokens win)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 (best model for the task, consistent)
-  - **offline-friendly** → quota 0.3524 + health 0.2667 (max headroom regardless of speed/cost)
-  - **reliability-first** → health 0.3524 + stability 0.1905 (fewest surprises)
+  - **cost-saver** → costInv 0.3324 (cheapest tokens win)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03 vitrine (best model for the task, consistent)
+  - **offline-friendly** → quota 0.3324 + health 0.2667 (max headroom regardless of speed/cost)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04 vitrine (fewest surprises)
   - **chaos-mode** → health 0.4000 + taskFit 0.1905 (fault-injection profile)
 
 ### Per-Request Controls (headers) — #6023 / #6024 / #6025 / #3470

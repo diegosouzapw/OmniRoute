@@ -609,6 +609,22 @@ export function buildChecks() {
           validate: makeModePackNamesValidator(packs),
         },
         {
+          // N2: every pack must pin `quality` explicitly (6 pins, 0.02/0.03) so
+          // no pack silently inherits a future DEFAULT. Validates live code,
+          // not docs — the gate loops `files` content through `validate`.
+          label: "mode packs pin quality explicitly (live code)",
+          actual: 6,
+          docKey: "packs quality pins",
+          strict: true,
+          files: ["open-sse/services/autoCombo/modePacks.ts"],
+          validate: (content) => {
+            const pins = (content.match(/^\s*quality:\s*0\.0\d,?\s*$/gm) ?? []).length;
+            return pins >= 6
+              ? { ok: true, detail: `${pins} quality pins` }
+              : { ok: false, detail: `only ${pins} quality pins — every pack must pin quality` };
+          },
+        },
+        {
           label: "Provider reference total (doc vs live modules)",
           actual: f.providers,
           docKey: "providers (live)",

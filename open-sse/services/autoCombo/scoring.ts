@@ -78,11 +78,12 @@ export const DEFAULT_WEIGHTS: ScoringWeights = {
   // the new quality signal (observed output quality over time) gets a real,
   // if smaller, vote. Sum remains exactly 1.0.
   quality: 0.03,
-  // Declared but silent, like `cacheAffinity` and `resetWindowAffinity`: every
-  // candidate already carries a measured failure rate (24h of usage history
-  // behind a ten-sample floor, real-time metrics otherwise) and the scorer had
-  // no way to read it. Which weight it deserves is a product call backed by
-  // measurement, so this ships at 0 and leaves the ranking exactly as it was.
+  // Declared but silent in DEFAULT (like `cacheAffinity`/`resetWindowAffinity`):
+  // every candidate already carries a measured failure rate (24h of usage
+  // history behind a ten-sample floor, real-time metrics otherwise) and the
+  // scorer had no way to read it. Which weight it deserves is a product call
+  // backed by measurement, so DEFAULT ships at 0 and leaves the ranking as
+  // it was; `reliability-first` ships at 0.04 and generic packs at 0.03.
   reliability: 0,
 };
 
