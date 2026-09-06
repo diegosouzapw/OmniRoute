@@ -349,6 +349,7 @@ const DYNAMIC_MODELS_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 /**
  * Strip client/routing prefixes like `chatplayground/`, `cpl/`, `cpl.`, `cp.` from model IDs.
+ * Loops so chained prefixes (e.g. `cpl/chatplayground/gpt-4o`) collapse fully.
  */
 export function stripChatPlaygroundPrefix(model: string): string {
   let cleaned = (model || "").trim();

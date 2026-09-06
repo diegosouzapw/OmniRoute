@@ -108,15 +108,9 @@ export class ChatPlaygroundExecutor extends BaseExecutor {
   async execute(input: ExecuteInput): Promise<ExecutorExecuteResult> {
     const { model, body, stream, credentials, signal } = input;
 
+    // resolveChatPlaygroundModel always synthesizes an entry for any unknown ID
+    // (see chatplaygroundModels.ts), so a model is always available here.
     const modelData = resolveChatPlaygroundModel(model);
-    if (!modelData) {
-      return makeErrorResult(
-        400,
-        `Model '${model}' not supported by ChatPlayground.`,
-        body,
-        `${CHATPLAYGROUND_API_BASE}/chat`
-      );
-    }
 
     let authHeaders: Record<string, string>;
     try {

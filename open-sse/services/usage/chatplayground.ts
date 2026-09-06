@@ -7,6 +7,7 @@
 import { type UsageQuota } from "./quota.ts";
 import { resolveChatPlaygroundAuth } from "../chatplaygroundAuth.ts";
 import { CHATPLAYGROUND_USER_URL } from "../chatplaygroundModels.ts";
+import { sanitizeErrorMessage } from "../../utils/error.ts";
 
 export interface ChatPlaygroundUsageResult {
   plan: string;
@@ -36,7 +37,7 @@ export async function getChatPlaygroundUsage(
     if (!res.ok) {
       const errText = await res.text().catch(() => "");
       return {
-        message: `ChatPlayground user API HTTP ${res.status}: ${errText.slice(0, 160)}`,
+        message: `ChatPlayground user API HTTP ${res.status}: ${sanitizeErrorMessage(errText.slice(0, 160))}`,
         plan: "ChatPlayground",
       };
     }
@@ -203,6 +204,8 @@ export async function getChatPlaygroundUsage(
       message: null,
     };
   } catch (err) {
+    // Best-effort: the dashboard quota fetch must never throw back to the caller
+    // that only renders the returned plan/quotas object.
     return {
       message: `ChatPlayground quota fetch failed: ${err instanceof Error ? err.message : String(err)}`,
       plan: "ChatPlayground",
