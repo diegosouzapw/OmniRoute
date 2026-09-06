@@ -8361,7 +8361,11 @@
     "headroomProxySave": "__MISSING__:Save",
     "headroomProxyStart": "__MISSING__:Start",
     "headroomProxyStop": "__MISSING__:Stop",
-    "headroomProxyExternalHint": "__MISSING__:This URL is not loopback, so OmniRoute will not spawn the local CLI."
+    "headroomProxyExternalHint": "__MISSING__:This URL is not loopback, so OmniRoute will not spawn the local CLI.",
+    "payloadRuleTransformTitle": "transform",
+    "payloadRuleTransformDesc": "Deterministic string ops (append/prepend/replace/regex) on payload paths for matched models. Only logged ops that changed the value.",
+    "payloadRuleInertPatternTitle": "These transform patterns will never match",
+    "payloadRuleInertPatternDesc": "Transform rules are matched against the resolved model id, not the alias or combo name the client requested. Patterns carrying a provider prefix (or naming no known model) are silently inert — scope them to the resolved model id instead."
   },
   "contextRtk": {
     "title": "محرك آر تي كيه",
