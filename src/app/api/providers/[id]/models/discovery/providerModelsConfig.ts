@@ -27,6 +27,7 @@ import { shouldUseLiveAlibabaFreeModelDiscovery } from "@omniroute/open-sse/serv
 import { isDashscopeTextModelId } from "@omniroute/open-sse/services/dashscopeTextModels.ts";
 import { extractZaiToken } from "@omniroute/open-sse/services/zaiWebCredentials.ts";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { parseChatPlaygroundDiscoveryModels } from "@omniroute/open-sse/services/chatplaygroundModels.ts";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
 
 const QWEN_CLOUD_TEXT_MODEL_IDS = new Set(QWEN_CLOUD_TEXT_MODELS.map((model) => model.id));
@@ -841,5 +842,25 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authHeader: "Authorization",
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
+  },
+  chatplayground: {
+    url: "https://app.chatplayground.ai/api/models",
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      Origin: "https://web.chatplayground.ai",
+      Referer: "https://web.chatplayground.ai/",
+    },
+    parseResponse: parseChatPlaygroundDiscoveryModels,
+  },
+  cpl: {
+    url: "https://app.chatplayground.ai/api/models",
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      Origin: "https://web.chatplayground.ai",
+      Referer: "https://web.chatplayground.ai/",
+    },
+    parseResponse: parseChatPlaygroundDiscoveryModels,
   },
 };

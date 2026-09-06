@@ -514,6 +514,45 @@ export async function fetchChatPlaygroundModels(
 }
 
 /**
+ * Parse raw /api/models JSON response into discovery catalog entries.
+ */
+export function parseChatPlaygroundDiscoveryModels(data: unknown): Array<{
+  id: string;
+  name: string;
+  owned_by: string;
+}> {
+  const rawList = Array.isArray(data)
+    ? data
+    : Array.isArray((data as Record<string, unknown>)?.data)
+      ? ((data as Record<string, unknown>).data as unknown[])
+      : Array.isArray((data as Record<string, unknown>)?.models)
+        ? ((data as Record<string, unknown>).models as unknown[])
+        : [];
+
+  const seen = new Set<string>();
+  const models: Array<{ id: string; name: string; owned_by: string }> = [];
+
+  for (const item of rawList) {
+    if (!item || typeof item !== "object") continue;
+    const rec = item as Record<string, unknown>;
+    const botId = typeof rec.botId === "string" ? rec.botId.trim() : "";
+    if (!botId || seen.has(botId)) continue;
+    if (rec.group && rec.group !== "chat") continue;
+
+    seen.add(botId);
+    const modelName = (typeof rec.modelName === "string" && rec.modelName.trim()) || botId;
+    const name = (typeof rec.displayName === "string" && rec.displayName.trim()) || modelName;
+    models.push({
+      id: botId,
+      name,
+      owned_by: "chatplayground",
+    });
+  }
+
+  return models;
+}
+
+/**
  * Resolve client model string to a ChatPlayground model definition.
  */
 export function resolveChatPlaygroundModel(

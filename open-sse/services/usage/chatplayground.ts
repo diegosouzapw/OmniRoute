@@ -173,24 +173,24 @@ export async function getChatPlaygroundUsage(
       displayName,
     };
 
-    // Construct multi-window quotas: primary credits, daily activity/cap, and monthly allowance
+    // Construct quotas: primary credits, daily activity/reset, and monthly allowance
     const quotas: Record<string, UsageQuota> = {
       credits: quota,
       daily: isDailyReset
         ? quota
         : {
             used: Math.max(0, user.dailyQueriesCount ?? 0),
-            total: total > 0 ? Math.min(total, 300) : 300,
-            remaining: Math.max(0, (total > 0 ? Math.min(total, 300) : 300) - Math.max(0, user.dailyQueriesCount ?? 0)),
+            total,
+            remaining: Math.max(0, total - Math.max(0, user.dailyQueriesCount ?? 0)),
             remainingPercentage:
-              Math.round(
-                (Math.max(0, (total > 0 ? Math.min(total, 300) : 300) - Math.max(0, user.dailyQueriesCount ?? 0)) /
-                  (total > 0 ? Math.min(total, 300) : 300)) *
-                  1000
-              ) / 10,
+              total > 0
+                ? Math.round(
+                    (Math.max(0, total - Math.max(0, user.dailyQueriesCount ?? 0)) / total) * 1000
+                  ) / 10
+                : 0,
             resetAt: nextMidnight.toISOString(),
             unlimited: false,
-            displayName: "Daily Activity",
+            displayName: "Daily Queries",
           },
     };
 
@@ -206,8 +206,9 @@ export async function getChatPlaygroundUsage(
   } catch (err) {
     // Best-effort: the dashboard quota fetch must never throw back to the caller
     // that only renders the returned plan/quotas object.
+    const msg = err instanceof Error ? err.message : String(err);
     return {
-      message: `ChatPlayground quota fetch failed: ${err instanceof Error ? err.message : String(err)}`,
+      message: `ChatPlayground quota fetch failed: ${sanitizeErrorMessage(msg)}`,
       plan: "ChatPlayground",
     };
   }

@@ -145,7 +145,8 @@ ChatPlayground enforces a strict server-side boundary of **15,000 characters per
 
 - ChatPlayground streams chunks appending or containing sentinel tokens in the form of `CHAT_ID:[a-zA-Z0-9_-]+`.
 - OmniRoute's `ChatPlaygroundExecutor` strips these sentinel tokens on the fly and translates the output into OpenAI-standard Server-Sent Events (`data: {"choices":[{"delta":{"content":"..."}}]}\n\n`) terminating with `data: [DONE]\n\n`.
-- For non-streaming requests or Perplexity queries, a standard `chat.completion` response envelope is returned.
+- For non-streaming requests, a standard `chat.completion` response envelope is returned.
+- Upstream returns a complete response for Perplexity queries rather than incremental SSE chunks; when `stream: true` is requested on Perplexity queries, OmniRoute synthesizes standard SSE chunks so streaming OpenAI clients remain fully compatible.
 
 ---
 

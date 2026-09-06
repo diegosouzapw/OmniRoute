@@ -9,6 +9,7 @@ import {
   stripChatId,
   buildChatPlaygroundPayload,
   toOpenAiCompletionEnvelope,
+  enqueueSseCompletion,
 } from "../../open-sse/executors/chatplayground.ts";
 import {
   decodeJwtPayload,
@@ -25,6 +26,7 @@ import {
   resolveChatPlaygroundEndpoint,
   resolveChatPlaygroundModel,
   clearChatPlaygroundModelsCache,
+  parseChatPlaygroundDiscoveryModels,
 } from "../../open-sse/services/chatplaygroundModels.ts";
 import { getChatPlaygroundUsage } from "../../open-sse/services/usage/chatplayground.ts";
 
@@ -103,11 +105,8 @@ test("ChatPlayground — account parsing (native connection formats)", () => {
   assert.equal(acct2.client, "client_abc");
   assert.equal(acct2.sid, "sess_one");
 
-  // 3. Legacy user ID
-  const acct3 = parseChatPlaygroundAccount("user_mock_test_123");
-  assert.ok(acct3);
-  assert.equal(acct3.type, "user_id");
-  assert.equal(acct3.userId, "user_mock_test_123");
+  // 3. Strict auth: raw user ID or invalid format is rejected
+  assert.equal(parseChatPlaygroundAccount("user_mock_test_123"), null);
 
   // 4. Null on empty input
   assert.equal(parseChatPlaygroundAccount(""), null);
@@ -454,6 +453,7 @@ test("ChatPlaygroundExecutor — 15,000 character limit per message validation",
   const executor = new ChatPlaygroundExecutor();
   const mockJwt = createMockJwt({ exp: Math.floor(Date.now() / 1000) + 3600 });
 
+  // 1. Single string message exceeding limit
   const oversizedMessage = "A".repeat(15_001);
   const errResult = await executor.execute({
     model: "gpt-5.6-terra",
@@ -467,5 +467,114 @@ test("ChatPlaygroundExecutor — 15,000 character limit per message validation",
   assert.equal(errResult.response.status, 400);
   const data = await errResult.response.json();
   assert.ok(data.error.message.includes("15000-character limit") || data.error.message.includes("15,000"));
+
+  // 2. Multipart array message exceeding limit
+  const errResultMultipart = await executor.execute({
+    model: "gpt-5.6-terra",
+    body: {
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "A".repeat(10_000) },
+            { type: "text", text: "B".repeat(5_001) },
+          ],
+        },
+      ],
+    },
+    credentials: { apiKey: mockJwt },
+  });
+
+  assert.ok("response" in errResultMultipart);
+  assert.equal(errResultMultipart.response.status, 400);
+  const dataMulti = await errResultMultipart.response.json();
+  assert.ok(dataMulti.error.message.includes("15001 characters"));
+});
+
+test("ChatPlaygroundExecutor — null or empty model handling", async () => {
+  const executor = new ChatPlaygroundExecutor();
+  const mockJwt = createMockJwt({ exp: Math.floor(Date.now() / 1000) + 3600 });
+
+  const errResult = await executor.execute({
+    model: "",
+    body: {
+      messages: [{ role: "user", content: "hello" }],
+    },
+    credentials: { apiKey: mockJwt },
+  });
+
+  assert.ok("response" in errResult);
+  assert.equal(errResult.response.status, 400);
+  const data = await errResult.response.json();
+  assert.ok(data.error.message.includes("model not found or invalid"));
+});
+
+test("ChatPlaygroundExecutor — streaming whitespace & token formatting preservation", async () => {
+  const executor = new ChatPlaygroundExecutor();
+  const mockJwt = createMockJwt({ exp: Math.floor(Date.now() / 1000) + 3600 });
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = (async () => {
+    const stream = new ReadableStream({
+      start(controller) {
+        // First chunk carries CHAT_ID prefix with leading content
+        controller.enqueue(new TextEncoder().encode("CHAT_ID:sess_abc123\nfunction add(a, b) {\n"));
+        // Second chunk carries indented code
+        controller.enqueue(new TextEncoder().encode("    return a + b;\n"));
+        // Third chunk carries closing brace
+        controller.enqueue(new TextEncoder().encode("}"));
+        controller.close();
+      },
+    });
+    return new Response(stream, { status: 200, headers: { "content-type": "text/plain" } });
+  }) as typeof fetch;
+
+  try {
+    const streamResult = await executor.execute({
+      model: "gpt-5.6-sol",
+      body: {
+        messages: [{ role: "user", content: "code" }],
+        stream: true,
+      },
+      stream: true,
+      credentials: { apiKey: mockJwt },
+    });
+
+    assert.ok(streamResult instanceof Response);
+    const reader = streamResult.body!.getReader();
+    const decoder = new TextDecoder();
+    let accumulatedContent = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const text = decoder.decode(value);
+      for (const line of text.split("\n")) {
+        if (line.startsWith("data: ") && !line.includes("[DONE]")) {
+          const parsed = JSON.parse(line.slice(6));
+          accumulatedContent += parsed.choices[0]?.delta?.content || "";
+        }
+      }
+    }
+
+    assert.equal(accumulatedContent, "function add(a, b) {\n    return a + b;\n}");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("ChatPlayground — discovery models parser", () => {
+  const rawApiData = [
+    { botId: "gpt-5.6-sol", displayName: "GPT 5.6 Sol", modelName: "gpt-5.6-sol", group: "chat" },
+    { botId: "whisper-v3", displayName: "Whisper V3", group: "audio" },
+    { botId: "claude-sonnet-5", displayName: "Claude Sonnet 5", group: "chat" },
+  ];
+
+  const parsed = parseChatPlaygroundDiscoveryModels(rawApiData);
+  assert.equal(parsed.length, 2);
+  assert.equal(parsed[0].id, "gpt-5.6-sol");
+  assert.equal(parsed[0].name, "GPT 5.6 Sol");
+  assert.equal(parsed[0].owned_by, "chatplayground");
+  assert.equal(parsed[1].id, "claude-sonnet-5");
 });
 

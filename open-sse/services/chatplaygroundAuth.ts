@@ -20,11 +20,10 @@ export const CLERK_JWT_SKEW_SECONDS = 15;
 
 export interface ChatPlaygroundAccount {
   id: string;
-  type: "jwt" | "cookie" | "user_id";
+  type: "jwt" | "cookie";
   jwt?: string;
   sid?: string;
   client?: string;
-  userId?: string;
   cookies?: Record<string, string>;
 }
 
@@ -47,6 +46,7 @@ export function decodeJwtPayload(token: string): Record<string, unknown> | null 
     const raw = Buffer.from(parts[1], "base64url").toString("utf-8");
     return JSON.parse(raw);
   } catch {
+    // Ignore malformed base64url or invalid JSON in JWT payload segments
     return null;
   }
 }
@@ -123,16 +123,7 @@ export function parseChatPlaygroundAccount(rawInput: string): ChatPlaygroundAcco
     };
   }
 
-  // 2. Clerk user ID check (e.g. user_2...)
-  if (raw.startsWith("user_") && !raw.includes("=")) {
-    return {
-      id: raw,
-      type: "user_id",
-      userId: raw,
-    };
-  }
-
-  // 3. Cookie header parsing
+  // 2. Cookie header parsing
   const cookies = parseCookieString(raw);
   const client = cookies.__client || "";
   const sid = cookies.sid || (cookies.__session ? extractSidFromSessionJwt(cookies.__session) : "");
@@ -147,7 +138,7 @@ export function parseChatPlaygroundAccount(rawInput: string): ChatPlaygroundAcco
     };
   }
 
-  // 4. Session cookie with embedded JWT
+  // 3. Session cookie with embedded JWT
   if (cookies.__session && cookies.__session.startsWith("eyJ")) {
     return {
       id: "session_jwt",
@@ -156,13 +147,8 @@ export function parseChatPlaygroundAccount(rawInput: string): ChatPlaygroundAcco
     };
   }
 
-  // 5. Fallback string
-  return {
-    id: "raw_credential",
-    type: raw.startsWith("eyJ") ? "jwt" : "user_id",
-    jwt: raw.startsWith("eyJ") ? raw : undefined,
-    userId: !raw.startsWith("eyJ") ? raw : undefined,
-  };
+  // Non-cookie, non-JWT input is unparseable under strict auth contract
+  return null;
 }
 
 /**
@@ -285,11 +271,6 @@ export async function resolveChatPlaygroundAuth(
       }
       throw err;
     }
-  }
-
-  if (account.type === "user_id" && account.userId) {
-    headers["x-clerk-user-id"] = account.userId;
-    return { headers, accountKey: account.userId };
   }
 
   throw new Error("Unable to resolve usable ChatPlayground credentials from provided input.");
