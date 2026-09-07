@@ -13,7 +13,7 @@
  */
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createChatPipelineHarness } from "./_chatPipelineHarness.ts";
+import { createChatPipelineHarness } from "../_chatPipelineHarness.ts";
 
 const harness = await createChatPipelineHarness("combo-failover-e2e");
 const {
@@ -54,11 +54,7 @@ test("priority combo walks a 3-target chain: 500 → 503 → success", async () 
     name: "router-3way",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
-    models: [
-      "openai/gpt-4o-mini",
-      "claude/claude-3-5-sonnet-20241022",
-      "gemini/gemini-2.5-flash",
-    ],
+    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022", "gemini/gemini-2.5-flash"],
   });
 
   const attempts: string[] = [];
@@ -88,7 +84,11 @@ test("priority combo walks a 3-target chain: 500 → 503 → success", async () 
   };
 
   assert.equal(res.status, 200, "request must succeed on the 3rd target");
-  assert.deepEqual(attempts, ["openai", "claude", "gemini"], "all three targets attempted in order");
+  assert.deepEqual(
+    attempts,
+    ["openai", "claude", "gemini"],
+    "all three targets attempted in order"
+  );
   assert.equal(json.choices[0].message.content, "Third target answered");
 });
 
