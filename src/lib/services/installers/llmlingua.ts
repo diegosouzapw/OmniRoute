@@ -30,9 +30,6 @@ export interface SpawnArgs {
   cwd: string;
 }
 
-let latestVersionCache: { value: string; expiresAt: number } | null = null;
-const VERSION_CACHE_TTL_MS = 3_600_000;
-
 function getLlmlinguaInstallDir(): string {
   return process.env.DATA_DIR
     ? path.join(process.env.DATA_DIR, "services", "llmlingua")
@@ -53,14 +50,6 @@ export async function getInstalledVersion(): Promise<string | null> {
   } catch {
     return null;
   }
-}
-
-async function getLatestVersion(): Promise<string | null> {
-  if (latestVersionCache && latestVersionCache.expiresAt > Date.now()) {
-    return latestVersionCache.value;
-  }
-  latestVersionCache = { value: "2.0.5", expiresAt: Date.now() + VERSION_CACHE_TTL_MS };
-  return "2.0.5";
 }
 
 export async function install(version = "latest"): Promise<InstallResult> {
@@ -134,10 +123,6 @@ server.listen(PORT, "127.0.0.1", () => {
     installPath: installDir,
     durationMs: Date.now() - startMs,
   };
-}
-
-async function update(): Promise<InstallResult> {
-  return install("latest");
 }
 
 export function resolveSpawnArgs(port = LLMLINGUA_DEFAULT_PORT): SpawnArgs {
