@@ -56,7 +56,58 @@ Scripts for which Node emits only a file completion are recorded with
 Phase counts remain Node's aggregate result and must not be reconstructed by
 summing file records.
 
-## Scheduler and fixture follow-up: 2026-09-07
+## Release-base refresh: 2026-09-07
+
+The three PRs were restacked onto `release/v3.8.51` at `d6f315018`.
+The relocation parent also classifies 29 newly added flat tests and repairs
+relative imports introduced by the newer base. Existing mutation registrations
+follow their moved paths. The integration parent preserves the new shared chat
+harness imports and corrects the repository roots of its moved live helpers.
+
+CI now uses `test:integration:e2e:ci` and `test:integration:live:ci` with
+`TEST_SHARD` set to the current matrix shard out of two. The local commands still
+run each complete tier. A workflow regression checks that all three integration
+tiers retain the same collectors and isolation flags, use the shard setting, and
+do not collect the same files twice.
+
+Validation on Node 24.20.0:
+
+- The 33 suites affected by new-base relocation passed 366 tests after path
+  repairs; the four rebase-conflict suites passed 37. Runner partition and serial
+  configuration checks passed 15 tests, including the new CI regression, which
+  failed before the shard fix.
+- Discovery passed with 5,576 files, 34 collectors, and the same nine frozen
+  orphans. The quick plan selects 3,927 of 4,985 canonical Node files. Its 14
+  runner/worker regressions passed in the full Node run. This refresh did not
+  repeat the quick-versus-full timing benchmark below.
+- The release-base Node main phase recorded 37,698 passes, 43 failures, and
+  23 skips. The refreshed stack recorded 37,675 passes, 34 failures, and 23 skips;
+  every failure name also appeared in the base run. These are separate executions
+  with different collector partitions and scheduling, not a controlled speed or
+  assertion-count comparison. Dashboard was run separately and recorded 163
+  passes and one failure with the same redaction assertion as the base. Serial
+  passed all 23 tests.
+- Vitest passed all 465 tests in 51 files after initializing its temporary DB
+  before starting the workers. The first attempt had a concurrent migration
+  collision and skipped five tests in one failed suite.
+- Both integration CI shards were exercised. Batch, WebSocket heartbeat, and
+  startup scenarios passed. The combo suites' six remaining assertion failures
+  reproduced on the unchanged release base. The resilience HTTP suite failed
+  and did not terminate; its process was stopped after more than ten minutes of
+  repeated local connection failures. Live-tier collection passed one mocked
+  HTTP test and skipped 17 opt-in tests; no live-provider result is claimed.
+- Relocation file-size, discovery, runner-API, and pre-commit checks passed.
+  Strict mutation registration still reports two entries missing on the release
+  base: `combo/execute-target-gates.test.ts` and the relocated
+  `combo/combo-pin-implicit-allowlist.test.ts`. `check:docs-all` reports six
+  inherited count drifts: three documents claim 169 migrations instead of 171,
+  and three diagrams claim 19 routing strategies instead of 20.
+
+The full Node, integration, documentation, and mutation gates remain red. Full
+coverage has not been rerun, and the 60/60/60/60 floor is unchanged. These results
+do not establish a green combined release base.
+
+## Scheduler and fixture follow-up: 2026-09-07, before the release-base refresh
 
 The quick runner now removes inherited `DATA_DIR` and `SQLITE_FILE` overrides so
 the existing preload can allocate a separate temporary directory for each file.
