@@ -12,8 +12,14 @@ import {
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { compareTr } from "@/shared/utils/turkishText";
 
-function getI18nOrFallback(t: any, key: string, fallback: string) {
-  if (typeof t?.has === "function" && t.has(key)) return t(key);
+function getI18nOrFallback(t: any, key: string, fallback: string, values?: Record<string, unknown>) {
+  try {
+    if (typeof t?.has === "function" && t.has(key)) return t(key, values);
+  } catch {
+    // A registered message can require an ICU variable (e.g. {percent}) that
+    // this call site doesn't know about yet -- fall back rather than crash
+    // the whole builder step's render.
+  }
   return fallback;
 }
 
@@ -328,11 +334,15 @@ export default function BuilderIntelligentStep({
             className="mt-3 w-full accent-primary"
           />
           <p className="text-[11px] text-text-muted mt-2">
-            {getI18nOrFallback(
-              t,
-              "explorationRateHint",
-              "{percent}% of requests can explore non-optimal providers."
-            ).replace("{percent}", `${Math.round(normalizedConfig.explorationRate * 100)}`)}
+            {(() => {
+              const percent = Math.round(normalizedConfig.explorationRate * 100);
+              return getI18nOrFallback(
+                t,
+                "explorationRateHint",
+                "{percent}% of requests can explore non-optimal providers.",
+                { percent }
+              ).replace("{percent}", `${percent}`);
+            })()}
           </p>
         </Card.Section>
 
