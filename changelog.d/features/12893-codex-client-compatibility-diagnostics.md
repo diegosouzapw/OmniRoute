@@ -1,0 +1,1 @@
+- Surface ChatGPT/Codex model-sync warnings when the official catalog requires a newer OmniRoute HTTP client profile, including guarded `CODEX_CLIENT_VERSION` guidance without implying that the separate Codex CLI must be installed.

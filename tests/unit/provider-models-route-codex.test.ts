@@ -123,6 +123,13 @@ test("provider models route merges live Codex models with the local catalog then
             visibility: "list",
             supported_in_api: true,
           },
+          {
+            slug: "gpt-next",
+            display_name: "GPT Next",
+            visibility: "list",
+            supported_in_api: true,
+            minimal_client_version: "0.200.0",
+          },
         ],
       });
     }
@@ -158,6 +165,10 @@ test("provider models route merges live Codex models with the local catalog then
   assert.equal(response.status, 200);
   assert.equal(body.provider, "codex");
   assert.equal(body.source, "api");
+  assert.match(
+    body.warning || "",
+    /Skipped ChatGPT\/Codex models.*gpt-next.*CODEX_CLIENT_VERSION=0\.200\.0/
+  );
   assert.equal(body.discoveredCandidateCount, undefined);
   assert.deepEqual(seenRequests, [
     {
@@ -405,6 +416,38 @@ test("provider models route falls back to local Codex catalog when live and GitH
   assert.ok(body.models?.some((model) => model.id === "gpt-5.5"));
   assert.equal(
     body.models?.some((model) => model.id.startsWith("gpt-5.4")),
+    false
+  );
+});
+
+test("provider models route keeps Codex compatibility guidance when every remote model is too new", async () => {
+  const connection = await seedCodexConnection({ accessToken: "codex-access-token" });
+
+  globalThis.fetch = async (url) => {
+    if (String(url).includes("raw.githubusercontent.com/openai/codex")) {
+      return Response.json({
+        models: [
+          {
+            slug: "gpt-next",
+            display_name: "GPT Next",
+            visibility: "list",
+            supported_in_api: true,
+            minimal_client_version: "0.200.0",
+          },
+        ],
+      });
+    }
+    return new Response("upstream unavailable", { status: 503 });
+  };
+
+  const response = await callRoute(connection.id, "?refresh=true");
+  const body = (await response.json()) as RouteBody;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "local_catalog");
+  assert.match(body.warning || "", /using local catalog.*gpt-next.*CODEX_CLIENT_VERSION=0\.200\.0/);
+  assert.equal(
+    body.models?.some((model) => model.id === "gpt-next"),
     false
   );
 });

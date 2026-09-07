@@ -31,6 +31,17 @@ export type CodexDiscoveryModel = {
   supportsVision?: boolean;
 };
 
+export type CodexIncompatibleModel = {
+  id: string;
+  name: string;
+  minimalClientVersion: string;
+};
+
+export type CodexClientCompatibility = {
+  clientVersion: string;
+  incompatibleModels: CodexIncompatibleModel[];
+};
+
 export type CodexModelsFetch = (
   input: string,
   init: {
@@ -41,6 +52,7 @@ export type CodexModelsFetch = (
 
 type CodexGithubCatalogCache = {
   models: CodexDiscoveryModel[];
+  compatibility: CodexClientCompatibility;
   etag?: string;
   expiresAt: number;
 };
@@ -106,14 +118,27 @@ function getCodexModelItems(payload: unknown): unknown[] {
   return objectItems.length > 0 ? objectItems : [];
 }
 
-function shouldImportCodexModel(record: JsonRecord): boolean {
+function isCodexModelVisibleInApi(record: JsonRecord): boolean {
   if (toNonEmptyString(record.visibility)?.toLowerCase() === "hide") return false;
   if (record.supported_in_api === false || record.supportedInApi === false) return false;
 
-  const minimalClientVersion =
-    toNonEmptyString(record.minimal_client_version) ||
-    toNonEmptyString(record.minimalClientVersion);
-  if (minimalClientVersion && compareVersions(minimalClientVersion, getCodexClientVersion()) > 0) {
+  return true;
+}
+
+function getMinimalCodexClientVersion(record: JsonRecord): string | null {
+  return (
+    toNonEmptyString(record.minimal_client_version) || toNonEmptyString(record.minimalClientVersion)
+  );
+}
+
+function shouldImportCodexModel(
+  record: JsonRecord,
+  clientVersion = getCodexClientVersion()
+): boolean {
+  if (!isCodexModelVisibleInApi(record)) return false;
+
+  const minimalClientVersion = getMinimalCodexClientVersion(record);
+  if (minimalClientVersion && compareVersions(minimalClientVersion, clientVersion) > 0) {
     return false;
   }
 
@@ -218,6 +243,63 @@ export function normalizeCodexGithubCatalogResponse(payload: unknown): CodexDisc
   return normalizeCodexModelsResponse(payload);
 }
 
+export function inspectCodexClientCompatibility(
+  payload: unknown,
+  clientVersion = getCodexClientVersion()
+): CodexClientCompatibility {
+  const incompatibleById = new Map<string, CodexIncompatibleModel>();
+
+  for (const item of getCodexModelItems(payload)) {
+    const record = asRecord(item);
+    if (!isCodexModelVisibleInApi(record)) continue;
+
+    const id = getCodexModelId(record);
+    const minimalClientVersion = getMinimalCodexClientVersion(record);
+    if (!id || !minimalClientVersion || compareVersions(minimalClientVersion, clientVersion) <= 0) {
+      continue;
+    }
+
+    incompatibleById.set(id, {
+      id,
+      name: getCodexModelName(record, id),
+      minimalClientVersion,
+    });
+  }
+
+  return {
+    clientVersion,
+    incompatibleModels: Array.from(incompatibleById.values()),
+  };
+}
+
+export function buildCodexClientCompatibilityWarning(
+  compatibility: CodexClientCompatibility
+): string | null {
+  if (compatibility.incompatibleModels.length === 0) return null;
+
+  const requiredVersion = compatibility.incompatibleModels.reduce(
+    (highest, model) =>
+      compareVersions(model.minimalClientVersion, highest) > 0
+        ? model.minimalClientVersion
+        : highest,
+    compatibility.incompatibleModels[0].minimalClientVersion
+  );
+  const modelIds = compatibility.incompatibleModels
+    .slice(0, 3)
+    .map((model) => model.id)
+    .join(", ");
+  const remaining = compatibility.incompatibleModels.length - 3;
+  const modelSummary = remaining > 0 ? `${modelIds}, and ${remaining} more` : modelIds;
+
+  return (
+    `Skipped ChatGPT/Codex models that require a newer HTTP client profile ` +
+    `(${modelSummary}). OmniRoute reports ${compatibility.clientVersion}; the catalog requires ` +
+    `at least ${requiredVersion}. Upgrade OmniRoute. If this release is otherwise protocol-compatible, ` +
+    `temporarily set CODEX_CLIENT_VERSION=${requiredVersion} and restart. Installing Codex CLI is ` +
+    `only relevant to the separate codex-app-server provider.`
+  );
+}
+
 export function clearCodexGithubCatalogCacheForTests(): void {
   codexGithubCatalogCache = null;
 }
@@ -260,6 +342,7 @@ function getNotModifiedCodexGithubCatalog(
 
 function storeCodexGithubCatalogCache(
   models: CodexDiscoveryModel[],
+  compatibility: CodexClientCompatibility,
   response: Response,
   now: number,
   cacheTtlMs: number
@@ -267,6 +350,7 @@ function storeCodexGithubCatalogCache(
   const etag = toNonEmptyString(response.headers.get("etag"));
   codexGithubCatalogCache = {
     models,
+    compatibility,
     ...(etag ? { etag } : {}),
     expiresAt: now + cacheTtlMs,
   };
@@ -492,13 +576,18 @@ export async function fetchCodexGithubCatalogModels({
   fetchImpl,
   now = Date.now(),
   cacheTtlMs = CODEX_GITHUB_CATALOG_CACHE_TTL_MS,
+  onCompatibility,
 }: {
   fetchImpl: CodexModelsFetch;
   now?: number;
   cacheTtlMs?: number;
+  onCompatibility?: (compatibility: CodexClientCompatibility) => void;
 }): Promise<CodexDiscoveryModel[] | null> {
   const cachedModels = getFreshCodexGithubCatalogCache(now, cacheTtlMs);
-  if (cachedModels) return cachedModels;
+  if (cachedModels) {
+    onCompatibility?.(codexGithubCatalogCache!.compatibility);
+    return cachedModels;
+  }
 
   try {
     const response = await fetchImpl(CODEX_GITHUB_MODELS_URL, {
@@ -507,16 +596,25 @@ export async function fetchCodexGithubCatalogModels({
     });
 
     const notModifiedModels = getNotModifiedCodexGithubCatalog(response, now, cacheTtlMs);
-    if (notModifiedModels) return notModifiedModels;
+    if (notModifiedModels) {
+      onCompatibility?.(codexGithubCatalogCache!.compatibility);
+      return notModifiedModels;
+    }
 
     if (!response.ok) return null;
 
-    const models = normalizeCodexGithubCatalogResponse(await response.json());
+    const payload = await response.json();
+    const compatibility = inspectCodexClientCompatibility(payload);
+    onCompatibility?.(compatibility);
+    const models = normalizeCodexGithubCatalogResponse(payload);
     if (models.length === 0) return null;
 
-    storeCodexGithubCatalogCache(models, response, now, cacheTtlMs);
+    storeCodexGithubCatalogCache(models, compatibility, response, now, cacheTtlMs);
     return models;
   } catch {
+    if (codexGithubCatalogCache) {
+      onCompatibility?.(codexGithubCatalogCache.compatibility);
+    }
     return codexGithubCatalogCache?.models || null;
   }
 }

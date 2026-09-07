@@ -122,7 +122,9 @@ import {
   PROVIDER_MODELS_CONFIG,
 } from "./discovery/providerModelsConfig";
 import {
+  buildCodexClientCompatibilityWarning,
   buildCodexDiscoveryCatalog,
+  type CodexClientCompatibility,
   enrichCodexModelsFromGithubCatalog,
   fetchCodexDiscoveryModels,
   fetchCodexGithubCatalogModels,
@@ -615,9 +617,7 @@ export async function GET(
       try {
         const discovery = await discoverMaxaiModels({
           providerSpecificData: connection.providerSpecificData as
-            | Record<string, unknown>
-            | null
-            | undefined,
+            Record<string, unknown> | null | undefined,
           accessToken: apiKey || accessToken,
           fetchImpl: (url, init) =>
             safeOutboundFetch(url, {
@@ -2137,7 +2137,11 @@ export async function GET(
             ...init,
           }),
       });
+      let codexCompatibility: CodexClientCompatibility | null = null;
       const githubCatalogModels = await fetchCodexGithubCatalogModels({
+        onCompatibility: (compatibility) => {
+          codexCompatibility = compatibility;
+        },
         fetchImpl: (url, init) =>
           safeOutboundFetch(url, {
             ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
@@ -2146,12 +2150,20 @@ export async function GET(
             ...init,
           }),
       });
+      const compatibilityWarning = codexCompatibility
+        ? buildCodexClientCompatibilityWarning(codexCompatibility)
+        : null;
+      const appendCompatibilityWarning = (warning: string) =>
+        [warning, compatibilityWarning].filter(Boolean).join(" ");
       if (liveModels && liveModels.length > 0) {
         const enrichedLiveModels =
           githubCatalogModels && githubCatalogModels.length > 0
             ? enrichCodexModelsFromGithubCatalog(liveModels, githubCatalogModels)
             : liveModels;
-        return buildApiDiscoveryResponse(finalizeCodexCatalog(enrichedLiveModels));
+        return buildApiDiscoveryResponse(
+          finalizeCodexCatalog(enrichedLiveModels),
+          compatibilityWarning || undefined
+        );
       }
 
       if (githubCatalogModels && githubCatalogModels.length > 0) {
@@ -2160,7 +2172,9 @@ export async function GET(
           connectionId,
           models: finalizeCodexCatalog(githubCatalogModels),
           source: "github_catalog",
-          warning: "Codex live catalog unavailable — using GitHub model catalog",
+          warning: appendCompatibilityWarning(
+            "Codex live catalog unavailable — using GitHub model catalog"
+          ),
         });
       }
 
@@ -2171,7 +2185,9 @@ export async function GET(
           connectionId,
           models: cachedCatalogModels,
           source: "cache",
-          warning: "Codex live catalog unavailable — using cached catalog",
+          warning: appendCompatibilityWarning(
+            "Codex live catalog unavailable — using cached catalog"
+          ),
         });
       }
       return buildResponse({
@@ -2180,7 +2196,9 @@ export async function GET(
         models: finalizeCodexCatalog([]),
         source: "local_catalog",
         intentional: true,
-        warning: "Codex live and GitHub catalogs unavailable — using local catalog",
+        warning: appendCompatibilityWarning(
+          "Codex live and GitHub catalogs unavailable — using local catalog"
+        ),
       });
     }
 

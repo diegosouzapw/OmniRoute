@@ -35,6 +35,8 @@ import {
   enrichCodexModelsFromGithubCatalog,
   fetchCodexDiscoveryModels,
   fetchCodexGithubCatalogModels,
+  buildCodexClientCompatibilityWarning,
+  inspectCodexClientCompatibility,
   isCodexDiscoveryModelExcluded,
   mergeCodexLiveModelsWithLocalCatalog,
   normalizeCodexGithubCatalogResponse,
@@ -342,6 +344,47 @@ test("codex.normalizeCodexGithubCatalogResponse parses current client catalog me
   assert.equal(parsed[0]?.inputTokenLimit, 372000);
   assert.equal(parsed[0]?.supportsThinking, true);
   assert.equal(parsed[0]?.supportsVision, true);
+});
+
+test("codex compatibility diagnostics report only visible API models above the client version", () => {
+  const compatibility = inspectCodexClientCompatibility(
+    {
+      models: [
+        {
+          slug: "gpt-next",
+          display_name: "GPT Next",
+          visibility: "list",
+          supported_in_api: true,
+          minimal_client_version: "0.200.0",
+        },
+        {
+          slug: "already-compatible",
+          visibility: "list",
+          supported_in_api: true,
+          minimal_client_version: "0.149.0",
+        },
+        {
+          slug: "hidden-future",
+          visibility: "hide",
+          supported_in_api: true,
+          minimal_client_version: "999.0.0",
+        },
+      ],
+    },
+    "0.149.0"
+  );
+
+  assert.deepEqual(compatibility, {
+    clientVersion: "0.149.0",
+    incompatibleModels: [{ id: "gpt-next", name: "GPT Next", minimalClientVersion: "0.200.0" }],
+  });
+  assert.equal(
+    buildCodexClientCompatibilityWarning(compatibility),
+    "Skipped ChatGPT/Codex models that require a newer HTTP client profile (gpt-next). " +
+      "OmniRoute reports 0.149.0; the catalog requires at least 0.200.0. Upgrade OmniRoute. " +
+      "If this release is otherwise protocol-compatible, temporarily set CODEX_CLIENT_VERSION=0.200.0 " +
+      "and restart. Installing Codex CLI is only relevant to the separate codex-app-server provider."
+  );
 });
 
 test("codex.enrichCodexModelsFromGithubCatalog keeps live entitlement list authoritative", () => {
