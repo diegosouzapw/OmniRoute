@@ -15,7 +15,6 @@ process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 const originalPath = process.env.PATH ?? "";
 process.env.PATH = `${FAKE_BIN_DIR}:${originalPath}`;
 
-const INSTALL_DIR = path.join(TEST_DATA_DIR, "services", "singbox");
 const fakeNpmScript = `#!/bin/sh
 set -e
 CMD="$1"
@@ -52,10 +51,10 @@ test("singbox installer: install creates default config and updates version_mana
   assert.ok(fs.existsSync(singbox.getConfigPath()));
   assert.ok(fs.existsSync(singbox.getBinPath()));
 
-  const row = db.prepare("SELECT * FROM version_manager WHERE tool = 'singbox'").get() as any;
+  const row = db.prepare("SELECT * FROM version_manager WHERE tool = 'singbox'").get() as { status?: string; port?: number } | undefined;
   assert.ok(row);
-  assert.equal(row.status, "stopped");
-  assert.equal(row.port, 20140);
+  assert.equal(row?.status, "stopped");
+  assert.equal(row?.port, 20140);
 });
 
 test("singbox installer: resolveSpawnArgs builds executable command", () => {

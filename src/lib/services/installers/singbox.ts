@@ -16,7 +16,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { DATA_DIR } from "@/lib/db/core";
 import { upsertVersionManagerTool } from "@/lib/db/versionManager";
-import { runNpm, InstallError } from "./utils";
+import { runNpm } from "./utils";
 
 export const SINGBOX_PACKAGE = "sing-box";
 export const SINGBOX_DEFAULT_PORT = 20140;
@@ -55,7 +55,7 @@ export function getConfigPath(): string {
   return path.join(getSingboxInstallDir(), "config.json");
 }
 
-export function generateDefaultSingboxConfig(tproxyPort = SINGBOX_DEFAULT_PORT, targetHttpPort = 20128): Record<string, unknown> {
+export function generateDefaultSingboxConfig(tproxyPort = SINGBOX_DEFAULT_PORT, _targetHttpPort = 20128): Record<string, unknown> {
   return {
     log: {
       level: "warn",
