@@ -17,6 +17,9 @@ const HTTP_METHODS = [
 ] as const;
 const CLEAR_PROSE_BOUNDARIES = [
   "after",
+  "authorization",
+  "authorization:",
+  "bearer",
   "because",
   "before",
   "but",
