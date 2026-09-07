@@ -34,6 +34,7 @@ const CLEAR_PROSE_BOUNDARIES = [
   "then",
   "when",
   "while",
+  "with",
 ] as const;
 const POSIX_FILESYSTEM_ROOTS = [
   "/Users",

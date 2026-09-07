@@ -549,7 +549,7 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         logEntry,
         protectedRequestBody,
         protectedResponseBody,
-        protectedError,
+        entry.error ?? protectedError,
         protectedPipelinePayloads
       );
       const artifactResult = await writeCallArtifactAsync(artifact);

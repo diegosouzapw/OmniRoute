@@ -71,6 +71,7 @@ test("persistAttemptLogs redacts request.failed delivery/replay but keeps its in
       DATA_DIR: dataDir,
       OMNIROUTE_PLUGINS_DIR: pluginsDir,
       API_KEY_SECRET: "test-dashboard-failure-redaction-secret",
+      DISABLE_SQLITE_AUTO_BACKUP: "true",
       PII_RESPONSE_SANITIZATION: "false",
       OMNIROUTE_ENABLE_LIVE_WS: "0",
     });
