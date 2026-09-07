@@ -5,7 +5,7 @@
 #  Profiles:
 #    base  → minimal image, no CLI tools
 #    web   → runner-web (+Chromium/Playwright) for web-cookie providers
-#    cli   → CLIs installed inside the container (portable)
+#    cli   → CLIs + in-process Chromium/Xvfb (portable; Easypanel last-stage)
 #    host  → runner-base + host-mounted CLI binaries (Linux-first)
 #    cliproxyapi → CLIProxyAPI sidecar on port 8317
 #    memory  → Qdrant sidecar on port 6333 (semantic memory offload)

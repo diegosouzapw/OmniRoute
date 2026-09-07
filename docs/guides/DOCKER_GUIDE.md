@@ -231,11 +231,12 @@ The prod stack runs in parallel with the dev compose (different container names,
 
 The repository ships a multi-stage Dockerfile (`Dockerfile`). Three stages are exposed; pick the right `target` for your use case.
 
-| Stage         | Base image            | Purpose                                                                                                                                                            |
-| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `builder`     | `node:26-trixie-slim` | Installs deps (`npm ci --legacy-peer-deps`) and runs `npm run build` (Turbopack by default — see Build-time resources below)                                       |
-| `runner-base` | `node:26-trixie-slim` | Production runtime with the Next.js standalone output. **No provider CLIs bundled.**                                                                               |
-| `runner-cli`  | `runner-base`         | Adds `git`, `docker.io`, `docker-compose` and global CLIs: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Pick this for agentic workflows.** |
+| Stage         | Base image            | Purpose                                                                                                                                                                                                                          |
+| ------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Installs deps (`npm ci --legacy-peer-deps`) and runs `npm run build` (Turbopack by default — see Build-time resources below)                                                                                                     |
+| `runner-base` | `node:26-trixie-slim` | Production runtime with the Next.js standalone output. **No provider CLIs and no browsers.**                                                                                                                                     |
+| `runner-web`  | `runner-base`         | Adds Playwright Chromium plus `xvfb` for in-process headed web-cookie providers (`gemini-web`, `claude-web`, `chatgpt-web`). Compose profile `web` also starts the ChatGPT Web (Codex) CDP sidecar.                             |
+| `runner-cli`  | `runner-base`         | Adds `git`, `docker.io`, `docker-compose`, global CLIs (`@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`), Playwright Chromium, and `xvfb`. **Last Dockerfile stage** — Easypanel and a plain `docker build` land here. The entrypoint starts Xvfb and exports `DISPLAY=:99` when `xvfb` is installed. |
 
 Build a specific target manually:
 
