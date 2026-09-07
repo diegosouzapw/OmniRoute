@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import {
   getBifrostRoutingConfig,
   resolveRelayRoutingBackend,
-  shouldTryBifrost,
   shouldTryBifrostForRequest,
   recordBifrostFailure,
   getActiveBifrostCooldown,
@@ -14,13 +13,13 @@ import {
 } from "../../../../src/shared/services/bifrost/bifrostRouting.ts";
 
 test("bifrostRouting: getBifrostRoutingConfig resolves from env", () => {
-  const env = {
+  const env: NodeJS.ProcessEnv = {
     BIFROST_BASE_URL: "http://127.0.0.1:8080/",
     BIFROST_API_KEY: "secret-key",
     BIFROST_TIMEOUT_MS: "12000",
     BIFROST_ENABLED: "1",
     BIFROST_STREAMING_ENABLED: "1",
-  } as any;
+  };
 
   const config = getBifrostRoutingConfig(env);
   assert.ok(config);
@@ -32,24 +31,24 @@ test("bifrostRouting: getBifrostRoutingConfig resolves from env", () => {
 });
 
 test("bifrostRouting: getBifrostRoutingConfig returns null when unconfigured and supervisor absent", () => {
-  const config = getBifrostRoutingConfig({} as any);
+  const config = getBifrostRoutingConfig({});
   assert.equal(config, null);
 });
 
 test("bifrostRouting: resolveRelayRoutingBackend resolves configured or auto", () => {
   assert.equal(
-    resolveRelayRoutingBackend({ OMNIROUTE_RELAY_BACKEND: "bifrost" } as any),
+    resolveRelayRoutingBackend({ OMNIROUTE_RELAY_BACKEND: "bifrost" }),
     "bifrost"
   );
-  assert.equal(resolveRelayRoutingBackend({ OMNIROUTE_RELAY_BACKEND: "ts" } as any), "ts");
+  assert.equal(resolveRelayRoutingBackend({ OMNIROUTE_RELAY_BACKEND: "ts" }), "ts");
   assert.equal(
     resolveRelayRoutingBackend({
       BIFROST_BASE_URL: "http://127.0.0.1:8080",
       BIFROST_ENABLED: "1",
-    } as any),
+    }),
     "auto"
   );
-  assert.equal(resolveRelayRoutingBackend({} as any), "ts");
+  assert.equal(resolveRelayRoutingBackend({}), "ts");
 });
 
 test("bifrostRouting: circuit breaker failure cooldown lifecycle", () => {

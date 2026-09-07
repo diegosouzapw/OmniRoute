@@ -6,11 +6,11 @@ const ORIGINAL_FETCH = globalThis.fetch;
 
 test("bifrostClient: dispatchToBifrost sends unary request and parses response", async () => {
   let capturedHeaders: Headers | null = null;
-  let capturedBody: any = null;
+  let capturedBody: Record<string, unknown> | null = null;
 
   globalThis.fetch = async (_input, init) => {
     capturedHeaders = new Headers(init?.headers);
-    capturedBody = JSON.parse(String(init?.body));
+    capturedBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
     return new Response(JSON.stringify({ id: "chatcmpl-123", choices: [] }), {
       status: 200,
       headers: { "content-type": "application/json" },
@@ -52,9 +52,7 @@ test("bifrostClient: dispatchToBifrost handles streaming response and finalizer"
     return new Response(
       new ReadableStream<Uint8Array>({
         start(controller) {
-          controller.enqueue(
-            new TextEncoder().encode('data: {"choices":[{"delta":{"content":"Hi"}}]}\n\n')
-          );
+          controller.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"content":"Hi"}}]}\n\n'));
           controller.close();
         },
       }),
