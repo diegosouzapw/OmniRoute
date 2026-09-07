@@ -55,7 +55,7 @@ export async function getInstalledVersion(): Promise<string | null> {
   }
 }
 
-export async function getLatestVersion(): Promise<string | null> {
+async function getLatestVersion(): Promise<string | null> {
   if (latestVersionCache && latestVersionCache.expiresAt > Date.now()) {
     return latestVersionCache.value;
   }
@@ -136,7 +136,7 @@ server.listen(PORT, "127.0.0.1", () => {
   };
 }
 
-export async function update(): Promise<InstallResult> {
+async function update(): Promise<InstallResult> {
   return install("latest");
 }
 
