@@ -1,20 +1,8 @@
 /**
- * TDD regression: `anthropic` / `claude` providers drop the client-negotiated
- * `thinking-binding-controls-2026-08-01` beta, so any request carrying
- * `thinking.block_binding` (Fable 5.1 `prefixMismatchBehavior: "drop_block"`,
- * sent automatically by @ai-sdk/anthropic) is rejected upstream with
- * `thinking.adaptive.block_binding: Extra inputs are not permitted` — even when
- * the client negotiated the beta correctly. Same class covers
- * `thinking-display-updates-2026-08-18` (required for `thinking.display:
- * "updates"` on Fable 5.1).
- *
- * Root cause: FORWARDABLE_CLIENT_BETAS allowlist in
- * open-sse/config/anthropicHeaders.ts did not include either beta, so
- * mergeClientAnthropicBeta() stripped them on both the API-key path
- * (DefaultExecutor.buildHeaders) and the OAuth path (BaseExecutor).
- *
- * Fix: add both flags to FORWARDABLE_CLIENT_BETAS (forwarding only when the
- * client explicitly requests them).
+ * Fable 5.1 sends `thinking.block_binding` + `thinking-binding-controls-2026-08-01`
+ * (and `thinking.display` + `thinking-display-updates-2026-08-18`) automatically.
+ * The gateway stripped both betas, so upstream 400'd with `Extra inputs are not
+ * permitted`. Both must be forwarded when the client negotiates them.
  */
 import test from "node:test";
 import assert from "node:assert/strict";

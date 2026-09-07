@@ -65,17 +65,9 @@ export const FORWARDABLE_CLIENT_BETAS = Object.freeze([
   // gate (#9505), so a client that sent it must keep it through the merge —
   // otherwise its effort negotiation is silently dropped.
   "effort-2025-11-24",
-  // thinking-binding-controls-2026-08-01 is required whenever the request body
-  // carries `thinking.block_binding` (Fable 5.1 recovers from thinking-block
-  // prefix mismatches via `prefixMismatchBehavior: "drop_block"`; @ai-sdk/anthropic
-  // sends both the field and this beta automatically). The allowlist used to drop
-  // it, so upstream Anthropic rejected the request with
-  // `thinking.adaptive.block_binding: Extra inputs are not permitted` even though
-  // the client negotiated the beta correctly.
+  // Fable 5.1 betas (@ai-sdk/anthropic sends both automatically): without them
+  // upstream rejects `thinking.block_binding` / `thinking.display` with 400.
   "thinking-binding-controls-2026-08-01",
-  // thinking-display-updates-2026-08-18 is required for `thinking.display:
-  // "updates"` on Fable 5.1 (streaming thinking summaries between tool calls;
-  // @ai-sdk/anthropic adds this beta automatically). Same drop class as above.
   "thinking-display-updates-2026-08-18",
 ]);
 
