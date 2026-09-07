@@ -1342,10 +1342,14 @@ jobs:
       # #12539 tier-split: slow hermetic e2e lives in tests/integration/e2e/ so the
       # default glob stays fast; run it here so the assertions still execute in CI.
       - name: Integration e2e tier (slow hermetic)
-        run: npm run test:integration:e2e
+        env:
+          TEST_SHARD: ${{ matrix.shard }}/2
+        run: npm run test:integration:e2e:ci
       # Upstream-gated live tier: self-skips without OMNIROUTE_API_KEY, ~seconds.
       - name: Integration live tier (self-skipping without creds)
-        run: npm run test:integration:live
+        env:
+          TEST_SHARD: ${{ matrix.shard }}/2
+        run: npm run test:integration:live:ci
 
   test-security:
     name: Security Tests

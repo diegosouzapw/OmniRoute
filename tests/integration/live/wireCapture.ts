@@ -13,7 +13,7 @@ import { spawn, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, unlinkSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-const REPO_ROOT = fileURLToPath(new URL("../..", import.meta.url));
+const REPO_ROOT = fileURLToPath(new URL("../../..", import.meta.url));
 const ANALYZER_SCRIPT = `${REPO_ROOT}scripts/sre/tcp-close-analyzer.py`;
 
 export interface WireStreamRecord {

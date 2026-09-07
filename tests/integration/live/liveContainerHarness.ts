@@ -1,5 +1,5 @@
 /**
- * tests/integration/liveContainerHarness.ts
+ * tests/integration/live/liveContainerHarness.ts
  *
  * Spins up a dedicated, throwaway podman container running this checkout's
  * own code (runner-base target, same as the operator's local dev/beta
@@ -17,7 +17,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
 
-const REPO_ROOT = fileURLToPath(new URL("../..", import.meta.url));
+const REPO_ROOT = fileURLToPath(new URL("../../..", import.meta.url));
 
 export const LIVE_CONTAINER_ENABLED = process.env.RUN_LIVE_WIRE_CAPTURE === "1";
 
