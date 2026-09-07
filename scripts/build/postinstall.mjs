@@ -30,11 +30,15 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { PUBLISHED_BUILD_ARCH, PUBLISHED_BUILD_PLATFORM } from "./native-binary-compat.mjs";
+import {
+  isNativeBinaryCompatible,
+  PUBLISHED_BUILD_ARCH,
+  PUBLISHED_BUILD_PLATFORM,
+} from "./native-binary-compat.mjs";
 import { hasStandaloneAppBundle, isTermux } from "./postinstallSupport.mjs";
 import { colocateLlmlinguaOptionals } from "./colocateOptionals.mjs";
 import { fixPlaywrightAndroid } from "./fixPlaywrightAndroid.mjs";
-import { resolveWreqJsNativeBinding, WREQ_JS_VERSION } from "./wreqJsNative.mjs";
+import { detectRuntimeLibc, resolveWreqJsNativeBinding, WREQ_JS_VERSION } from "./wreqJsNative.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -109,86 +113,72 @@ const rootBinary = join(
   "better_sqlite3.node"
 );
 
+function getBetterSqlitePrebuildTarget() {
+  const runtimePlatform = isTermux() ? "android" : process.platform;
+  let libc;
+  if (runtimePlatform === "linux") {
+    try {
+      libc = detectRuntimeLibc();
+    } catch {
+      libc = undefined;
+    }
+  }
+  const targetPlatform = libc === "musl" ? "linuxmusl" : runtimePlatform;
+  return `${targetPlatform}-${process.arch}`;
+}
+
 async function fixBetterSqliteBinary() {
   if (!existsSync(join(ROOT, "dist", "node_modules", "better-sqlite3"))) {
     return;
   }
 
-  const platformMatch =
-    process.platform === PUBLISHED_BUILD_PLATFORM && process.arch === PUBLISHED_BUILD_ARCH;
+  const prebuildTarget = getBetterSqlitePrebuildTarget();
+  const appPrebuild = join(
+    ROOT,
+    "dist",
+    "node_modules",
+    "better-sqlite3",
+    "prebuilds",
+    `${prebuildTarget}.node`
+  );
+  const rootPrebuild = join(
+    ROOT,
+    "node_modules",
+    "better-sqlite3",
+    "prebuilds",
+    `${prebuildTarget}.node`
+  );
 
-  if (platformMatch) {
-    try {
-      process.dlopen({ exports: {} }, appBinary);
-      return;
-    } catch (err) {
-      console.warn(`  ⚠️  Bundled binary incompatible despite platform match: ${err.message}`);
+  const candidates = [
+    { path: appBinary, label: "bundled app build binary" },
+    { path: appPrebuild, label: "bundled app prebuild binary" },
+    { path: rootBinary, label: "root node_modules build binary" },
+    { path: rootPrebuild, label: "root node_modules prebuild binary" },
+  ];
+
+  const runtimePlatform = isTermux() ? "android" : process.platform;
+
+  for (const { path: candidatePath, label } of candidates) {
+    if (!existsSync(candidatePath)) continue;
+
+    if (!isNativeBinaryCompatible(candidatePath, { runtimePlatform, skipDlopen: true })) {
+      continue;
     }
-  }
-
-  console.log(`\n  🔧 Fixing better-sqlite3 binary for ${process.platform}-${process.arch}...`);
-
-  if (existsSync(rootBinary)) {
-    try {
-      mkdirSync(dirname(appBinary), { recursive: true });
-      copyFileSync(rootBinary, appBinary);
-    } catch (err) {
-      console.warn(`  ⚠️  Failed to copy binary: ${err.message}`);
-    }
 
     try {
-      process.dlopen({ exports: {} }, appBinary);
-      console.log("  ✅ Native module fixed successfully!\n");
-      return;
-    } catch (err) {
-      console.warn(`  ⚠️  Copied binary failed to load: ${err.message}`);
-    }
-  }
-
-  console.log("  📥  Attempting to download prebuilt binary via node-pre-gyp...");
-  try {
-    const { execSync } = await import("node:child_process");
-    const preGypBin = join(
-      ROOT,
-      "dist",
-      "node_modules",
-      ".bin",
-      process.platform === "win32" ? "node-pre-gyp.cmd" : "node-pre-gyp"
-    );
-    const preGypFallback = join(
-      ROOT,
-      "dist",
-      "node_modules",
-      "@mapbox",
-      "node-pre-gyp",
-      "bin",
-      "node-pre-gyp"
-    );
-    const preGypCmd = existsSync(preGypBin) ? preGypBin : preGypFallback;
-
-    if (existsSync(preGypCmd)) {
-      execSync(`"${process.execPath}" "${preGypCmd}" install --fallback-to-build=false`, {
-        cwd: join(ROOT, "dist", "node_modules", "better-sqlite3"),
-        stdio: "inherit",
-        timeout: 60_000,
-      });
-      mkdirSync(dirname(appBinary), { recursive: true });
-
-      try {
-        process.dlopen({ exports: {} }, appBinary);
-        console.log("  ✅ Prebuilt binary downloaded and loaded successfully!\n");
-        return;
-      } catch (loadErr) {
-        console.warn(`  ⚠️  Downloaded binary failed to load: ${loadErr.message}`);
+      if (candidatePath !== appBinary) {
+        mkdirSync(dirname(appBinary), { recursive: true });
+        copyFileSync(candidatePath, appBinary);
       }
-    } else {
-      console.warn("  ⚠️  node-pre-gyp not found, skipping prebuilt download.");
+      process.dlopen({ exports: {} }, appBinary);
+      console.log(`  ✅ Native module verified and loaded successfully (${label})!\n`);
+      return;
+    } catch (err) {
+      console.warn(`  ⚠️  Candidate binary (${label}) failed post-copy load: ${err.message}`);
     }
-  } catch (err) {
-    console.warn(`  ⚠️  node-pre-gyp download failed: ${err.message.split("\n")[0]}`);
   }
 
-  console.log("  ⚠️  Attempting npm rebuild (requires build tools)...");
+  console.log(`\n  🔧 Rebuilding better-sqlite3 for ${process.platform}-${process.arch}...`);
 
   // Declared OUTSIDE the try: the catch below reads `isAndroid` to pick the
   // timeout it reports. While it was `const` inside the try block, the timeout
@@ -237,10 +227,6 @@ async function fixBetterSqliteBinary() {
   console.warn("     The server may not start correctly.");
   console.warn("     Manual fix options:");
   if (process.platform === "win32") {
-    console.warn("     Option A (easiest — no build tools needed):");
-    console.warn(`       cd "${join(ROOT, "dist", "node_modules", "better-sqlite3")}"`);
-    console.warn("       npx @mapbox/node-pre-gyp install --fallback-to-build=false");
-    console.warn("     Option B (requires Build Tools for Visual Studio):");
     console.warn(`       cd "${join(ROOT, "dist")}" && npm rebuild better-sqlite3`);
     console.warn("       Install from: https://visualstudio.microsoft.com/visual-cpp-build-tools/");
     console.warn("       Also ensure Python is installed: https://python.org");
