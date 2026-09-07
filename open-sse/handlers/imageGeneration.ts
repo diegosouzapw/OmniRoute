@@ -2935,11 +2935,41 @@ async function fetchImageEndpoint(url, headers, body, provider, log) {
     const data = await response.json();
 
     // Normalize response to OpenAI format
+    const items = Array.isArray(data?.data) ? data.data : [];
+
+    // #10199: some providers return HTTP 2xx with an empty or malformed image
+    // payload (empty data array, missing/blank b64_json and url). Treating that
+    // as success makes image-combo strategies stop on the first leg and hand an
+    // image-less 200 to the client. Require at least one usable image item and
+    // surface an empty 2xx as a retryable 502 so combos fall back to the next
+    // priority leg.
+    const hasUsableImage = items.some(
+      (item: unknown) =>
+        isJsonObject(item) &&
+        ((typeof item.b64_json === "string" && item.b64_json.length > 0) ||
+          (typeof item.url === "string" && item.url.length > 0))
+    );
+    if (!hasUsableImage) {
+      if (log) {
+        log.warn(
+          "IMAGE",
+          `${provider} returned 200 without a usable image payload; treating as retryable 502`
+        );
+      }
+      return {
+        success: false,
+        status: HTTP_STATUS.BAD_GATEWAY,
+        error: sanitizeErrorMessage(
+          "Image provider returned a success status without an image payload"
+        ),
+      };
+    }
+
     return {
       success: true,
       data: {
         created: data.created || Math.floor(Date.now() / 1000),
-        data: data.data || [],
+        data: items,
       },
     };
   } catch (err: unknown) {
