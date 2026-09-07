@@ -10,14 +10,14 @@ import { createRequire } from "node:module";
 const require_ = createRequire(import.meta.url);
 const BetterSqlite3 = require_("better-sqlite3") as typeof import("better-sqlite3");
 
-import { createBetterSqliteAdapter } from "../../src/lib/db/adapters/betterSqliteAdapter";
-import type { SqliteAdapter } from "../../src/lib/db/adapters/types";
+import { createBetterSqliteAdapter } from "../../../src/lib/db/adapters/betterSqliteAdapter";
+import type { SqliteAdapter } from "../../../src/lib/db/adapters/types";
 
 import {
   claimServerToolExecution,
   finalizeServerToolExecution,
-} from "../../src/lib/db/skillExecutionFence";
-import { runWithServerToolFence } from "../../src/lib/skills/toolExecutionFence";
+} from "../../../src/lib/db/skillExecutionFence";
+import { runWithServerToolFence } from "../../../src/lib/skills/toolExecutionFence";
 
 // Minimal fixture schema — only what tests need; no SCHEMA_SQL import from core.ts
 const FIXTURE_SCHEMA = `

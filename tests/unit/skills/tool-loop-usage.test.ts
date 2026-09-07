@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { aggregateProviderLegUsage } from "../../src/lib/skills/serverOwnedToolLoop.ts";
-import type { ProviderLegUsage } from "../../src/lib/skills/toolLoopTypes.ts";
+import { aggregateProviderLegUsage } from "../../../src/lib/skills/serverOwnedToolLoop.ts";
+import type { ProviderLegUsage } from "../../../src/lib/skills/toolLoopTypes.ts";
 
 // ─── Basic aggregation ────────────────────────────────────────────────────────
 

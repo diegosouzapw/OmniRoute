@@ -32,15 +32,15 @@ fs.mkdirSync(TEST_PLUGINS_DIR, { recursive: true });
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.OMNIROUTE_PLUGINS_DIR = TEST_PLUGINS_DIR;
 
-const coreDb = await import("../../src/lib/db/core.ts");
-const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
-const { skillExecutor } = await import("../../src/lib/skills/executor.ts");
+const coreDb = await import("../../../src/lib/db/core.ts");
+const { skillRegistry } = await import("../../../src/lib/skills/registry.ts");
+const { skillExecutor } = await import("../../../src/lib/skills/executor.ts");
 const {
   classifyServerOwnedCalls,
   formatEscapeHatchResponse,
   executeServerOwned,
   ServerOwnedExecutionError,
-} = await import("../../src/lib/skills/interception.ts");
+} = await import("../../../src/lib/skills/interception.ts");
 
 function resetRuntime() {
   skillRegistry["registeredSkills"].clear();
@@ -162,7 +162,7 @@ test("classifyServerOwnedCalls: registered skill with client same-name → clien
     mode: "on",
   });
 
-  const encodedName = (await import("../../src/lib/skills/injection.ts")).encodeSkillToolName(
+  const encodedName = (await import("../../../src/lib/skills/injection.ts")).encodeSkillToolName(
     "collision-check",
     "1.0.0"
   );
@@ -491,7 +491,7 @@ test("ServerOwnedExecutionError is an exported class with code and httpStatus", 
 });
 
 test("executeServerOwned: in_progress fence state → throws ServerOwnedExecutionError with TOOL_IN_PROGRESS (409)", async () => {
-  const { setFenceFnForTesting } = await import("../../src/lib/skills/interception.ts");
+  const { setFenceFnForTesting } = await import("../../../src/lib/skills/interception.ts");
   const mockFence = async () => ({ kind: "in_progress" as const });
   setFenceFnForTesting(mockFence);
 
@@ -520,7 +520,7 @@ test("executeServerOwned: in_progress fence state → throws ServerOwnedExecutio
 });
 
 test("executeServerOwned: unknown fence state → throws ServerOwnedExecutionError with TOOL_STATE_UNKNOWN (500)", async () => {
-  const { setFenceFnForTesting } = await import("../../src/lib/skills/interception.ts");
+  const { setFenceFnForTesting } = await import("../../../src/lib/skills/interception.ts");
   const mockFence = async () => ({ kind: "unknown" as const });
   setFenceFnForTesting(mockFence);
 
@@ -549,7 +549,7 @@ test("executeServerOwned: unknown fence state → throws ServerOwnedExecutionErr
 });
 
 test("executeServerOwned: identity_conflict fence state → throws ServerOwnedExecutionError with IDENTITY_CONFLICT (409)", async () => {
-  const { setFenceFnForTesting } = await import("../../src/lib/skills/interception.ts");
+  const { setFenceFnForTesting } = await import("../../../src/lib/skills/interception.ts");
   const mockFence = async () => ({ kind: "identity_conflict" as const });
   setFenceFnForTesting(mockFence);
 
@@ -580,7 +580,7 @@ test("executeServerOwned: identity_conflict fence state → throws ServerOwnedEx
 // ─── Fix Round 3: Defect 1 — replay error/timeout detection ───────────────
 
 test("executeServerOwned: error replay → throws ServerOwnedExecutionError with TOOL_EXECUTION_ERROR (500)", async () => {
-  const { setFenceFnForTesting } = await import("../../src/lib/skills/interception.ts");
+  const { setFenceFnForTesting } = await import("../../../src/lib/skills/interception.ts");
   const mockFence = async () => ({
     kind: "replayed" as const,
     value: null,
@@ -615,7 +615,7 @@ test("executeServerOwned: error replay → throws ServerOwnedExecutionError with
 });
 
 test("executeServerOwned: timeout replay → throws ServerOwnedExecutionError with TOOL_EXECUTION_TIMEOUT (504)", async () => {
-  const { setFenceFnForTesting } = await import("../../src/lib/skills/interception.ts");
+  const { setFenceFnForTesting } = await import("../../../src/lib/skills/interception.ts");
   const mockFence = async () => ({
     kind: "replayed" as const,
     value: null,
@@ -650,7 +650,7 @@ test("executeServerOwned: timeout replay → throws ServerOwnedExecutionError wi
 });
 
 test("executeServerOwned: success replay → returns ExecutedToolResult with replayed:true", async () => {
-  const { setFenceFnForTesting } = await import("../../src/lib/skills/interception.ts");
+  const { setFenceFnForTesting } = await import("../../../src/lib/skills/interception.ts");
   const mockFence = async () => ({
     kind: "replayed" as const,
     value: { cached: true },
@@ -681,7 +681,7 @@ test("executeServerOwned: success replay → returns ExecutedToolResult with rep
 });
 
 test("executeServerOwned: error replay with null errorMessage → uses default message", async () => {
-  const { setFenceFnForTesting } = await import("../../src/lib/skills/interception.ts");
+  const { setFenceFnForTesting } = await import("../../../src/lib/skills/interception.ts");
   const mockFence = async () => ({
     kind: "replayed" as const,
     value: null,
@@ -754,7 +754,7 @@ test("executeClaimed: custom skill handler returns non-success status → execut
 test("LEASE_DURATION_MS is 120000 to match loop wall-clock upper bound", async () => {
   const fs = await import("node:fs");
   const sourceCode = fs.readFileSync(
-    new URL("../../src/lib/skills/interception.ts", import.meta.url),
+    new URL("../../../src/lib/skills/interception.ts", import.meta.url),
     "utf8"
   );
   const match = sourceCode.match(/const\s+LEASE_DURATION_MS\s*=\s*([\d_]+)/);

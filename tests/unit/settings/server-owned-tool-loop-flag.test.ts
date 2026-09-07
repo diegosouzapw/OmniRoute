@@ -11,10 +11,10 @@ const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-flag-loop-"
 process.env.DATA_DIR = tmpDir;
 
 const { FEATURE_FLAG_DEFINITIONS } =
-  await import("../../src/shared/constants/featureFlagDefinitions.ts");
+  await import("../../../src/shared/constants/featureFlagDefinitions.ts");
 const { setFeatureFlagOverride, clearAllFeatureFlagOverrides } =
-  await import("../../src/lib/db/featureFlags.ts");
-const { isServerOwnedToolLoopEnabled } = await import("../../src/shared/utils/featureFlags.ts");
+  await import("../../../src/lib/db/featureFlags.ts");
+const { isServerOwnedToolLoopEnabled } = await import("../../../src/shared/utils/featureFlags.ts");
 
 describe("SERVER_OWNED_TOOL_LOOP_ENABLED flag definition", () => {
   it("exists in FEATURE_FLAG_DEFINITIONS", () => {
@@ -78,12 +78,12 @@ describe("i18n key parity for SERVER_OWNED_TOOL_LOOP_ENABLED", () => {
 
   before(async () => {
     const enRaw = fs.readFileSync(
-      path.resolve(__dirname, "../../src/i18n/messages/en.json"),
+      path.resolve(__dirname, "../../../src/i18n/messages/en.json"),
       "utf8"
     );
     enMessages = JSON.parse(enRaw);
     const ptBrRaw = fs.readFileSync(
-      path.resolve(__dirname, "../../src/i18n/messages/pt-BR.json"),
+      path.resolve(__dirname, "../../../src/i18n/messages/pt-BR.json"),
       "utf8"
     );
     ptBrMessages = JSON.parse(ptBrRaw);

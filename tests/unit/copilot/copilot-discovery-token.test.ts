@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { resolveCopilotDiscoveryToken } from "../../src/lib/providerModels/copilotDiscoveryToken.ts";
+import { resolveCopilotDiscoveryToken } from "../../../src/lib/providerModels/copilotDiscoveryToken.ts";
 
 test("test 8: raw accessToken wins over exchanged copilotToken", () => {
   assert.equal(
@@ -10,11 +10,11 @@ test("test 8: raw accessToken wins over exchanged copilotToken", () => {
       accessToken: "gho_raw",
       copilotToken: "tid_exchanged",
     }),
-    "gho_raw",
+    "gho_raw"
   );
   assert.equal(
     resolveCopilotDiscoveryToken({ accessToken: "", copilotToken: "tid_exchanged" }),
-    "tid_exchanged",
+    "tid_exchanged"
   );
   assert.equal(resolveCopilotDiscoveryToken({ accessToken: "  ", copilotToken: "  " }), null);
 });
@@ -22,11 +22,11 @@ test("test 8: raw accessToken wins over exchanged copilotToken", () => {
 test("test 8: github and ghe discovery both prefer raw accessToken via helper", () => {
   const source = fs.readFileSync(
     path.join(process.cwd(), "src/app/api/providers/[id]/models/route.ts"),
-    "utf8",
+    "utf8"
   );
   const helperSrc = fs.readFileSync(
     path.join(process.cwd(), "src/lib/providerModels/copilotDiscoveryToken.ts"),
-    "utf8",
+    "utf8"
   );
   assert.doesNotMatch(helperSrc, /src\/app\/api/);
   const calls = source.match(/resolveCopilotDiscoveryToken\(\s*\{[\s\S]*?\}\s*\)/g) ?? [];
@@ -37,6 +37,6 @@ test("test 8: github and ghe discovery both prefer raw accessToken via helper", 
   }
   assert.doesNotMatch(
     source,
-    /toNonEmptyString\(psd\.copilotToken\)\s*\|\|\s*toNonEmptyString\(accessToken\)/,
+    /toNonEmptyString\(psd\.copilotToken\)\s*\|\|\s*toNonEmptyString\(accessToken\)/
   );
 });

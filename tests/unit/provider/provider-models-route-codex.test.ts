@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { getCodexClientVersion } from "../../open-sse/config/codexClient.ts";
+import { getCodexClientVersion } from "../../../open-sse/config/codexClient.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(
   path.join(os.tmpdir(), "omniroute-provider-model-routes-codex-")
@@ -15,7 +15,8 @@ const core = await import("../../../src/lib/db/core.ts");
 const providersDb = await import("../../../src/lib/db/providers.ts");
 const modelsDb = await import("../../../src/lib/db/models.ts");
 const providerModelsRoute = await import("../../../src/app/api/providers/[id]/models/route.ts");
-const codexDiscovery = await import("../../../src/app/api/providers/[id]/models/discovery/codex.ts");
+const codexDiscovery =
+  await import("../../../src/app/api/providers/[id]/models/discovery/codex.ts");
 
 type RouteModel = {
   id: string;

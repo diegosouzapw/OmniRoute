@@ -11,7 +11,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const SCRIPT_PATH = fileURLToPath(
-  new URL("../../scripts/check/check-git-identity.sh", import.meta.url)
+  new URL("../../../scripts/check/check-git-identity.sh", import.meta.url)
 );
 
 const OWNER_NAME = "diegosouzapw";

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { shouldRunServerOwnedToolLoop } from "../../open-sse/handlers/chatCore/serverOwnedToolLoopGate.ts";
-import { FORMATS } from "../../open-sse/translator/formats.ts";
+import { shouldRunServerOwnedToolLoop } from "../../../open-sse/handlers/chatCore/serverOwnedToolLoopGate.ts";
+import { FORMATS } from "../../../open-sse/translator/formats.ts";
 
 test("flag-off never runs the loop", () => {
   assert.equal(

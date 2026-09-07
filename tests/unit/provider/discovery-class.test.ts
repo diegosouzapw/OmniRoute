@@ -3,10 +3,10 @@ import assert from "node:assert/strict";
 import {
   ACCOUNT_LIVE_PROVIDER_IDS,
   getDiscoveryClass,
-} from "../../src/lib/providerModels/discoveryClass.ts";
-import { HARDCODED_MODELS_CONFIG_IDS } from "../../src/lib/providerModels/hardcodedModelsConfigIds.ts";
-import { PROVIDER_MODELS_CONFIG } from "../../src/app/api/providers/[id]/models/discovery/providerModelsConfig.ts";
-import { getRegistryEntry } from "../../open-sse/config/providerRegistry.ts";
+} from "../../../src/lib/providerModels/discoveryClass.ts";
+import { HARDCODED_MODELS_CONFIG_IDS } from "../../../src/lib/providerModels/hardcodedModelsConfigIds.ts";
+import { PROVIDER_MODELS_CONFIG } from "../../../src/app/api/providers/[id]/models/discovery/providerModelsConfig.ts";
+import { getRegistryEntry } from "../../../open-sse/config/providerRegistry.ts";
 
 const L1 = [
   "claude",

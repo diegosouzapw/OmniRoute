@@ -8,12 +8,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { resolveComboTargets } = await import("../../open-sse/services/combo/comboStructure.ts");
-const { handleComboChat } = await import("../../open-sse/services/combo.ts");
-const { expandTargetsByFingerprints } = await import(
-  "../../open-sse/services/combo/fingerprintExpansion.ts"
-);
-const { comboModelStepInputSchema } = await import("../../src/shared/validation/schemas/combo.ts");
+const { resolveComboTargets } = await import("../../../open-sse/services/combo/comboStructure.ts");
+const { handleComboChat } = await import("../../../open-sse/services/combo.ts");
+const { expandTargetsByFingerprints } =
+  await import("../../../open-sse/services/combo/fingerprintExpansion.ts");
+const { comboModelStepInputSchema } =
+  await import("../../../src/shared/validation/schemas/combo.ts");
 
 function createLog() {
   return { info() {}, warn() {}, debug() {}, error() {} };
@@ -118,9 +118,7 @@ test("handleComboChat passes the implicit pin allowlist into handleSingleModel",
       modelStr: string,
       target: { allowedConnectionIds?: unknown }
     ) => {
-      captured = Array.isArray(target?.allowedConnectionIds)
-        ? target.allowedConnectionIds
-        : null;
+      captured = Array.isArray(target?.allowedConnectionIds) ? target.allowedConnectionIds : null;
       return okResponse(modelStr);
     },
     log: createLog(),
@@ -197,7 +195,7 @@ test("comboModelStepInputSchema keeps allowedConnectionIds on parse", () => {
 });
 
 test("implicitPinAllowlist treats omitted allowlist as [connectionId]", async () => {
-  const { implicitPinAllowlist } = await import("../../src/lib/combos/steps.ts");
+  const { implicitPinAllowlist } = await import("../../../src/lib/combos/steps.ts");
   assert.deepEqual(implicitPinAllowlist(" 20x ", undefined), ["20x"]);
   assert.deepEqual(implicitPinAllowlist("20x", null), ["20x"]);
   assert.deepEqual(implicitPinAllowlist("20x", ["a", "b"]), ["a", "b"]);
@@ -207,7 +205,7 @@ test("implicitPinAllowlist treats omitted allowlist as [connectionId]", async ()
 });
 
 test("comboPinAllowlist does not invent an allowlist for header-forced pins", async () => {
-  const { comboPinAllowlist } = await import("../../src/lib/combos/steps.ts");
+  const { comboPinAllowlist } = await import("../../../src/lib/combos/steps.ts");
   assert.equal(comboPinAllowlist(false, "header-pin", undefined), null);
   assert.equal(comboPinAllowlist(false, "header-pin", null), null);
   assert.deepEqual(comboPinAllowlist(false, "header-pin", ["a"]), ["a"]);
@@ -218,7 +216,7 @@ test("checkModelAvailable applies comboPinAllowlist before credential preflight"
   const { readFileSync } = await import("node:fs");
   const { fileURLToPath } = await import("node:url");
   const { resolve } = await import("node:path");
-  const repoRoot = resolve(fileURLToPath(new URL("../../", import.meta.url)));
+  const repoRoot = resolve(fileURLToPath(new URL("../../../", import.meta.url)));
   const src = readFileSync(resolve(repoRoot, "src/sse/handlers/chat.ts"), "utf8");
   const start = src.indexOf("const checkModelAvailable = async");
   const end = src.indexOf("isModelAvailable: checkModelAvailable");
@@ -231,5 +229,8 @@ test("checkModelAvailable applies comboPinAllowlist before credential preflight"
   );
   const pinAt = body.search(/comboPinAllowlist\s*\(/);
   const credsAt = body.search(/getProviderCredentialsWithQuotaPreflight\s*\(/);
-  assert.ok(pinAt >= 0 && credsAt > pinAt, "pin allowlist must be computed before preflight lookup");
+  assert.ok(
+    pinAt >= 0 && credsAt > pinAt,
+    "pin allowlist must be computed before preflight lookup"
+  );
 });

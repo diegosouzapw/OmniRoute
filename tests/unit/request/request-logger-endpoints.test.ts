@@ -724,7 +724,8 @@ test("request logging never persists a raw hard-lease owner", async () => {
 });
 
 test("generic client snapshots exclude hard-lease control headers", async () => {
-  const { buildClientRawRequest } = await import("../../../src/sse/handlers/chat/clientRawRequest.ts");
+  const { buildClientRawRequest } =
+    await import("../../../src/sse/handlers/chat/clientRawRequest.ts");
   const request = new Request("http://x/v1/chat/completions", {
     headers: {
       "X-OmniRoute-Lease-Owner": `vlo_${"A".repeat(43)}`,
@@ -760,7 +761,7 @@ function syntheticReceipt(index: number) {
 }
 
 test("logToolLoopReceipt keeps first 4 receipts and clones them", async () => {
-  const { createRequestLogger } = await import("../../open-sse/utils/requestLogger.ts");
+  const { createRequestLogger } = await import("../../../open-sse/utils/requestLogger.ts");
   const logger = await createRequestLogger("openai", "openai", "gpt-4o", {
     enabled: true,
     captureStreamChunks: false,
@@ -779,7 +780,7 @@ test("logToolLoopReceipt keeps first 4 receipts and clones them", async () => {
 });
 
 test("logToolLoopReceipt is a no-op when logger is disabled", async () => {
-  const { createRequestLogger } = await import("../../open-sse/utils/requestLogger.ts");
+  const { createRequestLogger } = await import("../../../open-sse/utils/requestLogger.ts");
   const logger = await createRequestLogger("openai", "openai", "gpt-4o", {
     enabled: false,
     captureStreamChunks: false,

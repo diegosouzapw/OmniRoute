@@ -27,11 +27,11 @@ const UNVERIFIED_MODEL_ID = "unverified-market-id-not-synced";
 const SYNCED_INPUT = 15;
 const SYNCED_OUTPUT = 75;
 
-const core = await import("../../src/lib/db/core.ts");
-const providersDb = await import("../../src/lib/db/providers.ts");
-const modelsDb = await import("../../src/lib/db/models.ts");
-const modelsDev = await import("../../src/lib/modelsDevSync.ts");
-const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
+const core = await import("../../../src/lib/db/core.ts");
+const providersDb = await import("../../../src/lib/db/providers.ts");
+const modelsDb = await import("../../../src/lib/db/models.ts");
+const modelsDev = await import("../../../src/lib/modelsDevSync.ts");
+const v1ModelsCatalog = await import("../../../src/app/api/v1/models/catalog.ts");
 
 type CatalogRow = {
   id: string;
@@ -65,11 +65,7 @@ function rowMatchesUnverified(row: CatalogRow): boolean {
 function rowMatchesSynced(row: CatalogRow): boolean {
   const id = row.id ?? "";
   const root = row.root ?? "";
-  return (
-    id === SYNCED_MODEL_ID ||
-    id.endsWith(`/${SYNCED_MODEL_ID}`) ||
-    root === SYNCED_MODEL_ID
-  );
+  return id === SYNCED_MODEL_ID || id.endsWith(`/${SYNCED_MODEL_ID}`) || root === SYNCED_MODEL_ID;
 }
 
 async function resetStorage() {
@@ -187,17 +183,11 @@ test("test 11: getUnifiedModelsResponse does not list unverified models.dev ids"
   );
 
   const syncedRows = body.data.filter(rowMatchesSynced);
-  assert.ok(
-    syncedRows.length > 0,
-    `catalog must still list the live-synced id ${SYNCED_MODEL_ID}`
-  );
+  assert.ok(syncedRows.length > 0, `catalog must still list the live-synced id ${SYNCED_MODEL_ID}`);
 
   for (const row of syncedRows) {
     if (row.pricing == null) continue;
     const keys = Object.keys(row.pricing);
-    assert.ok(
-      keys.length > 0,
-      `synced row ${row.id} advertised pricing but the object was empty`
-    );
+    assert.ok(keys.length > 0, `synced row ${row.id} advertised pricing but the object was empty`);
   }
 });

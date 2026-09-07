@@ -6,13 +6,13 @@ import type {
   ProviderLegReceipt,
   ProviderLegUsage,
   ServerOwnedToolLoopResult,
-} from "../../src/lib/skills/toolLoopTypes.ts";
+} from "../../../src/lib/skills/toolLoopTypes.ts";
 import {
   buildNonStreamingFinalizationPlan,
   finalizeNonStreamingRequest,
   finalizeToolLoopError,
   type NonStreamingFinalizationDeps,
-} from "../../open-sse/handlers/chatCore/nonStreamingFinalization.ts";
+} from "../../../open-sse/handlers/chatCore/nonStreamingFinalization.ts";
 
 function receipt(index: number, overrides: Partial<ProviderLegReceipt> = {}): ProviderLegReceipt {
   return {

@@ -274,8 +274,9 @@ test("injectMemoryAndSkills does not inject memory tools when memory is disabled
 // ─── Task 3: owner-set provenance + stream gate RED tests ────────────────────
 
 test("stream:true + skills enabled + registry has items → no custom skill tool injected, injectedCustomSkillNames=[]", async () => {
-  const { updateSettings } = await import("../../src/lib/db/settings.ts");
-  const { invalidateMemorySettingsCache: inv2 } = await import("../../src/lib/memory/settings.ts");
+  const { updateSettings } = await import("../../../src/lib/db/settings.ts");
+  const { invalidateMemorySettingsCache: inv2 } =
+    await import("../../../src/lib/memory/settings.ts");
 
   await updateSettings({ memoryEnabled: true, memoryMaxTokens: 2000, skillsEnabled: true });
   inv2();
@@ -328,9 +329,10 @@ test("stream:true + skills enabled + registry has items → no custom skill tool
 });
 
 test("memory actual injection → builtinToolNames equals exactly the newly added memory tool names", async () => {
-  const { updateSettings } = await import("../../src/lib/db/settings.ts");
-  const { invalidateMemorySettingsCache: inv3 } = await import("../../src/lib/memory/settings.ts");
-  const { MEMORY_BUILTIN_TOOL_NAMES } = await import("../../src/lib/skills/memoryBuiltins.ts");
+  const { updateSettings } = await import("../../../src/lib/db/settings.ts");
+  const { invalidateMemorySettingsCache: inv3 } =
+    await import("../../../src/lib/memory/settings.ts");
+  const { MEMORY_BUILTIN_TOOL_NAMES } = await import("../../../src/lib/skills/memoryBuiltins.ts");
 
   await updateSettings({ memoryEnabled: true, memoryMaxTokens: 2000 });
   inv3();
@@ -369,9 +371,10 @@ test("memory actual injection → builtinToolNames equals exactly the newly adde
 });
 
 test("client already has memory_search → not injected, not in builtinToolNames", async () => {
-  const { updateSettings } = await import("../../src/lib/db/settings.ts");
-  const { invalidateMemorySettingsCache: inv4 } = await import("../../src/lib/memory/settings.ts");
-  const { MEMORY_SEARCH_TOOL_NAME } = await import("../../src/lib/skills/memoryBuiltins.ts");
+  const { updateSettings } = await import("../../../src/lib/db/settings.ts");
+  const { invalidateMemorySettingsCache: inv4 } =
+    await import("../../../src/lib/memory/settings.ts");
+  const { MEMORY_SEARCH_TOOL_NAME } = await import("../../../src/lib/skills/memoryBuiltins.ts");
 
   await updateSettings({ memoryEnabled: true, memoryMaxTokens: 2000 });
   inv4();
@@ -420,9 +423,10 @@ test("client already has memory_search → not injected, not in builtinToolNames
 });
 
 test("custom skill client collision: client has same encoded skill name → not injected, not in injectedCustomSkillNames", async () => {
-  const { updateSettings } = await import("../../src/lib/db/settings.ts");
-  const { invalidateMemorySettingsCache: inv5 } = await import("../../src/lib/memory/settings.ts");
-  const { encodeSkillToolName } = await import("../../src/lib/skills/injection.ts");
+  const { updateSettings } = await import("../../../src/lib/db/settings.ts");
+  const { invalidateMemorySettingsCache: inv5 } =
+    await import("../../../src/lib/memory/settings.ts");
+  const { encodeSkillToolName } = await import("../../../src/lib/skills/injection.ts");
 
   await updateSettings({ memoryEnabled: true, memoryMaxTokens: 2000, skillsEnabled: true });
   inv5();
@@ -479,10 +483,11 @@ test("custom skill client collision: client has same encoded skill name → not 
 });
 
 test("web-search fallback: client has same tool name → not added to builtinToolNames", async () => {
-  const { updateSettings } = await import("../../src/lib/db/settings.ts");
-  const { invalidateMemorySettingsCache: inv6 } = await import("../../src/lib/memory/settings.ts");
+  const { updateSettings } = await import("../../../src/lib/db/settings.ts");
+  const { invalidateMemorySettingsCache: inv6 } =
+    await import("../../../src/lib/memory/settings.ts");
   const { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } =
-    await import("../../open-sse/services/webSearchFallback.ts");
+    await import("../../../open-sse/services/webSearchFallback.ts");
 
   await updateSettings({ memoryEnabled: true, memoryMaxTokens: 2000 });
   inv6();

@@ -7,13 +7,13 @@ import {
   MAX_RESULT_BYTES_TOTAL,
   serializeBoundedToolResult,
   buildFollowUpSourceBody,
-} from "../../src/lib/skills/followUpTranscript.ts";
+} from "../../../src/lib/skills/followUpTranscript.ts";
 import type {
   ToolCall,
   ExecutedToolResult,
   BuildFollowUpTranscriptInput,
   BoundedToolResult,
-} from "../../src/lib/skills/toolLoopTypes.ts";
+} from "../../../src/lib/skills/toolLoopTypes.ts";
 
 type UnknownRecord = Record<string, unknown>;
 

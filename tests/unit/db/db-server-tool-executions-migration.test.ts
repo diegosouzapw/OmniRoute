@@ -10,12 +10,12 @@ import { createRequire } from "node:module";
 const require_ = createRequire(import.meta.url);
 const BetterSqlite3 = require_("better-sqlite3") as typeof import("better-sqlite3");
 
-import { createBetterSqliteAdapter } from "../../src/lib/db/adapters/betterSqliteAdapter";
-import type { SqliteAdapter } from "../../src/lib/db/adapters/types";
+import { createBetterSqliteAdapter } from "../../../src/lib/db/adapters/betterSqliteAdapter";
+import type { SqliteAdapter } from "../../../src/lib/db/adapters/types";
 
 const MIGRATION_174_PATH = path.resolve(
   import.meta.dirname ?? ".",
-  "../../src/lib/db/migrations/174_server_tool_executions.sql"
+  "../../../src/lib/db/migrations/174_server_tool_executions.sql"
 );
 const MIGRATION_174_SQL = fs.readFileSync(MIGRATION_174_PATH, "utf8");
 

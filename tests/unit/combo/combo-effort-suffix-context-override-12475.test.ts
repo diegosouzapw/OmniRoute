@@ -13,15 +13,14 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-12475-eff
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const core = await import("../../src/lib/db/core.ts");
+const core = await import("../../../src/lib/db/core.ts");
 const { setModelContextOverride, removeModelContextOverride } =
-  await import("../../src/lib/db/modelContextOverrides.ts");
+  await import("../../../src/lib/db/modelContextOverrides.ts");
 const { evaluateContextLimit } =
-  await import("../../open-sse/services/combo/contextOverrideGate.ts");
+  await import("../../../open-sse/services/combo/contextOverrideGate.ts");
 const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
-  await import("../../src/lib/modelsDevSync.ts");
-const { filterTargetsByRequestCompatibility } =
-  await import("../../open-sse/services/combo.ts");
+  await import("../../../src/lib/modelsDevSync.ts");
+const { filterTargetsByRequestCompatibility } = await import("../../../open-sse/services/combo.ts");
 
 test.after(() => {
   core.resetDbInstance();

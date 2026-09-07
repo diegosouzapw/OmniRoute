@@ -4,12 +4,12 @@ import assert from "node:assert/strict";
 import {
   applyServerOwnedToolLoopIfNeeded,
   derivePostInjectionRequestIdentity,
-} from "../../open-sse/handlers/chatCore/serverOwnedToolLoopWire.ts";
+} from "../../../open-sse/handlers/chatCore/serverOwnedToolLoopWire.ts";
 import type {
   NonStreamingProviderLegResult,
   ProviderLegReceipt,
-} from "../../src/lib/skills/toolLoopTypes.ts";
-import { FORMATS } from "../../open-sse/translator/formats.ts";
+} from "../../../src/lib/skills/toolLoopTypes.ts";
+import { FORMATS } from "../../../open-sse/translator/formats.ts";
 
 function receipt(index: number): ProviderLegReceipt {
   return {

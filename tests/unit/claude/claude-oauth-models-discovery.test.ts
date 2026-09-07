@@ -2,11 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { buildClaudeModelsHeaders } from "../../src/lib/providerModels/claudeModelsHeaders.ts";
+import { buildClaudeModelsHeaders } from "../../../src/lib/providerModels/claudeModelsHeaders.ts";
 import {
   assembleProviderModelsHeaders,
   PROVIDER_MODELS_CONFIG,
-} from "../../src/app/api/providers/[id]/models/discovery/providerModelsConfig.ts";
+} from "../../../src/app/api/providers/[id]/models/discovery/providerModelsConfig.ts";
 
 const OAUTH = "oauth-access-token-fixture";
 const KEY = "sk-ant-api-key-fixture";
@@ -37,11 +37,11 @@ test("test 5: API key headers set x-api-key only", () => {
 test("test 6: route.ts has no claude static early return", () => {
   const src = fs.readFileSync(
     path.join(process.cwd(), "src/app/api/providers/[id]/models/route.ts"),
-    "utf8",
+    "utf8"
   );
   assert.doesNotMatch(
     src,
-    /if\s*\(\s*provider\s*===\s*"claude"\s*\)[\s\S]{0,400}getStaticModelsForProvider\(\s*"claude"/,
+    /if\s*\(\s*provider\s*===\s*"claude"\s*\)[\s\S]{0,400}getStaticModelsForProvider\(\s*"claude"/
   );
 });
 

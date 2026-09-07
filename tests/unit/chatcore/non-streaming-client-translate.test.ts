@@ -4,14 +4,14 @@ import assert from "node:assert/strict";
 import {
   translateNonStreamingClientResponse,
   type NonStreamingClientTranslateInput,
-} from "../../open-sse/handlers/chatCore/nonStreamingClientTranslate.ts";
-import { FORMATS } from "../../open-sse/translator/formats.ts";
+} from "../../../open-sse/handlers/chatCore/nonStreamingClientTranslate.ts";
+import { FORMATS } from "../../../open-sse/translator/formats.ts";
 import {
   buildAssistantMessageCacheKey,
   clearReasoningCacheAll,
   lookupReasoning,
-} from "../../open-sse/services/reasoningCache.ts";
-import { invalidateBufferTokensCache } from "../../open-sse/utils/usageTracking.ts";
+} from "../../../open-sse/services/reasoningCache.ts";
+import { invalidateBufferTokensCache } from "../../../open-sse/utils/usageTracking.ts";
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 

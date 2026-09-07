@@ -12,7 +12,7 @@ import { dirname, join } from "node:path";
  *
  * Guard the call site in source: no 65536, last arg is suppressThinkClose.
  */
-const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 
 function extractParens(src: string, openAt: number): string {
   let i = openAt + 1;

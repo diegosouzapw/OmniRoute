@@ -5,7 +5,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { comboTargetPassesKeyModelPolicy } from "../../src/sse/handlers/chat/comboTargetKeyPolicy.ts";
+import { comboTargetPassesKeyModelPolicy } from "../../../src/sse/handlers/chat/comboTargetKeyPolicy.ts";
 
 const KEY = "sk-test-12886";
 const COMBO = "combo-deepseek-v4-flash";

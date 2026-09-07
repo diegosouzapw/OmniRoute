@@ -10,9 +10,9 @@ process.env.API_KEY_SECRET = "test-grok-reset-credits-secret";
 process.env.STORAGE_ENCRYPTION_KEY = "grok-reset-credits-test-key-32-bytes-min";
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 
-const core = await import("../../src/lib/db/core.ts");
-const providersDb = await import("../../src/lib/db/providers.ts");
-const grokReset = await import("../../src/lib/usage/grokResetCredits.ts");
+const core = await import("../../../src/lib/db/core.ts");
+const providersDb = await import("../../../src/lib/db/providers.ts");
+const grokReset = await import("../../../src/lib/usage/grokResetCredits.ts");
 
 const originalFetch = globalThis.fetch;
 const LIST_URL = "https://grok.com/prod_mc_billing.ConsumerUiSvc/GetRemainingResets";

@@ -9,7 +9,7 @@ import {
   canonicalJson,
   canonicalJsonSha256,
   deriveToolRequestIdentity,
-} from "../../src/lib/skills/stableJson.ts";
+} from "../../../src/lib/skills/stableJson.ts";
 
 test("canonicalJson sorts nested object keys and preserves array order", () => {
   const a = { z: [{ b: 2, a: 1 }], a: true };
@@ -190,7 +190,7 @@ test("canonicalJson rejects objects with getters without invoking the getter", (
 
 test("termination union in toolLoopTypes.ts source matches expected set", () => {
   const src = fs.readFileSync(
-    path.resolve(__dirname, "../../src/lib/skills/toolLoopTypes.ts"),
+    path.resolve(__dirname, "../../../src/lib/skills/toolLoopTypes.ts"),
     "utf8"
   );
 

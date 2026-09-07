@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { AI_PROVIDERS, USAGE_SUPPORTED_PROVIDERS } from "../../../src/shared/constants/providers.ts";
+import {
+  AI_PROVIDERS,
+  USAGE_SUPPORTED_PROVIDERS,
+} from "../../../src/shared/constants/providers.ts";
 import { REGISTRY } from "../../../open-sse/config/providerRegistry.ts";
 import { PROVIDERS as LEGACY_PROVIDERS } from "../../../open-sse/config/constants.ts";
 import {
@@ -121,7 +124,7 @@ test("agy live discovery accepts new chat models while excluding tab-completion 
   assert.equal(isDiscoverableAgyModelId(""), false);
 });
 
-const quotaNormalize = await import("../../src/lib/usage/providerLimits/quotaNormalize.ts");
+const quotaNormalize = await import("../../../src/lib/usage/providerLimits/quotaNormalize.ts");
 
 test("test 9: agy live catalog is authoritative; quota keys use discoverable denylist", () => {
   assert.equal(REGISTRY.agy.liveCatalogAuthoritative, true);

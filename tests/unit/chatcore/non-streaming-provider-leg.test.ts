@@ -5,12 +5,12 @@ import {
   runNonStreamingProviderLeg,
   type ChatCoreExecutorResult,
   type ProviderLegInput,
-} from "../../open-sse/handlers/chatCore/nonStreamingProviderLeg.ts";
+} from "../../../open-sse/handlers/chatCore/nonStreamingProviderLeg.ts";
 import {
   buildAssistantMessageCacheKey,
   clearReasoningCacheAll,
   lookupReasoning,
-} from "../../open-sse/services/reasoningCache.ts";
+} from "../../../open-sse/services/reasoningCache.ts";
 
 /* -- helpers --------------------------------------------------------------- */
 
@@ -860,11 +860,7 @@ test("dynamic connection: ID changes between initial and retry -> 409 on retry p
     assert.equal(result.result.status, 409);
     assert.equal(result.result.errorCode, "LEASE_CONNECTION_MISMATCH");
   }
-  assert.equal(
-    executorCallCount,
-    1,
-    "retry executor must not run after the lease already moved"
-  );
+  assert.equal(executorCallCount, 1, "retry executor must not run after the lease already moved");
 });
 
 /* -- fallback with real parsed response ----------------------------------- */
@@ -1070,7 +1066,11 @@ test("empty-content fallback with invalid SSE body is 502, not 200 empty", async
   });
   const result = await runNonStreamingProviderLeg(input);
   assert.ok(executorCallCount >= 2, "should attempt fallback");
-  assert.equal(result.kind, "error", "invalid SSE on fallback must not finishOk the empty original");
+  assert.equal(
+    result.kind,
+    "error",
+    "invalid SSE on fallback must not finishOk the empty original"
+  );
   if (result.kind !== "error") return;
   assert.equal(result.result.status, 502);
   assert.equal(result.result.errorCode, "invalid_sse_payload");

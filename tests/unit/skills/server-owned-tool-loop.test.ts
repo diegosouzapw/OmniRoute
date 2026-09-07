@@ -6,16 +6,19 @@ import {
   MAX_FOLLOW_UPS,
   LOOP_BUDGET_MS,
   MIN_REMAINING_FOR_FOLLOW_UP_MS,
-} from "../../src/lib/skills/serverOwnedToolLoop.ts";
+} from "../../../src/lib/skills/serverOwnedToolLoop.ts";
 import type {
   ServerOwnedToolLoopOptions,
   NonStreamingProviderLegResult,
   ProviderLegReceipt,
   ChatCoreErrorResult,
   ToolCall,
-} from "../../src/lib/skills/toolLoopTypes.ts";
-import { ServerOwnedExecutionError, extractToolCalls } from "../../src/lib/skills/interception.ts";
-import { buildFollowUpSourceBody } from "../../src/lib/skills/followUpTranscript.ts";
+} from "../../../src/lib/skills/toolLoopTypes.ts";
+import {
+  ServerOwnedExecutionError,
+  extractToolCalls,
+} from "../../../src/lib/skills/interception.ts";
+import { buildFollowUpSourceBody } from "../../../src/lib/skills/followUpTranscript.ts";
 
 // ─── Fix 6: serializedResultTextById verbatim use ────────────────────────────
 

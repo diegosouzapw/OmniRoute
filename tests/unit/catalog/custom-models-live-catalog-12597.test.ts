@@ -13,14 +13,14 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-12597-cus
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "custom-live-12597-test-secret";
 
-const core = await import("../../src/lib/db/core.ts");
-const { addCustomModel, replaceSyncedAvailableModelsForConnection, getActiveProvidersWithSyncedModel } =
-  await import("../../src/lib/db/models.ts");
+const core = await import("../../../src/lib/db/core.ts");
 const {
-  getActiveSyncedCatalog,
-  catalogContainsModel,
-  reconcileProvidersWithActiveSyncedCatalog,
-} = await import("../../src/lib/db/models/activeSyncedCatalog.ts");
+  addCustomModel,
+  replaceSyncedAvailableModelsForConnection,
+  getActiveProvidersWithSyncedModel,
+} = await import("../../../src/lib/db/models.ts");
+const { getActiveSyncedCatalog, catalogContainsModel, reconcileProvidersWithActiveSyncedCatalog } =
+  await import("../../../src/lib/db/models/activeSyncedCatalog.ts");
 
 const PROVIDER = "github";
 const CONNECTION_ID = "github-live-catalog-12597";

@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { getMoonshotOpenPlatformUsage } from "../../open-sse/services/moonshotQuotaFetcher.ts";
-import { parseQuotaData } from "../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/quotaParsing.ts";
-import { getQuotaRemainingPercentage } from "../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils.tsx";
+import { getMoonshotOpenPlatformUsage } from "../../../open-sse/services/moonshotQuotaFetcher.ts";
+import { parseQuotaData } from "../../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/quotaParsing.ts";
+import { getQuotaRemainingPercentage } from "../../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils.tsx";
 
 const originalFetch = globalThis.fetch;
 const CN = "https://api.moonshot.cn/v1";
