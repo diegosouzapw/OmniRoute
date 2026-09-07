@@ -17,9 +17,6 @@ const HTTP_METHODS = [
 ] as const;
 const CLEAR_PROSE_BOUNDARIES = [
   "after",
-  "authorization",
-  "authorization:",
-  "bearer",
   "because",
   "before",
   "but",
@@ -32,10 +29,8 @@ const CLEAR_PROSE_BOUNDARIES = [
   "rejected",
   "retry",
   "then",
-  "use",
   "when",
   "while",
-  "with",
 ] as const;
 const POSIX_FILESYSTEM_ROOTS = [
   "/Users",
