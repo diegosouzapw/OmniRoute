@@ -141,6 +141,9 @@ const WEB_COOKIE_PROVIDERS_WITH_UNRELIABLE_MODELS_PROBE = new Set(["lmarena"]);
 // branch is short-circuited to the honest "unsupported" result instead of `valid: true`.
 // lmarena is deliberately NOT in this set — it already degrades via the
 // WEB_COOKIE_PROVIDERS_WITH_UNRELIABLE_MODELS_PROBE/REDIRECT_BLOCKED path above (#7542).
+// chatplayground baseUrl is https://app.chatplayground.ai/api/chat; appending /models
+// yields https://app.chatplayground.ai/api/chat/models which 404s regardless of cookie
+// (live auth signal is at GET /api/user or Clerk token endpoint).
 export const WEB_COOKIE_PROVIDERS_WITHOUT_MODELS_API = new Set([
   "huggingchat",
   "grok-web",
@@ -149,6 +152,7 @@ export const WEB_COOKIE_PROVIDERS_WITHOUT_MODELS_API = new Set([
   "yuanbao-web",
   "copilot-web",
   "copilot-m365-web",
+  "chatplayground",
 ]);
 
 // #12107 — web-cookie providers whose registry entry exists to publish a model catalog

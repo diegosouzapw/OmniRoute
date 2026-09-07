@@ -25,7 +25,6 @@ import {
   stripChatPlaygroundPrefix,
   resolveChatPlaygroundEndpoint,
   resolveChatPlaygroundModel,
-  clearChatPlaygroundModelsCache,
   parseChatPlaygroundDiscoveryModels,
 } from "../../open-sse/services/chatplaygroundModels.ts";
 import { getChatPlaygroundUsage } from "../../open-sse/services/usage/chatplayground.ts";
@@ -51,7 +50,7 @@ test("ChatPlayground — provider registration & constants", () => {
   assert.equal(chatplaygroundProvider.alias, "cpl");
   assert.equal(chatplaygroundProvider.executor, "chatplayground");
   assert.equal(chatplaygroundProvider.format, "openai");
-  assert.ok(chatplaygroundProvider.models.length > 0, "should have registered fallback models");
+  assert.equal(chatplaygroundProvider.models.length, 0, "should not provide fallback models (uses dynamic import)");
 
   // Check lazy executor registration
   assert.ok(hasSpecializedExecutor("chatplayground"), "chatplayground executor should be registered");
@@ -161,8 +160,6 @@ test("ChatPlayground — auth resolution with cached & minted tokens", async () 
 });
 
 test("ChatPlayground — model & endpoint resolution", () => {
-  clearChatPlaygroundModelsCache();
-
   // Prefix stripping
   assert.equal(stripChatPlaygroundPrefix("chatplayground/gpt-5.6-sol"), "gpt-5.6-sol");
   assert.equal(stripChatPlaygroundPrefix("cpl/claude-sonnet-5"), "claude-sonnet-5");
@@ -197,6 +194,9 @@ test("ChatPlayground — model & endpoint resolution", () => {
   assert.ok(m3);
   assert.equal(m3.endpoint, "perplexity");
   assert.equal(m3.modelName, "sonar-pro");
+
+  // Model validation — returns null for unrecognized models (no synthesis fallback)
+  assert.equal(resolveChatPlaygroundModel("non-existent-model"), null);
 });
 
 test("ChatPlayground — payload construction & CHAT_ID stripping", () => {
@@ -507,6 +507,20 @@ test("ChatPlaygroundExecutor — null or empty model handling", async () => {
   assert.equal(errResult.response.status, 400);
   const data = await errResult.response.json();
   assert.ok(data.error.message.includes("model not found or invalid"));
+
+  // Non-empty unknown model must be rejected with 400, not synthesized
+  const errResultInvalid = await executor.execute({
+    model: "completely-invalid-model-name",
+    body: {
+      messages: [{ role: "user", content: "hello" }],
+    },
+    credentials: { apiKey: mockJwt },
+  });
+
+  assert.ok("response" in errResultInvalid);
+  assert.equal(errResultInvalid.response.status, 400);
+  const dataInvalid = await errResultInvalid.response.json();
+  assert.ok(dataInvalid.error.message.includes("model not found or invalid"));
 });
 
 test("ChatPlaygroundExecutor — streaming whitespace & token formatting preservation", async () => {

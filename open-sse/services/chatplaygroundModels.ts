@@ -342,11 +342,6 @@ export const CHATPLAYGROUND_FALLBACK_MODELS: ChatPlaygroundModel[] = [
   },
 ];
 
-// In-memory cache for dynamically fetched models
-let cachedDynamicModels: ChatPlaygroundModel[] | null = null;
-let dynamicModelsExpiresAt = 0;
-const DYNAMIC_MODELS_TTL_MS = 10 * 60 * 1000; // 10 minutes
-
 /**
  * Strip client/routing prefixes like `chatplayground/`, `cpl/`, `cpl.`, `cp.` from model IDs.
  * Loops so chained prefixes (e.g. `cpl/chatplayground/gpt-4o`) collapse fully.
@@ -424,96 +419,6 @@ export function resolveChatPlaygroundEndpoint(
 }
 
 /**
- * Fetch dynamic models from app.chatplayground.ai/api/models.
- * Returns cached list if valid, or falls back to static catalog on failure.
- */
-export async function fetchChatPlaygroundModels(
-  authHeaders?: Record<string, string>,
-  timeoutMs = 15_000
-): Promise<ChatPlaygroundModel[]> {
-  const now = Date.now();
-  if (cachedDynamicModels && now < dynamicModelsExpiresAt) {
-    return cachedDynamicModels;
-  }
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const res = await fetch(CHATPLAYGROUND_MODELS_URL, {
-      method: "GET",
-      headers: authHeaders || {
-        accept: "*/*",
-        origin: "https://web.chatplayground.ai",
-        referer: "https://web.chatplayground.ai/",
-      },
-      signal: controller.signal,
-    });
-
-    if (!res.ok) {
-      return cachedDynamicModels || CHATPLAYGROUND_FALLBACK_MODELS;
-    }
-
-    const rawList = (await res.json()) as Array<Record<string, unknown>>;
-    if (!Array.isArray(rawList)) {
-      return cachedDynamicModels || CHATPLAYGROUND_FALLBACK_MODELS;
-    }
-
-    const discovered: ChatPlaygroundModel[] = [];
-    const seen = new Set<string>();
-
-    for (const item of rawList) {
-      const botId = typeof item.botId === "string" ? item.botId.trim() : "";
-      if (!botId || seen.has(botId)) continue;
-
-      // Only chat models
-      if (item.group && item.group !== "chat") continue;
-
-      seen.add(botId);
-      const modelName = (typeof item.modelName === "string" && item.modelName.trim()) || botId;
-      const displayName =
-        (typeof item.displayName === "string" && item.displayName.trim()) || modelName;
-      const endpoint = resolveChatPlaygroundEndpoint({
-        endpoint: typeof item.endpoint === "string" ? item.endpoint : undefined,
-        provider: typeof item.provider === "string" ? item.provider : undefined,
-        botId,
-      });
-
-      let creditWeight = 1.0;
-      if (typeof item.creditWeight === "number") {
-        creditWeight = item.creditWeight;
-      } else if (typeof item.creditWeight === "string") {
-        const parsed = parseFloat(item.creditWeight);
-        if (!isNaN(parsed)) creditWeight = parsed;
-      }
-
-      discovered.push({
-        id: botId,
-        name: displayName,
-        modelName,
-        endpoint,
-        active: Boolean(item.active ?? true),
-        creditWeight,
-        premiumOnly: Boolean(item.premiumOnly),
-        contextLength: CHATPLAYGROUND_DEFAULT_CONTEXT,
-      });
-    }
-
-    if (discovered.length > 0) {
-      cachedDynamicModels = discovered;
-      dynamicModelsExpiresAt = now + DYNAMIC_MODELS_TTL_MS;
-      return discovered;
-    }
-  } catch {
-    // Return cached or fallback catalog on fetch error
-  } finally {
-    clearTimeout(timeoutId);
-  }
-
-  return cachedDynamicModels || CHATPLAYGROUND_FALLBACK_MODELS;
-}
-
-/**
  * Parse raw /api/models JSON response into discovery catalog entries.
  */
 export function parseChatPlaygroundDiscoveryModels(data: unknown): Array<{
@@ -554,10 +459,11 @@ export function parseChatPlaygroundDiscoveryModels(data: unknown): Array<{
 
 /**
  * Resolve client model string to a ChatPlayground model definition.
+ * Validates against catalog and returns null for unrecognized/invalid models (no synthesis fallback).
  */
 export function resolveChatPlaygroundModel(
   requestedModel: string,
-  catalog: ChatPlaygroundModel[] = cachedDynamicModels || CHATPLAYGROUND_FALLBACK_MODELS
+  catalog: ChatPlaygroundModel[] = CHATPLAYGROUND_FALLBACK_MODELS
 ): ChatPlaygroundModel | null {
   const stripped = stripChatPlaygroundPrefix(requestedModel).toLowerCase();
   if (!stripped) return null;
@@ -581,24 +487,6 @@ export function resolveChatPlaygroundModel(
     if (match) return match;
   }
 
-  // 5. Dynamic fallback model synthesis if not found in catalog
-  const inferredEndpoint = resolveChatPlaygroundEndpoint(stripped);
-  return {
-    id: stripped,
-    name: stripped,
-    modelName: inferredEndpoint === "perplexity" && stripped.startsWith("perplexity-")
-      ? stripped.replace(/^perplexity-/, "")
-      : stripped,
-    endpoint: inferredEndpoint,
-    active: true,
-    creditWeight: 1.0,
-    premiumOnly: false,
-    contextLength: CHATPLAYGROUND_DEFAULT_CONTEXT,
-  };
-}
-
-/** Clear dynamic models cache (useful in tests). */
-export function clearChatPlaygroundModelsCache(): void {
-  cachedDynamicModels = null;
-  dynamicModelsExpiresAt = 0;
+  // Reject unrecognized models without fallback synthesis
+  return null;
 }
