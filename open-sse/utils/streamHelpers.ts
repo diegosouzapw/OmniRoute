@@ -70,6 +70,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 const ANSI_ESCAPE_RE =
   /\x1b(?:\[[0-9;?]*[A-Za-z]|\][^\x07\x1b]*(?:\x07|\x1b\\)|[A-Z\[\]\\^_`])|[\x00-\x08\x0b\x0c\x0e-\x1f]/g;
 
+// Pre-compiled regex constants for hot-path SSE processing (avoid per-call compilation)
+const CR_STRIP_RE = /\r$/;
+const SSE_FIELD_RE = /^(?:event:|id:|retry:|:)/i;
+const SSE_EVENT_RE = /^event:\s*(.+)$/i;
+const SSE_ID_RETRY_RE = /^(?::|id:|retry:)/i;
+const SSE_EVENT_ONLY_RE = /^event:/i;
+
 /**
  * Strip ANSI/VT100 escape sequences (and stray C0 controls) from a string.
  * Non-string inputs (null/undefined) are returned unchanged. Preserves \t \n \r.
@@ -125,7 +132,7 @@ export function parseSSELine(line: string): SSEJsonPayload | null {
 }
 
 function extractSseDataLine(line: string): string | null {
-  const trimmed = stripAnsiCodes(line.trimStart().replace(/\r$/, ""));
+  const trimmed = stripAnsiCodes(line.trimStart().replace(CR_STRIP_RE, ""));
   if (!trimmed.startsWith("data:")) return null;
   return trimmed.slice(5).trimStart();
 }
@@ -192,12 +199,12 @@ export function createSSEDataLineNormalizer(): SSEDataLineNormalizer {
     normalize(lines: string[]) {
       const output: string[] = [];
       for (const line of lines) {
-        const normalizedLine = line.replace(/\r$/, "");
+        const normalizedLine = line.replace(CR_STRIP_RE, "");
         const trimmed = normalizedLine.trim();
 
         if (
           trimmed &&
-          /^(?:event:|id:|retry:|:)/i.test(trimmed) &&
+          SSE_FIELD_RE.test(trimmed) &&
           hasSelfDescribingPendingDataPayload()
         ) {
           flush(output);
@@ -235,7 +242,7 @@ export function createSSEEventPrefixBuffer(options?: { forwardEvent?: boolean })
     },
     eventType() {
       for (let i = lines.length - 1; i >= 0; i--) {
-        const match = lines[i].trim().match(/^event:\s*(.+)$/i);
+        const match = lines[i].trim().match(SSE_EVENT_RE);
         if (match) return match[1].trim();
       }
       return "";
@@ -251,10 +258,10 @@ export function createSSEEventPrefixBuffer(options?: { forwardEvent?: boolean })
       // `id:`/`retry:` and bare `:` comment lines are not part of any of the
       // OpenAI Chat-Completions, OpenAI Responses, or Claude Messages SSE
       // protocols — never buffer (and thus never re-forward) them (#10017).
-      if (/^(?::|id:|retry:)/i.test(trimmed)) return;
+      if (SSE_ID_RETRY_RE.test(trimmed)) return;
       // `event:` framing is only forwarded for protocols that define it; drop it
       // for plain OpenAI Chat-Completions-format clients.
-      if (/^event:/i.test(trimmed) && !forwardEvent) return;
+      if (SSE_EVENT_ONLY_RE.test(trimmed) && !forwardEvent) return;
       lines.push(line);
       emitted = false;
     },

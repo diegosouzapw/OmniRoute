@@ -9,7 +9,10 @@ import {
   humanizeCursorModelId,
   type CursorAgentModelEntry,
 } from "@/lib/providerModels/cursorAgent";
+import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
+
+export { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
 
 export type FetchCursorAvailableModelsOptions = {
   accessToken: string;
@@ -40,6 +43,45 @@ function pickModelName(entry: Record<string, unknown>, id: string): string {
   return humanizeCursorModelId(id);
 }
 
+function collectArrays(record: Record<string, unknown>, keys: string[]): unknown[] {
+  return keys.flatMap((key) => (Array.isArray(record[key]) ? record[key] : []));
+}
+
+function collectModelCandidates(payload: unknown): unknown[] {
+  const root = asRecord(payload) ?? {};
+  const candidates = collectArrays(root, [
+    "models",
+    "availableModels",
+    "available_models",
+    "model",
+  ]);
+  const nestedModels = asRecord(root.models);
+  if (nestedModels) candidates.push(...collectArrays(nestedModels, ["models", "items", "list"]));
+  if (Array.isArray(payload)) candidates.push(...payload);
+  return candidates;
+}
+
+function isUnavailableModel(entry: Record<string, unknown>): boolean {
+  return (
+    entry.disabled === true ||
+    entry.isDisabled === true ||
+    entry.usable === false ||
+    entry.isUsable === false
+  );
+}
+
+function normalizeModelCandidate(item: unknown): CursorAgentModelEntry | null {
+  if (typeof item === "string") {
+    const id = item.trim();
+    return id ? { id, name: humanizeCursorModelId(id), owned_by: "cursor" } : null;
+  }
+
+  const entry = asRecord(item);
+  if (!entry || isUnavailableModel(entry)) return null;
+  const id = pickModelId(entry);
+  return id ? { id, name: pickModelName(entry, id), owned_by: "cursor" } : null;
+}
+
 /**
  * Normalize AvailableModels JSON (Connect JSON or protobuf-json) into catalog rows.
  * Exported for unit tests.
@@ -48,97 +90,16 @@ function pickModelName(entry: Record<string, unknown>, id: string): string {
  * only). OmniRoute clients request `cu/auto`; resolveRequestedModel maps it to `default`.
  */
 export function normalizeCursorAvailableModelsPayload(payload: unknown): CursorAgentModelEntry[] {
-  const root = asRecord(payload) ?? {};
-  const candidates: unknown[] = [];
-
-  for (const key of ["models", "availableModels", "available_models", "model"]) {
-    const v = root[key];
-    if (Array.isArray(v)) candidates.push(...v);
-  }
-
-  // Some Connect JSON responses nest under `models.models` or similar
-  const nestedModels = asRecord(root.models);
-  if (nestedModels) {
-    for (const key of ["models", "items", "list"]) {
-      const v = nestedModels[key];
-      if (Array.isArray(v)) candidates.push(...v);
-    }
-  }
-
-  if (Array.isArray(payload)) candidates.push(...payload);
-
   const seen = new Set<string>();
   const out: CursorAgentModelEntry[] = [];
-  for (const item of candidates) {
-    if (typeof item === "string" && item.trim()) {
-      const id = item.trim();
-      if (seen.has(id)) continue;
-      seen.add(id);
-      out.push({ id, name: humanizeCursorModelId(id), owned_by: "cursor" });
-      continue;
-    }
-    const rec = asRecord(item);
-    if (!rec) continue;
-    const id = pickModelId(rec);
-    if (!id || seen.has(id)) continue;
-    // Prefer usable / non-disabled when flags exist
-    if (rec.disabled === true || rec.isDisabled === true) continue;
-    if (rec.usable === false || rec.isUsable === false) continue;
-    seen.add(id);
-    out.push({ id, name: pickModelName(rec, id), owned_by: "cursor" });
+  for (const item of collectModelCandidates(payload)) {
+    const model = normalizeModelCandidate(item);
+    if (!model || seen.has(model.id)) continue;
+    seen.add(model.id);
+    out.push(model);
   }
 
   return ensureCursorAutoCatalogEntry(out);
-}
-
-/** OpenCodex-style Cursor Router optimization modes (catalog ids). */
-export const CURSOR_AUTO_ROUTER_VARIANT_IDS = [
-  "auto-cost",
-  "auto-balance",
-  "auto-intelligence",
-] as const;
-
-const CURSOR_AUTO_ROUTER_VARIANT_NAMES: Record<
-  (typeof CURSOR_AUTO_ROUTER_VARIANT_IDS)[number],
-  string
-> = {
-  "auto-cost": "Auto (cost)",
-  "auto-balance": "Auto (balance)",
-  "auto-intelligence": "Auto (intelligence)",
-};
-
-/** Cursor auto-router: catalog id `auto`, wire id `default`. Always keep `auto` visible. */
-export function ensureCursorAutoCatalogEntry(
-  models: CursorAgentModelEntry[]
-): CursorAgentModelEntry[] {
-  const byId = new Map(models.map((m) => [m.id, m]));
-  const out = [...models];
-
-  if (!byId.has("auto")) {
-    const defaultEntry = byId.get("default");
-    const autoEntry: CursorAgentModelEntry = {
-      id: "auto",
-      name: defaultEntry?.name || "Auto (current, default)",
-      owned_by: "cursor",
-    };
-    // Prefer `auto` as the public id; keep `default` for wire-compat listings.
-    out.unshift(autoEntry);
-    byId.set("auto", autoEntry);
-  }
-
-  // Always expose Cost/Balance/Intelligence router modes (OpenCodex CURSOR_ROUTER_MODEL_IDS).
-  for (const id of CURSOR_AUTO_ROUTER_VARIANT_IDS) {
-    if (byId.has(id)) continue;
-    const entry: CursorAgentModelEntry = {
-      id,
-      name: CURSOR_AUTO_ROUTER_VARIANT_NAMES[id],
-      owned_by: "cursor",
-    };
-    out.push(entry);
-    byId.set(id, entry);
-  }
-
-  return out;
 }
 
 export async function fetchCursorAvailableModels(

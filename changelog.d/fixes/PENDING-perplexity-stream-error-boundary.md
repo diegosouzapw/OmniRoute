@@ -1,0 +1,1 @@
+- **fix(providers):** Perplexity Web no longer turns upstream stream failures into successful assistant text; pre-content failures remain eligible for fallback, partial output ends with a structured sanitized error, and failed sessions are not persisted

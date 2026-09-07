@@ -38,6 +38,10 @@ function successFixtures(
     userId?: unknown;
     prepaidBalance?: Record<string, unknown> | null | undefined;
     productUsage?: unknown;
+    creditUsagePercent?: number | null;
+    omitCreditUsagePercent?: boolean;
+    omitProductUsage?: boolean;
+    currentPeriod?: Record<string, unknown> | null;
   } = {}
 ) {
   const tier = "tier" in options ? options.tier : "SuperGrok Heavy";
@@ -51,6 +55,14 @@ function successFixtures(
           { product: "API", usagePercent: 12.5 },
           { product: "Grok Code", usagePercent: 44 },
         ];
+  const currentPeriod =
+    "currentPeriod" in options
+      ? options.currentPeriod
+      : {
+          type: "WEEKLY",
+          start: "2026-07-27T00:00:00.000Z",
+          end: "2026-08-03T00:00:00.000Z",
+        };
 
   return async (input: string | URL | Request) => {
     const url = String(input);
@@ -64,13 +76,14 @@ function successFixtures(
     if (url.endsWith("/billing?format=credits")) {
       return response({
         config: {
-          creditUsagePercent: 37.25,
-          currentPeriod: {
-            type: "WEEKLY",
-            start: "2026-07-27T00:00:00.000Z",
-            end: "2026-08-03T00:00:00.000Z",
-          },
-          productUsage,
+          ...(options.omitCreditUsagePercent
+            ? {}
+            : {
+                creditUsagePercent:
+                  "creditUsagePercent" in options ? options.creditUsagePercent : 37.25,
+              }),
+          ...(currentPeriod === undefined ? {} : { currentPeriod }),
+          ...(options.omitProductUsage ? {} : { productUsage }),
           ...(prepaidBalance === undefined ? {} : { prepaidBalance }),
         },
       });
@@ -491,4 +504,69 @@ test("Provider Limits cache persists only the public Grok billing contract", () 
 
 test("grok-cli is registered on the public Provider Limits usage seam", () => {
   assert.ok((USAGE_FETCHER_PROVIDERS as readonly string[]).includes("grok-cli"));
+});
+
+test("SuperGrokPro omitted creditUsagePercent still yields a weekly quota bar", async () => {
+  const usage = await getUsage(
+    successFixtures({
+      tier: "SuperGrokPro",
+      omitCreditUsagePercent: true,
+      omitProductUsage: true,
+      prepaidBalance: { val: 0 },
+    }) as typeof fetch
+  );
+
+  assert.equal(usage.plan, "SuperGrokPro");
+  assert.deepEqual(usage.quotas?.weekly, {
+    used: 0,
+    total: 100,
+    remaining: 100,
+    remainingPercentage: 100,
+    resetAt: "2026-08-03T00:00:00.000Z",
+    isPercentageOnly: true,
+  });
+  assert.equal(usage.message, undefined);
+});
+
+test("SuperGrokPro explicit null creditUsagePercent still yields a weekly quota bar", async () => {
+  const usage = await getUsage(
+    successFixtures({
+      tier: "SuperGrokPro",
+      creditUsagePercent: null,
+      omitProductUsage: true,
+      prepaidBalance: { val: 0 },
+    }) as typeof fetch
+  );
+
+  assert.equal(usage.plan, "SuperGrokPro");
+  assert.deepEqual(usage.quotas?.weekly, {
+    used: 0,
+    total: 100,
+    remaining: 100,
+    remainingPercentage: 100,
+    resetAt: "2026-08-03T00:00:00.000Z",
+    isPercentageOnly: true,
+  });
+});
+
+test("SuperGrokPro omitted currentPeriod still yields a weekly bar with null resetAt", async () => {
+  const usage = await getUsage(
+    successFixtures({
+      tier: "SuperGrokPro",
+      omitCreditUsagePercent: true,
+      omitProductUsage: true,
+      currentPeriod: null,
+      prepaidBalance: { val: 0 },
+    }) as typeof fetch
+  );
+
+  assert.equal(usage.plan, "SuperGrokPro");
+  assert.deepEqual(usage.quotas?.weekly, {
+    used: 0,
+    total: 100,
+    remaining: 100,
+    remainingPercentage: 100,
+    resetAt: null,
+    isPercentageOnly: true,
+  });
 });

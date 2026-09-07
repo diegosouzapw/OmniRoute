@@ -1,0 +1,1 @@
+Keep Antigravity Gemini usable when the same connection's Claude weekly quota is empty; generic quota cache stays per-connection for every other provider.

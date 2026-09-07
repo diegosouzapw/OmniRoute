@@ -46,6 +46,7 @@ import {
 } from "./quotaScoring.ts";
 import { rankByHeadroom, type HeadroomSaturation } from "./headroomRanking.ts";
 import { preferAntigravityConnectionsWithStoredProject } from "../antigravityProjectPersist.ts";
+import { getQuotaFetchScope } from "../antigravityQuotaFamily.ts";
 import { isQuotaExhaustedForRequest } from "../../../src/domain/quotaCache.ts";
 
 const RESET_AWARE_CONNECTION_CACHE_TTL_MS = 30_000;
@@ -269,14 +270,17 @@ async function scoreQuotaAwareTargets<TScore extends object>({
       const provider = getResetAwareProvider(target);
       const fetcher = provider ? getQuotaFetcher(provider) : null;
       if (fetcher && provider && target.connectionId) {
-        const quotaKey = `${provider}:${target.connectionId}`;
+        const quotaKey = `${provider}:${target.connectionId}:${getQuotaFetchScope(provider, target.modelStr)}`;
         if (!quotaPromises.has(quotaKey)) {
+          const connection = connectionById.get(target.connectionId);
           quotaPromises.set(
             quotaKey,
             fetchResetAwareQuotaWithCache({
               provider,
               connectionId: target.connectionId,
-              connection: connectionById.get(target.connectionId),
+              connection: connection
+                ? { ...connection, requestedModel: target.modelStr }
+                : connection,
               fetcher,
               config,
               log,
@@ -354,7 +358,10 @@ export async function fetchResetAwareQuotaWithCache({
   log: { debug?: (...args: unknown[]) => void; warn?: (...args: unknown[]) => void };
   comboName: string;
 }): Promise<unknown> {
-  const cacheKey = `${provider}:${connectionId}`;
+  const requestedModel =
+    typeof connection?.requestedModel === "string" ? connection.requestedModel : null;
+  const cacheScope = getQuotaFetchScope(provider, requestedModel);
+  const cacheKey = `${provider}:${connectionId}:${cacheScope}`;
   const ttlMs = config.quotaCacheTtlMs;
   const maxStaleMs = config.quotaCacheMaxStaleMs;
   const now = Date.now();

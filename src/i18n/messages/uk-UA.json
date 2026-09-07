@@ -2710,7 +2710,7 @@
     "ccOnboardingTitle": "settings.json для виявлення моделі шлюзу",
     "ccOnboardingCopy": "Копіювати",
     "ccOnboardingCopied": "Скопійовано",
-    "ccOnboardingKeyPlaceholder": "<ваш ключ API OmniRoute>",
+    "ccOnboardingKeyPlaceholder": "'<ваш ключ API OmniRoute>'",
     "ccOnboardingWindowNote": "Claude Code припускає вікно контексту 200K для будь-якого ідентифікатора моделі, який він не розпізнає. Для моделі з іншим реальним вікном додайте CLAUDE_CODE_AUTO_COMPACT_WINDOW безпосередньо під ним, щоб автоматичне стиснення не спрацьовувало занадто рано.",
     "failedSave": "Не вдалося зберегти",
     "profileSyncTitle": "Автосинхронізація профілів CLI",
@@ -5248,6 +5248,10 @@
     "iconUrlLabel": "URL-адреса іконки",
     "iconUrlHint": "Необов'язково. URL-адреса зображення, що відображається як іконка цього провайдера.",
     "iconUrlInvalid": "Недійсне URL-адреса значка. Використовуйте http(s):// або data:image/*;base64 URL.",
+    "dailyQuotaResetTimezoneLabel": "Daily quota reset timezone",
+    "dailyQuotaResetTimezoneHint": "Optional IANA timezone used when the upstream omits X-RateLimit-Reset. Leave empty to keep a short cooldown.",
+    "dailyQuotaResetHourLabel": "Daily quota reset hour",
+    "dailyQuotaResetHourHint": "Local hour 0-23 in the timezone above. Empty means no node-level clock.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",
@@ -6162,7 +6166,7 @@
       "freeaiapikey": "API-проксі зі знижкою для понад 40 моделей, включаючи GPT-5, Claude Opus 4.6, Claude Sonnet 4.6, Qwen 3.5. Отримайте свій API-ключ на https://freeaiapikey.com/dashboard. Базова URL-адреса: https://freeaiapikey.com/v1.",
       "freemodel-dev": "Отримайте $300 безкоштовних API-кредитів на https://freemodel.dev — платіжна інформація не потрібна. Сумісна з OpenAI кінцева точка. Доступні моделі GPT-5.4 та GPT-5.5.",
       "friendliai": "Безкоштовний тариф для безсерверного виведення — кредитна картка не потрібна",
-      "gemini": "Безкоштовно назавжди: 1500 зап/день для Gemini 2.5 Flash — без кредитної картки, отримайте ключ на aistudio.google.com",
+      "gemini": "__MISSING__:Free tier through Google AI Studio; per-model quotas are no longer published (check the quota page in AI Studio) — no credit card.",
       "gigachat": "Підключіть GigaChat (Сбер) за допомогою API-ключа.",
       "gitlab": "Особистий токен доступу GitLab для публічного API Code Suggestions. Налаштуйте власну базову URL-адресу, якщо не використовуєте gitlab.com.",
       "gitlawb-gmi": "Отримайте свій API-ключ на панелі керування Gitlawb Opengateway.",
@@ -6171,7 +6175,7 @@
       "glm-cn": "Підключіть GLM Coding (Китай) за допомогою API-ключа.",
       "glmt": "Попередньо встановлений профіль GLM із більшим бюджетом токенів, увімкненим мисленням та довшим таймаутом.",
       "getgoapi": "Підключіть GoAPI за допомогою API-ключа.",
-      "groq": "Безкоштовний тариф: 30 RPM / 14.4K RPD — без кредитної картки",
+      "groq": "__MISSING__:Free plan: per-model caps (200K tokens/day per chat model; see console.groq.com/docs/rate-limits for RPM/RPD) — no payment method on file.",
       "haiper": "Отримайте API-ключ на haiper.ai/haiper-api",
       "heroku": "Підключіть Heroku AI за допомогою API-ключа.",
       "hcnsec": "Отримайте API-ключ на api.hcnsec.cn",
@@ -6239,6 +6243,7 @@
       "requesty": "Створіть API-ключ на https://app.requesty.ai, а потім вставте його сюди як Bearer-токен. OpenAI-сумісна кінцева точка на https://router.requesty.ai/v1, з живим каталогом /v1/models.",
       "runwayml": "Генерація відео в Runway базується на завданнях. OmniRoute надсилає завдання text-to-video або image-to-video, опитує /v1/tasks/[id] та нормалізує готові відеофайли назад у відповідь типу OpenAI /v1/videos/generations.",
       "sambanova": "$5 безкоштовних кредитів при реєстрації (дійсні 30 днів), кредитна картка не потрібна",
+      "seekai": "Create an API key at https://seekai.cc, then paste it here as a Bearer token. OpenAI-compatible base URL: https://seekai.cc/v1.",
       "sap": "Виявлення моделей використовує /v2/lm/scenarios/foundation-models/models на AI_API_URL. Запити чату використовують deploymentUrl/chat/completions та потребують AI-Resource-Group.",
       "sarvam": "Sarvam AI сумісний з OpenAI на /v1. OmniRoute перевіряє /v1/models і маршрутизує чат-трафік на /v1/chat/completions. Моделі налаштовані для індійських мов.",
       "scaleway": "1 млн безкоштовних токенів для нових акаунтів — сумісно з EU/GDPR (Париж), Qwen3 235B та Llama 70B",
@@ -7812,6 +7817,14 @@
     "compressionDerivedMode": "режим: {mode}",
     "compressionAdaptiveOff": "Адаптивний бюджет контексту: вимкнено (застарілий автотригер)",
     "compressionAdaptiveTarget": "Адаптивний ({mode}, політика: {policy}) — ціль ≈ {target, number} токенів (для вікна в {contextLimit, number} токенів)",
+    "compressionAdaptiveMode": "__MISSING__:Adaptive context budget",
+    "compressionAdaptiveModeOff": "__MISSING__:Off (legacy auto-trigger)",
+    "compressionAdaptiveModeFloor": "__MISSING__:Floor (always guarantee fit)",
+    "compressionAdaptiveModeReplace": "__MISSING__:Replace auto-trigger",
+    "compressionAdaptivePolicy": "__MISSING__:Budget policy",
+    "compressionAdaptivePolicyReserve": "__MISSING__:Reserve output",
+    "compressionAdaptivePolicyPercentage": "__MISSING__:Percentage of window",
+    "compressionAdaptivePolicyAbsolute": "__MISSING__:Absolute token budget",
     "compressionOutputStylesDescription": "Впроваджуйте інструкції формування відповіді без перезапису виводу провайдера. Вільно комбінуйте.",
     "mcpAccessibilityDescription": "Обмежує область виводу інструментів MCP (окреме сховище).",
     "compressionStylesTileSummary": "{tokens, number} токенів збережено · {runs, plural, one {# стилізований запуск} few {# стилізовані запуски} many {# стилізованих запусків} other {# стилізованих запусків}}",
@@ -8340,7 +8353,15 @@
     "cliproxyapiHealth": "Здоров'я",
     "cliproxyapiPort": "Порт",
     "qdrantHost": "Хост",
-    "qdrantCollection": "Колекція"
+    "qdrantCollection": "Колекція",
+    "headroomProxyTitle": "__MISSING__:Headroom proxy",
+    "headroomProxyDesc": "__MISSING__:URL of the optional Headroom token-saver proxy. Empty uses HEADROOM_URL or http://localhost:8787.",
+    "headroomProxyUrl": "__MISSING__:Headroom URL",
+    "headroomProxyUrlHint": "__MISSING__:Loopback URLs can be started from this page. External URLs are probed only.",
+    "headroomProxySave": "__MISSING__:Save",
+    "headroomProxyStart": "__MISSING__:Start",
+    "headroomProxyStop": "__MISSING__:Stop",
+    "headroomProxyExternalHint": "__MISSING__:This URL is not loopback, so OmniRoute will not spawn the local CLI."
   },
   "contextRtk": {
     "title": "Двигун RTK",
@@ -12961,7 +12982,7 @@
         "description": "Після синхронізації моделей провайдерів повторно генерувати профілі ~/.codex/*.config.toml з актуального каталогу. Це ніколи не змінює активну або стандартну конфігурацію Codex і вимкнено за замовчуванням."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Після синхронізації моделей провайдерів повторно генерувати профілі ~/.claude/profiles/<name>/settings.json з актуального каталогу. Це ніколи не змінює активну або стандартну конфігурацію Claude і вимкнено за замовчуванням."
+        "description": "Після синхронізації моделей провайдерів повторно генерувати профілі ~/.claude/profiles/'<name>'/settings.json з актуального каталогу. Це ніколи не змінює активну або стандартну конфігурацію Claude і вимкнено за замовчуванням."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Вимкнути кінцеву точку перевірки працездатності локального екземпляра."
@@ -13112,6 +13133,7 @@
     "segmentHint": "Кожен сегмент = один безкоштовний пул · дедуплікований пул, чесний підрахунок (без завищених лімітів частоти запитів).",
     "boost": "Розблокуйте ще ~{tokens}/міс за допомогою одноразового поповнення OpenRouter на $10 (50 → 1000 зап./день)",
     "uncapped": "Постійно безкоштовно, без опублікованого ліміту (з обмеженням частоти) — реальний доступ, не враховується в заголовку:",
+    "gated": "__MISSING__:~{tokens}/mo more behind a regional identity check (e.g. mainland-China real-name verification) — real quota, not counted in the headline:",
     "tosRestricted": "{count, plural, one {# модель позначена як обмежена ToS — рішення за вами} few {# моделі позначені як обмежені ToS — рішення за вами} many {# моделей позначено як обмежені ToS — рішення за вами} other {# моделі позначено як обмежені ToS — рішення за вами}}",
     "provider": "Провайдер",
     "model": "Модель",
@@ -13988,6 +14010,7 @@
     "drawerTimeline": "Хронологія",
     "drawerMetrics": "Метрики",
     "drawerResult": "Результат",
+    "drawerMemory": "Використана пам'ять",
     "drawerActions": "Дії",
     "drawerClose": "Закрити",
     "copyTrace": "Копіювати трасування JSON",
@@ -13997,7 +14020,11 @@
     "actionDone": "Дію виконано",
     "actionFailed": "Дія не виконана: {error}",
     "detailFailed": "Не вдалося завантажити деталі: {error}",
-    "mirroredInA2A": "Відображено в A2A"
+    "mirroredInA2A": "Відображено в A2A",
+    "actionRepeat": "Повторити",
+    "repeatConfirm": "Натисніть ще раз, щоб підтвердити",
+    "repeatDone": "Створено новий запуск",
+    "repeatUnavailable": "Початкові вхідні дані недоступні"
   },
   "cliproxyProviderExposure": {
     "title": "Виток Постачальника",

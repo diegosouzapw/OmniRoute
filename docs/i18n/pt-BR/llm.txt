@@ -4,7 +4,7 @@
 
 ---
 
-> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 355 AI providers — all through a single OpenAI-compatible endpoint. Includes a built-in MCP Server (110 tools), A2A v0.3 protocol, Memory/Skills systems, Cloud Agents (codex, cursor, devin, jules), Guardrails framework, and an Electron desktop app.
+> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 356 AI providers — all through a single OpenAI-compatible endpoint. Includes a built-in MCP Server (110 tools), A2A v0.3 protocol, Memory/Skills systems, Cloud Agents (codex, cursor, devin, jules), Guardrails framework, and an Electron desktop app.
 
 ## Overview
 
@@ -18,7 +18,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 - **Runtime:** Node.js `>=22.22.2 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
 - **Framework:** Next.js 16 (App Router) with TypeScript 6
-- **Database:** SQLite via better-sqlite3 (local, zero-config, 168 migrations)
+- **Database:** SQLite via better-sqlite3 (local, zero-config, 169 migrations)
 - **State management:** Zustand (client), SQLite (server persistence)
 - **UI:** React 19, Tailwind CSS 4, Recharts for analytics, @lobehub/icons for 130+ provider SVG icons
 - **Auth:** OAuth 2.0 (PKCE) for providers, bcrypt for local user auth
@@ -128,7 +128,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   │   ├── secrets.ts        # Secrets management
 │   │   │   ├── stateReset.ts     # State reset utilities
 │   │   │   ├── migrationRunner.ts # Schema migration runner
-│   │   │   └── migrations/       # 168 versioned SQL migration files
+│   │   │   └── migrations/       # 169 versioned SQL migration files
 │   │   ├── evals/                # Eval runner and scheduler
 │   │   ├── memory/               # Persistent conversational memory
 │   │   │   ├── extraction.ts     # Memory extraction from conversations
@@ -281,7 +281,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 ## Key Features (v3.8.50)
 
 ### Core Proxy
-- **355 AI providers** with automatic format translation
+- **356 AI providers** with automatic format translation
 - **Provider categories**: Free (90+ free tiers), OAuth, API Key, Self-Hosted, Custom (OpenAI/Anthropic-compatible)
 - **19 routing strategies**: priority, weighted, round-robin, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline
 - **4-tier fallback**: Subscription → API Key → Cheap → Free
@@ -393,7 +393,7 @@ diagnostics) plus **memory**, **skill**, **agentSkill**, **githubSkill**, **pool
 
 8. **ProviderIcon component:** Unified icon system using `@lobehub/icons` (130+ SVG) with PNG fallback and generic icon fallback chain. Used on providers, dashboard, and agents pages.
 
-9. **DB architecture:** `localDb.ts` is a re-export layer only — real logic lives in 122 `src/lib/db/` modules with 168 SQL migrations.
+9. **DB architecture:** `localDb.ts` is a re-export layer only — real logic lives in 122 `src/lib/db/` modules with 169 SQL migrations.
 
 10. **Upstream headers:** Custom headers merged in executors after default auth; same header name replaces executor value. Forbidden header names in `src/shared/constants/upstreamHeaders.ts`.
 
@@ -437,7 +437,7 @@ diagnostics) plus **memory**, **skill**, **agentSkill**, **githubSkill**, **pool
 
 4. **Environment variables:** All configuration is in `.env` (from `.env.example`). Key vars: `PORT`, `NEXT_PUBLIC_BASE_URL`, `API_KEY`, `ADMIN_PASSWORD`.
 
-5. **Database layer:** Operations go through `src/lib/db/` modules (122 domain-specific files, 168 migrations). `localDb.ts` is re-exports only — add new functions to the proper `db/*.ts` module.
+5. **Database layer:** Operations go through `src/lib/db/` modules (122 domain-specific files, 169 migrations). `localDb.ts` is re-exports only — add new functions to the proper `db/*.ts` module.
 
 6. **Tests** use Node.js built-in test runner + Vitest. Run `npm test`. Vitest for MCP/autoCombo (`npm run test:vitest`). Playwright for E2E (`npm run test:e2e`). Coverage gate: ratchet vs `quality-baseline.json`, absolute floor 60% statements/lines/functions/branches.
 

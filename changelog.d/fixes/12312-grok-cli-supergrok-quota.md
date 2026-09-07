@@ -1,0 +1,1 @@
+- **fix(grok-cli):** treat omitted SuperGrokPro `creditUsagePercent` as 0% used so Provider Limits still renders a weekly bar (proto3 zero-elision) ([#12312](https://github.com/diegosouzapw/OmniRoute/pull/12312)) — thanks @HouMinXi

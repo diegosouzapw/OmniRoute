@@ -2710,7 +2710,7 @@
     "ccOnboardingTitle": "gateway modeli keşfi için settings.json",
     "ccOnboardingCopy": "Kopyala",
     "ccOnboardingCopied": "Kopyalandı",
-    "ccOnboardingKeyPlaceholder": "<your OmniRoute API anahtarınız>",
+    "ccOnboardingKeyPlaceholder": "'<your OmniRoute API anahtarınız>'",
     "ccOnboardingWindowNote": "Claude Code, tanımadığı herhangi bir model kimliği için 200K bağlam penceresi varsayıyor. Farklı bir gerçek pencereye sahip bir model için, otomatik sıkıştırmanın çok erken başlamaması için hemen altına CLAUDE_CODE_AUTO_COMPACT_WINDOW ekleyin.",
     "failedSave": "Kaydedilemedi",
     "profileSyncTitle": "CLI profili otomatik senkronizasyonu",
@@ -5248,6 +5248,10 @@
     "iconUrlLabel": "Simge URL'si",
     "iconUrlHint": "İsteğe bağlı. Bu sağlayıcının simgesi olarak gösterilen görsel URL'si.",
     "iconUrlInvalid": "Geçersiz simge URL'si. http(s):// veya data:image/*;base64 URL'si kullanın.",
+    "dailyQuotaResetTimezoneLabel": "Daily quota reset timezone",
+    "dailyQuotaResetTimezoneHint": "Optional IANA timezone used when the upstream omits X-RateLimit-Reset. Leave empty to keep a short cooldown.",
+    "dailyQuotaResetHourLabel": "Daily quota reset hour",
+    "dailyQuotaResetHourHint": "Local hour 0-23 in the timezone above. Empty means no node-level clock.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",
@@ -6162,7 +6166,7 @@
       "freeaiapikey": "GPT-5, Claude Opus 4.6, Claude Sonnet 4.6, Qwen 3.5 dahil 40'tan fazla model için indirimli API proxy'si. API anahtarınızı https://freeaiapikey.com/dashboard adresinden alın. Temel URL: https://freeaiapikey.com/v1.",
       "freemodel-dev": "https://freemodel.dev adresinden 300$ ücretsiz API kredisi alın — ödeme bilgisi gerekmez. OpenAI uyumlu uç nokta. GPT-5.4 ve GPT-5.5 modelleri mevcuttur.",
       "friendliai": "Sunucusuz çıkarım için ücretsiz katman — kredi kartı gerekmez",
-      "gemini": "Sonsuza kadar ücretsiz: Gemini 2.5 Flash için günlük 1.500 istek — kredi kartı gerekmez, anahtarı aistudio.google.com adresinden alın",
+      "gemini": "__MISSING__:Free tier through Google AI Studio; per-model quotas are no longer published (check the quota page in AI Studio) — no credit card.",
       "gigachat": "GigaChat'i (Sber) bir API anahtarı ile bağlayın.",
       "gitlab": "Genel Code Suggestions API'si için GitLab kişisel erişim belirteci. gitlab.com kullanmadığınızda barındırılan bir temel URL yapılandırın.",
       "gitlawb-gmi": "API anahtarınızı Gitlawb Opengateway panelinden alın.",
@@ -6171,7 +6175,7 @@
       "glm-cn": "GLM Coding'i (Çin) bir API anahtarı ile bağlayın.",
       "glmt": "Daha yüksek token bütçesi, düşünme etkinleştirilmiş ve daha uzun zaman aşımına sahip önceden ayarlanmış GLM profili.",
       "getgoapi": "GoAPI'yi bir API anahtarı ile bağlayın.",
-      "groq": "Ücretsiz katman: 30 RPM / 14.4K RPD — kredi kartı gerekmez",
+      "groq": "__MISSING__:Free plan: per-model caps (200K tokens/day per chat model; see console.groq.com/docs/rate-limits for RPM/RPD) — no payment method on file.",
       "haiper": "API anahtarını haiper.ai/haiper-api adresinden alın",
       "heroku": "Heroku AI'ı bir API anahtarı ile bağlayın.",
       "hcnsec": "API anahtarını api.hcnsec.cn adresinden alın",
@@ -6239,6 +6243,7 @@
       "requesty": "https://app.requesty.ai adresinde bir API anahtarı oluşturun, ardından buraya Bearer token olarak yapıştırın. OpenAI uyumlu uç nokta, canlı bir /v1/models kataloğu ile birlikte https://router.requesty.ai/v1 adresindedir.",
       "runwayml": "Runway video üretimi görev tabanlıdır. OmniRoute, metinden videoya veya görselden videoya işleri gönderir, /v1/tasks/[id] uç noktasını sorgular ve tamamlanan video çıktılarını OpenAI benzeri /v1/videos/generations yanıtına normalleştirir.",
       "sambanova": "Kayıt olunduğunda $5 ücretsiz kredi (30 gün geçerli), kredi kartı gerekmez",
+      "seekai": "Create an API key at https://seekai.cc, then paste it here as a Bearer token. OpenAI-compatible base URL: https://seekai.cc/v1.",
       "sap": "Model keşfi, AI_API_URL üzerindeki /v2/lm/scenarios/foundation-models/models yolunu kullanır. Sohbet istekleri deploymentUrl/chat/completions yolunu kullanır ve AI-Resource-Group gerektirir.",
       "sarvam": "Sarvam AI, OpenAI ile uyumludur ve /v1 üzerinde çalışır. OmniRoute, /v1/models'ı sorgular ve sohbet trafiğini /v1/chat/completions'a yönlendirir. Modeller, Hint dilleri için ayarlanmıştır.",
       "scaleway": "Yeni hesaplar için 1M ücretsiz token — AB/GDPR uyumlu (Paris), Qwen3 235B & Llama 70B",
@@ -7812,6 +7817,14 @@
     "compressionDerivedMode": "mod: {mode}",
     "compressionAdaptiveOff": "Uyarlanabilir bağlam bütçesi: kapalı (eski otomatik tetikleyici)",
     "compressionAdaptiveTarget": "Uyarlanabilir ({mode}, politika: {policy}) — hedef ≈ {target, number} token ({contextLimit, number} tokenlık bir pencere için)",
+    "compressionAdaptiveMode": "__MISSING__:Adaptive context budget",
+    "compressionAdaptiveModeOff": "__MISSING__:Off (legacy auto-trigger)",
+    "compressionAdaptiveModeFloor": "__MISSING__:Floor (always guarantee fit)",
+    "compressionAdaptiveModeReplace": "__MISSING__:Replace auto-trigger",
+    "compressionAdaptivePolicy": "__MISSING__:Budget policy",
+    "compressionAdaptivePolicyReserve": "__MISSING__:Reserve output",
+    "compressionAdaptivePolicyPercentage": "__MISSING__:Percentage of window",
+    "compressionAdaptivePolicyAbsolute": "__MISSING__:Absolute token budget",
     "compressionOutputStylesDescription": "Sağlayıcı çıktısını yeniden yazmadan yanıt şekillendirme talimatları ekleyin. Serbestçe birleştirin.",
     "mcpAccessibilityDescription": "MCP araç çıktılarını kapsama alır (ayrı depo).",
     "compressionStylesTileSummary": "{tokens, number} token tasarruf edildi · {runs, plural, one {# çalıştırma stillendirildi} other {# çalıştırma stillendirildi}}",
@@ -8340,7 +8353,15 @@
     "cliproxyapiHealth": "Sağlık",
     "cliproxyapiPort": "Port",
     "qdrantHost": "Ana Bilgisayar",
-    "qdrantCollection": "Koleksiyon"
+    "qdrantCollection": "Koleksiyon",
+    "headroomProxyTitle": "__MISSING__:Headroom proxy",
+    "headroomProxyDesc": "__MISSING__:URL of the optional Headroom token-saver proxy. Empty uses HEADROOM_URL or http://localhost:8787.",
+    "headroomProxyUrl": "__MISSING__:Headroom URL",
+    "headroomProxyUrlHint": "__MISSING__:Loopback URLs can be started from this page. External URLs are probed only.",
+    "headroomProxySave": "__MISSING__:Save",
+    "headroomProxyStart": "__MISSING__:Start",
+    "headroomProxyStop": "__MISSING__:Stop",
+    "headroomProxyExternalHint": "__MISSING__:This URL is not loopback, so OmniRoute will not spawn the local CLI."
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12961,7 +12982,7 @@
         "description": "Sağlayıcı-model senkronizasyonundan sonra, canlı katalogdan ~/.codex/*.config.toml profillerini yeniden oluşturun. Bu işlem aktif veya varsayılan Codex yapılandırmasını asla değiştirmez ve varsayılan olarak kapalıdır."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Sağlayıcı-model senkronizasyonundan sonra, canlı katalogdan ~/.claude/profiles/<name>/settings.json profillerini yeniden oluşturun. Bu işlem aktif veya varsayılan Claude yapılandırmasını asla değiştirmez ve varsayılan olarak kapalıdır."
+        "description": "Sağlayıcı-model senkronizasyonundan sonra, canlı katalogdan ~/.claude/profiles/'<name>'/settings.json profillerini yeniden oluşturun. Bu işlem aktif veya varsayılan Claude yapılandırmasını asla değiştirmez ve varsayılan olarak kapalıdır."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Yerel örnek sağlık kontrolü (health-check) uç noktasını devre dışı bırakın."
@@ -13112,6 +13133,7 @@
     "segmentHint": "Her segment = bir ücretsiz havuz · havuzdan tekilleştirilmiş, dürüst sayım (şişirilmiş istek sınırı tavanları yok).",
     "boost": "Tek seferlik 10 $'lık OpenRouter bakiye yüklemesi ile ayda yaklaşık ~{tokens} daha fazlasının kilidini açın (50 → 1000 istek/gün)",
     "uncapped": "Kalıcı olarak ücretsiz, yayınlanmış bir sınır yok (istek sınırlı) — gerçek erişim, başlıkta sayılmaz:",
+    "gated": "__MISSING__:~{tokens}/mo more behind a regional identity check (e.g. mainland-China real-name verification) — real quota, not counted in the headline:",
     "tosRestricted": "{count, plural, one {# model} other {# model}} Hizmet Şartları kısıtlamalı olarak işaretlendi — karar sizin",
     "provider": "Sağlayıcı",
     "model": "Model",
@@ -13988,6 +14010,7 @@
     "drawerTimeline": "Zaman Çizelgesi",
     "drawerMetrics": "Metrikler",
     "drawerResult": "Sonuç",
+    "drawerMemory": "Kullanılan bellek",
     "drawerActions": "Eylemler",
     "drawerClose": "Kapat",
     "copyTrace": "İzleme JSON'ını kopyala",
@@ -13997,7 +14020,11 @@
     "actionDone": "İşlem uygulandı",
     "actionFailed": "İşlem başarısız: {error}",
     "detailFailed": "Ayrıntılar yüklenemedi: {error}",
-    "mirroredInA2A": "A2A'da yansıtıldı"
+    "mirroredInA2A": "A2A'da yansıtıldı",
+    "actionRepeat": "Tekrarla",
+    "repeatConfirm": "Onaylamak için tekrar tıklayın",
+    "repeatDone": "Yeni çalıştırma oluşturuldu",
+    "repeatUnavailable": "Orijinal girdi kullanılamıyor"
   },
   "cliproxyProviderExposure": {
     "title": "Sağlayıcı Maruziyeti",

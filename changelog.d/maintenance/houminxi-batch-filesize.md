@@ -1,0 +1,1 @@
+- **chore(quality):** rebaseline the file-size caps the HouMinXi batch grew past when its PRs stacked (`providers/page.tsx`, `chatCore.ts`, `accountFallback.ts`) — each PR measured correctly in isolation, none saw the stacking

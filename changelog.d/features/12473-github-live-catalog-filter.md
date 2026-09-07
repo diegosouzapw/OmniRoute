@@ -1,0 +1,1 @@
+- **feat(providers):** skip GitHub combo members missing from the live synced catalog, and drop Copilot models that are policy-disabled or hidden from the model picker ([#12473](https://github.com/diegosouzapw/OmniRoute/pull/12473)) — thanks @RaviTharuma

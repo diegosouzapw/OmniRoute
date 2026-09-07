@@ -1,0 +1,1 @@
+- Harden SQLite upgrades around the historical migration-074 version collision: missing discovery and inspector tables are replayed atomically, pre-existing databases (including setup-created skeletons) receive reusable content-addressed safety snapshots, and Node test/eval probes without `DATA_DIR` are isolated from the operator database.

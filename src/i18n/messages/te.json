@@ -2710,7 +2710,7 @@
     "ccOnboardingTitle": "gateway మోడల్ డిస్కవరీ కోసం settings.json",
     "ccOnboardingCopy": "కాపీ",
     "ccOnboardingCopied": "కాపీ చేయబడింది",
-    "ccOnboardingKeyPlaceholder": "<మీ OmniRoute API కీ>",
+    "ccOnboardingKeyPlaceholder": "'<మీ OmniRoute API కీ>'",
     "ccOnboardingWindowNote": "Claude Code గుర్తించని ఏ మోడల్ ఐడికి 200K సందర్భం కిటికీని అనుకుంటుంది. వేరే వాస్తవ కిటికీ ఉన్న మోడల్ కోసం, ఆటో-కంపాక్షన్ చాలా త్వరగా జరగకుండా ఉండటానికి దాని కింద CLAUDE_CODE_AUTO_COMPACT_WINDOWని జోడించండి.",
     "failedSave": "సేవ్ చేయడం విఫలమైంది",
     "profileSyncTitle": "CLI ప్రొఫైల్ ఆటో-సింక్",
@@ -5248,6 +5248,10 @@
     "iconUrlLabel": "ఐకాన్ URL",
     "iconUrlHint": "ఐచ్ఛికం. ఈ ప్రొవైడర్ ఐకాన్‌గా చూపబడే చిత్రం URL.",
     "iconUrlInvalid": "చెల్లని ఐకాన్ URL. http(s):// లేదా data:image/*;base64 URL ఉపయోగించండి.",
+    "dailyQuotaResetTimezoneLabel": "Daily quota reset timezone",
+    "dailyQuotaResetTimezoneHint": "Optional IANA timezone used when the upstream omits X-RateLimit-Reset. Leave empty to keep a short cooldown.",
+    "dailyQuotaResetHourLabel": "Daily quota reset hour",
+    "dailyQuotaResetHourHint": "Local hour 0-23 in the timezone above. Empty means no node-level clock.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",
@@ -6162,7 +6166,7 @@
       "freeaiapikey": "GPT-5, Claude Opus 4.6, Claude Sonnet 4.6, Qwen 3.5 తో సహా 40+ మోడల్‌ల కోసం డిస్కౌంట్ పొందిన API ప్రాక్సీ. https://freeaiapikey.com/dashboard వద్ద మీ API కీని పొందండి. బేస్ URL: https://freeaiapikey.com/v1.",
       "freemodel-dev": "https://freemodel.dev వద్ద $300 ఉచిత API క్రెడిట్‌లను పొందండి — చెల్లింపు సమాచారం అవసరం లేదు. OpenAI-అనుకూల ఎండ్‌పాయింట్. GPT-5.4 మరియు GPT-5.5 మోడల్‌లు అందుబాటులో ఉన్నాయి.",
       "friendliai": "సర్వర్‌లెస్ ఇన్ఫరెన్స్ కోసం ఉచిత టైర్ — క్రెడిట్ కార్డ్ అవసరం లేదు",
-      "gemini": "ఎప్పటికీ ఉచితం: Gemini 2.5 Flash కోసం రోజుకు 1,500 అభ్యర్థనలు — క్రెడిట్ కార్డ్ అవసరం లేదు, aistudio.google.com వద్ద కీని పొందండి",
+      "gemini": "__MISSING__:Free tier through Google AI Studio; per-model quotas are no longer published (check the quota page in AI Studio) — no credit card.",
       "gigachat": "API కీతో GigaChat (Sber) ని కనెక్ట్ చేయండి.",
       "gitlab": "పబ్లిక్ Code Suggestions API కోసం GitLab వ్యక్తిగత యాక్సెస్ టోకెన్. gitlab.com ని ఉపయోగించనప్పుడు సెల్ఫ్-హోస్టెడ్ బేస్ URLని కాన్ఫిగర్ చేయండి.",
       "gitlawb-gmi": "Gitlawb Opengateway డ్యాష్‌బోర్డ్ నుండి మీ API కీని పొందండి.",
@@ -6171,7 +6175,7 @@
       "glm-cn": "API కీతో GLM Coding (China) ని కనెక్ట్ చేయండి.",
       "glmt": "ఎక్కువ టోకెన్ బడ్జెట్, థింకింగ్ ఎనేబుల్ చేయబడిన మరియు ఎక్కువ టైమ్‌అవుట్‌తో కూడిన ప్రీసెట్ GLM ప్రొఫైల్.",
       "getgoapi": "API కీతో GoAPI ని కనెక్ట్ చేయండి.",
-      "groq": "ఉచిత టైర్: 30 RPM / 14.4K RPD — క్రెడిట్ కార్డ్ అవసరం లేదు",
+      "groq": "__MISSING__:Free plan: per-model caps (200K tokens/day per chat model; see console.groq.com/docs/rate-limits for RPM/RPD) — no payment method on file.",
       "haiper": "haiper.ai/haiper-api వద్ద API కీని పొందండి",
       "heroku": "API కీతో Heroku AI ని కనెక్ట్ చేయండి.",
       "hcnsec": "api.hcnsec.cn వద్ద API కీని పొందండి",
@@ -6239,6 +6243,7 @@
       "requesty": "https://app.requesty.ai వద్ద API కీని సృష్టించండి, ఆపై దానిని ఇక్కడ Bearer టోకెన్‌గా పేస్ట్ చేయండి. https://router.requesty.ai/v1 వద్ద లైవ్ /v1/models కేటలాగ్‌తో OpenAI-అనుకూల ఎండ్‌పాయింట్ ఉంది.",
       "runwayml": "Runway వీడియో జనరేషన్ టాస్క్-ఆధారితమైనది. OmniRoute అనేది టెక్స్ట్-టు-వీడియో లేదా ఇమేజ్-టు-వీడియో జాబ్‌లను సమర్పిస్తుంది, /v1/tasks/[id] ని పోల్ చేస్తుంది మరియు పూర్తయిన వీడియో అవుట్‌పుట్‌లను తిరిగి OpenAI-వంటి /v1/videos/generations ప్రతిస్పందనగా సాధారణీకరిస్తుంది.",
       "sambanova": "సైన్అప్ చేసినప్పుడు $5 ఉచిత క్రెడిట్‌లు (30 రోజుల చెల్లుబాటు), క్రెడిట్ కార్డ్ అవసరం లేదు",
+      "seekai": "Create an API key at https://seekai.cc, then paste it here as a Bearer token. OpenAI-compatible base URL: https://seekai.cc/v1.",
       "sap": "మోడల్ డిస్కవరీ AI_API_URL లో /v2/lm/scenarios/foundation-models/models ని ఉపయోగిస్తుంది. చాట్ అభ్యర్థనలు deploymentUrl/chat/completions ని ఉపయోగిస్తాయి మరియు AI-Resource-Group అవసరం.",
       "sarvam": "Sarvam AI OpenAI-తో అనుకూలంగా ఉంది /v1. OmniRoute /v1/modelsని ప్రోబ్ చేస్తుంది మరియు చాట్ ట్రాఫిక్‌ను /v1/chat/completionsకి రూట్ చేస్తుంది. మోడల్స్ ఇండిక్ భాషల కోసం ట్యూన్ చేయబడ్డాయి.",
       "scaleway": "కొత్త ఖాతాల కోసం 1M ఉచిత టోకెన్‌లు — EU/GDPR కంప్లైంట్ (పారిస్), Qwen3 235B & Llama 70B",
@@ -7812,6 +7817,14 @@
     "compressionDerivedMode": "మోడ్: {mode}",
     "compressionAdaptiveOff": "అడాప్టివ్ కాంటెక్స్ట్ బడ్జెట్: ఆఫ్ (లెగసీ ఆటో-ట్రిగ్గర్)",
     "compressionAdaptiveTarget": "అడాప్టివ్ ({mode}, పాలసీ: {policy}) — టార్గెట్ ≈ {target, number} టోకెన్‌లు ({contextLimit, number}-టోకెన్ విండో కోసం)",
+    "compressionAdaptiveMode": "__MISSING__:Adaptive context budget",
+    "compressionAdaptiveModeOff": "__MISSING__:Off (legacy auto-trigger)",
+    "compressionAdaptiveModeFloor": "__MISSING__:Floor (always guarantee fit)",
+    "compressionAdaptiveModeReplace": "__MISSING__:Replace auto-trigger",
+    "compressionAdaptivePolicy": "__MISSING__:Budget policy",
+    "compressionAdaptivePolicyReserve": "__MISSING__:Reserve output",
+    "compressionAdaptivePolicyPercentage": "__MISSING__:Percentage of window",
+    "compressionAdaptivePolicyAbsolute": "__MISSING__:Absolute token budget",
     "compressionOutputStylesDescription": "ప్రొవైడర్ అవుట్‌పుట్‌ను తిరిగి రాయకుండా రెస్పాన్స్-షేపింగ్ సూచనలను ఇంజెక్ట్ చేయండి. స్వేచ్ఛగా కలపండి.",
     "mcpAccessibilityDescription": "MCP టూల్ అవుట్‌పుట్‌లను స్కోప్ చేస్తుంది (ప్రత్యేక స్టోర్).",
     "compressionStylesTileSummary": "{tokens, number} టోకెన్‌లు ఆదా చేయబడ్డాయి · {runs, plural, one {# రన్ స్టైల్ చేయబడింది} other {# రన్‌లు స్టైల్ చేయబడ్డాయి}}",
@@ -8340,7 +8353,15 @@
     "cliproxyapiHealth": "ఆరోగ్యం",
     "cliproxyapiPort": "పోర్ట్",
     "qdrantHost": "హోస్ట్",
-    "qdrantCollection": "సేకరణ"
+    "qdrantCollection": "సేకరణ",
+    "headroomProxyTitle": "__MISSING__:Headroom proxy",
+    "headroomProxyDesc": "__MISSING__:URL of the optional Headroom token-saver proxy. Empty uses HEADROOM_URL or http://localhost:8787.",
+    "headroomProxyUrl": "__MISSING__:Headroom URL",
+    "headroomProxyUrlHint": "__MISSING__:Loopback URLs can be started from this page. External URLs are probed only.",
+    "headroomProxySave": "__MISSING__:Save",
+    "headroomProxyStart": "__MISSING__:Start",
+    "headroomProxyStop": "__MISSING__:Stop",
+    "headroomProxyExternalHint": "__MISSING__:This URL is not loopback, so OmniRoute will not spawn the local CLI."
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12961,7 +12982,7 @@
         "description": "ప్రొవైడర్-మోడల్ సమకాలీకరణ తర్వాత, లైవ్ కేటలాగ్ నుండి ~/.codex/*.config.toml ప్రొఫైల్‌లను తిరిగి సృష్టించండి. ఇది సక్రియ లేదా డిఫాల్ట్ Codex కాన్గ్రిగేషన్‌ను ఎప్పటికీ మార్చదు మరియు డిఫాల్ట్‌గా ఆఫ్‌లో ఉంటుంది."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "ప్రొవైడర్-మోడల్ సమకాలీకరణ తర్వాత, లైవ్ కేటలాగ్ నుండి ~/.claude/profiles/<name>/settings.json ప్రొఫైల్‌లను తిరిగి సృష్టించండి. ఇది సక్రియ లేదా డిఫాల్ట్ Claude కాన్ఫిగరేషన్‌ను ఎప్పటికీ మార్చదు మరియు డిఫాల్ట్‌గా ఆఫ్‌లో ఉంటుంది."
+        "description": "ప్రొవైడర్-మోడల్ సమకాలీకరణ తర్వాత, లైవ్ కేటలాగ్ నుండి ~/.claude/profiles/'<name>'/settings.json ప్రొఫైల్‌లను తిరిగి సృష్టించండి. ఇది సక్రియ లేదా డిఫాల్ట్ Claude కాన్ఫిగరేషన్‌ను ఎప్పటికీ మార్చదు మరియు డిఫాల్ట్‌గా ఆఫ్‌లో ఉంటుంది."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "స్థానిక ఇన్‌స్టాన్స్ హెల్త్-చెక్ ఎండ్‌పాయింట్‌ను నిలిపివేయండి."
@@ -13112,6 +13133,7 @@
     "segmentHint": "ప్రతి విభాగం = ఒక ఉచిత పూల్ · పూల్-డూప్లికేట్ తీసివేసినది, నిజాయితీ గల లెక్కింపు (ఎక్కువ చేసి చూపిన రేట్-పరిమితి గరిష్టాలు లేవు).",
     "boost": "ఒకేసారి $10 OpenRouter టాప్-అప్‌తో నెలకు మరో ~{tokens} అన్‌లాక్ చేయండి (రోజుకు 50 → 1000 అభ్యర్థనలు)",
     "uncapped": "శాశ్వతంగా ఉచితం, ప్రచురించిన పరిమితి లేదు (రేట్-పరిమితం చేయబడింది) — నిజమైన యాక్సెస్, హెడ్‌లైన్‌లో లెక్కించబడదు:",
+    "gated": "__MISSING__:~{tokens}/mo more behind a regional identity check (e.g. mainland-China real-name verification) — real quota, not counted in the headline:",
     "tosRestricted": "{count, plural, one {# మోడల్} other {# మోడల్స్}} ToS-పరిమితం చేయబడినట్లుగా ఫ్లాగ్ చేయబడ్డాయి — మీరే నిర్ణయించుకోండి",
     "provider": "ప్రొవైడర్",
     "model": "మోడల్",
@@ -13988,6 +14010,7 @@
     "drawerTimeline": "కాలక్రమం",
     "drawerMetrics": "మెట్రిక్స్",
     "drawerResult": "ఫలితం",
+    "drawerMemory": "ఉపయోగించిన మెమరీ",
     "drawerActions": "చర్యలు",
     "drawerClose": "మూసివేయి",
     "copyTrace": "ట్రేస్ JSON కాపీ చేయి",
@@ -13997,7 +14020,11 @@
     "actionDone": "చర్య వర్తింపజేయబడింది",
     "actionFailed": "చర్య విఫలమైంది: {error}",
     "detailFailed": "వివరాలను లోడ్ చేయడంలో విఫలమైంది: {error}",
-    "mirroredInA2A": "A2Aలో ప్రతిబింబించబడింది"
+    "mirroredInA2A": "A2Aలో ప్రతిబింబించబడింది",
+    "actionRepeat": "పునరావృతం చేయండి",
+    "repeatConfirm": "నిర్ధారించడానికి మళ్లీ క్లిక్ చేయండి",
+    "repeatDone": "కొత్త రన్ సృష్టించబడింది",
+    "repeatUnavailable": "అసలు ఇన్‌పుట్ అందుబాటులో లేదు"
   },
   "cliproxyProviderExposure": {
     "title": "ప్రొవైడర్ ఎక్స్‌పోజర్",

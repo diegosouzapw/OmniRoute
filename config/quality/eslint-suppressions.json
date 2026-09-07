@@ -220,11 +220,6 @@
       "count": 26
     }
   },
-  "open-sse/handlers/chatCore/clientUsageBuffer.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "open-sse/handlers/chatCore/executorHelpers.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -608,11 +603,6 @@
       "count": 1
     }
   },
-  "open-sse/services/providerCostData.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "open-sse/services/rateLimitManager.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 2
@@ -763,7 +753,7 @@
   },
   "open-sse/utils/cursorAgentProtobuf.ts": {
     "@typescript-eslint/no-unused-vars": {
-      "count": 3
+      "count": 2
     }
   },
   "open-sse/utils/earlyStreamKeepalive.ts": {
@@ -1720,16 +1710,6 @@
   "src/lib/obsidian/api.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 2
-    }
-  },
-  "src/lib/oneproxyRotator.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/lib/oneproxySync.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
     }
   },
   "src/lib/piiSanitizer.ts": {
@@ -4812,7 +4792,7 @@
   },
   "tests/unit/responses-translation-fixes.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 35
+      "count": 34
     }
   },
   "tests/unit/route-edge-coverage.test.ts": {

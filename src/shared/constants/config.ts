@@ -2,6 +2,7 @@ export { APP_CONFIG, THEME_CONFIG } from "./appConfig";
 
 // Provider API endpoints (for display only)
 export const PROVIDER_ENDPOINTS = {
+  seekai: "https://seekai.cc/v1/chat/completions",
   agentrouter: "https://agentrouter.org/v1/chat/completions",
   openrouter: "https://openrouter.ai/api/v1/chat/completions",
   dgrid: "https://api.dgrid.ai/v1/chat/completions",

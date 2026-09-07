@@ -117,24 +117,24 @@ test("#8926: explicit custom model overrides live-catalog exclusion", async () =
 });
 
 test("#8926: effort helper identifies only explicitly registered variants", () => {
-  assert.equal(isRegisteredProviderEffortVariant("cursor", "gpt-5.3-codex-high"), true);
+  assert.equal(isRegisteredProviderEffortVariant("cursor", "claude-fable-5-1-thinking-high"), true);
 
   assert.equal(
-    isRegisteredProviderEffortVariant("cursor", "gpt-5.3-codex-max"),
+    isRegisteredProviderEffortVariant("cursor", "claude-fable-5-1-thinking-ultra"),
     false,
     "an invented suffix must not bypass live-catalog authority"
   );
 });
 
 test("#8926: registered effort route survives while invented effort route is rejected", async () => {
-  await seedProviderCatalog("cursor", "cursor-live-8926", ["gpt-5.3-codex"]);
+  await seedProviderCatalog("cursor", "cursor-live-8926", ["claude-fable-5-1"]);
 
-  const registered = await getModelInfo("cursor/gpt-5.3-codex-high");
+  const registered = await getModelInfo("cursor/claude-fable-5-1-thinking-high");
 
   assert.equal(registered.provider, "cursor");
-  assert.equal(registered.model, "gpt-5.3-codex-high");
+  assert.equal(registered.model, "claude-fable-5-1-thinking-high");
 
-  const invented = await getModelInfo("cursor/gpt-5.3-codex-max");
+  const invented = await getModelInfo("cursor/claude-fable-5-1-thinking-ultra");
 
   assert.equal(invented.provider, null);
   assert.equal(invented.errorType, "model_not_found");
@@ -170,13 +170,13 @@ test("#8926: providers without an authoritative live catalog retain static fallb
 test("#8926: registered effort variant is rejected when its live base is absent", async () => {
   await seedProviderCatalog("cursor", "cursor-live-without-base-8926", ["cursor-live-only-8926"]);
 
-  const explicit = await getModelInfo("cursor/gpt-5.3-codex-high");
+  const explicit = await getModelInfo("cursor/claude-fable-5-1-thinking-high");
 
   assert.equal(explicit.provider, null);
   assert.equal(explicit.errorType, "model_not_found");
   assert.match(explicit.errorMessage, /active live catalog/i);
 
-  const bare = await getModelInfo("gpt-5.3-codex-high");
+  const bare = await getModelInfo("claude-fable-5-1-thinking-high");
 
   assert.equal(bare.provider, null);
   assert.equal(bare.errorType, "model_not_found");

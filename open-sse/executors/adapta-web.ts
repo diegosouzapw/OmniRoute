@@ -1,10 +1,11 @@
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
-import { sanitizeErrorMessage } from "../utils/error.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
 
 const ADAPTA_APP_URL = "https://agent.adapta.one";
 const ADAPTA_CLERK_URL = "https://clerk.agent.adapta.one";
 const ADAPTA_STREAM_URL = `${ADAPTA_APP_URL}/api/chat/stream/v1`;
+const ADAPTA_PUBLIC_STREAM_ERROR = `\n\n[Erro: ${sanitizeErrorMessage("Adapta upstream error")}]`;
 
 // Default model ID in Adapta's internal system (corresponds to "ONE" / auto-select)
 const DEFAULT_AI_MODEL_ID = 14;
@@ -33,6 +34,15 @@ interface CachedSession {
   jwtExpiresAt: number; // unix ms
 }
 
+const SESSION_CACHE_MAX = 100;
+
+function evictOldest(cache: Map<string, CachedSession>): void {
+  if (cache.size >= SESSION_CACHE_MAX) {
+    const first = cache.keys().next().value;
+    if (first) cache.delete(first);
+  }
+}
+
 // Keyed by the first 32 chars of the stored __client JWT
 const sessionCache = new Map<string, CachedSession>();
 
@@ -44,11 +54,15 @@ function cachedJwt(clientJwt: string): string | null {
   const entry = sessionCache.get(cacheKey(clientJwt));
   if (!entry) return null;
   // Keep a 30-second buffer before expiry
-  if (Date.now() >= entry.jwtExpiresAt - 30_000) return null;
+  if (Date.now() >= entry.jwtExpiresAt - 30_000) {
+    sessionCache.delete(cacheKey(clientJwt));
+    return null;
+  }
   return entry.jwt;
 }
 
 function storeSession(clientJwt: string, sessionId: string, jwt: string, expMs: number): void {
+  evictOldest(sessionCache);
   sessionCache.set(cacheKey(clientJwt), { sessionId, jwt, jwtExpiresAt: expMs });
 }
 
@@ -308,10 +322,9 @@ function transformStream(adaptaStream: ReadableStream, model: string): ReadableS
               if (event.id === "quick-response") continue;
               // Real text ended — stream will send more events or close
             } else if (type === "error") {
-              const errText = String(event.errorText ?? "Adapta upstream error");
               ensureRole();
-              // Emit the error as content so the user sees it
-              chunk({ content: `\n\n[Erro: ${errText}]` });
+              // Keep upstream diagnostics private: the transformed SSE is a public HTTP 200 body.
+              chunk({ content: ADAPTA_PUBLIC_STREAM_ERROR });
               finalize();
               return;
             } else if (type === "done" || type === "end") {
@@ -467,9 +480,10 @@ export class AdaptaWebExecutor extends BaseExecutor {
     const reader = resp.body!.getReader();
     let buf = "";
     let fullText = "";
+    let upstreamErrorMessage: string | null = null;
 
     try {
-      while (true) {
+      readLoop: while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         buf += decoder.decode(value, { stream: true });
@@ -481,6 +495,9 @@ export class AdaptaWebExecutor extends BaseExecutor {
             const ev = JSON.parse(line.slice(6));
             if (ev.type === "text-delta" && ev.id !== "quick-response") {
               fullText += String(ev.delta ?? "");
+            } else if (ev.type === "error") {
+              upstreamErrorMessage = "Adapta upstream error";
+              break readLoop;
             }
           } catch {
             // skip
@@ -488,7 +505,22 @@ export class AdaptaWebExecutor extends BaseExecutor {
         }
       }
     } finally {
+      if (upstreamErrorMessage) {
+        void reader.cancel("Adapta upstream SSE error").catch(() => undefined);
+      }
       reader.releaseLock();
+    }
+
+    if (upstreamErrorMessage) {
+      return {
+        response: new Response(JSON.stringify(buildErrorBody(502, upstreamErrorMessage)), {
+          status: 502,
+          headers: { "Content-Type": "application/json" },
+        }),
+        url: ADAPTA_STREAM_URL,
+        headers,
+        transformedBody: requestPayload,
+      };
     }
 
     if (hasTools) {

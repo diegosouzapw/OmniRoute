@@ -122,6 +122,8 @@ Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ## 📖 Provider Setup
 
+To bulk-add API-key connections from a CSV or JSON file, use **Dashboard → Providers → Import from file**. Columns are positional (`provider,name,apiKey,baseUrl,priority`); `provider` must already exist as a managed provider or a compatible node. See [Import providers from a CSV or JSON file](../providers/CSV-IMPORT.md).
+
 ### 🔐 Subscription Providers
 
 #### Claude Code (Pro/Max)

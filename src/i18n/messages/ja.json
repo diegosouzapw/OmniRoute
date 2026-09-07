@@ -2710,7 +2710,7 @@
     "ccOnboardingTitle": "gatewayモデル発見のためのsettings.json",
     "ccOnboardingCopy": "コピー",
     "ccOnboardingCopied": "コピーしました",
-    "ccOnboardingKeyPlaceholder": "<あなたのOmniRoute APIキー>",
+    "ccOnboardingKeyPlaceholder": "'<あなたのOmniRoute APIキー>'",
     "ccOnboardingWindowNote": "Claude Codeは、認識できないモデルIDに対して200Kのコンテキストウィンドウを仮定します。異なる実際のウィンドウを持つモデルの場合は、CLAUDE_CODE_AUTO_COMPACT_WINDOWをその直下に追加して、自動圧縮が早すぎることがないようにします。",
     "failedSave": "保存に失敗しました",
     "profileSyncTitle": "CLIプロファイルの自動同期",
@@ -5248,6 +5248,10 @@
     "iconUrlLabel": "アイコンURL",
     "iconUrlHint": "任意。このプロバイダーのアイコンとして表示される画像URL。",
     "iconUrlInvalid": "無効なアイコンURLです。http(s)://またはdata:image/*;base64 URLを使用してください。",
+    "dailyQuotaResetTimezoneLabel": "Daily quota reset timezone",
+    "dailyQuotaResetTimezoneHint": "Optional IANA timezone used when the upstream omits X-RateLimit-Reset. Leave empty to keep a short cooldown.",
+    "dailyQuotaResetHourLabel": "Daily quota reset hour",
+    "dailyQuotaResetHourHint": "Local hour 0-23 in the timezone above. Empty means no node-level clock.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",
@@ -6162,7 +6166,7 @@
       "freeaiapikey": "GPT-5、Claude Opus 4.6、Claude Sonnet 4.6、Qwen 3.5を含む40以上のモデルに対応した割引APIプロキシ。https://freeaiapikey.com/dashboard でAPIキーを取得してください。ベースURL: https://freeaiapikey.com/v1。",
       "freemodel-dev": "https://freemodel.dev で$300の無料APIクレジットを取得 — 支払い情報は不要です。OpenAI互換エンドポイント。GPT-5.4およびGPT-5.5モデルが利用可能です。",
       "friendliai": "サーバーレス推論の無料枠 — クレジットカード不要",
-      "gemini": "永久無料: Gemini 2.5 Flashが1,500 req/日 — クレジットカード不要、aistudio.google.com でキーを取得",
+      "gemini": "__MISSING__:Free tier through Google AI Studio; per-model quotas are no longer published (check the quota page in AI Studio) — no credit card.",
       "gigachat": "APIキーでGigaChat (Sber)に接続します。",
       "gitlab": "パブリックCode Suggestions API用のGitLabパーソナルアクセストークン。gitlab.comを使用しない場合は、セルフホストのベースURLを設定してください。",
       "gitlawb-gmi": "Gitlawb OpengatewayダッシュボードからAPIキーを取得します。",
@@ -6171,7 +6175,7 @@
       "glm-cn": "APIキーでGLM Coding (China)に接続します。",
       "glmt": "より大きなトークンバジェット、思考の有効化、およびより長いタイムアウトを備えたプリセットGLMプロファイル。",
       "getgoapi": "APIキーでGoAPIに接続します。",
-      "groq": "無料枠: 30 RPM / 14.4K RPD — クレジットカード不要",
+      "groq": "__MISSING__:Free plan: per-model caps (200K tokens/day per chat model; see console.groq.com/docs/rate-limits for RPM/RPD) — no payment method on file.",
       "haiper": "haiper.ai/haiper-api でAPIキーを取得",
       "heroku": "APIキーでHeroku AIに接続します。",
       "hcnsec": "api.hcnsec.cn でAPIキーを取得",
@@ -6239,6 +6243,7 @@
       "requesty": "https://app.requesty.aiでAPIキーを作成し、ここにBearerトークンとして貼り付けます。https://router.requesty.ai/v1にあるOpenAI互換のエンドポイントは、有効な/v1/modelsカタログを提供します。",
       "runwayml": "Runwayの動画生成はタスクベースです。OmniRouteはtext-to-videoまたはimage-to-videoジョブを送信し、/v1/tasks/[id]をポーリングして、完了した動画出力をOpenAI風の/v1/videos/generationsレスポンスに正規化して戻します。",
       "sambanova": "新規登録時に$5分の無料クレジット（30日間有効）、クレジットカード不要",
+      "seekai": "Create an API key at https://seekai.cc, then paste it here as a Bearer token. OpenAI-compatible base URL: https://seekai.cc/v1.",
       "sap": "モデルの検出はAI_API_URL上の/v2/lm/scenarios/foundation-models/modelsを使用します。チャットリクエストはdeploymentUrl/chat/completionsを使用し、AI-Resource-Groupが必要です。",
       "sarvam": "Sarvam AIは/v1でOpenAI互換です。OmniRouteは/v1/modelsをプローブし、チャットトラフィックを/v1/chat/completionsにルーティングします。モデルはインド系言語に調整されています。",
       "scaleway": "新規アカウント向けに100万無料トークン — EU/GDPR準拠（パリ）、Qwen3 235B & Llama 70B",
@@ -7812,6 +7817,14 @@
     "compressionDerivedMode": "モード: {mode}",
     "compressionAdaptiveOff": "アダプティブコンテキストバジェット: オフ（レガシー自動トリガー）",
     "compressionAdaptiveTarget": "アダプティブ（{mode}、ポリシー: {policy}）— ターゲット ≈ {target, number} トークン（{contextLimit, number} トークンウィンドウ用）",
+    "compressionAdaptiveMode": "__MISSING__:Adaptive context budget",
+    "compressionAdaptiveModeOff": "__MISSING__:Off (legacy auto-trigger)",
+    "compressionAdaptiveModeFloor": "__MISSING__:Floor (always guarantee fit)",
+    "compressionAdaptiveModeReplace": "__MISSING__:Replace auto-trigger",
+    "compressionAdaptivePolicy": "__MISSING__:Budget policy",
+    "compressionAdaptivePolicyReserve": "__MISSING__:Reserve output",
+    "compressionAdaptivePolicyPercentage": "__MISSING__:Percentage of window",
+    "compressionAdaptivePolicyAbsolute": "__MISSING__:Absolute token budget",
     "compressionOutputStylesDescription": "プロバイダーの出力を書き換えることなく、レスポンス整形指示を挿入します。自由に組み合わせ可能です。",
     "mcpAccessibilityDescription": "MCPツールの出力をスコープします（別ストア）。",
     "compressionStylesTileSummary": "{tokens, number} トークン節約 · {runs, plural, one {# 回の実行にスタイル適用} other {# 回の実行にスタイル適用}}",
@@ -8340,7 +8353,15 @@
     "cliproxyapiHealth": "健康",
     "cliproxyapiPort": "ポート",
     "qdrantHost": "ホスト",
-    "qdrantCollection": "コレクション"
+    "qdrantCollection": "コレクション",
+    "headroomProxyTitle": "__MISSING__:Headroom proxy",
+    "headroomProxyDesc": "__MISSING__:URL of the optional Headroom token-saver proxy. Empty uses HEADROOM_URL or http://localhost:8787.",
+    "headroomProxyUrl": "__MISSING__:Headroom URL",
+    "headroomProxyUrlHint": "__MISSING__:Loopback URLs can be started from this page. External URLs are probed only.",
+    "headroomProxySave": "__MISSING__:Save",
+    "headroomProxyStart": "__MISSING__:Start",
+    "headroomProxyStop": "__MISSING__:Stop",
+    "headroomProxyExternalHint": "__MISSING__:This URL is not loopback, so OmniRoute will not spawn the local CLI."
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12961,7 +12982,7 @@
         "description": "After provider-model synchronization, regenerate ~/.codex/*.config.toml profiles from the live catalog. This never changes the active or default Codex configuration and is off by default."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "After provider-model synchronization, regenerate ~/.claude/profiles/<name>/settings.json profiles from the live catalog. This never changes the active or default Claude configuration and is off by default."
+        "description": "After provider-model synchronization, regenerate ~/.claude/profiles/'<name>'/settings.json profiles from the live catalog. This never changes the active or default Claude configuration and is off by default."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Disable the local instance health-check endpoint."
@@ -13112,6 +13133,7 @@
     "segmentHint": "各セグメント = 1つの無料プール · プール重複排除、誠実なカウント（誇張されたレート制限上限なし）。",
     "boost": "1回限りの$10のOpenRouterチャージで、月あたりさらに約{tokens}をアンロック（50 → 1000 リクエスト/日）",
     "uncapped": "恒久的に無料、公開された上限なし（レート制限あり） — 見出しにはカウントされない、実際のアクセス：",
+    "gated": "__MISSING__:~{tokens}/mo more behind a regional identity check (e.g. mainland-China real-name verification) — real quota, not counted in the headline:",
     "tosRestricted": "{count, plural, one {# 個のモデル} other {# 個のモデル}}が利用規約制限としてフラグ立てされています — ご自身で判断してください",
     "provider": "プロバイダー",
     "model": "モデル",
@@ -13988,6 +14010,7 @@
     "drawerTimeline": "タイムライン",
     "drawerMetrics": "メトリクス",
     "drawerResult": "結果",
+    "drawerMemory": "使用したメモリ",
     "drawerActions": "アクション",
     "drawerClose": "閉じる",
     "copyTrace": "トレースJSONをコピー",
@@ -13997,7 +14020,11 @@
     "actionDone": "アクションを適用しました",
     "actionFailed": "アクションが失敗しました: {error}",
     "detailFailed": "詳細の読み込みに失敗しました: {error}",
-    "mirroredInA2A": "A2Aにミラーリング"
+    "mirroredInA2A": "A2Aにミラーリング",
+    "actionRepeat": "再実行",
+    "repeatConfirm": "確認するにはもう一度クリック",
+    "repeatDone": "新しい実行を作成しました",
+    "repeatUnavailable": "元の入力を利用できません"
   },
   "cliproxyProviderExposure": {
     "title": "プロバイダーの露出",

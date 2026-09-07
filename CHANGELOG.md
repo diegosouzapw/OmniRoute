@@ -4,6 +4,7 @@
 
 ### ✨ New Features
 
+- **feat(dashboard):** adaptive context-budget dial on the compression settings panel — mode (`off` / `floor` / `replace-autotrigger`) and policy (`reserve-output` / `percentage` / `absolute`) persist via `PUT /api/settings/compression` `contextBudget`. Completes the dashboard half of #7005 (API + DB already shipped in #7183).
 - **feat(sse): STRICT_ZERO_COST** — opt-in, off-by-default `freeAccessPolicy: "strict"` setting
   that hard-verifies every auto-combo candidate against live quota state and per-connection
   economic safety before it can be dispatched, going beyond `hidePaidModels`'s static catalog
@@ -96,6 +97,10 @@ _Living section — cycle opened at the v3.8.50 freeze (parallel-cycle model). B
 ### ✨ New Features
 
 ### 🐛 Bug Fixes
+
+- **security(streaming):** sanitize generic mid-stream error messages before emitting OpenAI,
+  Responses, or Claude SSE failure frames and before diagnostic logging, while preserving raw
+  failures for internal classification and keeping client disconnects out of provider failure state.
 
 ### 📝 Maintenance
 

@@ -191,9 +191,7 @@ function PresetButtons({
           type="button"
           aria-pressed={preset === p}
           className={`px-2 py-1 text-xs rounded border ${
-            preset === p
-              ? "border-primary bg-primary/10 font-medium"
-              : "border-border text-muted"
+            preset === p ? "border-primary bg-primary/10 font-medium" : "border-border text-muted"
           }`}
           onClick={() => onSelect(p)}
         >
@@ -265,9 +263,7 @@ function HistoryGridTable({
                 className="text-left px-2 py-1 sticky left-0 bg-surface whitespace-nowrap font-normal"
               >
                 <span className="font-medium">{row.identity}</span>{" "}
-                <span className="text-[9px] uppercase text-muted">
-                  {t(SOURCE_KEY[row.source])}
-                </span>
+                <span className="text-[9px] uppercase text-muted">{t(SOURCE_KEY[row.source])}</span>
               </th>
               {row.cells.map((cell, i) => (
                 <td key={i} className="p-0.5 align-top">
@@ -350,10 +346,22 @@ export function HistoryTab() {
         <HistoryGridTable grid={grid} preset={preset} t={t} onSelectItem={onSelectItem} />
       )}
 
+      {/* `onActionDone` must NOT close the drawer: the drawer renders its own success toast
+          right after calling it, so unmounting here threw the confirmation away and the
+          operator saw a repeat/cancel silently do nothing. Re-sampling `nowMs` instead
+          keeps the drawer mounted (the toast lands) and refreshes the grid through the new
+          range — the same "refetch, don't close" contract `OrchestrationPageClient` uses.
+          `Date.now()` is sampled inside a real event-driven callback, never during render
+          (see the `nowMs` note above), and the updater is pure — it only picks the larger of
+          the sampled clock and `prev + 1`, so the range always changes (and the refetch
+          always happens) even when two samples land in the same millisecond. */}
       <OrchestrationDrawer
         node={selected}
         onClose={() => setSelected(null)}
-        onActionDone={() => setSelected(null)}
+        onActionDone={() => {
+          const sampled = Date.now();
+          setNowMs((prev) => (sampled > prev ? sampled : prev + 1));
+        }}
       />
     </div>
   );

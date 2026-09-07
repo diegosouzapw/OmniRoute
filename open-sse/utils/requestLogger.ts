@@ -28,7 +28,12 @@ export type RequestPipelinePayloads = {
 
 type RequestLogger = {
   sessionPath: null;
-  logClientRawRequest: (endpoint: unknown, body: unknown, headers?: HeaderInput) => void;
+  logClientRawRequest: (
+    endpoint: unknown,
+    body: unknown,
+    headers?: HeaderInput,
+    effectiveInput?: unknown
+  ) => void;
   logRouteDecision: (decision: unknown) => void;
   logOpenAIRequest: (body: unknown) => void;
   logTargetRequest: (url: unknown, headers: HeaderInput, body: unknown) => void;
@@ -392,12 +397,26 @@ export async function createRequestLogger(
   return {
     sessionPath: null,
 
-    logClientRawRequest(endpoint, body, headers = {}) {
+    logClientRawRequest(endpoint, body, headers = {}, effectiveInput) {
       payloads.clientRawRequest = {
         timestamp: new Date().toISOString(),
         endpoint,
         headers: maskSensitiveHeaders(headers),
         body: cloneBoundedForLog(body),
+        // The actual `input` this request dispatched with, captured AFTER
+        // OmniRoute's own previous_response_id reconstruction (see
+        // src/sse/handlers/chat.ts) -- `body` above is deliberately the
+        // pre-reconstruction raw client bytes (captureDeferredClientRawBody's
+        // whole point) and is NOT what got sent for a continued turn.
+        // resolvePreviousResponseState must chain off this field, not
+        // `body.input`: reading the raw pre-reconstruction input for a
+        // request that was itself a continuation compounds into progressively
+        // truncated history a few hops deep (live incident 2026-09-03,
+        // manifested as a malformed request with no leading system/user
+        // message rejected by the upstream provider).
+        ...(effectiveInput !== undefined
+          ? { effectiveInput: cloneBoundedForLog(effectiveInput) }
+          : {}),
       };
     },
 

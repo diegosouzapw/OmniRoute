@@ -1,0 +1,1 @@
+- **feat(settings):** persist `headroomUrl` through Settings so status/start use the operator URL instead of only `HEADROOM_URL` ([#12306](https://github.com/diegosouzapw/OmniRoute/issues/12306))

@@ -1,13 +1,28 @@
-import { skillExecutor } from "./executor";
+import { projectSkillOutputForBoundary, skillExecutor } from "./executor";
 import { skillRegistry } from "./registry";
 import { builtinSkills } from "./builtins";
 import { memoryBuiltinHandlers, MEMORY_BUILTIN_TOOL_NAMES } from "./memoryBuiltins";
 import { detectProvider, decodeSkillToolName } from "./injection";
 import { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } from "@omniroute/open-sse/services/webSearchFallback.ts";
 import { OMNIROUTE_WEB_FETCH_FALLBACK_TOOL_NAME } from "@omniroute/open-sse/services/webFetchInterception.ts";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
 import { logger } from "../../../open-sse/utils/logger.ts";
 
 const log = logger("SKILLS_INTERCEPTION");
+
+function toSafeSkillErrorMessage(value: unknown): string {
+  try {
+    const raw = value instanceof Error ? value.message : value;
+    return sanitizeErrorMessage(raw) || "Skill execution failed";
+  } catch {
+    return "Skill execution failed";
+  }
+}
+
+function projectSkillResultForPublicResponse(result: unknown): unknown {
+  if (!result || typeof result !== "object" || Array.isArray(result)) return result;
+  return projectSkillOutputForBoundary(result as Record<string, unknown>);
+}
 
 interface ToolCall {
   id: string;
@@ -130,7 +145,7 @@ export async function interceptToolCalls(
 
           return {
             id: call.id,
-            result,
+            result: projectSkillResultForPublicResponse(result),
           };
         }
 
@@ -151,11 +166,12 @@ export async function interceptToolCalls(
           sessionId: context.sessionId,
         });
 
-        const result =
+        const result = projectSkillResultForPublicResponse(
           execution.output ??
-          (execution.errorMessage
-            ? { error: execution.errorMessage }
-            : { error: "Skill execution returned no output" });
+            (execution.errorMessage
+              ? { error: toSafeSkillErrorMessage(execution.errorMessage) }
+              : { error: "Skill execution returned no output" })
+        );
 
         log.info("skills.interception.execution_complete", {
           toolName: call.name,
@@ -167,14 +183,15 @@ export async function interceptToolCalls(
           result,
         };
       } catch (err) {
+        const safeError = toSafeSkillErrorMessage(err);
         log.error("skills.interception.execution_failed", {
           toolName: call.name,
           callId: call.id,
-          err: err instanceof Error ? err.message : String(err),
+          err: safeError,
         });
         return {
           id: call.id,
-          result: { error: err instanceof Error ? err.message : String(err) },
+          result: { error: safeError },
         };
       }
     })

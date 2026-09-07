@@ -340,31 +340,27 @@ USER root
 COPY --from=builder /app/node_modules/playwright-core ./node_modules/playwright-core
 COPY --from=builder /app/node_modules/playwright ./node_modules/playwright
 
-# Install system dependencies required by openclaw (git+ssh references) and devin-cli (curl).
+# Install system dependencies required by openclaw (git+ssh references).
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-lists,target=/var/lib/apt/lists,sharing=locked \
   apt-get update \
-  && apt-get install -y --no-install-recommends git ca-certificates docker.io docker-compose curl \
+  && apt-get install -y --no-install-recommends git ca-certificates docker.io docker-compose \
   && rm -rf /var/lib/apt/lists/* \
   && git config --system url."https://github.com/".insteadOf "ssh://git@github.com/"
 
 # Install CLI tools globally. Separate layer from apt for better cache reuse.
+# Pinned to exact versions per Diego's diagnosis in #12576 — floating
+# `@latest` causes two CI failures:
+#   1. `openclaw` ships a breaking major ~weekly; overnight builds silently
+#      advance to a version that no longer matches the tested combo stack.
+#   2. `codex` / `claude-code` dev pre-releases (`@next`, dist-tags) mutate
+#      API surface without notice; reproducible builds need a SHA-pinned dev
+#      build, not the floating `@latest`.
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-npm-cache,target=/root/.npm \
-  npm install -g --no-audit --no-fund @openai/codex @anthropic-ai/claude-code droid openclaw@latest
-
-# Install Devin CLI
-ARG DEVIN_CLI_VERSION=3000.2.17
-ARG TARGETARCH
-RUN set -eu; \
-  case "${TARGETARCH:-amd64}" in \
-    amd64) devin_arch=x86_64-unknown-linux; devin_sha=f0e1e9363afc6ee68c4ef87bab4aeb7ff5cc08a5fa838350ef3ceefdbb2a2be2 ;; \
-    arm64) devin_arch=aarch64-unknown-linux; devin_sha=116dc71ef085a922bc3ff0ea0377d4b26c529a431d58246e36572913e2d25624 ;; \
-    *) echo "Unsupported TARGETARCH=${TARGETARCH}" >&2; exit 1 ;; \
-  esac; \
-  curl -fsSL "https://static.devin.ai/cli/${DEVIN_CLI_VERSION}/devin-${DEVIN_CLI_VERSION}-${devin_arch}.tar.gz" -o /tmp/devin.tar.gz; \
-  echo "${devin_sha}  /tmp/devin.tar.gz" | sha256sum -c -; \
-  tar -xzf /tmp/devin.tar.gz -C /tmp; \
-  install -m 0755 "$(find /tmp -type f -name devin | head -1)" /usr/local/bin/devin; \
-  rm -rf /tmp/devin.tar.gz /tmp/devin-*
+  npm install -g --no-audit --no-fund \
+    @openai/codex@0.153.2 \
+    @anthropic-ai/claude-code@2.1.260 \
+    droid@0.212.0 \
+    openclaw@2026.9.1
 
 USER node

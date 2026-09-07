@@ -2710,7 +2710,7 @@
     "ccOnboardingTitle": "settings.json für die Entdeckung des Gateway-Modells",
     "ccOnboardingCopy": "Kopieren",
     "ccOnboardingCopied": "Kopiert",
-    "ccOnboardingKeyPlaceholder": "<dein OmniRoute API-Schlüssel>",
+    "ccOnboardingKeyPlaceholder": "'<dein OmniRoute API-Schlüssel>'",
     "ccOnboardingWindowNote": "Claude Code geht von einem 200K-Kontextfenster für jede Modell-ID aus, die es nicht erkennt. Für ein Modell mit einem anderen tatsächlichen Fenster fügen Sie CLAUDE_CODE_AUTO_COMPACT_WINDOW direkt darunter hinzu, damit die automatische Komprimierung nicht zu früh ausgelöst wird.",
     "failedSave": "Speichern fehlgeschlagen",
     "profileSyncTitle": "Automatische Synchronisierung von CLI-Profilen",
@@ -5248,6 +5248,10 @@
     "iconUrlLabel": "Icon-URL",
     "iconUrlHint": "Optional. Bild-URL, die als Icon dieses Anbieters angezeigt wird.",
     "iconUrlInvalid": "Ungültige Icon-URL. Verwenden Sie eine http(s):// oder data:image/*;base64 URL.",
+    "dailyQuotaResetTimezoneLabel": "Daily quota reset timezone",
+    "dailyQuotaResetTimezoneHint": "Optional IANA timezone used when the upstream omits X-RateLimit-Reset. Leave empty to keep a short cooldown.",
+    "dailyQuotaResetHourLabel": "Daily quota reset hour",
+    "dailyQuotaResetHourHint": "Local hour 0-23 in the timezone above. Empty means no node-level clock.",
     "anthropicPrefixPlaceholder": "AC-Prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",
@@ -6162,7 +6166,7 @@
       "freeaiapikey": "Vergünstigter API-Proxy für über 40 Modelle, darunter GPT-5, Claude Opus 4.6, Claude Sonnet 4.6, Qwen 3.5. Holen Sie sich Ihren API-Schlüssel unter https://freeaiapikey.com/dashboard. Basis-URL: https://freeaiapikey.com/v1.",
       "freemodel-dev": "Holen Sie sich 300 $ kostenloses API-Guthaben unter https://freemodel.dev – keine Zahlungsinformationen erforderlich. OpenAI-kompatibler Endpunkt. GPT-5.4- und GPT-5.5-Modelle verfügbar.",
       "friendliai": "Kostenlose Stufe für serverlose Inferenz – keine Kreditkarte erforderlich",
-      "gemini": "Für immer kostenlos: 1.500 Anfragen/Tag für Gemini 2.5 Flash — keine Kreditkarte, Schlüssel unter aistudio.google.com anfordern",
+      "gemini": "__MISSING__:Free tier through Google AI Studio; per-model quotas are no longer published (check the quota page in AI Studio) — no credit card.",
       "gigachat": "GigaChat (Sber) mit einem API-Schlüssel verbinden.",
       "gitlab": "Persönliches GitLab-Zugriffstoken für die öffentliche Code Suggestions API. Konfigurieren Sie eine selbstgehostete Basis-URL, wenn Sie nicht gitlab.com verwenden.",
       "gitlawb-gmi": "Holen Sie sich Ihren API-Schlüssel aus dem Gitlawb Opengateway-Dashboard.",
@@ -6171,7 +6175,7 @@
       "glm-cn": "GLM Coding (China) mit einem API-Schlüssel verbinden.",
       "glmt": "Voreingestelltes GLM-Profil mit höherem Token-Budget, aktiviertem Denken und längerem Timeout.",
       "getgoapi": "GoAPI mit einem API-Schlüssel verbinden.",
-      "groq": "Kostenlose Stufe: 30 RPM / 14,4K RPD — keine Kreditkarte",
+      "groq": "__MISSING__:Free plan: per-model caps (200K tokens/day per chat model; see console.groq.com/docs/rate-limits for RPM/RPD) — no payment method on file.",
       "haiper": "API-Schlüssel unter haiper.ai/haiper-api anfordern",
       "heroku": "Heroku AI mit einem API-Schlüssel verbinden.",
       "hcnsec": "API-Schlüssel unter api.hcnsec.cn anfordern",
@@ -6239,6 +6243,7 @@
       "requesty": "Erstellen Sie einen API-Schlüssel unter https://app.requesty.ai und fügen Sie ihn hier als Bearer-Token ein. OpenAI-kompatibler Endpunkt unter https://router.requesty.ai/v1 mit einem Live-Katalog unter /v1/models.",
       "runwayml": "Die Runway-Videogenerierung ist aufgabenbasiert. OmniRoute übermittelt Text-to-Video- oder Image-to-Video-Jobs, fragt /v1/tasks/[id] ab und normalisiert die fertigen Videoausgaben zurück in die OpenAI-ähnliche Antwort von /v1/videos/generations.",
       "sambanova": "5 $ kostenloses Guthaben bei Registrierung (30 Tage Gültigkeit), keine Kreditkarte erforderlich",
+      "seekai": "Create an API key at https://seekai.cc, then paste it here as a Bearer token. OpenAI-compatible base URL: https://seekai.cc/v1.",
       "sap": "Die Modellerkennung verwendet /v2/lm/scenarios/foundation-models/models auf AI_API_URL. Chat-Anfragen verwenden deploymentUrl/chat/completions und erfordern AI-Resource-Group.",
       "sarvam": "Sarvam AI ist OpenAI-kompatibel unter /v1. OmniRoute durchsucht /v1/models und leitet den Chat-Verkehr an /v1/chat/completions weiter. Die Modelle sind auf indische Sprachen abgestimmt.",
       "scaleway": "1 Mio. kostenlose Token für neue Konten — EU-DSGVO-konform (Paris), Qwen3 235B & Llama 70B",
@@ -7812,6 +7817,14 @@
     "compressionDerivedMode": "Modus: {mode}",
     "compressionAdaptiveOff": "Adaptives Kontextbudget: aus (Legacy-Auto-Trigger)",
     "compressionAdaptiveTarget": "Adaptiv ({mode}, Richtlinie: {policy}) — Ziel ≈ {target, number} Tokens (für ein {contextLimit, number}-Token-Fenster)",
+    "compressionAdaptiveMode": "__MISSING__:Adaptive context budget",
+    "compressionAdaptiveModeOff": "__MISSING__:Off (legacy auto-trigger)",
+    "compressionAdaptiveModeFloor": "__MISSING__:Floor (always guarantee fit)",
+    "compressionAdaptiveModeReplace": "__MISSING__:Replace auto-trigger",
+    "compressionAdaptivePolicy": "__MISSING__:Budget policy",
+    "compressionAdaptivePolicyReserve": "__MISSING__:Reserve output",
+    "compressionAdaptivePolicyPercentage": "__MISSING__:Percentage of window",
+    "compressionAdaptivePolicyAbsolute": "__MISSING__:Absolute token budget",
     "compressionOutputStylesDescription": "Anweisungen zur Antwortgestaltung einfügen, ohne die Provider-Ausgabe umzuschreiben. Frei kombinierbar.",
     "mcpAccessibilityDescription": "Schränkt MCP-Tool-Ausgaben ein (separater Speicher).",
     "compressionStylesTileSummary": "{tokens, number} Tokens eingespart · {runs, plural, one {# Ausführung gestylt} other {# Ausführungen gestylt}}",
@@ -8340,7 +8353,15 @@
     "cliproxyapiHealth": "Gesundheit",
     "cliproxyapiPort": "Port",
     "qdrantHost": "Host",
-    "qdrantCollection": "Sammlung"
+    "qdrantCollection": "Sammlung",
+    "headroomProxyTitle": "__MISSING__:Headroom proxy",
+    "headroomProxyDesc": "__MISSING__:URL of the optional Headroom token-saver proxy. Empty uses HEADROOM_URL or http://localhost:8787.",
+    "headroomProxyUrl": "__MISSING__:Headroom URL",
+    "headroomProxyUrlHint": "__MISSING__:Loopback URLs can be started from this page. External URLs are probed only.",
+    "headroomProxySave": "__MISSING__:Save",
+    "headroomProxyStart": "__MISSING__:Start",
+    "headroomProxyStop": "__MISSING__:Stop",
+    "headroomProxyExternalHint": "__MISSING__:This URL is not loopback, so OmniRoute will not spawn the local CLI."
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12968,7 +12989,7 @@
         "description": "Nach der Anbieter-Modell-Synchronisierung ~/.codex/*.config.toml-Profile aus dem Live-Katalog neu generieren. Dies ändert niemals die aktive oder Standard-Codex-Konfiguration und ist standardmäßig deaktiviert."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Nach der Anbieter-Modell-Synchronisierung ~/.claude/profiles/<name>/settings.json-Profile aus dem Live-Katalog neu generieren. Dies ändert niemals die aktive oder Standard-Claude-Konfiguration und ist standardmäßig deaktiviert."
+        "description": "Nach der Anbieter-Modell-Synchronisierung ~/.claude/profiles/'<name>'/settings.json-Profile aus dem Live-Katalog neu generieren. Dies ändert niemals die aktive oder Standard-Claude-Konfiguration und ist standardmäßig deaktiviert."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Den Health-Check-Endpunkt der lokalen Instanz deaktivieren."
@@ -13119,6 +13140,7 @@
     "segmentHint": "Jedes Segment = ein kostenloser Pool · Pool-dedupliziert, ehrliche Zählung (keine künstlich erhöhten Rate-Limit-Obergrenzen).",
     "boost": "Schalten Sie ~{tokens} mehr/Monat mit einer einmaligen $10 OpenRouter-Aufladung frei (50 → 1000 Anfr./Tag)",
     "uncapped": "Dauerhaft kostenlos, kein veröffentlichtes Limit (ratenbegrenzt) — echter Zugang, nicht in der Überschrift gezählt:",
+    "gated": "__MISSING__:~{tokens}/mo more behind a regional identity check (e.g. mainland-China real-name verification) — real quota, not counted in the headline:",
     "tosRestricted": "{count, plural, one {# Modell} other {# Modelle}} als ToS-eingeschränkt markiert — Sie entscheiden",
     "provider": "Anbieter",
     "model": "Modell",
@@ -13995,6 +14017,7 @@
     "drawerTimeline": "Zeitachse",
     "drawerMetrics": "Metriken",
     "drawerResult": "Ergebnis",
+    "drawerMemory": "Genutzte Erinnerungen",
     "drawerActions": "Aktionen",
     "drawerClose": "Schließen",
     "copyTrace": "Trace-JSON kopieren",
@@ -14004,7 +14027,11 @@
     "actionDone": "Aktion angewendet",
     "actionFailed": "Aktion fehlgeschlagen: {error}",
     "detailFailed": "Details konnten nicht geladen werden: {error}",
-    "mirroredInA2A": "In A2A gespiegelt"
+    "mirroredInA2A": "In A2A gespiegelt",
+    "actionRepeat": "Wiederholen",
+    "repeatConfirm": "Zum Bestätigen erneut klicken",
+    "repeatDone": "Neuer Lauf erstellt",
+    "repeatUnavailable": "Ursprüngliche Eingabe nicht verfügbar"
   },
   "cliproxyProviderExposure": {
     "title": "Anbieterexposition",

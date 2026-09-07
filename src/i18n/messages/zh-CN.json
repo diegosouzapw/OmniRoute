@@ -2710,7 +2710,7 @@
     "ccOnboardingTitle": "网关模型发现的 settings.json",
     "ccOnboardingCopy": "复制",
     "ccOnboardingCopied": "已复制",
-    "ccOnboardingKeyPlaceholder": "<你的 OmniRoute API 密钥>",
+    "ccOnboardingKeyPlaceholder": "'<你的 OmniRoute API 密钥>'",
     "ccOnboardingWindowNote": "Claude Code 对所有不认识的模型 ID 都假设 200K 上下文窗口。如果模型的实际窗口不同，请在下方添加 CLAUDE_CODE_AUTO_COMPACT_WINDOW，这样自动压缩就不会过早触发。",
     "failedSave": "保存失败",
     "profileSyncTitle": "CLI 配置文件自动同步",
@@ -5248,6 +5248,10 @@
     "iconUrlLabel": "图标 URL",
     "iconUrlHint": "可选。显示为此服务商图标的图片 URL。",
     "iconUrlInvalid": "无效的图标 URL。请使用 http(s):// 或 data:image/*;base64 URL。",
+    "dailyQuotaResetTimezoneLabel": "每日额度重置时区",
+    "dailyQuotaResetTimezoneHint": "可选。上游不返回 X-RateLimit-Reset 时使用的 IANA 时区。留空则只做短冷却。",
+    "dailyQuotaResetHourLabel": "每日额度重置小时",
+    "dailyQuotaResetHourHint": "上述时区的本地小时，0-23。留空表示不配置节点级时钟。",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",
@@ -6162,7 +6166,7 @@
       "freeaiapikey": "适用于 40+ 种模型的折扣 API 代理，包括 GPT-5、Claude Opus 4.6、Claude Sonnet 4.6、Qwen 3.5。在 https://freeaiapikey.com/dashboard 获取您的 API 密钥。Base URL: https://freeaiapikey.com/v1.",
       "freemodel-dev": "在 https://freemodel.dev 获取 $300 免费 API 额度 — 无需支付信息。兼容 OpenAI 的端点。提供 GPT-5.4 和 GPT-5.5 模型。",
       "friendliai": "无服务器推理免费层 — 无需信用卡",
-      "gemini": "永久免费：Gemini 2.5 Flash 每天 1,500 次请求 — 无需信用卡，在 aistudio.google.com 获取密钥",
+      "gemini": "__MISSING__:Free tier through Google AI Studio; per-model quotas are no longer published (check the quota page in AI Studio) — no credit card.",
       "gigachat": "使用 API 密钥连接 GigaChat (Sber)。",
       "gitlab": "用于公共 Code Suggestions API 的 GitLab 个人访问令牌。不使用 gitlab.com 时请配置自托管 Base URL。",
       "gitlawb-gmi": "从 Gitlawb Opengateway 控制面板获取您的 API 密钥。",
@@ -6171,7 +6175,7 @@
       "glm-cn": "使用 API 密钥连接 GLM Coding (China)。",
       "glmt": "预设 GLM 配置文件，具有更高的 Token 预算、启用思考功能以及更长的超时时间。",
       "getgoapi": "使用 API 密钥连接 GoAPI。",
-      "groq": "免费层：30 RPM / 14.4K RPD — 无需信用卡",
+      "groq": "__MISSING__:Free plan: per-model caps (200K tokens/day per chat model; see console.groq.com/docs/rate-limits for RPM/RPD) — no payment method on file.",
       "haiper": "在 haiper.ai/haiper-api 获取 API 密钥",
       "heroku": "使用 API 密钥连接 Heroku AI。",
       "hcnsec": "在 api.hcnsec.cn 获取 API 密钥",
@@ -6239,6 +6243,7 @@
       "requesty": "在 https://app.requesty.ai 创建 API 密钥，然后将其作为 Bearer 令牌粘贴在此处。兼容 OpenAI 的端点位于 https://router.requesty.ai/v1，并提供实时的 /v1/models 目录。",
       "runwayml": "Runway 视频生成基于任务。OmniRoute 提交文生视频或图生视频作业，轮询 /v1/tasks/[id]，并将完成的视频输出规范化为类似 OpenAI 的 /v1/videos/generations 响应。",
       "sambanova": "注册即送 $5 免费额度（30 天有效期），无需信用卡",
+      "seekai": "Create an API key at https://seekai.cc, then paste it here as a Bearer token. OpenAI-compatible base URL: https://seekai.cc/v1.",
       "sap": "模型发现使用 AI_API_URL 上的 /v2/lm/scenarios/foundation-models/models。Chat 请求使用 deploymentUrl/chat/completions 并需要 AI-Resource-Group。",
       "sarvam": "Sarvam AI 在 /v1 上兼容 OpenAI。OmniRoute 探测 /v1/models 并将聊天流量路由到 /v1/chat/completions。模型针对印度语言进行了优化。",
       "scaleway": "新账户可获 1M 免费 Token — 符合 EU/GDPR 规范（巴黎），Qwen3 235B & Llama 70B",
@@ -7812,6 +7817,14 @@
     "compressionDerivedMode": "模式：{mode}",
     "compressionAdaptiveOff": "自适应上下文预算：关闭（旧版自动触发）",
     "compressionAdaptiveTarget": "自适应 ({mode}, 策略: {policy}) — 目标 ≈ {target, number} 个 token (针对 {contextLimit, number} 个 token 的窗口)",
+    "compressionAdaptiveMode": "自适应上下文预算",
+    "compressionAdaptiveModeOff": "关闭（旧版自动触发）",
+    "compressionAdaptiveModeFloor": "下限（始终保证适配）",
+    "compressionAdaptiveModeReplace": "替换自动触发",
+    "compressionAdaptivePolicy": "预算策略",
+    "compressionAdaptivePolicyReserve": "预留输出",
+    "compressionAdaptivePolicyPercentage": "窗口百分比",
+    "compressionAdaptivePolicyAbsolute": "绝对 token 预算",
     "compressionOutputStylesDescription": "注入响应塑造指令，而无需重写服务商输出。自由组合。",
     "mcpAccessibilityDescription": "限制 MCP 工具输出的范围 (独立存储)。",
     "compressionStylesTileSummary": "{tokens, number} 个 token 已节省 · {runs, plural, one {# 次运行已应用样式} other {# 次运行已应用样式}}",
@@ -8340,7 +8353,15 @@
     "cliproxyapiHealth": "健康",
     "cliproxyapiPort": "端口",
     "qdrantHost": "主机",
-    "qdrantCollection": "集合"
+    "qdrantCollection": "集合",
+    "headroomProxyTitle": "__MISSING__:Headroom proxy",
+    "headroomProxyDesc": "__MISSING__:URL of the optional Headroom token-saver proxy. Empty uses HEADROOM_URL or http://localhost:8787.",
+    "headroomProxyUrl": "__MISSING__:Headroom URL",
+    "headroomProxyUrlHint": "__MISSING__:Loopback URLs can be started from this page. External URLs are probed only.",
+    "headroomProxySave": "__MISSING__:Save",
+    "headroomProxyStart": "__MISSING__:Start",
+    "headroomProxyStop": "__MISSING__:Stop",
+    "headroomProxyExternalHint": "__MISSING__:This URL is not loopback, so OmniRoute will not spawn the local CLI."
   },
   "contextRtk": {
     "title": "命令输出过滤引擎",
@@ -12961,7 +12982,7 @@
         "description": "提供者-模型同步后，从实时目录重新生成 ~/.codex/*.config.toml 配置文件。这绝不会更改活动或默认的 Codex 配置，并且默认关闭。"
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "提供者-模型同步后，从实时目录重新生成 ~/.claude/profiles/<name>/settings.json 配置文件。这绝不会更改活动或默认的 Claude 配置，并且默认关闭。"
+        "description": "提供者-模型同步后，从实时目录重新生成 ~/.claude/profiles/'<name>'/settings.json 配置文件。这绝不会更改活动或默认的 Claude 配置，并且默认关闭。"
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "禁用本地实例健康检查端点。"
@@ -13112,6 +13133,7 @@
     "segmentHint": "每个分段 = 一个免费池 · 池去重，真实统计（无虚高的速率限制上限）。",
     "boost": "一次性充值 $10 OpenRouter 即可每月多解锁约 ~{tokens}（50 → 1000 次请求/天）",
     "uncapped": "永久免费，无公开上限（受速率限制）— 实际可用，未计入总览：",
+    "gated": "__MISSING__:~{tokens}/mo more behind a regional identity check (e.g. mainland-China real-name verification) — real quota, not counted in the headline:",
     "tosRestricted": "{count, plural, one {# 个模型} other {# 个模型}}被标记为受 ToS 限制 — 由您决定",
     "provider": "提供者",
     "model": "模型",
@@ -13988,6 +14010,7 @@
     "drawerTimeline": "时间线",
     "drawerMetrics": "指标",
     "drawerResult": "结果",
+    "drawerMemory": "已使用的记忆",
     "drawerActions": "操作",
     "drawerClose": "关闭",
     "copyTrace": "复制追踪 JSON",
@@ -13997,7 +14020,11 @@
     "actionDone": "操作已应用",
     "actionFailed": "操作失败：{error}",
     "detailFailed": "加载详情失败：{error}",
-    "mirroredInA2A": "已在 A2A 中镜像"
+    "mirroredInA2A": "已在 A2A 中镜像",
+    "actionRepeat": "重复",
+    "repeatConfirm": "再次点击以确认",
+    "repeatDone": "已创建新的运行",
+    "repeatUnavailable": "原始输入不可用"
   },
   "cliproxyProviderExposure": {
     "title": "提供者暴露",

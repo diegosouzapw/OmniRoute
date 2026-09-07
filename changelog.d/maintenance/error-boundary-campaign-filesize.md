@@ -1,0 +1,1 @@
+- **chore(quality):** rebaseline the file-size caps the error-boundary campaign grew past (`open-sse/executors/codex.ts`, `open-sse/vendor/codex-chatgpt-web/bridge.ts`, both via [#12444](https://github.com/diegosouzapw/OmniRoute/pull/12444))

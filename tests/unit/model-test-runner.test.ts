@@ -314,7 +314,7 @@ test("resolveModelTestTimeoutMs defaults ordinary model checks to 30 seconds", (
 
 test("resolveModelTestTimeoutMs gives zai-web checks up to 60 seconds", () => {
   assert.equal(resolveModelTestTimeoutMs("zai-web", "glm-5.2", 30_000), 60_000);
-  assert.equal(resolveModelTestTimeoutMs("zai-web", "zai-web/GLM-5V-Turbo", 90_000), 90_000);
+  assert.equal(resolveModelTestTimeoutMs("zai-web", "zai-web/glm-5.3-flash", 90_000), 90_000);
 });
 
 // ---------------------------------------------------------------------------

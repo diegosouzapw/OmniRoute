@@ -74,12 +74,30 @@ export const DEFAULT_RESOURCE_PRESSURE_THRESHOLDS: ResourcePressureThresholds = 
   highRatio: 0.85,
   criticalRatio: 0.92,
   recoveryRatio: 0.75,
-  highPsiAvg10: 20,
-  criticalPsiAvg10: 40,
-  recoveryPsiAvg10: 10,
+  // Bumped 50% (20/40/10 -> 30/60/15): /proc/pressure/memory reflects
+  // HOST-wide PSI, not this process's own cgroup pressure (confirmed by
+  // comparing /proc/pressure/memory against /sys/fs/cgroup/memory.pressure
+  // from inside a running container -- the two differ). On a shared host
+  // running many unrelated workloads, host-wide memory contention from
+  // OTHER processes was tripping this guard even while OmniRoute's own
+  // usage stayed trivial. The ratio-based thresholds above stay untouched
+  // -- they're this process's own real OOM safety margin and unaffected by
+  // noisy neighbors.
+  highPsiAvg10: 30,
+  criticalPsiAvg10: 60,
+  recoveryPsiAvg10: 15,
   sustainedSamplesHigh: 2,
   sustainedSamplesCritical: 2,
-  sustainedSamplesRecovery: 3,
+  // PSI's own avg10 is a kernel-computed 10s rolling average, so it already
+  // lags real recovery by design -- requiring 3 consecutive samples *on top*
+  // of that (at the ~1s default sample cadence) stacked another ~2-3s of
+  // guard-still-shedding time after the process was actually fine again.
+  // isRecovered() already requires every tracked ratio/PSI value to clear
+  // the separate, more conservative recoveryRatio/recoveryPsiAvg10
+  // thresholds (not just dip under the critical ones), so a single clean
+  // sample is real signal, not noise -- the streak requirement was adding
+  // redundant delay on top of an already-conservative bar.
+  sustainedSamplesRecovery: 1,
   heapAbsoluteThresholdMb: null,
 };
 

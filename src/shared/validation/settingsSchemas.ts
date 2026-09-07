@@ -23,6 +23,7 @@ import {
   SPAWN_CAPABLE_PREFIXES,
   SPAWN_CAPABLE_PATTERN_ANCESTORS,
 } from "@/shared/constants/spawnCapablePrefixes";
+import { isHttpUrl } from "@/shared/validation/schemas/misc";
 
 const signatureCacheModeValues = ["enabled", "bypass", "bypass-strict"] as const;
 
@@ -493,6 +494,26 @@ export const updateSettingsSchema = z.object({
   // CLIProxyAPI connection settings
   cliproxyapi_fallback_enabled: z.boolean().optional(),
   cliproxyapi_url: z.string().url().max(500).optional(),
+  // #12306: external Headroom proxy URL. Empty = fall back to HEADROOM_URL / localhost:8787.
+  // Status/start already read this key; without the schema field PATCH strips it.
+  // Trim first so a padded URL matches the client (isValidHeadroomUrl trims)
+  // and whitespace-only becomes the empty fallback, not "Invalid URL".
+  // z.string().url() also accepts javascript:/data:/file:. probeProxyRunning
+  // interpolates this into fetch(`${url}/health`), so restrict to http(s).
+  headroomUrl: z
+    .string()
+    .trim()
+    .pipe(
+      z.union([
+        z.literal(""),
+        z
+          .string()
+          .url()
+          .max(500)
+          .refine((value) => isHttpUrl(value), "must be an http(s) URL"),
+      ])
+    )
+    .optional(),
   cliproxyapi_fallback_codes: z.string().max(200).optional(),
   // #7645: dedicated CLIProxyAPI credential. CLIProxyAPI requires its own
   // separately-configured `api-keys:` credential and rejects any other token

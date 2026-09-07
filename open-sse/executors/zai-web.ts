@@ -5,8 +5,9 @@
  * browser-issued CAPTCHA proof for chat completions. The browser transport is
  * the default; callers with a short-lived proof can use the direct HTTP path.
  *
- * Completions go to /api/v2/chat/completions; the older unversioned
- * /api/chat/completions path is stale and 404s model-independently (#8014).
+ * Completions go to /api/v2/chat/completions. Z.ai's CAPTCHA rejects true
+ * headless Chromium with F001, so the browser transport uses off-screen headed
+ * Chromium while retaining the shared browser pool.
  */
 import { createHash, randomUUID } from "node:crypto";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
@@ -67,6 +68,7 @@ export {
   parseZaiFrontendVersion,
   resolveZaiThinkingConfig,
   resolveZaiVlmConfig,
+  zaiUpstreamModelId,
 } from "./zai-web/protocol.ts";
 export type {
   ZaiModelCapabilities,
@@ -174,6 +176,7 @@ function buildZaiBrowserChatOptions(input: {
     userAgent: ZAI_USER_AGENT,
     locale: "en-US",
     timezone: "Asia/Seoul",
+    headless: false,
     inputSelector: "#chat-input",
     submitButtonSelector: '[aria-label="Send Message"] button:not([disabled])',
     submitButtonMode: "dom",
@@ -243,7 +246,7 @@ function resolveZaiRequest(
   const modelId = (bodyObj.model as string) || model || ZAI_DEFAULT_MODEL;
   if (imageUrls.length > 0 && !getZaiModelCapabilities(modelId).vision) {
     return fail(
-      `Z.ai model ${unprefixedModelId(modelId)} does not accept image input; use GLM-5V-Turbo.`
+      `Z.ai model ${unprefixedModelId(modelId)} does not accept image input; use GLM-5.3-Flash.`
     );
   }
 

@@ -2711,7 +2711,7 @@
     "ccOnboardingTitle": "settings.json cho việc khám phá mô hình qua gateway",
     "ccOnboardingCopy": "Sao chép",
     "ccOnboardingCopied": "Đã sao chép",
-    "ccOnboardingKeyPlaceholder": "<khóa API OmniRoute của bạn>",
+    "ccOnboardingKeyPlaceholder": "'<khóa API OmniRoute của bạn>'",
     "ccOnboardingWindowNote": "Claude Code mặc định coi mọi id mô hình mà nó không nhận ra là có cửa sổ ngữ cảnh 200K. Với mô hình có cửa sổ thực tế khác, hãy thêm CLAUDE_CODE_AUTO_COMPACT_WINDOW ngay bên dưới để việc nén ngữ cảnh tự động không kích hoạt quá sớm.",
     "failedSave": "Không thể lưu",
     "profileSyncTitle": "Tự động đồng bộ hồ sơ CLI",
@@ -5068,6 +5068,9 @@
     "importFromFileImporting": "Đang nhập…",
     "importFromFileImport": "Nhập {count} nhà cung cấp",
     "importFromFileResult": "Đã nhập {success} nhà cung cấp ({failed} không thành công)",
+    "importFromFileDownloadTemplate": "Tải mẫu CSV",
+    "importFromFileMoreErrors": "+{count} nữa",
+    "importFromFileSchemaHint": "Các cột CSV theo vị trí: provider, name, apiKey, baseUrl (tùy chọn), priority (tùy chọn). Cột provider phải là id nhà cung cấp được quản lý hiện có hoặc id nút tương thích OpenAI/Anthropic đã đăng ký — quá trình nhập này không tạo nút endpoint mới.",
     "adaptaTutorial": {
       "title": "How to connect Adapta Web",
       "introPrefix": "Adapta authenticates through Clerk. The token",
@@ -5249,6 +5252,10 @@
     "iconUrlLabel": "URL biểu tượng",
     "iconUrlHint": "Tùy chọn. URL hình ảnh được hiển thị làm biểu tượng của nhà cung cấp này.",
     "iconUrlInvalid": "URL biểu tượng không hợp lệ. Sử dụng http(s):// hoặc data:image/*;base64 URL.",
+    "dailyQuotaResetTimezoneLabel": "Daily quota reset timezone",
+    "dailyQuotaResetTimezoneHint": "Optional IANA timezone used when the upstream omits X-RateLimit-Reset. Leave empty to keep a short cooldown.",
+    "dailyQuotaResetHourLabel": "Daily quota reset hour",
+    "dailyQuotaResetHourHint": "Local hour 0-23 in the timezone above. Empty means no node-level clock.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",
@@ -6163,7 +6170,7 @@
       "freeaiapikey": "Proxy API giảm giá cho hơn 40 mô hình, gồm GPT-5, Claude Opus 4.6, Claude Sonnet 4.6 và Qwen 3.5. Lấy khóa API tại https://freeaiapikey.com/dashboard. URL cơ sở: https://freeaiapikey.com/v1.",
       "freemodel-dev": "Nhận 300 USD tín dụng API miễn phí tại https://freemodel.dev — không cần thông tin thanh toán. Endpoint tương thích OpenAI. Có GPT-5.4 và GPT-5.5.",
       "friendliai": "Gói miễn phí cho suy luận serverless — không cần thẻ tín dụng",
-      "gemini": "Miễn phí vĩnh viễn: 1.500 yêu cầu/ngày cho Gemini 2.5 Flash — không cần thẻ tín dụng, lấy khóa tại aistudio.google.com",
+      "gemini": "Gói miễn phí qua Google AI Studio; hạn mức theo từng mô hình không còn được công bố (xem trang hạn mức trong AI Studio) — không cần thẻ tín dụng.",
       "gigachat": "Kết nối GigaChat (Sber) bằng khóa API.",
       "gitlab": "Personal access token GitLab cho API Code Suggestions công khai. Cấu hình URL cơ sở tự lưu trữ khi không dùng gitlab.com.",
       "gitlawb-gmi": "Lấy khóa API của bạn từ Gitlawb Opengateway dashboard.",
@@ -6172,7 +6179,7 @@
       "glm-cn": "Kết nối GLM Coding (China) bằng khóa API.",
       "glmt": "Hồ sơ GLM đặt sẵn với ngân sách token cao hơn, bật thinking và thời gian chờ dài hơn.",
       "getgoapi": "Kết nối GoAPI bằng khóa API.",
-      "groq": "Gói miễn phí: 30 RPM / 14,4 nghìn RPD — không cần thẻ tín dụng",
+      "groq": "Gói miễn phí: giới hạn theo từng mô hình (200K token/ngày cho mỗi mô hình chat; xem console.groq.com/docs/rate-limits để biết RPM/RPD) — không cần đăng ký phương thức thanh toán.",
       "haiper": "Lấy khóa API tại haiper.ai/haiper-api",
       "heroku": "Kết nối Heroku AI bằng khóa API.",
       "hcnsec": "Lấy khóa API tại api.hcnsec.cn",
@@ -6240,6 +6247,7 @@
       "requesty": "Tạo khóa API tại https://app.requesty.ai, rồi dán dưới dạng token Bearer. Endpoint tương thích OpenAI tại https://router.requesty.ai/v1, kèm danh mục /v1/models trực tiếp.",
       "runwayml": "Tạo video Runway hoạt động theo tác vụ. OmniRoute gửi tác vụ chuyển văn bản hoặc hình ảnh thành video, thăm dò /v1/tasks/[id], rồi chuẩn hóa đầu ra hoàn tất về phản hồi /v1/videos/generations kiểu OpenAI.",
       "sambanova": "5 USD tín dụng miễn phí khi đăng ký (có hiệu lực 30 ngày), không cần thẻ tín dụng",
+      "seekai": "Create an API key at https://seekai.cc, then paste it here as a Bearer token. OpenAI-compatible base URL: https://seekai.cc/v1.",
       "sap": "Khám phá mô hình dùng /v2/lm/scenarios/foundation-models/models trên AI_API_URL. Yêu cầu trò chuyện dùng deploymentUrl/chat/completions và yêu cầu AI-Resource-Group.",
       "sarvam": "Sarvam AI tương thích OpenAI trên /v1. OmniRoute thăm dò /v1/models và định tuyến trò chuyện tới /v1/chat/completions. Các mô hình được tinh chỉnh cho ngôn ngữ Ấn Độ.",
       "scaleway": "1 triệu token miễn phí cho tài khoản mới — tuân thủ EU/GDPR (Paris), Qwen3 235B và Llama 70B",
@@ -7813,6 +7821,14 @@
     "compressionDerivedMode": "chế độ: {mode}",
     "compressionAdaptiveOff": "Ngân sách ngữ cảnh thích ứng: đã tắt (dùng ngưỡng tự động kích hoạt cũ)",
     "compressionAdaptiveTarget": "Thích ứng ({mode}, chính sách: {policy}) — mục tiêu ≈ {target, number} token (với cửa sổ {contextLimit, number} token)",
+    "compressionAdaptiveMode": "Ngân sách ngữ cảnh thích ứng",
+    "compressionAdaptiveModeOff": "Tắt (ngưỡng tự động kích hoạt cũ)",
+    "compressionAdaptiveModeFloor": "Sàn (luôn đảm bảo vừa cửa sổ)",
+    "compressionAdaptiveModeReplace": "Thay thế tự động kích hoạt",
+    "compressionAdaptivePolicy": "Chính sách ngân sách",
+    "compressionAdaptivePolicyReserve": "Dành chỗ cho đầu ra",
+    "compressionAdaptivePolicyPercentage": "Phần trăm cửa sổ",
+    "compressionAdaptivePolicyAbsolute": "Ngân sách token tuyệt đối",
     "compressionOutputStylesDescription": "Chèn hướng dẫn định hình phản hồi mà không viết lại đầu ra của nhà cung cấp. Có thể kết hợp tự do.",
     "mcpAccessibilityDescription": "Giới hạn phạm vi đầu ra của công cụ MCP (được lưu riêng).",
     "compressionStylesTileSummary": "Đã tiết kiệm {tokens, number} token · {runs, number} lượt áp dụng kiểu",
@@ -8341,7 +8357,15 @@
     "cliproxyapiHealth": "Sức Khỏe",
     "cliproxyapiPort": "Cổng",
     "qdrantHost": "Máy chủ",
-    "qdrantCollection": "Bộ Sưu Tập"
+    "qdrantCollection": "Bộ Sưu Tập",
+    "headroomProxyTitle": "Proxy Headroom",
+    "headroomProxyDesc": "URL của proxy tiết kiệm token Headroom (tùy chọn). Để trống thì dùng HEADROOM_URL hoặc http://localhost:8787.",
+    "headroomProxyUrl": "URL Headroom",
+    "headroomProxyUrlHint": "URL loopback có thể khởi chạy từ trang này. URL bên ngoài chỉ được kiểm tra.",
+    "headroomProxySave": "Lưu",
+    "headroomProxyStart": "Bắt đầu",
+    "headroomProxyStop": "Dừng",
+    "headroomProxyExternalHint": "URL này không phải loopback, nên OmniRoute sẽ không khởi chạy CLI cục bộ."
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12969,7 +12993,7 @@
         "description": "Sau khi đồng bộ mô hình nhà cung cấp, tạo lại các hồ sơ ~/.codex/*.config.toml từ danh mục trực tiếp. Không bao giờ thay đổi cấu hình Codex đang hoạt động hoặc cấu hình mặc định. Tính năng này mặc định tắt."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Sau khi đồng bộ mô hình nhà cung cấp, tạo lại các hồ sơ Claude Code tại ~/.claude/profiles/<name>/settings.json từ danh mục trực tiếp. Không bao giờ thay đổi cấu hình Claude đang hoạt động hoặc cấu hình mặc định. Tính năng này mặc định tắt."
+        "description": "Sau khi đồng bộ mô hình nhà cung cấp, tạo lại các hồ sơ Claude Code tại ~/.claude/profiles/'<name>'/settings.json từ danh mục trực tiếp. Không bao giờ thay đổi cấu hình Claude đang hoạt động hoặc cấu hình mặc định. Tính năng này mặc định tắt."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Tắt endpoint kiểm tra tình trạng của phiên bản cục bộ."
@@ -13120,6 +13144,7 @@
     "segmentHint": "Mỗi đoạn là một nhóm miễn phí · đã khử trùng lặp theo nhóm, đếm đúng thực tế (không thổi phồng trần giới hạn tốc độ).",
     "boost": "Mở khóa thêm khoảng {tokens}/tháng bằng một lần nạp $10 vào OpenRouter (50 → 1000 yêu cầu/ngày)",
     "uncapped": "Miễn phí vĩnh viễn, không công bố giới hạn (bị giới hạn tốc độ) — quyền truy cập thực, không tính vào tổng nổi bật:",
+    "gated": "~{tokens}/tháng nữa nằm sau bước xác minh danh tính theo khu vực (ví dụ: xác thực tên thật ở Trung Quốc đại lục) — hạn mức thật, không tính vào con số chính:",
     "tosRestricted": "{count, plural, one {# model} other {# models}} flagged as ToS-restricted — you decide",
     "provider": "Nhà cung cấp",
     "model": "Mô hình",
@@ -13996,6 +14021,7 @@
     "drawerTimeline": "Dòng thời gian",
     "drawerMetrics": "Chỉ số",
     "drawerResult": "Kết quả",
+    "drawerMemory": "Bộ nhớ đã sử dụng",
     "drawerActions": "Hành động",
     "drawerClose": "Đóng",
     "copyTrace": "Sao chép JSON theo dõi",
@@ -14005,7 +14031,11 @@
     "actionDone": "Đã áp dụng hành động",
     "actionFailed": "Hành động thất bại: {error}",
     "detailFailed": "Không tải được chi tiết: {error}",
-    "mirroredInA2A": "Được phản chiếu trong A2A"
+    "mirroredInA2A": "Được phản chiếu trong A2A",
+    "actionRepeat": "Lặp lại",
+    "repeatConfirm": "Nhấp lại để xác nhận",
+    "repeatDone": "Đã tạo lượt chạy mới",
+    "repeatUnavailable": "Không có dữ liệu đầu vào gốc"
   },
   "cliproxyProviderExposure": {
     "title": "Tiếp Xúc Nhà Cung Cấp",

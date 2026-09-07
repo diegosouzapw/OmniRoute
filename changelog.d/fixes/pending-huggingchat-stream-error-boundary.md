@@ -1,0 +1,1 @@
+- HuggingChat now turns HTTP 200 JSONL generation failures into a sanitized 502 before content, or a fixed public stream failure after partial output, so fallback and request persistence no longer record a false successful stop.

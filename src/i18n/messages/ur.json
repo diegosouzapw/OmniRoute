@@ -2710,7 +2710,7 @@
     "ccOnboardingTitle": "gateway ماڈل کی دریافت کے لیے settings.json",
     "ccOnboardingCopy": "کاپی",
     "ccOnboardingCopied": "نقل کیا گیا",
-    "ccOnboardingKeyPlaceholder": "<آپ کا OmniRoute API کلید>",
+    "ccOnboardingKeyPlaceholder": "'<آپ کا OmniRoute API کلید>'",
     "ccOnboardingWindowNote": "Claude Code کسی بھی ماڈل ID کے لیے 200K سیاق و سباق کی ونڈو فرض کرتا ہے جسے یہ نہیں پہچانتا۔ اگر کسی ماڈل کی حقیقی ونڈو مختلف ہو تو اس کے نیچے CLAUDE_CODE_AUTO_COMPACT_WINDOW شامل کریں تاکہ خودکار کمپیکشن بہت جلد نہ ہو۔",
     "failedSave": "محفوظ کرنے میں ناکامی",
     "profileSyncTitle": "CLI پروفائل کی خودکار مطابقت پذیری",
@@ -5248,6 +5248,10 @@
     "iconUrlLabel": "آئیکن URL",
     "iconUrlHint": "اختیاری۔ تصویر کا URL جو اس فراہم کنندہ کے آئیکن کے طور پر دکھایا گیا ہے۔",
     "iconUrlInvalid": "غلط آئیکن یو آر ایل۔ http(s):// یا data:image/*;base64 یو آر ایل استعمال کریں۔",
+    "dailyQuotaResetTimezoneLabel": "Daily quota reset timezone",
+    "dailyQuotaResetTimezoneHint": "Optional IANA timezone used when the upstream omits X-RateLimit-Reset. Leave empty to keep a short cooldown.",
+    "dailyQuotaResetHourLabel": "Daily quota reset hour",
+    "dailyQuotaResetHourHint": "Local hour 0-23 in the timezone above. Empty means no node-level clock.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",
@@ -6162,7 +6166,7 @@
       "freeaiapikey": "GPT-5، Claude Opus 4.6، Claude Sonnet 4.6، Qwen 3.5 سمیت 40+ ماڈلز کے لیے رعایتی API پراکسی۔ اپنی API کی https://freeaiapikey.com/dashboard پر حاصل کریں۔ بیس URL: https://freeaiapikey.com/v1۔",
       "freemodel-dev": "https://freemodel.dev پر $300 کے مفت API کریڈٹس حاصل کریں — ادائیگی کی معلومات درکار نہیں۔ OpenAI-compatible اینڈ پوائنٹ۔ GPT-5.4 اور GPT-5.5 ماڈلز دستیاب ہیں۔",
       "friendliai": "سرور لیس انفیرنس کے لیے مفت ٹیر — کسی کریڈٹ کارڈ کی ضرورت نہیں",
-      "gemini": "ہمیشہ کے لیے مفت: Gemini 2.5 Flash کے لیے 1,500 درخواستیں/دن — کوئی کریڈٹ کارڈ نہیں، aistudio.google.com پر کی حاصل کریں",
+      "gemini": "__MISSING__:Free tier through Google AI Studio; per-model quotas are no longer published (check the quota page in AI Studio) — no credit card.",
       "gigachat": "GigaChat (Sber) کو ایک API کی کے ساتھ منسلک کریں۔",
       "gitlab": "عوامی Code Suggestions API کے لیے GitLab پرسنل ایکسیس ٹوکن۔ جب gitlab.com استعمال نہ کر رہے ہوں تو ایک سیلف ہوسٹڈ بیس URL کنفیگر کریں۔",
       "gitlawb-gmi": "Gitlawb Opengateway ڈیش بورڈ سے اپنی API کی حاصل کریں۔",
@@ -6171,7 +6175,7 @@
       "glm-cn": "GLM Coding (China) کو ایک API کی کے ساتھ منسلک کریں۔",
       "glmt": "زیادہ ٹوکن بجٹ، تھنکنگ فعال، اور طویل ٹائم آؤٹ کے ساتھ پہلے سے سیٹ کردہ GLM پروفائل۔",
       "getgoapi": "GoAPI کو ایک API کی کے ساتھ منسلک کریں۔",
-      "groq": "مفت ٹیر: 30 RPM / 14.4K RPD — کوئی کریڈٹ کارڈ نہیں",
+      "groq": "__MISSING__:Free plan: per-model caps (200K tokens/day per chat model; see console.groq.com/docs/rate-limits for RPM/RPD) — no payment method on file.",
       "haiper": "haiper.ai/haiper-api پر API کی حاصل کریں",
       "heroku": "Heroku AI کو ایک API کی کے ساتھ منسلک کریں۔",
       "hcnsec": "api.hcnsec.cn پر API کی حاصل کریں",
@@ -6239,6 +6243,7 @@
       "requesty": "https://app.requesty.ai پر ایک API key بنائیں، پھر اسے یہاں Bearer ٹوکن کے طور پر پیسٹ کریں۔ OpenAI سے ہم آہنگ اینڈ پوائنٹ https://router.requesty.ai/v1 پر ہے، جس میں ایک لائیو /v1/models کیٹلاگ موجود ہے۔",
       "runwayml": "Runway ویڈیو جنریشن ٹاسک پر مبنی ہے۔ OmniRoute، text-to-video یا image-to-video جابز جمع کراتا ہے، /v1/tasks/[id] کو پول کرتا ہے، اور مکمل شدہ ویڈیو آؤٹ پٹس کو واپس OpenAI جیسے /v1/videos/generations ریسپانس میں نارملائز کرتا ہے۔",
       "sambanova": "سائن اپ کرنے پر $5 مفت کریڈٹس (30 دن کی میعاد)، کسی کریڈٹ کارڈ کی ضرورت نہیں ہے",
+      "seekai": "Create an API key at https://seekai.cc, then paste it here as a Bearer token. OpenAI-compatible base URL: https://seekai.cc/v1.",
       "sap": "ماڈل کی دریافت AI_API_URL پر /v2/lm/scenarios/foundation-models/models کا استعمال کرتی ہے۔ چیٹ کی درخواستیں deploymentUrl/chat/completions کا استعمال کرتی ہیں اور ان کے لیے AI-Resource-Group درکار ہوتا ہے۔",
       "sarvam": "Sarvam AI OpenAI کے ساتھ ہم آہنگ ہے /v1 پر۔ OmniRoute /v1/models کی جانچ کرتا ہے اور چیٹ ٹریفک کو /v1/chat/completions پر بھیجتا ہے۔ ماڈلز کو انڈک زبانوں کے لیے ترتیب دیا گیا ہے۔",
       "scaleway": "نئے اکاؤنٹس کے لیے 1M مفت ٹوکنز — EU/GDPR کے مطابق (پیرس)، Qwen3 235B اور Llama 70B",
@@ -7812,6 +7817,14 @@
     "compressionDerivedMode": "موڈ: {mode}",
     "compressionAdaptiveOff": "اڈیپٹیو کانٹیکسٹ بجٹ: بند (لیگیسی آٹو ٹریگر)",
     "compressionAdaptiveTarget": "اڈیپٹیو ({mode}, پالیسی: {policy}) — ہدف ≈ {target, number} ٹوکنز ({contextLimit, number}-ٹوکن ونڈو کے لیے)",
+    "compressionAdaptiveMode": "__MISSING__:Adaptive context budget",
+    "compressionAdaptiveModeOff": "__MISSING__:Off (legacy auto-trigger)",
+    "compressionAdaptiveModeFloor": "__MISSING__:Floor (always guarantee fit)",
+    "compressionAdaptiveModeReplace": "__MISSING__:Replace auto-trigger",
+    "compressionAdaptivePolicy": "__MISSING__:Budget policy",
+    "compressionAdaptivePolicyReserve": "__MISSING__:Reserve output",
+    "compressionAdaptivePolicyPercentage": "__MISSING__:Percentage of window",
+    "compressionAdaptivePolicyAbsolute": "__MISSING__:Absolute token budget",
     "compressionOutputStylesDescription": "پرووائیڈر آؤٹ پٹ کو دوبارہ لکھے بغیر رسپانس شیپنگ ہدایات شامل کریں۔ آزادانہ طور پر یکجا کریں۔",
     "mcpAccessibilityDescription": "MCP ٹول آؤٹ پٹس کو اسکوپ کرتا ہے (علیحدہ اسٹور)۔",
     "compressionStylesTileSummary": "{tokens, number} ٹوکنز محفوظ کیے گئے · {runs, plural, one {# رن اسٹائل کیا گیا} other {# رنز اسٹائل کیے گئے}}",
@@ -8340,7 +8353,15 @@
     "cliproxyapiHealth": "صحت",
     "cliproxyapiPort": "پورٹ",
     "qdrantHost": "میزبان",
-    "qdrantCollection": "اجتماع"
+    "qdrantCollection": "اجتماع",
+    "headroomProxyTitle": "__MISSING__:Headroom proxy",
+    "headroomProxyDesc": "__MISSING__:URL of the optional Headroom token-saver proxy. Empty uses HEADROOM_URL or http://localhost:8787.",
+    "headroomProxyUrl": "__MISSING__:Headroom URL",
+    "headroomProxyUrlHint": "__MISSING__:Loopback URLs can be started from this page. External URLs are probed only.",
+    "headroomProxySave": "__MISSING__:Save",
+    "headroomProxyStart": "__MISSING__:Start",
+    "headroomProxyStop": "__MISSING__:Stop",
+    "headroomProxyExternalHint": "__MISSING__:This URL is not loopback, so OmniRoute will not spawn the local CLI."
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12961,7 +12982,7 @@
         "description": "فراہم کنندہ-ماڈل سنکرونائزیشن کے بعد، لائیو کیٹلاگ سے ~/.codex/*.config.toml پروفائلز کو دوبارہ تیار کریں۔ یہ فعال یا پہلے سے طے شدہ Codex کنفیگریشن کو کبھی تبدیل نہیں کرتا ہے اور پہلے سے طے شدہ طور پر بند ہے۔"
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "فراہم کنندہ-ماڈل سنکرونائزیشن کے بعد، لائیو کیٹلاگ سے ~/.claude/profiles/<name>/settings.json پروفائلز کو دوبارہ تیار کریں۔ یہ فعال یا پہلے سے طے شدہ Claude کنفیگریشن کو کبھی تبدیل نہیں کرتا ہے اور پہلے سے طے شدہ طور پر بند ہے۔"
+        "description": "فراہم کنندہ-ماڈل سنکرونائزیشن کے بعد، لائیو کیٹلاگ سے ~/.claude/profiles/'<name>'/settings.json پروفائلز کو دوبارہ تیار کریں۔ یہ فعال یا پہلے سے طے شدہ Claude کنفیگریشن کو کبھی تبدیل نہیں کرتا ہے اور پہلے سے طے شدہ طور پر بند ہے۔"
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "مقامی انسٹنس ہیلتھ چیک اینڈ پوائنٹ کو غیر فعال کریں۔"
@@ -13112,6 +13133,7 @@
     "segmentHint": "ہر حصہ = ایک مفت پول · پول ڈی ڈپلیکیٹڈ، ایماندارانہ گنتی (بغیر کسی بڑھی ہوئی ریٹ لمٹ کی حد کے)۔",
     "boost": "ایک بار $10 OpenRouter ٹاپ اپ کے ساتھ مزید ~{tokens}/ماہ ان لاک کریں (50 → 1000 req/day)",
     "uncapped": "مستقل طور پر مفت، کوئی شائع شدہ حد نہیں (ریٹ لمیٹڈ) — حقیقی رسائی، ہیڈ لائن میں شمار نہیں:",
+    "gated": "__MISSING__:~{tokens}/mo more behind a regional identity check (e.g. mainland-China real-name verification) — real quota, not counted in the headline:",
     "tosRestricted": "{count, plural, one {# ماڈل} other {# ماڈلز}} ToS-محدود کے طور پر نشان زد — آپ فیصلہ کریں",
     "provider": "فراہم کنندہ",
     "model": "ماڈل",
@@ -13988,6 +14010,7 @@
     "drawerTimeline": "ٹائم لائن",
     "drawerMetrics": "میٹرکس",
     "drawerResult": "نتیجہ",
+    "drawerMemory": "استعمال شدہ میموری",
     "drawerActions": "اقدامات",
     "drawerClose": "بند کریں",
     "copyTrace": "ٹریس JSON کاپی کریں",
@@ -13997,7 +14020,11 @@
     "actionDone": "اقدام لاگو ہو گیا",
     "actionFailed": "اقدام ناکام: {error}",
     "detailFailed": "تفصیلات لوڈ کرنے میں ناکامی: {error}",
-    "mirroredInA2A": "A2A میں مطابقت شدہ"
+    "mirroredInA2A": "A2A میں مطابقت شدہ",
+    "actionRepeat": "دہرائیں",
+    "repeatConfirm": "تصدیق کے لیے دوبارہ کلک کریں",
+    "repeatDone": "نئی رن بنائی گئی",
+    "repeatUnavailable": "اصل ان پٹ دستیاب نہیں ہے"
   },
   "cliproxyProviderExposure": {
     "title": "پرووائیڈر ایکسپوژر",

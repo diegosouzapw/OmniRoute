@@ -8,7 +8,11 @@ import {
   resetAllPricing,
 } from "@/lib/db/settings";
 import { updatePricingSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import {
+  formatValidationMessage,
+  isValidationFailure,
+  validateBody,
+} from "@/shared/validation/helpers";
 
 /**
  * GET /api/pricing
@@ -59,7 +63,15 @@ export async function PATCH(request) {
   try {
     const validation = validateBody(updatePricingSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      // #12494: PricingTab reads this payload as `{ error?: string }` and feeds it
+      // straight to `new Error(...)`, so handing back the `{ message, details }`
+      // object rendered as "Falha ao salvar preços: [object Object]". Send a string.
+      // `formatValidationMessage` names the offending field ("field: reason") instead
+      // of the bare "Invalid request" constant, so the toast stays actionable (#10849).
+      return NextResponse.json(
+        { error: formatValidationMessage(validation.error) },
+        { status: 400 }
+      );
     }
     const body = validation.data;
 

@@ -28,11 +28,11 @@
       "apiKey": {
         "Accept": "text/event-stream",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.220 (external, sdk-cli)",
+        "User-Agent": "claude-cli/2.1.258 (external, sdk-cli)",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Lang": "js",
         "X-Stainless-OS": "MacOS",
-        "X-Stainless-Package-Version": "0.94.0",
+        "X-Stainless-Package-Version": "0.112.1",
         "X-Stainless-Retry-Count": "0",
         "X-Stainless-Runtime": "node",
         "X-Stainless-Runtime-Version": "v26.3.0",
@@ -47,11 +47,11 @@
       "nonStream": {
         "Accept": "application/json",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.220 (external, sdk-cli)",
+        "User-Agent": "claude-cli/2.1.258 (external, sdk-cli)",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Lang": "js",
         "X-Stainless-OS": "MacOS",
-        "X-Stainless-Package-Version": "0.94.0",
+        "X-Stainless-Package-Version": "0.112.1",
         "X-Stainless-Retry-Count": "0",
         "X-Stainless-Runtime": "node",
         "X-Stainless-Runtime-Version": "v26.3.0",
@@ -66,11 +66,11 @@
       "oauth": {
         "Accept": "text/event-stream",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.220 (external, sdk-cli)",
+        "User-Agent": "claude-cli/2.1.258 (external, sdk-cli)",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Lang": "js",
         "X-Stainless-OS": "MacOS",
-        "X-Stainless-Package-Version": "0.94.0",
+        "X-Stainless-Package-Version": "0.112.1",
         "X-Stainless-Retry-Count": "0",
         "X-Stainless-Runtime": "node",
         "X-Stainless-Runtime-Version": "v26.3.0",
@@ -989,13 +989,13 @@
         "Anthropic-Dangerous-Direct-Browser-Access": "true",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.220 (external, cli)",
+        "User-Agent": "claude-cli/2.1.258 (external, cli)",
         "X-App": "cli",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Helper-Method": "stream",
         "X-Stainless-Lang": "js",
         "X-Stainless-Os": "<OS>",
-        "X-Stainless-Package-Version": "0.94.0",
+        "X-Stainless-Package-Version": "0.112.1",
         "X-Stainless-Retry-Count": "0",
         "X-Stainless-Runtime": "node",
         "X-Stainless-Runtime-Version": "v26.3.0",
@@ -1007,13 +1007,13 @@
         "Anthropic-Dangerous-Direct-Browser-Access": "true",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.220 (external, cli)",
+        "User-Agent": "claude-cli/2.1.258 (external, cli)",
         "X-App": "cli",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Helper-Method": "stream",
         "X-Stainless-Lang": "js",
         "X-Stainless-Os": "<OS>",
-        "X-Stainless-Package-Version": "0.94.0",
+        "X-Stainless-Package-Version": "0.112.1",
         "X-Stainless-Retry-Count": "0",
         "X-Stainless-Runtime": "node",
         "X-Stainless-Runtime-Version": "v26.3.0",
@@ -1026,13 +1026,13 @@
         "Anthropic-Dangerous-Direct-Browser-Access": "true",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.220 (external, cli)",
+        "User-Agent": "claude-cli/2.1.258 (external, cli)",
         "X-App": "cli",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Helper-Method": "stream",
         "X-Stainless-Lang": "js",
         "X-Stainless-Os": "<OS>",
-        "X-Stainless-Package-Version": "0.94.0",
+        "X-Stainless-Package-Version": "0.112.1",
         "X-Stainless-Retry-Count": "0",
         "X-Stainless-Runtime": "node",
         "X-Stainless-Runtime-Version": "v26.3.0",
@@ -1217,7 +1217,7 @@
     }
   },
   "clova-studio": {
-    "format": "openai",
+    "format": "clova",
     "headers": {
       "apiKey": {
         "Accept": "text/event-stream",
@@ -1235,8 +1235,8 @@
       }
     },
     "url": {
-      "nonStream": "https://clovastudio.stream.ntruss.com/v1/openai/chat/completions",
-      "stream": "https://clovastudio.stream.ntruss.com/v1/openai/chat/completions"
+      "nonStream": "https://clovastudio.stream.ntruss.com/v3/chat-completions",
+      "stream": "https://clovastudio.stream.ntruss.com/v3/chat-completions"
     }
   },
   "codebuddy-cn": {
@@ -5286,6 +5286,29 @@
     "url": {
       "nonStream": "https://api.sea-lion.ai/v1/chat/completions",
       "stream": "https://api.sea-lion.ai/v1/chat/completions"
+    }
+  },
+  "seekai": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://seekai.cc/v1/chat/completions",
+      "stream": "https://seekai.cc/v1/chat/completions"
     }
   },
   "sensenova": {

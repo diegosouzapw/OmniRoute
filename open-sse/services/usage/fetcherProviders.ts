@@ -45,6 +45,8 @@ export const USAGE_FETCHER_PROVIDERS = [
   "qwen-cloud-token-plan",
   "nanogpt",
   "deepseek",
+  "moonshot",
+  "kimi",
   "opencode",
   "opencode-zen",
   "xiaomi-mimo",

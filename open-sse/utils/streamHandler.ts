@@ -1,6 +1,7 @@
 import { trackPendingRequest } from "@/lib/usageDb";
 import { STREAM_IDLE_TIMEOUT_MS } from "../config/constants.ts";
 import { FORMATS } from "../translator/formats.ts";
+import { buildErrorBody } from "./error.ts";
 import { PENDING_REQUEST_CLEARED_MARKER } from "./stream.ts";
 import { createCompletedResponsesToolHandoffWatcher } from "./responsesToolHandoff.ts";
 import { createStreamContentWatcher, type StreamContentWatcher } from "./streamReadiness.ts";
@@ -185,6 +186,10 @@ function getErrorStatusCode(error: unknown): number {
     }
   }
   return 502;
+}
+
+function getPublicErrorMessage(errorMsg: string, statusCode: number): string {
+  return buildErrorBody(statusCode, errorMsg).error.message;
 }
 
 function isDeadlineAbortReason(reason: unknown): reason is Error {
@@ -406,7 +411,7 @@ export function createStreamController({
       }
 
       if (error instanceof Error) {
-        logStream(`error: ${error.message}`);
+        logStream(`error: ${getPublicErrorMessage(error.message, getErrorStatusCode(error))}`);
         return;
       }
       logStream("error: unknown");
@@ -452,6 +457,7 @@ export function buildStreamErrorChunks(
   clientResponseFormat?: string | null
 ) {
   const statusMapping = getStreamErrorStatusMapping(statusCode);
+  const publicErrorMessage = getPublicErrorMessage(errorMsg, statusCode);
 
   if (isResponsesClientFormat(clientResponseFormat)) {
     const errorEvent = {
@@ -460,7 +466,7 @@ export function buildStreamErrorChunks(
         id: null,
         status: "failed",
         error: {
-          message: errorMsg,
+          message: publicErrorMessage,
           type: statusMapping.responses.type,
           code: statusMapping.responses.code,
         },
@@ -475,7 +481,7 @@ export function buildStreamErrorChunks(
       type: "error",
       error: {
         type: statusMapping.claude.type,
-        message: errorMsg,
+        message: publicErrorMessage,
       },
     };
 
@@ -498,7 +504,7 @@ export function buildStreamErrorChunks(
       },
     ],
     error: {
-      message: errorMsg,
+      message: publicErrorMessage,
       type: statusMapping.responses.type,
       code: statusMapping.responses.code,
     },
@@ -629,7 +635,11 @@ function resolveSilentCloseOutcome(input: {
   return null;
 }
 
-export function createDisconnectAwareStream(transformStream, streamController) {
+export function createDisconnectAwareStream(
+  transformStream,
+  streamController,
+  options: { highWaterMark?: number } = {}
+) {
   const reader = transformStream.readable.getReader();
   const writer = transformStream.writable.getWriter();
   const terminalDecoder = new TextDecoder();
@@ -696,6 +706,8 @@ export function createDisconnectAwareStream(transformStream, streamController) {
       streamController.markClientTerminalSeen?.();
     }
   };
+
+  const highWaterMark = options.highWaterMark ?? 16384;
 
   return new ReadableStream(
     {
@@ -818,7 +830,7 @@ export function createDisconnectAwareStream(transformStream, streamController) {
         await Promise.allSettled([reader.cancel(reason), writer.abort(reason)]);
       },
     },
-    { highWaterMark: 16384 }
+    { highWaterMark }
   );
 }
 
@@ -845,7 +857,7 @@ export function pipeWithDisconnect(
   providerResponse: Response,
   transformStream: TransformStream<Uint8Array, Uint8Array>,
   streamController: StreamController,
-  opts: { stallTimeoutMs?: number } = {}
+  opts: { stallTimeoutMs?: number; highWaterMark?: number } = {}
 ) {
   const stallTimeoutMs = opts.stallTimeoutMs ?? DEFAULT_STREAM_STALL_TIMEOUT_MS;
 
@@ -854,7 +866,8 @@ export function pipeWithDisconnect(
     const transformedBody = providerResponse.body.pipeThrough(transformStream);
     return createDisconnectAwareStream(
       { readable: transformedBody, writable: createNoopAbortWritable() },
-      streamController
+      streamController,
+      { highWaterMark: opts.highWaterMark }
     );
   }
 
@@ -956,6 +969,7 @@ export function pipeWithDisconnect(
     .pipeThrough(transformStream);
   return createDisconnectAwareStream(
     { readable: transformedBody, writable: createNoopAbortWritable() },
-    wrappedController
+    wrappedController,
+    { highWaterMark: opts.highWaterMark }
   );
 }

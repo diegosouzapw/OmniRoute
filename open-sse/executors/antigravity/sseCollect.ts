@@ -16,6 +16,11 @@ export type AntigravityCollectedStream = {
   remainingCredits: Array<{ creditType: string; creditAmount: string }> | null;
 };
 
+// Both run once per SSE data line / per text part (processAntigravitySSEPayload),
+// so the literals are hoisted to module constants.
+const TEXTUAL_TOOL_CALL_RE =
+  /^[\s\S]*?\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/;
+
 export function stripZeroWidth(value: unknown): unknown {
   if (typeof value === "string") {
     return stripObfuscationZeroWidth(value);
@@ -39,9 +44,7 @@ export function parseAntigravityTextualToolCall(
 ): { name: string; args: unknown } | null {
   if (typeof text !== "string") return null;
   const normalized = stripObfuscationZeroWidth(text);
-  const match = normalized.match(
-    /^[\s\S]*?\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/
-  );
+  const match = normalized.match(TEXTUAL_TOOL_CALL_RE);
   if (!match) return null;
   const name = match[1]?.trim();
   const rawArgs = match[2]?.trim();

@@ -2710,7 +2710,7 @@
     "ccOnboardingTitle": "settings.json untuk penemuan model gateway",
     "ccOnboardingCopy": "Salin",
     "ccOnboardingCopied": "Disalin",
-    "ccOnboardingKeyPlaceholder": "<kunci API OmniRoute Anda>",
+    "ccOnboardingKeyPlaceholder": "'<kunci API OmniRoute Anda>'",
     "ccOnboardingWindowNote": "Claude Code mengasumsikan jendela konteks 200K untuk setiap ID model yang tidak dikenalnya. Untuk model dengan jendela nyata yang berbeda, tambahkan CLAUDE_CODE_AUTO_COMPACT_WINDOW tepat di bawahnya agar kompak otomatis tidak aktif terlalu awal.",
     "failedSave": "Gagal menyimpan",
     "profileSyncTitle": "Sinkronisasi otomatis profil CLI",
@@ -5248,6 +5248,10 @@
     "iconUrlLabel": "URL Ikon",
     "iconUrlHint": "Opsional. URL gambar yang ditampilkan sebagai ikon penyedia ini.",
     "iconUrlInvalid": "URL ikon tidak valid. Gunakan URL http(s):// atau data:image/*;base64.",
+    "dailyQuotaResetTimezoneLabel": "Daily quota reset timezone",
+    "dailyQuotaResetTimezoneHint": "Optional IANA timezone used when the upstream omits X-RateLimit-Reset. Leave empty to keep a short cooldown.",
+    "dailyQuotaResetHourLabel": "Daily quota reset hour",
+    "dailyQuotaResetHourHint": "Local hour 0-23 in the timezone above. Empty means no node-level clock.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",
@@ -6162,7 +6166,7 @@
       "freeaiapikey": "Proksi API berdiskon untuk 40+ model termasuk GPT-5, Claude Opus 4.6, Claude Sonnet 4.6, Qwen 3.5. Dapatkan kunci API Anda di https://freeaiapikey.com/dashboard. URL Dasar: https://freeaiapikey.com/v1.",
       "freemodel-dev": "Dapatkan kredit API gratis senilai $300 di https://freemodel.dev — tidak memerlukan informasi pembayaran. Endpoint yang kompatibel dengan OpenAI. Model GPT-5.4 dan GPT-5.5 tersedia.",
       "friendliai": "Tingkat gratis untuk inferensi serverless — tidak memerlukan kartu kredit",
-      "gemini": "Gratis selamanya: 1.500 req/hari untuk Gemini 2.5 Flash — tanpa kartu kredit, dapatkan kunci di aistudio.google.com",
+      "gemini": "__MISSING__:Free tier through Google AI Studio; per-model quotas are no longer published (check the quota page in AI Studio) — no credit card.",
       "gigachat": "Hubungkan GigaChat (Sber) dengan kunci API.",
       "gitlab": "Token akses pribadi GitLab untuk API Code Suggestions publik. Konfigurasikan URL dasar yang di-host sendiri saat tidak menggunakan gitlab.com.",
       "gitlawb-gmi": "Dapatkan kunci API Anda dari dasbor Gitlawb Opengateway.",
@@ -6171,7 +6175,7 @@
       "glm-cn": "Hubungkan GLM Coding (China) dengan kunci API.",
       "glmt": "Profil GLM prasetel dengan anggaran token yang lebih tinggi, proses berpikir diaktifkan, dan batas waktu yang lebih lama.",
       "getgoapi": "Hubungkan GoAPI dengan kunci API.",
-      "groq": "Tingkat gratis: 30 RPM / 14,4K RPD — tanpa kartu kredit",
+      "groq": "__MISSING__:Free plan: per-model caps (200K tokens/day per chat model; see console.groq.com/docs/rate-limits for RPM/RPD) — no payment method on file.",
       "haiper": "Dapatkan kunci API di haiper.ai/haiper-api",
       "heroku": "Hubungkan Heroku AI dengan kunci API.",
       "hcnsec": "Dapatkan kunci API di api.hcnsec.cn",
@@ -6239,6 +6243,7 @@
       "requesty": "Buat kunci API di https://app.requesty.ai, lalu tempel di sini sebagai token Bearer. Endpoint yang kompatibel dengan OpenAI di https://router.requesty.ai/v1, dengan katalog /v1/models langsung.",
       "runwayml": "Pembuatan video Runway berbasis tugas. OmniRoute mengirimkan pekerjaan text-to-video atau image-to-video, melakukan polling pada /v1/tasks/[id], dan menormalisasi output video yang selesai kembali ke respons /v1/videos/generations yang mirip OpenAI.",
       "sambanova": "Kredit gratis $5 saat pendaftaran (validitas 30 hari), tidak memerlukan kartu kredit",
+      "seekai": "Create an API key at https://seekai.cc, then paste it here as a Bearer token. OpenAI-compatible base URL: https://seekai.cc/v1.",
       "sap": "Penemuan model menggunakan /v2/lm/scenarios/foundation-models/models pada AI_API_URL. Permintaan chat menggunakan deploymentUrl/chat/completions dan memerlukan AI-Resource-Group.",
       "sarvam": "Sarvam AI kompatibel dengan OpenAI di /v1. OmniRoute memeriksa /v1/models dan mengarahkan lalu lintas obrolan ke /v1/chat/completions. Model disesuaikan untuk bahasa-bahasa India.",
       "scaleway": "1 juta token gratis untuk akun baru — patuh EU/GDPR (Paris), Qwen3 235B & Llama 70B",
@@ -7812,6 +7817,14 @@
     "compressionDerivedMode": "mode: {mode}",
     "compressionAdaptiveOff": "Anggaran konteks adaptif: nonaktif (pemicu otomatis warisan)",
     "compressionAdaptiveTarget": "Adaptif ({mode}, kebijakan: {policy}) — target ≈ {target, number} token (untuk jendela {contextLimit, number}-token)",
+    "compressionAdaptiveMode": "__MISSING__:Adaptive context budget",
+    "compressionAdaptiveModeOff": "__MISSING__:Off (legacy auto-trigger)",
+    "compressionAdaptiveModeFloor": "__MISSING__:Floor (always guarantee fit)",
+    "compressionAdaptiveModeReplace": "__MISSING__:Replace auto-trigger",
+    "compressionAdaptivePolicy": "__MISSING__:Budget policy",
+    "compressionAdaptivePolicyReserve": "__MISSING__:Reserve output",
+    "compressionAdaptivePolicyPercentage": "__MISSING__:Percentage of window",
+    "compressionAdaptivePolicyAbsolute": "__MISSING__:Absolute token budget",
     "compressionOutputStylesDescription": "Suntikkan instruksi pembentukan respons tanpa menulis ulang output penyedia. Kombinasikan secara bebas.",
     "mcpAccessibilityDescription": "Membatasi cakupan output alat MCP (penyimpanan terpisah).",
     "compressionStylesTileSummary": "{tokens, number} token disimpan · {runs, plural, one {# eksekusi digayakan} other {# eksekusi digayakan}}",
@@ -8340,7 +8353,15 @@
     "cliproxyapiHealth": "Kesehatan",
     "cliproxyapiPort": "Port",
     "qdrantHost": "Host",
-    "qdrantCollection": "Koleksi"
+    "qdrantCollection": "Koleksi",
+    "headroomProxyTitle": "__MISSING__:Headroom proxy",
+    "headroomProxyDesc": "__MISSING__:URL of the optional Headroom token-saver proxy. Empty uses HEADROOM_URL or http://localhost:8787.",
+    "headroomProxyUrl": "__MISSING__:Headroom URL",
+    "headroomProxyUrlHint": "__MISSING__:Loopback URLs can be started from this page. External URLs are probed only.",
+    "headroomProxySave": "__MISSING__:Save",
+    "headroomProxyStart": "__MISSING__:Start",
+    "headroomProxyStop": "__MISSING__:Stop",
+    "headroomProxyExternalHint": "__MISSING__:This URL is not loopback, so OmniRoute will not spawn the local CLI."
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12961,7 +12982,7 @@
         "description": "Setelah sinkronisasi model penyedia, buat ulang profil ~/.codex/*.config.toml dari katalog langsung. Ini tidak pernah mengubah konfigurasi Codex yang aktif atau default dan nonaktif secara default."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Setelah sinkronisasi model penyedia, buat ulang profil ~/.claude/profiles/<name>/settings.json dari katalog langsung. Ini tidak pernah mengubah konfigurasi Claude yang aktif atau default dan nonaktif secara default."
+        "description": "Setelah sinkronisasi model penyedia, buat ulang profil ~/.claude/profiles/'<name>'/settings.json dari katalog langsung. Ini tidak pernah mengubah konfigurasi Claude yang aktif atau default dan nonaktif secara default."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Nonaktifkan titik akhir health-check instans lokal."
@@ -13112,6 +13133,7 @@
     "segmentHint": "Setiap segmen = satu pool gratis · deduplikasi pool, penghitungan jujur (tanpa batas rate-limit yang digelembungkan).",
     "boost": "Buka ~{tokens} tambahan/bln dengan top-up OpenRouter $10 satu kali (50 → 1000 req/hari)",
     "uncapped": "Gratis permanen, tanpa batas yang dipublikasikan (dibatasi rate-limit) — akses nyata, tidak dihitung dalam tajuk utama:",
+    "gated": "__MISSING__:~{tokens}/mo more behind a regional identity check (e.g. mainland-China real-name verification) — real quota, not counted in the headline:",
     "tosRestricted": "{count, plural, one {# model} other {# model}} ditandai sebagai dibatasi ToS — Anda yang menentukan",
     "provider": "Penyedia",
     "model": "Model",
@@ -13988,6 +14010,7 @@
     "drawerTimeline": "Linimasa",
     "drawerMetrics": "Metrik",
     "drawerResult": "Hasil",
+    "drawerMemory": "Memori yang digunakan",
     "drawerActions": "Tindakan",
     "drawerClose": "Tutup",
     "copyTrace": "Salin trace JSON",
@@ -13997,7 +14020,11 @@
     "actionDone": "Tindakan diterapkan",
     "actionFailed": "Tindakan gagal: {error}",
     "detailFailed": "Gagal memuat detail: {error}",
-    "mirroredInA2A": "Dicerminkan di A2A"
+    "mirroredInA2A": "Dicerminkan di A2A",
+    "actionRepeat": "Ulangi",
+    "repeatConfirm": "Klik lagi untuk konfirmasi",
+    "repeatDone": "Proses baru dibuat",
+    "repeatUnavailable": "Input asli tidak tersedia"
   },
   "cliproxyProviderExposure": {
     "title": "Paparan Penyedia",

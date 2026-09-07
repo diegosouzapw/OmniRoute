@@ -179,7 +179,8 @@ test("shared set size includes live REGISTRY and retired Designer + Felo + Qwen 
   // alias "gembiz" to the REGISTRY walk (406 → 408).
   // 2026-09-02: a keyless provider was removed at its operator's request, taking its id and
   // alias out of the REGISTRY walk (408 → 406).
-  assert.equal(RESERVED_PREFIX_COUNT, 406);
+  // #11786: SeekAi adds id "seekai" + alias "ska" (406 → 408).
+  assert.equal(RESERVED_PREFIX_COUNT, 408);
 });
 
 test("isReservedProviderPrefix rejects non-string input", () => {

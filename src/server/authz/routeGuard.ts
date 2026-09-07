@@ -140,6 +140,42 @@ export const ALWAYS_PROTECTED_API_PATHS: ReadonlyArray<string> = [
   // which is false under requireLogin=false. (GHSA-v7g9-7f55-5g46)
   "/api/settings/export-json",
   "/api/settings/import-json",
+  // Bulk log export: call_logs carries prompts and responses, proxy_logs carries
+  // client/public IPs, and the handler only calls requireManagementAuth() with no
+  // alwaysRequireAuth. Found sweeping the GHSA-5926-2w35-7h4q class.
+  "/api/logs/export",
+  // Codex CLI profile store. GET leaks the operator's account label; PUT writes
+  // attacker-supplied auth.json + config.toml straight into the operator's Codex
+  // CLI config (ensureCliConfigWriteAllowed() only checks CLI_ALLOW_CONFIG_WRITES,
+  // which defaults to true), so a POST+PUT pair repoints the CLI at attacker
+  // credentials or an attacker base URL. Found sweeping the same class.
+  "/api/cli-tools/codex-profiles",
+  // Writes into ~/.gemini/antigravity-cli/antigravity-oauth-token. Same family
+  // as the {claude,codex}-auth/apply-local pattern below; a plain path because
+  // it carries no dynamic segment.
+  "/api/providers/agy-auth/apply-local",
+];
+
+/**
+ * ALWAYS_PROTECTED routes whose path carries a dynamic segment, so the plain
+ * exact/prefix list above cannot express them: a `/api/providers/` prefix would
+ * hard-gate the entire provider surface and break every keyless local-first
+ * install. Mirrors LOCAL_ONLY_API_PATTERNS.
+ *
+ * The Claude/Codex OAuth export routes return the connection's raw
+ * access_token / refresh_token (and the Codex id_token) and gate only on
+ * `requireManagementAuth(request)` with no `alwaysRequireAuth`, which fails open
+ * under requireLogin=false (GHSA-5926-2w35-7h4q). They are the siblings that
+ * both GHSA-mghq-58h3-qcqj and GHSA-v7g9-7f55-5g46 missed.
+ */
+export const ALWAYS_PROTECTED_API_PATTERNS: ReadonlyArray<RegExp> = [
+  // `export` hands the caller the raw token; `apply-local` writes it into the
+  // host's CLI config (~/.codex/auth.json and the Claude equivalent). The second
+  // does not disclose the credential, but "anonymous" is still the wrong
+  // audience for it. ALWAYS_PROTECTED rather than LOCAL_ONLY on purpose: it
+  // closes the anonymous hole without breaking an operator driving the dashboard
+  // through a tunnel.
+  /^\/api\/providers\/[^/]+\/(claude|codex)-auth\/(export|apply-local)\/?$/,
 ];
 
 export function isLoopbackHost(hostHeader: string | null): boolean {
@@ -295,5 +331,8 @@ export function isLocalOnlyBypassableByManageScope(path: string): boolean {
 }
 
 export function isAlwaysProtectedPath(path: string): boolean {
-  return ALWAYS_PROTECTED_API_PATHS.some((p) => path === p || path.startsWith(p));
+  return (
+    ALWAYS_PROTECTED_API_PATHS.some((p) => path === p || path.startsWith(p)) ||
+    ALWAYS_PROTECTED_API_PATTERNS.some((re) => re.test(path))
+  );
 }

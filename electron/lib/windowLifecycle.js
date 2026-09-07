@@ -1,11 +1,11 @@
 /** Pure helpers for deciding and driving the Electron dashboard window lifecycle. */
 
-function shouldStartHidden({ argv = [], loginItemSettings = {} } = {}) {
-  return (
-    argv.includes("--hidden") ||
-    argv.includes("--minimized") ||
-    loginItemSettings.wasOpenedAsHidden === true
-  );
+// Electron 44 removed `openAsHidden`/`wasOpenedAsHidden` from
+// `app.set/getLoginItemSettings()` (they only ever worked on macOS 12 and below, which
+// Electron 44 no longer supports). The hidden-autostart contract is now carried solely by
+// the `--hidden` argument registered with the login item.
+function shouldStartHidden({ argv = [] } = {}) {
+  return argv.includes("--hidden") || argv.includes("--minimized");
 }
 
 function showOrCreateWindow({ appReady, getWindow, createWindow }) {

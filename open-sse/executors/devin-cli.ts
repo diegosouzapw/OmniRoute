@@ -148,13 +148,7 @@ export class DevinCliExecutor extends BaseExecutor {
     const sseStream = new ReadableStream<Uint8Array>({
       start(controller) {
         const enc = new TextEncoder();
-        const emit = (data: string) => {
-          try {
-            controller.enqueue(enc.encode(data));
-          } catch (e) {
-            log?.debug?.("DEVIN", `Failed to emit: ${e}`);
-          }
-        };
+        const emit = (data: string) => controller.enqueue(enc.encode(data));
 
         const env: NodeJS.ProcessEnv = { ...process.env };
         if (apiKey) env.WINDSURF_API_KEY = apiKey;

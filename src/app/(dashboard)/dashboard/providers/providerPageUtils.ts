@@ -421,6 +421,27 @@ function getFilterableModelsForEntry(
   return [...staticModels, ...liveModels];
 }
 
+/**
+ * Dashboard-card search identity for an imported connection (#12108).
+ * Only `name` and `providerSpecificData.baseUrl` — those are the two
+ * fields the issue asked for. id/tag/email stay on the detail-page
+ * haystack (`matchesAccountQuery`); surfacing a provider card from an
+ * account email would mix account-picker UX into the catalog filter.
+ */
+export type ProviderSearchConnection = {
+  provider?: string | null;
+  name?: string | null;
+  providerSpecificData?: Record<string, unknown> | null;
+};
+
+function connectionSearchHaystacks(conn: ProviderSearchConnection): string[] {
+  const baseUrl = conn.providerSpecificData?.baseUrl;
+  return [
+    typeof conn.name === "string" ? conn.name : "",
+    typeof baseUrl === "string" ? baseUrl : "",
+  ];
+}
+
 export function filterConfiguredProviderEntries<TProvider>(
   entries: ProviderEntry<TProvider>[],
   showConfiguredOnly: boolean,
@@ -428,7 +449,8 @@ export function filterConfiguredProviderEntries<TProvider>(
   showFreeOnly?: boolean,
   modelSearchQuery?: string,
   serviceKindFilter?: string | null,
-  liveModelsByProviderId?: LiveModelsByProviderId
+  liveModelsByProviderId?: LiveModelsByProviderId,
+  connections?: ProviderSearchConnection[]
 ): ProviderEntry<TProvider>[] {
   let filtered = entries;
 
@@ -461,9 +483,26 @@ export function filterConfiguredProviderEntries<TProvider>(
   if (searchQuery && searchQuery.trim()) {
     filtered = filtered.filter((entry) => {
       const provider = entry.provider as Record<string, unknown>;
-      return (
+      if (
         matchesAnyToken(String(provider.name || ""), searchQuery) ||
         matchesAnyToken(entry.providerId, searchQuery)
+      ) {
+        return true;
+      }
+      // #12108: imported connections live under the canonical provider card.
+      // Match their operator-visible name / baseUrl so "Grade-S-Node" or an
+      // IP in the search box surfaces the OpenAI card instead of vanishing.
+      // Same matcher as provider.name / providerId above (matchesAnyToken:
+      // full-string first, then whitespace-token OR). The detail page uses
+      // a single-substring haystack — that is a different surface, not a
+      // bug in this filter.
+      if (!connections || connections.length === 0) return false;
+      return connections.some(
+        (conn) =>
+          connectionBelongsToProviderPage(conn.provider, entry.providerId) &&
+          connectionSearchHaystacks(conn).some((haystack) =>
+            matchesAnyToken(haystack, searchQuery)
+          )
       );
     });
   }

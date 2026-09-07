@@ -1,0 +1,1 @@
+- **fix(providers):** reclassify Cerebras as a one-time $5 signup credit (payment method required, 30-day validity), not a recurring no-card 1M tokens/day trial ([#11773](https://github.com/diegosouzapw/OmniRoute/issues/11773))

@@ -1,4 +1,4 @@
-import type { TierAssignment } from "./tierTypes";
+import { getPricingForModel as getDefaultPricingForModel } from "@/shared/constants/pricing";
 import type { TierConfig } from "./tierTypes";
 
 export interface ModelPricing {
@@ -11,6 +11,7 @@ export interface ModelPricing {
 export const KNOWN_MODEL_PRICING: Record<string, ModelPricing> = {
   "gpt-4o": { inputCostPer1M: 2.5, outputCostPer1M: 10.0, isFree: false },
   "gpt-4o-mini": { inputCostPer1M: 0.15, outputCostPer1M: 0.6, isFree: false },
+  "claude-fable-5-1": { inputCostPer1M: 10.0, outputCostPer1M: 50.0, isFree: false },
   "claude-fable-5": { inputCostPer1M: 15.0, outputCostPer1M: 75.0, isFree: false },
   "claude-opus-5": { inputCostPer1M: 5.0, outputCostPer1M: 25.0, isFree: false },
   "claude-opus-4-8": { inputCostPer1M: 15.0, outputCostPer1M: 75.0, isFree: false },
@@ -37,13 +38,25 @@ export const KNOWN_MODEL_PRICING: Record<string, ModelPricing> = {
 };
 
 export function getModelPricing(provider: string, model: string): ModelPricing {
-  const directKey = model.toLowerCase();
-  if (KNOWN_MODEL_PRICING[directKey]) {
-    return KNOWN_MODEL_PRICING[directKey];
-  }
   const providerKey = `${provider}/${model}`.toLowerCase();
   if (KNOWN_MODEL_PRICING[providerKey]) {
     return KNOWN_MODEL_PRICING[providerKey];
+  }
+  const providerPricing = getDefaultPricingForModel(provider, model);
+  if (providerPricing) {
+    const inputCostPer1M = Number(providerPricing.input);
+    const outputCostPer1M = Number(providerPricing.output);
+    if (Number.isFinite(inputCostPer1M) && Number.isFinite(outputCostPer1M)) {
+      return {
+        inputCostPer1M,
+        outputCostPer1M,
+        isFree: inputCostPer1M === 0 && outputCostPer1M === 0,
+      };
+    }
+  }
+  const directKey = model.toLowerCase();
+  if (KNOWN_MODEL_PRICING[directKey]) {
+    return KNOWN_MODEL_PRICING[directKey];
   }
   return { inputCostPer1M: 5.0, outputCostPer1M: 15.0, isFree: false };
 }

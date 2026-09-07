@@ -1,0 +1,1 @@
+- **Z.ai Web:** HTTP 200 streams carrying an upstream error now terminate with a structured failure instead of assistant text plus a normal stop, preserving partial output while allowing pre-content combo fallback.

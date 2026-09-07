@@ -1,0 +1,1 @@
+- **fix(dashboard):** The Combos page usage guide now reads its dismissal through `useSyncExternalStore` instead of correcting SSR state inside an effect, removing an extra commit of the page tree on every load (and the `react-hooks/set-state-in-effect` error it raised).

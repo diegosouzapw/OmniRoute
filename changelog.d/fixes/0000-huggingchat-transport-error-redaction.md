@@ -1,0 +1,1 @@
+- Sanitize HuggingChat conversation-creation and message-send transport failures before they reach client error bodies or provider logs.

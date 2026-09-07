@@ -16,6 +16,7 @@ process.env.DATA_DIR = testDataDir;
 const coreDb = await import("../../src/lib/db/core.ts");
 const { getCallLogById } = await import("../../src/lib/usage/callLogs.ts");
 const { persistAttemptLogs } = await import("../../open-sse/handlers/chatCore/attemptLogging.ts");
+const { getAuditLog } = await import("../../src/lib/compliance/index.ts");
 
 type CodexRotationEnvelope = {
   _omniroute?: {
@@ -135,4 +136,62 @@ test("connectionId falls back to credentials.connectionId when null, and error i
   assert.equal(row.connectionId, "cred-conn");
   assert.equal(row.status, 502);
   assert.match(String(row.error ?? ""), /upstream boom/);
+});
+
+function duplicateHeartbeatBody() {
+  return {
+    choices: [
+      {
+        message: {
+          tool_calls: [
+            { function: { name: "heartbeat_respond", arguments: "{}" } },
+            { function: { name: "heartbeat_respond", arguments: "{}" } },
+          ],
+        },
+      },
+    ],
+  };
+}
+
+test("duplicate tool_calls in the assembled body writes provider.spec_violation audit", () => {
+  persistAttemptLogs(
+    { status: 200, responseBody: duplicateHeartbeatBody() },
+    baseCtx({ pendingRequestId: "attempt-spec-violation-1", skillRequestId: "skill-spec-1" })
+  );
+  // logAuditEvent is synchronous; do not wait on the fire-and-forget saveCallLog.
+  const rows = getAuditLog({ action: "provider.spec_violation", requestId: "skill-spec-1" });
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0]?.resourceType, "provider_spec_violation");
+  const details = rows[0]?.details;
+  assert.ok(details && typeof details === "object");
+  assert.equal(
+    (details as { violation?: string }).violation,
+    'duplicate tool_calls entry for "heartbeat_respond"'
+  );
+});
+
+test("unique tool_calls do not write provider.spec_violation audit", () => {
+  persistAttemptLogs(
+    {
+      status: 200,
+      responseBody: {
+        choices: [
+          {
+            message: {
+              tool_calls: [
+                { function: { name: "heartbeat_respond", arguments: "{}" } },
+                { function: { name: "other_tool", arguments: "{}" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    baseCtx({ pendingRequestId: "attempt-spec-clean-1", skillRequestId: "skill-spec-clean-1" })
+  );
+  const rows = getAuditLog({
+    action: "provider.spec_violation",
+    requestId: "skill-spec-clean-1",
+  });
+  assert.equal(rows.length, 0);
 });

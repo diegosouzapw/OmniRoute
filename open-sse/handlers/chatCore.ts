@@ -5,7 +5,8 @@ import {
 import { injectMemoryAndSkills } from "./chatCore/memorySkillsInjection.ts";
 import { resolveChatCoreRequestSetup } from "./chatCore/requestSetup.ts";
 import { normalizeOpenAICompatibleTools } from "./chatCore/openAICompatibleTools.ts";
-import { buildFailureUsageRecord } from "./chatCore/failureUsage.ts";
+import { buildFailureUsageRecord, projectFailureUsageErrorCode } from "./chatCore/failureUsage.ts";
+import { createTranslationFailureResult } from "./chatCore/translationFailure.ts";
 import { estimateFinalInputTokens } from "./chatCore/contextEstimation.ts";
 import {
   extractSystemRoleMessages,
@@ -361,6 +362,10 @@ import { getCacheControlSettings } from "@/lib/cacheControlSettings";
 import { guardrailRegistry } from "@/lib/guardrails";
 import type { VideoBridgeLogRedactionEntry } from "@/lib/guardrails/videoBridge";
 import {
+  logClientRawRequestRedacted,
+  redactPendingBody,
+} from "@/lib/guardrails/videoBridgeSnapshotRedaction";
+import {
   shouldPreserveCacheControl,
   resolveConnectionCacheOverride,
 } from "../utils/cacheControlPolicy.ts";
@@ -380,6 +385,7 @@ import { sanitizeOpenAITool } from "../services/toolSchemaSanitizer.ts";
 import { isCompactResponsesEndpoint } from "../executors/codex.ts";
 import { persistCodexChildQuotaResponse } from "../services/codexAccount/index.ts";
 import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
+import { invalidateGenericQuotaCacheOnStatus } from "../services/genericQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractToolSchemaMap } from "../translator/response/openai-responses/toolSchemas.ts";
 import { unwrapClineNonStreamingEnvelope } from "./chatCore/clineResponseEnvelope.ts";
@@ -927,7 +933,7 @@ export async function handleChatCore({
   const pendingRequestId =
     trackPendingRequest(model, provider, pendingConnId, true, {
       clientEndpoint: clientRawRequest?.endpoint || "/v1/chat/completions",
-      clientRequest: clientRawRequest?.body ?? body,
+      clientRequest: redactPendingBody(clientRawRequest?.body ?? body, videoBridgeObserved),
       providerRequest: initialProviderRequest,
       stage: "registered",
       correlationId,
@@ -1091,6 +1097,10 @@ export async function handleChatCore({
       // #12150 P1b surface 1: undefined for every non-video request (byte-identical
       // to before this param existed) — see applyVideoBridgeLogRedaction.
       videoBridgeLogRedaction: (videoBridgeLog as VideoBridgeLogParam | undefined)?.redaction,
+      // #12150 P2 surface 2: mark the persisted call_logs row so
+      // resolvePreviousResponseState refuses to rehydrate a snapshot whose video
+      // transcript was redacted. false for every non-video request.
+      videoContentRemoved: videoBridgeObserved,
     });
 
   // Primary path: merge client model id + alias target so config on either key applies; resolved
@@ -1211,14 +1221,9 @@ export async function handleChatCore({
   });
   const pendingScope = { id: pendingRequestId, model, provider, connectionId: pendingConnId };
   const providerRequestCapture = createPreparedRequestLogger(reqLogger, pendingScope);
-  // 0. Log client raw request (before format conversion)
-  if (clientRawRequest) {
-    reqLogger.logClientRawRequest(
-      clientRawRequest.endpoint,
-      clientRawRequest.body,
-      clientRawRequest.headers
-    );
-  }
+  // 0. Log client raw request (before format conversion) — redacts video transcript
+  // cues in the logged copy only; see videoBridgeSnapshotRedaction.ts.
+  logClientRawRequestRedacted(reqLogger, clientRawRequest, videoBridgeObserved);
   const reasoningRouteDecision =
     body && typeof body === "object"
       ? (body as Record<string, unknown>)._omnirouteReasoningRouteTrace
@@ -1351,9 +1356,18 @@ export async function handleChatCore({
     const compressionSettings: CompressionConfig | null = compressionSettingsResult.settings;
     // #8034 — operator-named model/endpoint exclusions bypass the whole pipeline, exactly
     // like compression being globally disabled, so the body is provably byte-identical.
-    const compressionExcluded =
-      nativeCodexPassthrough ||
-      isCompressionExcluded({ provider, model: effectiveModel }, compressionSettings?.exclusions);
+    // Native Codex passthrough is deliberately NOT part of this exclusion: prompt
+    // compression runs through adaptBodyForCompression() (Responses input[] → messages
+    // → restore) with codex tool-output eligibility guards, so native contexts still
+    // compress (regression: #8933 introduced the passthrough bypass, landed on release
+    // via #11088, silencing codex analytics to skip_reason='excluded'). Reactive
+    // compaction + combo overflow fail-fast below still bypass native passthrough —
+    // intentionally left for follow-up. Operators who want byte-identical passthrough
+    // can add `codex/*` to the exclusions list.
+    const compressionExcluded = isCompressionExcluded(
+      { provider, model: effectiveModel },
+      compressionSettings?.exclusions
+    );
     // A per-key opt-out is a request-scoped hard kill for prompt compression. It
     // deliberately does not disable the independent reactive context-fit safety
     // passes, matching the existing x-omniroute-compression: off contract.
@@ -2513,35 +2527,11 @@ export async function handleChatCore({
         : HTTP_STATUS.SERVER_ERROR;
     const message = error?.message || "Invalid request";
     const errorType = typeof error?.errorType === "string" ? error.errorType : null;
-
-    log?.warn?.("TRANSLATE", `Request translation failed: ${message}`);
-
-    if (errorType) {
-      trackPendingRequest(model, provider, connectionId, false);
-      return {
-        success: false,
-        status: statusCode,
-        error: message,
-        response: new Response(
-          JSON.stringify({
-            error: {
-              message,
-              type: errorType,
-              code: errorType,
-            },
-          }),
-          {
-            status: statusCode,
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        ),
-      };
-    }
+    const result = createTranslationFailureResult(statusCode, message, errorType);
+    log?.warn?.("TRANSLATE", `Request translation failed: ${result.error}`);
 
     trackPendingRequest(model, provider, connectionId, false);
-    return createErrorResult(statusCode, message);
+    return result;
   }
 
   // The latest OmniGlyph release has protocol-native OpenAI transforms. Run
@@ -3240,6 +3230,14 @@ export async function handleChatCore({
                   const errMessage = err instanceof Error ? err.message : String(err);
                   log?.debug?.("CODEX", `Failed to persist codex quota state: ${errMessage}`);
                 }
+              } else if (attemptConnectionId && res.response.status === 429) {
+                // Dropped generic quota cache after 429
+                invalidateGenericQuotaCacheOnStatus({
+                  provider,
+                  connectionId: String(attemptConnectionId),
+                  status: res.response.status,
+                  isolateProbe: await shouldIsolateProbeFailures(),
+                });
               }
 
               // Track Gemini RPM + RPD request counts for 429 classification
@@ -3916,10 +3914,14 @@ export async function handleChatCore({
       streamController.handleError(error);
       return createErrorResult(499, "Request aborted");
     }
-    persistFailureUsage(
-      failureStatus,
-      upstreamErrorCode || (error instanceof Error && error.name ? error.name : "upstream_error")
-    );
+    const persistentErrorCode = projectFailureUsageErrorCode({
+      statusCode: failureStatus,
+      message: failureMessage,
+      errorCode:
+        upstreamErrorCode || (error instanceof Error && error.name ? error.name : "upstream_error"),
+      errorType: upstreamErrorType,
+    });
+    persistFailureUsage(failureStatus, persistentErrorCode);
     console.log(`${COLORS.red}[ERROR] ${failureMessage}${COLORS.reset}`);
     if (stream && upstreamErrorCode) {
       const result = createStreamingErrorResult(
@@ -4245,6 +4247,9 @@ export async function handleChatCore({
         `${decision.kind} (model remaining: ${decision.snapshot.modelRemaining ?? "unknown"}, total remaining: ${decision.snapshot.totalRemaining ?? "unknown"})`
       );
     }
+    // Classifiers and recovery paths above consume the raw provider wording.
+    // Project a separate value only at persistent connection-state boundaries.
+    const persistentMessage = sanitizeErrorMessage(message) || "Provider request failed";
     const errorConnectionId = getCurrentConnectionId();
     if (errorConnectionId && errorType) {
       try {
@@ -4256,7 +4261,7 @@ export async function handleChatCore({
               {
                 testStatus: "banned",
                 isActive: false,
-                lastError: message,
+                lastError: persistentMessage,
                 lastErrorType: errorType,
                 errorCode: String(statusCode),
               },
@@ -4287,7 +4292,7 @@ export async function handleChatCore({
           ) {
             await updateProviderConnection(errorConnectionId, {
               lastErrorType: errorType,
-              lastError: message,
+              lastError: persistentMessage,
               errorCode: statusCode,
             });
             console.warn(
@@ -4300,7 +4305,7 @@ export async function handleChatCore({
               {
                 testStatus: "deactivated",
                 isActive: false,
-                lastError: message,
+                lastError: persistentMessage,
                 lastErrorType: errorType,
                 errorCode: String(statusCode),
               },
@@ -4324,7 +4329,7 @@ export async function handleChatCore({
                 errorConnectionId,
                 {
                   testStatus: "credits_exhausted",
-                  lastError: message,
+                  lastError: persistentMessage,
                   lastErrorType: errorType,
                   errorCode: String(statusCode),
                 },
@@ -4410,7 +4415,7 @@ export async function handleChatCore({
                   rateLimitedUntil: kimiRateLimitResetAt,
                   backoffLevel: 0,
                   lastErrorType: PROVIDER_ERROR_TYPES.RATE_LIMITED,
-                  lastError: message,
+                  lastError: persistentMessage,
                   errorCode: statusCode,
                 });
                 console.warn(
@@ -4439,7 +4444,7 @@ export async function handleChatCore({
                   errorConnectionId,
                   {
                     testStatus: "credits_exhausted",
-                    lastError: message,
+                    lastError: persistentMessage,
                     lastErrorType: errorType,
                     errorCode: String(statusCode),
                   },
@@ -4455,14 +4460,14 @@ export async function handleChatCore({
           // Normal 401 (token/session auth issue): keep account active for refresh/re-auth.
           await updateProviderConnection(errorConnectionId, {
             lastErrorType: errorType,
-            lastError: message,
+            lastError: persistentMessage,
             errorCode: statusCode,
           });
         } else if (errorType === PROVIDER_ERROR_TYPES.OAUTH_INVALID_TOKEN) {
           // OAuth 401 with invalid credentials - token refresh can recover
           await updateProviderConnection(errorConnectionId, {
             lastErrorType: errorType,
-            lastError: message,
+            lastError: persistentMessage,
             errorCode: statusCode,
           });
           console.warn(
@@ -4472,7 +4477,7 @@ export async function handleChatCore({
           // Cloud Code 403 with stale project: not a ban, keep account active.
           await updateProviderConnection(errorConnectionId, {
             lastErrorType: errorType,
-            lastError: message,
+            lastError: persistentMessage,
             errorCode: statusCode,
           });
           console.warn(
@@ -4488,7 +4493,7 @@ export async function handleChatCore({
           const geoCooldownMs = COOLDOWN_MS.geoBlocked ?? 24 * 60 * 60 * 1000;
           await updateProviderConnection(errorConnectionId, {
             lastErrorType: errorType,
-            lastError: message,
+            lastError: persistentMessage,
             errorCode: statusCode,
           });
           // T-PROBE: the 24h exclusion is a routing mutation — a probe must
@@ -4513,7 +4518,7 @@ export async function handleChatCore({
           const byopCooldownMs = COOLDOWN_MS.gcpProjectRequired ?? 24 * 60 * 60 * 1000;
           await updateProviderConnection(errorConnectionId, {
             lastErrorType: errorType,
-            lastError: message,
+            lastError: persistentMessage,
             errorCode: statusCode,
           });
           try {
@@ -5297,9 +5302,12 @@ export async function handleChatCore({
       }).catch(() => {});
       const malformed = describeMalformedNonStream(translatedResponse, malformedTranslatedReason);
       const malformedMessage = `[${provider}/${model}] ${malformed.message}`;
-      const malformedClientBody = buildErrorBody(HTTP_STATUS.BAD_GATEWAY, malformedMessage);
-      malformedClientBody.error.code = malformed.code;
-      malformedClientBody.error.type = malformed.type;
+      const malformedClientBody = buildErrorBody(
+        HTTP_STATUS.BAD_GATEWAY,
+        malformedMessage,
+        undefined,
+        { code: malformed.code, type: malformed.type }
+      );
       persistAttemptLogs({
         status: HTTP_STATUS.BAD_GATEWAY,
         tokens: usage,

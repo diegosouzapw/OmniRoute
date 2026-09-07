@@ -1,0 +1,1 @@
+- **fix(providers):** Zed Hosted streaming failures now trigger fallback before content and end partial streams with a sanitized structured error instead of fake assistant text and a normal-success stop.

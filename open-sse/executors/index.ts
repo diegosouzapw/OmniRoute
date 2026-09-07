@@ -180,6 +180,7 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   xai: () => import("./xai.ts").then((m) => new m.XaiExecutor()),
   "xai-oauth": () => import("./xai.ts").then((m) => new m.XaiExecutor("xai-oauth")),
   xao: () => import("./xai.ts").then((m) => new m.XaiExecutor("xai-oauth")),
+  "clova-studio": () => import("./clova-studio.ts").then((m) => new m.ClovaStudioExecutor()),
   "conol-web": () => import("./conol-web.ts").then((m) => new m.ConolWebExecutor()),
   cnl: () => import("./conol-web.ts").then((m) => new m.ConolWebExecutor()), // Alias
 };

@@ -1,0 +1,1 @@
+- **fix(security):** sanitize `request.failed` diagnostics before publishing them to live dashboard listeners and replay history, while keeping status, model, provider, latency, and internal call-log diagnostics intact.

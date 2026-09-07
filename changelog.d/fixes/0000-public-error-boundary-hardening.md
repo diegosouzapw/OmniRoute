@@ -1,0 +1,1 @@
+- **fix(security):** Sanitize provider and runtime failures before public API, SSE and MCP responses and before persistent request, proxy and usage logs, preventing credentials, stack traces and host filesystem paths from crossing those boundaries while preserving stable error codes and useful diagnostics.

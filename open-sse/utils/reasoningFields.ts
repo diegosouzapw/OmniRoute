@@ -21,45 +21,61 @@ export function extractReasoningDetailsText(value: unknown): string {
     .join("");
 }
 
-export function getReadableReasoningValue(value: unknown): string {
+/**
+ * Consolidated reasoning field extraction - single pass returns all categories
+ * to avoid 3-5 separate object traversals per chunk.
+ */
+export interface ReasoningFields {
+  readable: string;
+  unsupported: string;
+  any: string;
+  hasUnsupportedSignal: boolean;
+  hasAnySignal: boolean;
+}
+
+export function extractReasoningFields(value: unknown): ReasoningFields {
   const record = asReasoningRecord(value);
-  return nonEmptyString(record.reasoning_content) || nonEmptyString(record.reasoning);
+
+  const readable = nonEmptyString(record.reasoning_content) || nonEmptyString(record.reasoning);
+  const reasoningText = nonEmptyString(record.reasoning_text);
+  const thinking = nonEmptyString(record.thinking);
+  const thought = nonEmptyString(record.thought);
+  const details = extractReasoningDetailsText(record);
+
+  const unsupported = reasoningText || thinking || thought || details;
+  const any = readable || unsupported;
+
+  const hasUnsupportedSignal = !!(
+    !readable &&
+    (reasoningText ||
+      thinking ||
+      thought ||
+      (Array.isArray(record.reasoning_details) && record.reasoning_details.length > 0))
+  );
+  const hasAnySignal = !!any;
+
+  return { readable, unsupported, any, hasUnsupportedSignal, hasAnySignal };
+}
+
+/** Back-compat wrappers for existing callers - delegate to consolidated extractor. */
+export function getReadableReasoningValue(value: unknown): string {
+  return extractReasoningFields(value).readable;
 }
 
 export function getUnsupportedReasoningValue(value: unknown): string {
-  const record = asReasoningRecord(value);
-  return (
-    nonEmptyString(record.reasoning_text) ||
-    nonEmptyString(record.thinking) ||
-    nonEmptyString(record.thought) ||
-    extractReasoningDetailsText(record)
-  );
+  return extractReasoningFields(value).unsupported;
 }
 
 export function getAnyReasoningValue(value: unknown): string {
-  return getReadableReasoningValue(value) || getUnsupportedReasoningValue(value);
+  return extractReasoningFields(value).any;
 }
 
 export function hasUnsupportedReasoningSignal(value: unknown): boolean {
-  const record = asReasoningRecord(value);
-  return Boolean(
-    !getReadableReasoningValue(record) &&
-    (nonEmptyString(record.reasoning_text) ||
-      nonEmptyString(record.thinking) ||
-      nonEmptyString(record.thought) ||
-      (Array.isArray(record.reasoning_details) && record.reasoning_details.length > 0))
-  );
+  return extractReasoningFields(value).hasUnsupportedSignal;
 }
 
 export function hasAnyReasoningSignal(value: unknown): boolean {
-  const record = asReasoningRecord(value);
-  return Boolean(
-    getReadableReasoningValue(record) ||
-    nonEmptyString(record.reasoning_text) ||
-    nonEmptyString(record.thinking) ||
-    nonEmptyString(record.thought) ||
-    (Array.isArray(record.reasoning_details) && record.reasoning_details.length > 0)
-  );
+  return extractReasoningFields(value).hasAnySignal;
 }
 
 const STRIPPABLE_REASONING_FIELDS = [

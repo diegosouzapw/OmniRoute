@@ -1,0 +1,1 @@
+- **fix(quota):** drop the generic quota cache (agy / Antigravity / Claude OAuth) on an upstream 429 so reset-aware scoring does not keep a 60s stale snapshot, and force-refresh the next usage fetch so inner provider caches cannot recache the same window ([#12325](https://github.com/diegosouzapw/OmniRoute/pull/12325)) — thanks @HouMinXi

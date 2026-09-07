@@ -2710,7 +2710,7 @@
     "ccOnboardingTitle": "settings.json برای کشف مدل دروازه",
     "ccOnboardingCopy": "کپی",
     "ccOnboardingCopied": "کپی شد",
-    "ccOnboardingKeyPlaceholder": "<کلید API OmniRoute شما>",
+    "ccOnboardingKeyPlaceholder": "'<کلید API OmniRoute شما>'",
     "ccOnboardingWindowNote": "Claude Code فرض می‌کند که یک پنجره متنی 200K برای هر شناسه مدلی که شناسایی نمی‌کند وجود دارد. برای مدلی با پنجره واقعی متفاوت، CLAUDE_CODE_AUTO_COMPACT_WINDOW را درست زیر آن اضافه کنید تا فشرده‌سازی خودکار خیلی زود فعال نشود.",
     "failedSave": "ذخیره‌سازی ناموفق بود",
     "profileSyncTitle": "همگام‌سازی خودکار پروفایل CLI",
@@ -5248,6 +5248,10 @@
     "iconUrlLabel": "URL آیکون",
     "iconUrlHint": "اختیاری. URL تصویری که به عنوان آیکون این ارائه‌دهنده نمایش داده می‌شود.",
     "iconUrlInvalid": "آدرس آیکون نامعتبر است. از آدرس http(s):// یا data:image/*;base64 استفاده کنید.",
+    "dailyQuotaResetTimezoneLabel": "Daily quota reset timezone",
+    "dailyQuotaResetTimezoneHint": "Optional IANA timezone used when the upstream omits X-RateLimit-Reset. Leave empty to keep a short cooldown.",
+    "dailyQuotaResetHourLabel": "Daily quota reset hour",
+    "dailyQuotaResetHourHint": "Local hour 0-23 in the timezone above. Empty means no node-level clock.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",
@@ -6162,7 +6166,7 @@
       "freeaiapikey": "پروکسی API تخفیف‌خورده برای بیش از ۴۰ مدل از جمله GPT-5، Claude Opus 4.6، Claude Sonnet 4.6، Qwen 3.5. کلید API خود را در https://freeaiapikey.com/dashboard دریافت کنید. URL پایه: https://freeaiapikey.com/v1.",
       "freemodel-dev": "۳۰۰ دلار اعتبار رایگان API در https://freemodel.dev دریافت کنید — بدون نیاز به اطلاعات پرداخت. نقطه پایانی سازگار با OpenAI. مدل‌های GPT-5.4 و GPT-5.5 در دسترس هستند.",
       "friendliai": "سطح رایگان برای استنتاج بدون سرور (serverless inference) — بدون نیاز به کارت اعتباری",
-      "gemini": "رایگان برای همیشه: ۱,۵۰۰ درخواست در روز برای Gemini 2.5 Flash — بدون نیاز به کارت اعتباری، کلید را در aistudio.google.com دریافت کنید",
+      "gemini": "__MISSING__:Free tier through Google AI Studio; per-model quotas are no longer published (check the quota page in AI Studio) — no credit card.",
       "gigachat": "اتصال GigaChat (Sber) با یک کلید API.",
       "gitlab": "توکن دسترسی شخصی GitLab برای API عمومی Code Suggestions. در صورت عدم استفاده از gitlab.com، یک URL پایه خودمیزبانی‌شده (self-hosted) پیکربندی کنید.",
       "gitlawb-gmi": "کلید API خود را از داشبورد Gitlawb Opengateway دریافت کنید.",
@@ -6171,7 +6175,7 @@
       "glm-cn": "اتصال GLM Coding (China) با یک کلید API.",
       "glmt": "پروفایل پیش‌فرض GLM با بودجه توکن بالاتر، فعال بودن تفکر (thinking) و زمان انتظار (timeout) طولانی‌تر.",
       "getgoapi": "اتصال GoAPI با یک کلید API.",
-      "groq": "سطح رایگان: ۳۰ RPM / ۱۴.۴K RPD — بدون نیاز به کارت اعتباری",
+      "groq": "__MISSING__:Free plan: per-model caps (200K tokens/day per chat model; see console.groq.com/docs/rate-limits for RPM/RPD) — no payment method on file.",
       "haiper": "کلید API را در haiper.ai/haiper-api دریافت کنید",
       "heroku": "اتصال Heroku AI با یک کلید API.",
       "hcnsec": "دریافت کلید API در api.hcnsec.cn",
@@ -6239,6 +6243,7 @@
       "requesty": "یک کلید API در https://app.requesty.ai بسازید، سپس آن را در اینجا به عنوان توکن Bearer جای‌گذاری کنید. نقطه پایانی سازگار با OpenAI در https://router.requesty.ai/v1، همراه با کاتالوگ زنده /v1/models.",
       "runwayml": "تولید ویدیو در Runway مبتنی بر وظیفه (task-based) است. OmniRoute کارهای تبدیل متن به ویدیو یا تصویر به ویدیو را ارسال می‌کند، وضعیت /v1/tasks/[id] را بررسی می‌کند و خروجی‌های ویدیوی نهایی را به پاسخ شبیه به OpenAI در /v1/videos/generations تبدیل می‌کند.",
       "sambanova": "۵ دلار اعتبار رایگان هنگام ثبت‌نام (با اعتبار ۳۰ روزه)، بدون نیاز به کارت اعتباری",
+      "seekai": "Create an API key at https://seekai.cc, then paste it here as a Bearer token. OpenAI-compatible base URL: https://seekai.cc/v1.",
       "sap": "کشف مدل از /v2/lm/scenarios/foundation-models/models در AI_API_URL استفاده می‌کند. درخواست‌های چت از deploymentUrl/chat/completions استفاده می‌کنند و به AI-Resource-Group نیاز دارند.",
       "sarvam": "Sarvam AI با OpenAI سازگار است در /v1. OmniRoute به /v1/models دسترسی پیدا می‌کند و ترافیک چت را به /v1/chat/completions هدایت می‌کند. مدل‌ها برای زبان‌های هندی تنظیم شده‌اند.",
       "scaleway": "۱ میلیون توکن رایگان برای حساب‌های جدید — سازگار با قوانین اتحادیه اروپا/GDPR (پاریس)، Qwen3 235B و Llama 70B",
@@ -7812,6 +7817,14 @@
     "compressionDerivedMode": "حالت: {mode}",
     "compressionAdaptiveOff": "بودجه محتوای تطبیقی: خاموش (محرک خودکار قدیمی)",
     "compressionAdaptiveTarget": "تطبیقی ({mode}، خط‌مشی: {policy}) — هدف ≈ {target, number} توکن (برای یک پنجره {contextLimit, number} توکنی)",
+    "compressionAdaptiveMode": "__MISSING__:Adaptive context budget",
+    "compressionAdaptiveModeOff": "__MISSING__:Off (legacy auto-trigger)",
+    "compressionAdaptiveModeFloor": "__MISSING__:Floor (always guarantee fit)",
+    "compressionAdaptiveModeReplace": "__MISSING__:Replace auto-trigger",
+    "compressionAdaptivePolicy": "__MISSING__:Budget policy",
+    "compressionAdaptivePolicyReserve": "__MISSING__:Reserve output",
+    "compressionAdaptivePolicyPercentage": "__MISSING__:Percentage of window",
+    "compressionAdaptivePolicyAbsolute": "__MISSING__:Absolute token budget",
     "compressionOutputStylesDescription": "تزریق دستورالعمل‌های شکل‌دهی به پاسخ بدون بازنویسی خروجی ارائه‌دهنده. ترکیب آزادانه.",
     "mcpAccessibilityDescription": "محدوده خروجی‌های ابزار MCP (ذخیره‌ساز مجزا).",
     "compressionStylesTileSummary": "{tokens, number} توکن ذخیره شد · {runs, plural, one {# اجرا سبک‌دهی شد} other {# اجرا سبک‌دهی شدند}}",
@@ -8340,7 +8353,15 @@
     "cliproxyapiHealth": "سلامت",
     "cliproxyapiPort": "پورت",
     "qdrantHost": "میزبان",
-    "qdrantCollection": "مجموعه"
+    "qdrantCollection": "مجموعه",
+    "headroomProxyTitle": "__MISSING__:Headroom proxy",
+    "headroomProxyDesc": "__MISSING__:URL of the optional Headroom token-saver proxy. Empty uses HEADROOM_URL or http://localhost:8787.",
+    "headroomProxyUrl": "__MISSING__:Headroom URL",
+    "headroomProxyUrlHint": "__MISSING__:Loopback URLs can be started from this page. External URLs are probed only.",
+    "headroomProxySave": "__MISSING__:Save",
+    "headroomProxyStart": "__MISSING__:Start",
+    "headroomProxyStop": "__MISSING__:Stop",
+    "headroomProxyExternalHint": "__MISSING__:This URL is not loopback, so OmniRoute will not spawn the local CLI."
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12961,7 +12982,7 @@
         "description": "پس از همگام‌سازی ارائه‌دهنده-مدل، پروفایل‌های ~/.codex/*.config.toml را از کاتالوگ زنده بازسازی کنید. این کار هرگز پیکربندی فعال یا پیش‌فرض Codex را تغییر نمی‌دهد و به طور پیش‌فرض غیرفعال است."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "پس از همگام‌سازی ارائه‌دهنده-مدل، پروفایل‌های ~/.claude/profiles/<name>/settings.json را از کاتالوگ زنده بازسازی کنید. این کار هرگز پیکربندی فعال یا پیش‌فرض Claude را تغییر نمی‌دهد و به طور پیش‌فرض غیرفعال است."
+        "description": "پس از همگام‌سازی ارائه‌دهنده-مدل، پروفایل‌های ~/.claude/profiles/'<name>'/settings.json را از کاتالوگ زنده بازسازی کنید. این کار هرگز پیکربندی فعال یا پیش‌فرض Claude را تغییر نمی‌دهد و به طور پیش‌فرض غیرفعال است."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "غیرفعال کردن نقطه پایانی بررسی سلامت نمونه محلی."
@@ -13112,6 +13133,7 @@
     "segmentHint": "هر بخش = یک استخر رایگان · حذف تکرار استخر، شمارش واقعی (بدون سقف‌های محدودیت نرخ کاذب).",
     "boost": "با یک‌بار شارژ ۱۰ دلاری OpenRouter، حدود ~{tokens} بیشتر در ماه آزاد کنید (۵۰ → ۱۰۰۰ درخواست/روز)",
     "uncapped": "دائماً رایگان، بدون سقف اعلام‌شده (دارای محدودیت نرخ) — دسترسی واقعی، بدون احتساب در عنوان اصلی:",
+    "gated": "__MISSING__:~{tokens}/mo more behind a regional identity check (e.g. mainland-China real-name verification) — real quota, not counted in the headline:",
     "tosRestricted": "{count, plural, one {# مدل} other {# مدل}} دارای محدودیت ToS علامت‌گذاری شده‌اند — تصمیم با شماست",
     "provider": "ارائه‌دهنده",
     "model": "مدل",
@@ -13988,6 +14010,7 @@
     "drawerTimeline": "جدول زمانی",
     "drawerMetrics": "معیارها",
     "drawerResult": "نتیجه",
+    "drawerMemory": "حافظه استفاده‌شده",
     "drawerActions": "اقدامات",
     "drawerClose": "بستن",
     "copyTrace": "کپی ردیابی JSON",
@@ -13997,7 +14020,11 @@
     "actionDone": "اقدام اعمال شد",
     "actionFailed": "اقدام ناموفق بود: {error}",
     "detailFailed": "بارگذاری جزئیات ناموفق بود: {error}",
-    "mirroredInA2A": "بازتاب‌یافته در A2A"
+    "mirroredInA2A": "بازتاب‌یافته در A2A",
+    "actionRepeat": "تکرار",
+    "repeatConfirm": "برای تأیید دوباره کلیک کنید",
+    "repeatDone": "اجرای جدید ایجاد شد",
+    "repeatUnavailable": "ورودی اصلی در دسترس نیست"
   },
   "cliproxyProviderExposure": {
     "title": "قرار گرفتن در معرض ارائه‌دهنده",

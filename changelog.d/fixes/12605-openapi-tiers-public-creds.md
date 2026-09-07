@@ -1,0 +1,1 @@
+- **CI:** the OpenAPI security-tier gate now mirrors `isAlwaysProtectedPath()` in full — it also reads `ALWAYS_PROTECTED_API_PATTERNS`, so the pattern-gated credential routes (`/api/providers/{id}/{claude,codex}-auth/{export,apply-local}`, GHSA-5926-2w35-7h4q) no longer report as unannotated. (#12605)

@@ -2710,7 +2710,7 @@
     "ccOnboardingTitle": "ગેટવે મોડલ શોધ માટે settings.json",
     "ccOnboardingCopy": "કોપી",
     "ccOnboardingCopied": "કોપી કરેલ",
-    "ccOnboardingKeyPlaceholder": "<તમારો OmniRoute API કી>",
+    "ccOnboardingKeyPlaceholder": "'<તમારો OmniRoute API કી>'",
     "ccOnboardingWindowNote": "Claude Code એ કોઈપણ મોડેલ આઈડી માટે 200K સંદર્ભ વિન્ડો માન્ય રાખે છે જે તે ઓળખતું નથી. જુદા રિયલ વિન્ડો ધરાવતા મોડેલ માટે, નીચે CLAUDE_CODE_AUTO_COMPACT_WINDOW ઉમેરો જેથી ઓટો-કમ્પેક્શન ખૂબ જ વહેલા ન ફાયર થાય.",
     "failedSave": "સાચવવામાં નિષ્ફળ",
     "profileSyncTitle": "CLI પ્રોફાઇલ ઓટો-સિંક",
@@ -5248,6 +5248,10 @@
     "iconUrlLabel": "આઇકન URL",
     "iconUrlHint": "વૈકલ્પિક. આ પ્રદાતાના આઇકન તરીકે દર્શાવેલ છબી URL.",
     "iconUrlInvalid": "અમાન્ય આઇકન URL. http(s):// અથવા data:image/*;base64 URL નો ઉપયોગ કરો.",
+    "dailyQuotaResetTimezoneLabel": "Daily quota reset timezone",
+    "dailyQuotaResetTimezoneHint": "Optional IANA timezone used when the upstream omits X-RateLimit-Reset. Leave empty to keep a short cooldown.",
+    "dailyQuotaResetHourLabel": "Daily quota reset hour",
+    "dailyQuotaResetHourHint": "Local hour 0-23 in the timezone above. Empty means no node-level clock.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",
@@ -6162,7 +6166,7 @@
       "freeaiapikey": "GPT-5, Claude Opus 4.6, Claude Sonnet 4.6, Qwen 3.5 સહિત 40+ મોડલ્સ માટે ડિસ્કાઉન્ટેડ API પ્રોક્સી. https://freeaiapikey.com/dashboard પર તમારી API કી મેળવો. બેઝ URL: https://freeaiapikey.com/v1.",
       "freemodel-dev": "https://freemodel.dev પર $300 મફત API ક્રેડિટ્સ મેળવો — કોઈ ચુકવણી માહિતીની જરૂર નથી. OpenAI-સુસંગત એન્ડપોઇન્ટ. GPT-5.4 અને GPT-5.5 મોડલ્સ ઉપલબ્ધ છે.",
       "friendliai": "સર્વરલેસ ઇન્ફરન્સ માટે મફત સ્તર — કોઈ ક્રેડિટ કાર્ડની જરૂર નથી",
-      "gemini": "હંમેશા માટે મફત: Gemini 2.5 Flash માટે દરરોજ 1,500 વિનંતીઓ — કોઈ ક્રેડિટ કાર્ડ નહીં, aistudio.google.com પર કી મેળવો",
+      "gemini": "__MISSING__:Free tier through Google AI Studio; per-model quotas are no longer published (check the quota page in AI Studio) — no credit card.",
       "gigachat": "API કી વડે GigaChat (Sber) ને કનેક્ટ કરો.",
       "gitlab": "સાર્વજનિક Code Suggestions API માટે GitLab વ્યક્તિગત ઍક્સેસ ટોકન. જ્યારે gitlab.com નો ઉપયોગ ન કરી રહ્યા હોવ ત્યારે સેલ્ફ-હોસ્ટેડ બેઝ URL કન્ફિગર કરો.",
       "gitlawb-gmi": "Gitlawb Opengateway ડેશબોર્ડ પરથી તમારી API કી મેળવો.",
@@ -6171,7 +6175,7 @@
       "glm-cn": "API કી વડે GLM Coding (China) ને કનેક્ટ કરો.",
       "glmt": "ઉચ્ચ ટોકન બજેટ, વિચારવાની ક્ષમતા સક્ષમ અને લાંબા સમયસમાપ્તિ સાથે પ્રીસેટ GLM પ્રોફાઇલ.",
       "getgoapi": "API કી વડે GoAPI ને કનેક્ટ કરો.",
-      "groq": "મફત સ્તર: 30 RPM / 14.4K RPD — કોઈ ક્રેડિટ કાર્ડ નહીં",
+      "groq": "__MISSING__:Free plan: per-model caps (200K tokens/day per chat model; see console.groq.com/docs/rate-limits for RPM/RPD) — no payment method on file.",
       "haiper": "haiper.ai/haiper-api પર API કી મેળવો",
       "heroku": "API કી વડે Heroku AI ને કનેક્ટ કરો.",
       "hcnsec": "api.hcnsec.cn પર API કી મેળવો",
@@ -6239,6 +6243,7 @@
       "requesty": "https://app.requesty.ai પર API key બનાવો, પછી તેને અહીં Bearer token તરીકે પેસ્ટ કરો. લાઈવ /v1/models કેટલોગ સાથે https://router.requesty.ai/v1 પર OpenAI-સુસંગત એન્ડપોઇન્ટ.",
       "runwayml": "Runway વીડિયો જનરેશન ટાસ્ક-આધારિત છે. OmniRoute ટેક્સ્ટ-ટુ-વીડિયો અથવા ઇમેજ-ટુ-વીડિયો જોબ્સ સબમિટ કરે છે, /v1/tasks/[id] ને પોલ કરે છે, અને પૂર્ણ થયેલા વીડિયો આઉટપુટને ફરીથી OpenAI જેવા /v1/videos/generations રિસ્પોન્સમાં નોર્મલાઇઝ કરે છે.",
       "sambanova": "સાઇનઅપ પર $5 મફત ક્રેડિટ્સ (30-દિવસની માન્યતા), કોઈ ક્રેડિટ કાર્ડની જરૂર નથી",
+      "seekai": "Create an API key at https://seekai.cc, then paste it here as a Bearer token. OpenAI-compatible base URL: https://seekai.cc/v1.",
       "sap": "મોડલ ડિસ્કવરી AI_API_URL પર /v2/lm/scenarios/foundation-models/models નો ઉપયોગ કરે છે. ચેટ વિનંતીઓ deploymentUrl/chat/completions નો ઉપયોગ કરે છે અને તેના માટે AI-Resource-Group જરૂરી છે.",
       "sarvam": "Sarvam AI OpenAI-સંગત છે /v1. OmniRoute /v1/models ને તપાસે છે અને ચેટ ટ્રાફિકને /v1/chat/completions પર રુટ કરે છે. મોડલ્સ ઇન્ડિક ભાષાઓ માટે ટ્યુન કરવામાં આવ્યા છે.",
       "scaleway": "નવા એકાઉન્ટ્સ માટે 1M મફત ટોકન્સ — EU/GDPR સુસંગત (પેરિસ), Qwen3 235B & Llama 70B",
@@ -7812,6 +7817,14 @@
     "compressionDerivedMode": "મોડ: {mode}",
     "compressionAdaptiveOff": "અડેપ્ટિવ કન્ટેક્સ્ટ બજેટ: બંધ (લેગસી ઑટો-ટ્રિગર)",
     "compressionAdaptiveTarget": "અડેપ્ટિવ ({mode}, પૉલિસી: {policy}) — લક્ષ્ય ≈ {target, number} ટોકન્સ ({contextLimit, number}-ટોકન વિન્ડો માટે)",
+    "compressionAdaptiveMode": "__MISSING__:Adaptive context budget",
+    "compressionAdaptiveModeOff": "__MISSING__:Off (legacy auto-trigger)",
+    "compressionAdaptiveModeFloor": "__MISSING__:Floor (always guarantee fit)",
+    "compressionAdaptiveModeReplace": "__MISSING__:Replace auto-trigger",
+    "compressionAdaptivePolicy": "__MISSING__:Budget policy",
+    "compressionAdaptivePolicyReserve": "__MISSING__:Reserve output",
+    "compressionAdaptivePolicyPercentage": "__MISSING__:Percentage of window",
+    "compressionAdaptivePolicyAbsolute": "__MISSING__:Absolute token budget",
     "compressionOutputStylesDescription": "પ્રોવાઇડર આઉટપુટને ફરીથી લખ્યા વિના રિસ્પોન્સ-શેપિંગ સૂચનાઓ ઇન્જેક્ટ કરો. મુક્તપણે જોડો.",
     "mcpAccessibilityDescription": "MCP ટૂલ આઉટપુટ્સને સ્કોપ કરે છે (અલગ સ્ટોર).",
     "compressionStylesTileSummary": "{tokens, number} ટોકન્સ સાચવ્યા · {runs, plural, one {# રન સ્ટાઇલ કરેલ} other {# રન સ્ટાઇલ કરેલ}}",
@@ -8340,7 +8353,15 @@
     "cliproxyapiHealth": "આરોગ્ય",
     "cliproxyapiPort": "પોર્ટ",
     "qdrantHost": "હોસ્ટ",
-    "qdrantCollection": "સંગ્રહ"
+    "qdrantCollection": "સંગ્રહ",
+    "headroomProxyTitle": "__MISSING__:Headroom proxy",
+    "headroomProxyDesc": "__MISSING__:URL of the optional Headroom token-saver proxy. Empty uses HEADROOM_URL or http://localhost:8787.",
+    "headroomProxyUrl": "__MISSING__:Headroom URL",
+    "headroomProxyUrlHint": "__MISSING__:Loopback URLs can be started from this page. External URLs are probed only.",
+    "headroomProxySave": "__MISSING__:Save",
+    "headroomProxyStart": "__MISSING__:Start",
+    "headroomProxyStop": "__MISSING__:Stop",
+    "headroomProxyExternalHint": "__MISSING__:This URL is not loopback, so OmniRoute will not spawn the local CLI."
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12961,7 +12982,7 @@
         "description": "પ્રદાતા-મોડલ સિંક્રનાઇઝેશન પછી, લાઇવ કૅટેલોગમાંથી ~/.codex/*.config.toml પ્રોફાઇલ્સ ફરીથી જનરેટ કરો. આ ક્યારેય સક્રિય અથવા ડિફોલ્ટ Codex રૂપરેખાંકનને બદલતું નથી અને ડિફોલ્ટ રૂપે off હોય છે."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "પ્રદાતા-મોડલ સિંક્રનાઇઝેશન પછી, લાઇવ કૅટેલોગમાંથી ~/.claude/profiles/<name>/settings.json પ્રોફાઇલ્સ ફરીથી જનરેટ કરો. આ ક્યારેય સક્રિય અથવા ડિફોલ્ટ Claude રૂપરેખાંકનને બદલતું નથી અને ડિફોલ્ટ રૂપે off હોય છે."
+        "description": "પ્રદાતા-મોડલ સિંક્રનાઇઝેશન પછી, લાઇવ કૅટેલોગમાંથી ~/.claude/profiles/'<name>'/settings.json પ્રોફાઇલ્સ ફરીથી જનરેટ કરો. આ ક્યારેય સક્રિય અથવા ડિફોલ્ટ Claude રૂપરેખાંકનને બદલતું નથી અને ડિફોલ્ટ રૂપે off હોય છે."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "સ્થાનિક ઇન્સ્ટન્સ હેલ્થ-ચેક એન્ડપોઇન્ટ નિષ્ક્રિય કરો."
@@ -13112,6 +13133,7 @@
     "segmentHint": "દરેક સેગમેન્ટ = એક મફત પૂલ · પૂલ-ડિડુપ્લિકેટ, પ્રમાણિક ગણતરી (કોઈ ફૂલેલી રેટ-મર્યાદા સીમાઓ નહીં).",
     "boost": "એક વખતના $10 OpenRouter ટોપ-અપ સાથે દર મહિને ~{tokens} વધુ અનલૉક કરો (50 → 1000 req/day)",
     "uncapped": "કાયમી ધોરણે મફત, કોઈ પ્રકાશિત મર્યાદા નથી (રેટ-મર્યાદિત) — વાસ્તવિક ઍક્સેસ, હેડલાઇનમાં ગણવામાં આવતી નથી:",
+    "gated": "__MISSING__:~{tokens}/mo more behind a regional identity check (e.g. mainland-China real-name verification) — real quota, not counted in the headline:",
     "tosRestricted": "{count, plural, one {# મોડેલ} other {# મોડેલો}} ToS-પ્રતિબંધિત તરીકે ચિહ્નિત થયેલ છે — તમે નક્કી કરો",
     "provider": "પ્રદાતા",
     "model": "મોડેલ",
@@ -13988,6 +14010,7 @@
     "drawerTimeline": "સમયરેખા",
     "drawerMetrics": "મેટ્રિક્સ",
     "drawerResult": "પરિણામ",
+    "drawerMemory": "વપરાયેલ મેમરી",
     "drawerActions": "ક્રિયાઓ",
     "drawerClose": "બંધ કરો",
     "copyTrace": "ટ્રેસ JSON કૉપિ કરો",
@@ -13997,7 +14020,11 @@
     "actionDone": "ક્રિયા લાગુ કરાઈ",
     "actionFailed": "ક્રિયા નિષ્ફળ: {error}",
     "detailFailed": "વિગતો લોડ કરવામાં નિષ્ફળ: {error}",
-    "mirroredInA2A": "A2A માં પ્રતિબિંબિત"
+    "mirroredInA2A": "A2A માં પ્રતિબિંબિત",
+    "actionRepeat": "પુનરાવર્તન કરો",
+    "repeatConfirm": "પુષ્ટિ કરવા માટે ફરીથી ક્લિક કરો",
+    "repeatDone": "નવું રન બનાવવામાં આવ્યું",
+    "repeatUnavailable": "મૂળ ઇનપુટ ઉપલબ્ધ નથી"
   },
   "cliproxyProviderExposure": {
     "title": "પ્રદાતા એક્સપોઝર",

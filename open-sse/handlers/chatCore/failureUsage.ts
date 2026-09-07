@@ -8,6 +8,21 @@
  * `latencyMs` (Date.now() - startTime) and fires the fire-and-forget saveRequestUsage(...).catch().
  */
 
+import { buildErrorBody } from "../../utils/error.ts";
+
+export function projectFailureUsageErrorCode(opts: {
+  statusCode: number;
+  message: string;
+  errorCode?: string | null;
+  errorType?: string | null;
+}): string {
+  const errorBody = buildErrorBody(opts.statusCode, opts.message, undefined, {
+    code: opts.errorCode || undefined,
+    type: opts.errorType || undefined,
+  });
+  return errorBody.error.code || String(opts.statusCode);
+}
+
 export function buildFailureUsageRecord(opts: {
   provider: string | null | undefined;
   model: string | null | undefined;

@@ -1,0 +1,1 @@
+- **fix(cursor):** a non-array `tool_calls` on an assistant message no longer crashes the cursor request translator with a `TypeError`; both loops now require an array ([#12689](https://github.com/diegosouzapw/OmniRoute/issues/12689))

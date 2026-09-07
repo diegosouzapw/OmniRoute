@@ -1,0 +1,1 @@
+- **fix(cli):** `omniroute tunnel create` no longer crashes with `Cannot read properties of undefined (reading optsWithGlobals)` — removed the duplicate positional argument that caused Commander.js to misalign the action callback parameters ([#12295](https://github.com/diegosouzapw/OmniRoute/issues/12295))

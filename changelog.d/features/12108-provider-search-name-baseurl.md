@@ -1,0 +1,1 @@
+- **feat(providers):** dashboard search matches connection name and `baseUrl` so imported OpenAI-compat nodes surface on the provider card ([#12108](https://github.com/diegosouzapw/OmniRoute/issues/12108))

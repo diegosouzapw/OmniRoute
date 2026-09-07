@@ -250,6 +250,36 @@ describe("HistoryTab", () => {
     cleanup();
   });
 
+  it("keeps the drawer open on onActionDone so its success toast is visible, and refetches", async () => {
+    // Review finding (Minor B): this tab used to pass `onActionDone={() => setSelected(null)}`,
+    // which unmounted the drawer BEFORE it rendered the repeat/cancel confirmation — the
+    // operator saw the action silently do nothing. The callback must keep the drawer mounted
+    // (and re-sample the range so the new run shows up).
+    const fetchMock = mockFetch({ a2aTasks: [a2aTask()] });
+    vi.stubGlobal("fetch", fetchMock);
+    const { c, cleanup } = render(<HistoryTab />);
+    await flush();
+
+    const cell = c.querySelector('button[aria-label*="smart-routing"]') as HTMLButtonElement;
+    act(() => {
+      cell.click();
+    });
+    expect((drawerCalls.at(-1) as { node: unknown }).node).toBeTruthy();
+    const callsBefore = fetchMock.mock.calls.length;
+
+    await act(async () => {
+      (drawerCalls.at(-1) as { onActionDone: () => void }).onActionDone();
+    });
+    await flush();
+
+    // Still open on the same node …
+    const last = drawerCalls.at(-1) as { node: { id: string } | null };
+    expect(last.node?.id).toBe("a2a:t1");
+    // … and the history was refetched.
+    expect(fetchMock.mock.calls.length).toBeGreaterThan(callsBefore);
+    cleanup();
+  });
+
   it("shows a source-failed warning for A2A while Cloud Agent rows still render", async () => {
     vi.stubGlobal("fetch", mockFetch({ a2aFail: true, cloudAgentTasks: [cloudAgentTask()] }));
     const { c, cleanup } = render(<HistoryTab />);

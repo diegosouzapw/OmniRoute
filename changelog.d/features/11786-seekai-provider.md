@@ -1,0 +1,1 @@
+- **feat(providers):** add SeekAi (`seekai.cc`) as an OpenAI-compatible New-API gateway — catalog id `seekai` (alias `ska`), `https://seekai.cc/v1`, live `/v1/models` via `passthroughModels`, aggregator-list membership so New-API balance detection can opt in. No referral/aff codes. ([#11786](https://github.com/diegosouzapw/OmniRoute/issues/11786))

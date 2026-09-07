@@ -2710,7 +2710,7 @@
     "ccOnboardingTitle": "settings.json pentru descoperirea modelului gateway",
     "ccOnboardingCopy": "Copiază",
     "ccOnboardingCopied": "Copiat",
-    "ccOnboardingKeyPlaceholder": "<cheia ta API OmniRoute>",
+    "ccOnboardingKeyPlaceholder": "'<cheia ta API OmniRoute>'",
     "ccOnboardingWindowNote": "Claude Code presupune o fereastră de context de 200K pentru orice ID de model pe care nu îl recunoaște. Pentru un model cu o fereastră reală diferită, adăugați CLAUDE_CODE_AUTO_COMPACT_WINDOW imediat sub acesta, astfel încât auto-compacția să nu se activeze prea devreme.",
     "failedSave": "Eroare la salvare",
     "profileSyncTitle": "Sincronizare automată profil CLI",
@@ -5248,6 +5248,10 @@
     "iconUrlLabel": "URL pictogramă",
     "iconUrlHint": "Opțional. URL-ul imaginii afișate ca pictogramă a acestui furnizor.",
     "iconUrlInvalid": "URL-ul iconului este invalid. Folosiți un URL http(s):// sau data:image/*;base64.",
+    "dailyQuotaResetTimezoneLabel": "Daily quota reset timezone",
+    "dailyQuotaResetTimezoneHint": "Optional IANA timezone used when the upstream omits X-RateLimit-Reset. Leave empty to keep a short cooldown.",
+    "dailyQuotaResetHourLabel": "Daily quota reset hour",
+    "dailyQuotaResetHourHint": "Local hour 0-23 in the timezone above. Empty means no node-level clock.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",
@@ -6162,7 +6166,7 @@
       "freeaiapikey": "Proxy API cu reducere pentru peste 40 de modele, inclusiv GPT-5, Claude Opus 4.6, Claude Sonnet 4.6, Qwen 3.5. Obțineți cheia API la https://freeaiapikey.com/dashboard. URL de bază: https://freeaiapikey.com/v1.",
       "freemodel-dev": "Obțineți $300 credite API gratuite la https://freemodel.dev — nu sunt necesare informații de plată. Endpoint compatibil cu OpenAI. Modele GPT-5.4 și GPT-5.5 disponibile.",
       "friendliai": "Nivel gratuit pentru inferență serverless — nu este necesar card de credit",
-      "gemini": "Gratuit pentru totdeauna: 1.500 req/zi pentru Gemini 2.5 Flash — fără card de credit, obțineți cheia la aistudio.google.com",
+      "gemini": "__MISSING__:Free tier through Google AI Studio; per-model quotas are no longer published (check the quota page in AI Studio) — no credit card.",
       "gigachat": "Conectați GigaChat (Sber) cu o cheie API.",
       "gitlab": "Token de acces personal GitLab pentru API-ul public Code Suggestions. Configurați un URL de bază self-hosted când nu utilizați gitlab.com.",
       "gitlawb-gmi": "Obțineți cheia API din tabloul de bord Gitlawb Opengateway.",
@@ -6171,7 +6175,7 @@
       "glm-cn": "Conectați GLM Coding (China) cu o cheie API.",
       "glmt": "Profil GLM prestabilit cu un buget de tokenuri mai mare, gândire activată și timeout mai lung.",
       "getgoapi": "Conectați GoAPI cu o cheie API.",
-      "groq": "Nivel gratuit: 30 RPM / 14.4K RPD — fără card de credit",
+      "groq": "__MISSING__:Free plan: per-model caps (200K tokens/day per chat model; see console.groq.com/docs/rate-limits for RPM/RPD) — no payment method on file.",
       "haiper": "Obțineți cheia API la haiper.ai/haiper-api",
       "heroku": "Conectați Heroku AI cu o cheie API.",
       "hcnsec": "Obțineți cheia API la api.hcnsec.cn",
@@ -6239,6 +6243,7 @@
       "requesty": "Creează o cheie API la https://app.requesty.ai, apoi lipește-o aici ca token Bearer. Endpoint compatibil cu OpenAI la https://router.requesty.ai/v1, cu un catalog /v1/models live.",
       "runwayml": "Generarea video Runway este bazată pe sarcini. OmniRoute trimite lucrări text-to-video sau image-to-video, interoghează periodic /v1/tasks/[id] și normalizează ieșirile video finalizate înapoi în răspunsul de tip OpenAI /v1/videos/generations.",
       "sambanova": "$5 credite gratuite la înregistrare (valabilitate 30 de zile), nu este necesar un card de credit",
+      "seekai": "Create an API key at https://seekai.cc, then paste it here as a Bearer token. OpenAI-compatible base URL: https://seekai.cc/v1.",
       "sap": "Descoperirea modelelor folosește /v2/lm/scenarios/foundation-models/models pe AI_API_URL. Solicitările de chat folosesc deploymentUrl/chat/completions și necesită AI-Resource-Group.",
       "sarvam": "Sarvam AI este compatibil cu OpenAI pe /v1. OmniRoute probează /v1/models și direcționează traficul de chat către /v1/chat/completions. Modelele sunt ajustate pentru limbile indic.",
       "scaleway": "1M tokenuri gratuite pentru conturi noi — conformitate UE/GDPR (Paris), Qwen3 235B & Llama 70B",
@@ -7812,6 +7817,14 @@
     "compressionDerivedMode": "mod: {mode}",
     "compressionAdaptiveOff": "Buget de context adaptiv: dezactivat (declanșare automată moștenită)",
     "compressionAdaptiveTarget": "Adaptiv ({mode}, politică: {policy}) — țintă ≈ {target, number} tokenuri (pentru o fereastră de {contextLimit, number} tokenuri)",
+    "compressionAdaptiveMode": "__MISSING__:Adaptive context budget",
+    "compressionAdaptiveModeOff": "__MISSING__:Off (legacy auto-trigger)",
+    "compressionAdaptiveModeFloor": "__MISSING__:Floor (always guarantee fit)",
+    "compressionAdaptiveModeReplace": "__MISSING__:Replace auto-trigger",
+    "compressionAdaptivePolicy": "__MISSING__:Budget policy",
+    "compressionAdaptivePolicyReserve": "__MISSING__:Reserve output",
+    "compressionAdaptivePolicyPercentage": "__MISSING__:Percentage of window",
+    "compressionAdaptivePolicyAbsolute": "__MISSING__:Absolute token budget",
     "compressionOutputStylesDescription": "Injectează instrucțiuni de modelare a răspunsului fără a rescrie ieșirea furnizorului. Combină liber.",
     "mcpAccessibilityDescription": "Limitează domeniul de aplicare al ieșirilor instrumentelor MCP (stocare separată).",
     "compressionStylesTileSummary": "{tokens, number} tokenuri salvate · {runs, plural, one {# rulare stilizată} few {# rulări stilizate} other {# de rulări stilizate}}",
@@ -8340,7 +8353,15 @@
     "cliproxyapiHealth": "Sănătate",
     "cliproxyapiPort": "Port",
     "qdrantHost": "Gazdă",
-    "qdrantCollection": "Colecție"
+    "qdrantCollection": "Colecție",
+    "headroomProxyTitle": "__MISSING__:Headroom proxy",
+    "headroomProxyDesc": "__MISSING__:URL of the optional Headroom token-saver proxy. Empty uses HEADROOM_URL or http://localhost:8787.",
+    "headroomProxyUrl": "__MISSING__:Headroom URL",
+    "headroomProxyUrlHint": "__MISSING__:Loopback URLs can be started from this page. External URLs are probed only.",
+    "headroomProxySave": "__MISSING__:Save",
+    "headroomProxyStart": "__MISSING__:Start",
+    "headroomProxyStop": "__MISSING__:Stop",
+    "headroomProxyExternalHint": "__MISSING__:This URL is not loopback, so OmniRoute will not spawn the local CLI."
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12961,7 +12982,7 @@
         "description": "După sincronizarea furnizor-model, regenerează profilurile ~/.codex/*.config.toml din catalogul live. Acest lucru nu modifică niciodată configurația Codex activă sau implicită și este dezactivat în mod implicit."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "După sincronizarea furnizor-model, regenerează profilurile ~/.claude/profiles/<name>/settings.json din catalogul live. Acest lucru nu modifică niciodată configurația Claude activă sau implicită și este dezactivat în mod implicit."
+        "description": "După sincronizarea furnizor-model, regenerează profilurile ~/.claude/profiles/'<name>'/settings.json din catalogul live. Acest lucru nu modifică niciodată configurația Claude activă sau implicită și este dezactivat în mod implicit."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Dezactivează endpoint-ul de health-check al instanței locale."
@@ -13112,6 +13133,7 @@
     "segmentHint": "Fiecare segment = un pool gratuit · pool deduplicat, contorizare corectă (fără plafoane de limită de rată umflate).",
     "boost": "Deblochează încă ~{tokens}/lună cu o reîncărcare unică de 10 $ pe OpenRouter (50 → 1000 cereri/zi)",
     "uncapped": "Permanent gratuit, fără limită publicată (limitat ca rată) — acces real, necontorizat în titlu:",
+    "gated": "__MISSING__:~{tokens}/mo more behind a regional identity check (e.g. mainland-China real-name verification) — real quota, not counted in the headline:",
     "tosRestricted": "{count, plural, one {# model marcat ca restricționat prin ToS — tu decizi} few {# modele marcate ca restricționate prin ToS — tu decizi} other {# de modele marcate ca restricționate prin ToS — tu decizi}}",
     "provider": "Furnizor",
     "model": "Model",
@@ -13988,6 +14010,7 @@
     "drawerTimeline": "Cronologie",
     "drawerMetrics": "Metrici",
     "drawerResult": "Rezultat",
+    "drawerMemory": "Memorie utilizată",
     "drawerActions": "Acțiuni",
     "drawerClose": "Închide",
     "copyTrace": "Copiază JSON-ul de urmărire",
@@ -13997,7 +14020,11 @@
     "actionDone": "Acțiune aplicată",
     "actionFailed": "Acțiune eșuată: {error}",
     "detailFailed": "Încărcarea detaliilor a eșuat: {error}",
-    "mirroredInA2A": "Reflectat în A2A"
+    "mirroredInA2A": "Reflectat în A2A",
+    "actionRepeat": "Repetă",
+    "repeatConfirm": "Apasă din nou pentru a confirma",
+    "repeatDone": "Rulare nouă creată",
+    "repeatUnavailable": "Intrarea originală nu este disponibilă"
   },
   "cliproxyProviderExposure": {
     "title": "Expunerea Furnizorului",

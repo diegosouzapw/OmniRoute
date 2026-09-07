@@ -23,18 +23,21 @@ test("Pollinations catalog mirrors the current public text model lineup", () => 
   );
 });
 
-test("NVIDIA catalog includes the verified 2026 additions and GPT OSS 20B alias resolution", () => {
+test("NVIDIA catalog includes the current hosted models and GPT OSS 120B alias resolution", () => {
   const ids = new Set(getModelsByProviderId("nvidia").map((model) => model.id));
 
-  assert.ok(ids.has("openai/gpt-oss-20b"));
+  assert.ok(ids.has("moonshotai/kimi-k3"));
+  assert.ok(ids.has("deepseek-ai/deepseek-v4-pro-0813"));
+  assert.ok(ids.has("deepseek-ai/deepseek-v4-flash-0731"));
+  assert.ok(ids.has("nvidia/nemotron-3.5-lightning-30b-a3b"));
+  assert.ok(ids.has("meta/muse-glimmer-30b"));
+  assert.ok(ids.has("google/diffusiongemma-26b-a4b-it"));
+  assert.ok(ids.has("openai/gpt-oss-120b"));
   assert.ok(ids.has("nvidia/nemotron-3-super-120b-a12b"));
-  assert.ok(ids.has("mistralai/mistral-large-3-675b-instruct-2512"));
-  assert.ok(ids.has("qwen/qwen3.5-397b-a17b"));
-  assert.ok(ids.has("mistralai/devstral-2-123b-instruct-2512"));
 
-  assert.deepEqual(resolveCanonicalProviderModel("nvidia", "gpt-oss-20b"), {
+  assert.deepEqual(resolveCanonicalProviderModel("nvidia", "gpt-oss-120b"), {
     provider: "nvidia",
-    model: "openai/gpt-oss-20b",
+    model: "openai/gpt-oss-120b",
   });
 });
 

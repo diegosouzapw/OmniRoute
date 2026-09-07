@@ -61,6 +61,8 @@ import { getQoderUsage, parseQoderUserStatusUsage } from "./usage/qoder.ts";
 export { parseQoderUserStatusUsage } from "./usage/qoder.ts";
 import { getOpencodeUsage } from "./usage/opencode.ts";
 import { getDeepseekUsage } from "./usage/deepseek.ts";
+import { getMoonshotOpenPlatformUsage } from "./moonshotQuotaFetcher.ts";
+import { isMoonshotOpenPlatformConnection } from "./usage/moonshotOpenPlatform.ts";
 import { getDevinCliUsage } from "./usage/devinCli.ts";
 import { getBailianCodingPlanUsage } from "./usage/bailian.ts";
 import { getVertexUsage } from "./usage/vertex.ts";
@@ -110,6 +112,10 @@ export async function getUsageForProvider(
   options: { forceRefresh?: boolean } = {}
 ) {
   const { id, provider, accessToken, apiKey, providerSpecificData, projectId, email } = connection;
+
+  if (isMoonshotOpenPlatformConnection(connection)) {
+    return await getMoonshotOpenPlatformUsage(connection);
+  }
 
   switch (provider) {
     case "github":
@@ -168,6 +174,9 @@ export async function getUsageForProvider(
       return await getNanoGptUsage(apiKey || "");
     case "deepseek":
       return await getDeepseekUsage(id || "", apiKey || "");
+    case "moonshot":
+    case "kimi":
+      return await getMoonshotOpenPlatformUsage(connection);
     case "openrouter":
       return await getOpenrouterUsage(id || "", apiKey || "", providerSpecificData);
     case "opencode":

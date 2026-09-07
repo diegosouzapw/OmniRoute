@@ -1,0 +1,1 @@
+- **fix(db):** back-fill `last_ping_at` and `last_pinged_reset_key` on `provider_connections` during schema reconciliation so divergent lineages that skipped `123_quota_auto_ping` still accept quota auto-ping writes ([#12470](https://github.com/diegosouzapw/OmniRoute/pull/12470) — thanks @KooshaPari)

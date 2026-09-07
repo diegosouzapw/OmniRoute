@@ -450,3 +450,95 @@ test("without an override the small-catalog target is ordered last for the large
     ["unit-override/big", "unit-override/capped"]
   );
 });
+
+// #12273: real Claude Code requests always carry `tools`, and the auto/coding
+// pool mixes coding-capable providers with providers whose catalog marks
+// toolCalling=false. Those non-coding targets are HARD-rejected (tools), so the
+// compat filter can collapse the whole pool to a single too-small-context
+// coding model (e.g. mimo-v2.5-free at 200k) for a much larger request — the
+// larger-context model was never assembled into the candidate pool. Routing to
+// that sole survivor is a guaranteed context_length_exceeded, so the filter
+// must fall back to the full pool instead of silently pinning the request.
+test("#12273 single known-too-small survivor falls back to the full pool", () => {
+  saveModelsDevCapabilities({
+    "unit-collapse": {
+      small: capabilityEntry(200_000),
+    },
+    "unit-noncoding": {
+      nocoder: { ...capabilityEntry(1_000_000), tool_call: false },
+    },
+  });
+  const body = {
+    ...bigContextBody(300_000),
+    tools: [{ type: "function" }], // Claude Code always sends tools
+  };
+
+  const out = filterTargetsByRequestCompatibility(
+    [target("unit-collapse/small"), target("unit-noncoding/nocoder")],
+    body,
+    noopLog
+  );
+
+  // nocoder is hard-rejected (toolCalling=false); small (200k) is the only
+  // compatible survivor but is known to be too small for a 300k request, so the
+  // filter returns the full pool rather than dispatch to a guaranteed failure.
+  assert.deepEqual(
+    out.map((entry) => entry.modelStr),
+    ["unit-collapse/small", "unit-noncoding/nocoder"]
+  );
+});
+
+// Guard against regression: when the single survivor's window DOES fit the
+// request, the filter still collapses (existing behavior preserved).
+test("#12273 single compatible target that fits is still collapsed", () => {
+  saveModelsDevCapabilities({
+    "unit-collapse": {
+      big: capabilityEntry(1_000_000),
+    },
+    "unit-noncoding": {
+      nocoder: { ...capabilityEntry(1_000_000), tool_call: false },
+    },
+  });
+  const body = {
+    ...bigContextBody(300_000),
+    tools: [{ type: "function" }],
+  };
+
+  const out = filterTargetsByRequestCompatibility(
+    [target("unit-collapse/big"), target("unit-noncoding/nocoder")],
+    body,
+    noopLog
+  );
+
+  // big (1M) fits the 300k request, so the collapse is legitimate.
+  assert.deepEqual(
+    out.map((entry) => entry.modelStr),
+    ["unit-collapse/big"]
+  );
+});
+
+// #12278: unknown context is advisory, not "known too small". Collapsing to a
+// single survivor whose context limit is unknown must NOT restore hard-rejected
+// targets (output_tokens here; vision is covered by combo-vision-aware-routing).
+test("#12273 unknown-context sole survivor does not restore hard-rejected targets", () => {
+  saveModelsDevCapabilities({
+    "unit-output": {
+      tiny: capabilityEntryWithLimits(128_000, 128_000, 4096),
+    },
+  });
+  const body = {
+    messages: [{ role: "user", content: "hello" }],
+    max_tokens: 32_000,
+  };
+
+  const out = filterTargetsByRequestCompatibility(
+    [target("unit-unknown/mystery"), target("unit-output/tiny")],
+    body,
+    noopLog
+  );
+
+  assert.deepEqual(
+    out.map((entry) => entry.modelStr),
+    ["unit-unknown/mystery"]
+  );
+});

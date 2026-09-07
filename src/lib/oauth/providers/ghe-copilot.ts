@@ -1,3 +1,4 @@
+import { getGitHubCopilotChatUserAgent } from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
 import { GHE_COPILOT_CONFIG } from "../constants/oauth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
@@ -72,7 +73,7 @@ export const gheCopilot = {
         Authorization: `Bearer ${tokens.access_token}`,
         Accept: "application/json",
         "X-GitHub-Api-Version": GHE_COPILOT_CONFIG.apiVersion,
-        "User-Agent": GHE_COPILOT_CONFIG.userAgent,
+        "User-Agent": getGitHubCopilotChatUserAgent(),
       },
     });
     const copilotToken = copilotRes.ok ? await copilotRes.json() : {};
@@ -81,7 +82,7 @@ export const gheCopilot = {
         Authorization: `Bearer ${tokens.access_token}`,
         Accept: "application/json",
         "X-GitHub-Api-Version": GHE_COPILOT_CONFIG.apiVersion,
-        "User-Agent": GHE_COPILOT_CONFIG.userAgent,
+        "User-Agent": getGitHubCopilotChatUserAgent(),
       },
     });
     const userInfo = userRes.ok ? await userRes.json() : {};

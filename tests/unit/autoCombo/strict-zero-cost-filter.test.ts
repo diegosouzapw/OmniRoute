@@ -50,7 +50,8 @@ const KEYLESS = {
 };
 // A real quota-based entry with hardStopGuaranteed: true (added by this feature),
 // as a concrete single-connection candidate.
-const QUOTA_SAFE = { provider: "groq", model: "llama-3.3-70b-versatile", connectionId: REAL_CONN };
+// 2026-09-02: was groq/llama-3.3-70b-versatile, retired from the Groq free tier on 2026-08-16.
+const QUOTA_SAFE = { provider: "groq", model: "openai/gpt-oss-120b", connectionId: REAL_CONN };
 // A real quota-based entry WITHOUT hardStopGuaranteed (agentrouter: one-time-initial,
 // no usage adapter, no documented "no credit card" claim — must never pass).
 const QUOTA_UNGUARANTEED = {
@@ -69,7 +70,7 @@ const PAID = { provider: "openai", model: "gpt-4o", connectionId: REAL_CONN };
 
 test("sanity: fixtures exist in the real catalog with the metadata these tests assume", () => {
   const groqEntry = FREE_MODEL_BUDGETS.find(
-    (m) => m.provider === "groq" && m.modelId === "llama-3.3-70b-versatile"
+    (m) => m.provider === "groq" && m.modelId === "openai/gpt-oss-120b"
   );
   assert.equal(groqEntry?.hardStopGuaranteed, true, "groq must carry hardStopGuaranteed: true");
   const arEntry = FREE_MODEL_BUDGETS.find(
@@ -121,7 +122,7 @@ test("model absent from the free catalog is excluded even under a known provider
 // 5. quota SAFE + fresh + hardStop → PASS
 test("quota-based candidate with hardStopGuaranteed, fresh SAFE state above threshold passes", () => {
   const entry = FREE_MODEL_BUDGETS.find(
-    (m) => m.provider === "groq" && m.modelId === "llama-3.3-70b-versatile"
+    (m) => m.provider === "groq" && m.modelId === "openai/gpt-oss-120b"
   );
   assert.deepEqual(
     evaluateCandidateConnections(
@@ -137,7 +138,7 @@ test("quota-based candidate with hardStopGuaranteed, fresh SAFE state above thre
 // 6. quota exhausted → EXCLUDE
 test("EXHAUSTED status excludes even with a fresh checkedAt", () => {
   const entry = FREE_MODEL_BUDGETS.find(
-    (m) => m.provider === "groq" && m.modelId === "llama-3.3-70b-versatile"
+    (m) => m.provider === "groq" && m.modelId === "openai/gpt-oss-120b"
   );
   const state = freshState({ status: "EXHAUSTED", remainingFreeAllowance: 0 });
   assert.deepEqual(
@@ -149,7 +150,7 @@ test("EXHAUSTED status excludes even with a fresh checkedAt", () => {
 // 7. usage adapter absent (no state resolvable) → EXCLUDE
 test("quota-based candidate with no resolvable state is excluded, not assumed safe", () => {
   const entry = FREE_MODEL_BUDGETS.find(
-    (m) => m.provider === "groq" && m.modelId === "llama-3.3-70b-versatile"
+    (m) => m.provider === "groq" && m.modelId === "openai/gpt-oss-120b"
   );
   assert.deepEqual(
     evaluateCandidateConnections(QUOTA_SAFE, entry, () => undefined, BASE_OPTIONS),
@@ -162,7 +163,7 @@ test("quota-based candidate with no resolvable state is excluded, not assumed sa
 // here — same assertion as #7, the important contract is "never falls back to SAFE").
 test("UNKNOWN status excludes", () => {
   const entry = FREE_MODEL_BUDGETS.find(
-    (m) => m.provider === "groq" && m.modelId === "llama-3.3-70b-versatile"
+    (m) => m.provider === "groq" && m.modelId === "openai/gpt-oss-120b"
   );
   const state = freshState({ status: "UNKNOWN", remainingFreeAllowance: null });
   assert.deepEqual(
@@ -174,7 +175,7 @@ test("UNKNOWN status excludes", () => {
 // 9. usage state stale → EXCLUDE
 test("stale checkedAt excludes even when status is SAFE", () => {
   const entry = FREE_MODEL_BUDGETS.find(
-    (m) => m.provider === "groq" && m.modelId === "llama-3.3-70b-versatile"
+    (m) => m.provider === "groq" && m.modelId === "openai/gpt-oss-120b"
   );
   const stale = freshState({ checkedAt: "2026-08-19T00:00:00.000Z" }); // >24h before NOW
   assert.deepEqual(

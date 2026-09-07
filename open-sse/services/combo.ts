@@ -69,6 +69,7 @@ import { resolveModelLockoutSettings } from "../../src/lib/resilience/modelLocko
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
 import { evaluateQuotaCutoff, getQuotaFetcher, type QuotaInfo } from "./quotaPreflight.ts";
 import { resolveProviderId } from "../../src/shared/constants/providers.ts";
+import { getQuotaFetchScope } from "./antigravityQuotaFamily.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { parseModel } from "./model.ts";
@@ -178,6 +179,7 @@ import {
 } from "./combo/validateQuality.ts";
 import {
   resolveComboCooldownWaitDecision,
+  resolveCircuitOpenWaitDecision,
   ResolveComboCooldownDecisionResult,
 } from "./combo/comboCooldownRetry.ts";
 import {
@@ -595,14 +597,17 @@ export async function buildAutoCandidates(
         statusPenaltyReason = connectionStatusReason;
       }
       if (fetcher && target.connectionId) {
-        const quotaKey = `${provider}:${target.connectionId}`;
+        const quotaScope = getQuotaFetchScope(provider, target.modelStr);
+        const quotaKey = `${provider}:${target.connectionId}:${quotaScope}`;
         if (!quotaPromises.has(quotaKey)) {
           quotaPromises.set(
             quotaKey,
             fetchResetAwareQuotaWithCache({
               provider,
               connectionId: target.connectionId,
-              connection,
+              connection: connection
+                ? { ...connection, requestedModel: target.modelStr }
+                : connection,
               fetcher,
               config: resetWindowConfig,
               log: {},
@@ -613,12 +618,13 @@ export async function buildAutoCandidates(
         const quota = await quotaPromises.get(quotaKey)!;
         resetWindowAffinity = calculateResetWindowAffinity(quota, resetWindowConfig);
         if (!quotaCutoffBlocked) {
-          quotaRemaining = quotaRemainingPercentFromQuota(quota);
+          quotaRemaining = quotaRemainingPercentFromQuota(quota, { provider, requestedModel: modelStr });
         }
         if (!quotaCutoffBlocked && quotaCutoffEnabled) {
           const cutoffDecision = evaluateQuotaCutoff(
             quota as QuotaInfo | null,
-            buildAutoQuotaThresholds(provider, connection, resilienceSettings)
+            buildAutoQuotaThresholds(provider, connection, resilienceSettings),
+            { provider, requestedModel: modelStr }
           );
           if (!cutoffDecision.proceed) {
             quotaCutoffBlocked = true;
@@ -1132,6 +1138,8 @@ async function handleComboChatInner({
     let lastError: string | null = null;
     let earliestRetryAfter: ComboRetryAfter | null = null;
     let lastStatus: number | null = null;
+    let skippedForCircuitOpen = false;
+    let earliestCircuitOpenRetryMs = 0;
     // #11804: the loop-safety timer is armed per setTry iteration but must be
     // cleared on EVERY exit path, not just the happy one. Hoisted to function
     // scope so the `finally` at the end of this function always reaches it —
@@ -1150,6 +1158,8 @@ async function handleComboChatInner({
       const exhaustedProviders = new Set<string>();
       const exhaustedConnections = new Set<string>();
       const transientRateLimitedProviders = new Set<string>();
+      skippedForCircuitOpen = false;
+      earliestCircuitOpenRetryMs = 0;
       if (setTry > 0) {
         log.info("COMBO", `All targets failed — retrying set (${setTry}/${maxSetRetries})`);
         await new Promise((resolve) => {
@@ -1271,7 +1281,15 @@ async function handleComboChatInner({
         };
 
         const cb = getCircuitBreaker(provider);
-        if (cb.getStatus().state === "OPEN") {
+        const cbStatus = cb.getStatus();
+        if (cbStatus.state === "OPEN") {
+          skippedForCircuitOpen = true;
+          if (
+            cbStatus.retryAfterMs > 0 &&
+            (earliestCircuitOpenRetryMs === 0 || cbStatus.retryAfterMs < earliestCircuitOpenRetryMs)
+          ) {
+            earliestCircuitOpenRetryMs = cbStatus.retryAfterMs;
+          }
           log.info("COMBO", `Skipping ${modelStr} — circuit breaker OPEN for ${provider}`);
           recordComboDecision(traceInvocationId, {
             step: target.executionKey,
@@ -1379,7 +1397,8 @@ async function handleComboChatInner({
             resilienceSettings,
             quotaCutoffResetWindowConfig,
             combo.name,
-            log
+            log,
+            modelStr
           );
           if (quotaCutoff.blocked) {
             log.info(
@@ -1660,8 +1679,16 @@ async function handleComboChatInner({
             }
           }
 
-          // Universal handoff: inject existing handoff if model changed
+          // Universal handoff: inject existing handoff if model changed. i === 0
+          // only: a fallback target (i > 0) serves the SAME client request the
+          // failed primary target would have served, with the original messages
+          // already intact -- there's nothing to hand off, since the client never
+          // saw the earlier target fail. Injecting a handoff note there replaces
+          // real context with a context-free note, which weaker fallback models
+          // have been observed treating as license to fabricate content instead
+          // of just answering the actual request (#12227 follow-up).
           if (
+            i === 0 &&
             universalHandoffConfig.enabled &&
             relayOptions?.sessionId &&
             !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
@@ -1927,7 +1954,14 @@ async function handleComboChatInner({
                 provider,
                 target.connectionId ?? undefined
               );
-              if (prevModel && prevModel !== modelStr) {
+              // i === 0 only: a same-request fallback target (i > 0) never
+              // needs a summary generated for it -- see the injection-site
+              // comment above. recordSessionModelUsage above stays
+              // unconditional regardless of i: it must reflect whichever
+              // model actually served THIS response, since the next
+              // request's i === 0 comparison depends on that being
+              // accurate even when this response came from a fallback.
+              if (i === 0 && prevModel && prevModel !== modelStr) {
                 const handoffSourceMessages =
                   Array.isArray(body?.messages) && body.messages.length > 0
                     ? body.messages
@@ -2745,6 +2779,32 @@ async function handleComboChatInner({
 
       // Retry the entire set if more attempts remain
       if (setTry < maxSetRetries) continue;
+
+      if (!lastStatus && recordedAttempts === 0 && comboCooldownWaitEnabled) {
+        const circuitOpenWait = resolveCircuitOpenWaitDecision({
+          skippedForCircuitOpen,
+          retryAfterMs: earliestCircuitOpenRetryMs,
+          attempt: comboCooldownAttempt,
+          budgetLeftMs: comboCooldownBudgetLeftMs,
+          settings: resilienceSettings.comboCooldownWait,
+        });
+        if (circuitOpenWait.wait) {
+          log.info(
+            "COMBO",
+            `${strategy} circuit-open wait: waiting ${Math.ceil(circuitOpenWait.waitMs / 1000)}s (reason=${circuitOpenWait.reason ?? "circuit_open"}) then retrying (attempt ${comboCooldownAttempt + 1}/${resilienceSettings.comboCooldownWait.maxAttempts})`
+          );
+          const completed = await waitForCooldownAwareRetry(circuitOpenWait.waitMs, signal);
+          if (!completed) {
+            return errorResponse(499, "Request aborted");
+          }
+          comboCooldownAttempt += 1;
+          comboCooldownBudgetLeftMs = Math.max(
+            0,
+            comboCooldownBudgetLeftMs - circuitOpenWait.waitMs
+          );
+          return dispatchWithCooldownRetry();
+        }
+      }
 
       // All set retries exhausted — return the final error
       // #10681: finalize the decision trace (all targets failed or skipped).
@@ -4015,8 +4075,5 @@ async function handleRoundRobinCombo({
   }
 
   log.warn("COMBO-RR", `All models failed | ${msg}`);
-  return new Response(JSON.stringify({ error: { message: msg } }), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
+  return new Response(JSON.stringify({ error: { message: msg } }), { status, headers: { "Content-Type": "application/json" } });
 }

@@ -1,0 +1,1 @@
+- **fix(ci):** document MIT exceptions for `@eloqnt/{config,format-json,format-po}` (next-intl transitive; locked tarballs omit `license`) and keep the A2A lifecycle vitest off the real SQLite persistence seam ([#12581](https://github.com/diegosouzapw/OmniRoute/issues/12581))

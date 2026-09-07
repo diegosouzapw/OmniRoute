@@ -239,9 +239,12 @@ export async function getGrokCliUsage(accessToken?: string) {
   const config = billing.config;
   const resetAt = config.currentPeriod?.end || null;
   const quotas: Record<string, ReturnType<typeof percentageQuota>> = {};
-  if (config.creditUsagePercent != null) {
-    quotas.weekly = percentageQuota(config.creditUsagePercent, resetAt);
-  }
+  // SuperGrokPro (and proto3 omit-zero) billing configs often omit
+  // creditUsagePercent / productUsage. A present config object is a
+  // successful billing read, so treat a missing percent as 0% used and
+  // still render a weekly bar. A missing config still returns
+  // "Grok Build billing status unavailable" above — that path is unchanged.
+  quotas.weekly = percentageQuota(config.creditUsagePercent ?? 0, resetAt);
   Object.assign(quotas, buildProductQuotas(config.productUsage, resetAt));
 
   const autoTopUpResponse = userId

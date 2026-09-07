@@ -136,6 +136,68 @@ test("combo-exhausted rejection persists the client request body for dashboard i
   });
 });
 
+// #12150 P2 item 7: recordRejectedRequestUsage persists the raw client body for
+// a request rejected BEFORE the guardrail chain runs (circuit-breaker-open /
+// combo-exhausted), so the video-bridge guardrail never got a chance to redact
+// the transcript. The body is persisted defensively through
+// redactVideoTranscriptFieldsForLog, so a rejected video request's stored log
+// never retains the raw transcript cues.
+test("#12150 P2 item 7: a rejected request's persisted body has its video transcript redacted", async () => {
+  const SECRET = "top secret cue text";
+  await recordRejectedRequestUsage({
+    status: 503,
+    model: "default",
+    requestedModel: "default",
+    provider: "-",
+    endpoint: "/v1/chat/completions",
+    error: "[503] Pipeline gate rejected",
+    apiKeyId: "key-video-reject",
+    apiKeyName: "video-reject-test",
+    correlationId: "corr-video-reject",
+    startTime: Date.now() - 10,
+    requestBody: {
+      model: "default",
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "look at this video" },
+            {
+              type: "input_video",
+              video_url: "https://example.com/clip.mp4",
+              transcript: { cues: [{ text: SECRET, startSeconds: 0, endSeconds: 2 }] },
+            },
+          ],
+        },
+      ],
+    },
+  });
+
+  let rejected: { id: string } | undefined;
+  for (let i = 0; i < 50 && !rejected; i++) {
+    const logs = await callLogs.getCallLogs({});
+    const list = (logs.logs ?? logs) as Array<{ apiKeyName?: string | null }>;
+    const found = (list ?? []).find((l) => l.apiKeyName === "video-reject-test");
+    if (found) rejected = found as unknown as { id: string };
+    else await new Promise((r) => setTimeout(r, 10));
+  }
+  assert.ok(rejected, "expected a call_logs row for the rejected video request");
+
+  const detail = await callLogs.getCallLogById(rejected.id);
+  assert.ok(detail, "expected to load the call log detail");
+  assert.equal(
+    JSON.stringify(detail!.requestBody).includes(SECRET),
+    false,
+    "the rejected request's persisted body must not retain the raw video transcript"
+  );
+  const transcriptField = (
+    detail!.requestBody as {
+      messages: Array<{ content: Array<{ transcript?: unknown }> }>;
+    }
+  ).messages[0].content[1].transcript;
+  assert.equal(transcriptField, "[redacted-video-transcript]");
+});
+
 test("combo-exhausted rejection without a request body still logs cleanly (no request body available)", async () => {
   await recordRejectedRequestUsage({
     status: 503,

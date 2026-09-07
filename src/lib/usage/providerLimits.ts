@@ -16,7 +16,7 @@ import { setQuotaCache } from "@/domain/quotaCache";
 import { buildClaudeExtraUsageConnectionUpdate } from "@/lib/providers/claudeExtraUsage";
 import { clearRecoveredProviderState } from "@/sse/services/auth";
 import { getMachineId } from "@/shared/utils/machine";
-import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
+import { supportsProviderQuota } from "@/shared/utils/providerQuotaVisibility";
 import { mergeProviderLimitsCacheEntry, toProviderLimitsCacheEntry } from "./providerLimitsCache";
 import { getCredentialRefreshExecutor } from "@omniroute/open-sse/executors/credential.ts";
 import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
@@ -174,19 +174,14 @@ function shouldRefreshProviderLimitsCache(
 }
 
 export function isSupportedUsageConnection(connection: ProviderConnectionLike | null): boolean {
-  if (
-    !connection ||
-    !connection.provider ||
-    !USAGE_SUPPORTED_PROVIDERS.includes(connection.provider)
-  ) {
-    return false;
-  }
+  if (!connection?.provider) return false;
 
-  if (connection.authType === "oauth") return true;
-  return (
-    (connection.authType === "apikey" || connection.authType === "api_key") &&
-    PROVIDER_LIMITS_APIKEY_PROVIDERS.has(connection.provider)
-  );
+  if (connection.authType === "oauth") {
+    return supportsProviderQuota(connection.provider, connection);
+  }
+  if (connection.authType !== "apikey" && connection.authType !== "api_key") return false;
+  if (PROVIDER_LIMITS_APIKEY_PROVIDERS.has(connection.provider)) return true;
+  return supportsProviderQuota(connection.provider, connection);
 }
 
 function withStatus(error: Error, status: number): Error & { status: number } {

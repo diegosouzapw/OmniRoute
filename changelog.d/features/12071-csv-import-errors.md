@@ -1,0 +1,1 @@
+- **feat(providers):** import-from-file modal shows per-row API errors and ships a downloadable CSV template ([#12071](https://github.com/diegosouzapw/OmniRoute/issues/12071))

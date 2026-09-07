@@ -41,6 +41,7 @@ Simple guides for using OmniRoute — no technical background needed.
 - [PWA_GUIDE.md](guides/PWA_GUIDE.md) — installing the dashboard as a PWA.
 - [REMOTE-MODE.md](guides/REMOTE-MODE.md) — exposing OmniRoute remotely + scoped tokens.
 - [CLI-INTEGRATIONS.md](guides/CLI-INTEGRATIONS.md) — master table of `setup-*` CLI integrations.
+- [OPENCODE-V2-PLUGIN.md](guides/OPENCODE-V2-PLUGIN.md) — installing and configuring the OpenCode v2 plugin.
 - [CLAUDE-CODE-CONFIGURATION.md](guides/CLAUDE-CODE-CONFIGURATION.md) — Claude Code CLI with OmniRoute.
 - [CODEX-CLI-CONFIGURATION.md](guides/CODEX-CLI-CONFIGURATION.md) — Codex CLI with OmniRoute.
 - [KIRO_SETUP.md](guides/KIRO_SETUP.md) — Kiro setup.

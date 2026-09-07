@@ -24,9 +24,13 @@ export interface ModelSpec {
   // Model ONLY supports adaptive thinking: manual extended thinking was removed. Sending
   // `thinking.type:"enabled"` or any `thinking.budget_tokens` returns HTTP 400; reasoning
   // is steered exclusively by `output_config.effort` (low/medium/high/xhigh/max). True for
-  // Claude Opus 4.7 and later (Opus 4.7/4.8/5, Fable 5). Per Anthropic's migration guide,
+  // Claude Opus 4.7 and later (Opus 4.7/4.8/5, Fable 5/5.1). Per Anthropic's migration guide,
   // any request that tries to set a fixed thinking budget gets a 400 error.
   adaptiveThinkingOnly?: boolean;
+  // The model rejects tool_choice values that require a tool call. Keep tools available,
+  // but normalize a forced choice to the default auto behavior before dispatch. Fable 5.1 always runs
+  // adaptive thinking, so forced tool use cannot be combined with any valid request.
+  rejectsForcedToolChoice?: boolean;
   // Highest effort accepted while `thinking.type:"disabled"` is present. Claude Opus 5
   // rejects disabled thinking with xhigh/max, while accepting it through high.
   maxEffortWhenThinkingDisabled?: "high";
@@ -369,6 +373,21 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsVision: true,
     adaptiveThinkingOnly: true,
     aliases: BEDROCK_CLAUDE_ALIASES("claude-opus-4-7", "claude-opus-4.7"),
+  },
+
+  // ── Claude Fable 5.1 ────────────────────────────────────────────
+  "claude-fable-5-1": {
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    defaultThinkingBudget: 32000,
+    thinkingBudgetCap: 120000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    rejectsThinkingDisabled: true,
+    adaptiveThinkingOnly: true,
+    rejectsForcedToolChoice: true,
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-fable-5-1"),
   },
 
   // ── Claude Fable 5 ──────────────────────────────────────────────
@@ -849,9 +868,39 @@ export function normalizeThinkingForModel<T extends Record<string, unknown>>(
     getModelSpec(modelId)?.rejectsThinkingDisabled
   ) {
     const { thinking: _omitted, ...rest } = body as Record<string, unknown>;
-    return rest as T;
+    return normalizeForcedToolChoiceForModel(rest as T, modelId);
   }
-  return body;
+  return normalizeForcedToolChoiceForModel(body, modelId);
+}
+
+/**
+ * Normalize tool-choice constraints that a resolved model cannot accept.
+ *
+ * Claude Fable 5.1 always uses adaptive thinking and rejects tool choices that force
+ * either any tool or one named tool. Preserve the declared tools and every unrelated
+ * request field, but drop the choice to select the default `auto` behavior so routing a
+ * request to Fable 5.1 does not turn a recoverable preference into an upstream 400.
+ */
+export function normalizeForcedToolChoiceForModel<T extends Record<string, unknown>>(
+  body: T,
+  modelId: string
+): T {
+  if (!getModelSpec(modelId)?.rejectsForcedToolChoice) return body;
+
+  const toolChoice = body.tool_choice;
+  const forced =
+    toolChoice === "required" ||
+    toolChoice === "any" ||
+    (toolChoice !== null &&
+      typeof toolChoice === "object" &&
+      !Array.isArray(toolChoice) &&
+      ["any", "tool", "function"].includes(
+        String((toolChoice as Record<string, unknown>).type || "").toLowerCase()
+      ));
+  if (!forced) return body;
+
+  const { tool_choice: _omitted, ...rest } = body;
+  return rest as T;
 }
 
 export function capMaxOutputTokens(modelId: string, requested?: number): number | undefined {

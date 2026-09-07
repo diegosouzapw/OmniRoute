@@ -90,14 +90,18 @@ const ENV_KEY_RE = /(clientId|clientSecret|apiKey)Env\s*:/;
 //   The MiniMax family was extracted from services/usage.ts into services/usage/minimax.ts
 //   (god-file decomposition), so the FP moved with the getMiniMaxUsage signature.
 //
-//   open-sse/executors/zcodeProtocol.ts L302: `clientId: \`omniroute-${process.pid}\``
+//   open-sse/executors/zcodeProtocol.ts L313: `clientId: \`omniroute-${process.pid}\``
 //   is the per-process identifier in the local ZCode app-server handshake. It is
 //   generated from the process PID, is not an upstream OAuth/client credential, and
 //   must remain visible in the wire contract. Frozen by file:line:value key.
+//   NOTE: the key includes the LINE, so any edit that shifts this statement breaks
+//   the gate twice over — a stale-entry error plus a "new violation" for the same
+//   literal. That is what happened here (L302 -> L313). Re-point the line; do not
+//   remove the entry.
 export const KNOWN_LITERAL_CREDS = new Set([
   "open-sse/services/usage/minimax.ts:213:minimax", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (getMiniMaxUsage signature)
   "open-sse/services/usage/minimax.ts:213:minimax-cn", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (getMiniMaxUsage signature)
-  "open-sse/executors/zcodeProtocol.ts:302:omniroute-${process.pid}", // local per-process ZCode handshake ID, not an upstream credential
+  "open-sse/executors/zcodeProtocol.ts:313:omniroute-${process.pid}", // local per-process ZCode handshake ID, not an upstream credential
 ]);
 
 /**

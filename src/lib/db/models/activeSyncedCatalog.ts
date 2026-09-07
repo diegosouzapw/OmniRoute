@@ -1,5 +1,6 @@
 import { providerUsesAuthoritativeLiveCatalog } from "@omniroute/open-sse/config/providerRegistry";
 import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.ts";
+import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
 import {
   getSyncedAvailableModels,
   getSyncedAvailableModelsByConnection,
@@ -11,6 +12,24 @@ export type ActiveSyncedCatalog = {
   authoritative: boolean;
   models: SyncedAvailableModel[];
 };
+
+/**
+ * Fail-open membership check for explicit combo members against a live catalog.
+ * `null` means no authoritative catalog is synced yet (unchanged behavior).
+ */
+export function catalogContainsModel(
+  catalog: ActiveSyncedCatalog,
+  modelId: string
+): boolean | null {
+  if (!catalog.authoritative) return null;
+  const trimmed = modelId.trim();
+  if (!trimmed) return false;
+  const ids = new Set(catalog.models.map((model) => model.id));
+  if (ids.has(trimmed)) return true;
+  const slash = trimmed.indexOf("/");
+  if (slash > 0 && ids.has(trimmed.slice(slash + 1))) return true;
+  return false;
+}
 
 export type ProviderCatalogReconciliation = {
   providers: string[];
@@ -76,6 +95,19 @@ function collectModelsForConnections(
   return Array.from(models.values());
 }
 
+function enrichCursorCatalog(
+  providerId: string,
+  models: SyncedAvailableModel[]
+): SyncedAvailableModel[] {
+  // An empty sync means discovery has not completed (or failed). Do not let the
+  // synthetic Cursor auto-router rows turn that empty state into an authoritative
+  // catalog, otherwise every built-in model is incorrectly marked unavailable.
+  if (models.length === 0) return models;
+  return providerId === "cursor" || providerId === "cursor-api"
+    ? ensureCursorAutoCatalogEntry(models)
+    : models;
+}
+
 /**
  * Return the unioned synced catalog belonging only to active connections.
  *
@@ -105,7 +137,10 @@ export async function getActiveSyncedCatalog(providerId: string): Promise<Active
       .filter((connection): connection is ProviderConnectionRef => connection !== null)
       .map((connection) => connection.id);
 
-    const models = collectModelsForConnections(modelsByConnection, activeConnectionIds);
+    const models = enrichCursorCatalog(
+      storedProviderId,
+      collectModelsForConnections(modelsByConnection, activeConnectionIds)
+    );
     if (models.length > 0) {
       return {
         authoritative: providerUsesAuthoritativeLiveCatalog(providerId),
@@ -125,7 +160,13 @@ export async function getActiveSyncedCatalog(providerId: string): Promise<Active
     // NON-authoritative: #9294's live-catalog gating is about what an active
     // connection actually serves, so a node-backed catalog must inform metadata
     // without ever being used to reject a model as unavailable.
-    return { authoritative: false, models: await getSyncedAvailableModels(storedProviderId) };
+    return {
+      authoritative: false,
+      models: enrichCursorCatalog(
+        storedProviderId,
+        await getSyncedAvailableModels(storedProviderId)
+      ),
+    };
   } catch {
     return { authoritative: false, models: [] };
   }
@@ -161,7 +202,10 @@ export async function getAllActiveSyncedModels(): Promise<Record<string, SyncedA
       Array.from(connectionIdsByProvider.entries()).map(async ([providerId, connectionIds]) => {
         const modelsByConnection = await getSyncedAvailableModelsByConnection(providerId);
 
-        const models = collectModelsForConnections(modelsByConnection, connectionIds);
+        const models = enrichCursorCatalog(
+          providerId,
+          collectModelsForConnections(modelsByConnection, connectionIds)
+        );
 
         if (models.length > 0) {
           result[providerId] = models;

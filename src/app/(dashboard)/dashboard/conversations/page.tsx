@@ -26,6 +26,11 @@ interface ConversationRow {
   // streaming (call_logs only gets its row on completion). Used to poll
   // /api/logs/[id] for this conversation's live partial assistant text.
   activeCallLogId: string | null;
+  // Whether the latest turn actually used previous_response_id and it
+  // resolved server-side — distinct from this row existing at all, which
+  // only means the client-side content-hash tracker saw >= 2 turns
+  // regardless of transport (see isGenuineContinuationTurn).
+  isGenuineContinuation: boolean;
 }
 
 // Same spinner used for an in-flight request on /dashboard/logs
@@ -97,6 +102,23 @@ function StatusBadge({ status }: { status: number | null }) {
       style={{ backgroundColor: style.bg, color: style.text ?? "#fff" }}
     >
       {status}
+    </span>
+  );
+}
+
+// Distinguishes a conversation whose latest turn actually used
+// previous_response_id (server-verified — see isGenuineContinuationTurn)
+// from one the content-hash tracker merely counts as multi-turn while still
+// resending full history each request.
+function ContinuationBadge({ isGenuine }: { isGenuine: boolean }) {
+  if (!isGenuine) return null;
+  return (
+    <span
+      title="Latest turn used previous_response_id and it resolved server-side"
+      className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/25"
+    >
+      <span className="material-symbols-outlined text-[11px] leading-none">bolt</span>
+      continuation
     </span>
   );
 }
@@ -268,13 +290,15 @@ function ConversationsPageContent() {
   // itself in the poll effect's dependency array (which would tear down and
   // restart the interval on every single appended turn).
   const newestSeqRef = useRef<number | null>(null);
+  // Tracks the PREVIOUS render's activeCallLogId truthiness, so the
+  // reply-just-finished effect below can detect the true->false transition
+  // specifically (not "is currently falsy", which would also fire on mount
+  // / switching conversations).
+  const wasReplyActiveRef = useRef(false);
 
-  // Extracted so openConversation can force an immediate refresh instead of
-  // waiting for the next scheduled tick — see its call site for why: a
-  // conversation opened right after a new reply starts streaming otherwise
-  // shows no live text until this poll's own interval happens to land,
-  // because activeCallLogId only updates via the resync effect below, which
-  // depends on this list actually having been refetched.
+  // The background list poll below only runs this while no conversation
+  // modal is open — see loadActiveConversationSummary and the poll effect
+  // for the lighter single-row path used while one is open.
   const loadConversations = useCallback(() => {
     if (document.visibilityState !== "visible") return;
     return fetch("/api/conversations?limit=100", { cache: "no-store" })
@@ -290,22 +314,51 @@ function ConversationsPageContent() {
       });
   }, []);
 
+  // While the modal is open, only the one open conversation's summary needs
+  // to stay live (see the resync effect below) — refetching and
+  // re-annotating the whole up-to-100-row list every poll tick just to pluck
+  // that one row back out is pure waste, and at a 1s poll interval it's
+  // waste on every tick. Patches the row in place so the existing resync
+  // effect (keyed on `conversations`) picks it up unchanged.
+  const loadActiveConversationSummary = useCallback((id: string) => {
+    if (document.visibilityState !== "visible") return;
+    return fetch(`/api/conversations/${id}`, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const fresh = data?.conversation;
+        if (!fresh) return;
+        setConversations((prev) => {
+          const idx = prev.findIndex((c) => c.id === fresh.id);
+          if (idx === -1) return prev;
+          const next = prev.slice();
+          next[idx] = fresh;
+          return next;
+        });
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
-    loadConversations();
-    const interval = setInterval(loadConversations, pollSeconds * 1000);
+    const poll = () =>
+      activeConversationId
+        ? loadActiveConversationSummary(activeConversationId)
+        : loadConversations();
+    poll();
+    const interval = setInterval(poll, pollSeconds * 1000);
     return () => {
       clearInterval(interval);
     };
-  }, [pollSeconds, loadConversations]);
+  }, [pollSeconds, loadConversations, loadActiveConversationSummary, activeConversationId]);
 
   // activeConversation is a snapshot taken once at openConversation() time —
   // it's never touched again while the modal stays open (the turns-poll
   // effect below only appends conversationNodes). Without this, "Goto latest
   // request" and any other displayed summary field (lastModel/lastStatus/
   // turnCount) go stale the moment a new request lands in this conversation
-  // while you're still reading it, even though the list poll above (which
-  // runs regardless of whether the modal is open) already has the fresh
-  // row. Re-sync from it whenever the list refreshes.
+  // while you're still reading it. Re-synced from `conversations` whenever
+  // that refreshes — the effect above keeps it fresh whether the modal is
+  // closed (full list poll) or open (single-conversation poll patches this
+  // same row in place).
   useEffect(() => {
     if (!activeConversationId) return;
     const fresh = conversations.find((c) => c.id === activeConversationId);
@@ -461,13 +514,13 @@ function ConversationsPageContent() {
         // ignore navigation errors
       }
       // `row` is a snapshot from whenever the list last polled — if a reply
-      // started streaming after that tick, row.activeCallLogId is still
-      // null and the live-text poll effect never starts until the next
-      // scheduled list refresh happens to land (the exact "opened it and
-      // saw nothing, closed and reopened and saw it live" report). Force
-      // one now so activeConversation resyncs with the current isActive/
-      // activeCallLogId immediately instead of waiting on pollSeconds.
-      loadConversations();
+      // started streaming after that tick, row.activeCallLogId is still null
+      // and the live-text poll effect never starts until a fresh summary
+      // lands (the exact "opened it and saw nothing, closed and reopened and
+      // saw it live" report). setActiveConversation above already changes
+      // activeConversationId, which is a dependency of the poll effect below
+      // — it tears down and re-fires immediately on that change, forcing the
+      // single-row resync here for free without a second explicit call.
       fetchConversationPage(row.id, `limit=${CONVERSATION_PAGE_SIZE}`)
         .then((page) => {
           setConversationNodes(page?.nodes ?? []);
@@ -480,7 +533,7 @@ function ConversationsPageContent() {
           scrollToBottom();
         });
     },
-    [router, fetchConversationPage, scrollToBottom, loadConversations]
+    [router, fetchConversationPage, scrollToBottom]
   );
 
   const closeConversation = useCallback(() => {
@@ -583,6 +636,35 @@ function ConversationsPageContent() {
     return () => clearInterval(interval);
   }, [activeConversationId, pollSeconds, fetchConversationPage]);
 
+  // Live incident (2026-09-02): resolveConversationId reassigns a node's
+  // last_correlation_id to the CURRENT request at request-START (before its
+  // reply streams), but that request's call-log artifact -- what
+  // resolveTurnDisplayContent needs to show real text -- is only written at
+  // completion. A node touched by a still-in-flight request therefore
+  // legitimately resolves empty if fetched during that window; the afterSeq
+  // poll above only ever APPENDS strictly newer nodes, so one already
+  // rendered empty stays empty in local state forever, even once its
+  // artifact exists moments later -- the exact "empty until you close and
+  // reopen the conversation" symptom. Once a reply that was streaming
+  // finishes (activeCallLogId's true -> false transition -- see the
+  // wasReplyActiveRef doc comment), re-fetch the recent page and merge it in
+  // by id (never drop older "Load more" history) so any node that resolved
+  // empty during the race gets its real content without a manual reopen.
+  useEffect(() => {
+    const wasActive = wasReplyActiveRef.current;
+    wasReplyActiveRef.current = Boolean(activeCallLogId);
+    if (!wasActive || activeCallLogId || !activeConversationId) return;
+
+    fetchConversationPage(activeConversationId, `limit=${CONVERSATION_PAGE_SIZE}`).then((page) => {
+      if (!page || page.nodes.length === 0) return;
+      setConversationNodes((prev) => {
+        const byId = new Map(prev.map((n) => [n.id, n] as const));
+        for (const n of page.nodes) byId.set(n.id, n);
+        return [...byId.values()].sort((a, b) => a.seq - b.seq);
+      });
+    });
+  }, [activeCallLogId, activeConversationId, fetchConversationPage]);
+
   // Live preview of the CURRENTLY streaming reply, if any: conversation_turn_nodes
   // only gains a node for an assistant turn once the client resends it as
   // history on its NEXT request (resolveConversationId reads only the request
@@ -655,6 +737,7 @@ function ConversationsPageContent() {
         lastStatus: null,
         isActive: false,
         activeCallLogId: null,
+        isGenuineContinuation: false,
       }
     );
   }, [initialConversationParam, loading, conversations, openConversation]);
@@ -759,6 +842,7 @@ function ConversationsPageContent() {
                     >
                       {row.id.slice(0, 16)}…
                     </span>
+                    <ContinuationBadge isGenuine={row.isGenuineContinuation} />
                   </span>
                   <span className="font-mono text-xs text-text-muted shrink-0">
                     {row.turnCount} turns
@@ -785,6 +869,7 @@ function ConversationsPageContent() {
                 <tr className="border-b border-border bg-bg-subtle text-left text-[11px] uppercase tracking-wider text-text-muted">
                   <th className="px-3 py-2">Conversation</th>
                   <th className="px-3 py-2 text-right">Turns</th>
+                  <th className="px-3 py-2">Continuation</th>
                   <th className="px-3 py-2">Last Model</th>
                   <th className="px-3 py-2">Provider</th>
                   <th className="px-3 py-2">Status</th>
@@ -815,6 +900,9 @@ function ConversationsPageContent() {
                     </td>
                     <td className="px-3 py-2 text-right font-mono text-text-main">
                       {row.turnCount}
+                    </td>
+                    <td className="px-3 py-2">
+                      <ContinuationBadge isGenuine={row.isGenuineContinuation} />
                     </td>
                     <td className="px-3 py-2 text-text-main">{row.lastModel ?? "—"}</td>
                     <td className="px-3 py-2">

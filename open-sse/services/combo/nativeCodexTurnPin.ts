@@ -245,7 +245,8 @@ export async function isPinnedTargetModelScopedUnusable(args: {
       resilienceSettings,
       quotaCutoffResetWindowConfig,
       comboName,
-      log ?? { info: () => {}, warn: () => {}, error: () => {}, debug: () => {} }
+      log ?? { info: () => {}, warn: () => {}, error: () => {}, debug: () => {} },
+      target.modelStr
     );
     if (cutoff.blocked) return true;
   }

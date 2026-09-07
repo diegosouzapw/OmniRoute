@@ -2710,7 +2710,7 @@
     "ccOnboardingTitle": "settings.json para sa pagtuklas ng modelo ng gateway",
     "ccOnboardingCopy": "Kopyahin",
     "ccOnboardingCopied": "Nakopya",
-    "ccOnboardingKeyPlaceholder": "<your OmniRoute API key>",
+    "ccOnboardingKeyPlaceholder": "'<your OmniRoute API key>'",
     "ccOnboardingWindowNote": "Ipinapalagay ng Claude Code ang 200K na konteksto para sa anumang model id na hindi nito nakikilala. Para sa isang modelo na may ibang tunay na bintana, idagdag ang CLAUDE_CODE_AUTO_COMPACT_WINDOW sa ilalim nito upang hindi masyadong maaga ang pag-activate ng auto-compaction.",
     "failedSave": "Nabigong i-save",
     "profileSyncTitle": "Auto-sync ng profile ng CLI",
@@ -5248,6 +5248,10 @@
     "iconUrlLabel": "URL ng Icon",
     "iconUrlHint": "Opsyonal. URL ng larawan na ipinapakita bilang icon ng provider na ito.",
     "iconUrlInvalid": "Hindi wastong URL ng icon. Gumamit ng http(s):// o data:image/*;base64 na URL.",
+    "dailyQuotaResetTimezoneLabel": "Daily quota reset timezone",
+    "dailyQuotaResetTimezoneHint": "Optional IANA timezone used when the upstream omits X-RateLimit-Reset. Leave empty to keep a short cooldown.",
+    "dailyQuotaResetHourLabel": "Daily quota reset hour",
+    "dailyQuotaResetHourHint": "Local hour 0-23 in the timezone above. Empty means no node-level clock.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",
@@ -6162,7 +6166,7 @@
       "freeaiapikey": "May diskwentong API proxy para sa 40+ na modelo kabilang ang GPT-5, Claude Opus 4.6, Claude Sonnet 4.6, Qwen 3.5. Kumuha ng iyong API key sa https://freeaiapikey.com/dashboard. Base URL: https://freeaiapikey.com/v1.",
       "freemodel-dev": "Kumuha ng $300 libreng API credits sa https://freemodel.dev — walang kinakailangang impormasyon sa pagbabayad. OpenAI-compatible na endpoint. Available ang mga modelong GPT-5.4 at GPT-5.5.",
       "friendliai": "Libreng tier para sa serverless inference — walang kinakailangang credit card",
-      "gemini": "Libre magpakailanman: 1,500 req/araw para sa Gemini 2.5 Flash — walang credit card, kumuha ng key sa aistudio.google.com",
+      "gemini": "__MISSING__:Free tier through Google AI Studio; per-model quotas are no longer published (check the quota page in AI Studio) — no credit card.",
       "gigachat": "Ikonekta ang GigaChat (Sber) gamit ang isang API key.",
       "gitlab": "GitLab personal access token para sa pampublikong Code Suggestions API. Mag-configure ng self-hosted na base URL kapag hindi gumagamit ng gitlab.com.",
       "gitlawb-gmi": "Kumuha ng iyong API key mula sa Gitlawb Opengateway dashboard.",
@@ -6171,7 +6175,7 @@
       "glm-cn": "Ikonekta ang GLM Coding (China) gamit ang isang API key.",
       "glmt": "Preset na GLM profile na may mas mataas na token budget, naka-enable ang thinking, at mas mahabang timeout.",
       "getgoapi": "Ikonekta ang GoAPI gamit ang isang API key.",
-      "groq": "Libreng tier: 30 RPM / 14.4K RPD — walang credit card",
+      "groq": "__MISSING__:Free plan: per-model caps (200K tokens/day per chat model; see console.groq.com/docs/rate-limits for RPM/RPD) — no payment method on file.",
       "haiper": "Kumuha ng API key sa haiper.ai/haiper-api",
       "heroku": "Ikonekta ang Heroku AI gamit ang isang API key.",
       "hcnsec": "Kumuha ng API key sa api.hcnsec.cn",
@@ -6239,6 +6243,7 @@
       "requesty": "Gumawa ng API key sa https://app.requesty.ai, pagkatapos ay i-paste ito rito bilang isang Bearer token. OpenAI-compatible na endpoint sa https://router.requesty.ai/v1, na may live na catalog ng /v1/models.",
       "runwayml": "Ang pagbuo ng video sa Runway ay task-based. Nagpapasa ang OmniRoute ng mga text-to-video o image-to-video na job, nagpo-poll sa /v1/tasks/[id], at nino-normalize ang mga natapos na video output pabalik sa OpenAI-like na tugon ng /v1/videos/generations.",
       "sambanova": "$5 na libreng credits sa pag-signup (may bisa sa loob ng 30 araw), walang kinakailangang credit card",
+      "seekai": "Create an API key at https://seekai.cc, then paste it here as a Bearer token. OpenAI-compatible base URL: https://seekai.cc/v1.",
       "sap": "Gumagamit ang pagtuklas ng modelo ng /v2/lm/scenarios/foundation-models/models sa AI_API_URL. Gumagamit ang mga kahilingan sa chat ng deploymentUrl/chat/completions at nangangailangan ng AI-Resource-Group.",
       "sarvam": "Ang Sarvam AI ay katugma ng OpenAI sa /v1. Ang OmniRoute ay nag-uusisa sa /v1/models at nagruruta ng chat traffic sa /v1/chat/completions. Ang mga modelo ay na-tune para sa mga wikang Indic.",
       "scaleway": "1M libreng token para sa mga bagong account — sumusunod sa EU/GDPR (Paris), Qwen3 235B & Llama 70B",
@@ -7812,6 +7817,14 @@
     "compressionDerivedMode": "mode: {mode}",
     "compressionAdaptiveOff": "Adaptive context budget: naka-off (legacy na auto-trigger)",
     "compressionAdaptiveTarget": "Adaptive ({mode}, patakaran: {policy}) — target ≈ {target, number} na token (para sa isang {contextLimit, number}-token na window)",
+    "compressionAdaptiveMode": "__MISSING__:Adaptive context budget",
+    "compressionAdaptiveModeOff": "__MISSING__:Off (legacy auto-trigger)",
+    "compressionAdaptiveModeFloor": "__MISSING__:Floor (always guarantee fit)",
+    "compressionAdaptiveModeReplace": "__MISSING__:Replace auto-trigger",
+    "compressionAdaptivePolicy": "__MISSING__:Budget policy",
+    "compressionAdaptivePolicyReserve": "__MISSING__:Reserve output",
+    "compressionAdaptivePolicyPercentage": "__MISSING__:Percentage of window",
+    "compressionAdaptivePolicyAbsolute": "__MISSING__:Absolute token budget",
     "compressionOutputStylesDescription": "Mag-inject ng mga tagubilin sa paghubog ng tugon nang hindi muling isinusulat ang output ng provider. Malayang pagsamahin.",
     "mcpAccessibilityDescription": "Nililimitahan ang mga output ng MCP tool (hiwalay na store).",
     "compressionStylesTileSummary": "{tokens, number} na token ang na-save · {runs, plural, one {# run ang na-style} other {# na run ang na-style}}",
@@ -8340,7 +8353,15 @@
     "cliproxyapiHealth": "Kalusugan",
     "cliproxyapiPort": "Port",
     "qdrantHost": "Host",
-    "qdrantCollection": "Koleksyon"
+    "qdrantCollection": "Koleksyon",
+    "headroomProxyTitle": "__MISSING__:Headroom proxy",
+    "headroomProxyDesc": "__MISSING__:URL of the optional Headroom token-saver proxy. Empty uses HEADROOM_URL or http://localhost:8787.",
+    "headroomProxyUrl": "__MISSING__:Headroom URL",
+    "headroomProxyUrlHint": "__MISSING__:Loopback URLs can be started from this page. External URLs are probed only.",
+    "headroomProxySave": "__MISSING__:Save",
+    "headroomProxyStart": "__MISSING__:Start",
+    "headroomProxyStop": "__MISSING__:Stop",
+    "headroomProxyExternalHint": "__MISSING__:This URL is not loopback, so OmniRoute will not spawn the local CLI."
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12961,7 +12982,7 @@
         "description": "Pagkatapos ng pag-synchronize ng provider-model, muling buuin ang mga profile ng ~/.codex/*.config.toml mula sa live catalog. Hindi nito kailanman binabago ang aktibo o default na configuration ng Codex at naka-off bilang default."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Pagkatapos ng pag-synchronize ng provider-model, muling buuin ang mga profile ng ~/.claude/profiles/<name>/settings.json mula sa live catalog. Hindi nito kailanman binabago ang aktibo o default na configuration ng Claude at naka-off bilang default."
+        "description": "Pagkatapos ng pag-synchronize ng provider-model, muling buuin ang mga profile ng ~/.claude/profiles/'<name>'/settings.json mula sa live catalog. Hindi nito kailanman binabago ang aktibo o default na configuration ng Claude at naka-off bilang default."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "I-disable ang health-check endpoint ng lokal na instance."
@@ -13112,6 +13133,7 @@
     "segmentHint": "Bawat segment = isang libreng pool · pool-deduped, tapat na pagbibilang (walang pinalobong mga ceiling ng rate-limit).",
     "boost": "I-unlock ang ~{tokens} pa/buwan gamit ang isang beses na $10 OpenRouter top-up (50 → 1000 req/araw)",
     "uncapped": "Permanenteng libre, walang nai-publish na limitasyon (rate-limited) — totoong access, hindi binibilang sa headline:",
+    "gated": "__MISSING__:~{tokens}/mo more behind a regional identity check (e.g. mainland-China real-name verification) — real quota, not counted in the headline:",
     "tosRestricted": "{count, plural, one {# modelo} other {# na modelo}} ang na-flag bilang ToS-restricted — ikaw ang magpasya",
     "provider": "Provider",
     "model": "Modelo",
@@ -13988,6 +14010,7 @@
     "drawerTimeline": "Timeline",
     "drawerMetrics": "Mga Sukatan",
     "drawerResult": "Resulta",
+    "drawerMemory": "Ginamit na memory",
     "drawerActions": "Mga Aksyon",
     "drawerClose": "Isara",
     "copyTrace": "Kopyahin ang trace JSON",
@@ -13997,7 +14020,11 @@
     "actionDone": "Naisagawa ang aksyon",
     "actionFailed": "Nabigo ang aksyon: {error}",
     "detailFailed": "Nabigong i-load ang mga detalye: {error}",
-    "mirroredInA2A": "Naka-mirror sa A2A"
+    "mirroredInA2A": "Naka-mirror sa A2A",
+    "actionRepeat": "Ulitin",
+    "repeatConfirm": "I-click ulit para kumpirmahin",
+    "repeatDone": "Ginawa ang bagong run",
+    "repeatUnavailable": "Hindi available ang orihinal na input"
   },
   "cliproxyProviderExposure": {
     "title": "Provider Exposure",

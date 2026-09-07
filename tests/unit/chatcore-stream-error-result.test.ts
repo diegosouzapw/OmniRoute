@@ -43,6 +43,23 @@ test("createStreamingErrorResult attaches optional code and type", async () => {
   assert.equal(json.error.type, "rate_limit_error");
 });
 
+test("createStreamingErrorResult sanitizes code and type at the SSE boundary", async () => {
+  const result = createStreamingErrorResult(
+    502,
+    "upstream failed",
+    "sk-live-secret-value",
+    "server_error\nX-Leak: yes"
+  );
+  const body = await result.response.text();
+  const json = JSON.parse(body.slice("data: ".length, body.indexOf("\n\n"))) as {
+    error: { code: string; type: string };
+  };
+
+  assert.equal(json.error.code, "bad_gateway");
+  assert.equal(json.error.type, "server_error");
+  assert.doesNotMatch(body, /sk-live-secret-value|X-Leak/);
+});
+
 test("getUpstreamErrorIdentifier returns a non-empty string code or undefined", () => {
   assert.equal(getUpstreamErrorIdentifier({ code: "ECONNRESET" }), "ECONNRESET");
   assert.equal(getUpstreamErrorIdentifier({ code: "" }), undefined);

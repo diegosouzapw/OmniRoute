@@ -807,16 +807,48 @@ export function filterTargetsByRequestCompatibility(
     return [];
   }
 
+  // #12273: a sole survivor whose catalog window is known-too-small is a
+  // guaranteed context_length_exceeded. Restore the remaining pool so combo.ts
+  // can still try larger-context targets. Unknown context (`null`) is advisory
+  // and must not resurrect hard-rejected targets (vision / output / tools).
+  if (
+    compatible.length === 1 &&
+    (targetReasons.get(compatible[0]) || []).includes("context_window")
+  ) {
+    // #8332: never restore a confirmed-non-vision target onto an image request.
+    const restored = requirements.requiresVision
+      ? targets.filter((target) => !isVisionIncompatibleTarget(target, requirements))
+      : targets;
+    if (restored.length > compatible.length) {
+      log.warn(
+        "COMBO",
+        `${label}: single compatible target ${compatible[0].modelStr} has known context too small for ${requirements.requiredContextTokens} token request; falling back to full pool (#12273)`
+      );
+      return restored;
+    }
+  }
+
   log.info(
     "COMBO",
     `${label}: kept ${compatible.length}/${targets.length} targets for request requirements`
   );
-  log.debug?.(
-    "COMBO",
-    `${label}: rejected targets ${rejected
-      .map((entry) => `${entry.target.modelStr}(${entry.reasons.join("+")})`)
-      .join(", ")}`
-  );
+  // #12273: When pool collapses significantly, log rejection reasons at info
+  // level so the cause is diagnosable without enabling debug logging.
+  if (compatible.length <= 2 && targets.length > 4) {
+    log.info(
+      "COMBO",
+      `${label}: rejected targets ${rejected
+        .map((entry) => `${entry.target.modelStr}(${entry.reasons.join("+")})`)
+        .join(", ")}`
+    );
+  } else {
+    log.debug?.(
+      "COMBO",
+      `${label}: rejected targets ${rejected
+        .map((entry) => `${entry.target.modelStr}(${entry.reasons.join("+")})`)
+        .join(", ")}`
+    );
+  }
   return compatible;
 }
 

@@ -1,0 +1,1 @@
+- OpenCode plugin `/v1/models` catalog fetch now waits 30s by default and attaches HTTP `statusCode` on 401/5xx so host fallback plugins can hop instead of seeing an untyped AbortError/UnknownError.

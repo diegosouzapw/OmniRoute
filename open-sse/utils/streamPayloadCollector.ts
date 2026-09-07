@@ -885,8 +885,26 @@ export function compactStructuredStreamPayload(payload: unknown): unknown {
   };
 }
 
+// Live incident (2026-09-02): a reasoning-heavy response streams reasoning
+// token-by-token as hundreds to thousands of tiny SSE deltas BEFORE the real
+// output/tool_calls ever arrive. At the old defaults (200 events / 48KB) the
+// cap was routinely exhausted during the reasoning phase alone, dropping the
+// completion event entirely -- measured live: ~22% of a sample of recent
+// successful responses hit this. For a caller with no `format` (no live
+// reducer -- see the CollectorOptions.format doc comment), the logged
+// summary is reconstructed from getEvents() (open-sse/utils/stream.ts), so a
+// dropped completion event produced a served-successfully response logged
+// with status "in_progress" and empty output -- which
+// src/lib/db/responsesContinuationStore.ts then had nothing real to
+// reconstruct a later continuation turn from (see its own fail-closed fix,
+// 2026-09-02). Raising the cap doesn't eliminate the class of bug for an
+// arbitrarily long stream, but it removes it as a routine, everyday failure;
+// the format-driven live reducer (used by providerPayloadCollector, an
+// analogous prior fix) is the cap-independent fix and remains the deeper
+// follow-up for a caller that still wants build()'s summary correct beyond
+// any fixed cap.
 export function createStructuredSSECollector(options: CollectorOptions = {}) {
-  const { maxEvents = 200, maxBytes = 49152, stage, format, fallbackModel } = options;
+  const { maxEvents = 2000, maxBytes = 524288, stage, format, fallbackModel } = options;
   const events: StructuredSSEEvent[] = [];
   let usedBytes = 0;
   let droppedEvents = 0;

@@ -1,15 +1,18 @@
 import { CORS_HEADERS } from "./cors.ts";
 import { unwrapClinepassEnvelope } from "./clinepassEnvelope.ts";
+import {
+  redactSensitiveErrorText,
+  sanitizeErrorMessage,
+  sanitizeUpstreamDetails,
+} from "./errorSanitization.ts";
 import { getDefaultErrorMessage, getErrorInfo } from "../config/errorConfig.ts";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
 import { buildPassthroughErrorResponse } from "./upstreamErrorPassthrough.ts";
 
-/**
- * Sanitize an error message to prevent stack trace exposure in API responses.
- * Strips stack traces, file paths, and absolute Windows/POSIX paths from
- * error messages before they reach the client.
- */
+export { redactSensitiveErrorText, sanitizeErrorMessage, sanitizeUpstreamDetails };
+
+/** Client-visible error shape; dynamic fields are projected through canonical boundaries. */
 interface ErrorResponseBody {
   error: {
     message: string;
@@ -20,97 +23,285 @@ interface ErrorResponseBody {
   upstream_details?: Record<string, unknown> | null; // sanitized upstream provider body
 }
 
-// Length cap protects against pathological inputs even before tokenization.
-const MAX_ERROR_LEN = 4096;
-const SOURCE_EXT = ["ts", "tsx", "js", "jsx", "mjs", "cjs"] as const;
-
-function looksLikeAbsolutePath(tok: string): boolean {
-  // POSIX: "/<...>.ts" (optionally followed by :line[:col]).
-  // Windows: "C:\<...>.ts" or "C:/<...>.ts".
-  if (tok.length < 4 || tok.length > 2048) return false;
-  const isPosix = tok.charCodeAt(0) === 0x2f; // '/'
-  const isWindows = tok.length > 2 && tok.charCodeAt(1) === 0x3a && /[A-Za-z]/.test(tok[0]);
-  if (!isPosix && !isWindows) return false;
-  const dot = tok.lastIndexOf(".");
-  if (dot <= 0 || dot === tok.length - 1) return false;
-  const ext = tok
-    .slice(dot + 1)
-    .split(":", 1)[0]
-    .toLowerCase();
-  return (SOURCE_EXT as readonly string[]).includes(ext);
-}
-
-export function redactSensitiveErrorText(value: string): string {
-  return value
-    .replace(/data:[^,\s]+;base64,[A-Za-z0-9+/=_-]+/gi, "[REDACTED_DATA_URL]")
-    .replace(/\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]+/gi, "$1 [REDACTED]")
-    .replace(
-      /(["']?(?:api[_-]?key|access[_-]?token|authorization|cookie|secret)["']?\s*[:=]\s*["'])[^"']*(["'])/gi,
-      "$1[REDACTED]$2"
-    )
-    .replace(
-      /(["']?(?:api[_-]?key|access[_-]?token|authorization|cookie|secret)["']?\s*[:=]\s*)[^"',\s}]+/gi,
-      "$1[REDACTED]"
-    );
-}
-
-/**
- * Strip stack-trace tail and absolute source paths from error messages.
- *
- * Implemented via simple whitespace tokenization (linear time) instead of a
- * single complex regex, so CodeQL `js/polynomial-redos` stays clean even when
- * the runtime error message is attacker-controlled.
- */
-export function sanitizeErrorMessage(message: unknown): string {
-  let str = typeof message === "string" ? message : String(message ?? "");
-  if (str.length > MAX_ERROR_LEN) str = str.slice(0, MAX_ERROR_LEN);
-  const nl = str.indexOf("\n");
-  const firstLine = nl >= 0 ? str.slice(0, nl) : str;
-  // Preserve original whitespace by splitting on captured separator.
-  const parts = firstLine.split(/(\s+)/);
-  for (let i = 0; i < parts.length; i++) {
-    if (looksLikeAbsolutePath(parts[i])) parts[i] = "<path>";
-  }
-  return redactSensitiveErrorText(parts.join(""));
-}
-
-const BLOCKED_KEYS =
-  /stack|trace|path|file|cwd|dir|password|secret|token|key|authorization|cookie/i;
-const MAX_DEPTH = 4;
-
-/**
- * Recursively sanitize an arbitrary JSON value from an upstream provider body.
- * - Strings: run through sanitizeErrorMessage (strips stacks + absolute paths).
- * - Keys matching BLOCKED_KEYS are dropped (credential/path guards).
- * - Depth capped at MAX_DEPTH to prevent pathological nesting.
- * - Arrays capped at 32 elements.
- * - Returns null for null/undefined/non-JSON-serializable values.
- */
-export function sanitizeUpstreamDetails(value: unknown, depth = 0): unknown {
-  if (depth > MAX_DEPTH) return "[truncated]";
-  if (value === null || value === undefined) return null;
-  if (typeof value === "string") return sanitizeErrorMessage(value);
-  if (typeof value === "number" || typeof value === "boolean") return value;
-  if (Array.isArray(value)) {
-    return value.slice(0, 32).map((v) => sanitizeUpstreamDetails(v, depth + 1));
-  }
-  if (typeof value === "object") {
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
-      if (BLOCKED_KEYS.test(k)) continue;
-      out[k] = sanitizeUpstreamDetails(v, depth + 1);
-    }
-    return out;
-  }
-  return null;
-}
-
 /** Optional caller classification; when set, wins over status-derived defaults. */
 export type ErrorBodyClassification = {
   type?: string;
   code?: string;
   reason?: string;
 };
+
+const PUBLIC_ERROR_IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
+  "abort",
+  "aborted",
+  "account_semaphore_capacity",
+  "acp_cancelled",
+  "acp_early_exit",
+  "acp_error",
+  "acp_output_too_large",
+  "acp_session_mismatch",
+  "acp_timeout",
+  "admission_aborted",
+  "admission_deadline",
+  "admission_lane_evicted",
+  "admission_oversized",
+  "admission_queue_full",
+  "admission_shutdown",
+  "admission_unavailable",
+  "all_accounts_inactive",
+  "all_targets_skipped",
+  "antigravity_pre_response_timeout",
+  "api_error",
+  "authentication_error",
+  "authentication_required",
+  "auth_error",
+  "bad_gateway",
+  "bad_request",
+  "bedrock_stream_error",
+  "billing_error",
+  "blackbox_auth_required",
+  "blackbox_rate_limit",
+  "blackbox_subscription_required",
+  "body_exceeds_budget",
+  "browser_stream_inconsistent",
+  "capability_mismatch",
+  "cf_mitigated_challenge",
+  "chat_admission_busy",
+  "chat_history_too_large",
+  "chatgpt_web_codex_error",
+  "chatgpt_web_codex_turn_failed",
+  "chatgpt_session_expired",
+  "chatgpt_submission_ambiguous",
+  "chatgpt_submitted_turn_failed",
+  "chatgpt_subscription_unavailable",
+  "client_cancelled",
+  "client_closed_request",
+  "client_disconnected",
+  "cli_not_found",
+  "cloudflare_challenge",
+  "cloudflare_or_bot",
+  "codex_app_server_unconfigured",
+  "codex_app_server_turn_failed",
+  "combo_target_timeout",
+  "combo_timeout",
+  "compaction_control_unavailable",
+  "compaction_handoff_failed",
+  "connector_error",
+  "connector_not_found",
+  "connection_error",
+  "context_length_exceeded",
+  "context_window",
+  "chipotle_error",
+  "devin_agentic_error",
+  "devin_cli_error",
+  "devin_desktop_error",
+  "devin_internal_tool_execution",
+  "duplicate_tool_use_id",
+  "direct_response_start_timeout",
+  "eai_again",
+  "econnrefused",
+  "econnreset",
+  "empty_acp_output",
+  "empty_content",
+  "empty_messages",
+  "empty_response",
+  "executor_contract_violation",
+  "error",
+  "etimedout",
+  "executor_error",
+  "feature_disabled",
+  "gateway_timeout",
+  "gemini_tpm_exhausted",
+  "gcp_project_required",
+  "grok_error",
+  "insufficient_quota",
+  "incompatible_reasoning_effort",
+  "internal_server_error",
+  "invalid_acp_frame",
+  "invalid_acp_upstream",
+  "invalid_api_key",
+  "invalid_kiro_tool_call",
+  "invalid_request",
+  "invalid_request_error",
+  "invalid_previous_response_binding",
+  "invalid_tool_arguments",
+  "invalid_tool_choice",
+  "invalid_tool_json",
+  "invalid_tool_name",
+  "invalid_tools",
+  "invalid_trailer",
+  "lease_action_invalid",
+  "lease_api_key_invalid",
+  "lease_authentication_required",
+  "lease_authorization_mismatch",
+  "lease_capacity_unavailable",
+  "lease_connection_mismatch",
+  "lease_content_type_required",
+  "lease_context_invalid",
+  "lease_context_required",
+  "lease_error",
+  "lease_fence_stale",
+  "lease_key_configuration_invalid",
+  "lease_key_policy_invalid",
+  "lease_model_invalid",
+  "lease_no_eligible_connection",
+  "lmarena_error",
+  "lease_required",
+  "lease_scope_required",
+  "lease_service_unavailable",
+  "lease_eligibility_unavailable",
+  "lease_unsupported_route",
+  "lease_unsupported_transport",
+  "message_limit",
+  "missing_credits",
+  "meta_ai_empty_response",
+  "meta_ai_mode_switch_failed",
+  "meta_ai_warmup_failed",
+  "meta_ai_ws_error",
+  "missing_tool_name",
+  "missing_tool_use_id",
+  "mixed_tool_narrative",
+  "missing_authorization",
+  "missing_cookie",
+  "missing_project_id",
+  "missing_credentials",
+  "missing_session_id",
+  "model_not_found",
+  "model_not_supported",
+  "model_shutdown",
+  "multipart_protocol_violation",
+  "multiple_tool_requests",
+  "native_codex_pinned_model_unavailable",
+  "network_error",
+  "no_free_eligible_connection",
+  "not_found",
+  "oauth_missing_project_id",
+  "orphan_tool_result",
+  "payload_too_large",
+  "payment_required",
+  "permission_error",
+  "premium_model_requires_key",
+  "prompt_attachment_integrity",
+  "provider_error",
+  "provider_retired",
+  "provider_unavailable",
+  "pplx_error",
+  "proxy_unavailable",
+  "proxy_family_unavailable",
+  "proxy_request_failed",
+  "proxy_unreachable",
+  "quota_exhausted",
+  "quota_not_allocated",
+  "quota_only",
+  "rate_limit_error",
+  "rate_limit_execution_timeout",
+  "rate_limit_exceeded",
+  "rate_limit_queue_full",
+  "rate_limit_queue_timeout",
+  "rate_limit_queue_wedged",
+  "rate_limit_longer_reached",
+  "rate_limit_reached",
+  "rate_limited",
+  "reached_limit",
+  "relay_timeout",
+  "resource_pressure",
+  "resource_exhausted",
+  "request_failed",
+  "risk_session_stale",
+  "server_error",
+  "semaphore_queue_full",
+  "semaphore_timeout",
+  "service_unavailable",
+  "service_not_running",
+  "session_expired",
+  "session_pool_exhausted",
+  "spawn_failed",
+  "stream_error",
+  "stream_disconnected",
+  "stream_early_eof",
+  "stream_idle_timeout",
+  "stream_pipeline_error",
+  "stream_readiness_timeout",
+  "stream_terminated",
+  "stream_timeout",
+  "storage_encryption_stale",
+  "structure_limit",
+  "structured_output",
+  "structured_output_validation_failed",
+  "timeout_error",
+  "timeout",
+  "token_limit_exceeded",
+  "token_required",
+  "tls_client_unavailable",
+  "tls_circuit_open",
+  "tls_fingerprint_failed",
+  "tls_session_capacity",
+  "tool_calling_not_supported",
+  "tools",
+  "undeclared_historical_tool",
+  "und_err_body_timeout",
+  "und_err_connect_timeout",
+  "und_err_headers_timeout",
+  "und_err_socket",
+  "unexpected_acp_response",
+  "unexecuted_tool_intent",
+  "unavailable",
+  "unknown_devin_model",
+  "unknown_tool",
+  "unverified_codex_client",
+  "unsafe_devin_home",
+  "unsupported_acp_version",
+  "unsupported_content_block",
+  "unsupported_control_for_provider",
+  "unsupported_endpoint",
+  "unsupported_image_block",
+  "unsupported_role",
+  "unsupported_system_block",
+  "upstream_error",
+  "upstream_access_denied",
+  "upstream_auth_error",
+  "upstream_empty_response",
+  "upstream_response_failed",
+  "upstream_response_error",
+  "upstream_server_error",
+  "upstream_protocol_error",
+  "upstream_timeout",
+  "upstream_websocket_connect_failed",
+  "upstream_websocket_error",
+  "usage_limit_reached",
+  "unsupported_feature",
+  "unsupported_runtime",
+  "video_artifact_content_type_invalid",
+  "video_artifact_download_failed",
+  "video_artifact_not_ready",
+  "video_artifact_signature_invalid",
+  "video_artifact_too_large",
+  "video_artifact_unavailable",
+  "video_artifact_url_blocked",
+  "video_artifact_url_invalid",
+  "vision",
+  "claude_web_protocol_error",
+  "wreq_unavailable",
+]);
+
+function isSafePublicErrorIdentifier(value: string): boolean {
+  if (!PUBLIC_ERROR_IDENTIFIER.test(value)) return false;
+  if (/^[1-5]\d{2}$/.test(value)) return true;
+  if (/^HTTP_[1-5]\d{2}$/i.test(value)) return true;
+  return SAFE_PUBLIC_ERROR_IDENTIFIERS.has(value.toLowerCase());
+}
+
+/** Project an internal classification onto the bounded client-visible identifier vocabulary. */
+export function projectPublicErrorIdentifier(value: unknown, fallback: unknown): string {
+  const safeFallback =
+    fallback === ""
+      ? ""
+      : typeof fallback === "string" && isSafePublicErrorIdentifier(fallback)
+        ? fallback
+        : "error";
+  if (typeof value !== "string") return safeFallback;
+  return isSafePublicErrorIdentifier(value) ? value : safeFallback;
+}
 
 /**
  * Build OpenAI-compatible error response body. Message is always sanitized
@@ -128,13 +319,17 @@ export function buildErrorBody(
 ): ErrorResponseBody {
   const errorInfo = getErrorInfo(statusCode);
   const safeMessage = sanitizeErrorMessage(message) || getDefaultErrorMessage(statusCode);
+  const safeReason =
+    typeof classification?.reason === "string" && isSafePublicErrorIdentifier(classification.reason)
+      ? classification.reason
+      : undefined;
 
   const body: ErrorResponseBody = {
     error: {
       message: safeMessage,
-      type: classification?.type ?? errorInfo.type,
-      code: classification?.code ?? errorInfo.code,
-      reason: classification?.reason,
+      type: projectPublicErrorIdentifier(classification?.type, errorInfo.type),
+      code: projectPublicErrorIdentifier(classification?.code, errorInfo.code),
+      reason: safeReason,
     },
   };
 
@@ -183,7 +378,7 @@ export interface ComboRecoveryHint {
   action: ComboRecoveryAction;
   /** Seconds the client should wait before retrying. Only meaningful when action="wait". */
   retry_after_seconds?: number;
-  /** Human-readable next step — included verbatim in the error body for non-MCP clients. */
+  /** Human-readable next step — sanitized and length-capped for non-MCP clients. */
   next_step: string;
 }
 
@@ -203,21 +398,36 @@ export interface ComboDiagnostics {
 }
 
 function clampDiagStr(v: unknown, max = 128): string {
-  return typeof v === "string" ? v.slice(0, max).replace(/[\r\n]+/g, " ") : "";
+  return typeof v === "string" ? sanitizeErrorMessage(v).slice(0, max) : "";
+}
+
+const RECOVERY_ROUTE_PLACEHOLDERS = [
+  ["/dashboard/providers", "OMNIROUTE_SAFE_DASHBOARD_PROVIDERS_ROUTE"],
+] as const;
+
+function clampRecoveryStr(value: unknown, max: number): string {
+  if (typeof value !== "string") return "";
+  let projected = value;
+  for (const [route, placeholder] of RECOVERY_ROUTE_PLACEHOLDERS) {
+    projected = projected.replaceAll(route, placeholder);
+  }
+  projected = sanitizeErrorMessage(projected);
+  for (const [route, placeholder] of RECOVERY_ROUTE_PLACEHOLDERS) {
+    projected = projected.replaceAll(placeholder, route);
+  }
+  return projected.slice(0, max);
 }
 
 /**
- * HTTP header values must be Latin1/ByteString (undici throws a TypeError
- * otherwise — see #6612). Replace any codepoint outside the Latin1 range
- * (0-255) with "?" so header construction never throws. Only used for the
- * literal header value; the JSON body keeps the original, unsanitized
- * readable text via `sanitizeComboDiagnostics`.
+ * HTTP header values must exclude controls and remain ByteString-compatible
+ * (undici throws a TypeError otherwise — see #6612). Replace every codepoint
+ * outside printable ASCII with "?" so header construction never throws.
  */
 function toHeaderSafeAscii(v: string): string {
   let out = "";
   for (let i = 0; i < v.length; i++) {
     const code = v.charCodeAt(i);
-    out += code > 255 ? "?" : v[i];
+    out += code < 0x20 || code > 0x7e ? "?" : v[i];
   }
   return out;
 }
@@ -242,7 +452,7 @@ export function sanitizeRecoveryHint(
   if (!action || !RECOVERY_ACTIONS.has(action)) return undefined;
   // Reject empty OR whitespace-only next_step — the value must render usefully as a
   // header and as a body field. A whitespace-only string would print as a blank hint.
-  const next_step = clampDiagStr(r.next_step, 200).trim();
+  const next_step = clampRecoveryStr(r.next_step, 200).trim();
   if (!next_step) return undefined;
   const hint: ComboRecoveryHint = { action, next_step };
   if (typeof r.retry_after_seconds === "number" && Number.isFinite(r.retry_after_seconds)) {
@@ -293,12 +503,10 @@ export function errorResponseWithComboDiagnostics(
   opts: { code?: string; type?: string } = {}
 ): Response {
   const safe = sanitizeComboDiagnostics(diagnostics);
-  const body = buildErrorBody(statusCode, message) as ErrorResponseBody & {
+  const body = buildErrorBody(statusCode, message, undefined, opts) as ErrorResponseBody & {
     diagnostics?: ComboDiagnostics;
     recovery_hint?: ComboRecoveryHint;
   };
-  if (opts.code) body.error.code = opts.code;
-  if (opts.type) body.error.type = opts.type;
   body.diagnostics = safe;
   if (safe.recovery) body.recovery_hint = safe.recovery;
   const excludedHeader = toHeaderSafeAscii(
@@ -399,6 +607,29 @@ function normalizeRetryAfterSeconds(retryAfter?: string | number | Date | null):
   return 1;
 }
 
+const MAX_PUBLIC_CONTEXT_LABEL_LENGTH = 256;
+
+function projectPublicContextLabel(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const label = value.trim();
+  if (
+    label.length === 0 ||
+    label.length > MAX_PUBLIC_CONTEXT_LABEL_LENGTH ||
+    /[\u0000-\u001f\u007f]/.test(label)
+  ) {
+    return null;
+  }
+  return sanitizeErrorMessage(label) === label ? label : null;
+}
+
+function projectPublicRetryTimestamp(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const timestamp = value.trim();
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(timestamp)) return null;
+  const parsed = Date.parse(timestamp);
+  return Number.isFinite(parsed) && new Date(parsed).toISOString() === timestamp ? timestamp : null;
+}
+
 /**
  * Parse Antigravity error message to extract retry time
  * Example: "You have exhausted your capacity on this model. Your quota will reset after 2h7m23s."
@@ -442,7 +673,7 @@ export function parseAntigravityRetryTime(message: unknown): number | null {
  * @returns {Promise<{statusCode: number, message: string, retryAfterMs: number|null, responseBody: unknown}>}
  */
 export async function parseUpstreamError(response: Response, provider: string | null = null) {
-  let message: unknown = "";
+  let message = "";
   let retryAfterMs: number | null = null;
   let responseBody: unknown = null;
   let errorCode: unknown = undefined;
@@ -462,9 +693,15 @@ export async function parseUpstreamError(response: Response, provider: string | 
       // stack) — still routed through sanitizeErrorMessage/buildErrorBody by
       // every consumer below (Rule #12).
       const { error: clinepassEnvError } = unwrapClinepassEnvelope(json, provider);
-      message = clinepassEnvError
+      const extractedMessage = clinepassEnvError
         ? clinepassEnvError.message
-        : json.error?.message || json.message || json.error || text;
+        : json.error?.message ||
+          json.message ||
+          (typeof json.error === "string" ? json.error : null);
+      message =
+        typeof extractedMessage === "string"
+          ? extractedMessage
+          : `Upstream error: ${response.status}`;
       errorCode = json.error?.code || json.code;
       errorType = json.error?.type || json.type;
     } catch {
@@ -475,7 +712,7 @@ export async function parseUpstreamError(response: Response, provider: string | 
     responseBody = { _rawText: message };
   }
 
-  const messageStr = typeof message === "string" ? message : JSON.stringify(message);
+  const messageStr = message;
 
   const retryAfterHeader = response.headers?.get?.("retry-after");
   if (retryAfterHeader && !retryAfterMs) {
@@ -545,13 +782,10 @@ export function createErrorResult(
   upstreamDetails?: unknown,
   opts?: { passthrough?: boolean }
 ) {
-  const body = buildErrorBody(statusCode, message, upstreamDetails);
-  if (errorCode) {
-    body.error.code = errorCode;
-  }
-  if (errorType) {
-    body.error.type = errorType;
-  }
+  const body = buildErrorBody(statusCode, message, upstreamDetails, {
+    code: errorCode,
+    type: errorType,
+  });
 
   const result: {
     success: false;
@@ -591,8 +825,8 @@ export function createErrorResult(
     result.retryAfterMs = retryAfterMs;
   }
 
-  // Opt-in relay of the verbatim upstream error body (Claude Code auto-recover
-  // contract — see upstreamErrorPassthrough.ts). Only swaps `result.response`;
+  // Opt-in relay of the recursively sanitized upstream JSON shape (Claude Code
+  // auto-recover contract — see upstreamErrorPassthrough.ts). Only swaps `result.response`;
   // `result.error`/`rawMessage`/`errorType`/`errorCode` stay untouched so
   // server-side classification (checkFallbackError, combo retry logic, etc.)
   // never sees a different value depending on this flag.
@@ -625,7 +859,9 @@ export function unavailableResponse(
   retryAfterHuman?: string
 ) {
   const retryAfterSec = normalizeRetryAfterSeconds(retryAfter);
-  const msg = retryAfterHuman ? `${message} (${retryAfterHuman})` : message;
+  const safeMessage = sanitizeErrorMessage(message) || getDefaultErrorMessage(statusCode);
+  const safeRetryAfterHuman = retryAfterHuman ? sanitizeErrorMessage(retryAfterHuman) : "";
+  const msg = safeRetryAfterHuman ? `${safeMessage} (${safeRetryAfterHuman})` : safeMessage;
   return new Response(JSON.stringify({ error: { message: msg } }), {
     status: statusCode,
     headers: {
@@ -640,13 +876,14 @@ export function providerCircuitOpenResponse(
   retryAfter?: string | number | Date | null
 ) {
   const retryAfterSec = normalizeRetryAfterSeconds(retryAfter);
+  const safeProvider = projectPublicContextLabel(provider) ?? "unknown";
   return new Response(
     JSON.stringify({
       error: {
-        message: `Provider ${provider} circuit breaker is open`,
+        message: `Provider ${safeProvider} circuit breaker is open`,
         type: "server_error",
         code: "provider_circuit_open",
-        provider,
+        provider: safeProvider,
         retry_after: retryAfterSec,
       },
     }),
@@ -672,9 +909,10 @@ export function buildModelCooldownBody({
   retryAfterAt?: string | null;
   credentialsCoolingCount?: number | null;
 }): ModelCooldownErrorPayload {
-  const resolvedModel = typeof model === "string" && model.trim().length > 0 ? model.trim() : null;
-  const resolvedRetryAfterAt =
-    typeof retryAfterAt === "string" && retryAfterAt.length > 0 ? retryAfterAt : null;
+  const resolvedModel = projectPublicContextLabel(model);
+  const resolvedRetryAfterAt = projectPublicRetryTimestamp(retryAfterAt);
+  const resolvedResetSeconds =
+    Number.isFinite(retryAfterSec) && retryAfterSec > 0 ? Math.max(Math.ceil(retryAfterSec), 1) : 1;
   const resolvedCoolingCount =
     typeof credentialsCoolingCount === "number" &&
     Number.isFinite(credentialsCoolingCount) &&
@@ -690,7 +928,7 @@ export function buildModelCooldownBody({
       type: "rate_limit_error",
       code: "model_cooldown",
       ...(resolvedModel ? { model: resolvedModel } : {}),
-      reset_seconds: Math.max(Math.ceil(retryAfterSec), 1),
+      reset_seconds: resolvedResetSeconds,
       ...(resolvedRetryAfterAt ? { retry_after: resolvedRetryAfterAt } : {}),
       ...(resolvedCoolingCount ? { credentials_cooling: resolvedCoolingCount } : {}),
     },

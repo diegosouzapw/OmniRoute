@@ -14,11 +14,7 @@
 import { randomUUID } from "crypto";
 
 import { emit } from "@/lib/events/eventBus";
-import {
-  upsertA2ATask,
-  appendA2ATaskEvent,
-  purgeA2AHistory,
-} from "@/lib/db/a2aTasks";
+import { upsertA2ATask, appendA2ATaskEvent, purgeA2AHistory } from "@/lib/db/a2aTasks";
 import { logger } from "@omniroute/open-sse/utils/logger";
 
 const log = logger("A2A_TASKS");
@@ -204,7 +200,14 @@ export class A2ATaskManager {
       input,
       artifacts: [],
       events: [{ timestamp: now.toISOString(), state: "submitted" }],
-      metadata: input.metadata || {},
+      // COPY, never the caller's object: `metadata` is the task's own mutable
+      // runtime bag (`taskExecution.ts` writes `memoryHits` into it), while
+      // `input.metadata` is the immutable record of what the caller sent. Sharing
+      // one reference made every runtime write leak back into `input` — and from
+      // there into the persisted `a2a_tasks.input_json` and into the drawer's
+      // "Repeat" body, so a repeated task was born carrying the previous run's
+      // memory snippets even with `OMNIROUTE_A2A_MEMORY_HITS=0`.
+      metadata: { ...(input.metadata ?? {}) },
       createdAt: now.toISOString(),
       updatedAt: now.toISOString(),
       expiresAt: new Date(now.getTime() + this.ttlMs).toISOString(),

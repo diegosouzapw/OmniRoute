@@ -1,0 +1,1 @@
+- **fix(sse):** Treat Adapta Web `type:error` SSE events as sanitized non-stream failures instead of empty HTTP 200 completions.

@@ -13,11 +13,15 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import {
   CLAUDE_CODE_CLIENT_VERSION,
   CLAUDE_CODE_SDK_PACKAGE_VERSION,
+  getClaudeCodeClientVersion,
 } from "@/shared/constants/claudeCodeClient";
 
 // ---------- Versions ------------------------------------------------------
 
 export const CLAUDE_CODE_VERSION = CLAUDE_CODE_CLIENT_VERSION;
+export function getClaudeCodeVersion(): string {
+  return getClaudeCodeClientVersion();
+}
 /** Bundled @anthropic-ai/sdk version for the pinned CLI release. */
 export const CLAUDE_CODE_STAINLESS_VERSION = CLAUDE_CODE_SDK_PACKAGE_VERSION;
 
@@ -156,7 +160,7 @@ export async function fetchClaudeBootstrap(accessToken: string): Promise<ClaudeB
       headers: {
         Authorization: `Bearer ${accessToken}`,
         Accept: "application/json",
-        "User-Agent": `claude-cli/${CLAUDE_CODE_VERSION} (external, cli)`,
+        "User-Agent": `claude-cli/${getClaudeCodeVersion()} (external, cli)`,
         "anthropic-beta": "oauth-2025-04-20",
       },
       signal: ctrl.signal,

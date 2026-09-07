@@ -149,7 +149,7 @@ export function memoLookup(key: string): CompressionResult | null {
   memoHits++;
   recordLookup(true);
   // Return a clone so downstream mutation cannot corrupt the cached value.
-  const cloned = JSON.parse(JSON.stringify(hit)) as CompressionResult;
+  const cloned = structuredClone(hit);
   if (cloned.stats) {
     cloned.stats.memoHit = true;
   }
@@ -162,7 +162,7 @@ export function memoStore(key: string, result: CompressionResult): CompressionRe
   // Returns the stored clone so callers that need a fresh instance (the common
   // `memoStore(key, result); return memoLookup(key)!` idiom) can avoid a redundant
   // second multi-MB deep clone of the body on the way out.
-  const stored = JSON.parse(JSON.stringify(result)) as CompressionResult;
+  const stored = structuredClone(result);
   boundedSet(key, stored);
   return stored;
 }

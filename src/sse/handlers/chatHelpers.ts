@@ -777,9 +777,11 @@ export function handleNoCredentials(
   }
   if (credentials?.allExpired) {
     // Every connection for this provider is in a terminal state (expired,
-    // banned, or credits_exhausted). Surface as 401 with a re-auth hint
-    // instead of the generic 400 "No credentials", so dashboards/CLIs can
-    // distinguish "never configured" from "needs to reconnect".
+    // banned, or credits_exhausted). Surface expired/banned as 401 with a
+    // re-auth hint instead of the generic 400 "No credentials", so
+    // dashboards/CLIs can distinguish "never configured" from "needs to
+    // reconnect". credits_exhausted is quota (HTTP 402), not invalid
+    // credentials — see #12441.
     const status = credentials.expiredStatus || "expired";
     const count = credentials.expiredCount || 1;
     const reason =
@@ -790,7 +792,12 @@ export function handleNoCredentials(
           : "authentication expired";
     const message = `[${provider}] All ${count} connection(s) ${reason} — please reconnect in the dashboard`;
     log.warn("CHAT", message);
-    return errorResponse(HTTP_STATUS.UNAUTHORIZED, message);
+    // #12441: credits_exhausted is quota, not invalid credentials. Combo
+    // dispatch treats 401 as AUTH_LEVEL skip (#8133). Surface 402 so quota
+    // exhaustion follows the #1731 path instead of "authentication expired".
+    const httpStatus =
+      status === "credits_exhausted" ? HTTP_STATUS.PAYMENT_REQUIRED : HTTP_STATUS.UNAUTHORIZED;
+    return errorResponse(httpStatus, message);
   }
   if (!excludeConnectionId) {
     // Ported from upstream decolua/9router#336 (Ibrahim Ryan): surface as 404

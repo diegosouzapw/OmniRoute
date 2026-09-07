@@ -1,0 +1,1 @@
+- **fix(api):** GET /v1/models no longer waits forever on a hung coalesced catalog rebuild; cold-path waits are bounded (`CATALOG_BUILD_TIMEOUT_MS`, default 8s) and a last-good 200 is served when the rebuild times out ([#12627](https://github.com/diegosouzapw/OmniRoute/issues/12627)).

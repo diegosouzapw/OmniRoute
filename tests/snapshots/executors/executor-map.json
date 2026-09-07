@@ -135,6 +135,11 @@
       "configSource": "<custom-config>",
       "provider": "cloudflare-playground"
     },
+    "clova-studio": {
+      "className": "ClovaStudioExecutor",
+      "configSource": "clova-studio",
+      "provider": "clova-studio"
+    },
     "cmd": {
       "className": "CommandCodeExecutor",
       "configSource": "<custom-config>",
@@ -671,6 +676,6 @@
       "provider": "zai-web"
     }
   },
-  "keyCount": 134,
+  "keyCount": 135,
   "sharedInstances": []
 }

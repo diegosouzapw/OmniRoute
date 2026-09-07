@@ -7,10 +7,15 @@
  */
 
 import { EXECUTOR_CONTRACT_VIOLATION_CODE } from "../../config/constants.ts";
+import { remainingPercentFromQuotaWindows } from "../antigravityQuotaFamily.ts";
 import { errorResponse } from "../../utils/error.ts";
 import { parseModel } from "../model.ts";
 import { isSelfInflictedUpstreamTimeout } from "../../handlers/chatCore/cooldownClassification.ts";
-import { isLocalStreamLifecycleError, isLocalExecutionError } from "@/shared/utils/circuitBreaker";
+import {
+  isLocalStreamLifecycleError,
+  isLocalExecutionError,
+  isModelCapacityOverloadError,
+} from "@/shared/utils/circuitBreaker";
 import { CONTEXT_OVERFLOW_PATTERNS, MODEL_ACCESS_DENIED_PATTERNS } from "../accountFallback.ts";
 import { isResourceNotFoundResponse } from "../errorClassifier.ts";
 import { getTrustedLocalRateLimitResponse } from "../rateLimitManager/errors.ts";
@@ -212,6 +217,12 @@ export function shouldRecordProviderBreakerFailure(args: {
 }): boolean {
   return (
     (!args.isStreamReadinessFailure || args.isStreamEarlyEof === true) &&
+    // Overloaded 502 (STREAM_EARLY_EOF wrapping "Overloaded") must not trip
+    // the whole-provider breaker. The status=529 check is defense in depth:
+    // 529 is not in PROVIDER_BREAKER_FAILURE_STATUSES today, but a later
+    // addition of 529 to that set must still stay off the breaker.
+    !isModelCapacityOverloadError(args.error) &&
+    !isModelCapacityOverloadError(args.status) &&
     PROVIDER_BREAKER_FAILURE_STATUSES.has(args.status) &&
     (!args.sameProviderNext || args.isProxyUnreachable === true) &&
     !args.skipProviderBreaker &&
@@ -431,23 +442,20 @@ export function clampPercent(value: number): number {
   return Math.max(0, Math.min(100, value));
 }
 
-export function quotaRemainingPercentFromQuota(quota: unknown): number {
+export function quotaRemainingPercentFromQuota(
+  quota: unknown,
+  scope?: { provider?: string | null; requestedModel?: string | null }
+): number {
   if (!quota || typeof quota !== "object") return 100;
   const record = quota as Record<string, unknown>;
-  if (record.limitReached === true) return 0;
 
   const windows = record.windows;
   if (windows && typeof windows === "object" && !Array.isArray(windows)) {
-    let minRemaining: number | null = null;
-    for (const windowInfo of Object.values(windows as Record<string, unknown>)) {
-      if (!windowInfo || typeof windowInfo !== "object") continue;
-      const percentUsed = Number((windowInfo as Record<string, unknown>).percentUsed);
-      if (!Number.isFinite(percentUsed)) continue;
-      const remaining = clampPercent((1 - percentUsed) * 100);
-      minRemaining = minRemaining === null ? remaining : Math.min(minRemaining, remaining);
-    }
-    if (minRemaining !== null) return minRemaining;
+    const fromWindows = remainingPercentFromQuotaWindows(windows as Record<string, unknown>, scope);
+    if (fromWindows !== null) return fromWindows;
   }
+
+  if (record.limitReached === true) return 0;
 
   const percentUsed = Number(record.percentUsed);
   if (Number.isFinite(percentUsed)) return clampPercent((1 - percentUsed) * 100);
