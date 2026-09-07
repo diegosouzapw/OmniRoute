@@ -142,6 +142,7 @@ jobs:
       - run: npm run check:known-symbols
       - run: npm run check:route-guard-membership
       - run: npm run check:test-discovery
+      - run: npm run check:radar-sentinels
       - run: npm run check:tracked-artifacts
       # (gap 30) Also lives in quality.yml's PR-only "Merge integrity" job — because the
       # CHANGELOG half of that job needs a base to diff against. This half does NOT: the
