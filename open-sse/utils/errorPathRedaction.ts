@@ -32,6 +32,7 @@ const CLEAR_PROSE_BOUNDARIES = [
   "rejected",
   "retry",
   "then",
+  "use",
   "when",
   "while",
   "with",
