@@ -145,6 +145,9 @@ type StreamCompletePayload = {
   interrupted?: boolean;
 };
 
+/** Queue budget every provider used before `streamBufferBytes` existed. */
+const DEFAULT_STREAM_BUFFER_BYTES = 16384;
+
 type StreamOptions = {
   mode?: string;
   targetFormat?: string;
@@ -160,6 +163,14 @@ type StreamOptions = {
    */
   dropResponsesCommentary?: boolean;
   customToolNames?: ReadonlySet<string>;
+  /**
+   * Byte budget for the transform's readable and writable queues.
+   *
+   * Defaults to the 16 KB every provider used before this was configurable. A
+   * high-throughput provider can raise it so provider -> client pacing stays
+   * ahead of the model's emission rate; nothing else should need to.
+   */
+  streamBufferBytes?: number;
   provider?: string | null;
   reqLogger?: StreamLogger | null;
   toolNameMap?: unknown;
@@ -655,6 +666,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     dropResponsesCommentary,
     customToolNames = new Set<string>(),
     requestToolIdentityMap = null,
+    streamBufferBytes = DEFAULT_STREAM_BUFFER_BYTES,
   } = options;
   const signatureNamespace = connectionId;
   // Request-body-size metric (for monitoring payload size distribution & correlation with TTFT).
@@ -1103,7 +1115,8 @@ export function createSSEStream(options: StreamOptions = {}) {
       cacheHit: false,
       latencyMs: Date.now() - streamStartedAt,
       usage: timing.withTps(finalUsage),
-      costUsd, ttftMs: timing.ttftMs(),
+      costUsd,
+      ttftMs: timing.ttftMs(),
     });
     if (!comment) return;
     reqLogger?.appendConvertedChunk?.(comment);
@@ -2069,7 +2082,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // estimate is now emitted in flush(), only when the upstream stayed silent.
                   if (isFinishChunk && hasValidUsage(usage) && !passthroughForwardedUsage) {
                     const buffered = addBufferToUsage(usage);
-                    parsed.usage = timing.withTps(filterUsageForFormat(buffered, sourceFormat || FORMATS.OPENAI));
+                    parsed.usage = timing.withTps(
+                      filterUsageForFormat(buffered, sourceFormat || FORMATS.OPENAI)
+                    );
                     output = `data: ${JSON.stringify(parsed)}\n\n`;
                     passthroughForwardedUsage = true;
                     injectedUsage = true;
@@ -3020,8 +3035,8 @@ export function createSSEStream(options: StreamOptions = {}) {
         clearIdleTimer();
       },
     },
-    { highWaterMark: 16384 },
-    { highWaterMark: 16384 }
+    { highWaterMark: streamBufferBytes },
+    { highWaterMark: streamBufferBytes }
   );
 }
 
@@ -3043,7 +3058,8 @@ export function createSSETransformStreamWithLogger(
   copilotCompatibleReasoning = false,
   suppressThinkClose = false,
   customToolNames: ReadonlySet<string> = new Set(),
-  requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null
+  requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null,
+  streamBufferBytes: number = DEFAULT_STREAM_BUFFER_BYTES
 ) {
   return createSSEStream({
     mode: STREAM_MODE.TRANSLATE,
@@ -3062,6 +3078,7 @@ export function createSSETransformStreamWithLogger(
     suppressThinkClose,
     customToolNames,
     requestToolIdentityMap,
+    streamBufferBytes,
   });
 }
 
