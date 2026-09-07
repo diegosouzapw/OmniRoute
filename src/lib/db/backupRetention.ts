@@ -11,9 +11,54 @@
 
 import fs from "fs";
 import path from "path";
+import type { SqliteAdapter } from "./adapters/types";
 
 export const MAX_DB_BACKUPS = 20;
 export const DEFAULT_DB_BACKUP_RETENTION_DAYS = 0;
+
+const DB_BACKUP_SETTINGS_NAMESPACE = "dbBackup";
+export const DB_BACKUP_MAX_FILES_KEY = "maxFiles";
+export const DB_BACKUP_RETENTION_DAYS_KEY = "retentionDays";
+
+/**
+ * Reads a persisted `dbBackup` retention setting through the caller's own open adapter.
+ *
+ * Takes `db` explicitly rather than resolving the singleton itself: `core.ts`'s
+ * health-check backup path runs from inside database initialization/repair, where
+ * asking for the singleton via `getDbInstance()` would re-enter it. A DB too old to
+ * have `key_value` yet simply falls back to the default.
+ */
+export function readStoredDbBackupSetting(
+  db: SqliteAdapter,
+  key: string,
+  min: number
+): number | undefined {
+  try {
+    const row = db
+      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+      .get(DB_BACKUP_SETTINGS_NAMESPACE, key) as { value?: string } | undefined;
+    if (!row?.value) return undefined;
+    const parsed = JSON.parse(row.value);
+    return Number.isInteger(parsed) && parsed >= min ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Shared maxFiles/retentionDays precedence: env override → persisted operator setting → default. */
+export function resolveDbBackupRetentionSettings(db: SqliteAdapter): {
+  maxFiles: number;
+  retentionDays: number;
+} {
+  const maxFiles = process.env.DB_BACKUP_MAX_FILES
+    ? parsePositiveInt(process.env.DB_BACKUP_MAX_FILES, MAX_DB_BACKUPS)
+    : (readStoredDbBackupSetting(db, DB_BACKUP_MAX_FILES_KEY, 1) ?? MAX_DB_BACKUPS);
+  const retentionDays = process.env.DB_BACKUP_RETENTION_DAYS
+    ? parseNonNegativeInt(process.env.DB_BACKUP_RETENTION_DAYS, DEFAULT_DB_BACKUP_RETENTION_DAYS)
+    : (readStoredDbBackupSetting(db, DB_BACKUP_RETENTION_DAYS_KEY, 0) ??
+      DEFAULT_DB_BACKUP_RETENTION_DAYS);
+  return { maxFiles, retentionDays };
+}
 
 export function parsePositiveInt(value: string | undefined, fallback: number) {
   if (!value) return fallback;
@@ -150,4 +195,30 @@ export function pruneBackupDirectory(options: {
     maxFiles,
     retentionDays,
   };
+}
+
+/**
+ * Resolve settings, prune, and log — the exact sequence every backup call site needs
+ * right after writing a new snapshot. Never throws: a backup must not fail because
+ * housekeeping did. Not used by the pre-migration path: retention there deliberately
+ * stays outside the migration window (see db-pre-migration-backup-retention-10421.test.ts).
+ */
+export function pruneManagedDbBackups(
+  db: SqliteAdapter,
+  backupDir: string,
+  logPrefix: string
+): void {
+  try {
+    const { maxFiles, retentionDays } = resolveDbBackupRetentionSettings(db);
+    const result = pruneBackupDirectory({ backupDir, maxFiles, retentionDays });
+    if (result.deletedFiles > 0) {
+      console.log(
+        `${logPrefix} Pruned ${result.deletedFiles} old backup file(s) ` +
+          `(${result.keptBackupFamilies} kept, maxFiles=${maxFiles}, retentionDays=${retentionDays}).`
+      );
+    }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn(`${logPrefix} Failed to prune old backups: ${message}`);
+  }
 }
