@@ -29,10 +29,10 @@ test("llmlingua installer: install creates server script and updates version_man
   assert.equal(result.installedVersion, "2.0.5");
   assert.ok(fs.existsSync(llmlingua.getServerScriptPath()));
 
-  const row = db.prepare("SELECT * FROM version_manager WHERE tool = 'llmlingua'").get() as any;
+  const row = db.prepare("SELECT * FROM version_manager WHERE tool = 'llmlingua'").get() as { status?: string; port?: number } | undefined;
   assert.ok(row);
-  assert.equal(row.status, "stopped");
-  assert.equal(row.port, 20135);
+  assert.equal(row?.status, "stopped");
+  assert.equal(row?.port, 20135);
 });
 
 test("llmlingua installer: resolveSpawnArgs builds node server spawn arguments", () => {

@@ -13,7 +13,6 @@ import fs from "node:fs";
 import path from "node:path";
 import { DATA_DIR } from "@/lib/db/core";
 import { upsertVersionManagerTool } from "@/lib/db/versionManager";
-import { runNpm, InstallError } from "./utils";
 
 export const LLMLINGUA_DEFAULT_PORT = 20135;
 export const LLMLINGUA_INSTALL_DIR = path.join(DATA_DIR, "services", "llmlingua");
@@ -60,6 +59,7 @@ export async function getLatestVersion(): Promise<string | null> {
   if (latestVersionCache && latestVersionCache.expiresAt > Date.now()) {
     return latestVersionCache.value;
   }
+  latestVersionCache = { value: "2.0.5", expiresAt: Date.now() + VERSION_CACHE_TTL_MS };
   return "2.0.5";
 }
 
