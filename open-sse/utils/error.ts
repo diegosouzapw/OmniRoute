@@ -114,6 +114,8 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "gemini_tpm_exhausted",
   "gcp_project_required",
   "grok_error",
+  "huggingchat_generation_error",
+  "huggingchat_error",
   "insufficient_quota",
   "incompatible_reasoning_effort",
   "internal_server_error",
