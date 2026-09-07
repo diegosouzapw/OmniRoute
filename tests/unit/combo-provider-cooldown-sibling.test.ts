@@ -129,10 +129,12 @@ test("source guard: auth.ts skips model lockout for per-model-quota providers on
 });
 
 test("source guard: combo.ts skips provider cooldown for per-model-quota on 500", () => {
-  const src = fs.readFileSync(
-    path.join(process.cwd(), "open-sse", "services", "combo.ts"),
-    "utf-8"
-  );
+  const comboDir = path.join(process.cwd(), "open-sse", "services");
+  const comboFile = path.join(comboDir, "combo.ts");
+  const attemptFile = path.join(comboDir, "combo", "executeTargetAttempt.ts");
+  const src = (fs.existsSync(comboFile) ? fs.readFileSync(comboFile, "utf-8") : "") +
+    "\n" +
+    (fs.existsSync(attemptFile) ? fs.readFileSync(attemptFile, "utf-8") : "");
   assert.ok(
     src.includes("hasPerModelQuota(provider, rawModel)") && src.includes("recordProviderCooldown"),
     "combo.ts must skip provider cooldown recording for per-model-quota providers on 500"
