@@ -44,7 +44,7 @@ export async function applyTproxy(cfg: TproxyConfig, run: CommandRunner = defaul
   const invalid = validateTproxyConfig(cfg);
   if (invalid) throw new Error(invalid);
 
-  await ensureSingboxTproxy(cfg.tproxyPort, cfg.targetPort).catch(() => false);
+  await ensureSingboxTproxy(cfg.onPort, cfg.dport).catch(() => false);
 
   try {
     for (const cmd of buildTproxyApplyCommands(cfg)) {
