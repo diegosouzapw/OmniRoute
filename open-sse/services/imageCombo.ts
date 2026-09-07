@@ -57,19 +57,13 @@ export async function executeImageCombo(
   const combo = await getComboByName(comboName);
   if (!combo) {
     // Model name is not a combo; the caller should handle this as a direct model
-    return errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      `Combo not found: ${comboName}`
-    );
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, `Combo not found: ${comboName}`);
   }
 
   const allCombos = await getCombos();
   const targets = resolveComboTargets(combo as never, allCombos as never);
   if (!targets || targets.length === 0) {
-    return errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      `Combo "${comboName}" has no usable targets`
-    );
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, `Combo "${comboName}" has no usable targets`);
   }
 
   // 2. Filter to images-capable targets
@@ -94,7 +88,7 @@ export async function executeImageCombo(
   let selectedModel = "";
 
   for (const target of imageTargets) {
-    const { provider: targetProvider, model: targetModel } = parseImageModel(target.modelStr);
+    const { provider: targetProvider } = parseImageModel(target.modelStr);
     if (!targetProvider) {
       lastError = { status: 400, error: `Invalid image model: ${target.modelStr}` };
       fallbackCount += 1;
@@ -154,10 +148,7 @@ export async function executeImageCombo(
     // Terminal failures (400 bad model, 403 banned, etc.) — stop iterating
     // Non-terminal failures (429, 5xx) — try next target
     if (status === 400 || status === 403 || status === 401) {
-      return errorResponse(
-        status,
-        `[${targetProvider}] ${error}`
-      );
+      return errorResponse(status, `[${targetProvider}] ${error}`);
     }
 
     lastError = { status, error: `[${targetProvider}] ${error}` };
@@ -168,16 +159,9 @@ export async function executeImageCombo(
   if (successResult) {
     const n = Math.max(
       Number(body.n) || 1,
-      (
-        successResult.data as { data?: { data?: unknown[] } }
-      ).data?.data?.length || 0
+      (successResult.data as { data?: { data?: unknown[] } }).data?.data?.length || 0
     );
-    const costUsd = await calculateModalCost(
-      "image",
-      selectedProvider,
-      selectedModel,
-      { n }
-    );
+    const costUsd = await calculateModalCost("image", selectedProvider, selectedModel, { n });
 
     const headers = new Headers({ "Content-Type": "application/json" });
     attachOmniRouteMetaHeaders(headers, {
@@ -190,10 +174,16 @@ export async function executeImageCombo(
       fallbackAttempts: fallbackCount,
     });
 
-    return new Response(
-      JSON.stringify((successResult.data as { data: unknown }).data),
-      { status: 200, headers }
-    );
+    // Follow-up to #9239 and #12982: the direct (non-combo) route path returns
+    // the full OpenAI Images envelope ({ created, data: [...] }) from
+    // handleImageGeneration, so the combo path must return it verbatim too.
+    // The previous unwrap emitted a bare items array, which no
+    // OpenAI-compatible client can parse (OpenAI SDKs, the Hermes image
+    // plugin, and this dashboard's media page all read response.data).
+    return new Response(JSON.stringify(successResult.data), {
+      status: 200,
+      headers,
+    });
   }
 
   // All targets failed — return the last error
