@@ -16,9 +16,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { DATA_DIR } from "@/lib/db/core";
 import { upsertVersionManagerTool } from "@/lib/db/versionManager";
-import { runNpm } from "./utils";
 
-export const SINGBOX_PACKAGE = "sing-box";
 export const SINGBOX_DEFAULT_PORT = 20140;
 export const SINGBOX_INSTALL_DIR = path.join(DATA_DIR, "services", "singbox");
 
@@ -34,10 +32,6 @@ export interface SpawnArgs {
   env: NodeJS.ProcessEnv;
   cwd: string;
 }
-
-// In-memory latest-version cache, 1h TTL
-let latestVersionCache: { value: string; expiresAt: number } | null = null;
-const VERSION_CACHE_TTL_MS = 3_600_000;
 
 function getSingboxInstallDir(): string {
   return process.env.DATA_DIR
@@ -97,22 +91,6 @@ export async function getInstalledVersion(): Promise<string | null> {
   }
 }
 
-export async function getLatestVersion(): Promise<string | null> {
-  if (latestVersionCache && latestVersionCache.expiresAt > Date.now()) {
-    return latestVersionCache.value;
-  }
-  try {
-    const { stdout } = await runNpm(["view", "sing-box", "version"], { timeoutMs: 30_000 });
-    const version = stdout.trim();
-    if (version) {
-      latestVersionCache = { value: version, expiresAt: Date.now() + VERSION_CACHE_TTL_MS };
-    }
-    return version || "1.10.0";
-  } catch {
-    return "1.10.0";
-  }
-}
-
 export async function install(version = "latest"): Promise<InstallResult> {
   const startMs = Date.now();
   const installDir = getSingboxInstallDir();
@@ -161,10 +139,6 @@ export async function install(version = "latest"): Promise<InstallResult> {
     installPath: installDir,
     durationMs: Date.now() - startMs,
   };
-}
-
-export async function update(): Promise<InstallResult> {
-  return install("latest");
 }
 
 export function resolveSpawnArgs(port: number): SpawnArgs {
