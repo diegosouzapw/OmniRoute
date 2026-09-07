@@ -1,4 +1,4 @@
-import test from "node:test";
+import test, { mock } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -110,17 +110,37 @@ test("getCompressionSettings returned config has expected shape", async () => {
 test("getCompressionSettings TTL expires after 5 seconds", async () => {
   setup();
   try {
+    const { getDbInstance } = await import("../../../src/lib/db/core.ts");
     const { getCompressionSettings } = await import("../../../src/lib/db/compression.ts");
 
-    const first = await getCompressionSettings();
-    const cached = await getCompressionSettings();
-    assert.equal(first, cached, "should be cached within TTL");
+    // Run migrations before mocking Date so migration timestamps stay real. The
+    // cache itself only reads Date.now(), so advancing the Date clock is enough
+    // to exercise both sides of the five-second boundary without sleeping.
+    getDbInstance();
+    // Start beyond any cache left by the preceding tests in this process; the
+    // module intentionally has no test-only cache reset hook.
+    mock.timers.enable({ apis: ["Date"], now: Date.now() + 6_000 });
 
-    await new Promise((r) => setTimeout(r, 5100));
+    try {
+      const first = await getCompressionSettings();
+      const cached = await getCompressionSettings();
+      assert.equal(first, cached, "should be cached within TTL");
 
-    const afterExpiry = await getCompressionSettings();
-    assert.deepEqual(first, afterExpiry, "config content should be equivalent after TTL expiry");
-    assert.notEqual(first, afterExpiry, "should be a new object reference after TTL expiry");
+      mock.timers.tick(4_999);
+      assert.equal(
+        await getCompressionSettings(),
+        first,
+        "cache should remain valid just before the TTL boundary"
+      );
+
+      mock.timers.tick(2);
+
+      const afterExpiry = await getCompressionSettings();
+      assert.deepEqual(first, afterExpiry, "config content should be equivalent after TTL expiry");
+      assert.notEqual(first, afterExpiry, "should be a new object reference after TTL expiry");
+    } finally {
+      mock.timers.reset();
+    }
   } finally {
     cleanup();
   }

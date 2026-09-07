@@ -8,7 +8,7 @@
  * This test verifies that recordProviderSuccess in accountFallback.ts
  * transitions the breaker from HALF_OPEN to CLOSED and resets failure count.
  */
-import { test } from "node:test";
+import { mock, test } from "node:test";
 import assert from "node:assert/strict";
 import {
   getCircuitBreaker,
@@ -27,29 +27,40 @@ import {
 const uniqueProvider = (suffix: string) =>
   `halfopen-test-${suffix}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
 
-test("recordProviderSuccess transitions breaker from HALF_OPEN to CLOSED and resets failureCount", async () => {
+function withFakeDate<T>(fn: () => T): T {
+  mock.timers.enable({ apis: ["Date"], now: Date.now() });
+  try {
+    return fn();
+  } finally {
+    mock.timers.reset();
+  }
+}
+
+test("recordProviderSuccess transitions breaker from HALF_OPEN to CLOSED and resets failureCount", () => {
   const provider = uniqueProvider("recovery");
 
-  // Step 1: Open the breaker (failureThreshold: 1 -> one failure opens it)
-  recordProviderFailure(provider, undefined, undefined, {
-    failureThreshold: 1,
-    resetTimeoutMs: 150,
+  withFakeDate(() => {
+    // Step 1: Open the breaker (failureThreshold: 1 -> one failure opens it)
+    recordProviderFailure(provider, undefined, undefined, {
+      failureThreshold: 1,
+      resetTimeoutMs: 150,
+    });
+
+    const breaker = getCircuitBreaker(provider);
+    assert.equal(breaker.state, "OPEN", "breaker should be OPEN after failure");
+    assert.equal(breaker.failureCount, 1, "failureCount should be 1");
+
+    // Step 2: Advance past resetTimeout so _refreshOpenState transitions to HALF_OPEN
+    mock.timers.tick(151);
+    breaker.canExecute(); // triggers _refreshOpenState -> HALF_OPEN
+    assert.equal(breaker.state, "HALF_OPEN", "breaker should be HALF_OPEN after resetTimeout");
+
+    // Step 3: recordProviderSuccess should close the breaker
+    recordProviderSuccess(provider, undefined);
+
+    assert.equal(breaker.state, "CLOSED", "breaker should be CLOSED after success");
+    assert.equal(breaker.failureCount, 0, "breaker failureCount should be reset to 0");
   });
-
-  const breaker = getCircuitBreaker(provider);
-  assert.equal(breaker.state, "OPEN", "breaker should be OPEN after failure");
-  assert.equal(breaker.failureCount, 1, "failureCount should be 1");
-
-  // Step 2: Wait past resetTimeout so _refreshOpenState transitions to HALF_OPEN
-  await new Promise((r) => setTimeout(r, 200));
-  breaker.canExecute(); // triggers _refreshOpenState -> HALF_OPEN
-  assert.equal(breaker.state, "HALF_OPEN", "breaker should be HALF_OPEN after resetTimeout");
-
-  // Step 3: recordProviderSuccess should close the breaker
-  recordProviderSuccess(provider, undefined);
-
-  assert.equal(breaker.state, "CLOSED", "breaker should be CLOSED after success");
-  assert.equal(breaker.failureCount, 0, "failureCount should be reset to 0");
 });
 
 test("recordProviderSuccess does not prematurely close an OPEN breaker before resetTimeout", () => {
@@ -133,73 +144,78 @@ test("recordProviderSuccess with null/undefined provider is a safe no-op", () =>
   recordProviderSuccess("", undefined);
 });
 
-test("recordProviderSuccess is idempotent: multiple calls on HALF_OPEN are safe", async () => {
+test("recordProviderSuccess is idempotent: multiple calls on HALF_OPEN are safe", () => {
   const provider = uniqueProvider("idempotent");
 
-  // Open the breaker
-  recordProviderFailure(provider, undefined, undefined, {
-    failureThreshold: 1,
-    resetTimeoutMs: 100,
+  withFakeDate(() => {
+    // Open the breaker
+    recordProviderFailure(provider, undefined, undefined, {
+      failureThreshold: 1,
+      resetTimeoutMs: 100,
+    });
+
+    const breaker = getCircuitBreaker(provider);
+    assert.equal(breaker.state, "OPEN");
+
+    // Advance past resetTimeout for the HALF_OPEN probe.
+    mock.timers.tick(101);
+    breaker.canExecute();
+    assert.equal(breaker.state, "HALF_OPEN");
+
+    // First success closes the breaker
+    recordProviderSuccess(provider, undefined);
+    assert.equal(breaker.state, "CLOSED");
+    assert.equal(breaker.failureCount, 0);
+
+    // Second success is a no-op (state is CLOSED, not HALF_OPEN)
+    recordProviderSuccess(provider, undefined);
+    assert.equal(breaker.state, "CLOSED");
+    assert.equal(breaker.failureCount, 0);
   });
-
-  const breaker = getCircuitBreaker(provider);
-  assert.equal(breaker.state, "OPEN");
-
-  // Wait for HALF_OPEN
-  await new Promise((r) => setTimeout(r, 150));
-  breaker.canExecute();
-  assert.equal(breaker.state, "HALF_OPEN");
-
-  // First success closes the breaker
-  recordProviderSuccess(provider, undefined);
-  assert.equal(breaker.state, "CLOSED");
-  assert.equal(breaker.failureCount, 0);
-
-  // Second success is a no-op (state is CLOSED, not HALF_OPEN)
-  recordProviderSuccess(provider, undefined);
-  assert.equal(breaker.state, "CLOSED");
-  assert.equal(breaker.failureCount, 0);
 });
 
-test("full lifecycle: CLOSED -> OPEN -> HALF_OPEN -> CLOSED via success", async () => {
+test("full lifecycle: CLOSED -> OPEN -> HALF_OPEN -> CLOSED via success", () => {
   const provider = uniqueProvider("lifecycle");
 
-  // Start CLOSED
-  const breaker = getCircuitBreaker(provider, {
-    failureThreshold: 1,
-    resetTimeoutMs: 100,
+  withFakeDate(() => {
+    // Start CLOSED
+    const breaker = getCircuitBreaker(provider, {
+      failureThreshold: 1,
+      resetTimeoutMs: 100,
+    });
+    assert.equal(breaker.state, "CLOSED");
+
+    // Failure opens the breaker
+    recordProviderFailure(provider, undefined, undefined, {
+      failureThreshold: 1,
+      resetTimeoutMs: 100,
+    });
+    assert.equal(breaker.state, "OPEN");
+    assert.equal(breaker.failureCount, 1);
+
+    // Still OPEN before timeout
+    mock.timers.tick(99);
+    recordProviderSuccess(provider, undefined);
+    assert.equal(breaker.state, "OPEN", "must not close before resetTimeout");
+
+    // The exact timeout boundary permits the HALF_OPEN transition.
+    mock.timers.tick(1);
+    breaker.canExecute();
+    assert.equal(breaker.state, "HALF_OPEN");
+
+    // Success recovers to CLOSED
+    recordProviderSuccess(provider, undefined);
+    assert.equal(breaker.state, "CLOSED");
+    assert.equal(breaker.failureCount, 0);
+
+    // Subsequent failure re-opens (proves breaker is functional after recovery)
+    recordProviderFailure(provider, undefined, undefined, {
+      failureThreshold: 1,
+      resetTimeoutMs: 100,
+    });
+    assert.equal(breaker.state, "OPEN");
+    assert.equal(breaker.failureCount, 1);
   });
-  assert.equal(breaker.state, "CLOSED");
-
-  // Failure opens the breaker
-  recordProviderFailure(provider, undefined, undefined, {
-    failureThreshold: 1,
-    resetTimeoutMs: 100,
-  });
-  assert.equal(breaker.state, "OPEN");
-  assert.equal(breaker.failureCount, 1);
-
-  // Still OPEN before timeout
-  recordProviderSuccess(provider, undefined);
-  assert.equal(breaker.state, "OPEN", "must not close before resetTimeout");
-
-  // Wait for HALF_OPEN transition
-  await new Promise((r) => setTimeout(r, 150));
-  breaker.canExecute();
-  assert.equal(breaker.state, "HALF_OPEN");
-
-  // Success recovers to CLOSED
-  recordProviderSuccess(provider, undefined);
-  assert.equal(breaker.state, "CLOSED");
-  assert.equal(breaker.failureCount, 0);
-
-  // Subsequent failure re-opens (proves breaker is functional after recovery)
-  recordProviderFailure(provider, undefined, undefined, {
-    failureThreshold: 1,
-    resetTimeoutMs: 100,
-  });
-  assert.equal(breaker.state, "OPEN");
-  assert.equal(breaker.failureCount, 1);
 });
 
 test("recordProviderSuccess resets cooldown failureCount (exponential backoff)", () => {
@@ -232,36 +248,38 @@ test("recordProviderSuccess resets cooldown failureCount (exponential backoff)",
   assert.equal(breaker.state, "CLOSED", "breaker stays CLOSED (cooldown-only scenario)");
 });
 
-test("recordProviderSuccess with connectionId transitions breaker and resets cooldown", async () => {
+test("recordProviderSuccess with connectionId transitions breaker and resets cooldown", () => {
   const provider = uniqueProvider("connid-breaker");
   const connectionId = "conn-abc";
 
-  // Open the breaker
-  recordProviderFailure(provider, undefined, connectionId, {
-    failureThreshold: 1,
-    resetTimeoutMs: 100,
+  withFakeDate(() => {
+    // Open the breaker
+    recordProviderFailure(provider, undefined, connectionId, {
+      failureThreshold: 1,
+      resetTimeoutMs: 100,
+    });
+
+    const breaker = getCircuitBreaker(provider);
+    assert.equal(breaker.state, "OPEN");
+
+    // Build up cooldown with connectionId
+    for (let i = 0; i < 3; i++) {
+      recordProviderCooldown(provider, connectionId);
+    }
+    assert.equal(isProviderInCooldown(provider, connectionId), true);
+
+    // Advance past resetTimeout for the HALF_OPEN probe.
+    mock.timers.tick(101);
+    breaker.canExecute();
+    assert.equal(breaker.state, "HALF_OPEN");
+
+    // Success with connectionId should close breaker AND reset cooldown
+    recordProviderSuccess(provider, connectionId);
+
+    assert.equal(breaker.state, "CLOSED", "breaker CLOSED after success with connectionId");
+    assert.equal(breaker.failureCount, 0, "failureCount reset");
+    assert.equal(isProviderInCooldown(provider, connectionId), false, "cooldown cleared");
   });
-
-  const breaker = getCircuitBreaker(provider);
-  assert.equal(breaker.state, "OPEN");
-
-  // Build up cooldown with connectionId
-  for (let i = 0; i < 3; i++) {
-    recordProviderCooldown(provider, connectionId);
-  }
-  assert.equal(isProviderInCooldown(provider, connectionId), true);
-
-  // Wait for HALF_OPEN
-  await new Promise((r) => setTimeout(r, 150));
-  breaker.canExecute();
-  assert.equal(breaker.state, "HALF_OPEN");
-
-  // Success with connectionId should close breaker AND reset cooldown
-  recordProviderSuccess(provider, connectionId);
-
-  assert.equal(breaker.state, "CLOSED", "breaker CLOSED after success with connectionId");
-  assert.equal(breaker.failureCount, 0, "failureCount reset");
-  assert.equal(isProviderInCooldown(provider, connectionId), false, "cooldown cleared");
 });
 
 test("resetAllCircuitBreakers cleans up test state", () => {

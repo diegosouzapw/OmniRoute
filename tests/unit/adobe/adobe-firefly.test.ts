@@ -55,6 +55,44 @@ import { IMAGE_PROVIDERS } from "../../../open-sse/config/imageRegistry.ts";
 import { VIDEO_PROVIDERS } from "../../../open-sse/config/videoRegistry.ts";
 import { getExecutor } from "../../../open-sse/executors/index.ts";
 
+// These tests mock every Adobe HTTP call. Keep the optional durable Chrome warm and
+// submit pacing disabled so a missing local browser cannot turn a unit test into a
+// multi-second readiness/backoff probe.
+const previousAdobeFireflyBrowserRefresh = process.env.ADOBE_FIREFLY_BROWSER_REFRESH;
+const previousAdobeFireflyMinSubmitGap = process.env.ADOBE_FIREFLY_MIN_SUBMIT_GAP_MS;
+const previousAdobeFireflySubmitBaseDelay = process.env.ADOBE_FIREFLY_SUBMIT_BASE_DELAY_MS;
+const previousAdobeFireflyBatchExtraGap = process.env.ADOBE_FIREFLY_BATCH_EXTRA_GAP_MS;
+
+test.before(() => {
+  process.env.ADOBE_FIREFLY_BROWSER_REFRESH = "0";
+  process.env.ADOBE_FIREFLY_MIN_SUBMIT_GAP_MS = "0";
+  process.env.ADOBE_FIREFLY_SUBMIT_BASE_DELAY_MS = "0";
+  process.env.ADOBE_FIREFLY_BATCH_EXTRA_GAP_MS = "0";
+});
+
+test.after(() => {
+  if (previousAdobeFireflyBrowserRefresh === undefined) {
+    delete process.env.ADOBE_FIREFLY_BROWSER_REFRESH;
+  } else {
+    process.env.ADOBE_FIREFLY_BROWSER_REFRESH = previousAdobeFireflyBrowserRefresh;
+  }
+  if (previousAdobeFireflyMinSubmitGap === undefined) {
+    delete process.env.ADOBE_FIREFLY_MIN_SUBMIT_GAP_MS;
+  } else {
+    process.env.ADOBE_FIREFLY_MIN_SUBMIT_GAP_MS = previousAdobeFireflyMinSubmitGap;
+  }
+  if (previousAdobeFireflySubmitBaseDelay === undefined) {
+    delete process.env.ADOBE_FIREFLY_SUBMIT_BASE_DELAY_MS;
+  } else {
+    process.env.ADOBE_FIREFLY_SUBMIT_BASE_DELAY_MS = previousAdobeFireflySubmitBaseDelay;
+  }
+  if (previousAdobeFireflyBatchExtraGap === undefined) {
+    delete process.env.ADOBE_FIREFLY_BATCH_EXTRA_GAP_MS;
+  } else {
+    process.env.ADOBE_FIREFLY_BATCH_EXTRA_GAP_MS = previousAdobeFireflyBatchExtraGap;
+  }
+});
+
 // --- Registry --------------------------------------------------------------
 
 test("adobe-firefly is registered in WEB_COOKIE_PROVIDERS with a webCookie risk notice", () => {
@@ -823,7 +861,8 @@ test("extractAdobeArpSessionId recovers JWT+ARP joined by space (PasswordBox man
 test("extractAdobeArpSessionId does not pick aux_sid over sherlockToken", async () => {
   const { extractAdobeArpSessionId, isValidAdobeArpSessionId } =
     await import("../../../open-sse/services/adobeFireflyClient.ts");
-  const { ADOBE_FIREFLY_FTR_MAGIC } = await import("../../../open-sse/services/adobeFireflyClient.ts");
+  const { ADOBE_FIREFLY_FTR_MAGIC } =
+    await import("../../../open-sse/services/adobeFireflyClient.ts");
   const realArp = Buffer.from(
     JSON.stringify({
       sid: "bdf37b8a-117f-467d-a737-7792932d98b4",
@@ -850,7 +889,8 @@ test("rebuild ARP from cookie components (forter+arkose+sid)", async () => {
     serializeAdobeFireflyCredential,
     normalizeAdobeForterToken,
   } = await import("../../../open-sse/services/adobeFireflySession.ts");
-  const { ADOBE_FIREFLY_FTR_MAGIC } = await import("../../../open-sse/services/adobeFireflyClient.ts");
+  const { ADOBE_FIREFLY_FTR_MAGIC } =
+    await import("../../../open-sse/services/adobeFireflyClient.ts");
 
   const ftr = `aab9dc9eb48f4ee1916428649f908f7d_${Date.now()}${ADOBE_FIREFLY_FTR_MAGIC}_x=-1092-v2_tt`;
   const ark =
@@ -935,7 +975,8 @@ test("extractAdobeCookieHeader strips JWT from mixed paste", async () => {
 });
 
 test("resolveAdobeImageModel maps gpt-image-2 alias", async () => {
-  const { resolveAdobeImageModel } = await import("../../../open-sse/services/adobeFireflyClient.ts");
+  const { resolveAdobeImageModel } =
+    await import("../../../open-sse/services/adobeFireflyClient.ts");
   assert.equal(resolveAdobeImageModel("gpt-image-2").spec.upstreamModelVersion, "2");
   assert.equal(resolveAdobeImageModel("adobe-firefly/gpt-image").spec.upstreamModelVersion, "2");
   assert.equal(resolveAdobeImageModel("gpt-image-1.5").spec.upstreamModelVersion, "1.5");
@@ -986,7 +1027,8 @@ test("sticky ARP: successful submit is reused by ensure on next call", async () 
     ensureAdobeFireflySession,
     fingerprintAdobeCredential,
   } = await import("../../../open-sse/services/adobeFireflySession.ts");
-  const { ADOBE_FIREFLY_FTR_MAGIC } = await import("../../../open-sse/services/adobeFireflyClient.ts");
+  const { ADOBE_FIREFLY_FTR_MAGIC } =
+    await import("../../../open-sse/services/adobeFireflyClient.ts");
   __resetAdobeFireflySessionCacheForTests();
 
   const userTok = userImsJwt();
@@ -1023,7 +1065,8 @@ test("rotateAdobeFireflySessionOnError: attempt1-2 reuse sticky; attempt3 keeps 
     markAdobeFireflyArpSuccess,
     buildAdobeArpSessionIdFromCookies,
   } = await import("../../../open-sse/services/adobeFireflySession.ts");
-  const { ADOBE_FIREFLY_FTR_MAGIC } = await import("../../../open-sse/services/adobeFireflyClient.ts");
+  const { ADOBE_FIREFLY_FTR_MAGIC } =
+    await import("../../../open-sse/services/adobeFireflyClient.ts");
   __resetAdobeFireflySessionCacheForTests();
 
   const ftr = `aa_${Date.now()}${ADOBE_FIREFLY_FTR_MAGIC}_x=-1-v2_tt`;

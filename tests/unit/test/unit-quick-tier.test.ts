@@ -79,29 +79,53 @@ test("quick tier fails visibly if the canonical command layout changes", () => {
   }
 });
 
-test("quick runner preserves process isolation, loader separation and serial concurrency", () => {
+test("quick runner preserves process isolation, loader separation and serial concurrency", (t) => {
   const f = fixture();
+  const previousEnv = { DATA_DIR: process.env.DATA_DIR, SQLITE_FILE: process.env.SQLITE_FILE };
+  process.env.DATA_DIR = path.join(f.dir, "application-data");
+  process.env.SQLITE_FILE = path.join(f.dir, "application.sqlite");
+  t.after(() => {
+    for (const [key, value] of Object.entries(previousEnv)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  });
   try {
-    const calls: string[][] = [];
+    const calls: {
+      files: string[];
+      execArgv: string[];
+      concurrency: number;
+      isolation: string;
+      forceExit: boolean;
+    }[] = [];
     const status = runQuickPlan(buildQuickPlan(f.dir), {
       root: f.dir,
       concurrency: 3,
-      spawn: (_command: string, args: string[]) => {
-        calls.push(args);
+      spawn: (
+        _command: string,
+        _args: string[],
+        options: { input: string; env: NodeJS.ProcessEnv }
+      ) => {
+        assert.equal(options.env.DATA_DIR, undefined);
+        assert.equal(options.env.SQLITE_FILE, undefined);
+        assert.equal(options.env.DISABLE_SQLITE_AUTO_BACKUP, "true");
+        calls.push(JSON.parse(options.input));
         return { status: calls.length === 1 ? 1 : 0 };
       },
       log: () => {},
     });
     assert.equal(status, 1, "a later passing group must not mask a failure");
     assert.equal(calls.length, 3, "all tiers still report results after a failure");
-    for (const args of calls) {
-      assert.ok(args.includes("--test-isolation=process"));
-      assert.ok(args.includes("./tests/_setup/isolateDataDir.ts"));
+    for (const call of calls) {
+      assert.equal(call.isolation, "process");
+      assert.equal(call.forceExit, false);
+      assert.ok(call.execArgv.includes("--test-force-exit"));
+      assert.ok(call.execArgv.includes("./tests/_setup/isolateDataDir.ts"));
     }
-    assert.ok(calls[0].includes("tsx/esm"));
-    assert.ok(calls[1].includes("tsx"));
-    assert.ok(calls[2].includes("--test-concurrency=1"));
-    assert.ok(calls[0].includes("--test-concurrency=3"));
+    assert.ok(calls[0].execArgv.includes("tsx/esm"));
+    assert.ok(calls[1].execArgv.includes("tsx"));
+    assert.equal(calls[2].concurrency, 1);
+    assert.equal(calls[0].concurrency, 3);
   } finally {
     f.cleanup();
   }
@@ -110,14 +134,24 @@ test("quick runner preserves process isolation, loader separation and serial con
 test("quick runner reports child startup failures", () => {
   const f = fixture();
   try {
+    const report = path.join(f.dir, "report.jsonl");
     assert.equal(
       runQuickPlan(buildQuickPlan(f.dir), {
         root: f.dir,
+        report,
         spawn: () => ({ error: new Error("spawn failed"), status: null }),
         log: () => {},
       }),
       1
     );
+    const rows = fs.readFileSync(report, "utf8").trim().split("\n").map(JSON.parse);
+    assert.equal(rows[0].type, "run");
+    assert.equal(rows.filter((row) => row.type === "exit").length, 3);
+    for (const row of rows.slice(1)) {
+      assert.equal(row.status, null);
+      assert.equal(row.error, "spawn failed");
+      assert.ok(row.duration_ms >= 0);
+    }
   } finally {
     f.cleanup();
   }
@@ -133,27 +167,27 @@ test("the real quick plan partitions the canonical files without changing full-s
   assert.ok(files.includes("tests/unit/serial/glm-coding-plan-monthly-3580.test.ts"));
 });
 
-test("quick runner bounds command length without dropping or duplicating files", () => {
+test("quick runner schedules a large phase together without OS argument limits", () => {
   const files = Array.from(
     { length: 1000 },
     (_, i) => `tests/unit/newgroup/${"long".repeat(10)}-${i}.test.ts`
   );
   const collected: string[] = [];
-  let batches = 0;
+  let phases = 0;
   const status = runQuickPlan(
     { groups: [{ name: "main", loader: "tsx/esm", files }] },
     {
       root,
-      spawn: (_command: string, args: string[]) => {
-        batches++;
-        assert.ok(Buffer.byteLength(args.join(" ")) < 26000);
-        collected.push(...args.filter((arg) => arg.startsWith("tests/unit/")));
+      spawn: (_command: string, args: string[], options: { input: string }) => {
+        phases++;
+        assert.ok(Buffer.byteLength(args.join(" ")) < 1000);
+        collected.push(...JSON.parse(options.input).files);
         return { status: 0 };
       },
       log: () => {},
     }
   );
   assert.equal(status, 0);
-  assert.ok(batches > 1);
+  assert.equal(phases, 1, "a slow file must not hold up a later command-line batch");
   assert.deepEqual(collected, files);
 });

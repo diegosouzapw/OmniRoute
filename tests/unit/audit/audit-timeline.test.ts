@@ -24,15 +24,21 @@ function makeEntry(id: number, timestampIso: string, action = "provider.added"):
   };
 }
 
-// Reference: 2026-05-27T15:00:00.000Z (UTC)
-const REF = new Date("2026-05-27T15:00:00.000Z").getTime();
-// Today: 2026-05-27
-const TODAY_ISO = "2026-05-27T10:00:00.000Z";
-const TODAY_ISO_2 = "2026-05-27T08:00:00.000Z";
-// Yesterday: 2026-05-26
-const YESTERDAY_ISO = "2026-05-26T12:00:00.000Z";
-// 3 days ago: 2026-05-24
-const WEEK_AGO_ISO = "2026-05-24T09:00:00.000Z";
+// Build the fixture in local calendar time because groupByDay intentionally uses
+// the server's local day. Fixed UTC literals near a date boundary can map to
+// different local dates, such as the Asia/Seoul reference crossing local midnight.
+const REFERENCE_DATE = new Date(2026, 4, 27, 15, 0, 0, 0);
+const REF = REFERENCE_DATE.getTime();
+const localIso = (dayOffset: number, hour: number) => {
+  const date = new Date(REFERENCE_DATE);
+  date.setDate(date.getDate() + dayOffset);
+  date.setHours(hour, 0, 0, 0);
+  return date.toISOString();
+};
+const TODAY_ISO = localIso(0, 10);
+const TODAY_ISO_2 = localIso(0, 8);
+const YESTERDAY_ISO = localIso(-1, 12);
+const WEEK_AGO_ISO = localIso(-3, 9);
 
 // ── groupByDay ─────────────────────────────────────────────────────────────
 

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import {
   existsSync,
+  chmodSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -24,15 +25,19 @@ import path from "node:path";
 const ROOT = path.resolve(import.meta.dirname, "..", "..", "..");
 const SCRIPT = path.join(ROOT, "scripts", "ops", "runner-janitor.sh");
 const HOUR = 3_600_000;
-// The sweep needs lsof to PROVE a path is idle (one snapshot of open paths). Hosted CI
-// images ship both; a bare devbox may not. Each branch below asserts what must
-// hold in that environment — without the tools the contract is "delete nothing,
-// say why", which is exactly the behaviour worth pinning.
-const HAVE_BUSY_TOOLS =
-  spawnSync("bash", ["-c", "command -v lsof"], { stdio: "ignore" }).status === 0;
-
 function fixture() {
   const base = mkdtempSync(path.join(os.tmpdir(), "janitor-fixture-"));
+  const tools = path.join(base, "tools");
+  mkdirSync(tools);
+  const lsof = path.join(tools, "lsof");
+  const df = path.join(tools, "df");
+  const pgrep = path.join(tools, "pgrep");
+  writeFileSync(lsof, "#!/bin/sh\nexit 0\n");
+  writeFileSync(df, "#!/bin/sh\nprintf 'Use%%\\n42%%\\n'\n");
+  writeFileSync(pgrep, "#!/bin/sh\nprintf '0\\n'\n");
+  chmodSync(lsof, 0o755);
+  chmodSync(df, 0o755);
+  chmodSync(pgrep, 0o755);
   const old = new Date(Date.now() - 5 * HOUR);
   const mk = (name: string, dir: boolean, when: Date | null) => {
     const p = path.join(base, name);
@@ -64,6 +69,8 @@ function run(args: string[], base: string, extraEnv: Record<string, string> = {}
       JANITOR_RUNNER_DIRS: path.join(base, "no-runners-here-*"),
       JANITOR_PSI_FILE: path.join(base, "no-psi"),
       JANITOR_DF_PATH: base,
+      JANITOR_LSOF: path.join(base, "tools", "lsof"),
+      PATH: `${path.join(base, "tools")}:${process.env.PATH || ""}`,
       ZOMBIE_BUILD_COMM: "janitor-test-no-such-process",
       MAX_ACTIVE_RUNNERS: "9999",
       DISK_ALERT_PCT: "101",
@@ -102,8 +109,7 @@ describe("runner-janitor.sh", () => {
     }
   });
 
-  it("--dry-run names what it WOULD remove and removes nothing", (t) => {
-    if (!HAVE_BUSY_TOOLS) return t.skip("lsof absent on this box — sweep branch covered in CI");
+  it("--dry-run names what it WOULD remove and removes nothing", () => {
     const f = fixture();
     try {
       const r = run(["--dry-run"], f.base);
@@ -134,8 +140,7 @@ describe("runner-janitor.sh", () => {
     }
   });
 
-  it("for real: sweeps the three stale artefacts, keeps the fresh one and the stranger", (t) => {
-    if (!HAVE_BUSY_TOOLS) return t.skip("lsof absent on this box — sweep branch covered in CI");
+  it("for real: sweeps the three stale artefacts, keeps the fresh one and the stranger", () => {
     const f = fixture();
     try {
       const r = run([], f.base);

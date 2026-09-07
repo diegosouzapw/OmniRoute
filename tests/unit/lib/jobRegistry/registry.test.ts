@@ -1,4 +1,4 @@
-/** JobRegistry runtime tests . Uses real timers + isolated temp DB. */
+/** JobRegistry runtime tests . Uses mocked timers + isolated temp DB. */
 
 // Access private internals (avoids `as any`).
 type TestRegistry = JobRegistry & {
@@ -9,7 +9,7 @@ function regInternals(reg: JobRegistry): TestRegistry {
   return reg as TestRegistry;
 }
 
-import test from "node:test";
+import test, { type TestContext } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -24,6 +24,21 @@ process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 const core = await import("@/lib/db/core.ts");
 const index = await import("@/lib/jobRegistry/index.ts");
 const { getJobRegistry, __resetJobRegistry } = index;
+
+const TIMER_APIS = ["Date", "setTimeout", "setInterval"] as const;
+
+function enableMockTimers(t: TestContext, now = Date.now()): void {
+  // Initialize SQLite before replacing the timer globals: the DB bootstrap has
+  // its own synchronous setup and should not depend on a fake clock.
+  core.getDbInstance();
+  t.mock.timers.enable({ apis: [...TIMER_APIS], now });
+}
+
+function flush(): Promise<void> {
+  // setImmediate is intentionally left real so async safeRun continuations can
+  // drain without advancing the scheduler under test.
+  return new Promise((resolve) => setImmediate(resolve));
+}
 
 let nowIso: string;
 function def(
@@ -70,7 +85,8 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-test("register + start (interval) fires handler immediately", async () => {
+test("register + start (interval) fires handler immediately", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
   let calls = 0;
   reg.register(
@@ -80,12 +96,13 @@ test("register + start (interval) fires handler immediately", async () => {
     })
   );
   reg.start("j");
-  await new Promise((r) => setTimeout(r, 30));
+  await flush();
   assert.equal(calls, 1, "interval fires once on start");
   reg.stop("j");
 });
 
-test("re-entrancy: second tick skipped while handler is running", async () => {
+test("re-entrancy: second tick skipped while handler is running", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
   let calls = 0;
   let release: (v: void) => void = () => {};
@@ -102,17 +119,18 @@ test("re-entrancy: second tick skipped while handler is running", async () => {
     )
   );
   reg.start("j"); // fires immediately, blocks on gate
-  await new Promise((r) => setTimeout(r, 10));
+  await flush();
   assert.equal(calls, 1);
   // ~100ms passes; setInterval would tick again but must be skipped (running guard).
-  await new Promise((r) => setTimeout(r, 120));
+  t.mock.timers.tick(120);
   assert.equal(calls, 1, "must not re-enter while handler runs");
   release();
-  await new Promise((r) => setTimeout(r, 30));
+  await flush();
   reg.stop("j");
 });
 
-test("cron nextTick: handler fires via recursive setTimeout", async () => {
+test("cron nextTick: handler fires via recursive setTimeout", async (t) => {
+  enableMockTimers(t, Date.parse("2026-01-01T00:00:00.000Z"));
   const reg = getJobRegistry();
   let calls = 0;
   reg.register(
@@ -131,12 +149,17 @@ test("cron nextTick: handler fires via recursive setTimeout", async () => {
     )
   );
   reg.start("j");
-  await new Promise((r) => setTimeout(r, 1400));
+  t.mock.timers.tick(999);
+  await flush();
+  assert.equal(calls, 0, "cron handler must wait for the next exact second");
+  t.mock.timers.tick(1);
+  await flush();
   reg.stop("j");
-  assert.ok(calls >= 1, `cron handler should fire at least once, got ${calls}`);
+  assert.equal(calls, 1, "cron handler should fire exactly at the next second boundary");
 });
 
-test("runNow: manual trigger starts a disabled job's run", async () => {
+test("runNow: manual trigger starts a disabled job's run", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
   let calls = 0;
   reg.register(
@@ -147,7 +170,7 @@ test("runNow: manual trigger starts a disabled job's run", async () => {
   );
   const res = await reg.runNow("j");
   assert.deepEqual(res, { started: true });
-  await new Promise((r) => setTimeout(r, 30));
+  await flush();
   assert.equal(calls, 1);
 });
 
@@ -164,7 +187,8 @@ test("runNow: unknown job returns reason=not_found", async () => {
   assert.deepEqual(res, { started: false, reason: "not_found" });
 });
 
-test("runNow: queue depth=1, coalesces concurrent triggers then re-runs", async () => {
+test("runNow: queue depth=1, coalesces concurrent triggers then re-runs", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
   let calls = 0;
   let release: (v: void) => void = () => {};
@@ -183,7 +207,7 @@ test("runNow: queue depth=1, coalesces concurrent triggers then re-runs", async 
   // The queued promise must not pile up: only one extra fire after release.
   release();
   const queuedRes = await queued;
-  await new Promise((r) => setTimeout(r, 30));
+  await flush();
   assert.equal(calls, 2, "initial + one queued re-run = 2 fires, no pile-up");
   assert.deepEqual(queuedRes, { started: true });
 });
@@ -201,7 +225,8 @@ test("runNow: env gate blocks when env explicitly disabled", async () => {
   assert.equal(calls, 0);
 });
 
-test("setEnabled(false) stops timer; handler no longer fires", async () => {
+test("setEnabled(false) stops timer; handler no longer fires", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
   let calls = 0;
   reg.register(
@@ -215,14 +240,17 @@ test("setEnabled(false) stops timer; handler no longer fires", async () => {
     )
   );
   reg.start("j");
-  await new Promise((r) => setTimeout(r, 25));
+  t.mock.timers.tick(25);
+  await flush();
   reg.setEnabled("j", false);
-  await new Promise((r) => setTimeout(r, 120));
+  t.mock.timers.tick(120);
+  await flush();
   reg.stop("j");
   assert.equal(calls, 1, "only the immediate fire before disable");
 });
 
-test("setEnabled(true) restarts a stopped job", async () => {
+test("setEnabled(true) restarts a stopped job", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
   let calls = 0;
   reg.register(
@@ -236,12 +264,15 @@ test("setEnabled(true) restarts a stopped job", async () => {
     )
   );
   reg.setEnabled("j", true);
-  await new Promise((r) => setTimeout(r, 130));
+  await flush();
+  t.mock.timers.tick(130);
+  await flush();
   reg.stop("j");
   assert.ok(calls >= 2, `expected repeated fires, got ${calls}`);
 });
 
-test("envFlag gate generic: unset env fires (defaultWhenUnset=true)", async () => {
+test("envFlag gate generic: unset env fires (defaultWhenUnset=true)", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
   let calls = 0;
   reg.register(
@@ -261,30 +292,41 @@ test("envFlag gate generic: unset env fires (defaultWhenUnset=true)", async () =
     )
   );
   reg.start("j");
-  await new Promise((r) => setTimeout(r, 1400));
+  t.mock.timers.tick(2_000);
+  await flush();
   reg.stop("j");
   assert.ok(calls >= 1, "unset env with default=true should fire");
 });
 
-test("envFlag gate warmup: unset env does NOT fire (envDefault=false)", async () => {
+test("envFlag gate warmup: unset env does NOT fire (envDefault=false)", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
   let calls = 0;
   reg.register(
-    def("j", async () => ({ success: true }), {
-      type: "cron",
-      cron: "* * * * * *",
-      intervalMs: null,
-      envFlag: "OMNIROUTE_WARMUP_ENABLED",
-      config: { timezone: "UTC", envDefault: false },
-    })
+    def(
+      "j",
+      async () => {
+        calls++;
+        return { success: true };
+      },
+      {
+        type: "cron",
+        cron: "* * * * * *",
+        intervalMs: null,
+        envFlag: "OMNIROUTE_WARMUP_ENABLED",
+        config: { timezone: "UTC", envDefault: false },
+      }
+    )
   );
   reg.start("j");
-  await new Promise((r) => setTimeout(r, 1400));
+  t.mock.timers.tick(2_000);
+  await flush();
   reg.stop("j");
   assert.equal(calls, 0, "unset env with envDefault=false must not fire");
 });
 
-test("startAll: registers + starts all enabled jobs; throws if no handlers", async () => {
+test("startAll: registers + starts all enabled jobs; throws if no handlers", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
   await assert.rejects(() => reg.startAll(), /No handlers registered/);
 
@@ -303,13 +345,14 @@ test("startAll: registers + starts all enabled jobs; throws if no handlers", asy
     })
   );
   await reg.startAll();
-  await new Promise((r) => setTimeout(r, 30));
+  await flush();
   assert.ok(a >= 1, "job a started");
   assert.ok(b >= 1, "job b started");
   reg.stopAll();
 });
 
-test("startAll isolation: a missing handler skips that job, starts the rest", async () => {
+test("startAll isolation: a missing handler skips that job, starts the rest", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
   let a = 0;
   reg.register(
@@ -333,12 +376,13 @@ test("startAll isolation: a missing handler skips that job, starts the rest", as
     updatedAt: nowIso,
   });
   await reg.startAll();
-  await new Promise((r) => setTimeout(r, 30));
+  await flush();
   assert.ok(a >= 1, "registered job a still starts despite orphan in DB");
   reg.stopAll();
 });
 
-test("startAll isolation: one job whose start() throws does not abort the rest", async () => {
+test("startAll isolation: one job whose start() throws does not abort the rest", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
   let a = 0;
   let c = 0;
@@ -370,13 +414,14 @@ test("startAll isolation: one job whose start() throws does not abort the rest",
     reg.start = realStart;
   }
 
-  await new Promise((r) => setTimeout(r, 30));
+  await flush();
   assert.ok(a >= 1, "job registered before the throwing one still started");
   assert.ok(c >= 1, "job registered after the throwing one still started");
   reg.stopAll();
 });
 
-test("error isolation: handler throw records failure and survives", async () => {
+test("error isolation: handler throw records failure and survives", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
   let calls = 0;
   reg.register(
@@ -387,7 +432,7 @@ test("error isolation: handler throw records failure and survives", async () => 
     })
   );
   await reg.runNow("j");
-  await new Promise((r) => setTimeout(r, 30));
+  await flush();
   const runs = reg.getRuns("j");
   assert.equal(runs.length, 1);
   assert.equal(runs[0].status, "failure");
@@ -395,16 +440,18 @@ test("error isolation: handler throw records failure and survives", async () => 
   assert.ok(!runs[0].errorMessage?.includes("at /"), "error must be sanitized");
 });
 
-test("getRuns returns recent records newest-first", async () => {
+test("getRuns returns recent records newest-first", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
   reg.register(def("j", async () => ({ success: true, recordsAffected: 0 })));
   await reg.runNow("j");
+  t.mock.timers.tick(1);
   await reg.runNow("j");
-  await new Promise((r) => setTimeout(r, 30));
+  await flush();
   const runs = reg.getRuns("j");
   assert.equal(runs.length, 2);
   assert.ok(
-    new Date(runs[0].startedAt).getTime() >= new Date(runs[1].startedAt).getTime(),
+    new Date(runs[0].startedAt).getTime() > new Date(runs[1].startedAt).getTime(),
     "newest first"
   );
 });
@@ -418,7 +465,8 @@ test("listJobs returns registered jobs with handlers", () => {
   assert.equal(typeof j!.handler, "function");
 });
 
-test("cron: invalid expression stops re-scheduling after MAX_CRON_PARSE_FAILURES", async () => {
+test("cron: invalid expression stops re-scheduling after MAX_CRON_PARSE_FAILURES", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
   let calls = 0;
   reg.register(
@@ -443,7 +491,8 @@ test("cron: invalid expression stops re-scheduling after MAX_CRON_PARSE_FAILURES
   reg.stop("badcron");
 });
 
-test("runNow: queued trigger waits for current run then re-fires", async () => {
+test("runNow: queued trigger waits for current run then re-fires", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
   let calls = 0;
   let release: (v: void) => void = () => {};
@@ -460,12 +509,13 @@ test("runNow: queued trigger waits for current run then re-fires", async () => {
   const queued = reg.runNow("slow");
   release();
   const queuedRes = await queued;
-  await new Promise((r) => setTimeout(r, 30));
+  await flush();
   assert.equal(calls, 2, "initial + one queued re-run = 2 fires");
   assert.deepEqual(queuedRes, { started: true });
 });
 
-test("dispose clears timers and cron failure counts", async () => {
+test("dispose clears timers and cron failure counts", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
   let calls = 0;
   reg.register(
@@ -479,17 +529,19 @@ test("dispose clears timers and cron failure counts", async () => {
     )
   );
   reg.start("j");
-  await new Promise((r) => setTimeout(r, 10));
   assert.ok(regInternals(reg).timers.has("j"));
+  await flush();
   reg.dispose();
   assert.equal(regInternals(reg).timers.size, 0);
   assert.equal(regInternals(reg).cronFailCount.size, 0);
   const callsBefore = calls;
-  await new Promise((r) => setTimeout(r, 100));
+  t.mock.timers.tick(100);
+  await flush();
   assert.equal(calls, callsBefore, "disposed timers must not fire");
 });
 
-test("cronGetter: re-reads cron on each fire", async () => {
+test("cronGetter: re-reads cron on each fire", async (t) => {
+  enableMockTimers(t, Date.parse("2026-01-01T00:00:00.000Z"));
   const reg = getJobRegistry();
   let calls = 0;
   let cronExpr = "*/2 * * * * *";
@@ -510,19 +562,26 @@ test("cronGetter: re-reads cron on each fire", async () => {
     cronGetter: () => cronExpr,
   });
   reg.start("dynamic");
-  await new Promise((r) => setTimeout(r, 2500));
-  const callsAfterInitial = calls;
-  assert.ok(callsAfterInitial >= 1, `should fire with initial cron, got ${callsAfterInitial}`);
-  cronExpr = "0 0 1 1 * 2099";
-  await new Promise((r) => setTimeout(r, 3000));
+  t.mock.timers.tick(1_999);
+  await flush();
+  assert.equal(calls, 0);
+  t.mock.timers.tick(1);
+  await flush();
+  assert.equal(calls, 1, "initial cron fires at two seconds");
+  cronExpr = "0 0 * * * *";
+  t.mock.timers.tick(2_000);
+  await flush();
+  assert.equal(calls, 2, "the already scheduled tick fires once before the new cron takes effect");
+  assert.equal(regInternals(reg).cronFailCount.get("dynamic") ?? 0, 0);
+  t.mock.timers.tick(60_000);
+  await flush();
+  assert.equal(calls, 2, "the hourly cron must not retain the two-second cadence");
   reg.stop("dynamic");
-  const extraFires = calls - callsAfterInitial;
-  assert.ok(extraFires <= 1, `cronGetter change should stop fires, got ${extraFires} extra`);
 });
 
-test("cronFailCount: resets after successful parse", async () => {
+test("cronFailCount: resets after successful parse", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
-  let calls = 0;
   reg.register({
     id: "recover",
     type: "cron",
@@ -533,10 +592,7 @@ test("cronFailCount: resets after successful parse", async () => {
     config: { timezone: "UTC" },
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    handler: async () => {
-      calls++;
-      return { success: true };
-    },
+    handler: async () => ({ success: true }),
   });
   reg.start("recover");
   const failCountAfterFail = regInternals(reg).cronFailCount.get("recover") ?? 0;
@@ -551,10 +607,7 @@ test("cronFailCount: resets after successful parse", async () => {
     config: { timezone: "UTC" },
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    handler: async () => {
-      calls++;
-      return { success: true };
-    },
+    handler: async () => ({ success: true }),
     cronGetter: () => "* * * * * *",
   });
   reg.stop("recover");
@@ -564,7 +617,8 @@ test("cronFailCount: resets after successful parse", async () => {
   reg.stop("recover");
 });
 
-test("cronGetter: throws falls back to static cron", async () => {
+test("cronGetter: throws falls back to static cron", async (t) => {
+  enableMockTimers(t);
   const reg = getJobRegistry();
   let calls = 0;
   let shouldThrow = true;
@@ -588,7 +642,8 @@ test("cronGetter: throws falls back to static cron", async () => {
     },
   });
   reg.start("throwing");
-  await new Promise((r) => setTimeout(r, 1100));
+  t.mock.timers.tick(2_000);
+  await flush();
   assert.ok(calls >= 1, "job should fire with static cron fallback when cronGetter throws");
   reg.stop("throwing");
 });

@@ -300,7 +300,7 @@ test("getCliRuntimeStatus resolves known binaries from npm global prefix discove
   assert.equal(status.commandPath, scriptPath);
 });
 
-test("getCliRuntimeStatus ignores suspicious known-path binaries and symlink escapes", async () => {
+test("known-path checks ignore suspicious binaries and accept trusted symlink shims", async () => {
   const prefixDir = createTempDir("omniroute-cli-suspicious-");
   const binDir = path.join(prefixDir, process.platform === "win32" ? "" : "bin");
   const scriptName = process.platform === "win32" ? "qodercli.exe" : "qodercli";
@@ -309,9 +309,8 @@ test("getCliRuntimeStatus ignores suspicious known-path binaries and symlink esc
 
   process.env.npm_config_prefix = prefixDir;
   process.env.PATH = process.platform === "win32" ? process.env.PATH || "" : "/bin:/usr/bin";
-
   const cliRuntime = await importFresh("suspicious-size");
-  const suspiciousStatus = await cliRuntime.getCliRuntimeStatus("qoder");
+  const suspiciousStatus = await cliRuntime.checkKnownPath(path.join(binDir, scriptName));
 
   assert.equal(suspiciousStatus.installed, false);
   assert.equal(suspiciousStatus.reason, "suspicious_size");
@@ -341,7 +340,7 @@ test("getCliRuntimeStatus ignores suspicious known-path binaries and symlink esc
     // by tests/unit/cliRuntime-symlink-escape-7753.test.ts via the exported
     // checkKnownPath().
     const escapedRuntime = await importFresh("symlink-escape");
-    const escapedStatus = await escapedRuntime.getCliRuntimeStatus("qoder");
+    const escapedStatus = await escapedRuntime.checkKnownPath(path.join(escapeBinDir, "qodercli"));
 
     assert.equal(escapedStatus.installed, true);
     assert.equal(escapedStatus.reason, null);

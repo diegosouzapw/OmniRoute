@@ -42,67 +42,95 @@ export function buildQuickPlan(root) {
 
 export function runQuickPlan(
   plan,
-  { root, concurrency = 4, spawn = spawnSync, log = console.log }
+  { root, concurrency = 4, report, spawn = spawnSync, log = console.log }
 ) {
+  const env = { ...process.env, DISABLE_SQLITE_AUTO_BACKUP: "true" };
+  // The preload creates a fresh data directory per test child. An inherited
+  // application DB override would otherwise make those children share storage.
+  delete env.DATA_DIR;
+  delete env.SQLITE_FILE;
+  if (report) {
+    fs.writeFileSync(
+      report,
+      `${JSON.stringify({
+        type: "run",
+        node: process.version,
+        concurrency,
+        selectedFiles: plan.groups.reduce((count, group) => count + group.files.length, 0),
+        excluded: plan.excluded || [],
+      })}\n`
+    );
+  }
   let failed = false;
   for (const group of plan.groups) {
     if (group.files.length === 0) continue;
     const parallelism = group.name === "serial" ? 1 : concurrency;
     log(`[unit:quick] ${group.name}: ${group.files.length} files, concurrency ${parallelism}`);
-    // Bound explicit file lists below Windows' command-line limit at repo scale.
-    const batches = [[]];
-    let bytes = 0;
-    for (const file of group.files) {
-      const size = Buffer.byteLength(file) + 3;
-      if (bytes + size > 24000 && batches.at(-1).length > 0) {
-        batches.push([]);
-        bytes = 0;
+    const started = performance.now();
+    // A single scheduler can fill every free slot immediately, even while an
+    // earlier file is slow. Pass the file list through stdin so Windows' argv
+    // limit does not impose sequential batch barriers on any platform.
+    const input = JSON.stringify({
+      files: group.files,
+      concurrency: parallelism,
+      isolation: "process",
+      forceExit: false,
+      execArgv: [
+        "--test-force-exit",
+        "--max-old-space-size=8192",
+        "--import",
+        group.loader,
+        "--import",
+        "./open-sse/utils/setupPolyfill.ts",
+        "--import",
+        "./tests/_setup/isolateDataDir.ts",
+      ],
+      phase: group.name,
+      report,
+    });
+    const result = spawn(
+      process.execPath,
+      [fileURLToPath(new URL("./unit-quick-worker.mjs", import.meta.url))],
+      {
+        cwd: root,
+        env,
+        input,
+        stdio: ["pipe", "inherit", "inherit"],
       }
-      batches.at(-1).push(file);
-      bytes += size;
-    }
-    for (const [index, files] of batches.entries()) {
-      const started = performance.now();
-      log(`[unit:quick] ${group.name} batch ${index + 1}/${batches.length}: ${files.length} files`);
-      const result = spawn(
-        process.execPath,
-        [
-          "--max-old-space-size=8192",
-          "--import",
-          group.loader,
-          "--import",
-          "./open-sse/utils/setupPolyfill.ts",
-          "--import",
-          "./tests/_setup/isolateDataDir.ts",
-          "--test",
-          "--test-force-exit",
-          "--test-isolation=process",
-          `--test-concurrency=${parallelism}`,
-          ...files,
-        ],
-        {
-          cwd: root,
-          env: { ...process.env, DISABLE_SQLITE_AUTO_BACKUP: "true" },
-          stdio: "inherit",
-        }
+    );
+    if (report) {
+      fs.appendFileSync(
+        report,
+        `${JSON.stringify({
+          type: "exit",
+          phase: group.name,
+          duration_ms: performance.now() - started,
+          status: result.status ?? null,
+          signal: result.signal ?? null,
+          error: result.error?.message,
+        })}\n`
       );
-      log(
-        `[unit:quick] ${group.name} batch ${index + 1}/${batches.length}: ${((performance.now() - started) / 1000).toFixed(2)}s, exit ${result.status ?? result.signal ?? "error"}`
-      );
-      if (result.error) log(`[unit:quick] ${group.name} could not start: ${result.error.message}`);
-      if (result.signal) {
-        log(`[unit:quick] ${group.name} interrupted by ${result.signal}`);
-        return 1;
-      }
-      failed ||= Boolean(result.error) || result.status !== 0;
     }
+    log(
+      `[unit:quick] ${group.name}: ${((performance.now() - started) / 1000).toFixed(2)}s, exit ${result.status ?? result.signal ?? "error"}`
+    );
+    if (result.error) log(`[unit:quick] ${group.name} could not start: ${result.error.message}`);
+    if (result.signal) {
+      log(`[unit:quick] ${group.name} interrupted by ${result.signal}`);
+      return 1;
+    }
+    failed ||= Boolean(result.error) || result.status !== 0;
   }
   return failed ? 1 : 0;
 }
 
 function main() {
   const { values } = parseArgs({
-    options: { list: { type: "boolean" }, concurrency: { type: "string", default: "4" } },
+    options: {
+      list: { type: "boolean" },
+      concurrency: { type: "string", default: "4" },
+      report: { type: "string" },
+    },
   });
   const concurrency = Number(values.concurrency);
   if (!Number.isSafeInteger(concurrency) || concurrency < 1) {
@@ -117,7 +145,11 @@ function main() {
   console.log(
     `[unit:quick] ${plan.totalFiles - plan.excluded.length}/${plan.totalFiles} files; ${plan.excluded.length} remain in the full suite (excluded groups: ${SLOW_DIRS.join(", ")}).`
   );
-  process.exitCode = runQuickPlan(plan, { root, concurrency });
+  process.exitCode = runQuickPlan(plan, {
+    root,
+    concurrency,
+    report: values.report ? path.resolve(values.report) : undefined,
+  });
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || "").href) main();
