@@ -168,6 +168,7 @@ function isRouteContextWord(value: string): boolean {
     value === "Route" ||
     value.toLowerCase() === "on" ||
     value.toLowerCase() === "endpoint" ||
+    value.toLowerCase() === "from" ||
     (HTTP_METHODS as readonly string[]).includes(value)
   );
 }
