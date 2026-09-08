@@ -465,10 +465,10 @@ function findUnquotedPathEnd(
   let hasUnresolvedFragments = false;
 
   const resolveEndpoint = (): number => {
+    if (resolvedExtensionEnd >= 0) return resolvedExtensionEnd;
     if (hasUnresolvedFragments) {
       return failClosedAmbiguity || hasFilesystemEvidence ? value.length : -1;
     }
-    if (resolvedExtensionEnd >= 0) return resolvedExtensionEnd;
     if (hasFilesystemEvidence && lastPathTokenEnd >= 0) return lastPathTokenEnd;
     if (
       acceptFirstTokenPunctuation &&
