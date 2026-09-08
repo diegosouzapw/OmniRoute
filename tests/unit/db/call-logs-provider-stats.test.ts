@@ -85,7 +85,7 @@ test("error_type NULL splits into pre_migration vs unclassified by timestamp", (
   assert.equal(byType.get("unclassified"), 1);
 });
 
-test("migration 174 creates provider GROUP BY indexes used by search stats", () => {
+test("migration 175 creates provider GROUP BY indexes used by search stats", () => {
   const db = core.getDbInstance();
 
   const names = (
