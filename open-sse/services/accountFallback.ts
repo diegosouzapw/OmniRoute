@@ -252,6 +252,8 @@ export const CREDITS_EXHAUSTED_SIGNALS = [
   // marked credits_exhausted and keeps being re-selected on every request.
   "insufficient credits",
   "insufficient credit",
+  // FriendliAI 403 when free tier credits are depleted via adaptive rate limits
+  "exhausted all your credits",
 ];
 
 // T11: Signals that indicate OAuth token is invalid/expired (not permanent deactivation)
