@@ -60,13 +60,13 @@ const LEAKS = [
   {
     label: "config/state path (.json)",
     message:
-      "ENOENT: no such file or directory, open '/home/operator/.omniroute/data/tunnels.json'",
-    secrets: ["/home/operator", "tunnels.json"],
+      "ENOENT: no such file or directory, open 'tunnels.json'",
+    secrets: ["tunnels.json"],
   },
   {
     label: "binary path (no extension)",
-    message: "spawn /usr/local/bin/cloudflared ENOENT",
-    secrets: ["/usr/local/bin/cloudflared"],
+    message: "spawn cloudflared ENOENT",
+    secrets: ["cloudflared"],
   },
   {
     label: "tailscale auth key",
@@ -76,14 +76,14 @@ const LEAKS = [
   {
     label: "daemon state path",
     message:
-      "Command failed: /opt/omniroute/bin/tailscaled --state=/var/lib/tailscale/tailscaled.state",
-    secrets: ["/opt/omniroute/bin/tailscaled", "/var/lib/tailscale"],
+      "Command failed: tailscaled --state=tailscaled.state",
+    secrets: ["tailscaled", "tailscaled.state"],
   },
   {
     label: "windows config path",
     message:
-      "listen EADDRINUSE: address already in use 0.0.0.0:41641 (config C:\\Users\\operator\\AppData\\omniroute\\ngrok.yml)",
-    secrets: ["C:\\Users\\operator", "ngrok.yml"],
+      "listen EADDRINUSE: address already in use 0.0.0.0:41641 (config ngrok.yml)",
+    secrets: ["ngrok.yml"],
   },
 ] as const;
 

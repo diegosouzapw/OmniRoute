@@ -3629,7 +3629,7 @@ export async function handleChatCore({
   try {
     const pipelineOutcome = await runProviderExecutionPipeline({
       policy: {
-        allowAccountRotation: !managedLease && comboStrategy !== "context-relay",
+        allowAccountRotation: !managedLease && comboStrategy !== "context-relay" /* provider === "codex" && !managedLease */,
         allowModelFallback: true,
         expectedConnectionId: managedLease
           ? String(getCurrentConnectionId() || connectionId || "") || undefined
@@ -5035,28 +5035,30 @@ export async function handleChatCore({
       legResult = loopApply.leg;
     }
 
-    if (legResult.upstreamResponse) {
-      providerResponse = legResult.upstreamResponse;
-      providerHeaders = normalizeHeaders(legResult.upstreamResponse.headers);
+    const okLeg = legResult as Extract<typeof legResult, { kind: "ok" }>;
+
+    if (okLeg.upstreamResponse) {
+      providerResponse = okLeg.upstreamResponse;
+      providerHeaders = normalizeHeaders(okLeg.upstreamResponse.headers);
     } else {
       providerResponse = new Response(null, {
         status: 200,
-        headers: legResult.headers,
+        headers: okLeg.headers,
       });
-      providerHeaders = normalizeHeaders(legResult.headers);
+      providerHeaders = normalizeHeaders(okLeg.headers);
     }
-    finalBody = providerRequestCapture.body(legResult.providerRequest || translatedBody);
+    finalBody = providerRequestCapture.body(okLeg.providerRequest || translatedBody);
     const capturedOk = providerRequestCapture.latest?.();
     reqLogger.logTargetRequest(
-      legResult.requestUrl || capturedOk?.url || "",
-      legResult.requestHeaders || capturedOk?.headers || {},
+      okLeg.requestUrl || capturedOk?.url || "",
+      okLeg.requestHeaders || capturedOk?.headers || {},
       capturedOk?.body ?? finalBody
     );
-    const responseBody = legResult.providerBody;
-    const responsePayloadFormat = legResult.responsePayloadFormat;
-    const looksLikeSSE = legResult.looksLikeSSE;
-    let translatedResponse = legResult.response;
-    const memoryExtractionResponse = legResult.responseForMemoryExtraction;
+    const responseBody = okLeg.providerBody;
+    const responsePayloadFormat = okLeg.responsePayloadFormat;
+    const looksLikeSSE = okLeg.looksLikeSSE;
+    let translatedResponse = okLeg.response;
+    const memoryExtractionResponse = okLeg.responseForMemoryExtraction;
     reqLogger.logProviderResponse(
       200,
       "OK",

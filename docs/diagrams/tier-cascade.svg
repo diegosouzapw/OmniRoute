@@ -90,7 +90,7 @@
     </circle>
   </g>
   <text x="364" y="216" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="20" font-weight="800" fill="url(#gradBrand)">OmniRoute — Smart Router</text>
-  <text x="364" y="243" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa"><tspan fill="#8b5cf6">RTK + Caveman compression</tspan> · <tspan fill="#8b5cf6">19 routing strategies</tspan></text>
+  <text x="364" y="243" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa"><tspan fill="#8b5cf6">RTK + Caveman compression</tspan> · <tspan fill="#8b5cf6">20 routing strategies</tspan></text>
   <text x="364" y="264" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa">Circuit breakers · TLS stealth · MCP · A2A · Guardrails</text>
 
   <!-- fan-out topology (always visible) -->

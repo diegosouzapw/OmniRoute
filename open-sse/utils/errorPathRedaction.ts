@@ -17,6 +17,8 @@ const HTTP_METHODS = [
 ] as const;
 const CLEAR_PROSE_BOUNDARIES = [
   "after",
+  "authorization",
+  "bearer",
   "because",
   "before",
   "but",
@@ -154,7 +156,13 @@ function isWhitespace(value: string): boolean {
 }
 
 function isRouteContextWord(value: string): boolean {
-  return value === "Route" || (HTTP_METHODS as readonly string[]).includes(value);
+  return (
+    value === "Route" ||
+    value.toLowerCase() === "on" ||
+    value.toLowerCase() === "endpoint" ||
+    value.toLowerCase() === "from" ||
+    (HTTP_METHODS as readonly string[]).includes(value)
+  );
 }
 
 function hasRouteContextBefore(value: string, candidateIndex: number): boolean {
@@ -443,9 +451,30 @@ function trimPathSpanEnd(value: string, start: number, end: number): number {
 function isClearProseBoundaryToken(value: string, start: number, end: number): boolean {
   while (start < end && LEADING_PATH_PUNCTUATION.includes(value[start])) start++;
   end = trimPathSpanEnd(value, start, end);
-  return (CLEAR_PROSE_BOUNDARIES as readonly string[]).includes(
-    value.slice(start, end).toLowerCase()
-  );
+  const raw = value.slice(start, end);
+  const lower = raw.toLowerCase();
+  if ((CLEAR_PROSE_BOUNDARIES as readonly string[]).includes(lower)) return true;
+  const eq = raw.indexOf("=");
+  const colon = raw.indexOf(":");
+  if (eq > 0 || colon > 0) {
+    const keyEnd = eq > 0 && colon > 0 ? Math.min(eq, colon) : eq > 0 ? eq : colon;
+    const key = raw.slice(0, keyEnd).toLowerCase();
+    if (
+      key === "access_token" ||
+      key === "api_key" ||
+      key === "apikey" ||
+      key === "token" ||
+      key === "authorization" ||
+      key === "bearer" ||
+      key === "cookie" ||
+      key === "password" ||
+      key === "secret" ||
+      key === "key"
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function findUnquotedPathEnd(

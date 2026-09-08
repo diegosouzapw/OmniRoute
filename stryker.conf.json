@@ -116,6 +116,8 @@
       "tests/unit/chat-adaptive-admission-binding.test.ts",
       "tests/unit/chat-combo-live-test.test.ts",
       "tests/unit/chat-context-relay.test.ts",
+      "tests/unit/combo/execute-target-gates.test.ts",
+      "tests/unit/combo-pin-implicit-allowlist.test.ts",
       "tests/unit/chat-cooldown-aware-retry.test.ts",
       "tests/unit/chat-helpers.test.ts",
       "tests/unit/chatgpt-web-codex.test.ts",

@@ -16,6 +16,9 @@
  */
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import fs from "node:fs";
+import { getSupervisor } from "@/lib/services/registry";
+import { generateDefaultSingboxConfig, getConfigPath } from "@/lib/services/installers/singbox";
 import {
   buildTproxyApplyCommands,
   buildTproxyRevertCommands,
@@ -40,6 +43,8 @@ const defaultRunner: CommandRunner = async (bin, args) => {
 export async function applyTproxy(cfg: TproxyConfig, run: CommandRunner = defaultRunner): Promise<void> {
   const invalid = validateTproxyConfig(cfg);
   if (invalid) throw new Error(invalid);
+
+  await ensureSingboxTproxy(cfg.onPort, cfg.dport).catch(() => false);
 
   try {
     for (const cmd of buildTproxyApplyCommands(cfg)) {
@@ -66,3 +71,18 @@ export async function revertTproxy(cfg: TproxyConfig, run: CommandRunner = defau
     }
   }
 }
+
+export async function ensureSingboxTproxy(tproxyPort: number, targetPort: number): Promise<boolean> {
+  const supervisor = getSupervisor("singbox");
+  if (!supervisor) return false;
+
+  const cfgPath = getConfigPath();
+  const cfgContent = JSON.stringify(generateDefaultSingboxConfig(tproxyPort, targetPort), null, 2);
+  fs.writeFileSync(cfgPath, cfgContent, "utf8");
+
+  if (supervisor.getStatus().state !== "running") {
+    await supervisor.start().catch(() => {});
+  }
+  return supervisor.getStatus().state === "running";
+}
+
