@@ -16,31 +16,23 @@ const HTTP_METHODS = [
   "TRACE",
 ] as const;
 const CLEAR_PROSE_BOUNDARIES = [
-  "access_token",
   "after",
-  "api_key",
   "authorization",
   "bearer",
   "because",
   "before",
   "but",
-  "cookie",
   "crashed",
   "denied",
   "eacces",
   "enoent",
   "expired",
   "failed",
-  "key",
-  "password",
   "rejected",
   "retry",
-  "secret",
   "then",
-  "token",
   "when",
   "while",
-  "with",
 ] as const;
 const POSIX_FILESYSTEM_ROOTS = [
   "/Users",
@@ -460,16 +452,29 @@ function isClearProseBoundaryToken(value: string, start: number, end: number): b
   while (start < end && LEADING_PATH_PUNCTUATION.includes(value[start])) start++;
   end = trimPathSpanEnd(value, start, end);
   const raw = value.slice(start, end);
+  const lower = raw.toLowerCase();
+  if ((CLEAR_PROSE_BOUNDARIES as readonly string[]).includes(lower)) return true;
   const eq = raw.indexOf("=");
   const colon = raw.indexOf(":");
-  let keyEnd = raw.length;
-  if (eq > 0) keyEnd = Math.min(keyEnd, eq);
-  if (colon > 0) keyEnd = Math.min(keyEnd, colon);
-  const tokenKey = raw.slice(0, keyEnd).toLowerCase();
-  return (
-    (CLEAR_PROSE_BOUNDARIES as readonly string[]).includes(tokenKey) ||
-    (CLEAR_PROSE_BOUNDARIES as readonly string[]).includes(raw.toLowerCase())
-  );
+  if (eq > 0 || colon > 0) {
+    const keyEnd = eq > 0 && colon > 0 ? Math.min(eq, colon) : eq > 0 ? eq : colon;
+    const key = raw.slice(0, keyEnd).toLowerCase();
+    if (
+      key === "access_token" ||
+      key === "api_key" ||
+      key === "apikey" ||
+      key === "token" ||
+      key === "authorization" ||
+      key === "bearer" ||
+      key === "cookie" ||
+      key === "password" ||
+      key === "secret" ||
+      key === "key"
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function findUnquotedPathEnd(
