@@ -266,6 +266,25 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "Create a LiteRouter API key, then use https://api.literouter.com/v1 as the OpenAI-compatible base URL.",
   },
+  greenpt: {
+    id: "greenpt",
+    serviceKinds: ["llm"],
+    alias: "greenpt",
+    name: "GreenPT",
+    icon: "eco",
+    color: "#15803D",
+    textIcon: "GPT",
+    passthroughModels: true,
+    website: "https://greenpt.com",
+    // Not a free tier. The published docs describe a free API subscription with
+    // pay-per-token inference, which is a billing shape rather than free usage,
+    // so this stays false and the note says only what the docs say (#12986).
+    hasFree: false,
+    freeNote:
+      "API subscription is free to create; inference is billed per token. No free inference allowance is published.",
+    apiHint:
+      "Create a GreenPT API key, then use https://api.greenpt.ai/v1 as the OpenAI-compatible base URL. Review jurisdiction, privacy and regional data-transfer requirements before use.",
+  },
   "mnn-ai": {
     id: "mnn-ai",
     serviceKinds: ["llm"],
@@ -1452,9 +1471,9 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     passthroughModels: true,
     website: "https://seekai.cc",
     hasFree: true,
-    freeNote: "Signup credit toward available models; amount and eligibility are set by SeekAi, not OmniRoute.",
-    authHint:
-      "Create an API key at https://seekai.cc, then paste it here as a Bearer token.",
+    freeNote:
+      "Signup credit toward available models; amount and eligibility are set by SeekAi, not OmniRoute.",
+    authHint: "Create an API key at https://seekai.cc, then paste it here as a Bearer token.",
     apiHint:
       "Create an API key at https://seekai.cc, then paste it here as a Bearer token. OpenAI-compatible base URL: https://seekai.cc/v1.",
   },
