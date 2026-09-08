@@ -31,11 +31,16 @@ async function buildAntigravityProbe(
     connection.providerSpecificData && typeof connection.providerSpecificData === "object"
       ? (connection.providerSpecificData as Record<string, unknown>)
       : undefined;
+  const connectionProjectId =
+    typeof (connection as Record<string, unknown>)?.projectId === "string" &&
+    ((connection as Record<string, unknown>).projectId as string).trim()
+      ? ((connection as Record<string, unknown>).projectId as string).trim()
+      : undefined;
   const storedProjectId =
     typeof providerSpecificData?.projectId === "string" && providerSpecificData.projectId.trim()
       ? providerSpecificData.projectId.trim()
       : undefined;
-  let projectId = storedProjectId;
+  let projectId = connectionProjectId || storedProjectId;
   if (!projectId && accessToken) {
     try {
       const discoveredProjectId = await ensureAntigravityProjectAssigned(
