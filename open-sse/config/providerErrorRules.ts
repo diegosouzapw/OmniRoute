@@ -343,7 +343,43 @@ export function honorsRuleLockScope(provider: string | null | undefined): boolea
  * HONORS_RULE_LOCK_SCOPE_PROVIDERS (#10334): a provider must opt in, and any
  * widening is an explicit owner decision.
  */
-const EGRESS_BUCKETED_LOCK_PROVIDERS = new Set(["opencode", "opencode-go", "opencode-cli"]);
+// Default free-tier set (#9611). PAID plans are account-bucketed, not
+// IP-bucketed, so operators running paid subscriptions can disable or trim
+// the egress-IP lockout via OMNIROUTE_EGRESS_IP_LOCK_PROVIDERS:
+//   unset            → default set below (free-tier behavior)
+//   none/off/false/0 → empty set (egress-IP lockout fully disabled)
+//   "a,b,c"          → exact replacement set
+// Static default as a plain lookup table; the runtime set is env-derived
+// (dynamic membership), so a Set is the right structure there.
+const EGRESS_BUCKETED_LOCK_PROVIDERS_DEFAULT: Record<string, true> = {
+  opencode: true,
+  "opencode-go": true,
+  "opencode-cli": true,
+};
+
+/**
+ * Pure parser for OMNIROUTE_EGRESS_IP_LOCK_PROVIDERS (exported for tests).
+ * Returns the effective provider set: default free-tier family when unset,
+ * empty for none/off/false/0, otherwise the comma-separated replacement set.
+ */
+export function egressIpLockProvidersFromEnv(
+  raw: string | undefined,
+  fallback: Record<string, true> = EGRESS_BUCKETED_LOCK_PROVIDERS_DEFAULT
+): Set<string> {
+  const trimmed = raw?.trim();
+  if (trimmed === undefined || trimmed === "") return new Set(Object.keys(fallback));
+  if (/^(none|off|false|0)$/i.test(trimmed)) return new Set<string>();
+  return new Set(
+    trimmed
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
+const EGRESS_BUCKETED_LOCK_PROVIDERS = egressIpLockProvidersFromEnv(
+  process.env.OMNIROUTE_EGRESS_IP_LOCK_PROVIDERS
+);
 
 export function isEgressBucketedLockScope(provider: string | null | undefined): boolean {
   return !!provider && EGRESS_BUCKETED_LOCK_PROVIDERS.has(provider.toLowerCase());
