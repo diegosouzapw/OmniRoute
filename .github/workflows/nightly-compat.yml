@@ -8,8 +8,6 @@ name: Nightly Node Compat
 # fail-fast desligado: numa quebra queremos saber TODAS as versões afetadas de uma vez.
 
 on:
-  schedule:
-    - cron: "47 6 * * *" # 06:47 UTC diário — slot distinto dos demais nightlies
   workflow_dispatch:
     inputs:
       branch:

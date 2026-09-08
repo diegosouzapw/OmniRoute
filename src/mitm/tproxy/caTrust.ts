@@ -48,7 +48,7 @@ export interface CaTrustDeps {
 
 function detectCertConfig(): { dir: string; cmd: string } {
   for (const c of LINUX_CERT_PATHS) {
-    if (fs.existsSync(c.dir)) return c;
+    if (fs.existsSync(/* webpackIgnore: true */ /* turbopackIgnore: true */ c.dir)) return c;
   }
   return LINUX_CERT_PATHS[0];
 }

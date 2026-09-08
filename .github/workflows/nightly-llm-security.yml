@@ -1,7 +1,5 @@
 name: Nightly LLM Security
 on:
-  schedule:
-    - cron: "53 5 * * *"
   workflow_dispatch:
 
 permissions:

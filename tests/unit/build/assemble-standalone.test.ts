@@ -35,6 +35,7 @@ function seedSidecarSources(root: string) {
   const files = [
     "node_modules/wreq-js/rust/lib.so",
     "node_modules/better-sqlite3/build/Release/better_sqlite3.node",
+    "node_modules/onnxruntime-node/bin/napi-v3/linux/x64/libonnxruntime.so.1",
     "src/mitm/tproxy/native/build/Release/transparent.node",
     "node_modules/@swc/helpers/package.json",
     "node_modules/pino-abstract-transport/index.js",
@@ -44,6 +45,7 @@ function seedSidecarSources(root: string) {
     "node_modules/sql.js/package.json",
     "node_modules/sql.js/dist/sql-wasm.js",
     "node_modules/sql.js/dist/sql-wasm.wasm",
+    "node_modules/onnxruntime-node/package.json",
     "node_modules/sqlite-vec/index.js",
     "node_modules/sqlite-vec-linux-x64/vec0.so",
     "src/lib/db/migrations/001_init.sql",

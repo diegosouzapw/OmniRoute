@@ -1,7 +1,5 @@
 name: Nightly Mutation
 on:
-  schedule:
-    - cron: "17 3 * * *"
   workflow_dispatch:
 
 permissions:

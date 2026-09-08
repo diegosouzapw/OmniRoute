@@ -10,20 +10,23 @@
 #    docker compose -f docker-compose.prod.yml down
 #    docker compose -f docker-compose.prod.yml logs -f
 #
-#  Image flavors (two Dockerfile stages):
-#    runner-base (default / omniroute:prod)
-#      Lean image — no Playwright/Chromium. Suitable for all providers
-#      except web-cookie ones (gemini-web, claude-web, claude-turnstile).
+#  Image flavors (Dockerfile stages):
+#    runner-cli (this file's default / omniroute:prod)
+#      Agentic CLIs plus in-process Playwright Chromium + xvfb. Last Dockerfile
+#      stage, so Easypanel / unspecified `docker build` also land here. Headed
+#      web-cookie providers (chatgpt-web, gemini-web, claude-web) work without
+#      switching target. ChatGPT Web (Codex) still uses the CDP sidecar below.
 #
-#    runner-web (omniroute:prod-web) — opt-in, ~300 MB extra
-#      Includes Playwright + Chromium system libs. Required for web-cookie
-#      providers. To use this flavor, override the build target:
+#    runner-web (omniroute:prod-web) — opt-in web-cookie image without CLIs
+#      Playwright + Chromium + xvfb only. Override the build target:
 #
 #        omniroute-prod:
 #          build:
 #            context: .
 #            target: runner-web
 #          image: omniroute:prod-web
+#
+#    runner-base — lean, no CLIs and no browsers. Not used by this file.
 # ──────────────────────────────────────────────────────────────────────
 
 services:

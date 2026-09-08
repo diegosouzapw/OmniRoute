@@ -268,7 +268,7 @@ describe("model capability overrides", () => {
     insert.run("legacy", "collision", "max_output_tokens", "128000", "2026-02-01 00:00:00");
 
     const migration = fs.readFileSync(
-      path.resolve("src/lib/db/migrations/135_migrate_model_capability_max_token.sql"),
+      path.resolve("src/lib/db/migrations/136_migrate_model_capability_max_token.sql"),
       "utf8"
     );
     db.exec(migration);

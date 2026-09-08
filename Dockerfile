@@ -200,7 +200,25 @@ COPY . ./
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-next-cache,target=/app/.build/next/cache \
   mkdir -p /app/data \
   && npm run build \
-  && node --input-type=module -e "import { createRequire } from 'node:module'; import { pathToFileURL } from 'node:url'; const standaloneRoot = '/app/.build/next/standalone/node_modules/'; const require = createRequire('/app/.build/next/standalone/package.json'); for (const pkg of ['@atjsh/llmlingua-2', '@huggingface/transformers', 'js-tiktoken']) { const resolved = require.resolve(pkg); if (!resolved.startsWith(standaloneRoot)) throw new Error(pkg + ' resolved outside standalone: ' + resolved); await import(pathToFileURL(resolved).href); } const onnxRuntime = require.resolve('onnxruntime-node'); if (!onnxRuntime.startsWith(standaloneRoot)) throw new Error('onnxruntime-node resolved outside standalone: ' + onnxRuntime); await import(pathToFileURL(onnxRuntime).href);"
+  && node --input-type=module -e "\
+import { createRequire } from 'node:module'; \
+import { pathToFileURL } from 'node:url'; \
+const standaloneRoot = '/app/.build/next/standalone/node_modules/'; \
+const require = createRequire('/app/.build/next/standalone/package.json'); \
+const isNativeErr = (e) => e.code === 'ERR_DLOPEN_FAILED' || /ERR_DLOPEN_FAILED|cannot open shared object file|Could not load the .* module/i.test(String(e.message || e)); \
+for (const pkg of ['@atjsh/llmlingua-2', '@huggingface/transformers', 'js-tiktoken']) { \
+  const resolved = require.resolve(pkg); \
+  if (!resolved.startsWith(standaloneRoot)) throw new Error(pkg + ' resolved outside standalone: ' + resolved); \
+  try { await import(pathToFileURL(resolved).href); } \
+  catch (e) { if (isNativeErr(e)) console.warn('⚠ ' + pkg + ': native dep unavailable in builder (OK, will load at runtime)'); \
+  else throw e; } \
+} \
+const onnxRuntime = require.resolve('onnxruntime-node'); \
+if (!onnxRuntime.startsWith(standaloneRoot)) throw new Error('onnxruntime-node resolved outside standalone: ' + onnxRuntime); \
+try { await import(pathToFileURL(onnxRuntime).href); } \
+catch (e) { if (isNativeErr(e)) console.warn('⚠ onnxruntime-node: native dep unavailable in builder (OK)'); \
+else throw e; } \
+"
 
 # ── Runner base ────────────────────────────────────────────────────────────
 FROM base AS runner-base
@@ -300,10 +318,13 @@ COPY --from=builder /app/node_modules/playwright ./node_modules/playwright
 # PLAYWRIGHT_BROWSERS_PATH overrides the default ~/.cache/ms-playwright so the
 # browsers land under /home/node which persists across image layers and is
 # accessible to the non-root runtime user.
+# xvfb is required for in-process headed Chromium (ChatGPT rejects true-headless).
+# The shared entrypoint starts Xvfb and exports DISPLAY=:99 when the binary exists.
 ENV PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-lists,target=/var/lib/apt/lists,sharing=locked \
   apt-get update \
+  && apt-get install -y --no-install-recommends xvfb \
   && node node_modules/playwright/cli.js install chromium --with-deps \
   && chown -R node:node /home/node/.cache \
   && rm -rf /var/lib/apt/lists/*
@@ -317,16 +338,26 @@ FROM runner-base AS runner-cli
 # runner-base runs.
 USER root
 
-# The CLI image can use the internal ChatGPT Web (Codex) Chromium sidecar over
-# CDP without installing a second browser in this container.
+# Playwright packages plus an in-process Chromium + Xvfb so last-stage builds
+# (Easypanel / unspecified `docker build` target, compose `cli` / prod) can run
+# headed web-cookie providers such as chatgpt-web. ChatGPT Web (Codex) still
+# prefers the internal CDP sidecar when that compose service is present.
 COPY --from=builder /app/node_modules/playwright-core ./node_modules/playwright-core
 COPY --from=builder /app/node_modules/playwright ./node_modules/playwright
 
-# Install system dependencies required by openclaw (git+ssh references).
+# PLAYWRIGHT_BROWSERS_PATH must match runner-web: `playwright install` as root
+# otherwise lands browsers under /root/.cache, which the runtime `node` user
+# cannot read.
+ENV PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
+
+# git/docker for openclaw + agentic CLIs; xvfb + Playwright Chromium for headed
+# in-process browser providers on displayless hosts.
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-lists,target=/var/lib/apt/lists,sharing=locked \
   apt-get update \
-  && apt-get install -y --no-install-recommends git ca-certificates docker.io docker-compose \
+  && apt-get install -y --no-install-recommends git ca-certificates docker.io docker-compose xvfb \
+  && node node_modules/playwright/cli.js install chromium --with-deps \
+  && chown -R node:node /home/node/.cache \
   && rm -rf /var/lib/apt/lists/* \
   && git config --system url."https://github.com/".insteadOf "ssh://git@github.com/"
 

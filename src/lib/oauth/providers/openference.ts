@@ -46,6 +46,13 @@ function getOpenferenceUserName(userInfo: Record<string, unknown>): string | nul
   return null;
 }
 
+function resolveOpenferenceRedirectUri(redirectUri?: string): string {
+  if (redirectUri && /^(http:\/\/)?(127\.0\.0\.1|localhost):56123/i.test(redirectUri)) {
+    return redirectUri;
+  }
+  return `http://localhost:${OPENFERENCE_CONFIG.loopbackPort}/callback`;
+}
+
 export const openference = {
   config: OPENFERENCE_CONFIG,
   flowType: "authorization_code_pkce" as const,
@@ -54,10 +61,11 @@ export const openference = {
   callbackHost: OPENFERENCE_CONFIG.callbackHost,
 
   buildAuthUrl: (config, redirectUri, state, codeChallenge) => {
+    const effectiveRedirectUri = resolveOpenferenceRedirectUri(redirectUri);
     const params = new URLSearchParams({
       response_type: "code",
       client_id: config.clientId,
-      redirect_uri: redirectUri,
+      redirect_uri: effectiveRedirectUri,
       scope: config.scope,
       code_challenge: codeChallenge,
       code_challenge_method: config.codeChallengeMethod,
@@ -67,6 +75,7 @@ export const openference = {
   },
 
   exchangeToken: async (config, code, redirectUri, codeVerifier) => {
+    const effectiveRedirectUri = resolveOpenferenceRedirectUri(redirectUri);
     const response = await fetch(config.tokenUrl, {
       method: "POST",
       headers: {
@@ -77,7 +86,7 @@ export const openference = {
         grant_type: "authorization_code",
         client_id: config.clientId,
         code,
-        redirect_uri: redirectUri,
+        redirect_uri: effectiveRedirectUri,
         code_verifier: codeVerifier,
       }),
     });

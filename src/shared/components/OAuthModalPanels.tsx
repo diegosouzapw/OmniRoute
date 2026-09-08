@@ -367,8 +367,8 @@ export function OAuthManualInputPanel({
           {provider === "zed-hosted" && (
             <p className="text-xs text-amber-500 mb-2">
               After signing in, Zed redirects to a local address like{" "}
-              <code className="font-mono">http://127.0.0.1:&lt;port&gt;/?user_id=...</code> which the
-              browser may show as unreachable — that is expected. Copy the FULL URL from the
+              <code className="font-mono">http://127.0.0.1:&lt;port&gt;/?user_id=...</code> which
+              the browser may show as unreachable — that is expected. Copy the FULL URL from the
               browser address bar (the access token is inside it) and paste it above.
             </p>
           )}
@@ -378,9 +378,11 @@ export function OAuthManualInputPanel({
             placeholder={
               provider === "claude" || provider === "cline"
                 ? "code#state or /callback?code=..."
-                : provider === "zed-hosted"
-                  ? "http://127.0.0.1:<port>/?user_id=...&access_token=..."
-                  : placeholderUrl
+                : provider === "openference"
+                  ? "http://127.0.0.1:56123/callback?code=... or code#state"
+                  : provider === "zed-hosted"
+                    ? "http://127.0.0.1:<port>/?user_id=...&access_token=..."
+                    : placeholderUrl
             }
             className="font-mono text-xs"
           />

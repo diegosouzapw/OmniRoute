@@ -1,0 +1,1 @@
+- **fix(docker):** install `xvfb` and Playwright Chromium into the `runner-cli` Docker stage and auto-start Xvfb in `scripts/check-permissions.sh`, preserving headed web-cookie provider compatibility (e.g., `chatgpt-web`) across Easypanel and default last-stage image rebuilds on displayless hosts.

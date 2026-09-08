@@ -1,7 +1,5 @@
 name: Nightly Schemathesis
 on:
-  schedule:
-    - cron: "23 4 * * *"
   workflow_dispatch:
 
 permissions:

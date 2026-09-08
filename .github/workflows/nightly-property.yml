@@ -1,7 +1,5 @@
 name: Nightly Property Discovery
 on:
-  schedule:
-    - cron: "0 6 * * *"
   workflow_dispatch:
 permissions:
   contents: read

@@ -18,8 +18,6 @@ on:
       - open-sse/config/providers/**
       - scripts/release/radar-export.mjs
       - .github/workflows/radar-export.yml
-  schedule:
-    - cron: "17 6 * * 1" # semanal (segunda 06:17 UTC): mantém geradoEm/proveniência frescos
 
 permissions:
   contents: read

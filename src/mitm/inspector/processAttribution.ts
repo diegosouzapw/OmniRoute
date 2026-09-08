@@ -64,7 +64,10 @@ export function attributeProcess(localPort: number): ProcessInfo | null {
 function findInode(localPort: number): string | null {
   for (const f of ["/proc/net/tcp", "/proc/net/tcp6"]) {
     try {
-      const inode = parseProcNetTcpForInode(fs.readFileSync(f, "utf8"), localPort);
+      const inode = parseProcNetTcpForInode(
+        fs.readFileSync(/* turbopackIgnore: true */ f, "utf8"),
+        localPort
+      );
       if (inode && inode !== "0") return inode;
     } catch {
       // file may not exist (e.g. no tcp6) — continue

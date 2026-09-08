@@ -549,6 +549,8 @@ function isSchemaAlreadyApplied(
     // Retroactive guard for the 135/136 renumber (#8523 landed onto slots already taken
     // by #8908/#9515): a DB that ran these under the old numbers already has the column,
     // and a bare ALTER TABLE ADD COLUMN would throw on the re-run under the new number.
+    case "136":
+      return hasTable(db, "radar_feed_cache");
     case "137":
       return hasColumn(db, "version_manager", "auto_restart_adopted");
     case "138":
@@ -559,14 +561,6 @@ function isSchemaAlreadyApplied(
       // ccr_blocks under the old 134 number has the table — skip the re-run.
       return hasTable(db, "ccr_blocks");
     case "140":
-      // Retroactive guard for the connection_runtime_state migration renumbered
-      // 135 -> 140 (#9449 landed onto the slot already taken by #8908's
-      // 135_migrate_model_capability_max_token.sql — the same recurring
-      // numbering-race class as the 135/136 -> 137/138 renumber above). A DB
-      // that already ran this under the old 135 number has the table, and a
-      // bare CREATE TABLE re-run would otherwise just no-op (IF NOT EXISTS)
-      // but still burn a version-tracking slot mismatch — guard it the same
-      // way as the other renumbers for consistency.
       return hasTable(db, "connection_runtime_state");
     case "143":
       // A cumulative Radar checkout could have occupied version 143 before the
@@ -912,6 +906,9 @@ export function runMigrations(
 
       const isTestEnvironment = isAutomatedTestProcess();
       const maxPendingMigrations = resolveMaxPendingMigrations();
+      const unappliedPending = actionablePending.filter(
+        (migration) => !isSchemaAlreadyApplied(db, migration)
+      );
       if (
         actionablePending.length > 0 &&
         !isTestEnvironment &&
@@ -919,17 +916,21 @@ export function runMigrations(
         !isFreshSeedOnly &&
         maxPendingMigrations > 0 &&
         (applied.size > 0 || hadAppliedBeforeRepair) &&
-        actionablePending.length > maxPendingMigrations
+        unappliedPending.length > maxPendingMigrations
       ) {
         const physicalBaseline = inferPhysicalSchemaBaseline(db);
         const plausiblePendingCount = physicalBaseline
           ? getPlausiblePendingCount(files, physicalBaseline.version)
           : null;
 
-        if (plausiblePendingCount !== null && actionablePending.length <= plausiblePendingCount) {
+        if (
+          plausiblePendingCount !== null &&
+          (actionablePending.length <= plausiblePendingCount ||
+            unappliedPending.length <= plausiblePendingCount)
+        ) {
           console.warn(
             `[Migration] Allowing ${actionablePending.length} pending migrations on an existing database ` +
-              `because the physical schema only proves ${physicalBaseline?.version} ` +
+              `because the physical schema proves ${physicalBaseline?.version} ` +
               `(${physicalBaseline?.description}).`
           );
         } else {

@@ -1,4 +1,4 @@
--- 136_radar_cache_settings.sql
+-- 138_radar_cache_settings.sql
 -- Radar client local cache and settings tables.
 --
 -- radar_feed_cache: single-row table holding the last verified feed JSON

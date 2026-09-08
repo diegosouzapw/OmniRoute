@@ -201,3 +201,13 @@ test("Openference refresh rotates oar_* tokens", async () => {
   assert.equal(refreshed?.accessToken, "new-access");
   assert.equal(refreshed?.refreshToken, "oar_new");
 });
+
+test("Openference provider metadata enforces loopback redirect URI for local/remote server", () => {
+  assert.equal(openference.fixedPort, 56123);
+  assert.equal(openference.callbackPath, "/callback");
+  assert.equal(openference.callbackHost, "127.0.0.1");
+
+  const authData = generateAuthData("openference", "http://127.0.0.1:56123/callback");
+  const url = new URL(authData.authUrl);
+  assert.equal(url.searchParams.get("redirect_uri"), "http://127.0.0.1:56123/callback");
+});

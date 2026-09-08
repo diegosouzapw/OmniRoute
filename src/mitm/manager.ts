@@ -520,7 +520,7 @@ async function startMitmInternal(
   let certPath: string;
   if (migrationDecision === "use-legacy-leaf") {
     certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
-    if (!fs.existsSync(certPath)) {
+    if (!fs.existsSync(/* turbopackIgnore: true */ certPath)) {
       log.info("Generating SSL certificate...");
       try {
         await generateCert();

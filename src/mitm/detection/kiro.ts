@@ -24,7 +24,7 @@ const PATHS = [
 
 export function detectKiro(): DetectionResult {
   for (const p of PATHS) {
-    if (fs.existsSync(p)) return { installed: true, path: p };
+    if (fs.existsSync(/* turbopackIgnore: true */ p)) return { installed: true, path: p };
   }
   return { installed: false };
 }

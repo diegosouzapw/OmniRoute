@@ -21,23 +21,6 @@ name: Release-Green (continuous)
 # package-artifact) flip the issue open.
 
 on:
-  push:
-    branches: ["release/v*", "main"]
-    paths:
-      - "src/**"
-      - "open-sse/**"
-      - "bin/**"
-      - "electron/**"
-      - "scripts/**"
-      - "tests/**"
-      - "config/**"
-      - "package.json"
-      - "package-lock.json"
-      - "tsconfig*.json"
-  schedule:
-    - cron: "23 5 * * *" # full sweep — off-peak, distinct from other nightlies
-    - cron: "23 12 * * *" # full sweep — midday (WS5.1: 3×/day instead of 1×)
-    - cron: "23 18 * * *" # full sweep — evening
   workflow_dispatch:
     inputs:
       branch:

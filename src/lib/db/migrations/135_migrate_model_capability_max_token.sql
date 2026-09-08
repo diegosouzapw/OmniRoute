@@ -1,4 +1,4 @@
--- 135_migrate_model_capability_max_token.sql
+-- 136_migrate_model_capability_max_token.sql
 -- `max_token` historically meant the maximum output token count. Promote legacy
 -- rows to the explicit `max_output_tokens` key without replacing an operator's
 -- existing modern value, then remove the retired key.

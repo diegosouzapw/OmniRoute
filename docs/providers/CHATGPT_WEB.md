@@ -113,6 +113,14 @@ OmniRoute data volume, and the browser receives enough shared memory. The intern
 listens only on port `9223` inside the Compose network; Chrome remains bound to loopback in the
 sidecar.
 
+The default last Dockerfile stage (`runner-cli`, used by compose `cli` / prod and by
+hosts that build without `--target`, including Easypanel) also installs Playwright
+Chromium and `xvfb`. `scripts/check-permissions.sh` starts Xvfb and exports
+`DISPLAY=:99` when the binary is present, so in-process headed Chromium (the clean-room
+`chatgpt-web` path) works on a displayless VPS without a sidecar. Override `DISPLAY` if
+another X server is already available. The lean `runner-base` stage does not install
+Xvfb; the entrypoint is then a no-op.
+
 A supervisor lease under `DATA_DIR` prevents multiple OmniRoute processes from owning
 the same tunnel and broker state. A conflict is reported by the doctor.
 

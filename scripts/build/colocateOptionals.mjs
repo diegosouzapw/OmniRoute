@@ -98,6 +98,36 @@ export function computeDependencyClosure(nodeModulesDir, seeds = SEED_PACKAGES) 
   return closure;
 }
 
+function isPackageComplete(nmDir, name) {
+  const pkgDir = join(nmDir, name);
+  const manifestPath = join(pkgDir, "package.json");
+  if (!existsSync(manifestPath)) return false;
+  try {
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+    const targets = [];
+    if (typeof manifest.main === "string") targets.push(manifest.main);
+    if (typeof manifest.module === "string") targets.push(manifest.module);
+    if (typeof manifest.exports === "string") targets.push(manifest.exports);
+    else if (manifest.exports && typeof manifest.exports === "object") {
+      const extractExports = (obj) => {
+        for (const val of Object.values(obj)) {
+          if (typeof val === "string") targets.push(val);
+          else if (val && typeof val === "object") extractExports(val);
+        }
+      };
+      extractExports(manifest.exports);
+    }
+
+    if (targets.length === 0) {
+      return true;
+    }
+
+    return targets.some((t) => existsSync(join(pkgDir, t)));
+  } catch {
+    return false;
+  }
+}
+
 /**
  * A package in the target tree counts as PRESENT only when its entrypoint
  * resolves from inside that tree — the same contract the Dockerfile's
@@ -113,9 +143,7 @@ export function computeDependencyClosure(nodeModulesDir, seeds = SEED_PACKAGES) 
 function isPackageIntact(targetNodeModulesDir, name) {
   if (!existsSync(join(targetNodeModulesDir, name))) return false;
   try {
-    const probe = createRequire(
-      join(targetNodeModulesDir, "__colocate_probe__.js")
-    );
+    const probe = createRequire(join(targetNodeModulesDir, "__colocate_probe__.js"));
     const resolved = probe.resolve(name);
     // A resolution that walked past the target into an ancestor tree does not
     // prove the target copy is usable.
@@ -135,8 +163,8 @@ function isPackageIntact(targetNodeModulesDir, name) {
  * postinstall path. Standalone builders, including Docker, may provide
  * `targetNodeModulesDir`.
  *
- * Packages already present in the destination are never overwritten. This
- * preserves the standalone bundle's pinned dependency instances while filling
+ * Packages already present and complete in the destination are never overwritten.
+ * This preserves the standalone bundle's pinned dependency instances while filling
  * dynamically imported packages that Next.js did not trace.
  *
  * @param {{
@@ -173,10 +201,10 @@ export function colocateLlmlinguaOptionals({
 
   // Check the complete closure rather than only the entry package, and judge
   // presence by entrypoint integrity — a partially traced directory (see
-  // isPackageIntact) must still receive its missing files.
+  // isPackageIntact / isPackageComplete) must still receive its missing files.
   if (
     closure.length > 0 &&
-    closure.every((name) => isPackageIntact(targetNm, name))
+    closure.every((name) => isPackageIntact(targetNm, name) || isPackageComplete(targetNm, name))
   ) {
     return { skipped: true, reason: "already co-located" };
   }
@@ -185,7 +213,7 @@ export function colocateLlmlinguaOptionals({
 
   for (const name of closure) {
     const dest = join(targetNm, name);
-    if (isPackageIntact(targetNm, name)) continue;
+    if (isPackageIntact(targetNm, name) || isPackageComplete(targetNm, name)) continue;
 
     try {
       mkdirSync(dirname(dest), { recursive: true });

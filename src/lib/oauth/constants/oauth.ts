@@ -166,7 +166,7 @@ export const OPENFERENCE_CONFIG = {
   codeChallengeMethod: "S256",
   loopbackPort: 56123,
   callbackPath: "/callback",
-  callbackHost: "127.0.0.1",
+  callbackHost: "localhost",
 };
 
 // Kimi Coding OAuth Configuration (Device Code Flow)
