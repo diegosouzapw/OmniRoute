@@ -38,8 +38,8 @@ test.after(() => {
 
 const DAY_MS = 86_400_000;
 const RETENTION_DAYS = getUserDatabaseSettings().retention.callLogs;
-const OLD = new Date(Date.now() - (RETENTION_DAYS + 10) * DAY_MS).toISOString();
-const RECENT = new Date(Date.now() - 1 * DAY_MS).toISOString();
+const OLD = new Date(Date.now() - (RETENTION_DAYS + 1) * DAY_MS).toISOString();
+const RECENT = new Date().toISOString();
 
 function insertConversation(id: string, lastSeenAt: string): void {
   getDbInstance()!
@@ -96,6 +96,31 @@ test("#12453 cleanupConversationTurnNodes: deletes nodes older than the call-log
   assert.deepStrictEqual(ids("conversation_turn_nodes"), ["recent-1", "recent-2"]);
 });
 
+test("#12453 cleanupConversationTurnNodes: yields between bounded delete batches", async () => {
+  insertConversation("conv_bulk", OLD);
+  const db = getDbInstance()!;
+  const insert = db.prepare(
+    `INSERT INTO conversation_turn_nodes
+       (id, conversation_id, parent_id, role, content_hash, last_correlation_id, first_seen_at, last_seen_at)
+     VALUES (?, 'conv_bulk', NULL, 'user', 'hash', 'corr', ?, ?)`
+  );
+  db.transaction(() => {
+    for (let i = 0; i < 10_001; i++) insert.run(`bulk-${i}`, OLD, OLD);
+  })();
+
+  let eventLoopTurnObserved = false;
+  setImmediate(() => {
+    eventLoopTurnObserved = true;
+  });
+
+  const result = await cleanupConversationTurnNodes();
+
+  assert.strictEqual(result.deleted, 10_001);
+  assert.strictEqual(result.errors, 0);
+  assert.strictEqual(count("conversation_turn_nodes"), 0);
+  assert.strictEqual(eventLoopTurnObserved, true, "cleanup should yield after a full batch");
+});
+
 test("#12453 cleanupAgenticConversations: sweeps stale conversations that have no nodes left", async () => {
   // Stale and orphaned: every node already expired -> must go.
   insertConversation("conv_orphan_old", OLD);
@@ -148,4 +173,18 @@ test("#12453 runAutoCleanup: registers both tables and reports them in results",
   assert.strictEqual(summary.results.agenticConversations.errors, 0);
   assert.deepStrictEqual(ids("conversation_turn_nodes"), ["y-1"]);
   assert.deepStrictEqual(ids("agentic_conversations"), ["conv_y"]);
+});
+
+test("#12453 cleanupAgenticConversations: missing node table is a safe no-op", async () => {
+  insertConversation("conv_without_table", OLD);
+  const db = getDbInstance()!;
+  db.exec("ALTER TABLE conversation_turn_nodes RENAME TO conversation_turn_nodes_unavailable");
+
+  try {
+    const result = await cleanupAgenticConversations();
+    assert.deepStrictEqual(result, { deleted: 0, errors: 0 });
+    assert.strictEqual(count("agentic_conversations"), 1);
+  } finally {
+    db.exec("ALTER TABLE conversation_turn_nodes_unavailable RENAME TO conversation_turn_nodes");
+  }
 });
