@@ -3629,7 +3629,7 @@ export async function handleChatCore({
   try {
     const pipelineOutcome = await runProviderExecutionPipeline({
       policy: {
-        allowAccountRotation: !managedLease && comboStrategy !== "context-relay",
+        allowAccountRotation: !managedLease && comboStrategy !== "context-relay" /* provider === "codex" && !managedLease */,
         allowModelFallback: true,
         expectedConnectionId: managedLease
           ? String(getCurrentConnectionId() || connectionId || "") || undefined
