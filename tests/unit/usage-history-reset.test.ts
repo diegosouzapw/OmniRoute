@@ -58,6 +58,24 @@ test.after(() => {
   }
 });
 
+test("purge usage API exposes every conversation reset counter", () => {
+  const routeSource = fs.readFileSync(
+    path.join(process.cwd(), "src/app/api/settings/purge-usage-history/route.ts"),
+    "utf8"
+  );
+
+  assert.match(
+    routeSource,
+    /deletedConversationTurnNodes:\s*result\.deletedConversationTurnNodes/,
+    "the API response should expose deleted conversation nodes"
+  );
+  assert.match(
+    routeSource,
+    /deletedAgenticConversations:\s*result\.deletedAgenticConversations/,
+    "the API response should expose deleted conversation roots"
+  );
+});
+
 test("resetUsageHistory: 'all' wipes usage_history, daily_usage_summary, and hourly_usage_summary; a period only deletes rows older than the cutoff; an invalid period throws", async () => {
   setup();
   try {
