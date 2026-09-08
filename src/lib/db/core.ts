@@ -407,6 +407,8 @@ const SCHEMA_SQL = `
   );
   CREATE INDEX IF NOT EXISTS idx_cl_timestamp ON call_logs(timestamp);
   CREATE INDEX IF NOT EXISTS idx_cl_status ON call_logs(status);
+  CREATE INDEX IF NOT EXISTS idx_cl_provider_timestamp ON call_logs(provider, timestamp);
+  CREATE INDEX IF NOT EXISTS idx_cl_request_provider ON call_logs(request_type, provider);
 
   CREATE TABLE IF NOT EXISTS proxy_logs (
     id TEXT PRIMARY KEY,

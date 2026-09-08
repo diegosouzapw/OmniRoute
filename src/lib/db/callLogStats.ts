@@ -18,7 +18,7 @@ export interface ProviderMetricRow {
   provider: string;
   totalRequests: number;
   totalSuccesses: number;
-  avgLatencyMs: number;
+  avgLatencyMs: number | null;
   lastRequestAt: string | null;
   lastErrorAt: string | null;
   lastStatus: number | null;
@@ -37,7 +37,7 @@ export interface ProviderUsageRow {
 export interface SearchProviderStatRow {
   provider: string;
   requests: number;
-  avg_latency_ms: number;
+  avg_latency_ms: number | null;
 }
 
 export interface SearchRecentRow {
@@ -126,10 +126,9 @@ export function getProviderMetrics(): ProviderMetricRow[] {
  *
  * Deliberately NOT `getProviderMetrics()` with a `since` parameter: that query
  * carries two correlated subqueries (`lastStatus`, `lastErrorStatus`) which a
- * ranking never displays, and they dominate its cost — `call_logs` is indexed
- * on `timestamp` alone, so each correlated pass rescans the whole window per
- * provider. Here a single bounded `GROUP BY` uses `idx_cl_timestamp` and stops
- * there. The rules are shared with its neighbour, not the query: same success
+ * ranking never displays, and they dominate its cost. Here a single bounded
+ * `GROUP BY` leans on `idx_cl_timestamp` plus `idx_cl_provider_timestamp` /
+ * `idx_cl_request_provider` (migration 174) and stops there. The rules are shared with its neighbour, not the query: same success
  * definition, same `#10714` guard against providers whose connections are gone.
  */
 export function getProviderUsageSince(since: string): ProviderUsageRow[] {
@@ -259,17 +258,17 @@ export function getFallbackStats(
     .prepare(
       `
       SELECT
-        SUM(CASE WHEN (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END) as total,
-        SUM(CASE WHEN requested_model IS NOT NULL AND requested_model != '' AND (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END) as with_requested,
-        SUM(CASE
+        COALESCE(SUM(CASE WHEN (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END), 0) as total,
+        COALESCE(SUM(CASE WHEN requested_model IS NOT NULL AND requested_model != '' AND (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END), 0) as with_requested,
+        COALESCE(SUM(CASE
           WHEN (combo_name IS NULL OR combo_name = '')
            AND requested_model IS NOT NULL
            AND requested_model != ''
            AND model IS NOT NULL
            AND model != ''
           THEN 1 ELSE 0 END
-        ) as fallback_eligible,
-        SUM(CASE
+        ), 0) as fallback_eligible,
+        COALESCE(SUM(CASE
           WHEN (combo_name IS NULL OR combo_name = '')
            AND requested_model IS NOT NULL
            AND requested_model != ''
@@ -277,7 +276,7 @@ export function getFallbackStats(
            AND model != ''
            AND LOWER(CASE WHEN instr(requested_model, '/') > 0 THEN substr(requested_model, instr(requested_model, '/') + 1) ELSE requested_model END) != LOWER(model)
           THEN 1 ELSE 0 END
-        ) as fallbacks
+        ), 0) as fallbacks
       FROM call_logs
       ${whereClause}
     `
@@ -289,8 +288,9 @@ export function getFallbackStats(
 /**
  * Failure-family breakdown over `call_logs` for the usage analytics endpoint.
  * Failures are rows with status >= 400 or a non-empty error summary; successes
- * are excluded in SQL. Pre-migration rows and failures the classifier does not
- * recognize (null family) land in the explicit `unclassified` bucket.
+ * are excluded in SQL. Rows predating migration 158 (`error_type` NULL,
+ * `timestamp` before 2026-08-20) land in `pre_migration`; other NULL families
+ * land in `unclassified`.
  *
  * @param whereClause - SQL WHERE clause (may be empty string) using the same
  *                      named params as the usage_history queries.
@@ -305,7 +305,9 @@ export function getErrorTypeBreakdown(
     .prepare(
       `
       SELECT
-        COALESCE(error_type, 'unclassified') AS errorType,
+        -- '2026-08-20' = commit 4c15c05f9 that added error_type (migration 158).
+        -- Lower bound, not exact: late upgraders have post-cutoff rows with NULL values.
+        CASE WHEN error_type IS NULL AND timestamp < '2026-08-20' THEN 'pre_migration' WHEN error_type IS NULL THEN 'unclassified' ELSE error_type END AS errorType,
         COUNT(*) AS count
       FROM call_logs
       ${whereClause} ${whereClause ? "AND" : "WHERE"} (status >= 400 OR error_summary IS NOT NULL)
