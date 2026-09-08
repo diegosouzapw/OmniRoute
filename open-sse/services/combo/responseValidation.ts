@@ -136,6 +136,14 @@ export function extractContentText(json: unknown): string {
     if (parts.length) return parts.join("");
   }
 
+  // Anthropic Messages: accompanying text remains subject to the configured
+  // substring predicates even if this response also contains a tool_use block.
+  if (obj.type === "message" && obj.role === "assistant" && Array.isArray(obj.content)) {
+    const parts = obj.content.filter((part) => part && typeof part === "object" &&
+      (part as Record<string, unknown>).type === "text" && typeof (part as Record<string, unknown>).text === "string");
+    if (parts.length) return parts.map((part) => (part as Record<string, string>).text).join("");
+  }
+
   // Responses API: output[].content[].text
   const output = obj.output;
   if (Array.isArray(output)) {
@@ -153,6 +161,81 @@ export function extractContentText(json: unknown): string {
   }
 
   return "";
+}
+
+type JsonRecord = Record<string, unknown>;
+
+function isRecord(value: unknown): value is JsonRecord {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function validToolId(value: unknown): value is string {
+  return typeof value === "string" && value.length <= 512 && /^[^\s\x00-\x1f\x7f]+$/.test(value);
+}
+
+function validToolName(value: unknown): boolean {
+  return typeof value === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(value);
+}
+
+function validJsonArguments(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  try {
+    return isRecord(JSON.parse(value));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Complete non-streaming function invocations are usable output without prose.
+ * This exempts only minContentLength. Required/forbidden text and JSON-path
+ * predicates still apply; malformed calls, deltas, results, and duplicates do not.
+ */
+function hasStructuredToolInvocation(json: unknown): boolean {
+  if (!isRecord(json) || (json.error !== undefined && json.error !== null)) return false;
+
+  const ids = new Set<string>();
+  const uniqueId = (id: unknown): boolean => {
+    if (!validToolId(id) || ids.has(id)) return false;
+    ids.add(id);
+    return true;
+  };
+
+  if (Array.isArray(json.choices)) {
+    let found = false;
+    for (const choice of json.choices) {
+      if (!isRecord(choice) || !isRecord(choice.message)) continue;
+      const message = choice.message;
+      if (message.tool_calls === undefined) continue;
+      if (choice.finish_reason !== undefined && choice.finish_reason !== "tool_calls") return false;
+      if (message.role !== "assistant" || !Array.isArray(message.tool_calls) || message.tool_calls.length === 0) return false;
+      for (const call of message.tool_calls) {
+        if (!isRecord(call) || call.type !== "function" || !uniqueId(call.id)
+          || !isRecord(call.function) || !validToolName(call.function.name)
+          || !validJsonArguments(call.function.arguments)) return false;
+        found = true;
+      }
+    }
+    return found;
+  }
+
+  if (json.type === "message" && json.role === "assistant" && Array.isArray(json.content)) {
+    if (json.stop_reason !== undefined && json.stop_reason !== "tool_use") return false;
+    const calls = json.content.filter((part) => isRecord(part) && part.type === "tool_use");
+    return calls.length > 0 && calls.every((call) => isRecord(call)
+      && uniqueId(call.id) && validToolName(call.name) && isRecord(call.input));
+  }
+
+  if (json.object === "response" && Array.isArray(json.output)) {
+    if (json.status !== undefined && json.status !== "completed" && json.status !== "done") return false;
+    const calls = json.output.filter((item) => isRecord(item) && item.type === "function_call");
+    return calls.length > 0 && calls.every((call) => isRecord(call)
+      && uniqueId(call.call_id) && (call.id === undefined || validToolId(call.id))
+      && validToolName(call.name) && validJsonArguments(call.arguments)
+      && (call.status === undefined || call.status === "completed"));
+  }
+
+  return false;
 }
 
 /**
@@ -183,7 +266,8 @@ export function evaluateResponseValidation(
     typeof config.minContentLength === "number" &&
     Number.isFinite(config.minContentLength) &&
     config.minContentLength > 0 &&
-    content.trim().length < config.minContentLength
+    content.trim().length < config.minContentLength &&
+    !hasStructuredToolInvocation(json)
   ) {
     return {
       valid: false,
