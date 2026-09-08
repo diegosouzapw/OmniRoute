@@ -168,3 +168,20 @@ export function deleteFile(id: string): boolean {
     .run(Math.floor(Date.now() / 1000), id);
   return result.changes > 0;
 }
+
+/**
+ * Clears the BLOB content of files past their own `expires_at`, mirroring the
+ * deleteFile() soft-delete shape (row kept for metadata/audit, content freed).
+ * Like ccr_blocks (see pruneExpiredCcrBlocks), a file carries its own expiry --
+ * this needs no separate retention-days setting, just an operator-scheduled
+ * sweep, since nothing previously enforced expires_at at all. Observed live:
+ * 1,874 rows / 5.19 GB of uploaded file content, most long past expiry.
+ */
+export function pruneExpiredFiles(now: number): number {
+  const result = getDbInstance()
+    .prepare(
+      "UPDATE files SET deleted_at = ?, content = NULL WHERE expires_at IS NOT NULL AND expires_at < ? AND deleted_at IS NULL"
+    )
+    .run(now, now);
+  return result.changes ?? 0;
+}

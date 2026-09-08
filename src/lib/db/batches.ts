@@ -411,19 +411,30 @@ export function deleteBatch(id: string): boolean {
   return result.changes > 0;
 }
 
-export function deleteCompletedBatches(): { deletedBatches: number; deletedFiles: number } {
+// Shared by deleteCompletedBatches() (the operator-triggered DELETE
+// /api/v1/batches/delete-completed route -- exact contract preserved: only
+// `status = 'completed'`, no age filter) and cleanupOldTerminalBatches() (the
+// automatic sweep -- all terminal statuses, gated by age). Keeping the
+// collect-files / delete-files / delete-checkpoints / delete-batches sequence
+// in one place means both call sites stay in sync with the batches schema.
+function deleteBatchesMatching(whereSql: string, params: unknown[] = []): {
+  deletedBatches: number;
+  deletedFiles: number;
+} {
   const db = getDbInstance();
 
-  // Collect unique file IDs from all completed batches
   const rows = db
     .prepare(
-      "SELECT input_file_id, output_file_id, error_file_id FROM batches WHERE status = 'completed'"
+      `SELECT id, input_file_id, output_file_id, error_file_id FROM batches WHERE ${whereSql}`
     )
-    .all() as Array<{
+    .all(...params) as Array<{
+    id: string;
     input_file_id: string | null;
     output_file_id: string | null;
     error_file_id: string | null;
   }>;
+
+  if (rows.length === 0) return { deletedBatches: 0, deletedFiles: 0 };
 
   const fileIds = new Set<string>();
   for (const row of rows) {
@@ -441,10 +452,38 @@ export function deleteCompletedBatches(): { deletedBatches: number; deletedFiles
     }
   }
 
-  db.prepare(
-    "DELETE FROM batch_item_checkpoints WHERE batch_id IN (SELECT id FROM batches WHERE status = 'completed')"
-  ).run();
-
-  const result = db.prepare("DELETE FROM batches WHERE status = 'completed'").run();
+  const ids = rows.map((row) => row.id);
+  const placeholders = ids.map(() => "?").join(",");
+  db.prepare(`DELETE FROM batch_item_checkpoints WHERE batch_id IN (${placeholders})`).run(...ids);
+  const result = db.prepare(`DELETE FROM batches WHERE id IN (${placeholders})`).run(...ids);
   return { deletedBatches: result.changes, deletedFiles };
+}
+
+export function deleteCompletedBatches(): { deletedBatches: number; deletedFiles: number } {
+  return deleteBatchesMatching("status = 'completed'");
+}
+
+/**
+ * Automatic sweep for the daily cleanup job (see lib/db/cleanup.ts): unlike
+ * deleteCompletedBatches() above, this covers every terminal status -- a
+ * failed, cancelled, or expired batch's checkpoints are just as done as a
+ * completed one's, but had no cleanup path at all before this. Gated by age
+ * so a batch's results stay retrievable for a while after finishing, matching
+ * OpenAI's own Batch API retention behavior.
+ *
+ * Observed live: batch_item_checkpoints had grown to 182K rows / 5.25 GB with
+ * no batch ever explicitly deleted by an operator -- the manual
+ * delete-completed route existed, but nothing ever called it automatically,
+ * and it does not cover failed/cancelled/expired batches either.
+ */
+export function deleteTerminalBatchesOlderThan(days: number): {
+  deletedBatches: number;
+  deletedFiles: number;
+} {
+  const cutoffEpochSeconds = Math.floor(Date.now() / 1000) - days * 24 * 60 * 60;
+  return deleteBatchesMatching(
+    `status IN ('completed', 'failed', 'cancelled', 'expired')
+       AND COALESCE(completed_at, failed_at, cancelled_at, expired_at, created_at) < ?`,
+    [cutoffEpochSeconds]
+  );
 }
