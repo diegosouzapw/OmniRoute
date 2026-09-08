@@ -135,7 +135,9 @@ export function parseBlocks(text, { fixedSection = null, collapse = false } = {}
   return out;
 }
 
-const mentions = (b, h) => new RegExp(`@${h.replace(/-/g, "\\-")}(?![A-Za-z0-9_-])`, "i").test(b);
+/** Escape every regex metacharacter (CodeQL js/incomplete-sanitization: never escape just one). */
+const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const mentions = (b, h) => new RegExp(`@${escapeRegExp(h)}(?![A-Za-z0-9_-])`, "i").test(b);
 
 /** Append `— thanks @a / @b` (or extend an existing trailing thanks group) for handles not yet mentioned. */
 export function addCredit(bullet, handles, maintainer = MAINTAINER) {
