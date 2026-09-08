@@ -10,8 +10,16 @@ import { createChatPipelineHarness } from "./_chatPipelineHarness.ts";
 //     provider-side count call (it used to run with no proxy context at all)
 
 const harness = await createChatPipelineHarness("proxy-context-passthrough");
-const { buildClaudeResponse, buildRequest, combosDb, handleChat, resetStorage, seedConnection, settingsDb, toPlainHeaders } =
-  harness;
+const {
+  buildClaudeResponse,
+  buildRequest,
+  combosDb,
+  handleChat,
+  resetStorage,
+  seedConnection,
+  settingsDb,
+  toPlainHeaders,
+} = harness;
 const proxiesDb = await import("../../src/lib/db/proxies.ts");
 const { resolveProxyForRequest } = await import("../../open-sse/utils/proxyFetch.ts");
 const countTokensRoute = await import("../../src/app/api/v1/messages/count_tokens/route.ts");
@@ -77,7 +85,7 @@ test("combo targets each execute under their own connection's proxy", async () =
       name: "proxy-per-target-combo",
       strategy: "priority",
       config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
-      models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022"],
+      models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6"],
     });
 
     const proxySeen: Record<string, string | null> = {};
@@ -166,7 +174,7 @@ test("count_tokens provider call runs inside the connection's proxy context", as
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "claude/claude-3-5-sonnet-20241022",
+          model: "claude/claude-sonnet-4-6",
           messages: [{ role: "user", content: "count me" }],
         }),
       })
