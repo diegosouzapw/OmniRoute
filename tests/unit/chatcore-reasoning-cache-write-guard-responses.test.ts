@@ -174,9 +174,12 @@ async function runTurn(
   upstream: () => Response
 ): Promise<JsonRecord> {
   const originalFetch = globalThis.fetch;
-  const sent: JsonRecord[] = [];
-  globalThis.fetch = (async (_input: unknown, init?: { body?: unknown }) => {
-    if (typeof init?.body === "string") sent.push(JSON.parse(init.body) as JsonRecord);
+  const sent: Array<{ url: string; body: JsonRecord }> = [];
+  globalThis.fetch = (async (input: unknown, init?: { body?: unknown }) => {
+    const url = String((input as { url?: unknown })?.url ?? input);
+    if (typeof init?.body === "string") {
+      sent.push({ url, body: JSON.parse(init.body) as JsonRecord });
+    }
     return upstream();
   }) as typeof fetch;
   try {
@@ -198,8 +201,11 @@ async function runTurn(
   } finally {
     globalThis.fetch = originalFetch;
   }
-  assert.ok(sent.length > 0, "handleChatCore dispatched an upstream request");
-  return sent[sent.length - 1];
+  // Select the Responses-lane dispatch by URL rather than "last fetch", so an
+  // unrelated POST inside the handler window can neither satisfy nor break this.
+  const responsesCalls = sent.filter((call) => /\/responses(\?|$)/.test(call.url));
+  assert.equal(responsesCalls.length, 1, `exactly one /responses dispatch (saw ${sent.length})`);
+  return responsesCalls[0].body;
 }
 
 function reasoningTexts(input: unknown): string[] {
@@ -255,6 +261,7 @@ test("streaming: a plain turn captured from a Responses SSE upstream is replayed
   const session = "reasoning-cache-write-guard-responses-stream";
   const first = await runTurn(session, TURN_1, true, streamingUpstreamResponse);
   assert.ok(Array.isArray(first.input), "turn 1 went upstream as a Responses body");
+  assert.equal(first.messages, undefined);
 
   const second = await runTurn(session, TURN_2, false, nonStreamingUpstreamResponse);
   assert.deepEqual(reasoningTexts(second.input), [REASONING]);
