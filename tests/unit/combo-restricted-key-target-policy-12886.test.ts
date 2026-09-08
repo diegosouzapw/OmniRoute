@@ -62,6 +62,22 @@ test("#9057: disableNonPublicModels still rejects a keyless inner target", async
   assert.equal(ok, false);
 });
 
+test("#9057: restricted auto combo checks an inner target even without allow-list entries", async () => {
+  let calls = 0;
+  const ok = await comboTargetPassesKeyModelPolicy({
+    apiKey: KEY,
+    apiKeyInfo: { modelAccessMode: "restricted", allowedModels: [] },
+    requestedModelStr: "auto/best",
+    targetModelStr: "private/target",
+    isModelAllowedForKey: async () => {
+      calls += 1;
+      return false;
+    },
+  });
+  assert.equal(ok, false, "a restricted key must not gain access through auto routing");
+  assert.equal(calls, 1, "the concrete target must be checked");
+});
+
 test("#12886: unrestricted key skips the gate", async () => {
   let called = 0;
   const ok = await comboTargetPassesKeyModelPolicy({
