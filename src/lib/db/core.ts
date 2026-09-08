@@ -529,10 +529,20 @@ declare global {
   var __omnirouteDbOomFailureCount: number | undefined;
 }
 
-function checkpointDb(db: SqliteDatabase, mode: CheckpointMode = "TRUNCATE"): boolean {
+// `wal_checkpoint(mode)` always returns exactly one row of {busy, log, checkpointed}
+// (see https://www.sqlite.org/pragma.html#pragma_wal_checkpoint). busy != 0 means
+// SQLite could not get the lock this mode needs (for TRUNCATE: full exclusivity --
+// any other open connection, reader or not, blocks it) and the WAL was NOT shrunk,
+// no matter how many frames "checkpointed" reports. This used to be ignored, so
+// callers always reported "completed" even when TRUNCATE silently no-oped -- on a
+// server that is rarely fully idle, that hid a WAL that grew unboundedly (observed
+// live: an 11.7 GB WAL file, nearly as large as the 11 GB main database it shadows).
+export function checkpointDb(db: SqliteDatabase, mode: CheckpointMode = "TRUNCATE"): boolean {
   if (isCloud || isBuildPhase || !SQLITE_FILE) return false;
-  db.pragma(`wal_checkpoint(${mode})`);
-  return true;
+  const [result] = db.pragma(`wal_checkpoint(${mode})`) as [
+    { busy: number; log: number; checkpointed: number },
+  ];
+  return result?.busy === 0;
 }
 
 function summarizePreservedTables(tables: PreservedTableSnapshot[]): string {
@@ -995,9 +1005,15 @@ function startWalTruncateScheduler(db: SqliteDatabase) {
     try {
       if (!db.open) return;
       // TRUNCATE waits for readers; under concurrent write load it can no-op without
-      // shrinking the file. That is expected — it retries on the next tick.
+      // shrinking the file. That is expected — it retries on the next tick. Log the
+      // no-op case too (previously silent) so a WAL that never finds an idle moment
+      // is visible in the logs instead of looking identical to a healthy server.
       if (checkpointDb(db, "TRUNCATE")) {
         console.log("[DB] Periodic SQLite WAL checkpoint completed (TRUNCATE).");
+      } else {
+        console.log(
+          "[DB] Periodic SQLite WAL checkpoint deferred (TRUNCATE busy -- a concurrent connection held the lock it needs); will retry next tick."
+        );
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
@@ -1429,6 +1445,10 @@ export function closeDbInstance(options?: { checkpointMode?: CheckpointMode | nu
       try {
         if (checkpointDb(db, checkpointMode)) {
           console.log(`[DB] SQLite WAL checkpoint completed (${checkpointMode}).`);
+        } else {
+          console.warn(
+            `[DB] SQLite WAL checkpoint did not fully complete during close (${checkpointMode}) -- another connection held the lock it needs; the WAL file may remain large.`
+          );
         }
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
