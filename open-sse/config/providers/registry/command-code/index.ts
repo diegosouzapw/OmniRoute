@@ -17,6 +17,13 @@ export const command_codeProvider: RegistryEntry = {
   // The discovery response is a partial routing catalog; static registry
   // entries omitted from it can still be accepted by the gateway.
   liveCatalogAuthoritative: false,
+  // Reasoning models (e.g. z-ai/glm-5.3-flash) exhaust small client budgets on
+  // thinking before emitting content; default to a reasoning-safe budget.
+  requestDefaults: { maxTokens: 16_384 },
+  // Console Go / Command Code gateways buffer entire generations — no upstream
+  // bytes flow until the model finishes thinking. Streaming needs a headers-wait
+  // ceiling well above the 110s global cap for long reasoning generations.
+  fetchStartTimeoutCapMs: 600_000,
   authType: "apikey",
   authHeader: "Authorization",
   authPrefix: "Bearer ",

@@ -13,6 +13,13 @@ export const opencode_goProvider: RegistryEntry = {
   authHeader: "Authorization",
   authPrefix: "Bearer",
   defaultContextLength: 200000,
+  // glm-5.3-flash and other always-thinking models need a generous output
+  // budget or reasoning consumes every token before content is emitted.
+  requestDefaults: { maxTokens: 16_384 },
+  // Console Go / Command Code gateways buffer entire generations — no upstream
+  // bytes flow until the model finishes thinking. Streaming needs a headers-wait
+  // ceiling well above the 110s global cap for long reasoning generations.
+  fetchStartTimeoutCapMs: 600_000,
   models: [
     // Port from decolua/9router 8efacc11: align with official Go endpoints —
     // glm-5.2 is now advertised and Kimi chat traffic must route through

@@ -30,7 +30,11 @@ import {
   addParamToBlocklist,
   isAutoLearnGloballyEnabled,
 } from "@/lib/db/paramFilters";
-import { applyFingerprint, isCliCompatEnabled, stripInternalBodyFields } from "../config/cliFingerprints.ts";
+import {
+  applyFingerprint,
+  isCliCompatEnabled,
+  stripInternalBodyFields,
+} from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import {
@@ -162,6 +166,7 @@ export type ProviderConfig = {
   headers?: Record<string, string>;
   requestDefaults?: ProviderRequestDefaults;
   timeoutMs?: number;
+  fetchStartTimeoutCapMs?: number;
   format?: string;
 };
 
@@ -913,6 +918,10 @@ export class BaseExecutor {
       const fetchStartTimeoutPolicy = resolveFetchStartTimeout({
         baseTimeoutMs: this.getTimeoutMs(),
         stream,
+        // Providers with non-incremental upstreams (whole generation buffered
+        // behind the gateway, e.g. opencode-go's Console Go GLM tier) can take
+        // minutes before first bytes; the registry overrides the 110s cap.
+        capMs: this.config?.fetchStartTimeoutCapMs,
       });
       const fetchStartTimeoutMs = fetchStartTimeoutPolicy.timeoutMs;
       if (fetchStartTimeoutPolicy.capped) {

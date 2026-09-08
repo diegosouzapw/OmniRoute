@@ -166,6 +166,11 @@ export interface RegistryEntry {
   chatPath?: string;
   clientVersion?: string;
   timeoutMs?: number;
+  /** Headers-wait ceiling override for streaming requests (#11526). Gateways
+   *  that buffer entire generations (Console Go / Command Code) need this well
+   *  above the 110s global cap — generateLegacyProviders() copies it into the
+   *  executor's LegacyProvider config. */
+  fetchStartTimeoutCapMs?: number;
   passthroughModels?: boolean;
   /**
    * Whether a non-empty synchronized live model list is exhaustive enough
@@ -264,6 +269,7 @@ export interface LegacyProvider {
   chatPath?: string;
   clientVersion?: string;
   timeoutMs?: number;
+  fetchStartTimeoutCapMs?: number;
 }
 
 export const buildModels = (ids: readonly string[]): RegistryModel[] =>
