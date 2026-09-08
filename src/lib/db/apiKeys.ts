@@ -1514,7 +1514,9 @@ export async function isModelAllowedForKey(
     : `${key}:${modelId}`;
   const now = Date.now();
   const catalogGeneration = getModelCatalogCacheVersion();
-  const usesSettingDependentClaudeRouting = isPotentialUnprefixedClaudeCodeModel(modelId);
+  const usesSettingDependentClaudeRouting =
+    isPotentialUnprefixedClaudeCodeModel(modelId) ||
+    (typeof resolvedModelId === "string" && isPotentialUnprefixedClaudeCodeModel(resolvedModelId));
 
   // Check permission cache
   const cached = getCachedModelPermission(cacheKey, now, catalogGeneration);
@@ -1585,10 +1587,7 @@ export async function isModelAllowedForKey(
   // Group rules must see the requested alias and the concrete target. An allowed
   // alias cannot hide a resolved target denied by group policy.
   if (metadata.id) {
-    for (const groupModelId of new Set([
-      modelId,
-      ...(resolvedModelId ? [resolvedModelId] : []),
-    ])) {
+    for (const groupModelId of new Set([modelId, ...(resolvedModelId ? [resolvedModelId] : [])])) {
       const hasGroupProviderPrefix = groupModelId.includes("/");
       const groupProvider = hasGroupProviderPrefix ? groupModelId.split("/")[0] : undefined;
       const groupModelTarget = hasGroupProviderPrefix
