@@ -12,6 +12,7 @@ import {
 import { resolveSpawnArgs as muxSpawnArgs, MUX_DEFAULT_PORT } from "./installers/mux";
 import { resolveSpawnArgs as bifrostSpawnArgs, BIFROST_DEFAULT_PORT } from "./installers/bifrost";
 import { resolveSpawnArgs as darioSpawnArgs, DARIO_DEFAULT_PORT } from "./installers/dario";
+import { resolveSpawnArgs as llmlinguaSpawnArgs, LLMLINGUA_DEFAULT_PORT } from "./installers/llmlingua";
 import { getOrCreateApiKey } from "./apiKey";
 import { scheduleServiceModelSync, stopServiceModelSync } from "./modelSync";
 import type { ServiceStatus } from "./types";
@@ -34,6 +35,8 @@ const CLIPROXY_PORT = parseInt(process.env.CLIPROXYAPI_PORT ?? String(CLIPROXY_D
 const MUX_PORT = parseInt(process.env.MUX_SERVICE_PORT ?? String(MUX_DEFAULT_PORT), 10);
 const BIFROST_PORT = parseInt(process.env.BIFROST_PORT ?? String(BIFROST_DEFAULT_PORT), 10);
 const DARIO_PORT = parseInt(process.env.DARIO_PORT ?? String(DARIO_DEFAULT_PORT), 10);
+const LLMLINGUA_PORT = parseInt(process.env.LLMLINGUA_PORT ?? String(LLMLINGUA_DEFAULT_PORT), 10);
+const LLMLINGUA_PORT = parseInt(process.env.LLMLINGUA_PORT ?? String(LLMLINGUA_DEFAULT_PORT), 10);
 
 type ServiceEntry = {
   tool: string;
@@ -96,6 +99,15 @@ const SERVICES: ServiceEntry[] = [
     logsBufferBytes: 5_242_880,
     needsApiKey: true,
   },
+  {
+    tool: "llmlingua",
+    port: LLMLINGUA_PORT,
+    healthPath: "/health",
+    healthIntervalMs: 5_000,
+    stopTimeoutMs: 15_000,
+    logsBufferBytes: 5_242_880,
+    needsApiKey: false,
+  },
 ];
 
 function buildSpawnArgsFactory(
@@ -113,6 +125,9 @@ function buildSpawnArgsFactory(
   }
   if (cfg.tool === "dario") {
     return () => darioSpawnArgs(apiKey, cfg.port);
+  }
+  if (cfg.tool === "llmlingua") {
+    return () => llmlinguaSpawnArgs(cfg.port);
   }
   return () => cliproxySpawnArgs(cfg.port, apiKey);
 }

@@ -82,9 +82,30 @@ export function setLlmlinguaBackend(b: LlmlinguaBackend | null): void {
   _backend = b;
 }
 
-/** Resolve the active backend: injected fake (for tests) or production stub. */
+/** Resolve the active backend: injected fake (for tests), HTTP sidecar, or production worker. */
+async function httpSidecarBackend(text: string, opts?: LlmlinguaBackendOptions): Promise<string> {
+  const sidecarUrl = process.env.LLMLINGUA_BASE_URL || "http://127.0.0.1:20135";
+  try {
+    const res = await fetch(`${sidecarUrl}/compress`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, ...opts }),
+      signal: AbortSignal.timeout(5000),
+    });
+    if (res.ok) {
+      const data = (await res.json()) as { text?: string };
+      if (typeof data.text === "string" && data.text.length < text.length) {
+        return data.text;
+      }
+    }
+  } catch {
+    // Fall back to worker backend
+  }
+  return workerBackend(text, opts);
+}
+
 function resolveBackend(): LlmlinguaBackend {
-  return _backend ?? workerBackend;
+  return _backend ?? httpSidecarBackend;
 }
 
 // ─── prose/code splitting ─────────────────────────────────────────────────────
