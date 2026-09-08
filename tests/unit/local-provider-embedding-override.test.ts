@@ -127,6 +127,29 @@ test("resolveLocalSyncedEndpointRoute: an override for a different model does no
   assert.equal(route, null, "an override on an unrelated model id must not match this one");
 });
 
+test("resolveLocalSyncedEndpointRoute: a caller who collapses the double slash to a single slash still resolves", async () => {
+  // llama.cpp's own /v1/models reports models by absolute filesystem path
+  // ("/models/Qwen3-Embedding-4B-Q8_0.gguf"), so "<alias>/<rawId>" reads as
+  // "llamacpp//models/..." -- correct, but easy for an operator to naturally
+  // collapse to a single slash when typing/pasting it by hand.
+  seedSyncedModelWithNoCapabilityData();
+  await modelsDb.updateCustomModel(
+    PROVIDER,
+    ALIAS_MODEL_ID, // saved under the catalog's own double-slash id
+    { supportedEndpoints: ["embeddings"] },
+    { createIfMissing: true }
+  );
+
+  const singleSlashId = `${ALIAS}/models/Qwen3-Embedding-4B-Q8_0.gguf`; // one slash, not two
+  assert.notEqual(singleSlashId, ALIAS_MODEL_ID, "sanity: this really is the collapsed form");
+
+  const route = await resolveLocalSyncedEndpointRoute(singleSlashId, "embeddings");
+  assert.ok(route, "the single-slash form must still resolve to the same model/connection");
+  assert.equal(route!.provider, PROVIDER);
+  assert.equal(route!.model, RAW_MODEL_ID, "the resolved model id must be the real leading-slash form");
+  assert.deepEqual(route!.connectionIds, [CONNECTION_ID]);
+});
+
 test("resolveLocalSyncedEndpointRoute: a model's own genuine supportedEndpoints still work with no override needed", async () => {
   core.getDbInstance()
     .prepare(
