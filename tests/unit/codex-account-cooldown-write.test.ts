@@ -667,3 +667,152 @@ test("new preflight persistence cannot reclassify a still authoritative quota re
     before.providerSpecificData
   );
 });
+
+for (const intervening of ["genuine429", "newerPreflight"] as const) {
+  test(`late public-auth preflight cannot overwrite an intervening ${intervening}`, async () => {
+    const connection = await seedCodexConnection();
+    await providersDb.updateProviderConnection(connection.id, {
+      providerSpecificData: { quotaPreflightEnabled: true },
+    });
+    const { registerQuotaFetcher } = await import("../../open-sse/services/quotaPreflight.ts");
+    const { getProviderCredentialsWithQuotaPreflight } =
+      await import("../../src/sse/services/auth.ts");
+    const oldReset = Date.now() + 60_000;
+    const currentReset = intervening === "newerPreflight" ? oldReset + 600_000 : oldReset;
+    const currentIso = new Date(currentReset).toISOString();
+    let calls = 0;
+    let currentMetadata: unknown;
+    registerQuotaFetcher("codex", async () => {
+      calls++;
+      await codexAccount.persistCodexChildCooldown({
+        connectionId: connection.id,
+        model: "gpt-5.6-luna-max",
+        rateLimitedUntil: currentIso,
+        ...(intervening === "newerPreflight"
+          ? { quotaPreflightWindow: { name: "session", windowSeconds: 18000 } }
+          : {}),
+      });
+      currentMetadata = (await readConnection(connection.id)).providerSpecificData;
+      return {
+        used: 100,
+        total: 100,
+        percentUsed: 1,
+        resetAt: new Date(oldReset).toISOString(),
+        windows: {
+          session: {
+            percentUsed: 1,
+            resetAt: new Date(oldReset).toISOString(),
+            windowSeconds: 18000,
+          },
+        },
+      };
+    });
+    const result = await getProviderCredentialsWithQuotaPreflight(
+      "codex",
+      null,
+      null,
+      "gpt-5.6-luna-max"
+    );
+    assert.equal(result.allRateLimited, true);
+    assert.equal(calls, 1);
+    assert.deepEqual((await readConnection(connection.id)).providerSpecificData, currentMetadata);
+    await fetchRecovery(connection.id, {
+      rate_limit: {
+        limit_reached: false,
+        primary_window: {
+          used_percent: 10,
+          reset_at: (oldReset + 600_000) / 1000,
+          limit_window_seconds: 18000,
+        },
+        secondary_window: null,
+      },
+    });
+    assert.equal(
+      (await readConnection(connection.id)).providerSpecificData.codexScopeRateLimitedUntil.codex,
+      currentIso
+    );
+  });
+}
+
+for (const malformed of ["not-a-date", null, 12, { unknown: true }] as const) {
+  test(`late preflight preserves malformed scoped deadline ${JSON.stringify(malformed)} without a row write`, async () => {
+    const connection = await seedCodexConnection();
+    await providersDb.updateProviderConnection(connection.id, {
+      providerSpecificData: {
+        codexScopeRateLimitedUntil: { codex: malformed },
+        codexScopeRateLimitSource: { codex: "fallback" },
+        unrelated: { keep: true },
+      },
+    });
+    const before = core
+      .getDbInstance()
+      .prepare("SELECT * FROM provider_connections WHERE id = ?")
+      .get(connection.id);
+    await codexAccount.persistCodexChildCooldown({
+      connectionId: connection.id,
+      model: "gpt-5.6-luna-max",
+      rateLimitedUntil: new Date(Date.now() + 600_000).toISOString(),
+      quotaPreflightWindow: { name: "session", windowSeconds: 18000 },
+    });
+    assert.deepEqual(
+      core
+        .getDbInstance()
+        .prepare("SELECT * FROM provider_connections WHERE id = ?")
+        .get(connection.id),
+      before
+    );
+  });
+}
+
+test("validly expired scoped refusal permits fresh preflight provenance", async () => {
+  const connection = await seedCodexConnection();
+  await codexAccount.persistCodexChildCooldown({
+    connectionId: connection.id,
+    model: "gpt-5.6-luna-max",
+    rateLimitedUntil: new Date(Date.now() - 60_000).toISOString(),
+  });
+  const until = new Date(Date.now() + 600_000).toISOString();
+  await codexAccount.persistCodexChildCooldown({
+    connectionId: connection.id,
+    model: "gpt-5.6-luna-max",
+    rateLimitedUntil: until,
+    quotaPreflightWindow: { name: "session", windowSeconds: 18000 },
+  });
+  const after = await readConnection(connection.id);
+  assert.equal(after.providerSpecificData.codexScopeRateLimitedUntil.codex, until);
+  assert.deepEqual(
+    (
+      (after.providerSpecificData as Record<string, unknown>).codexScopePreflightWindow as Record<
+        string,
+        unknown
+      >
+    ).codex,
+    { name: "session", windowSeconds: 18000, resetAt: until }
+  );
+});
+
+for (const malformedMap of [null, [], "unknown"] as const) {
+  test(`preflight preserves an unknown scope map ${JSON.stringify(malformedMap)}`, async () => {
+    const connection = await seedCodexConnection();
+    await providersDb.updateProviderConnection(connection.id, {
+      providerSpecificData: { codexScopeRateLimitedUntil: malformedMap, unrelated: { keep: true } },
+    });
+    const before = core
+      .getDbInstance()
+      .prepare("SELECT * FROM provider_connections WHERE id = ?")
+      .get(connection.id);
+    await codexAccount.persistCodexChildCooldown({
+      connectionId: connection.id,
+      model: "gpt-5.6-luna-max",
+      rateLimitedUntil: new Date(Date.now() + 600_000).toISOString(),
+      quotaPreflightWindow: { name: "session", windowSeconds: 18000 },
+    });
+    assert.deepEqual(
+      core
+        .getDbInstance()
+        .prepare("SELECT * FROM provider_connections WHERE id = ?")
+        .get(connection.id),
+      before
+    );
+  });
+}

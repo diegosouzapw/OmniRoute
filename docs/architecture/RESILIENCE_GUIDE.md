@@ -637,6 +637,12 @@ default `test:integration`, chaos and heap self-skip (without `RUN_CHAOS_INT`/`-
 
 ### Codex preflight window recovery
 
+A late preflight response cannot overwrite an active or malformed same-scope
+cooldown. The existing SQLite transaction preserves the entire current metadata
+and row timestamp in that case, including a newer provider refusal or preflight
+block. Provenance can be published only for absent or validly expired scoped
+state.
+
 A Codex quota preflight block records the normal child's blocking window name,
 window duration, and reset alongside its fallback cooldown. A later successful
 live usage fetch can retire that child cooldown only when the same window and

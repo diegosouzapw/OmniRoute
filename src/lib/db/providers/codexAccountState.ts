@@ -49,6 +49,22 @@ export async function updateCodexScopedQuotaState(
     const existingRecord = toRecord(rowToCamel(existing));
     if (existingRecord.provider !== "codex") return null;
     const providerSpecificData = toRecord(existingRecord.providerSpecificData);
+    // A preflight may have started before another response published its refusal.
+    // Never reclassify active or unknown scoped state from that late read.
+    if (patch.quotaPreflightWindow) {
+      const scoped = providerSpecificData.codexScopeRateLimitedUntil;
+      if (
+        scoped !== undefined &&
+        (scoped === null || typeof scoped !== "object" || Array.isArray(scoped))
+      ) {
+        return providerSpecificData;
+      }
+      const cooldowns = toRecord(scoped);
+      if (Object.hasOwn(cooldowns, scope)) {
+        const deadline = typeof cooldowns[scope] === "string" ? Date.parse(cooldowns[scope]) : NaN;
+        if (!Number.isFinite(deadline) || deadline > Date.now()) return providerSpecificData;
+      }
+    }
     const nextProviderSpecificData: JsonRecord = { ...providerSpecificData };
 
     if (patch.quotaState) {
