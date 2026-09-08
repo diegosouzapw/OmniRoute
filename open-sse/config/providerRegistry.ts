@@ -252,9 +252,9 @@ function ensureUnsupportedParamsPopulated(): void {
  */
 export function getUnsupportedParams(provider: string, modelId: string): readonly string[] {
   ensureUnsupportedParamsPopulated();
-  // 1. Check current provider's registry (exact match)
+  // 1. Check current provider's registry (exact match, then declared aliases)
   const entry = getRegistryEntry(provider);
-  const modelEntry = entry?.models?.find((m) => m.id === modelId);
+  const modelEntry = entry?.models?.find((m) => m.id === modelId || m.aliases?.includes(modelId));
   if (modelEntry?.unsupportedParams) return modelEntry.unsupportedParams;
 
   // 2. O(1) lookup in precomputed map (handles cross-provider routing)
