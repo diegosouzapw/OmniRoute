@@ -5,7 +5,10 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { comboTargetPassesKeyModelPolicy } from "../../src/sse/handlers/chat/comboTargetKeyPolicy.ts";
+import {
+  comboTargetPassesKeyModelPolicy,
+  evaluateComboTargetPreflight,
+} from "../../src/sse/handlers/chat/comboTargetKeyPolicy.ts";
 
 const KEY = "sk-test-12886";
 const COMBO = "combo-deepseek-v4-flash";
@@ -76,6 +79,35 @@ test("#9057: restricted auto combo checks an inner target even without allow-lis
   });
   assert.equal(ok, false, "a restricted key must not gain access through auto routing");
   assert.equal(calls, 1, "the concrete target must be checked");
+});
+
+test("combo live-test requests cannot bypass a denied target policy", async () => {
+  let calls = 0;
+  const decision = await evaluateComboTargetPreflight({
+    apiKey: KEY,
+    apiKeyInfo: { modelAccessMode: "restricted", allowedModels: ["public/*"] },
+    requestedModelStr: "auto/best",
+    targetModelStr: "private/target",
+    isComboLiveTest: true,
+    isModelAllowedForKey: async () => {
+      calls += 1;
+      return false;
+    },
+  });
+  assert.equal(decision, "deny");
+  assert.equal(calls, 1, "the client live-test marker must not grant model authority");
+});
+
+test("combo live-test requests bypass availability only after named-combo admission", async () => {
+  const decision = await evaluateComboTargetPreflight({
+    apiKey: KEY,
+    apiKeyInfo: { modelAccessMode: "restricted", allowedModels: [COMBO] },
+    requestedModelStr: COMBO,
+    targetModelStr: INNER,
+    isComboLiveTest: true,
+    isModelAllowedForKey: async () => false,
+  });
+  assert.equal(decision, "bypass-availability");
 });
 
 test("#12886: unrestricted key skips the gate", async () => {
