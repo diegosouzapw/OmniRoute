@@ -122,8 +122,7 @@ export function extractContentText(json: unknown): string {
     const parts: string[] = [];
     for (const choice of choices) {
       const message = (choice as Record<string, unknown>)?.message as
-        | Record<string, unknown>
-        | undefined;
+        Record<string, unknown> | undefined;
       const content = message?.content;
       if (typeof content === "string") parts.push(content);
       else if (Array.isArray(content)) {
@@ -139,8 +138,13 @@ export function extractContentText(json: unknown): string {
   // Anthropic Messages: accompanying text remains subject to the configured
   // substring predicates even if this response also contains a tool_use block.
   if (obj.type === "message" && obj.role === "assistant" && Array.isArray(obj.content)) {
-    const parts = obj.content.filter((part) => part && typeof part === "object" &&
-      (part as Record<string, unknown>).type === "text" && typeof (part as Record<string, unknown>).text === "string");
+    const parts = obj.content.filter(
+      (part) =>
+        part &&
+        typeof part === "object" &&
+        (part as Record<string, unknown>).type === "text" &&
+        typeof (part as Record<string, unknown>).text === "string"
+    );
     if (parts.length) return parts.map((part) => (part as Record<string, string>).text).join("");
   }
 
@@ -208,11 +212,22 @@ function hasStructuredToolInvocation(json: unknown): boolean {
       const message = choice.message;
       if (message.tool_calls === undefined) continue;
       if (choice.finish_reason !== undefined && choice.finish_reason !== "tool_calls") return false;
-      if (message.role !== "assistant" || !Array.isArray(message.tool_calls) || message.tool_calls.length === 0) return false;
+      if (
+        message.role !== "assistant" ||
+        !Array.isArray(message.tool_calls) ||
+        message.tool_calls.length === 0
+      )
+        return false;
       for (const call of message.tool_calls) {
-        if (!isRecord(call) || call.type !== "function" || !uniqueId(call.id)
-          || !isRecord(call.function) || !validToolName(call.function.name)
-          || !validJsonArguments(call.function.arguments)) return false;
+        if (
+          !isRecord(call) ||
+          call.type !== "function" ||
+          !uniqueId(call.id) ||
+          !isRecord(call.function) ||
+          !validToolName(call.function.name) ||
+          !validJsonArguments(call.function.arguments)
+        )
+          return false;
         found = true;
       }
     }
@@ -222,17 +237,31 @@ function hasStructuredToolInvocation(json: unknown): boolean {
   if (json.type === "message" && json.role === "assistant" && Array.isArray(json.content)) {
     if (json.stop_reason !== undefined && json.stop_reason !== "tool_use") return false;
     const calls = json.content.filter((part) => isRecord(part) && part.type === "tool_use");
-    return calls.length > 0 && calls.every((call) => isRecord(call)
-      && uniqueId(call.id) && validToolName(call.name) && isRecord(call.input));
+    return (
+      calls.length > 0 &&
+      calls.every(
+        (call) =>
+          isRecord(call) && uniqueId(call.id) && validToolName(call.name) && isRecord(call.input)
+      )
+    );
   }
 
   if (json.object === "response" && Array.isArray(json.output)) {
-    if (json.status !== undefined && json.status !== "completed" && json.status !== "done") return false;
+    if (json.status !== undefined && json.status !== "completed" && json.status !== "done")
+      return false;
     const calls = json.output.filter((item) => isRecord(item) && item.type === "function_call");
-    return calls.length > 0 && calls.every((call) => isRecord(call)
-      && uniqueId(call.call_id) && (call.id === undefined || validToolId(call.id))
-      && validToolName(call.name) && validJsonArguments(call.arguments)
-      && (call.status === undefined || call.status === "completed"));
+    return (
+      calls.length > 0 &&
+      calls.every(
+        (call) =>
+          isRecord(call) &&
+          uniqueId(call.call_id) &&
+          (call.id === undefined || validToolId(call.id)) &&
+          validToolName(call.name) &&
+          validJsonArguments(call.arguments) &&
+          (call.status === undefined || call.status === "completed")
+      )
+    );
   }
 
   return false;

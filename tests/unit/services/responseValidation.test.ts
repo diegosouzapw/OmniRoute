@@ -1,9 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  evaluateResponseValidation,
-} from "../../../open-sse/services/combo/responseValidation.ts";
+import { evaluateResponseValidation } from "../../../open-sse/services/combo/responseValidation.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -18,12 +16,17 @@ function chatCall(overrides: JsonRecord = {}): JsonRecord {
   };
 }
 
-function chatToolTurn(toolCalls: readonly unknown[] = [chatCall()], finishReason: unknown = "tool_calls"): JsonRecord {
+function chatToolTurn(
+  toolCalls: readonly unknown[] = [chatCall()],
+  finishReason: unknown = "tool_calls"
+): JsonRecord {
   return {
-    choices: [{
-      finish_reason: finishReason,
-      message: { role: "assistant", content: null, tool_calls: toolCalls },
-    }],
+    choices: [
+      {
+        finish_reason: finishReason,
+        message: { role: "assistant", content: null, tool_calls: toolCalls },
+      },
+    ],
   };
 }
 
@@ -41,14 +44,16 @@ function responsesTool(overrides: JsonRecord = {}): JsonRecord {
   return {
     object: "response",
     status: "completed",
-    output: [{
-      type: "function_call",
-      id: "fc-response",
-      call_id: "call-response",
-      name: "read_file",
-      arguments: "{}",
-      status: "completed",
-    }],
+    output: [
+      {
+        type: "function_call",
+        id: "fc-response",
+        call_id: "call-response",
+        name: "read_file",
+        arguments: "{}",
+        status: "completed",
+      },
+    ],
     ...overrides,
   };
 }
@@ -75,11 +80,18 @@ test("malformed, incomplete, duplicate, result, and streaming shapes keep minimu
     chatToolTurn([chatCall()], "stop"),
     anthropicTool({ role: "user" }),
     anthropicTool({ stop_reason: "end_turn" }),
-    anthropicTool({ content: [{ type: "tool_use", id: "tool-anthropic", name: "read_file", input: [] }] }),
-    { type: "content_block_start", content_block: { type: "tool_use", id: "tool-stream", name: "read_file", input: {} } },
+    anthropicTool({
+      content: [{ type: "tool_use", id: "tool-anthropic", name: "read_file", input: [] }],
+    }),
+    {
+      type: "content_block_start",
+      content_block: { type: "tool_use", id: "tool-stream", name: "read_file", input: {} },
+    },
     { choices: [{ delta: { tool_calls: [chatCall()] } }] },
     responsesTool({ status: "in_progress" }),
-    responsesTool({ output: [{ type: "function_call_output", call_id: "call-response", output: "result" }] }),
+    responsesTool({
+      output: [{ type: "function_call_output", call_id: "call-response", output: "result" }],
+    }),
   ];
 
   for (const body of malformed) {
@@ -90,15 +102,16 @@ test("malformed, incomplete, duplicate, result, and streaming shapes keep minimu
 test("tool-only completion retains required, forbidden, and JSON-path predicates", () => {
   const chat = chatToolTurn();
   assert.equal(
-    evaluateResponseValidation(chat, { ...minimumContent, requiredSubstrings: ["must appear"] }).valid,
-    false,
+    evaluateResponseValidation(chat, { ...minimumContent, requiredSubstrings: ["must appear"] })
+      .valid,
+    false
   );
   assert.equal(
     evaluateResponseValidation(chat, {
       ...minimumContent,
       jsonPathPredicates: [{ path: "choices[0].message.content", condition: "nonEmpty" }],
     }).valid,
-    false,
+    false
   );
 
   const anthropicWithText = anthropicTool({
@@ -118,19 +131,24 @@ test("tool-only completion retains required, forbidden, and JSON-path predicates
 test("function name bounds and legacy prose remain unchanged", () => {
   const validName = "x".repeat(128);
   assert.equal(
-    evaluateResponseValidation(chatToolTurn([
-      chatCall({ function: { name: validName, arguments: "{}" } }),
-    ]), minimumContent).valid,
-    true,
+    evaluateResponseValidation(
+      chatToolTurn([chatCall({ function: { name: validName, arguments: "{}" } })]),
+      minimumContent
+    ).valid,
+    true
   );
   assert.equal(
-    evaluateResponseValidation(chatToolTurn([
-      chatCall({ function: { name: validName + "x", arguments: "{}" } }),
-    ]), minimumContent).valid,
-    false,
+    evaluateResponseValidation(
+      chatToolTurn([chatCall({ function: { name: validName + "x", arguments: "{}" } })]),
+      minimumContent
+    ).valid,
+    false
   );
   assert.equal(
-    evaluateResponseValidation({ choices: [{ message: { content: "short" } }] }, { minContentLength: 10 }).valid,
-    false,
+    evaluateResponseValidation(
+      { choices: [{ message: { content: "short" } }] },
+      { minContentLength: 10 }
+    ).valid,
+    false
   );
 });
