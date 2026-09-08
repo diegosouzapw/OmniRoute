@@ -430,6 +430,68 @@ export async function cleanupCcrBlocks(): Promise<CleanupResult> {
   return result;
 }
 
+const BATCH_RETENTION_DAYS_DEFAULT = 30; // matches OpenAI's own Batch API output retention window
+
+function getBatchRetentionDays(): number {
+  const raw = process.env.OMNIROUTE_BATCH_RETENTION_DAYS;
+  if (!raw) return BATCH_RETENTION_DAYS_DEFAULT;
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : BATCH_RETENTION_DAYS_DEFAULT;
+}
+
+/**
+ * Clean up terminal batches (completed/failed/cancelled/expired) older than the
+ * retention window, along with their per-line checkpoints and referenced files.
+ *
+ * batch_item_checkpoints had no cleanup path at all before this: the only
+ * existing sweep (deleteCompletedBatches(), the operator-triggered DELETE
+ * /api/v1/batches/delete-completed route) is scoped to `status = 'completed'`
+ * with no age filter, and is left untouched here -- it's a public API
+ * contract, not the automatic cleanup path. Observed live: 182K checkpoint
+ * rows / 5.25 GB, with no batch ever explicitly deleted by an operator.
+ */
+export async function cleanupOldBatches(): Promise<CleanupResult> {
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+
+  try {
+    const { deleteTerminalBatchesOlderThan } = await import("./batches");
+    const retentionDays = getBatchRetentionDays();
+    const { deletedBatches } = deleteTerminalBatchesOlderThan(retentionDays);
+    result.deleted = deletedBatches;
+    console.log(
+      `[Cleanup] Deleted ${result.deleted} terminal batches older than ${retentionDays} days`
+    );
+  } catch (err: unknown) {
+    console.error("[Cleanup] Error cleaning old batches:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
+/**
+ * Clear the content of files past their own `expires_at`.
+ *
+ * Like ccr_blocks, a file carries its own expiry -- this needs no separate
+ * retention-days setting, just an operator-scheduled sweep, since nothing
+ * previously enforced expires_at at all. Observed live: 1,874 rows / 5.19 GB
+ * of uploaded file content, most long past expiry.
+ */
+export async function cleanupExpiredFiles(): Promise<CleanupResult> {
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+
+  try {
+    const { pruneExpiredFiles } = await import("./files");
+    result.deleted = pruneExpiredFiles(Math.floor(Date.now() / 1000));
+    console.log(`[Cleanup] Deleted ${result.deleted} expired files`);
+  } catch (err: unknown) {
+    console.error("[Cleanup] Error cleaning expired files:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
 /**
  * Run all cleanup functions if auto-cleanup is enabled.
  */
@@ -463,6 +525,8 @@ export async function runAutoCleanup(): Promise<{
     compressionRunTelemetry: await cleanupCompressionRunTelemetry(),
     proxyLogs: await cleanupProxyLogs(),
     ccrBlocks: await cleanupCcrBlocks(),
+    oldBatches: await cleanupOldBatches(),
+    expiredFiles: await cleanupExpiredFiles(),
   };
 
   const totalDeleted = Object.values(results).reduce((sum, r) => sum + r.deleted, 0);
