@@ -1,1 +1,0 @@
-- **fix(i18n):** three `pt` strings had dropped their placeholders — the cache tile's subtitle repeated its own label instead of showing `{total}` — and a unit test now enforces placeholder parity with `en` across all locales ([#11325](https://github.com/diegosouzapw/OmniRoute/pull/11325))

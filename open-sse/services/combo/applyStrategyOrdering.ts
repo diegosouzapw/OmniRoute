@@ -10,6 +10,7 @@ import {
 } from "./promptCacheAffinity.ts";
 import {
   orderTargetsByHeadroom,
+  orderTargetsByQuotaWeighted,
   orderTargetsByResetAwareQuota,
   orderTargetsByResetWindow,
 } from "./quotaStrategies.ts";
@@ -18,17 +19,19 @@ import {
   sortTargetsByCost,
   sortTargetsByUsage,
 } from "./targetSorters.ts";
+import { decrementInflight } from "./quotaShareInflight.ts";
 import type { ComboLike, ComboLogger, ResolvedComboTarget } from "./types.ts";
 
 /**
  * Result of {@link applyStrategyOrdering}.
  *
  * `quotaShareRelease` carries the idempotent release for the in-flight slot that
- * quota-share ordering reserves for its winner (#11371). It is non-null only when
- * the `quota-share` strategy ran; every other strategy leaves it null. The caller
- * MUST invoke it exactly once when the request settles — selection reserves the
- * slot, so dropping the callback leaks the counter monotonically upward and
- * degenerates P2C into "fewest lifetime dispatches".
+ * quota-share and quota-weighted reserve for their winner. quota-share reserves
+ * inside selectQuotaShareTarget; quota-weighted reserves inside the orderer so
+ * two in-process draws cannot both see inflight=0. Stickiness may then move [0];
+ * resolveComboTargetPipeline transfers the slot for both strategies. The caller
+ * MUST invoke the callback exactly once when the request settles — dropping it
+ * leaks the counter and degenerates later draws toward whoever looks idle.
  */
 export interface ApplyStrategyOrderingResult {
   orderedTargets: ResolvedComboTarget[];
@@ -238,6 +241,27 @@ export async function applyStrategyOrdering(
     log.info(
       "COMBO",
       `Headroom ordering: ${orderedTargets[0]?.modelStr}${orderedTargets[0]?.connectionId ? ` (${orderedTargets[0].connectionId})` : ""} has most free capacity`
+    );
+  } else if (strategy === "quota-weighted") {
+    orderedTargets = await orderTargetsByQuotaWeighted(
+      orderedTargets,
+      combo.name,
+      config,
+      log,
+      apiKeyAllowedConnections
+    );
+    const winnerId = orderedTargets[0]?.connectionId ?? "";
+    if (winnerId) {
+      let released = false;
+      quotaShareRelease = () => {
+        if (released) return;
+        released = true;
+        decrementInflight(winnerId);
+      };
+    }
+    log.info(
+      "COMBO",
+      `Quota-weighted ordering: ${orderedTargets[0]?.modelStr}${orderedTargets[0]?.connectionId ? ` (${orderedTargets[0].connectionId})` : ""} first`
     );
   } else if (strategy === "quota-share") {
     // Internal quota-share combos (qtSd/): delegate to the dedicated module (DRR +

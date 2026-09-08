@@ -1,1 +1,0 @@
-- fix(handoff): enforce provider allowlist for universal handoff (#11602) — universal handoff now skips summarization when the selected summary model's provider is not included in the configured provider allowlist.

@@ -1,1 +1,0 @@
-- **feat(dashboard):** surface durable exclusive managed leases in the existing Sessions view, keeping leased clients visible across idle gaps while marking connections with in-flight work as active ([#11389](https://github.com/diegosouzapw/OmniRoute/pull/11389)) — thanks @KaspaPulse

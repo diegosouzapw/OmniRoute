@@ -1,1 +1,0 @@
-- **feat(search):** Add AnySearch free web search + URL extract (webFetch) with typed results, credential validation, REST routing, and MCP selection - fallback-only

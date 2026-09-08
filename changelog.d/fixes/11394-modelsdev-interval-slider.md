@@ -1,1 +1,0 @@
-- **fix(dashboard):** Model Database sync interval slider ticks now match the thumb position — checkpoint-space slider with magnetic snap on release ([#11394](https://github.com/diegosouzapw/OmniRoute/pull/11394)) — thanks @An0nym0us92

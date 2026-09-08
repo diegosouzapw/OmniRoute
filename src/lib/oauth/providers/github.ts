@@ -79,6 +79,7 @@ export const github = {
     refreshToken: tokens.refresh_token,
     expiresIn: tokens.expires_in,
     providerSpecificData: {
+      autoSync: true,
       copilotToken: extra?.copilotToken?.token,
       copilotTokenExpiresAt: extra?.copilotToken?.expires_at,
       githubUserId: extra?.userInfo?.id,

@@ -1,1 +1,0 @@
-- **fix(video):** fingerprint protected Video Bridge bytes, coalesce concurrent work, and fail open when the bounded TTL/LRU result cache is unavailable or corrupt ([#11362](https://github.com/diegosouzapw/OmniRoute/pull/11362))
