@@ -10,10 +10,19 @@ export async function embedRemote(
 ): Promise<EmbeddingResult | EmbeddingError> {
   const t0 = Date.now();
 
+  // Embedding models cap `input` at 8192 tokens (text-embedding-3-small).
+  // The memory-retrieval query is built from conversation context and can
+  // exceed that on long sessions → upstream HTTP 400
+  // "Invalid 'input': maximum context length is 8192 tokens", which fails the
+  // whole retrieval call. Clip conservatively (~20k chars stays under 8192
+  // tokens even for code/CJK-heavy text) — a truncated query keeps recall
+  // working; an unclipped one guarantees a 400.
+  const MAX_EMBED_CHARS = 20_000;
+  const clippedInput = text.length > MAX_EMBED_CHARS ? text.slice(0, MAX_EMBED_CHARS) : text;
   let resp: Response;
   try {
     resp = await createEmbeddingResponse(
-      { model, input: text },
+      { model, input: clippedInput },
       customProvider
         ? {
             resolvedProvider: customProvider.provider,

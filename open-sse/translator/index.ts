@@ -190,9 +190,13 @@ function isReasoningOnlyReplayTarget(provider: unknown, model: unknown): boolean
  * an absent field was verified to be accepted — but Xiaomi MiMo still 400s
  * ("Param Incorrect: The reasoning_content in the thinking mode must be passed
  * back to the API", 9router#1321/#1337), so omitting the field there trades one
- * live bug for another. Keep the placeholder only for those providers; the echo
- * that comes back is still stripped on the way in by
- * isInternalReasoningPlaceholder(), so it never re-poisons cache or history.
+ * live bug for another. The opencode console gateways (opencode-go /
+ * opencode-zen / opencode) enforce the same contract on their Responses
+ * transport for deepseek/glm thinking models (production: 54× 400 "The
+ * reasoning_text in the thinking mode must be passed back to the API" in one
+ * day). Keep the placeholder only for those providers; the echo that comes
+ * back is still stripped on the way in by isInternalReasoningPlaceholder(), so
+ * it never re-poisons cache or history.
  */
 function requiresReasoningContentPresence(provider: unknown, model: unknown): boolean {
   const normalizedProvider = String(provider ?? "")
@@ -201,7 +205,11 @@ function requiresReasoningContentPresence(provider: unknown, model: unknown): bo
   const normalizedModel = String(model ?? "")
     .trim()
     .toLowerCase();
-  return normalizedProvider === "xiaomi-mimo" || /(^|\/)mimo/i.test(normalizedModel);
+  return (
+    normalizedProvider === "xiaomi-mimo" ||
+    /(^|\/)mimo/i.test(normalizedModel) ||
+    ["opencode", "opencode-go", "opencode-zen"].includes(normalizedProvider)
+  );
 }
 
 type OpenAIReplayOptions = {
@@ -274,6 +282,20 @@ function replayOpenAIReasoningMessage(
 
   if (options.requiresExplicitReasoningReplay) {
     if (message.reasoning_content === "") delete message.reasoning_content;
+    // Presence-enforcing upstreams (opencode console gateways, Xiaomi MiMo)
+    // 400 when a thinking-mode replay turn lacks the reasoning field — even on
+    // a reasoning-cache miss, where the original summary is unavailable. Emit
+    // the internal sentinel so the Responses converter still emits the
+    // reasoning_text item; the echo coming back is stripped on the way in by
+    // isInternalReasoningPlaceholder(), so it never re-poisons cache or
+    // history (#9573). DeepSeek itself accepts an ABSENT field — untouched.
+    if (
+      !message.reasoning_content &&
+      (hasToolCalls || shouldReplayReasoningOnly) &&
+      requiresReasoningContentPresence(options.provider, options.model)
+    ) {
+      message.reasoning_content = NON_ANTHROPIC_THINKING_PLACEHOLDER;
+    }
     return;
   }
 
@@ -412,6 +434,26 @@ export function translateRequest(
   // providers and for already-compliant requests (prompt-cache prefix stability).
   if (targetFormat === FORMATS.OPENAI && result.messages && Array.isArray(result.messages)) {
     result.messages = hoistLeadingSystemMessage(result.messages, provider);
+  }
+
+  // GLM-family upstreams (Z.AI / Zhipu console gateways) reject messages arrays
+  // with no role:"user" turn (400 [1214] "The messages parameter is illegal") —
+  // ALSO on the SAME-FORMAT (openai→openai) lane, where no source→openai
+  // translator runs to apply the _ensureUserTurn credential flag. Agent
+  // tool-loop continuations reach exactly that shape when every inbound user
+  // turn was tool_result-only and context compression evicted the original
+  // prompt (production evidence: opencode-go/glm-5.3-flash, 37× in one day).
+  // Mirrors claude-to-openai.ts's _ensureUserTurn branch: appending at the end
+  // keeps every earlier byte identical for upstream prompt caches.
+  if (
+    isGlmFamilyUpstream &&
+    targetFormat === FORMATS.OPENAI &&
+    Array.isArray(result.messages) &&
+    !result.messages.some(
+      (m) => m && typeof m === "object" && (m as Record<string, unknown>).role === "user"
+    )
+  ) {
+    result.messages.push({ role: "user", content: "(continue)" });
   }
 
   if (
