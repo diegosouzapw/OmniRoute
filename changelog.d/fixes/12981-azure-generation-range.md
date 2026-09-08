@@ -1,0 +1,1 @@
+- **fix(azure):** Deployments from GPT-6 onward now send `max_completion_tokens` instead of `max_tokens`, which Azure rejects with HTTP 400. The rule matched a literal `gpt-5`, so each new generation arrived broken; it now matches the generation range, while `gpt-35-turbo` still keeps `max_tokens`.
