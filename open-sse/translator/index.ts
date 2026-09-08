@@ -204,6 +204,25 @@ function requiresReasoningContentPresence(provider: unknown, model: unknown): bo
   return normalizedProvider === "xiaomi-mimo" || /(^|\/)mimo/i.test(normalizedModel);
 }
 
+/**
+ * The fields `buildAssistantMessageCacheKey` digests, nothing else: the caller keeps
+ * this for the whole request, so large non-digested payload parts must not be
+ * retained twice. `reasoning_content` is deliberately excluded — the digest ignores
+ * it, and the write side receives the upstream reasoning separately.
+ */
+function snapshotReasoningReplayHistory(
+  messages: Array<Record<string, unknown>>
+): Array<Record<string, unknown>> {
+  return messages.map((message) => {
+    const record = message && typeof message === "object" ? message : {};
+    const snapshot: Record<string, unknown> = { role: record.role };
+    if (record.name !== undefined) snapshot.name = record.name;
+    if (record.content !== undefined) snapshot.content = record.content;
+    if (Array.isArray(record.tool_calls)) snapshot.tool_calls = record.tool_calls;
+    return snapshot;
+  });
+}
+
 type OpenAIReplayOptions = {
   canReplayReasoningOnly: boolean;
   requiresExplicitReasoningReplay: boolean;
@@ -320,6 +339,12 @@ export function translateRequest(
     signatureNamespace?: string | null;
     preCompressionBody?: Record<string, unknown> | null;
     reasoningCacheScope?: string | null;
+    /** Receives the normalized OpenAI-format transcript the reasoning replay pass
+     *  digested for a Responses-API target. A Responses body carries `input`, not
+     *  `messages`, so the caller cannot recover that transcript from the returned
+     *  body; the replay cache keys plain (non-tool-call) assistant turns on exactly
+     *  this transcript, and the write side must digest the same one (#1682). */
+    onReasoningReplayHistory?: (messages: Array<Record<string, unknown>>) => void;
     /** UA-detected GitHub Copilot client. Forwarded to translators via the
      *  transient `_copilotClient` credential flag (see openai-responses → openai). */
     copilotClient?: boolean;
@@ -414,25 +439,6 @@ export function translateRequest(
     result.messages = hoistLeadingSystemMessage(result.messages, provider);
   }
 
-  if (
-    sourceFormat === FORMATS.OPENAI &&
-    targetFormat === FORMATS.OPENAI_RESPONSES &&
-    isReasoner &&
-    Array.isArray(result.messages)
-  ) {
-    const messages = result.messages as Array<Record<string, unknown>>;
-    const replayOptions: OpenAIReplayOptions = {
-      canReplayReasoningOnly: isReasoningOnlyReplayTarget(normalizedProvider, normalizedModel),
-      requiresExplicitReasoningReplay,
-      provider: normalizedProvider,
-      model: normalizedModel,
-      reasoningCacheScope: options?.reasoningCacheScope,
-    };
-    for (let messageIndex = 0; messageIndex < messages.length; messageIndex += 1) {
-      replayOpenAIReasoningMessage(messages, messageIndex, replayOptions);
-    }
-  }
-
   // If same format, skip translation steps
   if (sourceFormat !== targetFormat) {
     // Check for direct translation path first (e.g., Claude → Gemini)
@@ -489,6 +495,33 @@ export function translateRequest(
           // Log OpenAI intermediate format
           reqLogger?.logOpenAIRequest?.(result);
         }
+      }
+
+      // Reasoning replay for Responses-API targets runs on the OpenAI pivot, before
+      // the Responses conversion discards `messages`. It used to be gated on
+      // `sourceFormat === "openai"`, which left Anthropic Messages clients (Claude →
+      // OpenAI → Responses) with no replay at all: the generic pass further down only
+      // sees `result.messages`, and a Responses body has none. The pivot is the same
+      // transcript the replay cache keys plain turns on, so report it to the caller
+      // for the write side (#1682 — DeepSeek requires every prior turn's reasoning
+      // once `tools` is present).
+      if (
+        targetFormat === FORMATS.OPENAI_RESPONSES &&
+        isReasoner &&
+        Array.isArray(result.messages)
+      ) {
+        const messages = result.messages as Array<Record<string, unknown>>;
+        const replayOptions: OpenAIReplayOptions = {
+          canReplayReasoningOnly: isReasoningOnlyReplayTarget(normalizedProvider, normalizedModel),
+          requiresExplicitReasoningReplay,
+          provider: normalizedProvider,
+          model: normalizedModel,
+          reasoningCacheScope: options?.reasoningCacheScope,
+        };
+        for (let messageIndex = 0; messageIndex < messages.length; messageIndex += 1) {
+          replayOpenAIReasoningMessage(messages, messageIndex, replayOptions);
+        }
+        options?.onReasoningReplayHistory?.(snapshotReasoningReplayHistory(messages));
       }
 
       // Step 2: openai -> target (if target is not openai)
