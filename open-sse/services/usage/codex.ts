@@ -1,3 +1,4 @@
+import { retainCodexRecoveryEvidence } from "./codexRecoveryEvidence.ts";
 /**
  * usage/codex.ts — Codex (OpenAI / ChatGPT backend) usage fetcher.
  *
@@ -65,7 +66,7 @@ export async function getCodexUsage(
     const { rateLimit, quotas, bankedResetCredits, rateLimitReachedType } =
       buildCodexUsageQuotas(data);
 
-    return {
+    const usage = {
       plan: String(getFieldValue(data, "plan_type", "planType") || "unknown"),
       limitReached: Boolean(getFieldValue(rateLimit, "limit_reached", "limitReached")),
       quotas,
@@ -74,6 +75,8 @@ export async function getCodexUsage(
       ...(bankedResetCredits !== undefined ? { bankedResetCredits } : {}),
       ...(rateLimitReachedType !== undefined ? { rateLimitReachedType } : {}),
     };
+    retainCodexRecoveryEvidence(data, usage);
+    return usage;
   } catch (error) {
     return { message: `Failed to fetch Codex usage: ${(error as Error).message}` };
   }

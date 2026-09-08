@@ -1,3 +1,8 @@
+import { getCodexRecoveryEvidence } from "@omniroute/open-sse/services/usage/codexRecoveryEvidence.ts";
+import {
+  captureCodexScopeRecovery,
+  reconcileCodexScopeRecovery,
+} from "@/lib/db/providers/codexAccountState";
 import {
   getProviderConnectionById,
   getProviderConnections,
@@ -909,10 +914,10 @@ async function fetchLiveProviderLimitsWithOptions(
         await syncToCloudIfEnabled();
       }
 
-      let usageData = sanitizeUsageQuotasForProvider(
-        conn.provider,
-        (await getUsageForProvider(conn as unknown as JsonRecord, options)) as JsonRecord
-      );
+      let codexRecovery = captureCodexScopeRecovery(conn as unknown as JsonRecord);
+      let rawUsage = await getUsageForProvider(conn as unknown as JsonRecord, options);
+      let recoveryEvidence = getCodexRecoveryEvidence(rawUsage);
+      let usageData = sanitizeUsageQuotasForProvider(conn.provider, rawUsage as JsonRecord);
 
       // Reactive 401 recovery (on-demand/force path only): an unauthorized usage
       // response means the access token is actually dead. Force ONE serialized
@@ -927,13 +932,16 @@ async function fetchLiveProviderLimitsWithOptions(
         if (forced.refreshed) {
           conn = forced.connection;
           await syncToCloudIfEnabled();
-          usageData = sanitizeUsageQuotasForProvider(
-            conn.provider,
-            (await getUsageForProvider(conn as unknown as JsonRecord, options)) as JsonRecord
-          );
+          codexRecovery = captureCodexScopeRecovery(conn as unknown as JsonRecord);
+          rawUsage = await getUsageForProvider(conn as unknown as JsonRecord, options);
+          recoveryEvidence = getCodexRecoveryEvidence(rawUsage);
+          usageData = sanitizeUsageQuotasForProvider(conn.provider, rawUsage as JsonRecord);
         }
       }
 
+      if (codexRecovery && reconcileCodexScopeRecovery(codexRecovery, recoveryEvidence)) {
+        conn = (await getProviderConnectionById(connectionId)) as unknown as ProviderConnectionLike;
+      }
       connection = conn;
       return { usage: usageData };
     });

@@ -316,3 +316,354 @@ test("concurrent Codex and Spark child cooldown writes retain both scopes", asyn
   });
   assert.deepEqual(persisted.providerSpecificData.unrelated, { retained: true });
 });
+
+type RecoveryPayload = Record<string, unknown>;
+async function seedRecovery() {
+  const connection = await seedCodexConnection();
+  const oldReset = new Date(Date.now() + 60_000).toISOString();
+  const newReset = new Date(Date.now() + 600_000).toISOString();
+  const sparkReset = new Date(Date.now() + 900_000).toISOString();
+  await codexAccount.persistCodexChildCooldown({
+    connectionId: connection.id,
+    model: "gpt-5.6-luna-max",
+    rateLimitedUntil: oldReset,
+    quotaPreflightWindow: { name: "session", windowSeconds: 604800 },
+  });
+  await codexAccount.persistCodexChildCooldown({
+    connectionId: connection.id,
+    model: "gpt-5.3-codex-spark",
+    rateLimitedUntil: sparkReset,
+  });
+  const window = {
+    used_percent: 14,
+    reset_at: Date.parse(newReset) / 1000,
+    limit_window_seconds: 604800,
+  };
+  const payload: RecoveryPayload = {
+    plan_type: "pro",
+    rate_limit: {
+      limit_reached: false,
+      primary_window: window,
+      secondary_window: null,
+    },
+  };
+  return { connection, oldReset, newReset, sparkReset, window, payload };
+}
+
+async function fetchRecovery(
+  id: string,
+  payload: RecoveryPayload,
+  duringFetch?: () => Promise<void>
+) {
+  const originalFetch = globalThis.fetch;
+  let requests = 0;
+  globalThis.fetch = async (input) => {
+    assert.equal(String(input), "https://chatgpt.com/backend-api/wham/usage");
+    requests++;
+    await duringFetch?.();
+    return Response.json(payload);
+  };
+  try {
+    const limits = await import("../../src/lib/usage/providerLimits.ts");
+    return await limits.fetchLiveProviderLimits(id);
+  } finally {
+    globalThis.fetch = originalFetch;
+    assert.equal(requests, 1);
+  }
+}
+
+test("fresh same-scope usage after the recorded preflight window advances retires only that fallback", async () => {
+  const { connection, payload, sparkReset } = await seedRecovery();
+  const before = await readConnection(connection.id);
+  await fetchRecovery(connection.id, payload);
+  const after = await readConnection(connection.id);
+  assert.deepEqual(after.providerSpecificData.codexScopeRateLimitedUntil, { spark: sparkReset });
+  assert.deepEqual(after.providerSpecificData.codexScopeRateLimitSource, { spark: "fallback" });
+  assert.deepEqual(
+    (after.providerSpecificData as Record<string, unknown>).codexScopePreflightWindow,
+    {}
+  );
+  for (const key of ["testStatus", "rateLimitedUntil", "errorCode", "backoffLevel"] as const)
+    assert.equal(after[key], before[key]);
+  assert.deepEqual(after.providerSpecificData.unrelated, before.providerSpecificData.unrelated);
+  const { captureCodexScopeRecovery } =
+    await import("../../src/lib/db/providers/codexAccountState.ts");
+  assert.equal(captureCodexScopeRecovery(after as unknown as Record<string, unknown>), null);
+});
+
+for (const variant of ["recent429", "quota_reset", "quota_response"] as const) {
+  test(`ordinary ${variant} invalidates preflight provenance and healthy usage cannot erase its block`, async () => {
+    const { connection, payload, oldReset } = await seedRecovery();
+    const state = await import("../../src/lib/db/providers/codexAccountState.ts");
+    if (variant === "recent429")
+      await codexAccount.persistCodexChildCooldown({
+        connectionId: connection.id,
+        model: "gpt-5.6-luna-max",
+        rateLimitedUntil: oldReset,
+      });
+    else
+      await state.updateCodexScopedQuotaState(
+        connection.id,
+        "codex",
+        variant === "quota_reset"
+          ? { rateLimitedUntil: oldReset, rateLimitSource: "quota_reset" }
+          : { quotaState: { observedAt: new Date().toISOString() } }
+      );
+    const before = await readConnection(connection.id);
+    assert.deepEqual(
+      (before.providerSpecificData as Record<string, unknown>).codexScopePreflightWindow,
+      {}
+    );
+    await fetchRecovery(connection.id, payload);
+    assert.deepEqual(
+      (await readConnection(connection.id)).providerSpecificData,
+      before.providerSpecificData
+    );
+  });
+}
+
+for (const mutation of [
+  "missingFlag",
+  "stringFlag",
+  "exhaustedFlag",
+  "missingUsed",
+  "stringUsed",
+  "negativeUsed",
+  "missingReset",
+  "missingDuration",
+  "missingSecondary",
+  "missingPrimary",
+  "bothNull",
+  "secondExhausted",
+  "sameReset",
+  "differentDuration",
+] as const) {
+  test(`uncertain or nonadvanced raw quota ${mutation} preserves the scoped refusal`, async () => {
+    const { connection, payload, window, oldReset } = await seedRecovery();
+    const rate = payload.rate_limit as Record<string, unknown>;
+    if (mutation === "missingFlag") delete rate.limit_reached;
+    if (mutation === "stringFlag") rate.limit_reached = "false";
+    if (mutation === "exhaustedFlag") rate.limit_reached = true;
+    if (mutation === "missingUsed") delete (window as Partial<typeof window>).used_percent;
+    if (mutation === "stringUsed") (window as Record<string, unknown>).used_percent = "14";
+    if (mutation === "negativeUsed") window.used_percent = -1;
+    if (mutation === "missingReset") delete (window as Partial<typeof window>).reset_at;
+    if (mutation === "missingDuration")
+      delete (window as Partial<typeof window>).limit_window_seconds;
+    if (mutation === "missingSecondary") delete rate.secondary_window;
+    if (mutation === "missingPrimary") delete rate.primary_window;
+    if (mutation === "bothNull") rate.primary_window = null;
+    if (mutation === "secondExhausted") rate.secondary_window = { ...window, used_percent: 100 };
+    if (mutation === "sameReset") window.reset_at = Date.parse(oldReset) / 1000;
+    if (mutation === "differentDuration") window.limit_window_seconds = 18000;
+    const before = await readConnection(connection.id);
+    await fetchRecovery(connection.id, payload);
+    const after = await readConnection(connection.id);
+    assert.deepEqual(after.providerSpecificData, before.providerSpecificData);
+  });
+}
+
+test("a healthy unchanged second window and review/Spark siblings do not prevent normal-window recovery", async () => {
+  const { connection, payload, window, oldReset, sparkReset } = await seedRecovery();
+  (payload.rate_limit as Record<string, unknown>).secondary_window = {
+    ...window,
+    limit_window_seconds: 18000,
+    reset_at: Date.parse(oldReset) / 1000,
+  };
+  payload.code_review_rate_limit = { limit_reached: true };
+  payload.additional_rate_limits = [
+    { limit_name: "GPT-5.3-Codex-Spark", rate_limit: { limit_reached: true } },
+  ];
+  await fetchRecovery(connection.id, payload);
+  assert.deepEqual(
+    (await readConnection(connection.id)).providerSpecificData.codexScopeRateLimitedUntil,
+    { spark: sparkReset }
+  );
+});
+
+for (const level of ["connection", "provider", "global"] as const) {
+  test(`${level} effective remaining-quota cutoff still blocks recovery`, async () => {
+    const { connection, payload } = await seedRecovery();
+    if (level === "connection")
+      await providersDb.updateProviderConnection(connection.id, {
+        quotaWindowThresholds: { session: 90 },
+      });
+    else {
+      const { updateSettings } = await import("../../src/lib/db/settings.ts");
+      await updateSettings({
+        resilienceSettings: {
+          quotaPreflight:
+            level === "provider"
+              ? { providerWindowDefaults: { codex: { session: 90 } } }
+              : { defaultThresholdPercent: 90 },
+        },
+      });
+    }
+    const before = await readConnection(connection.id);
+    await fetchRecovery(connection.id, payload);
+    assert.deepEqual(
+      (await readConnection(connection.id)).providerSpecificData,
+      before.providerSpecificData
+    );
+  });
+}
+
+for (const mutation of ["credentials", "policy", "sameUntil429"] as const) {
+  test(`concurrent ${mutation} changes defeat the captured row/policy CAS`, async () => {
+    const { connection, payload, oldReset } = await seedRecovery();
+    await fetchRecovery(connection.id, payload, async () => {
+      if (mutation === "credentials")
+        await providersDb.updateProviderConnection(connection.id, {
+          accessToken: "changed-test-token",
+        });
+      if (mutation === "policy") {
+        const { updateSettings } = await import("../../src/lib/db/settings.ts");
+        await updateSettings({
+          resilienceSettings: { quotaPreflight: { defaultThresholdPercent: 3 } },
+        });
+      }
+      if (mutation === "sameUntil429")
+        await codexAccount.persistCodexChildCooldown({
+          connectionId: connection.id,
+          model: "gpt-5.6-luna-max",
+          rateLimitedUntil: oldReset,
+        });
+    });
+    assert.equal(
+      (await readConnection(connection.id)).providerSpecificData.codexScopeRateLimitedUntil.codex,
+      oldReset
+    );
+  });
+}
+
+test("expired observations and display-only quota objects cannot authorize recovery", async () => {
+  const { connection, payload, oldReset } = await seedRecovery();
+  const state = await import("../../src/lib/db/providers/codexAccountState.ts");
+  const evidence = await import("../../open-sse/services/usage/codexRecoveryEvidence.ts");
+  const observed = state.captureCodexScopeRecovery(
+    await providersDb.getProviderConnectionById(connection.id)
+  );
+  assert.ok(observed);
+  assert.equal(
+    evidence.getCodexRecoveryEvidence({ limitReached: false, quotas: { session: { used: 0 } } }),
+    null
+  );
+  assert.equal(state.reconcileCodexScopeRecovery(observed, null), false);
+  const usage = {};
+  evidence.retainCodexRecoveryEvidence(payload, usage);
+  assert.equal(
+    state.reconcileCodexScopeRecovery(
+      { ...observed, startedAt: observed.startedAt - 31_000 },
+      evidence.getCodexRecoveryEvidence(usage)
+    ),
+    false
+  );
+  assert.equal(
+    (await readConnection(connection.id)).providerSpecificData.codexScopeRateLimitedUntil.codex,
+    oldReset
+  );
+});
+
+test("actual Codex quota parsing and preflight preserve the blocking window identity through persistence", async () => {
+  const { connection, oldReset } = await seedRecovery();
+  const { fetchCodexQuota } = await import("../../open-sse/services/codexQuotaFetcher.ts");
+  const { registerQuotaFetcher, preflightQuota } =
+    await import("../../open-sse/services/quotaPreflight.ts");
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    Response.json({
+      rate_limit: {
+        limit_reached: false,
+        primary_window: {
+          used_percent: 95,
+          reset_at: Date.parse(oldReset) / 1000,
+          limit_window_seconds: 604800,
+        },
+        secondary_window: null,
+      },
+    });
+  let quota;
+  try {
+    quota = await fetchCodexQuota(connection.id, {
+      accessToken: "test-token",
+      requestedModel: "gpt-5.6-luna-max",
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+  assert.ok(quota);
+  registerQuotaFetcher("codex-recovery-test", async () => quota);
+  const blocked = await preflightQuota(
+    "codex-recovery-test",
+    connection.id,
+    {},
+    {
+      resolveMinRemainingPercent: () => 10,
+    }
+  );
+  assert.equal(blocked.proceed, false);
+  assert.equal(blocked.resetAt, oldReset);
+  assert.deepEqual(blocked.blockingWindow, { name: "session", windowSeconds: 604800 });
+  await codexAccount.persistCodexChildCooldown({
+    connectionId: connection.id,
+    model: "gpt-5.6-luna-max",
+    rateLimitedUntil: oldReset,
+    quotaPreflightWindow: blocked.blockingWindow,
+  });
+  const data = (await readConnection(connection.id)).providerSpecificData as Record<
+    string,
+    unknown
+  >;
+  assert.deepEqual((data.codexScopePreflightWindow as Record<string, unknown>).codex, {
+    name: "session",
+    windowSeconds: 604800,
+    resetAt: oldReset,
+  });
+});
+
+test("connection cutoff takes precedence over restrictive provider/global defaults", async () => {
+  const { connection, payload, sparkReset } = await seedRecovery();
+  const { updateSettings } = await import("../../src/lib/db/settings.ts");
+  await updateSettings({
+    resilienceSettings: {
+      quotaPreflight: {
+        defaultThresholdPercent: 95,
+        providerWindowDefaults: { codex: { session: 90 } },
+      },
+    },
+  });
+  await providersDb.updateProviderConnection(connection.id, {
+    quotaWindowThresholds: { session: 10 },
+  });
+  await fetchRecovery(connection.id, payload);
+  assert.deepEqual(
+    (await readConnection(connection.id)).providerSpecificData.codexScopeRateLimitedUntil,
+    { spark: sparkReset }
+  );
+});
+
+test("new preflight persistence cannot reclassify a still authoritative quota reset", async () => {
+  const { connection, payload, oldReset } = await seedRecovery();
+  const { updateCodexScopedQuotaState } =
+    await import("../../src/lib/db/providers/codexAccountState.ts");
+  await updateCodexScopedQuotaState(connection.id, "codex", {
+    rateLimitedUntil: oldReset,
+    rateLimitSource: "quota_reset",
+  });
+  await codexAccount.persistCodexChildCooldown({
+    connectionId: connection.id,
+    model: "gpt-5.6-luna-max",
+    rateLimitedUntil: oldReset,
+    quotaPreflightWindow: { name: "session", windowSeconds: 604800 },
+  });
+  const before = await readConnection(connection.id);
+  assert.deepEqual(
+    (before.providerSpecificData as Record<string, unknown>).codexScopePreflightWindow,
+    {}
+  );
+  await fetchRecovery(connection.id, payload);
+  assert.deepEqual(
+    (await readConnection(connection.id)).providerSpecificData,
+    before.providerSpecificData
+  );
+});

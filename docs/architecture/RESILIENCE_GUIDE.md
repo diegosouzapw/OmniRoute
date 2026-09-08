@@ -634,3 +634,27 @@ default `test:integration`, chaos and heap self-skip (without `RUN_CHAOS_INT`/`-
 - [Architecture Guide](./ARCHITECTURE.md) — System architecture and internals
 - [User Guide](../guides/USER_GUIDE.md) — Providers, combos, CLI integration
 - [Auto-Combo Engine](../routing/AUTO-COMBO.md) — 13-factor scoring, mode packs
+
+### Codex preflight window recovery
+
+A Codex quota preflight block records the normal child's blocking window name,
+window duration, and reset alongside its fallback cooldown. A later successful
+live usage fetch can retire that child cooldown only when the same window and
+duration have a strictly later reset and every present normal quota window has
+headroom above the effective connection, provider, or global cutoff. Both raw
+normal-window fields must be present (an explicitly absent window may be null),
+with a boolean nonexhausted signal and finite usage, reset, and duration values.
+Tolerant dashboard normalization is not recovery evidence.
+
+Recovery captures the exact connection and resilience policy before the fetch,
+then compares both inside the existing SQLite transaction. A changed connection,
+policy, or observation older than 30 seconds leaves the cooldown in place.
+Ordinary cooldown and quota-response writers invalidate prior preflight origin
+for their scope, including writes that retain an authoritative `quota_reset`.
+Spark, other provider state, credentials, and legitimate current refusal remain
+unchanged. Legacy fallback rows without recorded preflight origin are not
+implicitly reclassified; they still require scoped operator diagnosis.
+
+The regression suite exercises the public live-usage path with temporary SQLite
+stores and bounded upstream fixtures, including concurrent state changes and
+malformed usage that would otherwise look healthy after display normalization.

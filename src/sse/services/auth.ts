@@ -923,7 +923,11 @@ function quotaPreflightUnavailableUntil(resetAt?: string | null): string {
 async function markQuotaPreflightAccountUnavailable(
   provider: string,
   connectionId: string,
-  preflight: { quotaPercent?: number; resetAt?: string | null },
+  preflight: {
+    quotaPercent?: number;
+    resetAt?: string | null;
+    blockingWindow?: { name: string; windowSeconds: number };
+  },
   requestedModel: string | null
 ): Promise<string> {
   const unavailableUntil = quotaPreflightUnavailableUntil(preflight.resetAt ?? null);
@@ -932,6 +936,11 @@ async function markQuotaPreflightAccountUnavailable(
       connectionId,
       model: requestedModel,
       rateLimitedUntil: unavailableUntil,
+      // A synthetic fallback deadline is not an observed quota-window reset.
+      quotaPreflightWindow:
+        preflight.resetAt && Date.parse(preflight.resetAt) === Date.parse(unavailableUntil)
+          ? preflight.blockingWindow
+          : undefined,
     });
     return unavailableUntil;
   }

@@ -27,9 +27,11 @@ export interface PreflightQuotaResult {
   reason?: string;
   quotaPercent?: number;
   resetAt?: string | null;
+  blockingWindow?: { name: string; windowSeconds: number };
 }
 
 export interface QuotaWindowInfo {
+  windowSeconds?: number;
   percentUsed: number;
   resetAt?: string | null;
 }
@@ -191,7 +193,14 @@ function quotaWindowCutoffResult(
     worstResetAt = windowInfo.resetAt ?? null;
   }
 
-  return worstWindow === null ? null : exhaustedResult(worstUsedPercent, worstResetAt);
+  if (worstWindow === null) return null;
+  const seconds = windows[worstWindow].windowSeconds;
+  return {
+    ...exhaustedResult(worstUsedPercent, worstResetAt),
+    ...(typeof seconds === "number" && Number.isFinite(seconds) && seconds > 0
+      ? { blockingWindow: { name: worstWindow, windowSeconds: seconds } }
+      : {}),
+  };
 }
 
 function quotaPercentCutoffResult(
@@ -333,11 +342,20 @@ export async function preflightQuota(
       console.info(
         `[QuotaPreflight] ${provider}/${connectionId} ${worstWindow}: ${worstRemaining.toFixed(1)}% remaining — switching`
       );
+      const windowSeconds = quota.windows[worstWindow].windowSeconds;
       return {
         proceed: false,
         reason: "quota_exhausted",
         quotaPercent: worstUsedPercent,
         resetAt: worstResetAt,
+        ...(typeof windowSeconds === "number" && Number.isFinite(windowSeconds) && windowSeconds > 0
+          ? {
+              blockingWindow: {
+                name: worstWindow,
+                windowSeconds,
+              },
+            }
+          : {}),
       };
     }
 

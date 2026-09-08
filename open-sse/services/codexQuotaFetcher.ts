@@ -46,11 +46,14 @@ const CACHE_TTL_MS = 60_000; // 60 seconds
 
 // Per-account quota window info (richer than QuotaInfo — includes both windows)
 export interface CodexDualWindowQuota extends QuotaInfo {
-  window5h: { percentUsed: number; resetAt: string | null };
-  window7d: { percentUsed: number; resetAt: string | null };
+  window5h: { percentUsed: number; resetAt: string | null; windowSeconds?: number };
+  window7d: { percentUsed: number; resetAt: string | null; windowSeconds?: number };
   limitReached: boolean;
   /** All known Codex quota windows, including Spark when the upstream exposes it. */
-  allWindows?: Record<string, { percentUsed: number; resetAt: string | null }>;
+  allWindows?: Record<
+    string,
+    { percentUsed: number; resetAt: string | null; windowSeconds?: number }
+  >;
   /**
    * Banked reset credits available on the account (display-only, issue #5199).
    * Eligibility-gated: absent for most accounts. Never throws when missing.
@@ -177,8 +180,8 @@ function getCodexConnectionMeta(
 }
 
 function getDominantResetAt(quota: {
-  window5h: { percentUsed: number; resetAt: string | null };
-  window7d: { percentUsed: number; resetAt: string | null };
+  window5h: { percentUsed: number; resetAt: string | null; windowSeconds?: number };
+  window7d: { percentUsed: number; resetAt: string | null; windowSeconds?: number };
 }): string | null {
   if (quota.window7d.percentUsed > quota.window5h.percentUsed) {
     return quota.window7d.resetAt || quota.window5h.resetAt;
@@ -308,10 +311,17 @@ function parseWindowReset(window: Record<string, unknown>): string | null {
 
 function parseCodexWindow(
   window: Record<string, unknown> | null | undefined
-): { percentUsed: number; resetAt: string | null } | null {
+): { percentUsed: number; resetAt: string | null; windowSeconds?: number } | null {
   if (!window || Object.keys(window).length === 0) return null;
   const percentUsed = toNumber(window["used_percent"] ?? window["usedPercent"], 0) / 100;
-  return { percentUsed, resetAt: parseWindowReset(window) };
+  const seconds = window["limit_window_seconds"];
+  return {
+    percentUsed,
+    resetAt: parseWindowReset(window),
+    ...(typeof seconds === "number" && Number.isFinite(seconds) && seconds > 0
+      ? { windowSeconds: seconds }
+      : {}),
+  };
 }
 
 /**
@@ -365,8 +375,8 @@ function findSparkRateLimit(data: Record<string, unknown>): Record<string, unkno
 }
 
 function getCodexRateLimitWindows(rateLimit: Record<string, unknown>): {
-  primary: { percentUsed: number; resetAt: string | null } | null;
-  secondary: { percentUsed: number; resetAt: string | null } | null;
+  primary: { percentUsed: number; resetAt: string | null; windowSeconds?: number } | null;
+  secondary: { percentUsed: number; resetAt: string | null; windowSeconds?: number } | null;
 } {
   return {
     primary: parseCodexWindow(toRecord(rateLimit["primary_window"] ?? rateLimit["primaryWindow"])),
@@ -377,7 +387,7 @@ function getCodexRateLimitWindows(rateLimit: Record<string, unknown>): {
 }
 
 function assignCodexWindows(
-  target: Record<string, { percentUsed: number; resetAt: string | null }>,
+  target: Record<string, { percentUsed: number; resetAt: string | null; windowSeconds?: number }>,
   rateLimit: Record<string, unknown>,
   names: { primary: string; secondary: string }
 ): void {
@@ -422,12 +432,18 @@ function parseCodexUsageResponse(
     selectedRateLimit["limit_reached"] ?? selectedRateLimit["limitReached"]
   );
 
-  const windows: Record<string, { percentUsed: number; resetAt: string | null }> = {};
+  const windows: Record<
+    string,
+    { percentUsed: number; resetAt: string | null; windowSeconds?: number }
+  > = {};
   assignCodexWindows(windows, selectedRateLimit, {
     primary: useSparkWindows ? CODEX_SPARK_QUOTA_SESSION : CODEX_WINDOW_SESSION,
     secondary: useSparkWindows ? CODEX_SPARK_QUOTA_WEEKLY : CODEX_WINDOW_WEEKLY,
   });
-  const allWindows: Record<string, { percentUsed: number; resetAt: string | null }> = {
+  const allWindows: Record<
+    string,
+    { percentUsed: number; resetAt: string | null; windowSeconds?: number }
+  > = {
     ...windows,
   };
 
