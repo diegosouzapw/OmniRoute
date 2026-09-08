@@ -80,7 +80,7 @@ import {
 import { dispatchChatWithAffinityEviction } from "./chatDispatch";
 import { getCachedSettings, getCombosCacheVersion } from "@/lib/db/readCache";
 import { comboCheckProvider, ghComboGate } from "./chat/githubLiveCatalogFilter.ts";
-import { comboTargetPassesKeyModelPolicy } from "./chat/comboTargetKeyPolicy.ts";
+import { evaluateComboTargetPreflight } from "./chat/comboTargetKeyPolicy.ts";
 import { getCombos } from "@/lib/db/combos";
 import { resolveModelLockoutSettings } from "@/lib/resilience/modelLockoutSettings";
 import {
@@ -993,8 +993,8 @@ async function handleChatImplementation(
       `Combo "${modelStr}" [${combo.strategy || "priority"}] with ${combo.models.length} models`
     );
 
-    // Pre-check function used by combo routing. For explicit combo live tests,
-    // avoid pre-skipping so each model gets a real execution attempt.
+    // Pre-check function used by combo routing. A live-test marker may skip
+    // availability only after target authorization succeeds.
     const comboPreselectedCredentials = new Map<string, any>();
     const getComboCredentialCacheKey = (
       modelString: string,
@@ -1010,12 +1010,16 @@ async function handleChatImplementation(
         providerId?: string | null;
       }
     ) => {
-      if (isComboLiveTest) return true;
-      // #12886: combo-name allow-list must not skip inner targets (#9057 still
-      // checks auto/* / disableNonPublic via comboTargetPassesKeyModelPolicy).
-      if (!(await comboTargetPassesKeyModelPolicy({ apiKey, apiKeyInfo, requestedModelStr: resolvedModelStr, targetModelStr: modelString, isModelAllowedForKey }))) {
-        return false;
-      }
+      const preflightDecision = await evaluateComboTargetPreflight({
+        apiKey,
+        apiKeyInfo,
+        requestedModelStr: resolvedModelStr,
+        targetModelStr: modelString,
+        isComboLiveTest,
+        isModelAllowedForKey,
+      });
+      if (preflightDecision === "deny") return false;
+      if (preflightDecision === "bypass-availability") return true;
 
       // Use getModelInfo to resolve custom prefixes, but prefer the combo
       // target's providerId when available — the model string's provider

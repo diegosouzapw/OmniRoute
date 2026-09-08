@@ -13,6 +13,19 @@ export type ComboTargetKeyPolicyInfo = {
   modelAccessMode?: string | null;
 };
 
+export type ComboTargetKeyPolicyOptions = {
+  apiKey: string | null | undefined;
+  apiKeyInfo: ComboTargetKeyPolicyInfo | null | undefined;
+  requestedModelStr: string;
+  targetModelStr: string;
+  isModelAllowedForKey: (key: string, model: string) => Promise<boolean>;
+};
+
+export type ComboTargetPreflightDecision =
+  | "deny"
+  | "check-availability"
+  | "bypass-availability";
+
 function modelMatchesAllowPattern(pattern: string, model: string): boolean {
   if (pattern.endsWith("/*")) return model.startsWith(pattern.slice(0, -1));
   return pattern === model;
@@ -26,13 +39,9 @@ function allowListCoversRequestedCombo(
   return allowedModels.some((pattern) => modelMatchesAllowPattern(pattern, requestedModelStr));
 }
 
-export async function comboTargetPassesKeyModelPolicy(opts: {
-  apiKey: string | null | undefined;
-  apiKeyInfo: ComboTargetKeyPolicyInfo | null | undefined;
-  requestedModelStr: string;
-  targetModelStr: string;
-  isModelAllowedForKey: (key: string, model: string) => Promise<boolean>;
-}): Promise<boolean> {
+export async function comboTargetPassesKeyModelPolicy(
+  opts: ComboTargetKeyPolicyOptions
+): Promise<boolean> {
   const { apiKey, apiKeyInfo, requestedModelStr, targetModelStr, isModelAllowedForKey } = opts;
   if (!apiKey || !apiKeyInfo) return true;
 
@@ -47,4 +56,15 @@ export async function comboTargetPassesKeyModelPolicy(opts: {
   }
 
   return isModelAllowedForKey(apiKey, targetModelStr);
+}
+
+/**
+ * A combo live test may skip availability probes only after target authorization.
+ * The client marker can never convert a denied model into an authorized target.
+ */
+export async function evaluateComboTargetPreflight(
+  opts: ComboTargetKeyPolicyOptions & { isComboLiveTest: boolean }
+): Promise<ComboTargetPreflightDecision> {
+  if (!(await comboTargetPassesKeyModelPolicy(opts))) return "deny";
+  return opts.isComboLiveTest ? "bypass-availability" : "check-availability";
 }
