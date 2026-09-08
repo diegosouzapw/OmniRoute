@@ -154,7 +154,12 @@ function isWhitespace(value: string): boolean {
 }
 
 function isRouteContextWord(value: string): boolean {
-  return value === "Route" || (HTTP_METHODS as readonly string[]).includes(value);
+  return (
+    value === "Route" ||
+    value.toLowerCase() === "on" ||
+    value.toLowerCase() === "endpoint" ||
+    (HTTP_METHODS as readonly string[]).includes(value)
+  );
 }
 
 function hasRouteContextBefore(value: string, candidateIndex: number): boolean {
