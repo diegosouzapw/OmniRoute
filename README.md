@@ -1087,13 +1087,23 @@ yay -S omniroute-bin && systemctl --user enable --now omniroute.service
 **🔧 Nix (Flake)**
 
 ```bash
-# Using Nix flakes
+# Install the package (requires flakes enabled)
+nix profile install github:diegosouzapw/OmniRoute
+# Or run ad-hoc without installing:
+nix run github:diegosouzapw/OmniRoute -- --help
+
+# Dev shell for hacking on the source:
 nix develop
 npm run dev
 
 # Or using devbox
 devbox run npm run dev
 ```
+
+The package derivation is a fixed-output derivation (FOD) because OmniRoute's
+`package-lock.json` references workspace packages that `npm ci --offline`
+cannot resolve inside the Nix sandbox. Version bumps require updating the
+`outputHash` in `nix/omniroute.nix`.
 
 📖 [Docker Guide](docs/guides/DOCKER_GUIDE.md) — Compose profiles, Caddy HTTPS, Cloudflare tunnels.
 
