@@ -356,7 +356,11 @@ export function cacheReasoningFromAssistantMessage(
   if (toolCallIds.length === 0) {
     const scope = context?.scope?.trim();
     const historyMessages = context?.historyMessages;
-    if (!scope || !Array.isArray(historyMessages)) return 0;
+    // A real request always has at least one prior message (the user turn), so an
+    // empty history means the caller could not recover the transcript the read
+    // side keys on (e.g. a Responses-shaped body with `input` and no reported
+    // pivot). Writing a one-message digest then can never match — skip it.
+    if (!scope || !Array.isArray(historyMessages) || historyMessages.length === 0) return 0;
 
     const messages = [...historyMessages, message];
     const cacheKey = buildAssistantMessageCacheKey(scope, messages, messages.length - 1);
