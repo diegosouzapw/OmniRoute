@@ -16,21 +16,31 @@ const HTTP_METHODS = [
   "TRACE",
 ] as const;
 const CLEAR_PROSE_BOUNDARIES = [
+  "access_token",
   "after",
+  "api_key",
+  "authorization",
+  "bearer",
   "because",
   "before",
   "but",
+  "cookie",
   "crashed",
   "denied",
   "eacces",
   "enoent",
   "expired",
   "failed",
+  "key",
+  "password",
   "rejected",
   "retry",
+  "secret",
   "then",
+  "token",
   "when",
   "while",
+  "with",
 ] as const;
 const POSIX_FILESYSTEM_ROOTS = [
   "/Users",
@@ -448,8 +458,16 @@ function trimPathSpanEnd(value: string, start: number, end: number): number {
 function isClearProseBoundaryToken(value: string, start: number, end: number): boolean {
   while (start < end && LEADING_PATH_PUNCTUATION.includes(value[start])) start++;
   end = trimPathSpanEnd(value, start, end);
-  return (CLEAR_PROSE_BOUNDARIES as readonly string[]).includes(
-    value.slice(start, end).toLowerCase()
+  const raw = value.slice(start, end);
+  const eq = raw.indexOf("=");
+  const colon = raw.indexOf(":");
+  let keyEnd = raw.length;
+  if (eq > 0) keyEnd = Math.min(keyEnd, eq);
+  if (colon > 0) keyEnd = Math.min(keyEnd, colon);
+  const tokenKey = raw.slice(0, keyEnd).toLowerCase();
+  return (
+    (CLEAR_PROSE_BOUNDARIES as readonly string[]).includes(tokenKey) ||
+    (CLEAR_PROSE_BOUNDARIES as readonly string[]).includes(raw.toLowerCase())
   );
 }
 
