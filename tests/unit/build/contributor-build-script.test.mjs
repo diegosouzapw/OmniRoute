@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   isContributorBuild,
+  shouldBuildStandalone,
   stubContributorInstrumentation,
 } from "../../../scripts/build/backendOnlyPages.mjs";
 
@@ -51,10 +52,17 @@ test("contributor instrumentation stubs are reversible", async () => {
   await fs.rm(tempRoot, { recursive: true, force: true });
 });
 
-test("contributor profile disables standalone output while default keeps it", () => {
-  assert.match(nextConfigSource, /isContributorBuild/);
+test("shouldBuildStandalone disables standalone output for contributor and fast build while default keeps it", () => {
+  assert.equal(shouldBuildStandalone({}), true);
+  assert.equal(shouldBuildStandalone({ OMNIROUTE_BUILD_PROFILE: "backend" }), true);
+  assert.equal(shouldBuildStandalone({ OMNIROUTE_BUILD_PROFILE: "minimal" }), true);
+  assert.equal(shouldBuildStandalone({ OMNIROUTE_BUILD_PROFILE: "contributor" }), false);
+  assert.equal(shouldBuildStandalone({ OMNIROUTE_SKIP_STANDALONE: "1" }), false);
+  assert.match(packageJson.scripts["build:fast"], /OMNIROUTE_SKIP_STANDALONE=1/);
+  assert.match(packageJson.scripts["prebuild:fast"], /check:native-deps/);
+  assert.match(nextConfigSource, /shouldBuildStandalone/);
   assert.match(
     nextConfigSource,
-    /\.\.\.\(isContributorBuild \? \{\} : \{ output: "standalone" \}\)/
+    /\.\.\.\(shouldBuildStandalone\(process\.env\) \? \{ output: "standalone" \} : \{\}\)/
   );
 });

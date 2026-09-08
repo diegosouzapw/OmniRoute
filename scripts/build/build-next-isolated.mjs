@@ -14,10 +14,13 @@ import {
 import {
   isBackendOnlyBuild,
   isContributorBuild,
+  shouldBuildStandalone,
   stubContributorInstrumentation,
   stubDashboardPages,
   restoreDashboardPages,
 } from "./backendOnlyPages.mjs";
+
+export { shouldBuildStandalone } from "./backendOnlyPages.mjs";
 
 /**
  * Layer 1: `app/` has been renamed to `dist/` and the App-Router collision is gone.
@@ -310,7 +313,7 @@ export async function main() {
 
     const result = await runNextBuild();
     const standaloneDir = path.join(distDir, "standalone");
-    if (result.code === 0 && (await exists(standaloneDir)) && !isContributorBuild()) {
+    if (result.code === 0 && (await exists(standaloneDir)) && shouldBuildStandalone()) {
       try {
         await fs.cp(path.join(projectRoot, "docs"), path.join(standaloneDir, "docs"), {
           recursive: true,
@@ -377,9 +380,9 @@ export async function main() {
       } catch (assembleErr) {
         console.warn("[build-next-isolated] Non-fatal error assembling standalone:", assembleErr);
       }
-    } else if (result.code === 0 && isContributorBuild()) {
+    } else if (result.code === 0 && !shouldBuildStandalone()) {
       console.log(
-        "[build-next-isolated] Contributor profile: skipped standalone packaging (compile-only validation)"
+        "[build-next-isolated] Skipped standalone packaging (standalone disabled for fast compile)"
       );
     }
     process.exitCode = result.code;
