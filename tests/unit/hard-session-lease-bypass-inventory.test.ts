@@ -13,7 +13,6 @@ type BypassClass = "A" | "B" | "C";
 
 const EXPECTED: Record<InventoryKind, Record<string, number>> = {
   credential: {
-    "open-sse/handlers/chatCore.ts": 2,
     "open-sse/services/imageCombo.ts": 1,
     "open-sse/services/speechCombo.ts": 1,
     "open-sse/services/videoCombo.ts": 2,
@@ -86,10 +85,7 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "open-sse/services/alibabaFreeTierQuotaFetcher.ts": 1,
     // Family cooldown persist looks the row up to write PSD, not dispatch.
     "open-sse/services/antigravityFamilyCooldown.ts": 1,
-    // v3.8.50 back-merge additions (f95b03d7): combo routing infra and the
-    // volcengine-plan binding/auto-sync services query connections the same
-    // way as their classified siblings.
-    "open-sse/services/combo.ts": 1,
+    "open-sse/services/combo/executeTargetGates.ts": 1,
     "open-sse/services/combo/providerWildcard.ts": 1,
     "open-sse/services/tokenRefresh.ts": 1,
     "src/lib/providers/volcPlanAutoSyncBackfill.ts": 1,
@@ -127,6 +123,7 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/app/api/translator/send/route.ts": 1,
     "src/app/api/translator/translate/route.ts": 1,
     "src/app/api/usage/call-logs/route.ts": 1,
+    "src/app/api/usage/codex-reset-credit/route.ts": 1,
     "src/app/api/usage/quota/route.ts": 1,
     "src/app/api/usage/utilization/route.ts": 1,
     "src/app/api/v1/vscode/[token]/api/tags/route.ts": 1,
@@ -174,6 +171,7 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/lib/usage/callLogs.ts": 1,
     "src/lib/usage/codexResetCredits.ts": 1,
     "src/lib/usage/comboScoringInspector.ts": 1,
+    "src/lib/usage/grokResetCredits.ts": 1,
     "src/lib/usage/providerLimits.ts": 4,
     "src/lib/usage/resilienceExplain.ts": 1,
     "src/lib/usage/usageStats.ts": 1,

@@ -36,6 +36,17 @@ import {
   assertCommonChatGptWebModelAvailable,
   isCommonChatGptWebRetirementError,
 } from "@/shared/constants/chatgptWebRetirement";
+import {
+  getBifrostRoutingConfig,
+  resolveRelayRoutingBackend,
+  shouldTryBifrostForRequest,
+  getActiveBifrostCooldown,
+  recordBifrostFailure,
+  clearBifrostFailure,
+  getRoutingFallbackHeader,
+  getRoutingFallbackReasonHeader,
+} from "@/shared/services/bifrost/bifrostRouting";
+import { dispatchToBifrost } from "@/shared/services/bifrost/bifrostClient";
 
 let initPromise = null;
 
@@ -250,6 +261,59 @@ export async function POST(request) {
       request.headers.get("x-correlation-id")
     );
 
+    // Bifrost Go sidecar fast-path routing check
+    const relayBackend = resolveRelayRoutingBackend();
+    const bifrostConfig = getBifrostRoutingConfig();
+    let fallbackHeaderValue: string | undefined = undefined;
+
+    if (parsedBodyIsRecord && bifrostConfig) {
+      const bifrostDecision = shouldTryBifrostForRequest(relayBackend, bifrostConfig, parsedBody);
+
+      if (bifrostDecision.tryBifrost) {
+        const cooldown =
+          relayBackend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
+        if (cooldown) {
+          fallbackHeaderValue = `bifrost-cooldown; remaining=${cooldown.remainingMs}`;
+        } else {
+          try {
+            const bifrostResult = await dispatchToBifrost({
+              request,
+              body: parsedBody as Record<string, unknown>,
+              config: bifrostConfig,
+            });
+
+            if (bifrostResult.statusCode < 500) {
+              clearBifrostFailure(bifrostConfig.baseUrl);
+              return finishAdmission(
+                withCompressionHeaderEcho(bifrostResult.response, compressionRequestHeader)
+              );
+            }
+
+            // Bifrost returned 5xx -> trip circuit cooldown & fall through to native handleChat
+            recordBifrostFailure(bifrostConfig.baseUrl, `http_${bifrostResult.statusCode}`);
+            fallbackHeaderValue = "bifrost-error";
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            recordBifrostFailure(bifrostConfig.baseUrl, message);
+            fallbackHeaderValue = "bifrost-error";
+          }
+        }
+      }
+    }
+
+    const applyFallbackHeaders = (res: Response) => {
+      if (!bifrostConfig) return res;
+      const fallbackHeader = getRoutingFallbackHeader(relayBackend, bifrostConfig);
+      if (fallbackHeader || fallbackHeaderValue) {
+        res.headers.set("X-Routing-Fallback", fallbackHeaderValue || fallbackHeader || "bifrost");
+        const reasonCode = getRoutingFallbackReasonHeader(fallbackHeaderValue);
+        if (reasonCode) {
+          res.headers.set("X-Routing-Fallback-Reason", reasonCode);
+        }
+      }
+      return res;
+    };
+
     if (wantsStreaming) {
       const reqId = callerCorrelationId ?? generateRequestId();
       // Wrap the real handler response, not the synthetic early-keepalive response. If the
@@ -267,12 +331,17 @@ export async function POST(request) {
         errorFrame: OPENAI_CHAT_ERROR_FRAME,
         extraHeaders: { "X-Correlation-Id": reqId },
       });
-      return withCompressionHeaderEcho(streamedResponse, compressionRequestHeader);
+      return withCompressionHeaderEcho(
+        applyFallbackHeaders(streamedResponse),
+        compressionRequestHeader
+      );
     }
 
     return finishAdmission(
       withCompressionHeaderEcho(
-        await handleChat(request, null, parsedBody, callerCorrelationId ?? undefined),
+        applyFallbackHeaders(
+          await handleChat(request, null, parsedBody, callerCorrelationId ?? undefined)
+        ),
         compressionRequestHeader
       )
     );
