@@ -205,10 +205,14 @@ function requiresReasoningContentPresence(provider: unknown, model: unknown): bo
 }
 
 /**
- * The fields `buildAssistantMessageCacheKey` digests, nothing else: the caller keeps
- * this for the whole request, so large non-digested payload parts must not be
- * retained twice. `reasoning_content` is deliberately excluded — the digest ignores
- * it, and the write side receives the upstream reasoning separately.
+ * Projects the pivot transcript down to what `buildAssistantMessageCacheKey`
+ * digests (`role`, `name`, `content`, and `tool_calls[].{type, function.name,
+ * function.arguments}`). The caller keeps the result for the whole request, so
+ * nothing the digest ignores is retained: `reasoning_content` is dropped (the
+ * write side receives the upstream reasoning separately) and tool-call ids are
+ * dropped. `content` is shared by reference — the digest only reads it, and the
+ * Responses conversion that follows re-references content parts without mutating
+ * them.
  */
 function snapshotReasoningReplayHistory(
   messages: Array<Record<string, unknown>>
@@ -218,7 +222,13 @@ function snapshotReasoningReplayHistory(
     const snapshot: Record<string, unknown> = { role: record.role };
     if (record.name !== undefined) snapshot.name = record.name;
     if (record.content !== undefined) snapshot.content = record.content;
-    if (Array.isArray(record.tool_calls)) snapshot.tool_calls = record.tool_calls;
+    if (Array.isArray(record.tool_calls)) {
+      snapshot.tool_calls = record.tool_calls.map((toolCall) => {
+        const call = (toolCall ?? {}) as Record<string, unknown>;
+        const fn = (call.function ?? {}) as Record<string, unknown>;
+        return { type: call.type, function: { name: fn.name, arguments: fn.arguments } };
+      });
+    }
     return snapshot;
   });
 }
@@ -504,7 +514,10 @@ export function translateRequest(
       // sees `result.messages`, and a Responses body has none. The pivot is the same
       // transcript the replay cache keys plain turns on, so report it to the caller
       // for the write side (#1682 — DeepSeek requires every prior turn's reasoning
-      // once `tools` is present).
+      // once `tools` is present). Known divergence: a `_ensureUserTurn` synthetic
+      // user turn appended by step 1 is part of this transcript but not of the
+      // client's next request, so that (tool-loop-only) shape keys a plain turn
+      // the next read cannot match — it degrades to a cache miss, never a wrong hit.
       if (
         targetFormat === FORMATS.OPENAI_RESPONSES &&
         isReasoner &&
