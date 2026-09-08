@@ -70,14 +70,8 @@ test("429 stays RATE_LIMITED (geo classification is status-scoped)", () => {
 // ── 1b. provider scoping of GEO_BLOCKED ──────────────────────────────────────
 
 test("geo refusal from Gemini API / Vertex providers -> GEO_BLOCKED", () => {
-  assert.equal(
-    classifyProviderError(400, GEO_BODY, "gemini"),
-    PROVIDER_ERROR_TYPES.GEO_BLOCKED
-  );
-  assert.equal(
-    classifyProviderError(400, GEO_BODY, "vertex"),
-    PROVIDER_ERROR_TYPES.GEO_BLOCKED
-  );
+  assert.equal(classifyProviderError(400, GEO_BODY, "gemini"), PROVIDER_ERROR_TYPES.GEO_BLOCKED);
+  assert.equal(classifyProviderError(400, GEO_BODY, "vertex"), PROVIDER_ERROR_TYPES.GEO_BLOCKED);
   assert.equal(
     classifyProviderError(400, GEO_BODY, "gemini-cli"),
     PROVIDER_ERROR_TYPES.GEO_BLOCKED
@@ -174,7 +168,12 @@ test("antigravity/agy connection test probes streamGenerateContent, not userinfo
     assert.equal(typeof entry.buildProbe, "function", `${provider} uses a buildProbe`);
 
     const probe = await entry.buildProbe(
-      { providerSpecificData: { clientProfile: "ide" } },
+      {
+        providerSpecificData: {
+          clientProfile: "ide",
+          projectId: "test-project-123",
+        },
+      },
       "sk-test-token"
     );
     assert.match(probe.url, /v1internal:streamGenerateContent\?alt=sse/);
@@ -183,7 +182,31 @@ test("antigravity/agy connection test probes streamGenerateContent, not userinfo
     assert.equal(probe.headers["Content-Type"], "application/json");
     assert.ok(probe.body, "probe carries a minimal generation body");
     const parsedBody = JSON.parse(probe.body as string);
-    assert.ok(Array.isArray(parsedBody.contents));
-    assert.equal(parsedBody.generationConfig.maxOutputTokens, 1);
+    assert.equal(parsedBody.project, "test-project-123");
+    assert.equal(parsedBody.model, "gemini-3.1-flash-lite");
+    assert.equal(parsedBody.requestType, "agent");
+    assert.equal(parsedBody.userAgent, "antigravity");
+    assert.match(parsedBody.requestId, /^agent\//);
+    assert.ok(Array.isArray(parsedBody.request.contents));
+    assert.equal(parsedBody.request.generationConfig.maxOutputTokens, 1);
   }
+});
+
+test("antigravity connection test uses a stored project without client profile", async () => {
+  const entry = OAUTH_TEST_CONFIG.antigravity;
+  assert.ok(entry?.buildProbe);
+
+  const probe = await entry.buildProbe(
+    { providerSpecificData: { projectId: "stored-abc" } },
+    "sk-test-token"
+  );
+  const parsedBody = JSON.parse(probe.body as string);
+
+  assert.equal(parsedBody.project, "stored-abc");
+  assert.equal(parsedBody.model, "gemini-3.1-flash-lite");
+  assert.equal(parsedBody.requestType, "agent");
+  assert.equal(parsedBody.userAgent, "antigravity");
+  assert.match(parsedBody.requestId, /^agent\//);
+  assert.ok(Array.isArray(parsedBody.request.contents));
+  assert.equal(parsedBody.request.generationConfig.maxOutputTokens, 1);
 });

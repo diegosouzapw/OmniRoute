@@ -2,6 +2,14 @@ import { buildGitLabOAuthEndpoints, resolveGitLabOAuthBaseUrl } from "@/lib/oaut
 import { ANTIGRAVITY_RUNTIME_BASE_URLS } from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { getAntigravityClientProfile } from "@omniroute/open-sse/services/antigravityClientProfile.ts";
+import {
+  generateAntigravityRequestId,
+  getAntigravityEnvelopeUserAgent,
+} from "@omniroute/open-sse/services/antigravityIdentity.ts";
+import {
+  ensureAntigravityProjectAssigned,
+  ANTIGRAVITY_REQUIRES_MANUAL_PROJECT,
+} from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
 import { isGeoBlockedError } from "@omniroute/open-sse/services/errorClassifier.ts";
 
 // Real model-surface probe for antigravity/agy. The previous probe only hit the
@@ -14,11 +22,37 @@ import { isGeoBlockedError } from "@omniroute/open-sse/services/errorClassifier.
 //   401/403  -> token bad
 // Mirrors AntigravityExecutor.buildUrl/buildHeaders so the probe exercises the
 // exact same surface as real requests.
-function buildAntigravityProbe(
+async function buildAntigravityProbe(
   connection: { providerSpecificData?: unknown },
   accessToken: string
 ) {
   const profile = getAntigravityClientProfile(connection as never);
+  const providerSpecificData =
+    connection.providerSpecificData && typeof connection.providerSpecificData === "object"
+      ? (connection.providerSpecificData as Record<string, unknown>)
+      : undefined;
+  const storedProjectId =
+    typeof providerSpecificData?.projectId === "string" && providerSpecificData.projectId.trim()
+      ? providerSpecificData.projectId.trim()
+      : undefined;
+  let projectId = storedProjectId;
+  if (!projectId && accessToken) {
+    try {
+      const discoveredProjectId = await ensureAntigravityProjectAssigned(
+        accessToken,
+        fetch,
+        getAntigravityClientProfile(connection as never),
+        AbortSignal.timeout(8000)
+      );
+      if (discoveredProjectId && discoveredProjectId !== ANTIGRAVITY_REQUIRES_MANUAL_PROJECT) {
+        projectId = discoveredProjectId;
+      }
+    } catch {
+      // Project discovery is best effort for the probe; the request still
+      // exercises the same Cloud Code envelope and reports its real status.
+    }
+  }
+
   return {
     url: `${ANTIGRAVITY_RUNTIME_BASE_URLS[0]}/v1internal:streamGenerateContent?alt=sse`,
     method: "POST",
@@ -29,8 +63,15 @@ function buildAntigravityProbe(
       ...getAntigravityContentHeaders(profile, accessToken),
     },
     body: JSON.stringify({
-      contents: [{ role: "user", parts: [{ text: "ping" }] }],
-      generationConfig: { maxOutputTokens: 1 },
+      ...(projectId ? { project: projectId } : {}),
+      requestId: generateAntigravityRequestId(),
+      request: {
+        contents: [{ role: "user", parts: [{ text: "ping" }] }],
+        generationConfig: { maxOutputTokens: 1 },
+      },
+      model: "gemini-3.1-flash-lite",
+      userAgent: getAntigravityEnvelopeUserAgent(connection as never),
+      requestType: "agent",
     }),
   };
 }
