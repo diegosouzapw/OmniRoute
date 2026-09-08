@@ -37,7 +37,9 @@ export async function comboTargetPassesKeyModelPolicy(opts: {
   if (!apiKey || !apiKeyInfo) return true;
 
   const hasModelRestrictions =
-    Boolean(apiKeyInfo.allowedModels?.length) || apiKeyInfo.disableNonPublicModels === true;
+    apiKeyInfo.modelAccessMode === "restricted" ||
+    Boolean(apiKeyInfo.allowedModels?.length) ||
+    apiKeyInfo.disableNonPublicModels === true;
   if (!hasModelRestrictions) return true;
 
   if (allowListCoversRequestedCombo(apiKeyInfo.allowedModels, requestedModelStr)) {
