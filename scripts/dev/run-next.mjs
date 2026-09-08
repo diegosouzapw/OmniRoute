@@ -16,10 +16,7 @@ import { isTurbopackCacheCorruption, purgeAllTurbopackCaches } from "./turbopack
 import { randomUUID } from "node:crypto";
 import { getMainServerTimeoutConfig } from "./main-server-timeouts.mjs";
 import { createSystemdNotifier } from "./systemd-notify.mjs";
-import {
-  attachRequestStreamGuards,
-  installProcessCrashGuard,
-} from "./httpClientAbortGuard.mjs";
+import { attachRequestStreamGuards, installProcessCrashGuard } from "./httpClientAbortGuard.mjs";
 
 const { maybeHandleDisallowedMethod } = methodGuard;
 const { wrapRequestListenerWithHeadResponseGuard } = headResponseGuard;
@@ -232,15 +229,31 @@ async function start() {
     process.exit(1);
   });
 
+  let isShuttingDown = false;
   const shutdown = async (signal) => {
+    if (isShuttingDown) {
+      // Second Ctrl+C / signal forces immediate exit
+      process.exit(1);
+    }
+    isShuttingDown = true;
+
+    // Safety net: force exit after 2s if keep-alive sockets or Next.js app close hangs
+    const forceExitTimer = setTimeout(() => {
+      process.exit(0);
+    }, 2000);
+    forceExitTimer.unref?.();
+
     systemdNotifier.stopping();
     try {
+      server.closeIdleConnections?.();
+      server.closeAllConnections?.();
       await new Promise((resolve) => server.close(resolve));
       await globalThis.__omnirouteRequestShutdown?.(signal);
       await nextApp.close();
     } catch (error) {
       console.error("[SHUTDOWN] Failed during signal:", signal, error);
     } finally {
+      clearTimeout(forceExitTimer);
       process.exit(0);
     }
   };
