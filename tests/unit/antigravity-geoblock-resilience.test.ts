@@ -26,6 +26,8 @@ const { buildAntigravityUpstreamError } =
   await import("../../open-sse/executors/antigravityUpstreamError.ts");
 const { OAUTH_TEST_CONFIG } =
   await import("../../src/app/api/providers/[id]/test/oauthTestConfig.ts");
+const { clearAntigravityProjectCache } =
+  await import("../../open-sse/services/antigravityProjectBootstrap.ts");
 
 const GEO_BODY = {
   error: {
@@ -209,4 +211,39 @@ test("antigravity connection test uses a stored project without client profile",
   assert.match(parsedBody.requestId, /^agent\//);
   assert.ok(Array.isArray(parsedBody.request.contents));
   assert.equal(parsedBody.request.generationConfig.maxOutputTokens, 1);
+});
+
+test("antigravity connection test discovers project when no stored project exists", async () => {
+  const entry = OAUTH_TEST_CONFIG.antigravity;
+  assert.ok(entry?.buildProbe);
+
+  clearAntigravityProjectCache();
+  const originalFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const urlStr = String(input);
+      if (urlStr.includes("loadCodeAssist")) {
+        return new Response(
+          JSON.stringify({
+            cloudaicompanionProject: { id: "discovered-project-456" },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      return new Response("Not found", { status: 404 });
+    }) as typeof fetch;
+
+    const probe = await entry.buildProbe({ providerSpecificData: {} }, "sk-discovery-token");
+    const parsedBody = JSON.parse(probe.body as string);
+    assert.equal(parsedBody.project, "discovered-project-456");
+    assert.equal(parsedBody.model, "gemini-3.1-flash-lite");
+    assert.equal(parsedBody.requestType, "agent");
+    assert.equal(parsedBody.userAgent, "antigravity");
+    assert.match(parsedBody.requestId, /^agent\//);
+    assert.ok(Array.isArray(parsedBody.request.contents));
+    assert.equal(parsedBody.request.generationConfig.maxOutputTokens, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+    clearAntigravityProjectCache();
+  }
 });

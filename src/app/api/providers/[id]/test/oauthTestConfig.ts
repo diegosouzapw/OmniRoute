@@ -41,7 +41,7 @@ async function buildAntigravityProbe(
       const discoveredProjectId = await ensureAntigravityProjectAssigned(
         accessToken,
         fetch,
-        getAntigravityClientProfile(connection as never),
+        profile,
         AbortSignal.timeout(8000)
       );
       if (discoveredProjectId && discoveredProjectId !== ANTIGRAVITY_REQUIRES_MANUAL_PROJECT) {
