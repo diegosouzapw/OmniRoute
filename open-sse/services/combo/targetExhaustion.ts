@@ -27,6 +27,7 @@ import {
 import { RateLimitReason } from "../../config/constants.ts";
 import { isProviderCircuitOpenResult, isRequestScopedUpstreamFailure } from "./comboPredicates.ts";
 import { isCloudflareFingerprintRejection } from "../errorClassifier.ts";
+import { isLocalModelPolicyResponse } from "../../../src/shared/utils/resolvedModelAccess.ts";
 // #10334 — agentrouter-exclusive predicate shared with the persistence layer
 // (markAccountUnavailable) so the same-request combo skip and the persisted
 // connection cooldown agree on exactly which fallbackResult shapes qualify.
@@ -113,6 +114,8 @@ export function applyComboTargetExhaustion(
   opts: ApplyComboTargetExhaustionOptions
 ): boolean {
   const { result, sets, log, tag, errorText, structuredError } = opts;
+  // Local key policy is neither upstream credential failure nor provider exhaustion.
+  if (isLocalModelPolicyResponse(result)) return false;
   const provider = target.provider;
 
   // #10334: agentrouter-exclusive account-wide quota exhaustion ("额度不足")

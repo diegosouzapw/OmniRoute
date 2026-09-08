@@ -67,6 +67,21 @@ test("resolved-model policy distinguishes local mode from unavailable key policy
   assert.equal(calls, 0);
 });
 
+test("resolved-model policy fails closed when the key checker is unavailable", async () => {
+  const result = await checkResolvedModelPermission(
+    {
+      hasApiKeyMetadata: true,
+      apiKey: "sk-test-resolved",
+      requestedModel: "friendly-alias",
+      resolvedModel: "provider/private-target",
+    },
+    async () => {
+      throw new Error("policy backend unavailable");
+    }
+  );
+  assert.equal(result, "unavailable");
+});
+
 test("local model-policy responses remain distinguishable from upstream responses", () => {
   const local = markLocalModelPolicyResponse(new Response("denied", { status: 403 }));
   assert.equal(isLocalModelPolicyResponse(local), true);

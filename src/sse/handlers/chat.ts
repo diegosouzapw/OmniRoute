@@ -71,6 +71,10 @@ import { isChatGptWebCodexModel } from "@/shared/constants/chatgptWebCodex";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
 import { getComboByName, updateCombo } from "@/lib/db/combos";
 import { isModelAllowedForKey } from "@/lib/db/apiKeys";
+import {
+  checkResolvedModelPermission,
+  markLocalModelPolicyResponse,
+} from "@/shared/utils/resolvedModelAccess";
 import { promoteSuccessfulComboModel } from "@/lib/combos/autoPromote";
 import {
   deleteSessionAccountAffinity,
@@ -1514,6 +1518,27 @@ async function handleSingleModelChat(
     // Intentional override (e.g. providerId points to a different credential pool).
     return runtimeOptions.providerId;
   })();
+  // Entry admission authorizes the requested model string. Resolve aliases and
+  // target overrides before dispatch, then require the same key to admit both.
+  const modelPermission = await checkResolvedModelPermission(
+    {
+      hasApiKeyMetadata: Boolean(apiKeyInfo),
+      apiKey: extractApiKey(request),
+      requestedModel: modelStr,
+      resolvedModel: `${provider}/${model}`,
+    },
+    isModelAllowedForKey
+  );
+  if (modelPermission !== "allowed") {
+    return markLocalModelPolicyResponse(
+      errorResponse(
+        modelPermission === "denied" ? HTTP_STATUS.FORBIDDEN : HTTP_STATUS.SERVICE_UNAVAILABLE,
+        modelPermission === "denied"
+          ? "Resolved model is not allowed for this API key"
+          : "API key model policy unavailable"
+      )
+    );
+  }
   const forceLiveComboTest = runtimeOptions.forceLiveComboTest === true;
   const bypassProviderQuotaPolicy = hasProviderQuotaBypassScope(apiKeyInfo?.scopes);
   const forcedConnectionId =
@@ -1845,6 +1870,38 @@ async function handleSingleModelChat(
           return connectionRouting.response;
         }
         requestBody = connectionRouting.body;
+      }
+      // Connection defaults and reasoning rules can replace an admitted alias.
+      // Recheck before token refresh or any upstream dispatch.
+      const effectivePolicyTargets = new Set([`${provider}/${effectiveModel}`]);
+      if (typeof requestBody.model === "string" && requestBody.model.length > 0) {
+        effectivePolicyTargets.add(
+          requestBody.model.includes("/") ? requestBody.model : `${provider}/${requestBody.model}`
+        );
+      }
+      for (const resolvedModel of effectivePolicyTargets) {
+        const effectivePermission = await checkResolvedModelPermission(
+          {
+            hasApiKeyMetadata: Boolean(apiKeyInfo),
+            apiKey: extractApiKey(request),
+            requestedModel: modelStr,
+            resolvedModel,
+          },
+          isModelAllowedForKey
+        );
+        if (effectivePermission !== "allowed") {
+          releaseOAuthSession();
+          return markLocalModelPolicyResponse(
+            errorResponse(
+              effectivePermission === "denied"
+                ? HTTP_STATUS.FORBIDDEN
+                : HTTP_STATUS.SERVICE_UNAVAILABLE,
+              effectivePermission === "denied"
+                ? "Resolved model is not allowed for this API key"
+                : "API key model policy unavailable"
+            )
+          );
+        }
       }
       let injectedHandoff = null;
       if (

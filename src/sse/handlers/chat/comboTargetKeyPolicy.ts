@@ -7,8 +7,11 @@
  * inner target so #9057 holds.
  */
 
+import { hasApiKeyModelRestrictions } from "../../../shared/utils/resolvedModelAccess.ts";
+
 export type ComboTargetKeyPolicyInfo = {
   allowedModels?: string[] | null;
+  blockedModels?: string[] | null;
   disableNonPublicModels?: boolean | null;
   modelAccessMode?: string | null;
 };
@@ -45,11 +48,7 @@ export async function comboTargetPassesKeyModelPolicy(
   const { apiKey, apiKeyInfo, requestedModelStr, targetModelStr, isModelAllowedForKey } = opts;
   if (!apiKey || !apiKeyInfo) return true;
 
-  const hasModelRestrictions =
-    apiKeyInfo.modelAccessMode === "restricted" ||
-    Boolean(apiKeyInfo.allowedModels?.length) ||
-    apiKeyInfo.disableNonPublicModels === true;
-  if (!hasModelRestrictions) return true;
+  if (!hasApiKeyModelRestrictions(apiKeyInfo)) return true;
 
   if (allowListCoversRequestedCombo(apiKeyInfo.allowedModels, requestedModelStr)) {
     return true;
