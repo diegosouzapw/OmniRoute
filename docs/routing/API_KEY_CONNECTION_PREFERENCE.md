@@ -1,3 +1,8 @@
+---
+title: "API-key connection preference"
+description: "Per-API-key ordered provider account preference with automatic fallback"
+---
+
 # API-key connection preference
 
 OmniRoute can route different projects to different **primary accounts** while preserving automatic account fallback.
