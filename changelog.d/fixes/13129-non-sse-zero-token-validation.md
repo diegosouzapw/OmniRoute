@@ -1,0 +1,1 @@
+- **fix(resilience):** non-SSE streaming responses (stream:true + application/json) and HTTP 200s reporting `completion_tokens: 0` with non-empty busy/error content no longer bypass combo response validation — empty/no-op completions fail over to the next target instead of being accepted ([#13129](https://github.com/diegosouzapw/OmniRoute/pull/13129)) - thanks @trespassmk
