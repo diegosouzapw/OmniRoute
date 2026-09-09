@@ -128,3 +128,31 @@ test("buildCallLogListRows: dedupes completed in-memory entries already persiste
   // persisted row wins (no `completed` flag)
   assert.equal(rows[0].completed, undefined);
 });
+
+test("buildCallLogListRows: dedupes a pending in-memory entry already persisted to the DB", () => {
+  // A request that just finished can be persisted to call_logs a moment
+  // before its in-memory pending-tracker entry is removed. Without a guard,
+  // that one id appeared in both activeEntries and logs in the same
+  // response -- a duplicate React key in the request logger's table.
+  const now = 5_000_000;
+  const rows = buildCallLogListRows({
+    logs: [{ id: "dup-pending-1", timestamp: new Date(now - 1_000).toISOString() }],
+    connections: [],
+    pendingDetails: [
+      {
+        id: "dup-pending-1",
+        startedAt: now - 3_000,
+        provider: "openai",
+        model: "gpt-4o",
+        connectionId: "conn-1",
+      },
+    ],
+    completedDetails: [],
+    now,
+  });
+
+  assert.equal(rows.length, 1, "the id must appear exactly once, not once per source");
+  assert.equal(rows[0].id, "dup-pending-1");
+  // persisted row wins (no `active` flag)
+  assert.equal(rows[0].active, undefined);
+});
