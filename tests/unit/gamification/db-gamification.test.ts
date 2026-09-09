@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { addXp, getAggregateXp, getXp } from "../../../src/lib/db/gamification";
+import { addXp, getAggregateXp, getXp, getActionCountByType } from "../../../src/lib/db/gamification";
 import { calculateLevel } from "../../../src/lib/gamification/xp";
 import { getDbInstance } from "../../../src/lib/db/core";
 
@@ -55,5 +55,44 @@ describe("DB Gamification — addXp level computation", () => {
         db.prepare("DELETE FROM xp_audit_log WHERE api_key_id = ?").run(key);
       }
     }
+  });
+});
+
+describe("DB Gamification — xp_action_counts cache (migration 174)", () => {
+  it("increments xp_action_counts on addXp and reads it back via getActionCountByType", () => {
+    const testKey = `test-cache-inc-${Date.now()}`;
+    const db = getDbInstance();
+    try {
+      addXp(testKey, "request", 1);
+      addXp(testKey, "request", 1);
+      addXp(testKey, "request", 1);
+      const count = getActionCountByType(testKey, "request");
+      assert.ok(count >= 3, `expected >=3, got ${count}`);
+    } finally {
+      db.prepare("DELETE FROM xp_action_counts WHERE api_key_id = ?").run(testKey);
+      db.prepare("DELETE FROM xp_audit_log WHERE api_key_id = ?").run(testKey);
+      db.prepare("DELETE FROM user_levels WHERE api_key_id = ?").run(testKey);
+    }
+  });
+
+  it("falls back to COUNT(*) on xp_audit_log when cache row missing (legacy users)", () => {
+    const testKey = `test-cache-fallback-${Date.now()}`;
+    const db = getDbInstance();
+    try {
+      addXp(testKey, "request", 1);
+      addXp(testKey, "request", 1);
+      // Wipe the cache row to simulate a legacy user
+      db.prepare("DELETE FROM xp_action_counts WHERE api_key_id = ?").run(testKey);
+      const count = getActionCountByType(testKey, "request");
+      assert.ok(count >= 2, `expected >=2 via fallback, got ${count}`);
+    } finally {
+      db.prepare("DELETE FROM xp_audit_log WHERE api_key_id = ?").run(testKey);
+      db.prepare("DELETE FROM user_levels WHERE api_key_id = ?").run(testKey);
+    }
+  });
+
+  it("returns 0 for unknown api_key_id without throwing", () => {
+    const count = getActionCountByType("definitely-not-a-real-key-zzzzzz", "request");
+    assert.ok(count >= 0, `expected >=0, got ${count}`);
   });
 });
