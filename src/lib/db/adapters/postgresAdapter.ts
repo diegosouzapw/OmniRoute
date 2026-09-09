@@ -20,6 +20,8 @@ import {
 } from "./postgres/sqlTranslator";
 
 const WRITER_LOCK_KEY = 7211002;
+const BOOTSTRAP_LOCK_KEY = 7211005;
+const CONCURRENT_DDL_CODES = new Set(["23505", "42P07", "42710", "42701", "42P06"]);
 const TRANSLATION_CACHE_LIMIT = 4000;
 const WORKER_PATH_ENV = "OMNIROUTE_PG_WORKER_PATH";
 
@@ -326,6 +328,16 @@ export function createPostgresAdapter(
     }
   }
 
+  function runIdempotentDdl(statement: string, bound: unknown[]): QueryResult {
+    try {
+      return rawQuery(statement, bound);
+    } catch (error) {
+      if (error instanceof PostgresAdapterError && CONCURRENT_DDL_CODES.has(error.pgCode ?? ""))
+        return { rows: [], rowCount: 0, command: null };
+      throw error;
+    }
+  }
+
   function isIdempotentDdl(statement: string): boolean {
     return /^(CREATE (UNIQUE )?(TABLE|INDEX) IF NOT EXISTS|ALTER TABLE .* ADD COLUMN IF NOT EXISTS)/i.test(
       statement
@@ -353,7 +365,7 @@ export function createPostgresAdapter(
     for (const statement of translated.statements) {
       if (translated.kind === "ddl" && isIdempotentDdl(statement)) {
         if (idempotentDdlSeen.has(statement)) continue;
-        last = rawQuery(statement, bound);
+        last = runIdempotentDdl(statement, bound);
         executedIdempotent.push(statement);
         executedDdl = true;
         continue;
@@ -541,17 +553,33 @@ export function createPostgresAdapter(
     }
   }
 
-  function ensureBootstrapped(): void {
-    let version = 0;
+  function readBootstrapVersion(): number {
     try {
       const rows = rawQuery("SELECT omniroute_bootstrap_version() AS version", [], false)
         .rows as Array<{ version: number }>;
-      version = rows[0]?.version ?? 0;
+      return rows[0]?.version ?? 0;
     } catch {
-      version = 0;
+      return 0;
     }
-    if (version >= POSTGRES_BOOTSTRAP_VERSION) return;
-    runScript(buildBootstrapSql());
+  }
+
+  function ensureBootstrapped(): void {
+    if (readBootstrapVersion() >= POSTGRES_BOOTSTRAP_VERSION) return;
+    rawQuery(
+      `SELECT pg_advisory_lock(${BOOTSTRAP_LOCK_KEY}, hashtext(current_schema()))`,
+      [],
+      false
+    );
+    try {
+      if (readBootstrapVersion() >= POSTGRES_BOOTSTRAP_VERSION) return;
+      runScript(buildBootstrapSql());
+    } finally {
+      rawQuery(
+        `SELECT pg_advisory_unlock(${BOOTSTRAP_LOCK_KEY}, hashtext(current_schema()))`,
+        [],
+        false
+      );
+    }
   }
 
   try {

@@ -1,5 +1,6 @@
 import { after, before, describe, test } from "node:test";
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -158,6 +159,61 @@ describe("postgresAdapter", { skip }, () => {
       () => db.exec("CREATE VIRTUAL TABLE probe USING fts5(content)"),
       /no such module: fts5/
     );
+  });
+
+  test("ConcurrentOpen_OnFreshSchema_AllProcessesBootstrap", async () => {
+    const schema = "omniroute_adapter_race";
+    const { Client } = await import("pg");
+    const admin = new Client({ connectionString: TEST_URL });
+    await admin.connect();
+    try {
+      await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);
+    } finally {
+      await admin.end();
+    }
+    const script = [
+      `const { createPostgresAdapter } = await import(${JSON.stringify(
+        new URL("../../../src/lib/db/adapters/postgresAdapter.ts", import.meta.url).href
+      )});`,
+      `const { resolvePostgresConfig } = await import(${JSON.stringify(
+        new URL("../../../src/lib/db/postgresConfig.ts", import.meta.url).href
+      )});`,
+      `const config = resolvePostgresConfig({ OMNIROUTE_DATABASE_URL: ${JSON.stringify(TEST_URL)}, OMNIROUTE_DATABASE_SCHEMA: ${JSON.stringify(schema)} });`,
+      "const adapter = createPostgresAdapter(config);",
+      "adapter.exec('CREATE TABLE IF NOT EXISTS race_probe (id INTEGER PRIMARY KEY AUTOINCREMENT, pid INTEGER)');",
+      "adapter.prepare('INSERT INTO race_probe (pid) VALUES (?)').run(process.pid);",
+      "adapter.close();",
+    ].join("\n");
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-pg-race-"));
+    const scriptPath = path.join(dir, "race-child.mts");
+    fs.writeFileSync(scriptPath, script);
+    const runs = await Promise.all(
+      [1, 2, 3].map(
+        () =>
+          new Promise<{ code: number | null; stderr: string }>((resolve) => {
+            const child = spawn(process.execPath, ["--import", "tsx/esm", scriptPath], {
+              stdio: ["ignore", "ignore", "pipe"],
+            });
+            let stderr = "";
+            child.stderr.on("data", (chunk) => (stderr += String(chunk)));
+            child.on("close", (code) => resolve({ code, stderr }));
+          })
+      )
+    );
+    fs.rmSync(dir, { recursive: true, force: true });
+    for (const run of runs) assert.equal(run.code, 0, run.stderr);
+    const probeConfig = resolvePostgresConfig({
+      OMNIROUTE_DATABASE_URL: TEST_URL,
+      OMNIROUTE_DATABASE_SCHEMA: schema,
+    } as NodeJS.ProcessEnv);
+    if (!probeConfig) throw new Error("invalid test database url");
+    const probe = createPostgresAdapter(probeConfig);
+    try {
+      const rows = probe.prepare("SELECT COUNT(*) AS c FROM race_probe").get() as { c: number };
+      assert.equal(rows.c, 3);
+    } finally {
+      probe.close();
+    }
   });
 
   test("Import_CopiesSqliteRowsAndVerifiesCounts", () => {

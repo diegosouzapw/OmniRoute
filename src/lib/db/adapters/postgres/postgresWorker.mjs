@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 
 const { port, signal, pgModulePath, connection } = workerData;
 const flag = new Int32Array(signal);
+const SCHEMA_LOCK_KEY = 7211004;
 const require = createRequire(import.meta.url);
 const pg = require(pgModulePath || "pg");
 const { Client, types } = pg;
@@ -102,12 +103,22 @@ async function connect() {
   await next.connect();
   await next.query("SET TimeZone TO 'UTC'");
   if (connection.schema) {
-    if (schemaResetPending) {
-      schemaResetPending = false;
-      await next.query(`DROP SCHEMA IF EXISTS "${connection.schema.replace(/"/g, '""')}" CASCADE`);
+    const quoted = `"${connection.schema.replace(/"/g, '""')}"`;
+    await next.query(`SELECT pg_advisory_lock(${SCHEMA_LOCK_KEY}, hashtext($1))`, [
+      connection.schema,
+    ]);
+    try {
+      if (schemaResetPending) {
+        schemaResetPending = false;
+        await next.query(`DROP SCHEMA IF EXISTS ${quoted} CASCADE`);
+      }
+      await next.query(`CREATE SCHEMA IF NOT EXISTS ${quoted}`);
+    } finally {
+      await next.query(`SELECT pg_advisory_unlock(${SCHEMA_LOCK_KEY}, hashtext($1))`, [
+        connection.schema,
+      ]);
     }
-    await next.query(`CREATE SCHEMA IF NOT EXISTS "${connection.schema.replace(/"/g, '""')}"`);
-    await next.query(`SET search_path TO "${connection.schema.replace(/"/g, '""')}"`);
+    await next.query(`SET search_path TO ${quoted}`);
   }
   client = next;
   return next;
