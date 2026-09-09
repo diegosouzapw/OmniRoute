@@ -209,6 +209,22 @@ describe("sqlite to postgres translator", () => {
     );
   });
 
+  test("Rowid_AsAlias_IsLeftAlone", () => {
+    const ctx = contextWith({
+      items: {
+        columns: ["id", "name"],
+        columnTypes: { id: "BIGINT", name: "TEXT" },
+        primaryKey: ["id"],
+        uniqueIndexes: [],
+        identityColumn: "id",
+      },
+    });
+    assert.equal(
+      normalize(sql("SELECT id AS rowId, name FROM items WHERE rowid > ?", ctx)),
+      'SELECT id AS "rowId", name FROM items WHERE id > $1'
+    );
+  });
+
   test("Rowid_OnIdentityTable_BecomesPrimaryKey", () => {
     const ctx = contextWith({
       items: {

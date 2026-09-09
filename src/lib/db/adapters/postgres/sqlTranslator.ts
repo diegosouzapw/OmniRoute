@@ -952,6 +952,7 @@ function rewriteRowid(tokens: Token[], ctx: TranslationContext, refs: TableRefs)
   return tokens.map((token, index) => {
     if (token.type !== "word" || token.value.toLowerCase() !== "rowid") return token;
     const previous = tokens[prevIndex(tokens, index)];
+    if (isWord(previous, "AS")) return token;
     let table = refs.primary;
     if (isOp(previous, ".")) {
       const qualifier = tokens[prevIndex(tokens, prevIndex(tokens, index))];
