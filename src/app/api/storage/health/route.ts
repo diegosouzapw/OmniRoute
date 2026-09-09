@@ -9,6 +9,7 @@ import {
   getProxyLogsTableMaxRows,
 } from "@/lib/logEnv";
 import { getDbBackupMaxFiles, getDbBackupRetentionDays } from "@/lib/db/backup";
+import { getPostgresStatus } from "@/lib/db/postgresStatus";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 /**
@@ -58,10 +59,13 @@ export async function GET() {
       ? "~" + dbFilePath.slice(homeDir.length)
       : dbFilePath;
 
+    const postgres = getPostgresStatus();
+
     return NextResponse.json({
-      driver: "sqlite",
-      dbPath: displayPath,
-      sizeBytes,
+      driver: postgres ? "postgres" : "sqlite",
+      dbPath: postgres ? postgres.connection : displayPath,
+      sizeBytes: postgres ? postgres.sizeBytes : sizeBytes,
+      postgres,
       lastBackupAt,
       backupCount,
       retentionDays: {
