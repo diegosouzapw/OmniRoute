@@ -158,5 +158,6 @@ test("handleAudioSpeech explains that inline Fish references need MessagePack", 
   const payload = (await response.json()) as { error: { message: string } };
 
   assert.equal(response.status, 400);
-  assert.match(payload.error.message, /\/v1\/providers\/fishaudio\/voices/);
+  assert.match(payload.error.message, /Fish Audio MessagePack/);
+  assert.match(payload.error.message, /persistent voice/i);
 });

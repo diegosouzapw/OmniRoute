@@ -24,6 +24,7 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/app/api/memory/rerank-providers/route.ts": 1,
     "src/app/api/search/providers/route.ts": 3,
     "src/app/api/v1/_shared/elevenLabsProxy.ts": 1,
+    "src/app/api/v1/_shared/fishAudioProxy.ts": 1,
     "src/app/api/v1/audio/speech/route.ts": 1,
     "src/app/api/v1/_shared/videoModelResolution.ts": 1,
     "src/app/api/v1/audio/transcriptions/route.ts": 2,
