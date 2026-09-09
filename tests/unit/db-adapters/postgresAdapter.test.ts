@@ -154,6 +154,18 @@ describe("postgresAdapter", { skip }, () => {
     assert.equal(row.t, "integer");
   });
 
+  test("PostgresStatus_ReportsSchemaVersionTablesAndReplicas", async () => {
+    const { getPostgresStatus } = await import("../../../src/lib/db/postgresStatus.ts");
+    const status = getPostgresStatus(db);
+    assert.ok(status, "status must be reported for the postgres driver");
+    assert.equal(status?.schema, "omniroute_adapter_test");
+    assert.match(status?.serverVersion ?? "", /^\d+/);
+    assert.ok(status!.tableCount >= 2, String(status?.tableCount));
+    assert.ok(status!.replicas >= 1, String(status?.replicas));
+    assert.ok(status!.sizeBytes > 0, String(status?.sizeBytes));
+    assert.doesNotMatch(status!.connection, /:\/\/[^:@/]+:(?!\*\*\*@)[^@/]+@/);
+  });
+
   test("VirtualTable_ReportsNoSuchModule", () => {
     assert.throws(
       () => db.exec("CREATE VIRTUAL TABLE probe USING fts5(content)"),
