@@ -29,6 +29,7 @@ const core = await import("../../src/lib/db/core.ts");
 const nodesDb = await import("../../src/lib/db/providers/nodes.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const runner = await import("../../src/lib/api/modelTestRunner.ts");
+const callLogs = await import("../../src/lib/usage/callLogs.ts");
 
 const NODE_ID = "openai-compatible-responses-13070-0000-4000-8000-000000000000";
 const MODEL_ID = "opaque-text-model";
@@ -124,7 +125,7 @@ test("buildInternalResponsesRequest omits the connection header when there is no
 // detectTestKind alone is changed; this one does not.
 // ---------------------------------------------------------------------------
 
-test("a model on a Responses node is tested with a Responses body, not a chat one", async () => {
+test("a model on a Responses node is probed on the internal /v1/responses route", async () => {
   await nodesDb.createProviderNode({
     id: NODE_ID,
     type: "openai-compatible",
@@ -143,29 +144,14 @@ test("a model on a Responses node is tested with a Responses body, not a chat on
   });
 
   const originalFetch = globalThis.fetch;
-  let upstreamUrl = "";
-  let upstreamBody: Record<string, unknown> = {};
-
-  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
-    upstreamUrl =
-      typeof input === "string"
-        ? input
-        : input instanceof URL
-          ? input.href
-          : (input as Request).url;
-    try {
-      upstreamBody = JSON.parse(String(init?.body ?? "{}"));
-    } catch {
-      upstreamBody = {};
-    }
-    // A minimal Responses reply. `output_text` is the field the existing
+  globalThis.fetch = (async () =>
+    // A minimal Responses reply. `output_text` is a field the existing
     // extractor already understands, which is why this fix needs no reader
-    // change -- only the request side was wrong.
-    return new Response(JSON.stringify({ output_text: "4" }), {
+    // change -- only the request side was ever wrong.
+    new Response(JSON.stringify({ output_text: "4" }), {
       status: 200,
       headers: { "content-type": "application/json" },
-    });
-  }) as typeof globalThis.fetch;
+    })) as typeof globalThis.fetch;
 
   try {
     await runner.runSingleModelTest({
@@ -174,29 +160,25 @@ test("a model on a Responses node is tested with a Responses body, not a chat on
       connectionId: String(connection.id),
       timeoutMs: 15_000,
     });
-  } catch {
-    // The assertions below are about what was sent, not about whether the
-    // whole pipeline completed in this environment.
   } finally {
     globalThis.fetch = originalFetch;
   }
 
-  assert.ok(upstreamUrl, "the model test should have reached an upstream request");
-  assert.ok(
-    !upstreamUrl.includes("/chat/completions"),
-    `a Responses node must not be probed on chat completions (got ${upstreamUrl})`
+  await callLogs.waitForCallLogSaves(10_000);
+  const logs = await callLogs.getCallLogs({});
+  const probe = logs.find((entry: { model?: string | null }) =>
+    String(entry.model ?? "").includes(MODEL_ID)
   );
-  assert.ok(
-    "input" in upstreamBody,
-    `a Responses test body carries input (got keys: ${Object.keys(upstreamBody).join(", ")})`
-  );
-  assert.ok(
-    !("messages" in upstreamBody),
-    "a Responses test body must not carry Chat Completions messages"
-  );
+
+  assert.ok(probe, "the model test should have produced a call log entry");
+  // This is the line from the report: the call log showed
+  // path=/v1/chat/completions for a Responses node. Asserting on the
+  // upstream request instead would prove nothing -- the router translates a
+  // chat body into Responses shape for such a node either way, so that
+  // assertion stays green with the dispatch below reverted.
   assert.equal(
-    upstreamBody.stream,
-    false,
-    "the Responses probe is non-streaming: the reader cannot parse Responses stream events"
+    probe.path,
+    "/v1/responses",
+    `a Responses node must be probed on /v1/responses (call log says ${probe.path})`
   );
 });
