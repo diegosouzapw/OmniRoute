@@ -3,7 +3,9 @@ import { POST as postChatCompletion } from "@/app/api/v1/chat/completions/route"
 import { POST as postAudioTranscription } from "@/app/api/v1/audio/transcriptions/route";
 import { handleValidatedEmbeddingRequestBody } from "@/app/api/v1/embeddings/route";
 import { POST as postRerank } from "@/app/api/v1/rerank/route";
+import { POST as postResponses } from "@/app/api/v1/responses/route";
 import {
+  buildComboTestPrompt,
   buildComboTestRequestBody,
   extractComboTestResponseText,
   extractComboTestStreamResult,
@@ -29,6 +31,10 @@ const ZAI_WEB_PROVIDER_ID = "zai-web";
 const ZAI_WEB_TEST_TIMEOUT_MS = 60_000;
 const SLOW_WEB_TEST_MODELS = new Set(["dola-pro"]);
 const STREAMING_CHAT_TEST_MAX_TOKENS = 64;
+// Responses calls the same budget `max_output_tokens`; `max_tokens` is silently
+// ignored on that endpoint, which would let a reasoning model spend the whole
+// default budget before emitting any visible text.
+const RESPONSES_TEST_MAX_OUTPUT_TOKENS = 256;
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -175,6 +181,26 @@ export function buildInternalChatRequest(
   });
 }
 
+export function buildInternalResponsesRequest(
+  testBody: Record<string, unknown>,
+  signal: AbortSignal,
+  connectionId?: string
+) {
+  return new Request(`${INTERNAL_ORIGIN}/v1/responses`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Internal-Test": "combo-health-check",
+      "X-OmniRoute-No-Cache": "true",
+      "X-OmniRoute-Compression": "off",
+      "X-Request-Id": `model-test-${randomUUID()}`,
+      ...(connectionId ? { "X-OmniRoute-Connection": connectionId } : {}),
+    },
+    body: JSON.stringify(testBody),
+    signal,
+  });
+}
+
 export function buildInternalRerankRequest(
   testBody: Record<string, unknown>,
   signal: AbortSignal,
@@ -265,7 +291,22 @@ export function detectTestKind(modelStr: string, customModel: any, nodeApiType?:
       lowerModel.includes("text-embed") ||
       lowerModel.includes("jina-clip") ||
       lowerModel.includes("colbert"));
-  return { isRerank, isEmbedding, isAudioTranscription };
+  // A Responses node answers on /v1/responses only. Without this the model fell
+  // through to the chat branch below, which posts a Chat Completions body to
+  // /v1/chat/completions: the route can still answer 200 while carrying nothing a
+  // Chat Completions reader recognises, so the model was marked unhealthy with
+  // "Provider returned HTTP 200 but no text content" (#13070).
+  //
+  // Last in the chain deliberately: a Responses-typed node can still host an
+  // embedding or rerank model, and those endpoints stay right for it.
+  const isResponses =
+    !isAudioTranscription &&
+    !isRerank &&
+    !isEmbedding &&
+    (apiFormat === "responses" ||
+      nodeType === "responses" ||
+      supportedEndpoints.includes("responses"));
+  return { isRerank, isEmbedding, isAudioTranscription, isResponses };
 }
 
 /**
@@ -424,7 +465,7 @@ export async function runSingleModelTest(
     findCustomModelMetadata(providerId, fullModelStr),
     findProviderNodeApiType(providerId),
   ]);
-  const { isRerank, isEmbedding, isAudioTranscription } = detectTestKind(
+  const { isRerank, isEmbedding, isAudioTranscription, isResponses } = detectTestKind(
     fullModelStr,
     customModel,
     nodeApiType
@@ -443,10 +484,22 @@ export async function runSingleModelTest(
       }
     : isAudioTranscription
       ? { model: fullModelStr }
-      : buildComboTestRequestBody(fullModelStr, isEmbedding, {
-          stream: !isEmbedding && streamChat,
-          maxTokens: !isEmbedding && streamChat ? STREAMING_CHAT_TEST_MAX_TOKENS : undefined,
-        });
+      : isResponses
+        ? {
+            model: fullModelStr,
+            // Responses takes `input`, not `messages`.
+            input: buildComboTestPrompt(),
+            max_output_tokens: RESPONSES_TEST_MAX_OUTPUT_TOKENS,
+            // Non-streaming on purpose: the SSE reader below understands Chat
+            // Completions deltas and the `output_text`/`output[]` shapes, but not
+            // Responses stream events (`response.output_text.delta`), so a
+            // streamed answer would read as empty — the very failure being fixed.
+            stream: false,
+          }
+        : buildComboTestRequestBody(fullModelStr, isEmbedding, {
+            stream: !isEmbedding && streamChat,
+            maxTokens: !isEmbedding && streamChat ? STREAMING_CHAT_TEST_MAX_TOKENS : undefined,
+          });
 
   // Per-model AbortController. We track whether the timeout fired so we can
   // distinguish "rate-limit queue aborted" (withRateLimit threw AbortError
@@ -472,6 +525,9 @@ export async function runSingleModelTest(
       return postAudioTranscription(
         buildInternalAudioTranscriptionRequest(fullModelStr, signal, connectionId)
       );
+    }
+    if (isResponses) {
+      return postResponses(buildInternalResponsesRequest(testBody, signal, connectionId));
     }
     return postChatCompletion(buildInternalChatRequest(testBody, signal, connectionId));
   };
@@ -577,7 +633,7 @@ export async function runSingleModelTest(
       // deactivated") would run outside runAsProbe and could still reach
       // markAccountUnavailable (#9817).
       const parsedResponse = await runAsProbe(() =>
-        extractModelTestResponseText(res, !isEmbedding && !isRerank && streamChat)
+        extractModelTestResponseText(res, !isEmbedding && !isRerank && !isResponses && streamChat)
       );
       responseText = parsedResponse.text;
       streamError = parsedResponse.error;
