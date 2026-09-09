@@ -263,8 +263,26 @@ export async function runAuthzPipeline(
   const requestId = generateRequestId();
 
   if (pathname === "/") {
+    // Zed's native-app sign-in redirects the browser to the loopback ROOT
+    // (http://127.0.0.1:<port>/?user_id=...&access_token=...), ignoring any
+    // path. When the dashboard's own loopback port is reused as native_app_port
+    // (see src/lib/oauth/providers/zed-hosted.ts), that redirect lands HERE. The
+    // root page (src/app/page.tsx) is meant to forward the payload to the
+    // /callback relay, but this middleware runs first and the redirect below
+    // only built `basePath + "/dashboard"` — dropping the query string and
+    // silently losing the zed-hosted / native_app_signin result. Detect the
+    // native callback and forward it straight to /callback preserving the
+    // params, mirroring page.tsx.
+    const { searchParams, search } = request.nextUrl;
+    const hasNativeCallback =
+      searchParams.get("user_id") && searchParams.get("access_token");
     const response = NextResponse.redirect(
-      new URL(`${request.nextUrl.basePath}/dashboard`, request.url)
+      new URL(
+        hasNativeCallback
+          ? `${request.nextUrl.basePath}/callback${search}`
+          : `${request.nextUrl.basePath}/dashboard`,
+        request.url
+      )
     );
     return stampRouteResponse(response, requestId, "MANAGEMENT");
   }
