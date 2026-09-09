@@ -41,6 +41,46 @@ test("saveCallLog persists sessionTag when explicitly supplied", async () => {
   assert.equal(row.session_tag, "sess-abc");
 });
 
+test("auto-generated call log ids embed the process pid and stay unique per process", async () => {
+  // Two OmniRoute processes (dev checkout + globally-installed CLI) can share
+  // one SQLite file. A bare `Date.now()-counter` id collides the moment both
+  // land on the same millisecond, so the INSERT fails with
+  // "UNIQUE constraint failed: call_logs.id" and the call is never logged.
+  // The pid makes ids unique per process; this guards the format + uniqueness.
+  const db = core.getDbInstance();
+
+  await callLogs.saveCallLog({
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 200,
+    model: "test-model",
+    provider: "test-provider",
+    duration: 100,
+    tokens: { in: 1, out: 1 },
+  });
+  await callLogs.saveCallLog({
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 200,
+    model: "test-model",
+    provider: "test-provider",
+    duration: 100,
+    tokens: { in: 1, out: 1 },
+  });
+
+  const rows = db
+    .prepare("SELECT id FROM call_logs ORDER BY rowid DESC LIMIT 2")
+    .all() as Array<{ id: string }>;
+  assert.equal(rows.length, 2, "both auto-id rows persisted");
+  const ids = rows.map((row) => row.id);
+  assert.notEqual(ids[0], ids[1], "two auto-generated ids must differ");
+  for (const id of ids) {
+    const parts = id.split("-");
+    assert.equal(parts.length, 3, `expected <ms>-<pid>-<counter>, got "${id}"`);
+    assert.equal(Number(parts[1]), process.pid, `id embeds the process pid: ${id}`);
+  }
+});
+
 test("saveCallLog stores NULL session_tag when absent (never synthesized)", async () => {
   const testId = `test-nosessiontag-${Date.now()}`;
 

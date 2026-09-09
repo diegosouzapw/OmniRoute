@@ -87,129 +87,187 @@ export async function executeVideoCombo(
     );
   }
 
+  // 3. Run every video-capable target concurrently; first healthy success wins.
+  //
+  //    Sequential priority execution means a slow first target (a provider
+  //    that only fails after its full timeout, a queue that cannot fit the
+  //    request budget) blocks every sibling behind it, so a starved-but-first
+  //    provider turns a perfectly healthy combo into a long failure. Fanning
+  //    out removes that serialization: whoever answers first wins, and a
+  //    target that would have taken the full budget to fail no longer
+  //    pre-empts a sibling that could have succeeded in seconds.
+  //
+  //    We race the first success against "all settled" instead of await-ing
+  //    every target: once a success lands, the response returns immediately
+  //    while any still-running siblings unwind on their own. Promises that
+  //    reject are caught below, so a late sibling failure cannot become an
+  //    unhandled rejection after the caller already got a 200.
   let lastError: { status: number; error: string } | null = null;
+  let terminalError: { status: number; error: string } | null = null;
   let fallbackCount = 0;
 
-  for (const { modelStr, resolved } of videoTargets) {
-    const { provider: targetProvider, model: targetModel, isCustomModel } = resolved;
-    if (!targetProvider) {
-      lastError = { status: 400, error: `Invalid video model: ${modelStr}` };
-      fallbackCount += 1;
-      continue;
-    }
+  let resolveFirstSuccess: (() => void) | null = null;
+  const firstSuccess = new Promise<void>((resolve) => {
+    resolveFirstSuccess = resolve;
+  });
 
-    // Prompt requirements are per-target: some combo targets (I2V models) are
-    // prompt-optional and others are not, so a missing prompt only rules out
-    // this target rather than the whole combo.
-    if (!isVideoPromptOptional(resolved)) {
-      const promptError = promptRequiredResponse(body);
-      if (promptError) {
-        lastError = { status: 400, error: `[${targetProvider}] Prompt is required` };
+  const runTarget = async (modelStr: string, resolved: VideoModelTarget): Promise<void> => {
+    try {
+      const { provider: targetProvider, model: targetModel, isCustomModel } = resolved;
+      if (!targetProvider) {
+        lastError = { status: 400, error: `Invalid video model: ${modelStr}` };
         fallbackCount += 1;
-        continue;
-      }
-    }
-
-    // Local providers (authType "none") carry no credential by default, but a
-    // configured per-connection override (e.g. a ComfyUI base URL) must still
-    // be honored, exactly as the direct route treats them.
-    const providerConfig = getVideoProvider(targetProvider);
-    let credentials = null;
-    if (providerConfig && providerConfig.authType !== "none") {
-      try {
-        credentials = await getProviderCredentialsWithQuotaPreflight(
-          resolveVideoCredentialProvider(targetProvider)
-        );
-      } catch {
-        lastError = { status: 502, error: `Failed to resolve credentials for ${targetProvider}` };
-        fallbackCount += 1;
-        continue;
+        return;
       }
 
-      if (!credentials) {
-        lastError = { status: 400, error: `No credentials for video provider: ${targetProvider}` };
-        fallbackCount += 1;
-        continue;
+      // Prompt requirements are per-target: some combo targets (I2V models) are
+      // prompt-optional and others are not, so a missing prompt only rules out
+      // this target rather than the whole combo.
+      if (!isVideoPromptOptional(resolved)) {
+        const promptError = promptRequiredResponse(body);
+        if (promptError) {
+          lastError = { status: 400, error: `[${targetProvider}] Prompt is required` };
+          fallbackCount += 1;
+          return;
+        }
       }
 
-      if (isAllRateLimitedCredentials(credentials)) {
-        lastError = { status: 429, error: `[${targetProvider}] All accounts rate limited` };
-        fallbackCount += 1;
-        continue;
-      }
-    } else if (isCustomModel) {
-      try {
-        credentials = await getProviderCredentialsWithQuotaPreflight(
-          targetProvider,
-          null,
-          null,
-          targetModel
-        );
-      } catch {
-        lastError = { status: 502, error: `Failed to resolve credentials for ${targetProvider}` };
-        fallbackCount += 1;
-        continue;
+      // Local providers (authType "none") carry no credential by default, but a
+      // configured per-connection override (e.g. a ComfyUI base URL) must still
+      // be honored, exactly as the direct route treats them.
+      const providerConfig = getVideoProvider(targetProvider);
+      let credentials = null;
+      if (providerConfig && providerConfig.authType !== "none") {
+        try {
+          credentials = await getProviderCredentialsWithQuotaPreflight(
+            resolveVideoCredentialProvider(targetProvider)
+          );
+        } catch {
+          lastError = { status: 502, error: `Failed to resolve credentials for ${targetProvider}` };
+          fallbackCount += 1;
+          return;
+        }
+
+        if (!credentials) {
+          lastError = { status: 400, error: `No credentials for video provider: ${targetProvider}` };
+          fallbackCount += 1;
+          return;
+        }
+
+        if (isAllRateLimitedCredentials(credentials)) {
+          lastError = { status: 429, error: `[${targetProvider}] All accounts rate limited` };
+          fallbackCount += 1;
+          return;
+        }
+      } else if (isCustomModel) {
+        try {
+          credentials = await getProviderCredentialsWithQuotaPreflight(
+            targetProvider,
+            null,
+            null,
+            targetModel
+          );
+        } catch {
+          lastError = { status: 502, error: `Failed to resolve credentials for ${targetProvider}` };
+          fallbackCount += 1;
+          return;
+        }
+
+        if (!credentials) {
+          lastError = {
+            status: 400,
+            error: `No credentials for custom video provider: ${targetProvider}`,
+          };
+          fallbackCount += 1;
+          return;
+        }
+
+        if (isAllRateLimitedCredentials(credentials)) {
+          lastError = { status: 429, error: `[${targetProvider}] All accounts rate limited` };
+          fallbackCount += 1;
+          return;
+        }
+      } else if (providerConfig?.authType === "none") {
+        credentials = await resolveLocalOverrideCredentials(targetProvider);
       }
 
-      if (!credentials) {
-        lastError = {
-          status: 400,
-          error: `No credentials for custom video provider: ${targetProvider}`,
-        };
-        fallbackCount += 1;
-        continue;
-      }
-
-      if (isAllRateLimitedCredentials(credentials)) {
-        lastError = { status: 429, error: `[${targetProvider}] All accounts rate limited` };
-        fallbackCount += 1;
-        continue;
-      }
-    } else if (providerConfig?.authType === "none") {
-      credentials = await resolveLocalOverrideCredentials(targetProvider);
-    }
-
-    const result: MediaGenerationResultLike = await handleVideoGeneration({
-      body: { ...body, model: modelStr },
-      credentials,
-      log,
-      ...(isCustomModel && { resolvedProvider: targetProvider }),
-    });
-
-    if (!isMediaGenerationFailure(result)) {
-      await clearRecoveredProviderState(credentials);
-      return successfulMediaGenerationResponse({
-        result: { data: result.data },
-        billingMode: "video",
-        provider: targetProvider,
-        model: modelStr,
-        startTime,
-        duration: body.duration,
-        strategy: "priority",
-        fallbackAttempts: fallbackCount,
+      const result: MediaGenerationResultLike = await handleVideoGeneration({
+        body: { ...body, model: modelStr },
+        credentials,
+        log,
+        ...(isCustomModel && { resolvedProvider: targetProvider }),
       });
+
+      if (!isMediaGenerationFailure(result)) {
+        await clearRecoveredProviderState(credentials);
+        // Attach the selected provider/model to a shared closure so the
+        // success path after the race can construct the response.
+        selectedProvider = targetProvider;
+        selectedModel = modelStr;
+        selectedResult = result;
+        selectedFallbackCount = fallbackCount;
+        resolveFirstSuccess?.();
+        return;
+      }
+
+      const status = (result as { status?: number }).status || 500;
+      const error =
+        typeof (result as { error?: unknown }).error === "string"
+          ? (result as { error: string }).error
+          : "Video generation failed";
+      const failure = { status, error: `[${targetProvider}] ${error}` };
+      lastError = failure;
+
+      // Terminal failures (400 bad model, 401 missing key, 403 banned) are the
+      // most actionable signal when every target fails — keep one aside so it
+      // can surface instead of a generic 5xx/429.
+      if (status === 400 || status === 401 || status === 403) {
+        if (!terminalError) terminalError = failure;
+      }
+      fallbackCount += 1;
+    } catch (err) {
+      // A late sibling may fail after the caller already got a 200 — record
+      // it so it can still surface if nothing else succeeds, and never leak
+      // the rejection after an early return.
+      const message =
+        err instanceof Error ? err.message : typeof err === "string" ? err : "Video generation failed";
+      if (!lastError) lastError = { status: 502, error: `[video combo] ${message}` };
+      fallbackCount += 1;
     }
+  };
 
-    const status = (result as { status?: number }).status || 500;
-    const error =
-      typeof (result as { error?: unknown }).error === "string"
-        ? (result as { error: string }).error
-        : "Video generation failed";
+  // Shared state for the first success captured inside runTarget
+  let selectedProvider = "";
+  let selectedModel = "";
+  let selectedResult: MediaGenerationResultLike | null = null;
+  let selectedFallbackCount = 0;
 
-    if (status === 400 || status === 401 || status === 403) {
-      return errorResponse(status, `[${targetProvider}] ${error}`);
-    }
+  const tasks = videoTargets.map(({ modelStr, resolved }) => runTarget(modelStr, resolved));
+  await Promise.race([firstSuccess, Promise.allSettled(tasks)]);
 
-    lastError = { status, error: `[${targetProvider}] ${error}` };
-    fallbackCount += 1;
+  if (selectedResult) {
+    return successfulMediaGenerationResponse({
+      result: { data: selectedResult.data },
+      billingMode: "video",
+      provider: selectedProvider,
+      model: selectedModel,
+      startTime,
+      duration: body.duration,
+      strategy: "priority",
+      fallbackAttempts: selectedFallbackCount,
+    });
   }
 
+  // All targets failed — prefer the terminal (400/401/403) error when one
+  // exists; it is the actionable misconfiguration signal. Fall back to the
+  // last failure otherwise.
+  const reportedError = terminalError ?? lastError;
   const errorPayload = toJsonErrorPayload(
-    lastError?.error || "All combo targets failed",
+    reportedError?.error || "All combo targets failed",
     "Video combo targets all failed"
   );
   return new Response(JSON.stringify(errorPayload), {
-    status: lastError?.status || 502,
+    status: reportedError?.status || 502,
     headers: { "Content-Type": "application/json" },
   });
 }
