@@ -225,12 +225,23 @@ describe("postgresAdapter", { skip }, () => {
       CREATE TABLE key_value (namespace TEXT NOT NULL, key TEXT NOT NULL, value TEXT, updated_at TEXT NOT NULL DEFAULT (datetime('now')), legacy_only TEXT, PRIMARY KEY (namespace, key));
       CREATE TABLE items (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, enabled BOOLEAN DEFAULT 1, payload TEXT);
       CREATE TABLE db_meta (key TEXT PRIMARY KEY, value TEXT);
+      CREATE TABLE zz_parent (id TEXT PRIMARY KEY);
+      CREATE TABLE aa_child (id TEXT PRIMARY KEY, parent_id TEXT NOT NULL REFERENCES zz_parent(id) ON DELETE CASCADE);
       INSERT INTO key_value (namespace, key, value, legacy_only) VALUES ('import', 'k1', 'v1', 'x'), ('import', 'k2', 'v2', 'y');
       INSERT INTO items (id, name) VALUES (100, 'from-sqlite'), (101, 'from-sqlite-2');
+      INSERT INTO zz_parent (id) VALUES ('p1');
+      INSERT INTO aa_child (id, parent_id) VALUES ('c1', 'p1');
     `);
     source.close();
-    db.exec("CREATE TABLE IF NOT EXISTS db_meta (key TEXT PRIMARY KEY, value TEXT)");
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS db_meta (key TEXT PRIMARY KEY, value TEXT);
+      CREATE TABLE IF NOT EXISTS zz_parent (id TEXT PRIMARY KEY);
+      CREATE TABLE IF NOT EXISTS aa_child (id TEXT PRIMARY KEY, parent_id TEXT NOT NULL REFERENCES zz_parent(id) ON DELETE CASCADE);
+    `);
     const report = importSqliteIntoPostgres(db, sqliteFile, { log: () => {} });
+    const child = report.tables.find((t) => t.table === "aa_child");
+    assert.equal(child?.importedRows, 1, "child table must import after its parent");
+    assert.equal(child?.targetRows, 1);
     const kv = report.tables.find((t) => t.table === "key_value");
     assert.equal(kv?.importedRows, 2);
     assert.deepEqual(kv?.skippedColumns, []);

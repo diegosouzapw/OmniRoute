@@ -49,6 +49,48 @@ function listSourceTables(source: SqliteAdapter): string[] {
     );
 }
 
+function listForeignKeyPairs(target: SqliteAdapter): Array<{ child: string; parent: string }> {
+  return target
+    .prepare(
+      `SELECT tc.table_name AS child, ccu.table_name AS parent
+       FROM information_schema.table_constraints tc
+       JOIN information_schema.constraint_column_usage ccu
+         ON ccu.constraint_name = tc.constraint_name
+        AND ccu.constraint_schema = tc.constraint_schema
+       WHERE tc.constraint_type = 'FOREIGN KEY'
+         AND tc.table_schema = current_schema()`
+    )
+    .all() as Array<{ child: string; parent: string }>;
+}
+
+function orderTablesByForeignKeys(target: SqliteAdapter, tables: string[]): string[] {
+  const wanted = new Map(tables.map((name) => [name.toLowerCase(), name]));
+  const parentsOf = new Map<string, Set<string>>();
+  for (const { child, parent } of listForeignKeyPairs(target)) {
+    const childKey = child.toLowerCase();
+    const parentKey = parent.toLowerCase();
+    if (childKey === parentKey || !wanted.has(childKey) || !wanted.has(parentKey)) continue;
+    const set = parentsOf.get(childKey) ?? new Set<string>();
+    set.add(parentKey);
+    parentsOf.set(childKey, set);
+  }
+  const ordered: string[] = [];
+  const placed = new Set<string>();
+  let remaining = Array.from(wanted.keys());
+  while (remaining.length) {
+    const ready = remaining.filter((key) =>
+      Array.from(parentsOf.get(key) ?? []).every((parent) => placed.has(parent))
+    );
+    const batch = ready.length ? ready : [remaining[0]];
+    for (const key of batch) {
+      ordered.push(wanted.get(key) as string);
+      placed.add(key);
+    }
+    remaining = remaining.filter((key) => !placed.has(key));
+  }
+  return ordered;
+}
+
 interface ColumnInfo {
   name: string;
   type: string;
@@ -203,7 +245,7 @@ export function importSqliteIntoPostgres(
     throw new Error("[DB] No synchronous SQLite driver is available to read the source database");
   const report: ImportReport = { sqliteFile, tables: [], skippedTables: [], durationMs: 0 };
   try {
-    for (const table of listSourceTables(source)) {
+    for (const table of orderTablesByForeignKeys(target, listSourceTables(source))) {
       let targetColumns = listColumns(target, table);
       if (targetColumns.length === 0 && !options.dryRun) {
         targetColumns = createMissingTable(source, target, table, log);
