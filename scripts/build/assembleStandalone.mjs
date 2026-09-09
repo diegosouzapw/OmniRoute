@@ -164,6 +164,67 @@ const EXTRA_MODULE_ENTRIES = [
   },
   { label: "split2", src: ["node_modules", "split2"], dest: ["node_modules", "split2"] },
   { label: "migrations", src: ["src", "lib", "db", "migrations"], dest: ["migrations"] },
+  {
+    label: "PostgreSQL adapter worker",
+    src: ["src", "lib", "db", "adapters", "postgres", "postgresWorker.mjs"],
+    dest: ["db-runtime", "postgres", "postgresWorker.mjs"],
+  },
+  {
+    label: "pg-connection-string (PostgreSQL backend)",
+    src: ["node_modules", "pg-connection-string"],
+    dest: ["node_modules", "pg-connection-string"],
+  },
+  {
+    label: "pg-pool (PostgreSQL backend)",
+    src: ["node_modules", "pg-pool"],
+    dest: ["node_modules", "pg-pool"],
+  },
+  {
+    label: "pg-protocol (PostgreSQL backend)",
+    src: ["node_modules", "pg-protocol"],
+    dest: ["node_modules", "pg-protocol"],
+  },
+  {
+    label: "pg-int8 (PostgreSQL backend)",
+    src: ["node_modules", "pg-int8"],
+    dest: ["node_modules", "pg-int8"],
+  },
+  {
+    label: "postgres-array (PostgreSQL backend)",
+    src: ["node_modules", "postgres-array"],
+    dest: ["node_modules", "postgres-array"],
+  },
+  {
+    label: "postgres-bytea (PostgreSQL backend)",
+    src: ["node_modules", "postgres-bytea"],
+    dest: ["node_modules", "postgres-bytea"],
+  },
+  {
+    label: "postgres-date (PostgreSQL backend)",
+    src: ["node_modules", "postgres-date"],
+    dest: ["node_modules", "postgres-date"],
+  },
+  {
+    label: "xtend (PostgreSQL backend)",
+    src: ["node_modules", "xtend"],
+    dest: ["node_modules", "xtend"],
+  },
+  {
+    label: "postgres-interval (PostgreSQL backend)",
+    src: ["node_modules", "postgres-interval"],
+    dest: ["node_modules", "postgres-interval"],
+  },
+  {
+    label: "pg-types (PostgreSQL backend)",
+    src: ["node_modules", "pg-types"],
+    dest: ["node_modules", "pg-types"],
+  },
+  {
+    label: "pgpass (PostgreSQL backend)",
+    src: ["node_modules", "pgpass"],
+    dest: ["node_modules", "pgpass"],
+  },
+  { label: "pg (PostgreSQL backend)", src: ["node_modules", "pg"], dest: ["node_modules", "pg"] },
   { label: "MITM server", src: ["src", "mitm", "server.cjs"], dest: ["src", "mitm", "server.cjs"] },
   {
     // #9451: server.cjs requires 6 shims from ./_internal/ (bypass, ingest,

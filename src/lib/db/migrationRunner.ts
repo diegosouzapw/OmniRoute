@@ -857,7 +857,10 @@ export function runMigrations(
       const mayWriteExistingDatabase =
         preliminaryActionable.length > 0 || hasLedgerRepairCandidates(db, files);
       const needsSnapshot =
-        mayWriteExistingDatabase && db.name !== ":memory:" && databaseExistedBeforeInitialization;
+        mayWriteExistingDatabase &&
+        db.name !== ":memory:" &&
+        db.driver !== "postgres" &&
+        databaseExistedBeforeInitialization;
 
       if (needsSnapshot && !preMigrationBackup) {
         if (db.driver === "sql.js") {
