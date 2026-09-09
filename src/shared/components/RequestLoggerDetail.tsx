@@ -178,6 +178,17 @@ function StreamSection({ title, sectionId, json, onCopy }) {
       return true;
     }
   });
+  // Default to the rendered/parsed view (segments below) -- raw is an
+  // explicit opt-in for inspecting exactly what was captured on the wire,
+  // timestamp markers and all, when the rendered tree hides something the
+  // parser got wrong (e.g. a chunk-boundary split like this PR fixes).
+  const [showRaw, setShowRaw] = useState(() => {
+    try {
+      return localStorage.getItem("pref:stream:raw") === "1";
+    } catch {
+      return false;
+    }
+  });
   const ref = useRef(null);
   const { isDark } = useTheme();
   const resolvedSectionId = sectionId || title;
@@ -212,6 +223,14 @@ function StreamSection({ title, sectionId, json, onCopy }) {
     } catch {}
   };
 
+  const toggleRaw = () => {
+    const next = !showRaw;
+    setShowRaw(next);
+    try {
+      localStorage.setItem("pref:stream:raw", next ? "1" : "0");
+    } catch {}
+  };
+
   useTimestampTitles(ref, open);
 
   return (
@@ -233,6 +252,15 @@ function StreamSection({ title, sectionId, json, onCopy }) {
         </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={toggleRaw}
+            title={showRaw ? t("rawViewOn") : t("rawViewOff")}
+            aria-label={showRaw ? t("rawViewOn") : t("rawViewOff")}
+            className={`p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors ${showRaw ? "text-primary" : ""}`}
+            aria-pressed={showRaw}
+          >
+            <span className="material-symbols-outlined text-[18px]">code</span>
+          </button>
+          <button
             onClick={toggleAutoscroll}
             title={autoscroll ? t("autoscrollOn") : t("autoscrollOff")}
             className={`p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors ${autoscroll ? "text-primary" : ""}`}
@@ -250,7 +278,7 @@ function StreamSection({ title, sectionId, json, onCopy }) {
             </span>
             {copied ? t("copied") : t("copy")}
           </button>
-          {segments.some((s) => s.type === "json") && (
+          {!showRaw && segments.some((s) => s.type === "json") && (
             <JsonTreeExpandControls sectionId={resolvedSectionId} />
           )}
         </div>
@@ -260,21 +288,25 @@ function StreamSection({ title, sectionId, json, onCopy }) {
           ref={ref}
           className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-150 overflow-y-auto leading-relaxed"
         >
-          {segments.map((segment, i) =>
-            segment.type === "json" ? (
-              <div key={i} className="my-1">
-                <JsonView
-                  src={segment.value}
-                  dark={isDark}
-                  collapsed={expandLevel}
-                  customizeNode={timestampMarkerCustomizeNode}
-                  displaySize
-                />
-              </div>
-            ) : (
-              <span key={i} className="whitespace-pre-wrap break-words">
-                {segment.value}
-              </span>
+          {showRaw ? (
+            <pre className="whitespace-pre-wrap break-words">{json}</pre>
+          ) : (
+            segments.map((segment, i) =>
+              segment.type === "json" ? (
+                <div key={i} className="my-1">
+                  <JsonView
+                    src={segment.value}
+                    dark={isDark}
+                    collapsed={expandLevel}
+                    customizeNode={timestampMarkerCustomizeNode}
+                    displaySize
+                  />
+                </div>
+              ) : (
+                <span key={i} className="whitespace-pre-wrap break-words">
+                  {segment.value}
+                </span>
+              )
             )
           )}
         </div>
