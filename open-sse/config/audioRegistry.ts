@@ -463,9 +463,14 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authHeader: "bearer",
     format: "fishaudio",
     models: [
+      { id: "s2.1-pro-free", name: "Fish Speech S2.1 Pro Free" },
+      { id: "s2.1-pro", name: "Fish Speech S2.1 Pro" },
+      { id: "s2-pro", name: "Fish Speech S2 Pro" },
       { id: "s1", name: "Fish Speech S1" },
-      { id: "speech-1.6", name: "Fish Speech 1.6" },
-      { id: "speech-1.5", name: "Fish Speech 1.5" },
+      // Legacy ids kept for existing clients even though Fish no longer lists them
+      // in the current public model enum.
+      { id: "speech-1.6", name: "Fish Speech 1.6 (legacy)" },
+      { id: "speech-1.5", name: "Fish Speech 1.5 (legacy)" },
     ],
   },
 
