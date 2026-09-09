@@ -89,6 +89,8 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "qwen-cloud-token-plan",
   // AgentRouter (New-API) console System Access Token + New-Api-User id (providerSpecificData)
   "agentrouter",
+  // OpenRouter API key → GET /api/v1/key + /api/v1/credits (USD balance, credit cap)
+  "openrouter",
 ]);
 const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;
 const PROVIDER_LIMITS_AUTO_SYNC_SETTING_KEY = "provider_limits_auto_sync_last_run";
@@ -205,11 +207,7 @@ export async function refreshAndUpdateCredentials(
   connection: ProviderConnectionLike,
   opts: CredentialRefreshOptions = {}
 ) {
-  return refreshAndUpdateCredentialsWithResolver(
-    connection,
-    getCredentialRefreshExecutor,
-    opts
-  );
+  return refreshAndUpdateCredentialsWithResolver(connection, getCredentialRefreshExecutor, opts);
 }
 
 function isUsageAuthError(message: unknown): boolean {
@@ -396,7 +394,6 @@ export function shouldClearErrorStateOnValidProbe(
  * — keeps the connection locked, matching the kimi-coding partial-refresh
  * semantics.
  */
-
 
 /**
  * Is an explicit cooldown still in the future?

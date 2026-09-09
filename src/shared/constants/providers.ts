@@ -75,7 +75,6 @@ export function getProviderConnectionFamilyIds(providerId: unknown): readonly st
 
 // Web / Cookie Providers
 
-
 // API Key Providers
 
 // Sub-categories within APIKEY_PROVIDERS (used by dashboard and catalog views).
@@ -145,7 +144,6 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "helixmind",
   "tabitoken",
   "logfare",
-
 ]);
 
 export const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
@@ -539,6 +537,8 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "qwen-cloud-token-plan",
   // AgentRouter (New-API) console balance quota (consoleApiKey + newApiUserId)
   "agentrouter",
+  // OpenRouter /key + /credits USD balance (#13080 UI gap — fetcher existed, list entry missing)
+  "openrouter",
 ];
 
 // ── Zod validation, lazily on first AI_PROVIDERS access (perf: skips the walk
