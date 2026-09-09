@@ -95,6 +95,32 @@ function addMissingColumns(
   return added;
 }
 
+function createMissingTable(
+  source: SqliteAdapter,
+  target: SqliteAdapter,
+  table: string,
+  log: (message: string) => void
+): string[] {
+  const row = source
+    .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?")
+    .get(table) as { sql?: string } | undefined;
+  if (!row?.sql) return [];
+  const ddl = row.sql.replace(
+    /^\s*CREATE\s+TABLE\s+(IF\s+NOT\s+EXISTS\s+)?/i,
+    "CREATE TABLE IF NOT EXISTS "
+  );
+  try {
+    target.exec(ddl);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    log(`[DB] import: could not create ${table} on PostgreSQL (${message}); its rows are skipped`);
+    return [];
+  }
+  const columns = listColumns(target, table);
+  if (columns.length) log(`[DB] import: created ${table} on PostgreSQL from the SQLite schema`);
+  return columns;
+}
+
 function countRows(db: SqliteAdapter, table: string): number {
   const row = db.prepare(`SELECT COUNT(*) AS c FROM ${quote(table)}`).get() as
     { c: number } | undefined;
@@ -178,7 +204,10 @@ export function importSqliteIntoPostgres(
   const report: ImportReport = { sqliteFile, tables: [], skippedTables: [], durationMs: 0 };
   try {
     for (const table of listSourceTables(source)) {
-      const targetColumns = listColumns(target, table);
+      let targetColumns = listColumns(target, table);
+      if (targetColumns.length === 0 && !options.dryRun) {
+        targetColumns = createMissingTable(source, target, table, log);
+      }
       if (targetColumns.length === 0) {
         report.skippedTables.push(table);
         log(`[DB] import: skipping ${table} (no such table on PostgreSQL)`);

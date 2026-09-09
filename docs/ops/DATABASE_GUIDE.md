@@ -134,8 +134,9 @@ OMNIROUTE_DATABASE_URL=postgres://... OMNIROUTE_DATABASE_IMPORT_SQLITE=1 omnirou
 npm run db:migrate-to-postgres -- --sqlite /path/to/storage.sqlite --url postgres://... [--dry-run]
 ```
 
-The import copies every table; columns that exist in the SQLite file but not yet on PostgreSQL
-(OmniRoute adds some columns lazily at runtime) are created first with the same type and default,
+The import copies every table; tables and columns that exist in the SQLite file but not yet on
+PostgreSQL (OmniRoute creates some of them lazily at runtime, `audit_log` for example) are created
+first from the SQLite definition with the same types and defaults,
 identity sequences are moved past the imported ids, rows go in with `INSERT OR IGNORE` so re-running
 never duplicates them, and completion is recorded in `db_meta` (`postgres_import_completed_at`).
 
