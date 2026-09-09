@@ -120,6 +120,7 @@ function sanitizeApiKeyForSync(apiKey: unknown): JsonRecord {
     "allowedModels",
     "allowedCombos",
     "allowedConnections",
+    "preferredConnections",
     "noLog",
     "autoResolve",
     "isActive",

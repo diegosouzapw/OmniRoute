@@ -63,10 +63,21 @@ export const createKeySchema = z
     chaosModeEnabled: z.boolean().optional(),
     scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
     allowedConnections: z.array(z.string().uuid()).min(1).max(100).optional(),
+    preferredConnections: z.array(z.string().uuid()).max(100).optional(),
   })
   .superRefine((value, ctx) => {
     requireConsistentModelAccess(value, ctx);
     requireExclusiveLeaseConnections(value, ctx);
+    if (value.allowedConnections?.length && value.preferredConnections?.length) {
+      const allowed = new Set(value.allowedConnections);
+      if (value.preferredConnections.some((id) => !allowed.has(id))) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "preferredConnections must be a subset of allowedConnections",
+          path: ["preferredConnections"],
+        });
+      }
+    }
   });
 
 export const createSyncTokenSchema = z.object({
@@ -127,6 +138,7 @@ export const updateKeyPermissionsSchema = z
     allowedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
     allowedCombos: z.array(z.string().trim().min(1).max(200)).max(500).optional(),
     allowedConnections: z.array(z.string().uuid()).max(100).optional(),
+    preferredConnections: z.array(z.string().uuid()).max(100).optional(),
     noLog: z.boolean().optional(),
     autoResolve: z.boolean().optional(),
     isActive: z.boolean().optional(),
@@ -193,6 +205,7 @@ export const updateKeyPermissionsSchema = z
       value.allowedModels === undefined &&
       value.allowedCombos === undefined &&
       value.allowedConnections === undefined &&
+      value.preferredConnections === undefined &&
       value.noLog === undefined &&
       value.autoResolve === undefined &&
       value.isActive === undefined &&
@@ -222,5 +235,15 @@ export const updateKeyPermissionsSchema = z
     }
     if (value.scopes !== undefined && value.allowedConnections !== undefined) {
       requireExclusiveLeaseConnections(value, ctx);
+    }
+    if (value.allowedConnections?.length && value.preferredConnections?.length) {
+      const allowed = new Set(value.allowedConnections);
+      if (value.preferredConnections.some((id) => !allowed.has(id))) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "preferredConnections must be a subset of allowedConnections",
+          path: ["preferredConnections"],
+        });
+      }
     }
   });
