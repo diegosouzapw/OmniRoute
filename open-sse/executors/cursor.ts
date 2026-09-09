@@ -33,6 +33,8 @@ import {
   encodeExecDiagnosticsResult,
   flattenMessages,
   openAIToolsToMcpDefs,
+  decodeInteractionQuery,
+  encodeInteractionResponseFrame,
   type ChatMessage,
   type EncodedImage,
   type ExecServerEvent,
@@ -611,6 +613,25 @@ export function processFrame(
         emitStructuredToolCall(ctx, bridge.toolName, bridge.arguments);
         ctx.requiresColdResume = true;
         ctx.endReason = "tool_calls";
+      }
+    }
+  }
+
+  // 2c. InteractionQuery responder: auto-reply to hosted tool queries
+  // (webSearch, askQuestion, switchMode, exaSearch, exaFetch, createPlan, webFetch)
+  // so turns don't stall.
+  const iq = decodeInteractionQuery(payload);
+  if (iq && opts.h2Req) {
+    const dk = `iq:${iq.id}`;
+    if (!ackedExecIds.has(dk)) {
+      ackedExecIds.add(dk);
+      const frame = encodeInteractionResponseFrame(iq.id, iq.variantField);
+      if (frame) {
+        try {
+          opts.h2Req.write(frame);
+        } catch (e) {
+          debugLog("[cursor-agent] interaction_query write failed:", (e as Error).message);
+        }
       }
     }
   }

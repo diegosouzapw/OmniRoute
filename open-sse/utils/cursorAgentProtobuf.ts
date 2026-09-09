@@ -105,6 +105,7 @@ const ASM_KV_SERVER_MESSAGE = 4; // AgentServerMessage.kv_server_message
 // Cursor sends kv_server_message frames once the model stops generating
 // (it saves the assistant turn into a blob). For non-tool-calling chats
 // this functions as our end-of-response marker.
+const ASM_INTERACTION_QUERY = 7; // AgentServerMessage.interaction_query
 
 const ESM_ID = 1; // ExecServerMessage.id
 const ESM_EXEC_ID = 15; // ExecServerMessage.exec_id
@@ -126,6 +127,7 @@ const TDU_TEXT = 1; // TextDeltaUpdate.text
 // values; verified against wire-tap captures during integration testing.
 
 const ACM_KV_CLIENT_MESSAGE = 3; // AgentClientMessage.kv_client_message
+const ACM_INTERACTION_RESPONSE = 6; // AgentClientMessage.interaction_response
 
 // CSS_ROOT_PROMPT and CSS_TURNS already declared above (lines 34-35)
 // CSS_TURNS_OLD = 2 is deprecated; CSS_TURNS = 8 is current.
@@ -1524,4 +1526,57 @@ export function flattenMessages(messages: ChatMessage[]): string {
   // and tool results get their own labeled lines.
   const labelled = turn.flatMap(chatMessageLines).join("\n\n");
   return joinSystemText(systemTexts, labelled);
+}
+
+const REASON_NOT_IMPLEMENTED = "not implemented by this client";
+
+export function decodeInteractionQuery(
+  payload: Buffer
+): { id: number; variantField: number } | null {
+  const fields = decodeFields(payload);
+  const queryField = findField(fields, ASM_INTERACTION_QUERY);
+  if (!queryField || queryField.wireType !== WT_LEN) return null;
+
+  const queryFields = decodeFields(queryField.bytes);
+  const idField = findField(queryFields, 1);
+  const id = idField && idField.wireType === WT_VARINT ? Number(idField.varint) : 0;
+
+  const variant = queryFields.find(
+    (f) => f.wireType === WT_LEN && f.fieldNumber >= 2 && f.fieldNumber <= 9
+  );
+  if (!variant) return null;
+
+  return { id, variantField: variant.fieldNumber };
+}
+
+export function encodeInteractionResponseFrame(
+  queryId: number,
+  variantField: number
+): Buffer | null {
+  let responseMsg: Buffer | null = null;
+
+  if (variantField === 2 || variantField === 5 || variantField === 6 || variantField === 9) {
+    // Approve set: webSearch (2), exaSearch (5), exaFetch (6), webFetch (9)
+    // approved = 1 (empty message)
+    responseMsg = encodeMessage(1, []);
+  } else if (variantField === 3) {
+    // askQuestion (3): result = 1 -> rejected = 3 -> reason = 1
+    responseMsg = encodeMessage(1, [encodeMessage(3, [encodeString(1, REASON_NOT_IMPLEMENTED)])]);
+  } else if (variantField === 4) {
+    // switchMode (4): rejected = 2 -> reason = 1
+    responseMsg = encodeMessage(2, [encodeString(1, REASON_NOT_IMPLEMENTED)]);
+  } else if (variantField === 7) {
+    // createPlan (7): result = 1 -> error = 2 -> error = 1
+    responseMsg = encodeMessage(1, [encodeMessage(2, [encodeString(1, REASON_NOT_IMPLEMENTED)])]);
+  } else {
+    // 8 (setupVm) or unknown: leave unanswered
+    return null;
+  }
+
+  const interactionResponse = encodeMessage(ACM_INTERACTION_RESPONSE, [
+    encodeUInt32Field(1, queryId),
+    encodeMessage(variantField, [responseMsg]),
+  ]);
+
+  return wrapConnectFrame(interactionResponse);
 }

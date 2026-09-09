@@ -13,10 +13,7 @@ import {
   getAntigravityOAuthUserAgent,
 } from "../services/antigravityHeaders.ts";
 import { classify429, decide429, type Decision } from "../services/antigravity429Engine.ts";
-import {
-  parseRetryFromErrorText,
-  type RetryHintProvenance,
-} from "../services/accountFallback.ts";
+import { parseRetryFromErrorText, type RetryHintProvenance } from "../services/accountFallback.ts";
 import { parseDetailedRetryHintFromJsonBody } from "../services/retryAfterJson.ts";
 import {
   shouldRetryWithCredits,
@@ -66,6 +63,7 @@ import {
   tryCreditsRetry,
   tryEmbedLongRetryAfter,
   buildFinalAntigravityResult,
+  peekFirstAntigravitySseEvent,
   buildAntigravity429ErrorMessage,
   markCreditsExhausted,
   isAbortError,
@@ -80,9 +78,8 @@ import {
   resolveAntigravityClientVersion,
 } from "../services/antigravityClientProfile.ts";
 import {
-  generateAntigravityRequestId,
+  buildAntigravityEnvelopeIdentity,
   getAntigravityEnvelopeUserAgent,
-  getAntigravitySessionId,
 } from "../services/antigravityIdentity.ts";
 
 const MAX_RETRY_AFTER_MS = 60_000;
@@ -379,7 +376,9 @@ const COMPETITIVE_AGENT_PROMPT_PATTERNS: RegExp[] = [
  */
 export function stripCompetitiveAgentPrompts(systemInstruction: unknown): unknown {
   const record = asRecord(systemInstruction);
-  const parts = Array.isArray(record?.parts) ? (record.parts as Array<Record<string, unknown>>) : [];
+  const parts = Array.isArray(record?.parts)
+    ? (record.parts as Array<Record<string, unknown>>)
+    : [];
   if (parts.length === 0) return systemInstruction;
 
   let changed = false;
@@ -387,7 +386,10 @@ export function stripCompetitiveAgentPrompts(systemInstruction: unknown): unknow
     if (typeof part.text !== "string" || part.text.length === 0) return part;
     let text = part.text;
     for (const pattern of COMPETITIVE_AGENT_PROMPT_PATTERNS) {
-      const stripped = text.replace(pattern, "").replace(/\n{3,}/g, "\n\n").trimStart();
+      const stripped = text
+        .replace(pattern, "")
+        .replace(/\n{3,}/g, "\n\n")
+        .trimStart();
       if (stripped !== text) {
         changed = true;
         text = stripped;
@@ -550,10 +552,12 @@ type AntigravityAttemptOutcome =
   | { action: "retry"; sameUrl: boolean; lastStatus?: number };
 
 export class AntigravityExecutor extends BaseExecutor {
-  constructor() {
-    super("antigravity", PROVIDERS.antigravity);
-  }
+  streamReadinessTimeoutMs?: number;
 
+  constructor(options?: { streamReadinessTimeoutMs?: number }) {
+    super("antigravity", PROVIDERS.antigravity);
+    this.streamReadinessTimeoutMs = options?.streamReadinessTimeoutMs;
+  }
   override shouldRetry(status: number, urlIndex: number): boolean {
     return (
       (status === HTTP_STATUS.RATE_LIMITED ||
@@ -773,14 +777,22 @@ export class AntigravityExecutor extends BaseExecutor {
       }
     }
 
+    const firstUserText =
+      contents.find((c) => c.role === "user")?.parts?.find((p) => typeof p.text === "string")
+        ?.text ?? null;
+
+    const identity = buildAntigravityEnvelopeIdentity({
+      isClaude,
+      sessionIdFallback:
+        typeof normalizedRequest?.sessionId === "string" ? normalizedRequest.sessionId : undefined,
+      firstUserText,
+    });
+
     const safetySettings = getAntigravitySafetySettings(normalizedRequest?.safetySettings);
     const rawTransformedRequest = {
       ...normalizedRequest,
       ...(contents.length > 0 && { contents }),
-      sessionId: getAntigravitySessionId(
-        credentials,
-        typeof normalizedRequest?.sessionId === "string" ? normalizedRequest.sessionId : undefined
-      ),
+      sessionId: identity.sessionId,
       ...(safetySettings !== undefined && { safetySettings }),
       toolConfig:
         Array.isArray(normalizedRequest?.tools) && normalizedRequest.tools.length > 0
@@ -800,7 +812,7 @@ export class AntigravityExecutor extends BaseExecutor {
         : rawTransformedRequest;
 
     applyAntigravityGenerationDefaults(transformedRequest, upstreamModel);
-
+    (transformedRequest as Record<string, unknown>).labels = identity.labels;
     const {
       project: _project,
       model: _model,
@@ -830,7 +842,7 @@ export class AntigravityExecutor extends BaseExecutor {
     const requestType = _requestType === "image_gen" ? "image_gen" : "agent";
     const envelope: AntigravityRequestEnvelope = {
       project: projectId,
-      requestId: generateAntigravityRequestId(),
+      requestId: identity.requestId,
       request: transformedRequest,
       model: upstreamModel,
       userAgent: getAntigravityEnvelopeUserAgent(credentials),
@@ -1444,9 +1456,16 @@ export class AntigravityExecutor extends BaseExecutor {
     signal: AbortSignal | null | undefined,
     log: SafeAntigravityLog
   ): Promise<SsePassthroughResult> {
-    if (!stream && response.ok && response.body) {
+    const peekedResponse = await peekFirstAntigravitySseEvent(
+      response,
+      url,
+      this.streamReadinessTimeoutMs,
+      signal
+    );
+
+    if (!stream && peekedResponse.ok && peekedResponse.body) {
       return this.collectStreamToResponse(
-        response,
+        peekedResponse,
         model,
         url,
         finalHeaders,
@@ -1458,7 +1477,7 @@ export class AntigravityExecutor extends BaseExecutor {
 
     return buildFinalAntigravityResult(
       stream,
-      response,
+      peekedResponse,
       url,
       finalHeaders,
       transformedBody,

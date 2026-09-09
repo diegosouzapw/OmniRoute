@@ -7,6 +7,40 @@ export type AntigravityCredentialsLike = {
   projectId?: string | null;
   providerSpecificData?: Record<string, unknown> | null;
 };
+export interface AntigravityEnvelopeIdentity {
+  requestId: string;
+  sessionId: string;
+  labels: Record<string, string>;
+}
+
+export function buildAntigravityEnvelopeIdentity(args: {
+  isClaude: boolean;
+  sessionIdFallback?: string | null;
+  firstUserText?: string | null;
+}): AntigravityEnvelopeIdentity {
+  const agentId = crypto.randomUUID();
+  const trajectoryId = crypto.randomUUID();
+  const step = 2;
+  const requestId = `agent/${agentId}/${Date.now()}/${trajectoryId}/${step}`;
+
+  const fallback = toNonEmptyString(args.sessionIdFallback);
+  const derived = fallback ? null : deriveAntigravitySessionId(args.firstUserText);
+  const sessionId = fallback || derived || generateAntigravitySessionId();
+
+  const isClaudeStr = String(Boolean(args.isClaude));
+  const labels: Record<string, string> = {
+    last_step_index: String(step - 1),
+    trajectory_id: trajectoryId,
+    used_claude: isClaudeStr,
+    used_claude_conservative: isClaudeStr,
+  };
+
+  return {
+    requestId,
+    sessionId,
+    labels,
+  };
+}
 
 const FNV_OFFSET_I64 = -3750763034362895579n;
 const FNV_PRIME_I64 = 1099511628211n;
@@ -74,8 +108,5 @@ export function getAntigravitySessionId(
   credentials?: AntigravityCredentialsLike | null,
   fallback?: unknown
 ): string {
-  return (
-    toNonEmptyString(fallback) ||
-    generateAntigravitySessionId()
-  );
+  return toNonEmptyString(fallback) || generateAntigravitySessionId();
 }
