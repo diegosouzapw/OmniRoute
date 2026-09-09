@@ -71,6 +71,91 @@ export function toRetryAfterDisplayValue(value: ComboRetryAfter): string | Date 
 const EXHAUSTION_MARKER_PATTERN =
   /\b(insufficient\s+credit|insufficient\s+balance|quota\s+exceeded|out\s+of\s+credits?|credit\s+exhausted)\b/i;
 
+// ── Streaming degeneracy detection ───────────────────────────────────────────
+// Some upstreams (notably a vision model routed into a plain text session) can
+// stream happily with HTTP 200 while producing looped/garbled output the client
+// would render as gibberish. This only detects CLEAR, low-false-positive signal
+// so pass-through semantics for healthy streams are preserved. Bounded to a
+// small peek window so the added latency for healthy streams stays negligible.
+const DEGENERATION_SCAN_MIN = 16; // min accumulated text chars before any scan
+const DEGENERATION_REPEAT_MIN_RUN = 4; // a unit must repeat this many extra times
+const DEGENERATION_REPEAT_COVER_RATIO = 0.5; // and cover ≥ this share of the window
+const DEGENERATION_TOKEN_LOOP_MIN = 5; // consecutive identical tokens == loop
+const DEGENERATION_LOWDIVERSITY_MIN = 48; // window size for the diversity check
+const DEGENERATION_LOWDIVERSITY_DISTINCT_MAX = 6; // ≤ this distinct chars == garbled
+// Bounded peek window so healthy streams don't pay meaningful added latency:
+const DEGENERATION_HEALTHY_ESCAPE_TEXT = 80; // enough real text, not degenerate -> pass
+const DEGENERATION_PEEK_BYTES_CAP = 16 * 1024; // hard byte cap (bounds latency)
+const DEGENERATION_TOOLUSE_ESCAPE_BYTES = 2 * 1024; // tool_use with zero text -> pass
+
+/** Append the assistant text a chunk carries (Claude text_delta or OpenAI delta.content). */
+function extractAssistantDeltaText(parsed: unknown): string {
+  if (!parsed || typeof parsed !== "object") return "";
+  const rec = parsed as Record<string, unknown>;
+  const delta = rec.delta as Record<string, unknown> | undefined;
+  if (delta && delta.type === "text_delta" && typeof delta.text === "string") {
+    return delta.text;
+  }
+  const choices = rec.choices;
+  if (Array.isArray(choices)) {
+    let out = "";
+    for (const ch of choices) {
+      if (!ch || typeof ch !== "object") continue;
+      const content = (ch as Record<string, unknown>).delta as
+        | { content?: unknown }
+        | undefined;
+      if (content && typeof content.content === "string") out += content.content;
+    }
+    return out;
+  }
+  return "";
+}
+
+/**
+ * Detect obvious degenerate output (repetition loops / very-low-diversity
+ * gibberish) in a peeked text window. Returns a short reason, or null when the
+ * window looks like real prose or is too short to judge.
+ */
+function detectDegeneration(text: string): string | null {
+  const t = text.trim();
+  if (t.length < DEGENERATION_SCAN_MIN) return null;
+
+  const maxUnit = Math.min(6, t.length >> 1);
+  for (let unit = 2; unit <= maxUnit; unit++) {
+    const unitStr = t.slice(0, unit);
+    let k = unit;
+    let extra = 0;
+    while (k + unit <= t.length && t.slice(k, k + unit) === unitStr) {
+      k += unit;
+      extra++;
+    }
+    const unitLen = unit + unit * extra;
+    if (extra >= DEGENERATION_REPEAT_MIN_RUN && unitLen >= t.length * DEGENERATION_REPEAT_COVER_RATIO) {
+      return `repetitive output "${unitStr}"`;
+    }
+  }
+
+  // Looped whitespace-separated token (e.g. a garbled token repeated many times).
+  const tokens = t.split(/\s+/).filter(Boolean);
+  for (let i = 0; i < tokens.length; i++) {
+    const tok = tokens[i];
+    let run = 1;
+    while (i + run < tokens.length && tokens[i + run] === tok) run++;
+    if (run >= DEGENERATION_TOKEN_LOOP_MIN && tok.length > 1) {
+      return `looped token "${tok}" (${run} consecutive)`;
+    }
+    i += run - 1;
+  }
+
+  if (t.length >= DEGENERATION_LOWDIVERSITY_MIN) {
+    const distinct = new Set<string>(t).size;
+    if (distinct <= DEGENERATION_LOWDIVERSITY_DISTINCT_MAX) {
+      return `low-diversity garbled output (${distinct} distinct chars over ${t.length})`;
+    }
+  }
+  return null;
+}
+
 /**
  * Collect the small set of top-level "error envelope" strings a 200 response may
  * carry alongside (or instead of) a normal completion: the OpenAI-shape `error`
@@ -330,6 +415,11 @@ export async function validateResponseQuality(
       hasLifecycleEnd: false,
     };
     let anyContentFound = false;
+    // Degeneracy-capture state: assistant text + bytes seen while peeking so we can
+    // spot looped/garbled output without buffering the whole stream (see
+    // detectDegeneration / DEGENERATION_*). Accumulated in parseAccumulatedSse.
+    let peekText = "";
+    let peekBytes = 0;
     // #7285: OpenAI-shape lifecycle tracking, parallel to `sse` above.
     const openAi: OpenAiLifecycleFlags = { hasChoicePayload: false, hasTerminalMarker: false };
     // User log 1784230812441-bf3789: the previous `!sawAnyBytes` gate below let
@@ -417,6 +507,9 @@ export async function validateResponseQuality(
         // regardless of shape or content — tracked only for the generic
         // done-branch gate below; the #1382/#7285 branches are unaffected.
         sawStructuredSSE = true;
+
+        // Accumulate assistant text deltas for the bounded degenerate scan.
+        peekText += extractAssistantDeltaText(parsed);
 
         applyOpenAiLifecycleEvent(parsed, openAi);
         if (openAi.hasTerminalMarker) sawTerminator = true;
@@ -576,12 +669,21 @@ export async function validateResponseQuality(
           // Incomplete lifecycle or non-Claude stream — replay all buffered
           // bytes. The reader is exhausted so the forwarding reader will
           // immediately signal done.
+          const finalDegen = detectDegeneration(peekText);
+          if (finalDegen) {
+            log.warn?.(
+              "COMBO",
+              `Streaming response ended degenerate (${finalDegen}) — marking as invalid for combo failover`
+            );
+            return { valid: false, reason: `streaming degenerate: ${finalDegen}` };
+          }
           const clonedResponse = buildReplayResponse(reader);
           return { valid: true, clonedResponse };
         }
 
         // Accumulate raw bytes for potential replay.
         bufferedChunks.push(value);
+        peekBytes += value.length;
 
         // Decode incrementally (stream:true keeps multi-byte char state).
         decodedSoFar += decoder.decode(value, { stream: true });
@@ -600,12 +702,31 @@ export async function validateResponseQuality(
 
         if (outcome === "content") {
           anyContentFound = true;
-          // A content_block_* event was found — stop peeking. Return a
-          // clonedResponse that replays all buffered bytes (the current chunk
-          // is already in bufferedChunks) and then forwards the remainder of
-          // the original reader unchanged.
-          const clonedResponse = buildReplayResponse(reader);
-          return { valid: true, clonedResponse };
+          // Degeneracy capture: keep peeking a BOUNDED window so looped/garbled
+          // output can be caught, but healthy streams escape as soon as enough
+          // real text accumulates (or the byte cap / empty-text tool_use cap hit).
+          const degenReason = detectDegeneration(peekText);
+          if (degenReason) {
+            // Do not await cancellation of a Response.clone() tee branch: the
+            // promise may remain pending until the client-facing branch drains.
+            reader.cancel().catch(() => {});
+            log.warn?.(
+              "COMBO",
+              `Streaming response is degenerate (${degenReason}) — marking as invalid for combo failover`
+            );
+            return { valid: false, reason: `streaming degenerate: ${degenReason}` };
+          }
+          const reachedHealthyTextEscape = peekText.length >= DEGENERATION_HEALTHY_ESCAPE_TEXT;
+          const reachedByteCap = peekBytes >= DEGENERATION_PEEK_BYTES_CAP;
+          const toolUseWithoutTextEscape =
+            peekText.length === 0 && peekBytes >= DEGENERATION_TOOLUSE_ESCAPE_BYTES;
+          if (reachedHealthyTextEscape || reachedByteCap || toolUseWithoutTextEscape) {
+            // Stop peeking. Return a clonedResponse that replays all buffered
+            // bytes and forwards the remainder of the original reader unchanged.
+            const clonedResponse = buildReplayResponse(reader);
+            return { valid: true, clonedResponse };
+          }
+          // Otherwise keep reading within the bounded degenerate-scan window.
         }
       }
     } catch (streamErr) {
