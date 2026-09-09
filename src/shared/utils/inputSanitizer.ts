@@ -139,6 +139,30 @@ function getConfig() {
  * @param {Object} body
  * @returns {string[]}
  */
+/**
+ * Push every string a single content part carries.
+ * A part is not always `{ text }`: a `tool_result` block carries its payload on
+ * `content`, as a string or as a nested block list. redactBody() below already
+ * rewrites the string form, so the file agrees that a part can carry text there --
+ * only this extractor did not look, which left tool output unscanned.
+ * @param {*} part
+ * @param {string[]} contents
+ */
+function collectPartText(part, contents) {
+  if (typeof part === "string") {
+    contents.push(part);
+    return;
+  }
+  if (!part || typeof part !== "object") return;
+  if (typeof part.text === "string") contents.push(part.text);
+  if (typeof part.content === "string") contents.push(part.content);
+  else if (Array.isArray(part.content))
+    for (const nested of part.content) {
+      if (typeof nested === "string") contents.push(nested);
+      else if (nested && typeof nested.text === "string") contents.push(nested.text);
+    }
+}
+
 function extractMessageContents(body) {
   const contents = [];
 
@@ -155,11 +179,7 @@ function extractMessageContents(body) {
       contents.push(msg.content);
     } else if (msg && Array.isArray(msg.content)) {
       for (const part of msg.content) {
-        if (typeof part === "string") {
-          contents.push(part);
-        } else if (part.text) {
-          contents.push(part.text);
-        }
+        collectPartText(part, contents);
       }
     }
   }
@@ -169,8 +189,7 @@ function extractMessageContents(body) {
     contents.push(body.system);
   } else if (Array.isArray(body.system)) {
     for (const s of body.system) {
-      if (typeof s === "string") contents.push(s);
-      else if (s.text) contents.push(s.text);
+      collectPartText(s, contents);
     }
   }
 
@@ -336,6 +355,14 @@ function redactBody(body) {
           }
           if (typeof next.content === "string") {
             next.content = processPII(next.content, true).text;
+          } else if (Array.isArray(next.content)) {
+            next.content = next.content.map((nested) => {
+              if (typeof nested === "string") return processPII(nested, true).text;
+              if (nested && typeof nested === "object" && typeof nested.text === "string") {
+                return { ...nested, text: processPII(nested.text, true).text };
+              }
+              return nested;
+            });
           }
           return next;
         }
