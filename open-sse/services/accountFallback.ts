@@ -2321,7 +2321,8 @@ export function formatRetryAfter(
   rateLimitedUntil: string | number | Date | null | undefined
 ): string {
   if (!rateLimitedUntil) return "";
-  const diffMs = new Date(rateLimitedUntil).getTime() - Date.now();
+  const diffMs = cooldownUntilMs(rateLimitedUntil) - Date.now();
+  if (!Number.isFinite(diffMs)) return "";
   if (diffMs <= 0) return "reset after 0s";
   const totalSec = Math.ceil(diffMs / 1000);
   const h = Math.floor(totalSec / 3600);
