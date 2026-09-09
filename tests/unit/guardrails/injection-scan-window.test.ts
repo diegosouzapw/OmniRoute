@@ -50,11 +50,30 @@ test("a body under the cap is scanned whole", () => {
 });
 
 test("the two halves cannot be read as one continuous phrase", () => {
-  // "ignore all previous" ... "instructions" only matches because \s+ would
-  // otherwise join them across a boundary they never shared.
-  const head = "z".repeat(MAX_INJECTION_SCAN_BYTES) + " ignore all previous";
-  const body = head + "y".repeat(MAX_INJECTION_SCAN_BYTES) + "instructions ";
-  assert.equal(detectInjection(buildInjectionScanText(body)).length, 0);
+  // Calibrate against the function itself: the head is whatever survives from
+  // the front, and a fixed guess would silently stop straddling the seam the
+  // moment the budget or the separator changes length.
+  const probe = buildInjectionScanText("H".repeat(MAX_INJECTION_SCAN_BYTES * 2));
+  const headLength = [...probe].findIndex((c) => c !== "H");
+  const gapLength = [...probe].slice(headLength).findIndex((c) => c === "H");
+  const tailLength = MAX_INJECTION_SCAN_BYTES - headLength - gapLength;
+  assert.ok(headLength > 0 && gapLength > 0 && tailLength > 0, "probe should be truncated");
+
+  // "ignore all previous" lands flush against the end of the head half and
+  // "instructions" against the start of the tail half. Every INJECTION_PATTERN
+  // joins its words with \s+, so a whitespace separator would let these two
+  // halves match as one phrase they never formed.
+  const headPhrase = "ignore all previous";
+  const tailPhrase = "instructions";
+  // The space matters: \b(ignore| needs a word boundary, and "zzzignore" has none.
+  const head = "z".repeat(headLength - headPhrase.length - 1) + " " + headPhrase;
+  const tail = tailPhrase + "y".repeat(tailLength - tailPhrase.length);
+  const body = head + "m".repeat(MAX_INJECTION_SCAN_BYTES) + tail;
+
+  const scanned = buildInjectionScanText(body);
+  assert.ok(scanned.includes(headPhrase), "the head phrase must survive the cut");
+  assert.ok(scanned.includes(tailPhrase), "the tail phrase must survive the cut");
+  assert.equal(detectInjection(scanned).length, 0);
 });
 
 // ── the carriers extractMessageContents appends last ─────────────────────────
