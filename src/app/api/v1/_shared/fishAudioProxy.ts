@@ -18,6 +18,11 @@ type FishAudioCredentials = {
   allExpired?: boolean;
 };
 
+type FishAudioRequestInit = Omit<RequestInit, "headers"> & {
+  /** Required by Node fetch when forwarding a streaming Request body. */
+  duplex?: "half";
+};
+
 export function fishAudioOptionsResponse(): Response {
   return handleCorsOptions();
 }
@@ -42,7 +47,7 @@ function proxyResponseHeaders(upstream: Response): Headers {
 export async function proxyFishAudioRequest(
   request: Request,
   pathname: string,
-  init: Omit<RequestInit, "headers"> = {}
+  init: FishAudioRequestInit = {}
 ): Promise<Response> {
   const credentials = (await getProviderCredentialsWithQuotaPreflight(
     "fishaudio"
