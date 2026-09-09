@@ -54,6 +54,40 @@ test("Responses -> Chat: custom tool is normalized to a { input: string } functi
   });
 });
 
+test("Responses -> Chat: forced custom tool_choice maps to the normalized function tool", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-5.6-sol",
+    {
+      input: 'Call functions__exec with exactly: text("ok")',
+      tools: [
+        {
+          type: "custom",
+          name: "functions__exec",
+          description: "Execute freeform code",
+        },
+      ],
+      tool_choice: {
+        type: "custom",
+        name: "functions__exec",
+      },
+    },
+    false,
+    {}
+  );
+
+  assert.deepEqual(result.tool_choice, {
+    type: "function",
+    function: { name: "functions__exec" },
+  });
+  assert.equal(result.tools[0].function.name, "functions__exec");
+  assert.deepEqual(result.tools[0].function.parameters, {
+    type: "object",
+    properties: { input: { type: "string" } },
+    required: ["input"],
+    additionalProperties: false,
+  });
+});
+
 // Request side: custom_tool_call / custom_tool_call_output input items round-trip.
 test("Responses -> Chat: custom_tool_call + output items map to tool_calls and tool role (#1007)", () => {
   const result = openaiResponsesToOpenAIRequest(
