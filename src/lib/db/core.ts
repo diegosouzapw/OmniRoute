@@ -14,6 +14,9 @@ import {
 } from "./adapters/driverFactory";
 import path from "path";
 import { retryProbeIfTransient } from "./probeUtils";
+import { createPostgresAdapter } from "./adapters/postgresAdapter";
+import { resolvePostgresConfig, type PostgresConfig } from "./postgresConfig";
+import { importSqliteIntoPostgresOnSetup } from "./postgresImport";
 import fs from "fs";
 import { resolveWritableDataDir, getLegacyDotDataDir } from "../dataPaths";
 import { isNextBuildPhase } from "../buildPhase";
@@ -1024,6 +1027,9 @@ export function getDbInstance(): SqliteDatabase {
     return memoryDb;
   }
 
+  const postgresConfig = resolvePostgresConfig(process.env, DATA_DIR);
+  if (postgresConfig) return initPostgresDatabase(postgresConfig);
+
   const sqliteFile = SQLITE_FILE;
   if (!sqliteFile) {
     throw new Error("SQLITE_FILE is unavailable for local mode");
@@ -1364,6 +1370,72 @@ export function getDbInstance(): SqliteDatabase {
   return db;
 }
 
+const POSTGRES_INIT_LOCK_KEY = 7211003;
+
+function postgresSchemaMarkerPath(config: PostgresConfig): string | null {
+  if (config.schemaMode !== "auto" || !config.schema) return null;
+  return path.join(DATA_DIR, `.postgres-schema-${config.schema}`);
+}
+
+function initPostgresDatabase(config: PostgresConfig): SqliteDatabase {
+  const markerPath = postgresSchemaMarkerPath(config);
+  const resetSchema = markerPath !== null && !fs.existsSync(markerPath);
+  const db = createPostgresAdapter(config, { resetSchema });
+  console.log(`[DB] Driver: postgres | ${db.name}`);
+  if (markerPath && resetSchema) {
+    try {
+      fs.writeFileSync(markerPath, new Date().toISOString());
+    } catch {}
+  }
+  db.exec(`SELECT pg_advisory_lock(${POSTGRES_INIT_LOCK_KEY}, hashtext(current_schema()))`);
+  try {
+    const databaseExistedBeforeInitialization = hasTable(db, "_omniroute_migrations");
+    db.exec(SCHEMA_SQL);
+    ensureProviderConnectionsColumns(db);
+    ensureUsageHistoryColumns(db);
+    ensureCallLogsColumns(db);
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS _omniroute_migrations (
+        version TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+      INSERT OR IGNORE INTO _omniroute_migrations (version, name)
+      VALUES ('001', 'initial_schema');
+    `);
+    runMigrations(db, {
+      isNewDb: !databaseExistedBeforeInitialization,
+      databaseExistedBeforeInitialization,
+    });
+    ensureUsageHistoryAccountIndex(db);
+    offloadLegacyCallLogDetails(db);
+    db.prepare("INSERT OR REPLACE INTO db_meta (key, value) VALUES ('schema_version', '1')").run();
+  } finally {
+    db.exec(`SELECT pg_advisory_unlock(${POSTGRES_INIT_LOCK_KEY}, hashtext(current_schema()))`);
+  }
+  if (shouldRunStartupDbHealthCheck()) {
+    runDbHealthCheck(db, {
+      autoRepair: true,
+      expectedSchemaVersion: "1",
+      skipIntegrityCheck: true,
+      createBackupBeforeRepair: () => false,
+    });
+  }
+  setDb(db);
+  try {
+    autoMigrateLegacyEncryptedConnections(db);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[DB] Legacy encryption migration failed: ${message}`);
+  }
+  startDbHealthCheckScheduler(db);
+  if (config.importSqliteOnSetup && SQLITE_FILE) {
+    importSqliteIntoPostgresOnSetup(db, SQLITE_FILE);
+  }
+  console.log(`[DB] PostgreSQL database ready: ${db.name} (DATA_DIR=${path.resolve(DATA_DIR)})`);
+  return db;
+}
+
 /**
  * Lightweight liveness probe — runs `SELECT 1` against the singleton DB.
  * Returns `true` if the database is reachable, `false` on any error.
@@ -1385,7 +1457,7 @@ export function closeDbInstance(options?: { checkpointMode?: WalCheckpointMode |
   const db = getDb();
   if (!db) return false;
 
-  const checkpointMode = options?.checkpointMode ?? "TRUNCATE";
+  const checkpointMode = db.driver === "postgres" ? null : (options?.checkpointMode ?? "TRUNCATE");
 
   try {
     if (checkpointMode) {
@@ -1456,7 +1528,7 @@ export async function ensureDbInitialized(): Promise<void> {
   if (getDb()) return;
 
   // Cloud/build: getDbInstance() cria in-memory, sem necessidade de pré-init
-  if (isCloud || isBuildPhase || !SQLITE_FILE) {
+  if (isCloud || isBuildPhase || !SQLITE_FILE || resolvePostgresConfig(process.env, DATA_DIR)) {
     getDbInstance();
     return;
   }

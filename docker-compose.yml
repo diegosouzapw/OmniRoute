@@ -10,6 +10,7 @@
 #    cliproxyapi → CLIProxyAPI sidecar on port 8317
 #    memory  → Qdrant sidecar on port 6333 (semantic memory offload)
 #    bifrost → Bifrost Go sidecar on port 8080 (Tier-1 LLM router)
+#    postgres → PostgreSQL 17 on port 5432 (shared backend for several replicas)
 #
 #  Usage:
 #    docker compose --profile base up -d
@@ -20,6 +21,7 @@
 #    docker compose --profile cli --profile cliproxyapi up -d
 #    docker compose --profile base --profile memory up -d   # adds Qdrant sidecar
 #    docker compose --profile base --profile bifrost up -d  # adds Bifrost sidecar
+#    docker compose --profile base --profile postgres up -d # shared PostgreSQL backend
 #
 #  See docs/architecture/cluster-decisions.md for the per-component rationale
 #  (Qdrant=opt-in, Bifrost=opt-in, Caddy=upstream LB, no Dragonfly/NATS/PG/Neo4j/MinIO).
@@ -258,6 +260,33 @@ services:
     profiles:
       - memory
 
+  # ── Profile: postgres (shared PostgreSQL backend) ────────────────
+  # Off by default. Point the app at it with OMNIROUTE_DATABASE_URL in .env
+  # (for example postgres://omniroute:omniroute@postgres:5432/omniroute) and
+  # every replica sharing that URL uses one database instead of a per-container
+  # storage.sqlite. Set OMNIROUTE_DATABASE_IMPORT_SQLITE=1 for the first boot to
+  # copy an existing ./data/storage.sqlite in. See docs/ops/DATABASE_GUIDE.md.
+  postgres:
+    image: docker.io/library/postgres:17-alpine
+    container_name: omniroute-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_BIND_HOST:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-omniroute}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-omniroute}
+      - POSTGRES_DB=${POSTGRES_DB:-omniroute}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-omniroute} -d ${POSTGRES_DB:-omniroute}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    profiles:
+      - postgres
+
   # ── Profile: bifrost (Bifrost Go LLM-router sidecar) ─────────────
   # Off by default. Bifrost is the Tier-1 LLM router (per ADR-031 and
   # open-sse/executors/bifrost.ts). When BIFROST_ENABLED=true is set in
@@ -355,7 +384,12 @@ services:
     # compose network by the omniroute app.
     healthcheck:
       test:
-        ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:1456/readyz',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://127.0.0.1:1456/readyz',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -372,6 +406,8 @@ volumes:
     name: omniroute-redis-data
   qdrant-data:
     name: omniroute-qdrant-data
+  postgres-data:
+    name: omniroute-postgres-data
   bifrost-data:
     name: omniroute-bifrost-data
   codex-appserver-token:

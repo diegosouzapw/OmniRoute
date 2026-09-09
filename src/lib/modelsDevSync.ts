@@ -475,17 +475,12 @@ export function getSyncedCapability(
     );
   }
 
-  // Cold path: hit SQLite. Prepare the statement once, reuse for every alias.
-  const db = getDbInstance();
-  ensureCapabilitiesTable();
-  const stmt = db.prepare(
-    "SELECT * FROM model_capabilities WHERE provider = ? AND model_id = ? LIMIT 1"
+  getSyncedCapabilities();
+  return lookupSyncedCapabilityWithFallbacks(
+    provider,
+    modelId,
+    (p) => cachedCapabilities?.[p]?.[modelId] ?? null
   );
-  return lookupSyncedCapabilityWithFallbacks(provider, modelId, (p) => {
-    const row = stmt.get(p, modelId);
-    if (!row) return null;
-    return mapCapabilityRecord(toRecord(row));
-  });
 }
 
 /**

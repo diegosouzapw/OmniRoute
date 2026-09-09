@@ -81,6 +81,90 @@ DATA_DIR=/custom/path omniroute
 
 ---
 
+## PostgreSQL backend (experimental, opt-in)
+
+SQLite stays the default. Setting `OMNIROUTE_DATABASE_URL` to a `postgres://` URL switches the
+whole persistence layer to one shared PostgreSQL database, which is what lets several OmniRoute
+replicas run behind a load balancer: provider connections, API keys, combos, quota state, call logs
+and every other table live in PostgreSQL instead of a per-process `storage.sqlite`.
+
+How it works (`src/lib/db/adapters/postgresAdapter.ts`):
+
+- The adapter implements the same synchronous `SqliteAdapter` contract every domain module already
+  uses. Queries run in a worker thread (`src/lib/db/adapters/postgres/postgresWorker.mjs`) that owns
+  one `pg` connection; the main thread blocks on `Atomics.wait` for each statement, exactly like a
+  native SQLite call blocks. Nothing in `src/lib/db/*` changes.
+- SQL is translated from the SQLite dialect at prepare time (`src/lib/db/adapters/postgres/sqlTranslator.ts`):
+  `?`/`@name` placeholders, `INSERT OR REPLACE` (upsert on the primary key), `INSERT OR IGNORE`,
+  `datetime()`/`strftime()`/`unixepoch()`, `json_extract()` and friends, `typeof()`, `CAST`,
+  `COLLATE NOCASE`, `LIKE` (case-insensitive like SQLite), `IS NOT <value>`, `GLOB`, SQLite triggers
+  (rewritten to PL/pgSQL functions), `PRAGMA table_info` and `sqlite_master` (emulated with a view and
+  helper functions installed once per database by `bootstrapSql.ts`).
+- The 170+ SQL migrations under `src/lib/db/migrations/` are applied unchanged through the same
+  translator; the migration runner takes a PostgreSQL advisory lock, so only one replica migrates at a
+  time. Every `CREATE TABLE`/`ALTER TABLE` runs with `IF NOT EXISTS`, so replicas booting in parallel
+  do not race.
+- Foreign keys declared in the schema stay foreign keys (the shipped SQLite drivers enforce them too).
+
+Environment variables (all in `.env.example`):
+
+| Variable                                  | Purpose                                                                     |
+| ----------------------------------------- | --------------------------------------------------------------------------- |
+| `OMNIROUTE_DATABASE_URL`                  | `postgres://user:pass@host:5432/db`; unset means SQLite                     |
+| `OMNIROUTE_DATABASE_SCHEMA`               | schema to create and use (default: the connection's default schema)         |
+| `OMNIROUTE_DATABASE_SSL`                  | `1` verify, `no-verify` encrypt without validation, unset plain             |
+| `OMNIROUTE_DATABASE_STATEMENT_TIMEOUT_MS` | per-statement timeout, default 60000                                        |
+| `OMNIROUTE_DATABASE_CONNECT_TIMEOUT_MS`   | connection timeout, default 10000                                           |
+| `OMNIROUTE_DATABASE_IMPORT_SQLITE`        | `1` copies `DATA_DIR/storage.sqlite` into an empty PostgreSQL on first boot |
+
+Every replica that shares a database must also share `STORAGE_ENCRYPTION_KEY`, `API_KEY_SECRET`
+and `JWT_SECRET`. Provider credentials are encrypted with `STORAGE_ENCRYPTION_KEY` before they
+reach PostgreSQL, so a replica that auto-generated its own key on first boot reads another
+replica's connections as unusable ciphertext (the symptom is a provider error such as
+"Cursor access token is required" on one replica only). Set the three values explicitly in the
+environment of every replica instead of relying on the per-`DATA_DIR` `server.env` bootstrap.
+
+Migrating an existing SQLite instance:
+
+```bash
+# one-shot on first boot: the database must still be empty (no connections, keys or combos)
+OMNIROUTE_DATABASE_URL=postgres://... OMNIROUTE_DATABASE_IMPORT_SQLITE=1 omniroute serve
+
+# or explicitly, repeatable, with a row-count table at the end
+npm run db:migrate-to-postgres -- --sqlite /path/to/storage.sqlite --url postgres://... [--dry-run]
+```
+
+The import copies every table; columns that exist in the SQLite file but not yet on PostgreSQL
+(OmniRoute adds some columns lazily at runtime) are created first with the same type and default,
+identity sequences are moved past the imported ids, rows go in with `INSERT OR IGNORE` so re-running
+never duplicates them, and completion is recorded in `db_meta` (`postgres_import_completed_at`).
+
+Performance: one PostgreSQL round trip costs roughly 0.5 ms against a few microseconds for SQLite, so
+code paths that issue thousands of single-row lookups feel it. The `/v1/models` catalog build on a
+cold process is the visible case: about 5 s on PostgreSQL versus 3 s on SQLite, served from cache
+afterwards. Raise `CATALOG_BUILD_TIMEOUT_MS` if a large provider set pushes the first build past the
+default. Field-level encryption is preserved as-is: run the
+import with the same `STORAGE_ENCRYPTION_KEY` and `API_KEY_SECRET` as the SQLite instance.
+
+Local stack: `docker compose --profile base --profile postgres up -d` starts PostgreSQL 17 next to
+the app; set `OMNIROUTE_DATABASE_URL=postgres://omniroute:omniroute@postgres:5432/omniroute` in `.env`.
+
+What stays SQLite-only:
+
+- Memory full-text search (FTS5) and vector search (sqlite-vec): the two optional FTS5 migrations are
+  deferred on PostgreSQL and memory search falls back to the non-FTS path.
+- File backups, restore, VACUUM, page-size and WAL settings: the dashboard database maintenance
+  actions are no-ops and `/api/db-backups` reports no file. Use `pg_dump` for backups.
+- `rowid`: only the tables that read it (`call_logs`, `conversation_turn_nodes`, `memories`, the
+  three `domain_*` state tables) carry a hidden `rowid` identity column; tables with an
+  `INTEGER PRIMARY KEY` map `rowid` to that key.
+
+Verification: `tests/unit/db-adapters/sqliteToPostgres.test.ts` covers the translator without a
+database; `tests/unit/db-adapters/postgresAdapter.test.ts` runs against a real server when
+`OMNIROUTE_TEST_DATABASE_URL` is set. To run the existing database suites on PostgreSQL, set
+`OMNIROUTE_DATABASE_URL` plus `OMNIROUTE_DATABASE_SCHEMA=auto` (one schema per test process,
+reset whenever the test wipes its `DATA_DIR`).
+
 ## Domain Module Architecture
 
 OmniRoute's database has **110 top-level TypeScript modules** in `src/lib/db/`. Each domain module:
