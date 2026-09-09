@@ -294,7 +294,15 @@ export async function validateResponseQuality(
   if (isStreaming) {
     const contentType = response.headers.get("content-type") || "";
     if (!contentType.includes("text/event-stream")) {
-      return { valid: true };
+      // Issue #10404 follow-up: providers that honour stream:true but answer
+      // with application/json (gateway/shim providers such as ccwu/minimax-m3)
+      // used to short-circuit here as valid without ANY check — a 200 carrying
+      // content:null or completion_tokens:0 bypassed the JSON validation path
+      // below and the combo consumed an empty/no-op turn. Re-validate these
+      // bodies through the non-streaming JSON path instead. Callers pass a
+      // quality clone in, so buffering it here never disturbs the original
+      // response they forward to the client on a valid verdict.
+      return validateResponseQuality(response, false, log, responseValidation);
     }
 
     if (!response.body) {
@@ -780,6 +788,28 @@ export async function validateResponseQuality(
 
   if (!hasContent && !hasToolCalls) {
     return { valid: false, reason: "empty content and no tool_calls in response" };
+  }
+
+  // Issue #10404 follow-up (non-SSE path): some providers (e.g. the
+  // ccwu/minimax-m3 gateway during high load) answer HTTP 200 with
+  // finish_reason:"stop" and a busy/error MESSAGE string in content but
+  // completion_tokens:0 — hasContent above is true (non-empty prose), so the
+  // empty guard can't catch it, yet zero output tokens means no generation
+  // actually happened. Fail over to the next combo target. Gated on usage
+  // being present AND reporting a numeric 0 so providers that omit usage
+  // entirely (Anthropic-compatible shims, #12968) and reasoning_content-only
+  // turns (#3587: completion_tokens:0 there is a known-safe case) are never
+  // rejected by this check.
+  const usageRecord = json?.usage as Record<string, unknown> | undefined;
+  const reportedCompletionTokens =
+    usageRecord && typeof usageRecord.completion_tokens === "number"
+      ? (usageRecord.completion_tokens as number)
+      : -1;
+  if (reportedCompletionTokens === 0 && !hasToolCalls && !hasReasoningContent) {
+    return {
+      valid: false,
+      reason: "completion_tokens is 0 — no output generated",
+    };
   }
 
   // Issue #3587: Reasoning models (deepseek-v4-flash, nemotron, etc.) may consume
