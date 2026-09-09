@@ -1,0 +1,1 @@
+- **fix(tailscale):** Disabling the OmniRoute Funnel no longer terminates shared Tailscale daemons or active SSH sessions, and failed resets no longer report success ([#13105](https://github.com/diegosouzapw/OmniRoute/pull/13105)).
