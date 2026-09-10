@@ -230,6 +230,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "structured_output_validation_failed",
   "timeout_error",
   "timeout",
+  "turn_in_progress",
   "token_limit_exceeded",
   "token_required",
   "tls_client_unavailable",
