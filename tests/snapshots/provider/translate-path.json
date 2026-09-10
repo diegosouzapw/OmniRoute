@@ -1334,16 +1334,16 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.153.4 (<OS>; <ARCH>)",
-        "Version": "0.153.4",
+        "User-Agent": "codex-cli/0.155.0 (<OS>; <ARCH>)",
+        "Version": "0.155.0",
         "X-Codex-Beta-Features": "responses_websockets"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.153.4 (<OS>; <ARCH>)",
-        "Version": "0.153.4",
+        "User-Agent": "codex-cli/0.155.0 (<OS>; <ARCH>)",
+        "Version": "0.155.0",
         "X-Codex-Beta-Features": "responses_websockets"
       },
       "oauth": {
@@ -1351,8 +1351,8 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.153.4 (<OS>; <ARCH>)",
-        "Version": "0.153.4",
+        "User-Agent": "codex-cli/0.155.0 (<OS>; <ARCH>)",
+        "Version": "0.155.0",
         "X-Codex-Beta-Features": "responses_websockets"
       }
     },
