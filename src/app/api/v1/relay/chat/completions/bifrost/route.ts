@@ -41,6 +41,7 @@ import {
   hashToken,
   sanitizeForensicHeader,
 } from "../relaySecurity";
+import { isLoopbackOrPrivateUrlHost } from "@/shared/utils/privateHost";
 import { finalizeReadableStream } from "../streamFinalizer";
 
 // Minimal request-shape validation (Rule #7). `.passthrough()` keeps every other
@@ -65,6 +66,21 @@ const BIFROST_API_KEY = process.env.BIFROST_API_KEY || process.env.OMNIROUTE_BIF
 const BIFROST_TIMEOUT_MS = Number(process.env.BIFROST_TIMEOUT_MS || "30000");
 const BIFROST_STREAMING_ENABLED = process.env.BIFROST_STREAMING_ENABLED !== "0";
 const BIFROST_ENABLED = process.env.BIFROST_ENABLED !== "0";
+
+/**
+ * Origin-IP disclosure guard: the relay previously sent `x-relay-client-ip`
+ * (derived from the caller's forwarding headers / TCP peer) to the Bifrost
+ * upstream unconditionally, leaking the client origin IP whenever the
+ * sidecar was remote. The IP is now forwarded ONLY when both:
+ *   1. the operator explicitly opts in via BIFROST_FORWARD_CLIENT_IP=1, and
+ *   2. BIFROST_BASE_URL points at a loopback/private address.
+ * Default (no env, remote sidecar): the header is never sent.
+ */
+const BIFROST_FORWARD_CLIENT_IP =
+  process.env.BIFROST_FORWARD_CLIENT_IP === "1" || process.env.BIFROST_FORWARD_CLIENT_IP === "true";
+
+const BIFROST_MAY_RECEIVE_CLIENT_IP =
+  BIFROST_FORWARD_CLIENT_IP && !!BIFROST_BASE_URL && isLoopbackOrPrivateUrlHost(BIFROST_BASE_URL);
 
 const injectionGuard = createInjectionGuard();
 
@@ -257,8 +273,10 @@ export async function POST(request: Request) {
     const upstreamHeaders: Record<string, string> = {
       "Content-Type": "application/json",
       "x-relay-token-id": token.id,
-      "x-relay-client-ip": clientIp,
       ...getProviderPluginManifestHeader(new URL(request.url).origin),
+      // Origin-IP guard: only attached for an explicitly opted-in,
+      // loopback/private sidecar (see BIFROST_MAY_RECEIVE_CLIENT_IP above).
+      ...(BIFROST_MAY_RECEIVE_CLIENT_IP ? { "x-relay-client-ip": clientIp } : {}),
     };
     const requestId = request.headers.get("x-request-id");
     if (requestId) upstreamHeaders["x-request-id"] = requestId;

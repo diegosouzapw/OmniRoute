@@ -8,24 +8,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
+import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 
 const ALLOWED_TRY_PATH_PREFIXES = ["/api/", "/v1/", "/v1beta/", "/a2a", "/.well-known/agent.json"];
-const BLOCKED_FORWARD_HEADERS = new Set([
-  "connection",
-  "content-length",
-  "cookie",
-  "host",
-  "keep-alive",
-  "proxy-authenticate",
-  "proxy-authorization",
-  "te",
-  "trailer",
-  "transfer-encoding",
-  "upgrade",
-  "x-forwarded-for",
-  "x-forwarded-host",
-  "x-forwarded-proto",
-]);
+
+/**
+ * Headers blocked only here, on top of the canonical upstream denylist
+ * (`upstreamHeaders.ts`). Everything else — including the full origin-IP
+ * forwarding set (x-forwarded-for, x-real-ip, cf-connecting-ip, forwarded,
+ * via, …) and auth headers — is blocked by `isForbiddenCustomHeaderName`,
+ * so the client origin IP can never leak through the Try-It proxy via a
+ * user-supplied header. Keep this list minimal; do not re-add headers the
+ * canonical denylist already covers.
+ */
+const EXTRA_BLOCKED_FORWARD_HEADERS = new Set(["proxy-authenticate", "proxy-authorization"]);
 
 const tryRequestSchema = z.object({
   method: z
@@ -54,7 +50,12 @@ function buildForwardHeaders(headers: Record<string, string>) {
 
   for (const [key, value] of Object.entries(headers)) {
     const normalizedKey = key.trim().toLowerCase();
-    if (!normalizedKey || BLOCKED_FORWARD_HEADERS.has(normalizedKey)) continue;
+    if (
+      !normalizedKey ||
+      isForbiddenCustomHeaderName(normalizedKey) ||
+      EXTRA_BLOCKED_FORWARD_HEADERS.has(normalizedKey)
+    )
+      continue;
     forwardHeaders[key] = value;
   }
 
