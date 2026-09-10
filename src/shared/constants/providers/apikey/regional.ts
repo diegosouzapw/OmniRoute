@@ -127,6 +127,17 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     hasFree: true,
     freeNote: "5M free tokens on signup - no credit card required",
   },
+  "monkeycode-ai": {
+    id: "monkeycode-ai",
+    alias: "monkeycode",
+    name: "MonkeyCode AI",
+    icon: "code",
+    color: "#7C3AED",
+    textIcon: "MC",
+    website: "https://monkeycode-ai.net",
+    apiHint:
+      "Free account, no key signup: ohmyagent provisions oma_* credentials into ~/.ohmyagent/settings.json on login. Paste api_key here; put signing_secret in provider-specific data as signingSecret.",
+  },
   zai: {
     id: "zai",
     alias: "zai",

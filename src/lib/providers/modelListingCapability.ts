@@ -11,7 +11,13 @@
 const TOOL_ONLY_SERVICE_KINDS = new Set<string>(["webSearch", "webFetch"]);
 
 /** Providers whose registry catalog is the complete, intentional model list. */
-const CURATED_MODEL_ONLY_PROVIDERS = new Set<string>(["kimi-web"]);
+const CURATED_MODEL_ONLY_PROVIDERS = new Set<string>([
+  "kimi-web",
+  // MonkeyCode AI's gateway 403s the /models endpoint (Cloudflare + missing
+  // request signature on non-chat paths) — the registry's 8 static ids are the
+  // catalog, same shape as kimi-web.
+  "monkeycode-ai",
+]);
 
 export function providerUsesCuratedModelsOnly(providerId: string): boolean {
   return CURATED_MODEL_ONLY_PROVIDERS.has(providerId.trim().toLowerCase());

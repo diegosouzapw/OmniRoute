@@ -1,0 +1,1 @@
+- **feat(providers):** MonkeyCode AI gateway (`monkeycode-ai`, alias `monkeycode`) with signed HMAC executor — 8 `monkeycode-basic/pro/ultra` models over OpenAI chat completions with native tool_calls, model-availability fallback chain, per-model cooldown, curated registry catalog, and ANSI-sanitized responses ([#8868](https://github.com/diegosouzapw/OmniRoute/pull/8868))

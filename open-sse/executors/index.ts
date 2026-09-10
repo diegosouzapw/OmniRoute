@@ -61,6 +61,7 @@ import { TheOldLlmExecutor } from "./theoldllm.ts";
 import { ChipotleExecutor } from "./chipotle.ts";
 import { LMArenaExecutor } from "./lmarena.ts";
 import { MimocodeExecutor } from "./mimocode.ts";
+import { MonkeyCodeAiExecutor } from "./monkeycode-ai.ts";
 import { GrokCliExecutor } from "./grok-cli.ts";
 import { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 import { ZenmuxFreeExecutor } from "./zenmux-free.ts";
@@ -179,6 +180,8 @@ const executors = {
   lma: new LMArenaExecutor(), // Alias
   mimocode: new MimocodeExecutor(),
   mcode: new MimocodeExecutor(), // Alias
+  "monkeycode-ai": new MonkeyCodeAiExecutor(),
+  monkeycode: new MonkeyCodeAiExecutor(), // Alias
   "grok-cli": new GrokCliExecutor(),
   gc: new GrokCliExecutor(), // Alias
   "codebuddy-cn": new CodeBuddyCnExecutor(),
@@ -276,6 +279,7 @@ export { TheOldLlmExecutor } from "./theoldllm.ts";
 export { ChipotleExecutor } from "./chipotle.ts";
 export { LMArenaExecutor } from "./lmarena.ts";
 export { MimocodeExecutor } from "./mimocode.ts";
+export { MonkeyCodeAiExecutor } from "./monkeycode-ai.ts";
 export { GrokCliExecutor } from "./grok-cli.ts";
 export { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 export { ZenmuxFreeExecutor } from "./zenmux-free.ts";

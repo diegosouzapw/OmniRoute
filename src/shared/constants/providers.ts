@@ -439,6 +439,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "deepseek",
   "xiaomi-mimo",
   "xiaomi-mimo-token-plan",
+  "monkeycode-ai",
   "vertex",
   "vertex-partner",
   "codebuddy-cn",

@@ -3,6 +3,7 @@ import type { RegistryEntry } from "./shared.ts";
 import { aimlapiProvider } from "./registry/aimlapi/index.ts";
 import { byteplusProvider } from "./registry/byteplus/index.ts";
 import { mimocodeProvider } from "./registry/mimocode/index.ts";
+import { monkeycode_aiProvider } from "./registry/monkeycode-ai/index.ts";
 import { ollama_cloudProvider } from "./registry/ollama-cloud/index.ts";
 import { syntheticProvider } from "./registry/synthetic/index.ts";
 import { ideogramProvider } from "./registry/ideogram/index.ts";
@@ -422,6 +423,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   kiro: kiroProvider,
   byteplus: byteplusProvider,
   mimocode: mimocodeProvider,
+  "monkeycode-ai": monkeycode_aiProvider,
   wafer: waferProvider,
   openadapter: openadapterProvider,
   dit: ditProvider,

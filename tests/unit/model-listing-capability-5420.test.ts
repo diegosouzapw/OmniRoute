@@ -35,4 +35,9 @@ describe("providerLacksModelListing (#5420)", () => {
     assert.equal(providerUsesCuratedModelsOnly("qwen-cloud"), false);
     assert.equal(providerUsesCuratedModelsOnly("kimi-coding"), false);
   });
+
+  it("marks MonkeyCode AI as curated-only (its /models endpoint 403s)", () => {
+    assert.equal(providerLacksModelListing("monkeycode-ai", ["llm"]), false);
+    assert.equal(providerUsesCuratedModelsOnly("monkeycode-ai"), true);
+  });
 });
