@@ -1,0 +1,1 @@
+- Restore four non-streaming behaviours the server-owned tool loop refactor dropped: client aborts map to 499 with the fixed `Request aborted` message, an aborted request no longer logs a synthetic `clientResponse`, Claude prompt-cache telemetry is recorded again, and a body that cannot be canonicalized no longer throws when the tool loop is off.

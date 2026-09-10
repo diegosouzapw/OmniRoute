@@ -8,6 +8,7 @@
  * Tracks testStatus, lastError, lastTested per connectionId with
  * configurable TTL. Auto-expiry on read for stale entries.
  */
+import { redactSecrets } from "@/shared/utils/logRedaction";
 
 export interface CredentialHealthStatus {
   connectionId: string;
@@ -35,6 +36,9 @@ export interface CredentialCacheEntry {
 const DEFAULT_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const STALE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes — considered stale
 const MAX_ENTRIES = 500;
+/** Bound the monitoring-health failed list so huge fleets stay scrape-safe. */
+export const CREDENTIAL_HEALTH_FAILED_LIST_CAP = 32;
+const FAILED_ERROR_MAX_LEN = 200;
 
 // ── State (globalThis singleton) ──────────────────────────────────────────
 
@@ -175,12 +179,38 @@ export function getAllCredentialHealth(): Record<string, CredentialHealthStatus>
   return result;
 }
 
+export interface CredentialHealthFailedConnection {
+  connectionId: string;
+  status: "error";
+  lastError?: string;
+  lastErrorType?: string;
+}
+
 export interface CredentialHealthSummary {
   total: number;
   healthy: number;
   failed: number;
   unknown: number;
   stale: number;
+  /**
+   * Probe-cache rows with status=error. Present only when failed>0.
+   * Capped at CREDENTIAL_HEALTH_FAILED_LIST_CAP; see failedOmitted.
+   */
+  failedConnections?: CredentialHealthFailedConnection[];
+  /** Failed rows omitted because the list was capped. */
+  failedOmitted?: number;
+}
+
+/** Sanitize a cached lastError for the public monitoring health payload. */
+export function sanitizeCredentialHealthLastError(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const collapsed = raw.replace(/\s+/g, " ").trim();
+  if (!collapsed) return undefined;
+  const redacted = redactSecrets(collapsed);
+  if (!redacted) return undefined;
+  return redacted.length > FAILED_ERROR_MAX_LEN
+    ? `${redacted.slice(0, FAILED_ERROR_MAX_LEN)}...`
+    : redacted;
 }
 
 /**
@@ -198,18 +228,41 @@ export function getCachedCredentialHealthSummary(): CredentialHealthSummary {
   let failed = 0;
   let unknown = 0;
   let stale = 0;
+  const failedEntries: Array<CredentialHealthFailedConnection & { lastTestedMs: number }> = [];
 
   for (const entry of state.cache.values()) {
     total += 1;
     if (entry.status.status === "active") healthy += 1;
-    else if (entry.status.status === "error") failed += 1;
-    else unknown += 1;
+    else if (entry.status.status === "error") {
+      failed += 1;
+      const lastError = sanitizeCredentialHealthLastError(entry.status.lastError);
+      const lastErrorType =
+        typeof entry.status.lastErrorType === "string" && entry.status.lastErrorType.trim()
+          ? entry.status.lastErrorType.trim()
+          : undefined;
+      failedEntries.push({
+        connectionId: entry.status.connectionId,
+        status: "error",
+        ...(lastError ? { lastError } : {}),
+        ...(lastErrorType ? { lastErrorType } : {}),
+        lastTestedMs: entry.status.lastTested.getTime(),
+      });
+    } else unknown += 1;
     if (now - entry.status.lastTested.getTime() > STALE_THRESHOLD_MS || now > entry.expiresAt) {
       stale += 1;
     }
   }
 
-  return { total, healthy, failed, unknown, stale };
+  const summary: CredentialHealthSummary = { total, healthy, failed, unknown, stale };
+  if (failed > 0) {
+    failedEntries.sort((left, right) => right.lastTestedMs - left.lastTestedMs);
+    const omitted = Math.max(0, failedEntries.length - CREDENTIAL_HEALTH_FAILED_LIST_CAP);
+    summary.failedConnections = failedEntries
+      .slice(0, CREDENTIAL_HEALTH_FAILED_LIST_CAP)
+      .map(({ lastTestedMs: _lastTestedMs, ...row }) => row);
+    if (omitted > 0) summary.failedOmitted = omitted;
+  }
+  return summary;
 }
 
 /**
@@ -235,6 +288,8 @@ export function __test_putCredentialHealth(entry: {
   status: "active" | "error" | "unknown";
   lastTested: Date;
   expiresAt?: number;
+  lastError?: string;
+  lastErrorType?: string;
 }): void {
   const state = getCacheState();
   state.cache.set(entry.connectionId, {
@@ -243,6 +298,8 @@ export function __test_putCredentialHealth(entry: {
       provider: entry.provider,
       status: entry.status,
       lastTested: entry.lastTested,
+      lastError: entry.lastError,
+      lastErrorType: entry.lastErrorType,
       consecutiveFailures: 0,
     },
     expiresAt: entry.expiresAt ?? Date.now() + DEFAULT_TTL_MS,
