@@ -104,6 +104,21 @@ function buildAuthHeader(providerConfig, token) {
   return body;
 }
 
+function transformAlibabaQwen3Response(data, options: RerankResponseOptions) {
+  if (!Array.isArray(data.results)) return data;
+  const documents = Array.isArray(options.documents) ? options.documents : [];
+  const returnDocuments = options.return_documents !== false;
+  return {
+    ...data,
+    results: data.results.map((entry) => {
+      if (!returnDocuments || entry.document) return entry;
+      const doc = documents[entry.index];
+      const text = typeof doc === "string" ? doc : doc?.text || "";
+      return { ...entry, document: { text } };
+    }),
+  };
+}
+
 /**
  * Transform response from provider-specific formats back to Cohere format
  */
@@ -187,18 +202,7 @@ function buildAuthHeader(providerConfig, token) {
     };
   }
   if (providerConfig.format === "alibaba-qwen3") {
-    if (!Array.isArray(data.results)) return data;
-    const documents = Array.isArray(options.documents) ? options.documents : [];
-    const returnDocuments = options.return_documents !== false;
-    return {
-      ...data,
-      results: data.results.map((entry) => {
-        if (!returnDocuments || entry.document) return entry;
-        const doc = documents[entry.index];
-        const text = typeof doc === "string" ? doc : doc?.text || "";
-        return { ...entry, document: { text } };
-      }),
-    };
+    return transformAlibabaQwen3Response(data, options);
   }
   return data;
 }
