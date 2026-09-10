@@ -1,5 +1,5 @@
 import { trackPendingRequest } from "@/lib/usageDb";
-import { STREAM_IDLE_TIMEOUT_MS } from "../config/constants.ts";
+import { STREAM_ACTIVE_TIMEOUT_MS, STREAM_IDLE_TIMEOUT_MS } from "../config/constants.ts";
 import { FORMATS } from "../translator/formats.ts";
 import { buildErrorBody } from "./error.ts";
 import { PENDING_REQUEST_CLEARED_MARKER } from "./stream.ts";
@@ -842,7 +842,9 @@ export function createDisconnectAwareStream(
  * output for long stretches while partial EventStream frames keep arriving;
  * measuring stall on the transform output caused false stalls. Any upstream
  * chunk resets the timer. If no bytes arrive for `stallTimeoutMs`, the
- * stream surfaces a "stream stall timeout" error and aborts.
+ * stream surfaces a "stream stall timeout" error and aborts. A separate
+ * active lifetime budget never resets on bytes and surfaces
+ * "stream active timeout" when exceeded.
  *
  * Ported from decolua/9router#1243 by @zakirkun.
  *
@@ -851,18 +853,23 @@ export function createDisconnectAwareStream(
  * @param streamController - Stream controller from createStreamController
  * @param opts.stallTimeoutMs - Override the stall budget (defaults to
  *   STREAM_IDLE_TIMEOUT_MS / DEFAULT_STREAM_STALL_TIMEOUT_MS). `0` disables
- *   the watchdog.
+ *   the stall watchdog.
+ * @param opts.activeTimeoutMs - Override the total active-stream budget
+ *   (defaults to STREAM_ACTIVE_TIMEOUT_MS). `0` disables the active watchdog.
  */
 export function pipeWithDisconnect(
   providerResponse: Response,
   transformStream: TransformStream<Uint8Array, Uint8Array>,
   streamController: StreamController,
-  opts: { stallTimeoutMs?: number; highWaterMark?: number } = {}
+  opts: { stallTimeoutMs?: number; activeTimeoutMs?: number; highWaterMark?: number } = {}
 ) {
   const stallTimeoutMs = opts.stallTimeoutMs ?? DEFAULT_STREAM_STALL_TIMEOUT_MS;
+  const activeTimeoutMs = opts.activeTimeoutMs ?? STREAM_ACTIVE_TIMEOUT_MS;
+  const stallEnabled = Number.isFinite(stallTimeoutMs) && stallTimeoutMs > 0;
+  const activeEnabled = Number.isFinite(activeTimeoutMs) && activeTimeoutMs > 0;
 
-  // Watchdog disabled — preserve legacy behavior verbatim.
-  if (!stallTimeoutMs || stallTimeoutMs <= 0) {
+  // Watchdogs disabled — preserve legacy behavior verbatim.
+  if (!stallEnabled && !activeEnabled) {
     const transformedBody = providerResponse.body.pipeThrough(transformStream);
     return createDisconnectAwareStream(
       { readable: transformedBody, writable: createNoopAbortWritable() },
@@ -872,76 +879,78 @@ export function pipeWithDisconnect(
   }
 
   let stallTimer: ReturnType<typeof setTimeout> | null = null;
-  // Captured on the upstream tap's `start`, used by the watchdog to error the
-  // pipeline so the downstream reader unblocks and emits a clean SSE error
-  // event. Without this, aborting the AbortController alone does not unblock
-  // a `reader.read()` already suspended on the transform pipe — the request
-  // would hang until the upstream finally closed the socket.
+  let activeTimer: ReturnType<typeof setTimeout> | null = null;
+  // Erroring the upstream tap unblocks a downstream reader suspended on the
+  // transform pipe; aborting the controller alone does not always do that.
   let upstreamTapController: TransformStreamDefaultController<Uint8Array> | null = null;
-  // Set when the watchdog fires so the downstream pull() catch (which sees
-  // the same error propagated through the pipeline) does not call
-  // handleError a second time — pending-cleanup is idempotent but onError
-  // callbacks should fire once per error.
   let stallFired = false;
+  let activeFired = false;
 
   const clearStall = () => {
-    if (stallTimer) {
-      clearTimeout(stallTimer);
-      stallTimer = null;
+    if (stallTimer) clearTimeout(stallTimer);
+    stallTimer = null;
+  };
+  const clearActive = () => {
+    if (activeTimer) clearTimeout(activeTimer);
+    activeTimer = null;
+  };
+  const clearWatchdogs = () => {
+    clearStall();
+    clearActive();
+  };
+  const triggerWatchdog = (kind: "stall" | "active") => {
+    if (stallFired || activeFired) return;
+    const message = kind === "active" ? "stream active timeout" : "stream stall timeout";
+    if (kind === "active") activeFired = true;
+    else stallFired = true;
+    clearWatchdogs();
+    const error = new Error(message);
+    try {
+      streamController.handleError?.(error);
+    } catch (e) {
+      console.debug(`[STREAM-HANDLER] ${kind} watchdog handleError failed:`, e);
+    }
+    try {
+      upstreamTapController?.error(error);
+    } catch (e) {
+      console.debug(`[STREAM-HANDLER] ${kind} watchdog upstream tap error failed:`, e);
+    }
+    try {
+      streamController.abort?.();
+    } catch (e) {
+      console.debug(`[STREAM-HANDLER] ${kind} watchdog abort failed:`, e);
     }
   };
   const armStall = () => {
+    if (!stallEnabled) return;
     clearStall();
-    stallTimer = setTimeout(() => {
-      stallTimer = null;
-      stallFired = true;
-      const stallError = new Error("stream stall timeout");
-      // Notify the controller (onError callback + pending-request cleanup).
-      try {
-        streamController.handleError?.(stallError);
-      } catch (e) {
-        console.debug(`[STREAM-HANDLER] stall watchdog handleError failed:`, e);
-      }
-      // Error the pipeline so the downstream reader unblocks. createDisconnect-
-      // AwareStream's catch block translates this into buildStreamErrorChunks
-      // (sanitized SSE error event with finish_reason:"error", per the format).
-      try {
-        upstreamTapController?.error(stallError);
-      } catch (e) {
-        console.debug(`[STREAM-HANDLER] stall watchdog upstream tap error failed:`, e);
-      }
-      // Abort the underlying fetch so upstream releases the connection.
-      try {
-        streamController.abort?.();
-      } catch (e) {
-        console.debug(`[STREAM-HANDLER] stall watchdog abort failed:`, e);
-      }
-    }, stallTimeoutMs);
+    stallTimer = setTimeout(() => triggerWatchdog("stall"), stallTimeoutMs);
+  };
+  const armActive = () => {
+    if (!activeEnabled) return;
+    clearActive();
+    activeTimer = setTimeout(() => triggerWatchdog("active"), activeTimeoutMs);
   };
 
-  // Wrap controller so every termination path clears the stall timer.
-  // Without this, abort/complete/error/disconnect paths leave the timer armed
-  // and a stale abort could fire after the request has already ended.
+  // Clear both timers on every terminal path so no stale watchdog can fire
+  // after the request has already completed or disconnected.
   const wrappedController: StreamController = {
     ...streamController,
     handleComplete: () => {
-      clearStall();
+      clearWatchdogs();
       streamController.handleComplete();
     },
     handleError: (e: unknown) => {
-      clearStall();
-      // Watchdog already fired its own handleError — the inner pull() catch
-      // sees the same error propagated through the pipeline; suppress the
-      // duplicate to keep onError callbacks single-fire.
-      if (stallFired) return;
+      clearWatchdogs();
+      if (stallFired || activeFired) return;
       streamController.handleError(e);
     },
     handleDisconnect: (reason?: string) => {
-      clearStall();
+      clearWatchdogs();
       streamController.handleDisconnect(reason);
     },
     abort: () => {
-      clearStall();
+      clearWatchdogs();
       streamController.abort();
     },
   };
@@ -954,13 +963,14 @@ export function pipeWithDisconnect(
     start(controller) {
       upstreamTapController = controller;
       armStall();
+      armActive();
     },
     transform(chunk, controller) {
       armStall();
       controller.enqueue(chunk);
     },
     flush() {
-      clearStall();
+      clearWatchdogs();
     },
   });
 

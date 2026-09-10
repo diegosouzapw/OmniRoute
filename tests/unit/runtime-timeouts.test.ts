@@ -12,6 +12,7 @@ test("upstream timeout config derives hidden fetch timeouts from FETCH_TIMEOUT_M
   assert.deepEqual(config, {
     fetchTimeoutMs: 600000,
     streamIdleTimeoutMs: 600000,
+    streamActiveTimeoutMs: 900000,
     sseHeartbeatIntervalMs: 15000,
     streamReadinessTimeoutMs: 80000,
     streamReadinessMaxTimeoutMs: 180000,
@@ -102,6 +103,33 @@ test("API bridge timeouts align request timeout with long proxy timeout by defau
     serverKeepAliveTimeoutMs: 5000,
     serverSocketTimeoutMs: 0,
   });
+});
+
+test("active stream timeout is independent from REQUEST_TIMEOUT_MS and validates its own setting", () => {
+  assert.equal(runtimeTimeouts.DEFAULT_STREAM_ACTIVE_TIMEOUT_MS, 900_000);
+  assert.equal(runtimeTimeouts.getUpstreamTimeoutConfig({}).streamActiveTimeoutMs, 900_000);
+  assert.equal(
+    runtimeTimeouts.getUpstreamTimeoutConfig({ REQUEST_TIMEOUT_MS: "25000" }).streamActiveTimeoutMs,
+    900_000
+  );
+  assert.equal(
+    runtimeTimeouts.getUpstreamTimeoutConfig({ STREAM_ACTIVE_TIMEOUT_MS: "120000" })
+      .streamActiveTimeoutMs,
+    120_000
+  );
+  assert.equal(
+    runtimeTimeouts.getUpstreamTimeoutConfig({ STREAM_ACTIVE_TIMEOUT_MS: "0" })
+      .streamActiveTimeoutMs,
+    0
+  );
+
+  for (const value of ["-1", "NaN", "Infinity"]) {
+    assert.equal(
+      runtimeTimeouts.getUpstreamTimeoutConfig({ STREAM_ACTIVE_TIMEOUT_MS: value })
+        .streamActiveTimeoutMs,
+      900_000
+    );
+  }
 });
 
 test("idle timeout default stays at 10min (600_000) for slow-thinking model safety", () => {

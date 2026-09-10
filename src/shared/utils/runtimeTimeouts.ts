@@ -8,6 +8,7 @@ type ReadTimeoutOptions = {
 
 export const DEFAULT_FETCH_TIMEOUT_MS = 600_000;
 export const DEFAULT_STREAM_IDLE_TIMEOUT_MS = 600_000;
+export const DEFAULT_STREAM_ACTIVE_TIMEOUT_MS = 900_000;
 export const MAX_TIMER_TIMEOUT_MS = 2_147_483_647;
 export const DEFAULT_SSE_HEARTBEAT_INTERVAL_MS = 15_000;
 export const DEFAULT_STREAM_READINESS_TIMEOUT_MS = 80_000;
@@ -44,6 +45,7 @@ function hasEnvValue(env: EnvSource, name: string): boolean {
 export type UpstreamTimeoutConfig = {
   fetchTimeoutMs: number;
   streamIdleTimeoutMs: number;
+  streamActiveTimeoutMs: number;
   sseHeartbeatIntervalMs: number;
   streamReadinessTimeoutMs: number;
   streamReadinessMaxTimeoutMs: number;
@@ -118,6 +120,15 @@ export function getUpstreamTimeoutConfig(
       logger,
     }
   );
+  const streamActiveTimeoutMs = readTimeoutMs(
+    env,
+    "STREAM_ACTIVE_TIMEOUT_MS",
+    DEFAULT_STREAM_ACTIVE_TIMEOUT_MS,
+    {
+      allowZero: true,
+      logger,
+    }
+  );
   const streamReadinessTimeoutMs = readTimeoutMs(
     env,
     "STREAM_READINESS_TIMEOUT_MS",
@@ -158,6 +169,7 @@ export function getUpstreamTimeoutConfig(
   return {
     fetchTimeoutMs,
     streamIdleTimeoutMs,
+    streamActiveTimeoutMs,
     streamReadinessTimeoutMs,
     streamReadinessMaxTimeoutMs,
     sseHeartbeatIntervalMs,

@@ -767,6 +767,73 @@ test("pipeWithDisconnect does NOT flag a slow but progressing upstream as stalle
   assert.doesNotMatch(text, /"finish_reason":"error"/);
 });
 
+test("pipeWithDisconnect caps a continuously active non-terminal stream", async () => {
+  let interval: ReturnType<typeof setInterval> | null = null;
+  let upstreamCancelled = false;
+  const source = new ReadableStream({
+    start(controller) {
+      interval = setInterval(() => controller.enqueue(encoder.encode("delta")), 10);
+    },
+    cancel() {
+      upstreamCancelled = true;
+      if (interval) clearInterval(interval);
+    },
+  });
+
+  let onErrorCalls = 0;
+  let onErrorMessage = "";
+  const streamController = createStreamController({
+    onError(event) {
+      onErrorCalls += 1;
+      onErrorMessage = event.message;
+      return true;
+    },
+  });
+
+  const stream = pipeWithDisconnect(new Response(source), new TransformStream(), streamController, {
+    stallTimeoutMs: 150,
+    activeTimeoutMs: 70,
+  });
+  const text = await readStreamText(stream);
+
+  assert.equal(onErrorCalls, 1);
+  assert.equal(onErrorMessage, "stream active timeout");
+  assert.equal(streamController.signal.aborted, true);
+  assert.equal(upstreamCancelled, true);
+  assert.match(text, /stream active timeout/);
+  assert.match(text, /"finish_reason":"error"/);
+  assert.match(text, /\[DONE\]/);
+});
+
+test("pipeWithDisconnect allows a completed stream with active timeout disabled", async () => {
+  const source = new ReadableStream({
+    async start(controller) {
+      controller.enqueue(encoder.encode("a"));
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      controller.enqueue(encoder.encode("b"));
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      controller.close();
+    },
+  });
+  let onErrorCalled = false;
+  const streamController = createStreamController({
+    onError() {
+      onErrorCalled = true;
+      return true;
+    },
+  });
+
+  const text = await readStreamText(
+    pipeWithDisconnect(new Response(source), new TransformStream(), streamController, {
+      stallTimeoutMs: 120,
+      activeTimeoutMs: 0,
+    })
+  );
+
+  assert.equal(text, "ab");
+  assert.equal(onErrorCalled, false);
+});
+
 test("pipeWithDisconnect flags a truly stalled upstream (no bytes for the full stall budget)", async () => {
   // Upstream emits one byte and then goes silent forever. Stall budget is
   // 80ms — the watchdog must fire and surface a stream-stall error.

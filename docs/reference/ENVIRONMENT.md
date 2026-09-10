@@ -732,6 +732,7 @@ REQUEST_TIMEOUT_MS (global override)
 │   ├── FETCH_CONNECT_TIMEOUT_MS (independent, default: 30000)
 │   └── FETCH_KEEPALIVE_TIMEOUT_MS (independent, default: 4000)
 ├─→ STREAM_IDLE_TIMEOUT_MS (inherits from REQUEST_TIMEOUT_MS, default: 600000)
+├─→ STREAM_ACTIVE_TIMEOUT_MS (independent, default: 900000; 0 disables)
 ├─→ STREAM_READINESS_TIMEOUT_MS (inherits from REQUEST_TIMEOUT_MS, default: 80000)
 ├─→ STREAM_READINESS_MAX_TIMEOUT_MS (caps adaptive readiness extensions, default: 180000)
 └─→ API_BRIDGE_PROXY_TIMEOUT_MS (inherits from REQUEST_TIMEOUT_MS, default: 30000)
@@ -745,7 +746,8 @@ REQUEST_TIMEOUT_MS (global override)
 | ----------------------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `REQUEST_TIMEOUT_MS`                      | _(unset)_            | Global shortcut — overrides both `FETCH_TIMEOUT_MS` and `STREAM_IDLE_TIMEOUT_MS` defaults.                                                                      |
 | `FETCH_TIMEOUT_MS`                        | `600000`             | Total HTTP request timeout for upstream provider calls.                                                                                                         |
-| `STREAM_IDLE_TIMEOUT_MS`                  | `600000`             | Max silence between SSE chunks before aborting. Extended-thinking models rarely pause >90s.                                                                     |
+| `STREAM_IDLE_TIMEOUT_MS`                  | `600000`             | Max silence between raw upstream bytes before aborting. Extended-thinking models rarely pause >90s.                                                               |
+| `STREAM_ACTIVE_TIMEOUT_MS`                | `900000`             | Maximum total active SSE stream lifetime; never resets on upstream bytes and is independent of `REQUEST_TIMEOUT_MS`. Set to `0` to disable.                       |
 | `OMNIROUTE_SSE_COMMENTS`                  | _(disabled)_         | Whether OmniRoute may emit SSE `:` comment lines (e.g. the `: keepalive` heartbeat and `x-omniroute-*` metadata trailers). Disabled by default (#10524) since strict OpenAI-compatible clients JSON.parse every SSE line and crash on `:` comments; `data:` heartbeats are unaffected. Set `on`/`true`/`1`/`yes` to opt back in. Used by `open-sse/utils/sseHeartbeat.ts`.                |
 | `STREAM_READINESS_TIMEOUT_MS`             | `80000`              | Time to receive the first non-ping SSE event. Inherits `REQUEST_TIMEOUT_MS` when set.                                                                           |
 | `STREAM_READINESS_MAX_TIMEOUT_MS`         | `180000`             | Maximum adaptive first-event readiness window for large, tool-heavy, or high-reasoning streaming requests.                                                       |
@@ -837,6 +839,7 @@ Provider-level circuit breaker tuning. Defaults reflect the scaled values used s
 | Scenario                         | Configuration                                          |
 | -------------------------------- | ------------------------------------------------------ |
 | **Long-running code generation** | `REQUEST_TIMEOUT_MS=900000` (15 min)                   |
+| **Bound total stream lifetime** | `STREAM_ACTIVE_TIMEOUT_MS=900000` (15 min)             |
 | **Fast-fail for production API** | `API_BRIDGE_PROXY_TIMEOUT_MS=10000`                    |
 | **Extended thinking models**     | `STREAM_IDLE_TIMEOUT_MS=300000` (5 min between chunks) |
 
