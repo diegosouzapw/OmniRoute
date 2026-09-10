@@ -532,6 +532,7 @@
     "nanoid": "^3.3.17",
     "monaco-editor": {
       "dompurify": "^3.4.14"
-    }
+    },
+    "csv-parse": "^7.0.2"
   }
 }
