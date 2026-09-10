@@ -60,7 +60,7 @@ function containsTruncatedArrayMarker(items: readonly unknown[]): boolean {
   return items.some((item) => isPlainRecord(item) && item[TRUNCATED_ARRAY_MARKER] === true);
 }
 
-type ContinuationPipeline = {
+export type ContinuationPipeline = {
   clientRawRequest?: { body?: unknown; effectiveInput?: unknown };
   clientResponse?: { output?: unknown; summary?: { output?: unknown }; _truncated?: unknown };
 };

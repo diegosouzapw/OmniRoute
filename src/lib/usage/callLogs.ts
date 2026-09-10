@@ -16,6 +16,7 @@ import { getCallLogApiKeyContext } from "./callLogApiKeyContext";
 import {
   seedPendingContinuationState,
   clearPendingContinuationState,
+  type ContinuationPipeline,
 } from "../db/responsesContinuationStore";
 import {
   getLoggedInputTokens,
@@ -486,9 +487,10 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       seedPendingContinuationState(
         entry.responseId,
         apiKeyId,
-        protectedPipelinePayloads as
-          | { clientRawRequest?: unknown; clientResponse?: unknown }
-          | null,
+        // The store's own contract, not a looser restatement of it: the inline shape
+        // widened both fields to `unknown`, which does not assign to
+        // ContinuationPipeline's typed members (TS2345 under typecheck:core).
+        protectedPipelinePayloads as ContinuationPipeline | null,
         Boolean(entry.videoContentRemoved)
       );
     }
