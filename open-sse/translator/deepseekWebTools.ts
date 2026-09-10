@@ -325,6 +325,47 @@ function buildSchemaParamMap(requestedTools: unknown): Map<string, Set<string>> 
   return map;
 }
 
+// DeepSeek's web session occasionally leaks malformed/internal formatting tokens right
+// after an otherwise-complete JSON tool call body (observed in production: a valid
+// `{"name": ..., "arguments": {...}}` object immediately followed by corrupted
+// pseudo-tags instead of a clean `</tool>` close). `parseLooseJsonObject` uses a strict
+// `JSON.parse`, which rejects the whole string over that trailing garbage even though a
+// perfectly valid object sits right at the start. This scans for the first balanced
+// `{...}` object (quote/escape aware) and returns just that slice, so it can still be
+// parsed on its own.
+function salvageLeadingJsonObject(text: string): string | null {
+  const start = text.indexOf("{");
+  if (start === -1) return null;
+  let depth = 0;
+  let quote: '"' | "'" | "" = "";
+  let escaped = false;
+  for (let i = start; i < text.length; i += 1) {
+    const ch = text[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (quote) {
+      if (ch === "\\") escaped = true;
+      else if (ch === quote) quote = "";
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      quote = ch as '"' | "'";
+      continue;
+    }
+    if (ch === "{") {
+      depth += 1;
+      continue;
+    }
+    if (ch === "}") {
+      depth -= 1;
+      if (depth === 0) return text.slice(start, i + 1);
+    }
+  }
+  return null; // never balanced — genuinely truncated, nothing to salvage
+}
+
 /**
  * Turn one tool block (tag name + inner text) into a name + JSON-string arguments.
  * Returns null when no plausible tool name can be recovered.
@@ -342,7 +383,13 @@ function extractCall(
   const paramObj = argsChild ? null : buildArgsFromParameters(inner);
   const hasXmlChildren = !!nameChild || !!argsChild || !!paramObj;
 
-  const json = hasXmlChildren ? null : parseLooseJsonObject(inner);
+  let json = hasXmlChildren ? null : parseLooseJsonObject(inner);
+  if (!json && !hasXmlChildren) {
+    // Strict parse failed — try salvaging a complete JSON object from the start of the
+    // block even if trailing content after it is malformed (see salvageLeadingJsonObject).
+    const salvaged = salvageLeadingJsonObject(inner);
+    if (salvaged) json = parseLooseJsonObject(salvaged);
+  }
   const jsonName = json ? (asString(json.name) ?? asString(json.type)) : null;
 
   const childResolved = nameChild ? resolveRequestedToolName(nameChild, requested) : null;
@@ -479,7 +526,13 @@ export function parseDeepSeekToolCalls(
     // A missing _nonce is tolerated for backward compatibility.
     if (nonce) {
       const parsed = parseLooseJsonObject(inner);
-      if (parsed && typeof parsed.name === "string" && parsed._nonce !== undefined && parsed._nonce !== nonce) continue;
+      if (
+        parsed &&
+        typeof parsed.name === "string" &&
+        parsed._nonce !== undefined &&
+        parsed._nonce !== nonce
+      )
+        continue;
     }
 
     toolCalls.push({
