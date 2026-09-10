@@ -518,9 +518,18 @@ export class BaseExecutor {
     health?: Record<string, KeyHealth>,
     body?: unknown
   ): Record<string, string> {
-    void clientHeaders;
     void model;
     const { headers, effectiveKey } = this.buildHeadersPreamble(credentials, stream);
+
+    // Pass through the OpenCode session header for prompt-cache-affine routing.
+    // OpenCode Zen/Go uses this header as the sticky-routing key so that
+    // consecutive requests of one coding session land on the same upstream
+    // provider instance and reuse its prefix cache. Only this exact header is
+    // forwarded — no other client header is trusted.
+    const ocSession = clientHeaders?.["x-opencode-session"];
+    if (typeof ocSession === "string" && ocSession.length > 0 && ocSession.length <= 256) {
+      headers["x-opencode-session"] = ocSession;
+    }
 
     if (credentials.accessToken) {
       headers["Authorization"] = `Bearer ${credentials.accessToken}`;
