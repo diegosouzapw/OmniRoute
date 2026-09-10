@@ -148,6 +148,45 @@ function isClaudeModel(model: string) {
   return model.toLowerCase().startsWith("claude-");
 }
 
+// Vertex does not support Anthropic's optional one-hour prompt-cache TTL on these
+// legacy Claude models. Keep the breakpoint, but omit ttl so Vertex uses its
+// documented five-minute ephemeral cache instead of rejecting the request.
+const VERTEX_ONE_HOUR_TTL_UNSUPPORTED = new Set([
+  "claude-3-7-sonnet",
+  "claude-3-5-sonnet-v2",
+  "claude-3-5-sonnet",
+  "claude-3-opus",
+]);
+
+function downgradeUnsupportedVertexClaudeTtl(body: Record<string, unknown>, model: string): void {
+  const normalizedModel = model.toLowerCase().split("@", 1)[0];
+  if (!VERTEX_ONE_HOUR_TTL_UNSUPPORTED.has(normalizedModel)) return;
+
+  const normalizeBlock = (block: unknown) => {
+    if (!block || typeof block !== "object" || Array.isArray(block)) return;
+    const record = block as Record<string, unknown>;
+    const cacheControl = record.cache_control;
+    if (!cacheControl || typeof cacheControl !== "object" || Array.isArray(cacheControl)) return;
+    const control = cacheControl as Record<string, unknown>;
+    if (control.type === "ephemeral" && control.ttl === "1h") delete control.ttl;
+  };
+
+  const system = body.system;
+  if (Array.isArray(system)) system.forEach(normalizeBlock);
+
+  const messages = body.messages;
+  if (Array.isArray(messages)) {
+    for (const message of messages) {
+      if (!message || typeof message !== "object" || Array.isArray(message)) continue;
+      const content = (message as Record<string, unknown>).content;
+      if (Array.isArray(content)) content.forEach(normalizeBlock);
+    }
+  }
+
+  const tools = body.tools;
+  if (Array.isArray(tools)) tools.forEach(normalizeBlock);
+}
+
 // Defensive normalizer: target-format resolution for manually-added custom Claude models under
 // "vertex"/"vertex-partner" was observed sending a Gemini-shaped body (contents/parts) to the
 // Anthropic rawPredict endpoint instead of the configured "claude" format, causing a hard
@@ -332,6 +371,7 @@ export class VertexExecutor extends BaseExecutor {
       // "model: Extra inputs are not permitted" if the translated request body still carries
       // one (the openai→claude request translator copies the client's model field over).
       delete body.model;
+      downgradeUnsupportedVertexClaudeTtl(body, model);
     }
 
     const result = await super.execute(input);
