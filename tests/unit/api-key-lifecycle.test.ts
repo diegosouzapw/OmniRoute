@@ -1,11 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
+import {
+  createIsolatedTestEnvSync,
+  cleanupIsolatedTestEnv,
+} from "../_setup/withIsolatedDataDir.ts";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omr-apikey-lifecycle-"));
-process.env.DATA_DIR = TEST_DATA_DIR;
+const { testDataDir, originalDataDir } = createIsolatedTestEnvSync("omr-apikey-lifecycle-");
 process.env.API_KEY_SECRET = "test-secret";
 
 const core = await import("../../src/lib/db/core.ts");
@@ -17,8 +17,7 @@ const ORIGINAL_ROUTER_API_KEY = process.env.ROUTER_API_KEY;
 function reset() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
-  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  // Note: we don't rmSync here - cleanupIsolatedTestEnv handles it in test.after()
   delete process.env.OMNIROUTE_API_KEY;
   delete process.env.ROUTER_API_KEY;
 }
@@ -28,7 +27,7 @@ test.beforeEach(() => {
 });
 
 test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  cleanupIsolatedTestEnv(testDataDir, originalDataDir);
   if (ORIGINAL_OMNIROUTE_API_KEY === undefined) delete process.env.OMNIROUTE_API_KEY;
   else process.env.OMNIROUTE_API_KEY = ORIGINAL_OMNIROUTE_API_KEY;
   if (ORIGINAL_ROUTER_API_KEY === undefined) delete process.env.ROUTER_API_KEY;

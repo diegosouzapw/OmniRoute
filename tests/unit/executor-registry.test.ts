@@ -1,15 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
+import {
+  createIsolatedTestEnvSync,
+  cleanupIsolatedTestEnv,
+} from "../_setup/withIsolatedDataDir.ts";
 
 // R0.3 — unit tests for the ExecutorRegistry seam itself (registration
 // semantics + wiring of the built-ins). Behavior parity of the full map is
 // covered separately by tests/unit/executor-map-golden.test.ts.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-executor-registry-"));
-process.env.DATA_DIR = TEST_DATA_DIR;
+const { testDataDir, originalDataDir } = createIsolatedTestEnvSync("omniroute-executor-registry-");
 
 const { registerExecutor, getRegisteredExecutor, hasRegisteredExecutor, listExecutorAliases } =
   await import("../../open-sse/executors/registry.ts");
@@ -17,9 +17,7 @@ const { getExecutor, hasSpecializedExecutor, BaseExecutor, DefaultExecutor } =
   await import("../../open-sse/executors/index.ts");
 const { getDefaultExecutor } = await import("../../open-sse/executors/defaultResolver.ts");
 
-test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
-});
+test.after(() => cleanupIsolatedTestEnv(testDataDir, originalDataDir));
 
 test("built-ins are registered at module load and resolve through the registry", async () => {
   const aliases = listExecutorAliases();
