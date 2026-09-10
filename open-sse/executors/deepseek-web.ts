@@ -377,6 +377,12 @@ async function collectSSEContent(
   let content = "";
   let reasoningContent = "";
   let currentPath: "thinking" | "content" | "" = "";
+  // Track whether DeepSeek actually signalled completion (`response/status: "FINISHED"`).
+  // Without this, an upstream session drop (expired cookie, anti-bot challenge, network
+  // hiccup) mid-stream was silently reported as a normal "stop" completion with whatever
+  // partial content had arrived so far — e.g. just "I'll check that..." with no follow-up,
+  // HTTP 200, finish_reason "stop". Confirmed in production call logs.
+  let sawFinished = false;
   const streamModel = model || "deepseek-web";
   const thinkingModel = isThinkingModel(streamModel);
   const searchResults: DeepSeekSearchResult[] = [];
@@ -422,6 +428,8 @@ async function collectSSEContent(
         const data = JSON.parse(payload);
         const p = data?.p;
         const v = data?.v;
+
+        if (p === "response/status" && v === "FINISHED") sawFinished = true;
 
         if (v && typeof v === "object" && v.response) {
           if (v.response.thinking_enabled === true) currentPath = "thinking";
@@ -483,6 +491,18 @@ async function collectSSEContent(
 
   const citations = appendSearchCitations(searchResults, streamModel);
   if (citations) content += `\n\n${citations}`;
+
+  // The upstream HTTP body closed without ever sending `response/status: "FINISHED"`.
+  // That means the DeepSeek web session was cut off mid-generation (expired cookie,
+  // anti-bot challenge, network drop, etc.) rather than genuinely completing. Surface
+  // this as an error (caught by execute()'s try/catch -> 502) instead of returning the
+  // partial stub as a successful "stop" response.
+  if (!sawFinished) {
+    throw new Error(
+      "DeepSeek web session ended before completion (no FINISHED signal received) — " +
+        "likely a dropped cookie session or network interruption upstream. Retry the request."
+    );
+  }
 
   return { content, reasoningContent };
 }
