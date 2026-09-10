@@ -7,11 +7,27 @@
  * inner target so #9057 holds.
  */
 
+import { hasApiKeyModelRestrictions } from "../../../shared/utils/resolvedModelAccess.ts";
+
 export type ComboTargetKeyPolicyInfo = {
   allowedModels?: string[] | null;
+  blockedModels?: string[] | null;
   disableNonPublicModels?: boolean | null;
   modelAccessMode?: string | null;
 };
+
+export type ComboTargetKeyPolicyOptions = {
+  apiKey: string | null | undefined;
+  apiKeyInfo: ComboTargetKeyPolicyInfo | null | undefined;
+  requestedModelStr: string;
+  targetModelStr: string;
+  isModelAllowedForKey: (key: string, model: string) => Promise<boolean>;
+};
+
+export type ComboTargetPreflightDecision =
+  | "deny"
+  | "check-availability"
+  | "bypass-availability";
 
 function modelMatchesAllowPattern(pattern: string, model: string): boolean {
   if (pattern.endsWith("/*")) return model.startsWith(pattern.slice(0, -1));
@@ -26,23 +42,28 @@ function allowListCoversRequestedCombo(
   return allowedModels.some((pattern) => modelMatchesAllowPattern(pattern, requestedModelStr));
 }
 
-export async function comboTargetPassesKeyModelPolicy(opts: {
-  apiKey: string | null | undefined;
-  apiKeyInfo: ComboTargetKeyPolicyInfo | null | undefined;
-  requestedModelStr: string;
-  targetModelStr: string;
-  isModelAllowedForKey: (key: string, model: string) => Promise<boolean>;
-}): Promise<boolean> {
+export async function comboTargetPassesKeyModelPolicy(
+  opts: ComboTargetKeyPolicyOptions
+): Promise<boolean> {
   const { apiKey, apiKeyInfo, requestedModelStr, targetModelStr, isModelAllowedForKey } = opts;
   if (!apiKey || !apiKeyInfo) return true;
 
-  const hasModelRestrictions =
-    Boolean(apiKeyInfo.allowedModels?.length) || apiKeyInfo.disableNonPublicModels === true;
-  if (!hasModelRestrictions) return true;
+  if (!hasApiKeyModelRestrictions(apiKeyInfo)) return true;
 
   if (allowListCoversRequestedCombo(apiKeyInfo.allowedModels, requestedModelStr)) {
     return true;
   }
 
   return isModelAllowedForKey(apiKey, targetModelStr);
+}
+
+/**
+ * A combo live test may skip availability probes only after target authorization.
+ * The client marker can never convert a denied model into an authorized target.
+ */
+export async function evaluateComboTargetPreflight(
+  opts: ComboTargetKeyPolicyOptions & { isComboLiveTest: boolean }
+): Promise<ComboTargetPreflightDecision> {
+  if (!(await comboTargetPassesKeyModelPolicy(opts))) return "deny";
+  return opts.isComboLiveTest ? "bypass-availability" : "check-availability";
 }

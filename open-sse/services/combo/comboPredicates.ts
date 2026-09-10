@@ -19,6 +19,7 @@ import {
 import { CONTEXT_OVERFLOW_PATTERNS, MODEL_ACCESS_DENIED_PATTERNS } from "../accountFallback.ts";
 import { isResourceNotFoundResponse } from "../errorClassifier.ts";
 import { getTrustedLocalRateLimitResponse } from "../rateLimitManager/errors.ts";
+import { isLocalModelPolicyResponse } from "../../../src/shared/utils/resolvedModelAccess.ts";
 import type { ResolvedComboTarget } from "./types.ts";
 
 // Status codes that should mark round-robin target semaphores as cooling down.
@@ -268,6 +269,7 @@ export function isComboRequestScopedFailure(
   error?: { code?: string | null; type?: string | null }
 ): boolean {
   return (
+    isLocalModelPolicyResponse(response) ||
     getTrustedLocalRateLimitResponse(response) !== null ||
     isRequestScopedUpstreamFailure(error) ||
     (response.status === 404 && isResourceNotFoundResponse(errorText))

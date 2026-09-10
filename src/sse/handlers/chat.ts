@@ -71,6 +71,10 @@ import { isChatGptWebCodexModel } from "@/shared/constants/chatgptWebCodex";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
 import { getComboByName, updateCombo } from "@/lib/db/combos";
 import { isModelAllowedForKey } from "@/lib/db/apiKeys";
+import {
+  checkResolvedModelPermission,
+  markLocalModelPolicyResponse,
+} from "@/shared/utils/resolvedModelAccess";
 import { promoteSuccessfulComboModel } from "@/lib/combos/autoPromote";
 import {
   deleteSessionAccountAffinity,
@@ -80,7 +84,7 @@ import {
 import { dispatchChatWithAffinityEviction } from "./chatDispatch";
 import { getCachedSettings, getCombosCacheVersion } from "@/lib/db/readCache";
 import { comboCheckProvider, ghComboGate } from "./chat/githubLiveCatalogFilter.ts";
-import { comboTargetPassesKeyModelPolicy } from "./chat/comboTargetKeyPolicy.ts";
+import { evaluateComboTargetPreflight } from "./chat/comboTargetKeyPolicy.ts";
 import { getCombos } from "@/lib/db/combos";
 import { resolveModelLockoutSettings } from "@/lib/resilience/modelLockoutSettings";
 import {
@@ -993,8 +997,8 @@ async function handleChatImplementation(
       `Combo "${modelStr}" [${combo.strategy || "priority"}] with ${combo.models.length} models`
     );
 
-    // Pre-check function used by combo routing. For explicit combo live tests,
-    // avoid pre-skipping so each model gets a real execution attempt.
+    // Pre-check function used by combo routing. A live-test marker may skip
+    // availability only after target authorization succeeds.
     const comboPreselectedCredentials = new Map<string, any>();
     const getComboCredentialCacheKey = (
       modelString: string,
@@ -1010,12 +1014,16 @@ async function handleChatImplementation(
         providerId?: string | null;
       }
     ) => {
-      if (isComboLiveTest) return true;
-      // #12886: combo-name allow-list must not skip inner targets (#9057 still
-      // checks auto/* / disableNonPublic via comboTargetPassesKeyModelPolicy).
-      if (!(await comboTargetPassesKeyModelPolicy({ apiKey, apiKeyInfo, requestedModelStr: resolvedModelStr, targetModelStr: modelString, isModelAllowedForKey }))) {
-        return false;
-      }
+      const preflightDecision = await evaluateComboTargetPreflight({
+        apiKey,
+        apiKeyInfo,
+        requestedModelStr: resolvedModelStr,
+        targetModelStr: modelString,
+        isComboLiveTest,
+        isModelAllowedForKey,
+      });
+      if (preflightDecision === "deny") return false;
+      if (preflightDecision === "bypass-availability") return true;
 
       // Use getModelInfo to resolve custom prefixes, but prefer the combo
       // target's providerId when available — the model string's provider
@@ -1146,6 +1154,10 @@ async function handleChatImplementation(
             sessionId,
             sessionAffinityKey,
             forceLiveComboTest: isComboLiveTest,
+            // The preflight allow-list admits the originally requested combo or
+            // alias. Preserve that context while every resolved target remains
+            // subject to its own blocked/group/publication policy checks.
+            authorizationContextModel: resolvedModelStr,
             forcedConnectionId: target?.connectionId ?? null,
             allowedConnectionIds: target?.allowedConnectionIds ?? null,
             comboStepId: target?.stepId || null,
@@ -1381,6 +1393,8 @@ async function handleSingleModelChat(
     reasoningIntent?: ExtractedReasoningIntent | null;
     reasoningRequestTags?: string[];
     reasoningTransportFallback?: "skip" | "drop";
+    /** Original request identity admitted by combo/alias preflight. */
+    authorizationContextModel?: string | null;
     managedLease?: ManagedLeaseDispatchContext | null;
     /** #12150 P1b: video-bridge log/Memory shadow — undefined on every non-video request. */
     videoBridgeLog?: VideoBridgeLog;
@@ -1449,6 +1463,7 @@ async function handleSingleModelChat(
           {
             sessionId: "", // safety-net redirect doesn't have session context
             forceLiveComboTest: false,
+            authorizationContextModel: runtimeOptions.authorizationContextModel ?? modelStr,
             forcedConnectionId: null,
             allowedConnectionIds: null,
             comboStepId: null,
@@ -1510,6 +1525,32 @@ async function handleSingleModelChat(
     // Intentional override (e.g. providerId points to a different credential pool).
     return runtimeOptions.providerId;
   })();
+  const authorizationContextModel =
+    typeof runtimeOptions.authorizationContextModel === "string" &&
+    runtimeOptions.authorizationContextModel.trim().length > 0
+      ? runtimeOptions.authorizationContextModel.trim()
+      : modelStr;
+  // Entry admission authorizes the requested model string. Resolve aliases and
+  // target overrides before dispatch, then require the same key to admit both.
+  const modelPermission = await checkResolvedModelPermission(
+    {
+      hasApiKeyMetadata: Boolean(apiKeyInfo),
+      apiKey: extractApiKey(request),
+      requestedModel: authorizationContextModel,
+      resolvedModel: `${provider}/${model}`,
+    },
+    isModelAllowedForKey
+  );
+  if (modelPermission !== "allowed") {
+    return markLocalModelPolicyResponse(
+      errorResponse(
+        modelPermission === "denied" ? HTTP_STATUS.FORBIDDEN : HTTP_STATUS.SERVICE_UNAVAILABLE,
+        modelPermission === "denied"
+          ? "Resolved model is not allowed for this API key"
+          : "API key model policy unavailable"
+      )
+    );
+  }
   const forceLiveComboTest = runtimeOptions.forceLiveComboTest === true;
   const bypassProviderQuotaPolicy = hasProviderQuotaBypassScope(apiKeyInfo?.scopes);
   const forcedConnectionId =
@@ -1841,6 +1882,38 @@ async function handleSingleModelChat(
           return connectionRouting.response;
         }
         requestBody = connectionRouting.body;
+      }
+      // Connection defaults and reasoning rules can replace an admitted alias.
+      // Recheck before token refresh or any upstream dispatch.
+      const effectivePolicyTargets = new Set([`${provider}/${effectiveModel}`]);
+      if (typeof requestBody.model === "string" && requestBody.model.length > 0) {
+        effectivePolicyTargets.add(
+          requestBody.model.includes("/") ? requestBody.model : `${provider}/${requestBody.model}`
+        );
+      }
+      for (const resolvedModel of effectivePolicyTargets) {
+        const effectivePermission = await checkResolvedModelPermission(
+          {
+            hasApiKeyMetadata: Boolean(apiKeyInfo),
+            apiKey: extractApiKey(request),
+            requestedModel: authorizationContextModel,
+            resolvedModel,
+          },
+          isModelAllowedForKey
+        );
+        if (effectivePermission !== "allowed") {
+          releaseOAuthSession();
+          return markLocalModelPolicyResponse(
+            errorResponse(
+              effectivePermission === "denied"
+                ? HTTP_STATUS.FORBIDDEN
+                : HTTP_STATUS.SERVICE_UNAVAILABLE,
+              effectivePermission === "denied"
+                ? "Resolved model is not allowed for this API key"
+                : "API key model policy unavailable"
+            )
+          );
+        }
       }
       let injectedHandoff = null;
       if (
