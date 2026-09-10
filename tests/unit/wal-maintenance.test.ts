@@ -164,3 +164,137 @@ test("start is silent and stateless under the test-process gate", async () => {
 test.beforeEach(async () => {
   (await import("../../src/lib/db/walMaintenance.ts")).__resetForTests();
 });
+
+test("mergeBusyTotal keeps the max, floors at 0", async () => {
+  const { mergeBusyTotal } = await import("../../src/lib/db/walMaintenance.ts");
+  assert.equal(mergeBusyTotal(5, 3), 5);
+  assert.equal(mergeBusyTotal(3, 5), 5);
+  assert.equal(mergeBusyTotal(0, 0), 0);
+  assert.equal(mergeBusyTotal(-2, -7), 0);
+  assert.equal(mergeBusyTotal(2.9, 1), 2);
+});
+
+test("loadPersistedBusyTotal reads the key, falls back to 0", async () => {
+  const { loadPersistedBusyTotal } = await import("../../src/lib/db/walMaintenance.ts");
+  const store = new Map<string, string>([["walMaintenance/busyTotal", "41"]]);
+  const db = {
+    pragma: () => [{ busy: 0, log: 0, checkpointed: 0 }],
+    prepare: (_sql: string) => ({
+      get: () => {
+        const v = store.get("walMaintenance/busyTotal");
+        return v === undefined ? undefined : { value: v };
+      },
+      run: () => {},
+    }),
+  };
+  assert.equal(loadPersistedBusyTotal(db as never), 41);
+  store.set("walMaintenance/busyTotal", "abc");
+  assert.equal(loadPersistedBusyTotal(db as never), 0);
+  store.delete("walMaintenance/busyTotal");
+  assert.equal(loadPersistedBusyTotal(db as never), 0);
+});
+
+test("recordBusy increments memory first, persists +1 atomically", async () => {
+  const { recordBusy, getWalMaintenanceState, __resetForTests } = await import(
+    "../../src/lib/db/walMaintenance.ts"
+  );
+  __resetForTests();
+  let stored = "10";
+  const db = {
+    pragma: () => [{ busy: 0, log: 0, checkpointed: 0 }],
+    prepare: (sql: string) => ({
+      get: () => ({ value: stored }),
+      run: () => {
+        assert.match(sql, /ON CONFLICT/i);
+        stored = String(Number(stored) + 1);
+      },
+    }),
+  };
+  recordBusy(db as never);
+  assert.equal(getWalMaintenanceState().busyTotal, 1);
+  assert.equal(stored, "11");
+  __resetForTests();
+});
+
+test("sequential increments from two handles sum up (real adapters)", async (t) => {
+  const { recordBusy, loadPersistedBusyTotal, __resetForTests } = await import(
+    "../../src/lib/db/walMaintenance.ts"
+  );
+  const { tryOpenSync } = await import("../../src/lib/db/adapters/driverFactory.ts");
+  const fs = await import("node:fs");
+  const os = await import("node:os");
+  const path = await import("node:path");
+  const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-wal-busy-")), "t.db");
+  const a = tryOpenSync(file);
+  const b = tryOpenSync(file);
+  if (!a || !b) {
+    if (a) a.close();
+    t.skip("no sync SQLite driver available for shared-file test");
+    fs.rmSync(path.dirname(file), { recursive: true, force: true });
+    return;
+  }
+  try {
+    __resetForTests();
+    a.exec("CREATE TABLE IF NOT EXISTS key_value (namespace TEXT, key TEXT, value TEXT, PRIMARY KEY (namespace, key))");
+    for (let i = 0; i < 5; i++) recordBusy(a);
+    for (let i = 0; i < 7; i++) recordBusy(b);
+    assert.equal(loadPersistedBusyTotal(a), 12);
+  } finally {
+    a.close();
+    b.close();
+    __resetForTests();
+    fs.rmSync(path.dirname(file), { recursive: true, force: true });
+  }
+});
+
+test("recordBusy with throwing prepare keeps memory coherent", async () => {
+  const { recordBusy, getWalMaintenanceState, __resetForTests } = await import(
+    "../../src/lib/db/walMaintenance.ts"
+  );
+  __resetForTests();
+  const db = {
+    pragma: () => [{ busy: 0, log: 0, checkpointed: 0 }],
+    prepare: (_sql: string) => ({
+      get: () => undefined,
+      run: () => {
+        throw new Error("database is locked");
+      },
+    }),
+  };
+  recordBusy(db as never);
+  assert.equal(getWalMaintenanceState().busyTotal, 1);
+  __resetForTests();
+});
+
+test("restart sequence composes: prior captured, stop zeroes, merge restores", async () => {
+  const { recordBusy, getWalMaintenanceState, loadPersistedBusyTotal, mergeBusyTotal, __resetForTests } = await import(
+    "../../src/lib/db/walMaintenance.ts"
+  );
+  __resetForTests();
+  const store = new Map<string, string>();
+  const db = {
+    pragma: () => [{ busy: 0, log: 0, checkpointed: 0 }],
+    prepare: (sql: string) => ({
+      get: () => {
+        const v = store.get("walMaintenance/busyTotal");
+        return v === undefined ? undefined : { value: v };
+      },
+      run: () => {
+        if (/ON CONFLICT/i.test(sql)) {
+          store.set("walMaintenance/busyTotal", String(Number(store.get("walMaintenance/busyTotal") ?? "0") + 1));
+        }
+      },
+    }),
+  };
+  recordBusy(db as never);
+  recordBusy(db as never);
+  recordBusy(db as never);
+  const prior = getWalMaintenanceState().busyTotal;
+  assert.equal(prior, 3);
+  __resetForTests(); // simulates stopWalMaintenance() at restart: zeroes session state
+  assert.equal(getWalMaintenanceState().busyTotal, 0);
+  const restored = mergeBusyTotal(prior, loadPersistedBusyTotal(db as never));
+  assert.equal(restored, 3);
+  assert.equal(getWalMaintenanceState().busyStreak, 0);
+  __resetForTests();
+});

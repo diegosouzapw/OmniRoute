@@ -1,0 +1,1 @@
+- **fix(db):** persist WAL busy counter across restarts ([#13218](https://github.com/diegosouzapw/OmniRoute/pull/13218)) — thanks @maxmad64bis
