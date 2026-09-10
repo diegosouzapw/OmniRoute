@@ -130,6 +130,7 @@
     "react-markdown",
     "react-reconciler",
     "recharts",
+    "remark-gfm",
     "safe-regex",
     "selfsigned",
     "sharp",

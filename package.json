@@ -346,6 +346,7 @@
     "react-reconciler": "^0.33.0",
     "react18-json-view": "0.2.10",
     "recharts": "^3.8.1",
+    "remark-gfm": "^4.0.1",
     "safe-regex": "^2.1.1",
     "selfsigned": "^5.5.0",
     "sharp": "^0.35.4",
