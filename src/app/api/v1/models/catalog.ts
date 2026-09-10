@@ -122,7 +122,7 @@ import {
 } from "./catalogRequest";
 import { incrementCcDiscoveryHitCount } from "@/lib/db/ccDiscoveryMetrics";
 import { isUnifiedChatSourceModelSelectable } from "./catalogModelPolicy";
-import { isFreeForProvider } from "@/shared/utils/freeModels";
+import { decideHidePaid } from "./catalogPaidFilter";
 import { isModelExposureAllowed } from "@/shared/utils/modelExposureList";
 import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryPolicy";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
@@ -347,14 +347,8 @@ async function buildUnifiedModelsResponseCore(
       modelId: string,
       pricing?: unknown,
       isFree?: boolean
-    ): boolean => {
-      if (!hidePaid) return false;
-      const provider = aliasToProviderId[providerKey] || providerKey;
-      // fetched: free only when provider has a documented free tier — catalog hit or guarded heuristics (`:free`/`0`/`isFree:true`); fetched isFree:true not trusted alone
-      if (isFreeForProvider(provider, { id: modelId, pricing: pricing as any, isFree }))
-        return false;
-      return true;
-    };
+    ): boolean =>
+      decideHidePaid(hidePaid, providerKey, modelId, pricing, isFree, aliasToProviderId);
     // #11481: opt-in explicit model exposure allow/deny list — same call sites
     // as shouldHidePaid above (mirrored into the auto/* combo candidate pool
     // via open-sse/services/autoCombo/modelExposureFilter.ts, per #6512's

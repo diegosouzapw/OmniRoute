@@ -33,7 +33,8 @@ import type { AutoVariant } from "./autoPrefix";
 import { buildFamilyCandidateFilter, type ModelFamily } from "./modelFamily";
 import { getHiddenModelsByProvider } from "@/models";
 import { getSyncedAvailableModelsByConnection, getCustomModels } from "@/lib/db/models";
-import { filterPaidOnlyCandidates } from "./paidModelFilter";
+import { filterPaidOnlyCandidatesWithDiagnosis } from "./paidModelFilter";
+import { filterLockoutCandidates, warnPoolDrop } from "./modelLockoutFilter";
 import { filterModelExposureCandidates } from "./modelExposureFilter";
 import {
   filterSubscriptionOnlyCandidates,
@@ -42,6 +43,7 @@ import {
 } from "./subscriptionLadder";
 import {
   classifyStrictZeroCostCandidate,
+  countStrictExclusions,
   filterStrictZeroCostCandidates,
   filterTosAvoidCandidates,
   findBudgetEntry,
@@ -760,8 +762,13 @@ export async function prepareVirtualAutoComboInputs(
 
     // #6512 (follow-up to #6328/#6495): when the operator opts into `hidePaidModels`,
     // exclude paid-only backends from EVERY `auto/*` candidate pool.
-    const paidFilteredPool = filterPaidOnlyCandidates(pool, settings.hidePaidModels === true);
-    if (paidFilteredPool !== pool) pool = paidFilteredPool;
+    const paid = filterPaidOnlyCandidatesWithDiagnosis(pool, settings.hidePaidModels === true);
+    warnPoolDrop(log, "hidePaidModels", paid.diagnosis?.excludedPaid, pool.length);
+    pool = paid.pool;
+
+    const lockout = skip ? null : filterLockoutCandidates(pool); // dispatch only (#9133)
+    warnPoolDrop(log, "lockout", lockout?.diagnosis?.excludedLockout, pool.length);
+    if (lockout) pool = lockout.pool;
 
     // #11481: mandatory mirror of the /v1/models exposure allow/deny list —
     // see src/shared/utils/modelExposureList.ts for why (#6512's lesson).
@@ -783,15 +790,20 @@ export async function prepareVirtualAutoComboInputs(
       maxStateAgeMs: toNumber(settings.autoRefreshProviderQuotaInterval, 180) * 1000,
     };
     const strictZeroCostOn = settings.freeAccessPolicy === "strict";
-    const strictFilteredPool = filterStrictZeroCostCandidates(pool, {
+    const strictOptions = {
       // The read-only candidate inspector (#9133) must be able to see what the
       // guard would exclude, and why — the same opt-out the resilience filter
       // already honours through `skip`. Dispatch (`skip === false`) is unaffected.
       enabled: strictZeroCostOn && !skip,
       resolveFreeAccessState,
       ...strictZeroCostThresholds,
-    });
-    if (strictFilteredPool !== pool) pool = strictFilteredPool;
+    };
+    const strictFilteredPool = filterStrictZeroCostCandidates(pool, strictOptions);
+    if (strictFilteredPool !== pool) {
+      const s = countStrictExclusions(pool, strictOptions);
+      warnPoolDrop(log, "STRICT", s.excluded, pool.length, ` (no-hard-stop ${s.noHardStop})`);
+      pool = strictFilteredPool;
+    }
 
     // Annotate here rather than in the handler: this is where the thresholds and
     // `resolveFreeAccessState` already live. Doing it downstream would mean a second
