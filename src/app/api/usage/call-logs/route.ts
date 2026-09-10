@@ -44,7 +44,10 @@ export function rowMatchesFilter(row: any, filter: Record<string, any>): boolean
     if (!(Number(row?.status) >= 400 || Boolean(row?.error))) return false;
   } else if (filter.status === "ok") {
     if (!(Number(row?.status) >= 200 && Number(row?.status) < 300)) return false;
-  } else if (typeof filter.status === "number" || (typeof filter.status === "string" && !isNaN(Number(filter.status)))) {
+  } else if (
+    typeof filter.status === "number" ||
+    (typeof filter.status === "string" && !isNaN(Number(filter.status)))
+  ) {
     if (Number(row?.status) !== Number(filter.status)) return false;
   }
 
@@ -57,13 +60,25 @@ export function rowMatchesFilter(row: any, filter: Record<string, any>): boolean
   if (filter.account && !matchesSearch(row?.account || "", String(filter.account))) {
     return false;
   }
-  if (filter.apiKey && !matchesSearch(row?.apiKeyName || "", String(filter.apiKey))) {
+  // The SQL layer resolves this filter against either column
+  // (`cl.api_key_name LIKE @apiKeyQ OR cl.api_key_id LIKE @apiKeyQ`), and the
+  // dashboard's API-key dropdown sends the id. Matching the name alone here
+  // dropped every persisted row the SQL layer had just returned, so selecting a
+  // key from the dropdown emptied the grid while typing its name worked. #12873
+  if (
+    filter.apiKey &&
+    !matchesSearch(row?.apiKeyName || "", String(filter.apiKey)) &&
+    !matchesSearch(row?.apiKeyId || "", String(filter.apiKey))
+  ) {
     return false;
   }
   if (filter.combo && !matchesSearch(row?.comboName || "", String(filter.combo))) {
     return false;
   }
-  if (filter.correlationId && !matchesSearch(row?.correlationId || "", String(filter.correlationId))) {
+  if (
+    filter.correlationId &&
+    !matchesSearch(row?.correlationId || "", String(filter.correlationId))
+  ) {
     return false;
   }
   if (filter.search) {
@@ -74,6 +89,9 @@ export function rowMatchesFilter(row: any, filter: Record<string, any>): boolean
       row?.providerDisplay,
       row?.account,
       row?.apiKeyName,
+      // The free-text SQL predicate covers `cl.api_key_id` too, so the id
+      // belongs in the in-memory haystack for the same reason. #12873
+      row?.apiKeyId,
       row?.comboName,
       row?.correlationId,
       row?.error,

@@ -1,0 +1,1 @@
+- **fix(api):** Dashboard → Logs now returns rows when an API key is picked from the dropdown: the in-memory filter pass matched the key name only, while the dropdown sends the key id ([#12894](https://github.com/diegosouzapw/OmniRoute/pull/12894), closes [#12873](https://github.com/diegosouzapw/OmniRoute/issues/12873))
