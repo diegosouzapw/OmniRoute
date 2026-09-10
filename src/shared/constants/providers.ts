@@ -145,6 +145,7 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "tabitoken",
   "logfare",
   "seekai",
+  "tokensmarket",
 ]);
 
 export const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
