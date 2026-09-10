@@ -1,7 +1,7 @@
 {
   "name": "omniroute",
   "version": "3.8.51",
-  "description": "Unified AI router with 356 providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
+  "description": "Unified AI router with 357 providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
   "bin": {
     "omniroute": "bin/omniroute.mjs",

@@ -121,6 +121,7 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "anyapi",
   "electronhub",
   "llmgateway",
+  "lyceum",
   "llm-kiwi",
   "literouter",
   "mnn-ai",

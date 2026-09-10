@@ -91,6 +91,8 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "agentrouter",
   // OpenRouter API key → /key limits + /credits account balance
   "openrouter",
+  // Lyceum API key (lk_…) → GET /api/v2/external/billing/credits balance
+  "lyceum",
 ]);
 const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;
 const PROVIDER_LIMITS_AUTO_SYNC_SETTING_KEY = "provider_limits_auto_sync_last_run";

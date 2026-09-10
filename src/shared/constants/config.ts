@@ -15,6 +15,7 @@ export const PROVIDER_ENDPOINTS = {
   anyapi: "https://api.anyapi.ai/v1/chat/completions",
   electronhub: "https://api.electronhub.ai/v1/chat/completions",
   llmgateway: "https://api.llmgateway.io/v1/chat/completions",
+  lyceum: "https://api.lyceum.technology/openai/v1/chat/completions",
   "llm-kiwi": "https://api.llm.kiwi/v1/chat/completions",
   literouter: "https://api.literouter.com/v1/chat/completions",
   "mnn-ai": "https://api.mnnai.ru/v1/chat/completions",

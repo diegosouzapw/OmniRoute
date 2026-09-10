@@ -1,4 +1,5 @@
 {
+  "_rebaseline_2026_09_07_lyceum_provider": "feat/lyceum-provider own growth: src/shared/constants/providers/apikey/gateways.ts 1462->1477 (+15, the lyceum APIKEY_PROVIDERS_GATEWAYS catalog entry with hasFree/freeNote/apiHint documenting the pay-per-use credit plan, additive data at the existing registry chokepoint, same god-file no-split rationale as prior gateways.ts rebaselines: #12649 nara, #11786 seekai, #10987 logfare, #10531 freebuff). Covered by tests/unit/free-tier-providers-wave1-c.test.ts (lyceum registry shape) and tests/unit/lyceum-quota-fetcher.test.ts.",
   "_rebaseline_2026_09_06_runtime_quotagroup_nodemap": "Own growth: src/app/(dashboard)/dashboard/runtime/RuntimePageClient.tsx 1201->1222 (+21, check-file-size split-newline). QuotaGroup is a module-level sibling and was reading nodeMap from RuntimePageClient's closure; that identifier is not in scope, so a quota monitor with status error/exhausted/alerting throws ReferenceError. Fix threads nodeMap as a prop (3 call sites + parameter + ProviderNodeEntry import). Prettier wraps the long import and the three QuotaGroup JSX tags. Covered by tests/unit/ui/runtime-page-client.test.tsx (empty monitors stay green; error+exhausted fixtures mount QuotaGroup).",
   "_rebaseline_2026_09_05_claude_extra_usage_preflight": "Own growth: open-sse/services/combo.ts 4080->4084 (+4). buildAutoCandidates now forwards connection.providerSpecificData into evaluateQuotaCutoff so a Claude account with blockExtraUsage=false is not dropped at the 5h bar. Irreducible at the existing cutoff call site; the helper lives in claudeExtraUsage.ts (under cap). Covered by tests/unit/quota-preflight.test.ts.",
   "_rebaseline_2026_09_04_12697_combo_pin_allowlist": "PR #12697 own growth: src/sse/handlers/chat.ts 2454->2458 (+4). checkModelAvailable preflight and handleSingleModelChat now call comboPinAllowlist so a pin-only combo step cannot scan the provider pool after 502/429. Helper lives in src/lib/combos/steps.ts under cap. Covered by tests/unit/combo-pin-implicit-allowlist.test.ts (11/11).",
@@ -462,7 +463,7 @@
     "src/lib/tailscaleTunnel.ts": 1208,
     "src/lib/tokenHealthCheck.ts": 1218,
     "src/shared/components/RequestLoggerV2.tsx": 1718,
-    "src/shared/constants/providers/apikey/gateways.ts": 1462,
+    "src/shared/constants/providers/apikey/gateways.ts": 1477,
     "src/shared/services/cliRuntime.ts": 1296,
     "src/sse/handlers/chat.ts": 2458,
     "src/sse/services/auth.ts": 3450,
