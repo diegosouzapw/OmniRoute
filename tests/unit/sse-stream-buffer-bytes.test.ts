@@ -10,7 +10,22 @@ import { FORMATS } from "../../open-sse/translator/formats.ts";
 // A TransformStream's writable queue starts with `desiredSize === highWaterMark`,
 // so reading it off a fresh writer measures the queue budget the stream was
 // actually built with rather than standing in for it.
-const writableBudget = (transform: TransformStream) => transform.writable.getWriter().desiredSize;
+// Each stream arms a 10s idle watchdog (setInterval in createSSEStream's start).
+// Cancelling the readable runs the TransformStream's cancel handler, which clears
+// it — without this the node:test runner never sees an empty event loop and the
+// file hangs after the assertions have already passed.
+const openStreams: TransformStream[] = [];
+
+const writableBudget = (transform: TransformStream) => {
+  openStreams.push(transform);
+  return transform.writable.getWriter().desiredSize;
+};
+
+test.after(async () => {
+  for (const transform of openStreams) {
+    await transform.readable.cancel().catch(() => {});
+  }
+});
 
 const DEFAULT = 16384;
 
