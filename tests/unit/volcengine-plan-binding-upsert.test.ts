@@ -67,7 +67,7 @@ test("volcenginePlanBinding upsert rules with SQLite temp isolation", async (t) 
     providerSpecificData: { autoFetchModels: true, customTag: "keep-me" },
   });
 
-  const updated1 = await (bindingTesting as any).upsertConnection(
+  const updated1 = await bindingTesting.upsertConnection(
     "coding",
     "ark-new-key-1",
     "new-cookie-1",
@@ -93,7 +93,7 @@ test("volcenginePlanBinding upsert rules with SQLite temp isolation", async (t) 
     providerSpecificData: {},
   });
 
-  const createdNew = await (bindingTesting as any).upsertConnection(
+  const createdNew = await bindingTesting.upsertConnection(
     "coding",
     "ark-brand-new-key-3",
     "new-cookie-3",
@@ -117,7 +117,7 @@ test("volcenginePlanBinding upsert rules with SQLite temp isolation", async (t) 
   });
 
   // Passing conn1.id (which is coding-plan) into agent upsert must NOT match conn1
-  const agentUpsertResult = await (bindingTesting as any).upsertConnection(
+  const agentUpsertResult = await bindingTesting.upsertConnection(
     "agent",
     "ark-agent-new-key",
     "agent-cookie",
