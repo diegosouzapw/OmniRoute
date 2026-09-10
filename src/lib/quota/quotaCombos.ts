@@ -20,11 +20,7 @@ import {
   getComboByName,
   updateCombo,
 } from "@/lib/db/combos";
-import {
-  getCustomModels,
-  getSyncedAvailableModelsForConnection,
-  getSyncedAvailableModels,
-} from "@/lib/db/models";
+import { getCustomModels, getSyncedAvailableModelsForConnection } from "@/lib/db/models";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
 import {
   quotaModelName,
@@ -117,9 +113,9 @@ function getProviderModelIds(provider: string): string[] {
  * Return the list of model IDs for a provider by unioning:
  * 1. Provider REGISTRY (same source /v1/models uses)
  * 2. Custom models configured for this provider in the database
- * 3. Synced models discovered from upstream for this connection/provider
+ * 3. Synced models discovered from upstream for this connection
  */
-async function resolveProviderModelIds(provider: string, connId?: string): Promise<string[]> {
+async function resolveProviderModelIds(provider: string, connId: string): Promise<string[]> {
   const modelIds = new Set<string>(getProviderModelIds(provider));
 
   try {
@@ -140,25 +136,10 @@ async function resolveProviderModelIds(provider: string, connId?: string): Promi
   }
 
   try {
-    if (connId) {
-      const syncedForConn = await getSyncedAvailableModelsForConnection(provider, connId);
-      if (Array.isArray(syncedForConn)) {
-        for (const m of syncedForConn) {
-          if (m?.id && typeof m.id === "string") {
-            const id = m.id.trim();
-            if (id) modelIds.add(id);
-          }
-        }
-      }
-    }
-    const syncedForProvider = await getSyncedAvailableModels(provider);
-    if (Array.isArray(syncedForProvider)) {
-      for (const m of syncedForProvider) {
-        if (m?.id && typeof m.id === "string") {
-          const id = m.id.trim();
-          if (id) modelIds.add(id);
-        }
-      }
+    const synced = await getSyncedAvailableModelsForConnection(provider, connId);
+    for (const model of synced) {
+      const id = model.id.trim();
+      if (id) modelIds.add(id);
     }
   } catch (err) {
     log.warn(
@@ -228,7 +209,6 @@ export async function syncQuotaCombos(poolId: string): Promise<void> {
     if (typeof provider !== "string" || provider.length === 0) continue;
 
     const modelIds = await resolveProviderModelIds(provider, connId);
-    if (modelIds.length === 0) continue;
 
     for (const modelId of modelIds) {
       // B4: use groupName (not pool.name) as the first arg so combos carry the group slug.
