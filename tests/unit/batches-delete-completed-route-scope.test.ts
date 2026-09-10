@@ -16,6 +16,9 @@
  *     session WITHOUT a key sweeps the whole instance;
  *   - a presented key that does not resolve (deleted/rotated/mistyped) is rejected
  *     with 401 even when a session cookie is also present (fail closed);
+ *   - a presented key that resolves but is no longer VALID (revoked, deactivated,
+ *     banned or expired) is rejected with 401 too — existence of the row is not
+ *     authorization (CWE-613); the 401 body is the `buildErrorBody()` shape;
  *   - no credentials at all → 401;
  *   - a sweep that throws → sanitized 500 (no stack trace, no raw SQLite message)
  *     and nothing deleted (the sweep is atomic).
@@ -36,7 +39,8 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "wvxc-route-api-secre
 process.env.JWT_SECRET = "wvxc-route-jwt-secret";
 
 const { getDbInstance, resetDbInstance } = await import("../../src/lib/db/core.ts");
-const { createApiKey } = await import("../../src/lib/db/apiKeys.ts");
+const { createApiKey, revokeApiKey, updateApiKeyPermissions, setApiKeyExpiry } =
+  await import("../../src/lib/db/apiKeys.ts");
 const { createFile, getFile, getFileContent } = await import("../../src/lib/db/files.ts");
 const { createBatch, getBatch } = await import("../../src/lib/db/batches.ts");
 const { DELETE } = await import("../../src/app/api/v1/batches/delete-completed/route.ts");
@@ -182,6 +186,70 @@ describe("DELETE /api/v1/batches/delete-completed — caller scope (GHSA-wvxc-jp
     );
   });
 
+  it("rejects a REVOKED key with 401 — the row still exists but is no longer valid — and deletes nothing", async () => {
+    const keyA = await createApiKey("wvxc-route-revoked-a", "machine-wvxc-ra", []);
+    const own = seedCompletedBatch(keyA.id, "wvxc-route-revoked-own");
+    assert.strictEqual(await revokeApiKey(keyA.id), true);
+
+    const { res, body } = await callDelete({ Authorization: `Bearer ${keyA.key}` });
+
+    assert.strictEqual(res.status, 401, "a revoked key must not run the sweep");
+    assert.strictEqual(body.error?.message, "Invalid API key");
+    assert.strictEqual(body.error?.type, "authentication_error");
+    assert.strictEqual(body.error?.code, "invalid_api_key");
+    assert.ok(getBatch(own.batch.id), "nothing is swept with a revoked key");
+    assert.strictEqual(
+      getFileContent(own.file.id)?.toString(),
+      "wvxc-route-revoked-own",
+      "file content is intact with a revoked key"
+    );
+  });
+
+  it("rejects a DEACTIVATED key (is_active = 0) with 401 and deletes nothing", async () => {
+    const keyA = await createApiKey("wvxc-route-inactive-a", "machine-wvxc-ia", []);
+    const own = seedCompletedBatch(keyA.id, "wvxc-route-inactive-own");
+    await updateApiKeyPermissions(keyA.id, { isActive: false });
+
+    const { res, body } = await callDelete({ Authorization: `Bearer ${keyA.key}` });
+
+    assert.strictEqual(res.status, 401, "a deactivated key must not run the sweep");
+    assert.strictEqual(body.error?.message, "Invalid API key");
+    assert.ok(getBatch(own.batch.id), "nothing is swept with a deactivated key");
+  });
+
+  it("rejects a BANNED key with 401 and deletes nothing", async () => {
+    const keyA = await createApiKey("wvxc-route-banned-a", "machine-wvxc-ba2", []);
+    const own = seedCompletedBatch(keyA.id, "wvxc-route-banned-own");
+    await updateApiKeyPermissions(keyA.id, { isBanned: true });
+
+    const { res, body } = await callDelete({ Authorization: `Bearer ${keyA.key}` });
+
+    assert.strictEqual(res.status, 401, "a banned key must not run the sweep");
+    assert.strictEqual(body.error?.message, "Invalid API key");
+    assert.ok(getBatch(own.batch.id), "nothing is swept with a banned key");
+  });
+
+  it("rejects an EXPIRED key with 401 — even alongside a session cookie — and deletes nothing", async () => {
+    const keyA = await createApiKey("wvxc-route-expired-a", "machine-wvxc-ea", []);
+    const own = seedCompletedBatch(keyA.id, "wvxc-route-expired-own");
+    const unowned = seedCompletedBatch(null, "wvxc-route-expired-unowned");
+    await setApiKeyExpiry(keyA.id, new Date(Date.now() - 60_000).toISOString());
+
+    const { res, body } = await callDelete({
+      Authorization: `Bearer ${keyA.key}`,
+      cookie: await sessionCookie(),
+    });
+
+    assert.strictEqual(
+      res.status,
+      401,
+      "an expired key must fail closed, not fall through to the session"
+    );
+    assert.strictEqual(body.error?.message, "Invalid API key");
+    assert.ok(getBatch(own.batch.id), "nothing is swept with an expired key");
+    assert.ok(getBatch(unowned.batch.id), "the session branch is never reached");
+  });
+
   it("rejects an unauthenticated request with 401 and deletes nothing", async () => {
     const keyB = await createApiKey("wvxc-route-401-b", "machine-wvxc-401", []);
     const seeded = seedCompletedBatch(keyB.id, "wvxc-route-401");
@@ -190,6 +258,8 @@ describe("DELETE /api/v1/batches/delete-completed — caller scope (GHSA-wvxc-jp
 
     assert.strictEqual(res.status, 401);
     assert.strictEqual(body.error?.message, "Authentication required");
+    assert.strictEqual(body.error?.type, "authentication_error", "401 body uses buildErrorBody()");
+    assert.strictEqual(body.error?.code, "invalid_api_key");
     assert.ok(getBatch(seeded.batch.id), "nothing is swept without credentials");
   });
 
