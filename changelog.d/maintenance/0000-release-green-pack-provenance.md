@@ -1,0 +1,1 @@
+- **fix(ci):** Point the release-green validator's pack gate at the tree it is validating — the build-provenance guard defaulted to `origin/main`, which a release branch tip can never be an ancestor of mid-cycle, so `Package artifact` reported a false red on every run and the tarball boot-smoke cascaded off it ([#12732](https://github.com/diegosouzapw/OmniRoute/issues/12732))

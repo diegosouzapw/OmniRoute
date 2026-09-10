@@ -1,0 +1,1 @@
+- **test(models):** Pin `CATALOG_BUILD_TIMEOUT_MS` in the #12058 canonical-catalog regression so a cold catalog build racing the 8s default bound no longer flakes the suite with a 500 ([#12732](https://github.com/diegosouzapw/OmniRoute/issues/12732))

@@ -1,0 +1,1 @@
+- **fix(ci):** Allow `@omniroute/opencode-plugin-v2/` in the npm pack policy — [#12870](https://github.com/diegosouzapw/OmniRoute/pull/12870) shipped the v2 plugin beside its v1 sibling without widening the allowlist, so every packed file under it read as an unexpected artifact and failed `check:pack-policy` ([#12732](https://github.com/diegosouzapw/OmniRoute/issues/12732))

@@ -399,6 +399,22 @@ export function classifyRunError(err, timeoutMs) {
 // every one a false-positive red against the release branch).
 const HERMETIC_SCRUB = ["OMNIROUTE_API_KEY", "OMNIROUTE_URL"];
 let hermetic = false;
+/**
+ * Env for the pack gate's provenance guard (#10427).
+ *
+ * `validate-pack-artifact.ts` checks `dist/BUILD_SHA` for ancestry against
+ * `OMNIROUTE_RELEASE_REF`, defaulting to `origin/main`. That default is right at
+ * PUBLICATION (npm-publish.yml runs on main) but structurally impossible here: this
+ * validator runs ON a release branch, whose tip is by definition NOT an ancestor of
+ * main mid-cycle, so the gate reported `off-release-line` on every single run and the
+ * tarball boot-smoke cascaded off it. `ci.yml` already resolves the same problem for
+ * `pull_request` by pointing the ref at the head under test; the checkable invariant
+ * here is identical — "the stamp matches the tree we just validated" — so point it at
+ * HEAD. This does not relax the guard: a dist/ built from some other commit still
+ * fails, and a missing BUILD_SHA still fails.
+ */
+const PACK_GATE_ENV = { OMNIROUTE_RELEASE_REF: "HEAD" };
+
 function buildGateEnv(extra) {
   const env = { ...process.env, FORCE_COLOR: "0", ...(extra || {}) };
   if (hermetic) for (const k of HERMETIC_SCRUB) delete env[k];
@@ -698,12 +714,13 @@ async function main() {
         id: "pack-artifact",
         label: "Package artifact (npm pack policy)",
         args: ["run", "check:pack-artifact"],
+        env: PACK_GATE_ENV,
         timeout: 20 * 60 * 1000,
       });
     }
     slow.forEach((g) => announce(`${g.label} [parallel]`));
     const slowResults = await Promise.all(
-      slow.map((g) => runAsync(npmCmd, g.args, { timeout: g.timeout }))
+      slow.map((g) => runAsync(npmCmd, g.args, { timeout: g.timeout, env: g.env }))
     );
     slow.forEach((g, i) => {
       const { code, out } = slowResults[i];
@@ -754,6 +771,7 @@ async function main() {
   } else if (WITH_BUILD) {
     // --with-build without the suites (--quick): still verify the package artifact.
     const { code, out } = await runAsync(npmCmd, ["run", "check:pack-artifact"], {
+      env: PACK_GATE_ENV,
       timeout: 20 * 60 * 1000,
     });
     saveGateLog("pack-artifact", out);

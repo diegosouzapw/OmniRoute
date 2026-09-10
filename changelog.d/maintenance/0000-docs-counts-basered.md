@@ -1,0 +1,1 @@
+- **chore(docs):** Refresh the drifted doc counts flagged by the release-green gate — DB migrations 169 → 171 (`README.md`, `AGENTS.md`, `llm.txt` + its 41 locale mirrors) and "19 routing strategies" → 20 in the `readme-hero`, `comparison-table` and `tier-cascade` diagrams ([#12732](https://github.com/diegosouzapw/OmniRoute/issues/12732))
