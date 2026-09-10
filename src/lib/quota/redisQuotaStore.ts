@@ -271,7 +271,13 @@ export class RedisQuotaStore implements QuotaStore {
         const consumed = await this.peek(alloc.apiKeyId, dim);
         consumedTotal += consumed;
 
-        const effectiveWeight = totalWeight > 0 ? alloc.weight : 0;
+        // Equal-split fallback, matching enforce.ts: when every allocation in the
+        // pool has weight 0, each counts as an equal share, so the snapshot
+        // describes the budget enforcement actually grants. The old ternary could
+        // not do this -- totalWeight === 0 implies every alloc.weight is 0, so both
+        // arms returned 0 -- and every key rendered as borrowing all it consumed.
+        const effectiveWeight =
+          totalWeight > 0 ? alloc.weight : allocations.length > 0 ? 100 / allocations.length : 0;
         const fairShare = (effectiveWeight / 100) * planDim.limit;
         const deficit = consumed - fairShare;
         const borrowing = consumed > fairShare;
