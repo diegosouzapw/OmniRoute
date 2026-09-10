@@ -19,7 +19,11 @@ export async function DELETE(request: Request) {
     );
   }
 
-  const result = deleteCompletedBatches();
+  // Scope the sweep to the caller's own batches, like the list/count siblings do.
+  // Only a dashboard session (apiKeyId === null) sweeps the whole instance —
+  // otherwise an ordinary inference key would delete every tenant's completed
+  // batches and null out their file contents (GHSA-wvxc-jp3v-5mg5).
+  const result = deleteCompletedBatches(scope.apiKeyId || undefined);
 
   return NextResponse.json(
     { deleted: true, deletedBatches: result.deletedBatches, deletedFiles: result.deletedFiles },

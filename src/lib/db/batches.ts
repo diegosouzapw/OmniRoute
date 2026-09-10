@@ -411,15 +411,30 @@ export function deleteBatch(id: string): boolean {
   return result.changes > 0;
 }
 
-export function deleteCompletedBatches(): { deletedBatches: number; deletedFiles: number } {
+/**
+ * Delete completed batches and the files they reference.
+ *
+ * `apiKeyId` scopes the sweep to that key's own batches, exactly like
+ * `listBatches`/`countBatches`. Omitting it sweeps the whole instance and is
+ * reserved for an authenticated dashboard session — an ordinary inference key
+ * that reached this without its own id would otherwise delete every tenant's
+ * completed batches and null out their file contents (GHSA-wvxc-jp3v-5mg5).
+ */
+export function deleteCompletedBatches(apiKeyId?: string): {
+  deletedBatches: number;
+  deletedFiles: number;
+} {
   const db = getDbInstance();
 
-  // Collect unique file IDs from all completed batches
+  const ownershipClause = apiKeyId ? " AND api_key_id = ?" : "";
+  const ownershipArgs = apiKeyId ? [apiKeyId] : [];
+
+  // Collect unique file IDs from the completed batches in scope
   const rows = db
     .prepare(
-      "SELECT input_file_id, output_file_id, error_file_id FROM batches WHERE status = 'completed'"
+      `SELECT input_file_id, output_file_id, error_file_id FROM batches WHERE status = 'completed'${ownershipClause}`
     )
-    .all() as Array<{
+    .all(...ownershipArgs) as Array<{
     input_file_id: string | null;
     output_file_id: string | null;
     error_file_id: string | null;
@@ -442,9 +457,11 @@ export function deleteCompletedBatches(): { deletedBatches: number; deletedFiles
   }
 
   db.prepare(
-    "DELETE FROM batch_item_checkpoints WHERE batch_id IN (SELECT id FROM batches WHERE status = 'completed')"
-  ).run();
+    `DELETE FROM batch_item_checkpoints WHERE batch_id IN (SELECT id FROM batches WHERE status = 'completed'${ownershipClause})`
+  ).run(...ownershipArgs);
 
-  const result = db.prepare("DELETE FROM batches WHERE status = 'completed'").run();
+  const result = db
+    .prepare(`DELETE FROM batches WHERE status = 'completed'${ownershipClause}`)
+    .run(...ownershipArgs);
   return { deletedBatches: result.changes, deletedFiles };
 }
