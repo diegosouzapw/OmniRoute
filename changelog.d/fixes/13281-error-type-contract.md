@@ -1,0 +1,1 @@
+- **fix(call-logs):** call-log error types are now a versioned vocabulary (`ERROR_TYPE_CONTRACT v1`) with explicit `unknown` instead of ambiguous `null`, and free-text history reads back as `unclassified` ([#13281](https://github.com/diegosouzapw/OmniRoute/pull/13281))

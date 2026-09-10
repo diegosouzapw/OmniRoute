@@ -179,6 +179,7 @@ export function classifyCallLogError(
   provider?: string | null
 ): string | null {
   const errorText = typeof error === "string" ? error : error instanceof Error ? error.message : "";
-  if (status < 400 && errorText.length === 0) return null;
-  return classifyProviderError(status, errorText, provider);
+  if (status === 0) return errorText.length === 0 ? null : (classifyProviderError(status, errorText, provider) ?? "unknown");
+  if (status < 400) return null; // success (even with a non-empty body — inherited behavior, out of scope)
+  return classifyProviderError(status, errorText, provider) ?? "unknown";
 }
