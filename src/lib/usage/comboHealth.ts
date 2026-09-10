@@ -32,7 +32,7 @@ type QuotaSnapshotView = {
 
 type ProviderHealth = {
   provider: string;
-  remainingPct: number;
+  remainingPct: number | null;
   isExhausted: boolean;
   trend: "improving" | "stable" | "declining";
 };
@@ -112,11 +112,12 @@ function calculateGini(values: number[]): number {
   return (2 * weightedSum) / (count * sum) - (count + 1) / count;
 }
 
-function buildProviderHealth(provider: string, snapshots: QuotaSnapshotRow[]): ProviderHealth {
+export function buildProviderHealth(provider: string, snapshots: QuotaSnapshotRow[]): ProviderHealth {
   if (snapshots.length === 0) {
     return {
       provider,
-      remainingPct: 0,
+      remainingPct: null,
+      // stable: no data yet, not exhausted — null pct, not 0
       isExhausted: false,
       trend: "stable",
     };
@@ -186,7 +187,7 @@ function buildProviderHealth(provider: string, snapshots: QuotaSnapshotRow[]): P
 
   return {
     provider,
-    remainingPct: roundNumber(lastAverage),
+    remainingPct: lastValues.length === 0 ? null : roundNumber(lastAverage),
     isExhausted,
     trend,
   };
@@ -218,10 +219,10 @@ function buildConnectionHealth(
   });
 
   const firstRemaining =
-    (firstSnapshot as unknown as QuotaSnapshotView | undefined)?.remainingPercentage ?? 0;
+    (firstSnapshot as unknown as QuotaSnapshotView | undefined)?.remainingPercentage ?? null;
   const lastRemaining =
-    (lastSnapshot as unknown as QuotaSnapshotView | undefined)?.remainingPercentage ?? 0;
-  const delta = lastRemaining - firstRemaining;
+    (lastSnapshot as unknown as QuotaSnapshotView | undefined)?.remainingPercentage ?? null;
+  const delta = (lastRemaining ?? 0) - (firstRemaining ?? 0);
 
   let trend: ProviderHealth["trend"] = "stable";
   if (delta >= 5) trend = "improving";
@@ -229,7 +230,7 @@ function buildConnectionHealth(
 
   return {
     provider: `${provider}:${connectionId}`,
-    remainingPct: roundNumber(lastRemaining),
+    remainingPct: lastRemaining === null ? null : roundNumber(lastRemaining),
     isExhausted:
       (ordered[ordered.length - 1] as unknown as QuotaSnapshotView | undefined)?.isExhausted === 1,
     trend,
@@ -317,22 +318,19 @@ function buildPerformance(comboName: string, since: string): ComboHealthMetrics[
   };
 }
 
-function buildQuotaHealth(providers: string[], since: string): ComboHealthMetrics["quotaHealth"] {
+export function buildQuotaHealth(providers: string[], since: string): ComboHealthMetrics["quotaHealth"] {
   const providerHealth = providers.map((provider) =>
     buildProviderHealth(provider, getQuotaSnapshots({ provider, since }))
   );
 
-  const worstRemainingPct =
-    providerHealth.length > 0
-      ? providerHealth.reduce(
-          (lowest, entry) => Math.min(lowest, entry.remainingPct),
-          providerHealth[0].remainingPct
-        )
-      : 0;
+  const nonNull = providerHealth
+    .map((entry) => entry.remainingPct)
+    .filter((v): v is number => typeof v === "number");
+  const worst = nonNull.length > 0 ? Math.min(...nonNull) : null;
 
   return {
     providers: providerHealth,
-    worstRemainingPct: roundNumber(worstRemainingPct),
+    worstRemainingPct: worst === null ? null : roundNumber(worst),
   };
 }
 

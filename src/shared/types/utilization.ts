@@ -58,11 +58,11 @@ export interface ComboHealthMetrics {
   quotaHealth: {
     providers: Array<{
       provider: string;
-      remainingPct: number;
+      remainingPct: number | null;
       isExhausted: boolean;
       trend: "improving" | "stable" | "declining";
     }>;
-    worstRemainingPct: number;
+    worstRemainingPct: number | null;
   };
   usageSkew: {
     modelDistribution: Array<{
