@@ -194,12 +194,44 @@ function isGeoBlockEligibleProvider(provider?: string | null): boolean {
 const CLOUDFLARE_1010_REGEX =
   /(?<![A-Za-z0-9_-])error[\s_-]?code[\\"':=\s]{0,12}1010(?!\w)|(?<![A-Za-z0-9_-])error[-_]\s?1010(?!\w)\/?/i;
 
+// A Cloudflare managed/JS challenge is the SAME class of block as a 1010 — the
+// edge refused the CLIENT's signature and demanded an interactive browser
+// challenge — but it is a different product surface and carries none of the
+// 1010 markers. It arrives as a ~12KB text/html interstitial (with header
+// `cf-mitigated: challenge`), so a body-shape match is the only signal
+// available to a classifier that sees the body alone.
+//
+// Observed verbatim on `POST chatgpt.com/backend-api/codex/responses/input_tokens`
+// for a HEALTHY Codex OAuth account whose token refreshed successfully in the
+// same second and which served normal `/responses` traffic seconds before and
+// after: `window._cf_chl_opt = {... cType: 'managed', cZone: 'chatgpt.com' ...}`.
+// Without this branch the challenge falls through to FORBIDDEN, and chatCore's
+// FORBIDDEN handler writes the terminal `banned`/`isActive:false` state that
+// never auto-recovers — taking the whole provider offline until an operator
+// reconnects, on a block that says nothing about account health.
+//
+// IMPORTANT: these markers are matched as full, distinctive Cloudflare-internal
+// strings, never as loose words like "challenge" — a provider error body may
+// legitimately discuss a "challenge" in prose.
+const CLOUDFLARE_CHALLENGE_MARKERS = [
+  "_cf_chl_opt",
+  "cdn-cgi/challenge-platform",
+  'id="challenge-error-text"',
+  String.raw`id=\"challenge-error-text\"`,
+] as const;
+
+export function isCloudflareChallengeInterstitial(errorText: string): boolean {
+  const text = String(errorText || "").toLowerCase();
+  return CLOUDFLARE_CHALLENGE_MARKERS.some((marker) => text.includes(marker.toLowerCase()));
+}
+
 export function isCloudflareFingerprintRejection(errorText: string): boolean {
   const text = String(errorText || "").toLowerCase();
   return (
     CLOUDFLARE_1010_REGEX.test(text) ||
     text.includes("browser_signature_banned") ||
-    text.includes("fingerprint_rejection")
+    text.includes("fingerprint_rejection") ||
+    isCloudflareChallengeInterstitial(text)
   );
 }
 
