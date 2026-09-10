@@ -411,16 +411,12 @@ jobs:
           path: /tmp/digests/bun-web
           merge-multiple: true
 
-      - name: Create Docker Hub manifest
+      - name: Create Docker Hub version manifests
         run: |
           set -euo pipefail
 
           create_manifest() {
             local image="$1" suffix="$2" dir="$3" optional="${4:-}"
-            local tags=(-t "${image}:${VERSION}${suffix}")
-            if [ "$PROMOTE_LATEST" = "true" ]; then
-              tags+=(-t "${image}:latest${suffix}")
-            fi
             local refs=()
             while IFS= read -r digest_file; do
               refs+=("${image}@sha256:$(basename "$digest_file")")
@@ -433,7 +429,7 @@ jobs:
               echo "No image digests in $dir" >&2
               exit 1
             fi
-            docker buildx imagetools create "${tags[@]}" "${refs[@]}"
+            docker buildx imagetools create -t "${image}:${VERSION}${suffix}" "${refs[@]}"
           }
 
           create_manifest "${IMAGE_NAME}" "" /tmp/digests/base
@@ -441,16 +437,12 @@ jobs:
           create_manifest "${IMAGE_NAME}" "-bun" /tmp/digests/bun-base optional
           create_manifest "${IMAGE_NAME}" "-web-bun" /tmp/digests/bun-web optional
 
-      - name: Create GHCR manifest
+      - name: Create GHCR version manifests
         run: |
           set -euo pipefail
 
           create_manifest() {
             local image="$1" suffix="$2" dir="$3" optional="${4:-}"
-            local tags=(-t "${image}:${VERSION}${suffix}")
-            if [ "$PROMOTE_LATEST" = "true" ]; then
-              tags+=(-t "${image}:latest${suffix}")
-            fi
             local refs=()
             while IFS= read -r digest_file; do
               refs+=("${image}@sha256:$(basename "$digest_file")")
@@ -463,13 +455,66 @@ jobs:
               echo "No image digests in $dir" >&2
               exit 1
             fi
-            docker buildx imagetools create "${tags[@]}" "${refs[@]}"
+            docker buildx imagetools create -t "${image}:${VERSION}${suffix}" "${refs[@]}"
           }
 
           create_manifest "${GHCR_IMAGE_NAME}" "" /tmp/digests/base
           create_manifest "${GHCR_IMAGE_NAME}" "-web" /tmp/digests/web
           create_manifest "${GHCR_IMAGE_NAME}" "-bun" /tmp/digests/bun-base optional
           create_manifest "${GHCR_IMAGE_NAME}" "-web-bun" /tmp/digests/bun-web optional
+
+      - name: Smoke-test published Docker image
+        if: needs.prepare.outputs.version != 'main'
+        run: |
+          set -euo pipefail
+          container="omniroute-smoke-${VERSION//[^a-zA-Z0-9_.-]/-}"
+          trap 'docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
+          docker run --detach --name "$container" "${IMAGE_NAME}:${VERSION}"
+          for attempt in $(seq 1 30); do
+            status="$(docker inspect --format '{{.State.Health.Status}}' "$container")"
+            if [ "$status" = "healthy" ]; then
+              exit 0
+            fi
+            if [ "$status" = "unhealthy" ] || [ "$(docker inspect --format '{{.State.Status}}' "$container")" = "exited" ]; then
+              docker logs "$container"
+              exit 1
+            fi
+            sleep 2
+          done
+          docker logs "$container"
+          exit 1
+
+      - name: Promote Docker Hub latest tags
+        if: needs.prepare.outputs.promote_latest == 'true'
+        run: |
+          set -euo pipefail
+          promote_tag() {
+            local suffix="$1"
+            docker buildx imagetools create -t "${IMAGE_NAME}:latest${suffix}" "${IMAGE_NAME}:${VERSION}${suffix}"
+          }
+          promote_tag ""
+          promote_tag "-web"
+          for suffix in -bun -web-bun; do
+            if docker buildx imagetools inspect "${IMAGE_NAME}:${VERSION}${suffix}" >/dev/null 2>&1; then
+              promote_tag "$suffix"
+            fi
+          done
+
+      - name: Promote GHCR latest tags
+        if: needs.prepare.outputs.promote_latest == 'true'
+        run: |
+          set -euo pipefail
+          promote_tag() {
+            local suffix="$1"
+            docker buildx imagetools create -t "${GHCR_IMAGE_NAME}:latest${suffix}" "${GHCR_IMAGE_NAME}:${VERSION}${suffix}"
+          }
+          promote_tag ""
+          promote_tag "-web"
+          for suffix in -bun -web-bun; do
+            if docker buildx imagetools inspect "${GHCR_IMAGE_NAME}:${VERSION}${suffix}" >/dev/null 2>&1; then
+              promote_tag "$suffix"
+            fi
+          done
 
       - name: Inspect image
         if: needs.prepare.outputs.version != 'main'
