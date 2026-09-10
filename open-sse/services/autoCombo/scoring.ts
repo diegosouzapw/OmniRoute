@@ -293,6 +293,14 @@ export function computePoolMaxima(pool: ProviderCandidate[]): PoolMaxima {
  * `speedRanking.ts` so both consumers of the same signal agree, including on
  * garbage input.
  */
+/** Reliability factor from an observed failure (else error) rate; absent reads fully reliable. */
+export function reliabilityFactor(candidate: {
+  failureRate?: number | null;
+  errorRate?: number | null;
+}): number {
+  return clamp01(1 - boundedRate(candidate.failureRate ?? candidate.errorRate));
+}
+
 function boundedRate(value: number | null | undefined): number {
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return 0;
   return Math.min(1, value);
@@ -341,7 +349,7 @@ export function calculateFactors(
     // bounded BEFORE the subtraction, exactly as `toBoundedRate` does there --
     // `clamp01(1 - NaN)` would be 0, i.e. "fails every call", which is the
     // opposite of what corrupt telemetry should mean.
-    reliability: clamp01(1 - boundedRate(candidate.failureRate ?? candidate.errorRate)),
+    reliability: reliabilityFactor(candidate),
   };
 }
 

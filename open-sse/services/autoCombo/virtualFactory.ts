@@ -1,6 +1,6 @@
 import { AutoComboConfig } from "./engine";
 import { MODE_PACKS } from "./modePacks";
-import { DEFAULT_WEIGHTS, ScoringWeights } from "./scoring";
+import { DEFAULT_WEIGHTS, reliabilityFactor, ScoringWeights } from "./scoring";
 import { getCachedProviderConnections } from "@/lib/db/readCache";
 import { getSettings } from "@/lib/db/settings";
 import { getProviderRegistry } from "./providerRegistryAccessor";
@@ -28,6 +28,7 @@ import {
 import { classifyTier } from "../tierResolver";
 import { getQualityScore } from "../routing/quality.ts";
 import { readBreakerStates, snapshotHealthFactor, type BreakerState } from "./snapshotBreaker.ts";
+import { resolveVirtualCost } from "../providerCostData";
 import type { AutoVariant } from "./autoPrefix";
 import { buildFamilyCandidateFilter, type ModelFamily } from "./modelFamily";
 import { getHiddenModelsByProvider } from "@/models";
@@ -107,6 +108,8 @@ export interface VirtualAutoComboCandidate {
   model: string;
   modelStr: string; // e.g., 'openai/gpt-4o'
   costPer1MTokens: number; // from providerRegistry
+  /** Observed failure rate 0..1 when known; null/absent reads fully reliable. */
+  failureRate?: number | null;
   /** Build-local capability snapshot. Runtime calls rebuild it; catalog entries reuse it. */
   resolvedContextLength?: number | null;
   resolvedMaxOutputTokens?: number | null;
@@ -444,7 +447,7 @@ function getNoAuthCandidates(
         connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
         model: modelId,
         modelStr: `${routingPrefix}/${modelId}`,
-        costPer1MTokens: 0,
+        costPer1MTokens: resolveVirtualCost(providerId, modelId),
       });
     }
   }
@@ -726,7 +729,7 @@ export async function prepareVirtualAutoComboInputs(
         allowedConnectionIds,
         model: modelId,
         modelStr: `${providerId}/${modelId}`,
-        costPer1MTokens: 0, // Not used in virtual auto-combo (LKGP uses session stickiness)
+        costPer1MTokens: resolveVirtualCost(providerId, modelId),
       });
     }
   }
@@ -892,6 +895,10 @@ export function computeSnapshotWeights(
     // latencyInv: all candidates get a base score when latency matters
     // (no runtime data at snapshot time, so equal baseline)
     if (weights.latencyInv > 0) score += weights.latencyInv * 0.5;
+
+    // reliability (#12792): the same failure-rate factor as scoring.ts; absent reads as
+    // fully reliable. The snapshot path was the only one still ignoring it.
+    if (weights.reliability > 0) score += weights.reliability * reliabilityFactor(c);
 
     // health: build-time breaker state (OPEN 0, CLOSED 1, else neutral 0.5); quota stays neutral
     score += weights.health * snapshotHealthFactor(breakerByProvider, c.provider);
