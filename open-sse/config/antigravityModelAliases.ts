@@ -172,6 +172,13 @@ const ANTIGRAVITY_NON_CHAT_MODEL_IDS = new Set([
   "tab_jump_flash_lite_preview",
 ]);
 
+// Non-chat models that still expose user-facing quota buckets. Keep these out of
+// chat discovery while allowing Provider Limits to surface their live quota.
+const ANTIGRAVITY_QUOTA_VISIBLE_NON_CHAT_MODEL_IDS = new Set([
+  "gemini-3-pro-image-preview",
+  "gemini-3.1-flash-image",
+]);
+
 const ANTIGRAVITY_RETIRED_MODEL_IDS = new Set([
   "gemini-3-pro-preview",
   "gemini-3.1-pro",
@@ -251,4 +258,18 @@ export function isDiscoverableAntigravityModelId(modelId: string): boolean {
     return false;
   }
   return !ANTIGRAVITY_NON_CHAT_MODEL_PATTERN.test(id);
+}
+
+/**
+ * Return whether an Antigravity model quota should be visible to users. Quota
+ * visibility is intentionally broader than chat discovery: image-only models
+ * are callable through /v1/images/generations and have their own live quota
+ * buckets, but must remain excluded from the chat model catalog.
+ */
+export function isUserVisibleAntigravityQuotaModelId(modelId: string): boolean {
+  const id = modelId.trim();
+  if (!id) return false;
+  return (
+    isDiscoverableAntigravityModelId(id) || ANTIGRAVITY_QUOTA_VISIBLE_NON_CHAT_MODEL_IDS.has(id)
+  );
 }
