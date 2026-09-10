@@ -91,3 +91,28 @@ test("bumps undersized max_tokens for a non-clinepass reasoning provider (gate r
   executor.ensureThinkingBudget(body, "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning");
   assert.equal(body.max_tokens, 4096);
 });
+
+test("bumps undersized max_tokens for an alwaysReasons model without client opt-in (reka)", () => {
+  // reka-flash-3's upstream always runs reasoning (alwaysReasons), so the
+  // budget floor must apply even when the client did not explicitly set
+  // reasoning_effort or thinking.enabled.
+  const executor = new DefaultExecutor("reka");
+  const body = {
+    model: "reka-flash-3",
+    max_tokens: 256,
+  } as Record<string, unknown>;
+
+  executor.ensureThinkingBudget(body, "reka-flash-3");
+  assert.equal(body.max_tokens, 4096);
+});
+
+test("leaves an already-sufficient budget for an alwaysReasons model untouched", () => {
+  const executor = new DefaultExecutor("reka");
+  const body = {
+    model: "reka-flash-3",
+    max_tokens: 8000,
+  } as Record<string, unknown>;
+
+  executor.ensureThinkingBudget(body, "reka-flash-3");
+  assert.equal(body.max_tokens, 8000);
+});

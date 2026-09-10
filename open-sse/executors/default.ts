@@ -1076,7 +1076,11 @@ export class DefaultExecutor extends BaseExecutor {
     const reasoningEnabled =
       thinking?.type === "enabled" ||
       (typeof effort === "string" && effort !== "none" && effort !== "off") ||
-      effort === true;
+      effort === true ||
+      // Models whose upstream runs reasoning unconditionally (e.g. reka-flash-3)
+      // burn an undersized max_tokens entirely on reasoning and return empty
+      // content even when the client never opted into thinking (#6912 class).
+      modelEntry?.alwaysReasons === true;
     if (!reasoningEnabled) return body;
 
     const MIN_TOKENS = 4096;
