@@ -61,7 +61,15 @@ function serializeBlock(
         id ? "duplicate_tool_use_id" : "missing_tool_use_id"
       );
     }
-    const declared = tools.find((tool) => tool.name === name);
+    // Exact match first; fall back to case-insensitive matching so a client
+    // echoing back a differently-cased name for the same tool (e.g. a router
+    // layer handing a Claude Code canonical "Bash" to a client that declared
+    // "bash") is normalized instead of hard-failing the whole turn with
+    // undeclared_historical_tool (#12721). The declared casing is rendered so
+    // the downstream Devin prompt always shows the catalog name verbatim.
+    const declared =
+      tools.find((tool) => tool.name === name) ??
+      tools.find((tool) => tool.name.toLowerCase() === name.toLowerCase() && name !== "");
     if (!declared) {
       throw new DevinAgenticBridgeError(
         `Historical tool_use references undeclared tool: ${name || "unknown"}`,
@@ -72,7 +80,7 @@ function serializeBlock(
     return [
       "[Assistant Tool Use]",
       `id: ${id}`,
-      `name: ${name}`,
+      `name: ${declared.name}`,
       "arguments:",
       JSON.stringify(record.input || {}, null, 2),
     ].join("\n");
