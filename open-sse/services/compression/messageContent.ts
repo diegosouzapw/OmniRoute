@@ -82,7 +82,20 @@ export function replaceTextContent(msg: ChatMessageLike, newText: string): ChatM
   });
 
   if (!replaced) {
-    return { ...msg, content: [{ type: "text", text: newText }, ...msg.content] };
+    // Anthropic requires `tool_result` blocks to come first in the user message
+    // that follows a `tool_use`; prepending a text block ahead of one yields
+    // ["text","tool_result"] and upstream rejects it with 400 "tool_use ids were
+    // found without tool_result blocks immediately after" (#12890). When the
+    // message carries a tool_result block, append the annotation after the
+    // existing content instead of prepending it.
+    const textBlock = { type: "text", text: newText };
+    const hasToolResult = msg.content.some(
+      (part) => !!part && typeof part === "object" && (part as TextBlock).type === "tool_result"
+    );
+    return {
+      ...msg,
+      content: hasToolResult ? [...msg.content, textBlock] : [textBlock, ...msg.content],
+    };
   }
 
   return { ...msg, content };
