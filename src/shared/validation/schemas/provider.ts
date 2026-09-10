@@ -337,8 +337,7 @@ export const createProviderNodeSchema = z
         "chat",
         "responses",
         "embeddings",
-        "audio-transcriptions",
-        "audio-speech",
+        "audio-transcriptions",        "audio-speech",
         "images-generations",
       ])
       .optional(),
@@ -559,7 +558,7 @@ export const updateProviderConnectionSchema = z
         tpd: rateLimitOverrideNumber(10_000_000_000).optional(),
         minTime: rateLimitOverrideNumber(60_000).optional(),
         maxConcurrent: rateLimitOverrideNumber(10_000).optional(),
-        maxWaitMs: rateLimitOverrideNumber(120_000).optional(),
+        maxWaitMs: rateLimitOverrideNumber(600_000).optional(),
       })
       .partial()
       .strict()
