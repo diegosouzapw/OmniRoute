@@ -291,6 +291,9 @@ export const providerModelMutationSchema = z.object({
   // the same flag flows through `getCustomVisionCapabilityFields()` in the /v1/models
   // catalog. `null` clears a manual override back to the id-based heuristic.
   supportsVision: z.boolean().nullable().optional(),
+  dimensions: z.number().int().positive().nullable().optional(),
+  supportedInputTypes: z.array(z.string()).optional(),
+  modelType: z.enum(["chat", "embedding", "image", "rerank"]).optional(),
   isFree: z.boolean().nullable().optional(),
   normalizeToolCallId: z.boolean().optional(),
   preserveOpenAIDeveloperRole: z.boolean().nullable().optional(),
@@ -519,9 +522,7 @@ export const updateProviderConnectionSchema = z
     errorCode: z.union([z.string(), z.null()]).optional(),
     rateLimitedUntil: z.union([z.string(), z.null()]).optional(),
     lastTested: z.union([z.string(), z.null()]).optional(),
-    healthCheckInterval: z
-      .union([z.null(), z.coerce.number().int().min(0).max(1440)])
-      .optional(),
+    healthCheckInterval: z.union([z.null(), z.coerce.number().int().min(0).max(1440)]).optional(),
     group: z.union([z.string().max(100), z.null()]).optional(),
     maxConcurrent: z.union([z.null(), z.coerce.number().int().min(0)]).optional(),
     // Per-window quota cutoffs. Map keys are window names (e.g. "window5h",

@@ -215,7 +215,11 @@ test("checkSemanticCache returns a non-streaming JSON HIT with cache headers + l
   assert.ok(result, "HIT -> non-null result");
   assert.equal(result.success, true, "HIT result.success is true");
   const res = result.response as Response;
-  assert.equal(res.headers.get(OMNIROUTE_RESPONSE_HEADERS.cache), "HIT", "X-OmniRoute-Cache: HIT");
+  assert.equal(
+    res.headers.get(OMNIROUTE_RESPONSE_HEADERS.cache),
+    "HIT (exact)",
+    "X-OmniRoute-Cache: HIT (exact)"
+  );
   assert.equal(
     res.headers.get(OMNIROUTE_RESPONSE_HEADERS.cacheHit),
     "true",
@@ -277,7 +281,7 @@ test("checkSemanticCache returns a streaming SSE HIT (text/event-stream) when st
     "text/event-stream",
     "streaming HIT -> text/event-stream"
   );
-  assert.equal(res.headers.get(OMNIROUTE_RESPONSE_HEADERS.cache), "HIT");
+  assert.equal(res.headers.get(OMNIROUTE_RESPONSE_HEADERS.cache), "HIT (exact)");
   const bodyText = await res.text();
   assert.ok(bodyText.includes("data: "), "SSE body contains data frames");
   assert.ok(bodyText.includes("streamed cached answer"), "SSE body carries the cached content");
@@ -312,7 +316,7 @@ test("checkSemanticCache HITs even when the cached body has no usage (cost falls
   assert.ok(result, "HIT with no usage -> non-null result");
   assert.equal(result.success, true);
   const res = result.response as Response;
-  assert.equal(res.headers.get(OMNIROUTE_RESPONSE_HEADERS.cache), "HIT");
+  assert.equal(res.headers.get(OMNIROUTE_RESPONSE_HEADERS.cache), "HIT (exact)");
   // cachedUsage resolves to undefined -> cachedCost = 0 -> the zero-cost sentinel header.
   assert.equal(
     res.headers.get(OMNIROUTE_RESPONSE_HEADERS.responseCost),
@@ -363,7 +367,7 @@ test("checkSemanticCache HIT bills 0 incremental cost and reports the original c
   assert.ok(result, "HIT -> non-null result");
   const res = result.response as Response;
 
-  assert.equal(res.headers.get(OMNIROUTE_RESPONSE_HEADERS.cache), "HIT");
+  assert.equal(res.headers.get(OMNIROUTE_RESPONSE_HEADERS.cache), "HIT (exact)");
   // Incremental cost billed to the client on a HIT is 0 (no upstream call happened).
   assert.equal(
     res.headers.get(OMNIROUTE_RESPONSE_HEADERS.responseCost),

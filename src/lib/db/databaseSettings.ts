@@ -37,6 +37,16 @@ const LEGACY_FLAT_KEYS: {
     semanticCacheEnabled: ["semanticCacheEnabled"],
     semanticCacheMaxSize: ["semanticCacheMaxSize"],
     semanticCacheTTL: ["semanticCacheTTL"],
+    semanticCacheBackend: ["semanticCacheBackend"],
+    semanticCacheThreshold: ["semanticCacheThreshold"],
+    semanticCacheEmbeddingProvider: ["semanticCacheEmbeddingProvider"],
+    semanticCacheEmbeddingModel: ["semanticCacheEmbeddingModel"],
+    semanticCacheEmbeddingDimension: ["semanticCacheEmbeddingDimension"],
+    semanticCacheEmbeddingBaseUrl: ["semanticCacheEmbeddingBaseUrl"],
+    semanticCacheEmbeddingApiKey: ["semanticCacheEmbeddingApiKey"],
+    semanticCacheRedisUrl: ["semanticCacheRedisUrl"],
+    semanticCacheRedisPrefix: ["semanticCacheRedisPrefix"],
+    semanticCacheRequireZeroTemp: ["semanticCacheRequireZeroTemp"],
     promptCacheEnabled: ["promptCacheEnabled"],
     promptCacheStrategy: ["promptCacheStrategy"],
     alwaysPreserveClientCache: ["alwaysPreserveClientCache"],
@@ -294,7 +304,7 @@ export function updateDatabaseSettings(
       const sectionValues = nextSettings[section] as Record<string, unknown>;
 
       for (const [key, value] of Object.entries(sectionValues)) {
-        insert.run(DATABASE_SETTINGS_NAMESPACE, `${section}.${key}`, JSON.stringify(value));
+        insert.run(DATABASE_SETTINGS_NAMESPACE, `${section}.${key}`, JSON.stringify(value ?? null));
       }
     }
 

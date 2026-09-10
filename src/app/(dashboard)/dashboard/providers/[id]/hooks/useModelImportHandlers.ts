@@ -138,7 +138,7 @@ export function useModelImportHandlers({
     });
 
     try {
-      const res = await fetch(`/api/providers/${importTargetId}/models?refresh=true&chatOnly=true`);
+      const res = await fetch(`/api/providers/${importTargetId}/models?refresh=true`);
       const data = await res.json();
       if (!res.ok) {
         setImportProgress((prev) => ({
@@ -229,6 +229,16 @@ export function useModelImportHandlers({
             ...(typeof model.apiFormat === "string" ? { apiFormat: model.apiFormat } : {}),
             ...(Array.isArray(model.supportedEndpoints)
               ? { supportedEndpoints: model.supportedEndpoints }
+              : {}),
+            ...(typeof model.dimensions === "number" && model.dimensions > 0
+              ? { dimensions: model.dimensions }
+              : {}),
+            ...(Array.isArray(model.supportedInputTypes)
+              ? { supportedInputTypes: model.supportedInputTypes }
+              : {}),
+            ...(typeof model.modelType === "string" ? { modelType: model.modelType } : {}),
+            ...(typeof model.inputTokenLimit === "number" && model.inputTokenLimit > 0
+              ? { max_input_tokens: model.inputTokenLimit }
               : {}),
           }),
         });

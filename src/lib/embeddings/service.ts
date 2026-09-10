@@ -328,14 +328,16 @@ export async function createEmbeddingResponse(
         `[${provider}] All ${credentials.expiredCount || 1} connection(s) ${reason} — please reconnect in the dashboard`
       );
     }
-  } else if (provider === "ollama-local" || provider === "lmstudio") {
-    // Ollama and LM Studio are keyless, but a configured connection can still
-    // provide a custom local host. Hydrate that optional connection without
-    // imposing an authentication requirement, then keep the static localhost
-    // default when no connection exists. getProviderCredentials("lmstudio")
-    // resolves the dashboard's hyphenated "lm-studio" connection via the
-    // provider search pool/alias (#11233); a selection or rate-limit failure
-    // must not break the flow — proceed without credentials.
+  } else if (
+    provider === "ollama-local" ||
+    provider === "lmstudio" ||
+    provider === "llama-cpp" ||
+    provider === "lemonade"
+  ) {
+    // Local providers are key-optional, but a configured connection can provide
+    // a custom host or API key (e.g. Lemonade bearer auth). Hydrate that optional
+    // connection without imposing an authentication requirement, then keep the
+    // static localhost default when no connection exists.
     const localCredentials = await getProviderCredentials(credentialsProviderId);
     if (
       localCredentials &&

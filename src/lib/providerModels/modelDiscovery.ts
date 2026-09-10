@@ -7,6 +7,7 @@ import {
 import { CANONICAL_EFFORT_VALUES } from "@/shared/reasoning/effortStandardization";
 import { isObsoleteKiroModelAlias } from "@omniroute/open-sse/services/kiroModels.ts";
 import { filterSelectableModels } from "@omniroute/open-sse/services/modelLifecycle.ts";
+import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -255,6 +256,124 @@ export function isAutoFetchModelsEnabled(providerSpecificData: unknown): boolean
   return asRecord(providerSpecificData).autoFetchModels === true;
 }
 
+const KNOWN_EMBEDDING_PREFIXES = [
+  "text-embedding-",
+  "bge-",
+  "gte-",
+  "e5-",
+  "nomic-embed",
+  "all-minilm",
+  "embeddinggemma",
+  "jina-embeddings",
+  "jina-clip",
+  "cohere-embed",
+  "multilingual-e5",
+];
+
+const KNOWN_EMBEDDING_DIMENSIONS: Record<string, number> = {
+  "harrier-oss-v1-0.6b": 1024,
+  "text-embedding-3-small": 1536,
+  "text-embedding-3-large": 3072,
+  "text-embedding-ada-002": 1536,
+  "bge-m3": 1024,
+  "bge-large-en-v1.5": 1024,
+  "bge-small-en-v1.5": 384,
+  "bge-base-en-v1.5": 768,
+  "nomic-embed-text": 768,
+  "all-minilm-l6-v2": 384,
+  embeddinggemma: 768,
+};
+
+export function detectModelModality(
+  record: JsonRecord,
+  providerId?: string
+): {
+  isEmbedding: boolean;
+  isImage: boolean;
+  isRerank: boolean;
+  dimensions?: number;
+  supportedInputTypes: string[];
+} {
+  const rawId = toNonEmptyString(record.id) || toNonEmptyString(record.name) || "";
+  const modelLeaf = rawId.toLowerCase().split("/").pop() || "";
+  const rawLabels = Array.isArray(record.labels)
+    ? record.labels
+        .map((l) => (typeof l === "string" ? l.trim().toLowerCase() : ""))
+        .filter(Boolean)
+    : [];
+  const typeStr = toNonEmptyString(record.type)?.toLowerCase();
+  const objStr = toNonEmptyString(record.object)?.toLowerCase();
+  const caps = asRecord(record.capabilities);
+  const rawEndpoints = Array.isArray(record.supportedEndpoints)
+    ? record.supportedEndpoints.map((e) => (typeof e === "string" ? e.trim().toLowerCase() : ""))
+    : [];
+
+  const registryProvider = providerId ? getEmbeddingProvider(providerId) : undefined;
+  const registryModel = registryProvider?.models.find(
+    (m) => m.id === modelLeaf || m.id === rawId || rawId.endsWith(`/${m.id}`)
+  );
+
+  const isRerank =
+    rawLabels.includes("reranking") ||
+    rawLabels.includes("rerank") ||
+    typeStr === "rerank" ||
+    rawEndpoints.includes("rerank") ||
+    modelLeaf.includes("rerank");
+
+  const isImage =
+    !isRerank &&
+    (rawLabels.includes("image") ||
+      rawLabels.includes("images") ||
+      typeStr === "image" ||
+      objStr === "image" ||
+      rawEndpoints.includes("images") ||
+      rawEndpoints.includes("image") ||
+      modelLeaf.startsWith("gpt-image-") ||
+      modelLeaf.startsWith("dall-e-") ||
+      modelLeaf === "chatgpt-image-latest" ||
+      modelLeaf.startsWith("flux-") ||
+      modelLeaf.startsWith("sdxl-") ||
+      modelLeaf.startsWith("stable-diffusion"));
+
+  const isEmbedding =
+    !isRerank &&
+    !isImage &&
+    (rawLabels.includes("embeddings") ||
+      rawLabels.includes("embedding") ||
+      typeStr === "embedding" ||
+      typeStr === "embeddings" ||
+      objStr === "embedding" ||
+      caps.embeddings === true ||
+      caps.embedding === true ||
+      rawEndpoints.includes("embeddings") ||
+      rawEndpoints.includes("embedding") ||
+      Boolean(registryModel) ||
+      KNOWN_EMBEDDING_PREFIXES.some((prefix) => modelLeaf.includes(prefix)));
+
+  const dimensions = firstPositiveNumber(
+    record.dimensions,
+    record.dimension,
+    record.embedding_dimension,
+    record.embedding_dimensions,
+    registryModel?.dimensions,
+    KNOWN_EMBEDDING_DIMENSIONS[modelLeaf]
+  );
+
+  const supportedInputTypes: string[] = Array.isArray(record.supportedInputTypes)
+    ? record.supportedInputTypes.filter((t): t is string => typeof t === "string" && t.length > 0)
+    : registryModel?.modalities
+      ? (registryModel.modalities as string[])
+      : ["text"];
+
+  return {
+    isEmbedding,
+    isImage,
+    isRerank,
+    dimensions,
+    supportedInputTypes,
+  };
+}
+
 export function normalizeDiscoveredModels(
   models: unknown,
   providerId?: string
@@ -294,6 +413,16 @@ export function normalizeDiscoveredModels(
       toNonEmptyString(record.displayName) ||
       toNonEmptyString(record.model) ||
       id;
+
+    const modality = detectModelModality(record, providerId);
+    const modelType = modality.isEmbedding
+      ? "embedding"
+      : modality.isRerank
+        ? "rerank"
+        : modality.isImage
+          ? "image"
+          : "chat";
+
     const supportedEndpoints = Array.isArray(record.supportedEndpoints)
       ? Array.from(
           new Set(
@@ -302,7 +431,23 @@ export function normalizeDiscoveredModels(
               .filter((endpoint): endpoint is string => Boolean(endpoint))
           )
         ).sort()
-      : undefined;
+      : modality.isEmbedding
+        ? ["embeddings"]
+        : modality.isRerank
+          ? ["rerank"]
+          : modality.isImage
+            ? ["images"]
+            : undefined;
+
+    const apiFormat =
+      toNonEmptyString(record.apiFormat) ||
+      (modality.isEmbedding
+        ? "embeddings"
+        : modality.isRerank
+          ? "rerank"
+          : modality.isImage
+            ? "images-generations"
+            : undefined);
 
     const topProvider = asRecord(record.top_provider);
 
@@ -314,6 +459,8 @@ export function normalizeDiscoveredModels(
       record.inputTokenLimit,
       record.context_length,
       record.contextLength,
+      record.max_context_window,
+      record.max_tokens,
       topProvider.context_length
     );
     const outputTokenLimit = firstPositiveNumber(
@@ -333,9 +480,7 @@ export function normalizeDiscoveredModels(
       id,
       name,
       source: "imported",
-      ...(toNonEmptyString(record.apiFormat)
-        ? { apiFormat: toNonEmptyString(record.apiFormat)! }
-        : {}),
+      ...(apiFormat ? { apiFormat } : {}),
       ...(toNonEmptyString(record.targetFormat)
         ? { targetFormat: toNonEmptyString(record.targetFormat)! }
         : {}),
@@ -357,6 +502,13 @@ export function normalizeDiscoveredModels(
       ...(typeof record.supportsTools === "boolean" ? { supportsTools: record.supportsTools } : {}),
       ...(typeof record.supportsVideo === "boolean" ? { supportsVideo: record.supportsVideo } : {}),
       ...(supportsVision ? { supportsVision: true } : {}),
+      ...(typeof modality.dimensions === "number" && modality.dimensions > 0
+        ? { dimensions: modality.dimensions }
+        : {}),
+      ...(modality.supportedInputTypes.length > 0
+        ? { supportedInputTypes: modality.supportedInputTypes }
+        : {}),
+      modelType,
     });
   }
 

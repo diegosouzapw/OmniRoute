@@ -15,20 +15,12 @@
 import crypto from "crypto";
 import { LRUCache } from "./cacheLayer";
 import { getDbInstance } from "./db/core";
+import { toNumber } from "@/shared/utils/numeric";
 
 type JsonRecord = Record<string, unknown>;
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-
-function toNumber(value: unknown, fallback = 0): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
-  return fallback;
 }
 
 /**
@@ -253,6 +245,27 @@ export function getCachedResponse(signature) {
 }
 
 /**
+ * Record a semantic cache hit: increments hit count for the entry in SQLite
+ * and increments global hit metrics (hits and tokens_saved).
+ */
+export function recordSemanticCacheHit(signature: string, tokensSaved = 0): void {
+  try {
+    const db = getDbInstance();
+    if (signature) {
+      db.prepare(
+        "UPDATE semantic_cache SET hit_count = hit_count + 1 WHERE signature = ? OR prompt_hash = ?"
+      ).run(signature, signature.slice(0, 16));
+    }
+    incrementMetric("hits");
+    if (tokensSaved > 0) {
+      incrementMetric("tokens_saved", tokensSaved);
+    }
+  } catch {
+    // DB not available — fail open
+  }
+}
+
+/**
  * Store a response in cache.
  * @param {string} signature
  * @param {string} model
@@ -388,6 +401,10 @@ export function isCacheableForRead(body, headers) {
   if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {
     return false;
   }
+  const cacheControl = (getHeaderValue(headers, "cache-control") || "").toLowerCase();
+  if (cacheControl.includes("no-cache")) {
+    return false;
+  }
   if (typeof body.temperature !== "number" || body.temperature !== 0) return false;
   return true;
 }
@@ -400,6 +417,10 @@ export function isCacheableForRead(body, headers) {
  */
 export function isCacheableForWrite(body, headers) {
   if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {
+    return false;
+  }
+  const cacheControl = (getHeaderValue(headers, "cache-control") || "").toLowerCase();
+  if (cacheControl.includes("no-cache")) {
     return false;
   }
   if (body.temperature !== 0) return false;

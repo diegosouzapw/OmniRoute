@@ -80,4 +80,53 @@ test("cache-config route resolves and modelCatalogCacheTtlMs round-trips", async
     const getBody = await getResponse.json();
     assert.equal(getBody.idempotencyWindowMs, 9000);
   });
+
+  await t.test("PUT persists semantic cache settings and GET reads them back", async () => {
+    const putResponse = await cacheConfigRoute.PUT(
+      makeJsonRequest("PUT", {
+        semanticCacheEnabled: true,
+        semanticCacheBackend: "redis",
+        semanticCacheThreshold: 0.88,
+        semanticCacheEmbeddingProvider: "lemonade",
+        semanticCacheEmbeddingModel: "harrier-oss-v1-0.6b",
+        semanticCacheEmbeddingDimension: 1024,
+        semanticCacheRedisUrl: "redis://192.168.31.147:6379",
+        semanticCacheRequireZeroTemp: false,
+      }) as never
+    );
+    assert.equal(putResponse.status, 200);
+
+    const getResponse = await cacheConfigRoute.GET(makeJsonRequest("GET") as never);
+    const getBody = await getResponse.json();
+    assert.equal(getBody.semanticCacheBackend, "redis");
+    assert.equal(getBody.semanticCacheThreshold, 0.88);
+    assert.equal(getBody.semanticCacheEmbeddingProvider, "lemonade");
+    assert.equal(getBody.semanticCacheEmbeddingModel, "harrier-oss-v1-0.6b");
+    assert.equal(getBody.semanticCacheEmbeddingDimension, 1024);
+    assert.equal(getBody.semanticCacheRedisUrl, "redis://192.168.31.147:6379");
+    assert.equal(getBody.semanticCacheRequireZeroTemp, false);
+  });
+
+  await t.test("embedding-options route returns candidate providers and models", async () => {
+    const embeddingOptionsRoute =
+      await import("../../src/app/api/settings/cache-config/embedding-options/route.ts");
+    const response = await embeddingOptionsRoute.GET(
+      new Request("http://localhost/api/settings/cache-config/embedding-options") as never
+    );
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.ok(Array.isArray(body.providers));
+    assert.ok(body.providers.length > 0);
+
+    const lemonade = body.providers.find(
+      (p: { id: string; models: Array<{ rawId: string; dimensions?: number }> }) =>
+        p.id === "lemonade"
+    );
+    assert.ok(lemonade, "lemonade provider option should be returned");
+    const harrier = lemonade.models.find(
+      (m: { rawId: string; dimensions?: number }) => m.rawId === "harrier-oss-v1-0.6b"
+    );
+    assert.ok(harrier, "harrier-oss-v1-0.6b model should be present in lemonade models");
+    assert.equal(harrier.dimensions, 1024);
+  });
 });

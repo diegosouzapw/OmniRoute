@@ -259,12 +259,15 @@ export function detectTestKind(modelStr: string, customModel: any, nodeApiType?:
     !isRerank &&
     (apiFormat === "embeddings" ||
       nodeType === "embeddings" ||
+      customModel?.modelType === "embedding" ||
       supportedEndpoints.includes("embeddings") ||
       lowerModel.includes("embedding") ||
       lowerModel.includes("bge-") ||
       lowerModel.includes("text-embed") ||
       lowerModel.includes("jina-clip") ||
-      lowerModel.includes("colbert"));
+      lowerModel.includes("colbert") ||
+      lowerModel.includes("harrier-") ||
+      lowerModel.includes("nomic-embed"));
   return { isRerank, isEmbedding, isAudioTranscription };
 }
 

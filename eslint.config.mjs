@@ -239,6 +239,7 @@ const eslintConfig = [
       "vscode-extension/**",
       "_references/**",
       "_mono_repo/**",
+      "review/**",
       // Electron app
       "electron/**",
       // Docs
