@@ -192,6 +192,29 @@ test("extractUsageFromResponse totals Claude prompt tokens with cache read and c
   });
 });
 
+for (const provider of ["vertex", "vertex-partner"]) {
+  test(`extractUsageFromResponse totals Claude cache tokens for ${provider}`, () => {
+    const usage = extractUsageFromResponse(
+      {
+        usage: {
+          input_tokens: 10,
+          output_tokens: 7,
+          cache_read_input_tokens: 4_000,
+          cache_creation_input_tokens: 1_000,
+        },
+      },
+      provider
+    );
+
+    assert.deepEqual(usage, {
+      prompt_tokens: 5_010,
+      completion_tokens: 7,
+      cache_read_input_tokens: 4_000,
+      cache_creation_input_tokens: 1_000,
+    });
+  });
+}
+
 test("extractUsageFromResponse surfaces Claude thinking tokens without inflating completion", () => {
   const usage = extractUsageFromResponse(
     {

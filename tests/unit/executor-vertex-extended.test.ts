@@ -68,7 +68,10 @@ test("VertexExecutor.buildUrl routes a non-JSON Express API key to the project-l
     expressUrl,
     "https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:generateContent?key=express-key-abc"
   );
-  assert.ok(!expressUrl.includes("/projects/"), "Express key URL must not route through a project path");
+  assert.ok(
+    !expressUrl.includes("/projects/"),
+    "Express key URL must not route through a project path"
+  );
 });
 
 test("VertexExecutor.buildUrl routes partner and org-prefixed models to the global partner endpoint", () => {
@@ -307,7 +310,12 @@ test("VertexExecutor.execute synthesizes a genuine Anthropic-format SSE stream w
         content: [{ type: "text", text: "hello" }],
         stop_reason: "end_turn",
         stop_sequence: null,
-        usage: { input_tokens: 5, output_tokens: 2 },
+        usage: {
+          input_tokens: 5,
+          output_tokens: 2,
+          cache_creation_input_tokens: 1_024,
+          cache_read_input_tokens: 4_096,
+        },
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
@@ -345,6 +353,12 @@ test("VertexExecutor.execute synthesizes a genuine Anthropic-format SSE stream w
       "message_delta",
       "message_stop",
     ]);
+    assert.deepEqual(dataLines[0].message.usage, {
+      input_tokens: 5,
+      output_tokens: 0,
+      cache_creation_input_tokens: 1_024,
+      cache_read_input_tokens: 4_096,
+    });
   } finally {
     globalThis.fetch = originalFetch;
   }
