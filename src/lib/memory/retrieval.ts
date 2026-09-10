@@ -12,6 +12,7 @@ import { getQdrantConfig, checkQdrantHealth, searchSemanticMemory } from "./qdra
 import type { MemoryEngineStatus } from "@/shared/schemas/memory";
 import { estimateTokens, parseMetadata, rowToMemory, getRelevanceScore } from "./retrieval/scoring";
 import type { MemoryRow } from "./retrieval/scoring";
+import { sanitizeFtsQuery } from "../db/ftsQuery";
 
 const log = logger("MEMORY_RETRIEVAL");
 
@@ -96,6 +97,12 @@ interface FtsColConfig {
  */
 function buildFtsRows(apiKeyId: string, config: FtsColConfig): MemoryRow[] {
   if (!config.query) return [];
+  // Binding the term as a parameter stops SQL injection but NOT FTS5's own
+  // grammar: a bare `-`, `"`, `*` or `col:` in user text is a syntax error that
+  // aborts the search. Escape to quoted literals first; null means nothing
+  // searchable survived, so skip the FTS branch entirely.
+  const ftsMatch = sanitizeFtsQuery(config.query);
+  if (ftsMatch === null) return [];
   const db = getDbInstance();
   const {
     apiKeyCol,
@@ -103,7 +110,6 @@ function buildFtsRows(apiKeyId: string, config: FtsColConfig): MemoryRow[] {
     createdCol,
     sessionCol,
     tableName,
-    query: q,
     scope,
     sessionId,
     retentionDays,
@@ -122,7 +128,7 @@ function buildFtsRows(apiKeyId: string, config: FtsColConfig): MemoryRow[] {
   }
   ftsQueryStr += ` ORDER BY f.rank LIMIT 100`;
 
-  const ftsParams: unknown[] = [q, apiKeyId];
+  const ftsParams: unknown[] = [ftsMatch, apiKeyId];
   if (scope === "session" && sessionId) ftsParams.push(sessionId);
   if (retentionDays && retentionDays > 0) {
     const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000).toISOString();
@@ -914,11 +920,17 @@ export async function retrievePreview(
   } else {
     // Semantic/hybrid degraded to FTS5
     let ftsRows: MemoryRow[] = [];
-    if (query && ftsAvailable) {
+    // Same escaping as buildFtsRows(): unsanitized operator characters made this
+    // MATCH throw, and the catch below then silently fell through to the plain
+    // date-ordered query — returning *recent* rows instead of *matching* ones.
+    const degradedFtsMatch = sanitizeFtsQuery(query);
+    if (query && ftsAvailable && degradedFtsMatch !== null) {
       const ftsQueryStr = apiKeyId
         ? `SELECT m.* FROM ${tableName} m JOIN memory_fts f ON m.memory_id = f.rowid WHERE f.memory_fts MATCH ? AND m.${apiKeyCol} = ? ORDER BY f.rank LIMIT ?`
         : `SELECT m.* FROM ${tableName} m JOIN memory_fts f ON m.memory_id = f.rowid WHERE f.memory_fts MATCH ? ORDER BY f.rank LIMIT ?`;
-      const ftsP: unknown[] = apiKeyId ? [query, apiKeyId, limit] : [query, limit];
+      const ftsP: unknown[] = apiKeyId
+        ? [degradedFtsMatch, apiKeyId, limit]
+        : [degradedFtsMatch, limit];
       try {
         ftsRows = db.prepare(ftsQueryStr).all(...ftsP) as MemoryRow[];
       } catch {
