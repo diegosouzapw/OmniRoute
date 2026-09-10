@@ -1,0 +1,1 @@
+- **fix(providers):** honor the selected Alibaba workspace and region endpoints for custom embedding and `qwen3-rerank` requests ([#13293](https://github.com/diegosouzapw/OmniRoute/pull/13293)) — thanks @xiaoyaner0201
