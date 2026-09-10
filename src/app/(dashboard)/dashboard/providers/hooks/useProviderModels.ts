@@ -77,11 +77,18 @@ export function useProviderModels(providerId: string): UseProviderModelsResult {
                 }>;
               };
               if (cancelled) return;
-              const providerConn = connData.connections?.find(
+              const providerConnections = connData.connections?.filter(
                 (c) => (c.provider === providerId || c.id === providerId) && c.isActive !== false
               );
+              const providerConn = providerConnections?.[0];
 
-              if (providerConn?.providerSpecificData?.autoFetchModels === true && !cancelled) {
+              if (
+                providerConn &&
+                providerConnections.every(
+                  (connection) => connection.providerSpecificData?.autoFetchModels === true
+                ) &&
+                !cancelled
+              ) {
                 const syncRes = await fetch(
                   `/api/providers/${encodeURIComponent(providerConn.id)}/sync-models?mode=sync`,
                   { method: "POST" }

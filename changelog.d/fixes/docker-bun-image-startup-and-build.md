@@ -1,0 +1,1 @@
+- **fix(docker):** fix Bun Docker variant issues on main by using `process.execPath` in `run-standalone.mjs`, bumping runner-base to Bun 1.4.0, removing Node `better-sqlite3` native addons from Bun runtime in favor of `bun:sqlite`, and optimizing builder layer caching and permissions.
