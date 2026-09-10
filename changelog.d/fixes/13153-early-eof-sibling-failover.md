@@ -1,0 +1,1 @@
+- **fix(sse):** fail over to sibling connection on stream early EOF ([#13153](https://github.com/diegosouzapw/OmniRoute/pull/13153)) — thanks @maxmad64bis
