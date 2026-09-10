@@ -4081,11 +4081,6 @@
       "count": 1
     }
   },
-  "tests/unit/lib/jobRegistry/registry.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "tests/unit/lib/managementCliToken.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1

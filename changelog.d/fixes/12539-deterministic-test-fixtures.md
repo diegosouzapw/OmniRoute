@@ -1,0 +1,1 @@
+- Use controlled clocks and local service fixtures in batch, breaker, and scheduled-job tests to reduce real-time waits and host-environment dependencies.

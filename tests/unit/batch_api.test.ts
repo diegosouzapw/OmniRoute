@@ -53,7 +53,19 @@ test.afterEach(async () => {
   }
 });
 
-test("Batch API and Processing", async () => {
+test("Batch API and Processing", async (t) => {
+  const dispatched: Request[] = [];
+  t.mock.method(globalThis, "fetch", async (input, init) => {
+    dispatched.push(new Request(input, init));
+    return new Response(
+      JSON.stringify({
+        model: "gpt-4o-mini",
+        choices: [{ message: { role: "assistant", content: "batch response" } }],
+        usage: { prompt_tokens: 2, completion_tokens: 3, total_tokens: 5 },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  });
   // 0. Setup environment, mock provider and API key
   process.env.API_KEY_SECRET = "test-secret-123";
 
@@ -104,69 +116,38 @@ test("Batch API and Processing", async () => {
   assert.ok(batch.id.startsWith("batch_"), "Batch ID should start with batch_");
   assert.strictEqual(batch.status, "validating");
 
-  // 3. Start the processor manually for one tick (or wait if we used initBatchProcessor)
-  // For testing, we might want to expose the processing functions or just wait.
-  // We'll use a shorter interval in the processor if we want to test polling.
-  // Here we'll just call processPendingBatches if it was exported, but it's not.
-
-  // Instead of polling, let's just wait a bit if we started the processor
+  // Keep the polling entry point covered while advancing only its interval clock.
+  t.mock.timers.enable({ apis: ["setInterval"] });
   initBatchProcessor();
-
-  console.log("Waiting for batch processing...");
-
-  // Poll for status change
-  let maxAttempts = 30;
-  let currentBatch = getBatch(batch.id);
-  while (
-    maxAttempts > 0 &&
-    currentBatch?.status !== "completed" &&
-    currentBatch?.status !== "failed" &&
-    currentBatch?.status !== "cancelled"
-  ) {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    currentBatch = getBatch(batch.id);
-    const progress = currentBatch?.requestCountsTotal
-      ? `${currentBatch.requestCountsCompleted}/${currentBatch.requestCountsTotal}`
-      : "not started";
-    console.log(
-      `[TEST] Current status: ${currentBatch?.status}, completed: ${progress}, failed: ${currentBatch?.requestCountsFailed || 0}`
-    );
-    maxAttempts--;
-  }
-
-  // Stop the processor so the test can exit
+  t.mock.timers.tick(9_999);
+  assert.strictEqual(getBatch(batch.id)?.status, "validating", "polling must wait ten seconds");
+  assert.strictEqual(dispatched.length, 0);
+  t.mock.timers.tick(1);
+  await waitForAllBatches();
   stopBatchProcessor();
-
-  if (maxAttempts === 0) {
-    console.error(
-      "[TEST] Polling timed out. Final batch state:",
-      JSON.stringify(currentBatch, null, 2)
-    );
-  }
-
-  assert.ok(
-    currentBatch?.status === "completed" || currentBatch?.status === "failed",
-    "Batch should reach a terminal state"
-  );
-
-  // In test environment, the mock key might fail, which is fine for this test as long as it finishes
-  if (currentBatch?.status === "failed" || currentBatch?.requestCountsFailed > 0) {
-    console.warn(
-      "[TEST] Batch finished with failures (likely due to mock credentials). This is acceptable for this test."
-    );
-    assert.strictEqual(currentBatch?.requestCountsTotal, 2, "Total requests should be 2");
-    assert.strictEqual(
-      (currentBatch?.requestCountsCompleted || 0) + (currentBatch?.requestCountsFailed || 0),
-      2,
-      "Total processed should be 2"
-    );
-    return;
-  }
+  const currentBatch = getBatch(batch.id);
 
   assert.strictEqual(currentBatch?.status, "completed", "Batch should be completed");
   assert.strictEqual(currentBatch?.requestCountsTotal, 2);
   assert.strictEqual(currentBatch?.requestCountsCompleted, 2);
+  assert.strictEqual(currentBatch?.requestCountsFailed, 0);
   assert.ok(currentBatch?.outputFileId, "Should have output file ID");
+
+  assert.strictEqual(dispatched.length, 2, "each batch item must be dispatched once");
+  for (const [index, request] of dispatched.entries()) {
+    const url = new URL(request.url);
+    assert.strictEqual(url.hostname, "127.0.0.1");
+    assert.ok(url.pathname.endsWith("/v1/chat/completions"));
+    assert.strictEqual(request.method, "POST");
+    assert.strictEqual(request.headers.get("Content-Type"), "application/json");
+    assert.strictEqual(request.headers.get("Authorization"), `Bearer ${apiKey.key}`);
+    assert.strictEqual(request.redirect, "error");
+    assert.deepStrictEqual(await request.json(), {
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: ["Hello world", "Goodbye world"][index] }],
+      stream: false,
+    });
+  }
 
   const inputFileAfter = getFile(file.id);
   assert.ok(inputFileAfter, "Input file should exist");
@@ -209,7 +190,6 @@ test("Batch handles and counts failures correctly", async () => {
       headers: { "Content-Type": "application/json" },
     });
 
-  initBatchProcessor();
   try {
     // 1. Create a file with a request that will fail (invalid provider/model)
     const batchItems = [
@@ -240,18 +220,10 @@ test("Batch handles and counts failures correctly", async () => {
       apiKeyId: null,
     });
 
-    // 3. Poll for completion
-    let maxAttempts = 20;
-    let currentBatch = getBatch(batch.id);
-    while (
-      maxAttempts > 0 &&
-      currentBatch?.status !== "completed" &&
-      currentBatch?.status !== "failed"
-    ) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      currentBatch = getBatch(batch.id);
-      maxAttempts--;
-    }
+    // 3. Process pending work to completion
+    await processPendingBatches();
+    await waitForAllBatches();
+    const currentBatch = getBatch(batch.id);
 
     // 4. Verify failure counts
     assert.strictEqual(currentBatch?.requestCountsTotal, 1, "Total should be 1");
@@ -290,7 +262,6 @@ test("Batch dispatches non-chat endpoints through the matching route handler", a
       }
     );
 
-  initBatchProcessor();
   try {
     await createProviderConnection({
       provider: "openai",
@@ -327,17 +298,9 @@ test("Batch dispatches non-chat endpoints through the matching route handler", a
       apiKeyId: null,
     });
 
-    let maxAttempts = 20;
-    let currentBatch = getBatch(batch.id);
-    while (
-      maxAttempts > 0 &&
-      currentBatch?.status !== "completed" &&
-      currentBatch?.status !== "failed"
-    ) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      currentBatch = getBatch(batch.id);
-      maxAttempts--;
-    }
+    await processPendingBatches();
+    await waitForAllBatches();
+    const currentBatch = getBatch(batch.id);
 
     assert.strictEqual(currentBatch?.status, "completed", "embedding batch should complete");
     assert.strictEqual(currentBatch?.requestCountsCompleted, 1);
@@ -355,7 +318,6 @@ test("Batch dispatches non-chat endpoints through the matching route handler", a
 });
 
 test("Batch rejects input lines whose url does not match the batch endpoint", async () => {
-  initBatchProcessor();
   try {
     const batchItems = [
       JSON.stringify({
@@ -413,7 +375,6 @@ test("Batch forces stream: false for all requests", async () => {
     );
   };
 
-  initBatchProcessor();
   try {
     const batchItems = [
       JSON.stringify({
@@ -443,17 +404,9 @@ test("Batch forces stream: false for all requests", async () => {
       apiKeyId: null,
     });
 
-    let maxAttempts = 20;
-    let currentBatch = getBatch(batch.id);
-    while (
-      maxAttempts > 0 &&
-      currentBatch?.status !== "completed" &&
-      currentBatch?.status !== "failed"
-    ) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      currentBatch = getBatch(batch.id);
-      maxAttempts--;
-    }
+    await processPendingBatches();
+    await waitForAllBatches();
+    const currentBatch = getBatch(batch.id);
 
     assert.strictEqual(currentBatch?.status, "completed", "Batch should be completed");
     const outputFileId = currentBatch?.outputFileId || currentBatch?.errorFileId;
@@ -1183,8 +1136,15 @@ test("File metadata helpers do not load content blobs", async () => {
   assert.deepEqual(getFileContent(record.id), content);
 });
 
-test("Batch dispatches to embeddings handler for /v1/embeddings URL", async () => {
-  initBatchProcessor();
+test("Batch dispatches to embeddings handler for /v1/embeddings URL", async (t) => {
+  let dispatchedUrl = "";
+  t.mock.method(globalThis, "fetch", async (input) => {
+    dispatchedUrl = String(input);
+    return new Response(JSON.stringify({ error: { message: "Embedding model unavailable" } }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+    });
+  });
   try {
     const batchItems = [
       JSON.stringify({
@@ -1210,23 +1170,18 @@ test("Batch dispatches to embeddings handler for /v1/embeddings URL", async () =
       apiKeyId: null,
     });
 
-    let maxAttempts = 20;
-    let currentBatch = getBatch(batch.id);
-    while (
-      maxAttempts > 0 &&
-      currentBatch?.status !== "completed" &&
-      currentBatch?.status !== "failed"
-    ) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      currentBatch = getBatch(batch.id);
-      maxAttempts--;
-    }
+    await processPendingBatches();
+    await waitForAllBatches();
+    const currentBatch = getBatch(batch.id);
 
     assert.ok(
       currentBatch?.status === "completed" || currentBatch?.status === "failed",
       "Batch should reach a terminal state"
     );
     assert.strictEqual(currentBatch?.requestCountsTotal, 1);
+
+    assert.equal(new URL(dispatchedUrl).pathname.endsWith("/v1/embeddings"), true);
+    assert.equal(currentBatch?.requestCountsFailed, 1);
 
     // Verify the batch item was dispatched to the embeddings handler, not the chat handler.
     // The chat handler would return errors about missing "messages", "Missing model", etc.

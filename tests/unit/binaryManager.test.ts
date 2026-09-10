@@ -247,7 +247,9 @@ describe("binaryManager", () => {
 
         assert.equal(spawn.command, path.join(binDir, "cliproxyapi.exe"));
         assert.equal(fs.existsSync(spawn.command), true);
-        assert.equal(await mod.getCurrentBinaryPath(tmpDir), spawn.command);
+        const currentBinaryPath = await mod.getCurrentBinaryPath(tmpDir);
+        assert.ok(currentBinaryPath);
+        assert.equal(fs.realpathSync(currentBinaryPath), fs.realpathSync(spawn.command));
       } finally {
         if (originalPlatformDescriptor) {
           Object.defineProperty(process, "platform", originalPlatformDescriptor);

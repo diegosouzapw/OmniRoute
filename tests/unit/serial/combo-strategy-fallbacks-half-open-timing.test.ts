@@ -3,19 +3,15 @@
  *
  * Extracted from tests/unit/combo-strategy-fallbacks.test.ts (#6803).
  *
- * This scenario races a real 80ms setTimeout against a 40ms circuit-breaker
+ * This scenario advances a Date-only fake clock past the circuit-breaker
  * resetTimeout before asserting breaker.getStatus().state === 'HALF_OPEN'.
- * Under a starved event loop (CI-runner CPU contention from concurrent
- * sibling shard jobs) this timing margin can be missed even though the
- * lazy-recovery contract (OPEN → HALF_OPEN once the reset timeout elapses) is
- * implemented correctly.
+ * The lazy-recovery contract is clock-based, so a fake Date keeps this test
+ * deterministic without spending real time or depending on event-loop load.
  *
- * Running this in tests/unit/serial/ (--test-concurrency=1, see package.json's
- * test:unit:serial) removes the intra-suite parallelism that was the dominant
- * source of contention, matching the repo's established remedy pattern for
- * this class of test.
+ * It retains its existing serial collector placement; this change only removes
+ * the wall-clock dependency from the recovery assertion.
  */
-import test from "node:test";
+import test, { mock } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -73,6 +69,15 @@ async function cleanupTestDataDir() {
   if (lastError) throw lastError;
 }
 
+async function withFakeDate<T>(fn: () => Promise<T>): Promise<T> {
+  mock.timers.enable({ apis: ["Date"], now: Date.now() });
+  try {
+    return await fn();
+  } finally {
+    mock.timers.reset();
+  }
+}
+
 test.beforeEach(async () => {
   resetAllComboMetrics();
   resetAllCircuitBreakers();
@@ -100,67 +105,68 @@ test.after(async () => {
 });
 
 test("combo skips a provider while its breaker is OPEN and attempts it again after the reset timeout (HALF_OPEN)", async () => {
-  // Widened from the original 40ms/80ms margin (#6803): under contended
-  // CI-runner load even --test-concurrency=1 doesn't guarantee the "while
-  // OPEN" dispatch completes before a 40ms window elapses. A larger absolute
-  // margin (same ~2x wait:resetTimeout ratio) tolerates real scheduling
-  // jitter while still proving the lazy-recovery contract.
-  const breaker = getCircuitBreaker("openai", { failureThreshold: 1, resetTimeout: 300 });
-  try {
-    await breaker.execute(async () => {
-      throw new Error("simulated provider failure");
+  await withFakeDate(async () => {
+    const breaker = getCircuitBreaker("openai", { failureThreshold: 1, resetTimeout: 300 });
+    try {
+      await breaker.execute(async () => {
+        throw new Error("simulated provider failure");
+      });
+    } catch {
+      // expected — trips the breaker OPEN
+    }
+    assert.equal(breaker.getStatus().state, "OPEN");
+
+    const comboDef = {
+      name: "half-open-recovery",
+      strategy: "priority",
+      models: ["openai/gpt-4o-mini", "claude/sonnet"],
+      config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
+    };
+
+    // While OPEN: the openai target must be skipped, claude serves.
+    const callsWhileOpen: string[] = [];
+    const blocked = await handleComboChat({
+      body: {},
+      combo: comboDef,
+      handleSingleModel: async (_body: unknown, modelStr: string) => {
+        callsWhileOpen.push(modelStr);
+        return okResponse();
+      },
+      isModelAvailable: async () => true,
+      log: createLog(),
+      settings: null,
+      allCombos: null,
     });
-  } catch {
-    // expected — trips the breaker OPEN
-  }
-  assert.equal(breaker.getStatus().state, "OPEN");
+    assert.equal(blocked.ok, true);
+    assert.deepEqual(callsWhileOpen, ["claude/sonnet"], "OPEN breaker target must be skipped");
 
-  const comboDef = {
-    name: "half-open-recovery",
-    strategy: "priority",
-    models: ["openai/gpt-4o-mini", "claude/sonnet"],
-    config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
-  };
+    // The breaker uses >= for expiry: one millisecond before the boundary it
+    // remains OPEN, then the exact reset timeout permits HALF_OPEN recovery.
+    mock.timers.tick(299);
+    assert.equal(breaker.getStatus().state, "OPEN");
+    mock.timers.tick(1);
+    assert.equal(breaker.getStatus().state, "HALF_OPEN");
 
-  // While OPEN: the openai target must be skipped, claude serves.
-  const callsWhileOpen: string[] = [];
-  const blocked = await handleComboChat({
-    body: {},
-    combo: comboDef,
-    handleSingleModel: async (_body: unknown, modelStr: string) => {
-      callsWhileOpen.push(modelStr);
-      return okResponse();
-    },
-    isModelAvailable: async () => true,
-    log: createLog(),
-    settings: null,
-    allCombos: null,
+    // After the reset timeout the breaker reads HALF_OPEN — the combo must probe
+    // the provider again instead of excluding it forever (lazy recovery contract).
+    const callsAfterExpiry: string[] = [];
+    const probed = await handleComboChat({
+      body: {},
+      combo: comboDef,
+      handleSingleModel: async (_body: unknown, modelStr: string) => {
+        callsAfterExpiry.push(modelStr);
+        return okResponse();
+      },
+      isModelAvailable: async () => true,
+      log: createLog(),
+      settings: null,
+      allCombos: null,
+    });
+    assert.equal(probed.ok, true);
+    assert.deepEqual(
+      callsAfterExpiry,
+      ["openai/gpt-4o-mini"],
+      "HALF_OPEN provider must be probed again"
+    );
   });
-  assert.equal(blocked.ok, true);
-  assert.deepEqual(callsWhileOpen, ["claude/sonnet"], "OPEN breaker target must be skipped");
-
-  // After the reset timeout the breaker reads HALF_OPEN — the combo must probe
-  // the provider again instead of excluding it forever (lazy recovery contract).
-  await new Promise((resolve) => setTimeout(resolve, 600));
-  assert.equal(breaker.getStatus().state, "HALF_OPEN");
-
-  const callsAfterExpiry: string[] = [];
-  const probed = await handleComboChat({
-    body: {},
-    combo: comboDef,
-    handleSingleModel: async (_body: unknown, modelStr: string) => {
-      callsAfterExpiry.push(modelStr);
-      return okResponse();
-    },
-    isModelAvailable: async () => true,
-    log: createLog(),
-    settings: null,
-    allCombos: null,
-  });
-  assert.equal(probed.ok, true);
-  assert.deepEqual(
-    callsAfterExpiry,
-    ["openai/gpt-4o-mini"],
-    "HALF_OPEN provider must be probed again"
-  );
 });
