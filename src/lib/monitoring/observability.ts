@@ -4,6 +4,7 @@ import {
 } from "@omniroute/open-sse/services/codexAccount/index.ts";
 import type { AdaptiveAdmissionPublicSnapshot } from "@omniroute/open-sse/services/admission/runtime.ts";
 import type { PerConnectionAdmissionController } from "@/shared/middleware/chatBodyAdmission";
+import type { WalMaintenanceState } from "@/lib/db/walMaintenance";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -36,6 +37,32 @@ export type ChatAdmissionHealthSummary = {
    * gate, not the legacy request-count cap, is what is actually binding. */
   countCapEnabled: boolean;
 };
+
+/**
+ * WAL maintenance health summary (#12853) — the periodic TRUNCATE lifecycle
+ * from walMaintenance.ts. Fixed low-cardinality shape, never raw-spread.
+ */
+export type WalMaintenanceSnapshot = Pick<
+  WalMaintenanceState,
+  "ticks" | "busyStreak" | "busyTotal" | "lastBusyAt" | "lastOkAt"
+>;
+
+/**
+ * Explicit allowlisted projection of the WAL maintenance state.
+ * Copies only the documented scalar fields — no timers, no internals.
+ */
+export function projectWalMaintenanceSummary(
+  state: WalMaintenanceState | null | undefined
+): WalMaintenanceSnapshot | null {
+  if (!state || typeof state !== "object") return null;
+  return {
+    ticks: state.ticks,
+    busyStreak: state.busyStreak,
+    busyTotal: state.busyTotal,
+    lastBusyAt: state.lastBusyAt,
+    lastOkAt: state.lastOkAt,
+  };
+}
 
 /**
  * Explicit allowlisted projection of the structural admission snapshot.
@@ -217,6 +244,8 @@ interface BuildHealthPayloadOptions {
   adaptiveAdmission?: AdaptiveAdmissionPublicSnapshot | null;
   /** #11244: optional structural chat-admission snapshot; projected, never raw-spread. */
   chatAdmission?: ChatAdmissionSnapshot | null;
+  /** #12853: optional WAL maintenance snapshot; projected, never raw-spread. */
+  walMaintenance?: WalMaintenanceSnapshot | null;
 }
 
 function limitMonitors(monitors: QuotaMonitorSnapshot[], maxItems = 8): QuotaMonitorSnapshot[] {
@@ -405,6 +434,7 @@ export function buildHealthPayload({
   credentialHealth,
   adaptiveAdmission = null,
   chatAdmission = null,
+  walMaintenance = null,
   buildSha = null,
 }: BuildHealthPayloadOptions) {
   const timestamp = new Date().toISOString();
@@ -510,6 +540,9 @@ export function buildHealthPayload({
     // #11244: the STRUCTURAL gate (chatBodyAdmission.ts) next to the adaptive one —
     // distinct key so clients reading `adaptiveAdmission` are untouched.
     chatAdmission: projectChatAdmissionSummary(chatAdmission),
+    // #12853: WAL maintenance next to the admission gates — additive key,
+    // nothing existing moves.
+    walMaintenance: projectWalMaintenanceSummary(walMaintenance),
     dedup: {
       inflightRequests,
     },

@@ -1,1 +1,0 @@
-- fix(codex): keep `parallel_tool_calls:false` on the translated Codex Responses Lite path (#11707)

@@ -215,11 +215,6 @@
       "count": 1
     }
   },
-  "open-sse/handlers/chatCore.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 26
-    }
-  },
   "open-sse/handlers/chatCore/executorHelpers.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1

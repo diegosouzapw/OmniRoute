@@ -20,6 +20,7 @@
 
 import { isCompatibleProviderConnectionId } from "@/shared/utils/compatibleProviderId";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { isClaudeExtraUsageAllowed } from "@/lib/providers/claudeExtraUsage";
 import { fetchNewApiAggregatorQuota } from "./newApiAggregatorQuotaFetcher.ts";
 import {
   isAntigravityQuotaProvider,
@@ -37,6 +38,7 @@ export interface PreflightQuotaResult {
 export interface QuotaCutoffScope {
   provider?: string | null;
   requestedModel?: string | null;
+  providerSpecificData?: unknown;
 }
 
 export interface QuotaWindowInfo {
@@ -264,6 +266,12 @@ export function evaluateQuotaCutoff(
   scope?: QuotaCutoffScope
 ): PreflightQuotaResult {
   if (!quota) return { proceed: true };
+  // Operator-enabled Claude extra usage is billed after the 5h session quota
+  // is gone. Pre-dispatch must not skip the account before Anthropic sees the
+  // request; blockExtraUsage=false is the only opt-in.
+  if (isClaudeExtraUsageAllowed(scope?.provider, scope?.providerSpecificData)) {
+    return { proceed: true, quotaPercent: quota.percentUsed };
+  }
 
   const windows = quota.windows;
   if (windows && Object.keys(windows).length > 0) {
@@ -338,7 +346,11 @@ export async function preflightQuota(
 
   const requestedModel =
     typeof connection.requestedModel === "string" ? connection.requestedModel : null;
-  const scope: QuotaCutoffScope = { provider, requestedModel };
+  const scope: QuotaCutoffScope = {
+    provider,
+    requestedModel,
+    providerSpecificData: connection.providerSpecificData,
+  };
   const windows = quota.windows;
   if (windows && Object.keys(windows).length > 0) {
     const scopedWindows = windowsForScope(windows, scope);

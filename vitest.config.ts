@@ -58,7 +58,6 @@ export default defineConfig({
       "tests/unit/ui/livePage.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
       "tests/unit/ui/diffPane.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
       "tests/unit/ui/CliCodePage.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/runtime-page-client.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
       "tests/unit/ui/engineConfigPage.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
       "open-sse/services/autoCombo/__tests__/autoCombo.test.ts", // #8618 — pre-existing failure; remove this exclusion when fixed
       "tests/unit/ui/agent-card-risk-modal.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed

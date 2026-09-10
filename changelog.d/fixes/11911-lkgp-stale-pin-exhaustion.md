@@ -1,1 +1,0 @@
-- **fix(resilience):** clear persisted LKGP pins when a target suffers connection/provider exhaustion or is skipped before dispatch due to cooldown/exhaustion/unavailability, preventing subsequent requests from repeatedly prioritizing known-dead providers ([#11911](https://github.com/diegosouzapw/OmniRoute/issues/11911)).

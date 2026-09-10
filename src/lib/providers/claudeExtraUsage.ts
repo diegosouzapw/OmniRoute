@@ -55,6 +55,14 @@ export function isClaudeExtraUsageBlockEnabled(
   return asRecord(providerSpecificData).blockExtraUsage !== false;
 }
 
+/** True only when the operator explicitly opted this Claude connection into extra usage. */
+export function isClaudeExtraUsageAllowed(
+  provider: string | null | undefined,
+  providerSpecificData: unknown
+): boolean {
+  return provider === "claude" && asRecord(providerSpecificData).blockExtraUsage === false;
+}
+
 export function isClaudeExtraUsageQueued(usage: unknown): boolean {
   return asRecord(asRecord(usage).extraUsage).queued === true;
 }

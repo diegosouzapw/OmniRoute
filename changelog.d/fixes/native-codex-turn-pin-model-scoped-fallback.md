@@ -1,1 +1,0 @@
-- **fix(combo):** return non-retryable HTTP 400 when all candidates for a pinned native Codex turn are unavailable due to model-scoped lockout, terminating the turn cleanly while preserving turn continuity and enabling standard Combo routing on subsequent turns

@@ -1,1 +1,0 @@
-- **fix(api):** Stop the tunnel and MITM routes from returning raw child-process error text, which disclosed host paths, binary install locations and Tailscale `tskey-*` credentials in a body some of these routes serve to non-loopback callers, and return a real 400 instead of a framework 500 when a tunnel request body fails validation.
