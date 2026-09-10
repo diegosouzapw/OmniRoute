@@ -24,6 +24,7 @@
  */
 
 import { createLogger } from "@/shared/utils/logger";
+import { boundedMap } from "./boundedMap";
 import { updateAccountBuckets, type ClaudeUsageResult } from "./accountBuckets";
 import type { QuotaUnit, QuotaWindow } from "./dimensions";
 
@@ -33,23 +34,18 @@ const log = createLogger("quota:saturation");
 // Types
 // ---------------------------------------------------------------------------
 
-interface CacheEntry {
-  value: number; // 0..1
-  ts: number; // epoch ms
-}
-
 interface DimensionSpec {
   unit: QuotaUnit;
   window: QuotaWindow;
 }
 
 // ---------------------------------------------------------------------------
-// In-memory cache (Map<cacheKey, CacheEntry>)
+// In-memory cache (boundedMap<cacheKey, saturation 0..1>, refetch-lazy 30s)
 // ---------------------------------------------------------------------------
 
 const CACHE_TTL_MS = 30_000; // 30 seconds
 
-const _cache = new Map<string, CacheEntry>();
+const _cache = boundedMap<number>("saturation-cache", 512, "refetch-lazy", CACHE_TTL_MS);
 
 // Pending miss fetches, keyed like _cache. Concurrent getSaturation calls for
 // the same key share the promise instead of firing one upstream read each.
@@ -79,9 +75,9 @@ interface TokenHeaderEntry {
   ts: number;
 }
 
-const _rateLimitHeaders = new Map<string, RateLimitHeaderEntry>();
-const _tokenHeaders = new Map<string, TokenHeaderEntry>();
 const RL_HEADER_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const _rateLimitHeaders = boundedMap<RateLimitHeaderEntry>("saturation-rl-headers", 256, "hard-expire", RL_HEADER_TTL_MS);
+const _tokenHeaders = boundedMap<TokenHeaderEntry>("saturation-token-headers", 256, "hard-expire", RL_HEADER_TTL_MS);
 
 /** Test-only: clear the rate-limit + token header caches between asserts. */
 export function _clearRateLimitHeaders(): void {
@@ -249,7 +245,7 @@ export function getTokenHeaderSaturation(
   connectionId: string
 ): { saturation: number; resetAt: number | null } | null {
   const entry = _tokenHeaders.get(`${provider}:${connectionId}`);
-  if (!entry || Date.now() - entry.ts > RL_HEADER_TTL_MS) return null;
+  if (!entry) return null;
   if (!(entry.limit > 0)) return null;
   const used = entry.limit - entry.remaining;
   const saturation = Math.min(1, Math.max(0, used / entry.limit));
@@ -342,7 +338,7 @@ async function fetchBailianSaturation(connectionId: string, dim: DimensionSpec):
  */
 function anthropicHeaderSaturation(connectionId: string): number {
   const entry = _rateLimitHeaders.get(`anthropic:${connectionId}`);
-  if (!entry || Date.now() - entry.ts > RL_HEADER_TTL_MS) return 0;
+  if (!entry) return 0;
 
   const used = entry.limit - entry.remaining;
   return Math.min(1, Math.max(0, used / entry.limit));
@@ -538,8 +534,8 @@ export async function getSaturation(
 ): Promise<number> {
   const key = cacheKey(connectionId, provider, dim);
   const cached = _cache.get(key);
-  if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
-    return cached.value;
+  if (cached !== undefined) {
+    return cached;
   }
 
   const pending = _inflight.get(key);
@@ -569,7 +565,7 @@ export async function getSaturation(
       );
       value = 0;
     }
-    _cache.set(key, { value, ts: Date.now() });
+    _cache.set(key, value);
     return value;
   })();
   _inflight.set(key, task);

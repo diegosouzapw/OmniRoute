@@ -28,6 +28,7 @@ import {
   getAntigravityQuotaFamily,
   getQuotaFetchScope,
 } from "./antigravityQuotaFamily.ts";
+import { boundedMap } from "../../src/lib/quota/boundedMap.ts";
 
 type UsageFetcher = (
   connection: Parameters<typeof getUsageForProvider>[0],
@@ -77,12 +78,7 @@ export function __resetGenericQuotaFetcherForTests(): void {
   pendingForceRefreshMiss.clear();
 }
 
-interface CacheEntry {
-  quota: QuotaInfo;
-  fetchedAt: number;
-}
-
-const cache = new Map<string, CacheEntry>();
+const cache = boundedMap<QuotaInfo>("quota-fetcher-cache", 512, "refetch-lazy", CACHE_TTL_MS);
 
 function connectionKey(provider: string, connectionId: string): string {
   return `${provider.trim()}::${connectionId.trim()}`;
@@ -128,11 +124,11 @@ function markPendingForceRefreshMiss(key: string): void {
 function cachedQuotaIfFresh(
   key: string,
   forceRefresh: boolean,
-  now: number
+  _now: number
 ): QuotaInfo | null {
   if (forceRefresh) return null;
   const cached = cache.get(key);
-  if (cached && now - cached.fetchedAt < CACHE_TTL_MS) return cached.quota;
+  if (cached !== undefined) return cached;
   return null;
 }
 
@@ -156,12 +152,14 @@ function isConcurrentForceRefresh(key: string, refreshStamp: number | undefined)
   );
 }
 
-// 5min — same as Codex. Expiry is lazy on read (`isPendingForceRefresh`);
-// this timer only reaps keys nobody fetches after the 5min TTL.
+// 5min — same TTL as the original reap (CACHE_TTL_MS * 5). Expiry lazy on read
+// (boundedMap refetch-lazy); this timer only keeps the sweep of
+// pendingForceRefresh (5-min TTL, no systematic lazy read) + an opportunistic purge
+// of stale cache entries along the way (get auto-purges).
 const _cacheCleanup = setInterval(() => {
   const now = Date.now();
-  for (const [key, entry] of cache) {
-    if (now - entry.fetchedAt > CACHE_TTL_MS * 5) cache.delete(key);
+  for (const key of cache.keys()) {
+    cache.get(key);
   }
   for (const key of pendingForceRefresh.keys()) {
     dropExpiredPendingForceRefresh(key, now);
@@ -456,7 +454,7 @@ export const fetchGenericQuota: QuotaFetcher = async (connectionId, connection) 
   const unscopedQuota = convertUsageToQuotaInfo(usage, { provider });
   registerQuotaWindows(provider, Object.keys(unscopedQuota?.windows || quota.windows || {}));
 
-  cache.set(key, { quota, fetchedAt: Date.now() });
+  cache.set(key, quota);
   return quota;
 };
 

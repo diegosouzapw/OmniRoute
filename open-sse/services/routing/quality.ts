@@ -30,6 +30,7 @@
  * Statistics are plain arithmetic (EWMA + small counters), O(1) per event, safe
  * under the Node event loop's single thread — no lock-free/atomic trickery.
  */
+import { boundedMap } from "../../../src/lib/quota/boundedMap.ts";
 
 /** EWMA smoothing factor (alpha). Lower = slower adaptation. */
 const OPERATIONAL_ALPHA = 0.2;
@@ -60,7 +61,9 @@ interface QualityState {
   lastTs: number;
 }
 
-const states = new Map<string, QualityState>();
+const states = boundedMap<QualityState>("routing-quality", 2000, "lru", 0, {
+  shouldEvict: (s) => s.semantic === null,
+});
 
 function keyOf(provider: string, model: string): string {
   return `${provider}/${model}`;
@@ -273,7 +276,9 @@ export function getQualityScore(provider: string, model: string): number {
 /** Full snapshot of the tracker for explainability / dashboard. */
 export function getQualitySnapshot(limit = 200): ProviderQuality[] {
   const views: ProviderQuality[] = [];
-  for (const [key] of states) {
+  // Snapshot copy: LRU get refreshes recency (reinsertion), so iterating live + get()
+  // would loop forever. Snapshot behavior unchanged.
+  for (const [key] of [...states]) {
     const slash = key.indexOf("/");
     const provider = slash >= 0 ? key.slice(0, slash) : key;
     const model = slash >= 0 ? key.slice(slash + 1) : key;
