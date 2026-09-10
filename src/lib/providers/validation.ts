@@ -114,6 +114,7 @@ import {
   validateNvidiaProvider,
   validateZaiProvider,
   validateXiaomiMimoProvider,
+  validateMonkeyCodeAiProvider,
   buildGitlawbValidators,
 } from "./validation/specialtyInline";
 // validateCommandCodeProvider + validateClaudeCodeCompatibleProvider have external importers
@@ -275,6 +276,9 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     zai: validateZaiProvider,
     "xiaomi-mimo": ({ apiKey, providerSpecificData }: any) =>
       validateXiaomiMimoProvider({ apiKey, providerSpecificData, isLocal }),
+    // MonkeyCode AI's gateway 403s the /models probe — validate with a signed
+    // chat ping through the executor instead of the generic OpenAI validation.
+    "monkeycode-ai": validateMonkeyCodeAiProvider,
     // Gitlawb Opengateway — Xiaomi MiMo compatible, same /models endpoint limitation.
     // Bypass /models probe in favor of chat/completions, matching xiaomi-mimo's pattern.
     // Uses a factory to share validation logic across Opengateway provider variants.

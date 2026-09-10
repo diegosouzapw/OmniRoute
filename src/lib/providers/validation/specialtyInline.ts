@@ -357,6 +357,39 @@ export function buildOpengatewayValidator(defaultBaseUrl: string, model: string)
   };
 }
 
+// MonkeyCode AI's gateway 403s the /models probe (and any unsigned chat call),
+// so validation must go through the signing executor: a signed chat ping where
+// 200 means the key + secret pair is good. Dynamic executor import mirrors
+// validateClaudeOAuthInline and avoids a src → open-sse import cycle.
+export async function validateMonkeyCodeAiProvider({ apiKey, providerSpecificData }: any) {
+  const secret =
+    typeof providerSpecificData?.signingSecret === "string"
+      ? providerSpecificData.signingSecret.trim()
+      : "";
+  if (!secret) {
+    return {
+      valid: false,
+      error: "Missing signing secret — paste the omas_ value from ~/.ohmyagent/settings.json",
+    };
+  }
+  try {
+    const { getExecutor } = await import("@omniroute/open-sse/executors/index.ts");
+    const ok = await getExecutor("monkeycode-ai").testConnection({
+      apiKey: (apiKey || "").trim(),
+      providerSpecificData: { ...(providerSpecificData || {}), signingSecret: secret },
+    });
+    if (!ok) {
+      return {
+        valid: false,
+        error: "Upstream rejected the key/secret — check the oma_ key and omas_ signing secret",
+      };
+    }
+    return { valid: true, error: null };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
 // Same as buildOpengatewayValidator but returns an object spreadable into SPECIALTY_VALIDATORS.
 // isLocal is captured via closure from the outer function scope.
 export function buildGitlawbValidators(
