@@ -391,3 +391,56 @@ export function isCacheableForWrite(body, headers) {
   if (body.temperature !== 0) return false;
   return true;
 }
+
+/**
+ * A response cut short by the output-token ceiling is a partial answer, not a
+ * reusable one. Caching it under a temperature:0 signature pins the truncation
+ * for every later identical request — the caller sees a mid-sentence reply that
+ * no retry clears, because each retry is served the same poisoned entry.
+ *
+ * Only `length` (and its Claude-side spelling `max_tokens`) is treated as
+ * truncation. `stop`, `tool_calls`, and a missing/unknown reason are complete
+ * responses and stay cacheable, so this never narrows the cache beyond the bug.
+ */
+const TRUNCATED_FINISH_REASONS = new Set(["length", "max_tokens"]);
+
+export function isTruncatedCompletion(response: unknown): boolean {
+  if (!response || typeof response !== "object") return false;
+  const r = response as {
+    choices?: Array<{ finish_reason?: unknown }>;
+    stop_reason?: unknown;
+  };
+  if (Array.isArray(r.choices)) {
+    for (const choice of r.choices) {
+      const reason = choice?.finish_reason;
+      if (typeof reason === "string" && TRUNCATED_FINISH_REASONS.has(reason)) return true;
+    }
+  }
+  // Claude-format responses carry the reason at the top level instead.
+  if (typeof r.stop_reason === "string" && TRUNCATED_FINISH_REASONS.has(r.stop_reason)) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Streaming variant: the assembled SSE body is scanned for a truncating
+ * finish_reason. Parsing is intentionally tolerant — an unparseable chunk is
+ * treated as "not known to be truncated" so a malformed frame never silently
+ * disables caching.
+ */
+export function isTruncatedStreamBody(streamBody: unknown): boolean {
+  if (typeof streamBody !== "string" || streamBody.length === 0) return false;
+  for (const line of streamBody.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("data:")) continue;
+    const payload = trimmed.slice(5).trim();
+    if (!payload || payload === "[DONE]") continue;
+    try {
+      if (isTruncatedCompletion(JSON.parse(payload))) return true;
+    } catch {
+      // Non-JSON frame — ignore.
+    }
+  }
+  return false;
+}
