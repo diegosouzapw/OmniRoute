@@ -428,6 +428,70 @@ guard: `tests/unit/verify-ratchet-bank.test.ts`.
 The job never pushes to `release/*` — a human merges the PR, so a bad measurement
 cannot land unreviewed.
 
+## Task-level verification policy
+
+The task level selects the minimum depth of local evidence before review. It does not waive CI,
+and it does not make unrelated checks useful. Classify by the highest-risk surface first, then use
+size and blast radius to raise the level when needed. A one-line authentication or migration
+change is L3; a multi-file prose-only correction can remain L0.
+
+### Classification rules
+
+1. Start at the highest matching level in the table in `AGENTS.md`. Mixed work inherits the
+   highest level of any part.
+2. Treat unknown scope as at least L2 until `understand-explain` or `understand-diff` establishes
+   a smaller blast radius.
+3. Raise work to L3 when it changes a trust boundary, persisted data, a public API or protocol,
+   shared request/routing behavior, dependencies or lockfiles, build configuration, or CI gates.
+4. Raise work to L4 when it prepares a release or deployment, migrates the repository broadly,
+   or changes architecture across multiple subsystems.
+5. Reclassify during implementation if the diff or a failing focused check reveals wider impact.
+
+File count is only a sizing signal. It cannot downgrade security, data, contract, or operational
+risk. Generated-file fan-out does not automatically raise a task when the generator and its
+contract remain unchanged, but both the source and generated consistency gate still apply.
+
+### Verification by level
+
+| Level | Required evidence | Full-suite policy |
+| ----- | ----------------- | ----------------- |
+| L0 | Review the diff; run the applicable content command such as `npm run check:docs-all`, then `npm run check:tracked-artifacts` and `git diff --check` | Do not run runtime, browser, E2E, coverage, or build suites unless the changed artifact's own rule requires one |
+| L1 | Reproduce or state the explicit outcome; run the closest focused test/check; run `npm run test:scoped` for mapped code; run only the affected typecheck or lint command | Do not run `npm run test:all` solely because implementation finished; escalate only on a trigger below |
+| L2 | Run focused tests first, then the affected runner such as `npm run test:vitest:ui`; run `npm run typecheck:core`, `npm run check:dashboard-typecheck`, or `npm run lint` when their owned surface changed | Add a broader suite when impact analysis, repository rules, or failures show it is relevant |
+| L3 | Run L2 evidence plus every applicable domain/policy gate; use `npm run test:unit`, `npm run test:vitest`, build, E2E, security, migration, or contract checks according to the changed surface | Full domain suites are expected; `npm run test:all` is required only when the change spans its component suites or a source-of-truth rule requires it |
+| L4 | Execute the approved release or deployment verification matrix, normally including `npm run test:all`, `npm run test:coverage`, and `npm run build:release`, plus environment-backed smoke checks | Full release evidence is required; report every environment-gated item before push or merge |
+
+The command examples above are repository-defined entry points, not a universal checklist. Before
+planning, rediscover them in the order required by `AGENTS.md`: scoped instructions and docs, CI,
+`package.json`, then task-runner configuration. Package or workspace-specific commands take
+precedence when they own the changed surface.
+
+### Escalation triggers
+
+Raise the verification depth without waiting for a ceremonial checkpoint when any of these occur:
+
+- `npm run test:scoped` returns the fail-safe `__RUN_ALL__` outcome for a hub or unmapped source;
+- a focused test fails outside the expected red-green cycle or reveals a second affected module;
+- the diff reaches auth, security, credentials, persistence, migrations, public API/protocol
+  contracts, shared routing/execution, dependencies, build tooling, or CI enforcement;
+- a shared UI primitive changes in a way that affects multiple screens or accessibility behavior;
+- the task requires credentials, an external service, a real browser, production-like packaging,
+  deployment, or a release decision;
+- the nearest scoped `AGENTS.md`, a domain contract, an ADR, or CI requires a stronger check.
+
+When a required command is absent, record it as `not available`. When dependencies, runtimes,
+credentials, services, browsers, or infrastructure prevent execution, record the exact check and
+reason as `environment-gated`. Do not install dependencies for discovery, invent a replacement
+command, disable a test, or lower the task level to obtain a green result.
+
+### Review record
+
+The handback must state the selected level and why, required skills used, commands actually run and
+their sources, results, skipped or unavailable checks with reasons, and whether the level changed
+during implementation. `loop-verifier` may keep L0/L1 review focused, but it still checks scope,
+intent, evidence, and that no test or assertion was disabled. CI remains the final enforcement
+layer and may run more than the local minimum.
+
 ## Allowlist Policy
 
 Every gate that cannot fail on pre-existing violations uses a frozen allowlist

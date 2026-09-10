@@ -42,6 +42,29 @@ Other suites: `npm run test:e2e`, `npm run test:protocols:e2e`, `npm run test:ec
 For full test matrix, see `CONTRIBUTING.md` → "Running Tests". For deep architecture, see the
 Repository map and Reference Documentation sections below.
 
+### Task levels and proportionate verification
+
+Classify every task before implementation. Classification is risk-first: file count can raise a
+level, but it can never lower one. Mixed tasks use the highest matching level. The nearest scoped
+`AGENTS.md` and CI remain authoritative.
+
+| Level | Typical scope | Required skills | Minimum local verification |
+| ----- | ------------- | --------------- | -------------------------- |
+| L0 | Prose, comments, or metadata with no runtime effect | `minimal-fix`; `documentation-and-adrs` when recording a decision | Applicable content gate, `npm run check:tracked-artifacts`, `git diff --check` |
+| L1 | Localized, low-risk change with an explicit outcome, normally 1–2 files | `minimal-fix`; focused `loop-verifier` review | Focused check plus `npm run test:scoped` when code is mapped; affected typecheck or lint only |
+| L2 | Normal component, endpoint, or service change in one subsystem | `understand-explain`, `understand-diff`, applicable TDD skill, `loop-verifier` | Focused tests, impacted/domain suite, affected typecheck and lint |
+| L3 | Security, auth, database/migration, public contract, shared infrastructure, dependency, CI, or cross-subsystem change | `spec-driven-development`, `understand-domain`, `understand-diff`, applicable specialist skill, `loop-verifier` | L2 evidence plus applicable full domain suites, policy gates, build, or E2E |
+| L4 | Release, deployment, repository-wide migration, or system-wide architecture change | `planning-and-task-breakdown`, `shipping-and-launch`, `code-review-and-quality`, `loop-verifier` | Release plan's complete matrix, including full suites and environment-backed checks |
+
+L0 and L1 tasks do not run deep or full suites solely as ceremony. Escalate when
+`npm run test:scoped` reports a hub or unmapped source, when the change crosses a contract or
+trust boundary, when focused evidence exposes a regression, or when a scoped rule requires a
+stronger gate. Run only commands discovered from the repository. Report missing commands as
+`not available` and missing dependencies, credentials, runtimes, or services as
+`environment-gated`; never invent a substitute. See
+[`docs/architecture/QUALITY_GATES.md`](docs/architecture/QUALITY_GATES.md#task-level-verification-policy)
+for the operational decision rules.
+
 ---
 
 ## Project at a Glance
