@@ -15,6 +15,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const store = await import("../../src/lib/db/responsesContinuationStore.ts");
+const callLogs = await import("../../src/lib/usage/callLogs.ts");
 
 test.after(() => {
   core.resetDbInstance();
@@ -470,4 +471,134 @@ test("resolvePreviousResponseState returns null when detail logging was never ca
   });
 
   assert.equal(store.resolvePreviousResponseState("resp_no_detail", "key-1"), null);
+});
+
+// Proven live in production (2026-09-06, nvidia/nemotron-3.5-lightning:free via
+// OpenRouter): a client that fires its next turn immediately after receiving a
+// response id -- normal behavior in a tight tool-calling loop -- can reach
+// resolvePreviousResponseState before saveCallLog's own artifact write (queued,
+// see writeCallArtifactAsync) has landed and flipped detail_state to "ready".
+// Before the pending-continuation bridge, OmniRoute answered a well-formed 400
+// previous_response_not_found for an id it minted seconds earlier; the wire
+// capture showed the client recovering by resending full history, exactly like
+// a real OpenAI-issued rejection -- but every one of those resends was an
+// avoidable full-history resend, not a genuine unknown id. This exercises the
+// real saveCallLog pipeline end to end, not a pre-inserted "ready" row.
+test("resolvePreviousResponseState resolves via the pending bridge while saveCallLog's artifact write is still queued", async () => {
+  const save = callLogs.saveCallLog({
+    method: "POST",
+    path: "/v1/responses",
+    status: 200,
+    model: "nvidia/nemotron-3.5-lightning:free",
+    provider: "openrouter",
+    apiKeyId: "key-1",
+    duration: 8169,
+    responseId: "resp_gen-race-abc123",
+    requestBody: { input: [{ type: "message", role: "user", content: "hi" }], store: true },
+    responseBody: { id: "resp_gen-race-abc123" },
+    pipeline: {
+      clientRawRequest: { body: { input: [{ type: "message", role: "user", content: "hi" }] } },
+      clientResponse: {
+        id: "resp_gen-race-abc123",
+        output: [{ type: "message", role: "assistant", content: "hello" }],
+      },
+    },
+  });
+
+  // The client's next turn can arrive before the queued artifact write below
+  // has even started -- the bridge, seeded synchronously inside saveCallLog
+  // before this call returns, must already answer correctly.
+  assert.deepEqual(store.resolvePreviousResponseState("resp_gen-race-abc123", "key-1"), {
+    input: [{ type: "message", role: "user", content: "hi" }],
+    output: [{ type: "message", role: "assistant", content: "hello" }],
+  });
+
+  await save;
+
+  // Once the durable row lands, the same id must still resolve -- now from
+  // call_logs/the artifact, with the bridge entry already cleared.
+  assert.deepEqual(store.resolvePreviousResponseState("resp_gen-race-abc123", "key-1"), {
+    input: [{ type: "message", role: "user", content: "hi" }],
+    output: [{ type: "message", role: "assistant", content: "hello" }],
+  });
+});
+
+test("resolvePreviousResponseState never lets the pending bridge cross tenants", async () => {
+  const save = callLogs.saveCallLog({
+    method: "POST",
+    path: "/v1/responses",
+    status: 200,
+    model: "nvidia/nemotron-3.5-lightning:free",
+    provider: "openrouter",
+    apiKeyId: "key-a",
+    duration: 4000,
+    responseId: "resp_gen-tenant-bridge",
+    pipeline: {
+      clientRawRequest: { body: { input: [{ role: "user", content: "secret" }] } },
+      clientResponse: { id: "resp_gen-tenant-bridge", output: [{ role: "assistant", content: "reply" }] },
+    },
+  });
+
+  assert.equal(store.resolvePreviousResponseState("resp_gen-tenant-bridge", "key-b"), null);
+  assert.equal(store.resolvePreviousResponseState("resp_gen-tenant-bridge", null), null);
+  assert.notEqual(store.resolvePreviousResponseState("resp_gen-tenant-bridge", "key-a"), null);
+
+  await save;
+});
+
+test("resolvePreviousResponseState does not bridge a response id that saveCallLog never seeded (no-log or no pipeline)", async () => {
+  // noLog: the entry is redacted before it would ever reach the bridge.
+  await callLogs.saveCallLog({
+    method: "POST",
+    path: "/v1/responses",
+    status: 200,
+    model: "gpt-5.4-pro",
+    provider: "openai",
+    apiKeyId: "key-1",
+    noLog: true,
+    responseId: "resp_gen-nolog",
+    pipeline: {
+      clientRawRequest: { body: { input: [{ role: "user", content: "hi" }] } },
+      clientResponse: { id: "resp_gen-nolog", output: [{ role: "assistant", content: "hi" }] },
+    },
+  });
+  assert.equal(store.resolvePreviousResponseState("resp_gen-nolog", "key-1"), null);
+
+  // No pipeline payload at all -- nothing to reconstruct from.
+  await callLogs.saveCallLog({
+    method: "POST",
+    path: "/v1/responses",
+    status: 200,
+    model: "gpt-5.4-pro",
+    provider: "openai",
+    apiKeyId: "key-1",
+    responseId: "resp_gen-no-pipeline",
+  });
+  assert.equal(store.resolvePreviousResponseState("resp_gen-no-pipeline", "key-1"), null);
+});
+
+test("the pending bridge shares the durable path's fail-closed rules (video-redacted turns never bridge)", async () => {
+  const save = callLogs.saveCallLog({
+    method: "POST",
+    path: "/v1/responses",
+    status: 200,
+    model: "gpt-5.4-pro",
+    provider: "openai",
+    apiKeyId: "key-1",
+    duration: 100,
+    responseId: "resp_gen-video-bridge",
+    videoContentRemoved: true,
+    pipeline: {
+      clientRawRequest: { body: { input: [{ role: "user", content: "[redacted-video-transcript]" }] } },
+      clientResponse: { id: "resp_gen-video-bridge", output: [{ role: "assistant", content: "ok" }] },
+    },
+  });
+
+  // Even mid-flight (bridge-only, durable row not yet written), a
+  // video-redacted turn must fail closed exactly like the durable path does.
+  assert.equal(store.resolvePreviousResponseState("resp_gen-video-bridge", "key-1"), null);
+
+  await save;
+
+  assert.equal(store.resolvePreviousResponseState("resp_gen-video-bridge", "key-1"), null);
 });
