@@ -334,7 +334,7 @@ export async function resolveModelOrError(
     log.info("ROUTING", `Provider: ${provider}, Model: ${model}${ctxTag}`);
   }
 
-  return { provider, model, sourceFormat, targetFormat, extendedContext, apiFormat };
+  return { provider, model, sourceFormat, targetFormat, extendedContext, apiFormat, modelInfo };
 }
 
 export async function checkPipelineGates(
@@ -428,6 +428,7 @@ export async function executeChatWithBreaker({
   extendedContext,
   modelApiFormat,
   modelTargetFormat,
+  runtimeModelInfo,
   providerProfile,
   cachedSettings,
   skipUpstreamRetry = false,
@@ -468,13 +469,10 @@ export async function executeChatWithBreaker({
         runWithProxyContext(proxyInfo?.proxy || null, () =>
           (handleChatCore as any)({
             body: { ...body, model: `${provider}/${model}` },
-            // #2905-followup: forward the already-resolved custom-model targetFormat
-            // override through as modelInfo.targetFormat. Without this, chatCore.ts's
-            // own resolveChatCoreRequestSetup() reads customModelTargetFormat off THIS
-            // modelInfo object (not the one resolveModelOrError computed it from) and
-            // finds nothing, silently re-deriving targetFormat from the static registry
-            // / provider default and discarding the DB override a second time.
+            // Preserve the resolved catalog metadata and per-model wire format
+            // through the dispatch boundary, including native reasoning tiers.
             modelInfo: {
+              ...runtimeModelInfo,
               provider,
               model,
               extendedContext,

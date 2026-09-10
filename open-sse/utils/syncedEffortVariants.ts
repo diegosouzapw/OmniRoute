@@ -19,17 +19,17 @@
  * only when the base model's own `supportedThinkingEfforts` actually declares that tier —
  * never a blind string match.
  *
- * Skipped entirely for `codex`, `kimi`-owned, and GLM (`glm`, `glm-cn`, `glmt`) models:
- * they already own conflicting `-{effort}` aliases (`splitCodexReasoningSuffix`,
- * `getKimiCodeStaticThinkingPolicy`, or `GlmExecutor::parseGlmEffortTier`), so generating
- * another layer here would create invalid nested ids. Also skipped for any model whose id
- * already ends in a token that matches a canonical effort value, to avoid colliding with a
- * model that legitimately ends in an effort-like token (e.g. a model named "...-high").
+ * Skipped entirely for `kimi`-owned, and GLM (`glm`, `glm-cn`, `glmt`) models:
+ * they already own conflicting `-{effort}` aliases (`getKimiCodeStaticThinkingPolicy`, or `GlmExecutor::parseGlmEffortTier`), so generating
+ * another layer here would create invalid nested ids. Other providers skip model ids that
+ * already end in an effort token. Codex resolves exact discovered ids before aliases, so
+ * legitimate upstream names such as "...-high" can also declare their own effort variants.
  */
+import { getCodexWireEfforts } from "@/shared/reasoning/codexEfforts.ts";
 import { CANONICAL_EFFORT_VALUES } from "@/shared/reasoning/effortStandardization.ts";
 
 /** Provider ids with dedicated `-{effort}` aliases — never synthesize another suffix layer. */
-export const SYNCED_EFFORT_SKIP_PROVIDERS = new Set(["codex", "glm", "glm-cn", "glmt"]);
+export const SYNCED_EFFORT_SKIP_PROVIDERS = new Set(["glm", "glm-cn", "glmt"]);
 /** Provider-id prefixes covering that mechanism's multiple connection variants (kimi-coding, kimi-coding-apikey). */
 const SYNCED_EFFORT_SKIP_PROVIDER_PREFIXES = ["kimi"];
 
@@ -55,9 +55,14 @@ function endsWithKnownEffortToken(id: string): boolean {
 }
 
 function extractEffortTiers(model: CatalogModelEntry): string[] {
-  const tiers = model.capabilities?.effort_tiers;
+  const tiers =
+    model.capabilities?.effort_tiers ??
+    (model.owned_by === "codex" ? model.supportedThinkingEfforts : undefined);
   if (!Array.isArray(tiers)) return [];
-  return tiers.filter((tier): tier is string => typeof tier === "string" && tier.length > 0);
+  const values = tiers.filter(
+    (tier): tier is string => typeof tier === "string" && tier.length > 0
+  );
+  return model.owned_by === "codex" ? getCodexWireEfforts(values) : values;
 }
 
 /**
@@ -65,7 +70,7 @@ function extractEffortTiers(model: CatalogModelEntry): string[] {
  *
  * Rule: a synced model that declares `capabilities.effort_tiers`, is not owned by a
  * provider that already owns its own suffix mechanism, is not a virtual combo entry, and
- * whose id does not already end in a token that collides with a canonical effort value.
+ * whose id does not already end in a canonical effort token (except exact Codex ids).
  */
 export function shouldExposeSyncedEffortVariants(
   model: CatalogModelEntry
@@ -77,7 +82,7 @@ export function shouldExposeSyncedEffortVariants(
   if (typeof model.owned_by === "string" && isSkippedEffortProvider(model.owned_by)) {
     return false;
   }
-  if (endsWithKnownEffortToken(id)) return false;
+  if (model.owned_by !== "codex" && endsWithKnownEffortToken(id)) return false;
   return extractEffortTiers(model).length > 0;
 }
 
@@ -102,7 +107,18 @@ export function appendSyncedEffortVariants<T extends CatalogModelEntry>(models: 
       const variantId = `${model.id}-${tier}`;
       if (existingIds.has(variantId)) continue;
       existingIds.add(variantId);
-      variants.push({ ...model, id: variantId, root: `${baseRoot}-${tier}` });
+      variants.push({
+        ...model,
+        id: variantId,
+        root: `${baseRoot}-${tier}`,
+        ...(model.owned_by === "codex"
+          ? {
+              name: `${typeof model.name === "string" ? model.name : model.id} (${tier})`,
+              supportedThinkingEfforts: undefined,
+              capabilities: { ...model.capabilities, effort_tiers: undefined },
+            }
+          : {}),
+      });
     }
   }
 

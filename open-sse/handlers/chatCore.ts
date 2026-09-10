@@ -2992,6 +2992,7 @@ export async function handleChatCore({
       provider,
       ccSessionId,
       modelInfo,
+      requestBody: body,
     });
 
   let onPipelineStreamError: streamFailure.PipelineStreamErrorHandler | null = null;

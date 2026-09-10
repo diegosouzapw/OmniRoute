@@ -83,6 +83,7 @@ export function resolveExecutionCredentials(opts: {
   provider: string | null | undefined;
   ccSessionId: string | null;
   modelInfo?: Record<string, unknown> | null;
+  requestBody?: Record<string, unknown>;
 }): ResolvedExecutionCredentials {
   const {
     credentials,
@@ -92,6 +93,7 @@ export function resolveExecutionCredentials(opts: {
     provider,
     ccSessionId,
     modelInfo,
+    requestBody,
   } = opts;
 
   const nextCredentials = nativeCodexPassthrough
@@ -166,6 +168,22 @@ export function resolveExecutionCredentials(opts: {
   }
 
   applyKimiExecutionMetadata(providerSpecificData, provider, targetFormat, modelInfo);
+  // Request-local resolved catalog metadata; never persist this on the connection.
+  if (provider === "codex" && Array.isArray(modelInfo?.supportedThinkingEfforts)) {
+    providerSpecificData._omnirouteCodexThinking = {
+      model: modelInfo.model,
+      supportedThinkingEfforts: modelInfo.supportedThinkingEfforts,
+      defaultThinkingEffort: modelInfo.defaultThinkingEffort,
+      resolvedThinkingEffort: modelInfo.resolvedThinkingEffort,
+      ...(requestBody
+        ? {
+            requestedThinkingEffort:
+              (requestBody.reasoning as Record<string, unknown> | undefined)?.effort ??
+              requestBody.reasoning_effort,
+          }
+        : {}),
+    };
+  }
   const withApiType = {
     ...nextCredentials,
     providerSpecificData,
