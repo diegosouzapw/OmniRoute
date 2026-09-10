@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getProviderConnections } from "@/lib/db/providers";
 import { getCachedSettings } from "@/lib/db/readCache";
+import { getWalMaintenanceState } from "@/lib/db/walMaintenance";
 import { buildHealthPayload } from "@/lib/monitoring/observability";
 import { readRunningBuildSha } from "@/lib/monitoring/buildSha";
 import { APP_CONFIG } from "@/shared/constants/config";
@@ -241,6 +242,10 @@ async function rebuildHealthPayload(): Promise<unknown> {
           null
         )
       : null;
+  // #12853: WAL maintenance state (ticks/busy streak + totals) next to the
+  // admission gates. getWalMaintenanceState never throws and never touches
+  // the DB — a monitoring read stays cheap. Additive key, nothing moves.
+  const walMaintenance = readHealthValue("wal maintenance", () => getWalMaintenanceState(), null);
 
   const payload = buildHealthPayload({
     appVersion: APP_CONFIG.version,
@@ -266,6 +271,7 @@ async function rebuildHealthPayload(): Promise<unknown> {
     credentialHealth,
     adaptiveAdmission,
     chatAdmission,
+    walMaintenance,
   });
 
   if (generation === healthPayloadCacheGeneration) {

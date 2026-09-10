@@ -1,1 +1,0 @@
-- **fix(db):** group model patterns escape regex metacharacters, so `gpt-4.1*` no longer matches `gpt-4o1-preview` and a pattern like `gpt-4(*` no longer throws `SyntaxError` out of the completion and `/v1/models` paths ([#11311](https://github.com/diegosouzapw/OmniRoute/pull/11311))

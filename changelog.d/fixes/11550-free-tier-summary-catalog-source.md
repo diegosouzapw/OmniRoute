@@ -1,1 +1,0 @@
-- The free-tier summary route now serves the refreshed Radar catalog when the feed is active — the same numbers the dashboard shows — and states which catalog answered plus its real build date, instead of always reporting release-frozen figures with a stale curation date. The supporter-key live feed stays reserved to authenticated callers of the instance.

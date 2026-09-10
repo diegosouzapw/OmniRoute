@@ -1,1 +1,0 @@
-- **fix(api):** keep the `{created, data}` wrapper on combo-routed `/v1/images/generations` responses and default Codex image results to `b64_json` on both `/v1/images/generations` and `/v1/images/edits` so Codex CLI's built-in `image_gen` can decode them ([#12268](https://github.com/diegosouzapw/OmniRoute/issues/12268))

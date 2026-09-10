@@ -23,6 +23,56 @@
  */
 
 import { getResolvedModelContextOverride } from "../../../src/lib/modelCapabilities";
+import { parseModel } from "../model.ts";
+
+/**
+ * Longest-first so `-xhigh` is not eaten by `-high`. Mirrors
+ * `stripKnownEffortSuffix` in modelCapabilities.ts, but that helper's array
+ * order still matches `-high` first (`"…-xhigh".endsWith("-high")`).
+ */
+const EFFORT_SUFFIXES_LONGEST_FIRST = [
+  "minimal",
+  "medium",
+  "xhigh",
+  "none",
+  "high",
+  "max",
+  "low",
+] as const;
+
+function stripTrailingEffortSuffix(modelId: string): string | null {
+  const normalized = String(modelId || "").trim();
+  if (!normalized) return null;
+  const lowered = normalized.toLowerCase();
+  for (const suffix of EFFORT_SUFFIXES_LONGEST_FIRST) {
+    const token = `-${suffix}`;
+    if (lowered.length > token.length && lowered.endsWith(token)) {
+      return normalized.slice(0, -token.length);
+    }
+  }
+  return null;
+}
+
+/**
+ * Exact override first; if missing, inherit the base id after stripping a
+ * trailing effort tier (#12475). Combo members are stored as
+ * `provider/GLM-5.3-high` while `model_context_overrides` is keyed on
+ * `GLM-5.3`. Dispatcher already strips the suffix; the compat filter did not.
+ */
+function lookupOverrideWithEffortInheritance(modelStr: string): number | null {
+  const exact = getResolvedModelContextOverride(modelStr);
+  if (exact != null) return exact;
+
+  const parsed = parseModel(modelStr);
+  const modelId = typeof parsed.model === "string" ? parsed.model.trim() : "";
+  const base = stripTrailingEffortSuffix(modelId);
+  if (!base || base === modelId) return null;
+
+  if (parsed.provider) {
+    return getResolvedModelContextOverride({ provider: parsed.provider, model: base });
+  }
+  return getResolvedModelContextOverride(base);
+}
 
 /**
  * Resolve the context-fit verdict from a persisted per-model override, if one
@@ -35,7 +85,7 @@ function resolveContextOverrideVerdict(
   requiredContextTokens: number
 ): boolean | undefined {
   if (!modelStr) return undefined;
-  const override = getResolvedModelContextOverride(modelStr);
+  const override = lookupOverrideWithEffortInheritance(modelStr);
   if (override == null) return undefined;
   return override >= requiredContextTokens;
 }

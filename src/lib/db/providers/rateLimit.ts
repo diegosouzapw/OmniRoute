@@ -28,6 +28,11 @@ interface DbLike {
  * @param until - Epoch ms when the rate limit expires (null to clear)
  */
 export function setConnectionRateLimitUntil(connectionId: string, until: number | null): void {
+  // Guard: never persist a non-finite or already-expired timestamp. The TEXT
+  // column would store "NaN"/"Infinity" and pollute every future read. null
+  // is the only clear path (via clearConnectionRateLimit); past/zero
+  // timestamps are noops so an expired write cannot overwrite a live row.
+  if (until !== null && (!Number.isFinite(until) || until <= Date.now())) return;
   const db = getDbInstance() as unknown as DbLike;
   db.prepare(
     "UPDATE provider_connections SET rate_limited_until = ?, updated_at = ? WHERE id = ?"

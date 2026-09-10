@@ -1,1 +1,0 @@
-- **feat(nodejs):** add `5dive` as a `configure` target — `omniroute configure 5dive` / `omniroute setup-5dive` write a 5dive auth profile that points an agent fleet's `claude` seats at OmniRoute, with the root-only write, the loopback-vs-`https` endpoint rule and the per-seat model pin handled explicitly ([#11852](https://github.com/diegosouzapw/OmniRoute/pull/11852))

@@ -1,1 +1,0 @@
-- **fix(translator):** the streaming OpenAI→Claude translator keeps upstream usage, including prompt-cache tokens, when it arrives on a trailing `choices: []` chunk (Fireworks and any upstream using `stream_options.include_usage`) ([#11883](https://github.com/diegosouzapw/OmniRoute/pull/11883)) — thanks @NoxzRCW

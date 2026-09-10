@@ -293,3 +293,44 @@ test("skillExecutor turns handler errors and timeouts into error executions", as
   assert.equal(timedOut.output, null);
   assert.match(timedOut.errorMessage, /timed out/i);
 });
+
+// ─── Task 3: executeClaimed separation from execute RED tests ─────────────────
+
+test("executeClaimed executes registered handler and returns SkillExecution without writing skill_executions row", async () => {
+  await registerEchoSkill();
+
+  skillExecutor.registerHandler("echo-handler", async (input, context) => ({
+    echoed: `${input.value}:${context.apiKeyId}`,
+  }));
+
+  const execution = await skillExecutor.executeClaimed(
+    "echo@1.0.0",
+    { value: "claimed" },
+    { apiKeyId: "key-a", sessionId: "session-claimed" },
+    "test-execution-id"
+  );
+
+  assert.equal(execution.status, "success");
+  assert.deepEqual(execution.output, { echoed: "claimed:key-a" });
+
+  // Must NOT write to skill_executions (only execute() does).
+  const count = skillExecutor.countExecutions("key-a");
+  assert.equal(count, 0, "executeClaimed must not write skill_executions row");
+});
+
+test("execute still writes exactly 1 skill_executions row (existing contract preserved)", async () => {
+  await registerEchoSkill();
+
+  skillExecutor.registerHandler("echo-handler", async (input) => ({
+    echoed: input.value,
+  }));
+
+  await skillExecutor.execute(
+    "echo@1.0.0",
+    { value: "persist" },
+    { apiKeyId: "key-a", sessionId: "session-persist" }
+  );
+
+  const count = skillExecutor.countExecutions("key-a");
+  assert.equal(count, 1, "execute must write exactly 1 skill_executions row");
+});

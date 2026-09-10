@@ -1,1 +1,0 @@
-- **test(gamification):** pin the aggregate profile level to the XP-derived semantics of #11604 — `getAggregateXp()` now derives `currentLevel` from the summed XP (`calculateLevel(sum)`), not `MAX(stored current_level)`, and the #3484 fixture levels are aligned with the XP curve ([#11604](https://github.com/diegosouzapw/OmniRoute/pull/11604)).
