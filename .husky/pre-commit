@@ -5,6 +5,12 @@ if ! command -v npx >/dev/null 2>&1; then
   exit 0
 fi
 
+# Secret scan runs FIRST: it is the only gate whose failure means "do not create
+# this commit at all", and it must see the staged bytes before lint-staged
+# rewrites them. ~0.6s, no external binary (unlike check-secrets.mjs, which needs
+# gitleaks and is advisory-only). Bypass: SKIP_SECRET_SCAN=1 (Hard Rule #10).
+node scripts/check/check-staged-secrets.mjs || exit 1
+
 # Cheap, deterministic local gates (re-enabled). Slower checks (i18n drift,
 # openapi coverage/security-tiers, env-doc sync) run in CI to keep commits fast.
 npx lint-staged
