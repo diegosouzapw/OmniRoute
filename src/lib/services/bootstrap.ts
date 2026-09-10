@@ -13,6 +13,7 @@ import {
   BIFROST_DEFAULT_PORT,
 } from "./installers/bifrost";
 import { resolveSpawnArgs as darioSpawnArgs, DARIO_DEFAULT_PORT } from "./installers/dario";
+import { resolveSpawnArgs as openwaSpawnArgs, OPENWA_DEFAULT_PORT } from "./installers/openwa";
 import { getOrCreateApiKey } from "./apiKey";
 import { scheduleServiceModelSync, stopServiceModelSync } from "./modelSync";
 import type { ServiceStatus } from "./types";
@@ -35,6 +36,7 @@ const CLIPROXY_PORT = parseInt(process.env.CLIPROXYAPI_PORT ?? String(CLIPROXY_D
 const MUX_PORT = parseInt(process.env.MUX_SERVICE_PORT ?? String(MUX_DEFAULT_PORT), 10);
 const BIFROST_PORT = parseInt(process.env.BIFROST_PORT ?? String(BIFROST_DEFAULT_PORT), 10);
 const DARIO_PORT = parseInt(process.env.DARIO_PORT ?? String(DARIO_DEFAULT_PORT), 10);
+const OPENWA_PORT = parseInt(process.env.OPENWA_SERVICE_PORT ?? String(OPENWA_DEFAULT_PORT), 10);
 
 type ServiceEntry = {
   tool: string;
@@ -97,6 +99,39 @@ const SERVICES: ServiceEntry[] = [
     logsBufferBytes: 5_242_880,
     needsApiKey: true,
   },
+  {
+    // open-wa (@open-wa/wa-automate): WhatsApp Web automation via headless
+    // Chromium. Lifecycle-managed only — like Mux, it is not an LLM proxy and
+    // has no Layer 4 executor/provider entry. /api-docs/ (Swagger UI) is the
+    // only documented "proof of life" route for this package version; it
+    // only confirms the Express server answered, not that a WhatsApp session
+    // is paired (pairing status is surfaced via the logs panel — see
+    // installers/openwa.ts).
+    //
+    // Verified against the installed 4.76.0 source (dist/cli/index.js): the
+    // HTTP server does not call `server.listen()` until AFTER the full
+    // WhatsApp client handshake resolves — which, on first pairing, blocks on
+    // a human scanning the QR code shown in the logs panel. Every health
+    // probe before that point is a plain connection-refused, and
+    // HealthChecker's FAILURE_THRESHOLD (3, src/lib/services/healthCheck.ts)
+    // means the supervisor would otherwise declare "error" ~3×healthIntervalMs
+    // after every legitimate start — including a normal, successful one.
+    // healthIntervalMs is set high (vs. the 5s every other service uses) so
+    // that grace period (3×healthIntervalMs, ServiceSupervisor.waitForHealthy)
+    // is generous enough for a human to notice and scan the QR
+    // (~3 minutes) instead of always racing to "error". This is a
+    // ServiceSupervisor framework limitation (no separate "startup grace"
+    // knob distinct from the steady-state poll interval) — a real fix
+    // belongs in ServiceSupervisor/HealthChecker as a follow-up affecting
+    // all 5 services, not scoped here.
+    tool: "openwa",
+    port: OPENWA_PORT,
+    healthPath: "/api-docs/",
+    healthIntervalMs: 60_000,
+    stopTimeoutMs: 30_000,
+    logsBufferBytes: 5_242_880,
+    needsApiKey: true,
+  },
 ];
 
 function buildSpawnArgsFactory(
@@ -114,6 +149,9 @@ function buildSpawnArgsFactory(
   }
   if (cfg.tool === "dario") {
     return () => darioSpawnArgs(apiKey, cfg.port);
+  }
+  if (cfg.tool === "openwa") {
+    return () => openwaSpawnArgs(apiKey, cfg.port);
   }
   return () => cliproxySpawnArgs(cfg.port, apiKey);
 }

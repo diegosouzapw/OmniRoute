@@ -4387,6 +4387,203 @@ paths:
         "500":
           description: Update failed
 
+  /api/services/openwa/install:
+    post:
+      tags: [Embedded Services]
+      summary: Install open-wa from npm
+      description: >-
+        Installs the `@open-wa/wa-automate` npm package (WhatsApp Web
+        automation via headless Chromium/Puppeteer) under
+        DATA_DIR/services/openwa/. Bundles a Puppeteer Chromium download, so
+        this install is much slower than the other embedded services.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+      responses:
+        "200":
+          description: Install succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+        "400":
+          description: Invalid request body
+        "500":
+          description: npm install failed
+
+  /api/services/openwa/start:
+    post:
+      tags: [Embedded Services]
+      summary: Start open-wa
+      description: >-
+        Spawns `wa-automate --port <port> --host 127.0.0.1
+        --session-data-path data`. The HTTP API does not start listening
+        until the WhatsApp client handshake resolves, which blocks on a
+        human scanning the pairing QR code (shown in the logs panel) on
+        first pairing — state stays `starting` well past the other
+        services' typical cold-start window. Idempotent if already running.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+        "409":
+          description: open-wa is not installed
+        "503":
+          description: Start failed
+
+  /api/services/openwa/stop:
+    post:
+      tags: [Embedded Services]
+      summary: Stop open-wa
+      description: >-
+        Gracefully stops open-wa. Idempotent.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /api/services/openwa/restart:
+    post:
+      tags: [Embedded Services]
+      summary: Restart open-wa
+      description: >-
+        stop() then start() under the operation lock.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service restarted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /api/services/openwa/update:
+    post:
+      tags: [Embedded Services]
+      summary: Update open-wa to a newer npm version
+      description: >-
+        Stops, installs newer version, restarts.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+      responses:
+        "200":
+          description: Update succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+        "500":
+          description: Update failed
+
+  /api/services/openwa/status:
+    get:
+      tags: [Embedded Services]
+      summary: Get open-wa status
+      description: >-
+        Returns live supervisor state and DB metadata. `health` only reflects
+        whether `/api-docs/` answered — it does not indicate whether a
+        WhatsApp session is paired.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Status response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /api/services/openwa/auto-start:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle open-wa auto-start
+      description: >-
+        When enabled, open-wa starts automatically on the next OmniRoute boot.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "200":
+          description: Auto-start flag updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  autoStart:
+                    type: boolean
+        "400":
+          description: Invalid request body
+
+  /api/services/openwa/auto-restart-adopted:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle open-wa auto-restart-when-adopted
+      description: >-
+        When enabled, an externally-adopted (not OmniRoute-spawned) open-wa
+        process is restarted under OmniRoute's own supervisor on the next
+        health-check cycle instead of being left as adopted-only.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "204":
+          description: Flag updated
+        "400":
+          description: Invalid request body
+        "500":
+          description: Update failed
+
   /api/services/bifrost/install:
     post:
       tags: [Embedded Services]
