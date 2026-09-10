@@ -589,6 +589,7 @@ export const validateProviderApiKeySchema = z
     baseUrl: z.string().trim().url().optional(),
     region: z.string().trim().max(64).optional(),
     cx: z.string().trim().max(500).optional(),
+    signingSecret: z.string().trim().max(10000).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.provider === "google-pse-search" && !data.cx) {

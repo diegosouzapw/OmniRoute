@@ -136,6 +136,9 @@ export default function AddApiKeyModal({
   const [validationResult, setValidationResult] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [detectingLocal, setDetectingLocal] = useState(false);
+  const [localDetected, setLocalDetected] = useState(false);
+  const [localDetectError, setLocalDetectError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [copiedCommandCodeField, setCopiedCommandCodeField] = useState<string | null>(null);
   const wasOpenRef = useRef(false);
@@ -234,6 +237,10 @@ export default function AddApiKeyModal({
           baseUrl: formData.baseUrl.trim() || undefined,
           region: showsRegion ? formData.region.trim() || defaultRegion : undefined,
           cx: formData.cx.trim() || undefined,
+          signingSecret:
+            provider === "monkeycode-ai" && formData.signingSecret.trim()
+              ? formData.signingSecret.trim()
+              : undefined,
         }),
       });
       const data = await res.json();
@@ -248,6 +255,35 @@ export default function AddApiKeyModal({
       setValidationResult("failed");
     } finally {
       setValidating(false);
+    }
+  };
+
+  const handleDetectLocalLogin = async () => {
+    setDetectingLocal(true);
+    setLocalDetectError(null);
+    setLocalDetected(false);
+    try {
+      const res = await fetch("/api/oauth/monkeycode/auto-import");
+      const data = await res.json();
+      if (data.found && typeof data.apiKey === "string" && data.apiKey) {
+        setFormData((prev) => ({
+          ...prev,
+          apiKey: data.apiKey,
+          signingSecret:
+            typeof data.signingSecret === "string" && data.signingSecret
+              ? data.signingSecret
+              : prev.signingSecret,
+        }));
+        setLocalDetected(true);
+      } else {
+        setLocalDetectError(
+          typeof data.error === "string" && data.error ? data.error : t("monkeycodeLoginNotFound")
+        );
+      }
+    } catch {
+      setLocalDetectError(t("monkeycodeLoginNotFound"));
+    } finally {
+      setDetectingLocal(false);
     }
   };
   const copyCommandCodeValue = async (value: string | undefined, key: string) => {
@@ -735,6 +771,25 @@ export default function AddApiKeyModal({
                         : t("check")}
                   </Button>
                 </div>
+              </div>
+            )}
+            {provider === "monkeycode-ai" && (
+              <div className="flex flex-col gap-2">
+                <div>
+                  <Button
+                    onClick={handleDetectLocalLogin}
+                    disabled={detectingLocal || validating || saving}
+                    variant="secondary"
+                  >
+                    {detectingLocal ? t("autoDetecting") : t("monkeycodeDetectLoginLabel")}
+                  </Button>
+                </div>
+                {localDetected && (
+                  <p className="text-sm text-green-600 dark:text-green-400">
+                    {t("monkeycodeLoginDetected")}
+                  </p>
+                )}
+                {localDetectError && <p className="text-sm text-red-500">{localDetectError}</p>}
               </div>
             )}
             {isModal && (
