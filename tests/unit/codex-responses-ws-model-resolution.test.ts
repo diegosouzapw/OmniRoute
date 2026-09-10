@@ -60,3 +60,15 @@ test("genuinely non-codex model stays non-codex (bridge then rejects it)", async
   const info = await resolveCodexWsModelInfo("gpt-4o", resolver);
   assert.notEqual(info.provider, "codex");
 });
+
+test("quota-shared model id unwraps provider and model directly", async () => {
+  let calls = 0;
+  const resolver: ModelResolver = async (m) => {
+    calls += 1;
+    return { provider: "qtSd", model: m };
+  };
+  const info = await resolveCodexWsModelInfo("qtSd/omni/codex/gpt-5.6-luna", resolver);
+  assert.equal(info.provider, "codex");
+  assert.equal(info.model, "gpt-5.6-luna");
+  assert.equal(calls, 0, "should unwrap quota model without calling resolver");
+});

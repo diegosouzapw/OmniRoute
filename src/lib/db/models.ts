@@ -56,6 +56,17 @@ export type { SyncedAvailableModel } from "./models/synced";
 
 // ──────────────── Custom Models ────────────────
 
+function notifyQuotaCombosForProvider(providerId: string): void {
+  void (async () => {
+    try {
+      const { syncQuotaCombosForProvider } = await import("./quotaPools");
+      await syncQuotaCombosForProvider(providerId);
+    } catch {
+      // Non-fatal: quota combo sync errors should not break model operations
+    }
+  })();
+}
+
 export async function getCustomModels(providerId?: string) {
   const db = getDbInstance();
   if (providerId) {
@@ -241,6 +252,7 @@ export async function addCustomModel(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('customModels', ?, ?)"
   ).run(providerId, JSON.stringify(models));
   finishModelCatalogWriteWithBackup();
+  notifyQuotaCombosForProvider(providerId);
   return model;
 }
 
@@ -361,6 +373,7 @@ export async function replaceCustomModels(
   }
 
   finishModelCatalogWriteWithBackup();
+  notifyQuotaCombosForProvider(providerId);
   return merged;
 }
 
@@ -404,6 +417,7 @@ export async function deleteImportedCustomModels(providerId: string): Promise<st
   );
   for (const modelId of removedIds) removeModelCompatOverride(providerId, modelId);
   finishModelCatalogWriteWithBackup();
+  notifyQuotaCombosForProvider(providerId);
   return removedIds;
 }
 
@@ -435,6 +449,7 @@ export async function removeCustomModel(providerId: string, modelId: string) {
 
   removeModelCompatOverride(providerId, modelId);
   finishModelCatalogWriteWithBackup();
+  notifyQuotaCombosForProvider(providerId);
   return true;
 }
 
@@ -615,6 +630,7 @@ export async function replaceSyncedAvailableModelsForConnection(
   const key = `${providerId}:${connectionId}`;
   const normalizedModels = normalizeSyncedAvailableModels(models, providerId);
   persistCanonicalSyncedAvailableModels(key, normalizedModels, normalizeSyncedAvailableModels);
+  notifyQuotaCombosForProvider(providerId);
   // Return the full unioned list for the provider
   return getSyncedAvailableModels(providerId);
 }
@@ -724,7 +740,10 @@ export async function deleteSyncedAvailableModelsForProvider(providerId: string)
     )
     .run(keyPrefix.length, keyPrefix);
   const changes = Number(result.changes || 0);
-  if (changes > 0) finishSyncedAvailableModelsWrite();
+  if (changes > 0) {
+    finishSyncedAvailableModelsWrite();
+    notifyQuotaCombosForProvider(providerId);
+  }
   return changes;
 }
 
