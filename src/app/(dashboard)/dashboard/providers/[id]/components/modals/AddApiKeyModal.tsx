@@ -286,6 +286,20 @@ export default function AddApiKeyModal({
       setDetectingLocal(false);
     }
   };
+
+  const localAutoDetectFiredRef = useRef(false);
+  useEffect(() => {
+    if (!isOpen) {
+      localAutoDetectFiredRef.current = false;
+      return;
+    }
+    // Cursor-style: auto-detect the local ohmyagent login as soon as the Add
+    // modal opens for monkeycode-ai, so the key + secret arrive pre-filled.
+    if (provider !== "monkeycode-ai" || localAutoDetectFiredRef.current) return;
+    localAutoDetectFiredRef.current = true;
+    void handleDetectLocalLogin();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fire-once on open by design
+  }, [isOpen, provider]);
   const copyCommandCodeValue = async (value: string | undefined, key: string) => {
     if (!value) return;
     try {
