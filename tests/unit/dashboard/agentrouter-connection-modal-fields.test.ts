@@ -34,6 +34,7 @@ const BASE_FORM_DATA = {
   passthroughModels: false,
   region: "",
   routingTags: "",
+  signingSecret: "",
   tag: "",
   validationModelId: undefined,
 };
@@ -159,4 +160,48 @@ test("assignEditApiKeyProviderSpecificData omits newApiUserId for non-agentroute
 
   assert.equal(target.consoleApiKey, undefined);
   assert.equal(target.newApiUserId, undefined);
+});
+
+test("buildAddProviderSpecificData persists signingSecret for provider monkeycode-ai", () => {
+  const data = buildAddProviderSpecificData(
+    baseAddOptions({
+      provider: "monkeycode-ai",
+      formData: { ...BASE_FORM_DATA, signingSecret: " omas-123 " },
+    })
+  );
+
+  assert.equal(data?.signingSecret, "omas-123");
+});
+
+test("buildAddProviderSpecificData omits signingSecret for other providers", () => {
+  const data = buildAddProviderSpecificData(
+    baseAddOptions({
+      provider: "openai",
+      formData: { ...BASE_FORM_DATA, signingSecret: "omas-123" },
+    })
+  );
+
+  assert.equal(data?.signingSecret, undefined);
+});
+
+test("assignEditApiKeyProviderSpecificData persists and clears signingSecret for monkeycode-ai", () => {
+  const target: Record<string, unknown> = {};
+  assignEditApiKeyProviderSpecificData(
+    baseEditOptions({
+      provider: "monkeycode-ai",
+      target,
+      formData: { ...BASE_FORM_DATA, signingSecret: " omas-123 " },
+    })
+  );
+  assert.equal(target.signingSecret, "omas-123");
+
+  const cleared: Record<string, unknown> = {};
+  assignEditApiKeyProviderSpecificData(
+    baseEditOptions({
+      provider: "monkeycode-ai",
+      target: cleared,
+      formData: { ...BASE_FORM_DATA, signingSecret: "   " },
+    })
+  );
+  assert.equal(cleared.signingSecret, undefined);
 });

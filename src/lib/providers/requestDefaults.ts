@@ -266,6 +266,7 @@ export function sanitizeProviderSpecificDataForResponse(value: unknown): JsonRec
 
   const sanitized: JsonRecord = { ...record };
   delete sanitized.consoleApiKey;
+  delete sanitized.signingSecret;
   delete sanitized.secretAccessKey;
   delete sanitized.awsSecretAccessKey;
   delete sanitized.sessionToken;

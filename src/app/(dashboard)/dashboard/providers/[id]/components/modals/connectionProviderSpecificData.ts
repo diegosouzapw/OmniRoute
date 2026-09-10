@@ -21,6 +21,7 @@ type FormData = QuotaScrapingFieldValues &
     ccCompatibleRedactThinking: boolean;
     ccCompatibleSummarizeThinking: boolean;
     consoleApiKey: string;
+    signingSecret: string;
     customUserAgent: string;
     cx: string;
     excludedModels: string;
@@ -39,6 +40,11 @@ type ProviderSpecificData = Record<string, unknown>;
 // reuses the same generic field for its New-API System Access Token, paired with
 // newApiUserId (the New-Api-User header value). See agentrouterQuotaFetcher.ts.
 const CONSOLE_API_KEY_PROVIDERS = new Set(["bailian-coding-plan", "agentrouter"]);
+
+// monkeycode-ai signs every request with HMAC-SHA256 over the first system
+// message, keyed by the account signing secret (omas_…) the ohmyagent CLI
+// provisions on login — same shape as CONSOLE_API_KEY_PROVIDERS above.
+const SIGNING_SECRET_PROVIDERS = new Set(["monkeycode-ai"]);
 
 export function buildAddProviderSpecificData(options: {
   provider?: string;
@@ -79,6 +85,9 @@ export function buildAddProviderSpecificData(options: {
   if (showFreeModelsToggle && formData.importFreeModelsOnly) data.importFreeModelsOnly = true;
   if (CONSOLE_API_KEY_PROVIDERS.has(provider ?? "") && formData.consoleApiKey.trim()) {
     data.consoleApiKey = formData.consoleApiKey.trim();
+  }
+  if (SIGNING_SECRET_PROVIDERS.has(provider ?? "") && formData.signingSecret.trim()) {
+    data.signingSecret = formData.signingSecret.trim();
   }
   if (provider === "agentrouter" && formData.newApiUserId.trim()) {
     data.newApiUserId = formData.newApiUserId.trim();
@@ -124,6 +133,9 @@ export function assignEditApiKeyProviderSpecificData(options: {
   });
   if (CONSOLE_API_KEY_PROVIDERS.has(o.provider)) {
     o.target.consoleApiKey = o.formData.consoleApiKey.trim() || undefined;
+  }
+  if (SIGNING_SECRET_PROVIDERS.has(o.provider)) {
+    o.target.signingSecret = o.formData.signingSecret.trim() || undefined;
   }
   if (o.provider === "agentrouter") {
     o.target.newApiUserId = o.formData.newApiUserId.trim() || undefined;

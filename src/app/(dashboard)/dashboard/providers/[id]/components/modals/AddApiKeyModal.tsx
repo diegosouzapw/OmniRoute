@@ -123,6 +123,7 @@ export default function AddApiKeyModal({
     accountId: "",
     consoleApiKey: "",
     newApiUserId: "",
+    signingSecret: "",
     ...EMPTY_GLM_TEAM_QUOTA_FIELDS,
     ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
@@ -866,6 +867,16 @@ export default function AddApiKeyModal({
                     onChange={(e) => setFormData({ ...formData, consoleApiKey: e.target.value })}
                     placeholder={t("consoleApiKeyOraclePlaceholder")}
                     hint={t("consoleApiKeyOracleHint")}
+                    type="password"
+                  />
+                )}
+                {provider === "monkeycode-ai" && (
+                  <Input
+                    label={t("monkeycodeSigningSecretLabel")}
+                    value={formData.signingSecret}
+                    onChange={(e) => setFormData({ ...formData, signingSecret: e.target.value })}
+                    placeholder={t("monkeycodeSigningSecretPlaceholder")}
+                    hint={t("monkeycodeSigningSecretHint")}
                     type="password"
                   />
                 )}

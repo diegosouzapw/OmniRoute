@@ -260,6 +260,22 @@ export function validateProviderSpecificData(
     });
   }
 
+  const signingSecret = data.signingSecret;
+  if (signingSecret !== undefined && signingSecret !== null && typeof signingSecret !== "string") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.signingSecret must be a string",
+      path: ["signingSecret"],
+    });
+  }
+  if (typeof signingSecret === "string" && signingSecret.length > 10000) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.signingSecret must be at most 10000 characters",
+      path: ["signingSecret"],
+    });
+  }
+
   const newApiUserId = data.newApiUserId;
   if (newApiUserId !== undefined && newApiUserId !== null && typeof newApiUserId !== "string") {
     ctx.addIssue({
