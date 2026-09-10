@@ -333,6 +333,8 @@ export const CONTEXT_OVERFLOW_PATTERNS = [
   /\bmax.*token/i,
   /\btoken limit/i,
   /\brequest too large\b/i,
+  /\btokens per minute\b/i,
+  /\btpm\b/i,
 ];
 
 // Structured error codes that reliably indicate model access denied
@@ -1722,6 +1724,7 @@ export function checkFallbackError(
   const retryableStatuses = new Set([
     HTTP_STATUS.REQUEST_TIMEOUT,
     HTTP_STATUS.RATE_LIMITED,
+    HTTP_STATUS.PAYLOAD_TOO_LARGE,
     HTTP_STATUS.SERVER_ERROR,
     HTTP_STATUS.BAD_GATEWAY,
     HTTP_STATUS.SERVICE_UNAVAILABLE,
@@ -2176,6 +2179,10 @@ export function checkFallbackError(
   }
 
   if (status === HTTP_STATUS.NOT_ACCEPTABLE || retryableStatuses.has(status)) {
+    // 413 PAYLOAD_TOO_LARGE (TPM rate limits) should trigger fallback
+    if (status === HTTP_STATUS.PAYLOAD_TOO_LARGE) {
+      return buildRetryableFallback(RateLimitReason.MODEL_CAPACITY);
+    }
     return buildRetryableFallback(RateLimitReason.SERVER_ERROR);
   }
 
