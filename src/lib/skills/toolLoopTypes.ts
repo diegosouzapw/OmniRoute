@@ -187,6 +187,7 @@ export interface NonStreamingClientTranslateInput {
    */
   historyMessages?: unknown[] | null;
   responseToolNameMap: Map<string, string> | null;
+  customToolNames?: ReadonlySet<string>;
   requestToolIdentityMap: Map<string, { namespace?: string; name: string }> | null;
   reasoningCacheScope: string | null;
   clientHeaders: Headers | Record<string, unknown> | null;

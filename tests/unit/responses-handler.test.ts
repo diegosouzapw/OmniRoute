@@ -542,7 +542,7 @@ test("handleResponsesCore preserves top-level tool precedence for custom-name co
 });
 
 test("handleResponsesCore restores custom tools nested in namespaces", async () => {
-  const { result } = await invokeResponsesCore({
+  const { result, call } = await invokeResponsesCore({
     body: {
       model: "gpt-4o-mini",
       input: [{ type: "message", role: "user", content: [{ type: "input_text", text: "ping" }] }],
@@ -554,11 +554,13 @@ test("handleResponsesCore restores custom tools nested in namespaces", async () 
         },
       ],
     },
-    responseFactory: () => buildToolCallSseResponse("exec", '{"input":"pong"}'),
+    responseFactory: () => buildToolCallSseResponse("commands__exec", '{"input":"pong"}'),
   });
 
+  assert.equal(call.body.tools[0].function?.name, "commands__exec");
   const sse = await result.response.text();
   assert.match(sse, /"type":"custom_tool_call"/);
+  assert.match(sse, /"input":"pong"/);
   assert.doesNotMatch(sse, /"type":"function_call","arguments"/);
 });
 
