@@ -359,3 +359,106 @@ export function isGenuineContinuationTurn(
     resolveCallLogIdByResponseId(previousResponseId, apiKeyId) !== null
   );
 }
+
+/**
+ * Whether a call-log's own stream reached a genuine terminal "stop" (a final
+ * assistant reply with no outstanding function_call), is still legitimately
+ * mid-conversation (a tool call the agent is expected to answer shortly), or
+ * never completed at all. Backs the /dashboard/conversations "stalled" badge
+ * -- see resolveConversationStalledState below for the 5-minute grace period
+ * that turns "tool_call_pending" into an actual stall, since a bare tool call
+ * is completely normal seconds after it lands.
+ *
+ * "incomplete" covers both a genuinely truncated stream (createStructuredSSECollector's
+ * own event-count/byte cap: `_truncated: true`, `summary.status` stuck at
+ * "in_progress", `output: []` -- see the responses-continuation-store.test.ts
+ * cases for this exact shape) and any other explicit non-"completed" status
+ * (a provider-reported failure/incomplete state).
+ */
+export type TurnCompletionState = "stop" | "tool_call_pending" | "incomplete" | "unknown";
+
+// Same immutability argument and cache shape as genuineContinuationCache above
+// -- a call-log artifact never changes once its detailState flips to "ready",
+// so this is a pure function of artifactRelPath forever.
+const TURN_COMPLETION_CACHE_MAX = 5000;
+const turnCompletionCache = new Map<string, TurnCompletionState>();
+
+function cacheTurnCompletion(key: string, value: TurnCompletionState): TurnCompletionState {
+  turnCompletionCache.set(key, value);
+  if (turnCompletionCache.size > TURN_COMPLETION_CACHE_MAX) {
+    const oldest = turnCompletionCache.keys().next().value;
+    if (oldest !== undefined) turnCompletionCache.delete(oldest);
+  }
+  return value;
+}
+
+export function resolveTurnCompletionState(
+  artifactRelPath: string | null | undefined
+): TurnCompletionState {
+  if (!artifactRelPath) return "unknown";
+  const cached = turnCompletionCache.get(artifactRelPath);
+  if (cached !== undefined) return cached;
+
+  const { artifact, state } = readCallArtifact(artifactRelPath);
+  if (state !== "ready" || !artifact?.pipeline) {
+    return cacheTurnCompletion(artifactRelPath, "unknown");
+  }
+
+  const clientResponse = artifact.pipeline.clientResponse as
+    | { _truncated?: unknown; output?: unknown; summary?: { status?: unknown; output?: unknown } }
+    | undefined;
+  if (clientResponse?._truncated === true) {
+    return cacheTurnCompletion(artifactRelPath, "incomplete");
+  }
+
+  // Same dual-shape concern as resolvePreviousResponseState above: a
+  // streaming reply nests status/output under `.summary`, a non-streaming
+  // one carries them at the top level.
+  const status = clientResponse?.summary?.status ?? (clientResponse as { status?: unknown })?.status;
+  if (typeof status === "string" && status !== "completed") {
+    return cacheTurnCompletion(artifactRelPath, "incomplete");
+  }
+
+  const output = Array.isArray(clientResponse?.summary?.output)
+    ? clientResponse.summary.output
+    : Array.isArray(clientResponse?.output)
+      ? clientResponse.output
+      : undefined;
+  if (!Array.isArray(output) || output.length === 0) {
+    return cacheTurnCompletion(artifactRelPath, "incomplete");
+  }
+
+  const hasPendingFunctionCall = output.some(
+    (item) => isPlainRecord(item) && item.type === "function_call"
+  );
+  return cacheTurnCompletion(artifactRelPath, hasPendingFunctionCall ? "tool_call_pending" : "stop");
+}
+
+/** Grace period before a still-unanswered tool call counts as a stall, not a
+ *  normal in-flight next turn. */
+export const CONVERSATION_STALL_GRACE_MS = 5 * 60 * 1000;
+
+/**
+ * Whether a conversation's last recorded turn looks abandoned: it didn't end
+ * in a clean "stop" (either a genuinely truncated/failed stream, or a tool
+ * call still awaiting its result) AND enough time has passed with no
+ * continuation that a legitimate in-flight next turn is no longer plausible.
+ * Never true while `isActive` -- an actively streaming/polling request is by
+ * definition not abandoned, regardless of what its last-persisted artifact
+ * (necessarily one turn behind a still-open stream) currently shows.
+ */
+export function resolveConversationStalledState(params: {
+  artifactRelPath: string | null | undefined;
+  lastSeenAt: string;
+  isActive: boolean;
+  now?: number;
+}): boolean {
+  if (params.isActive) return false;
+  const completion = resolveTurnCompletionState(params.artifactRelPath);
+  if (completion !== "incomplete" && completion !== "tool_call_pending") return false;
+
+  const lastSeenAtMs = Date.parse(params.lastSeenAt);
+  if (!Number.isFinite(lastSeenAtMs)) return false;
+  const now = params.now ?? Date.now();
+  return now - lastSeenAtMs > CONVERSATION_STALL_GRACE_MS;
+}

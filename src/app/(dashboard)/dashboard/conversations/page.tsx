@@ -31,6 +31,12 @@ interface ConversationRow {
   // only means the client-side content-hash tracker saw >= 2 turns
   // regardless of transport (see isGenuineContinuationTurn).
   isGenuineContinuation: boolean;
+  // The last turn never reached a clean "stop" (truncated/failed stream, or
+  // a tool call still unanswered) AND 5+ minutes have passed with nothing
+  // having continued — see resolveConversationStalledState's own doc
+  // comment for why a bare unanswered tool call alone doesn't count (that's
+  // normal seconds after it lands). Never true while isActive.
+  isStalled: boolean;
 }
 
 // Same spinner used for an in-flight request on /dashboard/logs
@@ -108,6 +114,26 @@ function ContinuationBadge({ isGenuine }: { isGenuine: boolean }) {
     >
       <span className="material-symbols-outlined text-[11px] leading-none">bolt</span>
       continuation
+    </span>
+  );
+}
+
+// Flags a conversation whose latest turn never reached a clean "stop" --
+// a truncated/failed stream, or a tool call still unanswered 5+ minutes
+// after the last activity with nothing having continued (see
+// resolveConversationStalledState -- a bare unanswered tool call alone is
+// completely normal seconds after it lands, so this only fires once the
+// grace period has actually elapsed). Server-computed so this badge never
+// disagrees with the actual persisted artifact state.
+function StalledBadge({ isStalled }: { isStalled: boolean }) {
+  if (!isStalled) return null;
+  return (
+    <span
+      title="Latest turn didn't end in stop and nothing has continued for 5+ minutes"
+      className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-red-500/15 text-red-500 border border-red-500/25"
+    >
+      <span className="material-symbols-outlined text-[11px] leading-none">error</span>
+      stalled
     </span>
   );
 }
@@ -688,6 +714,7 @@ function ConversationsPageContent() {
         isActive: false,
         activeCallLogId: null,
         isGenuineContinuation: false,
+        isStalled: false,
       }
     );
   }, [initialConversationParam, loading, conversations, openConversation]);
@@ -793,6 +820,7 @@ function ConversationsPageContent() {
                       {row.id.slice(0, 16)}…
                     </span>
                     <ContinuationBadge isGenuine={row.isGenuineContinuation} />
+                    <StalledBadge isStalled={row.isStalled} />
                   </span>
                   <span className="font-mono text-xs text-text-muted shrink-0">
                     {row.turnCount} turns
@@ -853,6 +881,7 @@ function ConversationsPageContent() {
                     </td>
                     <td className="px-3 py-2">
                       <ContinuationBadge isGenuine={row.isGenuineContinuation} />
+                      <StalledBadge isStalled={row.isStalled} />
                     </td>
                     <td className="px-3 py-2 text-text-main">{row.lastModel ?? "—"}</td>
                     <td className="px-3 py-2">
