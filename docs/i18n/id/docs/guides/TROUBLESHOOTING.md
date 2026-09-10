@@ -1,6 +1,6 @@
 # Pemecahan Masalah (Bahasa Indonesia)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../ar/docs/TROUBLESHOOTING.md) · 🇧🇬 [bg](../../bg/docs/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../bn/docs/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../cs/docs/TROUBLESHOOTING.md) · 🇩🇰 [da](../../da/docs/TROUBLESHOOTING.md) · 🇩🇪 [de](../../de/docs/TROUBLESHOOTING.md) · 🇪🇸 [es](../../es/docs/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../fa/docs/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../fi/docs/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../fr/docs/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../gu/docs/TROUBLESHOOTING.md) · 🇮🇱 [he](../../he/docs/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../hi/docs/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../hu/docs/TROUBLESHOOTING.md) · 🇮🇩 [id](../../id/docs/TROUBLESHOOTING.md) · 🇮🇹 [it](../../it/docs/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../ja/docs/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../ko/docs/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../mr/docs/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../ms/docs/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../nl/docs/TROUBLESHOOTING.md) · 🇳🇴 [no](../../no/docs/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../phi/docs/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../pl/docs/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../pt/docs/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../ro/docs/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../ru/docs/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../sk/docs/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../sv/docs/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../sw/docs/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../ta/docs/TROUBLESHOOTING.md) · 🇮🇳 [te](../../te/docs/TROUBLESHOOTING.md) · 🇹🇭 [th](../../th/docs/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../tr/docs/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../ur/docs/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../vi/docs/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/TROUBLESHOOTING.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../../ar/docs/guides/TROUBLESHOOTING.md) · 🇦🇿 [az](../../../az/docs/guides/TROUBLESHOOTING.md) · 🇧🇬 [bg](../../../bg/docs/guides/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../../bn/docs/guides/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../../cs/docs/guides/TROUBLESHOOTING.md) · 🇩🇰 [da](../../../da/docs/guides/TROUBLESHOOTING.md) · 🇩🇪 [de](../../../de/docs/guides/TROUBLESHOOTING.md) · 🇪🇸 [es](../../../es/docs/guides/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../../fa/docs/guides/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../../fi/docs/guides/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../../fr/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../../gu/docs/guides/TROUBLESHOOTING.md) · 🇮🇱 [he](../../../he/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../../hi/docs/guides/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../../hu/docs/guides/TROUBLESHOOTING.md) · 🇮🇹 [it](../../../it/docs/guides/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../../ja/docs/guides/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../../ko/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../../mr/docs/guides/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../../ms/docs/guides/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../../nl/docs/guides/TROUBLESHOOTING.md) · 🇳🇴 [no](../../../no/docs/guides/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../../phi/docs/guides/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../../pl/docs/guides/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../../pt/docs/guides/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../../ro/docs/guides/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../../ru/docs/guides/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../../sk/docs/guides/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../../sv/docs/guides/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../../sw/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../../ta/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [te](../../../te/docs/guides/TROUBLESHOOTING.md) · 🇹🇭 [th](../../../th/docs/guides/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../../tr/docs/guides/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../../ur/docs/guides/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../../vi/docs/guides/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/TROUBLESHOOTING.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/TROUBLESHOOTING.md)
 
 ---
 
@@ -10,16 +10,16 @@ Masalah umum dan solusinya untuk OmniRoute.
 
 ## Perbaikan Cepat
 
-| Masalah                                             | Solusi                                                                                                                                                           |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Login pertama tidak berfungsi                       | Atur `INITIAL_PASSWORD` di `.env` (tidak ada nilai default yang dikodekan langsung)                                                                              |
-| Dashboard terbuka di port yang salah                | Atur `PORT=20128` dan `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                              |
-| Tidak ada log yang ditulis ke disk                  | Atur `APP_LOG_TO_FILE=true` dan pastikan pengambilan log panggilan diaktifkan                                                                                    |
-| EACCES: permission denied                           | Atur `DATA_DIR=/path/to/writable/dir` untuk mengganti `~/.omniroute`                                                                                            |
-| Strategi routing tidak tersimpan                    | Perbarui ke v1.4.11+ (perbaikan skema Zod untuk persistensi pengaturan)                                                                                         |
-| Login crash / halaman kosong                        | Periksa versi Node.js — lihat [Kompatibilitas Node.js](#nodejs-compatibility) di bawah                                                                          |
+| Masalah                                             | Solusi                                                                                                                                                                      |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Login pertama tidak berfungsi                       | Atur `INITIAL_PASSWORD` di `.env` (tidak ada nilai default yang dikodekan langsung)                                                                                         |
+| Dashboard terbuka di port yang salah                | Atur `PORT=20128` dan `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                                         |
+| Tidak ada log yang ditulis ke disk                  | Atur `APP_LOG_TO_FILE=true` dan pastikan pengambilan log panggilan diaktifkan                                                                                               |
+| EACCES: permission denied                           | Atur `DATA_DIR=/path/to/writable/dir` untuk mengganti `~/.omniroute`                                                                                                        |
+| Strategi routing tidak tersimpan                    | Perbarui ke v1.4.11+ (perbaikan skema Zod untuk persistensi pengaturan)                                                                                                     |
+| Login crash / halaman kosong                        | Periksa versi Node.js — lihat [Kompatibilitas Node.js](#nodejs-compatibility) di bawah                                                                                      |
 | `dlopen` / `slice is not valid mach-o file` (macOS) | Jalankan `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — lihat [Pembangunan ulang modul native macOS](#macos-native-module-rebuild) di bawah |
-| Proxy "fetch failed"                                | Pastikan konfigurasi proxy diatur pada tingkat yang tepat — lihat [Masalah Proxy](#proxy-issues) di bawah                                                       |
+| Proxy "fetch failed"                                | Pastikan konfigurasi proxy diatur pada tingkat yang tepat — lihat [Masalah Proxy](#proxy-issues) di bawah                                                                   |
 
 ---
 
@@ -255,12 +255,12 @@ Jika penyedia berulang kali masuk ke status OPEN:
 
 Gunakan **Dashboard → Translator** untuk melakukan debug masalah terjemahan format:
 
-| Mode             | Kapan Digunakan                                                                                              |
-| ---------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Playground**   | Bandingkan format input/output berdampingan — tempel permintaan yang gagal untuk melihat cara terjemahannya  |
-| **Chat Tester**  | Kirim pesan langsung dan periksa payload permintaan/respons lengkap termasuk header                          |
-| **Test Bench**   | Jalankan pengujian batch di berbagai kombinasi format untuk menemukan terjemahan mana yang rusak             |
-| **Live Monitor** | Pantau aliran permintaan secara real-time untuk menangkap masalah terjemahan yang intermiten                 |
+| Mode             | Kapan Digunakan                                                                                             |
+| ---------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Playground**   | Bandingkan format input/output berdampingan — tempel permintaan yang gagal untuk melihat cara terjemahannya |
+| **Chat Tester**  | Kirim pesan langsung dan periksa payload permintaan/respons lengkap termasuk header                         |
+| **Test Bench**   | Jalankan pengujian batch di berbagai kombinasi format untuk menemukan terjemahan mana yang rusak            |
+| **Live Monitor** | Pantau aliran permintaan secara real-time untuk menangkap masalah terjemahan yang intermiten                |
 
 ### Masalah format yang umum
 

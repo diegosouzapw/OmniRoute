@@ -1,6 +1,6 @@
 # 测试覆盖计划 (中文 (简体))
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/COVERAGE_PLAN.md) · 🇸🇦 [ar](../../ar/docs/COVERAGE_PLAN.md) · 🇧🇬 [bg](../../bg/docs/COVERAGE_PLAN.md) · 🇧🇩 [bn](../../bn/docs/COVERAGE_PLAN.md) · 🇨🇿 [cs](../../cs/docs/COVERAGE_PLAN.md) · 🇩🇰 [da](../../da/docs/COVERAGE_PLAN.md) · 🇩🇪 [de](../../de/docs/COVERAGE_PLAN.md) · 🇪🇸 [es](../../es/docs/COVERAGE_PLAN.md) · 🇮🇷 [fa](../../fa/docs/COVERAGE_PLAN.md) · 🇫🇮 [fi](../../fi/docs/COVERAGE_PLAN.md) · 🇫🇷 [fr](../../fr/docs/COVERAGE_PLAN.md) · 🇮🇳 [gu](../../gu/docs/COVERAGE_PLAN.md) · 🇮🇱 [he](../../he/docs/COVERAGE_PLAN.md) · 🇮🇳 [hi](../../hi/docs/COVERAGE_PLAN.md) · 🇭🇺 [hu](../../hu/docs/COVERAGE_PLAN.md) · 🇮🇩 [id](../../id/docs/COVERAGE_PLAN.md) · 🇮🇹 [it](../../it/docs/COVERAGE_PLAN.md) · 🇯🇵 [ja](../../ja/docs/COVERAGE_PLAN.md) · 🇰🇷 [ko](../../ko/docs/COVERAGE_PLAN.md) · 🇮🇳 [mr](../../mr/docs/COVERAGE_PLAN.md) · 🇲🇾 [ms](../../ms/docs/COVERAGE_PLAN.md) · 🇳🇱 [nl](../../nl/docs/COVERAGE_PLAN.md) · 🇳🇴 [no](../../no/docs/COVERAGE_PLAN.md) · 🇵🇭 [phi](../../phi/docs/COVERAGE_PLAN.md) · 🇵🇱 [pl](../../pl/docs/COVERAGE_PLAN.md) · 🇵🇹 [pt](../../pt/docs/COVERAGE_PLAN.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/COVERAGE_PLAN.md) · 🇷🇴 [ro](../../ro/docs/COVERAGE_PLAN.md) · 🇷🇺 [ru](../../ru/docs/COVERAGE_PLAN.md) · 🇸🇰 [sk](../../sk/docs/COVERAGE_PLAN.md) · 🇸🇪 [sv](../../sv/docs/COVERAGE_PLAN.md) · 🇰🇪 [sw](../../sw/docs/COVERAGE_PLAN.md) · 🇮🇳 [ta](../../ta/docs/COVERAGE_PLAN.md) · 🇮🇳 [te](../../te/docs/COVERAGE_PLAN.md) · 🇹🇭 [th](../../th/docs/COVERAGE_PLAN.md) · 🇹🇷 [tr](../../tr/docs/COVERAGE_PLAN.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/COVERAGE_PLAN.md) · 🇵🇰 [ur](../../ur/docs/COVERAGE_PLAN.md) · 🇻🇳 [vi](../../vi/docs/COVERAGE_PLAN.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/COVERAGE_PLAN.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../ops/COVERAGE_PLAN.md) · 🇸🇦 [ar](../../../ar/docs/ops/COVERAGE_PLAN.md) · 🇦🇿 [az](../../../az/docs/ops/COVERAGE_PLAN.md) · 🇧🇬 [bg](../../../bg/docs/ops/COVERAGE_PLAN.md) · 🇧🇩 [bn](../../../bn/docs/ops/COVERAGE_PLAN.md) · 🇨🇿 [cs](../../../cs/docs/ops/COVERAGE_PLAN.md) · 🇩🇰 [da](../../../da/docs/ops/COVERAGE_PLAN.md) · 🇩🇪 [de](../../../de/docs/ops/COVERAGE_PLAN.md) · 🇪🇸 [es](../../../es/docs/ops/COVERAGE_PLAN.md) · 🇮🇷 [fa](../../../fa/docs/ops/COVERAGE_PLAN.md) · 🇫🇮 [fi](../../../fi/docs/ops/COVERAGE_PLAN.md) · 🇫🇷 [fr](../../../fr/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [gu](../../../gu/docs/ops/COVERAGE_PLAN.md) · 🇮🇱 [he](../../../he/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [hi](../../../hi/docs/ops/COVERAGE_PLAN.md) · 🇭🇺 [hu](../../../hu/docs/ops/COVERAGE_PLAN.md) · 🇮🇩 [id](../../../id/docs/ops/COVERAGE_PLAN.md) · 🇮🇹 [it](../../../it/docs/ops/COVERAGE_PLAN.md) · 🇯🇵 [ja](../../../ja/docs/ops/COVERAGE_PLAN.md) · 🇰🇷 [ko](../../../ko/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [mr](../../../mr/docs/ops/COVERAGE_PLAN.md) · 🇲🇾 [ms](../../../ms/docs/ops/COVERAGE_PLAN.md) · 🇳🇱 [nl](../../../nl/docs/ops/COVERAGE_PLAN.md) · 🇳🇴 [no](../../../no/docs/ops/COVERAGE_PLAN.md) · 🇵🇭 [phi](../../../phi/docs/ops/COVERAGE_PLAN.md) · 🇵🇱 [pl](../../../pl/docs/ops/COVERAGE_PLAN.md) · 🇵🇹 [pt](../../../pt/docs/ops/COVERAGE_PLAN.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/ops/COVERAGE_PLAN.md) · 🇷🇴 [ro](../../../ro/docs/ops/COVERAGE_PLAN.md) · 🇷🇺 [ru](../../../ru/docs/ops/COVERAGE_PLAN.md) · 🇸🇰 [sk](../../../sk/docs/ops/COVERAGE_PLAN.md) · 🇸🇪 [sv](../../../sv/docs/ops/COVERAGE_PLAN.md) · 🇰🇪 [sw](../../../sw/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [ta](../../../ta/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [te](../../../te/docs/ops/COVERAGE_PLAN.md) · 🇹🇭 [th](../../../th/docs/ops/COVERAGE_PLAN.md) · 🇹🇷 [tr](../../../tr/docs/ops/COVERAGE_PLAN.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/ops/COVERAGE_PLAN.md) · 🇵🇰 [ur](../../../ur/docs/ops/COVERAGE_PLAN.md) · 🇻🇳 [vi](../../../vi/docs/ops/COVERAGE_PLAN.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/ops/COVERAGE_PLAN.md)
 
 ---
 
@@ -12,11 +12,11 @@
 
 覆盖率数据因报告计算方式而异，存在多种口径。对于规划而言，仅其中一个有参考价值。
 
-| 指标     | 范围                                               | 语句 / 行 |   分支 |   函数 | 说明                                         |
-| -------- | -------------------------------------------------- | --------: | -----: | -----: | -------------------------------------------- |
-| 旧版     | 旧版 `npm run test:coverage`                       |    79.42% | 75.15% | 67.94% | 虚高：统计了测试文件且排除了 `open-sse`       |
-| 诊断     | 仅源码，排除测试且排除 `open-sse`                   |    68.16% | 63.55% | 64.06% | 仅用于隔离 `src/**`                          |
-| 推荐基线 | 仅源码，排除测试且包含 `open-sse`                   |    82.58% | 75.22% | 84.23% | 这是需要提升的项目级覆盖率基线               |
+| 指标     | 范围                              | 语句 / 行 |   分支 |   函数 | 说明                                    |
+| -------- | --------------------------------- | --------: | -----: | -----: | --------------------------------------- |
+| 旧版     | 旧版 `npm run test:coverage`      |    79.42% | 75.15% | 67.94% | 虚高：统计了测试文件且排除了 `open-sse` |
+| 诊断     | 仅源码，排除测试且排除 `open-sse` |    68.16% | 63.55% | 64.06% | 仅用于隔离 `src/**`                     |
+| 推荐基线 | 仅源码，排除测试且包含 `open-sse` |    82.58% | 75.22% | 84.23% | 这是需要提升的项目级覆盖率基线          |
 
 推荐基线是优化工作的目标数值。
 
@@ -40,15 +40,15 @@
 
 ## 里程碑
 
-| 阶段     |                   目标 | 焦点                                     | 状态     |
-| -------- | ---------------------: | ---------------------------------------- | -------- |
-| 第 1 阶段 | 60% 语句 / 行          | 速赢项和低风险工具函数覆盖                 | ✅ 已完成 |
-| 第 2 阶段 | 65% 语句 / 行          | 数据库和路由基础                          | ✅ 已完成 |
-| 第 3 阶段 | 70% 语句 / 行          | 服务商校验和用量分析                      | ✅ 已完成 |
-| 第 4 阶段 | 75% 语句 / 行          | `open-sse` 翻译器与辅助函数               | ✅ 已完成 |
-| 第 5 阶段 | 80% 语句 / 行          | `open-sse` 处理器和执行器分支             | ✅ 已完成 |
-| 第 6 阶段 | 85% 语句 / 行          | 高难度边界情况、分支欠账、回归套件         | 进行中   |
-| 第 7 阶段 | 90% 语句 / 行          | 最终扫尾、填补缺口、严格递增               | 待开始   |
+| 阶段      |          目标 | 焦点                               | 状态      |
+| --------- | ------------: | ---------------------------------- | --------- |
+| 第 1 阶段 | 60% 语句 / 行 | 速赢项和低风险工具函数覆盖         | ✅ 已完成 |
+| 第 2 阶段 | 65% 语句 / 行 | 数据库和路由基础                   | ✅ 已完成 |
+| 第 3 阶段 | 70% 语句 / 行 | 服务商校验和用量分析               | ✅ 已完成 |
+| 第 4 阶段 | 75% 语句 / 行 | `open-sse` 翻译器与辅助函数        | ✅ 已完成 |
+| 第 5 阶段 | 80% 语句 / 行 | `open-sse` 处理器和执行器分支      | ✅ 已完成 |
+| 第 6 阶段 | 85% 语句 / 行 | 高难度边界情况、分支欠账、回归套件 | 进行中    |
+| 第 7 阶段 | 90% 语句 / 行 | 最终扫尾、填补缺口、严格递增       | 待开始    |
 
 每个阶段都应推动分支和函数覆盖率递增，但主要硬性目标是语句 / 行覆盖率。
 

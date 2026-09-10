@@ -21,9 +21,13 @@ import path from "node:path";
 // exercises the real DB, this only prevents an accidental production open).
 process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-quota-autoping-"));
 
-const { runQuotaAutoPingTick, createQuotaAutoPingState } =
+const { runQuotaAutoPingTick, createQuotaAutoPingState, resolveQuotaAutoPingModel } =
   await import("../../src/lib/services/quotaAutoPing.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
+const { getProviderModels } = await import("../../open-sse/config/providerModels.ts");
+const { isModelSelectable } = await import("../../open-sse/services/modelLifecycle.ts");
+const { splitCodexReasoningSuffix } =
+  await import("../../open-sse/executors/codex/reasoningSuffix.ts");
 
 test.after(() => {
   resetDbInstance();
@@ -64,6 +68,10 @@ function baseDeps(overrides = {}) {
     },
     canExecuteProvider: () => true,
     isConnectionUnavailableToAuxiliaryActivity: async () => false,
+    // #11905: real callers resolve the ping model from the live catalog; the fixture
+    // does the same so the default path is exercised, and tests override it to
+    // simulate an empty catalog.
+    resolvePingModel: resolveQuotaAutoPingModel,
     ...overrides,
   };
   return { deps, calls };
@@ -457,4 +465,79 @@ test("does not consume a throttle slot when the connection is skipped before fet
   await runQuotaAutoPingTick(deps, createQuotaAutoPingState(), () => NOW_MS);
 
   assert.deepEqual(order, []);
+});
+
+const RETIRED_CODEX_PING_MODEL = "gpt-5.1-codex-mini";
+
+test("resolves the Codex ping model from the live registry and lifecycle data (#11905)", async () => {
+  // #11905: the ping model used to be pinned to gpt-5.1-codex-mini, which OpenAI
+  // shut down on 2026-07-23 and which the repo's own lifecycle registry already
+  // rejects on the request path. The resolver must hand back a model that is (a)
+  // in the Codex catalog, (b) selectable by the same gate chatCore applies, and
+  // (c) a base id — the ping sets `reasoning.effort` itself, so an effort-suffixed
+  // variant would be redundant.
+  const model = await resolveQuotaAutoPingModel("codex", NOW_MS);
+
+  assert.equal(typeof model, "string");
+  assert.notEqual(model, RETIRED_CODEX_PING_MODEL);
+  assert.ok(
+    getProviderModels("codex").some((entry) => entry.id === model),
+    `${model} must come from the Codex catalog`
+  );
+  assert.equal(isModelSelectable("codex", model, { asOf: NOW_MS }), true);
+  assert.equal(splitCodexReasoningSuffix(model).effort, null);
+});
+
+test("sends the ping with the runtime-resolved model instead of a hardcoded id (#11905)", async () => {
+  const { deps, calls } = baseDeps({
+    getCodexUsage: async () => ({
+      quotas: {
+        session: { used: 1, total: 100, remaining: 99, resetAt: "2026-01-01T17:01:00.000Z" },
+      },
+    }),
+  });
+  const state = createQuotaAutoPingState();
+  state.resetCache["codex:codex-1"] = "2026-01-01T17:00:00.000Z";
+
+  await runQuotaAutoPingTick(deps, state, () => NOW_MS);
+
+  const expected = await resolveQuotaAutoPingModel("codex", NOW_MS);
+  assert.equal(calls.executorExecute.length, 1);
+  const input = calls.executorExecute[0];
+  assert.equal(input.model, expected);
+  assert.equal(input.body.model, expected);
+  assert.notEqual(input.model, RETIRED_CODEX_PING_MODEL);
+  assert.equal(state.pingModelCache.codex, expected);
+});
+
+test("pauses the provider without any network I/O when no selectable Codex model exists (#11905)", async () => {
+  // A retired or empty catalog must surface as a diagnostic, not as a blind retry
+  // of a dead id every failure-cooldown window: no throttle slot, no usage read,
+  // no executor call, no DB write — on the first tick or any later one.
+  const order = [];
+  const { deps, calls } = baseDeps({
+    resolvePingModel: async () => null,
+    throttleQuotaFetch: async () => {
+      order.push("throttle");
+    },
+    getCodexUsage: async () => {
+      order.push("fetch");
+      return {
+        quotas: {
+          session: { used: 1, total: 100, remaining: 99, resetAt: "2026-01-01T17:01:00.000Z" },
+        },
+      };
+    },
+  });
+  const state = createQuotaAutoPingState();
+  state.resetCache["codex:codex-1"] = "2026-01-01T17:00:00.000Z";
+
+  await runQuotaAutoPingTick(deps, state, () => NOW_MS);
+  await runQuotaAutoPingTick(deps, state, () => NOW_MS + 16 * 60 * 1000);
+
+  assert.deepEqual(order, []);
+  assert.equal(calls.getExecutor.length, 0);
+  assert.equal(calls.updateProviderConnection.length, 0);
+  assert.equal(state.pingModelCache.codex, null);
+  assert.equal(state.failureCache["codex:codex-1"], undefined);
 });

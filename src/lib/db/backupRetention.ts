@@ -1,17 +1,12 @@
 /**
  * Backup retention primitives — pure filesystem work, no `core.ts` dependency.
  *
- * This module exists so BOTH backup call sites can share one retention policy:
- *
- * - `backup.ts` (manual/API/auto backups) — resolves the operator's settings from the
- *   database and delegates here.
- * - `migrationRunner.ts` (pre-migration snapshots) — cannot import `backup.ts`, because
- *   `core.ts` already imports `migrationRunner.ts` and `backup.ts` imports `core.ts`;
- *   that edge would close a cycle. Keeping the policy here, free of `core`, lets the
- *   migration path prune without one.
- *
- * Before #10421 the migration path had no retention at all and `db_backups/` grew
- * without bound (observed: 48.999 files / 204 GB against a 5,3 MB live database).
+ * `backup.ts` (manual/API/auto backups) resolves the operator's settings from the
+ * database and delegates pure family pruning here. The migration runner deliberately
+ * does not prune during its concurrent safety window: its snapshots are content-addressed
+ * and reused for an identical DB state, while manual/scheduled cleanup remains the single
+ * retention boundary. Before #10421, repeated failed starts created distinct timestamped
+ * snapshots and `db_backups/` grew without bound (observed: 48,999 files / 204 GB).
  */
 
 import fs from "fs";

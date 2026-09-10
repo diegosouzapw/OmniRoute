@@ -74,7 +74,10 @@ test("pt-BR.json tem todas as seções top-level de en.json", () => {
   assert.deepEqual(missing, [], `Seções top-level faltando em pt-BR.json: ${missing.join(", ")}`);
 });
 
-for (const [name, cat] of [["zh-CN", zhCN], ["zh-TW", zhTW]] as const) {
+for (const [name, cat] of [
+  ["zh-CN", zhCN],
+  ["zh-TW", zhTW],
+] as const) {
   test(name + ".json tem paridade total de chaves com en.json", () => {
     const catKeys = flattenKeys(cat as Record<string, unknown>);
     const missing = [...enKeys].filter((k) => !catKeys.has(k));
@@ -101,6 +104,47 @@ test("i18n.mjs usa fallback en quando locale não existe", async () => {
   resetForTests();
   const locale = detectLocale();
   assert.equal(locale, "en");
+  if (orig === undefined) delete process.env.OMNIROUTE_LANG;
+  else process.env.OMNIROUTE_LANG = orig;
+  resetForTests();
+});
+
+test("i18n.mjs resolve alias do config: OMNIROUTE_LANG=uk → uk-UA, fil_PH.UTF-8 → phi, in → id", async () => {
+  const { resetForTests, detectLocale } = await import("../../bin/cli/i18n.mjs");
+  const orig = process.env.OMNIROUTE_LANG;
+  process.env.OMNIROUTE_LANG = "uk";
+  resetForTests();
+  assert.equal(detectLocale(), "uk-UA");
+  process.env.OMNIROUTE_LANG = "fil_PH.UTF-8";
+  resetForTests();
+  assert.equal(detectLocale(), "phi");
+  process.env.OMNIROUTE_LANG = "uk_UA.UTF-8";
+  resetForTests();
+  assert.equal(detectLocale(), "uk-UA");
+  // `in` (retired duplicate Indonesian locale) must keep resolving to `id`, otherwise a
+  // saved OMNIROUTE_LANG=in silently falls back to English.
+  process.env.OMNIROUTE_LANG = "in";
+  resetForTests();
+  assert.equal(detectLocale(), "id");
+  if (orig === undefined) delete process.env.OMNIROUTE_LANG;
+  else process.env.OMNIROUTE_LANG = orig;
+  resetForTests();
+});
+
+test("i18n.mjs resolve base→regional e aliases: zh → zh-CN, zh-hant/zh_HK → zh-TW, UK → uk-UA", async () => {
+  const { resetForTests, detectLocale } = await import("../../bin/cli/i18n.mjs");
+  const orig = process.env.OMNIROUTE_LANG;
+  const cases: Array<[string, string]> = [
+    ["zh", "zh-CN"], // bare base language → first regional catalog declared in config/i18n.json
+    ["zh-hant", "zh-TW"], // alias family declared on zh-TW
+    ["zh_HK.UTF-8", "zh-TW"], // POSIX form of the zh-hk alias (charset stripped, _ → -)
+    ["UK", "uk-UA"], // upper-case input canonicalized through the alias map
+  ];
+  for (const [input, expected] of cases) {
+    process.env.OMNIROUTE_LANG = input;
+    resetForTests();
+    assert.equal(detectLocale(), expected, `OMNIROUTE_LANG=${input}`);
+  }
   if (orig === undefined) delete process.env.OMNIROUTE_LANG;
   else process.env.OMNIROUTE_LANG = orig;
   resetForTests();

@@ -1843,7 +1843,7 @@ test("handleImageGeneration routes codex image requests through /responses with 
   }
 });
 
-test("handleImageGeneration (codex) returns a data URL when response_format is not b64_json", async () => {
+test("handleImageGeneration (codex) defaults to b64_json when response_format is unset (#12268)", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => {
     const sse = buildCodexSSE([
@@ -1855,6 +1855,29 @@ test("handleImageGeneration (codex) returns a data URL when response_format is n
   try {
     const result = await handleImageGeneration({
       body: { model: "cx/gpt-5.6-sol", prompt: "kitten" },
+      credentials: { accessToken: "codex-token" },
+      log: null,
+    });
+    assert.equal(result.success, true);
+    assert.equal(result.data.data[0].b64_json, "YWJjZA==");
+    assert.equal(result.data.data[0].url, undefined);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleImageGeneration (codex) returns a data URL only when response_format is url", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => {
+    const sse = buildCodexSSE([
+      { type: "image_generation_call", id: "ig_3", status: "completed", result: "YWJjZA==" },
+    ]);
+    return new Response(sse, { status: 200 });
+  };
+
+  try {
+    const result = await handleImageGeneration({
+      body: { model: "cx/gpt-5.6-sol", prompt: "kitten", response_format: "url" },
       credentials: { accessToken: "codex-token" },
       log: null,
     });

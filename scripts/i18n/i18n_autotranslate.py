@@ -38,7 +38,7 @@ def get_language_name(lang_code):
     lang_map = {
         "pt-BR": "Portuguese (Brazil)", "es": "Spanish", "fr": "French", 
         "it": "Italian", "ru": "Russian", "zh-CN": "Simplified Chinese", 
-        "de": "German", "in": "Hindi", "th": "Thai", "uk-UA": "Ukrainian", 
+        "de": "German", "th": "Thai", "uk-UA": "Ukrainian", 
         "ar": "Arabic", "az": "Azerbaijani", "ja": "Japanese", "vi": "Vietnamese", "bg": "Bulgarian", 
         "da": "Danish", "fi": "Finnish", "he": "Hebrew", "hu": "Hungarian", 
         "id": "Indonesian", "ko": "Korean", "ms": "Malay", "nl": "Dutch", 

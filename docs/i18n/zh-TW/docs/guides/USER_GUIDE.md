@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # 使用者指南
 
-🌐 **語言：** 🇺🇸 [English](./USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/USER_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/guides/USER_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/USER_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/USER_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/USER_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/USER_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/in/docs/guides/USER_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/USER_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/USER_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/USER_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/USER_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/USER_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/USER_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/USER_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/USER_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/USER_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/USER_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/USER_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/USER_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/USER_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/USER_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/USER_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/USER_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/USER_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md)
 
 設定提供者、建立組合、整合 CLI 工具及部署 OmniRoute 的完整指南。
 
@@ -35,27 +35,27 @@ lastUpdated: 2026-06-28
 
 ## 💰 價錢一覽
 
-| 方案            | 提供者            | 費用       | 額度重置       | 最適合             |
-| --------------- | ----------------- | ---------- | -------------- | ------------------ |
-| **💳 訂閱制**   | Claude Code (Pro) | $20/月     | 5 小時 + 每週  | 已訂閱使用者       |
-|                 | Codex (Plus/Pro)  | $20-200/月 | 5 小時 + 每週  | OpenAI 使用者      |
-|                 | GitHub Copilot    | $10-19/月  | 每月           | GitHub 使用者      |
-| **🔑 API 金鑰** | DeepSeek          | 按用量計費 | 無             | 便宜的推理模型     |
-|                 | Groq              | 按用量計費 | 無             | 超快速推論         |
-|                 | xAI (Grok)        | 按用量計費 | 無             | Grok 4 推理        |
-|                 | Mistral           | 按用量計費 | 無             | 歐盟託管模型       |
-|                 | Perplexity        | 按用量計費 | 無             | 結合搜尋功能       |
-|                 | Together AI       | 按用量計費 | 無             | 開源模型           |
-|                 | Fireworks AI      | 按用量計費 | 無             | 快速 FLUX 圖片生成 |
-|                 | Cerebras          | 按用量計費 | 無             | 晶圓級速度         |
-|                 | Cohere            | 按用量計費 | 無             | Command R+ RAG     |
-|                 | NVIDIA NIM        | 按用量計費 | 無             | 企業級模型         |
-|                 | Baidu Qianfan     | 按用量計費 | 無             | ERNIE 模型         |
-| **💰 便宜方案** | GLM-4.7           | $0.6/百萬  | 每日上午 10 點 | 預算備用           |
-|                 | MiniMax M2.1      | $0.2/百萬  | 5 小時滾動     | 最便宜的選擇       |
-|                 | Kimi K2           | $9/月固定  | 每月 1,000 萬  | 可預測成本         |
-| **🆓 免費方案** | Qoder             | $0         | 未公布 Token 上限；仍有提供者限制 | 8 個模型免費 |
-|                 | Kiro              | $0         | 約 50 點/月    | Claude 免費使用    |
+| 方案            | 提供者            | 費用       | 額度重置                          | 最適合             |
+| --------------- | ----------------- | ---------- | --------------------------------- | ------------------ |
+| **💳 訂閱制**   | Claude Code (Pro) | $20/月     | 5 小時 + 每週                     | 已訂閱使用者       |
+|                 | Codex (Plus/Pro)  | $20-200/月 | 5 小時 + 每週                     | OpenAI 使用者      |
+|                 | GitHub Copilot    | $10-19/月  | 每月                              | GitHub 使用者      |
+| **🔑 API 金鑰** | DeepSeek          | 按用量計費 | 無                                | 便宜的推理模型     |
+|                 | Groq              | 按用量計費 | 無                                | 超快速推論         |
+|                 | xAI (Grok)        | 按用量計費 | 無                                | Grok 4 推理        |
+|                 | Mistral           | 按用量計費 | 無                                | 歐盟託管模型       |
+|                 | Perplexity        | 按用量計費 | 無                                | 結合搜尋功能       |
+|                 | Together AI       | 按用量計費 | 無                                | 開源模型           |
+|                 | Fireworks AI      | 按用量計費 | 無                                | 快速 FLUX 圖片生成 |
+|                 | Cerebras          | 按用量計費 | 無                                | 晶圓級速度         |
+|                 | Cohere            | 按用量計費 | 無                                | Command R+ RAG     |
+|                 | NVIDIA NIM        | 按用量計費 | 無                                | 企業級模型         |
+|                 | Baidu Qianfan     | 按用量計費 | 無                                | ERNIE 模型         |
+| **💰 便宜方案** | GLM-4.7           | $0.6/百萬  | 每日上午 10 點                    | 預算備用           |
+|                 | MiniMax M2.1      | $0.2/百萬  | 5 小時滾動                        | 最便宜的選擇       |
+|                 | Kimi K2           | $9/月固定  | 每月 1,000 萬                     | 可預測成本         |
+| **🆓 免費方案** | Qoder             | $0         | 未公布 Token 上限；仍有提供者限制 | 8 個模型免費       |
+|                 | Kiro              | $0         | 約 50 點/月                       | Claude 免費使用    |
 
 ---
 

@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = new URL("../../", import.meta.url);
 const PLUGIN = "eslint-plugin-react-hooks";
-const EXPECTED_VERSION = "7.0.1";
+const EXPECTED_VERSION = "7.1.1";
 
 async function readJson(relative: string): Promise<Record<string, unknown>> {
   return JSON.parse(await readFile(fileURLToPath(new URL(relative, ROOT)), "utf8"));
@@ -30,7 +30,7 @@ test("eslint-plugin-react-hooks is directly pinned to the locked version", async
   assert.equal(
     declared,
     EXPECTED_VERSION,
-    `${PLUGIN} must remain pinned to ${EXPECTED_VERSION} until the 7.1.1 lint migration`
+    `${PLUGIN} must remain pinned to ${EXPECTED_VERSION} so a group bump can never ride past the compiler-rules migration review`
   );
   assert.ok(locked, `${PLUGIN} missing from package-lock.json`);
   assert.equal(

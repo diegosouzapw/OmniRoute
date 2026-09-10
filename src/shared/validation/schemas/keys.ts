@@ -33,9 +33,28 @@ const requireExclusiveLeaseConnections = (
     });
 };
 
+const requireConsistentModelAccess = (
+  value: {
+    modelAccessMode?: "all" | "restricted";
+    allowedModels?: string[];
+  },
+  ctx: z.RefinementCtx
+) => {
+  if (value.modelAccessMode === "all" && value.allowedModels && value.allowedModels.length > 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "allowedModels must be empty when modelAccessMode is 'all'",
+      path: ["allowedModels"],
+    });
+  }
+};
+
 export const createKeySchema = z
   .object({
     name: z.string().min(1, "Name is required").max(200),
+    modelAccessMode: z.enum(["all", "restricted"]).optional(),
+    allowedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
+    allowedCombos: z.array(z.string().trim().min(1).max(200)).max(500).optional(),
     noLog: z.boolean().optional(),
     allowUsageCommand: z.boolean().optional(),
     usageLimitEnabled: z.boolean().optional(),
@@ -45,7 +64,10 @@ export const createKeySchema = z
     scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
     allowedConnections: z.array(z.string().uuid()).min(1).max(100).optional(),
   })
-  .superRefine(requireExclusiveLeaseConnections);
+  .superRefine((value, ctx) => {
+    requireConsistentModelAccess(value, ctx);
+    requireExclusiveLeaseConnections(value, ctx);
+  });
 
 export const createSyncTokenSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(200),

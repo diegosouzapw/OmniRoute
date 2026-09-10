@@ -177,6 +177,13 @@ npm run test:all
 # Single test file (Node.js native test runner — most tests use this)
 node --import tsx/esm --test tests/unit/your-file.test.ts
 
+# Only the unit tests impacted by your change (same TIA selector as the CI gate, #8084)
+npm run test:scoped            # changes in the last commit (or the working tree)
+npm run test:scoped:staged     # staged changes only — pairs well with a pre-commit run
+npm run test:scoped:full       # rebuild the import-graph map first (after adding/moving files)
+# Exit 1 + "run the full suite" means a hub file (tsconfig, package.json, …) or an
+# unmapped source changed — the selector fails safe, it never silently skips.
+
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
 

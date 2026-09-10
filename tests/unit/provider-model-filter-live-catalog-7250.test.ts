@@ -7,7 +7,7 @@ const providerPageUtils =
 // #7250: the Providers page model-name filter only matched against the static
 // curated model registry (getModelsByProviderId), never against a provider's
 // live/synced catalog. Aggregator providers (openrouter, kilocode,
-// theoldllm...) declare a single-entry static placeholder
+// ...) declare a single-entry static placeholder
 // (`{ id: "auto", name: "Auto (Best Available)" }` for openrouter), so a
 // search for any real upstream model name — e.g. "laguna" — could never
 // match, and the whole provider silently disappeared from the list.

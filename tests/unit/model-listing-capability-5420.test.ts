@@ -35,7 +35,7 @@ describe("providerLacksModelListing (#5420)", () => {
     assert.equal(providerLacksModelListing("zai-web", ["llm"]), false);
     assert.equal(providerUsesCuratedModelsOnly("kimi-web"), true);
     assert.equal(providerUsesCuratedModelsOnly("zai-web"), true);
-    assert.equal(providerUsesCuratedModelsOnly("chatgpt-web"), false);
+    assert.equal(providerUsesCuratedModelsOnly("chatgpt-web"), true);
     assert.equal(providerUsesCuratedModelsOnly("cgpt-web"), false);
     assert.equal(providerUsesCuratedModelsOnly("qwen-cloud"), false);
     assert.equal(providerUsesCuratedModelsOnly("kimi-coding"), false);
@@ -54,5 +54,11 @@ describe("providerUsesExclusiveSyncedListing", () => {
     assert.equal(providerUsesExclusiveSyncedListing("command-code"), false);
     assert.equal(providerUsesExclusiveSyncedListing("openai"), false);
     assert.equal(providerUsesExclusiveSyncedListing(""), false);
+  });
+
+  it("test 10: exclusive listing stays cursor-only; claude is not cursor", () => {
+    assert.equal(providerUsesExclusiveSyncedListing("claude"), false);
+    assert.equal(providerUsesExclusiveSyncedListing("codex"), false);
+    assert.equal(providerUsesExclusiveSyncedListing("agy"), false);
   });
 });

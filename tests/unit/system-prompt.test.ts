@@ -120,6 +120,52 @@ test("injectSystemPrompt: null body returns as-is", () => {
   assert.equal(injectSystemPrompt(null), null);
 });
 
+test("injectSystemPrompt: non-object bodies return as-is", () => {
+  setSystemPromptConfig({ enabled: true, suffixPrompt: "test" });
+
+  for (const body of [undefined, "prompt", 42, true]) {
+    assert.equal(injectSystemPrompt(body), body);
+  }
+});
+
+test("injectSystemPrompt: skips malformed message entries safely", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "PRE", suffixPrompt: "SUF" });
+  const body = {
+    messages: [
+      { role: "user", content: "hi" },
+      null,
+      { role: "system", content: "Original prompt" },
+    ],
+  };
+
+  const result = injectSystemPrompt(body);
+
+  assert.equal(result.messages[2].content, "PRE\n\nOriginal prompt\n\nSUF");
+  assert.equal(result.messages[1], null);
+});
+
+test("injectSystemPrompt: does not mutate the request or nested message content", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "PRE", suffixPrompt: "SUF" });
+  const systemContent = [{ type: "text", text: "Original prompt" }];
+  const systemMessage = { role: "system", content: systemContent };
+  const body = {
+    messages: [systemMessage, { role: "user", content: "hi" }],
+  };
+
+  const result = injectSystemPrompt(body);
+
+  assert.notEqual(result, body);
+  assert.notEqual(result.messages, body.messages);
+  assert.notEqual(result.messages[0], systemMessage);
+  assert.notEqual(result.messages[0].content, systemContent);
+  assert.deepEqual(body, {
+    messages: [
+      { role: "system", content: [{ type: "text", text: "Original prompt" }] },
+      { role: "user", content: "hi" },
+    ],
+  });
+});
+
 test("injectSystemPrompt: developer role treated as system", () => {
   setSystemPromptConfig({ enabled: true, prefixPrompt: "PRE", suffixPrompt: "SUF" });
   const body = {

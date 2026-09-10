@@ -52,8 +52,8 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-test("retired common ChatGPT Web prefixes cannot shadow compatible nodes", async () => {
-  for (const [index, prefix] of ["chatgpt-web", "cgpt-web", "ChatGPT-Web", "CGPT-WEB"].entries()) {
+test("retired legacy ChatGPT Web prefixes cannot shadow compatible nodes", async () => {
+  for (const [index, prefix] of ["cgpt-web", "CGPT-WEB"].entries()) {
     await providerNodesDb.createProviderNode({
       id: `openai-compatible-retired-chatgpt-web-${index}`,
       type: "openai-compatible",
@@ -66,13 +66,17 @@ test("retired common ChatGPT Web prefixes cannot shadow compatible nodes", async
     await assert.rejects(() => getModelInfo(`${prefix}/gpt-5.5`), isRetiredError);
   }
 
+  const cleanRoom = await getModelInfo("chatgpt-web/gpt-5-5-thinking");
+  assert.equal(cleanRoom.provider, "chatgpt-web");
+  assert.equal(cleanRoom.model, "gpt-5-5-thinking");
+
   const codex = await getModelInfo("chatgpt-web-codex/high");
   assert.equal(codex.provider, "chatgpt-web-codex");
   assert.equal(codex.model, "high");
 });
 
-test("provider writes return the durable ChatGPT Web tombstone instead of stale active data", async () => {
-  for (const provider of ["chatgpt-web", "cgpt-web"]) {
+test("legacy alias writes return the durable ChatGPT Web tombstone", async () => {
+  for (const provider of ["cgpt-web"]) {
     const created = await providersDb.createProviderConnection({
       provider,
       authType: "apikey",
@@ -96,14 +100,14 @@ test("provider writes return the durable ChatGPT Web tombstone instead of stale 
   }
 });
 
-test("credential selection rejects retired ids even if a writer bypasses migration triggers", async () => {
+test("credential selection rejects the retired alias even if a writer bypasses migration triggers", async () => {
   const db = core.getDbInstance();
   db.exec(`
     DROP TRIGGER IF EXISTS provider_connections_retire_chatgpt_web_insert;
     DROP TRIGGER IF EXISTS provider_connections_retire_chatgpt_web_update;
   `);
 
-  for (const provider of ["chatgpt-web", "cgpt-web"]) {
+  for (const provider of ["cgpt-web"]) {
     db.prepare(
       "INSERT INTO provider_connections " +
         "(id, provider, auth_type, name, api_key, is_active, test_status, created_at, updated_at) " +
@@ -140,7 +144,7 @@ test("chat resolution returns a sanitized retirement response", async () => {
   assert.equal(JSON.stringify(body).includes("cgpt-web"), false);
 });
 
-test("persisted aliases cannot rewrite retired ChatGPT Web models before routing", async () => {
+test("persisted aliases cannot rewrite the retired ChatGPT Web alias before routing", async () => {
   await providersDb.createProviderConnection({
     provider: "openai",
     authType: "apikey",
@@ -149,13 +153,11 @@ test("persisted aliases cannot rewrite retired ChatGPT Web models before routing
     isActive: true,
     testStatus: "active",
   });
-  await modelAliasesDb.setModelAlias("chatgpt-web/gpt-5.5", "openai/gpt-4o");
   await modelAliasesDb.setModelAlias("cgpt-web", "openai/gpt-4o");
-  await modelAliasesDb.setModelAlias("friendly-retired-chatgpt", "chatgpt-web/gpt-5.5");
   await modelAliasesDb.setModelAlias("friendly-retired-cgpt", "cgpt-web/gpt-5.5");
   await modelAliasesDb.setModelAlias("cgpt-web-preview", "openai/gpt-4o");
   await settingsDb.updateSettings({
-    wildcardAliases: [{ pattern: "wildcard-retired-chatgpt-*", target: "chatgpt-web/gpt-5.5" }],
+    wildcardAliases: [{ pattern: "wildcard-retired-cgpt-*", target: "cgpt-web/gpt-5.5" }],
   });
   modelAliasResolver.invalidateAliasCache();
 
@@ -173,7 +175,7 @@ test("persisted aliases cannot rewrite retired ChatGPT Web models before routing
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "chatgpt-web/gpt-5.5",
+        model: "cgpt-web/gpt-5.5",
         messages: [{ role: "user", content: "hello" }],
         stream: false,
       }),
@@ -187,7 +189,7 @@ test("persisted aliases cannot rewrite retired ChatGPT Web models before routing
   };
   assert.equal(retiredBody.error?.code, "PROVIDER_RETIRED");
   assert.equal(retiredBody.error?.message, "Provider is retired and unavailable.");
-  assert.equal(JSON.stringify(retiredBody).includes("chatgpt-web"), false);
+  assert.equal(JSON.stringify(retiredBody).includes("cgpt-web"), false);
 
   const retiredBareAlias = await chatRoute.POST(
     new Request("http://localhost/v1/chat/completions", {
@@ -208,11 +210,7 @@ test("persisted aliases cannot rewrite retired ChatGPT Web models before routing
   assert.equal(retiredBareBody.error?.code, "PROVIDER_RETIRED");
   assert.equal(retiredBareBody.error?.message, "Provider is retired and unavailable.");
 
-  for (const alias of [
-    "friendly-retired-chatgpt",
-    "friendly-retired-cgpt",
-    "wildcard-retired-chatgpt-model",
-  ]) {
+  for (const alias of ["friendly-retired-cgpt", "wildcard-retired-cgpt-model"]) {
     const retiredTargetAlias = await chatRoute.POST(
       new Request("http://localhost/v1/chat/completions", {
         method: "POST",
@@ -248,7 +246,7 @@ test("persisted aliases cannot rewrite retired ChatGPT Web models before routing
   assert.equal(fetchCalls.length, 1);
 });
 
-test("priority combo skips a retired ChatGPT Web target and uses its fallback", async () => {
+test("priority combo skips a retired ChatGPT Web alias target and uses its fallback", async () => {
   await providersDb.createProviderConnection({
     provider: "openai",
     authType: "apikey",
@@ -261,7 +259,7 @@ test("priority combo skips a retired ChatGPT Web target and uses its fallback", 
     name: "retired-chatgpt-web-fallback",
     strategy: "priority",
     models: [
-      { provider: "chatgpt-web", model: "gpt-5.5" },
+      { provider: "cgpt-web", model: "gpt-5.5" },
       { provider: "openai", model: "gpt-4o" },
     ],
   });

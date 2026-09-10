@@ -44,9 +44,7 @@ export const NO_AUTH_PROVIDER_IDS = new Set(["aihorde", "opencode", "duckduckgo-
 // above, which needed no configuration at all — they were just never
 // exercised. duckduckgo-web is kept in despite being currently broken
 // upstream (400 ERR_BAD_REQUEST as of this writing) because that's a real,
-// reportable data point, not benchmark noise. theoldllm was tried and
-// dropped: this deployment's egress IP is blocked by Vercel for it (403),
-// an environment limitation, not a model worth benchmarking here.
+// reportable data point, not benchmark noise.
 //
 // One or two representative models per provider, not the full catalog: a
 // full sweep of every free model across every provider would be a multi-hour
@@ -58,8 +56,8 @@ export const FREE_MODELS: FreeModelSpec[] = [
     displayName: "Gemini 3.1 Flash-Lite",
   },
   { provider: "gemini", model: "gemini/gemma-4-31b-it", displayName: "Gemma 4 31B (Gemini)" },
-  { provider: "nvidia", model: "nvidia/openai/gpt-oss-20b", displayName: "GPT OSS 20B (NVIDIA)" },
-  { provider: "nvidia", model: "nvidia/z-ai/glm-5.1", displayName: "GLM 5.1 (NVIDIA)" },
+  { provider: "nvidia", model: "nvidia/openai/gpt-oss-120b", displayName: "GPT OSS 120B (NVIDIA)" },
+  { provider: "nvidia", model: "nvidia/moonshotai/kimi-k3", displayName: "Kimi K3 (NVIDIA)" },
   {
     provider: "nvidia",
     model: "nvidia/google/gemma-4-31b-it",

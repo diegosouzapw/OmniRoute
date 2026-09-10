@@ -20,6 +20,9 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const CATALOG_ENTRY_KEYS = [
   "creditTokens",
   "displayName",
+  // Who may claim a quota (e.g. a regional identity check), not how much the row can
+  // be trusted — the totals split it into its own gated bucket instead of rating it.
+  "eligibilityGate",
   "freeType",
   "hardStopGuaranteed",
   "modelId",

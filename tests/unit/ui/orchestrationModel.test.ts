@@ -7,8 +7,8 @@ import assert from "node:assert/strict";
 import {
   ORCH_STATES,
   orchStateColor,
+  orchStateBadgeBg,
 } from "../../../src/app/(dashboard)/dashboard/orchestration/model/orchestrationTypes.ts";
-import { STATUS_HEX } from "../../../src/shared/constants/statusColors.ts";
 import { fromCloudAgent } from "../../../src/app/(dashboard)/dashboard/orchestration/model/fromCloudAgent.ts";
 import type { CloudAgentTask } from "../../../src/lib/cloudAgent/types.ts";
 import { fromA2A } from "../../../src/app/(dashboard)/dashboard/orchestration/model/fromA2A.ts";
@@ -22,20 +22,30 @@ import {
 } from "../../../src/app/(dashboard)/dashboard/orchestration/model/orchestrationTypes.ts";
 
 describe("orchestrationTypes", () => {
-  it("covers all six states with a color each", () => {
+  it("covers all six states with a theme-aware CSS var color each", () => {
     assert.equal(ORCH_STATES.length, 6);
     for (const s of ORCH_STATES) {
-      assert.match(orchStateColor(s), /^#[0-9a-f]{6}$/i, s);
+      assert.match(orchStateColor(s), /^var\(--orch-status-[a-z]+\)$/, s);
     }
   });
-  it("waiting_approval maps to the new STATUS_HEX.approval violet", () => {
-    assert.equal(orchStateColor("waiting_approval"), STATUS_HEX.approval);
-    assert.equal(STATUS_HEX.approval, "#8b5cf6");
+  it("waiting_approval maps to the approval token", () => {
+    assert.equal(orchStateColor("waiting_approval"), "var(--orch-status-approval)");
   });
   it("running maps to warning, succeeded to success, failed to error", () => {
-    assert.equal(orchStateColor("running"), STATUS_HEX.warning);
-    assert.equal(orchStateColor("succeeded"), STATUS_HEX.success);
-    assert.equal(orchStateColor("failed"), STATUS_HEX.error);
+    assert.equal(orchStateColor("running"), "var(--orch-status-warning)");
+    assert.equal(orchStateColor("succeeded"), "var(--orch-status-success)");
+    assert.equal(orchStateColor("failed"), "var(--orch-status-error)");
+  });
+  it("queued and cancelled both map to the muted token", () => {
+    assert.equal(orchStateColor("queued"), "var(--orch-status-muted)");
+    assert.equal(orchStateColor("cancelled"), "var(--orch-status-muted)");
+  });
+  it("orchStateBadgeBg produces a color-mix over the matching state token", () => {
+    for (const s of ORCH_STATES) {
+      const bg = orchStateBadgeBg(s);
+      assert.match(bg, /^color-mix\(in srgb, var\(--orch-status-[a-z]+\) 13%, transparent\)$/, s);
+      assert.ok(bg.includes(orchStateColor(s)), `${s} badge bg should embed its own token`);
+    }
   });
 });
 
@@ -326,6 +336,45 @@ describe("mergeSnapshot", () => {
       )
     );
   });
+  it("failed source placeholder carries the typed sourceIssue union alongside sublabel", () => {
+    const errSrc = [{ source: "conductor" as const, ok: false }];
+    const errSnap = mergeSnapshot({ cloudAgent: empty, a2a: empty, conductor: empty }, errSrc, {
+      now: NOW,
+    });
+    const errNode = errSnap.nodes.find((n) => n.id === "source:conductor");
+    assert.equal(errNode?.sourceIssue, "error");
+    assert.equal(errNode?.sublabel, "error");
+
+    const offlineSrc = [{ source: "conductor" as const, ok: true, offline: true }];
+    const offlineSnap = mergeSnapshot(
+      { cloudAgent: empty, a2a: empty, conductor: empty },
+      offlineSrc,
+      { now: NOW }
+    );
+    const offlineNode = offlineSnap.nodes.find((n) => n.id === "source:conductor");
+    assert.equal(offlineNode?.sourceIssue, "offline");
+    assert.equal(offlineNode?.sublabel, "offline");
+  });
+  it("failed source placeholder carries staleSince from the SourceStatus (undefined when the status has none)", () => {
+    const staleSince = "2026-09-01T12:00:00.000Z";
+    const errSrc = [{ source: "conductor" as const, ok: false, staleSince }];
+    const errSnap = mergeSnapshot({ cloudAgent: empty, a2a: empty, conductor: empty }, errSrc, {
+      now: NOW,
+    });
+    const errNode = errSnap.nodes.find((n) => n.id === "source:conductor");
+    assert.equal(errNode?.staleSince, staleSince);
+
+    // buildSourceStatuses never sets staleSince for the offline case — mergeSnapshot must
+    // not invent one, so the placeholder node's staleSince stays undefined.
+    const offlineSrc = [{ source: "conductor" as const, ok: true, offline: true }];
+    const offlineSnap = mergeSnapshot(
+      { cloudAgent: empty, a2a: empty, conductor: empty },
+      offlineSrc,
+      { now: NOW }
+    );
+    const offlineNode = offlineSnap.nodes.find((n) => n.id === "source:conductor");
+    assert.equal(offlineNode?.staleSince, undefined);
+  });
   it("overflow node carries droppedByState with the per-state counts of dropped work nodes", () => {
     const many = Array.from({ length: MAX_WORK_NODES + 5 }, (_, i) =>
       caTask({
@@ -342,6 +391,25 @@ describe("mergeSnapshot", () => {
     const overflow = snap.nodes.find((n) => n.id === "overflow:cloud-agent");
     assert.ok(overflow, "overflow node expected");
     assert.deepEqual(overflow?.droppedByState, { failed: 5 });
+  });
+  it("droppedByState is not a shared reference with counts — mutating counts after merge leaves it untouched", () => {
+    const many = Array.from({ length: MAX_WORK_NODES + 5 }, (_, i) =>
+      caTask({
+        id: `dbs${i}`,
+        status: i < MAX_WORK_NODES ? "running" : "failed",
+        updatedAt: new Date(NOW - i * 1000).toISOString(),
+      })
+    );
+    const snap = mergeSnapshot(
+      { cloudAgent: fromCloudAgent(many), a2a: empty, conductor: empty },
+      OK_SOURCES,
+      { now: NOW }
+    );
+    const overflow = snap.nodes.find((n) => n.id === "overflow:cloud-agent");
+    assert.ok(overflow, "overflow node expected");
+    const before = { ...overflow?.droppedByState };
+    if (overflow?.counts) overflow.counts.failed = 999;
+    assert.deepEqual(overflow?.droppedByState, before, "droppedByState must not alias counts");
   });
   it("drops a stale terminal Conductor task older than STALE_COMPLETED_MS unless showCompleted", () => {
     const staleSnap: FleetSnapshot = {

@@ -54,6 +54,7 @@ const PROVIDER_IDS_WITHOUT_LOCAL_ASSET_PROVENANCE = [
   "leonardo",
   "modal",
   "modelscope",
+  "nimble-search",
   "nlpcloud",
   "oauth",
   "oci",
@@ -69,7 +70,6 @@ const PROVIDER_IDS_WITHOUT_LOCAL_ASSET_PROVENANCE = [
   "serper-search",
   "soniox",
   "synthetic",
-  "theoldllm",
   "unorouter",
   "wandb",
   "youcom-search",
@@ -230,6 +230,7 @@ describe("ProviderIcon — local SVG dimensions", () => {
   it.each([
     ["cline", "/providers/cline.svg"],
     ["kimi-coding", "/providers/kimi-logomark-light.svg"],
+    ["opper", "/providers/opper.svg"],
   ])("gives %s a definite square layout size", (providerId, expectedSrc) => {
     const container = renderIcon({ providerId, size: 24 });
     const img = container.querySelector(`img[src="${expectedSrc}"]`);

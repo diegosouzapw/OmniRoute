@@ -287,7 +287,7 @@ export async function validateGrokWebProvider({ apiKey, providerSpecificData = {
       errorDetail = (response.text || "").slice(0, 240);
     } catch {}
 
-    // Detect Cloudflare challenge pages even with a 200 status from tls-client-node
+    // Detect Cloudflare challenge pages even when the browser transport reports status 200.
     if (isCloudflareChallenge(errorDetail)) {
       return {
         valid: false,
@@ -455,7 +455,7 @@ export async function validatePerplexityWebProvider({ apiKey, providerSpecificDa
           valid: false,
           error:
             "Cloudflare is blocking connections from this server's IP (TLS fingerprint rejected). " +
-            "The session cookie may still be valid — install tls-client-node's native binary or route " +
+            "The session cookie may still be valid — verify the wreq-js 3.2 native binding or route " +
             "perplexity-web through a residential proxy.",
         };
       }

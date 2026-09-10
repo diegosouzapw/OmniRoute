@@ -9,6 +9,9 @@ import {
   GITHUB_COPILOT_CHAT_USER_AGENT,
   GITHUB_COPILOT_EDITOR_VERSION,
 } from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
+// userAgent / editorVersion on GITHUB_CONFIG are captured-pin snapshots for
+// lockstep tests. Request construction must call getGitHubCopilotChatUserAgent()
+// (#12417) — see providers/github.ts and providers/ghe-copilot.ts.
 import {
   GROK_BUILD_DEVICE_CODE_URL,
   GROK_BUILD_OAUTH_ISSUER,

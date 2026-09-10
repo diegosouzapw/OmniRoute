@@ -60,6 +60,14 @@ export const CLAUDE_FABLE_5_PRICING = {
   cache_creation: 15.0,
 };
 
+export const CLAUDE_FABLE_5_1_PRICING = {
+  input: 10.0,
+  output: 50.0,
+  cached: 0.25,
+  reasoning: 50.0,
+  cache_creation: 12.5,
+};
+
 export const CLAUDE_OPUS_5_PRICING = {
   input: 5.0,
   output: 25.0,

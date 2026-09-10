@@ -99,6 +99,24 @@ function tlsFingerprintProviderAllowed(
     .some((candidate) => candidate.trim().toLowerCase() === normalizedProvider);
 }
 
+/**
+ * Per-provider TLS impersonation profile. Most providers use the default
+ * Chrome/macOS wreq profile; providers that must match a specific browser
+ * fingerprint (e.g. MaxAI expects a Windows Firefox-150 client) override it here.
+ * Returns undefined to keep the tlsClient default (chrome_124 / macos).
+ */
+const TLS_PROVIDER_PROFILE: Record<string, { browser: string; os: string }> = {
+  maxai: { browser: "firefox_150", os: "windows" },
+};
+
+function tlsProfileForProvider(
+  provider: string | null | undefined
+): { browserProfile?: string; os?: string } {
+  if (!provider) return {};
+  const p = TLS_PROVIDER_PROFILE[provider.trim().toLowerCase()];
+  return p ? { browserProfile: p.browser, os: p.os } : {};
+}
+
 type TlsClientLike = {
   available: boolean;
   fetch: (url: string, options?: TlsFetchOptions) => Promise<Response>;
@@ -710,6 +728,16 @@ export function runWithDirectFetchContext<T>(fn: () => T): T {
 }
 
 /**
+ * True when the caller already runs inside an explicit proxy context — i.e. an
+ * outer runWithProxyContext(proxyConfig, ...) pinned a proxy for this async
+ * scope. False for an empty store and for the direct sentinel.
+ */
+export function hasAmbientProxyContext(): boolean {
+  const store = proxyContext.getStore();
+  return Boolean(store) && store !== DIRECT_PROXY_CONTEXT;
+}
+
+/**
  * Like {@link runWithProxyContext}, but if the assigned proxy is unreachable or fails
  * its pre-checks the request can degrade to a DIRECT connection instead of throwing.
  *
@@ -776,6 +804,7 @@ async function patchedFetch(
           signal: getEffectiveSignal(input, options),
           proxy: null,
           sessionScope: tlsStore?.sessionScope,
+          ...tlsProfileForProvider(tlsStore?.provider),
         });
         if (tlsStore) tlsStore.used = true;
         return response;
@@ -1068,6 +1097,7 @@ async function patchedFetch(
         signal: getEffectiveSignal(input, options),
         proxy: proxyUrl,
         sessionScope: tlsStore?.sessionScope,
+        ...tlsProfileForProvider(tlsStore?.provider),
       });
       if (tlsStore) tlsStore.used = true;
       return response;

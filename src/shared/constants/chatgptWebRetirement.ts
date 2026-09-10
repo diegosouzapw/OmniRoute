@@ -1,7 +1,4 @@
-export const RETIRED_COMMON_CHATGPT_WEB_PROVIDER_IDS: ReadonlySet<string> = new Set([
-  "chatgpt-web",
-  "cgpt-web",
-]);
+export const RETIRED_COMMON_CHATGPT_WEB_PROVIDER_IDS: ReadonlySet<string> = new Set(["cgpt-web"]);
 
 export const CHATGPT_WEB_RETIRED_ERROR_CODE = "PROVIDER_RETIRED";
 export const CHATGPT_WEB_RETIRED_MESSAGE = "Provider is retired and unavailable.";

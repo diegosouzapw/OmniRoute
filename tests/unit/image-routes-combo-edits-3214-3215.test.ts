@@ -188,11 +188,11 @@ test("resolveImageRouteModel keeps codex bare aliases over same-name combos", as
   assert.equal(await resolveImageRouteModel("gpt-5.6-sol"), "gpt-5.6-sol");
 });
 
-test("resolveImageRouteModel rejects retired common ChatGPT Web ids before prefix remapping", async () => {
-  await assert.rejects(resolveImageRouteModel("chatgpt-web/gpt-5.5"), {
-    code: "PROVIDER_RETIRED",
-    status: 410,
-  });
+test("resolveImageRouteModel preserves clean-room ChatGPT Web and rejects its retired alias", async () => {
+  assert.equal(
+    await resolveImageRouteModel("chatgpt-web/gpt-5-5-thinking"),
+    "chatgpt-web/gpt-5-5-thinking"
+  );
   await assert.rejects(resolveImageRouteModel("cgpt-web/gpt-5.5"), {
     code: "PROVIDER_RETIRED",
     status: 410,

@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # API 参考
 
-🌐 **Languages:** 🇺🇸 [English](../API_REFERENCE.md) | 🇧🇷 [Português (Brasil)](../../pt-BR/docs/reference/API_REFERENCE.md) | 🇪🇸 [Español](../../es/docs/reference/API_REFERENCE.md) | 🇫🇷 [Français](../../fr/docs/reference/API_REFERENCE.md) | 🇮🇹 [Italiano](../../it/docs/reference/API_REFERENCE.md) | 🇷🇺 [Русский](../../ru/docs/reference/API_REFERENCE.md) | 🇨🇳 [中文 (简体)](../../zh-CN/docs/reference/API_REFERENCE.md) | 🇩🇪 [Deutsch](../../de/docs/reference/API_REFERENCE.md) | 🇮🇳 [हिन्दी](../../in/docs/reference/API_REFERENCE.md) | 🇹🇭 [ไทย](../../th/docs/reference/API_REFERENCE.md) | 🇺🇦 [Українська](../../uk-UA/docs/reference/API_REFERENCE.md) | 🇸🇦 [العربية](../../ar/docs/reference/API_REFERENCE.md) | 🇯🇵 [日本語](../../ja/docs/reference/API_REFERENCE.md) | 🇻🇳 [Tiếng Việt](../../vi/docs/reference/API_REFERENCE.md) | 🇧🇬 [Български](../../bg/docs/reference/API_REFERENCE.md) | 🇩🇰 [Dansk](../../da/docs/reference/API_REFERENCE.md) | 🇫🇮 [Suomi](../../fi/docs/reference/API_REFERENCE.md) | 🇮🇱 [עברית](../../he/docs/reference/API_REFERENCE.md) | 🇭🇺 [Magyar](../../hu/docs/reference/API_REFERENCE.md) | 🇮🇩 [Bahasa Indonesia](../../id/docs/reference/API_REFERENCE.md) | 🇰🇷 [한국어](../../ko/docs/reference/API_REFERENCE.md) | 🇲🇾 [Bahasa Melayu](../../ms/docs/reference/API_REFERENCE.md) | 🇳🇱 [Nederlands](../../nl/docs/reference/API_REFERENCE.md) | 🇳🇴 [Norsk](../../no/docs/reference/API_REFERENCE.md) | 🇵🇹 [Português (Portugal)](../../pt/docs/reference/API_REFERENCE.md) | 🇷🇴 [Română](../../ro/docs/reference/API_REFERENCE.md) | 🇵🇱 [Polski](../../pl/docs/reference/API_REFERENCE.md) | 🇸🇰 [Slovenčina](../../sk/docs/reference/API_REFERENCE.md) | 🇸🇪 [Svenska](../../sv/docs/reference/API_REFERENCE.md) | 🇵🇭 [Filipino](../../phi/docs/reference/API_REFERENCE.md) | 🇨🇿 [Čeština](../../cs/docs/reference/API_REFERENCE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
 
 OmniRoute 所有 API 端点的完整参考。
 
@@ -60,22 +60,22 @@ Content-Type: application/json
 
 ### 自定义请求头
 
-| 请求头                     | 方向   | 说明                                                                                                                            |
-| -------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-No-Cache`     | 请求   | 设为 `true` 以绕过缓存                                                                                                          |
-| `x-omniroute-no-memory`    | 请求   | 设为 `true` 以跳过本请求的记忆 + 技能注入（与 no-cache 镜像；避免每次调用的 Token/成本开销）                                     |
-| `X-OmniRoute-Progress`     | 请求   | 设为 `true` 以接收进度事件                                                                                                      |
-| `X-Session-Id`             | 请求   | 粘性会话 Key，用于外部会话绑定                                                                                                  |
-| `x_session_id`             | 请求   | 下划线变体同样接受（直接 HTTP）                                                                                                 |
-| `Idempotency-Key`          | 请求   | 去重 Key（5 秒窗口）                                                                                                            |
-| `X-Request-Id`             | 请求   | 备用去重 Key                                                                                                                    |
-| `X-OmniRoute-Cache`        | 响应   | 缓存 `HIT` 或 `MISS`（非流式）                                                                                                  |
-| `X-OmniRoute-Idempotent`   | 响应   | 去重命中时为 `true`                                                                                                             |
-| `X-OmniRoute-Progress`     | 响应   | 进度跟踪开启时为 `enabled`                                                                                                      |
-| `X-OmniRoute-Session-Id`   | 响应   | OmniRoute 使用的有效会话 ID                                                                                                     |
-| `X-OmniRoute-Request-Id`   | 响应   | 请求关联 ID（已知时）                                                                                                          |
-| `X-OmniRoute-Version`      | 响应   | OmniRoute 构建版本号（始终返回）                                                                                                 |
-| `X-OmniRoute-Cost-Saved`   | 响应   | 缓存命中时节省的 USD 金额（仅缓存命中时）                                                                                        |
+| 请求头                   | 方向 | 说明                                                                                         |
+| ------------------------ | ---- | -------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-No-Cache`   | 请求 | 设为 `true` 以绕过缓存                                                                       |
+| `x-omniroute-no-memory`  | 请求 | 设为 `true` 以跳过本请求的记忆 + 技能注入（与 no-cache 镜像；避免每次调用的 Token/成本开销） |
+| `X-OmniRoute-Progress`   | 请求 | 设为 `true` 以接收进度事件                                                                   |
+| `X-Session-Id`           | 请求 | 粘性会话 Key，用于外部会话绑定                                                               |
+| `x_session_id`           | 请求 | 下划线变体同样接受（直接 HTTP）                                                              |
+| `Idempotency-Key`        | 请求 | 去重 Key（5 秒窗口）                                                                         |
+| `X-Request-Id`           | 请求 | 备用去重 Key                                                                                 |
+| `X-OmniRoute-Cache`      | 响应 | 缓存 `HIT` 或 `MISS`（非流式）                                                               |
+| `X-OmniRoute-Idempotent` | 响应 | 去重命中时为 `true`                                                                          |
+| `X-OmniRoute-Progress`   | 响应 | 进度跟踪开启时为 `enabled`                                                                   |
+| `X-OmniRoute-Session-Id` | 响应 | OmniRoute 使用的有效会话 ID                                                                  |
+| `X-OmniRoute-Request-Id` | 响应 | 请求关联 ID（已知时）                                                                        |
+| `X-OmniRoute-Version`    | 响应 | OmniRoute 构建版本号（始终返回）                                                             |
+| `X-OmniRoute-Cost-Saved` | 响应 | 缓存命中时节省的 USD 金额（仅缓存命中时）                                                    |
 
 > Nginx 提示：如果依赖下划线请求头（如 `x_session_id`），请启用 `underscores_in_headers on;`。
 
@@ -179,31 +179,31 @@ claude-3-omniroute-no-thinking/<provider>/<model>
 
 ## 兼容性端点
 
-| 方法  | 路径                                        | 格式                             |
-| ----- | ------------------------------------------- | -------------------------------- |
-| POST  | `/v1/chat/completions`                      | OpenAI                           |
-| POST  | `/v1/messages`                              | Anthropic                        |
-| POST  | `/v1/responses`                             | OpenAI Responses                 |
-| POST  | `/v1/embeddings`                            | OpenAI                           |
-| POST  | `/v1/images/generations`                    | OpenAI Images                    |
-| POST  | `/v1/images/edits`                          | OpenAI Images (编辑/修补)        |
-| POST  | `/v1/videos/generations`                    | OpenAI 风格视频生成               |
-| POST  | `/v1/music/generations`                     | OpenAI 风格音乐生成               |
-| POST  | `/v1/audio/transcriptions`                  | OpenAI Audio (STT)               |
-| POST  | `/v1/audio/speech`                          | OpenAI TTS (返回音频内容)         |
-| POST  | `/v1/rerank`                                | Cohere/Voyage 风格重排序          |
-| POST  | `/v1/moderations`                           | OpenAI Moderations               |
-| GET   | `/v1/models`                                | OpenAI                           |
-| POST  | `/v1/messages/count_tokens`                 | Anthropic                        |
-| GET   | `/v1beta/models`                            | Gemini                           |
-| POST  | `/v1beta/models/{...path}`                  | Gemini generateContent           |
-| POST  | `/v1/api/chat`                              | Ollama                           |
-| GET   | `/api/v1/vscode/{token}/`                   | OpenAI 目录别名                   |
-| GET   | `/api/v1/vscode/{token}/models`             | OpenAI 模型别名                   |
-| POST  | `/api/v1/vscode/{token}/chat/completions`   | OpenAI Token 化别名               |
-| POST  | `/api/v1/vscode/{token}/responses`          | OpenAI Responses Token 化别名     |
-| POST  | `/api/v1/vscode/{token}/api/chat`           | Ollama Token 化别名               |
-| GET   | `/api/v1/vscode/{token}/api/tags`           | Ollama 标签 Token 化别名          |
+| 方法 | 路径                                      | 格式                          |
+| ---- | ----------------------------------------- | ----------------------------- |
+| POST | `/v1/chat/completions`                    | OpenAI                        |
+| POST | `/v1/messages`                            | Anthropic                     |
+| POST | `/v1/responses`                           | OpenAI Responses              |
+| POST | `/v1/embeddings`                          | OpenAI                        |
+| POST | `/v1/images/generations`                  | OpenAI Images                 |
+| POST | `/v1/images/edits`                        | OpenAI Images (编辑/修补)     |
+| POST | `/v1/videos/generations`                  | OpenAI 风格视频生成           |
+| POST | `/v1/music/generations`                   | OpenAI 风格音乐生成           |
+| POST | `/v1/audio/transcriptions`                | OpenAI Audio (STT)            |
+| POST | `/v1/audio/speech`                        | OpenAI TTS (返回音频内容)     |
+| POST | `/v1/rerank`                              | Cohere/Voyage 风格重排序      |
+| POST | `/v1/moderations`                         | OpenAI Moderations            |
+| GET  | `/v1/models`                              | OpenAI                        |
+| POST | `/v1/messages/count_tokens`               | Anthropic                     |
+| GET  | `/v1beta/models`                          | Gemini                        |
+| POST | `/v1beta/models/{...path}`                | Gemini generateContent        |
+| POST | `/v1/api/chat`                            | Ollama                        |
+| GET  | `/api/v1/vscode/{token}/`                 | OpenAI 目录别名               |
+| GET  | `/api/v1/vscode/{token}/models`           | OpenAI 模型别名               |
+| POST | `/api/v1/vscode/{token}/chat/completions` | OpenAI Token 化别名           |
+| POST | `/api/v1/vscode/{token}/responses`        | OpenAI Responses Token 化别名 |
+| POST | `/api/v1/vscode/{token}/api/chat`         | Ollama Token 化别名           |
+| GET  | `/api/v1/vscode/{token}/api/tags`         | Ollama 标签 Token 化别名      |
 
 所有 POST 路由遵循同一模式：`Bearer your-api-key` + 经 Zod 校验的 JSON 请求体（`v1RerankSchema`、`v1ModerationSchema`、`v1AudioSpeechSchema` 等，参见 `src/shared/validation/schemas.ts`）。Schema 校验失败返回 4xx。
 
@@ -243,13 +243,13 @@ POST /v1/providers/{provider}/images/generations
 
 OpenAI 兼容的文件端点，用于批量输入/输出和按用途上传文件。
 
-| 方法   | 路径                       | 说明                                                                                                     |
-| ------ | -------------------------- | -------------------------------------------------------------------------------------------------------- |
-| POST   | `/v1/files`                | 上传文件（multipart: `file`、`purpose`、`expires_after[anchor]`、`expires_after[seconds]`）— 最大 512 MiB |
-| GET    | `/v1/files`                | 列出当前认证 API Key 下的文件                                                                             |
-| GET    | `/v1/files/[id]`           | 查询文件元数据                                                                                           |
-| DELETE | `/v1/files/[id]`           | 删除文件                                                                                                 |
-| GET    | `/v1/files/[id]/content`   | 流式返回原始文件内容                                                                                     |
+| 方法   | 路径                     | 说明                                                                                                      |
+| ------ | ------------------------ | --------------------------------------------------------------------------------------------------------- |
+| POST   | `/v1/files`              | 上传文件（multipart: `file`、`purpose`、`expires_after[anchor]`、`expires_after[seconds]`）— 最大 512 MiB |
+| GET    | `/v1/files`              | 列出当前认证 API Key 下的文件                                                                             |
+| GET    | `/v1/files/[id]`         | 查询文件元数据                                                                                            |
+| DELETE | `/v1/files/[id]`         | 删除文件                                                                                                  |
+| GET    | `/v1/files/[id]/content` | 流式返回原始文件内容                                                                                      |
 
 **认证：** Bearer API Key — 文件通过 `getApiKeyRequestScope` 按 API Key 隔离。
 
@@ -259,13 +259,13 @@ OpenAI 兼容的文件端点，用于批量输入/输出和按用途上传文件
 
 OpenAI 兼容的批量处理。
 
-| 方法   | 路径                        | 说明                                                                                        |
-| ------ | --------------------------- | ------------------------------------------------------------------------------------------- |
-| POST   | `/v1/batches`               | 创建批次 — 请求体经 `v1BatchCreateSchema` 校验（`input_file_id`、`endpoint`、`completion_window`） |
-| GET    | `/v1/batches`               | 列出批次                                                                                    |
-| GET    | `/v1/batches/[id]`          | 查询批次状态 + `request_counts`                                                              |
-| DELETE | `/v1/batches/[id]`          | 删除已完成/已失败的批次                                                                      |
-| POST   | `/v1/batches/[id]/cancel`   | 取消进行中的批次                                                                            |
+| 方法   | 路径                      | 说明                                                                                               |
+| ------ | ------------------------- | -------------------------------------------------------------------------------------------------- |
+| POST   | `/v1/batches`             | 创建批次 — 请求体经 `v1BatchCreateSchema` 校验（`input_file_id`、`endpoint`、`completion_window`） |
+| GET    | `/v1/batches`             | 列出批次                                                                                           |
+| GET    | `/v1/batches/[id]`        | 查询批次状态 + `request_counts`                                                                    |
+| DELETE | `/v1/batches/[id]`        | 删除已完成/已失败的批次                                                                            |
+| POST   | `/v1/batches/[id]/cancel` | 取消进行中的批次                                                                                   |
 
 **认证：** Bearer API Key。批次按 API Key 隔离。
 
@@ -275,11 +275,11 @@ OpenAI 兼容的批量处理。
 
 Web/搜索服务商抽象层（Tavily、Brave、Exa、Serper 等）。
 
-| 方法 | 路径                     | 说明                                                                           |
-| ---- | ------------------------ | ------------------------------------------------------------------------------ |
-| GET  | `/v1/search`             | 列出已配置的搜索服务商 + 能力信息                                               |
-| POST | `/v1/search`             | 执行搜索查询 — 请求体经 `v1SearchSchema` 校验，支持缓存/合并                   |
-| GET  | `/v1/search/analytics`   | 按服务商的命中/延迟/缓存统计数据                                               |
+| 方法 | 路径                   | 说明                                                         |
+| ---- | ---------------------- | ------------------------------------------------------------ |
+| GET  | `/v1/search`           | 列出已配置的搜索服务商 + 能力信息                            |
+| POST | `/v1/search`           | 执行搜索查询 — 请求体经 `v1SearchSchema` 校验，支持缓存/合并 |
+| GET  | `/v1/search/analytics` | 按服务商的命中/延迟/缓存统计数据                             |
 
 **认证：** Bearer API Key（`extractApiKey` + `isValidApiKey`）。搜索策略通过 `enforceApiKeyPolicy` 强制执行。
 
@@ -341,10 +341,10 @@ CLI 将 `base_url + /responses` 升级为 WebSocket，OmniRoute 将其隧道化�
 
 ## 配额与问题报告
 
-| 方法 | 路径                  | 说明                                                                          |
-| ---- | --------------------- | ----------------------------------------------------------------------------- |
-| GET  | `/v1/quotas/check`    | 在发放注册 Key 之前预先校验指定 `provider` + `accountId` 的配额               |
-| POST | `/v1/issues/report`   | 向 GitHub 报告配额/Key 发放失败（需要 `GITHUB_ISSUES_REPO` + Token）           |
+| 方法 | 路径                | 说明                                                                 |
+| ---- | ------------------- | -------------------------------------------------------------------- |
+| GET  | `/v1/quotas/check`  | 在发放注册 Key 之前预先校验指定 `provider` + `accountId` 的配额      |
+| POST | `/v1/issues/report` | 向 GitHub 报告配额/Key 发放失败（需要 `GITHUB_ISSUES_REPO` + Token） |
 
 **认证：** Bearer API Key（`isAuthenticated`）。
 
@@ -383,188 +383,188 @@ DELETE /api/cache/stats
 
 ### 认证
 
-| 端点                            | 方法    | 说明               |
-| ------------------------------- | ------- | ------------------ |
-| `/api/auth/login`               | POST    | 登录               |
-| `/api/auth/logout`              | POST    | 登出               |
-| `/api/settings/require-login`   | GET/PUT | 切换登录要求       |
+| 端点                          | 方法    | 说明         |
+| ----------------------------- | ------- | ------------ |
+| `/api/auth/login`             | POST    | 登录         |
+| `/api/auth/logout`            | POST    | 登出         |
+| `/api/settings/require-login` | GET/PUT | 切换登录要求 |
 
 ### 服务商管理
 
-| 端点                         | 方法                  | 说明                                 |
-| ---------------------------- | --------------------- | ------------------------------------ |
-| `/api/providers`             | GET/POST              | 列出 / 创建服务商                    |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | 管理服务商                           |
-| `/api/providers/[id]/test`   | POST                  | 测试服务商连接                       |
-| `/api/providers/[id]/models` | GET                   | 列出服务商模型                       |
-| `/api/providers/validate`    | POST                  | 校验服务商配置                       |
-| `/api/provider-nodes*`       | Various               | 服务商节点管理                       |
+| 端点                         | 方法                  | 说明                                      |
+| ---------------------------- | --------------------- | ----------------------------------------- |
+| `/api/providers`             | GET/POST              | 列出 / 创建服务商                         |
+| `/api/providers/[id]`        | GET/PUT/DELETE        | 管理服务商                                |
+| `/api/providers/[id]/test`   | POST                  | 测试服务商连接                            |
+| `/api/providers/[id]/models` | GET                   | 列出服务商模型                            |
+| `/api/providers/validate`    | POST                  | 校验服务商配置                            |
+| `/api/provider-nodes*`       | Various               | 服务商节点管理                            |
 | `/api/provider-models`       | GET/POST/PATCH/DELETE | 自定义模型（添加、更新、隐藏/显示、删除） |
 
 ### OAuth 流程
 
-| 端点                               | 方法    | 说明                   |
-| ---------------------------------- | ------- | ---------------------- |
-| `/api/oauth/[provider]/[action]`   | Various | 服务商特定的 OAuth      |
+| 端点                             | 方法    | 说明               |
+| -------------------------------- | ------- | ------------------ |
+| `/api/oauth/[provider]/[action]` | Various | 服务商特定的 OAuth |
 
 ### 路由与配置
 
-| 端点                | 方法      | 说明                             |
-| ------------------- | --------- | -------------------------------- |
-| `/api/models/alias` | GET/POST  | 模型别名                         |
-| `/api/models/catalog` | GET     | 按服务商+类型列出所有模型         |
-| `/api/combos*`      | Various   | Combo 管理                       |
-| `/api/keys*`        | Various   | API Key 管理                     |
-| `/api/pricing`      | GET       | 模型定价                         |
+| 端点                  | 方法     | 说明                      |
+| --------------------- | -------- | ------------------------- |
+| `/api/models/alias`   | GET/POST | 模型别名                  |
+| `/api/models/catalog` | GET      | 按服务商+类型列出所有模型 |
+| `/api/combos*`        | Various  | Combo 管理                |
+| `/api/keys*`          | Various  | API Key 管理              |
+| `/api/pricing`        | GET      | 模型定价                  |
 
 ### 用量与分析
 
-| 端点                        | 方法            | 说明                             |
-| --------------------------- | --------------- | -------------------------------- |
-| `/api/usage/history`        | GET             | 用量历史                         |
-| `/api/usage/logs`           | GET             | 用量日志                         |
-| `/api/usage/request-logs`   | GET             | 请求级日志                       |
-| `/api/usage/[connectionId]` | GET             | 按连接的用量                     |
-| `/api/usage/token-limits`   | GET/POST/DELETE | 按 API Key 的 Token 额度预算      |
+| 端点                        | 方法            | 说明                         |
+| --------------------------- | --------------- | ---------------------------- |
+| `/api/usage/history`        | GET             | 用量历史                     |
+| `/api/usage/logs`           | GET             | 用量日志                     |
+| `/api/usage/request-logs`   | GET             | 请求级日志                   |
+| `/api/usage/[connectionId]` | GET             | 按连接的用量                 |
+| `/api/usage/token-limits`   | GET/POST/DELETE | 按 API Key 的 Token 额度预算 |
 
 ### 设置
 
-| 端点                                  | 方法          | 说明                                   |
-| ------------------------------------- | ------------- | -------------------------------------- |
-| `/api/settings`                       | GET/PUT/PATCH | 通用设置                               |
-| `/api/settings/proxy`                 | GET/PUT       | 网络代理配置                           |
-| `/api/settings/proxy/test`            | POST          | 测试代理连接                           |
-| `/api/settings/ip-filter`             | GET/PUT       | IP 允许/阻止列表                       |
-| `/api/settings/thinking-budget`       | GET/PUT       | 推理 Token 预算                         |
-| `/api/settings/system-prompt`         | GET/PUT       | 全局系统提示                           |
-| `/api/settings/compression`           | GET/PUT       | 全局压缩配置                           |
-| `/api/settings/purge-request-history` | POST          | 清除请求日志行及本地调用日志产物        |
+| 端点                                  | 方法          | 说明                             |
+| ------------------------------------- | ------------- | -------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | 通用设置                         |
+| `/api/settings/proxy`                 | GET/PUT       | 网络代理配置                     |
+| `/api/settings/proxy/test`            | POST          | 测试代理连接                     |
+| `/api/settings/ip-filter`             | GET/PUT       | IP 允许/阻止列表                 |
+| `/api/settings/thinking-budget`       | GET/PUT       | 推理 Token 预算                  |
+| `/api/settings/system-prompt`         | GET/PUT       | 全局系统提示                     |
+| `/api/settings/compression`           | GET/PUT       | 全局压缩配置                     |
+| `/api/settings/purge-request-history` | POST          | 清除请求日志行及本地调用日志产物 |
 
 ### 上下文与压缩
 
-| 端点                                     | 方法           | 说明                                                                    |
-| ---------------------------------------- | -------------- | ----------------------------------------------------------------------- |
-| `/api/compression/preview`               | POST           | 预览 off/lite/standard/aggressive/ultra/RTK/stacked 压缩效果              |
-| `/api/compression/language-packs`        | GET            | 列出可用的 Caveman 语言包                                                |
-| `/api/compression/rules`                 | GET            | 列出 Caveman 规则元数据                                                  |
-| `/api/context/caveman/config`            | GET/PUT        | Caveman 特定设置别名                                                     |
-| `/api/context/rtk/config`                | GET/PUT        | RTK 特定设置，包括自定义过滤器和原始输出保留                            |
-| `/api/context/rtk/filters`               | GET            | RTK 过滤器目录和自定义过滤器诊断                                         |
-| `/api/context/rtk/test`                  | POST           | 对文本载荷运行 RTK 预览/测试                                            |
-| `/api/context/rtk/raw-output/[id]`       | GET            | 按指针 id 读取保存的脱敏原始输出                                        |
-| `/api/context/combos`                    | GET/POST       | 压缩 Combo 列表/创建                                                    |
-| `/api/context/combos/[id]`               | GET/PUT/DELETE | 压缩 Combo 详情/更新/删除                                               |
-| `/api/context/combos/[id]/assignments`   | GET/PUT        | 将压缩 Combo 分配给路由 Combo                                           |
-| `/api/context/analytics`                 | GET            | 压缩分析别名                                                            |
+| 端点                                   | 方法           | 说明                                                         |
+| -------------------------------------- | -------------- | ------------------------------------------------------------ |
+| `/api/compression/preview`             | POST           | 预览 off/lite/standard/aggressive/ultra/RTK/stacked 压缩效果 |
+| `/api/compression/language-packs`      | GET            | 列出可用的 Caveman 语言包                                    |
+| `/api/compression/rules`               | GET            | 列出 Caveman 规则元数据                                      |
+| `/api/context/caveman/config`          | GET/PUT        | Caveman 特定设置别名                                         |
+| `/api/context/rtk/config`              | GET/PUT        | RTK 特定设置，包括自定义过滤器和原始输出保留                 |
+| `/api/context/rtk/filters`             | GET            | RTK 过滤器目录和自定义过滤器诊断                             |
+| `/api/context/rtk/test`                | POST           | 对文本载荷运行 RTK 预览/测试                                 |
+| `/api/context/rtk/raw-output/[id]`     | GET            | 按指针 id 读取保存的脱敏原始输出                             |
+| `/api/context/combos`                  | GET/POST       | 压缩 Combo 列表/创建                                         |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | 压缩 Combo 详情/更新/删除                                    |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | 将压缩 Combo 分配给路由 Combo                                |
+| `/api/context/analytics`               | GET            | 压缩分析别名                                                 |
 
 ### 监控
 
-| 端点                       | 方法       | 说明                                                                                                     |
-| -------------------------- | ---------- | -------------------------------------------------------------------------------------------------------- |
-| `/api/sessions`            | GET        | 活跃会话跟踪                                                                                             |
-| `/api/rate-limits`         | GET        | 按账户的速率限制                                                                                         |
-| `/api/monitoring/health`   | GET        | 健康检查 + 服务商摘要（`catalogCount`、`configuredCount`、`activeCount`、`monitoredCount`）                |
-| `/api/cache/stats`         | GET/DELETE | 缓存统计 / 清空                                                                                          |
+| 端点                     | 方法       | 说明                                                                                        |
+| ------------------------ | ---------- | ------------------------------------------------------------------------------------------- |
+| `/api/sessions`          | GET        | 活跃会话跟踪                                                                                |
+| `/api/rate-limits`       | GET        | 按账户的速率限制                                                                            |
+| `/api/monitoring/health` | GET        | 健康检查 + 服务商摘要（`catalogCount`、`configuredCount`、`activeCount`、`monitoredCount`） |
+| `/api/cache/stats`       | GET/DELETE | 缓存统计 / 清空                                                                             |
 
 ### 备份与导出/导入
 
-| 端点                          | 方法 | 说明                                   |
-| ----------------------------- | ---- | -------------------------------------- |
-| `/api/db-backups`             | GET  | 列出可用的备份                         |
-| `/api/db-backups`             | PUT  | 创建手动备份                           |
-| `/api/db-backups`             | POST | 从指定备份恢复                         |
-| `/api/db-backups/export`      | GET  | 下载数据库 .sqlite 文件                |
-| `/api/db-backups/import`      | POST | 上传 .sqlite 文件替换数据库            |
-| `/api/db-backups/exportAll`   | GET  | 下载完整备份 .tar.gz 归档              |
+| 端点                        | 方法 | 说明                        |
+| --------------------------- | ---- | --------------------------- |
+| `/api/db-backups`           | GET  | 列出可用的备份              |
+| `/api/db-backups`           | PUT  | 创建手动备份                |
+| `/api/db-backups`           | POST | 从指定备份恢复              |
+| `/api/db-backups/export`    | GET  | 下载数据库 .sqlite 文件     |
+| `/api/db-backups/import`    | POST | 上传 .sqlite 文件替换数据库 |
+| `/api/db-backups/exportAll` | GET  | 下载完整备份 .tar.gz 归档   |
 
 ### 云同步
 
-| 端点                   | 方法    | 说明               |
-| ---------------------- | ------- | ------------------ |
-| `/api/sync/cloud`      | Various | 云同步操作         |
-| `/api/sync/initialize` | POST    | 初始化同步         |
-| `/api/cloud/*`         | Various | 云管理             |
+| 端点                   | 方法    | 说明       |
+| ---------------------- | ------- | ---------- |
+| `/api/sync/cloud`      | Various | 云同步操作 |
+| `/api/sync/initialize` | POST    | 初始化同步 |
+| `/api/cloud/*`         | Various | 云管理     |
 
 ### 隧道
 
-| 端点                         | 方法 | 说明                                                       |
-| ---------------------------- | ---- | ---------------------------------------------------------- |
-| `/api/tunnels/cloudflared`   | GET  | 读取 Cloudflare Quick Tunnel 安装/运行状态（供 dashboard）   |
-| `/api/tunnels/cloudflared`   | POST | 启用或禁用 Cloudflare Quick Tunnel（`action=enable/disable`）|
-| `/api/tunnels/ngrok`         | GET  | 读取 ngrok Tunnel 运行状态（供 dashboard）                  |
-| `/api/tunnels/ngrok`         | POST | 启用或禁用 ngrok Tunnel（`action=enable/disable`）           |
+| 端点                       | 方法 | 说明                                                          |
+| -------------------------- | ---- | ------------------------------------------------------------- |
+| `/api/tunnels/cloudflared` | GET  | 读取 Cloudflare Quick Tunnel 安装/运行状态（供 dashboard）    |
+| `/api/tunnels/cloudflared` | POST | 启用或禁用 Cloudflare Quick Tunnel（`action=enable/disable`） |
+| `/api/tunnels/ngrok`       | GET  | 读取 ngrok Tunnel 运行状态（供 dashboard）                    |
+| `/api/tunnels/ngrok`       | POST | 启用或禁用 ngrok Tunnel（`action=enable/disable`）            |
 
 ### CLI 工具
 
-| 端点                                 | 方法 | 说明                |
-| ------------------------------------ | ---- | ------------------- |
-| `/api/cli-tools/claude-settings`     | GET  | Claude CLI 状态     |
-| `/api/cli-tools/codex-settings`      | GET  | Codex CLI 状态      |
-| `/api/cli-tools/droid-settings`      | GET  | Droid CLI 状态      |
-| `/api/cli-tools/openclaw-settings`   | GET  | OpenClaw CLI 状态   |
-| `/api/cli-tools/runtime/[toolId]`    | GET  | 通用 CLI 运行状态   |
+| 端点                               | 方法 | 说明              |
+| ---------------------------------- | ---- | ----------------- |
+| `/api/cli-tools/claude-settings`   | GET  | Claude CLI 状态   |
+| `/api/cli-tools/codex-settings`    | GET  | Codex CLI 状态    |
+| `/api/cli-tools/droid-settings`    | GET  | Droid CLI 状态    |
+| `/api/cli-tools/openclaw-settings` | GET  | OpenClaw CLI 状态 |
+| `/api/cli-tools/runtime/[toolId]`  | GET  | 通用 CLI 运行状态 |
 
 CLI 响应包括：`installed`、`runnable`、`command`、`commandPath`、`runtimeMode`、`reason`。
 
 ### ACP Agents
 
-| 端点              | 方法   | 说明                                                           |
-| ----------------- | ------ | -------------------------------------------------------------- |
-| `/api/acp/agents` | GET    | 列出所有检测到的代理（内置 + 自定义）及其状态                   |
-| `/api/acp/agents` | POST   | 添加自定义代理或刷新检测缓存                                   |
-| `/api/acp/agents` | DELETE | 按 `id` 查询参数删除自定义代理                                  |
+| 端点              | 方法   | 说明                                          |
+| ----------------- | ------ | --------------------------------------------- |
+| `/api/acp/agents` | GET    | 列出所有检测到的代理（内置 + 自定义）及其状态 |
+| `/api/acp/agents` | POST   | 添加自定义代理或刷新检测缓存                  |
+| `/api/acp/agents` | DELETE | 按 `id` 查询参数删除自定义代理                |
 
 GET 响应包含 `agents[]`（id、name、binary、version、installed、protocol、isCustom）和 `summary`（total、installed、notFound、builtIn、custom）。
 
 ### 容灾与速率限制
 
-| 端点                                | 方法      | 说明                                                                                 |
-| ----------------------------------- | --------- | ------------------------------------------------------------------------------------ |
-| `/api/resilience`                   | GET/PATCH | 获取/更新请求队列、连接冷却、服务商熔断器及等待设置                                  |
-| `/api/resilience/reset`             | POST      | 重置服务商熔断器                                                                     |
-| `/api/resilience/model-cooldowns`   | GET       | 列出活跃的按(服务商, 连接, 模型)锁定的状态，按剩余时间排序                             |
-| `/api/resilience/model-cooldowns`   | DELETE    | 清除模型锁定 — 请求体 `{provider, model}` 或 `{all: true}` 以清除全部                  |
-| `/api/rate-limits`                  | GET       | 按账户的速率限制状态                                                                 |
-| `/api/rate-limit`                   | GET       | 全局速率限制配置                                                                     |
+| 端点                              | 方法      | 说明                                                                  |
+| --------------------------------- | --------- | --------------------------------------------------------------------- |
+| `/api/resilience`                 | GET/PATCH | 获取/更新请求队列、连接冷却、服务商熔断器及等待设置                   |
+| `/api/resilience/reset`           | POST      | 重置服务商熔断器                                                      |
+| `/api/resilience/model-cooldowns` | GET       | 列出活跃的按(服务商, 连接, 模型)锁定的状态，按剩余时间排序            |
+| `/api/resilience/model-cooldowns` | DELETE    | 清除模型锁定 — 请求体 `{provider, model}` 或 `{all: true}` 以清除全部 |
+| `/api/rate-limits`                | GET       | 按账户的速率限制状态                                                  |
+| `/api/rate-limit`                 | GET       | 全局速率限制配置                                                      |
 
 > 所有四个 `/api/resilience/*` 路由都需要**管理认证**（`requireManagementAuth`）。关于服务商熔断器 vs 连接冷却 vs 模型锁定的完整说明，参阅 [容灾（扩展）](#容灾扩展)。
 
 ### Evals
 
-| 端点         | 方法      | 说明                             |
-| ------------ | --------- | -------------------------------- |
-| `/api/evals` | GET/POST  | 列出评估套件 / 运行评估           |
+| 端点         | 方法     | 说明                    |
+| ------------ | -------- | ----------------------- |
+| `/api/evals` | GET/POST | 列出评估套件 / 运行评估 |
 
 ### Policies
 
-| 端点            | 方法            | 说明                 |
-| --------------- | --------------- | -------------------- |
-| `/api/policies` | GET/POST/DELETE | 管理路由策略         |
+| 端点            | 方法            | 说明         |
+| --------------- | --------------- | ------------ |
+| `/api/policies` | GET/POST/DELETE | 管理路由策略 |
 
 ### Compliance
 
-| 端点                          | 方法 | 说明                       |
-| ----------------------------- | ---- | -------------------------- |
-| `/api/compliance/audit-log`   | GET  | 合规审计日志（最近 N 条）   |
+| 端点                        | 方法 | 说明                      |
+| --------------------------- | ---- | ------------------------- |
+| `/api/compliance/audit-log` | GET  | 合规审计日志（最近 N 条） |
 
 ### v1beta（Gemini 兼容）
 
-| 端点                         | 方法 | 说明                             |
-| ---------------------------- | ---- | -------------------------------- |
-| `/v1beta/models`             | GET  | 以 Gemini 格式列出模型            |
-| `/v1beta/models/{...path}`   | POST | Gemini `generateContent` 端点     |
+| 端点                       | 方法 | 说明                          |
+| -------------------------- | ---- | ----------------------------- |
+| `/v1beta/models`           | GET  | 以 Gemini 格式列出模型        |
+| `/v1beta/models/{...path}` | POST | Gemini `generateContent` 端点 |
 
 这些端点镜像 Gemini 的 API 格式，供期望原生 Gemini SDK 兼容的客户端使用。
 
 ### 内部 / 系统 API
 
-| 端点                       | 方法 | 说明                                                   |
-| -------------------------- | ---- | ------------------------------------------------------ |
-| `/api/init`                | GET  | 应用初始化检查（用于首次运行）                          |
-| `/api/tags`                | GET  | Ollama 兼容的模型标签（供 Ollama 客户端）              |
-| `/api/restart`             | POST | 触发优雅重启                                           |
-| `/api/shutdown`            | POST | 触发优雅关闭                                           |
-| `/api/system/env/repair`   | POST | 修复 OAuth 服务商环境变量                               |
+| 端点                     | 方法 | 说明                                      |
+| ------------------------ | ---- | ----------------------------------------- |
+| `/api/init`              | GET  | 应用初始化检查（用于首次运行）            |
+| `/api/tags`              | GET  | Ollama 兼容的模型标签（供 Ollama 客户端） |
+| `/api/restart`           | POST | 触发优雅重启                              |
+| `/api/shutdown`          | POST | 触发优雅关闭                              |
+| `/api/system/env/repair` | POST | 修复 OAuth 服务商环境变量                 |
 
 > **注意：** 这些端点供系统内部使用或 Ollama 客户端兼容，终端用户通常无需调用。
 
@@ -766,13 +766,13 @@ DELETE /api/usage/token-limits?id=tl-abc
 
 更高层的路由 Combo（已在 `/api/combos*` 下概述）也可以从模型 id 模式进行 1:1 映射，从而将 OpenAI 风格的模型 id 透明重定向到 Combo。
 
-| 方法   | 路径                               | 说明                                                                         |
-| ------ | ---------------------------------- | ---------------------------------------------------------------------------- |
-| GET    | `/api/model-combo-mappings`        | 列出所有模型→Combo 映射                                                       |
-| POST   | `/api/model-combo-mappings`        | 创建映射 — 请求体：`{pattern, comboId, priority?, enabled?, description?}`    |
-| GET    | `/api/model-combo-mappings/[id]`   | 查询单个映射                                                                 |
-| PUT    | `/api/model-combo-mappings/[id]`   | 更新已有映射的字段                                                            |
-| DELETE | `/api/model-combo-mappings/[id]`   | 删除映射                                                                     |
+| 方法   | 路径                             | 说明                                                                       |
+| ------ | -------------------------------- | -------------------------------------------------------------------------- |
+| GET    | `/api/model-combo-mappings`      | 列出所有模型→Combo 映射                                                    |
+| POST   | `/api/model-combo-mappings`      | 创建映射 — 请求体：`{pattern, comboId, priority?, enabled?, description?}` |
+| GET    | `/api/model-combo-mappings/[id]` | 查询单个映射                                                               |
+| PUT    | `/api/model-combo-mappings/[id]` | 更新已有映射的字段                                                         |
+| DELETE | `/api/model-combo-mappings/[id]` | 删除映射                                                                   |
 
 **认证：** 管理会话/API Key（`requireManagementAuth`）。
 
@@ -782,14 +782,14 @@ DELETE /api/usage/token-limits?id=tl-abc
 
 OmniRoute 事件（请求完成、配额耗尽、Key 轮换等）的出站 Webhook 订阅。
 
-| 方法   | 路径                        | 说明                                                          |
-| ------ | --------------------------- | ------------------------------------------------------------- |
-| GET    | `/api/webhooks`             | 列出 Webhook（secret 脱敏显示为 `<prefix>...`）               |
-| POST   | `/api/webhooks`             | 创建 Webhook — 请求体：`{url, events?: ["*"], secret?, description?}` |
-| GET    | `/api/webhooks/[id]`        | 查询 Webhook                                                  |
-| PUT    | `/api/webhooks/[id]`        | 更新 url/events/secret/description                           |
-| DELETE | `/api/webhooks/[id]`        | 删除 Webhook                                                  |
-| POST   | `/api/webhooks/[id]/test`   | 向 Webhook URL 发送测试载荷并返回投递状态                     |
+| 方法   | 路径                      | 说明                                                                  |
+| ------ | ------------------------- | --------------------------------------------------------------------- |
+| GET    | `/api/webhooks`           | 列出 Webhook（secret 脱敏显示为 `<prefix>...`）                       |
+| POST   | `/api/webhooks`           | 创建 Webhook — 请求体：`{url, events?: ["*"], secret?, description?}` |
+| GET    | `/api/webhooks/[id]`      | 查询 Webhook                                                          |
+| PUT    | `/api/webhooks/[id]`      | 更新 url/events/secret/description                                    |
+| DELETE | `/api/webhooks/[id]`      | 删除 Webhook                                                          |
+| POST   | `/api/webhooks/[id]/test` | 向 Webhook URL 发送测试载荷并返回投递状态                             |
 
 **认证：** 管理会话/API Key（`requireManagementAuth`）。
 
@@ -799,13 +799,13 @@ OmniRoute 事件（请求完成、配额耗尽、Key 轮换等）的出站 Webho
 
 由自动 Key 管理子系统使用，用于向支持的服务商/账户发放和轮换 API Key，并设有每日/每小时配额。
 
-| 方法   | 路径                                    | 说明                                                                                                                                                 |
-| ------ | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/v1/registered-keys`               | 列出注册 Key（仅显示脱敏前缀）                                                                                                                        |
-| POST   | `/api/v1/registered-keys`               | 发放新的注册 Key — 请求体：`{name, provider?, accountId?, idempotencyKey?, expiresAt?, dailyBudget?, hourlyBudget?}`。**仅返回一次**原始 Key。配额拒绝时返回 `429`。 |
-| GET    | `/api/v1/registered-keys/[id]`          | 查询注册 Key 的元数据（不含原始密钥）                                                                                                                 |
-| DELETE | `/api/v1/registered-keys/[id]`          | 吊销注册 Key                                                                                                                                         |
-| POST   | `/api/v1/registered-keys/[id]/revoke`   | 显式吊销端点（与 DELETE 效果相同）                                                                                                                    |
+| 方法   | 路径                                  | 说明                                                                                                                                                                 |
+| ------ | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/v1/registered-keys`             | 列出注册 Key（仅显示脱敏前缀）                                                                                                                                       |
+| POST   | `/api/v1/registered-keys`             | 发放新的注册 Key — 请求体：`{name, provider?, accountId?, idempotencyKey?, expiresAt?, dailyBudget?, hourlyBudget?}`。**仅返回一次**原始 Key。配额拒绝时返回 `429`。 |
+| GET    | `/api/v1/registered-keys/[id]`        | 查询注册 Key 的元数据（不含原始密钥）                                                                                                                                |
+| DELETE | `/api/v1/registered-keys/[id]`        | 吊销注册 Key                                                                                                                                                         |
+| POST   | `/api/v1/registered-keys/[id]/revoke` | 显式吊销端点（与 DELETE 效果相同）                                                                                                                                   |
 
 **认证：** Bearer API Key（`isAuthenticated`）。另见 `/v1/quotas/check` 和 `/v1/issues/report`。
 
@@ -815,14 +815,14 @@ OmniRoute 事件（请求完成、配额耗尽、Key 轮换等）的出站 Webho
 
 Cloud Agent 任务（Claude Code、Codex Cloud、OpenHands 等）代表 OmniRoute 用户远程执行。
 
-| 方法   | 路径                            | 说明                                                                                                                                 |
-| ------ | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| GET    | `/api/v1/agents/tasks`          | 列出任务 — 可选 `?provider=`、`?status=`、`?limit=`（1–500，默认 50）                                                                  |
-| POST   | `/api/v1/agents/tasks`          | 创建任务 — 请求体经 `CreateCloudAgentTaskSchema` 校验（`providerId`、`prompt`、`source`、`options?`）。返回 `201` 和任务信封               |
-| DELETE | `/api/v1/agents/tasks?id=...`   | 删除任务                                                                                                                            |
-| GET    | `/api/v1/agents/tasks/[id]`     | 读取任务 — 当 `external_id` 已设置时，同步刷新来自上游云代理的状态                                                                     |
-| POST   | `/api/v1/agents/tasks/[id]`     | 区分动作：`{action: "approve"}`、`{action: "message", message}` 或 `{action: "cancel"}`                                               |
-| DELETE | `/api/v1/agents/tasks/[id]`     | 按 id 删除特定任务                                                                                                                   |
+| 方法   | 路径                          | 说明                                                                                                                         |
+| ------ | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/v1/agents/tasks`        | 列出任务 — 可选 `?provider=`、`?status=`、`?limit=`（1–500，默认 50）                                                        |
+| POST   | `/api/v1/agents/tasks`        | 创建任务 — 请求体经 `CreateCloudAgentTaskSchema` 校验（`providerId`、`prompt`、`source`、`options?`）。返回 `201` 和任务信封 |
+| DELETE | `/api/v1/agents/tasks?id=...` | 删除任务                                                                                                                     |
+| GET    | `/api/v1/agents/tasks/[id]`   | 读取任务 — 当 `external_id` 已设置时，同步刷新来自上游云代理的状态                                                           |
+| POST   | `/api/v1/agents/tasks/[id]`   | 区分动作：`{action: "approve"}`、`{action: "message", message}` 或 `{action: "cancel"}`                                      |
+| DELETE | `/api/v1/agents/tasks/[id]`   | 按 id 删除特定任务                                                                                                           |
 
 > **认证：** 所有方法都需要管理认证（`requireCloudAgentManagementAuth`）。v3.8.0 之前这些端点未做认证 — 参见 commit `588a0333` 了解重大变更。
 
@@ -840,16 +840,16 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks \
 
 可分配给服务商、账户或全局的出站 HTTP(S)/SOCKS 代理。
 
-| 方法   | 路径                                           | 说明                                                                                                                                             |
-| ------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| GET    | `/api/v1/management/proxies`                   | 列出代理（加 `?id=` 返回单个；加 `?id=&where_used=1` 返回分配图）                                                                                 |
-| POST   | `/api/v1/management/proxies`                   | 创建代理 — 请求体经 `createProxyRegistrySchema` 校验                                                                                               |
-| PATCH  | `/api/v1/management/proxies`                   | 更新代理 — 请求体经 `updateProxyRegistrySchema` 校验（需要 `id`）                                                                                  |
-| DELETE | `/api/v1/management/proxies?id=...&force=1`    | 删除代理（使用 `force=1` 解除分配）                                                                                                                |
-| GET    | `/api/v1/management/proxies/assignments`       | 列出分配 — 可按 `proxy_id`、`scope`、`scope_id` 过滤；传入 `resolve_connection_id=<id>` 解析连接的活跃代理                                           |
-| PUT    | `/api/v1/management/proxies/assignments`       | 分配 — 请求体经 `proxyAssignmentSchema` 校验（`{scope, scopeId?, proxyId?}`）。清除调度器缓存                                                        |
-| PUT    | `/api/v1/management/proxies/bulk-assign`       | 批量分配 — 请求体经 `bulkProxyAssignmentSchema` 校验（`{scope, scopeIds[], proxyId?}`）                                                              |
-| GET    | `/api/v1/management/proxies/health?hours=24`   | 指定窗口内的聚合代理健康状态（成功/失败次数、延迟）                                                                                                |
+| 方法   | 路径                                         | 说明                                                                                                       |
+| ------ | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/v1/management/proxies`                 | 列出代理（加 `?id=` 返回单个；加 `?id=&where_used=1` 返回分配图）                                          |
+| POST   | `/api/v1/management/proxies`                 | 创建代理 — 请求体经 `createProxyRegistrySchema` 校验                                                       |
+| PATCH  | `/api/v1/management/proxies`                 | 更新代理 — 请求体经 `updateProxyRegistrySchema` 校验（需要 `id`）                                          |
+| DELETE | `/api/v1/management/proxies?id=...&force=1`  | 删除代理（使用 `force=1` 解除分配）                                                                        |
+| GET    | `/api/v1/management/proxies/assignments`     | 列出分配 — 可按 `proxy_id`、`scope`、`scope_id` 过滤；传入 `resolve_connection_id=<id>` 解析连接的活跃代理 |
+| PUT    | `/api/v1/management/proxies/assignments`     | 分配 — 请求体经 `proxyAssignmentSchema` 校验（`{scope, scopeId?, proxyId?}`）。清除调度器缓存              |
+| PUT    | `/api/v1/management/proxies/bulk-assign`     | 批量分配 — 请求体经 `bulkProxyAssignmentSchema` 校验（`{scope, scopeIds[], proxyId?}`）                    |
+| GET    | `/api/v1/management/proxies/health?hours=24` | 指定窗口内的聚合代理健康状态（成功/失败次数、延迟）                                                        |
 
 **认证：** 所有路由均需管理会话/API Key（`requireManagementAuth`）。
 
@@ -861,11 +861,11 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks \
 
 OmniRoute 公开三个独立的临时故障机制；以下管理端点允许管理员读取和覆盖它们：
 
-| 范围               | 状态存储                                      | 读取                                      | 重置 / 清除                                 |
-| ------------------ | --------------------------------------------- | ----------------------------------------- | ------------------------------------------- |
-| 服务商熔断器       | `domain_circuit_breakers` + 内存               | `/api/monitoring/health`                  | `POST /api/resilience/reset`                |
-| 连接冷却           | 服务商连接的 `rateLimitedUntil`                | `/api/rate-limits`、`/api/providers/[id]` | （延迟自动恢复；通过服务商 PUT 清除）         |
-| 模型锁定           | 内存中的模型可用性注册表                       | `GET /api/resilience/model-cooldowns`     | `DELETE /api/resilience/model-cooldowns`    |
+| 范围         | 状态存储                         | 读取                                      | 重置 / 清除                              |
+| ------------ | -------------------------------- | ----------------------------------------- | ---------------------------------------- |
+| 服务商熔断器 | `domain_circuit_breakers` + 内存 | `/api/monitoring/health`                  | `POST /api/resilience/reset`             |
+| 连接冷却     | 服务商连接的 `rateLimitedUntil`  | `/api/rate-limits`、`/api/providers/[id]` | （延迟自动恢复；通过服务商 PUT 清除）    |
+| 模型锁定     | 内存中的模型可用性注册表         | `GET /api/resilience/model-cooldowns`     | `DELETE /api/resilience/model-cooldowns` |
 
 `PATCH /api/resilience` 通过 `providerBreaker.oauth` 和 `providerBreaker.apikey` 接受服务商熔断器覆盖。每种配置支持 `degradationThreshold`、`failureThreshold` 和 `resetTimeoutMs`；相同字段在 Dashboard → Settings → Resilience 中可见。
 
@@ -890,18 +890,18 @@ curl -X DELETE http://localhost:20128/api/resilience/model-cooldowns \
 
 用于通过自定义可执行处理器扩展 OmniRoute 的技能框架，以及市场集成。
 
-| 方法   | 路径                                | 说明                                                                                                                     |
-| ------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| GET    | `/api/skills`                       | 列出已安装的技能 — 可按 `?q=`、`?mode=on\|off\|auto`、`?source=skillsmp\|skillssh\|local` 过滤，支持分页                    |
-| GET    | `/api/skills/[id]`                  | 查询单个技能                                                                                                             |
-| PUT    | `/api/skills/[id]`                  | 更新技能（name、description、mode、schema、handler、tags）                                                              |
-| DELETE | `/api/skills/[id]`                  | 卸载技能                                                                                                                 |
-| POST   | `/api/skills/install`               | 从原始清单安装技能 — 请求体：`{name, version, description, schema:{input, output}, handlerCode, apiKeyId?}`                |
-| GET    | `/api/skills/executions`            | 列出最近的技能执行记录（审计追踪，含 inputs/outputs/duration）                                                            |
-| GET    | `/api/skills/marketplace?q=...`     | 从 SkillsMP 市场搜索/热门列表（需要 `skillsmpApiKey` 设置）                                                              |
-| POST   | `/api/skills/marketplace/install`   | 从 SkillsMP 按 id 安装技能                                                                                              |
-| GET    | `/api/skills/skillssh?q=&limit=`    | 搜索 skills.sh 注册表                                                                                                   |
-| POST   | `/api/skills/skillssh/install`      | 从 skills.sh 按 id 安装技能                                                                                             |
+| 方法   | 路径                              | 说明                                                                                                        |
+| ------ | --------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/skills`                     | 列出已安装的技能 — 可按 `?q=`、`?mode=on\|off\|auto`、`?source=skillsmp\|skillssh\|local` 过滤，支持分页    |
+| GET    | `/api/skills/[id]`                | 查询单个技能                                                                                                |
+| PUT    | `/api/skills/[id]`                | 更新技能（name、description、mode、schema、handler、tags）                                                  |
+| DELETE | `/api/skills/[id]`                | 卸载技能                                                                                                    |
+| POST   | `/api/skills/install`             | 从原始清单安装技能 — 请求体：`{name, version, description, schema:{input, output}, handlerCode, apiKeyId?}` |
+| GET    | `/api/skills/executions`          | 列出最近的技能执行记录（审计追踪，含 inputs/outputs/duration）                                              |
+| GET    | `/api/skills/marketplace?q=...`   | 从 SkillsMP 市场搜索/热门列表（需要 `skillsmpApiKey` 设置）                                                 |
+| POST   | `/api/skills/marketplace/install` | 从 SkillsMP 按 id 安装技能                                                                                  |
+| GET    | `/api/skills/skillssh?q=&limit=`  | 搜索 skills.sh 注册表                                                                                       |
+| POST   | `/api/skills/skillssh/install`    | 从 skills.sh 按 id 安装技能                                                                                 |
 
 **认证：** 管理会话/API Key。市场搜索路由接受管理认证或 Bearer API Key（`isAuthenticated`）。
 
@@ -911,13 +911,13 @@ curl -X DELETE http://localhost:20128/api/resilience/model-cooldowns \
 
 持久化的会话/事实记忆存储，按 API Key / 会话隔离。
 
-| 方法   | 路径                   | 说明                                                                                                           |
-| ------ | ---------------------- | -------------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/memory`          | 列出记忆 — `?apiKeyId=`、`?type=`、`?sessionId=`、`?q=`，支持 `offset/limit` 或 `page/limit` 分页               |
-| POST   | `/api/memory`          | 创建记忆 — 请求体经 Zod 校验：`{content, key, type?, sessionId?, apiKeyId?, metadata?, expiresAt?}`             |
-| GET    | `/api/memory/[id]`     | 查询单个记忆                                                                                                    |
-| DELETE | `/api/memory/[id]`     | 删除记忆                                                                                                       |
-| GET    | `/api/memory/health`   | 记忆子系统健康状态（数据库连接、embeddings 后端、向量索引状态）                                                  |
+| 方法   | 路径                 | 说明                                                                                                |
+| ------ | -------------------- | --------------------------------------------------------------------------------------------------- |
+| GET    | `/api/memory`        | 列出记忆 — `?apiKeyId=`、`?type=`、`?sessionId=`、`?q=`，支持 `offset/limit` 或 `page/limit` 分页   |
+| POST   | `/api/memory`        | 创建记忆 — 请求体经 Zod 校验：`{content, key, type?, sessionId?, apiKeyId?, metadata?, expiresAt?}` |
+| GET    | `/api/memory/[id]`   | 查询单个记忆                                                                                        |
+| DELETE | `/api/memory/[id]`   | 删除记忆                                                                                            |
+| GET    | `/api/memory/health` | 记忆子系统健康状态（数据库连接、embeddings 后端、向量索引状态）                                     |
 
 **认证：** 管理会话/API Key（`requireManagementAuth`）。`type` 枚举：`FACTUAL`、`EPISODIC`、`SEMANTIC`、`PROCEDURAL`（参见 `src/lib/memory/types.ts` 中的 `MemoryType`）。
 
@@ -927,17 +927,17 @@ curl -X DELETE http://localhost:20128/api/resilience/model-cooldowns \
 
 OmniRoute 内置一个 Model Context Protocol 服务器，支持 3 种传输方式（stdio、SSE、streamable-http）及权限域划分的工具。以下 dashboard 端点用于读取状态/审计数据并代理 HTTP 传输。
 
-| 方法   | 路径                     | 说明                                                                                               |
-| ------ | ------------------------ | -------------------------------------------------------------------------------------------------- |
-| GET    | `/api/mcp/status`        | 心跳、传输方式、在线状态、上次调用、Top 工具、24 小时成功率                                          |
-| GET    | `/api/mcp/tools`         | MCP 工具列表，含 `name`、`description`、`scopes`、`phase`、`auditLevel`、`sourceEndpoints`         |
-| GET    | `/api/mcp/sse`           | 打开 SSE 传输的 SSE 流（MCP 禁用或传输方式不匹配时返回 `503`）                                       |
-| POST   | `/api/mcp/sse`           | 在 SSE 传输上发送 JSON-RPC 帧                                                                      |
-| GET    | `/api/mcp/stream`        | 打开 Streamable HTTP 传输的 SSE 侧（服务端发起的消息）                                               |
-| POST   | `/api/mcp/stream`        | 在 Streamable HTTP 传输上发送 JSON-RPC 帧                                                           |
-| DELETE | `/api/mcp/stream`        | 结束 Streamable HTTP 会话                                                                         |
-| GET    | `/api/mcp/audit`         | 查询审计日志 — `?limit=`、`?offset=`、`?tool=`、`?success=true\|false`、`?apiKeyId=`                |
-| GET    | `/api/mcp/audit/stats`   | 聚合审计统计（总数、成功率、平均耗时、Top 工具）                                                   |
+| 方法   | 路径                   | 说明                                                                                       |
+| ------ | ---------------------- | ------------------------------------------------------------------------------------------ |
+| GET    | `/api/mcp/status`      | 心跳、传输方式、在线状态、上次调用、Top 工具、24 小时成功率                                |
+| GET    | `/api/mcp/tools`       | MCP 工具列表，含 `name`、`description`、`scopes`、`phase`、`auditLevel`、`sourceEndpoints` |
+| GET    | `/api/mcp/sse`         | 打开 SSE 传输的 SSE 流（MCP 禁用或传输方式不匹配时返回 `503`）                             |
+| POST   | `/api/mcp/sse`         | 在 SSE 传输上发送 JSON-RPC 帧                                                              |
+| GET    | `/api/mcp/stream`      | 打开 Streamable HTTP 传输的 SSE 侧（服务端发起的消息）                                     |
+| POST   | `/api/mcp/stream`      | 在 Streamable HTTP 传输上发送 JSON-RPC 帧                                                  |
+| DELETE | `/api/mcp/stream`      | 结束 Streamable HTTP 会话                                                                  |
+| GET    | `/api/mcp/audit`       | 查询审计日志 — `?limit=`、`?offset=`、`?tool=`、`?success=true\|false`、`?apiKeyId=`       |
+| GET    | `/api/mcp/audit/stats` | 聚合审计统计（总数、成功率、平均耗时、Top 工具）                                           |
 
 **认证：** `sse`/`stream` 传输遵循 MCP 特定的认证面（Bearer API Key 需包含 `mcp` 权限域）；`status`/`tools`/`audit*` 路由可从 dashboard 读取（无需额外认证，只需能访问 dashboard 主机即可）。
 
@@ -969,12 +969,12 @@ Content-Type: application/json
 
 支持的方法（均受 `settings.a2aEnabled` 限制）：
 
-| 方法             | 说明                                                       |
-| ---------------- | ---------------------------------------------------------- |
-| `message/send`   | 同步技能执行；返回 `{task, artifacts, metadata}`            |
-| `message/stream` | 相同技能集的流式 SSE 执行                                    |
-| `tasks/get`      | 按 `taskId` 获取任务                                        |
-| `tasks/cancel`   | 按 `taskId` 取消任务                                        |
+| 方法             | 说明                                             |
+| ---------------- | ------------------------------------------------ |
+| `message/send`   | 同步技能执行；返回 `{task, artifacts, metadata}` |
+| `message/stream` | 相同技能集的流式 SSE 执行                        |
+| `tasks/get`      | 按 `taskId` 获取任务                             |
+| `tasks/cancel`   | 按 `taskId` 取消任务                             |
 
 内置技能：`smart-routing`、`quota-management`、`provider-discovery`、`cost-analysis`、`health-report`。
 
@@ -988,13 +988,13 @@ GET /.well-known/agent.json
 
 ### REST 辅助方法
 
-| 方法   | 路径                           | 说明                                                                                                         |
-| ------ | ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| GET    | `/api/a2a/status`              | A2A 启用状态 + 任务统计 + 缓存的 agent card 摘要                                                               |
-| GET    | `/api/a2a/tasks`               | 列出任务 — `?state=submitted\|working\|completed\|failed\|cancelled`、`?skill=`、`?limit=`（≤200）、`?offset=` |
-| POST   | `/api/a2a/tasks`               | （未作为 REST 辅助方法实现 — 通过 JSON-RPC `message/send` 创建）                                               |
-| GET    | `/api/a2a/tasks/[id]`          | 查询单个任务                                                                                                  |
-| POST   | `/api/a2a/tasks/[id]/cancel`   | 取消任务                                                                                                     |
+| 方法 | 路径                         | 说明                                                                                                           |
+| ---- | ---------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| GET  | `/api/a2a/status`            | A2A 启用状态 + 任务统计 + 缓存的 agent card 摘要                                                               |
+| GET  | `/api/a2a/tasks`             | 列出任务 — `?state=submitted\|working\|completed\|failed\|cancelled`、`?skill=`、`?limit=`（≤200）、`?offset=` |
+| POST | `/api/a2a/tasks`             | （未作为 REST 辅助方法实现 — 通过 JSON-RPC `message/send` 创建）                                               |
+| GET  | `/api/a2a/tasks/[id]`        | 查询单个任务                                                                                                   |
+| POST | `/api/a2a/tasks/[id]/cancel` | 取消任务                                                                                                       |
 
 **认证：** REST 辅助方法无需管理认证即可运行（dashboard 可读）；JSON-RPC `/a2a` 路由在配置后使用 Bearer `OMNIROUTE_API_KEY`。
 
@@ -1002,18 +1002,18 @@ GET /.well-known/agent.json
 
 ## Cloud、评估与诊断
 
-| 方法 | 路径                              | 说明                                                                                           |
-| ---- | --------------------------------- | ---------------------------------------------------------------------------------------------- |
-| POST | `/api/cloud/auth`                 | 验证 Bearer Key 并返回脱敏的服务商连接 + 模型别名，供云同步客户端使用                             |
-| POST | `/api/cloud/credentials/update`   | 更新云同步服务商的加密凭证                                                                     |
-| POST | `/api/cloud/model/resolve`        | 使用本地路由表将逻辑模型 id 解析为具体的服务商/模型                                              |
-| GET  | `/api/cloud/models/alias`         | 列出开放给云同步的模型别名                                                                     |
-| GET  | `/api/assess`                     | 读取最新诊断分类（按 服务商/模型）                                                               |
-| POST | `/api/assess`                     | 运行诊断 — 请求体：`{scope: {type:"all"} \| {type:"provider", providerId} \| {type:"model", modelId}, trigger?}` |
-| GET  | `/api/evals`                      | 列出内置评估套件 + 最近运行记录                                                                |
-| POST | `/api/evals`                      | 触发评估运行                                                                                   |
-| POST | `/api/evals/suites`               | 创建自定义评估套件 — 请求体经 `evalSuiteSaveSchema` 校验                                        |
-| GET  | `/api/evals/suites/[id]`          | 查询自定义评估套件                                                                             |
+| 方法 | 路径                            | 说明                                                                                                             |
+| ---- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| POST | `/api/cloud/auth`               | 验证 Bearer Key 并返回脱敏的服务商连接 + 模型别名，供云同步客户端使用                                            |
+| POST | `/api/cloud/credentials/update` | 更新云同步服务商的加密凭证                                                                                       |
+| POST | `/api/cloud/model/resolve`      | 使用本地路由表将逻辑模型 id 解析为具体的服务商/模型                                                              |
+| GET  | `/api/cloud/models/alias`       | 列出开放给云同步的模型别名                                                                                       |
+| GET  | `/api/assess`                   | 读取最新诊断分类（按 服务商/模型）                                                                               |
+| POST | `/api/assess`                   | 运行诊断 — 请求体：`{scope: {type:"all"} \| {type:"provider", providerId} \| {type:"model", modelId}, trigger?}` |
+| GET  | `/api/evals`                    | 列出内置评估套件 + 最近运行记录                                                                                  |
+| POST | `/api/evals`                    | 触发评估运行                                                                                                     |
+| POST | `/api/evals/suites`             | 创建自定义评估套件 — 请求体经 `evalSuiteSaveSchema` 校验                                                         |
+| GET  | `/api/evals/suites/[id]`        | 查询自定义评估套件                                                                                               |
 
 **认证：** `/api/cloud/auth` 直接验证 Bearer Key；其他 `/api/cloud/*`、`/api/evals/*` 和 `/api/assess` 路由需要管理会话/API Key。`/api/assess` POST 使用 `validateBody` 和区分联合的 scope schema。
 
@@ -1023,11 +1023,11 @@ GET /.well-known/agent.json
 
 ACP 代理作为子进程运行。以下端点管理 ACP 代理检测和自定义代理注册。
 
-| 方法   | 路径                | 说明                                                                                                                  |
-| ------ | ------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/acp/agents`   | 列出所有已知的 CLI 代理（内置 + 自定义），含安装状态、版本、二进制文件                                                  |
-| POST   | `/api/acp/agents`   | 注册自定义 ACP 代理或刷新缓存 — 请求体：`{id, name, binary, versionCommand, providerAlias, spawnArgs, protocol}` 或 `{action: "refresh"}` |
-| DELETE | `/api/acp/agents`   | 删除自定义 ACP 代理 — 查询参数：`?id=<agentId>`                                                                        |
+| 方法   | 路径              | 说明                                                                                                                                      |
+| ------ | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/acp/agents` | 列出所有已知的 CLI 代理（内置 + 自定义），含安装状态、版本、二进制文件                                                                    |
+| POST   | `/api/acp/agents` | 注册自定义 ACP 代理或刷新缓存 — 请求体：`{id, name, binary, versionCommand, providerAlias, spawnArgs, protocol}` 或 `{action: "refresh"}` |
+| DELETE | `/api/acp/agents` | 删除自定义 ACP 代理 — 查询参数：`?id=<agentId>`                                                                                           |
 
 **响应示例**（`GET /api/acp/agents`）：
 
@@ -1070,10 +1070,10 @@ ACP 代理作为子进程运行。以下端点管理 ACP 代理检测和自定�
 
 ### 自动路由分析
 
-| 方法 | 路径                                   | 说明                                                                                     |
-| ---- | -------------------------------------- | ---------------------------------------------------------------------------------------- |
-| GET  | `/api/analytics/auto-routing`          | 聚合自动路由统计：总调用次数、策略分布、层级分布、Top 服务商                               |
-| GET  | `/api/analytics/auto-routing?days=7`   | 按时间窗口统计（默认 24 小时）                                                            |
+| 方法 | 路径                                 | 说明                                                         |
+| ---- | ------------------------------------ | ------------------------------------------------------------ |
+| GET  | `/api/analytics/auto-routing`        | 聚合自动路由统计：总调用次数、策略分布、层级分布、Top 服务商 |
+| GET  | `/api/analytics/auto-routing?days=7` | 按时间窗口统计（默认 24 小时）                               |
 
 **响应示例**：
 
@@ -1103,9 +1103,9 @@ ACP 代理作为子进程运行。以下端点管理 ACP 代理检测和自定�
 
 ### 压缩分析
 
-| 方法 | 路径                           | 说明                                                                             |
-| ---- | ------------------------------ | -------------------------------------------------------------------------------- |
-| GET  | `/api/analytics/compression`   | 聚合压缩统计：Token 节省量、节省百分比、模式分布、引擎用量                         |
+| 方法 | 路径                         | 说明                                                       |
+| ---- | ---------------------------- | ---------------------------------------------------------- |
+| GET  | `/api/analytics/compression` | 聚合压缩统计：Token 节省量、节省百分比、模式分布、引擎用量 |
 
 **响应示例**：
 
@@ -1132,9 +1132,9 @@ ACP 代理作为子进程运行。以下端点管理 ACP 代理检测和自定�
 
 ### 服务商多样性追踪
 
-| 方法 | 路径                         | 说明                                                                                                |
-| ---- | ---------------------------- | --------------------------------------------------------------------------------------------------- |
-| GET  | `/api/analytics/diversity`   | 基于 Shannon 熵的多样性跟踪：通过衡量服务商分布来防止单点故障                                         |
+| 方法 | 路径                       | 说明                                                          |
+| ---- | -------------------------- | ------------------------------------------------------------- |
+| GET  | `/api/analytics/diversity` | 基于 Shannon 熵的多样性跟踪：通过衡量服务商分布来防止单点故障 |
 
 **响应示例**：
 
@@ -1162,10 +1162,10 @@ ACP 代理作为子进程运行。以下端点管理 ACP 代理检测和自定�
 
 管理员专属端点，用于运营管理。
 
-| 方法 | 路径                       | 说明                                                                                    |
-| ---- | -------------------------- | --------------------------------------------------------------------------------------- |
-| GET  | `/api/admin/concurrency`   | 读取当前并发限制（全局 + 按服务商）                                                       |
-| POST | `/api/admin/concurrency`   | 更新并发限制 — 请求体：`{global?: number, perProvider?: Record<string, number>}`          |
+| 方法 | 路径                     | 说明                                                                             |
+| ---- | ------------------------ | -------------------------------------------------------------------------------- |
+| GET  | `/api/admin/concurrency` | 读取当前并发限制（全局 + 按服务商）                                              |
+| POST | `/api/admin/concurrency` | 更新并发限制 — 请求体：`{global?: number, perProvider?: Record<string, number>}` |
 
 **认证：** 需要含 admin 权限域的管理会话。
 
@@ -1175,16 +1175,16 @@ ACP 代理作为子进程运行。以下端点管理 ACP 代理检测和自定�
 
 管理与 OmniRoute 集成的 CLI 工具（antigravity、chipotle、commandCode、devin-cli 等）。完整列表参见 [Provider Reference](./PROVIDER_REFERENCE.md)。
 
-| 方法 | 路径                                      | 说明                                                                                         |
-| ---- | ----------------------------------------- | -------------------------------------------------------------------------------------------- |
-| GET  | `/api/cli-tools/all-statuses`             | 所有 CLI 工具的状态（已安装、版本、上次检测）                                                  |
-| GET  | `/api/cli-tools/[id]/status`              | 特定 CLI 工具的状态（id 可为：antigravity、chipotle、commandCode、devin-cli 等）              |
-| POST | `/api/cli-tools/apply`                    | 将 CLI 工具配置应用到服务商连接                                                               |
-| GET  | `/api/cli-tools/backups`                  | 列出 CLI 工具配置备份                                                                        |
-| POST | `/api/cli-tools/backups`                  | 创建所有 CLI 工具配置的备份                                                                   |
-| POST | `/api/cli-tools/[id]/restore`             | 从备份恢复 CLI 工具                                                                          |
-| GET  | `/api/cli-tools/antigravity-mitm`         | Antigravity MITM 代理状态（"antigravity-mitm" CLI 工具）                                       |
-| POST | `/api/cli-tools/antigravity-mitm/alias`   | 配置 antigravity-mitm 别名                                                                   |
+| 方法 | 路径                                    | 说明                                                                             |
+| ---- | --------------------------------------- | -------------------------------------------------------------------------------- |
+| GET  | `/api/cli-tools/all-statuses`           | 所有 CLI 工具的状态（已安装、版本、上次检测）                                    |
+| GET  | `/api/cli-tools/[id]/status`            | 特定 CLI 工具的状态（id 可为：antigravity、chipotle、commandCode、devin-cli 等） |
+| POST | `/api/cli-tools/apply`                  | 将 CLI 工具配置应用到服务商连接                                                  |
+| GET  | `/api/cli-tools/backups`                | 列出 CLI 工具配置备份                                                            |
+| POST | `/api/cli-tools/backups`                | 创建所有 CLI 工具配置的备份                                                      |
+| POST | `/api/cli-tools/[id]/restore`           | 从备份恢复 CLI 工具                                                              |
+| GET  | `/api/cli-tools/antigravity-mitm`       | Antigravity MITM 代理状态（"antigravity-mitm" CLI 工具）                         |
+| POST | `/api/cli-tools/antigravity-mitm/alias` | 配置 antigravity-mitm 别名                                                       |
 
 **认证：** 需要管理会话。
 
@@ -1194,15 +1194,15 @@ ACP 代理作为子进程运行。以下端点管理 ACP 代理检测和自定�
 
 管理 AI 代理技能（类似 OpenAI 的自定义 GPT，但面向代理）。
 
-| 方法   | 路径                           | 说明                                                                           |
-| ------ | ------------------------------ | ------------------------------------------------------------------------------ |
-| GET    | `/api/agent-skills`            | 列出所有代理技能（内置 + 自定义）                                               |
-| GET    | `/api/agent-skills/[id]`       | 获取特定代理技能                                                                |
-| POST   | `/api/agent-skills`            | 创建自定义代理技能 — 请求体：`{name, description, prompt, model?, temperature?}` |
-| PUT    | `/api/agent-skills/[id]`       | 更新自定义代理技能                                                              |
-| DELETE | `/api/agent-skills/[id]`       | 删除自定义代理技能                                                              |
-| GET    | `/api/agent-skills/[id]/raw`   | 获取原始提示 + 元数据（不执行）                                                  |
-| POST   | `/api/agent-skills/generate`   | AI 从自然语言描述生成新技能                                                     |
+| 方法   | 路径                         | 说明                                                                             |
+| ------ | ---------------------------- | -------------------------------------------------------------------------------- |
+| GET    | `/api/agent-skills`          | 列出所有代理技能（内置 + 自定义）                                                |
+| GET    | `/api/agent-skills/[id]`     | 获取特定代理技能                                                                 |
+| POST   | `/api/agent-skills`          | 创建自定义代理技能 — 请求体：`{name, description, prompt, model?, temperature?}` |
+| PUT    | `/api/agent-skills/[id]`     | 更新自定义代理技能                                                               |
+| DELETE | `/api/agent-skills/[id]`     | 删除自定义代理技能                                                               |
+| GET    | `/api/agent-skills/[id]/raw` | 获取原始提示 + 元数据（不执行）                                                  |
+| POST   | `/api/agent-skills/generate` | AI 从自然语言描述生成新技能                                                      |
 
 **认证：** 需要管理会话或管理权限域的 API Key。
 
@@ -1212,14 +1212,14 @@ ACP 代理作为子进程运行。以下端点管理 ACP 代理检测和自定�
 
 管理语义缓存和推理缓存。
 
-| 方法   | 路径                     | 说明                                                                                             |
-| ------ | ------------------------ | ------------------------------------------------------------------------------------------------ |
-| GET    | `/api/cache`             | 缓存概览：条目总数、命中率、磁盘占用                                                               |
-| GET    | `/api/cache/entries`     | 列出缓存条目（支持分页）                                                                          |
-| DELETE | `/api/cache/entries`     | 删除缓存条目（按查询参数过滤）                                                                     |
-| GET    | `/api/cache/stats`       | 详细缓存统计（按服务商、按模型）                                                                   |
-| GET    | `/api/cache/reasoning`   | 推理缓存状态（用于推理回放）                                                                      |
-| DELETE | `/api/cache/reasoning`   | 清除推理缓存 — 查询参数：`?toolCallId=<id>`（单个）或 `?provider=<p>` 或不传参数（全部）            |
+| 方法   | 路径                   | 说明                                                                                     |
+| ------ | ---------------------- | ---------------------------------------------------------------------------------------- |
+| GET    | `/api/cache`           | 缓存概览：条目总数、命中率、磁盘占用                                                     |
+| GET    | `/api/cache/entries`   | 列出缓存条目（支持分页）                                                                 |
+| DELETE | `/api/cache/entries`   | 删除缓存条目（按查询参数过滤）                                                           |
+| GET    | `/api/cache/stats`     | 详细缓存统计（按服务商、按模型）                                                         |
+| GET    | `/api/cache/reasoning` | 推理缓存状态（用于推理回放）                                                             |
+| DELETE | `/api/cache/reasoning` | 清除推理缓存 — 查询参数：`?toolCallId=<id>`（单个）或 `?provider=<p>` 或不传参数（全部） |
 
 **认证：** 需要管理会话。
 
@@ -1229,16 +1229,16 @@ ACP 代理作为子进程运行。以下端点管理 ACP 代理检测和自定�
 
 管理持久化记忆（FTS5 + 向量嵌入）。
 
-| 方法   | 路径                   | 说明                                                               |
-| ------ | ---------------------- | ------------------------------------------------------------------ |
-| GET    | `/api/memory`          | 列出记忆条目（按作用域、类型、搜索查询过滤）                        |
-| POST   | `/api/memory`          | 创建新记忆条目 — 请求体：`{scope, type, content, metadata?}`        |
-| GET    | `/api/memory/[id]`     | 获取特定记忆条目                                                    |
-| PUT    | `/api/memory/[id]`     | 更新记忆条目                                                        |
-| DELETE | `/api/memory/[id]`     | 删除记忆条目                                                        |
-| GET    | `/api/memory/search`   | 搜索记忆（FTS5 + 向量）                                            |
-| POST   | `/api/memory/clear`    | 清除记忆条目（支持过滤器）                                          |
-| GET    | `/api/memory/stats`    | 记忆统计（总条目数、嵌入覆盖率等）                                  |
+| 方法   | 路径                 | 说明                                                         |
+| ------ | -------------------- | ------------------------------------------------------------ |
+| GET    | `/api/memory`        | 列出记忆条目（按作用域、类型、搜索查询过滤）                 |
+| POST   | `/api/memory`        | 创建新记忆条目 — 请求体：`{scope, type, content, metadata?}` |
+| GET    | `/api/memory/[id]`   | 获取特定记忆条目                                             |
+| PUT    | `/api/memory/[id]`   | 更新记忆条目                                                 |
+| DELETE | `/api/memory/[id]`   | 删除记忆条目                                                 |
+| GET    | `/api/memory/search` | 搜索记忆（FTS5 + 向量）                                      |
+| POST   | `/api/memory/clear`  | 清除记忆条目（支持过滤器）                                   |
+| GET    | `/api/memory/stats`  | 记忆统计（总条目数、嵌入覆盖率等）                           |
 
 **认证：** 需要管理会话或管理权限域的 API Key。
 
@@ -1248,16 +1248,16 @@ ACP 代理作为子进程运行。以下端点管理 ACP 代理检测和自定�
 
 管理事件 Webhook 订阅。
 
-| 方法   | 路径                              | 说明                                                               |
-| ------ | --------------------------------- | ------------------------------------------------------------------ |
-| GET    | `/api/webhooks`                   | 列出所有 Webhook 订阅                                                |
-| POST   | `/api/webhooks`                   | 创建 Webhook 订阅 — 请求体：`{url, events[], secret?, active?}`      |
-| GET    | `/api/webhooks/[id]`              | 获取特定 Webhook 订阅                                                |
-| PUT    | `/api/webhooks/[id]`              | 更新 Webhook 订阅                                                    |
-| DELETE | `/api/webhooks/[id]`              | 删除 Webhook 订阅                                                    |
-| GET    | `/api/webhooks/events`            | 列出所有可用的 Webhook 事件类型                                      |
-| GET    | `/api/webhooks/[id]/deliveries`   | 列出 Webhook 投递历史（成功/失败日志）                                |
-| POST   | `/api/webhooks/[id]/test`         | 向 Webhook 发送测试事件                                              |
+| 方法   | 路径                            | 说明                                                            |
+| ------ | ------------------------------- | --------------------------------------------------------------- |
+| GET    | `/api/webhooks`                 | 列出所有 Webhook 订阅                                           |
+| POST   | `/api/webhooks`                 | 创建 Webhook 订阅 — 请求体：`{url, events[], secret?, active?}` |
+| GET    | `/api/webhooks/[id]`            | 获取特定 Webhook 订阅                                           |
+| PUT    | `/api/webhooks/[id]`            | 更新 Webhook 订阅                                               |
+| DELETE | `/api/webhooks/[id]`            | 删除 Webhook 订阅                                               |
+| GET    | `/api/webhooks/events`          | 列出所有可用的 Webhook 事件类型                                 |
+| GET    | `/api/webhooks/[id]/deliveries` | 列出 Webhook 投递历史（成功/失败日志）                          |
+| POST   | `/api/webhooks/[id]/test`       | 向 Webhook 发送测试事件                                         |
 
 **认证：** 需要管理会话。
 
@@ -1269,14 +1269,14 @@ ACP 代理作为子进程运行。以下端点管理 ACP 代理检测和自定�
 
 管理 Skills（代理扩展框架）。
 
-| 方法   | 路径                       | 说明                                                                              |
-| ------ | -------------------------- | --------------------------------------------------------------------------------- |
-| GET    | `/api/skills`              | 列出所有已安装的技能（内置 + 自定义）                                               |
-| POST   | `/api/skills/install`      | 从本地路径或 URL 安装技能                                                          |
-| DELETE | `/api/skills/[id]`         | 卸载技能                                                                          |
-| PUT    | `/api/skills/[id]`         | 启用或禁用技能 — 请求体：`{enabled?: boolean, mode?: "on" \| "off" \| "auto"}`      |
-| POST   | `/api/skills/executions`   | 执行技能 — 请求体：`{skillName, apiKeyId, input?, sessionId?}`                     |
-| GET    | `/api/skills/executions`   | 列出所有技能的执行历史（可按 `?apiKeyId=` 过滤）                                   |
+| 方法   | 路径                     | 说明                                                                           |
+| ------ | ------------------------ | ------------------------------------------------------------------------------ |
+| GET    | `/api/skills`            | 列出所有已安装的技能（内置 + 自定义）                                          |
+| POST   | `/api/skills/install`    | 从本地路径或 URL 安装技能                                                      |
+| DELETE | `/api/skills/[id]`       | 卸载技能                                                                       |
+| PUT    | `/api/skills/[id]`       | 启用或禁用技能 — 请求体：`{enabled?: boolean, mode?: "on" \| "off" \| "auto"}` |
+| POST   | `/api/skills/executions` | 执行技能 — 请求体：`{skillName, apiKeyId, input?, sessionId?}`                 |
+| GET    | `/api/skills/executions` | 列出所有技能的执行历史（可按 `?apiKeyId=` 过滤）                               |
 
 **认证：** 需要管理会话或管理权限域的 API Key。
 
@@ -1288,15 +1288,15 @@ ACP 代理作为子进程运行。以下端点管理 ACP 代理检测和自定�
 
 管理 OmniRoute 插件（第三方扩展）。
 
-| 方法   | 路径                               | 说明                                 |
-| ------ | ---------------------------------- | ------------------------------------ |
-| GET    | `/api/plugins`                     | 列出已安装的插件                     |
-| POST   | `/api/plugins/install`             | 从本地路径或 URL 安装插件             |
-| DELETE | `/api/plugins/[name]`              | 卸载插件                             |
-| POST   | `/api/plugins/[name]/activate`     | 激活插件                             |
-| POST   | `/api/plugins/[name]/deactivate`   | 停用插件                             |
-| GET    | `/api/plugins/[name]/config`       | 获取插件配置                         |
-| PUT    | `/api/plugins/[name]/config`       | 更新插件配置                         |
+| 方法   | 路径                             | 说明                      |
+| ------ | -------------------------------- | ------------------------- |
+| GET    | `/api/plugins`                   | 列出已安装的插件          |
+| POST   | `/api/plugins/install`           | 从本地路径或 URL 安装插件 |
+| DELETE | `/api/plugins/[name]`            | 卸载插件                  |
+| POST   | `/api/plugins/[name]/activate`   | 激活插件                  |
+| POST   | `/api/plugins/[name]/deactivate` | 停用插件                  |
+| GET    | `/api/plugins/[name]/config`     | 获取插件配置              |
+| PUT    | `/api/plugins/[name]/config`     | 更新插件配置              |
 
 **认证：** 需要管理会话。
 
@@ -1314,10 +1314,10 @@ ACP 代理作为子进程运行。以下端点管理 ACP 代理检测和自定�
 
 检查运行时安全护栏（PII 检测、提示注入检测、视觉桥接）。安全护栏在每次请求中运行；按调用退出通过 `x-omniroute-disabled-guardrails` 请求头实现 — 没有持久化的启用/禁用地表。
 
-| 方法 | 路径                     | 说明                                                                                   |
-| ---- | ------------------------ | -------------------------------------------------------------------------------------- |
-| GET  | `/api/guardrails`        | 列出已注册的安全护栏及其状态（名称 / 启用 / 优先级）                                    |
-| POST | `/api/guardrails/test`   | 对示例输入干运行调用前管线 — 请求体：`{input, disabledGuardrails?}`                      |
+| 方法 | 路径                   | 说明                                                                |
+| ---- | ---------------------- | ------------------------------------------------------------------- |
+| GET  | `/api/guardrails`      | 列出已注册的安全护栏及其状态（名称 / 启用 / 优先级）                |
+| POST | `/api/guardrails/test` | 对示例输入干运行调用前管线 — 请求体：`{input, disabledGuardrails?}` |
 
 **认证：** 需要管理会话。
 

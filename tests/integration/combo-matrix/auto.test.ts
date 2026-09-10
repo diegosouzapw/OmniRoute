@@ -44,14 +44,7 @@ function body(model: string) {
 // connections each test seeds, which is what these assertions are actually
 // about (LKGP pinning and variant pool resolution) — rather than weakening the
 // assertions to accept whatever the open pool happens to pick.
-const NO_AUTH_PROVIDER_IDS = [
-  "opencode",
-  "duckduckgo-web",
-  "theoldllm",
-  "chipotle",
-  "veoaifree-web",
-  "auggie",
-];
+const NO_AUTH_PROVIDER_IDS = ["opencode", "duckduckgo-web", "chipotle", "veoaifree-web", "auggie"];
 
 test.beforeEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = 0;

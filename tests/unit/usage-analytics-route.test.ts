@@ -15,6 +15,7 @@ const localDb = { updatePricing };
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
+const aggregateHistory = await import("../../src/lib/usage/aggregateHistory.ts");
 const analyticsRoute = await import("../../src/app/api/usage/analytics/route.ts");
 
 const clearPendingRequests = usageHistory.clearPendingRequests;
@@ -150,6 +151,126 @@ test("GET /api/usage/analytics resolves Codex GPT-5.5 pricing through provider a
   assertClose(body.byProvider[0].cost, 0.02);
   assert.equal(body.byModel[0].model, "gpt-5.5");
   assertClose(body.byModel[0].cost, 0.02);
+});
+
+test("GET /api/usage/analytics can include flat-rate provider estimates for the costs page", async () => {
+  const db = core.getDbInstance();
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    "claude",
+    "claude-opus-5",
+    "claude-code-conn",
+    1_000_000,
+    1_000_000,
+    1,
+    250,
+    new Date().toISOString()
+  );
+
+  const defaultResponse = await analyticsRoute.GET(
+    makeRequest("http://localhost/api/usage/analytics?presets=1d")
+  );
+  const defaultBody = await defaultResponse.json();
+  assert.equal(defaultResponse.status, 200);
+  assertClose(defaultBody.summary.totalCost, 0);
+  assertClose(defaultBody.byProvider[0].cost, 0);
+  assertClose(defaultBody.byModel[0].cost, 0);
+  assertClose(defaultBody.presetSummaries["1d"].totalCost, 0);
+  assertClose(
+    defaultBody.byProvider.reduce((sum: number, row: { cost: number }) => sum + row.cost, 0),
+    defaultBody.summary.totalCost
+  );
+
+  const estimatedResponse = await analyticsRoute.GET(
+    makeRequest("http://localhost/api/usage/analytics?presets=1d&includeFlatRateEstimates=true")
+  );
+  const estimatedBody = await estimatedResponse.json();
+  assert.equal(estimatedResponse.status, 200);
+  assert.equal(estimatedBody.includesFlatRateEstimates, true);
+  assertClose(estimatedBody.summary.totalCost, 30);
+  assert.equal(estimatedBody.byProvider[0].provider, "Claude Code");
+  assertClose(estimatedBody.byProvider[0].cost, 30);
+  assertClose(estimatedBody.byModel[0].cost, 30);
+  assertClose(estimatedBody.byAccount[0].cost, 30);
+  assertClose(estimatedBody.byServiceTier[0].cost, 30);
+  assertClose(estimatedBody.presetSummaries["1d"].totalCost, 30);
+  assertClose(
+    estimatedBody.byProvider.reduce((sum: number, row: { cost: number }) => sum + row.cost, 0),
+    estimatedBody.summary.totalCost
+  );
+});
+
+test("GET /api/usage/analytics preserves archived flat-rate estimates without changing billed cost", async () => {
+  const db = core.getDbInstance();
+  db.prepare(
+    `INSERT INTO daily_usage_summary
+      (provider, model, date, total_requests, total_input_tokens, total_output_tokens, total_cost)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  ).run("claude", "claude-opus-5", "2024-01-01", 2, 1_000_000, 1_000_000, 42.5);
+
+  const billedResponse = await analyticsRoute.GET(
+    makeRequest("http://localhost/api/usage/analytics?range=all")
+  );
+  const billedBody = await billedResponse.json();
+  assert.equal(billedResponse.status, 200);
+  assertClose(billedBody.summary.totalCost, 0);
+  assertClose(billedBody.byProvider[0].cost, 0);
+
+  const estimatedResponse = await analyticsRoute.GET(
+    makeRequest("http://localhost/api/usage/analytics?range=all&includeFlatRateEstimates=true")
+  );
+  const estimatedBody = await estimatedResponse.json();
+  assert.equal(estimatedResponse.status, 200);
+  assertClose(estimatedBody.summary.totalCost, 42.5);
+  assertClose(estimatedBody.byProvider[0].cost, 42.5);
+  assertClose(estimatedBody.byModel[0].cost, 42.5);
+});
+
+test("rollupUsageHistoryBeforeDate stores API-equivalent cost before deleting raw usage", async () => {
+  const db = core.getDbInstance();
+  db.prepare(
+    `INSERT INTO usage_history
+      (provider, model, connection_id, tokens_input, tokens_output, tokens_cache_read,
+       tokens_cache_creation, tokens_reasoning, service_tier, success, latency_ms, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    "claude",
+    "claude-opus-5",
+    "archived-claude",
+    1_000_000,
+    1_000_000,
+    0,
+    0,
+    0,
+    "standard",
+    1,
+    250,
+    "2024-01-01T12:00:00.000Z"
+  );
+
+  const result = await aggregateHistory.rollupUsageHistoryBeforeDate("2024-02-01");
+  assert.equal(result.errors, 0);
+  const retryResult = await aggregateHistory.rollupUsageHistoryBeforeDate("2024-02-01");
+  assert.equal(retryResult.errors, 0);
+
+  const archived = db
+    .prepare(
+      `SELECT total_requests, total_input_tokens, total_output_tokens, total_cost
+       FROM daily_usage_summary
+       WHERE provider = ? AND model = ? AND date = ?`
+    )
+    .get("claude", "claude-opus-5", "2024-01-01") as {
+    total_requests: number;
+    total_input_tokens: number;
+    total_output_tokens: number;
+    total_cost: number;
+  };
+  assert.equal(archived.total_requests, 1);
+  assert.equal(archived.total_input_tokens, 1_000_000);
+  assert.equal(archived.total_output_tokens, 1_000_000);
+  assertClose(archived.total_cost, 30);
 });
 
 test("GET /api/usage/analytics applies Codex Fast tier multipliers and exposes tier split", async () => {
@@ -590,4 +711,80 @@ test("GET /api/usage/analytics does not throw Unknown named parameter with apiKe
   // The exact count depends on raw-vs-aggregated boundary; we only need to
   // confirm the endpoint returns 200 without throwing.
   assert.ok(typeof body.summary.totalRequests === "number");
+});
+
+test("rollupUsageHistoryBeforeDate prices each request, not the day's summed tokens", async () => {
+  const db = core.getDbInstance();
+  const costCalculator = await import("../../src/lib/usage/costCalculator.ts");
+
+  // Two requests, same provider/model/day/tier, so the rollup's
+  // GROUP BY provider, model, date, serviceTier collapses them into one row.
+  //
+  // The first request is cache-heavy: cache_read exceeds tokens_input. Pricing
+  // clamps non-cached input at zero per request (costCalculator "nonCachedInput"),
+  // so that surplus must NOT be allowed to absorb another request's billable
+  // input. Summing tokens first and pricing once lets exactly that happen.
+  const rows = [
+    { input: 1_000, output: 0, cacheRead: 5_000 },
+    { input: 9_000, output: 0, cacheRead: 0 },
+  ];
+
+  for (const row of rows) {
+    db.prepare(
+      `INSERT INTO usage_history
+        (provider, model, connection_id, tokens_input, tokens_output, tokens_cache_read,
+         tokens_cache_creation, tokens_reasoning, service_tier, success, latency_ms, timestamp)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(
+      "openai",
+      "gpt-4o",
+      "clamp-conn",
+      row.input,
+      row.output,
+      row.cacheRead,
+      0,
+      0,
+      "standard",
+      1,
+      200,
+      "2024-03-01T12:00:00.000Z"
+    );
+  }
+
+  // Ground truth: price every request individually, exactly as the live
+  // analytics path does for raw (non-archived) usage.
+  let expectedCost = 0;
+  for (const row of rows) {
+    expectedCost += await costCalculator.calculateCost(
+      "openai",
+      "gpt-4o",
+      {
+        input: row.input,
+        output: row.output,
+        cacheRead: row.cacheRead,
+        cacheCreation: 0,
+        reasoning: 0,
+      },
+      {
+        provider: "openai",
+        model: "gpt-4o",
+        serviceTier: "standard",
+        flatRateAsZero: false,
+      }
+    );
+  }
+
+  const result = await aggregateHistory.rollupUsageHistoryBeforeDate("2024-04-01");
+  assert.equal(result.errors, 0);
+
+  const archived = db
+    .prepare(
+      `SELECT total_cost FROM daily_usage_summary
+       WHERE provider = ? AND model = ? AND date = ?`
+    )
+    .get("openai", "gpt-4o", "2024-03-01") as { total_cost: number };
+
+  // Retention must preserve the billed value. Archiving a day may not silently
+  // discount it just because the day's requests were grouped before pricing.
+  assertClose(archived.total_cost, expectedCost);
 });

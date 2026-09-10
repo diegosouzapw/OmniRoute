@@ -1,9 +1,45 @@
 name: npm ci with retry
-description: Run npm ci with retries for transient registry/network failures.
+description: >-
+  Install dependencies. Restores node_modules from the Actions cache when the exact
+  lockfile / runner / Node version / postinstall inputs match; otherwise runs npm ci
+  with retries for transient registry/network failures and saves the tree for the
+  next run.
+inputs:
+  cache:
+    description: Set to "false" to skip the node_modules cache and always run npm ci.
+    required: false
+    default: "true"
 runs:
   using: composite
   steps:
-    - shell: bash
+    - name: Resolve Node version for the cache key
+      id: node
+      shell: bash
+      run: echo "version=$(node --version)" >> "$GITHUB_OUTPUT"
+
+    # #8084 D3 (plan 3.8.51 task 5): every job used to pay ~80-90 s of `npm ci` even
+    # with setup-node's npm tarball cache warm — 36 jobs per ci.yml run, ~55 min of
+    # runner time per run just installing. A node_modules cache keyed on EVERYTHING
+    # that shapes the tree lets a hit skip the install entirely.
+    #
+    # No restore-keys on purpose (same rule as the ESLint cache, #11600): a partial
+    # tree from another lockfile / Node / postinstall script is exactly the kind of
+    # silent drift a lockfile-pinned CI must never inherit. Exact key or a full npm ci.
+    #
+    # postinstall (scripts/build/postinstall.mjs + helpers) only mutates node_modules
+    # on a plain install — its dist/ branch is gated on dist/ existing, which never
+    # holds at install time in CI — so the cached tree already carries its effects.
+    - name: Restore node_modules
+      id: node-modules
+      if: inputs.cache == 'true'
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: node_modules
+        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.version }}-${{ hashFiles('package-lock.json', '.npmrc', 'scripts/build/postinstall.mjs', 'scripts/build/postinstallSupport.mjs', 'scripts/build/colocateOptionals.mjs', 'scripts/build/wreqJsNative.mjs', 'scripts/build/fixPlaywrightAndroid.mjs', 'scripts/build/native-binary-compat.mjs') }}
+
+    - name: npm ci (with retry)
+      if: steps.node-modules.outputs.cache-hit != 'true'
+      shell: bash
       run: |
         set -euo pipefail
 
@@ -15,7 +51,8 @@ runs:
             echo "npm ci attempt $attempt/$max_attempts after transient failure"
           fi
 
-          if npm ci; then
+          # --no-audit: `audit:deps` is its own gate; the inline audit only adds latency.
+          if npm ci --no-audit --no-fund; then
             exit 0
           fi
 
@@ -27,3 +64,8 @@ runs:
           sleep "$delay_seconds"
           delay_seconds=$((delay_seconds * 2))
         done
+
+    - name: node_modules restored from cache
+      if: steps.node-modules.outputs.cache-hit == 'true'
+      shell: bash
+      run: echo "node_modules restored from cache (key hit) — npm ci skipped"

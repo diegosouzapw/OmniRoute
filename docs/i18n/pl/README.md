@@ -66,7 +66,7 @@
 </div>
 
 <div align="center">
- <b>🌐 W 43 językach</b>
+ <b>🌐 W 42 językach</b>
  <table>
   <tr>
     <td align="center"><a href="../../../README.md">🇺🇸</a></td>
@@ -240,7 +240,7 @@ Wszystkie **19** strategii — łącz i dopasowuj na każdym kroku komba:
 | ☁️ Agenci chmurowi                                        | **Codex, Cursor, Devin, Jules**                                                                    | Brak          |
 | 🥷 Maskowanie sygnatury TLS                               | **JA3/JA4 przez wreq-js**                                                                          | Brak          |
 | 🖥️ Wieloplatformowość                                     | **Web · Desktop · Termux · PWA**                                                                   | Tylko Web     |
-| 🌍 i18n (lokalizacja)                                     | **43 języki**                                                                                      | 0–4           |
+| 🌍 i18n (lokalizacja)                                     | **42 języki**                                                                                      | 0–4           |
 
 <sub>📊 Szczegółowe porównanie z LiteLLM, OpenRouter i Portkey → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](../../../docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 

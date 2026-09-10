@@ -2,25 +2,46 @@
 # test-scoped — run only unit tests impacted by your changes.
 #
 # Usage:
-#   npm run test:scoped              # tests for changes vs HEAD~1
-#   npm run test:scoped -- --staged  # tests for staged changes only
+#   npm run test:scoped              # tests for changes vs HEAD~1 (working tree if no commit)
+#   npm run test:scoped:staged       # tests for staged changes only
+#   npm run test:scoped:full         # rebuild the import-graph impact map first, then select
 #
-# This is the local DX companion to the CI TIA gate (#8084 D1). The CI version
-# builds a full import-graph impact map; for local dev we use a fast heuristic:
+# This is the local DX companion to the CI TIA gate (#8084 D1). It uses the SAME
+# selector as CI (scripts/quality/select-impacted-tests.mjs) against the import-graph
+# impact map (config/quality/test-impact-map.json, gitignored):
 # - Changed test files → run those directly
-# - Changed source files → run tests that share the file's directory/name prefix
-# - Hub files (tsconfig, package.json, etc.) → suggest full suite
+# - Changed source files → run every unit test whose import graph reaches them
+# - Hub files (tsconfig, package.json, …) or unmapped sources → full suite (fail-safe)
 #
-# For the full TIA (import-graph based), use: npm run test:scoped:full
-# (requires a pre-built impact map via: node scripts/quality/build-test-impact-map.mjs)
+# The map is a snapshot of the import graph: rebuild it (`--full`) after adding tests,
+# moving files, or pulling a big base update — a stale map falls back to __RUN_ALL__
+# for unknown sources, never to a silent skip.
+#
+# Loader parity with `npm run test:unit` / CI (#6787): tests/unit/dashboard/** runs
+# under `--import tsx` (CJS transform — required for ESM-only deep imports such as
+# @lobehub/icons/es/*), tests/unit/serial/** at --test-concurrency=1, everything else
+# under `--import tsx/esm`. A single tsx/esm invocation false-reds every dashboard
+# test the map selects ("Unexpected token 'export'").
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+MAP_FILE="$REPO_ROOT/config/quality/test-impact-map.json"
+
+STAGED=false
+FULL=false
+for arg in "$@"; do
+  case "$arg" in
+    --staged) STAGED=true ;;
+    --full) FULL=true ;;
+    -h|--help) sed -n '2,25p' "${BASH_SOURCE[0]}"; exit 0 ;;
+    *) echo "[test:scoped] unknown argument: $arg (use --staged, --full)"; exit 2 ;;
+  esac
+done
 
 # ── 1. Determine changed files ───────────────────────────────────────────────
-if [[ "${1:-}" == "--staged" ]]; then
+if [ "$STAGED" = true ]; then
   CHANGED=$(git -C "$REPO_ROOT" diff --name-only --diff-filter=ACMR --cached)
 else
   CHANGED=$(git -C "$REPO_ROOT" diff --name-only --diff-filter=ACMR HEAD~1...HEAD 2>/dev/null || \
@@ -32,80 +53,51 @@ if [ -z "$CHANGED" ]; then
   exit 0
 fi
 
-# ── 2. Classify changes ──────────────────────────────────────────────────────
-HUB_RE="(setupPolyfill|tsconfig|package\\.json|package-lock\\.json|\\.env|vitest\\.config|stryker\\.conf)"
-TEST_FILES=()
-SRC_FILES=()
-HIT_HUB=false
+# ── 2. Impact map (build on --full or when missing) ──────────────────────────
+if [ "$FULL" = true ] || [ ! -f "$MAP_FILE" ]; then
+  echo "[test:scoped] Building the import-graph impact map (config/quality/test-impact-map.json)…"
+  (cd "$REPO_ROOT" && node scripts/quality/build-test-impact-map.mjs)
+fi
 
-while IFS= read -r f; do
-  [ -z "$f" ] && continue
-  if echo "$f" | grep -qE "$HUB_RE"; then
-    HIT_HUB=true
-  elif echo "$f" | grep -qE '^tests/unit/.*\.test\.(ts|mjs)$'; then
-    TEST_FILES+=("$f")
-  elif echo "$f" | grep -qE '^(src|open-sse)/'; then
-    SRC_FILES+=("$f")
-  fi
-done <<< "$CHANGED"
+# ── 3. Select impacted tests (same selector as the CI TIA gate) ──────────────
+SEL=$(printf '%s\n' "$CHANGED" | node "$REPO_ROOT/scripts/quality/select-impacted-tests.mjs" --stdin)
 
-# ── 3. Hub file changed → full suite ─────────────────────────────────────────
-if [ "$HIT_HUB" = true ]; then
-  echo "[test:scoped] Hub file changed — run full suite: npm run test:unit"
+if echo "$SEL" | grep -q "__RUN_ALL__"; then
+  echo "[test:scoped] Hub file or unmapped source changed — run the full suite: npm run test:unit"
+  echo "[test:scoped] (if you just added a source file, rebuild the map: npm run test:scoped:full)"
   exit 1
 fi
 
-# ── 4. Collect tests to run ──────────────────────────────────────────────────
-RUN_TESTS=()
+mapfile -t RUN_TESTS < <(printf '%s\n' "$SEL" | grep -v '^$' | sort -u)
 
-# Direct test file changes always run
-for tf in "${TEST_FILES[@]}"; do
-  RUN_TESTS+=("$tf")
-done
-
-# For source files, try the impact map first; fall back to heuristic
-MAP_FILE="$REPO_ROOT/config/quality/test-impact-map.json"
-if [ ${#SRC_FILES[@]} -gt 0 ] && [ -f "$MAP_FILE" ]; then
-  # Use the TIA selection with the impact map
-  SEL=$(printf '%s\n' "${SRC_FILES[@]}" | node "$REPO_ROOT/scripts/quality/select-impacted-tests.mjs" 2>/dev/null || echo "__RUN_ALL__")
-  if echo "$SEL" | grep -q "__RUN_ALL__"; then
-    echo "[test:scoped] Unmapped source change — run full suite: npm run test:unit"
-    exit 1
-  fi
-  while IFS= read -r t; do
-    [ -n "$t" ] && RUN_TESTS+=("$t")
-  done <<< "$SEL"
-elif [ ${#SRC_FILES[@]} -gt 0 ]; then
-  # No impact map — heuristic: suggest building it
-  echo "[test:scoped] No impact map found. Build it with: node scripts/quality/build-test-impact-map.mjs"
-  echo "[test:scoped] Or run the full suite: npm run test:unit"
-  echo ""
-  echo "[test:scoped] Changed source files:"
-  printf '  %s\n' "${SRC_FILES[@]}"
-  if [ ${#TEST_FILES[@]} -gt 0 ]; then
-    echo "[test:scoped] Running changed test files only..."
-  else
-    exit 1
-  fi
-fi
-
-# Deduplicate
-IFS=$'\n' SORTED=($(printf '%s\n' "${RUN_TESTS[@]}" | sort -u)); unset IFS
-
-if [ ${#SORTED[@]} -eq 0 ]; then
-  echo "[test:scoped] No impacted tests — source changes don't map to any unit test."
+if [ ${#RUN_TESTS[@]} -eq 0 ]; then
+  echo "[test:scoped] No impacted unit tests — the change does not reach any node:test file."
   exit 0
 fi
 
-echo "[test:scoped] Running ${#SORTED[@]} impacted test(s)..."
+echo "[test:scoped] Running ${#RUN_TESTS[@]} impacted test(s)..."
 
-# ── 5. Run selected tests ────────────────────────────────────────────────────
+# ── 4. Split by loader (mirror package.json test:unit / quality.yml TIA step) ──
+DASH=(); SERIAL=(); REST=()
+for f in "${RUN_TESTS[@]}"; do
+  case "$f" in
+    tests/unit/dashboard/*) DASH+=("$f") ;;
+    tests/unit/serial/*) SERIAL+=("$f") ;;
+    *) REST+=("$f") ;;
+  esac
+done
+
 cd "$REPO_ROOT"
-exec cross-env \
-  DISABLE_SQLITE_AUTO_BACKUP=true \
-  node --max-old-space-size=8192 \
-  --import tsx/esm \
-  --import ./open-sse/utils/setupPolyfill.ts \
-  --import ./tests/_setup/isolateDataDir.ts \
-  --test --test-force-exit --test-concurrency=4 \
-  "${SORTED[@]}"
+NODE_COMMON=(--max-old-space-size=8192 --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit)
+export DISABLE_SQLITE_AUTO_BACKUP=true
+RC=0
+if [ ${#REST[@]} -gt 0 ]; then
+  node --import tsx/esm "${NODE_COMMON[@]}" --test-concurrency=4 "${REST[@]}" || RC=$?
+fi
+if [ ${#DASH[@]} -gt 0 ]; then
+  node --import tsx "${NODE_COMMON[@]}" --test-concurrency=4 "${DASH[@]}" || RC=$?
+fi
+if [ ${#SERIAL[@]} -gt 0 ]; then
+  node --import tsx/esm "${NODE_COMMON[@]}" --test-concurrency=1 "${SERIAL[@]}" || RC=$?
+fi
+exit $RC

@@ -2,8 +2,8 @@
  * Browser-TLS-impersonating HTTP client for claude.ai.
  *
  * Thin re-export over the shared `tlsClientBase.ts` factory
- * (`createTlsClientModule`). All provider-agnostic logic (sidecar lifecycle,
- * streaming tail-file, proxy resolution, error classes, SSE detection) lives
+ * (`createTlsClientModule`). All provider-agnostic logic (wreq-js transport
+ * pooling, direct streaming, proxy resolution, deadlines, SSE detection) lives
  * in the base module; this file supplies only Claude-specific config and
  * preserves the original public export surface.
  */
@@ -24,13 +24,13 @@ const HARD_TIMEOUT_GRACE_MS =
 export const tlsClientModule = createTlsClientModule({
   providerName: "Claude",
   tlsProfile: `chrome_${CLAUDE_TLS_BROWSER_MAJOR_VERSION}`,
+  emulationOs: "linux",
   domain: "https://claude.ai",
-  tempDirPrefix: "cgpt-stream-",
-  tailFileVariant: "A",
+  streamEofPolicy: "include",
   responseValidation: "sse",
   exportCloudflareCheck: false,
   exposeStreamingForTesting: true,
-  // Claude waits indefinitely for the first SSE byte (original 2-arg waitForContent).
+  // Claude allows the native/hard request deadline to bound a slow first SSE byte.
   defaultTimeoutMs: DEFAULT_TIMEOUT_MS,
   hardTimeoutGraceMs: HARD_TIMEOUT_GRACE_MS,
   firstByteTimeoutMs: Number.POSITIVE_INFINITY,

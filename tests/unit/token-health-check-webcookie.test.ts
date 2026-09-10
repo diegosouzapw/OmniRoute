@@ -29,7 +29,9 @@ function baseParams(over: Partial<ProbeParams> = {}): ProbeParams {
 describe("web-cookie health probe (#11488)", () => {
   it("candidate detection matches catalogued cookie providers only", () => {
     assert.equal(isWebCookieHealthProbeCandidate("claude-web"), true);
+    assert.equal(isWebCookieHealthProbeCandidate("chatgpt-web"), true);
     assert.equal(isWebCookieHealthProbeCandidate("chatgpt-web-codex"), true);
+    assert.equal(isWebCookieHealthProbeCandidate("cgpt-web"), false);
     assert.equal(isWebCookieHealthProbeCandidate("openai"), false);
     assert.equal(isWebCookieHealthProbeCandidate(undefined), false);
     assert.equal(isWebCookieHealthProbeCandidate(""), false);

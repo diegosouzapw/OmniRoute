@@ -187,6 +187,22 @@ jobs:
         env:
           NPM_CONFIG_LEGACY_PEER_DEPS: true
 
+      # The Linux leg produces x64 + arm64 installers from one x64 runner. npm
+      # deliberately installs only host-compatible optional dependencies, so
+      # hydrateNativeDeps cannot source the arm64 fork unless we fetch the exact
+      # package pinned in package-lock before either build path runs.
+      - name: Install Linux arm64 wreq binding for cross-package
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: |
+          npm install --no-save --ignore-scripts --force --legacy-peer-deps \
+            @wreq-js/binding-linux-arm64-gnu@3.2.0
+          git diff --exit-code -- package.json package-lock.json
+          mkdir -p "$RUNNER_TEMP/omniroute-wreq-verify"
+          DATA_DIR="$RUNNER_TEMP/omniroute-wreq-verify" node --import tsx/esm --test \
+            --test-name-pattern='wreq-js 3.2 manifest pins all nine' \
+            tests/unit/wreq-native-manifest.test.ts
+
       - name: Sanitize Windows home directory
         if: runner.os == 'Windows'
         shell: bash
@@ -235,9 +251,9 @@ jobs:
         #          targets, and no unlisted files) byte-for-byte.
         # hydrate: the bundle was built on ubuntu, so install-machine-forked native
         #          optionals (@img/sharp-*, @img/sharp-libvips-*, @ngrok/ngrok-*,
-        #          fsevents) carry linux forks. Replace them with the forks this
+        #          @wreq-js/binding-*, fsevents) carry linux forks. Replace them with the forks this
         #          leg's own `npm ci` resolved, then assert every bundled native
-        #          (koffi triplets, better-sqlite3 prebuilds, wreq-js, onnxruntime)
+        #          (better-sqlite3 prebuilds, wreq-js, onnxruntime)
         #          can service this leg's platform/arch before packaging starts.
         run: |
           node scripts/build/standaloneBundle.mjs restore --archive web-bundle.tar.gz

@@ -18,10 +18,9 @@ vi.mock("next-intl", () => ({
 const { default: AddApiKeyModal } =
   await import("../../../src/app/(dashboard)/dashboard/providers/[id]/components/modals/AddApiKeyModal");
 
-const TLS_EACCES_ERROR =
-  "TLS impersonation client failed to start: EACCES: permission denied, mkdir " +
-  "'/usr/lib/node_modules/omniroute/dist/node_modules/tls-client-node/bin'. " +
-  "Verify tls-client-node is installed and its native binary downloaded. " +
+const TLS_BINDING_ERROR =
+  "TLS impersonation client failed to start: wreq-js 3.2.x is not installed or unsupported " +
+  "on this platform. Verify the matching @wreq-js native binding is packaged. " +
   "(claude-web requires this — without it, Cloudflare blocks every request)";
 
 const containers: Array<{ root: ReturnType<typeof createRoot>; el: HTMLDivElement }> = [];
@@ -62,7 +61,7 @@ async function waitFor(fn: () => boolean, timeoutMs = 2000) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // /api/providers/validate fails with the detailed TLS/EACCES reason; any other
+  // /api/providers/validate fails with the detailed TLS/binding reason; any other
   // call (e.g. model lookups) succeeds.
   vi.stubGlobal(
     "fetch",
@@ -70,7 +69,7 @@ beforeEach(() => {
       if (String(url).includes("/api/providers/validate")) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ valid: false, error: TLS_EACCES_ERROR }),
+          json: () => Promise.resolve({ valid: false, error: TLS_BINDING_ERROR }),
         } as Response);
       }
       return Promise.resolve({
@@ -108,7 +107,7 @@ describe("AddApiKeyModal — surfaces the detailed validation error (#5088)", ()
     });
 
     // The full reason must reach the DOM — a bare "invalid" badge is not enough.
-    await waitFor(() => el.textContent?.includes("EACCES: permission denied") ?? false);
+    await waitFor(() => el.textContent?.includes("wreq-js 3.2.x") ?? false);
     expect(el.textContent).toContain("TLS impersonation client failed to start");
   });
 });

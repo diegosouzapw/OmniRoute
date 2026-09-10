@@ -135,7 +135,7 @@ test("nvidia specialty validator falls back to stable chat validation model", as
         calls.some((u) => u.endsWith("/chat/completions")),
         `should fall back to /chat/completions, called: ${JSON.stringify(calls)}`
       );
-      assert.equal(payload?.model, "meta/llama-3.1-8b-instruct");
+      assert.equal(payload?.model, "nvidia/nemotron-3.5-lightning-30b-a3b");
     }
   );
 });

@@ -8,7 +8,7 @@ import type { LiveModelsByProviderId } from "../providerPageUtils";
  * provider connection via GET /api/synced-available-models, so the Providers
  * page model-name filter can match against real upstream models (not just
  * the static curated registry). See #7250: aggregator providers (openrouter,
- * kilocode, theoldllm...) declare a single-entry static placeholder, so a
+ * kilocode, ...) declare a single-entry static placeholder, so a
  * search for a real model name never matched and silently hid the provider.
  *
  * Fails soft — a fetch error leaves the map empty, and callers fall back to

@@ -1,6 +1,6 @@
 # CLAUDE.md (فارسی)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇩 [in](../in/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md) · 🇹🇼 [zh-TW](../zh-TW/CLAUDE.md)
 
 ---
 
@@ -292,31 +292,31 @@ baseCooldownMs * 2 ** failureIndex;
 
 برای هر تغییر غیر جزئی، ابتدا عمیقاً به مستندات مربوطه مراجعه کنید:
 
-| حوزه                                          | مستند                                                             |
-| --------------------------------------------- | ----------------------------------------------------------------- |
-| ناوبری مخزن                                   | `docs/architecture/REPOSITORY_MAP.md`                             |
-| معماری                                        | `docs/architecture/ARCHITECTURE.md`                               |
-| مرجع مهندسی                                   | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md` |
-| تاب‌آوری (3 مکانیزم)                          | `docs/architecture/RESILIENCE_GUIDE.md`                           |
-| پخش استدلال                                   | `docs/routing/REASONING_REPLAY.md`                                |
-| چارچوب مهارت‌ها                               | `docs/frameworks/SKILLS.md`                                       |
-| سیستم حافظه (FTS5 + Qdrant)                   | `docs/frameworks/MEMORY.md`                                       |
-| عوامل ابری                                    | `docs/frameworks/CLOUD_AGENT.md`                                  |
-| راهنماهای حفاظتی (PII / تزریق / بینش)         | `docs/security/GUARDRAILS.md`                                     |
-| اعتبارنامه‌های عمومی بالادستی (Gemini/etc.)   | `docs/security/PUBLIC_CREDS.md`                                   |
-| پاک‌سازی پیام‌های خطا                         | `docs/security/ERROR_SANITIZATION.md`                             |
-| ارزیابی‌ها                                    | `docs/frameworks/EVALS.md`                                        |
-| انطباق / حسابرسی                              | `docs/security/COMPLIANCE.md`                                     |
-| وب‌هوک‌ها                                     | `docs/frameworks/WEBHOOKS.md`                                     |
-| خط لوله مجوزدهی                               | `docs/architecture/AUTHZ_GUIDE.md`                                |
-| پنهان‌کاری (TLS / اثر انگشت)                  | `docs/security/STEALTH_GUIDE.md`                                  |
-| پروتکل‌های عامل (A2A / ACP / Cloud)           | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
-| سرور MCP                                      | `docs/frameworks/MCP-SERVER.md`                                   |
-| سرور A2A                                      | `docs/frameworks/A2A-SERVER.md`                                   |
-| مرجع API + OpenAPI                            | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
-| کاتالوگ ارائه‌دهنده (به‌طور خودکار تولید شده) | `docs/reference/PROVIDER_REFERENCE.md`                            |
-| جریان انتشار                                  | `docs/ops/RELEASE_CHECKLIST.md`                                   |
+| حوزه                                                 | مستند                                                             |
+| ---------------------------------------------------- | ----------------------------------------------------------------- |
+| ناوبری مخزن                                          | `docs/architecture/REPOSITORY_MAP.md`                             |
+| معماری                                               | `docs/architecture/ARCHITECTURE.md`                               |
+| مرجع مهندسی                                          | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
+| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md`                                      |
+| تاب‌آوری (3 مکانیزم)                                 | `docs/architecture/RESILIENCE_GUIDE.md`                           |
+| پخش استدلال                                          | `docs/routing/REASONING_REPLAY.md`                                |
+| چارچوب مهارت‌ها                                      | `docs/frameworks/SKILLS.md`                                       |
+| سیستم حافظه (FTS5 + Qdrant)                          | `docs/frameworks/MEMORY.md`                                       |
+| عوامل ابری                                           | `docs/frameworks/CLOUD_AGENT.md`                                  |
+| راهنماهای حفاظتی (PII / تزریق / بینش)                | `docs/security/GUARDRAILS.md`                                     |
+| اعتبارنامه‌های عمومی بالادستی (Gemini/etc.)          | `docs/security/PUBLIC_CREDS.md`                                   |
+| پاک‌سازی پیام‌های خطا                                | `docs/security/ERROR_SANITIZATION.md`                             |
+| ارزیابی‌ها                                           | `docs/frameworks/EVALS.md`                                        |
+| انطباق / حسابرسی                                     | `docs/security/COMPLIANCE.md`                                     |
+| وب‌هوک‌ها                                            | `docs/frameworks/WEBHOOKS.md`                                     |
+| خط لوله مجوزدهی                                      | `docs/architecture/AUTHZ_GUIDE.md`                                |
+| پنهان‌کاری (TLS / اثر انگشت)                         | `docs/security/STEALTH_GUIDE.md`                                  |
+| پروتکل‌های عامل (A2A / ACP / Cloud)                  | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
+| سرور MCP                                             | `docs/frameworks/MCP-SERVER.md`                                   |
+| سرور A2A                                             | `docs/frameworks/A2A-SERVER.md`                                   |
+| مرجع API + OpenAPI                                   | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
+| کاتالوگ ارائه‌دهنده (به‌طور خودکار تولید شده)        | `docs/reference/PROVIDER_REFERENCE.md`                            |
+| جریان انتشار                                         | `docs/ops/RELEASE_CHECKLIST.md`                                   |
 
 ---
 

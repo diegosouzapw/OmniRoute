@@ -5,26 +5,25 @@ import { getRegistryEntry, REGISTRY } from "../../open-sse/config/providerRegist
 import { getExecutor, hasSpecializedExecutor } from "../../open-sse/executors/index.ts";
 import { AI_PROVIDERS } from "../../src/shared/constants/providers.ts";
 
-const RETIRED_PROVIDER_IDS = ["chatgpt-web", "cgpt-web"] as const;
+test("clean-room ChatGPT Web is restored while the legacy alias remains retired", async () => {
+  assert.ok(REGISTRY["chatgpt-web"]);
+  assert.ok(AI_PROVIDERS["chatgpt-web"]);
+  assert.ok(getRegistryEntry("chatgpt-web"));
+  assert.equal(hasSpecializedExecutor("chatgpt-web"), true);
+  assert.ok(await getExecutor("chatgpt-web"));
 
-test("common ChatGPT Web is unavailable while ChatGPT Web Codex remains registered", async () => {
-  assert.equal(REGISTRY["chatgpt-web"], undefined);
-  assert.equal(AI_PROVIDERS["chatgpt-web"], undefined);
-
-  for (const providerId of RETIRED_PROVIDER_IDS) {
-    assert.equal(getRegistryEntry(providerId), null);
-    assert.equal(hasSpecializedExecutor(providerId), false);
-    await assert.rejects(
-      () => getExecutor(providerId),
-      (error: unknown) => {
-        const typed = error as Error & { code?: string; status?: number };
-        assert.equal(typed.code, "PROVIDER_RETIRED");
-        assert.equal(typed.status, 410);
-        assert.equal(typed.message, "Provider is retired and unavailable.");
-        return true;
-      }
-    );
-  }
+  assert.equal(getRegistryEntry("cgpt-web"), null);
+  assert.equal(hasSpecializedExecutor("cgpt-web"), false);
+  await assert.rejects(
+    () => getExecutor("cgpt-web"),
+    (error: unknown) => {
+      const typed = error as Error & { code?: string; status?: number };
+      assert.equal(typed.code, "PROVIDER_RETIRED");
+      assert.equal(typed.status, 410);
+      assert.equal(typed.message, "Provider is retired and unavailable.");
+      return true;
+    }
+  );
 
   assert.ok(getRegistryEntry("chatgpt-web-codex"));
   assert.ok(getRegistryEntry("cgpt-codex"));

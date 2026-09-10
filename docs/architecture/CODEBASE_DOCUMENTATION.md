@@ -348,7 +348,7 @@ Domain modules (each owns one or more tables): `apiKeys.ts`, `backup.ts`,
 `syncTokens.ts`, `tierConfig.ts`, `upstreamProxy.ts`, `versionManager.ts`,
 `webhooks.ts`.
 
-`migrations/` holds 167 versioned `.sql` files (idempotent, transactional) and is
+`migrations/` holds 168 versioned `.sql` files (idempotent, transactional) and is
 executed by `migrationRunner.ts` at boot.
 
 Tables created across the migrations (123 total):
@@ -449,7 +449,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              106 provider-specific HTTP executors
+├── executors/              108 provider-specific HTTP executors
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -479,7 +479,7 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-106 provider executors, each extending `BaseExecutor` (`base.ts`):
+108 provider executors, each extending `BaseExecutor` (`base.ts`):
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
@@ -488,7 +488,7 @@ open-sse/
 (shared identity helper) and `index.ts` (registry).
 
 > Note: providers not listed here are served by `default.ts` using the generic
-> OpenAI-compatible executor. The full provider catalog (352 providers) lives in
+> OpenAI-compatible executor. The full provider catalog (355 providers) lives in
 > `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`

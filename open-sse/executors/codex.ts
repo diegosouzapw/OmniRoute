@@ -38,6 +38,7 @@ import { applyReasoningInputPolicy } from "../services/reasoningInputPolicy.ts";
 import { normalizeCodexVerbosity } from "../services/codexVerbosity.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
+import { projectCodexPublicError } from "../utils/codexPublicError.ts";
 import { errorResponse } from "../utils/error.ts";
 import { normalizeCodexResponsesInput } from "../utils/responsesInputNormalization.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
@@ -493,7 +494,6 @@ function toCodexResponseFailedEvent(parsed: Record<string, unknown>): Record<str
     typeof upstreamError.message === "string" && upstreamError.message.trim()
       ? upstreamError.message
       : "Codex upstream error";
-  const error: Record<string, unknown> = { code, message };
   const explicitStatus =
     toStatusCode(parsed.status_code) ??
     toStatusCode(parsed.status) ??
@@ -503,8 +503,10 @@ function toCodexResponseFailedEvent(parsed: Record<string, unknown>): Record<str
     toStatusCode(upstreamError.status);
   const statusCode =
     explicitStatus ?? (looksLikeQuotaOrRateLimit(code, type, message) ? 429 : null);
+  const error: Record<string, unknown> = {
+    ...projectCodexPublicError({ status: statusCode, code, type }),
+  };
 
-  if (type) error.type = type;
   if (statusCode !== null) error.status_code = statusCode;
 
   return {
@@ -538,6 +540,10 @@ export function codexDropNonstandardEvents(): boolean {
 // every `codex.*` event block from the byte stream before it reaches the client.
 // Exported for unit testing (#4715). Strips `codex.*` SSE event blocks from a
 // streaming Response when `codexDropNonstandardEvents()` is on (default, #11014).
+// Pre-compiled: the filter's transform() runs on every chunk, so these were
+// re-allocated per block/iteration before hoisting.
+const CODEX_SSE_EVENT_LINE_RE = /^event:\s*(.+)$/m;
+const CODEX_SSE_BLOCK_SEP_RE = /\r?\n\r?\n/;
 export function filterNonstandardCodexSse(response: Response): Response {
   const contentType = response.headers.get("content-type") || "";
   if (!response.body || !contentType.includes("text/event-stream")) {
@@ -547,14 +553,14 @@ export function filterNonstandardCodexSse(response: Response): Response {
   const encoder = new TextEncoder();
   let buffer = "";
   const dropBlock = (block: string): boolean => {
-    const match = /^event:\s*(.+)$/m.exec(block);
+    const match = CODEX_SSE_EVENT_LINE_RE.exec(block);
     return !!match && match[1].trim().startsWith("codex.");
   };
   const transform = new TransformStream<Uint8Array, Uint8Array>({
     transform(chunk, controller) {
       buffer += decoder.decode(chunk, { stream: true });
       while (true) {
-        const separator = /\r?\n\r?\n/.exec(buffer);
+        const separator = CODEX_SSE_BLOCK_SEP_RE.exec(buffer);
         if (!separator) break;
         const blockEnd = separator.index + separator[0].length;
         const block = buffer.slice(0, blockEnd);
@@ -951,7 +957,7 @@ export class CodexExecutor extends BaseExecutor {
       }
     };
 
-    const failController = (code: string, message: string) => {
+    const failController = (code: string, _message: string) => {
       if (closed) return;
       const controller = streamController;
       const payload = JSON.stringify({
@@ -959,7 +965,7 @@ export class CodexExecutor extends BaseExecutor {
         response: {
           id: null,
           status: "failed",
-          error: { code, message },
+          error: projectCodexPublicError({ status: 502, code, type: "provider_error" }),
         },
       });
       try {

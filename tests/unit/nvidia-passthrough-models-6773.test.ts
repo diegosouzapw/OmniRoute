@@ -2,8 +2,8 @@
  * Regression test for #6773 — NVIDIA NIM models listed available:true but 404 at router.
  *
  * Root cause: the `nvidia` provider registry entry multiplexes many distinct
- * third-party vendor models (z-ai/, minimaxai/, deepseek-ai/, qwen/,
- * mistralai/, stepfun-ai/, moonshotai/, openai/, nvidia/) behind ONE base URL
+ * third-party vendor models (moonshotai/, deepseek-ai/, nvidia/, meta/,
+ * poolside/, google/, openai/) behind ONE base URL
  * and ONE API key connection — architecturally identical to `modelscope`,
  * `synthetic`, and `kilo-gateway`, which all set `passthroughModels: true` so
  * that a single model's 404/429 stays scoped to that model instead of cooling
@@ -24,8 +24,8 @@ test("#6773: nvidia registry entry sets passthroughModels", () => {
     entry?.passthroughModels,
     true,
     "nvidia multiplexes many third-party vendor models behind one connection " +
-      "(z-ai/, minimaxai/, deepseek-ai/, qwen/, mistralai/, stepfun-ai/, " +
-      "moonshotai/, openai/, nvidia/) — it should set passthroughModels: true " +
+      "(moonshotai/, deepseek-ai/, nvidia/, meta/, poolside/, google/, " +
+      "openai/) — it should set passthroughModels: true " +
       "like modelscope/synthetic/kilo-gateway, so a single stale model 404 " +
       "does not cool down the whole connection for all other models"
   );
@@ -33,7 +33,7 @@ test("#6773: nvidia registry entry sets passthroughModels", () => {
 
 test("#6773: hasPerModelQuota('nvidia') is true, so a 404 on one nvidia model is model-scoped", () => {
   assert.equal(
-    accountFallback.hasPerModelQuota("nvidia", "z-ai/glm-5.2"),
+    accountFallback.hasPerModelQuota("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
     true,
     "expected nvidia to use per-model lockout (like gemini/github/codex/compatible " +
       "providers) so a 404 on one model doesn't cool down the other nvidia models"
@@ -50,7 +50,7 @@ test("#6773: checkFallbackError + lockModelIfPerModelQuota scope a single-model 
     404,
     "Not Found",
     0,
-    "z-ai/glm-5.2",
+    "nvidia/nemotron-3.5-lightning-30b-a3b",
     "nvidia",
     null,
     null,
@@ -66,7 +66,7 @@ test("#6773: checkFallbackError + lockModelIfPerModelQuota scope a single-model 
   const locked = accountFallback.lockModelIfPerModelQuota(
     "nvidia",
     "conn-6773",
-    "z-ai/glm-5.2",
+    "nvidia/nemotron-3.5-lightning-30b-a3b",
     "unknown",
     result.cooldownMs ?? 30_000
   );

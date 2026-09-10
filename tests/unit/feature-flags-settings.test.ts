@@ -38,8 +38,8 @@ const {
 // no-think/<provider>/<model> gateway aliases) then bumped it from 52 to 53.
 // OMNIROUTE_DISABLE_THINKING_LEVEL_VARIANTS bumped it from 53 to 54;
 // the dead ONEPROXY_ENABLED (readerless since the 1proxy purge, #12091)
-// brought it back to 53.
-const EXPECTED_FEATURE_FLAG_COUNT = 53;
+// brought it back to 53. UNIVERSAL_CONTEXT_HANDOFF_ENABLED bumped it to 54.
+const EXPECTED_FEATURE_FLAG_COUNT = 55;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry

@@ -5,6 +5,7 @@
 export const LOCAL_PROVIDERS = {
   "mlx-gemma": {
     id: "mlx-gemma",
+    serviceKinds: ["llm"],
     alias: "mlx-gemma",
     name: "MLX Gemma 26B",
     icon: "memory",
@@ -18,6 +19,7 @@ export const LOCAL_PROVIDERS = {
   },
   "mlx-qwen": {
     id: "mlx-qwen",
+    serviceKinds: ["llm"],
     alias: "mlx-qwen",
     name: "MLX Qwen 3.8 27B",
     icon: "memory",
@@ -31,6 +33,7 @@ export const LOCAL_PROVIDERS = {
   },
   "ollama-local": {
     id: "ollama-local",
+    serviceKinds: ["llm"],
     alias: "ollama",
     name: "Ollama",
     icon: "pets",
@@ -44,6 +47,7 @@ export const LOCAL_PROVIDERS = {
   },
   "lm-studio": {
     id: "lm-studio",
+    serviceKinds: ["llm"],
     alias: "lmstudio",
     name: "LM Studio",
     icon: "server",
@@ -57,6 +61,7 @@ export const LOCAL_PROVIDERS = {
   },
   vllm: {
     id: "vllm",
+    serviceKinds: ["llm"],
     alias: "vllm",
     name: "vLLM",
     icon: "memory",
@@ -70,6 +75,7 @@ export const LOCAL_PROVIDERS = {
   },
   lemonade: {
     id: "lemonade",
+    serviceKinds: ["llm"],
     alias: "lemonade",
     name: "Lemonade Server",
     icon: "bolt",
@@ -83,6 +89,7 @@ export const LOCAL_PROVIDERS = {
   },
   llamafile: {
     id: "llamafile",
+    serviceKinds: ["llm"],
     alias: "llamafile",
     name: "Llamafile",
     icon: "article",
@@ -96,6 +103,7 @@ export const LOCAL_PROVIDERS = {
   },
   "llama-cpp": {
     id: "llama-cpp",
+    serviceKinds: ["llm"],
     alias: "llamacpp",
     name: "llama.cpp",
     icon: "memory",
@@ -109,6 +117,7 @@ export const LOCAL_PROVIDERS = {
   },
   triton: {
     id: "triton",
+    serviceKinds: ["llm"],
     alias: "triton",
     name: "NVIDIA Triton",
     icon: "developer_board",
@@ -122,6 +131,7 @@ export const LOCAL_PROVIDERS = {
   },
   "docker-model-runner": {
     id: "docker-model-runner",
+    serviceKinds: ["llm"],
     alias: "dmr",
     name: "Docker Model Runner",
     icon: "inventory_2",
@@ -135,6 +145,7 @@ export const LOCAL_PROVIDERS = {
   },
   xinference: {
     id: "xinference",
+    serviceKinds: ["llm"],
     alias: "xinference",
     name: "XInference",
     icon: "hub",
@@ -148,6 +159,7 @@ export const LOCAL_PROVIDERS = {
   },
   oobabooga: {
     id: "oobabooga",
+    serviceKinds: ["llm"],
     alias: "ooba",
     name: "oobabooga",
     icon: "dns",
@@ -161,6 +173,7 @@ export const LOCAL_PROVIDERS = {
   },
   sdwebui: {
     id: "sdwebui",
+    serviceKinds: [],
     alias: "sdwebui",
     name: "SD WebUI",
     icon: "brush",
@@ -174,6 +187,7 @@ export const LOCAL_PROVIDERS = {
   },
   comfyui: {
     id: "comfyui",
+    serviceKinds: [],
     alias: "comfyui",
     name: "ComfyUI",
     icon: "account_tree",

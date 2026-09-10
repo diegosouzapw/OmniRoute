@@ -11,10 +11,10 @@
  * response without an explicit effort (`upstream_empty_response`).
  *
  * Fix: `normalizeDiscoveredModels` captures `reasoning.default_effort`
- * (normalized onto the canonical vocabulary: `max` → `xhigh`) as
- * `defaultThinkingEffort`, and `applyDefaultReasoningEffort` accepts it as the
- * lowest-priority default — behind a `-{effort}` suffix alias and behind a static
- * operator-configured `ModelSpec.defaultReasoningEffort`.
+ * (canonical vocabulary, including first-class `max`) as `defaultThinkingEffort`,
+ * and `applyDefaultReasoningEffort` accepts it as the lowest-priority default —
+ * behind a `-{effort}` suffix alias and behind a static operator-configured
+ * `ModelSpec.defaultReasoningEffort`.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -42,10 +42,9 @@ test("maps OpenRouter reasoning.default_effort onto defaultThinkingEffort", () =
   ]);
 
   assert.equal(model.id, "stealth/ox-alpha");
-  // `max` is normalized onto the canonical vocabulary (`xhigh`), same mapping the
-  // supported-efforts list already applies.
-  assert.equal(model.defaultThinkingEffort, "xhigh");
-  assert.deepEqual(model.supportedThinkingEfforts, ["xhigh", "high", "low"]);
+  // `max` is a first-class canonical tier (#11875) and is preserved as-is.
+  assert.equal(model.defaultThinkingEffort, "max");
+  assert.deepEqual(model.supportedThinkingEfforts, ["max", "high", "low"]);
 });
 
 test("a canonical default_effort passes through unchanged", () => {

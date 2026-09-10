@@ -6,7 +6,7 @@ lastUpdated: 2026-08-23
 
 # OmniRoute — Kaldırma Kılavuzu (Türkçe)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/guides/UNINSTALL.md) · 🇸🇦 [ar](../../ar/docs/guides/UNINSTALL.md) · 🇧🇬 [bg](../../bg/docs/guides/UNINSTALL.md) · 🇧🇩 [bn](../../bn/docs/guides/UNINSTALL.md) · 🇨🇿 [cs](../../cs/docs/guides/UNINSTALL.md) · 🇩🇰 [da](../../da/docs/guides/UNINSTALL.md) · 🇩🇪 [de](../../de/docs/guides/UNINSTALL.md) · 🇪🇸 [es](../../es/docs/guides/UNINSTALL.md) · 🇮🇷 [fa](../../fa/docs/guides/UNINSTALL.md) · 🇫🇮 [fi](../../fi/docs/guides/UNINSTALL.md) · 🇫🇷 [fr](../../fr/docs/guides/UNINSTALL.md) · 🇮🇳 [gu](../../gu/docs/guides/UNINSTALL.md) · 🇮🇱 [he](../../he/docs/guides/UNINSTALL.md) · 🇮🇳 [hi](../../hi/docs/guides/UNINSTALL.md) · 🇭🇺 [hu](../../hu/docs/guides/UNINSTALL.md) · 🇮🇩 [id](../../id/docs/guides/UNINSTALL.md) · 🇮🇹 [it](../../it/docs/guides/UNINSTALL.md) · 🇯🇵 [ja](../../ja/docs/guides/UNINSTALL.md) · 🇰🇷 [ko](../../ko/docs/guides/UNINSTALL.md) · 🇮🇳 [mr](../../mr/docs/guides/UNINSTALL.md) · 🇲🇾 [ms](../../ms/docs/guides/UNINSTALL.md) · 🇳🇱 [nl](../../nl/docs/guides/UNINSTALL.md) · 🇳🇴 [no](../../no/docs/guides/UNINSTALL.md) · 🇵🇭 [phi](../../phi/docs/guides/UNINSTALL.md) · 🇵🇱 [pl](../../pl/docs/guides/UNINSTALL.md) · 🇵🇹 [pt](../../pt/docs/guides/UNINSTALL.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/guides/UNINSTALL.md) · 🇷🇴 [ro](../../ro/docs/guides/UNINSTALL.md) · 🇷🇺 [ru](../../ru/docs/guides/UNINSTALL.md) · 🇸🇰 [sk](../../sk/docs/guides/UNINSTALL.md) · 🇸🇪 [sv](../../sv/docs/guides/UNINSTALL.md) · 🇰🇪 [sw](../../sw/docs/guides/UNINSTALL.md) · 🇮🇳 [ta](../../ta/docs/guides/I18N.md) · 🇮🇳 [te](../../te/docs/guides/UNINSTALL.md) · 🇹🇭 [th](../../th/docs/guides/UNINSTALL.md) · 🇹🇷 [tr](../../tr/docs/guides/UNINSTALL.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/guides/UNINSTALL.md) · 🇵🇰 [ur](../../ur/docs/guides/UNINSTALL.md) · 🇻🇳 [vi](../../vi/docs/guides/UNINSTALL.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/guides/UNINSTALL.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/UNINSTALL.md) · 🇸🇦 [ar](../../../ar/docs/guides/UNINSTALL.md) · 🇦🇿 [az](../../../az/docs/guides/UNINSTALL.md) · 🇧🇬 [bg](../../../bg/docs/guides/UNINSTALL.md) · 🇧🇩 [bn](../../../bn/docs/guides/UNINSTALL.md) · 🇨🇿 [cs](../../../cs/docs/guides/UNINSTALL.md) · 🇩🇰 [da](../../../da/docs/guides/UNINSTALL.md) · 🇩🇪 [de](../../../de/docs/guides/UNINSTALL.md) · 🇪🇸 [es](../../../es/docs/guides/UNINSTALL.md) · 🇮🇷 [fa](../../../fa/docs/guides/UNINSTALL.md) · 🇫🇮 [fi](../../../fi/docs/guides/UNINSTALL.md) · 🇫🇷 [fr](../../../fr/docs/guides/UNINSTALL.md) · 🇮🇳 [gu](../../../gu/docs/guides/UNINSTALL.md) · 🇮🇱 [he](../../../he/docs/guides/UNINSTALL.md) · 🇮🇳 [hi](../../../hi/docs/guides/UNINSTALL.md) · 🇭🇺 [hu](../../../hu/docs/guides/UNINSTALL.md) · 🇮🇩 [id](../../../id/docs/guides/UNINSTALL.md) · 🇮🇹 [it](../../../it/docs/guides/UNINSTALL.md) · 🇯🇵 [ja](../../../ja/docs/guides/UNINSTALL.md) · 🇰🇷 [ko](../../../ko/docs/guides/UNINSTALL.md) · 🇮🇳 [mr](../../../mr/docs/guides/UNINSTALL.md) · 🇲🇾 [ms](../../../ms/docs/guides/UNINSTALL.md) · 🇳🇱 [nl](../../../nl/docs/guides/UNINSTALL.md) · 🇳🇴 [no](../../../no/docs/guides/UNINSTALL.md) · 🇵🇭 [phi](../../../phi/docs/guides/UNINSTALL.md) · 🇵🇱 [pl](../../../pl/docs/guides/UNINSTALL.md) · 🇵🇹 [pt](../../../pt/docs/guides/UNINSTALL.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/UNINSTALL.md) · 🇷🇴 [ro](../../../ro/docs/guides/UNINSTALL.md) · 🇷🇺 [ru](../../../ru/docs/guides/UNINSTALL.md) · 🇸🇰 [sk](../../../sk/docs/guides/UNINSTALL.md) · 🇸🇪 [sv](../../../sv/docs/guides/UNINSTALL.md) · 🇰🇪 [sw](../../../sw/docs/guides/UNINSTALL.md) · 🇮🇳 [ta](../../../ta/docs/guides/UNINSTALL.md) · 🇮🇳 [te](../../../te/docs/guides/UNINSTALL.md) · 🇹🇭 [th](../../../th/docs/guides/UNINSTALL.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/UNINSTALL.md) · 🇵🇰 [ur](../../../ur/docs/guides/UNINSTALL.md) · 🇻🇳 [vi](../../../vi/docs/guides/UNINSTALL.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/UNINSTALL.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/UNINSTALL.md)
 
 ---
 
@@ -83,12 +83,15 @@ docker compose down -v
 ### Electron Masaüstü Uygulaması
 
 **macOS:**
+
 - `OmniRoute.app` uygulamasını `/Applications` dizininden Çöp Sepetine sürükleyin
 - Verileri silin: `rm -rf ~/Library/Application Support/omniroute`
 
 **Windows:**
+
 - `Ayarlar → Uygulamalar → OmniRoute → Kaldır`
 
 **Linux:**
+
 - AppImage veya paket yöneticisi üzerinden kaldırın
 - Verileri silin: `rm -rf ~/.config/omniroute`

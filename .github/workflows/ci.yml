@@ -502,6 +502,11 @@ jobs:
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: node scripts/i18n/check-ui-keys-coverage.mjs --threshold=65
+      # Real-translation ratchet: a leaf copied verbatim from en.json passes key
+      # parity above but is still English to the user (es shipped 55% English).
+      # Advisory in PR-0; flipped to blocking once the backlog is retranslated (PR-4).
+      - name: i18n real-translation ratio (advisory)
+        run: node scripts/i18n/check-translation-ratio.mjs --warn
       # #8463: a rewritten English value used to leave its 39 translations behind
       # silently (googleOAuthWarning shipped wrong copy in 39 locales for months).
       # Key parity above cannot see it — a stale translation counts as covered.

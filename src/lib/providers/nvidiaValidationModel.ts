@@ -9,11 +9,12 @@
  * probe HANG until the validation timeout, which surfaces as a misleading "Upstream
  * Error" on an otherwise-valid key.
  *
- * `meta/llama-3.1-8b-instruct` is a long-lived, universally-available NIM model (no
- * special permission), so it is a far more reliable auth probe. A connection may still
- * override it via `providerSpecificData.validationModelId`.
+ * The default must stay inside the current NVIDIA hosted-model catalog. Nemotron 3.5
+ * Lightning is the smallest retained general chat model, which keeps the auth probe
+ * lightweight. A connection may still override it via
+ * `providerSpecificData.validationModelId`.
  */
-export const NVIDIA_DEFAULT_VALIDATION_MODEL = "meta/llama-3.1-8b-instruct";
+export const NVIDIA_DEFAULT_VALIDATION_MODEL = "nvidia/nemotron-3.5-lightning-30b-a3b";
 
 export function resolveNvidiaValidationModel(providerSpecificData?: {
   validationModelId?: unknown;

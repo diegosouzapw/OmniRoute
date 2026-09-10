@@ -218,3 +218,29 @@ export function getAllRerankModels() {
   }
   return models;
 }
+
+/**
+ * Derive a Cohere-compatible rerank config for a chat provider that has NO
+ * curated RERANK_PROVIDERS entry. Works for any registry provider whose base
+ * URL ends in /chat/completions by swapping that suffix for /rerank (groq,
+ * mistral, vercel-ai-gateway, ...). Dynamic-URL providers (no usable static
+ * base, e.g. dynamic account-scoped hosts) derive to null — they need bespoke
+ * URL handling.
+ *
+ * This is a FALLBACK only: callers must check getRerankProvider() first so
+ * curated entries keep their specialized configuration and format adapters.
+ */
+export function deriveRerankProviderForChatProvider(providerId, chatEntry) {
+  if (!chatEntry) return null;
+  const rawBase = Array.isArray(chatEntry.baseUrl) ? chatEntry.baseUrl[0] : chatEntry.baseUrl;
+  if (!rawBase || typeof rawBase !== "string") return null;
+  const base = rawBase.replace(/\/+$/, "");
+  if (!base.endsWith("/chat/completions")) return null;
+  return {
+    id: providerId,
+    baseUrl: `${base.slice(0, -"/chat/completions".length)}/rerank`,
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [],
+  };
+}

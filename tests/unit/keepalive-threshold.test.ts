@@ -46,8 +46,8 @@ describe("resolveKeepaliveThreshold", () => {
     assert.equal(resolveKeepaliveThreshold("opencode-zen/gpt-4"), 15000);
   });
 
-  it("uses the default for retired common ChatGPT Web ids", () => {
-    assert.equal(resolveKeepaliveThreshold("chatgpt-web/gpt-5"), 2000);
+  it("uses a longer threshold for clean-room ChatGPT Web but not its retired alias", () => {
+    assert.equal(resolveKeepaliveThreshold("chatgpt-web/gpt-5"), 15000);
     assert.equal(resolveKeepaliveThreshold("cgpt-web/gpt-5"), 2000);
   });
 
@@ -67,7 +67,7 @@ describe("resolveKeepaliveThreshold", () => {
     assert.ok(SLOW_KEEPALIVE_PROVIDERS.has("pollinations"));
     assert.ok(SLOW_KEEPALIVE_PROVIDERS.has("pol"));
     assert.ok(SLOW_KEEPALIVE_PROVIDERS.has("opencode-zen"));
-    assert.ok(!SLOW_KEEPALIVE_PROVIDERS.has("chatgpt-web"));
+    assert.ok(SLOW_KEEPALIVE_PROVIDERS.has("chatgpt-web"));
     assert.ok(SLOW_KEEPALIVE_PROVIDERS.has("chatgpt-web-codex"));
     assert.ok(SLOW_KEEPALIVE_PROVIDERS.has("grok-web"));
     assert.ok(SLOW_KEEPALIVE_PROVIDERS.has("claude-web"));

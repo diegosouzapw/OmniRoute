@@ -45,6 +45,8 @@ export const USAGE_FETCHER_PROVIDERS = [
   "qwen-cloud-token-plan",
   "nanogpt",
   "deepseek",
+  "moonshot",
+  "kimi",
   "opencode",
   "opencode-zen",
   "xiaomi-mimo",
@@ -82,6 +84,8 @@ export const USAGE_FETCHER_PROVIDERS = [
   // AgentRouter (New-API) console balance (GET /api/user/self)
   "agentrouter",
   "kilocode",
+  // Devin CLI agentic quota (Codeium seat-management GetUserStatus, protobuf)
+  "devin-cli",
 ] as const;
 
 export type UsageFetcherProvider = (typeof USAGE_FETCHER_PROVIDERS)[number];

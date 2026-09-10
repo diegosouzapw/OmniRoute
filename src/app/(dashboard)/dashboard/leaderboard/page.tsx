@@ -9,6 +9,31 @@ type LeaderboardScope = "global" | "weekly" | "monthly" | "tokens_shared";
 interface LeaderboardEntry {
   apiKeyId: string;
   score: number;
+  /** API key display name from the REST endpoint; absent on SSE payloads. */
+  name?: string | null;
+}
+
+/** Key name when known, otherwise a shortened id so the row is still identifiable. */
+function entryLabel(entry: LeaderboardEntry, idLength: number): string {
+  const name = entry.name?.trim();
+  return name ? name : `${entry.apiKeyId.slice(0, idLength)}...`;
+}
+
+/**
+ * Live SSE updates carry scores only. Carry the names already fetched over
+ * REST forward so rows do not flip back to raw ids on every refresh.
+ */
+function withKnownNames(
+  previous: LeaderboardEntry[],
+  incoming: LeaderboardEntry[]
+): LeaderboardEntry[] {
+  const known = new Map<string, string>();
+  for (const entry of previous) {
+    if (entry.name) known.set(entry.apiKeyId, entry.name);
+  }
+  return incoming.map((entry) =>
+    entry.name || !known.has(entry.apiKeyId) ? entry : { ...entry, name: known.get(entry.apiKeyId) }
+  );
 }
 
 const SCOPE_LABEL_KEYS: Record<LeaderboardScope, string> = {
@@ -67,7 +92,7 @@ export default function LeaderboardPage() {
       try {
         const data = JSON.parse(event.data);
         if (data.type === "leaderboard" && data.scope === scope) {
-          setEntries(data.entries || []);
+          setEntries((previous) => withKnownNames(previous, data.entries || []));
         }
       } catch {
         // ignore parse errors from heartbeats
@@ -152,8 +177,8 @@ export default function LeaderboardPage() {
                   <div className="flex items-center gap-4">
                     <div className="text-4xl">{MEDAL_EMOJI[idx]}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-text-muted truncate">
-                        {entry.apiKeyId.slice(0, 8)}...
+                      <p className="text-sm text-text-muted truncate" title={entry.apiKeyId}>
+                        {entryLabel(entry, 8)}
                       </p>
                       <p className="text-2xl font-bold mt-1">
                         {entry.score.toLocaleString(locale)}
@@ -188,7 +213,9 @@ export default function LeaderboardPage() {
                         className="border-b border-border/50 last:border-b-0"
                       >
                         <td className="py-3 text-text-muted font-mono">{idx + 4}</td>
-                        <td className="py-3 font-medium">{entry.apiKeyId.slice(0, 12)}...</td>
+                        <td className="py-3 font-medium" title={entry.apiKeyId}>
+                          {entryLabel(entry, 12)}
+                        </td>
                         <td className="py-3 text-right font-mono">
                           {entry.score.toLocaleString(locale)}
                         </td>

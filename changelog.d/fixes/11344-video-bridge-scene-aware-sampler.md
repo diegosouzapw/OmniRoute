@@ -1,1 +1,0 @@
-- **fix(video-bridge):** fall back to the deterministic active-window midpoint when a one-frame scene-aware budget cannot preserve both timeline ends; a real FFmpeg fixture matrix now covers rapid cuts, gradual changes, static and short clips, and detector failure ([#11344](https://github.com/diegosouzapw/OmniRoute/pull/11344)).

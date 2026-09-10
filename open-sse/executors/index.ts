@@ -2,11 +2,7 @@ import { SEARCH_PROVIDERS } from "../config/searchRegistry.ts";
 import { assertMicrosoftDesignerWebProviderAvailable } from "@/shared/constants/designerWebRetirement";
 import { assertRuntimeProviderAvailable } from "@/shared/constants/providerRetirement";
 import { assertCommonChatGptWebProviderAvailable } from "@/shared/constants/chatgptWebRetirement";
-import {
-  registerLazyExecutor,
-  loadRegisteredExecutor,
-  hasRegisteredExecutor,
-} from "./registry.ts";
+import { registerLazyExecutor, loadRegisteredExecutor, hasRegisteredExecutor } from "./registry.ts";
 // Type-only: pulls no runtime code, keeps DefaultExecutor the only eager class.
 import type { BaseExecutor } from "./base.ts";
 import { getDefaultExecutor } from "./defaultResolver.ts";
@@ -44,10 +40,12 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
     import("./codex-app-server.ts").then(
       (m) => new m.CodexAppServerExecutor({}, "codex-app-server")
     ),
+  maxai: () => import("./maxai.ts").then((m) => new m.MaxAiExecutor()),
+  uc: () => import("./uc.ts").then((m) => new m.UcExecutor()),
   "chatgpt-web-codex": () =>
     import("./chatgpt-web-codex.ts").then((m) => new m.ChatGptWebCodexExecutor()),
-  "cgpt-codex": () =>
-    import("./chatgpt-web-codex.ts").then((m) => new m.ChatGptWebCodexExecutor()),
+  "cgpt-codex": () => import("./chatgpt-web-codex.ts").then((m) => new m.ChatGptWebCodexExecutor()),
+  "chatgpt-web": () => import("./chatgpt-web.ts").then((m) => new m.ChatGptWebExecutor()),
   cursor: () => import("./cursor.ts").then((m) => new m.CursorExecutor()),
   trae: () => import("./trae.ts").then((m) => new m.TraeExecutor()),
   glm: () => import("./glm.ts").then((m) => new m.GlmExecutor("glm")),
@@ -71,12 +69,9 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   cf: () => import("./cloudflare-ai.ts").then((m) => new m.CloudflareAIExecutor()), // Alias
   freebuff: () => import("./freebuff.ts").then((m) => new m.FreebuffExecutor()),
   fb: () => import("./freebuff.ts").then((m) => new m.FreebuffExecutor()), // Alias
-  "opencode-zen": () =>
-    import("./opencode.ts").then((m) => new m.OpencodeExecutor("opencode-zen")),
-  "opencode-go": () =>
-    import("./opencode.ts").then((m) => new m.OpencodeExecutor("opencode-go")),
-  opencode: () =>
-    import("./opencode.ts").then((m) => new m.OpencodeExecutor("opencode-zen")), // Alias for opencode-zen
+  "opencode-zen": () => import("./opencode.ts").then((m) => new m.OpencodeExecutor("opencode-zen")),
+  "opencode-go": () => import("./opencode.ts").then((m) => new m.OpencodeExecutor("opencode-go")),
+  opencode: () => import("./opencode.ts").then((m) => new m.OpencodeExecutor("opencode-zen")), // Alias for opencode-zen
   vertex: () => import("./vertex.ts").then((m) => new m.VertexExecutor()),
   "vertex-partner": () => import("./vertex.ts").then((m) => new m.VertexExecutor()),
   cliproxyapi: () => import("./cliproxyapi.ts").then((m) => new m.CliproxyapiExecutor()),
@@ -85,10 +80,8 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   dr: () => import("./dario.ts").then((m) => new m.DarioExecutor()), // Alias
   "9router": () => import("./ninerouter.ts").then((m) => new m.NineRouterExecutor()),
   nr: () => import("./ninerouter.ts").then((m) => new m.NineRouterExecutor()), // Alias
-  "perplexity-web": () =>
-    import("./perplexity-web.ts").then((m) => new m.PerplexityWebExecutor()),
-  "pplx-web": () =>
-    import("./perplexity-web.ts").then((m) => new m.PerplexityWebExecutor()), // Alias
+  "perplexity-web": () => import("./perplexity-web.ts").then((m) => new m.PerplexityWebExecutor()),
+  "pplx-web": () => import("./perplexity-web.ts").then((m) => new m.PerplexityWebExecutor()), // Alias
   "grok-web": () => import("./grok-web.ts").then((m) => new m.GrokWebExecutor()),
   "claude-web": () => import("./claude-web.ts").then((m) => new m.ClaudeWebExecutor()),
   "cw-web": () => import("./claude-web.ts").then((m) => new m.ClaudeWebExecutor()), // Alias
@@ -96,12 +89,10 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   gweb: () => import("./gemini-web.ts").then((m) => new m.GeminiWebExecutor()), // Alias
   "gemini-business": () =>
     import("./gemini-business.ts").then((m) => new m.GeminiBusinessExecutor()),
-  gembiz: () =>
-    import("./gemini-business.ts").then((m) => new m.GeminiBusinessExecutor()), // Alias
+  gembiz: () => import("./gemini-business.ts").then((m) => new m.GeminiBusinessExecutor()), // Alias
   "blackbox-web": () => import("./blackbox-web.ts").then((m) => new m.BlackboxWebExecutor()),
   "bb-web": () => import("./blackbox-web.ts").then((m) => new m.BlackboxWebExecutor()), // Alias
-  "muse-spark-web": () =>
-    import("./muse-spark-web.ts").then((m) => new m.MuseSparkWebExecutor()),
+  "muse-spark-web": () => import("./muse-spark-web.ts").then((m) => new m.MuseSparkWebExecutor()),
   "ms-web": () => import("./muse-spark-web.ts").then((m) => new m.MuseSparkWebExecutor()), // Alias
   "devin-desktop": () => import("./devin-desktop.ts").then((m) => new m.DevinDesktopExecutor()),
   "zed-hosted": () => import("./zed-hosted.ts").then((m) => new m.ZedHostedExecutor()),
@@ -129,8 +120,7 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   firefly: () => import("./adobe-firefly.ts").then((m) => new m.AdobeFireflyExecutor()), // Alias
   "veoaifree-web": () => import("./veoaifree-web.ts").then((m) => new m.VeoAIFreeWebExecutor()),
   "veo-free": () => import("./veoaifree-web.ts").then((m) => new m.VeoAIFreeWebExecutor()), // Alias
-  "duckduckgo-web": () =>
-    import("./duckduckgo-web.ts").then((m) => new m.DuckDuckGoWebExecutor()),
+  "duckduckgo-web": () => import("./duckduckgo-web.ts").then((m) => new m.DuckDuckGoWebExecutor()),
   ddgw: () => import("./duckduckgo-web.ts").then((m) => new m.DuckDuckGoWebExecutor()), // Alias
   "t3-web": () => import("./t3-chat-web.ts").then((m) => new m.T3ChatWebExecutor()),
   t3chat: () => import("./t3-chat-web.ts").then((m) => new m.T3ChatWebExecutor()), // Alias
@@ -141,8 +131,7 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   "yuanbao-web": () => import("./yuanbao-web.ts").then((m) => new m.YuanbaoWebExecutor()),
   "tencent-aistudio-web": () =>
     import("./tencent-aistudio-web.ts").then((m) => new m.TencentAIStudioWebExecutor()),
-  tasw: () =>
-    import("./tencent-aistudio-web.ts").then((m) => new m.TencentAIStudioWebExecutor()), // Alias
+  tasw: () => import("./tencent-aistudio-web.ts").then((m) => new m.TencentAIStudioWebExecutor()), // Alias
   ybw: () => import("./yuanbao-web.ts").then((m) => new m.YuanbaoWebExecutor()), // Alias
   "poe-web": () => import("./poe-web.ts").then((m) => new m.PoeWebExecutor()),
   // #8969: do NOT alias canonical `poe` (API-key / api.poe.com) to PoeWebExecutor.
@@ -165,15 +154,11 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   cheaperinference: () =>
     import("./cheaperinference.ts").then((m) => new m.CheaperInferenceExecutor()),
   cinf: () =>
-    import("./cheaperinference.ts").then(
-      (m) => new m.CheaperInferenceExecutor("cheaperinference")
-    ), // Alias
+    import("./cheaperinference.ts").then((m) => new m.CheaperInferenceExecutor("cheaperinference")), // Alias
   "doubao-web": () => import("./doubao-web.ts").then((m) => new m.DoubaoWebExecutor()),
   db: () => import("./doubao-web.ts").then((m) => new m.DoubaoWebExecutor()), // Alias
   "zai-web": () => import("./zai-web.ts").then((m) => new m.ZaiWebExecutor()),
   zw: () => import("./zai-web.ts").then((m) => new m.ZaiWebExecutor()), // Alias
-  theoldllm: () => import("./theoldllm.ts").then((m) => new m.TheOldLlmExecutor()),
-  tllm: () => import("./theoldllm.ts").then((m) => new m.TheOldLlmExecutor()), // Alias
   chipotle: () => import("./chipotle.ts").then((m) => new m.ChipotleExecutor()),
   pepper: () => import("./chipotle.ts").then((m) => new m.ChipotleExecutor()), // Alias
   lmarena: () => import("./lmarena.ts").then((m) => new m.LMArenaExecutor()),
@@ -185,8 +170,7 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   "zenmux-free": () => import("./zenmux-free.ts").then((m) => new m.ZenmuxFreeExecutor()),
   "cloudflare-playground": () =>
     import("./cloudflare-playground.ts").then((m) => new m.CloudflarePlaygroundExecutor()),
-  cfp: () =>
-    import("./cloudflare-playground.ts").then((m) => new m.CloudflarePlaygroundExecutor()), // Alias for cloudflare-playground
+  cfp: () => import("./cloudflare-playground.ts").then((m) => new m.CloudflarePlaygroundExecutor()), // Alias for cloudflare-playground
   "tinycms-web": () => import("./tinycms.ts").then((m) => new m.TinyCmsExecutor()),
   tcw: () => import("./tinycms.ts").then((m) => new m.TinyCmsExecutor()), // Alias
   hyperagent: () => import("./hyperagent.ts").then((m) => new m.HyperAgentExecutor()),
@@ -196,6 +180,7 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   xai: () => import("./xai.ts").then((m) => new m.XaiExecutor()),
   "xai-oauth": () => import("./xai.ts").then((m) => new m.XaiExecutor("xai-oauth")),
   xao: () => import("./xai.ts").then((m) => new m.XaiExecutor("xai-oauth")),
+  "clova-studio": () => import("./clova-studio.ts").then((m) => new m.ClovaStudioExecutor()),
   "conol-web": () => import("./conol-web.ts").then((m) => new m.ConolWebExecutor()),
   cnl: () => import("./conol-web.ts").then((m) => new m.ConolWebExecutor()), // Alias
 };
@@ -256,11 +241,7 @@ export function hasSpecializedExecutor(provider: string): boolean {
   return hasRegisteredExecutor(provider);
 }
 
-export {
-  registerExecutor,
-  registerLazyExecutor,
-  listExecutorAliases,
-} from "./registry.ts";
+export { registerExecutor, registerLazyExecutor, listExecutorAliases } from "./registry.ts";
 // Value re-export: base.ts is already eager (DefaultExecutor extends it), and
 // scripts/check/check-known-symbols.ts reads this export from the module.
 export { BaseExecutor } from "./base.ts";

@@ -12,6 +12,7 @@ import type { BrowserContext, Page } from "playwright";
 export interface BrowserPoolContextOptions {
   cookieDomain: string;
   cookieString?: string | null;
+  storageState?: import("playwright").BrowserContextOptions["storageState"];
   warmupUrl?: string | null;
   userAgent?: string;
   locale?: string;

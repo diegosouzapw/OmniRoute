@@ -135,35 +135,27 @@ export type CatalogCacheOptions = {
  */
 export const CATALOG_CACHE_TTL_MS_DEFAULT = 60_000;
 
-/**
- * Per-call knobs for {@link resolveCachedCatalogResponse}.
- *
- * `hideAutoCombos` / `hideNoThinkVariants` are catalog-shape dimensions folded into
- * the cache key. `getStaleWhileRevalidateMs` and `scheduleBackgroundRefresh` are the
- * injection points restored in #11551: the route wires Next's `after()` so the
- * background refresh runs only once the response has been flushed to the client.
- */
+/** Cold-path wait bound for a coalesced catalog rebuild (#12627). Override with CATALOG_BUILD_TIMEOUT_MS. */
+export const CATALOG_BUILD_TIMEOUT_MS_DEFAULT = 8_000;
 
-/** Defers `task` until it is safe to run without delaying the current response. */
+function catalogBuildTimeoutMs(): number {
+  const raw = process.env.CATALOG_BUILD_TIMEOUT_MS;
+  if (!raw) return CATALOG_BUILD_TIMEOUT_MS_DEFAULT;
+  const n = Number.parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? n : CATALOG_BUILD_TIMEOUT_MS_DEFAULT;
+}
 
-/**
- * Default scheduler (#8728 / #11551).
- *
- * Next's `after()` runs the task once the response has been flushed, which is the
- * whole point of the stale-while-revalidate path: the builder is overwhelmingly
- * synchronous under the single-threaded App Router, so running it before the flush
- * pins the event loop and the "served immediately" stale body only reaches the
- * client after the rebuild finishes.
- *
- * `after()` requires a Next request scope. Callers outside one (instrumentation
- * warm-up, direct unit-test imports) fall back to a macrotask, which preserves the
- * "hand the response back first" ordering within the same process.
- */
+const catalogLastGood = new Map<string, CachedCatalog>();
 
-type CatalogInFlight = {
-  version: number;
-  promise: Promise<CachedCatalog>;
-};
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(label)), ms);
+    promise.then(
+      (value) => { clearTimeout(timer); resolve(value); },
+      (err) => { clearTimeout(timer); reject(err); }
+    );
+  });
+}
 
 const catalogCache = new Map<string, CachedCatalog>();
 
@@ -251,6 +243,7 @@ function storePayload(
   if (buildGeneration === getModelCatalogCacheVersion()) {
     catalogCache.set(cacheKey, entry);
   }
+  if (entry.status === 200) catalogLastGood.set(cacheKey, entry);
   return entry;
 }
 
@@ -318,6 +311,37 @@ function runBuilder(
   return buildPayload(request);
 }
 
+async function awaitCatalogInFlight(
+  cacheKey: string,
+  inflight: InFlightBuild,
+  corsHeaders: Record<string, string>,
+  diagnosticHeaders: Record<string, string>
+): Promise<Response> {
+  let payload: CachedCatalog;
+  try {
+    payload = await withTimeout(inflight.promise, catalogBuildTimeoutMs(), "catalog_build_timeout");
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (catalogInFlight.get(cacheKey)?.promise === inflight.promise) {
+      catalogInFlight.delete(cacheKey);
+    }
+    const lastGood = catalogLastGood.get(cacheKey);
+    if (msg === "catalog_build_timeout" && lastGood) {
+      return new Response(lastGood.body, {
+        status: lastGood.status,
+        headers: mergeCatalogHeaders(corsHeaders, lastGood.headers, diagnosticHeaders, {
+          "x-omniroute-catalog": "last-good",
+        }),
+      });
+    }
+    throw err;
+  }
+  return new Response(payload.body, {
+    status: payload.status,
+    headers: mergeCatalogHeaders(corsHeaders, payload.headers, diagnosticHeaders),
+  });
+}
+
 /**
  * Resolve the cached catalog response for `request`, building it through
  * `buildPayload` when there is nothing fresh to serve.
@@ -382,11 +406,7 @@ export async function resolveCachedCatalogResponse(
     });
   }
 
-  const payload = await inflight.promise;
-  return new Response(payload.body, {
-    status: payload.status,
-    headers: mergeCatalogHeaders(corsHeaders, payload.headers, diagnosticHeaders),
-  });
+  return awaitCatalogInFlight(cacheKey, inflight, corsHeaders, diagnosticHeaders);
 }
 
 // ── Test hooks ───────────────────────────────────────────────────────────────
@@ -397,6 +417,7 @@ export function __resetCatalogBuilderRunsForTest(): void {
   _catalogBuilderRuns = 0;
   catalogCache.clear();
   catalogInFlight.clear();
+  catalogLastGood.clear();
   lastSeenCatalogCacheVersion = getModelCatalogCacheVersion();
 }
 

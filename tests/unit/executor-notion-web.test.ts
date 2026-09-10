@@ -9,13 +9,15 @@ import assert from "node:assert/strict";
 const mod = await import("../../open-sse/executors/notion-web.ts");
 const { getModelsByProviderId } = await import("../../open-sse/config/providerModels.ts");
 const { WEB_COOKIE_PROVIDERS } = await import("../../src/shared/constants/providers/web-cookie.ts");
-const { __setTlsFetchOverrideForTesting } = await import(
-  "../../open-sse/services/notionTlsClient.ts"
-);
+const { __setTlsFetchOverrideForTesting, TlsClientUnavailableError } =
+  await import("../../open-sse/services/notionTlsClient.ts");
 
 /** Mock the Chrome-JA3 path used by sendNotionInferenceRequest (not global fetch). */
 function installNotionTlsMock(
-  handler: (url: string, opts: { headers?: Record<string, string>; body?: string }) => Promise<{
+  handler: (
+    url: string,
+    opts: { headers?: Record<string, string>; body?: string }
+  ) => Promise<{
     status: number;
     text: string;
   }>
@@ -389,6 +391,42 @@ describe("NotionWebExecutor — upstream translation (mocked TLS fetch)", () => 
     }
   });
 
+  it("fails closed without plain fetch when the binding is unavailable behind a proxy", async () => {
+    const executor = new mod.NotionWebExecutor();
+    const previousHttpsProxy = process.env.HTTPS_PROXY;
+    const previousFetch = globalThis.fetch;
+    let resolvedProxyUrl: string | undefined;
+    let plainFetchCalls = 0;
+    process.env.HTTPS_PROXY = "http://account-proxy.test:8080";
+    __setTlsFetchOverrideForTesting(async (_url, options) => {
+      resolvedProxyUrl = options.proxyUrl;
+      throw new TlsClientUnavailableError("native binding unavailable");
+    });
+    globalThis.fetch = (async () => {
+      plainFetchCalls += 1;
+      return new Response("plain fallback must not run", { status: 200 });
+    }) as typeof fetch;
+
+    try {
+      const result = await executor.execute({
+        model: "notion-ai",
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: false,
+        credentials: { apiKey: COOKIE_WITH_SPACE },
+        signal: null,
+      } as never);
+
+      assert.equal(result.response.status, 502);
+      assert.equal(resolvedProxyUrl, "http://account-proxy.test:8080");
+      assert.equal(plainFetchCalls, 0, "plain fetch would bypass the resolved proxy");
+    } finally {
+      __setTlsFetchOverrideForTesting(null);
+      globalThis.fetch = previousFetch;
+      if (previousHttpsProxy === undefined) delete process.env.HTTPS_PROXY;
+      else process.env.HTTPS_PROXY = previousHttpsProxy;
+    }
+  });
+
   it("surfaces nested patch-start temporarily-unavailable as a typed error (not empty-body 502)", async () => {
     const executor = new mod.NotionWebExecutor();
     const restore = installNotionTlsMock(async () => ({
@@ -529,9 +567,7 @@ describe("buildNotionTranscript", () => {
         },
         {
           role: "user",
-          content: [
-            { type: "text", text: "find icon skill" },
-          ] as unknown as string,
+          content: [{ type: "text", text: "find icon skill" }] as unknown as string,
         },
       ],
       { spaceId: "s1" }

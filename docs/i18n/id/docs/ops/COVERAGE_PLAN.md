@@ -1,6 +1,6 @@
 # Rencana Cakupan Pengujian (Bahasa Indonesia)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/COVERAGE_PLAN.md) · 🇸🇦 [ar](../../ar/docs/COVERAGE_PLAN.md) · 🇧🇬 [bg](../../bg/docs/COVERAGE_PLAN.md) · 🇧🇩 [bn](../../bn/docs/COVERAGE_PLAN.md) · 🇨🇿 [cs](../../cs/docs/COVERAGE_PLAN.md) · 🇩🇰 [da](../../da/docs/COVERAGE_PLAN.md) · 🇩🇪 [de](../../de/docs/COVERAGE_PLAN.md) · 🇪🇸 [es](../../es/docs/COVERAGE_PLAN.md) · 🇮🇷 [fa](../../fa/docs/COVERAGE_PLAN.md) · 🇫🇮 [fi](../../fi/docs/COVERAGE_PLAN.md) · 🇫🇷 [fr](../../fr/docs/COVERAGE_PLAN.md) · 🇮🇳 [gu](../../gu/docs/COVERAGE_PLAN.md) · 🇮🇱 [he](../../he/docs/COVERAGE_PLAN.md) · 🇮🇳 [hi](../../hi/docs/COVERAGE_PLAN.md) · 🇭🇺 [hu](../../hu/docs/COVERAGE_PLAN.md) · 🇮🇩 [id](../../id/docs/COVERAGE_PLAN.md) · 🇮🇹 [it](../../it/docs/COVERAGE_PLAN.md) · 🇯🇵 [ja](../../ja/docs/COVERAGE_PLAN.md) · 🇰🇷 [ko](../../ko/docs/COVERAGE_PLAN.md) · 🇮🇳 [mr](../../mr/docs/COVERAGE_PLAN.md) · 🇲🇾 [ms](../../ms/docs/COVERAGE_PLAN.md) · 🇳🇱 [nl](../../nl/docs/COVERAGE_PLAN.md) · 🇳🇴 [no](../../no/docs/COVERAGE_PLAN.md) · 🇵🇭 [phi](../../phi/docs/COVERAGE_PLAN.md) · 🇵🇱 [pl](../../pl/docs/COVERAGE_PLAN.md) · 🇵🇹 [pt](../../pt/docs/COVERAGE_PLAN.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/COVERAGE_PLAN.md) · 🇷🇴 [ro](../../ro/docs/COVERAGE_PLAN.md) · 🇷🇺 [ru](../../ru/docs/COVERAGE_PLAN.md) · 🇸🇰 [sk](../../sk/docs/COVERAGE_PLAN.md) · 🇸🇪 [sv](../../sv/docs/COVERAGE_PLAN.md) · 🇰🇪 [sw](../../sw/docs/COVERAGE_PLAN.md) · 🇮🇳 [ta](../../ta/docs/COVERAGE_PLAN.md) · 🇮🇳 [te](../../te/docs/COVERAGE_PLAN.md) · 🇹🇭 [th](../../th/docs/COVERAGE_PLAN.md) · 🇹🇷 [tr](../../tr/docs/COVERAGE_PLAN.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/COVERAGE_PLAN.md) · 🇵🇰 [ur](../../ur/docs/COVERAGE_PLAN.md) · 🇻🇳 [vi](../../vi/docs/COVERAGE_PLAN.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/COVERAGE_PLAN.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../ops/COVERAGE_PLAN.md) · 🇸🇦 [ar](../../../ar/docs/ops/COVERAGE_PLAN.md) · 🇦🇿 [az](../../../az/docs/ops/COVERAGE_PLAN.md) · 🇧🇬 [bg](../../../bg/docs/ops/COVERAGE_PLAN.md) · 🇧🇩 [bn](../../../bn/docs/ops/COVERAGE_PLAN.md) · 🇨🇿 [cs](../../../cs/docs/ops/COVERAGE_PLAN.md) · 🇩🇰 [da](../../../da/docs/ops/COVERAGE_PLAN.md) · 🇩🇪 [de](../../../de/docs/ops/COVERAGE_PLAN.md) · 🇪🇸 [es](../../../es/docs/ops/COVERAGE_PLAN.md) · 🇮🇷 [fa](../../../fa/docs/ops/COVERAGE_PLAN.md) · 🇫🇮 [fi](../../../fi/docs/ops/COVERAGE_PLAN.md) · 🇫🇷 [fr](../../../fr/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [gu](../../../gu/docs/ops/COVERAGE_PLAN.md) · 🇮🇱 [he](../../../he/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [hi](../../../hi/docs/ops/COVERAGE_PLAN.md) · 🇭🇺 [hu](../../../hu/docs/ops/COVERAGE_PLAN.md) · 🇮🇹 [it](../../../it/docs/ops/COVERAGE_PLAN.md) · 🇯🇵 [ja](../../../ja/docs/ops/COVERAGE_PLAN.md) · 🇰🇷 [ko](../../../ko/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [mr](../../../mr/docs/ops/COVERAGE_PLAN.md) · 🇲🇾 [ms](../../../ms/docs/ops/COVERAGE_PLAN.md) · 🇳🇱 [nl](../../../nl/docs/ops/COVERAGE_PLAN.md) · 🇳🇴 [no](../../../no/docs/ops/COVERAGE_PLAN.md) · 🇵🇭 [phi](../../../phi/docs/ops/COVERAGE_PLAN.md) · 🇵🇱 [pl](../../../pl/docs/ops/COVERAGE_PLAN.md) · 🇵🇹 [pt](../../../pt/docs/ops/COVERAGE_PLAN.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/ops/COVERAGE_PLAN.md) · 🇷🇴 [ro](../../../ro/docs/ops/COVERAGE_PLAN.md) · 🇷🇺 [ru](../../../ru/docs/ops/COVERAGE_PLAN.md) · 🇸🇰 [sk](../../../sk/docs/ops/COVERAGE_PLAN.md) · 🇸🇪 [sv](../../../sv/docs/ops/COVERAGE_PLAN.md) · 🇰🇪 [sw](../../../sw/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [ta](../../../ta/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [te](../../../te/docs/ops/COVERAGE_PLAN.md) · 🇹🇭 [th](../../../th/docs/ops/COVERAGE_PLAN.md) · 🇹🇷 [tr](../../../tr/docs/ops/COVERAGE_PLAN.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/ops/COVERAGE_PLAN.md) · 🇵🇰 [ur](../../../ur/docs/ops/COVERAGE_PLAN.md) · 🇻🇳 [vi](../../../vi/docs/ops/COVERAGE_PLAN.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/ops/COVERAGE_PLAN.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/ops/COVERAGE_PLAN.md)
 
 ---
 
@@ -10,11 +10,11 @@ Terakhir diperbarui: 2026-03-28
 
 Ada beberapa angka cakupan tergantung pada cara laporan dihitung. Untuk keperluan perencanaan, hanya satu yang berguna.
 
-| Metrik               | Ruang Lingkup                                                        | Pernyataan / Garis | Cabang   | Fungsi    | Catatan                                                                  |
-| -------------------- | -------------------------------------------------------------------- | -----------------: | -------: | --------: | ------------------------------------------------------------------------ |
-| Lama                 | `npm run test:coverage` lama                                         |             79.42% |   75.15% |    67.94% | Diperbesar: menghitung file pengujian dan mengecualikan `open-sse`       |
-| Diagnostik           | Hanya sumber, mengecualikan pengujian dan mengecualikan `open-sse`   |             68.16% |   63.55% |    64.06% | Berguna hanya untuk mengisolasi `src/**`                                 |
-| Baseline yang disarankan | Hanya sumber, mengecualikan pengujian dan menyertakan `open-sse` |             56.95% |   66.05% |    57.80% | Ini adalah baseline seluruh proyek yang perlu ditingkatkan               |
+| Metrik                   | Ruang Lingkup                                                      | Pernyataan / Garis | Cabang | Fungsi | Catatan                                                            |
+| ------------------------ | ------------------------------------------------------------------ | -----------------: | -----: | -----: | ------------------------------------------------------------------ |
+| Lama                     | `npm run test:coverage` lama                                       |             79.42% | 75.15% | 67.94% | Diperbesar: menghitung file pengujian dan mengecualikan `open-sse` |
+| Diagnostik               | Hanya sumber, mengecualikan pengujian dan mengecualikan `open-sse` |             68.16% | 63.55% | 64.06% | Berguna hanya untuk mengisolasi `src/**`                           |
+| Baseline yang disarankan | Hanya sumber, mengecualikan pengujian dan menyertakan `open-sse`   |             56.95% | 66.05% | 57.80% | Ini adalah baseline seluruh proyek yang perlu ditingkatkan         |
 
 Baseline yang disarankan adalah angka yang perlu dioptimalkan.
 
@@ -38,15 +38,15 @@ Baseline yang disarankan adalah angka yang perlu dioptimalkan.
 
 ## Tonggak Pencapaian
 
-| Fase    |                  Target | Fokus                                                              |
-| ------- | ----------------------: | ------------------------------------------------------------------ |
-| Fase 1  | 60% pernyataan / garis  | Kemenangan cepat dan cakupan utilitas berisiko rendah              |
-| Fase 2  | 65% pernyataan / garis  | Fondasi DB dan rute                                                |
-| Fase 3  | 70% pernyataan / garis  | Validasi penyedia dan analitik penggunaan                          |
-| Fase 4  | 75% pernyataan / garis  | Penerjemah dan pembantu `open-sse`                                 |
-| Fase 5  | 80% pernyataan / garis  | Handler dan cabang eksekutor `open-sse`                            |
-| Fase 6  | 85% pernyataan / garis  | Kasus tepi yang lebih sulit, utang cabang, suite regresi           |
-| Fase 7  | 90% pernyataan / garis  | Pemeriksaan akhir, penutupan celah, ratchet ketat                  |
+| Fase   |                 Target | Fokus                                                    |
+| ------ | ---------------------: | -------------------------------------------------------- |
+| Fase 1 | 60% pernyataan / garis | Kemenangan cepat dan cakupan utilitas berisiko rendah    |
+| Fase 2 | 65% pernyataan / garis | Fondasi DB dan rute                                      |
+| Fase 3 | 70% pernyataan / garis | Validasi penyedia dan analitik penggunaan                |
+| Fase 4 | 75% pernyataan / garis | Penerjemah dan pembantu `open-sse`                       |
+| Fase 5 | 80% pernyataan / garis | Handler dan cabang eksekutor `open-sse`                  |
+| Fase 6 | 85% pernyataan / garis | Kasus tepi yang lebih sulit, utang cabang, suite regresi |
+| Fase 7 | 90% pernyataan / garis | Pemeriksaan akhir, penutupan celah, ratchet ketat        |
 
 Cabang dan fungsi harus meningkat secara bertahap di setiap fase, tetapi target keras utama adalah pernyataan / garis.
 

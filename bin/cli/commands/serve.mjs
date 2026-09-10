@@ -5,7 +5,11 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { platform, totalmem } from "node:os";
 import { t } from "../i18n.mjs";
 import { writePidFile, cleanupPidFile, waitForServer } from "../utils/pid.mjs";
-import { ServerSupervisor, detectMitmCrash } from "../runtime/processSupervisor.mjs";
+import {
+  ServerSupervisor,
+  detectMitmCrash,
+  BUN_PRELOAD_PATH,
+} from "../runtime/processSupervisor.mjs";
 import { isTermux } from "../../../scripts/build/postinstallSupport.mjs";
 import {
   ensureAndroidCacheDir,
@@ -306,7 +310,7 @@ function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
     process.versions.bun ? process.execPath : "node",
     [
       ...(process.versions.bun
-        ? ["--preload", join(APP_DIR, "open-sse/utils/setupPolyfill.ts")]
+        ? ["--preload", BUN_PRELOAD_PATH]
         : buildNodeHeapArgs(process.env, memoryLimit)),
       serverJs,
     ],
@@ -331,7 +335,7 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
     process.versions.bun ? process.execPath : "node",
     [
       ...(process.versions.bun
-        ? ["--preload", join(APP_DIR, "open-sse/utils/setupPolyfill.ts")]
+        ? ["--preload", BUN_PRELOAD_PATH]
         : buildNodeHeapArgs(process.env, memoryLimit)),
       serverJs,
     ],
@@ -423,7 +427,9 @@ async function runWithSupervisor(
       if (detectMitmCrash(crashLog)) {
         try {
           const PROJECT_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
-          const { updateSettings } = await import(pathToFileURL(join(PROJECT_ROOT, "src/lib/db/settings.ts")).href);
+          const { updateSettings } = await import(
+            pathToFileURL(join(PROJECT_ROOT, "src/lib/db/settings.ts")).href
+          );
           updateSettings({ mitmEnabled: false });
         } catch {}
         return "disable-mitm-and-retry";

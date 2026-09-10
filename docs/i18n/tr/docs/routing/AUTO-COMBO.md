@@ -6,7 +6,7 @@ lastUpdated: 2026-08-23
 
 # OmniRoute Auto-Combo Motoru (Türkçe)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../ar/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../bn/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../de/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../es/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../gu/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../hu/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../id/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../ja/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../ko/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../ms/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../no/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../ru/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../ur/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../vi/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/routing/AUTO-COMBO.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
 
 ---
 
@@ -18,15 +18,15 @@ lastUpdated: 2026-08-23
 
 ### Hızlı Örnekler
 
-| Model ID       | Varyant | Davranış                                                                 |
-| -------------- | ------- | ------------------------------------------------------------------------ |
-| `auto`         | varsayılan | Tüm bağlı sağlayıcılar, LKGP stratejisi, dengeli ağırlıklar              |
-| `auto/coding`  | coding  | Kalite öncelikli ağırlıklar, kod üretimi için optimize                   |
-| `auto/fast`    | fast    | Düşük gecikmeli ağırlıklı seçim                                          |
-| `auto/cheap`   | cheap   | Maliyet optimizasyonlu yönlendirme (en ucuz olan önce)                   |
-| `auto/offline` | offline | En yüksek kota kullanılabilirliğine sahip sağlayıcıları tercih eder      |
-| `auto/smart`   | smart   | Kalite öncelikli + daha iyi model keşfi için %10 keşif oranı             |
-| `auto/lkgp`    | lkgp    | Açık LKGP (varsayılan `auto` ile aynı)                                   |
+| Model ID       | Varyant    | Davranış                                                            |
+| -------------- | ---------- | ------------------------------------------------------------------- |
+| `auto`         | varsayılan | Tüm bağlı sağlayıcılar, LKGP stratejisi, dengeli ağırlıklar         |
+| `auto/coding`  | coding     | Kalite öncelikli ağırlıklar, kod üretimi için optimize              |
+| `auto/fast`    | fast       | Düşük gecikmeli ağırlıklı seçim                                     |
+| `auto/cheap`   | cheap      | Maliyet optimizasyonlu yönlendirme (en ucuz olan önce)              |
+| `auto/offline` | offline    | En yüksek kota kullanılabilirliğine sahip sağlayıcıları tercih eder |
+| `auto/smart`   | smart      | Kalite öncelikli + daha iyi model keşfi için %10 keşif oranı        |
+| `auto/lkgp`    | lkgp       | Açık LKGP (varsayılan `auto` ile aynı)                              |
 
 ### Kategori × Katman Birleşimi (`auto/<category>:<tier>`)
 

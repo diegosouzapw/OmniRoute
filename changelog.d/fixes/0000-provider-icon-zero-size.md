@@ -1,1 +1,0 @@
-- **fix(dashboard):** Keep local and theme-aware provider SVG icons at a definite layout size so Chromium does not collapse them to 0×0 after the v3.8.50 image-rendering change ([#12054](https://github.com/diegosouzapw/OmniRoute/pull/12054)) — thanks @ponkcore

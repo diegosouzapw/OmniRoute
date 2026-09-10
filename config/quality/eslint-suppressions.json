@@ -215,16 +215,6 @@
       "count": 1
     }
   },
-  "open-sse/handlers/chatCore.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 26
-    }
-  },
-  "open-sse/handlers/chatCore/clientUsageBuffer.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "open-sse/handlers/chatCore/executorHelpers.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -608,11 +598,6 @@
       "count": 1
     }
   },
-  "open-sse/services/providerCostData.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "open-sse/services/rateLimitManager.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 2
@@ -763,7 +748,7 @@
   },
   "open-sse/utils/cursorAgentProtobuf.ts": {
     "@typescript-eslint/no-unused-vars": {
-      "count": 3
+      "count": 2
     }
   },
   "open-sse/utils/earlyStreamKeepalive.ts": {
@@ -1722,16 +1707,6 @@
       "count": 2
     }
   },
-  "src/lib/oneproxyRotator.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/lib/oneproxySync.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/lib/piiSanitizer.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -2474,14 +2449,6 @@
   "tests/live/deepseek-web-live.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
-    }
-  },
-  "tests/theoldllm-stress.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 10
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
     }
   },
   "tests/translator/testFromFile.ts": {
@@ -3373,7 +3340,7 @@
   },
   "tests/unit/combo-routing-engine.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 267
+      "count": 268
     }
   },
   "tests/unit/combo-same-provider-cascade.test.ts": {
@@ -4820,7 +4787,7 @@
   },
   "tests/unit/responses-translation-fixes.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 35
+      "count": 34
     }
   },
   "tests/unit/route-edge-coverage.test.ts": {

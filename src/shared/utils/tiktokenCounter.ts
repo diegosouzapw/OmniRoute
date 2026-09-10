@@ -29,7 +29,7 @@ const encoders = new Map<TokenizerEncoding, Tiktoken>();
  * compression stats/estimates only, so a heuristic on oversized inputs is
  * acceptable and keeps the loop responsive.
  */
-const MAX_EXACT_TOKEN_COUNT_CHARS = 50_000;
+export const MAX_EXACT_TOKEN_COUNT_CHARS = 50_000;
 
 /**
  * Base64 data URIs (e.g. OpenAI-style `image_url.url`) must not be tokenized:

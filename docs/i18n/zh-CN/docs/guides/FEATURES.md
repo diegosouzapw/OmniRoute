@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # OmniRoute — 控制台功能画廊
 
-🌐 **Main README translations:** 🇺🇸 [English](../../guides/FEATURES.md) | 🇧🇷 [Português (Brasil)](../../i18n/pt-BR/docs/guides/FEATURES.md) | 🇪🇸 [Español](../../i18n/es/docs/guides/FEATURES.md) | 🇫🇷 [Français](../../i18n/fr/docs/guides/FEATURES.md) | 🇮🇹 [Italiano](../../i18n/it/docs/guides/FEATURES.md) | 🇷🇺 [Русский](../../i18n/ru/docs/guides/FEATURES.md) | 🇨🇳 [中文 (简体)](../../i18n/zh-CN/docs/guides/FEATURES.md) | 🇩🇪 [Deutsch](../../i18n/de/docs/guides/FEATURES.md) | 🇮🇳 [हिन्दी](../../i18n/in/docs/guides/FEATURES.md) | 🇹🇭 [ไทย](../../i18n/th/docs/guides/FEATURES.md) | 🇺🇦 [Українська](../../i18n/uk-UA/docs/guides/FEATURES.md) | 🇸🇦 [العربية](../../i18n/ar/docs/guides/FEATURES.md) | 🇯🇵 [日本語](../../i18n/ja/docs/guides/FEATURES.md) | 🇻🇳 [Tiếng Việt](../../i18n/vi/docs/guides/FEATURES.md) | 🇧🇬 [Български](../../i18n/bg/docs/guides/FEATURES.md) | 🇩🇰 [Dansk](../../i18n/da/docs/guides/FEATURES.md) | 🇫🇮 [Suomi](../../i18n/fi/docs/guides/FEATURES.md) | 🇮🇱 [עברית](../../i18n/he/docs/guides/FEATURES.md) | 🇭🇺 [Magyar](../../i18n/hu/docs/guides/FEATURES.md) | 🇮🇩 [Bahasa Indonesia](../../i18n/id/docs/guides/FEATURES.md) | 🇰🇷 [한국어](../../i18n/ko/docs/guides/FEATURES.md) | 🇲🇾 [Bahasa Melayu](../../i18n/ms/docs/guides/FEATURES.md) | 🇳🇱 [Nederlands](../../i18n/nl/docs/guides/FEATURES.md) | 🇳🇴 [Norsk](../../i18n/no/docs/guides/FEATURES.md) | 🇵🇹 [Português (Portugal)](../../i18n/pt/docs/guides/FEATURES.md) | 🇷🇴 [Română](../../i18n/ro/docs/guides/FEATURES.md) | 🇵🇱 [Polski](../../i18n/pl/docs/guides/FEATURES.md) | 🇸🇰 [Slovenčina](../../i18n/sk/docs/guides/FEATURES.md) | 🇸🇪 [Svenska](../../i18n/sv/docs/guides/FEATURES.md) | 🇵🇭 [Filipino](../../i18n/phi/docs/guides/FEATURES.md) | 🇨🇿 [Čeština](../../i18n/cs/docs/guides/FEATURES.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
 
 OmniRoute 控制台各功能区的可视化指南。
 
@@ -214,10 +214,10 @@ OAuth 服务商的一键"环境修复"操作，恢复缺失的环境变量并修
 
 面向所有安装方式的清理卸载脚本：
 
-| 命令                     | 操作                                                                |
-| ------------------------ | ------------------------------------------------------------------- |
-| `npm run uninstall`      | 移除系统应用，但**保留数据库和配置**在 `~/.omniroute`。              |
-| `npm run uninstall:full` | 移除应用，并永久**清除所有配置、密钥和数据库**。                    |
+| 命令                     | 操作                                                    |
+| ------------------------ | ------------------------------------------------------- |
+| `npm run uninstall`      | 移除系统应用，但**保留数据库和配置**在 `~/.omniroute`。 |
+| `npm run uninstall:full` | 移除应用，并永久**清除所有配置、密钥和数据库**。        |
 
 ---
 

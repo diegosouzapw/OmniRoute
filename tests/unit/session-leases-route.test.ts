@@ -119,18 +119,18 @@ test("requires authentication, managed scope, and canonical explicit owner", asy
   assert.equal(attemptedExternalCalls, 0);
 });
 
-test("lease acquire preserves deterministic retirement errors for common ChatGPT Web ids", async () => {
+test("lease acquire preserves deterministic retirement errors for the legacy ChatGPT Web alias", async () => {
   const connection = await seedConnection(1);
   const managed = await seedKey([connection.id]);
   const unmanaged = await seedKey([connection.id], []);
 
   const beforePolicy = await route.POST(
-    request(unmanaged.key, { action: "acquire", model: "chatgpt-web/gpt-5.5" }, OWNER_A)
+    request(unmanaged.key, { action: "acquire", model: "cgpt-web/gpt-5.5" }, OWNER_A)
   );
   assert.equal(beforePolicy.status, 410);
   assert.equal(((await json(beforePolicy)).error as { code?: string }).code, "PROVIDER_RETIRED");
 
-  for (const provider of ["chatgpt-web", "cgpt-web"]) {
+  for (const provider of ["cgpt-web"]) {
     const alias = `lease-via-${provider}`;
     await modelAliasesDb.setModelAlias(alias, `${provider}/gpt-5.5`);
     await settingsDb.updateSettings({

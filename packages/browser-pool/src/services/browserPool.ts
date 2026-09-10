@@ -278,6 +278,7 @@ export async function acquireBrowserContext(
       locale: options.locale || "en-US",
       timezoneId: options.timezone || "America/New_York",
       viewport: { width: 1280, height: 800 },
+      ...(options.storageState ? { storageState: options.storageState } : {}),
       ...(proxy ? { proxy } : {}),
     });
 

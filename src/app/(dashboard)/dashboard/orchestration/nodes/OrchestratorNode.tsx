@@ -17,3 +17,4 @@ function OrchestratorNodeImpl({ data }: { data: OrchNode }) {
 }
 
 export const OrchestratorNode = memo(OrchestratorNodeImpl);
+OrchestratorNode.displayName = "OrchestratorNode";

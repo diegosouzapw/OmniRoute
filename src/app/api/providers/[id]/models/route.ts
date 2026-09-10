@@ -51,6 +51,10 @@ import {
   NOTION_WEB_FALLBACK_MODELS,
 } from "@omniroute/open-sse/services/notionWebModels.ts";
 import {
+  discoverMaxaiModels,
+  MAXAI_REGISTRY_MODELS,
+} from "@omniroute/open-sse/services/maxaiModels.ts";
+import {
   AZURE_AI_DEFAULT_BASE_URL,
   buildAzureAiModelsUrl,
 } from "@omniroute/open-sse/config/azureAi.ts";
@@ -88,6 +92,7 @@ import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLease
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
 import { fetchCursorAvailableModels } from "@/lib/providerModels/cursorAvailableModels";
 import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
+import { resolveCopilotDiscoveryToken } from "@/lib/providerModels/copilotDiscoveryToken";
 import {
   type JsonRecord,
   asRecord,
@@ -113,6 +118,7 @@ import { isNamedOpenAIStyleProvider } from "./discovery/providerSets";
 import { buildStaleEncryptionKeyResponse } from "./staleEncryptionGuard";
 import {
   type ProviderModelsConfigEntry,
+  assembleProviderModelsHeaders,
   PROVIDER_MODELS_CONFIG,
 } from "./discovery/providerModelsConfig";
 import {
@@ -595,6 +601,53 @@ export async function GET(
         });
       }
     }
+
+    // MaxAI: live catalog + per-model context windows from the signed
+    // /models/get_config (the call the web app makes on load). Falls back to the
+    // curated static registry catalog on any auth/transport/shape failure.
+    if (provider === "maxai") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      try {
+        const discovery = await discoverMaxaiModels({
+          providerSpecificData: connection.providerSpecificData as
+            | Record<string, unknown>
+            | null
+            | undefined,
+          accessToken: apiKey || accessToken,
+          fetchImpl: (url, init) =>
+            safeOutboundFetch(url, {
+              ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+              guard: getProviderOutboundGuard(),
+              proxyConfig: proxy,
+              ...init,
+            }),
+        });
+        return buildApiDiscoveryResponse(discovery.models, discovery.warning);
+      } catch (error) {
+        console.log("Error fetching models from maxai", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "MaxAI models/get_config failed — using cached catalog",
+          localWarning: "MaxAI models/get_config failed — using curated catalog",
+        });
+        if (fallback) return fallback;
+        return buildResponse({
+          provider,
+          connectionId,
+          models: MAXAI_REGISTRY_MODELS,
+          source: "local_catalog",
+          intentional: true,
+          warning: "MaxAI catalog unavailable — using curated model list",
+        });
+      }
+    }
+
     const conolResponse = await maybeHandleConolModelDiscovery({
       provider,
       connectionId,
@@ -1285,14 +1338,6 @@ export async function GET(
       return buildApiDiscoveryResponse(normalizeSapModelsResponse(await response.json()));
     }
 
-    if (provider === "claude") {
-      return buildResponse({
-        provider,
-        connectionId,
-        models: getStaticModelsForProvider("claude") || [],
-      });
-    }
-
     if (provider === "cursor") {
       const cachedResponse = maybeReturnCachedDiscovery();
       if (cachedResponse) return cachedResponse;
@@ -1599,8 +1644,10 @@ export async function GET(
       // the exchanged token; only DISCOVERY needs the raw token.) This mirrors the
       // Copilot CLI + Hermes "de-gate model discovery" fix. Exchanged token stays
       // as a fallback for connections that only captured that.
-      const copilotToken =
-        toNonEmptyString(accessToken) || toNonEmptyString(psd.copilotToken) || null;
+      const copilotToken = resolveCopilotDiscoveryToken({
+        accessToken,
+        copilotToken: psd.copilotToken,
+      });
 
       const discovery = await fetchGitHubCopilotModels({
         token: copilotToken,
@@ -1646,8 +1693,10 @@ export async function GET(
       if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
 
       const psd = asRecord(connection.providerSpecificData);
-      const copilotToken =
-        toNonEmptyString(psd.copilotToken) || toNonEmptyString(accessToken) || null;
+      const copilotToken = resolveCopilotDiscoveryToken({
+        accessToken,
+        copilotToken: psd.copilotToken,
+      });
       // endpoints.api serves the real chat model catalog; endpoints.proxy only
       // has NES/autocomplete models. Prefer the api host, fall back to proxy for
       // legacy connections that predate copilotApiUrl capture.
@@ -2106,10 +2155,13 @@ export async function GET(
       }
 
       if (githubCatalogModels && githubCatalogModels.length > 0) {
-        return buildApiDiscoveryResponse(
-          finalizeCodexCatalog(githubCatalogModels),
-          "Codex live catalog unavailable — using GitHub model catalog"
-        );
+        return buildResponse({
+          provider,
+          connectionId,
+          models: finalizeCodexCatalog(githubCatalogModels),
+          source: "github_catalog",
+          warning: "Codex live catalog unavailable — using GitHub model catalog",
+        });
       }
 
       if (cachedDiscoveryModels.length > 0) {
@@ -2241,12 +2293,8 @@ export async function GET(
     }
 
     // Build headers
-    const headers = config.buildHeaders
-      ? config.buildHeaders(token, connection)
-      : { ...config.headers };
-    if (!config.buildHeaders && config.authHeader && !config.authQuery) {
-      headers[config.authHeader] = (config.authPrefix || "") + token;
-    }
+    const headerContext = { ...connection, accessToken, apiKey };
+    const headers = assembleProviderModelsHeaders(config, token, headerContext);
 
     // Make request (with pagination for providers that use nextPageToken, e.g. Gemini)
     const fetchOptions: any = {

@@ -21,6 +21,12 @@
  *   npm run i18n:run -- --files=CLAUDE.md,docs/ARCHITECTURE.md
  *   npm run i18n:run -- --force
  *   npm run i18n:run:dry
+ *   npm run i18n:run -- --adopt   (rebuild .i18n-state.json from disk, no API calls)
+ *   npm run i18n:run -- --adopt --targets-only
+ *                                 (re-hash only the mirrors on disk, keeping every
+ *                                  source_hash — mechanical mirror rewrites stop
+ *                                  showing up as `target changed` while genuine
+ *                                  source drift is still reported)
  *
  * Backend (configured via env, never committed):
  *   OMNIROUTE_TRANSLATION_API_URL     e.g. https://cloud.omniroute.dev/v1
@@ -36,6 +42,8 @@ import crypto from "node:crypto";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { normalizeLocaleText } from "./glossary-normalize.mjs";
+import { buildMirrorBar } from "./lib/language-bar.mjs";
+import { adoptState, mergeAdoptedState, refreshTargetHashes } from "./lib/translation-state.mjs";
 
 // ----- .env loader --------------------------------------------------------
 // Loads variables from a local `.env` (gitignored) into process.env without
@@ -157,11 +165,15 @@ function parseArgs(argv) {
     files: null,
     force: false,
     dryRun: false,
+    adopt: false,
+    targetsOnly: false,
     concurrency: null,
   };
   for (const arg of argv.slice(2)) {
     if (arg === "--force") opts.force = true;
     else if (arg === "--dry-run" || arg === "--dryrun") opts.dryRun = true;
+    else if (arg === "--adopt") opts.adopt = true;
+    else if (arg === "--targets-only") opts.targetsOnly = true;
     else if (arg.startsWith("--locale="))
       opts.locales = arg
         .slice(9)
@@ -190,6 +202,8 @@ function parseArgs(argv) {
           "  --files=<csv>        Relative paths to translate (default: all sources)",
           "  --force              Retranslate even when hashes match",
           "  --dry-run            Report what would happen but never call the API",
+          "  --adopt              Rebuild .i18n-state.json from the files on disk (no API calls)",
+          "  --targets-only       With --adopt: re-hash only the mirrors, keeping every source_hash",
           "  --concurrency=<n>    Parallel API requests (default: env CONCURRENCY or 4)",
         ].join("\n")
       );
@@ -266,36 +280,6 @@ function targetPathFor(relSource, locale) {
   // `docs/X.md` → `docs/i18n/<loc>/docs/X.md`
   // `docs/features/Y.md` → `docs/i18n/<loc>/docs/features/Y.md`
   return path.join(DOCS_I18N_DIR, locale, relSource);
-}
-
-function relativeBackToRoot(targetAbsPath) {
-  // From the target file's directory back to the repo root, used to build the
-  // "🇺🇸 English" link in the language bar.
-  const targetDir = path.dirname(targetAbsPath);
-  const rel = path.relative(targetDir, ROOT);
-  return rel === "" ? "." : rel;
-}
-
-function buildLanguageBar(relSource, locale, config) {
-  const targetAbs = targetPathFor(relSource, locale);
-  const targetDir = path.dirname(targetAbs);
-  const rootRel = relativeBackToRoot(targetAbs);
-
-  const parts = [];
-  // English link → source file relative to target dir.
-  const enRel = path.relative(targetDir, path.join(ROOT, relSource));
-  parts.push(`🇺🇸 [English](${enRel.split(path.sep).join("/")})`);
-
-  for (const entry of config.locales) {
-    if (entry.code === "en" || entry.code === locale) continue;
-    const peerAbs = targetPathFor(relSource, entry.code);
-    const peerRel = path.relative(targetDir, peerAbs).split(path.sep).join("/");
-    parts.push(`${entry.flag} [${entry.code}](${peerRel})`);
-  }
-
-  return `🌐 **Languages:** ${parts.join(" · ")}`;
-  // Quiet the unused linter warning for rootRel — kept here for future expansion.
-  void rootRel;
 }
 
 function extractTopHeading(markdown) {
@@ -501,6 +485,70 @@ async function main() {
   logInfo(`locales: ${targetLocales.length} (${targetLocales.join(", ")})`);
   logInfo(`dry-run: ${opts.dryRun ? "yes" : "no"}, force: ${opts.force ? "yes" : "no"}`);
 
+  if (opts.targetsOnly && !opts.adopt) {
+    logError("--targets-only only applies to --adopt; re-run as `--adopt --targets-only`");
+    process.exit(2);
+  }
+
+  if (opts.adopt && opts.targetsOnly) {
+    // Covers the WHOLE recorded state (--files / --locale do not narrow it): the
+    // point is to absorb a mechanical rewrite of the mirrors without touching a
+    // single source_hash, so `i18n:check` keeps reporting the real source drift.
+    const now = new Date().toISOString();
+    const refreshed = await refreshTargetHashes({
+      state,
+      root: ROOT,
+      targetPathFor: (rel, locale) => targetPathFor(rel, locale),
+      now,
+    });
+    let recorded = 0;
+    let rehashed = 0;
+    let changed = 0;
+    for (const [rel, entry] of Object.entries(refreshed.sources ?? {})) {
+      for (const [locale, info] of Object.entries(entry.locales ?? {})) {
+        recorded += 1;
+        if (info.updated_at !== now) continue; // target missing on disk — left as recorded
+        rehashed += 1;
+        if (info.target_hash !== state.sources?.[rel]?.locales?.[locale]?.target_hash) changed += 1;
+      }
+    }
+    const scope = `${rehashed}/${recorded} recorded targets re-hashed (${changed} changed), every source_hash kept`;
+    const stateRel = path.relative(ROOT, STATE_PATH);
+    if (opts.dryRun) {
+      logInfo(
+        `adopt --targets-only (dry-run): would refresh ${scope} in ${stateRel} — nothing written`
+      );
+      return;
+    }
+    await saveState(refreshed);
+    logInfo(`adopt --targets-only: refreshed ${scope} in ${stateRel}`);
+    return;
+  }
+
+  if (opts.adopt) {
+    const adopted = await adoptState({
+      root: ROOT,
+      sources,
+      locales: targetLocales,
+      targetPathFor: (rel, locale) => targetPathFor(rel, locale),
+    });
+    const adoptedTargets = Object.values(adopted.sources).reduce(
+      (n, entry) => n + Object.keys(entry.locales).length,
+      0
+    );
+    const scope = `${sources.length} sources × ${targetLocales.length} locales (${adoptedTargets} existing targets)`;
+    const stateRel = path.relative(ROOT, STATE_PATH);
+    if (opts.dryRun) {
+      logInfo(`adopt (dry-run): would adopt ${scope} into ${stateRel} — nothing written`);
+      return;
+    }
+    // Merge, never overwrite: a filtered run (--files / --locale) must keep every
+    // entry it did not re-hash, or the next i18n:run retranslates all of them.
+    await saveState(mergeAdoptedState(state, adopted));
+    logInfo(`adopted ${scope} into ${stateRel}`);
+    return;
+  }
+
   // Read backend env up front so dry-run can still print masked summary.
   let backend = null;
   if (!opts.dryRun) {
@@ -586,7 +634,7 @@ async function main() {
         const heading = topHeading
           ? `# ${topHeading} (${localeEntry.native})`
           : `# ${path.basename(task.rel, ".md")} (${localeEntry.native})`;
-        const langBar = buildLanguageBar(task.rel, task.locale, config);
+        const langBar = buildMirrorBar(task.rel, task.locale, config);
         const rawContent = `${heading}\n\n${langBar}\n\n---\n\n${translatedBody.trim()}\n`;
         // Pre-format with Prettier (markdown parser) so the on-disk content
         // matches what `lint-staged` would produce. This keeps `target_hash`

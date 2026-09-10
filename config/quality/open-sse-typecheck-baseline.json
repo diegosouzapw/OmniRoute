@@ -1,9 +1,1 @@
-{
-  "src/lib/guardrails/videoBridgeHelpers.ts": {
-    "TS2488": 2,
-    "TS2365": 3,
-    "TS2322": 2,
-    "TS2345": 2
-  },
-  "_relax_velocity_2026_08_30": "per-file TS diagnostic counts raised by 20% (5 → 9); velocity phase, see quality-baseline.json _policy."
-}
+{}

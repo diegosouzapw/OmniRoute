@@ -35,6 +35,7 @@ const LOCAL_SVG_IDS_WITHOUT_PROVENANCE = [
   "leonardo",
   "modal",
   "modelscope",
+  "nimble-search",
   "nlpcloud",
   "oauth",
   "oci",
@@ -50,7 +51,6 @@ const LOCAL_SVG_IDS_WITHOUT_PROVENANCE = [
   "serper-search",
   "soniox",
   "synthetic",
-  "theoldllm",
   "unorouter",
   "wandb",
   "youcom-search",
@@ -197,8 +197,9 @@ test("provider bundle retires exactly the 79 unresolved assets and keeps the gen
   // provenance PRs (#11735, #11736, #11711) landed first and independently retired
   // 6 further unproven files this PR never targeted (freebuff-dark.svg,
   // freebuff-light.svg, freebuff.png, openvecta.svg, picoclaw.jpg, zoocode.png),
-  // so the real remaining count is 142, not 148.
-  assert.equal(distributedAssets.length, 142, "all 142 non-target assets must remain");
+  // so the real pre-fix count was 142, not 148. This fix retires the unresolved
+  // Nimble asset as well, leaving 141 distributed assets.
+  assert.equal(distributedAssets.length, 141, "all 141 non-target assets must remain");
   assert.ok(distributedAssets.includes("cli-generic.svg"));
 });
 

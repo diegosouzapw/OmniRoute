@@ -16,6 +16,7 @@ export default function EngineTab() {
   const { status, isLoading: statusLoading } = useEngineStatus();
   const { settings, save: saveSettings, isLoading: settingsLoading } = useMemorySettings();
   const [providers, setProviders] = useState<EmbeddingProviderListing[]>([]);
+  const [rerankProviders, setRerankProviders] = useState<EmbeddingProviderListing[]>([]);
   const [saving, setSaving] = useState(false);
   const [reindexing, setReindexing] = useState(false);
   const [reindexMsg, setReindexMsg] = useState("");
@@ -30,6 +31,14 @@ export default function EngineTab() {
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (!cancelled && data?.providers) setProviders(data.providers);
+      })
+      .catch(() => {});
+    // Rerank has its own curated registry — the embedding listing does not
+    // include rerank-only providers (cohere rerank SKUs, siliconflow, ...).
+    fetch("/api/memory/rerank-providers")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.providers) setRerankProviders(data.providers);
       })
       .catch(() => {});
     return () => {
@@ -139,7 +148,7 @@ export default function EngineTab() {
             </h3>
             <RerankConfigCard
               settings={settings}
-              providers={providers}
+              providers={rerankProviders}
               onSave={handleSaveSettings}
               saving={saving}
             />

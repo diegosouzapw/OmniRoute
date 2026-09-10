@@ -1,1 +1,0 @@
-- fix(sse): set X-OmniRoute-Selected-Connection-Id on successful combo dispatches so downstream consumers stop falling back to an empty connection id (#11810)

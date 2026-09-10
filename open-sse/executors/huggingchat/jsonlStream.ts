@@ -1,5 +1,36 @@
 // Pure JSONL stream translation (HuggingChat NDJSON -> OpenAI SSE). Verbatim from huggingchat.ts.
 
+export class HuggingChatStreamError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "HuggingChatStreamError";
+  }
+}
+
+function cancelReader(reader: ReadableStreamDefaultReader<Uint8Array>): void {
+  try {
+    void reader.cancel().catch(() => undefined);
+  } catch {
+    // The error event is authoritative; transport cleanup is best effort.
+  }
+}
+
+function bindReaderCancellation(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  signal?: AbortSignal | null
+): () => void {
+  if (!signal) return () => undefined;
+
+  const cancel = () => cancelReader(reader);
+  if (signal.aborted) {
+    cancel();
+    return () => undefined;
+  }
+
+  signal.addEventListener("abort", cancel, { once: true });
+  return () => signal.removeEventListener("abort", cancel);
+}
+
 export function sseChunk(data: unknown): string {
   return `data: ${JSON.stringify(data)}\n\n`;
 }
@@ -42,9 +73,11 @@ export async function* streamJsonlToOpenAi(
   model: string,
   id: string,
   created: number,
-  signal?: AbortSignal | null
+  signal?: AbortSignal | null,
+  cancellationSignal?: AbortSignal | null
 ): AsyncGenerator<string> {
   const reader = body.getReader();
+  const unbindReaderCancellation = bindReaderCancellation(reader, cancellationSignal);
   const decoder = new TextDecoder();
   let buffer = "";
   let emittedRole = false;
@@ -70,16 +103,8 @@ export async function* streamJsonlToOpenAi(
         const parsed = parseJsonlLine(trimmed);
 
         if (parsed.error) {
-          yield sseChunk({
-            id,
-            object: "chat.completion.chunk",
-            created,
-            model,
-            choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
-          });
-          yield "data: [DONE]\n\n";
-          finished = true;
-          return;
+          cancelReader(reader);
+          throw new HuggingChatStreamError(parsed.error);
         }
 
         if (parsed.token) {
@@ -140,6 +165,9 @@ export async function* streamJsonlToOpenAi(
 
     if (!finished && buffer.trim()) {
       const parsed = parseJsonlLine(buffer.trim());
+      if (parsed.error) {
+        throw new HuggingChatStreamError(parsed.error);
+      }
       if (parsed.token && !signal?.aborted) {
         if (!emittedRole) {
           emittedRole = true;
@@ -161,10 +189,11 @@ export async function* streamJsonlToOpenAi(
       }
     }
   } finally {
+    unbindReaderCancellation();
     reader.releaseLock();
   }
 
-  if (!signal?.aborted) {
+  if (!signal?.aborted && !cancellationSignal?.aborted) {
     yield sseChunk({
       id,
       object: "chat.completion.chunk",
@@ -172,7 +201,9 @@ export async function* streamJsonlToOpenAi(
       model,
       choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
     });
-    yield "data: [DONE]\n\n";
+    if (!signal?.aborted && !cancellationSignal?.aborted) {
+      yield "data: [DONE]\n\n";
+    }
   }
 }
 
@@ -204,7 +235,10 @@ export async function readJsonlResponse(
         const parsed = parseJsonlLine(trimmed);
         if (parsed.token) fullText += parsed.token;
         if (parsed.text) return parsed.text;
-        if (parsed.error) throw new Error(parsed.error);
+        if (parsed.error) {
+          cancelReader(reader);
+          throw new HuggingChatStreamError(parsed.error);
+        }
       }
     }
 
@@ -212,6 +246,7 @@ export async function readJsonlResponse(
       const parsed = parseJsonlLine(buffer.trim());
       if (parsed.text) return parsed.text;
       if (parsed.token) fullText += parsed.token;
+      if (parsed.error) throw new HuggingChatStreamError(parsed.error);
     }
   } finally {
     reader.releaseLock();

@@ -56,6 +56,25 @@ function isEmptyContentFailure(status: number, errorText: string): boolean {
   return status === 502 && (/empty content/i.test(errorText) || /empty response/i.test(errorText));
 }
 
+/** #12441 — quota/credits bodies must not take the 401/403 auth-skip path. */
+export function isQuotaOrCreditsError(
+  errorText: string,
+  structuredError?: { code?: string; type?: string; message?: string }
+): boolean {
+  const blobs = [
+    errorText,
+    structuredError?.type,
+    structuredError?.message,
+    structuredError?.code,
+  ].filter((value): value is string => Boolean(value));
+  const joined = blobs.join(" ");
+  if (/credits exhausted/i.test(joined)) return true;
+  if (/quota exhausted/i.test(joined) && !/authentication expired/i.test(joined)) return true;
+  // Classify each candidate independently. A non-quota structuredError.code must
+  // not hide quota wording in errorText or structuredError.message.
+  return blobs.some((blob) => classifyErrorText(blob) === RateLimitReason.QUOTA_EXHAUSTED);
+}
+
 export type ComboExhaustionSets = {
   exhaustedProviders: Set<string>;
   exhaustedConnections: Set<string>;
@@ -173,12 +192,14 @@ export function applyComboTargetExhaustion(
       .filter(Boolean)
       .join(" ")
   );
+  const quotaMisclassifiedAsAuth = isQuotaOrCreditsError(errorText, structuredError);
   if (
     AUTH_LEVEL_ERROR_STATUSES.includes(result.status) &&
     // Cloudflare 1010 is a 403-ONLY fingerprint rejection. A 401 that merely happens to
     // mention "1010" or "fingerprint_rejection" in a port/count/model token must NOT skip
     // auth-level exhaustion — only a 403 carrying the Cloudflare fingerprint signal does.
     !(result.status === 403 && (fingerprintToken || fingerprintText)) &&
+    !quotaMisclassifiedAsAuth &&
     provider &&
     provider !== "unknown"
   ) {

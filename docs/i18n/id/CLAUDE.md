@@ -1,6 +1,6 @@
 # CLAUDE.md (Bahasa Indonesia)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [in](../in/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md) · 🇹🇼 [zh-TW](../zh-TW/CLAUDE.md)
 
 ---
 
@@ -310,31 +310,31 @@ terus melayani model lain.
 
 Untuk setiap perubahan yang tidak sepele, baca penjelasan mendalam yang sesuai terlebih dahulu:
 
-| Area                                          | Dok                                                               |
-| --------------------------------------------- | ----------------------------------------------------------------- |
-| Navigasi repo                                 | `docs/architecture/REPOSITORY_MAP.md`                             |
-| Arsitektur                                    | `docs/architecture/ARCHITECTURE.md`                               |
-| Referensi teknik                              | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md` |
-| Ketahanan (3 mekanisme)                       | `docs/architecture/RESILIENCE_GUIDE.md`                           |
-| Pemutaran penalaran                           | `docs/routing/REASONING_REPLAY.md`                                |
-| Kerangka keterampilan                         | `docs/frameworks/SKILLS.md`                                       |
-| Sistem memori (FTS5 + Qdrant)                 | `docs/frameworks/MEMORY.md`                                       |
-| Agen cloud                                    | `docs/frameworks/CLOUD_AGENT.md`                                  |
-| Pengaman (PII / injeksi / visi)               | `docs/security/GUARDRAILS.md`                                     |
-| Kredensial publik hulu (Gemini/dll.)          | `docs/security/PUBLIC_CREDS.md`                                   |
-| Sanitasi pesan kesalahan                      | `docs/security/ERROR_SANITIZATION.md`                             |
-| Evaluasi                                      | `docs/frameworks/EVALS.md`                                        |
-| Kepatuhan / audit                             | `docs/security/COMPLIANCE.md`                                     |
-| Webhook                                       | `docs/frameworks/WEBHOOKS.md`                                     |
-| Jalur otorisasi                               | `docs/architecture/AUTHZ_GUIDE.md`                                |
-| Stealth (TLS / sidik jari)                    | `docs/security/STEALTH_GUIDE.md`                                  |
-| Protokol agen (A2A / ACP / Cloud)             | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
-| Server MCP                                    | `docs/frameworks/MCP-SERVER.md`                                   |
-| Server A2A                                    | `docs/frameworks/A2A-SERVER.md`                                   |
-| Referensi API + OpenAPI                       | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
-| Katalog penyedia (dihasilkan secara otomatis) | `docs/reference/PROVIDER_REFERENCE.md`                            |
-| Alur rilis                                    | `docs/ops/RELEASE_CHECKLIST.md`                                   |
+| Area                                                 | Dok                                                               |
+| ---------------------------------------------------- | ----------------------------------------------------------------- |
+| Navigasi repo                                        | `docs/architecture/REPOSITORY_MAP.md`                             |
+| Arsitektur                                           | `docs/architecture/ARCHITECTURE.md`                               |
+| Referensi teknik                                     | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
+| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md`                                      |
+| Ketahanan (3 mekanisme)                              | `docs/architecture/RESILIENCE_GUIDE.md`                           |
+| Pemutaran penalaran                                  | `docs/routing/REASONING_REPLAY.md`                                |
+| Kerangka keterampilan                                | `docs/frameworks/SKILLS.md`                                       |
+| Sistem memori (FTS5 + Qdrant)                        | `docs/frameworks/MEMORY.md`                                       |
+| Agen cloud                                           | `docs/frameworks/CLOUD_AGENT.md`                                  |
+| Pengaman (PII / injeksi / visi)                      | `docs/security/GUARDRAILS.md`                                     |
+| Kredensial publik hulu (Gemini/dll.)                 | `docs/security/PUBLIC_CREDS.md`                                   |
+| Sanitasi pesan kesalahan                             | `docs/security/ERROR_SANITIZATION.md`                             |
+| Evaluasi                                             | `docs/frameworks/EVALS.md`                                        |
+| Kepatuhan / audit                                    | `docs/security/COMPLIANCE.md`                                     |
+| Webhook                                              | `docs/frameworks/WEBHOOKS.md`                                     |
+| Jalur otorisasi                                      | `docs/architecture/AUTHZ_GUIDE.md`                                |
+| Stealth (TLS / sidik jari)                           | `docs/security/STEALTH_GUIDE.md`                                  |
+| Protokol agen (A2A / ACP / Cloud)                    | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
+| Server MCP                                           | `docs/frameworks/MCP-SERVER.md`                                   |
+| Server A2A                                           | `docs/frameworks/A2A-SERVER.md`                                   |
+| Referensi API + OpenAPI                              | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
+| Katalog penyedia (dihasilkan secara otomatis)        | `docs/reference/PROVIDER_REFERENCE.md`                            |
+| Alur rilis                                           | `docs/ops/RELEASE_CHECKLIST.md`                                   |
 
 ---
 

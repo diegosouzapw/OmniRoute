@@ -5,7 +5,7 @@ flowchart LR
   Src["Source MDs<br/>(CLAUDE.md, docs/**/*.md)"] --> Hash["sha256 hash"]
   Hash --> State[".i18n-state.json"]
   State -->|diff| Dirty["Mark source dirty"]
-  Dirty --> Loop{"For each locale<br/>(43 langs)"}
+  Dirty --> Loop{"For each locale<br/>(42 langs)"}
   Loop --> LLM["OmniRoute<br/>/chat/completions<br/>(cx/gpt-5.4-mini)"]
   LLM --> Target["Write<br/>docs/i18n/&lt;locale&gt;/&lt;rel-path&gt;.md"]
   Target --> State

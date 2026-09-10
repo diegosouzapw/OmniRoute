@@ -6,7 +6,7 @@ lastUpdated: 2026-08-23
 
 # Kullanıcı Kılavuzu (Türkçe)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/guides/USER_GUIDE.md) · 🇸🇦 [ar](../../ar/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../de/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../es/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../fr/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../gu/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../hi/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../hu/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../id/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../ja/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../ko/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../ms/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../no/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../ru/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../sk/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../ur/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../vi/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
@@ -37,26 +37,26 @@ Sağlayıcıları yapılandırma, kombolar oluşturma, CLI araçlarını entegre
 
 ## 💰 Bir Bakışta Fiyatlandırma
 
-| Katman              | Sağlayıcı         | Maliyet     | Kota Sıfırlanma | En Uygun Kullanım    |
-| ------------------- | ----------------- | ----------- | --------------- | -------------------- |
-| **💳 ABONELİK**     | Claude Code (Pro) | $20/ay      | 5s + haftalık   | Mevcut aboneler      |
-|                     | Codex (Plus/Pro)  | $20-200/ay  | 5s + haftalık   | OpenAI kullanıcıları |
-|                     | GitHub Copilot    | $10-19/ay   | Aylık           | GitHub kullanıcıları |
-| **🔑 API ANAHTARI** | DeepSeek          | Kullandıkça | Yok             | Ucuz akıl yürütme    |
-|                     | Groq              | Kullandıkça | Yok             | Ultra hızlı çıkarım  |
-|                     | xAI (Grok)        | Kullandıkça | Yok             | Grok 4 akıl yürütme  |
-|                     | Mistral           | Kullandıkça | Yok             | AB barındırmalı      |
-|                     | Perplexity        | Kullandıkça | Yok             | Arama destekli       |
-|                     | Together AI       | Kullandıkça | Yok             | Açık kaynak modeller |
-|                     | Fireworks AI      | Kullandıkça | Yok             | Hızlı FLUX görseller |
-|                     | Cerebras          | Kullandıkça | Yok             | Donanım hızlandırma  |
-|                     | Cohere            | Kullandıkça | Yok             | Command R+ RAG       |
-|                     | NVIDIA NIM        | Kullandıkça | Yok             | Kurumsal modeller    |
-| **💰 UCUZ**         | GLM-4.7           | $0.6/1M     | Günlük 10:00    | Bütçe dostu yedek    |
-|                     | MiniMax M2.1      | $0.2/1M     | 5 saatlik döngü | En ucuz seçenek      |
-|                     | Kimi K2           | $9/ay sabit | 10M token/ay    | Öngörülebilir maliyet|
-| **🆓 ÜCRETSİZ**     | Qoder             | $0          | Sağlayıcı limiti| Katalogdan kontrol   |
-|                     | Kiro              | $0          | ~50 kredi/ay    | Claude ücretsiz      |
+| Katman              | Sağlayıcı         | Maliyet     | Kota Sıfırlanma  | En Uygun Kullanım     |
+| ------------------- | ----------------- | ----------- | ---------------- | --------------------- |
+| **💳 ABONELİK**     | Claude Code (Pro) | $20/ay      | 5s + haftalık    | Mevcut aboneler       |
+|                     | Codex (Plus/Pro)  | $20-200/ay  | 5s + haftalık    | OpenAI kullanıcıları  |
+|                     | GitHub Copilot    | $10-19/ay   | Aylık            | GitHub kullanıcıları  |
+| **🔑 API ANAHTARI** | DeepSeek          | Kullandıkça | Yok              | Ucuz akıl yürütme     |
+|                     | Groq              | Kullandıkça | Yok              | Ultra hızlı çıkarım   |
+|                     | xAI (Grok)        | Kullandıkça | Yok              | Grok 4 akıl yürütme   |
+|                     | Mistral           | Kullandıkça | Yok              | AB barındırmalı       |
+|                     | Perplexity        | Kullandıkça | Yok              | Arama destekli        |
+|                     | Together AI       | Kullandıkça | Yok              | Açık kaynak modeller  |
+|                     | Fireworks AI      | Kullandıkça | Yok              | Hızlı FLUX görseller  |
+|                     | Cerebras          | Kullandıkça | Yok              | Donanım hızlandırma   |
+|                     | Cohere            | Kullandıkça | Yok              | Command R+ RAG        |
+|                     | NVIDIA NIM        | Kullandıkça | Yok              | Kurumsal modeller     |
+| **💰 UCUZ**         | GLM-4.7           | $0.6/1M     | Günlük 10:00     | Bütçe dostu yedek     |
+|                     | MiniMax M2.1      | $0.2/1M     | 5 saatlik döngü  | En ucuz seçenek       |
+|                     | Kimi K2           | $9/ay sabit | 10M token/ay     | Öngörülebilir maliyet |
+| **🆓 ÜCRETSİZ**     | Qoder             | $0          | Sağlayıcı limiti | Katalogdan kontrol    |
+|                     | Kiro              | $0          | ~50 kredi/ay     | Claude ücretsiz       |
 
 ---
 

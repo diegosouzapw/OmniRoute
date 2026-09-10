@@ -8,7 +8,10 @@ vi.mock("next-intl", () => ({
     v ? `${k}:${JSON.stringify(v)}` : k,
 }));
 
-import { OrchestrationDrawer } from "@/app/(dashboard)/dashboard/orchestration/drawer/OrchestrationDrawer";
+import {
+  OrchestrationDrawer,
+  buildTraceJson,
+} from "@/app/(dashboard)/dashboard/orchestration/drawer/OrchestrationDrawer";
 
 function render(el: React.ReactElement) {
   const c = document.createElement("div");
@@ -239,5 +242,206 @@ describe("OrchestrationDrawer", () => {
     );
     expect(link).toBeTruthy();
     cleanup();
+  });
+
+  it("close button aria-label comes from i18n (drawerClose, not the literal 'close')", () => {
+    const node = { id: "overflow:1", kind: "overflow", state: "running", label: "x", raw: {} };
+    const { c, cleanup } = render(
+      <OrchestrationDrawer node={node as never} onClose={() => {}} onActionDone={() => {}} />
+    );
+    expect(c.querySelector('[aria-label="drawerClose"]')).toBeTruthy();
+    expect(c.querySelector('[aria-label="close"]')).toBeNull();
+    cleanup();
+  });
+
+  it("copy trace button copies buildTraceJson output to the clipboard and shows the actionDone toast", async () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText },
+      configurable: true,
+    });
+    const node = {
+      id: "overflow:1",
+      kind: "overflow",
+      state: "running",
+      label: "x",
+      raw: { a: 1 },
+    };
+    const { c, cleanup } = render(
+      <OrchestrationDrawer node={node as never} onClose={() => {}} onActionDone={() => {}} />
+    );
+    const btn = c.querySelector('[aria-label="copyTrace"]') as HTMLButtonElement;
+    expect(btn).toBeTruthy();
+    await act(async () => {
+      btn.click();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(writeText).toHaveBeenCalledTimes(1);
+    expect(writeText.mock.calls[0][0]).toBe(buildTraceJson(node as never, node.raw));
+    expect(c.textContent).toContain("actionDone");
+    cleanup();
+  });
+
+  it("copy trace shows actionFailed:clipboard toast when the clipboard write rejects", async () => {
+    const writeText = vi.fn(() => Promise.reject(new Error("denied")));
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText },
+      configurable: true,
+    });
+    const node = { id: "overflow:1", kind: "overflow", state: "running", label: "x", raw: {} };
+    const { c, cleanup } = render(
+      <OrchestrationDrawer node={node as never} onClose={() => {}} onActionDone={() => {}} />
+    );
+    const btn = c.querySelector('[aria-label="copyTrace"]') as HTMLButtonElement;
+    await act(async () => {
+      btn.click();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(c.textContent).toContain("actionFailed");
+    expect(c.textContent).toContain("clipboard");
+    cleanup();
+  });
+
+  it("shows detailFailed for a fetch error and actionFailed for a subsequent action error", async () => {
+    const fetchMock = vi.fn((_url: string, init?: RequestInit) => {
+      if (init?.method === "POST") {
+        return Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({}) });
+      }
+      return Promise.reject(new Error("network down"));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const node = {
+      id: "cloud-agent:t1",
+      kind: "work",
+      source: "cloud-agent",
+      state: "waiting_approval",
+      label: "x",
+    };
+    const { c, cleanup } = render(
+      <OrchestrationDrawer node={node as never} onClose={() => {}} onActionDone={() => {}} />
+    );
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(c.textContent).toContain("detailFailed");
+    expect(c.textContent).not.toContain("actionFailed");
+
+    const btn = Array.from(c.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("actionApprove")
+    ) as HTMLButtonElement;
+    await act(async () => {
+      btn.click();
+      await Promise.resolve();
+    });
+    expect(c.textContent).toContain("actionFailed");
+    cleanup();
+  });
+
+  it("disables approve/cancel while an action promise is pending, and re-enables once it settles", async () => {
+    let resolvePost: ((v: unknown) => void) | undefined;
+    const fetchMock = vi.fn((_url: string, init?: RequestInit) => {
+      if (init?.method === "POST") {
+        return new Promise((resolve) => {
+          resolvePost = resolve;
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            data: {
+              id: "t1",
+              status: "awaiting_approval",
+              activities: [],
+              prompt: "",
+              providerId: "devin",
+              source: { repoName: "r", repoUrl: "https://x" },
+              options: {},
+              createdAt: "x",
+              updatedAt: "y",
+            },
+          }),
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const node = {
+      id: "cloud-agent:t1",
+      kind: "work",
+      source: "cloud-agent",
+      state: "waiting_approval",
+      label: "x",
+    };
+    const { c, cleanup } = render(
+      <OrchestrationDrawer node={node as never} onClose={() => {}} onActionDone={() => {}} />
+    );
+    await act(async () => {
+      await Promise.resolve();
+    });
+    const approveBtn = Array.from(c.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("actionApprove")
+    ) as HTMLButtonElement;
+    const cancelBtn = Array.from(c.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("actionCancel")
+    ) as HTMLButtonElement;
+    expect(approveBtn.disabled).toBe(false);
+    expect(cancelBtn.disabled).toBe(false);
+
+    await act(async () => {
+      approveBtn.click();
+      await Promise.resolve();
+    });
+    expect(approveBtn.disabled).toBe(true);
+    expect(cancelBtn.disabled).toBe(true);
+
+    await act(async () => {
+      resolvePost?.({ ok: true, json: () => Promise.resolve({ data: {} }) });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(approveBtn.disabled).toBe(false);
+    expect(cancelBtn.disabled).toBe(false);
+    cleanup();
+  });
+});
+
+describe("buildTraceJson", () => {
+  it("normalizes cloud-agent timeline from detail.activities and includes node identity + raw", () => {
+    const node = {
+      id: "cloud-agent:t1",
+      kind: "work",
+      source: "cloud-agent",
+      state: "running",
+      label: "x",
+    };
+    const detail = { activities: [{ id: "a1", type: "plan", content: "c" }] };
+    const parsed = JSON.parse(buildTraceJson(node as never, detail));
+    expect(parsed).toEqual({
+      node: { id: "cloud-agent:t1", source: "cloud-agent", state: "running", label: "x" },
+      timeline: detail.activities,
+      raw: detail,
+    });
+  });
+
+  it("normalizes a2a timeline from detail.events", () => {
+    const node = { id: "a2a:1", kind: "work", source: "a2a", state: "running", label: "x" };
+    const detail = { events: [{ state: "working", timestamp: "t" }] };
+    const parsed = JSON.parse(buildTraceJson(node as never, detail));
+    expect(parsed.timeline).toEqual(detail.events);
+  });
+
+  it("uses a null timeline and falls back to node.raw for conductor/overflow sources", () => {
+    const node = {
+      id: "conductor:task:1",
+      kind: "work",
+      source: "conductor",
+      state: "running",
+      label: "x",
+      raw: { foo: "bar" },
+    };
+    const parsed = JSON.parse(buildTraceJson(node as never, null));
+    expect(parsed.timeline).toBeNull();
+    expect(parsed.raw).toEqual({ foo: "bar" });
   });
 });

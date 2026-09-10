@@ -1,10 +1,10 @@
 # OmniRoute (ગુજરાતી)
 
-🌐 **Languages:** 🇺🇸 [English](../../../llm.txt) · 🇸🇦 [ar](../ar/llm.txt) · 🇧🇬 [bg](../bg/llm.txt) · 🇧🇩 [bn](../bn/llm.txt) · 🇨🇿 [cs](../cs/llm.txt) · 🇩🇰 [da](../da/llm.txt) · 🇩🇪 [de](../de/llm.txt) · 🇪🇸 [es](../es/llm.txt) · 🇮🇷 [fa](../fa/llm.txt) · 🇫🇮 [fi](../fi/llm.txt) · 🇫🇷 [fr](../fr/llm.txt) · 🇮🇳 [gu](../gu/llm.txt) · 🇮🇱 [he](../he/llm.txt) · 🇮🇳 [hi](../hi/llm.txt) · 🇭🇺 [hu](../hu/llm.txt) · 🇮🇩 [id](../id/llm.txt) · 🇮🇳 [in](../in/llm.txt) · 🇮🇹 [it](../it/llm.txt) · 🇯🇵 [ja](../ja/llm.txt) · 🇰🇷 [ko](../ko/llm.txt) · 🇮🇳 [mr](../mr/llm.txt) · 🇲🇾 [ms](../ms/llm.txt) · 🇳🇱 [nl](../nl/llm.txt) · 🇳🇴 [no](../no/llm.txt) · 🇵🇭 [phi](../phi/llm.txt) · 🇵🇱 [pl](../pl/llm.txt) · 🇵🇹 [pt](../pt/llm.txt) · 🇧🇷 [pt-BR](../pt-BR/llm.txt) · 🇷🇴 [ro](../ro/llm.txt) · 🇷🇺 [ru](../ru/llm.txt) · 🇸🇰 [sk](../sk/llm.txt) · 🇸🇪 [sv](../sv/llm.txt) · 🇰🇪 [sw](../sw/llm.txt) · 🇮🇳 [ta](../ta/llm.txt) · 🇮🇳 [te](../te/llm.txt) · 🇹🇭 [th](../th/llm.txt) · 🇹🇷 [tr](../tr/llm.txt) · 🇺🇦 [uk-UA](../uk-UA/llm.txt) · 🇵🇰 [ur](../ur/llm.txt) · 🇻🇳 [vi](../vi/llm.txt) · 🇨🇳 [zh-CN](../zh-CN/llm.txt)
+🌐 **Languages:** 🇺🇸 [English](../../../llm.txt) · 🇸🇦 [ar](../ar/llm.txt) · 🇦🇿 [az](../az/llm.txt) · 🇧🇬 [bg](../bg/llm.txt) · 🇧🇩 [bn](../bn/llm.txt) · 🇨🇿 [cs](../cs/llm.txt) · 🇩🇰 [da](../da/llm.txt) · 🇩🇪 [de](../de/llm.txt) · 🇪🇸 [es](../es/llm.txt) · 🇮🇷 [fa](../fa/llm.txt) · 🇫🇮 [fi](../fi/llm.txt) · 🇫🇷 [fr](../fr/llm.txt) · 🇮🇱 [he](../he/llm.txt) · 🇮🇳 [hi](../hi/llm.txt) · 🇭🇺 [hu](../hu/llm.txt) · 🇮🇩 [id](../id/llm.txt) · 🇮🇹 [it](../it/llm.txt) · 🇯🇵 [ja](../ja/llm.txt) · 🇰🇷 [ko](../ko/llm.txt) · 🇮🇳 [mr](../mr/llm.txt) · 🇲🇾 [ms](../ms/llm.txt) · 🇳🇱 [nl](../nl/llm.txt) · 🇳🇴 [no](../no/llm.txt) · 🇵🇭 [phi](../phi/llm.txt) · 🇵🇱 [pl](../pl/llm.txt) · 🇵🇹 [pt](../pt/llm.txt) · 🇧🇷 [pt-BR](../pt-BR/llm.txt) · 🇷🇴 [ro](../ro/llm.txt) · 🇷🇺 [ru](../ru/llm.txt) · 🇸🇰 [sk](../sk/llm.txt) · 🇸🇪 [sv](../sv/llm.txt) · 🇰🇪 [sw](../sw/llm.txt) · 🇮🇳 [ta](../ta/llm.txt) · 🇮🇳 [te](../te/llm.txt) · 🇹🇭 [th](../th/llm.txt) · 🇹🇷 [tr](../tr/llm.txt) · 🇺🇦 [uk-UA](../uk-UA/llm.txt) · 🇵🇰 [ur](../ur/llm.txt) · 🇻🇳 [vi](../vi/llm.txt) · 🇨🇳 [zh-CN](../zh-CN/llm.txt) · 🇹🇼 [zh-TW](../zh-TW/llm.txt)
 
 ---
 
-> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 352 AI providers — all through a single OpenAI-compatible endpoint. Includes a built-in MCP Server (110 tools), A2A v0.3 protocol, Memory/Skills systems, Cloud Agents (codex, cursor, devin, jules), Guardrails framework, and an Electron desktop app.
+> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 356 AI providers — all through a single OpenAI-compatible endpoint. Includes a built-in MCP Server (110 tools), A2A v0.3 protocol, Memory/Skills systems, Cloud Agents (codex, cursor, devin, jules), Guardrails framework, and an Electron desktop app.
 
 ## Overview
 
@@ -18,7 +18,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 - **Runtime:** Node.js `>=22.22.2 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
 - **Framework:** Next.js 16 (App Router) with TypeScript 6
-- **Database:** SQLite via better-sqlite3 (local, zero-config, 167 migrations)
+- **Database:** SQLite via better-sqlite3 (local, zero-config, 171 migrations)
 - **State management:** Zustand (client), SQLite (server persistence)
 - **UI:** React 19, Tailwind CSS 4, Recharts for analytics, @lobehub/icons for 130+ provider SVG icons
 - **Auth:** OAuth 2.0 (PKCE) for providers, bcrypt for local user auth
@@ -26,7 +26,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 - **Background jobs:** Custom token health check scheduler, 24h model auto-sync
 - **Streaming:** Server-Sent Events (SSE) for real-time proxy responses
 - **Proxy engine:** Custom pipeline with format translation, circuit breaker, rate limiting, auto-combo engine
-- **i18n:** next-intl with 43 languages
+- **i18n:** next-intl with 42 languages
 - **Desktop:** Electron (cross-platform: Windows, macOS, Linux)
 - **Package:** Published on npm (`omniroute`) and Docker Hub (`diegosouzapw/omniroute`)
 
@@ -98,7 +98,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   ├── configAudit.ts        # Configuration auditing
 │   │   └── responses.ts          # Domain response types
 │   ├── i18n/                     # Internationalization
-│   │   └── messages/             # 43 language JSON files
+│   │   └── messages/             # 42 language JSON files
 │   ├── lib/                      # Core libraries
 │   │   ├── a2a/                  # Agent-to-Agent v0.3 protocol server
 │   │   │   ├── skills/           # A2A skills (quotaManagement, smartRouting)
@@ -128,7 +128,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   │   ├── secrets.ts        # Secrets management
 │   │   │   ├── stateReset.ts     # State reset utilities
 │   │   │   ├── migrationRunner.ts # Schema migration runner
-│   │   │   └── migrations/       # 167 versioned SQL migration files
+│   │   │   └── migrations/       # 171 versioned SQL migration files
 │   │   ├── evals/                # Eval runner and scheduler
 │   │   ├── memory/               # Persistent conversational memory
 │   │   │   ├── extraction.ts     # Memory extraction from conversations
@@ -263,7 +263,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   ├── translator/               # Translator-specific tests
 │   └── load/                     # Load tests
 ├── docs/                         # Documentation
-│   ├── i18n/                     # 43-language translated docs
+│   ├── i18n/                     # 41-language translated docs
 │   ├── architecture/             # ARCHITECTURE.md, CODEBASE_DOCUMENTATION.md, REPOSITORY_MAP.md, AUTHZ_GUIDE.md, RESILIENCE_GUIDE.md, QUALITY_GATES.md
 │   ├── reference/                # API_REFERENCE.md, PROVIDER_REFERENCE.md, CLI-TOOLS.md
 │   ├── frameworks/               # MCP-SERVER.md (110 tools), A2A-SERVER.md, SKILLS.md, MEMORY.md, CLOUD_AGENT.md, EVALS.md, WEBHOOKS.md
@@ -281,7 +281,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 ## Key Features (v3.8.50)
 
 ### Core Proxy
-- **352 AI providers** with automatic format translation
+- **356 AI providers** with automatic format translation
 - **Provider categories**: Free (90+ free tiers), OAuth, API Key, Self-Hosted, Custom (OpenAI/Anthropic-compatible)
 - **19 routing strategies**: priority, weighted, round-robin, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline
 - **4-tier fallback**: Subscription → API Key → Cheap → Free
@@ -371,8 +371,8 @@ diagnostics) plus **memory**, **skill**, **agentSkill**, **githubSkill**, **pool
 **Custom Providers:** OpenAI-compatible (`openai-compatible-*`) and Anthropic-compatible (`anthropic-compatible-*`) with custom base URLs
 
 ### Internationalization
-- 43 languages for UI (all dashboard pages)
-- 42 translated documentation sets in docs/i18n/
+- 42 languages for UI (all dashboard pages)
+- 41 translated documentation sets in docs/i18n/
 - Language switcher in documentation
 
 ## Key Architectural Decisions
@@ -393,7 +393,7 @@ diagnostics) plus **memory**, **skill**, **agentSkill**, **githubSkill**, **pool
 
 8. **ProviderIcon component:** Unified icon system using `@lobehub/icons` (130+ SVG) with PNG fallback and generic icon fallback chain. Used on providers, dashboard, and agents pages.
 
-9. **DB architecture:** `localDb.ts` is a re-export layer only — real logic lives in 122 `src/lib/db/` modules with 167 SQL migrations.
+9. **DB architecture:** `localDb.ts` is a re-export layer only — real logic lives in 122 `src/lib/db/` modules with 171 SQL migrations.
 
 10. **Upstream headers:** Custom headers merged in executors after default auth; same header name replaces executor value. Forbidden header names in `src/shared/constants/upstreamHeaders.ts`.
 
@@ -437,7 +437,7 @@ diagnostics) plus **memory**, **skill**, **agentSkill**, **githubSkill**, **pool
 
 4. **Environment variables:** All configuration is in `.env` (from `.env.example`). Key vars: `PORT`, `NEXT_PUBLIC_BASE_URL`, `API_KEY`, `ADMIN_PASSWORD`.
 
-5. **Database layer:** Operations go through `src/lib/db/` modules (122 domain-specific files, 167 migrations). `localDb.ts` is re-exports only — add new functions to the proper `db/*.ts` module.
+5. **Database layer:** Operations go through `src/lib/db/` modules (122 domain-specific files, 171 migrations). `localDb.ts` is re-exports only — add new functions to the proper `db/*.ts` module.
 
 6. **Tests** use Node.js built-in test runner + Vitest. Run `npm test`. Vitest for MCP/autoCombo (`npm run test:vitest`). Playwright for E2E (`npm run test:e2e`). Coverage gate: ratchet vs `quality-baseline.json`, absolute floor 60% statements/lines/functions/branches.
 

@@ -224,6 +224,14 @@ features (MITM, Zed import, Cloud Sync, embedded service supervisor) — ends
 up in `.next/server/*.js` minified chunks. Heuristic supply-chain scanners
 frequently pattern-match those chunks against malware signatures.
 
+The scanner configuration we use lives at [`socket.yml`](socket.yml) in the
+repo root (Socket.dev GitHub App format v2 — see
+<https://docs.socket.dev/docs/socket-yml>). It explicitly excludes
+non-shipped directories (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, etc.) so the scanner only reports on code paths that
+actually reach published users — the scan itself is driven by the Socket
+GitHub App reading that file, not by a workflow in this repository.
+
 For each finding category we maintain a per-finding maintainer attestation:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —

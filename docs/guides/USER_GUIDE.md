@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # User Guide
 
-🌐 **Languages:** 🇺🇸 [English](./USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/USER_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/guides/USER_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/USER_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/USER_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/USER_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/USER_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/in/docs/guides/USER_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/USER_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/USER_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/USER_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/USER_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/USER_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/USER_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/USER_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/USER_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/USER_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/USER_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/USER_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/USER_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/USER_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/USER_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/USER_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/USER_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/USER_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](./USER_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/USER_GUIDE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/USER_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/USER_GUIDE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/USER_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/USER_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/USER_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/USER_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/guides/USER_GUIDE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/USER_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/USER_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/USER_GUIDE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/USER_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/USER_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/USER_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/USER_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/USER_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/USER_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/USER_GUIDE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/USER_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/USER_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/USER_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/USER_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/USER_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/USER_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/USER_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/USER_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/USER_GUIDE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/USER_GUIDE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/USER_GUIDE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/USER_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/USER_GUIDE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/USER_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/USER_GUIDE.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/USER_GUIDE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/USER_GUIDE.md)
 
 Complete guide for configuring providers, creating combos, integrating CLI tools, and deploying OmniRoute.
 
@@ -35,27 +35,27 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 
 ## 💰 Pricing at a Glance
 
-| Tier                | Provider          | Cost        | Quota Reset    | Best For             |
-| ------------------- | ----------------- | ----------- | -------------- | -------------------- |
-| **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly    | Already subscribed   |
-|                     | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly    | OpenAI users         |
-|                     | GitHub Copilot    | $10-19/mo   | Monthly        | GitHub users         |
-| **🔑 API KEY**      | DeepSeek          | Pay per use | None           | Cheap reasoning      |
-|                     | Groq              | Pay per use | None           | Ultra-fast inference |
-|                     | xAI (Grok)        | Pay per use | None           | Grok 4 reasoning     |
-|                     | Mistral           | Pay per use | None           | EU-hosted models     |
-|                     | Perplexity        | Pay per use | None           | Search-augmented     |
-|                     | Together AI       | Pay per use | None           | Open-source models   |
-|                     | Fireworks AI      | Pay per use | None           | Fast FLUX images     |
-|                     | Cerebras          | Pay per use | None           | Wafer-scale speed    |
-|                     | Cohere            | Pay per use | None           | Command R+ RAG       |
-|                     | NVIDIA NIM        | Pay per use | None           | Enterprise models    |
-|                     | Baidu Qianfan     | Pay per use | None           | ERNIE models         |
-| **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM     | Budget backup        |
-|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling | Cheapest option      |
-|                     | Kimi K2           | $9/mo flat  | 10M tokens/mo  | Predictable cost     |
+| Tier                | Provider          | Cost        | Quota Reset           | Best For               |
+| ------------------- | ----------------- | ----------- | --------------------- | ---------------------- |
+| **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly           | Already subscribed     |
+|                     | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly           | OpenAI users           |
+|                     | GitHub Copilot    | $10-19/mo   | Monthly               | GitHub users           |
+| **🔑 API KEY**      | DeepSeek          | Pay per use | None                  | Cheap reasoning        |
+|                     | Groq              | Pay per use | None                  | Ultra-fast inference   |
+|                     | xAI (Grok)        | Pay per use | None                  | Grok 4 reasoning       |
+|                     | Mistral           | Pay per use | None                  | EU-hosted models       |
+|                     | Perplexity        | Pay per use | None                  | Search-augmented       |
+|                     | Together AI       | Pay per use | None                  | Open-source models     |
+|                     | Fireworks AI      | Pay per use | None                  | Fast FLUX images       |
+|                     | Cerebras          | Pay per use | None                  | Wafer-scale speed      |
+|                     | Cohere            | Pay per use | None                  | Command R+ RAG         |
+|                     | NVIDIA NIM        | Pay per use | None                  | Enterprise models      |
+|                     | Baidu Qianfan     | Pay per use | None                  | ERNIE models           |
+| **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM            | Budget backup          |
+|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling        | Cheapest option        |
+|                     | Kimi K2           | $9/mo flat  | 10M tokens/mo         | Predictable cost       |
 | **🆓 FREE**         | Qoder             | $0          | Provider limits apply | Verify current catalog |
-|                     | Kiro              | $0          | ~50 credits/mo | Claude free          |
+|                     | Kiro              | $0          | ~50 credits/mo        | Claude free            |
 
 ---
 
@@ -121,6 +121,8 @@ Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 ---
 
 ## 📖 Provider Setup
+
+To bulk-add API-key connections from a CSV or JSON file, use **Dashboard → Providers → Import from file**. Columns are positional (`provider,name,apiKey,baseUrl,priority`); `provider` must already exist as a managed provider or a compatible node. See [Import providers from a CSV or JSON file](../providers/CSV-IMPORT.md).
 
 ### 🔐 Subscription Providers
 

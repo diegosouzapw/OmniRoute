@@ -36,8 +36,8 @@ test("isFlatRateProvider: case-insensitive + trimmed", () => {
   assert.equal(isFlatRateProvider("MINIMAX"), true);
 });
 
-test("isFlatRateProvider: retired common ChatGPT Web ids are no longer active billing lanes", () => {
-  assert.equal(isFlatRateProvider("chatgpt-web"), false);
+test("isFlatRateProvider: clean-room ChatGPT Web is flat-rate but its legacy alias is retired", () => {
+  assert.equal(isFlatRateProvider("chatgpt-web"), true);
   assert.equal(isFlatRateProvider("cgpt-web"), false);
 });
 

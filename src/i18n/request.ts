@@ -1,7 +1,7 @@
 import { getRequestConfig } from "next-intl/server";
 import { cookies, headers } from "next/headers";
-import { LOCALES, DEFAULT_LOCALE, LOCALE_COOKIE } from "./config";
-import type { Locale } from "./config";
+import { LOCALES, DEFAULT_LOCALE, LOCALE_COOKIE, LOCALE_ALIASES } from "./config";
+import { resolveRequestedLocale } from "./resolveRequestedLocale";
 
 const FALLBACK_LOCALE = "en";
 
@@ -41,7 +41,10 @@ export function deepMergeFallback(
       typeof targetValue === "object" &&
       !Array.isArray(targetValue)
     ) {
-      deepMergeFallback(targetValue as Record<string, unknown>, sourceValue as Record<string, unknown>);
+      deepMergeFallback(
+        targetValue as Record<string, unknown>,
+        sourceValue as Record<string, unknown>
+      );
     } else if (targetValue === undefined || isUntranslatedPlaceholder(targetValue)) {
       target[key] = sourceValue;
     }
@@ -55,7 +58,12 @@ function setNestedValue(target: Record<string, unknown>, dottedKey: string, valu
 
   for (let index = 0; index < segments.length; index += 1) {
     const segment = segments[index];
-    if (!segment || segment === "__proto__" || segment === "constructor" || segment === "prototype") {
+    if (
+      !segment ||
+      segment === "__proto__" ||
+      segment === "constructor" ||
+      segment === "prototype"
+    ) {
       return;
     }
 
@@ -80,7 +88,9 @@ export function normalizeComplianceEventTypes(
   messages: Record<string, unknown>
 ): Record<string, unknown> {
   const compliance =
-    messages.compliance && typeof messages.compliance === "object" && !Array.isArray(messages.compliance)
+    messages.compliance &&
+    typeof messages.compliance === "object" &&
+    !Array.isArray(messages.compliance)
       ? (messages.compliance as Record<string, unknown>)
       : null;
   const eventTypes =
@@ -119,9 +129,7 @@ export default getRequestConfig(async () => {
     locale = headerStore.get("x-locale") || "";
   }
 
-  if (!LOCALES.includes(locale as Locale)) {
-    locale = DEFAULT_LOCALE;
-  }
+  locale = resolveRequestedLocale(locale, LOCALES, LOCALE_ALIASES, DEFAULT_LOCALE);
 
   const localeMessages = normalizeComplianceEventTypes(
     (await import(`./messages/${locale}.json`)).default as Record<string, unknown>

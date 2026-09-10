@@ -6,10 +6,12 @@ import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts
 import { extractZaiToken } from "@omniroute/open-sse/executors/zai-web.ts";
 import { normalizeBaseUrl } from "./urlHelpers";
 import { STANDARD_USER_AGENT, buildBearerHeaders } from "./headers";
+import { validateChatGptWebProvider } from "./chatgptWeb";
 import {
   validationRead,
   toValidationErrorResult,
   toWebCookieValidationErrorResult,
+  WEB_COOKIE_PROVIDERS_WITHOUT_AUTH_PROBE,
   WEB_COOKIE_PROVIDERS_WITHOUT_MODELS_API,
 } from "./transport";
 
@@ -47,12 +49,16 @@ function resolveWebCookieProbe(
   }
 
   // Providers listed in WEB_COOKIE_PROVIDERS without a providerRegistry entry (e.g.
-  // gemini-business, poe-web, venice-web, v0-vercel-web) only expose a marketing
-  // website URL, not a real API host. Probing `${website}/models` does not reliably
-  // signal session validity for these — live verification showed most return
-  // redirects or SPA 200s regardless of cookie validity, which would silently report
-  // an expired/garbage cookie as "OK" (worse than an honest "not supported").
-  if (!entry) return { rejection: UNSUPPORTED };
+  // poe-web, venice-web, v0-vercel-web) only expose a marketing website URL, not a
+  // real API host. Probing `${website}/models` does not reliably signal session
+  // validity for these — live verification showed most return redirects or SPA 200s
+  // regardless of cookie validity, which would silently report an expired/garbage
+  // cookie as "OK" (worse than an honest "not supported"). The same refusal covers
+  // providers whose registry entry exists only for the model catalog and whose
+  // baseUrl is a browser console rather than an API host (#12107, gemini-business).
+  if (!entry || WEB_COOKIE_PROVIDERS_WITHOUT_AUTH_PROBE.has(provider)) {
+    return { rejection: UNSUPPORTED };
+  }
 
   // Defense-in-depth: only an http(s) baseUrl without a query string is safe to probe
   // by blindly appending `/models`. A ws(s):// baseUrl (e.g. copilot-web) is already
@@ -110,6 +116,7 @@ export async function validateWebCookieProvider({
   apiKey?: string;
   providerSpecificData?: Record<string, unknown>;
 }) {
+  if (provider === "chatgpt-web") return validateChatGptWebProvider({ apiKey });
   try {
     // For web-cookie providers, apiKey contains the cookie string
     const probe = resolveWebCookieProbe(provider, (apiKey || "").trim());

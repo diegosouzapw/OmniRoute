@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { writePidFile, cleanupPidFile, killAllSubprocesses, isPidRunning } from "../utils/pid.mjs";
 import {
   RESTART_RESET_MS,
@@ -16,6 +17,24 @@ import {
 } from "../utils/ensureAndroidCacheDir.mjs";
 
 const CRASH_LOG_LINES = 50;
+
+const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+// Bun needs the Node-compat polyfill preloaded (#9761). The file ships at the
+// package root via package.json "files" (see scripts/build/pack-artifact-policy.ts)
+// and is never copied into dist/, so the path must resolve against the package
+// root — resolving it next to the server bundle fails with "preload not found" (#11980).
+export const BUN_PRELOAD_PATH = join(PACKAGE_ROOT, "open-sse", "utils", "setupPolyfill.ts");
+
+/**
+ * Argument vector for the server child. Kept pure so tests can assert on it
+ * directly: the bare `import { spawn }` above cannot be intercepted without
+ * --experimental-test-module-mocks (same seam as #8131).
+ */
+export function buildServerSpawnArgs(serverPath, memoryLimit, env = process.env) {
+  return process.versions.bun
+    ? ["--preload", BUN_PRELOAD_PATH, serverPath]
+    : buildNodeRuntimeArgs(env, memoryLimit, serverPath);
+}
 
 export class ServerSupervisor {
   constructor({
@@ -55,21 +74,11 @@ export class ServerSupervisor {
     // Node args come from buildNodeRuntimeArgs (#9209 IPv4-first DNS + #5238
     // heap flag handling); the Bun branch keeps #9761's polyfill preload —
     // Bun does not accept the Node-only flags.
-    this.child = spawn(
-      process.execPath,
-      process.versions.bun
-        ? [
-            "--preload",
-            join(dirname(this.serverPath), "open-sse/utils/setupPolyfill.ts"),
-            this.serverPath,
-          ]
-        : buildNodeRuntimeArgs(process.env, this.memoryLimit, this.serverPath),
-      {
-        cwd: dirname(this.serverPath),
-        env: this.env,
-        stdio: showLog ? "inherit" : ["ignore", "pipe", "pipe"],
-      }
-    );
+    this.child = spawn(process.execPath, buildServerSpawnArgs(this.serverPath, this.memoryLimit), {
+      cwd: dirname(this.serverPath),
+      env: this.env,
+      stdio: showLog ? "inherit" : ["ignore", "pipe", "pipe"],
+    });
 
     writePidFile("server", this.child.pid);
 

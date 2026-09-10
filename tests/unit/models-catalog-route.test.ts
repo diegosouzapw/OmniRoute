@@ -175,11 +175,11 @@ test("v1 models catalog includes display names by default", async () => {
     new Request("http://localhost/api/v1/models")
   );
   const body = (await response.json()) as any;
-  const model = body.data.find((item) => item.id === "tllm/claude_sonnet_4");
+  const model = body.data.find((item) => item.id === "oc/big-pickle");
 
   assert.equal(response.status, 200);
   assert.ok(model);
-  assert.equal(model.name, "Claude Sonnet 4 (The Old LLM 🆓)");
+  assert.equal(model.name, "Big Pickle");
 });
 
 test("v1 models catalog omits display names when the feature flag is disabled", async () => {
@@ -190,12 +190,12 @@ test("v1 models catalog omits display names when the feature flag is disabled", 
       new Request("http://localhost/api/v1/models")
     );
     const body = (await response.json()) as any;
-    const model = body.data.find((item) => item.id === "tllm/claude_sonnet_4");
+    const model = body.data.find((item) => item.id === "oc/big-pickle");
 
     assert.equal(response.status, 200);
     assert.ok(model);
     assert.equal("name" in model, false);
-    assert.equal(model.root, "claude_sonnet_4");
+    assert.equal(model.root, "big-pickle");
   } finally {
     featureFlagsDb.removeFeatureFlagOverride("MODEL_CATALOG_INCLUDE_NAMES");
   }

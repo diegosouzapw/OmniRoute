@@ -102,7 +102,7 @@ const thinkingLevelsSchema = z.object({ thinking: z.object({ levels: z.unknown()
 // (`src/shared/reasoning/effortStandardization.ts`). Values already in
 // `CANONICAL_EFFORT_VALUES`, and any unrecognized provider-native tier (e.g.
 // Codex's own "ultra"), pass through unchanged — only known synonyms are mapped.
-const EFFORT_SYNONYMS: Record<string, string> = { max: "xhigh" };
+const EFFORT_SYNONYMS: Record<string, string> = { extra: "xhigh" };
 
 // CrofAI's live `/v1/models` exposes a boolean reasoning capability rather than
 // the supported tiers. Keep this provider-specific fallback explicit so the same

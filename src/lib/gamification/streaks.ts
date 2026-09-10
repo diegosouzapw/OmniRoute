@@ -108,6 +108,38 @@ export async function getStreak(apiKeyId: string): Promise<StreakData> {
 }
 
 /**
+ * Operator-wide streak for the dashboard profile page, which has no single API key
+ * (the aggregate mode of `/api/gamification/level`, #3484): the best `currentStreak`
+ * and the best `longestStreak` over every key in the namespace. Both are maxima, not
+ * sums, and may come from different keys. Malformed rows count as zero.
+ *
+ * @returns The highest current/longest streak across all API keys
+ *
+ * @example
+ * const agg = await getAggregateStreak();
+ * console.log(agg.currentStreak); // 7
+ */
+export async function getAggregateStreak(): Promise<
+  Pick<StreakData, "currentStreak" | "longestStreak">
+> {
+  const aggregate = { currentStreak: 0, longestStreak: 0 };
+  if (isBuildPhase || isCloud) return aggregate;
+
+  const db = getDbInstance() as unknown as DbLike;
+  const rows = db
+    .prepare("SELECT value FROM key_value WHERE namespace = ?")
+    .all(NAMESPACE) as KeyValueRow[];
+
+  for (const row of rows) {
+    const streak = parseStreakJson(row.value);
+    aggregate.currentStreak = Math.max(aggregate.currentStreak, streak.currentStreak);
+    aggregate.longestStreak = Math.max(aggregate.longestStreak, streak.longestStreak);
+  }
+
+  return aggregate;
+}
+
+/**
  * Update streak for today. Returns the new current streak count.
  *
  * Behavior:

@@ -26,7 +26,7 @@ export {
   XP_REWARDS,
   type XpAction,
 } from "./xp";
-export { updateStreak } from "./streaks";
+export { getStreak, getAggregateStreak, updateStreak, type StreakData } from "./streaks";
 export {
   recordBadgeUnlock,
   consumeBadgeUnlocks,

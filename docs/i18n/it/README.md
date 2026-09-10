@@ -1,6 +1,6 @@
 # 🚀 OmniRoute — Il Gateway AI Gratuito
 
-🌐 **Lingue:** 🇺🇸 [English](../../../README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇪🇸 [es](../es/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇮🇩 [id](../id/README.md) · 🇮🇩 [in](../in/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
+🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇪🇸 [es](../es/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇮🇩 [id](../id/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
 
 ---
 
@@ -141,7 +141,7 @@
 </div>
 
 <div align="center">
-  <b>🌐 In 43 lingue</b>
+  <b>🌐 In 42 lingue</b>
   <br/><br/>
   <a href="../../../README.md"><img src="../../assets/flags/us.svg" width="30" alt="English (en)" title="English (en)"></a>
   <a href="../pt-BR/README.md"><img src="../../assets/flags/br.svg" width="30" alt="Português — Brasil (pt-BR)" title="Português — Brasil (pt-BR)"></a>
@@ -403,7 +403,7 @@ Tutte e **19** le strategie — combinabili liberamente per ogni passaggio della
 
 </div>
 
-<img src="../../diagrams/comparison-table.svg" width="100%" alt="Cosa distingue OmniRoute — tabella di confronto con 9router, OpenRouter, CLIProxyAPI e LiteLLM su 13 capacità. OmniRoute: 349 provider, oltre 90 provider gratuiti integrati, 19 strategie di routing, compressione token con 12 motori, server MCP integrato con 110 tool, protocollo agenti A2A, memoria persistente, guardrail, cloud agent, TLS fingerprint stealth, Desktop/Termux/PWA, 43 locale UI i18n, self-hosting 100% MIT. OmniRoute è l'unico a includere l'intero insieme; i concorrenti mostrano combinazioni di supporto completo, parziale e assente. Verificato sulla documentazione di ciascun progetto."/>
+<img src="../../diagrams/comparison-table.svg" width="100%" alt="Cosa distingue OmniRoute — tabella di confronto con 9router, OpenRouter, CLIProxyAPI e LiteLLM su 13 capacità. OmniRoute: 349 provider, oltre 90 provider gratuiti integrati, 19 strategie di routing, compressione token con 12 motori, server MCP integrato con 110 tool, protocollo agenti A2A, memoria persistente, guardrail, cloud agent, TLS fingerprint stealth, Desktop/Termux/PWA, 42 locale UI i18n, self-hosting 100% MIT. OmniRoute è l'unico a includere l'intero insieme; i concorrenti mostrano combinazioni di supporto completo, parziale e assente. Verificato sulla documentazione di ciascun progetto."/>
 
 <sub>📊 Metodologia completa e dettaglio per funzionalità rispetto a 9router, OpenRouter, CLIProxyAPI e LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](../../comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
@@ -1242,7 +1242,7 @@ Metriche di validazione: 1002 video monitorati · 7,069,190 visualizzazioni note
   <tr><td nowrap><b><a href="../../ops/BRANCHING_MODEL.md">Modello di branching e release</a></b></td><td>Dove puntano le PR (<code>release/*</code>) e cosa significano <code>main</code> e i tag</td></tr>
   <tr><td nowrap><b><a href="../../../CHANGELOG.md">Changelog</a></b></td><td>Cronologia completa delle release, versione per versione</td></tr>
   <tr><td nowrap><b><a href="../../../SECURITY.md">Policy di sicurezza</a></b></td><td>Segnalazione vulnerabilità e pratiche di sicurezza</td></tr>
-  <tr><td nowrap><b><a href="../../guides/I18N.md">Guida i18n</a></b></td><td>Supporto a 43 lingue, workflow di traduzione, RTL</td></tr>
+  <tr><td nowrap><b><a href="../../guides/I18N.md">Guida i18n</a></b></td><td>Supporto a 42 lingue, workflow di traduzione, RTL</td></tr>
   <tr><td nowrap><b><a href="../../ops/RELEASE_CHECKLIST.md">Checklist di release</a></b></td><td>Passaggi di validazione pre-release</td></tr>
   <tr><td nowrap><b><a href="../../ops/COVERAGE_PLAN.md">Piano di coverage</a></b></td><td>Strategia di copertura dei test e suite da oltre 25.000 test</td></tr>
 </table>

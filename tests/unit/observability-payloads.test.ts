@@ -7,6 +7,7 @@ import {
   buildTelemetryPayload,
   projectAdaptiveAdmissionSummary,
   projectChatAdmissionSummary,
+  projectWalMaintenanceSummary,
 } from "../../src/lib/monitoring/observability.ts";
 
 test("buildSessionsSummary returns sticky counts and ordered top sessions", () => {
@@ -415,4 +416,56 @@ test("buildHealthPayload projects allowlisted structural chatAdmission fields on
   // Absent / null snapshot projects to null (degraded path parity).
   assert.equal(projectChatAdmissionSummary(null), null);
   assert.equal(projectChatAdmissionSummary(undefined), null);
+});
+
+test("buildHealthPayload projects allowlisted walMaintenance fields only", () => {
+  const state = {
+    ticks: 4,
+    busyStreak: 1,
+    busyTotal: 2,
+    lastBusyAt: "2026-09-06T10:00:00.000Z",
+    lastOkAt: "2026-09-06T11:00:00.000Z",
+    // Internal keys that must never leak into the public payload.
+    walTimer: { _idleTimeout: 1 },
+    retryTimer: null,
+  } as unknown as import("../../src/lib/monitoring/observability.ts").WalMaintenanceSnapshot;
+
+  const payload = buildHealthPayload({
+    appVersion: "9.9.9",
+    settings: { setupComplete: false },
+    connections: [],
+    circuitBreakers: [],
+    rateLimitStatus: {},
+    learnedLimits: {},
+    lockouts: {},
+    localProviders: {},
+    inflightRequests: 0,
+    quotaMonitorSummary: {
+      active: 0,
+      alerting: 0,
+      exhausted: 0,
+      errors: 0,
+      statusCounts: { starting: 0, idle: 0, healthy: 0, warning: 0, exhausted: 0, error: 0 },
+      byProvider: {},
+    },
+    quotaMonitorMonitors: [],
+    activeSessions: [],
+    walMaintenance: state,
+  });
+
+  assert.deepEqual(payload.walMaintenance, {
+    ticks: 4,
+    busyStreak: 1,
+    busyTotal: 2,
+    lastBusyAt: "2026-09-06T10:00:00.000Z",
+    lastOkAt: "2026-09-06T11:00:00.000Z",
+  });
+
+  const json = JSON.stringify(payload);
+  assert.equal(json.includes("walTimer"), false);
+  assert.equal(json.includes("retryTimer"), false);
+
+  // Absent / null state projects to null (degraded path parity).
+  assert.equal(projectWalMaintenanceSummary(null), null);
+  assert.equal(projectWalMaintenanceSummary(undefined), null);
 });

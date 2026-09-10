@@ -256,7 +256,8 @@ test("createDisconnectAwareStream emits Responses API failure events for Respons
 
   assert.match(text, /event: response\.failed/);
   assert.match(text, /"type":"response\.failed"/);
-  assert.match(text, /"message":"responses stream\\ndied"/);
+  assert.match(text, /"message":"responses stream"/);
+  assert.doesNotMatch(text, /died/);
   assert.match(text, /"type":"server_error"/);
   assert.match(text, /"code":"server_error"/);
   assert.doesNotMatch(text, /chat\.completion\.chunk/);
@@ -264,7 +265,7 @@ test("createDisconnectAwareStream emits Responses API failure events for Respons
   assert.doesNotMatch(text, /\[DONE\]/);
 });
 
-test("createDisconnectAwareStream keeps newlines escaped inside SSE data fields", async () => {
+test("createDisconnectAwareStream strips multiline diagnostic tails from Responses errors", async () => {
   const upstreamError = Object.assign(new Error("line one\nline two\rline three"), {
     statusCode: 400,
   });
@@ -290,9 +291,9 @@ test("createDisconnectAwareStream keeps newlines escaped inside SSE data fields"
   const text = await readStreamText(stream);
 
   assert.match(text, /^event: response\.failed\ndata: \{"type":"response\.failed"/);
-  assert.match(text, /"message":"line one\\nline two\\rline three"/);
-  assert.doesNotMatch(text, /^line two/m);
-  assert.doesNotMatch(text, /^line three/m);
+  assert.match(text, /"message":"line one"/);
+  assert.doesNotMatch(text, /line two/);
+  assert.doesNotMatch(text, /line three/);
 });
 
 test("createDisconnectAwareStream treats legacy OpenAI response format alias as Responses", async () => {
@@ -360,7 +361,7 @@ test("createDisconnectAwareStream emits Claude SSE errors for Claude clients", a
   assert.doesNotMatch(text, /\[DONE\]/);
 });
 
-test("createDisconnectAwareStream keeps newlines escaped for Claude SSE errors", async () => {
+test("createDisconnectAwareStream strips multiline diagnostic tails from Claude errors", async () => {
   const upstreamError = Object.assign(new Error("claude line one\nclaude line two"), {
     statusCode: 502,
   });
@@ -386,8 +387,8 @@ test("createDisconnectAwareStream keeps newlines escaped for Claude SSE errors",
   const text = await readStreamText(stream);
 
   assert.match(text, /^event: error\ndata: \{"type":"error"/);
-  assert.match(text, /"message":"claude line one\\nclaude line two"/);
-  assert.doesNotMatch(text, /^claude line two/m);
+  assert.match(text, /"message":"claude line one"/);
+  assert.doesNotMatch(text, /claude line two/);
 });
 
 // #7699/#7816 — heuristic is scoped to FORMATS.CLAUDE (/v1/messages); a

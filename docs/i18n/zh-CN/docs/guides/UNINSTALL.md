@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # OmniRoute — 卸载指南
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/guides/UNINSTALL.md) | 🇧🇷 [Português (Brasil)](../../pt-BR/docs/guides/UNINSTALL.md) | 🇪🇸 [Español](../../es/docs/guides/UNINSTALL.md) | 🇫🇷 [Français](../../fr/docs/guides/UNINSTALL.md) | 🇮🇹 [Italiano](../../it/docs/guides/UNINSTALL.md) | 🇷🇺 [Русский](../../ru/docs/guides/UNINSTALL.md) | 🇨🇳 [中文 (简体)](../../zh-CN/docs/guides/UNINSTALL.md) | 🇩🇪 [Deutsch](../../de/docs/guides/UNINSTALL.md) | 🇮🇳 [हिन्दी](../../in/docs/guides/UNINSTALL.md) | 🇹🇭 [ไทย](../../th/docs/guides/UNINSTALL.md) | 🇺🇦 [Українська](../../uk-UA/docs/guides/UNINSTALL.md) | 🇸🇦 [العربية](../../ar/docs/guides/UNINSTALL.md) | 🇯🇵 [日本語](../../ja/docs/guides/UNINSTALL.md) | 🇻🇳 [Tiếng Việt](../../vi/docs/guides/UNINSTALL.md) | 🇧🇬 [Български](../../bg/docs/guides/UNINSTALL.md) | 🇩🇰 [Dansk](../../da/docs/guides/UNINSTALL.md) | 🇫🇮 [Suomi](../../fi/docs/guides/UNINSTALL.md) | 🇮🇱 [עברית](../../he/docs/guides/UNINSTALL.md) | 🇭🇺 [Magyar](../../hu/docs/guides/UNINSTALL.md) | 🇮🇩 [Bahasa Indonesia](../../id/docs/guides/UNINSTALL.md) | 🇰🇷 [한국어](../../ko/docs/guides/UNINSTALL.md) | 🇲🇾 [Bahasa Melayu](../../ms/docs/guides/UNINSTALL.md) | 🇳🇱 [Nederlands](../../nl/docs/guides/UNINSTALL.md) | 🇳🇴 [Norsk](../../no/docs/guides/UNINSTALL.md) | 🇵🇹 [Português (Portugal)](../../pt/docs/guides/UNINSTALL.md) | 🇷🇴 [Română](../../ro/docs/guides/UNINSTALL.md) | 🇵🇱 [Polski](../../pl/docs/guides/UNINSTALL.md) | 🇸🇰 [Slovenčina](../../sk/docs/guides/UNINSTALL.md) | 🇸🇪 [Svenska](../../sv/docs/guides/UNINSTALL.md) | 🇵🇭 [Filipino](../../phi/docs/guides/UNINSTALL.md) | 🇨🇿 [Čeština](../../cs/docs/guides/UNINSTALL.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/UNINSTALL.md) · 🇸🇦 [ar](../../../ar/docs/guides/UNINSTALL.md) · 🇦🇿 [az](../../../az/docs/guides/UNINSTALL.md) · 🇧🇬 [bg](../../../bg/docs/guides/UNINSTALL.md) · 🇧🇩 [bn](../../../bn/docs/guides/UNINSTALL.md) · 🇨🇿 [cs](../../../cs/docs/guides/UNINSTALL.md) · 🇩🇰 [da](../../../da/docs/guides/UNINSTALL.md) · 🇩🇪 [de](../../../de/docs/guides/UNINSTALL.md) · 🇪🇸 [es](../../../es/docs/guides/UNINSTALL.md) · 🇮🇷 [fa](../../../fa/docs/guides/UNINSTALL.md) · 🇫🇮 [fi](../../../fi/docs/guides/UNINSTALL.md) · 🇫🇷 [fr](../../../fr/docs/guides/UNINSTALL.md) · 🇮🇳 [gu](../../../gu/docs/guides/UNINSTALL.md) · 🇮🇱 [he](../../../he/docs/guides/UNINSTALL.md) · 🇮🇳 [hi](../../../hi/docs/guides/UNINSTALL.md) · 🇭🇺 [hu](../../../hu/docs/guides/UNINSTALL.md) · 🇮🇩 [id](../../../id/docs/guides/UNINSTALL.md) · 🇮🇹 [it](../../../it/docs/guides/UNINSTALL.md) · 🇯🇵 [ja](../../../ja/docs/guides/UNINSTALL.md) · 🇰🇷 [ko](../../../ko/docs/guides/UNINSTALL.md) · 🇮🇳 [mr](../../../mr/docs/guides/UNINSTALL.md) · 🇲🇾 [ms](../../../ms/docs/guides/UNINSTALL.md) · 🇳🇱 [nl](../../../nl/docs/guides/UNINSTALL.md) · 🇳🇴 [no](../../../no/docs/guides/UNINSTALL.md) · 🇵🇭 [phi](../../../phi/docs/guides/UNINSTALL.md) · 🇵🇱 [pl](../../../pl/docs/guides/UNINSTALL.md) · 🇵🇹 [pt](../../../pt/docs/guides/UNINSTALL.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/UNINSTALL.md) · 🇷🇴 [ro](../../../ro/docs/guides/UNINSTALL.md) · 🇷🇺 [ru](../../../ru/docs/guides/UNINSTALL.md) · 🇸🇰 [sk](../../../sk/docs/guides/UNINSTALL.md) · 🇸🇪 [sv](../../../sv/docs/guides/UNINSTALL.md) · 🇰🇪 [sw](../../../sw/docs/guides/UNINSTALL.md) · 🇮🇳 [ta](../../../ta/docs/guides/UNINSTALL.md) · 🇮🇳 [te](../../../te/docs/guides/UNINSTALL.md) · 🇹🇭 [th](../../../th/docs/guides/UNINSTALL.md) · 🇹🇷 [tr](../../../tr/docs/guides/UNINSTALL.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/UNINSTALL.md) · 🇵🇰 [ur](../../../ur/docs/guides/UNINSTALL.md) · 🇻🇳 [vi](../../../vi/docs/guides/UNINSTALL.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/UNINSTALL.md)
 
 本指南介绍如何从系统中彻底移除 OmniRoute。
 
@@ -118,24 +118,24 @@ rm -rf ~/.omniroute
 
 OmniRoute 默认将数据存储在以下位置：
 
-| 平台          | 默认路径                      | 覆盖方式                   |
-| ------------- | ----------------------------- | ------------------------- |
-| Linux         | `~/.omniroute/`               | `DATA_DIR` 环境变量        |
-| macOS         | `~/.omniroute/`               | `DATA_DIR` 环境变量        |
-| Windows       | `%APPDATA%/omniroute/`        | `DATA_DIR` 环境变量        |
-| Docker        | `/app/data/`（挂载卷）         | `DATA_DIR` 环境变量        |
-| XDG 兼容      | `$XDG_CONFIG_HOME/omniroute/` | `XDG_CONFIG_HOME` 环境变量 |
+| 平台     | 默认路径                      | 覆盖方式                   |
+| -------- | ----------------------------- | -------------------------- |
+| Linux    | `~/.omniroute/`               | `DATA_DIR` 环境变量        |
+| macOS    | `~/.omniroute/`               | `DATA_DIR` 环境变量        |
+| Windows  | `%APPDATA%/omniroute/`        | `DATA_DIR` 环境变量        |
+| Docker   | `/app/data/`（挂载卷）        | `DATA_DIR` 环境变量        |
+| XDG 兼容 | `$XDG_CONFIG_HOME/omniroute/` | `XDG_CONFIG_HOME` 环境变量 |
 
 ### 数据目录中的文件
 
-| 文件/目录             | 说明                                               |
-| --------------------- | -------------------------------------------------- |
-| `storage.sqlite`      | 主数据库（服务商、Combo、设置、Key）               |
-| `storage.sqlite-wal`  | SQLite 预写日志（临时文件）                            |
-| `storage.sqlite-shm`  | SQLite 共享内存（临时文件）                         |
-| `call_logs/`          | 请求载荷归档                                       |
-| `backups/`            | 自动数据库备份                                      |
-| `log.txt`             | 旧版请求日志（可选）                               |
+| 文件/目录            | 说明                                 |
+| -------------------- | ------------------------------------ |
+| `storage.sqlite`     | 主数据库（服务商、Combo、设置、Key） |
+| `storage.sqlite-wal` | SQLite 预写日志（临时文件）          |
+| `storage.sqlite-shm` | SQLite 共享内存（临时文件）          |
+| `call_logs/`         | 请求载荷归档                         |
+| `backups/`           | 自动数据库备份                       |
+| `log.txt`            | 旧版请求日志（可选）                 |
 
 ---
 

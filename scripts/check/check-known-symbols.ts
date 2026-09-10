@@ -211,6 +211,8 @@ export const KNOWN_TRANSLATOR_PAIRS: readonly string[] = [
   "antigravity:openai",
   "claude:gemini",
   "claude:openai",
+  // Naver CLOVA Studio Chat Completions v3 (native envelope, model in URL path).
+  "clova:openai",
   "cursor:openai",
   "gemini:claude",
   "gemini:openai",
@@ -218,6 +220,7 @@ export const KNOWN_TRANSLATOR_PAIRS: readonly string[] = [
   "openai-responses:openai",
   "openai:antigravity",
   "openai:claude",
+  "openai:clova",
   "openai:cursor",
   "openai:gemini",
   "openai:kiro",

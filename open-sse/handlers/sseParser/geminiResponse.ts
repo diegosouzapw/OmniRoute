@@ -2,6 +2,7 @@
 // Extracted verbatim from sseParser.ts (file-size cap): pure parsing, no host
 // state, following the handlers submodule pattern (chatCore/, responseSanitizer/).
 import { normalizeOpenAICompatibleFinishReasonString } from "../../utils/finishReason.ts";
+import { stripObfuscationZeroWidth } from "../../utils/zeroWidth.ts";
 
 type AccumulatedToolCall = {
   id: string;
@@ -20,7 +21,7 @@ type GeminiSSEAccumulator = {
 };
 
 function stripZeroWidth(value: unknown): unknown {
-  if (typeof value === "string") return value.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  if (typeof value === "string") return stripObfuscationZeroWidth(value);
   return value;
 }
 
@@ -29,7 +30,7 @@ function stripZeroWidth(value: unknown): unknown {
  * Gemini/Antigravity models emit instead of a native functionCall part.
  */
 function tryParseTextualToolCall(text: string): { name: string; args: unknown } | null {
-  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  const normalized = stripObfuscationZeroWidth(text);
   const match = normalized.match(
     /^[\s\S]*?\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/
   );

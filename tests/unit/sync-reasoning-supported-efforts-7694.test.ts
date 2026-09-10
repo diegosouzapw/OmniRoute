@@ -67,14 +67,14 @@ async function seedProviderConnection(provider: string) {
 // normalized onto the canonical vocabulary. Hard Rule #7 — Zod-validated.
 // ---------------------------------------------------------------------------
 
-test("normalizeDiscoveredModels: captures nested reasoning.supported_efforts (no flat field) and normalizes 'max' -> 'xhigh'", () => {
+test("normalizeDiscoveredModels: captures nested reasoning.supported_efforts (no flat field) and preserves canonical 'max'", () => {
   const [model] = normalizeDiscoveredModels([
     {
       id: "some/model-7694",
       reasoning: { supported_efforts: ["low", "medium", "max"] },
     },
   ]);
-  assert.deepEqual(model.supportedThinkingEfforts, ["low", "medium", "xhigh"]);
+  assert.deepEqual(model.supportedThinkingEfforts, ["low", "medium", "max"]);
 });
 
 test("normalizeDiscoveredModels: pre-existing flat supportedThinkingEfforts field wins verbatim over nested (regression)", () => {

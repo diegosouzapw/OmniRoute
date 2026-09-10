@@ -1,6 +1,6 @@
 # CLAUDE.md (Slovenčina)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇩 [in](../in/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md) · 🇹🇼 [zh-TW](../zh-TW/CLAUDE.md)
 
 ---
 
@@ -315,31 +315,31 @@ pripojeniu pokračovať v obsluhe iných modelov.
 
 Pre akúkoľvek netriviálnu zmenu si najprv prečítajte zodpovedajúci hĺbkový pohľad:
 
-| Oblasť                                            | Dokument                                                          |
-| ------------------------------------------------- | ----------------------------------------------------------------- |
-| Navigácia v repozitári                            | `docs/architecture/REPOSITORY_MAP.md`                             |
-| Architektúra                                      | `docs/architecture/ARCHITECTURE.md`                               |
-| Referencia inžinierstva                           | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md` |
-| Odolnosť (3 mechanizmy)                           | `docs/architecture/RESILIENCE_GUIDE.md`                           |
-| Opakovanie uvažovania                             | `docs/routing/REASONING_REPLAY.md`                                |
-| Rámec zručností                                   | `docs/frameworks/SKILLS.md`                                       |
-| Systém pamäte (FTS5 + Qdrant)                     | `docs/frameworks/MEMORY.md`                                       |
-| Cloudové agenti                                   | `docs/frameworks/CLOUD_AGENT.md`                                  |
-| Ochranné opatrenia (PII / injekcia / vízia)       | `docs/security/GUARDRAILS.md`                                     |
-| Verejné poverenia upstream (Gemini/atď.)          | `docs/security/PUBLIC_CREDS.md`                                   |
-| Sanitizácia chybových hlásení                     | `docs/security/ERROR_SANITIZATION.md`                             |
-| Vyhodnotenia                                      | `docs/frameworks/EVALS.md`                                        |
-| Dodržiavanie / audit                              | `docs/security/COMPLIANCE.md`                                     |
-| Webhooky                                          | `docs/frameworks/WEBHOOKS.md`                                     |
-| Autorizačný pipeline                              | `docs/architecture/AUTHZ_GUIDE.md`                                |
-| Neviditeľnosť (TLS / odtlačok)                    | `docs/security/STEALTH_GUIDE.md`                                  |
-| Protokoly agentov (A2A / ACP / Cloud)             | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
-| MCP server                                        | `docs/frameworks/MCP-SERVER.md`                                   |
-| A2A server                                        | `docs/frameworks/A2A-SERVER.md`                                   |
-| Referencia API + OpenAPI                          | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
-| Katalóg poskytovateľov (automaticky generovaný)   | `docs/reference/PROVIDER_REFERENCE.md`                            |
-| Tok vydania                                       | `docs/ops/RELEASE_CHECKLIST.md`                                   |
+| Oblasť                                               | Dokument                                                          |
+| ---------------------------------------------------- | ----------------------------------------------------------------- |
+| Navigácia v repozitári                               | `docs/architecture/REPOSITORY_MAP.md`                             |
+| Architektúra                                         | `docs/architecture/ARCHITECTURE.md`                               |
+| Referencia inžinierstva                              | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
+| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md`                                      |
+| Odolnosť (3 mechanizmy)                              | `docs/architecture/RESILIENCE_GUIDE.md`                           |
+| Opakovanie uvažovania                                | `docs/routing/REASONING_REPLAY.md`                                |
+| Rámec zručností                                      | `docs/frameworks/SKILLS.md`                                       |
+| Systém pamäte (FTS5 + Qdrant)                        | `docs/frameworks/MEMORY.md`                                       |
+| Cloudové agenti                                      | `docs/frameworks/CLOUD_AGENT.md`                                  |
+| Ochranné opatrenia (PII / injekcia / vízia)          | `docs/security/GUARDRAILS.md`                                     |
+| Verejné poverenia upstream (Gemini/atď.)             | `docs/security/PUBLIC_CREDS.md`                                   |
+| Sanitizácia chybových hlásení                        | `docs/security/ERROR_SANITIZATION.md`                             |
+| Vyhodnotenia                                         | `docs/frameworks/EVALS.md`                                        |
+| Dodržiavanie / audit                                 | `docs/security/COMPLIANCE.md`                                     |
+| Webhooky                                             | `docs/frameworks/WEBHOOKS.md`                                     |
+| Autorizačný pipeline                                 | `docs/architecture/AUTHZ_GUIDE.md`                                |
+| Neviditeľnosť (TLS / odtlačok)                       | `docs/security/STEALTH_GUIDE.md`                                  |
+| Protokoly agentov (A2A / ACP / Cloud)                | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
+| MCP server                                           | `docs/frameworks/MCP-SERVER.md`                                   |
+| A2A server                                           | `docs/frameworks/A2A-SERVER.md`                                   |
+| Referencia API + OpenAPI                             | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
+| Katalóg poskytovateľov (automaticky generovaný)      | `docs/reference/PROVIDER_REFERENCE.md`                            |
+| Tok vydania                                          | `docs/ops/RELEASE_CHECKLIST.md`                                   |
 
 ## Testovanie
 

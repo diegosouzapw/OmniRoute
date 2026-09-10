@@ -4,7 +4,7 @@
  * our reference egress. As of this change that allowlist is narrowed to
  * `opencode`: on the reference VPS (.15) it answers 200 with zero configuration.
  * The other no-auth providers
- * (duckduckgo-web, theoldllm, chipotle, aihorde) stay OUT of every auto/* pool
+ * (duckduckgo-web, chipotle, aihorde) stay OUT of every auto/* pool
  * until re-verified — they remain usable via direct `<alias>/<model>` calls, they
  * are just not auto-routed to.
  *
@@ -47,7 +47,7 @@ test.after(async () => {
 });
 
 const ALLOWED_NOAUTH_PROVIDERS = ["opencode"];
-const EXCLUDED_NOAUTH_PROVIDERS = ["duckduckgo-web", "theoldllm", "chipotle", "aihorde"];
+const EXCLUDED_NOAUTH_PROVIDERS = ["duckduckgo-web", "chipotle", "aihorde"];
 
 test("fresh install: the allowlisted no-auth providers are present in the auto-combo pool", async () => {
   const combo = await virtualFactory.createVirtualAutoCombo(undefined);

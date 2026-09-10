@@ -11,7 +11,11 @@ import {
   injectReasoningContentForThinkingModel,
   isThinkingMessageModel,
 } from "../utils/reasoningContentInjector.ts";
-import { runWithDirectFetchContext, runWithProxyContext } from "../utils/proxyFetch.ts";
+import {
+  hasAmbientProxyContext,
+  runWithDirectFetchContext,
+  runWithProxyContext,
+} from "../utils/proxyFetch.ts";
 import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
 import {
   type AccountProxyConfig,
@@ -505,9 +509,15 @@ export class OpencodeExecutor extends BaseExecutor {
       // else passes untouched: this path deliberately preserves BaseExecutor's
       // intra-URL 429 retries (no skipUpstreamRetry here).
       if (this.accounts.length === 1 && !hasProxies) {
-        const single = (await runWithDirectFetchContext(() =>
-          super.execute(input)
-        )) as HttpExecuteResult;
+        // #11894: a connection-level proxy assignment (proxy_assignments) reaches
+        // the executor as the AMBIENT proxy context — the chat handler wraps
+        // execute() in runWithProxyContext(proxyInfo.proxy, ...) before we run.
+        // Only pin direct egress when no such context exists; otherwise let the
+        // ambient proxy stand instead of clobbering it with the direct sentinel.
+        const dispatch = () => super.execute(input);
+        const single = (await (hasAmbientProxyContext()
+          ? dispatch()
+          : runWithDirectFetchContext(dispatch))) as HttpExecuteResult;
         if (single.response.status === 400) {
           let bodyText: string | null = null;
           try {

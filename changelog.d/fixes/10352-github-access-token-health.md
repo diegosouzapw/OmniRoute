@@ -1,1 +1,0 @@
-- **fix(github):** proactive credential health now verifies GitHub access tokens through the existing Copilot token exchange, marks only a confirmed `401 Unauthorized` as expired, and leaves rate limits, permission failures, upstream failures, and network errors routable ([#10352](https://github.com/diegosouzapw/OmniRoute/issues/10352)) — thanks @RaviTharuma

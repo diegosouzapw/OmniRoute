@@ -5,6 +5,7 @@
 export const AUDIO_ONLY_PROVIDERS = {
   deepgram: {
     id: "deepgram",
+    serviceKinds: [],
     alias: "dg",
     name: "Deepgram",
     icon: "mic",
@@ -14,6 +15,7 @@ export const AUDIO_ONLY_PROVIDERS = {
   },
   assemblyai: {
     id: "assemblyai",
+    serviceKinds: [],
     alias: "aai",
     name: "AssemblyAI",
     icon: "record_voice_over",
@@ -23,6 +25,7 @@ export const AUDIO_ONLY_PROVIDERS = {
   },
   soniox: {
     id: "soniox",
+    serviceKinds: [],
     alias: "sx",
     name: "Soniox",
     icon: "mic",
@@ -32,6 +35,7 @@ export const AUDIO_ONLY_PROVIDERS = {
   },
   elevenlabs: {
     id: "elevenlabs",
+    serviceKinds: [],
     alias: "el",
     name: "ElevenLabs",
     icon: "record_voice_over",
@@ -41,6 +45,7 @@ export const AUDIO_ONLY_PROVIDERS = {
   },
   cartesia: {
     id: "cartesia",
+    serviceKinds: [],
     alias: "cartesia",
     name: "Cartesia",
     icon: "spatial_audio",
@@ -50,6 +55,7 @@ export const AUDIO_ONLY_PROVIDERS = {
   },
   fishaudio: {
     id: "fishaudio",
+    serviceKinds: [],
     alias: "fishaudio",
     name: "Fish Audio",
     icon: "graphic_eq",
@@ -59,6 +65,7 @@ export const AUDIO_ONLY_PROVIDERS = {
   },
   playht: {
     id: "playht",
+    serviceKinds: [],
     alias: "playht",
     name: "PlayHT",
     icon: "play_circle",
@@ -68,6 +75,7 @@ export const AUDIO_ONLY_PROVIDERS = {
   },
   inworld: {
     id: "inworld",
+    serviceKinds: [],
     alias: "inworld",
     name: "Inworld",
     icon: "voice_chat",
@@ -77,6 +85,7 @@ export const AUDIO_ONLY_PROVIDERS = {
   },
   "aws-polly": {
     id: "aws-polly",
+    serviceKinds: [],
     alias: "polly",
     name: "AWS Polly",
     icon: "record_voice_over",
@@ -88,6 +97,7 @@ export const AUDIO_ONLY_PROVIDERS = {
   },
   gladia: {
     id: "gladia",
+    serviceKinds: [],
     alias: "gladia",
     name: "Gladia",
     icon: "record_voice_over",
@@ -98,6 +108,7 @@ export const AUDIO_ONLY_PROVIDERS = {
 
   "rev-ai": {
     id: "rev-ai",
+    serviceKinds: [],
     alias: "revai",
     name: "Rev AI",
     icon: "record_voice_over",
@@ -108,6 +119,7 @@ export const AUDIO_ONLY_PROVIDERS = {
 
   speechmatics: {
     id: "speechmatics",
+    serviceKinds: [],
     alias: "sm",
     name: "Speechmatics",
     icon: "record_voice_over",

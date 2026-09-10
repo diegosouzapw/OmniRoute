@@ -4,10 +4,34 @@ import { CORS_HEADERS } from "../utils/cors";
 
 const JSON_HEADERS = { ...CORS_HEADERS, "Content-Type": "application/json" };
 
-export function chatAdmissionRejectionResponse(status: 413 | 503, hardMaxBytes: number): Response {
+/**
+ * `Retry-After` floors for the retryable 503s — the pre-#12135 fixed values. A caller
+ * passes an occupancy-derived hint (`ChatAdmissionController#retryAfterSeconds`) and the
+ * header carries whichever is larger, so an idle gate still answers exactly as before
+ * while a gate whose leases have been busy for a whole SSE stream stops inviting a
+ * 1-second retry storm.
+ */
+const BYTE_STAGE_RETRY_AFTER_FLOOR_SECONDS = 2;
+const STRUCTURAL_RETRY_AFTER_FLOOR_SECONDS = 1;
+
+function retryAfterHeader(floorSeconds: number, hintSeconds: number | undefined): string {
+  const hint = Number.isFinite(hintSeconds) ? Math.ceil(hintSeconds as number) : 0;
+  return String(Math.max(floorSeconds, hint));
+}
+
+export function chatAdmissionRejectionResponse(
+  status: 413 | 503,
+  hardMaxBytes: number,
+  retryAfterSeconds?: number
+): Response {
   const isPayload = status === 413;
   const headers: Record<string, string> = { ...JSON_HEADERS };
-  if (!isPayload) headers["Retry-After"] = "2";
+  if (!isPayload) {
+    headers["Retry-After"] = retryAfterHeader(
+      BYTE_STAGE_RETRY_AFTER_FLOOR_SECONDS,
+      retryAfterSeconds
+    );
+  }
   const message = isPayload
     ? `Request body too large for chat completions (max ${Math.floor(
         hardMaxBytes / (1024 * 1024)
@@ -53,10 +77,19 @@ export function resourcePressureRejectionResponse(): Response {
   );
 }
 
-export function structuralRejectionResponse(status: 413 | 503, maxMessages: number): Response {
+export function structuralRejectionResponse(
+  status: 413 | 503,
+  maxMessages: number,
+  retryAfterSeconds?: number
+): Response {
   const historyLimit = status === 413;
   const headers: Record<string, string> = { ...JSON_HEADERS };
-  if (!historyLimit) headers["Retry-After"] = "1";
+  if (!historyLimit) {
+    headers["Retry-After"] = retryAfterHeader(
+      STRUCTURAL_RETRY_AFTER_FLOOR_SECONDS,
+      retryAfterSeconds
+    );
+  }
   const body = buildErrorBody(
     status,
     historyLimit

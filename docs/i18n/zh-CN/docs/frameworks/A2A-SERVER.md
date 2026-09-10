@@ -1,6 +1,6 @@
 # OmniRoute A2A Server Documentation (中文 (简体))
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/A2A-SERVER.md) · 🇸🇦 [ar](../../ar/docs/A2A-SERVER.md) · 🇧🇬 [bg](../../bg/docs/A2A-SERVER.md) · 🇧🇩 [bn](../../bn/docs/A2A-SERVER.md) · 🇨🇿 [cs](../../cs/docs/A2A-SERVER.md) · 🇩🇰 [da](../../da/docs/A2A-SERVER.md) · 🇩🇪 [de](../../de/docs/A2A-SERVER.md) · 🇪🇸 [es](../../es/docs/A2A-SERVER.md) · 🇮🇷 [fa](../../fa/docs/A2A-SERVER.md) · 🇫🇮 [fi](../../fi/docs/A2A-SERVER.md) · 🇫🇷 [fr](../../fr/docs/A2A-SERVER.md) · 🇮🇳 [gu](../../gu/docs/A2A-SERVER.md) · 🇮🇱 [he](../../he/docs/A2A-SERVER.md) · 🇮🇳 [hi](../../hi/docs/A2A-SERVER.md) · 🇭🇺 [hu](../../hu/docs/A2A-SERVER.md) · 🇮🇩 [id](../../id/docs/A2A-SERVER.md) · 🇮🇹 [it](../../it/docs/A2A-SERVER.md) · 🇯🇵 [ja](../../ja/docs/A2A-SERVER.md) · 🇰🇷 [ko](../../ko/docs/A2A-SERVER.md) · 🇮🇳 [mr](../../mr/docs/A2A-SERVER.md) · 🇲🇾 [ms](../../ms/docs/A2A-SERVER.md) · 🇳🇱 [nl](../../nl/docs/A2A-SERVER.md) · 🇳🇴 [no](../../no/docs/A2A-SERVER.md) · 🇵🇭 [phi](../../phi/docs/A2A-SERVER.md) · 🇵🇱 [pl](../../pl/docs/A2A-SERVER.md) · 🇵🇹 [pt](../../pt/docs/A2A-SERVER.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/A2A-SERVER.md) · 🇷🇴 [ro](../../ro/docs/A2A-SERVER.md) · 🇷🇺 [ru](../../ru/docs/A2A-SERVER.md) · 🇸🇰 [sk](../../sk/docs/A2A-SERVER.md) · 🇸🇪 [sv](../../sv/docs/A2A-SERVER.md) · 🇰🇪 [sw](../../sw/docs/A2A-SERVER.md) · 🇮🇳 [ta](../../ta/docs/A2A-SERVER.md) · 🇮🇳 [te](../../te/docs/A2A-SERVER.md) · 🇹🇭 [th](../../th/docs/A2A-SERVER.md) · 🇹🇷 [tr](../../tr/docs/A2A-SERVER.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/A2A-SERVER.md) · 🇵🇰 [ur](../../ur/docs/A2A-SERVER.md) · 🇻🇳 [vi](../../vi/docs/A2A-SERVER.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/A2A-SERVER.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../frameworks/A2A-SERVER.md) · 🇸🇦 [ar](../../../ar/docs/frameworks/A2A-SERVER.md) · 🇦🇿 [az](../../../az/docs/frameworks/A2A-SERVER.md) · 🇧🇬 [bg](../../../bg/docs/frameworks/A2A-SERVER.md) · 🇧🇩 [bn](../../../bn/docs/frameworks/A2A-SERVER.md) · 🇨🇿 [cs](../../../cs/docs/frameworks/A2A-SERVER.md) · 🇩🇰 [da](../../../da/docs/frameworks/A2A-SERVER.md) · 🇩🇪 [de](../../../de/docs/frameworks/A2A-SERVER.md) · 🇪🇸 [es](../../../es/docs/frameworks/A2A-SERVER.md) · 🇮🇷 [fa](../../../fa/docs/frameworks/A2A-SERVER.md) · 🇫🇮 [fi](../../../fi/docs/frameworks/A2A-SERVER.md) · 🇫🇷 [fr](../../../fr/docs/frameworks/A2A-SERVER.md) · 🇮🇳 [gu](../../../gu/docs/frameworks/A2A-SERVER.md) · 🇮🇱 [he](../../../he/docs/frameworks/A2A-SERVER.md) · 🇮🇳 [hi](../../../hi/docs/frameworks/A2A-SERVER.md) · 🇭🇺 [hu](../../../hu/docs/frameworks/A2A-SERVER.md) · 🇮🇩 [id](../../../id/docs/frameworks/A2A-SERVER.md) · 🇮🇹 [it](../../../it/docs/frameworks/A2A-SERVER.md) · 🇯🇵 [ja](../../../ja/docs/frameworks/A2A-SERVER.md) · 🇰🇷 [ko](../../../ko/docs/frameworks/A2A-SERVER.md) · 🇮🇳 [mr](../../../mr/docs/frameworks/A2A-SERVER.md) · 🇲🇾 [ms](../../../ms/docs/frameworks/A2A-SERVER.md) · 🇳🇱 [nl](../../../nl/docs/frameworks/A2A-SERVER.md) · 🇳🇴 [no](../../../no/docs/frameworks/A2A-SERVER.md) · 🇵🇭 [phi](../../../phi/docs/frameworks/A2A-SERVER.md) · 🇵🇱 [pl](../../../pl/docs/frameworks/A2A-SERVER.md) · 🇵🇹 [pt](../../../pt/docs/frameworks/A2A-SERVER.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/frameworks/A2A-SERVER.md) · 🇷🇴 [ro](../../../ro/docs/frameworks/A2A-SERVER.md) · 🇷🇺 [ru](../../../ru/docs/frameworks/A2A-SERVER.md) · 🇸🇰 [sk](../../../sk/docs/frameworks/A2A-SERVER.md) · 🇸🇪 [sv](../../../sv/docs/frameworks/A2A-SERVER.md) · 🇰🇪 [sw](../../../sw/docs/frameworks/A2A-SERVER.md) · 🇮🇳 [ta](../../../ta/docs/frameworks/A2A-SERVER.md) · 🇮🇳 [te](../../../te/docs/frameworks/A2A-SERVER.md) · 🇹🇭 [th](../../../th/docs/frameworks/A2A-SERVER.md) · 🇹🇷 [tr](../../../tr/docs/frameworks/A2A-SERVER.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/frameworks/A2A-SERVER.md) · 🇵🇰 [ur](../../../ur/docs/frameworks/A2A-SERVER.md) · 🇻🇳 [vi](../../../vi/docs/frameworks/A2A-SERVER.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/frameworks/A2A-SERVER.md)
 
 ---
 
@@ -137,14 +137,14 @@ curl -X POST http://localhost:20128/a2a \
 
 OmniRoute 暴露了 6 个 A2A 技能，连接到 `src/lib/a2a/taskExecution.ts::A2A_SKILL_HANDLERS`。每个技能模块位于 `src/lib/a2a/skills/`。
 
-| 技能 | ID | 描述 | 标签 | 示例 |
-| :--- | :--- | :--- | :--- | :--- |
-| Smart Routing | `smart-routing` | 通过 OmniRoute 的 Combo 引擎与评分，将提示路由到最优服务商/Combo | routing, 服务商 | "通过最佳模型路由此提示" |
-| Quota Management | `quota-management` | 报告每个服务商的配额状态，帮助调用方决定何时限流/切换 | 配额, 服务商 | "检查 anthropic 的配额" |
-| Provider Discovery | `provider-discovery` | 列出已安装的服务商及其能力、免费层标志、OAuth 状态 | 服务商, 发现 | "有哪些可用服务商？" |
-| Cost Analysis | `cost-analysis` | 根据目录和近期用量估算请求/对话的成本 | 成本, 用量 | "估算本次对话的成本" |
-| Health Report | `health-report` | 聚合每个服务商的熔断器、冷却、锁定状态 | 健康, 容灾 | "显示所有服务商的健康状态" |
-| List Capabilities | `list-capabilities` | 返回完整的 42 项代理技能目录，以 Markdown 表格形式列出，附带原始 SKILL.md URL 用于上下文注入 | 目录, 发现, 技能 | "列出所有 OmniRoute 能力" |
+| 技能               | ID                   | 描述                                                                                         | 标签             | 示例                       |
+| :----------------- | :------------------- | :------------------------------------------------------------------------------------------- | :--------------- | :------------------------- |
+| Smart Routing      | `smart-routing`      | 通过 OmniRoute 的 Combo 引擎与评分，将提示路由到最优服务商/Combo                             | routing, 服务商  | "通过最佳模型路由此提示"   |
+| Quota Management   | `quota-management`   | 报告每个服务商的配额状态，帮助调用方决定何时限流/切换                                        | 配额, 服务商     | "检查 anthropic 的配额"    |
+| Provider Discovery | `provider-discovery` | 列出已安装的服务商及其能力、免费层标志、OAuth 状态                                           | 服务商, 发现     | "有哪些可用服务商？"       |
+| Cost Analysis      | `cost-analysis`      | 根据目录和近期用量估算请求/对话的成本                                                        | 成本, 用量       | "估算本次对话的成本"       |
+| Health Report      | `health-report`      | 聚合每个服务商的熔断器、冷却、锁定状态                                                       | 健康, 容灾       | "显示所有服务商的健康状态" |
+| List Capabilities  | `list-capabilities`  | 返回完整的 42 项代理技能目录，以 Markdown 表格形式列出，附带原始 SKILL.md URL 用于上下文注入 | 目录, 发现, 技能 | "列出所有 OmniRoute 能力"  |
 
 > 注意：Agent Card 描述目前宣传 "36+ providers"（`src/app/.well-known/agent.json/route.ts:26` 和 `:55`）。实际目录已增长至 180+ 个服务商——该字符串应在后续变更中更新（作为单独的文档/代码 TODO 跟踪；此处不作修改）。
 
@@ -167,13 +167,13 @@ OmniRoute 暴露了 6 个 A2A 技能，连接到 `src/lib/a2a/taskExecution.ts::
 
 JSON-RPC 端点 `/a2a` 是 A2A 的正式入口。以下 REST 端点提供仪表盘和外部工具的辅助访问：
 
-| 端点 | 方法 | 描述 | 认证 |
-| :--- | :--- | :--- | :--- |
-| `/api/a2a/status` | GET | 服务器状态、已注册技能 | （公开） |
-| `/api/a2a/tasks` | GET | 列出任务（支持过滤） | 管理 |
-| `/api/a2a/tasks/[id]` | GET | 按 ID 获取任务 | 管理 |
-| `/api/a2a/tasks/[id]/cancel` | POST | 取消运行中的任务 | 管理 |
-| `/.well-known/agent.json` | GET | Agent Card（A2A 发现） | （公开, 缓存 3600s） |
+| 端点                         | 方法 | 描述                   | 认证                 |
+| :--------------------------- | :--- | :--------------------- | :------------------- |
+| `/api/a2a/status`            | GET  | 服务器状态、已注册技能 | （公开）             |
+| `/api/a2a/tasks`             | GET  | 列出任务（支持过滤）   | 管理                 |
+| `/api/a2a/tasks/[id]`        | GET  | 按 ID 获取任务         | 管理                 |
+| `/api/a2a/tasks/[id]/cancel` | POST | 取消运行中的任务       | 管理                 |
+| `/.well-known/agent.json`    | GET  | Agent Card（A2A 发现） | （公开, 缓存 3600s） |
 
 ---
 
@@ -235,14 +235,14 @@ submitted → working → completed
 
 ## 错误码
 
-| Code | 含义 |
-| :--- | :--- |
+| Code   | 含义                  |
+| :----- | :-------------------- |
 | -32700 | 解析错误（JSON 无效） |
-| -32600 | 无效请求 / 未授权 |
-| -32601 | 方法或技能未找到 |
-| -32602 | 参数无效 |
-| -32603 | 内部错误 |
-| -32000 | A2A 端点已禁用 |
+| -32600 | 无效请求 / 未授权     |
+| -32601 | 方法或技能未找到      |
+| -32602 | 参数无效              |
+| -32603 | 内部错误              |
+| -32000 | A2A 端点已禁用        |
 
 ---
 

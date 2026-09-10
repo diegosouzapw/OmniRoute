@@ -67,9 +67,47 @@ function requireDuration(name: string, value: number): number {
   return value;
 }
 
-function buildCriticalGuard(reason: PressureReason): ResourcePressureGuardResult {
+/**
+ * Human-readable key=value detail appended to the rejection log line. Every
+ * rejection (immediate heap trip AND cached-critical-state reuse) goes
+ * through here, so this is the one place that needs the actual numbers —
+ * the bare reason code alone ("psi_some") gives an operator nothing to act
+ * on when deciding whether the guard is mistuned vs. genuinely saturated.
+ */
+function formatPressureDetail(detail: Record<string, number | string | null | undefined>): string {
+  return Object.entries(detail)
+    .filter(([, value]) => value !== undefined)
+    .map(([key, value]) => `${key}=${value ?? "null"}`)
+    .join(" ");
+}
+
+/** Builds buildCriticalGuard's detail object for the cached-critical-state
+ * reuse path in check() -- pulled out of check() itself so that function's
+ * own cyclomatic complexity stays under the ratchet, not because this needs
+ * to be reused anywhere else. */
+function describeCachedPressure(params: {
+  signals: ResourceSignals | null;
+  recoveryStreak: number;
+  cacheAgeMs: number;
+}): Record<string, number | string | null> {
+  const cgroup = params.signals?.cgroup;
+  return {
+    psiSomeAvg10: params.signals?.psi?.someAvg10 ?? null,
+    psiFullAvg10: params.signals?.psi?.fullAvg10 ?? null,
+    cgroupCurrentMb: cgroup?.currentBytes ? Math.round(cgroup.currentBytes / MB) : null,
+    cgroupMaxMb: cgroup?.maxBytes ? Math.round(cgroup.maxBytes / MB) : null,
+    recoveryStreak: params.recoveryStreak,
+    sampleAgeMs: params.cacheAgeMs,
+  };
+}
+
+function buildCriticalGuard(
+  reason: PressureReason,
+  detail: Record<string, number | string | null | undefined> = {}
+): ResourcePressureGuardResult {
+  const detailText = formatPressureDetail(detail);
   console.warn(
-    `[resourcePressure] critical pressure guard tripped (reason=${reason}); returning 503`
+    `[resourcePressure] critical pressure guard tripped (reason=${reason}${detailText ? " " + detailText : ""}); returning 503`
   );
   return {
     success: false,
@@ -97,7 +135,10 @@ function immediateHeapGuard(
   if (thresholdMb == null) return null;
   const guard = checkHeapPressureGuard(heapUsedMb, thresholdMb);
   if (!guard) return null;
-  return buildCriticalGuard("v8_heap_absolute");
+  return buildCriticalGuard("v8_heap_absolute", {
+    heapUsedMb: Math.round(heapUsedMb),
+    thresholdMb: Math.round(thresholdMb),
+  });
 }
 
 export function createResourcePressureRuntime(
@@ -192,9 +233,17 @@ export function createResourcePressureRuntime(
         return immediate;
       }
       const cacheAge = lastSignals ? Math.max(0, now - lastRefreshAtMs) : Number.POSITIVE_INFINITY;
-      return cacheAge <= maxStaleMs && state.severity === "critical"
-        ? buildCriticalGuard(state.reason)
-        : null;
+      if (cacheAge > maxStaleMs || state.severity !== "critical") {
+        return null;
+      }
+      return buildCriticalGuard(
+        state.reason,
+        describeCachedPressure({
+          signals: lastSignals,
+          recoveryStreak: state.recoveryStreak,
+          cacheAgeMs: cacheAge,
+        })
+      );
     },
     getObservation: () => ({ signals: lastSignals, state }),
     whenRefreshSettled: async () => {

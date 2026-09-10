@@ -461,7 +461,7 @@ Tüm **19** strateji — kombo adımı başına karıştırın ve eşleştirin:
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="What sets OmniRoute apart — comparison table vs 9router, OpenRouter, CLIProxyAPI and LiteLLM across 13 capabilities. OmniRoute: 349 providers, 90+ free providers built-in, 19 routing strategies, 12-engine token compression, built-in MCP server with 110 tools, A2A agent protocol, persistent memory, guardrails, cloud agents, TLS fingerprint stealth, Desktop/Termux/PWA, 43 i18n UI locales, 100% MIT self-hosted. OmniRoute is the only one with the full set; competitors show a mix of checks, partials and crosses. Verified from each project&apos;s docs."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="What sets OmniRoute apart — comparison table vs 9router, OpenRouter, CLIProxyAPI and LiteLLM across 13 capabilities. OmniRoute: 349 providers, 90+ free providers built-in, 19 routing strategies, 12-engine token compression, built-in MCP server with 110 tools, A2A agent protocol, persistent memory, guardrails, cloud agents, TLS fingerprint stealth, Desktop/Termux/PWA, 42 i18n UI locales, 100% MIT self-hosted. OmniRoute is the only one with the full set; competitors show a mix of checks, partials and crosses. Verified from each project&apos;s docs."/>
 
 <sub>📊 9router, OpenRouter, CLIProxyAPI ve LiteLLM'e karşı tam metodoloji ve özellik bazında detaylar → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
@@ -1272,7 +1272,7 @@ Doğrulama metrikleri: 1002 takip edilen video · 7.069.190 bilinen görüntüle
   <tr><td nowrap><b><a href="docs/ops/BRANCHING_MODEL.md">Dallanma ve Sürüm Modeli</a></b></td><td>PR'ların nereyi hedeflediği (<code>release/*</code>), <code>main</code> ve etiketlerin anlamı</td></tr>
   <tr><td nowrap><b><a href="CHANGELOG.md">Değişiklik Günlüğü (Changelog)</a></b></td><td>Sürüm bazında tam yayın geçmişi</td></tr>
   <tr><td nowrap><b><a href="SECURITY.md">Güvenlik Politikası</a></b></td><td>Güvenlik açığı bildirme ve güvenlik uygulamaları</td></tr>
-  <tr><td nowrap><b><a href="docs/guides/I18N.md">i18n Kılavuzu</a></b></td><td>43 dil desteği, çeviri iş akışı, RTL</td></tr>
+  <tr><td nowrap><b><a href="docs/guides/I18N.md">i18n Kılavuzu</a></b></td><td>42 dil desteği, çeviri iş akışı, RTL</td></tr>
   <tr><td nowrap><b><a href="docs/ops/RELEASE_CHECKLIST.md">Sürüm Kontrol Listesi</a></b></td><td>Sürüm öncesi doğrulama adımları</td></tr>
   <tr><td nowrap><b><a href="docs/ops/COVERAGE_PLAN.md">Test Kapsam Planı</a></b></td><td>Test kapsamı stratejisi ve 25.000+ test paketi</td></tr>
 </table>

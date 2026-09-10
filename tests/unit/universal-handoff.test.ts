@@ -20,6 +20,18 @@ test("resolveUniversalHandoffConfig returns disabled defaults when no config", (
   assert.strictEqual(r.preserveSystemPrompt, true);
 });
 
+test("global feature flag can disable handoff for every combo", () => {
+  const previous = process.env.UNIVERSAL_CONTEXT_HANDOFF_ENABLED;
+  process.env.UNIVERSAL_CONTEXT_HANDOFF_ENABLED = "false";
+  try {
+    const r = resolveUniversalHandoffConfig({ enabled: true }, { enabled: true });
+    assert.strictEqual(r.enabled, false);
+  } finally {
+    if (previous === undefined) delete process.env.UNIVERSAL_CONTEXT_HANDOFF_ENABLED;
+    else process.env.UNIVERSAL_CONTEXT_HANDOFF_ENABLED = previous;
+  }
+});
+
 test("applies combo-level config over defaults", () => {
   const r = resolveUniversalHandoffConfig(
     { enabled: true, trigger: "always", ttlMinutes: 60 } as any,
@@ -225,7 +237,13 @@ test("buildUniversalHandoffSystemMessage basic when payload null", () => {
 
 test("buildUniversalHandoffSystemMessage basic when payload summary empty", () => {
   const msg = buildUniversalHandoffSystemMessage(PREV, CURR, REASON, makePayload({ summary: "" }));
-  assert.ok(msg.includes("continuar sin perder el hilo"));
+  // The bare-fallback note must not claim continuity it can't provide: a
+  // model landing here with only trimmed input (e.g. a bare tool result)
+  // and no real history has been observed fabricating plausible-sounding
+  // but entirely invented content when told "the conversation continues
+  // without losing context" -- the note now tells it the opposite.
+  assert.ok(msg.includes("No prior-session summary is available"));
+  assert.ok(msg.includes("do not assume or invent"));
 });
 
 test("buildUniversalHandoffSystemMessage full XML with valid payload", () => {

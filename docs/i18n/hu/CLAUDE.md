@@ -1,6 +1,6 @@
 # CLAUDE.md (Magyar)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇩 [in](../in/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md) · 🇹🇼 [zh-TW](../zh-TW/CLAUDE.md)
 
 ---
 
@@ -310,31 +310,31 @@ kapcsolat továbbra is kiszolgálja a többi modellt.
 
 Bármilyen nem triviális változtatás előtt olvasd el a megfelelő mélyreható anyagot:
 
-| Terület                                        | Dokumentum                                                        |
-| ---------------------------------------------- | ----------------------------------------------------------------- |
-| Repo navigáció                                 | `docs/architecture/REPOSITORY_MAP.md`                             |
-| Architektúra                                   | `docs/architecture/ARCHITECTURE.md`                               |
-| Mérnöki referencia                             | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md` |
-| Ellenállás (3 mechanizmus)                     | `docs/architecture/RESILIENCE_GUIDE.md`                           |
-| Érvelés újrajátszása                           | `docs/routing/REASONING_REPLAY.md`                                |
-| Készségek keretrendszere                       | `docs/frameworks/SKILLS.md`                                       |
-| Memória rendszer (FTS5 + Qdrant)               | `docs/frameworks/MEMORY.md`                                       |
-| Felhő ügynökök                                 | `docs/frameworks/CLOUD_AGENT.md`                                  |
-| Védőkorlátok (PII / injekció / látás)          | `docs/security/GUARDRAILS.md`                                     |
-| Nyilvános upstream hitelesítések (Gemini/stb.) | `docs/security/PUBLIC_CREDS.md`                                   |
-| Hibaüzenetek tisztítása                        | `docs/security/ERROR_SANITIZATION.md`                             |
-| Értékelések                                    | `docs/frameworks/EVALS.md`                                        |
-| Megfelelőség / audit                           | `docs/security/COMPLIANCE.md`                                     |
-| Webhookok                                      | `docs/frameworks/WEBHOOKS.md`                                     |
-| Engedélyezési folyamat                         | `docs/architecture/AUTHZ_GUIDE.md`                                |
-| Rejtőzködés (TLS / ujjlenyomat)                | `docs/security/STEALTH_GUIDE.md`                                  |
-| Ügynök protokollok (A2A / ACP / Felhő)         | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
-| MCP szerver                                    | `docs/frameworks/MCP-SERVER.md`                                   |
-| A2A szerver                                    | `docs/frameworks/A2A-SERVER.md`                                   |
-| API referencia + OpenAPI                       | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
-| Szolgáltató katalógus (automatikusan generált) | `docs/reference/PROVIDER_REFERENCE.md`                            |
-| Kiadási folyamat                               | `docs/ops/RELEASE_CHECKLIST.md`                                   |
+| Terület                                              | Dokumentum                                                        |
+| ---------------------------------------------------- | ----------------------------------------------------------------- |
+| Repo navigáció                                       | `docs/architecture/REPOSITORY_MAP.md`                             |
+| Architektúra                                         | `docs/architecture/ARCHITECTURE.md`                               |
+| Mérnöki referencia                                   | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
+| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md`                                      |
+| Ellenállás (3 mechanizmus)                           | `docs/architecture/RESILIENCE_GUIDE.md`                           |
+| Érvelés újrajátszása                                 | `docs/routing/REASONING_REPLAY.md`                                |
+| Készségek keretrendszere                             | `docs/frameworks/SKILLS.md`                                       |
+| Memória rendszer (FTS5 + Qdrant)                     | `docs/frameworks/MEMORY.md`                                       |
+| Felhő ügynökök                                       | `docs/frameworks/CLOUD_AGENT.md`                                  |
+| Védőkorlátok (PII / injekció / látás)                | `docs/security/GUARDRAILS.md`                                     |
+| Nyilvános upstream hitelesítések (Gemini/stb.)       | `docs/security/PUBLIC_CREDS.md`                                   |
+| Hibaüzenetek tisztítása                              | `docs/security/ERROR_SANITIZATION.md`                             |
+| Értékelések                                          | `docs/frameworks/EVALS.md`                                        |
+| Megfelelőség / audit                                 | `docs/security/COMPLIANCE.md`                                     |
+| Webhookok                                            | `docs/frameworks/WEBHOOKS.md`                                     |
+| Engedélyezési folyamat                               | `docs/architecture/AUTHZ_GUIDE.md`                                |
+| Rejtőzködés (TLS / ujjlenyomat)                      | `docs/security/STEALTH_GUIDE.md`                                  |
+| Ügynök protokollok (A2A / ACP / Felhő)               | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
+| MCP szerver                                          | `docs/frameworks/MCP-SERVER.md`                                   |
+| A2A szerver                                          | `docs/frameworks/A2A-SERVER.md`                                   |
+| API referencia + OpenAPI                             | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
+| Szolgáltató katalógus (automatikusan generált)       | `docs/reference/PROVIDER_REFERENCE.md`                            |
+| Kiadási folyamat                                     | `docs/ops/RELEASE_CHECKLIST.md`                                   |
 
 ## Tesztelés
 

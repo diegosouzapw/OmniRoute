@@ -43,11 +43,7 @@ export default function RerankConfigCard({ settings, providers, onSave, saving }
           }}
           disabled={saving || (!rerankEnabled && !hasProvider)}
           aria-disabled={saving || (!rerankEnabled && !hasProvider)}
-          title={
-            !rerankEnabled && !hasProvider
-              ? t("rerank.noProviderWithKey")
-              : undefined
-          }
+          title={!rerankEnabled && !hasProvider ? t("rerank.noProviderWithKey") : undefined}
           role="switch"
           aria-checked={rerankEnabled}
           className={`relative w-11 h-6 rounded-full transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
@@ -83,22 +79,45 @@ export default function RerankConfigCard({ settings, providers, onSave, saving }
                 {t("rerank.noProviderWithKey")}
               </p>
             ) : (
-              <select
-                value={rerankProviderModel}
-                onChange={(e) => handleProviderModelChange(e.target.value)}
-                disabled={saving}
-                data-testid="rerank-provider-model-select"
-                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
-              >
-                <option value="">{t("rerank.selectProviderModel")}</option>
-                {rerankProviders.map((p) =>
-                  p.models.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name}
-                    </option>
-                  )),
-                )}
-              </select>
+              <>
+                <select
+                  value={
+                    rerankProviders.some((p) => p.models.some((m) => m.id === rerankProviderModel))
+                      ? rerankProviderModel
+                      : ""
+                  }
+                  onChange={(e) => handleProviderModelChange(e.target.value)}
+                  disabled={saving}
+                  data-testid="rerank-provider-model-select"
+                  className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
+                >
+                  <option value="">{t("rerank.selectProviderModel")}</option>
+                  {rerankProviders.map((p) =>
+                    p.models.length > 0 ? (
+                      p.models.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name}
+                        </option>
+                      ))
+                    ) : (
+                      <optgroup key={p.provider} label={p.provider}>
+                        <option value="">{`— ${p.provider} (no curated models)`}</option>
+                      </optgroup>
+                    )
+                  )}
+                </select>
+                {/* Free-text override: any configured provider's Cohere-compatible
+                  model id is accepted by the runtime even without a curated entry. */}
+                <input
+                  type="text"
+                  value={rerankProviderModel}
+                  onChange={(e) => handleProviderModelChange(e.target.value)}
+                  disabled={saving}
+                  placeholder="provider/model — e.g. groq/my-reranker"
+                  data-testid="rerank-provider-model-input"
+                  className="w-full mt-2 px-3 py-2 rounded-lg bg-background border border-border text-sm font-mono focus:outline-none focus:ring-1 focus:ring-violet-500"
+                />
+              </>
             )}
           </div>
         </>

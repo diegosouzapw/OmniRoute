@@ -1,401 +1,400 @@
 {
   "open-sse/transformer/responsesTransformer.ts": {
-    "TS2353": 2
+    "TS2353": 1
   },
   "open-sse/utils/progressTracker.ts": {
-    "TS2353": 2
+    "TS2353": 1
   },
   "open-sse/utils/sseHeartbeat.ts": {
-    "TS2353": 2
+    "TS2353": 1
   },
   "open-sse/utils/stream.ts": {
-    "TS2353": 2
+    "TS2353": 1
   },
   "src/app/api/assess/route.ts": {
-    "TS2339": 2
+    "TS2339": 1
   },
   "src/app/api/cache/route.ts": {
-    "TS2339": 2
+    "TS2339": 1
   },
   "src/app/api/cli-tools/all-statuses/route.ts": {
-    "TS2339": 2
+    "TS2339": 1
   },
   "src/app/api/cli-tools/claude-settings/route.ts": {
-    "TS2339": 2
+    "TS2339": 1
   },
   "src/app/api/cli-tools/cline-settings/route.ts": {
-    "TS2339": 6
-  },
-  "src/app/api/cli-tools/codex-settings/route.ts": {
-    "TS2345": 3
-  },
-  "src/app/api/cli-tools/grok-build-settings/route.ts": {
-    "TS2304": 2
-  },
-  "src/app/api/cli-tools/hermes-agent-settings/route.ts": {
-    "TS2345": 2
-  },
-  "src/app/api/cli-tools/letta-settings/route.ts": {
-    "TS2339": 2
-  },
-  "src/app/api/cli-tools/omp-settings/route.ts": {
-    "TS2339": 10
-  },
-  "src/app/api/cli-tools/qwen-settings/route.ts": {
-    "TS2322": 2
-  },
-  "src/app/api/combos/auto/route.ts": {
-    "TS2322": 2
-  },
-  "src/app/api/combos/test/route.ts": {
-    "TS2345": 2,
-    "TS2339": 2
-  },
-  "src/app/api/compression/compare/route.ts": {
-    "TS2345": 2
-  },
-  "src/app/api/compression/preview/route.ts": {
-    "TS2345": 2
-  },
-  "src/app/api/context/combos/[id]/route.ts": {
-    "TS2345": 2
-  },
-  "src/app/api/context/combos/route.ts": {
-    "TS2345": 2
-  },
-  "src/app/api/copilot/chat/route.ts": {
-    "TS2345": 2
-  },
-  "src/app/api/guardrails/test/route.ts": {
-    "TS2554": 2
-  },
-  "src/app/api/internal/codex-responses-ws/route.ts": {
-    "TS2740": 2,
-    "TS2339": 9
-  },
-  "src/app/api/keys/[id]/route.ts": {
-    "TS2339": 2
-  },
-  "src/app/api/local/redis/start/route.ts": {
-    "TS2339": 2
-  },
-  "src/app/api/local/redis/stop/route.ts": {
-    "TS2339": 2
-  },
-  "src/app/api/logs/[id]/route.ts": {
-    "TS2322": 2
-  },
-  "src/app/api/model-capability-overrides/route.ts": {
-    "TS2339": 2
-  },
-  "src/app/api/model-combo-mappings/route.ts": {
-    "TS2339": 2
-  },
-  "src/app/api/models/alias/route.ts": {
-    "TS2339": 6
-  },
-  "src/app/api/models/route.ts": {
-    "TS2345": 4,
-    "TS2538": 2
-  },
-  "src/app/api/monitoring/health/route.ts": {
-    "TS2322": 2
-  },
-  "src/app/api/oauth/codex/import-token/route.ts": {
-    "TS2339": 4
-  },
-  "src/app/api/oauth/codex/import/route.ts": {
-    "TS2554": 2,
-    "TS2353": 2,
-    "TS2339": 4
-  },
-  "src/app/api/oauth/cursor/login/poll/route.ts": {
-    "TS2554": 2
-  },
-  "src/app/api/oauth/kiro/auto-import/route.ts": {
-    "TS2345": 2
-  },
-  "src/app/api/omniroute/route/preview/route.ts": {
-    "TS2345": 2
-  },
-  "src/app/api/playground/presets/[id]/route.ts": {
-    "TS2339": 4
-  },
-  "src/app/api/provider-nodes/validate/route.ts": {
-    "TS2339": 3
-  },
-  "src/app/api/providers/[id]/login/route.ts": {
-    "TS2739": 2
-  },
-  "src/app/api/providers/[id]/models/route.ts": {
-    "TS2367": 2,
-    "TS2339": 3,
-    "TS2322": 3,
-    "TS2554": 3,
-    "TS2345": 4
-  },
-  "src/app/api/providers/[id]/refresh-cursor/route.ts": {
-    "TS2352": 2
-  },
-  "src/app/api/providers/[id]/refresh/route.ts": {
-    "TS2345": 2,
-    "TS2698": 2,
-    "TS2339": 8
-  },
-  "src/app/api/providers/[id]/sync-models/route.ts": {
-    "TS2345": 2
-  },
-  "src/app/api/providers/[id]/test/route.ts": {
-    "TS2362": 2,
-    "TS2698": 2
-  },
-  "src/app/api/providers/free-onboarding/route.ts": {
-    "TS2345": 2
-  },
-  "src/app/api/providers/health-autopilot/actions/route.ts": {
-    "TS2339": 2
-  },
-  "src/app/api/providers/route.ts": {
-    "TS2352": 2,
-    "TS2322": 3,
-    "TS2345": 4
-  },
-  "src/app/api/providers/test-batch/route.ts": {
-    "TS2345": 5
-  },
-  "src/app/api/providers/validate/route.ts": {
-    "TS2322": 2
-  },
-  "src/app/api/providers/volcengine-plan/connect/[sessionId]/cancel/route.ts": {
-    "TS2739": 2
-  },
-  "src/app/api/providers/volcengine-plan/connect/[sessionId]/code/route.ts": {
-    "TS2739": 2
-  },
-  "src/app/api/providers/volcengine-plan/connect/[sessionId]/identity/route.ts": {
-    "TS2739": 2
-  },
-  "src/app/api/providers/volcengine-plan/connect/[sessionId]/resend/route.ts": {
-    "TS2739": 2
-  },
-  "src/app/api/providers/volcengine-plan/connect/[sessionId]/status/route.ts": {
-    "TS2739": 2
-  },
-  "src/app/api/providers/volcengine-plan/connect/route.ts": {
-    "TS2739": 2
-  },
-  "src/app/api/radar/local-model-state/route.ts": {
     "TS2339": 5
   },
-  "src/app/api/resilience/model-cooldowns/route.ts": {
-    "TS2339": 2
-  },
-  "src/app/api/services/_shared/installRoute.ts": {
-    "TS2339": 2
-  },
-  "src/app/api/settings/cache-config/route.ts": {
-    "TS2339": 2,
-    "TS2322": 2
-  },
-  "src/app/api/settings/database/route.ts": {
+  "src/app/api/cli-tools/codex-settings/route.ts": {
     "TS2345": 2
   },
-  "src/app/api/settings/models-dev/route.ts": {
-    "TS2339": 2
+  "src/app/api/cli-tools/grok-build-settings/route.ts": {
+    "TS2304": 1
   },
-  "src/app/api/settings/obsidian/webdav/route.ts": {
-    "TS2339": 2
+  "src/app/api/cli-tools/hermes-agent-settings/route.ts": {
+    "TS2345": 1
   },
-  "src/app/api/settings/proxies/bulk-import/route.ts": {
-    "TS2345": 2
+  "src/app/api/cli-tools/letta-settings/route.ts": {
+    "TS2339": 1
   },
-  "src/app/api/settings/proxy/cloudflare-deploy/route.ts": {
-    "TS2769": 2,
-    "TS2322": 3
+  "src/app/api/cli-tools/omp-settings/route.ts": {
+    "TS2339": 8
   },
-  "src/app/api/settings/proxy/deno-deploy/route.ts": {
-    "TS2322": 5
+  "src/app/api/cli-tools/qwen-settings/route.ts": {
+    "TS2322": 1
   },
-  "src/app/api/settings/proxy/vercel-deploy/route.ts": {
-    "TS2322": 4
+  "src/app/api/combos/auto/route.ts": {
+    "TS2322": 1
   },
-  "src/app/api/settings/reasoning-routing-rules/[id]/route.ts": {
-    "TS2339": 2
+  "src/app/api/combos/test/route.ts": {
+    "TS2345": 1,
+    "TS2339": 1
   },
-  "src/app/api/settings/reasoning-routing-rules/route.ts": {
-    "TS2339": 2
+  "src/app/api/compression/compare/route.ts": {
+    "TS2345": 1
   },
-  "src/app/api/settings/reasoning-routing-rules/simulate/route.ts": {
-    "TS2322": 2,
-    "TS2339": 2
+  "src/app/api/compression/preview/route.ts": {
+    "TS2345": 1
   },
-  "src/app/api/system/env/repair/route.ts": {
-    "TS2578": 2,
-    "TS2353": 4
+  "src/app/api/context/combos/[id]/route.ts": {
+    "TS2345": 1
   },
-  "src/app/api/system/version/route.ts": {
-    "TS2769": 2
+  "src/app/api/context/combos/route.ts": {
+    "TS2345": 1
   },
-  "src/app/api/tools/agent-bridge/agents/[id]/detected-models/route.ts": {
-    "TS2769": 2
+  "src/app/api/copilot/chat/route.ts": {
+    "TS2345": 1
   },
-  "src/app/api/tools/traffic-inspector/internal/ingest/route.ts": {
-    "TS1117": 3,
-    "TS2345": 2
+  "src/app/api/guardrails/test/route.ts": {
+    "TS2554": 1
   },
-  "src/app/api/tools/traffic-inspector/ws/route.ts": {
-    "TS2578": 2
+  "src/app/api/internal/codex-responses-ws/route.ts": {
+    "TS2740": 1,
+    "TS2339": 7
   },
-  "src/app/api/translator/send/route.ts": {
-    "TS2345": 2,
-    "TS2322": 2,
-    "TS2339": 2
+  "src/app/api/keys/[id]/route.ts": {
+    "TS2339": 1
   },
-  "src/app/api/translator/translate/route.ts": {
-    "TS2345": 2,
-    "TS2322": 2
+  "src/app/api/local/redis/start/route.ts": {
+    "TS2339": 1
   },
-  "src/app/api/usage/analytics/route.ts": {
-    "TS2352": 18
+  "src/app/api/local/redis/stop/route.ts": {
+    "TS2339": 1
   },
-  "src/app/api/usage/combo-health-autopilot/route.ts": {
-    "TS2769": 3
+  "src/app/api/logs/[id]/route.ts": {
+    "TS2322": 1
   },
-  "src/app/api/v1/batches/route.ts": {
-    "TS2339": 2
+  "src/app/api/model-capability-overrides/route.ts": {
+    "TS2339": 1
   },
-  "src/app/api/v1/classify/route.ts": {
-    "TS2322": 2
+  "src/app/api/model-combo-mappings/route.ts": {
+    "TS2339": 1
   },
-  "src/app/api/v1/files/[id]/content/route.ts": {
-    "TS2345": 2
+  "src/app/api/models/alias/route.ts": {
+    "TS2339": 5
   },
-  "src/app/api/v1/files/route.ts": {
-    "TS2339": 2
+  "src/app/api/models/route.ts": {
+    "TS2345": 3,
+    "TS2538": 1
   },
-  "src/app/api/v1/images/edits/route.ts": {
-    "TS2339": 22,
-    "TS2322": 5
+  "src/app/api/monitoring/health/route.ts": {
+    "TS2322": 1
   },
-  "src/app/api/v1/messages/count_tokens/route.ts": {
-    "TS2339": 3,
-    "TS2322": 2
-  },
-  "src/app/api/v1/music/generations/route.ts": {
-    "TS2322": 2,
-    "TS2345": 2
-  },
-  "src/app/api/v1/ocr/route.ts": {
-    "TS2345": 2
-  },
-  "src/app/api/v1/provider-plugin-manifest/route.ts": {
-    "TS2345": 2
-  },
-  "src/app/api/v1/providers/[provider]/embeddings/route.ts": {
-    "TS2339": 4,
-    "TS2322": 2
-  },
-  "src/app/api/v1/providers/[provider]/images/generations/route.ts": {
-    "TS2339": 6
-  },
-  "src/app/api/v1/rerank/route.ts": {
+  "src/app/api/oauth/codex/import-token/route.ts": {
     "TS2339": 3
   },
-  "src/app/api/v1/segment/route.ts": {
-    "TS2322": 2
+  "src/app/api/oauth/codex/import/route.ts": {
+    "TS2554": 1,
+    "TS2353": 1,
+    "TS2339": 3
   },
-  "src/app/api/v1/session-leases/route.ts": {
-    "TS2339": 5,
-    "TS2345": 2
+  "src/app/api/oauth/cursor/login/poll/route.ts": {
+    "TS2554": 1
   },
-  "src/app/api/v1/speech-to-text/route.ts": {
-    "TS2353": 2
+  "src/app/api/oauth/kiro/auto-import/route.ts": {
+    "TS2345": 1
   },
-  "src/app/api/v1/text-to-speech/[voiceId]/route.ts": {
-    "TS2353": 2
+  "src/app/api/omniroute/route/preview/route.ts": {
+    "TS2345": 1
   },
-  "src/app/api/v1/web/fetch/route.ts": {
+  "src/app/api/playground/presets/[id]/route.ts": {
+    "TS2339": 3
+  },
+  "src/app/api/provider-nodes/validate/route.ts": {
     "TS2339": 2
   },
-  "src/app/api/v1beta/models/route.ts": {
-    "TS2345": 2,
-    "TS2538": 2
+  "src/app/api/providers/[id]/login/route.ts": {
+    "TS2739": 1
   },
-  "src/app/api/version-manager/restart/route.ts": {
-    "TS2339": 2
-  },
-  "src/app/api/version-manager/start/route.ts": {
-    "TS2339": 2
-  },
-  "src/app/api/version-manager/stop/route.ts": {
-    "TS2339": 2
-  },
-  "src/app/api/webhooks/[id]/route.ts": {
-    "TS2554": 2
-  },
-  "src/app/api/webhooks/[id]/test/route.ts": {
-    "TS2352": 3
-  },
-  "src/app/api/webhooks/route.ts": {
+  "src/app/api/providers/[id]/models/route.ts": {
+    "TS2367": 1,
+    "TS2339": 2,
+    "TS2322": 2,
     "TS2554": 2,
-    "TS2345": 2
-  },
-  "src/lib/db/tierConfig.ts": {
     "TS2345": 3
   },
-  "src/lib/monitoring/comboHealthAutopilot.ts": {
-    "TS2305": 2,
-    "TS2345": 2
+  "src/app/api/providers/[id]/refresh-cursor/route.ts": {
+    "TS2352": 1
   },
-  "src/lib/monitoring/providerHealthAutopilot.ts": {
-    "TS2352": 5
+  "src/app/api/providers/[id]/refresh/route.ts": {
+    "TS2345": 1,
+    "TS2698": 1,
+    "TS2339": 6
   },
-  "src/lib/omnirouteStatus.ts": {
+  "src/app/api/providers/[id]/sync-models/route.ts": {
+    "TS2345": 1
+  },
+  "src/app/api/providers/[id]/test/route.ts": {
+    "TS2362": 1,
+    "TS2698": 1
+  },
+  "src/app/api/providers/free-onboarding/route.ts": {
+    "TS2345": 1
+  },
+  "src/app/api/providers/health-autopilot/actions/route.ts": {
+    "TS2339": 1
+  },
+  "src/app/api/providers/route.ts": {
+    "TS2352": 1,
     "TS2322": 2,
-    "TS2558": 2
+    "TS2345": 3
   },
-  "src/lib/providerModels/managedModelImport.ts": {
-    "TS2352": 5
-  },
-  "src/lib/proxySubscription/parse.ts": {
+  "src/app/api/providers/test-batch/route.ts": {
     "TS2345": 4
   },
-  "src/lib/quota/quotaAnalytics.ts": {
+  "src/app/api/providers/validate/route.ts": {
+    "TS2322": 1
+  },
+  "src/app/api/providers/volcengine-plan/connect/[sessionId]/cancel/route.ts": {
+    "TS2739": 1
+  },
+  "src/app/api/providers/volcengine-plan/connect/[sessionId]/code/route.ts": {
+    "TS2739": 1
+  },
+  "src/app/api/providers/volcengine-plan/connect/[sessionId]/identity/route.ts": {
+    "TS2739": 1
+  },
+  "src/app/api/providers/volcengine-plan/connect/[sessionId]/resend/route.ts": {
+    "TS2739": 1
+  },
+  "src/app/api/providers/volcengine-plan/connect/[sessionId]/status/route.ts": {
+    "TS2739": 1
+  },
+  "src/app/api/providers/volcengine-plan/connect/route.ts": {
+    "TS2739": 1
+  },
+  "src/app/api/radar/local-model-state/route.ts": {
+    "TS2339": 4
+  },
+  "src/app/api/resilience/model-cooldowns/route.ts": {
+    "TS2339": 1
+  },
+  "src/app/api/services/_shared/installRoute.ts": {
+    "TS2339": 1
+  },
+  "src/app/api/settings/cache-config/route.ts": {
+    "TS2339": 1,
+    "TS2322": 1
+  },
+  "src/app/api/settings/database/route.ts": {
+    "TS2345": 1
+  },
+  "src/app/api/settings/models-dev/route.ts": {
+    "TS2339": 1
+  },
+  "src/app/api/settings/obsidian/webdav/route.ts": {
+    "TS2339": 1
+  },
+  "src/app/api/settings/proxies/bulk-import/route.ts": {
+    "TS2345": 1
+  },
+  "src/app/api/settings/proxy/cloudflare-deploy/route.ts": {
+    "TS2769": 1,
+    "TS2322": 2
+  },
+  "src/app/api/settings/proxy/deno-deploy/route.ts": {
+    "TS2322": 4
+  },
+  "src/app/api/settings/proxy/vercel-deploy/route.ts": {
+    "TS2322": 3
+  },
+  "src/app/api/settings/reasoning-routing-rules/[id]/route.ts": {
+    "TS2339": 1
+  },
+  "src/app/api/settings/reasoning-routing-rules/route.ts": {
+    "TS2339": 1
+  },
+  "src/app/api/settings/reasoning-routing-rules/simulate/route.ts": {
+    "TS2322": 1,
+    "TS2339": 1
+  },
+  "src/app/api/system/env/repair/route.ts": {
+    "TS2578": 1,
+    "TS2353": 3
+  },
+  "src/app/api/system/version/route.ts": {
+    "TS2769": 1
+  },
+  "src/app/api/tools/agent-bridge/agents/[id]/detected-models/route.ts": {
+    "TS2769": 1
+  },
+  "src/app/api/tools/traffic-inspector/internal/ingest/route.ts": {
+    "TS1117": 2,
+    "TS2345": 1
+  },
+  "src/app/api/tools/traffic-inspector/ws/route.ts": {
+    "TS2578": 1
+  },
+  "src/app/api/translator/send/route.ts": {
+    "TS2345": 1,
+    "TS2322": 1,
+    "TS2339": 1
+  },
+  "src/app/api/translator/translate/route.ts": {
+    "TS2345": 1,
+    "TS2322": 1
+  },
+  "src/app/api/usage/analytics/route.ts": {
+    "TS2352": 15
+  },
+  "src/app/api/usage/combo-health-autopilot/route.ts": {
     "TS2769": 2
   },
-  "src/lib/quota/quotaResetTimers.ts": {
-    "TS2769": 3
+  "src/app/api/v1/batches/route.ts": {
+    "TS2339": 1
   },
-  "src/lib/usage/comboForecast.ts": {
-    "TS2345": 2
+  "src/app/api/v1/classify/route.ts": {
+    "TS2322": 1
   },
-  "src/lib/usage/comboHealth.ts": {
-    "TS2345": 2
+  "src/app/api/v1/files/[id]/content/route.ts": {
+    "TS2345": 1
   },
-  "src/lib/usage/comboScoringInspector.ts": {
-    "TS2352": 2,
-    "TS2741": 2
+  "src/app/api/v1/files/route.ts": {
+    "TS2339": 1
   },
-  "src/lib/usage/providerWindowCosts.ts": {
-    "TS2322": 3,
-    "TS2558": 6,
-    "TS2339": 15,
-    "TS2345": 2
+  "src/app/api/v1/images/edits/route.ts": {
+    "TS2339": 18,
+    "TS2322": 4
   },
-  "src/lib/vscode/modelPresentation.ts": {
-    "TS2554": 2
+  "src/app/api/v1/messages/count_tokens/route.ts": {
+    "TS2339": 2,
+    "TS2322": 1
   },
-  "src/lib/ws/handshake.ts": {
+  "src/app/api/v1/music/generations/route.ts": {
+    "TS2322": 1,
+    "TS2345": 1
+  },
+  "src/app/api/v1/ocr/route.ts": {
+    "TS2345": 1
+  },
+  "src/app/api/v1/provider-plugin-manifest/route.ts": {
+    "TS2345": 1
+  },
+  "src/app/api/v1/providers/[provider]/embeddings/route.ts": {
+    "TS2339": 3,
+    "TS2322": 1
+  },
+  "src/app/api/v1/providers/[provider]/images/generations/route.ts": {
+    "TS2339": 5
+  },
+  "src/app/api/v1/rerank/route.ts": {
     "TS2339": 2
   },
-  "src/mitm/detection/index.ts": {
-    "TS2741": 2
+  "src/app/api/v1/segment/route.ts": {
+    "TS2322": 1
   },
-  "src/mitm/inspector/httpProxyServer.ts": {
+  "src/app/api/v1/session-leases/route.ts": {
+    "TS2339": 4,
+    "TS2345": 1
+  },
+  "src/app/api/v1/speech-to-text/route.ts": {
+    "TS2353": 1
+  },
+  "src/app/api/v1/text-to-speech/[voiceId]/route.ts": {
+    "TS2353": 1
+  },
+  "src/app/api/v1/web/fetch/route.ts": {
+    "TS2339": 1
+  },
+  "src/app/api/v1beta/models/route.ts": {
+    "TS2345": 1,
+    "TS2538": 1
+  },
+  "src/app/api/version-manager/restart/route.ts": {
+    "TS2339": 1
+  },
+  "src/app/api/version-manager/start/route.ts": {
+    "TS2339": 1
+  },
+  "src/app/api/version-manager/stop/route.ts": {
+    "TS2339": 1
+  },
+  "src/app/api/webhooks/[id]/route.ts": {
+    "TS2554": 1
+  },
+  "src/app/api/webhooks/[id]/test/route.ts": {
+    "TS2352": 2
+  },
+  "src/app/api/webhooks/route.ts": {
+    "TS2554": 1,
+    "TS2345": 1
+  },
+  "src/lib/db/tierConfig.ts": {
+    "TS2345": 2
+  },
+  "src/lib/monitoring/comboHealthAutopilot.ts": {
+    "TS2305": 1,
+    "TS2345": 1
+  },
+  "src/lib/monitoring/providerHealthAutopilot.ts": {
+    "TS2352": 4
+  },
+  "src/lib/omnirouteStatus.ts": {
+    "TS2322": 1,
+    "TS2558": 1
+  },
+  "src/lib/providerModels/managedModelImport.ts": {
+    "TS2352": 4
+  },
+  "src/lib/proxySubscription/parse.ts": {
+    "TS2345": 3
+  },
+  "src/lib/quota/quotaAnalytics.ts": {
+    "TS2769": 1
+  },
+  "src/lib/quota/quotaResetTimers.ts": {
     "TS2769": 2
   },
-  "src/shared/schemas/cliCatalog.ts": {
-    "TS2554": 3
+  "src/lib/usage/comboForecast.ts": {
+    "TS2345": 1
   },
-  "_relax_velocity_2026_08_30": "per-file TS diagnostic counts raised by 20% (289 → 455); velocity phase, see quality-baseline.json _policy."
+  "src/lib/usage/comboHealth.ts": {
+    "TS2345": 1
+  },
+  "src/lib/usage/comboScoringInspector.ts": {
+    "TS2352": 1,
+    "TS2741": 1
+  },
+  "src/lib/usage/providerWindowCosts.ts": {
+    "TS2322": 2,
+    "TS2558": 5,
+    "TS2339": 12,
+    "TS2345": 1
+  },
+  "src/lib/vscode/modelPresentation.ts": {
+    "TS2554": 1
+  },
+  "src/lib/ws/handshake.ts": {
+    "TS2339": 1
+  },
+  "src/mitm/detection/index.ts": {
+    "TS2741": 1
+  },
+  "src/mitm/inspector/httpProxyServer.ts": {
+    "TS2769": 1
+  },
+  "src/shared/schemas/cliCatalog.ts": {
+    "TS2554": 2
+  }
 }

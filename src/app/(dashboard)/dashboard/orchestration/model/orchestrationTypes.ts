@@ -2,12 +2,14 @@
  * Pure domain vocabulary for the Orchestration Canvas — no React, no side effects.
  * Spec: _tasks/superpowers/specs/2026-08-30-orchestration-canvas-design.md
  */
-import { STATUS_HEX } from "@/shared/constants/statusColors";
 
 export type OrchState =
   "queued" | "running" | "waiting_approval" | "succeeded" | "failed" | "cancelled";
 export type OrchSource = "cloud-agent" | "a2a" | "conductor" | "routing";
 export type OrchNodeKind = "orchestrator" | "source" | "work" | "activity" | "overflow";
+// SourceNode only: why a source placeholder was materialized — replaces the
+// magic-string comparison against `sublabel` ("error"/"offline") with a typed union.
+export type SourceIssue = "error" | "offline";
 
 export interface OrchNode {
   id: string; // `${source}:${sourceId}` for work nodes
@@ -28,6 +30,16 @@ export interface OrchNode {
   droppedByState?: Partial<Record<OrchState, number>>;
   mirrorOf?: string;
   raw?: unknown;
+  // SourceNode only: set to `true` by orchestrationToFlow's `opts.collapsed` when this
+  // source is currently collapsed by the operator. Never set on any other node kind.
+  collapsed?: boolean;
+  // SourceNode only: set by mergeSnapshot's buildRootAndSourceEdges placeholder for a
+  // failed/offline source. `sublabel` still carries the same value for display compat.
+  sourceIssue?: SourceIssue;
+  // SourceNode only: ISO timestamp mirrored from the originating SourceStatus.staleSince
+  // (set only for `sourceIssue === "error"` placeholders — buildSourceStatuses never sets
+  // it for the `offline` case). Feeds SourceNode's `sourceStale` ICU message.
+  staleSince?: string;
 }
 
 export interface OrchEdge {
@@ -62,17 +74,25 @@ export const ORCH_STATES = [
   "cancelled",
 ] as const satisfies readonly OrchState[];
 
-const STATE_HEX: Record<OrchState, string> = {
-  queued: STATUS_HEX.muted,
-  running: STATUS_HEX.warning,
-  waiting_approval: STATUS_HEX.approval,
-  succeeded: STATUS_HEX.success,
-  failed: STATUS_HEX.error,
-  cancelled: STATUS_HEX.muted,
+// Theme-aware CSS custom properties (light values in `:root`, dark values in `.dark`
+// of src/app/globals.css) — replaces the previous fixed STATUS_HEX lookup so the
+// canvas status colors adapt to the active theme instead of always rendering dark-mode hex.
+const STATE_VAR: Record<OrchState, string> = {
+  queued: "var(--orch-status-muted)",
+  running: "var(--orch-status-warning)",
+  waiting_approval: "var(--orch-status-approval)",
+  succeeded: "var(--orch-status-success)",
+  failed: "var(--orch-status-error)",
+  cancelled: "var(--orch-status-muted)",
 };
 
 export function orchStateColor(state: OrchState): string {
-  return STATE_HEX[state];
+  return STATE_VAR[state];
+}
+
+/** Fundo de badge com alpha — hex+"20" não funciona com var(); color-mix sim. */
+export function orchStateBadgeBg(state: OrchState): string {
+  return `color-mix(in srgb, ${STATE_VAR[state]} 13%, transparent)`;
 }
 
 export const STALE_COMPLETED_MS = 600_000; // completed >10 min ago drop out of the live view

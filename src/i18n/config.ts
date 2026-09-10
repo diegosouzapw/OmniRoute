@@ -11,6 +11,8 @@ type RawLocaleEntry = {
   native?: string;
   english?: string;
   flag: string;
+  aliases?: readonly string[];
+  script?: string;
 };
 
 type RawI18nConfig = {
@@ -50,5 +52,19 @@ export const LANGUAGES: readonly {
 }));
 
 export const RTL_LOCALES: readonly Locale[] = config.rtl as readonly Locale[];
+
+/**
+ * Browser / OS language tags that resolve to a configured locale. Read by
+ * `detectBrowserLocale` (client), `resolveRequestedLocale` (server cookie) and
+ * mirrored by the CLI (`bin/cli/i18n.mjs`). Keys are locale codes, values are
+ * lower-case BCP-47 tags. Only locales that declare `aliases` appear here.
+ */
+export const LOCALE_ALIASES: Readonly<Record<string, readonly string[]>> = Object.freeze(
+  Object.fromEntries(
+    config.locales
+      .filter((entry) => Array.isArray(entry.aliases) && entry.aliases.length > 0)
+      .map((entry) => [entry.code, Object.freeze([...(entry.aliases as string[])])])
+  )
+);
 
 export const LOCALE_COOKIE = "NEXT_LOCALE";

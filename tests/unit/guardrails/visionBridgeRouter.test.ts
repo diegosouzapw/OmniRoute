@@ -80,8 +80,65 @@ test("getBestVisionModel — should exclude specified models", async () => {
 test("getBestVisionModel — excludes a candidate with no usable active connection", async () => {
   // Every candidate reports a confirmed-unusable connection (`false`) ->
   // no candidate survives -> returns null instead of an unreachable default.
+  const model = await getBestVisionModel({}, { hasUsableCredentials: async () => false });
+  assert.equal(model, null);
+});
+
+// `auto` / `auto/*` ids are VIRTUAL combos: there is no provider row for
+// "auto", so hasUsableCredentialsForModel reports a confirmed `false` for the
+// combo id itself while the pool members remain usable (indeterminate here).
+const virtualComboOnlyUnusable = async (fullModelId: string) =>
+  fullModelId === "auto" || fullModelId.startsWith("auto/") ? false : null;
+
+test("getBestVisionModel — keeps an auto/* virtual-combo fixedModel when its credential check is false (#12237)", async () => {
+  // The #8430 short-circuit must not discard the combo — member credentials
+  // are enforced downstream when the combo dispatches (same exemption as the
+  // reroute guard in visionBridge.ts).
+  const fixedModel = "auto/vision";
   const model = await getBestVisionModel(
-    {},
+    { fixedModel },
+    { hasUsableCredentials: virtualComboOnlyUnusable }
+  );
+  assert.equal(model, fixedModel);
+});
+
+test('getBestVisionModel — keeps a bare "auto" fixedModel when its credential check is false (#12237)', async () => {
+  const model = await getBestVisionModel(
+    { fixedModel: "auto" },
+    { hasUsableCredentials: virtualComboOnlyUnusable }
+  );
+  assert.equal(model, "auto");
+});
+
+test("getBestVisionModel — keeps an auto/* virtual-combo fixedModel on a cached pool selection (#12237)", async () => {
+  // Warm the selection cache with a pool pick, then ask for the combo: the
+  // cache-hit branch must still hand back the combo, not the cached member.
+  const warm = await getBestVisionModel({}, { hasUsableCredentials: virtualComboOnlyUnusable });
+  assert.ok(warm);
+  const model = await getBestVisionModel(
+    { fixedModel: "auto/vision" },
+    { hasUsableCredentials: virtualComboOnlyUnusable }
+  );
+  assert.equal(model, "auto/vision");
+});
+
+test("getBestVisionModel — discards an auto/* virtual-combo fixedModel when the ENTIRE vision pool is unusable (#8430)", async () => {
+  // The exemption only bypasses the credential check on the virtual id. With
+  // no usable vision-capable member anywhere, the combo has nothing to
+  // dispatch to and must fall through to `null` so the caller describes
+  // instead of forwarding a raw image to a text-only backend.
+  const model = await getBestVisionModel(
+    { fixedModel: "auto/vision" },
+    { hasUsableCredentials: async () => false }
+  );
+  assert.equal(model, null);
+});
+
+test("getBestVisionModel — still falls through when a concrete fixedModel has no usable credentials (#8430)", async () => {
+  // Regression guard for the exemption above: a non-virtual fixedModel with
+  // a confirmed-unusable credential check must still be discarded.
+  const model = await getBestVisionModel(
+    { fixedModel: "openai/gpt-4o-mini" },
     { hasUsableCredentials: async () => false }
   );
   assert.equal(model, null);
@@ -105,20 +162,17 @@ test("getBestVisionModel — does not query live catalogs for providers without 
   assert.equal(catalogCalls, 0);
 });
 
-test(
-  "getBestVisionModel — selects a credentialed candidate over an uncredentialed higher-priority one",
-  async () => {
-    // openai (priority 50, would normally win) has no usable connection;
-    // every other vision-capable provider does.
-    const model = await getBestVisionModel(
-      {},
-      {
-        hasUsableCredentials: async (fullModelId) => fullModelId.split("/")[0] !== "openai",
-      }
-    );
-    assert.equal(model.startsWith("openai/"), false);
-  }
-);
+test("getBestVisionModel — selects a credentialed candidate over an uncredentialed higher-priority one", async () => {
+  // openai (priority 50, would normally win) has no usable connection;
+  // every other vision-capable provider does.
+  const model = await getBestVisionModel(
+    {},
+    {
+      hasUsableCredentials: async (fullModelId) => fullModelId.split("/")[0] !== "openai",
+    }
+  );
+  assert.equal(model.startsWith("openai/"), false);
+});
 
 test("getBestVisionModel — excludes static models missing from an authoritative live catalog", async () => {
   const model = await getBestVisionModel(
@@ -140,7 +194,7 @@ test("getBestVisionModel — revalidates a cached model against the current live
 });
 
 test("getBestVisionModel — accepts a registry model whose liveCatalogIds match upstream", async () => {
-  // #11754 retired ChatGPT Web (cgpt-web) after this test was authored — it was the
+  // #11754 retired the legacy ChatGPT Web implementation after this test was authored — it was the
   // only registry provider populating `liveCatalogIds` (curated ids whose public name
   // differs from the id sent upstream). No live provider currently uses that field, so
   // this exercises the same production predicate (createCatalogModelPredicate's
@@ -188,17 +242,14 @@ test("getFallbackModels — should respect max fallback attempts", async () => {
   assert.ok(fallbacks.length <= 2);
 });
 
-test(
-  "getFallbackModels — does not include candidates with a confirmed-unusable connection",
-  async () => {
-    const fallbacks = await getFallbackModels(
-      "openai/gpt-4o-mini",
-      {},
-      { hasUsableCredentials: async (fullModelId) => fullModelId.split("/")[0] !== "anthropic" }
-    );
-    assert.ok(!fallbacks.some((m) => m.startsWith("anthropic/")));
-  }
-);
+test("getFallbackModels — does not include candidates with a confirmed-unusable connection", async () => {
+  const fallbacks = await getFallbackModels(
+    "openai/gpt-4o-mini",
+    {},
+    { hasUsableCredentials: async (fullModelId) => fullModelId.split("/")[0] !== "anthropic" }
+  );
+  assert.ok(!fallbacks.some((m) => m.startsWith("anthropic/")));
+});
 
 test("getFallbackModels — excludes fallbacks missing from an authoritative live catalog", async () => {
   const fallbacks = await getFallbackModels(
@@ -212,12 +263,12 @@ test("getFallbackModels — excludes fallbacks missing from an authoritative liv
 
 test("getFallbackModels — keeps registered effort variants backed by a live base model", async () => {
   const fallbacks = await getFallbackModels(
-    "cu/gpt-5.3-codex",
+    "cu/claude-fable-5-1-thinking-max",
     { maxFallbackAttempts: 6 },
-    authoritativeCatalogDeps("cu", () => ["gpt-5.3-codex"])
+    authoritativeCatalogDeps("cu", () => ["claude-fable-5-1"])
   );
 
-  assert.ok(fallbacks.includes("cu/gpt-5.3-codex-low"));
+  assert.ok(fallbacks.includes("cu/claude-fable-5-1-thinking-high"));
 });
 
 // ── recordLatency / getLatencyStats ─────────────────────────────────────────

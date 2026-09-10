@@ -329,8 +329,8 @@ const SYNTHETIC_NOAUTH_CONNECTION_ID = RESILIENCE_NOAUTH_CONNECTION_ID;
 // Allowlist of no-auth (keyless) providers permitted to enter the `auto`/`auto-*`
 // candidate pool. Narrowed to the backends verified to answer without any
 // configuration on our reference egress (VPS .15): `opencode` returns 200
-// there, while duckduckgo-web (429/VQD rate limit), theoldllm
-// (403 Vercel egress block), chipotle (502), aihorde (401, anon key rejected)
+// there, while duckduckgo-web (429/VQD rate limit),
+// chipotle (502), aihorde (401, anon key rejected)
 // and the others are unreliable. The excluded providers stay fully usable via
 // direct `<alias>/<model>` calls — they are just kept OUT of auto-routing until
 // re-verified. Re-add an id here to bring it back into every auto/* pool.

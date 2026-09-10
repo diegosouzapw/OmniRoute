@@ -46,7 +46,7 @@ Repository map and Reference Documentation sections below.
 
 ## Project at a Glance
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 352 LLM providers, auto-fallback.
+**OmniRoute** — unified AI proxy/router. One endpoint, 356 LLM providers, auto-fallback.
 
 | Layer         | Location                | Purpose                                                                                                                                                                   |
 | ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -56,7 +56,7 @@ Repository map and Reference Documentation sections below.
 | Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                                                                  |
 | Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                                                          |
 | Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                                                  |
-| Database      | `src/lib/db/`           | SQLite domain modules (167 migrations)                                                                                                                                    |
+| Database      | `src/lib/db/`           | SQLite domain modules (171 migrations)                                                                                                                                    |
 | Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                                                 |
 | MCP Server    | `open-sse/mcp-server/`  | 110 tools (45 canonical + memory/skill/GitHub/pool/gamification/plugin/Notion/Obsidian/local-corpus/RTK modules), 3 transports (stdio / SSE / Streamable HTTP), 33 scopes |
 | A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                                               |
@@ -343,6 +343,7 @@ Documentation must describe verified behavior, not plausible behavior.
 
 ### Adding a New Provider
 
+0. Check `docs/reference/REMOVED_PROVIDERS.md` first — providers removed at their operator's request must never be reintroduced (guarded by `tests/unit/removed-providers-blocklist.test.ts`)
 1. Register in `src/shared/constants/providers.ts` (Zod-validated at load)
 2. Add executor in `open-sse/executors/` if custom logic needed (extend `BaseExecutor`)
 3. Add translator in `open-sse/translator/` if non-OpenAI format

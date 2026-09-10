@@ -1,6 +1,6 @@
 # 🚀 OmniRoute — Бесплатный AI-шлюз (Русский)
 
-🌐 **Языки:** 🇺🇸 [English](../../../README.md) · 🇸🇦 [ar](../ar/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇪🇸 [es](../es/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇮🇩 [id](../id/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
+🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇪🇸 [es](../es/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇮🇩 [id](../id/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
 
 ---
 
@@ -251,7 +251,7 @@ Combo: "always-on"                         strategy: priority
 | ☁️ Cloud agents           | **Codex, Cursor, Devin, Jules**        | Нет            |
 | 🥷 TLS stealth            | **JA3/JA4 via wreq-js**                | Нет            |
 | 🖥️ Платформы              | **Web · Desktop · Termux · PWA**       | Только web     |
-| 🌍 i18n                   | **43 локали**                          | 0–4            |
+| 🌍 i18n                   | **42 локали**                          | 0–4            |
 
 <sub>📊 Сравнение с LiteLLM, OpenRouter, Portkey → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](../../comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
@@ -639,12 +639,12 @@ IDE/CLI: `http://localhost:20128/v1` · API Key: любая строка (есл
 
 <br/>
 
-| Tier                          | Примеры                                  | Стоимость           |
-| ----------------------------- | ---------------------------------------- | ------------------- |
-| 💳 **Subscription**           | Claude Code Pro / Codex / Copilot        | $10–200/мес         |
-| 🔑 **API Key (free tiers)**   | NVIDIA NIM, Cerebras, Groq               | **Free**            |
-| 💰 **Cheap**                  | GLM ~$0.5/1M · MiniMax ~$0.2–0.3/1M      | Копейки             |
-| 🆓 **Documented free access** | Kiro, Qoder, Pollinations, LongCat | **$0 where listed** |
+| Tier                          | Примеры                             | Стоимость           |
+| ----------------------------- | ----------------------------------- | ------------------- |
+| 💳 **Subscription**           | Claude Code Pro / Codex / Copilot   | $10–200/мес         |
+| 🔑 **API Key (free tiers)**   | NVIDIA NIM, Cerebras, Groq          | **Free**            |
+| 💰 **Cheap**                  | GLM ~$0.5/1M · MiniMax ~$0.2–0.3/1M | Копейки             |
+| 🆓 **Documented free access** | Kiro, Qoder, Pollinations, LongCat  | **$0 where listed** |
 
 **Playbook A — выжать подписку + cheap backup:**
 
@@ -840,7 +840,7 @@ Combo: "free-tier-fallback"
 | [CONTRIBUTING](../../../CONTRIBUTING.md) | Dev setup                    |
 | [CHANGELOG](../../../CHANGELOG.md)       | История релизов              |
 | [SECURITY](../../../SECURITY.md)         | Vulnerability reporting      |
-| [I18N](../../guides/I18N.md)             | 43 языка, pipeline переводов |
+| [I18N](../../guides/I18N.md)             | 42 языка, pipeline переводов |
 
 ---
 

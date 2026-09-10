@@ -172,3 +172,17 @@ export function isNetworkRotationSharedEgressGuardEnabled(): boolean {
     return true;
   }
 }
+
+export function isServerOwnedToolLoopEnabled(
+  reader: (key: string) => boolean = isFeatureFlagEnabled
+): boolean {
+  try {
+    return reader("SERVER_OWNED_TOOL_LOOP_ENABLED");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve SERVER_OWNED_TOOL_LOOP_ENABLED, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
+}

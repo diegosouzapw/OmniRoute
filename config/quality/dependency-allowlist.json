@@ -3,6 +3,7 @@
   "_justifications": {
     "@testing-library/dom": "Peer dep obrigatoria de @testing-library/react v16 (adicionada no PR #11224); Refs #9985.",
     "@testing-library/user-event": "Utilitario oficial do ecossistema testing-library para testes de UI (adicionada no PR #11224); Refs #9985.",
+    "babel-plugin-react-compiler": "Official React Compiler Babel plugin (facebook/react, MIT). Required peer of Next.js 16 `reactCompiler: true`; Next declares it optional (`*`) and does not auto-install. Added by PR #11783 / issue #67.",
     "eslint-plugin-react-hooks": "React Hooks lint rules (set-state-in-effect, immutability, refs, purity) pinned at 7.0.1 by the release/v3.8.51 cycle; the 224 findings it raised are tracked in #11924. Refs #11924."
   },
   "allowed": [
@@ -44,6 +45,7 @@
     "ajv",
     "ajv-formats",
     "axios",
+    "babel-plugin-react-compiler",
     "bcryptjs",
     "better-sqlite3",
     "bottleneck",
@@ -139,7 +141,6 @@
     "tailwind-merge",
     "tailwindcss",
     "tiktoken",
-    "tls-client-node",
     "tsup",
     "tsx",
     "turndown",

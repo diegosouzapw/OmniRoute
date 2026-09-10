@@ -174,6 +174,59 @@ test("fetchOpenrouterQuota returns null on 401 (invalid token)", async () => {
   assert.equal(quota, null);
 });
 
+test("fetchOpenrouterQuota falls back to credits-only quota when /key fails", async () => {
+  const connectionId = `openrouter-credits-only-${Date.now()}`;
+  globalThis.fetch = async (url) => {
+    if (String(url).endsWith("/key")) {
+      return new Response("rate limited", { status: 429 });
+    }
+    return new Response(JSON.stringify({ data: { total_credits: 500, total_usage: 268.9 } }), {
+      status: 200,
+    });
+  };
+
+  const quota = (await fetchOpenrouterQuota(connectionId, { apiKey: "test-key" })) as {
+    limit: number | null;
+    creditBalance: number | null;
+    totalCredits: number | null;
+    totalUsage: number | null;
+    limitReached: boolean;
+  } | null;
+  assert.ok(quota, "credits data must survive a /key failure");
+  assert.equal(quota.limit, null);
+  assert.equal(quota.totalCredits, 500);
+  assert.equal(quota.totalUsage, 268.9);
+  assert.ok(Math.abs((quota.creditBalance ?? 0) - 231.1) < 1e-9);
+  assert.equal(quota.limitReached, false);
+  invalidateOpenrouterQuotaCache(connectionId);
+});
+
+test("fetchOpenrouterQuota falls back to credits when /key is 401 but /credits is 200", async () => {
+  const connectionId = `openrouter-key-401-credits-ok-${Date.now()}`;
+  globalThis.fetch = async (url) => {
+    if (String(url).endsWith("/key")) {
+      return new Response(null, { status: 401 });
+    }
+    return new Response(JSON.stringify({ data: { total_credits: 50, total_usage: 10 } }), {
+      status: 200,
+    });
+  };
+
+  const quota = (await fetchOpenrouterQuota(connectionId, { apiKey: "test-key" })) as {
+    creditBalance: number | null;
+  } | null;
+  assert.ok(quota, "credits endpoint success must not be discarded on /key 401");
+  assert.equal(quota.creditBalance, 40);
+  invalidateOpenrouterQuotaCache(connectionId);
+});
+
+test("fetchOpenrouterQuota returns null only when both endpoints fail", async () => {
+  const connectionId = `openrouter-both-fail-${Date.now()}`;
+  globalThis.fetch = async () => new Response("boom", { status: 500 });
+  const quota = await fetchOpenrouterQuota(connectionId, { apiKey: "test-key" });
+  assert.equal(quota, null);
+});
+
 test("registerOpenrouterQuotaFetcher does not throw", () => {
   assert.doesNotThrow(() => registerOpenrouterQuotaFetcher());
 });

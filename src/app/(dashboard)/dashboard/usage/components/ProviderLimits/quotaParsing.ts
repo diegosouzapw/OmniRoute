@@ -147,7 +147,12 @@ function normalizeQuotaEntry(name: string, quota: any = {}, extras: any = {}) {
 }
 
 function parseGeneric(data: any) {
-  return quotaEntries(data).map(([name, quota]) => normalizeQuotaEntry(name, quota));
+  const quotas = quotaEntries(data).map(([name, quota]) => normalizeQuotaEntry(name, quota));
+  const bankedResetCredits = Number(data?.bankedResetCredits);
+  if (Number.isFinite(bankedResetCredits) && bankedResetCredits >= 0) {
+    quotas.push(buildBankedResetCreditsQuota(bankedResetCredits));
+  }
+  return quotas;
 }
 
 function parseGithub(data: any) {
@@ -307,6 +312,27 @@ function parseAgentrouter(data: any) {
   return quotaEntries(data).map(([quotaKey, quota]) => parseAgentrouterQuota(quotaKey, quota));
 }
 
+// OpenRouter is credit-based, not subscription-based: the `credits` quota entry
+// (open-sse/services/usage/openrouter.ts) carries the account balance in
+// `remaining` + `currency: "USD"` with `unlimited: true` / total 0. The generic
+// path (normalizeQuotaEntry via parseGeneric) drops `currency` and never sets
+// `isCredits`/`creditCount`, so the row rendered as a meaningless "100% left"
+// instead of the dollar balance. Route it through buildCreditsQuota() (same
+// shape DeepSeek/AgentRouter credits rows use) so the credit count renders as
+// USD. Free-tier request windows keep the generic percentage treatment.
+function parseOpenrouterQuota(quotaKey: string, quota: any) {
+  if (quotaKey !== "credits") return normalizeQuotaEntry(quotaKey, quota);
+  const remaining = Math.max(0, Number(quota?.remaining ?? 0));
+  const currency = quota?.currency || "USD";
+  const remainingPercentage =
+    safePercentage(quota?.remainingPercentage) ?? (remaining > 0 ? 100 : 0);
+  return buildCreditsQuota("credits", remaining, remainingPercentage, { currency });
+}
+
+function parseOpenrouter(data: any) {
+  return quotaEntries(data).map(([quotaKey, quota]) => parseOpenrouterQuota(quotaKey, quota));
+}
+
 /**
  * Kilo Code quota parser. Personal balance keeps the credits-style USD row; the four raw Kilo Pass
  * quota keys (kiloPassBase/kiloPassBonus/kiloPassUsage/kiloPassRemaining) are collapsed into one
@@ -413,7 +439,32 @@ export function isKiloPassDisplayRow(quota: any): boolean {
   return quota?.kiloPass === true || quota?.name === KILO_PASS_DISPLAY_ROW;
 }
 
+function parseMoonshotBalanceQuota(quotaKey: string, quota: any) {
+  if (quotaKey !== "available" && quotaKey !== "voucher" && quotaKey !== "cash") {
+    return normalizeQuotaEntry(quotaKey, quota);
+  }
+  const remaining = Math.max(0, Number(quota?.remaining ?? 0));
+  const currency = quota?.currency || "CNY";
+  const remainingPercentage =
+    safePercentage(quota?.remainingPercentage) ?? (remaining > 0 ? 100 : 0);
+  return buildCreditsQuota(quotaKey, remaining, remainingPercentage, {
+    currency,
+    displayName: quota?.displayName,
+  });
+}
+
+function parseMoonshotBalance(data: any) {
+  return quotaEntries(data).map(([quotaKey, quota]) => parseMoonshotBalanceQuota(quotaKey, quota));
+}
+
+function looksLikeMoonshotBalance(data: any): boolean {
+  const quotas = data?.quotas;
+  if (!quotas || typeof quotas !== "object" || Array.isArray(quotas)) return false;
+  return "available" in quotas && "voucher" in quotas && "cash" in quotas;
+}
+
 function parseProviderQuotas(providerId: string, data: any) {
+  if (looksLikeMoonshotBalance(data)) return parseMoonshotBalance(data);
   if (providerId === "github") return parseGithub(data);
   if (["glm", "glm-cn", "glmt", "opencode-go"].includes(providerId)) return parseGlmFamily(data);
   if (providerId === "antigravity" || providerId === "agy") return parseAntigravity(data);
@@ -422,6 +473,7 @@ function parseProviderQuotas(providerId: string, data: any) {
   if (providerId === "deepseek") return parseDeepseek(data);
   if (providerId === "kilocode") return parseKilocode(data);
   if (providerId === "agentrouter") return parseAgentrouter(data);
+  if (providerId === "openrouter") return parseOpenrouter(data);
   return parseGeneric(data);
 }
 

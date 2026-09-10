@@ -1,6 +1,6 @@
 # CLAUDE.md (Português (Portugal))
 
-🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇩 [in](../in/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md) · 🇹🇼 [zh-TW](../zh-TW/CLAUDE.md)
 
 ---
 
@@ -293,31 +293,31 @@ O bloqueio de modelo vive em `open-sse/services/accountFallback.ts` e permite qu
 
 Para qualquer alteração não trivial, leia primeiro a análise correspondente:
 
-| Área                                                | Documento                                                         |
-| --------------------------------------------------- | ----------------------------------------------------------------- |
-| Navegação no repositório                            | `docs/architecture/REPOSITORY_MAP.md`                             |
-| Arquitetura                                         | `docs/architecture/ARCHITECTURE.md`                               |
-| Referência de engenharia                            | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md` |
-| Resiliência (3 mecanismos)                          | `docs/architecture/RESILIENCE_GUIDE.md`                           |
-| Repetição de raciocínio                             | `docs/routing/REASONING_REPLAY.md`                                |
-| Estrutura de competências                           | `docs/frameworks/SKILLS.md`                                       |
-| Sistema de memória (FTS5 + Qdrant)                  | `docs/frameworks/MEMORY.md`                                       |
-| Agentes de nuvem                                    | `docs/frameworks/CLOUD_AGENT.md`                                  |
-| Guardrails (PII / injeção / visão)                  | `docs/security/GUARDRAILS.md`                                     |
-| Credenciais públicas upstream (Gemini/etc.)         | `docs/security/PUBLIC_CREDS.md`                                   |
-| Sanitização de mensagens de erro                    | `docs/security/ERROR_SANITIZATION.md`                             |
-| Avaliações                                          | `docs/frameworks/EVALS.md`                                        |
-| Conformidade / auditoria                            | `docs/security/COMPLIANCE.md`                                     |
-| Webhooks                                            | `docs/frameworks/WEBHOOKS.md`                                     |
-| Pipeline de autorização                             | `docs/architecture/AUTHZ_GUIDE.md`                                |
-| Stealth (TLS / impressão digital)                   | `docs/security/STEALTH_GUIDE.md`                                  |
-| Protocolos de agente (A2A / ACP / Nuvem)            | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
-| Servidor MCP                                        | `docs/frameworks/MCP-SERVER.md`                                   |
-| Servidor A2A                                        | `docs/frameworks/A2A-SERVER.md`                                   |
-| Referência de API + OpenAPI                         | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
-| Catálogo de provedores (gerado automaticamente)     | `docs/reference/PROVIDER_REFERENCE.md`                            |
-| Fluxo de lançamento                                 | `docs/ops/RELEASE_CHECKLIST.md`                                   |
+| Área                                                 | Documento                                                         |
+| ---------------------------------------------------- | ----------------------------------------------------------------- |
+| Navegação no repositório                             | `docs/architecture/REPOSITORY_MAP.md`                             |
+| Arquitetura                                          | `docs/architecture/ARCHITECTURE.md`                               |
+| Referência de engenharia                             | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
+| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md`                                      |
+| Resiliência (3 mecanismos)                           | `docs/architecture/RESILIENCE_GUIDE.md`                           |
+| Repetição de raciocínio                              | `docs/routing/REASONING_REPLAY.md`                                |
+| Estrutura de competências                            | `docs/frameworks/SKILLS.md`                                       |
+| Sistema de memória (FTS5 + Qdrant)                   | `docs/frameworks/MEMORY.md`                                       |
+| Agentes de nuvem                                     | `docs/frameworks/CLOUD_AGENT.md`                                  |
+| Guardrails (PII / injeção / visão)                   | `docs/security/GUARDRAILS.md`                                     |
+| Credenciais públicas upstream (Gemini/etc.)          | `docs/security/PUBLIC_CREDS.md`                                   |
+| Sanitização de mensagens de erro                     | `docs/security/ERROR_SANITIZATION.md`                             |
+| Avaliações                                           | `docs/frameworks/EVALS.md`                                        |
+| Conformidade / auditoria                             | `docs/security/COMPLIANCE.md`                                     |
+| Webhooks                                             | `docs/frameworks/WEBHOOKS.md`                                     |
+| Pipeline de autorização                              | `docs/architecture/AUTHZ_GUIDE.md`                                |
+| Stealth (TLS / impressão digital)                    | `docs/security/STEALTH_GUIDE.md`                                  |
+| Protocolos de agente (A2A / ACP / Nuvem)             | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
+| Servidor MCP                                         | `docs/frameworks/MCP-SERVER.md`                                   |
+| Servidor A2A                                         | `docs/frameworks/A2A-SERVER.md`                                   |
+| Referência de API + OpenAPI                          | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
+| Catálogo de provedores (gerado automaticamente)      | `docs/reference/PROVIDER_REFERENCE.md`                            |
+| Fluxo de lançamento                                  | `docs/ops/RELEASE_CHECKLIST.md`                                   |
 
 ---
 

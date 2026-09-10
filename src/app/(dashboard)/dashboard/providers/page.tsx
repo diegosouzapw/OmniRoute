@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import { Card, CardSkeleton, Badge, Button, CollapsibleSection } from "@/shared/components";
 import {
   AGGREGATOR_PROVIDER_IDS,
@@ -211,7 +211,7 @@ async function loadOauthEnvRepairStatus(): Promise<{
   }
 }
 
-export default function ProvidersPage() {
+function ProvidersPageContent() {
   const router = useRouter();
   const [connections, setConnections] = useState<any[]>([]);
   const [providerNodes, setProviderNodes] = useState<any[]>([]);
@@ -558,7 +558,8 @@ export default function ProvidersPage() {
     showFreeOnly,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
 
   const rawNoAuthEntriesAll = buildStaticProviderEntries("no-auth", getProviderStats);
@@ -576,7 +577,8 @@ export default function ProvidersPage() {
     showFreeOnly,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
 
   const apiKeyProviderEntriesAll = buildStaticProviderEntries("apikey", getProviderStats);
@@ -595,7 +597,8 @@ export default function ProvidersPage() {
     showFreeOnly,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
   const aggregatorProviderEntriesAll = apiKeyProviderEntriesAll.filter((entry) =>
     AGGREGATOR_PROVIDER_IDS.has(entry.providerId)
@@ -607,7 +610,8 @@ export default function ProvidersPage() {
     showFreeOnly,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
   const imageProviderEntriesAll = apiKeyProviderEntriesAll.filter((entry) =>
     IMAGE_ONLY_PROVIDER_IDS.has(entry.providerId)
@@ -619,7 +623,8 @@ export default function ProvidersPage() {
     showFreeOnly,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
   const enterpriseProviderEntriesAll = apiKeyProviderEntriesAll.filter((entry) =>
     ENTERPRISE_CLOUD_PROVIDER_IDS.has(entry.providerId)
@@ -631,7 +636,8 @@ export default function ProvidersPage() {
     showFreeOnly,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
   const videoProviderEntriesAll = apiKeyProviderEntriesAll.filter((entry) =>
     VIDEO_PROVIDER_IDS.has(entry.providerId)
@@ -643,7 +649,8 @@ export default function ProvidersPage() {
     showFreeOnly,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
   const embeddingRerankProviderEntriesAll = apiKeyProviderEntriesAll.filter((entry) =>
     EMBEDDING_RERANK_PROVIDER_IDS.has(entry.providerId)
@@ -655,7 +662,8 @@ export default function ProvidersPage() {
     showFreeOnly,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
 
   const webCookieProviderEntriesAll = buildStaticProviderEntries("web-cookie", getProviderStats);
@@ -666,7 +674,8 @@ export default function ProvidersPage() {
     showFreeOnly,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
 
   const localProviderEntriesAll = buildStaticProviderEntries("local", getProviderStats);
@@ -677,7 +686,8 @@ export default function ProvidersPage() {
     showFreeOnly,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
 
   const searchProviderEntriesAll = buildStaticProviderEntries("search", getProviderStats);
@@ -688,7 +698,8 @@ export default function ProvidersPage() {
     showFreeOnly,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
 
   const audioProviderEntriesAll = buildStaticProviderEntries("audio", getProviderStats);
@@ -699,7 +710,8 @@ export default function ProvidersPage() {
     showFreeOnly,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
 
   const cloudAgentProviderEntriesAll = buildStaticProviderEntries("cloud-agent", getProviderStats);
@@ -710,7 +722,8 @@ export default function ProvidersPage() {
     showFreeOnly,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
 
   const upstreamProxyEntriesAll = buildStaticProviderEntries("upstream-proxy", getProviderStats);
@@ -721,7 +734,8 @@ export default function ProvidersPage() {
     showFreeOnly,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
 
   const compatibleProviderEntriesAll = [
@@ -754,7 +768,8 @@ export default function ProvidersPage() {
     showFreeOnly,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
 
   const staticProviderEntriesAll = dedupeProviderEntries([
@@ -780,7 +795,8 @@ export default function ProvidersPage() {
     undefined,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
 
   // IDE providers: subset of oauth/apikey providers that are editors/IDEs with
@@ -796,7 +812,8 @@ export default function ProvidersPage() {
     showFreeOnly,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
 
   const oauthOnlyEntriesAll = oauthProviderEntriesAll
@@ -817,7 +834,8 @@ export default function ProvidersPage() {
     showFreeOnly,
     modelSearchQuery,
     activeServiceKind,
-    liveModelsByProviderId
+    liveModelsByProviderId,
+    connections
   );
 
   const compactProviderEntries = buildCompactProviderEntriesForPage({
@@ -1892,6 +1910,14 @@ export default function ProvidersPage() {
         )}
       </div>
     </OpenRouterProviderStatsProvider>
+  );
+}
+
+export default function ProvidersPage() {
+  return (
+    <Suspense fallback={null}>
+      <ProvidersPageContent />
+    </Suspense>
   );
 }
 

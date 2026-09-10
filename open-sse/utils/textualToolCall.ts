@@ -1,6 +1,8 @@
+import { stripObfuscationZeroWidth } from "./zeroWidth.ts";
+
 export function stripZeroWidth(value: unknown): unknown {
   if (typeof value === "string") {
-    return value.replace(/[\u200B-\u200D\uFEFF]/g, "");
+    return stripObfuscationZeroWidth(value);
   }
   if (Array.isArray(value)) {
     return value.map((item) => stripZeroWidth(item));
@@ -58,7 +60,7 @@ export function parseTextualToolCallCandidate(
   text: unknown
 ): { kind: "complete"; name: string; args: unknown } | { kind: "partial" } | null {
   if (typeof text !== "string") return null;
-  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  const normalized = stripObfuscationZeroWidth(text);
   const toolCallIndex = normalized.lastIndexOf("[Tool call:");
   if (toolCallIndex < 0) {
     const lastParen = normalized.lastIndexOf("(");
@@ -102,7 +104,7 @@ export function parseTextualToolCallCandidate(
 
 export function containsTextualToolCallMarker(text: unknown): boolean {
   if (typeof text !== "string") return false;
-  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  const normalized = stripObfuscationZeroWidth(text);
 
   if (!normalized.includes("[Tool call:")) return false;
   if (normalized.includes("Arguments:")) return true;

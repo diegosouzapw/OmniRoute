@@ -1,5 +1,51 @@
 # Third-Party Notices
 
+## wreq-js 3.2.0 native transport
+
+OmniRoute ships `wreq-js@3.2.0` and its platform-specific native bindings for browser-
+fingerprinted HTTP transport. The npm package and all nine binding tarballs are tied by npm SLSA
+attestations to signed tag `v3.2.0` and immutable source commit
+[`0d52d5fa252841aeef34d4d063b1766a59612bf7`](https://github.com/sqdshguy/wreq-js/commit/0d52d5fa252841aeef34d4d063b1766a59612bf7).
+
+- Root tarball:
+  <https://registry.npmjs.org/wreq-js/-/wreq-js-3.2.0.tgz>
+- npm integrity:
+  `sha512-dawhEbhvd5hxivKZSvv/mAQGO3mwZYESyctOvIIZ/H3DvQJzUM2UoFQsij0fg7hIClQ/GEQgg+2259UcFwhpMQ==`
+- Exact platform, integrity, size, and SHA-256 receipts for all nine native addons:
+  [`config/release/wreq-js-native-manifest.json`](config/release/wreq-js-native-manifest.json)
+- Locked per-target Cargo closure, with runtime and compile-only packages kept separate:
+  [`config/release/wreq-js-rust-license-inventory.json`](config/release/wreq-js-rust-license-inventory.json)
+- Deduplicated license texts and attribution notices for the conservative native runtime closure,
+  including patched BoringSSL, Unicode ICU4X components, and Mozilla root-certificate data:
+  [`config/release/wreq-js-rust-notices.md`](config/release/wreq-js-rust-notices.md)
+
+The native tarballs themselves contain no LICENSE/NOTICE file. The bundled inventory is therefore
+shipped beside them. It intentionally over-approximates the locked link-eligible Cargo closure;
+exact post-LTO membership cannot be claimed without an upstream artifact SBOM/link map or a
+reproducible-build receipt. The Android addon also dynamically requires `libc++_shared.so`, which
+is not included in its npm tarball; any artifact that supplies that library needs its separate
+LLVM/Apache-with-LLVM-exception notice.
+
+MIT License
+
+Copyright (c) 2025 will-work-for-meal
+Copyright (c) 2025 Oleksandr Herasymov
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+associated documentation files (the "Software"), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge, publish, distribute,
+sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial
+portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 ## codex-chatgpt-web
 
 Parts of `open-sse/vendor/codex-chatgpt-web/` are adapted from

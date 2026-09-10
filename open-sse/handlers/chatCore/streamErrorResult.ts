@@ -25,13 +25,7 @@ export function createStreamingErrorResult(
   code?: string,
   type?: string
 ) {
-  const errorBody = buildErrorBody(statusCode, message);
-  if (code) {
-    errorBody.error.code = code;
-  }
-  if (type) {
-    errorBody.error.type = type;
-  }
+  const errorBody = buildErrorBody(statusCode, message, undefined, { code, type });
 
   const body = `data: ${JSON.stringify(errorBody)}\n\ndata: [DONE]\n\n`;
 

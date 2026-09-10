@@ -9,6 +9,8 @@
 
 import { z } from "zod";
 
+import { emit } from "@/lib/events/eventBus";
+
 // ============ Whitelisted client-facing shapes ============
 
 export interface FleetRunner {
@@ -112,6 +114,43 @@ function toFleetTask(t: z.infer<typeof hubTaskSchema>): FleetTask {
   };
 }
 
+// ============ Fleet task mirror (Orchestration Canvas Fase 2, Task B3) ============
+//
+// Module-level cache of the last known status per fleet task, so `getFleetSnapshot` can
+// diff-on-fetch and mirror Conductor task transitions into the `agents` WS channel without a
+// dedicated poller — it piggybacks on the dashboard's existing poll. `null` means "no snapshot
+// observed yet" (first-ever call): that call only seeds the cache, it never emits, since the
+// dashboard already fetches the full snapshot on its initial poll. An offline snapshot never
+// touches this cache (see call site below), so a hub flap does not cause a re-seed burst once
+// the hub comes back — only the real delta since the last successful snapshot is emitted.
+let lastFleetTaskStates: Map<string, string> | null = null;
+
+function emitFleetTransitions(tasks: FleetTask[]): void {
+  const next = new Map(tasks.map((t) => [t.id, t.status]));
+  if (lastFleetTaskStates) {
+    for (const [id, status] of next) {
+      if (lastFleetTaskStates.get(id) !== status) {
+        try {
+          emit("agent.task.updated", {
+            source: "conductor",
+            taskId: id,
+            state: status,
+            timestamp: Date.now(),
+          });
+        } catch {
+          /* best-effort */
+        }
+      }
+    }
+  }
+  lastFleetTaskStates = next;
+}
+
+/** Test-only seam: resets the fleet task mirror cache so tests are order-independent. */
+export function __resetFleetMirrorForTests(): void {
+  lastFleetTaskStates = null;
+}
+
 /** Fleet snapshot for the dashboard panel. Degraded ({offline: true}) on any failure. */
 export async function getFleetSnapshot(opts: HubProxyOptions = {}): Promise<FleetSnapshot> {
   try {
@@ -128,6 +167,7 @@ export async function getFleetSnapshot(opts: HubProxyOptions = {}): Promise<Flee
       draining: r.draining === true,
     }));
     const tasks = z.array(hubTaskSchema).parse(rawTasks).map(toFleetTask);
+    emitFleetTransitions(tasks);
     return { offline: false, runners, tasks };
   } catch {
     return { offline: true, runners: [], tasks: [] };

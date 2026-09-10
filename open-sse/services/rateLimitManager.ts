@@ -97,6 +97,13 @@ let initialized = false;
 
 let currentRequestQueueSettings: RequestQueueSettings = DEFAULT_RESILIENCE_SETTINGS.requestQueue;
 export const ZAI_WEB_REQUEST_QUEUE_MAX_WAIT_MS = 60_000;
+// MaxAI proxies reasoning models (deepseek-r1, gpt-5.6-thinking, grok-4.5,
+// gemini-3.1-pro-preview, grok-4-1-fast-reasoning) whose single upstream turn
+// legitimately runs tens of seconds to minutes. The 15s default execution
+// expiration (Bottleneck `expiration`, applied AFTER dispatch) kills those mid
+// think and surfaces a spurious local 504. Floor MaxAI at 5 min — the same
+// ceiling waitForCooldown.budgetMs uses — so slow reasoning turns complete.
+export const MAXAI_REQUEST_QUEUE_MAX_WAIT_MS = 300_000;
 
 const limiterEffectiveSettings = new WeakMap<Bottleneck, Bottleneck.ConstructorOptions>();
 const preservedReplacementSettings = new Map<string, Bottleneck.ConstructorOptions>();
@@ -166,10 +173,15 @@ export function resolveRequestQueueMaxWaitMs(
   configuredMaxWaitMs: number = currentRequestQueueSettings.maxWaitMs,
   connectionId?: string
 ): number {
-  const legacyDefault =
-    provider.trim().toLowerCase() === "zai-web"
-      ? Math.max(configuredMaxWaitMs, ZAI_WEB_REQUEST_QUEUE_MAX_WAIT_MS)
-      : configuredMaxWaitMs;
+  const p = provider.trim().toLowerCase();
+  let legacyDefault = configuredMaxWaitMs;
+  if (p === "zai-web") {
+    legacyDefault = Math.max(configuredMaxWaitMs, ZAI_WEB_REQUEST_QUEUE_MAX_WAIT_MS);
+  } else if (p === "maxai" || p === "mx") {
+    // MaxAI's slow reasoning models legitimately need up to ~5 min; floor the
+    // per-request execution budget so they aren't cut off early.
+    legacyDefault = Math.max(configuredMaxWaitMs, MAXAI_REQUEST_QUEUE_MAX_WAIT_MS);
+  }
   const override = connectionId
     ? connectionRateLimitOverrides.get(connectionId)?.maxWaitMs
     : undefined;

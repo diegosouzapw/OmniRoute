@@ -141,7 +141,6 @@ const KNOWN_SVGS = new Set([
   "moonshot",
   "morph",
   "nebius",
-  "nimble-search",
   "nlpcloud",
   "nomic",
   "novita",
@@ -152,6 +151,7 @@ const KNOWN_SVGS = new Set([
   "openai",
   "openclaw",
   "openrouter",
+  "opper",
   "orcarouter",
   "ovhcloud",
   "perplexity",
@@ -240,6 +240,7 @@ const GENERIC_PROVIDER_IDS = new Set([
   "leonardo",
   "modal",
   "modelscope",
+  "nimble-search",
   "nlpcloud",
   "oauth",
   "oci",
@@ -255,7 +256,6 @@ const GENERIC_PROVIDER_IDS = new Set([
   "serper-search",
   "soniox",
   "synthetic",
-  "theoldllm",
   "unorouter",
   "wandb",
   "youcom-search",
@@ -347,7 +347,9 @@ const ProviderIcon = memo(function ProviderIcon({
     : normalizedId;
   const usesGenericIcon =
     GENERIC_PROVIDER_IDS.has(normalizedId) || GENERIC_PROVIDER_IDS.has(localSvgId);
-  const themedSvg = Object.hasOwn(THEMED_SVGS, normalizedId) ? THEMED_SVGS[normalizedId] : undefined;
+  const themedSvg = Object.hasOwn(THEMED_SVGS, normalizedId)
+    ? THEMED_SVGS[normalizedId]
+    : undefined;
   const hasSvg = KNOWN_SVGS.has(localSvgId);
 
   const [failedAssets, setFailedAssets] = useState<Record<string, true>>({});

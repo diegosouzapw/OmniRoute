@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "package": "wreq-js",
+  "version": "3.2.0",
+  "license": "MIT",
+  "source": {
+    "repository": "https://github.com/sqdshguy/wreq-js",
+    "commit": "0d52d5fa252841aeef34d4d063b1766a59612bf7",
+    "signedTag": "v3.2.0",
+    "signedTagObject": "dfb277d51aa03d8c6ada9a0d78ba00bc8568150b",
+    "buildWorkflow": "https://github.com/sqdshguy/wreq-js/actions/runs/32649967431/attempts/1",
+    "attestation": "https://registry.npmjs.org/-/npm/v1/attestations/wreq-js@3.2.0",
+    "licenseUrl": "https://raw.githubusercontent.com/sqdshguy/wreq-js/0d52d5fa252841aeef34d4d063b1766a59612bf7/LICENSE",
+    "licenseSha256": "f5e211eaa1c732f23cae866f00c7a0d9f458cbb6e37051170a3f7bb45c2e5d8e"
+  },
+  "npm": {
+    "tarball": "https://registry.npmjs.org/wreq-js/-/wreq-js-3.2.0.tgz",
+    "integrity": "sha512-dawhEbhvd5hxivKZSvv/mAQGO3mwZYESyctOvIIZ/H3DvQJzUM2UoFQsij0fg7hIClQ/GEQgg+2259UcFwhpMQ=="
+  },
+  "nativeAddons": [
+    {
+      "target": "android-arm64",
+      "package": "@wreq-js/binding-android-arm64",
+      "version": "3.2.0",
+      "platform": "android",
+      "arch": "arm64",
+      "tarball": "https://registry.npmjs.org/@wreq-js/binding-android-arm64/-/binding-android-arm64-3.2.0.tgz",
+      "integrity": "sha512-PRsy18Z+0fftLeDvFTQwpgdepihRk6oVzdQWt92hEdarI7DexhgDJvvZfDsylMp7GDfsys9sFks8nIAi4n7eKQ==",
+      "path": "wreq-js.android-arm64.node",
+      "size": 9746720,
+      "sha256": "10cfed8b7f8ce5767d74188bcc2c249f9b0102e8ae90b381b85ec53fbd84c59f"
+    },
+    {
+      "target": "darwin-arm64",
+      "package": "@wreq-js/binding-darwin-arm64",
+      "version": "3.2.0",
+      "platform": "darwin",
+      "arch": "arm64",
+      "tarball": "https://registry.npmjs.org/@wreq-js/binding-darwin-arm64/-/binding-darwin-arm64-3.2.0.tgz",
+      "integrity": "sha512-TGbgqj7YKp6m2p79hyLtTBatKgU8SKEVL5e903KGSeSDKkLbgk8knFoZ2MakhJnlqKZhvLPCNLT7A3AStwIoHQ==",
+      "path": "wreq-js.darwin-arm64.node",
+      "size": 7754432,
+      "sha256": "f426855858e4c661361a93440ed5fd5bd1e4f6926b3b1c0bf8449bdfe35d0936"
+    },
+    {
+      "target": "darwin-x64",
+      "package": "@wreq-js/binding-darwin-x64",
+      "version": "3.2.0",
+      "platform": "darwin",
+      "arch": "x64",
+      "tarball": "https://registry.npmjs.org/@wreq-js/binding-darwin-x64/-/binding-darwin-x64-3.2.0.tgz",
+      "integrity": "sha512-89JkGsik49nUcQR7HfO6M+Na3whkhAQBghVFWn+vGmz32RzTX+HVy6q7wThjN+XGT+xvn9ZQpzTie3B292S50g==",
+      "path": "wreq-js.darwin-x64.node",
+      "size": 8249144,
+      "sha256": "ef00da7db372d5a71403a17f8067655f7313ae58816150ec4a00680546b35f27"
+    },
+    {
+      "target": "linux-arm64-gnu",
+      "package": "@wreq-js/binding-linux-arm64-gnu",
+      "version": "3.2.0",
+      "platform": "linux",
+      "arch": "arm64",
+      "libc": "gnu",
+      "tarball": "https://registry.npmjs.org/@wreq-js/binding-linux-arm64-gnu/-/binding-linux-arm64-gnu-3.2.0.tgz",
+      "integrity": "sha512-WXqMK7AtOxMJAdwDpnAdDq0NZqf6wuRucKCQWQSLdSTUyTEuGo2anRkUsZwqvHbLrkWCTXNfl1hAfA+wIk/4kw==",
+      "path": "wreq-js.linux-arm64-gnu.node",
+      "size": 8669896,
+      "sha256": "5a515d02c9693f1440aa88da7a6a09332fb93844f66590e6eb1be582284a96e2"
+    },
+    {
+      "target": "linux-arm64-musl",
+      "package": "@wreq-js/binding-linux-arm64-musl",
+      "version": "3.2.0",
+      "platform": "linux",
+      "arch": "arm64",
+      "libc": "musl",
+      "tarball": "https://registry.npmjs.org/@wreq-js/binding-linux-arm64-musl/-/binding-linux-arm64-musl-3.2.0.tgz",
+      "integrity": "sha512-YSMWs3BNBCNhWvIAUHWyp2K/L17qxfaRTl+t97ykOIOIKZSduNYZn/Yn3hTNtpbdfrTmNMG9pltEcbixFKS4xQ==",
+      "path": "wreq-js.linux-arm64-musl.node",
+      "size": 8530208,
+      "sha256": "85dd40b3059b9fb1fc11923e0fca98ab2fff7bfe850aeb4dc18f8812e7125b07"
+    },
+    {
+      "target": "linux-x64-gnu",
+      "package": "@wreq-js/binding-linux-x64-gnu",
+      "version": "3.2.0",
+      "platform": "linux",
+      "arch": "x64",
+      "libc": "gnu",
+      "tarball": "https://registry.npmjs.org/@wreq-js/binding-linux-x64-gnu/-/binding-linux-x64-gnu-3.2.0.tgz",
+      "integrity": "sha512-6N7C1uc1qieM23rdKR5k07hfS50hVFExVHzLhHiWbmk9NyqBj0xyj2Mh5ThIrvz/or/6Pe79P8D7UWbl4aJTkw==",
+      "path": "wreq-js.linux-x64-gnu.node",
+      "size": 9110176,
+      "sha256": "32be0fe79325ee55216ac844130997ae24ff3df15570357194a8e7c6ae262743"
+    },
+    {
+      "target": "linux-x64-musl",
+      "package": "@wreq-js/binding-linux-x64-musl",
+      "version": "3.2.0",
+      "platform": "linux",
+      "arch": "x64",
+      "libc": "musl",
+      "tarball": "https://registry.npmjs.org/@wreq-js/binding-linux-x64-musl/-/binding-linux-x64-musl-3.2.0.tgz",
+      "integrity": "sha512-0h0xJsmhVlmh+vHs9dYMIp5lpkKGNZrSedkl2Mh9XmR5slBahTcHT7oEEclhV+aNcY3V2Afmmqfil5huL+yDpA==",
+      "path": "wreq-js.linux-x64-musl.node",
+      "size": 9036248,
+      "sha256": "34c43f6694dfa5c749771f14bd19a4d4823707d428bc12d7d141ffa3176dccd6"
+    },
+    {
+      "target": "win32-arm64-msvc",
+      "package": "@wreq-js/binding-win32-arm64-msvc",
+      "version": "3.2.0",
+      "platform": "win32",
+      "arch": "arm64",
+      "tarball": "https://registry.npmjs.org/@wreq-js/binding-win32-arm64-msvc/-/binding-win32-arm64-msvc-3.2.0.tgz",
+      "integrity": "sha512-6bfaVFfbI61s5YLgQL+43uURk/VuOu7TPlUwY1l0Q9yJdWzD+Jpdokgl5cEiY2a0FEAw8Q4LqPI+XZT3YAMnQA==",
+      "path": "wreq-js.win32-arm64-msvc.node",
+      "size": 6994432,
+      "sha256": "c853e10e272f31d3e5bf3e14cf64a3bfb41ef94d428f895cb73a67f0c58c46fa"
+    },
+    {
+      "target": "win32-x64-msvc",
+      "package": "@wreq-js/binding-win32-x64-msvc",
+      "version": "3.2.0",
+      "platform": "win32",
+      "arch": "x64",
+      "tarball": "https://registry.npmjs.org/@wreq-js/binding-win32-x64-msvc/-/binding-win32-x64-msvc-3.2.0.tgz",
+      "integrity": "sha512-w4aktLElPgBXkWC/v9Ti9np6jBjYOzIyqmzgT41V/zuDq/V+V7s/13f9OzcX5hObH2WOpajo0KeljTJ2aRExNQ==",
+      "path": "wreq-js.win32-x64-msvc.node",
+      "size": 8003584,
+      "sha256": "2659898ee73ab64bb1ec4b4b1dd0c1e1d50f7dc579bad456d8bcad84349b01d4"
+    }
+  ],
+  "rust": {
+    "cargoTomlSha256": "9dcc37ee9b254a57722402355ae483aff9eeae8dbb1a28e84a57e008ab05a747",
+    "cargoLockSha256": "b22954960bffe817721539c17c18d2c2fb5084b358ea3e009133b5403b123df3",
+    "cargoLockPackages": 229,
+    "normalClosureUnionPackages": 153,
+    "compileOnlyUnionPackages": 43,
+    "btlsSys": {
+      "version": "0.5.6",
+      "crateChecksum": "9b1b8638a2e1c38a5ae4efa90ae57e643baec35a30d03fc5b399b893adc4954b",
+      "sourceCommit": "4edbf5d716ba014384569ac5c631cea83827abfc",
+      "license": "MIT",
+      "licenseSha256": "2f55c7cce4da9f8334dce14d53e35410f67973510bc9793ac2dafa5e8cddd3c3"
+    },
+    "boringSsl": {
+      "sourceCommit": "91a66a59b6c1435120ff83e245d7719411294386",
+      "license": "Apache-2.0",
+      "licenseSha256": "827c8d8fc207c2392794eef9e00fe246f9f61fdcc132556c275be3dd8c3cd97f",
+      "modified": true,
+      "modificationNote": "btls-sys applies its published BoringSSL patch sets; the upstream wreq-js build workflow also adjusts btls-sys build logic on Windows targets."
+    }
+  },
+  "holds": {
+    "exactPostLtoSbom": "Published addons contain no cargo-auditable section, link map, CycloneDX/SPDX SBOM, or reproducible-build receipt; the Cargo normal closure is a conservative link-eligible superset.",
+    "androidRuntime": "The Android addon dynamically requires libc++_shared.so, which is absent from its npm tarball. Audit LLVM/Apache-with-LLVM-exception notices if a release artifact supplies that library."
+  }
+}

@@ -20,6 +20,14 @@ interface SystemPromptConfig {
   prompt: string;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isSystemMessage(value: unknown): value is Record<string, unknown> {
+  return isRecord(value) && (value.role === "system" || value.role === "developer");
+}
+
 // Typed accessor for globalThis storage — avoids `as any` casts (#2470)
 const _store = globalThis as unknown as Record<string, SystemPromptConfig | undefined>;
 
@@ -74,45 +82,50 @@ export function getSystemPromptConfig() {
  * suffixPrompt is appended after existing system content.
  * This ensures: prefix → agent instructions → suffix (#2468).
  *
- * @param {object} body - Request body
- * @returns {object} Modified body
+ * @param body - Request body
+ * @returns Modified body
  */
-export function injectSystemPrompt(body) {
+export function injectSystemPrompt<T>(body: T): T {
   const cfg = getConfig();
   if (!cfg.enabled) return body;
   const prefix = cfg.prefixPrompt || "";
   const suffix = cfg.suffixPrompt || "";
   if (!prefix && !suffix) return body;
-  if (!body || typeof body !== "object") return body;
+  if (!isRecord(body)) return body;
   if (body._skipSystemPrompt) return body;
 
-  const result = { ...body };
+  const result: Record<string, unknown> = { ...body };
 
   // OpenAI/Claude format (messages[])
   if (result.messages && Array.isArray(result.messages)) {
-    const sysIdx = result.messages.findIndex((m) => m.role === "system" || m.role === "developer");
-    result.messages = [...result.messages];
+    const messages: unknown[] = result.messages;
+    const sysIdx = messages.findIndex(isSystemMessage);
+    const nextMessages = [...messages];
     if (sysIdx >= 0) {
-      const msg = { ...result.messages[sysIdx] };
-      if (Array.isArray(msg.content)) {
-        const content = [...msg.content];
-        if (prefix) content.unshift({ type: "text", text: prefix });
-        if (suffix) content.push({ type: "text", text: suffix });
-        msg.content = content;
-      } else {
-        let content = msg.content || "";
-        if (prefix) content = prefix + "\n\n" + content;
-        if (suffix) content = content + "\n\n" + suffix;
-        msg.content = content;
+      const existingMessage = nextMessages[sysIdx];
+      if (isRecord(existingMessage)) {
+        const msg = { ...existingMessage };
+        if (Array.isArray(msg.content)) {
+          const content: unknown[] = [...msg.content];
+          if (prefix) content.unshift({ type: "text", text: prefix });
+          if (suffix) content.push({ type: "text", text: suffix });
+          msg.content = content;
+        } else {
+          let content = String(msg.content || "");
+          if (prefix) content = prefix + "\n\n" + content;
+          if (suffix) content = content + "\n\n" + suffix;
+          msg.content = content;
+        }
+        nextMessages[sysIdx] = msg;
       }
-      result.messages[sysIdx] = msg;
     } else {
       // No existing system message — combine both into one
       const combined = [prefix, suffix].filter(Boolean).join("\n\n");
       if (combined) {
-        result.messages = [{ role: "system", content: combined }, ...result.messages];
+        nextMessages.unshift({ role: "system", content: combined });
       }
     }
+    result.messages = nextMessages;
   }
 
   // Claude format (system field)
@@ -123,14 +136,14 @@ export function injectSystemPrompt(body) {
       if (suffix) sys = sys + "\n\n" + suffix;
       result.system = sys;
     } else if (Array.isArray(result.system)) {
-      let arr = [...result.system];
+      let arr: unknown[] = [...result.system];
       if (prefix) arr = [{ type: "text", text: prefix }, ...arr];
       if (suffix) arr = [...arr, { type: "text", text: suffix }];
       result.system = arr;
     }
   }
 
-  return result;
+  return Object.assign({}, body, result);
 }
 
 /**

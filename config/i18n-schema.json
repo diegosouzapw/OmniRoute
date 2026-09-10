@@ -57,6 +57,16 @@
           "flag": {
             "type": "string",
             "description": "Flag emoji shown next to the locale."
+          },
+          "aliases": {
+            "type": "array",
+            "description": "Browser/OS language tags (lower-case BCP-47) that resolve to this locale, e.g. `uk` → `uk-UA`, `fil`/`tl` → `phi`.",
+            "items": { "type": "string", "pattern": "^[a-z]{2,3}(-[a-z0-9]{2,8})*$" },
+            "uniqueItems": true
+          },
+          "script": {
+            "type": "string",
+            "description": "ISO 15924 script code (e.g. `Mymr`, `Khmr`). Informational only — the visual-QA report uses it to prioritise tall scripts."
           }
         }
       }

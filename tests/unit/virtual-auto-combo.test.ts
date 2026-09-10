@@ -216,33 +216,48 @@ test("createVirtualAutoCombo excludes trigger-bypassed retired Qwen rows", async
   assert.ok(combo.autoConfig.candidatePool.includes("qwen-cloud"));
 });
 
-test("createVirtualAutoCombo excludes restored active ChatGPT Web rows that bypassed triggers", async () => {
+test("createVirtualAutoCombo includes clean-room ChatGPT Web and excludes its legacy alias", async () => {
   const db = core.getDbInstance();
   db.exec(`
     DROP TRIGGER IF EXISTS provider_connections_retire_chatgpt_web_insert;
     DROP TRIGGER IF EXISTS provider_connections_retire_chatgpt_web_update;
   `);
   for (const provider of ["chatgpt-web", "cgpt-web"]) {
+    const model = provider === "chatgpt-web" ? "gpt-5-5-thinking" : "gpt-5.5";
+    const credential =
+      provider === "chatgpt-web"
+        ? JSON.stringify({
+            cookies: [
+              {
+                name: "session",
+                value: "fixture",
+                domain: ".chatgpt.com",
+                path: "/",
+                expires: -1,
+                httpOnly: true,
+                secure: true,
+                sameSite: "Lax",
+              },
+            ],
+            origins: [],
+          })
+        : `sk-${provider}-restored-auto`;
     db.prepare(
       "INSERT INTO provider_connections " +
         "(id, provider, auth_type, name, api_key, default_model, is_active, test_status, " +
-        "created_at, updated_at) VALUES (?, ?, 'apikey', ?, ?, 'gpt-5.5', 1, 'active', " +
+        "created_at, updated_at) VALUES (?, ?, 'apikey', ?, ?, ?, 1, 'active', " +
         "datetime('now'), datetime('now'))"
-    ).run(
-      `${provider}-restored-auto`,
-      provider,
-      `${provider} restored auto`,
-      `sk-${provider}-restored-auto`
-    );
+    ).run(`${provider}-restored-auto`, provider, `${provider} restored auto`, credential, model);
   }
 
   const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("coding");
 
+  assert.ok(combo.models.some((model) => model.providerId === "chatgpt-web"));
+  assert.ok(combo.autoConfig.candidatePool.includes("chatgpt-web"));
   assert.equal(
-    combo.models.some((model) => ["chatgpt-web", "cgpt-web"].includes(model.providerId)),
+    combo.models.some((model) => model.providerId === "cgpt-web"),
     false
   );
-  assert.equal(combo.autoConfig.candidatePool.includes("chatgpt-web"), false);
   assert.equal(combo.autoConfig.candidatePool.includes("cgpt-web"), false);
 });
 
@@ -277,7 +292,7 @@ test("createVirtualAutoCombo restricts the no-auth pool to the allowlist", async
     );
   }
 
-  for (const excluded of ["duckduckgo-web", "theoldllm", "chipotle", "aihorde"]) {
+  for (const excluded of ["duckduckgo-web", "chipotle", "aihorde"]) {
     assert.equal(
       combo.models.some((model) => model.providerId === excluded),
       false,

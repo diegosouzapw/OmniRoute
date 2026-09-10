@@ -103,7 +103,7 @@ test("a cache hit does not cross a transcript identity change (different cues, s
   assert.equal(describeCalls, 2, "different transcript content must never share a cache entry");
 });
 
-test("the result-cache contract version was bumped for the FU-05 normalization change", async () => {
+test("the result-cache contract version is bumped to v6 for the descriptionRedacted cache-metadata addition (#12150)", async () => {
   let storedMetadata: Record<string, unknown> | undefined;
   const bridge = new VideoBridgeGuardrail({
     deps: {
@@ -137,9 +137,13 @@ test("the result-cache contract version was bumped for the FU-05 normalization c
   );
 
   assert.ok(storedMetadata);
-  assert.notEqual(
+  // #12150 P1a: VideoResultCacheMetadata gained `descriptionRedacted`, so the
+  // contract version must be exactly "v6" — not merely "not the pre-FU-05
+  // v4" — or a cache entry written before that field existed (v5 or older)
+  // could be served post-diff with `descriptionRedacted` silently undefined.
+  assert.equal(
     storedMetadata?.cacheVersion,
-    "v4",
-    "a cache entry computed under the pre-FU-05 normalization contract must never match"
+    "v6",
+    "a cache entry computed under an older contract (pre-FU-05 v4, or pre-#12150 v5) must never match"
   );
 });

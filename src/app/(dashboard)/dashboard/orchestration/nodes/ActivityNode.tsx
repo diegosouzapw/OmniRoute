@@ -18,3 +18,4 @@ function ActivityNodeImpl({ data }: { data: OrchNode }) {
 }
 
 export const ActivityNode = memo(ActivityNodeImpl);
+ActivityNode.displayName = "ActivityNode";

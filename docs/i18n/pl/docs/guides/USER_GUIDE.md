@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # Przewodnik użytkownika
 
-🌐 **Languages:** 🇺🇸 [English](./USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/USER_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/guides/USER_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/USER_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/USER_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/USER_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/USER_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/in/docs/guides/USER_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/USER_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/USER_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/USER_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/USER_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/USER_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/USER_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/USER_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/USER_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/USER_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/USER_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/USER_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/USER_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/USER_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/USER_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/USER_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/USER_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/USER_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 Kompletny przewodnik po konfiguracji providerów, tworzeniu combo, integracji narzędzi CLI i wdrażaniu OmniRoute.
 
@@ -35,27 +35,27 @@ Kompletny przewodnik po konfiguracji providerów, tworzeniu combo, integracji na
 
 ## 💰 Cennik w skrócie
 
-| Poziom             | Provider          | Koszt              | Reset limitu       | Najlepsze do             |
-| ------------------ | ----------------- | ------------------ | ------------------ | ------------------------ |
-| **💳 SUBSKRYPCJA** | Claude Code (Pro) | $20/mies.          | 5h + tygodniowo    | Już masz subskrypcję     |
-|                    | Codex (Plus/Pro)  | $20-200/mies.      | 5h + tygodniowo    | Użytkownicy OpenAI       |
-|                    | GitHub Copilot    | $10-19/mies.       | Miesięcznie        | Użytkownicy GitHub       |
-| **🔑 KLUCZ API**   | DeepSeek          | Płatność za użycie | Brak               | Tanie rozumowanie        |
-|                    | Groq              | Płatność za użycie | Brak               | Ultra-szybka inferencja  |
-|                    | xAI (Grok)        | Płatność za użycie | Brak               | Rozumowanie Grok 4       |
-|                    | Mistral           | Płatność za użycie | Brak               | Modele hostowane w UE    |
-|                    | Perplexity        | Płatność za użycie | Brak               | Wzbogacone wyszukiwaniem |
-|                    | Together AI       | Płatność za użycie | Brak               | Modele open-source       |
-|                    | Fireworks AI      | Płatność za użycie | Brak               | Szybkie obrazy FLUX      |
-|                    | Cerebras          | Płatność za użycie | Brak               | Prędkość wafer-scale     |
-|                    | Cohere            | Płatność za użycie | Brak               | Command R+ RAG           |
-|                    | NVIDIA NIM        | Płatność za użycie | Brak               | Modele enterprise        |
-|                    | Baidu Qianfan     | Płatność za użycie | Brak               | Modele ERNIE             |
-| **💰 TANIO**       | GLM-4.7           | $0.6/1M            | Codziennie 10:00   | Zapas budżetowy          |
-|                    | MiniMax M2.1      | $0.2/1M            | Okno 5-godzinne    | Najtańsza opcja          |
-|                    | Kimi K2           | $9/mies. ryczałt   | 10M tokenów/mies.  | Przewidywalny koszt      |
-| **🆓 ZA DARMO**    | Qoder             | $0                 | Brak opublikowanego capu; limity obowiązują | 8 modeli za darmo |
-|                    | Kiro              | $0                 | ~50 kredytów/mies. | Claude za darmo          |
+| Poziom             | Provider          | Koszt              | Reset limitu                                | Najlepsze do             |
+| ------------------ | ----------------- | ------------------ | ------------------------------------------- | ------------------------ |
+| **💳 SUBSKRYPCJA** | Claude Code (Pro) | $20/mies.          | 5h + tygodniowo                             | Już masz subskrypcję     |
+|                    | Codex (Plus/Pro)  | $20-200/mies.      | 5h + tygodniowo                             | Użytkownicy OpenAI       |
+|                    | GitHub Copilot    | $10-19/mies.       | Miesięcznie                                 | Użytkownicy GitHub       |
+| **🔑 KLUCZ API**   | DeepSeek          | Płatność za użycie | Brak                                        | Tanie rozumowanie        |
+|                    | Groq              | Płatność za użycie | Brak                                        | Ultra-szybka inferencja  |
+|                    | xAI (Grok)        | Płatność za użycie | Brak                                        | Rozumowanie Grok 4       |
+|                    | Mistral           | Płatność za użycie | Brak                                        | Modele hostowane w UE    |
+|                    | Perplexity        | Płatność za użycie | Brak                                        | Wzbogacone wyszukiwaniem |
+|                    | Together AI       | Płatność za użycie | Brak                                        | Modele open-source       |
+|                    | Fireworks AI      | Płatność za użycie | Brak                                        | Szybkie obrazy FLUX      |
+|                    | Cerebras          | Płatność za użycie | Brak                                        | Prędkość wafer-scale     |
+|                    | Cohere            | Płatność za użycie | Brak                                        | Command R+ RAG           |
+|                    | NVIDIA NIM        | Płatność za użycie | Brak                                        | Modele enterprise        |
+|                    | Baidu Qianfan     | Płatność za użycie | Brak                                        | Modele ERNIE             |
+| **💰 TANIO**       | GLM-4.7           | $0.6/1M            | Codziennie 10:00                            | Zapas budżetowy          |
+|                    | MiniMax M2.1      | $0.2/1M            | Okno 5-godzinne                             | Najtańsza opcja          |
+|                    | Kimi K2           | $9/mies. ryczałt   | 10M tokenów/mies.                           | Przewidywalny koszt      |
+| **🆓 ZA DARMO**    | Qoder             | $0                 | Brak opublikowanego capu; limity obowiązują | 8 modeli za darmo        |
+|                    | Kiro              | $0                 | ~50 kredytów/mies.                          | Claude za darmo          |
 
 ---
 

@@ -254,8 +254,7 @@ async function isComboAllowedForKey(
 }
 
 function quotaPolicyResponse(message: string, code: string): Response {
-  const body = buildErrorBody(HTTP_STATUS.FORBIDDEN, message);
-  body.error.code = code;
+  const body = buildErrorBody(HTTP_STATUS.FORBIDDEN, message, undefined, { code });
   return new Response(JSON.stringify(body), {
     status: HTTP_STATUS.FORBIDDEN,
     headers: { "Content-Type": "application/json" },

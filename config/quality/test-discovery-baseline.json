@@ -10,7 +10,6 @@
     "tests/integration/services/cliproxy-coexistence.test.ts",
     "tests/integration/services/full-lifecycle.int.test.ts",
     "tests/integration/services/route-guard-services.int.test.ts",
-    "tests/live/deepseek-web-live.test.ts",
-    "tests/theoldllm-stress.test.ts"
+    "tests/live/deepseek-web-live.test.ts"
   ]
 }

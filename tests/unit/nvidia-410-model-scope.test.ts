@@ -15,7 +15,7 @@ const auth = await import("../../src/sse/services/auth.ts");
 const fallback = await import("../../open-sse/services/accountFallback.ts");
 
 const DEAD_MODEL = "deepseek-ai/deepseek-v4-pro";
-const HEALTHY_MODEL = "z-ai/glm-5.2";
+const HEALTHY_MODEL = "nvidia/nemotron-3.5-lightning-30b-a3b";
 
 const GONE_BODY = JSON.stringify({
   type: "about:blank",

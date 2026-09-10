@@ -30,6 +30,8 @@ test("next config exposes standalone build settings and canonical rewrites", asy
 
   assert.equal(nextConfig.distDir, ".next-task607");
   assert.equal(nextConfig.output, "standalone");
+  // #67 / #11783: React Compiler is an explicit Next 16 opt-in (peer babel plugin).
+  assert.equal(nextConfig.reactCompiler, true);
   assert.equal(nextConfig.images.unoptimized, true);
   assert.deepEqual(nextConfig.transpilePackages, [
     "@omniroute/open-sse",

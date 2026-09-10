@@ -1,6 +1,6 @@
 # CLAUDE.md (Azərbaycan dili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇩 [in](../in/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md) · 🇹🇼 [zh-TW](../zh-TW/CLAUDE.md)
 
 ---
 
@@ -305,31 +305,31 @@ bağlantının digər modelləri xidmət etməyə davam etməsinə icazə verir.
 
 Hər hansı qeyri-adi dəyişiklik üçün, uyğun dərin araşdırmanı əvvəlcə oxuyun:
 
-| Sahə                                                           | Sənəd                                                             |
-| -------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Repo naviqasiyası                                              | `docs/architecture/REPOSITORY_MAP.md`                             |
-| Arxitektura                                                    | `docs/architecture/ARCHITECTURE.md`                               |
-| Mühəndislik istinadı                                           | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Avtomatik Kombinasiya (13-faktor qiymətləndirmə, 19 ictimai strategiya) | `docs/routing/AUTO-COMBO.md`                                  |
-| Dayanıqlılıq (3 mexanizm)                                      | `docs/architecture/RESILIENCE_GUIDE.md`                           |
-| Düşüncə yenidən oynatma                                        | `docs/routing/REASONING_REPLAY.md`                                |
-| Bacarıqlar çərçivəsi                                           | `docs/frameworks/SKILLS.md`                                       |
-| Yaddaş sistemi (FTS5 + Qdrant)                                 | `docs/frameworks/MEMORY.md`                                       |
-| Bulud agentləri                                                | `docs/frameworks/CLOUD_AGENT.md`                                  |
-| Qoruyucu çərçivələr (ŞPİ / inyeksiya / vizyon)                 | `docs/security/GUARDRAILS.md`                                     |
-| İctimai yuxarı axın etibarnamələri (Gemini/və s.)              | `docs/security/PUBLIC_CREDS.md`                                   |
-| Xəta mesajlarının sanitizasiyası                               | `docs/security/ERROR_SANITIZATION.md`                             |
-| Qiymətləndirmələr                                              | `docs/frameworks/EVALS.md`                                        |
-| Uyğunluq / audit                                               | `docs/security/COMPLIANCE.md`                                     |
-| Webhooklar                                                     | `docs/frameworks/WEBHOOKS.md`                                     |
-| İcazə boru xətti                                               | `docs/architecture/AUTHZ_GUIDE.md`                                |
-| Gizlilik (TLS / barmaq izi)                                    | `docs/security/STEALTH_GUIDE.md`                                  |
-| Agent protokolları (A2A / ACP / Bulud)                         | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
-| MCP server                                                     | `docs/frameworks/MCP-SERVER.md`                                   |
-| A2A server                                                     | `docs/frameworks/A2A-SERVER.md`                                   |
-| API istinadı + OpenAPI                                         | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
-| Təchizatçı kataloqu (avtomatik yaradılmış)                     | `docs/reference/PROVIDER_REFERENCE.md`                            |
-| Buraxılış axını                                                | `docs/ops/RELEASE_CHECKLIST.md`                                   |
+| Sahə                                                                    | Sənəd                                                             |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Repo naviqasiyası                                                       | `docs/architecture/REPOSITORY_MAP.md`                             |
+| Arxitektura                                                             | `docs/architecture/ARCHITECTURE.md`                               |
+| Mühəndislik istinadı                                                    | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
+| Avtomatik Kombinasiya (13-faktor qiymətləndirmə, 19 ictimai strategiya) | `docs/routing/AUTO-COMBO.md`                                      |
+| Dayanıqlılıq (3 mexanizm)                                               | `docs/architecture/RESILIENCE_GUIDE.md`                           |
+| Düşüncə yenidən oynatma                                                 | `docs/routing/REASONING_REPLAY.md`                                |
+| Bacarıqlar çərçivəsi                                                    | `docs/frameworks/SKILLS.md`                                       |
+| Yaddaş sistemi (FTS5 + Qdrant)                                          | `docs/frameworks/MEMORY.md`                                       |
+| Bulud agentləri                                                         | `docs/frameworks/CLOUD_AGENT.md`                                  |
+| Qoruyucu çərçivələr (ŞPİ / inyeksiya / vizyon)                          | `docs/security/GUARDRAILS.md`                                     |
+| İctimai yuxarı axın etibarnamələri (Gemini/və s.)                       | `docs/security/PUBLIC_CREDS.md`                                   |
+| Xəta mesajlarının sanitizasiyası                                        | `docs/security/ERROR_SANITIZATION.md`                             |
+| Qiymətləndirmələr                                                       | `docs/frameworks/EVALS.md`                                        |
+| Uyğunluq / audit                                                        | `docs/security/COMPLIANCE.md`                                     |
+| Webhooklar                                                              | `docs/frameworks/WEBHOOKS.md`                                     |
+| İcazə boru xətti                                                        | `docs/architecture/AUTHZ_GUIDE.md`                                |
+| Gizlilik (TLS / barmaq izi)                                             | `docs/security/STEALTH_GUIDE.md`                                  |
+| Agent protokolları (A2A / ACP / Bulud)                                  | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
+| MCP server                                                              | `docs/frameworks/MCP-SERVER.md`                                   |
+| A2A server                                                              | `docs/frameworks/A2A-SERVER.md`                                   |
+| API istinadı + OpenAPI                                                  | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
+| Təchizatçı kataloqu (avtomatik yaradılmış)                              | `docs/reference/PROVIDER_REFERENCE.md`                            |
+| Buraxılış axını                                                         | `docs/ops/RELEASE_CHECKLIST.md`                                   |
 
 ---
 

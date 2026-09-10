@@ -1,6 +1,6 @@
 # 🚀 OmniRoute — 免費 AI 閘道器
 
-🌐 **語言:** 🇺🇸 [English](../../../README.md) · 🇸🇦 [ar](../ar/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇪🇸 [es](../es/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇮🇩 [id](../id/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
+🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇪🇸 [es](../es/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇮🇩 [id](../id/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md)
 
 ---
 
@@ -73,7 +73,7 @@
 </div>
 
 <div align="center">
- <b>🌐 支援 43 種語言環境</b>
+ <b>🌐 支援 42 種語言環境</b>
  <table>
   <tr>
     <td align="center"><a href="README.md">🇺🇸</a></td>
@@ -280,7 +280,7 @@ Result: 4 fallback layers reduce downtime; upstream availability is not guarante
 | ☁️ 雲端代理                | **Codex、Cursor、Devin、Jules**                        | 無          |
 | 🥷 TLS 指紋隱身            | **JA3/JA4 透過 wreq-js**                               | 無          |
 | 🖥️ 多平台                  | **Web · 桌面 · Termux · PWA**                          | 僅 Web      |
-| 🌍 國際化                  | **43 種語言環境**                                      | 0–4         |
+| 🌍 國際化                  | **42 種語言環境**                                      | 0–4         |
 
 <sub>📊 與 LiteLLM、OpenRouter 和 Portkey 的詳細比較 → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](../../comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
@@ -714,12 +714,12 @@ podman compose --profile base up -d --build
 
 <br/>
 
-| 層級                      | 範例                                     | 成本        |
-| ------------------------- | ---------------------------------------- | ----------- |
-| 💳 **訂閱**               | Claude Code Pro / Codex / Copilot        | $10–200/月  |
-| 🔑 **API 金鑰（免費層）** | NVIDIA NIM、Cerebras、Groq               | **免費**    |
-| 💰 **廉價**               | GLM-5 $0.5/1M · MiniMax M2.5 $0.3/1M     | 幾分錢      |
-| 🆓 **有記錄的免費存取**   | Kiro、Qoder、Pollinations、LongCat | **列為 $0** |
+| 層級                      | 範例                                 | 成本        |
+| ------------------------- | ------------------------------------ | ----------- |
+| 💳 **訂閱**               | Claude Code Pro / Codex / Copilot    | $10–200/月  |
+| 🔑 **API 金鑰（免費層）** | NVIDIA NIM、Cerebras、Groq           | **免費**    |
+| 💰 **廉價**               | GLM-5 $0.5/1M · MiniMax M2.5 $0.3/1M | 幾分錢      |
+| 🆓 **有記錄的免費存取**   | Kiro、Qoder、Pollinations、LongCat   | **列為 $0** |
 
 **$0 免費堆疊 — 組合成一個不可中斷的 Combo：**
 
@@ -949,7 +949,7 @@ podman compose --profile base up -d --build
 | [Contributing](../../CONTRIBUTING.md)               | 開發設定和指南                   |
 | [Changelog](../../CHANGELOG.md)                     | 完整每個版本的發布歷史           |
 | [Security Policy](../../SECURITY.md)                | 漏洞回報和安全實踐               |
-| [i18n Guide](../../guides/I18N.md)                  | 43 種語言環境、翻譯工作流程、RTL |
+| [i18n Guide](../../guides/I18N.md)                  | 42 種語言環境、翻譯工作流程、RTL |
 | [Release Checklist](../../ops/RELEASE_CHECKLIST.md) | 發布前驗證步驟                   |
 | [Coverage Plan](../../ops/COVERAGE_PLAN.md)         | 測試覆蓋率策略和 14,965 測試套件 |
 

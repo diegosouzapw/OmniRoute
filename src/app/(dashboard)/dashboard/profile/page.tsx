@@ -79,6 +79,14 @@ function BadgeIcon({ icon, earned }: { icon: string | null; earned: boolean }) {
   );
 }
 
+/**
+ * Current daily streak carried by `/api/gamification/level` (#2403). Older or partial
+ * payloads without a `streak` field, or with a non-numeric count, render as no streak.
+ */
+function readStreakCount(data: { streak?: { current?: unknown } | null }): number {
+  return Number(data.streak?.current) || 0;
+}
+
 const RARITY_COLORS: Record<string, string> = {
   common: "text-gray-400 border-gray-500/30",
   uncommon: "text-green-400 border-green-500/30",
@@ -97,7 +105,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedBadge, setSelectedBadge] = useState<BadgeDef | null>(null);
-  const [streak] = useState(0); // streak data comes from future API
+  const [streak, setStreak] = useState(0);
 
   const fetchData = useCallback(async () => {
     try {
@@ -114,6 +122,7 @@ export default function ProfilePage() {
       if (levelRes.ok) {
         const data = await levelRes.json();
         setUserLevel(data.level ?? data);
+        setStreak(readStreakCount(data));
       }
       if (badgesRes.ok) {
         const data = await badgesRes.json();

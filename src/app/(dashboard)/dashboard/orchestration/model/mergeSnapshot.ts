@@ -112,7 +112,9 @@ function overflowNodeForSource(
     // Additive: lets overviewProjection fold true per-state totals into its
     // counters even though these nodes no longer render on the canvas
     // (operator ruling — spec governs, counters must show TRUE totals).
-    droppedByState: counts,
+    // Spread into a fresh object — sharing the `counts` reference is a mutation
+    // footgun (a caller mutating either field silently corrupts the other).
+    droppedByState: { ...counts },
   };
 }
 
@@ -177,6 +179,8 @@ function buildRootAndSourceEdges(
         source: s.source,
         label: s.source,
         sublabel: s.offline ? "offline" : "error",
+        sourceIssue: s.offline ? "offline" : "error",
+        staleSince: s.staleSince,
       });
       sourceIds.add(`source:${s.source}`);
     }

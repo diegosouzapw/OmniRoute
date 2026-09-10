@@ -59,17 +59,17 @@ test("resolveProxyForConnection keeps provider-level no-auth proxies isolated", 
     host: "127.0.0.2",
     port: 8889,
   });
-  await settingsDb.setProxyForLevel("provider", "theoldllm", {
+  await settingsDb.setProxyForLevel("provider", "chipotle", {
     type: "http",
     host: "127.0.0.3",
     port: 8890,
   });
 
   const opencode = await settingsDb.resolveProxyForConnection("noauth", undefined, "opencode");
-  const theOldLlm = await settingsDb.resolveProxyForConnection("noauth", undefined, "theoldllm");
+  const chipotle = await settingsDb.resolveProxyForConnection("noauth", undefined, "chipotle");
 
   assert.equal(opencode?.proxy?.host, "127.0.0.2");
-  assert.equal(theOldLlm?.proxy?.host, "127.0.0.3");
+  assert.equal(chipotle?.proxy?.host, "127.0.0.3");
 });
 
 test("safeResolveProxy keeps the synthetic no-auth connection provider-specific", async () => {
@@ -79,15 +79,15 @@ test("safeResolveProxy keeps the synthetic no-auth connection provider-specific"
     host: "127.0.0.4",
     port: 8891,
   });
-  await settingsDb.setProxyForLevel("provider", "theoldllm", {
+  await settingsDb.setProxyForLevel("provider", "chipotle", {
     type: "http",
     host: "127.0.0.5",
     port: 8892,
   });
 
   const opencode = await safeResolveProxy("noauth", undefined, "opencode");
-  const theOldLlm = await safeResolveProxy("noauth", undefined, "theoldllm");
+  const chipotle = await safeResolveProxy("noauth", undefined, "chipotle");
 
   assert.equal(opencode?.proxy?.host, "127.0.0.4");
-  assert.equal(theOldLlm?.proxy?.host, "127.0.0.5");
+  assert.equal(chipotle?.proxy?.host, "127.0.0.5");
 });

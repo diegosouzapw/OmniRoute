@@ -4,11 +4,11 @@ import { useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 
-// Branded short link through our own link.omniroute.online shortener, so the
-// click lands in our Kutt metrics. Points at cheaperinference.com?utm_source=omniroute
-// (the URL in README.md's Open Source Friends section). Keep in sync with the
-// `cheaper` slug on the shortener.
-const CHEAPER_INFERENCE_URL = "https://link.omniroute.online/cheaper";
+// The URL in README.md's Open Source Friends section. This used to go through
+// our own link.omniroute.online shortener for click metrics, but that domain no
+// longer resolves (every slug 404s) after the move to omniskill.online, so the
+// CTA points straight at the destination again.
+const CHEAPER_INFERENCE_URL = "https://cheaperinference.com/?utm_source=omniroute";
 
 // Cheaper Inference brand green (#31f889). White text on it fails contrast, so
 // the CTA pairs it with the dark ink from the provider's color token (colors.ts:

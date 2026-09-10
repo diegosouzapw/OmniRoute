@@ -1,26 +1,23 @@
 // ENVIRONMENT NOTE (sandbox better-sqlite3 / glibc limitation, not a code defect):
-// This test constructs or exercises a real better-sqlite3-backed SQLite database.
-// better-sqlite3 is a native addon; production and CI load it normally, but some
-// sandboxes/dev boxes ship a system glibc older than the prebuilt binary requires
-// ("GLIBC_2.29 not found"), so the native module fails to dlopen and any test that
-// reaches better-sqlite3 directly (or asserts stdout that the load-failure warning
-// would pollute) fails HERE while passing in CI. This is a known environment
-// limitation, not a defect in the code under test: the OmniRoute runtime itself
-// cascades to node:sqlite/sql.js when better-sqlite3 is unavailable. See
-// tests/unit/_helpers/betterSqlite3Availability.ts for a guard helper.
-// #10421 — pre-migration backups were created on every migration run and never pruned,
-// so `db_backups/` grew without bound (observed: 48.999 files / 204 GB against a 5,3 MB
-// live database). The pruning logic already existed in `cleanupDbBackups()` but nothing
-// on the migration path ever reached it. These tests pin the retention step to the
-// backup call site so the operator's maxFiles/retentionDays budget is honored there too.
+// This suite uses a real on-disk better-sqlite3 database because migration snapshots
+// must exercise SQLite's native read-only VACUUM path. Production and CI load the native
+// addon normally; see tests/unit/_helpers/betterSqlite3Availability.ts for older sandboxes.
+//
+// #10421 — repeated failed startups once created a fresh timestamped snapshot every time
+// and pruned unrelated restore points. Migration safety now publishes a content-addressed
+// snapshot once per database state, never deletes a published snapshot, and leaves retention
+// to the manual/scheduled backup paths outside the migration window.
 
-import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import test from "node:test";
 import { pathToFileURL } from "node:url";
+
 import Database from "better-sqlite3";
+
+import { createBetterSqliteAdapter } from "../../src/lib/db/adapters/betterSqliteAdapter.ts";
 
 const serial = { concurrency: false };
 
@@ -29,27 +26,23 @@ async function importFresh(modulePath: string) {
   return import(`${url}?test=${Date.now()}-${Math.random().toString(16).slice(2)}`);
 }
 
-function withMockedMigrationFs(files: Record<string, string>, fn: () => void) {
+function withMockedMigrationFs<T>(files: Record<string, string>, fn: () => T): T {
   const originalExistsSync = fs.existsSync;
   const originalReaddirSync = fs.readdirSync;
   const originalReadFileSync = fs.readFileSync;
-
   const isMigrationDir = (target: unknown) =>
     String(target).replaceAll("\\", "/").endsWith("/src/lib/db/migrations") ||
     String(target).replaceAll("\\", "/").endsWith("/migrations");
 
   fs.existsSync = ((target: unknown) => {
     if (isMigrationDir(target)) return true;
-    const fileName = path.basename(String(target));
-    if (Object.hasOwn(files, fileName)) return true;
+    if (Object.hasOwn(files, path.basename(String(target)))) return true;
     return originalExistsSync(target as string);
   }) as typeof fs.existsSync;
-
   fs.readdirSync = ((target: string, options?: unknown) => {
     if (isMigrationDir(target)) return Object.keys(files);
     return originalReaddirSync(target, options as never);
   }) as typeof fs.readdirSync;
-
   fs.readFileSync = ((target: unknown, options?: unknown) => {
     const fileName = path.basename(String(target));
     if (Object.hasOwn(files, fileName)) return files[fileName];
@@ -65,149 +58,264 @@ function withMockedMigrationFs(files: Record<string, string>, fn: () => void) {
   }
 }
 
-/** Minimal SqliteAdapter over a real on-disk file (VACUUM INTO needs a file, not :memory:). */
 function createFileDb(sqlitePath: string) {
-  const db = new Database(sqlitePath);
-
-  return {
-    driver: "better-sqlite3",
-    get open() {
-      return db.open;
-    },
-    get name() {
-      return db.name;
-    },
-    prepare: (sql: string) => db.prepare(sql),
-    exec: (sql: string) => db.exec(sql),
-    pragma: (str: string, options?: unknown) => db.pragma(str, options as never),
-    transaction: (fn: (...args: unknown[]) => unknown) => {
-      const tx = db.transaction((...args: unknown[]) => fn(...args));
-      return (...args: unknown[]) => tx(...args);
-    },
-    immediate: (fn: () => void) => fn(),
-    async backup() {},
-    checkpoint() {},
-    close: () => db.close(),
-    get raw() {
-      return db;
-    },
-  };
+  return createBetterSqliteAdapter(new Database(sqlitePath));
 }
 
-/**
- * Build a DB that already has migrations applied (so the pre-migration backup path is
- * reached: it requires `applied.size > 0`) plus one pending migration to trigger a run.
- */
-function seedAppliedDb(db: ReturnType<typeof createFileDb>) {
+function seedExistingDb(db: ReturnType<typeof createFileDb>): void {
   db.exec(`
     CREATE TABLE provider_connections (id TEXT PRIMARY KEY);
     CREATE TABLE combos (id TEXT PRIMARY KEY);
     CREATE TABLE call_logs (id TEXT PRIMARY KEY);
-  `);
-}
-
-/**
- * Record 001 as applied in the runner's own ledger table. `runMigrations` only takes a
- * pre-migration backup when `applied.size > 0`, so this is what puts the test on the
- * code path under exercise.
- */
-function seedAppliedMigration(db: ReturnType<typeof createFileDb>) {
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS _omniroute_migrations (
+    CREATE TABLE _omniroute_migrations (
       version TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       applied_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
+    INSERT INTO provider_connections (id) VALUES ('existing-data');
+    INSERT INTO _omniroute_migrations (version, name) VALUES ('001', 'initial_schema');
   `);
-  db.prepare(
-    "INSERT OR REPLACE INTO _omniroute_migrations (version, name, applied_at) VALUES (?, ?, ?)"
-  ).run("001", "initial_schema", new Date().toISOString());
 }
 
-function makeTempDataDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-backup-retention-"));
+function seedSetupSkeleton(db: ReturnType<typeof createFileDb>): void {
+  db.exec(`
+    CREATE TABLE provider_connections (id TEXT PRIMARY KEY);
+    CREATE TABLE _omniroute_migrations (
+      version TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    INSERT INTO provider_connections (id) VALUES ('setup-preserved-data');
+    INSERT INTO _omniroute_migrations (version, name) VALUES ('001', 'initial_schema');
+  `);
+}
+
+function makeTempDataDir(): string {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-migration-snapshot-"));
   fs.mkdirSync(path.join(dir, "db_backups"), { recursive: true });
   return dir;
 }
 
-/** Pre-existing backups, oldest first, with distinct mtimes so retention ordering is stable. */
-function seedBackups(backupDir: string, count: number) {
+function seedTraditionalBackups(backupDir: string, count: number): string[] {
   const names: string[] = [];
-  for (let i = 0; i < count; i++) {
-    const name = `db_2026-08-${String(i + 1).padStart(2, "0")}T00-00-00-000Z_pre-migration.sqlite`;
-    const filePath = path.join(backupDir, name);
-    fs.writeFileSync(filePath, "x");
-    const t = new Date(2026, 7, i + 1).getTime() / 1000;
-    fs.utimesSync(filePath, t, t);
+  for (let index = 0; index < count; index += 1) {
+    const name =
+      `db_2026-08-${String(index + 1).padStart(2, "0")}` + "T00-00-00-000Z_pre-migration.sqlite";
+    fs.writeFileSync(path.join(backupDir, name), `seed-${index}`);
     names.push(name);
   }
   return names;
 }
 
-function countBackups(backupDir: string) {
-  return fs.readdirSync(backupDir).filter((n) => n.startsWith("db_")).length;
+function listCanonicalBackups(backupDir: string): string[] {
+  if (!fs.existsSync(backupDir)) return [];
+  return fs
+    .readdirSync(backupDir)
+    .filter((name) => name.startsWith("db_") && name.endsWith(".sqlite"))
+    .sort();
 }
 
-function withEnv(vars: Record<string, string | undefined>, fn: () => void) {
-  const saved: Record<string, string | undefined> = {};
-  for (const [k, v] of Object.entries(vars)) {
-    saved[k] = process.env[k];
-    if (v === undefined) delete process.env[k];
-    else process.env[k] = v;
+function listOwnedTempDirs(backupDir: string): string[] {
+  if (!fs.existsSync(backupDir)) return [];
+  return fs.readdirSync(backupDir).filter((name) => name.startsWith(".migration-snapshot-"));
+}
+
+function withEnv<T>(vars: Record<string, string | undefined>, fn: () => T): T {
+  const saved = new Map<string, string | undefined>();
+  for (const [key, value] of Object.entries(vars)) {
+    saved.set(key, process.env[key]);
+    if (value === undefined) delete process.env[key];
+    else process.env[key] = value;
   }
   try {
     return fn();
   } finally {
-    for (const [k, v] of Object.entries(saved)) {
-      if (v === undefined) delete process.env[k];
-      else process.env[k] = v;
+    for (const [key, value] of saved) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
     }
   }
 }
 
 test(
-  "#10421 runMigrations prunes pre-migration backups to the configured maxFiles",
+  "repeated zero-progress failures reuse one content-addressed snapshot without pruning",
   serial,
   async () => {
     const dataDir = makeTempDataDir();
     const backupDir = path.join(dataDir, "db_backups");
-    const sqlitePath = path.join(dataDir, "storage.sqlite");
-    const db = createFileDb(sqlitePath);
+    const db = createFileDb(path.join(dataDir, "storage.sqlite"));
 
     try {
-      seedAppliedDb(db);
-      seedBackups(backupDir, 30);
-      assert.equal(countBackups(backupDir), 30, "precondition: 30 stale backups on disk");
-
+      seedExistingDb(db);
+      const seeded = seedTraditionalBackups(backupDir, 6);
       const { runMigrations } = await importFresh("src/lib/db/migrationRunner.ts");
+      const files = {
+        "001_initial_schema.sql": "SELECT 1;",
+        "002_broken_probe.sql": "INSERT INTO table_that_does_not_exist VALUES (1);",
+      };
+      const fail = () => withMockedMigrationFs(files, () => runMigrations(db));
 
-      withEnv(
-        {
-          DB_BACKUP_MAX_FILES: "5",
-          DB_BACKUP_RETENTION_DAYS: "0",
-          DISABLE_SQLITE_AUTO_BACKUP: undefined,
-        },
-        () => {
+      assert.throws(fail, /table_that_does_not_exist/);
+      const afterFirst = listCanonicalBackups(backupDir);
+      const contentAddressed = afterFirst.filter((name) => name.startsWith("db_state-"));
+      assert.equal(contentAddressed.length, 1);
+      assert.match(contentAddressed[0]!, /^db_state-[a-f0-9]{64}_pre-migration\.sqlite$/);
+      assert.equal(
+        seeded.every((name) => afterFirst.includes(name)),
+        true,
+        "migration failure must not prune pre-existing restore points"
+      );
+
+      assert.throws(fail, /table_that_does_not_exist/);
+      assert.deepEqual(
+        listCanonicalBackups(backupDir),
+        afterFirst,
+        "an unchanged failed startup must reuse the exact content-addressed snapshot"
+      );
+      assert.deepEqual(listOwnedTempDirs(backupDir), []);
+    } finally {
+      db.close();
+      fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    }
+  }
+);
+
+test(
+  "an existing DB fails closed when hard-link publication is unavailable even with auto backup disabled",
+  serial,
+  async () => {
+    const dataDir = makeTempDataDir();
+    const backupDir = path.join(dataDir, "db_backups");
+    const db = createFileDb(path.join(dataDir, "storage.sqlite"));
+    const originalLinkSync = fs.linkSync;
+
+    try {
+      seedExistingDb(db);
+      const { runMigrations } = await importFresh("src/lib/db/migrationRunner.ts");
+      fs.linkSync = (() => {
+        throw Object.assign(new Error("hard links unsupported by this filesystem"), {
+          code: "ENOTSUP",
+        });
+      }) as typeof fs.linkSync;
+
+      assert.throws(
+        () =>
+          withEnv({ DISABLE_SQLITE_AUTO_BACKUP: "true" }, () =>
+            withMockedMigrationFs(
+              {
+                "001_initial_schema.sql": "SELECT 1;",
+                "002_ordinary_pending.sql": "CREATE TABLE must_not_apply (id INTEGER);",
+              },
+              () => runMigrations(db)
+            )
+          ),
+        /durable snapshot.*hard links unsupported.*hard links.*synchronization/is
+      );
+      assert.equal(
+        db.prepare("SELECT name FROM sqlite_master WHERE name = 'must_not_apply'").get(),
+        undefined,
+        "an ordinary pending migration must not run without its mandatory snapshot"
+      );
+      assert.deepEqual(
+        db.prepare("SELECT version, name FROM _omniroute_migrations ORDER BY version").all(),
+        [{ version: "001", name: "initial_schema" }]
+      );
+      assert.deepEqual(listCanonicalBackups(backupDir), []);
+      assert.deepEqual(listOwnedTempDirs(backupDir), []);
+    } finally {
+      fs.linkSync = originalLinkSync;
+      db.close();
+      fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    }
+  }
+);
+
+test(
+  "a pre-existing setup skeleton requires a snapshot even when mass-migration safety treats it as fresh",
+  serial,
+  async () => {
+    const dataDir = makeTempDataDir();
+    const backupDir = path.join(dataDir, "db_backups");
+    const db = createFileDb(path.join(dataDir, "storage.sqlite"));
+    const originalLinkSync = fs.linkSync;
+
+    try {
+      seedSetupSkeleton(db);
+      const { runMigrations } = await importFresh("src/lib/db/migrationRunner.ts");
+      fs.linkSync = (() => {
+        throw Object.assign(new Error("hard links unsupported by this filesystem"), {
+          code: "ENOTSUP",
+        });
+      }) as typeof fs.linkSync;
+
+      assert.throws(
+        () =>
           withMockedMigrationFs(
             {
               "001_initial_schema.sql": "SELECT 1;",
-              "002_retention_probe.sql": "CREATE TABLE retention_probe_10421 (id INTEGER);",
+              "002_ordinary_pending.sql": "CREATE TABLE must_not_apply (id INTEGER);",
             },
-            () => {
-              // Mark 001 as applied so `applied.size > 0` and the backup path is reached.
-              seedAppliedMigration(db);
+            () =>
+              runMigrations(db, {
+                isNewDb: true,
+                databaseExistedBeforeInitialization: true,
+              })
+          ),
+        /durable snapshot.*hard links unsupported.*hard links.*synchronization/is
+      );
+      assert.equal(
+        db.prepare("SELECT name FROM sqlite_master WHERE name = 'must_not_apply'").get(),
+        undefined,
+        "a setup-created persistent DB must not change when its safety snapshot cannot publish"
+      );
+      assert.deepEqual(
+        db.prepare("SELECT id FROM provider_connections").all(),
+        [{ id: "setup-preserved-data" }],
+        "the setup-created provider state must remain untouched"
+      );
+      assert.deepEqual(listCanonicalBackups(backupDir), []);
+      assert.deepEqual(listOwnedTempDirs(backupDir), []);
+    } finally {
+      fs.linkSync = originalLinkSync;
+      db.close();
+      fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    }
+  }
+);
 
-              runMigrations(db);
-            }
-          );
-        }
+test(
+  "successful migrations retain existing backups and do not prune inside the migration window",
+  serial,
+  async () => {
+    const dataDir = makeTempDataDir();
+    const backupDir = path.join(dataDir, "db_backups");
+    const db = createFileDb(path.join(dataDir, "storage.sqlite"));
+
+    try {
+      seedExistingDb(db);
+      const seeded = seedTraditionalBackups(backupDir, 6);
+      const { runMigrations } = await importFresh("src/lib/db/migrationRunner.ts");
+
+      const count = withEnv({ DB_BACKUP_MAX_FILES: "1", DB_BACKUP_RETENTION_DAYS: "0" }, () =>
+        withMockedMigrationFs(
+          {
+            "001_initial_schema.sql": "SELECT 1;",
+            "002_success.sql": "CREATE TABLE migration_success (id INTEGER);",
+          },
+          () => runMigrations(db)
+        )
       );
 
-      const remaining = countBackups(backupDir);
+      assert.equal(count, 1);
       assert.ok(
-        remaining <= 5,
-        `expected retention to cap db_backups at 5 files, found ${remaining} — ` +
-          `pre-migration backups are accumulating unbounded (#10421)`
+        db.prepare("SELECT name FROM sqlite_master WHERE name = 'migration_success'").get()
+      );
+      const after = listCanonicalBackups(backupDir);
+      assert.equal(after.filter((name) => name.startsWith("db_state-")).length, 1);
+      assert.equal(
+        seeded.every((name) => after.includes(name)),
+        true,
+        "retention must remain outside the concurrent migration window"
       );
     } finally {
       db.close();
@@ -216,51 +324,26 @@ test(
   }
 );
 
-test("#10421 the newest pre-migration backup survives pruning", serial, async () => {
+test("an already-current DB does not acquire an IMMEDIATE writer lock", serial, async () => {
   const dataDir = makeTempDataDir();
-  const backupDir = path.join(dataDir, "db_backups");
-  const sqlitePath = path.join(dataDir, "storage.sqlite");
-  const db = createFileDb(sqlitePath);
+  const db = createFileDb(path.join(dataDir, "storage.sqlite"));
 
   try {
-    seedAppliedDb(db);
-    seedBackups(backupDir, 10);
-
+    seedExistingDb(db);
     const { runMigrations } = await importFresh("src/lib/db/migrationRunner.ts");
-
-    withEnv(
-      {
-        DB_BACKUP_MAX_FILES: "3",
-        DB_BACKUP_RETENTION_DAYS: "0",
-        DISABLE_SQLITE_AUTO_BACKUP: undefined,
+    const noWriterAdapter = {
+      ...db,
+      immediate: () => {
+        throw new Error("unexpected IMMEDIATE writer lock");
       },
-      () => {
-        withMockedMigrationFs(
-          {
-            "001_initial_schema.sql": "SELECT 1;",
-            "002_retention_probe.sql": "CREATE TABLE retention_probe_10421b (id INTEGER);",
-          },
-          () => {
-            seedAppliedMigration(db);
+    };
 
-            runMigrations(db);
-          }
-        );
-      }
+    assert.equal(
+      withMockedMigrationFs({ "001_initial_schema.sql": "SELECT 1;" }, () =>
+        runMigrations(noWriterAdapter)
+      ),
+      0
     );
-
-    const remaining = fs.readdirSync(backupDir).filter((n) => n.startsWith("db_"));
-    assert.ok(remaining.length <= 3, `expected <=3 backups, found ${remaining.length}`);
-
-    // The backup written by THIS run must be among the survivors — pruning must never
-    // discard the snapshot that protects the migration it was taken for.
-    const seededNames = new Set(
-      Array.from({ length: 10 }, (_, i) => {
-        return `db_2026-08-${String(i + 1).padStart(2, "0")}T00-00-00-000Z_pre-migration.sqlite`;
-      })
-    );
-    const fresh = remaining.filter((n) => !seededNames.has(n));
-    assert.equal(fresh.length, 1, `expected the run's own backup to survive, got ${fresh.length}`);
   } finally {
     db.close();
     fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });

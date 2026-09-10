@@ -4,11 +4,16 @@
  * Smoke checklist for catalog-aware pass-through.
  */
 export const CURSOR_REWRITE_FAILURE_IDS = [
-  // Claude (52)
+  // Claude (57)
   "claude-4.5-opus-high",
   "claude-4.6-opus-high",
   "claude-4.6-opus-max",
   "claude-4.6-sonnet-medium",
+  "claude-fable-5-1-thinking-low",
+  "claude-fable-5-1-thinking-medium",
+  "claude-fable-5-1-thinking-high",
+  "claude-fable-5-1-thinking-xhigh",
+  "claude-fable-5-1-thinking-max",
   "claude-fable-5-low",
   "claude-fable-5-medium",
   "claude-fable-5-high",

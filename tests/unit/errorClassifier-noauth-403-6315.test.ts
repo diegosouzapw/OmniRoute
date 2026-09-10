@@ -9,9 +9,9 @@ import { classifyProviderError } from "../../open-sse/services/errorClassifier.t
 // 403 should be RECOVERABLE (null) and handled by the existing connection
 // cooldown/retry layer, same as apikey providers already are.
 
-test("#6345: theoldllm 'Request blocked'/access_denied 403 -> recoverable (null), not FORBIDDEN", () => {
+test("#6345: no-credential provider 'Request blocked'/access_denied 403 -> recoverable (null), not FORBIDDEN", () => {
   const body = { error: "Request blocked", type: "access_denied" };
-  assert.equal(classifyProviderError(403, body, "theoldllm"), null);
+  assert.equal(classifyProviderError(403, body, "chipotle"), null);
 });
 
 test("control: apikey-provider bare 403 still recoverable (null) — no regression", () => {

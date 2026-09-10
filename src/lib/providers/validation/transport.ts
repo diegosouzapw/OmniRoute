@@ -1,6 +1,7 @@
 // Outbound fetch wrappers for provider validation: proxy-fallback, SSRF-aware proxy targeting, and
-// error→result mapping. Extracted from validation.ts (god-file decomposition). Behavior is
-// byte-identical to the original inline defs.
+// error→result mapping. Extracted from validation.ts (god-file decomposition) and kept as the
+// common boundary for sanitizing validation failures.
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
   SafeOutboundFetchError,
@@ -10,6 +11,28 @@ import {
 import { isPrivateHost } from "@/shared/network/outboundUrlGuard";
 import { getProviderValidationGuard } from "@/shared/network/outboundUrlGuardPolicy";
 import { selectProxyForValidation } from "@omniroute/open-sse/services/proxyAutoSelector.ts";
+
+export type ProjectedProviderValidationResult<T> = {
+  [K in keyof T]: K extends "error" | "warning" ? string | null : T[K];
+} & {
+  error?: string | null;
+  warning?: string | null;
+};
+
+export function projectProviderValidationResultForPublicResponse<
+  T extends { error?: unknown; warning?: unknown },
+>(result: T): ProjectedProviderValidationResult<T>;
+export function projectProviderValidationResultForPublicResponse(
+  result: Record<string, unknown>
+): Record<string, unknown> {
+  const projected: Record<string, unknown> = { ...result };
+  for (const field of ["error", "warning"] as const) {
+    if (!Object.prototype.hasOwnProperty.call(result, field)) continue;
+    const value = result[field];
+    projected[field] = value === null || value === undefined ? null : sanitizeErrorMessage(value);
+  }
+  return projected;
+}
 
 /**
  * Wrapped fetch call that auto-retries with a proxy when the direct connection
@@ -128,6 +151,18 @@ export const WEB_COOKIE_PROVIDERS_WITHOUT_MODELS_API = new Set([
   "copilot-m365-web",
 ]);
 
+// #12107 — web-cookie providers whose registry entry exists to publish a model catalog
+// (so `/v1/models` and `/v1/providers/{id}/models` list something) but whose `baseUrl`
+// is a browser console, not an API host. gemini-business's entry points at
+// business.gemini.google/home: the executor only uses that origin to derive a
+// per-tenant StreamGenerate path (`/home/cid/{CID}/_/BardChatUi/...`), so there is no
+// side-effect-free auth probe on the host — `${baseUrl}/models` is a page Google never
+// served, and a 401/403 from a console page is not a credential signal either. Unlike
+// WEB_COOKIE_PROVIDERS_WITHOUT_MODELS_API these providers are therefore not probed at
+// all: validation stays the honest "unsupported" it reported before the registry entry
+// existed, decided BEFORE any network call.
+export const WEB_COOKIE_PROVIDERS_WITHOUT_AUTH_PROBE = new Set(["gemini-business"]);
+
 export function toWebCookieValidationErrorResult(provider: string, error: unknown) {
   if (
     error instanceof SafeOutboundFetchError &&
@@ -144,17 +179,30 @@ export function toWebCookieValidationErrorResult(provider: string, error: unknow
 }
 
 export function toValidationErrorResult(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error || "Validation failed");
-  const statusCode = getSafeOutboundFetchErrorStatus(error);
+  let rawMessage: unknown = error || "Validation failed";
+  try {
+    if (error instanceof Error) rawMessage = error.message;
+  } catch {
+    rawMessage = "Validation failed";
+  }
+  const message = sanitizeErrorMessage(rawMessage);
+  let statusCode: number | null = null;
+  let timeout = false;
+  let securityBlocked = false;
+  try {
+    statusCode = getSafeOutboundFetchErrorStatus(error);
+    timeout = error instanceof SafeOutboundFetchError && error.code === "TIMEOUT";
+    securityBlocked = isSecurityBlockError(error);
+  } catch {
+    // Classification is advisory; hostile accessors must not escape the safe error boundary.
+  }
 
   return {
     valid: false,
     error: message || "Validation failed",
     unsupported: false as const,
     ...(statusCode ? { statusCode } : {}),
-    ...(error instanceof SafeOutboundFetchError && error.code === "TIMEOUT"
-      ? { timeout: true }
-      : {}),
-    ...(isSecurityBlockError(error) ? { securityBlocked: true } : {}),
+    ...(timeout ? { timeout: true } : {}),
+    ...(securityBlocked ? { securityBlocked: true } : {}),
   };
 }

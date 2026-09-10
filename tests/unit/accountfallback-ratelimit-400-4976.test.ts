@@ -18,14 +18,14 @@ test("#4976 400 with rate-limit text (MiMoCode) → fallback with RATE_LIMIT_EXC
     "Detected high-frequency non-compliant requests from you.",
     0,
     null,
-    "theoldllm"
+    "chipotle"
   );
   assert.equal(res.shouldFallback, true);
   assert.equal(res.reason, RateLimitReason.RATE_LIMIT_EXCEEDED);
 });
 
 test("#4976 400 with Chinese rate-limit text → fallback with RATE_LIMIT_EXCEEDED", () => {
-  const res = checkFallbackError(400, "检测到您的请求频率过高，请稍后再试", 0, null, "theoldllm");
+  const res = checkFallbackError(400, "检测到您的请求频率过高，请稍后再试", 0, null, "chipotle");
   assert.equal(res.shouldFallback, true);
   assert.equal(res.reason, RateLimitReason.RATE_LIMIT_EXCEEDED);
 });

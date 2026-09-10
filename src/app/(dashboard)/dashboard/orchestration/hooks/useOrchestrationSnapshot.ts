@@ -1,5 +1,9 @@
 "use client";
-/** Polls the 3 agent sources (allSettled), listens to the `requests` WS channel as a refetch trigger. */
+/**
+ * Polls the 3 agent sources (allSettled), listens to the `agents` WS channel as a refetch
+ * trigger, and relaxes the poll interval from 5s to 30s while that WS connection is up (the
+ * channel event still forces an immediate debounced refetch either way).
+ */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLiveDashboard } from "@/hooks/useLiveDashboard";
 import type { CloudAgentTask } from "@/lib/cloudAgent/types";
@@ -12,6 +16,7 @@ import { mergeSnapshot } from "../model/mergeSnapshot";
 import type { OrchSnapshot, SourceStatus } from "../model/orchestrationTypes";
 
 export const POLL_MS = 5_000;
+export const POLL_MS_WS_CONNECTED = 30_000;
 export const WS_REFETCH_DEBOUNCE_MS = 1_000;
 
 interface Raw {
@@ -29,6 +34,29 @@ async function fetchJson<T>(url: string, signal: AbortSignal): Promise<T> {
   const res = await fetch(url, { signal, cache: "no-store" });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<T>;
+}
+
+/**
+ * A cheap structural fingerprint of the fields that actually affect rendering.
+ * `polledAt`/`raw` change on every 5s poll even when nothing meaningful moved,
+ * which would otherwise re-mint every node/edge array each tick and defeat the
+ * `React.memo` on the canvas node components. Exported for the test.
+ */
+export function snapshotContentKey(s: OrchSnapshot): string {
+  return JSON.stringify([
+    s.nodes.map((n) => [
+      n.id,
+      n.state,
+      n.updatedAt,
+      n.label,
+      n.sublabel,
+      n.cost,
+      n.counts,
+      n.sourceIssue,
+    ]),
+    s.edges.map((e) => [e.id, e.active]),
+    s.sources,
+  ]);
 }
 
 /** Builds the 3-source status list from a `Promise.allSettled` triple. */
@@ -112,9 +140,7 @@ export function useOrchestrationSnapshot() {
 
     pollRef.current = () => void poll();
     void poll();
-    const id = setInterval(() => void poll(), POLL_MS);
     return () => {
-      clearInterval(id);
       controller.abort();
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
@@ -127,10 +153,10 @@ export function useOrchestrationSnapshot() {
     pollRef.current();
   }, []);
 
-  useLiveDashboard({
-    channels: ["requests"],
+  const { connection } = useLiveDashboard({
+    channels: ["agents"],
     onEvent: (payload) => {
-      if (payload.channel !== "requests") return;
+      if (payload.channel !== "agents") return;
       if (debounceRef.current) return; // debounce burst → one refetch
       debounceRef.current = setTimeout(() => {
         debounceRef.current = null;
@@ -138,6 +164,17 @@ export function useOrchestrationSnapshot() {
       }, WS_REFETCH_DEBOUNCE_MS);
     },
   });
+
+  // Adaptive poll interval, separated from the mount effect above: a connected `agents` WS
+  // already pushes refetches on change, so the background poll only needs to be a slow safety
+  // net (30s) — it falls back to the tighter 5s cadence while the WS is down. Declared AFTER
+  // the mount effect so `pollRef.current` is already populated (its initial value is a safe
+  // no-op) by the time this effect's first tick can fire.
+  const wsConnected = connection.isConnected;
+  useEffect(() => {
+    const id = setInterval(() => pollRef.current(), wsConnected ? POLL_MS_WS_CONNECTED : POLL_MS);
+    return () => clearInterval(id);
+  }, [wsConnected]);
 
   const snapshot: OrchSnapshot = useMemo(
     () =>
@@ -153,5 +190,19 @@ export function useOrchestrationSnapshot() {
     [raw, statuses, showCompleted, polledAt]
   );
 
-  return { snapshot, isLoading, showCompleted, setShowCompleted, refetch };
+  // `polledAt` advances every poll tick and re-mints every node/edge array in
+  // `snapshot` above even when nothing meaningful changed, which would defeat
+  // the canvas node components' `React.memo`. Render-time-sync idiom (same
+  // pattern as `useSyncedNodeIdentity` in `useDrawerDetail.ts`): only adopt the
+  // freshly computed snapshot when its content key actually differs, so
+  // `stableSnapshot` keeps referential identity across no-op ticks.
+  const [syncedKey, setSyncedKey] = useState("");
+  const [stableSnapshot, setStableSnapshot] = useState<OrchSnapshot>(snapshot);
+  const key = snapshotContentKey(snapshot);
+  if (key !== syncedKey) {
+    setSyncedKey(key);
+    setStableSnapshot(snapshot);
+  }
+
+  return { snapshot: stableSnapshot, isLoading, showCompleted, setShowCompleted, refetch };
 }

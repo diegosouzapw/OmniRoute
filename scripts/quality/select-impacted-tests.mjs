@@ -39,7 +39,18 @@ export function selectImpacted({ changed, map }) {
   return [...out].sort();
 }
 
+// `--stdin`: read the changed-file list from stdin (one path per line) instead of
+// diffing git. Used by scripts/quality/test-scoped.sh so `--staged` selects from the
+// index — the git-diff path here only knows about commits, never the working tree.
+export function changedFilesFromStdin(text) {
+  return String(text || "")
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 function changedFiles() {
+  if (process.argv.includes("--stdin")) return changedFilesFromStdin(fs.readFileSync(0, "utf8"));
   const baseRef = process.env.GITHUB_BASE_REF;
   const baseTarget = process.env.GITHUB_BASE_SHA || (baseRef ? `origin/${baseRef}` : "HEAD~1");
   const stdout = execFileSync(

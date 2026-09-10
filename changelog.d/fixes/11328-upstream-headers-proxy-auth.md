@@ -1,1 +1,0 @@
-- **fix(security):** `proxy-authorization` and `proxy-authenticate` are refused as upstream/custom headers, so a proxy credential is no longer forwarded to the model provider — the canonical denylist now matches the RFC 7230 §6.1 set the rest of the codebase already strips ([#11328](https://github.com/diegosouzapw/OmniRoute/pull/11328))

@@ -11,11 +11,10 @@ import { z } from "zod";
  * provider-agnostic pair of request fields and folds them onto the fields the existing
  * mappers already read.
  *
- * The provider-agnostic vocabulary remains five values. Provider-native additions such as
- * Codex GPT-5.6 Max/Ultra and Kiro GPT-5.6 Max are exposed separately without widening this
- * request contract.
+ * The provider-agnostic vocabulary is `none|low|medium|high|xhigh|max`. Provider-native
+ * additions such as Codex GPT-5.6 Ultra remain exposed separately.
  */
-export const CANONICAL_EFFORT_VALUES = ["none", "low", "medium", "high", "xhigh"] as const;
+export const CANONICAL_EFFORT_VALUES = ["none", "low", "medium", "high", "xhigh", "max"] as const;
 
 export type CanonicalEffort = (typeof CANONICAL_EFFORT_VALUES)[number];
 
@@ -50,17 +49,11 @@ export function extendCodexGpt56EffortValues(
 }
 
 /**
- * UI-facing tier synonyms mapped onto the canonical set. The issue (#6241) requested a
- * 5-tier UI vocabulary (Low / Medium / High / Extra / Max); that request collapses onto
- * the existing 5-value canonical set. "extra" and "max" are both synonyms for the top
- * reasoning tier and map to canonical `xhigh`. The per-provider mappers already down-shift
- * `xhigh` to `high` for models that do not support it (see
- * `open-sse/translator/request/openai-to-claude.ts`), so a caller can always request the
- * highest tier without knowing which models support `xhigh`.
+ * UI-facing tier synonyms mapped onto the canonical set. "extra" is a synonym for `xhigh`.
+ * `max` is a first-class canonical value and passes through natively.
  */
 const EFFORT_TIER_ALIASES: Record<string, CanonicalEffort> = {
   extra: "xhigh",
-  max: "xhigh",
 };
 
 /**
@@ -69,11 +62,11 @@ const EFFORT_TIER_ALIASES: Record<string, CanonicalEffort> = {
  * Per https://api-docs.deepseek.com/api/create-chat-completion the accepted
  * `reasoning_effort` values are `low`, `high` and `max`, the default is `high`,
  * and **`medium` / `xhigh` are both mapped to `high` upstream**. Canonical
- * `max` collapses to `xhigh` (see EFFORT_TIER_ALIASES), so without this the
- * top tier is unreachable: `{"effort":"max"}` → `xhigh` → upstream `high`.
+ * `max` is first-class (#11875) so `{"effort":"max"}` reaches DeepSeek's
+ * native top tier instead of collapsing onto `xhigh` → upstream `high`.
  *
- * Mirrors extendCodexGpt56EffortValues: expose the provider-native tier for
- * these models only, without widening the global request vocabulary.
+ * Mirrors extendCodexGpt56EffortValues: keep catalog advertising of the native
+ * tier idempotent when `max` is already in the base vocabulary.
  */
 export function extendDeepSeekEffortValues(
   provider: string | null | undefined,
@@ -90,7 +83,7 @@ export function extendDeepSeekEffortValues(
  * DeepSeek provider (registry id `deepseek`, alias `ds`).
  *
  * Deliberately scoped to the native provider: routed namespaces such as
- * `openrouter/deepseek/...` or `tllm/deepseek_v4` terminate at a different
+ * `openrouter/deepseek/...` or `oc/deepseek-v4-flash-free` terminate at a different
  * upstream whose accepted effort vocabulary we do not control.
  */
 export function isDeepSeekNativeMaxModel(
@@ -116,7 +109,7 @@ export function isDeepSeekNativeMaxModel(
 
 /**
  * Normalize an arbitrary effort value onto the canonical vocabulary. Accepts the canonical
- * values plus the UI tier synonyms (`extra`/`max` → `xhigh`), case-insensitively. Returns
+ * values plus the UI tier synonym (`extra` → `xhigh`), case-insensitively. Returns
  * `undefined` for anything unrecognized so callers can leave the request untouched.
  */
 export function normalizeEffort(value: unknown): CanonicalEffort | undefined {

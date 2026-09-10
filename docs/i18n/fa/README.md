@@ -1,6 +1,6 @@
 # 🚀 OmniRoute — درگاه رایگان هوش مصنوعی (فارسی)
 
-🌐 **زبان‌ها:** 🇺🇸 [English](../../../README.md) · 🇸🇦 [ar](../ar/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇪🇸 [es](../es/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇮🇩 [id](../id/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md)
+🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇪🇸 [es](../es/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇮🇩 [id](../id/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
 
 ---
 
@@ -45,7 +45,7 @@ _پراکسی جهانی API شما - یک نقطه پایانی، 329 ورود�
 
 </div>
 
-🌐 **موجود در:** 🇺🇸 [انگلیسی](README.md) | 🇧🇷 [پرتغال (برزیل)](docs/i18n/pt-BR/README.md) | 🇪🇸 [اسپانیول](docs/i18n/es/README.md) | 🇫🇷 [Français](docs/i18n/fr/README.md) | 🇮🇹 [ایتالیانو](docs/i18n/it/README.md) | 🇷🇺 [Русский](docs/i18n/ru/README.md) | 🇨🇳 [中文 (简体)](docs/i18n/zh-CN/README.md) | 🇩🇪 [دویچ](docs/i18n/de/README.md) | 🇮🇳 [हिन्दी](docs/i18n/in/README.md) | 🇹🇭 [ไทย](docs/i18n/th/README.md) | 🇺🇦 [Українська](docs/i18n/uk-UA/README.md) | 🇸🇦 [العربیة](docs/i18n/ar/README.md) | 🇯🇵 [日本語](docs/i18n/ja/README.md) | 🇻🇳 [Tiếng Việt](docs/i18n/vi/README.md) | 🇧🇬 [Български](docs/i18n/bg/README.md) | 🇩🇰 [دانسک](docs/i18n/da/README.md) | 🇫🇮 [Suomi](docs/i18n/fi/README.md) | 🇮🇱 [עברית](docs/i18n/he/README.md) | 🇭🇺 [مگیار](docs/i18n/hu/README.md) | 🇮🇩 [Bahasa Indonesia](docs/i18n/id/README.md) | 🇰🇷 [한국어](docs/i18n/ko/README.md) | 🇲🇾 [Bahasa Melayu](docs/i18n/ms/README.md) | 🇳🇱 [هلند](docs/i18n/nl/README.md) | 🇳🇴 [نورسک](docs/i18n/no/README.md) | 🇵🇹 [پرتغال (پرتغال)](docs/i18n/pt/README.md) | 🇷🇴 [Română](docs/i18n/ro/README.md) | 🇵🇱 [Polski](docs/i18n/pl/README.md) | 🇸🇰 [Slovenčina](docs/i18n/sk/README.md) | 🇸🇪 [Svenska](docs/i18n/sv/README.md) | 🇵🇭 [فیلیپینی](docs/i18n/phi/README.md) | 🇨🇿 [Čeština](docs/i18n/cs/README.md)
+🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇪🇸 [es](../es/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇮🇩 [id](../id/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
 
 ---
 
@@ -735,11 +735,11 @@ Outcome: deep fallback depth for deadline-critical workloads
 
 > کدگذاری هوش مصنوعی را در چند دقیقه با **0 دلار در ماه** تنظیم کنید. این حساب‌های رایگان را متصل کنید و از ترکیب داخلی **پشته رایگان** استفاده کنید.
 
-| مرحله | اقدام | قفل ارائه دهندگان |
-| ---- | -------------------------------------------------- | ------------------------------------------------------------------ |
-| 1 | اتصال **Kiro** (شناسه سازنده AWS OAuth) | Claude Sonnet 4.5، Haiku 4.5 — محدودیت های ارائه دهنده/حساب اعمال می شود |
-| 2 | اتصال **Qoder** (Google OAuth) | kimi-k2-thinking، qwen3-coder-plus، deepseek-r1... — محدودیت های ارائه دهنده/حساب اعمال می شود |
-| 4 | قالب `/dashboard/combos` → **پشته رایگان (0$)** | همه ارائه دهندگان رایگان را بصورت خودکار |
+| مرحله | اقدام                                           | قفل ارائه دهندگان                                                                              |
+| ----- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 1     | اتصال **Kiro** (شناسه سازنده AWS OAuth)         | Claude Sonnet 4.5، Haiku 4.5 — محدودیت های ارائه دهنده/حساب اعمال می شود                       |
+| 2     | اتصال **Qoder** (Google OAuth)                  | kimi-k2-thinking، qwen3-coder-plus، deepseek-r1... — محدودیت های ارائه دهنده/حساب اعمال می شود |
+| 4     | قالب `/dashboard/combos` → **پشته رایگان (0$)** | همه ارائه دهندگان رایگان را بصورت خودکار                                                       |
 
 **کلید IDE/CLI را به:** `http://localhost:20128/v1` · API کلید: `any-string` · انجام شد.
 
@@ -1132,31 +1132,31 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ## 💰 قیمت در یک نگاه
 
-| ردیف | ارائه دهنده | هزینه | بازنشانی سهمیه | بهترین برای |
-| ------------------- | --------------------------- | ------------------------------------- | --------------------- | ---------------------------------- |
-| **💳 اشتراک ** | کد Claude (Pro) | 20 دلار در ماه | 5 ساعت + هفتگی | قبلاً مشترک شده است |
-|                     | Codex (Plus/Pro) | 20-200 دلار در ماه | 5 ساعت + هفتگی | کاربران OpenAI |
-|                     | GitHub Copilot | 10-19 دلار در ماه | ماهانه | کاربران GitHub |
-| **🔑 کلید API ** | NVIDIA NIM | **دسترسی رایگان** (شرایط فعلی اعمال می شود) | ~40 دور در دقیقه | 70+ مدل باز |
-|                     | Cerebras | **رایگان** (1 میلیون توک در روز) | 60K TPM / 30 RPM | سریعترین جهان |
-|                     | Groq | **رایگان** (30 دور در دقیقه) | 14.4K RPD | Llama/Gemma فوق العاده سریع |
-|                     | DeepSeek V3.2 | 0.27 دلار / 1.10 دلار در هر 1 میلیون | هیچکدام | بهترین استدلال قیمت/کیفیت |
-|                     | xAI Grok-4 Fast | **0.20$/0.50$ در هر 1 میلیون** 🆕 | هیچکدام | سریعترین + فراخوانی ابزار، فوق العاده کم |
-|                     | xAI Grok-4 (استاندارد) | 0.20 دلار / 1.50 دلار به ازای هر 1 میلیون 🆕 | هیچکدام | گل سرسبد استدلال از xAI |
-|                     | میسترال | آزمایشی رایگان + پولی | نرخ محدود | هوش مصنوعی اروپایی |
-|                     | OpenRouter | پرداخت به ازای استفاده | هیچکدام | 100+ مدل aggr.                  |
-| **💰 ارزان ** | GLM-5 (از طریق Z.AI) 🆕 | 0.5/1 میلیون دلار | روزانه 10 صبح | خروجی 128K، جدیدترین پرچمدار |
-|                     | GLM-4.7 | 0.6/1 میلیون دلار | روزانه 10 صبح | پشتیبان بودجه |
-|                     | MiniMax M2.5 🆕 | 0.3/1 میلیون دلار ورودی | نورد 5 ساعته | استدلال + وظایف نمایندگی |
-|                     | MiniMax M2.1 | 0.2/1 میلیون دلار | نورد 5 ساعته | ارزان ترین گزینه |
-|                     | Kimi K2.5 (Moonshot API) 🆕 | پرداخت به ازای استفاده | هیچکدام | دسترسی مستقیم Moonshot API |
-|                     | Kimi K2 | 9 دلار در ماه آپارتمان | 10 میلیون توکن در ماه | هزینه قابل پیش بینی |
-| **🆓 دسترسی رایگان ** | Qoder | **0$** | محدودیت اعمال می شود | مدل های منتخب؛ شرایط اعمال می شود |
-|                     | Kiro | **0$** | محدودیت اعتبار/حساب | دسترسی Claude؛ شرایط فعلی اعمال می شود |
-|                     | اعتبار ثبت نام LongCat | **0$** (10 میلیون یکبار مصرف؛ KYC) | یکبار مصرف | کمک هزینه ثبت نام؛ تکرار نشدن |
-|                     | Pollinations AI 🆕 | **0$** (بدون نیاز به کلید) | 1 req/15s | GPT-5، Claude، DeepSeek، Llama 4 |
-|                     | Cloudflare Workers AI 🆕 | **0$** (10 هزار نورون در روز) | ~150 بار در روز | 50+ مدل، لبه جهانی |
-|                     | Scaleway AI 🆕 | **0$** (مجموع 1 میلیون توکن) | نرخ محدود | EU/GDPR، Qwen3 235B، Llama 70B |
+| ردیف                  | ارائه دهنده                 | هزینه                                        | بازنشانی سهمیه        | بهترین برای                              |
+| --------------------- | --------------------------- | -------------------------------------------- | --------------------- | ---------------------------------------- |
+| **💳 اشتراک **        | کد Claude (Pro)             | 20 دلار در ماه                               | 5 ساعت + هفتگی        | قبلاً مشترک شده است                      |
+|                       | Codex (Plus/Pro)            | 20-200 دلار در ماه                           | 5 ساعت + هفتگی        | کاربران OpenAI                           |
+|                       | GitHub Copilot              | 10-19 دلار در ماه                            | ماهانه                | کاربران GitHub                           |
+| **🔑 کلید API **      | NVIDIA NIM                  | **دسترسی رایگان** (شرایط فعلی اعمال می شود)  | ~40 دور در دقیقه      | 70+ مدل باز                              |
+|                       | Cerebras                    | **رایگان** (1 میلیون توک در روز)             | 60K TPM / 30 RPM      | سریعترین جهان                            |
+|                       | Groq                        | **رایگان** (30 دور در دقیقه)                 | 14.4K RPD             | Llama/Gemma فوق العاده سریع              |
+|                       | DeepSeek V3.2               | 0.27 دلار / 1.10 دلار در هر 1 میلیون         | هیچکدام               | بهترین استدلال قیمت/کیفیت                |
+|                       | xAI Grok-4 Fast             | **0.20$/0.50$ در هر 1 میلیون** 🆕            | هیچکدام               | سریعترین + فراخوانی ابزار، فوق العاده کم |
+|                       | xAI Grok-4 (استاندارد)      | 0.20 دلار / 1.50 دلار به ازای هر 1 میلیون 🆕 | هیچکدام               | گل سرسبد استدلال از xAI                  |
+|                       | میسترال                     | آزمایشی رایگان + پولی                        | نرخ محدود             | هوش مصنوعی اروپایی                       |
+|                       | OpenRouter                  | پرداخت به ازای استفاده                       | هیچکدام               | 100+ مدل aggr.                           |
+| **💰 ارزان **         | GLM-5 (از طریق Z.AI) 🆕     | 0.5/1 میلیون دلار                            | روزانه 10 صبح         | خروجی 128K، جدیدترین پرچمدار             |
+|                       | GLM-4.7                     | 0.6/1 میلیون دلار                            | روزانه 10 صبح         | پشتیبان بودجه                            |
+|                       | MiniMax M2.5 🆕             | 0.3/1 میلیون دلار ورودی                      | نورد 5 ساعته          | استدلال + وظایف نمایندگی                 |
+|                       | MiniMax M2.1                | 0.2/1 میلیون دلار                            | نورد 5 ساعته          | ارزان ترین گزینه                         |
+|                       | Kimi K2.5 (Moonshot API) 🆕 | پرداخت به ازای استفاده                       | هیچکدام               | دسترسی مستقیم Moonshot API               |
+|                       | Kimi K2                     | 9 دلار در ماه آپارتمان                       | 10 میلیون توکن در ماه | هزینه قابل پیش بینی                      |
+| **🆓 دسترسی رایگان ** | Qoder                       | **0$**                                       | محدودیت اعمال می شود  | مدل های منتخب؛ شرایط اعمال می شود        |
+|                       | Kiro                        | **0$**                                       | محدودیت اعتبار/حساب   | دسترسی Claude؛ شرایط فعلی اعمال می شود   |
+|                       | اعتبار ثبت نام LongCat      | **0$** (10 میلیون یکبار مصرف؛ KYC)           | یکبار مصرف            | کمک هزینه ثبت نام؛ تکرار نشدن            |
+|                       | Pollinations AI 🆕          | **0$** (بدون نیاز به کلید)                   | 1 req/15s             | GPT-5، Claude، DeepSeek، Llama 4         |
+|                       | Cloudflare Workers AI 🆕    | **0$** (10 هزار نورون در روز)                | ~150 بار در روز       | 50+ مدل، لبه جهانی                       |
+|                       | Scaleway AI 🆕              | **0$** (مجموع 1 میلیون توکن)                 | نرخ محدود             | EU/GDPR، Qwen3 235B، Llama 70B           |
 
 > 🆕 **مدل‌های جدید اضافه شده (مارس 2026):** خانواده Grok-4 Fast با 0.20 دلار/0.50 دلار در میلیون دلار (معیار شده در 1143 میلی‌ثانیه — 30 درصد سریع‌تر از فلش Gemini 2.5)، GLM-5 از طریق Z.AI، خروجی Z.AI، Z.AI، Z. DeepSeek V3.2 قیمت به روز شده، Kimi K2.5 از طریق Moonshot مستقیم API.
 
@@ -1773,7 +1773,6 @@ Models:
   if/minimax-m2
   if/deepseek-r1
 ```
-
 
 ### Kiro (رایگان Claude)
 

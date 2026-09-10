@@ -27,7 +27,11 @@ import {
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
-import { streamJsonlToOpenAi, readJsonlResponse } from "./huggingchat/jsonlStream.ts";
+import {
+  HuggingChatStreamError,
+  readJsonlResponse,
+  streamJsonlToOpenAi,
+} from "./huggingchat/jsonlStream.ts";
 
 const HUGGINGFACE_BASE = "https://huggingface.co";
 const CONVERSATION_URL = `${HUGGINGFACE_BASE}/chat/conversation`;
@@ -38,6 +42,7 @@ const USER_AGENT =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
 const DEFAULT_MODEL = "baidu/ERNIE-4.5-VL-424B-A47B-Base-PT";
+const HUGGINGCHAT_PUBLIC_STREAM_ERROR = "HuggingChat generation failed";
 
 // -- Helpers -----------------------------------------------------------------
 
@@ -400,13 +405,15 @@ export class HuggingChatExecutor extends BaseExecutor {
         };
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
       log?.error?.("HUGGINGCHAT", `Conversation creation failed: ${message}`);
       return {
         response: new Response(
-          JSON.stringify({
-            error: { message: `HuggingChat connection failed: ${message}`, type: "upstream_error" },
-          }),
+          JSON.stringify(
+            buildErrorBody(502, `HuggingChat connection failed: ${message}`, undefined, {
+              type: "upstream_error",
+            })
+          ),
           { status: 502, headers: { "Content-Type": "application/json" } }
         ),
         url: CONVERSATION_URL,
@@ -463,13 +470,15 @@ export class HuggingChatExecutor extends BaseExecutor {
         signal: combinedSignal,
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
       log?.error?.("HUGGINGCHAT", `Message send failed: ${message}`);
       return {
         response: new Response(
-          JSON.stringify({
-            error: { message: `HuggingChat connection failed: ${message}`, type: "upstream_error" },
-          }),
+          JSON.stringify(
+            buildErrorBody(502, `HuggingChat connection failed: ${message}`, undefined, {
+              type: "upstream_error",
+            })
+          ),
           { status: 502, headers: { "Content-Type": "application/json" } }
         ),
         url: messageUrl,
@@ -523,25 +532,80 @@ export class HuggingChatExecutor extends BaseExecutor {
 
     if (stream) {
       const encoder = new TextEncoder();
+      const streamCancellationController = new AbortController();
       const jsonlStream = streamJsonlToOpenAi(
         upstreamResponse.body,
         resolvedModel,
         id,
         created,
-        signal
+        signal,
+        streamCancellationController.signal
       );
 
-      const sseStream = new ReadableStream({
-        async start(controller) {
-          try {
-            for await (const chunk of jsonlStream) {
-              controller.enqueue(encoder.encode(chunk));
-            }
-          } catch (err) {
-            log?.error?.("HUGGINGCHAT", `Stream error: ${err}`);
-          } finally {
-            controller.close();
+      const primedChunks: string[] = [];
+      try {
+        const first = await jsonlStream.next();
+        if (!first.done) {
+          primedChunks.push(first.value);
+          if (first.value.includes('"role":"assistant"')) {
+            const content = await jsonlStream.next();
+            if (!content.done) primedChunks.push(content.value);
           }
+        }
+      } catch (err) {
+        if (!(err instanceof HuggingChatStreamError)) throw err;
+        const message = err instanceof Error ? err.message : String(err);
+        const safeMessage = sanitizeErrorMessage(message);
+        log?.error?.("HUGGINGCHAT", `Stream failed before content: ${safeMessage}`);
+        return {
+          response: new Response(
+            JSON.stringify(
+              buildErrorBody(502, message, undefined, {
+                type: "upstream_error",
+                code: "huggingchat_generation_error",
+              })
+            ),
+            { status: 502, headers: { "Content-Type": "application/json" } }
+          ),
+          url: messageUrl,
+          headers: baseHeaders,
+          transformedBody: sendDataPayload,
+        };
+      }
+
+      let primedChunkIndex = 0;
+      let streamCancelled = false;
+      const sseStream = new ReadableStream<Uint8Array>({
+        async pull(controller) {
+          if (streamCancelled) return;
+          if (primedChunkIndex < primedChunks.length) {
+            controller.enqueue(encoder.encode(primedChunks[primedChunkIndex]));
+            primedChunkIndex += 1;
+            return;
+          }
+
+          try {
+            const chunk = await jsonlStream.next();
+            if (streamCancelled) return;
+            if (chunk.done) {
+              controller.close();
+              return;
+            }
+            controller.enqueue(encoder.encode(chunk.value));
+          } catch (err) {
+            if (streamCancelled) return;
+            const message = err instanceof Error ? err.message : String(err);
+            const safeMessage = sanitizeErrorMessage(message);
+            log?.error?.("HUGGINGCHAT", `Stream error: ${safeMessage}`);
+            controller.error(
+              Object.assign(new Error(HUGGINGCHAT_PUBLIC_STREAM_ERROR), { statusCode: 502 })
+            );
+          }
+        },
+        cancel() {
+          streamCancelled = true;
+          streamCancellationController.abort();
+          void jsonlStream.return(undefined).catch(() => undefined);
         },
       });
 
@@ -560,7 +624,29 @@ export class HuggingChatExecutor extends BaseExecutor {
       };
     }
 
-    const fullText = await readJsonlResponse(upstreamResponse.body, signal);
+    let fullText: string;
+    try {
+      fullText = await readJsonlResponse(upstreamResponse.body, signal);
+    } catch (err) {
+      if (!(err instanceof HuggingChatStreamError)) throw err;
+      const message = err instanceof Error ? err.message : String(err);
+      const safeMessage = sanitizeErrorMessage(message);
+      log?.error?.("HUGGINGCHAT", `Generation error: ${safeMessage}`);
+      return {
+        response: new Response(
+          JSON.stringify(
+            buildErrorBody(502, message, undefined, {
+              type: "upstream_error",
+              code: "huggingchat_generation_error",
+            })
+          ),
+          { status: 502, headers: { "Content-Type": "application/json" } }
+        ),
+        url: messageUrl,
+        headers: baseHeaders,
+        transformedBody: sendDataPayload,
+      };
+    }
     const completionTokens = estimateTokens(fullText);
 
     return {

@@ -7,19 +7,15 @@
  * invalid value enumerates the full accepted set:
  * `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`.)
  *
- * OmniRoute's canonical vocabulary is `none|low|medium|high|xhigh`, and `max` is an alias
- * that collapses onto `xhigh` (EFFORT_TIER_ALIASES). Since DeepSeek then maps `xhigh` back
- * down to `high`, a client sending `{"effort":"max"}` silently received **high** — the top
- * tier was unreachable through the canonical field.
+ * OmniRoute's canonical vocabulary is `none|low|medium|high|xhigh|max` (#11875).
+ * `max` is a first-class value so DeepSeek's native top tier is reachable through
+ * the canonical `effort` field instead of collapsing onto `xhigh` (which DeepSeek
+ * then maps back down to `high`).
  *
- * The fix mirrors the existing `extendCodexGpt56EffortValues` precedent: expose the
- * provider-native tier for these models only, without widening the global request
- * vocabulary for every other provider.
- *
- * Guards: A = `max` survives for native DeepSeek models; B = every other provider still
- * collapses `max`→`xhigh`; C = routed DeepSeek namespaces (openrouter/tllm) are NOT treated
- * as native; D = an explicit client `reasoning_effort` still wins; E = the catalog offers
- * `max` as an effort tier for native DeepSeek models.
+ * Guards: A = `max` survives for native DeepSeek models; B = `max` stays canonical
+ * for every other provider (sanitizer maps per-upstream later); C = routed DeepSeek
+ * namespaces (openrouter/oc) are NOT treated as native; D = an explicit client
+ * `reasoning_effort` still wins; E = catalog effort-tier extension is idempotent.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -57,26 +53,22 @@ test("A2: the provider can also be supplied explicitly (model id without prefix)
   assert.equal(out.reasoning_effort, "max");
 });
 
-test("B: `max` still collapses to `xhigh` for every other provider", () => {
+test("B: `max` is a first-class canonical value for every other provider", () => {
   for (const model of ["openai/gpt-5", "anthropic/claude-opus-4-8", "z-ai/glm-5.2"]) {
     const out = normalizeReasoningRequest({ model, effort: "max" }) as Record<string, unknown>;
-    assert.equal(out.reasoning_effort, "xhigh", `${model} must keep the canonical collapse`);
+    assert.equal(out.reasoning_effort, "max", `${model} must keep native max`);
   }
-  // The global vocabulary itself is unchanged.
-  assert.deepEqual([...CANONICAL_EFFORT_VALUES], ["none", "low", "medium", "high", "xhigh"]);
-  assert.equal(normalizeEffort("max"), "xhigh");
+  assert.deepEqual([...CANONICAL_EFFORT_VALUES], ["none", "low", "medium", "high", "xhigh", "max"]);
+  assert.equal(normalizeEffort("max"), "max");
+  assert.equal(normalizeEffort("extra"), "xhigh");
 });
 
 test("C: routed DeepSeek namespaces are not treated as the native provider", () => {
   // These terminate at a different upstream whose effort vocabulary we do not control.
-  for (const model of [
-    "openrouter/deepseek/deepseek-v4-flash-0731",
-    "tllm/deepseek_v4",
-    "oc/deepseek-v4-flash-free",
-  ]) {
+  for (const model of ["openrouter/deepseek/deepseek-v4-flash-0731", "oc/deepseek-v4-flash-free"]) {
     assert.equal(isDeepSeekNativeMaxModel(null, model), false, `${model} is not native`);
     const out = normalizeReasoningRequest({ model, effort: "max" }) as Record<string, unknown>;
-    assert.equal(out.reasoning_effort, "xhigh");
+    assert.equal(out.reasoning_effort, "max");
   }
 });
 
@@ -96,7 +88,7 @@ test("E: catalog effort tiers advertise `max` for native DeepSeek models only", 
   assert.ok(deepseekTiers.includes("max"), "native DeepSeek must advertise the max tier");
 
   const otherTiers = extendDeepSeekEffortValues("openai", "gpt-5", base);
-  assert.ok(!otherTiers.includes("max"), "other providers must be untouched");
+  assert.deepEqual(otherTiers, base, "other providers must be untouched");
 
   // Idempotent: never duplicate an already-present tier.
   const twice = extendDeepSeekEffortValues("ds", "deepseek-v4-flash", deepseekTiers);
