@@ -99,6 +99,7 @@ export type AttemptLoopDeps = {
    * gate tests keep compiling; attempt uses defaults when absent.
    */
   clientManagedResponsesContext?: boolean;
+  nativeCodexAutoResume?: boolean;
   reasoningTokenBufferEnabled?: boolean;
   stickyWeightedLimit?: number;
   getWeightedStepKeyForTarget?: (target: ResolvedComboTarget) => string | null;
