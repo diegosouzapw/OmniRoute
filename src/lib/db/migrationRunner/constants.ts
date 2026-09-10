@@ -9,6 +9,25 @@
  */
 
 export const RENAMED_MIGRATION_COMPATIBILITY = [
+  // 123/126 duplicate-prefix collision repair (2026-08-26). Two pairs of migrations
+  // shared a numeric prefix, which made the runner refuse to start ("Migration version
+  // collision detected") and took the whole API down with a 500 on every route. The
+  // second file of each pair was renamed to a free version; these entries re-home the
+  // applied row on databases that already recorded the OLD number, so the name-mismatch
+  // safety check does not fire. Council of Legends approved 7-0, vote record
+  // council-votes/council-vote-20260826-014611.json.
+  {
+    fromVersion: "123",
+    fromName: "quota_auto_ping",
+    toVersion: "163",
+    toName: "quota_auto_ping",
+  },
+  {
+    fromVersion: "126",
+    fromName: "verification_chain",
+    toVersion: "164",
+    toName: "verification_chain",
+  },
   {
     fromVersion: "022",
     fromName: "call_logs_summary_storage",
@@ -199,6 +218,18 @@ export const SUPERSEDED_DUPLICATE_MIGRATIONS = [
     name: "session_account_affinity",
     supersededByVersion: "050",
     supersededByName: "session_account_affinity",
+  },
+  {
+    version: "123",
+    name: "quota_auto_ping",
+    supersededByVersion: "163",
+    supersededByName: "quota_auto_ping",
+  },
+  {
+    version: "126",
+    name: "verification_chain",
+    supersededByVersion: "164",
+    supersededByName: "verification_chain",
   },
 ] as const;
 
