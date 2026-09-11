@@ -1,3 +1,4 @@
+import { getFeatureFlagOverride } from "@/lib/db/featureFlags";
 import { resolveFeatureFlag } from "@/shared/utils/featureFlags";
 import {
   OutboundUrlGuardError,
@@ -32,16 +33,21 @@ export function arePrivateProviderUrlsAllowed() {
   //    the dashboard ("Allow Private Provider URLs"). This is critical for the
   //    Electron build (#2575) where the server is spawned with the env value
   //    captured at boot, so subsequent UI toggles only land in the DB and the
-  //    env-first ordering would otherwise mask them.
+  //    env-first ordering would otherwise mask them. That holds for a toggle OFF
+  //    too: an override of "false" must not be re-enabled by the env opt-in below.
+  let dbValue: string | undefined;
   try {
-    const dbValue = resolveFeatureFlag(PRIVATE_PROVIDER_URLS_ENV);
-    if (isTrueValue(dbValue)) return true;
+    dbValue = getFeatureFlagOverride(PRIVATE_PROVIDER_URLS_ENV);
   } catch {
     // DB not initialized yet — fall through to env-only check.
   }
 
-  // 2) Explicit env opt-in (for headless/Docker users who set it before boot).
-  if (isTrueValue(process.env[PRIVATE_PROVIDER_URLS_ENV])) return true;
+  if (dbValue !== undefined && dbValue !== "") {
+    if (isTrueValue(dbValue)) return true;
+  } else if (isTrueValue(process.env[PRIVATE_PROVIDER_URLS_ENV])) {
+    // 2) Explicit env opt-in (for headless/Docker users who set it before boot).
+    return true;
+  }
 
   // 3) Legacy escape hatch — disabling the outbound guard implies allowing
   //    private URLs.
