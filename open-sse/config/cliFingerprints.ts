@@ -262,18 +262,46 @@ export function orderHeaders(
 }
 
 /**
- * Apply a CLI fingerprint to headers and body.
- * Returns { headers, bodyString } with the correct ordering.
+ * Internal request-body markers that are NOT `_omniroute*`-prefixed and must be
+ * removed key-by-key. Everything else is caught by INTERNAL_BODY_FIELD_PREFIX.
+ */
+const INTERNAL_BODY_FIELDS: readonly string[] = [
+  "_claudeCodeRequiresLowercaseToolNames",
+  "_nativeCodexPassthrough",
+  "_nativeXaiResponsesPassthrough",
+  "_nativeOpenAICompatibleResponsesPassthrough",
+];
+
+/**
+ * Every omniroute-owned internal marker uses this prefix, so the strip is
+ * prefix-based rather than an allowlist. An allowlist silently leaks each newly
+ * added marker to the upstream, where strict gateways reject the whole request
+ * (observed live: `[400]: _omnirouteSkipContextRelay: Extra inputs are not
+ * permitted` on a claude hop, from the context/universal-handoff markers set in
+ * `open-sse/services/contextHandoff.ts`). Markers are consumed by routing before
+ * dispatch, so removing them at this chokepoint is always safe.
+ *
+ * Deliberately narrow: only omniroute-owned prefixes are ours. A caller-sent
+ * field that merely starts with `_` is client payload and passes through.
+ */
+const INTERNAL_BODY_FIELD_PREFIX = "_omniroute";
+
+/**
+ * Remove omniroute-internal markers from a request body before it is serialized
+ * for an upstream. Mutates and returns the same object.
  */
 export function stripInternalBodyFields(body: unknown): unknown {
   if (!body || typeof body !== "object" || Array.isArray(body)) return body;
 
   const record = body as Record<string, unknown>;
-  delete record._claudeCodeRequiresLowercaseToolNames;
-  delete record._nativeCodexPassthrough;
-  delete record._nativeXaiResponsesPassthrough;
-  delete record._nativeOpenAICompatibleResponsesPassthrough;
-  delete record._omnirouteResponsesStore;
+  for (const field of INTERNAL_BODY_FIELDS) {
+    delete record[field];
+  }
+  for (const key of Object.keys(record)) {
+    if (key.startsWith(INTERNAL_BODY_FIELD_PREFIX)) {
+      delete record[key];
+    }
+  }
   return body;
 }
 
