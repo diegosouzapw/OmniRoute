@@ -969,10 +969,15 @@ function startDbHealthCheckScheduler(db: SqliteDatabase) {
 // file itself; only wal_checkpoint(TRUNCATE) does, and a long-running server never closes its DB.
 // The scheduler lives in ./walMaintenance (periodic TRUNCATE + busy warn + PASSIVE retry).
 
-export function runManagedDbHealthCheck(options?: { autoRepair?: boolean }) {
+export function runManagedDbHealthCheck(options?: {
+  autoRepair?: boolean;
+  skipIntegrityCheck?: boolean;
+}) {
   const db = getDbInstance();
   return runDbHealthCheck(db, {
     autoRepair: options?.autoRepair === true,
+    skipIntegrityCheck:
+      options?.skipIntegrityCheck === true || process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1",
     expectedSchemaVersion: "1",
     createBackupBeforeRepair: () => createHealthCheckBackup(db),
   });
