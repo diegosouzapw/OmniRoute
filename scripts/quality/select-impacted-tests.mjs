@@ -12,7 +12,7 @@ const HUB_RE =
 // tests, and `src/**/__tests__`/`open-sse/**/__tests__`, which can't run under node:test.
 // Keep in sync with package.json test:unit* braces + serial + dashboard + *.test.mjs.
 const UNIT_SUBDIRS =
-  "api|auth|authz|build|cli|cli-helper|combo|compression|correctness|cors|dashboard|db|db-adapters|docs|gamification|guardrails|lib|mcp|memory|runtime|security|services|settings|shared|translator|ui|usage|serial";
+  "api|auth|authz|build|chatcore|cli|cli-helper|combo|compression|correctness|cors|dashboard|db|db-adapters|docs|gamification|guardrails|lib|mcp|memory|runtime|security|services|settings|shared|translator|ui|usage|serial";
 // .ts: top-level + UNIT_SUBDIRS (mirrors package.json brace globs).
 // .mjs: package.json uses tests/unit/**/*.test.mjs (any depth under tests/unit).
 const TEST_RE = new RegExp(

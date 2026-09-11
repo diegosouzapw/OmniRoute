@@ -1,0 +1,1 @@
+- **refactor(sse):** split chatCore send, recovery, stream completion, and request prelude modules ([#13065](https://github.com/diegosouzapw/OmniRoute/pull/13065))

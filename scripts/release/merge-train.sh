@@ -171,7 +171,7 @@ if [ "$FAST" = "1" ]; then
     | grep -E '\.test\.(ts|mjs)$' || true)
   # Subdirs test:unit actually runs (package.json allowlist) — anything else under
   # tests/unit/<sub>/ belongs to another runner (e.g. autoCombo -> vitest).
-  UNIT_SUBDIRS=",api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage,"
+  UNIT_SUBDIRS=",api,auth,authz,build,chatcore,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage,"
   MAIN=()
   DASH=()
   SERIAL=()

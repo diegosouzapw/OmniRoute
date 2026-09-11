@@ -90,6 +90,14 @@ test("changed unit test under combo/ → run itself", () => {
   assert.deepEqual(sel, ["tests/unit/combo/routing.test.ts"]);
 });
 
+test("changed unit test under chatcore/ → run itself", () => {
+  const sel = selectImpacted({
+    changed: ["tests/unit/chatcore/recovery-callsite.test.ts"],
+    map: MAP,
+  });
+  assert.deepEqual(sel, ["tests/unit/chatcore/recovery-callsite.test.ts"]);
+});
+
 test("changed unit test under translator/ → run itself", () => {
   const sel = selectImpacted({
     changed: ["tests/unit/translator/streaming.test.ts"],

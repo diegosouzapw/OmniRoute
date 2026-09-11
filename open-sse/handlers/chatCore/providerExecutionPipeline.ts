@@ -3,13 +3,16 @@ import type { getProviderCredentials } from "@/sse/services/auth.ts";
 import type { updateFromHeaders, updateFromResponseBody } from "../../services/rateLimitManager.ts";
 import type { writeTerminalStatus } from "@/shared/utils/terminalStatus.ts";
 import type { updateProviderConnection } from "@/lib/db/providers.ts";
-import type { lockModel, recordCoreOwnedAntigravityQuotaState } from "../../services/accountFallback.ts";
+import type {
+  lockModel,
+  recordCoreOwnedAntigravityQuotaState,
+} from "../../services/accountFallback.ts";
 import { createErrorResult } from "../../utils/error.ts";
 import { applyStatusRestatement } from "../../config/upstreamStatusRestatement.ts";
 import { recoverAnthropicThinkingSignature } from "./thinkingSignatureRecovery.ts";
-import { isModelUnavailableError, getNextFamilyFallback as defaultGetNextFamilyFallback } from "../../services/modelFamilyFallback.ts";
-import { COOLDOWN_MS } from "../../config/errorConfig.ts";
+import { getNextFamilyFallback as defaultGetNextFamilyFallback } from "../../services/modelFamilyFallback.ts";
 import { normalizeHeaders } from "../../utils/headers.ts";
+import { onFailure } from "./recoveryPolicy.ts";
 
 export interface ChatCoreExecutorResult {
   response: Response;
@@ -124,6 +127,35 @@ function currentConnectionId(connection: PipelineConnectionContext): string {
   return connection.getCurrentConnectionId() ?? connection.initialConnectionId;
 }
 
+function commitWire(
+  wire: PipelineWireState,
+  body: Record<string, unknown>,
+  model: string
+): void {
+  wire.setBodyAndModel(body, model);
+  wire.body = body;
+  wire.currentModel = model;
+  wire.triedModels.add(model);
+}
+
+async function readAttemptErrorMessage(attempt: ChatCoreExecutorResult): Promise<string> {
+  let message = attempt.response.statusText || "upstream error";
+  let raw = "";
+  try {
+    raw = await attempt.response.clone().text();
+    const parsed = JSON.parse(raw) as { error?: { message?: unknown } };
+    if (typeof parsed?.error?.message === "string" && parsed.error.message) {
+      message = parsed.error.message;
+    }
+  } catch {
+    // keep statusText
+  }
+  if (raw.includes("gcp_project_required") && !message.includes("gcp_project_required")) {
+    message = `${message} gcp_project_required`;
+  }
+  return message;
+}
+
 function retryAfterMsFrom(attempt: ChatCoreExecutorResult): number | null {
   // attempt.headers is the outbound request bag (BaseExecutor finalHeaders).
   // Retry-After lives on the upstream Response — same source as the parent
@@ -196,11 +228,7 @@ async function toOutcome(
     body,
     retryAfterMs: null,
   });
-  const result = createErrorResult(
-    restatement.status,
-    message,
-    restatement.retryAfterMs
-  );
+  const result = createErrorResult(restatement.status, message, restatement.retryAfterMs);
   return {
     kind: "error",
     result: {
@@ -251,17 +279,21 @@ export async function runProviderExecutionPipeline(
   let authRefreshPending = false;
   let authRefreshed = false;
   let modelFallbackPending = false;
+  let signatureRetryPending = false;
+  let signatureRetried = false;
   const resolveFamilyFallback = input.getNextFamilyFallback ?? defaultGetNextFamilyFallback;
 
   while (
     attempts < maxAttempts ||
     antigravityByopRotationPending ||
     authRefreshPending ||
-    modelFallbackPending
+    modelFallbackPending ||
+    signatureRetryPending
   ) {
     antigravityByopRotationPending = false;
     authRefreshPending = false;
     modelFallbackPending = false;
+    signatureRetryPending = false;
     const before = assertLease(policy, connection, wire.currentModel);
     if (before) return before;
 
@@ -273,84 +305,130 @@ export async function runProviderExecutionPipeline(
 
     const status = attempt.response.status;
     if (status >= 200 && status < 300) {
-      return toOutcome(attempt, wire.currentModel, currentConnectionId(connection), target.provider);
+      return toOutcome(
+        attempt,
+        wire.currentModel,
+        currentConnectionId(connection),
+        target.provider
+      );
     }
 
     const isolateProbe = await state.isolateProbeFailures();
-    const canRotateAccount = policy.allowAccountRotation && !isolateProbe;
+    const message = await readAttemptErrorMessage(attempt);
+    const connId = currentConnectionId(connection);
 
-    if (
-      canRotateAccount &&
-      target.provider === "codex" &&
-      status === 429 &&
-      attempts < maxAttempts - 1
-    ) {
-      const failedId = currentConnectionId(connection);
-      const retryAfterMs = retryAfterMsFrom(attempt);
-      if (failedId && !excludedIds.includes(failedId)) excludedIds.push(failedId);
-      if (failedId) {
-        await state.onCodexScopeRateLimited?.({
-          failedConnectionId: failedId,
-          model: wire.currentModel || target.requestedModel || null,
-          rateLimitedUntil: new Date(Date.now() + (retryAfterMs || 60_000)).toISOString(),
-          credentials: connection.getCredentials(),
-        });
-        await state.onClearSessionAffinity?.({ failedConnectionId: failedId });
-      }
-      const nextCreds = await connection
-        .getProviderCredentials("codex", null, null, wire.currentModel, {
-          excludeConnectionIds: [...excludedIds],
-        })
-        .catch(() => null);
-      if (nextCreds && !nextCreds.allRateLimited && nextCreds.connectionId) {
-        await state.onAuditAccountRotation?.({
-          action: "codex.account_rotation",
-          failedConnectionId: failedId,
-          newConnectionId: String(nextCreds.connectionId),
-          attempt: attempts + 1,
-          retryAfterMs,
-        });
-        connection.replaceCredentials(nextCreds as Record<string, unknown>);
-        attempts += 1;
-        continue;
+    if (!signatureRetried) {
+      const signatureRecovery = await recoverAnthropicThinkingSignature({
+        provider: target.provider,
+        statusCode: status,
+        message,
+        body: wire.body,
+        execute: async (recoveryBody) => {
+          if (recoveryBody && typeof recoveryBody === "object" && !Array.isArray(recoveryBody)) {
+            commitWire(wire, recoveryBody as Record<string, unknown>, wire.currentModel);
+          }
+          return sendProviderAttempt(wire.currentModel, false);
+        },
+        parseError: async (response) => {
+          let parsedMessage = response.statusText || "upstream error";
+          let responseBody: unknown = null;
+          try {
+            responseBody = JSON.parse(await response.clone().text());
+            const err = (responseBody as { error?: { message?: unknown } } | null)?.error;
+            if (typeof err?.message === "string" && err.message) parsedMessage = err.message;
+          } catch {
+            // keep statusText
+          }
+          return {
+            statusCode: response.status,
+            message: parsedMessage,
+            retryAfterMs: null,
+            responseBody,
+          };
+        },
+      });
+      if (signatureRecovery.attempted) {
+        signatureRetried = true;
+        if (signatureRecovery.succeeded && signatureRecovery.execution) {
+          lastAttempt = {
+            response: signatureRecovery.execution.response,
+            url: signatureRecovery.execution.url ?? attempt.url,
+            headers:
+              (signatureRecovery.execution.headers as Record<string, string>) ?? attempt.headers,
+            transformedBody: signatureRecovery.execution.transformedBody ?? attempt.transformedBody,
+          };
+          return toOutcome(lastAttempt, wire.currentModel, connId, target.provider);
+        }
       }
     }
 
-    if (canRotateAccount && target.provider === "antigravity" && status === 422) {
-      // Same drain as toOutcome: clone the Response. A prior body.cancel()
-      // makes this throw "Body has already been consumed" and skips rotate.
-      const byopBody = await attempt.response
-        .clone()
-        .text()
-        .catch(() => "");
-      if (byopBody.includes("gcp_project_required")) {
-        const failedId = currentConnectionId(connection);
+    const nextModel = policy.allowModelFallback
+      ? resolveFamilyFallback(wire.currentModel, wire.triedModels, target.provider)
+      : null;
+
+    const decision = onFailure({
+      view: { kind: "pipeline" },
+      status,
+      message,
+      provider: target.provider,
+      model: wire.currentModel,
+      connectionId: connId,
+      allowAccountRotation: policy.allowAccountRotation,
+      allowModelFallback: policy.allowModelFallback,
+      isolateProbe,
+      nextModel,
+      canRefresh: !authRefreshed && typeof connection.refreshCredentials === "function",
+    });
+
+    if (decision.effects.rateLimitUntil) {
+      await state.setConnectionRateLimitedUntil(
+        decision.effects.rateLimitUntil.connectionId,
+        decision.effects.rateLimitUntil.untilMs
+      );
+    }
+
+    if (decision.dispatch.action === "rotate-account") {
+      const failedId = decision.dispatch.excludeConnectionId || connId;
+      const canCodexRotate = target.provider !== "codex" || attempts < maxAttempts - 1;
+      if (canCodexRotate) {
         if (failedId && !excludedIds.includes(failedId)) excludedIds.push(failedId);
-        if (failedId) {
-          await state.setConnectionRateLimitedUntil(
-            failedId,
-            Date.now() + (COOLDOWN_MS.gcpProjectRequired ?? 24 * 60 * 60 * 1000)
-          );
+        if (target.provider === "codex" && failedId) {
+          const retryAfterMs = retryAfterMsFrom(attempt);
+          await state.onCodexScopeRateLimited?.({
+            failedConnectionId: failedId,
+            model: wire.currentModel || target.requestedModel || null,
+            rateLimitedUntil: new Date(Date.now() + (retryAfterMs || 60_000)).toISOString(),
+            credentials: connection.getCredentials(),
+          });
+          await state.onClearSessionAffinity?.({ failedConnectionId: failedId });
         }
         const nextCreds = await connection
-          .getProviderCredentials("antigravity", null, null, wire.currentModel, {
+          .getProviderCredentials(target.provider, null, null, wire.currentModel, {
             excludeConnectionIds: [...excludedIds],
           })
           .catch(() => null);
         if (nextCreds && !nextCreds.allRateLimited && nextCreds.connectionId) {
+          if (target.provider === "codex") {
+            await state.onAuditAccountRotation?.({
+              action: "codex.account_rotation",
+              failedConnectionId: failedId,
+              newConnectionId: String(nextCreds.connectionId),
+              attempt: attempts + 1,
+              retryAfterMs: retryAfterMsFrom(attempt),
+            });
+            connection.replaceCredentials(nextCreds as Record<string, unknown>);
+            attempts += 1;
+            signatureRetried = false;
+            continue;
+          }
           connection.replaceCredentials(nextCreds as Record<string, unknown>);
           antigravityByopRotationPending = true;
+          signatureRetried = false;
           continue;
         }
       }
-    }
-
-    if (
-      !authRefreshed &&
-      (status === 401 || status === 403) &&
-      typeof connection.refreshCredentials === "function"
-    ) {
-      const refreshed = await connection.refreshCredentials(connection.getCredentials());
+    } else if (decision.dispatch.action === "refresh-credentials") {
+      const refreshed = await connection.refreshCredentials!(connection.getCredentials());
       if (refreshed && (refreshed.accessToken || refreshed.copilotToken)) {
         connection.replaceCredentials({ ...connection.getCredentials(), ...refreshed });
         await connection.onCredentialsRefreshed(refreshed);
@@ -358,92 +436,35 @@ export async function runProviderExecutionPipeline(
         authRefreshPending = true;
         continue;
       }
-    }
-
-    {
-      let signatureMessage = attempt.response.statusText || "upstream error";
-      try {
-        const parsed = JSON.parse(await attempt.response.clone().text()) as {
-          error?: { message?: unknown };
-        };
-        if (typeof parsed?.error?.message === "string" && parsed.error.message) {
-          signatureMessage = parsed.error.message;
-        }
-      } catch {
-        // keep statusText
-      }
-      const signatureRecovery = await recoverAnthropicThinkingSignature({
-        provider: target.provider,
-        statusCode: status,
-        message: signatureMessage,
-        body: wire.body,
-        execute: async (recoveryBody) => {
-          if (recoveryBody && typeof recoveryBody === "object" && !Array.isArray(recoveryBody)) {
-            wire.setBodyAndModel(recoveryBody as Record<string, unknown>, wire.currentModel);
-          }
-          return sendProviderAttempt(wire.currentModel, false);
-        },
-        parseError: async (response) => {
-          let message = response.statusText || "upstream error";
-          let responseBody: unknown = null;
-          try {
-            responseBody = JSON.parse(await response.clone().text());
-            const err = (responseBody as { error?: { message?: unknown } } | null)?.error;
-            if (typeof err?.message === "string" && err.message) message = err.message;
-          } catch {
-            // keep statusText
-          }
-          return {
-            statusCode: response.status,
-            message,
-            retryAfterMs: null,
-            responseBody,
-          };
-        },
-      });
-      if (signatureRecovery.attempted && signatureRecovery.succeeded && signatureRecovery.execution) {
-        lastAttempt = {
-          response: signatureRecovery.execution.response,
-          url: signatureRecovery.execution.url ?? attempt.url,
-          headers: (signatureRecovery.execution.headers as Record<string, string>) ?? attempt.headers,
-          transformedBody: signatureRecovery.execution.transformedBody ?? attempt.transformedBody,
-        };
-        return toOutcome(
-          lastAttempt,
-          wire.currentModel,
-          currentConnectionId(connection),
-          target.provider
+    } else if (decision.dispatch.action === "retry-same") {
+      if (decision.dispatch.nextBody && typeof decision.dispatch.nextBody === "object") {
+        commitWire(
+          wire,
+          decision.dispatch.nextBody as Record<string, unknown>,
+          wire.currentModel
         );
       }
-    }
-
-    if (policy.allowModelFallback) {
-      let fallbackMessage = attempt.response.statusText || "upstream error";
-      try {
-        const parsed = JSON.parse(await attempt.response.clone().text()) as {
-          error?: { message?: unknown };
-        };
-        if (typeof parsed?.error?.message === "string" && parsed.error.message) {
-          fallbackMessage = parsed.error.message;
-        }
-      } catch {
-        // keep statusText
-      }
-      if (isModelUnavailableError(status, fallbackMessage, target.provider)) {
-        const nextModel = resolveFamilyFallback(wire.currentModel, wire.triedModels, target.provider);
-        if (nextModel) {
-          wire.setBodyAndModel({ ...wire.body, model: nextModel }, nextModel);
-          modelFallbackPending = true;
-          continue;
-        }
-      }
+      signatureRetryPending = true;
+      signatureRetried = true;
+      continue;
+    } else if (decision.dispatch.action === "fallback-model") {
+      const next = decision.dispatch.nextModel;
+      commitWire(wire, { ...wire.body, model: next }, next);
+      modelFallbackPending = true;
+      signatureRetried = false;
+      continue;
     }
 
     return toOutcome(attempt, wire.currentModel, currentConnectionId(connection), target.provider);
   }
 
   if (lastAttempt) {
-    return toOutcome(lastAttempt, wire.currentModel, currentConnectionId(connection), target.provider);
+    return toOutcome(
+      lastAttempt,
+      wire.currentModel,
+      currentConnectionId(connection),
+      target.provider
+    );
   }
   return leaseMismatch(wire.currentModel, currentConnectionId(connection));
 }

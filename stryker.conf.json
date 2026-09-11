@@ -146,6 +146,7 @@
       "tests/unit/chatcore-telemetry-helpers.test.ts",
       "tests/unit/chatcore-translation-paths.test.ts",
       "tests/unit/chatcore-upstream-timeouts.test.ts",
+      "tests/unit/chatcore/recovery-callsite.test.ts",
       "tests/unit/check-error-helper.test.ts",
       "tests/unit/check-route-guard-membership.test.ts",
       "tests/unit/check-test-discovery.test.ts",
