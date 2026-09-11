@@ -69,6 +69,23 @@ test("Windows enable/disable writes and removes VBS in Startup folder", async ()
 // autostart-macos-launchctl.test.ts.
 // ---------------------------------------------------------------------------
 
+test("Windows path resolution skips the POSIX command lookup", () => {
+  const source = readFileSync(join(process.cwd(), "bin/cli/tray/autostart.mjs"), "utf8");
+  const resolveCliPath = source.match(/function resolveCliPath\(\) \{([\s\S]*?)\n\}/);
+
+  assert.ok(resolveCliPath, "resolveCliPath should exist");
+  const nonWindowsGuard = resolveCliPath[1].match(
+    /if \(process\.platform !== "win32"\) \{([\s\S]*?)\n  \}/
+  );
+  assert.ok(nonWindowsGuard, "resolveCliPath should have a non-Windows guard");
+  assert.match(nonWindowsGuard[1], /command -v omniroute/);
+  assert.doesNotMatch(
+    resolveCliPath[1].replace(nonWindowsGuard[0], ""),
+    /command -v omniroute/,
+    "the POSIX PATH probe must only appear inside the non-Windows guard"
+  );
+});
+
 test("Windows enableWin writes VBS to Startup folder, not reg add", () => {
   const source = readFileSync(join(process.cwd(), "bin/cli/tray/autostart.mjs"), "utf8");
 

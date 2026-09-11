@@ -13,11 +13,13 @@ const LINUX_DESKTOP_NAME = "omniroute.desktop";
 function resolveCliPath() {
   const candidates = [];
   if (process.argv[1]) candidates.push(process.argv[1]);
-  try {
-    const which = execSync("command -v omniroute 2>/dev/null", { encoding: "utf8" }).trim();
-    if (which) candidates.push(which);
-  } catch {
-    // command -v unavailable
+  if (process.platform !== "win32") {
+    try {
+      const which = execSync("command -v omniroute 2>/dev/null", { encoding: "utf8" }).trim();
+      if (which) candidates.push(which);
+    } catch {
+      // command -v unavailable
+    }
   }
   candidates.push(join(dirname(fileURLToPath(import.meta.url)), "..", "..", "omniroute.mjs"));
 
