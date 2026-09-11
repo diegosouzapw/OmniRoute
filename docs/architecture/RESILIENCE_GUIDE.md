@@ -166,6 +166,21 @@ Related mechanisms remain separate:
 
 **Scope:** provider + connection + model triple.
 
+**Key scope by status:** the failing status decides which key a lockout writes
+to (`resolveLockoutScope()` in `open-sse/services/accountFallback/exactModelLock.ts`):
+
+- `429` / `403` / `402` — a quota or entitlement signal — lock the **quota family**:
+  for codex the whole `codex` / `spark` scope (every `gpt-5*` model of the
+  connection), for other providers `getQuotaScopedModelForProvider()`.
+- `404` locks the bare model (`getModelLockKey()` narrows `not_found`).
+- Any other status — `5xx` transport/server failures and OmniRoute's own
+  synthesized `502` from quality validation — locks the **exact**
+  provider/connection/model tuple only. A bad stream on one model is not evidence
+  about the account's quota; before this rule one empty response on
+  `codex/gpt-5.6-luna` removed every `gpt-5*` model of that connection from
+  routing for 2–30 min (escalating) while its quota was untouched.
+- A caller's explicit `scope` option always wins (Antigravity passes `"exact"`).
+
 **Purpose:** avoid disabling a whole connection when only one model is unavailable or quota-limited.
 
 **Examples:**
@@ -224,7 +239,8 @@ escalation window. This success-decay is in addition to plain timer expiry —
 either path can re-enable a model.
 
 **State:** lockouts are held **in-memory** (per-process `Map`s of
-`ModelLockoutEntry` keyed by `provider:connectionId:model`), not persisted to
+`ModelLockoutEntry` keyed by `provider:connectionId:model`, exact-scope locks by
+`provider:connectionId:exact:model`), not persisted to
 the DB — they are lost on restart. The _settings_ are persisted; the active
 lockout _state_ is ephemeral.
 

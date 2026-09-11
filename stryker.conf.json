@@ -297,6 +297,7 @@
       "tests/unit/model-cooldowns-route.test.ts",
       "tests/unit/model-lockout-decay.test.ts",
       "tests/unit/model-lockout-exact-cooldown-cap.test.ts",
+      "tests/unit/model-lockout-5xx-exact-scope.test.ts",
       "tests/unit/model-lockout-max-cooldown.test.ts",
       "tests/unit/native-codex-turn-pin-10379.test.ts",
       "tests/unit/native-codex-turn-pin-model-scoped-fallback.test.ts",

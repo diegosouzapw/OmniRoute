@@ -836,6 +836,7 @@ export function recordModelLockoutFailure(
   options: {
     exactCooldownMs?: number | null;
     maxCooldownMs?: number;
+    /** Explicit override; otherwise resolveLockoutScope(status) — 5xx lock the exact tuple. */
     scope?: "exact" | "quota_family";
     /**
      * #6863 vs #7940: set true only when `exactCooldownMs` came from an actual
@@ -849,8 +850,9 @@ export function recordModelLockoutFailure(
   } = {}
 ) {
   ensureCleanupTimer();
+  const scope = exactModelLock.resolveLockoutScope(status, options.scope);
   const key =
-    options.scope === "exact"
+    scope === "exact"
       ? buildExactKey(getCanonicalLockProvider(provider), connectionId, model)
       : getModelLockKey(provider, connectionId, model, reason, status);
   const now = Date.now();
@@ -902,7 +904,7 @@ export function recordModelLockoutFailure(
     lastCooldownMs: cooldownMs,
   });
 
-  const lockFn = options.scope === "exact" ? lockExactModel : lockModel;
+  const lockFn = scope === "exact" ? lockExactModel : lockModel;
   lockFn(provider, connectionId, model, reason, cooldownMs, {
     failureCount,
     lastFailureAt: now,
@@ -1018,21 +1020,13 @@ export function decayModelFailureCount(
   connectionId: string,
   model: string
 ): DecayResult {
-  const key = getModelLockKey(provider, connectionId, model);
-  const failure = modelFailureState.get(key);
-  if (!failure) return { cleared: false, newFailureCount: 0 };
-
-  const newFailureCount = Math.floor(failure.failureCount / 2);
-  if (newFailureCount === 0) {
-    modelFailureState.delete(key);
-    return { cleared: true, newFailureCount: 0 };
-  } else {
-    modelFailureState.set(key, {
-      ...failure,
-      failureCount: newFailureCount,
-    });
-    return { cleared: false, newFailureCount };
-  }
+  if (!model) return { cleared: false, newFailureCount: 0 };
+  // Every key shape: a 5xx lock lives under the exact key, a quota lock under the
+  // family key — a healthy response must walk back whichever one is escalating.
+  return exactModelLock.decayFailureCounts(
+    modelFailureState,
+    getModelLockKeys(provider, connectionId, model)
+  );
 }
 
 /**
@@ -1104,8 +1098,7 @@ export function getAllModelLockouts(): ModelLockoutInfo[] {
     cleanupModelLockKey(key, now);
   }
   for (const [key, entry] of modelLockouts) {
-    const [provider, connectionId, ...modelParts] = key.split(":");
-    const model = modelParts.join(":");
+    const { provider, connectionId, model } = exactModelLock.parseModelLockKey(key);
     active.push({
       provider,
       connectionId,
