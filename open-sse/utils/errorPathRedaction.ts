@@ -465,8 +465,22 @@ function findUnquotedPathEnd(
   let hasUnresolvedFragments = false;
 
   const resolveEndpoint = (): number => {
+    // A deterministic filename extension pins the endpoint exactly, so there is
+    // no ambiguity left to fail closed about -- the suffix cannot leak because we
+    // know where it ends. Checked before the ambiguity branch, which otherwise
+    // discarded a resolved endpoint the moment any prose followed it and swallowed
+    // the rest of the line (#13144: `... provider.ts:42:7 with api_key=...` lost
+    // its redacted-secret tail).
+    if (resolvedExtensionEnd >= 0) return resolvedExtensionEnd;
     if (hasUnresolvedFragments) {
-      return failClosedAmbiguity || hasFilesystemEvidence ? value.length : -1;
+      // Only an *unequivocal* prefix — Windows, a file URI, or a known POSIX
+      // filesystem root — may swallow the rest of the line to avoid exposing a
+      // suffix like `Files\secret`. Separator evidence alone is not that:
+      // every API route carries slashes, so treating it as unequivocal made an
+      // ordinary `/v1/x/y` in prose truncate the message after it, which is
+      // exactly what this function documents it must not do (#13144). Such a
+      // span returns -1 and falls back to token-level handling instead.
+      return failClosedAmbiguity ? value.length : -1;
     }
     if (resolvedExtensionEnd >= 0) return resolvedExtensionEnd;
     if (hasFilesystemEvidence && lastPathTokenEnd >= 0) return lastPathTokenEnd;
