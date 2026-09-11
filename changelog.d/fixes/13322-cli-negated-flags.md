@@ -1,0 +1,1 @@
+- **fix(cli):** `contexts export --no-secrets` now leaves the access tokens and API keys out, and `chat --no-history` and `serve --no-recovery` take effect; all three flags were accepted and ignored ([#13322](https://github.com/diegosouzapw/OmniRoute/pull/13322))
