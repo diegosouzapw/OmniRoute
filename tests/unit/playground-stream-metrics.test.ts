@@ -90,9 +90,8 @@ describe("computeMetrics", () => {
     });
   });
 
-  describe("tps (tokens per second)", () => {
-    it("is tokensOut / (totalMs / 1000)", () => {
-      // totalMs = 2000ms => 2s; tokensOut = 20 => tps = 10
+  describe("tps (tokens per second, generation time — #13130)", () => {
+    it("is tokensOut / ((totalMs - ttftMs) / 1000) when first-chunk timing is known", () => {
       const m = computeMetrics({
         startedAt: BASE_START,
         firstChunkAt: BASE_FIRST,
@@ -100,7 +99,33 @@ describe("computeMetrics", () => {
         tokensIn: 10,
         tokensOut: 20,
       });
+      // Generation window = 2000ms - 200ms = 1800ms -> 20/1.8s ≈ 11.11 t/s
+      // (the pre-#13130 wall-clock formula reported 10 t/s for this shape).
+      assert.ok(Math.abs((m.tps ?? 0) - 20 / 1.8) < 1e-9, `got ${m.tps}`);
+    });
+
+    it("falls back to the full window when no first chunk was observed", () => {
+      const m = computeMetrics({
+        startedAt: BASE_START,
+        firstChunkAt: null,
+        finishedAt: BASE_FINISH,
+        tokensIn: 10,
+        tokensOut: 20,
+      });
+      assert.equal(m.ttftMs, null);
       assert.equal(m.tps, 20 / (2000 / 1000)); // 10
+    });
+
+    it("falls back to the full window when TTFT resolves to 0ms", () => {
+      const m = computeMetrics({
+        startedAt: 0,
+        firstChunkAt: 0,
+        finishedAt: 2000,
+        tokensIn: 10,
+        tokensOut: 20,
+      });
+      assert.equal(m.ttftMs, 0);
+      assert.equal(m.tps, 10);
     });
 
     it("is null when tokensOut is 0", () => {
@@ -137,6 +162,8 @@ describe("computeMetrics", () => {
     });
 
     it("computes correct tps for various token counts", () => {
+      // firstChunkAt === startedAt -> TTFT 0ms -> full-window fallback, so
+      // these expectations are the plain tokensOut / (totalMs / 1000) values.
       const cases: Array<{ tokensOut: number; totalMs: number; expected: number }> = [
         { tokensOut: 100, totalMs: 1000, expected: 100 },
         { tokensOut: 50, totalMs: 2000, expected: 25 },
@@ -145,7 +172,7 @@ describe("computeMetrics", () => {
       for (const { tokensOut, totalMs, expected } of cases) {
         const m = computeMetrics({
           startedAt: 0,
-          firstChunkAt: 1,
+          firstChunkAt: 0,
           finishedAt: totalMs,
           tokensIn: 5,
           tokensOut,

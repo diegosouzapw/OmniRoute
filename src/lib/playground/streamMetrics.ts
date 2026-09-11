@@ -2,6 +2,7 @@
 // Pure function — no React dependency. Reusable outside of hooks.
 
 import type { StreamMetrics } from "@/shared/schemas/playground";
+import { resolveGenerationMs } from "@/shared/utils/logTps";
 
 export interface ComputeMetricsArgs {
   /** ms timestamp of when the request was dispatched. null = not started. */
@@ -30,19 +31,23 @@ export interface ComputeMetricsArgs {
  *
  * All timing values are "client-perceived" (D12) — measured from the browser's
  * perspective, not the server's. UI should label these "(client-side estimate)".
+ *
+ * #13130: `tps` is GENERATION throughput — tokens over (totalMs - ttftMs) when
+ * the first chunk timing is known, matching the gateway rule in
+ * open-sse/utils/generationThroughput.ts ("tok/s MUST exclude TTFT"). Without
+ * a first-chunk timestamp it falls back to the full client-perceived window.
  */
 export function computeMetrics(args: ComputeMetricsArgs): StreamMetrics {
   const { startedAt, firstChunkAt, finishedAt, tokensIn, tokensOut, pricing } = args;
 
-  const ttftMs =
-    firstChunkAt != null && startedAt != null ? firstChunkAt - startedAt : null;
+  const ttftMs = firstChunkAt != null && startedAt != null ? firstChunkAt - startedAt : null;
 
-  const totalMs =
-    finishedAt != null && startedAt != null ? finishedAt - startedAt : null;
+  const totalMs = finishedAt != null && startedAt != null ? finishedAt - startedAt : null;
 
+  const generationMs = resolveGenerationMs(totalMs, ttftMs);
   const tps =
-    totalMs != null && totalMs > 0 && tokensOut > 0
-      ? tokensOut / (totalMs / 1000)
+    generationMs != null && generationMs > 0 && tokensOut > 0
+      ? tokensOut / (generationMs / 1000)
       : null;
 
   const costUsd =

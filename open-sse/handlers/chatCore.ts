@@ -5811,6 +5811,9 @@ export async function handleChatCore({
       claudeCacheMeta: claudePromptCacheLogMeta,
       claudeCacheUsageMeta: cacheUsageLogMeta,
       cacheSource: "upstream",
+      // #13130: persist TTFT so call_logs.ttft_ms lets the dashboard compute
+      // generation-time TPS instead of wall-clock TPS.
+      ttft,
     });
 
     recordStreamingCost({

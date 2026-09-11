@@ -28,6 +28,7 @@ import {
   formatCachePercentage,
 } from "@/shared/utils/formatting";
 import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
+import { computeLogTps, resolveGenerationMs } from "@/shared/utils/logTps";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import {
   computeLogsSignature,
@@ -69,11 +70,12 @@ function getLogTotalTokens(log) {
   return (log?.tokens?.in || 0) + (log?.tokens?.out || 0);
 }
 
+// #13130: TPS measures GENERATION throughput — output tokens (reasoning
+// included via the defensive max() in computeLogTps) divided by generation
+// time (duration minus TTFT), not by end-to-end wall clock. Old rows and
+// non-streaming calls have no TTFT recorded and fall back to full duration.
 function getLogTps(log): number {
-  const tokensOut = log?.tokens?.out || 0;
-  const durationMs = log?.duration || 0;
-  if (tokensOut <= 0 || durationMs <= 0) return 0;
-  return tokensOut / (durationMs / 1000);
+  return computeLogTps(log?.tokens?.out, log?.tokens?.reasoning, log?.duration, log?.ttft);
 }
 
 function formatTps(tps: number): string {
@@ -134,6 +136,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
         { key: "combo", label: t("columns.combo") },
         { key: "tokens", label: t("columns.tokens") },
         { key: "tps", label: t("columns.tps") },
+        { key: "ttft", label: t("columns.ttft") },
         { key: "duration", label: t("columns.duration") },
         { key: "time", label: t("columns.time") },
         { key: "conversation", label: t("columns.conversation") },
@@ -200,6 +203,9 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
 
     const [visibleColumns, setVisibleColumns] = useState(() => {
       const defaultVisible = Object.fromEntries(columns.map((c) => [c.key, true]));
+      // #13130: TTFT is only recorded for streaming calls written after the
+      // ttft_ms migration, so most rows show "—"; opt-in column, not default.
+      defaultVisible.ttft = false;
       if (globalThis.window === undefined) return defaultVisible;
       try {
         const saved = localStorage.getItem("loggerVisibleColumns");
@@ -1274,6 +1280,9 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                         {getSortIndicator("tps")}
                       </th>
                     )}
+                    {visibleColumns.ttft && (
+                      <th className={LOG_TABLE_HEADER_CELL_RIGHT_CLASS}>{t("columns.ttft")}</th>
+                    )}
                     {visibleColumns.duration && (
                       <th
                         className={`${LOG_TABLE_HEADER_CELL_RIGHT_CLASS} cursor-pointer select-none`}
@@ -1624,12 +1633,33 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                                       : tps >= 30
                                         ? "text-sky-600 dark:text-sky-400"
                                         : "text-amber-600 dark:text-amber-400";
+                                // #13130: expose the generation-time breakdown so
+                                // thinking-model rows (long TTFT / prefill) explain
+                                // why their TPS differs from wall-clock perception.
+                                const genMs = resolveGenerationMs(log?.duration, log?.ttft);
+                                const parts = [`${tps.toFixed(2)} tokens/sec`];
+                                if (typeof log?.ttft === "number" && log.ttft > 0) {
+                                  parts.push(`TTFT ${formatDuration(log.ttft)}`);
+                                }
+                                if (genMs != null && genMs !== log?.duration) {
+                                  parts.push(`generation ${(genMs / 1000).toFixed(1)}s`);
+                                }
+                                if ((log?.tokens?.reasoning ?? 0) > 0) {
+                                  parts.push(`reasoning ${log.tokens.reasoning} tok`);
+                                }
                                 return (
-                                  <span className={color} title={`${tps.toFixed(2)} tokens/sec`}>
+                                  <span className={color} title={parts.join(" · ")}>
                                     {formatTps(tps)}
                                   </span>
                                 );
                               })()
+                            )}
+                          </td>
+                        )}
+                        {visibleColumns.ttft && (
+                          <td className="px-3 py-2 text-right text-text-muted font-mono">
+                            {formatDuration(
+                              typeof log.ttft === "number" && log.ttft > 0 ? log.ttft : null
                             )}
                           </td>
                         )}

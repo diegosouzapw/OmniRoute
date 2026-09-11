@@ -209,6 +209,13 @@ export type PersistAttemptLogsArgs = {
   claudeCacheMeta?: Record<string, unknown>;
   claudeCacheUsageMeta?: Record<string, unknown>;
   cacheSource?: "upstream" | "semantic";
+  /**
+   * #13130: time to the first forwarded stream chunk (ms), as measured by
+   * streamTiming for THIS attempt. Persisted to call_logs.ttft_ms so the
+   * dashboard TPS divides by generation time (duration - TTFT). Streaming
+   * completions pass it; non-streaming paths leave it undefined (column NULL).
+   */
+  ttft?: number | null;
 };
 
 export type PersistAttemptLogsContext = {
@@ -350,6 +357,7 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     claudeCacheMeta,
     claudeCacheUsageMeta,
     cacheSource,
+    ttft,
   } = args;
   const {
     traceId,
@@ -468,6 +476,7 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     provider,
     connectionId: finalConnectionId || undefined,
     duration: Date.now() - startTime,
+    ttftMs: typeof ttft === "number" && Number.isFinite(ttft) && ttft >= 0 ? ttft : null,
     tokens: tokens || {},
     requestBody: cloneBoundedChatLogPayload(
       attachLogMeta(
