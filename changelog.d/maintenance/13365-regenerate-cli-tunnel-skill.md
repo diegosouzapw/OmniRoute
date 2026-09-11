@@ -1,0 +1,1 @@
+- **chore(skills):** regenerate the `cli-tunnel` skill reference so it documents the optional `[type]` argument `omniroute tunnel create` accepts — the committed artifact predated the parser learning to read `.addArgument()` positionals, which left the generated-skills gate red on every PR ([#13365](https://github.com/diegosouzapw/OmniRoute/pull/13365))
