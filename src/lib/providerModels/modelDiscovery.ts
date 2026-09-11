@@ -98,6 +98,61 @@ const effortListSchema = z.array(z.unknown());
 const supportedReasoningLevelsSchema = z.object({ supported_reasoning_levels: z.unknown() });
 const thinkingLevelsSchema = z.object({ thinking: z.object({ levels: z.unknown() }).partial() });
 
+// Vendor-route catalogs (e.g. Merge Gateway's `/v1/models`) nest per-route
+// reasoning capability under `vendors.<vendor>.capabilities.reasoning` — the
+// route's accepted effort levels live in `effort_values` (docs.merge.dev,
+// "Effort levels per route"): the SAME canonical model lists different
+// vocabularies per vendor route, and a request naming an effort level is
+// served by a route that honors it when one exists (unpinned requests
+// self-narrow). So the safe synced vocabulary is the INTERSECTION across
+// vendor routes (a synced level must be honored on every route the model can
+// land on), not the union. A route without `effort_values` (absent or empty)
+// declares "no effort control" for that vendor and is excluded from the
+// intersection. Like the other shapes in this file, detection is shape-gated,
+// not provider-gated: a record that declares this structure is declaring its
+// effort vocabulary. Validate with Zod (Hard Rule #7); a malformed ENTRY is
+// dropped individually (never the whole route — discarding a route would
+// WIDEN the intersection, fail-open).
+const vendorRouteReasoningCapabilitySchema = z.object({
+  effort_values: z.array(z.unknown()).optional(),
+});
+const vendorRoutesSchema = z.record(z.string(), z.unknown());
+
+function parseVendorRouteEffortValues(record: JsonRecord): string[][] {
+  const vendorsParsed = vendorRoutesSchema.safeParse(record.vendors);
+  if (!vendorsParsed.success) return [];
+  const perVendor: string[][] = [];
+  for (const vendorValue of Object.values(vendorsParsed.data)) {
+    const vendorRecord = asRecord(vendorValue);
+    const reasoningParsed = vendorRouteReasoningCapabilitySchema.safeParse(
+      asRecord(vendorRecord.capabilities).reasoning
+    );
+    if (!reasoningParsed.success || !reasoningParsed.data) continue;
+    const efforts = Array.from(
+      new Set(
+        (reasoningParsed.data.effort_values ?? [])
+          .filter((effort): effort is string => typeof effort === "string" && effort.length > 0)
+          .map(normalizeSupportedEffort)
+      )
+    );
+    if (efforts.length > 0) perVendor.push(efforts);
+  }
+  return perVendor;
+}
+
+/**
+ * Intersect `effort_values` across the record's vendor routes. Returns
+ * `undefined` when no vendor route declares a list (shape not present);
+ * returns an EMPTY array when routes declare disjoint vocabularies — that
+ * emptiness is authoritative (no tier works on every route) and must not
+ * fall through to lower-precedence generic shapes.
+ */
+function vendorRouteSharedEfforts(record: JsonRecord): string[] | undefined {
+  const perVendor = parseVendorRouteEffortValues(record);
+  if (perVendor.length === 0) return undefined;
+  return perVendor.reduce((acc, efforts) => acc.filter((effort) => efforts.includes(effort)));
+}
+
 // Maps common upstream synonyms onto OmniRoute's canonical effort vocabulary
 // (`src/shared/reasoning/effortStandardization.ts`). Values already in
 // `CANONICAL_EFFORT_VALUES`, and any unrecognized provider-native tier (e.g.
@@ -166,7 +221,49 @@ export function detectDefaultThinkingEffort(record: JsonRecord): string | undefi
     const raw = parsed.data.default_effort;
     if (typeof raw === "string" && raw.length > 0) return normalizeSupportedEffort(raw);
   }
+  // Vendor-route fallback — only when the `vendors` shape IS the record's
+  // winning effort-vocabulary source. If a higher-precedence declared shape
+  // (`reasoning.supported_efforts`, `metadata.reasoning.supported_efforts`)
+  // produced a usable list, the record's default must never escape that
+  // winning list. Highest shared tier wins, ranked by the canonical order
+  // (vendor arrays are not guaranteed sorted).
+  const mergeShared = vendorRouteSharedEfforts(record);
+  if (mergeShared && mergeShared.length > 0 && !hasUsableDeclaredEffortList(record)) {
+    const ranked = mergeShared
+      .map((tier) => ({ tier, rank: CANONICAL_EFFORT_VALUES.indexOf(tier as never) }))
+      .filter((x) => x.rank >= 0)
+      .sort((a, b) => b.rank - a.rank);
+    if (ranked.length > 0) return ranked[0].tier;
+  }
   return undefined;
+}
+
+/**
+ * Whether a higher-precedence declared shape (the flat import field, or either
+ * #7694 nested `supported_efforts` shape) yields a usable tier list — the
+ * exact "usable" semantics the vocabulary detection applies (non-empty after
+ * filtering + normalization). Used to decide whether the Merge vendors shape
+ * is the record's winning vocabulary source for default-effort derivation.
+ */
+function hasUsableDeclaredEffortList(record: JsonRecord): boolean {
+  if (
+    Array.isArray(record.supportedThinkingEfforts) &&
+    record.supportedThinkingEfforts.some((e) => typeof e === "string" && e.length > 0)
+  ) {
+    return true;
+  }
+  for (const holder of [record.reasoning, asRecord(record.metadata).reasoning]) {
+    const shapeParsed = reasoningSupportedEffortsSchema.safeParse(holder);
+    if (!shapeParsed.success || !shapeParsed.data) continue;
+    const rawEfforts = shapeParsed.data.supported_efforts;
+    if (
+      Array.isArray(rawEfforts) &&
+      rawEfforts.some((e) => typeof e === "string" && e.length > 0)
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -213,6 +310,19 @@ export function detectSupportedThinkingEfforts(record: JsonRecord): string[] | u
     }
   }
 
+  // Vendor-route catalogs: intersect `effort_values` across vendor routes.
+  // Placed after the flat import field handling (caller) and the
+  // #7694/#9160 nested shapes so those explicit per-model declarations keep
+  // precedence; runs before the generic `capabilities.effort_tiers` fallback
+  // because per-route vocabularies are strictly more specific than a flat
+  // tier list. An empty intersection (disjoint routes) is authoritative —
+  // nothing works on every route — and must not fall through to a generic
+  // tier list.
+  const mergeShared = vendorRouteSharedEfforts(record);
+  if (mergeShared !== undefined) {
+    return mergeShared.length > 0 ? mergeShared : [];
+  }
+
   // #9160: fall back to `capabilities.effort_tiers` before the legacy fields.
   // OmniRoute's own catalog surfaces effort tiers inside `capabilities.effort_tiers`,
   // which the existing `parseEffortList` already handles (string arrays).
@@ -246,7 +356,13 @@ function hasDeclaredEffortList(record: JsonRecord): boolean {
   if (Array.isArray(asRecord(record.reasoning).supported_efforts)) return true;
   if (Array.isArray(asRecord(record.capabilities).effort_tiers)) return true;
   if (Array.isArray(record.supported_reasoning_levels)) return true;
-  return Array.isArray(asRecord(record.thinking).levels);
+  if (Array.isArray(asRecord(record.thinking).levels)) return true;
+  // `vendors.<v>.capabilities.reasoning.effort_values` counts as a declared
+  // list so the fallback chain in `normalizeDiscoveredModels` stops here
+  // instead of applying provider-specific heuristics to a record that already
+  // declares its vocabulary explicitly (mirrors the other declared shapes:
+  // detect returning undefined means "declared, nothing usable").
+  return parseVendorRouteEffortValues(record).length > 0;
 }
 
 export function isAutoFetchModelsEnabled(providerSpecificData: unknown): boolean {
