@@ -1,0 +1,1 @@
+- **fix(translator):** An image returned inside a Claude `tool_result` (Read on a PNG, an MCP screenshot) is now sent to Gemini as an image part instead of base64 text ([#13335](https://github.com/diegosouzapw/OmniRoute/pull/13335))
