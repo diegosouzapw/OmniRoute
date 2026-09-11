@@ -87,6 +87,29 @@ test("verifyAuth accepts a valid JWT session cookie", async () => {
   assert.equal(result, null);
 });
 
+test("isDashboardSessionAuthenticated rejects a Cursor CLI JWT", async () => {
+  process.env.JWT_SECRET = "jwt-secret-for-tests";
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+
+  // This matches the JWT shape minted by Cursor CLI:
+  // signed with JWT_SECRET, but without the dashboard-session
+  // `authenticated: true` claim.
+  const token = await new SignJWT({ name: "unit key" })
+    .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+    .setIssuer("omniroute")
+    .setAudience("cursor-cli")
+    .setSubject("key-1")
+    .setIssuedAt()
+    .setExpirationTime("1h")
+    .sign(secret);
+
+  const result = await apiAuth.isDashboardSessionAuthenticated(
+    makeCookieRequest(token)
+  );
+
+  assert.equal(result, false);
+});
+
 test("verifyAuth falls back to bearer API key validation after a bad JWT", async () => {
   process.env.JWT_SECRET = "jwt-secret-for-tests";
   const key = await apiKeysDb.createApiKey("integration", "machine1234567890");
