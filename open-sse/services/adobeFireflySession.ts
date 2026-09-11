@@ -132,7 +132,7 @@ const FORTER_PROACTIVE_WARM_MS = 3 * 60_000;
  * "1" still enables it; any other value (including unset) now also enables it.
  */
 export function adobeFireflyBrowserEnabled(): boolean {
-  return process.env.ADOBE_FIREFLY_BROWSER_REFRESH !== "0";
+  return browserRefreshEnabled();
 }
 /** Persist sessions under DATA_DIR so restarts keep JWT + last cookie. */
 const SESSION_DIR_NAME = "adobe-firefly-sessions";
@@ -427,6 +427,19 @@ export function estimateAdobeTokenExpiry(accessToken: string): number {
   if (created > 0 && expiresIn > 0) return created + expiresIn;
   // Fallback: treat as 20h from now if claims missing
   return Date.now() + 20 * 60 * 60_000;
+}
+
+/**
+ * Spawning a real Chrome is never valid under a unit-test runner. The browser holds
+ * an OS handle on its profile directory under DATA_DIR, so a test that rmSync()s its
+ * temp DATA_DIR in teardown fails with EPERM on Windows, and the CDP socket keeps the
+ * runner alive for the full 75s warm timeout.
+ */
+function browserRefreshEnabled(): boolean {
+  if (process.env.ADOBE_FIREFLY_BROWSER_REFRESH === "0") return false;
+  if (process.env.NODE_ENV === "test") return false;
+  if (process.env.VITEST || process.env.NODE_TEST_CONTEXT) return false;
+  return true;
 }
 
 function diskSessionsEnabled(): boolean {
@@ -953,8 +966,7 @@ export async function rotateAdobeFireflySessionOnError(
   clearAdobeFireflyWorkingArp(session.fingerprint);
   noteAdobeFireflySubmitFailure();
 
-  const tryBrowser =
-    opts?.tryBrowser !== false && process.env.ADOBE_FIREFLY_BROWSER_REFRESH !== "0";
+  const tryBrowser = opts?.tryBrowser !== false && browserRefreshEnabled();
   if (tryBrowser) {
     opts?.log?.info?.(
       "ADOBE-FIREFLY",
