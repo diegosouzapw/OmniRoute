@@ -1894,6 +1894,9 @@
   "analytics": {
     "title": "Analytics",
     "usageAnalyticsTitle": "Usage Analytics",
+    "tokenDisplayCompact": "Compact",
+    "tokenDisplayExact": "Exact",
+    "tokenDisplayMode": "Token Display Mode",
     "diversityScoreTitle": "Provider Diversity",
     "diversityScoreDesc": "Provider concentration snapshot for the recent traffic window.",
     "diversityShannonEntropy": "Shannon entropy",

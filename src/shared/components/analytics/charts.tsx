@@ -49,12 +49,14 @@ export function StatCard({
   label,
   value,
   subValue,
+  tooltip,
   color = "text-text-main",
 }: {
   icon: any;
   label: any;
   value: any;
   subValue?: any;
+  tooltip?: string;
   color?: string;
 }) {
   return (
@@ -63,7 +65,7 @@ export function StatCard({
         <span className="material-symbols-outlined text-[14px] shrink-0">{icon}</span>
         <span className="truncate">{label}</span>
       </div>
-      <span className={`text-2xl font-bold ${color} truncate`} title={String(value)}>
+      <span className={`text-2xl font-bold ${color} truncate`} title={tooltip ?? String(value)}>
         {value}
       </span>
       {subValue && <span className="text-xs text-text-muted truncate">{subValue}</span>}
@@ -75,7 +77,7 @@ export function StatCard({
 
 export type CompactStatSection = {
   title: string;
-  items: Array<{ icon: string; label: string; value: any; color?: string }>;
+  items: Array<{ icon: string; label: string; value: any; tooltip?: string; color?: string }>;
   /** On mobile use 1 column instead of 2 — useful when values can be long (model names, etc.) */
   wideValues?: boolean;
 };
@@ -115,7 +117,7 @@ export function CompactStatGrid({ sections }: { sections: CompactStatSection[] }
                   </div>
                   <span
                     className={`text-sm font-bold text-right ${section.wideValues ? "truncate min-w-0" : "shrink-0"} ${stat.color || "text-text-main"}`}
-                    title={String(stat.value)}
+                    title={stat.tooltip ?? String(stat.value)}
                   >
                     {stat.value}
                   </span>
@@ -290,7 +292,13 @@ export function ActivityHeatmap({ activityMap }) {
   );
 }
 
-export function ApiKeyTable({ byApiKey }) {
+export function ApiKeyTable({
+  byApiKey,
+  displayMode = "compact",
+}: {
+  byApiKey: any;
+  displayMode?: "compact" | "exact";
+}) {
   const t = useTranslations("analytics");
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("totalTokens");
@@ -421,14 +429,35 @@ export function ApiKeyTable({ byApiKey }) {
                 <td className="px-4 py-2.5 text-right font-mono text-text-muted">
                   {fmtFull(row.requests)}
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono text-primary">
-                  {fmt(row.promptTokens)}
+                <td
+                  className="px-4 py-2.5 text-right font-mono text-primary"
+                  title={
+                    displayMode === "exact"
+                      ? `~${fmt(row.promptTokens)}`
+                      : fmtFull(row.promptTokens)
+                  }
+                >
+                  {displayMode === "exact" ? fmtFull(row.promptTokens) : fmt(row.promptTokens)}
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono text-emerald-500">
-                  {fmt(row.completionTokens)}
+                <td
+                  className="px-4 py-2.5 text-right font-mono text-emerald-500"
+                  title={
+                    displayMode === "exact"
+                      ? `~${fmt(row.completionTokens)}`
+                      : fmtFull(row.completionTokens)
+                  }
+                >
+                  {displayMode === "exact"
+                    ? fmtFull(row.completionTokens)
+                    : fmt(row.completionTokens)}
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono font-semibold">
-                  {fmt(row.totalTokens)}
+                <td
+                  className="px-4 py-2.5 text-right font-mono font-semibold"
+                  title={
+                    displayMode === "exact" ? `~${fmt(row.totalTokens)}` : fmtFull(row.totalTokens)
+                  }
+                >
+                  {displayMode === "exact" ? fmtFull(row.totalTokens) : fmt(row.totalTokens)}
                 </td>
                 <td className="px-4 py-2.5 text-right font-mono text-amber-500">
                   {fmtCost(row.cost)}
@@ -743,7 +772,13 @@ export function UsageDetail({ summary }) {
 
 // ── ProviderTable ──────────────────────────────────────────────────────────
 
-export function ProviderTable({ byProvider }) {
+export function ProviderTable({
+  byProvider,
+  displayMode = "compact",
+}: {
+  byProvider: any;
+  displayMode?: "compact" | "exact";
+}) {
   const t = useTranslations("analytics");
   const [sortBy, setSortBy] = useState("totalTokens");
   const [sortOrder, setSortOrder] = useState("desc");
@@ -861,14 +896,33 @@ export function ProviderTable({ byProvider }) {
                   <td className="px-4 py-2.5 text-right font-mono text-text-muted">
                     {fmtFull(p.requests)}
                   </td>
-                  <td className="px-4 py-2.5 text-right font-mono text-primary">
-                    {fmt(p.promptTokens)}
+                  <td
+                    className="px-4 py-2.5 text-right font-mono text-primary"
+                    title={
+                      displayMode === "exact" ? `~${fmt(p.promptTokens)}` : fmtFull(p.promptTokens)
+                    }
+                  >
+                    {displayMode === "exact" ? fmtFull(p.promptTokens) : fmt(p.promptTokens)}
                   </td>
-                  <td className="px-4 py-2.5 text-right font-mono text-emerald-500">
-                    {fmt(p.completionTokens)}
+                  <td
+                    className="px-4 py-2.5 text-right font-mono text-emerald-500"
+                    title={
+                      displayMode === "exact"
+                        ? `~${fmt(p.completionTokens)}`
+                        : fmtFull(p.completionTokens)
+                    }
+                  >
+                    {displayMode === "exact"
+                      ? fmtFull(p.completionTokens)
+                      : fmt(p.completionTokens)}
                   </td>
-                  <td className="px-4 py-2.5 text-right font-mono font-semibold">
-                    {fmt(p.totalTokens)}
+                  <td
+                    className="px-4 py-2.5 text-right font-mono font-semibold"
+                    title={
+                      displayMode === "exact" ? `~${fmt(p.totalTokens)}` : fmtFull(p.totalTokens)
+                    }
+                  >
+                    {displayMode === "exact" ? fmtFull(p.totalTokens) : fmt(p.totalTokens)}
                   </td>
                   <td className="px-4 py-2.5 text-right font-mono text-amber-500">
                     {fmtCost(p.cost)}

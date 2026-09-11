@@ -1,0 +1,1 @@
+- **feat(dashboard):** add Compact and Exact token display mode toggle to Usage Analytics toolbar ([#13019](https://github.com/diegosouzapw/OmniRoute/pull/13019)) — thanks @ZaimMarzuki
