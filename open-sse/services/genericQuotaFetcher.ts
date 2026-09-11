@@ -330,6 +330,19 @@ function antigravityWeeklyWindowMatchesFamily(
   return family === "gemini" ? key === "gemini_weekly" : key === "claude_gpt_weekly";
 }
 
+const TIME_WINDOW_KEYS = new Set([
+  "session",
+  "weekly",
+  "daily",
+  "monthly",
+  "session (5h)",
+  "weekly (7d)",
+  "AFPFiveHour",
+  "AFPWeekly",
+  "AFPDaily",
+  "AFPMonthly",
+]);
+
 function normalizeQuotaWindows(
   windows: Record<string, { percentUsed: number; resetAt: string | null }>,
   context: UsageToQuotaContext
@@ -340,12 +353,14 @@ function normalizeQuotaWindows(
       ? getAntigravityQuotaFamily(context.requestedModel)
       : null;
 
-  // Claude-style explicit time windows.
-  if (windows["session (5h)"] && !normalized.window5h) {
-    normalized.window5h = windows["session (5h)"];
+  // Explicit time windows (canonical and legacy aliases).
+  const fiveHourWindow = windows["session (5h)"] || windows["session"];
+  if (fiveHourWindow && !normalized.window5h) {
+    normalized.window5h = fiveHourWindow;
   }
-  if (windows["weekly (7d)"] && !normalized.window7d) {
-    normalized.window7d = windows["weekly (7d)"];
+  const sevenDayWindow = windows["weekly (7d)"] || windows["weekly"];
+  if (sevenDayWindow && !normalized.window7d) {
+    normalized.window7d = sevenDayWindow;
   }
 
   // Antigravity-style per-model windows: pick worst only inside requested family.
@@ -356,6 +371,7 @@ function normalizeQuotaWindows(
       !key.startsWith("window") &&
       !key.includes("(5h)") &&
       !key.includes("(7d)") &&
+      !TIME_WINDOW_KEYS.has(key) &&
       (requestedFamily === null ||
         requestedFamily === "other" ||
         getAntigravityQuotaFamily(key) === requestedFamily)

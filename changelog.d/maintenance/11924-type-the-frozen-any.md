@@ -1,1 +1,0 @@
-- Type the 55 `no-explicit-any` sites that had been frozen under #11924 — four redundant casts in `socksConnectorWithFamily.ts` (undici/socks types already accept them) and the mocks/fixtures of the socks-timeout and isFree suites — and drop their suppression entries; the ESLint ratchet shrinks from 5487 to 5432 (Closes #11924)

@@ -1,1 +1,0 @@
-- **fix(docker):** the `chatgpt-web-codex-browser` image now finds the Chrome binary under `chrome-linux64/` (Chrome for Testing layout in `playwright:v1.62.0-noble`) as well as the legacy `chrome-linux/`, so the container no longer crash-loops with `exec: --headless=new: not found` ([#12024](https://github.com/diegosouzapw/OmniRoute/issues/12024))

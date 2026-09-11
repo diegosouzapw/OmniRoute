@@ -23,6 +23,7 @@ import { restoreNonStreamingToolNames } from "./passthroughToolNames.ts";
 import { extractUsageFromResponse } from "../usageExtractor.ts";
 import { sanitizeUsagePayloadForRequest } from "../../utils/usageTracking.ts";
 import { createErrorResult, formatProviderError } from "../../utils/error.ts";
+import { isLocalStreamLifecycleError } from "@/shared/utils/circuitBreaker";
 import { unwrapClinepassEnvelope } from "../../utils/clinepassEnvelope.ts";
 import { unwrapClineNonStreamingEnvelope } from "./clineResponseEnvelope.ts";
 import {
@@ -231,7 +232,6 @@ function parseRetryAfterMs(response: Response): number | null {
   }
   return null;
 }
-
 
 function finishOk(
   input: ProviderLegInput,
@@ -462,14 +462,22 @@ export async function runNonStreamingProviderLeg(
     ) {
       throw error;
     }
-    const failureStatus =
-      error instanceof Error && error.name === "AbortError"
-        ? 499
-        : error instanceof Error && error.name === "TimeoutError"
-          ? 504
-          : 502;
-    const failureMessage =
-      error instanceof Error
+    // `abort(reason)` can reject with a raw string that has no `name`/`status`, so
+    // `error.name === "AbortError"` is too narrow — that shape fell through to the 502
+    // provider-failure default (#7907). chatCore classified this through
+    // isLocalStreamLifecycleError before this leg took over the first send; mirror it.
+    const isRequestAborted = isLocalStreamLifecycleError(error);
+    const failureStatus = isRequestAborted
+      ? 499
+      : error instanceof Error && error.name === "TimeoutError"
+        ? 504
+        : 502;
+    // A client abort is not a provider failure: formatProviderError would stamp the raw
+    // upstream text as `[499]: <reason>`, leaking it to the client. chatCore has always
+    // normalized this to the fixed "Request aborted".
+    const failureMessage = isRequestAborted
+      ? "Request aborted"
+      : error instanceof Error
         ? formatProviderError(error, provider, currentModel, failureStatus)
         : "Provider request failed";
     const receipt = buildReceipt(input, {

@@ -1,1 +1,0 @@
-- Restricted API keys whose `allowedModels` lists a combo name no longer skip every combo member at pre-dispatch (`ALL_TARGETS_SKIPPED`). Inner-target filtering still applies when the allow-list is a provider prefix or `disableNonPublicModels` is on ([#12899](https://github.com/diegosouzapw/OmniRoute/pull/12899)).

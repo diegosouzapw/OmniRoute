@@ -1,1 +1,0 @@
-- **fix(pwa):** do not intercept dashboard navigations so Chrome can fall back from a stale HTTP/3 Alt-Svc advertisement (UDP :20128 is unpublished; F5 on a long-lived tab hung until a new tab opened a fresh TCP connection).

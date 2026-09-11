@@ -1,1 +1,0 @@
-- **test(authz):** pin `LOCAL_ONLY_API_GET_EXEMPTIONS` by exact membership instead of by entry count, so the guard names the offending path and also catches a substitution ([#11580](https://github.com/diegosouzapw/OmniRoute/pull/11580))

@@ -1,1 +1,0 @@
-- **fix(catalog):** Picker-added `customModels` enter the dispatch-time live catalog so combo members and bare inference no longer 400 ([#12934](https://github.com/diegosouzapw/OmniRoute/pull/12934)) — thanks @HouMinXi
