@@ -171,10 +171,24 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
       const msg = body.messages[i];
       const converted = convertClaudeMessage(msg, preserveCacheControl);
       if (converted) {
-        // Handle array of messages (multiple tool results)
+        // Claude Code hook contexts (SessionStart/PreToolUse) arrive as
+        // role:"system" mid-array — strictly valid for the Anthropic Messages
+        // API, but OpenAI-compatible upstreams reject a system turn after the
+        // first message (HCP-Vision-Latest vLLM: 400 "System message must be
+        // at the beginning."). Demote every system at index > 0 to "user",
+        // keeping the content byte-identical; the index-0 system (the
+        // translator-made one above, or one the client put first) stays.
+        const demoteMidSystem = (out: JsonRecord) => {
+          if (out.role === "system" && result.messages.length > 0) out.role = "user";
+        };
+        // Array return is tool/user elements only (never role:"system") — a
+        // second system here would skip demotion while result.messages is
+        // still empty and survive as a mid-array system.
         if (Array.isArray(converted)) {
+          converted.forEach(demoteMidSystem);
           result.messages.push(...converted);
         } else {
+          demoteMidSystem(converted);
           result.messages.push(converted);
         }
       }
