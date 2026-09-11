@@ -56,6 +56,19 @@ test("synthOpenAIErrorChunk references provider in message", () => {
   );
 });
 
+test("detectMalformedNonStream allows Claude message with (empty response) + stop_reason=length (ollama qwen3)", () => {
+  const resp = {
+    type: "message",
+    content: [{ type: "text", text: "(empty response)" }],
+    stop_reason: "length",
+  };
+  assert.strictEqual(
+    detectMalformedNonStream(resp),
+    null,
+    "ollama reasoning truncation should not be empty_choices"
+  );
+});
+
 // ── (b) synthResponsesFailure matches a response.failed event ────────────────
 
 test("synthResponsesFailure produces a response.failed SSE event", () => {

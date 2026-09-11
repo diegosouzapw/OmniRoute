@@ -271,6 +271,24 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
       if (stopReason === "max_tokens" || stopReason === "tool_use") return null;
       return "empty_choices";
     }
+    // Content array is non-empty but has no visible text (only empty text
+    // blocks or the "(empty response)" sentinel) — treat the same as
+    // content:[] when stop_reason is a legitimate terminal empty-stop.
+    const allEmptyOrSentinel = content.every((block) => {
+      if (block === null || typeof block !== "object") return true;
+      const b = block as Record<string, unknown>;
+      return (
+        b.type === "text" &&
+        typeof b.text === "string" &&
+        (b.text === "" || b.text === "(empty response)")
+      );
+    });
+    if (allEmptyOrSentinel) {
+      const stopReason = typeof body.stop_reason === "string" ? body.stop_reason : "";
+      // ollama qwen3:1.7b reasoning budget exhausted → content=sentinel + length
+      if (stopReason === "length") return null;
+      return "empty_choices";
+    }
     return "empty_choices";
   }
 
@@ -323,7 +341,8 @@ export function describeMalformedNonStream(
 ): { message: string; code: string; type: string } {
   const body = resp && typeof resp === "object" ? (resp as Record<string, unknown>) : null;
   if (body?.object === "response" && body.status === "failed") {
-    const err = body.error && typeof body.error === "object" ? (body.error as Record<string, unknown>) : null;
+    const err =
+      body.error && typeof body.error === "object" ? (body.error as Record<string, unknown>) : null;
     const rawMessage =
       typeof err?.message === "string" && err.message.trim().length > 0 ? err.message.trim() : null;
     return {
