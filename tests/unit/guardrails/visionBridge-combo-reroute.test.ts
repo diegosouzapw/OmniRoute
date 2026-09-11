@@ -144,6 +144,11 @@ test("decision: combo with all vision-capable targets returns 'skip'", async () 
   assert.equal(await getComboVisionBridgeDecision("vision-combo"), "skip");
 });
 
+test("decision: explicit combo/ prefix resolves the stored bare combo name", async () => {
+  await createCombo("prefixed-vision-combo", [{ provider: "openai", model: VISION_MODEL }]);
+  assert.equal(await getComboVisionBridgeDecision("combo/prefixed-vision-combo"), "skip");
+});
+
 test("decision: mixed combo (some vision, some not) returns 'process'", async () => {
   await createCombo("mixed-combo", [
     { provider: "openai", model: VISION_MODEL },
