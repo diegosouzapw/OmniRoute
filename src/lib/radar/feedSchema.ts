@@ -182,6 +182,8 @@ const ModelV1Schema = z.object({
   capabilities: CapabilitiesV1Schema,
   trainsOnPrompts: z.boolean().nullable(),
   tosRisk: TosRiskEnum,
+  /** Real quota, but behind a regional identity verification (counted apart on the client). */
+  eligibilityGate: z.enum(["regional-identity"]).nullable().optional(),
   setup: SetupSchema,
   enabled: z.boolean(),
 });

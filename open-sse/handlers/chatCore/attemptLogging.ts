@@ -250,6 +250,15 @@ export type PersistAttemptLogsContext = {
    * path) is never touched. Omitted/empty for every non-video request.
    */
   videoBridgeLogRedaction?: VideoBridgeLogRedactionEntry[];
+  /**
+   * #12150 P2 surface 2: true when the video-bridge guardrail observed and
+   * rewrote video parts on this request, so the persisted client snapshot had
+   * its transcript cues structurally redacted (videoBridgeObserved in
+   * chatCore.ts). Written to the `call_logs.video_content_removed` marker so
+   * `resolvePreviousResponseState` refuses to rehydrate this row as continuation
+   * history. Omitted/false for every non-video request.
+   */
+  videoContentRemoved?: boolean;
 };
 
 function toConnectionId(value: unknown): string | null {
@@ -368,6 +377,7 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     modelPinned,
     sessionTag,
     videoBridgeLogRedaction,
+    videoContentRemoved,
   } = ctx;
   const initialConnectionId = toConnectionId(connectionId);
   const finalConnectionId = toConnectionId(credentials?.connectionId) || initialConnectionId;
@@ -499,6 +509,7 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     modelPinned: modelPinned || false,
     sessionTag: sessionTag || null,
     responseId: extractResponsesId(sourceFormat, clientResponse),
+    videoContentRemoved: videoContentRemoved || false,
   }).catch(() => {});
 
   // Emit the terminal request-lifecycle event to the live dashboard bus. `request.started`

@@ -337,6 +337,11 @@ opencode -m omniroute/glm/glm-5.2 "..."          # export OMNIROUTE_API_KEY firs
 > (now remote-aware via `--remote`) installs `@omniroute/opencode-plugin`.
 > `setup-opencode` is the lightweight openai-compatible alternative. The API key
 > is referenced via `{env:OMNIROUTE_API_KEY}` — never written to disk.
+>
+> On OpenCode v2, use `@omniroute/opencode-plugin-v2` instead: same catalog,
+> different loader contract. It reads the key from OpenCode's own credential
+> store when the integration is connected, so a remote gateway needs no key in
+> `opencode.json` at all.
 
 ---
 

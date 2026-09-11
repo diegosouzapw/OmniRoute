@@ -27,6 +27,8 @@ export function ensureProviderConnectionsColumns(db: SqliteDatabase) {
       ["rate_limit_protection", "INTEGER DEFAULT 0"],
       ["last_used_at", "TEXT"],
       ["default_model", "TEXT"], // legacy-schema hole; later data migrations read it
+      ["last_ping_at", "TEXT"], // added by 123_quota_auto_ping; back-filled here for divergent lineages
+      ["last_pinged_reset_key", "TEXT"], // added by 123_quota_auto_ping; back-filled here for divergent lineages
     ]) {
       if (!columnNames.has(column)) {
         db.exec(`ALTER TABLE provider_connections ADD COLUMN ${column} ${type}`);
@@ -237,6 +239,14 @@ export function ensureCallLogsColumns(db: SqliteDatabase) {
     if (!columnNames.has("request_summary")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN request_summary TEXT DEFAULT NULL");
       console.log("[DB] Added call_logs.request_summary column");
+    }
+    // added by 173_call_logs_video_content_removed; back-filled here because
+    // resolvePreviousResponseState SELECTs it on every continuation lookup — a
+    // lineage that skipped the migration would throw "no such column" there
+    // rather than fail closed. Same hole #12470 closed for provider_connections.
+    if (!columnNames.has("video_content_removed")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN video_content_removed INTEGER NOT NULL DEFAULT 0");
+      console.log("[DB] Added call_logs.video_content_removed column");
     }
     if (!columnNames.has("correlation_id")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN correlation_id TEXT DEFAULT NULL");

@@ -119,7 +119,7 @@ export async function resolveQuotaExhaustionCutoffForTarget(
     const quota = await fetchResetAwareQuotaWithCache({
       provider,
       connectionId,
-      connection,
+      connection: connection ? { ...connection, requestedModel } : connection,
       fetcher,
       config: resetWindowConfig,
       log,
@@ -128,7 +128,11 @@ export async function resolveQuotaExhaustionCutoffForTarget(
     const cutoffDecision = evaluateQuotaCutoff(
       quota as QuotaInfo | null,
       buildAutoQuotaThresholds(provider, connection, resilienceSettings),
-      { provider, requestedModel: requestedModel ?? null }
+      {
+        provider,
+        requestedModel: requestedModel ?? null,
+        providerSpecificData: connection?.providerSpecificData,
+      }
     );
     if (!cutoffDecision.proceed) {
       return { blocked: true, reason: cutoffDecision.reason || "quota_exhausted" };

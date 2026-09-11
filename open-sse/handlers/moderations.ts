@@ -6,7 +6,8 @@ import { CORS_HEADERS } from "../utils/cors.ts";
  */
 
 import { getModerationProvider, parseModerationModel } from "../config/moderationRegistry.ts";
-import { errorResponse, redactSensitiveErrorText } from "../utils/error.ts";
+import { errorResponse, sanitizeErrorMessage } from "../utils/error.ts";
+import { buildSanitizedUpstreamErrorResponse } from "../utils/upstreamErrorResponse.ts";
 import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { generateRequestId } from "@/shared/utils/requestId";
 
@@ -57,14 +58,11 @@ export async function handleModeration({ body, credentials }) {
 
     if (!res.ok) {
       const errText = await res.text();
-      // secret-leak hardening: redact any credential the upstream echoed back
-      // before relaying the error body to the client (structure-preserving).
-      return new Response(redactSensitiveErrorText(errText), {
+      return buildSanitizedUpstreamErrorResponse({
         status: res.status,
-        headers: {
-          "Content-Type": "application/json",
-          ...CORS_HEADERS,
-        },
+        rawBody: errText,
+        fallbackMessage: `Moderation provider returned HTTP ${res.status}`,
+        headers: CORS_HEADERS,
       });
     }
 
@@ -79,6 +77,10 @@ export async function handleModeration({ body, credentials }) {
     });
     return new Response(JSON.stringify(data), { status: 200, headers });
   } catch (err) {
-    return errorResponse(500, `Moderation request failed: ${err.message}`);
+    const safeDetail =
+      sanitizeErrorMessage(err)
+        .replace(/^[A-Za-z]*Error:\s*/, "")
+        .trim() || "unknown upstream failure";
+    return errorResponse(500, `Moderation request failed: ${safeDetail}`);
   }
 }

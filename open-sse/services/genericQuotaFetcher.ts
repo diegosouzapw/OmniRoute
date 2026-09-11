@@ -24,6 +24,10 @@ import {
   type QuotaFetcher,
   type QuotaInfo,
 } from "./quotaPreflight.ts";
+import {
+  getAntigravityQuotaFamily,
+  getQuotaFetchScope,
+} from "./antigravityQuotaFamily.ts";
 
 type UsageFetcher = (
   connection: Parameters<typeof getUsageForProvider>[0],
@@ -54,7 +58,7 @@ export function __agePendingForceRefreshForTests(
   connectionId: string,
   ageMs: number
 ): void {
-  pendingForceRefresh.set(cacheKey(provider, connectionId), Date.now() - ageMs);
+  pendingForceRefresh.set(connectionKey(provider, connectionId), Date.now() - ageMs);
 }
 
 /** Test-only: backdate a convert-null miss so the 60s hammer-guard is unit-testable. */
@@ -63,7 +67,7 @@ export function __agePendingForceRefreshMissForTests(
   connectionId: string,
   ageMs: number
 ): void {
-  pendingForceRefreshMiss.set(cacheKey(provider, connectionId), Date.now() - ageMs);
+  pendingForceRefreshMiss.set(connectionKey(provider, connectionId), Date.now() - ageMs);
 }
 
 /** Test-only: drop all wrapper/flag maps so tests cannot leak across ids. */
@@ -80,8 +84,23 @@ interface CacheEntry {
 
 const cache = new Map<string, CacheEntry>();
 
-function cacheKey(provider: string, connectionId: string): string {
+function connectionKey(provider: string, connectionId: string): string {
   return `${provider.trim()}::${connectionId.trim()}`;
+}
+
+function quotaCacheScope(
+  provider: string,
+  requestedModel?: string | null
+): string {
+  return getQuotaFetchScope(provider, requestedModel);
+}
+
+function cacheKey(
+  provider: string,
+  connectionId: string,
+  requestedModel?: string | null
+): string {
+  return `${connectionKey(provider, connectionId)}::${quotaCacheScope(provider, requestedModel)}`;
 }
 
 function dropExpiredPendingForceRefresh(key: string, now: number): boolean {
@@ -216,7 +235,15 @@ interface ConnectionInputs {
  * / shape-unknown / missing). Exported for unit testing — the production path
  * is `fetchGenericQuota`, which adds caching + the upstream call.
  */
-export function convertUsageToQuotaInfo(usage: unknown): QuotaInfo | null {
+type UsageToQuotaContext = {
+  requestedModel?: string | null;
+  provider?: string | null;
+};
+
+export function convertUsageToQuotaInfo(
+  usage: unknown,
+  context: UsageToQuotaContext = {}
+): QuotaInfo | null {
   if (!usage || typeof usage !== "object") return null;
   const usageRecord = usage as Record<string, unknown>;
   if (
@@ -235,31 +262,51 @@ export function convertUsageToQuotaInfo(usage: unknown): QuotaInfo | null {
   }
 
   const windows: Record<string, { percentUsed: number; resetAt: string | null }> = {};
-  let worstPercent = 0;
-  let worstResetAt: string | null = null;
   for (const [name, entry] of Object.entries(quotasObj as Record<string, unknown>)) {
     const percentUsed = percentUsedForQuota(entry);
     if (percentUsed === null) continue;
-    const resetAt = resetAtForQuota(entry);
-    windows[name] = { percentUsed, resetAt };
-    if (percentUsed > worstPercent) {
-      worstPercent = percentUsed;
-      worstResetAt = resetAt;
-    }
+    windows[name] = { percentUsed, resetAt: resetAtForQuota(entry) };
   }
 
   if (Object.keys(windows).length === 0) return null;
 
-  const normalized = normalizeQuotaWindows(windows);
+  const requestedFamily =
+    isAntigravityProvider(context.provider) && context.requestedModel
+      ? getAntigravityQuotaFamily(context.requestedModel)
+      : null;
+  const providerScopedWindows =
+    requestedFamily === "gemini" || requestedFamily === "claude"
+      ? Object.fromEntries(
+          Object.entries(windows).filter(([key]) => {
+            if (key.endsWith("_weekly")) {
+              return antigravityWeeklyWindowMatchesFamily(key, requestedFamily);
+            }
+            return getAntigravityQuotaFamily(key) === requestedFamily;
+          })
+        )
+      : windows;
+  if (Object.keys(providerScopedWindows).length === 0) return null;
+
+  const normalized = normalizeQuotaWindows(providerScopedWindows, context);
+  const scopedEntries = Object.values(providerScopedWindows);
+  const percentUsed = scopedEntries.reduce(
+    (worst, entry) => Math.max(worst, entry.percentUsed),
+    0
+  );
+  const resetAt =
+    scopedEntries.reduce<{ percentUsed: number; resetAt: string | null } | null>(
+      (worst, entry) => (!worst || entry.percentUsed > worst.percentUsed ? entry : worst),
+      null
+    )?.resetAt ?? null;
 
   return {
     used: 0,
     total: 0,
-    percentUsed: worstPercent,
-    resetAt: worstResetAt,
-    windows,
+    percentUsed,
+    resetAt,
+    windows: providerScopedWindows,
     ...normalized,
-    limitReached: worstPercent >= 1 - 1e-9,
+    limitReached: percentUsed >= 1 - 1e-9,
   };
 }
 
@@ -269,37 +316,79 @@ export function convertUsageToQuotaInfo(usage: unknown): QuotaInfo | null {
  * naming convention.
  *
  *   - Claude: "session (5h)" → window5h, "weekly (7d)" → window7d
- *   - Antigravity: worst per-model quota → window5h; worst *_weekly quota → window7d
+ *   - Antigravity: requested-family model quota → window5h; matching family weekly quota → window7d
  */
+function isAntigravityProvider(provider: string | null | undefined): boolean {
+  return provider === "antigravity" || provider === "agy";
+}
+
+function antigravityWeeklyWindowMatchesFamily(
+  key: string,
+  family: "gemini" | "claude"
+): boolean {
+  if (!key.endsWith("_weekly")) return false;
+  return family === "gemini" ? key === "gemini_weekly" : key === "claude_gpt_weekly";
+}
+
+const TIME_WINDOW_KEYS = new Set([
+  "session",
+  "weekly",
+  "daily",
+  "monthly",
+  "session (5h)",
+  "weekly (7d)",
+  "AFPFiveHour",
+  "AFPWeekly",
+  "AFPDaily",
+  "AFPMonthly",
+]);
+
 function normalizeQuotaWindows(
-  windows: Record<string, { percentUsed: number; resetAt: string | null }>
+  windows: Record<string, { percentUsed: number; resetAt: string | null }>,
+  context: UsageToQuotaContext
 ): Record<string, { percentUsed: number; resetAt: string | null }> {
   const normalized: Record<string, { percentUsed: number; resetAt: string | null }> = {};
+  const requestedFamily =
+    isAntigravityProvider(context.provider) && context.requestedModel
+      ? getAntigravityQuotaFamily(context.requestedModel)
+      : null;
 
-  // Claude-style explicit time windows.
-  if (windows["session (5h)"] && !normalized.window5h) {
-    normalized.window5h = windows["session (5h)"];
+  // Explicit time windows (canonical and legacy aliases).
+  const fiveHourWindow = windows["session (5h)"] || windows["session"];
+  if (fiveHourWindow && !normalized.window5h) {
+    normalized.window5h = fiveHourWindow;
   }
-  if (windows["weekly (7d)"] && !normalized.window7d) {
-    normalized.window7d = windows["weekly (7d)"];
+  const sevenDayWindow = windows["weekly (7d)"] || windows["weekly"];
+  if (sevenDayWindow && !normalized.window7d) {
+    normalized.window7d = sevenDayWindow;
   }
 
-  // Antigravity-style per-model 5h windows: pick the worst (most used) model quota.
+  // Antigravity-style per-model windows: pick worst only inside requested family.
   const modelWindows = Object.entries(windows).filter(
     ([key]) =>
       key !== "credits" &&
       !key.endsWith("_weekly") &&
       !key.startsWith("window") &&
       !key.includes("(5h)") &&
-      !key.includes("(7d)")
+      !key.includes("(7d)") &&
+      !TIME_WINDOW_KEYS.has(key) &&
+      (requestedFamily === null ||
+        requestedFamily === "other" ||
+        getAntigravityQuotaFamily(key) === requestedFamily)
   );
   if (modelWindows.length > 0 && !normalized.window5h) {
     const worst = modelWindows.reduce((a, b) => (a[1].percentUsed > b[1].percentUsed ? a : b));
     normalized.window5h = worst[1];
   }
 
-  // Antigravity-style weekly family buckets: pick the worst *_weekly quota.
-  const weeklyWindows = Object.entries(windows).filter(([key]) => key.endsWith("_weekly"));
+  // Antigravity-style weekly buckets: pick worst only inside requested family.
+  const weeklyWindows = Object.entries(windows).filter(([key]) => {
+    const hasFamilyScope = requestedFamily === "gemini" || requestedFamily === "claude";
+    return (
+      key.endsWith("_weekly") &&
+      (!hasFamilyScope || antigravityWeeklyWindowMatchesFamily(key, requestedFamily))
+    );
+  });
   if (weeklyWindows.length > 0 && !normalized.window7d) {
     const worst = weeklyWindows.reduce((a, b) => (a[1].percentUsed > b[1].percentUsed ? a : b));
     normalized.window7d = worst[1];
@@ -320,18 +409,21 @@ export const fetchGenericQuota: QuotaFetcher = async (connectionId, connection) 
   const provider = typeof conn.provider === "string" ? conn.provider.trim() : "";
   if (!provider) return null;
 
-  const key = cacheKey(provider, connectionId);
+  const requestedModel =
+    typeof connection.requestedModel === "string" ? connection.requestedModel : undefined;
+  const key = cacheKey(provider, connectionId, requestedModel);
+  const forceKey = connectionKey(provider, connectionId);
   const now = Date.now();
-  const forceRefresh = isPendingForceRefresh(key, now);
+  const forceRefresh = isPendingForceRefresh(forceKey, now);
   const hit = cachedQuotaIfFresh(key, forceRefresh, now);
   if (hit) return hit;
   // convert-null / throw keep the force-refresh flag (agy inner caches are
   // still stale) but must not hammer those endpoints on every routing tick.
-  if (isForceRefreshMissCooling(key, forceRefresh, now)) return null;
+  if (isForceRefreshMissCooling(forceKey, forceRefresh, now)) return null;
 
   // Capture before await: a 429 during fetchUsage re-stamps this; writing
   // the pre-429 snapshot would wipe that flag and recache stale quota.
-  const refreshStamp = pendingForceRefresh.get(key);
+  const refreshStamp = pendingForceRefresh.get(forceKey);
 
   let usage: unknown;
   try {
@@ -340,28 +432,29 @@ export const fetchGenericQuota: QuotaFetcher = async (connectionId, connection) 
       ...(forceRefresh ? { forceRefresh: true } : {}),
     });
   } catch {
-    markPendingForceRefreshMiss(key);
+    markPendingForceRefreshMiss(forceKey);
     return null;
   }
 
-  const quota = convertUsageToQuotaInfo(usage);
+  const quota = convertUsageToQuotaInfo(usage, { provider, requestedModel });
   if (!quota) {
-    markPendingForceRefreshMiss(key);
+    markPendingForceRefreshMiss(forceKey);
     return null;
   }
 
   // Concurrent 429 re-stamped a still-live flag — do not recache the
   // pre-429 snapshot. A vanished or expired stamp is not a 429.
-  if (isConcurrentForceRefresh(key, refreshStamp)) {
+  if (isConcurrentForceRefresh(forceKey, refreshStamp)) {
     return quota;
   }
 
-  pendingForceRefresh.delete(key);
-  pendingForceRefreshMiss.delete(key);
+  pendingForceRefresh.delete(forceKey);
+  pendingForceRefreshMiss.delete(forceKey);
 
-  // Refresh the static window catalog so the dashboard can render the right
-  // modal inputs without waiting for the user to open the page.
-  registerQuotaWindows(provider, Object.keys(quota.windows || {}));
+  // Refresh the static window catalog from the unscoped usage payload so a
+  // family-scoped request cannot hide sibling-family dashboard controls.
+  const unscopedQuota = convertUsageToQuotaInfo(usage, { provider });
+  registerQuotaWindows(provider, Object.keys(unscopedQuota?.windows || quota.windows || {}));
 
   cache.set(key, { quota, fetchedAt: Date.now() });
   return quota;
@@ -373,13 +466,16 @@ export const fetchGenericQuota: QuotaFetcher = async (connectionId, connection) 
  * fresh data instead of a 60s stale window.
  */
 export function invalidateGenericQuotaCache(provider: string, connectionId: string): void {
-  const key = cacheKey(provider, connectionId);
-  cache.delete(key);
+  const forceKey = connectionKey(provider, connectionId);
+  const prefix = `${forceKey}::`;
+  for (const key of cache.keys()) {
+    if (key.startsWith(prefix)) cache.delete(key);
+  }
   // Next fetch must bypass provider-inner usage caches (agy retrieveUserQuota /
   // weekly are 60s–5min). Without this, dropping the 60s wrapper recaches stale.
   // TTL matches those inner caches: after 5min the flag is a no-op.
-  pendingForceRefresh.set(key, Date.now());
-  pendingForceRefreshMiss.delete(key);
+  pendingForceRefresh.set(forceKey, Date.now());
+  pendingForceRefreshMiss.delete(forceKey);
 }
 
 /**
@@ -415,3 +511,15 @@ export function registerGenericQuotaFetchers(): void {
     registerQuotaFetcher(provider, fetchGenericQuota);
   }
 }
+
+export const __testing = {
+  setUsageFetcher(fetcher: UsageFetcher): void {
+    usageFetcherOverride = fetcher;
+  },
+  resetUsageFetcher(): void {
+    usageFetcherOverride = null;
+  },
+  clearCache(): void {
+    cache.clear();
+  },
+};

@@ -49,6 +49,23 @@ export function isDegradedCachedCatalog(modelsData: {
 }
 
 /**
+ * Codex live-empty GET returns `{ source: "github_catalog", warning: "…" }`
+ * via `buildResponse`. That is a display fallback of public models.json, not
+ * an authoritative discovery. Same discriminator as cache: source match + a
+ * non-empty warning. Without this, Import/Sync and boot ModelSync would persist
+ * the public catalog as the synced source of truth (spec 3.7).
+ */
+export function isDegradedGithubCatalog(modelsData: {
+  source?: unknown;
+  warning?: unknown;
+}): boolean {
+  const source =
+    typeof modelsData?.source === "string" ? modelsData.source.trim().toLowerCase() : "";
+  if (source !== "github_catalog") return false;
+  return typeof modelsData?.warning === "string" && modelsData.warning.trim().length > 0;
+}
+
+/**
  * Either degraded shape. Model-sync must refuse to treat these as a successful
  * discovery: persisting them would silently pin a stale catalog and hide the
  * real failure from the operator.
@@ -58,5 +75,9 @@ export function isDegradedDiscovery(modelsData: {
   intentional?: unknown;
   warning?: unknown;
 }): boolean {
-  return isDegradedLocalCatalog(modelsData) || isDegradedCachedCatalog(modelsData);
+  return (
+    isDegradedLocalCatalog(modelsData) ||
+    isDegradedCachedCatalog(modelsData) ||
+    isDegradedGithubCatalog(modelsData)
+  );
 }

@@ -1,0 +1,1 @@
+- fix(volcengine): resolve quota window mapping gaps, safe multi-connection console binding, and response cookie sanitization

@@ -105,10 +105,16 @@ interface ClientRawRequestLike {
   endpoint: unknown;
   body: unknown;
   headers?: unknown;
+  effectiveInput?: unknown;
 }
 
 interface RequestLoggerLike {
-  logClientRawRequest: (endpoint: unknown, body: unknown, headers?: unknown) => void;
+  logClientRawRequest: (
+    endpoint: unknown,
+    body: unknown,
+    headers?: unknown,
+    effectiveInput?: unknown
+  ) => void;
 }
 
 /**
@@ -130,7 +136,8 @@ export function logClientRawRequestRedacted(
     videoBridgeObserved
       ? redactVideoTranscriptFieldsForLog(clientRawRequest.body)
       : clientRawRequest.body,
-    clientRawRequest.headers
+    clientRawRequest.headers,
+    clientRawRequest.effectiveInput
   );
 }
 

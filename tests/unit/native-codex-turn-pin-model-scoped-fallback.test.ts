@@ -29,6 +29,7 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const testSettings = {
   resilienceSettings: {
     providerCooldown: { enabled: true, minRetryCooldownMs: 5000, maxRetryCooldownMs: 300000 },
+    comboCooldownWait: { enabled: false },
   },
 };
 

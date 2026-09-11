@@ -20,6 +20,7 @@ const tally = tallyDrift as (
     docKey: string;
     strict: boolean;
     files: string[];
+    validate?: (content: string) => { ok: boolean; detail: string };
   }[],
   getContent: (file: string) => string | null
 ) => { strict: number; soft: number; lines: string[] };
@@ -106,16 +107,20 @@ test("the gate exits 0 against the current (synced) repo state", () => {
 // down to 1.37B, because no gate watched that number.
 import {
   checkFreeTierHeadline,
+  extractGatedClaims,
   extractHeadlineClaims,
 } from "../../scripts/check/check-docs-counts-sync.mjs";
 
 const checkHeadline = checkFreeTierHeadline as (
   content: string,
-  totals: { s: number; m: number; p: number }
+  totals: { s: number; m: number; p: number; g?: number }
 ) => { ok: boolean; detail: string };
 const extractClaims = extractHeadlineClaims as (
   content: string
 ) => { value: number; text: string }[];
+const extractGated = extractGatedClaims as (
+  content: string
+) => { tokens: number; unit: "B" | "M"; text: string }[];
 
 const TOTALS = { s: 1_371_725_000, m: 1_998_225_000, p: 39 };
 
@@ -145,6 +150,45 @@ test("free-tier gate ignores non-headline figures", () => {
 
 test("free-tier gate passes when a file carries no headline at all", () => {
   assert.equal(checkHeadline("no figures here", TOTALS).ok, true);
+});
+
+// --- Eligibility-gated bucket ("+~6M behind regional identity verification") --
+// The gated figure sits next to the headline and is validated with its own anchor,
+// so it can neither drift nor be silently dropped once the catalog reports one.
+const TOTALS_G = { s: 1_503_225_000, m: 2_129_725_000, p: 35, g: 6_000_000 };
+
+test("free-tier gate validates the gated figure that sits next to the headline", () => {
+  const ok =
+    "~1.5B free tokens per month … +~6M behind regional identity verification (ModelScope)";
+  assert.equal(checkHeadline(ok, TOTALS_G).ok, true);
+  const stale = "~1.5B free tokens per month … +~60M behind regional identity verification";
+  assert.equal(checkHeadline(stale, TOTALS_G).ok, false);
+  assert.match(checkHeadline(stale, TOTALS_G).detail, /gated/);
+});
+
+test("free-tier gate rejects a file that carries the headline but omits the gated line", () => {
+  assert.equal(checkHeadline("~1.5B free tokens per month", TOTALS_G).ok, false);
+  // a file with no headline at all is still fine (per-provider tables, changelogs)
+  assert.equal(checkHeadline("no figures here", TOTALS_G).ok, true);
+  // and nothing changes for callers that pass no gated total
+  assert.equal(
+    checkHeadline("~1.5B free tokens per month", { s: TOTALS_G.s, m: TOTALS_G.m, p: 35 }).ok,
+    true
+  );
+});
+
+test("gated claims are read in M or B and need the anchor phrase", () => {
+  assert.deepEqual(extractGated("~6M of unrelated text"), []);
+  assert.deepEqual(extractGated("+~6M behind regional identity verification"), [
+    { tokens: 6_000_000, unit: "M", text: "+~6M" },
+  ]);
+  assert.equal(
+    checkHeadline("~1.5B free tokens per month · ~1.2B behind regional identity verification", {
+      ...TOTALS_G,
+      g: 1_230_000_000,
+    }).ok,
+    true
+  );
 });
 
 // --- Generic numeric-claim gate (engines / MCP tools / scopes / CLI) --------
@@ -485,8 +529,8 @@ const TRAINING_CLAIM = {
 };
 
 test("the hard-stop claim passes on the real sentence and fails on a stale count", () => {
-  const v = makeValidator(7, HARD_STOP_CLAIM);
-  assert.equal(v("7 entries carry an independently documented hard stop, and").ok, true);
+  const v = makeValidator(5, HARD_STOP_CLAIM);
+  assert.equal(v("5 entries carry an independently documented hard stop, and").ok, true);
   assert.equal(v("99 entries carry an independently documented hard stop, and").ok, false);
 });
 
@@ -500,10 +544,10 @@ test("the training claim passes on the real sentence and fails on a stale count"
 test("a reworded or deleted sentence fails, instead of passing as absent", () => {
   // The gate's real failure mode is not a stale number, it is silence: reword the
   // sentence past the pattern and "no claim in this file" used to read green.
-  const required = makeValidator(7, { ...HARD_STOP_CLAIM, requireClaim: true });
-  assert.equal(required("7 entries have a provider-documented hard-stop guarantee.").ok, false);
+  const required = makeValidator(5, { ...HARD_STOP_CLAIM, requireClaim: true });
+  assert.equal(required("5 entries have a provider-documented hard-stop guarantee.").ok, false);
   assert.equal(required("the page no longer mentions it at all").ok, false);
-  assert.equal(required("7 entries carry an independently documented hard stop.").ok, true);
+  assert.equal(required("5 entries carry an independently documented hard stop.").ok, true);
 
   const trainingRequired = makeValidator(13, { ...TRAINING_CLAIM, requireClaim: true });
   assert.equal(trainingRequired("13 entries disclose training use.").ok, false);
@@ -514,7 +558,7 @@ test("the live page actually satisfies both required gates", () => {
   // A unit test on synthetic strings proves the validator; this one proves the
   // document. Without it, the two could drift apart and both stay green.
   const page = readFileSync(path.resolve(here, "../../docs/reference/FREE_TIERS.md"), "utf8");
-  assert.equal(makeValidator(7, { ...HARD_STOP_CLAIM, requireClaim: true })(page).ok, true);
+  assert.equal(makeValidator(5, { ...HARD_STOP_CLAIM, requireClaim: true })(page).ok, true);
   assert.equal(makeValidator(13, { ...TRAINING_CLAIM, requireClaim: true })(page).ok, true);
 });
 
@@ -524,4 +568,61 @@ test("neither claim fires on the other numbers the page is full of", () => {
     "$10 deposit unlock, 24M/mo boost, 800 output tokens, 2026-06-17.";
   assert.equal(makeValidator(7, HARD_STOP_CLAIM)(page).ok, true);
   assert.equal(makeValidator(13, TRAINING_CLAIM)(page).ok, true);
+});
+
+function freeTierCheck(freeTierCount: number, manifestFreeTier: number, freeTierReg?: number) {
+  const reg = freeTierReg ?? freeTierCount;
+  return {
+    label: "Manifest free-tier capability count (live code)",
+    actual: manifestFreeTier,
+    docKey: "free-tier capability",
+    strict: true,
+    files: ["scripts/check/check-docs-counts-sync.mjs"],
+    validate: () => ({
+      ok: manifestFreeTier === reg,
+      detail: `manifest ${manifestFreeTier} vs leaf∩registry ${reg} (leaf ${freeTierCount})`,
+    }),
+  };
+}
+
+test("gate flags STRICT when manifest free-tier count differs from leaf∩registry", () => {
+  const r = tally([freeTierCheck(5, 4, 5)], () => "live");
+  assert.equal(r.strict, 1);
+});
+
+test("gate passes when counts agree", () => {
+  const r = tally([freeTierCheck(5, 5, 5)], () => "live");
+  assert.equal(r.strict, 0);
+});
+
+test("gate passes on the arcee-ai shape: leaf=5, reg=4, manifest=4 (catalogue-only leaf)", () => {
+  // arcee-ai is in FREE_TIER_PROVIDER_SET (leaf) but absent from REGISTRY, so the
+  // prod gate compares the manifest against the intersection (reg), not the raw leaf.
+  const r = tally([freeTierCheck(5, 4, 4)], () => "live");
+  assert.equal(r.strict, 0);
+  // ...while the same manifest against the raw leaf (reg=leaf=5) must stay red.
+  const stale = tally([freeTierCheck(5, 4, 5)], () => "live");
+  assert.equal(stale.strict, 1);
+});
+
+test("gate skips when readCodeFacts fails (actual 0 fallback)", () => {
+  const r = tally(
+    [
+      {
+        label: "Code-derived counts",
+        actual: 0,
+        docKey: "code facts",
+        strict: false,
+        files: [] as string[],
+      },
+    ],
+    () => "live"
+  );
+  assert.equal(r.strict, 0);
+});
+
+test("buildChecks contains a free-tier gate", async () => {
+  const { buildChecks } = await import("../../scripts/check/check-docs-counts-sync.mjs");
+  const checks = (buildChecks as () => { label: string }[])();
+  assert.ok(checks.some((c) => c.label.includes("free-tier")));
 });

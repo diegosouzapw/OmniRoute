@@ -293,6 +293,7 @@ export function filterUsageForFormat(usage: UsageLike | null | undefined, target
       "cache_read_input_tokens",
       "cache_creation_input_tokens",
       "estimated",
+      "tokens_per_second",
     ],
     [FORMATS.GEMINI]: [
       "promptTokenCount",
@@ -301,6 +302,7 @@ export function filterUsageForFormat(usage: UsageLike | null | undefined, target
       "cachedContentTokenCount",
       "thoughtsTokenCount",
       "estimated",
+      "tokens_per_second",
     ],
     [FORMATS.OPENAI_RESPONSES]: [
       "input_tokens",
@@ -312,6 +314,7 @@ export function filterUsageForFormat(usage: UsageLike | null | undefined, target
       "cost_in_usd_ticks",
       "server_side_tool_usage_details",
       "server_side_tool_usage",
+      "tokens_per_second",
     ],
     // OpenAI format (default for OPENAI, CODEX, KIRO, etc.)
     default: [
@@ -327,6 +330,7 @@ export function filterUsageForFormat(usage: UsageLike | null | undefined, target
       "cache_read_input_tokens",
       "cache_creation_input_tokens",
       "estimated",
+      "tokens_per_second",
     ],
   };
 
@@ -671,9 +675,20 @@ export function hasValidUsage(usage: UsageLike | null | undefined) {
 export function isEmptyUsage(usage: unknown): boolean {
   if (!usage || typeof usage !== "object" || Array.isArray(usage)) return true;
   const u = usage as Record<string, unknown>;
-  for (const k of ["prompt_tokens","completion_tokens","total_tokens","input_tokens","output_tokens","promptTokenCount","candidatesTokenCount","totalTokenCount"]) {
+  for (const k of [
+    "prompt_tokens",
+    "completion_tokens",
+    "total_tokens",
+    "input_tokens",
+    "output_tokens",
+    "promptTokenCount",
+    "candidatesTokenCount",
+    "totalTokenCount",
+  ]) {
     const v = u[k];
-    if (typeof v === "number" && Number.isFinite(v)) { if (v > 0) return false; }
+    if (typeof v === "number" && Number.isFinite(v)) {
+      if (v > 0) return false;
+    }
   }
   return true;
 }

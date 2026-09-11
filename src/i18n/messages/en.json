@@ -2710,7 +2710,7 @@
     "ccOnboardingTitle": "settings.json for gateway model discovery",
     "ccOnboardingCopy": "Copy",
     "ccOnboardingCopied": "Copied",
-    "ccOnboardingKeyPlaceholder": "<your OmniRoute API key>",
+    "ccOnboardingKeyPlaceholder": "'<your OmniRoute API key>'",
     "ccOnboardingWindowNote": "Claude Code assumes a 200K context window for any model id it does not recognize. For a model with a different real window, add CLAUDE_CODE_AUTO_COMPACT_WINDOW just under it so auto-compaction does not fire too early.",
     "failedSave": "Failed to save",
     "profileSyncTitle": "CLI profile auto-sync",
@@ -3261,6 +3261,8 @@
     "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
     "resetAware": "Reset-Aware RR",
     "resetAwareDesc": "Balances remaining quota against 5h and weekly resets, then round-robins similar scores",
+    "quotaWeighted": "Quota-Weighted",
+    "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to leftover, divided by in-flight load. Existing conversations stay pinned.",
     "strictRandom": "Strict Random",
     "strictRandomDesc": "Shuffle deck — uses each model once before reshuffling",
     "fusion": "Fusion",
@@ -6139,7 +6141,7 @@
       "bluesminds": "Get your API key at https://www.bluesminds.com — OpenAI-compatible endpoint at https://api.bluesminds.com/v1 with free daily credits. VIP models (Claude Opus 4.5, Gemini 2.5 Pro) consume pi credits.",
       "byteplus": "Connect BytePlus ModelArk with an API key.",
       "bytez": "$1 free credits, refreshes every 4 weeks",
-      "cerebras": "Free Trial: 1M tokens/day, 30K TPM, 5 RPM — no credit card.",
+      "cerebras": "One-time $5 signup credit (30-day validity); a payment method is required. Not a recurring free tier.",
       "charm-hyper": "Create an API key at https://hyper.charm.land, then paste it here as a Bearer token.",
       "chutes": "Bearer API key for the Chutes OpenAI-compatible gateway.",
       "clarifai": "Clarifai exposes OpenAI-compatible chat, responses and /models on /v2/ext/openai/v1. Public/community models typically require a PAT; app-scoped keys only work for resources inside that app.",
@@ -6169,7 +6171,7 @@
       "freeaiapikey": "Discounted API proxy for 40+ models including GPT-5, Claude Opus 4.6, Claude Sonnet 4.6, Qwen 3.5. Get your API key at https://freeaiapikey.com/dashboard. Base URL: https://freeaiapikey.com/v1.",
       "freemodel-dev": "Get $300 free API credits at https://freemodel.dev — no payment info required. OpenAI-compatible endpoint. GPT-5.4 and GPT-5.5 models available.",
       "friendliai": "Free tier for serverless inference — no credit card required",
-      "gemini": "Free forever: 1,500 req/day for Gemini 2.5 Flash — no credit card, get key at aistudio.google.com",
+      "gemini": "Free tier through Google AI Studio; per-model quotas are no longer published (check the quota page in AI Studio) — no credit card.",
       "gigachat": "Connect GigaChat (Sber) with an API key.",
       "gitlab": "GitLab personal access token for the public Code Suggestions API. Configure a self-hosted base URL when not using gitlab.com.",
       "gitlawb-gmi": "Get your API key from Gitlawb Opengateway dashboard.",
@@ -6178,7 +6180,7 @@
       "glm-cn": "Connect GLM Coding (China) with an API key.",
       "glmt": "Preset GLM profile with higher token budget, thinking enabled, and longer timeout.",
       "getgoapi": "Connect GoAPI with an API key.",
-      "groq": "Free tier: 30 RPM / 14.4K RPD — no credit card",
+      "groq": "Free plan: per-model caps (200K tokens/day per chat model; see console.groq.com/docs/rate-limits for RPM/RPD) — no payment method on file.",
       "haiper": "Get API key at haiper.ai/haiper-api",
       "heroku": "Connect Heroku AI with an API key.",
       "hcnsec": "Get API key at api.hcnsec.cn",
@@ -7061,6 +7063,8 @@
     "costOptDesc": "Prefer cheapest available account",
     "resetAware": "Reset-Aware RR",
     "resetAwareDesc": "Prefer accounts with healthy remaining quota and nearer resets",
+    "quotaWeighted": "Quota-Weighted",
+    "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to leftover, divided by in-flight load. Existing conversations stay pinned.",
     "strictRandom": "Strict Random",
     "strictRandomDesc": "Shuffle deck — uses each account once before reshuffling",
     "stickyLimit": "Sticky Limit",
@@ -12992,7 +12996,7 @@
         "description": "After provider-model synchronization, regenerate ~/.codex/*.config.toml profiles from the live catalog. This never changes the active or default Codex configuration and is off by default."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "After provider-model synchronization, regenerate ~/.claude/profiles/<name>/settings.json profiles from the live catalog. This never changes the active or default Claude configuration and is off by default."
+        "description": "After provider-model synchronization, regenerate ~/.claude/profiles/'<name>'/settings.json profiles from the live catalog. This never changes the active or default Claude configuration and is off by default."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Disable the local instance health-check endpoint."
@@ -13002,6 +13006,10 @@
       },
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "Enable network access in the skills sandbox."
+      },
+      "SERVER_OWNED_TOOL_LOOP_ENABLED": {
+        "label": "Server-Owned Tool Loop",
+        "description": "Continue non-streaming server-owned tool calls until the model returns a client-usable response."
       }
     }
   },
@@ -13143,6 +13151,7 @@
     "segmentHint": "Each segment = one free pool · pool-deduped, honest counting (no inflated rate-limit ceilings).",
     "boost": "Unlock ~{tokens} more/mo with a one-time $10 OpenRouter top-up (50 → 1000 req/day)",
     "uncapped": "Permanently free, no published cap (rate-limited) — real access, not counted in the headline:",
+    "gated": "~{tokens}/mo more behind a regional identity check (e.g. mainland-China real-name verification) — real quota, not counted in the headline:",
     "tosRestricted": "{count, plural, one {# model} other {# models}} flagged as ToS-restricted — you decide",
     "provider": "Provider",
     "model": "Model",
@@ -13427,6 +13436,9 @@
     "colLimits": "Limits",
     "trainsOnPrompts": "Trains on prompts",
     "trainsOnPromptsHelp": "This provider discloses that it may use your prompts to train models",
+    "limitsUnknownHelp": "Limits reported by Radar feed only; no published limits for this entry",
+    "contextUnknownHelp": "Context window unknown for this entry",
+    "capabilityUnknownHelp": "Capability not reported by the feed",
     "colContext": "Context",
     "colCapabilities": "Capabilities",
     "colTos": "ToS Risk",
@@ -13991,6 +14003,16 @@
     "historyRange1d": "24h",
     "historyRange7d": "7 days",
     "historyRange30d": "30 days",
+    "compareMode": "Compare runs",
+    "compareExit": "Exit compare mode",
+    "compareHint": "Select two runs to compare",
+    "compareTitle": "Comparison",
+    "compareDetailFailed": "Could not load this run's detail",
+    "compareDifferentIdentity": "Different sources or skills — deltas are informational",
+    "compareDuration": "Duration",
+    "compareCost": "Cost",
+    "compareEvents": "Events",
+    "compareDeltaLegend": "Δ right − left",
     "showCompleted": "Show completed",
     "searchPlaceholder": "Search tasks…",
     "filterStates": "States",
@@ -14012,6 +14034,7 @@
     "stateCancelled": "Cancelled",
     "overflowMore": "+{count} more",
     "emptyTitle": "Nothing running yet",
+    "noMatches": "No runs match these filters",
     "emptyCloudAgentCta": "Set up Cloud Agents",
     "emptyA2ACta": "Open A2A",
     "emptyConductorCta": "Open Conductor",

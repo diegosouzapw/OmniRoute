@@ -106,16 +106,23 @@ function parsePatterns(name) {
 const LOCAL_ONLY_PREFIXES = parsePrefixes("LOCAL_ONLY_API_PREFIXES");
 const LOCAL_ONLY_PATTERNS = parsePatterns("LOCAL_ONLY_API_PATTERNS");
 const ALWAYS_PROTECTED_PATHS = parsePrefixes("ALWAYS_PROTECTED_API_PATHS");
+// isAlwaysProtectedPath() is ALSO two-armed (paths || patterns) — reading only the
+// path array repeated, on this half, the very bug #12350 fixed on the LOCAL_ONLY
+// half: the pattern-gated credential routes (…/{claude,codex}-auth/{export,
+// apply-local}, #12600) read as unannotated even though they are protected.
+const ALWAYS_PROTECTED_PATTERNS = parsePatterns("ALWAYS_PROTECTED_API_PATTERNS");
 
 if (
   LOCAL_ONLY_PREFIXES.length === 0 ||
   LOCAL_ONLY_PATTERNS.length === 0 ||
-  ALWAYS_PROTECTED_PATHS.length === 0
+  ALWAYS_PROTECTED_PATHS.length === 0 ||
+  ALWAYS_PROTECTED_PATTERNS.length === 0
 ) {
   console.error(
     `[openapi-security-tiers] FAIL — could not parse routeGuard.ts constants ` +
       `(prefixes=${LOCAL_ONLY_PREFIXES.length}, patterns=${LOCAL_ONLY_PATTERNS.length}, ` +
-      `alwaysProtected=${ALWAYS_PROTECTED_PATHS.length})`
+      `alwaysProtected=${ALWAYS_PROTECTED_PATHS.length}, ` +
+      `alwaysProtectedPatterns=${ALWAYS_PROTECTED_PATTERNS.length})`
   );
   process.exit(1);
 }
@@ -135,6 +142,15 @@ function coveredByLocalOnly(pathStr) {
   return matchesPrefix(concrete) || LOCAL_ONLY_PATTERNS.some((re) => re.test(concrete));
 }
 
+/** Mirror of routeGuard.isAlwaysProtectedPath() — both arms, same order. */
+function coveredByAlwaysProtected(pathStr) {
+  const concrete = concretize(pathStr);
+  return (
+    ALWAYS_PROTECTED_PATHS.some((p) => concrete === p || concrete.startsWith(`${p}/`)) ||
+    ALWAYS_PROTECTED_PATTERNS.some((re) => re.test(concrete))
+  );
+}
+
 const raw = yaml.load(fs.readFileSync(OPENAPI_PATH, "utf-8"));
 const paths = raw.paths || {};
 const errors = [];
@@ -151,16 +167,11 @@ for (const [pathStr, methods] of Object.entries(paths)) {
       );
     }
 
-    if (spec["x-always-protected"] === true) {
-      const matchesPath = ALWAYS_PROTECTED_PATHS.some(
-        (p) => pathStr === p || pathStr.startsWith(`${p}/`)
+    if (spec["x-always-protected"] === true && !coveredByAlwaysProtected(pathStr)) {
+      errors.push(
+        `${method.toUpperCase()} ${pathStr}: has x-always-protected but is NOT covered by ` +
+          `ALWAYS_PROTECTED_API_PATHS or ALWAYS_PROTECTED_API_PATTERNS`
       );
-      if (!matchesPath) {
-        errors.push(
-          `${method.toUpperCase()} ${pathStr}: has x-always-protected but is NOT in ` +
-            `ALWAYS_PROTECTED_API_PATHS [${ALWAYS_PROTECTED_PATHS.join(", ")}]`
-        );
-      }
     }
   }
 }

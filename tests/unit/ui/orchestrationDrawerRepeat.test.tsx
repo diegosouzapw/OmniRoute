@@ -9,7 +9,10 @@ vi.mock("next-intl", () => ({
 }));
 
 import { OrchestrationDrawer } from "@/app/(dashboard)/dashboard/orchestration/drawer/OrchestrationDrawer";
-import { repeatReqFor } from "@/app/(dashboard)/dashboard/orchestration/drawer/useDrawerDetail";
+import {
+  newNodeIdFrom,
+  repeatReqFor,
+} from "@/app/(dashboard)/dashboard/orchestration/drawer/useDrawerDetail";
 
 function render(el: React.ReactElement) {
   const c = document.createElement("div");
@@ -781,6 +784,188 @@ describe("OrchestrationDrawer repeat action (two-click confirm)", () => {
     expect(c.textContent).toContain("actionFailed");
     expect(c.textContent).toContain("HTTP 400");
     expect(c.textContent).not.toContain("repeatDone");
+    cleanup();
+  });
+});
+
+describe("repeatReqFor conductor requirements (cli/model)", () => {
+  const node = {
+    id: "conductor:task:1",
+    kind: "work",
+    source: "conductor",
+    state: "succeeded",
+    label: "x",
+  };
+
+  it("carries cli/model when the hub detail exposes them (a repeat must land on the same runner profile/model)", () => {
+    const detail = {
+      repo: "https://github.com/x/y",
+      prompt: "fix the bug",
+      base_ref: "main",
+      mode: "auto",
+      cli: "claude",
+      model: "sonnet",
+    };
+    const req = repeatReqFor(node as never, detail);
+    expect(JSON.parse(String(req?.init.body))).toEqual({
+      repoUrl: "https://github.com/x/y",
+      prompt: "fix the bug",
+      baseRef: "main",
+      mode: "auto",
+      cli: "claude",
+      model: "sonnet",
+    });
+  });
+
+  it("omits cli/model entirely when the detail has them null (the route's Zod treats both as optional strings — `null` would 400)", () => {
+    const detail = {
+      repo: "https://github.com/x/y",
+      prompt: "fix the bug",
+      base_ref: "main",
+      mode: "auto",
+      cli: null,
+      model: null,
+    };
+    const body = String(repeatReqFor(node as never, detail)?.init.body);
+    expect(JSON.parse(body)).toEqual({
+      repoUrl: "https://github.com/x/y",
+      prompt: "fix the bug",
+      baseRef: "main",
+      mode: "auto",
+    });
+    expect(body).not.toContain("cli");
+    expect(body).not.toContain("model");
+  });
+
+  it("carries only the field that is present (cli set, model null — they are independent)", () => {
+    const detail = {
+      repo: "https://github.com/x/y",
+      prompt: "fix the bug",
+      base_ref: null,
+      mode: "solo",
+      cli: "codex",
+      model: null,
+    };
+    expect(JSON.parse(String(repeatReqFor(node as never, detail)?.init.body))).toEqual({
+      repoUrl: "https://github.com/x/y",
+      prompt: "fix the bug",
+      mode: "solo",
+      cli: "codex",
+    });
+  });
+});
+
+describe("newNodeIdFrom", () => {
+  it("maps each source's creation response to the CANVAS node id (prefixed), never the raw id", () => {
+    const cond = { id: "conductor:task:1", source: "conductor" };
+    expect(newNodeIdFrom(cond as never, { task_id: "t2" })).toBe("conductor:task:t2");
+    const ca = { id: "cloud-agent:1", source: "cloud-agent" };
+    expect(newNodeIdFrom(ca as never, { data: { id: "c2" } })).toBe("cloud-agent:c2");
+    const a2a = { id: "a2a:1", source: "a2a" };
+    expect(newNodeIdFrom(a2a as never, { result: { task: { id: "n2" } } })).toBe("a2a:n2");
+  });
+
+  it("returns null for a body that does not carry a usable id (never throws, never yields a bare prefix)", () => {
+    const cond = { id: "conductor:task:1", source: "conductor" };
+    expect(newNodeIdFrom(cond as never, null)).toBeNull();
+    expect(newNodeIdFrom(cond as never, {})).toBeNull();
+    expect(newNodeIdFrom(cond as never, { task_id: "" })).toBeNull();
+    expect(newNodeIdFrom(cond as never, { task_id: 7 })).toBeNull();
+    expect(newNodeIdFrom(cond as never, "nope")).toBeNull();
+    const ca = { id: "cloud-agent:1", source: "cloud-agent" };
+    expect(newNodeIdFrom(ca as never, { data: {} })).toBeNull();
+    const a2a = { id: "a2a:1", source: "a2a" };
+    expect(newNodeIdFrom(a2a as never, { result: {} })).toBeNull();
+  });
+
+  it("returns null for a node whose source has no repeat contract", () => {
+    const overflow = { id: "overflow:1", kind: "overflow" };
+    expect(newNodeIdFrom(overflow as never, { task_id: "t2" })).toBeNull();
+  });
+});
+
+describe("OrchestrationDrawer repeat focuses the newly created task", () => {
+  const CONDUCTOR_DETAIL = {
+    id: "1",
+    status: "succeeded",
+    mode: "solo",
+    repo: "https://github.com/x/y",
+    runner: null,
+    summary: null,
+    branch: null,
+    error: null,
+    updated_at: null,
+    prompt: "fix the bug",
+    base_ref: "main",
+    tests: null,
+    council: null,
+    created_at: null,
+    cli: "claude",
+    model: "sonnet",
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function findRepeatButton(c: HTMLElement): HTMLButtonElement {
+    return Array.from(c.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("actionRepeat") || b.textContent?.includes("repeatConfirm")
+    ) as HTMLButtonElement;
+  }
+
+  async function repeatOnce(onActionDone: (id?: string) => void) {
+    const fetchMock = vi.fn((_url: string, init?: RequestInit) => {
+      if (init?.method === "POST") {
+        return Promise.resolve({
+          ok: true,
+          status: 201,
+          json: () => Promise.resolve({ task_id: "t_new" }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(CONDUCTOR_DETAIL) });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const node = {
+      id: "conductor:task:1",
+      kind: "work",
+      source: "conductor",
+      state: "running",
+      label: "x",
+    };
+    const { c, cleanup } = render(
+      <OrchestrationDrawer node={node as never} onClose={() => {}} onActionDone={onActionDone} />
+    );
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await act(async () => {
+      findRepeatButton(c).click();
+    });
+    await act(async () => {
+      findRepeatButton(c).click();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    return { c, cleanup, fetchMock };
+  }
+
+  it("hands the canvas id of the created task to onActionDone, so the page can focus it", async () => {
+    const seen: Array<string | undefined> = [];
+    const { c, cleanup, fetchMock } = await repeatOnce((id) => seen.push(id));
+    const post = fetchMock.mock.calls.find(([, init]) => (init as RequestInit)?.method === "POST");
+    expect(post![0]).toBe("/api/conductor/tasks");
+    expect(JSON.parse(String((post![1] as RequestInit).body))).toMatchObject({
+      cli: "claude",
+      model: "sonnet",
+    });
+    expect(seen).toEqual(["conductor:task:t_new"]);
+    expect(c.textContent).toContain("repeatDone");
     cleanup();
   });
 });

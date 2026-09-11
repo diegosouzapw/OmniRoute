@@ -20,6 +20,19 @@ test("Claude extra-usage blocking defaults to enabled and validates provider pay
     claudeExtraUsage.isClaudeExtraUsageBlockEnabled("openai", { blockExtraUsage: false }),
     false
   );
+  assert.equal(
+    claudeExtraUsage.isClaudeExtraUsageAllowed("claude", { blockExtraUsage: false }),
+    true
+  );
+  assert.equal(claudeExtraUsage.isClaudeExtraUsageAllowed("claude", {}), false);
+  assert.equal(
+    claudeExtraUsage.isClaudeExtraUsageAllowed("claude", { blockExtraUsage: true }),
+    false
+  );
+  assert.equal(
+    claudeExtraUsage.isClaudeExtraUsageAllowed("openai", { blockExtraUsage: false }),
+    false
+  );
 
   assert.deepEqual(normalizeProviderSpecificData("claude", { blockExtraUsage: "nope", tag: "x" }), {
     tag: "x",

@@ -101,6 +101,13 @@ test(
       const cli = await importFresh("bin/cli/sqlite.mjs");
       const setup = await cli.openOmniRouteDb();
       assert.ok(fs.existsSync(setup.dbPath), "setup created storage.sqlite");
+      setup.db
+        .prepare(
+          `INSERT INTO provider_connections
+            (id, provider, created_at, updated_at)
+           VALUES (?, ?, ?, ?)`
+        )
+        .run("setup-provider", "openai", "2026-09-02T00:00:00.000Z", "2026-09-02T00:00:00.000Z");
       setup.db.close();
 
       const onDisk = new Database(setup.dbPath, { readonly: true });
@@ -139,6 +146,27 @@ test(
         (maxRow?.maxV ?? 0) > 1,
         `expected migrations beyond 001 to run, got max=${maxRow?.maxV}`
       );
+
+      const backupDir = path.join(dataDir, "db_backups");
+      const snapshots = fs
+        .readdirSync(backupDir)
+        .filter((name) => /^db_state-[a-f0-9]{64}_pre-migration\.sqlite$/.test(name));
+      assert.equal(
+        snapshots.length,
+        1,
+        "a setup-created file is logically fresh for the mass guard but physically existing for snapshot safety"
+      );
+
+      const snapshot = new Database(path.join(backupDir, snapshots[0]!), { readonly: true });
+      try {
+        assert.deepEqual(
+          snapshot.prepare("SELECT id, provider FROM provider_connections").get(),
+          { id: "setup-provider", provider: "openai" },
+          "the mandatory snapshot must preserve setup-created provider state"
+        );
+      } finally {
+        snapshot.close();
+      }
     } finally {
       if (originalDataDir === undefined) delete process.env.DATA_DIR;
       else process.env.DATA_DIR = originalDataDir;

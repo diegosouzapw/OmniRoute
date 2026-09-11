@@ -1,0 +1,1 @@
+- **fix(logging):** keep the provider exchange rather than the raw client bodies when a call log exceeds its size budget, and show that recovered payload in the request-detail panel instead of replacing it with the stored response body ([#13147](https://github.com/diegosouzapw/OmniRoute/pull/13147)) — thanks @maxmad64bis

@@ -55,6 +55,14 @@ export function getQuotaScopeLabelForProvider(
   return getAntigravityQuotaFamily(model) === "other" ? "model" : "family";
 }
 
+export function getQuotaFetchScope(
+  provider: string | null | undefined,
+  model: string | null | undefined
+): string {
+  if (provider !== "antigravity" && provider !== "agy") return "*";
+  return getQuotaScopedModelForProvider(provider, model) ?? "*";
+}
+
 export function isAntigravityQuotaProvider(provider: string | null | undefined): boolean {
   return provider === "antigravity" || provider === "agy";
 }

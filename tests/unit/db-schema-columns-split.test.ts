@@ -11,6 +11,7 @@ import {
   ensureUsageHistoryColumns,
   ensureProviderConnectionsColumns,
   ensureProxyLogsColumns,
+  ensureCallLogsColumns,
   hasColumn,
   hasTable,
   quoteIdentifier,
@@ -136,6 +137,8 @@ test("ensureProviderConnectionsColumns restores base columns required by later m
 
     assert.equal(hasColumn(db, "provider_connections", "provider_specific_data"), true);
     assert.equal(hasColumn(db, "provider_connections", "default_model"), true);
+    assert.equal(hasColumn(db, "provider_connections", "last_ping_at"), true);
+    assert.equal(hasColumn(db, "provider_connections", "last_pinged_reset_key"), true);
     const columnsAfterFirstRun = getTableColumns(db, "provider_connections").sort();
     const indexesAfterFirstRun = (
       db.prepare("PRAGMA index_list(provider_connections)").all() as Array<{ name: string }>
@@ -159,6 +162,47 @@ test("ensureProviderConnectionsColumns restores base columns required by later m
       indexesAfterFirstRun
     );
     assert.deepEqual(warnings, []);
+  } finally {
+    db.close?.();
+  }
+});
+
+test("ensureProviderConnectionsColumns back-fills last_ping columns on a pre-123 lineage", () => {
+  const db = openMemoryDb();
+  try {
+    db.exec("CREATE TABLE provider_connections (id TEXT PRIMARY KEY, provider TEXT NOT NULL)");
+    assert.equal(hasColumn(db, "provider_connections", "last_ping_at"), false);
+    assert.equal(hasColumn(db, "provider_connections", "last_pinged_reset_key"), false);
+
+    ensureProviderConnectionsColumns(db);
+
+    assert.equal(hasColumn(db, "provider_connections", "last_ping_at"), true);
+    assert.equal(hasColumn(db, "provider_connections", "last_pinged_reset_key"), true);
+    assert.doesNotThrow(() => ensureProviderConnectionsColumns(db));
+  } finally {
+    db.close?.();
+  }
+});
+
+// #12150 P2b: `resolvePreviousResponseState` SELECTs `video_content_removed` on
+// every previous_response_id lookup. Migration 173 adds it, but a lineage that
+// skipped 173 would raise "no such column" there instead of failing closed, so
+// the reconciliation has to carry it too — the hole #12470 closed for
+// provider_connections.
+test("ensureCallLogsColumns back-fills video_content_removed on a pre-173 lineage", () => {
+  const db = openMemoryDb();
+  try {
+    db.exec("CREATE TABLE call_logs (id TEXT PRIMARY KEY, timestamp TEXT)");
+    assert.equal(hasColumn(db, "call_logs", "video_content_removed"), false);
+
+    ensureCallLogsColumns(db);
+
+    assert.equal(hasColumn(db, "call_logs", "video_content_removed"), true);
+    const row = db
+      .prepare("SELECT video_content_removed AS v FROM call_logs WHERE id = ?")
+      .get("missing") as { v: number } | undefined;
+    assert.equal(row, undefined, "empty table — the column just has to be selectable");
+    assert.doesNotThrow(() => ensureCallLogsColumns(db));
   } finally {
     db.close?.();
   }

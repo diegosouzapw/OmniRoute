@@ -37,12 +37,12 @@ omniroute tunnel
 omniroute tunnel list
 ```
 
-### `tunnel create [type]`
+### `tunnel create`
 
 **Example:**
 
 ```bash
-omniroute tunnel create [type]
+omniroute tunnel create
 ```
 
 ### `tunnel stop <type>`

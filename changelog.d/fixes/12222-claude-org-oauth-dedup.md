@@ -1,1 +1,0 @@
-- **fix(oauth):** Keep a Claude personal workspace and a Team organization as separate connections — they share the same email and `accountUUID`, so the email-only OAuth dedup let the second login overwrite the first account's tokens; `organizationUUID` now disambiguates them, the way `workspaceId` does for Codex ([#12222](https://github.com/diegosouzapw/OmniRoute/pull/12222))

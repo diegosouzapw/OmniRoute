@@ -186,6 +186,117 @@ test("Antigravity BYOP 422 rotates to a sibling account and the request succeeds
   }
 });
 
+test("streaming Antigravity BYOP 422 still rotates — execute must not cancel the error body", async () => {
+  const byopAccount = await createAntigravityAccount({
+    name: "antigravity-byop-stream-a",
+    email: "byop-stream-a@example.test",
+    accessToken: "fake-byop-account-a-token",
+    refreshToken: "fake-byop-account-a-refresh",
+    priority: 1,
+  });
+  const healthyAccount = await createAntigravityAccount({
+    name: "antigravity-healthy-stream-b",
+    email: "byop-stream-b@example.test",
+    accessToken: "fake-healthy-account-b-token",
+    refreshToken: "fake-healthy-account-b-refresh",
+    priority: 2,
+  });
+
+  let onboardCallsForA = 0;
+  const modelCalls: Array<{ token: string }> = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input, init) => {
+    const request = input instanceof Request ? input : new Request(input, init);
+    if (request.url.startsWith("https://oauth2.googleapis.com/token")) {
+      const form = await request.text().catch(() => "");
+      const refreshMatch = form.match(/refresh_token=([^&]+)/);
+      const refreshToken = refreshMatch ? decodeURIComponent(refreshMatch[1]) : "";
+      const accessToken =
+        refreshToken === "fake-byop-account-a-refresh"
+          ? "fake-byop-account-a-token"
+          : "fake-healthy-account-b-token";
+      return new Response(JSON.stringify({ access_token: accessToken, expires_in: 3600 }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (request.url.endsWith(":loadCodeAssist")) {
+      const token = (request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
+      if (token === "fake-healthy-account-b-token") {
+        return new Response(
+          JSON.stringify({ cloudaicompanionProject: "projects/healthy-b-project" }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      return new Response("{}", {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (request.url.endsWith(":onboardUser")) {
+      const token = (request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
+      if (token === "fake-byop-account-a-token") {
+        onboardCallsForA += 1;
+        return new Response(JSON.stringify({ done: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return new Response(
+        JSON.stringify({
+          done: true,
+          cloudaicompanionProject: { name: "projects/healthy-b-project" },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    if (new URL(request.url).hostname === "cloudcode-pa.googleapis.com") {
+      modelCalls.push({
+        token: (request.headers.get("authorization") || "").replace(/^Bearer\s+/i, ""),
+      });
+      return new Response(
+        'data: {"response":{"candidates":[{"content":{"parts":[{"text":"ok from account B"}]},"finishReason":"STOP"}]}}\n\n',
+        { status: 200, headers: { "Content-Type": "text/event-stream" } }
+      );
+    }
+    throw new Error(`Unexpected external fetch: ${request.url}`);
+  };
+
+  try {
+    const response = await handleChat(
+      buildRequest({
+        body: {
+          model: "antigravity/gemini-2.5-flash",
+          stream: true,
+          messages: [{ role: "user", content: "hello" }],
+        },
+      })
+    );
+
+    assert.equal(response.status, 200);
+    const bodyText = await response.text().catch(() => "");
+    assert.match(bodyText, /ok from account B/);
+    assert.ok(modelCalls.length >= 1, "model call should have been made");
+    assert.equal(modelCalls[0].token, "fake-healthy-account-b-token");
+    assert.equal(onboardCallsForA, 1);
+    const updatedA = await providersDb.getProviderConnectionById(byopAccount.id);
+    assert.ok(
+      updatedA && Number(updatedA.rateLimitedUntil) > Date.now(),
+      "BYOP account should be excluded from selection"
+    );
+    const updatedB = await providersDb.getProviderConnectionById(healthyAccount.id);
+    assert.ok(
+      !updatedB ||
+        !Number(updatedB.rateLimitedUntil) ||
+        Number(updatedB.rateLimitedUntil) <= Date.now(),
+      "healthy sibling account must not be excluded"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    clearAntigravityProjectCache();
+  }
+});
+
 test("Antigravity BYOP with no sibling account surfaces the actionable 422 and excludes the connection", async () => {
   const byopAccount = await createAntigravityAccount({
     name: "antigravity-byop-only",

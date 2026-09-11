@@ -1,1 +1,0 @@
-- **fix(ui):** the shared `DataTable` loading state no longer reads its decorative ⏳ glyph out to assistive technology, and now carries the same `role="status"` / `aria-live="polite"` / `aria-busy="true"` semantics as `PageLoading` ([#11869](https://github.com/diegosouzapw/OmniRoute/pull/11869)) — thanks @pacocartones

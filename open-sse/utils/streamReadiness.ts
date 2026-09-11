@@ -422,56 +422,66 @@ function prependBufferedChunks(
   reader: ReadableStreamDefaultReader<Uint8Array>
 ): ReadableStream<Uint8Array> {
   let bufferedIndex = 0;
-  let cancelled = false;
+  let readInFlight = false;
+  let cancelRequested = false;
   let readerReleased = false;
 
   const releaseReader = () => {
     if (readerReleased) return;
     readerReleased = true;
+    reader.releaseLock();
+  };
+
+  const cancelReader = (reason: unknown) => {
+    if (cancelRequested) return;
+    cancelRequested = true;
+
     try {
-      reader.releaseLock();
+      // The provider controls this promise and may never settle. Cancellation
+      // of the replay stream must remain bounded, so cleanup is deliberately
+      // fire-and-forget while the in-flight read releases the lock in `pull`.
+      void reader.cancel(reason).catch(() => {});
     } catch {
-      // A hostile source can keep a read/cancel pending forever. The public stream must
-      // remain cancellable even when its abandoned source cannot release immediately.
+      // A synchronous cancellation failure is cleanup-only; the downstream
+      // stream has already been cancelled by its consumer.
     }
+
+    if (!readInFlight) releaseReader();
   };
 
   return new ReadableStream<Uint8Array>({
     async pull(controller) {
-      if (cancelled) return;
+      if (cancelRequested) return;
 
-      // Replay exactly one readiness chunk per pull. Keeping the first buffered chunk at
-      // the stream's default high-water mark prevents an eager read of a later upstream
-      // failure from discarding that legitimate prefix before the caller attaches.
+      // Replay exactly one readiness chunk per demand. Reading the source
+      // eagerly here would let a subsequent source error clear this queue
+      // before the consumer has observed the buffered prefix.
       if (bufferedIndex < chunks.length) {
         controller.enqueue(chunks[bufferedIndex]);
         bufferedIndex += 1;
         return;
       }
 
+      readInFlight = true;
       try {
         const { done, value } = await reader.read();
-        if (cancelled) return;
+        if (cancelRequested) return;
         if (done) {
           releaseReader();
           controller.close();
-          return;
+        } else if (value) {
+          controller.enqueue(value);
         }
-        if (value) controller.enqueue(value);
       } catch (error) {
         releaseReader();
-        if (!cancelled) controller.error(error);
+        if (!cancelRequested) controller.error(error);
+      } finally {
+        readInFlight = false;
+        if (cancelRequested) releaseReader();
       }
     },
     cancel(reason) {
-      if (cancelled) return;
-      cancelled = true;
-      // Do not await a provider's cancel hook: a hostile or stalled source must not make
-      // downstream cancellation hang. Release the lock once cancellation actually settles.
-      void reader
-        .cancel(reason)
-        .catch(() => {})
-        .finally(releaseReader);
+      cancelReader(reason);
     },
   });
 }

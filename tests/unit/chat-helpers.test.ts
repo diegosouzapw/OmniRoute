@@ -25,6 +25,16 @@ const { getCircuitBreaker, resetAllCircuitBreakers, STATE } =
 // DATA_DIR must be fixed before these modules load; keep this test seam dynamic.
 const { setTlsClientForTest } = await import("../../open-sse/utils/proxyFetch.ts");
 
+type ApiErrorJson = {
+  error?: {
+    message?: string;
+    code?: string;
+    type?: string;
+    model?: string;
+    reset_seconds?: number;
+  };
+};
+
 async function resetStorage() {
   resetAllCircuitBreakers();
   core.resetDbInstance();
@@ -85,7 +95,7 @@ test("resolveModelOrError rejects unknown built-in auto catalog ids", async () =
 
   assert.ok(result.error);
   assert.equal(result.error.status, 400);
-  const json = (await result.error.json()) as any;
+  const json = (await result.error.json()) as ApiErrorJson;
   assert.match(json.error.message, /Unknown built-in auto combo/i);
 });
 
@@ -120,7 +130,7 @@ test("resolveModelOrError rejects ambiguous aliases without a provider prefix", 
 
   assert.ok(result.error);
   assert.equal(result.error.status, 400);
-  const json = (await result.error.json()) as any;
+  const json = (await result.error.json()) as ApiErrorJson;
   assert.match(json.error.message, /Ambiguous model/i);
 });
 
@@ -133,7 +143,7 @@ test("resolveModelOrError rejects ambiguous slashful canonical ids instead of mi
 
   assert.ok(result.error);
   assert.equal(result.error.status, 400);
-  const json = (await result.error.json()) as any;
+  const json = (await result.error.json()) as ApiErrorJson;
   assert.match(json.error.message, /Ambiguous model/i);
   assert.match(json.error.message, /openai\/gpt-oss-120b/i);
 });
@@ -147,7 +157,7 @@ test("resolveModelOrError rejects malformed model strings", async () => {
 
   assert.ok(result.error);
   assert.equal(result.error.status, 400);
-  const json = (await result.error.json()) as any;
+  const json = (await result.error.json()) as ApiErrorJson;
   assert.match(json.error.message, /Invalid model format/i);
 });
 
@@ -261,7 +271,7 @@ test("checkPipelineGates blocks providers with an open circuit breaker", async (
       resetTimeoutMs: 5_000,
     },
   });
-  const json = (await response.json()) as any;
+  const json = (await response.json()) as ApiErrorJson;
   const retryAfter = Number(response.headers.get("Retry-After"));
 
   assert.equal(response.status, 503);
@@ -329,8 +339,8 @@ test("handleNoCredentials reports missing provider credentials and exhausted acc
     500
   );
 
-  const missingJson = (await missing.json()) as any;
-  const exhaustedJson = (await exhausted.json()) as any;
+  const missingJson = (await missing.json()) as ApiErrorJson;
+  const exhaustedJson = (await exhausted.json()) as ApiErrorJson;
 
   assert.equal(missing.status, 404);
   assert.match(missingJson.error.message, /No active credentials for provider: openai/);
@@ -413,7 +423,7 @@ test("handleNoCredentials returns Retry-After when every account is rate limited
     null,
     null
   );
-  const json = (await response.json()) as any;
+  const json = (await response.json()) as ApiErrorJson;
 
   assert.equal(response.status, 429);
   assert.ok(Number(response.headers.get("Retry-After")) >= 1);
@@ -438,7 +448,7 @@ test("handleNoCredentials returns structured model_cooldown when every credentia
     null,
     null
   );
-  const json = (await response.json()) as any;
+  const json = (await response.json()) as ApiErrorJson;
 
   assert.equal(response.status, 429);
   assert.equal(Number(response.headers.get("Retry-After")) >= 1, true);
@@ -461,7 +471,7 @@ test("handleNoCredentials returns 401 with re-auth hint when every connection is
     null,
     null
   );
-  const json = (await response.json()) as any;
+  const json = (await response.json()) as ApiErrorJson;
 
   assert.equal(response.status, 401);
   assert.match(json.error.message, /\[kiro\]/);
@@ -478,10 +488,25 @@ test("handleNoCredentials maps allExpired status='expired' to the 'authenticatio
     null,
     null
   );
-  const json = (await response.json()) as any;
+  const json = (await response.json()) as ApiErrorJson;
 
   assert.equal(response.status, 401);
   assert.match(json.error.message, /3 connection\(s\) authentication expired/);
+});
+
+test("handleNoCredentials maps credits_exhausted to HTTP 402 not 401 (#12441)", async () => {
+  const response = handleNoCredentials(
+    { allExpired: true, expiredCount: 3, expiredStatus: "credits_exhausted" },
+    null,
+    "chutes",
+    "moonshotai/Kimi-K3-TEE",
+    null,
+    null
+  );
+  const json = (await response.json()) as ApiErrorJson;
+
+  assert.equal(response.status, 402);
+  assert.match(json.error.message, /3 connection\(s\) credits exhausted/);
 });
 
 test("handleNoCredentials preserves lastError over allExpired after a failed attempt", async () => {
@@ -501,7 +526,7 @@ test("handleNoCredentials preserves lastError over allExpired after a failed att
 test("safeResolveProxy returns the direct route when no proxy config is present", async () => {
   const connection = await seedConnection("openai", { apiKey: "sk-openai-direct" });
 
-  const resolved = await safeResolveProxy((connection as any).id);
+  const resolved = await safeResolveProxy((connection as { id: string }).id);
 
   assert.deepEqual(resolved, {
     proxy: null,
@@ -693,7 +718,7 @@ test("resolveModelOrError returns model_not_found error for unrecognised bare mo
 
   assert.ok(result.error);
   assert.equal(result.error.status, 400);
-  const json = (await result.error.json()) as any;
+  const json = (await result.error.json()) as ApiErrorJson;
   assert.match(json.error.message, /Unable to determine provider/i);
   assert.match(json.error.message, /completely-unknown-model-xyz/i);
 });

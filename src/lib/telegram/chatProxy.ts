@@ -21,11 +21,31 @@ const DEFAULT_MODEL = process.env.TELEGRAM_DEFAULT_MODEL || "auto/chat";
  * Resolve (and lazily mint) an OmniRoute API key for a Telegram user.
  * Returns the plaintext key value, cached per user id.
  */
+// Bounded LRU. The webhook path passes a caller-supplied chat id, so the key
+// space is not limited to the real user population and an uncapped Map would
+// grow for the lifetime of the process. Insertion order is the recency order:
+// a hit re-inserts, and the oldest entry is dropped once the cap is reached.
+const KEY_CACHE_MAX_ENTRIES = 1000;
 const keyCache = new Map<number, string>();
+
+function rememberUserApiKey(telegramUserId: number, key: string): void {
+  // Re-insert so this id becomes the most recently used entry.
+  keyCache.delete(telegramUserId);
+  keyCache.set(telegramUserId, key);
+  while (keyCache.size > KEY_CACHE_MAX_ENTRIES) {
+    const oldest = keyCache.keys().next();
+    if (oldest.done) break;
+    keyCache.delete(oldest.value);
+  }
+}
 
 export async function resolveUserApiKey(telegramUserId: number): Promise<string> {
   const cached = keyCache.get(telegramUserId);
-  if (cached) return cached;
+  if (cached) {
+    // Refresh recency so an active user is not evicted by a burst of new ids.
+    rememberUserApiKey(telegramUserId, cached);
+    return cached;
+  }
 
   const machineId = (await getConsistentMachineId().catch(() => null)) || "0000000000000000";
 
@@ -39,12 +59,12 @@ export async function resolveUserApiKey(telegramUserId: number): Promise<string>
   );
   const matchKey = (match as { key?: string } | undefined)?.key;
   if (typeof matchKey === "string" && matchKey.length > 0) {
-    keyCache.set(telegramUserId, matchKey);
+    rememberUserApiKey(telegramUserId, matchKey);
     return matchKey;
   }
 
   const created = await createApiKey(`telegram:${telegramUserId}`, machineId);
-  keyCache.set(telegramUserId, created.key);
+  rememberUserApiKey(telegramUserId, created.key);
   return created.key;
 }
 

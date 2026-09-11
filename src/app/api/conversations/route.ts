@@ -3,7 +3,10 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import type { MultiTurnConversationRow } from "@/lib/db/agenticConversations";
 import { listMultiTurnConversations } from "@/lib/db/agenticConversations";
 import { getPendingById } from "@/lib/usage/usageHistory";
-import { isGenuineContinuationTurn } from "@/lib/db/responsesContinuationStore";
+import {
+  isGenuineContinuationTurn,
+  resolveConversationStalledState,
+} from "@/lib/db/responsesContinuationStore";
 
 export const dynamic = "force-dynamic";
 
@@ -20,11 +23,22 @@ export function annotateConversationRow(
   activeCallLogIdByConversation: ReadonlyMap<string, string>
 ) {
   const { lastArtifactRelPath, lastApiKeyId, ...rest } = row;
+  const isActive = activeCallLogIdByConversation.has(row.id);
   return {
     ...rest,
-    isActive: activeCallLogIdByConversation.has(row.id),
+    isActive,
     activeCallLogId: activeCallLogIdByConversation.get(row.id) ?? null,
     isGenuineContinuation: isGenuineContinuationTurn(lastArtifactRelPath, lastApiKeyId),
+    // "Didn't end in stop" badge: a truncated/failed stream, or a tool call
+    // still unanswered 5+ minutes after lastSeenAt with nothing having
+    // continued. See resolveConversationStalledState's own doc comment for
+    // why a bare tool call alone isn't enough (that's completely normal
+    // seconds after it lands -- only the grace-period-elapsed case counts).
+    isStalled: resolveConversationStalledState({
+      artifactRelPath: lastArtifactRelPath,
+      lastSeenAt: row.lastSeenAt,
+      isActive,
+    }),
   };
 }
 

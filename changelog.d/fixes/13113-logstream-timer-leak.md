@@ -1,0 +1,1 @@
+- **fix(cli-helper):** clear the `createLogStream` timeout on the abort path — `stop()` aborts the in-flight fetch and returned through the `signal.aborted` branch, which skipped `clearTimeout` and left an armed timer per stopped stream. The stream reader is now also cancelled when the read loop exits early.

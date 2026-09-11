@@ -255,6 +255,7 @@ export const GLMT_REQUEST_DEFAULTS = Object.freeze({
 });
 
 export const GLM_COUNT_TOKENS_TIMEOUT_MS = 3_000;
+/** Module-load snapshot. Wire UA uses getClaudeCodeUserAgent("sdk-cli"). */
 export const GLM_CLAUDE_CODE_USER_AGENT = getClaudeCodeUserAgent("sdk-cli");
 export const GLM_ANTHROPIC_BETA = [
   "claude-code-20250219",
@@ -582,7 +583,7 @@ export function buildGlmBaseHeaders(apiKey: string, stream = true): Record<strin
     "anthropic-version": ANTHROPIC_VERSION_HEADER,
     "anthropic-beta": GLM_ANTHROPIC_BETA,
     "anthropic-dangerous-direct-browser-access": "true",
-    "User-Agent": GLM_CLAUDE_CODE_USER_AGENT,
+    "User-Agent": getClaudeCodeUserAgent("sdk-cli"),
     "X-Stainless-Lang": "js",
     "X-Stainless-Runtime": "node",
     "X-Stainless-Retry-Count": "0",

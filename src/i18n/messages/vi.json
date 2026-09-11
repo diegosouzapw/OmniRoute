@@ -2711,7 +2711,7 @@
     "ccOnboardingTitle": "settings.json cho việc khám phá mô hình qua gateway",
     "ccOnboardingCopy": "Sao chép",
     "ccOnboardingCopied": "Đã sao chép",
-    "ccOnboardingKeyPlaceholder": "<khóa API OmniRoute của bạn>",
+    "ccOnboardingKeyPlaceholder": "'<khóa API OmniRoute của bạn>'",
     "ccOnboardingWindowNote": "Claude Code mặc định coi mọi id mô hình mà nó không nhận ra là có cửa sổ ngữ cảnh 200K. Với mô hình có cửa sổ thực tế khác, hãy thêm CLAUDE_CODE_AUTO_COMPACT_WINDOW ngay bên dưới để việc nén ngữ cảnh tự động không kích hoạt quá sớm.",
     "failedSave": "Không thể lưu",
     "profileSyncTitle": "Tự động đồng bộ hồ sơ CLI",
@@ -3262,6 +3262,8 @@
     "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
     "resetAware": "RR nhận biết đặt lại",
     "resetAwareDesc": "Cân bằng hạn ngạch còn lại với các mốc đặt lại sau 5 giờ và hằng tuần, sau đó xoay vòng các mô hình có điểm số tương tự",
+    "quotaWeighted": "Quota-Weighted",
+    "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
     "strictRandom": "Ngẫu nhiên nghiêm ngặt",
     "strictRandomDesc": "Trộn bài — sử dụng mỗi mô hình một lần trước khi trộn lại",
     "fusion": "Hợp nhất",
@@ -6170,7 +6172,7 @@
       "freeaiapikey": "Proxy API giảm giá cho hơn 40 mô hình, gồm GPT-5, Claude Opus 4.6, Claude Sonnet 4.6 và Qwen 3.5. Lấy khóa API tại https://freeaiapikey.com/dashboard. URL cơ sở: https://freeaiapikey.com/v1.",
       "freemodel-dev": "Nhận 300 USD tín dụng API miễn phí tại https://freemodel.dev — không cần thông tin thanh toán. Endpoint tương thích OpenAI. Có GPT-5.4 và GPT-5.5.",
       "friendliai": "Gói miễn phí cho suy luận serverless — không cần thẻ tín dụng",
-      "gemini": "Miễn phí vĩnh viễn: 1.500 yêu cầu/ngày cho Gemini 2.5 Flash — không cần thẻ tín dụng, lấy khóa tại aistudio.google.com",
+      "gemini": "Gói miễn phí qua Google AI Studio; hạn mức theo từng mô hình không còn được công bố (xem trang hạn mức trong AI Studio) — không cần thẻ tín dụng.",
       "gigachat": "Kết nối GigaChat (Sber) bằng khóa API.",
       "gitlab": "Personal access token GitLab cho API Code Suggestions công khai. Cấu hình URL cơ sở tự lưu trữ khi không dùng gitlab.com.",
       "gitlawb-gmi": "Lấy khóa API của bạn từ Gitlawb Opengateway dashboard.",
@@ -6179,7 +6181,7 @@
       "glm-cn": "Kết nối GLM Coding (China) bằng khóa API.",
       "glmt": "Hồ sơ GLM đặt sẵn với ngân sách token cao hơn, bật thinking và thời gian chờ dài hơn.",
       "getgoapi": "Kết nối GoAPI bằng khóa API.",
-      "groq": "Gói miễn phí: 30 RPM / 14,4 nghìn RPD — không cần thẻ tín dụng",
+      "groq": "Gói miễn phí: giới hạn theo từng mô hình (200K token/ngày cho mỗi mô hình chat; xem console.groq.com/docs/rate-limits để biết RPM/RPD) — không cần đăng ký phương thức thanh toán.",
       "haiper": "Lấy khóa API tại haiper.ai/haiper-api",
       "heroku": "Kết nối Heroku AI bằng khóa API.",
       "hcnsec": "Lấy khóa API tại api.hcnsec.cn",
@@ -7062,6 +7064,8 @@
     "costOptDesc": "Ưu tiên tài khoản khả dụng rẻ nhất",
     "resetAware": "RR có nhận biết thời điểm đặt lại",
     "resetAwareDesc": "Ưu tiên các tài khoản có hạn ngạch còn lại ở mức tốt và thời điểm đặt lại sớm hơn",
+    "quotaWeighted": "Quota-Weighted",
+    "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
     "strictRandom": "Ngẫu nhiên nghiêm ngặt",
     "strictRandomDesc": "Trộn bộ bài — sử dụng mỗi tài khoản một lần trước khi trộn lại",
     "stickyLimit": "Sticky Limit",
@@ -12993,7 +12997,7 @@
         "description": "Sau khi đồng bộ mô hình nhà cung cấp, tạo lại các hồ sơ ~/.codex/*.config.toml từ danh mục trực tiếp. Không bao giờ thay đổi cấu hình Codex đang hoạt động hoặc cấu hình mặc định. Tính năng này mặc định tắt."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Sau khi đồng bộ mô hình nhà cung cấp, tạo lại các hồ sơ Claude Code tại ~/.claude/profiles/<name>/settings.json từ danh mục trực tiếp. Không bao giờ thay đổi cấu hình Claude đang hoạt động hoặc cấu hình mặc định. Tính năng này mặc định tắt."
+        "description": "Sau khi đồng bộ mô hình nhà cung cấp, tạo lại các hồ sơ Claude Code tại ~/.claude/profiles/'<name>'/settings.json từ danh mục trực tiếp. Không bao giờ thay đổi cấu hình Claude đang hoạt động hoặc cấu hình mặc định. Tính năng này mặc định tắt."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Tắt endpoint kiểm tra tình trạng của phiên bản cục bộ."
@@ -13003,6 +13007,10 @@
       },
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "Cho phép môi trường sandbox của kỹ năng truy cập mạng."
+      },
+      "SERVER_OWNED_TOOL_LOOP_ENABLED": {
+        "label": "Vòng lặp công cụ do máy chủ sở hữu",
+        "description": "Tiếp tục các lời gọi công cụ do máy chủ sở hữu ở chế độ không streaming cho đến khi mô hình trả về phản hồi mà máy khách dùng được."
       }
     }
   },
@@ -13144,6 +13152,7 @@
     "segmentHint": "Mỗi đoạn là một nhóm miễn phí · đã khử trùng lặp theo nhóm, đếm đúng thực tế (không thổi phồng trần giới hạn tốc độ).",
     "boost": "Mở khóa thêm khoảng {tokens}/tháng bằng một lần nạp $10 vào OpenRouter (50 → 1000 yêu cầu/ngày)",
     "uncapped": "Miễn phí vĩnh viễn, không công bố giới hạn (bị giới hạn tốc độ) — quyền truy cập thực, không tính vào tổng nổi bật:",
+    "gated": "~{tokens}/tháng nữa nằm sau bước xác minh danh tính theo khu vực (ví dụ: xác thực tên thật ở Trung Quốc đại lục) — hạn mức thật, không tính vào con số chính:",
     "tosRestricted": "{count, plural, one {# model} other {# models}} flagged as ToS-restricted — you decide",
     "provider": "Nhà cung cấp",
     "model": "Mô hình",
@@ -13414,6 +13423,9 @@
     "colLimits": "Giới hạn",
     "trainsOnPrompts": "Huấn luyện bằng prompt",
     "trainsOnPromptsHelp": "Nhà cung cấp này công bố có thể dùng prompt của bạn để huấn luyện mô hình",
+    "limitsUnknownHelp": "Giới hạn chỉ do nguồn Radar báo cáo; mục này không có giới hạn được công bố",
+    "contextUnknownHelp": "Chưa rõ cửa sổ ngữ cảnh của mục này",
+    "capabilityUnknownHelp": "Nguồn dữ liệu không báo cáo khả năng này",
     "colContext": "Ngữ cảnh",
     "colCapabilities": "Khả năng",
     "colTos": "Rủi ro ToS",
@@ -13992,6 +14004,16 @@
     "historyRange1d": "24 giờ",
     "historyRange7d": "7 ngày",
     "historyRange30d": "30 ngày",
+    "compareMode": "So sánh lượt chạy",
+    "compareExit": "Thoát chế độ so sánh",
+    "compareHint": "Chọn hai lượt chạy để so sánh",
+    "compareTitle": "So sánh",
+    "compareDetailFailed": "Không thể tải chi tiết của lượt chạy này",
+    "compareDifferentIdentity": "Nguồn hoặc kỹ năng khác nhau — chênh lệch chỉ mang tính tham khảo",
+    "compareDuration": "Thời lượng",
+    "compareCost": "Chi phí",
+    "compareEvents": "Sự kiện",
+    "compareDeltaLegend": "Δ phải − trái",
     "showCompleted": "Hiển thị đã hoàn tất",
     "searchPlaceholder": "Tìm kiếm tác vụ…",
     "filterStates": "Trạng thái",
@@ -14013,6 +14035,7 @@
     "stateCancelled": "Đã hủy",
     "overflowMore": "+{count} nữa",
     "emptyTitle": "Chưa có gì đang chạy",
+    "noMatches": "Không có tác vụ nào khớp với các bộ lọc này",
     "emptyCloudAgentCta": "Thiết lập Tác nhân đám mây",
     "emptyA2ACta": "Mở A2A",
     "emptyConductorCta": "Mở Người dẫn dắt",

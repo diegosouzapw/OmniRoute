@@ -1,0 +1,1 @@
+- fix(plugins): stop leaking an exit listener per plugin hook timeout, which triggered MaxListenersExceededWarning on plugins that ignore SIGTERM

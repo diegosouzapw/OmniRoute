@@ -1,1 +1,0 @@
-- **docs(legal):** centralize pinned MIT notices for the vendored GCF codec and local flag assets ([#11726](https://github.com/diegosouzapw/OmniRoute/pull/11726))

@@ -149,6 +149,41 @@ test("persisted requestBody carries the placeholder and never the raw transcript
   );
 });
 
+test("#12150 P2 surface 2: persistAttemptLogs marks the call_logs row video_content_removed=1 when ctx.videoContentRemoved is true", async () => {
+  // The continuation fail-closed (resolvePreviousResponseState) depends on this
+  // marker being written for any request whose stored client snapshot had its
+  // video transcript redacted. This proves the ctx.videoContentRemoved signal
+  // reaches the persisted row; the row is the exact thing the continuation store
+  // reads back.
+  const id = "video-marker-1";
+  persistAttemptLogs(
+    { status: 200, tokens: { input: 1, output: 2 } },
+    baseCtx({ pendingRequestId: id, videoContentRemoved: true })
+  );
+  const row = await pollForCallLog(id);
+  assert.ok(row, "call log row should be persisted");
+  const marker = coreDb
+    .getDbInstance()
+    .prepare("SELECT video_content_removed FROM call_logs WHERE id = ?")
+    .get(id) as { video_content_removed: number };
+  assert.equal(marker.video_content_removed, 1);
+});
+
+test("#12150 P2 surface 2: the marker defaults to 0 for an ordinary (non-video) request", async () => {
+  const id = "video-marker-control-1";
+  persistAttemptLogs(
+    { status: 200, tokens: { input: 1, output: 2 } },
+    baseCtx({ pendingRequestId: id })
+  );
+  const row = await pollForCallLog(id);
+  assert.ok(row);
+  const marker = coreDb
+    .getDbInstance()
+    .prepare("SELECT video_content_removed FROM call_logs WHERE id = ?")
+    .get(id) as { video_content_removed: number };
+  assert.equal(marker.video_content_removed, 0);
+});
+
 test("control: without a redaction map the persisted requestBody keeps the original text (model path untouched)", async () => {
   const id = "video-control-1";
   persistAttemptLogs(

@@ -1,0 +1,1 @@
+- Fix a concurrency-slot leak in the DeepSeek PoW solver: a worker that failed to spawn (for example a missing worker script) never released its slot, so `MAX_CONCURRENT_WORKERS` failures disabled the solver until restart.

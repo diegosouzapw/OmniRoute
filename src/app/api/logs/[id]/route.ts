@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { sanitizeErrorFramesFromLogChunks } from "@/lib/logPayloads";
 import { getCallLogById } from "@/lib/usageDb";
 import { getCompletedDetails, getPendingById } from "@/lib/usage/usageHistory";
 import {
@@ -17,6 +19,29 @@ import {
 // continuous string first, so a value split across elements rejoins correctly
 // before it's parsed.
 const CHUNK_LOG_TIMESTAMP_PREFIX = /^\[\d{2}:\d{2}:\d{2}\.\d{3}\]\s*/;
+
+type ManagementStreamChunks = {
+  provider?: string[];
+  openai?: string[];
+  client?: string[];
+};
+
+function projectManagementStreamChunks(
+  streamChunks: ManagementStreamChunks | null | undefined
+): ManagementStreamChunks | null {
+  if (!streamChunks) return null;
+  return {
+    ...(streamChunks.provider
+      ? { provider: sanitizeErrorFramesFromLogChunks(streamChunks.provider) }
+      : {}),
+    ...(streamChunks.openai
+      ? { openai: sanitizeErrorFramesFromLogChunks(streamChunks.openai) }
+      : {}),
+    ...(streamChunks.client
+      ? { client: sanitizeErrorFramesFromLogChunks(streamChunks.client) }
+      : {}),
+  };
+}
 
 // Best-effort parse of the accumulated SSE `data:` lines captured live for an
 // in-flight request (open-sse/utils/requestLogger.ts's appendConvertedChunk
@@ -77,12 +102,13 @@ export async function GET(
     try {
       const pendingRequestDetail = getPendingById().get(id);
       if (pendingRequestDetail) {
+        const safeStreamChunks = projectManagementStreamChunks(pendingRequestDetail.streamChunks);
         const pipelinePayloads: any = {
           clientRequest: pendingRequestDetail.clientRequest ?? null,
           providerRequest: pendingRequestDetail.providerRequest ?? null,
           providerResponse: pendingRequestDetail.providerResponse ?? null,
           clientResponse: pendingRequestDetail.clientResponse ?? null,
-          streamChunks: pendingRequestDetail.streamChunks ?? null,
+          streamChunks: safeStreamChunks,
         };
 
         const activeEntry = {
@@ -102,7 +128,7 @@ export async function GET(
           // The still-generating reply so far — the request's own context
           // panel renders this alongside its (already-complete) requestBody
           // instead of waiting for the stream to finish.
-          partialAssistantText: extractPartialAssistantText(pendingRequestDetail.streamChunks),
+          partialAssistantText: extractPartialAssistantText(safeStreamChunks),
         };
 
         return NextResponse.json(activeEntry);
@@ -123,12 +149,13 @@ export async function GET(
         const completed = getCompletedDetails();
         const inMem = completed.get(id);
         if (inMem) {
+          const safeStreamChunks = projectManagementStreamChunks(inMem.streamChunks);
           const pipelinePayloads: any = {
             clientRequest: inMem.clientRequest ?? null,
             providerRequest: inMem.providerRequest ?? null,
             providerResponse: inMem.providerResponse ?? null,
             clientResponse: inMem.clientResponse ?? null,
-            streamChunks: inMem.streamChunks ?? null,
+            streamChunks: safeStreamChunks,
           };
 
           const minimal = {
@@ -142,7 +169,7 @@ export async function GET(
             duration: Date.now() - inMem.startedAt,
             detailState: "in-memory",
             active: false,
-            error: inMem.error || null,
+            error: sanitizeErrorMessage(inMem.error) || null,
             pipelinePayloads,
             hasPipelineDetails: true,
           };

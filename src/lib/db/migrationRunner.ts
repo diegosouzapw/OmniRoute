@@ -21,37 +21,29 @@ import type { SqliteAdapter } from "./adapters/types";
 import { DEFAULT_DATABASE_SETTINGS } from "@/types/databaseSettings";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 import {
-  RENAMED_MIGRATION_COMPATIBILITY,
   LEGACY_VERSION_SLOT_MIGRATIONS,
-  SUPERSEDED_DUPLICATE_MIGRATIONS,
-  PHYSICAL_SCHEMA_SENTINELS,
-  INITIAL_SCHEMA_SENTINELS,
   OPTIONAL_FTS5_MIGRATION_VERSIONS,
+  RENAMED_MIGRATION_COMPATIBILITY,
+  SUPERSEDED_DUPLICATE_MIGRATIONS,
 } from "./migrationRunner/constants";
 import { getExtraMigrationFiles } from "./migrationRunner/extraDirs";
-// Retention primitives live in their own `core`-free module: `core.ts` imports this file,
-// so importing `backup.ts` (which imports `core.ts`) here would close a dependency cycle.
+import { migrationConsole as console } from "./migrationRunner/logger";
 import {
-  MAX_DB_BACKUPS,
-  DEFAULT_DB_BACKUP_RETENTION_DAYS,
-  parsePositiveInt,
-  parseNonNegativeInt,
-  pruneBackupDirectory,
-} from "./backupRetention";
-
-const isNodeTestRunnerChild = typeof process.env.NODE_TEST_CONTEXT === "string";
-
-const console = {
-  log: (...args: unknown[]) => {
-    if (!isNodeTestRunnerChild) globalThis.console.log(...args);
-  },
-  warn: (...args: unknown[]) => {
-    if (!isNodeTestRunnerChild) globalThis.console.warn(...args);
-  },
-  error: (...args: unknown[]) => {
-    globalThis.console.error(...args);
-  },
-};
+  createPreMigrationBackup,
+  hashFileSync,
+  type PreMigrationBackupReceipt,
+} from "./migrationRunner/preMigrationBackup";
+import {
+  detectNameMismatches,
+  getPlausiblePendingCount,
+  hasColumn,
+  hasLedgerRepairCandidates,
+  hasPhysicalTable,
+  hasTable,
+  inferPhysicalSchemaBaseline,
+  reconcileRenumberedMigrations,
+  rehomeLegacyVersionSlotMigrations,
+} from "./migrationRunner/schemaState";
 
 /**
  * Resolve the migrations directory path safely across platforms.
@@ -336,16 +328,96 @@ function getAppliedRecords(db: SqliteAdapter): Array<{ version: string; name: st
   }>;
 }
 
-function hasTable(db: SqliteAdapter, tableName: string): boolean {
-  const row = db
-    .prepare("SELECT name FROM sqlite_master WHERE type IN ('table', 'view') AND name = ?")
-    .get(tableName) as { name?: string } | undefined;
-  return Boolean(row?.name);
+/**
+ * Reopen a narrowly selected migration when the table it creates is physically absent.
+ *
+ * Historical databases can carry `074_discovery_results` or the rehomed
+ * `081_inspector_custom_hosts` in the ledger without the table itself (for example after a
+ * version-slot collision or an incomplete manual recovery). Treating either marker as
+ * authoritative leaves an incomplete schema. A same-named view does not count as the table;
+ * replaying the owning migration fails closed instead of silently advancing.
+ *
+ * This intentionally detects table absence only. It is not a general schema-healing layer:
+ * column/rebuild migrations continue to use targeted idempotency checks elsewhere.
+ */
+const REQUIRED_PHYSICAL_MIGRATIONS = [
+  { version: "074", name: "discovery_results", tableName: "discovery_results" },
+  { version: "081", name: "inspector_custom_hosts", tableName: "inspector_custom_hosts" },
+] as const;
+
+function validateRequiredPhysicalMigrationProvenance(
+  db: SqliteAdapter,
+  files: Array<{ version: string; name: string; path: string }>
+): void {
+  for (const required of REQUIRED_PHYSICAL_MIGRATIONS) {
+    if (hasPhysicalTable(db, required.tableName)) continue;
+
+    const migrationExists = files.some(
+      (file) => file.version === required.version && file.name === required.name
+    );
+    if (!migrationExists) continue;
+
+    const occupied = db
+      .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?")
+      .get(required.version) as { version: string; name: string } | undefined;
+    if (!occupied || occupied.name === required.name) continue;
+
+    const knownRenumberedCollision = RENAMED_MIGRATION_COMPATIBILITY.some(
+      (compatibility) =>
+        compatibility.fromVersion === occupied.version &&
+        compatibility.fromName === occupied.name &&
+        files.some(
+          (file) => file.version === compatibility.toVersion && file.name === compatibility.toName
+        ) &&
+        files.some(
+          (file) =>
+            file.version === compatibility.fromVersion && file.name !== compatibility.fromName
+        )
+    );
+    const knownLegacySlotCollision = LEGACY_VERSION_SLOT_MIGRATIONS.some(
+      (legacy) =>
+        legacy.version === occupied.version &&
+        legacy.name === occupied.name &&
+        files.some((file) => file.version === legacy.version && file.name !== legacy.name)
+    );
+    const knownRepairableCollision = knownRenumberedCollision || knownLegacySlotCollision;
+    if (knownRepairableCollision) continue;
+
+    throw new Error(
+      `[Migration] Required table "${required.tableName}" is missing, but version ` +
+        `${required.version} is recorded as unknown migration "${occupied.name}" instead of ` +
+        `"${required.name}". Refusing to treat this database as current.`
+    );
+  }
 }
 
-function hasColumn(db: SqliteAdapter, tableName: string, columnName: string): boolean {
-  const columns = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name?: string }>;
-  return columns.some((column) => column.name === columnName);
+function findAtomicPhysicalReplays(
+  db: SqliteAdapter,
+  files: Array<{ version: string; name: string; path: string }>
+): Set<string> {
+  const replayVersions = new Set<string>();
+
+  for (const required of REQUIRED_PHYSICAL_MIGRATIONS) {
+    if (hasPhysicalTable(db, required.tableName)) continue;
+
+    const migrationExists = files.some(
+      (file) => file.version === required.version && file.name === required.name
+    );
+    if (!migrationExists) continue;
+
+    const applied = db
+      .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ? AND name = ?")
+      .get(required.version, required.name) as { version: string; name: string } | undefined;
+    if (!applied) continue;
+
+    replayVersions.add(required.version);
+    console.warn(
+      `[Migration] Will atomically replay ${required.version}_${required.name}: ledger recorded ` +
+        `"${applied.name}" but required table "${required.tableName}" is missing.`
+    );
+  }
+
+  return replayVersions;
 }
 
 function ensureColumn(db: SqliteAdapter, tableName: string, columnName: string, ddl: string): void {
@@ -651,276 +723,31 @@ function applyCompressionCombosMigration(db: SqliteAdapter, migrationPath: strin
   `);
 }
 
-function inferPhysicalSchemaBaseline(db: SqliteAdapter): {
-  version: string;
-  description: string;
-} | null {
-  for (const sentinel of PHYSICAL_SCHEMA_SENTINELS) {
-    if (hasTable(db, sentinel.tableName)) {
-      return {
-        version: sentinel.version,
-        description: sentinel.description,
-      };
-    }
-  }
-
-  const hasInitialSchema = INITIAL_SCHEMA_SENTINELS.every((tableName) => hasTable(db, tableName));
-  if (hasInitialSchema) {
-    return {
-      version: "001",
-      description: "initial schema tables",
-    };
-  }
-
-  return null;
-}
-
-function getPlausiblePendingCount(
-  files: Array<{ version: string; name: string; path: string }>,
-  baselineVersion: string
-): number {
-  const baseline = Number.parseInt(baselineVersion, 10);
-  return files.filter((file) => Number.parseInt(file.version, 10) > baseline).length;
-}
-
 /**
- * Detect migration name mismatches — when a migration version number
- * has been reused/renumbered with a different name. This is a strong signal
- * that the migration tracking is corrupted or migrations were renumbered.
- */
-function detectNameMismatches(
-  appliedRecords: Array<{ version: string; name: string }>,
-  files: Array<{ version: string; name: string; path: string }>
-): Array<{ version: string; appliedName: string; diskName: string }> {
-  const appliedByName = new Map(appliedRecords.map((r) => [r.version, r.name]));
-  const mismatches: Array<{ version: string; appliedName: string; diskName: string }> = [];
-
-  for (const file of files) {
-    const appliedName = appliedByName.get(file.version);
-    if (appliedName && appliedName !== file.name) {
-      mismatches.push({
-        version: file.version,
-        appliedName,
-        diskName: file.name,
-      });
-    }
-  }
-
-  return mismatches;
-}
-
-function reconcileRenumberedMigrations(
-  db: SqliteAdapter,
-  files: Array<{ version: string; name: string; path: string }>
-): boolean {
-  let repaired = false;
-
-  for (const compatibility of RENAMED_MIGRATION_COMPATIBILITY) {
-    const hasTargetFile = files.some(
-      (file) => file.version === compatibility.toVersion && file.name === compatibility.toName
-    );
-    const hasSourceFile = files.some(
-      (file) => file.version === compatibility.fromVersion && file.name !== compatibility.fromName
-    );
-
-    if (!hasTargetFile || !hasSourceFile) {
-      continue;
-    }
-
-    const legacyRow = db
-      .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ? AND name = ?")
-      .get(compatibility.fromVersion, compatibility.fromName) as
-      { version: string; name: string } | undefined;
-    if (!legacyRow) {
-      continue;
-    }
-
-    const targetRow = db
-      .prepare("SELECT version FROM _omniroute_migrations WHERE version = ?")
-      .get(compatibility.toVersion) as { version: string } | undefined;
-
-    const applyRepair = db.transaction(() => {
-      if (targetRow) {
-        db.prepare("DELETE FROM _omniroute_migrations WHERE version = ? AND name = ?").run(
-          compatibility.fromVersion,
-          compatibility.fromName
-        );
-      } else {
-        db.prepare(
-          "UPDATE _omniroute_migrations SET version = ?, name = ? WHERE version = ? AND name = ?"
-        ).run(
-          compatibility.toVersion,
-          compatibility.toName,
-          compatibility.fromVersion,
-          compatibility.fromName
-        );
-      }
-    });
-
-    applyRepair();
-    repaired = true;
-    console.warn(
-      `[Migration] Reconciled renamed migration ${compatibility.fromVersion}_${compatibility.fromName} ` +
-        `to ${compatibility.toVersion}_${compatibility.toName} to preserve pending migrations.`
-    );
-
-    // After the compat rewrite, verify the old version slot is now free.
-    // A residual row (from a failed prior run, manual intervention, or edge-case
-    // UPDATE conflict) at the old version would shadow a NEW migration file
-    // placed at that version number — e.g. 028_create_files_and_batches.sql
-    // would be skipped because getAppliedVersions() still sees version "028".
-    const residualRow = db
-      .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?")
-      .get(compatibility.fromVersion) as { version: string; name: string } | undefined;
-    if (residualRow) {
-      console.warn(
-        `[Migration] ⚠️  Residual row at version ${compatibility.fromVersion} ` +
-          `(name: "${residualRow.name}") still present after compat rewrite — ` +
-          `removing to unblock new migration at this version slot.`
-      );
-      db.prepare("DELETE FROM _omniroute_migrations WHERE version = ?").run(
-        compatibility.fromVersion
-      );
-    }
-  }
-
-  return repaired;
-}
-
-function rehomeLegacyVersionSlotMigrations(
-  db: SqliteAdapter,
-  files: Array<{ version: string; name: string; path: string }>
-): boolean {
-  let repaired = false;
-  const diskNamesByVersion = new Map(files.map((file) => [file.version, file.name]));
-
-  for (const legacy of LEGACY_VERSION_SLOT_MIGRATIONS) {
-    const diskName = diskNamesByVersion.get(legacy.version);
-    if (!diskName || diskName === legacy.name) {
-      continue;
-    }
-
-    const legacyRow = db
-      .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ? AND name = ?")
-      .get(legacy.version, legacy.name) as { version: string; name: string } | undefined;
-    if (!legacyRow) {
-      continue;
-    }
-
-    const legacyVersion = `legacy-${legacy.version}-${legacy.name}`;
-    const applyRepair = db.transaction(() => {
-      const existingLegacyRow = db
-        .prepare("SELECT version FROM _omniroute_migrations WHERE version = ?")
-        .get(legacyVersion) as { version: string } | undefined;
-
-      if (existingLegacyRow) {
-        db.prepare("DELETE FROM _omniroute_migrations WHERE version = ? AND name = ?").run(
-          legacy.version,
-          legacy.name
-        );
-        return;
-      }
-
-      db.prepare("UPDATE _omniroute_migrations SET version = ? WHERE version = ? AND name = ?").run(
-        legacyVersion,
-        legacy.version,
-        legacy.name
-      );
-    });
-
-    applyRepair();
-    repaired = true;
-    console.warn(
-      `[Migration] Rehomed legacy migration ${legacy.version}_${legacy.name} ` +
-        `to ${legacyVersion} so current ${legacy.version}_${diskName} can apply.`
-    );
-  }
-
-  return repaired;
-}
-
-/**
- * Read a persisted `dbBackup` retention setting through the adapter that is ALREADY open
- * for this migration run.
+ * Run a callback while holding SQLite's IMMEDIATE writer transaction.
  *
- * `backup.ts`'s equivalent goes through `getDbInstance()`, which is unsafe here: this
- * code runs from inside database initialization, so asking for the singleton would
- * re-enter it. Reading off `db` keeps the same stored values without that risk. A DB too
- * old to have `key_value` yet simply falls back to the default.
+ * Production adapters expose `immediate()` directly. A small number of long-standing
+ * migration tests and external callers still pass a raw better-sqlite3 Database, whose
+ * transaction wrapper exposes `.immediate()` instead. Supporting both shapes here keeps
+ * the safety transaction real: this must never degrade to a plain callback invocation.
  */
-function readStoredBackupSetting(db: SqliteAdapter, key: string, min: number): number | undefined {
-  try {
-    const row = db
-      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
-      .get("dbBackup", key) as { value?: string } | undefined;
-    if (!row?.value) return undefined;
-    const parsed = JSON.parse(row.value);
-    return Number.isInteger(parsed) && parsed >= min ? parsed : undefined;
-  } catch {
-    return undefined;
+function runImmediateTransaction<T>(db: SqliteAdapter, fn: () => T): T {
+  const adapterImmediate = (db as Partial<SqliteAdapter>).immediate;
+  if (typeof adapterImmediate === "function") {
+    let result!: T;
+    adapterImmediate.call(db, () => {
+      result = fn();
+    });
+    return result;
   }
-}
 
-/**
- * Enforce the backup retention budget after a pre-migration snapshot (#10421).
- *
- * Precedence matches `backup.ts`: env override → persisted operator setting → default.
- * Never throws: a migration must not fail because housekeeping did.
- */
-function pruneMigrationBackups(db: SqliteAdapter, backupDir: string): void {
-  try {
-    const maxFiles = process.env.DB_BACKUP_MAX_FILES
-      ? parsePositiveInt(process.env.DB_BACKUP_MAX_FILES, MAX_DB_BACKUPS)
-      : (readStoredBackupSetting(db, "maxFiles", 1) ?? MAX_DB_BACKUPS);
-    const retentionDays = process.env.DB_BACKUP_RETENTION_DAYS
-      ? parseNonNegativeInt(process.env.DB_BACKUP_RETENTION_DAYS, DEFAULT_DB_BACKUP_RETENTION_DAYS)
-      : (readStoredBackupSetting(db, "retentionDays", 0) ?? DEFAULT_DB_BACKUP_RETENTION_DAYS);
-
-    const result = pruneBackupDirectory({ backupDir, maxFiles, retentionDays });
-    if (result.deletedFiles > 0) {
-      console.log(
-        `[Migration] Pruned ${result.deletedFiles} old backup file(s) ` +
-          `(${result.keptBackupFamilies} kept, maxFiles=${maxFiles}, retentionDays=${retentionDays}).`
-      );
-    }
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.warn(`[Migration] Failed to prune old backups: ${message}`);
+  const rawTransaction = db.transaction(fn) as ReturnType<SqliteAdapter["transaction"]> & {
+    immediate?: () => T;
+  };
+  if (typeof rawTransaction.immediate !== "function") {
+    throw new Error("[Migration] Database adapter does not support IMMEDIATE transactions.");
   }
-}
-
-/**
- * Create a pre-migration backup of the SQLite database using VACUUM INTO.
- * Returns the backup path on success, null on failure.
- */
-function createPreMigrationBackup(db: SqliteAdapter): string | null {
-  try {
-    const sqliteFile = db.name;
-    if (!sqliteFile || sqliteFile === ":memory:") return null;
-
-    const backupDir = path.join(path.dirname(sqliteFile), "db_backups");
-    if (!fs.existsSync(backupDir)) {
-      fs.mkdirSync(backupDir, { recursive: true });
-    }
-
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const backupPath = path.join(backupDir, `db_${timestamp}_pre-migration.sqlite`);
-    const escapedBackupPath = backupPath.replace(/'/g, "''");
-
-    db.exec(`VACUUM INTO '${escapedBackupPath}'`);
-    console.log(`[Migration] Pre-migration backup created: ${backupPath}`);
-
-    // #10421: apply the operator's retention budget right here. Without this the
-    // migration path was the one backup producer that never pruned, so every process
-    // start with a pending migration added ~5 MB forever (observed: 49k files / 204 GB).
-    pruneMigrationBackups(db, backupDir);
-
-    return backupPath;
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.warn(`[Migration] Failed to create pre-migration backup: ${message}`);
-    return null;
-  }
+  return rawTransaction.immediate();
 }
 
 /**
@@ -932,15 +759,243 @@ function createPreMigrationBackup(db: SqliteAdapter): string | null {
  * 2. Aborts if too many pending migrations on an existing DB (likely wipe)
  * 3. Creates automatic backup before running any migrations
  */
-export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }): number {
+export function runMigrations(
+  db: SqliteAdapter,
+  options?: { isNewDb?: boolean; databaseExistedBeforeInitialization?: boolean }
+): number {
   const isNewDb = options?.isNewDb === true;
+  // `isNewDb` also covers a setup-created skeleton so it can bypass the mass-migration
+  // false positive. Snapshot eligibility must use the independent physical-file fact:
+  // that skeleton can already contain provider credentials and other operator state.
+  const databaseExistedBeforeInitialization =
+    options?.databaseExistedBeforeInitialization ?? !isNewDb;
   ensureMigrationsTable(db);
 
   const files = filterSupersededDuplicateMigrations(getMigrationFiles());
-  rehomeLegacyVersionSlotMigrations(db, files);
-  reconcileRenumberedMigrations(db, files);
-  const applied = getAppliedVersions(db);
-  const appliedRecords = getAppliedRecords(db);
+  validateRequiredPhysicalMigrationProvenance(db, files);
+  let preMigrationBackup: PreMigrationBackupReceipt | null = null;
+  let plan!: {
+    atomicPhysicalReplays: Set<string>;
+    appliedRecords: Array<{ version: string; name: string }>;
+    pending: typeof files;
+    deferredUnsupported: typeof files;
+    highestAppliedBeforeMigrations: number;
+  };
+  let count = 0;
+
+  const preliminaryApplied = getAppliedVersions(db);
+  const preliminaryAtomicReplays = findAtomicPhysicalReplays(db, files);
+  const preliminaryPending = files.filter(
+    (file) => !preliminaryApplied.has(file.version) || preliminaryAtomicReplays.has(file.version)
+  );
+  const preliminaryDeferred = preliminaryPending.filter((migration) =>
+    isDeferredUnsupportedMigration(db, migration)
+  );
+  const preliminaryActionable = preliminaryPending.filter(
+    (migration) => !preliminaryDeferred.some((deferred) => deferred.version === migration.version)
+  );
+  const preliminaryHasRepairCandidates = hasLedgerRepairCandidates(db, files);
+
+  // Preserve the historical read-only/no-op path. Merely checking an already-current
+  // database must not acquire a writer lock (or fail SQLITE_BUSY because another supported
+  // host currently owns one). Safety state is recomputed under IMMEDIATE whenever work exists.
+  if (preliminaryActionable.length === 0 && !preliminaryHasRepairCandidates) {
+    const numericApplied = Array.from(preliminaryApplied)
+      .map((version) => Number.parseInt(version, 10))
+      .filter((version) => !Number.isNaN(version));
+    plan = {
+      atomicPhysicalReplays: preliminaryAtomicReplays,
+      appliedRecords: getAppliedRecords(db),
+      pending: preliminaryPending,
+      deferredUnsupported: preliminaryDeferred,
+      highestAppliedBeforeMigrations: numericApplied.length > 0 ? Math.max(...numericApplied) : 0,
+    };
+  }
+
+  // sql.js export() finalizes its active SAVEPOINT, so exporting from inside
+  // `db.immediate()` would make a later safety throw unable to roll repairs back.
+  // Its adapter is synchronous and in-memory, so no JavaScript writer can interleave
+  // between this preflight/export and the immediately following savepoint.
+  if (
+    !plan &&
+    db.driver === "sql.js" &&
+    (preliminaryActionable.length > 0 || preliminaryHasRepairCandidates)
+  ) {
+    const needsSnapshot =
+      (preliminaryActionable.length > 0 || preliminaryHasRepairCandidates) &&
+      db.name !== ":memory:" &&
+      databaseExistedBeforeInitialization;
+
+    if (needsSnapshot) {
+      preMigrationBackup = createPreMigrationBackup(db);
+      if (!preMigrationBackup) {
+        throw new Error(
+          "[Migration] Refusing to migrate an existing database without a durable snapshot. " +
+            "The DATA_DIR filesystem must support atomic hard-link publication."
+        );
+      }
+    }
+  }
+
+  // Hold SQLite's native writer lock through snapshot selection, compatibility repairs,
+  // and the mass-safety decision. Native adapters open a separate read-only connection
+  // for VACUUM INTO while competing writers remain blocked. The outer transaction then
+  // commits before migrations so the repository's one-transaction-per-file contract stays
+  // intact: an earlier successful migration remains committed if a later file fails.
+  if (!plan)
+    runImmediateTransaction(db, () => {
+      const appliedBeforeRepair = getAppliedVersions(db);
+      const hadAppliedBeforeRepair = appliedBeforeRepair.size > 0;
+      const preliminaryAtomicReplays = findAtomicPhysicalReplays(db, files);
+      const preliminaryPending = files.filter(
+        (file) =>
+          !appliedBeforeRepair.has(file.version) || preliminaryAtomicReplays.has(file.version)
+      );
+      const preliminaryActionable = preliminaryPending.filter(
+        (migration) => !isDeferredUnsupportedMigration(db, migration)
+      );
+      const mayWriteExistingDatabase =
+        preliminaryActionable.length > 0 || hasLedgerRepairCandidates(db, files);
+      const needsSnapshot =
+        mayWriteExistingDatabase && db.name !== ":memory:" && databaseExistedBeforeInitialization;
+
+      if (needsSnapshot && !preMigrationBackup) {
+        if (db.driver === "sql.js") {
+          throw new Error(
+            "[Migration] sql.js safety state changed after its pre-transaction snapshot preflight; " +
+              "refusing to export from inside the rollback savepoint."
+          );
+        }
+        preMigrationBackup = createPreMigrationBackup(db);
+        if (!preMigrationBackup) {
+          throw new Error(
+            "[Migration] Refusing to migrate an existing database without a durable snapshot. " +
+              "The DATA_DIR filesystem must support atomic hard-link publication."
+          );
+        }
+      }
+
+      rehomeLegacyVersionSlotMigrations(db, files);
+      reconcileRenumberedMigrations(db, files);
+
+      const atomicPhysicalReplays = findAtomicPhysicalReplays(db, files);
+      const applied = getAppliedVersions(db);
+      const appliedRecords = getAppliedRecords(db);
+      const pending = files.filter(
+        (file) => !applied.has(file.version) || atomicPhysicalReplays.has(file.version)
+      );
+      const deferredUnsupported = pending.filter((migration) =>
+        isDeferredUnsupportedMigration(db, migration)
+      );
+      const actionablePending = pending.filter(
+        (migration) =>
+          !deferredUnsupported.some((deferred) => deferred.version === migration.version)
+      );
+      const isFreshSeedOnly =
+        applied.size === 1 &&
+        applied.has("001") &&
+        inferPhysicalSchemaBaseline(db) === null &&
+        hasTable(db, "provider_connections");
+      const requiresDurableBackup =
+        actionablePending.length > 0 &&
+        db.name !== ":memory:" &&
+        databaseExistedBeforeInitialization;
+
+      // Recompute under the same writer transaction as repairs and fail before any
+      // ledger mutation can commit if the durable-snapshot requirement is not met.
+      if (requiresDurableBackup && !preMigrationBackup) {
+        throw new Error(
+          "[Migration] Refusing to migrate an existing database without a durable snapshot. " +
+            "The DATA_DIR filesystem must support atomic hard-link publication."
+        );
+      }
+
+      const isTestEnvironment = isAutomatedTestProcess();
+      const maxPendingMigrations = resolveMaxPendingMigrations();
+      if (
+        actionablePending.length > 0 &&
+        !isTestEnvironment &&
+        !isNewDb &&
+        !isFreshSeedOnly &&
+        maxPendingMigrations > 0 &&
+        (applied.size > 0 || hadAppliedBeforeRepair) &&
+        actionablePending.length > maxPendingMigrations
+      ) {
+        const physicalBaseline = inferPhysicalSchemaBaseline(db);
+        const plausiblePendingCount = physicalBaseline
+          ? getPlausiblePendingCount(files, physicalBaseline.version)
+          : null;
+
+        if (plausiblePendingCount !== null && actionablePending.length <= plausiblePendingCount) {
+          console.warn(
+            `[Migration] Allowing ${actionablePending.length} pending migrations on an existing database ` +
+              `because the physical schema only proves ${physicalBaseline?.version} ` +
+              `(${physicalBaseline?.description}).`
+          );
+        } else {
+          const schemaHint =
+            physicalBaseline && plausiblePendingCount !== null
+              ? ` Physical schema already shows ${physicalBaseline.version} ` +
+                `(${physicalBaseline.description}), so at most ${plausiblePendingCount} pending ` +
+                `migration(s) are expected from a legitimate upgrade.`
+              : "";
+          const bypassHint =
+            ` To bypass this check (e.g. after restoring a backup where the migration ` +
+            `tracking table was wiped), set OMNIROUTE_MAX_PENDING_MIGRATIONS=0 in your ` +
+            `server.env or DATA_DIR/.env and restart.`;
+          const msg =
+            `[Migration] 🛑 ABORT: Detected ${actionablePending.length} pending migrations on an existing database ` +
+            `(threshold is ${maxPendingMigrations}). ` +
+            `This usually means the migration tracking table was accidentally wiped. ` +
+            `Running all migrations from scratch will cause data loss or schema errors.` +
+            schemaHint +
+            bypassHint;
+
+          if (memoizedSafetyAbort && memoizedSafetyAbort.message === msg) {
+            console.error(
+              `[Migration] 🛑 ABORT (repeat — see earlier detail): ` +
+                `${actionablePending.length} pending > threshold ${maxPendingMigrations}. ` +
+                `Set OMNIROUTE_MAX_PENDING_MIGRATIONS=0 to bypass.`
+            );
+            throw memoizedSafetyAbort;
+          }
+          console.error(msg);
+          memoizedSafetyAbort = new MigrationSafetyAbortError(msg);
+          throw memoizedSafetyAbort;
+        }
+      }
+
+      if (
+        preMigrationBackup &&
+        hashFileSync(preMigrationBackup.path) !== preMigrationBackup.sha256
+      ) {
+        throw new Error(
+          "[Migration] Refusing to migrate because the pre-migration snapshot changed before use."
+        );
+      }
+
+      const numericApplied = Array.from(applied)
+        .map((version) => Number.parseInt(version, 10))
+        .filter((version) => !Number.isNaN(version));
+      const highestAppliedBeforeMigrations =
+        numericApplied.length > 0 ? Math.max(...numericApplied) : 0;
+
+      plan = {
+        atomicPhysicalReplays,
+        appliedRecords,
+        pending,
+        deferredUnsupported,
+        highestAppliedBeforeMigrations,
+      };
+    });
+
+  const {
+    atomicPhysicalReplays,
+    appliedRecords,
+    pending,
+    deferredUnsupported,
+    highestAppliedBeforeMigrations,
+  } = plan;
 
   // ── Safety Check 1: Detect migration name mismatches (renumbering) ──
   const mismatches = detectNameMismatches(appliedRecords, files);
@@ -963,34 +1018,15 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
     );
   }
 
-  // ── Gap Reconciliation: Identify non-contiguous missing migrations ──
-  // Do not rely on any highest-version-applied heuristic. We must explicitly
-  // iterate through all missing files on disk and apply them if they are missing
-  // from the _omniroute_migrations table.
-  const numericApplied = Array.from(applied)
-    .map((v) => Number.parseInt(v, 10))
-    .filter((n) => !Number.isNaN(n));
-  const highestApplied = numericApplied.length > 0 ? Math.max(...numericApplied) : 0;
-  const pending = files.filter((f) => {
-    const isMissing = !applied.has(f.version);
-    if (isMissing && Number(f.version) < highestApplied) {
+  for (const migration of pending) {
+    if (Number(migration.version) < highestAppliedBeforeMigrations) {
       console.warn(
         `[Migration] 🔄 RECONCILIATION: Found missing intermediate migration ` +
-          `${f.version}_${f.name} (highest applied is ${highestApplied}). ` +
+          `${migration.version}_${migration.name} ` +
+          `(highest applied is ${highestAppliedBeforeMigrations}). ` +
           `This gap will be back-filled to ensure schema integrity.`
       );
     }
-    return isMissing;
-  });
-  const deferredUnsupported = pending.filter((migration) =>
-    isDeferredUnsupportedMigration(db, migration)
-  );
-  const actionablePending = pending.filter(
-    (migration) => !deferredUnsupported.some((deferred) => deferred.version === migration.version)
-  );
-
-  if (pending.length === 0) {
-    return 0; // Nothing to do
   }
 
   if (deferredUnsupported.length > 0) {
@@ -1003,101 +1039,28 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
     );
   }
 
-  // ── Safety Check 2: Mass-migration detection (abort if existing DB + many migrations) ──
-  // Skip in test environments where fresh DBs legitimately have many pending migrations.
-  const isTestEnvironment = isAutomatedTestProcess();
-
-  // #3416: resolve the threshold at call time so OMNIROUTE_MAX_PENDING_MIGRATIONS
-  // can override the default (0 disables the check). The abort message below
-  // interpolates this resolved value, so it auto-reflects any override.
-  const maxPendingMigrations = resolveMaxPendingMigrations();
-
-  // #9934: `omniroute setup`'s openOmniRouteDb writes a partial skeleton file
-  // (provider_connections + key_value) that has never had migrations run. When
-  // the first `serve` opens it and auto-seeds only the 001 marker, the applied
-  // set is exactly {001} — which would otherwise look like a wiped existing DB
-  // and trip this abort on a brand-new install. This is distinct from a real
-  // wiped/backup-restored database: that case has a non-trivial physical schema
-  // (baseline inference is non-null) and full data tables, so it still aborts.
-  // The 001-marker-only state on a provider_connections skeleton is the fresh
-  // auto-seed — let it through. A genuinely empty table is already exempt via
-  // `applied.size > 0`, and an upgraded DB has a non-trivial applied set.
-  const isFreshSeedOnly =
-    applied.size === 1 &&
-    applied.has("001") &&
-    inferPhysicalSchemaBaseline(db) === null &&
-    hasTable(db, "provider_connections");
-
-  if (
-    !isTestEnvironment &&
-    !isNewDb &&
-    !isFreshSeedOnly &&
-    process.env.DISABLE_SQLITE_AUTO_BACKUP !== "true" &&
-    maxPendingMigrations > 0 &&
-    applied.size > 0 &&
-    actionablePending.length > maxPendingMigrations
-  ) {
-    const physicalBaseline = inferPhysicalSchemaBaseline(db);
-    const plausiblePendingCount = physicalBaseline
-      ? getPlausiblePendingCount(files, physicalBaseline.version)
-      : null;
-
-    if (plausiblePendingCount !== null && actionablePending.length <= plausiblePendingCount) {
-      console.warn(
-        `[Migration] Allowing ${actionablePending.length} pending migrations on an existing database ` +
-          `because the physical schema only proves ${physicalBaseline?.version} ` +
-          `(${physicalBaseline?.description}).`
-      );
-    } else {
-      const schemaHint =
-        physicalBaseline && plausiblePendingCount !== null
-          ? ` Physical schema already shows ${physicalBaseline.version} ` +
-            `(${physicalBaseline.description}), so at most ${plausiblePendingCount} pending ` +
-            `migration(s) are expected from a legitimate upgrade.`
-          : "";
-      const bypassHint =
-        ` To bypass this check (e.g. after restoring a backup where the migration ` +
-        `tracking table was wiped), set OMNIROUTE_MAX_PENDING_MIGRATIONS=0 in your ` +
-        `server.env or DATA_DIR/.env and restart.`;
-      const msg =
-        `[Migration] 🛑 ABORT: Detected ${actionablePending.length} pending migrations on an existing database ` +
-        `(threshold is ${maxPendingMigrations}). ` +
-        `This usually means the migration tracking table was accidentally wiped. ` +
-        `Running all migrations from scratch will cause data loss or schema errors.` +
-        schemaHint +
-        bypassHint;
-
-      // #6260: memoize so the cascade of downstream ensureDbInitialized() calls
-      // that re-open the DB throw the SAME instance and only log once.
-      if (memoizedSafetyAbort && memoizedSafetyAbort.message === msg) {
-        console.error(
-          `[Migration] 🛑 ABORT (repeat — see earlier detail): ` +
-            `${actionablePending.length} pending > threshold ${maxPendingMigrations}. ` +
-            `Set OMNIROUTE_MAX_PENDING_MIGRATIONS=0 to bypass.`
-        );
-        throw memoizedSafetyAbort;
-      }
-      console.error(msg);
-      memoizedSafetyAbort = new MigrationSafetyAbortError(msg);
-      throw memoizedSafetyAbort;
-    }
+  if (preMigrationBackup && hashFileSync(preMigrationBackup.path) !== preMigrationBackup.sha256) {
+    throw new Error(
+      "[Migration] Refusing to migrate because the pre-migration snapshot changed before use."
+    );
   }
-
-  // ── Safety Check 3: Pre-migration backup ──
-  // Skip backup if it's a completely fresh database (0 applied and all pending)
-  // or if running in tests (where AUTO_BACKUP might be disabled)
-  if (applied.size > 0 && process.env.DISABLE_SQLITE_AUTO_BACKUP !== "true") {
-    createPreMigrationBackup(db);
-  }
-
-  let count = 0;
 
   for (const migration of pending) {
-    if (isDeferredUnsupportedMigration(db, migration)) {
-      continue;
-    }
+    if (isDeferredUnsupportedMigration(db, migration)) continue;
 
     const applyMigration = db.transaction(() => {
+      if (atomicPhysicalReplays.has(migration.version)) {
+        const removed = db
+          .prepare("DELETE FROM _omniroute_migrations WHERE version = ? AND name = ?")
+          .run(migration.version, migration.name);
+        if (removed.changes !== 1) {
+          throw new Error(
+            `[Migration] Atomic replay lost its expected ledger marker for ` +
+              `${migration.version}_${migration.name}.`
+          );
+        }
+      }
+
       if (isSchemaAlreadyApplied(db, migration)) {
         console.warn(
           `[Migration] Skipped executing ${migration.version}_${migration.name} as schema changes are already present (Idempotency check).`
@@ -1120,28 +1083,35 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
 
     try {
       applyMigration();
-      count++;
+      count += 1;
       console.log(`[Migration] Applied: ${migration.version}_${migration.name}`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      // "duplicate column name" means the column already exists — end state achieved, mark applied.
-      if (message.includes("duplicate column name")) {
+      if (
+        message.includes("duplicate column name") &&
+        !atomicPhysicalReplays.has(migration.version)
+      ) {
         const applyMarkerOnly = db.transaction(() => {
           db.prepare(
             "INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)"
           ).run(migration.version, migration.name);
         });
         applyMarkerOnly();
-        count++;
+        count += 1;
         console.log(
           `[Migration] Applied (column pre-exists): ${migration.version}_${migration.name}`
         );
       } else {
         console.error(`[Migration] FAILED: ${migration.version}_${migration.name} — ${message}`);
-        throw err; // Re-throw to prevent DB from starting in inconsistent state
+        throw err;
       }
     }
   }
+
+  // Retention intentionally does not run inside the migration window. Another process
+  // may still be using a different snapshot as its in-flight restore point. Manual and
+  // scheduled backup paths continue to enforce the operator's retention policy; retries
+  // here are bounded by the deterministic content address instead of destructive pruning.
 
   if (count > 0) {
     console.log(`[Migration] ${count} migration(s) applied successfully.`);
@@ -1175,7 +1145,7 @@ function insertDefaultDatabaseSettings(db: SqliteAdapter) {
 
   // Run in an immediate transaction to avoid nested transactions
   try {
-    db.immediate(() => {
+    runImmediateTransaction(db, () => {
       tx();
     });
   } catch (error) {

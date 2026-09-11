@@ -1,12 +1,12 @@
 /**
  * Integration test for the short-TTL cache on GET /api/monitoring/health.
  *
- * Health is a frequently-polled endpoint; rebuilding it every request (DB reads
- * + status aggregation across subsystems) is wasteful under rapid polling. The
- * route caches the payload for HEALTH_PAYLOAD_TTL_MS (1s) and invalidates it on
- * DELETE (circuit-breaker reset). We assert the behavior via the payload's
- * `timestamp` field, which is stamped at build time: identical timestamp ⇒ the
- * cached payload was served; a fresh timestamp ⇒ it was rebuilt.
+ * Health is a frequently-polled endpoint; rebuilding it on the request path
+ * (DB reads + status aggregation) starves GET /healthz (#12532). The route
+ * caches the payload for HEALTH_PAYLOAD_TTL_MS (1s). After the first fill,
+ * expired entries are served immediately (stale-while-revalidate) and
+ * refreshed off the request path. DELETE (circuit-breaker reset) invalidates
+ * the cache so the next GET rebuilds. We assert via `timestamp`.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -20,7 +20,8 @@ process.env.REQUIRE_API_KEY = "false";
 process.env.JWT_SECRET = "test-health-cache-secret";
 
 await import("../../src/lib/db/core.ts");
-const { GET, DELETE } = await import("../../src/app/api/monitoring/health/route.ts");
+const { GET, DELETE, __test_resetMonitoringHealthPayloadCache } =
+  await import("../../src/app/api/monitoring/health/route.ts");
 
 // GHSA-mvf8-qc78-5mxm: the detailed health payload (the one carrying `timestamp`)
 // is reserved for a management principal — GET now takes the Request and an
@@ -52,19 +53,22 @@ async function healthTimestamp(): Promise<string> {
 }
 
 test("GET within the TTL serves the cached payload (identical timestamp)", async () => {
+  __test_resetMonitoringHealthPayloadCache();
   const t1 = await healthTimestamp();
   const t2 = await healthTimestamp();
   assert.equal(t2, t1, "a second GET within the TTL must return the cached payload");
 });
 
-test("cache expires after the TTL — a fresh payload is built", async () => {
+test("expired cache is served immediately (stale-while-revalidate)", async () => {
+  __test_resetMonitoringHealthPayloadCache();
   const t1 = await healthTimestamp();
   await new Promise((r) => setTimeout(r, 1100)); // TTL is 1000ms
   const t2 = await healthTimestamp();
-  assert.notEqual(t2, t1, "after the 1s TTL the payload must be rebuilt");
+  assert.equal(t2, t1, "after the 1s TTL the stale cached payload must be returned immediately");
 });
 
 test("DELETE (circuit-breaker reset) invalidates the cache immediately", async () => {
+  __test_resetMonitoringHealthPayloadCache();
   const t1 = await healthTimestamp(); // populate cache
   const delRes = await DELETE(authedRequest("DELETE"));
   assert.ok(delRes.status < 400, `DELETE should succeed, got ${delRes.status}`);

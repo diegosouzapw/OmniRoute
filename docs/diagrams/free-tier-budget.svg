@@ -1,5 +1,5 @@
-<svg viewBox="0 0 1200 842" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OmniRoute free-tier budget: about 1.51 billion free tokens per month steady, up to about 2.13 billion in the first month with signup credits. The catalog contains 437 rows, 430 active and 7 discontinued, grouped into 38 recurring pool keys; 20 pools have a published positive monthly token budget and 18 have a zero, uncapped, or keyless budget. Honest pool-deduped math counts each shared free pool once; 13 providers carry a terms-of-service avoid flag. The 20 quantified pools are Mistral 1 billion, LLM7 150 million, Nara 150 million, Gemini 60 million, Cerebras 30 million, Cloudflare AI 30 million, API Airforce 24 million, Ollama Cloud 20 million, Groq 15 million, Bluesminds 7.2 million, SambaNova 6 million, Arcee 4.8 million, Navy 4.5 million, BazaarLink 3.6 million, OpenRouter 1.2 million, Cohere 800 thousand, HuggingChat 500 thousand, Morph 400 thousand, Hugging Face 200 thousand, and Kiro 25 thousand. One-time signup credits add about 626 million. Uncapped providers and the OpenRouter top-up boost are shown separately so they do not inflate the headline. Live usage remains available at /dashboard/free-tiers.">
-  <desc>Pool-deduplicated chart of the 20 recurring free-token pools with positive published budgets, plus signup credits and uncapped providers shown separately.</desc>
+<svg viewBox="0 0 1200 842" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OmniRoute free-tier budget: about 1.47 billion free tokens per month steady, up to about 2.10 billion in the first month with signup credits. The catalog contains 444 rows, 437 active and 7 discontinued, grouped into 34 recurring pool keys; 16 pools have a published positive monthly token budget and 18 have a zero, uncapped, or keyless budget. Honest pool-deduped math counts each shared free pool once; 13 providers carry a terms-of-service avoid flag. The 16 quantified pools plus five per-model Groq caps are Mistral 1 billion, Nara 210 million, LLM7 150 million, Groq 30 million across five per-model caps, Cloudflare AI 30 million, API Airforce 24 million, Bluesminds 7.2 million, SambaNova 6 million, Arcee 4.8 million, Navy 4.5 million, BazaarLink 3.6 million, OpenRouter 1.2 million, Cohere 800 thousand, HuggingChat 500 thousand, Morph 400 thousand, Hugging Face 200 thousand, and Kiro 25 thousand. One-time signup credits add about 626 million. Uncapped providers and the OpenRouter top-up boost are shown separately so they do not inflate the headline. A further 6 million behind regional identity verification (ModelScope) is also shown apart. Live usage remains available at /dashboard/free-tiers.">
+  <desc>Pool-deduplicated chart of the 16 recurring free-token pools with positive published budgets (plus Groq's five per-model caps as one segment), plus signup credits and uncapped providers shown separately.</desc>
   <defs>
     <pattern id="gridPaperF" width="32" height="32" patternUnits="userSpaceOnUse">
       <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
@@ -61,10 +61,10 @@
       <animate attributeName="opacity" values="0;1;1;0" dur="2.4s" begin="1.6s" repeatCount="indefinite"/>
     </circle>
   </g>
-  <text x="60" y="228" font-family="Consolas, 'Courier New', monospace" font-size="104" font-weight="800" fill="url(#gradBrandF)">~1.51B</text>
+  <text x="60" y="228" font-family="Consolas, 'Courier New', monospace" font-size="104" font-weight="800" fill="url(#gradBrandF)">~1.47B</text>
   <text x="62" y="266" font-family="Consolas, 'Courier New', monospace" font-size="15" letter-spacing="3" font-weight="700" fill="#a1a1aa">FREE TOKENS / MONTH &#183; <tspan fill="#22c55e">STEADY</tspan></text>
-  <text x="62" y="298" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="16" fill="#F7F6FC">up to <tspan font-weight="800" fill="#22c55e">~2.13B</tspan> in your first month &#8212; signup credits</text>
-  <text x="62" y="326" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#71717a">documented free tiers &#183; <tspan fill="#8b5cf6">38 recurring pools</tspan> &#183; <tspan fill="#8b5cf6">437 catalog entries</tspan> &#183; one endpoint</text>
+  <text x="62" y="298" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="16" fill="#F7F6FC">up to <tspan font-weight="800" fill="#22c55e">~2.10B</tspan> in your first month &#8212; signup credits</text>
+  <text x="62" y="326" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#71717a">documented free tiers &#183; <tspan fill="#8b5cf6">34 recurring pools</tspan> &#183; <tspan fill="#8b5cf6">444 catalog entries</tspan> &#183; one endpoint</text>
 
   <!-- ═══ Panel · The honest math ═══ -->
   <rect x="680" y="84" width="460" height="216" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
@@ -75,66 +75,60 @@
   </line>
   <text x="836" y="156" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa">every rate limit &#183; 24/7</text>
   <text x="836" y="176" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#ef4444" opacity="0.85">we don't publish that</text>
-  <text x="704" y="240" font-family="Consolas, 'Courier New', monospace" font-size="34" font-weight="800" fill="#22c55e">~1.51B</text>
+  <text x="704" y="240" font-family="Consolas, 'Courier New', monospace" font-size="34" font-weight="800" fill="#22c55e">~1.47B</text>
   <text x="836" y="224" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa">each shared free pool</text>
   <text x="836" y="244" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#22c55e">counted once &#10003;</text>
   <text x="704" y="280" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#f59e0b"><tspan font-weight="800">13 providers</tspan> ToS-flagged <tspan fill="#71717a">&#8212; we flag it &#183; you decide</tspan></text>
 
-  <!-- ═══ Budget bar · 20 quantified recurring pools ═══ -->
-  <text x="60" y="356" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2.5" font-weight="700" fill="#a78bfa">WHERE IT COMES FROM &#183; <tspan fill="#F7F6FC">20 QUANTIFIED RECURRING POOLS</tspan></text>
+  <!-- ═══ Budget bar · 17 quantified recurring pools + Groq's five per-model caps (one segment) ═══ -->
+  <text x="60" y="356" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2.5" font-weight="700" fill="#a78bfa">WHERE IT COMES FROM &#183; <tspan fill="#F7F6FC">16 QUANTIFIED POOLS + 5 GROQ PER-MODEL CAPS</tspan></text>
   <g clip-path="url(#barShapeF)">
     <rect x="60" y="372" width="1080" height="18" fill="#1c2230"/>
     <g clip-path="url(#barRevF)">
-      <rect x="60.0" y="372" width="661.4" height="18" fill="#6c5ce7"/>
-      <rect x="722.4" y="372" width="99.2" height="18" fill="#00b894"/>
-      <rect x="822.6" y="372" width="99.2" height="18" fill="#0984e3"/>
-      <rect x="922.9" y="372" width="39.7" height="18" fill="#e17055"/>
-      <rect x="963.5" y="372" width="19.8" height="18" fill="#fdcb6e"/>
-      <rect x="984.4" y="372" width="19.8" height="18" fill="#e84393"/>
-      <rect x="1005.2" y="372" width="15.9" height="18" fill="#00cec9"/>
-      <rect x="1022.1" y="372" width="13.2" height="18" fill="#d63031"/>
-      <rect x="1036.3" y="372" width="9.9" height="18" fill="#a29bfe"/>
-      <rect x="1047.3" y="372" width="7.5" height="18" fill="#55efc4"/>
-      <rect x="1055.8" y="372" width="7.5" height="18" fill="#74b9ff"/>
-      <rect x="1064.3" y="372" width="7.5" height="18" fill="#ffeaa7"/>
-      <rect x="1072.8" y="372" width="7.5" height="18" fill="#fab1a0"/>
-      <rect x="1081.3" y="372" width="7.5" height="18" fill="#81ecec"/>
-      <rect x="1089.9" y="372" width="7.5" height="18" fill="#6c5ce7"/>
-      <rect x="1098.4" y="372" width="7.5" height="18" fill="#00b894"/>
-      <rect x="1106.9" y="372" width="7.5" height="18" fill="#0984e3"/>
-      <rect x="1115.4" y="372" width="7.5" height="18" fill="#e17055"/>
-      <rect x="1124.0" y="372" width="7.5" height="18" fill="#fdcb6e"/>
-      <rect x="1132.5" y="372" width="7.5" height="18" fill="#e84393"/>
+      <rect x="60.0" y="372" width="686.0" height="18" fill="#6c5ce7"/>
+      <rect x="747.0" y="372" width="139.7" height="18" fill="#00b894"/>
+      <rect x="887.7" y="372" width="99.8" height="18" fill="#0984e3"/>
+      <rect x="988.5" y="372" width="20.0" height="18" fill="#e17055"/>
+      <rect x="1009.5" y="372" width="20.0" height="18" fill="#e84393"/>
+      <rect x="1030.5" y="372" width="16.0" height="18" fill="#00cec9"/>
+      <rect x="1047.5" y="372" width="7.5" height="18" fill="#d63031"/>
+      <rect x="1056.0" y="372" width="7.5" height="18" fill="#a29bfe"/>
+      <rect x="1064.5" y="372" width="7.5" height="18" fill="#55efc4"/>
+      <rect x="1073.0" y="372" width="7.5" height="18" fill="#74b9ff"/>
+      <rect x="1081.5" y="372" width="7.5" height="18" fill="#ffeaa7"/>
+      <rect x="1090.0" y="372" width="7.5" height="18" fill="#fab1a0"/>
+      <rect x="1098.5" y="372" width="7.5" height="18" fill="#81ecec"/>
+      <rect x="1107.0" y="372" width="7.5" height="18" fill="#6c5ce7"/>
+      <rect x="1115.5" y="372" width="7.5" height="18" fill="#00b894"/>
+      <rect x="1124.0" y="372" width="7.5" height="18" fill="#0984e3"/>
+      <rect x="1132.5" y="372" width="7.5" height="18" fill="#e17055"/>
     </g>
   </g>
   <circle r="3.2" fill="#F7F6FC">
     <animateMotion path="M 60,381 L 1140,381" keyPoints="0;0;1;1" keyTimes="0;0.02;0.24;1" calcMode="linear" dur="10s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.02;0.23;0.26;1" dur="10s" repeatCount="indefinite"/>
   </circle>
-  <text x="60" y="416" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#71717a">each segment = one recurring pool &#183; widths floored so every pool shows &#183; audited pool budgets below</text>
+  <text x="60" y="416" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#71717a">each segment = one recurring pool (Groq = its five per-model caps) &#183; widths floored so every pool shows &#183; audited pool budgets below</text>
 
-  <!-- ═══ Per-pool grid (20 quantified recurring pools) ═══ -->
+  <!-- ═══ Per-pool grid (16 quantified recurring pools + Groq's five per-model caps) ═══ -->
   <g font-family="Consolas, 'Courier New', monospace" font-size="12.5">
     <circle cx="66" cy="452" r="5" fill="#6c5ce7"/><text x="78" y="456" fill="#c9d1d9">Mistral <tspan fill="#71717a">1.00B</tspan></text>
-    <circle cx="346" cy="452" r="5" fill="#00b894"/><text x="358" y="456" fill="#c9d1d9">LLM7 <tspan fill="#71717a">150M</tspan></text>
-    <circle cx="626" cy="452" r="5" fill="#0984e3"/><text x="638" y="456" fill="#c9d1d9">Nara <tspan fill="#71717a">150M</tspan></text>
-    <circle cx="906" cy="452" r="5" fill="#e17055"/><text x="918" y="456" fill="#c9d1d9">Gemini <tspan fill="#71717a">60M</tspan></text>
-    <circle cx="66" cy="482" r="5" fill="#fdcb6e"/><text x="78" y="486" fill="#c9d1d9">Cerebras <tspan fill="#71717a">30M</tspan></text>
-    <circle cx="346" cy="482" r="5" fill="#e84393"/><text x="358" y="486" fill="#c9d1d9">Cloudflare AI <tspan fill="#71717a">30M</tspan></text>
-    <circle cx="626" cy="482" r="5" fill="#00cec9"/><text x="638" y="486" fill="#c9d1d9">API Airforce <tspan fill="#71717a">24M</tspan></text>
-    <circle cx="906" cy="482" r="5" fill="#d63031"/><text x="918" y="486" fill="#c9d1d9">Ollama Cloud <tspan fill="#71717a">20M</tspan></text>
-    <circle cx="66" cy="512" r="5" fill="#a29bfe"/><text x="78" y="516" fill="#c9d1d9">Groq <tspan fill="#71717a">15M</tspan></text>
-    <circle cx="346" cy="512" r="5" fill="#55efc4"/><text x="358" y="516" fill="#c9d1d9">Bluesminds <tspan fill="#71717a">7.2M</tspan></text>
-    <circle cx="626" cy="512" r="5" fill="#74b9ff"/><text x="638" y="516" fill="#c9d1d9">SambaNova <tspan fill="#71717a">6M</tspan></text>
-    <circle cx="906" cy="512" r="5" fill="#ffeaa7"/><text x="918" y="516" fill="#c9d1d9">Arcee <tspan fill="#71717a">4.8M</tspan></text>
-    <circle cx="66" cy="542" r="5" fill="#fab1a0"/><text x="78" y="546" fill="#c9d1d9">Navy <tspan fill="#71717a">4.5M</tspan></text>
-    <circle cx="346" cy="542" r="5" fill="#81ecec"/><text x="358" y="546" fill="#c9d1d9">BazaarLink <tspan fill="#71717a">3.6M</tspan></text>
-    <circle cx="626" cy="542" r="5" fill="#6c5ce7"/><text x="638" y="546" fill="#c9d1d9">OpenRouter <tspan fill="#71717a">1.2M</tspan></text>
-    <circle cx="906" cy="542" r="5" fill="#00b894"/><text x="918" y="546" fill="#c9d1d9">Cohere <tspan fill="#71717a">800K</tspan></text>
-    <circle cx="66" cy="572" r="5" fill="#0984e3"/><text x="78" y="576" fill="#c9d1d9">HuggingChat <tspan fill="#71717a">500K</tspan></text>
-    <circle cx="346" cy="572" r="5" fill="#e17055"/><text x="358" y="576" fill="#c9d1d9">Morph <tspan fill="#71717a">400K</tspan></text>
-    <circle cx="626" cy="572" r="5" fill="#fdcb6e"/><text x="638" y="576" fill="#c9d1d9">Hugging Face <tspan fill="#71717a">200K</tspan></text>
-    <circle cx="906" cy="572" r="5" fill="#e84393"/><text x="918" y="576" fill="#c9d1d9">Kiro <tspan fill="#71717a">25K</tspan></text>
+    <circle cx="346" cy="452" r="5" fill="#00b894"/><text x="358" y="456" fill="#c9d1d9">Nara <tspan fill="#71717a">210M</tspan></text>
+    <circle cx="626" cy="452" r="5" fill="#0984e3"/><text x="638" y="456" fill="#c9d1d9">LLM7 <tspan fill="#71717a">150M</tspan></text>
+    <circle cx="906" cy="452" r="5" fill="#e17055"/><text x="918" y="456" fill="#c9d1d9">Groq <tspan fill="#71717a">30M &#183; 5 caps</tspan></text>
+    <circle cx="66" cy="482" r="5" fill="#e84393"/><text x="78" y="486" fill="#c9d1d9">Cloudflare AI <tspan fill="#71717a">30M</tspan></text>
+    <circle cx="346" cy="482" r="5" fill="#00cec9"/><text x="358" y="486" fill="#c9d1d9">API Airforce <tspan fill="#71717a">24M</tspan></text>
+    <circle cx="626" cy="482" r="5" fill="#d63031"/><text x="638" y="486" fill="#c9d1d9">Bluesminds <tspan fill="#71717a">7.2M</tspan></text>
+    <circle cx="906" cy="482" r="5" fill="#a29bfe"/><text x="918" y="486" fill="#c9d1d9">SambaNova <tspan fill="#71717a">6M</tspan></text>
+    <circle cx="66" cy="512" r="5" fill="#55efc4"/><text x="78" y="516" fill="#c9d1d9">Arcee <tspan fill="#71717a">4.8M</tspan></text>
+    <circle cx="346" cy="512" r="5" fill="#74b9ff"/><text x="358" y="516" fill="#c9d1d9">Navy <tspan fill="#71717a">4.5M</tspan></text>
+    <circle cx="626" cy="512" r="5" fill="#ffeaa7"/><text x="638" y="516" fill="#c9d1d9">BazaarLink <tspan fill="#71717a">3.6M</tspan></text>
+    <circle cx="906" cy="512" r="5" fill="#fab1a0"/><text x="918" y="516" fill="#c9d1d9">OpenRouter <tspan fill="#71717a">1.2M</tspan></text>
+    <circle cx="66" cy="542" r="5" fill="#81ecec"/><text x="78" y="546" fill="#c9d1d9">Cohere <tspan fill="#71717a">800K</tspan></text>
+    <circle cx="346" cy="542" r="5" fill="#6c5ce7"/><text x="358" y="546" fill="#c9d1d9">HuggingChat <tspan fill="#71717a">500K</tspan></text>
+    <circle cx="626" cy="542" r="5" fill="#00b894"/><text x="638" y="546" fill="#c9d1d9">Morph <tspan fill="#71717a">400K</tspan></text>
+    <circle cx="906" cy="542" r="5" fill="#0984e3"/><text x="918" y="546" fill="#c9d1d9">Hugging Face <tspan fill="#71717a">200K</tspan></text>
+    <circle cx="66" cy="572" r="5" fill="#e17055"/><text x="78" y="576" fill="#c9d1d9">Kiro <tspan fill="#71717a">25K</tspan></text>
   </g>
 
   <!-- ═══ First-month signup credits ═══ -->
@@ -178,10 +172,14 @@
     <text x="397" y="717" text-anchor="middle">OpenCode Zen</text>
     <rect x="458" y="702" width="56" height="22" rx="11" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
     <text x="486" y="717" text-anchor="middle">baidu</text>
-    <rect x="522" y="702" width="30" height="22" rx="11" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
-    <text x="537" y="717" text-anchor="middle">&#8230;</text>
+    <rect x="522" y="702" width="62" height="22" rx="11" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+    <text x="553" y="717" text-anchor="middle">Gemini</text>
+    <rect x="592" y="702" width="100" height="22" rx="11" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+    <text x="642" y="717" text-anchor="middle">Ollama Cloud</text>
+    <rect x="700" y="702" width="30" height="22" rx="11" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+    <text x="715" y="717" text-anchor="middle">&#8230;</text>
   </g>
-  <text x="608" y="718" font-family="Consolas, 'Courier New', monospace" font-size="13.5" fill="#F7F6FC"><tspan fill="#f59e0b" font-weight="700">$10</tspan> OpenRouter top-up &#8594; <tspan fill="#22c55e" font-weight="700">+24M/mo</tspan></text>
+  <text x="760" y="718" font-family="Consolas, 'Courier New', monospace" font-size="13.5" fill="#F7F6FC"><tspan fill="#f59e0b" font-weight="700">$10</tspan> OpenRouter top-up &#8594; <tspan fill="#22c55e" font-weight="700">+24M/mo</tspan></text>
   <text x="60" y="746" font-family="Consolas, 'Courier New', monospace" font-size="11" fill="#71717a">surfaced separately &#8212; never inflates the headline</text>
 
   <!-- ═══ Footer strip ═══ -->

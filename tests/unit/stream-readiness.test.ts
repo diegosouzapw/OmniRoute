@@ -451,27 +451,24 @@ test("ensureStreamReadiness preserves buffered chunks when stream starts", async
   assert.match(text, / world/);
 });
 
-test("ensureStreamReadiness preserves its buffered prefix until a delayed consumer observes a later error", async () => {
-  const prefix = `data: ${JSON.stringify({
-    object: "chat.completion.chunk",
-    choices: [
-      {
-        index: 0,
-        delta: { role: "assistant", content: "prefix before failure" },
-        finish_reason: null,
-      },
-    ],
-  })}\n\n`;
-  let pullCount = 0;
+test("ensureStreamReadiness replays buffered chunks before a subsequent source error", async () => {
+  let reads = 0;
   const response = new Response(
     new ReadableStream<Uint8Array>({
       pull(controller) {
-        pullCount += 1;
-        if (pullCount === 1) {
-          controller.enqueue(encoder.encode(prefix));
+        reads += 1;
+        if (reads === 1) {
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({
+                object: "chat.completion.chunk",
+                choices: [{ index: 0, delta: { role: "assistant", content: "prefix" } }],
+              })}\n\n`
+            )
+          );
           return;
         }
-        controller.error(new Error("later upstream failure"));
+        controller.error(Object.assign(new Error("terminal source failure"), { statusCode: 502 }));
       },
     }),
     { status: 200, headers: { "Content-Type": "text/event-stream" } }
@@ -479,13 +476,96 @@ test("ensureStreamReadiness preserves its buffered prefix until a delayed consum
 
   const result = await ensureStreamReadiness(response, { timeoutMs: 100 });
   assert.equal(result.ok, true);
-  await new Promise((resolve) => setTimeout(resolve, 25));
+  assert.ok(result.response.body);
+  const reader = result.response.body.getReader();
+  const first = await reader.read();
 
-  const reader = result.response.body!.getReader();
+  assert.equal(first.done, false);
+  assert.match(new TextDecoder().decode(first.value), /prefix/);
+  await assert.rejects(reader.read(), /terminal source failure/);
+});
+
+test("ensureStreamReadiness replays multiple buffered chunks in order before an error", async () => {
+  let reads = 0;
+  const response = new Response(
+    new ReadableStream<Uint8Array>({
+      pull(controller) {
+        reads += 1;
+        if (reads === 1) {
+          controller.enqueue(encoder.encode(": keepalive\n\n"));
+          return;
+        }
+        if (reads === 2) {
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({
+                object: "chat.completion.chunk",
+                choices: [{ index: 0, delta: { role: "assistant", content: "ready" } }],
+              })}\n\n`
+            )
+          );
+          return;
+        }
+        controller.error(new Error("failure after buffered prefix"));
+      },
+    }),
+    { status: 200, headers: { "Content-Type": "text/event-stream" } }
+  );
+
+  const result = await ensureStreamReadiness(response, { timeoutMs: 100 });
+  assert.equal(result.ok, true);
+  assert.ok(result.response.body);
+  const reader = result.response.body.getReader();
+  const first = await reader.read();
+  const second = await reader.read();
+
+  assert.equal(first.done, false);
+  assert.equal(second.done, false);
+  assert.match(new TextDecoder().decode(first.value), /keepalive/);
+  assert.match(new TextDecoder().decode(second.value), /ready/);
+  await assert.rejects(reader.read(), /failure after buffered prefix/);
+});
+
+test("ensureStreamReadiness cancellation is bounded when upstream cancel never settles", async () => {
+  let cancelCalls = 0;
+  const response = new Response(
+    new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({
+              object: "chat.completion.chunk",
+              choices: [{ index: 0, delta: { role: "assistant", content: "prefix" } }],
+            })}\n\n`
+          )
+        );
+      },
+      pull() {
+        return new Promise<void>(() => {});
+      },
+      cancel() {
+        cancelCalls += 1;
+        return new Promise<void>(() => {});
+      },
+    }),
+    { status: 200, headers: { "Content-Type": "text/event-stream" } }
+  );
+
+  const result = await ensureStreamReadiness(response, { timeoutMs: 100 });
+  assert.equal(result.ok, true);
+  assert.ok(result.response.body);
+  const reader = result.response.body.getReader();
   const first = await reader.read();
   assert.equal(first.done, false);
-  assert.match(new TextDecoder().decode(first.value), /prefix before failure/);
-  await assert.rejects(() => reader.read(), /later upstream failure/);
+
+  await Promise.race([
+    reader.cancel("client disconnected"),
+    new Promise<never>((_resolve, reject) =>
+      setTimeout(() => reject(new Error("readiness cancellation stayed pending")), 500)
+    ),
+  ]);
+  await reader.cancel("duplicate cancellation");
+  assert.equal(cancelCalls, 1);
 });
 
 test("ensureStreamReadiness honors configured timeouts above 2000ms", async () => {

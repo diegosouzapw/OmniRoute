@@ -12,6 +12,7 @@ import { resolveRoutingModel, RoutingModelOps } from "./resolveRoutingModel";
 import {
   getProviderCredentialsWithQuotaPreflight,
   markAccountUnavailable,
+  buildExhaustionOptions,
   extractApiKey,
   isValidApiKey,
   extractSessionAffinityKey,
@@ -44,6 +45,7 @@ import { isVerifiedNativeCodexRequest } from "@omniroute/open-sse/config/codexId
 import { resolveCompressionSettings } from "@omniroute/open-sse/handlers/chatCore/compressionSettings.ts";
 import type { CompressionExclusions } from "@omniroute/open-sse/services/compression/exclusions.ts";
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
+import { comboPinAllowlist } from "@/lib/combos/steps.ts";
 import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
 import {
   HTTP_STATUS,
@@ -78,6 +80,8 @@ import {
 } from "@/lib/db/sessionAccountAffinity";
 import { dispatchChatWithAffinityEviction } from "./chatDispatch";
 import { getCachedSettings, getCombosCacheVersion } from "@/lib/db/readCache";
+import { comboCheckProvider, ghComboGate } from "./chat/githubLiveCatalogFilter.ts";
+import { comboTargetPassesKeyModelPolicy } from "./chat/comboTargetKeyPolicy.ts";
 import { getCombos } from "@/lib/db/combos";
 import { resolveModelLockoutSettings } from "@/lib/resilience/modelLockoutSettings";
 import {
@@ -174,7 +178,10 @@ import { registerBailianCodingPlanQuotaFetcher } from "@omniroute/open-sse/servi
 import { registerQwenTokenPlanQuotaFetcher } from "@omniroute/open-sse/services/qwenTokenPlanQuotaFetcher.ts";
 import { registerCrofUsageFetcher } from "@omniroute/open-sse/services/crofUsageFetcher.ts";
 import { registerDeepseekQuotaFetcher } from "@omniroute/open-sse/services/deepseekQuotaFetcher.ts";
-import { registerMoonshotQuotaFetcher, registerMoonshotFetchersForNodes } from "@omniroute/open-sse/services/moonshotQuotaFetcher.ts";
+import {
+  registerMoonshotQuotaFetcher,
+  registerMoonshotFetchersForNodes,
+} from "@omniroute/open-sse/services/moonshotQuotaFetcher.ts";
 import { registerOpenrouterQuotaFetcher } from "@omniroute/open-sse/services/openrouterQuotaFetcher.ts";
 import { registerOpencodeQuotaFetcher } from "@omniroute/open-sse/services/opencodeQuotaFetcher.ts";
 import { registerGrokWebQuotaFetcher } from "@omniroute/open-sse/services/grokQuotaFetcher.ts";
@@ -231,7 +238,7 @@ void import("@/lib/db/providers")
         id: typeof node.id === "string" ? node.id : null,
         prefix: typeof node.prefix === "string" ? node.prefix : null,
         baseUrl: typeof node.baseUrl === "string" ? node.baseUrl : null,
-      })),
+      }))
     );
   })
   .catch((error) => {
@@ -752,6 +759,17 @@ async function handleChatImplementation(
   clientRawRequest = chatAdmission.resolveClientRawAfterAdmission(clientRawRequest, () =>
     deferredClientRawBody.withClientBody((clientBody) => buildClientRawRequest(request, clientBody))
   );
+  // Sibling of clientRawRequest.body, not a replacement: .body stays the raw
+  // pre-reconstruction client bytes (see captureDeferredClientRawBody), while
+  // this is the `input` actually dispatched with -- after the
+  // previous_response_id reconstruction above ran, when it applies. A future
+  // continuation lookup against THIS response must resolve from this field,
+  // not the raw one. See the logClientRawRequest doc comment in requestLogger.ts.
+  if (clientRawRequest && Array.isArray((body as { input?: unknown }).input)) {
+    (clientRawRequest as { effectiveInput?: unknown }).effectiveInput = (
+      body as { input: unknown[] }
+    ).input;
+  }
 
   // Guardrail pre-call pipeline — prompt injection, PII masking, and future custom rules.
   telemetry.startPhase("validate");
@@ -994,19 +1012,10 @@ async function handleChatImplementation(
       }
     ) => {
       if (isComboLiveTest) return true;
-
-      // #9057: for keys with model restrictions (allowedModels or disableNonPublicModels),
-      // run isModelAllowedForKey even for auto/* models. The API-key policy gate
-      // (validateModelAccess in apiKeyPolicy.ts) treats auto/* as a virtual combo and
-      // skips isModelAllowedForKey, so the per-candidate check here is the only
-      // enforcement point during combo routing. Without it, a key with
-      // disableNonPublicModels=true can reach free/prohibited models through auto/*.
-      const hasModelRestrictions =
-        apiKeyInfo &&
-        (Boolean(apiKeyInfo.allowedModels?.length) || apiKeyInfo.disableNonPublicModels === true);
-      if (hasModelRestrictions && apiKey) {
-        const modelAllowed = await isModelAllowedForKey(apiKey, modelString);
-        if (!modelAllowed) return false;
+      // #12886: combo-name allow-list must not skip inner targets (#9057 still
+      // checks auto/* / disableNonPublic via comboTargetPassesKeyModelPolicy).
+      if (!(await comboTargetPassesKeyModelPolicy({ apiKey, apiKeyInfo, requestedModelStr: resolvedModelStr, targetModelStr: modelString, isModelAllowedForKey }))) {
+        return false;
       }
 
       // Use getModelInfo to resolve custom prefixes, but prefer the combo
@@ -1025,23 +1034,13 @@ async function handleChatImplementation(
         if (isCommonChatGptWebRetirementError(error)) return false;
         throw error;
       }
-      // Apply the same prefix-override guard as handleSingleModelChat:
-      // if providerId is just the prefix already in the model string, use
-      // the fully-resolved modelInfo.provider for a precise credential check.
-      const provider = (() => {
-        if (!target?.providerId) return modelInfo.provider;
-        if (target.providerId === modelInfo.provider) return modelInfo.provider;
-        if (modelString.startsWith(target.providerId + "/")) return modelInfo.provider;
-        return target.providerId;
-      })();
-      if (!provider) return true; // can't determine provider, let it try
-
+      const provider = comboCheckProvider(modelString, modelInfo, target?.providerId);
       const resolvedModel = modelInfo.model || modelString;
-      const hasForcedConnection =
-        typeof target?.connectionId === "string" && target.connectionId.trim().length > 0;
+      const githubGate = await ghComboGate(comboPreselectedCredentials, provider, resolvedModel);
+      if (githubGate !== null) return githubGate;
       let allowedConnections = intersectAllowedConnectionIds(
         apiKeyInfo?.allowedConnections ?? null,
-        target?.allowedConnectionIds ?? null
+        comboPinAllowlist(true, target?.connectionId ?? null, target?.allowedConnectionIds ?? null)
       );
 
       // A4: quota-exclusive keys must only use the pool's connection(s).
@@ -1514,12 +1513,14 @@ async function handleSingleModelChat(
   })();
   const forceLiveComboTest = runtimeOptions.forceLiveComboTest === true;
   const bypassProviderQuotaPolicy = hasProviderQuotaBypassScope(apiKeyInfo?.scopes);
-  const hasForcedConnection =
-    typeof runtimeOptions.forcedConnectionId === "string" &&
-    runtimeOptions.forcedConnectionId.trim().length > 0;
+  const forcedConnectionId =
+    typeof runtimeOptions.forcedConnectionId === "string"
+      ? runtimeOptions.forcedConnectionId.trim()
+      : "";
+  const hasForcedConnection = forcedConnectionId.length > 0;
   let effectiveAllowedConnections = intersectAllowedConnectionIds(
     apiKeyInfo?.allowedConnections ?? null,
-    runtimeOptions.allowedConnectionIds ?? null
+    comboPinAllowlist(isCombo, forcedConnectionId || null, runtimeOptions.allowedConnectionIds)
   );
 
   // A4: quota-exclusive keys must only use the pool's connection(s).
@@ -1674,7 +1675,7 @@ async function handleSingleModelChat(
                   : {}),
                 ...(() => {
                   const effectiveForcedId = resolveForcedConnectionForCredentialPool({
-                    forcedConnectionId: runtimeOptions.forcedConnectionId ?? null,
+                    forcedConnectionId: forcedConnectionId || null,
                     excludedConnectionIds,
                     connections: [],
                     allowRateLimitedConnections:
@@ -1781,7 +1782,8 @@ async function handleSingleModelChat(
           lastStatus,
           candidateAliases,
           isCombo,
-          shadowedNode
+          shadowedNode,
+          runtimeOptions?.correlationId ?? null
         );
         const lastFailedConnectionId =
           excludedConnectionIds.size > 0
@@ -2093,7 +2095,7 @@ async function handleSingleModelChat(
           provider,
           model,
           providerProfile,
-          { isCombo }
+          buildExhaustionOptions(runtimeOptions.correlationId ?? null, { isCombo })
         );
 
         if (shouldFallback && !hasForcedConnection) {
@@ -2142,7 +2144,7 @@ async function handleSingleModelChat(
           provider,
           model,
           providerProfile,
-          { isCombo }
+          buildExhaustionOptions(runtimeOptions.correlationId ?? null, { isCombo })
         );
 
         if (shouldFallback && !hasForcedConnection) {
@@ -2387,7 +2389,7 @@ async function handleSingleModelChat(
             provider,
             model,
             providerProfile,
-            {
+            buildExhaustionOptions(runtimeOptions.correlationId ?? null, {
               persistUnavailableState: !(
                 isCombo &&
                 result.status === 429 &&
@@ -2395,7 +2397,7 @@ async function handleSingleModelChat(
               ),
               isCombo,
               headers: result.response.headers,
-            }
+            })
           );
 
       // An explicit pin (combo step `connectionId` / `x-omniroute-connection`) is an
