@@ -345,7 +345,7 @@ export default function CompareTab({ configState }: CompareTabProps) {
   }));
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       {/* Prompt input area */}
       <div className="px-4 pt-3 pb-2 border-b border-border bg-bg-alt shrink-0">
         <textarea
@@ -417,9 +417,10 @@ export default function CompareTab({ configState }: CompareTabProps) {
 
       {/* Columns area */}
       <div
-        className="flex-1 grid overflow-hidden"
+        className="flex-1 grid min-h-0 overflow-hidden"
         style={{
           gridTemplateColumns: `repeat(${Math.max(columns.length, 1)}, minmax(0, 1fr))`,
+          gridTemplateRows: "minmax(0, 1fr)",
         }}
       >
         {displayColumns.map((col) => (
