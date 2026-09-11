@@ -352,10 +352,24 @@ export async function runKeysRegenerateCommand(id, opts = {}) {
     return 1;
   }
   try {
-    const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/regenerate`, {
+    const encodedId = encodeURIComponent(id);
+    let res = await apiFetch(`/api/v1/registered-keys/${encodedId}/regenerate`, {
       method: "POST",
       retry: false,
+      acceptNotOk: true,
     });
+    // `keys` predates the split between registered keys and the dashboard's
+    // ordinary API keys. IDs shown by `keys list`/the dashboard belong to
+    // `/api/keys`, while deployment/registered-key IDs belong to
+    // `/api/v1/registered-keys`. Try the ordinary-key route when the ID is not
+    // present in the registered-key store so the command works with either ID.
+    if (isRouteUnavailableStatus(res.status)) {
+      res = await apiFetch(`/api/keys/${encodedId}/regenerate`, {
+        method: "POST",
+        retry: false,
+        acceptNotOk: true,
+      });
+    }
     if (!res.ok) {
       console.error(t("common.error", { message: `HTTP ${res.status}` }));
       return 1;
@@ -410,9 +424,17 @@ export async function runKeysRevealCommand(id, opts = {}) {
     return 1;
   }
   try {
-    const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/reveal`, {
+    const encodedId = encodeURIComponent(id);
+    let res = await apiFetch(`/api/v1/registered-keys/${encodedId}/reveal`, {
       retry: false,
+      acceptNotOk: true,
     });
+    if (isRouteUnavailableStatus(res.status)) {
+      res = await apiFetch(`/api/keys/${encodedId}/reveal`, {
+        retry: false,
+        acceptNotOk: true,
+      });
+    }
     if (!res.ok) {
       console.error(t("common.error", { message: `HTTP ${res.status}` }));
       return 1;
