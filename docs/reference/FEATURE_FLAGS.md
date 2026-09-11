@@ -46,7 +46,7 @@ A boolean flag is considered **enabled** when its effective value is `"true"`,
 
 ## Flag Catalog
 
-54 flags across 6 categories. **Default** is the definition default — the value
+55 flags across 6 categories. **Default** is the definition default — the value
 used when neither a DB override nor an environment variable is present.
 
 ### Security (10)
@@ -88,7 +88,7 @@ used when neither a DB override nor an environment variable is present.
 | `CAPABILITY_FILTER_ENABLED`     | boolean | `false`    | Reject requests before dispatch when the target model lacks required capabilities (vision, tools, structured output, context window). Protects direct single-provider requests that bypass the combo-layer compatibility filter. |
 | `RADAR_ENABLED`                 | boolean | `false`    | Enable the OmniRoute Radar module (catalog feed screens and sync). Off by default; enabling only unlocks the UI — data sync remains a separate opt-in.                                                                           |
 
-### Runtime (22)
+### Runtime (23)
 
 | Key                                         | Type    | Default | Restart | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ------------------------------------------- | ------- | ------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -114,6 +114,7 @@ used when neither a DB override nor an environment variable is present.
 | `OMNIROUTE_CHAT_VIRTUAL_LANES`              | boolean | `false` | ✓       | Enable per-tenant adaptive virtual admission lanes for provider dispatch (#9654): one tenant's burst no longer 503s another. The OMNIROUTE_CHAT_VIRTUAL_LANES env var wins over this dashboard override; changes take effect at server restart.                                                                                                                                                                                                                      |
 | `EXPOSE_FUNCTIONAL_GATEWAY_MIRRORS`         | boolean | `false` |         | Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally.                                                                                                                                                                                                           |
 | `NEWAPI_AGGREGATOR_BALANCE`                 | boolean | `false` |         | Enable balance detection for New-API / One-API / Sub2API aggregator compatible nodes. When enabled, compatible nodes with the aggregator flag set will report their balance in the dashboard and quota-preflight routing.                                                                                                                                                                                                                                            |
+| `SERVER_OWNED_TOOL_LOOP_ENABLED`            | boolean | `false` |         | Continue non-streaming server-owned tool calls until the model returns a client-usable response.                                                                                                                                                                                                                                                                                                                                                                     |
 
 ### CLI (5)
 
@@ -194,7 +195,7 @@ Returns every flag with its effective value, source, and a summary.
       "requiresRestart": false,
       "warningLevel": "caution",
     },
-    // ... all 54 flags
+    // ... all 55 flags
   ],
   "summary": {
     "total": 54,
