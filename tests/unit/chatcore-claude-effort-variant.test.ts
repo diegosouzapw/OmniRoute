@@ -173,3 +173,62 @@ test("no-think alias's explicit reasoning_effort:none is not overwritten by a st
   assert.equal(body.model, "claude-sonnet-5");
   assert.equal(body.reasoning_effort, "none");
 });
+
+// ── Devin CLI providers: model ids embed the tier and must stay literal ─────────
+// Regression for `dva/claude-opus-5-low` → stripped to `claude-opus-5` → executor
+// rejected "Model is not present in the current Devin catalog" (400). The Devin
+// catalog (devin/catalog.ts) has one id per tier; only the accidental
+// double-suffixed ids (`claude-opus-5-max-low`) survived the old behavior.
+
+test("devin-cli-agentic provider keeps a tier-embedded id literal (no strip, no body mutation)", () => {
+  const body: Record<string, unknown> = { model: "claude-opus-5-low", messages: [] };
+  const r = applyClaudeEffortVariant({
+    provider: "devin-cli-agentic",
+    effectiveModel: "claude-opus-5-low",
+    body,
+    sourceFormat: FORMATS.OPENAI,
+  });
+  assert.equal(r.effectiveModel, "claude-opus-5-low");
+  assert.equal(body.model, "claude-opus-5-low");
+  assert.equal(body.reasoning_effort, undefined);
+  assert.equal(r.log, null);
+});
+
+test("devin provider alias (dva) is covered too", () => {
+  const body: Record<string, unknown> = { model: "claude-opus-5-medium", messages: [] };
+  const r = applyClaudeEffortVariant({
+    provider: "dva",
+    effectiveModel: "claude-opus-5-medium",
+    body,
+    sourceFormat: FORMATS.OPENAI,
+  });
+  assert.equal(r.effectiveModel, "claude-opus-5-medium");
+  assert.equal(body.model, "claude-opus-5-medium");
+  assert.equal(r.log, null);
+});
+
+test("devin-cli (text bridge) and devin-desktop keep literal ids as well", () => {
+  for (const provider of ["devin-cli", "devin-desktop", "dv"]) {
+    const body: Record<string, unknown> = { model: "claude-sonnet-5-low", messages: [] };
+    const r = applyClaudeEffortVariant({
+      provider,
+      effectiveModel: "claude-sonnet-5-low",
+      body,
+      sourceFormat: FORMATS.OPENAI,
+    });
+    assert.equal(r.effectiveModel, "claude-sonnet-5-low", provider);
+    assert.equal(body.reasoning_effort, undefined, provider);
+  }
+});
+
+test("a claude-lane strip still happens for the same model name (control)", () => {
+  const body: Record<string, unknown> = { model: "claude-opus-5-low", messages: [] };
+  const r = applyClaudeEffortVariant({
+    provider: "claude",
+    effectiveModel: "claude-opus-5-low",
+    body,
+    sourceFormat: FORMATS.OPENAI,
+  });
+  assert.equal(r.effectiveModel, "claude-opus-5");
+  assert.equal(body.reasoning_effort, "low");
+});

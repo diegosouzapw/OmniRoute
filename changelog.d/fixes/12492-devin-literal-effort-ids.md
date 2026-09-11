@@ -1,0 +1,1 @@
+- **fix(devin):** treat Devin CLI model ids as literal — never strip or synthesize effort suffixes ([#12492](https://github.com/diegosouzapw/OmniRoute/pull/12492) — thanks @Neuron-Mr-White)

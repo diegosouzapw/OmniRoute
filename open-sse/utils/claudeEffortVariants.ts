@@ -30,6 +30,7 @@
  */
 import { getModelSpec } from "@/shared/constants/modelSpecs";
 import { supportsXHighEffort } from "../config/providerModels.ts";
+import { isDevinLiteralModelIdProvider } from "./devinLiteralModelIds.ts";
 
 /** Base reasoning-effort levels advertised for every effort-capable Claude model. */
 export const CLAUDE_EFFORT_VARIANT_LEVELS = ["low", "medium", "high"] as const;
@@ -93,6 +94,16 @@ export function shouldExposeClaudeEffortVariants(
   if (model.owned_by === "combo") return false;
   if (id.startsWith(NO_THINKING_PREFIX)) return false;
   if (CLAUDE_EFFORT_SUFFIX_RE.test(id)) return false;
+
+  // Devin CLI catalogs (devin-cli / devin-cli-agentic / devin-desktop, aliases
+  // dv / dva) embed the tier in the model id itself — every tier is already a
+  // distinct catalog id, and the gateway keeps those ids literal (see
+  // devinLiteralModelIds.ts). Synthesizing `-<level>` variants on top of them
+  // would advertise unroutable phantom ids like `dva/claude-opus-5-max-low`.
+  const providerSlash = id.indexOf("/");
+  if (providerSlash > 0 && isDevinLiteralModelIdProvider(id.slice(0, providerSlash))) {
+    return false;
+  }
 
   const name = bareModelName(id);
   return isKnownClaudeEffortBaseModel(name);
