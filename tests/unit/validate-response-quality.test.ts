@@ -45,7 +45,10 @@ test("returns valid=false for non-JSON non-SSE text", async () => {
 
 test("returns valid=false for Responses API bodies with no output items", async () => {
   const res = await validateResponseQuality(
-    makeResponse(JSON.stringify({ object: "response", status: "completed", output: [] }), "application/json"),
+    makeResponse(
+      JSON.stringify({ object: "response", status: "completed", output: [] }),
+      "application/json"
+    ),
     false,
     {}
   );
@@ -165,4 +168,105 @@ test("streaming OpenAI finish_reason-only chunk (no content delta) → invalid (
   const verdict = await validateResponseQuality(res, true, {});
   assert.strictEqual(verdict.valid, false);
   assert.match(verdict.reason ?? "", /streaming openai terminated with empty completion/);
+});
+
+// ── #10404 follow-up: non-SSE streaming + zero completion_tokens bypass validation ──
+//
+// Two gaps that #10404/PR #10744 left open in the JSON path:
+//  1. Providers that honour stream:true but answer with application/json
+//     (gateway/shim providers such as ccwu/minimax-m3) used to short-circuit
+//     as valid without ANY check.
+//  2. A busy/error MESSAGE string in content alongside completion_tokens:0 is
+//     non-empty (so the empty-content guard can't catch it) but represents no
+//     actual generation.
+
+function makeJsonResponse(body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  });
+}
+
+test("non-SSE streaming (stream:true + application/json) with content:null + completion_tokens:0 → invalid (#10404 follow-up)", async () => {
+  const res = makeJsonResponse({
+    choices: [{ message: { content: null }, finish_reason: "stop" }],
+    usage: { prompt_tokens: 10199, completion_tokens: 0 },
+  });
+  const verdict = await validateResponseQuality(res, true, {});
+  assert.strictEqual(verdict.valid, false);
+  assert.match(verdict.reason ?? "", /empty content/i);
+});
+
+test("non-SSE streaming busy-message content + completion_tokens:0 → invalid (#10404 follow-up)", async () => {
+  const res = makeJsonResponse({
+    choices: [
+      {
+        message: {
+          content: "【资源繁忙通知】当前模型请求量较大，暂无可用资源，请稍后重试。",
+        },
+        finish_reason: "stop",
+      },
+    ],
+    usage: { prompt_tokens: 10199, completion_tokens: 0 },
+  });
+  const verdict = await validateResponseQuality(res, true, {});
+  assert.strictEqual(verdict.valid, false);
+  assert.match(verdict.reason ?? "", /completion_tokens is 0/);
+});
+
+test("non-SSE streaming with real content + completion_tokens > 0 → valid", async () => {
+  const res = makeJsonResponse({
+    choices: [{ message: { content: "Hello from the model." }, finish_reason: "stop" }],
+    usage: { prompt_tokens: 10, completion_tokens: 12 },
+  });
+  const verdict = await validateResponseQuality(res, true, {});
+  assert.strictEqual(verdict.valid, true);
+});
+
+test("non-SSE streaming without usage data → still valid (no false rejection for Anthropic-style shims, #12968)", async () => {
+  const res = makeJsonResponse({
+    choices: [{ message: { content: "Real answer." }, finish_reason: "stop" }],
+  });
+  const verdict = await validateResponseQuality(res, true, {});
+  assert.strictEqual(verdict.valid, true);
+});
+
+test("tool_calls-only response with completion_tokens:0 → valid (tool_calls count as output)", async () => {
+  const res = makeJsonResponse({
+    choices: [
+      {
+        message: {
+          content: null,
+          tool_calls: [{ id: "c1", type: "function", function: { name: "Bash", arguments: "{}" } }],
+        },
+      },
+    ],
+    usage: { prompt_tokens: 10, completion_tokens: 0 },
+  });
+  const verdict = await validateResponseQuality(res, false, {});
+  assert.strictEqual(verdict.valid, true);
+});
+
+test("non-streaming busy-message content + completion_tokens:0 → invalid (same #10404 follow-up guard)", async () => {
+  const res = makeJsonResponse({
+    choices: [{ message: { content: "资源繁忙，请稍后重试。" }, finish_reason: "stop" }],
+    usage: { prompt_tokens: 100, completion_tokens: 0 },
+  });
+  const verdict = await validateResponseQuality(res, false, {});
+  assert.strictEqual(verdict.valid, false);
+  assert.match(verdict.reason ?? "", /completion_tokens is 0/);
+});
+
+test("reasoning_content-only turn with completion_tokens:0 stays valid (guard, #3587 safe-zero case)", async () => {
+  const res = makeJsonResponse({
+    choices: [
+      {
+        message: { content: null, reasoning_content: "Tiny reasoning" },
+        finish_reason: "stop",
+      },
+    ],
+    usage: { completion_tokens: 0, reasoning_tokens: 0 },
+  });
+  const verdict = await validateResponseQuality(res, false, {});
+  assert.strictEqual(verdict.valid, true);
 });
