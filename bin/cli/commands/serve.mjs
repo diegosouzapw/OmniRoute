@@ -4,7 +4,12 @@ import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { platform, totalmem } from "node:os";
 import { t } from "../i18n.mjs";
-import { writePidFile, cleanupPidFile, waitForServer } from "../utils/pid.mjs";
+import {
+  writePidFile,
+  cleanupPidFile,
+  waitForServer,
+  findListeningPids,
+} from "../utils/pid.mjs";
 import {
   ServerSupervisor,
   detectMitmCrash,
@@ -230,6 +235,16 @@ export async function runServe(opts = {}) {
     process.exit(1);
   }
 
+  // Refuse to start a second instance on a port something else already owns,
+  // BEFORE any pid file is written or any child is spawned. Otherwise the
+  // doomed child's EADDRINUSE arrives only after this process has rewritten
+  // the pid files of the healthy instance that actually owns the port.
+  const busyPids = await findListeningPids(dashboardPort);
+  if (busyPids.length > 0) {
+    reportPortInUse(dashboardPort, busyPids);
+    process.exit(1);
+  }
+
   console.log(`  \x1b[2m⏳ Starting server...\x1b[0m\n`);
 
   // #5172/#5160/#5152: default the V8 heap to ~35% of physical RAM (clamped
@@ -301,6 +316,21 @@ export async function runServe(opts = {}) {
     useTray,
     { trayReadyPort: opts.trayReadyPort, trayReadyToken: opts.trayReadyToken }
   );
+}
+
+/**
+ * Explain a port conflict in terms the operator can act on: who owns the port,
+ * and the two ways out. Exported for unit tests.
+ */
+export function reportPortInUse(port, pids = []) {
+  const owner = pids.length === 1 ? `PID ${pids[0]}` : `PIDs ${pids.join(", ")}`;
+  console.error(`\n\x1b[31m✖ Port ${port} is already in use by ${owner}.\x1b[0m`);
+  console.error(
+    `  Another OmniRoute is most likely already serving there, so open` +
+      ` ${urlScheme}://localhost:${port} before starting a second one.`
+  );
+  console.error(`  To replace it:    \x1b[36momniroute stop\x1b[0m, then start again`);
+  console.error(`  To run alongside: \x1b[36momniroute serve --port <other-port>\x1b[0m\n`);
 }
 
 function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
