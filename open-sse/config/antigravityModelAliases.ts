@@ -1,4 +1,34 @@
 export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
+  // Gemini 3.8 Flash tiers listed by the current official Antigravity model catalog.
+  // Keep the upstream model ids unchanged so discovery and execution address the same
+  // models selected by the native client.
+  {
+    id: "gemini-3.8-flash-high",
+    name: "Gemini 3.8 Flash (High)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  {
+    id: "gemini-3.8-flash-medium",
+    name: "Gemini 3.8 Flash (Medium)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  {
+    id: "gemini-3.8-flash-low",
+    name: "Gemini 3.8 Flash (Low)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
   // Gemini 3.7 Flash tiers listed by the current official Antigravity model catalog.
   // Keep the upstream model ids unchanged so discovery and execution address the same
   // models selected by the native client.
@@ -100,6 +130,7 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
 ]);
 
 export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
+  "gemini-3.8-flash": "gemini-3.8-flash-high",
   // Gemini 3.7 Flash tiers map to the upstream tiered endpoint model; the thinking
   // budget is steered via generationConfig.thinkingConfig.thinkingBudget.
   "gemini-3.7-flash": "gemini-3.7-flash-tiered",

@@ -1,0 +1,1 @@
+- **feat(antigravity):** add Gemini 3.8 Flash high/medium/low tiers to the Antigravity and AGY catalogs, alias `gemini-3.8-flash` to High, and bump IDE/CLI client fallbacks to 2.5.5 / 1.1.24 so live Cloud Code endpoints no longer 404 ([#12499](https://github.com/diegosouzapw/OmniRoute/pull/12499)) — thanks @Abhishekchhetri020

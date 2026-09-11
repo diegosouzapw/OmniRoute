@@ -24,6 +24,9 @@ test("T28: antigravity static catalog exposes only callable Gemini tier IDs", ()
   const staticIds = (getStaticModelsForProvider("antigravity") || []).map((m) => m.id);
 
   assert.ok(!staticIds.includes("gemini-3-pro-preview"));
+  assert.ok(staticIds.includes("gemini-3.8-flash-high"));
+  assert.ok(staticIds.includes("gemini-3.8-flash-medium"));
+  assert.ok(staticIds.includes("gemini-3.8-flash-low"));
   assert.ok(staticIds.includes("gemini-3.7-flash-high"));
   assert.ok(staticIds.includes("gemini-3.7-flash-medium"));
   assert.ok(staticIds.includes("gemini-3.7-flash-low"));
@@ -47,18 +50,26 @@ test("T28: antigravity static catalog exposes only callable Gemini tier IDs", ()
   assert.ok(!staticIds.includes("gemini-claude-opus-4-5-thinking"));
 });
 
-test("T28: agy free-model metadata labels upstream Gemini 3.7 tier IDs", () => {
+test("T28: agy free-model metadata labels upstream Gemini Flash tier IDs", () => {
   const flashNames = Object.fromEntries(
     FREE_MODEL_BUDGETS.filter(
       (entry) =>
         entry.provider === "agy" &&
-        ["gemini-3.7-flash-low", "gemini-3.7-flash-medium", "gemini-3.7-flash-high"].includes(
-          entry.modelId
-        )
+        [
+          "gemini-3.8-flash-low",
+          "gemini-3.8-flash-medium",
+          "gemini-3.8-flash-high",
+          "gemini-3.7-flash-low",
+          "gemini-3.7-flash-medium",
+          "gemini-3.7-flash-high",
+        ].includes(entry.modelId)
     ).map((entry) => [entry.modelId, entry.displayName])
   );
 
   assert.deepEqual(flashNames, {
+    "gemini-3.8-flash-low": "Gemini 3.8 Flash (Low)",
+    "gemini-3.8-flash-medium": "Gemini 3.8 Flash (Medium)",
+    "gemini-3.8-flash-high": "Gemini 3.8 Flash (High)",
     "gemini-3.7-flash-low": "Gemini 3.7 Flash (Low)",
     "gemini-3.7-flash-medium": "Gemini 3.7 Flash (Medium)",
     "gemini-3.7-flash-high": "Gemini 3.7 Flash (High)",

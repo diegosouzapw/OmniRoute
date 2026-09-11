@@ -62,7 +62,7 @@ function getProjectHeaderValue(body: unknown): string | null {
   const project =
     body && typeof body === "object" ? (body as Record<string, unknown>).project : null;
   if (typeof project !== "string" || project.trim().length === 0) return null;
-  if (project === "test-project" || project === "project-id") return null;
+  if (project === "test-project" || project === "project-id" || project === "aicode-consumers") return null;
   return project;
 }
 

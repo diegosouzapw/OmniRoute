@@ -121,6 +121,22 @@ test("content header application emits IDE and CLI identities and strips fake he
   assert.equal(cliHeaders["x-goog-user-project"], "project-1");
 });
 
+test("content headers omit x-goog-user-project for the aicode-consumers default project", () => {
+  seedAntigravityIdeVersionCache("2.1.1");
+  const headers: Record<string, string> = {
+    Authorization: "Bearer token",
+    "x-goog-user-project": "stale-project",
+  };
+
+  applyAntigravityClientProfileHeaders(
+    headers,
+    { connectionId: "connection-ide", providerSpecificData: { clientProfile: "ide" } },
+    { project: "aicode-consumers" }
+  );
+
+  assert.equal(headers["x-goog-user-project"], undefined);
+});
+
 test("public request envelopes never infer the internal jetski identity from email", () => {
   assert.equal(getAntigravityEnvelopeUserAgent({ email: "user@gmail.com" }), "antigravity");
   assert.equal(getAntigravityEnvelopeUserAgent({ email: "user@company.example" }), "antigravity");

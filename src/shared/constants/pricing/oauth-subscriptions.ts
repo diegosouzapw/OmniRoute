@@ -14,6 +14,9 @@ import {
 } from "./shared-tiers";
 
 const ANTIGRAVITY_GEMINI_3_7_PRICING = {
+  "gemini-3.8-flash-low": GEMINI_3_7_FLASH_PROMO_PRICING,
+  "gemini-3.8-flash-medium": GEMINI_3_7_FLASH_PROMO_PRICING,
+  "gemini-3.8-flash-high": GEMINI_3_7_FLASH_PROMO_PRICING,
   "gemini-3.7-flash-low": GEMINI_3_7_FLASH_PROMO_PRICING,
   "gemini-3.7-flash-medium": GEMINI_3_7_FLASH_PROMO_PRICING,
   "gemini-3.7-flash-high": GEMINI_3_7_FLASH_PROMO_PRICING,

@@ -51,6 +51,9 @@ test("agy ships its own live callable model catalog", () => {
   const ids = REGISTRY.agy.models.map((m) => m.id);
   assert.ok(ids.includes("claude-opus-4-6-thinking"), "must expose Claude Opus 4.6 Thinking");
   assert.ok(ids.includes("claude-sonnet-4-6"), "must expose Claude Sonnet 4.6");
+  assert.ok(ids.includes("gemini-3.8-flash-low"), "must expose Gemini 3.8 Flash Low");
+  assert.ok(ids.includes("gemini-3.8-flash-medium"), "must expose Gemini 3.8 Flash Medium");
+  assert.ok(ids.includes("gemini-3.8-flash-high"), "must expose Gemini 3.8 Flash High");
   assert.ok(ids.includes("gemini-3.7-flash-low"), "must expose Gemini 3.7 Flash Low");
   assert.ok(ids.includes("gemini-3.7-flash-medium"), "must expose Gemini 3.7 Flash Medium");
   assert.ok(ids.includes("gemini-3.7-flash-high"), "must expose Gemini 3.7 Flash High");
@@ -82,6 +85,9 @@ test("agy model helpers resolve catalog ids and display names", () => {
   assert.equal(isUserCallableAgyModelId("gemini-2.5-flash"), false);
   assert.equal(isUserCallableAgyModelId("gemini-3.1-pro-high"), false);
   assert.equal(isUserCallableAgyModelId("gemini-pro-agent"), true);
+  assert.equal(isUserCallableAgyModelId("gemini-3.8-flash-low"), true);
+  assert.equal(isUserCallableAgyModelId("gemini-3.8-flash-medium"), true);
+  assert.equal(isUserCallableAgyModelId("gemini-3.8-flash-high"), true);
   assert.equal(isUserCallableAgyModelId("gemini-3.7-flash-low"), true);
   assert.equal(isUserCallableAgyModelId("gemini-3.7-flash-medium"), true);
   assert.equal(isUserCallableAgyModelId("gemini-3.7-flash-high"), true);
@@ -102,6 +108,12 @@ test("agy model helpers resolve catalog ids and display names", () => {
     "Claude Opus 4.6 (Thinking)"
   );
   assert.equal(getClientVisibleAgyModelName("gemini-pro-agent"), "Gemini 3.1 Pro (High)");
+  assert.equal(getClientVisibleAgyModelName("gemini-3.8-flash-low"), "Gemini 3.8 Flash (Low)");
+  assert.equal(
+    getClientVisibleAgyModelName("gemini-3.8-flash-medium"),
+    "Gemini 3.8 Flash (Medium)"
+  );
+  assert.equal(getClientVisibleAgyModelName("gemini-3.8-flash-high"), "Gemini 3.8 Flash (High)");
   assert.equal(getClientVisibleAgyModelName("gemini-3.7-flash-low"), "Gemini 3.7 Flash (Low)");
   assert.equal(
     getClientVisibleAgyModelName("gemini-3.7-flash-medium"),
