@@ -12,6 +12,23 @@ import {
  */
 export const REASONING_BUFFER_MIN_TRIGGER = 256;
 
+/**
+ * Opt-in minimum output budget for reasoning models (#10281 follow-up).
+ * When set (env `OMNIROUTE_REASONING_MIN_BUDGET`, positive integer), a caller
+ * budget in [REASONING_BUFFER_MIN_TRIGGER, floor) on a thinking model is raised
+ * to the floor so reasoning tokens cannot consume the entire budget and yield
+ * a zero-content `finish_reason: "length"` turn (which validateQuality then
+ * rejects as a 502). Opt-in via env keeps the #9507 "never enlarge a client's
+ * explicit max_tokens" contract: operators who set the env declare the floor.
+ * Budgets below REASONING_BUFFER_MIN_TRIGGER stay verbatim (#6274 probes), and
+ * the floor never exceeds the model's known output cap.
+ */
+export const REASONING_MIN_BUDGET_ENV = "OMNIROUTE_REASONING_MIN_BUDGET";
+
+export function getReasoningMinBudget(): number | null {
+  return toPositiveInteger(process.env[REASONING_MIN_BUDGET_ENV]);
+}
+
 export function toPositiveInteger(value: unknown): number | null {
   const numericValue =
     typeof value === "number"
@@ -44,6 +61,16 @@ export function resolveReasoningBufferedMaxTokens(
   // Issue #6274: a tiny explicit budget is a capability probe, not a reasoning
   // request. Respect it verbatim instead of inflating (e.g. 1 -> 1001).
   if (current < REASONING_BUFFER_MIN_TRIGGER) return current;
+
+  // Opt-in reasoning budget floor: raise budgets below the operator-declared
+  // floor (env OMNIROUTE_REASONING_MIN_BUDGET) up to that floor so reasoning
+  // cannot consume the whole budget. #9507 contract preserved — the env IS the
+  // opt-in. The floor is itself capped by the model's output cap.
+  const minBudget = getReasoningMinBudget();
+  if (minBudget !== null && current < minBudget) {
+    const floored = Math.min(minBudget, maxOutputTokens);
+    if (floored > current) return floored;
+  }
 
   // Issue #9507: never enlarge a client's explicit max_tokens. The #3587
   // headroom heuristic (Math.ceil(current * 1.5)) silently rewrote reasoning
