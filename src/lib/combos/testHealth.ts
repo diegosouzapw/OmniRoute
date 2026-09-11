@@ -112,7 +112,7 @@ function getRandomFiveDigitNumber() {
   return COMBO_TEST_OPERAND_MIN + Math.floor(Math.random() * COMBO_TEST_OPERAND_RANGE);
 }
 
-function buildComboTestPrompt() {
+export function buildComboTestPrompt() {
   const left = getRandomFiveDigitNumber();
   const right = getRandomFiveDigitNumber();
 

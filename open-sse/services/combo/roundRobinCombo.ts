@@ -15,6 +15,7 @@ import {
 } from "../../utils/error.ts";
 import { buildRecoveryHint } from "./pinRecovery.ts";
 import { formatExhaustedConnectionKey } from "./comboDiagFormat.ts";
+import { collectQuotaWindowExclusions, formatQuotaSkipMessage } from "./quotaSkipDiagnostics.ts";
 import { recordComboRequest } from "../comboMetrics.ts";
 import {
   expandComboSystemPromptIfPresent,
@@ -1152,16 +1153,21 @@ export async function handleRoundRobinCombo({
 
   if (!lastStatus) {
     if (recordedAttempts === 0) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            message:
-              "Service temporarily unavailable: all targets were skipped by pre-dispatch filters",
-            type: "service_unavailable",
-            code: "ALL_TARGETS_SKIPPED",
-          },
-        }),
-        { status: 503, headers: { "Content-Type": "application/json" } }
+      const quotaExcluded = collectQuotaWindowExclusions(filteredTargets);
+      const quotaSkip = formatQuotaSkipMessage(quotaExcluded);
+      return errorResponseWithComboDiagnostics(
+        503,
+        quotaSkip
+          ? `Service temporarily unavailable: all targets were skipped by pre-dispatch filters (${quotaSkip})`
+          : "Service temporarily unavailable: all targets were skipped by pre-dispatch filters",
+        {
+          poolSize: filteredTargets.length,
+          attempted: 0,
+          excluded: quotaExcluded,
+          attemptOrder: [],
+          terminalReason: "all_targets_skipped",
+        },
+        { code: "ALL_TARGETS_SKIPPED", type: "service_unavailable" }
       );
     }
     return new Response(

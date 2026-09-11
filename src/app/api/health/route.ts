@@ -14,6 +14,7 @@ import { NextResponse } from "next/server";
  * public on an exposed instance, so version, uptime and memory stay behind the authenticated
  * `/api/monitoring/health`. For a probe that also confirms the database answers, use
  * `/api/health/ping`.
+ * Readiness (DB-backed) lives at /api/health/ping (pingDb, 503 when down); this route stays liveness-only so a slow DB never restarts the container.
  */
 
 export const dynamic = "force-dynamic";

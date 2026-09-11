@@ -1,0 +1,1 @@
+- **fix(security):** the prompt-injection and PII scanners now read the text a `tool_result` block carries on `content` (string or nested block list), in messages and in system blocks, so tool output is judged by the same rules as user text ([#13101](https://github.com/diegosouzapw/OmniRoute/pull/13101))

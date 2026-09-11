@@ -16,6 +16,7 @@ import {
   isNimFunctionDegraded,
 } from "../config/errorConfig.ts";
 import {
+  getOpencodeModelUnavailableMatch,
   getProviderErrorRuleMatch,
   resolveRuleMatchBody,
   honorsRuleLockScope,
@@ -1792,6 +1793,18 @@ export function checkFallbackError(
     return profile?.useUpstreamRetryHints ? detectRetryHint() : null;
   }
 
+  function ruleScopedResult(match: NonNullable<ReturnType<typeof getProviderErrorRuleMatch>>) {
+    const scaled = getScaledBaseCooldown(match.reason as RateLimitReasonValue, backoffLevel);
+    return {
+      shouldFallback: true,
+      cooldownMs: match.cooldownMs ?? scaled.cooldownMs,
+      baseCooldownMs: match.cooldownMs ?? scaled.baseCooldownMs,
+      configuredCooldownMs: match.cooldownMs,
+      newBackoffLevel: match.cooldownMs !== undefined ? 0 : scaled.newBackoffLevel,
+      reason: match.reason,
+      ruleScope: match.scope,
+    };
+  }
   function getScaledBaseCooldown(reason: RateLimitReasonValue, level = backoffLevel) {
     void reason;
     const baseCooldownMs =
@@ -2065,22 +2078,7 @@ export function checkFallbackError(
         headers,
         resolveRuleMatchBody(provider, structuredError ?? null, errorStr)
       );
-      if (forbiddenMatch) {
-        const scaled = getScaledBaseCooldown(
-          forbiddenMatch.reason as RateLimitReasonValue,
-          backoffLevel
-        );
-        const ruleCooldownMs = forbiddenMatch.cooldownMs;
-        return {
-          shouldFallback: true,
-          cooldownMs: ruleCooldownMs ?? scaled.cooldownMs,
-          baseCooldownMs: ruleCooldownMs ?? scaled.baseCooldownMs,
-          configuredCooldownMs: ruleCooldownMs,
-          newBackoffLevel: ruleCooldownMs !== undefined ? 0 : scaled.newBackoffLevel,
-          reason: forbiddenMatch.reason,
-          ruleScope: forbiddenMatch.scope,
-        };
-      }
+      if (forbiddenMatch) return ruleScopedResult(forbiddenMatch);
     }
 
     if (
@@ -2199,6 +2197,8 @@ export function checkFallbackError(
 
   // 400 — context overflow / malformed request / model access denied
   if (status === HTTP_STATUS.BAD_REQUEST) {
+    const modelUnavailable = getOpencodeModelUnavailableMatch(provider, status, headers, errorStr);
+    if (modelUnavailable) return ruleScopedResult(modelUnavailable);
     // Check structured error codes first (more reliable, no false positives)
     // OpenAI:  error.code === "model_not_found"
     // Anthropic: error.type === "not_found_error" / "permission_error"
@@ -2321,7 +2321,8 @@ export function formatRetryAfter(
   rateLimitedUntil: string | number | Date | null | undefined
 ): string {
   if (!rateLimitedUntil) return "";
-  const diffMs = new Date(rateLimitedUntil).getTime() - Date.now();
+  const diffMs = cooldownUntilMs(rateLimitedUntil) - Date.now();
+  if (!Number.isFinite(diffMs)) return "";
   if (diffMs <= 0) return "reset after 0s";
   const totalSec = Math.ceil(diffMs / 1000);
   const h = Math.floor(totalSec / 3600);

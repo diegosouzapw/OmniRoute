@@ -105,10 +105,10 @@ Per-combo:
 
 OmniRoute exposes **two** HTTP health surfaces. They are not interchangeable for orchestrators.
 
-| Path | Purpose | Weight | Use for |
-| --- | --- | --- | --- |
-| `GET /healthz` | Lifecycle liveness/readiness (`ok` / `starting` / `stopping`) | Trivial (phase flag only) | Kubernetes **readiness**; soft **liveness** if you must use HTTP |
-| `GET /api/monitoring/health` | Deep system + provider summary (DB, heap, catalog counts, …) | Heavy (sync DB / monitoring work) | Dashboards, blackbox deep checks, Docker’s built-in healthcheck |
+| Path                         | Purpose                                                       | Weight                            | Use for                                                          |
+| ---------------------------- | ------------------------------------------------------------- | --------------------------------- | ---------------------------------------------------------------- |
+| `GET /healthz`               | Lifecycle liveness/readiness (`ok` / `starting` / `stopping`) | Trivial (phase flag only)         | Kubernetes **readiness**; soft **liveness** if you must use HTTP |
+| `GET /api/monitoring/health` | Deep system + provider summary (DB, heap, catalog counts, …)  | Heavy (sync DB / monitoring work) | Dashboards, blackbox deep checks, Docker’s built-in healthcheck  |
 
 > **Note:** Provider health matrices, autopilot issues, quota monitors, token health, and latency detail beyond `/api/monitoring/health` are available via the **MCP tool** `observability_snapshot` or the **dashboard** pages — there are no dedicated REST routes for those.
 
@@ -155,16 +155,41 @@ Response:
 }
 ```
 
+#### `credentialHealth`: probe-cache vs SQLite `test_status`
+
+`GET /api/monitoring/health` → `credentialHealth` is the **in-memory probe-cache
+gauge**, not a live dump of `provider_connections.test_status`. After #12532 the
+request path reads `getCachedCredentialHealthSummary()` only; background probes
+refresh the cache off the event loop.
+
+| Layer                    | Where                                                                 | What it means                                                                                                                                                                                            |
+| ------------------------ | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Probe-cache gauge        | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Last credential-health probe results still held in process memory. `source` is always `probe-cache`.                                                                                                     |
+| Failed connection detail | `credentialHealth.failedConnections`                                  | Present **only when `failed > 0`**. Bounded list of cache rows with `status=error` (`connectionId`, `status`, sanitized `lastError` / `lastErrorType`). `failedOmitted` is set when the list was capped. |
+| SQLite sticky status     | `credentialHealth.staleDbNonOkCount`                                  | Count of **active** (`is_active=1`) connection rows whose persisted `test_status` is a known non-ok (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).                   |
+
+The two layers can disagree on purpose:
+
+- Gauge `failed=0` while `staleDbNonOkCount>0` — SQLite still has a sticky
+  `test_status` (for example `expired` or `credits_exhausted`) that the latest
+  probe-cache snapshot does not count as `status=error`.
+- Gauge `failed>0` while SQLite looks healthy — a recent probe failed and is
+  cached; the DB row has not been updated, or was later cleared.
+
+Do not alert solely on `provider_connections.test_status` when scraping this
+endpoint. Use `failed` + `failedConnections` for live probe failures, and
+`staleDbNonOkCount` when you need the persisted sticky-status count.
+
 ### Kubernetes probe recommendations
 
 OmniRoute is a **single Node process** (one event loop). Stock Docker `HEALTHCHECK` targets lightweight `/healthz`. `/api/monitoring/health` is **too heavy** for kubelet liveness intervals.
 
-| Probe | Recommended target | Notes |
-| --- | --- | --- |
-| **Startup** | HTTP `GET /healthz` with a long `failureThreshold` (or large `startPeriod`) | Cold start + SQLite migration can exceed a few seconds |
-| **Readiness** | HTTP `GET /healthz` | Lifecycle `ok` / `starting` / `stopping` (200 vs 503). Still flaps if the loop is CPU-blocked. A **200 in multiple seconds is not healthy** (#10303) — it means the event loop was starved before the 3-byte handler ran |
-| **Liveness** | HTTP `GET /livez`, **or TCP** on the main service port (`PORT`, default `20128`) | `/livez` is process-alive only (always 200 if the handler runs). It still shares the event loop — busy ≠ dead, and it does not detect event-loop starvation (#10303) any better than TCP does. Prefer **TCP** if HTTP probes time out under catalog/compression load; do **not** kill the pod on short event-loop stalls either way |
-| **Deep health** | `GET /api/monitoring/health` from an external checker | Not for kubelet `livenessProbe` / tight `readinessProbe` |
+| Probe           | Recommended target                                                               | Notes                                                                                                                                                                                                                                                                                                                               |
+| --------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Startup**     | HTTP `GET /healthz` with a long `failureThreshold` (or large `startPeriod`)      | Cold start + SQLite migration can exceed a few seconds                                                                                                                                                                                                                                                                              |
+| **Readiness**   | HTTP `GET /healthz`                                                              | Lifecycle `ok` / `starting` / `stopping` (200 vs 503). Still flaps if the loop is CPU-blocked. A **200 in multiple seconds is not healthy** (#10303) — it means the event loop was starved before the 3-byte handler ran                                                                                                            |
+| **Liveness**    | HTTP `GET /livez`, **or TCP** on the main service port (`PORT`, default `20128`) | `/livez` is process-alive only (always 200 if the handler runs). It still shares the event loop — busy ≠ dead, and it does not detect event-loop starvation (#10303) any better than TCP does. Prefer **TCP** if HTTP probes time out under catalog/compression load; do **not** kill the pod on short event-loop stalls either way |
+| **Deep health** | `GET /api/monitoring/health` from an external checker                            | Not for kubelet `livenessProbe` / tight `readinessProbe`                                                                                                                                                                                                                                                                            |
 
 Example shape (adjust thresholds to your cold-start and compression load):
 
@@ -201,7 +226,6 @@ livenessProbe:
 **Do not** point kubelet **liveness** at `/api/monitoring/health`. That path does real DB/monitoring work and will false-positive under load.
 
 Related: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (probes while the event loop is busy), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (catalog pricing hog), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (compression token-count hog).
-
 
 ### Optional request-path work (memory, skills, token refresh)
 
@@ -344,9 +368,7 @@ The MCP tool `observability_snapshot` returns a **complete system snapshot** for
       "ageMs": 109
     }
   ],
-  "quotaMonitors": {
-    /* see above */
-  },
+  "quotaMonitors": {/* see above */},
   "uptime": 12345,
   "version": "3.8.16"
 }

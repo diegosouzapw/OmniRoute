@@ -16,6 +16,19 @@
  * lightweight `call_logs.response_id` index (154_call_logs_response_id.sql)
  * is new. Every lookup is scoped by `api_key_id` -- one client can never
  * resolve another client's stored conversation.
+ *
+ * Pending-write bridge: `saveCallLog` writes the durable `call_logs` row
+ * (and the artifact this module reads) through a queued, single-worker disk
+ * write (see callLogArtifactWriter.ts) that runs *after* the response has
+ * already been streamed to the client. A client that fires its next turn
+ * immediately -- normal in a tight tool-calling loop -- can reach this
+ * module before that write lands, and would otherwise see a false "not
+ * found" for a response id OmniRoute itself minted moments earlier.
+ * `seedPendingContinuationState` / `clearPendingContinuationState` (called
+ * from callLogs.ts, synchronously around that same write) bridge exactly
+ * that window, applying the identical extraction/fail-closed rules via
+ * extractContinuationState below; the durable row remains the sole source
+ * of truth once it exists.
  */
 
 import { getDbInstance } from "./core";
@@ -47,38 +60,23 @@ function containsTruncatedArrayMarker(items: readonly unknown[]): boolean {
   return items.some((item) => isPlainRecord(item) && item[TRUNCATED_ARRAY_MARKER] === true);
 }
 
+export type ContinuationPipeline = {
+  clientRawRequest?: { body?: unknown; effectiveInput?: unknown };
+  clientResponse?: { output?: unknown; summary?: { output?: unknown }; _truncated?: unknown };
+};
+
 /**
- * Resolve the full input + output a prior Responses API call produced, so
- * the caller can reconstruct `full_input = stored.input + stored.output +
- * new_delta`. Returns null on any lookup/read/shape failure (unknown id,
- * wrong tenant, artifact missing, or an artifact whose pipeline payload was
- * size-limit-omitted -- see MAX_CALL_LOG_ARTIFACT_BYTES in
- * callLogArtifacts.ts) so the caller can fail closed and ask the client to
- * resend full history, exactly like a real `previous_response_not_found`
- * from OpenAI itself.
+ * Reconstruct { input, output } from one call's own pipeline payload, or
+ * fail closed to null -- shared by the durable (call_logs + artifact) path
+ * below and the in-memory pending bridge, so a fail-closed rule added here
+ * (video redaction, truncation markers, an empty/aborted response) protects
+ * both instead of only whichever path someone remembered to update.
  */
-export function resolvePreviousResponseState(
-  responseId: string,
-  apiKeyId: string | null | undefined
+function extractContinuationState(
+  pipeline: ContinuationPipeline | null | undefined,
+  videoContentRemoved: boolean
 ): ResponsesContinuationState | null {
-  if (!responseId) return null;
-
-  const db = getDbInstance();
-  const row = db
-    .prepare(
-      `SELECT artifact_relpath, api_key_id, video_content_removed FROM call_logs
-       WHERE response_id = ? AND detail_state = 'ready'
-       ORDER BY timestamp DESC LIMIT 1`
-    )
-    .get(responseId) as
-    | { artifact_relpath: string | null; api_key_id: string | null; video_content_removed: number }
-    | undefined;
-
-  if (!row || !row.artifact_relpath) return null;
-  // Tenant isolation: a response id is only ever handed back to the API key
-  // that created it. A stored row with no api_key_id at all (no-log/legacy)
-  // can never be resolved by any key -- fail closed rather than guess.
-  if (!apiKeyId || row.api_key_id !== apiKeyId) return null;
+  if (!pipeline) return null;
   // #12150 P2 surface 2: the persisted clientRawRequest snapshot on this row had
   // its video transcript cues structurally redacted to [redacted-video-transcript]
   // before storage (videoBridgeSnapshotRedaction, marker written by the call-log
@@ -86,15 +84,10 @@ export function resolvePreviousResponseState(
   // text -- reconstructing a continuation off it would forward the placeholder
   // upstream as if it were genuine history. Fail closed so the client resends
   // full history, exactly like a real previous_response_not_found.
-  if (row.video_content_removed === 1) return null;
+  if (videoContentRemoved) return null;
 
-  const { artifact, state } = readCallArtifact(row.artifact_relpath);
-  if (state !== "ready" || !artifact?.pipeline) return null;
-
-  const clientRawRequest = artifact.pipeline.clientRawRequest as
-    { body?: unknown; effectiveInput?: unknown } | undefined;
-  const clientResponse = artifact.pipeline.clientResponse as
-    { output?: unknown; summary?: { output?: unknown } } | undefined;
+  const clientRawRequest = pipeline.clientRawRequest;
+  const clientResponse = pipeline.clientResponse;
 
   // clientRawRequest, not providerRequest: this store only ever fires for
   // sourceFormat === OPENAI_RESPONSES (see chat.ts), so the client's own
@@ -154,6 +147,113 @@ export function resolvePreviousResponseState(
   if (output.length === 0) return null;
 
   return { input, output };
+}
+
+type PendingContinuationEntry = {
+  apiKeyId: string | null;
+  state: ResponsesContinuationState;
+  expiresAt: number;
+};
+
+// Bounds how long a seeded entry can stand in for the durable row. Comfortably
+// longer than realistic artifact-write queue latency (single worker, see
+// MAX_QUEUED_JOBS in callLogArtifactWriter.ts) but short enough that a save
+// which never reaches "ready" (e.g. detailState becomes "missing") falls back
+// to the same permanent not-found the durable path already gives today.
+const PENDING_CONTINUATION_TTL_MS = 60_000;
+const pendingContinuationStates = new Map<string, PendingContinuationEntry>();
+
+/**
+ * Called from callLogs.ts the moment a response id and its pipeline payload
+ * are known, before the artifact write is even queued. Runs the response
+ * through the same extractContinuationState fail-closed rules as the durable
+ * path -- a video-redacted, truncated, or empty-output response never gets
+ * bridged, matching what the durable row would (eventually) say anyway.
+ */
+export function seedPendingContinuationState(
+  responseId: string,
+  apiKeyId: string | null,
+  pipeline: ContinuationPipeline | null | undefined,
+  videoContentRemoved: boolean
+): void {
+  if (!responseId) return;
+  const state = extractContinuationState(pipeline, videoContentRemoved);
+  if (!state) return;
+  pendingContinuationStates.set(responseId, {
+    apiKeyId,
+    state,
+    expiresAt: Date.now() + PENDING_CONTINUATION_TTL_MS,
+  });
+}
+
+/** Called from callLogs.ts once the durable row lands -- the DB is now
+ * authoritative and the bridge entry would otherwise just idle until its TTL. */
+export function clearPendingContinuationState(responseId: string): void {
+  if (!responseId) return;
+  pendingContinuationStates.delete(responseId);
+}
+
+function resolvePendingContinuationState(
+  responseId: string,
+  apiKeyId: string | null | undefined
+): ResponsesContinuationState | null {
+  const entry = pendingContinuationStates.get(responseId);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    pendingContinuationStates.delete(responseId);
+    return null;
+  }
+  // Same tenant-isolation rule as the durable lookup below: a response id is
+  // only ever handed back to the API key that created it.
+  if (!apiKeyId || entry.apiKeyId !== apiKeyId) return null;
+  return entry.state;
+}
+
+/**
+ * Resolve the full input + output a prior Responses API call produced, so
+ * the caller can reconstruct `full_input = stored.input + stored.output +
+ * new_delta`. Returns null on any lookup/read/shape failure (unknown id,
+ * wrong tenant, artifact missing, or an artifact whose pipeline payload was
+ * size-limit-omitted -- see MAX_CALL_LOG_ARTIFACT_BYTES in
+ * callLogArtifacts.ts) so the caller can fail closed and ask the client to
+ * resend full history, exactly like a real `previous_response_not_found`
+ * from OpenAI itself.
+ */
+export function resolvePreviousResponseState(
+  responseId: string,
+  apiKeyId: string | null | undefined
+): ResponsesContinuationState | null {
+  if (!responseId) return null;
+
+  const db = getDbInstance();
+  const row = db
+    .prepare(
+      `SELECT artifact_relpath, api_key_id, video_content_removed FROM call_logs
+       WHERE response_id = ? AND detail_state = 'ready'
+       ORDER BY timestamp DESC LIMIT 1`
+    )
+    .get(responseId) as
+    | { artifact_relpath: string | null; api_key_id: string | null; video_content_removed: number }
+    | undefined;
+
+  if (!row) {
+    // No durable row at all yet -- this is exactly the write-in-flight
+    // window the pending bridge exists for, not a genuinely unknown id.
+    return resolvePendingContinuationState(responseId, apiKeyId);
+  }
+  if (!row.artifact_relpath) return null;
+  // Tenant isolation: a response id is only ever handed back to the API key
+  // that created it. A stored row with no api_key_id at all (no-log/legacy)
+  // can never be resolved by any key -- fail closed rather than guess.
+  if (!apiKeyId || row.api_key_id !== apiKeyId) return null;
+
+  const { artifact, state } = readCallArtifact(row.artifact_relpath);
+  if (state !== "ready" || !artifact?.pipeline) return null;
+
+  return extractContinuationState(
+    artifact.pipeline as ContinuationPipeline,
+    row.video_content_removed === 1
+  );
 }
 
 /**
@@ -258,4 +358,107 @@ export function isGenuineContinuationTurn(
     artifactRelPath,
     resolveCallLogIdByResponseId(previousResponseId, apiKeyId) !== null
   );
+}
+
+/**
+ * Whether a call-log's own stream reached a genuine terminal "stop" (a final
+ * assistant reply with no outstanding function_call), is still legitimately
+ * mid-conversation (a tool call the agent is expected to answer shortly), or
+ * never completed at all. Backs the /dashboard/conversations "stalled" badge
+ * -- see resolveConversationStalledState below for the 5-minute grace period
+ * that turns "tool_call_pending" into an actual stall, since a bare tool call
+ * is completely normal seconds after it lands.
+ *
+ * "incomplete" covers both a genuinely truncated stream (createStructuredSSECollector's
+ * own event-count/byte cap: `_truncated: true`, `summary.status` stuck at
+ * "in_progress", `output: []` -- see the responses-continuation-store.test.ts
+ * cases for this exact shape) and any other explicit non-"completed" status
+ * (a provider-reported failure/incomplete state).
+ */
+export type TurnCompletionState = "stop" | "tool_call_pending" | "incomplete" | "unknown";
+
+// Same immutability argument and cache shape as genuineContinuationCache above
+// -- a call-log artifact never changes once its detailState flips to "ready",
+// so this is a pure function of artifactRelPath forever.
+const TURN_COMPLETION_CACHE_MAX = 5000;
+const turnCompletionCache = new Map<string, TurnCompletionState>();
+
+function cacheTurnCompletion(key: string, value: TurnCompletionState): TurnCompletionState {
+  turnCompletionCache.set(key, value);
+  if (turnCompletionCache.size > TURN_COMPLETION_CACHE_MAX) {
+    const oldest = turnCompletionCache.keys().next().value;
+    if (oldest !== undefined) turnCompletionCache.delete(oldest);
+  }
+  return value;
+}
+
+export function resolveTurnCompletionState(
+  artifactRelPath: string | null | undefined
+): TurnCompletionState {
+  if (!artifactRelPath) return "unknown";
+  const cached = turnCompletionCache.get(artifactRelPath);
+  if (cached !== undefined) return cached;
+
+  const { artifact, state } = readCallArtifact(artifactRelPath);
+  if (state !== "ready" || !artifact?.pipeline) {
+    return cacheTurnCompletion(artifactRelPath, "unknown");
+  }
+
+  const clientResponse = artifact.pipeline.clientResponse as
+    | { _truncated?: unknown; output?: unknown; summary?: { status?: unknown; output?: unknown } }
+    | undefined;
+  if (clientResponse?._truncated === true) {
+    return cacheTurnCompletion(artifactRelPath, "incomplete");
+  }
+
+  // Same dual-shape concern as resolvePreviousResponseState above: a
+  // streaming reply nests status/output under `.summary`, a non-streaming
+  // one carries them at the top level.
+  const status = clientResponse?.summary?.status ?? (clientResponse as { status?: unknown })?.status;
+  if (typeof status === "string" && status !== "completed") {
+    return cacheTurnCompletion(artifactRelPath, "incomplete");
+  }
+
+  const output = Array.isArray(clientResponse?.summary?.output)
+    ? clientResponse.summary.output
+    : Array.isArray(clientResponse?.output)
+      ? clientResponse.output
+      : undefined;
+  if (!Array.isArray(output) || output.length === 0) {
+    return cacheTurnCompletion(artifactRelPath, "incomplete");
+  }
+
+  const hasPendingFunctionCall = output.some(
+    (item) => isPlainRecord(item) && item.type === "function_call"
+  );
+  return cacheTurnCompletion(artifactRelPath, hasPendingFunctionCall ? "tool_call_pending" : "stop");
+}
+
+/** Grace period before a still-unanswered tool call counts as a stall, not a
+ *  normal in-flight next turn. */
+export const CONVERSATION_STALL_GRACE_MS = 5 * 60 * 1000;
+
+/**
+ * Whether a conversation's last recorded turn looks abandoned: it didn't end
+ * in a clean "stop" (either a genuinely truncated/failed stream, or a tool
+ * call still awaiting its result) AND enough time has passed with no
+ * continuation that a legitimate in-flight next turn is no longer plausible.
+ * Never true while `isActive` -- an actively streaming/polling request is by
+ * definition not abandoned, regardless of what its last-persisted artifact
+ * (necessarily one turn behind a still-open stream) currently shows.
+ */
+export function resolveConversationStalledState(params: {
+  artifactRelPath: string | null | undefined;
+  lastSeenAt: string;
+  isActive: boolean;
+  now?: number;
+}): boolean {
+  if (params.isActive) return false;
+  const completion = resolveTurnCompletionState(params.artifactRelPath);
+  if (completion !== "incomplete" && completion !== "tool_call_pending") return false;
+
+  const lastSeenAtMs = Date.parse(params.lastSeenAt);
+  if (!Number.isFinite(lastSeenAtMs)) return false;
+  const now = params.now ?? Date.now();
+  return now - lastSeenAtMs > CONVERSATION_STALL_GRACE_MS;
 }

@@ -1,6 +1,9 @@
 import type { A2ATask, TaskArtifact } from "./taskManager";
 import { appendA2ATaskEvent } from "@/lib/db/a2aTasks";
 import { memoryManager } from "@/lib/memory/manager";
+import { logger } from "@omniroute/open-sse/utils/logger";
+
+const log = logger("A2A_TASKS");
 
 type TaskManagerLike = {
   updateTask: (
@@ -41,7 +44,21 @@ export interface MemoryHitsDeps {
     limit?: number;
   }) => Promise<Array<{ id: string; key: string; type: string; content: string }>>;
   appendEvent?: (taskId: string, eventType: string, dataJson?: string) => void;
+  /** Recall deadline override — tests inject a few ms instead of waiting {@link MEMORY_RECALL_TIMEOUT_MS}. */
+  timeoutMs?: number;
 }
+
+/**
+ * Task C2 (Orchestration Canvas Fase 3, PR-C): deadline for the observability-only memory
+ * recall. The recall runs BEFORE the skill handler, so an unbounded one delays the task
+ * itself — the HTTP memory backend (`genericBackend`) alone defaults to a 30s timeout.
+ * Overshooting the deadline degrades exactly like any other recall failure: empty hits,
+ * task proceeds.
+ */
+export const MEMORY_RECALL_TIMEOUT_MS = 1500;
+
+/** Internal marker so the catch below can tell a deadline apart from a backend error. */
+class MemoryRecallTimeoutError extends Error {}
 
 /**
  * Collect the memories consulted for a task's last user message, as pure observability.
@@ -82,21 +99,37 @@ export async function collectMemoryHits(
   }
   if (!query || query.trim() === "") return [];
 
+  const timeoutMs = deps?.timeoutMs ?? MEMORY_RECALL_TIMEOUT_MS;
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     const search =
       deps?.search ??
       (async (cfg: { query: string; apiKeyId: string; limit?: number }) =>
         memoryManager.getPrimaryBackend().search(cfg));
     const apiKeyId = task.owner ?? "mcp";
-    const results = await search({ query, apiKeyId, limit: 5 });
+    const deadline = new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(
+        () => reject(new MemoryRecallTimeoutError("memory recall deadline exceeded")),
+        timeoutMs
+      );
+    });
+    const results = await Promise.race([search({ query, apiKeyId, limit: 5 }), deadline]);
     return results.map((m) => ({
       id: m.id,
       key: m.key,
       type: m.type,
       snippet: m.content.slice(0, 200),
     }));
-  } catch {
+  } catch (err) {
+    if (err instanceof MemoryRecallTimeoutError) {
+      log.warn(
+        `Memory recall for task ${task.id} exceeded ${timeoutMs}ms — continuing without hits`
+      );
+    }
     return [];
+  } finally {
+    // Cleared on BOTH paths: a surviving timer holds the event loop open.
+    if (timer) clearTimeout(timer);
   }
 }
 

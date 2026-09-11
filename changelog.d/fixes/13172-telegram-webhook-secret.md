@@ -1,0 +1,1 @@
+- **fix(telegram):** authenticate webhook deliveries with Telegram's `secret_token` so an unauthenticated caller can no longer mint API keys or spend upstream quota ([#13172](https://github.com/diegosouzapw/OmniRoute/issues/13172))

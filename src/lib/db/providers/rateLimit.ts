@@ -4,6 +4,9 @@
 
 import { getDbInstance } from "../core";
 import { invalidateDbCache } from "../readCache";
+import { backupDbFile } from "../backup";
+import { bumpProxyConfigGeneration } from "../settings";
+import { stripCodexChildCooldownsFromConnection } from "./codexAccountState";
 
 interface StatementLike<TRow = unknown> {
   all: (...params: unknown[]) => TRow[];
@@ -33,6 +36,10 @@ export function setConnectionRateLimitUntil(connectionId: string, until: number 
   // is the only clear path (via clearConnectionRateLimit); past/zero
   // timestamps are noops so an expired write cannot overwrite a live row.
   if (until !== null && (!Number.isFinite(until) || until <= Date.now())) return;
+  if (until == null) {
+    stripCodexChildCooldownsFromConnection(connectionId, { alsoClearTopLevel: true });
+    return;
+  }
   const db = getDbInstance() as unknown as DbLike;
   db.prepare(
     "UPDATE provider_connections SET rate_limited_until = ?, updated_at = ? WHERE id = ?"
@@ -232,6 +239,72 @@ export function clearStaleCrashCooldowns(): { cleared: number } {
   invalidateDbCache("connections");
 
   return { cleared: toReset.length };
+}
+
+/**
+ * Atomic conditional clear of recoverable error state on a connection row.
+ *
+ * Returns true when the row was cleared, false when a concurrent writer
+ * (markAccountUnavailable, connectionRecovery tick, test, etc.) changed the
+ * row between the caller's snapshot read and this UPDATE — in which case the
+ * clear is skipped to preserve the freshest error state. Closes the TOCTOU
+ * window in the quota-recovery path.
+ *
+ * CAS token = (test_status, last_error_at, rate_limited_until).
+ * Nested Codex child cooldown maps are stripped in the same UPDATE so a
+ * concurrent writer cannot re-persist them between two statements.
+ */
+export async function clearConnectionErrorIfUnchanged(
+  id: string,
+  expected: {
+    testStatus: string | null | undefined;
+    lastErrorAt: string | null | undefined;
+    rateLimitedUntil: string | null | undefined;
+  }
+): Promise<boolean> {
+  const db = getDbInstance() as unknown as DbLike;
+  backupDbFile("pre-write");
+  const result = db
+    .prepare(
+      `
+    UPDATE provider_connections SET
+      test_status = 'active',
+      last_error = NULL,
+      last_error_at = NULL,
+      last_error_type = NULL,
+      last_error_source = NULL,
+      error_code = NULL,
+      rate_limited_until = NULL,
+      backoff_level = 0,
+      provider_specific_data = CASE
+        WHEN provider = 'codex' AND json_valid(provider_specific_data)
+          THEN json_remove(
+            provider_specific_data,
+            '$.codexScopeRateLimitedUntil',
+            '$.codexScopeRateLimitSource'
+          )
+        ELSE provider_specific_data
+      END,
+      updated_at = ?
+    WHERE id = ?
+      AND IFNULL(test_status, '') = ?
+      AND IFNULL(last_error_at, '') = ?
+      AND IFNULL(rate_limited_until, '') = ?
+    `
+    )
+    .run(
+      new Date().toISOString(),
+      id,
+      expected.testStatus ?? "",
+      expected.lastErrorAt ?? "",
+      expected.rateLimitedUntil ?? ""
+    );
+  const applied = (result.changes ?? 0) > 0;
+  if (applied) {
+    invalidateDbCache("connections");
+    bumpProxyConfigGeneration();
+  }
+  return applied;
 }
 
 // T13: Format a reset countdown as a human-readable string ("2h 35m" / "4m 30s").

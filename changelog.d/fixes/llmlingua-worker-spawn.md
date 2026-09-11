@@ -1,0 +1,1 @@
+- fix(compression): spawn the LLMLingua worker with a file URL object so compression actually runs instead of silently failing open on Node

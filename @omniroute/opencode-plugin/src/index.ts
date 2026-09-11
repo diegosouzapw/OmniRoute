@@ -220,7 +220,11 @@ const optionsSchema = z
      * to 60000. Default when unset: 300000.
      */
     autoSyncIntervalMs: z.number().int().nonnegative().optional(),
-    baseURL: z.string().url().optional(),
+    baseURL: z
+      .string()
+      .trim()
+      .refine(isHttpUrl, "baseURL must be an http(s) URL, for example http://localhost:20128")
+      .optional(),
     managementReadToken: z.string().min(1).optional(),
     features: featuresSchema.optional(),
   })
@@ -482,6 +486,22 @@ export const DEFAULT_ANTHROPIC_PREFIXES = ["cc", "claude", "anthropic", "kiro", 
  * (it appends `/v1/messages` automatically), so callers should branch on
  * format first.
  */
+/**
+ * A url the AI SDK can actually call. `new URL()` alone is not enough: it
+ * parses `localhost:20128` as the scheme `localhost:` and `ftp://host` as ftp,
+ * both of which reach `fetch` and fail there. Mirrors the `isHttpUrl` guard the
+ * settings schema applies to `headroomUrl`.
+ */
+export function isHttpUrl(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  try {
+    const { protocol } = new URL(value);
+    return protocol === "http:" || protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export function ensureV1Suffix(url: string): string {
   const trimmed = trimTrailingSlashes(url);
   return trimmed.endsWith("/v1") ? trimmed : `${trimmed}/v1`;

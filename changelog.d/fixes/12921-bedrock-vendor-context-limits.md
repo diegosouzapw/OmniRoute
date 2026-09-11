@@ -1,0 +1,1 @@
+- **fix(bedrock):** model import now resolves context limits for every vendor prefix instead of only `anthropic.*`, so `global.openai.gpt-5.6-*` no longer imports with a null `inputTokenLimit` and gets rejected pre-flight at the 200k default ([#12921](https://github.com/diegosouzapw/OmniRoute/pull/12921)).

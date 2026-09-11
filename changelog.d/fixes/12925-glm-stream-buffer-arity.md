@@ -1,0 +1,1 @@
+- **fix(stream):** the 64 KB stream buffer GLM asks for is honoured instead of dropped, and the type error it caused no longer fails the API Route Typecheck gate on every open PR ([#12925](https://github.com/diegosouzapw/OmniRoute/pull/12925))

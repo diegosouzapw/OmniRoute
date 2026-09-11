@@ -1,0 +1,1 @@
+- **fix(guardrails):** mask PII inside a `tool_result`'s nested content array, which the masker walked past while redacting its sibling block ([#12930](https://github.com/diegosouzapw/OmniRoute/pull/12930))
