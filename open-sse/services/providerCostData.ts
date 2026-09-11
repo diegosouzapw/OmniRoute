@@ -1,4 +1,5 @@
 import { getPricingForModel as getDefaultPricingForModel } from "@/shared/constants/pricing";
+import { isFreeModel } from "@/shared/utils/freeModels";
 import type { TierConfig } from "./tierTypes";
 
 export interface ModelPricing {
@@ -38,14 +39,16 @@ export const KNOWN_MODEL_PRICING: Record<string, ModelPricing> = {
 };
 
 export function getModelPricing(provider: string, model: string): ModelPricing {
-  const providerKey = `${provider}/${model}`.toLowerCase();
-  if (KNOWN_MODEL_PRICING[providerKey]) {
-    return KNOWN_MODEL_PRICING[providerKey];
-  }
-  const providerPricing = getDefaultPricingForModel(provider, model);
-  if (providerPricing) {
-    const inputCostPer1M = Number(providerPricing.input);
-    const outputCostPer1M = Number(providerPricing.output);
+  const normalized = String(model || "")
+    .split("/")
+    .pop()!
+    .toLowerCase();
+  const providerHit = KNOWN_MODEL_PRICING[`${provider}/${normalized}`.toLowerCase()];
+  if (providerHit) return providerHit;
+  const defaultPricing = getDefaultPricingForModel(provider, model);
+  if (defaultPricing) {
+    const inputCostPer1M = Number(defaultPricing.input);
+    const outputCostPer1M = Number(defaultPricing.output);
     if (Number.isFinite(inputCostPer1M) && Number.isFinite(outputCostPer1M)) {
       return {
         inputCostPer1M,
@@ -54,11 +57,16 @@ export function getModelPricing(provider: string, model: string): ModelPricing {
       };
     }
   }
-  const directKey = model.toLowerCase();
-  if (KNOWN_MODEL_PRICING[directKey]) {
-    return KNOWN_MODEL_PRICING[directKey];
-  }
+  const genericHit = KNOWN_MODEL_PRICING[normalized];
+  if (genericHit) return genericHit;
+  if (isFreeModel(provider, { id: normalized }))
+    return { inputCostPer1M: 0, outputCostPer1M: 0, isFree: true };
   return { inputCostPer1M: 5.0, outputCostPer1M: 15.0, isFree: false };
+}
+
+/** Input cost per 1M tokens a virtual auto-combo candidate is scored at. */
+export function resolveVirtualCost(providerId: string, modelId: string): number {
+  return getModelPricing(providerId, modelId).inputCostPer1M;
 }
 
 export function isExplicitlyFree(provider: string, config: TierConfig): boolean {

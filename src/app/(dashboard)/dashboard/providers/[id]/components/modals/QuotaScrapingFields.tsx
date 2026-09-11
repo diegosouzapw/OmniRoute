@@ -1,6 +1,7 @@
 "use client";
 
 import { Input } from "@/shared/components";
+import { getProviderConnectionFamilyIds } from "@/shared/constants/providers";
 import { providerText, type ProviderMessageTranslator } from "../../providerPageHelpers";
 
 import {
@@ -54,7 +55,7 @@ export default function QuotaScrapingFields({
     );
   }
 
-  if (provider === "alibaba" || provider === "alibaba-cn") {
+  if (getProviderConnectionFamilyIds("alibaba").includes(provider)) {
     return (
       <div className="flex flex-col gap-3 rounded-lg border border-border/50 bg-surface/20 p-4">
         <Input

@@ -21,22 +21,31 @@ function mirrorPath(relSource, locale) {
   return path.posix.join(DOCS_I18N, locale, relSource);
 }
 
-export function buildMirrorBar(relSource, locale, config) {
+/**
+ * `hasMirror(relSource, locale)` — optional existence predicate. A bar must not
+ * link to a mirror that is not on disk: `docs/guides/I18N.md` is deliberately
+ * English-only (see `DOCS_EXCLUDED_NAMES` in run-translation.mjs) yet carries
+ * legacy mirrors for the older locales, so every newly added locale would get a
+ * dead link. Omit it and every configured locale is listed, as before.
+ */
+export function buildMirrorBar(relSource, locale, config, { hasMirror } = {}) {
   const targetDir = path.posix.dirname(mirrorPath(relSource, locale));
   const parts = [`🇺🇸 [English](${path.posix.relative(targetDir, relSource)})`];
   for (const entry of config.locales) {
     if (entry.code === "en" || entry.code === locale) continue;
+    if (hasMirror && !hasMirror(relSource, entry.code)) continue;
     const peer = path.posix.relative(targetDir, mirrorPath(relSource, entry.code));
     parts.push(`${entry.flag} [${entry.code}](${peer})`);
   }
   return `🌐 **Languages:** ${parts.join(" · ")}`;
 }
 
-export function buildSourceBar(relSource, config) {
+export function buildSourceBar(relSource, config, { hasMirror } = {}) {
   const sourceDir = path.posix.dirname(relSource);
   const parts = [`🇺🇸 [English](./${path.posix.basename(relSource)})`];
   for (const entry of config.locales) {
     if (entry.code === "en") continue;
+    if (hasMirror && !hasMirror(relSource, entry.code)) continue;
     const peer = path.posix.relative(sourceDir, mirrorPath(relSource, entry.code));
     parts.push(`${entry.flag} [${entry.native ?? entry.name}](${peer})`);
   }

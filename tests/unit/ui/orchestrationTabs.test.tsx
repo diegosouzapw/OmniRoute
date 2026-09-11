@@ -212,6 +212,94 @@ describe("AgentsTab", () => {
     expect(onToggleCompleted).toHaveBeenCalledWith(true);
     cleanup();
   });
+
+  // Task B3.5 — an empty canvas under an ACTIVE filter is "your filter matched nothing",
+  // not "you have nothing configured": the setup CTAs would be wrong advice there.
+  const emptySnap = {
+    nodes: [{ id: "orchestrator", kind: "orchestrator", label: "OmniRoute" }],
+    edges: [],
+    sources: [],
+    generatedAt: "x",
+  };
+  const activeFilter = {
+    q: "login",
+    states: new Set<string>(),
+    sources: new Set<string>(),
+    providers: new Set<string>(),
+  };
+
+  it("no work node AND an active filter → noMatches + a clear-filters button, no setup CTAs", () => {
+    const onClearFilters = vi.fn();
+    const { c, cleanup } = render(
+      <AgentsTab
+        snapshot={emptySnap as never}
+        onNodeClick={() => {}}
+        showCompleted={false}
+        onToggleCompleted={() => {}}
+        filter={activeFilter as never}
+        onClearFilters={onClearFilters}
+      />
+    );
+    expect(c.textContent).toContain("noMatches");
+    expect(c.textContent).not.toContain("emptyTitle");
+    expect(c.textContent).not.toContain("emptyCloudAgentCta");
+    const clearButton = Array.from(c.querySelectorAll("button")).find(
+      (el) => el.textContent === "clearFilters"
+    ) as HTMLButtonElement;
+    expect(clearButton).toBeTruthy();
+    act(() => {
+      clearButton.click();
+    });
+    expect(onClearFilters).toHaveBeenCalledTimes(1);
+    cleanup();
+  });
+
+  it("no work node and an EMPTY filter still shows the configuration CTAs", () => {
+    const { c, cleanup } = render(
+      <AgentsTab
+        snapshot={emptySnap as never}
+        onNodeClick={() => {}}
+        showCompleted={false}
+        onToggleCompleted={() => {}}
+        filter={
+          {
+            q: "",
+            states: new Set(),
+            sources: new Set(),
+            providers: new Set(),
+          } as never
+        }
+        onClearFilters={() => {}}
+      />
+    );
+    expect(c.textContent).toContain("emptyTitle");
+    expect(c.textContent).toContain("emptyCloudAgentCta");
+    expect(c.textContent).not.toContain("noMatches");
+    cleanup();
+  });
+
+  it("an active filter that still matches work nodes renders the canvas, not the empty state", () => {
+    const withWork = {
+      ...emptySnap,
+      nodes: [
+        ...emptySnap.nodes,
+        { id: "a2a:1", kind: "work", source: "a2a", state: "running", label: "login flow" },
+      ],
+    };
+    const { c, cleanup } = render(
+      <AgentsTab
+        snapshot={withWork as never}
+        onNodeClick={() => {}}
+        showCompleted={false}
+        onToggleCompleted={() => {}}
+        filter={activeFilter as never}
+        onClearFilters={() => {}}
+      />
+    );
+    expect(c.querySelector('[data-testid="flow-canvas"]')).toBeTruthy();
+    expect(c.textContent).not.toContain("noMatches");
+    cleanup();
+  });
 });
 
 describe("OverviewTab", () => {

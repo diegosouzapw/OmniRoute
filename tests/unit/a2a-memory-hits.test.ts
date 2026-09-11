@@ -13,6 +13,7 @@ import assert from "node:assert/strict";
 import {
   collectMemoryHits,
   executeA2ATaskWithState,
+  MEMORY_RECALL_TIMEOUT_MS,
   type MemoryHit,
   type MemoryHitsDeps,
 } from "../../src/lib/a2a/taskExecution.ts";
@@ -328,4 +329,88 @@ test("executeA2ATaskWithState never leaks memoryHits into task.input.metadata or
   } finally {
     tm.destroy();
   }
+});
+
+/**
+ * Task C2 (Orchestration Canvas Fase 3, PR-C): the recall is best-effort, so it must also be
+ * BOUNDED. Without a deadline a slow memory backend (the HTTP `genericBackend` defaults to a
+ * 30s timeout) delays the start of every A2A task. The deadline is injectable through
+ * `MemoryHitsDeps.timeoutMs` so these tests cost milliseconds, not 1.5s of wall clock.
+ */
+test("MEMORY_RECALL_TIMEOUT_MS is the 1.5s default deadline", () => {
+  assert.equal(MEMORY_RECALL_TIMEOUT_MS, 1500);
+});
+
+test("collectMemoryHits returns [] when search never resolves (deadline hit)", async () => {
+  const deps: MemoryHitsDeps = {
+    search: () => new Promise(() => {}), // never settles
+    timeoutMs: 5,
+  };
+
+  const task = makeTask();
+  const started = Date.now();
+  const hits = await collectMemoryHits(task, deps);
+
+  assert.deepEqual(hits, []);
+  assert.ok(Date.now() - started < 1000, "gave up on the injected deadline, not the default");
+});
+
+test("collectMemoryHits returns the hits when search resolves inside the deadline", async () => {
+  const deps: MemoryHitsDeps = {
+    search: async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1));
+      return [{ id: "m1", key: "k1", type: "factual", content: "hello" }];
+    },
+    timeoutMs: 1000,
+  };
+
+  const hits = await collectMemoryHits(makeTask(), deps);
+
+  assert.deepEqual(hits, [{ id: "m1", key: "k1", type: "factual", snippet: "hello" }]);
+});
+
+test("collectMemoryHits leaves no pending timer behind on either path", async () => {
+  const countTimers = () => process.getActiveResourcesInfo().filter((r) => r === "Timeout").length;
+
+  const before = countTimers();
+
+  // Success path with a long deadline: the timer must be cleared, not left ticking.
+  await collectMemoryHits(makeTask(), {
+    search: async () => [{ id: "m1", key: "k1", type: "factual", content: "hello" }],
+    timeoutMs: 60_000,
+  });
+  assert.equal(countTimers(), before, "success path cleared its deadline timer");
+
+  // Timeout path: the timer has fired, so nothing may stay registered either.
+  await collectMemoryHits(makeTask(), {
+    search: () => new Promise(() => {}),
+    timeoutMs: 5,
+  });
+  assert.equal(countTimers(), before, "timeout path left no timer registered");
+});
+
+test("executeA2ATaskWithState completes the task normally when memory recall times out", async () => {
+  const deps: MemoryHitsDeps = {
+    search: () => new Promise(() => {}),
+    timeoutMs: 5,
+  };
+
+  let completedState: string | undefined;
+  const tm = {
+    updateTask: (_taskId: string, state: string) => {
+      completedState = state;
+    },
+  };
+
+  const task = makeTask();
+  const result = await executeA2ATaskWithState(
+    tm,
+    task,
+    async () => ({ artifacts: [{ type: "text", content: "ok" }], metadata: {} }),
+    deps
+  );
+
+  assert.equal(completedState, "completed");
+  assert.deepEqual(result.artifacts, [{ type: "text", content: "ok" }]);
+  assert.equal("memoryHits" in task.metadata, false);
 });

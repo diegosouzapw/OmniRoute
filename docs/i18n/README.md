@@ -1,6 +1,6 @@
 # 🌐 Multilingual Documentation — OmniRoute
 
-Translations of documentation into 41 languages; together with the English source, the UI supports 42 locales. Code blocks remain in English.
+Translations of documentation into 50 languages; together with the English source, the UI supports 51 locales. Code blocks remain in English.
 
 ---
 
@@ -11,20 +11,27 @@ Translations of documentation into 41 languages; together with the English sourc
 - 🇨🇿 **Čeština** (`cs`): [Docs Root](./cs/README.md)
 - 🇩🇰 **Dansk** (`da`): [Docs Root](./da/README.md)
 - 🇩🇪 **Deutsch** (`de`): [Docs Root](./de/README.md)
+- 🇬🇷 **Ελληνικά** (`el`): [Docs Root](./el/README.md)
 - 🇪🇸 **Español** (`es`): [Docs Root](./es/README.md)
+- 🇪🇪 **Eesti** (`et`): [Docs Root](./et/README.md)
 - 🇮🇷 **فارسی** (`fa`): [Docs Root](./fa/README.md)
 - 🇫🇮 **Suomi** (`fi`): [Docs Root](./fi/README.md)
 - 🇫🇷 **Français** (`fr`): [Docs Root](./fr/README.md)
+- 🇮🇪 **Gaeilge** (`ga`): [Docs Root](./ga/README.md)
 - 🇮🇳 **ગુજરાતી** (`gu`): [Docs Root](./gu/README.md)
 - 🇮🇱 **עברית** (`he`): [Docs Root](./he/README.md)
 - 🇮🇳 **हिन्दी** (`hi`): [Docs Root](./hi/README.md)
+- 🇭🇷 **Hrvatski** (`hr`): [Docs Root](./hr/README.md)
 - 🇭🇺 **Magyar** (`hu`): [Docs Root](./hu/README.md)
 - 🇮🇩 **Bahasa Indonesia** (`id`): [Docs Root](./id/README.md)
 - 🇮🇹 **Italiano** (`it`): [Docs Root](./it/README.md)
 - 🇯🇵 **日本語** (`ja`): [Docs Root](./ja/README.md)
 - 🇰🇷 **한국어** (`ko`): [Docs Root](./ko/README.md)
+- 🇱🇹 **Lietuvių** (`lt`): [Docs Root](./lt/README.md)
+- 🇱🇻 **Latviešu** (`lv`): [Docs Root](./lv/README.md)
 - 🇮🇳 **मराठी** (`mr`): [Docs Root](./mr/README.md)
 - 🇲🇾 **Bahasa Melayu** (`ms`): [Docs Root](./ms/README.md)
+- 🇲🇹 **Malti** (`mt`): [Docs Root](./mt/README.md)
 - 🇳🇱 **Nederlands** (`nl`): [Docs Root](./nl/README.md)
 - 🇳🇴 **Norsk** (`no`): [Docs Root](./no/README.md)
 - 🇵🇭 **Filipino** (`phi`): [Docs Root](./phi/README.md)
@@ -34,6 +41,8 @@ Translations of documentation into 41 languages; together with the English sourc
 - 🇷🇴 **Română** (`ro`): [Docs Root](./ro/README.md)
 - 🇷🇺 **Русский** (`ru`): [Docs Root](./ru/README.md)
 - 🇸🇰 **Slovenčina** (`sk`): [Docs Root](./sk/README.md)
+- 🇸🇮 **Slovenščina** (`sl`): [Docs Root](./sl/README.md)
+- 🇷🇸 **Српски** (`sr`): [Docs Root](./sr/README.md)
 - 🇸🇪 **Svenska** (`sv`): [Docs Root](./sv/README.md)
 - 🇰🇪 **Kiswahili** (`sw`): [Docs Root](./sw/README.md)
 - 🇮🇳 **தமிழ்** (`ta`): [Docs Root](./ta/README.md)

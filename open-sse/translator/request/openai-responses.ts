@@ -227,7 +227,7 @@ export function openaiResponsesToOpenAIRequest(
     const itemType = toString(item.type) || (item.role ? "message" : "");
 
     if (itemType === "message") {
-      const role = toString(item.role);
+      const role = toString(item.role) === "agent_message" ? "assistant" : toString(item.role);
 
       if (role !== "assistant") {
         if (currentAssistantMsg) {
@@ -481,6 +481,13 @@ export function openaiResponsesToOpenAIRequest(
 
     if (itemType === "additional_tools") {
       // Already consumed by collectResponsesTools() before message conversion.
+      continue;
+    }
+
+    // Defense in depth for Responses/subagent fallback: agent_message is
+    // Responses-only. Normalization should already have rewritten or dropped it;
+    // never throw a 5xx-looking unsupported-feature error if a shape slips through.
+    if (itemType === "agent_message" || toString(item.role) === "agent_message") {
       continue;
     }
 
@@ -773,7 +780,10 @@ export function openaiResponsesToOpenAIRequest(
   // ("When using tool_choice, tools must be set"). Contradictory choices like "required"
   // or forced functions are preserved so the upstream error remains visible.
   const finalChatTools = Array.isArray(result.tools) ? result.tools : [];
-  if (finalChatTools.length === 0 && (result.tool_choice === "auto" || result.tool_choice === "none")) {
+  if (
+    finalChatTools.length === 0 &&
+    (result.tool_choice === "auto" || result.tool_choice === "none")
+  ) {
     delete result.tool_choice;
   }
 

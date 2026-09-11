@@ -1,0 +1,1 @@
+- **fix(dashboard):** the Radar catalog table no longer leaves absent data unexplained — empty limits, unknown context windows, and unreported capabilities each explain themselves on hover, and a new check keeps it that way ([#12937](https://github.com/diegosouzapw/OmniRoute/pull/12937)) — thanks @maxmad64bis

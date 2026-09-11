@@ -1,0 +1,1 @@
+- **fix(gamification):** close the badge notification SSE stream when the request signal is already aborted before the stream starts — a client that disconnects while the route is still awaiting auth used to leave both the 2s unlock poll and the 15s heartbeat running for the lifetime of the process.

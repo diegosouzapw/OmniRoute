@@ -1623,6 +1623,7 @@ These settings were introduced after the previous environment-contract snapshot.
 | `ADOBE_FIREFLY_CHROME_HEADLESS` | `0` | `open-sse/services/adobeFireflyBrowserLogin.ts` | Debug-only true-headless mode; Adobe colligo normally rejects the resulting risk session. |
 | `CHROME_PATH` | auto-detect | `open-sse/executors/cloudflare-playground.ts`, `open-sse/executors/chatgpt-web-codex.ts` | Optional absolute Chrome executable used by the browser-driven executors when platform auto-detection is insufficient. |
 | `TELEGRAM_BOT_TOKEN` | _(unset)_ | `src/lib/telegram/config.ts` | BotFather token that enables the inbound webhook and signs Mini App `initData`. |
+| `TELEGRAM_WEBHOOK_SECRET` | _(unset)_ | `src/lib/telegram/config.ts` | Shared secret registered via `setWebhook` and verified against the `X-Telegram-Bot-Api-Secret-Token` header on every webhook delivery. Required for the webhook path; unset means webhook deliveries are refused with 503. |
 | `TELEGRAM_DEFAULT_MODEL` | `auto/chat` | `src/lib/telegram/chatProxy.ts` | Model used for Telegram chat replies. |
 | `TELEGRAM_BOT_API_BASE` | `https://api.telegram.org` | `src/lib/telegram/config.ts` | Bot API base URL override for proxies or self-hosted Bot API servers. |
 | `TELEGRAM_WEBHOOK_TIMEOUT_MS` | `60000` | `src/lib/telegram/config.ts` | Timeout in milliseconds for outbound Bot API calls. |

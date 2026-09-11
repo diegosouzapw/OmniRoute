@@ -29,6 +29,38 @@ describe("parsePluginOptions", () => {
   it("requires baseURL", () => {
     assert.throws(() => parsePluginOptions({}), /baseURL/);
   });
+  it("rejects a baseURL that is not an http(s) URL", () => {
+    // `new URL()` reads "localhost:20128" as the scheme "localhost:" followed
+    // by a path, so a gateway address typed without "http://" parses. Every
+    // model would then be published with "localhost:20128/v1" as its api url
+    // and every call would fail in the client on an unknown scheme, with no
+    // request on the wire and nothing in the gateway logs.
+    for (const baseURL of [
+      "localhost:20128",
+      "localhost:20128/v1",
+      "ftp://gw.example.com/v1",
+      "gw.example.com/v1",
+    ]) {
+      assert.throws(
+        () => parsePluginOptions({ baseURL }),
+        /baseURL must be an http\(s\) URL/,
+        `expected ${baseURL} to be rejected`
+      );
+    }
+  });
+  it("accepts http and https baseURLs, with or without a port or path", () => {
+    for (const baseURL of [
+      "http://localhost:20128/v1",
+      "http://localhost:20128",
+      "https://gw.example.com/v1",
+      "https://gw.example.com/omniroute/v1",
+    ]) {
+      assert.equal(parsePluginOptions({ baseURL }).baseURL, baseURL);
+      // Padding a copied address is trimmed rather than rejected, matching the
+      // treatment `headroomUrl` already gets in the settings schema.
+      assert.equal(parsePluginOptions({ baseURL: `  ${baseURL}  ` }).baseURL, baseURL);
+    }
+  });
   it("rejects unknown top-level keys (strict)", () => {
     assert.throws(() => parsePluginOptions({ baseURL: "https://gw.example.com", bogus: 1 }));
   });

@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { StatusDot } from "@/shared/components/flow/StatusDot";
 import { orchStateColor, type OrchNode, type OrchState } from "../model/orchestrationTypes";
 import { useDrawerDetail } from "./useDrawerDetail";
-import type { DrawerError } from "./useDrawerDetail";
+import type { DrawerError, RepeatOutcome } from "./useDrawerDetail";
 import type { CloudAgentTask } from "@/lib/cloudAgent/types";
 import type { A2ATask } from "@/lib/a2a/taskManager";
 
@@ -349,15 +349,18 @@ function RepeatButton({
 }: {
   canRepeat: boolean;
   busy: boolean;
-  repeat: () => Promise<boolean>;
-  onActionDone: () => void;
+  repeat: () => Promise<RepeatOutcome>;
+  onActionDone: (newNodeId?: string) => void;
   onToast: (text: string) => void;
   t: Translate;
 }) {
   const { confirming, onClick } = useTwoClickConfirm(() => {
     void (async () => {
-      if (await repeat()) {
-        onActionDone();
+      // The created task's CANVAS id is handed to `onActionDone` so the page can focus it —
+      // `undefined` when the creation response carried no usable id (plain refetch, no jump).
+      const { ok, newNodeId } = await repeat();
+      if (ok) {
+        onActionDone(newNodeId ?? undefined);
         onToast(t("repeatDone"));
       }
     })();
@@ -395,8 +398,8 @@ function DrawerActions({
   busy: boolean;
   approve: () => Promise<boolean>;
   cancel: () => Promise<boolean>;
-  repeat: () => Promise<boolean>;
-  onActionDone: () => void;
+  repeat: () => Promise<RepeatOutcome>;
+  onActionDone: (newNodeId?: string) => void;
   onToast: (text: string) => void;
   t: Translate;
 }) {
@@ -488,7 +491,7 @@ export function OrchestrationDrawer({
 }: {
   node: OrchNode | null;
   onClose: () => void;
-  onActionDone: () => void;
+  onActionDone: (newNodeId?: string) => void;
 }) {
   const t = useTranslations("orchestration");
   const {

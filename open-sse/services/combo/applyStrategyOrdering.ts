@@ -157,7 +157,7 @@ export async function applyStrategyOrdering(
     orderedTargets = await sortTargetsByCost(orderedTargets);
     if (config.manifestRouting === true) {
       try {
-        const manifestHint = generateRoutingHints(
+        const manifestHint = await generateRoutingHints(
           orderedTargets.filter((t) => t.kind === "model"),
           {
             messages: Array.isArray(body?.messages)

@@ -1,0 +1,1 @@
+- fix(compression): terminate idle worker threads on eviction so long-running instances stop leaking OS threads and MessagePorts

@@ -20,6 +20,8 @@ const {
   getCredentialHealthSummary,
   __test_resetCredentialHealthCache,
   __test_putCredentialHealth,
+  CREDENTIAL_HEALTH_FAILED_LIST_CAP,
+  sanitizeCredentialHealthLastError,
 } = await import("../../src/lib/credentialHealth/cache.ts");
 
 const { GET, __test_resetMonitoringHealthPayloadCache } =
@@ -85,6 +87,9 @@ test("GET /api/monitoring/health returns the stale cached summary immediately", 
       failed: number;
       unknown: number;
       stale: number;
+      source?: string;
+      staleDbNonOkCount?: number;
+      failedConnections?: Array<{ connectionId: string; status: string }>;
     };
   };
 
@@ -95,8 +100,73 @@ test("GET /api/monitoring/health returns the stale cached summary immediately", 
     failed: 1,
     unknown: 0,
     stale: 1,
+    failedConnections: [{ connectionId: "conn-stale-get", status: "error" }],
+    source: "probe-cache",
+    staleDbNonOkCount: 0,
   });
   assert.ok(elapsedMs < 2000, `stale summary must return immediately, took ${elapsedMs}ms`);
+});
+
+test("getCachedCredentialHealthSummary lists failed connection ids when failed>0", () => {
+  __test_resetCredentialHealthCache();
+  __test_putCredentialHealth({
+    connectionId: "conn-ok",
+    provider: "openai",
+    status: "active",
+    lastTested: new Date(),
+  });
+  __test_putCredentialHealth({
+    connectionId: "conn-bad",
+    provider: "anthropic",
+    status: "error",
+    lastTested: new Date(),
+    lastError: "Invalid API key sk-abcdefghijklmnopqrstuvwxyz012345",
+    lastErrorType: "auth",
+  });
+
+  const summary = getCachedCredentialHealthSummary();
+  assert.equal(summary.failed, 1);
+  assert.deepEqual(summary.failedConnections, [
+    {
+      connectionId: "conn-bad",
+      status: "error",
+      lastError: "Invalid API key sk-[REDACTED]",
+      lastErrorType: "auth",
+    },
+  ]);
+  assert.equal(summary.failedOmitted, undefined);
+});
+
+test("getCachedCredentialHealthSummary caps the failed connection list", () => {
+  __test_resetCredentialHealthCache();
+  const overflow = 8;
+  for (let i = 0; i < CREDENTIAL_HEALTH_FAILED_LIST_CAP + overflow; i += 1) {
+    __test_putCredentialHealth({
+      connectionId: `conn-fail-${i}`,
+      provider: "openai",
+      status: "error",
+      lastTested: new Date(Date.now() + i),
+      lastError: `probe failed ${i}`,
+    });
+  }
+
+  const summary = getCachedCredentialHealthSummary();
+  assert.equal(summary.failed, CREDENTIAL_HEALTH_FAILED_LIST_CAP + overflow);
+  assert.equal(summary.failedConnections?.length, CREDENTIAL_HEALTH_FAILED_LIST_CAP);
+  assert.equal(summary.failedOmitted, overflow);
+  assert.equal(
+    summary.failedConnections?.[0]?.connectionId,
+    `conn-fail-${CREDENTIAL_HEALTH_FAILED_LIST_CAP + overflow - 1}`
+  );
+});
+
+test("sanitizeCredentialHealthLastError redacts secrets and truncates", () => {
+  assert.equal(sanitizeCredentialHealthLastError("Bearer abcdefghijklmnopqr"), "Bearer [REDACTED]");
+  const long = "x".repeat(400);
+  const sanitized = sanitizeCredentialHealthLastError(long);
+  assert.ok(sanitized);
+  assert.ok(sanitized.length <= 203);
+  assert.ok(sanitized.endsWith("..."));
 });
 
 test("monitoring health route never imports live credential probes", () => {

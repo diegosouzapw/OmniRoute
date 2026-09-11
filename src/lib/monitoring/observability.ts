@@ -220,6 +220,7 @@ interface BuildHealthPayloadOptions {
     id?: string;
     provider?: string;
     isActive?: boolean | null;
+    testStatus?: string | null;
     rateLimitedUntil?: unknown;
     providerSpecificData?: Readonly<Record<string, unknown>> | null;
   }>;
@@ -239,6 +240,13 @@ interface BuildHealthPayloadOptions {
     failed: number;
     unknown: number;
     stale: number;
+    failedConnections?: Array<{
+      connectionId: string;
+      status: "error";
+      lastError?: string;
+      lastErrorType?: string;
+    }>;
+    failedOmitted?: number;
   };
   /** Optional injected public adaptive-admission snapshot; projected, never raw-spread. */
   adaptiveAdmission?: AdaptiveAdmissionPublicSnapshot | null;
@@ -250,6 +258,48 @@ interface BuildHealthPayloadOptions {
 
 function limitMonitors(monitors: QuotaMonitorSnapshot[], maxItems = 8): QuotaMonitorSnapshot[] {
   return monitors.slice(0, maxItems);
+}
+
+/**
+ * SQLite `test_status` values that stay sticky on active rows even when the
+ * in-memory probe-cache gauge reports failed=0 (expired / quota / banned).
+ */
+const STICKY_DB_NON_OK_TEST_STATUS = new Set([
+  "error",
+  "expired",
+  "credits_exhausted",
+  "banned",
+  "deactivated",
+  "unavailable",
+]);
+
+/**
+ * Count is_active=1 (or unset) rows whose persisted test_status is a known
+ * non-ok. This is a cheap SQLite-layer signal and is not the probe-cache
+ * `failed` gauge.
+ */
+export function countStaleDbNonOkConnections(
+  connections: BuildHealthPayloadOptions["connections"]
+): number {
+  let count = 0;
+  for (const connection of connections) {
+    if (connection.isActive === false) continue;
+    const status = (connection.testStatus ?? "").trim().toLowerCase();
+    if (STICKY_DB_NON_OK_TEST_STATUS.has(status)) count += 1;
+  }
+  return count;
+}
+
+function projectCredentialHealth(
+  credentialHealth: BuildHealthPayloadOptions["credentialHealth"],
+  connections: BuildHealthPayloadOptions["connections"]
+) {
+  if (!credentialHealth) return undefined;
+  return {
+    ...credentialHealth,
+    source: "probe-cache" as const,
+    staleDbNonOkCount: countStaleDbNonOkConnections(connections),
+  };
 }
 
 export function buildSessionsSummary({
@@ -535,7 +585,7 @@ export function buildHealthPayload({
       monitors: limitMonitors(quotaMonitorMonitors),
     },
     sessions: buildSessionsSummary({ activeSessions, activeSessionsByKey }),
-    credentialHealth, // may be undefined if credentialHealth module not loaded
+    credentialHealth: projectCredentialHealth(credentialHealth, connections),
     adaptiveAdmission: projectAdaptiveAdmissionSummary(adaptiveAdmission),
     // #11244: the STRUCTURAL gate (chatBodyAdmission.ts) next to the adaptive one —
     // distinct key so clients reading `adaptiveAdmission` are untouched.

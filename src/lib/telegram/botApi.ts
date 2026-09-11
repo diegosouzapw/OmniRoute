@@ -5,7 +5,12 @@
  * replies and setWebhook for webhook registration. Streaming is emulated
  * by the caller via progressive edits (sendMessage / editMessageText).
  */
-import { getTelegramBotApiBase, getTelegramBotToken, getTelegramWebhookTimeoutMs } from "./config";
+import {
+  getTelegramBotApiBase,
+  getTelegramBotToken,
+  getTelegramWebhookTimeoutMs,
+  getTelegramWebhookSecret,
+} from "./config";
 
 export interface TelegramSendMessageParams {
   chat_id: number | string;
@@ -92,7 +97,15 @@ export async function setTelegramWebhook(
   opts: { dropPending?: boolean } = {}
 ): Promise<{ url: string; pending_update_count?: number }> {
   if (url) {
-    return botFetch("setWebhook", { url, drop_pending_updates: opts.dropPending ?? true });
+    // Register the shared secret so Telegram echoes it back as
+    // X-Telegram-Bot-Api-Secret-Token on every delivery; the webhook route
+    // rejects deliveries that do not carry it (#13172).
+    const secret = getTelegramWebhookSecret();
+    return botFetch("setWebhook", {
+      url,
+      drop_pending_updates: opts.dropPending ?? true,
+      ...(secret ? { secret_token: secret } : {}),
+    });
   }
   return botFetch("deleteWebhook", { drop_pending_updates: opts.dropPending ?? true });
 }
