@@ -1,0 +1,130 @@
+{
+  "language": "hu",
+  "category": "ultra",
+  "rules": [
+    {
+      "name": "ultra_database_abbreviation",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:a|az)?\\s*adatbázis(?![\\p{L}\\p{N}_])",
+      "flags": "giu",
+      "replacement": "DB",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "Abbreviate adatbázis to the common technical DB form."
+    },
+    {
+      "name": "ultra_config_abbreviation",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:a|az)?\\s*konfiguráció(?![\\p{L}\\p{N}_])",
+      "flags": "giu",
+      "replacement": "config",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "Abbreviate konfiguráció to config."
+    },
+    {
+      "name": "ultra_function_abbreviation",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:a|az)?\\s*függvény(?![\\p{L}\\p{N}_])",
+      "flags": "giu",
+      "replacement": "fn",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "Abbreviate függvény to fn."
+    },
+    {
+      "name": "ultra_request_abbreviation",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:a|az)?\\s*kérés(?![\\p{L}\\p{N}_])",
+      "flags": "giu",
+      "replacement": "req",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "Abbreviate technical request references to req."
+    },
+    {
+      "name": "ultra_response_abbreviation",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:a|az)?\\s*válasz(?![\\p{L}\\p{N}_])",
+      "flags": "giu",
+      "replacement": "res",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "Abbreviate technical response references to res."
+    },
+    {
+      "name": "ultra_implementation_abbreviation",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:a|az)?\\s*megvalósítás(?![\\p{L}\\p{N}_])",
+      "flags": "giu",
+      "replacement": "impl",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "Abbreviate megvalósítás to impl."
+    },
+    {
+      "name": "ultra_authentication_abbreviation",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:a|az)?\\s*hitelesítés(?![\\p{L}\\p{N}_])",
+      "flags": "giu",
+      "replacement": "auth",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "Abbreviate hitelesítés to auth."
+    },
+    {
+      "name": "ultra_authorization_abbreviation",
+      "pattern": "(?<![\\p{L}\\p{N}_])jogosultság-ellenőrzés(?![\\p{L}\\p{N}_])",
+      "flags": "giu",
+      "replacement": "authz",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "Abbreviate explicit authorization-check terminology to authz."
+    },
+    {
+      "name": "ultra_application_abbreviation",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:a|az)?\\s*alkalmazás(?![\\p{L}\\p{N}_])",
+      "flags": "giu",
+      "replacement": "app",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "Abbreviate technical application references to app."
+    },
+    {
+      "name": "ultra_dependency_abbreviation",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:a|az)?\\s*(?:függőség|függőségek)(?![\\p{L}\\p{N}_])",
+      "flags": "giu",
+      "replacement": "dep",
+      "replacementMap": {
+        "függőség": "dep",
+        "függőségek": "deps"
+      },
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "Abbreviate dependency/dependencies to dep/deps."
+    },
+    {
+      "name": "ultra_development_environment_abbreviation",
+      "pattern": "(?<![\\p{L}\\p{N}_])fejlesztői környezet(?![\\p{L}\\p{N}_])",
+      "flags": "giu",
+      "replacement": "dev env",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "Shorten the common technical phrase fejlesztői környezet."
+    },
+    {
+      "name": "ultra_parameter_abbreviation",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:a|az)?\\s*paraméter(?![\\p{L}\\p{N}_])",
+      "flags": "giu",
+      "replacement": "param",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra",
+      "description": "Abbreviate paraméter to param."
+    }
+  ]
+}

@@ -39,6 +39,11 @@ export const CAVEMAN_INSTRUCTION_BY_LANGUAGE = {
     full: `Responda seco e compacto. Frases curtas OK. Preserve todo conteudo tecnico, codigo, erros, URLs e identificadores exatamente. ${SHARED_BOUNDARIES}`,
     ultra: `Responda ultra compacto. Use prosa tecnica curta e abreviacoes comuns como DB/auth/config/req/res/fn. Nunca abrevie simbolos de codigo, APIs, erros, URLs ou identificadores. ${SHARED_BOUNDARIES}`,
   },
+  hu: {
+    lite: `Válaszolj tömören. Hagyd el a tölteléket, udvariaskodást és bizonytalanságot. Tartsd meg a teljes mondatokat, technikai kifejezéseket, kódot, hibákat, URL-eket és azonosítókat pontosan. ${SHARED_BOUNDARIES}`,
+    full: `Válaszolj tömören, mint egy okos barlanglakó. Hagyd el a tölteléket, udvariaskodást és körülírást. Rövid mondatok és töredékek rendben. Tartsd meg minden technikai tartalmat, kódot, hibát, URL-t és azonosítót pontosan. ${SHARED_BOUNDARIES}`,
+    ultra: `Válaszolj ultra tömören. Maximális tömörítés, távirati stílus. Használj gyakori rövidítéseket (DB/auth/config/req/res/fn/impl), és hagyd el a felesleges kötőszavakat. Soha ne rövidíts kódszimbólumokat, API-neveket, hibaüzeneteket, URL-eket vagy azonosítókat. ${SHARED_BOUNDARIES}`,
+  },
   es: {
     lite: `Responde conciso. Quita relleno, cortesias y dudas. Conserva terminos tecnicos, codigo, errores, URLs e identificadores exactos. ${SHARED_BOUNDARIES}`,
     full: `Responde seco y compacto. Fragmentos OK. Conserva todo el contenido tecnico, codigo, errores, URLs e identificadores exactos. ${SHARED_BOUNDARIES}`,
