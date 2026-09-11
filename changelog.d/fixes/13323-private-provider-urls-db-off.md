@@ -1,0 +1,1 @@
+- **fix(providers):** Switching "Allow Private Provider URLs" off in the dashboard now takes effect when `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` is set in the environment ([#13323](https://github.com/diegosouzapw/OmniRoute/pull/13323))
