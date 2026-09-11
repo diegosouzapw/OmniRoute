@@ -31,7 +31,13 @@ test("weighted: 70/30 weights produce roughly proportional distribution", async 
     config: { maxRetries: 0, retryDelayMs: 0, stickyWeightedLimit: 1 },
     models: [
       { id: "w-openai", kind: "model", providerId: "openai", model: "gpt-4o-mini", weight: 70 },
-      { id: "w-claude", kind: "model", providerId: "claude", model: "claude-3-5-sonnet-20241022", weight: 30 },
+      {
+        id: "w-claude",
+        kind: "model",
+        providerId: "claude",
+        model: "claude-sonnet-4-6",
+        weight: 30,
+      },
     ],
   });
   h.installRecordingFetch();
