@@ -86,7 +86,8 @@ const OPENCODE_FREE_MODELS = new Set([
  *   thinking-mode mapping):
  *   grok-4.5 low/medium/high; hy3 none/low/high; kimi-k3 max;
  *   qwen3.6-plus / qwen3.7-max / qwen3.7-plus high/max;
- *   muse-spark-1.2-contributor minimal/low/medium/high/xhigh (no max)
+ *   muse-spark-1.2-contributor and muse-spark-1.3-contributor
+ *   minimal/low/medium/high/xhigh (no max)
  */
 const EFFORT_TIERS: Record<string, readonly string[]> = {
   "deepseek-v4-pro": EFFORT_LEVELS,
@@ -100,6 +101,7 @@ const EFFORT_TIERS: Record<string, readonly string[]> = {
   "qwen3.7-max": ["high", "max"],
   "qwen3.7-plus": ["high", "max"],
   "muse-spark-1.2-contributor": ["minimal", "low", "medium", "high", "xhigh"],
+  "muse-spark-1.3-contributor": ["minimal", "low", "medium", "high", "xhigh"],
 };
 
 /**
