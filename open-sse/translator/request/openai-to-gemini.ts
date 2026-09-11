@@ -816,7 +816,7 @@ export function openaiToAntigravityRequest(model, body, stream, credentials = nu
   const hasThinking = !!envelope.request?.generationConfig?.thinkingConfig?.thinkingBudget;
   if (
     clientRequestedMaxTokens === undefined &&
-    !hasThinking &&
+    !(isClaude && hasThinking) &&
     envelope.request?.generationConfig
   ) {
     delete envelope.request.generationConfig.maxOutputTokens;
