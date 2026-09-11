@@ -26,6 +26,7 @@ import {
   buildSsePassthroughResult,
   type SsePassthroughResult,
 } from "./streamingPassthrough.ts";
+import { ensureStreamReadiness } from "../../utils/streamReadiness.ts";
 import type { AntigravityCredentials } from "../antigravity.ts";
 
 const LONG_RETRY_THRESHOLD_MS = 60_000;
@@ -86,7 +87,7 @@ export function markCreditsExhausted(accountId: string): void {
   creditsExhaustedUntil.set(accountId, Date.now() + CREDITS_EXHAUSTED_TTL_MS);
 }
 
-class AntigravityPreResponseTimeoutError extends Error {
+export class AntigravityPreResponseTimeoutError extends Error {
   code = ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE;
   status = HTTP_STATUS.GATEWAY_TIMEOUT;
 
@@ -561,6 +562,32 @@ async function buildUpstreamErrorResult(
  * had an artificial timeout (now the standard FETCH_BODY_TIMEOUT_MS
  * of 10 min applies).
  */
+export async function peekFirstAntigravitySseEvent(
+  response: Response,
+  url: string,
+  timeoutMs: number = STREAM_READINESS_TIMEOUT_MS,
+  signal?: AbortSignal | null
+): Promise<Response> {
+  if (!response.body || !response.ok) {
+    return response;
+  }
+
+  if (signal?.aborted) {
+    response.body.cancel().catch(() => {});
+    throw signal.reason;
+  }
+
+  const readiness = await ensureStreamReadiness(response, {
+    timeoutMs,
+    provider: "antigravity",
+  });
+
+  if (!readiness.ok) {
+    throw new AntigravityPreResponseTimeoutError(timeoutMs, url);
+  }
+
+  return readiness.response;
+}
 async function buildNonStreamingExecuteOnceResult(
   response: Response,
   url: string,
@@ -679,11 +706,19 @@ export async function buildFinalAntigravityResult(
   transformedBody: Record<string, unknown>,
   accountId: string,
   signal: AbortSignal | null | undefined,
-  onCreditsUpdate: OnAntigravityCreditsUpdate
+  onCreditsUpdate: OnAntigravityCreditsUpdate,
+  readinessTimeoutMs: number = STREAM_READINESS_TIMEOUT_MS
 ): Promise<SsePassthroughResult> {
+  const peekedResponse = await peekFirstAntigravitySseEvent(
+    response,
+    url,
+    readinessTimeoutMs,
+    signal
+  );
+
   if (!stream) {
     return buildNonStreamingExecuteOnceResult(
-      response,
+      peekedResponse,
       url,
       finalHeaders,
       transformedBody,
@@ -693,7 +728,7 @@ export async function buildFinalAntigravityResult(
     );
   }
   return buildStreamingExecuteOnceResult(
-    response,
+    peekedResponse,
     url,
     finalHeaders,
     transformedBody,
