@@ -408,7 +408,12 @@ function searchHintEnabled(): boolean {
 }
 
 export function buildQuery(parsed: ParsedMessages, followUpUuid: string | null): string {
-  if (followUpUuid) return parsed.currentMsg;
+  if (followUpUuid) {
+    const sys = parsed.systemMsg.trim();
+    const hint = searchHintEnabled() ? `\n\n${SEARCH_HINT}` : "";
+    const contract = sys ? `${sys}${hint}` : "";
+    return contract ? `${contract}\n\n${parsed.currentMsg}` : parsed.currentMsg;
+  }
 
   const obj: Record<string, unknown> = {};
   if (parsed.systemMsg.trim()) {
