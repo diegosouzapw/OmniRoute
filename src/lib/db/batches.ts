@@ -1,5 +1,5 @@
 import { getDbInstance, rowToCamel, objToSnake } from "./core";
-import { deleteFile } from "./files";
+import { deleteFile, deleteFileOwnedBy } from "./files";
 import { v4 as uuidv4 } from "uuid";
 import { logger } from "../../../open-sse/utils/logger.ts";
 
@@ -421,6 +421,9 @@ export function deleteBatch(id: string): boolean {
  */
 export type DeleteCompletedBatchesScope = { apiKeyId: string } | { allTenants: true };
 
+/** Instance-wide sweeps commit in chunks of this many batches (SEC-D). */
+export const INSTANCE_SWEEP_CHUNK = 200;
+
 /**
  * Delete completed batches and the files they reference.
  *
@@ -439,9 +442,30 @@ export type DeleteCompletedBatchesScope = { apiKeyId: string } | { allTenants: t
  * sweep must never reach records the key does not own, so unowned batches are
  * only swept by `{ allTenants: true }`.
  *
- * The file soft-deletes, the checkpoint DELETE and the batches DELETE run in one
- * transaction, so a mid-sweep failure rolls everything back — no batch row is
- * left pointing at a file whose content was already nulled.
+ * In key mode the file half is owner-scoped too: only files whose api_key_id is
+ * the caller's are soft-deleted; a referenced file another tenant owns (or an
+ * unowned one) is left intact and is not counted in deletedFiles.
+ *
+ * The file soft-deletes, the checkpoint DELETE and the batches DELETE for a set
+ * of batch ids run in one transaction, so a mid-sweep failure rolls that set back
+ * — within a chunk, no batch row is left pointing at a file whose content was
+ * already nulled. Both modes walk the key's/instance's completed batches in
+ * chunks of `INSTANCE_SWEEP_CHUNK` ids and run that unit once per chunk.
+ * Key mode wraps the whole chunk loop in ONE outer transaction (a nested
+ * transaction call is a savepoint on every adapter), so the key sweep stays
+ * all-or-nothing: a failure in any chunk rolls every earlier chunk back too.
+ * Instance mode (`allTenants`) commits per chunk (SEC-D): a large sweep never
+ * holds one write lock over the whole table, each chunk stays atomic, and a
+ * failure inside chunk N leaves chunks < N committed, chunk N fully rolled
+ * back, and rethrows. Inherent to per-chunk commits: a file shared by batches
+ * in two different chunks can be nulled by chunk 1 before chunk 2 fails; the
+ * surviving batch row is swept by the next run. The returned totals sum the
+ * chunks.
+ *
+ * The ids of a unit are bound as `IN (?, …)` placeholders. No statement ever
+ * binds more than `INSTANCE_SWEEP_CHUNK` ids in either mode, so a tenant with
+ * tens of thousands of completed batches never hits SQLite's default
+ * SQLITE_MAX_VARIABLE_NUMBER (32766 since 3.32).
  */
 export function deleteCompletedBatches(scope: DeleteCompletedBatchesScope): {
   deletedBatches: number;
@@ -450,7 +474,7 @@ export function deleteCompletedBatches(scope: DeleteCompletedBatchesScope): {
   const scopeObj = scope && typeof scope === "object" ? scope : {};
   const allTenants = "allTenants" in scopeObj && scopeObj.allTenants === true;
   const apiKeyId = "apiKeyId" in scopeObj ? scopeObj.apiKeyId : undefined;
-  if (!allTenants && !apiKeyId) {
+  if (!allTenants && (typeof apiKeyId !== "string" || apiKeyId.trim() === "")) {
     throw new Error("deleteCompletedBatches: apiKeyId required unless allTenants");
   }
   if (allTenants && apiKeyId) {
@@ -459,16 +483,19 @@ export function deleteCompletedBatches(scope: DeleteCompletedBatchesScope): {
 
   const db = getDbInstance();
 
-  const ownershipClause = allTenants ? "" : " AND api_key_id = ?";
-  const ownershipArgs = allTenants ? [] : [apiKeyId];
-
-  const sweep = db.transaction(() => {
-    // Collect unique file IDs from the completed batches in scope
+  // One consistent unit: file soft-deletes → checkpoints → batch rows for a
+  // given set of batch ids. Both modes run it per chunk of INSTANCE_SWEEP_CHUNK
+  // ids; key mode nests the chunks in one outer transaction, instance mode
+  // commits each chunk so a large sweep never holds one write-lock for the
+  // whole table (SEC-D) while each chunk stays atomic.
+  const sweepIds = db.transaction((ids: string[]) => {
+    if (ids.length === 0) return { deletedBatches: 0, deletedFiles: 0 };
+    const marks = ids.map(() => "?").join(",");
     const rows = db
       .prepare(
-        `SELECT input_file_id, output_file_id, error_file_id FROM batches WHERE status = 'completed'${ownershipClause}`
+        `SELECT input_file_id, output_file_id, error_file_id FROM batches WHERE id IN (${marks})`
       )
-      .all(...ownershipArgs) as Array<{
+      .all(...ids) as Array<{
       input_file_id: string | null;
       output_file_id: string | null;
       error_file_id: string | null;
@@ -484,7 +511,11 @@ export function deleteCompletedBatches(scope: DeleteCompletedBatchesScope): {
     let deletedFiles = 0;
     for (const fid of fileIds) {
       try {
-        if (deleteFile(fid)) deletedFiles++;
+        // Key mode: only the key's OWN files. A batch may reference a file
+        // another tenant (or nobody) owns; a bulk destructive sweep must not
+        // reach it (SEC-C). Instance mode keeps the unconditional soft delete.
+        const removed = allTenants ? deleteFile(fid) : deleteFileOwnedBy(fid, apiKeyId as string);
+        if (removed) deletedFiles++;
       } catch (err) {
         log.warn("deleteCompletedBatches: file soft-delete failed", {
           fid,
@@ -493,15 +524,46 @@ export function deleteCompletedBatches(scope: DeleteCompletedBatchesScope): {
       }
     }
 
-    db.prepare(
-      `DELETE FROM batch_item_checkpoints WHERE batch_id IN (SELECT id FROM batches WHERE status = 'completed'${ownershipClause})`
-    ).run(...ownershipArgs);
-
-    const result = db
-      .prepare(`DELETE FROM batches WHERE status = 'completed'${ownershipClause}`)
-      .run(...ownershipArgs);
+    db.prepare(`DELETE FROM batch_item_checkpoints WHERE batch_id IN (${marks})`).run(...ids);
+    const result = db.prepare(`DELETE FROM batches WHERE id IN (${marks})`).run(...ids);
     return { deletedBatches: result.changes, deletedFiles };
   });
 
-  return sweep();
+  if (!allTenants) {
+    // One outer transaction so the key sweep stays all-or-nothing; inside it,
+    // the same 200-id unit as instance mode (nested transaction calls become
+    // savepoints on every adapter), so no statement ever binds more than
+    // INSTANCE_SWEEP_CHUNK ids — a tenant with tens of thousands of completed
+    // batches must not hit SQLite's 32766 bound-parameter ceiling.
+    const keyChunk = db.prepare(
+      "SELECT id FROM batches WHERE status = 'completed' AND api_key_id = ? ORDER BY rowid LIMIT ?"
+    );
+    const sweepKey = db.transaction(() => {
+      const totals = { deletedBatches: 0, deletedFiles: 0 };
+      for (;;) {
+        const ids = (keyChunk.all(apiKeyId, INSTANCE_SWEEP_CHUNK) as Array<{ id: string }>).map(
+          (r) => r.id
+        );
+        if (ids.length === 0) break;
+        const part = sweepIds(ids);
+        totals.deletedBatches += part.deletedBatches;
+        totals.deletedFiles += part.deletedFiles;
+      }
+      return totals;
+    });
+    return sweepKey();
+  }
+
+  const totals = { deletedBatches: 0, deletedFiles: 0 };
+  const nextChunk = db.prepare(
+    "SELECT id FROM batches WHERE status = 'completed' ORDER BY rowid LIMIT ?"
+  );
+  for (;;) {
+    const ids = (nextChunk.all(INSTANCE_SWEEP_CHUNK) as Array<{ id: string }>).map((r) => r.id);
+    if (ids.length === 0) break;
+    const part = sweepIds(ids);
+    totals.deletedBatches += part.deletedBatches;
+    totals.deletedFiles += part.deletedFiles;
+  }
+  return totals;
 }

@@ -37,7 +37,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.APP_LOG_LEVEL = "warn";
 
 const { createFile, getFile, getFileContent } = await import("../../src/lib/db/files.ts");
-const { createBatch, getBatch, deleteCompletedBatches } =
+const { createBatch, getBatch, deleteCompletedBatches, INSTANCE_SWEEP_CHUNK } =
   await import("../../src/lib/db/batches.ts");
 const { getDbInstance, resetDbInstance } = await import("../../src/lib/db/core.ts");
 
@@ -189,6 +189,50 @@ describe("deleteCompletedBatches — ownership boundary (GHSA-wvxc-jp3v-5mg5)", 
     assert.strictEqual(getFile(unowned.file.id), null, "allTenants soft-deletes its file too");
   });
 
+  it("SEC-C: a key-scoped sweep never nulls a file another key owns, even when its own batch references it", () => {
+    const foreignFile = createFile({
+      bytes: 7,
+      filename: "foreign.jsonl",
+      purpose: "batch",
+      content: Buffer.from("foreign"),
+      apiKeyId: "key-other",
+    });
+    const unownedFile = createFile({
+      bytes: 7,
+      filename: "unowned.jsonl",
+      purpose: "batch",
+      content: Buffer.from("unowned"),
+      apiKeyId: null,
+    });
+    const own = seedCompletedBatch("key-secc", "secc-own");
+    const cross = createBatch({
+      endpoint: "/v1/chat/completions",
+      completionWindow: "24h",
+      inputFileId: foreignFile.id,
+      outputFileId: unownedFile.id,
+      status: "completed",
+      apiKeyId: "key-secc",
+    });
+
+    const result = deleteCompletedBatches({ apiKeyId: "key-secc" });
+
+    assert.strictEqual(result.deletedBatches, 2, "both of the key's completed batches are swept");
+    assert.strictEqual(result.deletedFiles, 1, "only the key's OWN file is soft-deleted");
+    assert.strictEqual(getBatch(own.batch.id), null);
+    assert.strictEqual(getBatch(cross.id), null);
+    assert.strictEqual(getFileContent(own.file.id), null, "own file content nulled");
+    assert.strictEqual(
+      getFileContent(foreignFile.id)?.toString(),
+      "foreign",
+      "another key's file intact"
+    );
+    assert.strictEqual(
+      getFileContent(unownedFile.id)?.toString(),
+      "unowned",
+      "unowned file intact"
+    );
+  });
+
   it("ATOMIC: a failure after the file soft-deletes rolls the file content back", () => {
     const db = getDbInstance();
     const own = seedCompletedBatch("key_atomic_wvxc", "wvxc-atomic");
@@ -251,5 +295,113 @@ describe("deleteCompletedBatches — ownership boundary (GHSA-wvxc-jp3v-5mg5)", 
       .find((line) => line.includes("deleteCompletedBatches: file soft-delete failed"));
     assert.ok(logged, "the failure is logged at warn level");
     assert.ok(logged!.includes(own.file.id), "the log line names the file id");
+  });
+  it("SEC-D: the instance sweep runs in chunks of INSTANCE_SWEEP_CHUNK and still deletes everything", () => {
+    const total = INSTANCE_SWEEP_CHUNK * 2 + 50; // 3 chunks: 200 + 200 + 50
+    const ids: string[] = [];
+    for (let i = 0; i < total; i++)
+      ids.push(seedCompletedBatch(i % 2 ? "key-chunk-a" : null, `chunk-${i}`).batch.id);
+    // `db.transaction(fn)` is called ONCE to build the unit; what must happen per
+    // chunk is the INVOCATION of the unit — count those.
+    const db = getDbInstance();
+    let runs = 0;
+    const origTx = db.transaction.bind(db);
+    const txSpy = mock.method(db, "transaction", (fn: (...a: unknown[]) => unknown) => {
+      const tx = origTx(fn);
+      return (...args: unknown[]) => {
+        runs++;
+        return tx(...args);
+      };
+    });
+
+    let result: ReturnType<typeof deleteCompletedBatches>;
+    try {
+      result = deleteCompletedBatches({ allTenants: true });
+    } finally {
+      txSpy.mock.restore();
+    }
+
+    assert.strictEqual(result.deletedBatches, total);
+    assert.strictEqual(result.deletedFiles, total);
+    assert.strictEqual(runs, 3, "one transaction per chunk (200 + 200 + 50)");
+    for (const id of ids) assert.strictEqual(getBatch(id), null);
+  });
+
+  it("SEC-D: a failure in chunk 2 keeps chunk 1 done and rolls chunk 2 back entirely", () => {
+    const first = Array.from({ length: INSTANCE_SWEEP_CHUNK }, (_, i) =>
+      seedCompletedBatch(null, `c1-${i}`)
+    );
+    const second = Array.from({ length: 10 }, (_, i) => seedCompletedBatch(null, `c2-${i}`));
+    const poison = second[5].batch.id;
+    const db = getDbInstance();
+    // DDL cannot take bound parameters in SQLite; the value is createBatch's generated id.
+    db.exec(
+      `CREATE TRIGGER wvxc_chunk_poison BEFORE DELETE ON batches WHEN OLD.id = '${poison}' BEGIN SELECT RAISE(ABORT, 'poison'); END`
+    );
+    try {
+      assert.throws(() => deleteCompletedBatches({ allTenants: true }), /poison/);
+    } finally {
+      db.exec("DROP TRIGGER IF EXISTS wvxc_chunk_poison");
+    }
+    for (const s of first) assert.strictEqual(getBatch(s.batch.id), null, "chunk 1 committed");
+    for (const s of second) {
+      assert.ok(getBatch(s.batch.id), "chunk 2 rolled back as a unit");
+      assert.strictEqual(
+        getFileContent(s.file.id)?.toString(),
+        s.file.filename.replace(".jsonl", ""),
+        "chunk 2 file content restored"
+      );
+    }
+  });
+
+  it("SEC-D: a key with more than INSTANCE_SWEEP_CHUNK completed batches is swept in one call, atomically", () => {
+    const total = INSTANCE_SWEEP_CHUNK + 1;
+    const own = Array.from({ length: total }, (_, i) => seedCompletedBatch("key-big", `big-${i}`));
+    const other = seedCompletedBatch("key-small", "big-other");
+    const db = getDbInstance();
+    let runs = 0;
+    const origTx = db.transaction.bind(db);
+    const txSpy = mock.method(db, "transaction", (fn: (...a: unknown[]) => unknown) => {
+      const tx = origTx(fn);
+      return (...args: unknown[]) => {
+        runs++;
+        return tx(...args);
+      };
+    });
+    let result: ReturnType<typeof deleteCompletedBatches>;
+    try {
+      result = deleteCompletedBatches({ apiKeyId: "key-big" });
+    } finally {
+      txSpy.mock.restore();
+    }
+    assert.strictEqual(result.deletedBatches, total);
+    assert.strictEqual(result.deletedFiles, total);
+    assert.ok(runs >= 3, `outer transaction + 2 chunk units expected, got ${runs}`);
+    for (const s of own) assert.strictEqual(getBatch(s.batch.id), null);
+    assert.ok(getBatch(other.batch.id), "another key's batch survives");
+  });
+
+  it("SEC-D: a failure in the key sweep's second chunk rolls the WHOLE key sweep back (single atomic transaction)", () => {
+    const own = Array.from({ length: INSTANCE_SWEEP_CHUNK + 5 }, (_, i) =>
+      seedCompletedBatch("key-atomic", `atomic-${i}`)
+    );
+    const poison = own[INSTANCE_SWEEP_CHUNK + 2].batch.id;
+    const db = getDbInstance();
+    // DDL cannot take bound parameters in SQLite; the value is createBatch's generated id.
+    db.exec(
+      `CREATE TRIGGER wvxc_key_poison BEFORE DELETE ON batches WHEN OLD.id = '${poison}' BEGIN SELECT RAISE(ABORT, 'key poison'); END`
+    );
+    try {
+      assert.throws(() => deleteCompletedBatches({ apiKeyId: "key-atomic" }), /key poison/);
+    } finally {
+      db.exec("DROP TRIGGER IF EXISTS wvxc_key_poison");
+    }
+    for (const s of own) {
+      assert.ok(getBatch(s.batch.id), "key sweep is all-or-nothing: chunk 1 rolled back too");
+      assert.strictEqual(
+        getFileContent(s.file.id)?.toString(),
+        s.file.filename.replace(".jsonl", "")
+      );
+    }
   });
 });

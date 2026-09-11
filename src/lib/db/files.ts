@@ -168,3 +168,22 @@ export function deleteFile(id: string): boolean {
     .run(Math.floor(Date.now() / 1000), id);
   return result.changes > 0;
 }
+
+/**
+ * Owner-scoped soft delete: same effect as `deleteFile`, but only when the
+ * file belongs to `apiKeyId`. Used by the key-scoped completed-batch sweep so
+ * a batch that references another tenant's (or an unowned) file never nulls
+ * that file's content (GHSA-wvxc-jp3v-5mg5, SEC-C). Returns false when the
+ * row is not the caller's; throws on an empty owner so a caller cannot widen
+ * the delete by passing a blank id.
+ */
+export function deleteFileOwnedBy(id: string, apiKeyId: string): boolean {
+  if (typeof apiKeyId !== "string" || apiKeyId.trim() === "") {
+    throw new Error("deleteFileOwnedBy: apiKeyId is required");
+  }
+  const db = getDbInstance();
+  const result = db
+    .prepare("UPDATE files SET deleted_at = ?, content = NULL WHERE id = ? AND api_key_id = ?")
+    .run(Math.floor(Date.now() / 1000), id, apiKeyId);
+  return result.changes > 0;
+}
