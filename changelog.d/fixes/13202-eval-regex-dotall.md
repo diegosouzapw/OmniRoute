@@ -1,0 +1,1 @@
+- **fix(evals):** regex grading compiles suite-supplied string patterns with `dotAll`, so correct multi-line answers are no longer marked wrong ([#13202](https://github.com/diegosouzapw/OmniRoute/pull/13202)) — thanks @aaustinhuang

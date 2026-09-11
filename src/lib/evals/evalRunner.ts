@@ -153,10 +153,16 @@ export function evaluateCase(evalCase: any, actualOutput: string) {
           details.error = "No regex value provided for evaluation.";
           break;
         }
+        // Suite JSON can only carry a pattern as a string, so the `s` (dotAll) flag has to
+        // be supplied here: without it `.` does not cross a newline, and several built-in
+        // cases join tokens a model naturally puts on separate lines (gs-09 `1.*2.*3.*4.*5`,
+        // code-03 `SELECT.*FROM.*WHERE`, instr-02 `1\..*2\..*3\..*4\..*5\.`). dotAll widens
+        // `.` only, so a pattern that matched before still matches — it is not a regression
+        // risk. An author-supplied RegExp keeps exactly the flags they wrote.
         const regex =
           expectedValue instanceof RegExp
             ? new RegExp(expectedValue.source, expectedValue.flags.replace(/[gy]/g, ""))
-            : new RegExp(expectedValue);
+            : new RegExp(expectedValue, "s");
         if (regex.source.length > 512) {
           passed = false;
           details.error = "Regex pattern too large for safe evaluation.";
