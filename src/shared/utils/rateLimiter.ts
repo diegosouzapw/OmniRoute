@@ -263,8 +263,15 @@ export async function checkRateLimit(
 
     return { allowed: true };
   } catch (error) {
-    // Fail-open strategy if Redis goes down to prevent complete API outage
-    console.error("[RATE_LIMITER] Redis eval failed, bypassing rate limit:", error);
-    return { allowed: true };
+    // Redis is configured but unreachable/erroring. Do NOT fail fully open —
+    // that would silently remove rate limiting for every key with limits
+    // configured during a Redis outage. Fall back to the same bounded
+    // in-memory limiter used when Redis isn't configured at all, so limits
+    // stay enforced (per-process) until Redis recovers.
+    console.error(
+      "[RATE_LIMITER] Redis eval failed, falling back to in-memory rate limiting:",
+      error
+    );
+    return checkInMemoryRateLimit(FALLBACK_MEMORY_STORE, keyId, rules);
   }
 }

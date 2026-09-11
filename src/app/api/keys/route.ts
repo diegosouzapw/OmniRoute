@@ -42,7 +42,18 @@ export async function GET(request: Request) {
     const keys = await getApiKeys(dbLimit, offset);
     const maskedKeys = keys.map((k) => ({
       ...k,
-      key: maskStoredApiKey(k.key),
+      // SECURITY: a redacted row (see redactedKeyPlaceholder() in
+      // src/lib/db/apiKeys.ts) has no real secret left to mask a slice of —
+      // fall back to the separately-stored, low-sensitivity `key_prefix`
+      // (first 12 chars, already persisted for lookup) so the list view can
+      // still show an identifying label instead of "redacted****xxxx".
+      key:
+        typeof k.key === "string" && k.key.startsWith("redacted:")
+          ? typeof (k as { keyPrefix?: unknown }).keyPrefix === "string" &&
+            (k as { keyPrefix?: string }).keyPrefix
+            ? `${(k as { keyPrefix: string }).keyPrefix}****`
+            : "redacted"
+          : maskStoredApiKey(k.key),
     }));
 
     return NextResponse.json({

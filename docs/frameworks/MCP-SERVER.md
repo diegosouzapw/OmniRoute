@@ -340,10 +340,21 @@ and passes it to the MCP SDK's `transport.handleRequest(req, { authInfo })`, so
 the `_meta` and `OMNIROUTE_MCP_SCOPES` env fallback — this only populates that first,
 highest-priority source, which was previously unfed over HTTP. When no API key resolves
 (no header, invalid key), `authInfo` stays `undefined` and resolution falls through to the
-existing `meta`/env chain unchanged. This does NOT flip `OMNIROUTE_MCP_ENFORCE_SCOPES`'s
-default — enforcement still has to be explicitly enabled; this change only makes the
-per-key path take precedence once it is. stdio has no per-caller identity (see
+existing `meta`/env chain unchanged. stdio has no per-caller identity (see
 `mcpCallerIdentity.ts`) and is unaffected — it stays on the `_meta`/env fallback chain.
+
+**Enforcement is forced on for narrow-scoped HTTP/SSE callers regardless of
+`OMNIROUTE_MCP_ENFORCE_SCOPES`.** `OMNIROUTE_MCP_ENFORCE_SCOPES` defaulting to `false` is only
+safe for the local/stdio single-operator flow, where there is no per-caller identity to scope
+against. `open-sse/mcp-server/server.ts::withScopeEnforcement()` turns per-tool scope
+enforcement on unconditionally whenever `resolveCallerScopeContext()` resolved
+`source === "authInfo"` (i.e. a real per-key HTTP Authorization header, HTTP/SSE-only) AND that
+key does not hold full `manage`/`admin` scope. This closes the gap where a key holding ONLY
+the narrow `mcp:connect` bypass scope — documented above as authorizing nothing but the
+`/api/mcp/` LOCAL_ONLY carve-out — could otherwise invoke every MCP tool once an operator
+enabled remote/non-loopback MCP access, simply because `OMNIROUTE_MCP_ENFORCE_SCOPES` ships
+`false` by default. A full `manage`/`admin` key over HTTP, and every stdio/local caller, keep
+the existing `OMNIROUTE_MCP_ENFORCE_SCOPES`-gated behavior unchanged.
 
 ---
 
@@ -353,7 +364,7 @@ per-key path take precedence once it is. stdio has no per-caller identity (see
 | :-------------------------------------- | :--------------------------------- | :----------------------------------------------------------------------------------------------------------------------- |
 | `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`           | Base URL the MCP server uses when calling OmniRoute internal APIs                                                        |
 | `OMNIROUTE_API_KEY`                     | (empty)                            | API key forwarded as `Authorization: Bearer` to internal API calls                                                       |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (only `"true"` enables it) | When enabled, missing scopes deny tool calls and log `scope_denied:<reason>` in audit log                                |
+| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (only `"true"` enables it) | When enabled, missing scopes deny tool calls and log `scope_denied:<reason>` in audit log. Enforcement is ALSO forced on regardless of this flag for any HTTP/SSE caller resolved from a per-key Authorization header (`source === "authInfo"`) that lacks full `manage`/`admin` scope — e.g. a key holding only the narrow `mcp:connect` bypass scope — so this default is safe only for the local/stdio single-operator flow, never for remote non-loopback access |
 | `OMNIROUTE_MCP_SCOPES`                  | (empty)                            | Comma-separated allowlist of scopes considered "available" by default (used when caller does not provide its own scopes) |
 | `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (unset = on)                       | When set to `0/false/off/no`, disables MCP description compression at registration time                                  |
 | `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (unset = on)                       | Alternate alias for the same toggle as above                                                                             |

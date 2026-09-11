@@ -5,6 +5,7 @@
 import { createHash } from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance, rowToCamel } from "./core";
+import { decrypt, encrypt, looksEncrypted } from "./encryption";
 import { backupDbFile } from "./backup";
 import { registerDbStateResetter } from "./stateReset";
 import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
@@ -405,6 +406,58 @@ function ensureApiKeyColumn(
   console.log(`[DB] Added api_keys.${column.name} column`);
 }
 
+/**
+ * SECURITY (one-time, idempotent data backfill): historically `key` stored
+ * the raw plaintext API key indefinitely. `key_hash` (SHA-256) is the sole
+ * auth-lookup source of truth (see the `WHERE key_hash = ?` queries below) —
+ * this backfills `key_hash` for any pre-existing row that predates it, then
+ * re-encrypts `key` at rest with the project's AES-256-GCM field-encryption
+ * helper (`encrypt()`/`decrypt()` in `encryption.ts`, same convention used
+ * for provider credentials) instead of leaving it as plaintext. `key`
+ * cannot simply be dropped/nulled: it predates `key_hash`, is a legacy
+ * `NOT NULL UNIQUE` column (SQLite can't relax that without a full table
+ * rebuild), and the "reveal key" admin feature (`/api/keys/[id]/reveal`,
+ * gated behind management auth + an explicit opt-in flag) and the masked
+ * key-list view both intentionally read it back later — see
+ * `getApiKeys()`/`getApiKeyById()`, which transparently decrypt it on read,
+ * mirroring `decryptConnectionFields()` for provider credentials.
+ *
+ * Plain SQL can't compute SHA-256 (no built-in function/extension in this
+ * deployment), so this runs here — alongside the lazy column fallback it
+ * already depends on — instead of as a static `db/migrations/*.sql` file.
+ * Skips rows whose `key` is already encrypted, so repeated boots are cheap
+ * no-ops.
+ */
+function encryptApiKeyPlaintext(db: ApiKeysDbLike): void {
+  const rows = db
+    .prepare<{ id: string; key: string | null; key_hash: string | null }>(
+      "SELECT id, key, key_hash FROM api_keys WHERE key IS NOT NULL",
+    )
+    .all()
+    .filter((row) => !looksEncrypted(row.key));
+  if (rows.length === 0) return;
+
+  const update = db.prepare("UPDATE api_keys SET key = @key, key_hash = @keyHash WHERE id = @id");
+  let migrated = 0;
+  for (const row of rows) {
+    const plaintext = String(row.key);
+    const hasHash = typeof row.key_hash === "string" && row.key_hash.trim() !== "";
+    const keyHash = hasHash
+      ? (row.key_hash as string)
+      : createHash("sha256").update(plaintext).digest("hex");
+    const encrypted = encrypt(plaintext);
+    // encrypt() passthrough-returns plaintext unchanged when
+    // STORAGE_ENCRYPTION_KEY is unset — skip the write in that case so we
+    // don't spin re-attempting the same no-op every boot.
+    if (encrypted === plaintext) continue;
+    update.run({ id: row.id, key: encrypted, keyHash });
+    migrated++;
+  }
+  if (migrated > 0) {
+    console.log(`[DB] Encrypted plaintext key at rest for ${migrated} pre-existing api_keys row(s)`);
+  }
+}
+
 function ensureApiKeysColumns(db: ApiKeysDbLike) {
   if (_schemaChecked) return;
 
@@ -414,6 +467,7 @@ function ensureApiKeysColumns(db: ApiKeysDbLike) {
     for (const column of API_KEY_COLUMN_FALLBACKS) {
       ensureApiKeyColumn(db, columnNames, column);
     }
+    encryptApiKeyPlaintext(db);
     _schemaChecked = true;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -437,11 +491,17 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
     _stmtDb = db;
     _stmtGetAllKeys = db.prepare<ApiKeyRow>("SELECT * FROM api_keys ORDER BY created_at");
     _stmtGetKeyById = db.prepare<ApiKeyRow>("SELECT * FROM api_keys WHERE id = ?");
+    // SECURITY: auth lookups match on key_hash only — the plaintext `key`
+    // column is never persisted for new/regenerated keys (createApiKey(),
+    // regenerateApiKey()) and is redacted for pre-existing rows
+    // (redactApiKeyPlaintext()), so it must never be part of an auth
+    // comparison (a `key = ?` branch would let a leaked placeholder value
+    // authenticate directly).
     _stmtValidateKey = db.prepare<JsonRecord>(
-      "SELECT id, expires_at, revoked_at, is_active, is_banned FROM api_keys WHERE key = ? OR key_hash = ?"
+      "SELECT id, expires_at, revoked_at, is_active, is_banned FROM api_keys WHERE key_hash = ?",
     );
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, model_access_mode, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, cache_default_mode, disable_non_public_models, allow_usage_command, usage_limit_enabled, daily_usage_limit_usd, weekly_usage_limit_usd, chaos_mode_enabled, compression_enabled, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
+      "SELECT id, name, machine_id, model_access_mode, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, cache_default_mode, disable_non_public_models, allow_usage_command, usage_limit_enabled, daily_usage_limit_usd, weekly_usage_limit_usd, chaos_mode_enabled, compression_enabled, proxy_id FROM api_keys WHERE key_hash = ?",
     );
     _stmtInsertKey = db.prepare(
       "INSERT INTO api_keys (id, name, key, machine_id, model_access_mode, allowed_models, allowed_combos, allowed_connections, no_log, created_at, key_prefix, key_hash, scopes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -482,6 +542,10 @@ export async function getApiKeys(limit?: number, offset?: number) {
   }
   return rows.map((row) => {
     const camelRow = toRecord(rowToCamel(row)) as ApiKeyView;
+    // SECURITY: transparently decrypt legacy encrypted-at-rest rows (see
+    // resolveKeySecretForRead) so callers keep getting a usable secret or
+    // the `redacted:<id>` placeholder — never raw ciphertext.
+    (camelRow as JsonRecord).key = resolveKeySecretForRead((camelRow as JsonRecord).key);
     camelRow.modelAccessMode = parseModelAccessMode(
       camelRow.modelAccessMode,
       camelRow.allowedModels
@@ -559,7 +623,108 @@ export async function getExclusiveLeaseConnectionIds(): Promise<Set<string>> {
  *
  * The selector is deliberately conservative: it never promotes a revoked,
  * inactive, banned, or hard-lease key, and it never widens a key's allowedModels.
+ *
+ * SECURITY NOTE: createApiKey()/regenerateApiKey() no longer persist the
+ * plaintext `key` column — new/regenerated rows carry an inert
+ * `redacted:<id>` placeholder instead (see redactedKeyPlaceholder()), and
+ * auth lookups match on `key_hash` only. `isUsable()` below explicitly
+ * excludes that placeholder, so this selector can only return a raw,
+ * usable key for legacy rows that still carry their original plaintext
+ * (not yet touched by redactApiKeyPlaintext()'s one-time backfill). Callers
+ * (`/api/combos/test`, `/api/sync/cloud`, `/api/tools/agent-bridge/server`)
+ * already treat a `null` return as "no internal key available" and degrade
+ * gracefully, but on a fully-redacted install this selector always returns
+ * null. A raw, reusable secret cannot be recovered from `key_hash`
+ * (SHA-256 is one-way) — restoring this internal-probe capability requires
+ * an operator decision on how those callers should authenticate their own
+ * outbound calls, which is out of scope for this DB-layer change.
  */
+const INTERNAL_SERVICE_KEY_NAME = "Internal Service Key (auto-managed)";
+
+/**
+ * Read the encrypted-at-rest companion value for an internal-service key row.
+ * Stored separately from `api_keys.key` (which is always the inert
+ * `redacted:<id>` placeholder for every key, including this one) so it never
+ * flows through the key listing / reveal endpoints — those only ever read
+ * `api_keys.key`. Uses the same AES-256-GCM helper (`encryption.ts`) as
+ * provider credentials and the JWT/API_KEY_SECRET backing store.
+ */
+function getInternalKeyCompanion(id: string): string | null {
+  try {
+    const db = getDbInstance() as ApiKeysDbLike;
+    const row = db
+      .prepare<{ value?: string }>(
+        "SELECT value FROM key_value WHERE namespace = 'internal_keys' AND key = ?",
+      )
+      .get(id);
+    if (!row?.value) return null;
+    const stored = JSON.parse(row.value);
+    if (typeof stored !== "string") return null;
+    const decrypted = decrypt(stored);
+    return typeof decrypted === "string" ? decrypted : null;
+  } catch {
+    return null;
+  }
+}
+
+function storeInternalKeyCompanion(id: string, rawKey: string): void {
+  try {
+    const db = getDbInstance() as ApiKeysDbLike;
+    const encrypted = encrypt(rawKey);
+    db.prepare(
+      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('internal_keys', ?, ?)",
+    ).run(id, JSON.stringify(encrypted ?? rawKey));
+  } catch {
+    // Best-effort: internal self-checks degrade to "unavailable" if this fails.
+  }
+}
+
+/**
+ * Dedicated key for internal self-checks (combo health-check, cloud-sync
+ * verify ping, MITM agent-bridge auth — see the #6403 note on
+ * `resolveRouterApiKey`). Regular user-created keys never retain a usable
+ * plaintext value after the redaction fix above, so those probes need their
+ * own key whose raw value is recoverable — kept encrypted-at-rest via
+ * `storeInternalKeyCompanion`/`getInternalKeyCompanion` rather than plaintext
+ * in `api_keys.key`. Created lazily on first use; reused thereafter.
+ */
+async function getOrCreateInternalServiceKey(): Promise<string | null> {
+  try {
+    const keys = (await getApiKeys()) as Array<{
+      id?: string;
+      name?: string;
+      scopes?: string[];
+      isActive?: boolean;
+      revokedAt?: string | null;
+      isBanned?: boolean;
+    }>;
+    const existing = keys.find(
+      (k) =>
+        k.name === INTERNAL_SERVICE_KEY_NAME &&
+        k.isActive !== false &&
+        !k.revokedAt &&
+        k.isBanned !== true,
+    );
+    if (existing?.id) {
+      const companion = getInternalKeyCompanion(existing.id);
+      if (companion) return companion;
+      // Companion missing or undecryptable (e.g. STORAGE_ENCRYPTION_KEY was
+      // rotated without a re-encrypt pass) — regenerate rather than fail.
+      const regenerated = await regenerateApiKey(existing.id);
+      if (regenerated?.key) {
+        storeInternalKeyCompanion(existing.id, regenerated.key);
+        return regenerated.key;
+      }
+      return null;
+    }
+    const created = await createApiKey(INTERNAL_SERVICE_KEY_NAME, "internal", ["manage"]);
+    storeInternalKeyCompanion(created.id, created.key);
+    return created.key;
+  } catch {
+    return null;
+  }
+}
+
 export async function pickApiKeyForInternalUse(
   purpose: "combo-health-check" | "cloud-sync-verify" | "internal-probe" = "internal-probe"
 ): Promise<string | null> {
@@ -577,6 +742,9 @@ export async function pickApiKeyForInternalUse(
 
     const isUsable = (k: (typeof keys)[number]) =>
       Boolean(k.key) &&
+      // SECURITY: skip rows whose plaintext key has been redacted (the
+      // `redacted:<id>` placeholder is not a real, usable secret).
+      !k.key?.startsWith("redacted:") &&
       k.isActive !== false &&
       !k.revokedAt &&
       k.isBanned !== true &&
@@ -610,7 +778,13 @@ export async function pickApiKeyForInternalUse(
     // 4. Legacy fallback: first active key. Keeps the function working
     //    for setups with no managed/allow-all/recently-used key.
     const firstActive = keys.find(isUsable);
-    return firstActive?.key ?? null;
+    if (firstActive?.key) return firstActive.key;
+
+    // 5. Every user-created key is now redacted at rest (steps 1-4 above
+    //    only ever match pre-existing legacy rows), so self-checks fall back
+    //    to a dedicated, encrypted-at-rest internal-service key instead of
+    //    silently going permanently unavailable.
+    return await getOrCreateInternalServiceKey();
   } catch {
     return null;
   }
@@ -622,6 +796,10 @@ export async function getApiKeyById(id: string) {
   const row = stmt.getKeyById.get(id);
   if (!row) return null;
   const camelRow = toRecord(rowToCamel(row)) as ApiKeyView;
+  // SECURITY: see resolveKeySecretForRead — transparently decrypt legacy
+  // encrypted-at-rest rows instead of returning raw ciphertext (this path
+  // backs the reveal endpoint).
+  (camelRow as JsonRecord).key = resolveKeySecretForRead((camelRow as JsonRecord).key);
   camelRow.modelAccessMode = parseModelAccessMode(camelRow.modelAccessMode, camelRow.allowedModels);
   camelRow.allowedModels = parseAllowedModels(camelRow.allowedModels);
   camelRow.blockedModels = parseAllowedModels(camelRow.blockedModels);
@@ -651,6 +829,39 @@ export async function getApiKeyById(id: string) {
     setNoLog(camelRow.id, camelRow.noLog === true);
   }
   return camelRow;
+}
+
+/**
+ * Inert placeholder written to the legacy NOT NULL UNIQUE `key` column instead
+ * of the real plaintext secret. Never a usable credential — `isUsable()` in
+ * `pickApiKeyForInternalUse()` explicitly excludes any value starting with
+ * this prefix, and no auth path reads `key` for validation (that's `key_hash`
+ * only). Namespaced by id so the UNIQUE constraint is always satisfiable.
+ */
+function redactedKeyPlaceholder(id: string): string {
+  return `redacted:${id}`;
+}
+
+/**
+ * Normalize `api_keys.key` for callers that need the actual usable secret
+ * (reveal endpoint, pickApiKeyForInternalUse). Three possible shapes:
+ *  - `redacted:<id>` (new/regenerated rows) — no plaintext exists, return as-is
+ *    so callers can recognize and reject it (never decrypt/fabricate a secret).
+ *  - AES-256-GCM ciphertext (pre-existing rows migrated by
+ *    `encryptApiKeyPlaintext()`) — decrypt and return the real key.
+ *  - Raw plaintext (STORAGE_ENCRYPTION_KEY unset, so the migration above
+ *    no-ops — see its own passthrough comment) — return unchanged.
+ */
+function resolveKeySecretForRead(rawKey: unknown): string | null {
+  if (typeof rawKey !== "string" || !rawKey) return null;
+  if (rawKey.startsWith("redacted:")) return rawKey;
+  if (!looksEncrypted(rawKey)) return rawKey;
+  try {
+    const decrypted = decrypt(rawKey);
+    return typeof decrypted === "string" ? decrypted : null;
+  } catch {
+    return null;
+  }
 }
 
 async function hashKey(key: string): Promise<string> {
@@ -707,7 +918,13 @@ export async function createApiKey(
   stmt.insertKey.run(
     apiKey.id,
     apiKey.name,
-    apiKey.key,
+    // SECURITY: never persist the plaintext key — key_hash is the sole
+    // auth-lookup source of truth (see the WHERE key_hash = ? queries
+    // above). `key` predates `key_hash` and is a legacy NOT NULL UNIQUE
+    // column, so it gets an inert placeholder rather than the real secret;
+    // see redactedKeyPlaceholder(). The raw value is returned once, in
+    // memory, to the caller below for the "show it once" UX.
+    redactedKeyPlaceholder(apiKey.id),
     apiKey.machineId,
     apiKey.modelAccessMode,
     JSON.stringify(apiKey.allowedModels),
@@ -737,11 +954,13 @@ export async function regenerateApiKey(id: string) {
   const newHash = await hashKey(newKey);
   const newPrefix = newKey.slice(0, 12);
 
-  // Update in DB
+  // Update in DB. SECURITY: never persist the plaintext key — see the
+  // matching note in createApiKey(). newKey is returned once, in memory,
+  // below for the "show it once" UX.
   const updateStmt = db.prepare(
     "UPDATE api_keys SET key = ?, key_hash = ?, key_prefix = ? WHERE id = ?"
   );
-  updateStmt.run(newKey, newHash, newPrefix, id);
+  updateStmt.run(redactedKeyPlaceholder(id), newHash, newPrefix, id);
 
   // Invalidate all caches
   clearApiKeyCaches();
@@ -1267,7 +1486,7 @@ export async function validateApiKey(key: string | null | undefined) {
 
   const db = getDbInstance() as ApiKeysDbLike;
   const stmt = getPreparedStatements(db);
-  const row = stmt.validateKey.get(key, hashedKey) as JsonRecord | undefined;
+  const row = stmt.validateKey.get(hashedKey) as JsonRecord | undefined;
 
   if (!row) return false;
 
@@ -1401,7 +1620,7 @@ export async function getApiKeyMetadata(
 
   const db = getDbInstance() as ApiKeysDbLike;
   const stmt = getPreparedStatements(db);
-  const row = stmt.getKeyMetadata.get(key, hashedKey);
+  const row = stmt.getKeyMetadata.get(hashedKey);
 
   if (!row) return null;
 
