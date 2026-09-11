@@ -138,3 +138,23 @@ test("DefaultExecutor labels internal health checks separately from user traffic
   applyClineProtocolHeaders(headers, { taskId: headers["X-Task-ID"] });
   assert.equal(headers["X-CLIENT-TYPE"], "omniroute-internal-health-check");
 });
+
+test("DefaultExecutor handles dual-auth logging for clinepass provider", () => {
+  const executor = new DefaultExecutor("clinepass");
+
+  // API key auth mode
+  const apiKeyHeaders = executor.buildHeaders(
+    { apiKey: "sk-cline-123", authType: "apikey" },
+    true,
+    {}
+  );
+  assert.equal(apiKeyHeaders["Authorization"], "Bearer sk-cline-123");
+
+  // OAuth token auth mode
+  const oauthHeaders = executor.buildHeaders(
+    { apiKey: "workos_tok_456", authType: "oauth" },
+    true,
+    {}
+  );
+  assert.equal(oauthHeaders["Authorization"], "Bearer workos:workos_tok_456");
+});

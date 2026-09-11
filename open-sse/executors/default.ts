@@ -579,7 +579,13 @@ export class DefaultExecutor extends BaseExecutor {
         headers["x-api-key"] = effectiveKey || credentials.accessToken;
         break;
       case "clinepass": // dual-auth (OAuth or BYOK) — see applyClineAuthHeaders()
-        applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, true);
+        if (credentials?.authType === "apikey" || credentials?.authType === "api_key") {
+          console.debug("[Auth] Using direct API key for Cline/Kilo Code request.");
+          applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, true);
+        } else {
+          console.debug("[Auth] Using OAuth token for Cline/Kilo Code request.");
+          applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, false);
+        }
         break;
       case "cline":
         // Cline's API requires the bearer token prefixed with `workos:` plus a
