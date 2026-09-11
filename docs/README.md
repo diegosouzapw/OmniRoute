@@ -203,6 +203,31 @@ Release, deployment, proxies, tunnels, coverage, database, monitoring.
 
 Mermaid sources and exported SVG/PNG diagrams referenced from the docs above. See [diagrams/README.md](diagrams/README.md).
 
+## 🤖 Architectural Overview: JARVIS meets OmniRoute
+
+Unlike traditional cloud chatbots, **JARVIS** is an open-source desktop assistant designed to bridge high-level LLM reasoning with direct local system execution. 
+
+To achieve zero-cost, high-resilience AI execution without fragmenting provider SDKs, JARVIS uses **OmniRoute** as a centralized, local AI gateway.
+
+```text
+       [ YOUR VOICE / UI ]
+              │
+              ▼
+   [ Electron / Node.js ] (IPC Layer)
+              │
+              ▼
+    [ OmniRoute Gateway ] (localhost:20128)
+              │ (OpenAI-Compatible /v1 API)
+              ▼
+    [ Free / Local Model Layer ]
+              │
+              ▼
+   [ JSON-Schema Tool Calling ]
+              │
+              ├─► OS App Launcher (Chrome, Notepad, etc.)
+              ├─► PowerShell / Terminal Automation
+              └─► Local Filesystem Operations
+
 ## i18n/
 
 Translated mirrors of the documentation in 50 locales (plus the English originals — 51 languages in total). See [i18n/README.md](i18n/README.md) for the supported language list.
