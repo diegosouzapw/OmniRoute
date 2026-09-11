@@ -5779,6 +5779,8 @@
     "grokWebCookieHint": "Grok Web Cookie Hint",
     "blockClaudeExtraUsageDescription": "When enabled, OmniRoute marks this Claude connection unavailable as soon as the usage API reports queued extra usage, so fallback switches to another connection instead of continuing on pay-as-you-go extra billing.",
     "blockClaudeExtraUsageLabel": "Block extra Claude usage",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "Skip the transient cooldown so this connection stays eligible even after recoverable errors (terminal states like banned/expired still apply).",
     "disableCoolingLabel": "Disable cooldown for this connection",
     "bulkPasteAdded": "{count, plural, one {1 key added} other {# keys added}}",
@@ -9252,6 +9254,10 @@
     "streamTransformFailed": "Failed to transform stream"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "Usage",
     "grokExtraUsageCredits": "Extra Usage Credits",
     "grokAutoTopUp": "Auto Top-Up",

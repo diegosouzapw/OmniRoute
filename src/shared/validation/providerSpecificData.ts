@@ -251,6 +251,13 @@ export function validateProviderSpecificData(
   }
 
   const blockExtraUsage = data.blockExtraUsage;
+  if (data.allowPaidCredits !== undefined && typeof data.allowPaidCredits !== "boolean") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.allowPaidCredits must be a boolean",
+      path: ["allowPaidCredits"],
+    });
+  }
   if (blockExtraUsage !== undefined && typeof blockExtraUsage !== "boolean") {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,

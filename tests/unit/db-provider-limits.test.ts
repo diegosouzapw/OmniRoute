@@ -46,6 +46,27 @@ test("providerLimits cache preserves Codex banked reset credits", () => {
   assert.equal(providerLimitsDb.getAllProviderLimitsCache()["codex-conn"]?.bankedResetCredits, 3);
 });
 
+test("providerLimits cache persists Codex paid credits independently of reset credits", () => {
+  const paidCredits = {
+    hasCredits: true,
+    unlimited: false,
+    overageLimitReached: false,
+    balance: null,
+  };
+  providerLimitsDb.setProviderLimitsCache("paid-codex", {
+    quotas: { session: { remainingPercentage: 0 } },
+    plan: "business",
+    message: null,
+    fetchedAt: "2026-09-11T00:00:00.000Z",
+    paidCredits,
+    bankedResetCredits: 2,
+  });
+  const cached = providerLimitsDb.getProviderLimitsCache("paid-codex");
+  assert.deepEqual(cached?.paidCredits, paidCredits);
+  assert.equal(cached?.bankedResetCredits, 2);
+  assert.deepEqual(cached?.quotas, { session: { remainingPercentage: 0 } });
+});
+
 test("providerLimits cache supports single writes, batch writes and deletions", () => {
   const first = providerLimitsDb.setProviderLimitsCache("conn-1", {
     quotas: { remaining: 12 },

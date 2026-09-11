@@ -21,6 +21,11 @@
 import { isCompatibleProviderConnectionId } from "@/shared/utils/compatibleProviderId";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { isClaudeExtraUsageAllowed } from "@/lib/providers/claudeExtraUsage";
+import {
+  hasCodexPaidCredits,
+  isCodexPaidCreditsEnabled,
+  type CodexPaidCredits,
+} from "@/lib/providers/codexPaidCredits";
 import { fetchNewApiAggregatorQuota } from "./newApiAggregatorQuotaFetcher.ts";
 import {
   isAntigravityQuotaProvider,
@@ -72,6 +77,8 @@ export interface QuotaInfo {
   windowMonthly?: QuotaWindowInfo;
   /** True when the upstream usage endpoint explicitly reports exhausted quota. */
   limitReached?: boolean;
+  /** Separate from subscription percentages and banked quota-reset coupons. */
+  paidCredits?: CodexPaidCredits;
 }
 
 export type QuotaFetcher = (
@@ -234,9 +241,7 @@ function quotaWindowCutoffResult(
     worstResetAt = windowInfo.resetAt ?? null;
   }
 
-  return worstWindow === null
-    ? null
-    : exhaustedResult(worstUsedPercent, worstResetAt, worstWindow);
+  return worstWindow === null ? null : exhaustedResult(worstUsedPercent, worstResetAt, worstWindow);
 }
 
 function quotaPercentCutoffResult(
@@ -265,7 +270,16 @@ export function evaluateQuotaCutoff(
   thresholds?: PreflightQuotaThresholds,
   scope?: QuotaCutoffScope
 ): PreflightQuotaResult {
-  if (!quota) return { proceed: true };
+  const paidCreditsEnabled = isCodexPaidCreditsEnabled(
+    scope?.provider,
+    scope?.providerSpecificData,
+    scope?.requestedModel
+  );
+  if (!quota)
+    return paidCreditsEnabled ? { proceed: false, reason: "quota_unavailable" } : { proceed: true };
+  if (paidCreditsEnabled && hasCodexPaidCredits(quota.paidCredits)) {
+    return { proceed: true, quotaPercent: quota.percentUsed };
+  }
   // Operator-enabled Claude extra usage is billed after the 5h session quota
   // is gone. Pre-dispatch must not skip the account before Anthropic sees the
   // request; blockExtraUsage=false is the only opt-in.
@@ -321,6 +335,13 @@ export async function preflightQuota(
   connection: Record<string, unknown>,
   thresholds?: PreflightQuotaThresholds
 ): Promise<PreflightQuotaResult> {
+  const requestedModel =
+    typeof connection.requestedModel === "string" ? connection.requestedModel : null;
+  const scope: QuotaCutoffScope = {
+    provider,
+    requestedModel,
+    providerSpecificData: connection.providerSpecificData,
+  };
   // No legacy enable-flag gate here — the caller decides when to invoke us
   // (see file-level docstring). When there's no fetcher we proceed silently.
   let fetcher = getQuotaFetcher(provider);
@@ -329,7 +350,7 @@ export async function preflightQuota(
     // aggregator flag + feature flag, use the generalized New-API fetcher.
     fetcher = resolveDynamicQuotaFetcher(provider, connection);
     if (!fetcher) {
-      return { proceed: true };
+      return evaluateQuotaCutoff(null, thresholds, scope);
     }
   }
 
@@ -337,20 +358,13 @@ export async function preflightQuota(
   try {
     quota = await fetcher(connectionId, connection);
   } catch {
-    return { proceed: true };
+    return evaluateQuotaCutoff(null, thresholds, scope);
   }
 
   if (!quota) {
-    return { proceed: true };
+    return evaluateQuotaCutoff(null, thresholds, scope);
   }
 
-  const requestedModel =
-    typeof connection.requestedModel === "string" ? connection.requestedModel : null;
-  const scope: QuotaCutoffScope = {
-    provider,
-    requestedModel,
-    providerSpecificData: connection.providerSpecificData,
-  };
   const windows = quota.windows;
   if (windows && Object.keys(windows).length > 0) {
     const scopedWindows = windowsForScope(windows, scope);
@@ -380,7 +394,11 @@ export async function preflightQuota(
     );
     return decision;
   }
-  if (windows && Object.keys(windows).length > 0) {
+  if (
+    (windows && Object.keys(windows).length > 0) ||
+    (isCodexPaidCreditsEnabled(provider, connection.providerSpecificData, requestedModel) &&
+      hasCodexPaidCredits(quota.paidCredits))
+  ) {
     return decision;
   }
 

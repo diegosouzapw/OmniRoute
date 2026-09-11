@@ -40,6 +40,7 @@ import {
 } from "@omniroute/open-sse/services/codexAccount/index.ts";
 import { selectAntigravityQuotaWindowNames } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
 import { isClaudeExtraUsageAllowed } from "@/lib/providers/claudeExtraUsage";
+import { isCodexPaidCreditsEnabled } from "@/lib/providers/codexPaidCredits";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -426,6 +427,9 @@ export function isQuotaExhaustedForRequest(
   providerSpecificData?: unknown
 ): boolean {
   if (isClaudeExtraUsageAllowed(provider, providerSpecificData)) return false;
+  // Subscription snapshots cannot decide paid-credit eligibility. The mandatory
+  // Codex preflight checks the credit balance before dispatch; cooldowns remain separate.
+  if (isCodexPaidCreditsEnabled(provider, providerSpecificData, requestedModel)) return false;
   const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return false;
 

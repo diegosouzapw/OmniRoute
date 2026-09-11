@@ -30,6 +30,27 @@ test("fetchCodexQuota returns null when no registered credentials exist", async 
   assert.equal(quota, null);
 });
 
+test("fetchCodexQuota exposes available paid credits without changing exhausted subscription windows", async () => {
+  globalThis.fetch = async () =>
+    Response.json({
+      rate_limit: { limit_reached: true, primary_window: { used_percent: 100 } },
+      credits: { has_credits: true, unlimited: false, overage_limit_reached: false, balance: null },
+    });
+  const connectionId = "codex-paid-credits-fetch";
+  try {
+    const quota = await fetchCodexQuota(connectionId, {
+      accessToken: "test-token",
+      providerSpecificData: { workspaceId: "test-workspace" },
+    });
+    assert.equal(quota?.paidCredits?.hasCredits, true);
+    assert.equal(quota?.paidCredits?.balance, null);
+    assert.equal(quota?.limitReached, true);
+    assert.equal(quota?.windows?.session.percentUsed, 1);
+  } finally {
+    invalidateCodexQuotaCache(connectionId);
+  }
+});
+
 test("fetchCodexQuota can read credentials directly from the provided connection snapshot", async () => {
   const connectionId = `codex-inline-${Date.now()}`;
   const calls = [];
