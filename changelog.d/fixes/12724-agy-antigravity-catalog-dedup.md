@@ -1,0 +1,1 @@
+- **fix(providers):** `AGY_PUBLIC_MODELS` is now a re-export of the canonical `ANTIGRAVITY_PUBLIC_MODELS` catalog instead of a second hand-maintained copy — the two lists had been byte-equal for over a month and could silently drift whenever a new Antigravity-backed model shipped ([#12724](https://github.com/diegosouzapw/OmniRoute/issues/12724))
