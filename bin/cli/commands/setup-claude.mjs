@@ -19,7 +19,7 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import os from "node:os";
-import { printHeading, printInfo, printSuccess, printError } from "../io.mjs";
+import { printHeading, printInfo, printSuccess, printError, printWarning } from "../io.mjs";
 import { guardHostConfigTarget } from "../utils/config-home-guard.mjs";
 import {
   categoriseModel,
@@ -43,6 +43,59 @@ function effortLevelFor(cfg) {
 export function fallbackClaudeProfile(modelId, model) {
   if (!isCodexCompatibleTextModel(model)) return null;
   return { name: profileNameFromModelId(modelId) };
+}
+
+/**
+ * Manual-launch hint for one profile, in the syntax of the host shell.
+ *
+ * Claude Code resolves `CLAUDE_CONFIG_DIR` verbatim — its config root is
+ * `process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), ".claude")`, with **no
+ * tilde expansion**. So the `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name>`
+ * one-liner this command used to print only works on a shell that expands `~`
+ * itself (bash/zsh). On PowerShell or cmd.exe it either fails to parse or
+ * resolves to a literal `./~/.claude/...` that does not exist — Claude Code
+ * then starts with NO `ANTHROPIC_BASE_URL`, and its `firstParty` provider
+ * falls back to `api.anthropic.com`, which rejects an OmniRoute key with a real
+ * Anthropic `401 {"type":"error","error":{"type":"authentication_error",…}}`
+ * (#11525).
+ *
+ * Always emit the ABSOLUTE profile directory so the hint is copy-pasteable on
+ * every platform.
+ *
+ * @param {string} profileDir  absolute path to `<claudeHome>/profiles/<name>`
+ * @param {NodeJS.Platform|string} [platform]
+ * @returns {string}
+ */
+export function formatManualLaunchHint(profileDir, platform = process.platform) {
+  if (platform === "win32") {
+    return (
+      `$env:CLAUDE_CONFIG_DIR="${profileDir}"; ` +
+      `$env:ANTHROPIC_AUTH_TOKEN="<your OmniRoute key>"; claude`
+    );
+  }
+  return `CLAUDE_CONFIG_DIR="${profileDir}" ANTHROPIC_AUTH_TOKEN="<your OmniRoute key>" claude`;
+}
+
+/**
+ * `ANTHROPIC_API_KEY` inherited from the operator's shell is the other half of
+ * the #11525 dead end: Claude Code sends it as `x-api-key` and shows the
+ * "Detected a custom API key in your environment" consent screen, so a session
+ * that never picked up `ANTHROPIC_BASE_URL` looks configured right up until
+ * Anthropic itself answers 401. Warn once, at generation time.
+ *
+ * @param {Record<string,string|undefined>} env
+ * @returns {string|null} the warning line, or null when the shell is clean
+ */
+export function inheritedAnthropicKeyWarning(env = process.env) {
+  const key = env?.ANTHROPIC_API_KEY;
+  if (!key || !String(key).trim()) return null;
+  return (
+    "ANTHROPIC_API_KEY is set in this shell. Claude Code sends it as x-api-key and asks " +
+    "\"Detected a custom API key in your environment\" — if ANTHROPIC_BASE_URL is not " +
+    "picked up, that key goes to api.anthropic.com and you get a real Anthropic 401. " +
+    "Unset it, or use `omniroute launch --profile <name>` (it strips every inherited " +
+    "ANTHROPIC_* var before spawning claude)."
+  );
 }
 
 /** Build the settings.json content for one Claude Code profile. */
@@ -204,9 +257,17 @@ export async function runSetupClaudeCommand(opts = {}) {
     if (skipped > 0) printInfo(`${skipped} models skipped (no matching profile pattern)`);
     console.log("\nTo use a profile:");
     console.log("  omniroute launch --profile <name>     # e.g. omniroute launch --profile glm52");
-    console.log(
-      "  # or: CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude  (export ANTHROPIC_AUTH_TOKEN first)"
-    );
+    // Absolute path, host-shell syntax: Claude Code does not expand `~` in
+    // CLAUDE_CONFIG_DIR, and a config dir that does not resolve silently drops
+    // ANTHROPIC_BASE_URL — the request then goes to api.anthropic.com (#11525).
+    const sample = join(profilesRoot, profiles[0]?.name ?? "<name>");
+    console.log("  # or, without the launcher:");
+    console.log(`  ${formatManualLaunchHint(sample)}`);
+    const keyWarning = inheritedAnthropicKeyWarning();
+    if (keyWarning) {
+      console.log("");
+      printWarning(keyWarning);
+    }
   } else {
     console.log(`\n[dry-run] ${written} profiles would be written (${skipped} skipped)`);
   }
