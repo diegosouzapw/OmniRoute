@@ -7,6 +7,7 @@
  */
 
 import { hashInput, summarizeOutput } from "./schemas/audit.ts";
+import { runtimeRequire } from "../../src/lib/db/adapters/runtimeRequire.ts";
 import { isNativeSqliteLoadError } from "../../src/lib/db/core.ts";
 
 // ============ Database Connection ============
@@ -207,10 +208,8 @@ function toString(value: unknown): string {
 }
 
 /**
- * Test-only seam: the production load path uses `createRequire()` (so the
- * Electron/global-install resolution works — #8959), which `vi.doMock` cannot
- * intercept (it only patches Vitest's ESM module graph). Tests inject a
- * throwing/mocked loader here to exercise the node:sqlite fallback.
+ * Test-only seam: tests inject a throwing/mocked loader here to exercise the
+ * node:sqlite fallback without depending on a native binding.
  */
 let betterSqliteLoaderForTests: (() => unknown) | null = null;
 export function __setBetterSqliteLoaderForTests(loader: (() => unknown) | null): void {
@@ -222,9 +221,7 @@ async function openBetterSqliteAuditDb(dbPath: string): Promise<AuditDatabase> {
   if (betterSqliteLoaderForTests) {
     mod = betterSqliteLoaderForTests();
   } else {
-    const { createRequire } = await import("node:module");
-    const _require = createRequire(import.meta.url);
-    mod = _require("better-sqlite3");
+    mod = runtimeRequire("better-sqlite3");
   }
   const Database = ((mod as { default?: unknown })?.default || mod) as unknown as new (
     dbPath: string
@@ -244,7 +241,10 @@ async function openNodeSqliteAuditDb(dbPath: string): Promise<AuditDatabase> {
   return createNodeSqliteAuditAdapter(new DatabaseSync(dbPath));
 }
 
-async function openFallbackAuditDb(dbPath: string, nativeMessage: string): Promise<AuditDatabase | null> {
+async function openFallbackAuditDb(
+  dbPath: string,
+  nativeMessage: string
+): Promise<AuditDatabase | null> {
   if (!nodeSqliteFallbackAvailable()) {
     console.error(
       `[MCP Audit] better-sqlite3 native binding unavailable and Node ${process.version} ` +

@@ -18,13 +18,9 @@ function createStatementMock() {
   };
 }
 
-// #8959 made the production loader use createRequire() (Electron/global-install
-// resolution), which vi.doMock CANNOT intercept — it only patches Vitest's ESM
-// module graph. The old better-sqlite3 doMock therefore never engaged: the code
-// opened a REAL sqlite file in the temp DATA_DIR ("no such table" on stderr)
-// and every mock assertion counted 0 calls. The shutdown tests now inject the
-// mock through the audit connection cache (globalThis.__omnirouteMcpAuditDb),
-// and the fallback test uses the __setBetterSqliteLoaderForTests seam.
+// The shutdown tests inject through the audit connection cache
+// (globalThis.__omnirouteMcpAuditDb), and the fallback test uses the
+// __setBetterSqliteLoaderForTests seam.
 describe("MCP audit shutdown", () => {
   let dataDir: string;
   let dbFile: string;
@@ -41,37 +37,34 @@ describe("MCP audit shutdown", () => {
   afterEach(() => {
     delete process.env.DATA_DIR;
     globalThis.__omnirouteMcpAuditDb = undefined;
+    vi.doUnmock("../../../src/lib/db/adapters/runtimeRequire.ts");
     vi.restoreAllMocks();
   });
 
-  it(
-    "checkpoints and closes the audit database during shutdown",
-    async () => {
-      const mockDb: MockAuditDb = {
-        prepare: vi.fn(() => createStatementMock()),
-        pragma: vi.fn(),
-        close: vi.fn(),
-        open: true,
-      };
+  it("checkpoints and closes the audit database during shutdown", async () => {
+    const mockDb: MockAuditDb = {
+      prepare: vi.fn(() => createStatementMock()),
+      pragma: vi.fn(),
+      close: vi.fn(),
+      open: true,
+    };
 
-      const audit = await import("../audit.ts");
-      // Inject through the connection cache — the seam the module itself uses.
-      globalThis.__omnirouteMcpAuditDb = mockDb as unknown as typeof globalThis.__omnirouteMcpAuditDb;
+    const audit = await import("../audit.ts");
+    // Inject through the connection cache — the seam the module itself uses.
+    globalThis.__omnirouteMcpAuditDb = mockDb as unknown as typeof globalThis.__omnirouteMcpAuditDb;
 
-      await audit.logToolCall("omniroute_get_health", { ok: true }, { ok: true }, 12, true);
-      expect(mockDb.prepare).toHaveBeenCalledTimes(1);
+    await audit.logToolCall("omniroute_get_health", { ok: true }, { ok: true }, 12, true);
+    expect(mockDb.prepare).toHaveBeenCalledTimes(1);
 
-      expect(audit.closeAuditDb()).toBe(true);
-      expect(mockDb.pragma).toHaveBeenCalledWith("wal_checkpoint(TRUNCATE)");
-      expect(mockDb.close).toHaveBeenCalledTimes(1);
-      expect(audit.closeAuditDb()).toBe(false);
-    },
-    // Explicit generous timeout (vitest default is 5000ms): under contended
-    // CI-runner load, vi.resetModules() + a fresh dynamic import + mocked DB
-    // calls can exceed the default budget though the behavior is correct
-    // (issue #6803).
-    30000
-  );
+    expect(audit.closeAuditDb()).toBe(true);
+    expect(mockDb.pragma).toHaveBeenCalledWith("wal_checkpoint(TRUNCATE)");
+    expect(mockDb.close).toHaveBeenCalledTimes(1);
+    expect(audit.closeAuditDb()).toBe(false);
+  }, // Explicit generous timeout (vitest default is 5000ms): under contended
+  // CI-runner load, vi.resetModules() + a fresh dynamic import + mocked DB
+  // calls can exceed the default budget though the behavior is correct
+  // (issue #6803).
+  30000);
 
   it("still closes the audit database when checkpoint fails", async () => {
     const mockDb: MockAuditDb = {
@@ -91,6 +84,41 @@ describe("MCP audit shutdown", () => {
     expect(mockDb.close).toHaveBeenCalledTimes(1);
   });
 
+  it("loads the native audit database through the standalone-safe runtime loader", async () => {
+    class FakeDatabase {
+      open = true;
+
+      prepare(sql: string) {
+        if (sql.includes("COUNT(*) as total") && sql.includes("AVG(duration_ms)")) {
+          return {
+            ...createStatementMock(),
+            get: vi.fn(() => ({ total: 7, successRate: 0.75, avgDuration: 12 })),
+          };
+        }
+        return {
+          ...createStatementMock(),
+          all: vi.fn(() => [{ tool: "omniroute_get_health", count: 7 }]),
+        };
+      }
+
+      pragma() {}
+      close() {}
+    }
+
+    vi.doMock("../../../src/lib/db/adapters/runtimeRequire.ts", () => ({
+      runtimeRequire: () => FakeDatabase,
+    }));
+
+    const audit = await import("../audit.ts");
+
+    await expect(audit.getAuditStats()).resolves.toEqual({
+      totalCalls: 7,
+      successRate: 0.75,
+      avgDurationMs: 12,
+      topTools: [{ tool: "omniroute_get_health", count: 7 }],
+    });
+  });
+
   it("falls back to node:sqlite when better-sqlite3 binding is missing", async () => {
     const [maj, min] = process.versions.node.split(".").map(Number);
     if (maj < 22 || (maj === 22 && min < 5)) {
@@ -99,8 +127,7 @@ describe("MCP audit shutdown", () => {
 
     // Simulate a global-install scenario where the bundled native binary
     // never landed in dist/node_modules/better-sqlite3/build/Release/.
-    // Thrown from the loader seam because the real load path is
-    // createRequire("better-sqlite3"), unreachable by vi.doMock.
+    // Thrown from the loader seam so the test does not depend on a native binding.
     const bindingErr = new Error(
       "Could not locate the bindings file. Tried: …/better_sqlite3.node"
     ) as Error & { code?: string };
