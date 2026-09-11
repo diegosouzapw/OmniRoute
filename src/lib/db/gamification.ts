@@ -155,21 +155,69 @@ export function getTopN(scope: string, limit: number, offset: number = 0): Leade
 // ──────────────── XP & Levels ────────────────
 
 export function addXp(apiKeyId: string, action: string, amount: number, metadata?: string): void {
-  db()
-    .prepare(
-      `INSERT INTO xp_audit_log (api_key_id, action, xp_earned, metadata)
-     VALUES (?, ?, ?, ?)`
-    )
-    .run(apiKeyId, action, amount, metadata ?? null);
+  const instance = getDbInstance();
+  const txn = instance.transaction(() => {
+    instance
+      .prepare(
+        `INSERT INTO xp_audit_log (api_key_id, action, xp_earned, metadata)
+       VALUES (?, ?, ?, ?)`
+      )
+      .run(apiKeyId, action, amount, metadata ?? null);
 
-  db()
+    instance
+      .prepare(
+        `INSERT INTO user_levels (api_key_id, total_xp, current_level, updated_at)
+       VALUES (?, ?, ?, datetime('now'))
+       ON CONFLICT(api_key_id)
+       DO UPDATE SET total_xp = total_xp + excluded.total_xp, updated_at = datetime('now')`
+      )
+      .run(apiKeyId, amount, calculateLevel(amount));
+
+    // Bump the (api_key_id, action) cache in the same transaction so readers
+    // never see a higher audit_log count than the cache. Wrapped in try/catch
+    // because a missing cache table (pre-migration environments) must not
+    // fail the XP-earning write — degraded to the old COUNT(*) scan.
+    try {
+      instance
+        .prepare(
+          `INSERT INTO xp_action_counts (api_key_id, action, count, updated_at)
+         VALUES (?, ?, 1, datetime('now'))
+         ON CONFLICT(api_key_id, action)
+         DO UPDATE SET count = count + 1, updated_at = datetime('now')`
+        )
+        .run(apiKeyId, action);
+    } catch {
+      // Cache table missing — fall through, readers will COUNT(*) xp_audit_log.
+    }
+  });
+  txn();
+}
+
+/**
+ * Read action count for a (api_key_id, action) pair.
+ *
+ * Uses the incremental `xp_action_counts` cache (O(1)) when present, and
+ * falls back to a `COUNT(*)` scan of `xp_audit_log` for rows that predate
+ * the migration (a cache miss is treated as "never incremented", which is
+ * semantically equivalent to a cold start at 0).
+ */
+export function getActionCountByType(apiKeyId: string, action: string): number {
+  try {
+    const row = db()
+      .prepare(
+        `SELECT count FROM xp_action_counts WHERE api_key_id = ? AND action = ?`
+      )
+      .get(apiKeyId, action) as { count: number } | undefined;
+    if (row) return row.count;
+  } catch {
+    // Cache table missing — fall through to audit-log scan.
+  }
+  const audit = db()
     .prepare(
-      `INSERT INTO user_levels (api_key_id, total_xp, current_level, updated_at)
-     VALUES (?, ?, ?, datetime('now'))
-     ON CONFLICT(api_key_id)
-     DO UPDATE SET total_xp = total_xp + excluded.total_xp, updated_at = datetime('now')`
+      `SELECT COUNT(*) AS cnt FROM xp_audit_log WHERE api_key_id = ? AND action = ?`
     )
-    .run(apiKeyId, amount, calculateLevel(amount));
+    .get(apiKeyId, action) as { cnt: number };
+  return audit?.cnt ?? 0;
 }
 
 export function getXp(apiKeyId: string): UserLevelRow | null {
