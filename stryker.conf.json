@@ -123,6 +123,7 @@
       "tests/unit/chat-context-relay.test.ts",
       "tests/unit/chat-cooldown-aware-retry.test.ts",
       "tests/unit/chat-helpers.test.ts",
+      "tests/unit/chat-stream-early-eof-failover.test.ts",
       "tests/unit/chatgpt-web-codex.test.ts",
       "tests/unit/chat-route-coverage.test.ts",
       "tests/unit/chat-route-edge-cases.test.ts",

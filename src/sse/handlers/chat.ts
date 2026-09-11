@@ -100,6 +100,7 @@ import {
   safeLogEvents,
   applyExecutorProxyToInfo,
   shouldRetryStreamEarlyEof,
+  isEarlyEofSiblingFailoverOn,
   withSessionHeader,
   withSelectedConnectionHeader,
   withCorrelationId,
@@ -2093,6 +2094,14 @@ async function handleSingleModelChat(
 
         // Stream readiness timeout is an upstream stall after an HTTP response was received,
         // not an account/quota failure. Do NOT mark the account unavailable here.
+        if (isTerminalStreamEarlyEof && !hasForcedConnection && isEarlyEofSiblingFailoverOn()) {
+          // Retry spent and nothing emitted yet: try a sibling (routing only, no account mark).
+          log.warn("STREAM", `${provider}/${model} early-EOF retry exhausted — trying sibling`);
+          excludedConnectionIds.add(credentials.connectionId);
+          lastError = requestRetryLastError = result.error;
+          lastStatus = requestRetryLastStatus = result.status;
+          continue;
+        }
         return withSelectedConnectionHeader(result.response, credentials?.connectionId);
       }
 

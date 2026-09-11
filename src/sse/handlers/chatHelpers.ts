@@ -46,6 +46,7 @@ import {
 } from "../../shared/utils/circuitBreaker";
 import { classify429FromError, type FailureKind } from "../../shared/utils/classify429";
 import { resolveUseUpstream429BreakerHints } from "../../shared/utils/providerHints";
+import { isFeatureFlagEnabled } from "../../shared/utils/featureFlags";
 
 import { logProxyEvent } from "../../lib/proxyLogger";
 import { logTranslationEvent } from "../../lib/translatorEvents";
@@ -923,6 +924,20 @@ export function shouldRetryStreamEarlyEof(
   attempt: number
 ): boolean {
   return errorCode === "STREAM_EARLY_EOF" && attempt < STREAM_EARLY_EOF_MAX_RETRIES;
+}
+
+// The sibling hop widens the terminal/failover boundary, so it ships off
+// behind STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED until observed live.
+export function isEarlyEofSiblingFailoverOn(): boolean {
+  try {
+    return isFeatureFlagEnabled("STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
 }
 
 export function decideProxyResolutionFailure(

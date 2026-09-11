@@ -46,7 +46,7 @@ A boolean flag is considered **enabled** when its effective value is `"true"`,
 
 ## Flag Catalog
 
-55 flags across 6 categories. **Default** is the definition default — the value
+56 flags across 6 categories. **Default** is the definition default — the value
 used when neither a DB override nor an environment variable is present.
 
 ### Security (10)
@@ -88,7 +88,7 @@ used when neither a DB override nor an environment variable is present.
 | `CAPABILITY_FILTER_ENABLED`     | boolean | `false`    | Reject requests before dispatch when the target model lacks required capabilities (vision, tools, structured output, context window). Protects direct single-provider requests that bypass the combo-layer compatibility filter. |
 | `RADAR_ENABLED`                 | boolean | `false`    | Enable the OmniRoute Radar module (catalog feed screens and sync). Off by default; enabling only unlocks the UI — data sync remains a separate opt-in.                                                                           |
 
-### Runtime (23)
+### Runtime (24)
 
 | Key                                         | Type    | Default | Restart | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ------------------------------------------- | ------- | ------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -105,6 +105,7 @@ used when neither a DB override nor an environment variable is present.
 | `OMNIROUTE_EMERGENCY_FALLBACK`              | boolean | `true`  |         | Route budget-exhausted requests to the emergency free fallback provider/model. (See [Emergency Budget Fallback](#emergency-budget-fallback) below.)                                                                                                                                                                                                                                                                                                                  |
 | `STREAM_RECOVERY_ENABLED`                   | boolean | `false` |         | Enable transparent early retry for truncated upstream SSE streams before any response bytes reach the client.                                                                                                                                                                                                                                                                                                                                                        |
 | `STREAM_RECOVERY_MIDSTREAM_ENABLED`         | boolean | `false` |         | Allow stream recovery to re-request and stitch a response after bytes have already reached the client.                                                                                                                                                                                                                                                                                                                                                               |
+| `STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED` | boolean | `false` |         | Fail over to a sibling connection when an SSE stream closes before emitting any useful frame and the bounded same-connection retry is spent. Off by default: early-EOF stays terminal after the same-connection retry.                                                                                                                                                                                                                                                 |
 | `MODEL_CATALOG_INCLUDE_NAMES`               | boolean | `true`  |         | Include display-friendly name fields in `/v1/models` responses. Disable for clients that expect model IDs only.                                                                                                                                                                                                                                                                                                                                                      |
 | `MODELS_CATALOG_PREFIX_MODE`                | enum    | `dual`  |         | Controls how model IDs are prefixed in /v1/models. 'dual' (default) emits both alias and canonical provider-id prefixes for backward compatibility. 'alias' emits only the short alias prefix (e.g. ds-web/model, not deepseek-web/model). 'canonical' emits only the full provider-id prefix. Values: `dual`, `alias`, `canonical`.                                                                                                                                 |
 | `ARENA_ELO_SYNC_ENABLED`                    | boolean | `true`  |         | Enable periodic Arena AI leaderboard ELO sync for model intelligence rankings.                                                                                                                                                                                                                                                                                                                                                                                       |
@@ -195,10 +196,10 @@ Returns every flag with its effective value, source, and a summary.
       "requiresRestart": false,
       "warningLevel": "caution",
     },
-    // ... all 55 flags
+    // ... all 56 flags
   ],
   "summary": {
-    "total": 54,
+    "total": 56,
     "active": 0,
     "inactive": 0,
     "overriddenByDb": 0,
