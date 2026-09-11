@@ -1,0 +1,1 @@
+- **fix(gemini):** strip `prefixItems`/`additionalItems` from tool parameter schemas — tuple-typed arrays triggered a hard upstream 400 (`Unknown name "prefixItems"`), breaking every tool-enabled Claude Code request to a Gemini model ([#12872](https://github.com/diegosouzapw/OmniRoute/pull/12872)) — thanks @sonirahul
