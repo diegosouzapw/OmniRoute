@@ -1,0 +1,1 @@
+- Fix `opencode-go/muse-spark-1.3-contributor` returning 500 by routing it (base + minimal/low/medium/high/xhigh effort aliases) to the Responses API like the 1.2 family. (#12675 — thanks @bacnh85)
