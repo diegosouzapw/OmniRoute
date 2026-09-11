@@ -728,8 +728,10 @@ function convertOpenAIToolChoice(choice) {
     if (choice.type === "function" && choice.function?.name) {
       return { type: "tool", name: choice.function.name };
     }
-    // Map OpenAI string types to Claude equivalents
-    if (choice.type === "auto" || choice.type === "none") return { type: "auto" };
+    // Map OpenAI string types to Claude equivalents. Claude has its own "none"; mapping it
+    // to "auto" let the model call tools the client had switched off.
+    if (choice.type === "auto") return { type: "auto" };
+    if (choice.type === "none") return { type: "none" };
     if (choice.type === "required" || choice.type === "any")
       return { type: CLAUDE_TOOL_CHOICE_REQUIRED };
     // If type is "tool" already (Claude-native), pass through
@@ -737,7 +739,8 @@ function convertOpenAIToolChoice(choice) {
     // Fallback: unknown object type — default to auto to avoid 400 errors
     return { type: "auto" };
   }
-  if (choice === "auto" || choice === "none") return { type: "auto" };
+  if (choice === "auto") return { type: "auto" };
+  if (choice === "none") return { type: "none" };
   if (choice === "required") return { type: CLAUDE_TOOL_CHOICE_REQUIRED };
   if (typeof choice === "object" && choice.function) {
     return { type: "tool", name: choice.function.name };

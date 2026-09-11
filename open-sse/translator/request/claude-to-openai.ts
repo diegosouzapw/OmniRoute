@@ -541,6 +541,8 @@ function convertToolChoice(choice, hasServerWebSearch = false) {
   switch (choice.type) {
     case "auto":
       return "auto";
+    case "none":
+      return "none";
     case TOOL_CHOICE_ANY:
       return "required";
     case "tool":
