@@ -1,7 +1,7 @@
 ---
 title: "Cursor API provider and the Cursor CLI passthrough"
-version: 3.8.50
-lastUpdated: 2026-08-19
+version: 3.8.51
+lastUpdated: 2026-09-05
 ---
 
 # Cursor API provider and the Cursor CLI passthrough
@@ -65,6 +65,18 @@ Notes:
   needed on the OmniRoute host.
 - `POST /api/providers/{id}/refresh-cursor` is for the `cursor` IDE provider
   only; `cursor-api` connections have no IDE session to renew.
+
+## Native model IDs and effort
+
+For `cursor` / `cu` and `cursor-api` / `cua`, the shared Claude-effort normalizer
+leaves the requested model ID intact. Cursor can advertise a suffix such as
+`-low` as part of a real model ID, rather than as an OmniRoute effort alias.
+The Cursor executor preserves an exact live-catalog match; when there is no
+match, its existing model resolver owns suffix-to-parameter fallback.
+
+This does not change effort normalization for direct Claude, Claude-compatible,
+or Vertex routes. Availability still depends on the selected Cursor account's
+catalog and entitlement.
 
 ## Cursor CLI passthrough
 

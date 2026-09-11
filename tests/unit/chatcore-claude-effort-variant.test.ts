@@ -10,6 +10,48 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { applyClaudeEffortVariant } from "../../open-sse/handlers/chatCore/claudeEffortVariant.ts";
 import { FORMATS } from "../../open-sse/translator/formats.ts";
+import { resolveRequestedModel } from "../../open-sse/utils/cursorAgentProtobuf.ts";
+
+for (const provider of ["cursor", "cu", "cursor-api", "cua"]) {
+  for (const sourceFormat of [FORMATS.OPENAI, FORMATS.CLAUDE, FORMATS.OPENAI_RESPONSES]) {
+    test(`${provider}/${sourceFormat}: preserves native Cursor Claude model ids before executor resolution`, () => {
+      for (const model of [
+        "claude-fable-5-1-low",
+        "claude-fable-5-1-thinking-low",
+        "claude-opus-5-low",
+      ]) {
+        const body = { model, messages: [] };
+        const result = applyClaudeEffortVariant({
+          provider,
+          effectiveModel: model,
+          body,
+          sourceFormat,
+        });
+        assert.deepEqual(result, { effectiveModel: model, log: null });
+        assert.deepEqual(body, { model, messages: [] });
+        assert.deepEqual(
+          resolveRequestedModel(result.effectiveModel, { liveCatalogIds: new Set([model]) }),
+          { modelId: model, parameters: [] }
+        );
+      }
+    });
+  }
+}
+
+test("Cursor preserves explicit client effort while its encoder owns non-catalog suffix fallback", () => {
+  const body = { model: "claude-opus-5-low", reasoning_effort: "none", messages: [] };
+  const result = applyClaudeEffortVariant({
+    provider: "cursor",
+    effectiveModel: body.model,
+    body,
+    sourceFormat: FORMATS.OPENAI,
+  });
+  assert.deepEqual(body, { model: "claude-opus-5-low", reasoning_effort: "none", messages: [] });
+  assert.deepEqual(resolveRequestedModel(result.effectiveModel, { liveCatalogIds: new Set() }), {
+    modelId: "claude-opus-5",
+    parameters: [{ id: "effort", value: "low" }],
+  });
+});
 
 test("claude provider + effort suffix → strips to base, mutates body model + reasoning_effort, returns log", () => {
   const body: Record<string, unknown> = { model: "claude-sonnet-4-high", messages: [] };
