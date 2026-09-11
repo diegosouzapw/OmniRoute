@@ -766,13 +766,68 @@ export async function cleanupProxyLogs(): Promise<CleanupResult> {
 const CLEANUP_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
 let _cleanupSchedulerTimer: ReturnType<typeof setInterval> | null = null;
 
+const DEFAULT_VACUUM_MIN_RECLAIMABLE_BYTES = 100 * 1024 * 1024; // 100 MB
+
+export function getVacuumMinReclaimableBytes(): number {
+  const raw = process.env.OMNIROUTE_VACUUM_MIN_RECLAIMABLE_MB;
+  if (!raw) return DEFAULT_VACUUM_MIN_RECLAIMABLE_BYTES;
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isInteger(parsed) && parsed >= 0
+    ? parsed * 1024 * 1024
+    : DEFAULT_VACUUM_MIN_RECLAIMABLE_BYTES;
+}
+
+/**
+ * `db.exec("VACUUM")` is synchronous and blocks the entire process -- on a
+ * multi-GB database that can freeze all HTTP traffic for 15-20 minutes, even
+ * when the cleanup that triggered it only freed a handful of rows. Reclaimable
+ * space (SQLite's own free-page count, not row count) is what actually
+ * determines whether that multi-minute freeze is worth it: a few oversized
+ * batch_item_checkpoints rows can free more than thousands of tiny audit-log
+ * rows. Observed live: a routine cleanup that freed 2-6 rows re-triggered a
+ * full VACUUM on every restart regardless.
+ */
+export function getReclaimableBytes(db: ReturnType<typeof getDbInstance>): number {
+  const freelist = db.pragma("freelist_count", { simple: true }) as number;
+  const pageSize = db.pragma("page_size", { simple: true }) as number;
+  return freelist * pageSize;
+}
+
+export function vacuumIfWorthwhile(db: ReturnType<typeof getDbInstance>, logPrefix: string): void {
+  let reclaimable = 0;
+  try {
+    reclaimable = getReclaimableBytes(db);
+  } catch (err) {
+    console.error(`${logPrefix} Failed to read reclaimable space:`, err);
+    return;
+  }
+  const minBytes = getVacuumMinReclaimableBytes();
+  if (reclaimable < minBytes) {
+    console.log(
+      `${logPrefix} Skipping VACUUM: only ${(reclaimable / (1024 * 1024)).toFixed(1)} MB reclaimable (threshold ${(minBytes / (1024 * 1024)).toFixed(0)} MB).`
+    );
+    return;
+  }
+  console.log(
+    `${logPrefix} Running VACUUM (${(reclaimable / (1024 * 1024)).toFixed(1)} MB reclaimable)...`
+  );
+  try {
+    db.exec("VACUUM");
+    console.log(`${logPrefix} VACUUM completed.`);
+  } catch (vacErr) {
+    console.error(`${logPrefix} VACUUM failed:`, vacErr);
+  }
+}
+
 /**
  * Start the background cleanup scheduler. Runs cleanup on startup
- * and then every 6 hours. Runs VACUUM after deletes to reclaim disk space.
+ * and then every 6 hours. VACUUMs after deletes to reclaim disk space, but
+ * only when there is meaningfully more than OMNIROUTE_VACUUM_MIN_RECLAIMABLE_MB
+ * (default 100 MB) worth of free pages to reclaim -- see vacuumIfWorthwhile().
  *
- * Without this, tables grow unboundedly (compression_analytics 600K+ rows,
- * usage_history 250K+ rows) causing 1.4GB+ SQLite files and 3-8GB RSS
- * from better-sqlite3 memory mapping.
+ * Without the cleanup itself, tables grow unboundedly (compression_analytics
+ * 600K+ rows, usage_history 250K+ rows) causing 1.4GB+ SQLite files and
+ * 3-8GB RSS from better-sqlite3 memory mapping.
  */
 export function startCleanupScheduler(): void {
   if (_cleanupSchedulerTimer) return;
@@ -784,14 +839,8 @@ export function startCleanupScheduler(): void {
       const proxyResult = await cleanupProxyLogs();
       const totalDeleted = result.totalDeleted + proxyResult.deleted;
       if (totalDeleted > 0) {
-        console.log(`[Cleanup] Startup cleanup freed ${totalDeleted} rows. Running VACUUM...`);
-        try {
-          const db = getDbInstance();
-          db.exec("VACUUM");
-          console.log("[Cleanup] VACUUM completed after startup cleanup.");
-        } catch (vacErr) {
-          console.error("[Cleanup] VACUUM after cleanup failed:", vacErr);
-        }
+        console.log(`[Cleanup] Startup cleanup freed ${totalDeleted} rows.`);
+        vacuumIfWorthwhile(getDbInstance(), "[Cleanup]");
       }
     } catch (err) {
       console.error("[Cleanup] Startup cleanup failed:", err);
@@ -805,14 +854,8 @@ export function startCleanupScheduler(): void {
       const proxyResult = await cleanupProxyLogs();
       const totalDeleted = result.totalDeleted + proxyResult.deleted;
       if (totalDeleted > 0) {
-        console.log(`[Cleanup] Periodic cleanup freed ${totalDeleted} rows. Running VACUUM...`);
-        try {
-          const db = getDbInstance();
-          db.exec("VACUUM");
-          console.log("[Cleanup] VACUUM completed after periodic cleanup.");
-        } catch (vacErr) {
-          console.error("[Cleanup] VACUUM after cleanup failed:", vacErr);
-        }
+        console.log(`[Cleanup] Periodic cleanup freed ${totalDeleted} rows.`);
+        vacuumIfWorthwhile(getDbInstance(), "[Cleanup]");
       }
     } catch (err) {
       console.error("[Cleanup] Periodic cleanup failed:", err);
