@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isHttpUrl } from "./shared/models-map.js";
+
 const apiFormatSchema = z
   .object({
     allowAnthropic: z.boolean().optional(),
@@ -28,7 +30,10 @@ const pluginOptionsSchema = z
       .regex(/^[A-Za-z0-9._-]+$/, "providerId may only contain letters, digits, '.', '_' and '-'")
       .refine((v) => v !== "." && v !== "..", "providerId cannot be a path segment")
       .default("omniroute"),
-    baseURL: z.string().url(),
+    baseURL: z
+      .string()
+      .trim()
+      .refine(isHttpUrl, "baseURL must be an http(s) URL, for example http://localhost:20128"),
     apiKey: z.string().optional(),
     displayName: z.string().optional(),
     managementReadToken: z.string().optional(),

@@ -96,6 +96,14 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   const acceptHeader = acceptKey(clientKey);
+
+  // The client can vanish during the upgrade round trip. `close` has then
+  // ALREADY fired, so the listeners below would never run and every resource
+  // acquired past this point would be held with no path to release it.
+  if (socket.destroyed) {
+    return new Response(null, { status: 101 });
+  }
+
   socket.write(
     [
       "HTTP/1.1 101 Switching Protocols",
@@ -106,21 +114,17 @@ export async function GET(request: Request): Promise<Response> {
     ].join("\r\n")
   );
 
-  const unsubscribe = globalTrafficBuffer.subscribe((ev) => {
-    sendText(socket, ev);
-  });
-
-  const pingTimer = setInterval(() => {
-    try {
-      socket.write(encodeWsFrame(0x09)); // ping
-    } catch {
-      cleanup();
-    }
-  }, PING_INTERVAL_MS);
+  let unsubscribe: (() => void) | null = null;
+  let pingTimer: ReturnType<typeof setInterval> | null = null;
+  let cleanedUp = false;
 
   function cleanup(): void {
-    clearInterval(pingTimer);
-    unsubscribe();
+    if (cleanedUp) return;
+    cleanedUp = true;
+    if (pingTimer) clearInterval(pingTimer);
+    pingTimer = null;
+    unsubscribe?.();
+    unsubscribe = null;
     try {
       socket.destroy();
     } catch {
@@ -128,14 +132,43 @@ export async function GET(request: Request): Promise<Response> {
     }
   }
 
-  socket.once("close", cleanup);
-  socket.once("error", cleanup);
-
-  // Never resolve — the socket is the response channel.
-  await new Promise<void>((resolve) => {
+  // Attached BEFORE any resource is acquired, so there is no window in which a
+  // subscriber or timer exists without a live path to cleanup().
+  const settled = new Promise<void>((resolve) => {
     socket.once("close", resolve);
     socket.once("error", resolve);
   });
+  socket.once("close", cleanup);
+  socket.once("error", cleanup);
+
+  // Re-check: `close` may have fired while we were writing the handshake, in
+  // which case the listeners above already ran and cleanup() is a no-op we
+  // still must not skip.
+  if (socket.destroyed) {
+    cleanup();
+    return new Response(null, { status: 101 });
+  }
+
+  unsubscribe = globalTrafficBuffer.subscribe((ev) => {
+    sendText(socket, ev);
+  });
+
+  pingTimer = setInterval(() => {
+    // `socket.write()` does NOT throw synchronously on a destroyed socket, so
+    // the destroyed check — not the catch — is what stops a dead interval.
+    if (socket.destroyed) {
+      cleanup();
+      return;
+    }
+    try {
+      socket.write(encodeWsFrame(0x09)); // ping
+    } catch {
+      cleanup();
+    }
+  }, PING_INTERVAL_MS);
+
+  // Never resolve — the socket is the response channel.
+  await settled;
 
   cleanup();
   return new Response(null, { status: 101 });

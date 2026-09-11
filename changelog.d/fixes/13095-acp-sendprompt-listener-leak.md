@@ -1,0 +1,1 @@
+- **fix(acp):** release the `stdout`/`exit` listeners and the idle timer that a `sendPrompt` timeout used to leave attached to the `acpManager` singleton, and drop sessions that exited on their own from the session map instead of keeping them forever.

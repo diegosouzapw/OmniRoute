@@ -11,6 +11,13 @@ const LAYER_Y: Record<OrchNodeKind, number> = {
 };
 const X_GAP = 260;
 
+/**
+ * Maximum simultaneously ACTIVE edges that still get the StatusEdge particle stream. Each
+ * animated edge runs 3 SMIL `<animateMotion>` particles, so a busy canvas would otherwise pay
+ * hundreds of concurrent animations; past the cap every edge renders as a plain colored stroke.
+ */
+export const PARTICLE_EDGE_CAP = 40;
+
 export interface OrchestrationToFlowOptions {
   collapsed?: ReadonlySet<OrchSource>;
 }
@@ -65,12 +72,18 @@ export function orchestrationToFlow(
       >,
     };
   });
+  const particles = visibleEdges.filter((e) => e.active).length <= PARTICLE_EDGE_CAP;
   const edges: Edge[] = visibleEdges.map((e) => ({
     id: e.id,
     source: e.from,
     target: e.to,
     type: "status",
-    data: { state: stateOf.get(e.to), active: e.active, mirror: e.kind === "mirror" },
+    data: {
+      state: stateOf.get(e.to),
+      active: e.active,
+      mirror: e.kind === "mirror",
+      particles,
+    },
   }));
 
   const workIdsKey = visibleNodes

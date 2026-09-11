@@ -5,7 +5,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
 import plugin from "../src/index.js";
-import { diskSnapshotPath, snapshotIdentityFingerprint } from "../src/cache.js";
+import {
+  diskSnapshotPath,
+  isStaleSnapshotModel,
+  snapshotIdentityFingerprint,
+} from "../src/cache.js";
 import { legacyApiToInfoApi } from "../src/catalog.js";
 
 function isolateDisk(): { dir: string; restore: () => void } {
@@ -97,7 +101,7 @@ function downFetch(): typeof fetch {
 const fingerprint = snapshotIdentityFingerprint("https://gw.example.com", "k-snapfix", "k-snapfix");
 
 describe("plugin-v2 snapshot stale-entry filter", () => {
-  it("snapshot with 2 entries without api block + 1 valid: only the valid one is published + warn emitted", async () => {
+  it("snapshot with 3 unusable pre-mapped entries + 1 valid: only the valid one is published + warn emitted", async () => {
     const disk = isolateDisk();
     const providerId = "snapfix-mixed";
     mkdirSync(join(disk.dir, "plugins"), { recursive: true });
@@ -106,11 +110,15 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
       JSON.stringify({
         v: 2,
         identityFingerprint: fingerprint,
-        // Two pre-mapped entries with a broken api block (missing npm) plus
-        // one plain raw entry (no api block: synthesized at publish time).
+        // Three pre-mapped entries with an unusable api block — missing npm,
+        // empty npm, and a well-formed npm with no url (the shape a snapshot
+        // written by an older build carries, and the one that reaches the host
+        // as a bare `Invalid URL`) — plus one plain raw entry, which has no api
+        // block at all and gets one synthesized at publish time.
         models: [
           { id: "stale-a", api: {} },
           { id: "stale-b", api: { npm: "" } },
+          { id: "stale-c", api: { id: "openai-compatible", npm: "@ai-sdk/openai-compatible" } },
           { id: "good-1", context_length: 128000 },
         ],
         combos: [],
@@ -137,7 +145,7 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
         );
       });
       assert.ok(
-        warns.some((w) => w.includes("dropping 2 stale snapshot entries without api block")),
+        warns.some((w) => w.includes("dropping 3 stale snapshot entries with an unusable api block")),
         `expected stale-drop warn, got: ${JSON.stringify(warns)}`
       );
     } finally {
@@ -215,5 +223,57 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
     );
     // Sanity: sha256 helper used above matches the plugin identity scheme.
     assert.equal(createHash("sha256").update("x").digest("hex").length, 64);
+  });
+
+  it("legacyApiToInfoApi throws unless api.url is an http(s) url", () => {
+    const npm = "@ai-sdk/openai-compatible";
+    for (const api of [
+      { id: "openai-compatible", npm },
+      { id: "openai-compatible", npm, url: "" },
+      { id: "openai-compatible", npm, url: "   " },
+      // Non-empty but uncallable: the AI SDK reaches `fetch` and fails there.
+      { id: "openai-compatible", npm, url: "/v1" },
+      { id: "openai-compatible", npm, url: "gw.example.com/v1" },
+      { id: "openai-compatible", npm, url: "ftp://gw.example.com/v1" },
+    ]) {
+      assert.throws(
+        () => legacyApiToInfoApi(api as unknown as { id: string; npm: string; url: string }),
+        /api block carries no http\(s\) url/,
+        `expected a publish-time refusal for ${JSON.stringify(api)}`
+      );
+    }
+    // A complete block still publishes unchanged.
+    assert.deepEqual(
+      legacyApiToInfoApi({
+        id: "openai-compatible",
+        npm: "@ai-sdk/openai-compatible",
+        url: "https://gw.example.com/v1",
+      }),
+      {
+        id: "openai-compatible",
+        type: "aisdk",
+        package: "@ai-sdk/openai-compatible",
+        url: "https://gw.example.com/v1",
+      }
+    );
+  });
+
+  it("isStaleSnapshotModel drops a pre-mapped entry whose api.url is unusable", () => {
+    const npm = "@ai-sdk/openai-compatible";
+    // Present-but-unusable url: stale, for the same reason a missing npm is.
+    for (const url of [undefined, "", "   ", "/v1", "gw.example.com/v1", "ftp://gw/v1"]) {
+      assert.equal(
+        isStaleSnapshotModel({ id: "a/b", api: { id: "x", npm, ...(url === undefined ? {} : { url }) } }),
+        true,
+        `expected ${JSON.stringify(url)} to be treated as stale`
+      );
+    }
+    // Complete block: publishable.
+    assert.equal(
+      isStaleSnapshotModel({ id: "a/b", api: { id: "x", npm, url: "https://gw/v1" } }),
+      false
+    );
+    // No api block at all stays publishable: it is synthesized at publish time.
+    assert.equal(isStaleSnapshotModel({ id: "a/b" }), false);
   });
 });

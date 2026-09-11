@@ -21,7 +21,9 @@ export function buildApiKeyConnectionTestResult(
     valid: !!result.valid,
     error,
     warning: result.warning || null,
-    statusCode: result.valid ? null : (result.statusCode ?? null),
+    // Keep a valid 402 so CredentialHealth can lock only the probed model
+    // instead of treating the whole openai-compatible connection as dead.
+    statusCode: result.valid && result.statusCode !== 402 ? null : (result.statusCode ?? null),
     diagnosis,
     ...(Array.isArray(result.deployments) ? { deployments: result.deployments } : {}),
   };

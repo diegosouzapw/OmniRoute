@@ -5,9 +5,9 @@ import {
   buildHealthPayload,
   buildSessionsSummary,
   buildTelemetryPayload,
+  countStaleDbNonOkConnections,
   projectAdaptiveAdmissionSummary,
   projectChatAdmissionSummary,
-  projectWalMaintenanceSummary,
 } from "../../src/lib/monitoring/observability.ts";
 
 test("buildSessionsSummary returns sticky counts and ordered top sessions", () => {
@@ -418,22 +418,25 @@ test("buildHealthPayload projects allowlisted structural chatAdmission fields on
   assert.equal(projectChatAdmissionSummary(undefined), null);
 });
 
-test("buildHealthPayload projects allowlisted walMaintenance fields only", () => {
-  const state = {
-    ticks: 4,
-    busyStreak: 1,
-    busyTotal: 2,
-    lastBusyAt: "2026-09-06T10:00:00.000Z",
-    lastOkAt: "2026-09-06T11:00:00.000Z",
-    // Internal keys that must never leak into the public payload.
-    walTimer: { _idleTimeout: 1 },
-    retryTimer: null,
-  } as unknown as import("../../src/lib/monitoring/observability.ts").WalMaintenanceSnapshot;
+test("buildHealthPayload marks credentialHealth as probe-cache and counts sticky sqlite status", () => {
+  assert.equal(
+    countStaleDbNonOkConnections([
+      { id: "a", isActive: true, testStatus: "expired" },
+      { id: "b", isActive: true, testStatus: "credits_exhausted" },
+      { id: "c", isActive: false, testStatus: "error" },
+      { id: "d", isActive: true, testStatus: "active" },
+      { id: "e", isActive: true, testStatus: "unknown" },
+    ]),
+    2
+  );
 
   const payload = buildHealthPayload({
-    appVersion: "9.9.9",
-    settings: { setupComplete: false },
-    connections: [],
+    appVersion: "1.2.3",
+    settings: { setupComplete: true },
+    connections: [
+      { id: "sticky-expired", provider: "openai", isActive: true, testStatus: "expired" },
+      { id: "ok", provider: "anthropic", isActive: true, testStatus: "active" },
+    ],
     circuitBreakers: [],
     rateLimitStatus: {},
     learnedLimits: {},
@@ -450,22 +453,22 @@ test("buildHealthPayload projects allowlisted walMaintenance fields only", () =>
     },
     quotaMonitorMonitors: [],
     activeSessions: [],
-    walMaintenance: state,
+    credentialHealth: {
+      total: 1,
+      healthy: 1,
+      failed: 0,
+      unknown: 0,
+      stale: 0,
+    },
   });
 
-  assert.deepEqual(payload.walMaintenance, {
-    ticks: 4,
-    busyStreak: 1,
-    busyTotal: 2,
-    lastBusyAt: "2026-09-06T10:00:00.000Z",
-    lastOkAt: "2026-09-06T11:00:00.000Z",
+  assert.deepEqual(payload.credentialHealth, {
+    total: 1,
+    healthy: 1,
+    failed: 0,
+    unknown: 0,
+    stale: 0,
+    source: "probe-cache",
+    staleDbNonOkCount: 1,
   });
-
-  const json = JSON.stringify(payload);
-  assert.equal(json.includes("walTimer"), false);
-  assert.equal(json.includes("retryTimer"), false);
-
-  // Absent / null state projects to null (degraded path parity).
-  assert.equal(projectWalMaintenanceSummary(null), null);
-  assert.equal(projectWalMaintenanceSummary(undefined), null);
 });

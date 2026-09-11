@@ -29,10 +29,10 @@ import { AI_MODELS } from "@/shared/constants/models";
  * import modal's preview disagree with the import route that runs on click.
  *
  * A provider is considered to "have free models" when it appears in the
- * documented free-tier catalog (`FREE_MODEL_BUDGETS`). A single model is
- * considered free when its id carries the OpenRouter-style `:free` suffix, when
- * both its prompt and completion prices are zero, or when its id is listed as a
- * free model for that provider in the catalog.
+ * documented free-tier catalog (`FREE_MODEL_BUDGETS`). A single model is considered free when — for a provider with a documented
+ * free tier — its id carries the OpenRouter-style `:free` suffix or both its
+ * prompt and completion prices are zero (guarded heuristics), or when its id
+ * is listed as a free model for that provider in the shipped catalog.
  *
  * The catalog also records the regime of every entry via `freeType`
  * (`FreeModelFreeType`). A regime can retire a free tier behind a paid key
@@ -84,21 +84,34 @@ export interface FreeModelCandidate {
   isFree?: boolean;
 }
 
-/** Whether a single fetched model qualifies as free for the given provider (id or alias). */
-export function isFreeModel(provider: string, model: FreeModelCandidate): boolean {
+/** Shipped-catalog entry for this provider (id or alias): trusted on its own. */
+function isCatalogFreeModel(provider: string, modelId: unknown): boolean {
+  if (typeof modelId !== "string") return false;
+  return (
+    FREE_MODEL_IDS_BY_PROVIDER.get(provider)?.has(modelId) === true ||
+    FREE_MODEL_IDS_BY_PROVIDER.get(resolveProviderId(provider))?.has(modelId) === true
+  );
+}
+
+/** Payload-supplied free signals: `isFree:true`, a `:free` id suffix, or zero prices. */
+function hasPayloadFreeSignal(model: FreeModelCandidate): boolean {
   if (model.isFree === true) return true;
   if (typeof model.id === "string" && model.id.endsWith(":free")) return true;
-  if (isZeroPrice(model.pricing?.prompt) && isZeroPrice(model.pricing?.completion)) return true;
-  if (typeof model.id === "string") {
-    const canonical = resolveProviderId(provider);
-    if (
-      FREE_MODEL_IDS_BY_PROVIDER.get(provider)?.has(model.id) ||
-      FREE_MODEL_IDS_BY_PROVIDER.get(canonical)?.has(model.id)
-    ) {
-      return true;
-    }
-  }
-  return false;
+  return isZeroPrice(model.pricing?.prompt) && isZeroPrice(model.pricing?.completion);
+}
+
+/**
+ * Whether a single fetched model qualifies as free for the given provider (id or alias): a
+ * shipped-catalog entry, or a payload signal on a provider with a documented free tier.
+ */
+export function isFreeModel(provider: string, model: FreeModelCandidate): boolean {
+  if (isCatalogFreeModel(provider, model.id)) return true;
+  return providerHasFreeModels(provider) && hasPayloadFreeSignal(model);
+}
+
+/** Reusable free predicate for fetched payloads — provider must have a documented free tier. */
+export function isFreeForProvider(provider: string, model: FreeModelCandidate): boolean {
+  return providerHasFreeModels(provider) && isFreeModel(provider, model);
 }
 
 export interface SelectModelsForImportResult<T extends FreeModelCandidate> {
@@ -191,7 +204,7 @@ export function matchesOnlyPaidModels(pattern: string): boolean {
     const fullId = `${m.provider}/${m.model}`;
     if (!regex.test(fullId)) continue;
     matched = true;
-    if (isFreeModel(m.provider, { id: m.model })) return false;
+    if (isFreeForProvider(m.provider, { id: m.model })) return false;
   }
   return matched;
 }

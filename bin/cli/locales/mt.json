@@ -1,0 +1,1329 @@
+{
+  "common": {
+    "error": "Żball: {message}",
+    "serverOffline": "is-servizz OmniRoute huwa offline. Bda' b: omniroute serve",
+    "authRequired": "Jintalab awtentikazzjoni. Agħżel OMNIROUTE_API_KEY jew skurri: omniroute setup",
+    "rateLimited": "Limitt tar-rata taqbiel. Retry wara {seconds}s.",
+    "timeout": "It-talba ħarqet wara {ms}ms.",
+    "success": "Intemm.",
+    "yes": "iva",
+    "no": "le",
+    "confirm": "Inti ċert? (iva/le)",
+    "dryRun": "[dry-run] se jaġixx {action}",
+    "cancelled": "Kkanċellat.",
+    "jsonOpt": "Output bħala JSON",
+    "yesOpt": "Qabżu l-prompt ta' konferma"
+  },
+  "setup": {
+    "title": "Twaqqif ta' OmniRoute",
+    "passwordPrompt": "Password tal-amministrazzjoni",
+    "providerPrompt": "Fornitur standard (ħalli vojt biex tbatti)",
+    "done": "Twaqqif komplet",
+    "passwordSet": "Password tal-amministrazzjoni kkonfigurata",
+    "providerSet": "Fornitur kkonfigurata: {name}",
+    "testingProvider": "Ttestjar konnessjoni tal-fornitur: {name}",
+    "testPassed": "It-tarka tal-fornitur għaddiet",
+    "testFailed": "It-tarka tal-fornitur falliet: {error}",
+    "loginEnabled": "Login: attivat (password aġġornata)",
+    "loginDisabled": "Login: disattivat",
+    "providerInfo": "Fornitur: {info}",
+    "opencode": "Installa u kkonfigura l-plugin inkluż @omniroute/opencode-plugin għal OpenCode"
+  },
+  "doctor": {
+    "title": "Tabib OmniRoute",
+    "dbOk": "Databank: OK ({path})",
+    "dbMissing": "Databank: mhux inizjalizzat — skurri `omniroute setup`",
+    "portOk": "Port {port}: disponibbli",
+    "portConflict": "Port {port}: qed jintuża minn proċess ieħor",
+    "encryptionOk": "Ċavetta tal-encrypting: kkonfigurata",
+    "encryptionMissing": "Ċavetta tal-encrypting nieqsa — skurri `omniroute setup`",
+    "allGood": "It-tarka kollha għaddew.",
+    "warnings": "{count} twissija(t) — ara t'fuq."
+  },
+  "providers": {
+    "title": "Fornituri",
+    "noProviders": "Ebda fornituri kkonfigurati. Skurri: omniroute setup",
+    "testing": "Ttestjar {name}...",
+    "available": "{count} fornitur(i) disponibbli",
+    "connected": "Konness",
+    "disconnected": "Skonnessjat",
+    "validationFailed": "Il-validazzjoni falliet: {error}",
+    "metrics": {
+      "description": "Uri metriċi tal-prestazzjoni tal-fornituri (latenza, rata ta' suċċess, spiża)",
+      "provider": "Iffiltra bl-ID tal-fornitur",
+      "connection_id": "Iffiltra bl-ID tal-konnessjoni",
+      "period": "Perjodu ta' żmien: 1h|6h|24h|7d|30d (default: 24h)",
+      "metric": "Iffoka fuq qasam metriku speċifiku",
+      "sort": "Irranġa bil-qasam (nieżel)",
+      "limit": "Massimu ta' ringieli (default: 50)",
+      "watch": "Aġġorna kull 5s (modalità live)",
+      "compare": "IDs tal-fornituri separati b'virgola biex tqabbel ħdejn xulxin"
+    },
+    "metric_single": {
+      "description": "Ikseb valur metriku wieħed għal konnessjoni speċifika"
+    },
+    "rotate": {
+      "description": "Dawwar iċ-ċavetta API upstream għal konnessjoni tal-fornitur",
+      "newKeyOpt": "Valur taċ-ċavetta API ġdida (evita: ippreferi --from-env)",
+      "fromEnvOpt": "Aqra ċ-ċavetta l-ġdida mill-varjabbli tal-ambjent VAR",
+      "oauthOpt": "Iskatta l-fluss ta' awtentikazzjoni mill-ġdid OAuth minflok",
+      "skipTestOpt": "Aqbeż it-test tal-konnettività wara r-rotazzjoni",
+      "dryRunOpt": "Stampa x'jinbidel mingħajr ma tikteb",
+      "confirmPrompt": "Tissostitwixxi ċ-ċavetta API għall-konnessjoni \"{name}\" ({id})? [y/N]",
+      "dryRunResult": "[dry-run] Kienet iddawwar iċ-ċavetta għal \"{name}\" ({id}). L-ebda tibdil ma sar.",
+      "oauthHint": "Konnessjoni OAuth — mexxi: omniroute oauth {provider}",
+      "envVarEmpty": "Il-varjabbli tal-ambjent {var} mhux issettjat jew huwa vojt.",
+      "success": "Iċ-ċavetta ddawret għal \"{name}\". Mexxi `providers test {id}` biex tivverifika.",
+      "testPassed": "It-test wara r-rotazzjoni għadda.",
+      "testFailed": "It-test wara r-rotazzjoni falla: {error}"
+    },
+    "status": {
+      "description": "Uri s-saħħa taċ-ċwievet għall-konnessjonijiet kollha tal-fornituri (età, skadenza, cooldown)",
+      "providerOpt": "Iffiltra bl-isem tal-fornitur",
+      "header": "ID         Fornitur       Isem                     Skadenza Status  Test Status  Cooldown Sa",
+      "noData": "L-ebda dejta tal-konnessjoni tal-fornitur disponibbli.",
+      "requiresServer": "providers status jeħtieġ li s-server OmniRoute ikun qed jaħdem."
+    }
+  },
+  "keys": {
+    "title": "Ċwievet API",
+    "addDescription": "Żid jew aġġorna ċavetta API għal fornitur",
+    "listDescription": "Lista taċ-ċwievet API kollha kkonfigurati",
+    "removeDescription": "Neħħi ċavetta API għal fornitur",
+    "regenerateDescription": "Irriġenera ċavetta API OmniRoute",
+    "revokeDescription": "Irrevoka ċavetta API OmniRoute",
+    "revealDescription": "Uri l-valur taċ-ċavetta API mhux immaskrat",
+    "usageDescription": "Uri l-użu reċenti għal ċavetta API",
+    "usageLimitOpt": "Numru ta' talbiet reċenti",
+    "rotateDescription": "Iġġenera ċavetta ġdida u tinvalida l-qadima",
+    "graceOpt": "Perjodu ta' grazzja (ms) qabel ma l-ċavetta l-qadima tiġi invalidata",
+    "stdinOpt": "Aqra l-API key minn stdin minflok argument",
+    "added": "Ċavetta miżjuda għal {provider}.",
+    "removed": "Ċavetta mneħħija.",
+    "listed": "{count} ċavetta(i).",
+    "noKeys": "L-ebda ċavetta kkonfigurata.",
+    "noUsage": "L-ebda dejta ta' użu misjuba.",
+    "confirmRemove": "Tneħħi ċ-ċavetta {id}?",
+    "confirmRegenerate": "Tiġġenera mill-ġdid iċ-ċavetta {id}?",
+    "confirmRevoke": "Tirrevoka ċ-ċavetta {id}?",
+    "confirmRotate": "Tirrota ċ-ċavetta {id}? (il-ċavetta l-qadima tiġi invalidata wara l-perjodu ta' grazzja)",
+    "regenerated": "Riġenerata. Ċavetta ġdida: {key}",
+    "revoked": "Iċ-ċavetta {id} ġiet irrevokata.",
+    "rotated": "Iċ-ċavetta {id} ġiet irrotata. ID tal-ċavetta l-ġdida: {newId}",
+    "revealWarning": "⚠  Dan se juri ċ-ċavetta sħiħa mhux maskrata. Kun żgur li l-iskrin tiegħek huwa privat.",
+    "providerRequired": "Il-provider huwa meħtieġ.",
+    "keyRequired": "L-API key huwa meħtieġ.",
+    "stdinEmpty": "L-ebda API key ma ġie pprovdut permezz ta' stdin.",
+    "unknownProvider": "Provider mhux magħruf: {provider}",
+    "policy": {
+      "title": "Politika taċ-Ċavetta",
+      "showDescription": "Uri l-politika ta' rata/ispiża għal ċavetta",
+      "setDescription": "Issettja l-politika ta' rata/ispiża għal ċavetta",
+      "rateLimitOpt": "Massimu ta' talbiet kull minuta",
+      "maxCostOpt": "Spiża massima kuljum (USD)",
+      "allowedModelsOpt": "Lista ta' mudelli permessi separati b'virgola",
+      "nothingToSet": "L-ebda qasam ta' politika pprovdut. Uża --rate-limit, --max-cost, jew --allowed-models.",
+      "updated": "Politika aġġornata."
+    },
+    "expiration": {
+      "title": "Skadenza taċ-Ċavetta",
+      "listDescription": "Elenca ċ-ċwievet li se jiskadu dalwaqt",
+      "daysOpt": "Uri ċ-ċwievet li jiskadu fi żmien N jiem",
+      "none": "L-ebda ċavetta ma tiskadi fi żmien {days} jiem.",
+      "listTitle": "Ċwievet li jiskadu fi żmien {days} jiem:"
+    }
+  },
+  "authExport": {
+    "description": "Esporta l-kredenzjali tal-provider DEKRIPTATI (lokali biss, output f'test ċar)",
+    "idOpt": "Esporta biss il-konnessjoni li taqbel ma' dan l-id/isem/provider",
+    "formatOpt": "Format tal-output: json jew env",
+    "outOpt": "Ikteb l-output f'fajl minflok stdout (miktub b'permessi 0600)",
+    "forceOpt": "Ikkonferma li tifhem li dan jistampa/jikteb sigrieti f'test ċar",
+    "warning": "⚠ Dan jistampa/jikteb API keys u tokens OAuth DEKRIPTATI f'test ċar. Kun żgur li l-iskrin tiegħek, l-istorja tal-shell, u kwalunkwe fajl ta' output jibqgħu privati.",
+    "confirmHeading": "⚠ TWISSIJA: dan jesporta l-kredenzjali tal-provider DEKRIPTATI f'test ċar",
+    "confirmBody": "Dan il-kmand jiddeċifra u jistampa/jikteb apiKey, accessToken, refreshToken, u\nidToken għall-konnessjoni(jiet) magħżula. Ittratta l-output bħala sigriet.",
+    "confirmFooter": "Biex tikkonferma, użu:\n  omniroute auth export --force",
+    "missingKey": "STORAGE_ENCRYPTION_KEY hija meħtieġa biex tivvjaġġa l-kredenzjali.",
+    "notFound": "Konnessjoni ma nstabitx: {id}",
+    "invalidFormat": "Formatu invalidu: {format}. Użu json jew env."
+  },
+  "stream": {
+    "description": "Stream risposta ta' chat bl-modi ta' spezzjoni SSE",
+    "file": "Qara prompt minn fajl",
+    "stdin": "Qara prompt minn stdin",
+    "model": "ID tal-Mudell (default: auto)",
+    "system": "Prompt tas-sistema",
+    "combo": "Enforza kombo speċifika bl-isem",
+    "max_tokens": "Tokes massimi fil-wisgħa",
+    "responses_api": "Użu /v1/responses minflok /v1/chat/completions",
+    "raw": "Stampa linji SSE kif irċevithom",
+    "debug": "Stampa informazzjoni ta' ħin għal kull chunk għal stderr",
+    "save": "Ħlif avvenimenti kollha ta' SSE f'fajl .jsonl",
+    "error": {
+      "empty_prompt": "Erro: prompt hija meħtieġa (arg positional, --file, jew --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Analitiċi ta' użu, baġits, kwoti, u logs",
+    "analytics": {
+      "description": "uri analitiċi ta' użu aggregati",
+      "period": "Fuqħin ta' ħin: 1d|7d|30d|90d|ytd|kollu (default: 30d)",
+      "provider": "Filtru permezz tal-ID tal-provveditur"
+    },
+    "budget": {
+      "description": "Ħarsu baġits ta' spejjez",
+      "set": {
+        "scope": "Skop tal-baġit (default: globali)",
+        "period": "Perjodu tal-baġit: ta' kuljum|ta' ġimgħa|ta' xahar (default: ta' xahar)"
+      }
+    },
+    "quota": {
+      "description": "Uri użu tal-kwota tal-provveditur",
+      "provider": "Filtru permezz tal-ID tal-provveditur",
+      "check": "Uri jekk il-kwota hija disponibbli għal talba ġdida"
+    },
+    "logs": {
+      "description": "Uri logs tal-sejħiet tal-talbiet",
+      "limit": "Numru ta' dħulijiet tal-log li għandhom jittellgħu (default: 100)",
+      "search": "Talba ta' tiftix biex ifiltara l-logs",
+      "since": "Irritorna logs minn din it-timestamp",
+      "follow": "Segwi kontinwament dħulijiet tal-log ġodda",
+      "api_key": "Filtru logs permezz tal-API key"
+    },
+    "utilization": {
+      "description": "Uri metrici ta' utilizzazzjoni tal-API key",
+      "api_key": "Filtru permezz tal-API key"
+    },
+    "history": {
+      "description": "Uri storiku tal-talbiet",
+      "limit": "Numru ta' dħulijiet tal-istoriku (default: 100)"
+    },
+    "proxy_logs": {
+      "description": "Uri logs tal-talbiet fuq il-livell tal-proxy",
+      "limit": "Numru ta' dħulijiet tal-log tal-proxy (default: 100)"
+    }
+  },
+  "cost": {
+    "description": "Uri rapport ta' spejjez b'tkissirhom skont il-provveditur, mudell, kombo, jew API key",
+    "period": "Fuqħin ta' ħin: 1d|7d|30d|90d|ytd|kollu (default: 30d)",
+    "since": "Data tal-bidu (format ISO, eż. 2026-01-01) — jissostitwixxi --period",
+    "until": "Data tat-tmiem (format ISO)",
+    "group_by": "Ggruppa r-riżultati skont: provider|model|api-key|combo|day (default: provider)",
+    "api_key_filter": "Iffiltra b'ċavetta API speċifika",
+    "limit": "Numru massimu ta' ringieli li jintwerew (default: 100)"
+  },
+  "simulate": {
+    "description": "Simulazzjoni ta' routing dry-run — turi liema providers jintgħażlu mingħajr ma jissejjaħ upstream",
+    "file": "Tgħabbi l-body sħiħ tat-talba minn fajl JSON",
+    "model": "ID tal-mudell (default: auto)",
+    "combo": "Ġiegħel combo speċifiku bl-isem",
+    "reasoning": "Livell ta' sforz ta' raġunament (low|medium|high)",
+    "thinking": "Baġit ta' tokens ta' ħsieb estiż",
+    "explain": "Istampa s-siġra tal-fallback u l-firxa tal-ispiża fuq stderr",
+    "noCombo": "Ma nstabet l-ebda combo li taqbel. Ikkonfigura waħda b': omniroute combo create"
+  },
+  "chat": {
+    "description": "Ibgħat prompt ta' chat ta' darba waħda lil OmniRoute",
+    "file": "Aqra l-prompt minn fajl",
+    "stdin": "Aqra l-prompt minn stdin",
+    "system": "Prompt tas-sistema",
+    "model": "ID tal-mudell (default: auto)",
+    "max_tokens": "Numru massimu ta' tokens fir-risposta",
+    "temperature": "Temperatura ta' kampjunar (0–2)",
+    "top_p": "Kampjunar nukleari top-p",
+    "reasoning_effort": "Livell ta' sforz ta' raġunament (low|medium|high)",
+    "thinking_budget": "Baġit ta' tokens ta' ħsieb estiż",
+    "combo": "Ġiegħel combo speċifiku bl-isem",
+    "responses_api": "Uża /v1/responses minflok /v1/chat/completions",
+    "stream": "Stream ir-risposta b'mod inkrementali",
+    "no_history": "Tissejvjax f'~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Żball: il-prompt huwa meħtieġ (argument pożizzjonali, --file, jew --stdin)"
+    }
+  },
+  "serve": {
+    "description": "Ibda s-server ta' OmniRoute (azzjoni default)",
+    "starting": "Qed jibda s-server ta' OmniRoute fuq il-port {port}...",
+    "ready": "Lest fuq http://localhost:{port}",
+    "stopping": "Qed jieqaf is-server (PID {pid})...",
+    "stopped": "Is-server waqaf.",
+    "notRunning": "Is-server mhux qed jaħdem.",
+    "port": "Port li jisma' fuqu (default: 20128)",
+    "no_open": "Tiftaħx il-browser awtomatikament",
+    "daemon": "Mexxi s-server bħala daemon fl-isfond",
+    "log": "Uri l-logs tas-server inline",
+    "no_recovery": "Iddiżattiva l-awto-restart meta jkisser (modalità ta' debugging)",
+    "max_restarts": "L-ogħla numru ta' restarts wara crash fi żmien 30s qabel ma jċedi (default: 2)",
+    "tray": "Bda' fil-caffettar tal-pajjiż (biss desktop, għażla)",
+    "no_tray": "Iddiżattiva l-ikona tal-caffettar tal-pajjiż",
+    "tls_cert": "Triq għal ċertifikat TLS (PEM) biex isservi HTTPS (ukoll OMNIROUTE_TLS_CERT)",
+    "tls_key": "Triq għas-sieqa privata tal-TLS (PEM) biex isservi HTTPS (ukoll OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "Reżerv",
+    "description": "Oħloq reżerv tal-data ta' OmniRoute",
+    "creating": "Qed jinħoloq reżerv...",
+    "done": "Reżerv salvagardjat fi {path}",
+    "noFiles": "Ebda fajls x'jittella' reżerv (database mhux initjalizzat)",
+    "failed": "Reżerv falla: {error}",
+    "restoring": "Qed jiġi restawrat minn {path}...",
+    "restored": "Restawr komplet.",
+    "restoreDescription": "Restawr minn reżerv",
+    "listTitle": "Reżervi Disponibbli",
+    "noBackups": "Ebda reżervi ma nstabu.",
+    "notFound": "Reżerv ma nstabx: {name}",
+    "confirmRestore": "Tibdil id-data attwali b'reżerv minn {ts}?",
+    "createDescription": "Oħloq reżerv tal-data ta' OmniRoute",
+    "nameOpt": "Isem reżerv personalizzat",
+    "cloudOpt": "Itella' reżerv għal storage tal-cloud",
+    "encryptOpt": "Enkripta reżerv b'AES-256-GCM",
+    "keyFileOpt": "Triq għal fajl li fih il-passphrase tal-enkripta",
+    "excludeOpt": "Eskludi fajl li jiltaqa' mal-mudell (ripetibbli)",
+    "retentionOpt": "Żomm biss l-aħħar N reżervi",
+    "passphrasePrompt": "Passphrase tal-enkripta:",
+    "noPassphrase": "Passphrase meħtieġ għal reżerv enkriptat.",
+    "cloudFailed": "Twissija: ittella' tal-cloud falla. Reżerv lokali ġie salvagardjat.",
+    "cloudUploaded": "Reżerv cloud ittella': {url}",
+    "auto": {
+      "title": "Skeda ta' Reżerv",
+      "enableDescription": "Attiva reżervi awtomatiċi skedati",
+      "disableDescription": "Diżattiva reżervi awtomatiċi skedati",
+      "statusDescription": "Uri l-istatus attwali tal-iskeda ta' reżerv",
+      "cronOpt": "Espressjoni Cron għall-iskeda (default: kuljum fil-3am)",
+      "enabled": "Reżerv awtomatiku attivat (cron: {cron}).",
+      "hint": "L-iskeda tintqara minn omniroute serve meta tibda.",
+      "disabled": "Reżerv awtomatiku diżattivat.",
+      "notConfigured": "Ebda skeda ta' reżerv konfigurata."
+    }
+  },
+  "health": {
+    "description": "Ittara s-saħħa tal-server u l-istatus tal-komponenti",
+    "noServer": "Server mhux qed jaħdem. Bda' b': omniroute serve",
+    "title": "Saħħa",
+    "status": "Statu: {status}",
+    "uptime": "Ħin ta' xogħol: {uptime}",
+    "requests": "Talbiet (24 siegħa): {count}",
+    "cost": "Spiża (24 siegħa): ${cost}"
+  },
+  "quota": {
+    "description": "Uri l-użu tal-kwota tal-fornitur",
+    "noServer": "Is-servier mhux qed jaħdem. Bda b': omniroute serve",
+    "noData": "L-ebda informazzjoni dwar il-kwota disponibbli."
+  },
+  "cache": {
+    "description": "Immaniġġja cache tar-risposta",
+    "noServer": "Is-servier mhux qed jaħdem. Bda b': omniroute serve",
+    "cleared": "Cache ġieċċejjar.",
+    "clearFailed": "Fallit li jnaddaf il-cache."
+  },
+  "redis": {
+    "description": "Lancia kontenitur lokali Redis b'buttuna waħda (Podman jew Docker) għall-cache u t-traċar tal-kwota ta' OmniRoute"
+  },
+  "test": {
+    "description": "Ittestja konnessjoni tal-fornitur",
+    "noServer": "Is-servier mhux qed jaħdem. Bda b': omniroute serve",
+    "testing": "Qed ittestja {provider} / {model}...",
+    "passed": "Konnessjoni reċevita!",
+    "failed": "Konnessjoni fallit: {error}",
+    "allProvidersOpt": "Ittestja l-fornituri kollha mqabbdin",
+    "latencyOpt": "Uri daqsijiet tal-latency (medja/min/mass ms)",
+    "repeatOpt": "Irrepeti l-ittestjar N darbiet u aggrega r-rizultati",
+    "compareOpt": "Mudelli separati b'virgola biex tivvaluta (e.g. gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Ħlif ir-rizultati f'fajl JSON",
+    "saved": "Rizultati ħliefa f'{path}'",
+    "compareTitle": "Vvalutazzjoni tal-Mudelli",
+    "compareMinTwo": "Mhux anqas żewġ mudelli meħtieġa għal --compare (separati b'virgola)",
+    "noProviders": "L-ebda fornituri mqabbdin. Żid wieħed b'permezz ta': omniroute keys add"
+  },
+  "update": {
+    "checking": "Qed jitfittex għat-tġdid...",
+    "upToDate": "Diġà aġġornat ({version}).",
+    "available": "Tġdid disponibbli: {current} → {latest}",
+    "installing": "Qed jiġi installat {latest}...",
+    "done": "Aġġornat għal {latest}. Irrestarja lill-servier biex jinkludi."
+  },
+  "mcp": {
+    "title": "Servier MCP",
+    "running": "Servier MCP qed jaħdem ({transport})",
+    "stopped": "Servier MCP waqaf.",
+    "restarted": "Servier MCP restartat.",
+    "call": {
+      "description": "Sejjaħ għodda MCP direttament",
+      "args": "Oġġett argomenti JSON (internament)",
+      "args_file": "Triq għall-fajl tal-argomenti JSON",
+      "stream": "Uża l-endpoint tal-streaming (/api/mcp/stream)",
+      "scope": "Ambitu meħtieġ (li jista' jirrepeti, e.g. read:health)"
+    },
+    "scopes": {
+      "description": "Lista l-iskopijiet MCP disponibbli",
+      "tool": "Uri l-iskopijiet meħtieġa minn għodda speċifika"
+    },
+    "tools": {
+      "description": "Spezzjona l-għodod MCP",
+      "list": {
+        "description": "Lista l-għodod MCP kollha",
+        "scope": "Iffiltra bl-iskop"
+      },
+      "info": {
+        "description": "Uri metadata għal għodda MCP"
+      },
+      "schema": {
+        "description": "Uri l-iskema JSON ta' input/output għal għodda MCP",
+        "io": "Tip ta' skema: input|output (default: input)"
+      }
+    },
+    "audit": {
+      "description": "Reġistru ta' verifika MCP (alias għal audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Lista l-ħiliet A2A disponibbli mill-karta tal-aġent"
+    },
+    "invoke": {
+      "description": "Sejjaħ ħila A2A u rritorna l-ID tal-kompitu",
+      "input": "Oġġett JSON ta' input",
+      "input_file": "Triq għal fajl JSON ta' input",
+      "wait": "Stenna għat-tlestija tal-kompitu qabel ma tirritorna",
+      "timeout": "Timeout ta' stennija għat-tlestija f'ms (default: 60000)"
+    },
+    "tasks": {
+      "description": "Immaniġġja l-kompiti A2A",
+      "list": {
+        "status": "Iffiltra bl-istatus",
+        "skill": "Iffiltra bl-ID tal-ħila"
+      },
+      "watch": {
+        "description": "Iċċekkja l-istatus tal-kompitu sakemm jitlesta"
+      },
+      "stream": {
+        "description": "Stream avvenimenti ta' eżekuzzjoni tal-kompitu permezz ta' SSE"
+      },
+      "logs": {
+        "description": "Uri messaġġi u artifacts tal-kompitu"
+      }
+    }
+  },
+  "policy": {
+    "description": "Immaniġġja l-politiki ta' awtorizzazzjoni OmniRoute",
+    "list": {
+      "description": "Lista l-politiki",
+      "kind": "Iffiltra bit-tip (allow|deny|rate-limit|cost-cap)",
+      "scope": "Iffiltra bl-iskop (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Kiseb id-dettalji tal-politika bl-ID"
+    },
+    "create": {
+      "description": "Oħloq politika minn fajl JSON",
+      "file": "Triq għal fajl JSON tal-politika"
+    },
+    "update": {
+      "description": "Aġġorna politika minn fajl JSON",
+      "file": "Triq għal fajl JSON tal-politika"
+    },
+    "delete": {
+      "description": "Ħassar politika bl-ID",
+      "yes": "Aqbeż il-promozzjoni ta' konferma"
+    },
+    "evaluate": {
+      "description": "Evalwazzjoni ta' prova (exit 0=permess, 4=miċħud)",
+      "api_key": "Ċavetta API biex tiġi evalwata",
+      "action": "Azzjoni biex tiġi ċċekkjata (eż. chat, embed, admin)",
+      "resource": "Triq tar-riżorsa jew identifikatur",
+      "context": "Kuntest addizzjonali bħala oġġett JSON"
+    },
+    "export": {
+      "description": "Esporta l-politiki kollha għal fajl JSON"
+    },
+    "import": {
+      "description": "Importa politiki minn fajl JSON",
+      "overwrite": "Ikteb fuq politiki eżistenti bl-istess ID"
+    }
+  },
+  "compression": {
+    "description": "Ikkonfigura u spezjonja l-pipeline tal-kompressjoni tal-OmniRoute",
+    "status": {
+      "description": "Uri l-istat u l-iffissar attwali tal-kompressjoni"
+    },
+    "configure": {
+      "description": "Ikkonfigura l-iffissar tal-kompressjoni",
+      "engine": "Magni tal-kompressjoni (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Aggressività tal-caveman 0.0–1.0",
+      "rtk_budget": "Baġit tal-token RTK",
+      "language_pack": "Pakkett tal-lingwa li għandu jiġi attivat"
+    },
+    "engine": {
+      "description": "Ikseb jew issetta l-magni tal-kompressjoni attiva"
+    },
+    "combos": {
+      "description": "Immaniġġja l-istatistika tal-kombinazzjonijiet tal-kompressjoni"
+    },
+    "rules": {
+      "description": "Immaniġġja r-regoli tal-kompressjoni",
+      "add": {
+        "pattern": "Pattern li għandu jiġi miksub (regex jew field:pattern)",
+        "action": "Azzjoni: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Lista tal-pakketti tal-lingwa tal-kompressjoni disponibbli"
+    },
+    "preview": {
+      "description": "Prevedi l-effett tal-kompressjoni fuq talba",
+      "file": "Triq għal fajl JSON tal-ħtieġa"
+    }
+  },
+  "tunnel": {
+    "title": "Nisaq",
+    "listDescription": "Lista tan-nisaq attivi",
+    "createDescription": "Oħloq nisaq",
+    "created": "Nisaq maħluq: {url}",
+    "stopped": "Nisaq wieqaf.",
+    "confirmStop": "Waqqaf nisaq {id}?",
+    "stopDescription": "Waqqaf nisaq",
+    "statusDescription": "Uri l-istat dettaljat ta' nisaq",
+    "logsDescription": "Uri l-logs għal nisaq",
+    "infoDescription": "Uri d-dettalji tal-konfigurazzjoni ta' nisaq",
+    "rotateDescription": "Ġenera URL ġdid għan-nisaq",
+    "tailOpt": "Numru ta' linji tal-log li għandhom juru",
+    "typeRequired": "It-tip tan-nisaq huwa mehtieg.",
+    "noLogs": "L-logs mhumiex disponibbli.",
+    "notAvailable": "L-informazzjoni tan-nisaq mhix disponibbli.",
+    "noTunnels": "Ebda nisaq attiv.",
+    "infoTitle": "Informazzjoni tan-nisaq: {type}",
+    "rotated": "URL tan-nisaq rota: {url}",
+    "confirmRotate": "Roqba nisaq {type}? (URL ġdid se jiġi ġenerat)"
+  },
+  "stop": {
+    "description": "Waqqaf is-server tal-OmniRoute",
+    "stopping": "Qed twaqqaf is-server (PID {pid})...",
+    "stopped": "Is-server wieqaf.",
+    "notRunning": "L-ebda server mhu qed jaħdem.",
+    "portFallback": "Ebda fajl PID ma nstab, qed nipprova waqqaf ibbażat fuq il-port..."
+  },
+  "restart": {
+    "description": "Bedja mill-ġdid is-server tal-OmniRoute",
+    "restarting": "Qed nitella' is-server tal-OmniRoute..."
+  },
+  "dashboard": {
+    "description": "Agħfas id-dashboard tal-OmniRoute fil-browser",
+    "opening": "Qed niftaħ id-dashboard fl-indirizz {url}",
+    "urlOnly": "Ipprinta l-indirizz URL tal-dashboard bla ma tiftaħ il-browser",
+    "tui": "Agħfas id-dashboard TUI interattiv (interfaċċ tal-terminal, 7 tabs)"
+  },
+  "models": {
+    "description": "Irrenda l-mudelli disponibbli (jeħtieġ server)",
+    "search": "Filtrar mudelli skont id, isem, fornitur, jew deskrizzjoni",
+    "noServer": "Is-server mhux qed jaħdem. Beda b': omniroute serve",
+    "noModels": "Ebda mudelli ma nstabu."
+  },
+  "audit": {
+    "description": "Aċċessa logs tal-awditjar tal-konformità u MCP",
+    "source": "Sors tal-log: all|compliance|mcp (default: all)",
+    "since": "Irġa' d-dati minn dan il-ħin (ISO 8601)",
+    "until": "Irġa' d-dati sa dan il-ħin (ISO 8601)",
+    "tail": {
+      "description": "Uri d-dati reċenti tal-log tal-awditjar",
+      "follow": "Segwi b'mod kontinwu d-dati ġodda (poll ta' 2 sekondi)",
+      "limit": "Massimu ta' dati biex juru (default: 100)"
+    },
+    "search": {
+      "description": "Fittex d-dati tal-log tal-awditjar bil-kelma ewlenija",
+      "limit": "Massimu ta' riżultati (default: 200)",
+      "actor": "Filtrar skont ID tal-attur",
+      "action": "Filtrar skont isem tal-azzjoni"
+    },
+    "export": {
+      "description": "Esporta log tal-awditjar f'fajl",
+      "format": "Format tal-output: jsonl|csv (default: jsonl)"
+    },
+    "stats": {
+      "description": "Uri l-istatistika tal-log tal-awditjar",
+      "period": "Perjodu ta' ħin: 1d|7d|30d (default: 7d)"
+    },
+    "get": {
+      "description": "Ikseb d-data waħda tal-log tal-awditjar bl-ID"
+    }
+  },
+  "skills": {
+    "description": "Immaniġġja ħiliet tal-OmniRoute (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Irrenda ħiliet installati",
+      "type": "Filtrar skont tip (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Uri biss ħiliet attivati",
+      "disabled": "Uri biss ħiliet diżattivati",
+      "api_key": "Filtrar skont API key"
+    },
+    "get": {
+      "description": "Ikseb d-dettalji għal ħila bl-ID"
+    },
+    "install": {
+      "description": "Install ħila minn fajl jew URL",
+      "from_file": "Triq lejn il-fajl tal-definizzjoni JSON tal-ħila",
+      "from_url": "URL tal-definizzjoni tal-ħila mill-bogħod",
+      "type": "Tip tal-ħila (sandbox|custom|hybrid)",
+      "enable": "Attiva ħila wara l-installazzjoni"
+    },
+    "enable": {
+      "description": "Attiva ħila bl-ID"
+    },
+    "disable": {
+      "description": "Diżattiva ħila bl-ID",
+      "yes": "Qassam il-konferma"
+    },
+    "delete": {
+      "description": "Tneħħi skill bl-ID",
+      "yes": "Aqbeż il-prompt ta' konferma"
+    },
+    "execute": {
+      "description": "Eżekuta skill bl-ID",
+      "input": "Oġġett input JSON",
+      "input_file": "Triq lejn il-fajl ta' input JSON",
+      "timeout": "Timeout ta' eżekuzzjoni f'ms (default: 30000)"
+    },
+    "executions": {
+      "description": "Lista ta' storiku ta' eżekuzzjonijiet ta' skills",
+      "skill": "Filtru bl-ID tal-skill",
+      "limit": "Riżultati massimi (default: 50)",
+      "status": "Filtru bl-istatus (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Ħaddem skills installati permezz ta' SSH"
+    },
+    "marketplace": {
+      "description": "Sfoglia u installa skills mill-marketplace"
+    },
+    "mp": {
+      "search": {
+        "description": "Fittex il-pakketti tal-marketplace",
+        "category": "Filtru bil-kategorija",
+        "tag": "Filtru bit-tag",
+        "limit": "Riżultati massimi (default: 30)",
+        "sort": "Tordna: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Uri d-dettalji tal-pakkett u r-readme"
+      },
+      "install": {
+        "description": "Installa pakkett tal-marketplace",
+        "version": "Verżjoni tal-pakkett (default: l-aktar ġdida)",
+        "enable": "Attiva wara l-installazzjoni",
+        "yes": "Aqbeż il-prompt ta' konferma"
+      },
+      "categories": {
+        "description": "Lista tal-kategoriji tal-marketplace"
+      },
+      "featured": {
+        "description": "Uri il-pakketti magħżula tal-marketplace"
+      }
+    }
+  },
+  "memory": {
+    "description": "Ħaddem il-memorja konversazzjonali ta' OmniRoute (FTS5 + vector)",
+    "search": {
+      "description": "Fittex il-memorji permezz ta' kweri semantika",
+      "type": "Filtru bit-tip ta' memorja (user|feedback|project|reference)",
+      "limit": "Riżultati massimi (default: 20)",
+      "api_key": "Filtru bil-API key",
+      "token_budget": "Limita t-tokens totali fir-riżultati"
+    },
+    "add": {
+      "description": "Żid memorja ġdida",
+      "content": "Kontenut test tal-memorja",
+      "file": "Qara kontenut minn fajl",
+      "type": "Tip ta' memorja (default: user)",
+      "metadata": "Oġġett metadata JSON",
+      "api_key": "Assoċja mal-API key"
+    },
+    "clear": {
+      "description": "Tneħħi il-memorji li jikkorrispondu mal-filtri",
+      "type": "Filtru bit-tip",
+      "older": "Tneħħi memorji eqdem minn tul (30d, 6m, 1y)",
+      "api_key": "Filtru bil-API key",
+      "yes": "Qabbel il-prompt tal-konferma"
+    },
+    "list": {
+      "description": "Elenca d-daħliet tal-memorja mingħajr klassifikazzjoni tat-tiftix",
+      "type": "Iffiltra skont it-tip",
+      "limit": "Riżultati Massimi (predefinit: 100)",
+      "api_key": "Iffiltra b'API key"
+    },
+    "get": {
+      "description": "Aqbad daħla waħda tal-memorja b'ID"
+    },
+    "delete": {
+      "description": "Ħassar entrata tal-memorja bl-ID",
+      "yes": "Qabbaż il-konferma tal-mistoqsija"
+    },
+    "health": {
+      "description": "Uri s-saħħa tas-sotto-sistema tal-memorja (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "Immaniġġja l-konnessjonijiet tal-fornitur OAuth",
+    "providers": {
+      "description": "Lesta l-fornituri li jappoġġjaw u l-tipi tal-flussi tagħhom"
+    },
+    "start": {
+      "description": "Ibda l-fluss ta' awtorizzazzjoni OAuth għal fornitur",
+      "provider": "ID tal-Fornitur (gemini, copilot, cursor, …)",
+      "no_browser": "Stampa URL biss — tagħmilx browser",
+      "import_system": "Importa awtomatikament il-kredenzjali mill-konfigurazzjoni tas-sistema lokali",
+      "social": "Fornitur tal-login soċjali (google|github) — meħtieġ għal kiro",
+      "timeout": "Timeout ta' stennija għall-awtorizzazzjoni f'ms (default: 300000)"
+    },
+    "status": {
+      "description": "Lista l-konnessjonijiet OAuth attivi",
+      "provider": "Filtra skont l-ID tal-fornitur"
+    },
+    "revoke": {
+      "description": "Irrevoka konnessjoni OAuth",
+      "provider": "ID tal-Fornitur biex jitneħħa",
+      "connection_id": "Irrevoka konnessjoni speċifika bl-ID",
+      "yes": "Qabżu l-konferma tal-iskrin"
+    }
+  },
+  "cloud": {
+    "description": "Immaniġġja l-kompiti tal-aġenti AI fil-cloud (codex, devin, jules)",
+    "agents": {
+      "description": "Tella' l-aġenti tal-cloud disponibbli"
+    },
+    "agent": {
+      "description": "Immaniġġja l-kompiti tal-aġent cloud {agent}",
+      "auth": {
+        "description": "Awtorizza {agent} permezz ta' OAuth"
+      }
+    },
+    "task": {
+      "description": "Immaniġġja l-kompiti tal-aġent cloud",
+      "create": {
+        "description": "Oħloq xogħol ġdid ta' aġent",
+        "title": "Titlu tal-Compiti (jista' jinbagħat b'mod awtomatiku għal l-ewwel 80 karattru tal-prompt)",
+        "prompt": "Test tal-Mistoqsija tax-Xogħol",
+        "prompt_file": "Aqra prompt minn fajl",
+        "repo": "URL tal-Repository biex tikkuntrabbja għat-task",
+        "branch": "Isem il-filjali biex tużah",
+        "metadata": "JSON metadata oġġett"
+      },
+      "list": {
+        "description": "Elenca l-kompiti tal-aġent",
+        "status": "Filtra bl-istatuth (jeġri|lest|falla|kanċellat)",
+        "limit": "Rizultati massimi (default: 50)"
+      },
+      "get": {
+        "description": "Iqbad dettalji tal-ħidma bl-ID"
+      },
+      "status": {
+        "description": "Ipprintja l-istatus tat-task (għaddej|tlesta|falla|ikkanċellat)"
+      },
+      "cancel": {
+        "description": "Ikkanċella kompitu li qed jaħdem",
+        "yes": "Aqbeż il-prompt ta' konferma"
+      },
+      "approve": {
+        "description": "Ipprova l-pjan tal-aġent biex tibda l-eżekuzzjoni"
+      },
+      "message": {
+        "description": "Ibgħat messaġġ lil kompitu li qed jaħdem"
+      }
+    },
+    "sources": {
+      "description": "Lista ta' fajls sors prodotti minn kompitu"
+    }
+  },
+  "eval": {
+    "description": "Immaniġġja suites u runs ta' evalwazzjoni",
+    "suites": {
+      "description": "Immaniġġja suites ta' evalwazzjoni",
+      "list": {
+        "description": "Lista ta' suites ta' evalwazzjoni"
+      },
+      "get": {
+        "description": "Ikseb dettalji tas-suite ta' evalwazzjoni bl-ID"
+      },
+      "create": {
+        "description": "Oħloq suite ta' evalwazzjoni minn fajl JSON",
+        "file": "Triq għall-fajl JSON tad-definizzjoni tas-suite"
+      }
+    },
+    "run": {
+      "description": "Ibda run ta' evalwazzjoni għal suite",
+      "model": "ID tal-mudell biex tiġi evalwata (default: awtomatiku)",
+      "combo": "Ġiegħel combo speċifiku bl-isem",
+      "concurrency": "Numru ta' kampjuni konkorrenti (default: 4)",
+      "tag": "Immarka dan ir-run għal filtrazzjoni aktar tard",
+      "watch": "Ara l-progress tar-run sakemm jitlesta"
+    },
+    "list": {
+      "description": "Lista ta' runs ta' evalwazzjoni",
+      "suite": "Iffiltra bl-ID tas-suite",
+      "status": "Iffiltra bl-istatus",
+      "since": "Irritorna runs minn dan it-timestamp",
+      "limit": "Riżultati massimi (default: 50)"
+    },
+    "get": {
+      "description": "Ikseb dettalji tar-run ta' evalwazzjoni bl-ID"
+    },
+    "results": {
+      "description": "Uri riżultati tal-kampjuni għal run ta' evalwazzjoni",
+      "failed": "Uri biss kampjuni falluti"
+    },
+    "cancel": {
+      "description": "Ikkanċella evalwazzjoni li qed taħdem",
+      "yes": "Aqbeż il-prompt ta' konferma"
+    },
+    "scorecard": {
+      "description": "Uri l-scorecard għal run ta' evalwazzjoni lest"
+    }
+  },
+  "webhooks": {
+    "description": "Immaniġġja webhooks ta' OmniRoute",
+    "events": {
+      "description": "Lista tat-tipi kollha ta' avvenimenti webhook disponibbli"
+    },
+    "list": {
+      "description": "Lista ta' webhooks ikkonfigurati"
+    },
+    "get": {
+      "description": "Ikseb dettalji tal-webhook bl-ID"
+    },
+    "add": {
+      "description": "Irreġistra webhook ġdid",
+      "url": "URL tad-destinazzjoni",
+      "events": "Lista ta' tipi ta' avvenimenti separati b'virgola",
+      "secret": "Sigriet tal-iffirmar HMAC",
+      "header": "Header żejjed f'format key=value (ripetibbli)",
+      "no_enabled": "Oħloq webhook fi stat diżattivat"
+    },
+    "update": {
+      "description": "Aġġorna webhook eżistenti",
+      "enabled": "Issettja l-istat attivat (true|false)"
+    },
+    "remove": {
+      "description": "Ħassar webhook",
+      "yes": "Aqbeż il-prompt tal-konferma"
+    },
+    "test": {
+      "description": "Ibgħat avveniment ta' test lil webhook",
+      "event": "Tip ta' avveniment biex tissimula (default: request.completed)"
+    }
+  },
+  "program": {
+    "description": "OmniRoute — Router AI Intelliġenti b'Fallback Awtomatiku",
+    "version": "Ipprintja l-verżjoni u oħroġ",
+    "output": "Format tal-output (table, json, jsonl, csv)",
+    "quiet": "Trażżan output mhux essenzjali",
+    "no_color": "Iddiżattiva l-output ikkulurit",
+    "timeout": "Timeout ta' talba HTTP f'millisekondi",
+    "api_key": "Ċavetta API għas-server OmniRoute",
+    "base_url": "URL bażi tas-server OmniRoute",
+    "context": "Kuntest/profil tas-server biex jintuża għal din il-kmand",
+    "lang": "Issettja l-lingwa tal-wiri tal-CLI (jissostitwixxi OMNIROUTE_LANG)"
+  },
+  "files": {
+    "description": "Immaniġġja l-fajls (ittella', elenka, ġib, niżżel, ħassar)",
+    "list": {
+      "purpose": "Iffiltra skont l-iskop",
+      "limit": "Massimu ta' riżultati"
+    },
+    "get": {
+      "description": "Ġib il-metadata tal-fajl"
+    },
+    "upload": {
+      "description": "Ittella' fajl",
+      "purpose": "Skop tal-fajl (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Niżżel il-kontenut tal-fajl",
+      "out": "Issejvja f'path (default: stdout)"
+    },
+    "delete": {
+      "yes": "Aqbeż il-konferma"
+    }
+  },
+  "batches": {
+    "description": "Immaniġġja xogħlijiet batch kompatibbli mal-OpenAI",
+    "list": {
+      "status": "Iffiltra skont l-istatus",
+      "limit": "Massimu ta' riżultati"
+    },
+    "create": {
+      "description": "Oħloq xogħol batch",
+      "inputFile": "ID tal-fajl tal-input",
+      "endpoint": "Endpoint fil-mira",
+      "window": "Tieqa ta' tlestija",
+      "metadata": "Żid metadata key=value"
+    },
+    "submit": {
+      "description": "Ittella' fajl JSONL u oħloq batch",
+      "jsonl": "Path tal-fajl JSONL",
+      "endpoint": "Endpoint fil-mira",
+      "wait": "Stenna għat-tlestija"
+    },
+    "cancel": {
+      "yes": "Aqbeż il-konferma"
+    },
+    "wait": {
+      "timeout": "Timeout f'ms"
+    },
+    "output": {
+      "out": "Issejvja l-output f'path"
+    },
+    "errors": {
+      "out": "Issejvja l-iżbalji f'path"
+    }
+  },
+  "translator": {
+    "description": "Ittraduċi l-korpi tat-talbiet bejn formati LLM",
+    "detect": {
+      "description": "Identifika l-format tal-ġisem"
+    },
+    "translate": {
+      "description": "Konverti l-ġisem minn format għal ieħor"
+    },
+    "send": {
+      "description": "Traduci u niżgħad 'il fuq"
+    },
+    "stream": {
+      "description": "Traduci streaming ta' talba ġisem"
+    },
+    "from": "Format tas-sors (openai|anthropic|gemini|cohere)",
+    "to": "Format fil-mira (openai|anthropic|gemini|cohere)",
+    "file": "Triq lejn il-fajl tal-JSON tal-ġisem tal-talba",
+    "out": "Ħlief l-output fil-fajl",
+    "model": "Overrides il-mudell",
+    "history": {
+      "limit": "Riżultati massi"
+    }
+  },
+  "pricing": {
+    "description": "Immaniġġa d-data tal-prezzijiet għall-mudelli",
+    "sync": {
+      "description": "Sınkraniżizza l-prezzijiet minn sorsi ta' 'il fuq",
+      "provider": "Filtrar skont il-fornitur",
+      "force": "Ifforza re-sınkraniżizzazzjoni"
+    },
+    "list": {
+      "provider": "Filtrar skont il-fornitur",
+      "model": "Filtrar skont il-mudell",
+      "limit": "Riżultati massi"
+    },
+    "defaults": {
+      "description": "Immaniġġa l-prezzijiet default",
+      "input": "Spiża tal-input għal 1M tokens (USD)",
+      "output": "Spiża tal-output għal 1M tokens (USD)",
+      "cacheRead": "Spiża ta' qari tal-cache għal 1M tokens (USD)",
+      "cacheWrite": "Spiża ta' kitba tal-cache għal 1M tokens (USD)"
+    },
+    "diff": {
+      "description": "Uri d-diverġenza mill-prezzijiet ta' 'il fuq",
+      "model": "Filtrar skont il-mudell"
+    }
+  },
+  "radar": {
+    "description": "Ispezzjona u sunkronizza l-alimentazzjonijiet tal-katalgu Radar lokali",
+    "status": "Uri l-istatus tal-settings lokali u l-cache tal-alimentazzjonijiet",
+    "sync": "Sınkraniżizza katalgu, referenzi, offerti, u Intel permezz tal-server lokali"
+  },
+  "resilience": {
+    "description": "Ispezzjona u immaniġġa l-mekkaniżmi tal-resiljenza",
+    "status": {
+      "provider": "Filtrar skont il-fornitur"
+    },
+    "breakers": {
+      "provider": "Filtrar skont il-fornitur"
+    },
+    "cooldowns": {
+      "provider": "Filtrar skont il-fornitur",
+      "connectionId": "Filtrar skont l-ID tal-konnessjoni"
+    },
+    "lockouts": {
+      "provider": "Filtrar skont il-fornitur",
+      "model": "Filtrar skont il-mudell"
+    },
+    "reset": {
+      "description": "Iresetta l-istat tal-birja/kuntatt",
+      "provider": "Fornitur biex irisetta",
+      "connectionId": "ID tal-konnessjoni biex irisetta",
+      "model": "Mudell biex irisetta l-lockout",
+      "allCooldowns": "Iresetta l-kuntatt kollha għall-fornitur",
+      "yes": "Qasqa l-konferma"
+    },
+    "profile": {
+      "description": "Immaniġġja l-profil tar-reżiljenza",
+      "name": "Isem tal-profil"
+    },
+    "config": {
+      "description": "Immaniġġja l-konfigurazzjoni tar-reżiljenza",
+      "threshold": "Limitu ta' falliment",
+      "resetTimeout": "Timeout ta' reset f'ms",
+      "baseCooldown": "Cooldown bażiku f'ms"
+    }
+  },
+  "nodes": {
+    "description": "Immaniġġja n-nodi tal-fornitur (endpoints)",
+    "list": {
+      "provider": "Iffiltra bil-fornitur",
+      "enabled": "Uri biss nodi attivati"
+    },
+    "add": {
+      "provider": "Isem tal-fornitur",
+      "baseUrl": "URL bażiku għan-node",
+      "name": "Isem tan-node",
+      "weight": "Piż tal-bilanċ tat-tagħbija",
+      "region": "Tag tar-reġjun",
+      "authHeader": "Header ta' awtentikazzjoni personalizzat (key=value)"
+    },
+    "update": {
+      "baseUrl": "URL bażiku ġdid",
+      "name": "Isem ġdid",
+      "weight": "Piż ġdid",
+      "region": "Reġjun ġdid",
+      "enabled": "Attiva jew iddiżattiva (true|false)"
+    },
+    "remove": {
+      "yes": "Aqbeż il-konferma"
+    },
+    "validate": {
+      "baseUrl": "URL biex tiġi vvalidata",
+      "provider": "Fornitur biex tiġi vvalidata kontra tiegħu"
+    },
+    "test": {
+      "description": "Ibgħat talba ta' test lin-node"
+    },
+    "metrics": {
+      "description": "Uri l-metriċi tan-node",
+      "period": "Perjodu ta' żmien (eż. 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Ikkonfigura l-pipeline tal-inġinerija tal-kuntest (Caveman, RTK)",
+    "analytics": {
+      "period": "Perjodu ta' żmien (eż. 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Immaniġġja l-kompressur tal-kuntest Caveman",
+      "config": {
+        "description": "Uri jew aġġorna l-konfigurazzjoni ta' Caveman",
+        "aggressiveness": "Aggressività 0.0–1.0",
+        "maxShrinkPct": "Persentaġġ massimu ta' tnaqqis",
+        "preserveTags": "Tags separati b'virgola biex jiġu ppreservati"
+      }
+    },
+    "rtk": {
+      "description": "Immaniġġja l-ottimizzatur tal-kuntest RTK",
+      "config": {
+        "description": "Uri jew aġġorna l-konfigurazzjoni ta' RTK",
+        "tokenBudget": "Baġit ta' tokens għal RTK",
+        "reservePct": "Persentaġġ ta' riżerva"
+      },
+      "filters": {
+        "description": "Immaniġġja l-filtri ta' RTK",
+        "pattern": "Mudell tal-filtru (regex)",
+        "priority": "Prijorità tal-filtru (default: 100)",
+        "action": "Azzjoni tal-filtra: drop|shrink|replace",
+        "yes": "Aħfer il-konferma"
+      },
+      "test": {
+        "file": "Triq lejn il-fajl JSON tal-ħarġa"
+      }
+    },
+    "combos": {
+      "description": "Ġestjoni ta' kombo li tifhem il-kuntest"
+    }
+  },
+  "sessions": {
+    "description": "Ispezzjona u ġestjona sessjonijiet attivi",
+    "list": {
+      "user": "Filtra mill-utent",
+      "kind": "Filtra skont it-tip (dashboard|api-key|mcp|a2a)",
+      "active": "Uri biss sessjonijiet attivi",
+      "limit": "Massimu ta' riżultati (default: 100)"
+    },
+    "expire": {
+      "yes": "Aħfer il-konferma"
+    },
+    "expireAll": {
+      "user": "Utent li sessjonijiet tiegħu għandhom jiġu skaduti",
+      "yes": "Aħfer il-konferma"
+    }
+  },
+  "tags": {
+    "description": "Ġestjoni ta' tikket tar-riżorsi",
+    "add": {
+      "color": "Kulur tat-tag (hex jew isem)",
+      "description": "Deskrizzjoni tat-tag"
+    },
+    "remove": {
+      "yes": "Aħfer il-konferma"
+    },
+    "assign": {
+      "tag": "Isem tat-tag",
+      "to": "Riżorsa ta' mira bħala tip:id (e.g. provider:openai)"
+    },
+    "unassign": {
+      "tag": "Isem tat-tag",
+      "from": "Riżorsa ta' sors bħala tip:id"
+    }
+  },
+  "openapi": {
+    "description": "Aċċessa u ittestja l-ispeċifikazzjoni OpenAPI ta' OmniRoute",
+    "dump": {
+      "description": "Neħħi l-ispeċifikazzjoni OpenAPI lejn stdout jew fajl",
+      "format": "Format ta' output: yaml|json (default: yaml)",
+      "out": "Aħseb lejn triq il-fajl"
+    },
+    "validate": {
+      "description": "Ivalida l-ispeċifikazzjoni OpenAPI"
+    },
+    "try": {
+      "description": "Ittestja punt ta' dħul API permezz tal-ispeċifikazzjoni",
+      "method": "Metodu HTTP (default: GET)",
+      "body": "Triq lejn il-fajl JSON tal-ġisem tal-ħarġa",
+      "query": "Parametru tal-kwistjoni bħala key=value (jista' jiġi ripetut)",
+      "header": "Intestatura bħala key=value (jista' jiġi ripetut)"
+    },
+    "endpoints": {
+      "description": "Agħti lista ta' kollha punti ta' dħul API",
+      "search": "Filtra skont triq jew sommarju"
+    },
+    "paths": {
+      "description": "Agħti lista ta' kollha triqat API"
+    }
+  },
+  "combo": {
+    "title": "Kombinazzjonijiet",
+    "switched": "Kombo attiv: {name}",
+    "created": "Kombo ġie maħluq: {name}",
+    "deleted": "Kombo tneħħa: {name}",
+    "noCombos": "Ebda kombos ma ġew ikkonfigurati.",
+    "confirmDelete": "Tixtieq tneħħi l-kombo {name}?",
+    "suggest": {
+      "description": "Suġġerixxi l-aħjar kombo għal għan permezz ta' skoring AI",
+      "task": "Deskrizzjoni tal-kompitu",
+      "maxCost": "Spiża massima għal kull talba f'USD",
+      "maxLatencyMs": "Latenza massima f'millisekondi",
+      "weights": "Piżijiet ta' punteġġ JSON eż. {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Numru ta' kandidati ewlenin biex jintwerew (default: 5)",
+      "explain": "Stampa r-raġunament għal stderr",
+      "switch": "Attiva l-combo bl-ogħla klassifikazzjoni"
+    }
+  },
+  "oneproxy": {
+    "description": "Immaniġġja l-pool upstream ta' OneProxy",
+    "stats": {
+      "provider": "Iffiltra skont il-fornitur",
+      "period": "Perjodu ta' żmien (default: 24h)"
+    },
+    "fetch": {
+      "description": "Ġib proxies mill-pool",
+      "count": "Numru ta' proxies biex jinġiebu (default: 1)",
+      "type": "Tip ta' proxy: http|socks5 (default: http)"
+    },
+    "rotate": {
+      "description": "Iġġiegħel ir-rotazzjoni tal-proxy",
+      "provider": "Fornitur li għalih issir ir-rotazzjoni",
+      "connectionId": "ID tal-konnessjoni speċifiku għar-rotazzjoni"
+    },
+    "config": {
+      "description": "Uri jew aġġorna l-konfigurazzjoni ta' OneProxy",
+      "enabled": "Ippermetti l-pool tal-proxy (true|false)",
+      "poolSize": "Daqs tal-pool",
+      "providerSource": "URL għall-fornitur tal-proxy",
+      "rotationPolicy": "Politika ta' rotazzjoni: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Elenca l-pool tal-proxy attwali bil-metriċi"
+    }
+  },
+  "open": {
+    "description": "Iftaħ paġna speċifika tad-dashboard ta' OmniRoute fil-browser",
+    "url": "Stampa biss l-URL, tiftaħx il-browser"
+  },
+  "telemetry": {
+    "description": "Aċċedi għal dejta telemetrika aggregata",
+    "summary": {
+      "description": "Uri sommarju telemetriku aggregat",
+      "period": "Perjodu ta' żmien: 24h|7d|30d (default: 24h)",
+      "compareTo": "Qabbel mal-perjodu preċedenti"
+    },
+    "export": {
+      "description": "Esporta avvenimenti telemetriċi għal JSONL",
+      "out": "Path tal-fajl tal-output (default: telemetry.jsonl)",
+      "period": "Perjodu ta' żmien għall-esportazzjoni (default: 7d)"
+    }
+  },
+  "sync": {
+    "description": "Sinkronizza l-konfigurazzjoni bejn l-istanzi ta' OmniRoute",
+    "push": {
+      "description": "Imbotta l-konfigurazzjoni lejn cloud jew istanza remota",
+      "target": "Mira (cloud or context:name)",
+      "bundle": "Partijiet tal-bundle biex jiġu sinkronizzati",
+      "dryRun": "Previżjoni mingħajr applikazzjoni"
+    },
+    "pull": {
+      "description": "Iġbed il-konfigurazzjoni minn cloud jew remota",
+      "source": "Sors (cloud or context:name)",
+      "merge": "Għaqqad mal-konfigurazzjoni eżistenti",
+      "replace": "Issostitwixxi l-konfigurazzjoni eżistenti",
+      "dryRun": "Ara minn qabel mingħajr ma tapplika"
+    },
+    "diff": {
+      "source": "Kuntest tas-sors",
+      "target": "Kuntest tal-mira"
+    },
+    "bundle": {
+      "description": "Esporta l-konfigurazzjoni bħala fajl bundle",
+      "include": "Partijiet li tinkludi (separati b'virgola)"
+    },
+    "import": {
+      "description": "Importa fajl bundle",
+      "dryRun": "Ivvalida mingħajr ma tapplika"
+    },
+    "initialize": {
+      "fromCloud": "Inizjalizza minn backup fil-cloud"
+    },
+    "tokens": {
+      "description": "Immaniġġja t-tokens tas-sinkronizzazzjoni",
+      "create": {
+        "name": "Isem it-token",
+        "scope": "Ambitu tat-token",
+        "ttl": "TTL tat-token (eż. 30d)"
+      },
+      "revoke": {
+        "yes": "Aqbeż il-konferma"
+      }
+    },
+    "resolve": {
+      "description": "Issolvi l-kunflitti tas-sinkronizzazzjoni b'mod interattiv"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Immaniġġja l-kuntesti/profili tas-server (add, use, list, show, remove, rename, export, import)"
+    },
+    "lang": {
+      "description": "Immaniġġja l-lingwa tal-wiri tal-CLI",
+      "getDescription": "Uri l-kodiċi tal-lingwa attiva bħalissa",
+      "setDescription": "Issettja l-lingwa tal-wiri u ssalvaha fil-konfigurazzjoni",
+      "listDescription": "Elenca l-lingwi kollha disponibbli",
+      "listTitle": "Lingwi Disponibbli",
+      "current": "Lingwa: {code} ({name})",
+      "saved": "Lingwa ssettjata għal {code} ({name}).",
+      "noCode": "Il-kodiċi tal-lingwa huwa meħtieġ. Mexxi 'omniroute config lang list' biex tara l-kodiċijiet disponibbli.",
+      "unknown": "Kodiċi tal-lingwa mhux magħruf: {code}. Mexxi 'omniroute config lang list' biex tara l-kodiċijiet disponibbli.",
+      "alreadySet": "Il-lingwa diġà hija ssettjata għal {code}.",
+      "envHint": "Parir: tista' wkoll tissettja OMNIROUTE_LANG={code} fl-ambjent tiegħek."
+    }
+  },
+  "completion": {
+    "description": "Iġġenera jew installa skripts tal-kompletazzjoni tal-shell",
+    "zsh": "Ipprintja l-iskript tal-kompletazzjoni ta' zsh",
+    "bash": "Ipprintja l-iskript tal-kompletazzjoni ta' bash",
+    "fish": "Ipprintja l-iskript tal-kompletazzjoni ta' fish",
+    "install": "Installa l-iskript tal-kompletazzjoni globalment għas-shell skopert",
+    "refresh": "Aġġorna l-cache ta' combos/providers/models"
+  },
+  "logs": {
+    "description": "Istreamja jew esporta l-logs tat-talbiet",
+    "follow": "Istreamja l-logs f'ħin reali",
+    "filter": "Iffiltra skont il-livell (error,warn,info) — separati b'virgola",
+    "lines": "Numru ta' linji li jinkisbu",
+    "timeout": "Timeout tal-konnessjoni f'ms",
+    "baseUrl": "URL bażi tal-API OmniRoute",
+    "requestId": "Iffiltra skont l-ID tat-talba",
+    "apiKey": "Iffiltra skont iċ-ċavetta tal-API",
+    "combo": "Iffiltra bl-isem tal-combo",
+    "status": "Iffiltra bil-kodiċi tal-istatus HTTP",
+    "durationMin": "Durata minima tat-talba f'ms",
+    "durationMax": "Durata massima tat-talba f'ms",
+    "export": "Issejvja l-logs f'fajl (json/jsonl/csv)",
+    "exported": "Logs issejvjati f'{path}",
+    "stopped": "Il-fluss tal-log waqaf.",
+    "streamError": "Żball fil-fluss tal-log: {message}"
+  },
+  "tray": {
+    "description": "Ikkontrolla l-ikona tas-system tray",
+    "show": "Uri l-ikona tat-tray (jekk is-server qed jaħdem b'--tray)",
+    "hide": "Aħbi l-ikona tat-tray",
+    "quit": "Oħroġ minn OmniRoute permezz tat-tray"
+  },
+  "autostart": {
+    "description": "Immaniġġja l-awtostart ta' OmniRoute mal-boot (Linux: systemd user service)",
+    "enable": "Ippermetti l-awtostart mal-boot",
+    "disable": "Iddiżattiva l-awtostart mal-boot",
+    "toggle": "Aqleb l-awtostart mal-boot",
+    "status": "Uri l-istatus tal-awtostart"
+  },
+  "runtime": {
+    "description": "Immaniġġja d-dipendenzi tar-runtime nattiv",
+    "check": "Iċċekkja l-istatus tad-deps nattivi fid-direttorju tar-runtime",
+    "repair": "Erġa' installa d-deps nattivi fid-direttorju tar-runtime",
+    "repair_force": "Ġiegħel installazzjoni mill-ġdid anki jekk valida",
+    "clean": "Neħħi d-direttorju tar-runtime (jillibera spazju fuq id-disk)",
+    "clean_yes": "Aqbeż il-konferma"
+  },
+  "repl": {
+    "description": "REPL interattiv multi-turn mal-LLM",
+    "model": "Mudell biex tuża (default: auto)",
+    "combo": "Isem tal-combo biex tuża",
+    "system": "Prompt tas-sistema",
+    "resume": "Kompli sessjoni ssejvjata bl-isem"
+  },
+  "plugin": {
+    "description": "Immaniġġja l-plugins tal-CLI (omniroute-cmd-*)",
+    "list": "Elenca l-plugins installati",
+    "install": "Installa plugin minn npm jew minn path lokali",
+    "remove": "Neħħi plugin installat",
+    "info": "Uri d-dettalji ta' plugin installat",
+    "search": "Fittex fir-reġistru npm għal plugins disponibbli",
+    "update": "Aġġorna l-plugins installati",
+    "scaffold": "Oħloq boilerplate ta' plugin ġdid"
+  },
+  "launch": {
+    "description": "Ibbda Claude Code indirizzat lejn OmniRoute (lokali jew remot, b'--profile)",
+    "token": "Token li l-klijent Claude għandu jibgħat (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute mhux aċċessibbli fuq {port}. Ibda b''omniroute serve'.",
+    "notFound": "Il-CLI 'claude' ma nstabx fil-PATH."
+  },
+  "run": {
+    "description": "Nniedi target tal-CLI appoġġat permezz ta' OmniRoute"
+  },
+  "setupClaude": {
+    "description": "Ġġenera profili tal-Claude Code ~/.claude/profiles mill-katalog tal-mudelli tal-OmniRoute"
+  },
+  "connect": {
+    "description": "Connettiti għal server tal-OmniRoute remote u daħħal fil-modalità remote"
+  },
+  "tokens": {
+    "description": "Immaniġġja tokens tal-aċċess tal-CLI skopati (modalità remote)"
+  },
+  "configure": {
+    "description": "Agħżel providur+model mill-server attiv u configura CLI lokali appoġġat"
+  },
+  "launchCodex": {
+    "description": "Nniedi Codex CLI mmirat lejn OmniRoute (lokali jew VPS remote)"
+  },
+  "setupCodex": {
+    "description": "Ġġenera fajls tal-profil ~/.codex mill-katalog tal-mudelli ħaj tal-OmniRoute"
+  },
+  "packs": {
+    "description": "Immaniġġja packs tal-ħin tax-xogħol opzjonali (ML / awtomazzjoni tal-browser)",
+    "listDescription": "Lista tal-packs opzjonali u l-istat tal-installazzjoni tagħhom",
+    "installDescription": "Install pack opzjonali f'DATA_DIR",
+    "verifyDescription": "Verifika tal-packs installati meta mqabbla mal-indiċi tas-checksum imsemmi",
+    "removeDescription": "Neħħi pack opzjonali installat",
+    "sourceOpt": "Direttorju li fih il-payloads tal-pack u l-indiċi tal-pack",
+    "warnNoIndex": "optional-packs.index.json ma nstabx — install/verifika mhumiex disponibbli f'dan il-checkout (desktop bundles jibagħthu)",
+    "errUnknown": "pack mhux magħruf: {name}",
+    "errNoIndex": "indiċi tal-pack ma nstabx; għaddi --source <dir> li fih il-payload tal-pack (desktop bundles jibagħthu ħdejn l-app)",
+    "installed": "pack \"{name}\" installat u verifikat f'{dir}'",
+    "restartHint": "terġa' tibda l-server tal-OmniRoute (jew l-app desktop) sabiex il-ħin tax-xogħol jaħbad il-pack",
+    "removed": "pack \"{name}\" neħħa",
+    "notInstalled": "pack \"{name}\" ma kienx installat",
+    "verifyOk": "kollha tal-packs installati verifikati",
+    "verifyFailed": "{count} pack(s) falla l-verifika",
+    "noneInstalled": "ebda packs opzjonali installati"
+  }
+}

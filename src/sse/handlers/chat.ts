@@ -12,6 +12,7 @@ import { resolveRoutingModel, RoutingModelOps } from "./resolveRoutingModel";
 import {
   getProviderCredentialsWithQuotaPreflight,
   markAccountUnavailable,
+  buildExhaustionOptions,
   extractApiKey,
   isValidApiKey,
   extractSessionAffinityKey,
@@ -1781,7 +1782,8 @@ async function handleSingleModelChat(
           lastStatus,
           candidateAliases,
           isCombo,
-          shadowedNode
+          shadowedNode,
+          runtimeOptions?.correlationId ?? null
         );
         const lastFailedConnectionId =
           excludedConnectionIds.size > 0
@@ -2093,7 +2095,7 @@ async function handleSingleModelChat(
           provider,
           model,
           providerProfile,
-          { isCombo }
+          buildExhaustionOptions(runtimeOptions.correlationId ?? null, { isCombo })
         );
 
         if (shouldFallback && !hasForcedConnection) {
@@ -2142,7 +2144,7 @@ async function handleSingleModelChat(
           provider,
           model,
           providerProfile,
-          { isCombo }
+          buildExhaustionOptions(runtimeOptions.correlationId ?? null, { isCombo })
         );
 
         if (shouldFallback && !hasForcedConnection) {
@@ -2387,7 +2389,7 @@ async function handleSingleModelChat(
             provider,
             model,
             providerProfile,
-            {
+            buildExhaustionOptions(runtimeOptions.correlationId ?? null, {
               persistUnavailableState: !(
                 isCombo &&
                 result.status === 429 &&
@@ -2395,7 +2397,7 @@ async function handleSingleModelChat(
               ),
               isCombo,
               headers: result.response.headers,
-            }
+            })
           );
 
       // An explicit pin (combo step `connectionId` / `x-omniroute-connection`) is an

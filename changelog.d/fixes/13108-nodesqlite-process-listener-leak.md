@@ -1,0 +1,1 @@
+- **fix(db):** release the `beforeExit`/`SIGINT`/`SIGTERM` handlers when a `node:sqlite` adapter closes, so a closed adapter and its database handle are no longer pinned to `process` for the lifetime of the run — the same treatment #7494 gave the sql.js adapter.
