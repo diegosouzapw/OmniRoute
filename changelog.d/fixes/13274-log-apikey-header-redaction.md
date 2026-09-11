@@ -1,0 +1,1 @@
+- Mask every `*-api-key` provider header spelling (`x-goog-api-key`, Azure `api-key`, `xi-api-key`) in the request-log pipeline and persisted call-log redaction instead of only `x-api-key`. (#13274 — thanks @soroush5)

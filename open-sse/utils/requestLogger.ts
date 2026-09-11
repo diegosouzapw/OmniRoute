@@ -109,7 +109,15 @@ function maskSensitiveHeaders(headers: HeaderInput): Record<string, unknown> {
       masked[key] = "[REDACTED]";
       continue;
     }
-    if (!sensitiveKeys.some((candidate) => lowerKey.includes(candidate))) {
+    // Normalized api-key match: provider credential headers come in many
+    // spellings (x-api-key, x-goog-api-key, api-key for Azure, xi-api-key
+    // for ElevenLabs). Matching the compacted name keeps every current and
+    // future *-api-key variant masked instead of allowlisting spellings.
+    const compactKey = lowerKey.replace(/[^a-z0-9]/g, "");
+    if (
+      !compactKey.includes("apikey") &&
+      !sensitiveKeys.some((candidate) => lowerKey.includes(candidate))
+    ) {
       continue;
     }
 
