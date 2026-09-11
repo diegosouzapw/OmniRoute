@@ -50,7 +50,13 @@ test("GET /api/keys stays masked even when reveal is enabled", async () => {
   assert.equal(response.status, 200);
   assert.equal(body.allowKeyReveal, true);
   assert.equal(Array.isArray(body.keys), true);
-  assert.equal(body.keys[0].key, maskKey(created.key));
+  // The key is redacted at rest now (see redactedKeyPlaceholder()), so the
+  // list view falls back to the separately-stored, low-sensitivity
+  // key_prefix for an identifying label instead of masking a nonexistent
+  // secret — and either way, the real key value must never appear here.
+  const listedKey = body.keys[0].key;
+  assert.notEqual(listedKey, created.key);
+  assert.equal(listedKey, `${created.key.slice(0, 12)}****`);
 });
 
 test("GET /api/keys falls back to default pagination for invalid query params", async () => {
@@ -111,7 +117,15 @@ test("GET /api/keys/[id]/reveal rejects requests when reveal is disabled", async
   assert.equal(body.error, "API key reveal is disabled");
 });
 
-test("GET /api/keys/[id]/reveal returns the full key when reveal is enabled", async () => {
+// Security fix: createApiKey() no longer persists a recoverable plaintext
+// secret (see redactedKeyPlaceholder() in src/lib/db/apiKeys.ts) — the raw
+// value is only ever shown once, at creation time, in the response object
+// `created.key` returned in-memory to the caller. The DB row itself carries
+// an inert `redacted:<id>` placeholder, so a *fresh* key can never be
+// revealed again later. That is the intended, correct behavior now — verify
+// the route reports it clearly (410, not a silent wrong value) rather than
+// asserting the old "reveal returns the original key" contract.
+test("GET /api/keys/[id]/reveal reports a redacted key as gone (410), not as a revealable value", async () => {
   process.env.ALLOW_API_KEY_REVEAL = "true";
   const created = await apiKeysDb.createApiKey("Primary Key", MACHINE_ID);
   const request = new Request(`http://localhost/api/keys/${created.id}/reveal`);
@@ -121,11 +135,11 @@ test("GET /api/keys/[id]/reveal returns the full key when reveal is enabled", as
   });
   const body = (await response.json()) as any;
 
-  assert.equal(response.status, 200);
-  assert.equal(body.key, created.key);
+  assert.equal(response.status, 410);
+  assert.equal(body.redacted, true);
 });
 
-test("GET /api/keys/[id]/reveal honors the ALLOW_API_KEY_REVEAL feature flag override", async () => {
+test("GET /api/keys/[id]/reveal honors the ALLOW_API_KEY_REVEAL feature flag override (still 410 for a redacted key)", async () => {
   featureFlagsDb.setFeatureFlagOverride("ALLOW_API_KEY_REVEAL", "true");
   const created = await apiKeysDb.createApiKey("Primary Key", MACHINE_ID);
   const request = new Request(`http://localhost/api/keys/${created.id}/reveal`);
@@ -135,8 +149,32 @@ test("GET /api/keys/[id]/reveal honors the ALLOW_API_KEY_REVEAL feature flag ove
   });
   const body = (await response.json()) as any;
 
+  // The flag override controls whether the endpoint is reachable at all
+  // (not 403) — it does not resurrect a plaintext secret that was never
+  // persisted.
+  assert.equal(response.status, 410);
+  assert.equal(body.redacted, true);
+});
+
+test("GET /api/keys/[id]/reveal returns the real value for a legacy key that still has a usable (non-redacted) secret", async () => {
+  process.env.ALLOW_API_KEY_REVEAL = "true";
+  const created = await apiKeysDb.createApiKey("Primary Key", MACHINE_ID);
+
+  // Simulate a pre-migration row (or one `encryptApiKeyPlaintext()` migrated
+  // to ciphertext rather than a placeholder) that still carries a real,
+  // resolvable secret in `api_keys.key`.
+  const db = core.getDbInstance();
+  const legacyKey = "sk-legacy-reveal-test-0123456789abcdef";
+  db.prepare("UPDATE api_keys SET key = ? WHERE id = ?").run(legacyKey, created.id);
+
+  const request = new Request(`http://localhost/api/keys/${created.id}/reveal`);
+  const response = await revealRoute.GET(request, {
+    params: Promise.resolve({ id: created.id }),
+  });
+  const body = (await response.json()) as any;
+
   assert.equal(response.status, 200);
-  assert.equal(body.key, created.key);
+  assert.equal(body.key, legacyKey);
 });
 
 test("GET /api/keys/[id]/reveal returns 404 for unknown keys even when reveal is enabled", async () => {

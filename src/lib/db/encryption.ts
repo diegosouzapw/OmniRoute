@@ -165,6 +165,47 @@ export function isEncryptionEnabled(): boolean {
 }
 
 /**
+ * Fail-fast production guard for STORAGE_ENCRYPTION_KEY.
+ *
+ * Dev/test keep the existing plaintext-passthrough convenience (encrypt()
+ * still no-ops and logs a warning) so local setup stays frictionless. In
+ * production, silently falling back to plaintext for provider credentials
+ * (API keys, OAuth tokens) is a real risk that a one-time console.warn does
+ * not surface loudly enough — so this throws/exits at startup instead.
+ *
+ * Mirrors the existing fail-fast startup pattern in
+ * `src/lib/env/runtimeEnv.ts::enforceWebRuntimeEnv()` (format a boxed error,
+ * log it, then exit) rather than inventing a new one. Call this once at
+ * boot (see `src/instrumentation-node.ts::registerNodejs()`), not per
+ * encrypt()/decrypt() call.
+ */
+export function assertEncryptionKeyConfiguredForProduction(
+  env: NodeJS.ProcessEnv = process.env,
+  logger: Pick<Console, "error"> = console
+): void {
+  if (isTestContext()) return;
+  if (env.NODE_ENV !== "production") return;
+  if (isEncryptionEnabled()) return;
+
+  logger.error("");
+  logger.error("═══════════════════════════════════════════════════");
+  logger.error("  ❌  STARTUP: STORAGE_ENCRYPTION_KEY is not set");
+  logger.error("═══════════════════════════════════════════════════");
+  logger.error(
+    "  • Production deployments must configure STORAGE_ENCRYPTION_KEY — without it,"
+  );
+  logger.error(
+    "    provider credentials (API keys, OAuth tokens) would be stored in plaintext."
+  );
+  logger.error("    → Generate with: openssl rand -base64 32");
+  logger.error("");
+  logger.error("  Fix the environment and restart the server.");
+  logger.error("═══════════════════════════════════════════════════");
+  logger.error("");
+  process.exit(1);
+}
+
+/**
  * True when `value` is a stored ciphertext (carries the `enc:v1:` prefix).
  * Lets callers tell "credential present but undecryptable" (stale/changed
  * STORAGE_ENCRYPTION_KEY) apart from "credential genuinely empty" — decrypt()

@@ -115,6 +115,7 @@ import {
 } from "@/shared/network/outboundUrlGuard";
 import { getProviderValidationGuard } from "@/shared/network/outboundUrlGuardPolicy";
 import { isLocalProvider, isSelfHostedChatProvider } from "@/shared/constants/providers";
+import { createPinnedFetch, resolveAndValidateAddresses } from "@/shared/network/dnsPin";
 // Header helpers extracted to a pure leaf; re-exported for external importers
 // (executors + tests) that import them from "./base.ts".
 export {
@@ -432,6 +433,45 @@ export class BaseExecutor {
   }
 
   /**
+   * DNS-rebinding guard for the runtime dispatch path (GHSA-cmhj-wh2f-9cgx).
+   * `assertOutboundUrlAllowed()` above validates `url`'s hostname as a
+   * literal string, but the actual `fetch()` re-resolves DNS at connect
+   * time — a short-TTL DNS record can return a public IP for the string
+   * check and a private/metadata IP moments later, bypassing the guard
+   * entirely (classic TOCTOU). This is the highest-risk on the
+   * `providerSpecificData.baseUrl` override path (#6147: "operator's manual
+   * override always wins" — reachable by any `manage`-scope actor, or an
+   * anonymous one on a keyless install), but applies uniformly to every
+   * outbound dispatch URL for defense in depth, exactly like
+   * `assertOutboundUrlAllowed()` itself.
+   *
+   * Resolves the hostname once, validates every answer against the same
+   * guard mode `assertOutboundUrlAllowed()` used, and — when resolution
+   * happened — returns a `fetch` pinned to the validated address (so the
+   * later real connect cannot re-resolve to something else). Falls back to
+   * the global `fetch` when the provider is exempt, the guard is disabled
+   * (`"none"`), or the host is not resolvable (e.g. bad URL — the string
+   * guard already rejects those before this runs).
+   */
+  protected async resolvePinnedFetch(url: string): Promise<typeof fetch> {
+    if (!url) return fetch;
+    if (isLocalProvider(this.provider) || isSelfHostedChatProvider(this.provider)) return fetch;
+    const guard = getProviderValidationGuard();
+    if (guard === "none") return fetch;
+
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      return fetch;
+    }
+
+    const addresses = await resolveAndValidateAddresses(parsed, guard);
+    if (!addresses.length) return fetch;
+    return createPinnedFetch(addresses[0].address, addresses[0].family);
+  }
+
+  /**
    * Alternate protocol selected on this connection, if the provider declares one
    * that matches. Centralizes the registry lookup so every call-site resolves the
    * same way.
@@ -652,6 +692,9 @@ export class BaseExecutor {
     const url = this.buildCountTokensUrl(model, credentials);
     if (!url) return null;
     this.assertOutboundUrlAllowed(url); // GHSA-4f49
+    // GHSA-cmhj-wh2f-9cgx: same DNS-rebinding pin as the main dispatch path —
+    // this URL can also come from a caller-supplied providerSpecificData.baseUrl.
+    const dispatchFetch = await this.resolvePinnedFetch(url);
 
     const headers = this.buildHeaders(credentials, false);
     const requestBody =
@@ -674,7 +717,7 @@ export class BaseExecutor {
     }
 
     try {
-      const response = await fetch(url, {
+      const response = await dispatchFetch(url, {
         method: "POST",
         headers,
         body: JSON.stringify(requestBody),
@@ -927,6 +970,11 @@ export class BaseExecutor {
           // GHSA-4f49: guard here (not only next to the first buildUrl) so retries
           // and fallback URLs are validated too, before any bytes leave the host.
           this.assertOutboundUrlAllowed(requestUrl);
+          // GHSA-cmhj-wh2f-9cgx: the string check above cannot stop a DNS-rebinding
+          // TOCTOU — resolve once, validate the resolved IP(s), and pin the actual
+          // connection to one of them so a second, independent DNS lookup at
+          // connect time can't hand back a private/metadata address instead.
+          const dispatchFetch = await this.resolvePinnedFetch(requestUrl);
           const timeoutController = fetchStartTimeoutMs > 0 ? new AbortController() : null;
           let timeoutId: ReturnType<typeof setTimeout> | null = null;
           if (timeoutController) {
@@ -949,7 +997,7 @@ export class BaseExecutor {
             : requestOptions;
 
           try {
-            return await fetch(requestUrl, optionsWithSignal);
+            return await dispatchFetch(requestUrl, optionsWithSignal);
           } finally {
             if (timeoutId) clearTimeout(timeoutId);
           }

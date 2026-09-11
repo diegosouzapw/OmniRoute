@@ -21,6 +21,21 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: "Key not found" }, { status: 404 });
     }
 
+    // SECURITY: createApiKey()/regenerateApiKey() no longer persist a
+    // recoverable plaintext secret — the raw value is shown once, at
+    // creation/regeneration time, and never again. A `redacted:<id>` row
+    // means exactly that: there is nothing left to reveal, not an error.
+    if (key.key.startsWith("redacted:")) {
+      return NextResponse.json(
+        {
+          error:
+            "This key's value was only shown once, when it was created or last regenerated, and cannot be revealed again. Regenerate it to get a new value.",
+          redacted: true,
+        },
+        { status: 410 },
+      );
+    }
+
     return NextResponse.json({ key: key.key });
   } catch (error) {
     log.error("keys", "Error revealing key", error);
