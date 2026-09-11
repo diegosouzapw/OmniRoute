@@ -43,6 +43,11 @@ async function waitFor(fn, timeoutMs = 1500) {
   return null;
 }
 
+async function waitForAsyncSideEffects() {
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setTimeout(resolve, 10));
+}
+
 async function getLatestCallLog() {
   const rows = await getCallLogs({ limit: 5 });
   if (!Array.isArray(rows) || rows.length === 0) return null;
@@ -479,4 +484,97 @@ test("CC-compatible providerRequest log keeps request beta headers and summarize
     new RegExp(CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA)
   );
   assert.equal(providerRequest.body.thinking.display, "summarized");
+});
+
+// #3229: Antigravity's 400s are the diagnostic blind spot this projection exists to fill —
+// but Google's error envelope is arbitrary and may echo request content, so the call log must
+// receive the bounded classification INSTEAD of the response, not alongside it. The failure
+// this locks: reqLogger.logProviderResponse() populating providerResponse with the upstream
+// status text, response headers, and body before persistAttemptLogs() runs, which would make
+// any "safe wrapper" passed later silently lose to the raw one already in the pipeline.
+test("antigravity failure logs only the bounded validation diagnostic, never the upstream body", async () => {
+  const {
+    seedAntigravityIdeVersionCache,
+    seedAntigravityCliVersionCache,
+    clearAntigravityVersionCaches,
+  } = await import("../../open-sse/services/antigravityVersion.ts");
+  seedAntigravityIdeVersionCache("2026.04.17-test");
+  seedAntigravityCliVersionCache("2026.04.17-test");
+
+  const body = {
+    model: "gemini-2.5-flash",
+    stream: false,
+    messages: [{ role: "user", content: "hunting-prompt-secret" }],
+  };
+
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        error: {
+          code: 400,
+          status: "INVALID_ARGUMENT",
+          message:
+            "Invalid JSON payload received. functionDeclarations[0].parameters: unknown name additionalProperties near prompt-secret",
+          details: [{ toolArguments: "tool-secret", authorization: "Bearer credential-secret" }],
+        },
+      }),
+      {
+        status: 400,
+        statusText: "Bad Request account-project-secret",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-project-id": "project-secret",
+        },
+      }
+    );
+
+  try {
+    const result = await handleChatCore({
+      body: structuredClone(body),
+      modelInfo: { provider: "antigravity", model: "gemini-2.5-flash", extendedContext: false },
+      credentials: { accessToken: "token", projectId: "project-1" },
+      log: noopLog(),
+      clientRawRequest: {
+        endpoint: "/v1/chat/completions",
+        body: structuredClone(body),
+        headers: new Headers({ accept: "application/json" }),
+      },
+      userAgent: "unit-test",
+    } as unknown as Parameters<typeof handleChatCore>[0]);
+
+    assert.equal(result.success, false);
+    assert.equal(result.status, 400);
+    // The client keeps the generic envelope: no upstream_details, no provider prose.
+    assert.equal(result.body?.upstream_details, undefined);
+    assert.doesNotMatch(
+      JSON.stringify(result.body ?? {}),
+      /prompt-secret|tool-secret|credential-secret|project-secret|additionalProperties/
+    );
+
+    await waitForAsyncSideEffects();
+
+    const detail = await waitFor(getLatestCallLog);
+    assert.ok(detail, "expected a call log to be persisted");
+    assert.ok(detail.pipelinePayloads, "expected pipeline payloads");
+
+    const providerResponse = detail.pipelinePayloads.providerResponse;
+    assert.ok(providerResponse, "providerResponse must carry the diagnostic");
+    assert.deepEqual(Object.keys(providerResponse).sort(), ["diagnostic", "timestamp"]);
+    assert.deepEqual(providerResponse.diagnostic, {
+      antigravityValidation: {
+        httpStatus: 400,
+        providerCode: 400,
+        providerStatus: "INVALID_ARGUMENT",
+        validationCategory: "tool_schema",
+        validationField: "tools",
+        schemaKeyword: "additionalProperties",
+      },
+    });
+    assert.doesNotMatch(
+      JSON.stringify(providerResponse),
+      /prompt-secret|tool-secret|credential-secret|project-secret|Bad Request|x-goog/
+    );
+  } finally {
+    clearAntigravityVersionCaches();
+  }
 });

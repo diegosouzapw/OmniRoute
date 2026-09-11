@@ -7,7 +7,10 @@
 // antigravity/sseCollect.ts submodule pattern.
 import { mergeAbortSignals, type ExecutorLog } from "../base.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../../config/cliFingerprints.ts";
-import { buildAntigravityUpstreamError } from "../antigravityUpstreamError.ts";
+import {
+  buildAntigravityUpstreamError,
+  projectAntigravityValidationDiagnostic,
+} from "../antigravityUpstreamError.ts";
 import { maybeTriggerReactiveModelSync } from "@/lib/providerModels/reactiveModelSync.ts";
 import {
   HTTP_STATUS,
@@ -541,6 +544,7 @@ async function buildUpstreamErrorResult(
     .text()
     .catch(() => "");
   const errorBody = buildAntigravityUpstreamError(response.status, response.statusText, rawBody);
+  const upstreamDiagnostic = projectAntigravityValidationDiagnostic(response.status, rawBody);
   return {
     response: new Response(JSON.stringify(errorBody), {
       status: response.status,
@@ -549,6 +553,7 @@ async function buildUpstreamErrorResult(
     url,
     headers: finalHeaders,
     transformedBody,
+    upstreamDiagnostic,
   };
 }
 

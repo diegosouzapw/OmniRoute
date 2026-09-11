@@ -120,6 +120,19 @@ export function protectPipelinePayloads(
 
     if (key === "providerResponse" || key === "clientResponse") {
       const response = asRecord(value);
+      // #3229: a diagnostic-only payload is an allowlist PROJECTION -- a closed vocabulary of
+      // enums and gated scalars produced by projectAntigravityValidationDiagnostic -- and never
+      // carries upstream prose. protectErrorPayloadForLog is the raw-upstream-body scrubber, and
+      // its BLOCKED_KEYS heuristic drops any key whose NAME contains "key"/"token"/"path". Run
+      // over an already-bounded projection it silently deletes real classification fields
+      // (observed: schemaKeyword), leaving a log that looks complete but is not. Bound it like
+      // any other payload; do not re-scrub it as if it were a provider body.
+      if ("diagnostic" in response && !("body" in response)) {
+        protectedPayloads[key as "providerResponse" | "clientResponse"] = protectPayloadForLog(
+          value
+        ) as RequestPipelinePayloads["providerResponse"];
+        continue;
+      }
       const status = Number(response.status ?? responseStatus);
       if (Number.isFinite(status) && status >= 400 && status <= 599) {
         const projectedResponse =

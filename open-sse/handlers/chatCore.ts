@@ -343,6 +343,10 @@ import {
   requiresReasoningReplay,
 } from "../services/reasoningCache.ts";
 import { isCompactResponsesEndpoint } from "../executors/codex.ts";
+import {
+  isAntigravityProvider,
+  toAntigravityDiagnosticPayload,
+} from "../executors/antigravityUpstreamError.ts";
 import { persistCodexChildQuotaResponse } from "../services/codexAccount/index.ts";
 import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { invalidateGenericQuotaCacheOnStatus } from "../services/genericQuotaFetcher.ts";
@@ -3611,6 +3615,10 @@ export async function handleChatCore({
   let providerHeaders;
   let finalBody;
   let claudePromptCacheLogMeta = null;
+  // #3229: always describes whichever response `providerResponse` currently holds — every
+  // retry, recovery, or fallback that replaces the response replaces or clears this too, or
+  // the log attributes one attempt's diagnosis to a different attempt's response.
+  let upstreamDiagnostic: Record<string, unknown> | undefined;
 
   let pipelineRecovered = false;
   if (stream) {
@@ -3714,6 +3722,7 @@ export async function handleChatCore({
 
       pipelineRecovered = true;
       currentModel = pipelineOutcome.model;
+      upstreamDiagnostic = pipelineOutcome.upstreamDiagnostic;
       if (pipelineOutcome.kind === "error") {
         providerResponse = pipelineOutcome.result.response;
         providerUrl = "";
@@ -4013,6 +4022,7 @@ export async function handleChatCore({
             )
           );
 
+          upstreamDiagnostic = retryResult.upstreamDiagnostic;
           if (retryResult.response.ok) {
             providerResponse = retryResult.response;
             providerUrl = retryResult.url;
@@ -4130,6 +4140,7 @@ export async function handleChatCore({
           });
       if (!pipelineRecovered && signatureRecovery.attempted && signatureRecovery.execution) {
         providerResponse = signatureRecovery.execution.response;
+        upstreamDiagnostic = signatureRecovery.execution.upstreamDiagnostic;
         if (signatureRecovery.succeeded) {
           providerUrl = signatureRecovery.execution.url;
           providerHeaders = signatureRecovery.execution.headers;
@@ -4176,6 +4187,7 @@ export async function handleChatCore({
           ),
           requestId: skillRequestId,
         });
+        upstreamDiagnostic = undefined;
         log?.warn?.(
           "PROBE",
           `Reasoning probe (max_tokens < ${REASONING_BUFFER_MIN_TRIGGER}) answered with truncated 200 — upstream reported "${message}"`
@@ -4533,20 +4545,44 @@ export async function handleChatCore({
         log?.debug?.("RETRY", `Antigravity quota reset in ${retrySeconds}s (${retryAfterMs}ms)`);
       }
 
+      // #3229: Antigravity terminal failures are diagnosed from the bounded projection, never
+      // from the upstream payload — see isAntigravityProvider in antigravityUpstreamError.ts.
+      const isAgyProvider = isAntigravityProvider(provider);
+      const agyDiagnostic = toAntigravityDiagnosticPayload(upstreamDiagnostic);
+      const persistedProviderErrorBody = isAgyProvider ? agyDiagnostic : upstreamErrorBody;
+      // A successful intra-family fallback replaces the response the diagnostic above
+      // describes, so re-point the log at the one it now describes (a 2xx carries none).
+      // The streaming path has no success-side logProviderResponse to overwrite it, so
+      // without this the failed attempt's diagnosis would outlive the request it failed.
+      const adoptFallbackDiagnostic = (fallbackDiagnostic?: Record<string, unknown>) => {
+        upstreamDiagnostic = fallbackDiagnostic;
+        if (isAgyProvider) {
+          reqLogger.logProviderDiagnostic(toAntigravityDiagnosticPayload(upstreamDiagnostic));
+        }
+      };
+
       // Log error with full request body for debugging
       reqLogger.logError(new Error(message), finalBody || translatedBody);
-      reqLogger.logProviderResponse(
-        providerResponse.status,
-        providerResponse.statusText,
-        providerResponse.headers,
-        upstreamErrorBody
-      );
+      if (isAgyProvider) {
+        reqLogger.logProviderDiagnostic(agyDiagnostic);
+      } else {
+        reqLogger.logProviderResponse(
+          providerResponse.status,
+          providerResponse.statusText,
+          providerResponse.headers,
+          upstreamErrorBody
+        );
+      }
 
       // Update rate limiter from error response headers
       updateFromHeaders(provider, errorConnectionId, providerResponse.headers, statusCode, model);
       if (errorConnectionId && upstreamErrorBody !== null && upstreamErrorBody !== undefined) {
         updateFromResponseBody(provider, errorConnectionId, upstreamErrorBody, statusCode, model);
       }
+
+      // Downstream, `upstreamErrorBody` only feeds createErrorResult's upstream_details, so
+      // dropping it leaves the executor's generic envelope as the whole client-visible story.
+      if (isAgyProvider) upstreamErrorBody = null;
 
       // ── T5: Intra-family model fallback ──────────────────────────────────────
       // Before returning a model-unavailable error upstream, try sibling models
@@ -4567,6 +4603,7 @@ export async function handleChatCore({
             const fallbackResult = await executeProviderRequest(nextModel, false);
             if (fallbackResult.response.ok) {
               providerResponse = fallbackResult.response;
+              adoptFallbackDiagnostic(fallbackResult.upstreamDiagnostic);
               providerUrl = fallbackResult.url;
               providerHeaders = fallbackResult.headers;
               finalBody = providerRequestCapture.body(fallbackResult.transformedBody);
@@ -4586,7 +4623,7 @@ export async function handleChatCore({
                 status: statusCode,
                 error: errMsg,
                 providerRequest: finalBody || translatedBody,
-                providerResponse: upstreamErrorBody,
+                providerResponse: persistedProviderErrorBody,
                 clientResponse: buildErrorBody(statusCode, errMsg),
                 cacheSource: "upstream",
               });
@@ -4606,7 +4643,7 @@ export async function handleChatCore({
               status: statusCode,
               error: errMsg,
               providerRequest: finalBody || translatedBody,
-              providerResponse: upstreamErrorBody,
+              providerResponse: persistedProviderErrorBody,
               clientResponse: buildErrorBody(statusCode, errMsg),
               cacheSource: "upstream",
             });
@@ -4626,7 +4663,7 @@ export async function handleChatCore({
             status: statusCode,
             error: errMsg,
             providerRequest: finalBody || translatedBody,
-            providerResponse: upstreamErrorBody,
+            providerResponse: persistedProviderErrorBody,
             clientResponse: buildErrorBody(statusCode, errMsg),
             cacheSource: "upstream",
           });
@@ -4660,6 +4697,7 @@ export async function handleChatCore({
             const fallbackResult = await executeProviderRequest(nextModel, false);
             if (fallbackResult.response.ok) {
               providerResponse = fallbackResult.response;
+              adoptFallbackDiagnostic(fallbackResult.upstreamDiagnostic);
               providerUrl = fallbackResult.url;
               providerHeaders = fallbackResult.headers;
               finalBody = providerRequestCapture.body(fallbackResult.transformedBody);
@@ -4678,7 +4716,7 @@ export async function handleChatCore({
                 status: statusCode,
                 error: errMsg,
                 providerRequest: finalBody || translatedBody,
-                providerResponse: upstreamErrorBody,
+                providerResponse: persistedProviderErrorBody,
                 clientResponse: buildErrorBody(statusCode, errMsg),
                 cacheSource: "upstream",
               });
@@ -4698,7 +4736,7 @@ export async function handleChatCore({
               status: statusCode,
               error: errMsg,
               providerRequest: finalBody || translatedBody,
-              providerResponse: upstreamErrorBody,
+              providerResponse: persistedProviderErrorBody,
               clientResponse: buildErrorBody(statusCode, errMsg),
               cacheSource: "upstream",
             });
@@ -4718,7 +4756,7 @@ export async function handleChatCore({
             status: statusCode,
             error: errMsg,
             providerRequest: finalBody || translatedBody,
-            providerResponse: upstreamErrorBody,
+            providerResponse: persistedProviderErrorBody,
             clientResponse: buildErrorBody(statusCode, errMsg),
             cacheSource: "upstream",
           });
@@ -4738,7 +4776,7 @@ export async function handleChatCore({
           status: statusCode,
           error: errMsg,
           providerRequest: finalBody || translatedBody,
-          providerResponse: upstreamErrorBody,
+          providerResponse: persistedProviderErrorBody,
           clientResponse: buildErrorBody(statusCode, errMsg),
           cacheSource: "upstream",
         });
@@ -4911,7 +4949,16 @@ export async function handleChatCore({
         }
         reqLogger.logError(new Error(err.error || "Provider request failed"), finalBody);
         const isNetworkThrow = Boolean(err.originalError);
-        if (err.response && !isNetworkThrow) {
+        const isAgyProvider = isAntigravityProvider(provider);
+        const agyDiagnostic = toAntigravityDiagnosticPayload(legResult.upstreamDiagnostic);
+        const persistedProviderErrorBody = isAgyProvider
+          ? agyDiagnostic
+          : isNetworkThrow
+            ? undefined
+            : err.response;
+        if (isAgyProvider) {
+          reqLogger.logProviderDiagnostic(agyDiagnostic);
+        } else if (err.response && !isNetworkThrow) {
           reqLogger.logProviderResponse(
             err.status,
             err.response.statusText || "Error",
@@ -4929,7 +4976,7 @@ export async function handleChatCore({
           status: err.status,
           error: err.error || "Provider request failed",
           providerRequest: finalBody || translatedBody,
-          providerResponse: isNetworkThrow ? undefined : err.response,
+          providerResponse: persistedProviderErrorBody,
           // On a client abort the client already disconnected before we got here, so this
           // body is what we WOULD have sent, not what was delivered. The dashboard reads
           // `clientResponse` as "what the client received", so logging it misleads —
