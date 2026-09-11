@@ -346,3 +346,32 @@ test("registerQuotaWindows / getQuotaWindows round-trips", () => {
   // Unknown provider returns an empty list rather than undefined.
   assert.deepEqual([...getQuotaWindows("provider-with-no-registration-anywhere")], []);
 });
+
+test("evaluateQuotaCutoff permits connection when base is exhausted but _freetrial is available", () => {
+  const quota = {
+    used: 50,
+    total: 50,
+    percentUsed: 0,
+    windows: {
+      credit: { percentUsed: 1.0, resetAt: null },
+      credit_freetrial: { percentUsed: 0.0, resetAt: null },
+    },
+  };
+  const result = evaluateQuotaCutoff(quota);
+  assert.equal(result.proceed, true);
+});
+
+test("evaluateQuotaCutoff blocks connection when both base and _freetrial are exhausted", () => {
+  const quota = {
+    used: 50,
+    total: 50,
+    percentUsed: 1.0,
+    windows: {
+      credit: { percentUsed: 1.0, resetAt: null },
+      credit_freetrial: { percentUsed: 1.0, resetAt: null },
+    },
+  };
+  const result = evaluateQuotaCutoff(quota);
+  assert.equal(result.proceed, false);
+  assert.equal(result.reason, "quota_exhausted");
+});

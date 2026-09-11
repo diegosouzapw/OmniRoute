@@ -329,7 +329,11 @@ test("in-flight fetch must not drop a concurrent 429 force-refresh", async () =>
   assert.equal(first?.percentUsed, 0.2);
 
   const second = await fetchGenericQuota(connectionId, connection);
-  assert.equal(calls.length, 2, "concurrent 429 must not let the in-flight recache wipe force-refresh");
+  assert.equal(
+    calls.length,
+    2,
+    "concurrent 429 must not let the in-flight recache wipe force-refresh"
+  );
   assert.equal(calls[1]?.forceRefresh, true);
   assert.equal(second?.percentUsed, 0.9);
   invalidateGenericQuotaCache("agy", connectionId);
@@ -387,4 +391,29 @@ test("stamp expiry during in-flight fetch still writes the wrapper cache", async
   await fetchGenericQuota(connectionId, connection);
   assert.equal(calls.length, 2, "expired stamp during await is not a 429; cache the result");
   invalidateGenericQuotaCache("agy", connectionId);
+});
+
+test("convertUsageToQuotaInfo aggregates _freetrial and non-freetrial windows using best remaining", async () => {
+  const usage = {
+    quotas: {
+      credit: { used: 50, total: 50 },
+      credit_freetrial: { used: 0, total: 500 },
+    },
+  };
+  const result = convertUsageToQuotaInfo(usage, { provider: "kiro" });
+  // Used: min of 100% and 0% = 0%
+  assert.equal(result?.percentUsed, 0);
+  assert.equal(result?.limitReached, false);
+});
+
+test("convertUsageToQuotaInfo blocks when both base and freetrial are exhausted", async () => {
+  const usage = {
+    quotas: {
+      credit: { used: 50, total: 50 },
+      credit_freetrial: { used: 500, total: 500 },
+    },
+  };
+  const result = convertUsageToQuotaInfo(usage, { provider: "kiro" });
+  assert.equal(result?.percentUsed, 1);
+  assert.equal(result?.limitReached, true);
 });
