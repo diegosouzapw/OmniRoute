@@ -419,6 +419,11 @@ export const updateComboSchema = z
     strategy: comboStrategySchema.optional(),
     config: comboRuntimeConfigSchema.optional(),
     isActive: z.boolean().optional(),
+    // Stored on the combo record and honoured by the readers — the builder's
+    // option list and the dashboard grid both filter on it — but omitted here,
+    // so the one endpoint a client can flip it through stripped the field and
+    // a visibility-only update was rejected as empty. #12836
+    isHidden: z.boolean().optional(),
     allowedProviders: z.array(z.string().trim().min(1).max(200)).max(100).optional(),
     allowedModelFamilies: z.array(z.string().trim().min(1).max(100)).max(100).optional(),
     // Nullable like `description` and `context_length` above: an absent field means
@@ -443,6 +448,7 @@ export const updateComboSchema = z
       value.strategy === undefined &&
       value.config === undefined &&
       value.isActive === undefined &&
+      value.isHidden === undefined &&
       value.allowedProviders === undefined &&
       value.allowedModelFamilies === undefined &&
       value.system_message === undefined &&
