@@ -1,0 +1,1 @@
+- **fix(quota):** in-memory routing and quota caches (quality states, saturation signals, rate-limit headers, learned limits, quota-fetcher entries, account buckets) are now bounded with a shared LRU/TTL factory so bursts of distinct providers or models can't grow them without limit ([#13280](https://github.com/diegosouzapw/OmniRoute/pull/13280))

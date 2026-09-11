@@ -16,6 +16,7 @@
  *
  * Part of: Quota Sharing Engine — Phase 3 (#3 multi-window buckets).
  */
+import { boundedMap } from "./boundedMap";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -62,8 +63,8 @@ export const SATURATION_THRESHOLD_PCT = 100;
 // In-process store
 // ---------------------------------------------------------------------------
 
-/** Key: `${connectionId}::${windowKey}`. */
-const _buckets = new Map<string, BucketEntry>();
+/** Key: `${connectionId}::${windowKey}`. Cap 1024 ~= connections x windows (5h/7d/7d:<model>). */
+const _buckets = boundedMap<BucketEntry>("account-buckets", 1024, "lru");
 
 function storeKey(connectionId: string, windowKey: string): string {
   return `${connectionId}::${windowKey}`;
