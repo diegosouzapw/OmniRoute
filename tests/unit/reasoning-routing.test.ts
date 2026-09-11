@@ -237,3 +237,177 @@ test("schema rejects connection reroutes and none with a fixed budget", () => {
   });
   assert.equal(noneWithBudget.success, false);
 });
+
+test("forced max/ultra is supported when the model declares that effort", async () => {
+  const { setModelCapabilityOverride } =
+    await import("../../src/lib/db/modelCapabilityOverrides.ts");
+  // Synthetic id: no static spec, registry row, or models.dev sync row can
+  // exist for it, so capability resolution is deterministic in any environment.
+  const model = "custom-provider/test-only-forced-max-model";
+
+  await rulesDb.createReasoningRoutingRule(
+    ruleInput({
+      name: "force max on declared-vocabulary model",
+      scope: "model",
+      modelPattern: model,
+      effortMode: "force",
+      targetEffort: "max",
+      priority: 10,
+    })
+  );
+
+  const beforeDecision = await policy.resolveReasoningRoutingRule({
+    sourceModel: model,
+    sourceEffort: "missing",
+    hasReasoningSignal: false,
+  });
+  assert.ok(beforeDecision, "rule should match");
+  assert.equal(beforeDecision.targetEffort, "max");
+  assert.equal(
+    beforeDecision.capability,
+    "unknown",
+    "without declared vocabulary, forced max on a model with no capability data stays unknown (legacy passthrough)"
+  );
+
+  // Operator declares the model's real effort vocabulary (what the Model
+  // Overrides UI writes via PATCH /api/model-capability-overrides).
+  const set = setModelCapabilityOverride(model, "reasoning_efforts", ["low", "high", "max"]);
+  assert.equal(set, true, "override must accept a low/high/max vocabulary");
+
+  const afterDecision = await policy.resolveReasoningRoutingRule({
+    sourceModel: model,
+    sourceEffort: "missing",
+    hasReasoningSignal: false,
+  });
+  assert.equal(
+    afterDecision?.capability,
+    "supported",
+    "declared vocabulary containing max must make forced max supported"
+  );
+
+  // Declared vocabulary without max still rejects forced max.
+  assert.equal(setModelCapabilityOverride(model, "reasoning_efforts", ["low", "high"]), true);
+  const noMaxDecision = await policy.resolveReasoningRoutingRule({
+    sourceModel: model,
+    sourceEffort: "missing",
+    hasReasoningSignal: false,
+  });
+  assert.equal(
+    noMaxDecision?.capability,
+    "unsupported",
+    "declared vocabulary without max must keep forced max unsupported"
+  );
+});
+
+test("static registry vocabulary outranks the operator override so the gate matches dispatch clamping", async () => {
+  const { setModelCapabilityOverride } =
+    await import("../../src/lib/db/modelCapabilityOverrides.ts");
+  const { getProviderModels, PROVIDER_ID_TO_ALIAS } =
+    await import("@omniroute/open-sse/config/providerModels.ts");
+
+  // Case 1: registry-declared model, operator override WIDENS. The
+  // dispatch-time sanitizer ignores DB overrides for registry-declared
+  // models, so the gate must reject too. xai/grok-4.6 declares
+  // ["low","medium","high","xhigh"] — no max — in the static registry.
+  const registeredModel = "xai/grok-4.6";
+  // One global force-max rule drives every decision in this test; each case
+  // varies only the model and its capability data. Global scope matches any
+  // model, so no per-model rule setup is needed.
+  await rulesDb.createReasoningRoutingRule(
+    ruleInput({
+      name: "force max on registered models",
+      scope: "global",
+      effortMode: "force",
+      targetEffort: "max",
+      priority: 10,
+    })
+  );
+  assert.ok(
+    getProviderModels("xai").some(
+      (entry) => entry.id === "grok-4.6" && !entry.supportedThinkingEfforts?.includes("max")
+    ),
+    "precondition: registry must declare grok-4.6 without max"
+  );
+  setModelCapabilityOverride(registeredModel, "reasoning_efforts", ["low", "high", "max"]);
+  const widened = await policy.resolveReasoningRoutingRule({
+    sourceModel: registeredModel,
+    sourceEffort: "missing",
+    hasReasoningSignal: false,
+  });
+  assert.ok(widened, "force-max rule on the narrow-vocabulary model must match");
+  assert.equal(widened.targetEffort, "max");
+  assert.equal(
+    widened.capability,
+    "unsupported",
+    "registry vocabulary without max must keep forced max unsupported even with a widening DB override"
+  );
+
+  // Case 2: registry-declared model, operator override NARROWS to exclude
+  // max. The override is terminal — the legacy gpt-5.6 regex must not
+  // resurrect the tier (grok ids never matched that regex, but the
+  // precedence guarantee must not depend on the id shape).
+  setModelCapabilityOverride(registeredModel, "reasoning_efforts", ["low", "high"]);
+  const narrowed = await policy.resolveReasoningRoutingRule({
+    sourceModel: registeredModel,
+    sourceEffort: "missing",
+    hasReasoningSignal: false,
+  });
+  assert.equal(
+    narrowed?.capability,
+    "unsupported",
+    "a narrowed operator override is terminal and must not fall through to the legacy regex"
+  );
+
+  // Case 3: registry model WITHOUT any declared vocabulary, operator
+  // override WIDENS. The sanitizer forwards verbatim for undeclared models
+  // (#8057), so the gate must accept. codex entries declare no vocabulary.
+  const undeclaredModel = "codex/test-only-undeclared-model";
+  assert.ok(
+    getProviderModels("codex").every((entry) => !Array.isArray(entry.supportedThinkingEfforts)),
+    "precondition: codex entries declare no static effort vocabulary"
+  );
+  setModelCapabilityOverride(undeclaredModel, "reasoning_efforts", ["low", "high", "max"]);
+  const passthrough = await policy.resolveReasoningRoutingRule({
+    sourceModel: undeclaredModel,
+    sourceEffort: "missing",
+    hasReasoningSignal: false,
+  });
+  assert.ok(passthrough, "force-max rule on the undeclared model must match");
+  assert.equal(
+    passthrough.capability,
+    "supported",
+    "undeclared registry model with a widening DB override stays supported (#8057 trust-the-upstream)"
+  );
+
+  // Case 4: the alias-resolved namespace. The sanitizer resolves id→alias
+  // before reading the provider namespace (#2798), so `cx/<model>` and
+  // `codex/<model>` must produce identical verdicts.
+  assert.ok(PROVIDER_ID_TO_ALIAS["codex"] === "cx", "precondition: codex aliases to cx");
+  const viaAlias = await policy.resolveReasoningRoutingRule({
+    sourceModel: "cx/test-only-undeclared-model",
+    sourceEffort: "missing",
+    hasReasoningSignal: false,
+  });
+  assert.equal(
+    viaAlias?.capability,
+    passthrough.capability,
+    "alias-spelled provider prefix must resolve to the same registry namespace"
+  );
+
+  // Case 5: a narrowing override on a gpt-5.6 id is terminal. The legacy
+  // regex matches this exact id shape — without the terminal check it would
+  // resurrect forced max the operator explicitly declared away.
+  const gpt56Model = "codex/gpt-5.6-sol";
+  setModelCapabilityOverride(gpt56Model, "reasoning_efforts", ["low", "high"]);
+  const denied56 = await policy.resolveReasoningRoutingRule({
+    sourceModel: gpt56Model,
+    sourceEffort: "missing",
+    hasReasoningSignal: false,
+  });
+  assert.ok(denied56, "force-max rule on the gpt-5.6 model must match");
+  assert.equal(
+    denied56.capability,
+    "unsupported",
+    "operator narrowing override on gpt-5.6 must not be overruled by the legacy regex"
+  );
+});
