@@ -52,12 +52,8 @@ export {
   getCodexDualWindowCooldownMs,
 } from "./codex/quota.ts";
 import { isCodexFreePlan, normalizeCodexTools } from "./codex/tools.ts";
-import {
-  CODEX_EFFORT_ORDER as EFFORT_ORDER,
-  GPT_5_6_ULTRA_ALIAS_MODELS,
-  splitCodexReasoningSuffix,
-  type CodexEffortLevel as EffortLevel,
-} from "./codex/reasoningSuffix.ts";
+import { GPT_5_6_ULTRA_ALIAS_MODELS, splitCodexReasoningSuffix } from "./codex/reasoningSuffix.ts";
+import { applyCodexReasoningSelection } from "./codex/reasoningPolicy.ts";
 import { repairMissingCodexToolCallOutputs } from "./codex/toolCallRepair.ts";
 import { resolveAppServerConfig } from "./codex/appServerConfig.ts";
 import { CodexAppServerExecutor } from "./codex-app-server.ts";
@@ -322,37 +318,6 @@ function normalizeServiceTierValue(value: unknown): string | undefined {
   if (!normalized) return undefined;
   if (normalized === "fast") return CODEX_FAST_WIRE_VALUE;
   return normalized;
-}
-
-/**
- * Maximum reasoning effort allowed per Codex model.
- * Models not listed here retain the legacy xhigh cap.
- * Update this table when Codex releases new models with different caps.
- */
-const MAX_EFFORT_BY_MODEL: Record<string, EffortLevel> = {
-  "gpt-5.6-sol": "ultra",
-  "gpt-5.6-terra": "ultra",
-  "gpt-5.6-luna": "max",
-  "gpt-5.3-codex": "xhigh",
-  "gpt-5.1-codex-max": "xhigh",
-  "gpt-5-mini": "high",
-  "gpt-5.1-mini": "high",
-  "gpt-4.1-mini": "high",
-};
-
-/**
- * Clamp reasoning effort to the model's maximum allowed level.
- * Returns the original value if within limits, or the cap if it exceeds it.
- */
-function clampEffort(model: string, requested: string): string {
-  const max: EffortLevel = MAX_EFFORT_BY_MODEL[model] ?? "xhigh";
-  const reqIdx = EFFORT_ORDER.indexOf(requested as EffortLevel);
-  const maxIdx = EFFORT_ORDER.indexOf(max);
-  if (reqIdx > maxIdx) {
-    console.debug(`[Codex] clampEffort: "${requested}" → "${max}" (model: ${model})`);
-    return max;
-  }
-  return requested;
 }
 
 const CODEX_REASONING_ENCRYPTED_CONTENT_INCLUDE = "reasoning.encrypted_content";
@@ -1361,38 +1326,13 @@ export class CodexExecutor extends BaseExecutor {
     delete body.messages;
     delete body.prompt;
 
-    let modelEffort: string | null = null;
-    let cleanModel = typeof body.model === "string" ? body.model : model;
-    const splitModel = splitCodexReasoningSuffix(cleanModel);
-    if (splitModel.effort) {
-      modelEffort = splitModel.effort;
-      body.model = splitModel.baseModel;
-      cleanModel = splitModel.baseModel;
-    }
-
-    const reasoningRecord =
-      body.reasoning && typeof body.reasoning === "object" && !Array.isArray(body.reasoning)
-        ? (body.reasoning as Record<string, unknown>)
-        : null;
-    const explicitReasoning = normalizeEffortValue(reasoningRecord?.effort);
-    const requestReasoningEffort = normalizeEffortValue(body.reasoning_effort);
-    const fallbackReasoningEffort = allowConnectionReasoningDefaults
-      ? requestDefaults.reasoningEffort || "medium"
-      : undefined;
-    // Issue #2331: model suffix aliases (for example gpt-5.5-xhigh) represent an
-    // explicit model selection, so they must override client-injected defaults such
-    // as OpenCode's automatic reasoning.effort=medium for GPT-5-family requests.
-    const rawEffort =
-      modelEffort || explicitReasoning || requestReasoningEffort || fallbackReasoningEffort;
-
-    if (rawEffort) {
-      const clampedEffort = clampEffort(cleanModel, rawEffort);
-      body.reasoning = {
-        ...(reasoningRecord || {}),
-        // Ultra coordinates delegation in Codex clients; the upstream wire effort is Max.
-        effort: clampedEffort === "ultra" ? "max" : clampedEffort,
-      };
-    }
+    applyCodexReasoningSelection(
+      model,
+      body,
+      credentials.providerSpecificData?._omnirouteCodexThinking,
+      allowConnectionReasoningDefaults ? requestDefaults.reasoningEffort : undefined,
+      allowConnectionReasoningDefaults
+    );
     ensureCodexReasoningSummary(body);
     if (isCompactRequest) {
       delete body.include;

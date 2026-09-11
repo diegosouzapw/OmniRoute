@@ -3,6 +3,7 @@ import {
   getCodexClientVersion,
   getCodexDefaultHeaders,
 } from "@omniroute/open-sse/config/codexClient.ts";
+import { readCodexReasoningMetadata } from "@/shared/reasoning/codexEfforts";
 import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryPolicy";
 
 export {
@@ -27,6 +28,8 @@ export type CodexDiscoveryModel = {
   inputTokenLimit?: number;
   outputTokenLimit?: number;
   description?: string;
+  supportedThinkingEfforts?: string[];
+  defaultThinkingEffort?: string;
   supportsThinking?: boolean;
   supportsVision?: boolean;
 };
@@ -164,6 +167,7 @@ function buildCodexDiscoveryModel(record: JsonRecord): CodexDiscoveryModel | nul
     owned_by: "codex",
     apiFormat: "responses",
     supportedEndpoints: ["responses"],
+    ...readCodexReasoningMetadata(record),
   };
   // The live Codex OAuth catalog reports BOTH `context_window` (the first
   // pricing tier, ~272K) and `max_context_window` (the real usable window,

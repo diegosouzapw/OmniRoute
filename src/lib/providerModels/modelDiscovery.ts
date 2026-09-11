@@ -159,7 +159,11 @@ function parseEffortList(rawList: unknown): string[] | undefined {
  */
 export function detectDefaultThinkingEffort(record: JsonRecord): string | undefined {
   if (typeof record.defaultThinkingEffort === "string" && record.defaultThinkingEffort.length > 0) {
-    return normalizeSupportedEffort(record.defaultThinkingEffort);
+    // A native default declared in the same tier list is not a canonical synonym.
+    return Array.isArray(record.supportedThinkingEfforts) &&
+      record.supportedThinkingEfforts.includes(record.defaultThinkingEffort)
+      ? record.defaultThinkingEffort
+      : normalizeSupportedEffort(record.defaultThinkingEffort);
   }
   const parsed = reasoningDefaultEffortSchema.safeParse(record.reasoning);
   if (parsed.success && parsed.data) {

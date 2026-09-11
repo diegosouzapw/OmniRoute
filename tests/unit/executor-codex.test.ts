@@ -318,7 +318,7 @@ test("CodexExecutor.transformRequest non-passthrough allowlist strips all residu
   assert.equal(result._internal_marker, undefined, "internal markers should be stripped");
 });
 
-test("CodexExecutor.transformRequest normalizes max reasoning_effort to xhigh", () => {
+test("CodexExecutor.transformRequest forwards max for upstream validation without an unknown-model cap", () => {
   const executor = new CodexExecutor();
   const result = executor.transformRequest(
     "gpt-5.5",
@@ -333,7 +333,7 @@ test("CodexExecutor.transformRequest normalizes max reasoning_effort to xhigh", 
     }
   );
 
-  assert.equal(result.reasoning.effort, "xhigh");
+  assert.equal(result.reasoning.effort, "max");
   assert.equal(result.reasoning_effort, undefined);
 });
 

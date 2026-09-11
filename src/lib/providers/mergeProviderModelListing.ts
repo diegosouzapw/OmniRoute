@@ -4,6 +4,7 @@
  * live synced catalog when non-empty.
  */
 
+import { appendSyncedEffortVariants } from "@omniroute/open-sse/utils/syncedEffortVariants";
 import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
 import { mergeModelsWithCustomPrecedence } from "@/lib/providers/modelMetadataPrecedence";
 import {
@@ -67,8 +68,10 @@ export function mergeProviderModelListing(
     return dedupeById(mergeModelsWithCustomPrecedence(withAuto, normalizedCustom));
   }
 
+  const syncedById = new Map(synced.map((model) => [model.id, model]));
   const builtInModels = input.registryModels.map((model) => ({
     ...model,
+    ...(input.providerId === "codex" ? syncedById.get(model.id) : {}),
     source: "system",
   }));
   const registryIds = new Set(builtInModels.map((model) => model.id));
@@ -87,7 +90,10 @@ export function mergeProviderModelListing(
     source: normalizeCustomSource(model.source),
   }));
 
-  return dedupeById(
+  const merged = dedupeById(
     mergeModelsWithCustomPrecedence([...builtInModels, ...syncedExtras], normalizedCustom)
   );
+  return input.providerId === "codex"
+    ? appendSyncedEffortVariants(merged.map((model) => ({ ...model, owned_by: "codex" })))
+    : merged;
 }
