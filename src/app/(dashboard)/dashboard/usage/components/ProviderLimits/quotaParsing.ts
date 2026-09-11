@@ -322,13 +322,33 @@ function parseAgentrouter(data: any) {
 // USD. Free-tier request windows keep the generic percentage treatment.
 function parseOpenrouterQuota(quotaKey: string, quota: any) {
   if (quotaKey !== "credits") return normalizeQuotaEntry(quotaKey, quota);
+  // OpenRouter backend (PRs #12256 + #12468) reports a positive denominator
+  // for PAYG accounts (used, total, remaining, remainingPercentage) and a
+  // balance-only payload under legacy keys. Use the credits renderer
+  // (isCredits: true) in both cases: positive denominator carries the
+  // explicit total + percentage; balance-only keeps total: 0 and creditCount
+  // = remaining.
+  const total = Number(quota?.total ?? 0);
+  const hasPositiveDenominator = Number.isFinite(total) && total > 0;
   const remaining = Math.max(0, Number(quota?.remaining ?? 0));
-  const currency = quota?.currency || "USD";
-  const remainingPercentage =
-    safePercentage(quota?.remainingPercentage) ?? (remaining > 0 ? 100 : 0);
-  return buildCreditsQuota("credits", remaining, remainingPercentage, { currency });
+  const currency = String(quota?.currency ?? "USD");
+  const reportedPercentage = safePercentage(quota?.remainingPercentage);
+  const remainingPercentage = hasPositiveDenominator
+    ? (reportedPercentage ?? safePercentage(remaining > 0 ? (remaining / total) * 100 : 0))
+    : safePercentage(0);
+  return {
+    name: "credits",
+    used: hasPositiveDenominator ? Number(quota?.used ?? 0) : 0,
+    total: hasPositiveDenominator ? total : 0,
+    remaining,
+    resetAt: null,
+    unlimited: false,
+    isCredits: true,
+    remainingPercentage,
+    creditCount: remaining,
+    currency,
+  };
 }
-
 function parseOpenrouter(data: any) {
   return quotaEntries(data).map(([quotaKey, quota]) => parseOpenrouterQuota(quotaKey, quota));
 }
