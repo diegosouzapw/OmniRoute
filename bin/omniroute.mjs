@@ -56,7 +56,15 @@ if (isVersionFastPath(process.argv)) {
 // init) can themselves log during evaluation. Redirecting after those imports let
 // early output leak straight into the JSON-RPC stream and corrupt it client-side
 // (e.g. Claude Desktop: "Unexpected token 'D', \"[DB] Changi\"... is not valid JSON").
-if (process.argv.includes("--mcp")) {
+//
+// `deploy` needs the same treatment for the same reason: it prints Kubernetes
+// YAML (or JSON) on stdout and is meant to be piped —
+// `omniroute deploy k8s | kubectl apply -f -`. Env-loading notices and DB
+// warnings on stdout make that YAML unparseable ("control characters are not
+// allowed"), so they belong on stderr where a human still sees them.
+const STDOUT_IS_DATA = process.argv.includes("--mcp") || process.argv[2] === "deploy";
+
+if (STDOUT_IS_DATA) {
   const { Console } = await import("node:console");
   const stderrConsole = new Console({ stdout: process.stderr, stderr: process.stderr });
   console.log = stderrConsole.log.bind(stderrConsole);

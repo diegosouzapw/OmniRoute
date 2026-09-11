@@ -561,6 +561,10 @@ Stock Docker / Kubernetes OmniRoute is **one Node process + one SQLite writer**.
 
 **Upgrades:** expect every session to drop. Drain clients if you can; there is no rolling update on default SQLite. Compose `restart: unless-stopped` plus Docker `HEALTHCHECK` will also replace the only process when the container is Unhealthy — same blast radius.
 
+Ready-made manifests and a Helm chart live in `deploy/kubernetes/` and
+`deploy/helm/omniroute/` — see the
+[Kubernetes deployment guide](../ops/KUBERNETES_DEPLOYMENT_GUIDE.md).
+
 Kubernetes snippet for a **single replica** (Recreate is required; do not raise `replicas` against one SQLite file):
 
 ```yaml

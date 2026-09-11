@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: omniroute
+spec:
+  template:
+    spec:
+      containers:
+        - name: omniroute
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi

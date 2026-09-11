@@ -1,0 +1,130 @@
+{{- include "omniroute.validate" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "omniroute.fullname" . }}
+  labels:
+    {{- include "omniroute.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    # Recreate, never RollingUpdate: a rollout that briefly runs two pods would
+    # put two writers on one SQLite file. This costs a short outage on every
+    # upgrade — that is the SQLite topology, not a misconfiguration.
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "omniroute.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        # Roll the pod when config changes; env-var updates are not picked up
+        # by a running process otherwise.
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "omniroute.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "omniroute.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: omniroute
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+            - name: live-ws
+              containerPort: {{ .Values.service.liveWsPort }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "omniroute.fullname" . }}-config
+            - secretRef:
+                name: {{ include "omniroute.secretName" . }}
+            {{- with .Values.extraEnvFrom }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.persistence.enabled }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.config.dataDir }}
+          {{- end }}
+          lifecycle:
+            preStop:
+              exec:
+                # Drop this pod from Service endpoints before SIGTERM lands, so
+                # new traffic stops arriving at a process that is shutting down.
+                command: ["/bin/sh", "-c", "sleep {{ .Values.preStopSleepSeconds }}"]
+          # Cold start runs migrations, WAL replay and the startup cleanup
+          # VACUUM, so liveness must not start counting until this passes.
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            # The kubelet default is 1s, and /healthz shares the event loop.
+            timeoutSeconds: 3
+            failureThreshold: {{ .Values.probes.startupFailureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: {{ .Values.probes.readinessFailureThreshold }}
+          # Never /api/monitoring/health here — it does real DB work and
+          # false-positives under load. TCP is the default (probes.livenessType)
+          # because a synchronous SQLite checkpoint stalls every HTTP handler.
+          livenessProbe:
+            {{- if eq .Values.probes.livenessType "tcp" }}
+            tcpSocket:
+              port: http
+            periodSeconds: 20
+            failureThreshold: 6
+            {{- else }}
+            httpGet:
+              path: /livez
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+      {{- if .Values.persistence.enabled }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "omniroute.pvcName" . }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

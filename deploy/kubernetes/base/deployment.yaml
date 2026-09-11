@@ -1,0 +1,126 @@
+# Single-replica by design.
+#
+# Stock OmniRoute is one Node process writing one SQLite file. Two pods bound to
+# the same volume corrupt the database, so `replicas` MUST stay 1 and the
+# strategy MUST be Recreate — RollingUpdate would briefly run two writers.
+# To add capacity, run N independent releases each with its own PVC (see
+# docs/ops/KUBERNETES_DEPLOYMENT_GUIDE.md → "Scale-out"), never replicas > 1.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: omniroute
+  labels:
+    app.kubernetes.io/name: omniroute
+    app.kubernetes.io/component: server
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: omniroute
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: omniroute
+        app.kubernetes.io/component: server
+    spec:
+      # 15s preStop + 30s SHUTDOWN_TIMEOUT_MS drains in-flight SSE — but the
+      # drain is only the first half. gracefulShutdown.ts runs cleanup() after
+      # waitForDrain(), and closeDbInstance() checkpoints the WAL (TRUNCATE)
+      # with no timeout of its own. On a multi-hundred-MB WAL on network
+      # storage that is minutes, and a SIGKILL mid-checkpoint carries the fat
+      # WAL into the next boot. The budget is a ceiling, not a delay: a healthy
+      # pod still exits in ~45s.
+      terminationGracePeriodSeconds: 300
+      securityContext:
+        runAsNonRoot: true
+        # 1000 = the `node` user in the published image.
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: omniroute
+          image: diegosouzapw/omniroute:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 20128
+              protocol: TCP
+            - name: live-ws
+              containerPort: 20132
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: omniroute-config
+            - secretRef:
+                name: omniroute-secrets
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          lifecycle:
+            preStop:
+              exec:
+                # Let kube-proxy drop this pod from Service endpoints before
+                # SIGTERM, so new traffic stops arriving at a dying process.
+                command: ["/bin/sh", "-c", "sleep 15"]
+          # Cold start is not just migrations: it also replays the WAL and runs
+          # the startup cleanup VACUUM (src/lib/db/cleanup.ts). On a ~1 GB
+          # database on network storage that is minutes. A kill mid-VACUUM is
+          # what *creates* the oversized WAL that makes the next boot slower,
+          # so a tight budget here is self-amplifying. 10 min costs nothing —
+          # readiness keeps traffic away for exactly as long as it takes.
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            # The kubelet default is 1s, and /healthz shares the event loop —
+            # it exceeds 1s even on a trivial boot, and by minutes during the
+            # cold-start VACUUM.
+            timeoutSeconds: 3
+            failureThreshold: 120
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 6
+          # TCP, not HTTP, and deliberately so. better-sqlite3 is synchronous:
+          # a large checkpoint or VACUUM blocks the event loop for minutes, so
+          # every HTTP handler — /livez included — stops answering while the
+          # process is perfectly healthy. The asymmetry decides it: a wrong
+          # HTTP liveness kills the pod mid-VACUUM and bloats the WAL, which
+          # makes the next boot slower still (a self-amplifying crashloop,
+          # observed in production); a wrong TCP liveness lets a hung-but-
+          # listening process survive until a human looks. Readiness stays on
+          # HTTP and is what pulls a stalled pod out of the Service.
+          # Never point liveness at /api/monitoring/health — it does real DB
+          # work. For HTTP liveness anyway, see overlays/k8s/liveness-http.yaml.
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 20
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              # Raise together with NODE_OPTIONS --max-old-space-size in the
+              # ConfigMap. Large /v1/responses payloads need far more; see the
+              # sizing table in the deployment guide.
+              cpu: "2"
+              memory: 4Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: omniroute-data

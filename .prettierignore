@@ -22,3 +22,8 @@ skills/*/SKILL.md
 # reconciled by scripts/release/*, which are its formatter of record.
 CHANGELOG.md
 docs/i18n/*/CHANGELOG.md
+
+# Helm templates are Go text/template, not YAML: `{{- if ... }}` at the start of
+# a line is a parse error for Prettier's YAML parser. Helm itself is the
+# formatter of record here — `helm lint` and `helm template` validate them.
+deploy/helm/*/templates/

@@ -1,0 +1,20 @@
+{{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim) -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "omniroute.pvcName" . }}
+  labels:
+    {{- include "omniroute.labels" . | nindent 4 }}
+  annotations:
+    # Keep the database when the release is uninstalled. Delete it deliberately.
+    helm.sh/resource-policy: keep
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size }}
+  {{- if .Values.persistence.storageClass }}
+  storageClassName: {{ .Values.persistence.storageClass | quote }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,154 @@
+# ── Replicas ────────────────────────────────────────────────────────────
+# MUST stay 1. OmniRoute is one Node process writing one SQLite file; a second
+# pod on the same volume corrupts the database. The chart refuses to render
+# with replicaCount > 1 (see templates/_helpers.tpl). To add capacity, install
+# the chart N times with separate PVCs — see the deployment guide.
+replicaCount: 1
+
+image:
+  repository: diegosouzapw/omniroute
+  # Pin a real SemVer (or a digest) for anything you care about. `latest` only
+  # moves when a stable release promotes it, so it silently lags merged fixes.
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+# ── Networking ──────────────────────────────────────────────────────────
+service:
+  type: ClusterIP
+  port: 20128
+  liveWsPort: 20132
+  annotations: {}
+
+ingress:
+  enabled: false
+  # "traefik" on k3s, "nginx" on a generic cluster with ingress-nginx.
+  className: ""
+  # Annotations are NOT auto-derived from className — set the ones your
+  # controller needs. SSE breaks under response buffering; the deployment
+  # guide lists the required annotations per controller.
+  annotations: {}
+  hosts:
+    - host: omniroute.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: omniroute-tls
+  #    hosts:
+  #      - omniroute.example.com
+
+# ── Persistence ─────────────────────────────────────────────────────────
+persistence:
+  enabled: true
+  # ReadWriteOnce only. SQLite over NFS/CIFS corrupts under WAL journaling —
+  # use real block storage (local-path on k3s, your CSI tier on k8s).
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  # "" → the cluster default StorageClass. "local-path" on k3s.
+  storageClass: ""
+  # Bind an existing claim instead of creating one.
+  existingClaim: ""
+
+# ── Secrets ─────────────────────────────────────────────────────────────
+# Leave `create: false` and set `existingSecret` in production so real values
+# never pass through --set or a values file in git.
+#
+# Generate:
+#   openssl rand -base64 48   # jwtSecret
+#   openssl rand -hex 32      # apiKeySecret, storageEncryptionKey
+secrets:
+  create: false
+  existingSecret: ""
+  jwtSecret: ""
+  apiKeySecret: ""
+  # Encrypts provider credentials at rest. Losing it makes every stored
+  # provider connection unreadable.
+  storageEncryptionKey: ""
+  initialPassword: ""
+
+# ── Application config (non-secret) ─────────────────────────────────────
+config:
+  dataDir: /app/data
+  logLevel: info
+  # Turn this on before exposing /v1/* outside the cluster.
+  requireApiKey: false
+  # Comma-separated origins allowed to open the dashboard live WebSocket.
+  liveWsAllowedOrigins: "http://localhost:20128,http://127.0.0.1:20128"
+  # Graceful-shutdown budget for the in-flight SSE drain only — the WAL
+  # checkpoint that follows it is unbounded. Keep it below
+  # terminationGracePeriodSeconds minus preStopSleepSeconds, with room to spare.
+  shutdownTimeoutMs: 30000
+  # V8 old-space ceiling in MiB. Keep it well under resources.limits.memory or
+  # the pod is OOMKilled instead of raising a recoverable heap error.
+  maxOldSpaceSizeMb: 3072
+
+# Free-form extra environment variables, e.g. provider keys or REDIS_URL.
+extraEnv: []
+#  - name: REDIS_URL
+#    value: redis://redis:6379
+extraEnvFrom: []
+#  - secretRef:
+#      name: omniroute-provider-keys
+
+# ── Scheduling & lifecycle ──────────────────────────────────────────────
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "2"
+    memory: 4Gi
+
+# Seconds to sleep in preStop so the Service drops this pod's endpoint before
+# SIGTERM reaches the process.
+preStopSleepSeconds: 15
+# A ceiling, not a delay. The request drain is bounded by shutdownTimeoutMs,
+# but the WAL checkpoint that follows it is not — on a large database on
+# network storage that runs for minutes, and a SIGKILL mid-checkpoint carries
+# the fat WAL into the next boot. A healthy pod still exits in ~45s.
+terminationGracePeriodSeconds: 300
+
+probes:
+  # "tcp" probes the port; "http" uses GET /livez. TCP is the default because
+  # better-sqlite3 is synchronous: a large checkpoint or VACUUM blocks the
+  # event loop for minutes, and HTTP liveness reads that as a dead process and
+  # restarts the pod mid-write — which bloats the WAL and makes the next boot
+  # slower still. Readiness stays on HTTP and is what removes a stalled pod
+  # from the Service. Set "http" only on small databases on fast local storage.
+  livenessType: tcp
+  # 120 x 5s = 10 min. Cold start replays the WAL and runs the startup cleanup
+  # VACUUM, not just migrations. Readiness holds traffic back meanwhile.
+  startupFailureThreshold: 120
+  readinessFailureThreshold: 6
+
+podAnnotations: {}
+podLabels: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  # 1000 = the `node` user in the published image.
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  # The app writes to DATA_DIR and Next.js needs a writable cache dir.
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
