@@ -8,6 +8,7 @@ import {
   type ExecutorLog,
   type ProviderCredentials,
 } from "./base.ts";
+import { stripInternalBodyFields } from "../config/cliFingerprints.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import { isProbeContext } from "@/shared/utils/probeOrigin";
@@ -634,6 +635,7 @@ export class GitlabExecutor extends BaseExecutor {
     target: GitLabRequestTarget,
     transformedBody: Record<string, unknown>
   ) {
+    stripInternalBodyFields(transformedBody);
     const headers = { ...target.headers };
     mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders);
     const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);

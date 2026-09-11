@@ -10,6 +10,7 @@ import {
   type ExecuteInput,
   type ProviderCredentials,
 } from "./base.ts";
+import { stripInternalBodyFields } from "../config/cliFingerprints.ts";
 import {
   buildGlmBaseHeaders,
   buildGlmChatUrl,
@@ -477,6 +478,7 @@ export class GlmExecutor extends DefaultExecutor {
     let response: Response;
     try {
       this.assertOutboundUrlAllowed(url); // GHSA-4f49: glm has its own fetch path
+      stripInternalBodyFields(transformedBody);
       response = await fetch(url, {
         method: "POST",
         headers,

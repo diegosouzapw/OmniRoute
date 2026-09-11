@@ -274,6 +274,13 @@ export function stripInternalBodyFields(body: unknown): unknown {
   delete record._nativeXaiResponsesPassthrough;
   delete record._nativeOpenAICompatibleResponsesPassthrough;
   delete record._omnirouteResponsesStore;
+  // Context-relay / universal-handoff flags are read by the routing layer
+  // (chat.ts, combo.ts) before dispatch and must never reach the upstream body
+  // — strict providers (e.g. NVIDIA NIM, Groq) reject them with 400
+  // "Unsupported parameter(s)" (#12729).
+  delete record._omnirouteSkipContextRelay;
+  delete record._omnirouteInternalRequest;
+  delete record._omnirouteSkipUniversalHandoff;
   return body;
 }
 
