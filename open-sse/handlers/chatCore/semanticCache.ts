@@ -2,6 +2,7 @@ import {
   generateSignature,
   getCachedResponse,
   isCacheableForRead,
+  outputContractOf,
 } from "@/lib/semanticCache";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { trackPendingRequest } from "@/lib/usageDb";
@@ -51,7 +52,8 @@ export async function checkSemanticCache({
       body.messages ?? body.input,
       body.temperature,
       body.top_p,
-      apiKeyId ?? undefined
+      apiKeyId ?? undefined,
+      outputContractOf(body)
     );
     const cached = getCachedResponse(signature);
     if (cached) {

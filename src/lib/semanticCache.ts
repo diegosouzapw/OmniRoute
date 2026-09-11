@@ -6,7 +6,8 @@
  * are cached after assembly; cache hits always return JSON.
  * Two-tier: in-memory LRU (fast) + SQLite (persistent across restarts).
  *
- * Cache key = SHA-256(model + normalized messages + temperature + top_p)
+ * Cache key = SHA-256(model + normalized messages + temperature + top_p
+ *             + output contract, when present — see outputContractOf, #12307)
  * Bypass: X-OmniRoute-No-Cache: true
  *
  * @module lib/semanticCache
@@ -146,18 +147,43 @@ export function clearMemoryCache(): void {
  * @param {string} [apiKeyId] - API key ID for per-key isolation (prevents cross-user cache hits)
  * @returns {string} hex signature
  */
+/**
+ * The parts of a request that decide what a *valid response* looks like.
+ * Two calls that agree on the conversation but disagree here are not
+ * interchangeable and must not share a cache entry (#12307): a request for
+ * {color, wheels} must not be served a stored {value: "..."} body, and a
+ * tool-calling request must not be served the body of one without tools.
+ *
+ * Returns null when the request carries none of these, so plain-chat
+ * signatures — and every cache entry already written for them — are unchanged.
+ */
+export function outputContractOf(body: unknown): unknown {
+  const record = asRecord(body);
+  const text = asRecord(record.text);
+  const contract: JsonRecord = {};
+  if (record.response_format != null) contract.response_format = record.response_format;
+  if (text.format != null) contract.text_format = text.format;
+  if (record.tools != null) contract.tools = record.tools;
+  if (record.tool_choice != null) contract.tool_choice = record.tool_choice;
+  return Object.keys(contract).length > 0 ? contract : null;
+}
+
 export function generateSignature(
   model,
   conversation,
   temperature = 0,
   topP = 1,
-  apiKeyId?: string
+  apiKeyId?: string,
+  outputContract?: unknown
 ) {
   const payload = JSON.stringify({
     model,
     messages: normalizeConversation(conversation),
     temperature,
     top_p: topP,
+    // #12307: anything that changes the shape of a valid answer belongs in the
+    // key. Spread only when present so plain-chat signatures stay stable.
+    ...(outputContract != null ? { output: outputContract } : {}),
   });
   const digest = crypto.createHash("sha256").update(payload).digest("hex");
   // Per-key cache isolation (#3740) namespaces the signature with the apiKeyId as a

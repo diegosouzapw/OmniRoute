@@ -10,6 +10,7 @@
  */
 import {
   generateSignature as defaultGenerateSignature,
+  outputContractOf,
   setCachedResponse as defaultSetCachedResponse,
   isCacheableForWrite as defaultIsCacheableForWrite,
 } from "@/lib/semanticCache";
@@ -65,7 +66,8 @@ export function storeSemanticCacheResponse(
     args.body.messages ?? args.body.input,
     args.body.temperature,
     args.body.top_p,
-    args.apiKeyId ?? undefined
+    args.apiKeyId ?? undefined,
+    outputContractOf(args.body)
   );
   const tokensSaved = args.usage?.prompt_tokens + args.usage?.completion_tokens || 0;
   deps.setCachedResponse(signature, args.model, args.translatedResponse, tokensSaved);
