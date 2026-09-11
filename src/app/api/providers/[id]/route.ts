@@ -29,11 +29,16 @@ import {
   enableRateLimitProtection,
   disableRateLimitProtection,
 } from "@/../open-sse/services/rateLimitManager";
-import {
-  finalizeValidatedChatGptWebCodexSecrets,
-  decodeChatGptWebCodexSecrets,
-  encodeChatGptWebCodexSecrets,
-} from "@omniroute/open-sse/services/chatgptWebCodexAdmin.ts";
+// Dynamically imported below, inside the one `provider === "chatgpt-web-codex"`
+// branch that needs it -- same fix as #12355 (src/app/api/providers/route.ts),
+// which missed this identical pattern in the by-id route. This module's
+// transitive chain pulls in tiktoken's WASM tokenizer, which Turbopack dev
+// mode fails to resolve for this graph even with `tiktoken` listed in
+// serverExternalPackages. A static top-level import evaluates that whole
+// chain on EVERY PUT to this route regardless of provider, turning an
+// unrelated-provider bundling bug into a route-wide 500 (observed live: PUT
+// on a plain openai-compatible connection's rename failed with "Missing
+// tiktoken_bg.wasm" after 17-50s, never touching chatgpt-web-codex at all).
 import { rejectRetiredCommonChatGptWebProvider } from "@/lib/providers/chatgptWebRetirementResponse";
 
 function normalizeCodexLimitPolicy(
@@ -178,6 +183,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             ? incomingPsd.validationId
             : "";
         try {
+          const {
+            finalizeValidatedChatGptWebCodexSecrets,
+            decodeChatGptWebCodexSecrets,
+            encodeChatGptWebCodexSecrets,
+          } = await import("@omniroute/open-sse/services/chatgptWebCodexAdmin.ts");
           const incomingSecrets = decodeChatGptWebCodexSecrets(apiKey);
           const existingSecrets = decodeChatGptWebCodexSecrets(existing.apiKey || "");
           const encoded = encodeChatGptWebCodexSecrets({
