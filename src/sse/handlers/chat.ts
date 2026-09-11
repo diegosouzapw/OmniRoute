@@ -62,6 +62,7 @@ import {
 } from "@omniroute/open-sse/config/providerModels.ts";
 import { getPassthroughProviders } from "@omniroute/open-sse/config/providerRegistry.ts";
 import * as log from "../utils/logger";
+import { runWithTransientBackendRetry } from "../../open-sse/services/transientBackendRetry";
 import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { createHookContext, runHooks, initPreRequestRegistry } from "@/lib/middleware/registry";
 import { rejectPeerRequest } from "@/shared/resilience/peerRouting";
@@ -1224,25 +1225,28 @@ async function handleChatImplementation(
         `Combo "${combo.name}" exhausted — attempting global fallback: ${fallbackModel}`
       );
       try {
-        const fallbackResponse = await handleSingleModelChat(
-          body,
-          fallbackModel,
-          clientRawRequest,
-          request,
-          combo.name,
-          apiKeyInfo,
-          telemetry,
-          {
-            sessionId,
-            sessionAffinityKey,
-            emergencyFallbackTried: true,
-            forceLiveComboTest: isComboLiveTest,
-            conversationId,
-            managedLease,
-            videoBridgeLog,
-          },
-          combo.strategy,
-          true
+        const fallbackResponse = await runWithTransientBackendRetry(
+          () => handleSingleModelChat(
+            body,
+            fallbackModel,
+            clientRawRequest,
+            request,
+            combo.name,
+            apiKeyInfo,
+            telemetry,
+            {
+              sessionId,
+              sessionAffinityKey,
+              emergencyFallbackTried: true,
+              forceLiveComboTest: isComboLiveTest,
+              conversationId,
+              managedLease,
+              videoBridgeLog,
+            },
+            combo.strategy,
+            true
+          ),
+          { signal: request?.signal, source: "global-fallback" }
         );
         if (fallbackResponse.ok) {
           log.info("GLOBAL_FALLBACK", `Global fallback ${fallbackModel} succeeded`);
