@@ -425,7 +425,7 @@
     "open-sse/executors/base.ts": 1751,
     "open-sse/executors/chatgpt-web.ts": 5056,
     "open-sse/executors/codex.ts": 1505,
-    "open-sse/executors/cursor.ts": 1759,
+    "open-sse/executors/cursor.ts": 1764,
     "open-sse/executors/muse-spark-web.ts": 1405,
     "open-sse/handlers/chatCore.ts": 6026,
     "open-sse/handlers/chatCore.ts": 6036,

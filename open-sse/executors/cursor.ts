@@ -91,6 +91,7 @@ import {
   type ClassifiedCursorError,
 } from "./cursor/cursorErrors.ts";
 import { getActiveSyncedCatalog } from "../../src/lib/db/models/activeSyncedCatalog.ts";
+import { applyKimiToolCallRecovery } from "../utils/kimiToolCallNarration.ts";
 // Composer helpers re-exported for external importers (tests).
 export {
   isComposerModel,
@@ -1613,6 +1614,8 @@ export class CursorExecutor extends BaseExecutor {
       }
     }
 
+    applyKimiToolCallRecovery(ctx, (chunk) => emitChunk(ctx, chunk));
+
     // OpenAI finish_reason: "tool_calls" if the model invoked any declared
     // tool, else "stop". A turn with mixed text + tool_calls finishes with
     // "tool_calls" (the tool calls are the actionable signal for the client).
@@ -1682,6 +1685,8 @@ export class CursorExecutor extends BaseExecutor {
         }
       }
     }
+
+    applyKimiToolCallRecovery(ctx);
 
     const usage = buildCursorUsage(ctx, body);
     const finishReason = ctx.toolCalls.length > 0 ? "tool_calls" : "stop";
