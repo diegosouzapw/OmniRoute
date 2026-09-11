@@ -90,6 +90,10 @@ export const PROVIDER_ERROR_TYPES = {
   GCP_PROJECT_REQUIRED: "gcp_project_required",
 };
 
+export const ERROR_TYPE_CONTRACT = [...Object.values(PROVIDER_ERROR_TYPES), "unknown"] as const;
+export type ErrorTypeContract = (typeof ERROR_TYPE_CONTRACT)[number];
+export const ERROR_TYPE_CONTRACT_VERSION = 1;
+
 export const CONTEXT_OVERFLOW_SIGNALS = [
   "context overflow",
   "prompt too large",
