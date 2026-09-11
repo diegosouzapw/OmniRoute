@@ -547,3 +547,64 @@ test("createResponsesApiTransformStream keepalive self-clears when enqueue fails
     globalThis.clearInterval = realClearInterval;
   }
 });
+
+// Regression: providers (e.g. Kimi-K2.6) emit content deltas that carry an empty
+// `tool_calls:[]` array in the SAME chunk when tools are defined. The empty array is
+// truthy, so the old `if (delta.tool_calls)` guard entered the tool-call branch and
+// called closeMessage() immediately — closing the message item after only the first
+// content delta. Subsequent content deltas arrived on a done item, and Codex
+// (which clears `active_item` on `output_item.done`) dropped them with
+// "OutputTextDelta without active item", producing a one-character response.
+// The guard must ignore an empty tool_calls array so the message stays open.
+test("createResponsesApiTransformStream does not close the message on an empty tool_calls array paired with content (Kimi-K2.6 pattern)", async () => {
+  const output = await runTransformStream([
+    'data: {"id":"chatcmpl_1","choices":[{"index":0,"delta":{"content":"H","tool_calls":[]}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{"content":"ello","tool_calls":[]}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{"content":" world","tool_calls":[]}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":1,"completion_tokens":2,"total_tokens":3}}\n\n',
+  ]);
+
+  const events = parseSseOutput(output);
+  const textDeltas = events
+    .filter((event) => event.event === "response.output_text.delta")
+    .map((event) => JSON.parse(event.data).delta);
+  const completed = JSON.parse(
+    events.find((event) => event.event === "response.completed").data
+  ).response;
+
+  // All three content deltas must be emitted — not just the first one.
+  assert.deepEqual(textDeltas, ["H", "ello", " world"]);
+  // Exactly ONE assistant message item, carrying the full concatenated text.
+  const messageItems = completed.output.filter((item) => item.type === "message");
+  assert.equal(messageItems.length, 1, "empty tool_calls must not split/close the message");
+  assert.equal(messageItems[0].content[0].text, "Hello world");
+  // No function_call items should be synthesized from the empty arrays.
+  const functionCallItems = completed.output.filter((item) => item.type === "function_call");
+  assert.deepEqual(functionCallItems, []);
+});
+
+// The same fix must not regress the real tool-call path: when tool_calls carries an
+// actual entry, the preceding content message must still close so the tool call is its
+// own output item.
+test("createResponsesApiTransformStream still closes the message and emits a real tool call when tool_calls is non-empty", async () => {
+  const output = await runTransformStream([
+    'data: {"id":"chatcmpl_1","choices":[{"index":0,"delta":{"content":"let me search","tool_calls":[]}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_1","function":{"name":"search","arguments":"{\\"q\\":\\"hi\\"}"}}]}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{},"finish_reason":"tool_calls"}],"usage":{"prompt_tokens":1,"completion_tokens":2,"total_tokens":3}}\n\n',
+  ]);
+
+  const events = parseSseOutput(output);
+  const completed = JSON.parse(
+    events.find((event) => event.event === "response.completed").data
+  ).response;
+
+  const messageItems = completed.output.filter((item) => item.type === "message");
+  const functionCallItems = completed.output.filter((item) => item.type === "function_call");
+
+  // The text message closed with its full content, and the tool call is a separate item.
+  assert.equal(messageItems.length, 1);
+  assert.equal(messageItems[0].content[0].text, "let me search");
+  assert.equal(functionCallItems.length, 1);
+  assert.equal(functionCallItems[0].call_id, "call_1");
+  assert.equal(functionCallItems[0].arguments, '{"q":"hi"}');
+});
