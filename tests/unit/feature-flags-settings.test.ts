@@ -39,7 +39,9 @@ const {
 // OMNIROUTE_DISABLE_THINKING_LEVEL_VARIANTS bumped it from 53 to 54;
 // the dead ONEPROXY_ENABLED (readerless since the 1proxy purge, #12091)
 // brought it back to 53. UNIVERSAL_CONTEXT_HANDOFF_ENABLED bumped it to 54.
-const EXPECTED_FEATURE_FLAG_COUNT = 55;
+// STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED (early-EOF sibling hop, ships off)
+// bumps it from 55 to 56.
+const EXPECTED_FEATURE_FLAG_COUNT = 56;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry
@@ -156,6 +158,22 @@ describe("featureFlagDefinitions", () => {
     assert.strictEqual(midstream.defaultValue, "false");
     assert.strictEqual(midstream.requiresRestart, false);
     assert.strictEqual(midstream.warningLevel, "danger");
+  });
+
+  it("defines early-EOF sibling failover as a runtime boolean flag disabled by default", () => {
+    const def = FEATURE_FLAG_DEFINITIONS.find(
+      (d) => d.key === "STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED"
+    );
+    assert.ok(def, "STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED should exist");
+    assert.strictEqual(def.category, "runtime");
+    assert.strictEqual(def.type, "boolean");
+    assert.strictEqual(def.defaultValue, "false");
+    assert.strictEqual(def.requiresRestart, false);
+    assert.strictEqual(def.warningLevel, "info");
+    assert.strictEqual(
+      def.descriptionI18nKey,
+      "featureFlagStreamEarlyEofSiblingFailoverEnabledDescription"
+    );
   });
 
   it("defines control-plane proxy direct fallback as a network boolean flag disabled by default", () => {

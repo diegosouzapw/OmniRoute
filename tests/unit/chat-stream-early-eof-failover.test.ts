@@ -123,14 +123,30 @@ function authOf(apiKey: string): string {
   return `Bearer ${apiKey}`;
 }
 
+// The sibling hop ships off behind STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED
+// (default false): enable it per test, save/restore around each case.
+const SIBLING_FAILOVER_FLAG = "STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED";
+const ORIGINAL_SIBLING_FAILOVER_FLAG = process.env[SIBLING_FAILOVER_FLAG];
+
+function enableSiblingFailover() {
+  process.env[SIBLING_FAILOVER_FLAG] = "true";
+}
+
+function restoreSiblingFailoverFlag() {
+  if (ORIGINAL_SIBLING_FAILOVER_FLAG === undefined) delete process.env[SIBLING_FAILOVER_FLAG];
+  else process.env[SIBLING_FAILOVER_FLAG] = ORIGINAL_SIBLING_FAILOVER_FLAG;
+}
+
 test.beforeEach(async () => {
   globalThis.fetch = originalFetch;
+  enableSiblingFailover();
   await resetStorage();
 });
 
 test.afterEach(async () => {
   await flushBackgroundWork();
   globalThis.fetch = originalFetch;
+  restoreSiblingFailoverFlag();
 });
 
 test.after(async () => {
@@ -313,6 +329,72 @@ test("stream early EOF failover", async (t) => {
   });
 
   await t.test(
+    "stays terminal with the flag off even when a sibling is available",
+    async () => {
+      restoreSiblingFailoverFlag();
+      try {
+        const connA = await seedConnection("openai-flagoff-a", "sk-failover-flagoff-a");
+        const connB = await seedConnection("openai-flagoff-b", "sk-failover-flagoff-b");
+
+        const dispatches: DispatchLog = [];
+        stubFetch(dispatches, () => pingOnlyStreamResponse());
+
+        const response = await chatRoute.POST(streamRequest());
+        const bodyText = await response.text();
+
+        // Flag off restores the release behavior exactly: bounded same-connection
+        // retry, then terminal — no sibling hop despite an eligible sibling.
+        assert.equal(
+          dispatches.length,
+          2,
+          `expected exactly 2 dispatches with the flag off, got ${dispatches.length}`
+        );
+        for (const dispatch of dispatches) {
+          assert.equal(
+            dispatch.auth,
+            authOf("sk-failover-flagoff-a"),
+            "every dispatch must stay on the first connection with the flag off"
+          );
+        }
+        assert.equal(
+          response.status,
+          502,
+          `expected terminal 502 with the flag off, got ${response.status}: ${bodyText.slice(0, 300)}`
+        );
+        assert.ok(
+          bodyText.includes("STREAM_EARLY_EOF"),
+          "the client must see the early-EOF 502 with the flag off"
+        );
+        assert.ok(connA.id.length > 0);
+
+        // Flag off must also leave both connections unmarked: the terminal
+        // path returns before any markAccountUnavailable call site.
+        const afterA = await providersDb.getProviderConnectionById(connA.id);
+        const afterB = await providersDb.getProviderConnectionById(connB.id);
+        for (const [label, row] of [
+          ["first", afterA],
+          ["sibling", afterB],
+        ] as const) {
+          const rowRecord = row as unknown as Record<string, unknown> | null;
+          if (!rowRecord) continue;
+          const until = (rowRecord?.rateLimitedUntil as string | null) ?? null;
+          assert.ok(
+            until === null || Number(new Date(String(until)).getTime()) <= Date.now(),
+            `expected no cooldown on the ${label} connection with the flag off, got rateLimitedUntil=${until}`
+          );
+          assert.notEqual(
+            rowRecord?.testStatus,
+            "unavailable",
+            `expected no unavailable status on the ${label} connection with the flag off`
+          );
+        }
+      } finally {
+        enableSiblingFailover();
+      }
+    }
+  );
+
+  await t.test(
     "keeps STREAM_READINESS_TIMEOUT terminal even with a sibling available",
     async () => {
       const chatSource = fs.readFileSync(
@@ -336,7 +418,7 @@ test("stream early EOF failover", async (t) => {
       // timeout path can never reach the exclude-and-continue: a stalled
       // upstream keeps its terminal return (retrying it would double the
       // latency of a request that is still warming up).
-      const gateIndex = branch.indexOf("if (isTerminalStreamEarlyEof && !hasForcedConnection)");
+      const gateIndex = branch.indexOf("isEarlyEofSiblingFailoverOn()");
       assert.ok(
         gateIndex >= 0,
         "the sibling-failover gate must exist and pin hasForcedConnection before any mutation"
@@ -345,7 +427,7 @@ test("stream early EOF failover", async (t) => {
       assert.ok(terminalReturn >= 0, "the terminal return must remain");
       assert.match(
         branch,
-        /if \(isTerminalStreamEarlyEof && !hasForcedConnection\) \{[\s\S]*?excludedConnectionIds\.add\(credentials\.connectionId\)[\s\S]*?continue;/,
+        /isTerminalStreamEarlyEof && !hasForcedConnection && isEarlyEofSiblingFailoverOn\(\)\) \{[\s\S]*?excludedConnectionIds\.add\(credentials\.connectionId\)[\s\S]*?continue;/,
         "only the terminal early-EOF path may exclude-and-continue to a sibling"
       );
       const gateToReturn = branch.slice(gateIndex, terminalReturn);
