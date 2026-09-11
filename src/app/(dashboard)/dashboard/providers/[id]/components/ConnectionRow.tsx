@@ -70,6 +70,7 @@ export interface ConnectionRowProps {
   onToggleRateLimit: (enabled?: boolean) => void;
   onToggleQuotaVisibility?: (visible: boolean) => void;
   onToggleClaudeExtraUsage?: (enabled?: boolean) => void;
+  onToggleCodexPaidCredits?: (enabled: boolean) => void;
   onToggleAutoSync?: (enabled: boolean) => void;
   onToggleCodex5h?: (enabled?: boolean) => void;
   onToggleCodexWeekly?: (enabled?: boolean) => void;
@@ -366,6 +367,7 @@ export default function ConnectionRow({
   onToggleRateLimit,
   onToggleQuotaVisibility,
   onToggleClaudeExtraUsage,
+  onToggleCodexPaidCredits,
   onToggleAutoSync,
   onToggleCodex5h,
   onToggleCodexWeekly,
@@ -416,8 +418,7 @@ export default function ConnectionRow({
   // #11497: cookie rows with a decodable JWT credential carry a persisted
   // cookieExpiresAt — feed it into the same countdown badge OAuth rows use.
   const cookieExpiresAt = readCookieExpiresAt(connection.providerSpecificData);
-  const effectiveExpiresAt =
-    connection.tokenExpiresAt || connection.expiresAt || cookieExpiresAt;
+  const effectiveExpiresAt = connection.tokenExpiresAt || connection.expiresAt || cookieExpiresAt;
   const hasExpirySource = isOAuth || Boolean(cookieExpiresAt);
   const getTokenMinsLeft = () => {
     if (!hasExpirySource || !effectiveExpiresAt) return null;
@@ -518,6 +519,7 @@ export default function ConnectionRow({
   const claudeBlockExtraUsageEnabled = isClaude
     ? isClaudeExtraUsageBlockEnabled("claude", connection.providerSpecificData)
     : false;
+  const codexPaidCreditsEnabled = connection.providerSpecificData?.allowPaidCredits === true;
   const codexPlanLabel = getCodexPlanLabel(!!isCodex, connection.providerSpecificData);
   // #dario: this control is now a full mode selector (native/CLIProxyAPI/
   // Dario/fallback), not a binary toggle — cliproxyapiEnabled/
@@ -682,6 +684,25 @@ export default function ConnectionRow({
                   <span className="material-symbols-outlined text-[13px]">payments</span>
                   {t("claudeExtraUsageShort")}{" "}
                   {!claudeBlockExtraUsageEnabled ? t("toggleOnShort") : t("toggleOffShort")}
+                </button>
+              </>
+            )}
+            {isCodex && connection.provider === "codex" && onToggleCodexPaidCredits && (
+              <>
+                <span className="text-text-muted/30 select-none">|</span>
+                <button
+                  onClick={() => onToggleCodexPaidCredits(!codexPaidCreditsEnabled)}
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
+                    codexPaidCreditsEnabled
+                      ? "bg-amber-500/15 text-amber-500 hover:bg-amber-500/25"
+                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+                  }`}
+                  title={t("codexPaidCreditsToggleTitle")}
+                  aria-pressed={codexPaidCreditsEnabled}
+                >
+                  <span className="material-symbols-outlined text-[13px]">payments</span>
+                  {t("codexPaidCreditsShort")}{" "}
+                  {codexPaidCreditsEnabled ? t("toggleOnShort") : t("toggleOffShort")}
                 </button>
               </>
             )}
