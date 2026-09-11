@@ -1287,6 +1287,21 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "Kenari exposes an OpenAI-compatible chat completions endpoint at https://kenari.id/v1/chat/completions, plus a live /v1/models catalog covering Claude, GPT, DeepSeek, GLM, Kimi and more. OmniRoute uses the OpenAI protocol and lists models via passthrough.",
   },
+  tokenmarket: {
+    id: "tokenmarket",
+    serviceKinds: ["llm"],
+    alias: "tokenmarket",
+    name: "Token Market",
+    icon: "hub",
+    color: "#2563EB",
+    textIcon: "TM",
+    passthroughModels: true,
+    website: "https://www.tokensmarket.ai",
+    authHint:
+      "Create an API key in the Token Market console, then paste it here as a Bearer token.",
+    apiHint:
+      "Token Market provides an OpenAI-compatible API at https://api.tokensmarket.ai/v1 and discovers its current model catalog from /v1/models.",
+  },
   navy: {
     id: "navy",
     serviceKinds: ["llm"],

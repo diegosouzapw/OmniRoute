@@ -5728,6 +5728,29 @@
       "stream": "https://api.tokenrouter.com/v1/chat/completions"
     }
   },
+  "tokenmarket": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.tokensmarket.ai/v1/chat/completions",
+      "stream": "https://api.tokensmarket.ai/v1/chat/completions"
+    }
+  },
   "trae": {
     "format": "openai",
     "headers": {
