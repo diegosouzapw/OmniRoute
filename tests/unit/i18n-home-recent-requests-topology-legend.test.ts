@@ -48,7 +48,12 @@ const HOME_WIDGET_KEYS = [...RECENT_REQUESTS_KEYS, ...TOPOLOGY_LEGEND_KEYS];
 // Locales that must carry a real translation, never an English copy nor a placeholder.
 const TRANSLATED_LOCALES = ["es", "pt", "pt-BR", "fr", "de", "it", "vi"];
 // Genuine cognates: the correct translation happens to spell exactly like the English value.
-const COGNATES = new Set(["es.home.topologyLegendError"]);
+const COGNATES = new Set([
+  "es.home.topologyLegendError",
+  // "Model" is the correct Croatian and Slovenian word; there is nothing to translate.
+  "hr.home.recentRequestsModel",
+  "sl.home.recentRequestsModel",
+]);
 
 test("home widget keys exist as non-empty strings in every locale catalog", () => {
   assert.ok(allLocales.length >= 42, `expected the 42 locale catalogs, found ${allLocales.length}`);
@@ -90,7 +95,9 @@ test("no locale keeps a silent English copy of the Recent Requests keys", () => 
       const value = getMessage(messages, key) as string;
       const english = getMessage(en, key) as string;
       assert.ok(
-        value !== english || value.startsWith(PLACEHOLDER_PREFIX),
+        value !== english ||
+          value.startsWith(PLACEHOLDER_PREFIX) ||
+          COGNATES.has(`${locale}.${key}`),
         `${locale}.${key} is a verbatim English copy ("${english}")`
       );
     }
