@@ -61,6 +61,12 @@ export const freebuffProvider: RegistryEntry = {
       contextLength: 131_072,
     },
     {
+      id: "meta/muse-spark-1.3-contributor",
+      name: "Meta Muse Spark 1.3 Contributor",
+      supportsReasoning: true,
+      contextLength: 131_072,
+    },
+    {
       id: "meta/muse-spark-1.2-contributor",
       name: "Meta Muse Spark 1.2 Contributor",
       supportsReasoning: true,

@@ -12,6 +12,7 @@ const MODEL_TO_AGENT: Record<string, string> = {
   "z-ai/glm-5.2": "base2-free-glm",
   "crof/kimi-k3-eco": "base2-free-kimi-k3-eco",
   "anthropic/claude-fable-5": "base2-free-fable",
+  "meta/muse-spark-1.3-contributor": "base2-free-muse-spark",
   "meta/muse-spark-1.2-contributor": "base2-free-muse-spark",
 };
 

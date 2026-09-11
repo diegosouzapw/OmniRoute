@@ -231,6 +231,20 @@ export function getModelTargetFormat(aliasOrId: string, modelId: string): string
   // ponytail: Claude models on Vertex use rawPredict with Anthropic Messages format,
   // not the Gemini generateContent format. Mirrors executor isClaudeModel() check.
   if ((alias === "vertex" || alias === "vp") && /^claude-/i.test(bareModelId)) return "claude";
+  // #10867: Muse Spark is served by OpenCode / Zen / Go / Freebuff only on the
+  // OpenAI Responses API (/responses), not /chat/completions.
+  if (
+    (alias === "opencode" ||
+      alias === "opencode-go" ||
+      alias === "opencode-zen" ||
+      alias === "oc" ||
+      alias === "ocg" ||
+      alias === "ocz" ||
+      alias === "freebuff") &&
+    /(?:^|\/)muse-spark/i.test(bareModelId)
+  ) {
+    return "openai-responses";
+  }
   // Model-level targetFormat is provider-scoped: a catalog entry declares how THIS
   // provider's endpoint serves the model — do NOT import another provider's tag.
   // #9994 scoped this for providers WITH a catalog; #10072 extends it to catalogless

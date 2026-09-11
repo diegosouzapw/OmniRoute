@@ -31,6 +31,18 @@ export const opencodeProvider: RegistryEntry = {
     // declaring them here only sets the wire format / capability flags — the
     // live upstream model list already advertises both ids.
     {
+      id: "muse-spark-1.3",
+      name: "Muse Spark 1.3",
+      supportsReasoning: true,
+      targetFormat: "openai-responses",
+    },
+    {
+      id: "muse-spark-1.3-contributor-free",
+      name: "Muse Spark 1.3 Contributor Free",
+      supportsReasoning: true,
+      targetFormat: "openai-responses",
+    },
+    {
       id: "muse-spark-1.2",
       name: "Muse Spark 1.2",
       supportsReasoning: true,

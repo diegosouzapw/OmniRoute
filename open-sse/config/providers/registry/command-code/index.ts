@@ -177,5 +177,23 @@ export const command_codeProvider: RegistryEntry = {
       contextLength: 1000000,
       maxOutputTokens: 32768,
     },
+    {
+      id: "meta/muse-spark-1.3-contributor",
+      name: "Muse Spark 1.3 Contributor (CC)",
+      supportsReasoning: true,
+      supportedThinkingEfforts: COMMAND_CODE_REASONING_EFFORTS,
+      supportsVision: true,
+      contextLength: 1048576,
+      maxOutputTokens: 131072,
+    },
+    {
+      id: "meta/muse-spark-1.2-contributor",
+      name: "Muse Spark 1.2 Contributor (CC)",
+      supportsReasoning: true,
+      supportedThinkingEfforts: COMMAND_CODE_REASONING_EFFORTS,
+      supportsVision: true,
+      contextLength: 1048576,
+      maxOutputTokens: 131072,
+    },
   ],
 };

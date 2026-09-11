@@ -62,6 +62,7 @@ export const MAX_TIER_REASONING_MODEL_PATTERN =
 
 export const O1_O3_REASONING_MODELS_PATTERN = /(?:^|\/|\b)(?:o1-mini|o1|o3-mini|o3-pro|o3)(?:$|-)/i;
 export const O1_PREVIEW_PATTERN = /(?:^|\/|\b)o1-preview(?:$|-)/i;
+export const MUSE_SPARK_12_PATTERN = /(?:^|\/|\b)muse-spark-1\.2(?:$|-|\b)/i;
 export const MUSE_SPARK_PATTERN = /(?:^|\/|\b)muse-spark/i;
 export const MINIMAX_REASONING_PATTERN = /(?:^|\/|\b)minimax(?:-m3|-m2)/i;
 export const GROK_45_PATTERN = /(?:^|\/|\b)grok-4\.5/i;
@@ -70,19 +71,11 @@ export const GLM_53_FAMILY_PATTERN = /(?:^|\/|\b)glm-5\.3(?:$|-)/i;
 export const GLM_52_FAMILY_PATTERN = /(?:^|\/|\b)glm-5\.2(?:$|-)/i;
 
 export function isCommandCodeProvider(provider: string): boolean {
-  return (
-    provider === "command-code" ||
-    provider === "cmd" ||
-    provider === "command_code"
-  );
+  return provider === "command-code" || provider === "cmd" || provider === "command_code";
 }
 
 export function isOllamaCloudProvider(provider: string): boolean {
-  return (
-    provider === "ollama-cloud" ||
-    provider === "ollamacloud" ||
-    provider === "ollama_cloud"
-  );
+  return provider === "ollama-cloud" || provider === "ollamacloud" || provider === "ollama_cloud";
 }
 
 export function isOpencodeGoProvider(provider: string): boolean {
@@ -206,12 +199,7 @@ export function supportsMaxEffortForProvider(provider: string, model: string): b
     MAX_TIER_REASONING_MODEL_PATTERN.test(resolvedModelId) ||
     MAX_TIER_REASONING_MODEL_PATTERN.test(model);
   return (
-    isClaude ||
-    isOpencodeGo ||
-    isOllamaCloud ||
-    isMoonshotK3 ||
-    isCommandCode ||
-    isMaxTierModel
+    isClaude || isOpencodeGo || isOllamaCloud || isMoonshotK3 || isCommandCode || isMaxTierModel
   );
 }
 
@@ -390,16 +378,36 @@ export function sanitizeReasoningEffortForProvider(
     return body;
   }
 
-  // ── Muse Spark models (muse-spark-1.2, etc.) ─────────────────────────────
-  // Accepts minimal|low|medium|high|xhigh. Rejects none (400) and max.
-  // max/ultra → xhigh; none → minimal.
-  if (MUSE_SPARK_PATTERN.test(modelStr)) {
+  // ── Muse Spark models (muse-spark-1.2 vs 1.3+ / future versions) ───────
+  // 1.2: Accepts minimal|low|medium|high|xhigh (no max).
+  //      max/ultra → xhigh; none → minimal.
+  // 1.3+ / future versions: Accepts minimal|low|medium|high|xhigh|max.
+  //      ultra → max; none → minimal.
+  if (MUSE_SPARK_12_PATTERN.test(modelStr)) {
     if (effortStr === "max" || effortStr === "ultra") {
       log?.info?.(
         "REASONING_SANITIZE",
-        `${provider}/${modelStr}: clamped reasoning_effort ${effortStr} → xhigh (Muse Spark ceiling)`
+        `${provider}/${modelStr}: clamped reasoning_effort ${effortStr} → xhigh (Muse Spark 1.2 ceiling)`
       );
       return writeEffortValue(b, "xhigh", c);
+    }
+    if (effortStr === "none") {
+      log?.info?.(
+        "REASONING_SANITIZE",
+        `${provider}/${modelStr}: clamped reasoning_effort none → minimal (Muse Spark floor)`
+      );
+      return writeEffortValue(b, "minimal", c);
+    }
+    return body;
+  }
+
+  if (MUSE_SPARK_PATTERN.test(modelStr)) {
+    if (effortStr === "ultra") {
+      log?.info?.(
+        "REASONING_SANITIZE",
+        `${provider}/${modelStr}: clamped reasoning_effort ultra → max (Muse Spark ceiling)`
+      );
+      return writeEffortValue(b, "max", c);
     }
     if (effortStr === "none") {
       log?.info?.(
@@ -549,11 +557,10 @@ export function sanitizeReasoningEffortForProvider(
     ? modelStr.slice(provider.length + 1)
     : modelStr;
   const declaredEfforts = getProviderModels(provider).find(
-    (entry) => entry.id === providerModelIdForClamp || entry.aliases?.includes(providerModelIdForClamp)
+    (entry) =>
+      entry.id === providerModelIdForClamp || entry.aliases?.includes(providerModelIdForClamp)
   )?.supportedThinkingEfforts;
-  const declaredRanked = (
-    Array.isArray(declaredEfforts) ? declaredEfforts : []
-  )
+  const declaredRanked = (Array.isArray(declaredEfforts) ? declaredEfforts : [])
     .map((tier) => ({ tier, rank: REASONING_EFFORT_ORDER.indexOf(tier) }))
     .filter((x) => x.rank >= 0)
     .sort((a, b) => a.rank - b.rank);

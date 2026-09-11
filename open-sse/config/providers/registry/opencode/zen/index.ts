@@ -64,6 +64,18 @@ export const opencode_zenProvider: RegistryEntry = {
     // /chat/completions with a mismatched or unanswerable body and the
     // upstream returns an empty message.
     {
+      id: "muse-spark-1.3",
+      name: "Muse Spark 1.3",
+      supportsReasoning: true,
+      targetFormat: "openai-responses",
+    },
+    {
+      id: "muse-spark-1.3-contributor-free",
+      name: "Muse Spark 1.3 Contributor Free",
+      supportsReasoning: true,
+      targetFormat: "openai-responses",
+    },
+    {
       id: "muse-spark-1.2",
       name: "Muse Spark 1.2",
       supportsReasoning: true,
