@@ -51,7 +51,7 @@ test("OpenAI stream: text delta starts Claude message and closes cleanly on stop
   assert.equal(result[5].type, "message_stop");
 });
 
-test("OpenAI stream: reasoning_content closes before text content starts", () => {
+test("OpenAI stream: non-Anthropic reasoning_content is not emitted as Claude thinking", () => {
   const state = createState();
   const reasoning = openaiToClaudeResponse(
     {
@@ -71,11 +71,18 @@ test("OpenAI stream: reasoning_content closes before text content starts", () =>
   );
   const result = flatten([reasoning, text]);
 
-  assert.equal(result[1].content_block.type, "thinking");
-  assert.equal(result[2].delta.thinking, "Plan");
-  assert.equal(result[3].type, "content_block_stop");
-  assert.equal(result[4].content_block.type, "text");
-  assert.equal(result[5].delta.text, "Answer");
+  assert.equal(
+    result.some(
+      (event: { content_block?: { type?: string } }) => event.content_block?.type === "thinking"
+    ),
+    false
+  );
+  assert.equal(
+    result.some((event: { delta?: { type?: string } }) => event.delta?.type === "thinking_delta"),
+    false
+  );
+  assert.equal(result[1].content_block.type, "text");
+  assert.equal(result[2].delta.text, "Answer");
 });
 
 test("OpenAI stream: internal reasoning replay placeholder stays hidden from Claude thinking block", () => {
@@ -341,7 +348,7 @@ test("OpenAI stream: two finish_reason chunks emit finish events exactly once", 
   assert.equal(result.filter((e) => e.type === "message_stop").length, 1);
 });
 
-test("OpenAI non-stream: chat completion becomes Claude message with thinking and tool_use", () => {
+test("OpenAI non-stream: non-Anthropic reasoning_content is not emitted as Claude thinking", () => {
   const result = translateNonStreamingResponse(
     {
       id: "chatcmpl-ns",
@@ -379,13 +386,15 @@ test("OpenAI non-stream: chat completion becomes Claude message with thinking an
 
   assert.equal((result as any).type, "message");
   (assert as any).equal((result as any).model, "gpt-4.1");
-  (assert as any).equal((result as any).content[0].type, "thinking");
-  assert.equal((result as any).content[0].thinking, "Think first");
-  assert.equal((result as any).content[1].type, "text");
-  assert.equal((result as any).content[1].text, "Final answer");
-  assert.equal((result as any).content[2].type, "tool_use");
-  assert.equal((result as any).content[2].name, "read_file");
-  (assert as any).deepEqual((result as any).content[2].input, { path: "/tmp/a" });
+  assert.equal(
+    (result as any).content.some((block: { type?: string }) => block.type === "thinking"),
+    false
+  );
+  assert.equal((result as any).content[0].type, "text");
+  assert.equal((result as any).content[0].text, "Final answer");
+  assert.equal((result as any).content[1].type, "tool_use");
+  assert.equal((result as any).content[1].name, "read_file");
+  (assert as any).deepEqual((result as any).content[1].input, { path: "/tmp/a" });
   assert.equal((result as any).stop_reason, "tool_use");
   assert.deepEqual((result as any).usage, {
     input_tokens: 5,

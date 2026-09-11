@@ -47,10 +47,22 @@ function extractXmlInvokeBlocks(
     const toolCallTextMatch = remaining.match(/TOOL_CALL\s+([A-Za-z0-9_]+):\s*/);
 
     const matches = [
-      invokeMatch ? { type: "invoke" as const, index: invokeMatch.index!, data: invokeMatch } : null,
-      toolCallTagMatch ? { type: "tool_call_tag" as const, index: toolCallTagMatch.index!, data: toolCallTagMatch } : null,
-      toolCallTextMatch ? { type: "tool_call_text" as const, index: toolCallTextMatch.index!, data: toolCallTextMatch } : null,
-    ].filter(Boolean).sort((a, b) => a!.index - b!.index);
+      invokeMatch
+        ? { type: "invoke" as const, index: invokeMatch.index!, data: invokeMatch }
+        : null,
+      toolCallTagMatch
+        ? { type: "tool_call_tag" as const, index: toolCallTagMatch.index!, data: toolCallTagMatch }
+        : null,
+      toolCallTextMatch
+        ? {
+            type: "tool_call_text" as const,
+            index: toolCallTextMatch.index!,
+            data: toolCallTextMatch,
+          }
+        : null,
+    ]
+      .filter(Boolean)
+      .sort((a, b) => a!.index - b!.index);
 
     if (matches.length === 0) {
       cleaned += remaining;
@@ -95,9 +107,7 @@ function extractXmlInvokeBlocks(
         const name = (parsed.name || parsed.tool_name || "") as string;
         const rawArgs = parsed.arguments || parsed.args || parsed.parameters || {};
         const args: Record<string, string> =
-          typeof rawArgs === "string"
-            ? JSON.parse(rawArgs)
-            : (rawArgs as Record<string, string>);
+          typeof rawArgs === "string" ? JSON.parse(rawArgs) : (rawArgs as Record<string, string>);
         if (name) {
           toolCalls.push({ id: `toolu_txt_${Date.now()}_${toolCalls.length}`, name, args });
         }
@@ -115,12 +125,27 @@ function extractXmlInvokeBlocks(
       let jsonEndIndex = -1;
       for (let i = 0; i < afterPrefix.length; i++) {
         const c = afterPrefix[i];
-        if (escape) { escape = false; continue; }
-        if (c === "\\" && inString) { escape = true; continue; }
-        if (c === '"') { inString = !inString; continue; }
+        if (escape) {
+          escape = false;
+          continue;
+        }
+        if (c === "\\" && inString) {
+          escape = true;
+          continue;
+        }
+        if (c === '"') {
+          inString = !inString;
+          continue;
+        }
         if (!inString) {
           if (c === "{") depth++;
-          else if (c === "}") { depth--; if (depth === 0) { jsonEndIndex = i + 1; break; } }
+          else if (c === "}") {
+            depth--;
+            if (depth === 0) {
+              jsonEndIndex = i + 1;
+              break;
+            }
+          }
         }
       }
       if (jsonEndIndex === -1) {
@@ -315,23 +340,10 @@ export function openaiToClaudeResponse(chunk, state) {
     reasoningContent !== "" &&
     !isInternalReasoningPlaceholder(reasoningContent)
   ) {
-    stopTextBlock(state, results);
-
-    if (!state.thinkingBlockStarted) {
-      state.thinkingBlockIndex = state.nextBlockIndex++;
-      state.thinkingBlockStarted = true;
-      results.push({
-        type: "content_block_start",
-        index: state.thinkingBlockIndex,
-        content_block: { type: "thinking", thinking: "" },
-      });
-    }
-
-    results.push({
-      type: "content_block_delta",
-      index: state.thinkingBlockIndex,
-      delta: { type: "thinking_delta", thinking: reasoningContent },
-    });
+    // Non-Anthropic reasoning has no Anthropic signature, so it cannot be
+    // replayed as a Claude `thinking` block. Do not launder it into text either:
+    // it may contain private chain-of-thought and would pollute future history.
+    void reasoningContent;
   }
 
   // Handle regular content — strip the internal reasoning placeholder if
@@ -378,7 +390,7 @@ export function openaiToClaudeResponse(chunk, state) {
         state._markdownFenceRun || 0,
         state._markdownFenceOpening === true,
         state._markdownFenceClosingRun || 0,
-        state._markdownLineIndent || 0,
+        state._markdownLineIndent || 0
       );
       state._markdownBuffer = textToHold;
       state._markdownCodeSpanRun = backtickRun || 0;

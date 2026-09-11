@@ -5246,7 +5246,7 @@
   },
   "tests/unit/translator-resp-openai-to-claude.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 14
+      "count": 12
     }
   },
   "tests/unit/translator-thinking-provider-compat-2043.test.ts": {
