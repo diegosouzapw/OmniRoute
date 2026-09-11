@@ -408,7 +408,12 @@ const SCHEMA_SQL = `
   CREATE INDEX IF NOT EXISTS idx_cl_timestamp ON call_logs(timestamp);
   CREATE INDEX IF NOT EXISTS idx_cl_status ON call_logs(status);
   CREATE INDEX IF NOT EXISTS idx_cl_provider_timestamp ON call_logs(provider, timestamp);
-  CREATE INDEX IF NOT EXISTS idx_cl_request_provider ON call_logs(request_type, provider);
+  -- idx_cl_request_provider is NOT declared here: SCHEMA_SQL runs before
+  -- ensureCallLogsColumns() heals a legacy call_logs table, and a lineage that
+  -- predates the request_type column has none yet — the CREATE INDEX would abort
+  -- the whole schema exec with "no such column: request_type" and the server would
+  -- never boot. It is created next to the other request_type/combo indexes in
+  -- ensureCallLogsColumns() (db/schemaColumns.ts), after the columns exist.
 
   CREATE TABLE IF NOT EXISTS proxy_logs (
     id TEXT PRIMARY KEY,

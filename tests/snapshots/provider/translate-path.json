@@ -2000,6 +2000,29 @@
       "stream": "https://api.electronhub.ai/v1/chat/completions"
     }
   },
+  "eurouter": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.eurouter.ai/v1/chat/completions",
+      "stream": "https://api.eurouter.ai/v1/chat/completions"
+    }
+  },
   "factory": {
     "format": "openai",
     "headers": {
@@ -2742,6 +2765,29 @@
     "url": {
       "nonStream": "https://api.z.ai/api/coding/paas/v4/chat/completions",
       "stream": "https://api.z.ai/api/coding/paas/v4/chat/completions"
+    }
+  },
+  "greenpt": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.greenpt.ai/v1/chat/completions",
+      "stream": "https://api.greenpt.ai/v1/chat/completions"
     }
   },
   "grok-cli": {

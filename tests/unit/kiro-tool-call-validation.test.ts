@@ -236,23 +236,44 @@ test("Kiro stream errors become Responses response.failed events", async () => {
     null,
     "kiro-model"
   );
-  const writer = transform.writable.getWriter();
-  const responseText = new Response(transform.readable).text();
+  const source = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(
+        textEncoder.encode(
+          `data: ${JSON.stringify({
+            error: {
+              message: "Invalid Kiro tool_call payload: missing nested MCP tool name at input.name",
+              type: "invalid_request_error",
+              code: "invalid_kiro_tool_call",
+            },
+          })}\n\n`
+        )
+      );
+      controller.close();
+    },
+  });
 
-  await writer.write(
-    textEncoder.encode(
-      `data: ${JSON.stringify({
-        error: {
-          message: "Invalid Kiro tool_call payload: missing nested MCP tool name at input.name",
-          type: "invalid_request_error",
-          code: "invalid_kiro_tool_call",
-        },
-      })}\n\n`
-    )
-  );
-  await writer.close();
-  const text = await responseText;
+  // #12506 turned an upstream error frame into a TERMINAL stream failure: the
+  // failure boundary forwards the projected event and then calls
+  // controller.error(), so the readable rejects right after the bytes land.
+  // Read it with a reader (the pattern the sibling boundary suite
+  // stream-passthrough-error-redaction.test.ts uses) — Response#text() can
+  // never resolve on a body that ends in an error.
+  const reader = source.pipeThrough(transform).getReader();
+  const decoder = new TextDecoder();
+  let text = "";
+  let streamError: unknown = null;
+  try {
+    for (;;) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      text += decoder.decode(chunk.value);
+    }
+  } catch (caught) {
+    streamError = caught;
+  }
 
+  assert.ok(streamError, "a Kiro error frame must terminate the stream, not end it cleanly");
   assert.match(text, /event: response\.failed/);
   assert.match(text, /invalid_kiro_tool_call/);
   assert.match(text, /missing nested MCP tool name/);

@@ -265,6 +265,12 @@ export function ensureCallLogsColumns(db: SqliteDatabase) {
       "CREATE INDEX IF NOT EXISTS idx_call_logs_requested_model ON call_logs(requested_model)"
     );
     db.exec("CREATE INDEX IF NOT EXISTS idx_call_logs_request_type ON call_logs(request_type)");
+    // #12832's provider-stats index. It lives here rather than in SCHEMA_SQL because
+    // SCHEMA_SQL runs before this healing pass: on a legacy call_logs table that
+    // predates `request_type` the CREATE INDEX aborts the whole schema exec.
+    db.exec(
+      "CREATE INDEX IF NOT EXISTS idx_cl_request_provider ON call_logs(request_type, provider)"
+    );
     db.exec(
       "CREATE INDEX IF NOT EXISTS idx_cl_combo_target ON call_logs(combo_name, combo_execution_key, timestamp)"
     );

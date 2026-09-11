@@ -14,10 +14,14 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "custom-live-12597-test-secret";
 
 const core = await import("../../src/lib/db/core.ts");
-const { addCustomModel, replaceSyncedAvailableModelsForConnection, getActiveProvidersWithSyncedModel } =
-  await import("../../src/lib/db/models.ts");
+const {
+  addCustomModel,
+  replaceSyncedAvailableModelsForConnection,
+  getActiveProvidersWithSyncedModel,
+} = await import("../../src/lib/db/models.ts");
 const {
   getActiveSyncedCatalog,
+  getAllActiveSyncedModels,
   catalogContainsModel,
   reconcileProvidersWithActiveSyncedCatalog,
 } = await import("../../src/lib/db/models/activeSyncedCatalog.ts");
@@ -122,6 +126,21 @@ test("#12597 sparse custom overlay does not wipe synced capability fields", asyn
   assert.equal(match?.supportsThinking, true);
   assert.equal(match?.inputTokenLimit, 128000);
   assert.deepEqual(match?.supportedThinkingEfforts, ["low", "high"]);
+});
+
+test("#12597 the union is dispatch-only — getAllActiveSyncedModels stays live-sync-shaped", async () => {
+  await addCustomModel(PROVIDER, PICKER_MODEL, "DeepSeek R1 via picker");
+
+  const allActive = await getAllActiveSyncedModels();
+  const ids = (allActive[PROVIDER] ?? []).map((model) => model.id);
+
+  assert.deepEqual(
+    ids,
+    [SYNCED_MODEL],
+    "getAllActiveSyncedModels reports what the provider's live sync returned; its consumers (/v1/models' synced loop, /api/models' exclusive-listing suppression, getSyncedAutoAliases) each handle custom rows on their own"
+  );
+  // The dispatch-time readers still see it — that is what #12597 fixed.
+  assert.equal(catalogContainsModel(await getActiveSyncedCatalog(PROVIDER), PICKER_MODEL), true);
 });
 
 test("#12597 without a custom row the picker id is still absent (lock the old contract)", async () => {

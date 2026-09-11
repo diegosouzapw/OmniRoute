@@ -3,11 +3,17 @@ import type { getProviderCredentials } from "@/sse/services/auth.ts";
 import type { updateFromHeaders, updateFromResponseBody } from "../../services/rateLimitManager.ts";
 import type { writeTerminalStatus } from "@/shared/utils/terminalStatus.ts";
 import type { updateProviderConnection } from "@/lib/db/providers.ts";
-import type { lockModel, recordCoreOwnedAntigravityQuotaState } from "../../services/accountFallback.ts";
-import { createErrorResult } from "../../utils/error.ts";
+import type {
+  lockModel,
+  recordCoreOwnedAntigravityQuotaState,
+} from "../../services/accountFallback.ts";
+import { createErrorResult, parseUpstreamError } from "../../utils/error.ts";
 import { applyStatusRestatement } from "../../config/upstreamStatusRestatement.ts";
 import { recoverAnthropicThinkingSignature } from "./thinkingSignatureRecovery.ts";
-import { isModelUnavailableError, getNextFamilyFallback as defaultGetNextFamilyFallback } from "../../services/modelFamilyFallback.ts";
+import {
+  isModelUnavailableError,
+  getNextFamilyFallback as defaultGetNextFamilyFallback,
+} from "../../services/modelFamilyFallback.ts";
 import { COOLDOWN_MS } from "../../config/errorConfig.ts";
 import { normalizeHeaders } from "../../utils/headers.ts";
 
@@ -43,6 +49,8 @@ export type ProviderExecutionOutcome =
       providerUsage: ProviderLegUsage | null;
       model: string;
       connectionId: string;
+      /** Parsed upstream error body, for callers that persist failure state. */
+      upstreamBody?: unknown;
     };
 
 export interface PipelineTargetContext {
@@ -164,7 +172,8 @@ async function toOutcome(
   attempt: ChatCoreExecutorResult,
   model: string,
   connectionId: string,
-  provider: string
+  provider: string,
+  state: PipelineStateHooks
 ): Promise<ProviderExecutionOutcome> {
   const status = attempt.response.status;
   if (status >= 200 && status < 300) {
@@ -178,28 +187,52 @@ async function toOutcome(
       connectionId,
     };
   }
-  let message = attempt.response.statusText || "upstream error";
-  let body: unknown = attempt.transformedBody;
-  try {
-    // clone() is the drain. sendProviderAttempt must not cancel() a streaming
-    // non-2xx body before we get here (BYOP 422 / Codex 429 Retry-After).
-    body = JSON.parse(await attempt.response.clone().text());
-    const err = (body as { error?: { message?: unknown } } | null)?.error;
-    if (err && typeof err.message === "string" && err.message) message = err.message;
-  } catch {
-    // keep statusText
+  // Delegate to the canonical upstream-error parser instead of re-implementing it.
+  // #12867 lifted this branch out of chatCore.ts but replaced its parseUpstreamError()
+  // call with an inline JSON.parse, which silently dropped two behaviors the
+  // non-streaming failure path depends on (tests/unit/chat-rate-limit-body-lock.test.ts):
+  //   1. a non-JSON body fell into the catch and surfaced as the (empty) statusText —
+  //      "upstream error" — discarding the upstream text the client needs to see;
+  //   2. the body-derived retry-after ("Please retry after 20s") was never parsed, so
+  //      retryAfterMs stayed hard-coded null and the runtime limiter was never locked.
+  // clone() is still the drain: sendProviderAttempt must not cancel() a streaming
+  // non-2xx body before we get here (BYOP 422 / Codex 429 Retry-After), and cloning
+  // keeps attempt.response readable for the consumers we hand it back to below.
+  const details = await parseUpstreamError(attempt.response.clone(), provider);
+  const message = details.message || attempt.response.statusText || "upstream error";
+  // #12867 plumbed recordRateLimitBody through PipelineStateHooks but never called it, so the
+  // body-derived rate-limit lock chatCore used to apply (updateFromResponseBody on the upstream
+  // error body — "Please retry after 20s" → reservoir 0) silently stopped running for every
+  // request routed through this pipeline. Feed the parsed upstream body back the way chatCore
+  // did. recordRateLimitHeaders stays chatCore's job: it already learns from the real response
+  // on the success path, and calling it here would re-learn from the same headers twice.
+  if (connectionId && details.responseBody !== null && details.responseBody !== undefined) {
+    state.recordRateLimitBody(provider, connectionId, details.responseBody, status, model);
   }
+  // responseBody is the parsed upstream payload (or { _rawText } for a non-JSON body),
+  // so restatement rules now match against the real upstream text rather than the
+  // request body that transformedBody carried whenever the parse failed.
+  const body: unknown = details.responseBody ?? attempt.transformedBody;
   const restatement = applyStatusRestatement({
     provider,
     status,
     message,
     body,
-    retryAfterMs: null,
+    retryAfterMs: details.retryAfterMs,
   });
+  // Carry the upstream classification through too. #12867 dropped it when it replaced
+  // parseUpstreamError() with an inline JSON.parse, and the sibling leg
+  // (nonStreamingProviderLeg.ts) still lifts both fields. Gates that key on the PAIR —
+  // isAntigravityMissingProjectError (src/sse/handlers/chatPredicates.ts) — could never
+  // fire without them, so a config-class 422 degraded into a generic account cooldown.
+  // These stay internal: the client-visible body is still projected onto the bounded
+  // identifier vocabulary by buildErrorBody() (Hard Rule #12).
   const result = createErrorResult(
     restatement.status,
     message,
-    restatement.retryAfterMs
+    restatement.retryAfterMs,
+    typeof details.errorCode === "string" ? details.errorCode : undefined,
+    typeof details.errorType === "string" ? details.errorType : undefined
   );
   return {
     kind: "error",
@@ -210,10 +243,14 @@ async function toOutcome(
       error: result.error,
       errorCode: result.errorCode,
       errorType: result.errorType,
+      // The un-sanitized upstream wording — provider-error classification
+      // (quota vs rate-limit vs ban) reads this, not the client-facing text.
+      rawMessage: message,
     },
     providerUsage: null,
     model,
     connectionId,
+    upstreamBody: body,
   };
 }
 
@@ -273,7 +310,13 @@ export async function runProviderExecutionPipeline(
 
     const status = attempt.response.status;
     if (status >= 200 && status < 300) {
-      return toOutcome(attempt, wire.currentModel, currentConnectionId(connection), target.provider);
+      return toOutcome(
+        attempt,
+        wire.currentModel,
+        currentConnectionId(connection),
+        target.provider,
+        state
+      );
     }
 
     const isolateProbe = await state.isolateProbeFailures();
@@ -401,18 +444,24 @@ export async function runProviderExecutionPipeline(
           };
         },
       });
-      if (signatureRecovery.attempted && signatureRecovery.succeeded && signatureRecovery.execution) {
+      if (
+        signatureRecovery.attempted &&
+        signatureRecovery.succeeded &&
+        signatureRecovery.execution
+      ) {
         lastAttempt = {
           response: signatureRecovery.execution.response,
           url: signatureRecovery.execution.url ?? attempt.url,
-          headers: (signatureRecovery.execution.headers as Record<string, string>) ?? attempt.headers,
+          headers:
+            (signatureRecovery.execution.headers as Record<string, string>) ?? attempt.headers,
           transformedBody: signatureRecovery.execution.transformedBody ?? attempt.transformedBody,
         };
         return toOutcome(
           lastAttempt,
           wire.currentModel,
           currentConnectionId(connection),
-          target.provider
+          target.provider,
+          state
         );
       }
     }
@@ -430,7 +479,11 @@ export async function runProviderExecutionPipeline(
         // keep statusText
       }
       if (isModelUnavailableError(status, fallbackMessage, target.provider)) {
-        const nextModel = resolveFamilyFallback(wire.currentModel, wire.triedModels, target.provider);
+        const nextModel = resolveFamilyFallback(
+          wire.currentModel,
+          wire.triedModels,
+          target.provider
+        );
         if (nextModel) {
           wire.setBodyAndModel({ ...wire.body, model: nextModel }, nextModel);
           modelFallbackPending = true;
@@ -439,11 +492,23 @@ export async function runProviderExecutionPipeline(
       }
     }
 
-    return toOutcome(attempt, wire.currentModel, currentConnectionId(connection), target.provider);
+    return toOutcome(
+      attempt,
+      wire.currentModel,
+      currentConnectionId(connection),
+      target.provider,
+      state
+    );
   }
 
   if (lastAttempt) {
-    return toOutcome(lastAttempt, wire.currentModel, currentConnectionId(connection), target.provider);
+    return toOutcome(
+      lastAttempt,
+      wire.currentModel,
+      currentConnectionId(connection),
+      target.provider,
+      state
+    );
   }
   return leaseMismatch(wire.currentModel, currentConnectionId(connection));
 }

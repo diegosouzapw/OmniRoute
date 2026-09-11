@@ -685,10 +685,21 @@ export async function prepareVirtualAutoComboInputs(
     // back to the static catalog only when the user has none. This keeps catalog-only
     // models (e.g. openrouter/auto) out of every auto/* pool when the operator only
     // synced a subset (e.g. OpenRouter with importFreeModelsOnly).
-    const [syncedByConnection, customModels] = await Promise.all([
+    const [syncedByConnection, rawCustomModels] = await Promise.all([
       getSyncedAvailableModelsByConnection(providerId),
       getCustomModels(providerId),
     ]);
+    // The `customModels` key_value blob is operator-writable and is stored as raw
+    // parsed JSON, so a row can be `null` or a non-object. The catalog builder
+    // already filters those out (catalog.ts, "Add custom models"); without the same
+    // filter here every read below null-derefs and the whole auto/* pool fails to
+    // materialize ("Could not materialize built-in auto model auto/<id>").
+    const customModels: Array<{ id?: string }> = (
+      Array.isArray(rawCustomModels) ? rawCustomModels : []
+    ).filter(
+      (model: unknown): model is { id?: string } =>
+        !!model && typeof model === "object" && !Array.isArray(model)
+    );
     const userVisibleIds = new Set<string>();
     for (const models of Object.values(syncedByConnection)) {
       for (const m of models) if (m.id && !hiddenModels?.has(m.id)) userVisibleIds.add(m.id);

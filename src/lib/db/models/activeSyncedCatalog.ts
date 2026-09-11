@@ -184,10 +184,12 @@ async function unionCustomModels(
  */
 async function loadConnectionCatalog(storedProviderId: string): Promise<SyncedAvailableModel[]> {
   const [connections, modelsByConnection] = await Promise.all([
-    getRawProviderConnections({ provider: storedProviderId, isActive: true }, undefined, undefined, [
-      "id",
-      "provider",
-    ]),
+    getRawProviderConnections(
+      { provider: storedProviderId, isActive: true },
+      undefined,
+      undefined,
+      ["id", "provider"]
+    ),
     getSyncedAvailableModelsByConnection(storedProviderId),
   ]);
 
@@ -248,6 +250,18 @@ export async function getActiveSyncedCatalog(providerId: string): Promise<Active
 /**
  * Return non-empty synced catalogs grouped by provider, restricted to active
  * connections. This is the authoritative live source for /v1/models.
+ *
+ * Deliberately does NOT union `customModels` the way the dispatch-time readers
+ * above do (#12597). Its three consumers all read this as "what the provider's
+ * live sync reported": /v1/models emits synced rows through their own loop and
+ * has a separate custom-model pass right after it (with the specialty-registry
+ * dedupe, hidePaid and vision overrides that pass owns); /api/models uses it to
+ * decide whether an exclusive-listing provider's live catalog suppresses a static
+ * row; getSyncedAutoAliases derives tier aliases from it. Blurring operator custom
+ * rows into "synced" made /v1/models emit a custom specialty model under the
+ * provider's ALIAS as the parentless primary row (`jina/<id>`) and demote the
+ * embedding/rerank registry's canonical `jina-ai/<id>` to a child — the inverse of
+ * the identity every other specialty model of that provider carries.
  */
 export async function getAllActiveSyncedModels(): Promise<Record<string, SyncedAvailableModel[]>> {
   try {
@@ -277,10 +291,7 @@ export async function getAllActiveSyncedModels(): Promise<Record<string, SyncedA
 
         const models = enrichCursorCatalog(
           providerId,
-          await unionCustomModels(
-            providerId,
-            collectModelsForConnections(modelsByConnection, connectionIds)
-          )
+          collectModelsForConnections(modelsByConnection, connectionIds)
         );
 
         if (models.length > 0) {

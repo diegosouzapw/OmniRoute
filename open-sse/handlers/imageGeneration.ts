@@ -262,6 +262,31 @@ function sanitizeImageProviderError(errorText: string): unknown {
   return sanitizeErrorMessage(errorText);
 }
 
+/**
+ * Flatten an arbitrary error payload into a call-log string.
+ *
+ * `sanitizeUpstreamDetails()` builds its objects with `Object.create(null)`
+ * (#12506, prototype-pollution hardening), so a bare `String(value)` on a
+ * sanitized upstream body throws `TypeError: Cannot convert object to
+ * primitive value`. Serialize objects as JSON — the same shape the provider
+ * handlers already log — and keep `String()` for primitives and Errors.
+ */
+function stringifyImageErrorForLog(error: unknown): string {
+  if (typeof error === "string") return error;
+  if (error !== null && typeof error === "object" && !(error instanceof Error)) {
+    try {
+      return JSON.stringify(error) ?? "";
+    } catch {
+      return "[unserializable error]";
+    }
+  }
+  try {
+    return String(error);
+  } catch {
+    return "[unserializable error]";
+  }
+}
+
 // #8307 — some ChatGPT accounts can run Codex but lack entitlement for the specific
 // requested image model. Upstream signals this as a 400 with an exact, stable message
 // (not a generic "invalid request"). Classify it so the caller can mark the failure
@@ -2810,7 +2835,7 @@ export function saveImageErrorResult({
     model: `${provider}/${model}`,
     provider,
     duration: Date.now() - startTime,
-    error: typeof error === "string" ? error.slice(0, 500) : String(error).slice(0, 500),
+    error: stringifyImageErrorForLog(error).slice(0, 500),
     requestBody,
   }).catch(() => {});
 

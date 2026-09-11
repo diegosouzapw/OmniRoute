@@ -129,12 +129,33 @@ test("source guard: auth.ts skips model lockout for per-model-quota providers on
 });
 
 test("source guard: combo.ts skips provider cooldown for per-model-quota on 500", () => {
-  const src = fs.readFileSync(
+  // The combo dispatcher was split out of combo.ts into open-sse/services/combo/*
+  // (#12746 executeTarget → gates/attempt/loop, #12811 round-robin). The invariant
+  // did not move: EVERY call site that records a provider cooldown after a failed
+  // combo target must first exclude a 500 on a per-model-quota provider, or one
+  // model's outage cools down its siblings. Scan the whole combo surface so the
+  // guard follows the code instead of one file name.
+  const comboDir = path.join(process.cwd(), "open-sse", "services", "combo");
+  const comboFiles = [
     path.join(process.cwd(), "open-sse", "services", "combo.ts"),
-    "utf-8"
+    ...fs
+      .readdirSync(comboDir, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".ts"))
+      .map((entry) => path.join(comboDir, entry.name)),
+  ].filter((file) => fs.existsSync(file));
+
+  const recordingFiles = comboFiles.filter((file) =>
+    fs.readFileSync(file, "utf-8").includes("recordProviderCooldown(")
   );
   assert.ok(
-    src.includes("hasPerModelQuota(provider, rawModel)") && src.includes("recordProviderCooldown"),
-    "combo.ts must skip provider cooldown recording for per-model-quota providers on 500"
+    recordingFiles.length > 0,
+    "no combo module records a provider cooldown — the guarded call site vanished"
   );
+  for (const file of recordingFiles) {
+    const normalized = fs.readFileSync(file, "utf-8").replace(/\s+/g, " ");
+    assert.ok(
+      /result\.status === 500[^;]{0,160}?hasPerModelQuota\(provider,/.test(normalized),
+      `${path.basename(file)} must skip provider cooldown recording for per-model-quota providers on 500`
+    );
+  }
 });

@@ -5,12 +5,16 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 /**
- * GLM's translateSseResponse used to pass a 16th positional (65536) to
- * createSSETransformStreamWithLogger. The helper only has 15 parameters
- * (last is requestToolIdentityMap) — tsc reports TS2554 and the number
- * never reached TransformStream.
+ * GLM's translateSseResponse passed a 16th positional to
+ * createSSETransformStreamWithLogger from #12179 until #12925, while the helper
+ * still declared 15 parameters — tsc reported TS2554 and the number never
+ * reached TransformStream. #12925 closed the seam by declaring the slot as
+ * `streamBufferBytes`.
  *
- * Guard the call site in source: no 65536, last arg is suppressThinkClose.
+ * The invariant this guards has not changed: the buffer size GLM passes must
+ * land in a real parameter, never in a dropped extra positional. It is now
+ * checked from the other side — the helper must declare the slot last, and the
+ * call site must fill it with the named constant rather than a magic literal.
  */
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -26,18 +30,21 @@ function extractParens(src: string, openAt: number): string {
   return src.slice(openAt, i);
 }
 
-test("createSSETransformStreamWithLogger has no highWaterMark slot", () => {
+test("createSSETransformStreamWithLogger declares the buffer-size slot last", () => {
   const src = readFileSync(join(root, "open-sse", "utils", "stream.ts"), "utf8");
   const needle = "export function createSSETransformStreamWithLogger(";
   const start = src.indexOf(needle);
   assert.ok(start >= 0);
   const header = extractParens(src, start + needle.length - 1);
-  assert.equal(/highWaterMark/.test(header), false, header);
   assert.match(header, /requestToolIdentityMap/);
   assert.match(header, /suppressThinkClose/);
+  // #12925: the slot GLM had been filling since #12179 is now declared, so the
+  // value reaches TransformStream instead of being dropped as an extra arg.
+  assert.match(header, /streamBufferBytes\s*:\s*number/);
+  assert.match(header, /streamBufferBytes[^,)]*\)\s*$/, `buffer size must stay last:\n${header}`);
 });
 
-test("GLM translateSseResponse does not pass a 16th positional to the stream helper", () => {
+test("GLM translateSseResponse fills the buffer-size slot with the named constant", () => {
   const src = readFileSync(join(root, "open-sse", "executors", "glm.ts"), "utf8");
   const fnStart = src.indexOf("export function translateSseResponse(");
   assert.ok(fnStart >= 0);
@@ -46,6 +53,13 @@ test("GLM translateSseResponse does not pass a 16th positional to the stream hel
   const callAt = body.indexOf("createSSETransformStreamWithLogger(");
   assert.ok(callAt >= 0);
   const call = extractParens(body, callAt + "createSSETransformStreamWithLogger".length);
-  assert.equal(/65536/.test(call), false, `dead 16th arg still present:\n${call}`);
-  assert.match(call, /suppressThinkClose\s*\)\s*$/);
+  // A magic literal here is what made the original mismatch invisible; the call
+  // must reference the shared constant so a change to it cannot drift silently.
+  assert.equal(/65536/.test(call), false, `magic buffer literal is back:\n${call}`);
+  assert.match(
+    call,
+    /GLM_STREAM_BUFFER_BYTES\s*\)\s*$/,
+    `buffer size must be the last arg:\n${call}`
+  );
+  assert.match(call, /suppressThinkClose/, `suppressThinkClose must still be passed:\n${call}`);
 });

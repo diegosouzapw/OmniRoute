@@ -73,6 +73,20 @@ export interface ProviderLegInput {
     model: string;
     translatedBody: Record<string, unknown>;
   }) => Promise<ProviderExecutionOutcome>;
+  /**
+   * Persist the connection/model state a failed provider response implies
+   * (bans, cooldowns, quota lockouts, model lockouts). The streaming leg does
+   * this inline in chatCore; #12867 left the non-streaming leg without it, so
+   * chatCore wires the same routine here. Side effects only — never throws.
+   */
+  persistProviderFailureState?: (failure: {
+    statusCode: number;
+    message: string;
+    retryAfterMs: number | null;
+    upstreamBody: unknown;
+    responseHeaders: Headers;
+    connectionId: string;
+  }) => void | Promise<void>;
   setRequestWireState: (state: {
     translatedBody: Record<string, unknown>;
     effectiveModel: string;
@@ -411,6 +425,23 @@ export async function runNonStreamingProviderLeg(
               outcome.model || currentModel,
               outcome.result.status
             );
+        // The pipeline exhausted account rotation / model fallback, so this is
+        // the final verdict for this connection: persist the state it implies
+        // (ban, cooldown, quota or model lockout) exactly like the streaming leg.
+        if (input.persistProviderFailureState) {
+          try {
+            await input.persistProviderFailureState({
+              statusCode: outcome.result.status,
+              message: outcome.result.rawMessage || raw,
+              retryAfterMs: outcome.result.retryAfterMs ?? null,
+              upstreamBody: outcome.upstreamBody ?? null,
+              responseHeaders: outcome.result.response?.headers ?? new Headers(),
+              connectionId: outcome.connectionId || connectionId,
+            });
+          } catch {
+            // Best-effort state update; the error result must still be returned.
+          }
+        }
         const receipt = buildReceipt(input, {
           httpStatus: outcome.result.status,
           errorType: outcome.result.errorType ?? null,

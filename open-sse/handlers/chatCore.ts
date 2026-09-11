@@ -3607,6 +3607,456 @@ export async function handleChatCore({
     }
   }
 
+  // ── Shared 401/403 credential refresh ───────────────────────────────────────
+  // #12867 moved the post-response block behind `if (stream)`, which silently
+  // dropped the refresh + retry for the non-streaming leg (that leg now sends
+  // through runProviderExecutionPipeline). Both legs drive the SAME refresh from
+  // here: streaming inline below, non-streaming through the pipeline's
+  // `connection.refreshCredentials` seam.
+  //
+  // Fix A: wrap refreshCredentials in runWithOnPersist so the persist callback
+  // executes INSIDE the per-connection mutex held by getAccessToken. This makes
+  // [network refresh + DB write + outer-state mutation] one atomic step and
+  // prevents concurrent requests from reading a stale refreshToken before the
+  // DB has been updated (refresh_token_reused on Codex/OpenAI).
+  //
+  // Not every executor routes refresh through getAccessToken (e.g. github.ts
+  // calls refreshCopilotToken directly). When the persistFn doesn't fire from
+  // inside getAccessToken, the caller still needs to do the credentials mutation
+  // + user callback after refreshCredentials returns. The returned `persistFnRan`
+  // flag tracks which path executed so we don't double-fire (race-prone) or skip
+  // (regression).
+  const attemptCredentialRefreshForAuthFailure = async (): Promise<{
+    newCredentials: { accessToken?: string; copilotToken?: string } | null;
+    persistFnRan: boolean;
+    attemptedRefreshToken: string | null;
+  }> => {
+    // Front 3: remember the refresh_token we are about to present so that, if the
+    // refresh fails as unrecoverable, we can tell a genuine death apart from a
+    // stale-token reuse that a concurrent/sibling refresh already rotated past.
+    const attemptedRefreshToken =
+      typeof credentials?.refreshToken === "string" ? credentials.refreshToken : null;
+    let persistFnRan = false;
+    const persistFn = onCredentialsRefreshed
+      ? async (refreshResult: Record<string, unknown>) => {
+          persistFnRan = true;
+          // Mutate the shared credentials object so subsequent executor calls
+          // in this request see the new tokens. Runs INSIDE the mutex.
+          Object.assign(credentials, refreshResult);
+          await onCredentialsRefreshed(refreshResult);
+        }
+      : undefined;
+
+    // #4038: build a compare-and-swap reread so getAccessToken can skip the persist if a
+    // concurrent writer (sibling request / HealthCheck / replica) already rotated this
+    // connection's refresh_token past the one we presented — overwriting would revert it
+    // and revoke the token family. No connectionId ⇒ no guard (behavior unchanged).
+    const casConnectionId =
+      typeof credentials?.connectionId === "string" ? credentials.connectionId.trim() : "";
+    const casReread = casConnectionId
+      ? async () => {
+          const latest = await getProviderConnectionById(casConnectionId);
+          return typeof latest?.refreshToken === "string" ? latest.refreshToken : null;
+        }
+      : null;
+
+    const newCredentials = (await refreshWithRetry(
+      () =>
+        runWithCasGuard(
+          casReread ? { expectedRefreshToken: attemptedRefreshToken, reread: casReread } : null,
+          () => runWithOnPersist(persistFn, () => executor.refreshCredentials(credentials, log))
+        ),
+      3,
+      log,
+      provider // Explicitly pass the provider to avoid universally tripping the "unknown" circuit breaker
+    )) as null | {
+      accessToken?: string;
+      copilotToken?: string;
+    };
+
+    return { newCredentials, persistFnRan, attemptedRefreshToken };
+  };
+
+  // Set by the non-streaming pipeline seam so its onCredentialsRefreshed hook does
+  // not re-fire the caller callback the in-mutex persistFn already fired.
+  let nonStreamingRefreshPersisted = false;
+
+  const deactivateOnUnrecoverableRefresh = async (
+    attemptedRefreshToken: string | null,
+    newCredentials: unknown
+  ) => {
+    if (!isUnrecoverableRefreshError(newCredentials) || !onCredentialsRefreshed) return;
+    // Front 3 (reuse-race tolerance): before deactivating, re-read the DB.
+    // If a sibling/concurrent refresh already rotated this connection's
+    // refresh_token (common for Codex/OpenAI under one shared Auth0 client),
+    // the failure we saw was a stale-token reuse — the account is healthy
+    // with the newer token, so keep it active instead of killing it.
+    let alreadyRotated = false;
+    if (typeof connectionId === "string" && connectionId && attemptedRefreshToken) {
+      try {
+        const latest = await getProviderConnectionById(connectionId);
+        if (wasRefreshTokenRotated(attemptedRefreshToken, latest?.refreshToken)) {
+          alreadyRotated = true;
+          log?.warn?.(
+            "TOKEN",
+            `${provider.toUpperCase()} | refresh_token already rotated by a concurrent refresh — keeping connection active`
+          );
+        }
+      } catch {
+        // DB read failed — fall through to the safe default (deactivate).
+      }
+    }
+    if (!alreadyRotated) {
+      await onCredentialsRefreshed({ testStatus: "expired", isActive: false });
+    }
+  };
+
+  // ── Provider-failure connection/model state ────────────────────────────────
+  // T06/T10/T36: persist terminal account states, cooldowns and model lockouts
+  // for a failed provider response. Side effects only — no control flow.
+  //
+  // #12867 moved the post-response block behind `if (stream)`, which stopped this
+  // from ever running for non-streaming requests (quota lockouts, bans, geo-block
+  // cooldowns and model lockouts were all silently skipped). Both legs call it:
+  // streaming inline below, non-streaming from runNonStreamingProviderLeg's
+  // persistProviderFailureState hook.
+  const persistProviderFailureConnectionState = async ({
+    errorConnectionId,
+    errorType,
+    statusCode,
+    message,
+    persistentMessage,
+    retryAfterMs,
+    upstreamErrorBody,
+    responseHeaders,
+  }: {
+    errorConnectionId: string | null | undefined;
+    errorType: string | null | undefined;
+    statusCode: number;
+    message: string;
+    persistentMessage: string;
+    retryAfterMs: number | null;
+    upstreamErrorBody: unknown;
+    responseHeaders: Headers;
+  }) => {
+    if (errorConnectionId && errorType) {
+      try {
+        if (errorType === PROVIDER_ERROR_TYPES.FORBIDDEN) {
+          {
+            const probeIsolated = await shouldIsolateProbeFailures();
+            await writeTerminalStatus(
+              errorConnectionId,
+              {
+                testStatus: "banned",
+                isActive: false,
+                lastError: persistentMessage,
+                lastErrorType: errorType,
+                errorCode: String(statusCode),
+              },
+              probeIsolated ? "probe" : "production"
+            );
+            if (probeIsolated) {
+              console.warn(
+                `[provider] Node ${errorConnectionId} probe ${errorType} (${statusCode}) — connection stays active`
+              );
+            } else if (hasPerModelQuota(provider, model)) {
+              // Compatible / passthrough gateways: a 402 without a model id
+              // still must not terminalize the whole connection. Record the
+              // error for operators; sibling models stay selectable.
+              await updateProviderConnection(errorConnectionId, {
+                lastErrorType: errorType,
+                lastError: persistentMessage,
+                errorCode: statusCode,
+              });
+              console.warn(
+                `[provider] Node ${errorConnectionId} per-model quota exhausted (${statusCode}) — connection stays active`
+              );
+            } else {
+              console.warn(
+                `[provider] Node ${errorConnectionId} banned (${statusCode}) — disabling permanently`
+              );
+            }
+          }
+        } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
+          // T-PROBE: probe-origin failures (test-all) never deactivate —
+          // record but stay active; Plan A (extra keys) stays first so the
+          // real path keeps its existing priority (#9817).
+          // Plan A: if connection has extra API keys, don't disable — only the failing key is affected.
+          // Single-key connections still get disabled as before.
+          if (
+            connectionHasExtraKeys(
+              errorConnectionId,
+              (credentials?.providerSpecificData as Record<string, unknown> | undefined)
+                ?.extraApiKeys as string[] | undefined
+            )
+          ) {
+            await updateProviderConnection(errorConnectionId, {
+              lastErrorType: errorType,
+              lastError: persistentMessage,
+              errorCode: statusCode,
+            });
+            console.warn(
+              `[provider] Node ${errorConnectionId} account deactivated (${statusCode}) — has extra keys, keeping connection active`
+            );
+          } else {
+            const probeIsolated2 = await shouldIsolateProbeFailures();
+            await writeTerminalStatus(
+              errorConnectionId,
+              {
+                testStatus: "deactivated",
+                isActive: false,
+                lastError: persistentMessage,
+                lastErrorType: errorType,
+                errorCode: String(statusCode),
+              },
+              probeIsolated2 ? "probe" : "production"
+            );
+            if (probeIsolated2) {
+              console.warn(
+                `[provider] Node ${errorConnectionId} probe ${errorType} (${statusCode}) — connection stays active`
+              );
+            } else {
+              console.warn(
+                `[provider] Node ${errorConnectionId} account deactivated (${statusCode}) — disabling permanently`
+              );
+            }
+          }
+        } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
+          {
+            const probeIsolated3 = await shouldIsolateProbeFailures();
+            if (probeIsolated3) {
+              await writeTerminalStatus(
+                errorConnectionId,
+                {
+                  testStatus: "credits_exhausted",
+                  lastError: persistentMessage,
+                  lastErrorType: errorType,
+                  errorCode: String(statusCode),
+                },
+                "probe"
+              );
+              console.warn(
+                `[provider] Node ${errorConnectionId} probe ${errorType} (${statusCode}) — connection stays active`
+              );
+            } else {
+              // Kimi's 403 says "billing cycle" for both an exhausted subscription and a
+              // temporary request window. Read its official usage endpoint before making
+              // the connection terminal: a non-zero Weekly quota plus an empty Ratelimit
+              // window must recover automatically at the reported reset time.
+              let kimiRateLimitResetAt: string | null = null;
+              if (provider === "kimi-coding") {
+                try {
+                  const { fetchAndPersistProviderLimits } =
+                    await import("@/lib/usage/providerLimits");
+                  const { usage } = await fetchAndPersistProviderLimits(
+                    errorConnectionId,
+                    "manual"
+                  );
+                  kimiRateLimitResetAt = getKimiTemporaryRateLimitResetAt(usage);
+                } catch {
+                  // Preserve the existing quota handling when Kimi's usage endpoint is unavailable.
+                }
+              }
+
+              // Providers with per-model quotas — lock the model only, not the connection
+              let quotaCooldownMs = kimiRateLimitResetAt
+                ? Math.max(new Date(kimiRateLimitResetAt).getTime() - Date.now(), 0)
+                : retryAfterMs || COOLDOWN_MS.rateLimit;
+              const deferAntigravityQuotaStateToCaller = shouldDeferAntigravityQuotaStateToCaller(
+                provider,
+                typeof onStreamFailure === "function"
+              );
+              const isAntigravityQuotaFamily = shouldDeferAntigravityQuotaStateToCaller(
+                provider,
+                true
+              );
+              let coreOwnedAntigravityLockout: {
+                cooldownMs: number;
+                failureCount: number;
+              } | null = null;
+              if (isAntigravityQuotaFamily && !deferAntigravityQuotaStateToCaller) {
+                const quotaErrorText =
+                  typeof upstreamErrorBody === "string"
+                    ? upstreamErrorBody
+                    : upstreamErrorBody == null
+                      ? message
+                      : JSON.stringify(upstreamErrorBody);
+                coreOwnedAntigravityLockout = await recordCoreOwnedAntigravityQuotaState({
+                  provider,
+                  connectionId: errorConnectionId,
+                  model,
+                  status: statusCode,
+                  errorText: quotaErrorText,
+                  headers: responseHeaders,
+                });
+                quotaCooldownMs = coreOwnedAntigravityLockout.cooldownMs;
+              }
+              const accountSemaphoreKey = resolveAccountSemaphoreKey({
+                provider,
+                model: currentModel,
+                connectionId: errorConnectionId,
+                credentials,
+              });
+              if (accountSemaphoreKey && !deferAntigravityQuotaStateToCaller) {
+                markAccountSemaphoreBlocked(accountSemaphoreKey, quotaCooldownMs);
+              }
+              if (deferAntigravityQuotaStateToCaller) {
+                // Defer both model and account-semaphore cooldowns to
+                // markAccountUnavailable, where header/body provenance and the
+                // configured maxCooldownMs are available. Direct consumers such
+                // as Responses pass no owner callback and retain core ownership.
+              } else if (coreOwnedAntigravityLockout) {
+                console.warn(
+                  `[provider] Node ${errorConnectionId} Antigravity model quota exhausted (${statusCode}) for ${model} - ${Math.ceil(coreOwnedAntigravityLockout.cooldownMs / 1000)}s (failureCount=${coreOwnedAntigravityLockout.failureCount}, owner=core)`
+                );
+              } else if (kimiRateLimitResetAt) {
+                await updateProviderConnection(errorConnectionId, {
+                  testStatus: "unavailable",
+                  rateLimitedUntil: kimiRateLimitResetAt,
+                  backoffLevel: 0,
+                  lastErrorType: PROVIDER_ERROR_TYPES.RATE_LIMITED,
+                  lastError: persistentMessage,
+                  errorCode: statusCode,
+                });
+                console.warn(
+                  `[provider] Node ${errorConnectionId} Kimi request window exhausted (${statusCode}) — retrying after ${kimiRateLimitResetAt}`
+                );
+              } else if (isModelScope() && errorConnectionId) {
+                lockModel(provider, errorConnectionId, model, "quota_exhausted", quotaCooldownMs);
+                console.warn(
+                  `[provider] Node ${errorConnectionId} ModelScope model quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
+                );
+              } else if (
+                lockModelIfPerModelQuota(
+                  provider,
+                  errorConnectionId,
+                  model,
+                  "quota_exhausted",
+                  quotaCooldownMs
+                )
+              ) {
+                const quotaScope = getQuotaScopeLabelForProvider(provider, model);
+                console.warn(
+                  `[provider] Node ${errorConnectionId} ${quotaScope}-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (cooldown_scope=${quotaScope}, ttl_source=${retryAfterMs ? "upstream" : "inferred"}, connection stays active)`
+                );
+              } else {
+                await writeTerminalStatus(
+                  errorConnectionId,
+                  {
+                    testStatus: "credits_exhausted",
+                    lastError: persistentMessage,
+                    lastErrorType: errorType,
+                    errorCode: String(statusCode),
+                  },
+                  "production"
+                );
+                console.warn(
+                  `[provider] Node ${errorConnectionId} exhausted quota (${statusCode})`
+                );
+              }
+            } // close probeIsolated3 else
+          }
+        } else if (errorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED) {
+          // Normal 401 (token/session auth issue): keep account active for refresh/re-auth.
+          await updateProviderConnection(errorConnectionId, {
+            lastErrorType: errorType,
+            lastError: persistentMessage,
+            errorCode: statusCode,
+          });
+        } else if (errorType === PROVIDER_ERROR_TYPES.OAUTH_INVALID_TOKEN) {
+          // OAuth 401 with invalid credentials - token refresh can recover
+          await updateProviderConnection(errorConnectionId, {
+            lastErrorType: errorType,
+            lastError: persistentMessage,
+            errorCode: statusCode,
+          });
+          console.warn(
+            `[provider] Node ${errorConnectionId} OAuth token invalid (${statusCode}) — token refresh available`
+          );
+        } else if (errorType === PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR) {
+          // Cloud Code 403 with stale project: not a ban, keep account active.
+          await updateProviderConnection(errorConnectionId, {
+            lastErrorType: errorType,
+            lastError: persistentMessage,
+            errorCode: statusCode,
+          });
+          console.warn(
+            `[provider] Node ${errorConnectionId} project routing error (${statusCode}) — not banning`
+          );
+        } else if (errorType === PROVIDER_ERROR_TYPES.GEO_BLOCKED) {
+          // Google regional-availability refusal (e.g. "User location is not
+          // supported for the API use."). Account-independent and non-terminal:
+          // exclude the connection for the cooldown window so routing moves to
+          // other accounts instead of re-selecting this one on every request,
+          // and never mark it banned/expired. It becomes usable again once
+          // egress is routed through a supported-region proxy.
+          const geoCooldownMs = COOLDOWN_MS.geoBlocked ?? 24 * 60 * 60 * 1000;
+          await updateProviderConnection(errorConnectionId, {
+            lastErrorType: errorType,
+            lastError: persistentMessage,
+            errorCode: statusCode,
+          });
+          // T-PROBE: the 24h exclusion is a routing mutation — a probe must
+          // not push a connection into a day-long cooldown (#9817).
+          if (!(await shouldIsolateProbeFailures())) {
+            try {
+              const { setConnectionRateLimitUntil } = await import("@/lib/db/providers");
+              setConnectionRateLimitUntil(errorConnectionId, Date.now() + geoCooldownMs);
+            } catch {
+              // DB write failure must never break the fallback loop
+            }
+          }
+          console.warn(
+            `[provider] Node ${errorConnectionId} geo-blocked (${statusCode}) — excluded for ${Math.ceil(geoCooldownMs / 1000)}s, trying other accounts`
+          );
+        } else if (errorType === PROVIDER_ERROR_TYPES.GCP_PROJECT_REQUIRED) {
+          // Antigravity BYOP: the account must Bring Its Own GCP Project.
+          // Account-specific and fixable by entering a Project ID — never a
+          // model lockout, never a ban. Exclude the connection for the
+          // cooldown window so selection prefers sibling accounts; the 422
+          // body carries the actionable message when no sibling is available.
+          const byopCooldownMs = COOLDOWN_MS.gcpProjectRequired ?? 24 * 60 * 60 * 1000;
+          await updateProviderConnection(errorConnectionId, {
+            lastErrorType: errorType,
+            lastError: persistentMessage,
+            errorCode: statusCode,
+          });
+          try {
+            const { setConnectionRateLimitUntil } = await import("@/lib/db/providers");
+            setConnectionRateLimitUntil(errorConnectionId, Date.now() + byopCooldownMs);
+          } catch {
+            // best-effort — never break the error path
+          }
+          console.warn(
+            `[provider] Node ${errorConnectionId} GCP project required (${statusCode}) — excluded for ${Math.ceil(byopCooldownMs / 1000)}s, routing to other accounts (enter a Project ID to restore)`
+          );
+        } else if (errorType === PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND) {
+          // 404 — model/endpoint does not exist upstream. Lock the model so the
+          // retry/backoff loop stops hammering the dead endpoint (which would
+          // otherwise degenerate into a 429 rate-limit storm). Connection stays
+          // active since only the specific model is unavailable. (#6827)
+          const notFoundCooldownMs = COOLDOWN_MS.notFound;
+          // T-PROBE: the model lockout is a routing mutation — a probe must
+          // not lock a model for the cooldown window (#9817).
+          if (!(await shouldIsolateProbeFailures())) {
+            lockModel(
+              provider,
+              errorConnectionId,
+              currentModel,
+              "model_not_found",
+              notFoundCooldownMs
+            );
+            console.warn(
+              `[provider] Node ${errorConnectionId} model not found (${statusCode}) for ${currentModel} - locking model for ${Math.ceil(notFoundCooldownMs / 1000)}s (connection stays active)`
+            );
+          }
+        }
+      } catch {
+        // Best-effort state update; request flow should continue with fallback handling.
+      }
+    }
+  };
+
   // Execute request using executor (handles URL building, headers, fallback, transform)
   let providerResponse;
   let providerUrl;
@@ -3922,59 +4372,8 @@ export async function handleChatCore({
       !hadStreamOptions && // Skip refresh if failure may be from stream_options removal, not auth
       !(await shouldIsolateProbeFailures())
     ) {
-      // Fix A: wrap refreshCredentials in runWithOnPersist so the persist callback
-      // executes INSIDE the per-connection mutex held by getAccessToken. This makes
-      // [network refresh + DB write + outer-state mutation] one atomic step and
-      // prevents concurrent requests from reading a stale refreshToken before the
-      // DB has been updated (refresh_token_reused on Codex/OpenAI).
-      //
-      // Not every executor routes refresh through getAccessToken (e.g. github.ts
-      // calls refreshCopilotToken directly). When the persistFn doesn't fire from
-      // inside getAccessToken, we still need to do the credentials mutation + user
-      // callback after refreshCredentials returns. The `persistFnRan` flag tracks
-      // which path executed so we don't double-fire (race-prone) or skip (regression).
-      // Front 3: remember the refresh_token we are about to present so that, if the
-      // refresh fails as unrecoverable, we can tell a genuine death apart from a
-      // stale-token reuse that a concurrent/sibling refresh already rotated past.
-      const attemptedRefreshToken =
-        typeof credentials?.refreshToken === "string" ? credentials.refreshToken : null;
-      let persistFnRan = false;
-      const persistFn = onCredentialsRefreshed
-        ? async (refreshResult: Record<string, unknown>) => {
-            persistFnRan = true;
-            // Mutate the shared credentials object so subsequent executor calls
-            // in this request see the new tokens. Runs INSIDE the mutex.
-            Object.assign(credentials, refreshResult);
-            await onCredentialsRefreshed(refreshResult);
-          }
-        : undefined;
-
-      // #4038: build a compare-and-swap reread so getAccessToken can skip the persist if a
-      // concurrent writer (sibling request / HealthCheck / replica) already rotated this
-      // connection's refresh_token past the one we presented — overwriting would revert it
-      // and revoke the token family. No connectionId ⇒ no guard (behavior unchanged).
-      const casConnectionId =
-        typeof credentials?.connectionId === "string" ? credentials.connectionId.trim() : "";
-      const casReread = casConnectionId
-        ? async () => {
-            const latest = await getProviderConnectionById(casConnectionId);
-            return typeof latest?.refreshToken === "string" ? latest.refreshToken : null;
-          }
-        : null;
-
-      const newCredentials = (await refreshWithRetry(
-        () =>
-          runWithCasGuard(
-            casReread ? { expectedRefreshToken: attemptedRefreshToken, reread: casReread } : null,
-            () => runWithOnPersist(persistFn, () => executor.refreshCredentials(credentials, log))
-          ),
-        3,
-        log,
-        provider // Explicitly pass the provider to avoid universally tripping the "unknown" circuit breaker
-      )) as null | {
-        accessToken?: string;
-        copilotToken?: string;
-      };
+      const { newCredentials, persistFnRan, attemptedRefreshToken } =
+        await attemptCredentialRefreshForAuthFailure();
 
       if (newCredentials?.accessToken || newCredentials?.copilotToken) {
         log?.info?.("TOKEN", `${provider?.toUpperCase()} | refreshed`);
@@ -4045,31 +4444,7 @@ export async function handleChatCore({
         }
       } else {
         log?.warn?.("TOKEN", `${provider?.toUpperCase()} | refresh failed`);
-        if (isUnrecoverableRefreshError(newCredentials) && onCredentialsRefreshed) {
-          // Front 3 (reuse-race tolerance): before deactivating, re-read the DB.
-          // If a sibling/concurrent refresh already rotated this connection's
-          // refresh_token (common for Codex/OpenAI under one shared Auth0 client),
-          // the failure we saw was a stale-token reuse — the account is healthy
-          // with the newer token, so keep it active instead of killing it.
-          let alreadyRotated = false;
-          if (typeof connectionId === "string" && connectionId && attemptedRefreshToken) {
-            try {
-              const latest = await getProviderConnectionById(connectionId);
-              if (wasRefreshTokenRotated(attemptedRefreshToken, latest?.refreshToken)) {
-                alreadyRotated = true;
-                log?.warn?.(
-                  "TOKEN",
-                  `${provider.toUpperCase()} | refresh_token already rotated by a concurrent refresh — keeping connection active`
-                );
-              }
-            } catch {
-              // DB read failed — fall through to the safe default (deactivate).
-            }
-          }
-          if (!alreadyRotated) {
-            await onCredentialsRefreshed({ testStatus: "expired", isActive: false });
-          }
-        }
+        await deactivateOnUnrecoverableRefresh(attemptedRefreshToken, newCredentials);
       }
     }
 
@@ -4203,322 +4578,16 @@ export async function handleChatCore({
       // Project a separate value only at persistent connection-state boundaries.
       const persistentMessage = sanitizeErrorMessage(message) || "Provider request failed";
       const errorConnectionId = getCurrentConnectionId();
-      if (errorConnectionId && errorType) {
-        try {
-          if (errorType === PROVIDER_ERROR_TYPES.FORBIDDEN) {
-            {
-              const probeIsolated = await shouldIsolateProbeFailures();
-              await writeTerminalStatus(
-                errorConnectionId,
-                {
-                  testStatus: "banned",
-                  isActive: false,
-                  lastError: persistentMessage,
-                  lastErrorType: errorType,
-                  errorCode: String(statusCode),
-                },
-                probeIsolated ? "probe" : "production"
-              );
-              if (probeIsolated) {
-                console.warn(
-                  `[provider] Node ${errorConnectionId} probe ${errorType} (${statusCode}) — connection stays active`
-                );
-              } else if (hasPerModelQuota(provider, model)) {
-                // Compatible / passthrough gateways: a 402 without a model id
-                // still must not terminalize the whole connection. Record the
-                // error for operators; sibling models stay selectable.
-                await updateProviderConnection(errorConnectionId, {
-                  lastErrorType: errorType,
-                  lastError: persistentMessage,
-                  errorCode: statusCode,
-                });
-                console.warn(
-                  `[provider] Node ${errorConnectionId} per-model quota exhausted (${statusCode}) — connection stays active`
-                );
-              } else {
-                console.warn(
-                  `[provider] Node ${errorConnectionId} banned (${statusCode}) — disabling permanently`
-                );
-              }
-            }
-          } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
-            // T-PROBE: probe-origin failures (test-all) never deactivate —
-            // record but stay active; Plan A (extra keys) stays first so the
-            // real path keeps its existing priority (#9817).
-            // Plan A: if connection has extra API keys, don't disable — only the failing key is affected.
-            // Single-key connections still get disabled as before.
-            if (
-              connectionHasExtraKeys(
-                errorConnectionId,
-                (credentials?.providerSpecificData as Record<string, unknown> | undefined)
-                  ?.extraApiKeys as string[] | undefined
-              )
-            ) {
-              await updateProviderConnection(errorConnectionId, {
-                lastErrorType: errorType,
-                lastError: persistentMessage,
-                errorCode: statusCode,
-              });
-              console.warn(
-                `[provider] Node ${errorConnectionId} account deactivated (${statusCode}) — has extra keys, keeping connection active`
-              );
-            } else {
-              const probeIsolated2 = await shouldIsolateProbeFailures();
-              await writeTerminalStatus(
-                errorConnectionId,
-                {
-                  testStatus: "deactivated",
-                  isActive: false,
-                  lastError: persistentMessage,
-                  lastErrorType: errorType,
-                  errorCode: String(statusCode),
-                },
-                probeIsolated2 ? "probe" : "production"
-              );
-              if (probeIsolated2) {
-                console.warn(
-                  `[provider] Node ${errorConnectionId} probe ${errorType} (${statusCode}) — connection stays active`
-                );
-              } else {
-                console.warn(
-                  `[provider] Node ${errorConnectionId} account deactivated (${statusCode}) — disabling permanently`
-                );
-              }
-            }
-          } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
-            {
-              const probeIsolated3 = await shouldIsolateProbeFailures();
-              if (probeIsolated3) {
-                await writeTerminalStatus(
-                  errorConnectionId,
-                  {
-                    testStatus: "credits_exhausted",
-                    lastError: persistentMessage,
-                    lastErrorType: errorType,
-                    errorCode: String(statusCode),
-                  },
-                  "probe"
-                );
-                console.warn(
-                  `[provider] Node ${errorConnectionId} probe ${errorType} (${statusCode}) — connection stays active`
-                );
-              } else {
-                // Kimi's 403 says "billing cycle" for both an exhausted subscription and a
-                // temporary request window. Read its official usage endpoint before making
-                // the connection terminal: a non-zero Weekly quota plus an empty Ratelimit
-                // window must recover automatically at the reported reset time.
-                let kimiRateLimitResetAt: string | null = null;
-                if (provider === "kimi-coding") {
-                  try {
-                    const { fetchAndPersistProviderLimits } =
-                      await import("@/lib/usage/providerLimits");
-                    const { usage } = await fetchAndPersistProviderLimits(
-                      errorConnectionId,
-                      "manual"
-                    );
-                    kimiRateLimitResetAt = getKimiTemporaryRateLimitResetAt(usage);
-                  } catch {
-                    // Preserve the existing quota handling when Kimi's usage endpoint is unavailable.
-                  }
-                }
-
-                // Providers with per-model quotas — lock the model only, not the connection
-                let quotaCooldownMs = kimiRateLimitResetAt
-                  ? Math.max(new Date(kimiRateLimitResetAt).getTime() - Date.now(), 0)
-                  : retryAfterMs || COOLDOWN_MS.rateLimit;
-                const deferAntigravityQuotaStateToCaller = shouldDeferAntigravityQuotaStateToCaller(
-                  provider,
-                  typeof onStreamFailure === "function"
-                );
-                const isAntigravityQuotaFamily = shouldDeferAntigravityQuotaStateToCaller(
-                  provider,
-                  true
-                );
-                let coreOwnedAntigravityLockout: {
-                  cooldownMs: number;
-                  failureCount: number;
-                } | null = null;
-                if (isAntigravityQuotaFamily && !deferAntigravityQuotaStateToCaller) {
-                  const quotaErrorText =
-                    typeof upstreamErrorBody === "string"
-                      ? upstreamErrorBody
-                      : upstreamErrorBody == null
-                        ? message
-                        : JSON.stringify(upstreamErrorBody);
-                  coreOwnedAntigravityLockout = await recordCoreOwnedAntigravityQuotaState({
-                    provider,
-                    connectionId: errorConnectionId,
-                    model,
-                    status: statusCode,
-                    errorText: quotaErrorText,
-                    headers: providerResponse.headers,
-                  });
-                  quotaCooldownMs = coreOwnedAntigravityLockout.cooldownMs;
-                }
-                const accountSemaphoreKey = resolveAccountSemaphoreKey({
-                  provider,
-                  model: currentModel,
-                  connectionId: errorConnectionId,
-                  credentials,
-                });
-                if (accountSemaphoreKey && !deferAntigravityQuotaStateToCaller) {
-                  markAccountSemaphoreBlocked(accountSemaphoreKey, quotaCooldownMs);
-                }
-                if (deferAntigravityQuotaStateToCaller) {
-                  // Defer both model and account-semaphore cooldowns to
-                  // markAccountUnavailable, where header/body provenance and the
-                  // configured maxCooldownMs are available. Direct consumers such
-                  // as Responses pass no owner callback and retain core ownership.
-                } else if (coreOwnedAntigravityLockout) {
-                  console.warn(
-                    `[provider] Node ${errorConnectionId} Antigravity model quota exhausted (${statusCode}) for ${model} - ${Math.ceil(coreOwnedAntigravityLockout.cooldownMs / 1000)}s (failureCount=${coreOwnedAntigravityLockout.failureCount}, owner=core)`
-                  );
-                } else if (kimiRateLimitResetAt) {
-                  await updateProviderConnection(errorConnectionId, {
-                    testStatus: "unavailable",
-                    rateLimitedUntil: kimiRateLimitResetAt,
-                    backoffLevel: 0,
-                    lastErrorType: PROVIDER_ERROR_TYPES.RATE_LIMITED,
-                    lastError: persistentMessage,
-                    errorCode: statusCode,
-                  });
-                  console.warn(
-                    `[provider] Node ${errorConnectionId} Kimi request window exhausted (${statusCode}) — retrying after ${kimiRateLimitResetAt}`
-                  );
-                } else if (isModelScope() && errorConnectionId) {
-                  lockModel(provider, errorConnectionId, model, "quota_exhausted", quotaCooldownMs);
-                  console.warn(
-                    `[provider] Node ${errorConnectionId} ModelScope model quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
-                  );
-                } else if (
-                  lockModelIfPerModelQuota(
-                    provider,
-                    errorConnectionId,
-                    model,
-                    "quota_exhausted",
-                    quotaCooldownMs
-                  )
-                ) {
-                  const quotaScope = getQuotaScopeLabelForProvider(provider, model);
-                  console.warn(
-                    `[provider] Node ${errorConnectionId} ${quotaScope}-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (cooldown_scope=${quotaScope}, ttl_source=${retryAfterMs ? "upstream" : "inferred"}, connection stays active)`
-                  );
-                } else {
-                  await writeTerminalStatus(
-                    errorConnectionId,
-                    {
-                      testStatus: "credits_exhausted",
-                      lastError: persistentMessage,
-                      lastErrorType: errorType,
-                      errorCode: String(statusCode),
-                    },
-                    "production"
-                  );
-                  console.warn(
-                    `[provider] Node ${errorConnectionId} exhausted quota (${statusCode})`
-                  );
-                }
-              } // close probeIsolated3 else
-            }
-          } else if (errorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED) {
-            // Normal 401 (token/session auth issue): keep account active for refresh/re-auth.
-            await updateProviderConnection(errorConnectionId, {
-              lastErrorType: errorType,
-              lastError: persistentMessage,
-              errorCode: statusCode,
-            });
-          } else if (errorType === PROVIDER_ERROR_TYPES.OAUTH_INVALID_TOKEN) {
-            // OAuth 401 with invalid credentials - token refresh can recover
-            await updateProviderConnection(errorConnectionId, {
-              lastErrorType: errorType,
-              lastError: persistentMessage,
-              errorCode: statusCode,
-            });
-            console.warn(
-              `[provider] Node ${errorConnectionId} OAuth token invalid (${statusCode}) — token refresh available`
-            );
-          } else if (errorType === PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR) {
-            // Cloud Code 403 with stale project: not a ban, keep account active.
-            await updateProviderConnection(errorConnectionId, {
-              lastErrorType: errorType,
-              lastError: persistentMessage,
-              errorCode: statusCode,
-            });
-            console.warn(
-              `[provider] Node ${errorConnectionId} project routing error (${statusCode}) — not banning`
-            );
-          } else if (errorType === PROVIDER_ERROR_TYPES.GEO_BLOCKED) {
-            // Google regional-availability refusal (e.g. "User location is not
-            // supported for the API use."). Account-independent and non-terminal:
-            // exclude the connection for the cooldown window so routing moves to
-            // other accounts instead of re-selecting this one on every request,
-            // and never mark it banned/expired. It becomes usable again once
-            // egress is routed through a supported-region proxy.
-            const geoCooldownMs = COOLDOWN_MS.geoBlocked ?? 24 * 60 * 60 * 1000;
-            await updateProviderConnection(errorConnectionId, {
-              lastErrorType: errorType,
-              lastError: persistentMessage,
-              errorCode: statusCode,
-            });
-            // T-PROBE: the 24h exclusion is a routing mutation — a probe must
-            // not push a connection into a day-long cooldown (#9817).
-            if (!(await shouldIsolateProbeFailures())) {
-              try {
-                const { setConnectionRateLimitUntil } = await import("@/lib/db/providers");
-                setConnectionRateLimitUntil(errorConnectionId, Date.now() + geoCooldownMs);
-              } catch {
-                // DB write failure must never break the fallback loop
-              }
-            }
-            console.warn(
-              `[provider] Node ${errorConnectionId} geo-blocked (${statusCode}) — excluded for ${Math.ceil(geoCooldownMs / 1000)}s, trying other accounts`
-            );
-          } else if (errorType === PROVIDER_ERROR_TYPES.GCP_PROJECT_REQUIRED) {
-            // Antigravity BYOP: the account must Bring Its Own GCP Project.
-            // Account-specific and fixable by entering a Project ID — never a
-            // model lockout, never a ban. Exclude the connection for the
-            // cooldown window so selection prefers sibling accounts; the 422
-            // body carries the actionable message when no sibling is available.
-            const byopCooldownMs = COOLDOWN_MS.gcpProjectRequired ?? 24 * 60 * 60 * 1000;
-            await updateProviderConnection(errorConnectionId, {
-              lastErrorType: errorType,
-              lastError: persistentMessage,
-              errorCode: statusCode,
-            });
-            try {
-              const { setConnectionRateLimitUntil } = await import("@/lib/db/providers");
-              setConnectionRateLimitUntil(errorConnectionId, Date.now() + byopCooldownMs);
-            } catch {
-              // best-effort — never break the error path
-            }
-            console.warn(
-              `[provider] Node ${errorConnectionId} GCP project required (${statusCode}) — excluded for ${Math.ceil(byopCooldownMs / 1000)}s, routing to other accounts (enter a Project ID to restore)`
-            );
-          } else if (errorType === PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND) {
-            // 404 — model/endpoint does not exist upstream. Lock the model so the
-            // retry/backoff loop stops hammering the dead endpoint (which would
-            // otherwise degenerate into a 429 rate-limit storm). Connection stays
-            // active since only the specific model is unavailable. (#6827)
-            const notFoundCooldownMs = COOLDOWN_MS.notFound;
-            // T-PROBE: the model lockout is a routing mutation — a probe must
-            // not lock a model for the cooldown window (#9817).
-            if (!(await shouldIsolateProbeFailures())) {
-              lockModel(
-                provider,
-                errorConnectionId,
-                currentModel,
-                "model_not_found",
-                notFoundCooldownMs
-              );
-              console.warn(
-                `[provider] Node ${errorConnectionId} model not found (${statusCode}) for ${currentModel} - locking model for ${Math.ceil(notFoundCooldownMs / 1000)}s (connection stays active)`
-              );
-            }
-          }
-        } catch {
-          // Best-effort state update; request flow should continue with fallback handling.
-        }
-      }
+      await persistProviderFailureConnectionState({
+        errorConnectionId,
+        errorType,
+        statusCode,
+        message,
+        persistentMessage,
+        retryAfterMs,
+        upstreamErrorBody,
+        responseHeaders: providerResponse.headers,
+      });
 
       appendRequestLog({
         model,
@@ -4794,7 +4863,31 @@ export async function handleChatCore({
             replaceCredentials: (next) => {
               Object.assign(credentials, next);
             },
-            onCredentialsRefreshed: async () => {},
+            // The streaming leg refreshes on 401/403 in its own post-response
+            // block (which `if (stream)` keeps out of reach here since #12867),
+            // so the non-streaming leg drives the SAME refresh through the
+            // pipeline's seam instead — otherwise a non-streaming 401 is
+            // returned to the client without ever rotating the token.
+            onCredentialsRefreshed: async (next) => {
+              // persistFn already fired inside the refresh mutex for executors
+              // that route through getAccessToken — don't double-notify.
+              if (nonStreamingRefreshPersisted || !onCredentialsRefreshed) return;
+              await onCredentialsRefreshed(next);
+            },
+            refreshCredentials: async () => {
+              // T-PROBE: probe-origin failures never attempt the refresh (#9817).
+              if (await shouldIsolateProbeFailures()) return null;
+              const { newCredentials, persistFnRan, attemptedRefreshToken } =
+                await attemptCredentialRefreshForAuthFailure();
+              nonStreamingRefreshPersisted = persistFnRan;
+              if (newCredentials?.accessToken || newCredentials?.copilotToken) {
+                log?.info?.("TOKEN", `${provider?.toUpperCase()} | refreshed`);
+                return newCredentials as Record<string, unknown>;
+              }
+              log?.warn?.("TOKEN", `${provider?.toUpperCase()} | refresh failed`);
+              await deactivateOnUnrecoverableRefresh(attemptedRefreshToken, newCredentials);
+              return null;
+            },
             assertManagedLeaseFence: (id) => {
               assertManagedLeaseFence(id);
             },
@@ -4883,6 +4976,36 @@ export async function handleChatCore({
         executeProviderRequest: (modelToCall, allowDedup) =>
           executeProviderRequest(modelToCall, allowDedup),
         runProviderExecution: runNonStreamingPipeline,
+        // Same classification the streaming leg applies before persisting state
+        // (see the providerFailure block below) — kept here so a non-streaming
+        // quota/ban/lockout is recorded instead of silently discarded (#12867).
+        persistProviderFailureState: async (failure) => {
+          let failureErrorType = classifyProviderError(
+            failure.statusCode,
+            failure.message,
+            provider
+          );
+          if (failure.statusCode === 429 && isModelScope()) {
+            const decision = classifyModelScope429(
+              failure.message,
+              normalizeHeaders(failure.responseHeaders)
+            );
+            failureErrorType =
+              decision.kind === "quota_exhausted"
+                ? PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED
+                : PROVIDER_ERROR_TYPES.RATE_LIMITED;
+          }
+          await persistProviderFailureConnectionState({
+            errorConnectionId: failure.connectionId,
+            errorType: failureErrorType,
+            statusCode: failure.statusCode,
+            message: failure.message,
+            persistentMessage: sanitizeErrorMessage(failure.message) || "Provider request failed",
+            retryAfterMs: failure.retryAfterMs,
+            upstreamErrorBody: failure.upstreamBody,
+            responseHeaders: failure.responseHeaders,
+          });
+        },
         setRequestWireState: ({ translatedBody: nextBody, effectiveModel: nextModel }) => {
           translatedBody = nextBody as typeof translatedBody;
           currentModel = nextModel;

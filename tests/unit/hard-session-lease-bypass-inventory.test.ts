@@ -13,7 +13,12 @@ type BypassClass = "A" | "B" | "C";
 
 const EXPECTED: Record<InventoryKind, Record<string, number>> = {
   credential: {
-    "open-sse/handlers/chatCore.ts": 2,
+    // #12867 extracted chatCore.ts's streaming provider-execution loop into
+    // chatCore/providerExecutionPipeline.ts. Its two getProviderCredentials()
+    // sites (codex 429 rotation, antigravity BYOP rotation) moved with it and are
+    // now reached through the injected `connection.getProviderCredentials` handle,
+    // so countCalls() also inventories property-access calls.
+    "open-sse/handlers/chatCore/providerExecutionPipeline.ts": 2,
     "open-sse/services/imageCombo.ts": 1,
     "open-sse/services/speechCombo.ts": 1,
     "open-sse/services/videoCombo.ts": 2,
@@ -88,8 +93,9 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "open-sse/services/antigravityFamilyCooldown.ts": 1,
     // v3.8.50 back-merge additions (f95b03d7): combo routing infra and the
     // volcengine-plan binding/auto-sync services query connections the same
-    // way as their classified siblings.
-    "open-sse/services/combo.ts": 1,
+    // way as their classified siblings. #12746 split executeTarget out of
+    // combo.ts, moving this lookup into combo/executeTargetGates.ts unchanged.
+    "open-sse/services/combo/executeTargetGates.ts": 1,
     "open-sse/services/combo/providerWildcard.ts": 1,
     "open-sse/services/tokenRefresh.ts": 1,
     "src/lib/providers/volcPlanAutoSyncBackfill.ts": 1,
@@ -127,6 +133,11 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/app/api/translator/send/route.ts": 1,
     "src/app/api/translator/translate/route.ts": 1,
     "src/app/api/usage/call-logs/route.ts": 1,
+    // #12805: the reset-credit route resolves the connection's PROVIDER to pick
+    // the codex or grok-cli library; the exclusive-lease fence itself lives in
+    // those libraries (both listed in auxiliaryIsolationSources below). It never
+    // selects a connection to serve a request, so it stays class C.
+    "src/app/api/usage/codex-reset-credit/route.ts": 1,
     "src/app/api/usage/quota/route.ts": 1,
     "src/app/api/usage/utilization/route.ts": 1,
     "src/app/api/v1/vscode/[token]/api/tags/route.ts": 1,
@@ -174,6 +185,9 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/lib/usage/callLogs.ts": 1,
     "src/lib/usage/codexResetCredits.ts": 1,
     "src/lib/usage/comboScoringInspector.ts": 1,
+    // #12805: Grok Build sibling of codexResetCredits.ts — same auxiliary-activity
+    // fence in front of the same connection lookup, so same class B.
+    "src/lib/usage/grokResetCredits.ts": 1,
     "src/lib/usage/providerLimits.ts": 4,
     "src/lib/usage/resilienceExplain.ts": 1,
     "src/lib/usage/usageStats.ts": 1,
@@ -212,10 +226,9 @@ const CLASSIFICATION: Record<InventoryKind, Record<string, BypassClass>> = {
       [
         "open-sse/handlers/autoComboCandidates.ts",
         "open-sse/handlers/chatCore.ts",
-        "open-sse/services/combo.ts",
         "open-sse/services/alibabaFreeTier.ts",
         "open-sse/services/alibabaFreeTierQuotaFetcher.ts",
-        "open-sse/services/combo.ts",
+        "open-sse/services/combo/executeTargetGates.ts",
         "open-sse/services/combo/providerWildcard.ts",
         "open-sse/services/tokenRefresh.ts",
         "src/app/api/translator/send/route.ts",
@@ -224,6 +237,7 @@ const CLASSIFICATION: Record<InventoryKind, Record<string, BypassClass>> = {
         "src/lib/providers/volcenginePlanBinding.ts",
         "src/lib/services/quotaAutoPing.ts",
         "src/lib/usage/codexResetCredits.ts",
+        "src/lib/usage/grokResetCredits.ts",
         "src/lib/usage/providerLimits.ts",
         "src/lib/vncSession/service.ts",
         "src/lib/warmupScheduler.ts",
@@ -260,14 +274,13 @@ function countCalls(): Record<InventoryKind, Record<string, number>> {
       const key = file.split(path.sep).join("/");
       actual[kind][key] = (actual[kind][key] ?? 0) + 1;
     };
+    const isCredentialName = (name: string) =>
+      name === "getProviderCredentials" || name === "getProviderCredentialsWithQuotaPreflight";
     const visit = (node: ts.Node): void => {
       if (ts.isCallExpression(node)) {
         const expression = node.expression;
         if (ts.isIdentifier(expression)) {
-          if (
-            expression.text === "getProviderCredentials" ||
-            expression.text === "getProviderCredentialsWithQuotaPreflight"
-          ) {
+          if (isCredentialName(expression.text)) {
             increment("credential");
           }
           if (
@@ -276,15 +289,22 @@ function countCalls(): Record<InventoryKind, Record<string, number>> {
           ) {
             increment("connection");
           }
-        } else if (
-          ts.isPropertyAccessExpression(expression) &&
-          expression.name.text === "execute" &&
-          ts.isIdentifier(expression.expression) &&
-          ["executor", "fallbackExecutor", "providerExecutor", "streamExecutor"].includes(
-            expression.expression.text
-          )
-        ) {
-          increment("executor");
+        } else if (ts.isPropertyAccessExpression(expression)) {
+          // #12867: the extracted execution pipeline reaches the resolver through an
+          // injected handle (`connection.getProviderCredentials(...)`), so a
+          // bare-identifier scan alone would let those sites leave the inventory.
+          if (isCredentialName(expression.name.text)) {
+            increment("credential");
+          }
+          if (
+            expression.name.text === "execute" &&
+            ts.isIdentifier(expression.expression) &&
+            ["executor", "fallbackExecutor", "providerExecutor", "streamExecutor"].includes(
+              expression.expression.text
+            )
+          ) {
+            increment("executor");
+          }
         }
       }
       ts.forEachChild(node, visit);
@@ -312,6 +332,10 @@ test("managed request surfaces are fenced centrally or rejected before independe
     path.join(REPO_ROOT, "src/app/api/internal/codex-responses-ws/route.ts"),
     "utf8"
   );
+  const executionPipeline = fs.readFileSync(
+    path.join(REPO_ROOT, "open-sse/handlers/chatCore/providerExecutionPipeline.ts"),
+    "utf8"
+  );
   const internalKeys = fs.readFileSync(path.join(REPO_ROOT, "src/lib/db/apiKeys.ts"), "utf8");
   const auxiliaryIsolationSources = [
     "src/app/api/providers/[id]/models/route.ts",
@@ -320,6 +344,7 @@ test("managed request surfaces are fenced centrally or rejected before independe
     "src/lib/api/modelTestRunner.ts",
     "src/lib/services/quotaAutoPing.ts",
     "src/lib/usage/codexResetCredits.ts",
+    "src/lib/usage/grokResetCredits.ts",
     "src/lib/vncSession/service.ts",
     "src/lib/warmupScheduler.ts",
     "src/shared/services/modelSyncScheduler.ts",
@@ -336,7 +361,14 @@ test("managed request surfaces are fenced centrally or rejected before independe
     core,
     /assertManagedLeaseFence\(getExecutionConnectionId\(getExecutionCredentials\(\)\)\)/
   );
-  assert.match(core, /provider === "codex" &&\s*!managedLease/);
+  // #12867 moved the codex 429 account-rotation out of chatCore.ts into
+  // chatCore/providerExecutionPipeline.ts. The managed-lease fence moved with it:
+  // the inline `provider === "codex" && !managedLease` became the policy flag
+  // chatCore computes and the pipeline gates every rotation on. Assert both halves
+  // so the fence cannot be dropped on either side of that seam.
+  assert.match(core, /allowAccountRotation:\s*!managedLease\b/);
+  assert.match(executionPipeline, /canRotateAccount\s*=\s*policy\.allowAccountRotation\b/);
+  assert.match(executionPipeline, /canRotateAccount &&\s*target\.provider === "codex"/);
   assert.match(ws, /LEASE_UNSUPPORTED_TRANSPORT/);
   assert.match(internalKeys, /!k\.scopes\?\.includes\(EXCLUSIVE_LEASE_SCOPE\)/);
   for (const source of auxiliaryIsolationSources) {
