@@ -249,8 +249,12 @@ export async function isDashboardSessionAuthenticated(
 
   try {
     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    await jwtVerify(token, secret);
-    return true;
+    const { payload } = await jwtVerify(token, secret);
+
+    // Dashboard sessions must carry the reserved authenticated claim.
+    // Other JWTs signed with JWT_SECRET (for example Cursor CLI tokens)
+    // must never be accepted as dashboard sessions.
+    return payload.authenticated === true;
   } catch {
     return false;
   }
