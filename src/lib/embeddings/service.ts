@@ -33,6 +33,7 @@ import { calculateCost } from "@/lib/usage/costCalculator";
 import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { resolveLocalSyncedEndpointRoute } from "@/lib/providerModels/syncedEndpointRouting";
+import { resolveAlibabaProviderEmbeddingUrl } from "@/shared/constants/alibabaProviderRegions";
 
 type ValidatedEmbeddingBody = Record<string, unknown> & { model: string };
 type ProviderCredentialsResult = Awaited<ReturnType<typeof getProviderCredentials>>;
@@ -344,6 +345,24 @@ export async function createEmbeddingResponse(
     ) {
       credentials = localCredentials;
     }
+  }
+
+  // Alibaba's embedding endpoint is connection-scoped: workspace and region
+  // live in providerSpecificData, so the static chat registry cannot select it.
+  if (
+    credentials &&
+    !options.resolvedProvider &&
+    (provider === "alibaba" || provider === "alibaba-cn")
+  ) {
+    const providerSpecificData = (
+      credentials as { providerSpecificData?: Record<string, unknown> | null }
+    ).providerSpecificData;
+    const connectionBaseUrl = resolveAlibabaProviderEmbeddingUrl(
+      provider,
+      providerSpecificData,
+      providerConfig.baseUrl
+    );
+    if (connectionBaseUrl) providerConfig = { ...providerConfig, baseUrl: connectionBaseUrl };
   }
 
   // #474: when the request used a bare model name (no "/" — e.g. an alias that
