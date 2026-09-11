@@ -50,7 +50,7 @@ function resolveMappedOverride(model, agentId, deps) {
         .get(config.aliasKey);
       if (row) {
         const mappings = aliasConfigShim.normalizeAliasMappings(JSON.parse(row.value));
-        return mappings[model] || null;
+        return mappings[model] || mappings["*"] || null;
       }
     }
   } catch {
@@ -61,7 +61,7 @@ function resolveMappedOverride(model, agentId, deps) {
     if (fs.existsSync(dbFile)) {
       const db = JSON.parse(fs.readFileSync(dbFile, "utf-8"));
       const mappings = aliasConfigShim.normalizeAliasMappings(db.mitmAlias?.[config.aliasKey]);
-      return mappings[model] || null;
+      return mappings[model] || mappings["*"] || null;
     }
   } catch {
     // Ignore malformed legacy state.
