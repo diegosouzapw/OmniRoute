@@ -12831,6 +12831,10 @@
     "inactiveCount": "{count} inactive",
     "dbOverrideCount": "{count} DB overrides",
     "searchPlaceholder": "Search flags...",
+    "descriptionModeLabel": "Description view",
+    "descriptionModeHint": "On hover: cards stay compact and hovering a description shows the full text. Full text: always show the complete description.",
+    "descriptionModeHover": "On hover",
+    "descriptionModeFull": "Full text",
     "categories": {
       "all": "All",
       "security": "Security",

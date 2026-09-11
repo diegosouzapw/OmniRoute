@@ -18,6 +18,8 @@ interface FeatureFlagCardProps {
   onToggle: (key: string, newValue: string) => void;
   onReset: (key: string) => void;
   saving?: boolean;
+  /** "clamp": 2-line clamp + full text on hover. "full": always expanded. */
+  descriptionMode?: "clamp" | "full";
 }
 
 const CATEGORY_STYLES: Record<
@@ -120,6 +122,7 @@ export default function FeatureFlagCard({
   onToggle,
   onReset,
   saving = false,
+  descriptionMode = "clamp",
 }: FeatureFlagCardProps) {
   const t = useTranslations("featureFlags");
   const enabled = flag.type === "boolean" ? isEnabled(flag.effectiveValue) : false;
@@ -212,8 +215,29 @@ export default function FeatureFlagCard({
         )}
       </div>
 
-      {/* Description */}
-      <p className="mb-3 line-clamp-2 text-xs text-text-muted">{flag.description}</p>
+      {/* Description — either always expanded in full, or clamped to 2 lines
+          with the full text revealed on hover (mode set in the grid toolbar) */}
+      {descriptionMode === "full" ? (
+        <p className="mb-3 text-pretty text-xs leading-relaxed text-text-muted">
+          {flag.description}
+        </p>
+      ) : (
+        <div className="group/desc relative">
+          <p
+            aria-describedby={`desc-tooltip-${flag.key}`}
+            className="mb-3 cursor-help line-clamp-2 text-xs text-text-muted"
+          >
+            {flag.description}
+          </p>
+          <div
+            id={`desc-tooltip-${flag.key}`}
+            role="tooltip"
+            className="pointer-events-none invisible absolute left-0 top-full z-50 mt-2 w-80 rounded-lg border border-border bg-surface p-3 text-xs leading-relaxed text-text-primary opacity-0 shadow-lg transition-opacity duration-150 group-hover/desc:visible group-hover/desc:opacity-100"
+          >
+            {flag.description}
+          </div>
+        </div>
+      )}
 
       <EnvPrecedenceWarning flag={flag} text={t("ccDiscoveryAliasesEnvWarning")} />
 
