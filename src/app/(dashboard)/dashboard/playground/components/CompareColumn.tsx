@@ -33,7 +33,7 @@ export default function CompareColumn({ column, onCancel, onRemove }: CompareCol
   const { id, model, status, metrics, response, errorMessage } = column;
 
   return (
-    <div className="flex flex-col h-full border-r border-border last:border-r-0 min-w-0">
+    <div className="flex flex-col h-full min-h-0 border-r border-border last:border-r-0 min-w-0">
       {/* Column header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-bg-alt shrink-0">
         <div className="flex items-center gap-2 min-w-0">
@@ -84,7 +84,7 @@ export default function CompareColumn({ column, onCancel, onRemove }: CompareCol
       )}
 
       {/* Response content */}
-      <div className="flex-1 overflow-y-auto px-3 py-3 text-sm">
+      <div className="flex-1 min-h-0 overflow-y-auto px-3 py-3 text-sm">
         {status === "idle" && <p className="text-text-muted text-xs italic">{t("readyToRun")}</p>}
 
         {status === "error" && (
