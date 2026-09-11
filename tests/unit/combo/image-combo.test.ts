@@ -350,3 +350,62 @@ test("combo success keeps the OpenAI {created, data} wrapper and Codex defaults 
     globalThis.fetch = originalFetch;
   }
 });
+
+// ---------------------------------------------------------------------------
+// Parallel fan-out — a slow failing first target must not block a healthy one
+// ---------------------------------------------------------------------------
+
+test("runs image targets concurrently: slow failing first target does not block fast healthy second target", async () => {
+  await createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    apiKey: "sk-test",
+    name: "image-combo-openai",
+    isActive: true,
+    testStatus: "active",
+    providerSpecificData: {},
+  });
+  // gpt-image-2 is the priority (first) target; gpt-image-1-mini is the sibling.
+  await createCombo({
+    name: "parallel-img-combo",
+    strategy: "priority",
+    models: ["openai/gpt-image-2", "openai/gpt-image-1-mini"],
+  });
+
+  const log = createLog();
+  const start = Date.now();
+
+  const response = await executeImageCombo(
+    "parallel-img-combo",
+    { model: "parallel-img-combo", prompt: "a cat", n: 1 },
+    createMockAuth(),
+    Date.now(),
+    log,
+    {
+      generateImage: async ({ body: b }: { body: { model?: string } }) => {
+        const model = String(b?.model ?? "");
+        if (model.includes("gpt-image-2")) {
+          // Priority target plays the starved provider: it burns ~300ms and
+          // fails, while the sibling answers in a few ms.
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          return { success: false, status: 429, error: "slow provider unavailable" };
+        }
+        return {
+          success: true,
+          status: 200,
+          data: { created: 1, data: [{ url: "https://ok.example/x.png" }] },
+        };
+      },
+    }
+  );
+
+  const elapsed = Date.now() - start;
+
+  assert.equal(response.status, 200, "healthy sibling wins over slow first target");
+  const payload = await response.json();
+  assert.equal(payload.data[0].url, "https://ok.example/x.png");
+  assert.equal(response.headers.get("X-OmniRoute-Provider"), "openai");
+  // Finished well before the slow target's 300ms failure — proof of flush,
+  // not sequential waiting.
+  assert.ok(elapsed < 250, `parallel fan-out finished in ${elapsed}ms, expected << 300ms`);
+});

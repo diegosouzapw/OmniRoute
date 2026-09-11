@@ -137,9 +137,16 @@ type DeleteResult = {
 
 let logIdCounter = 0;
 
+// The id is a TEXT PRIMARY KEY across one shared SQLite file. Two OmniRoute
+// processes (dev checkout + globally-installed CLI, or two replicas) can
+// share the same DATA_DIR, so a bare `Date.now()-counter` collides the
+// moment both land on the same millisecond — the INSERT then fails with
+// "UNIQUE constraint failed: call_logs.id" and the call is never logged.
+// The pid makes the id unique per process while keeping the timestamp prefix
+// (still human-readable and sortable by creation time).
 function generateLogId() {
   logIdCounter++;
-  return `${Date.now()}-${logIdCounter}`;
+  return `${Date.now()}-${process.pid}-${logIdCounter}`;
 }
 
 async function resolveAccountName(connectionId: string | null | undefined) {
