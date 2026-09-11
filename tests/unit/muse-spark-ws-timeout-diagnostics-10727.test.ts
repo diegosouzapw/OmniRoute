@@ -4,6 +4,7 @@ import {
   MuseSparkWebExecutor,
   __resetMuseSparkConversationCacheForTesting,
   __setMuseSparkWebSocketForTesting,
+  __setMuseSparkFreshTokenFetcherForTesting,
 } from "../../open-sse/executors/muse-spark-web.ts";
 import { WebSocket } from "ws";
 
@@ -103,6 +104,9 @@ function baseInput(connectionId: string): Parameters<MuseSparkWebExecutor["execu
 
 test("#10727: WS timeout while still CONNECTING reports readyState=0 (never opened)", async () => {
   __resetMuseSparkConversationCacheForTesting();
+  // Prevent real browser launch — return a failure so the test falls back to
+  // the static authorization token provided in baseInput().
+  __setMuseSparkFreshTokenFetcherForTesting(async () => ({ ok: false as const, error: "test" }));
   const executor = new MuseSparkWebExecutor();
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response("{}", { status: 200 });
@@ -129,11 +133,15 @@ test("#10727: WS timeout while still CONNECTING reports readyState=0 (never open
     globalThis.fetch = originalFetch;
     restore();
     timeoutHook.restore();
+    __setMuseSparkFreshTokenFetcherForTesting(undefined); // Restore real impl
   }
 });
 
 test("#10727: WS timeout after a successful open reports readyState=1 (opened, then silent)", async () => {
   __resetMuseSparkConversationCacheForTesting();
+  // Prevent real browser launch — return a failure so the test falls back to
+  // the static authorization token provided in baseInput().
+  __setMuseSparkFreshTokenFetcherForTesting(async () => ({ ok: false as const, error: "test" }));
   const executor = new MuseSparkWebExecutor();
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response("{}", { status: 200 });
@@ -160,5 +168,6 @@ test("#10727: WS timeout after a successful open reports readyState=1 (opened, t
     globalThis.fetch = originalFetch;
     restore();
     timeoutHook.restore();
+    __setMuseSparkFreshTokenFetcherForTesting(undefined); // Restore real impl
   }
 });

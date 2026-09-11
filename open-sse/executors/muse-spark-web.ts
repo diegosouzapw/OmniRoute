@@ -11,6 +11,10 @@ import {
   normalizeSessionCookieHeaders,
 } from "@/lib/providers/webCookieAuth";
 import { type ParsedMetaAiResponse, isRecord } from "./muse-spark-web/response-parser.ts";
+import {
+  acquireBrowserContext,
+  openPage,
+} from "../services/browserPool.ts";
 
 const META_AI_GRAPHQL_API = "https://www.meta.ai/api/graphql";
 // Meta rebranded "Abra" to "Ecto"; `abra_sess` became `ecto_1_sess`.
@@ -26,6 +30,8 @@ const META_AI_DEFAULT_COOKIE = "ecto_1_sess";
 // GraphQL endpoint still accepts it over POST and streams the response.
 const META_AI_WARMUP_DOC_ID = "e7f802582dbfed8e181b012e010993eb";
 const META_AI_MODE_SWITCH_DOC_ID = "c32bbe999c48e64e855dc63177d5153f";
+// doc_id for the Heisenberg check that refreshes ecto_1_sess cookie
+const META_AI_HEISENBERG_DOC_ID = "954e9b193487fa4af750af87906e4313";
 const META_WS_APP_ID = "1522763855472543";
 const META_WS_APP_VERSION = "1.0.0";
 const META_WS_AUTHTYPE = "15:0";
@@ -617,20 +623,36 @@ function getOpenAiMessages(body: unknown): Array<Record<string, unknown>> | null
 // These are mutated at specific field paths to inject conversation-id,
 // prompt text, timestamps, and message IDs per conversation.
 //
+// Updated 2026-09-05 (issue #10727 fix): Replaced stale templates with fresh
+// browser-captured ones. Critical structural changes vs old templates:
+//   - field 1.1.12 (mode): now includes mode_thinking string (was bare varint 1000)
+//   - field 1.7: now has flags {12:1, 13:1} (was empty bytes)
+//   - field 1.26: new varint 0 (was absent)
+//   - field 1.1.19.2: fixed32 1.0 vs old 2.0
+//   - OS/UA: Windows Chrome 152 vs old Mac Chrome 146
+// These changes fix the persistent WS timeout where gateway sent 4 messages then
+// went silent. Root cause: gateway now validates mode_thinking presence.
+//
 // VERIFIED against live meta.ai WS captures from TWO independent accounts
 // (2026-07-19). The following fields are confirmed STATIC (app-level
 // constants sent by Meta's own client, not per-user secrets):
-//   - 64-hex session token (e2b88f98...)
+//   - 64-hex session token (3e64e7b0c282fb56... replaces old e2b88f98...)
 //   - Actor numeric ID (867051314767696)
-//   - Locale (en-US)
+//   - Locale (zh-CN in live capture, but patching maintains flexibility)
 //   - App ID (1522763855472543)
 // The only user-variable field is the timezone (system TZ), which is
 // low-signal for anti-fraud. No fingerprint randomization is warranted.
 
+// Updated 2026-09-05: Replaced with browser-captured template that includes:
+// - field 1.1.12 with mode_thinking string (was missing)
+// - field 1.7 with flags {12:1, 13:1} (was empty)
+// - field 1.26 varint 0 (was absent)
+// These structural changes fix the persistent WS timeout (issue #10727).
 const META_WS_HOME_TEMPLATE_B64 =
-  "CrYGCsQDCiBLQURBQlJBX19IT01FX19VTklGSUVEX0lOUFVUX0JBUhIQMTUyMjc2Mzg1NTQ3MjU0MyInNWE1Yi04ZDRlLWYwNTQtOTllZi1iMmRlLWRiMDItMGQwNS01MmM3KigqJgokOGYxMjliMjUtYzNlMC00NzNiLWFlNzktNWViM2YyNGU1NjRjMAU6C0hVTUFOX0FHRU5UQiIKDzg2NzA1MTMxNDc2NzY5NhIPODY3MDUxMzE0NzY3Njk2UgVFQ1RPMVoRQWJyYSBXZWIgTWFpbiBLZXliCRoDCOgHIgIIAWoITWFjIE9TIFhyCnVzZXJfaW5wdXR6dU1vemlsbGEvNS4wIChNYWNpbnRvc2g7IEludGVsIE1hYyBPUyBYIDEwXzE1XzcpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xNDYuMC4wLjAgU2FmYXJpLzUzNy4zNoIBC2Rlc2t0b3Bfd2VimgFHCkBlMmI4OGY5ODQ2Mzc5Y2JjMjY5NjBmYTNhZTFkMjIyMDFkZmIxOWRmNzg5MGFlNmEzYWM4YTI4ODcwYmFjNjgyFQAAAEASFAi4w6XTk4/yARC4w6XTk4/yARgCGgIgASIAKg4Ix6D+ldkzGJ6g/pXZMzIkZWU3YTM1ZWItZGY4Yy00NzkzLWExYzAtMTBhZTQxNGY1ZTZlOgBKBxIFZW4tVVNScgokNTYwN2Y0YzAtYjljZi00ZjZlLWJlYTYtZTc2N2E1OGJhMjhlGiRlMDliN2FhMC1jYzYwLTQyYTktYjk2OS00YzY1YjViZGZlNGIiJDhmMTI5YjI1LWMzZTAtNDczYi1hZTc5LTVlYjNmMjRlNTY0Y3oRIg9BbWVyaWNhL0NoaWNhZ2+CAQOwAQGSAQwKBnN0b2NrcxICCAGSAQ0KB3dlYXRoZXISAggBkgEkCh5tZXRhX2tub3dsZWRnZV9zZWFyY2hfY2Fyb3VzZWwSAggBkgEiChxtZXRhX2NhdGFsb2dfc2VhcmNoX2Nhcm91c2VsEgIIAZIBEwoNbWVkaWFfZ2FsbGVyeRICCAGiAQEDEpIBCmEKJGFiOWRkNzg5LWRlOGQtNDc5MS05ODE1LWI5YjBmMTU1MDdiNBI3CiQ4ZjEyOWIyNS1jM2UwLTQ3M2ItYWU3OS01ZWIzZjI0ZTU2NGMQyKD+ldkzGKbcxozB/KuyZygBEihIZWxsbyB0aGlzIGlzIGFub3RoZXIgdGVzdCBvZiB5b3VyIHBvd2VyIgMKATA=";
+  "CsAGCswDCiBLQURBQlJBX19IT01FX19VTklGSUVEX0lOUFVUX0JBUhIQMTUyMjc2Mzg1NTQ3MjU0MyInNWE1Yi04ZDRlLWYwNTQtOTllZi1iMmRlLWRiMDItMGQwNS01MmM3KigqJgokNWIxMzk4YmEtZDdmYi00ZjczLWI5MTYtY2JhMzE4ODBjODVmMAU6C0hVTUFOX0FHRU5UQiIKDzg2NzA1MTMxNDc2NzY5NhIPODY3MDUxMzE0NzY3Njk2UgVFQ1RPMVoRQWJyYSBXZWIgTWFpbiBLZXliGBoSCOkHEg1tb2RlX3RoaW5raW5nIgIIAWoHV2luZG93c3IKdXNlcl9pbnB1dHpvTW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1Mi4wLjAuMCBTYWZhcmkvNTM3LjM2ggELZGVza3RvcF93ZWKaAUcKQDNlNjRlN2IwYzI4MmZiNTY3NzI0ODIxNTljZjAzMTcxNjkxYWQxYjM0ODBkNjk5M2E4NDJiMDQwMjIxZTM4YzEVAACAPxIUCPSTqtzR+oYCEPSTqtzR+oYCGAIaAiABIgAqDgip9tKHhzQY5/XSh4c0MiQ3NWExMDhlZS1hZjFiLTQyZTUtOTFhMi1jYjVkZmNhOTEwOTA6BGABaAFKBxIFemgtQ05ScgokZTc4ZWFhZjUtZTY3MC00MjczLWE1NjktZjgwMTkyNDc4MTNhGiRjZjQ4N2QyNi05MDBhLTQ3ZjYtODhjMS1iMmNkMGEwNjM4NWQiJDViMTM5OGJhLWQ3ZmItNGY3My1iOTE2LWNiYTMxODgwYzg1ZnoMIgpBc2lhL1Rva3lvggEDsAEBkgEMCgZzdG9ja3MSAggBkgENCgd3ZWF0aGVyEgIIAZIBJAoebWV0YV9rbm93bGVkZ2Vfc2VhcmNoX2Nhcm91c2VsEgIIAZIBIgocbWV0YV9jYXRhbG9nX3NlYXJjaF9jYXJvdXNlbBICCAGSARMKDW1lZGlhX2dhbGxlcnkSAggBogEBA9ABABJsCmEKJDM4NzlmMDJlLWZkNDUtNGJjNS04YjgyLTlhNDkxMDFkYjRjNhI3CiQ1YjEzOThiYS1kN2ZiLTRmNzMtYjkxNi1jYmEzMTg4MGM4NWYQqvbSh4c0GJ3ApOrrpY+OaCgBEgJIaSIDCgEw";
+// Updated 2026-09-05: Derived from working HOME template (same structural fixes).
 const META_WS_CHAT_TEMPLATE_B64 =
-  "CrIGCsADCiBLQURBQlJBX19DSEFUX19VTklGSUVEX0lOUFVUX0JBUhIQMTUyMjc2Mzg1NTQ3MjU0MyInNWE1Yi04ZDRlLWYwNTQtOTllZi1iMmRlLWRiMDItMGQwNS01MmM3KigqJgokYjA4Mzg1YTYtNWE1My00ZjE0LTk2NmUtMzQ3ZjI4MDg4NDU0MAU6C0hVTUFOX0FHRU5UQiIKDzg2NzA1MTMxNDc2NzY5NhIPODY3MDUxMzE0NzY3Njk2UgVFQ1RPMVoRQWJyYSBXZWIgTWFpbiBLZXliBRoDCOgHaghNYWMgT1MgWHIKdXNlcl9pbnB1dHp1TW96aWxsYS81LjAgKE1hY2ludG9zaDsgSW50ZWwgTWFjIE9TIFggMTBfMTVfNykgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE0Ni4wLjAuMCBTYWZhcmkvNTM3LjM2ggELZGVza3RvcF93ZWKaAUcKQGUyYjg4Zjk4NDYzNzljYmMyNjk2MGZhM2FlMWQyMjIwMWRmYjE5ZGY3ODkwYWU2YTNhYzhhMjg4NzBiYWM2ODIVAAAAQBIUCLjDpdOTj/IBELjDpdOTj/IBGAIaAiABIgAqDgikgvuW2TMYoYL7ltkzMiRjNmI1ZDI2MS02NjI0LTQ5YWYtOTBjNy0wOWI0NWMwYTZiZWY6AEoHEgVlbi1VU1JyCiQxZDNjZGQzYy1jYTFhLTRlMDItODk1My1kZTBiYTM0NzI5ODkaJDcxODNhMzM0LTFiNWEtNGQyNi1iMjcxLWJjY2Y1NDY2NmJiZiIkYjA4Mzg1YTYtNWE1My00ZjE0LTk2NmUtMzQ3ZjI4MDg4NDU0ehEiD0FtZXJpY2EvQ2hpY2Fnb4IBA7ABAZIBDAoGc3RvY2tzEgIIAZIBDQoHd2VhdGhlchICCAGSASQKHm1ldGFfa25vd2xlZGdlX3NlYXJjaF9jYXJvdXNlbBICCAGSASIKHG1ldGFfY2F0YWxvZ19zZWFyY2hfY2Fyb3VzZWwSAggBkgETCg1tZWRpYV9nYWxsZXJ5EgIIAaIBAQMSlgEKfAokMTc4MDVmYjEtOTY3Zi00YmYyLTlmMjctOWRhYmRhMzYyMTJkEjcKJGIwODM4NWE2LTVhNTMtNGYxNC05NjZlLTM0N2YyODA4ODQ1NBCkgvuW2TMYxN23xoT2rbJnIhtlLjAwcHlKMUtxa3BHTmg5Sk9oWElNdnJRWlYSEWZvbGxvdyB1cCBwcm9iZSAyIgMKATI=";
+  "CsAGCswDCiBLQURBQlJBX19DSEFUX19VTklGSUVEX0lOUFVUX0JBUhIQMTUyMjc2Mzg1NTQ3MjU0MyInNWE1Yi04ZDRlLWYwNTQtOTllZi1iMmRlLWRiMDItMGQwNS01MmM3KigqJgokNWIxMzk4YmEtZDdmYi00ZjczLWI5MTYtY2JhMzE4ODBjODVmMAU6C0hVTUFOX0FHRU5UQiIKDzg2NzA1MTMxNDc2NzY5NhIPODY3MDUxMzE0NzY3Njk2UgVFQ1RPMVoRQWJyYSBXZWIgTWFpbiBLZXliGBoSCOkHEg1tb2RlX3RoaW5raW5nIgIIAWoHV2luZG93c3IKdXNlcl9pbnB1dHpvTW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1Mi4wLjAuMCBTYWZhcmkvNTM3LjM2ggELZGVza3RvcF93ZWKaAUcKQDNlNjRlN2IwYzI4MmZiNTY3NzI0ODIxNTljZjAzMTcxNjkxYWQxYjM0ODBkNjk5M2E4NDJiMDQwMjIxZTM4YzEVAACAPxIUCPSTqtzR+oYCEPSTqtzR+oYCGAIaAiABIgAqDgip9tKHhzQY5/XSh4c0MiQ3NWExMDhlZS1hZjFiLTQyZTUtOTFhMi1jYjVkZmNhOTEwOTA6BGABaAFKBxIFemgtQ05ScgokZTc4ZWFhZjUtZTY3MC00MjczLWE1NjktZjgwMTkyNDc4MTNhGiRjZjQ4N2QyNi05MDBhLTQ3ZjYtODhjMS1iMmNkMGEwNjM4NWQiJDViMTM5OGJhLWQ3ZmItNGY3My1iOTE2LWNiYTMxODgwYzg1ZnoMIgpBc2lhL1Rva3lvggEDsAEBkgEMCgZzdG9ja3MSAggBkgENCgd3ZWF0aGVyEgIIAZIBJAoebWV0YV9rbm93bGVkZ2Vfc2VhcmNoX2Nhcm91c2VsEgIIAZIBIgocbWV0YV9jYXRhbG9nX3NlYXJjaF9jYXJvdXNlbBICCAGSARMKDW1lZGlhX2dhbGxlcnkSAggBogEBA9ABABJsCmEKJDM4NzlmMDJlLWZkNDUtNGJjNS04YjgyLTlhNDkxMDFkYjRjNhI3CiQ1YjEzOThiYS1kN2ZiLTRmNzMtYjkxNi1jYmEzMTg4MGM4NWYQqvbSh4c0GJ3ApOrrpY+OaCgBEgJIaSIDCgEw";
 
 // ─── Proto helpers ─────────────────────────────────────────────────────────────
 
@@ -807,11 +829,26 @@ function buildWsPromptFrame(
   const raw = Buffer.from(opts.templateB64, "base64");
   const protoFields = parseProtoFields(raw);
 
-  // Patch conversationId at [1,1,5]
+  // Patch conversationId at [1,1,5] — field 5 is a nested proto
+  // containing {5: {1: uuid_string}}. We must patch the inner field 1,
+  // not overwrite the whole envelope (which corrupts the structure and
+  // causes the gateway to reject the frame with 0x0e — #10727).
   traverseAndMutate(protoFields, [1, 1], (f) => {
     const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
     const field5 = findProtoField(nested, 5);
-    if (field5) field5.value = new TextEncoder().encode(conversationId);
+    if (field5 && field5.wireType === 2) {
+      const innerFields = parseProtoFields(
+        field5.value instanceof Uint8Array ? field5.value : new Uint8Array()
+      );
+      const innerF1 = findProtoField(innerFields, 1);
+      if (innerF1) {
+        innerF1.value = new TextEncoder().encode(conversationId);
+        field5.value = serializeProtoFields(innerFields);
+      } else {
+        // Fallback: no inner field 1 — overwrite the whole value.
+        field5.value = new TextEncoder().encode(conversationId);
+      }
+    }
     f.value = serializeProtoFields(nested);
   });
   // Patch userMessageId at [2,1,1]
@@ -957,6 +994,144 @@ async function graphqlPost(
     };
   }
 }
+
+// ─── Fresh WS access token fetcher ──────────────────────────────────────────
+// Meta's gateway rejects stale ecto1 tokens with a 0x0e frame after 4 messages
+// (#10727). The browser gets a fresh accessToken embedded in the page HTML on
+// every load. Plain fetch to meta.ai returns 403 (JS challenge), so we use
+// the shared browserPool to load the page in headless Chromium and extract the
+// token from the rendered DOM — exactly what a real browser does.
+//
+// The browser context is keyed per cookie (hashed) so multiple Meta AI
+// connections with different accounts don't collide. The pool handles
+// lifecycle, reuse, and idle eviction.
+
+type AccessTokenResult =
+  | { ok: true; token: string; updatedCookie?: string }
+  | { ok: false; error: string };
+
+const ACCESS_TOKEN_RE = /accessToken[\\"]+:\s*[\\"]+ecto1:([A-Za-z0-9_-]+)[\\"]+/;
+
+// Simple in-memory cache: one fresh token per cookie hash, TTL 4 minutes.
+// Meta tokens last ~5 min; refreshing at 4 avoids using one right at expiry.
+const META_TOKEN_CACHE = new Map<string, { token: string; expiresAt: number }>();
+const META_TOKEN_TTL_MS = 4 * 60 * 1000;
+
+async function fetchFreshAccessToken(
+  cookieHeader: string,
+  signal?: AbortSignal | null
+): Promise<AccessTokenResult> {
+  // Check cache first — avoid launching a browser on every request.
+  const cacheKey = createHash("sha256").update(cookieHeader).digest("hex").slice(0, 16);
+  const cached = META_TOKEN_CACHE.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return { ok: true, token: cached.token };
+  }
+
+  try {
+    // Step 0: Heisenberg check refreshes the ecto_1_sess cookie via GraphQL
+    // (this endpoint accepts plain fetch — no JS challenge).
+    const heisenbergResponse = await fetch(META_AI_GRAPHQL_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Cookie: cookieHeader,
+        "User-Agent": META_AI_USER_AGENT,
+        Origin: "https://meta.ai",
+      },
+      body: JSON.stringify({ doc_id: META_AI_HEISENBERG_DOC_ID, variables: {} }),
+      signal: signal ?? undefined,
+    });
+
+    let updatedCookie: string | undefined;
+    const setCookie = heisenbergResponse.headers.get("set-cookie") || "";
+    const sessMatch = setCookie.match(/ecto_1_sess=([^;]+)/);
+    if (sessMatch && sessMatch[1] && sessMatch[1] !== "") {
+      updatedCookie = cookieHeader.replace(
+        /ecto_1_sess=[^;]+/,
+        `ecto_1_sess=${sessMatch[1]}`
+      );
+    }
+    const effectiveCookie = updatedCookie || cookieHeader;
+
+    // Step 1: Load meta.ai in headless Chromium via browserPool.
+    // The page embeds a fresh accessToken in an inline <script> (RSC payload).
+    // Plain fetch returns 403 (JS challenge), so a real browser is required.
+    const poolKey = `meta-ai-token:${cacheKey}`;
+    const pooled = await acquireBrowserContext(poolKey, {
+      cookieDomain: ".meta.ai",
+      cookieString: effectiveCookie,
+      warmupUrl: null,
+      userAgent: META_AI_USER_AGENT,
+    });
+
+    let page: import("playwright").Page | null = null;
+    try {
+      page = await openPage(pooled);
+
+      // Race the page load against the caller's abort signal.
+      // Use networkidle — meta.ai serves a JS challenge page on the initial
+      // response (HTTP 200, tiny HTML with executeChallenge()). The challenge
+      // runs inline JS that sets a cookie and reloads. domcontentloaded fires
+      // on the challenge page before the real page loads; networkidle waits
+      // for the reload + full render to complete.
+      const navPromise = page.goto("https://www.meta.ai/", {
+        waitUntil: "networkidle",
+        timeout: 30000,
+      });
+      if (signal) {
+        const abortPromise = new Promise<never>((_, reject) => {
+          signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+        });
+        await Promise.race([navPromise, abortPromise]);
+      } else {
+        await navPromise;
+      }
+
+      // Extract the token from page content (inline script / RSC payload).
+      const html = await page.content();
+      const match = html.match(ACCESS_TOKEN_RE);
+      if (!match) {
+        return { ok: false, error: "accessToken not found in meta.ai page (browser)" };
+      }
+
+      const token = `ecto1:${match[1]}`;
+      META_TOKEN_CACHE.set(cacheKey, { token, expiresAt: Date.now() + META_TOKEN_TTL_MS });
+      return { ok: true, token, updatedCookie };
+    } finally {
+      await page?.close().catch(() => {});
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      error: `fetchFreshAccessToken failed: ${sanitizeErrorMessage(
+        err instanceof Error ? err.message : String(err)
+      )}`,
+    };
+  }
+}
+
+// Test hook: override fetchFreshAccessToken in unit tests to avoid launching
+// a real browser. Set to a function to override, undefined to use the real impl.
+let _fetchFreshAccessTokenOverride:
+  | ((cookieHeader: string, signal?: AbortSignal | null) => Promise<AccessTokenResult>)
+  | undefined;
+
+export function __setMuseSparkFreshTokenFetcherForTesting(
+  fn: ((cookieHeader: string, signal?: AbortSignal | null) => Promise<AccessTokenResult>) | undefined
+): void {
+  _fetchFreshAccessTokenOverride = fn;
+}
+
+// Wrapper that delegates to the override if set.
+const _fetchFreshAccessTokenDispatch = (
+  cookieHeader: string,
+  signal?: AbortSignal | null
+): Promise<AccessTokenResult> =>
+  _fetchFreshAccessTokenOverride
+    ? _fetchFreshAccessTokenOverride(cookieHeader, signal)
+    : fetchFreshAccessToken(cookieHeader, signal);
 
 // ─── WS response parser ────────────────────────────────────────────────────────
 
@@ -1272,6 +1447,9 @@ export class MuseSparkWebExecutor extends BaseExecutor {
 
     // Extract the WebSocket auth token (ecto1:...) from provider-specific data
     // or from the apiKey field itself (user can paste both in the cookie field).
+    // Then try to fetch a fresh token from meta.ai — stale tokens cause the
+    // gateway to return 0x0e after 4 messages (#10727).
+    let cookieHeader = selectMetaAiCookieHeader(credentials);
     let authorization: string;
     if (
       typeof credentials.providerSpecificData?.authorization === "string" &&
@@ -1284,14 +1462,32 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     } else {
       authorization = "";
     }
-    if (!authorization) {
-      return errorResult(
-        400,
-        "Missing Authorization for Meta AI WebSocket — paste the ecto1:... WS auth token from meta.ai DevTools (Network → WS → clippy request Authorization param), alongside your ecto_1_sess cookie.",
-        "missing_authorization",
-        {},
-        body
-      );
+
+    // Attempt to fetch a fresh accessToken via headless Chromium (browserPool).
+    // Meta's gateway rejects stale ecto1 tokens with a 0x0e frame after ~4
+    // messages (#10727). The token is embedded in the server-rendered page
+    // HTML, which returns 403 to plain fetch (JS challenge), so a real
+    // browser is required. Result is cached for 4 min (token TTL ~5 min).
+    const freshToken = await _fetchFreshAccessTokenDispatch(cookieHeader, signal);
+    if (freshToken.ok) {
+      authorization = freshToken.token;
+      if (freshToken.updatedCookie) {
+        cookieHeader = freshToken.updatedCookie;
+      }
+      log?.info?.("MUSE-SPARK-WEB", "Fetched fresh WS accessToken via browser");
+    } else {
+      const freshError = (freshToken as Extract<AccessTokenResult, { ok: false }>).error;
+      log?.warn?.("MUSE-SPARK-WEB", `Fresh token fetch failed: ${freshError}; using static token`);
+      if (!authorization) {
+        // No static token and fresh fetch failed — can't proceed
+        return errorResult(
+          400,
+          `Missing Authorization for Meta AI WebSocket. Fresh token fetch failed: ${freshError}. Provide a valid ecto_1_sess cookie.`,
+          "missing_authorization",
+          {},
+          body
+        );
+      }
     }
 
     // Look up a prior meta.ai conversation we created for this caller +
@@ -1312,7 +1508,6 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     const conversationContext = getConversationContext(cached);
 
     const prompt = cached ? parsedHistory.latestUserContent : parsedHistory.foldedPrompt;
-    const cookieHeader = selectMetaAiCookieHeader(credentials);
     const modelInfo = getMuseSparkModelInfo(model);
     const templateB64 = cached ? META_WS_CHAT_TEMPLATE_B64 : META_WS_HOME_TEMPLATE_B64;
 
