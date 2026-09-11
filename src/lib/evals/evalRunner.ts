@@ -239,8 +239,15 @@ export function runSuite(
       result.durationMs = Math.max(0, Math.round(Number(metrics.durationMs)));
     }
 
-    if (metrics?.error && !result.error) {
-      result.error = metrics.error;
+    if (metrics?.error) {
+      // A case whose call errored never reached a model, so there is no measured
+      // behaviour to grade. The runner surfaces failures as an ordinary output string
+      // ("[ERROR] …" — see executeEvalCase), so leaving `passed` alone lets a pattern
+      // that happens to match that text score a pass and inflate the reported rate.
+      result.passed = false;
+      if (!result.error) {
+        result.error = metrics.error;
+      }
     }
 
     return result;
