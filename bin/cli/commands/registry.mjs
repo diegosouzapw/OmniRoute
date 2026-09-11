@@ -60,6 +60,7 @@ import { registerAutostart } from "./autostart.mjs";
 import { registerRepl } from "./repl.mjs";
 import { registerLaunch } from "./launch.mjs";
 import { registerLaunchCodex } from "./launch-codex.mjs";
+import { registerFccClaude } from "./fcc-claude.mjs";
 import { registerRun } from "./run.mjs";
 import { registerSetupCodex } from "./setup-codex.mjs";
 import { registerSetupClaude } from "./setup-claude.mjs";
@@ -147,6 +148,7 @@ export function registerCommands(program) {
   registerRepl(program);
   registerLaunch(program);
   registerLaunchCodex(program);
+  registerFccClaude(program);
   registerRun(program);
   registerSetupCodex(program);
   registerSetupClaude(program);
