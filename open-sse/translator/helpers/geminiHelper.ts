@@ -837,9 +837,19 @@ export function cleanJSONSchemaForAntigravity(schema: unknown): unknown {
       record.type = "object";
     }
 
-    // Recurse into remaining values.
-    for (const value of Object.values(record)) {
-      if (value && typeof value === "object") {
+    // Recurse into remaining values. `properties` is a map keyed by arbitrary,
+    // user-defined property NAMES — a tool may legitimately declare a property
+    // called `properties` (or `required`, etc). The map itself is never a
+    // schema node, so it must never receive `type: "object"`; only descend
+    // into each entry's subschema. Mirrors the same guard already applied in
+    // removeUnsupportedKeywords() above.
+    for (const [key, value] of Object.entries(record)) {
+      if (!value || typeof value !== "object") continue;
+      if (key === "properties" && !Array.isArray(value)) {
+        for (const subSchema of Object.values(value as JsonRecord)) {
+          injectObjectType(subSchema);
+        }
+      } else {
         injectObjectType(value);
       }
     }
