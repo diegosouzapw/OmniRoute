@@ -4,6 +4,7 @@ import {
   applyCavemanOutputMode,
   buildCavemanOutputInstruction,
   CAVEMAN_INSTRUCTION_BY_LANGUAGE,
+  placeSystemInstruction,
   shouldBypassCavemanOutputMode,
 } from "../../../open-sse/services/compression/outputMode.ts";
 
@@ -14,8 +15,10 @@ describe("Caveman output mode", () => {
       { enabled: true, intensity: "full", autoClarity: true }
     );
     assert.equal(result.applied, true);
-    assert.equal(result.body.messages?.[0]?.role, "system");
-    assert.match(String(result.body.messages?.[0]?.content), /Caveman Output Mode/);
+    // Trailing placement — never a synthetic system message at messages[0] (#12584).
+    assert.equal(result.body.messages?.[0]?.role, "user");
+    assert.equal(result.body.messages?.at(-1)?.role, "system");
+    assert.match(String(result.body.messages?.at(-1)?.content), /Caveman Output Mode/);
   });
 
   it("appends to an existing system prompt", () => {
@@ -59,6 +62,25 @@ describe("Caveman output mode", () => {
     assert.equal(markerCount, 1);
   });
 
+  it("merges into an Anthropic top-level system field instead of messages[0]", () => {
+    const result = applyCavemanOutputMode(
+      { system: "You are Claude Code.", messages: [{ role: "user", content: "hi" }] },
+      { enabled: true, intensity: "full", autoClarity: true }
+    );
+    assert.equal(result.applied, true);
+    assert.match(String(result.body.system), /Caveman Output Mode/);
+    assert.equal(result.body.messages?.length, 1);
+    assert.equal(result.body.messages?.[0]?.role, "user");
+
+    const twice = applyCavemanOutputMode(result.body, {
+      enabled: true,
+      intensity: "full",
+      autoClarity: true,
+    });
+    assert.equal(twice.applied, false);
+    assert.equal(twice.skippedReason, "already_applied");
+  });
+
   it("does not modify user content", () => {
     const body = { messages: [{ role: "user", content: "Please explain this response." }] };
     const result = applyCavemanOutputMode(body, {
@@ -66,7 +88,7 @@ describe("Caveman output mode", () => {
       intensity: "full",
       autoClarity: true,
     });
-    assert.equal(result.body.messages?.at(-1)?.content, body.messages[0].content);
+    assert.equal(result.body.messages?.[0]?.content, body.messages[0].content);
   });
 
   it("uses Responses instructions when input has no messages", () => {
@@ -121,5 +143,13 @@ describe("caveman instruction language map", () => {
         assert.ok(entry[level].includes("Code blocks"), `${lang}.${level} missing boundaries`);
       }
     }
+  });
+});
+
+describe("placeSystemInstruction", () => {
+  it("routes to `system` instead of messages[0] when messages is empty (#12584)", () => {
+    const result = placeSystemInstruction([], undefined, "be terse");
+    assert.equal(result.system, "be terse");
+    assert.equal(result.messages, undefined);
   });
 });

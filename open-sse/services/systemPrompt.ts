@@ -118,8 +118,11 @@ export function injectSystemPrompt<T>(body: T): T {
         }
         nextMessages[sysIdx] = msg;
       }
-    } else {
-      // No existing system message — combine both into one
+    } else if (result.system === undefined) {
+      // No existing system message — combine both into one.
+      // Anthropic-shaped bodies get the prompt via the top-level `system`
+      // branch below; a new system entry at messages[0] is rejected upstream
+      // ("messages.0: use the top-level 'system' parameter", #12584).
       const combined = [prefix, suffix].filter(Boolean).join("\n\n");
       if (combined) {
         nextMessages.unshift({ role: "system", content: combined });
@@ -179,7 +182,10 @@ export function injectCustomSystemPrompt(body: Record<string, unknown>, prompt: 
         msg.content = (msg.content ? msg.content + "\n\n" : "") + prompt;
       }
       (result.messages as Array<{ role: string; content: unknown }>)[sysIdx] = msg;
-    } else {
+    } else if (result.system === undefined) {
+      // Anthropic-shaped bodies get the prompt via the top-level `system`
+      // branch below; a new system entry at messages[0] is rejected upstream
+      // ("messages.0: use the top-level 'system' parameter", #12584).
       result.messages = [
         { role: "system", content: prompt },
         ...(result.messages as Array<{ role: string; content: unknown }>),

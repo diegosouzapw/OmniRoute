@@ -17,9 +17,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { injectCustomSystemPrompt } = await import(
-  "../../open-sse/services/systemPrompt.ts"
-);
+const { injectCustomSystemPrompt } = await import("../../open-sse/services/systemPrompt.ts");
 
 // ─── injectCustomSystemPrompt ────────────────────────────────────────────────
 
@@ -144,13 +142,20 @@ test("settings defaults include customSystemPromptEnabled=false and customSystem
     false,
     "customSystemPromptEnabled default is false"
   );
-  assert.equal(
-    settings.customSystemPrompt,
-    "",
-    "customSystemPrompt default is empty string"
-  );
+  assert.equal(settings.customSystemPrompt, "", "customSystemPrompt default is empty string");
 
   t.after(() => {
     resetDbInstance();
   });
+});
+
+test("injectCustomSystemPrompt: claude-shaped body keeps prompt out of messages[0] (#12584)", () => {
+  const body = {
+    system: "You are Claude Code.",
+    messages: [{ role: "user", content: "Hello" }],
+  };
+  const result = injectCustomSystemPrompt(body, "Always respond formally.");
+  assert.equal(result.messages.length, 1);
+  assert.equal(result.messages[0].role, "user");
+  assert.ok(String(result.system).includes("Always respond formally."));
 });

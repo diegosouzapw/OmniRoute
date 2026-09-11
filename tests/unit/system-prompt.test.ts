@@ -182,3 +182,17 @@ test("injectSystemPrompt: developer role treated as system", () => {
 
 // Reset
 test.after(() => setSystemPromptConfig({ enabled: false, prefixPrompt: "", suffixPrompt: "" }));
+
+test("injectSystemPrompt: claude-shaped body keeps prompt out of messages[0] (#12584)", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "PRE", suffixPrompt: "SUF" });
+  const body = {
+    system: "You are Claude Code.",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = injectSystemPrompt(body);
+  assert.equal(result.messages.length, 1);
+  assert.equal(result.messages[0].role, "user");
+  assert.ok(String(result.system).includes("You are Claude Code."));
+  assert.ok(String(result.system).includes("PRE"));
+  assert.ok(String(result.system).includes("SUF"));
+});
