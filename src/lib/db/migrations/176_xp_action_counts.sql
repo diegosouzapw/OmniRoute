@@ -1,4 +1,4 @@
--- Migration 173: Durable per-key/per-action counters for gamification (#12546)
+-- Migration 176: Durable per-key/per-action counters for gamification (#12546)
 --
 -- getActionCount() (src/lib/gamification/badges.ts) and checkActionCountBadges()
 -- (src/lib/gamification/events.ts) used to count rows directly in xp_audit_log,
