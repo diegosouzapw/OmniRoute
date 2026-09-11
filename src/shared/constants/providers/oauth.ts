@@ -233,6 +233,8 @@ export const OAUTH_PROVIDERS = {
     // getProviderCredentials synthesizes a noauth credential and the executor
     // sends `Bearer anonymous` (see the kilocode registry `anonymousApiKey`).
     anonymousFallback: true,
+    authHint:
+      "Sign in with your Kilo Code account (device-code OAuth), or paste a direct API key from app.kilo.ai → Settings → API Keys. Multiple API keys are supported and rotated automatically — add each as a separate connection. Without any connection, free anonymous models are available via the anonymousFallback.",
   },
   cline: {
     id: "cline",
@@ -244,6 +246,8 @@ export const OAUTH_PROVIDERS = {
     textIcon: "CL",
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
+    authHint:
+      "Sign in with your Cline account (OAuth), or paste a direct API key from app.cline.bot → Settings → API Keys. Multiple API keys are supported and rotated automatically — add each as a separate connection.",
   },
   clinepass: {
     id: "clinepass",

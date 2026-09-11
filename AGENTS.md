@@ -351,6 +351,12 @@ Documentation must describe verified behavior, not plausible behavior.
 5. Register models in `open-sse/config/providerRegistry.ts`
 6. Write tests in `tests/unit/` (include the publicCreds shape assertion if you added a new embedded default)
 
+### Enabling Dual Auth (Multiple API Keys) for a Provider
+
+1. Add the provider's ID to the `DUAL_AUTH_PROVIDER_IDS` set in `src/shared/constants/providers.ts`. This flags the frontend to render the multi-key textarea input instead of a single-line password input.
+2. Update the `authHint` for the provider (in `src/shared/constants/providers.ts` or `src/shared/constants/providers/oauth.ts`) to inform users that they can provide multiple keys separated by commas.
+3. The backend proxy layers (like `src/shared/utils/apiKeyPolicy.ts`) automatically parse comma-separated keys and rotate/fallback between them when `DUAL_AUTH_PROVIDER_IDS` includes the provider.
+
 ### Adding a New API Route
 
 1. Create directory under `src/app/api/v1/your-route/`
