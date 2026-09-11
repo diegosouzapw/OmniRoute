@@ -1,0 +1,1 @@
+- **fix(resilience):** Rate-limit reset headers in RFC 3339 form (Anthropic) and with fractional seconds (`2m59.56s`) are parsed correctly, instead of an Anthropic reset seconds away throttling the connection for about 34 minutes ([#13321](https://github.com/diegosouzapw/OmniRoute/pull/13321))
