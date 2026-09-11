@@ -258,7 +258,7 @@ export async function PUT(request) {
       }
     }
 
-    const model = await updateCustomModel(provider, modelId, updates);
+    const model = await updateCustomModel(provider, modelId, updates, { createIfMissing: true });
 
     if (!model) {
       const rawKeys = Object.keys(raw);
