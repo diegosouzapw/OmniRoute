@@ -68,7 +68,10 @@ test("VertexExecutor.buildUrl routes a non-JSON Express API key to the project-l
     expressUrl,
     "https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:generateContent?key=express-key-abc"
   );
-  assert.ok(!expressUrl.includes("/projects/"), "Express key URL must not route through a project path");
+  assert.ok(
+    !expressUrl.includes("/projects/"),
+    "Express key URL must not route through a project path"
+  );
 });
 
 test("VertexExecutor.buildUrl routes partner and org-prefixed models to the global partner endpoint", () => {
@@ -288,6 +291,104 @@ test("VertexExecutor.execute strips the client's model field and injects anthrop
   }
 });
 
+test("VertexExecutor downgrades unsupported Claude 1h cache TTLs without changing supported or 5m TTLs", async () => {
+  const executor = new VertexExecutor();
+  const originalFetch = globalThis.fetch;
+  type CapturedBody = {
+    system: Array<{ cache_control?: Record<string, string> }>;
+    messages: Array<{ content: Array<{ cache_control?: Record<string, string> }> }>;
+    tools: Array<{ cache_control?: Record<string, string> }>;
+  };
+  const sentBodies: CapturedBody[] = [];
+
+  globalThis.fetch = async (_url, options) => {
+    sentBodies.push(JSON.parse(String(options?.body || "{}")) as CapturedBody);
+    return new Response(
+      JSON.stringify({
+        id: "msg_cache_ttl",
+        type: "message",
+        role: "assistant",
+        model: "claude-test",
+        content: [{ type: "text", text: "ok" }],
+        stop_reason: "end_turn",
+        usage: { input_tokens: 1, output_tokens: 1 },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  };
+
+  const credentials = {
+    apiKey: createServiceAccountJson({ projectId: "proj-claude-cache" }),
+    accessToken: "ya29.claude-cache",
+  };
+  const body = {
+    system: [{ type: "text", text: "stable", cache_control: { type: "ephemeral", ttl: "1h" } }],
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "question", cache_control: { type: "ephemeral", ttl: "1h" } },
+          { type: "text", text: "five-minute", cache_control: { type: "ephemeral", ttl: "5m" } },
+          { type: "text", text: "no ttl", cache_control: { type: "ephemeral" } },
+        ],
+      },
+    ],
+    tools: [
+      {
+        name: "lookup",
+        input_schema: { type: "object" },
+        cache_control: { type: "ephemeral", ttl: "1h" },
+      },
+    ],
+  };
+
+  try {
+    for (const model of [
+      "claude-3-7-sonnet",
+      "claude-3-5-sonnet-v2@20241022",
+      "claude-3-5-sonnet",
+      "claude-3-opus@20240229",
+    ]) {
+      await executor.execute({
+        model,
+        body: structuredClone(body),
+        stream: false,
+        credentials: { ...credentials },
+      });
+    }
+
+    await executor.execute({
+      model: "claude-sonnet-4-6",
+      body: structuredClone(body),
+      stream: false,
+      credentials: { ...credentials },
+    });
+
+    const unsupportedBodies = sentBodies.slice(0, 4);
+    for (const sent of unsupportedBodies) {
+      assert.deepEqual(sent.system[0].cache_control, { type: "ephemeral" });
+      assert.deepEqual(sent.messages[0].content[0].cache_control, { type: "ephemeral" });
+      assert.deepEqual(sent.messages[0].content[1].cache_control, {
+        type: "ephemeral",
+        ttl: "5m",
+      });
+      assert.deepEqual(sent.messages[0].content[2].cache_control, { type: "ephemeral" });
+      assert.deepEqual(sent.tools[0].cache_control, { type: "ephemeral" });
+    }
+
+    assert.deepEqual(sentBodies[4].system[0].cache_control, {
+      type: "ephemeral",
+      ttl: "1h",
+    });
+    assert.deepEqual(sentBodies[4].tools[0].cache_control, {
+      type: "ephemeral",
+      ttl: "1h",
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("VertexExecutor.execute synthesizes a genuine Anthropic-format SSE stream when rawPredict returns a complete JSON body for a streaming request", async () => {
   const executor = new VertexExecutor();
   const originalFetch = globalThis.fetch;
@@ -307,7 +408,12 @@ test("VertexExecutor.execute synthesizes a genuine Anthropic-format SSE stream w
         content: [{ type: "text", text: "hello" }],
         stop_reason: "end_turn",
         stop_sequence: null,
-        usage: { input_tokens: 5, output_tokens: 2 },
+        usage: {
+          input_tokens: 5,
+          output_tokens: 2,
+          cache_creation_input_tokens: 1_024,
+          cache_read_input_tokens: 4_096,
+        },
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
@@ -345,6 +451,12 @@ test("VertexExecutor.execute synthesizes a genuine Anthropic-format SSE stream w
       "message_delta",
       "message_stop",
     ]);
+    assert.deepEqual(dataLines[0].message.usage, {
+      input_tokens: 5,
+      output_tokens: 0,
+      cache_creation_input_tokens: 1_024,
+      cache_read_input_tokens: 4_096,
+    });
   } finally {
     globalThis.fetch = originalFetch;
   }

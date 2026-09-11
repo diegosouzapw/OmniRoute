@@ -8,6 +8,8 @@ export function extractUsageFromResponse(responseBody, provider) {
   const isClaudeProvider =
     providerId === "claude" ||
     providerId === "anthropic" ||
+    providerId === "vertex" ||
+    providerId === "vertex-partner" ||
     providerId.startsWith("anthropic-compatible");
 
   // OpenAI format (has prompt_tokens / completion_tokens)
