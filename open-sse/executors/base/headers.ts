@@ -46,6 +46,22 @@ export function applyConfiguredUserAgent(
 }
 
 /**
+ * Apply the Hugging Face billing-account header (X-HF-Bill-To) when the
+ * connection's providerSpecificData.billTo is set. Scoped to the huggingface
+ * provider by the caller; HF ignores unknown headers on other routes, but we
+ * keep the write narrow to avoid surprising other upstreams.
+ */
+export function applyHuggingFaceBillToHeader(
+  headers: Record<string, string>,
+  providerSpecificData?: JsonRecord | null
+): void {
+  const billTo =
+    typeof providerSpecificData?.billTo === "string" ? providerSpecificData.billTo.trim() : "";
+  if (!billTo) return;
+  headers["X-HF-Bill-To"] = billTo;
+}
+
+/**
  * Returns true when the outbound request targets an OpenAI-compatible endpoint
  * (a `openai-compatible-*` provider, or a Chat Completions / Responses URL).
  * Used to scope the X-Stainless strip narrowly so genuine SDK-spoofing paths

@@ -30,7 +30,11 @@ import {
   addParamToBlocklist,
   isAutoLearnGloballyEnabled,
 } from "@/lib/db/paramFilters";
-import { applyFingerprint, isCliCompatEnabled, stripInternalBodyFields } from "../config/cliFingerprints.ts";
+import {
+  applyFingerprint,
+  isCliCompatEnabled,
+  stripInternalBodyFields,
+} from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import {
@@ -104,6 +108,7 @@ import {
   mergeUpstreamExtraHeaders,
   setUserAgentHeader,
   applyConfiguredUserAgent,
+  applyHuggingFaceBillToHeader,
   stripStainlessHeadersForOpenAICompat,
 } from "./base/headers.ts";
 import { applyPeerTraceHeader } from "@/shared/resilience/peerRouting";
@@ -122,6 +127,7 @@ export {
   getCustomUserAgent,
   setUserAgentHeader,
   applyConfiguredUserAgent,
+  applyHuggingFaceBillToHeader,
   isOpenAICompatibleEndpoint,
   stripStainlessHeadersForOpenAICompat,
 } from "./base/headers.ts";
@@ -855,6 +861,9 @@ export class BaseExecutor {
         body
       );
       applyConfiguredUserAgent(headers, requestCredentials?.providerSpecificData);
+      if (this.provider === "huggingface") {
+        applyHuggingFaceBillToHeader(headers, requestCredentials?.providerSpecificData);
+      }
 
       // Strip OpenAI SDK (X-Stainless-*) metadata + normalize SDK-derived User-Agent
       // on OpenAI-compatible passthrough requests — some upstream gateways 403 on them.

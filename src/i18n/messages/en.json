@@ -5828,6 +5828,8 @@
     "cpaModeEnabledTitle": "CLIProxyAPI compatibility mode is enabled",
     "customUserAgentHint": "Custom User Agent Hint",
     "customUserAgentLabel": "Custom User Agent Label",
+    "huggingfaceBillToHint": "Optional. Your Hugging Face billing account identifier, sent as the X-HF-Bill-To header for cost attribution.",
+    "huggingfaceBillToLabel": "Hugging Face Bill-To Account",
     "databricksBaseUrlHint": "Databricks Base Url Hint",
     "defaultThinkingStrengthHint": "Used when a request does not specify reasoning effort.",
     "defaultThinkingStrengthLabel": "Default thinking strength",
