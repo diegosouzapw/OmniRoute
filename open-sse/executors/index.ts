@@ -183,6 +183,10 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   "clova-studio": () => import("./clova-studio.ts").then((m) => new m.ClovaStudioExecutor()),
   "conol-web": () => import("./conol-web.ts").then((m) => new m.ConolWebExecutor()),
   cnl: () => import("./conol-web.ts").then((m) => new m.ConolWebExecutor()), // Alias
+  chatplayground: () =>
+    import("./chatplayground.ts").then((m) => new m.ChatPlaygroundExecutor()),
+  cpl: () =>
+    import("./chatplayground.ts").then((m) => new m.ChatPlaygroundExecutor("chatplayground")), // Alias
 };
 
 // Bootstrap: declare every built-in alias in the ExecutorRegistry. Duplicate

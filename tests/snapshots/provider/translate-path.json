@@ -888,6 +888,29 @@
       "stream": "https://chatgpt.com"
     }
   },
+  "chatplayground": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://app.chatplayground.ai/api/chat",
+      "stream": "https://app.chatplayground.ai/api/chat"
+    }
+  },
   "cheaperinference": {
     "format": "openai",
     "headers": {

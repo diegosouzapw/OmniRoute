@@ -100,6 +100,11 @@
       "configSource": "<custom-config>",
       "provider": "chatgpt-web-codex"
     },
+    "chatplayground": {
+      "className": "ChatPlaygroundExecutor",
+      "configSource": "<custom-config>",
+      "provider": "chatplayground"
+    },
     "cheaperinference": {
       "className": "CheaperInferenceExecutor",
       "configSource": "cheaperinference",
@@ -194,6 +199,11 @@
       "className": "CliproxyapiExecutor",
       "configSource": "<custom-config>",
       "provider": "cliproxyapi"
+    },
+    "cpl": {
+      "className": "ChatPlaygroundExecutor",
+      "configSource": "<custom-config>",
+      "provider": "chatplayground"
     },
     "cu": {
       "className": "CursorExecutor",
