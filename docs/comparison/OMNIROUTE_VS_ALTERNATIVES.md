@@ -34,7 +34,7 @@ Objective feature comparison vs popular open-source AI routers.
 | **CLI with system tray (no Electron)**             |                     ✅                      |       ❌       |        n/a        |     n/a     |
 | **CLI machine-ID auto-auth**                       |                     ✅                      |       ❌       |        n/a        |     n/a     |
 | **Dashboard**                                      |                 Next.js 16                  |     basic      |    proprietary    | proprietary |
-| **i18n**                                           |               **43 locales**                |       ❌       |        ❌         |      ⚠      |
+| **i18n**                                           |               **42 locales**                |       ❌       |        ❌         |      ⚠      |
 | **Public agent skills (SKILL.md)**                 |                    ✅ 45                    |       ❌       |        ❌         |     ❌      |
 | **Tunnel support (Cloudflared, Tailscale, Ngrok)** |                     ✅                      |       ❌       |        n/a        |     n/a     |
 | **License**                                        |                     MIT                     |      MIT       |    proprietary    | proprietary |

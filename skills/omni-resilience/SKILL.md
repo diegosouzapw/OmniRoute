@@ -25,6 +25,17 @@ curl https://localhost:20128/api/monitoring/health \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
+### GET /api/monitoring/compression
+
+Get compression result-memo statistics
+
+In-process compression result-memo observability snapshot — size, capacity, lifetime hits/misses/hitRate plus 1m/5m/15m/1h windowed rates. Lightweight (no DB, no provider reads) companion to `GET /api/monitoring/health` intended for frequent polling. Sent with `Cache-Control: no-store, no-cache, must-revalidate`. Counters reset on process restart.
+
+```bash
+curl https://localhost:20128/api/monitoring/compression \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
 ### GET /api/provider-metrics
 
 GET provider metrics

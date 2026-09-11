@@ -5,7 +5,7 @@ import { BaseExecutor } from "../../open-sse/executors/base.ts";
 
 /**
  * Generic BaseExecutor consumer — no buildHeaders() override — representing
- * every provider (xai, cliproxyapi, chipotle, mimocode, ninerouter, theoldllm,
+ * every provider (xai, cliproxyapi, chipotle, mimocode, ninerouter,
  * gitlab, ...) that relies on BaseExecutor.buildHeaders() as-is.
  *
  * Regression guard for #8467/#8493: resolveEffectiveKey() already rotates to

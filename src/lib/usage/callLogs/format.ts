@@ -1,7 +1,16 @@
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
 import { classifyProviderError } from "@omniroute/open-sse/services/errorClassifier.ts";
+import {
+  sanitizeErrorMessage,
+  sanitizeUpstreamDetails,
+} from "@omniroute/open-sse/utils/errorSanitization.ts";
 import { sanitizePII } from "../../piiSanitizer";
-import { omitEncryptedReasoningFromLogChunks, protectPayloadForLog } from "../../logPayloads";
+import {
+  omitEncryptedReasoningFromLogChunks,
+  protectErrorPayloadForLog,
+  protectPayloadForLog,
+  sanitizeErrorFramesFromLogChunks,
+} from "../../logPayloads";
 import type { CallLogDetailState } from "../callLogArtifacts";
 // #7879: re-export the canonical helper so existing consumers of this module
 // keep importing `toNumber` from here unchanged.
@@ -44,15 +53,24 @@ export function normalizeDetailState(value: unknown): CallLogDetailState {
 
 export function sanitizeErrorForLog(error: unknown): unknown {
   if (error === null || error === undefined) return null;
-  if (typeof error === "string") return sanitizePII(error).text;
-  if (error instanceof Error) {
-    return {
-      message: sanitizePII(error.message).text,
-      stack: sanitizePII(error.stack || "").text || undefined,
-      name: error.name,
-    };
+  if (typeof error === "string") {
+    return sanitizePII(sanitizeErrorMessage(error)).text;
   }
-  return protectPayloadForLog(error);
+  try {
+    if (error instanceof Error) {
+      const message = sanitizePII(sanitizeErrorMessage(error.message)).text;
+      const stack = sanitizePII(sanitizeErrorMessage(error.stack || "")).text;
+      const name = sanitizeErrorMessage(error.name) || "Error";
+      return {
+        message,
+        ...(stack ? { stack } : {}),
+        name,
+      };
+    }
+    return protectPayloadForLog(sanitizeUpstreamDetails(error));
+  } catch {
+    return "[REDACTED]";
+  }
 }
 
 export function toStoredErrorSummary(error: unknown): string | null {
@@ -70,7 +88,10 @@ export function toStoredErrorSummary(error: unknown): string | null {
   }
 }
 
-export function protectPipelinePayloads(payloads: unknown): RequestPipelinePayloads | null {
+export function protectPipelinePayloads(
+  payloads: unknown,
+  responseStatus?: unknown
+): RequestPipelinePayloads | null {
   if (!payloads || typeof payloads !== "object") return null;
 
   const protectedPayloads: RequestPipelinePayloads = {};
@@ -84,7 +105,9 @@ export function protectPipelinePayloads(payloads: unknown): RequestPipelinePaylo
           .filter(([, chunkValue]) => Array.isArray(chunkValue) && chunkValue.length > 0)
           .map(([stage, chunkValue]) => [
             stage,
-            omitEncryptedReasoningFromLogChunks(chunkValue as string[]),
+            sanitizeErrorFramesFromLogChunks(
+              omitEncryptedReasoningFromLogChunks(chunkValue as string[])
+            ),
           ])
       );
       if (Object.keys(compacted).length > 0) {
@@ -93,6 +116,21 @@ export function protectPipelinePayloads(payloads: unknown): RequestPipelinePaylo
         ) as RequestPipelinePayloads["streamChunks"];
       }
       continue;
+    }
+
+    if (key === "providerResponse" || key === "clientResponse") {
+      const response = asRecord(value);
+      const status = Number(response.status ?? responseStatus);
+      if (Number.isFinite(status) && status >= 400 && status <= 599) {
+        const projectedResponse =
+          "body" in response
+            ? { ...response, body: protectErrorPayloadForLog(response.body) }
+            : protectErrorPayloadForLog(value);
+        protectedPayloads[key as "providerResponse" | "clientResponse"] = protectPayloadForLog(
+          projectedResponse
+        ) as RequestPipelinePayloads["providerResponse"];
+        continue;
+      }
     }
 
     protectedPayloads[key as keyof RequestPipelinePayloads] = protectPayloadForLog(value) as never;

@@ -1,4 +1,17 @@
 import { getDbInstance } from "@/lib/db/core.ts";
+import { emit } from "@/lib/events/eventBus";
+
+/**
+ * Publish an `agent.task.updated` transition for the orchestration canvas (Fase 2, Task B2).
+ * Best-effort: a listener throwing must never break the DB write path that triggered it.
+ */
+function emitAgentTaskUpdated(source: "cloud-agent" | "a2a", taskId: string, state: string): void {
+  try {
+    emit("agent.task.updated", { source, taskId, state, timestamp: Date.now() });
+  } catch {
+    /* listeners never derail the write path */
+  }
+}
 
 export interface CloudAgentTaskRow {
   id: string;
@@ -66,6 +79,7 @@ export function insertCloudAgentTask(task: CloudAgentTaskRow): void {
     )
   `
   ).run(task);
+  emitAgentTaskUpdated("cloud-agent", task.id, task.status);
 }
 
 // Whitelist of allowed columns for update operations
@@ -107,6 +121,7 @@ export function updateCloudAgentTask(
     WHERE id = @id
   `
   ).run({ id, ...validUpdates });
+  emitAgentTaskUpdated("cloud-agent", id, (validUpdates.status as string) ?? "updated");
 }
 
 export function getCloudAgentTaskById(id: string): CloudAgentTaskRow | null {

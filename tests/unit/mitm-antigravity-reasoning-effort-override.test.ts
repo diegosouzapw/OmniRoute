@@ -4,12 +4,10 @@ import assert from "node:assert/strict";
 // Ported from upstream decolua/9router#2584 ("add Antigravity reasoning effort
 // overrides"), adapted to OmniRoute's alias storage shape and canonical reasoning-effort
 // vocabulary (`@/shared/reasoning/effortStandardization.ts`).
-const { normalizeAliasEntry, normalizeAliasMappings, hasInvalidReasoningEffort } = await import(
-  "../../src/mitm/aliasConfig.ts"
-);
-const { antigravityToOpenAIRequest } = await import(
-  "../../open-sse/translator/request/antigravity-to-openai.ts"
-);
+const { normalizeAliasEntry, normalizeAliasMappings, hasInvalidReasoningEffort } =
+  await import("../../src/mitm/aliasConfig.ts");
+const { antigravityToOpenAIRequest } =
+  await import("../../open-sse/translator/request/antigravity-to-openai.ts");
 
 test("normalizeAliasEntry upgrades a legacy plain-string mapping to { model }", () => {
   assert.deepEqual(normalizeAliasEntry(" cx/gpt-5.6-sol "), { model: "cx/gpt-5.6-sol" });
@@ -25,8 +23,12 @@ test("normalizeAliasEntry keeps a reasoning-only override and canonicalizes its 
   });
 });
 
-test("normalizeAliasEntry maps the max/extra UI synonyms onto canonical xhigh", () => {
+test("normalizeAliasEntry keeps canonical max and maps extra onto xhigh", () => {
   assert.deepEqual(normalizeAliasEntry({ model: "p/m", reasoningEffort: "max" }), {
+    model: "p/m",
+    reasoningEffort: "max",
+  });
+  assert.deepEqual(normalizeAliasEntry({ model: "p/m", reasoningEffort: "extra" }), {
     model: "p/m",
     reasoningEffort: "xhigh",
   });

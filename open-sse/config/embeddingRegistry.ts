@@ -10,6 +10,7 @@
 
 export type EmbeddingModality = "text" | "image" | "audio" | "video" | "document";
 export type StructuredEmbeddingProtocol = "jina-v1" | "gemini-embed-content";
+export type SingleTextEmbeddingProtocol = "clova-v2";
 
 export interface EmbeddingModel {
   id: string;
@@ -34,6 +35,13 @@ export interface EmbeddingProvider {
   models: EmbeddingModel[];
   /** Provider-native serializer required for canonical structured input. */
   structuredInputProtocol?: StructuredEmbeddingProtocol;
+  /**
+   * Set when the endpoint embeds exactly ONE text per request (`{"text": …}` →
+   * one vector) instead of accepting OpenAI's `input` array. A batched
+   * `/v1/embeddings` call is then fanned out into N sequential upstream calls and
+   * merged back into a single OpenAI list response.
+   */
+  singleTextProtocol?: SingleTextEmbeddingProtocol;
 }
 
 export interface EmbeddingProviderNodeRow {
@@ -297,6 +305,18 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     ],
   },
 
+  // Naver CLOVA Studio — embedding v2. The endpoint takes a single `{"text": …}`
+  // body and returns `{status, result:{embedding:[…1024 floats], inputTokens}}`,
+  // with no batch array and no `usage` object, hence `singleTextProtocol`.
+  "clova-studio": {
+    id: "clova-studio",
+    baseUrl: "https://clovastudio.stream.ntruss.com/v1/api-tools/embedding/v2",
+    authType: "apikey",
+    authHeader: "bearer",
+    singleTextProtocol: "clova-v2",
+    models: [{ id: "clova-embedding-v2", name: "CLOVA Embedding v2", dimensions: 1024 }],
+  },
+
   "jina-ai": {
     id: "jina-ai",
     structuredInputProtocol: "jina-v1",
@@ -408,6 +428,7 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
       },
     ],
   },
+
 };
 
 const EMBEDDING_PROVIDER_ALIASES: Record<string, string> = {
@@ -470,6 +491,94 @@ export function getEmbeddingProvider(providerId: string): EmbeddingProvider | nu
   return EMBEDDING_PROVIDERS[resolveEmbeddingProviderId(providerId)] || null;
 }
 
+function findDynamicEmbeddingProvider(
+  modelStr: string,
+  dynamicProviders: EmbeddingProvider[] | undefined
+): { provider: string; model: string } | null {
+  const match = dynamicProviders?.find((provider) => modelStr.startsWith(`${provider.id}/`));
+  return match ? { provider: match.id, model: modelStr.slice(match.id.length + 1) } : null;
+}
+
+function parsePrefixedEmbeddingModel(
+  modelStr: string,
+  slashIdx: number,
+  dynamicProviders: EmbeddingProvider[] | undefined
+): { provider: string; model: string } {
+  const rawProvider = modelStr.slice(0, slashIdx);
+  const dynamicExact = dynamicProviders?.find((provider) => provider.id === rawProvider);
+  if (dynamicExact) {
+    return { provider: rawProvider, model: modelStr.slice(slashIdx + 1) };
+  }
+
+  const resolvedProvider = resolveEmbeddingProviderId(rawProvider);
+  if (EMBEDDING_PROVIDERS[resolvedProvider]) {
+    return {
+      provider: resolvedProvider,
+      model: normalizeProviderScopedModelId(resolvedProvider, modelStr.slice(slashIdx + 1)),
+    };
+  }
+
+  const hardcodedProvider = Object.keys(EMBEDDING_PROVIDERS).find((providerId) =>
+    modelStr.startsWith(`${providerId}/`)
+  );
+  if (hardcodedProvider) {
+    return {
+      provider: hardcodedProvider,
+      model: normalizeProviderScopedModelId(
+        hardcodedProvider,
+        modelStr.slice(hardcodedProvider.length + 1)
+      ),
+    };
+  }
+
+  return (
+    findDynamicEmbeddingProvider(modelStr, dynamicProviders) ?? {
+      provider: rawProvider,
+      model: modelStr.slice(slashIdx + 1),
+    }
+  );
+}
+
+function findEmbeddingModelProvider(modelStr: string): string | null {
+  return (
+    Object.entries(EMBEDDING_PROVIDERS).find(([, config]) =>
+      config.models.some((model) => model.id === modelStr)
+    )?.[0] ?? null
+  );
+}
+
+/**
+ * Derive an OpenAI-compatible embeddings config for a chat provider that has NO
+ * curated EMBEDDING_PROVIDERS entry. Works for any registry provider whose base
+ * URL ends in /chat/completions by swapping that suffix for /embeddings (groq,
+ * mistral, together, upstage, fireworks, nvidia, vercel-ai-gateway, ...).
+ * Dynamic-URL providers (no usable static base) derive to
+ * null — they need bespoke URL handling, not a bogus endpoint.
+ *
+ * This is a FALLBACK only: callers must check getEmbeddingProvider() first so
+ * curated entries keep their specialized configuration.
+ */
+export function deriveEmbeddingProviderForChatProvider(
+  providerId: string,
+  chatEntry: { id?: string; baseUrl?: string | string[] } | null | undefined
+): EmbeddingProvider | null {
+  if (!chatEntry) return null;
+  const rawBase = Array.isArray(chatEntry.baseUrl)
+    ? chatEntry.baseUrl[0]
+    : chatEntry.baseUrl;
+  if (!rawBase || typeof rawBase !== "string") return null;
+  // stripTrailingSlashes-equivalent without importing open-sse utils here:
+  const base = rawBase.replace(/\/+$/, "");
+  if (!base.endsWith("/chat/completions")) return null;
+  return {
+    id: providerId,
+    baseUrl: `${base.slice(0, -"/chat/completions".length)}/embeddings`,
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [],
+  };
+}
+
 /**
  * Parse embedding model string (format: "provider/model" or just "model")
  * Returns { provider, model }
@@ -484,47 +593,11 @@ export function parseEmbeddingModel(
   // Check for "provider/model" format
   const slashIdx = modelStr.indexOf("/");
   if (slashIdx > 0) {
-    const rawProvider = modelStr.slice(0, slashIdx);
-    const resolvedProvider = resolveEmbeddingProviderId(rawProvider);
-
-    if (EMBEDDING_PROVIDERS[resolvedProvider]) {
-      return {
-        provider: resolvedProvider,
-        model: normalizeProviderScopedModelId(resolvedProvider, modelStr.slice(slashIdx + 1)),
-      };
-    }
-
-    // Phase 1: Try each hardcoded provider prefix
-    for (const [providerId] of Object.entries(EMBEDDING_PROVIDERS)) {
-      if (modelStr.startsWith(providerId + "/")) {
-        return {
-          provider: providerId,
-          model: normalizeProviderScopedModelId(providerId, modelStr.slice(providerId.length + 1)),
-        };
-      }
-    }
-    // Phase 2: Try dynamic provider_nodes prefix
-    if (dynamicProviders) {
-      for (const dp of dynamicProviders) {
-        if (modelStr.startsWith(dp.id + "/")) {
-          return { provider: dp.id, model: modelStr.slice(dp.id.length + 1) };
-        }
-      }
-    }
-    // Phase 3: Fallback — first segment is provider
-    const provider = modelStr.slice(0, slashIdx);
-    const model = modelStr.slice(slashIdx + 1);
-    return { provider, model };
+    return parsePrefixedEmbeddingModel(modelStr, slashIdx, dynamicProviders);
   }
 
   // No provider prefix — search hardcoded providers for the model
-  for (const [providerId, config] of Object.entries(EMBEDDING_PROVIDERS)) {
-    if (config.models.some((m) => m.id === modelStr)) {
-      return { provider: providerId, model: modelStr };
-    }
-  }
-
-  return { provider: null, model: modelStr };
+  return { provider: findEmbeddingModelProvider(modelStr), model: modelStr };
 }
 
 /**

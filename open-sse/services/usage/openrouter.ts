@@ -70,9 +70,9 @@ export async function getOpenrouterUsage(
 
   if (!quota) {
     return {
-      plan: "OpenRouter (usage endpoint unreachable)",
+      plan: "OpenRouter (credits endpoint unreachable)",
       quotas,
-      message: "OpenRouter connected. Balance/credit-cap data temporarily unavailable.",
+      message: "OpenRouter connected. /key and /credits both unreachable — no balance data.",
     };
   }
 

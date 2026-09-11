@@ -58,8 +58,12 @@ export async function GET(request: NextRequest) {
     const flatSettings = await getSettings();
     const config: Record<string, unknown> = {};
     for (const key of CACHE_CONFIG_KEYS) {
-      if (key === "idempotencyWindowMs") {
-        config[key] = flatSettings.idempotencyWindowMs ?? DEFAULTS[key];
+      if (key === "idempotencyWindowMs" || key === "alwaysPreserveClientCache") {
+        // These live in the flat general settings (src/lib/db/settings.ts):
+        // idempotencyLayer and getCacheControlSettings() both read from there,
+        // so reporting the databaseSettings "cache" copy would show a value the
+        // runtime never uses.
+        config[key] = flatSettings[key] ?? DEFAULTS[key];
       } else {
         config[key] = (cache as Record<string, unknown>)[key] ?? DEFAULTS[key];
       }
@@ -106,9 +110,6 @@ export async function PUT(request: NextRequest) {
     if (body.promptCacheStrategy !== undefined) {
       updates.promptCacheStrategy = body.promptCacheStrategy;
     }
-    if (body.alwaysPreserveClientCache !== undefined) {
-      updates.alwaysPreserveClientCache = body.alwaysPreserveClientCache;
-    }
     if (body.modelCatalogCacheTtlMs !== undefined) {
       updates.modelCatalogCacheTtlMs = body.modelCatalogCacheTtlMs;
     }
@@ -116,12 +117,23 @@ export async function PUT(request: NextRequest) {
     // updateDatabaseSettings() calls invalidateDbCache("settings") internally,
     // which bumps the model-catalog cache version so in-flight responses pick
     // up the fresh TTL — no separate version bump needed here.
-    updateDatabaseSettings({ cache: updates });
+    if (Object.keys(updates).length > 0) {
+      updateDatabaseSettings({ cache: updates });
+    }
 
-    // idempotencyWindowMs is not part of the databaseSettings "cache" section —
-    // persist it through the flat general settings module instead (see GET).
+    // idempotencyWindowMs and alwaysPreserveClientCache are read from the flat
+    // general settings (see GET) — persisting them into the databaseSettings
+    // "cache" section would be a silent no-op for the runtime, which is what
+    // made this endpoint's alwaysPreserveClientCache writes ineffective before.
+    const flatUpdates: Record<string, unknown> = {};
     if (body.idempotencyWindowMs !== undefined) {
-      await updateSettings({ idempotencyWindowMs: body.idempotencyWindowMs });
+      flatUpdates.idempotencyWindowMs = body.idempotencyWindowMs;
+    }
+    if (body.alwaysPreserveClientCache !== undefined) {
+      flatUpdates.alwaysPreserveClientCache = body.alwaysPreserveClientCache;
+    }
+    if (Object.keys(flatUpdates).length > 0) {
+      await updateSettings(flatUpdates);
     }
 
     return NextResponse.json({ ok: true });

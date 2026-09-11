@@ -430,7 +430,10 @@ test("result-cache metadata carries the exact visual dedup policy identity", asy
   );
 
   assert.ok(storedMetadata);
-  assert.equal(storedMetadata.cacheVersion, "v5");
+  // #12150 P1a: bumped to v6 alongside the descriptionRedacted cache-metadata
+  // addition (see videoBridgeTranscriptCacheIdentity.test.ts for the
+  // dedicated contract-version regression guard).
+  assert.equal(storedMetadata.cacheVersion, "v6");
   assert.equal(storedMetadata.policyVersion, "sampling-then-dedup-v2");
   assert.equal(storedMetadata.dedupPolicyVersion, "grayscale-16x16-mean-cells-v2");
   assert.equal(storedMetadata.dedupThreshold, 0.04);

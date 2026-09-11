@@ -33,6 +33,17 @@ export interface SearchProviderConfig {
    */
   fallbackOnly?: boolean;
   disabled?: boolean;
+  /**
+   * May a CALLER-supplied `provider_options.baseUrl` redirect this provider?
+   *
+   * Only ever true for a keyless, self-hosted provider. For anything with
+   * `authType: "apikey"` the builder attaches the OPERATOR's key to whatever
+   * host the base URL resolves to, so honoring a caller-chosen value hands that
+   * key to the caller's server (GHSA-3f8g-pfh9-j687). The invariant
+   * "never set alongside authType: apikey" is enforced by
+   * tests/unit/search-baseurl-client-override-3f8g.test.ts.
+   */
+  allowClientBaseUrlOverride?: boolean;
 }
 
 export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
@@ -232,6 +243,11 @@ export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
     timeoutMs: 10_000,
     cacheTTLMs: 3 * 60 * 1000,
     fallbackOnly: true,
+    // Keyless and self-hosted by definition: the caller names their own SearXNG
+    // instance and no operator credential travels with the request. This is a
+    // documented flow (tests/unit/search-route.test.ts). Still block-metadata
+    // guarded, so IMDS stays unreachable.
+    allowClientBaseUrlOverride: true,
   },
 
   "ollama-search": {

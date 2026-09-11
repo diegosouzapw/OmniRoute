@@ -1,7 +1,16 @@
-import type { Metadata } from "next";
+import { Suspense } from "react";
+import { getTranslations } from "next-intl/server";
 import OrchestrationPageClient from "./OrchestrationPageClient";
 
-export const metadata: Metadata = { title: "Orchestration — OmniRoute" };
+export async function generateMetadata() {
+  const t = await getTranslations("orchestration");
+  return { title: t("title"), description: t("description") };
+}
+
 export default function OrchestrationPage() {
-  return <OrchestrationPageClient />;
+  return (
+    <Suspense fallback={null}>
+      <OrchestrationPageClient />
+    </Suspense>
+  );
 }

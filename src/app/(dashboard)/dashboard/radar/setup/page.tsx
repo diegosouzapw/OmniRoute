@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -48,7 +48,7 @@ function resolveText(text: RadarLocalizedText, locale: string): string {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function RadarSetupPage() {
+function RadarSetupPageContent() {
   const t = useTranslations("radarSetupPage");
   const locale = useLocale();
   const searchParams = useSearchParams();
@@ -288,5 +288,13 @@ export default function RadarSetupPage() {
         </>
       ) : null}
     </div>
+  );
+}
+
+export default function RadarSetupPage() {
+  return (
+    <Suspense fallback={null}>
+      <RadarSetupPageContent />
+    </Suspense>
   );
 }

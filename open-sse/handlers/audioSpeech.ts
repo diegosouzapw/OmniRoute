@@ -868,15 +868,33 @@ export async function handleAudioSpeech({
     );
   }
 
-  // Skip credential check for local providers (authType: "none")
+  // Skip credential check for local providers (authType: "none") and for UC TTS,
+  // whose durable Clerk credential lives in providerSpecificData (no apiKey token).
   const token =
     providerConfig.authType === "none" ? null : credentials?.apiKey || credentials?.accessToken;
-  if (providerConfig.authType !== "none" && !token) {
+  if (providerConfig.authType !== "none" && providerConfig.format !== "uc-tts" && !token) {
     return errorResponse(401, `No credentials for speech provider: ${providerConfig.id}`);
   }
 
   try {
     // Route to provider-specific handler
+    if (providerConfig.format === "uc-tts") {
+      const { handleUcTextToSpeech } = await import("./uc/ucTts.ts");
+      const result = await handleUcTextToSpeech({
+        text: typeof body.input === "string" ? body.input : "",
+        voice: typeof body.voice === "string" ? body.voice : undefined,
+        model: modelId,
+        credentials,
+      });
+      if (!result.ok || !result.audio) {
+        return errorResponse(result.status ?? 502, result.error || "UC TTS failed");
+      }
+      return new Response(result.audio, {
+        status: 200,
+        headers: { ...CORS_HEADERS, "Content-Type": result.contentType || "audio/mpeg" },
+      });
+    }
+
     if (providerConfig.format === "vertex-gemini-tts") {
       const { audio, contentType } = await vertexGenerateSpeech(credentials, {
         model: modelId,

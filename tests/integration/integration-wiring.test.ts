@@ -460,6 +460,7 @@ describe("Page Integration — cache page wiring", () => {
 
 describe("Page Integration — cost explorer wiring", () => {
   const costsPage = readProjectFile("src/app/(dashboard)/dashboard/costs/CostOverviewTab.tsx");
+  const usageAnalytics = readProjectFile("src/shared/components/UsageAnalytics.tsx");
   const costExplorerUtils = readProjectFile(
     "src/app/(dashboard)/dashboard/costs/costExplorerUtils.ts"
   );
@@ -472,6 +473,11 @@ describe("Page Integration — cost explorer wiring", () => {
     assert.match(costsPage, /byServiceTier/);
     assert.match(costExplorerUtils, /buildCostExplorerRows/);
     assert.match(costExplorerUtils, /serviceTier/);
+  });
+
+  it("should request token-price estimates for flat-rate providers", () => {
+    assert.match(costsPage, /includeFlatRateEstimates:\s*"true"/);
+    assert.match(usageAnalytics, /params\.set\("includeFlatRateEstimates",\s*"true"\)/);
   });
 });
 

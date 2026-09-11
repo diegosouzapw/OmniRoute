@@ -1061,6 +1061,38 @@ test("getProviderCredentials least-used prefers the oldest timestamp when all ac
   assert.equal(selected.connectionId, oldest.id);
 });
 
+test("getProviderCredentials least-used prefers an account without backoff over the least recently used one (#12279)", async () => {
+  await settingsDb.updateSettings({ fallbackStrategy: "least-used" });
+  // Oldest lastUsedAt, but still carrying a backoff from a recent 429.
+  const backedOff = await seedConnection("openai", {
+    name: "least-used-backed-off",
+    priority: 1,
+  });
+  // Used more recently, but healthy.
+  const healthy = await seedConnection("openai", {
+    name: "least-used-healthy",
+    priority: 9,
+  });
+  // createProviderConnection does not persist backoffLevel; write it through
+  // update. rateLimitedUntil in the future keeps the backoff from auto-decaying,
+  // and allowRateLimitedConnections below keeps the account in the pool.
+  await providersDb.updateProviderConnection(backedOff.id, {
+    backoffLevel: 2,
+    rateLimitedUntil: futureIso(),
+    lastUsedAt: new Date(Date.now() - 120_000).toISOString(),
+  });
+  await providersDb.updateProviderConnection(healthy.id, {
+    lastUsedAt: new Date(Date.now() - 1_000).toISOString(),
+  });
+
+  const selected = await auth.getProviderCredentials("openai", null, null, null, {
+    allowRateLimitedConnections: true,
+  });
+
+  assert.equal(selected.connectionId, healthy.id);
+  assert.notEqual(selected.connectionId, backedOff.id);
+});
+
 test("getProviderCredentials cost-optimized selects the lowest priority account", async () => {
   await settingsDb.updateSettings({ fallbackStrategy: "cost-optimized" });
   const cheapest = await seedConnection("openai", {

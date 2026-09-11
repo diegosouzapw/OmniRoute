@@ -14,6 +14,7 @@ import {
   isMalformedToolCallFinishReason,
 } from "../../utils/finishReason.ts";
 import { stripAnsiCodes } from "../../utils/streamHelpers.ts";
+import { stripObfuscationZeroWidth } from "../../utils/zeroWidth.ts";
 
 type GeminiToOpenAIState = {
   functionIndex: number;
@@ -483,7 +484,7 @@ export function geminiToOpenAIResponse(chunk, state) {
         let candidate = parseTextualToolCallCandidate(accumulated);
 
         if (candidate) {
-          accumulated = accumulated.replace(/[\u200B-\u200D\uFEFF]/g, "");
+          accumulated = stripObfuscationZeroWidth(accumulated);
           let toolCallIndex = accumulated.lastIndexOf("(empty)[Tool call:");
           if (toolCallIndex < 0) {
             toolCallIndex = accumulated.lastIndexOf("[Tool call:");

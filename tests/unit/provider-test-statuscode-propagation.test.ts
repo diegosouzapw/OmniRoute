@@ -44,6 +44,29 @@ test("status-less semantic failures remain status-less", () => {
   assert.deepEqual(result.diagnosis, FAILURE_DIAGNOSIS);
 });
 
+test("successful validation preserves a 402 so per-model quota can stay model-scoped", () => {
+  const diagnosis = {
+    type: "ok",
+    source: "upstream",
+    message: null,
+    code: null,
+  };
+
+  const result = buildApiKeyConnectionTestResult(
+    {
+      valid: true,
+      warning: "per-model 402",
+      statusCode: 402,
+    },
+    null,
+    diagnosis
+  );
+
+  assert.equal(result.valid, true);
+  assert.equal(result.statusCode, 402);
+  assert.deepEqual(result.diagnosis, diagnosis);
+});
+
 test("successful validation does not synthesize an HTTP status", () => {
   const diagnosis = {
     type: "ok",

@@ -72,8 +72,7 @@ export class NineRouterExecutor extends BaseExecutor {
    * Message goes through buildErrorBody to satisfy hard rule #12 (no raw err.message).
    */
   private buildServiceUnavailableResponse(message: string): Response {
-    const body = buildErrorBody(503, message);
-    body.error.code = "service_not_running";
+    const body = buildErrorBody(503, message, undefined, { code: "service_not_running" });
     return new Response(JSON.stringify(body), {
       status: 503,
       headers: {

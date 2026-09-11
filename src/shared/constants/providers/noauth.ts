@@ -74,22 +74,6 @@ export const NOAUTH_PROVIDERS = {
       text: "Cloudflare AI Playground uses a reverse-engineered anonymous WebSocket protocol (no official API). Requires Playwright with a Chromium browser on first request. Rate limits apply per IP (error 3021).",
     },
   },
-  theoldllm: {
-    id: "theoldllm",
-    alias: "tllm",
-    name: "The Old LLM (Free)",
-    icon: "auto_awesome",
-    color: "#8B5CF6",
-    textIcon: "TL",
-    website: "https://theoldllm.vercel.app",
-    noAuth: true,
-    hasFree: true,
-    serviceKinds: ["llm"],
-    freeNote:
-      "Free — GPT-5.4, Claude 4.6 Opus/Sonnet/Haiku, + more. No API key — tokens auto-generated via browser.",
-    authHint:
-      "No credentials required. The executor auto-generates access tokens via an embedded Playwright browser instance.",
-  },
   chipotle: {
     id: "chipotle",
     alias: "pepper",
@@ -227,7 +211,7 @@ export const NOAUTH_PROVIDERS = {
 // upstream path runs through OmniRoute's proxy-aware global fetch. Providers
 // with browser, WebSocket, direct dispatcher, media, or local CLI paths stay
 // hidden until those paths can guarantee the configured provider proxy.
-export const NOAUTH_PROVIDER_PROXY_SUPPORTED = new Set(["opencode", "theoldllm"]);
+export const NOAUTH_PROVIDER_PROXY_SUPPORTED = new Set(["opencode"]);
 
 export function supportsNoAuthProviderProxy(providerId: string): boolean {
   return NOAUTH_PROVIDER_PROXY_SUPPORTED.has(providerId);

@@ -580,9 +580,22 @@ export async function getActiveProvidersWithSyncedModel(modelId: string): Promis
            json_extract(synced_model.value, '$.id'),
            json_extract(synced_model.value, '$.name'),
            json_extract(synced_model.value, '$.model')
+         ) = ?
+       UNION
+       SELECT DISTINCT pc.provider AS provider
+       FROM provider_connections pc
+       JOIN key_value kv
+         ON kv.namespace = 'customModels'
+        AND kv.key = pc.provider
+       JOIN json_each(CASE WHEN json_valid(kv.value) THEN kv.value ELSE '[]' END) custom_model
+       WHERE pc.is_active = 1
+         AND COALESCE(
+           json_extract(custom_model.value, '$.id'),
+           json_extract(custom_model.value, '$.name'),
+           json_extract(custom_model.value, '$.model')
          ) = ?`
     )
-    .all(modelId) as Array<{ provider?: unknown }>;
+    .all(modelId, modelId) as Array<{ provider?: unknown }>;
 
   return rows
     .map((row) => row.provider)

@@ -1,0 +1,3111 @@
+{
+  "schemaVersion": 1,
+  "component": {
+    "name": "wreq-js",
+    "version": "3.2.0",
+    "sourceCommit": "0d52d5fa252841aeef34d4d063b1766a59612bf7",
+    "cargoTomlSha256": "9dcc37ee9b254a57722402355ae483aff9eeae8dbb1a28e84a57e008ab05a747",
+    "cargoLockSha256": "b22954960bffe817721539c17c18d2c2fb5084b358ea3e009133b5403b123df3"
+  },
+  "evidence": {
+    "generatedAt": "2026-09-02",
+    "method": "cargo metadata --locked --format-version 1 --filter-platform for every published target; traverse dep_kinds.kind=null from the root; separate build/proc-macro-only nodes",
+    "inventorySha256": "761dec510bfe2ac42e02bff1b693ea36fc9057f9d0479112b5b86c484b0733bd",
+    "classification": "conservative Cargo closure inventory, not an exact post-LTO artifact SBOM"
+  },
+  "targetNormalClosureCounts": {
+    "aarch64-apple-darwin": 148,
+    "aarch64-linux-android": 144,
+    "aarch64-pc-windows-msvc": 149,
+    "aarch64-unknown-linux-gnu": 144,
+    "aarch64-unknown-linux-musl": 144,
+    "x86_64-apple-darwin": 148,
+    "x86_64-pc-windows-msvc": 149,
+    "x86_64-unknown-linux-gnu": 144,
+    "x86_64-unknown-linux-musl": 144
+  },
+  "normalClosure": {
+    "uniquePackages": 153,
+    "unknownLicenses": 0,
+    "licenseExpressionCounts": {
+      "(Apache-2.0 OR MIT) AND BSD-3-Clause": 1,
+      "(MIT OR Apache-2.0) AND Apache-2.0": 1,
+      "0BSD OR MIT OR Apache-2.0": 1,
+      "Apache-2.0": 6,
+      "Apache-2.0 / MIT": 1,
+      "Apache-2.0 OR MIT": 8,
+      "BSD-2-Clause OR Apache-2.0 OR MIT": 1,
+      "BSD-3-Clause": 2,
+      "BSD-3-Clause AND MIT": 1,
+      "BSD-3-Clause/MIT": 1,
+      "CDLA-Permissive-2.0": 1,
+      "ISC": 1,
+      "MIT": 25,
+      "MIT OR Apache-2.0": 79,
+      "MIT OR Zlib OR Apache-2.0": 1,
+      "MIT/Apache-2.0": 6,
+      "Unicode-3.0": 15,
+      "Unlicense OR MIT": 1,
+      "Zlib": 1
+    },
+    "components": [
+      {
+        "name": "adler2",
+        "version": "2.0.1",
+        "license": "0BSD OR MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "alloc-no-stdlib",
+        "version": "2.0.4",
+        "license": "BSD-3-Clause",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "alloc-stdlib",
+        "version": "0.2.2",
+        "license": "BSD-3-Clause",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "allocator-api2",
+        "version": "0.2.21",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "anyhow",
+        "version": "1.0.104",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "async-compression",
+        "version": "0.4.36",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "atomic-waker",
+        "version": "1.1.2",
+        "license": "Apache-2.0 OR MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "bitflags",
+        "version": "2.13.1",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "block-buffer",
+        "version": "0.10.4",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "brotli",
+        "version": "8.0.2",
+        "license": "BSD-3-Clause AND MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "brotli-decompressor",
+        "version": "5.0.0",
+        "license": "BSD-3-Clause/MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "btls",
+        "version": "0.5.6",
+        "license": "Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "btls-sys",
+        "version": "0.5.6",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "bytes",
+        "version": "1.12.1",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "cfg-if",
+        "version": "1.0.4",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "compression-codecs",
+        "version": "0.4.35",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "compression-core",
+        "version": "0.4.31",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "cookie",
+        "version": "0.18.1",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "core-foundation",
+        "version": "0.9.4",
+        "license": "MIT OR Apache-2.0",
+        "targets": ["aarch64-apple-darwin", "x86_64-apple-darwin"]
+      },
+      {
+        "name": "core-foundation-sys",
+        "version": "0.8.7",
+        "license": "MIT OR Apache-2.0",
+        "targets": ["aarch64-apple-darwin", "x86_64-apple-darwin"]
+      },
+      {
+        "name": "cpufeatures",
+        "version": "0.2.17",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "crc32fast",
+        "version": "1.5.0",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "crossbeam-channel",
+        "version": "0.5.15",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "crossbeam-epoch",
+        "version": "0.9.20",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "crossbeam-utils",
+        "version": "0.8.21",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "crypto-common",
+        "version": "0.1.7",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "dashmap",
+        "version": "6.2.1",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "data-encoding",
+        "version": "2.9.0",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "deranged",
+        "version": "0.5.5",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "digest",
+        "version": "0.10.7",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "either",
+        "version": "1.15.0",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "encoding_rs",
+        "version": "0.8.35",
+        "license": "(Apache-2.0 OR MIT) AND BSD-3-Clause",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "equivalent",
+        "version": "1.0.2",
+        "license": "Apache-2.0 OR MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "flate2",
+        "version": "1.1.9",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "fnv",
+        "version": "1.0.7",
+        "license": "Apache-2.0 / MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "foldhash",
+        "version": "0.2.0",
+        "license": "Zlib",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "foreign-types",
+        "version": "0.5.0",
+        "license": "MIT/Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "foreign-types-shared",
+        "version": "0.3.1",
+        "license": "MIT/Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "form_urlencoded",
+        "version": "1.2.2",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "futures-channel",
+        "version": "0.3.32",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "futures-core",
+        "version": "0.3.34",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "futures-sink",
+        "version": "0.3.34",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "futures-task",
+        "version": "0.3.34",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "futures-util",
+        "version": "0.3.34",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "generic-array",
+        "version": "0.14.7",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "getrandom",
+        "version": "0.3.4",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "getrandom",
+        "version": "0.4.2",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "hashbrown",
+        "version": "0.14.5",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "hashbrown",
+        "version": "0.16.1",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "hashbrown",
+        "version": "0.17.1",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "http",
+        "version": "1.4.0",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "http-body",
+        "version": "1.0.1",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "http-body-util",
+        "version": "0.1.5",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "http2",
+        "version": "0.5.17",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "httparse",
+        "version": "1.10.1",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "icu_collections",
+        "version": "2.1.1",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "icu_locale_core",
+        "version": "2.1.1",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "icu_normalizer",
+        "version": "2.1.1",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "icu_normalizer_data",
+        "version": "2.1.1",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "icu_properties",
+        "version": "2.1.2",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "icu_properties_data",
+        "version": "2.1.2",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "icu_provider",
+        "version": "2.1.1",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "idna",
+        "version": "1.1.0",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "idna_adapter",
+        "version": "1.2.1",
+        "license": "Apache-2.0 OR MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "indexmap",
+        "version": "2.12.1",
+        "license": "Apache-2.0 OR MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "ipnet",
+        "version": "2.12.0",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "itoa",
+        "version": "1.0.17",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "libc",
+        "version": "0.2.186",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "libloading",
+        "version": "0.8.9",
+        "license": "ISC",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "linkme",
+        "version": "0.3.35",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "litemap",
+        "version": "0.8.1",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "lock_api",
+        "version": "0.4.14",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "log",
+        "version": "0.4.29",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "lru",
+        "version": "0.18.1",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "memchr",
+        "version": "2.7.6",
+        "license": "Unlicense OR MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "mime",
+        "version": "0.3.17",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "miniz_oxide",
+        "version": "0.8.9",
+        "license": "MIT OR Zlib OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "mio",
+        "version": "1.2.0",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "moka",
+        "version": "0.12.16",
+        "license": "(MIT OR Apache-2.0) AND Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "neon",
+        "version": "1.1.1",
+        "license": "MIT/Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "num-conv",
+        "version": "0.1.0",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "once_cell",
+        "version": "1.21.4",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "parking_lot",
+        "version": "0.12.5",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "parking_lot_core",
+        "version": "0.9.12",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "percent-encoding",
+        "version": "2.3.2",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "pin-project-lite",
+        "version": "0.2.17",
+        "license": "Apache-2.0 OR MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "portable-atomic",
+        "version": "1.13.0",
+        "license": "Apache-2.0 OR MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "potential_utf",
+        "version": "0.1.4",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "powerfmt",
+        "version": "0.2.0",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "ppv-lite86",
+        "version": "0.2.21",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "rand",
+        "version": "0.9.2",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "rand_chacha",
+        "version": "0.9.0",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "rand_core",
+        "version": "0.9.3",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "rustls-pki-types",
+        "version": "1.13.2",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "scopeguard",
+        "version": "1.2.0",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "semver",
+        "version": "1.0.27",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "send_wrapper",
+        "version": "0.6.0",
+        "license": "MIT/Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "serde",
+        "version": "1.0.229",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "serde_core",
+        "version": "1.0.229",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "serde_json",
+        "version": "1.0.151",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "sha1",
+        "version": "0.10.6",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "simd-adler32",
+        "version": "0.3.8",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "slab",
+        "version": "0.4.11",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "smallvec",
+        "version": "1.15.1",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "socket2",
+        "version": "0.6.3",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "stable_deref_trait",
+        "version": "1.2.1",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "sync_wrapper",
+        "version": "1.0.2",
+        "license": "Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "system-configuration",
+        "version": "0.7.0",
+        "license": "MIT OR Apache-2.0",
+        "targets": ["aarch64-apple-darwin", "x86_64-apple-darwin"]
+      },
+      {
+        "name": "system-configuration-sys",
+        "version": "0.6.0",
+        "license": "MIT OR Apache-2.0",
+        "targets": ["aarch64-apple-darwin", "x86_64-apple-darwin"]
+      },
+      {
+        "name": "tagptr",
+        "version": "0.2.0",
+        "license": "MIT/Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "thiserror",
+        "version": "1.0.69",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "thiserror",
+        "version": "2.0.17",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "time",
+        "version": "0.3.44",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "time-core",
+        "version": "0.1.6",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "tinystr",
+        "version": "0.8.2",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "tokio",
+        "version": "1.53.1",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "tokio-btls",
+        "version": "0.5.6",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "tokio-socks",
+        "version": "0.5.2",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "tokio-tungstenite",
+        "version": "0.29.0",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "tokio-util",
+        "version": "0.7.19",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "tower",
+        "version": "0.5.3",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "tower-http",
+        "version": "0.6.8",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "tower-layer",
+        "version": "0.3.3",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "tower-service",
+        "version": "0.3.3",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "try-lock",
+        "version": "0.2.5",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "tungstenite",
+        "version": "0.29.0",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "typed-builder",
+        "version": "0.23.2",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "typenum",
+        "version": "1.19.0",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "url",
+        "version": "2.5.8",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "utf8_iter",
+        "version": "1.0.4",
+        "license": "Apache-2.0 OR MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "uuid",
+        "version": "1.23.4",
+        "license": "Apache-2.0 OR MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "want",
+        "version": "0.3.1",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "webpki-root-certs",
+        "version": "1.0.9",
+        "license": "CDLA-Permissive-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "windows-link",
+        "version": "0.2.1",
+        "license": "MIT OR Apache-2.0",
+        "targets": ["aarch64-pc-windows-msvc", "x86_64-pc-windows-msvc"]
+      },
+      {
+        "name": "windows-registry",
+        "version": "0.6.1",
+        "license": "MIT OR Apache-2.0",
+        "targets": ["aarch64-pc-windows-msvc", "x86_64-pc-windows-msvc"]
+      },
+      {
+        "name": "windows-result",
+        "version": "0.4.1",
+        "license": "MIT OR Apache-2.0",
+        "targets": ["aarch64-pc-windows-msvc", "x86_64-pc-windows-msvc"]
+      },
+      {
+        "name": "windows-strings",
+        "version": "0.5.1",
+        "license": "MIT OR Apache-2.0",
+        "targets": ["aarch64-pc-windows-msvc", "x86_64-pc-windows-msvc"]
+      },
+      {
+        "name": "windows-sys",
+        "version": "0.61.2",
+        "license": "MIT OR Apache-2.0",
+        "targets": ["aarch64-pc-windows-msvc", "x86_64-pc-windows-msvc"]
+      },
+      {
+        "name": "wreq",
+        "version": "0.16.0",
+        "license": "Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "wreq-js",
+        "version": "3.2.0",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "wreq-proto",
+        "version": "0.2.5",
+        "license": "Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "wreq-rt",
+        "version": "0.2.2-rc.4",
+        "license": "Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "wreq-util",
+        "version": "0.2.0",
+        "license": "Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "writeable",
+        "version": "0.6.2",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "yoke",
+        "version": "0.8.1",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "zerocopy",
+        "version": "0.8.31",
+        "license": "BSD-2-Clause OR Apache-2.0 OR MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "zerofrom",
+        "version": "0.1.6",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "zerotrie",
+        "version": "0.2.3",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "zerovec",
+        "version": "0.11.5",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "zmij",
+        "version": "1.0.3",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "zstd",
+        "version": "0.13.3",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "zstd-safe",
+        "version": "7.2.4",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "zstd-sys",
+        "version": "2.0.16+zstd.1.5.7",
+        "license": "MIT/Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      }
+    ]
+  },
+  "compileOnlyClosure": {
+    "uniquePackages": 43,
+    "description": "Build scripts and proc-macro-only packages; recorded separately and not treated as shipped runtime components.",
+    "components": [
+      {
+        "name": "aho-corasick",
+        "version": "1.1.4",
+        "license": "Unlicense OR MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "bindgen",
+        "version": "0.72.1",
+        "license": "BSD-3-Clause",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "cc",
+        "version": "1.2.51",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "cexpr",
+        "version": "0.6.0",
+        "license": "Apache-2.0/MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "clang-sys",
+        "version": "1.8.1",
+        "license": "Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "cmake",
+        "version": "0.1.58",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "displaydoc",
+        "version": "0.2.5",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "find-msvc-tools",
+        "version": "0.1.6",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "foreign-types-macros",
+        "version": "0.2.3",
+        "license": "MIT/Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "fs_extra",
+        "version": "1.3.0",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "fslock",
+        "version": "0.2.1",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "futures-macro",
+        "version": "0.3.34",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "glob",
+        "version": "0.3.3",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "itertools",
+        "version": "0.13.0",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "jobserver",
+        "version": "0.1.34",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "linkme-impl",
+        "version": "0.3.35",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "minimal-lexical",
+        "version": "0.2.1",
+        "license": "MIT/Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "neon-macros",
+        "version": "1.1.1",
+        "license": "MIT/Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "nom",
+        "version": "7.1.3",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "openssl-macros",
+        "version": "0.1.1",
+        "license": "MIT/Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "pkg-config",
+        "version": "0.3.32",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "proc-macro2",
+        "version": "1.0.104",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "quote",
+        "version": "1.0.42",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "regex",
+        "version": "1.12.2",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "regex-automata",
+        "version": "0.4.13",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "regex-syntax",
+        "version": "0.8.8",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "rustc-hash",
+        "version": "2.1.1",
+        "license": "Apache-2.0 OR MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "serde_derive",
+        "version": "1.0.229",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "shlex",
+        "version": "1.3.0",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "syn",
+        "version": "2.0.111",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "syn",
+        "version": "3.0.2",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "synstructure",
+        "version": "0.13.2",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "thiserror-impl",
+        "version": "1.0.69",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "thiserror-impl",
+        "version": "2.0.17",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "time-macros",
+        "version": "0.2.24",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "tokio-macros",
+        "version": "2.7.0",
+        "license": "MIT",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "typed-builder-macro",
+        "version": "0.23.2",
+        "license": "MIT OR Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "unicode-ident",
+        "version": "1.0.22",
+        "license": "(MIT OR Apache-2.0) AND Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "version_check",
+        "version": "0.9.5",
+        "license": "MIT/Apache-2.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "winapi",
+        "version": "0.3.9",
+        "license": "MIT/Apache-2.0",
+        "targets": ["aarch64-pc-windows-msvc", "x86_64-pc-windows-msvc"]
+      },
+      {
+        "name": "yoke-derive",
+        "version": "0.8.1",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "zerofrom-derive",
+        "version": "0.1.6",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      },
+      {
+        "name": "zerovec-derive",
+        "version": "0.11.2",
+        "license": "Unicode-3.0",
+        "targets": [
+          "aarch64-apple-darwin",
+          "aarch64-linux-android",
+          "aarch64-pc-windows-msvc",
+          "aarch64-unknown-linux-gnu",
+          "aarch64-unknown-linux-musl",
+          "x86_64-apple-darwin",
+          "x86_64-pc-windows-msvc",
+          "x86_64-unknown-linux-gnu",
+          "x86_64-unknown-linux-musl"
+        ]
+      }
+    ]
+  },
+  "embeddedComponents": [
+    {
+      "name": "BoringSSL",
+      "sourceCommit": "91a66a59b6c1435120ff83e245d7719411294386",
+      "via": "btls-sys@0.5.6",
+      "license": "Apache-2.0",
+      "licenseSha256": "827c8d8fc207c2392794eef9e00fe246f9f61fdcc132556c275be3dd8c3cd97f",
+      "modified": true
+    }
+  ],
+  "limitations": [
+    "Normal closure means link-eligible in the locked Cargo graph; exact post-LTO membership remains unproven because LTO may eliminate components.",
+    "Published .node files do not contain cargo-auditable metadata, a link map, an upstream artifact SBOM, or a reproducible-build receipt.",
+    "Android dynamically requires libc++_shared.so; that library is not present in the npm binding tarball and is outside this inventory."
+  ]
+}

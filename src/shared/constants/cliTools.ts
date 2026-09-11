@@ -45,7 +45,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
         name: "Claude Fable",
         alias: "fable",
         envKey: "ANTHROPIC_DEFAULT_FABLE_MODEL",
-        defaultValue: _cc.fable ? `cc/${_cc.fable}` : "cc/claude-fable-5",
+        defaultValue: _cc.fable ? `cc/${_cc.fable}` : "cc/claude-fable-5-1",
         isTopLevel: true,
       },
       {

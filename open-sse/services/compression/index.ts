@@ -90,6 +90,8 @@ export {
   applyStackedCompressionAsync,
 } from "./strategySelector.ts";
 
+export { getMemoStats, clearMemoStore, makeMemoKey, isDeterministicMode } from "./resultMemo.ts";
+
 export type {
   CompressionEngine,
   CompressionEngineApplyOptions,

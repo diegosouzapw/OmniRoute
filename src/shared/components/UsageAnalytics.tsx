@@ -54,6 +54,9 @@ export default function UsageAnalytics() {
       setLoading(true);
       const params = new URLSearchParams();
       params.set("range", range);
+      // This page labels the value as an estimate, so opt into token-price
+      // equivalents for flat-rate subscriptions without changing API defaults.
+      params.set("includeFlatRateEstimates", "true");
       if (range === "custom" && customStart && customEnd) {
         params.set("startDate", customStart);
         params.set("endDate", customEnd);

@@ -25,6 +25,10 @@ import {
   type EncodedImage,
 } from "./cursorAgentProtobuf/imageEncoding.ts";
 import {
+  CURSOR_EFFORT_SUFFIXES,
+  resolveOneMillionContextModel,
+} from "./cursorAgentProtobuf/requestedModelParameters.ts";
+import {
   WT_VARINT,
   WT_LEN,
   encodeVarint,
@@ -41,6 +45,7 @@ import {
   findField,
   decodeStringField,
   decodeVarintField,
+  type Field,
 } from "./cursorAgentProtobuf/wire.ts";
 
 // ─── Field numbers (from agent.proto descriptor) ───────────────────────────
@@ -311,8 +316,6 @@ export function normalizeCursorModelId(modelId: string): string {
 // Grok (`cursor-grok-*` / legacy `grok-*`) follows the Claude-style `effort`
 // parameter. Without the split, ids like `cursor-grok-4.5-high` return empty
 // turns (same symptom as #7289). Combined `-high-fast` is supported.
-const CURSOR_EFFORT_SUFFIXES = ["low", "medium", "high", "xhigh", "max"] as const;
-
 /**
  * If `normalized` starts with `prefix` and ends with one of the known effort
  * suffixes, split it into the base model id plus a `{id: paramId, value}`
@@ -432,6 +435,8 @@ export function resolveRequestedModel(
       };
     }
   }
+  const oneMillionContext = resolveOneMillionContextModel(normalized);
+  if (oneMillionContext) return oneMillionContext;
   // Live catalog is authoritative for exact ids (flattened effort variants).
   if (opts?.liveCatalogIds?.has(normalized)) {
     return { modelId: normalized, parameters: [] };
@@ -652,6 +657,41 @@ export type DecodedDelta =
   | { kind: "kv_server_message" }
   | { kind: "unknown"; field: number };
 
+type InteractionUpdateDecoder = (field: Field) => DecodedDelta[];
+
+const INTERACTION_UPDATE_DECODERS: Partial<Record<number, InteractionUpdateDecoder>> = {
+  [IU_TEXT_DELTA]: (field) =>
+    field.wireType === WT_LEN
+      ? [{ kind: "text", text: decodeStringField(field.bytes, TDU_TEXT) }]
+      : [],
+  [IU_THINKING_DELTA]: (field) =>
+    field.wireType === WT_LEN
+      ? [{ kind: "thinking", text: decodeStringField(field.bytes, TDU_TEXT) }]
+      : [],
+  [IU_THINKING_COMPLETED]: () => [{ kind: "thinking_complete" }],
+  [IU_TOOL_CALL_STARTED]: () => [{ kind: "tool_call_started" }],
+  [IU_TOOL_CALL_COMPLETED]: (field) => {
+    const deltas: DecodedDelta[] = [];
+    if (field.wireType === WT_LEN) {
+      const todoWrite = decodeNativeTodoWriteCompletion(field.bytes);
+      if (todoWrite) deltas.push(todoWrite);
+    }
+    deltas.push({ kind: "tool_call_completed" });
+    return deltas;
+  },
+  [IU_TOKEN_DELTA]: (field) =>
+    field.wireType === WT_LEN
+      ? [{ kind: "token_delta", tokens: decodeVarintField(field.bytes, 1) }]
+      : [],
+  [IU_HEARTBEAT]: () => [{ kind: "heartbeat" }],
+  [IU_TURN_ENDED]: () => [{ kind: "turn_ended" }],
+};
+
+function decodeInteractionUpdate(field: Field): DecodedDelta[] {
+  const decoder = INTERACTION_UPDATE_DECODERS[field.fieldNumber];
+  return decoder ? decoder(field) : [{ kind: "unknown", field: field.fieldNumber }];
+}
+
 export function decodeAgentServerMessage(payload: Buffer): DecodedDelta[] {
   const out: DecodedDelta[] = [];
   for (const top of decodeFields(payload)) {
@@ -661,45 +701,7 @@ export function decodeAgentServerMessage(payload: Buffer): DecodedDelta[] {
     }
     if (top.fieldNumber !== ASM_INTERACTION_UPDATE || top.wireType !== 2) continue;
     for (const update of decodeFields(top.bytes)) {
-      if (update.wireType !== 2 && update.wireType !== 0) continue;
-      switch (update.fieldNumber) {
-        case IU_TEXT_DELTA:
-          if (update.wireType === 2) {
-            out.push({ kind: "text", text: decodeStringField(update.bytes, TDU_TEXT) });
-          }
-          break;
-        case IU_THINKING_DELTA:
-          if (update.wireType === 2) {
-            out.push({ kind: "thinking", text: decodeStringField(update.bytes, TDU_TEXT) });
-          }
-          break;
-        case IU_THINKING_COMPLETED:
-          out.push({ kind: "thinking_complete" });
-          break;
-        case IU_TOOL_CALL_STARTED:
-          out.push({ kind: "tool_call_started" });
-          break;
-        case IU_TOOL_CALL_COMPLETED:
-          if (update.wireType === 2) {
-            const todoWrite = decodeNativeTodoWriteCompletion(update.bytes);
-            if (todoWrite) out.push(todoWrite);
-          }
-          out.push({ kind: "tool_call_completed" });
-          break;
-        case IU_TOKEN_DELTA:
-          if (update.wireType === 2) {
-            out.push({ kind: "token_delta", tokens: decodeVarintField(update.bytes, 1) });
-          }
-          break;
-        case IU_HEARTBEAT:
-          out.push({ kind: "heartbeat" });
-          break;
-        case IU_TURN_ENDED:
-          out.push({ kind: "turn_ended" });
-          break;
-        default:
-          out.push({ kind: "unknown", field: update.fieldNumber });
-      }
+      out.push(...decodeInteractionUpdate(update));
     }
   }
   return out;
@@ -750,52 +752,44 @@ export type KvServerEvent =
       requestMetadata: Buffer | null;
     };
 
+function findLengthDelimitedField(fields: Field[], fieldNumber: number): Buffer | null {
+  const field = findField(fields, fieldNumber);
+  return field?.wireType === WT_LEN ? field.bytes : null;
+}
+
+function decodeBlobId(payload: Buffer, fieldNumber: number): Buffer {
+  return findLengthDelimitedField(decodeFields(payload), fieldNumber) ?? Buffer.alloc(0);
+}
+
+function decodeSetBlobArgs(payload: Buffer): { blobId: Buffer; blobData: Buffer } {
+  const fields = decodeFields(payload);
+  return {
+    blobId: findLengthDelimitedField(fields, SBA_BLOB_ID) ?? Buffer.alloc(0),
+    blobData: findLengthDelimitedField(fields, SBA_BLOB_DATA) ?? Buffer.alloc(0),
+  };
+}
+
 export function decodeKvServerEvent(payload: Buffer): KvServerEvent | null {
-  for (const top of decodeFields(payload)) {
-    if (top.fieldNumber !== ASM_KV_SERVER_MESSAGE || top.wireType !== 2) continue;
+  const top = findField(decodeFields(payload), ASM_KV_SERVER_MESSAGE);
+  if (top?.wireType !== WT_LEN) return null;
 
-    let kvId = 0;
-    let getBlobArgs: Buffer | null = null;
-    let setBlobArgs: Buffer | null = null;
-    let requestMetadata: Buffer | null = null;
-
-    for (const f of decodeFields(top.bytes)) {
-      if (f.fieldNumber === KSM_ID && f.wireType === 0) {
-        kvId = Number(f.varint);
-      } else if (f.fieldNumber === KSM_GET_BLOB_ARGS && f.wireType === 2) {
-        getBlobArgs = f.bytes;
-      } else if (f.fieldNumber === KSM_SET_BLOB_ARGS && f.wireType === 2) {
-        setBlobArgs = f.bytes;
-      } else if (f.fieldNumber === KSM_REQUEST_METADATA && f.wireType === 2) {
-        requestMetadata = f.bytes;
-      }
-    }
-
-    if (getBlobArgs) {
-      // GetBlobArgs { blob_id (1): bytes }
-      let blobId: Buffer = Buffer.alloc(0);
-      for (const f of decodeFields(getBlobArgs)) {
-        if (f.fieldNumber === GBA_BLOB_ID && f.wireType === 2) {
-          blobId = f.bytes;
-        }
-      }
-      return { kind: "kv_get_blob", kvId, blobId, requestMetadata };
-    }
-    if (setBlobArgs) {
-      // SetBlobArgs { blob_id (1): bytes, blob_data (2): bytes }
-      let blobId: Buffer = Buffer.alloc(0);
-      let blobData: Buffer = Buffer.alloc(0);
-      for (const f of decodeFields(setBlobArgs)) {
-        if (f.fieldNumber === SBA_BLOB_ID && f.wireType === 2) {
-          blobId = f.bytes;
-        } else if (f.fieldNumber === SBA_BLOB_DATA && f.wireType === 2) {
-          blobData = f.bytes;
-        }
-      }
-      return { kind: "kv_set_blob", kvId, blobId, blobData, requestMetadata };
-    }
+  const fields = decodeFields(top.bytes);
+  const idField = findField(fields, KSM_ID);
+  const kvId = idField?.wireType === WT_VARINT ? Number(idField.varint) : 0;
+  const requestMetadata = findLengthDelimitedField(fields, KSM_REQUEST_METADATA);
+  const getBlobArgs = findLengthDelimitedField(fields, KSM_GET_BLOB_ARGS);
+  if (getBlobArgs) {
+    return {
+      kind: "kv_get_blob",
+      kvId,
+      blobId: decodeBlobId(getBlobArgs, GBA_BLOB_ID),
+      requestMetadata,
+    };
   }
-  return null;
+
+  const setBlobArgs = findLengthDelimitedField(fields, KSM_SET_BLOB_ARGS);
+  if (!setBlobArgs) return null;
+  return { kind: "kv_set_blob", kvId, ...decodeSetBlobArgs(setBlobArgs), requestMetadata };
 }
 
 // ─── Phase 2: full ExecServerMessage variant decoder ───────────────────────
@@ -886,143 +880,121 @@ function decodeShellArgs(payload: Buffer): DecodedShellArgs {
   return decoded;
 }
 
-export function decodeExecServerEvent(payload: Buffer): ExecServerEvent | null {
-  for (const top of decodeFields(payload)) {
-    if (top.fieldNumber !== ASM_EXEC_SERVER_MESSAGE || top.wireType !== 2) continue;
+type ExecEventContext = {
+  execMsgId: number;
+  execId: string;
+  variantBytes: Buffer;
+};
 
-    let execMsgId = 0;
-    let execId = "";
-    let variantField = 0;
-    let variantBytes: Buffer | null = null;
+type ExecEventDecoder = (context: ExecEventContext) => ExecServerEvent;
+type PathExecKind = "exec_read" | "exec_write" | "exec_delete" | "exec_ls";
+type ShellExecKind = "exec_shell" | "exec_shell_stream" | "exec_bg_shell";
 
-    for (const f of decodeFields(top.bytes)) {
-      if (f.fieldNumber === ESM_ID && f.wireType === 0) {
-        execMsgId = Number(f.varint);
-      } else if (f.fieldNumber === ESM_EXEC_ID && f.wireType === 2) {
-        execId = f.bytes.toString("utf8");
-      } else if (f.wireType === 2) {
-        // Any other LEN field is the variant payload. Take the first one we
-        // see — variants don't co-occur in a well-formed message.
-        if (variantField === 0) {
-          variantField = f.fieldNumber;
-          variantBytes = f.bytes;
-        }
-      }
-    }
+function createPathExecEvent(kind: PathExecKind, context: ExecEventContext): ExecServerEvent {
+  return {
+    kind,
+    execMsgId: context.execMsgId,
+    execId: context.execId,
+    path: decodeStringField(context.variantBytes, ARG_PATH),
+  };
+}
 
-    if (variantBytes === null) continue;
+function createShellExecEvent(kind: ShellExecKind, context: ExecEventContext): ExecServerEvent {
+  return {
+    kind,
+    execMsgId: context.execMsgId,
+    execId: context.execId,
+    ...decodeShellArgs(context.variantBytes),
+  };
+}
 
-    switch (variantField) {
-      case ESM_REQUEST_CONTEXT_ARGS:
-        return { kind: "exec_request_context", execMsgId, execId };
-      case ESM_READ_ARGS:
-        return {
-          kind: "exec_read",
-          execMsgId,
-          execId,
-          path: decodeStringField(variantBytes, ARG_PATH),
-        };
-      case ESM_WRITE_ARGS:
-        return {
-          kind: "exec_write",
-          execMsgId,
-          execId,
-          path: decodeStringField(variantBytes, ARG_PATH),
-        };
-      case ESM_DELETE_ARGS:
-        return {
-          kind: "exec_delete",
-          execMsgId,
-          execId,
-          path: decodeStringField(variantBytes, ARG_PATH),
-        };
-      case ESM_LS_ARGS:
-        return {
-          kind: "exec_ls",
-          execMsgId,
-          execId,
-          path: decodeStringField(variantBytes, ARG_PATH),
-        };
-      case ESM_GREP_ARGS:
-        return { kind: "exec_grep", execMsgId, execId };
-      case ESM_DIAGNOSTICS_ARGS:
-        return { kind: "exec_diagnostics", execMsgId, execId };
-      case ESM_SHELL_ARGS: {
-        const shell = decodeShellArgs(variantBytes);
-        return {
-          kind: "exec_shell",
-          execMsgId,
-          execId,
-          ...shell,
-        };
-      }
-      case ESM_SHELL_STREAM_ARGS: {
-        const shell = decodeShellArgs(variantBytes);
-        return {
-          kind: "exec_shell_stream",
-          execMsgId,
-          execId,
-          ...shell,
-        };
-      }
-      case ESM_BACKGROUND_SHELL_SPAWN: {
-        const shell = decodeShellArgs(variantBytes);
-        return {
-          kind: "exec_bg_shell",
-          execMsgId,
-          execId,
-          ...shell,
-        };
-      }
-      case ESM_FETCH_ARGS:
-        return {
-          kind: "exec_fetch",
-          execMsgId,
-          execId,
-          url: decodeStringField(variantBytes, ARG_FETCH_URL),
-        };
-      case ESM_WRITE_SHELL_STDIN_ARGS:
-        return { kind: "exec_write_shell_stdin", execMsgId, execId };
-      case ESM_MCP_ARGS: {
-        // McpArgs.args is map<string, bytes>; each value is a protobuf-
-        // encoded google.protobuf.Value. Decode keys and value-bytes here,
-        // then convert each Value to its JSON shape.
-        let toolName = "";
-        let toolCallId = "";
-        const args: Record<string, unknown> = {};
-        for (const f of decodeFields(variantBytes)) {
-          if (f.wireType !== 2) continue;
-          if (f.fieldNumber === MCA_TOOL_NAME) {
-            toolName = f.bytes.toString("utf8");
-          } else if (f.fieldNumber === MCA_NAME && !toolName) {
-            // tool_name (5) takes precedence; fall back to name (1)
-            toolName = f.bytes.toString("utf8");
-          } else if (f.fieldNumber === MCA_TOOL_CALL_ID) {
-            toolCallId = f.bytes.toString("utf8");
-          } else if (f.fieldNumber === MCA_ARGS) {
-            // FieldsEntry { key (1): string, value (2): bytes }
-            let key = "";
-            let valueBytes: Buffer | null = null;
-            for (const entry of decodeFields(f.bytes)) {
-              if (entry.fieldNumber === MAP_KEY && entry.wireType === 2) {
-                key = entry.bytes.toString("utf8");
-              } else if (entry.fieldNumber === MAP_VALUE && entry.wireType === 2) {
-                valueBytes = entry.bytes;
-              }
-            }
-            if (key && valueBytes !== null) {
-              args[key] = decodeProtobufValue(valueBytes);
-            }
-          }
-        }
-        return { kind: "exec_mcp", execMsgId, execId, toolName, toolCallId, args };
-      }
-      default:
-        // Unknown variant — return null so caller can keep buffering.
-        return null;
-    }
+function decodeMcpMapEntry(payload: Buffer): { key: string; value: unknown } | null {
+  const fields = decodeFields(payload);
+  const key = findLengthDelimitedField(fields, MAP_KEY)?.toString("utf8") ?? "";
+  const valueBytes = findLengthDelimitedField(fields, MAP_VALUE);
+  return key && valueBytes ? { key, value: decodeProtobufValue(valueBytes) } : null;
+}
+
+function decodeMcpExecEvent(context: ExecEventContext): ExecServerEvent {
+  const fields = decodeFields(context.variantBytes);
+  const canonicalName = findLengthDelimitedField(fields, MCA_TOOL_NAME);
+  const fallbackName = findLengthDelimitedField(fields, MCA_NAME);
+  const toolName = (canonicalName ?? fallbackName)?.toString("utf8") ?? "";
+  const toolCallId = findLengthDelimitedField(fields, MCA_TOOL_CALL_ID)?.toString("utf8") ?? "";
+  const args: Record<string, unknown> = {};
+  for (const field of fields) {
+    if (field.fieldNumber !== MCA_ARGS || field.wireType !== WT_LEN) continue;
+    const entry = decodeMcpMapEntry(field.bytes);
+    if (entry) args[entry.key] = entry.value;
   }
-  return null;
+  return {
+    kind: "exec_mcp",
+    execMsgId: context.execMsgId,
+    execId: context.execId,
+    toolName,
+    toolCallId,
+    args,
+  };
+}
+
+const EXEC_EVENT_DECODERS: Partial<Record<number, ExecEventDecoder>> = {
+  [ESM_REQUEST_CONTEXT_ARGS]: ({ execMsgId, execId }) => ({
+    kind: "exec_request_context",
+    execMsgId,
+    execId,
+  }),
+  [ESM_READ_ARGS]: (context) => createPathExecEvent("exec_read", context),
+  [ESM_WRITE_ARGS]: (context) => createPathExecEvent("exec_write", context),
+  [ESM_DELETE_ARGS]: (context) => createPathExecEvent("exec_delete", context),
+  [ESM_LS_ARGS]: (context) => createPathExecEvent("exec_ls", context),
+  [ESM_GREP_ARGS]: ({ execMsgId, execId }) => ({ kind: "exec_grep", execMsgId, execId }),
+  [ESM_DIAGNOSTICS_ARGS]: ({ execMsgId, execId }) => ({
+    kind: "exec_diagnostics",
+    execMsgId,
+    execId,
+  }),
+  [ESM_SHELL_ARGS]: (context) => createShellExecEvent("exec_shell", context),
+  [ESM_SHELL_STREAM_ARGS]: (context) => createShellExecEvent("exec_shell_stream", context),
+  [ESM_BACKGROUND_SHELL_SPAWN]: (context) => createShellExecEvent("exec_bg_shell", context),
+  [ESM_FETCH_ARGS]: ({ execMsgId, execId, variantBytes }) => ({
+    kind: "exec_fetch",
+    execMsgId,
+    execId,
+    url: decodeStringField(variantBytes, ARG_FETCH_URL),
+  }),
+  [ESM_WRITE_SHELL_STDIN_ARGS]: ({ execMsgId, execId }) => ({
+    kind: "exec_write_shell_stdin",
+    execMsgId,
+    execId,
+  }),
+  [ESM_MCP_ARGS]: decodeMcpExecEvent,
+};
+
+function decodeExecEventContext(
+  payload: Buffer
+): (ExecEventContext & { variantField: number }) | null {
+  const top = findField(decodeFields(payload), ASM_EXEC_SERVER_MESSAGE);
+  if (top?.wireType !== WT_LEN) return null;
+
+  const fields = decodeFields(top.bytes);
+  const idField = findField(fields, ESM_ID);
+  const variant = fields.find(
+    (field) => field.wireType === WT_LEN && field.fieldNumber !== ESM_EXEC_ID
+  );
+  if (!variant || variant.wireType !== WT_LEN) return null;
+  return {
+    execMsgId: idField?.wireType === WT_VARINT ? Number(idField.varint) : 0,
+    execId: findLengthDelimitedField(fields, ESM_EXEC_ID)?.toString("utf8") ?? "",
+    variantField: variant.fieldNumber,
+    variantBytes: variant.bytes,
+  };
+}
+
+export function decodeExecServerEvent(payload: Buffer): ExecServerEvent | null {
+  const context = decodeExecEventContext(payload);
+  if (!context) return null;
+  const decoder = EXEC_EVENT_DECODERS[context.variantField];
+  return decoder?.(context) ?? null;
 }
 
 /**
@@ -1316,6 +1288,87 @@ export function jsonSchemaToProtobufValue(json: unknown): Buffer {
  * Handles all six Value variants: null, number (double), string, bool,
  * struct (object), list (array). Unknown fields are skipped.
  */
+type ProtobufValueDecodeResult = { value: unknown; nextPos: number };
+type ProtobufValueDecoder = (
+  buf: Buffer,
+  pos: number,
+  wireType: number
+) => ProtobufValueDecodeResult;
+
+function readLengthDelimitedPayload(
+  buf: Buffer,
+  pos: number,
+  wireType: number
+): { payload: Buffer; nextPos: number } | null {
+  if (wireType !== WT_LEN) return null;
+  const [len, afterLength] = decodeVarint(buf, pos);
+  const lenN = checkedLen(len, afterLength, buf);
+  return {
+    payload: buf.subarray(afterLength, afterLength + lenN),
+    nextPos: afterLength + lenN,
+  };
+}
+
+function decodeNullValue(buf: Buffer, pos: number, wireType: number): ProtobufValueDecodeResult {
+  const nextPos = wireType === WT_VARINT ? decodeVarint(buf, pos)[1] : pos;
+  return { value: null, nextPos };
+}
+
+function decodeNumberValue(buf: Buffer, pos: number, wireType: number): ProtobufValueDecodeResult {
+  const valid = wireType === 1 && pos + 8 <= buf.length;
+  return { value: valid ? buf.readDoubleLE(pos) : 0, nextPos: valid ? pos + 8 : pos };
+}
+
+function decodeStringValue(buf: Buffer, pos: number, wireType: number): ProtobufValueDecodeResult {
+  const decoded = readLengthDelimitedPayload(buf, pos, wireType);
+  return {
+    value: decoded?.payload.toString("utf8") ?? "",
+    nextPos: decoded?.nextPos ?? pos,
+  };
+}
+
+function decodeBoolValue(buf: Buffer, pos: number, wireType: number): ProtobufValueDecodeResult {
+  if (wireType !== WT_VARINT) return { value: false, nextPos: pos };
+  const [value, nextPos] = decodeVarint(buf, pos);
+  return { value: value !== 0n, nextPos };
+}
+
+function decodeStructValue(buf: Buffer, pos: number, wireType: number): ProtobufValueDecodeResult {
+  const decoded = readLengthDelimitedPayload(buf, pos, wireType);
+  return {
+    value: decoded ? decodeProtobufStruct(decoded.payload) : {},
+    nextPos: decoded?.nextPos ?? pos,
+  };
+}
+
+function decodeListValue(buf: Buffer, pos: number, wireType: number): ProtobufValueDecodeResult {
+  const decoded = readLengthDelimitedPayload(buf, pos, wireType);
+  return {
+    value: decoded ? decodeProtobufList(decoded.payload) : [],
+    nextPos: decoded?.nextPos ?? pos,
+  };
+}
+
+const PROTOBUF_VALUE_DECODERS: Partial<Record<number, ProtobufValueDecoder>> = {
+  [VAL_NULL]: decodeNullValue,
+  [VAL_NUMBER]: decodeNumberValue,
+  [VAL_STRING]: decodeStringValue,
+  [VAL_BOOL]: decodeBoolValue,
+  [VAL_STRUCT]: decodeStructValue,
+  [VAL_LIST]: decodeListValue,
+};
+
+function skipUnknownProtobufField(buf: Buffer, pos: number, wireType: number): number {
+  if (wireType === WT_VARINT) return decodeVarint(buf, pos)[1];
+  if (wireType === WT_LEN) {
+    const [len, afterLength] = decodeVarint(buf, pos);
+    return afterLength + checkedLen(len, afterLength, buf);
+  }
+  if (wireType === 1) return pos + 8;
+  if (wireType === 5) return pos + 4;
+  return pos;
+}
+
 export function decodeProtobufValue(buf: Buffer): unknown {
   let pos = 0;
   while (pos < buf.length) {
@@ -1323,97 +1376,26 @@ export function decodeProtobufValue(buf: Buffer): unknown {
     pos = np;
     const fieldNumber = Number(t >> 3n);
     const wireType = Number(t & 0x7n);
-    switch (fieldNumber) {
-      case VAL_NULL: {
-        if (wireType === WT_VARINT) {
-          [, pos] = decodeVarint(buf, pos);
-        }
-        return null;
-      }
-      case VAL_NUMBER: {
-        if (wireType === 1 && pos + 8 <= buf.length) {
-          const value = buf.readDoubleLE(pos);
-          pos += 8;
-          return value;
-        }
-        return 0;
-      }
-      case VAL_STRING: {
-        if (wireType === WT_LEN) {
-          const [len, np2] = decodeVarint(buf, pos);
-          pos = np2;
-          const lenN = checkedLen(len, pos, buf);
-          const value = buf.subarray(pos, pos + lenN).toString("utf8");
-          pos += lenN;
-          return value;
-        }
-        return "";
-      }
-      case VAL_BOOL: {
-        if (wireType === WT_VARINT) {
-          const [val, np2] = decodeVarint(buf, pos);
-          pos = np2;
-          return val !== 0n;
-        }
-        return false;
-      }
-      case VAL_STRUCT: {
-        if (wireType === WT_LEN) {
-          const [len, np2] = decodeVarint(buf, pos);
-          pos = np2;
-          const lenN = checkedLen(len, pos, buf);
-          const inner = buf.subarray(pos, pos + lenN);
-          pos += lenN;
-          return decodeProtobufStruct(inner);
-        }
-        return {};
-      }
-      case VAL_LIST: {
-        if (wireType === WT_LEN) {
-          const [len, np2] = decodeVarint(buf, pos);
-          pos = np2;
-          const lenN = checkedLen(len, pos, buf);
-          const inner = buf.subarray(pos, pos + lenN);
-          pos += lenN;
-          return decodeProtobufList(inner);
-        }
-        return [];
-      }
-      default:
-        // Skip unknown field
-        if (wireType === WT_VARINT) {
-          [, pos] = decodeVarint(buf, pos);
-        } else if (wireType === WT_LEN) {
-          const [len, np2] = decodeVarint(buf, pos);
-          pos = np2;
-          pos += Number(len);
-        } else if (wireType === 1) {
-          pos += 8;
-        } else if (wireType === 5) {
-          pos += 4;
-        }
-    }
+    const decoder = PROTOBUF_VALUE_DECODERS[fieldNumber];
+    if (decoder) return decoder(buf, pos, wireType).value;
+    pos = skipUnknownProtobufField(buf, pos, wireType);
   }
   return null;
 }
 
+function decodeProtobufStructEntry(payload: Buffer): { key: string; value: unknown } | null {
+  const fields = decodeFields(payload);
+  const key = findLengthDelimitedField(fields, MAP_KEY)?.toString("utf8") ?? "";
+  const valueBytes = findLengthDelimitedField(fields, MAP_VALUE);
+  return key && valueBytes ? { key, value: decodeProtobufValue(valueBytes) } : null;
+}
+
 function decodeProtobufStruct(buf: Buffer): Record<string, unknown> {
   const result: Record<string, unknown> = {};
-  for (const f of decodeFields(buf)) {
-    if (f.fieldNumber === STRUCT_FIELDS && f.wireType === 2) {
-      let key = "";
-      let valueBytes: Buffer | null = null;
-      for (const entry of decodeFields(f.bytes)) {
-        if (entry.fieldNumber === MAP_KEY && entry.wireType === 2) {
-          key = entry.bytes.toString("utf8");
-        } else if (entry.fieldNumber === MAP_VALUE && entry.wireType === 2) {
-          valueBytes = entry.bytes;
-        }
-      }
-      if (key && valueBytes) {
-        result[key] = decodeProtobufValue(valueBytes);
-      }
-    }
+  for (const field of decodeFields(buf)) {
+    if (field.fieldNumber !== STRUCT_FIELDS || field.wireType !== WT_LEN) continue;
+    const entry = decodeProtobufStructEntry(field.bytes);
+    if (entry) result[entry.key] = entry.value;
   }
   return result;
 }
@@ -1477,6 +1459,39 @@ export type ChatMessage = {
   tool_call_id?: string;
 };
 
+function messageContentToText(content: ChatMessage["content"]): string {
+  if (typeof content === "string") return content;
+  if (!Array.isArray(content)) return "";
+  return content
+    .map((part) => (typeof part?.text === "string" ? part.text : ""))
+    .filter(Boolean)
+    .join("\n");
+}
+
+function assistantMessageLines(message: ChatMessage, text: string): string[] {
+  const lines = text ? [`Assistant: ${text}`] : [];
+  for (const toolCall of message.tool_calls ?? []) {
+    const name = toolCall.function?.name ?? "(unknown)";
+    const args = toolCall.function?.arguments ?? "";
+    lines.push(`Assistant called tool ${name} (${toolCall.id}) with arguments: ${args}`);
+  }
+  return lines;
+}
+
+function chatMessageLines(message: ChatMessage): string[] {
+  const text = messageContentToText(message.content);
+  if (message.role === "user") return text ? [`User: ${text}`] : [];
+  if (message.role === "assistant") return assistantMessageLines(message, text);
+  if (message.role === "tool") {
+    return [`Tool result (${message.tool_call_id ?? "(unknown)"}): ${text}`];
+  }
+  return text ? [`${message.role}: ${text}`] : [];
+}
+
+function joinSystemText(systemTexts: string[], body: string): string {
+  return systemTexts.length > 0 ? `${systemTexts.join("\n\n")}\n\n${body}` : body;
+}
+
 /**
  * Flatten an OpenAI-shaped message list down to a single user-text string
  * suitable for cursor's UserMessage. The agent endpoint expects ONE user
@@ -1490,57 +1505,23 @@ export type ChatMessage = {
 export function flattenMessages(messages: ChatMessage[]): string {
   if (!Array.isArray(messages) || messages.length === 0) return "";
 
-  const partsToText = (content: ChatMessage["content"]): string => {
-    if (typeof content === "string") return content;
-    if (content == null) return "";
-    if (!Array.isArray(content)) return "";
-    return content
-      .map((p) => (typeof p?.text === "string" ? p.text : ""))
-      .filter(Boolean)
-      .join("\n");
-  };
-
   // System instructions go first as a labeled prefix. (The cursor executor
   // routes system messages through the KV blob channel — see Phase 7 — but
   // this branch is kept for non-cursor callers.)
   const systemTexts = messages
     .filter((m) => m.role === "system")
-    .map((m) => partsToText(m.content))
+    .map((m) => messageContentToText(m.content))
     .filter(Boolean);
 
   const turn = messages.filter((m) => m.role !== "system");
 
   // Single-user-message fast path (no tool_calls, no labels).
   if (turn.length === 1 && turn[0].role === "user" && !turn[0].tool_calls) {
-    const userText = partsToText(turn[0].content);
-    return systemTexts.length > 0 ? `${systemTexts.join("\n\n")}\n\n${userText}` : userText;
+    return joinSystemText(systemTexts, messageContentToText(turn[0].content));
   }
 
   // Multi-turn / tool-using format. Each message is labeled. Tool calls
   // and tool results get their own labeled lines.
-  const lines: string[] = [];
-  for (const m of turn) {
-    const text = partsToText(m.content);
-    if (m.role === "user") {
-      if (text) lines.push(`User: ${text}`);
-    } else if (m.role === "assistant") {
-      if (text) lines.push(`Assistant: ${text}`);
-      if (Array.isArray(m.tool_calls)) {
-        for (const tc of m.tool_calls) {
-          const args = tc.function?.arguments ?? "";
-          lines.push(
-            `Assistant called tool ${tc.function?.name ?? "(unknown)"} ` +
-              `(${tc.id}) with arguments: ${args}`
-          );
-        }
-      }
-    } else if (m.role === "tool") {
-      const callId = m.tool_call_id ?? "(unknown)";
-      lines.push(`Tool result (${callId}): ${text}`);
-    } else {
-      if (text) lines.push(`${m.role}: ${text}`);
-    }
-  }
-  const labelled = lines.join("\n\n");
-  return systemTexts.length > 0 ? `${systemTexts.join("\n\n")}\n\n${labelled}` : labelled;
+  const labelled = turn.flatMap(chatMessageLines).join("\n\n");
+  return joinSystemText(systemTexts, labelled);
 }

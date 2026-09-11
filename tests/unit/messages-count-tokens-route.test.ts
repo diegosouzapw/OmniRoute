@@ -142,7 +142,7 @@ test("messages/count_tokens rejects retired Felo models instead of estimating lo
   assert.equal(JSON.stringify(body).includes("felo-web"), false);
 });
 
-test("messages/count_tokens does not mask retired ChatGPT Web models as a local estimate", async () => {
+test("messages/count_tokens does not mask the retired ChatGPT Web alias as a local estimate", async () => {
   const originalFetch = globalThis.fetch;
   let fetchCalls = 0;
   globalThis.fetch = async () => {
@@ -151,7 +151,7 @@ test("messages/count_tokens does not mask retired ChatGPT Web models as a local 
   };
 
   try {
-    for (const provider of ["chatgpt-web", "cgpt-web"]) {
+    for (const provider of ["cgpt-web"]) {
       const alias = `count-via-${provider}`;
       await modelAliasesDb.setModelAlias(alias, `${provider}/gpt-5.5`);
       await settingsDb.updateSettings({

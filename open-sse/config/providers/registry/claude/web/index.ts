@@ -9,6 +9,17 @@ export const claude_webProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "cookie",
   models: [
+    {
+      id: "claude-fable-5-1",
+      name: "Claude Fable 5.1 (web)",
+      toolCalling: false,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      supportsXHighEffort: true,
+      supportsVision: true,
+      contextLength: 1000000,
+      maxOutputTokens: 128000,
+    },
     { id: "claude-fable-5", name: "Claude Fable 5 (web)", toolCalling: false },
     {
       id: "claude-opus-5",

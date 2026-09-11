@@ -1,6 +1,6 @@
 /**
  * Tests for noAuth provider validation:
- * - Bug 1: `theoldllm` and `chipotle` missing from providerAllowsOptionalApiKey
+ * - Bug 1: `chipotle` missing from providerAllowsOptionalApiKey
  * - `kimi` API key provider stays on the dedicated Moonshot executor
  */
 import test from "node:test";
@@ -14,13 +14,7 @@ import {
 import { hasSpecializedExecutor } from "../../open-sse/executors/index.ts";
 
 // Bug 1: all noAuth providers should allow optional API key
-for (const provider of [
-  "theoldllm",
-  "chipotle",
-  "opencode",
-  "duckduckgo-web",
-  "veoaifree-web",
-]) {
+for (const provider of ["chipotle", "opencode", "duckduckgo-web", "veoaifree-web"]) {
   test(`${provider} allows optional API key (noAuth provider)`, () => {
     assert.equal(providerAllowsOptionalApiKey(provider), true);
   });
@@ -42,10 +36,9 @@ test("kimi-coding-apikey still has specialized executor", () => {
 
 test("provider proxy controls use a centralized no-auth capability allowlist", () => {
   assert.equal(supportsNoAuthProviderProxy("opencode"), true);
-  assert.equal(supportsNoAuthProviderProxy("theoldllm"), true);
 
   for (const providerId of Object.keys(NOAUTH_PROVIDERS)) {
-    if (providerId !== "opencode" && providerId !== "theoldllm") {
+    if (providerId !== "opencode") {
       assert.equal(supportsNoAuthProviderProxy(providerId), false, providerId);
     }
   }

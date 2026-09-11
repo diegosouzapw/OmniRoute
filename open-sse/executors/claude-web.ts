@@ -216,9 +216,10 @@ function makeErrorResponse(
     extraHeaders?: Record<string, string>;
   }
 ): Response {
-  const body = buildErrorBody(status, message, options?.details);
-  if (options?.type) body.error.type = options.type;
-  if (options?.code) body.error.code = options.code;
+  const body = buildErrorBody(status, message, options?.details, {
+    type: options?.type,
+    code: options?.code,
+  });
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (options?.extraHeaders) {
     for (const [key, value] of Object.entries(options.extraHeaders)) {

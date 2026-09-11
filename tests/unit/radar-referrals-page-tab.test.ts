@@ -17,11 +17,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import i18nConfig from "../../config/i18n.json" with { type: "json" };
 
-const PAGE_PATH = path.resolve(
-  process.cwd(),
-  "src/app/(dashboard)/dashboard/radar/page.tsx"
-);
+const PAGE_PATH = path.resolve(process.cwd(), "src/app/(dashboard)/dashboard/radar/page.tsx");
 const PAGE_SRC = fs.readFileSync(PAGE_PATH, "utf-8");
 
 test("radar page: fetches referrals only from the local /api/radar/referrals route", () => {
@@ -63,12 +61,9 @@ test("no new dashboard route was created for the free-credits feature (spec: reu
   );
 });
 
-test("every t(\"...\") key referenced in the referrals tab section exists (non-empty) in en.json", () => {
+test('every t("...") key referenced in the referrals tab section exists (non-empty) in en.json', () => {
   const enMessages = JSON.parse(
-    fs.readFileSync(
-      path.resolve(process.cwd(), "src/i18n/messages/en.json"),
-      "utf-8"
-    )
+    fs.readFileSync(path.resolve(process.cwd(), "src/i18n/messages/en.json"), "utf-8")
   );
   const radarPage = enMessages.radarPage as Record<string, unknown>;
   assert.ok(radarPage, "en.json must have a radarPage namespace");
@@ -87,16 +82,22 @@ test("every t(\"...\") key referenced in the referrals tab section exists (non-e
   ];
 
   for (const key of referencedKeys) {
-    assert.ok(PAGE_SRC.includes(`t("${key}")` ) || PAGE_SRC.includes(`t("${key}",`), `page.tsx must reference t("${key}")`);
+    assert.ok(
+      PAGE_SRC.includes(`t("${key}")`) || PAGE_SRC.includes(`t("${key}",`),
+      `page.tsx must reference t("${key}")`
+    );
     assert.equal(typeof radarPage[key], "string", `en.json radarPage.${key} must be a string`);
     assert.ok((radarPage[key] as string).length > 0, `en.json radarPage.${key} must be non-empty`);
   }
 });
 
-test("all 43 locale message files carry every new radarPage key with a non-empty value", () => {
+test("every locale message file (config/i18n.json) carries every new radarPage key with a non-empty value", () => {
   const messagesDir = path.resolve(process.cwd(), "src/i18n/messages");
   const files = fs.readdirSync(messagesDir).filter((f) => f.endsWith(".json"));
-  assert.ok(files.length >= 40, `expected ~43 locale files, found ${files.length}`);
+  assert.ok(
+    files.length >= i18nConfig.locales.length,
+    `expected the ${i18nConfig.locales.length} configured locales, found ${files.length}`
+  );
 
   const NEW_KEYS = [
     "catalogTab",

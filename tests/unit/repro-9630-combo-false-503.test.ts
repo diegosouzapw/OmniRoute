@@ -70,7 +70,11 @@ test("#9630: combo returns truthful error, not false ALL_ACCOUNTS_INACTIVE, when
     },
     isModelAvailable: async () => true,
     log: { info: () => {}, warn: () => {}, debug: () => {}, error: () => {} },
-    settings: null,
+    settings: {
+      resilienceSettings: {
+        comboCooldownWait: { enabled: false },
+      },
+    },
     relayOptions: null,
     allCombos: null,
   });

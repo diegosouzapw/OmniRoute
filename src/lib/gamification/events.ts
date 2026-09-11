@@ -44,6 +44,16 @@ export async function emitGamificationEvent(params: {
     // 1. Award XP
     const xpAmount = getXpForAction(action);
     if (xpAmount > 0) {
+      // Anti-cheat gate (#2403): the per-key 1000 XP/min rate limit and the z-score anomaly
+      // check run before anything is persisted. A rejected award is dropped and logged — the
+      // caller is fire-and-forget, so this must never throw.
+      const { validateScoreChange } = await import("./antiCheat");
+      const verdict = await validateScoreChange(apiKeyId, action, xpAmount);
+      if (!verdict.allowed) {
+        log.warn("events.award_rejected", { apiKeyId, action, xpAmount, reason: verdict.reason });
+        return;
+      }
+
       const { addXp } = await import("../db/gamification");
       addXp(apiKeyId, action, xpAmount, metadata ? JSON.stringify(metadata) : undefined);
 

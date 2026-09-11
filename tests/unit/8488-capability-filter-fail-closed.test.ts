@@ -320,3 +320,32 @@ test("auto context estimate still dispatches when all known limits look too smal
   assert.equal(result.status, 200);
   assert.deepEqual(dispatches, ["openai/tiny"]);
 });
+
+test("#12229 exhaustion: output_tokens exclusion names max_tokens vs the model ceiling", () => {
+  saveModelsDevCapabilities({
+    claude: {
+      "claude-haiku-4-5-20251001": capabilityEntry(200000, {
+        tool_call: true,
+        structured_output: true,
+        limit_output: 64000,
+      }),
+    },
+  });
+
+  const targets = [target("claude", "claude/claude-haiku-4-5-20251001")];
+  const body = {
+    messages: [{ role: "user", content: "hoi wie ben je?" }],
+    max_tokens: 100000,
+  };
+
+  const exhaustion = describeCapabilityFilterExhaustion(targets, body, "hermes-main");
+  assert.ok(exhaustion);
+  assert.deepEqual(exhaustion!.unmet, ["output_tokens"]);
+  assert.equal(exhaustion!.excluded[0].reason, "output_tokens");
+  assert.equal(
+    exhaustion!.message,
+    "No target in combo hermes-main can produce the requested max_tokens=100000; the highest known output limit in the pool is 64000"
+  );
+  assert.doesNotMatch(exhaustion!.message, /structured output/i);
+  assert.equal(exhaustion!.terminalReason, "capability_mismatch");
+});

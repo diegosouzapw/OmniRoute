@@ -453,9 +453,10 @@ function makeChunk(
 }
 
 function protocolErrorBody(): Record<string, unknown> {
-  const body = buildErrorBody(502, "Claude Web stream protocol error");
-  body.error.type = "upstream_protocol_error";
-  body.error.code = "claude_web_protocol_error";
+  const body = buildErrorBody(502, "Claude Web stream protocol error", undefined, {
+    type: "upstream_protocol_error",
+    code: "claude_web_protocol_error",
+  });
   return body as unknown as Record<string, unknown>;
 }
 

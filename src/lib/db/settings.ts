@@ -840,6 +840,8 @@ export {
   setLKGP,
   clearAllLKGP,
   clearLKGP,
+  deleteLKGPByComboName,
+  deleteLKGPRowsByComboName,
   deleteLKGPByConnectionIds,
 } from "./settings/lkgp";
 

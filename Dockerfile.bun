@@ -31,10 +31,8 @@ COPY scripts/dev/sync-env.mjs ./scripts/dev/sync-env.mjs
 # Fast Bun native package install
 RUN bun install --include=optional --quiet
 
-# Fetch tls-client-node native binary if script exists
-RUN if [ -f "node_modules/tls-client-node/scripts/postinstall.js" ] && [ ! -d "node_modules/tls-client-node/bin" ]; then \
-      bun node_modules/tls-client-node/scripts/postinstall.js || true; \
-    fi
+# Fail the build if wreq-js cannot resolve its current platform binding.
+RUN bun -e "const wreq = require('wreq-js'); if (typeof wreq.createTransport !== 'function') process.exit(1)"
 
 # Smoke check native database driver used by Bun (bun:sqlite)
 RUN bun -e "import { Database } from 'bun:sqlite'; const db = new Database(':memory:'); db.query('SELECT 1 AS ok').get(); db.close(); console.log('bun:sqlite smoke: OK');"

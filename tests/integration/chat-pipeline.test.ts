@@ -171,7 +171,7 @@ function buildOpenAIToolCallResponse({
   );
 }
 
-function buildClaudeResponse(text = "ok", model = "claude-3-5-sonnet-20241022") {
+function buildClaudeResponse(text = "ok", model = "claude-sonnet-4-6") {
   return new Response(
     JSON.stringify({
       id: "msg_json",
@@ -287,7 +287,7 @@ function buildOpenAIStreamResponse(text = "streamed from openai") {
 
 function buildOpenAIResponsesSSE({
   text = "responses streamed from codex",
-  model = "gpt-5.1-codex",
+  model = "gpt-5.6-sol",
   usage = null,
 } = {}) {
   return new Response(
@@ -655,7 +655,7 @@ test("chat pipeline persists Codex responses cache and reasoning tokens to call 
     buildRequest({
       url: "http://localhost/v1/responses",
       body: {
-        model: "codex/gpt-5.1-codex",
+        model: "codex/gpt-5.6-sol",
         stream: false,
         input: "Persist cache + reasoning usage",
       },
@@ -1071,7 +1071,7 @@ test("chat pipeline translates OpenAI requests to Claude and returns OpenAI-shap
   const response = await handleChat(
     buildRequest({
       body: {
-        model: "claude/claude-3-5-sonnet-20241022",
+        model: "claude/claude-sonnet-4-6",
         stream: false,
         messages: [{ role: "user", content: "Hello Claude" }],
       },
@@ -1357,6 +1357,10 @@ test("chat pipeline returns current no-credentials contract when no provider con
 
 test("chat pipeline surfaces upstream 500 responses as structured errors", async () => {
   await seedConnection("openai", { apiKey: "sk-openai-500" });
+  await settingsDb.updateSettings({
+    requestRetry: 0,
+    maxRetryIntervalSec: 0,
+  });
 
   globalThis.fetch = async () =>
     new Response(JSON.stringify({ error: { message: "provider exploded" } }), {
@@ -1654,7 +1658,7 @@ test("chat pipeline falls back across combo models when the first provider fails
     name: "combo-fallback",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0 },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022"],
+    models: ["openai/gpt-4o-mini", "claude/claude-sonnet-4-6"],
   });
   const attempts = [];
 

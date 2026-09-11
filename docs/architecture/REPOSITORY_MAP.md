@@ -121,7 +121,7 @@ src/
 ├── domain/              # Pure domain logic (policy engine, fallback, cost, lockout, comboResolver, assessment)
 ├── server/              # Server-only modules (authz pipeline, cors, auth middleware) — cannot import from client
 ├── shared/              # Shared between server and client where safe (constants, types, validation, contracts, utils)
-├── i18n/                # next-intl config + per-locale message JSON (43 locales)
+├── i18n/                # next-intl config + per-locale message JSON (42 locales)
 ├── middleware/          # Next.js middleware (request enrichment, locale detection)
 ├── mitm/                # MITM proxy core: cert gen/install, handlers, targets, inspector, masks, passthrough
 │   ├── handlers/        # 9 IDE-agent handler classes extending MitmHandlerBase (antigravity, kiro, copilot, codex, cursor, zed, claudeCode, openCode, trae)
@@ -180,7 +180,7 @@ src/
 | `compliance/`                            | Audit log + provider audit — see `docs/security/COMPLIANCE.md`                                                                                                                                                                                                                                                          |
 | `compression/`                           | Compression engine glue (engines live in `open-sse/services/compression/`)                                                                                                                                                                                                                                              |
 | `config/`                                | Runtime config helpers                                                                                                                                                                                                                                                                                                  |
-| `db/`                                    | 120+ domain DB modules + 167 migrations (always go through here for SQLite)                                                                                                                                                                                                                                             |
+| `db/`                                    | 120+ domain DB modules + 168 migrations (always go through here for SQLite)                                                                                                                                                                                                                                             |
 | `quota/`                                 | Quota Sharing Engine: `dimensions.ts` (types/Zod), `types.ts` (QuotaStore interface), `sqliteQuotaStore.ts`, `redisQuotaStore.ts`, `storeFactory.ts`, `fairShare.ts`, `burnRate.ts`, `planResolver.ts`, `planRegistry.ts`, `saturationSignals.ts`, `enforce.ts`, `spendRecorder.ts` — see `docs/routing/QUOTA_SHARE.md` |
 | `radar/`                                 | Radar free-model catalog client: `feedSchema.ts`, `pinnedKeys.ts`, `verify.ts`, `sync.ts`, `applyFeed.ts`, `index.ts` (`getRadarCatalog()`) — see `docs/frameworks/RADAR.md`                                                                                                                                            |
 | `display/`                               | UI formatting helpers (cost, latency, etc.)                                                                                                                                                                                                                                                                             |
@@ -206,7 +206,7 @@ src/
 | `cacheLayer.ts`, `idempotencyLayer.ts`   | Request caching + idempotency                                                                                                                                                                                                                                                                                           |
 | (~30 more top-level files)               | Specialized helpers (logEnv, modelsDevSync, piiSanitizer, etc.)                                                                                                                                                                                                                                                         |
 
-### `src/lib/db/` — Database (122 modules + 167 migrations)
+### `src/lib/db/` — Database (122 modules + 168 migrations)
 
 | Subdir                    | Purpose                                                                                                                                                                    |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -241,7 +241,7 @@ src/
 
 | Module                           | Purpose                                                                |
 | -------------------------------- | ---------------------------------------------------------------------- |
-| `constants/providers.ts`         | **352 providers** with Zod validation (source of truth)                |
+| `constants/providers.ts`         | **355 providers** with Zod validation (source of truth)                |
 | `constants/cliTools.ts`          | External CLI tool registry                                             |
 | `constants/routingStrategies.ts` | **19 routing strategies** with priorities                              |
 | `constants/publicApiRoutes.ts`   | Routes that require Bearer (vs management) auth                        |
@@ -396,9 +396,9 @@ open-sse/
 | `COVERAGE_PLAN.md`          | Coverage goals and current state                                                      |
 | `FREE_TIERS.md`             | Curated free-tier providers (48+ free + 11 OAuth)                                     |
 | `CLI-TOOLS.md`              | External CLI integrations + Internal OmniRoute CLI                                    |
-| `I18N.md`                   | i18n architecture, adding a language, 43 locales                                      |
+| `I18N.md`                   | i18n architecture, adding a language, 42 locales                                      |
 | `UNINSTALL.md`              | Clean uninstall steps                                                                 |
-| `PROVIDER_REFERENCE.md`     | **Auto-generated** catalog of 352 providers (regen: `npm run gen:provider-reference`) |
+| `PROVIDER_REFERENCE.md`     | **Auto-generated** catalog of 355 providers (regen: `npm run gen:provider-reference`) |
 
 ### Subsystem deep-dives
 
@@ -448,7 +448,7 @@ open-sse/
 
 | Subdir                | Purpose                                                                                                                                                                                        |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `docs/i18n/`          | Localized doc translations (42 locales)                                                                                                                                                        |
+| `docs/i18n/`          | Localized doc translations (41 locales)                                                                                                                                                        |
 | `docs/screenshots/`   | Image assets for guides                                                                                                                                                                        |
 | `_tasks/superpowers/` | Plans/specs from superpowers (`writing-plans`/`brainstorming`) + research — isolated, separately-versioned repo, gitignored by the main tree. See CLAUDE.md → "Planning & Research Artifacts". |
 

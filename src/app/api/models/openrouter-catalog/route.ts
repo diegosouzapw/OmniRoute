@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { getOpenRouterCatalog, refreshOpenRouterCatalog } from "@/lib/catalog/openrouterCatalog";
 import { getSettings } from "@/lib/db/settings";
-import { isFreeModel } from "@/shared/utils/freeModels";
+import { isFreeForProvider } from "@/shared/utils/freeModels";
 
 export async function GET(req: NextRequest) {
   // Require authentication (dashboard/API key)
@@ -29,7 +29,9 @@ export async function GET(req: NextRequest) {
     hidePaid = settings?.hidePaidModels === true;
   } catch {}
   const applyFilter = <T extends { id?: string }>(data: T[]): T[] =>
-    hidePaid ? data.filter((m) => isFreeModel("or", m as { id: string; pricing?: unknown })) : data;
+    hidePaid
+      ? data.filter((m) => isFreeForProvider("openrouter", m as { id: string; pricing?: unknown }))
+      : data;
 
   const forceRefresh = req.nextUrl.searchParams.get("refresh") === "true";
 

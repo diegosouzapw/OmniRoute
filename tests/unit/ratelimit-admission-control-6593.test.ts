@@ -239,6 +239,18 @@ test("#6593 a maxWaitMs override of 0 is treated as no override", () => {
   }
 });
 
+test("maxai receives a provider-scoped 5min execution budget (slow reasoning models)", () => {
+  // The default 15s Bottleneck expiration kills MaxAI reasoning turns (30s-min+)
+  // mid-think; maxai (and its mx alias) floor at 300s so they complete.
+  assert.equal(rateLimitManager.resolveRequestQueueMaxWaitMs("maxai", 15_000), 300_000);
+  assert.equal(rateLimitManager.resolveRequestQueueMaxWaitMs("MaxAI", 15_000), 300_000);
+  assert.equal(rateLimitManager.resolveRequestQueueMaxWaitMs("mx", 15_000), 300_000);
+  // A larger configured value is preserved (floor never lowers it).
+  assert.equal(rateLimitManager.resolveRequestQueueMaxWaitMs("maxai", 600_000), 600_000);
+  // Other providers are unaffected.
+  assert.equal(rateLimitManager.resolveRequestQueueMaxWaitMs("openai", 15_000), 15_000);
+});
+
 test("#6593 DEFAULT_REQUEST_QUEUE_MAX_DEPTH defaults to 0 (disabled) absent an env override", () => {
   assert.equal(process.env.RATE_LIMIT_MAX_QUEUE_DEPTH, undefined);
   assert.equal(resilienceSettings.DEFAULT_REQUEST_QUEUE_MAX_DEPTH, 0);

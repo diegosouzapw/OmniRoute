@@ -1,1 +1,0 @@
-- **fix(quota-share):** in-flight leases are per request, so an aborted request's slot ages out instead of being kept alive by later traffic on the same connection ([#11547](https://github.com/diegosouzapw/OmniRoute/pull/11547)) — thanks @abhisheksharma2411

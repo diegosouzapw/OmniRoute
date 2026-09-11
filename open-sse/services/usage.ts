@@ -61,6 +61,9 @@ import { getQoderUsage, parseQoderUserStatusUsage } from "./usage/qoder.ts";
 export { parseQoderUserStatusUsage } from "./usage/qoder.ts";
 import { getOpencodeUsage } from "./usage/opencode.ts";
 import { getDeepseekUsage } from "./usage/deepseek.ts";
+import { getMoonshotOpenPlatformUsage } from "./moonshotQuotaFetcher.ts";
+import { isMoonshotOpenPlatformConnection } from "./usage/moonshotOpenPlatform.ts";
+import { getDevinCliUsage } from "./usage/devinCli.ts";
 import { getBailianCodingPlanUsage } from "./usage/bailian.ts";
 import { getVertexUsage } from "./usage/vertex.ts";
 import { getXiaomiMimoUsage } from "./usage/xiaomi-mimo.ts";
@@ -109,6 +112,10 @@ export async function getUsageForProvider(
   options: { forceRefresh?: boolean } = {}
 ) {
   const { id, provider, accessToken, apiKey, providerSpecificData, projectId, email } = connection;
+
+  if (isMoonshotOpenPlatformConnection(connection)) {
+    return await getMoonshotOpenPlatformUsage(connection);
+  }
 
   switch (provider) {
     case "github":
@@ -167,6 +174,9 @@ export async function getUsageForProvider(
       return await getNanoGptUsage(apiKey || "");
     case "deepseek":
       return await getDeepseekUsage(id || "", apiKey || "");
+    case "moonshot":
+    case "kimi":
+      return await getMoonshotOpenPlatformUsage(connection);
     case "openrouter":
       return await getOpenrouterUsage(id || "", apiKey || "", providerSpecificData);
     case "opencode":
@@ -208,6 +218,9 @@ export async function getUsageForProvider(
       return await getAgentrouterUsage(id, connection);
     case "kilocode":
       return await getKilocodeUsage(id, connection);
+    case "devin-cli":
+      // Devin CLI tokens live in `accessToken` (oauth import) or `apiKey`.
+      return await getDevinCliUsage(apiKey || accessToken);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }

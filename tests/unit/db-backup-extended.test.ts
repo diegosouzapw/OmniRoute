@@ -97,6 +97,32 @@ test("backupDbFile creates manual backups and listDbBackups returns metadata", a
   assert.equal(fs.existsSync(backupPath), true);
 });
 
+test("listDbBackups orders mixed timestamp and content-addressed names by mtime", async () => {
+  seedConnections(2);
+  fs.mkdirSync(core.DB_BACKUPS_DIR, { recursive: true });
+
+  const lexicallyFutureButOld = "db_2099-01-01T00-00-00-000Z_manual.sqlite";
+  const timestampMiddle = "db_2026-09-02T00-00-00-000Z_manual.sqlite";
+  const contentAddressedNewest = `db_state-${"a".repeat(64)}_pre-migration.sqlite`;
+  for (const filename of [lexicallyFutureButOld, timestampMiddle, contentAddressedNewest]) {
+    await core.getDbInstance().backup(path.join(core.DB_BACKUPS_DIR, filename));
+  }
+
+  const now = Date.now() / 1000;
+  fs.utimesSync(path.join(core.DB_BACKUPS_DIR, lexicallyFutureButOld), now - 120, now - 120);
+  fs.utimesSync(path.join(core.DB_BACKUPS_DIR, timestampMiddle), now - 60, now - 60);
+  fs.utimesSync(path.join(core.DB_BACKUPS_DIR, contentAddressedNewest), now, now);
+
+  const backups = await backupDb.listDbBackups();
+  assert.deepEqual(
+    backups.map((backup) => backup.id),
+    [contentAddressedNewest, timestampMiddle, lexicallyFutureButOld],
+    "content-addressed migration snapshots must not make filename order masquerade as recency"
+  );
+  assert.equal(backups[0]?.reason, "pre-migration");
+  assert.equal(backups[0]?.connectionCount, 2);
+});
+
 test("listDbBackups returns an empty list when the backup directory is missing", async () => {
   fs.rmSync(core.DB_BACKUPS_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   const backups = await backupDb.listDbBackups();

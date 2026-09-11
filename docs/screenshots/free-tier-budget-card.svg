@@ -1,94 +1,104 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="536" viewBox="0 0 900 536" font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
-<rect width="900" height="536" rx="16" fill="#0d1117"/>
-<rect x="16" y="16" width="868" height="520" rx="13" fill="#161b22" stroke="#30363d"/>
-<text x="868" y="528" fill="#484f58" font-size="10.5" text-anchor="end">OmniRoute · /dashboard/free-tiers · preview mockup</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="580" viewBox="0 0 900 580" font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+<rect width="900" height="580" rx="16" fill="#0d1117"/>
+<rect x="16" y="16" width="868" height="564" rx="13" fill="#161b22" stroke="#30363d"/>
+<text x="868" y="572" fill="#484f58" font-size="10.5" text-anchor="end">OmniRoute · /dashboard/free-tiers · preview mockup</text>
 <text x="32" y="50" fill="#e6edf3" font-size="18" font-weight="700">Monthly free-token budget</text>
-<text x="868" y="50" fill="#7d8590" font-size="13" text-anchor="end">20 free pools · 446 models · one endpoint</text>
+<text x="868" y="50" fill="#7d8590" font-size="13" text-anchor="end">21 free pools · 444 models · one endpoint</text>
 <text x="32" y="84" fill="#7d8590" font-size="11.5">Steady / month</text>
-<text x="32" y="114" fill="#e6edf3" font-size="27" font-weight="800">~1.51B</text>
+<text x="32" y="114" fill="#e6edf3" font-size="27" font-weight="800">~1.47B</text>
 <text x="330" y="84" fill="#7d8590" font-size="11.5">First month (+ signup credits)</text>
-<text x="330" y="114" fill="#3fb950" font-size="27" font-weight="800">~2.13B</text>
+<text x="330" y="114" fill="#3fb950" font-size="27" font-weight="800">~2.10B</text>
 <text x="700" y="84" fill="#7d8590" font-size="11.5">ToS-flagged (you decide)</text>
 <text x="700" y="114" fill="#d29922" font-size="27" font-weight="800">13 providers</text>
 <clipPath id="bar"><rect x="32" y="132" width="836" height="16" rx="8"/></clipPath>
 <g clip-path="url(#bar)"><rect x="32" y="132" width="836" height="16" fill="#21262d"/>
-<rect x="32.0" y="132" width="492.8" height="16" fill="#6c5ce7"/>
-<rect x="524.2" y="132" width="80.4" height="16" fill="#00b894"/>
-<rect x="604.0" y="132" width="80.4" height="16" fill="#0984e3"/>
-<rect x="683.8" y="132" width="36.7" height="16" fill="#e17055"/>
-<rect x="719.9" y="132" width="22.2" height="16" fill="#fdcb6e"/>
-<rect x="741.5" y="132" width="19.2" height="16" fill="#e84393"/>
-<rect x="760.1" y="132" width="17.3" height="16" fill="#00cec9"/>
-<rect x="776.8" y="132" width="11.1" height="16" fill="#d63031"/>
-<rect x="787.3" y="132" width="10.5" height="16" fill="#a29bfe"/>
-<rect x="797.2" y="132" width="9.9" height="16" fill="#55efc4"/>
-<rect x="806.6" y="132" width="9.8" height="16" fill="#74b9ff"/>
-<rect x="815.7" y="132" width="9.3" height="16" fill="#ffeaa7"/>
-<rect x="824.5" y="132" width="8.2" height="16" fill="#fab1a0"/>
-<rect x="832.1" y="132" width="8.0" height="16" fill="#81ecec"/>
-<rect x="839.5" y="132" width="7.8" height="16" fill="#6c5ce7"/>
-<rect x="846.7" y="132" width="7.8" height="16" fill="#00b894"/>
-<rect x="853.9" y="132" width="7.7" height="16" fill="#0984e3"/>
-<rect x="861.0" y="132" width="7.6" height="16" fill="#e17055"/>
+<rect x="32.0" y="132" width="475.3" height="16" fill="#6c5ce7"/>
+<rect x="506.7" y="132" width="105.8" height="16" fill="#00b894"/>
+<rect x="611.9" y="132" width="77.8" height="16" fill="#0984e3"/>
+<rect x="689.0" y="132" width="21.6" height="16" fill="#e17055"/>
+<rect x="710.1" y="132" width="18.8" height="16" fill="#fdcb6e"/>
+<rect x="728.3" y="132" width="11.0" height="16" fill="#e84393"/>
+<rect x="738.7" y="132" width="10.4" height="16" fill="#00cec9"/>
+<rect x="748.5" y="132" width="10.4" height="16" fill="#d63031"/>
+<rect x="758.3" y="132" width="10.4" height="16" fill="#a29bfe"/>
+<rect x="768.1" y="132" width="10.4" height="16" fill="#55efc4"/>
+<rect x="777.9" y="132" width="10.4" height="16" fill="#74b9ff"/>
+<rect x="787.7" y="132" width="10.4" height="16" fill="#ffeaa7"/>
+<rect x="797.5" y="132" width="9.8" height="16" fill="#fab1a0"/>
+<rect x="806.8" y="132" width="9.7" height="16" fill="#81ecec"/>
+<rect x="815.9" y="132" width="9.3" height="16" fill="#6c5ce7"/>
+<rect x="824.5" y="132" width="8.2" height="16" fill="#00b894"/>
+<rect x="832.1" y="132" width="8.0" height="16" fill="#0984e3"/>
+<rect x="839.5" y="132" width="7.8" height="16" fill="#e17055"/>
+<rect x="846.7" y="132" width="7.8" height="16" fill="#fdcb6e"/>
+<rect x="853.9" y="132" width="7.7" height="16" fill="#e84393"/>
+<rect x="861.0" y="132" width="7.6" height="16" fill="#00cec9"/>
 </g>
 <text x="32" y="172" fill="#7d8590" font-size="12">Each segment = one free pool · widths floored so every provider shows · honest numbers in the grid.</text>
 <circle cx="37" cy="196" r="5" fill="#6c5ce7"/>
 <text x="48" y="200" fill="#c9d1d9" font-size="12.5">Mistral Large 3 <tspan fill="#7d8590">1.00B</tspan></text>
 <circle cx="250" cy="196" r="5" fill="#00b894"/>
-<text x="261" y="200" fill="#c9d1d9" font-size="12.5">GPT-4o mini <tspan fill="#7d8590">150M</tspan></text>
+<text x="261" y="200" fill="#c9d1d9" font-size="12.5">Agnes 2.0 Flash <tspan fill="#7d8590">210M</tspan></text>
 <circle cx="463" cy="196" r="5" fill="#0984e3"/>
-<text x="474" y="200" fill="#c9d1d9" font-size="12.5">Tencent Hy3 <tspan fill="#7d8590">150M</tspan></text>
+<text x="474" y="200" fill="#c9d1d9" font-size="12.5">GPT-4o mini <tspan fill="#7d8590">150M</tspan></text>
 <circle cx="676" cy="196" r="5" fill="#e17055"/>
-<text x="687" y="200" fill="#c9d1d9" font-size="12.5">Gemini 2.5 Flash <tspan fill="#7d8590">60M</tspan></text>
+<text x="687" y="200" fill="#c9d1d9" font-size="12.5">Llama 3.3 70B <tspan fill="#7d8590">30M</tspan></text>
 <circle cx="37" cy="226" r="5" fill="#fdcb6e"/>
-<text x="48" y="230" fill="#c9d1d9" font-size="12.5">Llama 3.3 70B <tspan fill="#7d8590">30M</tspan></text>
+<text x="48" y="230" fill="#c9d1d9" font-size="12.5">Grok-3 <tspan fill="#7d8590">24M</tspan></text>
 <circle cx="250" cy="226" r="5" fill="#e84393"/>
-<text x="261" y="230" fill="#c9d1d9" font-size="12.5">Grok-3 <tspan fill="#7d8590">24M</tspan></text>
+<text x="261" y="230" fill="#c9d1d9" font-size="12.5">GPT-4o <tspan fill="#7d8590">7M</tspan></text>
 <circle cx="463" cy="226" r="5" fill="#00cec9"/>
-<text x="474" y="230" fill="#c9d1d9" font-size="12.5">DeepSeek V4 Pro <tspan fill="#7d8590">20M</tspan></text>
+<text x="474" y="230" fill="#c9d1d9" font-size="12.5">GPT-OSS 120B <tspan fill="#7d8590">6M</tspan></text>
 <circle cx="676" cy="226" r="5" fill="#d63031"/>
-<text x="687" y="230" fill="#c9d1d9" font-size="12.5">GPT-4o <tspan fill="#7d8590">7M</tspan></text>
+<text x="687" y="230" fill="#c9d1d9" font-size="12.5">GPT-OSS 20B <tspan fill="#7d8590">6M</tspan></text>
 <circle cx="37" cy="256" r="5" fill="#a29bfe"/>
-<text x="48" y="260" fill="#c9d1d9" font-size="12.5">MiniMax-M2.7 <tspan fill="#7d8590">6M</tspan></text>
+<text x="48" y="260" fill="#c9d1d9" font-size="12.5">GPT-OSS Safeguard 20B <tspan fill="#7d8590">6M</tspan></text>
 <circle cx="250" cy="256" r="5" fill="#55efc4"/>
-<text x="261" y="260" fill="#c9d1d9" font-size="12.5">Arcee Trinity Large Prev <tspan fill="#7d8590">5M</tspan></text>
+<text x="261" y="260" fill="#c9d1d9" font-size="12.5">Qwen3.6 27B <tspan fill="#7d8590">6M</tspan></text>
 <circle cx="463" cy="256" r="5" fill="#74b9ff"/>
-<text x="474" y="260" fill="#c9d1d9" font-size="12.5">NavyAI free pool <tspan fill="#7d8590">5M</tspan></text>
+<text x="474" y="260" fill="#c9d1d9" font-size="12.5">Qwen3.8 27B <tspan fill="#7d8590">6M</tspan></text>
 <circle cx="676" cy="256" r="5" fill="#ffeaa7"/>
-<text x="687" y="260" fill="#c9d1d9" font-size="12.5">Auto Free <tspan fill="#7d8590">4M</tspan></text>
+<text x="687" y="260" fill="#c9d1d9" font-size="12.5">MiniMax-M2.7 <tspan fill="#7d8590">6M</tspan></text>
 <circle cx="37" cy="286" r="5" fill="#fab1a0"/>
-<text x="48" y="290" fill="#c9d1d9" font-size="12.5">Auto <tspan fill="#7d8590">1M</tspan></text>
+<text x="48" y="290" fill="#c9d1d9" font-size="12.5">Arcee Trinity Large Prev <tspan fill="#7d8590">5M</tspan></text>
 <circle cx="250" cy="286" r="5" fill="#81ecec"/>
-<text x="261" y="290" fill="#c9d1d9" font-size="12.5">Command A Reasoning <tspan fill="#7d8590">800K</tspan></text>
+<text x="261" y="290" fill="#c9d1d9" font-size="12.5">NavyAI free pool <tspan fill="#7d8590">5M</tspan></text>
 <circle cx="463" cy="286" r="5" fill="#6c5ce7"/>
-<text x="474" y="290" fill="#c9d1d9" font-size="12.5">ERNIE 4.5 VL 424B A47B B <tspan fill="#7d8590">500K</tspan></text>
+<text x="474" y="290" fill="#c9d1d9" font-size="12.5">Auto Free <tspan fill="#7d8590">4M</tspan></text>
 <circle cx="676" cy="286" r="5" fill="#00b894"/>
-<text x="687" y="290" fill="#c9d1d9" font-size="12.5">morph-v3-large <tspan fill="#7d8590">400K</tspan></text>
+<text x="687" y="290" fill="#c9d1d9" font-size="12.5">Auto <tspan fill="#7d8590">1M</tspan></text>
 <circle cx="37" cy="316" r="5" fill="#0984e3"/>
-<text x="48" y="320" fill="#c9d1d9" font-size="12.5">Llama 3.1 8B <tspan fill="#7d8590">200K</tspan></text>
+<text x="48" y="320" fill="#c9d1d9" font-size="12.5">Command A Reasoning <tspan fill="#7d8590">800K</tspan></text>
 <circle cx="250" cy="316" r="5" fill="#e17055"/>
-<text x="261" y="320" fill="#c9d1d9" font-size="12.5">Claude Sonnet 4.5 <tspan fill="#7d8590">25K</tspan></text>
-<line x1="32" y1="356" x2="868" y2="356" stroke="#30363d"/>
-<text x="32" y="382" fill="#3fb950" font-size="13" font-weight="700">+ First month: one-time signup credits (~626M)</text>
-<rect x="32" y="391" width="90" height="22" rx="11" fill="#13311f" stroke="#238636"/>
-<text x="77" y="406" fill="#7ee787" font-size="11.5" text-anchor="middle">vertex 300M</text>
-<rect x="130" y="391" width="123" height="22" rx="11" fill="#13311f" stroke="#238636"/>
-<text x="191" y="406" fill="#7ee787" font-size="11.5" text-anchor="middle">agentrouter 200M</text>
-<rect x="261" y="391" width="103" height="22" rx="11" fill="#13311f" stroke="#238636"/>
-<text x="312" y="406" fill="#7ee787" font-size="11.5" text-anchor="middle">predibase 25M</text>
-<rect x="372" y="391" width="96" height="22" rx="11" fill="#13311f" stroke="#238636"/>
-<text x="420" y="406" fill="#7ee787" font-size="11.5" text-anchor="middle">together 25M</text>
-<rect x="476" y="391" width="83" height="22" rx="11" fill="#13311f" stroke="#238636"/>
-<text x="518" y="406" fill="#7ee787" font-size="11.5" text-anchor="middle">glm-cn 20M</text>
-<rect x="567" y="391" width="83" height="22" rx="11" fill="#13311f" stroke="#238636"/>
-<text x="609" y="406" fill="#7ee787" font-size="11.5" text-anchor="middle">doubao 15M</text>
-<rect x="658" y="391" width="70" height="22" rx="11" fill="#13311f" stroke="#238636"/>
-<text x="693" y="406" fill="#7ee787" font-size="11.5" text-anchor="middle">ai21 10M</text>
-<rect x="736" y="391" width="90" height="22" rx="11" fill="#13311f" stroke="#238636"/>
-<text x="781" y="406" fill="#7ee787" font-size="11.5" text-anchor="middle">longcat 10M</text>
+<text x="261" y="320" fill="#c9d1d9" font-size="12.5">ERNIE 4.5 VL 424B A47B B <tspan fill="#7d8590">500K</tspan></text>
+<circle cx="463" cy="316" r="5" fill="#fdcb6e"/>
+<text x="474" y="320" fill="#c9d1d9" font-size="12.5">morph-v3-large <tspan fill="#7d8590">400K</tspan></text>
+<circle cx="676" cy="316" r="5" fill="#e84393"/>
+<text x="687" y="320" fill="#c9d1d9" font-size="12.5">Llama 3.1 8B <tspan fill="#7d8590">200K</tspan></text>
+<circle cx="37" cy="346" r="5" fill="#00cec9"/>
+<text x="48" y="350" fill="#c9d1d9" font-size="12.5">Claude Sonnet 4.5 <tspan fill="#7d8590">25K</tspan></text>
+<line x1="32" y1="386" x2="868" y2="386" stroke="#30363d"/>
+<text x="32" y="412" fill="#3fb950" font-size="13" font-weight="700">+ First month: one-time signup credits (~626M)</text>
 <rect x="32" y="421" width="90" height="22" rx="11" fill="#13311f" stroke="#238636"/>
-<text x="77" y="436" fill="#7ee787" font-size="11.5" text-anchor="middle">deepseek 5M</text>
-<rect x="32" y="462" width="836" height="34" rx="8" fill="#1c2230" stroke="#30363d"/>
-<text x="46" y="476" fill="#7d8590" font-size="12">Pool-deduped, honest counting — no inflated rate-limit ceilings. Some terms suggest personal-use only; we flag them so you decide.</text>
-<text x="46" y="490" fill="#7d8590" font-size="11.5">+ 12 permanently-free, no-cap providers (e.g. baidu, glm-cn, opencode-zen) · OpenRouter $10 → +24M/mo.</text>
+<text x="77" y="436" fill="#7ee787" font-size="11.5" text-anchor="middle">vertex 300M</text>
+<rect x="130" y="421" width="123" height="22" rx="11" fill="#13311f" stroke="#238636"/>
+<text x="191" y="436" fill="#7ee787" font-size="11.5" text-anchor="middle">agentrouter 200M</text>
+<rect x="261" y="421" width="103" height="22" rx="11" fill="#13311f" stroke="#238636"/>
+<text x="312" y="436" fill="#7ee787" font-size="11.5" text-anchor="middle">predibase 25M</text>
+<rect x="372" y="421" width="96" height="22" rx="11" fill="#13311f" stroke="#238636"/>
+<text x="420" y="436" fill="#7ee787" font-size="11.5" text-anchor="middle">together 25M</text>
+<rect x="476" y="421" width="83" height="22" rx="11" fill="#13311f" stroke="#238636"/>
+<text x="518" y="436" fill="#7ee787" font-size="11.5" text-anchor="middle">glm-cn 20M</text>
+<rect x="567" y="421" width="83" height="22" rx="11" fill="#13311f" stroke="#238636"/>
+<text x="609" y="436" fill="#7ee787" font-size="11.5" text-anchor="middle">doubao 15M</text>
+<rect x="658" y="421" width="70" height="22" rx="11" fill="#13311f" stroke="#238636"/>
+<text x="693" y="436" fill="#7ee787" font-size="11.5" text-anchor="middle">ai21 10M</text>
+<rect x="736" y="421" width="90" height="22" rx="11" fill="#13311f" stroke="#238636"/>
+<text x="781" y="436" fill="#7ee787" font-size="11.5" text-anchor="middle">longcat 10M</text>
+<rect x="32" y="451" width="90" height="22" rx="11" fill="#13311f" stroke="#238636"/>
+<text x="77" y="466" fill="#7ee787" font-size="11.5" text-anchor="middle">deepseek 5M</text>
+<rect x="32" y="492" width="836" height="48" rx="8" fill="#1c2230" stroke="#30363d"/>
+<text x="46" y="506" fill="#7d8590" font-size="12">Pool-deduped, honest counting — no inflated rate-limit ceilings. Some terms suggest personal-use only; we flag them so you decide.</text>
+<text x="46" y="520" fill="#7d8590" font-size="11.5">+ 15 permanently-free, no-cap providers (e.g. agnes, ainative, aion) · OpenRouter $10 → +24M/mo.</text>
+<text x="46" y="534" fill="#d29922" font-size="11.5">+ ~6M behind regional identity verification (modelscope) — real quota, never in the headline.</text>
 </svg>

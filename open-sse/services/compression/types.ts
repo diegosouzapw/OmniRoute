@@ -326,6 +326,8 @@ export interface CompressionStats {
   validationWarnings?: string[];
   validationErrors?: string[];
   fallbackApplied?: boolean;
+  /** #7847 observability: true when this result was served from the result memo cache. */
+  memoHit?: boolean;
   /**
    * Contabilidade física do OmniGlyph, normalizada pelo próprio pacote
    * (`normalizeAccounting`). Só número e enum — ver `omniglyphTelemetry.ts`

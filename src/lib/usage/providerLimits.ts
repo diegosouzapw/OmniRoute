@@ -16,7 +16,7 @@ import { setQuotaCache } from "@/domain/quotaCache";
 import { buildClaudeExtraUsageConnectionUpdate } from "@/lib/providers/claudeExtraUsage";
 import { clearRecoveredProviderState } from "@/sse/services/auth";
 import { getMachineId } from "@/shared/utils/machine";
-import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
+import { supportsProviderQuota } from "@/shared/utils/providerQuotaVisibility";
 import { mergeProviderLimitsCacheEntry, toProviderLimitsCacheEntry } from "./providerLimitsCache";
 import { getCredentialRefreshExecutor } from "@omniroute/open-sse/executors/credential.ts";
 import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
@@ -89,6 +89,8 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "qwen-cloud-token-plan",
   // AgentRouter (New-API) console System Access Token + New-Api-User id (providerSpecificData)
   "agentrouter",
+  // OpenRouter API key → /key limits + /credits account balance
+  "openrouter",
 ]);
 const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;
 const PROVIDER_LIMITS_AUTO_SYNC_SETTING_KEY = "provider_limits_auto_sync_last_run";
@@ -172,19 +174,14 @@ function shouldRefreshProviderLimitsCache(
 }
 
 export function isSupportedUsageConnection(connection: ProviderConnectionLike | null): boolean {
-  if (
-    !connection ||
-    !connection.provider ||
-    !USAGE_SUPPORTED_PROVIDERS.includes(connection.provider)
-  ) {
-    return false;
-  }
+  if (!connection?.provider) return false;
 
-  if (connection.authType === "oauth") return true;
-  return (
-    (connection.authType === "apikey" || connection.authType === "api_key") &&
-    PROVIDER_LIMITS_APIKEY_PROVIDERS.has(connection.provider)
-  );
+  if (connection.authType === "oauth") {
+    return supportsProviderQuota(connection.provider, connection);
+  }
+  if (connection.authType !== "apikey" && connection.authType !== "api_key") return false;
+  if (PROVIDER_LIMITS_APIKEY_PROVIDERS.has(connection.provider)) return true;
+  return supportsProviderQuota(connection.provider, connection);
 }
 
 function withStatus(error: Error, status: number): Error & { status: number } {
@@ -205,11 +202,7 @@ export async function refreshAndUpdateCredentials(
   connection: ProviderConnectionLike,
   opts: CredentialRefreshOptions = {}
 ) {
-  return refreshAndUpdateCredentialsWithResolver(
-    connection,
-    getCredentialRefreshExecutor,
-    opts
-  );
+  return refreshAndUpdateCredentialsWithResolver(connection, getCredentialRefreshExecutor, opts);
 }
 
 function isUsageAuthError(message: unknown): boolean {
@@ -396,7 +389,6 @@ export function shouldClearErrorStateOnValidProbe(
  * — keeps the connection locked, matching the kimi-coding partial-refresh
  * semantics.
  */
-
 
 /**
  * Is an explicit cooldown still in the future?

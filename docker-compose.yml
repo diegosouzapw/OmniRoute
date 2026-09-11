@@ -170,6 +170,13 @@ services:
       - "${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
     volumes:
       - ./data:/app/data
+      # SECURITY: mounting the host Docker socket gives this container full
+      # control over the host Docker daemon — it can create/list/stop/rm any
+      # container the host runs. It is here so the in-container auto-updater
+      # (src/lib/system/autoUpdate.ts) can recreate the stack. Only use this
+      # profile on a single-tenant workstation you trust, and never publish
+      # its ports beyond 127.0.0.1. See docs/guides/DOCKER_GUIDE.md →
+      # "Escape hatch: configure the container's own CLIs" for the threat model.
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/libexec/docker/cli-plugins:/usr/libexec/docker/cli-plugins:ro
       - ${AUTO_UPDATE_HOST_REPO_DIR:-.}:/workspace/omniroute:rw

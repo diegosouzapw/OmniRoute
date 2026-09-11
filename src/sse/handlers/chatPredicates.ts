@@ -1,6 +1,7 @@
 import {
   isLocalStreamLifecycleError,
   isLocalExecutionError,
+  isModelCapacityOverloadError,
 } from "../../shared/utils/circuitBreaker";
 import { isRequestScopedUpstreamFailure } from "./comboFailureLogging";
 import { getTrustedLocalRateLimitResponse } from "@omniroute/open-sse/services/rateLimitManager/errors";
@@ -39,8 +40,42 @@ export function shouldTripProviderBreakerForResult(
     result.errorCode !== "proxy_unreachable" &&
     result.errorCode !== "RATE_LIMIT_QUEUE_TIMEOUT" &&
     result.errorCode !== "RATE_LIMIT_QUEUE_WEDGED" &&
+    !isModelCapacityOverloadError(result.error) &&
+    !isModelCapacityOverloadError(result.status) &&
     PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(result.status))
   );
+}
+
+export type ProviderBreakerResultOutcome = "success" | "failure" | "ignore";
+
+/**
+ * #12254: single source of truth for how a resolved dispatch result is accounted
+ * against the per-provider breaker. `handleChatCore()` resolves with
+ * `{ success: false, status: 5xx }` for most upstream failures, so `breaker.execute()`
+ * cannot classify it — the call site does, exactly once:
+ * - combo dispatches and live combo tests are "ignore": the combo target loop owns the
+ *   accounting (`recordProviderFailure()` / `recordProviderSuccess()`), which also knows
+ *   about same-provider-next and `skipProviderBreaker`;
+ * - a successful single-model dispatch is a "success";
+ * - a failed one is a "failure" only when `shouldTripProviderBreakerForResult()` agrees.
+ */
+export function classifyProviderBreakerResult(
+  result: {
+    success?: boolean;
+    status: number;
+    response?: Response;
+    errorCode?: string | null;
+    errorType?: string | null;
+    error?: unknown;
+  },
+  isCombo: boolean,
+  forceLiveComboTest: boolean
+): ProviderBreakerResultOutcome {
+  if (forceLiveComboTest || isCombo) return "ignore";
+  if (result.success) return "success";
+  return shouldTripProviderBreakerForResult(result, isCombo, forceLiveComboTest)
+    ? "failure"
+    : "ignore";
 }
 
 export function isAntigravityMissingProjectError(

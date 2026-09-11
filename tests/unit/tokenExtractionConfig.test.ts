@@ -100,7 +100,9 @@ describe("tokenExtractionConfig", () => {
     }
   });
 
-  it("does not expose in-app extraction for retired common ChatGPT Web ids", () => {
+  it("does not reduce ChatGPT Web storage-state auth to token extraction", () => {
+    // Clean-room ChatGPT Web requires a complete Playwright storage state, not
+    // a token extracted from localStorage or a raw Cookie header.
     assert.equal(getExtractionConfig("chatgpt-web"), undefined);
     assert.equal(getExtractionConfig("cgpt-web"), undefined);
   });

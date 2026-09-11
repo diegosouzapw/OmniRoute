@@ -111,6 +111,28 @@ test("runs the Docker browser headed inside a private Xvfb display", () => {
   assert.match(dockerfile, /-nolisten tcp/);
 });
 
+test("#12024 Docker browser find pattern matches both chrome-linux and chrome-linux64 layouts", () => {
+  const dockerfile = readFileSync(
+    join(process.cwd(), "docker/chatgpt-web-codex-browser/Dockerfile"),
+    "utf8"
+  );
+  const found = dockerfile.match(/find \/ms-playwright -path '([^']+)' -type f/);
+  assert.ok(found, "Dockerfile CMD must locate the Chrome binary with a find -path glob");
+  const glob = found[1];
+  const matcher = new RegExp(
+    `^${glob.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*")}$`
+  );
+  // playwright:v1.62.0-noble ships Chrome for Testing, which extracts to chrome-linux64/.
+  assert.match("/ms-playwright/chromium-1234/chrome-linux64/chrome", matcher);
+  // Older images keep the legacy chrome-linux/ directory.
+  assert.match("/ms-playwright/chromium-1234/chrome-linux/chrome", matcher);
+  // The separate headless-shell build ships a different binary name and must not be picked up.
+  assert.doesNotMatch(
+    "/ms-playwright/chromium_headless_shell-1234/chrome-linux/headless_shell",
+    matcher
+  );
+});
+
 test("preserves browser-verified ChatGPT auth cookies across runtime rotation", () => {
   const cookie = (name: string, value: string) => ({
     name,

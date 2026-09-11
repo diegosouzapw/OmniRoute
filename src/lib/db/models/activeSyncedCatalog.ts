@@ -1,16 +1,37 @@
 import { providerUsesAuthoritativeLiveCatalog } from "@omniroute/open-sse/config/providerRegistry";
 import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.ts";
+import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
 import {
+  getCustomModels,
   getSyncedAvailableModels,
   getSyncedAvailableModelsByConnection,
   type SyncedAvailableModel,
 } from "../models";
+import { normalizeSyncedAvailableModels } from "./synced";
 import { getRawProviderConnections } from "../providers";
 
 export type ActiveSyncedCatalog = {
   authoritative: boolean;
   models: SyncedAvailableModel[];
 };
+
+/**
+ * Fail-open membership check for explicit combo members against a live catalog.
+ * `null` means no authoritative catalog is synced yet (unchanged behavior).
+ */
+export function catalogContainsModel(
+  catalog: ActiveSyncedCatalog,
+  modelId: string
+): boolean | null {
+  if (!catalog.authoritative) return null;
+  const trimmed = modelId.trim();
+  if (!trimmed) return false;
+  const ids = new Set(catalog.models.map((model) => model.id));
+  if (ids.has(trimmed)) return true;
+  const slash = trimmed.indexOf("/");
+  if (slash > 0 && ids.has(trimmed.slice(slash + 1))) return true;
+  return false;
+}
 
 export type ProviderCatalogReconciliation = {
   providers: string[];
@@ -35,6 +56,34 @@ function resolveStoredProviderId(aliasOrId: string): string {
   }
 
   return normalized;
+}
+
+/**
+ * Distinct stored provider ids that share an account family.
+ * Credential lookup already pairs these in PROVIDER_SEARCH_PAIRS (#8779);
+ * live catalogs are keyed `provider:connectionId`, so the same pair must
+ * union here. parseModel folds `agy/` → `antigravity`, but CLI-card rows
+ * persist catalogs under `agy:` and the IDE card under `antigravity:`.
+ */
+const CATALOG_SIBLING_IDS: Record<string, string[]> = {
+  antigravity: ["agy"],
+  agy: ["antigravity"],
+};
+
+function catalogLookupIds(storedProviderId: string): string[] {
+  const siblings = CATALOG_SIBLING_IDS[storedProviderId] || [];
+  return [storedProviderId, ...siblings.filter((id) => id !== storedProviderId)];
+}
+
+function unionModels(groups: SyncedAvailableModel[][]): SyncedAvailableModel[] {
+  const models = new Map<string, SyncedAvailableModel>();
+  for (const group of groups) {
+    for (const model of group) {
+      if (!model?.id || models.has(model.id)) continue;
+      models.set(model.id, model);
+    }
+  }
+  return Array.from(models.values());
 }
 
 function readConnectionRef(connection: unknown): ProviderConnectionRef | null {
@@ -76,6 +125,56 @@ function collectModelsForConnections(
   return Array.from(models.values());
 }
 
+function enrichCursorCatalog(
+  providerId: string,
+  models: SyncedAvailableModel[]
+): SyncedAvailableModel[] {
+  // An empty sync means discovery has not completed (or failed). Do not let the
+  // synthetic Cursor auto-router rows turn that empty state into an authoritative
+  // catalog, otherwise every built-in model is incorrectly marked unavailable.
+  if (models.length === 0) return models;
+  return providerId === "cursor" || providerId === "cursor-api"
+    ? ensureCursorAutoCatalogEntry(models)
+    : models;
+}
+
+/**
+ * #12597: picker-added `customModels` are already merged on GET /api/providers/{id}/models.
+ * Dispatch-time live catalog must union the same rows or combo / bare inference 400.
+ * Same-id custom metadata overlays the synced row (name, vision, …).
+ */
+async function unionCustomModels(
+  providerId: string,
+  models: SyncedAvailableModel[]
+): Promise<SyncedAvailableModel[]> {
+  let customRows: SyncedAvailableModel[] = [];
+  try {
+    customRows = normalizeSyncedAvailableModels(await getCustomModels(providerId), providerId);
+  } catch {
+    // Fail open: a customModels read/parse miss must not empty the synced catalog.
+    return models;
+  }
+  if (customRows.length === 0) return models;
+
+  const merged = new Map<string, SyncedAvailableModel>();
+  for (const model of models) {
+    if (model?.id) merged.set(model.id, model);
+  }
+  for (const model of customRows) {
+    if (!model?.id) continue;
+    const existing = merged.get(model.id);
+    if (!existing) {
+      merged.set(model.id, model);
+      continue;
+    }
+    const overlay = Object.fromEntries(
+      Object.entries(model).filter(([, value]) => value !== undefined)
+    ) as Partial<SyncedAvailableModel>;
+    merged.set(model.id, { ...existing, ...overlay, id: model.id });
+  }
+  return Array.from(merged.values());
+}
+
 /**
  * Return the unioned synced catalog belonging only to active connections.
  *
@@ -83,6 +182,23 @@ function collectModelsForConnections(
  * non-empty usable catalog. Missing, empty, malformed, or unavailable state
  * fails open to the static registry.
  */
+async function loadConnectionCatalog(storedProviderId: string): Promise<SyncedAvailableModel[]> {
+  const [connections, modelsByConnection] = await Promise.all([
+    getRawProviderConnections({ provider: storedProviderId, isActive: true }, undefined, undefined, [
+      "id",
+      "provider",
+    ]),
+    getSyncedAvailableModelsByConnection(storedProviderId),
+  ]);
+
+  const activeConnectionIds = connections
+    .map(readConnectionRef)
+    .filter((connection): connection is ProviderConnectionRef => connection !== null)
+    .map((connection) => connection.id);
+
+  return collectModelsForConnections(modelsByConnection, activeConnectionIds);
+}
+
 export async function getActiveSyncedCatalog(providerId: string): Promise<ActiveSyncedCatalog> {
   const storedProviderId = resolveStoredProviderId(providerId);
   if (!storedProviderId) {
@@ -90,22 +206,14 @@ export async function getActiveSyncedCatalog(providerId: string): Promise<Active
   }
 
   try {
-    const [connections, modelsByConnection] = await Promise.all([
-      getRawProviderConnections(
-        { provider: storedProviderId, isActive: true },
-        undefined,
-        undefined,
-        ["id", "provider"]
-      ),
-      getSyncedAvailableModelsByConnection(storedProviderId),
-    ]);
-
-    const activeConnectionIds = connections
-      .map(readConnectionRef)
-      .filter((connection): connection is ProviderConnectionRef => connection !== null)
-      .map((connection) => connection.id);
-
-    const models = collectModelsForConnections(modelsByConnection, activeConnectionIds);
+    const lookupIds = catalogLookupIds(storedProviderId);
+    const siblingCatalogs = await Promise.all(lookupIds.map(loadConnectionCatalog));
+    // #12866 unions the agy/antigravity sibling catalogs; #12934 then overlays the
+    // picker-added customModels so dispatch admits the same rows the picker REST shows.
+    const models = enrichCursorCatalog(
+      storedProviderId,
+      await unionCustomModels(storedProviderId, unionModels(siblingCatalogs))
+    );
     if (models.length > 0) {
       return {
         authoritative: providerUsesAuthoritativeLiveCatalog(providerId),
@@ -125,7 +233,13 @@ export async function getActiveSyncedCatalog(providerId: string): Promise<Active
     // NON-authoritative: #9294's live-catalog gating is about what an active
     // connection actually serves, so a node-backed catalog must inform metadata
     // without ever being used to reject a model as unavailable.
-    return { authoritative: false, models: await getSyncedAvailableModels(storedProviderId) };
+    return {
+      authoritative: false,
+      models: enrichCursorCatalog(
+        storedProviderId,
+        await unionCustomModels(storedProviderId, await getSyncedAvailableModels(storedProviderId))
+      ),
+    };
   } catch {
     return { authoritative: false, models: [] };
   }
@@ -161,7 +275,13 @@ export async function getAllActiveSyncedModels(): Promise<Record<string, SyncedA
       Array.from(connectionIdsByProvider.entries()).map(async ([providerId, connectionIds]) => {
         const modelsByConnection = await getSyncedAvailableModelsByConnection(providerId);
 
-        const models = collectModelsForConnections(modelsByConnection, connectionIds);
+        const models = enrichCursorCatalog(
+          providerId,
+          await unionCustomModels(
+            providerId,
+            collectModelsForConnections(modelsByConnection, connectionIds)
+          )
+        );
 
         if (models.length > 0) {
           result[providerId] = models;

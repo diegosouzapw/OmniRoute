@@ -5,6 +5,7 @@
 export const SEARCH_PROVIDERS = {
   "perplexity-search": {
     id: "perplexity-search",
+    serviceKinds: ["webSearch"],
     alias: "pplx-search",
     name: "Perplexity Search",
     icon: "search",
@@ -27,6 +28,7 @@ export const SEARCH_PROVIDERS = {
   },
   "brave-search": {
     id: "brave-search",
+    serviceKinds: ["webSearch"],
     alias: "brave-search",
     name: "Brave Search",
     icon: "travel_explore",
@@ -92,6 +94,7 @@ export const SEARCH_PROVIDERS = {
   },
   "google-pse-search": {
     id: "google-pse-search",
+    serviceKinds: ["webSearch"],
     alias: "google-pse",
     name: "Google Programmable Search",
     icon: "travel_explore",
@@ -113,6 +116,7 @@ export const SEARCH_PROVIDERS = {
   },
   "linkup-search": {
     id: "linkup-search",
+    serviceKinds: ["webSearch"],
     alias: "linkup",
     name: "Linkup Search",
     icon: "public",
@@ -123,6 +127,7 @@ export const SEARCH_PROVIDERS = {
   },
   "searchapi-search": {
     id: "searchapi-search",
+    serviceKinds: ["webSearch"],
     alias: "searchapi",
     name: "SearchAPI",
     icon: "manage_search",
@@ -133,6 +138,7 @@ export const SEARCH_PROVIDERS = {
   },
   "youcom-search": {
     id: "youcom-search",
+    serviceKinds: ["webSearch"],
     alias: "youcom-search",
     name: "You.com Search",
     icon: "travel_explore",
@@ -143,6 +149,7 @@ export const SEARCH_PROVIDERS = {
   },
   "searxng-search": {
     id: "searxng-search",
+    serviceKinds: ["webSearch"],
     alias: "searxng",
     name: "SearXNG Search",
     icon: "search",
@@ -179,6 +186,7 @@ export const SEARCH_PROVIDERS = {
   },
   "ollama-search": {
     id: "ollama-search",
+    serviceKinds: ["webSearch"],
     alias: "ollama-search",
     name: "Ollama Search",
     icon: "search",

@@ -2,8 +2,8 @@
  * LMArenaExecutor — Arena (formerly LMArena) web-session provider.
  *
  * Routes requests through arena.ai create-evaluation with session cookies.
- * Upstream sits behind Cloudflare; traffic goes through tls-client-node Chrome
- * impersonation (see services/lmarenaTlsClient.ts).
+ * Upstream sits behind Cloudflare; traffic goes through wreq-js Chrome
+ * impersonation with isolated ephemeral cookies (see services/lmarenaTlsClient.ts).
  *
  * Helpers: open-sse/executors/lmarena/{cookie,models,stream,response}.ts
  */
@@ -174,7 +174,6 @@ export class LMArenaExecutor extends BaseExecutor {
       body: JSON.stringify(transformedBody),
       signal: ctx.signal,
       stream: ctx.stream,
-      streamEofSymbol: "__OMNIROUTE_LMARENA_EOF_NEVER__",
     });
 
     const failed = mapFailedTlsResult({

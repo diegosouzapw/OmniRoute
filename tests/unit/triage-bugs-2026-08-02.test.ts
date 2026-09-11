@@ -94,8 +94,8 @@ test("#9160 model discovery must ingest capabilities.effort_tiers", () => {
 test("#9160 capabilities.effort_tiers with duplicate and synonym", () => {
   assert.deepEqual(
     detectSupportedThinkingEfforts({
-      capabilities: { effort_tiers: ["low", "low", "max"] },
+      capabilities: { effort_tiers: ["low", "low", "max", "extra"] },
     }),
-    ["low", "xhigh"]
+    ["low", "max", "xhigh"]
   );
 });

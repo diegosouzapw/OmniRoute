@@ -1,6 +1,10 @@
 import { getProviderAlias } from "@/shared/constants/providers";
 import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
 import { APP_CONFIG } from "@/shared/constants/appConfig";
+import {
+  generationDurationMs,
+  tokensPerSecond,
+} from "@omniroute/open-sse/utils/generationThroughput";
 
 type UsageLike = Record<string, unknown> | null | undefined;
 
@@ -123,6 +127,7 @@ export function buildOmniRouteResponseMetaHeaders({
   requestId = null,
   strategy = null,
   usage = null,
+  ttftMs = null,
 }: {
   cacheHit?: boolean;
   costUsd?: unknown;
@@ -145,6 +150,12 @@ export function buildOmniRouteResponseMetaHeaders({
    */
   strategy?: string | null;
   usage?: UsageLike;
+  /**
+   * First-token latency in ms. Required to emit tok/s: generation speed is
+   * `output_tokens / (latencyMs - ttftMs)` and MUST omit the field when TTFT
+   * is unknown so plugins do not treat `tokens / total_latency` as speed.
+   */
+  ttftMs?: number | null;
 }): Record<string, string> {
   const tokens = getOmniRouteTokenCounts(usage);
   const headers: Record<string, string> = {
@@ -184,6 +195,15 @@ export function buildOmniRouteResponseMetaHeaders({
   const decisionValue = buildOmniRouteDecisionHeaderValue({ strategy, provider, latencyMs });
   if (decisionValue !== null) {
     headers[OMNIROUTE_RESPONSE_HEADERS.decision] = decisionValue;
+  }
+
+  let tps = tokensPerSecond(tokens.output, generationDurationMs(toFiniteNumber(latencyMs), ttftMs));
+  if (tps == null && usage && typeof usage === "object") {
+    const fromUsage = toFiniteNumber((usage as Record<string, unknown>).tokens_per_second);
+    if (fromUsage > 0) tps = fromUsage;
+  }
+  if (tps != null) {
+    headers[OMNIROUTE_RESPONSE_HEADERS.tokensPerSecond] = toHeaderValue(tps.toFixed(3));
   }
 
   return headers;

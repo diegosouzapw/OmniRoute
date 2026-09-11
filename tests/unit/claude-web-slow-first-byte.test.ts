@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { writeFile } from "node:fs/promises";
 import test from "node:test";
 
 import { tlsFetchStreaming } from "../../open-sse/services/claudeTlsClient.ts";
@@ -15,19 +14,17 @@ const SSE_BODY = [
 
 test("Claude Web keeps waiting when the first Opus SSE event takes longer than five seconds", async () => {
   const client = {
-    request: async (_url: string, options: Record<string, unknown>) => {
-      await new Promise((resolve) => setTimeout(resolve, SLOW_FIRST_BYTE_MS));
-      await writeFile(String(options.streamOutputPath), SSE_BODY);
-      return {
-        status: 200,
-        headers: {},
-        body: "",
-        cookies: {},
-        text: async () => "",
-        json: async () => ({}),
-        bytes: async () => new Uint8Array(),
-      };
-    },
+    request: async () =>
+      new Response(
+        new ReadableStream<Uint8Array>({
+          async pull(controller) {
+            await new Promise((resolve) => setTimeout(resolve, SLOW_FIRST_BYTE_MS));
+            controller.enqueue(new TextEncoder().encode(SSE_BODY));
+            controller.close();
+          },
+        }),
+        { status: 200, headers: { "content-type": "text/event-stream" } }
+      ),
   };
 
   const result = await tlsFetchStreaming(

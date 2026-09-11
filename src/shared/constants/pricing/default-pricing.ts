@@ -7,10 +7,12 @@ import { DEFAULT_PRICING_OAUTH } from "./oauth-subscriptions";
 import { DEFAULT_PRICING_FRONTIER } from "./frontier-labs";
 import { DEFAULT_PRICING_INFERENCE } from "./inference-hosts";
 import { DEFAULT_PRICING_REGIONAL } from "./regional";
+import { DEFAULT_PRICING_DEVIN } from "./devin";
 
 export const DEFAULT_PRICING = {
   ...DEFAULT_PRICING_OAUTH,
   ...DEFAULT_PRICING_FRONTIER,
   ...DEFAULT_PRICING_INFERENCE,
   ...DEFAULT_PRICING_REGIONAL,
+  ...DEFAULT_PRICING_DEVIN,
 };

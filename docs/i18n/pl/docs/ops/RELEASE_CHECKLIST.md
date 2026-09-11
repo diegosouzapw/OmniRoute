@@ -170,7 +170,7 @@ Breaking changes: dodaj stopkę `BREAKING CHANGE:` albo `!` po scope (np. `feat(
 
 - [ ] `npm run i18n:check` kończy się kodem 0 — stan tłumaczeń (`.i18n-state.json`) zsynchronizowany ze źródłowymi docs (brak dryfujących źródeł w trybie strict; doradztwo warn-mode jest akceptowalne przy last-minute poprawkach docs, ale przed tagowaniem powinno być 0)
 - [ ] `npm run i18n:check-ui-coverage` kończy się kodem 0 — każdy locale UI na lub powyżej progu pokrycia 80%
-- [ ] `npm run i18n:sync-ui:dry` raportuje 0 brakujących kluczy we wszystkich 43 locale
+- [ ] `npm run i18n:sync-ui:dry` raportuje 0 brakujących kluczy we wszystkich 42 locale
 - [ ] Jeśli źródłowe angielskie docs się zmieniły, uruchom `npm run i18n:run` (wymaga `OMNIROUTE_TRANSLATION_API_KEY` w `.env`) przed tagowaniem
 - [ ] Wkłady tłumaczeniowe można odłożyć na następne wydanie, jeśli drobne (śledź w CHANGELOG)
 

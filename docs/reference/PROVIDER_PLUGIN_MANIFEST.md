@@ -93,8 +93,8 @@ and `supportsProviderQuota()` (`src/shared/utils/providerQuotaVisibility.ts`), b
 `USAGE_SUPPORTED_PROVIDERS` (`open-sse/services/usage/supportedProviders.ts`). Unlike
 `usage-fetch`, it is emitted on the provider id alone — the runtime guard does
 `USAGE_SUPPORTED_PROVIDERS.includes(providerId)` with no alias resolution, so the manifest
-keeps the same rule. The two tags have different perimeters: 4 providers carry only
-`usage-fetch` (`opencode`, `opencode-zen`, `openrouter`, `xai`) and 1 carries only
+keeps the same rule. The two tags have different perimeters: 3 providers carry only
+`usage-fetch` (`opencode`, `opencode-zen`, `xai`) and 1 carries only
 `usage-supported` (`xiaomi-mimo-token-plan`), so one does not imply the other.
 
 ## Sidecar Use

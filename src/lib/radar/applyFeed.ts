@@ -42,6 +42,8 @@ export interface MergedEntry {
   poolKey: string | null;
   tos: "ok" | "caution" | "ambiguous" | "avoid" | "unknown";
   trainsOnPrompts?: boolean;
+  /** Set when the quota only opens after a region-bound identity check; counted apart. */
+  eligibilityGate?: "regional-identity";
   /** Whether the entry is enabled for use. Defaults to true. */
   enabled?: boolean;
   /**
@@ -113,6 +115,8 @@ export interface FeedModel {
   metadataEvidenceUrls?: string[];
   trainsOnPrompts: boolean | null;
   tosRisk: MergedEntry["tos"];
+  /** Absent = the feed does not know; null = explicitly no gate. */
+  eligibilityGate?: "regional-identity" | null;
   setup: {
     keyUrl: string | null;
     steps: RadarLocalizedText[];
@@ -299,6 +303,11 @@ function mergeOne(
   if (!overriddenKeys.has("trainsOnPrompts")) {
     result.trainsOnPrompts = feed.trainsOnPrompts ?? undefined;
   }
+  // Absent means "this feed predates the field": keep whatever the baseline says.
+  // An explicit null is the feed clearing the gate.
+  if (!overriddenKeys.has("eligibilityGate") && feed.eligibilityGate !== undefined) {
+    result.eligibilityGate = feed.eligibilityGate ?? undefined;
+  }
   if (!overriddenKeys.has("creditTokens")) {
     // Feed doesn't have creditTokens; keep baseline
   }
@@ -329,6 +338,7 @@ function mergeOne(
     if (overrides.poolKey !== undefined) result.poolKey = overrides.poolKey;
     if (overrides.tos !== undefined) result.tos = overrides.tos;
     if (overrides.trainsOnPrompts !== undefined) result.trainsOnPrompts = overrides.trainsOnPrompts;
+    if (overrides.eligibilityGate !== undefined) result.eligibilityGate = overrides.eligibilityGate;
     if (overrides.enabled !== undefined) result.enabled = overrides.enabled;
     if (overrides.contextWindow !== undefined) result.contextWindow = overrides.contextWindow;
     if (overrides.capabilities !== undefined) result.capabilities = overrides.capabilities;
@@ -368,6 +378,7 @@ function feedModelToMerged(
     creditTokens: overrides?.creditTokens ?? 0,
     freeType: overrides?.freeType ?? feed.freeType,
     poolKey: overrides?.poolKey ?? feedBudgetToPoolKey(feed.budget),
+    eligibilityGate: overrides?.eligibilityGate ?? feed.eligibilityGate ?? undefined,
     tos: overrides?.tos ?? feed.tosRisk,
     trainsOnPrompts: overrides?.trainsOnPrompts ?? feed.trainsOnPrompts ?? undefined,
     enabled: feed.enabled ? (overrides?.enabled ?? true) : false,

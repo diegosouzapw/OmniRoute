@@ -582,6 +582,20 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "tts-1", name: "TTS 1" },
     ],
   },
+
+  // UC (uncensored.com) voice synthesis over its dedicated TTS WebSocket. Auth is
+  // a Clerk session JWT minted per-connect from the durable connection cred; the
+  // `format: "uc-tts"` branch in audioSpeech.ts drives the socket. The baseUrl is
+  // a synthetic marker (the real transport is wss://tts-stream.chatuncensored.ai)
+  // and is never fetched.
+  uc: {
+    id: "uc",
+    baseUrl: "wss://tts-stream.chatuncensored.ai",
+    authType: "web-cookie",
+    authHeader: "none",
+    format: "uc-tts",
+    models: [{ id: "jade", name: "UC Voice (Jade)" }],
+  },
 };
 
 /**

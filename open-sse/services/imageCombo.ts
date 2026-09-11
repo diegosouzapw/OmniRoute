@@ -57,19 +57,13 @@ export async function executeImageCombo(
   const combo = await getComboByName(comboName);
   if (!combo) {
     // Model name is not a combo; the caller should handle this as a direct model
-    return errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      `Combo not found: ${comboName}`
-    );
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, `Combo not found: ${comboName}`);
   }
 
   const allCombos = await getCombos();
   const targets = resolveComboTargets(combo as never, allCombos as never);
   if (!targets || targets.length === 0) {
-    return errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      `Combo "${comboName}" has no usable targets`
-    );
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, `Combo "${comboName}" has no usable targets`);
   }
 
   // 2. Filter to images-capable targets
@@ -154,10 +148,7 @@ export async function executeImageCombo(
     // Terminal failures (400 bad model, 403 banned, etc.) — stop iterating
     // Non-terminal failures (429, 5xx) — try next target
     if (status === 400 || status === 403 || status === 401) {
-      return errorResponse(
-        status,
-        `[${targetProvider}] ${error}`
-      );
+      return errorResponse(status, `[${targetProvider}] ${error}`);
     }
 
     lastError = { status, error: `[${targetProvider}] ${error}` };
@@ -166,18 +157,12 @@ export async function executeImageCombo(
 
   // 4. Build response
   if (successResult) {
-    const n = Math.max(
-      Number(body.n) || 1,
-      (
-        successResult.data as { data?: { data?: unknown[] } }
-      ).data?.data?.length || 0
-    );
-    const costUsd = await calculateModalCost(
-      "image",
-      selectedProvider,
-      selectedModel,
-      { n }
-    );
+    // handleImageGeneration() already returns the public OpenAI images payload
+    // ({ created, data: [...] }); count the images at that level (#12268).
+    const payload = successResult.data as { created?: number; data?: unknown[] } | unknown[];
+    const images = Array.isArray(payload) ? payload : payload?.data;
+    const n = Math.max(Number(body.n) || 1, images?.length || 0);
+    const costUsd = await calculateModalCost("image", selectedProvider, selectedModel, { n });
 
     const headers = new Headers({ "Content-Type": "application/json" });
     attachOmniRouteMetaHeaders(headers, {
@@ -190,10 +175,13 @@ export async function executeImageCombo(
       fallbackAttempts: fallbackCount,
     });
 
-    return new Response(
-      JSON.stringify((successResult.data as { data: unknown }).data),
-      { status: 200, headers }
-    );
+    // Return the handler payload unchanged so the combo path matches the
+    // direct-model path byte-for-byte; re-wrap only if a handler ever yields
+    // a bare array (#12268).
+    const responseBody = Array.isArray(payload)
+      ? { created: Math.floor(Date.now() / 1000), data: payload }
+      : payload;
+    return new Response(JSON.stringify(responseBody), { status: 200, headers });
   }
 
   // All targets failed — return the last error

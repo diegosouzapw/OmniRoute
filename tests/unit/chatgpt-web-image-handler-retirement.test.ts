@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { handleImageGeneration } from "../../open-sse/handlers/imageGeneration.ts";
 
-test("central image handler blocks retired common ChatGPT Web ids before network dispatch", async () => {
+test("central image handler retires cgpt-web and reports clean-room chatgpt-web as unsupported", async () => {
   const originalFetch = globalThis.fetch;
   let fetchCalls = 0;
   globalThis.fetch = async () => {
@@ -12,7 +12,7 @@ test("central image handler blocks retired common ChatGPT Web ids before network
   };
 
   try {
-    for (const provider of ["chatgpt-web", "cgpt-web"]) {
+    for (const provider of ["cgpt-web"]) {
       const viaRequestedModel = await handleImageGeneration({
         body: { model: `${provider}/gpt-5.5`, prompt: "draw a lighthouse" },
         credentials: { apiKey: "unused" },
@@ -40,6 +40,15 @@ test("central image handler blocks retired common ChatGPT Web ids before network
       });
       assert.deepEqual(viaResolvedProvider, viaRequestedModel);
     }
+
+    const cleanRoomTextOnly = await handleImageGeneration({
+      body: { model: "chatgpt-web/gpt-5-5-thinking", prompt: "draw a lighthouse" },
+      credentials: { apiKey: "unused" },
+      log: null,
+    });
+    assert.equal(cleanRoomTextOnly.status, 400);
+    assert.match(cleanRoomTextOnly.error, /invalid image model/i);
+    assert.notEqual((cleanRoomTextOnly as { code?: string }).code, "PROVIDER_RETIRED");
 
     const similarButDistinct = await handleImageGeneration({
       body: { model: "chatgpt-web-preview/gpt-5.5", prompt: "draw a lighthouse" },

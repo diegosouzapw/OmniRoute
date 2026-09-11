@@ -8,13 +8,15 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   // OmniRoute's oneminai executor translates both directions.
   oneminai: {
     id: "oneminai",
+    serviceKinds: ["llm"],
     alias: "1min",
     name: "1min.AI",
     icon: "hub",
     color: "#6366F1",
     textIcon: "1M",
     website: "https://1min.ai",
-    authHint: "Create an API key at https://docs.1min.ai/docs/api/create-api-key, then paste it here.",
+    authHint:
+      "Create an API key at https://docs.1min.ai/docs/api/create-api-key, then paste it here.",
     apiHint:
       "1min.ai uses a proprietary chat API (single prompt string + SSE) instead of OpenAI chat/completions. OmniRoute flattens OpenAI messages into a labeled prompt and translates the SSE stream.",
     passthroughModels: true,
@@ -25,6 +27,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   // /v1/responses endpoint and 3 image models. Keys are `ir_live_…` bearer tokens.
   cheaperinference: {
     id: "cheaperinference",
+    serviceKinds: ["llm"],
     alias: "cinf",
     name: "Cheaper Inference",
     icon: "savings",
@@ -45,13 +48,15 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     website: "https://freebuff.com",
     hasFree: true,
     serviceKinds: ["llm"],
-    authHint: "Enter Freebuff / Codebuff Auth Token (obtained via CLI login or automated harvester).",
+    authHint:
+      "Enter Freebuff / Codebuff Auth Token (obtained via CLI login or automated harvester).",
     freeNote: "Free Codebuff / Freebuff AI models.",
     apiHint: "Token is authenticated against Codebuff upstream session pool.",
     passthroughModels: true,
   },
   "charm-hyper": {
     id: "charm-hyper",
+    serviceKinds: ["llm"],
     alias: "charm-hyper",
     name: "Charm Hyper",
     icon: "router",
@@ -65,6 +70,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   agentrouter: {
     id: "agentrouter",
+    serviceKinds: ["llm"],
     alias: "agentrouter",
     name: "AgentRouter",
     icon: "router",
@@ -78,6 +84,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   unorouter: {
     id: "unorouter",
+    serviceKinds: ["llm"],
     alias: "unorouter",
     name: "UnoRouter",
     icon: "unorouter",
@@ -92,6 +99,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "command-code": {
     id: "command-code",
+    serviceKinds: ["llm"],
     alias: "cmd",
     name: "Command Code",
     icon: "terminal",
@@ -117,6 +125,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   opper: {
     id: "opper",
+    serviceKinds: ["llm"],
     alias: "opper",
     name: "Opper",
     icon: "router",
@@ -131,6 +140,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   requesty: {
     id: "requesty",
+    serviceKinds: ["llm"],
     alias: "requesty",
     name: "Requesty",
     icon: "router",
@@ -146,6 +156,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "zylo-api": {
     id: "zylo-api",
+    serviceKinds: ["llm"],
     alias: "zylo",
     name: "Zylo API",
     icon: "hub",
@@ -161,6 +172,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   fastrouter: {
     id: "fastrouter",
+    serviceKinds: ["llm"],
     alias: "fastrouter",
     name: "FastRouter",
     icon: "speed",
@@ -176,6 +188,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   anyapi: {
     id: "anyapi",
+    serviceKinds: ["llm"],
     alias: "anyapi",
     name: "AnyAPI AI",
     icon: "hub",
@@ -191,6 +204,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   electronhub: {
     id: "electronhub",
+    serviceKinds: ["llm"],
     alias: "electronhub",
     name: "Electron Hub",
     icon: "hub",
@@ -206,6 +220,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   llmgateway: {
     id: "llmgateway",
+    serviceKinds: ["llm"],
     alias: "llmgateway",
     name: "LLM Gateway",
     icon: "router",
@@ -221,6 +236,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "llm-kiwi": {
     id: "llm-kiwi",
+    serviceKinds: ["llm"],
     alias: "llmkiwi",
     name: "LLM.Kiwi",
     icon: "hub",
@@ -236,6 +252,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   literouter: {
     id: "literouter",
+    serviceKinds: ["llm"],
     alias: "literouter",
     name: "LiteRouter",
     icon: "router",
@@ -249,8 +266,49 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "Create a LiteRouter API key, then use https://api.literouter.com/v1 as the OpenAI-compatible base URL.",
   },
+  greenpt: {
+    id: "greenpt",
+    serviceKinds: ["llm"],
+    alias: "greenpt",
+    name: "GreenPT",
+    icon: "eco",
+    color: "#15803D",
+    textIcon: "GPT",
+    passthroughModels: true,
+    website: "https://greenpt.com",
+    // Not a free tier. The published docs describe a free API subscription with
+    // pay-per-token inference, which is a billing shape rather than free usage,
+    // so this stays false and the note says only what the docs say (#12986).
+    hasFree: false,
+    freeNote:
+      "API subscription is free to create; inference is billed per token. No free inference allowance is published.",
+    apiHint:
+      "Create a GreenPT API key, then use https://api.greenpt.ai/v1 as the OpenAI-compatible base URL. Review jurisdiction, privacy and regional data-transfer requirements before use.",
+  },
+  eurouter: {
+    id: "eurouter",
+    serviceKinds: ["llm"],
+    alias: "eurouter",
+    name: "EURouter",
+    icon: "router",
+    color: "#1D4ED8",
+    textIcon: "EUR",
+    passthroughModels: true,
+    website: "https://eurouter.ai",
+    // No free allowance is published, so no badge. A key was accepted but the
+    // account had no credits, so nothing about pricing tiers is claimed here.
+    hasFree: false,
+    // Deliberately says routing, not residency. EURouter is a router: its own
+    // catalog names the upstream that serves each model (claude-sonnet-5 ->
+    // AWS Bedrock, and 19 models owned by openai, 9 by anthropic, 7 by amazon).
+    // An EU-based router is a routing layer in the EU; where a model actually
+    // executes, and under whose terms, is a per-upstream property (#12985).
+    apiHint:
+      "Create an EURouter API key, then use https://api.eurouter.ai/v1 as the OpenAI-compatible base URL. Models are served by third-party upstreams listed per model in the EURouter catalog; check each upstream jurisdiction, privacy and data-transfer terms before use.",
+  },
   "mnn-ai": {
     id: "mnn-ai",
+    serviceKinds: ["llm"],
     alias: "mnn-ai",
     name: "MNN AI",
     icon: "hub",
@@ -265,6 +323,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "meganova-ai": {
     id: "meganova-ai",
+    serviceKinds: ["llm"],
     alias: "meganova-ai",
     name: "MegaNova AI",
     icon: "router",
@@ -280,6 +339,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   mixlayer: {
     id: "mixlayer",
+    serviceKinds: ["llm"],
     alias: "mixlayer",
     name: "Mixlayer",
     icon: "router",
@@ -295,6 +355,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   speka: {
     id: "speka",
+    serviceKinds: ["llm"],
     alias: "speka",
     name: "Speka AI",
     icon: "router",
@@ -310,6 +371,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   tokenreply: {
     id: "tokenreply",
+    serviceKinds: ["llm"],
     alias: "tokenreply",
     name: "TokenReply",
     icon: "router",
@@ -325,6 +387,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "yolo-auto": {
     id: "yolo-auto",
+    serviceKinds: ["llm"],
     alias: "yolo-auto",
     name: "Yolo-Auto",
     icon: "auto_awesome",
@@ -340,6 +403,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   dxnt: {
     id: "dxnt",
+    serviceKinds: ["llm"],
     alias: "dxnt",
     name: "DXNT / DX Token",
     icon: "hub",
@@ -355,6 +419,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "cloudcode-one": {
     id: "cloudcode-one",
+    serviceKinds: ["llm"],
     alias: "cloudcode-one",
     name: "CloudCode.ONE",
     icon: "router",
@@ -370,6 +435,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   ofoxai: {
     id: "ofoxai",
+    serviceKinds: ["llm"],
     alias: "ofoxai",
     name: "OfoxAI",
     icon: "router",
@@ -385,6 +451,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   zerolimitai: {
     id: "zerolimitai",
+    serviceKinds: ["llm"],
     alias: "zerolimitai",
     name: "ZeroLimitAI",
     icon: "router",
@@ -400,6 +467,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   chatanywhere: {
     id: "chatanywhere",
+    serviceKinds: ["llm"],
     alias: "chatanywhere",
     name: "ChatAnywhere",
     icon: "router",
@@ -415,6 +483,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   helyxai: {
     id: "helyxai",
+    serviceKinds: ["llm"],
     alias: "helyxai",
     name: "Helyx AI",
     icon: "hub",
@@ -430,6 +499,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   auriko: {
     id: "auriko",
+    serviceKinds: ["llm"],
     alias: "auriko",
     name: "Auriko",
     icon: "hub",
@@ -445,6 +515,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "poixe-ai": {
     id: "poixe-ai",
+    serviceKinds: ["llm"],
     alias: "poixe-ai",
     name: "Poixe AI",
     icon: "router",
@@ -460,6 +531,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "naga-ai": {
     id: "naga-ai",
+    serviceKinds: ["llm"],
     alias: "naga-ai",
     name: "Naga AI",
     icon: "router",
@@ -475,6 +547,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "chat-oripe": {
     id: "chat-oripe",
+    serviceKinds: ["llm"],
     alias: "chat-oripe",
     name: "Chat Oripe",
     icon: "router",
@@ -490,6 +563,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   freeinference: {
     id: "freeinference",
+    serviceKinds: ["llm"],
     alias: "freeinference",
     name: "FreeInference",
     icon: "science",
@@ -505,6 +579,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "free-ai": {
     id: "free-ai",
+    serviceKinds: ["llm"],
     alias: "free-ai",
     name: "Free.ai",
     icon: "hub",
@@ -521,6 +596,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
 
   dgrid: {
     id: "dgrid",
+    serviceKinds: ["llm"],
     alias: "dgrid",
     name: "DGrid",
     icon: "router",
@@ -538,6 +614,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   qiniu: {
     id: "qiniu",
+    serviceKinds: ["llm"],
     alias: "qiniu",
     name: "Qiniu",
     icon: "cloud",
@@ -552,6 +629,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   orcarouter: {
     id: "orcarouter",
+    serviceKinds: ["llm"],
     alias: "orcarouter",
     name: "OrcaRouter",
     icon: "router",
@@ -564,6 +642,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "api-airforce": {
     id: "api-airforce",
+    serviceKinds: ["llm"],
     alias: "af",
     name: "Api.airforce",
     icon: "flight",
@@ -578,6 +657,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   crof: {
     id: "crof",
+    serviceKinds: ["llm"],
     alias: "crof",
     name: "CrofAI",
     icon: "auto_awesome",
@@ -587,6 +667,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   bazaarlink: {
     id: "bazaarlink",
+    serviceKinds: ["llm"],
     alias: "bzl",
     name: "BazaarLink",
     icon: "storefront",
@@ -603,6 +684,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   synthetic: {
     id: "synthetic",
+    serviceKinds: ["llm"],
     alias: "synthetic",
     name: "Synthetic",
     icon: "verified_user",
@@ -613,6 +695,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "kilo-gateway": {
     id: "kilo-gateway",
+    serviceKinds: ["llm"],
     alias: "kg",
     name: "Kilo Gateway",
     icon: "hub",
@@ -623,6 +706,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   wafer: {
     id: "wafer",
+    serviceKinds: ["llm"],
     alias: "wafer",
     name: "Wafer AI",
     icon: "layers",
@@ -633,6 +717,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "opencode-zen": {
     id: "opencode-zen",
+    serviceKinds: ["llm"],
     alias: "opencode-zen",
     name: "OpenCode Zen",
     icon: "opencode",
@@ -642,6 +727,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "opencode-go": {
     id: "opencode-go",
+    serviceKinds: ["llm"],
     alias: "opencode-go",
     name: "OpenCode Go",
     icon: "opencode",
@@ -651,6 +737,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   dahl: {
     id: "dahl",
+    serviceKinds: ["llm"],
     alias: "dahl",
     name: "Dahl",
     icon: "dahl",
@@ -671,6 +758,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   freetheai: {
     id: "freetheai",
+    serviceKinds: ["llm"],
     alias: "fta",
     name: "FreeTheAi",
     icon: "hub",
@@ -684,6 +772,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "g4f-groq": {
     id: "g4f-groq",
+    serviceKinds: ["llm"],
     alias: "g4fgroq",
     name: "g4f.space — Groq",
     icon: "bolt",
@@ -703,6 +792,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "g4f-gemini": {
     id: "g4f-gemini",
+    serviceKinds: ["llm"],
     alias: "g4fgem",
     name: "g4f.space — Gemini",
     icon: "bolt",
@@ -722,6 +812,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "g4f-pollinations": {
     id: "g4f-pollinations",
+    serviceKinds: ["llm"],
     alias: "g4fpol",
     name: "g4f.space — Pollinations",
     icon: "bolt",
@@ -741,6 +832,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "g4f-ollama": {
     id: "g4f-ollama",
+    serviceKinds: ["llm"],
     alias: "g4foll",
     name: "g4f.space — Ollama",
     icon: "bolt",
@@ -760,6 +852,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "g4f-nvidia": {
     id: "g4f-nvidia",
+    serviceKinds: ["llm"],
     alias: "g4fnv",
     name: "g4f.space — NVIDIA",
     icon: "bolt",
@@ -779,6 +872,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "vercel-ai-gateway": {
     id: "vercel-ai-gateway",
+    serviceKinds: ["llm"],
     alias: "vag",
     name: "Vercel AI Gateway",
     icon: "route",
@@ -789,6 +883,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   llm7: {
     id: "llm7",
+    serviceKinds: ["llm"],
     alias: "llm7",
     name: "LLM7.io",
     icon: "hub",
@@ -804,6 +899,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   llamagate: {
     id: "llamagate",
+    serviceKinds: ["llm"],
     alias: "llamagate",
     name: "LlamaGate",
     icon: "gate",
@@ -813,6 +909,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   gitlawb: {
     id: "gitlawb",
+    serviceKinds: ["llm"],
     alias: "glb",
     name: "Gitlawb Opengateway (MiMo)",
     icon: "hub",
@@ -826,6 +923,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "gitlawb-gmi": {
     id: "gitlawb-gmi",
+    serviceKinds: ["llm"],
     alias: "glb-gmi",
     name: "Gitlawb Opengateway (GMI Cloud)",
     icon: "hub",
@@ -839,6 +937,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   nanogpt: {
     id: "nanogpt",
+    serviceKinds: ["llm"],
     alias: "nanogpt",
     name: "NanoGPT",
     icon: "chat",
@@ -848,6 +947,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   aimlapi: {
     id: "aimlapi",
+    serviceKinds: ["llm"],
     alias: "aiml",
     name: "AI/ML API",
     icon: "hub",
@@ -861,6 +961,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   novita: {
     id: "novita",
+    serviceKinds: ["llm"],
     alias: "novita",
     name: "Novita AI",
     icon: "auto_awesome",
@@ -873,6 +974,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   piapi: {
     id: "piapi",
+    serviceKinds: ["llm"],
     alias: "pi",
     name: "PiAPI",
     icon: "api",
@@ -883,6 +985,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   getgoapi: {
     id: "getgoapi",
+    serviceKinds: ["llm"],
     alias: "ggo",
     name: "GoAPI",
     icon: "rocket_launch",
@@ -893,6 +996,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   laozhang: {
     id: "laozhang",
+    serviceKinds: ["llm"],
     alias: "lz",
     name: "LaoZhang AI",
     icon: "hub",
@@ -903,6 +1007,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   thebai: {
     id: "thebai",
+    serviceKinds: ["llm"],
     alias: "thebai",
     name: "TheB.AI",
     icon: "hub",
@@ -914,6 +1019,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   bai: {
     id: "bai",
+    serviceKinds: ["llm"],
     alias: "bai",
     name: "b.ai",
     icon: "hub",
@@ -927,6 +1033,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   fenayai: {
     id: "fenayai",
+    serviceKinds: ["llm"],
     alias: "fenayai",
     name: "FenayAI",
     icon: "hub",
@@ -938,6 +1045,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   empower: {
     id: "empower",
+    serviceKinds: ["llm"],
     alias: "empower",
     name: "Empower",
     icon: "hub",
@@ -951,6 +1059,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   poe: {
     id: "poe",
+    serviceKinds: ["llm"],
     alias: "poe",
     name: "Poe",
     icon: "hub",
@@ -986,6 +1095,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   // is `FACTORY_API_KEY` (Bearer). Subscription tier uses app.factory.ai quota.
   factory: {
     id: "factory",
+    serviceKinds: ["llm"],
     alias: "factory",
     name: "Factory",
     icon: "smart_toy",
@@ -999,6 +1109,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   bluesminds: {
     id: "bluesminds",
+    serviceKinds: ["llm"],
     alias: "bm",
     name: "BluesMinds",
     icon: "psychology",
@@ -1013,6 +1124,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "freemodel-dev": {
     id: "freemodel-dev",
+    serviceKinds: ["llm"],
     alias: "fmd",
     name: "FreeModel.dev",
     icon: "auto_awesome",
@@ -1027,6 +1139,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   freeaiapikey: {
     id: "freeaiapikey",
+    serviceKinds: ["llm"],
     alias: "faik",
     name: "FreeAIAPIKey",
     icon: "vpn_key",
@@ -1038,6 +1151,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   zenmux: {
     id: "zenmux",
+    serviceKinds: ["llm"],
     alias: "zm",
     name: "ZenMux",
     icon: "neurology",
@@ -1054,6 +1168,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   openadapter: {
     id: "openadapter",
+    serviceKinds: ["llm"],
     alias: "oad",
     name: "OpenAdapter",
     icon: "hub",
@@ -1070,6 +1185,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   dit: {
     id: "dit",
+    serviceKinds: ["llm"],
     alias: "dai",
     name: "DIT.ai",
     icon: "hub",
@@ -1083,6 +1199,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   tokenrouter: {
     id: "tokenrouter",
+    serviceKinds: ["llm"],
     alias: "trk",
     name: "TokenRouter",
     icon: "hub",
@@ -1099,6 +1216,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "token-kiosk": {
     id: "token-kiosk",
+    serviceKinds: ["llm"],
     alias: "tk",
     name: "Token Kiosk",
     icon: "hub",
@@ -1112,6 +1230,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   sumopod: {
     id: "sumopod",
+    serviceKinds: ["llm"],
     alias: "sumopod",
     name: "SumoPod",
     icon: "router",
@@ -1126,6 +1245,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   x5lab: {
     id: "x5lab",
+    serviceKinds: ["llm"],
     alias: "x5lab",
     name: "X5Lab",
     icon: "router",
@@ -1140,6 +1260,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   chenzk: {
     id: "chenzk",
+    serviceKinds: ["llm"],
     alias: "chenzk",
     name: "Chenzk API",
     icon: "hub",
@@ -1153,6 +1274,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   kenari: {
     id: "kenari",
+    serviceKinds: ["llm"],
     alias: "kenari",
     name: "Kenari",
     icon: "hub",
@@ -1167,6 +1289,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   navy: {
     id: "navy",
+    serviceKinds: ["llm"],
     alias: "navy",
     name: "NavyAI",
     icon: "hub",
@@ -1186,6 +1309,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   ainative: {
     id: "ainative",
+    serviceKinds: ["llm"],
     alias: "ainative",
     name: "AINative Studio",
     icon: "hub",
@@ -1202,6 +1326,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   aion: {
     id: "aion",
+    serviceKinds: ["llm"],
     alias: "aion",
     name: "Aion Labs",
     icon: "hub",
@@ -1218,6 +1343,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   routeway: {
     id: "routeway",
+    serviceKinds: ["llm"],
     alias: "routeway",
     name: "Routeway",
     icon: "hub",
@@ -1234,6 +1360,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   nara: {
     id: "nara",
+    serviceKinds: ["llm"],
     alias: "nara",
     name: "NaraRouter",
     icon: "hub",
@@ -1242,14 +1369,16 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     passthroughModels: true,
     website: "https://bynara.id",
     hasFree: true,
-    freeNote: "Free tier is a shared 5M tokens/day pool; some models are gated behind credit/plan.",
+    freeNote:
+      "Free plan: one 7M tokens/day bucket per account (15 req/min) across the plan's 8 models; others need credit.",
     authHint:
-      "Get a free API key via NaraRouter's Telegram channel, then paste it here as a Bearer token.",
+      "Create a free NaraRouter account, link your Telegram (required before /v1 answers), then paste the key here as a Bearer token.",
     apiHint:
       "OpenAI-compatible endpoint at https://router.bynara.id/v1. Free-tier models are pinned; others need credit.",
   },
   regolo: {
     id: "regolo",
+    serviceKinds: ["llm"],
     alias: "regolo",
     name: "Regolo AI",
     icon: "hub",
@@ -1263,6 +1392,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "naga-ac": {
     id: "naga-ac",
+    serviceKinds: ["llm"],
     alias: "naga",
     name: "Naga.ac",
     icon: "bolt",
@@ -1278,6 +1408,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   "void-ai": {
     id: "void-ai",
+    serviceKinds: ["llm"],
     alias: "void-ai",
     name: "Void AI",
     icon: "science",
@@ -1293,6 +1424,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   },
   helixmind: {
     id: "helixmind",
+    serviceKinds: ["llm"],
     alias: "helixmind",
     name: "HelixMind",
     icon: "hub",
@@ -1314,6 +1446,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   // convention for data-collecting free providers.
   logfare: {
     id: "logfare",
+    serviceKinds: ["llm"],
     alias: "logfare",
     name: "Logfare",
     icon: "auto_awesome",
@@ -1334,6 +1467,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
   // every model accepting the Anthropic and OpenAI protocols.
   tabitoken: {
     id: "tabitoken",
+    serviceKinds: ["llm"],
     alias: "tabitoken",
     name: "TabiToken",
     icon: "hub",
@@ -1343,5 +1477,25 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     website: "https://tabitoken.com",
     apiHint:
       "Create an sk- key at https://tabitoken.com and use https://tabitoken.com. The Anthropic-compatible /v1/messages endpoint (default) takes x-api-key; /v1/chat/completions takes Bearer.",
+  },
+  // SeekAi (https://seekai.cc) — QuantumNous New-API aggregator. Live-verified
+  // 2026-09-02: GET /api/status → system_name=SeekAi, version=v1.0.0-rc.25,
+  // quota_display_type=USD. OpenAI-compatible /v1; models discovered live.
+  seekai: {
+    id: "seekai",
+    serviceKinds: ["llm"],
+    alias: "ska",
+    name: "SeekAi",
+    icon: "hub",
+    color: "#0D9488",
+    textIcon: "SK",
+    passthroughModels: true,
+    website: "https://seekai.cc",
+    hasFree: true,
+    freeNote:
+      "Signup credit toward available models; amount and eligibility are set by SeekAi, not OmniRoute.",
+    authHint: "Create an API key at https://seekai.cc, then paste it here as a Bearer token.",
+    apiHint:
+      "Create an API key at https://seekai.cc, then paste it here as a Bearer token. OpenAI-compatible base URL: https://seekai.cc/v1.",
   },
 };

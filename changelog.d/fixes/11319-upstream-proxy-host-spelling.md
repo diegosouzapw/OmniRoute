@@ -1,1 +1,0 @@
-- **fix(db):** the upstream proxy URL check judges the host by address instead of by spelling, so `http://[::ffff:169.254.169.254]`, `[::ffff:10.0.0.5]`, ULA/link-local and CGNAT targets are refused like their dotted equivalents ([#11319](https://github.com/diegosouzapw/OmniRoute/pull/11319))

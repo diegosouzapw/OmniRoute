@@ -15,7 +15,11 @@
 
 import { getModelContextLimit } from "../../../src/lib/modelCapabilities";
 import { getHiddenModelsByProvider } from "../../../src/lib/db/models";
-import { getComboModelString, normalizeComboStep } from "../../../src/lib/combos/steps.ts";
+import {
+  getComboModelString,
+  implicitPinAllowlist,
+  normalizeComboStep,
+} from "../../../src/lib/combos/steps.ts";
 import { getProviderByAlias, getProviderById } from "../../../src/shared/constants/providers.ts";
 import { estimateTokens } from "../contextManager.ts";
 import { containsMediaKind } from "../../utils/mediaParts.ts";
@@ -121,6 +125,9 @@ function normalizeRuntimeStep(
   const modelStr = getComboModelString(step);
   if (!modelStr) return null;
 
+  const connectionId = toTrimmedString(step.connectionId);
+  const allowedConnectionIds = implicitPinAllowlist(connectionId, step.allowedConnectionIds);
+
   return {
     kind: "model",
     stepId: step.id,
@@ -128,13 +135,13 @@ function normalizeRuntimeStep(
     modelStr,
     provider: getTargetProvider(modelStr, step.providerId),
     providerId: step.providerId || null,
-    connectionId: step.connectionId || null,
+    connectionId,
     // #3266: a per-step account allowlist scopes round-robin/weighted selection
     // to a subset of the provider's connections. This is the second writer of
     // `allowedConnectionIds` (tag routing is the first); both feed the existing
     // credential-selection filter in auth.ts.
-    ...(Array.isArray(step.allowedConnectionIds) && step.allowedConnectionIds.length > 0
-      ? { allowedConnectionIds: step.allowedConnectionIds }
+    ...(allowedConnectionIds && allowedConnectionIds.length > 0
+      ? { allowedConnectionIds }
       : {}),
     weight,
     label,
@@ -627,6 +634,18 @@ export type CompatFilterOptions = {
   failOpen?: boolean;
 };
 
+function highestKnownOutputLimit(targets: ResolvedComboTarget[]): number {
+  let ceiling = 0;
+  for (const target of targets) {
+    const limit = getResolvedModelCapabilities({
+      provider: target.providerId || target.provider || null,
+      model: target.modelStr,
+    }).maxOutputTokens;
+    if (typeof limit === "number" && limit > ceiling) ceiling = limit;
+  }
+  return ceiling;
+}
+
 export function hasHardCapabilityFailure(reasons: string[]): boolean {
   return reasons.some((reason) => HARD_COMPAT_REASONS.has(reason));
 }
@@ -668,6 +687,16 @@ export function describeCapabilityFilterExhaustion(
     message = `No target in combo ${name} supports tool calling; request carried ${toolCount} tools`;
   } else if (primary === "vision") {
     message = `No target in combo ${name} has confirmed vision support for this image request`;
+  } else if (primary === "output_tokens") {
+    // #12229: name the real reason. Collapsing this into the structured-output
+    // message sent operators chasing response_format when the request's
+    // max_tokens simply exceeded every target's known output ceiling.
+    const ceiling = highestKnownOutputLimit(
+      rejected.filter((entry) => entry.reasons.includes("output_tokens")).map((e) => e.target)
+    );
+    message =
+      `No target in combo ${name} can produce the requested max_tokens=${requirements.requestedOutputTokens}; ` +
+      `the highest known output limit in the pool is ${ceiling}`;
   } else {
     message = `No target in combo ${name} supports structured output for this request`;
   }
@@ -785,16 +814,48 @@ export function filterTargetsByRequestCompatibility(
     return [];
   }
 
+  // #12273: a sole survivor whose catalog window is known-too-small is a
+  // guaranteed context_length_exceeded. Restore the remaining pool so combo.ts
+  // can still try larger-context targets. Unknown context (`null`) is advisory
+  // and must not resurrect hard-rejected targets (vision / output / tools).
+  if (
+    compatible.length === 1 &&
+    (targetReasons.get(compatible[0]) || []).includes("context_window")
+  ) {
+    // #8332: never restore a confirmed-non-vision target onto an image request.
+    const restored = requirements.requiresVision
+      ? targets.filter((target) => !isVisionIncompatibleTarget(target, requirements))
+      : targets;
+    if (restored.length > compatible.length) {
+      log.warn(
+        "COMBO",
+        `${label}: single compatible target ${compatible[0].modelStr} has known context too small for ${requirements.requiredContextTokens} token request; falling back to full pool (#12273)`
+      );
+      return restored;
+    }
+  }
+
   log.info(
     "COMBO",
     `${label}: kept ${compatible.length}/${targets.length} targets for request requirements`
   );
-  log.debug?.(
-    "COMBO",
-    `${label}: rejected targets ${rejected
-      .map((entry) => `${entry.target.modelStr}(${entry.reasons.join("+")})`)
-      .join(", ")}`
-  );
+  // #12273: When pool collapses significantly, log rejection reasons at info
+  // level so the cause is diagnosable without enabling debug logging.
+  if (compatible.length <= 2 && targets.length > 4) {
+    log.info(
+      "COMBO",
+      `${label}: rejected targets ${rejected
+        .map((entry) => `${entry.target.modelStr}(${entry.reasons.join("+")})`)
+        .join(", ")}`
+    );
+  } else {
+    log.debug?.(
+      "COMBO",
+      `${label}: rejected targets ${rejected
+        .map((entry) => `${entry.target.modelStr}(${entry.reasons.join("+")})`)
+        .join(", ")}`
+    );
+  }
   return compatible;
 }
 

@@ -609,7 +609,9 @@ test("Non-streaming: routes native Grok webSearch to URL fetch tool when user as
     const result = await executor.execute({
       model: "grok-4.1-fast",
       body: {
-        messages: [{ role: "user", content: "Haz webfetch de http://endless.horse/ y dime que hay" }],
+        messages: [
+          { role: "user", content: "Haz webfetch de http://endless.horse/ y dime que hay" },
+        ],
         stream: false,
         tools: [
           {
@@ -645,7 +647,10 @@ test("Non-streaming: routes native Grok webSearch to URL fetch tool when user as
     });
     const json = (await result.response.json()) as any;
     assert.equal(json.choices[0].message.tool_calls[0].function.name, "webfetch");
-    assert.equal(json.choices[0].message.tool_calls[0].function.arguments, JSON.stringify({ url: "http://endless.horse/" }));
+    assert.equal(
+      json.choices[0].message.tool_calls[0].function.arguments,
+      JSON.stringify({ url: "http://endless.horse/" })
+    );
   } finally {
     restore();
   }
@@ -678,7 +683,11 @@ test("Non-streaming: keeps native Grok webSearch on search tool when user asks s
             function: {
               name: "public_search_tool",
               description: "Search the web for any topic",
-              parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+              parameters: {
+                type: "object",
+                properties: { query: { type: "string" } },
+                required: ["query"],
+              },
             },
           },
           {
@@ -686,7 +695,11 @@ test("Non-streaming: keeps native Grok webSearch on search tool when user asks s
             function: {
               name: "webfetch",
               description: "Fetch a URL and extract page content",
-              parameters: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
+              parameters: {
+                type: "object",
+                properties: { url: { type: "string" } },
+                required: ["url"],
+              },
             },
           },
         ],
@@ -729,7 +742,11 @@ test("Non-streaming: native Grok webSearch does not choose context memory search
             function: {
               name: "memory_context_tool",
               description: "Search across project memories and conversation history",
-              parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+              parameters: {
+                type: "object",
+                properties: { query: { type: "string" } },
+                required: ["query"],
+              },
             },
           },
           {
@@ -737,7 +754,11 @@ test("Non-streaming: native Grok webSearch does not choose context memory search
             function: {
               name: "public_search_tool",
               description: "Search the web for current public information",
-              parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+              parameters: {
+                type: "object",
+                properties: { query: { type: "string" } },
+                required: ["query"],
+              },
             },
           },
         ],
@@ -778,7 +799,12 @@ test("Non-streaming: maps native Grok browsePage to URL fetch tool", async () =>
     const result = await executor.execute({
       model: "grok-4.1-fast",
       body: {
-        messages: [{ role: "user", content: "Busca la release oficial de Ubuntu y abre la pagina del anuncio" }],
+        messages: [
+          {
+            role: "user",
+            content: "Busca la release oficial de Ubuntu y abre la pagina del anuncio",
+          },
+        ],
         stream: false,
         tools: [
           {
@@ -786,7 +812,11 @@ test("Non-streaming: maps native Grok browsePage to URL fetch tool", async () =>
             function: {
               name: "public_search_tool",
               description: "Search the web for any topic",
-              parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+              parameters: {
+                type: "object",
+                properties: { query: { type: "string" } },
+                required: ["query"],
+              },
             },
           },
           {
@@ -794,7 +824,11 @@ test("Non-streaming: maps native Grok browsePage to URL fetch tool", async () =>
             function: {
               name: "webfetch",
               description: "Fetch a URL with better extraction for static/docs pages",
-              parameters: { type: "object", properties: { url: { type: "string" }, prompt: { type: "string" } }, required: ["url"] },
+              parameters: {
+                type: "object",
+                properties: { url: { type: "string" }, prompt: { type: "string" } },
+                required: ["url"],
+              },
             },
           },
         ],
@@ -849,7 +883,15 @@ test("Non-streaming: does not repeat a tool call that already has a tool result"
           { role: "tool", tool_call_id: "call_1", name: "bash", content: "413 /tmp/a" },
         ],
         stream: false,
-        tools: [{ type: "function", function: { name: "bash", parameters: { type: "object", properties: { command: { type: "string" } } } } }],
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "bash",
+              parameters: { type: "object", properties: { command: { type: "string" } } },
+            },
+          },
+        ],
       },
       stream: false,
       credentials: { apiKey: "test-sso-token" },
@@ -894,7 +936,10 @@ test("Non-streaming: does not repeat equivalent terminal command with different 
                 type: "function",
                 function: {
                   name: "bash",
-                  arguments: JSON.stringify({ command: 'wc -l "/tmp/a"', description: "previous run" }),
+                  arguments: JSON.stringify({
+                    command: 'wc -l "/tmp/a"',
+                    description: "previous run",
+                  }),
                 },
               },
             ],
@@ -953,15 +998,31 @@ test("Non-streaming: allows a different tool after a completed call", async () =
             role: "assistant",
             content: null,
             tool_calls: [
-              { id: "call_1", type: "function", function: { name: "bash", arguments: JSON.stringify({ command: "wc -l /tmp/a" }) } },
+              {
+                id: "call_1",
+                type: "function",
+                function: { name: "bash", arguments: JSON.stringify({ command: "wc -l /tmp/a" }) },
+              },
             ],
           },
           { role: "tool", tool_call_id: "call_1", name: "bash", content: "413 /tmp/a" },
         ],
         stream: false,
         tools: [
-          { type: "function", function: { name: "bash", parameters: { type: "object", properties: { command: { type: "string" } } } } },
-          { type: "function", function: { name: "read", parameters: { type: "object", properties: { filePath: { type: "string" } } } } },
+          {
+            type: "function",
+            function: {
+              name: "bash",
+              parameters: { type: "object", properties: { command: { type: "string" } } },
+            },
+          },
+          {
+            type: "function",
+            function: {
+              name: "read",
+              parameters: { type: "object", properties: { filePath: { type: "string" } } },
+            },
+          },
         ],
       },
       stream: false,
@@ -1011,11 +1072,19 @@ test("Non-streaming: raw_function_result is not emitted as final content", async
               {
                 id: "call_1",
                 type: "function",
-                function: { name: "bash", arguments: JSON.stringify({ command: "wc -l /tmp/project/config.json" }) },
+                function: {
+                  name: "bash",
+                  arguments: JSON.stringify({ command: "wc -l /tmp/project/config.json" }),
+                },
               },
             ],
           },
-          { role: "tool", tool_call_id: "call_1", name: "bash", content: "413 /tmp/project/config.json" },
+          {
+            role: "tool",
+            tool_call_id: "call_1",
+            name: "bash",
+            content: "413 /tmp/project/config.json",
+          },
         ],
         stream: false,
       },
@@ -1099,7 +1168,9 @@ test("Request: forwards tool results into Grok prompt for the next turn", async 
       status: 200,
       headers: new Headers({ "Content-Type": "application/json" }),
       text: null,
-      body: mockGrokStream([{ result: { response: { modelResponse: { message: "It is sunny." } } } }]),
+      body: mockGrokStream([
+        { result: { response: { modelResponse: { message: "It is sunny." } } } },
+      ]),
     };
   });
   try {
@@ -1113,7 +1184,11 @@ test("Request: forwards tool results into Grok prompt for the next turn", async 
             role: "assistant",
             content: null,
             tool_calls: [
-              { id: "call_weather", type: "function", function: { name: "get_weather", arguments: "{}" } },
+              {
+                id: "call_weather",
+                type: "function",
+                function: { name: "get_weather", arguments: "{}" },
+              },
             ],
           },
           { role: "tool", tool_call_id: "call_weather", name: "get_weather", content: "sunny" },
@@ -1127,7 +1202,11 @@ test("Request: forwards tool results into Grok prompt for the next turn", async 
     });
     const payload = JSON.parse(capturedBody);
     assert.ok(payload.message.includes("Previous assistant tool calls"));
-    assert.ok(payload.message.includes("CLIENT TOOL RESULT from caller runtime for get_weather (call_weather)"));
+    assert.ok(
+      payload.message.includes(
+        "CLIENT TOOL RESULT from caller runtime for get_weather (call_weather)"
+      )
+    );
     assert.ok(payload.message.includes("do not call the same tool again"));
     assert.ok(payload.message.includes("sunny"));
   } finally {
@@ -1209,7 +1288,9 @@ test("Request: leaves native Grok search enabled when client tools are absent", 
 });
 
 test("Request: places tool manifest next to latest user after noisy history", async () => {
-  const capture = mockFetchCapture([{ result: { response: { modelResponse: { message: "{}" } } } }]);
+  const capture = mockFetchCapture([
+    { result: { response: { modelResponse: { message: "{}" } } } },
+  ]);
   try {
     const executor = new GrokWebExecutor();
     await executor.execute({
@@ -1218,7 +1299,10 @@ test("Request: places tool manifest next to latest user after noisy history", as
         messages: [
           { role: "user", content: "old question" },
           { role: "assistant", content: "old answer claiming file does not exist" },
-          { role: "user", content: "/tmp/project/config.json dime cuantas lineas tiene este archivo" },
+          {
+            role: "user",
+            content: "/tmp/project/config.json dime cuantas lineas tiene este archivo",
+          },
         ],
         stream: false,
         tools: [
@@ -1227,7 +1311,11 @@ test("Request: places tool manifest next to latest user after noisy history", as
             function: {
               name: "bash",
               description: "Run a shell command",
-              parameters: { type: "object", properties: { command: { type: "string" } }, required: ["command"] },
+              parameters: {
+                type: "object",
+                properties: { command: { type: "string" } },
+                required: ["command"],
+              },
             },
           },
         ],
@@ -1250,7 +1338,9 @@ test("Request: places tool manifest next to latest user after noisy history", as
 });
 
 test("Request: strips injected internal reminders from Grok prompt", async () => {
-  const capture = mockFetchCapture([{ result: { response: { modelResponse: { message: "{}" } } } }]);
+  const capture = mockFetchCapture([
+    { result: { response: { modelResponse: { message: "{}" } } } },
+  ]);
   try {
     const executor = new GrokWebExecutor();
     await executor.execute({
@@ -1270,7 +1360,11 @@ test("Request: strips injected internal reminders from Grok prompt", async () =>
             function: {
               name: "fetch_url_tool",
               description: "Fetch URL or browse web page content",
-              parameters: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
+              parameters: {
+                type: "object",
+                properties: { url: { type: "string" } },
+                required: ["url"],
+              },
             },
           },
         ],
@@ -1290,7 +1384,9 @@ test("Request: strips injected internal reminders from Grok prompt", async () =>
 });
 
 test("Request: old completed tools do not suppress fresh latest-user tool calls", async () => {
-  const capture = mockFetchCapture([{ result: { response: { modelResponse: { message: "{}" } } } }]);
+  const capture = mockFetchCapture([
+    { result: { response: { modelResponse: { message: "{}" } } } },
+  ]);
   try {
     const executor = new GrokWebExecutor();
     await executor.execute({
@@ -1320,7 +1416,11 @@ test("Request: old completed tools do not suppress fresh latest-user tool calls"
             function: {
               name: "bash",
               description: "Run a shell command",
-              parameters: { type: "object", properties: { command: { type: "string" } }, required: ["command"] },
+              parameters: {
+                type: "object",
+                properties: { command: { type: "string" } },
+                required: ["command"],
+              },
             },
           },
         ],
@@ -1339,7 +1439,9 @@ test("Request: old completed tools do not suppress fresh latest-user tool calls"
 });
 
 test("Request: appends tool manifest after tool results during multi-step continuation", async () => {
-  const capture = mockFetchCapture([{ result: { response: { modelResponse: { message: "{}" } } } }]);
+  const capture = mockFetchCapture([
+    { result: { response: { modelResponse: { message: "{}" } } } },
+  ]);
   try {
     const executor = new GrokWebExecutor();
     await executor.execute({
@@ -1351,7 +1453,11 @@ test("Request: appends tool manifest after tool results during multi-step contin
             role: "assistant",
             content: "",
             tool_calls: [
-              { id: "read_call", type: "function", function: { name: "read", arguments: JSON.stringify({ filePath: "/tmp/a" }) } },
+              {
+                id: "read_call",
+                type: "function",
+                function: { name: "read", arguments: JSON.stringify({ filePath: "/tmp/a" }) },
+              },
             ],
           },
           { role: "tool", tool_call_id: "read_call", name: "read", content: "file content" },
@@ -1363,7 +1469,11 @@ test("Request: appends tool manifest after tool results during multi-step contin
             function: {
               name: "memory_context_tool",
               description: "Search across project memories and raw conversation history.",
-              parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+              parameters: {
+                type: "object",
+                properties: { query: { type: "string" } },
+                required: ["query"],
+              },
             },
           },
           {
@@ -1371,7 +1481,11 @@ test("Request: appends tool manifest after tool results during multi-step contin
             function: {
               name: "public_search_tool",
               description: "Search the web for any topic and get clean content.",
-              parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+              parameters: {
+                type: "object",
+                properties: { query: { type: "string" } },
+                required: ["query"],
+              },
             },
           },
         ],
@@ -1393,7 +1507,9 @@ test("Request: appends tool manifest after tool results during multi-step contin
 });
 
 test("Request: keeps generic manifest ordered for file understanding tasks", async () => {
-  const capture = mockFetchCapture([{ result: { response: { modelResponse: { message: "{}" } } } }]);
+  const capture = mockFetchCapture([
+    { result: { response: { modelResponse: { message: "{}" } } } },
+  ]);
   try {
     const executor = new GrokWebExecutor();
     await executor.execute({
@@ -1412,7 +1528,11 @@ test("Request: keeps generic manifest ordered for file understanding tasks", asy
             function: {
               name: "bash",
               description: "Execute shell command",
-              parameters: { type: "object", properties: { command: { type: "string" }, description: { type: "string" } }, required: ["command"] },
+              parameters: {
+                type: "object",
+                properties: { command: { type: "string" }, description: { type: "string" } },
+                required: ["command"],
+              },
             },
           },
           {
@@ -1420,7 +1540,11 @@ test("Request: keeps generic manifest ordered for file understanding tasks", asy
             function: {
               name: "read",
               description: "Read a file or directory from the local filesystem",
-              parameters: { type: "object", properties: { filePath: { type: "string" } }, required: ["filePath"] },
+              parameters: {
+                type: "object",
+                properties: { filePath: { type: "string" } },
+                required: ["filePath"],
+              },
             },
           },
         ],
@@ -1448,21 +1572,33 @@ test("Request: keeps generic manifest ordered for file understanding tasks", asy
 });
 
 test("Request: keeps generic manifest ordered for official web facts", async () => {
-  const capture = mockFetchCapture([{ result: { response: { modelResponse: { message: "{}" } } } }]);
+  const capture = mockFetchCapture([
+    { result: { response: { modelResponse: { message: "{}" } } } },
+  ]);
   try {
     const executor = new GrokWebExecutor();
     await executor.execute({
       model: "grok-4.1-fast",
       body: {
-        messages: [{ role: "user", content: "contrasta con una fuente web oficial la ultima release de Ubuntu 24.04" }],
+        messages: [
+          {
+            role: "user",
+            content: "contrasta con una fuente web oficial la ultima release de Ubuntu 24.04",
+          },
+        ],
         stream: false,
         tools: [
           {
             type: "function",
             function: {
               name: "memory_context_tool",
-              description: "Search across project memories, indexed git commits, and raw conversation history.",
-              parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+              description:
+                "Search across project memories, indexed git commits, and raw conversation history.",
+              parameters: {
+                type: "object",
+                properties: { query: { type: "string" } },
+                required: ["query"],
+              },
             },
           },
           {
@@ -1470,7 +1606,11 @@ test("Request: keeps generic manifest ordered for official web facts", async () 
             function: {
               name: "public_search_tool",
               description: "Search the web for any topic and get clean, ready-to-use content.",
-              parameters: { type: "object", properties: { query: { type: "string" }, numResults: { type: "number" } }, required: ["query"] },
+              parameters: {
+                type: "object",
+                properties: { query: { type: "string" }, numResults: { type: "number" } },
+                required: ["query"],
+              },
             },
           },
         ],
@@ -1498,7 +1638,9 @@ test("Request: keeps generic manifest ordered for official web facts", async () 
 });
 
 test("Request: base manifest order puts public web search before context memory", async () => {
-  const capture = mockFetchCapture([{ result: { response: { modelResponse: { message: "{}" } } } }]);
+  const capture = mockFetchCapture([
+    { result: { response: { modelResponse: { message: "{}" } } } },
+  ]);
   try {
     const executor = new GrokWebExecutor();
     await executor.execute({
@@ -1512,7 +1654,11 @@ test("Request: base manifest order puts public web search before context memory"
             function: {
               name: "memory_context_tool",
               description: "Search across project memories and conversation history",
-              parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+              parameters: {
+                type: "object",
+                properties: { query: { type: "string" } },
+                required: ["query"],
+              },
             },
           },
           {
@@ -1520,7 +1666,11 @@ test("Request: base manifest order puts public web search before context memory"
             function: {
               name: "public_search_tool",
               description: "Search the web for current public information",
-              parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+              parameters: {
+                type: "object",
+                properties: { query: { type: "string" } },
+                required: ["query"],
+              },
             },
           },
         ],
@@ -1531,14 +1681,18 @@ test("Request: base manifest order puts public web search before context memory"
       log: null,
     });
     const prompt = String(capture.body.message);
-    assert.ok(prompt.indexOf("name: public_search_tool") < prompt.indexOf("name: memory_context_tool"));
+    assert.ok(
+      prompt.indexOf("name: public_search_tool") < prompt.indexOf("name: memory_context_tool")
+    );
   } finally {
     capture.restore();
   }
 });
 
 test("Request: ranks public web search before infrastructure search", async () => {
-  const capture = mockFetchCapture([{ result: { response: { modelResponse: { message: "{}" } } } }]);
+  const capture = mockFetchCapture([
+    { result: { response: { modelResponse: { message: "{}" } } } },
+  ]);
   try {
     const executor = new GrokWebExecutor();
     await executor.execute({
@@ -1551,8 +1705,13 @@ test("Request: ranks public web search before infrastructure search", async () =
             type: "function",
             function: {
               name: "tool_discovery_search",
-              description: "Search and discover available upstream tools using BM25 full-text search",
-              parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+              description:
+                "Search and discover available upstream tools using BM25 full-text search",
+              parameters: {
+                type: "object",
+                properties: { query: { type: "string" } },
+                required: ["query"],
+              },
             },
           },
           {
@@ -1560,7 +1719,11 @@ test("Request: ranks public web search before infrastructure search", async () =
             function: {
               name: "public_search_tool",
               description: "Search the web for current public information",
-              parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+              parameters: {
+                type: "object",
+                properties: { query: { type: "string" } },
+                required: ["query"],
+              },
             },
           },
         ],
@@ -1571,14 +1734,18 @@ test("Request: ranks public web search before infrastructure search", async () =
       log: null,
     });
     const prompt = String(capture.body.message);
-    assert.ok(prompt.indexOf("name: public_search_tool") < prompt.indexOf("name: tool_discovery_search"));
+    assert.ok(
+      prompt.indexOf("name: public_search_tool") < prompt.indexOf("name: tool_discovery_search")
+    );
   } finally {
     capture.restore();
   }
 });
 
 test("Request: ranks URL fetch before generic MCP read", async () => {
-  const capture = mockFetchCapture([{ result: { response: { modelResponse: { message: "{}" } } } }]);
+  const capture = mockFetchCapture([
+    { result: { response: { modelResponse: { message: "{}" } } } },
+  ]);
   try {
     const executor = new GrokWebExecutor();
     await executor.execute({
@@ -1591,8 +1758,13 @@ test("Request: ranks URL fetch before generic MCP read", async () => {
             type: "function",
             function: {
               name: "mcp_read_tool",
-              description: "Execute a read-only upstream tool such as fetch, get, query, list, or search",
-              parameters: { type: "object", properties: { name: { type: "string" }, args: { type: "object" } }, required: ["name"] },
+              description:
+                "Execute a read-only upstream tool such as fetch, get, query, list, or search",
+              parameters: {
+                type: "object",
+                properties: { name: { type: "string" }, args: { type: "object" } },
+                required: ["name"],
+              },
             },
           },
           {
@@ -1600,7 +1772,11 @@ test("Request: ranks URL fetch before generic MCP read", async () => {
             function: {
               name: "fetch_url_tool",
               description: "Fetch URL or browse web page content",
-              parameters: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
+              parameters: {
+                type: "object",
+                properties: { url: { type: "string" } },
+                required: ["url"],
+              },
             },
           },
         ],
@@ -1618,7 +1794,9 @@ test("Request: ranks URL fetch before generic MCP read", async () => {
 });
 
 test("Request: ranks shell command before infrastructure command config", async () => {
-  const capture = mockFetchCapture([{ result: { response: { modelResponse: { message: "{}" } } } }]);
+  const capture = mockFetchCapture([
+    { result: { response: { modelResponse: { message: "{}" } } } },
+  ]);
   try {
     const executor = new GrokWebExecutor();
     await executor.execute({
@@ -1632,7 +1810,11 @@ test("Request: ranks shell command before infrastructure command config", async 
             function: {
               name: "upstream_server_config",
               description: "Manage upstream MCP servers, including stdio command configuration",
-              parameters: { type: "object", properties: { command: { type: "string" }, name: { type: "string" } }, required: ["name"] },
+              parameters: {
+                type: "object",
+                properties: { command: { type: "string" }, name: { type: "string" } },
+                required: ["name"],
+              },
             },
           },
           {
@@ -1640,7 +1822,11 @@ test("Request: ranks shell command before infrastructure command config", async 
             function: {
               name: "shell_command_tool",
               description: "Execute a shell command and return output",
-              parameters: { type: "object", properties: { command: { type: "string" } }, required: ["command"] },
+              parameters: {
+                type: "object",
+                properties: { command: { type: "string" } },
+                required: ["command"],
+              },
             },
           },
         ],
@@ -1651,20 +1837,26 @@ test("Request: ranks shell command before infrastructure command config", async 
       log: null,
     });
     const prompt = String(capture.body.message);
-    assert.ok(prompt.indexOf("name: shell_command_tool") < prompt.indexOf("name: upstream_server_config"));
+    assert.ok(
+      prompt.indexOf("name: shell_command_tool") < prompt.indexOf("name: upstream_server_config")
+    );
   } finally {
     capture.restore();
   }
 });
 
 test("Request: commit wording does not prioritize memory over shell", async () => {
-  const capture = mockFetchCapture([{ result: { response: { modelResponse: { message: "{}" } } } }]);
+  const capture = mockFetchCapture([
+    { result: { response: { modelResponse: { message: "{}" } } } },
+  ]);
   try {
     const executor = new GrokWebExecutor();
     await executor.execute({
       model: "grok-4.1-fast",
       body: {
-        messages: [{ role: "user", content: "ejecuta git rev-parse HEAD para ver el commit actual" }],
+        messages: [
+          { role: "user", content: "ejecuta git rev-parse HEAD para ver el commit actual" },
+        ],
         stream: false,
         tools: [
           {
@@ -1672,7 +1864,11 @@ test("Request: commit wording does not prioritize memory over shell", async () =
             function: {
               name: "memory_context_tool",
               description: "Search project memories and conversation history",
-              parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+              parameters: {
+                type: "object",
+                properties: { query: { type: "string" } },
+                required: ["query"],
+              },
             },
           },
           {
@@ -1680,7 +1876,11 @@ test("Request: commit wording does not prioritize memory over shell", async () =
             function: {
               name: "shell_command_tool",
               description: "Execute a shell command and return output",
-              parameters: { type: "object", properties: { command: { type: "string" } }, required: ["command"] },
+              parameters: {
+                type: "object",
+                properties: { command: { type: "string" } },
+                required: ["command"],
+              },
             },
           },
         ],
@@ -1691,14 +1891,18 @@ test("Request: commit wording does not prioritize memory over shell", async () =
       log: null,
     });
     const prompt = String(capture.body.message);
-    assert.ok(prompt.indexOf("name: shell_command_tool") < prompt.indexOf("name: memory_context_tool"));
+    assert.ok(
+      prompt.indexOf("name: shell_command_tool") < prompt.indexOf("name: memory_context_tool")
+    );
   } finally {
     capture.restore();
   }
 });
 
 test("Request: explicit memory request prioritizes context over public web", async () => {
-  const capture = mockFetchCapture([{ result: { response: { modelResponse: { message: "{}" } } } }]);
+  const capture = mockFetchCapture([
+    { result: { response: { modelResponse: { message: "{}" } } } },
+  ]);
   try {
     const executor = new GrokWebExecutor();
     await executor.execute({
@@ -1712,7 +1916,11 @@ test("Request: explicit memory request prioritizes context over public web", asy
             function: {
               name: "public_search_tool",
               description: "Search the web for current public information",
-              parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+              parameters: {
+                type: "object",
+                properties: { query: { type: "string" } },
+                required: ["query"],
+              },
             },
           },
           {
@@ -1720,7 +1928,11 @@ test("Request: explicit memory request prioritizes context over public web", asy
             function: {
               name: "memory_context_tool",
               description: "Search project memories and conversation history",
-              parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+              parameters: {
+                type: "object",
+                properties: { query: { type: "string" } },
+                required: ["query"],
+              },
             },
           },
         ],
@@ -1731,14 +1943,18 @@ test("Request: explicit memory request prioritizes context over public web", asy
       log: null,
     });
     const prompt = String(capture.body.message);
-    assert.ok(prompt.indexOf("name: memory_context_tool") < prompt.indexOf("name: public_search_tool"));
+    assert.ok(
+      prompt.indexOf("name: memory_context_tool") < prompt.indexOf("name: public_search_tool")
+    );
   } finally {
     capture.restore();
   }
 });
 
 test("Request: explicit tool_choice exposes only the forced tool", async () => {
-  const capture = mockFetchCapture([{ result: { response: { modelResponse: { message: "{}" } } } }]);
+  const capture = mockFetchCapture([
+    { result: { response: { modelResponse: { message: "{}" } } } },
+  ]);
   try {
     const executor = new GrokWebExecutor();
     await executor.execute({
@@ -1753,7 +1969,11 @@ test("Request: explicit tool_choice exposes only the forced tool", async () => {
             function: {
               name: "other_tool",
               description: "Other available tool",
-              parameters: { type: "object", properties: { input: { type: "string" } }, required: ["input"] },
+              parameters: {
+                type: "object",
+                properties: { input: { type: "string" } },
+                required: ["input"],
+              },
             },
           },
           {
@@ -1761,7 +1981,11 @@ test("Request: explicit tool_choice exposes only the forced tool", async () => {
             function: {
               name: "forced_tool",
               description: "Forced tool",
-              parameters: { type: "object", properties: { input: { type: "string" } }, required: ["input"] },
+              parameters: {
+                type: "object",
+                properties: { input: { type: "string" } },
+                required: ["input"],
+              },
             },
           },
         ],
@@ -1843,7 +2067,11 @@ test("Non-streaming: routes URL-like webfetch requests conservatively", async ()
               function: {
                 name: "fetch_url_tool",
                 description: "Fetch URL or browse web page content",
-                parameters: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
+                parameters: {
+                  type: "object",
+                  properties: { url: { type: "string" } },
+                  required: ["url"],
+                },
               },
             },
             {
@@ -1851,7 +2079,11 @@ test("Non-streaming: routes URL-like webfetch requests conservatively", async ()
               function: {
                 name: "public_search_tool",
                 description: "Search the web for current public information",
-                parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+                parameters: {
+                  type: "object",
+                  properties: { query: { type: "string" } },
+                  required: ["query"],
+                },
               },
             },
           ],
@@ -1862,8 +2094,16 @@ test("Non-streaming: routes URL-like webfetch requests conservatively", async ()
         log: null,
       });
       const json = (await result.response.json()) as any;
-      assert.equal(json.choices[0].message.tool_calls[0].function.name, item.expectedName, item.title);
-      assert.equal(json.choices[0].message.tool_calls[0].function.arguments, JSON.stringify(item.expectedArgs), item.title);
+      assert.equal(
+        json.choices[0].message.tool_calls[0].function.name,
+        item.expectedName,
+        item.title
+      );
+      assert.equal(
+        json.choices[0].message.tool_calls[0].function.arguments,
+        JSON.stringify(item.expectedArgs),
+        item.title
+      );
     } finally {
       restore();
     }
@@ -1963,7 +2203,11 @@ test("Streaming: handles Grok card closing tags split across chunks", async () =
 test("Streaming: strips self-closing Grok render cards without swallowing later text", async () => {
   const restore = mockFetch(200, [
     { result: { response: { token: "Alpha " } } },
-    { result: { response: { token: '<grok:render card_id="c1" card_type="citation_card" /> omega' } } },
+    {
+      result: {
+        response: { token: '<grok:render card_id="c1" card_type="citation_card" /> omega' },
+      },
+    },
     { result: { response: { modelResponse: { message: "Alpha  omega" } } } },
   ]);
   try {
@@ -2040,10 +2284,39 @@ test("Streaming: maps structured Grok thinking to reasoning_content", async () =
 
 test("Streaming: routes Grok thinking tokens separately from content", async () => {
   const restore = mockFetch(200, [
-    { result: { response: { token: "Thinking about your request", isThinking: true, messageTag: "header", messageStepId: 0 } } },
-    { result: { response: { token: "Buscando fecha de lanzamiento", isThinking: true, messageTag: "header" } } },
-    { result: { response: { token: "- Tool calls succeeded, confirming Ubuntu 24.04.4.\n", isThinking: true, messageTag: "summary" } } },
-    { result: { response: { token: "Tool call ejecutado.\nweb_search ejecutado correctamente.\n" } } },
+    {
+      result: {
+        response: {
+          token: "Thinking about your request",
+          isThinking: true,
+          messageTag: "header",
+          messageStepId: 0,
+        },
+      },
+    },
+    {
+      result: {
+        response: {
+          token: "Buscando fecha de lanzamiento",
+          isThinking: true,
+          messageTag: "header",
+        },
+      },
+    },
+    {
+      result: {
+        response: {
+          token: "- Tool calls succeeded, confirming Ubuntu 24.04.4.\n",
+          isThinking: true,
+          messageTag: "summary",
+        },
+      },
+    },
+    {
+      result: {
+        response: { token: "Tool call ejecutado.\nweb_search ejecutado correctamente.\n" },
+      },
+    },
     { result: { response: { token: "Resultados clave:\n- Ubuntu 24.04.4 LTS liberado.\n" } } },
     {
       result: {
@@ -2322,7 +2595,11 @@ test("Request: preserves selected mode and native search state when client tools
             function: {
               name: "public_search_tool",
               description: "Search the public web",
-              parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+              parameters: {
+                type: "object",
+                properties: { query: { type: "string" } },
+                required: ["query"],
+              },
             },
           },
         ],

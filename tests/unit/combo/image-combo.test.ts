@@ -23,6 +23,7 @@ fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 
 const core = await import("@/lib/db/core.ts");
 const { createCombo } = await import("@/lib/db/combos");
+const { createProviderConnection } = await import("@/lib/db/providers");
 const { executeImageCombo } = await import("@omniroute/open-sse/services/imageCombo");
 
 type LogEntry = { level: string; tag: unknown; msg: unknown };
@@ -281,5 +282,71 @@ test("all error responses from executeImageCombo sanitize stack traces", async (
       !bodyStr.includes("at ") || !bodyStr.includes("/src/"),
       `Scenario "${scenario.name}" does not leak stack traces`
     );
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Success path — public response shape (#12268)
+// ---------------------------------------------------------------------------
+
+function buildCodexSSE(items: Array<Record<string, unknown>>): string {
+  const frames = items.map((item) => JSON.stringify({ type: "response.output_item.done", item }));
+  return frames.map((frame) => `event: response.output_item.done\ndata: ${frame}\n`).join("\n");
+}
+
+test("combo success keeps the OpenAI {created, data} wrapper and Codex defaults to b64_json (#12268)", async () => {
+  // Codex CLI hardcodes the model name `gpt-image-2`; a combo is what lets it
+  // reach a codex target. The combo response must match the direct-model
+  // response shape byte-for-byte or the client aborts while decoding `created`.
+  await createProviderConnection({
+    provider: "codex",
+    authType: "apikey",
+    apiKey: "codex-token",
+    name: "codex-image-combo",
+    isActive: true,
+    testStatus: "active",
+    providerSpecificData: {},
+  });
+  await createCombo({
+    name: "gpt-image-2",
+    strategy: "priority",
+    models: ["codex/gpt-5.6-sol"],
+  });
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(
+      buildCodexSSE([
+        {
+          type: "image_generation_call",
+          id: "ig_combo_1",
+          status: "completed",
+          revised_prompt: "a green tree icon",
+          result: "aVZCT1J3MEtHZ28=",
+        },
+      ]),
+      { status: 200, headers: { "content-type": "text/event-stream" } }
+    );
+
+  try {
+    const log = createLog();
+    const response = await executeImageCombo(
+      "gpt-image-2",
+      { model: "gpt-image-2", prompt: "a green tree icon, white background, minimal flat" },
+      createMockAuth(),
+      Date.now(),
+      log
+    );
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.ok(!Array.isArray(body), "combo path must not return a bare array");
+    assert.equal(typeof body.created, "number");
+    assert.ok(Array.isArray(body.data));
+    assert.equal(body.data.length, 1);
+    assert.equal(body.data[0].b64_json, "aVZCT1J3MEtHZ28=");
+    assert.equal(body.data[0].url, undefined);
+    assert.equal(body.data[0].revised_prompt, "a green tree icon");
+  } finally {
+    globalThis.fetch = originalFetch;
   }
 });

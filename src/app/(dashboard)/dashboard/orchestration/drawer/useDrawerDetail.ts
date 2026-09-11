@@ -1,12 +1,16 @@
 "use client";
-/** Fetches per-source task detail on drawer open + approve/cancel actions. */
+/** Fetches per-source task detail on drawer open + approve/cancel/repeat actions. */
 import { useEffect, useState } from "react";
 import type { OrchNode } from "../model/orchestrationTypes";
+import type { CloudAgentTask } from "@/lib/cloudAgent/types";
+import type { A2ATask } from "@/lib/a2a/taskManager";
+import type { ConductorTaskDetail } from "@/lib/conductor/hubProxy";
 
-// Client-safe stand-in for sanitizeErrorMessage (server-only, breaks the client bundle — #10692): only our own `HTTP <status>` errors and AbortError pass through verbatim, everything else collapses to a generic string.
+// Client-safe stand-in for sanitizeErrorMessage (server-only, breaks the client bundle — #10692): only our own `HTTP <status>` / `RPC <code>` errors and AbortError pass through verbatim, everything else collapses to a generic string. `RPC <code>` carries the JSON-RPC error CODE only — never the upstream `error.message`, which is attacker/upstream-controlled text (Hard Rule #12).
 function toSafeErrorText(err: unknown): string {
   if (err instanceof Error) {
     if (/^HTTP \d{3}$/.test(err.message)) return err.message;
+    if (/^RPC -?\d{1,6}$/.test(err.message)) return err.message;
     if (err.name === "AbortError") return "Request cancelled";
   }
   return "Request failed";
@@ -56,6 +60,154 @@ function routeFor(node: OrchNode): SourceRoute {
 }
 
 /**
+ * Builds the POST request that recreates a task with the same input, from the LOADED
+ * DETAIL — never from `node` (the node only carries display fields, not the full
+ * original request). Returns `null` when the original input cannot be recovered, so
+ * the caller can render the "Repeat" action disabled instead of firing a bad request.
+ * Contracts, verified against the live routes (not assumed) — the null-guard requires
+ * EVERY field the target route treats as mandatory, not merely one of them (a partially
+ * recoverable detail is not recoverable: a POST missing one required field 400s, which is
+ * an enabled button that cannot work):
+ *   - cloud-agent → `POST /api/v1/agents/tasks`, `CreateCloudAgentTaskSchema` shape
+ *     (`src/lib/cloudAgent/types.ts`) — `providerId`, `prompt` and `source` are all
+ *     required there; `options` is optional.
+ *   - a2a → `POST /a2a`, JSON-RPC `message/send` (`src/app/a2a/route.ts`) — only
+ *     `messages` is required (`skill` defaults to `"smart-routing"`, `metadata` is
+ *     optional), so that is the only field guarded here.
+ *   - conductor → `POST /api/conductor/tasks` (D1, `src/app/api/conductor/tasks/route.ts`)
+ *     — `repoUrl` and `prompt` are both `z.string().min(1)` (required); `ConductorTaskDetail`
+ *     leaves `repo`/`prompt` independently nullable, so either one missing must null out
+ *     the whole request.
+ */
+/**
+ * Strips `memoryHits` from the metadata a repeat re-sends. `metadata.memoryHits` is
+ * OBSERVABILITY written by the previous run (`src/lib/a2a/taskExecution.ts`) — never
+ * caller input — so echoing it back would make the new task be born carrying the old
+ * run's memory snippets, and would keep showing them in the drawer even with the
+ * `OMNIROUTE_A2A_MEMORY_HITS=0` kill-switch on. `taskManager.createTask` no longer aliases
+ * `metadata` into `input`, but historical tasks persisted before that fix still carry the
+ * hits inside `input.metadata`, so the repeat path must drop them too.
+ * Returns `undefined` for a missing/non-object metadata so the JSON body omits the field
+ * entirely (the route treats `params.metadata` as optional).
+ */
+function withoutMemoryHits(metadata: unknown): Record<string, unknown> | undefined {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return undefined;
+  const rest = { ...(metadata as Record<string, unknown>) };
+  delete rest.memoryHits;
+  return rest;
+}
+
+/** Builds the JSON-body `RequestInit` shared by every `repeatReqFor*` source builder below. */
+function postJson(body: unknown): RequestInit {
+  return {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  };
+}
+
+/** cloud-agent repeat builder — `POST /api/v1/agents/tasks`, `CreateCloudAgentTaskSchema` shape. */
+function repeatReqForCloudAgent(detail: unknown): { url: string; init: RequestInit } | null {
+  const d = detail as CloudAgentTask | null;
+  if (!d?.providerId || !d?.prompt || !d?.source) return null;
+  return {
+    url: "/api/v1/agents/tasks",
+    init: postJson({
+      providerId: d.providerId,
+      prompt: d.prompt,
+      source: d.source,
+      options: d.options,
+    }),
+  };
+}
+
+/** a2a repeat builder — `POST /a2a`, JSON-RPC `message/send` from `detail.input`. */
+function repeatReqForA2a(
+  nodeId: string,
+  detail: unknown
+): { url: string; init: RequestInit } | null {
+  const d = detail as A2ATask | null;
+  if (!d?.input?.messages?.length) return null;
+  return {
+    url: "/a2a",
+    init: postJson({
+      jsonrpc: "2.0",
+      id: nodeId,
+      method: "message/send",
+      params: {
+        skill: d.input.skill,
+        messages: d.input.messages,
+        metadata: withoutMemoryHits(d.input.metadata),
+      },
+    }),
+  };
+}
+
+/**
+ * conductor repeat builder — `POST /api/conductor/tasks` (D1 task-creation route).
+ * `cli`/`model` come from the hub's `requirements` (`ConductorTaskDetail`, hubProxy.ts) and are
+ * carried over so the repeat lands on the SAME runner profile/model the original task was
+ * pinned to. Both are `z.string().optional()` in the route's Zod: a `null` would 400, so a
+ * missing requirement must OMIT the field (`undefined`) rather than send `null` — and the two
+ * are independent (one may be set while the other is not).
+ */
+function repeatReqForConductor(detail: unknown): { url: string; init: RequestInit } | null {
+  const d = detail as ConductorTaskDetail | null;
+  if (!d?.repo || !d?.prompt) return null;
+  return {
+    url: "/api/conductor/tasks",
+    init: postJson({
+      repoUrl: d.repo,
+      prompt: d.prompt,
+      baseRef: d.base_ref ?? undefined,
+      mode: d.mode,
+      cli: d.cli ?? undefined,
+      model: d.model ?? undefined,
+    }),
+  };
+}
+
+export function repeatReqFor(
+  node: OrchNode,
+  detail: unknown
+): { url: string; init: RequestInit } | null {
+  if (node.id.startsWith("cloud-agent:")) return repeatReqForCloudAgent(detail);
+  if (node.id.startsWith("a2a:")) return repeatReqForA2a(node.id, detail);
+  if (node.id.startsWith("conductor:task:")) return repeatReqForConductor(detail);
+  return null;
+}
+
+/** `<prefix><id>` when `id` is a non-empty string, `null` otherwise (never a bare prefix). */
+function prefixedNodeId(prefix: string, id: unknown): string | null {
+  return typeof id === "string" && id.length > 0 ? `${prefix}${id}` : null;
+}
+
+/**
+ * CANVAS node id of the task a successful repeat just created, from the creation response
+ * body — `null` whenever the body does not carry a usable id (the caller then simply refetches
+ * without focusing anything). The canvas addresses nodes by PREFIXED id
+ * (`mergeSnapshot.ts`), so the raw upstream id is never returned on its own. Response
+ * envelopes, verified against the live routes:
+ *   - conductor (`POST /api/conductor/tasks`): `{ task_id }`.
+ *   - cloud-agent (`POST /api/v1/agents/tasks`): `{ data: { id } }`.
+ *   - a2a (`POST /a2a`, JSON-RPC `message/send`): `{ result: { task: { id } } }`.
+ */
+export function newNodeIdFrom(node: OrchNode, body: unknown): string | null {
+  if (!body || typeof body !== "object") return null;
+  const b = body as Record<string, unknown>;
+  if (node.id.startsWith("conductor:task:")) return prefixedNodeId("conductor:task:", b.task_id);
+  if (node.id.startsWith("cloud-agent:")) {
+    const data = b.data as { id?: unknown } | undefined;
+    return prefixedNodeId("cloud-agent:", data?.id);
+  }
+  if (node.id.startsWith("a2a:")) {
+    const result = b.result as { task?: { id?: unknown } } | undefined;
+    return prefixedNodeId("a2a:", result?.task?.id);
+  }
+  return null;
+}
+
+/**
  * Unwraps a task-detail GET response to the actual task payload. Each source's
  * route has its own envelope — verified against the live handlers, not assumed:
  *   - cloud-agent (`GET /api/v1/agents/tasks/[id]`): `{ data: CloudAgentTask }`.
@@ -81,6 +233,12 @@ function deriveActionAvailability(route: SourceRoute | null, node: OrchNode | nu
   return { canApprove, canCancel };
 }
 
+/** Origin-tagged detail error, so the drawer can pick `detailFailed` vs `actionFailed` honestly. */
+export interface DrawerError {
+  kind: "detail" | "action";
+  text: string;
+}
+
 /**
  * Resets `detail`/`error`/`isLoading` during render when the selected node
  * identity changes — React's documented "adjust state when a prop changes"
@@ -90,7 +248,7 @@ function useSyncedNodeIdentity(
   node: OrchNode | null,
   route: SourceRoute | null,
   setDetail: (d: unknown | null) => void,
-  setError: (e: string | null) => void,
+  setError: (e: DrawerError | null) => void,
   setIsLoading: (b: boolean) => void
 ) {
   const [syncedId, setSyncedId] = useState<string | undefined>(undefined);
@@ -114,7 +272,7 @@ function useFetchDetail(
   node: OrchNode | null,
   route: SourceRoute | null,
   setDetail: (d: unknown | null) => void,
-  setError: (e: string | null) => void,
+  setDetailError: (text: string) => void,
   setIsLoading: (b: boolean) => void
 ) {
   useEffect(() => {
@@ -124,7 +282,7 @@ function useFetchDetail(
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))))
       .then((body) => setDetail(unwrapDetailBody(node.id, body)))
       .catch((err) => {
-        if (!controller.signal.aborted) setError(toSafeErrorText(err));
+        if (!controller.signal.aborted) setDetailError(toSafeErrorText(err));
       })
       .finally(() => setIsLoading(false));
     return () => controller.abort();
@@ -132,39 +290,115 @@ function useFetchDetail(
   }, [node?.id]);
 }
 
+/**
+ * A JSON-RPC endpoint can report a failure with an HTTP 200: `/a2a`'s `jsonRpcError()`
+ * only maps a few codes to 4xx/5xx and defaults to `status: 200`
+ * (`src/app/a2a/route.ts`). `res.ok` alone would then render the success toast for a run
+ * that never happened, so the `/a2a` action also inspects the envelope. Only the numeric
+ * `error.code` is surfaced (`RPC <code>`) — never the upstream `error.message`.
+ */
+function jsonRpcErrorCode(body: unknown): number | undefined {
+  const b = body as { error?: { code?: unknown } } | undefined | null;
+  const code = b?.error?.code;
+  return typeof code === "number" ? code : b?.error ? -32603 : undefined;
+}
+
+/**
+ * Reads an action response body ONCE, tolerating a non-JSON/empty body. A body that cannot be
+ * parsed is not evidence of failure — the status already stood — so it yields `null` and the
+ * action stays successful (it just has no new-task id to focus).
+ */
+async function readJsonBody(res: { json?: () => Promise<unknown> }): Promise<unknown> {
+  try {
+    return (await res.json?.()) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Outcome of an action POST: whether it succeeded, plus the parsed body on success. */
+interface ActionOutcome {
+  ok: boolean;
+  body: unknown;
+}
+
 async function performAction(
   req: { url: string; init: RequestInit } | null,
-  setError: (e: string | null) => void
-): Promise<boolean> {
-  if (!req) return false;
+  setActionError: (text: string) => void,
+  clearError: () => void
+): Promise<ActionOutcome> {
+  if (!req) return { ok: false, body: null };
   try {
     const res = await fetch(req.url, req.init);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return true;
+    const body = await readJsonBody(res);
+    if (req.url === "/a2a") {
+      const code = jsonRpcErrorCode(body);
+      if (code !== undefined) throw new Error(`RPC ${code}`);
+    }
+    // The banner is not sticky: a retry (or any later action) that works clears whatever
+    // detail/action error was on screen, so the drawer never shows a failure the operator
+    // already recovered from.
+    clearError();
+    return { ok: true, body };
   } catch (err) {
-    setError(toSafeErrorText(err));
-    return false;
+    setActionError(toSafeErrorText(err));
+    return { ok: false, body: null };
   }
+}
+
+/** Result of the drawer's repeat action: success plus the canvas id of the created task. */
+export interface RepeatOutcome {
+  ok: boolean;
+  newNodeId: string | null;
 }
 
 export function useDrawerDetail(node: OrchNode | null) {
   const [detail, setDetail] = useState<unknown | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setErrorState] = useState<DrawerError | null>(null);
   const route = node ? routeFor(node) : null;
 
-  useSyncedNodeIdentity(node, route, setDetail, setError, setIsLoading);
-  useFetchDetail(node, route, setDetail, setError, setIsLoading);
+  const setDetailError = (text: string) => setErrorState({ kind: "detail", text });
+  const setActionError = (text: string) => setErrorState({ kind: "action", text });
+
+  useSyncedNodeIdentity(node, route, setDetail, setErrorState, setIsLoading);
+  useFetchDetail(node, route, setDetail, setDetailError, setIsLoading);
 
   const { canApprove, canCancel } = deriveActionAvailability(route, node);
+  const repeatReq = node ? repeatReqFor(node, detail) : null;
+
+  const runAction = async (
+    req: { url: string; init: RequestInit } | null
+  ): Promise<ActionOutcome> => {
+    if (busy) return { ok: false, body: null };
+    setBusy(true);
+    try {
+      return await performAction(req, setActionError, () => setErrorState(null));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const runBooleanAction = async (req: { url: string; init: RequestInit } | null) =>
+    (await runAction(req)).ok;
 
   return {
     detail,
     isLoading,
-    error,
+    busy,
+    error: error?.text ?? null,
+    errorKind: error?.kind ?? null,
     canApprove,
     canCancel,
-    approve: () => performAction(route?.approveReq ?? null, setError),
-    cancel: () => performAction(route?.cancelReq ?? null, setError),
+    canRepeat: !!repeatReq && !busy,
+    approve: () => runBooleanAction(route?.approveReq ?? null),
+    cancel: () => runBooleanAction(route?.cancelReq ?? null),
+    // Only the repeat reports a new node id: approve/cancel act on the task already open, so
+    // there is nothing new to focus (and their responses can echo the SAME task's id back).
+    repeat: async (): Promise<RepeatOutcome> => {
+      const { ok, body } = await runAction(repeatReq);
+      return { ok, newNodeId: ok && node ? newNodeIdFrom(node, body) : null };
+    },
   };
 }

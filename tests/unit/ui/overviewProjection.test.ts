@@ -44,6 +44,58 @@ describe("overviewProjection", () => {
     assert.equal(columns.done[0].id, "a2a:3");
     assert.equal(columns.running.length, 1);
   });
+  it("sorts the done column by updatedAt descending, with 3+ terminal items interleaved out of order", () => {
+    // NOTE: the implementation (model/overviewProjection.ts) sorts
+    // `columns.done` by `updatedAt` descending, not `endedAt` — verified by reading the
+    // source before writing this assertion. Interleaved with a non-terminal (`running`)
+    // node to also confirm it never lands in `done`.
+    const interleaved: OrchSnapshot = {
+      nodes: [
+        { id: "orchestrator", kind: "orchestrator", label: "OmniRoute" },
+        {
+          id: "a2a:oldest",
+          kind: "work",
+          source: "a2a",
+          state: "failed",
+          label: "oldest",
+          updatedAt: "2026-08-30T09:00:00Z",
+        },
+        {
+          id: "cloud-agent:running",
+          kind: "work",
+          source: "cloud-agent",
+          state: "running",
+          label: "not terminal",
+          updatedAt: "2026-08-30T13:00:00Z",
+        },
+        {
+          id: "a2a:newest",
+          kind: "work",
+          source: "a2a",
+          state: "succeeded",
+          label: "newest",
+          updatedAt: "2026-08-30T12:00:00Z",
+        },
+        {
+          id: "cloud-agent:middle",
+          kind: "work",
+          source: "cloud-agent",
+          state: "cancelled",
+          label: "middle",
+          updatedAt: "2026-08-30T10:30:00Z",
+        },
+      ],
+      edges: [],
+      sources: [],
+      generatedAt: "2026-08-30T13:00:00Z",
+    };
+    const { columns } = overviewProjection(interleaved, 0);
+    assert.deepEqual(
+      columns.done.map((n) => n.id),
+      ["a2a:newest", "cloud-agent:middle", "a2a:oldest"]
+    );
+    assert.equal(columns.running.length, 1);
+  });
   it("folds an overflow node's droppedByState into counts but not into columns", () => {
     const snapWithOverflow: OrchSnapshot = {
       ...snap,

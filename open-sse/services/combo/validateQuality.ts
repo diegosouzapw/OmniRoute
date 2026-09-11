@@ -16,6 +16,45 @@ import { evaluateResponseValidation, type ResponseValidationConfig } from "./res
 import { getReasoningTokens } from "../../../src/lib/usage/tokenAccounting.ts";
 import type { ComboRetryAfter } from "./types.ts";
 
+/**
+ * Detects tool_calls entries within one assistant message that repeat the
+ * exact same function name + arguments verbatim -- always a bug (no
+ * legitimate use calls one tool twice with identical arguments in the same
+ * turn), and a real observed failure mode of at least one free-tier
+ * streaming model (minimax-m3:free via OpenRouter/GMICloud, 2026-09-02:
+ * duplicated a heartbeat_respond call byte-for-byte, confirmed at the raw
+ * SSE wire level -- an upstream bug, not an OmniRoute reconstruction
+ * artifact). Used two ways: to fail a non-streaming response over to a
+ * sibling combo target (see validateResponseQuality below), and, post-
+ * stream, to flag an already-relayed streaming response as an on-spec
+ * violation despite its clean HTTP 200 (see attemptLogging.ts's
+ * persistAttemptLogs) -- a streaming response can't be retried once real
+ * content has started reaching the client (the quality-gate peek below only
+ * ever validates the START of a stream, by design, to avoid buffering the
+ * whole response and defeating streaming's latency purpose), so flagging it
+ * after the fact is what's actually achievable for that path.
+ */
+export function findToolCallSpecViolation(responseBody: unknown): string | null {
+  const json = isRecord(responseBody) ? responseBody : null;
+  const choices = json?.choices;
+  const firstChoice = Array.isArray(choices) ? choices[0] : null;
+  const message = isRecord(firstChoice) ? firstChoice.message : null;
+  const toolCalls = isRecord(message) ? message.tool_calls : null;
+  if (!Array.isArray(toolCalls) || toolCalls.length < 2) return null;
+
+  const seen = new Set<string>();
+  for (const call of toolCalls) {
+    const fn = isRecord(call) ? call.function : null;
+    if (!isRecord(fn) || typeof fn.name !== "string" || typeof fn.arguments !== "string") {
+      continue;
+    }
+    const signature = `${fn.name}\u0000${fn.arguments}`;
+    if (seen.has(signature)) return `duplicate tool_calls entry for "${fn.name}"`;
+    seen.add(signature);
+  }
+  return null;
+}
+
 export function toRetryAfterDisplayValue(value: ComboRetryAfter): string | Date {
   if (typeof value !== "number") return value;
   if (value > 0 && value < 1_000_000_000) {
@@ -327,9 +366,9 @@ export async function validateResponseQuality(
     function isTerminalUsageOnlyChunk(parsed: Record<string, unknown>, eventType: string): boolean {
       return Boolean(
         parsed.usage &&
-          typeof parsed.usage === "object" &&
-          !Array.isArray(parsed.choices) &&
-          !eventType.startsWith("response.")
+        typeof parsed.usage === "object" &&
+        !Array.isArray(parsed.choices) &&
+        !eventType.startsWith("response.")
       );
     }
 
@@ -733,6 +772,11 @@ export async function validateResponseQuality(
       hasReasoningContent;
   }
   const hasToolCalls = Array.isArray(toolCalls) && toolCalls.length > 0;
+
+  const specViolation = findToolCallSpecViolation(json);
+  if (specViolation) {
+    return { valid: false, reason: specViolation };
+  }
 
   if (!hasContent && !hasToolCalls) {
     return { valid: false, reason: "empty content and no tool_calls in response" };

@@ -14,11 +14,18 @@
  *   npm run i18n:sync-ui -- --dry-run
  *   npm run i18n:sync-ui -- --translate-markers
  *   npm run i18n:sync-ui -- --translate-markers --locale=pt-BR --concurrency=4
+ *   npm run i18n:sync-ui -- --translate-markers --batch-size=40
  *
  * --translate-markers calls the OmniRoute translation backend (same env vars
- * as `run-translation.mjs`) and replaces every `__MISSING__:<en>` placeholder
- * with a translated string. Missing env vars cause the script to fail
- * fast — the markers stay in place for a later run.
+ * as `run-translation.mjs`; the client lives in `lib/translate-backend.mjs`)
+ * and replaces every `__MISSING__:<en>` placeholder with a translated string.
+ * Missing env vars cause the script to fail fast — the markers stay in place
+ * for a later run.
+ *
+ * --batch-size=N (default 1) translates up to N placeholders per request as
+ * one JSON object instead of one request per string. A batch whose response
+ * cannot be parsed (or whose upstream call fails) is retried string by
+ * string, so the worst case degrades to the default per-string behaviour.
  *
  * Output examples:
  *   [i18n-ui-sync] pt-BR: +589 missing keys (589 __MISSING__, 0 translated)
@@ -29,6 +36,8 @@ import { promises as fs, existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
+
+import { backendConfig, translateBatch, translateString } from "./lib/translate-backend.mjs";
 
 // ----- .env loader --------------------------------------------------------
 // Loads variables from a local `.env` (gitignored) into process.env without
@@ -85,6 +94,7 @@ function parseArgs(argv) {
     dryRun: false,
     translateMarkers: false,
     concurrency: null,
+    batchSize: 1,
   };
   for (const arg of argv.slice(2)) {
     if (arg === "--dry-run" || arg === "--dryrun") opts.dryRun = true;
@@ -103,6 +113,10 @@ function parseArgs(argv) {
         .filter(Boolean);
     } else if (arg.startsWith("--concurrency=")) {
       opts.concurrency = Number(arg.slice(14));
+    } else if (arg.startsWith("--batch-size=")) {
+      // Whole numbers only: a fractional size would make the slice windows
+      // overlap; NaN / 0 / negatives mean "per-string" (1).
+      opts.batchSize = Math.max(1, Math.floor(Number(arg.slice(13))) || 1);
     } else if (arg === "--help" || arg === "-h") {
       console.log(
         [
@@ -113,6 +127,9 @@ function parseArgs(argv) {
           "  --translate-markers     Call the translation backend to translate every",
           "                          __MISSING__:<en> placeholder",
           "  --concurrency=<n>       Parallel translation requests (default: env or 4)",
+          "  --batch-size=<n>        Placeholders per translation request (default: 1).",
+          "                          n>1 sends up to n strings as one JSON object; a batch",
+          "                          that fails or cannot be parsed falls back to one-by-one",
         ].join("\n")
       );
       process.exit(0);
@@ -201,83 +218,10 @@ function countPlaceholders(node) {
   return total;
 }
 
-// ----- Translator backend (mirrors run-translation.mjs) --------------------
-
-function requireEnv(name) {
-  const v = process.env[name];
-  if (!v || !v.trim()) {
-    throw new Error(
-      `Missing required env var: ${name}. Set it in .env (see docs/guides/I18N.md → "Translation pipeline").`
-    );
-  }
-  return v.trim();
-}
-
-function backendConfig() {
-  const apiUrl = requireEnv("OMNIROUTE_TRANSLATION_API_URL").replace(/\/$/, "");
-  const apiKey = requireEnv("OMNIROUTE_TRANSLATION_API_KEY");
-  const model = requireEnv("OMNIROUTE_TRANSLATION_MODEL");
-  const timeoutMs = Number(process.env.OMNIROUTE_TRANSLATION_TIMEOUT_MS || 60000);
-  return { apiUrl, apiKey, model, timeoutMs };
-}
-
-async function callChat(messages, { apiUrl, apiKey, model, timeoutMs }, retry = 0) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-  try {
-    const res = await fetch(`${apiUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature: 0.15,
-        stream: false,
-      }),
-      signal: ctrl.signal,
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      const transient = res.status === 408 || res.status === 429 || res.status >= 500;
-      if (transient && retry < 1) {
-        const wait = 1500 + retry * 1500;
-        logWarn(`upstream ${res.status} — retrying after ${wait}ms`);
-        await new Promise((r) => setTimeout(r, wait));
-        return callChat(messages, { apiUrl, apiKey, model, timeoutMs }, retry + 1);
-      }
-      throw new Error(`upstream ${res.status}: ${text.slice(0, 200)}`);
-    }
-    const json = await res.json();
-    const content = json?.choices?.[0]?.message?.content;
-    if (typeof content !== "string" || !content) {
-      throw new Error("upstream returned empty content");
-    }
-    return content;
-  } catch (err) {
-    if (err?.name === "AbortError") {
-      if (retry < 1) {
-        logWarn(`timeout after ${timeoutMs}ms — retrying`);
-        return callChat(messages, { apiUrl, apiKey, model, timeoutMs }, retry + 1);
-      }
-      throw new Error(`timeout after ${timeoutMs}ms`);
-    }
-    if (
-      retry < 1 &&
-      err instanceof TypeError &&
-      /fetch failed|ECONN|ENOTFOUND|network/i.test(String(err.cause ?? err.message))
-    ) {
-      logWarn(`network error: ${err.message} — retrying`);
-      await new Promise((r) => setTimeout(r, 1500));
-      return callChat(messages, { apiUrl, apiKey, model, timeoutMs }, retry + 1);
-    }
-    throw err;
-  } finally {
-    clearTimeout(timer);
-  }
-}
+// ----- Translator backend --------------------------------------------------
+// The chat-completions client (`backendConfig`, `translateString`,
+// `translateBatch`) lives in `./lib/translate-backend.mjs` so the other i18n
+// tooling can share it. Only the concurrency limiter stays here.
 
 // Simple promise-based semaphore (avoid runtime deps).
 function createLimiter(max) {
@@ -306,36 +250,19 @@ function createLimiter(max) {
     });
 }
 
-const TRANSLATION_SYSTEM = (englishName, native) =>
-  [
-    `You are a professional translator for technical software UI strings.`,
-    `Translate the user's English UI string into ${englishName} (native: ${native}).`,
-    `Return ONLY the translated string — no quotes, no commentary, no surrounding markdown.`,
-    `Preserve placeholders such as {name}, {{count}}, %s, %d, and any HTML tags exactly.`,
-    `Do NOT translate command names (npm/git/curl/etc), code identifiers, URLs, or environment variable names.`,
-    `Keep the same casing style (Title Case stays Title Case, sentence case stays sentence case).`,
-    `Keep punctuation and trailing whitespace identical to the source.`,
-  ].join(" ");
-
-async function translateString(englishValue, localeEntry, backend) {
-  const englishName = localeEntry.english ?? localeEntry.name;
-  const native = localeEntry.native ?? localeEntry.name;
-  const messages = [
-    { role: "system", content: TRANSLATION_SYSTEM(englishName, native) },
-    { role: "user", content: englishValue },
-  ];
-  const out = await callChat(messages, backend);
-  return out.trim();
-}
-
 /**
  * Walks a merged tree, finding every leaf that starts with PLACEHOLDER_PREFIX
  * and replacing it with the translation produced by the backend.
  *
  * Translations happen with bounded concurrency. On failure, the placeholder
  * is preserved so a later run can retry.
+ *
+ * With `batchSize > 1` the placeholders are grouped into requests of up to
+ * `batchSize` strings (one JSON object per request). A batch whose response
+ * cannot be parsed — or whose upstream call fails — is retried one string at
+ * a time, so a bad batch never loses more than the per-string path would.
  */
-async function translatePlaceholders(merged, localeEntry, backend, concurrency) {
+async function translatePlaceholders(merged, localeEntry, backend, concurrency, batchSize = 1) {
   const tasks = [];
   function collect(node, parent, key) {
     if (typeof node === "string") {
@@ -355,15 +282,53 @@ async function translatePlaceholders(merged, localeEntry, backend, concurrency) 
   if (tasks.length === 0) return { translated: 0, failed: 0 };
 
   const limit = createLimiter(concurrency);
-  let translated = 0;
+  let translatedCount = 0;
   let failed = 0;
+
+  if (batchSize > 1) {
+    const groups = [];
+    for (let i = 0; i < tasks.length; i += batchSize) groups.push(tasks.slice(i, i + batchSize));
+    await Promise.all(
+      groups.map((group) =>
+        limit(async () => {
+          const entries = group.map((task, i) => ({ id: `s${i}`, text: task.englishValue }));
+          try {
+            const translated = await translateBatch(entries, localeEntry, backend);
+            group.forEach((task, i) => {
+              task.parent[task.key] = translated.get(`s${i}`);
+              translatedCount++;
+            });
+          } catch (err) {
+            logWarn(
+              `batch of ${group.length} failed for ${localeEntry.code} (${err.message}) — retrying one by one`
+            );
+            for (const task of group) {
+              try {
+                task.parent[task.key] = await translateString(
+                  task.englishValue,
+                  localeEntry,
+                  backend
+                );
+                translatedCount++;
+              } catch (inner) {
+                failed++;
+                logWarn(`translation failed for ${localeEntry.code}: ${inner.message}`);
+              }
+            }
+          }
+        })
+      )
+    );
+    return { translated: translatedCount, failed };
+  }
+
   await Promise.all(
     tasks.map((task) =>
       limit(async () => {
         try {
           const value = await translateString(task.englishValue, localeEntry, backend);
           task.parent[task.key] = value;
-          translated++;
+          translatedCount++;
         } catch (err) {
           // Keep the __MISSING__ marker so subsequent runs can retry.
           failed++;
@@ -372,7 +337,7 @@ async function translatePlaceholders(merged, localeEntry, backend, concurrency) 
       })
     )
   );
-  return { translated, failed };
+  return { translated: translatedCount, failed };
 }
 
 // ----- Main ----------------------------------------------------------------
@@ -402,7 +367,13 @@ async function processLocale(locale, source, config, opts, backend) {
     } else {
       const concurrency =
         opts.concurrency ?? Number(process.env.OMNIROUTE_TRANSLATION_CONCURRENCY || 4);
-      translateStats = await translatePlaceholders(merged, localeEntry, backend, concurrency);
+      translateStats = await translatePlaceholders(
+        merged,
+        localeEntry,
+        backend,
+        concurrency,
+        opts.batchSize
+      );
     }
   }
 
@@ -468,8 +439,9 @@ async function main() {
     backend = backendConfig();
     backend.concurrency =
       opts.concurrency ?? Number(process.env.OMNIROUTE_TRANSLATION_CONCURRENCY || 4);
+    const batchInfo = opts.batchSize > 1 ? `, batch=${opts.batchSize}` : "";
     logInfo(
-      `backend: ${backend.apiUrl} (model=${backend.model}, concurrency=${backend.concurrency}, timeout=${backend.timeoutMs}ms)`
+      `backend: ${backend.apiUrl} (model=${backend.model}, concurrency=${backend.concurrency}${batchInfo}, timeout=${backend.timeoutMs}ms)`
     );
   }
 

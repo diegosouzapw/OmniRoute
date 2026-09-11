@@ -344,7 +344,13 @@ test("an existing byte-heavy lease is reused for structure-heavy admission", asy
 test("heavyweight admission is atomic and returns retryable 503 at capacity", async () => {
   const controller = new ChatAdmissionController(1);
   const body = JSON.stringify({ messages: [{ role: "user", content: "x".repeat(40) }] });
-  const options = { controller, largeBodyBytes: 32, hardMaxBytes: 1024 };
+  const options = {
+    controller,
+    largeBodyBytes: 32,
+    hardMaxBytes: 1024,
+    // #10437 byte-path: shedding still requires real heap pressure.
+    heapPressureCheck: () => true,
+  };
 
   const first = await admitChatRequest(chatRequest(body), options);
   assert.equal(first.admit, true);
@@ -407,6 +413,7 @@ test("unknown or lying-small lengths cannot bypass occupied heavyweight capacity
       controller,
       largeBodyBytes: 32,
       hardMaxBytes: 1024,
+      heapPressureCheck: () => true,
     });
     assert.equal(result.admit, false);
     if (!result.admit) assert.equal(result.response.status, 503);
@@ -771,6 +778,7 @@ test("external clients cannot use the bypass header without a trusted self-loop 
       controller,
       largeBodyBytes: 32,
       hardMaxBytes: 10 * 1024 * 1024,
+      heapPressureCheck: () => true,
     });
 
     // Unknown key + bypass header must NOT bypass — capacity is exhausted → 503.
@@ -877,6 +885,7 @@ test("sk_omniroute sentinel is rejected once an env key is configured (REQUIRE_A
       controller,
       largeBodyBytes: 32,
       hardMaxBytes: 10 * 1024 * 1024,
+      heapPressureCheck: () => true,
     });
 
     assert.equal(result.admit, false, "sentinel must not bypass when an env key is configured");

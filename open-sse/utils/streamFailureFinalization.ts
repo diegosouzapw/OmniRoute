@@ -5,6 +5,7 @@ import {
 
 import { HTTP_STATUS } from "../config/constants.ts";
 import { buildErrorBody } from "./error.ts";
+import { sanitizeErrorMessage } from "./errorSanitization.ts";
 
 export type StreamCompletionPayload = {
   status: number;
@@ -129,9 +130,7 @@ export function finalizeStreamRequestLog({
       } else {
         console.warn(
           "finalizeMostRecentPendingRequest failed:",
-          error && typeof error === "object" && "message" in error
-            ? (error as { message?: unknown }).message
-            : error
+          sanitizeErrorMessage(error) || "Stream request finalization failed"
         );
       }
     } catch {}
@@ -158,12 +157,12 @@ export function createStreamFailureFinalizers({
 
     const status = failure.status || HTTP_STATUS.BAD_GATEWAY;
     const message = failure.message || "Upstream stream error";
-    const code = failure.code || failure.type || String(status);
     const classification =
       failure.code || failure.type ? { code: failure.code, type: failure.type } : undefined;
+    const errorBody = buildErrorBody(status, message, undefined, classification);
+    const projectedCode = errorBody.error.code || String(status);
 
     if (!isFailureCompletionRecorded()) {
-      const errorBody = buildErrorBody(status, message, undefined, classification);
       onStreamComplete({
         status,
         usage: null,
@@ -171,12 +170,12 @@ export function createStreamFailureFinalizers({
         providerPayload: errorBody,
         clientPayload: errorBody,
         error: message,
-        errorCode: code,
+        errorCode: projectedCode,
         ttft: 0,
       });
     }
 
-    persistFailureUsage(status, code);
+    persistFailureUsage(status, projectedCode);
     try {
       onStreamFailure?.(failure);
     } catch {

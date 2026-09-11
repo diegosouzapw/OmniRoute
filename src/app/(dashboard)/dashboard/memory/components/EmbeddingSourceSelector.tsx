@@ -89,22 +89,46 @@ export default function EmbeddingSourceSelector({ settings, providers, onSave, s
               {t("embedding.noRemoteProviders")}
             </p>
           ) : (
-            <select
-              value={currentProviderModel}
-              onChange={(e) => handleProviderModelChange(e.target.value)}
-              disabled={saving}
-              data-testid="embedding-provider-model-select"
-              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
-            >
-              <option value="">{t("embedding.selectProviderModel")}</option>
-              {remoteProviders.map((p) =>
-                p.models.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} ({m.dimensions ? `${m.dimensions}d` : "?"})
-                  </option>
-                ))
-              )}
-            </select>
+            <>
+              <select
+                value={
+                  remoteProviders.some((p) => p.models.some((m) => m.id === currentProviderModel))
+                    ? currentProviderModel
+                    : ""
+                }
+                onChange={(e) => handleProviderModelChange(e.target.value)}
+                disabled={saving}
+                data-testid="embedding-provider-model-select"
+                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
+              >
+                <option value="">{t("embedding.selectProviderModel")}</option>
+                {remoteProviders.map((p) =>
+                  p.models.length > 0 ? (
+                    p.models.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name} ({m.dimensions ? `${m.dimensions}d` : "?"})
+                      </option>
+                    ))
+                  ) : (
+                    <optgroup key={p.provider} label={p.provider}>
+                      <option value="">{`— ${p.provider} (no curated models)`}</option>
+                    </optgroup>
+                  )
+                )}
+              </select>
+              {/* Free-text override: the runtime accepts any configured provider's
+                OpenAI-compatible model id, including ones without a curated
+                registry entry (e.g. groq/, mistral/, cf/...). */}
+              <input
+                type="text"
+                value={currentProviderModel}
+                onChange={(e) => handleProviderModelChange(e.target.value)}
+                disabled={saving}
+                placeholder="provider/model — e.g. mistral/mistral-embed"
+                data-testid="embedding-provider-model-input"
+                className="w-full mt-2 px-3 py-2 rounded-lg bg-background border border-border text-sm font-mono focus:outline-none focus:ring-1 focus:ring-violet-500"
+              />
+            </>
           )}
           <CustomEmbeddingEndpointFields settings={settings} onSave={onSave} saving={saving} />
         </div>

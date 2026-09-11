@@ -109,6 +109,7 @@ function parseGlmEffortTier(model: string): GlmEffortTier | null {
  * https://docs.z.ai/guides/overview/concept-param
  */
 const GLM_THINKING_MODEL_PATTERN = /^glm-5\.(?:[2-9]|\d{2,})/i;
+const GLM_53_OR_HIGHER_PATTERN = /^glm-5\.(?:[3-9]|\d{2,})/i;
 
 function isGlmThinkingModel(model: string): boolean {
   return GLM_THINKING_MODEL_PATTERN.test(model);
@@ -215,6 +216,9 @@ function translateAnthropicJsonError(parsed: unknown): JsonRecord {
   };
 }
 
+/** 64 KB queue budget for GLM streaming (#12179, wired through in #12925). */
+const GLM_STREAM_BUFFER_BYTES = 65536;
+
 export function translateSseResponse(
   response: Response,
   provider: string,
@@ -222,6 +226,11 @@ export function translateSseResponse(
   suppressThinkClose: boolean = false
 ): Response {
   if (!response.body) return response;
+  // GLM is a high-throughput provider: a 64 KB queue budget keeps provider ->
+  // client pacing ahead of the model's emission rate. #12179 asked for this by
+  // passing a 16th positional the helper did not take (a TS2554 that never
+  // reached the TransformStream); the helper now accepts it as its last
+  // parameter, so the request finally takes effect (#12925).
   const transform = createSSETransformStreamWithLogger(
     FORMATS.CLAUDE,
     FORMATS.OPENAI,
@@ -235,7 +244,10 @@ export function translateSseResponse(
     null,
     null,
     false,
-    suppressThinkClose
+    suppressThinkClose,
+    undefined,
+    undefined,
+    GLM_STREAM_BUFFER_BYTES
   );
   const headers = cloneHeaders(response.headers);
   headers.set("content-type", "text/event-stream");
@@ -348,6 +360,15 @@ export class GlmExecutor extends DefaultExecutor {
     }
 
     if (transport === "openai") {
+      // GLM-5.3+ rejects thinking.type "disabled". Ensure thinking is enabled
+      // when targeting GLM-5.3 or higher.
+      if (record && GLM_53_OR_HIGHER_PATTERN.test(effectiveModel)) {
+        const existingThinking = asRecord(record.thinking);
+        if (existingThinking?.type === "disabled") {
+          record.thinking = { ...existingThinking, type: "enabled" };
+        }
+      }
+
       // GLM-5.3 effort tiers: inject the documented `reasoning_effort` param and
       // force thinking on — 5.3 rejects thinking.type "disabled", and an effort
       // tier without thinking would silently drop the selector upstream.

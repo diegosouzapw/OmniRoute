@@ -6,9 +6,9 @@ export const LMARENA_API_BASE = "https://arena.ai";
 export const LMARENA_STREAM_URL = `${LMARENA_API_BASE}/nextjs-api/stream/create-evaluation`;
 /**
  * Current Chrome stable UA (header surface).
- * TLS JA3 profile is separate: tls-client-node tops out at chrome_146 — see
- * LMARENA_PROFILE in lmarenaTlsClient.ts. Headers track the live browser string;
- * fingerprint stays at the newest native profile we can actually impersonate.
+ * TLS JA3/JA4 profile is separate: the provider-tested wreq-js profile is pinned
+ * to chrome_146 in lmarenaTlsClient.ts while headers track the live browser string.
+ * Treat that deliberate version skew as a WAF-sensitive compatibility surface.
  */
 export const LMARENA_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36";

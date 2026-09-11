@@ -4,7 +4,7 @@
 //
 // Root cause: the custom-models loop in catalog.ts gated every model through
 // hasEligibleConnectionForModel(getConnectionsForProvider(...)). noAuth providers
-// (e.g. theoldllm / alias "tllm") have NO DB connection rows, so getConnectionsForProvider
+// (e.g. chipotle / alias "pepper") have NO DB connection rows, so getConnectionsForProvider
 // returns [] and hasEligibleConnectionForModel([]) === false → the model was dropped.
 // Built-in models survived because they go through providerSupportsModel(), which has a
 // noAuth bypass (#2798). This test asserts an IMPORTED model on a noAuth provider appears.
@@ -42,12 +42,12 @@ test.after(async () => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-test("#3200 imported model on a noAuth provider (theoldllm) appears in /api/v1/models", async () => {
-  // theoldllm is a noAuth provider (alias "tllm") — it never creates a DB connection row.
-  // Import a model that is NOT a built-in theoldllm model, so its presence is solely due
+test("#3200 imported model on a noAuth provider (chipotle) appears in /api/v1/models", async () => {
+  // chipotle is a noAuth provider (alias "pepper") — it never creates a DB connection row.
+  // Import a model that is NOT a built-in chipotle model, so its presence is solely due
   // to the custom/imported path (the path the bug breaks).
   await modelsDb.addCustomModel(
-    "theoldllm",
+    "chipotle",
     "my-imported-model-3200",
     "My Imported Model",
     "imported"
@@ -61,7 +61,7 @@ test("#3200 imported model on a noAuth provider (theoldllm) appears in /api/v1/m
 
   assert.equal(response.status, 200);
   assert.ok(
-    ids.has("tllm/my-imported-model-3200"),
+    ids.has("pepper/my-imported-model-3200"),
     "imported model on noAuth provider must appear under its alias prefix"
   );
 });
@@ -89,9 +89,9 @@ test("#3200 custom/imported models on auth providers still appear (no regression
 });
 
 test("#3200 imported models on noAuth providers are hidden when the provider is disabled", async () => {
-  await settingsDb.updateSettings({ blockedProviders: ["theoldllm"] });
+  await settingsDb.updateSettings({ blockedProviders: ["chipotle"] });
   await modelsDb.addCustomModel(
-    "theoldllm",
+    "chipotle",
     "my-imported-model-disabled",
     "Hidden Imported Model",
     "imported"
@@ -105,7 +105,7 @@ test("#3200 imported models on noAuth providers are hidden when the provider is 
 
   assert.equal(response.status, 200);
   assert.equal(
-    ids.has("tllm/my-imported-model-disabled"),
+    ids.has("pepper/my-imported-model-disabled"),
     false,
     "imported noAuth provider models must stay hidden while the provider is disabled"
   );

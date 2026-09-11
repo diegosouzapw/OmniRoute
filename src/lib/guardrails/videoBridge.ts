@@ -33,6 +33,71 @@ import { getBestVisionModel } from "./visionBridgeRouter";
 
 export type { VideoAnalysisContext } from "./videoBridgePipeline";
 
+/**
+ * One replaced video part whose rendered text carried a transcript cue.
+ * `redactedText` is the structured-redaction shadow (see
+ * `DescribedVideo.descriptionRedacted`) for that same part — never derived
+ * from the model-bound text, so it cannot be bypassed by cue content.
+ *
+ * #12150 fix round 1 (adversarial review): the downstream log-redaction
+ * consumer (`applyVideoBridgeLogRedaction`, chatCore/attemptLogging.ts)
+ * matches by CONTENT (`fullText`), not by `messageIndex`/`partIndex`.
+ * Between this guardrail's preCall and the eventual log write, other
+ * request-mutation stages (system-prompt injection when no existing system
+ * message is found, context-relay handoff injection, reasoning-rule body
+ * rewrites) can prepend/splice messages, silently invalidating any
+ * positional index. `messageIndex`/`partIndex` are kept as advisory/
+ * debugging metadata only — never used for matching.
+ */
+export interface VideoBridgeLogRedactionEntry {
+  container: "messages" | "input";
+  /** Advisory only (see interface doc) — may be stale by the time the log is written. */
+  messageIndex: number;
+  /** Advisory only (see interface doc) — may be stale by the time the log is written. */
+  partIndex: number;
+  /**
+   * The exact, unredacted text placed into the replaced part
+   * (`descriptions[i]`, identical to what `replaceVideoParts` writes to
+   * `content[partIndex].text`). The downstream consumer matches parts by
+   * `part.text === fullText`, so it finds the video part wherever a later
+   * stage moved it, and never touches a part whose text differs.
+   */
+  fullText: string;
+  redactedText: string;
+}
+
+/**
+ * #12150 P1 final-review fix: re-anchor each redaction entry's `fullText` from
+ * the FINAL pre-call guardrail payload. The video-bridge guardrail runs at
+ * priority 7, but the PII masker (10) and credential masker (95) rewrite the
+ * SAME chained payload afterward, in place — so by the end of the chain the
+ * replaced part's text may differ from what video-bridge recorded, and the log
+ * sink's content-match (`part.text === fullText`) would miss (fail open). Chain
+ * guardrails only rewrite text in place — they never splice the message array —
+ * so the advisory `(container, messageIndex, partIndex)` still resolves inside
+ * the finished chain payload; reading the part text there yields the true
+ * post-chain text the log sink will see. Falls back to the original `fullText`
+ * when the index no longer resolves. Returns new entries; never mutates the
+ * shared guardrail `meta` array. `redactedText` is unchanged (it is rendered
+ * from the structured cues, independent of any masker rewrite).
+ */
+export function reanchorVideoBridgeRedaction(
+  entries: readonly VideoBridgeLogRedactionEntry[],
+  finalBody: unknown
+): VideoBridgeLogRedactionEntry[] {
+  const body = finalBody as Record<string, unknown> | null | undefined;
+  return entries.map((entry) => {
+    const container = body?.[entry.container];
+    if (!Array.isArray(container)) return { ...entry };
+    const message = container[entry.messageIndex] as { content?: unknown } | undefined;
+    const content = message?.content;
+    if (!Array.isArray(content)) return { ...entry };
+    const part = content[entry.partIndex] as { text?: unknown } | undefined;
+    if (!part || typeof part.text !== "string") return { ...entry };
+    return { ...entry, fullText: part.text };
+  });
+}
+
 type VideoBridgeBody = {
   model?: string;
   messages?: Array<{ role?: string; content?: unknown }>;
@@ -163,6 +228,7 @@ export class VideoBridgeGuardrail extends BaseGuardrail {
     };
     let samplingPolicyEffective: "uniform" | "scene_aware" | "segment_aware" = "uniform";
     let failures = 0;
+    const logRedactionEntries: VideoBridgeLogRedactionEntry[] = [];
 
     const attemptedParts = parts.slice(0, runtime.maxVideos);
     for (let index = 0; index < attemptedParts.length; index++) {
@@ -191,6 +257,19 @@ export class VideoBridgeGuardrail extends BaseGuardrail {
       }
 
       descriptions.push(result.description);
+      if (result.descriptionRedacted !== undefined) {
+        logRedactionEntries.push({
+          container: part.container,
+          messageIndex: part.messageIndex,
+          partIndex: part.partIndex,
+          // The exact text `replaceVideoParts` is about to write into
+          // content[partIndex].text (same `result.description` value pushed
+          // to `descriptions` just above) — the content-address key the
+          // downstream consumer matches on. See the interface doc.
+          fullText: result.description,
+          redactedText: result.descriptionRedacted,
+        });
+      }
       totalFramesRequested += result.framesRequested;
       totalFramesExtracted += result.framesExtracted;
       totalFramesUsed += result.framesUsed;
@@ -237,6 +316,13 @@ export class VideoBridgeGuardrail extends BaseGuardrail {
         focusWindowsApplied,
         focusHintsApplied,
         transcriptCuesApplied,
+        // True iff at least one transcript cue (declared transcript OR fused
+        // audio) was rendered into a replaced part — i.e. there is a redacted
+        // shadow for a downstream log/Memory consumer to prefer. Explicitly
+        // `false` (never omitted) for a video with frames but no transcript,
+        // so plain-video logging/Memory stays unaffected.
+        videoBridgeObserved: logRedactionEntries.length > 0,
+        ...(logRedactionEntries.length > 0 ? { videoBridgeLogRedaction: logRedactionEntries } : {}),
         contactSheetsUsed,
         audioFusionRuns,
         audioFusionPartials,

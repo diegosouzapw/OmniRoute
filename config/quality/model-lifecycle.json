@@ -14,6 +14,7 @@
     "claude-3-7-sonnet-20250219",
     "google/gemini-2.0-flash",
     "gpt-4-0125-preview",
+    "gpt-5.2-codex",
     "openai/gpt-5.2-codex"
   ],
   "allowedRetiredInCatalog_note": "TODO(#11503): ratchet to burn down. Each id is retired by its vendor but still routable from the provider catalog. Removing a catalog row or adding a BUILT_IN_ALIASES forward is a maintainer call (some aggregators still serve these ids), so they are allowlisted here rather than silently dropped. Delete an entry as soon as it is forwarded or removed; never add one without a tracking issue.",

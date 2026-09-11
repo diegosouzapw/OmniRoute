@@ -1,0 +1,1 @@
+- **fix(sse):** geo-blocked opencode requests rotate to the next account proxy instead of failing, so one refused egress no longer aborts the whole chain ([#12941](https://github.com/diegosouzapw/OmniRoute/pull/12941)) — thanks @maxmad64bis

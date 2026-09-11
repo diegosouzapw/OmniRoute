@@ -448,7 +448,7 @@ open-sse/
 | Podkatalog            | Cel                                                                                                                                                                                                  |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `docs/archive/`       | Zarchiwizowane/historyczne docs (np. `RFC-AUTO-ASSESSMENT-DRAFT.md` — zastąpione przez EVALS)                                                                                                        |
-| `docs/i18n/`          | Zlokalizowane tłumaczenia docs (43 locale)                                                                                                                                                           |
+| `docs/i18n/`          | Zlokalizowane tłumaczenia docs (41 locale)                                                                                                                                                           |
 | `docs/screenshots/`   | Zasoby graficzne do przewodników                                                                                                                                                                     |
 | `_tasks/superpowers/` | Plany/specyfikacje z superpowers (`writing-plans`/`brainstorming`) + research — izolowane, osobno wersjonowane repo, w .gitignore głównego drzewa. Zob. CLAUDE.md → "Planning & Research Artifacts". |
 
@@ -482,7 +482,7 @@ Dostarczane szablony konfiguracji plus zacommitowane bazowe linie quality-gate
 
 | Ścieżka                                       | Cel                                                                                    |
 | --------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `config/i18n.json`                            | Lista locale + metadane (kanoniczne źródło liczby 43 locale)                           |
+| `config/i18n.json`                            | Lista locale + metadane (kanoniczne źródło liczby 42 locale)                           |
 | `config/i18n-schema.json`                     | Schemat JSON walidujący `i18n.json`                                                    |
 | `config/payloadRules.json`                    | Reguły sanityzacji payloadów upstream                                                  |
 | `config/quality/quality-baseline.json`        | Bazowa linia ratchet multi-metryk (`scripts/quality/check-quality-ratchet.mjs`)        |

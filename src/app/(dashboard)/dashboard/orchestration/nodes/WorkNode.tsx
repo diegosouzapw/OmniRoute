@@ -43,3 +43,4 @@ function WorkNodeImpl({ data }: { data: OrchNode }) {
 }
 
 export const WorkNode = memo(WorkNodeImpl);
+WorkNode.displayName = "WorkNode";

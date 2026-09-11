@@ -8,10 +8,16 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
 import { getDbInstance } from "../db/core";
 import { getRequestDetailLogByCallLogId } from "../db/detailedLogs";
 import { shouldPersistToDisk } from "./migrations";
 import { getCallLogApiKeyContext } from "./callLogApiKeyContext";
+import {
+  seedPendingContinuationState,
+  clearPendingContinuationState,
+  type ContinuationPipeline,
+} from "../db/responsesContinuationStore";
 import {
   getLoggedInputTokens,
   getLoggedOutputTokens,
@@ -21,7 +27,11 @@ import {
   getObservedReasoning,
 } from "./tokenAccounting";
 import { isNoLog } from "../compliance/noLog";
-import { protectPayloadForLog, parseStoredPayload } from "../logPayloads";
+import {
+  parseStoredPayload,
+  protectErrorPayloadForLog,
+  protectPayloadForLog,
+} from "../logPayloads";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import {
   CALL_LOGS_DIR,
@@ -335,7 +345,10 @@ function readLegacyLogFromDisk(entry: {
       return JSON.parse(fs.readFileSync(path.join(dir, files[0]), "utf8"));
     }
   } catch (error) {
-    console.error("[callLogs] Failed to read legacy disk log:", (error as Error).message);
+    console.error(
+      "[callLogs] Failed to read legacy disk log:",
+      sanitizeErrorMessage(error) || "Legacy call log read failed"
+    );
   }
 
   return null;
@@ -447,11 +460,40 @@ async function saveCallLogOperation(entry: any): Promise<void> {
     const noLogEnabled = Boolean(entry.noLog) || (apiKeyId ? isNoLog(apiKeyId) : false);
 
     const protectedRequestBody = noLogEnabled ? null : protectPayloadForLog(entry.requestBody);
-    const protectedResponseBody = noLogEnabled ? null : protectPayloadForLog(entry.responseBody);
+    const responseStatus = Number(entry.status);
+    const failedResponse = Number.isFinite(responseStatus) && responseStatus >= 400;
+    const protectedResponseBody = noLogEnabled
+      ? null
+      : failedResponse
+        ? protectErrorPayloadForLog(entry.responseBody)
+        : protectPayloadForLog(entry.responseBody);
     const protectedPipelinePayloads = noLogEnabled
       ? null
-      : protectPipelinePayloads(entry.pipelinePayloads ?? entry.pipeline ?? null);
+      : protectPipelinePayloads(
+          entry.pipelinePayloads ?? entry.pipeline ?? null,
+          failedResponse ? responseStatus : undefined
+        );
     const protectedError = sanitizeErrorForLog(entry.error);
+
+    // Bridges the window before this row's own artifact write (queued below,
+    // async) lands with detail_state = 'ready': a client that fires its next
+    // turn immediately -- normal in a tight tool-calling loop -- can reach
+    // resolvePreviousResponseState before that write exists at all. Seeded
+    // synchronously, before any await, from the same protected pipeline
+    // payload the artifact will eventually hold (and the same
+    // videoContentRemoved/fail-closed rules), so it is available the instant
+    // this function is called. See responsesContinuationStore.ts.
+    if (typeof entry.responseId === "string" && entry.responseId.length > 0) {
+      seedPendingContinuationState(
+        entry.responseId,
+        apiKeyId,
+        // The store's own contract, not a looser restatement of it: the inline shape
+        // widened both fields to `unknown`, which does not assign to
+        // ContinuationPipeline's typed members (TS2345 under typecheck:core).
+        protectedPipelinePayloads as ContinuationPipeline | null,
+        Boolean(entry.videoContentRemoved)
+      );
+    }
 
     const account = await resolveAccountName(entry.connectionId || null);
     const rawProvider: string = entry.provider || "-";
@@ -505,6 +547,11 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       // this row's artifact for OmniRoute-native continuation. See
       // src/lib/db/responsesContinuationStore.ts.
       responseId: typeof entry.responseId === "string" ? entry.responseId : null,
+      // #12150 P2 surface 2: 1 when this request's persisted client snapshot had
+      // its video transcript cues structurally redacted, so
+      // resolvePreviousResponseState refuses to rehydrate it as continuation
+      // history. See src/lib/db/responsesContinuationStore.ts.
+      videoContentRemoved: entry.videoContentRemoved ? 1 : 0,
     };
 
     const requestSummary = noLogEnabled
@@ -553,7 +600,8 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         combo_name, combo_step_id, combo_execution_key, error_summary, detail_state,
         artifact_relpath, artifact_size_bytes, artifact_sha256,
         has_request_body, has_response_body, has_pipeline_details, request_summary,
-        correlation_id, model_pinned, session_tag, response_id, error_type
+        correlation_id, model_pinned, session_tag, response_id, error_type,
+        video_content_removed
       )
       VALUES (
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
@@ -564,7 +612,8 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         @comboName, @comboStepId, @comboExecutionKey, @errorSummary, @detailState,
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,
         @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary,
-        @correlationId, @modelPinned, @sessionTag, @responseId, @errorType
+        @correlationId, @modelPinned, @sessionTag, @responseId, @errorType,
+        @videoContentRemoved
       )
     `
     ).run({
@@ -580,9 +629,18 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       requestSummary,
     });
 
+    if (detailState === "ready" && typeof logEntry.responseId === "string") {
+      // The durable row is now authoritative; drop the bridge entry instead
+      // of letting it idle until its TTL.
+      clearPendingContinuationState(logEntry.responseId);
+    }
+
     scheduleCallLogRotation();
   } catch (error) {
-    console.error("[callLogs] Failed to save call log:", (error as Error).message);
+    console.error(
+      "[callLogs] Failed to save call log:",
+      sanitizeErrorMessage(error) || "Call log persistence failed"
+    );
   }
 }
 

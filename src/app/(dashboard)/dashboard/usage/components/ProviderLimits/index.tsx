@@ -16,8 +16,8 @@ import {
 } from "./utils";
 import Card from "@/shared/components/Card";
 import { CardSkeleton } from "@/shared/components/Loading";
-import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
+import { supportsProviderQuota, isProviderQuotaVisible } from "@/shared/utils/providerQuotaVisibility";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
 
@@ -32,7 +32,6 @@ import { formatAutoRefreshCountdown } from "./formatters";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 import { compareTr } from "@/shared/utils/turkishText";
 import { fetchWithTimeout } from "@/shared/utils/fetchTimeout";
-import { isProviderQuotaVisible } from "@/shared/utils/providerQuotaVisibility";
 
 // Bound the two first-paint requests so a stalled connection cannot wedge
 // `initialLoading` on `true` and freeze the quota page on its skeleton forever
@@ -529,7 +528,7 @@ export default function ProviderLimits({
       connections.filter(
         (conn) =>
           isProviderQuotaVisible(conn) &&
-          USAGE_SUPPORTED_PROVIDERS.includes(conn.provider) &&
+          supportsProviderQuota(conn.provider, conn) &&
           (conn.authType === "oauth" || conn.authType === "apikey")
       ),
     [connections]

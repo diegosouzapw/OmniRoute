@@ -649,6 +649,13 @@ const GAMIFICATION_GROUP: SidebarItemGroup = {
       subtitleKey: "tokensSubtitle",
       icon: "toll",
     },
+    {
+      id: "gamification-admin",
+      href: "/dashboard/gamification/admin",
+      i18nKey: "gamificationAdmin",
+      subtitleKey: "gamificationAdminSubtitle",
+      icon: "admin_panel_settings",
+    },
   ],
 };
 

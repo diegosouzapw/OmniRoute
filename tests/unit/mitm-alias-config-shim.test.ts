@@ -16,7 +16,7 @@ const {
 
 test("normalizeReasoningEffort canonicalizes case and the max/extra UI synonyms", () => {
   assert.equal(normalizeReasoningEffort(" HIGH "), "high");
-  assert.equal(normalizeReasoningEffort("max"), "xhigh");
+  assert.equal(normalizeReasoningEffort("max"), "max");
   assert.equal(normalizeReasoningEffort("extra"), "xhigh");
   assert.equal(normalizeReasoningEffort("extreme"), undefined);
   assert.equal(normalizeReasoningEffort(42), undefined);
@@ -44,7 +44,10 @@ test("normalizeAliasMappings resolves the stored SQLite row shape used by getMap
 
 test("applyAntigravityOverride swaps model and sets the top-level reasoningEffortOverride", () => {
   const body = { model: "gemini-3-flash-agent", request: { contents: [] } };
-  const result = applyAntigravityOverride(body, { model: "cx/gpt-5.6-sol", reasoningEffort: "high" });
+  const result = applyAntigravityOverride(body, {
+    model: "cx/gpt-5.6-sol",
+    reasoningEffort: "high",
+  });
   assert.equal(result.model, "cx/gpt-5.6-sol");
   assert.equal(result.reasoningEffortOverride, "high");
   // Original body is untouched (server.cjs still needs it for logging/capture).

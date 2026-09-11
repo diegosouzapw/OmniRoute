@@ -1,13 +1,17 @@
 ---
 title: "Radar Free-Model Catalog"
-version: 3.8.50
-lastUpdated: 2026-08-13
+version: 3.8.51
+lastUpdated: 2026-09-01
 ---
 
 # Radar Free-Model Catalog
 
 > **Source of truth:** `src/lib/radar/`, `src/lib/db/radar.ts`, `src/app/api/radar/`
-> **Last updated:** 2026-08-13 — v3.8.50
+> **Last updated:** 2026-09-01 — v3.8.51
+> **Hosted-service evidence boundary:** server-side rules described here were verified on
+> 2026-09-01 against the intentionally private Radar server at exact revision
+> `main@dce70f004364912f3f144cdb69f4cbcde16093ed`. That implementation is not distributed in
+> this OSS repository; hosted availability remains a separate operational state.
 
 Radar is an **optional add-on** that overlays a signed, freshly-curated free-model
 catalog on top of the release baseline (`FREE_MODEL_BUDGETS` in
@@ -24,7 +28,7 @@ is never mutated on disk — see
 
 ---
 
-## Delivery status in v3.8.50
+## Delivery status in v3.8.51
 
 The following status distinguishes what this OSS release implements from later Radar
 workstreams. It is a code-level status, not a promise that a particular hosted deployment
@@ -109,10 +113,17 @@ When both are on, the sync path is:
    `Authorization: Bearer <supporter key>` header (see below). Servers default to the separately
    signed v1 transition artifact when the schema header is absent, so older installed clients keep
    receiving updates.
-2. Nothing about the request, the operator, or their traffic is uploaded — it is a
-   plain, unauthenticated-by-default GET. OmniRoute never posts usage data, provider
-   configuration, or model traffic to the feed service.
-3. The response is verified, validated, and cached locally (see
+2. This is a download-only application flow, but it is still an HTTPS request. The hosted
+   infrastructure receives ordinary connection metadata such as the source IP. When a supporter
+   key is configured, sync also sends that key in the Bearer header so the service can resolve the
+   entitlement. At the exact private-server revision identified in the evidence boundary above,
+   feed-request accounting uses key hashes, aggregate usage, and a daily rotating truncated HMAC
+   of the IP for manual abuse review; those tables persist neither the key nor the IP in raw form.
+   Infrastructure access logs and the encrypted delivery outbox are separate operational
+   boundaries.
+3. OmniRoute never sends prompts, responses, conversations, provider credentials, model traffic,
+   uptime, latency, or the local provider configuration to the Radar service.
+4. The response is verified, validated, and cached locally (see
    [Security model](#security-model)). Radar has exactly four server-side network paths:
    `syncRadar()` for the catalog, `syncRadarReferrals()` for referrals, and
    `syncRadarOffers()` / `syncRadarIntel()` for supporter-only offers and Intel.
@@ -133,6 +144,42 @@ that lets the feed service decide which tier to serve (see
 
 ---
 
+## Access and safety rules shown before opt-in
+
+The inactive dashboard renders these rules from
+`src/app/(dashboard)/dashboard/radar/RadarAccessExplainer.tsx` **before** either activation action.
+The canonical access scale is:
+
+| Level                 | Eligibility                                                                       | Access                                       | Repeat/expiration rule                                                    |
+| --------------------- | --------------------------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------- |
+| Community             | Anyone; no key                                                                    | Complete catalog delayed by about 30 days    | Always available; no issuance                                             |
+| Star + follow         | GitHub OAuth verifies both a star on the repository and a follow of the owner     | One live catalog read, then Community        | One issuance per login; never reissued                                    |
+| Contributor Top 10    | Positions 1–10 in the latest complete weekly ranking                              | 365 live days                                | Claimed on demand; leaving the ranking does not shorten an awarded period |
+| Contributor Top 100   | Positions 11–100 in that ranking                                                  | 90 live days                                 | Same on-demand/idempotent claim rule                                      |
+| Supporter purchase    | One-time 6-month, 1-year, or lifetime purchase                                    | Live catalog, signed live offers, and Intel  | No automatic renewal                                                      |
+| Donation/manual grant | Owner-reviewed donation or an owner grant for an explicit number of days/lifetime | Same live entitlement for the granted period | Audited, idempotent grant                                                 |
+
+Merged PRs, commits, and changed lines are **ranking inputs only**. A login outside the Top 100 gets
+no contributor grant regardless of PR count. Finite purchases, donations, contributor periods, and
+manual grants accumulate from the current expiration; lifetime dominates. A rank change never
+retroactively revokes or shortens time already awarded.
+
+The hosted license is personal and the user-facing rule is one active installation at a time. This
+release does **not** claim a hardware lock: the OSS sync does not fingerprint hardware or maintain a
+cryptographic device lease. At the verified private-server revision above, implemented enforcement
+is entitlement validation plus a manual-review signal when the same live key is seen from a fourth
+distinct IP within 24 hours. That signal never blocks or revokes a key automatically. Recovery
+revokes and replaces the lost key while preserving the existing expiration; it does not restart the
+purchased or granted period.
+
+Live offers are manually curated and can change or expire. The opt-in screen also names the exact
+privacy boundary: signed catalog/referral metadata is downloaded; a valid key additionally unlocks
+signed offers and Intel; the Bearer key and normal connection metadata reach the hosted service;
+prompts, responses, conversations, provider credentials, model traffic, uptime, latency, and local
+provider configuration do not.
+
+---
+
 ## Getting a supporter key
 
 The activation screen (`/dashboard/radar`) links out to two flows for **obtaining** a
@@ -142,11 +189,12 @@ destination pages, not in this repo (spec decision D14).
 
 - **"I'm a contributor"** — opens `RADAR_CONTRIBUTOR_CLAIM_URL` (default
   `https://radar.omniroute.online/auth/github`), a GitHub OAuth claim flow hosted on
-  the private radar server. It verifies the visitor's GitHub account and grants a
-  supporter key to anyone with 5+ merged pull requests or a top-100 contributor spot
-  on the repo.
+  the private Radar server. It checks the latest complete weekly ranking: Top 10 receives 365 days
+  and positions 11–100 receive 90 days. Outside the Top 100, PR count never grants access; the flow
+  instead checks the separate star + follow single-use level.
 - **"Support the project"** — opens `RADAR_SUPPORTER_PLANS_URL` (default
-  `https://radar.omniroute.online/planos`), the payment/plans page.
+  `https://radar.omniroute.online/planos`), the hosted page for the one-time 6-month, 1-year, and
+  lifetime options. The OSS page still displays no monetary value.
 
 Both URLs are resolved server-side (`src/lib/radar/links.ts`, same env-override
 pattern as `RADAR_FEED_URL`) and relayed to the dashboard through the existing
@@ -304,7 +352,7 @@ migration 142.
 The version floor above compares `version`, not either date.
 
 Two gaps remain, both deliberate: the dashboard still shows only `Last fetched`, so reading
-the build date there needs a new label (and its 42 locale entries); and the offers and intel
+the build date there needs a new label (and its 41 locale entries); and the offers and intel
 caches keep no build date at all, even though their feed schemas carry one — `GET
 /api/radar/status` therefore omits the field for those two rather than reporting a `null`
 that would read as "unknown".

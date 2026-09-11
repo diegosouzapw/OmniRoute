@@ -19,6 +19,7 @@ import { saveCallLog } from "@/lib/usageDb";
 import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { CORS_HEADERS } from "@omniroute/open-sse/utils/cors.ts";
+import { deriveRerankProviderForChatProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 
 /**
  * Handle CORS preflight
@@ -107,14 +108,36 @@ async function postHandler(request, context) {
   // Try cloud registry first
   const { provider, model: modelId } = parseRerankModel(body.model);
 
-  if (provider) {
-    // Cloud provider matched
-    const credentials = await getProviderCredentialsWithQuotaPreflight(provider);
+  // Generic fallback: a configured OpenAI-compatible chat provider with no
+  // curated rerank entry (groq, mistral, ...) still exposes a Cohere-compatible
+  // <base>/rerank endpoint. Only used when the prefix matches a chat provider
+  // that can actually derive an endpoint — otherwise fall through to local nodes.
+  let derivedProvider: ReturnType<typeof deriveRerankProviderForChatProvider> = null;
+  if (!provider) {
+    const prefix = body.model.split("/")[0];
+    if (prefix && prefix !== body.model) {
+      try {
+        const { REGISTRY } = await import("@omniroute/open-sse/config/providerRegistry.ts");
+        const chatEntry = (REGISTRY as Record<string, { baseUrl?: string } | undefined>)[prefix];
+        derivedProvider = deriveRerankProviderForChatProvider(prefix, chatEntry);
+      } catch {
+        derivedProvider = null;
+      }
+    }
+  }
+
+  if (provider || derivedProvider) {
+    // Cloud provider matched (or a generic Cohere-compatible endpoint was derived)
+    const effectiveProviderId = provider || derivedProvider!.id;
+    const credentials = await getProviderCredentialsWithQuotaPreflight(effectiveProviderId);
     if (!credentials) {
-      return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        `No credentials for provider: ${effectiveProviderId}`
+      );
     }
     if (isAllRateLimitedCredentials(credentials)) {
-      return rateLimitedProviderResponse(provider, credentials);
+      return rateLimitedProviderResponse(effectiveProviderId, credentials);
     }
 
     const response = await handleRerank({
@@ -124,6 +147,7 @@ async function postHandler(request, context) {
       top_n: body.top_n,
       return_documents: body.return_documents,
       credentials,
+      resolvedProvider: derivedProvider || null,
       connectionId: (credentials as { connectionId?: string } | null)?.connectionId || null,
       apiKeyId: policy.apiKeyInfo?.id || null,
       apiKeyName: policy.apiKeyInfo?.name || null,

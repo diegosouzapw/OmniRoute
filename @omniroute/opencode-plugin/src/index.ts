@@ -75,6 +75,7 @@ import {
   AUTO_VARIANT_DESCRIPTIONS,
   type FreeModelFreeType,
 } from "./naming.js";
+import { applyOmniRouteInferenceTelemetry } from "./telemetry.js";
 
 /**
  * Minimal leveled logger sink accepted by the default fetchers and the static
@@ -219,7 +220,11 @@ const optionsSchema = z
      * to 60000. Default when unset: 300000.
      */
     autoSyncIntervalMs: z.number().int().nonnegative().optional(),
-    baseURL: z.string().url().optional(),
+    baseURL: z
+      .string()
+      .trim()
+      .refine(isHttpUrl, "baseURL must be an http(s) URL, for example http://localhost:20128")
+      .optional(),
     managementReadToken: z.string().min(1).optional(),
     features: featuresSchema.optional(),
   })
@@ -481,6 +486,22 @@ export const DEFAULT_ANTHROPIC_PREFIXES = ["cc", "claude", "anthropic", "kiro", 
  * (it appends `/v1/messages` automatically), so callers should branch on
  * format first.
  */
+/**
+ * A url the AI SDK can actually call. `new URL()` alone is not enough: it
+ * parses `localhost:20128` as the scheme `localhost:` and `ftp://host` as ftp,
+ * both of which reach `fetch` and fail there. Mirrors the `isHttpUrl` guard the
+ * settings schema applies to `headroomUrl`.
+ */
+export function isHttpUrl(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  try {
+    const { protocol } = new URL(value);
+    return protocol === "http:" || protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export function ensureV1Suffix(url: string): string {
   const trimmed = trimTrailingSlashes(url);
   return trimmed.endsWith("/v1") ? trimmed : `${trimmed}/v1`;
@@ -1199,7 +1220,7 @@ export type OmniRouteModelsFetcher = (
 export const defaultOmniRouteModelsFetcher: OmniRouteModelsFetcher = async (
   baseURL,
   apiKey,
-  timeoutMs = 10_000
+  timeoutMs = 30_000
 ) => {
   if (!apiKey) throw new Error("@omniroute/opencode-plugin: apiKey required to fetch /v1/models");
   if (!baseURL) throw new Error("@omniroute/opencode-plugin: baseURL required to fetch /v1/models");
@@ -1221,9 +1242,12 @@ export const defaultOmniRouteModelsFetcher: OmniRouteModelsFetcher = async (
       signal: controller.signal,
     });
     if (!res.ok) {
-      throw new Error(
+      const err = new Error(
         `@omniroute/opencode-plugin: GET ${url} failed: ${res.status} ${res.statusText}`
-      );
+      ) as Error & { statusCode: number; status: number };
+      err.statusCode = res.status;
+      err.status = res.status;
+      throw err;
     }
     const body = (await res.json()) as unknown;
     const rawList: unknown[] = Array.isArray(body)
@@ -3477,7 +3501,7 @@ export function createOmniRouteProviderHook(
 
       // ── Combo LCD across nested combo-refs (T-NN) ───────────────────────
       // Combos can nest other combos via `kind: "combo-ref"` members
-      // (e.g. MASTER-LIGHT contains OldLLM, KIRO, Opecode Zen FREE). The
+      // (e.g. MASTER-LIGHT contains LEGACY, KIRO, Opecode Zen FREE). The
       // nested combo's own `limit.context` is computed below in this same
       // loop, so we need a fixpoint iteration: if a combo-ref points at a
       // combo not yet processed, defer this combo and try again after the
@@ -3766,6 +3790,8 @@ export function createOmniRouteFetchInterceptor(config: {
     baseOrigin = baseUrl.origin;
     const basePath = ensureV1Suffix(baseUrl.pathname);
     inferencePaths.add(`${basePath}/chat/completions`);
+    inferencePaths.add(`${basePath}/responses`);
+    inferencePaths.add(`${basePath}/messages`);
     inferencePaths.add(`${basePath}/models`);
   } catch {
     // Credential-attached base URLs are not schema-validated. A malformed
@@ -3809,7 +3835,7 @@ export function createOmniRouteFetchInterceptor(config: {
       headers.set("Content-Type", "application/json");
     }
 
-    return fetch(input, { ...init, headers });
+    return applyOmniRouteInferenceTelemetry(await fetch(input, { ...init, headers }));
   };
 }
 
@@ -4495,7 +4521,7 @@ export function buildStaticProviderEntry(
   // ── Combo LCD across nested combo-refs (T-NN mirror) ─────────────────
   // Mirror of the dynamic-catalog fixpoint iteration: combos can nest
   // other combos via `kind: "combo-ref"` members (e.g. MASTER-LIGHT
-  // contains OldLLM, KIRO, Opecode Zen FREE). The nested combo's own
+  // contains LEGACY, KIRO, Opecode Zen FREE). The nested combo's own
   // capabilities and limits are computed in this same loop, so we need
   // a fixpoint pass: if a combo-ref points at a combo not yet processed,
   // defer this combo and try again after the sibling combos catch up.
@@ -5398,7 +5424,7 @@ export function createOmniRouteConfigHook(
         // exact warn message so per-endpoint fallbacks are preserved.
         const doModels = async (): Promise<void> => {
           try {
-            localRawModels = await fetcher(baseURL, apiKey, 10_000);
+            localRawModels = await fetcher(baseURL, apiKey, 30_000);
           } catch (err) {
             logAt(
               "error",

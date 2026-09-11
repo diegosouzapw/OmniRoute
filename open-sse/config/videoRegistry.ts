@@ -402,6 +402,40 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     models: [{ id: "grok-imagine-video", name: "Grok Imagine Video" }],
   },
 
+  // UC (uncensored.com) video generation. One handler (handleUcVideoGeneration)
+  // serves BOTH surfaces, picking by credential: PERSONA web (un-metered, Clerk
+  // JWT -> internal.chatuncensored.ai/{text,image}_to_video + moveinwater result
+  // CDN HEAD poll 403->200) and uc-direct REST (metered, X-api-key ->
+  // api.uncensored.com, async submit + status poll). authType is "apikey" so the
+  // route resolves credentials for the metered path; the persona path pulls its
+  // durable Clerk credential out of providerSpecificData inside the handler.
+  uc: {
+    id: "uc",
+    baseUrl: "https://internal.chatuncensored.ai/image_to_video",
+    statusUrl: "https://api.uncensored.com/api/v1/videos/generations",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "uc-video",
+    models: [
+      // Persona web picker default + catalog.
+      { id: "wan-2.2-spicy", name: "Wan 2.2 Spicy (UC)" },
+      // uc-direct REST metered catalog (§2.3).
+      { id: "t2v-turbo", name: "Text-to-Video Turbo (UC)" },
+      { id: "t2v-standard", name: "Text-to-Video Standard (UC)" },
+      { id: "i2v-turbo", name: "Image-to-Video Turbo (UC)" },
+      { id: "i2v-standard", name: "Image-to-Video Standard (UC)" },
+      { id: "i2v-pro", name: "Image-to-Video Pro (UC)" },
+      { id: "i2v-sora", name: "Image-to-Video Sora (UC)" },
+      { id: "i2v-sora-pro", name: "Image-to-Video Sora Pro (UC)" },
+      { id: "cosmos-predict", name: "Cosmos Predict (UC)" },
+      { id: "av-gen", name: "AV Gen (UC)" },
+      { id: "ltx-distilled", name: "LTX Distilled (UC)" },
+      { id: "seedance-2.0", name: "Seedance 2.0 (UC)" },
+      { id: "seedance-2.0-fast", name: "Seedance 2.0 Fast (UC)" },
+      { id: "happyhorse", name: "HappyHorse (UC)" },
+    ],
+  },
+
   // Adobe Firefly (unofficial) — same IMS/cookie credential as the image entry.
   // Exact async video models and capabilities from the verified discovery snapshot.
   "adobe-firefly": {

@@ -324,14 +324,22 @@ test("vscode tokenized models route exposes reasoning effort metadata for import
   assert.equal(response.status, 200);
   assert.ok(model, "missing gpt-5.4__provider_gh in tokenized VS Code models route");
   assert.equal(model.family, "gpt-5.4");
-  assert.deepEqual(model.supportsReasoningEffort, ["none", "low", "medium", "high"]);
-  assert.deepEqual(model.supportedReasoningEfforts, ["none", "low", "medium", "high", "xhigh"]);
+  assert.deepEqual(model.supportsReasoningEffort, ["none", "low", "medium", "high", "max"]);
+  assert.deepEqual(model.supportedReasoningEfforts, [
+    "none",
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+  ]);
   assert.deepEqual(model.configurationSchema?.properties?.reasoningEffort?.enum, [
     "none",
     "low",
     "medium",
     "high",
     "xhigh",
+    "max",
   ]);
   assert.equal(model.configurationSchema?.properties?.reasoningEffort?.default, "none");
   assert.equal(

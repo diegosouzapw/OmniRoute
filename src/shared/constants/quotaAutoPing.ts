@@ -27,7 +27,11 @@ export type QuotaAutoPingProviderConfig = {
   minPingIntervalMs: number;
   /** Skip the ping when a non-session quota (e.g. weekly) is already exhausted. */
   skipWhenBlockingQuotaExhausted: true;
-  pingModel: string;
+  // The ping model is deliberately NOT part of this config (#11905): a pinned id
+  // outlives its vendor lifecycle (`gpt-5.1-codex-mini` was shut down 2026-07-23
+  // while still hardcoded here). It is resolved per tick from the live provider
+  // catalog + lifecycle registry — see resolveQuotaAutoPingModel in
+  // src/lib/services/quotaAutoPing.ts.
   pingText: string;
   pingInstructions: string;
   pingReasoningEffort: string;
@@ -41,7 +45,6 @@ export const QUOTA_AUTOPING_PROVIDERS: Record<"codex", QuotaAutoPingProviderConf
     resetAtDriftMs: 30_000,
     minPingIntervalMs: 10 * 60 * 1000,
     skipWhenBlockingQuotaExhausted: true,
-    pingModel: "gpt-5.1-codex-mini",
     pingText: "hi",
     pingInstructions: "Reply with OK.",
     pingReasoningEffort: "none",

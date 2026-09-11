@@ -10,7 +10,7 @@ import { harvestToCredentials, type HarvestResult } from "@/lib/vncSession/harve
 
 test("manifest lookup resolves known providers and rejects unknown", () => {
   assert.equal(isVncProvider("gemini-web"), true);
-  assert.equal(isVncProvider("chatgpt-web"), false);
+  assert.equal(isVncProvider("chatgpt-web"), true);
   assert.equal(isVncProvider("chatgpt-web-codex"), true);
   assert.equal(isVncProvider("not-a-provider"), false);
   assert.equal(getVncProvider(null), null);

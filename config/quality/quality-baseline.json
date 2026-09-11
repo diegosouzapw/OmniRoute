@@ -157,7 +157,7 @@
       "dedicatedGate": true
     },
     "codeqlAlerts": {
-      "value": 11,
+      "value": 6,
       "direction": "down",
       "dedicatedGate": true,
       "_rebaseline_2026_08_06_base_grew": "Base branch file-size drift: translator-openai-to-gemini.test.ts grew 1619->1622 (test assertions for Gemini translator compatibility). CodeQL alert (js/insufficient-password-hash in raycast.ts) is pre-existing base-red; incremented baseline to match.",

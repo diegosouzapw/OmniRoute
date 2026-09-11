@@ -104,6 +104,49 @@ describe("Radar opt-in page", () => {
     expect(notFoundMock).not.toHaveBeenCalled();
     expect(container.textContent).toContain("activateTitle");
     expect(container.textContent).toContain("activateButton");
+    const activationIcon = container.querySelector(
+      'span.material-symbols-outlined[aria-hidden="true"]'
+    );
+    expect(activationIcon?.textContent).toBe("radar");
+    expect(container.textContent).not.toContain("📡");
+  });
+
+  it("shows the complete access and privacy explanation before every activation action", async () => {
+    await act(async () => {
+      root.render(<RadarPage />);
+    });
+    await settle();
+
+    const renderedText = container.textContent ?? "";
+    const explanationKeys = [
+      "accessScaleTitle",
+      "accessScaleIntro",
+      "accessCommunityRule",
+      "accessSingleUseRule",
+      "accessContributorRule",
+      "accessSupporterRule",
+      "accessUseTitle",
+      "accessInstallationRule",
+      "accessAbuseRule",
+      "accessOffersRule",
+      "privacyTitle",
+      "privacyDownloadsRule",
+      "privacySendsRule",
+      "privacyNeverRule",
+    ];
+    const firstActivationAction = Math.min(
+      renderedText.indexOf("activateWithKeyButton"),
+      renderedText.indexOf("activateButton")
+    );
+
+    expect(firstActivationAction).toBeGreaterThan(-1);
+    for (const key of explanationKeys) {
+      const position = renderedText.indexOf(key);
+      expect(position, `${key} must be rendered`).toBeGreaterThan(-1);
+      expect(position, `${key} must precede every activation action`).toBeLessThan(
+        firstActivationAction
+      );
+    }
   });
 
   it("keeps the page hidden when the feature endpoint returns 404", async () => {

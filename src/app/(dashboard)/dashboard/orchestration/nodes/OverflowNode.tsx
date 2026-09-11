@@ -27,3 +27,4 @@ function OverflowNodeImpl({ data }: { data: OrchNode }) {
 }
 
 export const OverflowNode = memo(OverflowNodeImpl);
+OverflowNode.displayName = "OverflowNode";

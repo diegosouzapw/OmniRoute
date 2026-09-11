@@ -229,6 +229,11 @@ test("MiniMax providers are exposed to the limits dashboard support list", () =>
   assert.ok(providerConstants.USAGE_SUPPORTED_PROVIDERS.includes("minimax-cn"));
 });
 
+test("OpenRouter and Devin CLI are exposed to the limits dashboard support list", () => {
+  assert.ok(providerConstants.USAGE_SUPPORTED_PROVIDERS.includes("openrouter"));
+  assert.ok(providerConstants.USAGE_SUPPORTED_PROVIDERS.includes("devin-cli"));
+});
+
 test("MiniMax quota payloads use generic provider parsing and stale resets still refill", () => {
   const future = new Date(Date.now() + 5 * 60_000).toISOString();
   const past = new Date(Date.now() - 5 * 60_000).toISOString();
@@ -276,6 +281,36 @@ test("GLM quota rows are ordered by session, weekly, then monthly", () => {
     parsed.map((quota) => quota.name),
     ["session", "weekly", "mcp_monthly"]
   );
+});
+
+test("OpenRouter credits render as a USD credit count, not a percentage row", () => {
+  const parsed = providerLimitUtils.parseQuotaData("openrouter", {
+    quotas: {
+      free_daily: { used: 0, total: 50, remaining: 50, remainingPercentage: 100 },
+      free_rpm: { used: 0, total: 20, remaining: 20, remainingPercentage: 100 },
+      credits: {
+        used: 0,
+        total: 0,
+        remaining: 231.0973698130001,
+        remainingPercentage: 100,
+        unlimited: true,
+        currency: "USD",
+      },
+    },
+  });
+
+  const credits = parsed.find((quota) => quota.name === "credits");
+  assert.ok(credits, "credits row must survive parsing");
+  assert.equal(credits.isCredits, true, "dollar renderer requires isCredits");
+  assert.equal(credits.creditCount, 231.0973698130001);
+  assert.equal(credits.remaining, 231.0973698130001);
+  assert.equal(credits.currency, "USD");
+  assert.equal(providerLimitUtils.formatQuotaLabel(credits.name), "AI Credits");
+  // Free-tier windows keep the generic percentage treatment.
+  const freeDaily = parsed.find((quota) => quota.name === "free_daily");
+  assert.ok(freeDaily);
+  assert.notEqual(freeDaily.isCredits, true);
+  assert.equal(freeDaily.total, 50);
 });
 
 test("hidden provider models are filtered from per-model quota rows", () => {
@@ -389,4 +424,39 @@ test("provider quota auto-refresh settings are accepted by the settings schema",
   });
 
   assert.equal(result.success, true);
+});
+
+test("grok-cli banked reset credits parse as an integer reset-credit counter including zero", () => {
+  const parsed = providerLimitUtils.parseQuotaData("grok-cli", {
+    quotas: {
+      weekly: { used: 37.25, total: 100, remainingPercentage: 62.75, isPercentageOnly: true },
+    },
+    bankedResetCredits: 0,
+  }) as ParsedQuota[];
+  const resetCredits = parsed.find((quota) => quota.name === "banked_reset_credits");
+  assert.ok(resetCredits);
+  assert.equal(resetCredits.isResetCredits, true);
+  assert.equal(resetCredits.creditCount, 0);
+});
+
+test("grok-cli omits the reset-credit row when bankedResetCredits is absent", () => {
+  const parsed = providerLimitUtils.parseQuotaData("grok-cli", {
+    quotas: {
+      weekly: { used: 37.25, total: 100, remainingPercentage: 62.75 },
+    },
+  }) as ParsedQuota[];
+  assert.equal(
+    parsed.some((quota) => quota.name === "banked_reset_credits"),
+    false
+  );
+});
+
+test("grok-cli exposes the redeem button when banked reset credits are present", () => {
+  const parsed = providerLimitUtils.parseQuotaData("grok-cli", {
+    quotas: { weekly: { used: 0, total: 100, remainingPercentage: 100 } },
+    bankedResetCredits: 2,
+  });
+  assert.equal(providerLimitUtils.computeCanRedeemResetCredit("grok-cli", parsed), true);
+  assert.equal(providerLimitUtils.computeCanRedeemResetCredit("codex", parsed), true);
+  assert.equal(providerLimitUtils.computeCanRedeemResetCredit("claude", parsed), false);
 });

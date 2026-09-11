@@ -1,5 +1,10 @@
 import { getDbInstance, rowToCamel } from "./core";
 import type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
+import {
+  hasCodexScopeCooldown,
+  liftCodexScopeCooldownOnHeadroom,
+} from "./providers/codexAccountState";
+import { isCodexSparkQuotaKey } from "@omniroute/open-sse/config/codexQuotaScopes";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -44,6 +49,61 @@ export function saveQuotaSnapshot(snapshot: Omit<QuotaSnapshotRow, "id" | "creat
       return;
     }
     throw err;
+  }
+
+  // #12860: When a new snapshot demonstrates headroom on a Codex connection,
+  // lift any fallback-sourced scope cooldown parked by quota preflight.
+  maybeLiftCodexCooldownOnHeadroom(snapshot);
+}
+
+/**
+ * `rowToCamel` leaves snake_case keys intact on some driver paths, so accept
+ * either casing rather than trusting one shape.
+ */
+type SnapshotShape = Partial<QuotaSnapshotRow> & {
+  windowKey?: string;
+  remainingPercentage?: number;
+  isExhausted?: number;
+};
+
+function snapshotHasHeadroom(s: SnapshotShape): boolean {
+  const pct = s.remainingPercentage ?? s.remaining_percentage ?? 0;
+  const exhausted = s.isExhausted ?? s.is_exhausted ?? 0;
+  return pct > 0 && exhausted !== 1;
+}
+
+function maybeLiftCodexCooldownOnHeadroom(
+  snapshot: Omit<QuotaSnapshotRow, "id" | "created_at">
+): void {
+  if (
+    snapshot.provider?.toLowerCase() !== "codex" ||
+    typeof snapshot.connection_id !== "string" ||
+    snapshot.connection_id.length === 0 ||
+    (snapshot.remaining_percentage ?? 0) <= 0 ||
+    snapshot.is_exhausted === 1
+  ) {
+    return;
+  }
+
+  try {
+    const scope = isCodexSparkQuotaKey(snapshot.window_key) ? "spark" : "codex";
+    // The scope-wide read is only worth paying for when a cooldown is
+    // actually parked on this connection+scope; the common case is clean.
+    if (!hasCodexScopeCooldown(snapshot.connection_id, scope)) return;
+
+    const scopeWindows = getLatestQuotaSnapshotsForConnection(snapshot.connection_id).filter(
+      (s: SnapshotShape) => {
+        const key = s.windowKey ?? s.window_key;
+        return scope === "spark" ? isCodexSparkQuotaKey(key) : !isCodexSparkQuotaKey(key);
+      }
+    );
+    // Every window in the scope must be healthy: one exhausted window still
+    // justifies the cooldown even when a sibling reports full headroom.
+    if (scopeWindows.length > 0 && scopeWindows.every(snapshotHasHeadroom)) {
+      liftCodexScopeCooldownOnHeadroom(snapshot.connection_id, scope);
+    }
+  } catch (err) {
+    console.debug("[QuotaSnapshots] Headroom evaluation skipped:", err);
   }
 }
 

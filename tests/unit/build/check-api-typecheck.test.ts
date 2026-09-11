@@ -7,6 +7,7 @@ import {
   parseTscOutput,
   diffAgainstBaseline,
 } from "../../../scripts/check/check-api-typecheck.mjs";
+import { diffAgainstBaseline as diffOpenSseAgainstBaseline } from "../../../scripts/check/check-open-sse-typecheck.mjs";
 
 test("parseTscOutput: parses an API-route TS2554 regression", () => {
   const raw =
@@ -84,4 +85,131 @@ test("diffAgainstBaseline: reports a disappeared diagnostic as an improvement", 
   assert.equal(improvements.length, 1);
   assert.equal(improvements[0].liveCount, 0);
   assert.equal(improvements[0].baselineCount, 2);
+});
+
+test("diffAgainstBaseline: ignores underscore-prefixed baseline metadata", () => {
+  const baseline = {
+    _relax_velocity_2026_08_30:
+      "per-file TS diagnostic counts raised by 20% (289 -> 455); velocity phase",
+    "src/app/api/foo/route.ts": { TS2339: 1 },
+  };
+  const live = { "src/app/api/foo/route.ts": { TS2339: 1 } };
+
+  for (const compare of [diffAgainstBaseline, diffOpenSseAgainstBaseline]) {
+    assert.deepEqual(compare(live, baseline), {
+      regressions: [],
+      improvements: [],
+    });
+  }
+});
+
+test("diffAgainstBaseline: rejects a string in place of a real file diagnostic map", () => {
+  const malformedBaseline = {
+    "src/app/api/foo/route.ts": "TS2339: 1",
+  };
+
+  assert.throws(
+    () => diffAgainstBaseline({}, malformedBaseline),
+    /src\/app\/api\/foo\/route\.ts.*plain object/
+  );
+  assert.throws(
+    () => diffOpenSseAgainstBaseline({}, malformedBaseline),
+    /src\/app\/api\/foo\/route\.ts.*plain object/
+  );
+});
+
+test("diffAgainstBaseline: rejects non-plain roots and file maps", () => {
+  const inheritedRoot = Object.create({
+    "src/app/api/inherited/route.ts": { TS2339: 1 },
+  });
+  const inheritedFileMap = Object.create({ TS2339: 1 });
+
+  for (const malformedBaseline of [[], "not an object", null, inheritedRoot]) {
+    assert.throws(
+      () => diffAgainstBaseline({}, malformedBaseline),
+      /typecheck baseline must be a plain object/
+    );
+  }
+  for (const malformedFileMap of [[], null, inheritedFileMap]) {
+    assert.throws(
+      () =>
+        diffAgainstBaseline(
+          {},
+          {
+            "src/app/api/foo/route.ts": malformedFileMap,
+          }
+        ),
+      /src\/app\/api\/foo\/route\.ts.*plain object/
+    );
+  }
+});
+
+test("diffAgainstBaseline: rejects prototype property keys", () => {
+  const malformedBaseline = JSON.parse('{"__proto__":{"TS2339":1}}');
+
+  assert.throws(
+    () => diffAgainstBaseline({}, malformedBaseline),
+    /unsupported property key "__proto__"/
+  );
+});
+
+test("diffAgainstBaseline: rejects non-TypeScript diagnostic keys", () => {
+  for (const code of ["2339", "TSX2339", "TS23x", "constructor"]) {
+    assert.throws(
+      () =>
+        diffAgainstBaseline(
+          {},
+          {
+            "src/app/api/foo/route.ts": { [code]: 1 },
+          }
+        ),
+      /invalid TypeScript code/
+    );
+  }
+});
+
+test("diffAgainstBaseline: rejects invalid diagnostic counts", () => {
+  for (const count of [Number.NaN, Number.POSITIVE_INFINITY, -1, 1.5, "1"]) {
+    assert.throws(
+      () =>
+        diffAgainstBaseline(
+          {},
+          {
+            "src/app/api/foo/route.ts": { TS2339: count },
+          }
+        ),
+      /finite nonnegative integer/
+    );
+  }
+});
+
+test("diffAgainstBaseline: validates live diagnostics with the same schema", () => {
+  assert.throws(
+    () =>
+      diffAgainstBaseline(
+        { "src/app/api/foo/route.ts": { TS2339: -1 } },
+        { "src/app/api/foo/route.ts": { TS2339: 1 } }
+      ),
+    /live diagnostics.*finite nonnegative integer/
+  );
+});
+
+test("diffAgainstBaseline: accepts zero counts without fabricating a second improvement", () => {
+  assert.deepEqual(
+    diffAgainstBaseline(
+      { "src/app/api/foo/route.ts": { TS2339: 0 } },
+      { "src/app/api/foo/route.ts": { TS2339: 1 } }
+    ),
+    {
+      regressions: [],
+      improvements: [
+        {
+          file: "src/app/api/foo/route.ts",
+          code: "TS2339",
+          liveCount: 0,
+          baselineCount: 1,
+        },
+      ],
+    }
+  );
 });

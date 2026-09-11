@@ -24,6 +24,7 @@ import { createHash } from "node:crypto";
 import {
   CLAUDE_CODE_CLIENT_BUILD_REVISION,
   CLAUDE_CODE_CLIENT_VERSION,
+  getClaudeCodeClientVersion,
 } from "@/shared/constants/claudeCodeClient";
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -122,6 +123,9 @@ export const CCH_SALT = "59cf53e54c78";
 export const CCH_POSITIONS = [4, 7, 20] as const;
 /** Default `cc_version=` value embedded in the billing header. */
 export const DEFAULT_CLAUDE_CODE_VERSION = CLAUDE_CODE_CLIENT_VERSION;
+export function getDefaultClaudeCodeVersion(): string {
+  return getClaudeCodeClientVersion();
+}
 /** Identity sentinel prepended for Claude Agent SDK callers. */
 export const CLAUDE_AGENT_SDK_IDENTITY =
   "You are a Claude agent, built on Anthropic's Claude Agent SDK.";
@@ -292,7 +296,7 @@ export function buildBillingHeaderValue(
   messages: Message[],
   options: BuildBillingHeaderOptions
 ): string {
-  const version = options.version || DEFAULT_CLAUDE_CODE_VERSION;
+  const version = options.version || getDefaultClaudeCodeVersion();
   const firstUserText = extractFirstUserMessageText(messages);
 
   const suffix =

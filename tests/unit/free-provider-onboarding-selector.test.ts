@@ -17,9 +17,7 @@ test("free onboarding candidates come from the no-auth registry and exclude loca
   assert.ok(ids.includes("opencode"));
   assert.ok(ids.includes("duckduckgo-web"));
   assert.ok(!ids.includes("felo-web"));
-  assert.ok(ids.includes("theoldllm"));
   assert.ok(ids.includes("chipotle"));
-  assert.ok(ids.includes("theoldllm"));
   assert.ok(ids.includes("aihorde"));
   assert.ok(!ids.includes("devin-cli-agentic"));
   assert.ok(!ids.includes("auggie"));

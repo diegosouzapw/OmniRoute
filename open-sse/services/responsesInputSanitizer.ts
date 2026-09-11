@@ -11,6 +11,10 @@ const SERVER_ITEM_ID_PREFIX_BY_TYPE: Record<string, string> = {
   reasoning: "rs_",
 };
 const SERVER_ITEM_ID_PATTERN = /^(fc|msg|rs|resp)_/;
+// Validated per input item of type function_call / function_call_output (the agentic
+// Responses path), so kept as a module constant instead of an inline literal.
+const FUNCTION_NAME_VALID_RE = /^[a-zA-Z0-9_-]{1,128}$/;
+const FUNCTION_NAME_SANITIZE_RE = /[^a-zA-Z0-9_-]/g;
 
 function toRecord(value: unknown): JsonRecord | null {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : null;
@@ -38,7 +42,7 @@ export function isInternalAssistantMessage(record: JsonRecord): boolean {
 // Sanitize after cloning so upstream never sees an invalid name.
 function sanitizeFunctionName(name: string): string {
   // Replace any character not in [a-zA-Z0-9_-] with underscore, then truncate.
-  return name.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 128);
+  return name.replace(FUNCTION_NAME_SANITIZE_RE, "_").slice(0, 128);
 }
 
 function sanitizeInputItemId(record: JsonRecord): JsonRecord {
@@ -149,7 +153,7 @@ function sanitizeInputItem(item: unknown): unknown {
   if (
     (next.type === "function_call" || next.type === "function_call_output") &&
     typeof next.name === "string" &&
-    !/^[a-zA-Z0-9_-]{1,128}$/.test(next.name)
+    !FUNCTION_NAME_VALID_RE.test(next.name)
   ) {
     next = { ...next, name: sanitizeFunctionName(next.name) };
   }

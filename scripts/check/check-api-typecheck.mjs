@@ -19,52 +19,14 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { diffAgainstBaseline, parseTscOutput } from "./typecheckBaseline.mjs";
+
+export { diffAgainstBaseline, parseTscOutput } from "./typecheckBaseline.mjs";
 
 const ROOT = process.cwd();
 const TSCONFIG = path.join(ROOT, "tsconfig.typecheck-api.json");
 const BASELINE_PATH = path.join(ROOT, "config/quality/api-typecheck-baseline.json");
 const UPDATE = process.argv.includes("--update");
-
-const TSC_ERROR_LINE = /^(.+?)\((\d+),(\d+)\): error (TS\d+):/;
-
-export function parseTscOutput(raw) {
-  const counts = {};
-  for (const line of String(raw).split("\n")) {
-    const match = TSC_ERROR_LINE.exec(line);
-    if (!match) continue;
-    const [, file, , , code] = match;
-    if (!counts[file]) counts[file] = {};
-    counts[file][code] = (counts[file][code] || 0) + 1;
-  }
-  return counts;
-}
-
-export function diffAgainstBaseline(live, baseline) {
-  const regressions = [];
-  const improvements = [];
-
-  for (const [file, codes] of Object.entries(live)) {
-    for (const [code, liveCount] of Object.entries(codes)) {
-      const baselineCount = (baseline[file] && baseline[file][code]) || 0;
-      if (liveCount > baselineCount) {
-        regressions.push({ file, code, liveCount, baselineCount });
-      } else if (liveCount < baselineCount) {
-        improvements.push({ file, code, liveCount, baselineCount });
-      }
-    }
-  }
-
-  for (const [file, codes] of Object.entries(baseline)) {
-    for (const [code, baselineCount] of Object.entries(codes)) {
-      const liveCount = (live[file] && live[file][code]) || 0;
-      if (liveCount === 0 && baselineCount > 0) {
-        improvements.push({ file, code, liveCount: 0, baselineCount });
-      }
-    }
-  }
-
-  return { regressions, improvements };
-}
 
 function runTsc() {
   try {
@@ -117,7 +79,9 @@ function main() {
       `[api-typecheck] ${improvements.length} baselined error(s) no longer present ` +
         `— run 'node scripts/check/check-api-typecheck.mjs --update' to ratchet the baseline down:\n` +
         improvements
-          .map((i) => `  - ${i.file} ${i.code} (baseline ${i.baselineCount} -> live ${i.liveCount})`)
+          .map(
+            (i) => `  - ${i.file} ${i.code} (baseline ${i.baselineCount} -> live ${i.liveCount})`
+          )
           .join("\n")
     );
   }

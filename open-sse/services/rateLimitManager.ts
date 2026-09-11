@@ -31,9 +31,14 @@ import {
   markLocalRateLimitError,
   RATE_LIMIT_EXECUTION_TIMEOUT_CODE,
   RATE_LIMIT_QUEUE_WEDGED_CODE,
+  LEGACY_RATE_LIMIT_QUEUE_TIMEOUT_CODE,
 } from "./rateLimitManager/errors";
 import { LimiterWedgeWatchdog, WATCHDOG_INTERVAL_MS } from "./rateLimitManager/wedgeWatchdog";
 import { toNumber } from "@/shared/utils/numeric";
+import {
+  getExecutorTimeoutMs,
+  resolveConnectionTimeoutMs,
+} from "../handlers/chatCore/upstreamTimeouts.ts";
 
 interface LearnedLimitEntry {
   provider: string;
@@ -97,6 +102,13 @@ let initialized = false;
 
 let currentRequestQueueSettings: RequestQueueSettings = DEFAULT_RESILIENCE_SETTINGS.requestQueue;
 export const ZAI_WEB_REQUEST_QUEUE_MAX_WAIT_MS = 60_000;
+// MaxAI proxies reasoning models (deepseek-r1, gpt-5.6-thinking, grok-4.5,
+// gemini-3.1-pro-preview, grok-4-1-fast-reasoning) whose single upstream turn
+// legitimately runs tens of seconds to minutes. The 15s default execution
+// expiration (Bottleneck `expiration`, applied AFTER dispatch) kills those mid
+// think and surfaces a spurious local 504. Floor MaxAI at 5 min — the same
+// ceiling waitForCooldown.budgetMs uses — so slow reasoning turns complete.
+export const MAXAI_REQUEST_QUEUE_MAX_WAIT_MS = 300_000;
 
 const limiterEffectiveSettings = new WeakMap<Bottleneck, Bottleneck.ConstructorOptions>();
 const preservedReplacementSettings = new Map<string, Bottleneck.ConstructorOptions>();
@@ -166,10 +178,15 @@ export function resolveRequestQueueMaxWaitMs(
   configuredMaxWaitMs: number = currentRequestQueueSettings.maxWaitMs,
   connectionId?: string
 ): number {
-  const legacyDefault =
-    provider.trim().toLowerCase() === "zai-web"
-      ? Math.max(configuredMaxWaitMs, ZAI_WEB_REQUEST_QUEUE_MAX_WAIT_MS)
-      : configuredMaxWaitMs;
+  const p = provider.trim().toLowerCase();
+  let legacyDefault = configuredMaxWaitMs;
+  if (p === "zai-web") {
+    legacyDefault = Math.max(configuredMaxWaitMs, ZAI_WEB_REQUEST_QUEUE_MAX_WAIT_MS);
+  } else if (p === "maxai" || p === "mx") {
+    // MaxAI's slow reasoning models legitimately need up to ~5 min; floor the
+    // per-request execution budget so they aren't cut off early.
+    legacyDefault = Math.max(configuredMaxWaitMs, MAXAI_REQUEST_QUEUE_MAX_WAIT_MS);
+  }
   const override = connectionId
     ? connectionRateLimitOverrides.get(connectionId)?.maxWaitMs
     : undefined;
@@ -181,9 +198,15 @@ export function resolveRequestQueueMaxWaitMs(
  * after a job leaves QUEUED; bounds execution, never queue wait. Kept strictly
  * separate from the queue-wait budget (`maxWaitMs`) so the backstop cannot
  * undercut upstream fetch-start timeouts on non-incremental gateways.
+ * Per-connection `executionMaxWaitMs` in `provider_connections.rateLimitOverrides`
+ * overrides the global setting when present (same precedence as `maxWaitMs`).
  */
-export function resolveExecutionMaxWaitMs(): number {
-  return currentRequestQueueSettings.executionMaxWaitMs;
+export function resolveExecutionMaxWaitMs(connectionId?: string): number {
+  const override = connectionId
+    ? (connectionRateLimitOverrides.get(connectionId) as Record<string, number> | undefined)
+        ?.executionMaxWaitMs
+    : undefined;
+  return resolveOverride(override, currentRequestQueueSettings.executionMaxWaitMs);
 }
 
 function buildLimiterDefaults() {
@@ -554,7 +577,18 @@ function getLimiter(provider, connectionId, model = null) {
  * @param {AbortSignal} signal - Optional abort signal to cancel waiting
  * @returns {Promise<unknown>} Result of fn()
  */
-export async function withRateLimit(provider, connectionId, model, fn, signal = null) {
+export async function withRateLimit(
+  provider,
+  connectionId,
+  model,
+  fn,
+  signal = null,
+  remainingBudgetMs = undefined,
+  correlationId = undefined,
+  opts:
+    | { executor?: { getTimeoutMs?: () => unknown }; providerSpecificData?: unknown }
+    | undefined = undefined
+) {
   if (!enabledConnections.has(connectionId)) {
     return fn();
   }
@@ -567,10 +601,36 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
     throw err;
   }
 
-  // Proactive sliding-window fallback for header-less providers with a declared cap
-  // (Fase 8.2). No-op unless PROVIDER_DEFAULT_RATE_LIMITS has an entry for `provider`.
-  const maxWaitMs = resolveRequestQueueMaxWaitMs(provider, undefined, connectionId);
-  await awaitProviderDefaultSlot(provider, connectionId, signal, maxWaitMs);
+  const queueBudgetMs = resolveRequestQueueMaxWaitMs(
+    provider,
+    undefined,
+    connectionId ?? undefined
+  );
+  const budgetForSlot =
+    typeof remainingBudgetMs === "number" && Number.isFinite(remainingBudgetMs)
+      ? remainingBudgetMs
+      : queueBudgetMs;
+  if (
+    typeof remainingBudgetMs === "number" &&
+    Number.isFinite(remainingBudgetMs) &&
+    remainingBudgetMs <= 0
+  ) {
+    throw markLocalRateLimitError(
+      new Error(`Queue budget exhausted before rate-limit (remaining=${remainingBudgetMs}ms)`),
+      LEGACY_RATE_LIMIT_QUEUE_TIMEOUT_CODE
+    );
+  }
+  const slotStart = Date.now();
+  await awaitProviderDefaultSlot(provider, connectionId, signal, budgetForSlot);
+  const elapsedSlot = Date.now() - slotStart;
+  const remainingForQueue =
+    typeof remainingBudgetMs === "number" && Number.isFinite(remainingBudgetMs)
+      ? Math.max(0, remainingBudgetMs - elapsedSlot)
+      : queueBudgetMs;
+  if (correlationId)
+    logRateLimit(
+      `[RATE-LIMIT] cid=${correlationId} provider=${provider} remainingForQueue=${remainingForQueue}ms`
+    );
 
   const limiter = getLimiter(provider, connectionId, model);
   // Bottleneck's `expiration` starts only after a job leaves QUEUED, so it
@@ -579,7 +639,26 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
   // never by the queue-wait budget: non-incremental gateways legitimately run
   // for minutes before first bytes, and an expiration at the queue budget
   // killed them mid-flight (false 504s on opencode-go/glm-5.3-flash).
-  const executionExpirationMs = resolveExecutionMaxWaitMs();
+  // Per-connection executionMaxWaitMs wins, but never undercuts the upstream
+  // fetch-start timeout — otherwise the backstop kills a healthy mid-flight
+  // response (regression #12025 on GLM/thinking models).
+  const perConnExec = resolveExecutionMaxWaitMs(connectionId ?? undefined);
+  const upstreamMs = opts?.executor
+    ? getExecutorTimeoutMs(
+        opts.executor as unknown,
+        provider,
+        model ?? undefined,
+        resolveConnectionTimeoutMs(
+          opts.providerSpecificData as Record<string, unknown> | null | undefined
+        )
+      )
+    : undefined;
+  const executionExpirationMs = upstreamMs ? Math.max(perConnExec, upstreamMs) : perConnExec;
+  if (upstreamMs && perConnExec < upstreamMs) {
+    logRateLimit(
+      `[RATE-LIMIT] executionMaxWaitMs ${perConnExec}ms clamped to upstream ${upstreamMs}ms for ${provider}/${model ?? ""}`
+    );
+  }
   const scheduleOpts =
     executionExpirationMs && executionExpirationMs > 0 ? { expiration: executionExpirationMs } : {};
 
@@ -597,6 +676,43 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
     );
     throw admissionErr;
   }
+
+  const queueRemainingMs = remainingForQueue;
+  let queueTimedOut = false;
+  let delayId: ReturnType<typeof setTimeout> | null = null;
+  const queueTimeoutErr = markLocalRateLimitError(
+    new Error(
+      `Request exceeded queue budget maxWaitMs=${queueRemainingMs}ms for ${provider}/${model ?? ""} — queue budget does not bound execution (executionMaxWaitMs=${executionExpirationMs}ms)`
+    ),
+    LEGACY_RATE_LIMIT_QUEUE_TIMEOUT_CODE
+  );
+  if (queueRemainingMs <= 0) throw queueTimeoutErr;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    delayId = setTimeout(() => {
+      queueTimedOut = true;
+      reject(queueTimeoutErr);
+    }, queueRemainingMs);
+  });
+  timeoutPromise.catch(() => {});
+  // Clear the queue-wait timer once the job leaves QUEUED and starts executing.
+  // Without this, the timer would also bound execution (queueRemainingMs ≈ 40ms
+  // would kill a 300ms execution that correctly left the queue immediately).
+  const wrappedFn = () => {
+    if (queueTimedOut) return Promise.reject(queueTimeoutErr);
+    if (delayId) {
+      clearTimeout(delayId);
+      delayId = null;
+    }
+    return (fn as unknown as (s?: AbortSignal) => Promise<unknown>)(signal ?? undefined);
+  };
+  const scheduled = limiter.schedule(scheduleOpts, wrappedFn as unknown as () => Promise<unknown>);
+  scheduled.catch(() => {});
+  // Note: if timeoutPromise wins while the job is still QUEUED (blocked by
+  // maxConcurrent), Bottleneck cannot cancel it — wrappedFn rejects only on
+  // dispatch after the slot frees. Until then counts().QUEUED stays 1 and
+  // maxQueueDepth admission sees an inflated depth transiently; this is
+  // inherent to Bottleneck (no cancelQueuedJob) and does not affect
+  // correctness since fnCalled stays false.
 
   try {
     if (signal) {
@@ -623,23 +739,28 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
         abortListener = onAbort;
         signal.addEventListener("abort", abortListener, { once: true });
       }
+      abortPromise.catch(() => {});
 
       try {
-        // Race the work against the abort signal. When abort wins, fn is still
-        // running inside Bottleneck's limiter — its eventual rejection must not
-        // surface as an unhandledRejection. The .catch(noop) silences only the
-        // orphaned branch; the real rejection comes from abortPromise.
-        const scheduled = limiter.schedule(scheduleOpts, fn);
-        scheduled.catch(() => {}); // prevent unhandledRejection when abort wins
-        abortPromise.catch(() => {}); // prevent unhandledRejection when scheduled wins
-        return await Promise.race([scheduled, abortPromise]);
+        return await Promise.race([scheduled, timeoutPromise, abortPromise]);
       } finally {
+        if (delayId) {
+          clearTimeout(delayId);
+          delayId = null;
+        }
         if (abortListener) {
           signal.removeEventListener("abort", abortListener);
         }
       }
     } else {
-      return await limiter.schedule(scheduleOpts, fn);
+      try {
+        return await Promise.race([scheduled, timeoutPromise]);
+      } finally {
+        if (delayId) {
+          clearTimeout(delayId);
+          delayId = null;
+        }
+      }
     }
   } catch (err) {
     // Only Bottleneck-owned failures are rewritten. Application code can throw

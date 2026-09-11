@@ -17,7 +17,8 @@ export type DashboardEventName =
   | "combo.target.succeeded"
   | "credential.health.changed"
   | "compression.completed"
-  | "compression.step";
+  | "compression.step"
+  | "agent.task.updated";
 
 // ── Event Payloads ────────────────────────────────────────────────────────
 
@@ -138,6 +139,18 @@ export interface CompressionStepPayload {
   timestamp: number;
 }
 
+/**
+ * Real-time transition of an orchestrated task tracked by the orchestration dashboard
+ * (Fase 2). `source` distinguishes which subsystem raised the transition so the canvas can
+ * route it to the right node type.
+ */
+export interface AgentTaskUpdatedPayload {
+  source: "cloud-agent" | "a2a" | "conductor";
+  taskId: string;
+  state: string;
+  timestamp: number;
+}
+
 // ── Event Map ─────────────────────────────────────────────────────────────
 
 export interface DashboardEventMap {
@@ -151,6 +164,7 @@ export interface DashboardEventMap {
   "credential.health.changed": CredentialHealthChangedPayload;
   "compression.completed": CompressionCompletedPayload;
   "compression.step": CompressionStepPayload;
+  "agent.task.updated": AgentTaskUpdatedPayload;
 }
 
 // ── Event Bus Listener ────────────────────────────────────────────────────
@@ -162,7 +176,7 @@ export type DashboardEventListener<E extends DashboardEventName> = (
 // ── Channel Definitions ───────────────────────────────────────────────────
 
 /** Available subscription channels */
-export type DashboardChannel = "requests" | "combo" | "credentials" | "compression";
+export type DashboardChannel = "requests" | "combo" | "credentials" | "compression" | "agents";
 
 /** Map channels to their events */
 export const CHANNEL_EVENTS: Record<DashboardChannel, DashboardEventName[]> = {
@@ -170,6 +184,7 @@ export const CHANNEL_EVENTS: Record<DashboardChannel, DashboardEventName[]> = {
   combo: ["combo.target.attempt", "combo.target.failed", "combo.target.succeeded"],
   credentials: ["credential.health.changed"],
   compression: ["compression.completed", "compression.step"],
+  agents: ["agent.task.updated"],
 };
 
 /** Get channel for an event */

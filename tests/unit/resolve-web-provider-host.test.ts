@@ -19,8 +19,8 @@ test("known -web provider returns the host derived from its `website`", () => {
   assert.equal(link.url, "https://www.perplexity.ai");
 });
 
-test("retired common ChatGPT Web ids no longer resolve provider links", () => {
-  assert.equal(resolveWebProviderHost("chatgpt-web"), null);
+test("clean-room ChatGPT Web resolves its host while the legacy alias stays retired", () => {
+  assert.equal(resolveWebProviderHost("chatgpt-web")?.host, "chatgpt.com");
   assert.equal(resolveWebProviderHost("cgpt-web"), null);
   assert.equal(resolveWebProviderHost("chatgpt-web-codex")?.host, "chatgpt.com");
 });

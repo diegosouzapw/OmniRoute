@@ -1,0 +1,1 @@
+- **fix(telegram):** bound the per-user API key cache in the Telegram chat proxy so a burst of distinct chat ids can no longer grow the process heap without limit ([#13165](https://github.com/diegosouzapw/OmniRoute/issues/13165))

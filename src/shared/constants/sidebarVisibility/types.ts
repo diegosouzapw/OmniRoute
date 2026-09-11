@@ -90,6 +90,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "leaderboard",
   "profile",
   "tokens",
+  "gamification-admin",
   // Other Features — flat
   "media",
   // Other Features > Batch

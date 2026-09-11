@@ -65,6 +65,7 @@ export const SIDEBAR_ICON_ACCENTS: Partial<Record<SidebarItemId, string>> = {
   leaderboard: "#FACC15",
   profile: "#60A5FA",
   tokens: "#A3E635",
+  "gamification-admin": "#F87171",
   media: "#D946EF",
   batch: "#14B8A6",
   "batch-files": "#38BDF8",

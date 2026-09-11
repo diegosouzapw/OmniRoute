@@ -1,1 +1,0 @@
-- **chore(deepseek-web):** remove the provenance-unresolved DeepSeek PoW WASM binary and its runtime loader/tracing while retaining the existing JavaScript solver (slower at high difficulty) ([#11732](https://github.com/diegosouzapw/OmniRoute/pull/11732)).

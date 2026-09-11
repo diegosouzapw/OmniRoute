@@ -1,0 +1,1 @@
+- **fix(auto-combo):** snapshot scoring uses the observed per-connection account tier and per-model quality instead of neutral constants, and circuit-open providers rank lower at build time ([#12794](https://github.com/diegosouzapw/OmniRoute/pull/12794)) — thanks @maxmad64bis

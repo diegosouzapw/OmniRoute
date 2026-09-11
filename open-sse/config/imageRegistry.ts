@@ -256,6 +256,26 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1024x1024", "1024x1792", "1792x1024", "1024x1536", "1536x1024"],
   },
 
+  maxai: {
+    id: "maxai",
+    alias: "mx",
+    baseUrl: "https://api.maxai.me/gpt/get_image_generate_response",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "maxai-image",
+    models: [
+      { id: "gpt-image-1", name: "GPT Image 1 (MaxAI)" },
+      { id: "dall-e-3", name: "DALL-E 3 (MaxAI)" },
+      { id: "flux-1-schnell", name: "FLUX.1 [schnell] (MaxAI)" },
+      { id: "flux-1-dev", name: "FLUX.1 [dev] (MaxAI)" },
+      { id: "flux-1-pro", name: "FLUX.1 [pro] (MaxAI)" },
+      { id: "sd3-medium", name: "Stable Diffusion 3 Medium (MaxAI)" },
+    ],
+    // gpt-image-1/dall-e-3 are size-snapped to 1024x1024 by the handler; flux
+    // models pass any size through.
+    supportedSizes: ["1024x1024", "1024x1536", "1536x1024", "1024x1792", "1792x1024"],
+  },
+
   xai: {
     id: "xai",
     baseUrl: "https://api.x.ai/v1/images/generations",
@@ -835,6 +855,44 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1024x1024", "2048x2048"],
   },
   aihorde: AI_HORDE_IMAGE_PROVIDER,
+
+  // Keep UC after every existing image provider because parseImageModel() resolves
+  // bare duplicate ids by first match. Explicit `uc/` routes remain available while
+  // historical owners retain bare ids such as nano-banana and z-image-turbo.
+  uc: {
+    id: "uc",
+    baseUrl: "https://internal.chatuncensored.ai/v2/image-gen",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "uc-image",
+    models: [
+      { id: "model-dev", name: "Flux Dev (UC)" },
+      { id: "model-pro", name: "Flux Pro (UC)" },
+      { id: "model-1.1", name: "Flux Pro 1.1 (UC)" },
+      { id: "model-1.2", name: "Wan 2.2 (UC)" },
+      { id: "seedream-v4.5", name: "Seedream v4.5 (UC)" },
+      { id: "seedream-v5", name: "Seedream v5 (UC)" },
+      { id: "flux-2", name: "FLUX.2 (UC)" },
+      { id: "flux-2-pro", name: "FLUX.2 Pro (UC)" },
+      { id: "lustify-v7", name: "Lustify v7 (UC)" },
+      { id: "nano-banana", name: "Nano Banana (UC)" },
+      { id: "nano-banana-2", name: "Nano Banana 2 (UC)" },
+      { id: "nano-banana-pro", name: "Nano Banana Pro (UC)" },
+      { id: "nano-banana-ultra", name: "Nano Banana Ultra (UC)" },
+      { id: "gpt-image", name: "GPT Image (UC)" },
+      { id: "gpt-image-2", name: "GPT Image 2 (UC)" },
+      { id: "realism", name: "Realism (UC)" },
+      { id: "realism-2", name: "Realism 2 (UC)" },
+      { id: "z-image-turbo", name: "Z-Image Turbo (UC)" },
+      { id: "prefect-pony-xl", name: "Prefect Pony XL (UC)" },
+      { id: "wan-2.6", name: "Wan 2.6 (UC)" },
+      { id: "wan-2.7-text-to-image", name: "Wan 2.7 Text-to-Image (UC)" },
+      { id: "wan-2.7-text-to-image-pro", name: "Wan 2.7 Text-to-Image Pro (UC)" },
+    ],
+    // Persona web derives imageWidth/imageHeight from an aspect ratio; uc-direct
+    // passes any OpenAI-style size through. These are the aspect buckets.
+    supportedSizes: ["1024x1024", "1024x576", "576x1024", "1024x768", "768x1024"],
+  },
 };
 
 /**

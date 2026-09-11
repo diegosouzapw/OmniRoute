@@ -61,8 +61,8 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-test("create, bulk import and validation paths reject retired provider ids with 410", async () => {
-  for (const provider of ["chatgpt-web", "cgpt-web"]) {
+test("create, bulk import and validation paths reject the retired legacy alias with 410", async () => {
+  for (const provider of ["cgpt-web"]) {
     await assertRetired(
       await providersRoute.POST(
         await managementPost("http://localhost/api/providers", {
@@ -111,8 +111,54 @@ test("create, bulk import and validation paths reject retired provider ids with 
   assert.equal(networkCalls, 0);
 });
 
-test("retired connections cannot be reactivated, updated or probed", async () => {
-  for (const provider of ["chatgpt-web", "cgpt-web"]) {
+test("clean-room ChatGPT Web accepts complete first-party storage state", async () => {
+  const storageState = JSON.stringify({
+    cookies: [
+      {
+        name: "session",
+        value: "fixture",
+        domain: ".chatgpt.com",
+        path: "/",
+        expires: -1,
+        httpOnly: true,
+        secure: true,
+        sameSite: "Lax",
+      },
+    ],
+    origins: [],
+  });
+
+  const validationResponse = await validateRoute.POST(
+    await managementPost("http://localhost/api/providers/validate", {
+      provider: "chatgpt-web",
+      apiKey: storageState,
+    })
+  );
+  assert.equal(validationResponse.status, 200);
+  assert.deepEqual(await validationResponse.json(), {
+    valid: true,
+    error: null,
+    warning: null,
+    method: null,
+    capabilities: null,
+    providerSpecificData: null,
+  });
+
+  const importResponse = await bulkWebSessionRoute.POST(
+    await managementPost("http://localhost/api/providers/bulk-web-session", {
+      provider: "chatgpt-web",
+      entries: [{ name: "Clean-room ChatGPT Web", credential: storageState }],
+    })
+  );
+  assert.equal(importResponse.status, 200);
+  const importBody = (await importResponse.json()) as { success?: number; failed?: number };
+  assert.equal(importBody.success, 1);
+  assert.equal(importBody.failed, 0);
+  assert.equal(networkCalls, 0);
+});
+
+test("retired legacy connections cannot be reactivated, updated or probed", async () => {
+  for (const provider of ["cgpt-web"]) {
     const connection = await providersDb.createProviderConnection({
       provider,
       authType: "apikey",

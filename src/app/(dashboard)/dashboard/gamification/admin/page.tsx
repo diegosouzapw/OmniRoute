@@ -42,9 +42,13 @@ export default function GamificationAdminPage() {
       <Card>
         <h2 className="text-lg font-semibold mb-3">{t("flaggedAnomalies")}</h2>
         {loading ? (
-          <div className="text-text-muted">Loading...</div>
+          <div className="text-text-muted" role="status" aria-live="polite" aria-busy="true">
+            {t("loading")}
+          </div>
         ) : anomalies.length === 0 ? (
-          <div className="text-text-muted">{t("noAnomaliesDetected")}</div>
+          <div className="text-text-muted" role="status" aria-live="polite">
+            {t("noAnomaliesDetected")}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -53,7 +57,7 @@ export default function GamificationAdminPage() {
                   <th className="text-left p-2 font-medium text-text-muted">{t("apiKey")}</th>
                   <th className="text-right p-2 font-medium text-text-muted">{t("xpLastHour")}</th>
                   <th className="text-right p-2 font-medium text-text-muted">{t("zScore")}</th>
-                  <th className="text-center p-2 font-medium text-text-muted">Status</th>
+                  <th className="text-center p-2 font-medium text-text-muted">{t("status")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -64,7 +68,7 @@ export default function GamificationAdminPage() {
                     <td className="p-2 text-right text-red-400">{a.zScore.toFixed(2)}</td>
                     <td className="p-2 text-center">
                       <span className="px-2 py-0.5 text-xs bg-red-500/20 text-red-400 rounded-full">
-                        Suspicious
+                        {t("suspicious")}
                       </span>
                     </td>
                   </tr>
