@@ -1,10 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { getEventListeners } from "node:events";
 
 import {
   createBodyTimeoutError,
   createUpstreamStartTimeoutError,
   createAbortError,
+  executeWithUpstreamStartTimeout,
   computeBillableTokens,
   getExecutorTimeoutMs,
   normalizeExecutorResult,
@@ -55,5 +57,68 @@ test("normalizeExecutorResult rejects malformed executor output", () => {
   assert.throws(
     () => normalizeExecutorResult({ response: "not-a-response" }),
     /must contain a Response/
+  );
+});
+test("executeWithUpstreamStartTimeout leaves no abort listener on the client signal after a resolving execute", async () => {
+  const client = new AbortController();
+  const before = getEventListeners(client.signal, "abort").length;
+  const result = await executeWithUpstreamStartTimeout({
+    executor: {},
+    provider: "test-provider",
+    model: "test-model",
+    connectionTimeoutMs: 5_000,
+    signal: client.signal,
+    execute: async () => "ok",
+  });
+  assert.equal(result, "ok");
+  assert.equal(
+    getEventListeners(client.signal, "abort").length,
+    before,
+    "every listener registered for the race must be removed once it settles"
+  );
+});
+
+test("executeWithUpstreamStartTimeout: a synchronously throwing execute cannot orphan abortPromise (2026-08-31 hedge-cancelled exit)", async () => {
+  // Production shape: execute() threw before Promise.race subscribed, so the
+  // abortPromise listener stayed on the long-lived client signal with nobody
+  // awaiting its rejection. The next hedge cancellation / client disconnect
+  // then aborted that signal with a string reason and the rejection became an
+  // unhandledRejection: `Error [AbortError]: hedge-cancelled`.
+  const client = new AbortController();
+  const before = getEventListeners(client.signal, "abort").length;
+  await assert.rejects(
+    executeWithUpstreamStartTimeout({
+      executor: {},
+      provider: "test-provider",
+      model: "test-model",
+      connectionTimeoutMs: 5_000,
+      signal: client.signal,
+      execute: () => {
+        throw new Error("sync failure before the race subscribed");
+      },
+    }),
+    /sync failure before the race subscribed/
+  );
+  assert.equal(
+    getEventListeners(client.signal, "abort").length,
+    before,
+    "no listener may leak onto the client signal when execute() throws synchronously"
+  );
+
+  let unhandled: unknown = null;
+  const onUnhandled = (reason: unknown) => {
+    unhandled = reason;
+  };
+  process.on("unhandledRejection", onUnhandled);
+  try {
+    client.abort("hedge-cancelled");
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  } finally {
+    process.off("unhandledRejection", onUnhandled);
+  }
+  assert.equal(
+    unhandled,
+    null,
+    "a late abort must not surface as an unhandledRejection: " + String(unhandled)
   );
 });
