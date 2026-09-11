@@ -451,6 +451,12 @@ function getLegacyInlineDetail(id: string) {
 
 async function saveCallLogOperation(entry: any): Promise<void> {
   try {
+    // Bind the DB instance up front, before any await (resolveAccountName,
+    // writeCallArtifactAsync). If the singleton is reset/closed while this
+    // operation awaits, the insert must target the instance this request
+    // started against — a closed handle fails into the catch below instead of
+    // silently writing into whatever database opened afterwards (#12780).
+    const db = getDbInstance();
     const apiKeyContext = getCallLogApiKeyContext();
     // `||` (not `??`): an empty-string apiKeyId/apiKeyName is "unattributed",
     // same as before this fallback existed — it must not be persisted verbatim
@@ -588,7 +594,6 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       }
     }
 
-    const db = getDbInstance();
     db.prepare(
       `
       INSERT INTO call_logs (
