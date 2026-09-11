@@ -1,0 +1,1 @@
+- **fix(health):** quota with no snapshots reads empty instead of a contradicting 0% ([#12857](https://github.com/diegosouzapw/OmniRoute/pull/12857)) — thanks @maxmad64bis

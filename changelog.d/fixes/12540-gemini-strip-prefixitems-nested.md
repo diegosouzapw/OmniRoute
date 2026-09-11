@@ -1,0 +1,1 @@
+- **fix(gemini):** strip the JSON-Schema-2020-12 `prefixItems` keyword from Gemini tool schemas at every nesting level, so Claude Code tool definitions no longer fail with `400 Unknown name "prefixItems"` on Gemini models (#12540 — thanks @pacocartones)

@@ -994,3 +994,143 @@ test("OpenAI -> Responses: a text message and a following tool call in the same 
     "completed output must include the tool call"
   );
 });
+
+// Live incident (2026-09-02): a free-tier streaming model, after a short text
+// preamble, opened two tool calls whose upstream `tool_calls[].index` was 1
+// and 2 -- never 0. toolCallOutputIndexBase()+index therefore emitted
+// output_index 0 (message), 2, 3 -- skipping 1 entirely. A spec-following
+// Responses-API client reads response.completed's final `output[]` array by
+// ARRAY POSITION and expects position === output_index (the API's own
+// contract): output[1] (this turn's first call, real output_index 2) gets
+// looked up under output_index 1 and missed, then output[2] (the second
+// call, real output_index 3) gets looked up under output_index 2 and
+// collides with the FIRST call's tracked slot -- two different call_ids on
+// what the client thinks is one identity, which it correctly refuses to
+// treat as anything but a broken stream. Reproduced verbatim (anonymized
+// content, same index/id shape) against OpenClaw's own
+// createResponsesOutputTracker before this fix; content and tool/model names
+// below are placeholders, not the real incident's.
+test("OpenAI -> Responses: tool-call output_index stays gap-free when the upstream's own index doesn't start at 0", () => {
+  const events = collectEvents([
+    {
+      id: "chatcmpl-gap1",
+      model: "stub-model",
+      choices: [
+        { index: 0, delta: { content: "Status:", role: "assistant" }, finish_reason: null },
+      ],
+    },
+    {
+      id: "chatcmpl-gap1",
+      model: "stub-model",
+      choices: [
+        { index: 0, delta: { content: " all clear.", role: "assistant" }, finish_reason: null },
+      ],
+    },
+    {
+      id: "chatcmpl-gap1",
+      model: "stub-model",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            content: null,
+            role: "assistant",
+            tool_calls: [
+              {
+                index: 1,
+                id: "call_stub_1",
+                type: "function",
+                function: { name: "notify", arguments: "" },
+              },
+            ],
+          },
+          finish_reason: null,
+        },
+      ],
+    },
+    {
+      id: "chatcmpl-gap1",
+      model: "stub-model",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            content: null,
+            role: "assistant",
+            tool_calls: [{ index: 1, function: { arguments: '{"a":1}' } }],
+          },
+          finish_reason: null,
+        },
+      ],
+    },
+    {
+      id: "chatcmpl-gap1",
+      model: "stub-model",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            content: null,
+            role: "assistant",
+            tool_calls: [
+              {
+                index: 2,
+                id: "call_stub_2",
+                type: "function",
+                function: { name: "notify", arguments: "" },
+              },
+            ],
+          },
+          finish_reason: null,
+        },
+      ],
+    },
+    {
+      id: "chatcmpl-gap1",
+      model: "stub-model",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            content: null,
+            role: "assistant",
+            tool_calls: [{ index: 2, function: { arguments: '{"a":2}' } }],
+          },
+          finish_reason: null,
+        },
+      ],
+    },
+    {
+      id: "chatcmpl-gap1",
+      model: "stub-model",
+      choices: [
+        { index: 0, delta: { content: "", role: "assistant" }, finish_reason: "tool_calls" },
+      ],
+      usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+    },
+    null,
+  ]);
+
+  const addedEvents = events.filter((e) => e.event === "response.output_item.added");
+  const indexes = addedEvents.map((e) => e.data.output_index).sort((a, b) => a - b);
+  const sequential = indexes.map((_, i) => i);
+  assert.deepEqual(
+    indexes,
+    sequential,
+    `output_index values must be a gap-free 0..n-1 sequence (position === output_index is the Responses API's own contract); got ${JSON.stringify(indexes)}`
+  );
+
+  // The exact client-observable symptom: response.completed's output[]
+  // array, read by array position, must match each item's own tracked
+  // output_index -- otherwise a client keying by array position resolves
+  // the wrong item.
+  const completedGap = events.find((e) => e.event === "response.completed");
+  completedGap.data.response.output.forEach((item, position) => {
+    const addedEvent = addedEvents.find((e) => e.data.item?.id === item.id);
+    assert.equal(
+      addedEvent?.data.output_index,
+      position,
+      `item ${item.id} (type ${item.type}) streamed at output_index ${addedEvent?.data.output_index} but sits at array position ${position} in the completed output`
+    );
+  });
+});

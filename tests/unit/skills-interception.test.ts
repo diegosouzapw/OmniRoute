@@ -4,12 +4,20 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-skills-interception-"));
+const TEST_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-skills-interception-"));
+const TEST_DATA_DIR = path.join(TEST_ROOT, "data");
+const TEST_PLUGINS_DIR = path.join(TEST_ROOT, "plugins");
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
+const ORIGINAL_PLUGINS_DIR = process.env.OMNIROUTE_PLUGINS_DIR;
+fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+fs.mkdirSync(TEST_PLUGINS_DIR, { recursive: true });
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.OMNIROUTE_PLUGINS_DIR = TEST_PLUGINS_DIR;
 
 const coreDb = await import("../../src/lib/db/core.ts");
 const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
 const { skillExecutor } = await import("../../src/lib/skills/executor.ts");
+const { builtinSkills } = await import("../../src/lib/skills/builtins.ts");
 const { interceptToolCalls, extractToolCalls, handleToolCallExecution, buildWebSearchCallItem } =
   await import("../../src/lib/skills/interception.ts");
 const { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } =
@@ -71,7 +79,11 @@ test.beforeEach(async () => {
 test.after(() => {
   resetRuntime();
   coreDb.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
+  else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  if (ORIGINAL_PLUGINS_DIR === undefined) delete process.env.OMNIROUTE_PLUGINS_DIR;
+  else process.env.OMNIROUTE_PLUGINS_DIR = ORIGINAL_PLUGINS_DIR;
+  fs.rmSync(TEST_ROOT, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("buildWebSearchCallItem emits a native web_search_call item only for successful web-search fallback results", () => {
@@ -229,6 +241,91 @@ test("interceptToolCalls returns outputs, execution errors and missing-skill err
     { id: "error-call", result: { error: "skill failure" } },
     { id: "missing-call", result: { error: "Skill not found: missing" } },
   ]);
+});
+
+test("skill errors are sanitized before OpenAI tool-result response shapes", async () => {
+  const hostileMessage =
+    "skill failure access_token=skill-public-secret at /srv/private/skill-handler.ts\n" +
+    "    at execute (/srv/private/skill-handler.ts:17:4)";
+  skillExecutor.registerHandler("broken-handler", async () => {
+    throw new Error(hostileMessage);
+  });
+
+  const chatResult = await handleToolCallExecution(
+    {
+      choices: [
+        {
+          message: {
+            tool_calls: [{ id: "chat-error", function: { name: "broken@1.0.0", arguments: "{}" } }],
+          },
+        },
+      ],
+    },
+    "gpt-4o-mini",
+    executionContext
+  );
+  const responsesResult = await handleToolCallExecution(
+    {
+      object: "response",
+      output: [
+        {
+          type: "function_call",
+          call_id: "responses-error",
+          name: "broken@1.0.0",
+          arguments: "{}",
+        },
+      ],
+    },
+    "openai",
+    executionContext
+  );
+  const thrownResult = await interceptToolCalls(
+    [{ id: "thrown-error", name: "/srv/private/missing.ts", arguments: {} }],
+    executionContext
+  );
+  const serialized = JSON.stringify({ chatResult, responsesResult, thrownResult });
+
+  assert.match(serialized, /skill failure|Skill not found/i);
+  assert.doesNotMatch(
+    serialized,
+    /skill-public-secret|srv\/private|skill-handler\.ts|\bat execute\b/i
+  );
+});
+
+test("failed builtin outputs are sanitized before public tool results", async () => {
+  const hostile =
+    "builtin failed access_token=builtin-output-secret at /srv/private/builtin-output.ts\n" +
+    "    at run (/srv/private/builtin-output.ts:9:4)";
+  const mutableBuiltins = builtinSkills as unknown as Record<
+    string,
+    (
+      input: Record<string, unknown>,
+      context: Record<string, unknown>
+    ) => Promise<Record<string, unknown>>
+  >;
+  const originalHttpRequest = mutableBuiltins.http_request;
+
+  try {
+    mutableBuiltins.http_request = async () => ({
+      success: false,
+      status: 502,
+      headers: { authorization: "Bearer builtin-output-secret" },
+      body: hostile,
+    });
+    const results = await interceptToolCalls(
+      [{ id: "builtin-failure", name: "http_request", arguments: { url: "https://example.com" } }],
+      { ...executionContext, builtinToolNames: ["http_request"] }
+    );
+    const serialized = JSON.stringify(results);
+
+    assert.equal((results[0]?.result as Record<string, unknown>)?.status, 502);
+    assert.doesNotMatch(
+      serialized,
+      /builtin-output-secret|srv\/private|builtin-output\.ts|\bat run\b/i
+    );
+  } finally {
+    mutableBuiltins.http_request = originalHttpRequest;
+  }
 });
 
 test("handleToolCallExecution appends OpenAI tool results and leaves empty responses untouched", async () => {

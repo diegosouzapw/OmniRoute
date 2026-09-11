@@ -63,6 +63,7 @@ export interface RecoverableConnectionInput {
   testStatus?: string | null;
   rateLimitedUntil?: string | null;
   lastErrorAt?: string | null;
+  lastErrorType?: string | null;
 }
 
 function normalizeStatus(value: string | null | undefined): string {
@@ -158,6 +159,37 @@ export function isRecoverableCooldownConnection(
  *
  * Pure — `nowMs` and `reprobeMs` are injected so callers/tests control the clock.
  */
+
+const EXPIRED_REPROBE_BLOCKLIST = new Set([
+  "account_deactivated",
+  "invalid_grant",
+  "unrecoverable_refresh_error",
+  "provider_deprecated",
+  "no_refresh_token",
+]);
+
+/**
+ * Re-probe `expired` after the same window as credits_exhausted.
+ * API-key 401s and OAuth races were persisted as expired and then never
+ * retried (combo pre-skip + health-check skip). Do not reopen a real
+ * deactivation / invalid_grant.
+ */
+export function isExpiredReprobeCandidate(
+  connection: RecoverableConnectionInput | null | undefined,
+  nowMs: number,
+  reprobeMs: number = DEFAULT_CREDITS_REPROBE_MS
+): boolean {
+  if (!connection || typeof connection.id !== "string" || connection.id.length === 0) {
+    return false;
+  }
+  if (normalizeStatus(connection.testStatus) !== "expired") return false;
+  const err = (connection.lastErrorType || "").trim().toLowerCase();
+  if (EXPIRED_REPROBE_BLOCKLIST.has(err)) return false;
+  const sinceMs = cooldownUntilMs(connection.lastErrorAt || connection.rateLimitedUntil || "");
+  if (!Number.isFinite(sinceMs) || sinceMs <= 0) return true;
+  return nowMs - sinceMs >= reprobeMs;
+}
+
 export function isCreditsExhaustedReprobeCandidate(
   connection: RecoverableConnectionInput | null | undefined,
   nowMs: number,
@@ -188,7 +220,8 @@ export function selectRecoverableConnections<T extends RecoverableConnectionInpu
   return connections.filter(
     (connection) =>
       isRecoverableCooldownConnection(connection, nowMs) ||
-      isCreditsExhaustedReprobeCandidate(connection, nowMs)
+      isCreditsExhaustedReprobeCandidate(connection, nowMs) ||
+      isExpiredReprobeCandidate(connection, nowMs)
   );
 }
 
@@ -245,6 +278,7 @@ export async function runConnectionRecoveryTick(
           testStatus: typeof row.testStatus === "string" ? row.testStatus : null,
           rateLimitedUntil: typeof row.rateLimitedUntil === "string" ? row.rateLimitedUntil : null,
           lastErrorAt: typeof row.lastErrorAt === "string" ? row.lastErrorAt : null,
+          lastErrorType: typeof row.lastErrorType === "string" ? row.lastErrorType : null,
         }));
       });
     connections = await load();

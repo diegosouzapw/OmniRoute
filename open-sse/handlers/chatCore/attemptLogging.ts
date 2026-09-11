@@ -13,11 +13,13 @@
 import { extractProviderWarnings } from "@/lib/compliance/providerAudit";
 import { logAuditEvent } from "@/lib/compliance";
 import { emit } from "@/lib/events/eventBus";
+import { maybeLogToolCallSpecViolation } from "./toolCallSpecViolationAudit.ts";
 import type { RequestCompletedPayload, RequestFailedPayload } from "@/lib/events/types";
 import { saveCallLog } from "@/lib/usageDb";
 import type { VideoBridgeLogRedactionEntry } from "@/lib/guardrails/videoBridge";
 import { FORMATS } from "../../translator/formats.ts";
 import { takeEarlyKeepaliveBytes } from "../../utils/earlyKeepaliveByteBuffer.ts";
+import { sanitizeErrorMessage } from "../../utils/error.ts";
 import { cloneBoundedChatLogPayload, truncateForLog } from "./logTruncation.ts";
 import { attachLogMeta } from "./cacheUsageMeta.ts";
 
@@ -50,6 +52,16 @@ import { attachLogMeta } from "./cacheUsageMeta.ts";
  * never touches a part whose text differs — see
  * `tests/unit/video-bridge-log-redaction.test.ts`'s "Scenario A" test for the
  * reproduction this fixes.
+ *
+ * #12430 item 4 (P2c): a message's `content` can also be a plain STRING that
+ * embeds `fullText` as a SUBSTRING rather than an exact array part — derived
+ * dispatches (pipeline-strategy stages, smart-auto-pipeline, context-handoff
+ * summaries) all interpolate the transcript blob into a larger rendered
+ * prompt string before calling `handleSingleModel`. That string branch is
+ * mutually exclusive with the array branch (a message's `content` is one or
+ * the other, never both) and uses `String.prototype.replaceAll` against the
+ * trusted `fullText` literal to swap every occurrence — see
+ * `tests/unit/video-bridge-derived-prompt-redaction.test.ts`.
  */
 export function applyVideoBridgeLogRedaction(
   body: unknown,
@@ -78,6 +90,47 @@ export function applyVideoBridgeLogRedaction(
       const originalMessage = originalContainer[messageIndex];
       if (!originalMessage || typeof originalMessage !== "object") continue;
       const originalContent = (originalMessage as Record<string, unknown>).content;
+
+      // Derived-prompt dispatches (pipeline-strategy stages, smart-auto-pipeline,
+      // context-handoff summaries — #12430 item 4) embed the transcript as a
+      // SUBSTRING of a plain string `content`, e.g. a rendered stage prompt or a
+      // `{HISTORY}`-interpolated handoff summary, never as an exact array part.
+      // Mutually exclusive with the array branch below: a message's `content`
+      // is either a string or an array, never both, so this and the
+      // `Array.isArray` check never both match the same message.
+      if (typeof originalContent === "string") {
+        if (!originalContent.includes(fullText)) continue;
+
+        // Same lazy clone-on-write as the array branch: root -> container
+        // array -> this message. Siblings keep referencing the originals.
+        if (!rootClone) rootClone = { ...source };
+        let containerClone = clonedContainers.get(container);
+        if (!containerClone) {
+          containerClone = [...originalContainer];
+          clonedContainers.set(container, containerClone);
+          rootClone[container] = containerClone;
+        }
+
+        const messageKey = `${container}:${messageIndex}`;
+        let messageClone = clonedMessages.get(messageKey);
+        if (!messageClone) {
+          messageClone = { ...(originalMessage as Record<string, unknown>) };
+          clonedMessages.set(messageKey, messageClone);
+          containerClone[messageIndex] = messageClone;
+        }
+
+        // Re-read from the (possibly already-cloned) message so a second
+        // redaction entry matching the same string content composes with the
+        // first instead of clobbering it. `fullText` is a trusted literal
+        // (the `[Video description:...]` blob), so replaceAll(string, string)
+        // needs no regex and is safe. replaceAll (not replace): a stage/summary
+        // prompt can quote the transcript back more than once.
+        const currentText =
+          typeof messageClone.content === "string" ? messageClone.content : originalContent;
+        messageClone.content = currentText.replaceAll(fullText, redactedText);
+        redacted = true;
+        continue;
+      }
       if (!Array.isArray(originalContent)) continue;
 
       for (let partIndex = 0; partIndex < originalContent.length; partIndex++) {
@@ -197,6 +250,15 @@ export type PersistAttemptLogsContext = {
    * path) is never touched. Omitted/empty for every non-video request.
    */
   videoBridgeLogRedaction?: VideoBridgeLogRedactionEntry[];
+  /**
+   * #12150 P2 surface 2: true when the video-bridge guardrail observed and
+   * rewrote video parts on this request, so the persisted client snapshot had
+   * its transcript cues structurally redacted (videoBridgeObserved in
+   * chatCore.ts). Written to the `call_logs.video_content_removed` marker so
+   * `resolvePreviousResponseState` refuses to rehydrate this row as continuation
+   * history. Omitted/false for every non-video request.
+   */
+  videoContentRemoved?: boolean;
 };
 
 function toConnectionId(value: unknown): string | null {
@@ -265,7 +327,9 @@ export function resolveRequestLifecycleEvent(input: {
     name: "request.failed",
     payload: {
       id: traceId,
-      error: error || `HTTP ${status}`,
+      // Dashboard listeners and event history cross a public WebSocket boundary. Keep the raw
+      // diagnostic in the call log/pipeline above, but expose only the canonical safe projection.
+      error: sanitizeErrorMessage(error || `HTTP ${status}`),
       statusCode: typeof status === "number" ? status : undefined,
       latencyMs,
       model: model || undefined,
@@ -313,6 +377,7 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     modelPinned,
     sessionTag,
     videoBridgeLogRedaction,
+    videoContentRemoved,
   } = ctx;
   const initialConnectionId = toConnectionId(connectionId);
   const finalConnectionId = toConnectionId(credentials?.connectionId) || initialConnectionId;
@@ -340,6 +405,15 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
       },
     });
   }
+
+  maybeLogToolCallSpecViolation({
+    responseBody,
+    provider,
+    model,
+    connectionId: finalConnectionId,
+    httpStatus: status,
+    requestId: skillRequestId,
+  });
 
   const capturedPipeline = reqLogger?.getPipelinePayloads?.() ?? null;
   const pipelinePayloads = detailedLoggingEnabled
@@ -435,6 +509,7 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     modelPinned: modelPinned || false,
     sessionTag: sessionTag || null,
     responseId: extractResponsesId(sourceFormat, clientResponse),
+    videoContentRemoved: videoContentRemoved || false,
   }).catch(() => {});
 
   // Emit the terminal request-lifecycle event to the live dashboard bus. `request.started`

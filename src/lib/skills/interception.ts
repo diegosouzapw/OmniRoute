@@ -1,32 +1,49 @@
-import { skillExecutor } from "./executor";
+import { projectSkillOutputForBoundary, skillExecutor } from "./executor";
 import { skillRegistry } from "./registry";
 import { builtinSkills } from "./builtins";
 import { memoryBuiltinHandlers, MEMORY_BUILTIN_TOOL_NAMES } from "./memoryBuiltins";
 import { detectProvider, decodeSkillToolName } from "./injection";
 import { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } from "@omniroute/open-sse/services/webSearchFallback.ts";
 import { OMNIROUTE_WEB_FETCH_FALLBACK_TOOL_NAME } from "@omniroute/open-sse/services/webFetchInterception.ts";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
+import { runWithServerToolFence } from "./toolExecutionFence";
+import type { ExecutedToolResult, ToolCall, ExecutionContext } from "./toolLoopTypes";
 import { logger } from "../../../open-sse/utils/logger.ts";
 
 const log = logger("SKILLS_INTERCEPTION");
 
-interface ToolCall {
-  id: string;
-  name: string;
-  arguments: Record<string, unknown>;
+/**
+ * Typed error for server-owned tool execution control-flow states
+ * (in_progress, unknown, identity_conflict). These must never be fed
+ * back to the model as tool results — they represent infrastructure
+ * conditions that should surface as HTTP-level errors.
+ */
+export class ServerOwnedExecutionError extends Error {
+  readonly code: string;
+  readonly httpStatus: number;
+  constructor(message: string, code: string, httpStatus: number) {
+    super(message);
+    this.name = "ServerOwnedExecutionError";
+    this.code = code;
+    this.httpStatus = httpStatus;
+  }
 }
 
-interface ExecutionContext {
-  apiKeyId: string;
-  sessionId: string;
-  requestId: string;
-  builtinToolNames?: string[];
-  customSkillExecutionEnabled?: boolean;
-  // #7339: threaded through to the web_fetch builtin so it can resolve a per-model
-  // pinned fetch backend (interceptionRules.fetchBackend). Optional — every other
-  // builtin/skill ignores these.
-  provider?: string;
-  model?: string;
+function toSafeSkillErrorMessage(value: unknown): string {
+  try {
+    const raw = value instanceof Error ? value.message : value;
+    return sanitizeErrorMessage(raw) || "Skill execution failed";
+  } catch {
+    return "Skill execution failed";
+  }
 }
+
+function projectSkillResultForPublicResponse(result: unknown): unknown {
+  if (!result || typeof result !== "object" || Array.isArray(result)) return result;
+  return projectSkillOutputForBoundary(result as Record<string, unknown>);
+}
+
+// ToolCall and ExecutionContext types are imported from ./toolLoopTypes.ts
 
 const BUILTIN_TOOL_ALIASES: Record<string, string> = {
   [OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME]: "web_search",
@@ -130,7 +147,7 @@ export async function interceptToolCalls(
 
           return {
             id: call.id,
-            result,
+            result: projectSkillResultForPublicResponse(result),
           };
         }
 
@@ -151,11 +168,12 @@ export async function interceptToolCalls(
           sessionId: context.sessionId,
         });
 
-        const result =
+        const result = projectSkillResultForPublicResponse(
           execution.output ??
-          (execution.errorMessage
-            ? { error: execution.errorMessage }
-            : { error: "Skill execution returned no output" });
+            (execution.errorMessage
+              ? { error: toSafeSkillErrorMessage(execution.errorMessage) }
+              : { error: "Skill execution returned no output" })
+        );
 
         log.info("skills.interception.execution_complete", {
           toolName: call.name,
@@ -167,14 +185,15 @@ export async function interceptToolCalls(
           result,
         };
       } catch (err) {
+        const safeError = toSafeSkillErrorMessage(err);
         log.error("skills.interception.execution_failed", {
           toolName: call.name,
           callId: call.id,
-          err: err instanceof Error ? err.message : String(err),
+          err: safeError,
         });
         return {
           id: call.id,
-          result: { error: err instanceof Error ? err.message : String(err) },
+          result: { error: safeError },
         };
       }
     })
@@ -183,8 +202,19 @@ export async function interceptToolCalls(
   return results;
 }
 
-export function extractToolCalls(response: any, modelId: string): ToolCall[] {
-  const provider = detectProvider(modelId);
+export function extractToolCalls(response: any, modelIdOrSourceFormat: string): ToolCall[] {
+  // Accept either a sourceFormat ("openai" | "claude") or a model ID string.
+  // Map known sourceFormat values; fall back to detectProvider for model IDs.
+  const format =
+    modelIdOrSourceFormat === "openai" || modelIdOrSourceFormat === "claude"
+      ? modelIdOrSourceFormat
+      : undefined;
+  const provider =
+    format === "claude"
+      ? "anthropic"
+      : format === "openai"
+        ? "openai"
+        : detectProvider(modelIdOrSourceFormat);
 
   switch (provider) {
     case "openai": {
@@ -428,4 +458,350 @@ export async function handleToolCallExecution(
     default:
       return response;
   }
+}
+
+// ─── Task 3: ownership classifier ────────────────────────────────────────────
+
+export async function classifyServerOwnedCalls(
+  toolCalls: ToolCall[],
+  context: ExecutionContext
+): Promise<{ serverOwned: ToolCall[]; clientNative: ToolCall[] }> {
+  const builtinSet = new Set(context.builtinToolNames || []);
+  const customSet = new Set(context.injectedCustomSkillNames || []);
+
+  const serverOwned: ToolCall[] = [];
+  const clientNative: ToolCall[] = [];
+
+  for (const call of toolCalls) {
+    if (builtinSet.has(call.name)) {
+      serverOwned.push(call);
+    } else if (context.customSkillExecutionEnabled && customSet.has(call.name)) {
+      serverOwned.push(call);
+    } else {
+      clientNative.push(call);
+    }
+  }
+
+  return { serverOwned, clientNative };
+}
+
+// ─── Task 3: executeServerOwned — fence-gated execution callback ────────────
+
+const LEASE_DURATION_MS = 120_000;
+
+/**
+ * Runtime seam: overridable fence function for testing.
+ * When null, the real `runWithServerToolFence` is used.
+ * Tests may set this to inject controlled fence outcomes.
+ */
+let _fenceFn: typeof runWithServerToolFence | null = null;
+
+export function setFenceFnForTesting(fn: typeof runWithServerToolFence | null): void {
+  _fenceFn = fn;
+}
+
+export async function executeServerOwned(
+  calls: ToolCall[],
+  context: ExecutionContext,
+  fenceFn?: typeof runWithServerToolFence
+): Promise<ExecutedToolResult[]> {
+  if (context.executionFenceEnabled && !context.requestIdentity) {
+    throw new Error(
+      "executeServerOwned requires context.requestIdentity when executionFenceEnabled is true"
+    );
+  }
+
+  const results: ExecutedToolResult[] = [];
+
+  for (const call of calls) {
+    const builtinHandlerName = resolveBuiltinHandlerName(call.name, context);
+    const isMemoryBuiltin = builtinHandlerName && MEMORY_TOOL_NAMES.has(builtinHandlerName);
+    const isOrdinaryBuiltin = builtinHandlerName && builtinHandlerName in builtinSkills;
+    const isCustomSkill =
+      !builtinHandlerName &&
+      context.customSkillExecutionEnabled &&
+      context.injectedCustomSkillNames?.includes(call.name);
+
+    const executeFn = async (executionId: string): Promise<unknown> => {
+      if (isMemoryBuiltin) {
+        const handlerName = builtinHandlerName as keyof typeof memoryBuiltinHandlers;
+        return memoryBuiltinHandlers[handlerName](call.arguments, {
+          apiKeyId: context.apiKeyId,
+          sessionId: context.sessionId,
+        });
+      }
+      if (isOrdinaryBuiltin) {
+        const handlerName = builtinHandlerName as keyof typeof builtinSkills;
+        return builtinSkills[handlerName](call.arguments, {
+          apiKeyId: context.apiKeyId,
+          sessionId: context.sessionId,
+          provider: context.provider,
+          model: context.model,
+        });
+      }
+      if (isCustomSkill) {
+        const decodedName = decodeSkillToolName(call.name);
+        const [name, version] = decodedName.includes("@")
+          ? decodedName.split("@", 2)
+          : [decodedName, "latest"];
+        const skillName = version === "latest" ? name : `${name}@${version}`;
+        const execution = await skillExecutor.executeClaimed(
+          skillName,
+          call.arguments,
+          {
+            apiKeyId: context.apiKeyId,
+            sessionId: context.sessionId,
+          },
+          executionId
+        );
+        return (
+          execution.output ??
+          (execution.errorMessage
+            ? { error: toSafeSkillErrorMessage(execution.errorMessage) }
+            : { error: "Skill execution returned no output" })
+        );
+      }
+      throw new Error(`No handler for tool: ${call.name}`);
+    };
+
+    if (context.executionFenceEnabled && context.requestIdentity) {
+      const activeFenceFn = fenceFn ?? _fenceFn ?? runWithServerToolFence;
+      const fenceResult = await activeFenceFn({
+        apiKeyId: context.apiKeyId,
+        requestIdentity: context.requestIdentity,
+        toolCallId: call.id,
+        toolName: call.name,
+        arguments: call.arguments,
+        leaseDurationMs: LEASE_DURATION_MS,
+        execute: executeFn,
+      });
+
+      switch (fenceResult.kind) {
+        case "executed":
+          results.push({
+            id: call.id,
+            name: call.name,
+            result: projectSkillResultForPublicResponse(fenceResult.value),
+            replayed: false,
+          });
+          break;
+        case "replayed": {
+          if (fenceResult.status === "error") {
+            throw new ServerOwnedExecutionError(
+              fenceResult.errorMessage ?? "Tool execution failed",
+              "TOOL_EXECUTION_ERROR",
+              500
+            );
+          }
+          if (fenceResult.status === "timeout") {
+            throw new ServerOwnedExecutionError(
+              fenceResult.errorMessage ?? "Tool execution timed out",
+              "TOOL_EXECUTION_TIMEOUT",
+              504
+            );
+          }
+          results.push({
+            id: call.id,
+            name: call.name,
+            result: projectSkillResultForPublicResponse(fenceResult.value),
+            replayed: true,
+          });
+          break;
+        }
+        case "in_progress":
+          throw new ServerOwnedExecutionError(
+            "Tool execution in progress",
+            "TOOL_IN_PROGRESS",
+            409
+          );
+        case "unknown":
+          throw new ServerOwnedExecutionError(
+            "Tool execution state unknown",
+            "TOOL_STATE_UNKNOWN",
+            500
+          );
+        case "identity_conflict":
+          throw new ServerOwnedExecutionError(
+            "Tool execution identity conflict",
+            "IDENTITY_CONFLICT",
+            409
+          );
+      }
+    } else {
+      // Flag-off path: no fence, dispatch directly.
+      try {
+        const value = await executeFn("");
+        results.push({
+          id: call.id,
+          name: call.name,
+          result: projectSkillResultForPublicResponse(value),
+          replayed: false,
+        });
+      } catch (err) {
+        results.push({
+          id: call.id,
+          name: call.name,
+          result: { error: toSafeSkillErrorMessage(err) },
+          replayed: false,
+        });
+      }
+    }
+  }
+
+  return results;
+}
+
+// ─── Task 3: pure escape formatter ───────────────────────────────────────────
+
+function extractOpenAIToolCalls(
+  response: Record<string, unknown>
+): Array<{ id: string; function: { name: string; arguments: string } }> {
+  const rootToolCalls = Array.isArray(response.tool_calls) ? response.tool_calls : [];
+  const choiceToolCalls = Array.isArray(response.choices)
+    ? (response.choices as any[]).flatMap((choice: any) =>
+        Array.isArray(choice?.message?.tool_calls) ? choice.message.tool_calls : []
+      )
+    : [];
+  return rootToolCalls.length > 0 ? rootToolCalls : choiceToolCalls;
+}
+
+function getOpenAIResponseOutput(
+  response: Record<string, unknown>
+): { target: Record<string, unknown>; output: unknown[] } | null {
+  if (Array.isArray(response.output)) {
+    return { target: response, output: response.output };
+  }
+  if (
+    response.response &&
+    typeof response.response === "object" &&
+    !Array.isArray(response.response) &&
+    Array.isArray((response.response as Record<string, unknown>).output)
+  ) {
+    return {
+      target: response.response as Record<string, unknown>,
+      output: (response.response as Record<string, unknown>).output as unknown[],
+    };
+  }
+  return null;
+}
+
+export function formatEscapeHatchResponse(
+  response: Record<string, unknown>,
+  serverCalls: ToolCall[],
+  results: ExecutedToolResult[],
+  clientCalls: ToolCall[],
+  sourceFormat: "openai" | "claude",
+  serializedResultTextById?: Map<string, string>
+): Record<string, unknown> {
+  const serverIds = new Set(serverCalls.map((c) => c.id));
+
+  if (sourceFormat === "openai") {
+    // Check for Responses API format.
+    const responsesOutput = getOpenAIResponseOutput(response);
+    if (responsesOutput) {
+      // For Responses, append function_call_output for server calls.
+      const functionOutputs = results
+        .filter((r) => serverIds.has(r.id))
+        .map((r) => ({
+          type: "function_call_output",
+          call_id: r.id,
+          output: serializedResultTextById?.get(r.id) ?? JSON.stringify(r.result),
+        }));
+      return {
+        ...response,
+        response:
+          responsesOutput.target !== response
+            ? {
+                ...(response.response as Record<string, unknown>),
+                output: [...responsesOutput.output, ...functionOutputs],
+              }
+            : undefined,
+        output:
+          responsesOutput.target === response
+            ? [...responsesOutput.output, ...functionOutputs]
+            : response.output,
+      };
+    }
+
+    // Chat Completions format.
+    const originalToolCalls = extractOpenAIToolCalls(response);
+    const remainingToolCalls = originalToolCalls.filter(
+      (tc: any) => !serverIds.has(tc.id || tc.call_id)
+    );
+
+    // Build result text from server results.
+    const resultTexts = results
+      .filter((r) => serverIds.has(r.id))
+      .map(
+        (r) =>
+          `[${r.name} result]\n${serializedResultTextById?.get(r.id) ?? JSON.stringify(r.result)}`
+      )
+      .join("\n\n");
+
+    const existingContent =
+      typeof response.choices?.[0]?.message?.content === "string"
+        ? response.choices[0].message.content
+        : "";
+    const newContent = existingContent ? `${existingContent}\n\n${resultTexts}` : resultTexts;
+
+    // Clone response to avoid mutation.
+    const formatted = JSON.parse(JSON.stringify(response));
+    if (formatted.choices?.[0]?.message) {
+      formatted.choices[0].message.content = newContent;
+      formatted.choices[0].message.tool_calls =
+        remainingToolCalls.length > 0 ? remainingToolCalls : undefined;
+    }
+
+    // Mixed → keep tool_calls finish_reason; all-server → stop.
+    if (remainingToolCalls.length === 0 && clientCalls.length === 0) {
+      formatted.choices[0].finish_reason = "stop";
+    }
+
+    return formatted;
+  }
+
+  if (sourceFormat === "claude") {
+    const remainingContent = (Array.isArray(response.content) ? response.content : []).filter(
+      (block: any) => !(block?.type === "tool_use" && serverIds.has(block.id))
+    );
+
+    // Build result text blocks.
+    const resultTextBlocks = results
+      .filter((r) => serverIds.has(r.id))
+      .map((r) => ({
+        type: "text",
+        text: `[${r.name} result]\n${serializedResultTextById?.get(r.id) ?? JSON.stringify(r.result)}`,
+      }));
+
+    // Insert result text blocks before the first remaining tool_use.
+    const firstRemainingIndex = remainingContent.findIndex(
+      (block: any) => block?.type === "tool_use"
+    );
+
+    let newContent: unknown[];
+    if (firstRemainingIndex === -1) {
+      newContent = [...remainingContent, ...resultTextBlocks];
+    } else {
+      newContent = [
+        ...remainingContent.slice(0, firstRemainingIndex),
+        ...resultTextBlocks,
+        ...remainingContent.slice(firstRemainingIndex),
+      ];
+    }
+
+    const formatted: Record<string, unknown> = { ...response, content: newContent };
+
+    // All-server → end_turn; mixed → keep original stop_reason.
+    const remainingToolUseCount = remainingContent.filter(
+      (b: any) => b?.type === "tool_use"
+    ).length;
+    if (remainingToolUseCount === 0 && clientCalls.length === 0) {
+      formatted.stop_reason = "end_turn";
+      formatted.stop_sequence = null;
+    }
+
+    return formatted;
+  }
+
+  return response;
 }

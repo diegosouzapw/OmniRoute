@@ -443,3 +443,18 @@ test("classify429: retryDelay outside a RetryInfo detail is ignored", () => {
   };
   assert.equal(classify429({ status: 429, body }), "quota_exhausted");
 });
+
+const MOONSHOT_TPD =
+  "Your account org-73b383ab6d45484eb2ef72161074495c / proj-30863601b47548bdbbabc42ff4c72eee <ak-fby7tgpoi43111d8qoai> request reached organization TPD rate limit, current: 1537190, limit: 1500000";
+
+test("classify429: Moonshot organization TPD rate limit is quota_exhausted", () => {
+  assert.equal(classify429({ status: 429, body: MOONSHOT_TPD }), "quota_exhausted");
+  assert.equal(looksLikeQuotaExhausted(MOONSHOT_TPD), true);
+});
+
+test("classify429: Moonshot engine overloaded stays rate_limit", () => {
+  assert.equal(
+    classify429({ status: 429, body: "The engine is currently overloaded, please try again later" }),
+    "rate_limit",
+  );
+});

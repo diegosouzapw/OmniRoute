@@ -323,8 +323,14 @@ export function describeMalformedNonStream(
 ): { message: string; code: string; type: string } {
   const body = resp && typeof resp === "object" ? (resp as Record<string, unknown>) : null;
   if (body?.object === "response" && body.status === "failed") {
+    const err = body.error && typeof body.error === "object" ? (body.error as Record<string, unknown>) : null;
+    const rawMessage =
+      typeof err?.message === "string" && err.message.trim().length > 0 ? err.message.trim() : null;
     return {
-      message: "upstream reported a failed response without usable output",
+      // Trim only here; buildErrorBody (chatCore) does the single sanitization pass.
+      message: rawMessage
+        ? `upstream reported a failed response: ${rawMessage}`
+        : "upstream reported a failed response without usable output",
       code: "upstream_response_failed",
       type: "upstream_response_error",
     };

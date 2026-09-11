@@ -12,7 +12,7 @@
 import { isClaudeCodeCompatible } from "../services/provider.ts";
 import {
   getAntigravityUserAgent,
-  GITHUB_COPILOT_CHAT_USER_AGENT,
+  getGitHubCopilotChatUserAgent,
 } from "./providerHeaderProfiles.ts";
 import { normalizeCliCompatProviderId } from "@/shared/utils/cliCompat";
 
@@ -169,7 +169,7 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
       "intent_threshold",
       "intent_content",
     ],
-    userAgent: GITHUB_COPILOT_CHAT_USER_AGENT,
+    userAgent: getGitHubCopilotChatUserAgent,
   },
   antigravity: {
     headerOrder: [

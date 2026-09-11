@@ -1,1 +1,0 @@
-- **fix(providers):** route DuckDuckGo Web Chat through the verified `duck.ai` endpoint, refresh its free model catalog, and avoid forwarding unsolved anti-abuse challenges ([#11597](https://github.com/diegosouzapw/OmniRoute/pull/11597))

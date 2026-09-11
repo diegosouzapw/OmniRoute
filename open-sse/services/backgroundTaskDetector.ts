@@ -45,22 +45,24 @@ const DEFAULT_DETECTION_PATTERNS = [
   "label this",
 ];
 
+// Every source and target must be absent from the retired-id snapshot: a retired source is
+// a dead row (checkLifecycle answers 410 before the redirect runs), while a retired target
+// is normally rejected with 410 when lifecycle validation runs again after the redirect
+// (unless alias resolution maps it to an accepted id). `npm run check:model-lifecycle`
+// diffs this map against config/quality/model-lifecycle.json.
 const DEFAULT_DEGRADATION_MAP: Record<string, string> = {
   // Premium → Cheap alternatives
   "claude-opus-4-6": "gemini-3-flash",
   "claude-opus-4-6-thinking": "gemini-3-flash",
   "claude-opus-4-5-20251101": "gemini-3-flash",
   "claude-sonnet-4-5-20250929": "gemini-3-flash",
-  "claude-sonnet-4-20250514": "gemini-3-flash",
   "claude-sonnet-4": "gemini-3-flash",
   "gemini-3.1-pro": "gemini-3-flash",
   "gemini-3.1-pro-high": "gemini-3-flash",
-  "gemini-3-pro-preview": "gemini-3-flash-preview",
   "gemini-2.5-pro": "gemini-3-flash",
   "gpt-4o": "gpt-4o-mini",
   "gpt-5": "gpt-5-mini",
   "gpt-5.1": "gpt-5-mini",
-  "gpt-5.1-codex": "gpt-5.1-codex-mini",
 };
 
 // ── State ───────────────────────────────────────────────────────────────────

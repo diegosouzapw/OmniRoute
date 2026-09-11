@@ -101,9 +101,16 @@ function tsToIso(seconds: number): string | null {
   return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
 
+const CODING_LEVEL_TO_CANONICAL: Record<string, string> = {
+  session: "session (5h)",
+  weekly: "weekly (7d)",
+  daily: "daily",
+  monthly: "monthly",
+};
+
 const CODING_WINDOW_LABEL: Record<string, string> = {
-  session: "Session (5h)",
-  weekly: "Weekly",
+  "session (5h)": "Session (5h)",
+  "weekly (7d)": "Weekly",
   monthly: "Monthly",
   daily: "Daily",
 };
@@ -119,27 +126,29 @@ function mapCodingPlanUsage(result: JsonRecord): Record<string, UsageQuota> {
     const w = toRecord(raw);
     const level = String(w.Level || "").toLowerCase();
     if (!level) continue;
-    const cap = toNumber(w.Cap, 100) || 100;
+    const canonicalKey = CODING_LEVEL_TO_CANONICAL[level] || level;
+    const rawCap = toNumber(w.Cap, 100);
+    const cap = rawCap > 0 ? rawCap : 100;
     const usedPercent = toNumber(w.Percent, 0);
     const remainingPercentage = Math.max(0, Math.min(100, cap - usedPercent));
-    quotas[level] = {
+    quotas[canonicalKey] = {
       used: usedPercent,
       total: cap,
       remaining: Math.max(0, cap - usedPercent),
       remainingPercentage,
       resetAt: tsToIso(toNumber(w.ResetTimestamp, 0)),
       unlimited: false,
-      displayName: CODING_WINDOW_LABEL[level] || level,
+      displayName: CODING_WINDOW_LABEL[canonicalKey] || level,
     };
   }
   return quotas;
 }
 
-const AGENT_WINDOW_LABEL: Array<[string, string]> = [
-  ["AFPFiveHour", "Session (5h)"],
-  ["AFPDaily", "Daily"],
-  ["AFPWeekly", "Weekly"],
-  ["AFPMonthly", "Monthly"],
+const AGENT_WINDOW_MAPPING: Array<[string, string, string]> = [
+  ["AFPFiveHour", "session (5h)", "Session (5h)"],
+  ["AFPDaily", "daily", "Daily"],
+  ["AFPWeekly", "weekly (7d)", "Weekly"],
+  ["AFPMonthly", "monthly", "Monthly"],
 ];
 
 /**
@@ -148,16 +157,16 @@ const AGENT_WINDOW_LABEL: Array<[string, string]> = [
  */
 function mapAgentPlanUsage(result: JsonRecord): Record<string, UsageQuota> {
   const quotas: Record<string, UsageQuota> = {};
-  for (const [key, label] of AGENT_WINDOW_LABEL) {
-    const w = toRecord(result[key]);
+  for (const [sourceKey, canonicalKey, label] of AGENT_WINDOW_MAPPING) {
+    const w = toRecord(result[sourceKey]);
     if (Object.keys(w).length === 0) continue;
     const total = toNumber(w.Quota, 0);
     const used = toNumber(w.Used, 0);
     const remaining = Math.max(0, total - used);
     const remainingPercentage =
-      total > 0 ? Math.max(0, Math.min(100, (remaining / total) * 100)) : 100;
+      total > 0 ? Math.max(0, Math.min(100, (remaining / total) * 100)) : 0;
     const resetMs = toNumber(w.ResetTime, 0);
-    quotas[key] = {
+    quotas[canonicalKey] = {
       used,
       total,
       remaining,
@@ -315,3 +324,8 @@ export async function getVolcenginePlanUsage(
     };
   }
 }
+
+export const __testing = {
+  mapCodingPlanUsage,
+  mapAgentPlanUsage,
+};

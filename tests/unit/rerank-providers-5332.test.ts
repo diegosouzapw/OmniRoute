@@ -69,3 +69,37 @@ test("#5332 deepinfra response omits document text when return_documents=false",
   assert.equal(out.results[0].document, undefined);
   assert.equal(out.results[0].index, 1);
 });
+
+// ─── NVIDIA must honor return_documents like its deepinfra/voyage siblings ──
+
+test("#5332 nvidia response omits document text when return_documents=false", () => {
+  const cfg = getRerankProvider("nvidia");
+  const out = transformResponseFromProvider(
+    cfg,
+    { id: "r1", rankings: [{ index: 0, logit: 0.8, text: "a" }] },
+    { documents: ["a"], return_documents: false }
+  );
+  assert.equal(out.results[0].document, undefined);
+  assert.equal(out.results[0].index, 0);
+  assert.equal(out.results[0].relevance_score, 0.8);
+});
+
+test("#5332 nvidia response includes document text when return_documents is true", () => {
+  const cfg = getRerankProvider("nvidia");
+  const out = transformResponseFromProvider(
+    cfg,
+    { id: "r1", rankings: [{ index: 1, logit: 0.4, text: "b" }] },
+    { documents: ["a", "b"], return_documents: true }
+  );
+  assert.equal(out.results[0].document.text, "b");
+});
+
+test("#5332 nvidia response includes document text when return_documents is omitted", () => {
+  const cfg = getRerankProvider("nvidia");
+  const out = transformResponseFromProvider(
+    cfg,
+    { id: "r1", rankings: [{ index: 0, logit: 0.9, text: "a" }] },
+    { documents: ["a"] }
+  );
+  assert.equal(out.results[0].document.text, "a");
+});

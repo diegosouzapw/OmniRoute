@@ -1,0 +1,1 @@
+- **fix(devin):** accept Windows `DEVIN_AGENTIC_HOME` sandbox paths (`C:\...\.sandbox\...`) in the isolated-home check so the Devin Claude Bridge no longer fails closed on Windows ([#12405](https://github.com/diegosouzapw/OmniRoute/issues/12405)) (#12545 — thanks @pacocartones)

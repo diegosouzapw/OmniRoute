@@ -256,7 +256,8 @@ test("createDisconnectAwareStream emits Responses API failure events for Respons
 
   assert.match(text, /event: response\.failed/);
   assert.match(text, /"type":"response\.failed"/);
-  assert.match(text, /"message":"responses stream\\ndied"/);
+  assert.match(text, /"message":"responses stream"/);
+  assert.doesNotMatch(text, /died/);
   assert.match(text, /"type":"server_error"/);
   assert.match(text, /"code":"server_error"/);
   assert.doesNotMatch(text, /chat\.completion\.chunk/);
@@ -264,7 +265,7 @@ test("createDisconnectAwareStream emits Responses API failure events for Respons
   assert.doesNotMatch(text, /\[DONE\]/);
 });
 
-test("createDisconnectAwareStream keeps newlines escaped inside SSE data fields", async () => {
+test("createDisconnectAwareStream strips multiline diagnostic tails from Responses errors", async () => {
   const upstreamError = Object.assign(new Error("line one\nline two\rline three"), {
     statusCode: 400,
   });
@@ -290,9 +291,9 @@ test("createDisconnectAwareStream keeps newlines escaped inside SSE data fields"
   const text = await readStreamText(stream);
 
   assert.match(text, /^event: response\.failed\ndata: \{"type":"response\.failed"/);
-  assert.match(text, /"message":"line one\\nline two\\rline three"/);
-  assert.doesNotMatch(text, /^line two/m);
-  assert.doesNotMatch(text, /^line three/m);
+  assert.match(text, /"message":"line one"/);
+  assert.doesNotMatch(text, /line two/);
+  assert.doesNotMatch(text, /line three/);
 });
 
 test("createDisconnectAwareStream treats legacy OpenAI response format alias as Responses", async () => {
@@ -360,7 +361,7 @@ test("createDisconnectAwareStream emits Claude SSE errors for Claude clients", a
   assert.doesNotMatch(text, /\[DONE\]/);
 });
 
-test("createDisconnectAwareStream keeps newlines escaped for Claude SSE errors", async () => {
+test("createDisconnectAwareStream strips multiline diagnostic tails from Claude errors", async () => {
   const upstreamError = Object.assign(new Error("claude line one\nclaude line two"), {
     statusCode: 502,
   });
@@ -386,8 +387,8 @@ test("createDisconnectAwareStream keeps newlines escaped for Claude SSE errors",
   const text = await readStreamText(stream);
 
   assert.match(text, /^event: error\ndata: \{"type":"error"/);
-  assert.match(text, /"message":"claude line one\\nclaude line two"/);
-  assert.doesNotMatch(text, /^claude line two/m);
+  assert.match(text, /"message":"claude line one"/);
+  assert.doesNotMatch(text, /claude line two/);
 });
 
 // #7699/#7816 — heuristic is scoped to FORMATS.CLAUDE (/v1/messages); a
@@ -828,4 +829,134 @@ test("pipeWithDisconnect stall watchdog does not fire after normal stream comple
 
   assert.equal(text, "ok");
   assert.equal(onErrorCalled, false, "stall watchdog must be cleared on stream completion");
+});
+
+// Content stall: a live incident (2026-09-04) where a free OpenRouter model
+// (minimax-m3:free, under load) streamed nothing but OpenAI Responses
+// response.in_progress heartbeats for ~90s -- real bytes kept arriving
+// (so the byte-stall watchdog above never fired) but never any actual model
+// output. ensureStreamReadiness's own pre-handoff gate treats a bare
+// response.in_progress as "ready" and hands the connection straight to the
+// client (deliberately -- kiro.ts's role-only start chunk relies on the same
+// behavior), so nothing was left watching the ALREADY-HANDED-OFF stream for
+// whether it ever said anything. The client's own idle timeout (120s-900s
+// depending on which internal task made the call) was the only thing that
+// eventually noticed.
+test("pipeWithDisconnect flags a stream that only ever produces lifecycle/heartbeat frames, never real content", async () => {
+  const source = new ReadableStream({
+    start(controller) {
+      controller.enqueue(
+        encoder.encode(
+          'data: {"type":"response.in_progress","response":{"id":"resp_1","status":"in_progress","output":[]}}\n\n'
+        )
+      );
+    },
+    cancel() {
+      // upstream cancel hook so the stall abort path can release the source
+    },
+  });
+
+  let onErrorEvent = null;
+  const streamController = createStreamController({
+    onError(event) {
+      onErrorEvent = event;
+      return true;
+    },
+  });
+
+  const stream = pipeWithDisconnect(new Response(source), new TransformStream(), streamController, {
+    // Byte-stall stays generous (nothing keeps this test's single heartbeat
+    // frame alive) — only the content-stall budget under test is tight.
+    stallTimeoutMs: 5000,
+    contentStallTimeoutMs: 80,
+  });
+
+  const text = await readStreamText(stream);
+
+  assert.ok(
+    onErrorEvent !== null,
+    "content stall watchdog must fire when the stream never produces real output"
+  );
+  assert.match(onErrorEvent.message, /content stall/i);
+  assert.match(text, /content stall/i);
+  assert.match(text, /"finish_reason":"error"/);
+});
+
+test("pipeWithDisconnect does NOT flag a stream that starts with lifecycle frames but then produces real content", async () => {
+  const source = new ReadableStream({
+    async start(controller) {
+      controller.enqueue(
+        encoder.encode('data: {"type":"response.in_progress","response":{"id":"resp_1"}}\n\n')
+      );
+      await new Promise((r) => setTimeout(r, 30));
+      controller.enqueue(
+        encoder.encode('data: {"type":"response.output_text.delta","delta":"Hello"}\n\n')
+      );
+      controller.close();
+    },
+  });
+
+  let onErrorCalled = false;
+  const streamController = createStreamController({
+    onError() {
+      onErrorCalled = true;
+      return true;
+    },
+  });
+
+  const stream = pipeWithDisconnect(new Response(source), new TransformStream(), streamController, {
+    stallTimeoutMs: 5000,
+    // Longer than the 30ms gap to the real content chunk, short enough that
+    // a false-firing watchdog would still trip well before readStreamText resolves.
+    contentStallTimeoutMs: 200,
+  });
+
+  const text = await readStreamText(stream);
+
+  assert.equal(
+    onErrorCalled,
+    false,
+    "content stall watchdog must not fire once real content arrives"
+  );
+  assert.doesNotMatch(text, /content stall/i);
+  assert.match(text, /Hello/);
+});
+
+test("pipeWithDisconnect content stall watchdog is off by default (no contentStallTimeoutMs)", async () => {
+  // Same lifecycle-only-forever shape as the firing test above, but no
+  // contentStallTimeoutMs opt-in — legacy behavior (relay forever) preserved.
+  const source = new ReadableStream({
+    start(controller) {
+      controller.enqueue(
+        encoder.encode('data: {"type":"response.in_progress","response":{"id":"resp_1"}}\n\n')
+      );
+      // never closes — the point is that with the watchdog off, nothing here
+      // should time out on its own; the test just proves no premature error.
+    },
+    cancel() {},
+  });
+
+  let onErrorCalled = false;
+  const streamController = createStreamController({
+    onError() {
+      onErrorCalled = true;
+      return true;
+    },
+  });
+
+  const stream = pipeWithDisconnect(new Response(source), new TransformStream(), streamController, {
+    stallTimeoutMs: 5000,
+    // contentStallTimeoutMs intentionally omitted.
+  });
+
+  const reader = stream.getReader();
+  const { value } = await reader.read();
+  await reader.cancel("test done");
+
+  assert.ok(value, "the lifecycle frame must still be relayed");
+  assert.equal(
+    onErrorCalled,
+    false,
+    "content stall watchdog must stay off without an explicit budget"
+  );
 });

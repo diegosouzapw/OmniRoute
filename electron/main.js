@@ -1113,7 +1113,6 @@ function setupIpcHandlers() {
     try {
       app.setLoginItemSettings({
         openAtLogin: true,
-        openAsHidden: true,
         args: ["--hidden"],
       });
       return true;
@@ -1153,7 +1152,6 @@ app.whenReady().then(async () => {
     !isHeadless &&
     shouldStartHidden({
       argv: process.argv,
-      loginItemSettings: app.getLoginItemSettings(),
     });
   keepAliveWithoutWindows = startHidden;
 

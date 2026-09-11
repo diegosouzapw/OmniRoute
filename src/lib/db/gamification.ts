@@ -162,6 +162,21 @@ export function addXp(apiKeyId: string, action: string, amount: number, metadata
     )
     .run(apiKeyId, action, amount, metadata ?? null);
 
+  // Durable per-key/per-action counter (#12546). xp_audit_log is pruned by
+  // retention.xpAuditLog (default 30 days), so counting action-count badge
+  // progress directly off that table silently reset every "lifetime" milestone.
+  // Increment a durable counter here, alongside the audit insert, using the same
+  // per-row weight getActionCount() reads: the metadata `amount` when present
+  // (token_share stores the shared amount there), otherwise 1.
+  db()
+    .prepare(
+      `INSERT INTO xp_action_counts (api_key_id, action, count, updated_at)
+     VALUES (?, ?, COALESCE(CAST(json_extract(?, '$.amount') AS INTEGER), 1), datetime('now'))
+     ON CONFLICT(api_key_id, action)
+     DO UPDATE SET count = count + excluded.count, updated_at = datetime('now')`
+    )
+    .run(apiKeyId, action, metadata ?? null);
+
   db()
     .prepare(
       `INSERT INTO user_levels (api_key_id, total_xp, current_level, updated_at)
@@ -207,10 +222,17 @@ export function updateLevel(apiKeyId: string, level: number): void {
 
 // ──────────────── Badges ────────────────
 
-export function unlockBadge(apiKeyId: string, badgeId: string): void {
-  db()
+/**
+ * Award a badge to an API key. Idempotent on the `(api_key_id, badge_id)` primary key.
+ *
+ * @returns `true` when this call inserted the badge, `false` when it was already earned.
+ *   Callers that pay the `badge_unlock` XP reward key off this so a badge is paid once.
+ */
+export function unlockBadge(apiKeyId: string, badgeId: string): boolean {
+  const result = db()
     .prepare(`INSERT OR IGNORE INTO user_badges (api_key_id, badge_id) VALUES (?, ?)`)
     .run(apiKeyId, badgeId);
+  return result.changes > 0;
 }
 
 /**
@@ -225,6 +247,24 @@ export function hasBadge(apiKeyId: string, badgeId: string): boolean {
   const row = db()
     .prepare(`SELECT 1 FROM user_badges WHERE api_key_id = ? AND badge_id = ? LIMIT 1`)
     .get(apiKeyId, badgeId);
+  return !!row;
+}
+
+/**
+ * Whether `xp_audit_log` already holds an entry for this action on the current UTC day.
+ *
+ * `created_at` is written by the table default `datetime('now')` as
+ * `"YYYY-MM-DD HH:MM:SS"` (UTC), so a lexical compare against `date('now')` selects
+ * today's rows. Used as the once-per-day guard for daily rewards such as `streak_bonus`.
+ */
+export function hasXpActionToday(apiKeyId: string, action: string): boolean {
+  const row = db()
+    .prepare(
+      `SELECT 1 FROM xp_audit_log
+       WHERE api_key_id = ? AND action = ? AND created_at >= date('now')
+       LIMIT 1`
+    )
+    .get(apiKeyId, action);
   return !!row;
 }
 

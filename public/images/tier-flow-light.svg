@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" font-family="system-ui, -apple-system, Segoe UI, Arial, Helvetica, sans-serif" role="img" aria-label="OmniRoute 4-tier fallback: your IDE or CLI calls one local endpoint and the OmniRoute Smart Router fails over across 355 providers in 4 tiers — Tier 1 Subscription, Tier 2 API, Tier 3 Cheap, Tier 4 Free.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" font-family="system-ui, -apple-system, Segoe UI, Arial, Helvetica, sans-serif" role="img" aria-label="OmniRoute 4-tier fallback: your IDE or CLI calls one local endpoint and the OmniRoute Smart Router fails over across 356 providers in 4 tiers — Tier 1 Subscription, Tier 2 API, Tier 3 Cheap, Tier 4 Free.">
   <title>OmniRoute 4-tier fallback</title>
-  <desc>OmniRoute 4-tier fallback: your IDE or CLI calls one local endpoint and the OmniRoute Smart Router fails over across 355 providers in 4 tiers — Tier 1 Subscription, Tier 2 API, Tier 3 Cheap, Tier 4 Free.</desc>
+  <desc>OmniRoute 4-tier fallback: your IDE or CLI calls one local endpoint and the OmniRoute Smart Router fails over across 356 providers in 4 tiers — Tier 1 Subscription, Tier 2 API, Tier 3 Cheap, Tier 4 Free.</desc>
   <defs>
     <marker id="arrow-light" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
       <path d="M0,0 L0,6 L9,3 z" fill="#6b7280"/>
@@ -15,7 +15,7 @@
 
   <!-- Title -->
   <text x="400" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#111827">OmniRoute 4-tier fallback</text>
-  <text x="400" y="52" text-anchor="middle" font-size="12" fill="#6b7280">Never stop building — automatic zero-config failover across 355 providers</text>
+  <text x="400" y="52" text-anchor="middle" font-size="12" fill="#6b7280">Never stop building — automatic zero-config failover across 356 providers</text>
 
   <!-- Client box -->
   <rect x="275" y="70" width="250" height="52" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>

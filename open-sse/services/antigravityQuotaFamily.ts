@@ -54,3 +54,85 @@ export function getQuotaScopeLabelForProvider(
   if (provider !== "antigravity" && provider !== "agy") return "model";
   return getAntigravityQuotaFamily(model) === "other" ? "model" : "family";
 }
+
+export function getQuotaFetchScope(
+  provider: string | null | undefined,
+  model: string | null | undefined
+): string {
+  if (provider !== "antigravity" && provider !== "agy") return "*";
+  return getQuotaScopedModelForProvider(provider, model) ?? "*";
+}
+
+export function isAntigravityQuotaProvider(provider: string | null | undefined): boolean {
+  return provider === "antigravity" || provider === "agy";
+}
+
+export function quotaWindowNamesForScope(
+  names: string[],
+  scope?: { provider?: string | null; requestedModel?: string | null }
+): string[] {
+  if (!scope?.requestedModel || !isAntigravityQuotaProvider(scope.provider)) return names;
+  const scoped = selectAntigravityQuotaWindowNames(names, scope.requestedModel);
+  return scoped.length > 0 ? scoped : names;
+}
+
+/** Min remaining % across scoped windows, or 100 when an Antigravity family scope matched none. */
+export function remainingPercentFromQuotaWindows(
+  rawWindows: Record<string, unknown>,
+  scope?: { provider?: string | null; requestedModel?: string | null }
+): number | null {
+  const names = Object.keys(rawWindows);
+  const namesToScan = quotaWindowNamesForScope(names, scope);
+  let minRemaining: number | null = null;
+  for (const name of namesToScan) {
+    const windowInfo = rawWindows[name];
+    if (!windowInfo || typeof windowInfo !== "object") continue;
+    const percentUsed = Number((windowInfo as Record<string, unknown>).percentUsed);
+    if (!Number.isFinite(percentUsed)) continue;
+    const remaining = Math.max(0, Math.min(100, (1 - percentUsed) * 100));
+    minRemaining = minRemaining === null ? remaining : Math.min(minRemaining, remaining);
+  }
+  if (minRemaining !== null) return minRemaining;
+  if (scope?.requestedModel && namesToScan !== names) return 100;
+  return null;
+}
+
+/**
+ * Windows that belong to the requested Antigravity family. Claude weekly must
+ * not ride along on a Gemini request (and the reverse).
+ */
+export function selectAntigravityQuotaWindowNames(
+  quotaNames: string[],
+  requestedModel: string | null | undefined
+): string[] {
+  if (!requestedModel) return quotaNames;
+  const requestedFamily = getAntigravityQuotaFamily(requestedModel);
+  const cleanRequestedModel = requestedModel.replace(/^(antigravity|agy)\//, "");
+  const bareModel = cleanRequestedModel.includes("/")
+    ? cleanRequestedModel.slice(cleanRequestedModel.lastIndexOf("/") + 1)
+    : cleanRequestedModel;
+
+  if (requestedFamily === "other") {
+    return quotaNames.filter((windowName) => {
+      const bare = windowName.replace(/^(antigravity|agy)\//, "");
+      return bare === bareModel || bare === cleanRequestedModel;
+    });
+  }
+
+  const familyAggregates =
+    requestedFamily === "gemini"
+      ? ["gemini_weekly"]
+      : requestedFamily === "claude"
+        ? ["claude_gpt_weekly"]
+        : [];
+
+  const exactWindows = quotaNames.filter((windowName) => {
+    const bare = windowName.replace(/^(antigravity|agy)\//, "");
+    return bare === bareModel;
+  });
+  const aggregateWindows = familyAggregates.filter((key) => quotaNames.includes(key));
+  const scoped = [...exactWindows, ...aggregateWindows];
+  if (scoped.length > 0) return scoped;
+
+  return quotaNames.filter((windowName) => getAntigravityQuotaFamily(windowName) === requestedFamily);
+}

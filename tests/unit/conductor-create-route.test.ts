@@ -57,21 +57,8 @@ test.after(async () => {
   }
 });
 
-test("route: requireManagementAuth antes de criar a task no hub", () => {
-  const src = fs.readFileSync(
-    path.join(process.cwd(), "src/app/api/conductor/tasks/route.ts"),
-    "utf8"
-  );
-  const authAt = src.indexOf("requireManagementAuth(");
-  assert.ok(authAt > 0, "handler chama requireManagementAuth");
-  assert.match(src, /if \(authError\) return authError;/, "curto-circuito no erro de auth");
-  const proxyAt = src.indexOf("createConductorTask(");
-  assert.ok(proxyAt > authAt, "proxy ao hub só depois do gate de auth");
-  assert.ok(
-    !src.includes("CONDUCTOR_HUB_TOKEN"),
-    "token nunca manuseado na rota (vive no hubProxy)"
-  );
-});
+// A prova de fonte "requireManagementAuth antes do proxy ao hub" desta rota vive no array
+// `ROUTES` de `conductor-routes-auth.test.ts` (uma única implementação para as quatro rotas).
 
 test("POST /api/conductor/tasks: body válido + hub ok → 201 {task_id}", async () => {
   process.env.CONDUCTOR_HUB_URL = await fakeHub({

@@ -13,9 +13,11 @@ import {
   deleteAllFromTable,
   deleteCallLogArtifacts,
   deleteFromTableBefore,
+  deleteFromTableBeforeInBatches,
   tableExists,
   type DeleteByPeriodTarget,
 } from "./cleanup/usagePurge";
+import { ensureCompressionRunTelemetryTable } from "./compressionRunTelemetry";
 
 interface CleanupResult {
   deleted: number;
@@ -380,6 +382,7 @@ export async function cleanupXpAuditLog(): Promise<CleanupResult> {
  */
 export async function cleanupCompressionRunTelemetry(): Promise<CleanupResult> {
   const db = getDbInstance();
+  ensureCompressionRunTelemetryTable();
   const retention = getRetentionSettings();
 
   const retentionDays = retention.compressionRunTelemetry;
@@ -429,6 +432,103 @@ export async function cleanupCcrBlocks(): Promise<CleanupResult> {
 }
 
 /**
+ * Clean up conversation_turn_nodes older than the call-log retention window (#12453).
+ *
+ * The nodes are identity-only: the transcript view resolves each turn's display
+ * content from the call_logs row `last_correlation_id` points at. Once
+ * cleanupCallLogs purges that row the node can never render again, so the two
+ * tables share the dashboard database setting `retention.callLogs` instead of
+ * a knob of their own; `CALL_LOG_RETENTION_DAYS` configures the separate
+ * compliance cleanup path and does not override this window. Deleting an old
+ * node only affects reconnect anchors: a conversation resumed after the window
+ * mints a new id, which is already the documented anchor-miss behavior of
+ * resolveConversationId. `last_seen_at` has no index (migration 156), so
+ * each DELETE is a table scan. Bounded batches yield between writes so an
+ * existing large table cannot park the event loop for the whole cleanup pass.
+ */
+export async function cleanupConversationTurnNodes(): Promise<CleanupResult> {
+  const retention = getRetentionSettings();
+
+  const retentionDays = retention.callLogs;
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+  const cutoffISO = cutoffDate.toISOString();
+
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+
+  try {
+    result.deleted = await deleteFromTableBeforeInBatches(
+      { table: "conversation_turn_nodes", column: "last_seen_at", cutoff: "iso" },
+      cutoffISO
+    );
+
+    console.log(
+      `[Cleanup] Deleted ${result.deleted} conversation_turn_nodes older than ${retentionDays} days`
+    );
+  } catch (err: unknown) {
+    console.error("[Cleanup] Error cleaning conversation_turn_nodes:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
+/**
+ * Sweep agentic_conversations left without any conversation_turn_nodes (#12453).
+ *
+ * Runs after cleanupConversationTurnNodes so a root whose whole chain just
+ * expired goes in the same pass. The indexed `last_seen_at` predicate bounds
+ * the NOT EXISTS probe to roots that are already past the retention window.
+ * Deletion is batched for the same event-loop fairness guarantee as the
+ * preceding node cleanup.
+ */
+export async function cleanupAgenticConversations(): Promise<CleanupResult> {
+  const db = getDbInstance();
+  const retention = getRetentionSettings();
+
+  const retentionDays = retention.callLogs;
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+  const cutoffISO = cutoffDate.toISOString();
+
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+
+  try {
+    if (!tableExists("agentic_conversations") || !tableExists("conversation_turn_nodes")) {
+      return result;
+    }
+
+    const stmt = db.prepare(
+      `DELETE FROM agentic_conversations
+       WHERE rowid IN (
+         SELECT rowid FROM agentic_conversations
+         WHERE last_seen_at < ?
+           AND NOT EXISTS (
+             SELECT 1 FROM conversation_turn_nodes n
+             WHERE n.conversation_id = agentic_conversations.id
+           )
+         LIMIT 10000
+       )`
+    );
+    while (true) {
+      const batch = stmt.run(cutoffISO).changes;
+      result.deleted += batch;
+      if (batch < 10_000) break;
+      await new Promise<void>((resolve) => setImmediate(resolve));
+    }
+
+    console.log(
+      `[Cleanup] Deleted ${result.deleted} orphaned agentic_conversations older than ${retentionDays} days`
+    );
+  } catch (err: unknown) {
+    console.error("[Cleanup] Error cleaning agentic_conversations:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
+/**
  * Run all cleanup functions if auto-cleanup is enabled.
  */
 export async function runAutoCleanup(): Promise<{
@@ -461,6 +561,8 @@ export async function runAutoCleanup(): Promise<{
     compressionRunTelemetry: await cleanupCompressionRunTelemetry(),
     proxyLogs: await cleanupProxyLogs(),
     ccrBlocks: await cleanupCcrBlocks(),
+    conversationTurnNodes: await cleanupConversationTurnNodes(),
+    agenticConversations: await cleanupAgenticConversations(),
   };
 
   const totalDeleted = Object.values(results).reduce((sum, r) => sum + r.deleted, 0);
@@ -586,6 +688,8 @@ export interface ResetUsageHistoryResult extends CleanupResult {
   deletedRoutingDecisions: number;
   deletedQuotaConsumption: number;
   deletedTokenLedger: number;
+  deletedConversationTurnNodes: number;
+  deletedAgenticConversations: number;
 }
 
 function isResetUsageHistoryPeriod(period: string): period is ResetUsageHistoryPeriod {
@@ -602,10 +706,13 @@ function isResetUsageHistoryPeriod(period: string): period is ResetUsageHistoryP
  * first, since the whole point is to wipe the data the user selected.
  *
  * @param period - One of {@link RESET_USAGE_HISTORY_PERIODS}. `"all"` wipes
- *   every row in all three tables; any other value deletes rows strictly
- *   older than `now - period`. Throws on an invalid period.
+ *   every reset target, including conversation identity metadata; any other
+ *   value deletes only time-scoped usage/log rows older than `now - period`.
+ *   Throws on an invalid period.
  */
-const RESET_TARGETS: Array<DeleteByPeriodTarget & { resultKey: keyof ResetUsageHistoryResult }> = [
+const RESET_TARGETS: Array<
+  DeleteByPeriodTarget & { resultKey: keyof ResetUsageHistoryResult; allOnly?: boolean }
+> = [
   { table: "usage_history", column: "timestamp", cutoff: "iso", resultKey: "deletedUsageHistory" },
   {
     table: "daily_usage_summary",
@@ -658,6 +765,20 @@ const RESET_TARGETS: Array<DeleteByPeriodTarget & { resultKey: keyof ResetUsageH
     resultKey: "deletedQuotaConsumption",
   },
   { table: "token_ledger", column: "created_at", cutoff: "iso", resultKey: "deletedTokenLedger" },
+  {
+    table: "conversation_turn_nodes",
+    column: "last_seen_at",
+    cutoff: "iso",
+    resultKey: "deletedConversationTurnNodes",
+    allOnly: true,
+  },
+  {
+    table: "agentic_conversations",
+    column: "last_seen_at",
+    cutoff: "iso",
+    resultKey: "deletedAgenticConversations",
+    allOnly: true,
+  },
 ];
 
 export async function resetUsageHistory(period: string): Promise<ResetUsageHistoryResult> {
@@ -666,6 +787,7 @@ export async function resetUsageHistory(period: string): Promise<ResetUsageHisto
   }
 
   const db = getDbInstance();
+  ensureCompressionRunTelemetryTable();
   const result: ResetUsageHistoryResult = {
     deleted: 0,
     deletedUsageHistory: 0,
@@ -681,6 +803,8 @@ export async function resetUsageHistory(period: string): Promise<ResetUsageHisto
     deletedRoutingDecisions: 0,
     deletedQuotaConsumption: 0,
     deletedTokenLedger: 0,
+    deletedConversationTurnNodes: 0,
+    deletedAgenticConversations: 0,
     deletedArtifacts: 0,
     errors: 0,
   };
@@ -699,6 +823,7 @@ export async function resetUsageHistory(period: string): Promise<ResetUsageHisto
       const cutoffIso = new Date(Date.now() - RESET_USAGE_HISTORY_PERIOD_MS[period]).toISOString();
       artifactsToDelete = collectCallLogArtifactsBefore(cutoffIso);
       for (const target of RESET_TARGETS) {
+        if (target.allOnly) continue;
         (result[target.resultKey] as number) = deleteFromTableBefore(target, cutoffIso);
       }
     });

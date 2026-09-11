@@ -143,7 +143,14 @@ function repeatReqForA2a(
   };
 }
 
-/** conductor repeat builder — `POST /api/conductor/tasks` (D1 task-creation route). */
+/**
+ * conductor repeat builder — `POST /api/conductor/tasks` (D1 task-creation route).
+ * `cli`/`model` come from the hub's `requirements` (`ConductorTaskDetail`, hubProxy.ts) and are
+ * carried over so the repeat lands on the SAME runner profile/model the original task was
+ * pinned to. Both are `z.string().optional()` in the route's Zod: a `null` would 400, so a
+ * missing requirement must OMIT the field (`undefined`) rather than send `null` — and the two
+ * are independent (one may be set while the other is not).
+ */
 function repeatReqForConductor(detail: unknown): { url: string; init: RequestInit } | null {
   const d = detail as ConductorTaskDetail | null;
   if (!d?.repo || !d?.prompt) return null;
@@ -154,6 +161,8 @@ function repeatReqForConductor(detail: unknown): { url: string; init: RequestIni
       prompt: d.prompt,
       baseRef: d.base_ref ?? undefined,
       mode: d.mode,
+      cli: d.cli ?? undefined,
+      model: d.model ?? undefined,
     }),
   };
 }
@@ -165,6 +174,36 @@ export function repeatReqFor(
   if (node.id.startsWith("cloud-agent:")) return repeatReqForCloudAgent(detail);
   if (node.id.startsWith("a2a:")) return repeatReqForA2a(node.id, detail);
   if (node.id.startsWith("conductor:task:")) return repeatReqForConductor(detail);
+  return null;
+}
+
+/** `<prefix><id>` when `id` is a non-empty string, `null` otherwise (never a bare prefix). */
+function prefixedNodeId(prefix: string, id: unknown): string | null {
+  return typeof id === "string" && id.length > 0 ? `${prefix}${id}` : null;
+}
+
+/**
+ * CANVAS node id of the task a successful repeat just created, from the creation response
+ * body — `null` whenever the body does not carry a usable id (the caller then simply refetches
+ * without focusing anything). The canvas addresses nodes by PREFIXED id
+ * (`mergeSnapshot.ts`), so the raw upstream id is never returned on its own. Response
+ * envelopes, verified against the live routes:
+ *   - conductor (`POST /api/conductor/tasks`): `{ task_id }`.
+ *   - cloud-agent (`POST /api/v1/agents/tasks`): `{ data: { id } }`.
+ *   - a2a (`POST /a2a`, JSON-RPC `message/send`): `{ result: { task: { id } } }`.
+ */
+export function newNodeIdFrom(node: OrchNode, body: unknown): string | null {
+  if (!body || typeof body !== "object") return null;
+  const b = body as Record<string, unknown>;
+  if (node.id.startsWith("conductor:task:")) return prefixedNodeId("conductor:task:", b.task_id);
+  if (node.id.startsWith("cloud-agent:")) {
+    const data = b.data as { id?: unknown } | undefined;
+    return prefixedNodeId("cloud-agent:", data?.id);
+  }
+  if (node.id.startsWith("a2a:")) {
+    const result = b.result as { task?: { id?: unknown } } | undefined;
+    return prefixedNodeId("a2a:", result?.task?.id);
+  }
   return null;
 }
 
@@ -258,36 +297,60 @@ function useFetchDetail(
  * that never happened, so the `/a2a` action also inspects the envelope. Only the numeric
  * `error.code` is surfaced (`RPC <code>`) — never the upstream `error.message`.
  */
-async function jsonRpcErrorCode(res: {
-  json?: () => Promise<unknown>;
-}): Promise<number | undefined> {
+function jsonRpcErrorCode(body: unknown): number | undefined {
+  const b = body as { error?: { code?: unknown } } | undefined | null;
+  const code = b?.error?.code;
+  return typeof code === "number" ? code : b?.error ? -32603 : undefined;
+}
+
+/**
+ * Reads an action response body ONCE, tolerating a non-JSON/empty body. A body that cannot be
+ * parsed is not evidence of failure — the status already stood — so it yields `null` and the
+ * action stays successful (it just has no new-task id to focus).
+ */
+async function readJsonBody(res: { json?: () => Promise<unknown> }): Promise<unknown> {
   try {
-    const body = (await res.json?.()) as { error?: { code?: unknown } } | undefined;
-    const code = body?.error?.code;
-    return typeof code === "number" ? code : body?.error ? -32603 : undefined;
+    return (await res.json?.()) ?? null;
   } catch {
-    // A non-JSON / already-consumed body is not evidence of failure — the status stands.
-    return undefined;
+    return null;
   }
+}
+
+/** Outcome of an action POST: whether it succeeded, plus the parsed body on success. */
+interface ActionOutcome {
+  ok: boolean;
+  body: unknown;
 }
 
 async function performAction(
   req: { url: string; init: RequestInit } | null,
-  setActionError: (text: string) => void
-): Promise<boolean> {
-  if (!req) return false;
+  setActionError: (text: string) => void,
+  clearError: () => void
+): Promise<ActionOutcome> {
+  if (!req) return { ok: false, body: null };
   try {
     const res = await fetch(req.url, req.init);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const body = await readJsonBody(res);
     if (req.url === "/a2a") {
-      const code = await jsonRpcErrorCode(res);
+      const code = jsonRpcErrorCode(body);
       if (code !== undefined) throw new Error(`RPC ${code}`);
     }
-    return true;
+    // The banner is not sticky: a retry (or any later action) that works clears whatever
+    // detail/action error was on screen, so the drawer never shows a failure the operator
+    // already recovered from.
+    clearError();
+    return { ok: true, body };
   } catch (err) {
     setActionError(toSafeErrorText(err));
-    return false;
+    return { ok: false, body: null };
   }
+}
+
+/** Result of the drawer's repeat action: success plus the canvas id of the created task. */
+export interface RepeatOutcome {
+  ok: boolean;
+  newNodeId: string | null;
 }
 
 export function useDrawerDetail(node: OrchNode | null) {
@@ -306,15 +369,19 @@ export function useDrawerDetail(node: OrchNode | null) {
   const { canApprove, canCancel } = deriveActionAvailability(route, node);
   const repeatReq = node ? repeatReqFor(node, detail) : null;
 
-  const runAction = async (req: { url: string; init: RequestInit } | null): Promise<boolean> => {
-    if (busy) return false;
+  const runAction = async (
+    req: { url: string; init: RequestInit } | null
+  ): Promise<ActionOutcome> => {
+    if (busy) return { ok: false, body: null };
     setBusy(true);
     try {
-      return await performAction(req, setActionError);
+      return await performAction(req, setActionError, () => setErrorState(null));
     } finally {
       setBusy(false);
     }
   };
+  const runBooleanAction = async (req: { url: string; init: RequestInit } | null) =>
+    (await runAction(req)).ok;
 
   return {
     detail,
@@ -325,8 +392,13 @@ export function useDrawerDetail(node: OrchNode | null) {
     canApprove,
     canCancel,
     canRepeat: !!repeatReq && !busy,
-    approve: () => runAction(route?.approveReq ?? null),
-    cancel: () => runAction(route?.cancelReq ?? null),
-    repeat: () => runAction(repeatReq),
+    approve: () => runBooleanAction(route?.approveReq ?? null),
+    cancel: () => runBooleanAction(route?.cancelReq ?? null),
+    // Only the repeat reports a new node id: approve/cancel act on the task already open, so
+    // there is nothing new to focus (and their responses can echo the SAME task's id back).
+    repeat: async (): Promise<RepeatOutcome> => {
+      const { ok, body } = await runAction(repeatReq);
+      return { ok, newNodeId: ok && node ? newNodeIdFrom(node, body) : null };
+    },
   };
 }

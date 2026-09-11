@@ -121,7 +121,7 @@ const VIDEO_JOB_PRESETS: Record<string, VideoJobPreset> = {
       }),
     },
     taskIdPath: "video_id",
-    poll: { pathTemplate: "/agnesapi?video_id={taskId}" },
+    poll: { pathTemplate: "/agnesapi?video_id={taskId}&model_name={model}" },
     statusPath: "status",
     statusDone: ["completed"],
     statusFailed: ["failed"],
@@ -273,7 +273,9 @@ export async function handleVideoJobGeneration({
 
   for (let attempt = 1; attempt <= maxPolls; attempt += 1) {
     await sleep(pollInterval);
-    const pollUrl = `${baseUrl}${preset.poll.pathTemplate.replace("{taskId}", encodeURIComponent(taskId))}`;
+    const pollUrl = `${baseUrl}${preset.poll.pathTemplate
+      .replace("{taskId}", encodeURIComponent(taskId))
+      .replace("{model}", encodeURIComponent(model))}`;
     const pollResult = await fetchJson(pollUrl, {
       method: "GET",
       headers: buildJobHeaders(preset, credentials),

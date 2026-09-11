@@ -36,6 +36,7 @@
 import { randomUUID } from "crypto";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { makeExecutorErrorResult as makeErrorResult } from "../utils/error.ts";
+import { connectObscuraBrowser } from "../services/obscura.ts";
 import type { Browser, Page } from "playwright";
 
 export const PLAYGROUND_URL = "https://playground.ai.cloudflare.com/";
@@ -296,14 +297,22 @@ export class PlaywrightCfTransport implements CfTransport {
     config: CfTransportConfig
   ): Promise<{ ok: true } | { ok: false; status: number; message: string }> {
     try {
+      // #12274: prefer the shared Obscura browser (browser-grade TLS fingerprint
+      // on the WS upgrade, ~30MB) over a full Chromium per request; fall back to
+      // a direct Chromium launch when Obscura is unavailable.
+      const obscura = await connectObscuraBrowser();
       const playwright = await importPlaywright();
-      const executablePath =
-        this.chromeExecutablePath ?? process.env.CLOUDFLARE_PLAYGROUND_CHROME_PATH;
-      this.browser = await playwright.chromium.launch({
-        ...(executablePath ? { executablePath } : {}),
-        headless: true,
-        args: BROWSER_ARGS,
-      });
+      if (obscura) {
+        this.browser = obscura.browser;
+      } else {
+        const executablePath =
+          this.chromeExecutablePath ?? process.env.CLOUDFLARE_PLAYGROUND_CHROME_PATH;
+        this.browser = await playwright.chromium.launch({
+          ...(executablePath ? { executablePath } : {}),
+          headless: true,
+          args: BROWSER_ARGS,
+        });
+      }
       const context = await this.browser.newContext({ userAgent: PLAYGROUND_UA });
       const page = await context.newPage();
       this.page = page;

@@ -1,115 +1,150 @@
 import type { RegistryModel } from "../../shared.ts";
 
+type EffortVariant = readonly [suffix: string, label: string];
+
+const QUALITY_EFFORTS: readonly EffortVariant[] = [
+  ["max", "Max"],
+  ["xhigh", "XHigh"],
+  ["high", "High"],
+  ["medium", "Medium"],
+  ["low", "Low"],
+];
+
+const GPT_EFFORTS: readonly EffortVariant[] = [
+  ["max", "Max Thinking"],
+  ["xhigh", "XHigh Thinking"],
+  ["high", "High Thinking"],
+  ["medium", "Medium Thinking"],
+  ["low", "Low Thinking"],
+  ["none", "No Thinking"],
+];
+
+function model(
+  id: string,
+  name: string,
+  maxOutputTokens?: number,
+  contextLength?: number
+): RegistryModel {
+  return {
+    id,
+    name,
+    ...(maxOutputTokens === undefined ? {} : { maxOutputTokens }),
+    ...(contextLength === undefined ? {} : { contextLength }),
+  };
+}
+
+function effortModels(
+  id: string,
+  name: string,
+  maxOutputTokens: number,
+  contextLength: number | undefined,
+  efforts: readonly EffortVariant[] = QUALITY_EFFORTS
+): RegistryModel[] {
+  return efforts.map(([suffix, label]) =>
+    model(`${id}-${suffix}`, `${name} ${label}`, maxOutputTokens, contextLength)
+  );
+}
+
+function fastEffortModels(
+  id: string,
+  name: string,
+  maxOutputTokens: number,
+  contextLength: number
+): RegistryModel[] {
+  return QUALITY_EFFORTS.flatMap(([suffix, label]) => [
+    model(`${id}-${suffix}-fast`, `${name} ${label} Fast`, maxOutputTokens, contextLength),
+    model(`${id}-${suffix}`, `${name} ${label}`, maxOutputTokens, contextLength),
+  ]);
+}
+
+function gptModels(id: string, name: string): RegistryModel[] {
+  return GPT_EFFORTS.flatMap(([suffix, label]) => [
+    model(`${id}-${suffix}-priority`, `${name} ${label} Fast`, 128_000, 1_000_000),
+    model(`${id}-${suffix}`, `${name} ${label}`, 128_000, 1_000_000),
+  ]);
+}
+
+/**
+ * Curated from the authenticated `devin models list --format json` response on
+ * 2026-09-02. Keep this deliberately smaller than Devin's full live catalog:
+ * these are the operator-selected models OmniRoute intends to expose.
+ */
 export const DEVIN_MODEL_CATALOG: RegistryModel[] = [
-  // Cognition / SWE — default model family recommended for coding tasks
-  { id: "swe-1-7-lightning", name: "SWE-1.7 Lightning", contextLength: 202752 },
-  { id: "swe-1-7", name: "SWE-1.7", contextLength: 262000 },
-  { id: "swe-1-6-fast", name: "SWE-1.6 Fast" },
-  { id: "swe-1-6", name: "SWE-1.6" },
-  // Claude Fable 5
-  { id: "claude-5-fable-max", name: "Claude Fable 5 Max", contextLength: 1000000 },
-  { id: "claude-5-fable-xhigh", name: "Claude Fable 5 XHigh", contextLength: 1000000 },
-  { id: "claude-5-fable-high", name: "Claude Fable 5 High", contextLength: 1000000 },
-  { id: "claude-5-fable-medium", name: "Claude Fable 5 Medium", contextLength: 1000000 },
-  { id: "claude-5-fable-low", name: "Claude Fable 5 Low", contextLength: 1000000 },
-  // Claude Opus 5
-  { id: "claude-opus-5-max", name: "Claude Opus 5 Max", contextLength: 1000000 },
-  { id: "claude-opus-5-xhigh", name: "Claude Opus 5 XHigh", contextLength: 1000000 },
-  { id: "claude-opus-5-high", name: "Claude Opus 5 High", contextLength: 1000000 },
-  { id: "claude-opus-5-medium", name: "Claude Opus 5 Medium", contextLength: 1000000 },
-  { id: "claude-opus-5-low", name: "Claude Opus 5 Low", contextLength: 1000000 },
-  // Claude Opus 4.8
-  { id: "claude-opus-4-8-max", name: "Claude Opus 4.8 Max", contextLength: 1000000 },
-  { id: "claude-opus-4-8-xhigh", name: "Claude Opus 4.8 XHigh", contextLength: 1000000 },
-  { id: "claude-opus-4-8-high", name: "Claude Opus 4.8 High", contextLength: 1000000 },
-  { id: "claude-opus-4-8-medium", name: "Claude Opus 4.8 Medium", contextLength: 1000000 },
-  { id: "claude-opus-4-8-low", name: "Claude Opus 4.8 Low", contextLength: 1000000 },
-  // Claude Opus 4.7
-  { id: "claude-opus-4-7-max", name: "Claude Opus 4.7 Max", contextLength: 1000000 },
-  { id: "claude-opus-4-7-xhigh", name: "Claude Opus 4.7 XHigh", contextLength: 1000000 },
-  { id: "claude-opus-4-7-high", name: "Claude Opus 4.7 High", contextLength: 1000000 },
-  { id: "claude-opus-4-7-medium", name: "Claude Opus 4.7 Medium", contextLength: 1000000 },
-  { id: "claude-opus-4-7-low", name: "Claude Opus 4.7 Low", contextLength: 1000000 },
-  // Claude Opus 4.6
-  {
-    id: "claude-opus-4-6-thinking-1m",
-    name: "Claude Opus 4.6 Thinking 1M",
-    contextLength: 1000000,
-  },
-  { id: "claude-opus-4-6-thinking", name: "Claude Opus 4.6 Thinking", contextLength: 200000 },
-  { id: "claude-opus-4-6-1m", name: "Claude Opus 4.6 1M", contextLength: 1000000 },
-  { id: "claude-opus-4-6", name: "Claude Opus 4.6", contextLength: 200000 },
-  // Claude Sonnet 5
-  { id: "claude-sonnet-5-max", name: "Claude Sonnet 5 Max", contextLength: 1000000 },
-  { id: "claude-sonnet-5-xhigh", name: "Claude Sonnet 5 XHigh", contextLength: 1000000 },
-  { id: "claude-sonnet-5-high", name: "Claude Sonnet 5 High", contextLength: 1000000 },
-  { id: "claude-sonnet-5-medium", name: "Claude Sonnet 5 Medium", contextLength: 1000000 },
-  { id: "claude-sonnet-5-low", name: "Claude Sonnet 5 Low", contextLength: 1000000 },
-  // Claude Sonnet 4.6
-  {
-    id: "claude-sonnet-4-6-thinking-1m",
-    name: "Claude Sonnet 4.6 Thinking 1M",
-    contextLength: 1000000,
-  },
-  {
-    id: "claude-sonnet-4-6-thinking",
-    name: "Claude Sonnet 4.6 Thinking",
-    contextLength: 200000,
-  },
-  { id: "claude-sonnet-4-6-1m", name: "Claude Sonnet 4.6 1M", contextLength: 1000000 },
-  { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6", contextLength: 200000 },
-  // GPT-5.6
-  { id: "gpt-5-6-sol-max", name: "GPT-5.6 Sol Max", contextLength: 1000000 },
-  { id: "gpt-5-6-sol-xhigh", name: "GPT-5.6 Sol XHigh", contextLength: 1000000 },
-  { id: "gpt-5-6-sol-high", name: "GPT-5.6 Sol High", contextLength: 1000000 },
-  { id: "gpt-5-6-sol-medium", name: "GPT-5.6 Sol Medium", contextLength: 1000000 },
-  { id: "gpt-5-6-sol-low", name: "GPT-5.6 Sol Low", contextLength: 1000000 },
-  /// Terra
-  { id: "gpt-5-6-terra-max", name: "GPT-5.6 Terra Max", contextLength: 1000000 },
-  { id: "gpt-5-6-terra-xhigh", name: "GPT-5.6 Terra XHigh", contextLength: 1000000 },
-  { id: "gpt-5-6-terra-high", name: "GPT-5.6 Terra High", contextLength: 1000000 },
-  { id: "gpt-5-6-terra-medium", name: "GPT-5.6 Terra Medium", contextLength: 1000000 },
-  { id: "gpt-5-6-terra-low", name: "GPT-5.6 Terra Low", contextLength: 1000000 },
-  /// Luna
-  { id: "gpt-5-6-luna-max", name: "GPT-5.6 Luna Max", contextLength: 1000000 },
-  { id: "gpt-5-6-luna-xhigh", name: "GPT-5.6 Luna XHigh", contextLength: 1000000 },
-  { id: "gpt-5-6-luna-high", name: "GPT-5.6 Luna High", contextLength: 1000000 },
-  { id: "gpt-5-6-luna-medium", name: "GPT-5.6 Luna Medium", contextLength: 1000000 },
-  { id: "gpt-5-6-luna-low", name: "GPT-5.6 Luna Low", contextLength: 1000000 },
-  // GPT-5.5
-  { id: "gpt-5-5-xhigh", name: "GPT-5.5 XHigh", contextLength: 272000 },
-  { id: "gpt-5-5-high", name: "GPT-5.5 High", contextLength: 272000 },
-  { id: "gpt-5-5-medium", name: "GPT-5.5 Medium", contextLength: 272000 },
-  { id: "gpt-5-5-low", name: "GPT-5.5 Low", contextLength: 272000 },
-  // Gemini
-  { id: "gemini-3-1-pro-high", name: "Gemini 3.1 Pro High", contextLength: 1048576 },
-  { id: "gemini-3-1-pro-low", name: "Gemini 3.1 Pro Low", contextLength: 1048576 },
-  { id: "gemini-3-7-flash-high", name: "Gemini 3.7 Flash High" },
-  { id: "gemini-3-7-flash-medium", name: "Gemini 3.7 Flash Medium" },
-  { id: "gemini-3-7-flash-low", name: "Gemini 3.7 Flash Low" },
-  { id: "gemini-3-7-flash-minimal", name: "Gemini 3.7 Flash Minimal" },
-  // Grok
-  { id: "grok-4-5-high", name: "Grok 4.5 High", contextLength: 500000 },
-  { id: "grok-4-5-medium", name: "Grok 4.5 Medium", contextLength: 500000 },
-  { id: "grok-4-5-low", name: "Grok 4.5 Low", contextLength: 500000 },
-  // GLM
-  { id: "glm-5-2-max-1m", name: "GLM-5.2 Max 1M", contextLength: 1000000 },
-  { id: "glm-5-2-max", name: "GLM-5.2 Max" },
-  { id: "glm-5-2-1m", name: "GLM-5.2 High 1M", contextLength: 1000000 },
-  { id: "glm-5-2", name: "GLM-5.2 High" },
-  // Kimi
-  { id: "kimi-k3-max", name: "Kimi K3 Max" },
-  { id: "kimi-k3-high", name: "Kimi K3 High" },
-  { id: "kimi-k3-low", name: "Kimi K3 Low" },
-  { id: "kimi-k2-7", name: "Kimi K2.7", contextLength: 262144 },
-  // Inkling
-  { id: "inkling-max", name: "Inkling Max" },
-  { id: "inkling-xhigh", name: "Inkling XHigh" },
-  { id: "inkling-high", name: "Inkling High" },
-  { id: "inkling-medium", name: "Inkling Medium" },
-  { id: "inkling-low", name: "Inkling Low" },
-  { id: "inkling-none", name: "Inkling None" },
-  // Others
-  { id: "deepseek-v4", name: "DeepSeek V4 Pro", contextLength: 1048576 },
-  { id: "nemotron-3-ultra-nvfp4", name: "Nemotron 3 Ultra", contextLength: 262144 },
+  ...effortModels("claude-fable-5-1", "Claude Fable 5.1", 128_000, 1_000_000),
+  ...fastEffortModels("claude-opus-5", "Claude Opus 5", 128_000, 1_000_000),
+  ...fastEffortModels("claude-opus-4-8", "Claude Opus 4.8", 128_000, 1_000_000),
+  ...effortModels("claude-sonnet-5", "Claude Sonnet 5", 128_000, 1_000_000),
+
+  model("claude-sonnet-4-6-thinking-1m", "Claude Sonnet 4.6 Thinking 1M", 128_000, 1_000_000),
+  model("claude-sonnet-4-6-1m", "Claude Sonnet 4.6 1M", 128_000, 1_000_000),
+  model("claude-sonnet-4-6-thinking", "Claude Sonnet 4.6 Thinking", 128_000, 200_000),
+  model("claude-sonnet-4-6", "Claude Sonnet 4.6", 128_000, 200_000),
+  model("MODEL_PRIVATE_11", "Claude Haiku 4.5", 64_000, 200_000),
+
+  ...gptModels("gpt-5-6-sol", "GPT-5.6 Sol"),
+  ...gptModels("gpt-5-6-terra", "GPT-5.6 Terra"),
+  ...gptModels("gpt-5-6-luna", "GPT-5.6 Luna"),
+
+  ...effortModels("kimi-k3", "Kimi K3", 131_072, 1_048_576, [
+    ["max", "Max"],
+    ["high", "High"],
+    ["low", "Low"],
+  ]),
+  model("kimi-k2-7", "Kimi K2.7", 16_000, 262_144),
+
+  ...effortModels("glm-5-3", "GLM-5.3", 128_000, 1_000_000, [
+    ["max", "Max"],
+    ["high", "High"],
+    ["low", "Low"],
+  ]),
+  ...effortModels("glm-5-3-flash", "GLM-5.3 Flash", 128_000, 1_000_000, [
+    ["max", "Max"],
+    ["high", "High"],
+    ["low", "Low"],
+  ]),
+
+  model("swe-1-7", "SWE-1.7 Max", 128_000, 262_000),
+  model("swe-1-7-medium", "SWE-1.7 Medium", 128_000, 262_000),
+  model("swe-1-7-lightning", "SWE-1.7 Lightning Max", 96_000, 202_752),
+  model("swe-1-7-lightning-medium", "SWE-1.7 Lightning Medium", 96_000, 202_752),
+  model("adaptive", "Adaptive"),
+
+  ...effortModels("grok-4-6", "Grok 4.6", 100_000, 500_000, [
+    ["xhigh", "XHigh"],
+    ["high", "High"],
+    ["medium", "Medium"],
+    ["low", "Low"],
+  ]),
+  ...effortModels("inkling", "Inkling", 131_072, undefined, [
+    ["max", "Max"],
+    ["xhigh", "X-High"],
+    ["high", "High"],
+    ["medium", "Medium"],
+    ["low", "Low"],
+    ["none", "None"],
+  ]),
+  ...effortModels("deepseek-v4-flash", "DeepSeek V4 Flash", 384_000, 1_000_000, [
+    ["max", "Max"],
+    ["high", "High"],
+    ["low", "Low"],
+  ]),
+  ...effortModels("nemotron-3-ultra", "Nemotron 3 Ultra", 32_768, 262_144, [
+    ["high", "High"],
+    ["medium", "Medium"],
+    ["none", "None"],
+  ]),
+  ...effortModels("gemini-3-7-flash", "Gemini 3.7 Flash", 65_535, 1_048_576, [
+    ["high", "High"],
+    ["medium", "Medium"],
+    ["low", "Low"],
+  ]),
+  ...effortModels("gemini-3-1-pro", "Gemini 3.1 Pro", 65_535, 1_048_576, [
+    ["high", "High Thinking"],
+    ["low", "Low Thinking"],
+  ]),
+  ...effortModels("deepseek-v4-pro", "DeepSeek V4 Pro", 384_000, 1_000_000, [
+    ["max", "Max"],
+    ["high", "High"],
+    ["low", "Low"],
+  ]),
 ];

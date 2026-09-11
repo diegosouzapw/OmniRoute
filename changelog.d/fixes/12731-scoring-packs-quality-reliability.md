@@ -1,0 +1,1 @@
+- **fix(auto-combo):** every mode pack now carries `quality` and `reliability` weights (`quality` 0.02, 0.03 in `quality-first`; `reliability` 0.03, 0.04 in `reliability-first`), so selecting a pack no longer silences either signal; `DEFAULT_WEIGHTS` is unchanged ([#12731](https://github.com/diegosouzapw/OmniRoute/pull/12731)) — thanks @maxmad64bis

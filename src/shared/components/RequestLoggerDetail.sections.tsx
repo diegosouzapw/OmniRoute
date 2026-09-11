@@ -259,6 +259,35 @@ export function ConversationContextSection({ log, detail }) {
               {open ? "expand_less" : "expand_more"}
             </span>
           </button>
+          {liveDetail?.parentLogId && (
+            // Full navigation, not client-side routing: the logs page only reads
+            // ?id from a fresh mount (useState(() => searchParams.get("id")) in
+            // dashboard/logs/page.tsx), so an in-page route change wouldn't load
+            // the parent entry if the user is already on this page.
+            <a
+              href={`/dashboard/logs?id=${encodeURIComponent(liveDetail.parentLogId)}`}
+              className="flex items-center gap-1 text-[11px] text-text-muted hover:text-primary transition-colors"
+              title={`Continues from ${liveDetail.parentLogId}`}
+            >
+              <span className="material-symbols-outlined text-[14px]">reply</span>
+              continues from parent
+            </a>
+          )}
+          {liveDetail?.sessionTag && (
+            // /dashboard/conversations reads its own `?tree=<id>` deep-link param
+            // from a fresh mount too (useState(() => searchParams.get("tree")) in
+            // that page) -- same full-navigation reasoning as the parent-log link
+            // above. sessionTag is the same conv_<id> the conversations list and
+            // /api/conversations/[id]/tree both key on.
+            <a
+              href={`/dashboard/conversations?tree=${encodeURIComponent(liveDetail.sessionTag)}`}
+              className="flex items-center gap-1 text-[11px] text-text-muted hover:text-primary transition-colors"
+              title={`Open conversation ${liveDetail.sessionTag}`}
+            >
+              <span className="material-symbols-outlined text-[14px]">forum</span>
+              view conversation
+            </a>
+          )}
         </div>
         {open && (
           <div className="flex items-center gap-1">

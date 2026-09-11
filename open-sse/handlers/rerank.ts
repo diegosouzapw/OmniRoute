@@ -73,6 +73,10 @@ function buildAuthHeader(providerConfig, token) {
   // strings (whitespace-only documents are accepted and ranked upstream). We
   // filter out exact empty strings and track original indices implicitly via the
   // response adapter, which reconstructs the map from options.documents (#7809).
+  // `top_k` is clamped to the number of documents actually sent: the handler
+  // defaults `top_n` to the caller's *unfiltered* document count, so dropping an
+  // empty string would otherwise ask Voyage to rank more documents than it got,
+  // and Voyage rejects `top_k > documents.length` with HTTP 400.
   // `return_documents` is always forced off upstream: Voyage echoes documents as
   // plain strings (not Cohere's {text}), so we never rely on the echo — document
   // text is always synthesized locally from the caller's originals (#7811).
@@ -84,7 +88,7 @@ function buildAuthHeader(providerConfig, token) {
       model: body.model,
       query: body.query,
       documents: docTexts,
-      top_k: body.top_n || docTexts.length,
+      top_k: Math.min(body.top_n || docTexts.length, docTexts.length),
       return_documents: false,
     };
   }
@@ -101,12 +105,13 @@ function buildAuthHeader(providerConfig, token) {
   options: RerankResponseOptions = {}
 ) {
   if (providerConfig.format === "nvidia") {
+    const returnDocuments = options.return_documents !== false;
     return {
       id: data.id != null ? String(data.id) : `rerank-${Date.now()}`,
       results: (data.rankings || []).map((r) => ({
         index: r.index,
         relevance_score: r.logit || r.score || 0,
-        document: { text: r.text || "" },
+        ...(returnDocuments ? { document: { text: r.text || "" } } : {}),
       })),
       meta: {
         api_version: { version: "2" },

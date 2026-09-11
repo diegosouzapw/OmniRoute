@@ -1,5 +1,5 @@
 import { hasSelfAccountQuotaScope, hasSelfUsageScope } from "@/shared/constants/selfServiceScopes";
-import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
+import { supportsProviderQuota } from "@/shared/utils/providerQuotaVisibility";
 
 type JsonRecord = Record<string, unknown>;
 type DateLike = number | string | Date | null | undefined;
@@ -64,6 +64,7 @@ interface AccountQuotaConnection {
   id: string;
   provider: string;
   lookupFailed?: boolean;
+  providerSpecificData?: unknown;
 }
 
 function toNumber(value: unknown, fallback = 0): number {
@@ -208,11 +209,14 @@ function normalizePlan(value: unknown): unknown {
   return undefined;
 }
 
-function isSupportedProvider(provider: string): boolean {
-  return USAGE_SUPPORTED_PROVIDERS.includes(provider as (typeof USAGE_SUPPORTED_PROVIDERS)[number]);
+function isSupportedProvider(
+  provider: string,
+  connection?: { provider?: string; providerSpecificData?: unknown },
+): boolean {
+  return supportsProviderQuota(provider, connection);
 }
 
-function getConnectionIdentity(value: unknown): { id: string; provider: string } | null {
+function getConnectionIdentity(value: unknown): AccountQuotaConnection | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const record = value as JsonRecord;
   if (record.isActive === false) return null;
@@ -221,7 +225,11 @@ function getConnectionIdentity(value: unknown): { id: string; provider: string }
   const provider = typeof record.provider === "string" ? record.provider : "";
   if (!id || !provider) return null;
 
-  return { id, provider };
+  return {
+    id,
+    provider,
+    providerSpecificData: record.providerSpecificData,
+  };
 }
 
 async function listAccountQuotaConnections(
@@ -297,7 +305,7 @@ async function resolveConnectionAccountQuota(
     };
   }
 
-  if (!isSupportedProvider(connection.provider)) {
+  if (!isSupportedProvider(connection.provider, connection)) {
     return {
       provider: connection.provider,
       connectionId: connection.id,

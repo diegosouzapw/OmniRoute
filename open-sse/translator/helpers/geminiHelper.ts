@@ -63,6 +63,12 @@ export const GEMINI_UNSUPPORTED_SCHEMA_KEYS = new Set([
   // it, rejecting the whole request with "Unknown name \"uniqueItems\"".
   // Upstream 9router already strips it alongside `contains` for the same error.
   "uniqueItems",
+  // #12509: JSON-Schema-2020-12 tuple keyword. Claude Code's built-in tools
+  // describe `[start_line, end_line]` ranges with it (nested under `items`),
+  // and Gemini's schema parser rejects the whole tool list with
+  // "Unknown name \"prefixItems\" ... Cannot find field". ensureArrayItems
+  // below still guarantees an `items` schema for the tuple-typed array.
+  "prefixItems",
   // Complex schema keywords (handled by flattenAnyOfOneOf/mergeAllOf)
   "anyOf",
   "oneOf",
@@ -325,6 +331,123 @@ function cloneSchemaValue(value: unknown): unknown {
 
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
+}
+
+// Maps of schemas — the container itself is not a bare property map (#12269).
+const SCHEMA_MAP_KEYS = new Set([
+  "properties",
+  "$defs",
+  "definitions",
+  "patternProperties",
+  "dependentSchemas",
+]);
+
+const SCHEMA_NODE_KEYS = new Set([
+  "additionalItems",
+  "additionalProperties",
+  "contentSchema",
+  "contains",
+  "default",
+  "dependencies",
+  "dependentRequired",
+  "dependentSchemas",
+  "discriminator",
+  "else",
+  "example",
+  "examples",
+  "externalDocs",
+  "if",
+  "patternProperties",
+  "propertyNames",
+  "then",
+  "unevaluatedItems",
+  "unevaluatedProperties",
+  "xml",
+]);
+
+function isSchemaNode(record: JsonRecord): boolean {
+  if (Object.keys(record).some((key) => key.startsWith("x-") || SCHEMA_NODE_KEYS.has(key))) {
+    return true;
+  }
+  if (typeof record.type === "string" || Array.isArray(record.type)) return true;
+  if (record.properties !== undefined || Array.isArray(record.required)) return true;
+  if (record.items !== undefined || record.prefixItems !== undefined) return true;
+  if (record.anyOf !== undefined || record.oneOf !== undefined || record.allOf !== undefined) {
+    return true;
+  }
+  if (record.not !== undefined || record.$ref !== undefined || record.enum !== undefined) {
+    return true;
+  }
+  return record.const !== undefined;
+}
+
+function isBarePropertyMap(record: JsonRecord): boolean {
+  const keys = Object.keys(record);
+  if (keys.length === 0 || isSchemaNode(record)) return false;
+  return keys.every((key) => {
+    const value = record[key];
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+  });
+}
+
+function promoteBooleanRequired(record: JsonRecord): void {
+  const properties = toRecord(record.properties);
+  if (Object.keys(properties).length === 0) return;
+
+  const required = Array.isArray(record.required)
+    ? record.required.filter((field): field is string => typeof field === "string")
+    : [];
+
+  for (const [name, schema] of Object.entries(properties)) {
+    if (!schema || typeof schema !== "object" || Array.isArray(schema)) continue;
+    const child = schema as JsonRecord;
+    if (child.required === true) {
+      if (!required.includes(name)) required.push(name);
+    }
+    if ("required" in child && !Array.isArray(child.required)) {
+      delete child.required;
+    }
+  }
+
+  if (required.length > 0) {
+    record.required = required;
+  } else if (!Array.isArray(record.required)) {
+    delete record.required;
+  }
+}
+
+// Pre-pass for Cloud Code (#12269): boolean `required` on a property and nested
+// bare property maps both survive the later phases and 400 Gemini's proto.
+// Mirrors CLIProxyAPI normalizeMalformedSchemaObjects.
+function normalizeMalformedSchemaObjects(obj: unknown, parentKey?: string): void {
+  if (!obj || typeof obj !== "object") return;
+
+  if (Array.isArray(obj)) {
+    for (const item of obj) {
+      normalizeMalformedSchemaObjects(item, parentKey);
+    }
+    return;
+  }
+
+  const record = obj as JsonRecord;
+  if (parentKey === undefined || !SCHEMA_MAP_KEYS.has(parentKey)) {
+    if (isBarePropertyMap(record)) {
+      const props = { ...record };
+      for (const key of Object.keys(record)) {
+        delete record[key];
+      }
+      record.type = "object";
+      record.properties = props;
+    }
+  }
+
+  promoteBooleanRequired(record);
+
+  for (const [key, value] of Object.entries(record)) {
+    if (value && typeof value === "object") {
+      normalizeMalformedSchemaObjects(value, key);
+    }
+  }
 }
 
 function decodeJsonPointerSegment(segment: unknown): string {
@@ -626,6 +749,9 @@ export function cleanJSONSchemaForAntigravity(schema: unknown): unknown {
 
   const root = cloneSchemaValue(schema);
   let cleaned = inlineLocalSchemaRefs(root, root);
+
+  // Phase 0: #12269 malformed skill/tool schemas (boolean required, bare maps).
+  normalizeMalformedSchemaObjects(cleaned);
 
   // Phase 1: Convert and prepare
   convertConstToEnum(cleaned);

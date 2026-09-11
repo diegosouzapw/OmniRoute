@@ -112,3 +112,88 @@ test("invalid pending sweep max age falls back to one hour", () => {
     else process.env.MAX_PENDING_REQUEST_AGE_MS = previous;
   }
 });
+
+// Live incident: a combo dispatch calls trackPendingRequest once PER TARGET
+// ATTEMPT (open-sse/handlers/chatCore.ts's single "started" call site, hit
+// again on every fallback), each previously generating its OWN fresh id. A
+// dashboard tab polling /api/logs/<id> for the FIRST attempt went stale the
+// moment that attempt finalized and the combo silently retried under a
+// different id -- the tab had no way to discover the new id, even though the
+// request kept streaming successfully. Fix: reuse the same pending id for
+// every attempt sharing a correlationId (already passed as metadata on every
+// "started" call, already stable across a combo's retries).
+test("trackPendingRequest reuses the same id across a combo's target-attempt retries sharing a correlationId", () => {
+  clearPendingRequests();
+
+  const firstId = trackPendingRequest("model-a", "provider-a", "conn-a", true, {
+    correlationId: "corr-retry-1",
+  });
+  assert.ok(firstId, "first attempt should produce an id");
+
+  // First target attempt finalizes (fails) -- the combo retries with a
+  // different target, but the SAME client-facing request/correlation.
+  trackPendingRequest("model-a", "provider-a", "conn-a", false);
+  assert.equal(getPendingById().has(firstId), false, "finalized attempt is removed by id");
+
+  const secondId = trackPendingRequest("model-b", "provider-b", "conn-b", true, {
+    correlationId: "corr-retry-1",
+  });
+
+  assert.equal(secondId, firstId, "retry attempt must reuse the first attempt's id");
+  assert.equal(getPendingById().has(firstId), true, "reused id is live again under the new attempt");
+  assert.equal(getPendingById().get(firstId)?.model, "model-b", "entry reflects the NEW attempt's target");
+
+  clearPendingRequests();
+});
+
+test("trackPendingRequest never reuses an id across two different correlationIds", () => {
+  clearPendingRequests();
+
+  const idA = trackPendingRequest("model-a", "provider-a", "conn-a", true, {
+    correlationId: "corr-unrelated-1",
+  });
+  const idB = trackPendingRequest("model-a", "provider-a", "conn-b", true, {
+    correlationId: "corr-unrelated-2",
+  });
+
+  assert.ok(idA && idB);
+  assert.notEqual(idA, idB, "unrelated client requests must never share a pending id");
+
+  clearPendingRequests();
+});
+
+test("trackPendingRequest without a correlationId keeps generating a fresh id every attempt (unchanged behavior)", () => {
+  clearPendingRequests();
+
+  const idA = trackPendingRequest("model-a", "provider-a", "conn-a", true);
+  trackPendingRequest("model-a", "provider-a", "conn-a", false);
+  const idB = trackPendingRequest("model-a", "provider-a", "conn-a", true);
+
+  assert.ok(idA && idB);
+  assert.notEqual(idA, idB, "no correlationId means no cross-attempt identity to reuse");
+
+  clearPendingRequests();
+});
+
+test("sweepStalePendingRequests evicts stale correlation-id-to-pending-id mappings so an old id can never resurface", () => {
+  clearPendingRequests();
+
+  const firstId = trackPendingRequest("model-a", "provider-a", "conn-a", true, {
+    correlationId: "corr-stale-mapping",
+  });
+  assert.ok(firstId);
+  trackPendingRequest("model-a", "provider-a", "conn-a", false);
+
+  // Sweep with a max age of 0 so the just-recorded correlation mapping (whose
+  // touchedAt is "now") is immediately treated as stale, mirroring what a
+  // real 1-hour-later sweep does to a genuinely abandoned mapping.
+  sweepStalePendingRequests(Date.now() + HOUR_MS + MINUTE_MS, HOUR_MS);
+
+  const secondId = trackPendingRequest("model-b", "provider-b", "conn-b", true, {
+    correlationId: "corr-stale-mapping",
+  });
+
+  assert.notEqual(secondId, firstId, "an evicted mapping must not resurrect the old id");
+
+  clearPendingRequests();
+});

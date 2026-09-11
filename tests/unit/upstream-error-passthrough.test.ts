@@ -4,6 +4,7 @@ import {
   shouldPassthroughUpstreamError,
   buildPassthroughErrorResponse,
 } from "../../open-sse/utils/upstreamErrorPassthrough.ts";
+import { buildSanitizedUpstreamErrorResponse } from "../../open-sse/utils/upstreamErrorResponse.ts";
 
 test("upstream error passthrough", async (t) => {
   await t.test("4xx com corpo JSON de erro do provider é elegível", () => {
@@ -53,13 +54,24 @@ test("upstream error passthrough", async (t) => {
         }),
         false
       );
+      for (const message of [
+        String.raw`rejected api_key\t=opaque-tab-secret-9382746`,
+        String.raw`rejected api_key\u0009=opaque-unicode-tab-9382746`,
+        String.raw`rejected Bearer\\topaque-bearer-secret-9382746`,
+        "spawn failed: helper --api-key opaque-cli-key-9382746",
+        'spawn failed: helper --token "opaque cli token 9382746"',
+        "spawn failed: helper --password 'opaque-cli-password-9382746'",
+        `upstream echoed hf_${"A".repeat(34)}`,
+      ]) {
+        assert.equal(shouldPassthroughUpstreamError(422, { error: { message } }), false, message);
+      }
     }
   );
   await t.test(
     "corpo de capacidade/quota sem segredo continua elegível (contrato Claude Code preservado)",
     () => {
-      // The common case must still relay verbatim so Claude Code can match the
-      // wording to auto-disable capabilities.
+      // The common safe case must preserve wording so Claude Code can match it
+      // after recursive sanitization and auto-disable capabilities.
       assert.equal(
         shouldPassthroughUpstreamError(400, {
           error: { message: "thinking.type: adaptive is not supported" },
@@ -74,7 +86,7 @@ test("upstream error passthrough", async (t) => {
       );
     }
   );
-  await t.test("buildPassthroughErrorResponse preserva corpo byte-a-byte", async () => {
+  await t.test("buildPassthroughErrorResponse preserves an already-safe JSON body", async () => {
     const body = {
       type: "error",
       error: { type: "invalid_request_error", message: "thinking.type: nope" },
@@ -89,9 +101,85 @@ test("upstream error passthrough", async (t) => {
   });
 });
 
+test("passthrough preserves multiline capability wording without stack frames", async () => {
+  const message = "validation failed\nthinking.type: adaptive is not supported";
+  const res = buildPassthroughErrorResponse(400, {
+    type: "error",
+    error: { type: "invalid_request_error", message },
+  });
+  assert.ok(res);
+  const body = (await res.json()) as { error?: { message?: string } };
+  assert.equal(body.error?.message, message);
+});
+
+test("passthrough removes basename and URL stack frames while preserving prose URLs", async () => {
+  const hostileMessages = [
+    "boom\n    at handler (server.js:12:3)",
+    String.raw`boom\n    at handler (server.js:12:3)`,
+    "boom at handler (http://127.0.0.1:3000/_next/server.js:12:3)",
+    "boom at handler (webpack-internal:///app/server.js:12:3)",
+    "boom\n    at handler (http://127.0.0.1:3000/_next/server.js?build=abc:12:3)",
+    String.raw`boom\n    at handler (webpack-internal:///app/server.js#chunk:12:3)`,
+    String.raw`boom at handler (\Windows\Temp\server.js:12:3)`,
+    "boom\nhandler@file:///home/runner/private.js:12:3",
+    String.raw`boom\nhandler@/home/runner/private.cts:12:3`,
+    "boom\nhandler@https://127.0.0.1:3000/_next/server.mts?build=abc:12:3",
+    "boom at handler (http://127.0.0.1:3000/_next/chunks/route:12:3)",
+  ];
+
+  for (const message of hostileMessages) {
+    const response = buildPassthroughErrorResponse(400, {
+      type: "error",
+      error: { type: "invalid_request_error", message },
+    });
+    assert.ok(response);
+    const body = (await response.json()) as { error?: { message?: string } };
+    assert.equal(body.error?.message, "boom");
+  }
+
+  const prose = "See https://example.com/docs/error for recovery guidance";
+  const proseResponse = buildPassthroughErrorResponse(400, {
+    type: "error",
+    error: { type: "invalid_request_error", message: prose },
+  });
+  assert.ok(proseResponse);
+  const proseBody = (await proseResponse.json()) as { error?: { message?: string } };
+  assert.equal(proseBody.error?.message, prose);
+
+  const proseWithCoordinates = "See https://example.com/docs/error:12:3 for recovery guidance";
+  const proseWithCoordinatesResponse = buildPassthroughErrorResponse(400, {
+    type: "error",
+    error: { type: "invalid_request_error", message: proseWithCoordinates },
+  });
+  assert.ok(proseWithCoordinatesResponse);
+  const proseWithCoordinatesBody = (await proseWithCoordinatesResponse.json()) as {
+    error?: { message?: string };
+  };
+  assert.equal(proseWithCoordinatesBody.error?.message, proseWithCoordinates);
+});
+
+test("canonical upstream JSON projection redacts URL credentials", async () => {
+  const response = buildSanitizedUpstreamErrorResponse({
+    status: 422,
+    rawBody: JSON.stringify({
+      error: {
+        message:
+          "proxy failed https://svc-user:p4ss-opaque-9382@internal.example/v1?" +
+          "X-Amz-Signature=amz-secret&sig=sas-secret",
+      },
+    }),
+    fallbackMessage: "Upstream validation failed",
+  });
+  const serialized = await response.text();
+
+  assert.equal(response.status, 422);
+  assert.doesNotMatch(serialized, /svc-user|p4ss-opaque|amz-secret|sas-secret/i);
+  assert.match(serialized, /\[REDACTED\]/);
+});
+
 test("createErrorResult opt-in passthrough (opts.passthrough)", async (t) => {
   await t.test(
-    "com opts.passthrough e corpo elegível, result.response é o corpo upstream verbatim",
+    "com opts.passthrough e corpo elegível, result.response preserva o JSON upstream seguro",
     async () => {
       const { createErrorResult } = await import("../../open-sse/utils/error.ts");
       const upstreamBody = {

@@ -91,6 +91,14 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   // Trailing punctuation/whitespace before the closing quote is tolerated
   // because real API responses may include a period or trailing space.
   /"error"\s*:\s*"usage limit reached[.\s]*"/i,
+
+  // Moonshot Open Platform organization TPD (tokens-per-day). Live body:
+  // "request reached organization TPD rate limit, current: N, limit: M".
+  // Do not use a bare /TPD/ — too wide. Limit is read from the body, never
+  // hardcoded (Tier0=1.5M, Tier1+=unlimited).
+  /organization TPD rate limit/i,
+  /\bTPD rate limit\b/i,
+  /insufficient balance/i,
 ];
 
 /**
@@ -155,6 +163,9 @@ const TERMINAL_QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /individual quota reached/i,
   /enable overages/i,
   /daily free allocation/i,
+  /organization TPD rate limit/i,
+  /\bTPD rate limit\b/i,
+  /insufficient balance/i,
 ];
 
 /**

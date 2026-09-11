@@ -1,0 +1,1 @@
+- **fix(routing):** custom OpenAI-compatible nodes now honor the saved Chat/Responses API type after edits instead of letting the node's original ID prefix override the live connection setting ([#11884](https://github.com/diegosouzapw/OmniRoute/issues/11884)).

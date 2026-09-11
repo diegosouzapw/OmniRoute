@@ -38,30 +38,37 @@ export function createLogStream(options: LogStreamOptions = {}): LogStream {
 
         if (!response.ok) {
           controller.error(new Error(`HTTP ${response.status}: ${response.statusText}`));
-          clearTimeout(timeoutId);
           return;
         }
 
         if (!response.body) {
           controller.error(new Error("Response body is null"));
-          clearTimeout(timeoutId);
           return;
         }
 
         const reader = response.body.getReader();
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          if (signal.aborted) break;
-          controller.enqueue(value);
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            if (signal.aborted) break;
+            controller.enqueue(value);
+          }
+        } finally {
+          // Leaving the loop early (abort/throw) otherwise keeps the body locked
+          // and its socket held until GC.
+          await reader.cancel().catch(() => {});
         }
 
         controller.close();
-        clearTimeout(timeoutId);
       } catch (err) {
         if (signal.aborted) return; // Expected stop
         controller.error(err instanceof Error ? err : new Error(String(err)));
+      } finally {
+        // `stop()` aborts mid-fetch and returns through the `signal.aborted`
+        // branch above, so clearing the timer on the individual exit paths
+        // misses the one path stop() is built to take.
         clearTimeout(timeoutId);
       }
     },

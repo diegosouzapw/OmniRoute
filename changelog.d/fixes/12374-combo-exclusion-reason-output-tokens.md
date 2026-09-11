@@ -1,1 +1,0 @@
-- **fix(combo):** capability-filter exhaustion caused by `max_tokens` above every target's known output limit now reports that reason (requested `max_tokens` vs the pool's highest known ceiling) instead of the unrelated "supports structured output" message ([#12229](https://github.com/diegosouzapw/OmniRoute/issues/12229)) — thanks @DW-MediaLab

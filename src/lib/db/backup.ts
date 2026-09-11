@@ -101,6 +101,24 @@ function getBackupDir() {
   return DB_BACKUPS_DIR || path.join(DATA_DIR, "db_backups");
 }
 
+function listBackupFilesNewestFirst(backupDir: string) {
+  return fs
+    .readdirSync(backupDir)
+    .filter((filename) => filename.startsWith("db_") && filename.endsWith(".sqlite"))
+    .flatMap((filename) => {
+      try {
+        return [{ filename, stat: fs.statSync(path.join(backupDir, filename)) }];
+      } catch {
+        // A concurrent retention pass may remove an entry after readdir.
+        return [];
+      }
+    })
+    .sort(
+      (left, right) =>
+        right.stat.mtimeMs - left.stat.mtimeMs || right.filename.localeCompare(left.filename)
+    );
+}
+
 export function cleanupDbBackups(options?: {
   maxFiles?: number;
   retentionDays?: number;
@@ -272,16 +290,26 @@ export function backupDbFile(reason = "auto") {
     if (reason !== "manual" && reason !== "pre-restore") {
       // Shrink detection is useful for automatic safety backups, but it should
       // never block an explicit operator action like manual backup or pre-restore.
+      // Only timestamp-named automatic/manual backups are shrink baselines. The
+      // content-addressed migration snapshots are restore points, not periodic size
+      // samples; excluding them also keeps this lookup to names only with a single stat
+      // even in legacy directories containing tens of thousands of timestamp backups.
       const existingBackups = fs
         .readdirSync(backupDir)
-        .filter((f) => f.startsWith("db_") && f.endsWith(".sqlite"))
+        .filter((filename) => /^db_\d{4}-.*\.sqlite$/.test(filename))
         .sort();
       if (existingBackups.length > 0) {
-        const latestBackup = existingBackups[existingBackups.length - 1];
-        const latestStat = fs.statSync(path.join(backupDir, latestBackup));
-        if (latestStat.size > 4096 && stat.size < latestStat.size * 0.5) {
-          console.warn(`[DB] Backup SKIPPED — DB shrank from ${latestStat.size}B to ${stat.size}B`);
-          return null;
+        const latestBackup = existingBackups.at(-1)!;
+        try {
+          const latestStat = fs.statSync(path.join(backupDir, latestBackup));
+          if (latestStat.size > 4096 && stat.size < latestStat.size * 0.5) {
+            console.warn(
+              `[DB] Backup SKIPPED — DB shrank from ${latestStat.size}B to ${stat.size}B`
+            );
+            return null;
+          }
+        } catch (error: unknown) {
+          if ((error as NodeJS.ErrnoException | null)?.code !== "ENOENT") throw error;
         }
       }
     }
@@ -316,16 +344,11 @@ export async function listDbBackups() {
   try {
     if (!fs.existsSync(backupDir)) return [];
 
-    const entries = fs
-      .readdirSync(backupDir)
-      .filter((f) => f.startsWith("db_") && f.endsWith(".sqlite"))
-      .sort()
-      .reverse();
+    const entries = listBackupFilesNewestFirst(backupDir);
 
     const { tryOpenSync } = await import("@/lib/db/adapters/driverFactory");
-    return entries.map((filename) => {
+    return entries.map(({ filename, stat }) => {
       const filePath = path.join(backupDir, filename);
-      const stat = fs.statSync(filePath);
       const match = filename.match(/^db_(.+?)_([^.]+)\.sqlite$/);
       const reason = match ? match[2] : "unknown";
 

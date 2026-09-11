@@ -224,7 +224,7 @@ test("agnes registers Video V2.0 on the current video_id job contract", () => {
   assert.ok(getAllVideoModels().some((model) => model.id === "agnes/agnes-video-v2.0"));
 });
 
-test("agnes Video V2.0 submits with Bearer auth and polls by video_id", async () => {
+test("agnes Video V2.0 submits with Bearer auth and polls by video_id and model_name", async () => {
   const originalFetch = globalThis.fetch;
   const originalSetTimeout = globalThis.setTimeout;
   const calls: Array<{
@@ -309,7 +309,7 @@ test("agnes Video V2.0 submits with Bearer auth and polls by video_id", async ()
       },
     });
     assert.deepEqual(calls[1], {
-      url: "https://apihub.agnes-ai.com/agnesapi?video_id=video-123",
+      url: "https://apihub.agnes-ai.com/agnesapi?video_id=video-123&model_name=agnes-video-v2.0",
       method: "GET",
       headers: {
         "Content-Type": "application/json",

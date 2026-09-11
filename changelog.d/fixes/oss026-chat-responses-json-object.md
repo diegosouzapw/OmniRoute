@@ -1,1 +1,0 @@
-- Preserve Chat Completions JSON-object response formats when translating requests to the Responses API.

@@ -9,7 +9,7 @@ const TEST_TOKEN = "e30.eyJpZCI6InVzZXItMTIzIn0.sig";
 /**
  * #8014 guard: the executor must target the versioned v2 completions endpoint,
  * never the stale unversioned `/api/chat/completions` path, which 404s
- * model-independently as of 2026-07.
+ * model-independently.
  *
  * Setup notes for this flow (the executor now creates a remote chat first and
  * signs the completion request):
@@ -43,7 +43,7 @@ test("#8014: ZaiWebExecutor must POST to the current chat.z.ai v2 chat-completio
   try {
     const executor = new mod.ZaiWebExecutor();
     const result = await executor.execute({
-      model: "glm-4.6",
+      model: "glm-5.3",
       body: { messages: [{ role: "user", content: "hello" }] },
       stream: false,
       credentials: {
@@ -55,7 +55,6 @@ test("#8014: ZaiWebExecutor must POST to the current chat.z.ai v2 chat-completio
     assert.ok(requested.length > 0, "the direct path must actually reach fetch");
 
     assert.ok(
-      // Exact-URL match (not a substring test): `requested` holds whole URLs.
       !requested.some((url) => url === STALE_URL),
       `zai-web executor POSTed to the stale endpoint — matches #8014's model-independent 404 "Not Found"`
     );

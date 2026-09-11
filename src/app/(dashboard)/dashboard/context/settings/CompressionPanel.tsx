@@ -3,12 +3,13 @@
 // CompressionPanel — the single-source engine-grid UI for compression.
 //
 // Renders the master on/off switch, one row per catalog engine (on/off + level +
-// link to its detail page), the cavemanOutput intensity row, the mcpAccessibility
-// toggle (its own endpoint / separate store), a read-only derived-pipeline preview,
-// and the general settings (auto-trigger tokens + preserve-system-prompt).
+// link to its detail page), the adaptive context-budget dial, the cavemanOutput
+// intensity row, the mcpAccessibility toggle (its own endpoint / separate store),
+// a derived-pipeline preview, and the general settings (auto-trigger tokens +
+// preserve-system-prompt).
 //
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 // Import Card/Toggle from their direct module paths rather than the @/shared/components
 // barrel: the barrel transitively pulls a heavy/Node-only module that hangs the
@@ -60,12 +61,20 @@ interface CompressionConfig {
   // Best-effort pre-warm of the SLM model on enable / cold restart. Default false.
   ultraSlmPrewarm?: boolean;
   // Phase 4 (C): adaptive context-budget. Absent / mode:"off" = legacy auto-trigger.
-  // The panel currently surfaces the computed target read-only; mode/policy editors are a
-  // follow-up (the load/save path does not yet populate this field).
   contextBudget?: ContextBudgetConfig;
   liveZone?: { enabled: boolean };
 }
 
+const CONTEXT_BUDGET_MODES = new Set<ContextBudgetConfig["mode"]>([
+  "off",
+  "floor",
+  "replace-autotrigger",
+]);
+const CONTEXT_BUDGET_POLICIES = new Set<ContextBudgetConfig["policy"]>([
+  "reserve-output",
+  "percentage",
+  "absolute",
+]);
 const CAVEMAN_OUTPUT_LEVELS: CavemanIntensity[] = ["lite", "full", "ultra"];
 
 const DEFAULT_CONFIG: CompressionConfig = {
@@ -78,6 +87,7 @@ const DEFAULT_CONFIG: CompressionConfig = {
   outputStyles: [],
   ultraEngine: "heuristic",
   ultraSlmPrewarm: false,
+  contextBudget: { ...DEFAULT_CONTEXT_BUDGET },
   liveZone: { enabled: false },
 };
 
@@ -120,22 +130,73 @@ function LiveZoneToggle({
   );
 }
 
-function AdaptiveTargetPreview({ contextBudget }: { contextBudget?: ContextBudgetConfig }) {
+function AdaptiveContextBudgetDial({
+  contextBudget,
+  saving,
+  onChange,
+}: {
+  contextBudget: ContextBudgetConfig;
+  saving: boolean;
+  onChange: (patch: Partial<ContextBudgetConfig>) => void;
+}) {
   const t = useTranslations("settings");
-  const target = getAdaptiveTargetSummary(contextBudget ?? DEFAULT_CONTEXT_BUDGET, 200000);
+  // Representative window for the preview label (D-C1). Not the live model limit —
+  // the panel has no selected-model context here; 200k is Claude-class default.
+  const target = getAdaptiveTargetSummary(contextBudget, 200000);
   return (
-    <div
-      data-testid="adaptive-target-preview"
-      className="mb-4 rounded-md border border-border/60 bg-bg-subtle px-3 py-2 text-xs text-text-muted"
-    >
-      {target.enabled
-        ? t("compressionAdaptiveTarget", {
-            mode: target.mode,
-            policy: target.policy,
-            target: target.target,
-            contextLimit: target.contextLimit,
-          })
-        : t("compressionAdaptiveOff")}
+    <div className="mb-4 space-y-2 rounded-md border border-border/60 bg-bg-subtle px-3 py-2">
+      <label className="flex items-center justify-between gap-3">
+        <span className="text-sm font-medium text-text-main">{t("compressionAdaptiveMode")}</span>
+        <select
+          data-testid="context-budget-mode-select"
+          value={contextBudget.mode ?? "off"}
+          onChange={(e) => {
+            const mode = e.target.value;
+            if (CONTEXT_BUDGET_MODES.has(mode as ContextBudgetConfig["mode"])) {
+              onChange({ mode: mode as ContextBudgetConfig["mode"] });
+            }
+          }}
+          disabled={saving}
+          className="w-44 rounded border border-border bg-surface px-2 py-1 text-sm text-text-main"
+        >
+          <option value="off">{t("compressionAdaptiveModeOff")}</option>
+          <option value="floor">{t("compressionAdaptiveModeFloor")}</option>
+          <option value="replace-autotrigger">{t("compressionAdaptiveModeReplace")}</option>
+        </select>
+      </label>
+      {(contextBudget.mode ?? "off") !== "off" && (
+        <label className="flex items-center justify-between gap-3">
+          <span className="text-sm font-medium text-text-main">
+            {t("compressionAdaptivePolicy")}
+          </span>
+          <select
+            data-testid="context-budget-policy-select"
+            value={contextBudget.policy ?? "reserve-output"}
+            onChange={(e) => {
+              const policy = e.target.value;
+              if (CONTEXT_BUDGET_POLICIES.has(policy as ContextBudgetConfig["policy"])) {
+                onChange({ policy: policy as ContextBudgetConfig["policy"] });
+              }
+            }}
+            disabled={saving}
+            className="w-44 rounded border border-border bg-surface px-2 py-1 text-sm text-text-main"
+          >
+            <option value="reserve-output">{t("compressionAdaptivePolicyReserve")}</option>
+            <option value="percentage">{t("compressionAdaptivePolicyPercentage")}</option>
+            <option value="absolute">{t("compressionAdaptivePolicyAbsolute")}</option>
+          </select>
+        </label>
+      )}
+      <div data-testid="adaptive-target-preview" className="text-xs text-text-muted">
+        {target.enabled
+          ? t("compressionAdaptiveTarget", {
+              mode: target.mode,
+              policy: target.policy,
+              target: target.target,
+              contextLimit: target.contextLimit,
+            })
+          : t("compressionAdaptiveOff")}
+      </div>
     </div>
   );
 }
@@ -153,19 +214,29 @@ export default function CompressionPanel() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"" | "saved" | "error">("");
+  const configRef = useRef(config);
+  useEffect(() => {
+    configRef.current = config;
+  }, [config]);
+  const saveGenRef = useRef(0);
+  const lastConfirmedRef = useRef(config);
+  const lastAckedGenRef = useRef(0);
 
   useEffect(() => {
     fetch("/api/settings/compression")
       .then((r) => (r.ok ? r.json() : null))
       .then((data: Partial<CompressionConfig> | null) => {
         if (data) {
-          setConfig({
+          const hydrated: CompressionConfig = {
             ...DEFAULT_CONFIG,
             ...data,
             engines: normalizeEngines(data.engines),
             cavemanOutputMode: data.cavemanOutputMode ?? DEFAULT_CONFIG.cavemanOutputMode,
             outputStyles: data.outputStyles ?? DEFAULT_CONFIG.outputStyles,
-          });
+            contextBudget: { ...DEFAULT_CONTEXT_BUDGET, ...(data.contextBudget ?? {}) },
+          };
+          lastConfirmedRef.current = hydrated;
+          setConfig(hydrated);
         }
       })
       .catch(() => {})
@@ -181,8 +252,24 @@ export default function CompressionPanel() {
 
   // Persist a merge-patch. The DB persists `engines` as one whole row, so callers that
   // touch an engine pass the full engines map to avoid dropping the other engines.
+  // Generation + configRef: a later in-flight save must not let an older failure
+  // roll back a newer optimistic (or already-acked) state.
   const save = async (updates: Partial<CompressionConfig>) => {
-    const next = { ...config, ...updates };
+    const gen = ++saveGenRef.current;
+    const previous = configRef.current;
+    const next: CompressionConfig = {
+      ...previous,
+      ...updates,
+      ...(updates.contextBudget
+        ? {
+            contextBudget: {
+              ...(previous.contextBudget ?? DEFAULT_CONTEXT_BUDGET),
+              ...updates.contextBudget,
+            },
+          }
+        : {}),
+    };
+    configRef.current = next;
     setConfig(next);
     setSaving(true);
     setStatus("");
@@ -192,16 +279,34 @@ export default function CompressionPanel() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
       });
-      if (res.ok) {
-        setStatus("saved");
-        setTimeout(() => setStatus(""), 2000);
-      } else {
-        setStatus("error");
+      // Acked server state is recorded even when this gen is stale, so a
+      // later failure rolls back to the newest acked PUT, not the GET.
+      // lastAckedGenRef stops an older ack from overwriting a newer one.
+      if (res.ok && gen >= lastAckedGenRef.current) {
+        lastConfirmedRef.current = next;
+        lastAckedGenRef.current = gen;
+      }
+      if (gen === saveGenRef.current) {
+        if (res.ok) {
+          setStatus("saved");
+          const savedGen = gen;
+          setTimeout(() => {
+            if (savedGen === saveGenRef.current) setStatus("");
+          }, 2000);
+        } else {
+          configRef.current = lastConfirmedRef.current;
+          setConfig(lastConfirmedRef.current);
+          setStatus("error");
+        }
       }
     } catch {
-      setStatus("error");
+      if (gen === saveGenRef.current) {
+        configRef.current = lastConfirmedRef.current;
+        setConfig(lastConfirmedRef.current);
+        setStatus("error");
+      }
     } finally {
-      setSaving(false);
+      if (gen === saveGenRef.current) setSaving(false);
     }
   };
 
@@ -326,8 +431,15 @@ export default function CompressionPanel() {
         {derivedText}
       </div>
 
-      {/* Adaptive context-budget — read-only computed target (Phase 4C, D-C1 transparency) */}
-      <AdaptiveTargetPreview contextBudget={config.contextBudget} />
+      {/* Adaptive context-budget dial — mode/policy persist via PUT contextBudget */}
+      <AdaptiveContextBudgetDial
+        contextBudget={config.contextBudget ?? DEFAULT_CONTEXT_BUDGET}
+        saving={saving}
+        onChange={(patch) => {
+          const current = configRef.current.contextBudget ?? DEFAULT_CONTEXT_BUDGET;
+          save({ contextBudget: { ...current, ...patch } });
+        }}
+      />
 
       {/* Engine grid */}
       <div className={`divide-y divide-border ${config.enabled ? "" : "opacity-60"}`}>

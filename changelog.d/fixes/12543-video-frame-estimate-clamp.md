@@ -1,0 +1,1 @@
+- **fix(video):** Clamp `estimateJpegFrameBytes` at zero for padding-only payloads and build the three encode-side frame data URIs from `JPEG_FRAME_DATA_URI_PREFIX` instead of a repeated literal (#12543 — thanks @pacocartones)

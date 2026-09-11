@@ -1,1 +1,0 @@
-- **fix(sse):** trust `finish_reason: "length"`/`"max_tokens"` over the reasoning-consumed-token ratio in response quality validation, so a reasoning model truncated below the old 90% threshold correctly fails and retries instead of returning empty content as a silent "success" ([#12262](https://github.com/diegosouzapw/OmniRoute/pull/12262))

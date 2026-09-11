@@ -1,1 +1,0 @@
-- **fix(free-models):** the shared `isFreeModel()` predicate no longer reports catalog entries marked `freeType: "discontinued"` as free, so `hidePaidModels` can't route to Pollinations' seven premium models that now require a paid key ([#11441](https://github.com/diegosouzapw/OmniRoute/pull/11441))

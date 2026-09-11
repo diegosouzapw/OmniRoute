@@ -223,3 +223,47 @@ test("#7809 voyage response adapter handles empty data array", () => {
   const out = transformResponseFromProvider(cfg, { data: [] }, { documents: ["a", "b"] });
   assert.deepEqual(out.results, []);
 });
+
+// ─── top_k must never exceed the surviving document count ──────────────────
+// The handler normalizes `top_n: top_n || documents.length` BEFORE the adapter
+// runs, so a caller that omits top_n and sends an exact empty string yields
+// top_k > documents.length — which Voyage rejects with HTTP 400.
+
+test("#7809 voyage request adapter clamps top_k to the surviving document count", () => {
+  const cfg = getRerankProvider("voyage-ai");
+  const out = transformRequestForProvider(cfg, {
+    model: "rerank-2.5-lite",
+    query: "teste",
+    documents: ["a", "", "b"],
+    // Mirrors the handler's `top_n: top_n || documents.length` when the caller omits top_n.
+    top_n: 3,
+    return_documents: true,
+  });
+  assert.deepEqual(out.documents, ["a", "b"]);
+  assert.equal(out.top_k, 2, "top_k must not exceed the number of documents actually sent");
+});
+
+test("#7809 voyage request adapter clamps an explicit oversized top_n", () => {
+  const cfg = getRerankProvider("voyage-ai");
+  const out = transformRequestForProvider(cfg, {
+    model: "rerank-2.5-lite",
+    query: "teste",
+    documents: ["a", "", "", "b"],
+    top_n: 10,
+    return_documents: true,
+  });
+  assert.deepEqual(out.documents, ["a", "b"]);
+  assert.equal(out.top_k, 2);
+});
+
+test("#7809 voyage request adapter keeps a legitimate top_n below the document count", () => {
+  const cfg = getRerankProvider("voyage-ai");
+  const out = transformRequestForProvider(cfg, {
+    model: "rerank-2.5-lite",
+    query: "teste",
+    documents: ["a", "b", "c"],
+    top_n: 2,
+    return_documents: true,
+  });
+  assert.equal(out.top_k, 2);
+});

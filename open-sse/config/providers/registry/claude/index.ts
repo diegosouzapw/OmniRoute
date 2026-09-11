@@ -7,7 +7,6 @@ import {
   ANTHROPIC_VERSION_HEADER,
   CLAUDE_CLI_STAINLESS_PACKAGE_VERSION,
   CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
-  CLAUDE_CLI_USER_AGENT,
   resolvePublicCred,
 } from "../../shared.ts";
 
@@ -28,6 +27,17 @@ export const claudeProvider: RegistryEntry = {
     tokenUrl: "https://api.anthropic.com/v1/oauth/token",
   },
   models: [
+    {
+      id: "claude-fable-5-1",
+      name: "Claude Fable 5.1",
+      contextLength: 1000000,
+      maxOutputTokens: 128000,
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      supportsXHighEffort: true,
+      supportsVision: true,
+      unsupportedParams: ["temperature", "top_p", "top_k"],
+    },
     {
       id: "claude-fable-5",
       name: "Claude Fable 5",

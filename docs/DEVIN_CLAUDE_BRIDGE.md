@@ -4,16 +4,22 @@
 Messages endpoint while the official Devin CLI supplies model responses over ACP stdio. It
 does not modify the existing Anthropic, Claude OAuth, Claude Web, or `devin-cli` providers.
 
-> **Current status: offline and live validated.** The pinned Claude Code `2.1.220` completed
-> three isolated scenarios through Devin CLI `3000.2.17` and model
-> `swe-1-7-lightning`. The final live run proved client-owned `Read`, `Edit`, and `Bash`
-> turns, successful `npm test` results, project command and skill discovery, Devin-only
-> routing, and zero Claude egress.
+> **Current status: pinned Claude Code `2.1.258`; offline and live validation last recorded
+> on `2.1.220`.** The `2.1.220` pin completed three isolated scenarios through Devin CLI
+> `3000.2.17` and model `swe-1-7-lightning`; that final live run proved client-owned `Read`,
+> `Edit`, and `Bash` turns, successful `npm test` results, project command and skill
+> discovery, Devin-only routing, and zero Claude egress. The pin was then raised to `2.1.258`
+> (the CLI generation OmniRoute's Claude identity impersonates, and the first line that ships
+> the Fable 5.1 tier natively). On the new pin the install layer and `claude --version` were
+> verified on the pinned base image, and the bridge unit suite, `compose config` and the
+> static isolation proof pass — but the offline mock scenario and the live three-scenario
+> suite have not been re-run yet. Re-run them (see "Updating pinned tools") before relying on
+> the bridge with this pin.
 
 ## Architecture
 
 ```text
-Claude Code 2.1.220 (isolated non-root Linux container)
+Claude Code 2.1.258 (isolated non-root Linux container)
   -> http://omniroute:20128/v1/messages
   -> devin-cli-agentic (Claude-format, no-auth provider)
   -> devin acp --agent-type summarizer (official ACP stdio, no Devin tools)
