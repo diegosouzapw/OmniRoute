@@ -431,3 +431,60 @@ test("parseSSEToGeminiResponse ignores thought/thoughtSignature parts", () => {
   assert.ok(parsed);
   assert.equal(parsed.choices[0].message.content, "visible answer");
 });
+
+test("parseSSEToGeminiResponse preserves text that carries a thoughtSignature", () => {
+  const rawSSE = [
+    `data: ${JSON.stringify({
+      response: {
+        candidates: [
+          {
+            content: {
+              parts: [
+                { text: "internal reasoning", thought: true },
+                { text: "visible answer after thinking", thoughtSignature: "sig-xyz-123" },
+              ],
+            },
+            finishReason: "STOP",
+          },
+        ],
+      },
+    })}`,
+  ].join("\n");
+
+  const parsed = parseSSEToGeminiResponse(rawSSE, "gemini-3.8-flash-tiered");
+
+  assert.ok(parsed);
+  assert.equal(parsed.choices[0].message.content, "visible answer after thinking");
+});
+
+test("parseSSEToGeminiResponse extracts native functionCall parts carrying thoughtSignature", () => {
+  const rawSSE = [
+    `data: ${JSON.stringify({
+      response: {
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  functionCall: { name: "search_documentation", args: { query: "test" } },
+                  thoughtSignature: "sig-abc",
+                },
+              ],
+            },
+            finishReason: "STOP",
+          },
+        ],
+      },
+    })}`,
+  ].join("\n");
+
+  const parsed = parseSSEToGeminiResponse(rawSSE, "gemini-3.8-flash-tiered");
+
+  assert.ok(parsed);
+  assert.equal(parsed.choices[0].finish_reason, "tool_calls");
+  assert.equal(parsed.choices[0].message.tool_calls?.length, 1);
+  assert.equal(parsed.choices[0].message.tool_calls[0].function.name, "search_documentation");
+  assert.deepEqual(JSON.parse(parsed.choices[0].message.tool_calls[0].function.arguments), {
+    query: "test",
+  });
+});

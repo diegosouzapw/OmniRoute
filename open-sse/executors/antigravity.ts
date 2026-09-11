@@ -13,10 +13,7 @@ import {
   getAntigravityOAuthUserAgent,
 } from "../services/antigravityHeaders.ts";
 import { classify429, decide429, type Decision } from "../services/antigravity429Engine.ts";
-import {
-  parseRetryFromErrorText,
-  type RetryHintProvenance,
-} from "../services/accountFallback.ts";
+import { parseRetryFromErrorText, type RetryHintProvenance } from "../services/accountFallback.ts";
 import { parseDetailedRetryHintFromJsonBody } from "../services/retryAfterJson.ts";
 import {
   shouldRetryWithCredits,
@@ -331,7 +328,8 @@ function applyAntigravityGenerationDefaults(
   if (
     Number.isFinite(thinkingBudget) &&
     thinkingBudget > 0 &&
-    (!Number.isFinite(maxOutputTokens) || maxOutputTokens <= thinkingBudget)
+    Number.isFinite(maxOutputTokens) &&
+    maxOutputTokens <= thinkingBudget
   ) {
     generationConfig.maxOutputTokens = Math.floor(thinkingBudget) + 1;
   }
@@ -379,7 +377,9 @@ const COMPETITIVE_AGENT_PROMPT_PATTERNS: RegExp[] = [
  */
 export function stripCompetitiveAgentPrompts(systemInstruction: unknown): unknown {
   const record = asRecord(systemInstruction);
-  const parts = Array.isArray(record?.parts) ? (record.parts as Array<Record<string, unknown>>) : [];
+  const parts = Array.isArray(record?.parts)
+    ? (record.parts as Array<Record<string, unknown>>)
+    : [];
   if (parts.length === 0) return systemInstruction;
 
   let changed = false;
@@ -387,7 +387,10 @@ export function stripCompetitiveAgentPrompts(systemInstruction: unknown): unknow
     if (typeof part.text !== "string" || part.text.length === 0) return part;
     let text = part.text;
     for (const pattern of COMPETITIVE_AGENT_PROMPT_PATTERNS) {
-      const stripped = text.replace(pattern, "").replace(/\n{3,}/g, "\n\n").trimStart();
+      const stripped = text
+        .replace(pattern, "")
+        .replace(/\n{3,}/g, "\n\n")
+        .trimStart();
       if (stripped !== text) {
         changed = true;
         text = stripped;

@@ -866,7 +866,11 @@ test("OpenAI -> Antigravity maps Claude-family models to Gemini-compatible schem
   assert.match(result.requestId, /^agent\/\d+\/[0-9a-f]{8}$/);
   assert.equal(result.enabledCreditTypes, undefined);
   assert.equal(result.request.systemInstruction.parts[0].text, ANTIGRAVITY_DEFAULT_SYSTEM);
-  assert.equal(result.request.systemInstruction.parts.length, 1, "systemInstruction must contain only ANTIGRAVITY_DEFAULT_SYSTEM (#9030)");
+  assert.equal(
+    result.request.systemInstruction.parts.length,
+    1,
+    "systemInstruction must contain only ANTIGRAVITY_DEFAULT_SYSTEM (#9030)"
+  );
   // #9030 — Client system content moved to first user message to avoid upstream 429s
   assert.equal(result.request.contents[0].parts[0].text, "Project rules");
   assert.equal(result.request.contents[0].parts[1].text, "Read a file");
@@ -1024,6 +1028,28 @@ test("OpenAI -> Antigravity Gemini path preserves thinkingConfig (only Claude is
   );
   assert.equal((result as any).request?.generationConfig.thinkingConfig.thinkingBudget > 0, true);
   assert.equal((result as any).request?.generationConfig.thinkingConfig.includeThoughts, true);
+});
+
+test("OpenAI -> Antigravity Gemini thinking models omit maxOutputTokens when max_tokens is undefined", () => {
+  const result = openaiToAntigravityRequest(
+    "gemini-3.8-flash-tiered",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+    },
+    false,
+    { projectId: "proj-gemini-thinking" } as unknown as Parameters<
+      typeof openaiToAntigravityRequest
+    >[3]
+  ) as Record<string, unknown>;
+
+  const envelopeRequest = result.request as Record<string, unknown> | undefined;
+  const genConfig = envelopeRequest?.generationConfig as Record<string, unknown> | undefined;
+  assert.ok(genConfig?.thinkingConfig, "expected thinkingConfig to be set");
+  assert.equal(
+    genConfig.maxOutputTokens,
+    undefined,
+    "maxOutputTokens must be undefined when not requested"
+  );
 });
 
 // Regression for #2480: when projectId is stored in providerSpecificData rather than at

@@ -18,8 +18,7 @@ export type AntigravityCollectedStream = {
 
 // Both run once per SSE data line / per text part (processAntigravitySSEPayload),
 // so the literals are hoisted to module constants.
-const TEXTUAL_TOOL_CALL_RE =
-  /^[\s\S]*?\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/;
+const TEXTUAL_TOOL_CALL_RE = /^[\s\S]*?\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/;
 
 export function stripZeroWidth(value: unknown): unknown {
   if (typeof value === "string") {
@@ -114,7 +113,7 @@ export function processAntigravitySSEPayload(
           collected.finishReason = "tool_calls";
           continue;
         }
-        if (typeof part.text === "string" && !part.thought && !part.thoughtSignature) {
+        if (typeof part.text === "string" && !part.thought) {
           const textualToolCall = parseAntigravityTextualToolCall(part.text);
           if (textualToolCall) {
             addAntigravityTextualToolCall(collected, textualToolCall);

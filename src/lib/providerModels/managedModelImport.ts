@@ -400,7 +400,7 @@ export async function importManagedModels({
     // table already knows only has a safe "-tiered" target to always resolve there,
     // regardless of what any single connection's discovery reported.
     for (const [displayId, safeTarget] of Object.entries(ANTIGRAVITY_MODEL_ALIASES)) {
-      if (safeTarget === "gemini-3.7-flash-tiered") {
+      if (safeTarget === "gemini-3.7-flash-tiered" || safeTarget === "gemini-3.8-flash-tiered") {
         mappings[displayId] = `antigravity/${safeTarget}`;
       }
     }
