@@ -123,6 +123,84 @@ test("resolveTurnDisplayContent skips nodes with no correlation id without throw
   assert.equal(result.size, 0);
 });
 
+test("resolveTurnDisplayContent resolves ChatCompletions assistant tool_calls content", () => {
+  insertCallLog({
+    id: "log-tool-call",
+    correlationId: "corr-tc",
+    artifactRelPath: "2026-01-01/log-tc.json",
+  });
+  writeArtifact("2026-01-01/log-tc.json", {
+    messages: [
+      { role: "user", content: "read file" },
+      {
+        role: "assistant",
+        content: null,
+        tool_calls: [
+          {
+            id: "call_999",
+            type: "function",
+            function: { name: "get_file", arguments: '{"file":"/tmp/test"}' },
+          },
+        ],
+      },
+    ],
+  });
+
+  const result = resolveTurnDisplayContent([{ lastCorrelationId: "corr-tc" }]);
+  const tcHash = hashTurnContent({
+    role: "assistant",
+    text: '{"file":"/tmp/test"}',
+    blockKind: "tool_use",
+    toolName: "get_file",
+  });
+  const content = result.get(tcHash);
+  assert.equal(content?.blockKind, "tool_use");
+  assert.equal(content?.toolName, "get_file");
+  assert.equal(content?.textPreview, '{"file":"/tmp/test"}');
+});
+
+test("resolveTurnDisplayContent resolves ChatCompletions choices message from clientResponse artifact", () => {
+  insertCallLog({
+    id: "log-cc-resp",
+    correlationId: "corr-cc-resp",
+    artifactRelPath: "2026-01-01/log-cc-resp.json",
+  });
+  const absPath = path.join(TEST_DATA_DIR, "call_logs", "2026-01-01/log-cc-resp.json");
+  fs.mkdirSync(path.dirname(absPath), { recursive: true });
+  fs.writeFileSync(
+    absPath,
+    JSON.stringify({
+      schemaVersion: 5,
+      pipeline: {
+        clientResponse: {
+          id: "chatcmpl-123",
+          object: "chat.completion",
+          choices: [
+            {
+              index: 0,
+              message: {
+                role: "assistant",
+                content: "Hello from ChatCompletions response",
+              },
+            },
+          ],
+        },
+      },
+    })
+  );
+
+  const result = resolveTurnDisplayContent([{ lastCorrelationId: "corr-cc-resp" }]);
+  const hash = hashTurnContent({
+    role: "assistant",
+    text: "Hello from ChatCompletions response",
+    blockKind: "text",
+    toolName: null,
+  });
+  const content = result.get(hash);
+  assert.equal(content?.blockKind, "text");
+  assert.equal(content?.textPreview, "Hello from ChatCompletions response");
+});
+
 test("resolveTurnDisplayContent omits content for an unresolvable correlation id (missing call_logs row, purged artifact, or no pipeline captured)", () => {
   const missingRow = resolveTurnDisplayContent([{ lastCorrelationId: "corr-does-not-exist" }]);
   assert.equal(missingRow.size, 0);

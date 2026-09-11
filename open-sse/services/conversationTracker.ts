@@ -154,6 +154,24 @@ export function extractCanonicalTurns(body: JsonRecord | null | undefined): Cano
     raw = body.messages;
   } else if (Array.isArray(body.input)) {
     raw = body.input;
+  } else if (Array.isArray(body.choices)) {
+    raw = body.choices.map((c) => {
+      const choiceRec = c && typeof c === "object" ? (c as JsonRecord) : null;
+      if (!choiceRec) return {};
+      const msg =
+        choiceRec.message && typeof choiceRec.message === "object"
+          ? (choiceRec.message as JsonRecord)
+          : null;
+      const delta =
+        choiceRec.delta && typeof choiceRec.delta === "object"
+          ? (choiceRec.delta as JsonRecord)
+          : null;
+      const target = msg ?? delta ?? choiceRec;
+      if (!target.role) {
+        return { role: "assistant", ...target };
+      }
+      return target;
+    });
   } else if (typeof body.input === "string") {
     raw = [{ role: "user", content: body.input }];
   } else if (body.input && typeof body.input === "object") {
@@ -174,6 +192,35 @@ export function extractCanonicalTurns(body: JsonRecord | null | undefined): Cano
         ? "tool"
         : null;
     if (!role) continue;
+
+    // Handle ChatCompletions assistant tool_calls (which often have content: null or "")
+    if (role === "assistant" && Array.isArray(rec.tool_calls) && rec.tool_calls.length > 0) {
+      for (const tc of rec.tool_calls as JsonRecord[]) {
+        const fn =
+          tc?.function && typeof tc.function === "object" ? (tc.function as JsonRecord) : {};
+        const toolName =
+          typeof fn.name === "string" ? fn.name : typeof tc?.name === "string" ? tc.name : null;
+        const argsStr =
+          typeof fn.arguments === "string"
+            ? fn.arguments
+            : typeof tc?.arguments === "string"
+              ? tc.arguments
+              : "";
+        turns.push({
+          role: "assistant",
+          text: argsStr,
+          blockKind: "tool_use",
+          toolName,
+        });
+      }
+      // If there is also text content in the assistant message, include it as a text turn as well
+      const contentText = stringifyContent(rec.content ?? rec.text);
+      if (contentText) {
+        turns.push({ role: "assistant", text: contentText, blockKind: "text", toolName: null });
+      }
+      continue;
+    }
+
     const text = stringifyContent(rec.content ?? rec.text ?? rec.arguments ?? rec.output);
     if (!text) continue;
 
