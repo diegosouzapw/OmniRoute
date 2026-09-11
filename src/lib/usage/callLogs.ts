@@ -14,6 +14,11 @@ import { getRequestDetailLogByCallLogId } from "../db/detailedLogs";
 import { shouldPersistToDisk } from "./migrations";
 import { getCallLogApiKeyContext } from "./callLogApiKeyContext";
 import {
+  seedPendingContinuationState,
+  clearPendingContinuationState,
+  type ContinuationPipeline,
+} from "../db/responsesContinuationStore";
+import {
   getLoggedInputTokens,
   getLoggedOutputTokens,
   getPromptCacheReadTokensOrNull,
@@ -470,6 +475,26 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         );
     const protectedError = sanitizeErrorForLog(entry.error);
 
+    // Bridges the window before this row's own artifact write (queued below,
+    // async) lands with detail_state = 'ready': a client that fires its next
+    // turn immediately -- normal in a tight tool-calling loop -- can reach
+    // resolvePreviousResponseState before that write exists at all. Seeded
+    // synchronously, before any await, from the same protected pipeline
+    // payload the artifact will eventually hold (and the same
+    // videoContentRemoved/fail-closed rules), so it is available the instant
+    // this function is called. See responsesContinuationStore.ts.
+    if (typeof entry.responseId === "string" && entry.responseId.length > 0) {
+      seedPendingContinuationState(
+        entry.responseId,
+        apiKeyId,
+        // The store's own contract, not a looser restatement of it: the inline shape
+        // widened both fields to `unknown`, which does not assign to
+        // ContinuationPipeline's typed members (TS2345 under typecheck:core).
+        protectedPipelinePayloads as ContinuationPipeline | null,
+        Boolean(entry.videoContentRemoved)
+      );
+    }
+
     const account = await resolveAccountName(entry.connectionId || null);
     const rawProvider: string = entry.provider || "-";
     const rawRequestedModel: string | null = entry.requestedModel || null;
@@ -603,6 +628,12 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       hasPipelineDetails: protectedPipelinePayloads ? 1 : 0,
       requestSummary,
     });
+
+    if (detailState === "ready" && typeof logEntry.responseId === "string") {
+      // The durable row is now authoritative; drop the bridge entry instead
+      // of letting it idle until its TTL.
+      clearPendingContinuationState(logEntry.responseId);
+    }
 
     scheduleCallLogRotation();
   } catch (error) {

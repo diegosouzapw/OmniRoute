@@ -62,6 +62,14 @@
       "flag": "🇩🇪"
     },
     {
+      "code": "el",
+      "label": "EL",
+      "name": "Ελληνικά",
+      "native": "Ελληνικά",
+      "english": "Greek",
+      "flag": "🇬🇷"
+    },
+    {
       "code": "en",
       "label": "EN",
       "name": "English",
@@ -76,6 +84,14 @@
       "native": "Español",
       "english": "Spanish",
       "flag": "🇪🇸"
+    },
+    {
+      "code": "et",
+      "label": "ET",
+      "name": "Eesti",
+      "native": "Eesti",
+      "english": "Estonian",
+      "flag": "🇪🇪"
     },
     {
       "code": "fa",
@@ -102,6 +118,14 @@
       "flag": "🇫🇷"
     },
     {
+      "code": "ga",
+      "label": "GA",
+      "name": "Gaeilge",
+      "native": "Gaeilge",
+      "english": "Irish",
+      "flag": "🇮🇪"
+    },
+    {
       "code": "gu",
       "label": "GU",
       "name": "ગુજરાતી",
@@ -124,6 +148,14 @@
       "native": "हिन्दी",
       "english": "Hindi",
       "flag": "🇮🇳"
+    },
+    {
+      "code": "hr",
+      "label": "HR",
+      "name": "Hrvatski",
+      "native": "Hrvatski",
+      "english": "Croatian",
+      "flag": "🇭🇷"
     },
     {
       "code": "hu",
@@ -167,6 +199,22 @@
       "flag": "🇰🇷"
     },
     {
+      "code": "lt",
+      "label": "LT",
+      "name": "Lietuvių",
+      "native": "Lietuvių",
+      "english": "Lithuanian",
+      "flag": "🇱🇹"
+    },
+    {
+      "code": "lv",
+      "label": "LV",
+      "name": "Latviešu",
+      "native": "Latviešu",
+      "english": "Latvian",
+      "flag": "🇱🇻"
+    },
+    {
       "code": "mr",
       "label": "MR",
       "name": "मराठी",
@@ -181,6 +229,14 @@
       "native": "Bahasa Melayu",
       "english": "Malay",
       "flag": "🇲🇾"
+    },
+    {
+      "code": "mt",
+      "label": "MT",
+      "name": "Malti",
+      "native": "Malti",
+      "english": "Maltese",
+      "flag": "🇲🇹"
     },
     {
       "code": "nl",
@@ -254,6 +310,22 @@
       "native": "Slovenčina",
       "english": "Slovak",
       "flag": "🇸🇰"
+    },
+    {
+      "code": "sl",
+      "label": "SL",
+      "name": "Slovenščina",
+      "native": "Slovenščina",
+      "english": "Slovenian",
+      "flag": "🇸🇮"
+    },
+    {
+      "code": "sr",
+      "label": "SR",
+      "name": "Српски",
+      "native": "Српски",
+      "english": "Serbian",
+      "flag": "🇷🇸"
     },
     {
       "code": "sv",

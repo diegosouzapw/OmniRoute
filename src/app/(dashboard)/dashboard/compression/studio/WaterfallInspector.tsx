@@ -5,11 +5,15 @@ import { useTranslations } from "next-intl";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
+/** Savings quality ramp — same thresholds/tokens as `EngineNode.getSavingsColor`. */
 function savingsColor(pct: number): string {
-  if (pct >= 30) return "#22c55e";
-  if (pct >= 15) return "#f59e0b";
-  return "#6b7280";
+  if (pct >= 30) return "var(--orch-status-success)";
+  if (pct >= 15) return "var(--orch-status-warning)";
+  return "var(--orch-status-muted)";
 }
+
+/** A skipped step reads as idle. */
+const SKIPPED_COLOR = "var(--orch-status-muted)";
 
 function pctWidth(tokIn: number, tokOut: number): string {
   if (tokIn === 0) return "100%";
@@ -25,7 +29,7 @@ function fmt(n: number): string {
 function StepRow({ step, maxTokens }: { step: CompressionEngineStep; maxTokens: number }) {
   const t = useTranslations("compressionStudio");
   const skipped = step.originalTokens === step.compressedTokens;
-  const color = skipped ? "#6b7280" : savingsColor(step.savingsPercent);
+  const color = skipped ? SKIPPED_COLOR : savingsColor(step.savingsPercent);
   const barWidthIn = maxTokens > 0 ? (step.originalTokens / maxTokens) * 100 : 100;
   const barWidthOut = maxTokens > 0 ? (step.compressedTokens / maxTokens) * 100 : 100;
 
@@ -36,7 +40,7 @@ function StepRow({ step, maxTokens }: { step: CompressionEngineStep; maxTokens: 
     >
       {/* Engine label */}
       <div className="w-28 shrink-0">
-        <span className="text-xs font-semibold" style={{ color: skipped ? "#6b7280" : color }}>
+        <span className="text-xs font-semibold" style={{ color: skipped ? SKIPPED_COLOR : color }}>
           {step.engine}
         </span>
         {skipped && (
@@ -147,7 +151,7 @@ export function WaterfallInspector({ run, className = "" }: WaterfallInspectorPr
           </div>
           <div
             className="text-[11px] font-bold"
-            style={{ color: "#22c55e" }}
+            style={{ color: "var(--orch-status-success)" }}
             data-testid="waterfall-total-savings"
           >
             {`-${run.savingsPercent.toFixed(1)}%`}

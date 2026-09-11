@@ -857,12 +857,19 @@ export function pipeWithDisconnect(
   providerResponse: Response,
   transformStream: TransformStream<Uint8Array, Uint8Array>,
   streamController: StreamController,
-  opts: { stallTimeoutMs?: number; highWaterMark?: number } = {}
+  opts: { stallTimeoutMs?: number; contentStallTimeoutMs?: number; highWaterMark?: number } = {}
 ) {
   const stallTimeoutMs = opts.stallTimeoutMs ?? DEFAULT_STREAM_STALL_TIMEOUT_MS;
+  // Disabled unless a caller opts in with an explicit budget (chatCore wires
+  // the adaptive streamReadinessPolicy.timeoutMs — see its own doc comment).
+  // No blanket default here: an arbitrary constant picked at this layer,
+  // without the request's actual model/provider/payload context, would risk
+  // false-stalling the exact slow-first-content reasoning models the
+  // readiness policy already knows to grant more patience.
+  const contentStallTimeoutMs = opts.contentStallTimeoutMs ?? 0;
 
-  // Watchdog disabled — preserve legacy behavior verbatim.
-  if (!stallTimeoutMs || stallTimeoutMs <= 0) {
+  // Watchdogs disabled — preserve legacy behavior verbatim.
+  if ((!stallTimeoutMs || stallTimeoutMs <= 0) && contentStallTimeoutMs <= 0) {
     const transformedBody = providerResponse.body.pipeThrough(transformStream);
     return createDisconnectAwareStream(
       { readable: transformedBody, writable: createNoopAbortWritable() },
@@ -891,6 +898,7 @@ export function pipeWithDisconnect(
     }
   };
   const armStall = () => {
+    if (!stallTimeoutMs || stallTimeoutMs <= 0) return;
     clearStall();
     stallTimer = setTimeout(() => {
       stallTimer = null;
@@ -919,48 +927,117 @@ export function pipeWithDisconnect(
     }, stallTimeoutMs);
   };
 
-  // Wrap controller so every termination path clears the stall timer.
-  // Without this, abort/complete/error/disconnect paths leave the timer armed
+  // Second, independent watchdog: fires when the upstream keeps sending raw
+  // bytes (so armStall() above keeps resetting and never fires) but none of
+  // them ever carry real model output — only lifecycle/ping frames
+  // (OpenAI Responses response.in_progress/response.created, bare
+  // role-only start chunks, etc). ensureStreamReadiness's own gate already
+  // treats any one of those as "ready" and hands the connection off (see its
+  // own doc comment and kiro.ts's deliberate early role-only chunk — several
+  // providers rely on that fast handoff for UX, so tightening readiness
+  // itself would regress them). Once handed off there was previously nothing
+  // watching whether the model ever actually said anything: a stalled free
+  // OpenRouter model (e.g. minimax-m3:free under load) could stream nothing
+  // but response.in_progress pings indefinitely, relayed byte-for-byte to
+  // the client, until the CLIENT's own idle timeout eventually gave up --
+  // sometimes 120s, sometimes 900s depending on the calling task, always
+  // slower and less informative than OmniRoute failing this attempt itself
+  // with a clear error the client's own retry/fallback logic can react to
+  // immediately. Armed ONCE at stream start (not re-armed by lifecycle-only
+  // bytes, unlike armStall above) and cleared permanently the first time
+  // real content is observed -- reuses the exact classifier
+  // (createStreamContentWatcher) createDisconnectAwareStream already trusts
+  // for its own end-of-stream #8649 empty-content check.
+  let contentStallTimer: ReturnType<typeof setTimeout> | null = null;
+  let contentStallFired = false;
+  const upstreamContentWatcher = createStreamContentWatcher();
+  const upstreamContentDecoder = new TextDecoder();
+
+  const clearContentStall = () => {
+    if (contentStallTimer) {
+      clearTimeout(contentStallTimer);
+      contentStallTimer = null;
+    }
+  };
+  const armContentStall = () => {
+    if (contentStallTimeoutMs <= 0) return;
+    contentStallTimer = setTimeout(() => {
+      contentStallTimer = null;
+      contentStallFired = true;
+      const stallError = new Error(
+        `stream content stall: no model output within ${contentStallTimeoutMs}ms (lifecycle/heartbeat events only)`
+      );
+      try {
+        streamController.handleError?.(stallError);
+      } catch (e) {
+        console.debug(`[STREAM-HANDLER] content stall watchdog handleError failed:`, e);
+      }
+      try {
+        upstreamTapController?.error(stallError);
+      } catch (e) {
+        console.debug(`[STREAM-HANDLER] content stall watchdog upstream tap error failed:`, e);
+      }
+      try {
+        streamController.abort?.();
+      } catch (e) {
+        console.debug(`[STREAM-HANDLER] content stall watchdog abort failed:`, e);
+      }
+    }, contentStallTimeoutMs);
+  };
+
+  // Wrap controller so every termination path clears both stall timers.
+  // Without this, abort/complete/error/disconnect paths leave a timer armed
   // and a stale abort could fire after the request has already ended.
   const wrappedController: StreamController = {
     ...streamController,
     handleComplete: () => {
       clearStall();
+      clearContentStall();
       streamController.handleComplete();
     },
     handleError: (e: unknown) => {
       clearStall();
-      // Watchdog already fired its own handleError — the inner pull() catch
-      // sees the same error propagated through the pipeline; suppress the
-      // duplicate to keep onError callbacks single-fire.
-      if (stallFired) return;
+      clearContentStall();
+      // A watchdog already fired its own handleError — the inner pull()
+      // catch sees the same error propagated through the pipeline; suppress
+      // the duplicate to keep onError callbacks single-fire.
+      if (stallFired || contentStallFired) return;
       streamController.handleError(e);
     },
     handleDisconnect: (reason?: string) => {
       clearStall();
+      clearContentStall();
       streamController.handleDisconnect(reason);
     },
     abort: () => {
       clearStall();
+      clearContentStall();
       streamController.abort();
     },
   };
 
-  // Inert tap that resets the stall timer on every raw upstream byte chunk.
-  // Sits between the provider body and the SSE transform so reasoning models
-  // that buffer many raw bytes into a single emitted event do not look
-  // stalled to the watchdog.
+  // Inert tap that resets the byte-stall timer on every raw upstream chunk
+  // and (independently) clears the content-stall timer the first time a
+  // chunk carries real output. Sits between the provider body and the SSE
+  // transform so reasoning models that buffer many raw bytes into a single
+  // emitted event do not look stalled to either watchdog.
   const upstreamTap = new TransformStream<Uint8Array, Uint8Array>({
     start(controller) {
       upstreamTapController = controller;
       armStall();
+      armContentStall();
     },
     transform(chunk, controller) {
       armStall();
+      if (contentStallTimeoutMs > 0 && !upstreamContentWatcher.sawContent()) {
+        upstreamContentWatcher.note(upstreamContentDecoder.decode(chunk, { stream: true }));
+        if (upstreamContentWatcher.sawContent()) clearContentStall();
+      }
       controller.enqueue(chunk);
     },
     flush() {
       clearStall();
+      clearContentStall();
     },
   });
 

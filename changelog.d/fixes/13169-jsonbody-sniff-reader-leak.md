@@ -1,0 +1,1 @@
+- **fix(stream):** cancel the upstream response body when the JSON-to-SSE sniff unwinds on a body timeout, so a stalled upstream no longer pins the connection ([#13169](https://github.com/diegosouzapw/OmniRoute/issues/13169))

@@ -1,0 +1,1 @@
+- **feat(i18n):** 9 new locales — Greek (`el`), Croatian (`hr`), Serbian (`sr`), Lithuanian (`lt`), Estonian (`et`), Latvian (`lv`), Slovenian (`sl`), Maltese (`mt`), Irish (`ga`) — across the dashboard, docs mirrors, CLI, README and the site; OmniRoute now ships every official EU language (51 locales). (#13044)

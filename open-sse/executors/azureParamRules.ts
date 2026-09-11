@@ -20,15 +20,24 @@
 /**
  * Deployments that require `max_completion_tokens` instead of `max_tokens`.
  *
- * Matches the GPT-5 family and the o1/o3/o4 reasoning series at a token
+ * Matches GPT-5 and later, and the o1/o3/o4 reasoning series, at a token
  * boundary, so a deployment named `my-gpt-5-prod` matches while an unrelated
  * `piston-o4-legacy`-style name does not match by accident. `gpt-chat-latest`
  * is listed explicitly: it is a moving alias that currently resolves to a
  * GPT-5-era model and rejects `max_tokens`, but carries no version number for
  * the boundary pattern to key on.
+ *
+ * The generation is a range rather than a literal `gpt-5`, because the rule is
+ * a property of the generation and not of one release: `gpt-6-astra` rejects
+ * `max_tokens` for exactly the reason `gpt-5` does, and pinning the literal
+ * meant every new family arrived broken (#12981).
+ *
+ * It is a range and not `\d+` on purpose. Azure's own name for GPT-3.5 is
+ * `gpt-35-turbo`, which takes `max_tokens` and would be caught by a digit-run.
+ * `1\d` keeps a future `gpt-10` working without letting `gpt-35` in.
  */
 export const AZURE_COMPLETION_TOKEN_DEPLOYMENT =
-  /(?:^|[/_-])(?:gpt-5|o(?:1|3|4))(?:[._-]|$)|^gpt-chat-latest$/i;
+  /(?:^|[/_-])(?:gpt-(?:[5-9]|1\d)|o(?:1|3|4))(?:[._-]|$)|^gpt-chat-latest$/i;
 
 /**
  * Apply the Azure param rules to an already-translated Chat Completions body.

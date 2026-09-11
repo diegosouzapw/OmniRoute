@@ -14,6 +14,7 @@ import type { ComboDiagnostics } from "../../utils/error.ts";
 import { COMBO_FAILURE_THRESHOLD, recordComboFailure } from "./failureTracker.ts";
 import { buildNoUpstreamResponseDiagnostics, buildRecoveryHint } from "./pinRecovery.ts";
 import { formatExhaustedConnectionKey } from "./comboDiagFormat.ts";
+import { collectQuotaWindowExclusions, formatQuotaSkipMessage } from "./quotaSkipDiagnostics.ts";
 import { recordComboRequest } from "../comboMetrics.ts";
 import { notifyWebhookEvent } from "../../../src/lib/webhookDispatcher.ts";
 import { parseModel } from "../model.ts";
@@ -125,6 +126,9 @@ export async function dispatchWithCooldownRetry(opts: {
         excluded: [
           ...[...state.exhaustedProviders].map((p) => ({ provider: p, reason: "exhausted" })),
           ...[...state.exhaustedConnections].map((c) => formatExhaustedConnectionKey(String(c))),
+          ...(terminalReason === "all_targets_skipped"
+            ? collectQuotaWindowExclusions(state.orderedTargets)
+            : []),
         ],
         attemptOrder: state.comboAttemptOrder,
         terminalReason,
@@ -408,10 +412,15 @@ export async function dispatchWithCooldownRetry(opts: {
             latencyMs,
             fallbackCount: state.fallbackCount,
           });
+          const quotaSkip = formatQuotaSkipMessage(
+            collectQuotaWindowExclusions(state.orderedTargets)
+          );
           return withQuotaExhaustionClassification(
             errorResponseWithComboDiagnostics(
               503,
-              "Service temporarily unavailable: all targets were skipped by pre-dispatch filters",
+              quotaSkip
+                ? `Service temporarily unavailable: all targets were skipped by pre-dispatch filters (${quotaSkip})`
+                : "Service temporarily unavailable: all targets were skipped by pre-dispatch filters",
               buildComboDiag("all_targets_skipped"),
               { code: "ALL_TARGETS_SKIPPED", type: "service_unavailable" }
             ),

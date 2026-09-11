@@ -28,6 +28,7 @@ import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
 import { shouldUseApiKeyConnectionTest } from "./webSessionTestDispatch";
 import { testCodexAppServerConnection, makeDiagnosis } from "./codexAppServerHealth";
 import { recoverKeyHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts";
+import { lockModelIfPerModelQuota } from "@omniroute/open-sse/services/accountFallback.ts";
 import { shouldClearErrorStateOnValidProbe } from "@/lib/usage/providerLimits";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
 import { buildApiKeyConnectionTestResult } from "./apiKeyTestResult";
@@ -967,6 +968,17 @@ export async function testSingleConnection(connectionId: string, validationModel
   const publicRuntime = projectProviderRuntimeForPublicResponse(runtime);
 
   const latencyMs = Date.now() - startTime;
+
+  // A representative-model 402 on an openai-compatible / per-model-quota
+  // gateway must lock only that model. The connection stays selectable for
+  // sibling upstreams that still return 200.
+  const connectionPsd = (connection.providerSpecificData as Record<string, unknown> | null) || {};
+  const configuredModelId =
+    typeof connectionPsd.validationModelId === "string" ? connectionPsd.validationModelId : "";
+  const probedModelId = validationModelId || configuredModelId;
+  if (result.valid && result.statusCode === 402 && probedModelId) {
+    lockModelIfPerModelQuota(provider, connectionId, probedModelId, "credits", 60 * 60 * 1000);
+  }
 
   // Unsupported validation capability is neutral: the probe established that
   // this provider cannot be verified through the generic test surface, not

@@ -20,6 +20,7 @@ const tally = tallyDrift as (
     docKey: string;
     strict: boolean;
     files: string[];
+    validate?: (content: string) => { ok: boolean; detail: string };
   }[],
   getContent: (file: string) => string | null
 ) => { strict: number; soft: number; lines: string[] };
@@ -567,4 +568,61 @@ test("neither claim fires on the other numbers the page is full of", () => {
     "$10 deposit unlock, 24M/mo boost, 800 output tokens, 2026-06-17.";
   assert.equal(makeValidator(7, HARD_STOP_CLAIM)(page).ok, true);
   assert.equal(makeValidator(13, TRAINING_CLAIM)(page).ok, true);
+});
+
+function freeTierCheck(freeTierCount: number, manifestFreeTier: number, freeTierReg?: number) {
+  const reg = freeTierReg ?? freeTierCount;
+  return {
+    label: "Manifest free-tier capability count (live code)",
+    actual: manifestFreeTier,
+    docKey: "free-tier capability",
+    strict: true,
+    files: ["scripts/check/check-docs-counts-sync.mjs"],
+    validate: () => ({
+      ok: manifestFreeTier === reg,
+      detail: `manifest ${manifestFreeTier} vs leaf∩registry ${reg} (leaf ${freeTierCount})`,
+    }),
+  };
+}
+
+test("gate flags STRICT when manifest free-tier count differs from leaf∩registry", () => {
+  const r = tally([freeTierCheck(5, 4, 5)], () => "live");
+  assert.equal(r.strict, 1);
+});
+
+test("gate passes when counts agree", () => {
+  const r = tally([freeTierCheck(5, 5, 5)], () => "live");
+  assert.equal(r.strict, 0);
+});
+
+test("gate passes on the arcee-ai shape: leaf=5, reg=4, manifest=4 (catalogue-only leaf)", () => {
+  // arcee-ai is in FREE_TIER_PROVIDER_SET (leaf) but absent from REGISTRY, so the
+  // prod gate compares the manifest against the intersection (reg), not the raw leaf.
+  const r = tally([freeTierCheck(5, 4, 4)], () => "live");
+  assert.equal(r.strict, 0);
+  // ...while the same manifest against the raw leaf (reg=leaf=5) must stay red.
+  const stale = tally([freeTierCheck(5, 4, 5)], () => "live");
+  assert.equal(stale.strict, 1);
+});
+
+test("gate skips when readCodeFacts fails (actual 0 fallback)", () => {
+  const r = tally(
+    [
+      {
+        label: "Code-derived counts",
+        actual: 0,
+        docKey: "code facts",
+        strict: false,
+        files: [] as string[],
+      },
+    ],
+    () => "live"
+  );
+  assert.equal(r.strict, 0);
+});
+
+test("buildChecks contains a free-tier gate", async () => {
+  const { buildChecks } = await import("../../scripts/check/check-docs-counts-sync.mjs");
+  const checks = (buildChecks as () => { label: string }[])();
+  assert.ok(checks.some((c) => c.label.includes("free-tier")));
 });

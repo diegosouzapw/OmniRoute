@@ -90,13 +90,19 @@ export function getBedrockKnownModelLimits(modelId: string): {
   if (!trimmed) return null;
 
   const unqualified = trimmed.includes("/") ? trimmed.slice(trimmed.indexOf("/") + 1) : trimmed;
-  const withoutProfilePrefix = unqualified.replace(/^(?:eu|us|global)\./i, "");
-  const withoutProviderPrefix = withoutProfilePrefix.replace(/^anthropic\./i, "");
-  const spec =
-    getModelSpec(trimmed) ||
-    getModelSpec(unqualified) ||
-    getModelSpec(withoutProfilePrefix) ||
-    getModelSpec(withoutProviderPrefix);
+  // A Bedrock id is "<vendor>.<model>" optionally behind a cross-region profile
+  // prefix: "global.openai.gpt-5.6-sol", "us.anthropic.claude-...". The model
+  // name itself contains dots ("gpt-5.6-sol"), so peel at most those two leading
+  // qualifiers and keep the first candidate a spec knows. Peeling only
+  // "anthropic." left every other vendor (openai, meta, amazon, ...) without a
+  // context window, and the caller then fell back to a 200k default (#12915).
+  const segments = unqualified.split(".");
+  const spec = [trimmed, unqualified, segments.slice(1).join("."), segments.slice(2).join(".")]
+    .filter((candidate) => candidate.length > 0)
+    .reduce<ReturnType<typeof getModelSpec>>(
+      (found, candidate) => found || getModelSpec(candidate),
+      undefined
+    );
 
   if (!spec?.contextWindow && !spec?.maxOutputTokens) return null;
   return {

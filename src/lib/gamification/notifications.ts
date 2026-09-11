@@ -110,6 +110,13 @@ export function createBadgeNotificationStream(
         }
       };
 
+      // A client that disconnects while the route is still awaiting auth
+      // arrives here already aborted, and "abort" will never fire again --
+      // the timers above would then run for the lifetime of the process.
+      if (signal?.aborted) {
+        cleanup();
+        return;
+      }
       if (signal) {
         signal.addEventListener("abort", cleanup);
       }

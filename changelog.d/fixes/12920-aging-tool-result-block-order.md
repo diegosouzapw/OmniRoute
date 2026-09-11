@@ -1,0 +1,1 @@
+- **fix(compression):** progressive aging now appends its `[COMPRESSED:aging:…]` annotation after a turn's `tool_result` blocks instead of in front of them, so Anthropic no longer rejects aged conversations with "`tool_use` ids were found without `tool_result` blocks immediately after" ([#12920](https://github.com/diegosouzapw/OmniRoute/pull/12920)).

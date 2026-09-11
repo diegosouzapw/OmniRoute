@@ -1,0 +1,1 @@
+- **fix(security):** the prompt-injection scan now spends its 16 KB budget on both ends of the request instead of the first 16 KB only, so `system`, `instructions`, `query`, `documents` and the newest turns are no longer hidden behind one long message ([#13104](https://github.com/diegosouzapw/OmniRoute/pull/13104))

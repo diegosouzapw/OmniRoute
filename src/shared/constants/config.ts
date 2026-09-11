@@ -17,6 +17,8 @@ export const PROVIDER_ENDPOINTS = {
   llmgateway: "https://api.llmgateway.io/v1/chat/completions",
   "llm-kiwi": "https://api.llm.kiwi/v1/chat/completions",
   literouter: "https://api.literouter.com/v1/chat/completions",
+  greenpt: "https://api.greenpt.ai/v1/chat/completions",
+  eurouter: "https://api.eurouter.ai/v1/chat/completions",
   "mnn-ai": "https://api.mnnai.ru/v1/chat/completions",
   "meganova-ai": "https://api.meganova.ai/v1/chat/completions",
   mixlayer: "https://models.mixlayer.ai/v1/chat/completions",

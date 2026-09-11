@@ -411,15 +411,37 @@ export function deleteBatch(id: string): boolean {
   return result.changes > 0;
 }
 
-export function deleteCompletedBatches(): { deletedBatches: number; deletedFiles: number } {
+/**
+ * Bulk-delete completed batches and the files they reference.
+ *
+ * `apiKeyId` scopes EVERY statement to that owner. Omitting it keeps the
+ * instance-wide sweep, which is legitimate for the operator's own dashboard
+ * (session auth) and for nothing else: without the predicate, an ordinary
+ * inference key could wipe every tenant's completed batches and null out their
+ * file contents (GHSA-wvxc-jp3v-5mg5). Same ownership shape as `listBatches`
+ * and `countBatches` above.
+ */
+export function deleteCompletedBatches(apiKeyId?: string | null): {
+  deletedBatches: number;
+  deletedFiles: number;
+} {
   const db = getDbInstance();
+  const scoped = typeof apiKeyId === "string" && apiKeyId.length > 0;
 
-  // Collect unique file IDs from all completed batches
-  const rows = db
-    .prepare(
-      "SELECT input_file_id, output_file_id, error_file_id FROM batches WHERE status = 'completed'"
-    )
-    .all() as Array<{
+  // Collect unique file IDs from the completed batches in scope
+  const rows = (
+    scoped
+      ? db
+          .prepare(
+            "SELECT input_file_id, output_file_id, error_file_id FROM batches WHERE status = 'completed' AND api_key_id = ?"
+          )
+          .all(apiKeyId)
+      : db
+          .prepare(
+            "SELECT input_file_id, output_file_id, error_file_id FROM batches WHERE status = 'completed'"
+          )
+          .all()
+  ) as Array<{
     input_file_id: string | null;
     output_file_id: string | null;
     error_file_id: string | null;
@@ -439,6 +461,16 @@ export function deleteCompletedBatches(): { deletedBatches: number; deletedFiles
     } catch {
       /* ignore */
     }
+  }
+
+  if (scoped) {
+    db.prepare(
+      "DELETE FROM batch_item_checkpoints WHERE batch_id IN (SELECT id FROM batches WHERE status = 'completed' AND api_key_id = ?)"
+    ).run(apiKeyId);
+    const result = db
+      .prepare("DELETE FROM batches WHERE status = 'completed' AND api_key_id = ?")
+      .run(apiKeyId);
+    return { deletedBatches: result.changes, deletedFiles };
   }
 
   db.prepare(

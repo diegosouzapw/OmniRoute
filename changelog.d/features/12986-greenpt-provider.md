@@ -1,0 +1,1 @@
+- **feat(providers):** Added GreenPT as an OpenAI-compatible API-key provider (`https://api.greenpt.ai/v1`), with live model discovery via `passthroughModels`. No free-inference badge: the published docs describe a free API subscription billed per token, not a free tier.

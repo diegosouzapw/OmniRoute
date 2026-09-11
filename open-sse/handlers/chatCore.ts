@@ -51,32 +51,7 @@ import {
   outcomeFromStatus,
 } from "../services/routing/index.ts";
 
-/**
- * Best-effort finish_reason extraction from a (possibly translated) response
- * body for routing-event telemetry. Returns null when the shape is unknown.
- */
-function routingFinishReason(body: unknown): string | null {
-  if (!body || typeof body !== "object") return null;
-  const record = body as Record<string, unknown>;
-  const choices = record.choices;
-  if (Array.isArray(choices)) {
-    const first = choices[0];
-    if (first && typeof first === "object") {
-      const fr = (first as Record<string, unknown>).finish_reason;
-      if (typeof fr === "string") return fr;
-    }
-  }
-  const output = record.output;
-  if (Array.isArray(output)) {
-    for (const item of output) {
-      if (item && typeof item === "object") {
-        const fr = (item as Record<string, unknown>).finish_reason;
-        if (typeof fr === "string") return fr;
-      }
-    }
-  }
-  return null;
-}
+import { routingFinishReason } from "./chatCore/routingFinishReason.ts";
 import {
   getHeaderValueCaseInsensitive,
   isNoMemoryRequested,
@@ -379,8 +354,10 @@ import {
   updateFromHeaders,
   updateFromResponseBody,
   initializeRateLimits,
+  resolveRequestQueueMaxWaitMs,
 } from "../services/rateLimitManager.ts";
 import * as localLimiterErrors from "../services/rateLimitManager/errors.ts";
+import { rethrowAdmissionError, remainingQueueBudgetMs } from "./chatCore/queueBudget.ts";
 import {
   acquireMany as acquireConcurrencyGates,
   markBlocked as markAccountSemaphoreBlocked,
@@ -388,6 +365,7 @@ import {
 import {
   lockModel,
   lockModelIfPerModelQuota,
+  hasPerModelQuota,
   recordCoreOwnedAntigravityQuotaState,
   shouldDeferAntigravityQuotaStateToCaller,
 } from "../services/accountFallback.ts";
@@ -3116,6 +3094,12 @@ export async function handleChatCore({
                 stage: "waiting_account_slot",
               });
             }
+            const maxWaitMs = resolveRequestQueueMaxWaitMs(
+              provider,
+              undefined,
+              attemptConnectionId ?? undefined
+            );
+            const gateStartedAt = Date.now();
             const releaseAccountSemaphore = await acquireConcurrencyGates(
               [
                 {
@@ -3132,12 +3116,13 @@ export async function handleChatCore({
                 },
               ],
               {
-                timeoutMs: resilienceSettings.requestQueue.maxWaitMs,
+                timeoutMs: maxWaitMs,
                 maxQueueSize: resilienceSettings.requestQueue.maxQueueDepth,
                 signal: streamController.signal,
               }
-            );
-            trace("post_semaphore");
+            ).catch(rethrowAdmissionError);
+            const remainingAfterGate = remainingQueueBudgetMs(maxWaitMs, gateStartedAt);
+            trace("post_semaphore", { maxWaitMs, remainingAfterGate });
             updatePendingScope(pendingScope, {
               stage: "waiting_rate_limit",
             });
@@ -3186,7 +3171,13 @@ export async function handleChatCore({
                       ),
                   });
                 },
-                streamController.signal
+                streamController.signal,
+                remainingAfterGate,
+                correlationId ?? undefined,
+                {
+                  executor: executor as unknown as { getTimeoutMs?: () => unknown },
+                  providerSpecificData: execCreds?.providerSpecificData,
+                }
               );
               const res = normalizeExecutorResult(rawExecutorResult);
               trace("post_executor", { status: res?.response?.status });
@@ -4228,6 +4219,18 @@ export async function handleChatCore({
               if (probeIsolated) {
                 console.warn(
                   `[provider] Node ${errorConnectionId} probe ${errorType} (${statusCode}) — connection stays active`
+                );
+              } else if (hasPerModelQuota(provider, model)) {
+                // Compatible / passthrough gateways: a 402 without a model id
+                // still must not terminalize the whole connection. Record the
+                // error for operators; sibling models stay selectable.
+                await updateProviderConnection(errorConnectionId, {
+                  lastErrorType: errorType,
+                  lastError: persistentMessage,
+                  errorCode: statusCode,
+                });
+                console.warn(
+                  `[provider] Node ${errorConnectionId} per-model quota exhausted (${statusCode}) — connection stays active`
                 );
               } else {
                 console.warn(
@@ -5990,6 +5993,11 @@ export async function handleChatCore({
     clientResponseFormat,
     echoModel,
     responseHeaders,
+    // Same adaptive budget the pre-handoff readiness gate above just used —
+    // reasoning models that legitimately take a while to say anything keep
+    // that same patience for their first REAL content, not just their first
+    // lifecycle frame. See pipeWithDisconnect's own doc comment.
+    contentStallTimeoutMs: streamReadinessPolicy.timeoutMs,
   });
 
   // ── Gamification event (fire-and-forget) ──

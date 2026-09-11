@@ -1,0 +1,1329 @@
+{
+  "common": {
+    "error": "Greška: {message}",
+    "serverOffline": "OmniRoute poslužitelj je izvan mreže. Pokrenite ga s: omniroute serve",
+    "authRequired": "Potrebna je autentifikacija. Postavite OMNIROUTE_API_KEY ili pokrenite: omniroute setup",
+    "rateLimited": "Prekoračeno ograničenje brzine zahtjeva. Pokušajte ponovo nakon {seconds}s.",
+    "timeout": "Zahtjev je istekao nakon {ms}ms.",
+    "success": "Gotovo.",
+    "yes": "da",
+    "no": "ne",
+    "confirm": "Jeste li sigurni? (da/ne)",
+    "dryRun": "[probni-unos] bi {action}",
+    "cancelled": "Otkazano.",
+    "jsonOpt": "Ispis kao JSON",
+    "yesOpt": "Preskoči upit za potvrdu"
+  },
+  "setup": {
+    "title": "OmniRoute Postavljanje",
+    "passwordPrompt": "Administratorska lozinka",
+    "providerPrompt": "Zadani pružatelj usluge (ostavite prazno za preskakanje)",
+    "done": "Postavljanje dovršeno",
+    "passwordSet": "Administratorska lozinka konfigurirana",
+    "providerSet": "Pružatelj usluge konfiguriran: {name}",
+    "testingProvider": "Testiranje veze s pružateljem usluge: {name}",
+    "testPassed": "Test pružatelja usluge prošao",
+    "testFailed": "Test pružatelja usluge nije uspio: {error}",
+    "loginEnabled": "Prijava: omogućena (lozinka ažurirana)",
+    "loginDisabled": "Prijava: onemogućena",
+    "providerInfo": "Pružatelj usluge: {info}",
+    "opencode": "Instalirajte i konfigurirajte priloženi @omniroute/opencode-plugin za OpenCode"
+  },
+  "doctor": {
+    "title": "OmniRoute Dijagnostika",
+    "dbOk": "Baza podataka: U redu ({path})",
+    "dbMissing": "Baza podataka: nije inicijalizirana — pokrenite `omniroute setup`",
+    "portOk": "Priključak {port}: dostupan",
+    "portConflict": "Priključak {port}: koristi ga drugi proces",
+    "encryptionOk": "Ključ za šifriranje: konfiguriran",
+    "encryptionMissing": "Nedostaje ključ za šifriranje — pokrenite `omniroute setup`",
+    "allGood": "Sve provjere su prošle.",
+    "warnings": "{count} upozorenje/a — pogledajte gore."
+  },
+  "providers": {
+    "title": "Pružatelji usluga",
+    "noProviders": "Nema konfiguriranih pružatelja usluga. Pokrenite: omniroute setup",
+    "testing": "Testiranje {name}...",
+    "available": "{count} pružatelj/a usluga dostupan/dostupno",
+    "connected": "Spojeno",
+    "disconnected": "Prekinuta veza",
+    "validationFailed": "Provjera valjanosti nije uspjela: {error}",
+    "metrics": {
+      "description": "Prikaži metrike performansi pružatelja usluga (latencija, stopa uspjeha, trošak)",
+      "provider": "Filtriraj prema ID-u pružatelja usluga",
+      "connection_id": "Filtriraj prema ID-u veze",
+      "period": "Vremensko razdoblje: 1h|6h|24h|7d|30d (zadano: 24h)",
+      "metric": "Usredotoči se na određeno polje metrike",
+      "sort": "Sortiraj prema polju (silazno)",
+      "limit": "Maksimalan broj redaka (zadano: 50)",
+      "watch": "Osvježi svakih 5s (način rada uživo)",
+      "compare": "ID-ovi pružatelja usluga odvojeni zarezima za usporedbu jedan pored drugoga"
+    },
+    "metric_single": {
+      "description": "Dohvati jednu vrijednost metrike za određenu vezu"
+    },
+    "rotate": {
+      "description": "Rotiraj upstream API ključ za vezu s pružateljem usluga",
+      "newKeyOpt": "Nova vrijednost API ključa (izbjegavaj: preferirati --from-env)",
+      "fromEnvOpt": "Učitaj novi ključ iz varijable okoline VAR",
+      "oauthOpt": "Pokreni OAuth tok ponovne autentifikacije",
+      "skipTestOpt": "Preskoči test povezivosti nakon rotacije",
+      "dryRunOpt": "Ispiši što bi se promijenilo bez zapisivanja",
+      "confirmPrompt": "Zamijeni API ključ za vezu \"{name}\" ({id})? [y/N]",
+      "dryRunResult": "[dry-run] Rotirao bi ključ za \"{name}\" ({id}). Nisu napravljene nikakve promjene.",
+      "oauthHint": "OAuth veza — pokrenite: omniroute oauth {provider}",
+      "envVarEmpty": "Varijabla okoline {var} nije postavljena ili je prazna.",
+      "success": "Ključ je rotiran za \"{name}\". Pokrenite `providers test {id}` za provjeru.",
+      "testPassed": "Test nakon rotacije je prošao.",
+      "testFailed": "Test nakon rotacije nije uspio: {error}"
+    },
+    "status": {
+      "description": "Prikaži stanje zdravlja ključeva za sve veze s pružateljima usluga (starost, istek, hlađenje)",
+      "providerOpt": "Filtriraj prema nazivu pružatelja usluga",
+      "header": "ID         Pružatelj      Naziv                    Status isteka  Status testa  Hlađenje do",
+      "noData": "Nema dostupnih podataka o vezama s pružateljima usluga.",
+      "requiresServer": "providers status zahtijeva da OmniRoute poslužitelj bude pokrenut."
+    }
+  },
+  "keys": {
+    "title": "API ključevi",
+    "addDescription": "Dodaj ili ažuriraj API ključ za pružatelja usluga",
+    "listDescription": "Prikaži sve konfigurirane API ključeve",
+    "removeDescription": "Ukloni API ključ za pružatelja usluga",
+    "regenerateDescription": "Regeneriraj OmniRoute API ključ",
+    "revokeDescription": "Opozovi OmniRoute API ključ",
+    "revealDescription": "Otkrij nemaskiranu vrijednost API ključa",
+    "usageDescription": "Prikaži nedavnu upotrebu za API ključ",
+    "usageLimitOpt": "Broj nedavnih zahtjeva",
+    "rotateDescription": "Generiraj novi ključ i poništi stari",
+    "graceOpt": "Razdoblje odgode (ms) prije nego što stari ključ postane nevažeći",
+    "stdinOpt": "Čitaj API ključ sa stdin-a umjesto iz argumenta",
+    "added": "Ključ dodan za {provider}.",
+    "removed": "Ključ uklonjen.",
+    "listed": "{count} ključ(eva).",
+    "noKeys": "Nema konfiguriranih ključeva.",
+    "noUsage": "Nisu pronađeni podaci o korištenju.",
+    "confirmRemove": "Ukloniti ključ {id}?",
+    "confirmRegenerate": "Regenerirati ključ {id}?",
+    "confirmRevoke": "Opozvati ključ {id}?",
+    "confirmRotate": "Rotirati ključ {id}? (stari ključ bit će poništen nakon razdoblja odgode)",
+    "regenerated": "Regenerirano. Novi ključ: {key}",
+    "revoked": "Ključ {id} opozvan.",
+    "rotated": "Ključ {id} rotiran. ID novog ključa: {newId}",
+    "revealWarning": "⚠  Ovo će prikazati cijeli ključ bez maskiranja. Pobrinite se da je vaš zaslon privatan.",
+    "providerRequired": "Pružatelj usluge je obavezan.",
+    "keyRequired": "API ključ je obavezan.",
+    "stdinEmpty": "Nije poslan API ključ putem stdin-a.",
+    "unknownProvider": "Nepoznati pružatelj usluge: {provider}",
+    "policy": {
+      "title": "Pravila ključa",
+      "showDescription": "Prikaži pravila ograničenja/troška za ključ",
+      "setDescription": "Postavi pravila ograničenja/troška za ključ",
+      "rateLimitOpt": "Maksimalan broj zahtjeva po minuti",
+      "maxCostOpt": "Maksimalni trošak po danu (USD)",
+      "allowedModelsOpt": "Popis dopuštenih modela odvojen zarezima",
+      "nothingToSet": "Nisu navedena polja pravila. Koristite --rate-limit, --max-cost ili --allowed-models.",
+      "updated": "Pravila ažurirana."
+    },
+    "expiration": {
+      "title": "Istek ključa",
+      "listDescription": "Prikaži ključeve kojima uskoro ističe rok",
+      "daysOpt": "Prikaži ključeve koji ističu unutar N dana",
+      "none": "Nema ključeva koji ističu unutar {days} dana.",
+      "listTitle": "Ključevi koji ističu unutar {days} dana:"
+    }
+  },
+  "authExport": {
+    "description": "Izvezi DEŠIFRIRANE vjerodajnice pružatelja usluge (samo lokalno, ispis u čistom tekstu)",
+    "idOpt": "Izvezi samo vezu koja odgovara ovom id-u/nazivu/pružatelju",
+    "formatOpt": "Format izlaza: json ili env",
+    "outOpt": "Zapiši izlaz u datoteku umjesto na stdout (zapisano s dozvolama 0600)",
+    "forceOpt": "Potvrdi da razumijete da ovo ispisuje/zapisuje tajne u čistom tekstu",
+    "warning": "⚠ Ovo ispisuje/zapisuje DEŠIFRIRANE API ključeve i OAuth tokene u čistom tekstu. Pobrinite se da vaš zaslon, povijest ljuske i sve izlazne datoteke ostanu privatni.",
+    "confirmHeading": "⚠ UPOZORENJE: ovo izvozi DEŠIFRIRANE vjerodajnice pružatelja usluge u čistom tekstu",
+    "confirmBody": "Ova naredba dešifrira i ispisuje/zapisuje apiKey, accessToken, refreshToken i\nidToken za odabrane veze. Prema izlazu postupajte kao prema tajni.",
+    "confirmFooter": "Za potvrdu, pokrenite:\n  omniroute auth export --force",
+    "missingKey": "STORAGE_ENCRYPTION_KEY je obavezan za izvoz vjerodajnica.",
+    "notFound": "Veza nije pronađena: {id}",
+    "invalidFormat": "Nevažeći format: {format}. Koristite json ili env."
+  },
+  "stream": {
+    "description": "Strujanje chat odgovora s načinima inspekcije SSE-a",
+    "file": "Učitaj upit iz datoteke",
+    "stdin": "Učitaj upit iz stdin-a",
+    "model": "ID modela (zadano: auto)",
+    "system": "Sistemski upit",
+    "combo": "Prisili određenu kombinaciju prema nazivu",
+    "max_tokens": "Maksimalni broj tokena u odgovoru",
+    "responses_api": "Koristi /v1/responses umjesto /v1/chat/completions",
+    "raw": "Ispisuj neobrađene SSE retke kako pristižu",
+    "debug": "Ispisuj informacije o vremenskom rasporedu po isječku na stderr",
+    "save": "Spremi sve SSE događaje u .jsonl datoteku",
+    "error": {
+      "empty_prompt": "Greška: upit je obavezan (pozicijski argument, --file ili --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Analitika korištenja, proračuni, kvote i zapisnici",
+    "analytics": {
+      "description": "Prikaži skupnu analitiku korištenja",
+      "period": "Vremenski raspon: 1d|7d|30d|90d|ytd|all (zadano: 30d)",
+      "provider": "Filtriraj prema ID-u pružatelja usluge"
+    },
+    "budget": {
+      "description": "Upravljanje troškovnim proračunima",
+      "set": {
+        "scope": "Opseg proračuna (zadano: global)",
+        "period": "Razdoblje proračuna: daily|weekly|monthly (zadano: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Prikaži iskorištenost kvote pružatelja usluge",
+      "provider": "Filtriraj prema ID-u pružatelja usluge",
+      "check": "Prikaži je li kvota dostupna za novi zahtjev"
+    },
+    "logs": {
+      "description": "Prikaži zapisnike poziva zahtjeva",
+      "limit": "Broj unosa zapisnika za povrat (zadano: 100)",
+      "search": "Upit za pretraživanje radi filtriranja zapisnika",
+      "since": "Vrati zapisnike od ovog vremenskog žiga",
+      "follow": "Kontinuirano prati nove unose zapisnika",
+      "api_key": "Filtriraj zapisnike prema API ključu"
+    },
+    "utilization": {
+      "description": "Prikaži metrike iskorištenosti API ključa",
+      "api_key": "Filtriraj prema API ključu"
+    },
+    "history": {
+      "description": "Prikaži povijest zahtjeva",
+      "limit": "Broj unosa povijesti (zadano: 100)"
+    },
+    "proxy_logs": {
+      "description": "Prikaži zapisnike zahtjeva na razini proxyja",
+      "limit": "Broj unosa zapisnika proxyja (zadano: 100)"
+    }
+  },
+  "cost": {
+    "description": "Prikaži izvještaj o troškovima s raščlambom prema pružatelju usluge, modelu, kombinaciji ili API ključu",
+    "period": "Vremenski raspon: 1d|7d|30d|90d|ytd|all (zadano: 30d)",
+    "since": "Datum početka (ISO format, npr. 2026-01-01) — nadjačava --period",
+    "until": "Datum završetka (ISO format)",
+    "group_by": "Grupiraj rezultate po: provider|model|api-key|combo|day (zadano: provider)",
+    "api_key_filter": "Filtriraj prema određenom API ključu",
+    "limit": "Maksimalni broj redaka za prikaz (zadano: 100)"
+  },
+  "simulate": {
+    "description": "Simulacija usmjeravanja bez izvršavanja — prikazuje koje bi pružatelje odabrao bez pozivanja uzvodnih usluga",
+    "file": "Učitaj cijelo tijelo zahtjeva iz JSON datoteke",
+    "model": "ID modela (zadano: auto)",
+    "combo": "Prisilno koristi određeni combo prema nazivu",
+    "reasoning": "Razina napora zaključivanja (low|medium|high)",
+    "thinking": "Proračun tokena za prošireno razmišljanje",
+    "explain": "Ispiši stablo zamjene i raspon troškova na stderr",
+    "noCombo": "Nije pronađen odgovarajući combo. Konfigurirajte ga s: omniroute combo create"
+  },
+  "chat": {
+    "description": "Pošalji jednokratni chat upit u OmniRoute",
+    "file": "Pročitaj upit iz datoteke",
+    "stdin": "Pročitaj upit sa stdin-a",
+    "system": "Sistemski upit",
+    "model": "ID modela (zadano: auto)",
+    "max_tokens": "Maksimalni broj tokena u odgovoru",
+    "temperature": "Temperatura uzorkovanja (0–2)",
+    "top_p": "Nuklearno uzorkovanje top-p",
+    "reasoning_effort": "Razina napora zaključivanja (low|medium|high)",
+    "thinking_budget": "Proračun tokena za prošireno razmišljanje",
+    "combo": "Prisilno koristi određeni combo prema nazivu",
+    "responses_api": "Koristi /v1/responses umjesto /v1/chat/completions",
+    "stream": "Strujaj odgovor postupno",
+    "no_history": "Ne spremi u ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Greška: upit je obavezan (pozicijski argument, --file ili --stdin)"
+    }
+  },
+  "serve": {
+    "description": "Pokreni OmniRoute poslužitelj (zadana radnja)",
+    "starting": "Pokretanje OmniRoute poslužitelja na portu {port}...",
+    "ready": "Spreman na http://localhost:{port}",
+    "stopping": "Zaustavljanje poslužitelja (PID {pid})...",
+    "stopped": "Poslužitelj je zaustavljen.",
+    "notRunning": "Poslužitelj nije pokrenut.",
+    "port": "Port na kojem se osluškuje (zadano: 20128)",
+    "no_open": "Ne otvara automatski preglednik",
+    "daemon": "Pokreni poslužitelj kao pozadinski daemon",
+    "log": "Prikaži zapise poslužitelja u retku",
+    "no_recovery": "Onemogući automatski ponovni pokretanje nakon pada (način za otklanjanje pogrešaka)",
+    "max_restarts": "Maksimalni broj ponovnih pokretanja nakon pada unutar 30 s prije odustajanja (zadano: 2)",
+    "tray": "Pokretanje u programskoj traci (samo za stolna računala, po izboru)",
+    "no_tray": "Onemogući ikonu programske trake",
+    "tls_cert": "Putanja do TLS certifikata (PEM) za posluživanje HTTPS-a (također OMNIROUTE_TLS_CERT)",
+    "tls_key": "Putanja do TLS privatnog ključa (PEM) za posluživanje HTTPS-a (također OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "Sigurnosna kopija",
+    "description": "Izrada sigurnosne kopije podataka OmniRoute",
+    "creating": "Izrada sigurnosne kopije...",
+    "done": "Sigurnosna kopija spremljena u {path}",
+    "noFiles": "Nema datoteka za sigurnosno kopiranje (baza podataka nije inicijalizirana)",
+    "failed": "Sigurnosno kopiranje nije uspjelo: {error}",
+    "restoring": "Vraćanje iz {path}...",
+    "restored": "Vraćanje je dovršeno.",
+    "restoreDescription": "Vraćanje iz sigurnosne kopije",
+    "listTitle": "Dostupne sigurnosne kopije",
+    "noBackups": "Nije pronađena nijedna sigurnosna kopija.",
+    "notFound": "Sigurnosna kopija nije pronađena: {name}",
+    "confirmRestore": "Prepisati trenutne podatke sigurnosnom kopijom od {ts}?",
+    "createDescription": "Izrada sigurnosne kopije podataka OmniRoute",
+    "nameOpt": "Prilagođeni naziv sigurnosne kopije",
+    "cloudOpt": "Učitaj sigurnosnu kopiju u pohranu u oblaku",
+    "encryptOpt": "Šifriranje sigurnosne kopije algoritmom AES-256-GCM",
+    "keyFileOpt": "Putanja do datoteke koja sadrži zaporku za šifriranje",
+    "excludeOpt": "Isključi datoteku koja odgovara uzorku (ponovljivo)",
+    "retentionOpt": "Zadrži samo posljednjih N sigurnosnih kopija",
+    "passphrasePrompt": "Zaporka za šifriranje:",
+    "noPassphrase": "Zaporka je obavezna za šifriranu sigurnosnu kopiju.",
+    "cloudFailed": "Upozorenje: učitavanje u oblak nije uspjelo. Lokalna sigurnosna kopija je spremljena.",
+    "cloudUploaded": "Sigurnosna kopija u oblaku učitana: {url}",
+    "auto": {
+      "title": "Raspored sigurnosnog kopiranja",
+      "enableDescription": "Omogući zakazano automatsko sigurnosno kopiranje",
+      "disableDescription": "Onemogući zakazano automatsko sigurnosno kopiranje",
+      "statusDescription": "Prikaži trenutni status rasporeda sigurnosnog kopiranja",
+      "cronOpt": "Cron izraz za raspored (zadano: svaki dan u 3 ujutro)",
+      "enabled": "Automatsko sigurnosno kopiranje omogućeno (cron: {cron}).",
+      "hint": "Raspored čita omniroute serve pri pokretanju.",
+      "disabled": "Automatsko sigurnosno kopiranje onemogućeno.",
+      "notConfigured": "Nije konfiguriran nijedan raspored sigurnosnog kopiranja."
+    }
+  },
+  "health": {
+    "description": "Provjera zdravlja poslužitelja i statusa komponenti",
+    "noServer": "Poslužitelj nije pokrenut. Pokrenite s: omniroute serve",
+    "title": "Zdravlje",
+    "status": "Status: {status}",
+    "uptime": "Vrijeme rada: {uptime}",
+    "requests": "Zahtjevi (24h): {count}",
+    "cost": "Trošak (24h): ${cost}"
+  },
+  "quota": {
+    "description": "Prikaži korištenje kvote davatelja usluge",
+    "noServer": "Poslužitelj nije pokrenut. Pokrenite s: omniroute serve",
+    "noData": "Nema dostupnih informacija o kvoti."
+  },
+  "cache": {
+    "description": "Upravljaj predmemorijom odgovora",
+    "noServer": "Poslužitelj nije pokrenut. Pokrenite s: omniroute serve",
+    "cleared": "Predmemorija je očišćena.",
+    "clearFailed": "Čišćenje predmemorije nije uspjelo."
+  },
+  "redis": {
+    "description": "Pokrenite lokalni Redis spremnik jednim klikom (Podman ili Docker) za predmemoriranje i praćenje kvota u OmniRoute"
+  },
+  "test": {
+    "description": "Testiraj vezu s davateljem usluge",
+    "noServer": "Poslužitelj nije pokrenut. Pokrenite s: omniroute serve",
+    "testing": "Testiranje {provider} / {model}...",
+    "passed": "Veza uspješno uspostavljena!",
+    "failed": "Veza nije uspjela: {error}",
+    "allProvidersOpt": "Testiraj sve konfigurirane davatelje usluge",
+    "latencyOpt": "Prikaži mjerenja latencije (avg/min/max ms)",
+    "repeatOpt": "Ponovi test N puta i agregiraj rezultate",
+    "compareOpt": "Modeli odvojeni zarezom za usporedbu (npr. gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Spremi rezultate u JSON datoteku",
+    "saved": "Rezultati spremljeni u {path}",
+    "compareTitle": "Usporedba modela",
+    "compareMinTwo": "Za --compare potrebna su najmanje dva modela (odvojena zarezom)",
+    "noProviders": "Nema konfiguriranih davatelja usluge. Dodajte jednog s: omniroute keys add"
+  },
+  "update": {
+    "checking": "Provjera ažuriranja...",
+    "upToDate": "Već je ažurirano ({version}).",
+    "available": "Dostupno ažuriranje: {current} → {latest}",
+    "installing": "Instaliranje {latest}...",
+    "done": "Ažurirano na {latest}. Restart poslužitelja za primjenu."
+  },
+  "mcp": {
+    "title": "MCP Poslužitelj",
+    "running": "MCP poslužitelj je pokrenut ({transport})",
+    "stopped": "MCP poslužitelj je zaustavljen.",
+    "restarted": "MCP poslužitelj je ponovo pokrenut.",
+    "call": {
+      "description": "Izravno pozovi MCP alat",
+      "args": "JSON objekt argumenata (unutarnji)",
+      "args_file": "Putanja do JSON datoteke s argumentima",
+      "stream": "Koristi strujni krajnji točak (/api/mcp/stream)",
+      "scope": "Potreban opseg (može se ponavljati, npr. read:health)"
+    },
+    "scopes": {
+      "description": "Prikaz dostupnih MCP opsega",
+      "tool": "Prikaz opsega potrebnih za određeni alat"
+    },
+    "tools": {
+      "description": "Pregled MCP alata",
+      "list": {
+        "description": "Prikaz svih MCP alata",
+        "scope": "Filtriraj po opsegu"
+      },
+      "info": {
+        "description": "Prikaz metapodataka za MCP alat"
+      },
+      "schema": {
+        "description": "Prikaz ulazne/izlazne JSON sheme za MCP alat",
+        "io": "Vrsta sheme: input|output (zadano: input)"
+      }
+    },
+    "audit": {
+      "description": "MCP zapisnik revizije (alias za audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Prikaz dostupnih A2A vještina iz kartice agenta"
+    },
+    "invoke": {
+      "description": "Pozovi A2A vještinu i vrati ID zadatka",
+      "input": "Ulazni JSON objekt",
+      "input_file": "Putanja do ulazne JSON datoteke",
+      "wait": "Čekaj dovršetak zadatka prije vraćanja rezultata",
+      "timeout": "Vremensko ograničenje za čekanje dovršetka u ms (zadano: 60000)"
+    },
+    "tasks": {
+      "description": "Upravljanje A2A zadacima",
+      "list": {
+        "status": "Filtriraj po statusu",
+        "skill": "Filtriraj po ID-u vještine"
+      },
+      "watch": {
+        "description": "Provjeravaj status zadatka do dovršetka"
+      },
+      "stream": {
+        "description": "Streaming događaja izvršavanja zadatka putem SSE"
+      },
+      "logs": {
+        "description": "Prikaz poruka i artefakata zadatka"
+      }
+    }
+  },
+  "policy": {
+    "description": "Upravljanje OmniRoute politikama autorizacije",
+    "list": {
+      "description": "Prikaz politika",
+      "kind": "Filtriraj po vrsti (allow|deny|rate-limit|cost-cap)",
+      "scope": "Filtriraj po opsegu (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Dohvati detalje politike po ID-u"
+    },
+    "create": {
+      "description": "Izradi politiku iz JSON datoteke",
+      "file": "Putanja do JSON datoteke politike"
+    },
+    "update": {
+      "description": "Ažuriraj politiku iz JSON datoteke",
+      "file": "Putanja do JSON datoteke politike"
+    },
+    "delete": {
+      "description": "Izbriši politiku po ID-u",
+      "yes": "Zaobiđi potvrdni upit"
+    },
+    "evaluate": {
+      "description": "Probno izvršavanje evaluacije politike (izlaz 0=dopušteno, 4=odbijeno)",
+      "api_key": "API ključ za evaluaciju",
+      "action": "Radnja za provjeru (npr. chat, embed, admin)",
+      "resource": "Putanja resursa ili identifikator",
+      "context": "Dodatni kontekst kao JSON objekt"
+    },
+    "export": {
+      "description": "Izvoz svih politika u JSON datoteku"
+    },
+    "import": {
+      "description": "Uvoz politika iz JSON datoteke",
+      "overwrite": "Prepiši postojeće politike s istim ID-om"
+    }
+  },
+  "compression": {
+    "description": "Konfigurirajte i pregledajte OmniRoute cjevovod komprimiranja",
+    "status": {
+      "description": "Prikaz trenutnog statusa i postavki komprimiranja"
+    },
+    "configure": {
+      "description": "Konfiguriranje postavki komprimiranja",
+      "engine": "Mehanizam komprimiranja (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Agresivnost caveman moda 0.0–1.0",
+      "rtk_budget": "RTK budžet tokena",
+      "language_pack": "Jezični paket za aktivaciju"
+    },
+    "engine": {
+      "description": "Dohvati ili postavi aktivni mehanizam komprimiranja"
+    },
+    "combos": {
+      "description": "Upravljanje statistikom kombinacija komprimiranja"
+    },
+    "rules": {
+      "description": "Upravljanje pravilima komprimiranja",
+      "add": {
+        "pattern": "Uzorak za podudaranje (regex ili field:pattern)",
+        "action": "Radnja: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Prikaz dostupnih jezičnih paketa za komprimiranje"
+    },
+    "preview": {
+      "description": "Pregled učinka komprimiranja na zahtjev",
+      "file": "Putanja do JSON datoteke zahtjeva"
+    }
+  },
+  "tunnel": {
+    "title": "Tuneli",
+    "listDescription": "Prikaz aktivnih tunela",
+    "createDescription": "Izradi tunel",
+    "created": "Tunel izrađen: {url}",
+    "stopped": "Tunel zaustavljen.",
+    "confirmStop": "Zaustaviti tunel {id}?",
+    "stopDescription": "Zaustavi tunel",
+    "statusDescription": "Prikaz detaljnog statusa tunela",
+    "logsDescription": "Prikaz zapisa (logs) za tunel",
+    "infoDescription": "Prikaz detalja konfiguracije tunela",
+    "rotateDescription": "Generiraj novi URL tunela",
+    "tailOpt": "Broj redaka zapisa za prikaz",
+    "typeRequired": "Vrsta tunela je obavezna.",
+    "noLogs": "Nema dostupnih zapisa.",
+    "notAvailable": "Informacije o tunelu nisu dostupne.",
+    "noTunnels": "Nema aktivnih tunela.",
+    "infoTitle": "Informacije o tunelu: {type}",
+    "rotated": "URL tunela rotiran: {url}",
+    "confirmRotate": "Rotirati tunel {type}? (bit će generiran novi URL)"
+  },
+  "stop": {
+    "description": "Zaustavi OmniRoute server",
+    "stopping": "Zaustavljanje servera (PID {pid})...",
+    "stopped": "Server zaustavljen.",
+    "notRunning": "Nijedan server nije aktivan.",
+    "portFallback": "Nije pronađena PID datoteka, pokušava se zaustavljanje putem porta..."
+  },
+  "restart": {
+    "description": "Ponovno pokreni OmniRoute server",
+    "restarting": "Ponovno pokretanje OmniRoute servera..."
+  },
+  "dashboard": {
+    "description": "Otvori OmniRoute nadzornu ploču u pregledniku",
+    "opening": "Otvaranje nadzorne ploče na {url}",
+    "urlOnly": "Ispiši URL nadzorne ploče bez otvaranja preglednika",
+    "tui": "Otvori interaktivnu TUI nadzornu ploču (terminalsko sučelje, 7 kartica)"
+  },
+  "models": {
+    "description": "Prikaži dostupne modele (potreban je server)",
+    "search": "Filtriraj modele po ID-u, nazivu, pružatelju usluge ili opisu",
+    "noServer": "Server nije pokrenut. Pokrenite s: omniroute serve",
+    "noModels": "Nema pronađenih modela."
+  },
+  "audit": {
+    "description": "Pristup zapisima o sukladnosti i MCP revizijskim zapisima",
+    "source": "Izvor zapisa: all|compliance|mcp (zadano: all)",
+    "since": "Vrati zapise od ovog vremenskog žiga (ISO 8601)",
+    "until": "Vrati zapise do ovog vremenskog žiga (ISO 8601)",
+    "tail": {
+      "description": "Prikaži nedavne unose revizijskog zapisa",
+      "follow": "Neprekidno praćenje novih unosa (ispitivanje svake 2 s)",
+      "limit": "Maksimalan broj unosa za prikaz (zadano: 100)"
+    },
+    "search": {
+      "description": "Pretraži unose revizijskog zapisa po ključnoj riječi",
+      "limit": "Maksimalan broj rezultata (zadano: 200)",
+      "actor": "Filtriraj po ID-u izvršitelja",
+      "action": "Filtriraj po nazivu akcije"
+    },
+    "export": {
+      "description": "Izvezi revizijski zapis u datoteku",
+      "format": "Izlazni format: jsonl|csv (zadano: jsonl)"
+    },
+    "stats": {
+      "description": "Prikaži statistiku revizijskog zapisa",
+      "period": "Vremensko razdoblje: 1d|7d|30d (zadano: 7d)"
+    },
+    "get": {
+      "description": "Dohvati jedan unos revizijskog zapisa po ID-u"
+    }
+  },
+  "skills": {
+    "description": "Upravljanje OmniRoute vještinama (sandbox, ugrađene, prilagođene, hibridne, skillssh)",
+    "list": {
+      "description": "Prikaži instalirane vještine",
+      "type": "Filtriraj po vrsti (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Prikaži samo omogućene vještine",
+      "disabled": "Prikaži samo onemogućene vještine",
+      "api_key": "Filtriraj po API ključu"
+    },
+    "get": {
+      "description": "Dohvati pojedinosti vještine po ID-u"
+    },
+    "install": {
+      "description": "Instaliraj vještinu iz datoteke ili URL-a",
+      "from_file": "Putanja do JSON datoteke s definicijom vještine",
+      "from_url": "URL udaljene definicije vještine",
+      "type": "Vrsta vještine (sandbox|custom|hybrid)",
+      "enable": "Omogući vještinu nakon instalacije"
+    },
+    "enable": {
+      "description": "Omogući vještinu po ID-u"
+    },
+    "disable": {
+      "description": "Onemogući vještinu po ID-u",
+      "yes": "Preskoči potvrdni upit"
+    },
+    "delete": {
+      "description": "Izbriši vještinu po ID-u",
+      "yes": "Preskoči upit za potvrdu"
+    },
+    "execute": {
+      "description": "Izvrši vještinu po ID-u",
+      "input": "JSON ulazni objekt",
+      "input_file": "Putanja do JSON ulazne datoteke",
+      "timeout": "Vremensko ograničenje izvršavanja u ms (zadano: 30000)"
+    },
+    "executions": {
+      "description": "Prikaz povijesti izvršavanja vještina",
+      "skill": "Filtriraj po ID-u vještine",
+      "limit": "Maksimalan broj rezultata (zadano: 50)",
+      "status": "Filtriraj po statusu (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Upravljanje vještinama instaliranima putem SSH-a"
+    },
+    "marketplace": {
+      "description": "Pregledaj i instaliraj vještine s tržišta"
+    },
+    "mp": {
+      "search": {
+        "description": "Pretraži pakete na tržištu",
+        "category": "Filtriraj po kategoriji",
+        "tag": "Filtriraj po oznaci",
+        "limit": "Maksimalan broj rezultata (zadano: 30)",
+        "sort": "Sortiraj po: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Prikaz detalja paketa i readme datoteke"
+      },
+      "install": {
+        "description": "Instaliraj paket s tržišta",
+        "version": "Verzija paketa (zadano: najnovija)",
+        "enable": "Omogući nakon instalacije",
+        "yes": "Preskoči upit za potvrdu"
+      },
+      "categories": {
+        "description": "Prikaz kategorija na tržištu"
+      },
+      "featured": {
+        "description": "Prikaz istaknutih paketa s tržišta"
+      }
+    }
+  },
+  "memory": {
+    "description": "Upravljanje konverzacijskom memorijom OmniRoute (FTS5 + vektor)",
+    "search": {
+      "description": "Pretraži unose memorije prema semantičkom upitu",
+      "type": "Filtriraj po tipu memorije (user|feedback|project|reference)",
+      "limit": "Maksimalan broj rezultata (zadano: 20)",
+      "api_key": "Filtriraj po API ključu",
+      "token_budget": "Ograniči ukupan broj tokena u rezultatima"
+    },
+    "add": {
+      "description": "Dodaj novi unos memorije",
+      "content": "Tekstualni sadržaj memorije",
+      "file": "Učitaj sadržaj iz datoteke",
+      "type": "Tip memorije (zadano: user)",
+      "metadata": "JSON objekt metapodataka",
+      "api_key": "Povezati s API ključem"
+    },
+    "clear": {
+      "description": "Izbriši unose memorije koji odgovaraju filtrima",
+      "type": "Filtriraj po tipu",
+      "older": "Izbriši unose starije od trajanja (30d, 6m, 1y)",
+      "api_key": "Filtriraj po API ključu",
+      "yes": "Preskoči potvrdu"
+    },
+    "list": {
+      "description": "Prikaži unose memorije bez rangiranja pretraživanja",
+      "type": "Filtriraj po tipu",
+      "limit": "Maksimalan broj rezultata (zadano: 100)",
+      "api_key": "Filtriraj po API ključu"
+    },
+    "get": {
+      "description": "Dohvati jedan unos memorije po ID-u"
+    },
+    "delete": {
+      "description": "Izbriši unos memorije po ID-u",
+      "yes": "Preskoči potvrdu"
+    },
+    "health": {
+      "description": "Prikaži stanje podsustava memorije (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "Upravljaj OAuth vezama s pružateljima usluga",
+    "providers": {
+      "description": "Prikaži pružatelje usluga koji podržavaju OAuth i njihove tipove tokova"
+    },
+    "start": {
+      "description": "Pokreni OAuth autorizacijski tok za pružatelja usluge",
+      "provider": "ID pružatelja usluge (gemini, copilot, cursor, …)",
+      "no_browser": "Ispiši samo URL — ne otvaraj preglednik",
+      "import_system": "Automatski uvezi vjerodajnice iz lokalne sistemske konfiguracije",
+      "social": "Pružatelj društvene prijave (google|github) — obavezno za kiro",
+      "timeout": "Vrijeme čekanja na autorizaciju u ms (zadano: 300000)"
+    },
+    "status": {
+      "description": "Prikaži aktivne OAuth veze",
+      "provider": "Filtriraj po ID-u pružatelja usluge"
+    },
+    "revoke": {
+      "description": "Opozovi OAuth vezu",
+      "provider": "ID pružatelja usluge za opoziv",
+      "connection_id": "Opozovi određenu vezu po ID-u",
+      "yes": "Preskoči potvrdu"
+    }
+  },
+  "cloud": {
+    "description": "Upravljaj zadacima cloud AI agenata (codex, devin, jules)",
+    "agents": {
+      "description": "Prikaži dostupne cloud agente"
+    },
+    "agent": {
+      "description": "Upravljaj zadacima {agent} cloud agenta",
+      "auth": {
+        "description": "Autoriziraj {agent} putem OAuth-a"
+      }
+    },
+    "task": {
+      "description": "Upravljaj zadacima cloud agenta",
+      "create": {
+        "description": "Stvori novi zadatak agenta",
+        "title": "Naslov zadatka (zadano: prvih 80 znakova upita)",
+        "prompt": "Tekst upita zadatka",
+        "prompt_file": "Pročitaj upit iz datoteke",
+        "repo": "URL repozitorija za kloniranje za zadatak",
+        "branch": "Naziv granice za korištenje",
+        "metadata": "JSON objekt metapodataka"
+      },
+      "list": {
+        "description": "Prikaži zadatke agenta",
+        "status": "Filtriraj po statusu (running|completed|failed|cancelled)",
+        "limit": "Maksimalan broj rezultata (zadano: 50)"
+      },
+      "get": {
+        "description": "Dohvati detalje zadatka po ID-u"
+      },
+      "status": {
+        "description": "Ispiši status zadatka (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Otkaži zadatak koji je u tijeku",
+        "yes": "Zaobiđi upit za potvrdu"
+      },
+      "approve": {
+        "description": "Odobri plan agenta za pokretanje izvršavanja"
+      },
+      "message": {
+        "description": "Pošalji poruku zadatku koji je u tijeku"
+      }
+    },
+    "sources": {
+      "description": "Prikaži popis izvornih datoteka koje je izradio zadatak"
+    }
+  },
+  "eval": {
+    "description": "Upravljaj evaluacijskim paketima i pokretanjima",
+    "suites": {
+      "description": "Upravljaj evaluacijskim paketima",
+      "list": {
+        "description": "Prikaži popis evaluacijskih paketa"
+      },
+      "get": {
+        "description": "Prikaži pojedinosti evaluacijskog paketa po ID-u"
+      },
+      "create": {
+        "description": "Izradi evaluacijski paket iz JSON datoteke",
+        "file": "Putanja do JSON datoteke s definicijom paketa"
+      }
+    },
+    "run": {
+      "description": "Pokreni evaluacijsko izvršavanje za paket",
+      "model": "ID modela za evaluaciju (zadano: automatski)",
+      "combo": "Prisilno koristi određenu kombinaciju po nazivu",
+      "concurrency": "Broj istovremenih uzoraka (zadano: 4)",
+      "tag": "Označi ovo izvršavanje za kasnije filtriranje",
+      "watch": "Pratite napredak izvršavanja do završetka"
+    },
+    "list": {
+      "description": "Prikaži popis evaluacijskih izvršavanja",
+      "suite": "Filtriraj po ID-u paketa",
+      "status": "Filtriraj po statusu",
+      "since": "Vrati izvršavanja od ove vremenske oznake",
+      "limit": "Maksimalan broj rezultata (zadano: 50)"
+    },
+    "get": {
+      "description": "Prikaži pojedinosti evaluacijskog izvršavanja po ID-u"
+    },
+    "results": {
+      "description": "Prikaži rezultate uzoraka za evaluacijsko izvršavanje",
+      "failed": "Prikaži samo neuspjele uzorke"
+    },
+    "cancel": {
+      "description": "Otkaži evaluacijsko izvršavanje koje je u tijeku",
+      "yes": "Zaobiđi upit za potvrdu"
+    },
+    "scorecard": {
+      "description": "Prikaži rezultatsku karticu za dovršeno evaluacijsko izvršavanje"
+    }
+  },
+  "webhooks": {
+    "description": "Upravljaj OmniRoute webhookovima",
+    "events": {
+      "description": "Prikaži popis svih dostupnih vrsta webhook događaja"
+    },
+    "list": {
+      "description": "Prikaži popis konfiguriranih webhookova"
+    },
+    "get": {
+      "description": "Prikaži pojedinosti webhooka po ID-u"
+    },
+    "add": {
+      "description": "Registriraj novi webhook",
+      "url": "Odredišni URL",
+      "events": "Popis vrsta događaja odvojenih zarezom",
+      "secret": "HMAC ključ za potpisivanje",
+      "header": "Dodatno zaglavlje u formatu ključ=vrijednost (može se ponavljati)",
+      "no_enabled": "Izradi webhook u onemogućenom stanju"
+    },
+    "update": {
+      "description": "Ažuriraj postojeći webhook",
+      "enabled": "Postavi omogućeno stanje (true|false)"
+    },
+    "remove": {
+      "description": "Izbriši webhook",
+      "yes": "Preskoči potvrdni upit"
+    },
+    "test": {
+      "description": "Pošalji testni događaj na webhook",
+      "event": "Vrsta događaja za simulaciju (zadano: request.completed)"
+    }
+  },
+  "program": {
+    "description": "OmniRoute — Pametni AI Router s automatskim prebacivanjem",
+    "version": "Ispiši verziju i izađi",
+    "output": "Format izlaza (table, json, jsonl, csv)",
+    "quiet": "Prikaži samo nužni izlaz",
+    "no_color": "Isključi obojeni izlaz",
+    "timeout": "Vrijeme čekanja HTTP zahtjeva u milisekundama",
+    "api_key": "API ključ za OmniRoute server",
+    "base_url": "Osnovni URL OmniRoute servera",
+    "context": "Kontekst/profil servera za korištenje u ovoj naredbi",
+    "lang": "Postavi jezik prikaza CLI-a (nadjačava OMNIROUTE_LANG)"
+  },
+  "files": {
+    "description": "Upravljanje datotekama (učitavanje, popis, dohvat, preuzimanje, brisanje)",
+    "list": {
+      "purpose": "Filtriraj po namjeni",
+      "limit": "Maksimalan broj rezultata"
+    },
+    "get": {
+      "description": "Dohvati metapodatke datoteke"
+    },
+    "upload": {
+      "description": "Učitaj datoteku",
+      "purpose": "Namjena datoteke (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Preuzmi sadržaj datoteke",
+      "out": "Spremi na putanju (zadano: stdout)"
+    },
+    "delete": {
+      "yes": "Preskoči potvrdu"
+    }
+  },
+  "batches": {
+    "description": "Upravljanje OpenAI-kompatibilnim batch poslovima",
+    "list": {
+      "status": "Filtriraj po statusu",
+      "limit": "Maksimalan broj rezultata"
+    },
+    "create": {
+      "description": "Kreiraj batch posao",
+      "inputFile": "ID ulazne datoteke",
+      "endpoint": "Ciljni endpoint",
+      "window": "Prozor za dovršetak",
+      "metadata": "Dodaj metapodatak ključ=vrijednost"
+    },
+    "submit": {
+      "description": "Učitaj JSONL datoteku i kreiraj batch",
+      "jsonl": "Putanja do JSONL datoteke",
+      "endpoint": "Ciljni endpoint",
+      "wait": "Čekaj dovršetak"
+    },
+    "cancel": {
+      "yes": "Preskoči potvrdu"
+    },
+    "wait": {
+      "timeout": "Vrijeme čekanja u ms"
+    },
+    "output": {
+      "out": "Spremi izlaz na putanju"
+    },
+    "errors": {
+      "out": "Spremi pogreške na putanju"
+    }
+  },
+  "translator": {
+    "description": "Prevedi tijela zahtjeva između LLM formata",
+    "detect": {
+      "description": "Otkrij format tijela"
+    },
+    "translate": {
+      "description": "Pretvori tijelo iz jednog formata u drugi"
+    },
+    "send": {
+      "description": "Prevedi i pošalji uzvodno"
+    },
+    "stream": {
+      "description": "Prevedi tijelo zahtjeva u streamu"
+    },
+    "from": "Izvorni format (openai|anthropic|gemini|cohere)",
+    "to": "Ciljni format (openai|anthropic|gemini|cohere)",
+    "file": "Putanja do JSON datoteke tijela zahtjeva",
+    "out": "Spremi izlaz u datoteku",
+    "model": "Prepiši model",
+    "history": {
+      "limit": "Maksimalan broj rezultata"
+    }
+  },
+  "pricing": {
+    "description": "Upravljanje podacima o cijenama za modele",
+    "sync": {
+      "description": "Sinkroniziraj cijene s uzvodnih izvora",
+      "provider": "Filtriraj po pružatelju usluge",
+      "force": "Prisilno ponovno sinkroniziraj"
+    },
+    "list": {
+      "provider": "Filtriraj po pružatelju usluge",
+      "model": "Filtriraj po modelu",
+      "limit": "Maksimalan broj rezultata"
+    },
+    "defaults": {
+      "description": "Upravljanje zadanim cijenama",
+      "input": "Trošak ulaza po 1M tokena (USD)",
+      "output": "Trošak izlaza po 1M tokena (USD)",
+      "cacheRead": "Trošak čitanja iz predmemorije po 1M tokena (USD)",
+      "cacheWrite": "Trošak pisanja u predmemoriju po 1M tokena (USD)"
+    },
+    "diff": {
+      "description": "Prikaži odstupanje od uzvodnih cijena",
+      "model": "Filtriraj po modelu"
+    }
+  },
+  "radar": {
+    "description": "Provjeri i sinkroniziraj lokalni katalog Radar feedova",
+    "status": "Prikaži lokalne postavke Radara i status predmemorije feedova",
+    "sync": "Sinkroniziraj katalog, preporuke, ponude i Intel putem lokalnog servera"
+  },
+  "resilience": {
+    "description": "Provjeri i upravljaj mehanizmima otpornosti",
+    "status": {
+      "provider": "Filtriraj po pružatelju usluge"
+    },
+    "breakers": {
+      "provider": "Filtriraj po pružatelju usluge"
+    },
+    "cooldowns": {
+      "provider": "Filtriraj po pružatelju usluge",
+      "connectionId": "Filtriraj po ID-u veze"
+    },
+    "lockouts": {
+      "provider": "Filtriraj po pružatelju usluge",
+      "model": "Filtriraj po modelu"
+    },
+    "reset": {
+      "description": "Resetiraj stanje prekidača/hlađenja",
+      "provider": "Pružatelj usluge za resetiranje",
+      "connectionId": "ID veze za resetiranje",
+      "model": "Model za resetiranje blokade",
+      "allCooldowns": "Resetiraj sva hlađenja za pružatelja usluge",
+      "yes": "Preskoči potvrdu"
+    },
+    "profile": {
+      "description": "Upravljanje profilom otpornosti",
+      "name": "Naziv profila"
+    },
+    "config": {
+      "description": "Upravljanje konfiguracijom otpornosti",
+      "threshold": "Prag neuspjeha",
+      "resetTimeout": "Vrijeme resetiranja u ms",
+      "baseCooldown": "Osnovno vrijeme hlađenja u ms"
+    }
+  },
+  "nodes": {
+    "description": "Upravljanje čvorovima pružatelja usluga (krajnje točke)",
+    "list": {
+      "provider": "Filtriraj po pružatelju usluge",
+      "enabled": "Prikaži samo omogućene čvorove"
+    },
+    "add": {
+      "provider": "Naziv pružatelja usluge",
+      "baseUrl": "Osnovni URL za čvor",
+      "name": "Naziv čvora",
+      "weight": "Težina raspodjele opterećenja",
+      "region": "Oznaka regije",
+      "authHeader": "Prilagođeno zaglavlje za autentifikaciju (ključ=vrijednost)"
+    },
+    "update": {
+      "baseUrl": "Novi osnovni URL",
+      "name": "Novi naziv",
+      "weight": "Nova težina",
+      "region": "Nova regija",
+      "enabled": "Omogući ili onemogući (true|false)"
+    },
+    "remove": {
+      "yes": "Preskoči potvrdu"
+    },
+    "validate": {
+      "baseUrl": "URL za provjeru",
+      "provider": "Pružatelj usluge za provjeru"
+    },
+    "test": {
+      "description": "Pošalji testni zahtjev čvoru"
+    },
+    "metrics": {
+      "description": "Prikaži metrike čvora",
+      "period": "Vremensko razdoblje (npr. 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Konfiguriraj cjevovod za obradu konteksta (Caveman, RTK)",
+    "analytics": {
+      "period": "Vremensko razdoblje (npr. 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Upravljanje kompresorom konteksta Caveman",
+      "config": {
+        "description": "Prikaži ili ažuriraj konfiguraciju Caveman",
+        "aggressiveness": "Agresivnost 0.0–1.0",
+        "maxShrinkPct": "Maksimalni postotak smanjenja",
+        "preserveTags": "Oznake za očuvanje, odvojene zarezom"
+      }
+    },
+    "rtk": {
+      "description": "Upravljanje optimizatorom konteksta RTK",
+      "config": {
+        "description": "Prikaži ili ažuriraj konfiguraciju RTK",
+        "tokenBudget": "Budžet tokena za RTK",
+        "reservePct": "Postotak rezerve"
+      },
+      "filters": {
+        "description": "Upravljanje filterima RTK",
+        "pattern": "Uzorak filtera (regex)",
+        "priority": "Prioritet filtera (zadano: 100)",
+        "action": "Filtriraj radnju: drop|shrink|replace",
+        "yes": "Preskoči potvrdu"
+      },
+      "test": {
+        "file": "Putanja do JSON datoteke zahtjeva"
+      }
+    },
+    "combos": {
+      "description": "Upravljanje kombinacijama svjesnim konteksta"
+    }
+  },
+  "sessions": {
+    "description": "Pregled i upravljanje aktivnim sesijama",
+    "list": {
+      "user": "Filtriraj po korisniku",
+      "kind": "Filtriraj po vrsti (dashboard|api-key|mcp|a2a)",
+      "active": "Prikaži samo aktivne sesije",
+      "limit": "Maksimalan broj rezultata (zadano: 100)"
+    },
+    "expire": {
+      "yes": "Preskoči potvrdu"
+    },
+    "expireAll": {
+      "user": "Korisnik čije sesije treba isteći",
+      "yes": "Preskoči potvrdu"
+    }
+  },
+  "tags": {
+    "description": "Upravljanje oznakama resursa",
+    "add": {
+      "color": "Boja oznake (hex ili naziv)",
+      "description": "Opis oznake"
+    },
+    "remove": {
+      "yes": "Preskoči potvrdu"
+    },
+    "assign": {
+      "tag": "Naziv oznake",
+      "to": "Ciljni resurs u obliku tip:id (npr. provider:openai)"
+    },
+    "unassign": {
+      "tag": "Naziv oznake",
+      "from": "Izvorni resurs u obliku tip:id"
+    }
+  },
+  "openapi": {
+    "description": "Pristup i testiranje OmniRoute OpenAPI specifikacije",
+    "dump": {
+      "description": "Izvezi OpenAPI specifikaciju u stdout ili datoteku",
+      "format": "Izlazni format: yaml|json (zadano: yaml)",
+      "out": "Spremi u putanju datoteke"
+    },
+    "validate": {
+      "description": "Validiraj OpenAPI specifikaciju"
+    },
+    "try": {
+      "description": "Testiraj API krajnju točku putem specifikacije",
+      "method": "HTTP metoda (zadano: GET)",
+      "body": "Putanja do JSON datoteke tijela zahtjeva",
+      "query": "Parametar upita u obliku key=value (može se ponavljati)",
+      "header": "Zaglavlje u obliku key=value (može se ponavljati)"
+    },
+    "endpoints": {
+      "description": "Prikaži sve API krajnje točke",
+      "search": "Filtriraj po putanji ili sažetku"
+    },
+    "paths": {
+      "description": "Prikaži sve API putanje"
+    }
+  },
+  "combo": {
+    "title": "Kombinacije",
+    "switched": "Aktivna kombinacija: {name}",
+    "created": "Kombinacija je stvorena: {name}",
+    "deleted": "Kombinacija je obrisana: {name}",
+    "noCombos": "Nema konfiguriranih kombinacija.",
+    "confirmDelete": "Obrisati kombinaciju {name}?",
+    "suggest": {
+      "description": "Predloži najbolju kombinaciju za zadatak koristeći AI bodovanje",
+      "task": "Opis zadatka",
+      "maxCost": "Maksimalni trošak po zahtjevu u USD",
+      "maxLatencyMs": "Maksimalna latencija u milisekundama",
+      "weights": "JSON ponderi za bodovanje npr. {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Broj najboljih kandidata za prikaz (zadano: 5)",
+      "explain": "Ispiši obrazloženje u stderr",
+      "switch": "Aktiviraj najbolje rangiranu kombinaciju"
+    }
+  },
+  "oneproxy": {
+    "description": "Upravljanje skupom nadređenih proxyja OneProxy",
+    "stats": {
+      "provider": "Filtriraj po pružatelju usluge",
+      "period": "Vremensko razdoblje (zadano: 24h)"
+    },
+    "fetch": {
+      "description": "Dohvati proxyje iz skupa",
+      "count": "Broj proxyja za dohvaćanje (zadano: 1)",
+      "type": "Vrsta proxyja: http|socks5 (zadano: http)"
+    },
+    "rotate": {
+      "description": "Prisilna rotacija proxyja",
+      "provider": "Pružatelj usluge za koji se vrši rotacija",
+      "connectionId": "ID određene veze za rotaciju"
+    },
+    "config": {
+      "description": "Prikaži ili ažuriraj konfiguraciju OneProxy",
+      "enabled": "Omogući skup proxyja (true|false)",
+      "poolSize": "Veličina skupa",
+      "providerSource": "URL pružatelja proxyja",
+      "rotationPolicy": "Politika rotacije: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Prikaži trenutni skup proxyja s metrikama"
+    }
+  },
+  "open": {
+    "description": "Otvori određenu stranicu OmniRoute nadzorne ploče u pregledniku",
+    "url": "Ispiši samo URL, ne otvaraj preglednik"
+  },
+  "telemetry": {
+    "description": "Pristup agregiranim telemetrijskim podacima",
+    "summary": {
+      "description": "Prikaži agregirani sažetak telemetrije",
+      "period": "Vremensko razdoblje: 24h|7d|30d (zadano: 24h)",
+      "compareTo": "Usporedi s prethodnim razdobljem"
+    },
+    "export": {
+      "description": "Izvezi telemetrijske događaje u JSONL",
+      "out": "Putanja izlazne datoteke (zadano: telemetry.jsonl)",
+      "period": "Vremensko razdoblje za izvoz (zadano: 7d)"
+    }
+  },
+  "sync": {
+    "description": "Sinkroniziraj konfiguraciju između instanci OmniRoute",
+    "push": {
+      "description": "Pošalji konfiguraciju u oblak ili udaljenu instancu",
+      "target": "Cilj (cloud ili context:name)",
+      "bundle": "Dijelovi paketa za sinkronizaciju",
+      "dryRun": "Pregled bez primjene"
+    },
+    "pull": {
+      "description": "Preuzmi konfiguraciju iz oblaka ili udaljene instance",
+      "source": "Izvor (cloud ili context:name)",
+      "merge": "Spoji s postojećom konfiguracijom",
+      "replace": "Zamijeni postojeću konfiguraciju",
+      "dryRun": "Pregled bez primjene"
+    },
+    "diff": {
+      "source": "Izvorni kontekst",
+      "target": "Ciljni kontekst"
+    },
+    "bundle": {
+      "description": "Izvoz konfiguracije kao datoteke paketa",
+      "include": "Dijelovi za uključivanje (odvojeni zarezom)"
+    },
+    "import": {
+      "description": "Uvoz datoteke paketa",
+      "dryRun": "Provjeri valjanost bez primjene"
+    },
+    "initialize": {
+      "fromCloud": "Inicijaliziraj iz sigurnosne kopije u oblaku"
+    },
+    "tokens": {
+      "description": "Upravljanje tokenima za sinkronizaciju",
+      "create": {
+        "name": "Naziv tokena",
+        "scope": "Opseg tokena",
+        "ttl": "TTL tokena (npr. 30d)"
+      },
+      "revoke": {
+        "yes": "Preskoči potvrdu"
+      }
+    },
+    "resolve": {
+      "description": "Interaktivno rješavanje sukoba sinkronizacije"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Upravljanje kontekstima/profilima servera (dodaj, koristi, popis, prikaz, ukloni, preimenuj, izvoz, uvoz)"
+    },
+    "lang": {
+      "description": "Upravljanje jezikom prikaza CLI-a",
+      "getDescription": "Prikaži trenutno aktivni kod jezika",
+      "setDescription": "Postavi jezik prikaza i spremi ga u konfiguraciju",
+      "listDescription": "Popis svih dostupnih jezika",
+      "listTitle": "Dostupni jezici",
+      "current": "Jezik: {code} ({name})",
+      "saved": "Jezik postavljen na {code} ({name}).",
+      "noCode": "Potreban je kod jezika. Pokrenite 'omniroute config lang list' za popis dostupnih kodova.",
+      "unknown": "Nepoznat kod jezika: {code}. Pokrenite 'omniroute config lang list' za popis dostupnih kodova.",
+      "alreadySet": "Jezik je već postavljen na {code}.",
+      "envHint": "Savjet: možete i postaviti OMNIROUTE_LANG={code} u svom okruženju."
+    }
+  },
+  "completion": {
+    "description": "Generiraj ili instaliraj skripte za dovršavanje naredbi u shellu",
+    "zsh": "Ispiši skriptu za dovršavanje za zsh",
+    "bash": "Ispiši skriptu za dovršavanje za bash",
+    "fish": "Ispiši skriptu za dovršavanje za fish",
+    "install": "Instaliraj skriptu za dovršavanje globalno za otkriveni shell",
+    "refresh": "Osvježi predmemoriju kombinacija/pružatelja usluga/modela"
+  },
+  "logs": {
+    "description": "Streamaj ili izvezi zapisnike zahtjeva",
+    "follow": "Streamaj zapisnike u stvarnom vremenu",
+    "filter": "Filtriraj po razini (error,warn,info) — odvojeno zarezom",
+    "lines": "Broj redaka za preuzimanje",
+    "timeout": "Vremensko ograničenje veze u ms",
+    "baseUrl": "Osnovni URL OmniRoute API-ja",
+    "requestId": "Filtriraj po ID-u zahtjeva",
+    "apiKey": "Filtriraj po API ključu",
+    "combo": "Filtriraj po nazivu kombinacije",
+    "status": "Filtriraj po HTTP statusnom kodu",
+    "durationMin": "Min. trajanje zahtjeva u ms",
+    "durationMax": "Maks. trajanje zahtjeva u ms",
+    "export": "Spremi zapisnike u datoteku (json/jsonl/csv)",
+    "exported": "Zapisnici spremljeni u {path}",
+    "stopped": "Stream zapisnika je zaustavljen.",
+    "streamError": "Greška u streamu zapisnika: {message}"
+  },
+  "tray": {
+    "description": "Upravljanje ikonom u sistemskoj traci",
+    "show": "Prikaži ikonu u sistemskoj traci (ako je poslužitelj pokrenut s --tray)",
+    "hide": "Skrij ikonu u sistemskoj traci",
+    "quit": "Zatvori OmniRoute putem sistemske trake"
+  },
+  "autostart": {
+    "description": "Upravljanje automatskim pokretanjem OmniRoutea kod podizanja sustava (Linux: systemd korisnička usluga)",
+    "enable": "Omogući automatsko pokretanje kod podizanja sustava",
+    "disable": "Onemogući automatsko pokretanje kod podizanja sustava",
+    "toggle": "Uklj./isklj. automatsko pokretanje kod podizanja sustava",
+    "status": "Prikaži status automatskog pokretanja"
+  },
+  "runtime": {
+    "description": "Upravljanje izvornim ovisnostima izvršnog okruženja",
+    "check": "Provjeri status izvornih ovisnosti u direktoriju izvršnog okruženja",
+    "repair": "Ponovno instaliraj izvorne ovisnosti u direktoriju izvršnog okruženja",
+    "repair_force": "Prisilno ponovno instaliraj i ako su valjane",
+    "clean": "Ukloni direktorij izvršnog okruženja (oslobađa prostor na disku)",
+    "clean_yes": "Preskoči potvrdu"
+  },
+  "repl": {
+    "description": "Interaktivni REPL s više razmjena s LLM-om",
+    "model": "Model za korištenje (zadano: automatski)",
+    "combo": "Naziv kombinacije za korištenje",
+    "system": "Sistemski prompt",
+    "resume": "Nastavi spremljenu sesiju po nazivu"
+  },
+  "plugin": {
+    "description": "Upravljanje CLI dodacima (omniroute-cmd-*)",
+    "list": "Prikaži popis instaliranih dodataka",
+    "install": "Instaliraj dodatak s npm-a ili lokalne putanje",
+    "remove": "Ukloni instalirani dodatak",
+    "info": "Prikaži pojedinosti za instalirani dodatak",
+    "search": "Pretraži npm registar za dostupnim dodacima",
+    "update": "Ažuriraj instalirani(e) dodatak(e)",
+    "scaffold": "Izradi predložak novog dodatka"
+  },
+  "launch": {
+    "description": "Pokreni Claude Code usmjeren na OmniRoute (lokalno ili udaljeno, s --profile)",
+    "token": "Token koji bi Claude klijent trebao slati (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute nije dostupan na {port}. Pokrenite ga naredbom 'omniroute serve'.",
+    "notFound": "CLI alat 'claude' nije pronađen u PATH-u."
+  },
+  "run": {
+    "description": "Pokreni podržani CLI cilj kroz OmniRoute"
+  },
+  "setupClaude": {
+    "description": "Generiraj profile za Claude Code u ~/.claude/profiles iz kataloga modela OmniRoute"
+  },
+  "connect": {
+    "description": "Poveži se s udaljenim OmniRoute serverom i uđi u udaljeni način rada"
+  },
+  "tokens": {
+    "description": "Upravljaj ograničenim CLI pristupnim tokenima (udaljeni način rada)"
+  },
+  "configure": {
+    "description": "Odaberi pružatelja usluge i model s aktivnog servera i konfiguriraj podržani lokalni CLI"
+  },
+  "launchCodex": {
+    "description": "Pokreni Codex CLI usmjeren na OmniRoute (lokalno ili udaljeni VPS)"
+  },
+  "setupCodex": {
+    "description": "Generiraj datoteke profila u ~/.codex iz uživo kataloga modela OmniRoute"
+  },
+  "packs": {
+    "description": "Upravljaj neobaveznim runtime paketima (ML / automatizacija preglednika)",
+    "listDescription": "Prikaži popis neobaveznih paketa i njihovo stanje instalacije",
+    "installDescription": "Instaliraj neobavezni paket u DATA_DIR",
+    "verifyDescription": "Provjeri instalirane pakete prema isporučenom indeksu kontrolnih zbrojeva",
+    "removeDescription": "Ukloni instalirani neobavezni paket",
+    "sourceOpt": "Direktorij koji sadrži sadržaj paketa i indeks paketa",
+    "warnNoIndex": "optional-packs.index.json nije pronađen — instalacija/provjera nisu dostupne u ovoj instalaciji (desktop paketi ga uključuju)",
+    "errUnknown": "nepoznat paket: {name}",
+    "errNoIndex": "indeks paketa nije pronađen; proslijedite --source <dir> koji sadrži sadržaj paketa (desktop paketi ga isporučuju uz aplikaciju)",
+    "installed": "paket \"{name}\" instaliran i provjeren u {dir}",
+    "restartHint": "ponovno pokrenite OmniRoute server (ili desktop aplikaciju) da bi runtime prepoznao paket",
+    "removed": "paket \"{name}\" uklonjen",
+    "notInstalled": "paket \"{name}\" nije bio instaliran",
+    "verifyOk": "svi instalirani paketi su provjereni",
+    "verifyFailed": "{count} paket(a) nije prošlo provjeru",
+    "noneInstalled": "nema instaliranih neobaveznih paketa"
+  }
+}

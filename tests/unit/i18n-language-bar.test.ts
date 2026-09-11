@@ -176,3 +176,49 @@ test("syncLanguageBars rewrites stale bars from config, lists them in dry-run an
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+// `docs/guides/I18N.md` is deliberately English-only (`DOCS_EXCLUDED_NAMES` in
+// run-translation.mjs), yet 41 legacy mirrors of it survive from before that
+// ruling. Listing every configured locale unconditionally therefore pointed the
+// bar at nine mirrors that will never exist, and `check:doc-links` failed on
+// them. A bar may only link to a mirror that is actually on disk.
+test("bars skip locales whose mirror does not exist when a predicate is supplied", () => {
+  const hasMirror = (_relSource, locale) => locale !== "pt-BR";
+  assert.equal(
+    buildSourceBar("docs/guides/I18N.md", config, { hasMirror }),
+    "🌐 **Languages:** 🇺🇸 [English](./I18N.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/I18N.md)"
+  );
+  assert.equal(
+    buildMirrorBar("docs/guides/I18N.md", "ar", config, { hasMirror }),
+    "🌐 **Languages:** 🇺🇸 [English](../../../../guides/I18N.md)"
+  );
+});
+
+test("syncLanguageBars drops locales that have no mirror of the file", async () => {
+  const root = mkdtempSync(path.join(os.tmpdir(), "i18n-language-bar-missing-"));
+  try {
+    mkdirSync(path.join(root, "config"), { recursive: true });
+    writeFileSync(path.join(root, "config", "i18n.json"), JSON.stringify(config), "utf8");
+
+    const enDoc = path.join(root, "docs", "guides", "I18N.md");
+    mkdirSync(path.dirname(enDoc), { recursive: true });
+    writeFileSync(enDoc, "# I18N\n\n🌐 **Languages:** 🇺🇸 [English](./stale.md)\n\nbody\n", "utf8");
+
+    // Only `ar` mirrors this file; `pt-BR` never did.
+    const arMirror = path.join(root, "docs", "i18n", "ar", "docs", "guides", "I18N.md");
+    mkdirSync(path.dirname(arMirror), { recursive: true });
+    writeFileSync(
+      arMirror,
+      "# I18N\n\n🌐 **Languages:** 🇺🇸 [English](./stale.md)\n\nbody\n",
+      "utf8"
+    );
+
+    await syncLanguageBars({ root });
+
+    const enAfter = readFileSync(enDoc, "utf8");
+    assert.match(enAfter, /\.\.\/i18n\/ar\/docs\/guides\/I18N\.md/);
+    assert.doesNotMatch(enAfter, /pt-BR/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

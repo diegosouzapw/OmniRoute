@@ -1,0 +1,1 @@
+- **fix(test):** resolve the WebDAV handler path with `fileURLToPath` so the suite's 37 WebDAV tests run on Windows instead of failing with a doubled `C:\C:\` drive prefix
