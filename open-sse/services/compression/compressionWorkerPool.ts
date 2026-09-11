@@ -131,7 +131,11 @@ export class CompressionWorkerPool {
   }
   async close(): Promise<void> {
     for (const job of this.queue.splice(0)) job.resolve(unchanged(job.originalBody));
-    await Promise.all([...this.workers].map((slot) => this.remove(slot, true)));
+    await Promise.all([...this.workers].map((slot) => this.remove(slot)));
+  }
+  /** @internal Test-only accessor. Do not use in production code. */
+  __getActiveWorkersForTests(): readonly Worker[] {
+    return [...this.workers].map((slot) => slot.worker);
   }
   private spawn(): PoolWorker {
     const slot: PoolWorker = {
@@ -185,7 +189,7 @@ export class CompressionWorkerPool {
     slot.timeout = null;
     slot.job = null;
     job.resolve(result);
-    slot.idle = setTimeout(() => void this.remove(slot, false), this.idleMs);
+    slot.idle = setTimeout(() => void this.remove(slot), this.idleMs);
     slot.idle.unref();
     this.dispatch();
   }
@@ -193,13 +197,28 @@ export class CompressionWorkerPool {
     const job = slot.job;
     if (job) job.resolve(unchanged(job.originalBody));
     slot.job = null;
-    void this.remove(slot, true).finally(() => this.dispatch());
+    void this.remove(slot);
   }
-  private async remove(slot: PoolWorker, terminate: boolean): Promise<void> {
+  /**
+   * Remove a slot from the pool and terminate its underlying Worker.
+   *
+   * Always terminates the worker — the previous `terminate` boolean parameter
+   * was a footgun that allowed callers to leak worker threads (the bug in
+   * `#13091`: idle-eviction called `remove(slot, false)` and the worker
+   * thread was never shut down, leaking one thread per evicted slot).
+   *
+   * `terminate()` is awaited; failures (worker already dead, etc.) are
+   * swallowed because there's nothing actionable we can do at this layer.
+   */
+  private async remove(slot: PoolWorker): Promise<void> {
     if (!this.workers.delete(slot)) return;
     if (slot.timeout) clearTimeout(slot.timeout);
     if (slot.idle) clearTimeout(slot.idle);
-    if (terminate) await slot.worker.terminate().catch(() => undefined);
+    try {
+      await slot.worker.terminate();
+    } catch {
+      // worker may already be dead; not actionable from here.
+    }
   }
 }
 
