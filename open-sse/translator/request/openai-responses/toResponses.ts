@@ -233,6 +233,19 @@ export function openaiToOpenAIResponsesRequest(
           // for opaque items in reasoningInputPolicy.ts (#11108).
           summary: [],
         });
+      } else if (isInternalReasoningPlaceholder(reasoning)) {
+        // Reasoning-presence validation on strict Responses upstreams (opencode
+        // console gateways) rejects thinking-mode history whose assistant turns
+        // lack a reasoning_text item — even when OmniRoute's replay cache missed
+        // and the history only carries the internal sentinel (see
+        // replayOpenAIReasoningMessage's requiresExplicitReasoningReplay branch).
+        // Emit the sentinel text: it satisfies presence validation, and the
+        // response translators suppress the sentinel again on echo (#9573).
+        input.push({
+          type: "reasoning",
+          content: [{ type: "reasoning_text", text: reasoning }],
+          summary: [],
+        });
       }
 
       // Thinking blocks remain display-only here. They do not prove that the
