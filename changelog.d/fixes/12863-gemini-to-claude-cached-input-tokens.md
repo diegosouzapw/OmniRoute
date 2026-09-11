@@ -1,0 +1,1 @@
+- **fix(translator):** Gemini to Claude usage no longer double-counts the cached prompt prefix — `input_tokens` now excludes `cache_read_input_tokens`, matching the Anthropic Messages semantics ([#12863](https://github.com/diegosouzapw/OmniRoute/pull/12863))
