@@ -12,7 +12,9 @@
  * This guard removes `temperature`/`top_p` only when the resolved effort is active
  * (anything other than `none`). It is scoped to the `openai` provider (raw
  * api.openai.com Chat Completions): the `codex` provider's Responses requests are
- * already covered by the CodexExecutor allowlist (which drops both params), and
+ * already covered by CodexExecutor.transformRequest (STRIP_RULES drops
+ * temperature/top_p before native passthrough returns; the Responses allowlist
+ * also omits them on the translated path), and
  * other providers manage their own sampling rules.
  *
  * Refs: litellm#27351 (GPT-5.1 accepts temperature only when effort=none),

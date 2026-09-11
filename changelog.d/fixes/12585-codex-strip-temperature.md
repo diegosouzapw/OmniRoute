@@ -1,0 +1,1 @@
+- **fix(sse):** strip `temperature`/`top_p` on native Codex Responses passthrough so combo `codex-review` traffic no longer 400s with `Unsupported parameter: temperature` ([#12585](https://github.com/diegosouzapw/OmniRoute/pull/12585))

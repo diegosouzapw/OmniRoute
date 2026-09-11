@@ -19,6 +19,7 @@ import {
 } from "../config/codexInstructions.ts";
 import { FETCH_BODY_TIMEOUT_MS, HTTP_STATUS, PROVIDERS } from "../config/constants.ts";
 import { readCodexPeekChunk, buildCodexTimeoutSafePassthroughBody } from "./codex/bodyTimeout.ts";
+import { stripCodexPassthroughRejectedParams } from "./codex/stripPassthroughRejectedParams.ts";
 import {
   CODEX_CLI_RS_ORIGINATOR,
   getCodexClientVersion,
@@ -1411,16 +1412,7 @@ export class CodexExecutor extends BaseExecutor {
     delete body.truncation;
     delete body.background; // Droid CLI sends this but Codex Responses API rejects it
 
-    // Issue #3317: strip client-only fields the Codex Responses API rejects with
-    // 400 "Unsupported parameter" — for BOTH the native passthrough (early return
-    // below) and the translated path. The chat-completions path already removes
-    // these (base.ts prompt_cache_retention #1884; openai-responses translator
-    // safety_identifier #2770), but the responses->responses passthrough skips
-    // translation. `user` is always rejected by Codex /responses, so it is removed
-    // unconditionally here (unlike base.ts, which only drops it when empty).
-    delete body.prompt_cache_retention;
-    delete body.safety_identifier;
-    delete body.user;
+    stripCodexPassthroughRejectedParams(cleanModel || model, body);
 
     // Inject prompt_cache_key for Codex prompt caching.
     // The official Codex client sets this to conversation_id (a stable UUID per session).

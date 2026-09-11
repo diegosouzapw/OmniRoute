@@ -34,6 +34,13 @@ const STRIP_RULES: StripRule[] = [
   { match: /claude-opus-4/i, drop: ["temperature"] },
   // GitHub Copilot gpt-5.4: temperature unsupported.
   { provider: "github", match: /gpt-5\.4/i, drop: ["temperature"] },
+  // Codex /responses (chatgpt.com backend-api) rejects sampling params with
+  // FastAPI 400 `{"detail":"Unsupported parameter: temperature"}`. Native
+  // Codex passthrough returns before the Responses allowlist, so this rule
+  // must run from CodexExecutor.transformRequest via
+  // stripCodexPassthroughRejectedParams. Live: combo codex-review
+  // gpt-5.6-sol-xhigh / gpt-5.6-luna-max.
+  { provider: "codex", match: /.*/, drop: ["temperature", "top_p"] },
   // GitHub Copilot Claude (except opus/sonnet 4.6): thinking + reasoning_effort rejected. #713
   {
     provider: "github",
