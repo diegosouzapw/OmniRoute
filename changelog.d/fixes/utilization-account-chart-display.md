@@ -1,0 +1,1 @@
+- **fix(analytics):** resolve account email/name in Utilization Account Split chart and fix legend bleeding through tooltip ([#13029](https://github.com/diegosouzapw/OmniRoute/pull/13029)) — thanks @ZaimMarzuki
