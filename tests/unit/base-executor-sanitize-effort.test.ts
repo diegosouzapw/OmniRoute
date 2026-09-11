@@ -932,3 +932,148 @@ test("sanitizeReasoningEffortForProvider: #7044 output_config.effort high passes
   assert.equal(result, body, "high is supported — body returned unchanged");
   assert.equal((result as Record<string, unknown>).output_config.effort, "high");
 });
+
+// ── OpenAI-Compatible GLM-5.3-Flash (self-hosted vLLM) ──────────────────────
+// GLM-5.3-Flash accepts reasoning_effort as {low, high, max} literally — the same
+// vocabulary Z.AI documents for the Coding Plan surface. Claude Code sends its
+// own vocabulary (none/minimal/low/medium/high/xhigh/max), so the internal tiers
+// GLM-5.3-Flash does not expose are mapped: none/minimal → low, medium → high,
+// xhigh → max. native {low, high, max} pass through unchanged.
+
+test("sanitizeReasoningEffortForProvider: OpenAI-compatible GLM-5.3-Flash preserves low and high", () => {
+  for (const level of ["low", "high"]) {
+    const body = {
+      model: "GLM-5.3-Flash",
+      reasoning_effort: level,
+      messages: [{ role: "user", content: "hi" }],
+    };
+    const result = sanitizeReasoningEffortForProvider(
+      body,
+      "openai-compatible-chat-sk",
+      "GLM-5.3-Flash",
+      null
+    );
+    assert.equal(result, body, `${level} passes through unchanged`);
+    assert.equal((result as Record<string, unknown>).reasoning_effort, level);
+  }
+});
+
+test("sanitizeReasoningEffortForProvider: OpenAI-compatible GLM-5.3-Flash preserves max", () => {
+  const body = {
+    model: "GLM-5.3-Flash",
+    reasoning_effort: "max",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "openai-compatible-chat-sk",
+    "GLM-5.3-Flash",
+    null
+  );
+  assert.equal(result, body, "max passes through unchanged");
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
+});
+
+test("sanitizeReasoningEffortForProvider: OpenAI-compatible GLM-5.3-Flash maps medium → high", () => {
+  const body = {
+    model: "GLM-5.3-Flash",
+    reasoning_effort: "medium",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "openai-compatible-chat-sk",
+    "GLM-5.3-Flash",
+    null
+  );
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "high");
+});
+
+test("sanitizeReasoningEffortForProvider: OpenAI-compatible GLM-5.3-Flash maps xhigh → max", () => {
+  const log = makeLog();
+  const body = {
+    model: "GLM-5.3-Flash",
+    reasoning_effort: "xhigh",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "openai-compatible-chat-sk",
+    "GLM-5.3-Flash",
+    log
+  );
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "max");
+  assert.ok(
+    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /xhigh → max/.test(m)),
+    "logs the normalization"
+  );
+});
+
+test("sanitizeReasoningEffortForProvider: OpenAI-compatible GLM-5.3-Flash maps none → low", () => {
+  const body = {
+    model: "GLM-5.3-Flash",
+    reasoning_effort: "none",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "openai-compatible-chat-sk",
+    "GLM-5.3-Flash",
+    null
+  );
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "low");
+});
+
+test("sanitizeReasoningEffortForProvider: OpenAI-compatible GLM-5.3-Flash maps minimal → low", () => {
+  const body = {
+    model: "GLM-5.3-Flash",
+    reasoning_effort: "minimal",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "openai-compatible-chat-sk",
+    "GLM-5.3-Flash",
+    null
+  );
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "low");
+});
+
+test("sanitizeReasoningEffortForProvider: OpenAI-compatible GLM-5.3-Flash maps nested reasoning.effort xhigh → max", () => {
+  const body = {
+    model: "GLM-5.3-Flash",
+    reasoning: { effort: "xhigh", summary: "auto" },
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "openai-compatible-chat-sk",
+    "GLM-5.3-Flash",
+    null
+  );
+  assert.equal((result as Record<string, unknown>).reasoning.effort, "max");
+  assert.equal(
+    (result as Record<string, unknown>).reasoning.summary,
+    "auto",
+    "other reasoning fields preserved"
+  );
+});
+
+test("sanitizeReasoningEffortForProvider: OpenAI-compatible GLM-5.3-Flash mapping is scoped to 5.3 (not GLM-5.2)", () => {
+  // GLM-5.2 served through the same OpenAI-compatible surrogate must not be
+  // caught by the 5.3 pattern — it has its own (broader) vocabulary handling.
+  const body = {
+    model: "GLM-5.2",
+    reasoning_effort: "medium",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "openai-compatible-chat-sk",
+    "GLM-5.2",
+    null
+  );
+  // GLM-5.2 has no self-hosted mapping on v3.8.51, so medium passes through
+  // unchanged (the generic #8057 pass-through default) — NOT mapped to high.
+  assert.equal((result as Record<string, unknown>).reasoning_effort, "medium");
+});
