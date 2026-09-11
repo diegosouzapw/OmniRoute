@@ -90,7 +90,7 @@ test("Codex client version locksteps Dockerfile @openai/codex", () => {
   const match = dockerfile.match(/@openai\/codex@([0-9]+\.[0-9]+\.[0-9]+)/);
   assert.ok(match, "Dockerfile must pin @openai/codex@x.y.z");
   const pinned = match[1];
-  assert.notEqual(pinned, "0.149.0");
+  assert.equal(pinned, "0.153.4");
   assert.equal(codexCfg.DEFAULT_CODEX_CLIENT_VERSION, pinned);
   assert.equal(codexCfg.getCodexClientVersion(), pinned);
   assert.equal(codexCfg.getCodexDefaultHeaders().Version, pinned);
