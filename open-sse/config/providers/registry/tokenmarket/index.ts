@@ -7,9 +7,9 @@ import { buildOpenAiCompatibleRegistryEntry } from "../../shared.ts";
  * Models are discovered from the authenticated `/v1/models` endpoint so the
  * catalog can evolve without requiring a new OmniRoute release.
  */
-export const tokensmarketProvider: RegistryEntry = buildOpenAiCompatibleRegistryEntry({
-  id: "tokensmarket",
-  alias: "tokensmarket",
+export const tokenmarketProvider: RegistryEntry = buildOpenAiCompatibleRegistryEntry({
+  id: "tokenmarket",
+  alias: "tokenmarket",
   baseUrl: "https://api.tokensmarket.ai/v1/chat/completions",
   modelsUrl: "https://api.tokensmarket.ai/v1/models",
   models: [],

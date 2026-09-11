@@ -5728,7 +5728,7 @@
       "stream": "https://api.tokenrouter.com/v1/chat/completions"
     }
   },
-  "tokensmarket": {
+  "tokenmarket": {
     "format": "openai",
     "headers": {
       "apiKey": {

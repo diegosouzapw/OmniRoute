@@ -102,7 +102,7 @@ export const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   "logfare",
   // Token Market is an OpenAI-compatible multi-model gateway. Its catalog is
   // discovered from the authenticated https://api.tokensmarket.ai/v1/models endpoint.
-  "tokensmarket",
+  "tokenmarket",
 ]);
 
 export function isNamedOpenAIStyleProvider(provider: string): boolean {
