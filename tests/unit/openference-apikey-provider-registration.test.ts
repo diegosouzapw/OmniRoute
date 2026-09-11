@@ -25,7 +25,7 @@ const SPEC = {
   website: "https://openference.com",
   chatUrl: "https://api.openference.com/v1/chat/completions",
   modelsUrl: "https://api.openference.com/v1/models",
-  expectedSeedIds: ["GLM-5.2"],
+  expectedSeedIds: ["GLM-5.2", "Qwen3.8 27b", "Llama 3.2 3B"],
 };
 
 test("APIKEY_PROVIDERS.openference-api is registered with the canonical identity", () => {
