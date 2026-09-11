@@ -49,6 +49,7 @@ const SAFE_PUBLIC_ERROR_IDENTIFIERS = new Set([
   "admission_shutdown",
   "admission_unavailable",
   "all_accounts_inactive",
+  "all_targets_cooling_down",
   "all_targets_skipped",
   "antigravity_pre_response_timeout",
   "api_error",
