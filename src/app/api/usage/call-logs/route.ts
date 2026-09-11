@@ -138,6 +138,14 @@ export function buildCallLogListRows({
   const persistedIds = new Set(logs.map((log: any) => log.id).filter(Boolean));
 
   for (const detail of pendingDetails) {
+    // A request that just finished can be persisted to call_logs (landing in
+    // `logs`) a moment before its in-memory pending-tracker entry is removed
+    // -- without this check, that one id appeared in both `activeEntries`
+    // and `logs` in the same response, producing a duplicate React key in
+    // the request logger's table ("Encountered two children with the same
+    // key"). completedEntries already guards against this same race below;
+    // this mirrors it for the pending map too.
+    if (persistedIds.has(detail.id)) continue;
     activeEntries.push({
       id: detail.id,
       timestamp: new Date(detail.startedAt).toISOString(),
