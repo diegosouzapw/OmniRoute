@@ -1,16 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
+import {
+  createIsolatedTestEnvSync,
+  cleanupIsolatedTestEnv,
+} from "../_setup/withIsolatedDataDir.ts";
 
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-health-matrix-"));
-const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
+const { testDataDir, originalDataDir } = createIsolatedTestEnvSync("omniroute-health-matrix-");
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
-
-process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
@@ -27,8 +25,7 @@ const CANONICAL_ALIAS_PROVIDER = "nous-research";
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
-  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  // Note: we don't rmSync here - cleanupIsolatedTestEnv handles it in test.after()
   for (const lockout of accountFallback.getAllModelLockouts()) {
     if (lockout.provider === PROVIDER) {
       accountFallback.clearModelLock(lockout.provider, lockout.connectionId, lockout.model);
@@ -55,10 +52,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
-
-  if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
-  else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  await cleanupIsolatedTestEnv(testDataDir, originalDataDir);
 
   if (ORIGINAL_INITIAL_PASSWORD === undefined) delete process.env.INITIAL_PASSWORD;
   else process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
