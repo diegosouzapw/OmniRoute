@@ -11,6 +11,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-ab-bypass-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -33,12 +34,8 @@ test.beforeEach(() => {
   seedDefaultBypassPatterns(DEFAULT_PATTERNS);
 });
 
-test.after(() => {
-  try {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
-  } catch {
-    /* noop */
-  }
+test.after(async () => {
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });
 
 // ── POST patterns ──────────────────────────────────────────────────────────

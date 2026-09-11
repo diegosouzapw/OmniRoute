@@ -1,0 +1,1 @@
+- Fixed tests leaving temp `DATA_DIR` folders behind on Windows by closing the SQLite handle before removing the directory (#13290).

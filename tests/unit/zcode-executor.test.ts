@@ -3,14 +3,13 @@ import assert from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const fixture = join(process.cwd(), "tests/fixtures/fake-zcode-app-server.mjs");
 const TEST_DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-zcode-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-test.after(() =>
-  rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
-);
+test.after(() => cleanupTempDataDir(TEST_DATA_DIR));
 
 async function loadZcodeExecutor() {
   return import("../../open-sse/executors/zcode.ts");

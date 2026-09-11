@@ -17,6 +17,7 @@ process.env.APP_LOG_TO_FILE = "false";
 const { createConnectionFromAuthFile, enrichWithBootstrap, parseAndValidateClaudeAuth } =
   await import("../../src/lib/oauth/utils/claudeAuthImport.ts");
 import { getClaudeCodeUserAgent } from "../../src/shared/constants/claudeCodeClient.ts";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const originalFetch = globalThis.fetch;
 
@@ -24,8 +25,8 @@ test.afterEach(() => {
   globalThis.fetch = originalFetch;
 });
 
-test.after(() => {
-  fs.rmSync(testDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+test.after(async () => {
+  await cleanupTempDataDir(testDataDir);
 });
 
 test("real enrichWithBootstrap sends the required CLI headers", async () => {

@@ -3,6 +3,7 @@ import assert from "node:assert";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-batch-api-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -1341,4 +1342,8 @@ test("getTerminalBatches returns only terminal statuses ordered oldest first", a
       "Results should be ordered oldest first"
     );
   }
+});
+
+test.after(async () => {
+  await cleanupTempDataDir(TEST_DATA_DIR);
 });

@@ -17,6 +17,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { cleanupTempDataDir } from "../../../_setup/tempDataDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rtk-ld-routes-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
@@ -43,13 +44,16 @@ function get(url: string): Request {
   return new Request(url, { method: "GET" });
 }
 
-test.beforeEach(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+test.beforeEach(async () => {
+  // #13290: the DB from the previous test is still open here, and on Windows an
+  // open SQLite handle (plus its -wal/-shm) makes rmSync fail with EPERM before
+  // the test body even runs. Close it first, then recreate the directory.
+  await cleanupTempDataDir(TEST_DATA_DIR);
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 });
 
-test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+test.after(async () => {
+  await cleanupTempDataDir(TEST_DATA_DIR);
   if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
   if (ORIGINAL_INITIAL_PASSWORD !== undefined)

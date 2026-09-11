@@ -8,6 +8,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { cleanupTempDataDir } from "../_setup/tempDataDir.ts";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-agentic-conv-db-"));
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "agentic-conversations-test-secret";
@@ -296,4 +297,8 @@ test("resolveCallLogIdsByCorrelationIds bulk-resolves correlation_id to call_log
 test("resolveCallLogIdsByCorrelationIds returns an empty map for an empty/all-falsy input", () => {
   assert.equal(resolveCallLogIdsByCorrelationIds([]).size, 0);
   assert.equal(resolveCallLogIdsByCorrelationIds(["", ""]).size, 0);
+});
+
+test.after(async () => {
+  await cleanupTempDataDir(process.env.DATA_DIR!);
 });
