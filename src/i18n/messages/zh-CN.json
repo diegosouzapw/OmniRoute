@@ -5953,6 +5953,8 @@
     "validationModelIdHint": "用于验证此提供者连接的模型 ID。",
     "validationModelIdLabel": "验证模型 ID",
     "validationModelIdPlaceholder": "输入用于测试的模型 ID",
+    "vertexCredentialLabel": "API Key or Service Account JSON",
+    "vertexCredentialHint": "API keys use the curated project catalog. Service Account JSON enables live Model Garden discovery.",
     "vertexServiceAccountPlaceholder": "粘贴 Service Account JSON（{\"type\":\"service_account\"...}）或 OAuth access_token",
     "webCookieProviders": "Web Cookie 提供者",
     "weeklyShort": "每周",

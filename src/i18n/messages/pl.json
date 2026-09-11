@@ -5953,6 +5953,8 @@
     "validationModelIdHint": "Model używany do weryfikacji klucza API. Pozostaw puste, aby użyć pierwszego dostępnego model dla provider.",
     "validationModelIdLabel": "Model weryfikacyjny",
     "validationModelIdPlaceholder": "np. meta-llama/llama-3.1-8b-instruct",
+    "vertexCredentialLabel": "API Key or Service Account JSON",
+    "vertexCredentialHint": "API keys use the curated project catalog. Service Account JSON enables live Model Garden discovery.",
     "vertexServiceAccountPlaceholder": "Wklej Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) lub OAuth access_token",
     "webCookieProviders": "Web Cookie Providers",
     "weeklyShort": "Tygodniowo",

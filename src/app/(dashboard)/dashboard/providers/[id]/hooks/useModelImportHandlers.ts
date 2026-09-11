@@ -230,6 +230,7 @@ export function useModelImportHandlers({
             ...(Array.isArray(model.supportedEndpoints)
               ? { supportedEndpoints: model.supportedEndpoints }
               : {}),
+            ...(typeof model.targetFormat === "string" ? { targetFormat: model.targetFormat } : {}),
           }),
         });
         if (!modelAliases[baseAlias]) {

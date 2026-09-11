@@ -68,7 +68,87 @@ test("VertexExecutor.buildUrl routes a non-JSON Express API key to the project-l
     expressUrl,
     "https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:generateContent?key=express-key-abc"
   );
-  assert.ok(!expressUrl.includes("/projects/"), "Express key URL must not route through a project path");
+  assert.ok(
+    !expressUrl.includes("/projects/"),
+    "Express key URL must not route through a project path"
+  );
+});
+
+test("VertexExecutor.buildUrl rejects partner models for project-less Express credentials", () => {
+  const executor = new VertexExecutor();
+  const ids = ["grok-4.6", "xai/grok-4.6", "xai/models/grok-4.6", "publishers/xai/models/grok-4.6"];
+
+  for (const modelId of ids) {
+    assert.throws(
+      () => executor.buildUrl(modelId, false, 0, { apiKey: "k-express" }),
+      /partner models require project-scoped credentials/i,
+      modelId
+    );
+  }
+});
+
+test("VertexExecutor.execute canonicalizes an xAI resource id in URL and request body", async () => {
+  const executor = new VertexExecutor();
+  const originalFetch = globalThis.fetch;
+  const calls: Array<{ url: string; body: string }> = [];
+
+  globalThis.fetch = async (url: RequestInfo | URL, init?: RequestInit) => {
+    calls.push({ url: String(url), body: String(init?.body || "") });
+    return Response.json({ choices: [] });
+  };
+
+  try {
+    await executor.execute({
+      model: "publishers/xai/models/grok-4.6",
+      body: {
+        model: "publishers/xai/models/grok-4.6",
+        messages: [{ role: "user", content: "hi" }],
+      },
+      stream: false,
+      credentials: {
+        apiKey: "k-authorization",
+        projectId: "proj-xai",
+      },
+    });
+
+    assert.equal(calls.length, 1);
+    assert.equal(
+      calls[0].url,
+      "https://aiplatform.googleapis.com/v1/projects/proj-xai/locations/global/endpoints/openapi/chat/completions?key=k-authorization"
+    );
+    assert.equal(JSON.parse(calls[0].body).model, "xai/grok-4.6");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("VertexExecutor.buildUrl routes Mistral Model Garden ids to native rawPredict", () => {
+  const executor = new VertexExecutor();
+  const credentials = {
+    apiKey: createServiceAccountJson({ projectId: "proj-mistral" }),
+    providerSpecificData: { region: "europe-west4" },
+  };
+
+  assert.equal(
+    executor.buildUrl("publishers/mistralai/models/mistral-medium-3", false, 0, credentials),
+    "https://aiplatform.googleapis.com/v1/projects/proj-mistral/locations/europe-west4/publishers/mistralai/models/mistral-medium-3:rawPredict"
+  );
+  assert.equal(
+    executor.buildUrl("mistralai/mistral-medium-3", true, 0, credentials),
+    "https://aiplatform.googleapis.com/v1/projects/proj-mistral/locations/europe-west4/publishers/mistralai/models/mistral-medium-3:streamRawPredict"
+  );
+});
+
+test("VertexExecutor.buildUrl generically routes future publisher resources to OpenAI MaaS", () => {
+  const executor = new VertexExecutor();
+  const url = executor.buildUrl("publishers/future-vendor/models/future-chat-maas", false, 0, {
+    apiKey: createServiceAccountJson({ projectId: "proj-future" }),
+  });
+
+  assert.equal(
+    url,
+    "https://aiplatform.googleapis.com/v1/projects/proj-future/locations/global/endpoints/openapi/chat/completions"
+  );
 });
 
 test("VertexExecutor.buildUrl routes partner and org-prefixed models to the global partner endpoint", () => {
@@ -79,6 +159,9 @@ test("VertexExecutor.buildUrl routes partner and org-prefixed models to the glob
   const metaLlama = executor.buildUrl("meta/llama-3.1-405b-instruct-maas", true, 0, {
     apiKey: createServiceAccountJson({ projectId: "proj-llama" }),
   });
+  const grok = executor.buildUrl("publishers/xai/models/grok-4.6", true, 0, {
+    apiKey: createServiceAccountJson({ projectId: "proj-xai" }),
+  });
 
   assert.equal(
     deepseek,
@@ -88,6 +171,36 @@ test("VertexExecutor.buildUrl routes partner and org-prefixed models to the glob
     metaLlama,
     "https://aiplatform.googleapis.com/v1/projects/proj-llama/locations/global/endpoints/openapi/chat/completions"
   );
+  assert.equal(
+    grok,
+    "https://aiplatform.googleapis.com/v1/projects/proj-xai/locations/global/endpoints/openapi/chat/completions"
+  );
+});
+
+test("VertexExecutor.execute namespaces legacy bare open-MaaS model ids", async () => {
+  const executor = new VertexExecutor();
+  const originalFetch = globalThis.fetch;
+  let sentModel: string | undefined;
+
+  globalThis.fetch = async (_url, init) => {
+    sentModel = JSON.parse(String(init?.body)).model;
+    return Response.json({ choices: [] });
+  };
+
+  try {
+    await executor.execute({
+      model: "DeepSeek-V4-Pro",
+      body: { model: "DeepSeek-V4-Pro", messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {
+        apiKey: createServiceAccountJson({ projectId: "proj-deepseek" }),
+        accessToken: "ya29.deepseek",
+      },
+    });
+    assert.equal(sentModel, "deepseek-ai/DeepSeek-V4-Pro");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("VertexExecutor.buildUrl routes current-generation Claude models to the native Anthropic rawPredict endpoint (#1985, #8994)", () => {

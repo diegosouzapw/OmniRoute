@@ -5953,6 +5953,8 @@
     "validationModelIdHint": "النموذج المستخدم للتحقق من الاتصال",
     "validationModelIdLabel": "معرّف نموذج التحقق",
     "validationModelIdPlaceholder": "مثال: gpt-4o-mini",
+    "vertexCredentialLabel": "API Key or Service Account JSON",
+    "vertexCredentialHint": "API keys use the curated project catalog. Service Account JSON enables live Model Garden discovery.",
     "vertexServiceAccountPlaceholder": "ألصق JSON لحساب الخدمة ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) أو OAuth access_token",
     "webCookieProviders": "مزودو ملفات تعريف ارتباط الويب",
     "weeklyShort": "أسبوعي",

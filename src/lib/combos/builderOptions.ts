@@ -30,6 +30,7 @@ type CustomModelLike = {
   apiFormat?: string;
   supportedEndpoints?: string[];
   inputTokenLimit?: number;
+  contextWindow?: number;
   outputTokenLimit?: number;
   supportsThinking?: boolean;
   isHidden?: boolean;
@@ -41,6 +42,7 @@ type SyncedModelLike = {
   source?: string;
   supportedEndpoints?: string[];
   inputTokenLimit?: number;
+  contextWindow?: number;
   outputTokenLimit?: number;
   description?: string;
   supportsThinking?: boolean;
@@ -384,7 +386,10 @@ function buildModelOptions(
       name: toStringOrNull(model.name),
       source: "imported",
       supportedEndpoints: toStringArray(model.supportedEndpoints),
-      contextLength: toNumberOrNull(model.inputTokenLimit) ?? resolved.contextWindow,
+      contextLength:
+        toNumberOrNull(model.contextWindow) ??
+        toNumberOrNull(model.inputTokenLimit) ??
+        resolved.contextWindow,
       outputTokenLimit: toNumberOrNull(model.outputTokenLimit) ?? resolved.maxOutputTokens,
       supportsThinking:
         typeof model.supportsThinking === "boolean"
@@ -528,7 +533,7 @@ function buildModelOptions(
       source,
       supportedEndpoints: toStringArray(model.supportedEndpoints),
       apiFormat: toStringOrNull(model.apiFormat),
-      contextLength: toNumberOrNull(model.inputTokenLimit),
+      contextLength: toNumberOrNull(model.contextWindow) ?? toNumberOrNull(model.inputTokenLimit),
       outputTokenLimit: toNumberOrNull(model.outputTokenLimit),
       supportsThinking:
         typeof model.supportsThinking === "boolean" ? model.supportsThinking : undefined,

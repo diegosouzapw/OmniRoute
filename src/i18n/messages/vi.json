@@ -5957,6 +5957,8 @@
     "validationModelIdHint": "Mô hình được sử dụng để xác minh khóa API. Để trống để sử dụng mô hình khả dụng đầu tiên của nhà cung cấp.",
     "validationModelIdLabel": "Mô hình xác thực",
     "validationModelIdPlaceholder": "Ví dụ: meta-llama/llama-3.1-8b-instruct",
+    "vertexCredentialLabel": "API Key or Service Account JSON",
+    "vertexCredentialHint": "API keys use the curated project catalog. Service Account JSON enables live Model Garden discovery.",
     "vertexServiceAccountPlaceholder": "Dán JSON Tài khoản dịch vụ của bạn ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) hoặc access_token OAuth",
     "webCookieProviders": "Nhà cung cấp Web Cookie",
     "weeklyShort": "Hàng tuần",

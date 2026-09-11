@@ -5953,6 +5953,8 @@
     "validationModelIdHint": "API 키를 검증하는 데 사용할 모델입니다. 비워 두면 공급자의 첫 번째 사용 가능한 모델을 사용합니다.",
     "validationModelIdLabel": "검증 모델",
     "validationModelIdPlaceholder": "예: meta-llama/llama-3.1-8b-instruct",
+    "vertexCredentialLabel": "API Key or Service Account JSON",
+    "vertexCredentialHint": "API keys use the curated project catalog. Service Account JSON enables live Model Garden discovery.",
     "vertexServiceAccountPlaceholder": "Paste your Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) or an OAuth access_token",
     "webCookieProviders": "Web Cookie Providers",
     "weeklyShort": "Weekly Short",

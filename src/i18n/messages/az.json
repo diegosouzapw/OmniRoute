@@ -5953,6 +5953,8 @@
     "validationModelIdHint": "API açarını yoxlamaq üçün istifadə olunan model. Provayderin ilk mövcud modelindən istifadə etmək üçün boş buraxın.",
     "validationModelIdLabel": "Doğrulama modeli",
     "validationModelIdPlaceholder": "məs. meta-llama/llama-3.1-8b-instruct",
+    "vertexCredentialLabel": "API Key or Service Account JSON",
+    "vertexCredentialHint": "API keys use the curated project catalog. Service Account JSON enables live Model Garden discovery.",
     "vertexServiceAccountPlaceholder": "Paste your Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) or an OAuth access_token",
     "webCookieProviders": "Web Cookie Providers",
     "weeklyShort": "Weekly Short",

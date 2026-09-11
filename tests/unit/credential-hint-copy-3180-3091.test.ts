@@ -25,8 +25,12 @@ test("#3180 grok-web credential hint names both sso and sso-rw", () => {
 
 test("#3091 vertex Service Account placeholder is real instructional text, not the stub", () => {
   const en = JSON.parse(readFileSync(path.join(MESSAGES_DIR, "en.json"), "utf8"));
+  const de = JSON.parse(readFileSync(path.join(MESSAGES_DIR, "de.json"), "utf8"));
   const placeholder = en.providers?.vertexServiceAccountPlaceholder;
   assert.equal(typeof placeholder, "string");
   assert.notEqual(placeholder, "Vertex Service Account Placeholder");
   assert.match(placeholder, /service_account/);
+  assert.match(en.providers?.vertexCredentialHint || "", /live Model Garden discovery/i);
+  assert.match(de.providers?.vertexCredentialLabel || "", /Service-Account-JSON/);
+  assert.match(de.providers?.vertexCredentialHint || "", /Live-Erkennung/);
 });

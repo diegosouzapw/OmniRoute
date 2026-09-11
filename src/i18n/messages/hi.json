@@ -5953,6 +5953,8 @@
     "validationModelIdHint": "एपीआई कुंजी सत्यापित करने के लिए उपयोग किया जाने वाला मॉडल। प्रदाता के पहले उपलब्ध मॉडल का उपयोग करने के लिए खाली छोड़ दें।",
     "validationModelIdLabel": "सत्यापन मॉडल",
     "validationModelIdPlaceholder": "जैसे: meta-llama/llama-3.1-8b-instruct",
+    "vertexCredentialLabel": "API Key or Service Account JSON",
+    "vertexCredentialHint": "API keys use the curated project catalog. Service Account JSON enables live Model Garden discovery.",
     "vertexServiceAccountPlaceholder": "Paste your Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) or an OAuth access_token",
     "webCookieProviders": "Web Cookie Providers",
     "weeklyShort": "Weekly Short",

@@ -5953,6 +5953,8 @@
     "validationModelIdHint": "Validation Model Id Hint",
     "validationModelIdLabel": "Validation Model Id Label",
     "validationModelIdPlaceholder": "Validation Model Id Placeholder",
+    "vertexCredentialLabel": "API Key or Service Account JSON",
+    "vertexCredentialHint": "API keys use the curated project catalog. Service Account JSON enables live Model Garden discovery.",
     "vertexServiceAccountPlaceholder": "Paste your Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) or an OAuth access_token",
     "webCookieProviders": "Web Cookie Providers",
     "weeklyShort": "Weekly Short",

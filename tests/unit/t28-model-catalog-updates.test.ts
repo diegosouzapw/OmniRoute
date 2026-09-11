@@ -113,11 +113,35 @@ test("T28: lmarena registry seeds Direct-chat Text/search; image models in IMAGE
 
 test("T28: vertex catalog includes partner models when vertex executor is available", () => {
   const vertexIds = REGISTRY.vertex.models.map((m) => m.id);
+  const vertexBudgetIds = FREE_MODEL_BUDGETS.filter((m) => m.provider === "vertex").map(
+    (m) => m.modelId
+  );
 
-  assert.ok(vertexIds.includes("DeepSeek-V4-Flash"));
-  assert.ok(vertexIds.includes("DeepSeek-V4-Pro"));
-  assert.ok(vertexIds.includes("Qwen3.6-35B-A3B"));
-  assert.ok(vertexIds.includes("GLM-5.1-FP8"));
+  assert.ok(vertexIds.includes("gemini-3.7-flash"));
+  assert.ok(vertexIds.includes("gemini-3.6-flash"));
+  assert.ok(vertexIds.includes("gemini-3.5-flash"));
+  assert.ok(vertexIds.includes("gemini-3.5-flash-lite"));
+  assert.ok(vertexIds.includes("gemini-2.5-pro"));
+  assert.ok(vertexIds.includes("gemini-2.5-flash"));
+  assert.ok(vertexIds.includes("gemini-2.5-flash-lite"));
+  assert.ok(!vertexIds.includes("gemma-4-31b-it"));
+  assert.ok(vertexIds.includes("deepseek-ai/deepseek-v3.2-maas"));
+  assert.ok(vertexIds.includes("deepseek-ai/deepseek-v3.1-maas"));
+  assert.ok(vertexIds.includes("qwen/qwen3-next-80b-a3b-instruct-maas"));
+  assert.ok(vertexIds.includes("zai-org/glm-5-maas"));
+  assert.ok(!vertexIds.includes("DeepSeek-V4-Flash"));
+  assert.ok(!vertexIds.includes("DeepSeek-V4-Pro"));
+  assert.ok(!vertexIds.includes("Qwen3.6-35B-A3B"));
+  assert.ok(!vertexIds.includes("GLM-5.1-FP8"));
+  assert.ok(vertexBudgetIds.includes("deepseek-ai/deepseek-v3.2-maas"));
+  assert.ok(vertexBudgetIds.includes("gemini-3.7-flash"));
+  assert.ok(vertexBudgetIds.includes("gemini-3.6-flash"));
+  assert.ok(!vertexBudgetIds.includes("gemma-4-31b-it"));
+  assert.ok(vertexBudgetIds.includes("qwen/qwen3-next-80b-a3b-instruct-maas"));
+  assert.ok(vertexBudgetIds.includes("zai-org/glm-5-maas"));
+  assert.ok(!vertexBudgetIds.includes("DeepSeek-V4-Flash"));
+  assert.ok(!vertexBudgetIds.includes("Qwen3.6-35B-A3B"));
+  assert.ok(!vertexBudgetIds.includes("GLM-5.1-FP8"));
 });
 
 test("T28: volcengine (Ark) catalog includes DeepSeek V4 models", () => {
@@ -151,7 +175,7 @@ test("T28: new catalog models resolve through getModelInfoCore", async () => {
   assert.equal(flashPreview.provider, "gemini");
   assert.equal(flashPreview.model, "gemini-3-flash-preview");
 
-  const vertexPartner = await getModelInfoCore("vertex/Qwen3.6-35B-A3B", {});
+  const vertexPartner = await getModelInfoCore("vertex/qwen/qwen3-next-80b-a3b-instruct-maas", {});
   assert.equal(vertexPartner.provider, "vertex");
-  assert.equal(vertexPartner.model, "Qwen3.6-35B-A3B");
+  assert.equal(vertexPartner.model, "qwen/qwen3-next-80b-a3b-instruct-maas");
 });

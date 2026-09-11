@@ -5953,6 +5953,8 @@
     "validationModelIdHint": "API விசையைச் சரிபார்க்கப் பயன்படுத்தப்படும் மாடல். வழங்குநரின் முதல் கிடைக்கக்கூடிய மாடலைப் பயன்படுத்த காலியாக விடவும்.",
     "validationModelIdLabel": "சரிபார்ப்பு மாடல்",
     "validationModelIdPlaceholder": "எ.கா. meta-llama/llama-3.1-8b-instruct",
+    "vertexCredentialLabel": "API Key or Service Account JSON",
+    "vertexCredentialHint": "API keys use the curated project catalog. Service Account JSON enables live Model Garden discovery.",
     "vertexServiceAccountPlaceholder": "Paste your Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) or an OAuth access_token",
     "webCookieProviders": "Web Cookie Providers",
     "weeklyShort": "Weekly Short",
