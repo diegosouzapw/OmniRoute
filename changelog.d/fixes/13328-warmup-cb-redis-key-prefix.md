@@ -1,0 +1,1 @@
+- **fix(redis):** Warmup circuit-breaker keys now honor `REDIS_KEY_PREFIX` like every other OmniRoute Redis key, instead of always using `omniroute:warmup:cb:` ([#13328](https://github.com/diegosouzapw/OmniRoute/pull/13328))
