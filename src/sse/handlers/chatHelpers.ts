@@ -921,7 +921,15 @@ export function shouldRetryStreamEarlyEof(
 // The sibling hop widens the terminal/failover boundary, so it ships off
 // behind STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED until observed live.
 export function isEarlyEofSiblingFailoverOn(): boolean {
-  return isFeatureFlagEnabled("STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED");
+  try {
+    return isFeatureFlagEnabled("STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve STREAM_EARLY_EOF_SIBLING_FAILOVER_ENABLED, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
 }
 
 export function decideProxyResolutionFailure(
