@@ -70,7 +70,7 @@ test("pioneer legacy PROVIDERS entry resolves from generated map", () => {
 
 test("pioneer has hasFree flag and free signup notice", () => {
   const pioneer = APIKEY_PROVIDERS.pioneer;
-  assert.equal(pioneer.hasFree, true, "pioneer should advertise free tier");
+  assert.equal(pioneer.hasFree, false, "pioneer should not advertise a free catalog tier");
   assert.ok(pioneer.freeNote?.includes("$75"), "freeNote should mention $75 credits");
   assert.ok(
     pioneer.notice?.signupUrl?.includes("pioneer.ai"),

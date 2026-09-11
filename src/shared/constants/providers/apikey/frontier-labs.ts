@@ -42,7 +42,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
       apiKeyUrl: "https://agent.pioneer.ai/settings/api-keys",
       signupUrl: "https://agent.pioneer.ai/auth",
     },
-    hasFree: true,
+    hasFree: false,
     freeNote: "$75 free usage credits — no credit card required",
     serviceKinds: ["llm"],
   },
