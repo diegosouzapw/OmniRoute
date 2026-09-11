@@ -345,6 +345,11 @@ const nextConfig = {
     // type"; externalizing it keeps the require at runtime (like better-sqlite3).
     // See issue #3066.
     "sqlite-vec",
+    // tiktoken resolves tiktoken_bg.wasm at runtime via fs.readFileSync relative
+    // to __dirname; when bundled, that lookup fails ("Missing tiktoken_bg.wasm")
+    // and 500s every route that touches codex-chatgpt-web token estimation
+    // (e.g. /api/providers). Externalizing keeps the require at runtime.
+    "tiktoken",
     "node-machine-id",
     "keytar",
     "wreq-js",

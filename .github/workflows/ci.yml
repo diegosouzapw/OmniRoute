@@ -515,6 +515,13 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref && format('origin/{0}', github.base_ref) || '' }}
         run: node scripts/i18n/check-ui-value-drift.mjs
+      # #12302/#12505 class: a message with raw <tag> or literal {...} fails to
+      # compile under IntlMessageFormat (next-intl's parser) and silently breaks
+      # the page — the UI falls back to showing the raw key. 381 such messages
+      # shipped across the 42 catalogs before this gate; all are fixed. BLOCKING:
+      # any future message that cannot compile fails the PR.
+      - name: i18n UI ICU (all catalogs compile)
+        run: npm run check:ui-icu
 
   # #8038: cheap glossary/protected-terms consistency gate —
   # complements i18n-ui-coverage (key parity) and the ICU `i18n` job below

@@ -1,0 +1,2 @@
+- **fix(i18n):** ICU-escape 381 locale message values containing raw `<tag>` / `{...}` literals so next-intl no longer throws `INVALID_MESSAGE` and falls back to the raw key; a blocking `check:ui-icu` gate compiles every catalog with IntlMessageFormat ([#12564](https://github.com/diegosouzapw/OmniRoute/pull/12564) — thanks @chirag127)
+- **fix(build):** externalize `tiktoken` so `tiktoken_bg.wasm` resolves at runtime under Turbopack ([#12564](https://github.com/diegosouzapw/OmniRoute/pull/12564) — thanks @chirag127)
