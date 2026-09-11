@@ -488,7 +488,7 @@ open-sse/
 (shared identity helper) and `index.ts` (registry).
 
 > Note: providers not listed here are served by `default.ts` using the generic
-> OpenAI-compatible executor. The full provider catalog (355 providers) lives in
+> OpenAI-compatible executor. The full provider catalog (356 providers) lives in
 > `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`

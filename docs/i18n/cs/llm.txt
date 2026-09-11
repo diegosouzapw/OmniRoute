@@ -478,7 +478,7 @@ diagnostics) plus **memory**, **skill**, **agentSkill**, **githubSkill**, **pool
 
 ## v3.8.x Highlights
 
-- **352-provider catalog** with 150+ free tiers, one-click account imports, and bulk key add
+- **356-provider catalog** with 150+ free tiers, one-click account imports, and bulk key add
 - **19 routing strategies** — including `fusion` (parallel panel + judge synthesis), `pipeline`, `reset-aware`, `reset-window`, `headroom`, and `context-relay`
 - **16-factor Auto-Combo scoring** with bandit exploration and progressive cooldown
 - **MCP server expanded to 110 tools / 33 scopes** (canonical + memory/skill/agentSkill/githubSkill/pool/notion/obsidian/localCorpus/gamification/plugin modules)
