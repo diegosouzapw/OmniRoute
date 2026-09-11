@@ -491,7 +491,7 @@ test("tryPinnedModelDispatch: expands the combo system_message template on the p
 });
 
 test("tryPinnedModelDispatch: fails over when the pinned model returns a transient status", async () => {
-  for (const status of [408, 429, 500, 502, 503, 504]) {
+  for (const status of [401, 408, 429, 500, 502, 503, 504]) {
     const ctx = pinCtx();
     const { res } = await dispatchHealthyPin(
       ctx,

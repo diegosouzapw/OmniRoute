@@ -1,0 +1,1 @@
+- **Combo routing:** a context-cache-pinned model that returns `401` now falls through to the normal combo fallback loop instead of terminating the request, allowing other eligible connections or providers to serve it.
