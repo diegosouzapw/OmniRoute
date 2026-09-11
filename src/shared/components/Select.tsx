@@ -1,20 +1,22 @@
 "use client";
 
+import type React from "react";
+import type { SelectHTMLAttributes, ReactNode } from "react";
 import { useId } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 
-interface SelectOption {
+export interface SelectOption {
   value: string;
   label: string;
 }
 
-interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "size"> {
-  label?: React.ReactNode;
+export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "size"> {
+  label?: ReactNode;
   options?: SelectOption[];
   placeholder?: string;
-  error?: React.ReactNode;
-  hint?: React.ReactNode;
+  error?: ReactNode;
+  hint?: ReactNode;
   selectClassName?: string;
   /** Keep the placeholder selectable after a real value is chosen. */
   placeholderDisabled?: boolean;
@@ -68,9 +70,9 @@ export default function Select({
           aria-describedby={describedBy}
           className={cn(
             "w-full py-2 px-3 pe-10 text-sm text-text-main",
-            "bg-surface border border-black/10 dark:border-white/10 rounded-control appearance-none",
+            "glass-input rounded-control appearance-none cursor-pointer",
             "focus:ring-1 focus:ring-accent/30 focus:border-accent/50 focus:outline-none",
-            "transition-all disabled:opacity-50 disabled:cursor-not-allowed",
+            "transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
             "text-[16px] sm:text-sm",
             error ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : "",
             selectClassName

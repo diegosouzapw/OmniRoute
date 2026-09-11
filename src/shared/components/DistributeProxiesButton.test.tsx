@@ -38,9 +38,7 @@ describe("DistributeProxiesButton", () => {
   async function renderButton(
     props: Partial<React.ComponentProps<typeof import("./DistributeProxiesButton").default>> = {}
   ) {
-    const { default: DistributeProxiesButton } = await import(
-      "./DistributeProxiesButton.tsx"
-    );
+    const { default: DistributeProxiesButton } = await import("./DistributeProxiesButton.tsx");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -99,7 +97,10 @@ describe("DistributeProxiesButton", () => {
   it("enters distributing state on click", async () => {
     let resolveDistribute: () => void;
     const onDistribute = vi.fn().mockImplementation(
-      () => new Promise<void>((resolve) => { resolveDistribute = resolve; })
+      () =>
+        new Promise<void>((resolve) => {
+          resolveDistribute = resolve;
+        })
     );
     const { container } = await renderButton({ onDistribute });
     const button = container.querySelector("button") as HTMLButtonElement;

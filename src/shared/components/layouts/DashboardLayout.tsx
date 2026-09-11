@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { Suspense, useEffect, useInsertionEffect, useState } from "react";
 import Sidebar from "../Sidebar";
 import Header from "../Header";
@@ -83,10 +84,10 @@ export default function DashboardLayout({ children }) {
       <Suspense fallback={null}>
         <NavigationProgress />
       </Suspense>
-      {/* Mobile sidebar overlay */}
+      {/* Mobile sidebar overlay with frosted glass scrim */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/20 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-md lg:hidden transition-all duration-300"
           onClick={() => setSidebarOpen(false)}
         />
       )}

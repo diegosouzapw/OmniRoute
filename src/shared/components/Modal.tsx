@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+import type { ReactNode } from "react";
 import { useEffect, useRef, useId } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
@@ -13,12 +15,12 @@ export const TALL_MODAL_PROPS = {
   bodyClassName: "p-6",
 };
 
-interface ModalProps {
+export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title?: React.ReactNode;
-  children?: React.ReactNode;
-  footer?: React.ReactNode;
+  title?: ReactNode;
+  children?: ReactNode;
+  footer?: ReactNode;
   size?: "sm" | "md" | "lg" | "xl" | "full";
   closeOnOverlay?: boolean;
   showCloseButton?: boolean;
@@ -28,14 +30,14 @@ interface ModalProps {
   maxWidth?: string;
 }
 
-interface ConfirmModalProps {
+export interface ConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void | Promise<void>;
-  title?: React.ReactNode;
-  message: React.ReactNode;
-  confirmText?: React.ReactNode;
-  cancelText?: React.ReactNode;
+  title?: ReactNode;
+  message: ReactNode;
+  confirmText?: ReactNode;
+  cancelText?: ReactNode;
   variant?: ButtonVariant;
   loading?: boolean;
 }
@@ -148,22 +150,21 @@ export default function Modal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Overlay */}
+      {/* Frosted Glass Overlay Scrim */}
       <div
-        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md transition-opacity duration-200"
         onClick={closeOnOverlay ? onClose : undefined}
         aria-hidden="true"
       />
 
-      {/* Modal content */}
+      {/* Modal content — Apple Liquid Glass dialog */}
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
         className={cn(
-          "relative w-full bg-surface",
-          "border border-black/10 dark:border-white/10",
+          "relative w-full glass-card",
           "rounded-card shadow-2xl",
           "animate-in fade-in zoom-in-95 duration-200",
           sizes[size],

@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -205,9 +206,9 @@ export default function Header({
 
   return (
     <header
-      className="sticky top-0 z-10 flex items-center justify-between border-b border-black/5 bg-bg px-8 py-4 dark:border-white/5"
+      className="sticky top-0 z-10 flex items-center justify-between glass-header bg-[var(--color-bg)] supports-[backdrop-filter]:bg-[var(--glass-bg-header)] px-6 lg:px-8 py-3.5"
       style={{
-        paddingTop: isMacElectron ? "calc(1rem + var(--desktop-safe-top))" : undefined,
+        paddingTop: isMacElectron ? "calc(0.875rem + var(--desktop-safe-top))" : undefined,
       }}
     >
       {/* Mobile menu button */}
@@ -215,7 +216,7 @@ export default function Header({
         {showMenuButton && (
           <button
             onClick={onMenuClick}
-            className="text-text-main hover:text-primary transition-colors"
+            className="p-1.5 rounded-lg text-text-main hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           >
             <span className="material-symbols-outlined">menu</span>
           </button>
@@ -225,7 +226,7 @@ export default function Header({
       {/* Page title with icon - desktop */}
       <div className="hidden lg:flex items-center gap-3">
         {(icon || providerId) && (
-          <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10 shrink-0">
+          <div className="flex items-center justify-center size-9 rounded-xl bg-primary/10 border border-primary/15 shrink-0 shadow-xs">
             {icon ? (
               <span className="material-symbols-outlined text-primary text-[20px]">{icon}</span>
             ) : (
@@ -235,33 +236,33 @@ export default function Header({
         )}
         {title && (
           <div>
-            <h1 className="text-xl font-semibold text-text-main tracking-tight">{title}</h1>
+            <h1 className="text-lg font-semibold text-text-main tracking-tight">{title}</h1>
             {description && <p className="text-xs text-text-muted mt-0.5">{description}</p>}
           </div>
         )}
       </div>
 
       {/* Right actions */}
-      <div className="flex items-center gap-3 ml-auto">
+      <div className="flex items-center gap-2.5 ml-auto">
         {onOpenCommandPalette && (
           <>
             <button
               type="button"
               onClick={onOpenCommandPalette}
-              className="hidden md:inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-black/10 dark:border-white/10 bg-bg-subtle text-text-muted hover:text-text-main hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors"
+              className="hidden md:inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-black/8 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] text-text-muted hover:text-text-main hover:bg-black/[0.05] dark:hover:bg-white/[0.08] hover:border-black/15 dark:hover:border-white/20 transition-all shadow-xs"
               title={t("quickNavigationTitle")}
               aria-label={t("openQuickNavigation")}
             >
               <span className="material-symbols-outlined text-[16px]">search</span>
-              <span className="text-xs">{t("quickNavigation")}</span>
-              <kbd className="hidden lg:inline-flex font-mono text-[10px] px-1 py-0.5 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10">
+              <span className="text-xs font-medium">{t("quickNavigation")}</span>
+              <kbd className="hidden lg:inline-flex font-mono text-[10px] px-1.5 py-0.5 rounded-md bg-black/5 dark:bg-white/8 border border-black/10 dark:border-white/15">
                 {isMac ? "⌘K" : "Ctrl+K"}
               </kbd>
             </button>
             <button
               type="button"
               onClick={onOpenCommandPalette}
-              className="md:hidden p-2 rounded-lg text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              className="md:hidden p-2 rounded-xl text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
               aria-label={t("openQuickNavigation")}
             >
               <span className="material-symbols-outlined">search</span>
@@ -274,7 +275,7 @@ export default function Header({
         {!isE2EMode && <TokenHealthBadge />}
         <button
           onClick={handleLogout}
-          className="flex items-center justify-center p-2 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-500/10 transition-all"
+          className="flex items-center justify-center p-2 rounded-xl text-text-muted hover:text-red-500 hover:bg-red-500/10 transition-all"
           title={t("logout")}
           aria-label={t("logout")}
         >

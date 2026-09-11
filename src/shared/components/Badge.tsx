@@ -1,14 +1,20 @@
 "use client";
 
+import type React from "react";
+import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 
 const variants = {
-  default: "bg-black/5 dark:bg-white/10 text-text-muted",
-  primary: "bg-primary/10 text-primary",
-  success: "bg-green-500/10 text-green-600 dark:text-green-400",
-  warning: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
-  error: "bg-red-500/10 text-red-600 dark:text-red-400",
-  info: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  default:
+    "bg-black/[0.04] dark:bg-white/[0.07] backdrop-blur-xs border border-black/8 dark:border-white/10 text-text-muted shadow-xs",
+  primary: "bg-primary/12 backdrop-blur-xs border border-primary/20 text-primary shadow-xs",
+  success:
+    "bg-green-500/12 backdrop-blur-xs border border-green-500/20 text-green-600 dark:text-green-400 shadow-xs",
+  warning:
+    "bg-amber-500/12 backdrop-blur-xs border border-amber-500/20 text-amber-600 dark:text-amber-400 shadow-xs",
+  error:
+    "bg-red-500/12 backdrop-blur-xs border border-red-500/20 text-red-600 dark:text-red-400 shadow-xs",
+  info: "bg-blue-500/12 backdrop-blur-xs border border-blue-500/20 text-blue-600 dark:text-blue-400 shadow-xs",
 };
 
 const sizes = {
@@ -18,11 +24,11 @@ const sizes = {
 };
 
 interface BadgeProps {
-  children?: React.ReactNode;
+  children?: ReactNode;
   variant?: keyof typeof variants;
   size?: keyof typeof sizes;
   dot?: boolean;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   className?: string;
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import {
   useState,
   useEffect,
@@ -269,8 +270,8 @@ export default function Sidebar({
     };
   };
 
-  const hiddenSidebarSet = new Set(hiddenSidebarItems);
-  const hiddenSidebarGroupLabelsSet = new Set(hiddenSidebarGroupLabels);
+  const hiddenSidebarSet = new Set<string>(hiddenSidebarItems);
+  const hiddenSidebarGroupLabelsSet = new Set<string>(hiddenSidebarGroupLabels);
 
   const runtimeSections = resolveRuntimeSidebarSections(SIDEBAR_SECTIONS, { radarAdminUrl });
   const orderedSections = applySectionOrder(
@@ -447,14 +448,14 @@ export default function Sidebar({
   const renderNavLink = (item) => {
     const active = !item.external && activeHref === item.href;
     const className = cn(
-      "flex items-center gap-3 rounded-lg transition-all group",
+      "flex items-center gap-3 rounded-xl transition-all duration-200 group relative",
       collapsed ? "justify-center px-2 py-2.5" : "px-3 py-1.5",
       active
-        ? "bg-primary/10 text-primary"
-        : "text-text-muted hover:bg-surface/50 hover:text-text-main"
+        ? "bg-primary/12 text-primary font-medium border border-primary/20 shadow-xs"
+        : "text-text-muted hover:bg-black/[0.035] dark:hover:bg-white/[0.045] hover:text-text-main"
     );
     const iconClassName = cn(
-      "material-symbols-outlined text-[18px] shrink-0",
+      "material-symbols-outlined text-[18px] shrink-0 transition-transform duration-200 group-hover:scale-105",
       active ? "fill-1" : "group-hover:text-primary transition-colors"
     );
     const content = (
@@ -512,7 +513,7 @@ export default function Sidebar({
       <aside
         ref={sidebarRef}
         className={cn(
-          "flex h-full min-h-0 flex-col border-r border-black/5 bg-sidebar transition-all duration-300 ease-in-out dark:border-white/5",
+          "flex h-full min-h-0 flex-col glass-sidebar border-r border-black/5 dark:border-white/10 transition-all duration-300 ease-in-out",
           collapsed ? "w-16" : "w-[220px]"
         )}
         style={{ paddingTop: isMacElectron ? "var(--desktop-safe-top)" : undefined }}
@@ -766,7 +767,7 @@ export default function Sidebar({
           style={{ left: hoveredItem.x, top: hoveredItem.y, transform: "translateY(-50%)" }}
         >
           <div className="w-0 h-0 border-t-[5px] border-b-[5px] border-r-[6px] border-t-transparent border-b-transparent border-r-sidebar dark:border-r-sidebar" />
-          <div className="px-2.5 py-1.5 bg-sidebar text-text-main text-xs font-medium rounded-md shadow-lg border border-black/10 dark:border-white/10 whitespace-nowrap">
+          <div className="px-2.5 py-1.5 bg-sidebar/90 supports-[backdrop-filter]:bg-sidebar/80 backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-xl text-text-main text-xs font-medium rounded-md shadow-lg border border-white/10 whitespace-nowrap">
             {hoveredItem.label}
           </div>
         </div>

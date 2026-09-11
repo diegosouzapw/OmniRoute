@@ -1,13 +1,15 @@
 "use client";
 
+import type React from "react";
+import type { InputHTMLAttributes, ReactNode, KeyboardEvent } from "react";
 import { useId, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 
-interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
-  label?: React.ReactNode;
-  error?: React.ReactNode;
-  hint?: React.ReactNode;
+export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "size"> {
+  label?: ReactNode;
+  error?: ReactNode;
+  hint?: ReactNode;
   icon?: string;
   inputClassName?: string;
 }
@@ -41,7 +43,7 @@ export default function Input({
   const [inputFocused, setInputFocused] = useState(false);
 
   const detectCapsLock = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
+    (e: KeyboardEvent<HTMLInputElement>) => {
       if (isPassword) {
         setCapsLockOn(e.getModifierState("CapsLock"));
       }
@@ -50,7 +52,7 @@ export default function Input({
   );
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
+    (e: KeyboardEvent<HTMLInputElement>) => {
       detectCapsLock(e);
       externalOnKeyDown?.(e);
     },
@@ -58,7 +60,7 @@ export default function Input({
   );
 
   const handleKeyUp = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
+    (e: KeyboardEvent<HTMLInputElement>) => {
       detectCapsLock(e);
       externalOnKeyUp?.(e);
     },
@@ -113,10 +115,10 @@ export default function Input({
           }}
           className={cn(
             "w-full py-2 px-3 text-sm text-text-main",
-            "bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-control",
+            "glass-input rounded-control",
             "placeholder-text-muted/60",
             "focus:ring-1 focus:ring-accent/30 focus:border-accent/50 focus:outline-none",
-            "transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed",
+            "transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
             // iOS zoom fix
             "text-[16px] sm:text-sm",
             icon && "pl-10",

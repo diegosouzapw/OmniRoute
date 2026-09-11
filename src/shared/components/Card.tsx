@@ -1,13 +1,15 @@
 "use client";
 
+import type React from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 
-interface CardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
-  children?: React.ReactNode;
-  title?: React.ReactNode;
-  subtitle?: React.ReactNode;
+export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, "title"> {
+  children?: ReactNode;
+  title?: ReactNode;
+  subtitle?: ReactNode;
   icon?: string;
-  action?: React.ReactNode;
+  action?: ReactNode;
   padding?: "none" | "xs" | "sm" | "md" | "lg";
   hover?: boolean;
   className?: string;
@@ -35,10 +37,10 @@ export default function Card({
   return (
     <div
       className={cn(
-        "bg-surface",
-        "border border-border",
-        "rounded-card shadow-sm",
-        hover && "hover:shadow-md hover:border-primary/30 transition-all cursor-pointer",
+        "glass-card",
+        "rounded-card border border-border shadow-sm",
+        hover &&
+          "hover:shadow-md hover:border-primary/35 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer",
         paddings[padding],
         className
       )}
@@ -48,12 +50,12 @@ export default function Card({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             {icon && (
-              <div className="p-2 rounded-lg bg-bg text-text-muted">
+              <div className="p-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-border text-text-muted shadow-xs">
                 <span className="material-symbols-outlined text-[20px]">{icon}</span>
               </div>
             )}
             <div>
-              {title && <h3 className="text-text-main font-semibold">{title}</h3>}
+              {title && <h3 className="text-text-main font-semibold tracking-tight">{title}</h3>}
               {subtitle && <p className="text-sm text-text-muted">{subtitle}</p>}
             </div>
           </div>
@@ -65,18 +67,19 @@ export default function Card({
   );
 }
 
-interface CardSectionProps extends React.HTMLAttributes<HTMLDivElement> {
-  children?: React.ReactNode;
+export interface CardSectionProps extends HTMLAttributes<HTMLDivElement> {
+  children?: ReactNode;
+  className?: string;
 }
 
-// Sub-component: Bordered section inside Card
+// Sub-component: Bordered section inside Card — glass-aware (audit: no opaque fills inside glass-card)
 Card.Section = function CardSection({ children, className, ...props }: CardSectionProps) {
   return (
     <div
       className={cn(
-        "p-4 rounded-lg",
-        "bg-black/[0.02] dark:bg-white/[0.02]",
-        "border border-border",
+        "p-4 rounded-xl",
+        "bg-[var(--glass-bg-subtle)] backdrop-blur-sm",
+        "border border-white/10 dark:border-white/[0.06] shadow-xs",
         className
       )}
       {...props}
@@ -86,18 +89,19 @@ Card.Section = function CardSection({ children, className, ...props }: CardSecti
   );
 };
 
-interface CardRowProps extends React.HTMLAttributes<HTMLDivElement> {
-  children?: React.ReactNode;
+export interface CardRowProps extends HTMLAttributes<HTMLDivElement> {
+  children?: ReactNode;
+  className?: string;
 }
 
-// Sub-component: Hoverable row inside Card
+// Sub-component: Hoverable row inside Card — glass-aware hover (uses translucent tokens, not opaque bg-bg-subtle)
 Card.Row = function CardRow({ children, className, ...props }: CardRowProps) {
   return (
     <div
       className={cn(
         "p-3 -mx-3 px-3 transition-colors",
-        "border-b border-border last:border-b-0",
-        "hover:bg-black/[0.02] dark:hover:bg-white/[0.02]",
+        "border-b border-white/10 dark:border-white/[0.06] last:border-b-0",
+        "hover:bg-white/[0.38] dark:hover:bg-white/[0.04] hover:backdrop-blur-sm",
         className
       )}
       {...props}
@@ -107,12 +111,13 @@ Card.Row = function CardRow({ children, className, ...props }: CardRowProps) {
   );
 };
 
-interface CardListItemProps extends React.HTMLAttributes<HTMLDivElement> {
-  children?: React.ReactNode;
-  actions?: React.ReactNode;
+export interface CardListItemProps extends HTMLAttributes<HTMLDivElement> {
+  children?: ReactNode;
+  actions?: ReactNode;
+  className?: string;
 }
 
-// Sub-component: List item with hover actions (macOS style)
+// Sub-component: List item with hover actions (macOS style) — glass-aware hover
 Card.ListItem = function CardListItem({
   children,
   actions,
@@ -123,8 +128,8 @@ Card.ListItem = function CardListItem({
     <div
       className={cn(
         "group flex items-center justify-between p-3 -mx-3 px-3",
-        "border-b border-black/[0.03] dark:border-white/[0.03] last:border-b-0",
-        "hover:bg-black/[0.02] dark:hover:bg-white/[0.02]",
+        "border-b border-white/10 dark:border-white/[0.04] last:border-b-0",
+        "hover:bg-white/[0.38] dark:hover:bg-white/[0.04] hover:backdrop-blur-sm",
         "transition-colors",
         className
       )}

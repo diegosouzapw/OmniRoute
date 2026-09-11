@@ -1,0 +1,1 @@
+- **feat(ui):** Apple.com bento home grid plus liquid-glass chrome on shared dashboard primitives (Card, Header, Sidebar, DataTable, Modal) with `supports-[backdrop-filter]` fallbacks ([#11899](https://github.com/diegosouzapw/OmniRoute/pull/11899)) — thanks @Aswinajay

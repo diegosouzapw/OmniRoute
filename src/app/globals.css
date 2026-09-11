@@ -60,33 +60,33 @@
   --color-traffic-yellow: #ffbd2e;
   --color-traffic-green: #27c93f;
 
-  /* Light theme */
-  --color-bg: #f9f9fb;
-  --color-bg-alt: #f0f0f5;
-  --color-bg-primary: #f9f9fb;
-  --color-bg-subtle: #f0f0f5;
+  /* Light theme — Apple.com retune: FBFBFD airy bg, pure white cards, #1D1D1F ink */
+  --color-bg: #fbfbfd;
+  --color-bg-alt: #f5f5f7;
+  --color-bg-primary: #fbfbfd;
+  --color-bg-subtle: #f5f5f7;
   --color-surface: #ffffff;
   --color-card: #ffffff;
-  --color-sidebar: #f5f5fa;
+  --color-sidebar: #f5f5f7;
   --color-border: rgba(0, 0, 0, 0.08);
-  --color-text-main: #1a1a2e;
-  --color-text-primary: #1a1a2e;
+  --color-text-main: #1d1d1f;
+  --color-text-primary: #1d1d1f;
   --color-text-muted: #71717a;
 
-  /* Fumadocs light theme */
-  --color-fd-background: #f9f9fb;
-  --color-fd-foreground: #1a1a2e;
-  --color-fd-muted: #f0f0f5;
+  /* Fumadocs light theme — synced to Apple retune */
+  --color-fd-background: #fbfbfd;
+  --color-fd-foreground: #1d1d1f;
+  --color-fd-muted: #f5f5f7;
   --color-fd-muted-foreground: #71717a;
   --color-fd-popover: #ffffff;
-  --color-fd-popover-foreground: #1a1a2e;
+  --color-fd-popover-foreground: #1d1d1f;
   --color-fd-card: #ffffff;
-  --color-fd-card-foreground: #1a1a2e;
+  --color-fd-card-foreground: #1d1d1f;
   --color-fd-border: rgba(0, 0, 0, 0.08);
   --color-fd-primary: #e54d5e;
   --color-fd-primary-foreground: #ffffff;
-  --color-fd-secondary: #f0f0f5;
-  --color-fd-secondary-foreground: #1a1a2e;
+  --color-fd-secondary: #f5f5f7;
+  --color-fd-secondary-foreground: #1d1d1f;
   --color-fd-accent: rgba(229, 77, 94, 0.08);
   --color-fd-accent-foreground: #1a1a2e;
   --color-fd-ring: #e54d5e;
@@ -96,24 +96,58 @@
   --shadow-warm: 0 2px 12px -2px rgba(229, 77, 94, 0.12);
   --shadow-elevated: 0 12px 28px -4px rgba(20, 20, 40, 0.06);
 
-  /* Graph-paper wallpaper grid — shared visual identity with the marketing site
-     (_mono_repo/omnirouteSite/css). Light theme values. Rendered by body::before.
-     Opacity tuned up from the site's 0.045 so the wallpaper is actually visible on
-     the dense dashboard (cards/chrome cover most of the viewport). */
+  /* Apple Liquid Glass Tokens (Light Theme) — chrome retains lensing, cards frosted whiter */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-bg-subtle: rgba(245, 245, 247, 0.6);
+  --glass-bg-card: rgba(255, 255, 255, 0.82);
+  --glass-bg-sidebar: rgba(245, 245, 247, 0.76);
+  --glass-bg-header: rgba(251, 251, 253, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-border-subtle: rgba(0, 0, 0, 0.06);
+  --glass-specular:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.9), 0 8px 32px 0 rgba(31, 38, 135, 0.06);
+  --glass-specular-subtle: inset 0 1px 0 0 rgba(255, 255, 255, 0.7);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  --glass-shadow-lg: 0 16px 48px 0 rgba(31, 38, 135, 0.1);
+  --glass-blur: blur(20px) saturate(160%);
+  --glass-blur-sm: blur(12px) saturate(150%);
+
+  /* Graph-paper wallpaper grid — light theme values. Opacity 0.07 is the locked
+      dashboard contract; Apple bento hero radius lives on --radius-bento. */
   --grid-line: rgba(0, 0, 0, 0.07);
   --grid-size: 32px;
   --section-alt: rgba(0, 0, 0, 0.022);
 
   /* Identity tokens mirrored from the site. Definitions only in this phase —
-     components are repointed to them in a later phase. */
+      components are repointed to them in a later phase. */
   --surface-2: #f5f5fa;
+  --apple-card-bg: #f5f5f7;
+  --space-apple: 2rem;
   --radius: 14px;
+  --radius-bento: 18px;
   --radius-control: 9px;
   --grad-brand: linear-gradient(135deg, var(--color-primary), var(--color-accent-light));
 
+  /* Liquid Glass Motion Tokens — Apple platform-aligned */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-emphasized: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --duration-micro: 150ms;
+  --duration-morph: 280ms;
+  --duration-route: 500ms;
+  --stagger-step: 50ms;
+
+  /* Lensing refinement — chrome only */
+  --glass-lens: blur(24px) saturate(185%) brightness(1.02);
+  --glass-specular-strong:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 0 rgba(0, 0, 0, 0.04),
+    0 8px 32px 0 rgba(31, 38, 135, 0.06);
+
   /* Data-table surfaces — theme-aware. The DARK values (in .dark below) exactly mirror
      the previous hardcoded rgba in DataTable.tsx so dark stays byte-identical; these
-     light values are the fix (the old code was always-dark via dead var fallbacks). */
+     light values are the fix (the old code was always-dark via dead var fallbacks).
+     --table-header-bg stays at 0.95 alpha (design-grid contract) and is paired with
+     var(--glass-blur-sm) on the sticky <th>. */
   --table-header-bg: rgba(249, 249, 251, 0.95);
   --table-row-zebra: rgba(0, 0, 0, 0.02);
   --table-row-hover: rgba(0, 0, 0, 0.04);
@@ -167,6 +201,21 @@
   --shadow-warm: 0 2px 12px -2px rgba(229, 77, 94, 0.15);
   --shadow-elevated: 0 12px 28px -4px rgba(0, 0, 0, 0.3);
 
+  /* Apple Liquid Glass Tokens (Dark Theme) */
+  --glass-bg: rgba(22, 27, 34, 0.68);
+  --glass-bg-subtle: rgba(17, 21, 32, 0.55);
+  --glass-bg-card: rgba(22, 27, 34, 0.72);
+  --glass-bg-sidebar: rgba(16, 20, 30, 0.75);
+  --glass-bg-header: rgba(11, 14, 20, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.09);
+  --glass-border-subtle: rgba(255, 255, 255, 0.05);
+  --glass-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.12), 0 12px 40px 0 rgba(0, 0, 0, 0.35);
+  --glass-specular-subtle: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.35);
+  --glass-shadow-lg: 0 20px 60px 0 rgba(0, 0, 0, 0.45);
+  --glass-blur: blur(24px) saturate(190%);
+  --glass-blur-sm: blur(12px) saturate(160%);
+
   /* Graph-paper wallpaper grid — dark theme values (tuned up from 0.035 for visibility). */
   --grid-line: rgba(255, 255, 255, 0.06);
   --section-alt: rgba(255, 255, 255, 0.018);
@@ -206,16 +255,16 @@
   --color-text-primary: var(--color-text-primary);
   --color-text-muted: var(--color-text-muted);
 
-  /* Static colors (for explicit light/dark usage) */
-  --color-bg-light: #f9f9fb;
+  /* Static colors (for explicit light/dark usage) — Apple retune */
+  --color-bg-light: #fbfbfd;
   --color-bg-dark: #0b0e14;
   --color-surface-light: #ffffff;
   --color-surface-dark: #161b22;
-  --color-sidebar-light: #ededf2;
+  --color-sidebar-light: #f5f5f7;
   --color-sidebar-dark: #111520;
-  --color-border-light: #e2e2ea;
+  --color-border-light: #d2d2d7;
   --color-border-dark: #2d333b;
-  --color-text-main-light: #1a1a2e;
+  --color-text-main-light: #1d1d1f;
   --color-text-main-dark: #e6e6ef;
   --color-text-muted-light: #71717a;
   --color-text-muted-dark: #a1a1aa;
@@ -228,16 +277,20 @@
   /* Font - macOS system fonts */
   --font-sans:
     -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
-  /* Monospace stack (parity with the site) — code blocks, IDs, endpoints, terminals */
-  --font-mono: ui-monospace, "JetBrains Mono", "Fira Code", "SF Mono", monospace;
+  /* Monospace stack — ui-monospace first (locked design-grid contract); JetBrains from next/font follows */
+  --font-mono:
+    ui-monospace, var(--font-jetbrains), "JetBrains Mono", "Fira Code", "SF Mono", monospace;
 
   /* Nested surface (enables bg-surface-2) */
   --color-surface-2: var(--surface-2);
+  --color-apple-card-bg: var(--apple-card-bg);
 
-  /* Semantic radius scale → rounded-card (surfaces, 14px) / rounded-control (controls,
-     9px). Custom names so the default rounded-sm/md/lg/xl utilities stay untouched. */
+  /* Semantic radius scale — locked 14px card / 9px control; bento hero is --radius-bento */
+  --radius: var(--radius);
   --radius-card: var(--radius);
   --radius-control: var(--radius-control);
+  --radius-bento: var(--radius-bento);
+  --spacing-apple: var(--space-apple);
 }
 
 /* ── Focus Indicators (U-3) ── */
@@ -273,10 +326,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Graph-paper wallpaper grid — one fixed, full-viewport layer behind every screen
-   (dashboard, auth, error pages). A z-index:-1 ::before paints above body's own
-   background but below all in-flow content, so it shows through any transparent
-   wrapper without lowering text contrast. Mirrors the marketing site exactly. */
+/* Graph-paper grid — locked background-size contract. Ambient liquid-glass
+   atmosphere lives on body::after so the grid layer stays a single tiled size. */
 body::before {
   content: "";
   position: fixed;
@@ -287,6 +338,25 @@ body::before {
     linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
   background-size: var(--grid-size) var(--grid-size);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 12% 16%, rgba(229, 77, 94, 0.07) 0%, transparent 42%),
+    radial-gradient(circle at 88% 18%, rgba(99, 102, 241, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 50% 88%, rgba(168, 85, 247, 0.06) 0%, transparent 50%);
+}
+
+.dark body::after {
+  background-image:
+    radial-gradient(circle at 12% 16%, rgba(229, 77, 94, 0.14) 0%, transparent 42%),
+    radial-gradient(circle at 88% 18%, rgba(99, 102, 241, 0.14) 0%, transparent 45%),
+    radial-gradient(circle at 50% 88%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
 }
 
 body.electron-macos {
@@ -349,9 +419,9 @@ body.electron-macos {
   scrollbar-width: thin;
 }
 
-/* Hero gradient */
+/* Hero gradient — Apple retune: F5F5F7 → FBFBFD */
 .bg-hero-gradient {
-  background: linear-gradient(180deg, #f0f0f5 0%, #f9f9fb 100%);
+  background: linear-gradient(180deg, #f5f5f7 0%, #fbfbfd 100%);
 }
 
 .dark .bg-hero-gradient {
@@ -460,13 +530,235 @@ button .material-symbols-outlined,
 
 /* macOS Vibrancy/Blur Effect */
 .bg-vibrancy {
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  background: var(--glass-bg);
 }
 
-.dark .bg-vibrancy {
-  background: rgba(16, 20, 30, 0.72);
+/* ═══════════════════════════════════════════════════════════════
+   Apple Liquid Glass Design System Utilities
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Liquid Glass Cards & Containers */
+.glass-card {
+  background: var(--glass-bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-specular);
+  border-radius: var(--radius);
+  transition:
+    box-shadow var(--duration-morph) var(--ease-spring),
+    transform var(--duration-morph) var(--ease-spring),
+    border-color var(--duration-micro) var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .glass-card:hover {
+    box-shadow: var(--glass-specular), var(--glass-shadow-lg);
+  }
+}
+
+/* Stagger entrance for dashboard card grids */
+@keyframes glass-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.glass-stagger > * {
+  animation: glass-in var(--duration-morph) var(--ease-spring) both;
+}
+
+.glass-stagger > *:nth-child(1) {
+  animation-delay: calc(var(--stagger-step) * 0);
+}
+.glass-stagger > *:nth-child(2) {
+  animation-delay: calc(var(--stagger-step) * 1);
+}
+.glass-stagger > *:nth-child(3) {
+  animation-delay: calc(var(--stagger-step) * 2);
+}
+.glass-stagger > *:nth-child(4) {
+  animation-delay: calc(var(--stagger-step) * 3);
+}
+.glass-stagger > *:nth-child(5) {
+  animation-delay: calc(var(--stagger-step) * 4);
+}
+.glass-stagger > *:nth-child(6) {
+  animation-delay: calc(var(--stagger-step) * 5);
+}
+.glass-stagger > *:nth-child(7) {
+  animation-delay: calc(var(--stagger-step) * 6);
+}
+.glass-stagger > *:nth-child(8) {
+  animation-delay: calc(var(--stagger-step) * 7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-stagger > * {
+    animation: none;
+  }
+}
+
+/* Liquid Glass Surfaces & Panels */
+.glass-surface {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-specular-subtle);
+}
+
+/* Liquid Glass Header — chrome layer: lensing refraction + specular highlight */
+.glass-header {
+  background: var(--glass-bg-header);
+  backdrop-filter: var(--glass-lens);
+  -webkit-backdrop-filter: var(--glass-lens);
+  border-bottom: 1px solid var(--glass-border-subtle);
+  box-shadow:
+    0 4px 20px 0 rgba(0, 0, 0, 0.03),
+    var(--glass-specular-subtle);
+}
+
+/* Liquid Glass Sidebar — chrome layer: border-right + specular + lensing */
+.glass-sidebar {
+  background: var(--glass-bg-sidebar);
+  backdrop-filter: var(--glass-lens);
+  -webkit-backdrop-filter: var(--glass-lens);
+  border-right: 1px solid var(--glass-border-subtle);
+  box-shadow: var(--glass-specular-subtle);
+}
+
+/* Opaque fallback when backdrop-filter is unsupported — prevents translucent bleed */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-header {
+    background: var(--color-bg);
+  }
+  .glass-sidebar {
+    background: var(--color-sidebar);
+  }
+  .glass-card {
+    background: var(--color-surface);
+  }
+}
+
+/* Liquid Glass Pills & Badges */
+.glass-pill {
+  background: var(--glass-bg-subtle);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-specular-subtle);
+  border-radius: 9999px;
+}
+
+/* Liquid Glass Form Inputs */
+.glass-input {
+  background: var(--glass-bg-subtle);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-specular-subtle);
+  transition:
+    border-color var(--duration-micro) var(--ease-standard),
+    box-shadow var(--duration-micro) var(--ease-standard),
+    background var(--duration-micro) var(--ease-standard);
+}
+
+.glass-input:focus {
+  border-color: var(--color-accent);
+  box-shadow:
+    0 0 0 3px rgba(99, 102, 241, 0.18),
+    var(--glass-specular-subtle);
+}
+
+/* Liquid Glass Buttons */
+.glass-button {
+  background: var(--glass-bg-subtle);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-specular-subtle);
+  transition:
+    background var(--duration-micro) var(--ease-standard),
+    box-shadow var(--duration-micro) var(--ease-standard),
+    transform var(--duration-micro) var(--ease-spring),
+    border-color var(--duration-micro) var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .glass-button:hover {
+    background: var(--glass-bg);
+    box-shadow: var(--glass-specular);
+    transform: translateY(-0.5px);
+  }
+
+  .glass-button:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Specular light highlight on top edge */
+.specular-highlight {
+  box-shadow: var(--glass-specular);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Apple.com Minimal Swiss — Bento Helpers
+   Bento-grid-showcase: Card #F5F5F7 glass, 18px hero / 12px card, 2rem rhythm
+   ═══════════════════════════════════════════════════════════════ */
+.apple-card {
+  background: #f5f5f7;
+  background: var(--apple-card-bg, #f5f5f7);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 18px;
+  border-radius: var(--radius, 18px);
+}
+
+.apple-hero {
+  max-width: 980px;
+  margin: 0 auto;
+  padding-inline: var(--space-apple, 2rem);
+}
+
+/* Accessibility: Graceful fallback when reduced transparency is requested */
+@media (prefers-reduced-transparency: reduce) {
+  .glass-card,
+  .glass-surface,
+  .glass-header,
+  .glass-sidebar,
+  .glass-pill,
+  .glass-input,
+  .glass-button,
+  .bg-vibrancy {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--color-surface) !important;
+  }
+
+  body::before {
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px) !important;
+  }
+
+  body::after {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-card,
+  .glass-button,
+  .glass-input {
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* macOS Traffic Lights */

@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useState, useEffect, useMemo, useCallback, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
+import { CardSkeleton, Button, Modal } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { AI_PROVIDERS, NOAUTH_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
 import {
@@ -20,97 +20,24 @@ import { useIsElectron, useOpenExternal } from "@/shared/hooks/useElectron";
 import { HomeProviderTopologySection } from "./HomeProviderTopologySection";
 import { shouldShowProviderTopologyOnHome } from "./homeAppearance";
 import HomeRecentRequests from "../home/HomeRecentRequests";
-
-type UpdateStep = {
-  step: string;
-  status: string;
-  message: string;
-};
-
-type VersionInfo = {
-  current: string;
-  latest: string;
-  updateAvailable: boolean;
-  channel: string;
-  autoUpdateSupported: boolean;
-  autoUpdateError?: string | null;
-};
-
-type HomePageClientProps = {
-  machineId?: string;
-};
-
-type ProviderSummaryItem = {
-  id: string;
-  provider: {
-    id: string;
-    name: string;
-    color?: string;
-    textIcon?: string;
-    alias?: string;
-  };
-  total: number;
-  connected: number;
-  errors: number;
-  modelCount: number;
-  authType: "free" | "oauth" | "apikey" | string;
-};
-
-type ProviderMetricSummary = {
-  totalRequests?: number;
-  totalSuccesses?: number;
-  successRate?: number;
-  avgLatencyMs?: number;
-  lastRequestAt?: string | null;
-  lastErrorAt?: string | null;
-  lastStatus?: number | null;
-  lastErrorStatus?: number | null;
-};
-
-type ProviderModelSummary = {
-  fullModel: string;
-  alias?: string;
-  model?: string;
-};
-
-const PROVIDER_ALIAS_TO_ID = new Map(
-  Object.entries(AI_PROVIDERS)
-    .flatMap(([providerId, providerInfo]) =>
-      providerInfo.alias ? [[providerInfo.alias.toLowerCase(), providerId]] : []
-    )
-    .filter((entry): entry is [string, string] => entry.length === 2)
-);
-
-function normalizeProviderId(providerId?: string | null): string {
-  const normalized = typeof providerId === "string" ? providerId.trim().toLowerCase() : "";
-  if (!normalized) return "";
-  return AI_PROVIDERS[normalized] ? normalized : PROVIDER_ALIAS_TO_ID.get(normalized) || normalized;
-}
-
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-function mergeUpdateStep(steps: UpdateStep[], nextStep: UpdateStep) {
-  const idx = steps.findIndex((step) => step.step === nextStep.step);
-  if (idx === -1) {
-    return [...steps, nextStep];
-  }
-
-  const next = [...steps];
-  next[idx] = nextStep;
-  return next;
-}
-
-// Quick-start link classes, extracted so each <Link> still fits on one line with
-// prefetch={false} (#8281) — this file is size-frozen.
-const INLINE_LINK = "text-primary hover:underline";
-const DOCS_LINK =
-  "hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors";
-
-// Stable no-op subscription for useSyncExternalStore reads of never-changing
-// browser globals (location.origin does not change without a full navigation).
-function emptySubscribe() {
-  return () => {};
-}
+import {
+  type UpdateStep,
+  type VersionInfo,
+  type HomePageClientProps,
+  type ProviderSummaryItem,
+  type ProviderMetricSummary,
+  type ProviderModelSummary,
+  normalizeProviderId,
+  wait,
+  mergeUpdateStep,
+  INLINE_LINK,
+  DOCS_LINK,
+  BENTO_CARD,
+  BENTO_ICON,
+  BENTO_TITLE,
+  BENTO_DESC,
+  emptySubscribe,
+} from "./homePageClientUtils";
 
 export default function HomePageClient({ machineId }: HomePageClientProps) {
   const router = useRouter();
@@ -781,7 +708,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-12 max-w-[980px] mx-auto w-full px-6">
         <CardSkeleton />
         <CardSkeleton />
       </div>
@@ -791,7 +718,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const currentEndpoint = baseUrl;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-12 max-w-[980px] mx-auto w-full px-6">
       {/* Update Progress Overlay */}
       {showUpdateOverlay && (
         <div className="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
@@ -906,25 +833,28 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
         </div>
       )}
 
-      {/* Update Notification Banner */}
+      {/* Update Notification Banner — Apple soft: #F5F5F7 + minimal primary dot */}
       {versionInfo?.updateAvailable && !showUpdateOverlay && (
         <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-3 rounded-lg border border-primary/20 bg-primary/10 px-5 py-4 text-primary">
+          <div className="flex flex-col gap-3 rounded-[18px] border border-black/5 dark:border-white/10 bg-[#F5F5F7] dark:bg-white/[0.04] px-5 py-4">
             <div className="flex min-h-[48px] items-center justify-between">
               <div className="flex min-w-0 items-center gap-4">
-                <span className="material-symbols-outlined shrink-0 text-[24px]">
-                  {isElectron && electronUpdateStatus.status === "downloading"
-                    ? "downloading"
-                    : "system_update_alt"}
-                </span>
+                <div className="relative flex items-center justify-center size-10 rounded-2xl bg-white dark:bg-white/[0.06] border border-black/5 dark:border-white/10 shrink-0">
+                  <span className="material-symbols-outlined shrink-0 text-[20px] text-text-muted">
+                    {isElectron && electronUpdateStatus.status === "downloading"
+                      ? "downloading"
+                      : "system_update_alt"}
+                  </span>
+                  <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-primary ring-2 ring-[#F5F5F7] dark:ring-white/[0.04]" />
+                </div>
                 <div>
-                  <p className="font-semibold text-sm">
+                  <p className="font-semibold text-sm tracking-tight text-[#1D1D1F] dark:text-text-main">
                     {t("updateAvailableTitle", {
                       version: versionInfo.latest,
                       desktop: isElectron ? ` ${t("desktopAppLabel")}` : "",
                     })}
                   </p>
-                  <p className="text-xs opacity-80 mt-0.5">
+                  <p className="text-xs text-text-muted leading-relaxed mt-0.5">
                     {isElectron ? (
                       <>
                         {electronUpdateStatus.status === "checking" && t("checkingForUpdates")}
@@ -1016,8 +946,8 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                 electronUpdateStatus.status === "idle" ||
                 electronUpdateStatus.status === "available" ||
                 electronUpdateStatus.status === "not-available") && (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-primary/20 mt-2 pt-3 gap-2">
-                  <p className="text-xs opacity-75">{t("directDownloadHint")}</p>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-black/5 dark:border-white/10 mt-2 pt-3 gap-2">
+                  <p className="text-xs text-text-muted">{t("directDownloadHint")}</p>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
@@ -1045,14 +975,18 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
         </div>
       )}
 
-      {/* Quick Start (controlled by Appearance setting, default on) */}
+      {/* Quick Start — Apple bento grid */}
       {showQuickStartOnHome && (
-        <Card>
+        <section className="flex flex-col gap-6">
           <div className="flex flex-col gap-5">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold">{t("quickStart")}</h2>
-                <p className="text-sm text-text-muted">{t("quickStartDesc")}</p>
+                <h2 className="text-2xl md:text-3xl font-semibold tracking-tight tracking-[-0.02em] text-[#1D1D1F] dark:text-text-main">
+                  {t("quickStart")}
+                </h2>
+                <p className="text-[15px] leading-relaxed text-text-muted mt-1.5">
+                  {t("quickStartDesc")}
+                </p>
               </div>
               <Link href="/docs" prefetch={false} className={DOCS_LINK}>
                 <span className="material-symbols-outlined text-[14px]">menu_book</span>
@@ -1060,14 +994,14 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
               </Link>
             </div>
 
-            <ol className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-              <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
-                <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10 text-primary shrink-0">
+            <ol className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <li className={BENTO_CARD}>
+                <div className={`${BENTO_ICON} bg-primary/10 text-primary`}>
                   <span className="material-symbols-outlined text-[18px]">key</span>
                 </div>
                 <div>
-                  <span className="font-semibold">{t("step1Title")}</span>
-                  <p className="text-text-muted mt-0.5">
+                  <span className={BENTO_TITLE}>{t("step1Title")}</span>
+                  <p className={BENTO_DESC}>
                     {t.rich("step1Desc", {
                       endpoint: (chunks) => (
                         <Link
@@ -1082,13 +1016,13 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                   </p>
                 </div>
               </li>
-              <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
-                <div className="flex items-center justify-center size-8 rounded-lg bg-green-500/10 text-green-500 shrink-0">
+              <li className={BENTO_CARD}>
+                <div className={`${BENTO_ICON} bg-green-500/10 text-green-500`}>
                   <span className="material-symbols-outlined text-[18px]">dns</span>
                 </div>
                 <div>
-                  <span className="font-semibold">{t("step2Title")}</span>
-                  <p className="text-text-muted mt-0.5">
+                  <span className={BENTO_TITLE}>{t("step2Title")}</span>
+                  <p className={BENTO_DESC}>
                     {t.rich("step2Desc", {
                       providers: (chunks) => (
                         <Link href="/dashboard/providers" prefetch={false} className={INLINE_LINK}>
@@ -1099,24 +1033,22 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                   </p>
                 </div>
               </li>
-              <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
-                <div className="flex items-center justify-center size-8 rounded-lg bg-blue-500/10 text-blue-500 shrink-0">
+              <li className={BENTO_CARD}>
+                <div className={`${BENTO_ICON} bg-blue-500/10 text-blue-500`}>
                   <span className="material-symbols-outlined text-[18px]">link</span>
                 </div>
                 <div>
-                  <span className="font-semibold">{t("step3Title")}</span>
-                  <p className="text-text-muted mt-0.5">
-                    {t("step3Desc", { url: currentEndpoint })}
-                  </p>
+                  <span className={BENTO_TITLE}>{t("step3Title")}</span>
+                  <p className={BENTO_DESC}>{t("step3Desc", { url: currentEndpoint })}</p>
                 </div>
               </li>
-              <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
-                <div className="flex items-center justify-center size-8 rounded-lg bg-amber-500/10 text-amber-500 shrink-0">
+              <li className={BENTO_CARD}>
+                <div className={`${BENTO_ICON} bg-amber-500/10 text-amber-500`}>
                   <span className="material-symbols-outlined text-[18px]">analytics</span>
                 </div>
                 <div>
-                  <span className="font-semibold">{t("step4Title")}</span>
-                  <p className="text-text-muted mt-0.5">
+                  <span className={BENTO_TITLE}>{t("step4Title")}</span>
+                  <p className={BENTO_DESC}>
                     {t.rich("step4Desc", {
                       logs: (chunks) => (
                         <Link href="/dashboard/logs" prefetch={false} className={INLINE_LINK}>
@@ -1134,7 +1066,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
               </li>
             </ol>
           </div>
-        </Card>
+        </section>
       )}
 
       {showProviderTopologyOnHome && (

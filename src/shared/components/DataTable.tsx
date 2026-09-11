@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 
 const INTERACTIVE_ELEMENT_SELECTOR =
@@ -48,11 +50,11 @@ export interface DataTableRow {
   [key: string]: unknown;
 }
 
-interface DataTableProps {
+export interface DataTableProps {
   columns?: DataTableColumn[];
   data?: DataTableRow[];
-  renderCell: (row: DataTableRow, column: DataTableColumn) => React.ReactNode;
-  renderHeader?: (column: DataTableColumn) => React.ReactNode;
+  renderCell: (row: DataTableRow, column: DataTableColumn) => ReactNode;
+  renderHeader?: (column: DataTableColumn) => ReactNode;
   onRowClick?: (row: DataTableRow) => void;
   selectedId?: string | number;
   loading?: boolean;
@@ -130,7 +132,10 @@ export default function DataTable({
         borderRadius: "8px",
         // Opaque surface so the body grid wallpaper never bleeds through the
         // transparent even-rows / low-alpha zebra when the table renders card-less.
+        // Liquid-glass lens sits on top via backdrop-filter when supported.
         background: "var(--color-surface)",
+        backdropFilter: "var(--glass-blur-sm)",
+        WebkitBackdropFilter: "var(--glass-blur-sm)",
       }}
     >
       <table
@@ -154,7 +159,10 @@ export default function DataTable({
                   borderBottom: "1px solid var(--color-border)",
                   position: "sticky",
                   top: 0,
+                  // Tokenized header fill plus liquid-glass blur.
                   background: "var(--table-header-bg)",
+                  backdropFilter: "var(--glass-blur-sm)",
+                  WebkitBackdropFilter: "var(--glass-blur-sm)",
                   zIndex: 1,
                   whiteSpace: "nowrap",
                   fontSize: "11px",
