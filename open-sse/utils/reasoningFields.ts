@@ -111,7 +111,14 @@ export function copyOpenAICompatibleReasoningFields(source: JsonRecord, target: 
   if (source.thinking !== undefined) target.thinking = source.thinking;
   if (source.thought !== undefined) target.thought = source.thought;
   if (Array.isArray(source.reasoning_details)) target.reasoning_details = source.reasoning_details;
-  if (!getReadableReasoningValue(target)) {
+  // Mirror unsupported reasoning aliases (reasoning_text / thinking / thought /
+  // reasoning_details[].text) into the client-readable reasoning_content field.
+  // Only the presence of an existing reasoning_content blocks this — NOT the
+  // `reasoning` string. OpenRouter thinking models return BOTH `reasoning` and
+  // `reasoning_details[].text`; previously `reasoning` alone short-circuited the
+  // promotion, so reasoning_content was never set and thinking traces were lost
+  // for clients (e.g. opencode) that only read reasoning_content.
+  if (!nonEmptyString(target.reasoning_content)) {
     const mirrored = getUnsupportedReasoningValue(source);
     if (mirrored) target.reasoning_content = mirrored;
   }

@@ -285,6 +285,59 @@ test("sanitizeOpenAIResponse preserves OpenRouter native reasoning and signature
   );
 });
 
+test("sanitizeOpenAIResponse promotes reasoning_details text to reasoning_content even when reasoning is also present", () => {
+  // OpenRouter returns BOTH a `reasoning` string AND a `reasoning_details[]`
+  // array with the same thinking text for DeepSeek V4 / GLM 5.3 / Kimi K3.
+  // Clients (opencode) only read reasoning_content, so the details text must be
+  // mirrored into reasoning_content regardless of the `reasoning` alias being
+  // present (#12665).
+  const sanitized = sanitizeOpenAIResponse({
+    model: "openrouter/deepseek/deepseek-v4-flash",
+    choices: [
+      {
+        message: {
+          role: "assistant",
+          content: "Visible answer",
+          reasoning: "Hmm, let me think this through",
+          reasoning_details: [
+            { type: "reasoning.text", text: "Hmm, let me think this through" },
+          ],
+        },
+      },
+    ],
+  });
+
+  const message = (sanitized as any).choices[0].message;
+  assert.equal(message.reasoning, "Hmm, let me think this through");
+  assert.equal(message.reasoning_content, "Hmm, let me think this through");
+  assert.deepEqual(message.reasoning_details, [
+    { type: "reasoning.text", text: "Hmm, let me think this through" },
+  ]);
+});
+
+test("sanitizeOpenAIResponse does not flatten signature-only reasoning_details into reasoning_content", () => {
+  // Regression guard for the flip side: non-text details entries (encrypted
+  // signatures) must NOT be coerced into reasoning_content text (#12665).
+  const sanitized = sanitizeOpenAIResponse({
+    model: "openrouter/moonshotai/kimi-k3",
+    choices: [
+      {
+        message: {
+          role: "assistant",
+          content: "Visible answer",
+          reasoning: "native reasoning",
+          reasoning_details: [{ type: "reasoning.encrypted", data: "sig" }],
+        },
+      },
+    ],
+  });
+
+  const message = (sanitized as any).choices[0].message;
+  assert.equal(message.reasoning_content, undefined);
+  assert.equal(message.reasoning, "native reasoning");
+  assert.deepEqual(message.reasoning_details, [{ type: "reasoning.encrypted", data: "sig" }]);
+});
+
 test("sanitizeOpenAIResponse keeps reasoning_details-derived reasoning_content for reasoning-only messages", () => {
   const sanitized = sanitizeOpenAIResponse({
     model: "openrouter/model",
@@ -531,6 +584,28 @@ test("sanitizeStreamingChunk preserves client-readable reasoning deltas", () => 
 
   assert.equal((sanitized as any).choices[0].delta.reasoning, "readable reasoning");
   assert.equal((sanitized as any).choices[0].delta.reasoning_content, undefined);
+});
+
+test("sanitizeStreamingChunk promotes reasoning_details text when reasoning is also present in the delta", () => {
+  // Streaming parity for #12665: OpenRouter streams reasoning_details[].text
+  // chunks alongside a `reasoning` string; reasoning_content must still be
+  // populated for the client.
+  const sanitized = sanitizeStreamingChunk({
+    choices: [
+      {
+        delta: {
+          reasoning: "thinking chunk",
+          reasoning_details: [{ type: "reasoning.text", text: "thinking chunk" }],
+        },
+      },
+    ],
+  });
+
+  assert.equal((sanitized as any).choices[0].delta.reasoning, "thinking chunk");
+  assert.equal((sanitized as any).choices[0].delta.reasoning_content, "thinking chunk");
+  assert.deepEqual((sanitized as any).choices[0].delta.reasoning_details, [
+    { type: "reasoning.text", text: "thinking chunk" },
+  ]);
 });
 
 test("sanitizeStreamingChunk preserves and mirrors Copilot reasoning_text deltas", () => {

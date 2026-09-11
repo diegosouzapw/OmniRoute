@@ -131,6 +131,37 @@ describe("synthesizeOpenAiSseFromJson (#3089)", () => {
     );
   });
 
+  test("#12665: reasoning present does NOT suppress reasoning_details text in reasoning_content", () => {
+    const sse = synthesizeOpenAiSseFromJson(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              role: "assistant",
+              reasoning: "client-readable reasoning string",
+              reasoning_details: [
+                { type: "reasoning.text", text: "details thinking trace" },
+              ],
+              content: "final text",
+            },
+          },
+        ],
+      })
+    );
+    const deltas = parseDataChunks(sse)
+      .filter((c) => c !== "[DONE]")
+      .map((c) => JSON.parse(c).choices[0].delta);
+
+    // reasoning alias is preserved AND reasoning_content is populated from
+    // reasoning_details[].text (previously the alias short-circuited the mirror).
+    const rc = deltas.find((d) => d.reasoning_content !== undefined)?.reasoning_content;
+    assert.equal(rc, "details thinking trace");
+    assert.equal(
+      deltas.find((d) => d.reasoning !== undefined)?.reasoning,
+      "client-readable reasoning string"
+    );
+  });
+
   test("forwards tool_calls in the delta", () => {
     const sse = synthesizeOpenAiSseFromJson(
       JSON.stringify({
