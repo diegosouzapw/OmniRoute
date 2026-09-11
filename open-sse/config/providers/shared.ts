@@ -56,6 +56,12 @@ export interface RegistryModel {
   liveCatalogIds?: readonly string[];
   toolCalling?: boolean;
   supportsReasoning?: boolean;
+  /**
+   * When true, the upstream always runs reasoning/thinking regardless of
+   * explicit client opt-in (e.g. reka-flash-3). Used to apply reasoning-aware
+   * budget floors even when clients omit `reasoning_effort` or `thinking`.
+   */
+  alwaysReasons?: boolean;
   supportedThinkingEfforts?: readonly string[];
   supportsVision?: boolean;
   supportsAudio?: boolean;
