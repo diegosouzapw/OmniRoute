@@ -165,6 +165,29 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
     }
   }
 
+  // #reasoning-bilingual: DeepSeek-V4 and similar models emit user-facing text in the
+  // user's language (e.g. Korean) then continue with English planning/chain-of-thought
+  // in the same content field instead of using reasoning_content. Same mitigation as
+  // openai-responses.ts: when the operator configured OMNIROUTE_SYSTEM_INSTRUCTION_APPEND,
+  // append it here to the (system) message so the directive reaches the model on the
+  // /v1/messages (Claude Messages -> OpenAI Chat Completions) path too.
+  const systemAppend = process.env.OMNIROUTE_SYSTEM_INSTRUCTION_APPEND?.trim();
+  if (systemAppend) {
+    const sysIndex = result.messages.findIndex((m) => m.role === "system");
+    if (sysIndex >= 0) {
+      const sys = result.messages[sysIndex];
+      if (typeof sys.content === "string") {
+        sys.content = sys.content + "\n\n" + systemAppend;
+      } else if (Array.isArray(sys.content)) {
+        (sys.content as JsonRecord[]).push({ type: "text", text: systemAppend });
+      } else {
+        sys.content = systemAppend;
+      }
+    } else {
+      result.messages.unshift({ role: "system", content: systemAppend });
+    }
+  }
+
   // Convert messages
   if (body.messages && Array.isArray(body.messages)) {
     for (let i = 0; i < body.messages.length; i++) {
