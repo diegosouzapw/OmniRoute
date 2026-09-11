@@ -234,6 +234,14 @@ export const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   "firecrawl",
   "petals",
   "comfyui",
+  // #12704 — Modal is bring-your-own-deploy: every user runs their model on a
+  // unique endpoint (https://<workspace>--<app>.modal.run/v1), so there is no
+  // fixed host to preset. The server-side validator (src/lib/providers/
+  // validation.ts) requires providerSpecificData.baseUrl for modal, but the
+  // add-connection modal never exposed the field — connections could not be
+  // validated or saved at all. Expose the generic base-URL override
+  // affordance for this id (same mechanism as the kimi/moonshot case above).
+  "modal",
   // #7447 — Moonshot/Kimi's international host (api.moonshot.ai) rejects
   // CN-region keys (issued on platform.kimi.com/moonshot.cn — a separate
   // account/keyspace). Neither "kimi" (legacy id) nor "moonshot" (current
@@ -345,36 +353,39 @@ export function getProviderBaseUrlHint(
   }
 }
 
+// Literal placeholder examples keyed by provider id. Kept in a record instead
+// of a switch so the function stays under the complexity cap as ids are added.
+const BUILTIN_BASE_URL_PLACEHOLDER_EXAMPLES: Readonly<Record<string, string>> = {
+  "azure-openai": "https://my-resource.openai.azure.com",
+  siliconflow: "https://api.siliconflow.cn/v1",
+  heroku: "https://us.inference.heroku.com",
+  databricks: "https://adb-1234567890123456.7.azuredatabricks.net/serving-endpoints",
+  snowflake: "https://example-account.snowflakecomputing.com",
+  "searxng-search": "http://localhost:8888/search",
+  // #7447 — surfaces the CN-region alternative host as the placeholder
+  // example (mirrors the siliconflow.com/siliconflow.cn pattern above).
+  kimi: "https://api.moonshot.cn/v1",
+  moonshot: "https://api.moonshot.cn/v1",
+  // #12704 — shows the Modal app URL shape the validator demands.
+  modal: "https://<workspace>--<app>.modal.run/v1",
+};
+
+// Placeholder = the provider's configured default URL (no literal example).
+const DEFAULT_BASED_PLACEHOLDER_PROVIDERS = new Set([
+  "bailian-coding-plan",
+  "xiaomi-mimo",
+  "comfyui",
+  "firecrawl",
+]);
+
 export function getProviderBaseUrlPlaceholder(providerId?: string | null) {
   if (isSelfHostedChatProvider(providerId || "")) {
     return getProviderBaseUrlDefault(providerId);
   }
-  switch (providerId) {
-    case "azure-openai":
-      return "https://my-resource.openai.azure.com";
-    case "bailian-coding-plan":
-    case "xiaomi-mimo":
-    case "comfyui":
-    case "firecrawl":
-      return getProviderBaseUrlDefault(providerId);
-    case "siliconflow":
-      return "https://api.siliconflow.cn/v1";
-    case "heroku":
-      return "https://us.inference.heroku.com";
-    case "databricks":
-      return "https://adb-1234567890123456.7.azuredatabricks.net/serving-endpoints";
-    case "snowflake":
-      return "https://example-account.snowflakecomputing.com";
-    case "searxng-search":
-      return "http://localhost:8888/search";
-    case "kimi":
-    case "moonshot":
-      // #7447 — surfaces the CN-region alternative host as the placeholder
-      // example (mirrors the siliconflow.com/siliconflow.cn pattern above).
-      return "https://api.moonshot.cn/v1";
-    default:
-      return "";
-  }
+  const id = providerId || "";
+  const example = BUILTIN_BASE_URL_PLACEHOLDER_EXAMPLES[id];
+  if (example) return example;
+  return DEFAULT_BASED_PLACEHOLDER_PROVIDERS.has(id) ? getProviderBaseUrlDefault(providerId) : "";
 }
 
 export function isGlmProvider(providerId?: string | null) {
