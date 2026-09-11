@@ -2038,7 +2038,9 @@ async function handleSingleModelChat(
           result.errorType === "stream_early_eof");
 
       if (
-        (result.errorType === "stream_timeout" || result.errorType === "stream_early_eof") &&
+        (result.errorType === "stream_timeout" ||
+          result.errorType === "stream_early_eof" ||
+          result.errorCode === "empty_response") &&
         !isAntigravityStreamReadinessFailure
       ) {
         // Bug #3758: flaky OpenAI-compatible upstreams (e.g. NVIDIA NIM) sometimes

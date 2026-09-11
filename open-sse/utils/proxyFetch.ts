@@ -847,7 +847,8 @@ async function patchedFetch(
     const _nativeFallback =
       (deps.nativeFetch as FetchWithDispatcher | undefined) ?? originalFetchWithDispatcher;
     let lastDispatcherError: unknown = null;
-    const directHeadersTimeoutMs = resolveDirectHeadersTimeoutMs();
+    const directBodyForTimeout = typeof options.body === "string" ? options.body : null;
+    const directHeadersTimeoutMs = resolveDirectHeadersTimeoutMs(undefined, directBodyForTimeout);
     let targetHostForLogs = "";
     try {
       targetHostForLogs = new URL(targetUrl).host;

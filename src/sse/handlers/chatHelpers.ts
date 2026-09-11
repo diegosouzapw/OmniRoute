@@ -900,11 +900,25 @@ export function handleNoCredentials(
  */
 export const STREAM_EARLY_EOF_MAX_RETRIES = 1;
 
+// A genuine 0-byte upstream empty response (emitClaudeEmptyStreamErrorAndAbort,
+// code "empty_response" — call logs 1788132529140-96ef4a / 1788142914004-062cf6)
+// is the same class of transient upstream glitch as STREAM_EARLY_EOF: the
+// upstream sent HTTP 200 then closed with zero useful frames. Treat it the
+// same — ONE bounded same-connection re-attempt, never a loop.
+const RETRYABLE_STREAM_EMPTY_CODES: ReadonlySet<string> = new Set([
+  "STREAM_EARLY_EOF",
+  "empty_response",
+]);
+
 export function shouldRetryStreamEarlyEof(
   errorCode: string | null | undefined,
   attempt: number
 ): boolean {
-  return errorCode === "STREAM_EARLY_EOF" && attempt < STREAM_EARLY_EOF_MAX_RETRIES;
+  return (
+    typeof errorCode === "string" &&
+    RETRYABLE_STREAM_EMPTY_CODES.has(errorCode) &&
+    attempt < STREAM_EARLY_EOF_MAX_RETRIES
+  );
 }
 
 export function decideProxyResolutionFailure(
