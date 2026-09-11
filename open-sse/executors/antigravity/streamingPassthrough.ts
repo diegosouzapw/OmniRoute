@@ -113,6 +113,7 @@ export type SsePassthroughResult = {
   url: string;
   headers: Record<string, string>;
   transformedBody: unknown;
+  upstreamDiagnostic?: Record<string, unknown>;
 };
 
 /** Cancel `body` when `signal` aborts, releasing the upstream connection. */

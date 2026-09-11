@@ -1,0 +1,1 @@
+- **fix(antigravity):** diagnose upstream failures from a bounded allowlist projection instead of the raw Google error body — call logs keep the validation classification (status, provider code/status/reason, category, field, schema keyword) while the response body, its headers, and the client-facing envelope stay free of provider text that can echo request content

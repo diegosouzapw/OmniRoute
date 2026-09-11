@@ -3,11 +3,17 @@ import type { getProviderCredentials } from "@/sse/services/auth.ts";
 import type { updateFromHeaders, updateFromResponseBody } from "../../services/rateLimitManager.ts";
 import type { writeTerminalStatus } from "@/shared/utils/terminalStatus.ts";
 import type { updateProviderConnection } from "@/lib/db/providers.ts";
-import type { lockModel, recordCoreOwnedAntigravityQuotaState } from "../../services/accountFallback.ts";
+import type {
+  lockModel,
+  recordCoreOwnedAntigravityQuotaState,
+} from "../../services/accountFallback.ts";
 import { createErrorResult } from "../../utils/error.ts";
 import { applyStatusRestatement } from "../../config/upstreamStatusRestatement.ts";
 import { recoverAnthropicThinkingSignature } from "./thinkingSignatureRecovery.ts";
-import { isModelUnavailableError, getNextFamilyFallback as defaultGetNextFamilyFallback } from "../../services/modelFamilyFallback.ts";
+import {
+  isModelUnavailableError,
+  getNextFamilyFallback as defaultGetNextFamilyFallback,
+} from "../../services/modelFamilyFallback.ts";
 import { COOLDOWN_MS } from "../../config/errorConfig.ts";
 import { normalizeHeaders } from "../../utils/headers.ts";
 
@@ -17,6 +23,7 @@ export interface ChatCoreExecutorResult {
   headers: Record<string, string>;
   transformedBody: unknown;
   transport?: string;
+  upstreamDiagnostic?: Record<string, unknown>;
   _executionCredentials?: Record<string, unknown>;
   _accountSemaphoreRelease?: () => void;
 }
@@ -34,6 +41,7 @@ export type ProviderExecutionOutcome =
       url: string;
       headers: Record<string, string>;
       transformedBody: unknown;
+      upstreamDiagnostic?: Record<string, unknown>;
       model: string;
       connectionId: string;
     }
@@ -41,6 +49,7 @@ export type ProviderExecutionOutcome =
       kind: "error";
       result: ChatCoreErrorResult;
       providerUsage: ProviderLegUsage | null;
+      upstreamDiagnostic?: Record<string, unknown>;
       model: string;
       connectionId: string;
     };
@@ -174,6 +183,7 @@ async function toOutcome(
       url: attempt.url,
       headers: attempt.headers,
       transformedBody: attempt.transformedBody,
+      upstreamDiagnostic: attempt.upstreamDiagnostic,
       model,
       connectionId,
     };
@@ -196,11 +206,7 @@ async function toOutcome(
     body,
     retryAfterMs: null,
   });
-  const result = createErrorResult(
-    restatement.status,
-    message,
-    restatement.retryAfterMs
-  );
+  const result = createErrorResult(restatement.status, message, restatement.retryAfterMs);
   return {
     kind: "error",
     result: {
@@ -212,6 +218,7 @@ async function toOutcome(
       errorType: result.errorType,
     },
     providerUsage: null,
+    upstreamDiagnostic: attempt.upstreamDiagnostic,
     model,
     connectionId,
   };
@@ -273,7 +280,12 @@ export async function runProviderExecutionPipeline(
 
     const status = attempt.response.status;
     if (status >= 200 && status < 300) {
-      return toOutcome(attempt, wire.currentModel, currentConnectionId(connection), target.provider);
+      return toOutcome(
+        attempt,
+        wire.currentModel,
+        currentConnectionId(connection),
+        target.provider
+      );
     }
 
     const isolateProbe = await state.isolateProbeFailures();
@@ -401,12 +413,18 @@ export async function runProviderExecutionPipeline(
           };
         },
       });
-      if (signatureRecovery.attempted && signatureRecovery.succeeded && signatureRecovery.execution) {
+      if (
+        signatureRecovery.attempted &&
+        signatureRecovery.succeeded &&
+        signatureRecovery.execution
+      ) {
         lastAttempt = {
           response: signatureRecovery.execution.response,
           url: signatureRecovery.execution.url ?? attempt.url,
-          headers: (signatureRecovery.execution.headers as Record<string, string>) ?? attempt.headers,
+          headers:
+            (signatureRecovery.execution.headers as Record<string, string>) ?? attempt.headers,
           transformedBody: signatureRecovery.execution.transformedBody ?? attempt.transformedBody,
+          upstreamDiagnostic: signatureRecovery.execution.upstreamDiagnostic,
         };
         return toOutcome(
           lastAttempt,
@@ -430,7 +448,11 @@ export async function runProviderExecutionPipeline(
         // keep statusText
       }
       if (isModelUnavailableError(status, fallbackMessage, target.provider)) {
-        const nextModel = resolveFamilyFallback(wire.currentModel, wire.triedModels, target.provider);
+        const nextModel = resolveFamilyFallback(
+          wire.currentModel,
+          wire.triedModels,
+          target.provider
+        );
         if (nextModel) {
           wire.setBodyAndModel({ ...wire.body, model: nextModel }, nextModel);
           modelFallbackPending = true;
@@ -443,7 +465,12 @@ export async function runProviderExecutionPipeline(
   }
 
   if (lastAttempt) {
-    return toOutcome(lastAttempt, wire.currentModel, currentConnectionId(connection), target.provider);
+    return toOutcome(
+      lastAttempt,
+      wire.currentModel,
+      currentConnectionId(connection),
+      target.provider
+    );
   }
   return leaseMismatch(wire.currentModel, currentConnectionId(connection));
 }

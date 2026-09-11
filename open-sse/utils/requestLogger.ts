@@ -44,6 +44,7 @@ type RequestLogger = {
     headers: HeaderInput,
     body: unknown
   ) => void;
+  logProviderDiagnostic: (diagnostic: JsonRecord | null) => void;
   appendProviderChunk: (chunk: string) => void;
   appendOpenAIChunk: (chunk: string) => void;
   logConvertedResponse: (body: unknown) => void;
@@ -391,6 +392,7 @@ export async function createRequestLogger(
       logOpenAIRequest() {},
       logTargetRequest() {},
       logProviderResponse() {},
+      logProviderDiagnostic() {},
       appendProviderChunk: chunkMethods.appendProviderChunk,
       appendOpenAIChunk: chunkMethods.appendOpenAIChunk,
       logConvertedResponse() {},
@@ -460,6 +462,24 @@ export async function createRequestLogger(
         statusText,
         headers: maskSensitiveHeaders(headers),
         body: cloneBoundedForLog(body),
+      };
+    },
+
+    /**
+     * Record a terminal upstream failure by its already-allowlisted classification INSTEAD of
+     * its response (#3229).
+     *
+     * Deliberately narrower than {@link logProviderResponse}: no status text, no response
+     * headers, no upstream body. Callers pass a small fixed-shape record they have already
+     * projected to a closed set of scalars/enums — this method does not sanitize arbitrary
+     * provider data and must never be handed a raw upstream payload. Used for providers whose
+     * error bodies may echo request content, where the only safe thing to retain is the
+     * classification itself.
+     */
+    logProviderDiagnostic(diagnostic) {
+      payloads.providerResponse = {
+        timestamp: new Date().toISOString(),
+        diagnostic: (diagnostic ? cloneBoundedForLog(diagnostic) : null) as JsonRecord | null,
       };
     },
 
