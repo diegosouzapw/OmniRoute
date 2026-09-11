@@ -108,6 +108,66 @@ These persist until credentials change or an operator resets them. Do not overwr
 
 **Lazy recovery:** when `rateLimitedUntil` is past, connection becomes eligible again. On successful use, `clearAccountError()` clears all error fields.
 
+### Claude OAuth usage wall: lower-priority lane + session-limit reset
+
+**Scope:** one Claude subscription (OAuth) connection. Both features are **opt-in per
+connection** (Edit connection → Claude section → `lowPriorityMode` / `autoLimitReset` in
+`providerSpecificData`, both default off) and mirror Claude Code's `/low-priority` and
+`/limit-reset` commands (wire contract captured from Claude Code 2.1.263).
+
+**Implementation:**
+
+- State machine + response classification: `open-sse/services/claudeLowPriority.ts`
+- Reset status/claim client: `open-sse/services/claudeLimitReset.ts`
+- Executor hook (header injection + same-account retry): `open-sse/executors/base.ts::execute()`
+- Opt-in persistence: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+
+**Trigger:** the 5-hour usage wall — a `429` whose headers carry
+`anthropic-ratelimit-unified-status: rejected` and, when the account is eligible,
+`anthropic-ratelimit-unified-slow-offer: treatment`. Nothing is sent before that first wall
+429; a burst 429 without unified headers goes through the normal cooldown path.
+
+**Lower-priority lane** (`lowPriorityMode`):
+
+- On the wall 429 the executor accepts the offer and immediately retries the **same**
+  account with `anthropic-usage-limit: slow`; the lane stays active until the announced
+  `anthropic-ratelimit-unified-reset` (+60s grace) and every request in that window carries
+  the header. The intercepted 429 never reaches `handleChatCore`, so the connection is
+  **not** put in cooldown and is not rotated away.
+- `anthropic-ratelimit-unified-slow-status` on later responses: `active` / `not_needed`
+  keep the lane; `slot_busy` (429) or a `529` wait the server's
+  `anthropic-ratelimit-unified-slow-retry-after` (default 20s, clamp 5–600s, ±30% jitter)
+  and retry, bounded by `anthropic-ratelimit-unified-slow-max-wait` (default 20 min, clamp
+  1 min–6 h) — past that the lane ends and a 10-minute cool-off blocks re-acceptance. The
+  wait is additionally capped by what is left of the request's own upstream-start timeout
+  (`resolveFetchStartTimeout`, 10 min by default) minus a 5 s margin: without that cap the
+  20-minute default max-wait would outlive the request and the sleep would be aborted
+  mid-wait, surfacing a `TimeoutError` instead of the graceful `max_wait` end + cool-off.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, a 5h-window rollover, or
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (which ends it as
+  `extra_usage` on any status, since paid overage now covers the wall) end the lane; the
+  response then flows to the normal cooldown path. `budget_exhausted` is remembered until
+  the announced budget reset (≤ 8 days).
+- The wall check runs after the executor's own 400-driven intra-attempt retries (context
+  editing, thinking/effort clamps, param auto-learn), so a wall 429 that only surfaces on
+  one of those retries is still intercepted instead of reaching the cooldown path.
+- State is in-memory per connection (a restart costs one extra wall 429 to re-accept).
+
+**Session-limit reset** (`autoLimitReset`, tried before the lane when both are on):
+
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → `juniper_tide`
+  block; when `arm: "reset"` and `available: true`,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` with
+  `{ "program": "juniper_tide" }` (organization UUID from
+  `providerSpecificData.organizationUUID`, bootstrap fallback).
+- `result: reset|not_limited` → the request is retried at full speed (no slow header).
+  `already_used` / `not_offered` memoise `next_available_at` (default one week); any
+  failure backs off 15 minutes. The reset is once a week and still counts toward the
+  weekly limit.
+
+Regression guards: `tests/unit/claude-low-priority-mode.test.ts`,
+`tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
+
 ### Session affinity (#7274)
 
 **Scope:** one client session (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` header) pinned to one connection, for **any** provider.

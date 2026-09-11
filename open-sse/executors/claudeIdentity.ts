@@ -466,3 +466,21 @@ export function stripProxyToolPrefix(body: Record<string, unknown>): void {
     }
   }
 }
+
+/**
+ * Drop any previously injected billing header / Claude Code sentinel block from a
+ * `system` array, so re-prepending them on a retry stays idempotent instead of stacking
+ * (issue #1712 — stacking breaks prompt-cache prefix matching). Mutates `sysBlocks`.
+ */
+export function stripClaudeSystemPrefixBlocks(
+  sysBlocks: Array<Record<string, unknown>>,
+  sentinel: string
+): void {
+  for (let i = sysBlocks.length - 1; i >= 0; i--) {
+    const text = sysBlocks[i]?.text;
+    if (typeof text !== "string") continue;
+    if (text.startsWith("x-anthropic-billing-header:") || text.startsWith(sentinel)) {
+      sysBlocks.splice(i, 1);
+    }
+  }
+}

@@ -182,3 +182,37 @@ export const CLAUDE_CLI_USER_AGENT = getClaudeCodeUserAgent("cli");
 export { getClaudeCodeUserAgent };
 export const CLAUDE_CLI_STAINLESS_PACKAGE_VERSION = CLAUDE_CODE_SDK_PACKAGE_VERSION;
 export const CLAUDE_CLI_STAINLESS_RUNTIME_VERSION = CLAUDE_CODE_RUNTIME_VERSION;
+
+/**
+ * Merge a Claude-Code-shaped header set over the outbound headers, dropping any
+ * case variant of the same name first — undici would otherwise concatenate the two
+ * into a single rejected value (issue #1454).
+ */
+export function mergeCcHeaders(
+  headers: Record<string, string>,
+  ccHeaders: Record<string, string>
+): void {
+  const ccKeysLower = new Set(Object.keys(ccHeaders).map((k) => k.toLowerCase()));
+  for (const key of Object.keys(headers)) {
+    if (ccKeysLower.has(key.toLowerCase())) delete headers[key];
+  }
+  Object.assign(headers, ccHeaders);
+}
+
+/**
+ * Stainless SDK metadata for the Claude wire image. OS/arch follow the host running
+ * the signed binary; the runtime version is pinned to the captured CLI, not OmniRoute's
+ * Node. Mutates `headers`.
+ */
+export function applyStainlessHeaders(
+  headers: Record<string, string>,
+  parts: { arch: string; os: string }
+): void {
+  headers["X-Stainless-Arch"] = parts.arch;
+  headers["X-Stainless-Lang"] = "js";
+  headers["X-Stainless-OS"] = parts.os;
+  headers["X-Stainless-Runtime"] = "node";
+  headers["X-Stainless-Runtime-Version"] = CLAUDE_CLI_STAINLESS_RUNTIME_VERSION;
+  headers["X-Stainless-Retry-Count"] = "0";
+  delete headers["X-Stainless-Os"];
+}
