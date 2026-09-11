@@ -33,6 +33,7 @@ const SUPPORTED = listManifestTargets("configure");
 export const SETUP_MODULES = {
   claude: { module: "./setup-claude.mjs", exportName: "runSetupClaudeCommand" },
   opencode: { module: "./setup-opencode.mjs", exportName: "runSetupOpencodeCommand" },
+  omp: { module: "./setup-omp.mjs", exportName: "runSetupOmpCommand" },
   qwen: { module: "./setup-qwen.mjs", exportName: "runSetupQwenCommand" },
   aider: { module: "./setup-aider.mjs", exportName: "runSetupAiderCommand" },
   goose: { module: "./setup-goose.mjs", exportName: "runSetupGooseCommand" },
@@ -67,11 +68,18 @@ export function resolveConfigureTargetOptions(opts = {}) {
     const contextBase = String(context?.baseUrl || "").replace(/\/+$/, "");
     if (contextBase && contextBase !== localDefault) {
       resolved.remote = contextBase;
+      resolved.baseUrl = contextBase;
     } else if (opts.port) {
       resolved.remote = localDefault;
+      resolved.baseUrl = localDefault;
     }
-  } else if (!resolved.remote && resolved.baseUrl) {
-    resolved.remote = resolved.baseUrl;
+  } else {
+    // apiFetch resolves only `baseUrl` (then env/context), never `remote`.
+    // Keep both fields on the same stripped URL so the picker catalog and
+    // the delegated setup recipe talk to the same host.
+    const cleaned = String(explicitRemote).replace(/\/+$/, "");
+    resolved.remote = cleaned;
+    resolved.baseUrl = cleaned;
   }
 
   const contextKey = context?.accessToken || context?.apiKey;
@@ -262,6 +270,35 @@ export async function runConfigureCommand(cli, opts = {}, cmd) {
   }
   const ctxWindow = contextWindowOf(entry);
 
+  // Oh My Pi: after the default model is chosen, offer the per-role picker.
+  // Enter = same as default (writes a `@default` alias), `skip` = leave the
+  // role unset, otherwise `<model id>[:thinkingLevel]`. Non-interactive runs
+  // (`--yes`) keep the generic single-model delegation.
+  const ompRoleFlags = [];
+  if (target === "omp" && !opts.yes) {
+    const { OMP_VALID_ROLES } = await import("./setup-omp.mjs");
+    const rolePrompt = createPrompt();
+    try {
+      printInfo(
+        "Assign OMP roles: Enter = same as default, 'skip' = leave unset, or <model id>[:thinkingLevel]."
+      );
+      for (const role of OMP_VALID_ROLES.filter((r) => r !== "default")) {
+        for (;;) {
+          const answer = String((await rolePrompt.ask(`Role '${role}'`)) || "").trim();
+          const parsed = parseOmpRoleAnswer(answer, models);
+          if (parsed.kind === "invalid") {
+            printError(`'${answer}' is not a catalog model id, @alias, or <id>:<thinkingLevel>.`);
+            continue;
+          }
+          if (parsed.kind !== "skip") ompRoleFlags.push(`${role}=${parsed.flag}`);
+          break;
+        }
+      }
+    } finally {
+      rolePrompt.close();
+    }
+  }
+
   let result;
   if (target === "codex") {
     result = await configureCodex(chosenId, ctxWindow, opts);
@@ -280,15 +317,13 @@ export async function runConfigureCommand(cli, opts = {}, cmd) {
         return 1;
       }
 
-      const setupOpts = {
-        ...requestOpts,
-        ...opts,
-        model: chosenId,
-        // The picker already selected a model. Setup recipes that can generate
-        // a model subset receive an exact filter; the others use `model`.
-        ...(target === "claude" || target === "continue" ? { only: chosenId } : {}),
-        yes: true,
-      };
+      const setupOpts = buildConfigureSetupOpts({
+        requestOpts,
+        opts,
+        chosenId,
+        ompRoleFlags,
+        target,
+      });
       result = await runSetup(setupOpts);
     } catch (error) {
       printError(error instanceof Error ? error.message : String(error));
@@ -304,6 +339,69 @@ export async function runConfigureCommand(cli, opts = {}, cmd) {
     });
   }
   return result;
+}
+
+/** Thinking levels documented by OMP 18.x (`omp --help`: --thinking). */
+const OMP_THINKING_LEVELS = Object.freeze([
+  "off",
+  "minimal",
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+  "auto",
+]);
+
+/**
+ * Classify one per-role picker answer against the live catalog.
+ *
+ * - ""             -> { kind: "alias", flag: "@default" } (same as default)
+ * - "skip" | "s"   -> { kind: "skip" }
+ * - "@role"        -> { kind: "alias", flag } — OMP alias, never catalog-checked
+ * - "<id>"         -> { kind: "assign", flag } when the id is in the catalog
+ * - "<id>:<level>" -> { kind: "assign", flag } when <level> is a documented
+ *                     thinking level
+ * - anything else  -> { kind: "invalid" }
+ *
+ * An `omniroute/` prefix is tolerated: the writer re-adds it, so the catalog
+ * lookup uses the bare id.
+ */
+export function parseOmpRoleAnswer(answer, catalog = []) {
+  const value = String(answer ?? "").trim();
+  if (!value) return { kind: "alias", flag: "@default" };
+  if (/^(skip|s)$/i.test(value)) return { kind: "skip" };
+  if (value.startsWith("@")) return { kind: "alias", flag: value };
+
+  // Catalog first: an id may legitimately contain a colon
+  // (`auto/coding:max`), so an exact match always wins over suffix parsing.
+  const bare = (id) => (id.startsWith("omniroute/") ? id.slice("omniroute/".length) : id);
+  if (byId(catalog, bare(value))) return { kind: "assign", flag: value };
+
+  // Fallback: `<id>:<documented thinking level>`, split from the RIGHT.
+  const cut = value.lastIndexOf(":");
+  if (cut <= 0) return { kind: "invalid" };
+  const suffix = value.slice(cut + 1);
+  if (!OMP_THINKING_LEVELS.includes(suffix)) return { kind: "invalid" };
+  const id = value.slice(0, cut);
+  if (!id || !byId(catalog, bare(id))) return { kind: "invalid" };
+  return { kind: "assign", flag: value };
+}
+
+/**
+ * Options forwarded from the picker into a setup-* recipe. Pure + testable:
+ * omp keeps the user's --yes (legacy-file delete), other recipes force yes.
+ * Role flags are passed through as `role: string[]` when nonempty.
+ */
+export function buildConfigureSetupOpts({ requestOpts, opts, chosenId, ompRoleFlags, target }) {
+  return {
+    ...requestOpts,
+    ...opts,
+    model: chosenId,
+    ...(ompRoleFlags?.length ? { role: ompRoleFlags } : {}),
+    ...(target === "claude" || target === "continue" ? { only: chosenId } : {}),
+    yes: target === "omp" ? Boolean(opts.yes) : true,
+  };
 }
 
 function byId(models, id) {

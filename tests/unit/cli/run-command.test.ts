@@ -188,3 +188,34 @@ test("--api-key-env resolves credentials without exposing their value in the pla
     else process.env.OMNIROUTE_RUN_TEST_TOKEN = previous;
   }
 });
+
+test("buildRunPlan for Oh My Pi resolves aliases, injects model flag once, and leaks no token", async () => {
+  for (const alias of ["omp", "oh-my-pi", "ohmypi"]) {
+    assert.equal(resolveRunTarget(alias), "omp");
+  }
+  const plan = await buildRunPlan(
+    "oh-my-pi",
+    { baseUrl: "https://relay.example.test", apiKey: "sk_test_x", model: "glm/glm-5.2" },
+    ["-p", "reply OK"]
+  );
+  assert.equal(plan.target, "omp");
+  assert.equal(plan.command, "omp");
+  const args = logicalArgs(plan.args);
+  assert.deepEqual(args.slice(0, 2), ["--model", "omniroute/glm/glm-5.2"]);
+  assert.equal(args.filter((arg) => arg === "--model").length, 1);
+  assert.equal(args.filter((arg) => String(arg).startsWith("omniroute/omniroute/")).length, 0);
+  assert.equal(plan.envDiff.changedOrAdded.includes("OMNIROUTE_API_KEY"), true);
+  assert.equal(plan.configOverlay, "temporary OMP home (removed after exit)");
+  assert.equal(JSON.stringify(plan).includes("sk_test_x"), false);
+});
+
+test("buildRunPlan for Oh My Pi never double-prefixes an already-prefixed model", async () => {
+  const plan = await buildRunPlan(
+    "omp",
+    { baseUrl: "https://relay.example.test", apiKey: "sk_test_x", model: "omniroute/glm/glm-5.2" },
+    ["-p", "reply OK"]
+  );
+  const args = logicalArgs(plan.args);
+  assert.deepEqual(args.slice(0, 2), ["--model", "omniroute/glm/glm-5.2"]);
+  assert.equal(args.filter((arg) => arg === "--model").length, 1);
+});

@@ -54,6 +54,13 @@ export const CLI_TARGET_MANIFEST = Object.freeze({
     configure: true,
     runModel: Object.freeze({ flag: "--model", prefix: "omniroute/" }),
   }),
+  omp: Object.freeze({
+    description: "Oh My Pi",
+    aliases: Object.freeze(["oh-my-pi", "ohmypi"]),
+    run: true,
+    configure: true,
+    runModel: Object.freeze({ flag: "--model", prefix: "omniroute/" }),
+  }),
   qwen: Object.freeze({
     description: "Qwen Code",
     aliases: Object.freeze(["qwen-code"]),

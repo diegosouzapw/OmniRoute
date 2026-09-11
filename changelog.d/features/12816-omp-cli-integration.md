@@ -1,0 +1,1 @@
+- **feat(cli):** Add Oh My Pi (`omp`) CLI integration: `setup-omp`, `run omp`, `configure omp` with per-role model picker, dashboard card, smoke target
