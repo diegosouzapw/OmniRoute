@@ -1,0 +1,1 @@
+- **fix(providers):** remove Together AI's retired $25 signup credit from the free-tier catalog and recompute the first-month budget from current official billing terms ([#12642](https://github.com/diegosouzapw/OmniRoute/pull/12642)) — thanks @taljeon

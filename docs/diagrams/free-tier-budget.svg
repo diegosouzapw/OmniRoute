@@ -1,4 +1,4 @@
-<svg viewBox="0 0 1200 842" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OmniRoute free-tier budget: about 1.47 billion free tokens per month steady, up to about 2.10 billion in the first month with signup credits. The catalog contains 444 rows, 437 active and 7 discontinued, grouped into 34 recurring pool keys; 16 pools have a published positive monthly token budget and 18 have a zero, uncapped, or keyless budget. Honest pool-deduped math counts each shared free pool once; 13 providers carry a terms-of-service avoid flag. The 16 quantified pools plus five per-model Groq caps are Mistral 1 billion, Nara 210 million, LLM7 150 million, Groq 30 million across five per-model caps, Cloudflare AI 30 million, API Airforce 24 million, Bluesminds 7.2 million, SambaNova 6 million, Arcee 4.8 million, Navy 4.5 million, BazaarLink 3.6 million, OpenRouter 1.2 million, Cohere 800 thousand, HuggingChat 500 thousand, Morph 400 thousand, Hugging Face 200 thousand, and Kiro 25 thousand. One-time signup credits add about 626 million. Uncapped providers and the OpenRouter top-up boost are shown separately so they do not inflate the headline. A further 6 million behind regional identity verification (ModelScope) is also shown apart. Live usage remains available at /dashboard/free-tiers.">
+<svg viewBox="0 0 1200 842" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OmniRoute free-tier budget: about 1.47 billion free tokens per month steady, up to about 2.07 billion in the first month with signup credits. The catalog contains 443 rows, 436 active and 7 discontinued, grouped into 34 recurring pool keys; 16 pools have a published positive monthly token budget and 18 have a zero, uncapped, or keyless budget. Honest pool-deduped math counts each shared free pool once; 13 providers carry a terms-of-service avoid flag. The 16 quantified pools plus five per-model Groq caps are Mistral 1 billion, Nara 210 million, LLM7 150 million, Groq 30 million across five per-model caps, Cloudflare AI 30 million, API Airforce 24 million, Bluesminds 7.2 million, SambaNova 6 million, Arcee 4.8 million, Navy 4.5 million, BazaarLink 3.6 million, OpenRouter 1.2 million, Cohere 800 thousand, HuggingChat 500 thousand, Morph 400 thousand, Hugging Face 200 thousand, and Kiro 25 thousand. One-time signup credits add about 601 million. Uncapped providers and the OpenRouter top-up boost are shown separately so they do not inflate the headline. A further 6 million behind regional identity verification (ModelScope) is also shown apart. Live usage remains available at /dashboard/free-tiers.">
   <desc>Pool-deduplicated chart of the 16 recurring free-token pools with positive published budgets (plus Groq's five per-model caps as one segment), plus signup credits and uncapped providers shown separately.</desc>
   <defs>
     <pattern id="gridPaperF" width="32" height="32" patternUnits="userSpaceOnUse">
@@ -63,8 +63,8 @@
   </g>
   <text x="60" y="228" font-family="Consolas, 'Courier New', monospace" font-size="104" font-weight="800" fill="url(#gradBrandF)">~1.47B</text>
   <text x="62" y="266" font-family="Consolas, 'Courier New', monospace" font-size="15" letter-spacing="3" font-weight="700" fill="#a1a1aa">FREE TOKENS / MONTH &#183; <tspan fill="#22c55e">STEADY</tspan></text>
-  <text x="62" y="298" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="16" fill="#F7F6FC">up to <tspan font-weight="800" fill="#22c55e">~2.10B</tspan> in your first month &#8212; signup credits</text>
-  <text x="62" y="326" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#71717a">documented free tiers &#183; <tspan fill="#8b5cf6">34 recurring pools</tspan> &#183; <tspan fill="#8b5cf6">444 catalog entries</tspan> &#183; one endpoint</text>
+  <text x="62" y="298" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="16" fill="#F7F6FC">up to <tspan font-weight="800" fill="#22c55e">~2.07B</tspan> in your first month &#8212; signup credits</text>
+  <text x="62" y="326" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#71717a">documented free tiers &#183; <tspan fill="#8b5cf6">34 recurring pools</tspan> &#183; <tspan fill="#8b5cf6">443 catalog entries</tspan> &#183; one endpoint</text>
 
   <!-- ═══ Panel · The honest math ═══ -->
   <rect x="680" y="84" width="460" height="216" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
@@ -132,7 +132,7 @@
   </g>
 
   <!-- ═══ First-month signup credits ═══ -->
-  <text x="60" y="622" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2.5" font-weight="700" fill="#22c55e">+ FIRST MONTH &#183; ONE-TIME SIGNUP CREDITS <tspan fill="#7ee787">~626M</tspan></text>
+  <text x="60" y="622" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2.5" font-weight="700" fill="#22c55e">+ FIRST MONTH &#183; ONE-TIME SIGNUP CREDITS <tspan fill="#7ee787">~601M</tspan></text>
   <g font-family="Consolas, 'Courier New', monospace">
     <rect x="60" y="632" width="90" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
     <text x="105" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">vertex 300M</text>
@@ -140,22 +140,20 @@
     <text x="222" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">agentrouter 200M</text>
     <rect x="293" y="632" width="103" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
     <text x="344" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">predibase 25M</text>
-    <rect x="406" y="632" width="96" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
-    <text x="454" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">together 25M</text>
-    <rect x="512" y="632" width="83" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
-    <text x="554" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">glm-cn 20M</text>
-    <rect x="605" y="632" width="83" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
-    <text x="646" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">doubao 15M</text>
-    <rect x="698" y="632" width="70" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
-    <text x="733" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">ai21 10M</text>
-    <rect x="778" y="632" width="90" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
-    <text x="823" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">deepseek 5M</text>
-    <rect x="878" y="632" width="103" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
-    <text x="930" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">hyperbolic 5M</text>
-    <rect x="991" y="632" width="90" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
-    <text x="1036" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">longcat 10M</text>
-    <rect x="1091" y="632" width="34" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
-    <text x="1108" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">&#8230;</text>
+    <rect x="406" y="632" width="83" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="448" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">glm-cn 20M</text>
+    <rect x="499" y="632" width="83" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="540" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">doubao 15M</text>
+    <rect x="592" y="632" width="70" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="627" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">ai21 10M</text>
+    <rect x="672" y="632" width="90" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="717" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">deepseek 5M</text>
+    <rect x="772" y="632" width="103" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="824" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">hyperbolic 5M</text>
+    <rect x="885" y="632" width="90" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="930" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">longcat 10M</text>
+    <rect x="985" y="632" width="34" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="1002" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">&#8230;</text>
   </g>
 
   <!-- ═══ Plus the un-countable ═══ -->

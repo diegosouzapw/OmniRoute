@@ -1,7 +1,7 @@
 ---
 title: "Free Tiers & Free-Token Budget"
 version: 3.8.50
-lastUpdated: 2026-09-03
+lastUpdated: 2026-09-04
 ---
 
 # Free Tiers & Free-Token Budget
@@ -16,13 +16,13 @@ lastUpdated: 2026-09-03
 | Metric                                      | Tokens / month    | Meaning                                                                                                                                                                                                                                                                          |
 | ------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Documented recurring grant (steady)**     | **~1.47B**        | Free-tier **pools** (per-model catalog), each shared pool counted **once**. The live source behind `/api/free-tier/summary` and the dashboard's Free-Tier Budget page. **Use this number.**                                                                                      |
-| **+ first month with signup credits**       | **~2.10B**        | Steady + one-time signup credits (Together $25, Z.AI 20M, DeepSeek 5M, …), deduped per account. **First month only** — does not recur.                                                                                                                                           |
+| **+ first month with signup credits**       | **~2.07B**        | Steady + one-time signup credits (Z.AI 20M, DeepSeek 5M, …), deduped per account. **First month only** — does not recur.                                                                                                                                                         |
 | **+ permanently free, no published cap**    | _un-quantifiable_ | `siliconflow`, `glm-cn` (GLM-4-Flash), `tencent`, `baidu`, `kilo-gateway`, `opencode-zen`, `gemini`, `ollama-cloud` — real recurring access, rate/concurrency-limited, **no token cap to count**. Listed, never summed (counting them at `RPM×24/7` is the inflation we reject). |
 | **+ deposit-unlock boost**                  | **+~24M**         | A one-time **$10** OpenRouter top-up raises its free pool from 50 → 1000 req/day. Reported separately so it never inflates the steady number.                                                                                                                                    |
 | **+ behind a regional identity check**      | **+~6M**          | `modelscope` (Alibaba Cloud binding + mainland-China real-name verification). Real recurring quota, exposed as `gatedRecurringTokens` / `gatedProviders` and on the dashboard. Never summed into the headline: +~6M behind regional identity verification.                       |
 | Theoretical ceiling (all rate limits, 24/7) | ~10B              | Sum of every provider rate limit extrapolated to non-stop use. **Not a guarantee** — do not headline this.                                                                                                                                                                       |
 
-**Honest headline:** _OmniRoute aggregates **~1.47B documented free tokens per month** (up to ~2.10B in your first month with signup credits) across 34 free-tier pools — plus a long tail of permanently-free, no-cap providers — and RTK + Caveman compression (15–95% token savings) stretches that further._
+**Honest headline:** _OmniRoute aggregates **~1.47B documented free tokens per month** (up to ~2.07B in your first month with signup credits) across 34 free-tier pools — plus a long tail of permanently-free, no-cap providers — and RTK + Caveman compression (15–95% token savings) stretches that further._
 
 > **Why this dropped from the previous ~1.94B.** The 2026-06-17 refresh is an honesty correction, not a loss: `gemini` is now pool-deduped (was inflated by counting each Flash variant separately, 462M → 60M), `cloudflare-ai` corrected to its real 10k-Neurons/day (122M → 30M), `doubao` reclassified as a one-time signup credit (not recurring), and shut-down tiers removed (`chutes`/`phind`/`kluster` discontinued). Partly offset by `llm7` (correct 5M/day → 150M) and new free providers (Kilo, OpenCode Zen, Z.AI GLM-Flash).
 >
@@ -33,6 +33,8 @@ lastUpdated: 2026-09-03
 > **Re-audited on 2026-09-02 against the providers' own pages** (sources: the `// evidence:` comments next to each re-audited entry in `open-sse/config/freeModelCatalog.data.ts`): `gemini` and `ollama-cloud` no longer publish a token figure (Google removed the per-model free table on 2025-12-23; Ollama's Free plan is "starter usage credits") and are now listed as **uncapped**, never summed (−80M); `groq` is five **per-model** 200K-TPD caps (6M each, +15M) with three retired IDs dropped; `nara` is one 7M/day bucket (+60M, 210M). `mistral`'s 1B is visible only in the account console — see _Evidence classes_ under Methodology. The source reported 35 such keys at that point (−3: `gemini` and `ollama-cloud` moved to the uncapped list, and Groq's per-model caps are not a shared pool).
 >
 > **Corrected to ~1.47B on 2026-09-03 (#11773):** `cerebras` was reclassified from a 30M/mo recurring grant (old no-card 1M tokens/day trial) to a one-time $5 signup credit that requires a payment method. Same honesty rule as LongCat. The source now reports 34 recurring pool keys and ~1.47B steady.
+>
+> **Updated on 2026-09-04 after retiring Together's signup credit:** Together's [official billing documentation](https://docs.together.ai/docs/billing-credits) states that it does not offer a free trial and requires a minimum $5 credit purchase. The former $25 signup-credit row was removed, reducing the first-month estimate by 25M tokens without changing the steady or eligibility-gated totals.
 
 Biggest **documented** contributors: `mistral` 1.00B, `nara` 210M, `llm7` 150M, `groq` 30M (five per-model caps), `cloudflare-ai` 30M, `api-airforce` 24M. (`longcat` is excluded — its 10M LongCat-2.0 grant is a one-time, KYC-gated signup credit, not a recurring monthly budget.)
 
@@ -46,7 +48,7 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 
 - **Removed / no free tier (2026):** `chutes` (free tier ended 2026-03), `phind` (company shut down 2026-01), `kluster` (sunset 2026-06-09 → MITO), `gitlawb` + `gitlawb-gmi` (MiMo free revoked 2026-05-24, Nemotron promo ended 2026-06 — re-verified 2026-06-18), `aimlapi` (free tier paused — re-verified 2026-06-18), `yi` (Yi-Light retired, pay-as-you-go — re-verified 2026-06-18), `featherless-ai` (no current free tier). `iflytek` / `sparkdesk` stay listed but carry a ToS-caution note (Spark Lite is free; the ToS restricts proxy/relay use).
 - **Gemini** — `2.0 Flash` / `2.0 Flash-Lite` shut down 2026-06-01 and `2.5 Pro` left the free tier (2026-04); free tier is now **Flash-family only** (2.5/3/3.1/3.5 Flash + Gemma). The catalog now **pools** the Flash family (was inflated by counting each variant separately: 462M → 60M).
-- **Corrected numbers:** `cloudflare-ai` 122M → **30M** (real 10k-Neurons/day), `doubao` reclassified as a one-time signup credit (not recurring), `llm7` 4M → **150M** (documented 5M tokens/day), `together` "-Free" endpoints discontinued → only the **$25** signup credit remains, `longcat` Preview ended + Flash models retired → **LongCat-2.0** only, reclassified as a one-time **10M**-token signup credit (KYC-gated, not recurring).
+- **Corrected numbers:** `cloudflare-ai` 122M → **30M** (real 10k-Neurons/day), `doubao` reclassified as a one-time signup credit (not recurring), `llm7` 4M → **150M** (documented 5M tokens/day), `together` "-Free" endpoints and the former signup promotion retired → fully prepaid with a minimum $5 purchase, `longcat` Preview ended + Flash models retired → **LongCat-2.0** only, reclassified as a one-time **10M**-token signup credit (KYC-gated, not recurring).
 - **New free providers discovered:** ⭐ **Kilo Code** (`kilo-gateway` — rotating "Auto Free" set: NVIDIA Nemotron 3 family, StepFun, Poolside, Nex-N2-Pro), ⭐ **OpenCode Zen** (`opencode-zen` — 6 rotating free coding models), ⭐ **Z.AI / Zhipu** (`glm-cn` — GLM-4-Flash / 4.5-Flash / 4.7-Flash permanently free + 20M signup bonus), and `arcee-ai` Trinity Large Preview.
 - **New honest tiers** (see Methodology): a _permanently-free-but-uncapped_ category (real recurring access, no token cap to count) and a _deposit-unlock boost_ (OpenRouter $10 → +24M/mo), both surfaced **separately** so they never inflate the headline.
 
@@ -237,7 +239,6 @@ Most "free tokens per month" figures in this space are sums of per-model labels.
 | `vertex`         | signup credit | —                | ~300M              | caution   | 10     |
 | `agentrouter`    | signup credit | —                | ~200M              | caution   | 4      |
 | `predibase`      | signup credit | —                | ~25M               | caution   | 1      |
-| `together`       | signup credit | —                | ~25M               | caution   | 1      |
 | `doubao`         | signup credit | —                | ~15M               | ambiguous | 1      |
 | `ai21`           | signup credit | —                | ~10M               | avoid     | 2      |
 | `deepseek`       | signup credit | —                | ~5M                | ok        | 2      |
@@ -347,7 +348,7 @@ Most "free tokens per month" figures in this space are sums of per-model labels.
 - **`t3-web`** — The shipped freeNote is broadly accurate (limited model access, Pro unlocks 50+ models for $8/month), but misses two key updates: (1) the free tier now resets daily instead of monthly (changed around…
 - **`tavily-search`** — Catalog ships freeNote "(none)" implying no free tier, but Tavily does in fact offer a documented recurring free tier of 1,000 credits/month with no credit card required. This is a significant discre…
 - **`tencent`** — Largely matches — the shipped freeNote ("Free Hunyuan Lite models") is accurate. Hunyuan-lite has been permanently free since May 2024 and remains so as of 2026. The catalog note undersells the detai…
-- **`together`** — The shipped note says "$25 signup credits + 3 permanently free models" but reality shows far more permanently free models (~80, not 3). The $25 trial credit figure is contested — official billing doc…
+- **`together`** — Together's official billing documentation now states that no free trial is offered and platform access requires a minimum $5 prepaid credit purchase. The retired $25 signup-credit row is therefore excluded from the free-budget catalog and first-month headline.
 - **`uncloseai`** — Largely matches — still free forever with no signup. However, the ToS (terms-of-use.html) clarifies IP-based throttling exists for excessive use and prohibits building competing ML services without a…
 - **`veoaifree-web`** — The shipped freeNote states "6 requests/hour" but no such explicit limit is currently documented anywhere on veoaifree.com. The site claims unlimited free generation with no login. The models listed …
 - **`voyage-ai`** — The shipped freeNote "200M free tokens for embeddings and reranking" is directionally correct on the token count but misleading — it omits that this is a one-time per-account allocation, not a recurr…
