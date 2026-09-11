@@ -7,8 +7,8 @@ import { normalizeCookie, sanitizeErrorMessage } from "../../utils/error.ts";
 export const ZAI_BASE_URL = "https://chat.z.ai";
 export const ZAI_NEW_CHAT_URL = `${ZAI_BASE_URL}/api/v1/chats/new`;
 export const ZAI_CHAT_URL = `${ZAI_BASE_URL}/api/v2/chat/completions`;
-export const ZAI_DEFAULT_MODEL = "GLM-5.1";
-export const ZAI_DEFAULT_FE_VERSION = "prod-fe-1.1.79";
+export const ZAI_DEFAULT_MODEL = "glm-5.3";
+export const ZAI_DEFAULT_FE_VERSION = "prod-fe-1.1.92";
 export const ZAI_USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36";
 export const ZAI_FE_VERSION_CACHE_TTL_MS = 15 * 60 * 1000;
@@ -21,7 +21,7 @@ export interface NewChatRequest {
   userMessageId: string;
 }
 
-export type ZaiReasoningEffort = "high" | "max";
+export type ZaiReasoningEffort = "low" | "high" | "max";
 
 export interface ZaiThinkingConfig {
   enabled: boolean;
@@ -61,12 +61,23 @@ const NO_ZAI_MODEL_CAPABILITIES: ZaiModelCapabilities = Object.freeze({
 });
 
 /**
- * Verified against chat.z.ai/api/models (prod-fe-1.1.79).
+ * Verified against chat.z.ai/api/models (prod-fe-1.1.92).
  * `returnFc` is the site's internal function-call result capability; it is
  * distinct from accepting caller-supplied OpenAI `tools`.
  */
 const ZAI_MODEL_CAPABILITIES: Record<string, ZaiModelCapabilities> = {
-  "glm-5.2": {
+  "glm-5.3-flash": {
+    mcp: false,
+    reasoningEffort: true,
+    returnFc: true,
+    thinking: true,
+    vision: true,
+    vlmTools: false,
+    vlmWebSearch: false,
+    vlmWebsiteMode: false,
+    webSearch: true,
+  },
+  "glm-5.3": {
     mcp: true,
     reasoningEffort: true,
     returnFc: true,
@@ -77,37 +88,15 @@ const ZAI_MODEL_CAPABILITIES: Record<string, ZaiModelCapabilities> = {
     vlmWebsiteMode: false,
     webSearch: true,
   },
-  "glm-5.1": {
+  "glm-5.2": {
     mcp: true,
-    reasoningEffort: false,
+    reasoningEffort: true,
     returnFc: true,
     thinking: true,
     vision: false,
     vlmTools: false,
     vlmWebSearch: false,
     vlmWebsiteMode: false,
-    webSearch: true,
-  },
-  "glm-5-turbo": {
-    mcp: true,
-    reasoningEffort: false,
-    returnFc: true,
-    thinking: true,
-    vision: false,
-    vlmTools: false,
-    vlmWebSearch: false,
-    vlmWebsiteMode: false,
-    webSearch: true,
-  },
-  "glm-5v-turbo": {
-    mcp: false,
-    reasoningEffort: false,
-    returnFc: true,
-    thinking: true,
-    vision: true,
-    vlmTools: true,
-    vlmWebSearch: true,
-    vlmWebsiteMode: true,
     webSearch: true,
   },
 };
@@ -136,6 +125,7 @@ export function describeZaiBrowserFailure(result: {
   status: number;
   body: Buffer;
   observedPostUrls?: string[];
+  observedPostResponses?: Array<{ url: string; status: number }>;
   timing: { captureResponseMs: number; totalMs: number };
 }): string {
   const status = result.status > 0 ? String(result.status) : "no matching response";
@@ -144,10 +134,16 @@ export function describeZaiBrowserFailure(result: {
     result.observedPostUrls && result.observedPostUrls.length > 0
       ? ` Observed POST targets: ${result.observedPostUrls.join(", ")}.`
       : "";
+  const observedResponses =
+    result.observedPostResponses && result.observedPostResponses.length > 0
+      ? ` Observed POST responses: ${result.observedPostResponses
+          .map(({ url, status }) => `${url} [${status}]`)
+          .join(", ")}.`
+      : "";
   const detail =
     browserFailureDetail(result.body) ||
     (result.status === 0
-      ? `The page did not issue the expected authenticated chat completion request.${observed}`
+      ? `The page did not issue the expected authenticated chat completion request.${observed}${observedResponses}`
       : "The browser response body was empty.");
   return `Z.ai browser transport failed (${status}; ${timing}): ${detail}`;
 }
@@ -307,17 +303,27 @@ export function unprefixedModelId(modelId: string): string {
   return modelId.trim().split("/").at(-1) || modelId.trim();
 }
 
-export function browserModelName(modelId: string): string {
+/** Map OmniRoute's public Flash id to the opaque id used by chat.z.ai's wire API. */
+export function zaiUpstreamModelId(modelId: string): string {
   const unprefixed = unprefixedModelId(modelId);
-  if (unprefixed.toLowerCase() === "glm-5.2") return "GLM-5.2";
-  if (unprefixed.toLowerCase() === "glm-5v-turbo") return "GLM-5V-Turbo";
-  return unprefixed;
+  return unprefixed.toLowerCase() === "glm-5.3-flash" ? "x-preview-l" : unprefixed;
+}
+
+function zaiCapabilityModelId(modelId: string): string {
+  const unprefixed = unprefixedModelId(modelId).toLowerCase();
+  return unprefixed === "x-preview-l" ? "glm-5.3-flash" : unprefixed;
+}
+
+export function browserModelName(modelId: string): string {
+  const normalized = zaiCapabilityModelId(modelId);
+  if (normalized === "glm-5.3-flash") return "GLM-5.3-Flash";
+  if (normalized === "glm-5.3") return "GLM-5.3";
+  if (normalized === "glm-5.2") return "GLM-5.2";
+  return unprefixedModelId(modelId);
 }
 
 export function getZaiModelCapabilities(modelId: string): ZaiModelCapabilities {
-  return (
-    ZAI_MODEL_CAPABILITIES[unprefixedModelId(modelId).toLowerCase()] ?? NO_ZAI_MODEL_CAPABILITIES
-  );
+  return ZAI_MODEL_CAPABILITIES[zaiCapabilityModelId(modelId)] ?? NO_ZAI_MODEL_CAPABILITIES;
 }
 
 function getFeatureOption(body: Record<string, unknown>, key: string): unknown {
@@ -325,7 +331,7 @@ function getFeatureOption(body: Record<string, unknown>, key: string): unknown {
   return asRecord(body.features)?.[key];
 }
 
-/** Resolve each model's Deep Think control; only GLM-5.2 accepts High/Max effort. */
+/** Resolve each model's Deep Think control using its currently exposed effort vocabulary. */
 export function resolveZaiThinkingConfig(
   modelId: string,
   body: Record<string, unknown>
@@ -339,19 +345,26 @@ export function resolveZaiThinkingConfig(
       : typeof reasoning?.effort === "string"
         ? reasoning.effort.trim().toLowerCase()
         : "";
-  const disabled = body.enable_thinking === false || rawEffort === "none" || rawEffort === "off";
+  const supportsLowEffort = zaiCapabilityModelId(modelId) !== "glm-5.2";
   const effort: ZaiReasoningEffort =
-    rawEffort === "low" || rawEffort === "medium" || rawEffort === "high" ? "high" : "max";
+    rawEffort === "low" && supportsLowEffort
+      ? "low"
+      : rawEffort === "low" || rawEffort === "medium" || rawEffort === "high"
+        ? "high"
+        : "max";
 
   return {
     supported,
-    enabled: supported && !disabled,
+    // The current GLM-5.3/5.2 consumer models expose effort selection but no
+    // non-thinking mode. Keep Deep Think enabled even when a generic client
+    // sends an off/none compatibility value.
+    enabled: supported,
     effort,
     effortSupported: capabilities.reasoningEffort,
   };
 }
 
-/** Resolve GLM-5V-Turbo's visible Web Search and Tools controls. */
+/** Resolve the selected model's visible Web Search and Tools controls. */
 export function resolveZaiVlmConfig(modelId: string, body: Record<string, unknown>): ZaiVlmConfig {
   const capabilities = getZaiModelCapabilities(modelId);
   const toolsOption = getFeatureOption(body, "vlm_tools_enable");
@@ -425,7 +438,7 @@ export function buildZaiCompletionUrl(input: {
     hostname: "chat.z.ai",
     protocol: "https:",
     referrer: "",
-    title: "Z.ai - Advanced AI Chatbot & Agent powered by GLM-5.2",
+    title: "Z.ai - Advanced AI Chatbot & Agent powered by GLM-5.3",
     timezone_offset: "0",
     local_time: now.toISOString(),
     utc_time: now.toUTCString(),
@@ -448,13 +461,14 @@ export function buildZaiNewChatBody(
 ): NewChatRequest {
   const prompt = latestUserPrompt(messages);
   const userMessageId = randomUUID();
+  const upstreamModelId = zaiUpstreamModelId(modelId);
   return {
     userMessageId,
     payload: {
       chat: {
         id: "",
         title: "New Chat",
-        models: [modelId],
+        models: [upstreamModelId],
         params: {},
         history: {
           messages: {
@@ -465,7 +479,7 @@ export function buildZaiNewChatBody(
               role: "user",
               content: prompt,
               timestamp: Math.floor(Date.now() / 1000),
-              models: [modelId],
+              models: [upstreamModelId],
             },
           },
           currentId: userMessageId,
@@ -530,7 +544,7 @@ export function buildZaiRequestBody(input: {
   }
   return {
     stream: true,
-    model: input.modelId,
+    model: zaiUpstreamModelId(input.modelId),
     messages: foldMessages(input.messages),
     signature_prompt: input.prompt,
     params,

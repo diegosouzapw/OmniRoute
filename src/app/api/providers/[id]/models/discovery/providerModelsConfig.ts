@@ -7,6 +7,7 @@ import {
 } from "@omniroute/open-sse/config/grokBuild.ts";
 import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
+import { buildClaudeModelsHeaders } from "@/lib/providerModels/claudeModelsHeaders";
 import {
   CLINE_MODELS_ENDPOINT,
   CLINEPASS_MODELS_ENDPOINT,
@@ -103,10 +104,12 @@ export function parsePerplexitySonarModels(data: any): any[] {
     (model: any) => typeof model?.id === "string" && /^sonar(-|$)/.test(model.id)
   );
 }
-type ProviderModelsHeaderContext = {
+export type ProviderModelsHeaderContext = {
   authType?: string;
   providerSpecificData?: unknown;
   email?: string | null;
+  accessToken?: string | null;
+  apiKey?: string | null;
 };
 
 export type ProviderModelsConfigEntry = {
@@ -123,6 +126,20 @@ export type ProviderModelsConfigEntry = {
   ) => Record<string, string>;
   parseResponse: (data: any) => any;
 };
+
+export function assembleProviderModelsHeaders(
+  config: ProviderModelsConfigEntry,
+  token: string,
+  context?: ProviderModelsHeaderContext,
+): Record<string, string> {
+  const headers = config.buildHeaders
+    ? config.buildHeaders(token, context)
+    : { ...config.headers };
+  if (!config.buildHeaders && config.authHeader && !config.authQuery) {
+    headers[config.authHeader] = (config.authPrefix || "") + token;
+  }
+  return headers;
+}
 
 const DASHSCOPE_TEXT_MODELS_CONFIG: ProviderModelsConfigEntry = {
   url: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models",
@@ -387,10 +404,14 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     url: "https://api.anthropic.com/v1/models",
     method: "GET",
     headers: {
-      "Anthropic-Version": "2023-06-01",
+      "anthropic-version": "2023-06-01",
       "Content-Type": "application/json",
     },
-    authHeader: "x-api-key",
+    buildHeaders: (_token, context) =>
+      buildClaudeModelsHeaders({
+        accessToken: context?.accessToken,
+        apiKey: context?.apiKey,
+      }),
     parseResponse: (data) => data.data || [],
   },
   gemini: {

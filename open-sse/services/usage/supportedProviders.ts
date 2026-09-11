@@ -41,6 +41,8 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   "crof",
   "nanogpt",
   "deepseek",
+  "moonshot",
+  "kimi",
   "xiaomi-mimo",
   "xiaomi-mimo-token-plan",
   "vertex",

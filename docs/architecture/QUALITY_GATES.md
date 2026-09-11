@@ -90,17 +90,17 @@ Runs on every PR to `main`. Blocks merge on failure.
 
 Runs after `test-coverage`. Blocks merge on failure.
 
-| Script                       | Validates                                                                                                                                         | Blocking                  |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| `quality:collect`            | Emits `quality-metrics.json` (ESLint warning count, coverage from merged shard report)                                                            | Yes (upstream of ratchet) |
-| `quality:ratchet`            | Each metric in `quality-baseline.json` has not regressed (ESLint warnings ≤ baseline; coverage ≥ baseline)                                        | Yes                       |
-| `check:duplication`          | Code duplication (jscpd@4) does not exceed baseline in `quality-baseline.json`                                                                    | Yes                       |
-| `check:complexity`           | File-level cyclomatic complexity does not exceed the cap (core ESLint `complexity` + `max-lines-per-function`)                                    | Yes                       |
-| `check:cognitive-complexity` | Cognitive complexity ratchet (`eslint-plugin-sonarjs`) — separate ESLint pass; CI runs both merged as the single `check:complexity-ratchets` step | Yes                       |
-| `check:dead-code`            | Unused exports / files ratchet (knip) does not regress vs baseline                                                                                | Yes                       |
-| `check:compression-budget`   | Compression benchmark budget — per-engine token-savings floors must not regress                                                                   | Yes                       |
-| `check:type-coverage`        | Percent-typed ratchet (`type-coverage`) does not regress; largely subsumes `typecheck:noimplicit:core`                                            | Yes                       |
-| `check:codeql-ratchet`       | Open CodeQL alert count does not regress (reads via `gh api`; graceful-skip without token)                                                        | Yes                       |
+| Script                       | Validates                                                                                                                                                   | Blocking                  |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| `quality:collect`            | Emits `quality-metrics.json` (ESLint warning count, coverage from merged shard report)                                                                      | Yes (upstream of ratchet) |
+| `quality:ratchet`            | Each metric in `quality-baseline.json` has not regressed (ESLint warnings ≤ baseline; coverage ≥ baseline)                                                  | Yes                       |
+| `check:duplication`          | Code duplication (jscpd@4) does not exceed baseline in `quality-baseline.json`                                                                              | Yes                       |
+| `check:complexity`           | File-level cyclomatic complexity does not exceed the cap (core ESLint `complexity` + `max-lines-per-function`)                                              | Yes                       |
+| `check:cognitive-complexity` | Cognitive complexity ratchet (`eslint-plugin-sonarjs`) — separate ESLint pass; CI runs both merged as the single `check:complexity-ratchets` step           | Yes                       |
+| `check:dead-code`            | Unused exports / files ratchet (knip) does not regress vs baseline                                                                                          | Yes                       |
+| `check:compression-budget`   | Compression benchmark budget — per-engine token-savings floors must not regress                                                                             | Yes                       |
+| `check:type-coverage`        | Percent-typed ratchet (`type-coverage`) does not regress; largely subsumes `typecheck:noimplicit:core`                                                      | Yes                       |
+| `check:codeql-ratchet`       | Open CodeQL alert count does not regress (reads via `gh api`; graceful-skip without token) — refresh cadence and manual trigger: see "CodeQL ratchet" below | Yes                       |
 
 ### Job: `quality-extended`
 
@@ -323,6 +323,36 @@ The `--update` flag writes the current measured values into `quality-baseline.js
 Commit this file alongside the change that improved the metric. A PR that improves a
 metric without updating the baseline will be caught by `--require-tighten` (Fase 6A.5,
 pending implementation).
+
+### CodeQL ratchet: refresh cadence and manual trigger
+
+`check:codeql-ratchet` reads **repo state, refreshed on a schedule — not per PR.**
+`gh api repos/diegosouzapw/OmniRoute/code-scanning/default-setup` reports
+`state: configured`, `schedule: weekly`: GitHub's default-setup scan, not a per-push
+analysis. Consequence: after a PR that FIXES alerts merges, the ratchet keeps reading
+the old, higher count until the next scheduled scan runs — so it reports a regression
+on every open PR, including the fixing PR's own follow-ups, until the scan catches up.
+
+**Manual refresh**: `gh workflow run codeql.yml --ref release/vX.Y.Z` re-runs the
+analysis and republishes alerts within minutes. Read `.github/workflows/codeql.yml`
+first — its header explains it is `workflow_dispatch`-only **because it conflicts with
+GitHub's "default setup"** (`CodeQL analyses from advanced configurations cannot be
+processed when the default setup is enabled`). Restoring `push`/`pull_request`/
+`schedule` triggers requires an **owner action first**: Settings → Code security →
+CodeQL: Default → Advanced. Do not add a `schedule:` trigger without that switch — it
+will only produce failing runs.
+
+**Tighten the baseline after the count drops** — `node scripts/check/check-codeql-ratchet.mjs
+--update` writes the new measured count into `quality-baseline.json` →
+`metrics.codeqlAlerts.value`, so the ratchet does not silently permit a regression back
+up to the old ceiling. Worked example (2026-09-02/03): PR #12502 fixed 7 real alerts
+(13 → 6 measured open); PR #12530 tightened the frozen baseline 11 → 6 to match; the
+remaining 6 were then dismissed with per-alert justification down to 0 open.
+
+**Dismissals are the operator's call (Hard Rule #14)** — never dismiss a CodeQL alert
+without recording the technical justification in the dismissal comment: `won't fix` for
+an upstream-protocol requirement, `used in tests` for a test fixture, `false positive`
+for a sanitizer CodeQL cannot see (precedent: `docs/security/ERROR_SANITIZATION.md`).
 
 ---
 

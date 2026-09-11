@@ -1,4 +1,4 @@
-import { sanitizeErrorMessage } from "../../utils/error.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "../../utils/error.ts";
 
 export interface ZaiDelta {
   content: string;
@@ -113,22 +113,73 @@ function parseSsePayload(data: string): ZaiDelta | null {
   }
 }
 
+type ZaiDeltaSource = {
+  deltas: AsyncGenerator<ZaiDelta, void, void>;
+  cancel: (reason?: unknown) => void;
+};
+
+function createZaiDeltaSource(sourceBody: ReadableStream<Uint8Array>): ZaiDeltaSource {
+  const decoder = new TextDecoder();
+  const reader = sourceBody.getReader();
+  const buffer = { text: "" };
+  let upstreamDone = false;
+  let cancelRequested = false;
+  let readerReleased = false;
+
+  const releaseReader = () => {
+    if (readerReleased) return;
+    readerReleased = true;
+    try {
+      reader.releaseLock();
+    } catch {
+      // A concurrent read cancellation owns the final release.
+    }
+  };
+
+  const cancel = (reason?: unknown) => {
+    if (upstreamDone || cancelRequested) return;
+    cancelRequested = true;
+    try {
+      // Do not await an upstream cancel hook: a stalled provider is allowed to
+      // ignore cancellation, but it must never keep the client cancellation open.
+      void reader.cancel(reason).catch(() => {});
+    } catch {
+      // The reader may already have closed or released concurrently.
+    }
+  };
+
+  async function* iterate(): AsyncGenerator<ZaiDelta, void, void> {
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          upstreamDone = true;
+          return;
+        }
+        const payloads = extractSseDataPayloads(buffer, decoder.decode(value, { stream: true }));
+        for (const raw of payloads) {
+          const delta = parseSsePayload(raw);
+          if (delta) yield delta;
+        }
+      }
+    } finally {
+      if (!upstreamDone && !cancelRequested) cancel("Z.ai delta iteration ended");
+      releaseReader();
+    }
+  }
+
+  return { deltas: iterate(), cancel };
+}
+
 async function drainSseDeltas(
   sourceBody: ReadableStream<Uint8Array>,
   onDelta: (delta: ZaiDelta) => boolean
 ): Promise<boolean> {
-  const decoder = new TextDecoder();
-  const reader = sourceBody.getReader();
-  const buffer = { text: "" };
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) return false;
-    const payloads = extractSseDataPayloads(buffer, decoder.decode(value, { stream: true }));
-    for (const raw of payloads) {
-      const delta = parseSsePayload(raw);
-      if (delta && onDelta(delta)) return true;
-    }
+  const { deltas } = createZaiDeltaSource(sourceBody);
+  for await (const delta of deltas) {
+    if (onDelta(delta)) return true;
   }
+  return false;
 }
 
 function emitDeltaChunks(
@@ -137,17 +188,32 @@ function emitDeltaChunks(
   emitChunk: ZaiChunkEmitter,
   roleState: { emitted: boolean }
 ): boolean {
-  if (!roleState.emitted && (delta.content || delta.reasoning || delta.error)) {
+  if (delta.error) {
+    const errorBody = buildErrorBody(502, `Z.ai stream failed: ${delta.error}`, undefined, {
+      type: "upstream_error",
+      code: "zai_stream_error",
+    });
+
+    if (!roleState.emitted) {
+      // Keep a pre-content failure as an error-only Chat frame. Stream readiness
+      // rejects it before response headers are committed, so fallback receives a 502.
+      controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(errorBody)}\n\n`));
+      controller.close();
+    } else {
+      // Once content is public, error the protocol-neutral producer. The shared
+      // pipeline preserves prior chunks, records the failure, and emits the terminal
+      // error in the client's native Chat, Claude, or Responses wire format.
+      controller.error(Object.assign(new Error(errorBody.error.message), { statusCode: 502 }));
+    }
+    return true;
+  }
+
+  if (!roleState.emitted && (delta.content || delta.reasoning)) {
     roleState.emitted = true;
     emitChunk(controller, { role: "assistant", content: "" });
   }
   if (delta.reasoning) emitChunk(controller, { reasoning_content: delta.reasoning });
   if (delta.content) emitChunk(controller, { content: delta.content });
-  // Surfaced as visible content, matching the other web executors' mid-stream
-  // error convention (see zed-hosted's createErrorChunk): the 200 is already on
-  // the wire, so the status cannot change — but the caller must not be left
-  // reading an empty success. Any content streamed before the failure is kept.
-  if (delta.error) emitChunk(controller, { content: `[Z.ai error] ${delta.error}` });
   if (delta.done) {
     emitChunk(controller, {}, "stop");
     controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
@@ -162,19 +228,32 @@ export function buildZaiStreamingBody(
   emitChunk: ZaiChunkEmitter,
   signal: AbortSignal | null | undefined
 ): ReadableStream {
+  const deltaSource = createZaiDeltaSource(sourceBody);
+  const { deltas } = deltaSource;
+  const roleState = { emitted: false };
+  let terminated = false;
+
   return new ReadableStream({
-    async start(controller) {
-      const roleState = { emitted: false };
+    async pull(controller) {
+      if (terminated) return;
       try {
-        const ended = await drainSseDeltas(sourceBody, (delta) =>
-          emitDeltaChunks(controller, delta, emitChunk, roleState)
-        );
-        if (ended) return;
+        const next = await deltas.next();
+        if (terminated) return;
+        if (next.done === false) {
+          if (emitDeltaChunks(controller, next.value, emitChunk, roleState)) {
+            terminated = true;
+            await deltas.return(undefined);
+          }
+          return;
+        }
+
+        terminated = true;
         if (!roleState.emitted) emitChunk(controller, { role: "assistant", content: "" });
         emitChunk(controller, {}, "stop");
         controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
         controller.close();
       } catch (error) {
+        terminated = true;
         if (!signal?.aborted) {
           try {
             controller.error(error);
@@ -183,6 +262,11 @@ export function buildZaiStreamingBody(
           }
         }
       }
+    },
+    cancel(reason) {
+      terminated = true;
+      deltaSource.cancel(reason);
+      void deltas.return(undefined).catch(() => {});
     },
   });
 }

@@ -74,6 +74,7 @@ test("detectTestKind defaults to a plain chat test for ordinary models", () => {
     isRerank: false,
     isEmbedding: false,
     isAudioTranscription: false,
+    isResponses: false,
   });
 });
 
@@ -95,6 +96,7 @@ test("detectTestKind detects rerank by id and by metadata, and rerank wins over 
     isRerank: true,
     isEmbedding: false,
     isAudioTranscription: false,
+    isResponses: false,
   });
   // apiFormat metadata drives detection even when the id is opaque
   assert.equal(detectTestKind("vendor/opaque-model", { apiFormat: "rerank" }).isRerank, true);
@@ -116,6 +118,7 @@ test("detectTestKind detects audio transcription from metadata, and it wins over
     isRerank: false,
     isEmbedding: false,
     isAudioTranscription: true,
+    isResponses: false,
   });
   assert.equal(
     detectTestKind("vendor/opaque-model", { supportedEndpoints: ["audio-transcriptions"] })
@@ -152,6 +155,7 @@ test("detectTestKind falls back to the provider node's configured apiType", () =
     isRerank: false,
     isEmbedding: false,
     isAudioTranscription: false,
+    isResponses: false,
   });
 
   // Per-model metadata still wins when present.
@@ -314,7 +318,7 @@ test("resolveModelTestTimeoutMs defaults ordinary model checks to 30 seconds", (
 
 test("resolveModelTestTimeoutMs gives zai-web checks up to 60 seconds", () => {
   assert.equal(resolveModelTestTimeoutMs("zai-web", "glm-5.2", 30_000), 60_000);
-  assert.equal(resolveModelTestTimeoutMs("zai-web", "zai-web/GLM-5V-Turbo", 90_000), 90_000);
+  assert.equal(resolveModelTestTimeoutMs("zai-web", "zai-web/glm-5.3-flash", 90_000), 90_000);
 });
 
 // ---------------------------------------------------------------------------

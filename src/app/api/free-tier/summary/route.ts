@@ -46,6 +46,7 @@ function toBudgetEntry(entry: MergedEntry): FreeModelBudget & { enabled?: boolea
     poolKey: entry.poolKey,
     tos: entry.tos,
     trainsOnPrompts: entry.trainsOnPrompts,
+    eligibilityGate: entry.eligibilityGate,
     hardStopGuaranteed: HARD_STOP_BY_KEY.get(`${entry.provider}:${entry.modelId}`),
     enabled: entry.enabled,
   };

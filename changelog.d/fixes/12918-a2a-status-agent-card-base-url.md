@@ -1,0 +1,1 @@
+- **fix(a2a):** `/api/a2a/status` now builds the agent card from the request that asked for it, so a gateway reached at a non-localhost host no longer advertises `http://localhost:20128` as its A2A URL ([#12918](https://github.com/diegosouzapw/OmniRoute/pull/12918)).

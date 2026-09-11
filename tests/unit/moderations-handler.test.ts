@@ -2,9 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { handleModeration } = await import("../../open-sse/handlers/moderations.ts");
-const { MODERATION_PROVIDERS, getModerationProvider, parseModerationModel } = await import(
-  "../../open-sse/config/moderationRegistry.ts"
-);
+const { MODERATION_PROVIDERS, getModerationProvider, parseModerationModel } =
+  await import("../../open-sse/config/moderationRegistry.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -134,6 +133,76 @@ test("handleModeration returns upstream error payloads with CORS headers", async
   assert.equal(response.headers.get("content-type"), "application/json");
   assert.equal(response.headers.get("access-control-allow-origin"), null);
   assert.match(response.headers.get("access-control-allow-methods") || "", /OPTIONS/);
+});
+
+test("handleModeration sanitizes structured upstream error bodies", async () => {
+  globalThis.fetch = async () =>
+    Response.json(
+      {
+        error: {
+          message: "quota metadata at /srv/provider/private.json",
+          api_key: "credential-value-12345",
+        },
+      },
+      { status: 429 }
+    );
+
+  const response = await handleModeration({
+    body: { model: "openai/text-moderation-latest", input: "check this" },
+    credentials: { apiKey: "sk-test" },
+  });
+  const payload = (await response.json()) as {
+    error: { message: string; api_key?: string };
+  };
+
+  assert.equal(response.status, 429);
+  assert.equal(payload.error.api_key, undefined);
+  assert.doesNotMatch(payload.error.message, /srv\/provider/i);
+  assert.doesNotMatch(JSON.stringify(payload), /credential-value-12345/i);
+});
+
+test("handleModeration canonicalizes blank, plaintext, and mislabeled upstream failures", async () => {
+  const scenarios = [
+    { name: "blank", body: "   ", contentType: "application/json" },
+    {
+      name: "plaintext",
+      body: "access_token=moderation-plain-secret at /srv/private/moderation.txt",
+      contentType: "text/plain",
+    },
+    {
+      name: "mislabeled",
+      body: "<html>api_key=moderation-html-secret at /srv/private/error.html</html>",
+      contentType: "application/json",
+    },
+  ];
+
+  for (const scenario of scenarios) {
+    globalThis.fetch = async () =>
+      new Response(scenario.body, {
+        status: 502,
+        headers: { "content-type": scenario.contentType },
+      });
+    const response = await handleModeration({
+      body: { model: "openai/text-moderation-latest", input: "check this" },
+      credentials: { apiKey: "sk-test" },
+    });
+    const text = await response.text();
+    const payload = JSON.parse(text) as { error: { message: string } };
+
+    assert.equal(response.status, 502, scenario.name);
+    assert.match(response.headers.get("content-type") || "", /application\/json/i, scenario.name);
+    assert.match(
+      response.headers.get("access-control-allow-methods") || "",
+      /OPTIONS/,
+      scenario.name
+    );
+    assert.equal(typeof payload.error.message, "string", scenario.name);
+    assert.doesNotMatch(
+      text,
+      /moderation-plain-secret|moderation-html-secret|srv\/private|<html>/i,
+      scenario.name
+    );
+  }
 });
 
 test("handleModeration returns a 500 when the upstream request throws", async () => {

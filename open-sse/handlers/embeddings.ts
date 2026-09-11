@@ -1,16 +1,8 @@
 /**
  * Embedding Handler
  *
- * Handles POST /v1/embeddings requests.
- * Proxies to upstream embedding providers using OpenAI-compatible format.
- *
- * Request format (OpenAI-compatible):
- * {
- *   "model": "nebius/Qwen/Qwen3-Embedding-8B",
- *   "input": "text" | ["text1", "text2"],
- *   "dimensions": 4096,       // optional
- *   "encoding_format": "float" // optional
- * }
+ * Handles POST /v1/embeddings requests and normalizes provider responses to the
+ * OpenAI embedding shape.
  */
 
 import {
@@ -32,6 +24,7 @@ import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
 import {
   hasStructuredEmbeddingInput,
+  normalizeClovaEmbeddingV2Response,
   prepareJinaMixedEmbeddingInput,
   prepareStructuredEmbeddingRequest,
 } from "./embeddingStructuredInput.ts";
@@ -53,17 +46,82 @@ interface ClientRawRequest {
   headers: Record<string, string>;
 }
 
-/**
- * Flatten a single embedding item's vector to the OpenAI-spec `number[]` shape.
- *
- * Some OpenAI-compatible embedding backends — notably a llama.cpp
- * `llama-server --embedding --pooling ...` instance — return each vector wrapped in one
- * extra array level: `[[...floats]]` instead of `[...floats]` for a single input. That
- * extra level is silently spec-breaking, since a standard OpenAI-SDK consumer reading
- * `response.data[i].embedding` gets a length-1 array holding the real vector instead of
- * the vector itself. Unwrap only that single redundant level; vectors that are already
- * flat (or genuinely multi-row) are left untouched. See issue #9089.
- */
+interface EmbeddingCredentials {
+  apiKey?: string | null;
+  accessToken?: string | null;
+  providerSpecificData?: Record<string, unknown> | null;
+}
+
+interface EmbeddingLog {
+  info: (...args: unknown[]) => void;
+  error: (...args: unknown[]) => void;
+}
+
+interface HandleEmbeddingParams {
+  body: Record<string, unknown>;
+  credentials: EmbeddingCredentials | null;
+  log?: EmbeddingLog;
+  resolvedProvider?: EmbeddingProvider | null;
+  resolvedModel?: string | null;
+  clientRawRequest?: ClientRawRequest | null;
+  apiKeyId?: string | null;
+  apiKeyName?: string | null;
+  connectionId?: string | null;
+}
+
+interface EmbeddingFailure {
+  success: false;
+  status: number;
+  error: string;
+  headers?: Headers;
+  data?: never;
+}
+
+interface EmbeddingSuccess {
+  success: true;
+  data: Record<string, unknown>;
+  headers: Headers;
+  status?: never;
+  error?: never;
+}
+
+type EmbeddingResult = EmbeddingSuccess | EmbeddingFailure;
+
+interface ResolvedEmbedding {
+  provider: string | null;
+  model: string | null;
+  providerConfig: EmbeddingProvider | null;
+}
+
+type RequestLogger = Awaited<ReturnType<typeof createRequestLogger>>;
+type ProviderResponseNormalizer =
+  ((data: Record<string, unknown>) => Record<string, unknown>) | null;
+
+interface EmbeddingRuntime extends HandleEmbeddingParams {
+  provider: string;
+  model: string | null;
+  providerConfig: EmbeddingProvider;
+  startTime: number;
+  detailedLoggingEnabled: boolean;
+  reqLogger: RequestLogger;
+  logRequestBody: Record<string, unknown>;
+}
+
+interface PreparedEmbeddingRequest {
+  upstreamBody: Record<string, unknown>;
+  upstreamUrl: string;
+  headers: Record<string, string>;
+  normalizeProviderResponse: ProviderResponseNormalizer;
+}
+
+interface ParsedEmbeddingResponse {
+  data?: unknown[] | unknown;
+  usage?: { prompt_tokens?: number; total_tokens?: number };
+}
+
+const KNOWN_EMBEDDING_FIELDS = new Set(["model", "input", "dimensions", "encoding_format"]);
+
+/** Unwrap one redundant row around an otherwise flat vector. */
 function flattenSingleRowEmbedding(item: unknown): void {
   if (!item || typeof item !== "object" || !("embedding" in item)) return;
   const record = item as { embedding: unknown };
@@ -78,103 +136,81 @@ function flattenSingleRowEmbedding(item: unknown): void {
   }
 }
 
-/**
- * Handle embedding request.
- * Supports both hardcoded cloud providers and dynamic local provider_nodes.
- * When resolvedProvider is passed, uses it directly (injection pattern from route handler).
- * Falls back to hardcoded registry lookup for backward compatibility.
- */
-export async function handleEmbedding({
-  body,
-  credentials,
-  log,
-  resolvedProvider = null,
-  resolvedModel = null,
-  clientRawRequest = null,
-  apiKeyId = null,
-  apiKeyName = null,
-  connectionId = null,
-}: {
-  body: Record<string, unknown>;
-  credentials: {
-    apiKey?: string | null;
-    accessToken?: string | null;
-    providerSpecificData?: Record<string, unknown> | null;
-  } | null;
-  log?: { info: (...args: unknown[]) => void; error: (...args: unknown[]) => void };
-  resolvedProvider?: EmbeddingProvider | null;
-  resolvedModel?: string | null;
-  clientRawRequest?: ClientRawRequest | null;
-  apiKeyId?: string | null;
-  apiKeyName?: string | null;
-  connectionId?: string | null;
-}) {
-  // Use pre-resolved provider/model from route handler if available (supports dynamic provider_nodes).
-  let provider: string | null;
-  let model: string | null;
-  let providerConfig: EmbeddingProvider | null;
+function failure(status: number, error: string, headers?: Headers): EmbeddingFailure {
+  return { success: false, status, error, ...(headers ? { headers } : {}) };
+}
 
-  if (resolvedProvider) {
-    provider = resolvedProvider.id;
-    model = resolvedModel;
-    providerConfig = resolvedProvider;
-  } else {
-    const parsed = parseEmbeddingModel(body.model as string);
-    provider = parsed.provider;
-    model = parsed.model;
-    providerConfig = provider ? getEmbeddingProvider(provider) : null;
+function resolveEmbedding(params: HandleEmbeddingParams): ResolvedEmbedding {
+  if (params.resolvedProvider) {
+    return {
+      provider: params.resolvedProvider.id,
+      model: params.resolvedModel ?? null,
+      providerConfig: params.resolvedProvider,
+    };
   }
+  const parsed = parseEmbeddingModel(params.body.model as string);
+  return {
+    provider: parsed.provider,
+    model: parsed.model,
+    providerConfig: parsed.provider ? getEmbeddingProvider(parsed.provider) : null,
+  };
+}
 
-  const startTime = Date.now();
-
-  // Set up request logger for pipeline artifact capture
+async function createEmbeddingRuntime(
+  params: HandleEmbeddingParams,
+  resolved: ResolvedEmbedding
+): Promise<EmbeddingRuntime | EmbeddingFailure> {
   const detailedLoggingEnabled = await isDetailedLoggingEnabled();
-  const captureStreamChunks = getCallLogPipelineCaptureStreamChunks();
   const reqLogger = await createRequestLogger(
-    provider || "openai",
+    resolved.provider || "openai",
     "openai",
-    body.model as string,
+    params.body.model as string,
     {
       enabled: detailedLoggingEnabled,
-      captureStreamChunks,
-      connectionId: connectionId || undefined,
-      model: model || (body.model as string),
-      provider: provider || undefined,
+      captureStreamChunks: getCallLogPipelineCaptureStreamChunks(),
+      connectionId: params.connectionId || undefined,
+      model: resolved.model || (params.body.model as string),
+      provider: resolved.provider || undefined,
     }
   );
 
-  // Log client raw request
-  if (clientRawRequest) {
+  if (params.clientRawRequest) {
     reqLogger.logClientRawRequest(
-      clientRawRequest.endpoint,
-      clientRawRequest.body,
-      clientRawRequest.headers
+      params.clientRawRequest.endpoint,
+      params.clientRawRequest.body,
+      params.clientRawRequest.headers
     );
   }
+  if (!resolved.provider) {
+    return failure(
+      400,
+      `Invalid embedding model: ${params.body.model}. Use format: provider/model`
+    );
+  }
+  if (!resolved.providerConfig) {
+    return failure(400, `Unknown embedding provider: ${resolved.provider}`);
+  }
 
-  // Summarized request body for call log (avoid storing large embedding input arrays)
-  const logRequestBody = {
-    model: body.model,
-    input_count: Array.isArray(body.input) ? body.input.length : 1,
-    dimensions: body.dimensions || undefined,
+  return {
+    ...params,
+    provider: resolved.provider,
+    model: resolved.model,
+    providerConfig: resolved.providerConfig,
+    startTime: Date.now(),
+    detailedLoggingEnabled,
+    reqLogger,
+    logRequestBody: {
+      model: params.body.model,
+      input_count: Array.isArray(params.body.input) ? params.body.input.length : 1,
+      dimensions: params.body.dimensions || undefined,
+    },
   };
+}
 
-  if (!provider) {
-    return {
-      success: false,
-      status: 400,
-      error: `Invalid embedding model: ${body.model}. Use format: provider/model`,
-    };
-  }
-
-  if (!providerConfig) {
-    return {
-      success: false,
-      status: 400,
-      error: `Unknown embedding provider: ${provider}`,
-    };
-  }
-
+function collectRequestedModalities(body: Record<string, unknown>): {
+  structuredItems: Array<{ type: EmbeddingModality }>;
+  nativeModalities: EmbeddingModality[];
+} {
   const structuredItems = Array.isArray(body.input)
     ? body.input.filter(
         (item): item is { type: EmbeddingModality } =>
@@ -184,409 +220,493 @@ export async function handleEmbedding({
   const nativeModalities = [
     ...(isJinaNativeEmbeddingInput(body.input) ? collectJinaNativeModalities(body.input) : []),
     ...(isGeminiNativeEmbeddingInput(body.input) ? collectGeminiNativeModalities(body.input) : []),
-  ].filter((modality) => modality !== "text");
-  if (structuredItems.length > 0 || nativeModalities.length > 0) {
-    const supportedModalities = getEmbeddingModelModalities(providerConfig, model);
-    if (!supportedModalities) {
-      return {
-        success: false,
-        status: 400,
-        error: `Embedding model ${body.model} does not advertise structured embedding input support`,
-      };
-    }
-    const unsupportedCanonical = structuredItems.find(
-      (item) => !supportedModalities.includes(item.type)
+  ].filter((modality): modality is EmbeddingModality => modality !== "text");
+  return { structuredItems, nativeModalities };
+}
+
+function validateRequestedModalities(runtime: EmbeddingRuntime): EmbeddingFailure | null {
+  const { structuredItems, nativeModalities } = collectRequestedModalities(runtime.body);
+  if (structuredItems.length === 0 && nativeModalities.length === 0) return null;
+
+  const supported = getEmbeddingModelModalities(runtime.providerConfig, runtime.model);
+  if (!supported) {
+    return failure(
+      400,
+      `Embedding model ${runtime.body.model} does not advertise structured embedding input support`
     );
-    if (unsupportedCanonical) {
-      return {
-        success: false,
-        status: 400,
-        error: `Embedding model ${body.model} does not support ${unsupportedCanonical.type} input`,
-      };
-    }
-    const unsupportedNative = nativeModalities.find(
-      (modality) => !supportedModalities.includes(modality)
-    );
-    if (unsupportedNative) {
-      return {
-        success: false,
-        status: 400,
-        error: `Embedding model ${body.model} does not support ${unsupportedNative} input`,
-      };
-    }
   }
+  const unsupportedCanonical = structuredItems.find((item) => !supported.includes(item.type));
+  if (unsupportedCanonical) {
+    return failure(
+      400,
+      `Embedding model ${runtime.body.model} does not support ${unsupportedCanonical.type} input`
+    );
+  }
+  const unsupportedNative = nativeModalities.find((modality) => !supported.includes(modality));
+  return unsupportedNative
+    ? failure(
+        400,
+        `Embedding model ${runtime.body.model} does not support ${unsupportedNative} input`
+      )
+    : null;
+}
 
-  // Build upstream request — start with standard fields, then forward extra fields
-  // the client sent (e.g. input_type, user, truncate for NVIDIA NIM asymmetric models).
-  const KNOWN_FIELDS = new Set(["model", "input", "dimensions", "encoding_format"]);
-
-  let upstreamBody: Record<string, unknown> = {
-    model: model,
-    input: body.input,
+function buildUpstreamBody(runtime: EmbeddingRuntime): Record<string, unknown> {
+  const upstreamBody: Record<string, unknown> = {
+    model: runtime.model,
+    input: runtime.body.input,
   };
-
-  if (body.dimensions !== undefined) upstreamBody.dimensions = body.dimensions;
-  if (body.encoding_format !== undefined) upstreamBody.encoding_format = body.encoding_format;
-
-  for (const [key, value] of Object.entries(body)) {
-    if (!KNOWN_FIELDS.has(key) && value !== undefined) {
-      upstreamBody[key] = value;
-    }
+  if (runtime.body.dimensions !== undefined) upstreamBody.dimensions = runtime.body.dimensions;
+  if (runtime.body.encoding_format !== undefined) {
+    upstreamBody.encoding_format = runtime.body.encoding_format;
+  }
+  for (const [key, value] of Object.entries(runtime.body)) {
+    if (!KNOWN_EMBEDDING_FIELDS.has(key) && value !== undefined) upstreamBody[key] = value;
   }
 
-  // Gemini embedding models (gemini-embedding-001 / -2-preview / text-embedding-004)
-  // default to 3072-dim vectors. Clients targeting pgvector-style schemas typically
-  // request a smaller size (e.g. 1536) via OpenAI's `dimensions` field, but Google's
-  // OpenAI-compatibility shim at /v1beta/openai/embeddings does not document the
-  // `dimensions` → `outputDimensionality` translation. Mirror the request value into
-  // the Gemini-native `outputDimensionality` field so the upstream actually returns
-  // the requested vector size. Ported from upstream decolua/9router#1366.
-  if (provider === "gemini" && upstreamBody.outputDimensionality === undefined) {
-    const outputDimensionality = Number(body.dimensions);
+  if (runtime.provider === "gemini" && upstreamBody.outputDimensionality === undefined) {
+    const outputDimensionality = Number(runtime.body.dimensions);
     if (Number.isFinite(outputDimensionality) && outputDimensionality > 0) {
       upstreamBody.outputDimensionality = outputDimensionality;
     }
   }
-
-  // Inject model-level default params (e.g. NVIDIA NIM asymmetric models require
-  // `input_type`) only for keys the client did not already supply, so a
-  // client-sent value is never overwritten. Symmetric models carry no defaults
-  // and are unaffected. See issue #1378.
-  const defaultParams = getEmbeddingModelDefaultParams(providerConfig, model);
-  if (defaultParams) {
-    for (const [key, value] of Object.entries(defaultParams)) {
-      if (upstreamBody[key] === undefined) {
-        upstreamBody[key] = value;
-      }
-    }
+  const defaultParams = getEmbeddingModelDefaultParams(runtime.providerConfig, runtime.model);
+  for (const [key, value] of Object.entries(defaultParams ?? {})) {
+    if (upstreamBody[key] === undefined) upstreamBody[key] = value;
   }
+  return upstreamBody;
+}
 
-  let upstreamUrl = providerConfig.baseUrl;
-  if (provider === "ollama-local" || provider === "lmstudio") {
-    // Keyless local servers (#2824 ollama-local, #11233 lmstudio): honor the
-    // configured connection's baseUrl when one was hydrated, and fall back to
-    // the static localhost registry default otherwise.
-    const configuredBaseUrl = credentials?.providerSpecificData?.baseUrl;
-    const rawBaseUrl =
-      typeof configuredBaseUrl === "string" && configuredBaseUrl.trim().length > 0
-        ? configuredBaseUrl
-        : providerConfig.baseUrl;
-    // Use the shared O(n) helper instead of `/\/+$/` — that regex is
-    // vulnerable to polynomial backtracking on adversarial input
-    // (CodeQL js/polynomial-redos) since baseUrl is operator-configured
-    // per-connection data. See open-sse/utils/urlSanitize.ts.
-    const normalizedBaseUrl = stripTrailingSlashes(rawBaseUrl.trim());
-    const localServerHost = normalizedBaseUrl
-      .replace(/\/v1\/(?:chat\/completions|embeddings)$/i, "")
-      .replace(/\/api\/chat$/i, "")
-      .replace(/\/v1$/i, "");
-    upstreamUrl = `${localServerHost}/v1/embeddings`;
-  }
-  let normalizeProviderResponse:
-    ((data: Record<string, unknown>) => Record<string, unknown>) | null = null;
+function resolveLocalEmbeddingUrl(runtime: EmbeddingRuntime): string {
+  const configuredBaseUrl = runtime.credentials?.providerSpecificData?.baseUrl;
+  const rawBaseUrl =
+    typeof configuredBaseUrl === "string" && configuredBaseUrl.trim()
+      ? configuredBaseUrl
+      : runtime.providerConfig.baseUrl;
+  const localServerHost = stripTrailingSlashes(rawBaseUrl.trim())
+    .replace(/\/v1\/(?:chat\/completions|embeddings)$/i, "")
+    .replace(/\/api\/chat$/i, "")
+    .replace(/\/v1$/i, "");
+  return `${localServerHost}/v1/embeddings`;
+}
 
-  // Build headers
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+function resolveUpstreamUrl(runtime: EmbeddingRuntime): string {
+  return runtime.provider === "ollama-local" || runtime.provider === "lmstudio"
+    ? resolveLocalEmbeddingUrl(runtime)
+    : runtime.providerConfig.baseUrl;
+}
 
-  // Skip credential injection for local providers (authType: "none")
+function buildAuth(
+  runtime: EmbeddingRuntime
+): { headers: Record<string, string>; token: string | null } | EmbeddingFailure {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
   const token =
-    providerConfig.authType === "none" ? null : credentials?.apiKey || credentials?.accessToken;
-  if (token) {
-    if (providerConfig.authHeader === "bearer") {
-      headers["Authorization"] = `Bearer ${token}`;
-    } else if (providerConfig.authHeader === "x-api-key") {
-      headers["x-api-key"] = token;
-    }
-  } else if (providerConfig.authType !== "none") {
-    return {
-      success: false,
-      status: 401,
-      error: `No valid authentication token for provider ${provider}. Check provider credentials.`,
-    };
-  }
-
-  // Jina v5 Omni native docs ({ text }, { image: url|base64 }, { content: [...] })
-  // must reach api.jina.ai unchanged. Do not fetch those image URLs or collapse
-  // to string[]. Canonical { type, source } items still go through the translator.
-  const jinaNative = isJinaNativeEmbeddingInput(body.input);
-  const geminiNative = isGeminiNativeEmbeddingInput(body.input);
-  const canonicalStructured = hasStructuredEmbeddingInput(body.input);
-  const passThroughJinaNative =
-    providerConfig.structuredInputProtocol === "jina-v1" && jinaNative && !canonicalStructured;
-  // gemini-embedding-2 aggregates a string[] on Google's OpenAI shim into one
-  // vector. Always use embedContent / batchEmbedContents so N input items
-  // become N embeddings. Native multimodal parts take the same path.
-  const useGeminiNativeTransport =
-    providerConfig.structuredInputProtocol === "gemini-embed-content" &&
-    (isGeminiEmbedding2Family(model) || canonicalStructured || geminiNative || jinaNative);
-
-  if (providerConfig.structuredInputProtocol === "jina-v1" && jinaNative && canonicalStructured) {
-    try {
-      const mixed = Array.isArray(body.input) ? body.input : [body.input];
-      upstreamBody.input = await prepareJinaMixedEmbeddingInput(mixed, async (url) => {
-        const result = await fetchRemoteImage(url, {
-          guard: "public-only",
-          maxBytes: MAX_EMBEDDING_INLINE_ITEM_BYTES,
-          pinDns: true,
-        });
-        return { buffer: result.buffer, contentType: result.contentType || null };
-      });
-    } catch (error) {
-      return { success: false, status: 400, error: sanitizeErrorMessage(error) };
-    }
-  } else if (useGeminiNativeTransport || (!passThroughJinaNative && canonicalStructured)) {
-    if (!model) {
-      return {
-        success: false,
-        status: 400,
-        error: `Invalid embedding model: ${body.model}. Use format: provider/model`,
-      };
-    }
-    try {
-      const prepared = await prepareStructuredEmbeddingRequest(
-        providerConfig,
-        model,
-        body,
-        token ?? "",
-        {
-          fetchMedia: async (url) => {
-            const result = await fetchRemoteImage(url, {
-              guard: "public-only",
-              maxBytes: MAX_EMBEDDING_INLINE_ITEM_BYTES,
-              pinDns: true,
-            });
-            return { buffer: result.buffer, contentType: result.contentType || null };
-          },
-        }
-      );
-      upstreamBody = prepared.body;
-      upstreamUrl = prepared.url;
-      normalizeProviderResponse = prepared.normalizeResponse ?? null;
-      if (prepared.authHeader) {
-        delete headers.Authorization;
-        delete headers["x-api-key"];
-        headers[prepared.authHeader.name] = prepared.authHeader.value;
-      }
-    } catch (error) {
-      return { success: false, status: 400, error: sanitizeErrorMessage(error) };
-    }
-  }
-
-  if (log) {
-    log.info(
-      "EMBED",
-      `${provider}/${model} | input: ${Array.isArray(body.input) ? body.input.length + " items" : "1 item"}`
+    runtime.providerConfig.authType === "none"
+      ? null
+      : runtime.credentials?.apiKey || runtime.credentials?.accessToken || null;
+  if (!token && runtime.providerConfig.authType !== "none") {
+    return failure(
+      401,
+      `No valid authentication token for provider ${runtime.provider}. Check provider credentials.`
     );
   }
+  if (token && runtime.providerConfig.authHeader === "bearer") {
+    headers.Authorization = `Bearer ${token}`;
+  } else if (token && runtime.providerConfig.authHeader === "x-api-key") {
+    headers["x-api-key"] = token;
+  }
+  return { headers, token };
+}
 
+async function fetchEmbeddingMedia(
+  url: string
+): Promise<{ buffer: Buffer; contentType: string | null }> {
+  const result = await fetchRemoteImage(url, {
+    guard: "public-only",
+    maxBytes: MAX_EMBEDDING_INLINE_ITEM_BYTES,
+    pinDns: true,
+  });
+  return { buffer: result.buffer, contentType: result.contentType || null };
+}
+
+async function prepareMixedJinaInput(
+  runtime: EmbeddingRuntime,
+  prepared: PreparedEmbeddingRequest
+): Promise<void> {
+  const mixed = Array.isArray(runtime.body.input) ? runtime.body.input : [runtime.body.input];
+  prepared.upstreamBody.input = await prepareJinaMixedEmbeddingInput(mixed, fetchEmbeddingMedia);
+}
+
+async function prepareNativeTransport(
+  runtime: EmbeddingRuntime,
+  prepared: PreparedEmbeddingRequest,
+  token: string | null
+): Promise<void> {
+  if (!runtime.model) {
+    throw new Error(`Invalid embedding model: ${runtime.body.model}. Use format: provider/model`);
+  }
+  const native = await prepareStructuredEmbeddingRequest(
+    runtime.providerConfig,
+    runtime.model,
+    runtime.body,
+    token ?? "",
+    { fetchMedia: fetchEmbeddingMedia }
+  );
+  prepared.upstreamBody = native.body;
+  prepared.upstreamUrl = native.url;
+  prepared.normalizeProviderResponse = native.normalizeResponse ?? null;
+  if (native.authHeader) {
+    delete prepared.headers.Authorization;
+    delete prepared.headers["x-api-key"];
+    prepared.headers[native.authHeader.name] = native.authHeader.value;
+  }
+}
+
+async function applyStructuredTransport(
+  runtime: EmbeddingRuntime,
+  prepared: PreparedEmbeddingRequest,
+  token: string | null
+): Promise<void> {
+  const jinaNative = isJinaNativeEmbeddingInput(runtime.body.input);
+  const geminiNative = isGeminiNativeEmbeddingInput(runtime.body.input);
+  const canonical = hasStructuredEmbeddingInput(runtime.body.input);
+  const isJinaProtocol = runtime.providerConfig.structuredInputProtocol === "jina-v1";
+  const passThroughJina = isJinaProtocol && jinaNative && !canonical;
+  const useGeminiNative =
+    runtime.providerConfig.structuredInputProtocol === "gemini-embed-content" &&
+    (isGeminiEmbedding2Family(runtime.model) || canonical || geminiNative || jinaNative);
+
+  if (isJinaProtocol && jinaNative && canonical) {
+    await prepareMixedJinaInput(runtime, prepared);
+  } else if (useGeminiNative || (!passThroughJina && canonical)) {
+    await prepareNativeTransport(runtime, prepared, token);
+  }
+}
+
+async function prepareEmbeddingRequest(
+  runtime: EmbeddingRuntime
+): Promise<PreparedEmbeddingRequest | EmbeddingFailure> {
+  const auth = buildAuth(runtime);
+  if ("success" in auth) return auth;
+  const prepared: PreparedEmbeddingRequest = {
+    upstreamBody: buildUpstreamBody(runtime),
+    upstreamUrl: resolveUpstreamUrl(runtime),
+    headers: auth.headers,
+    normalizeProviderResponse: null,
+  };
   try {
-    // Quota share enforcement (fail-open: errors allow the request through)
-    if (apiKeyId && connectionId && provider) {
-      try {
-        const { enforceQuotaShare } = await import("@/lib/quota/enforce");
-        const quotaDecision = await enforceQuotaShare({
-          apiKeyId,
-          connectionId,
-          provider,
-          // Per-(key,model) cap — resolved embedding model id (same scope used in logs/routing).
-          model: model || undefined,
-        });
-        if (quotaDecision.kind === "block") {
-          return {
-            success: false,
-            status: quotaDecision.httpStatus ?? 429,
-            error: quotaDecision.reason || "Quota share limit reached",
-          };
-        }
-      } catch {
-        // fail-open per B16
-      }
-    }
+    await applyStructuredTransport(runtime, prepared, auth.token);
+    return prepared;
+  } catch (error) {
+    return failure(400, sanitizeErrorMessage(error));
+  }
+}
 
-    // Log provider request
-    reqLogger.logTargetRequest(upstreamUrl, headers, upstreamBody);
-
-    const response = await fetch(upstreamUrl, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(upstreamBody),
+async function enforceEmbeddingQuota(runtime: EmbeddingRuntime): Promise<EmbeddingFailure | null> {
+  if (!runtime.apiKeyId || !runtime.connectionId) return null;
+  try {
+    const { enforceQuotaShare } = await import("@/lib/quota/enforce");
+    const decision = await enforceQuotaShare({
+      apiKeyId: runtime.apiKeyId,
+      connectionId: runtime.connectionId,
+      provider: runtime.provider,
+      model: runtime.model || undefined,
     });
+    return decision.kind === "block"
+      ? failure(decision.httpStatus ?? 429, decision.reason || "Quota share limit reached")
+      : null;
+  } catch {
+    return null;
+  }
+}
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      if (log) {
-        log.error("EMBED", `${provider} error ${response.status}: ${errorText.slice(0, 200)}`);
-      }
+function resolveSingleTexts(runtime: EmbeddingRuntime): string[] | EmbeddingFailure | null {
+  if (runtime.providerConfig.singleTextProtocol !== "clova-v2") return null;
+  const input = Array.isArray(runtime.body.input) ? runtime.body.input : [runtime.body.input];
+  if (
+    input.length === 0 ||
+    input.some((item) => typeof item !== "string" || item.trim().length === 0)
+  ) {
+    return failure(400, "CLOVA Studio embedding v2 accepts non-empty text strings only");
+  }
+  if (runtime.body.encoding_format === "base64") {
+    return failure(400, "CLOVA Studio embedding v2 supports float encoding only");
+  }
+  if (runtime.body.dimensions !== undefined && Number(runtime.body.dimensions) !== 1024) {
+    return failure(400, "CLOVA Studio embedding v2 has a fixed dimension of 1024");
+  }
+  return input as string[];
+}
 
-      // Log provider response
-      reqLogger.logProviderResponse(response.status, "", response.headers, errorText.slice(0, 500));
-
-      // Build client error response
-      const clientErrorBody = toJsonErrorPayload(
-        errorText.slice(0, 500),
-        "Embedding provider error"
-      );
-      reqLogger.logConvertedResponse(clientErrorBody);
-
-      const pipelinePayloads = detailedLoggingEnabled ? reqLogger.getPipelinePayloads() : null;
-
-      // Save error call log for Logger panel
-      saveCallLog({
-        method: "POST",
-        path: "/v1/embeddings",
-        status: response.status,
-        model: `${provider}/${model}`,
-        provider,
-        duration: Date.now() - startTime,
-        error: errorText.slice(0, 500),
-        requestBody: logRequestBody,
-        pipelinePayloads,
-        apiKeyId,
-        apiKeyName,
-        connectionId,
-      }).catch(() => {});
-
-      // #10347 — persist a connection-level failure marker on a hard upstream failure so
-      // the dead account is not re-selected and re-hit on the next embed request (chat
-      // parity). markAccountUnavailable classifies the status via checkFallbackError: a
-      // payment-required 402 becomes the TERMINAL state credits_exhausted (the terminal
-      // marker excludes the account from selection until an operator resets it), benign
-      // 4xx are a no-op, and terminal statuses are never overwritten. honors per-connection
-      // disableCooling. The write must never break the error response path, so it is
-      // best-effort.
-      if (connectionId) {
-        try {
-          await markAccountUnavailable(connectionId, response.status, errorText, provider, model);
-        } catch {
-          // swallow — the upstream error response takes priority
-        }
-      }
-
-      return {
-        success: false,
-        status: response.status,
-        error: errorText,
-        headers: stripStaleEncodingHeaders(response.headers),
-      };
+function appendClovaEmbedding(
+  parsed: ParsedEmbeddingResponse,
+  embeddings: Array<Record<string, unknown>>,
+  usage: { prompt_tokens: number; total_tokens: number }
+): void {
+  if (!Array.isArray(parsed.data)) {
+    throw new Error("CLOVA Studio embedding v2 returned an invalid data list");
+  }
+  for (const item of parsed.data) {
+    flattenSingleRowEmbedding(item);
+    if (!item || typeof item !== "object") {
+      throw new Error("CLOVA Studio embedding v2 returned an invalid embedding item");
     }
+    (item as { index?: number }).index = embeddings.length;
+    embeddings.push(item as Record<string, unknown>);
+  }
+  usage.prompt_tokens += parsed.usage?.prompt_tokens || parsed.usage?.total_tokens || 0;
+  usage.total_tokens += parsed.usage?.total_tokens || parsed.usage?.prompt_tokens || 0;
+}
 
+async function fetchClovaEmbeddingBatch(
+  prepared: PreparedEmbeddingRequest,
+  texts: string[],
+  reqLogger: RequestLogger
+): Promise<Response> {
+  const embeddings: Array<Record<string, unknown>> = [];
+  const usage = { prompt_tokens: 0, total_tokens: 0 };
+  let lastHeaders = new Headers();
+  for (const text of texts) {
+    const requestBody = { text };
+    reqLogger.logTargetRequest(prepared.upstreamUrl, prepared.headers, requestBody);
+    const response = await fetch(prepared.upstreamUrl, {
+      method: "POST",
+      headers: prepared.headers,
+      body: JSON.stringify(requestBody),
+    });
+    lastHeaders = response.headers;
+    if (!response.ok) return response;
     const rawData = (await response.json()) as Record<string, unknown>;
-    const data = (normalizeProviderResponse ? normalizeProviderResponse(rawData) : rawData) as {
-      data?: unknown[] | unknown;
-      usage?: { prompt_tokens?: number; total_tokens?: number };
-    };
+    appendClovaEmbedding(normalizeClovaEmbeddingV2Response(rawData), embeddings, usage);
+  }
+  return new Response(JSON.stringify({ data: embeddings, usage }), {
+    status: 200,
+    headers: lastHeaders,
+  });
+}
 
-    // Log provider response
-    reqLogger.logProviderResponse(response.status, "", response.headers, data);
+async function dispatchEmbeddingRequest(
+  prepared: PreparedEmbeddingRequest,
+  singleTexts: string[] | null,
+  reqLogger: RequestLogger
+): Promise<Response> {
+  if (singleTexts) return fetchClovaEmbeddingBatch(prepared, singleTexts, reqLogger);
+  reqLogger.logTargetRequest(prepared.upstreamUrl, prepared.headers, prepared.upstreamBody);
+  return fetch(prepared.upstreamUrl, {
+    method: "POST",
+    headers: prepared.headers,
+    body: JSON.stringify(prepared.upstreamBody),
+  });
+}
 
-    // OpenAI-spec compliance (#9089): each item's `embedding` must be a flat number[].
-    // Some OpenAI-compatible backends (e.g. a llama.cpp `llama-server --embedding`
-    // instance) return the vector wrapped in one extra array level — `[[...floats]]`
-    // instead of `[...floats]` — for a single input, which silently breaks any standard
-    // OpenAI-SDK consumer doing `response.data[i].embedding`. Flatten that one redundant
-    // level without touching providers that already return flat vectors.
-    const responseItems = data.data || data;
-    if (Array.isArray(responseItems)) {
-      for (const item of responseItems) {
-        flattenSingleRowEmbedding(item);
-      }
+function pipelinePayloads(
+  runtime: EmbeddingRuntime
+): ReturnType<RequestLogger["getPipelinePayloads"]> | null {
+  return runtime.detailedLoggingEnabled ? runtime.reqLogger.getPipelinePayloads() : null;
+}
+
+async function handleUpstreamFailure(
+  runtime: EmbeddingRuntime,
+  response: Response
+): Promise<EmbeddingFailure> {
+  const errorText = await response.text();
+  runtime.log?.error(
+    "EMBED",
+    `${runtime.provider} error ${response.status}: ${errorText.slice(0, 200)}`
+  );
+  runtime.reqLogger.logProviderResponse(
+    response.status,
+    "",
+    response.headers,
+    errorText.slice(0, 500)
+  );
+  runtime.reqLogger.logConvertedResponse(
+    toJsonErrorPayload(errorText.slice(0, 500), "Embedding provider error")
+  );
+  saveCallLog({
+    method: "POST",
+    path: "/v1/embeddings",
+    status: response.status,
+    model: `${runtime.provider}/${runtime.model}`,
+    provider: runtime.provider,
+    duration: Date.now() - runtime.startTime,
+    error: errorText.slice(0, 500),
+    requestBody: runtime.logRequestBody,
+    pipelinePayloads: pipelinePayloads(runtime),
+    apiKeyId: runtime.apiKeyId,
+    apiKeyName: runtime.apiKeyName,
+    connectionId: runtime.connectionId,
+  }).catch(() => {});
+  if (runtime.connectionId) {
+    try {
+      await markAccountUnavailable(
+        runtime.connectionId,
+        response.status,
+        errorText,
+        runtime.provider,
+        runtime.model
+      );
+    } catch {
+      // The upstream response has priority over a best-effort cooldown write.
     }
+  }
+  return failure(response.status, errorText, stripStaleEncodingHeaders(response.headers));
+}
 
-    // Normalize response to OpenAI format
-    const normalizedResponse = {
+function normalizeEmbeddingData(
+  runtime: EmbeddingRuntime,
+  response: Response,
+  rawData: Record<string, unknown>,
+  normalizer: ProviderResponseNormalizer
+): { data: ParsedEmbeddingResponse; normalizedResponse: Record<string, unknown> } {
+  const data = (normalizer ? normalizer(rawData) : rawData) as ParsedEmbeddingResponse;
+  runtime.reqLogger.logProviderResponse(response.status, "", response.headers, data);
+  const responseItems = data.data || data;
+  if (Array.isArray(responseItems)) responseItems.forEach(flattenSingleRowEmbedding);
+  return {
+    data,
+    normalizedResponse: {
       object: "list",
       data: data.data || data,
-      model: `${provider}/${model}`,
+      model: `${runtime.provider}/${runtime.model}`,
       usage: data.usage || { prompt_tokens: 0, total_tokens: 0 },
-    };
+    },
+  };
+}
 
-    // Log client response
-    reqLogger.logConvertedResponse(normalizedResponse);
+function recordEmbeddingSuccess(
+  runtime: EmbeddingRuntime,
+  data: ParsedEmbeddingResponse,
+  normalizedResponse: Record<string, unknown>
+): void {
+  runtime.reqLogger.logConvertedResponse(normalizedResponse);
+  saveCallLog({
+    method: "POST",
+    path: "/v1/embeddings",
+    status: 200,
+    model: `${runtime.provider}/${runtime.model}`,
+    provider: runtime.provider,
+    duration: Date.now() - runtime.startTime,
+    tokens: {
+      prompt_tokens: data.usage?.prompt_tokens || data.usage?.total_tokens || 0,
+      completion_tokens: 0,
+    },
+    requestBody: runtime.logRequestBody,
+    responseBody: {
+      usage: data.usage || null,
+      object: "list",
+      data_count: Array.isArray(data.data) ? data.data.length : 0,
+    },
+    pipelinePayloads: pipelinePayloads(runtime),
+    apiKeyId: runtime.apiKeyId,
+    apiKeyName: runtime.apiKeyName,
+    connectionId: runtime.connectionId,
+  }).catch(() => {});
+}
 
-    const pipelinePayloads = detailedLoggingEnabled ? reqLogger.getPipelinePayloads() : null;
-
-    // Save success call log for Logger panel
-    // Embeddings only have input tokens (prompt_tokens + total_tokens), no output/completion tokens
-    saveCallLog({
-      method: "POST",
-      path: "/v1/embeddings",
-      status: 200,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      tokens: {
-        prompt_tokens: data.usage?.prompt_tokens || data.usage?.total_tokens || 0,
-        completion_tokens: 0,
+async function recordEmbeddingConsumption(
+  runtime: EmbeddingRuntime,
+  data: ParsedEmbeddingResponse,
+  requestCount: number
+): Promise<void> {
+  if (!runtime.apiKeyId || !runtime.connectionId) return;
+  try {
+    const { scheduleRecordConsumption } = await import("@/lib/quota/spendRecorder");
+    scheduleRecordConsumption({
+      apiKeyId: runtime.apiKeyId,
+      connectionId: runtime.connectionId,
+      provider: runtime.provider,
+      model: runtime.model || undefined,
+      cost: {
+        tokens: data.usage?.prompt_tokens || data.usage?.total_tokens || 0,
+        requests: requestCount,
       },
-      requestBody: logRequestBody,
-      responseBody: {
-        usage: data.usage || null,
-        object: "list",
-        data_count: Array.isArray(data.data) ? data.data.length : 0,
-      },
-      pipelinePayloads,
-      apiKeyId,
-      apiKeyName,
-      connectionId,
-    }).catch(() => {});
-
-    // Record quota consumption (fire-and-forget, never blocks)
-    if (apiKeyId && connectionId && provider) {
-      try {
-        const { scheduleRecordConsumption } = await import("@/lib/quota/spendRecorder");
-        scheduleRecordConsumption({
-          apiKeyId,
-          connectionId,
-          provider,
-          // Per-(key,model) cap accounting — same resolved model id used at enforce time.
-          model: model || undefined,
-          cost: {
-            tokens: data.usage?.prompt_tokens || data.usage?.total_tokens || 0,
-            requests: 1,
-          },
-        });
-      } catch {
-        // fail-open per B29
-      }
-    }
-
-    return {
-      success: true,
-      data: normalizedResponse,
-      headers: stripStaleEncodingHeaders(response.headers),
-    };
-  } catch (err) {
-    if (log) {
-      log.error("EMBED", `${provider} fetch error: ${err.message}`);
-    }
-
-    // Log error
-    reqLogger.logError(err, upstreamBody);
-
-    const pipelinePayloads = detailedLoggingEnabled ? reqLogger.getPipelinePayloads() : null;
-
-    // Save exception call log for Logger panel
-    saveCallLog({
-      method: "POST",
-      path: "/v1/embeddings",
-      status: 502,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      error: err.message,
-      requestBody: logRequestBody,
-      pipelinePayloads,
-      apiKeyId,
-      apiKeyName,
-      connectionId,
-    }).catch(() => {});
-
-    return {
-      success: false,
-      status: 502,
-      error: `Embedding provider error: ${sanitizeErrorMessage(err.message)}`,
-    };
+    });
+  } catch {
+    // Quota accounting is fail-open.
   }
+}
+
+async function handleUpstreamSuccess(
+  runtime: EmbeddingRuntime,
+  prepared: PreparedEmbeddingRequest,
+  response: Response,
+  requestCount: number
+): Promise<EmbeddingSuccess> {
+  const rawData = (await response.json()) as Record<string, unknown>;
+  const { data, normalizedResponse } = normalizeEmbeddingData(
+    runtime,
+    response,
+    rawData,
+    prepared.normalizeProviderResponse
+  );
+  recordEmbeddingSuccess(runtime, data, normalizedResponse);
+  await recordEmbeddingConsumption(runtime, data, requestCount);
+  return {
+    success: true,
+    data: normalizedResponse,
+    headers: stripStaleEncodingHeaders(response.headers),
+  };
+}
+
+function handleEmbeddingException(
+  runtime: EmbeddingRuntime,
+  prepared: PreparedEmbeddingRequest,
+  error: unknown
+): EmbeddingFailure {
+  const message = error instanceof Error ? error.message : String(error);
+  runtime.log?.error("EMBED", `${runtime.provider} fetch error: ${message}`);
+  runtime.reqLogger.logError(error, prepared.upstreamBody);
+  saveCallLog({
+    method: "POST",
+    path: "/v1/embeddings",
+    status: 502,
+    model: `${runtime.provider}/${runtime.model}`,
+    provider: runtime.provider,
+    duration: Date.now() - runtime.startTime,
+    error: message,
+    requestBody: runtime.logRequestBody,
+    pipelinePayloads: pipelinePayloads(runtime),
+    apiKeyId: runtime.apiKeyId,
+    apiKeyName: runtime.apiKeyName,
+    connectionId: runtime.connectionId,
+  }).catch(() => {});
+  return failure(502, `Embedding provider error: ${sanitizeErrorMessage(message)}`);
+}
+
+async function executeEmbedding(
+  runtime: EmbeddingRuntime,
+  prepared: PreparedEmbeddingRequest
+): Promise<EmbeddingResult> {
+  const quotaFailure = await enforceEmbeddingQuota(runtime);
+  if (quotaFailure) return quotaFailure;
+  const singleTextsOrFailure = resolveSingleTexts(runtime);
+  if (singleTextsOrFailure && !Array.isArray(singleTextsOrFailure)) return singleTextsOrFailure;
+  const singleTexts = Array.isArray(singleTextsOrFailure) ? singleTextsOrFailure : null;
+  try {
+    const response = await dispatchEmbeddingRequest(prepared, singleTexts, runtime.reqLogger);
+    return response.ok
+      ? handleUpstreamSuccess(runtime, prepared, response, singleTexts?.length ?? 1)
+      : handleUpstreamFailure(runtime, response);
+  } catch (error) {
+    return handleEmbeddingException(runtime, prepared, error);
+  }
+}
+
+/** Handle one OpenAI-compatible embedding request. */
+export async function handleEmbedding(params: HandleEmbeddingParams): Promise<EmbeddingResult> {
+  const resolved = resolveEmbedding(params);
+  const runtime = await createEmbeddingRuntime(params, resolved);
+  if ("success" in runtime) return runtime;
+  const modalityFailure = validateRequestedModalities(runtime);
+  if (modalityFailure) return modalityFailure;
+  const prepared = await prepareEmbeddingRequest(runtime);
+  if ("success" in prepared) return prepared;
+  runtime.log?.info(
+    "EMBED",
+    `${runtime.provider}/${runtime.model} | input: ${
+      Array.isArray(runtime.body.input) ? `${runtime.body.input.length} items` : "1 item"
+    }`
+  );
+  return executeEmbedding(runtime, prepared);
 }

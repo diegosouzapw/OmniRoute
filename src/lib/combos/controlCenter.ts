@@ -31,10 +31,10 @@ export interface ComboControlCenterHealth {
     totalRequests?: number;
   };
   quotaHealth?: {
-    worstRemainingPct?: number;
+    worstRemainingPct?: number | null;
     providers?: Array<{
       provider: string;
-      remainingPct: number;
+      remainingPct: number | null;
       isExhausted: boolean;
       trend: "improving" | "stable" | "declining";
     }>;

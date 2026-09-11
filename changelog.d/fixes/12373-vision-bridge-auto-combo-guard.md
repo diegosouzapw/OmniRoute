@@ -1,1 +1,0 @@
-- **fix(guardrails):** keep `auto`/`auto/*` virtual combos exempt from the Vision Bridge `fixedModel` credential guard so a combo target is passed through instead of silently falling back to global auto-selection ([#12237](https://github.com/diegosouzapw/OmniRoute/issues/12237))

@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import fs from "node:fs";
@@ -21,6 +22,30 @@ import fs from "node:fs";
  */
 
 const { resolveWritableDataDir, getDefaultDataDir } = await import("../../src/lib/dataPaths.ts");
+const redirectedDirs = new Set<string>();
+
+function assertOwnedRedirectDir(candidate: string): string {
+  const resolved = path.resolve(candidate);
+  const tempRoot = path.resolve(os.tmpdir());
+  assert.ok(
+    resolved.startsWith(`${tempRoot}${path.sep}`) &&
+      path.basename(resolved).startsWith("omniroute-testctx-"),
+    `refusing to treat a non-owned path as a test redirect: ${resolved}`
+  );
+  return resolved;
+}
+
+function rememberRedirectDir(candidate: string): string {
+  const resolved = assertOwnedRedirectDir(candidate);
+  redirectedDirs.add(resolved);
+  return resolved;
+}
+
+test.after(() => {
+  for (const redirected of redirectedDirs) {
+    fs.rmSync(redirected, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
 
 function withEnv(overrides: Record<string, string | undefined>, run: () => void) {
   const saved: Record<string, string | undefined> = {};
@@ -39,11 +64,58 @@ function withEnv(overrides: Record<string, string | undefined>, run: () => void)
   }
 }
 
+const EVAL_PROBE_SCRIPT =
+  "import('./src/lib/dataPaths.ts').then(({ resolveWritableDataDir }) => " +
+  "console.log('OMNIROUTE_TEST_DATA_DIR=' + resolveWritableDataDir()))";
+
+function assertEvalProbeIsIsolated(evalArgs: string[], configuredDataDir = "") {
+  const result = spawnSync(process.execPath, ["--import", "tsx/esm", ...evalArgs], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      DATA_DIR: configuredDataDir,
+      XDG_CONFIG_HOME: "",
+      NODE_ENV: "production",
+      NODE_TEST_CONTEXT: "",
+      VITEST: "",
+      OMNIROUTE_ALLOW_DEFAULT_DATA_DIR: "",
+    },
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  const outputLine = result.stdout
+    .trim()
+    .split("\n")
+    .find((line) => line.startsWith("OMNIROUTE_TEST_DATA_DIR="));
+  const resolved = outputLine?.slice("OMNIROUTE_TEST_DATA_DIR=".length) ?? "";
+  const ownedRedirect = assertOwnedRedirectDir(resolved);
+  try {
+    assert.notEqual(
+      ownedRedirect,
+      path.join(os.homedir(), ".omniroute"),
+      "an eval/import probe must not inherit the normal server's default database"
+    );
+    assert.equal(
+      fs.existsSync(ownedRedirect),
+      false,
+      "the child exit handler must remove its exact redirected DATA_DIR"
+    );
+  } finally {
+    fs.rmSync(ownedRedirect, {
+      recursive: true,
+      force: true,
+      maxRetries: 5,
+      retryDelay: 100,
+    });
+  }
+}
+
 test("G1: a test context with no DATA_DIR never resolves to the operator's real data dir", () => {
   withEnv(
     { DATA_DIR: undefined, NODE_ENV: "test", OMNIROUTE_ALLOW_DEFAULT_DATA_DIR: undefined },
     () => {
-      const resolved = resolveWritableDataDir();
+      const resolved = rememberRedirectDir(resolveWritableDataDir());
       assert.notEqual(
         resolved,
         getDefaultDataDir(),
@@ -101,7 +173,7 @@ test("G5: node:test subprocesses are detected through NODE_TEST_CONTEXT too", ()
       OMNIROUTE_ALLOW_DEFAULT_DATA_DIR: undefined,
     },
     () => {
-      const resolved = resolveWritableDataDir();
+      const resolved = rememberRedirectDir(resolveWritableDataDir());
       assert.notEqual(resolved, getDefaultDataDir());
       assert.ok(resolved.startsWith(os.tmpdir()));
     }
@@ -110,8 +182,24 @@ test("G5: node:test subprocesses are detected through NODE_TEST_CONTEXT too", ()
 
 test("G6: the redirect is stable within a process (same dir on repeated calls)", () => {
   withEnv({ DATA_DIR: undefined, NODE_ENV: "test" }, () => {
-    const first = resolveWritableDataDir();
-    const second = resolveWritableDataDir();
+    const first = rememberRedirectDir(resolveWritableDataDir());
+    const second = rememberRedirectDir(resolveWritableDataDir());
     assert.equal(first, second, "a per-call temp dir would split the DB across handles");
   });
+});
+
+test("G7: a node --eval probe without DATA_DIR is isolated from the operator home", () => {
+  assertEvalProbeIsIsolated(["--eval", EVAL_PROBE_SCRIPT]);
+});
+
+test("G8: the single-argument --eval= form is isolated too", () => {
+  assertEvalProbeIsIsolated([`--eval=${EVAL_PROBE_SCRIPT}`]);
+});
+
+test("G9: whitespace DATA_DIR is absent for a node -e probe", () => {
+  assertEvalProbeIsIsolated(["-e", EVAL_PROBE_SCRIPT], "   ");
+});
+
+test("G10: a combined node -pe probe is isolated too", () => {
+  assertEvalProbeIsIsolated(["-pe", EVAL_PROBE_SCRIPT]);
 });

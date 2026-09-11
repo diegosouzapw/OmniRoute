@@ -248,7 +248,7 @@ export interface UseProviderConnectionsReturn {
 export function useProviderConnections(
   providerId: string,
   isCompatible: boolean,
-  isSearchProvider: boolean
+  _isSearchProvider: boolean
 ): UseProviderConnectionsReturn {
   const t = useTranslations("providers");
   const notify = useNotificationStore();
@@ -844,7 +844,8 @@ export function useProviderConnections(
         setSelectedIds(new Set());
         await fetchConnections();
         notify.success(t("batchDeleteSuccess", { count }));
-        if (onAfter) await onAfter();
+        // ConfirmModal's onClick forwards a MouseEvent; only a real callback runs.
+        if (typeof onAfter === "function") await onAfter();
       } else {
         const data = await res.json();
         notify.error(data.error || providerText(t, "batchDeleteFailed", "Batch delete failed"));

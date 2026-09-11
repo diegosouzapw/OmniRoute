@@ -1,0 +1,1 @@
+- **feat(providers):** Added EURouter as an OpenAI-compatible API-key gateway (`https://api.eurouter.ai/v1`), with live model discovery via `passthroughModels`. Its copy states that models are served by third-party upstreams listed per model, so an EU-based router is not read as EU data residency for inference.

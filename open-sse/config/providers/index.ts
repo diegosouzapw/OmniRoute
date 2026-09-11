@@ -249,6 +249,8 @@ import { electronhubProvider } from "./registry/electronhub/index.ts";
 import { llmgatewayProvider } from "./registry/llmgateway/index.ts";
 import { llmKiwiProvider } from "./registry/llm-kiwi/index.ts";
 import { literouterProvider } from "./registry/literouter/index.ts";
+import { greenptProvider } from "./registry/greenpt/index.ts";
+import { eurouterProvider } from "./registry/eurouter/index.ts";
 import { mnnAiProvider } from "./registry/mnn-ai/index.ts";
 import { meganovaAiProvider } from "./registry/meganova-ai/index.ts";
 import { mixlayerProvider } from "./registry/mixlayer/index.ts";
@@ -270,6 +272,7 @@ import { voidAiProvider } from "./registry/void-ai/index.ts";
 import { helixmindProvider } from "./registry/helixmind/index.ts";
 import { tabitokenProvider } from "./registry/tabitoken/index.ts";
 import { logfareProvider } from "./registry/logfare/index.ts";
+import { seekaiProvider } from "./registry/seekai/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -523,6 +526,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   llmgateway: llmgatewayProvider,
   "llm-kiwi": llmKiwiProvider,
   literouter: literouterProvider,
+  greenpt: greenptProvider,
+  eurouter: eurouterProvider,
   "mnn-ai": mnnAiProvider,
   "meganova-ai": meganovaAiProvider,
   mixlayer: mixlayerProvider,
@@ -544,4 +549,5 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   helixmind: helixmindProvider,
   tabitoken: tabitokenProvider,
   logfare: logfareProvider,
+  seekai: seekaiProvider,
 };

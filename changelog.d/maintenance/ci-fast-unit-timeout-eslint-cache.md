@@ -1,1 +1,0 @@
-- CI hardening on the PR rail: the four `Unit Tests fast-path` shards get `timeout-minutes: 30` (a hung shard held a PR for 64 min instead of GitHub's 6 h default) and both ESLint file caches lose their `restore-keys` fallback, so a cache built under another suppressions file or lint config can no longer report stale verdicts (Refs #11600, #11924)

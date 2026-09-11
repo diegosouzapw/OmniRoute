@@ -25,6 +25,10 @@ test("withChatAdmission does not invoke the handler when a second large body is 
 
   const first = await admitChatRequest(chatRequest("http://x/v1/responses", body), options);
   assert.equal(first.admit, true);
+  // Occupy the #10437 healthy-headroom slot so the wrapper still hits today's 503
+  // path (withChatAdmission does not inject heapPressureCheck).
+  const headroom = controller.tryAcquireHealthyHeadroom();
+  assert.ok(headroom);
 
   let called = false;
   const wrapped = withChatAdmission(async () => {
@@ -39,6 +43,7 @@ test("withChatAdmission does not invoke the handler when a second large body is 
   const json = await res.json();
   assert.equal(json.error.code, "chat_admission_busy");
   first.lease?.release();
+  headroom.release();
 });
 
 test("withChatAdmission invokes the handler and forwards the admitted request", async () => {

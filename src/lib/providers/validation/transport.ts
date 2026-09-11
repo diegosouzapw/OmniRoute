@@ -1,6 +1,7 @@
 // Outbound fetch wrappers for provider validation: proxy-fallback, SSRF-aware proxy targeting, and
-// error→result mapping. Extracted from validation.ts (god-file decomposition). Behavior is
-// byte-identical to the original inline defs.
+// error→result mapping. Extracted from validation.ts (god-file decomposition) and kept as the
+// common boundary for sanitizing validation failures.
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
   SafeOutboundFetchError,
@@ -10,6 +11,28 @@ import {
 import { isPrivateHost } from "@/shared/network/outboundUrlGuard";
 import { getProviderValidationGuard } from "@/shared/network/outboundUrlGuardPolicy";
 import { selectProxyForValidation } from "@omniroute/open-sse/services/proxyAutoSelector.ts";
+
+export type ProjectedProviderValidationResult<T> = {
+  [K in keyof T]: K extends "error" | "warning" ? string | null : T[K];
+} & {
+  error?: string | null;
+  warning?: string | null;
+};
+
+export function projectProviderValidationResultForPublicResponse<
+  T extends { error?: unknown; warning?: unknown },
+>(result: T): ProjectedProviderValidationResult<T>;
+export function projectProviderValidationResultForPublicResponse(
+  result: Record<string, unknown>
+): Record<string, unknown> {
+  const projected: Record<string, unknown> = { ...result };
+  for (const field of ["error", "warning"] as const) {
+    if (!Object.prototype.hasOwnProperty.call(result, field)) continue;
+    const value = result[field];
+    projected[field] = value === null || value === undefined ? null : sanitizeErrorMessage(value);
+  }
+  return projected;
+}
 
 /**
  * Wrapped fetch call that auto-retries with a proxy when the direct connection
@@ -156,17 +179,30 @@ export function toWebCookieValidationErrorResult(provider: string, error: unknow
 }
 
 export function toValidationErrorResult(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error || "Validation failed");
-  const statusCode = getSafeOutboundFetchErrorStatus(error);
+  let rawMessage: unknown = error || "Validation failed";
+  try {
+    if (error instanceof Error) rawMessage = error.message;
+  } catch {
+    rawMessage = "Validation failed";
+  }
+  const message = sanitizeErrorMessage(rawMessage);
+  let statusCode: number | null = null;
+  let timeout = false;
+  let securityBlocked = false;
+  try {
+    statusCode = getSafeOutboundFetchErrorStatus(error);
+    timeout = error instanceof SafeOutboundFetchError && error.code === "TIMEOUT";
+    securityBlocked = isSecurityBlockError(error);
+  } catch {
+    // Classification is advisory; hostile accessors must not escape the safe error boundary.
+  }
 
   return {
     valid: false,
     error: message || "Validation failed",
     unsupported: false as const,
     ...(statusCode ? { statusCode } : {}),
-    ...(error instanceof SafeOutboundFetchError && error.code === "TIMEOUT"
-      ? { timeout: true }
-      : {}),
-    ...(isSecurityBlockError(error) ? { securityBlocked: true } : {}),
+    ...(timeout ? { timeout: true } : {}),
+    ...(securityBlocked ? { securityBlocked: true } : {}),
   };
 }

@@ -17,6 +17,8 @@ const { clearAllStickyBindings } =
 const { invalidateCodexQuotaCache, registerCodexConnection, registerCodexQuotaFetcher } =
   await import("../../open-sse/services/codexQuotaFetcher.ts");
 const { registerQuotaFetcher } = await import("../../open-sse/services/quotaPreflight.ts");
+const { getQuotaScopedModelForProvider } =
+  await import("../../open-sse/services/antigravityQuotaFamily.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const { recordComboRequest } = await import("../../open-sse/services/comboMetrics.ts");
@@ -432,6 +434,14 @@ test("reset-aware strategy avoids accounts near 5h exhaustion", async (t) => {
   const combo = resetAwareCombo(`reset-aware-guard-${randomUUID()}`, [exhausted5h, healthy5h]);
 
   assert.equal(await selectedConnectionFor(combo), healthy5h.id);
+});
+
+test("Antigravity aliases share one family-scoped cache key", () => {
+  assert.equal(getQuotaScopedModelForProvider("agy", "gemini-3.7-flash-high"), "family:gemini");
+  assert.equal(
+    getQuotaScopedModelForProvider("antigravity", "gemini-3.7-flash-high"),
+    "family:gemini"
+  );
 });
 
 test("reset-aware strategy rotates similar scores with round-robin tie breaking", async () => {

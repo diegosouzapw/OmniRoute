@@ -13,7 +13,7 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const modelsRoute = await import("../../src/app/api/providers/[id]/models/route.ts");
 const registry = await import("../../open-sse/config/providers/registry/zai-web/index.ts");
 
-const CURATED_ZAI_WEB_MODEL_IDS = ["glm-5.2", "GLM-5.1", "GLM-5-Turbo", "GLM-5v-Turbo"];
+const CURATED_ZAI_WEB_MODEL_IDS = ["glm-5.3-flash", "glm-5.3", "glm-5.2"];
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -31,32 +31,30 @@ test("zai-web publishes the live reasoning and vision capabilities", () => {
     registry.zai_webProvider.models.map((model) => ({
       id: model.id,
       supportsReasoning: model.supportsReasoning === true,
+      supportedThinkingEfforts: model.supportedThinkingEfforts,
       supportsVision: model.supportsVision === true,
       toolCalling: model.toolCalling === true,
     })),
     [
       {
+        id: "glm-5.3-flash",
+        supportsReasoning: true,
+        supportedThinkingEfforts: ["low", "high", "max"],
+        supportsVision: true,
+        toolCalling: false,
+      },
+      {
+        id: "glm-5.3",
+        supportsReasoning: true,
+        supportedThinkingEfforts: ["low", "high", "max"],
+        supportsVision: false,
+        toolCalling: false,
+      },
+      {
         id: "glm-5.2",
         supportsReasoning: true,
+        supportedThinkingEfforts: ["high", "max"],
         supportsVision: false,
-        toolCalling: false,
-      },
-      {
-        id: "GLM-5.1",
-        supportsReasoning: true,
-        supportsVision: false,
-        toolCalling: false,
-      },
-      {
-        id: "GLM-5-Turbo",
-        supportsReasoning: true,
-        supportsVision: false,
-        toolCalling: false,
-      },
-      {
-        id: "GLM-5v-Turbo",
-        supportsReasoning: true,
-        supportsVision: true,
         toolCalling: false,
       },
     ]

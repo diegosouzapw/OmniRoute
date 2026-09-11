@@ -2297,6 +2297,7 @@ paths:
     post:
       tags: [Providers]
       summary: Auto-detect and import the local Antigravity CLI (agy) login from disk
+      x-always-protected: true
       responses:
         "200":
           description: Created or updated provider connection
@@ -4050,12 +4051,14 @@ paths:
     get:
       tags: [CLI Tools]
       summary: Get Codex profiles
+      x-always-protected: true
       responses:
         "200":
           description: Codex profile list
     post:
       tags: [CLI Tools]
       summary: Create Codex profile
+      x-always-protected: true
       requestBody:
         required: true
         content:
@@ -4068,6 +4071,7 @@ paths:
     put:
       tags: [CLI Tools]
       summary: Update Codex profile
+      x-always-protected: true
       requestBody:
         required: true
         content:
@@ -4080,6 +4084,7 @@ paths:
     delete:
       tags: [CLI Tools]
       summary: Delete Codex profile
+      x-always-protected: true
       responses:
         "200":
           description: Profile deleted
@@ -9751,6 +9756,7 @@ paths:
       tags:
         - Logs
       summary: "GET logs › export"
+      x-always-protected: true
       responses:
         "200":
           description: OK
@@ -10230,6 +10236,7 @@ paths:
       tags:
         - Providers
       summary: "POST providers › <id> › claude auth › apply local"
+      x-always-protected: true
       responses:
         "200":
           description: OK
@@ -10238,6 +10245,7 @@ paths:
       tags:
         - Providers
       summary: "POST providers › <id> › claude auth › export"
+      x-always-protected: true
       responses:
         "200":
           description: OK
@@ -10246,6 +10254,7 @@ paths:
       tags:
         - Providers
       summary: "POST providers › <id> › codex auth › apply local"
+      x-always-protected: true
       responses:
         "200":
           description: OK
@@ -10254,6 +10263,7 @@ paths:
       tags:
         - Providers
       summary: "POST providers › <id> › codex auth › export"
+      x-always-protected: true
       responses:
         "200":
           description: OK

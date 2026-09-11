@@ -1,1 +1,0 @@
-- **fix(translator):** Codex Responses tool calls translated for Claude clients no longer emit a duplicate `tool_use` block with the same ID and an empty name, preventing Claude Code from terminating with `No such tool available` ([#11347](https://github.com/diegosouzapw/OmniRoute/pull/11347))

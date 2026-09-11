@@ -75,6 +75,10 @@ async function compileRuntimeRequireModules(): Promise<string[]> {
         "sqlite-vec",
         "playwright",
         "wreq-js",
+        // browserPool.ts imports `./obscura.ts`. The isolated webpack compile
+        // has no repo tree, so treat the sibling as external instead of
+        // erroring "Can't resolve './obscura.ts'".
+        "./obscura.ts",
       ],
       externalsPresets: { node: true },
       mode: "development",

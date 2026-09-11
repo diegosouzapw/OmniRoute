@@ -25,6 +25,30 @@ export function getTelegramWebhookTimeoutMs(): number {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : DEFAULT_WEBHOOK_TIMEOUT_MS;
 }
 
+/**
+ * Shared secret for authenticating Telegram webhook deliveries.
+ *
+ * Telegram echoes the `secret_token` passed to `setWebhook` back on every
+ * delivery in the `X-Telegram-Bot-Api-Secret-Token` header, which is the only
+ * way to prove a webhook POST actually came from Telegram. Kept in the
+ * environment alongside the bot token so it is never stored in the DB.
+ */
+export function getTelegramWebhookSecret(): string {
+  return process.env.TELEGRAM_WEBHOOK_SECRET || "";
+}
+
+/**
+ * Whether webhook deliveries are authenticated.
+ *
+ * When no secret is configured the webhook path is rejected outright rather
+ * than served unauthenticated: an open path mints API keys and spends upstream
+ * quota for any caller (see #13172). The Mini App path is unaffected — it
+ * authenticates with the initData HMAC and does not use this secret.
+ */
+export function isTelegramWebhookSecretConfigured(): boolean {
+  return getTelegramWebhookSecret().length > 0;
+}
+
 export function getTelegramBotApiBase(): string {
   return process.env.TELEGRAM_BOT_API_BASE || "https://api.telegram.org";
 }

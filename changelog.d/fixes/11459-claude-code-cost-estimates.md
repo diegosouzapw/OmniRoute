@@ -1,3 +1,0 @@
-- Fixed the v3.8.50 Costs and Analytics dashboards so flat-rate Claude Code usage can be shown as an explicitly requested token-price estimate without changing default billed-cost semantics.
-- Fixed archived usage retention so each request is priced individually instead of pricing a day's summed tokens once, which understated archived cost whenever a day mixed cache-heavy and ordinary requests.
-- Fixed the Costs dashboard so it discloses when displayed figures include flat-rate token-price estimates instead of labelling them as billed spend, using the flag the analytics API already returns; the month-end projection and the CSV/JSON exports carry the same marker, and billed-cost mode is unchanged.

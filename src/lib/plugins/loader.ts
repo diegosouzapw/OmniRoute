@@ -9,6 +9,7 @@
  */
 
 import { spawn } from "child_process";
+import type { ChildProcess } from "child_process";
 import { writeFile, readFile } from "fs/promises";
 import { rmSync } from "fs";
 import { join } from "path";
@@ -105,6 +106,37 @@ function forwardChildOutput(
  * against process exit — under `node --test --test-force-exit` the runner exits
  * before the promise settles, leaking one temp .mjs per plugin load.
  */
+/** Children already escalating to SIGKILL. Prevents re-arming a second timer + listener
+ *  for a child that is already being killed. */
+const escalating = new WeakSet<ChildProcess>();
+
+/**
+ * SIGTERM has already been sent; escalate to SIGKILL if the child ignores it.
+ *
+ * Must be idempotent per child. Every hook timeout hits this path, and a plugin that
+ * traps SIGTERM keeps taking calls, so re-arming would add one exit listener plus one
+ * killTimer closure per timeout — Node starts printing MaxListenersExceededWarning at 11.
+ * One pending kill per child is also all that is useful: SIGKILL cannot be ignored, so a
+ * second timer would only re-signal a corpse. (#12819)
+ */
+function escalateToSigkill(child: ChildProcess): void {
+  if (escalating.has(child)) return;
+  escalating.add(child);
+
+  const onExit = () => {
+    clearTimeout(killTimer);
+    escalating.delete(child);
+  };
+  const killTimer = setTimeout(() => {
+    child.removeListener("exit", onExit);
+    escalating.delete(child);
+    try {
+      child.kill("SIGKILL");
+    } catch {}
+  }, SIGKILL_GRACE_MS);
+  child.once("exit", onExit);
+}
+
 function removeHostScript(path: string): void {
   try {
     rmSync(path, { force: true });
@@ -293,12 +325,7 @@ export async function loadPlugin(
         }
         child.kill("SIGTERM");
         // Escalate to SIGKILL if plugin ignores SIGTERM
-        const killTimer = setTimeout(() => {
-          try {
-            child.kill("SIGKILL");
-          } catch {}
-        }, SIGKILL_GRACE_MS);
-        child.once("exit", () => clearTimeout(killTimer));
+        escalateToSigkill(child);
         reject(new Error(`Plugin hook '${hook}' timed out after ${timeout}ms`));
       }, timeout);
 
@@ -399,12 +426,7 @@ export async function loadPlugin(
   const cleanup = () => {
     child.kill("SIGTERM");
     // Escalate to SIGKILL after grace period
-    const killTimer = setTimeout(() => {
-      try {
-        child.kill("SIGKILL");
-      } catch {}
-    }, SIGKILL_GRACE_MS);
-    child.once("exit", () => clearTimeout(killTimer));
+    escalateToSigkill(child);
     removeHostScript(hostScriptPath);
     log.info("loader.cleanup", { name: manifest.name });
   };

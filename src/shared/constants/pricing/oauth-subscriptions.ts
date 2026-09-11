@@ -3,6 +3,7 @@
  * Pure data; merged by default-pricing.ts via spread (god-file decomposition; semantic split).
  */
 import {
+  CLAUDE_FABLE_5_1_PRICING,
   CLAUDE_OPUS_5_PRICING,
   GEMINI_3_7_FLASH_PROMO_PRICING,
   GPT_5_3_CODEX_PRICING,
@@ -20,6 +21,7 @@ const ANTIGRAVITY_GEMINI_3_7_PRICING = {
 
 export const DEFAULT_PRICING_OAUTH = {
   cc: {
+    "claude-fable-5-1": CLAUDE_FABLE_5_1_PRICING,
     "claude-fable-5": {
       input: 10.0,
       output: 50.0,

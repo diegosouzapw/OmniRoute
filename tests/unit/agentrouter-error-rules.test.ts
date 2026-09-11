@@ -168,10 +168,14 @@ test("A13: exclusivity — ruleScope stays undefined for other providers", () =>
   assert.equal(openrouter.ruleScope, undefined);
 });
 
-test("A14: honorsRuleLockScope allowlist is agentrouter-only", async () => {
+test("A14: honorsRuleLockScope allowlist is agentrouter + opencode family", async () => {
   const { honorsRuleLockScope } = await import("../../open-sse/config/providerErrorRules.ts");
   assert.equal(honorsRuleLockScope("agentrouter"), true);
   assert.equal(honorsRuleLockScope("AgentRouter"), true);
-  assert.equal(honorsRuleLockScope("opencode"), false);
+  assert.equal(honorsRuleLockScope("opencode"), true);
+  assert.equal(honorsRuleLockScope("opencode-zen"), true);
+  assert.equal(honorsRuleLockScope("opencode-go"), true);
+  assert.equal(honorsRuleLockScope("opencode-cli"), true);
+  assert.equal(honorsRuleLockScope("openrouter"), false);
   assert.equal(honorsRuleLockScope(null), false);
 });

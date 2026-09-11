@@ -17,6 +17,7 @@ import { prepareToolMessages } from "../translator/webTools.ts";
 import { buildToolModeResponse } from "./chatgptWebTools.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import { buildSessionCookieHeader, mergeRefreshedCookie } from "../utils/nextAuthCookie.ts";
+import { formatTranslatedStreamError } from "../utils/streamErrorFormat.ts";
 import {
   PPLX_SSE_ENDPOINT,
   PPLX_USER_AGENT,
@@ -35,6 +36,8 @@ import {
 
 const SESSION_MAX_AGE_MS = 3600_000;
 const SESSION_MAX_ENTRIES = 200;
+const PPLX_STREAM_ERROR_MESSAGE = "Perplexity upstream stream failed";
+const PPLX_STREAM_ERROR_CODE = "PPLX_STREAM_ERROR";
 
 interface SessionEntry {
   backendUuid: string;
@@ -102,155 +105,223 @@ function buildStreamingResponse(
   signal?: AbortSignal | null
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
+  const streamAbortController = new AbortController();
+  const forwardInputAbort = () =>
+    streamAbortController.abort(signal?.reason ?? "perplexity_request_aborted");
+  if (signal?.aborted) forwardInputAbort();
+  else signal?.addEventListener("abort", forwardInputAbort, { once: true });
+  let inputAbortListenerAttached = Boolean(signal && !signal.aborted);
+  const removeInputAbortListener = () => {
+    if (!inputAbortListenerAttached) return;
+    inputAbortListenerAttached = false;
+    signal?.removeEventListener("abort", forwardInputAbort);
+  };
+  const abortEventStream = (reason: unknown) => {
+    removeInputAbortListener();
+    if (!streamAbortController.signal.aborted) streamAbortController.abort(reason);
+  };
+  const contentIterator = extractContent(eventStream, streamAbortController.signal)[
+    Symbol.asyncIterator
+  ]();
+  let fullAnswer = "";
+  let respBackendUuid: string | null = null;
+  let roleEmitted = false;
+  let finished = false;
+  let pendingFailure: (Error & { statusCode: number }) | null = null;
 
-  return new ReadableStream(
-    {
-      async start(controller) {
-        try {
-          // Initial role chunk
-          controller.enqueue(
-            encoder.encode(
-              sseChunk({
-                id: cid,
-                object: "chat.completion.chunk",
-                created,
-                model,
-                system_fingerprint: null,
-                choices: [
-                  { index: 0, delta: { role: "assistant" }, finish_reason: null, logprobs: null },
-                ],
-              })
-            )
-          );
+  const enqueuePreContentFailure = (controller: ReadableStreamDefaultController<Uint8Array>) => {
+    controller.enqueue(
+      encoder.encode(
+        formatTranslatedStreamError({
+          status: 502,
+          message: PPLX_STREAM_ERROR_MESSAGE,
+          type: "upstream_error",
+          code: PPLX_STREAM_ERROR_CODE,
+        })
+      )
+    );
+  };
 
-          let fullAnswer = "";
-          let respBackendUuid: string | null = null;
+  const takeAssistantRoleChunk = (): string => {
+    if (roleEmitted) return "";
+    roleEmitted = true;
+    return sseChunk({
+      id: cid,
+      object: "chat.completion.chunk",
+      created,
+      model,
+      system_fingerprint: null,
+      choices: [
+        {
+          index: 0,
+          delta: { role: "assistant" },
+          finish_reason: null,
+          logprobs: null,
+        },
+      ],
+    });
+  };
 
-          for await (const chunk of extractContent(eventStream, signal)) {
-            if (chunk.backendUuid) respBackendUuid = chunk.backendUuid;
+  const completeStream = (controller: ReadableStreamDefaultController<Uint8Array>) => {
+    if (finished) return;
+    finished = true;
+    controller.enqueue(
+      encoder.encode(
+        sseChunk({
+          id: cid,
+          object: "chat.completion.chunk",
+          created,
+          model,
+          system_fingerprint: null,
+          choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
+        })
+      )
+    );
+    controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+    sessionStore(history, currentMsg, cleanResponse(fullAnswer), respBackendUuid);
+    removeInputAbortListener();
+    controller.close();
+  };
 
-            if (chunk.error) {
-              controller.enqueue(
-                encoder.encode(
-                  sseChunk({
-                    id: cid,
-                    object: "chat.completion.chunk",
-                    created,
-                    model,
-                    system_fingerprint: null,
-                    choices: [
-                      {
-                        index: 0,
-                        delta: { content: `[Error: ${chunk.error}]` },
-                        finish_reason: null,
-                        logprobs: null,
-                      },
-                    ],
-                  })
-                )
-              );
-              break;
-            }
+  const failStream = (controller: ReadableStreamDefaultController<Uint8Array>) => {
+    if (roleEmitted) {
+      pendingFailure = Object.assign(new Error(PPLX_STREAM_ERROR_MESSAGE), {
+        statusCode: 502,
+      });
+      finished = true;
+      controller.close();
+      return;
+    }
+    finished = true;
+    enqueuePreContentFailure(controller);
+    controller.close();
+  };
 
-            if (chunk.thinking) {
-              controller.enqueue(
-                encoder.encode(
-                  sseChunk({
-                    id: cid,
-                    object: "chat.completion.chunk",
-                    created,
-                    model,
-                    system_fingerprint: null,
-                    choices: [
-                      {
-                        index: 0,
-                        delta: { reasoning_content: chunk.thinking + "\n" },
-                        finish_reason: null,
-                        logprobs: null,
-                      },
-                    ],
-                  })
-                )
-              );
-              continue;
-            }
+  const providerStream = new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      if (finished) return;
 
-            if (chunk.done) {
-              fullAnswer = chunk.answer || fullAnswer;
-              break;
-            }
-
-            let dt = chunk.delta || "";
-            if (dt) {
-              dt = cleanResponse(dt, false);
-              if (dt) {
-                controller.enqueue(
-                  encoder.encode(
-                    sseChunk({
-                      id: cid,
-                      object: "chat.completion.chunk",
-                      created,
-                      model,
-                      system_fingerprint: null,
-                      choices: [
-                        { index: 0, delta: { content: dt }, finish_reason: null, logprobs: null },
-                      ],
-                    })
-                  )
-                );
-              }
-            }
-            if (chunk.answer) fullAnswer = chunk.answer;
-          }
-
-          // Stop chunk
-          controller.enqueue(
-            encoder.encode(
-              sseChunk({
-                id: cid,
-                object: "chat.completion.chunk",
-                created,
-                model,
-                system_fingerprint: null,
-                choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
-              })
-            )
-          );
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-
-          sessionStore(history, currentMsg, cleanResponse(fullAnswer), respBackendUuid);
-        } catch (err) {
-          controller.enqueue(
-            encoder.encode(
-              sseChunk({
-                id: cid,
-                object: "chat.completion.chunk",
-                created,
-                model,
-                system_fingerprint: null,
-                choices: [
-                  {
-                    index: 0,
-                    delta: {
-                      content: `[Stream error: ${err instanceof Error ? err.message : String(err)}]`,
-                    },
-                    finish_reason: "stop",
-                    logprobs: null,
-                  },
-                ],
-              })
-            )
-          );
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        } finally {
-          try {
-            controller.close();
-          } catch {}
+      try {
+        const next = await contentIterator.next();
+        if (streamAbortController.signal.aborted) {
+          finished = true;
+          controller.close();
+          return;
         }
-      },
+        if (next.done === true) {
+          completeStream(controller);
+          return;
+        }
+
+        const chunk = next.value;
+        if (chunk.backendUuid) respBackendUuid = chunk.backendUuid;
+
+        if (chunk.error) {
+          failStream(controller);
+          removeInputAbortListener();
+          void contentIterator.return?.(undefined).catch(() => undefined);
+          return;
+        }
+
+        if (chunk.thinking) {
+          controller.enqueue(
+            encoder.encode(
+              takeAssistantRoleChunk() +
+                sseChunk({
+                  id: cid,
+                  object: "chat.completion.chunk",
+                  created,
+                  model,
+                  system_fingerprint: null,
+                  choices: [
+                    {
+                      index: 0,
+                      delta: { reasoning_content: chunk.thinking + "\n" },
+                      finish_reason: null,
+                      logprobs: null,
+                    },
+                  ],
+                })
+            )
+          );
+          return;
+        }
+
+        if (chunk.done) {
+          fullAnswer = chunk.answer || fullAnswer;
+          completeStream(controller);
+          await contentIterator.return?.(undefined);
+          return;
+        }
+
+        let dt = chunk.delta || "";
+        if (dt) {
+          dt = cleanResponse(dt, false);
+          if (dt) {
+            controller.enqueue(
+              encoder.encode(
+                takeAssistantRoleChunk() +
+                  sseChunk({
+                    id: cid,
+                    object: "chat.completion.chunk",
+                    created,
+                    model,
+                    system_fingerprint: null,
+                    choices: [
+                      { index: 0, delta: { content: dt }, finish_reason: null, logprobs: null },
+                    ],
+                  })
+              )
+            );
+          }
+        }
+        if (chunk.answer) fullAnswer = chunk.answer;
+      } catch {
+        failStream(controller);
+        removeInputAbortListener();
+        void contentIterator.return?.(undefined).catch(() => undefined);
+      }
     },
-    { highWaterMark: 16384 }
-  );
+
+    cancel(reason) {
+      finished = true;
+      abortEventStream(reason);
+      void contentIterator.return?.(undefined).catch(() => undefined);
+    },
+  });
+
+  // Erroring the provider stream immediately would discard output buffered by the readiness
+  // handoff. Drain each provider chunk through a backpressure-aware reader, then reject only the
+  // read after the last legitimate chunk. The outer pipeline converts that fixed public error to
+  // the client's canonical terminal frame and records the stream failure.
+  const providerReader = providerStream.getReader();
+  let cancelled = false;
+  return new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      try {
+        const next = await providerReader.read();
+        if (cancelled) return;
+        if (next.done === false) {
+          controller.enqueue(next.value);
+          return;
+        }
+        if (pendingFailure) {
+          controller.error(pendingFailure);
+          return;
+        }
+        controller.close();
+      } catch (error) {
+        if (!cancelled) controller.error(error);
+      }
+    },
+
+    cancel(reason) {
+      if (cancelled) return;
+      cancelled = true;
+      abortEventStream(reason);
+      void providerReader.cancel(reason).catch(() => undefined);
+    },
+  });
 }
 
 async function buildNonStreamingResponse(

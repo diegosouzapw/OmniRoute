@@ -131,7 +131,7 @@ export class CompressionWorkerPool {
   }
   async close(): Promise<void> {
     for (const job of this.queue.splice(0)) job.resolve(unchanged(job.originalBody));
-    await Promise.all([...this.workers].map((slot) => this.remove(slot, true)));
+    await Promise.all([...this.workers].map((slot) => this.remove(slot)));
   }
   private spawn(): PoolWorker {
     const slot: PoolWorker = {
@@ -185,7 +185,10 @@ export class CompressionWorkerPool {
     slot.timeout = null;
     slot.job = null;
     job.resolve(result);
-    slot.idle = setTimeout(() => void this.remove(slot, false), this.idleMs);
+    // Idle eviction MUST terminate. Dropping the slot from the set only releases our
+    // reference - the thread, its MessagePort and its private heap outlive the pool
+    // for the whole process lifetime, invisible to process.memoryUsage(). (#12812)
+    slot.idle = setTimeout(() => void this.remove(slot), this.idleMs);
     slot.idle.unref();
     this.dispatch();
   }
@@ -193,13 +196,15 @@ export class CompressionWorkerPool {
     const job = slot.job;
     if (job) job.resolve(unchanged(job.originalBody));
     slot.job = null;
-    void this.remove(slot, true).finally(() => this.dispatch());
+    void this.remove(slot).finally(() => this.dispatch());
   }
-  private async remove(slot: PoolWorker, terminate: boolean): Promise<void> {
+  /** Drop a slot and release its OS thread. Removal always terminates: a pooled worker
+   *  has no other owner, so skipping terminate() strands the thread permanently. */
+  private async remove(slot: PoolWorker): Promise<void> {
     if (!this.workers.delete(slot)) return;
     if (slot.timeout) clearTimeout(slot.timeout);
     if (slot.idle) clearTimeout(slot.idle);
-    if (terminate) await slot.worker.terminate().catch(() => undefined);
+    await slot.worker.terminate().catch(() => undefined);
   }
 }
 

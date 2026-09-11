@@ -32,7 +32,8 @@
 // volcengine-coding-plan (regional family) — both land at 233.
 // release/v3.8.51 adds Opper (gateways, #11629) and 1min.ai (gateways, #11631) — lands at 235;
 // Perplexity Agent API (#12103) makes it 236;
-// UC Direct (#11513, uncensored.com metered Developer API) adds one frontier-labs entry — 237.
+// UC Direct (#11513, uncensored.com metered Developer API) adds one frontier-labs entry — 237;
+// SeekAi (#11786, QuantumNous New-API gateway) adds one gateways entry — 238.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
@@ -61,12 +62,12 @@ test("barrel still exports every catalog + key helpers", () => {
   }
 });
 
-test("APIKEY_PROVIDERS merges the 6 family files into 237 entries (no loss / no dup)", async () => {
+test("APIKEY_PROVIDERS merges the 6 family files into 238 entries (no loss / no dup)", async () => {
   const keys = Object.keys((P as Record<string, object>).APIKEY_PROVIDERS);
-  assert.equal(keys.length, 237);
-  assert.equal(new Set(keys).size, 237, "duplicate keys after spread-merge");
+  assert.equal(keys.length, 238);
+  assert.equal(new Set(keys).size, 238, "duplicate keys after spread-merge");
   // the merged object's entry-count equals the sum of the 6 semantic family files; families are a
-  // strict partition (every provider in exactly one), so the sum must be exactly 237.
+  // strict partition (every provider in exactly one), so the sum must be exactly 238.
   const families: [string, string][] = [
     ["gateways", "APIKEY_PROVIDERS_GATEWAYS"],
     ["frontier-labs", "APIKEY_PROVIDERS_FRONTIER"],
@@ -86,7 +87,7 @@ test("APIKEY_PROVIDERS merges the 6 family files into 237 entries (no loss / no 
       seen.add(k);
     }
   }
-  assert.equal(famTotal, 237, "families must partition all 237 providers");
+  assert.equal(famTotal, 238, "families must partition all 238 providers");
 });
 
 test("AI_PROVIDERS Proxy aggregates all sections; lookups resolve", () => {

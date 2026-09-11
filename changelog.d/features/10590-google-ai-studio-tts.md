@@ -1,1 +1,0 @@
-- Added Google AI Studio Gemini batch text-to-speech support through `POST /v1/audio/speech`.

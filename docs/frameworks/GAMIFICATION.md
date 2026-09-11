@@ -236,20 +236,18 @@ xp_for_level(n) = floor(100 * n^1.5)
 
 ### XP Rewards
 
-| Action             | XP  | Description                                               |
-| ------------------ | --- | --------------------------------------------------------- |
-| `request`          | 1   | Per successful LLM request                                |
-| `provider_switch`  | 5   | Switching to a different provider                         |
-| `combo_create`     | 10  | Creating a new combo configuration                        |
-| `combo_use`        | 2   | Using a combo (per target hit)                            |
-| `badge_earned`     | 25  | Earning any badge                                         |
-| `streak_milestone` | 15  | Reaching a streak milestone (7, 14, 30, 60, 90, 180, 365) |
-| `referral`         | 50  | Successfully referring a new user                         |
-| `token_share`      | 5   | Sharing tokens with another user                          |
-| `daily_login`      | 3   | First request of the day                                  |
-| `model_diversity`  | 3   | Using a model not used in the past 7 days                 |
-| `compression_use`  | 2   | Using prompt compression                                  |
-| `skill_use`        | 2   | Executing a skill via MCP                                 |
+| Action            | XP  | Description                                              |
+| ----------------- | --- | -------------------------------------------------------- |
+| `request`         | 1   | Per API request routed through OmniRoute                 |
+| `provider_switch` | 5   | Switching to a different provider                        |
+| `model_switch`    | 3   | Switching to a different model                           |
+| `combo_create`    | 10  | Creating a new combo                                     |
+| `combo_use`       | 2   | Using a combo for a request                              |
+| `token_share`     | 1   | Per 1 000 tokens shared with another user                |
+| `invite_redeem`   | 50  | Redeeming an invite code                                 |
+| `daily_login`     | 5   | Daily active usage (once per day)                        |
+| `streak_bonus`    | 2   | Per consecutive streak day (multiplied by streak length) |
+| `badge_unlock`    | 10  | Unlocking a badge                                        |
 
 ### Award Flow
 
@@ -812,7 +810,7 @@ Route → CORS preflight → Body validation (Zod) → Auth (extractApiKey)
 Registered in `open-sse/mcp-server/` alongside existing tools. Scoped under
 the `gamification` permission scope.
 
-| Tool                       | Description                           | Input Schema                 |
+| Tool                       | Description                           | Input Schema                 |           |
 | -------------------------- | ------------------------------------- | ---------------------------- | --------- |
 | `gamification_leaderboard` | Get leaderboard for a scope/period    | `{ scope, period?, limit? }` |
 | `gamification_rank`        | Get caller's rank and neighbors       | `{ scope }`                  |
