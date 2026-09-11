@@ -276,7 +276,8 @@ export async function runServe(opts = {}) {
     return runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort);
   }
 
-  if (opts.noRecovery) {
+  // Commander stores `--no-recovery` as `recovery === false`, never as `noRecovery`.
+  if (opts.recovery === false || opts.noRecovery === true) {
     return runWithoutRecovery(
       serverJs,
       env,
