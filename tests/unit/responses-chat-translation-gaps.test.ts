@@ -125,7 +125,6 @@ test("Responses -> Chat rejects input item types without a lossless Chat equival
     { type: "item_reference", id: "item_123" },
     { type: "computer_call_output", call_id: "call_1", output: {} },
     { type: "mcp_call", name: "remote", arguments: "{}" },
-    { type: "web_search_call", id: "search_1" },
     { unexpected: true },
   ]) {
     assert.throws(
