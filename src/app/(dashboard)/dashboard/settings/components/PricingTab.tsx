@@ -8,6 +8,7 @@ import ProviderIcon from "@/shared/components/ProviderIcon";
 import InfoTooltip from "@/shared/components/InfoTooltip";
 import { useTranslations } from "next-intl";
 import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
+import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 
 type CoverageFilter = "all" | "lt50" | "gte50lt100" | "full";
 type AuthFilter = "all" | "oauth" | "apikey" | "unknown";
@@ -366,8 +367,8 @@ export default function PricingTab() {
         });
 
         if (!response.ok) {
-          const errorPayload = (await response.json().catch(() => ({}))) as { error?: string };
-          throw new Error(errorPayload.error || t("saveFailed"));
+          const errorPayload = await response.json().catch(() => null);
+          throw new Error(extractApiErrorMessage(errorPayload, t("saveFailed")));
         }
 
         setEditedProviders((previous) => {
@@ -403,8 +404,8 @@ export default function PricingTab() {
         });
 
         if (!response.ok) {
-          const errorPayload = (await response.json().catch(() => ({}))) as { error?: string };
-          throw new Error(errorPayload.error || t("resetFailed"));
+          const errorPayload = await response.json().catch(() => null);
+          throw new Error(extractApiErrorMessage(errorPayload, t("resetFailed")));
         }
 
         setEditedProviders((previous) => {
