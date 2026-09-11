@@ -229,6 +229,7 @@ export const PROVIDER_CONNECTIONS_COLUMNS = new Set([
   "rate_limit_overrides_json",
   "created_at",
   "updated_at",
+  "synced_models_at",
 ]);
 
 // ──────────────── Provider Connections ────────────────
@@ -1058,6 +1059,29 @@ export async function touchConnectionLastUsed(
   ).run({
     lastUsedAt: now,
     consecutiveUseCount,
+    updatedAt: now,
+    id,
+  });
+}
+
+/**
+ * #12849: stamp when a connection's synced model catalog was last written.
+ * getActiveSyncedCatalog reads this to stop treating a synced catalog as
+ * authoritative forever — a connection synced once and never refreshed
+ * silently pinned routing to that point-in-time snapshot with no staleness
+ * check. Lightweight targeted UPDATE, mirrors touchConnectionLastUsed.
+ */
+export async function touchConnectionSyncedModelsAt(id: string): Promise<void> {
+  if (!id) return;
+  const db = getDbInstance() as unknown as DbLike;
+  const now = new Date().toISOString();
+  db.prepare(
+    `UPDATE provider_connections SET
+      synced_models_at = @syncedModelsAt,
+      updated_at = @updatedAt
+    WHERE id = @id`
+  ).run({
+    syncedModelsAt: now,
     updatedAt: now,
     id,
   });
