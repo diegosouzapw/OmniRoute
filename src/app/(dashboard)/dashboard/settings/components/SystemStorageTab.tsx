@@ -84,6 +84,15 @@ export default function SystemStorageTab() {
   const [storageHealth, setStorageHealth] = useState({
     driver: "sqlite",
     dbPath: "~/.omniroute/storage.sqlite",
+    postgres: null as null | {
+      connection: string;
+      database: string | null;
+      schema: string | null;
+      serverVersion: string | null;
+      sizeBytes: number;
+      tableCount: number;
+      replicas: number;
+    },
     sizeBytes: 0,
     retentionDays: {
       app: 7,
@@ -104,6 +113,7 @@ export default function SystemStorageTab() {
     keepLatest: 20,
     retentionDays: 0,
   });
+  const isPostgres = storageHealth.driver === "postgres";
 
   // Database settings state (tasks 23-26)
   const [dbSettings, setDbSettings] = useState<any>(null);
@@ -592,7 +602,7 @@ export default function SystemStorageTab() {
         } else {
           setImportStatus({ type: "error", message: data.error || t("jsonImportFailed") });
         }
-      } catch (err) {
+      } catch {
         setImportStatus({ type: "error", message: t("jsonImportError") });
       } finally {
         setImportLoading(false);
@@ -999,22 +1009,24 @@ export default function SystemStorageTab() {
             {t("saveRetentionSettings")}
           </Button>
         </div>
-        <div className="mt-5 border-t border-border/50 pt-4">
-          <DatabaseBackupRetentionCard
-            title={t("storageDatabaseBackups")}
-            className="mb-0"
-            storageHealth={storageHealth}
-            backupCleanupOptions={backupCleanupOptions}
-            setBackupCleanupOptions={setBackupCleanupOptions}
-            saveBackupRetentionLoading={saveBackupRetentionLoading}
-            backupRetentionStatus={backupRetentionStatus}
-            setBackupRetentionStatus={setBackupRetentionStatus}
-            cleanupBackupsLoading={cleanupBackupsLoading}
-            cleanupBackupsStatus={cleanupBackupsStatus}
-            onSaveRetention={handleSaveBackupRetention}
-            onCleanupBackups={handleCleanupBackups}
-          />
-        </div>
+        {!isPostgres && (
+          <div className="mt-5 border-t border-border/50 pt-4">
+            <DatabaseBackupRetentionCard
+              title={t("storageDatabaseBackups")}
+              className="mb-0"
+              storageHealth={storageHealth}
+              backupCleanupOptions={backupCleanupOptions}
+              setBackupCleanupOptions={setBackupCleanupOptions}
+              saveBackupRetentionLoading={saveBackupRetentionLoading}
+              backupRetentionStatus={backupRetentionStatus}
+              setBackupRetentionStatus={setBackupRetentionStatus}
+              cleanupBackupsLoading={cleanupBackupsLoading}
+              cleanupBackupsStatus={cleanupBackupsStatus}
+              onSaveRetention={handleSaveBackupRetention}
+              onCleanupBackups={handleCleanupBackups}
+            />
+          </div>
+        )}
       </div>
     );
   };
@@ -1272,22 +1284,42 @@ export default function SystemStorageTab() {
         </div>
         <div className="flex-1">
           <h3 className="text-lg font-semibold">{t("systemStorage")}</h3>
-          <p className="text-xs text-text-muted">{t("allDataLocal")}</p>
+          <p className="text-xs text-text-muted">
+            {isPostgres ? t("postgresShared") : t("allDataLocal")}
+          </p>
         </div>
         <Badge variant="success" size="sm">
-          {storageHealth.driver || "json"}
+          {isPostgres ? "postgresql" : storageHealth.driver || "json"}
         </Badge>
       </div>
 
       <div className="grid grid-cols-1 gap-3 mb-4">
         <div className="p-3 rounded-lg bg-bg border border-border">
           <p className="text-[11px] text-text-muted uppercase tracking-wide mb-1">
-            {t("databasePath")}
+            {isPostgres ? t("postgresConnection") : t("databasePath")}
           </p>
           <p className="text-sm font-mono text-text-main break-all">
             {storageHealth.dbPath || "~/.omniroute/storage.sqlite"}
           </p>
         </div>
+        {isPostgres && storageHealth.postgres && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              [t("postgresSchema"), storageHealth.postgres.schema ?? "public"],
+              [t("postgresServerVersion"), storageHealth.postgres.serverVersion ?? "?"],
+              [t("postgresReplicas"), String(storageHealth.postgres.replicas)],
+              [t("postgresTables"), String(storageHealth.postgres.tableCount)],
+            ].map(([label, value]) => (
+              <div key={label} className="p-3 rounded-lg bg-bg border border-border">
+                <p className="text-[11px] text-text-muted uppercase tracking-wide mb-1">{label}</p>
+                <p className="text-sm font-mono text-text-main break-all">{value}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        {isPostgres && (
+          <p className="text-xs text-text-muted">{t("postgresFileActionsUnavailable")}</p>
+        )}
       </div>
 
       {renderDatabaseStatistics()}
@@ -1303,45 +1335,51 @@ export default function SystemStorageTab() {
           <p className="font-medium">{t("export")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleExport} loading={exportLoading}>
-            <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
-              download
-            </span>
-            {t("exportDatabase")}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={async () => {
-              setExportLoading(true);
-              try {
-                await fetchAndDownload(
-                  "/api/db-backups/exportAll",
-                  "omniroute-full-backup.tar.gz",
-                  t("exportFailed")
-                );
-              } catch (err) {
-                setImportStatus({
-                  type: "error",
-                  message: t("fullExportFailedWithError", { error: (err as Error).message }),
-                });
-              } finally {
-                setExportLoading(false);
-              }
-            }}
-            loading={exportLoading}
-          >
-            <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
-              folder_zip
-            </span>
-            {t("exportAll")}
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleImportClick} loading={importLoading}>
-            <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
-              upload
-            </span>
-            {t("importDatabase")}
-          </Button>
+          {!isPostgres && (
+            <Button variant="outline" size="sm" onClick={handleExport} loading={exportLoading}>
+              <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+                download
+              </span>
+              {t("exportDatabase")}
+            </Button>
+          )}
+          {!isPostgres && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                setExportLoading(true);
+                try {
+                  await fetchAndDownload(
+                    "/api/db-backups/exportAll",
+                    "omniroute-full-backup.tar.gz",
+                    t("exportFailed")
+                  );
+                } catch (err) {
+                  setImportStatus({
+                    type: "error",
+                    message: t("fullExportFailedWithError", { error: (err as Error).message }),
+                  });
+                } finally {
+                  setExportLoading(false);
+                }
+              }}
+              loading={exportLoading}
+            >
+              <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+                folder_zip
+              </span>
+              {t("exportAll")}
+            </Button>
+          )}
+          {!isPostgres && (
+            <Button variant="outline" size="sm" onClick={handleImportClick} loading={importLoading}>
+              <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+                upload
+              </span>
+              {t("importDatabase")}
+            </Button>
+          )}
           <input
             ref={fileInputRef}
             type="file"
@@ -1440,17 +1478,19 @@ export default function SystemStorageTab() {
             </span>
             {t("purgeExpiredLogs")}
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            loading={manualVacuumLoading}
-            onClick={handleManualVacuum}
-          >
-            <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
-              cleaning_services
-            </span>
-            {t("manualVacuum")}
-          </Button>
+          {!isPostgres && (
+            <Button
+              variant="outline"
+              size="sm"
+              loading={manualVacuumLoading}
+              onClick={handleManualVacuum}
+            >
+              <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+                cleaning_services
+              </span>
+              {t("manualVacuum")}
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -1511,56 +1551,61 @@ export default function SystemStorageTab() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between p-3 rounded-lg bg-bg border border-border mb-4">
-        <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-[16px] text-amber-500" aria-hidden="true">
-            schedule
-          </span>
-          <div>
-            <p className="text-sm font-medium">{t("lastBackup")}</p>
-            <p className="text-xs text-text-muted">
-              {storageHealth.lastBackupAt
-                ? new Date(storageHealth.lastBackupAt).toLocaleString(locale) +
-                  " (" +
-                  formatRelativeTime(storageHealth.lastBackupAt) +
-                  ")"
-                : t("noBackupYet")}
-            </p>
+      {!isPostgres && (
+        <div className="flex items-center justify-between p-3 rounded-lg bg-bg border border-border mb-4">
+          <div className="flex items-center gap-2">
+            <span
+              className="material-symbols-outlined text-[16px] text-amber-500"
+              aria-hidden="true"
+            >
+              schedule
+            </span>
+            <div>
+              <p className="text-sm font-medium">{t("lastBackup")}</p>
+              <p className="text-xs text-text-muted">
+                {storageHealth.lastBackupAt
+                  ? new Date(storageHealth.lastBackupAt).toLocaleString(locale) +
+                    " (" +
+                    formatRelativeTime(storageHealth.lastBackupAt) +
+                    ")"
+                  : t("noBackupYet")}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleManualBackup}
+              loading={manualBackupLoading}
+            >
+              <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+                backup
+              </span>
+              {t("backupNow")}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setBackupsExpanded(!backupsExpanded);
+                if (!backupsExpanded && backups.length === 0) loadBackups();
+              }}
+            >
+              {backupsExpanded ? t("hide") : t("viewBackups")}
+            </Button>
           </div>
         </div>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleManualBackup}
-            loading={manualBackupLoading}
-          >
-            <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
-              backup
-            </span>
-            {t("backupNow")}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setBackupsExpanded(!backupsExpanded);
-              if (!backupsExpanded && backups.length === 0) loadBackups();
-            }}
-          >
-            {backupsExpanded ? t("hide") : t("viewBackups")}
-          </Button>
-        </div>
-      </div>
+      )}
 
       {manualBackupStatus.message && (
         <div className="mb-4">{renderStatusAlert(manualBackupStatus, 0)}</div>
       )}
       {restoreStatus.message && <div className="mb-4">{renderStatusAlert(restoreStatus, 1)}</div>}
-      {renderBackupList()}
+      {!isPostgres && renderBackupList()}
 
       {renderRetentionSettings()}
-      {renderOptimizationSettings()}
+      {!isPostgres && renderOptimizationSettings()}
       {renderCompressionAggregationSettings()}
 
       <ConfirmModal
