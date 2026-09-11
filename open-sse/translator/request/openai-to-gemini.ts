@@ -600,7 +600,11 @@ function openaiToGeminiBase(
       // Extract the schema (may be nested under .schema key)
       const schema = responseFormat.json_schema.schema || responseFormat.json_schema;
       if (schema && typeof schema === "object") {
-        result.generationConfig.responseSchema = cleanJSONSchemaForAntigravity(schema);
+        // #12308: response schemas opt in to nullability preservation; tool
+        // parameters (geminiToolsSanitizer) keep the default flattening.
+        result.generationConfig.responseSchema = cleanJSONSchemaForAntigravity(schema, {
+          preserveNullable: true,
+        });
       }
     } else if (responseFormat.type === "json_object") {
       result.generationConfig.responseMimeType = "application/json";

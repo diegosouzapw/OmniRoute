@@ -738,7 +738,49 @@ function flattenTypeArrays(obj: unknown): void {
 
 // Clean JSON Schema for Antigravity API compatibility - removes unsupported keywords recursively
 // Reference: CLIProxyAPI/internal/util/gemini_schema.go
-export function cleanJSONSchemaForAntigravity(schema: unknown): unknown {
+/**
+ * JSON Schema spells a nullable field as a union — `type: ["string","null"]`,
+ * or an anyOf/oneOf with a `{"type":"null"}` branch. Gemini's Schema proto has
+ * no unions and spells it as a sibling key, `nullable: true`. Record that
+ * before Phase 2 flattens the union and destroys the evidence (#12308).
+ *
+ * Response schemas only (opt-in below). For a tool parameter, flattening to a
+ * concrete type is correct — Gemini wants one, and the caller decides what an
+ * absent argument means. For a response schema the union is the only thing
+ * telling the model that "nothing" is a legal answer; without it a model with
+ * nothing to say returns the string "null" or fabricates a value, and either
+ * reaches the client as schema-conformant data.
+ *
+ * `nullable` survives the rest of the pipeline for free: it is absent from
+ * GEMINI_UNSUPPORTED_SCHEMA_KEYS, and flattenAnyOfOneOf merges the surviving
+ * branch with Object.assign, which cannot clobber a key the branch lacks.
+ */
+function preserveNullable(obj: unknown): void {
+  if (!obj || typeof obj !== "object") return;
+
+  const record = obj as JsonRecord;
+  const hasNullBranch = (list: unknown): boolean =>
+    Array.isArray(list) && list.some((s) => s && toRecord(s).type === "null");
+
+  if (
+    (Array.isArray(record.type) && record.type.includes("null")) ||
+    hasNullBranch(record.anyOf) ||
+    hasNullBranch(record.oneOf)
+  ) {
+    record.nullable = true;
+  }
+
+  for (const value of Object.values(record)) {
+    if (value && typeof value === "object") {
+      preserveNullable(value);
+    }
+  }
+}
+
+export function cleanJSONSchemaForAntigravity(
+  schema: unknown,
+  options: { preserveNullable?: boolean } = {}
+): unknown {
   if (!schema || typeof schema !== "object") return schema;
 
   const root = cloneSchemaValue(schema);
@@ -750,6 +792,10 @@ export function cleanJSONSchemaForAntigravity(schema: unknown): unknown {
   // Phase 1: Convert and prepare
   convertConstToEnum(cleaned);
   convertEnumValuesToStrings(cleaned);
+
+  // Phase 1b: response schemas only — record nullability while the union
+  // still exists; afterwards there is nothing left to detect (#12308).
+  if (options.preserveNullable) preserveNullable(cleaned);
 
   // Phase 2: Flatten complex structures
   mergeAllOf(cleaned);
