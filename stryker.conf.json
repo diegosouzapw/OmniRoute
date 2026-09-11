@@ -324,6 +324,7 @@
       "tests/unit/openrouter-quota-6842.test.ts",
       "tests/unit/permanent-failure-hammering-other-providers.test.ts",
       "tests/unit/persist-429-cooldown-account-fallback.test.ts",
+      "tests/unit/pipeline-optimizations-2026.test.ts",
       "tests/unit/plan3-p0.test.ts",
       "tests/unit/plugin-sandbox-permissions.test.ts",
       "tests/unit/plugins-route-error-sanitization.test.ts",
