@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { isVisionModelId } from "@/shared/constants/visionModels";
+import { MUSE_SPARK_PATTERN } from "./base/reasoningEffort.ts";
 import { REGISTRY } from "../config/providerRegistry.ts";
 import {
   BaseExecutor,
@@ -59,6 +60,29 @@ function clampMaxTokens(value: unknown): number | undefined {
   return Math.min(Math.floor(numeric), MAX_COMMAND_CODE_TOKENS);
 }
 
+/**
+ * muse-spark (Meta) models are served through command-code with a hidden
+ * server-side reasoning phase that consumes the entire output budget before any
+ * visible content is emitted. With small caller-set budgets the upstream
+ * answers HTTP 200 with an empty message and `completion_tokens == max_tokens`
+ * (the symptom this fix targets: `out=64, reasoning=61` with null content);
+ * chatCore then flags the fake success as "Provider returned empty content".
+ *
+ * Floor raised budgets only — explicit large budgets are untouched, and no
+ * budget is synthesized when the caller set none. Detection is prefix-aware so
+ * provider-prefixed ids (`meta/muse-spark-1.2-contributor`, `cmd/meta/muse-…`)
+ * are caught, not just bare `muse-spark-*`.
+ */
+const MUSE_SPARK_MIN_OUTPUT_TOKENS = 512;
+
+function applyMuseSparkMinOutputTokens(model: string, body: JsonRecord): void {
+  if (!MUSE_SPARK_PATTERN.test(model)) return;
+  const current = body.max_tokens;
+  if (typeof current !== "number" || !Number.isFinite(current)) return;
+  if (current >= MUSE_SPARK_MIN_OUTPUT_TOKENS) return;
+  body.max_tokens = MUSE_SPARK_MIN_OUTPUT_TOKENS;
+}
+
 const COMMAND_CODE_PASSTHROUGH_FIELDS = [
   "reasoning_effort",
   "reasoning",
@@ -111,6 +135,7 @@ function buildOpenAiBody(model: string, body: unknown, stream: boolean): { body:
   if (maxTokens !== undefined) {
     out.max_tokens = maxTokens;
   }
+  applyMuseSparkMinOutputTokens(resolvedModel, out);
 
   return { body: out };
 }
@@ -374,6 +399,7 @@ function buildCommandCodeCliBody(
   if (maxTokens !== undefined) {
     params.max_tokens = maxTokens;
   }
+  applyMuseSparkMinOutputTokens(resolvedModel, params);
 
   for (const field of COMMAND_CODE_PASSTHROUGH_FIELDS) {
     const value = input[field];
