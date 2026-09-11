@@ -66,7 +66,10 @@ import {
   isModelScoped400,
 } from "./comboPredicates.ts";
 import { applyComboTargetExhaustion } from "./targetExhaustion.ts";
-import { pinNativeCodexTurn } from "./nativeCodexTurnPin.ts";
+import {
+  advanceNativeCodexTurnGeneration,
+  pinNativeCodexTurn,
+} from "./nativeCodexTurnPin.ts";
 import { recordComboDecision } from "./decisionTrace.ts";
 import { recordProviderCooldown } from "../providerCooldownTracker.ts";
 import {
@@ -451,12 +454,27 @@ export async function executeTargetAttempt(opts: {
       }
 
       if (Boolean(deps.clientManagedResponsesContext) && effectiveConnectionId) {
-        pinNativeCodexTurn({
-          body: deps.body,
-          comboName: deps.combo.name,
-          target,
-          connectionId: effectiveConnectionId,
-        });
+        if (deps.nativeCodexAutoResume) {
+          const nextGen = advanceNativeCodexTurnGeneration(deps.body, deps.combo.name);
+          deps.log.info(
+            "COMBO",
+            `Native Codex auto-resume routed: new provider/model=${target.modelStr} on connection ${effectiveConnectionId.slice(0, 8)} (logical turn generation ${nextGen})`
+          );
+          pinNativeCodexTurn({
+            body: deps.body,
+            comboName: deps.combo.name,
+            target,
+            connectionId: effectiveConnectionId,
+            generation: nextGen ?? undefined,
+          });
+        } else {
+          pinNativeCodexTurn({
+            body: deps.body,
+            comboName: deps.combo.name,
+            target,
+            connectionId: effectiveConnectionId,
+          });
+        }
       }
 
       // Success decay: a healthy response walks the model's lockout failure
