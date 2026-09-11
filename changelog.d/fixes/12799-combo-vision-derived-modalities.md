@@ -1,0 +1,1 @@
+- `/v1/models` combos whose merged `capabilities.vision` is `true` now also advertise `input_modalities: ["text","image"]` / `output_modalities: ["text"]` (synced modality intersections keep precedence), so models.dev-shaped clients no longer see a vision combo as text-only. (#12799 — thanks @aref-alapour)
