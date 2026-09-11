@@ -1,0 +1,1 @@
+- Clear the `release/v3.8.51` docs-sync base-red: EURouter (#13025) and GreenPT (#13024) took the live provider count to 358, leaving 7 STRICT drifts (`PROVIDER_REFERENCE.md`, 4 diagrams, 2 tier-flow images) plus the `AGENTS.md` / `llm.txt` / `package.json` count claims stale.

@@ -1,0 +1,1 @@
+- Clear the `release/v3.8.51` typecheck base-red from #12731: the new `Mode pack ranking gates` candidates in `open-sse/services/autoCombo/__tests__/autoCombo.test.ts` omitted the required `provider`, `model` and `errorRate` fields of `ProviderCandidate`, failing `check:open-sse-typecheck` (and with it `Fast Quality Gates`) on every open PR.

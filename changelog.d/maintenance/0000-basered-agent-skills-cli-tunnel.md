@@ -1,0 +1,1 @@
+- Clear the `release/v3.8.51` `check:agent-skills-sync` base-red: regenerate `skills/cli-tunnel/SKILL.md` so the `tunnel create [type]` positional that #13009 taught the generator to read is reflected in the committed skill.
