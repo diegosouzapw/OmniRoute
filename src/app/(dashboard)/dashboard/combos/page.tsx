@@ -82,6 +82,7 @@ import {
   normalizeIntelligentRoutingConfig,
 } from "@/lib/combos/intelligentRouting";
 import { getComboStepTarget } from "@/lib/combos/steps";
+import { DEAD_COMBO_CONFIG_KEYS } from "@/lib/combos/deadConfigKeys";
 import { resolveServerErrorMessage } from "@/lib/api/serverErrorMessage";
 import { useTranslations } from "next-intl";
 
@@ -217,23 +218,13 @@ const ADVANCED_FIELD_HELP_FALLBACK = {
     "What to do when the next combo target cannot accept the original reasoning transport. Drop is the default: it removes reasoning state and tries the target. Skip leaves the request body untouched and falls through.",
 };
 
-const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
+// UI-only keys the modal manages itself (never persisted by this path):
+// timeoutMs, healthCheckEnabled, healthCheckTimeoutMs.
+const NON_PERSISTED_COMBO_CONFIG_KEYS = new Set([
+  ...DEAD_COMBO_CONFIG_KEYS,
   "timeoutMs",
   "healthCheckEnabled",
   "healthCheckTimeoutMs",
-  "queueTimeoutMs",
-  "queueDepth",
-  "fallbackDelayMs",
-  "handoffProviders",
-  "maxComboDepth",
-  "manifestRouting",
-  "complexityAwareRouting",
-  "pipeline_enabled",
-  "pipelineConcurrency",
-  "shadowRouting",
-  "evalRouting",
-  "resetAwareEnabled",
-  "resetAwareWindow",
 ]);
 const MS_PER_SECOND = 1000;
 
@@ -255,7 +246,7 @@ function sanitizeComboRuntimeConfig(config) {
   return Object.fromEntries(
     Object.entries(config).filter(
       ([key, value]) =>
-        value !== undefined && value !== null && !LEGACY_COMBO_RESILIENCE_KEYS.has(key)
+        value !== undefined && value !== null && !NON_PERSISTED_COMBO_CONFIG_KEYS.has(key)
     )
   );
 }
