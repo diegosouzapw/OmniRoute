@@ -1,6 +1,9 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
+import { createGeminiToolCallIdPairing } from "../helpers/geminiToolCallIds.ts";
+
+const newCallId = () => `call_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
 // Convert Gemini request to OpenAI format
 export function geminiToOpenAIRequest(model, body, stream) {
@@ -46,8 +49,10 @@ export function geminiToOpenAIRequest(model, body, stream) {
 
   // Convert contents to messages
   if (body.contents && Array.isArray(body.contents)) {
+    const toolCallIds = createGeminiToolCallIdPairing(newCallId);
     for (const content of splitCoLocatedFunctionResponses(body.contents)) {
-      const converted = convertGeminiContentWithReasoning(content);
+      toolCallIds.beginContent(content);
+      const converted = convertGeminiContentWithReasoning(content, toolCallIds);
       if (converted) {
         result.messages.push(converted);
       }
@@ -109,7 +114,7 @@ function splitCoLocatedFunctionResponses(contents) {
   return out;
 }
 
-function convertGeminiContent(content) {
+function convertGeminiContent(content, toolCallIds) {
   const role = content.role === "user" ? "user" : "assistant";
 
   if (!content.parts || !Array.isArray(content.parts)) {
@@ -137,7 +142,7 @@ function convertGeminiContent(content) {
 
     if (part.functionCall) {
       toolCalls.push({
-        id: part.functionCall.id || `call_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        id: toolCallIds.callId(part.functionCall),
         type: "function",
         function: {
           name: part.functionCall.name,
@@ -152,7 +157,7 @@ function convertGeminiContent(content) {
         resp && typeof resp === "object" && "result" in resp ? resp.result : (resp ?? {});
       return {
         role: "tool",
-        tool_call_id: part.functionResponse.id || part.functionResponse.name,
+        tool_call_id: toolCallIds.responseId(part.functionResponse),
         content: JSON.stringify(resultPayload),
       };
     }
@@ -189,9 +194,9 @@ function convertGeminiContent(content) {
 // prevents Reasoning Replay Cache (docs/routing/REASONING_REPLAY.md) from ever seeing
 // it as `reasoning_content`. Split thought parts out first and re-attach the joined
 // text as `reasoning_content` on the resulting message instead.
-function convertGeminiContentWithReasoning(content) {
+function convertGeminiContentWithReasoning(content, toolCallIds) {
   if (!content || !Array.isArray(content.parts)) {
-    return convertGeminiContent(content);
+    return convertGeminiContent(content, toolCallIds);
   }
 
   let reasoningContent = "";
@@ -205,10 +210,10 @@ function convertGeminiContentWithReasoning(content) {
   }
 
   if (!reasoningContent) {
-    return convertGeminiContent(content);
+    return convertGeminiContent(content, toolCallIds);
   }
 
-  const converted = convertGeminiContent({ ...content, parts: visibleParts });
+  const converted = convertGeminiContent({ ...content, parts: visibleParts }, toolCallIds);
 
   if (converted && converted.role !== "tool") {
     return { ...converted, reasoning_content: reasoningContent };
