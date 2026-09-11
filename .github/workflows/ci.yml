@@ -144,6 +144,12 @@ jobs:
       - run: npm run check:test-discovery
       - run: npm run check:radar-sentinels
       - run: npm run check:tracked-artifacts
+      # A test parked in vitest.config.ts's exclude list does not run, and looks like
+      # coverage to whoever reads the tree. 62 files accumulated behind a comment pointing
+      # at #8618 — closed in August while the list grew to 62; 51 of them passed when
+      # finally measured (#13204). This gate requires every exclusion to name a tracker and
+      # to appear in config/quality/vitest-exclusions.json, so the debt stays reviewable.
+      - run: npm run check:vitest-exclusions
       # (gap 30) Also lives in quality.yml's PR-only "Merge integrity" job — because the
       # CHANGELOG half of that job needs a base to diff against. This half does NOT: the
       # generator either reproduces the committed SKILL.md files or it does not.
@@ -515,6 +521,16 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref && format('origin/{0}', github.base_ref) || '' }}
         run: node scripts/i18n/check-ui-value-drift.mjs
+      # Sibling of the drift gate above. That one catches an English value that was
+      # REWRITTEN; this one catches an English key that was ADDED while some locales never
+      # got it. The coverage gate at the top of this job cannot: it is a percentage per
+      # locale, and 11 absent keys out of ~13,000 leaves coverage at 99.9%. Incident: the
+      # Phase 3 canvas keys were translated across the 42 locales that existed, then the EU
+      # batch (#13044) took the repo to 51 and the nine newcomers shipped untranslated.
+      - name: i18n new-key coverage (a new key must reach every locale)
+        env:
+          BASE_REF: ${{ github.base_ref && format('origin/{0}', github.base_ref) || '' }}
+        run: node scripts/i18n/check-new-key-coverage.mjs
 
   # #8038: cheap glossary/protected-terms consistency gate —
   # complements i18n-ui-coverage (key parity) and the ICU `i18n` job below

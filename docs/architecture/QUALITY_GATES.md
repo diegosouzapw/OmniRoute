@@ -71,6 +71,7 @@ Runs on every PR to `main`. Blocks merge on failure.
 | `check:lockfile`                  | `package-lock.json` integrity — https registry, integrity hashes, no host overrides                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Yes                                      |
 | `check:licenses`                  | SPDX license allowlist for production dependencies                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Yes                                      |
 | `check:tracked-artifacts`         | No build artifacts / committed `node_modules` symlinks (also runs in husky pre-commit; pre-push is intentionally light — #6716)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Yes                                      |
+| `check:vitest-exclusions`         | Every Vitest exclusion names a tracking issue and appears in `config/quality/vitest-exclusions.json` (#13204)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Yes                                      |
 | `check:file-size`                 | No source file exceeds the per-extension cap (ratchet: frozen large files in `frozen` list)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Yes                                      |
 | `check:error-helper`              | Error responses in executors/handlers use `buildErrorBody()` / `sanitizeErrorMessage()` (Hard Rule #12)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Yes                                      |
 | `check:migration-numbering`       | Migration SQL files are sequentially numbered, no gaps or duplicates                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Yes                                      |
@@ -143,6 +144,7 @@ Runs on every PR to `main`. Blocks merge on failure.
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
 | `check-ui-keys-coverage` (inline) | UI i18n key coverage is ≥ 65%                                                                                                                                                         | Yes          |
 | `check-ui-value-drift` (inline)   | A rewritten English **value** leaves no stale translation behind                                                                                                                      | Yes          |
+| `check-new-key-coverage` (inline) | A **new** English key reaches every locale                                                                                                                                            | Yes          |
 | `check-translation-ratio`         | Real-translation ratio per locale (identical-to-English / placeholder / missing leaves outside the allowlist) must not exceed `config/quality/i18n-translation-baseline.json` + slack | **Advisory** |
 
 Needs `fetch-depth: 0` — the value-drift gate diffs `en.json` against the merge base.
@@ -533,3 +535,40 @@ several "obvious" merges turned out to hide debt and are **not** clean drop-ins.
 ## Related Documentation
 
 - Supply-chain (provenance, SBOM, Trivy, Scorecard): [`docs/security/SUPPLY_CHAIN.md`](../security/SUPPLY_CHAIN.md)
+
+#### `check-new-key-coverage` — new-key i18n gate
+
+Sibling of `check-ui-value-drift`. That one catches an English value that was **rewritten**
+while its translations were left behind; this one catches an English key that was **added**
+while some locales never received it.
+
+`check-ui-keys-coverage` cannot see this class: it enforces a percentage floor per locale, and
+eleven absent keys out of ~13,000 leaves coverage at 99.9%. A percentage per language cannot
+express "this feature shipped untranslated" — an entire feature can land in a new locale with no
+text and never move the number.
+
+The incident it encodes: Phase 3 of the Orchestration Canvas translated its eleven keys across
+the 42 locales that existed at the time. Hours later the EU-language batch (#13044) took the repo
+to 51 locales, and the nine newcomers (`el`, `et`, `ga`, `hr`, `lt`, `lv`, `mt`, `sl`, `sr`) never
+received them. `deepMergeFallback` substitutes English for an absent key, so the failure mode was
+untranslated UI rather than blank UI — real, and silent by construction.
+
+Like its sibling it is **diff-aware**, comparing English at the merge base against the working
+tree, so pre-existing gaps stay frozen and the gate needed no migration to turn on. Escape hatch:
+`__MISSING__:<english>` defers a translation while keeping the runtime correct. `vi` bans
+placeholders (`tests/unit/i18n-vi-completeness.test.ts`) and needs a real translation.
+
+#### `check-vitest-exclusions` — parked-test gate
+
+A file in `vitest.config.ts`'s `exclude` list is a test that does not run, and it looks like
+coverage to whoever reads the tree. Sixty-two files accumulated behind the comment
+`// #8618 — pre-existing failure; remove this exclusion when fixed`. Issue #8618 was closed on
+2026-08-11 while the list it tracked grew from 45 entries to 62, each new one inheriting a comment
+pointing at a dead issue. When the list was finally measured file by file (#13204), **51 of the 62
+passed against the current tree with no source change**.
+
+The gate requires every exclusion that resolves to a real file to (a) name a tracking issue and
+(b) appear in `config/quality/vitest-exclusions.json` with its measured status, so adding one is a
+reviewable diff in a dedicated file rather than one more line in a 60-entry array. It deliberately
+does not re-run the excluded tests — that costs ~10 minutes and belongs in a periodic job; the
+inventory records when each was last measured.

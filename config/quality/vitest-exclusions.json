@@ -1,0 +1,72 @@
+{
+  "_comment": "Inventário dos arquivos de teste excluídos do Vitest. Toda entrada precisa de uma issue de rastreio ABERTA. Gate: npm run check:vitest-exclusions. Contexto: #13204.",
+  "_measured": "2026-09-10 — cada arquivo rodado isoladamente com as exclusões removidas",
+  "excluded": [
+    {
+      "file": "tests/unit/ui/request-logger-autorefresh-visibility-3972.test.tsx",
+      "issue": "#13204",
+      "measured": "2026-09-10",
+      "status": "Tests 1 failed | 5 passed (6)"
+    },
+    {
+      "file": "src/app/(dashboard)/dashboard/webhooks/__tests__/webhook-wizard.test.tsx",
+      "issue": "#13204",
+      "measured": "2026-09-10",
+      "status": "Tests 1 failed | 6 passed (7)"
+    },
+    {
+      "file": "tests/unit/ui/logs-page-detail-modal-reopen-on-close.test.tsx",
+      "issue": "#13204",
+      "measured": "2026-09-10",
+      "status": "Tests 2 failed (2)"
+    },
+    {
+      "file": "tests/unit/ui/agent-card.test.tsx",
+      "issue": "#13204",
+      "measured": "2026-09-10",
+      "status": "Tests 3 failed | 1 passed (4)"
+    },
+    {
+      "file": "src/app/(dashboard)/dashboard/endpoint/__tests__/ApiEndpointsTab.test.tsx",
+      "issue": "#13204",
+      "measured": "2026-09-10",
+      "status": "Tests 2 failed | 1 passed (3)"
+    },
+    {
+      "file": "src/app/(dashboard)/dashboard/cache/__tests__/CacheTrends.test.tsx",
+      "issue": "#13204",
+      "measured": "2026-09-10",
+      "status": "Tests 7 failed | 6 passed (13)"
+    },
+    {
+      "file": "src/app/(dashboard)/dashboard/cache/__tests__/IdempotencyLayer.test.tsx",
+      "issue": "#13204",
+      "measured": "2026-09-10",
+      "status": "Tests 9 failed | 4 passed (13)"
+    },
+    {
+      "file": "src/app/(dashboard)/dashboard/cache/__tests__/CachePerformance.test.tsx",
+      "issue": "#13204",
+      "measured": "2026-09-10",
+      "status": "Tests 10 failed | 4 passed (14)"
+    },
+    {
+      "file": "src/app/(dashboard)/dashboard/discovery/__tests__/DiscoveryPageClient.test.tsx",
+      "issue": "#13204",
+      "measured": "2026-09-10",
+      "status": "Tests 2 failed | 1 passed (3)"
+    },
+    {
+      "file": "tests/unit/ui/combos-page-smoke.test.tsx",
+      "issue": "#13204",
+      "measured": "2026-09-10",
+      "status": "Tests 1 failed (1)"
+    },
+    {
+      "file": "tests/unit/ui/evals-tab-smoke.test.tsx",
+      "issue": "#13204",
+      "measured": "2026-09-10",
+      "status": "Tests 1 failed (1)"
+    }
+  ]
+}
