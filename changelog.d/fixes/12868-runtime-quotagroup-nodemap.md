@@ -1,0 +1,1 @@
+- **fix(dashboard):** pass `nodeMap` into Runtime `QuotaGroup` so a quota monitor in error/exhausted/alerting no longer throws `ReferenceError: nodeMap is not defined`. ([#12868](https://github.com/diegosouzapw/OmniRoute/pull/12868))

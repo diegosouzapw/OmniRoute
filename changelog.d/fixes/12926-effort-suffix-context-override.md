@@ -1,0 +1,1 @@
+- **fix(combos):** Effort-suffixed combo members inherit the base model's `model_context_overrides` row so priority order is not inverted on large requests ([#12926](https://github.com/diegosouzapw/OmniRoute/pull/12926)) — thanks @HouMinXi

@@ -23,6 +23,36 @@ export function projectFailureUsageErrorCode(opts: {
   return errorBody.error.code || String(opts.statusCode);
 }
 
+export interface FailureUsageAggregate {
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  cache_read_input_tokens?: number;
+  cache_creation_input_tokens?: number;
+  reasoning_tokens?: number;
+}
+
+export function toFailureUsageAggregate(
+  usage:
+    | {
+        prompt_tokens?: number;
+        completion_tokens?: number;
+        cache_read_input_tokens?: number;
+        cache_creation_input_tokens?: number;
+        reasoning_tokens?: number;
+      }
+    | null
+    | undefined
+): FailureUsageAggregate | undefined {
+  if (!usage) return undefined;
+  return {
+    prompt_tokens: usage.prompt_tokens,
+    completion_tokens: usage.completion_tokens,
+    cache_read_input_tokens: usage.cache_read_input_tokens,
+    cache_creation_input_tokens: usage.cache_creation_input_tokens,
+    reasoning_tokens: usage.reasoning_tokens,
+  };
+}
+
 export function buildFailureUsageRecord(opts: {
   provider: string | null | undefined;
   model: string | null | undefined;
@@ -35,11 +65,18 @@ export function buildFailureUsageRecord(opts: {
   errorCode: string | null | undefined;
   latencyMs: number;
   endpoint?: string | null | undefined;
+  aggregate?: FailureUsageAggregate | null;
 }) {
   return {
     provider: opts.provider || "unknown",
     model: opts.model || "unknown",
-    tokens: { input: 0, output: 0, cacheRead: 0, cacheCreation: 0, reasoning: 0 },
+    tokens: {
+      input: opts.aggregate?.prompt_tokens ?? 0,
+      output: opts.aggregate?.completion_tokens ?? 0,
+      cacheRead: opts.aggregate?.cache_read_input_tokens ?? 0,
+      cacheCreation: opts.aggregate?.cache_creation_input_tokens ?? 0,
+      reasoning: opts.aggregate?.reasoning_tokens ?? 0,
+    },
     status: String(opts.statusCode),
     success: false,
     latencyMs: opts.latencyMs,

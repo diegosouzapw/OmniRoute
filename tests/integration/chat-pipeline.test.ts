@@ -1269,6 +1269,10 @@ test("chat pipeline returns current no-credentials contract when no provider con
 
 test("chat pipeline surfaces upstream 500 responses as structured errors", async () => {
   await seedConnection("openai", { apiKey: "sk-openai-500" });
+  await settingsDb.updateSettings({
+    requestRetry: 0,
+    maxRetryIntervalSec: 0,
+  });
 
   globalThis.fetch = async () =>
     new Response(JSON.stringify({ error: { message: "provider exploded" } }), {

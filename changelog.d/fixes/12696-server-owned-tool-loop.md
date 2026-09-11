@@ -1,0 +1,1 @@
+- **fix(chat):** Chat Completions no longer return empty `content` after a server-owned memory or skills tool; the first provider send and account/model recovery now share one pipeline so a follow-up round-trip can fill the reply ([#12696](https://github.com/diegosouzapw/OmniRoute/issues/12696)) — thanks @HouMinXi

@@ -55,4 +55,10 @@ describe("providerUsesExclusiveSyncedListing", () => {
     assert.equal(providerUsesExclusiveSyncedListing("openai"), false);
     assert.equal(providerUsesExclusiveSyncedListing(""), false);
   });
+
+  it("test 10: exclusive listing stays cursor-only; claude is not cursor", () => {
+    assert.equal(providerUsesExclusiveSyncedListing("claude"), false);
+    assert.equal(providerUsesExclusiveSyncedListing("codex"), false);
+    assert.equal(providerUsesExclusiveSyncedListing("agy"), false);
+  });
 });

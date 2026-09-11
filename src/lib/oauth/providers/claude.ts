@@ -143,6 +143,7 @@ export const claude = {
     const providerSpecificData: any = {
       // Generated once at provisioning; preserved across token refresh.
       cliUserID: crypto.randomBytes(32).toString("hex"),
+      autoSync: true,
     };
     if (bs.account_uuid) providerSpecificData.accountUUID = bs.account_uuid;
     if (bs.organization_uuid) providerSpecificData.organizationUUID = bs.organization_uuid;

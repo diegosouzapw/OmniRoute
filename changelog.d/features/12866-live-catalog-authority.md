@@ -1,0 +1,2 @@
+- **feat(models):** Account live listings become the chat catalog source for Claude, Codex, Copilot, and AGY; public metadata only fills prices on IDs those accounts already list. ([#12866](https://github.com/diegosouzapw/OmniRoute/pull/12866))
+- **fix(models):** Union `agy` and `antigravity` live catalogs so `agy/gemini-3.8-flash-high` is not rejected after the prefix folds to `antigravity`. ([#12866](https://github.com/diegosouzapw/OmniRoute/pull/12866))

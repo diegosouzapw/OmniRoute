@@ -1,0 +1,1 @@
+- **feat(grok-cli):** Provider Limits shows grok-cli banked reset credits from `GetRemainingResets` (including a real zero; a failed RPC omits the row) and the existing View credits button now calls `ConsumerUiSvc/RedeemReset` for grok-cli. Live tokens use nested fields 10/20/30 (id + Timestamp), not compact 1/2/3.
