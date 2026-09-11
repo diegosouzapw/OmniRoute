@@ -228,6 +228,15 @@ export const comboRuntimeConfigSchema = z
     slaMaxCostPer1MTokens: z.coerce.number().positive().max(1000000).optional(),
     slaHardConstraints: z.boolean().optional(),
     sla: slaRoutingPolicySchema.optional(),
+    // `nadir` auto-router strategy (open-sse/services/autoCombo/nadirStrategy.ts).
+    nadir: z
+      .object({
+        apiKey: z.string().trim().max(200).optional(),
+        baseUrl: z.string().trim().max(500).optional(),
+        timeoutMs: z.coerce.number().int().min(100).max(30_000).optional(),
+      })
+      .strict()
+      .optional(),
     compositeTiers: compositeTiersSchema.optional(),
     resetAwareSessionWeight: z.coerce.number().min(0).max(100).optional(),
     resetAwareWeeklyWeight: z.coerce.number().min(0).max(100).optional(),

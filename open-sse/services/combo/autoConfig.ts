@@ -4,6 +4,7 @@ import {
   type ScoringWeights,
 } from "../autoCombo/scoring.ts";
 import { getModePack } from "../autoCombo/modePacks.ts";
+import { resolveNadirRoutingConfig } from "../autoCombo/nadirStrategy.ts";
 import { isRecord } from "./comboData.ts";
 import { resolveResetWindowConfig, resolveSlaRoutingPolicy } from "./quotaScoring.ts";
 import type { ComboLike, ResolvedComboTarget } from "./types.ts";
@@ -13,7 +14,8 @@ import type { ComboLike, ResolvedComboTarget } from "./types.ts";
  *
  * Pure function of `(combo, eligibleTargets)`: derives the router strategy name,
  * candidate provider pool, scoring weights, exploration rate, budget cap, mode
- * pack, reset-window config and SLA policy from the combo's `autoConfig`/`config`.
+ * pack, reset-window config, SLA policy and Nadir config from the combo's
+ * `autoConfig`/`config`.
  * No side effects, no early returns — extracted verbatim from `handleComboChat`
  * so its behavior is byte-identical to the previous inline block.
  */
@@ -62,6 +64,7 @@ export function parseAutoConfig(combo: ComboLike, eligibleTargets: ResolvedCombo
   );
   const resetWindowConfig = resolveResetWindowConfig(autoConfigSource);
   const slaPolicy = resolveSlaRoutingPolicy(autoConfigSource);
+  const nadirConfig = resolveNadirRoutingConfig(autoConfigSource.nadir);
 
   return {
     routingStrategy,
@@ -73,5 +76,6 @@ export function parseAutoConfig(combo: ComboLike, eligibleTargets: ResolvedCombo
     modePack,
     resetWindowConfig,
     slaPolicy,
+    nadirConfig,
   };
 }
