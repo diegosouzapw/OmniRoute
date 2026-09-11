@@ -1,0 +1,1 @@
+- feat(providers): update Fish Audio for S2.1 Pro Free, validated advanced TTS controls, and provider-scoped persistent voice-clone management.
