@@ -117,7 +117,10 @@ test("request: functionResponse part → tool role message", () => {
 
   const toolMsg = out.messages.find((m) => m.role === "tool");
   assert.ok(toolMsg, "tool message should exist");
-  assert.equal(toolMsg.tool_call_id, "get_weather");
+  // Neither part carries an id, so the response must answer the call's generated id —
+  // the function name matches no call and the result would be dropped downstream.
+  const assistantMsg = out.messages.find((m) => m.role === "assistant");
+  assert.equal(toolMsg.tool_call_id, assistantMsg.tool_calls[0].id);
   assert.deepEqual(JSON.parse(toolMsg.content), { tempC: 18 });
 });
 
