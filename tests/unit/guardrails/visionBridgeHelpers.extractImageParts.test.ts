@@ -205,3 +205,59 @@ test("extractImageParts supports both base64 and url source blocks in one messag
   assert.strictEqual(result[1].imageType, "url");
   assert.strictEqual(result[1].imageUrl, "https://example.com/B.png");
 });
+
+test("extractImageParts extracts a base64 image nested inside a tool_result content array", () => {
+  // Claude Code sends tool-result images as {type:"image", source:{base64}}
+  // inside the tool_result part's OWN content array (nested, not top-level).
+  const messages = [
+    {
+      role: "user",
+      content: [
+        {
+          type: "tool_result",
+          tool_use_id: "toolu_01",
+          content: [
+            {
+              type: "image",
+              source: { type: "base64", media_type: "image/png", data: "AAA=" },
+            },
+          ],
+        },
+        { type: "text", text: "[Image description]" },
+      ],
+    },
+  ] as unknown as RequestMessage[];
+
+  const result = extractImageParts(messages);
+  assert.strictEqual(result.length, 1);
+  assert.strictEqual(result[0].messageIndex, 0);
+  assert.strictEqual(result[0].partIndex, 0);
+  assert.strictEqual(result[0].imageUrl, "data:image/png;base64,AAA=");
+  assert.strictEqual(result[0].imageType, "image");
+  assert.deepStrictEqual(result[0].path, ["content", 0]);
+});
+
+test("extractImageParts keeps document order when nested and top-level images mix", () => {
+  const messages = [
+    {
+      role: "user",
+      content: [
+        {
+          type: "tool_result",
+          tool_use_id: "toolu_02",
+          content: [{ type: "image_url", image_url: { url: "https://example.com/in.png" } }],
+        },
+        { type: "image_url", image_url: { url: "https://example.com/top.png" } },
+      ],
+    },
+  ] as unknown as RequestMessage[];
+
+  const result = extractImageParts(messages);
+  assert.strictEqual(result.length, 2);
+  // Nested hit first, with a path pointing into the tool_result content.
+  assert.strictEqual(result[0].imageUrl, "https://example.com/in.png");
+  assert.deepStrictEqual(result[0].path, ["content", 0]);
+  // Top-level hit second, no path (plain partIndex splice).
+  assert.strictEqual(result[1].imageUrl, "https://example.com/top.png");
+  assert.strictEqual(result[1].path, undefined);
+});

@@ -25,6 +25,13 @@ export interface MediaPart {
    * replace top-level parts, so they must skip nested hits.
    */
   nested: boolean;
+  /**
+   * Path from the top-level content part (`message.content[partIndex]`) to the
+   * media OBJECT itself. `[]` for top-level hits; for nested hits the keys /
+   * indexes to walk from the container part down to the media object (e.g.
+   * `["content", 0]` for an image inside a tool_result's content array).
+   */
+  path: (string | number)[];
   /** Original wire shape, for callers that need format-specific handling. */
   shape:
     | "image_url"
@@ -72,7 +79,8 @@ function pushPart(
   kind: MediaKind,
   ref: string,
   shape: MediaPart["shape"],
-  depth: number
+  depth: number,
+  path: (string | number)[]
 ): void {
   ctx.out.push({
     kind,
@@ -80,6 +88,7 @@ function pushPart(
     messageIndex: ctx.messageIndex,
     partIndex: ctx.partIndex,
     nested: depth > 0,
+    path,
     shape,
   });
   if (ctx.stopAtKind === kind) ctx.found = true;
@@ -90,12 +99,20 @@ function inspectImageShapes(
   obj: Record<string, unknown>,
   type: string | undefined,
   ctx: DetectCtx,
-  depth: number
+  depth: number,
+  path: (string | number)[]
 ): boolean {
   if (type === "image_url" || type === "input_image") {
     const url = urlFrom(obj.image_url);
     if (url) {
-      pushPart(ctx, "image", url, type === "input_image" ? "input_image" : "image_url", depth);
+      pushPart(
+        ctx,
+        "image",
+        url,
+        type === "input_image" ? "input_image" : "image_url",
+        depth,
+        path
+      );
       return true;
     }
   }
@@ -103,13 +120,13 @@ function inspectImageShapes(
     const source = obj.source as Record<string, unknown> | undefined;
     if (source?.type === "base64" && typeof source.data === "string") {
       const media = typeof source.media_type === "string" ? source.media_type : "image/png";
-      pushPart(ctx, "image", `data:${media};base64,${source.data}`, "image_base64", depth);
+      pushPart(ctx, "image", `data:${media};base64,${source.data}`, "image_base64", depth, path);
       return true;
     }
     // Non-empty url required: an empty `source.url` is not an extractable image
     // (mirrors the guardrail's historical `if (url)` guard).
     if (source?.type === "url" && typeof source.url === "string" && source.url) {
-      pushPart(ctx, "image", source.url, "image_source_url", depth);
+      pushPart(ctx, "image", source.url, "image_source_url", depth, path);
       return true;
     }
   }
@@ -126,26 +143,27 @@ function inspectAudioShapes(
   type: string | undefined,
   mediaType: unknown,
   ctx: DetectCtx,
-  depth: number
+  depth: number,
+  path: (string | number)[]
 ): boolean {
   if (type === "input_audio") {
     const audio = obj.input_audio as Record<string, unknown> | undefined;
     if (typeof audio?.data === "string") {
-      pushPart(ctx, "audio", audio.data, "input_audio", depth);
+      pushPart(ctx, "audio", audio.data, "input_audio", depth, path);
       return true;
     }
   }
   if (type === "audio_url") {
     const url = urlFrom(obj.audio_url);
     if (url) {
-      pushPart(ctx, "audio", url, "audio_url", depth);
+      pushPart(ctx, "audio", url, "audio_url", depth, path);
       return true;
     }
   }
   if (typeof mediaType === "string" && mediaType.startsWith("audio/")) {
     const data = (obj.source as Record<string, unknown>).data;
     if (typeof data === "string") {
-      pushPart(ctx, "audio", data, "audio_source", depth);
+      pushPart(ctx, "audio", data, "audio_source", depth, path);
       return true;
     }
   }
@@ -158,19 +176,20 @@ function inspectVideoShapes(
   type: string | undefined,
   mediaType: unknown,
   ctx: DetectCtx,
-  depth: number
+  depth: number,
+  path: (string | number)[]
 ): boolean {
   if (type === "input_video") {
     const ref = urlFrom(obj.video_url ?? obj.input_video ?? obj.url);
     if (ref) {
-      pushPart(ctx, "video", ref, "input_video", depth);
+      pushPart(ctx, "video", ref, "input_video", depth, path);
       return true;
     }
   }
   if (type === "video_url") {
     const ref = urlFrom(obj.video_url);
     if (ref) {
-      pushPart(ctx, "video", ref, "video_url", depth);
+      pushPart(ctx, "video", ref, "video_url", depth, path);
       return true;
     }
   }
@@ -181,13 +200,20 @@ function inspectVideoShapes(
     // Base64 must carry an explicit video MIME. This prevents a type:video wrapper
     // from relabelling arbitrary base64 content as MP4.
     if (videoMediaType && typeof source.data === "string") {
-      pushPart(ctx, "video", `data:${mediaType};base64,${source.data}`, "video_source", depth);
+      pushPart(
+        ctx,
+        "video",
+        `data:${mediaType};base64,${source.data}`,
+        "video_source",
+        depth,
+        path
+      );
       return true;
     }
     const ref = urlFrom(source.url);
     const explicitAnthropicUrl = type === "video" && source.type === "url";
     if (ref && (explicitAnthropicUrl || type === "video_source" || videoMediaType)) {
-      pushPart(ctx, "video", ref, "video_source", depth);
+      pushPart(ctx, "video", ref, "video_source", depth, path);
       return true;
     }
   }
@@ -207,7 +233,8 @@ function inspectImageIndicators(
   type: string | undefined,
   mediaType: unknown,
   ctx: DetectCtx,
-  depth: number
+  depth: number,
+  path: (string | number)[]
 ): boolean {
   const lowerType = type?.toLowerCase();
   const looksLikeImage =
@@ -219,20 +246,31 @@ function inspectImageIndicators(
   const imageMediaType =
     typeof mediaType === "string" && mediaType.toLowerCase().startsWith("image/");
   if (!looksLikeImage && !imageMediaType) return false;
-  pushPart(ctx, "image", urlFrom(obj.image_url ?? obj.input_image) ?? "", "image_indicator", depth);
+  pushPart(
+    ctx,
+    "image",
+    urlFrom(obj.image_url ?? obj.input_image) ?? "",
+    "image_indicator",
+    depth,
+    path
+  );
   return true;
 }
 
-function inspect(value: unknown, ctx: DetectCtx, depth: number): void {
+function inspect(value: unknown, ctx: DetectCtx, depth: number, path: (string | number)[]): void {
   if (ctx.found || depth > MAX_DEPTH || value == null) return;
   if (typeof value === "string") {
-    if (value.startsWith("data:image/")) pushPart(ctx, "image", value, "data_uri_string", depth);
-    if (value.startsWith("data:video/")) pushPart(ctx, "video", value, "data_uri_string", depth);
+    if (value.startsWith("data:image/")) {
+      pushPart(ctx, "image", value, "data_uri_string", depth, path);
+    }
+    if (value.startsWith("data:video/")) {
+      pushPart(ctx, "video", value, "data_uri_string", depth, path);
+    }
     return;
   }
   if (Array.isArray(value)) {
-    for (const entry of value) {
-      inspect(entry, ctx, depth + 1);
+    for (let i = 0; i < value.length; i++) {
+      inspect(value[i], ctx, depth + 1, [...path, i]);
       if (ctx.found) return;
     }
     return;
@@ -241,18 +279,18 @@ function inspect(value: unknown, ctx: DetectCtx, depth: number): void {
   const obj = value as Record<string, unknown>;
   const type = typeof obj.type === "string" ? obj.type : undefined;
 
-  if (inspectImageShapes(obj, type, ctx, depth)) return;
+  if (inspectImageShapes(obj, type, ctx, depth, path)) return;
 
   const mediaType = (obj.source as Record<string, unknown> | undefined)?.media_type;
   // Audio does not early-return: the same object can also carry image
   // indicators (bare `image_url`/`input_image` keys the legacy combo filter
   // matched) or nest image parts inside its payload.
-  inspectAudioShapes(obj, type, mediaType, ctx, depth);
+  inspectAudioShapes(obj, type, mediaType, ctx, depth, path);
   if (ctx.found) return;
-  if (inspectVideoShapes(obj, type, mediaType, ctx, depth)) return;
-  if (inspectImageIndicators(obj, type, mediaType, ctx, depth)) return;
-  for (const nested of Object.values(obj)) {
-    inspect(nested, ctx, depth + 1);
+  if (inspectVideoShapes(obj, type, mediaType, ctx, depth, path)) return;
+  if (inspectImageIndicators(obj, type, mediaType, ctx, depth, path)) return;
+  for (const [key, nested] of Object.entries(obj)) {
+    inspect(nested, ctx, depth + 1, [...path, key]);
     if (ctx.found) return;
   }
 }
@@ -266,7 +304,7 @@ export function detectMediaParts(
     const content = messages[messageIndex]?.content;
     if (!Array.isArray(content)) continue;
     for (let partIndex = 0; partIndex < content.length; partIndex++) {
-      inspect(content[partIndex], { out, messageIndex, partIndex }, 0);
+      inspect(content[partIndex], { out, messageIndex, partIndex }, 0, []);
     }
   }
   return out;
@@ -289,7 +327,7 @@ export function containsMediaKind(
     if (!Array.isArray(content)) continue;
     for (let partIndex = 0; partIndex < content.length; partIndex++) {
       const ctx: DetectCtx = { out, messageIndex, partIndex, stopAtKind: kind };
-      inspect(content[partIndex], ctx, 0);
+      inspect(content[partIndex], ctx, 0, []);
       if (ctx.found) return true;
     }
   }

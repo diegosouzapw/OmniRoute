@@ -197,13 +197,36 @@ test("extractImageParts does not extract a data URI embedded in a text part", ()
   assert.deepEqual(parts, []);
 });
 
-test("extractImageParts skips nested and indicator-only detections", () => {
+test("detectMediaParts reports a path for nested images into the container", () => {
+  const parts = detectMediaParts(
+    msg([
+      {
+        type: "tool_result",
+        tool_use_id: "t",
+        content: [
+          { type: "image", source: { type: "base64", media_type: "image/png", data: "AAA" } },
+          { type: "text", text: "note" },
+        ],
+      },
+    ])
+  );
+  assert.equal(parts.length, 1);
+  const p = parts[0];
+  assert.equal(p.nested, true);
+  assert.equal(p.shape, "image_base64");
+  assert.deepEqual(p.path, ["content", 0]);
+  assert.equal(p.messageIndex, 0);
+  assert.equal(p.partIndex, 0);
+});
+
+test("extractImageParts extracts nested images with replaceable shapes and skips indicators", () => {
   const parts = extractImageParts([
     {
       role: "user",
       content: [
-        // Image nested inside an audio payload: detector reports it (combo needs
-        // it) but the replacer cannot splice it — must not be extracted.
+        // Image nested inside an audio payload's cover art: the detector
+        // reports it AND the replacer can now splice it via `path` — it must
+        // be extracted and carried into replaceImageParts in order.
         {
           type: "input_audio",
           input_audio: {
@@ -216,5 +239,7 @@ test("extractImageParts skips nested and indicator-only detections", () => {
       ],
     } as never,
   ]);
-  assert.deepEqual(parts, []);
+  assert.equal(parts.length, 1);
+  assert.equal(parts[0].imageUrl, "https://x/c.png");
+  assert.deepEqual(parts[0].path, ["input_audio", "cover"]);
 });

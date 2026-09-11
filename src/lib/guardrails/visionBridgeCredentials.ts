@@ -84,18 +84,72 @@ function loadProvidersModule(): Promise<typeof import("@/lib/db/providers")> {
 }
 
 /**
+ * Credential candidate provider ids for `hasUsableCredentialsForModel`.
+ *
+ * A compatible provider node (openai-compatible-chat-<uuid>) is stored in
+ * `provider_connections` under its generated node id, while the
+ * operator-facing model id uses the node's configured public prefix
+ * (skhynix/HCP-...). Composed AFTER #10760's alias→canonical
+ * `resolveProviderId` step: the literal prefix alone misses the node row, so
+ * the prefix-index mapped node id is appended (deduped when the mapping is a
+ * no-op). Limitation: a node prefix that also collides with a catalog alias
+ * would already have been canonicalized by `resolveProviderId` and can miss
+ * here — no such collision exists in practice (reserved prefixes are
+ * filtered out of the index), noted for future maintainers.
+ */
+export function resolveProviderCredentialIds(
+  provider: string,
+  prefixToNode?: Map<string, string> | null
+): string[] {
+  const ids = [provider];
+  const mapped = prefixToNode?.get(provider);
+  // Skip when the mapping is a no-op (already the literal provider).
+  if (mapped && mapped !== provider) ids.push(mapped);
+  return ids;
+}
+
+// getBestVisionModel()/getFallbackModels() fan out to hasUsableCredentialsForModel
+// once per vision-capable catalog entry via Promise.all. The prefix index reads
+// the provider_nodes table on every call, so cache it briefly (same TTL order as
+// the router's selection cache) to avoid N concurrent table reads per request.
+let prefixIndexCache: { at: number; index: Map<string, string> } | null = null;
+const PREFIX_INDEX_TTL_MS = 60_000;
+async function getPrefixToNode(): Promise<Map<string, string> | null> {
+  try {
+    const { getProviderPrefixIndex } = await import("@/lib/providerNodePrefixes");
+    if (prefixIndexCache && Date.now() - prefixIndexCache.at < PREFIX_INDEX_TTL_MS) {
+      return prefixIndexCache.index;
+    }
+    const index = await getProviderPrefixIndex();
+    prefixIndexCache = { at: Date.now(), index: index.prefixToNode };
+    return index.prefixToNode;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Resolve whether `provider/model` has at least one usable active connection.
  * Returns `null` when the credential store is unavailable (unit tests / early boot).
  *
- * The provider prefix is resolved alias→canonical id before querying
- * `provider_connections` (the column stores the id, e.g. "opencode" for the
- * "oc" alias — #10702: an alias-keyed query returned zero rows and excluded
- * every candidate). No-auth providers (NOAUTH_PROVIDERS) need no stored API
- * key: their effective credential is the synthetic "noauth" connection, so
- * an empty active set is usable for them (unlike keyed providers). A stored
- * row with a terminal status (disabled/banned/expired) still blocks the
- * provider; any other row is treated as usable (the key requirement does not
- * apply — a noauth row carries no API key by design).
+ * Two-step resolve before querying `provider_connections`:
+ *   1. alias→canonical id (#10702: the column stores the id, e.g. "opencode"
+ *      for the "oc" alias — an alias-keyed query returned zero rows);
+ *   2. public prefix→node id via the provider-prefix index (#re-land 932002580:
+ *      a compatible node's rows are stored under its generated
+ *      `openai-compatible-chat-<uuid>` id while the operator-facing model id
+ *      uses the node's public prefix, e.g. "skhynix" — a bare-prefix query
+ *      matched zero rows and made a credentialed, active connection report as
+ *      unusable, so the Vision Bridge discarded the configured model).
+ * Both the literal segment and the mapped node id are queried; any usable
+ * active connection wins.
+ *
+ * No-auth providers (NOAUTH_PROVIDERS) need no stored API key: their effective
+ * credential is the synthetic "noauth" connection, so an empty active set is
+ * usable for them (unlike keyed providers). A stored row with a terminal
+ * status (disabled/banned/expired) still blocks the provider; any other row
+ * is treated as usable (the key requirement does not apply — a noauth row
+ * carries no API key by design).
  */
 export async function hasUsableCredentialsForModel(model: string): Promise<boolean | null> {
   const rawProvider = typeof model === "string" ? model.split("/")[0]?.trim() : "";
@@ -104,17 +158,28 @@ export async function hasUsableCredentialsForModel(model: string): Promise<boole
   const isNoAuth = isNoAuthProviderKey(rawProvider, provider);
   try {
     const { getProviderConnections } = await loadProvidersModule();
-    const connections = await getProviderConnections({ provider, isActive: true });
-    if (!Array.isArray(connections)) return null;
-    // Empty active set: keyed providers are definitively unusable; no-auth
-    // providers still work through the synthetic "noauth" connection.
-    if (connections.length === 0) return isNoAuth;
-    // No-auth rows store no API key (authType "noauth" + empty apiKey would
-    // fail the generic key check) — only a terminal status blocks them.
-    if (isNoAuth) {
-      return !connections.some((c: any) => hasTerminalConnectionStatus(c));
+    const prefixToNode = await getPrefixToNode();
+    const providerIds = resolveProviderCredentialIds(provider, prefixToNode);
+    let sawStoredRow = false;
+    for (const providerId of providerIds) {
+      const connections = await getProviderConnections({ provider: providerId, isActive: true });
+      if (!Array.isArray(connections)) return null;
+      // This candidate has no rows — the next candidate (mapped node id) may
+      // still hold the operator's connection.
+      if (connections.length === 0) continue;
+      sawStoredRow = true;
+      // No-auth rows store no API key (authType "noauth" + empty apiKey would
+      // fail the generic key check) — only a terminal status blocks them.
+      const usable = isNoAuth
+        ? !connections.some((c: any) => hasTerminalConnectionStatus(c))
+        : connections.some((c: any) => isProviderConnectionUsable(c));
+      if (usable) return true;
     }
-    return connections.some((c: any) => isProviderConnectionUsable(c));
+    // No candidate has a stored row: keyed providers are definitively
+    // unusable; no-auth providers still work through the synthetic "noauth"
+    // connection (and a noauth provider with stored rows can only have been
+    // rejected via a terminal status in the loop above).
+    return isNoAuth && !sawStoredRow;
   } catch {
     return null;
   }

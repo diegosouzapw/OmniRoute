@@ -153,6 +153,13 @@ export interface ImagePart {
   partIndex: number;
   imageUrl: string;
   imageType: "image_url" | "image" | "url";
+  /**
+   * For nested hits (image inside a container part, e.g. a tool_result's
+   * content array) the path from `message.content[partIndex]` to the image
+   * object itself — what replaceImageParts walks to splice it. Absent for
+   * top-level parts (plain partIndex splice).
+   */
+  path?: (string | number)[];
 }
 
 export interface RequestMessage {
@@ -183,12 +190,13 @@ export type RequestContentPart =
  * executor instead of being described.
  */
 /**
- * Shapes `replaceImageParts` knows how to splice: top-level content parts
- * whose `type` is `image_url`, `image`, or `input_image`. Everything else the
- * detector reports (nested hits, `data_uri_string`, `image_indicator`) is
- * combo-filter material only — extracting it would desync the positional
- * description consumption in visionBridge (descriptions would shift onto the
- * wrong images).
+ * Shapes `replaceImageParts` knows how to splice: content parts whose `type`
+ * is `image_url`, `image`, or `input_image` — at top level or nested (inside
+ * a container part such as a tool_result's content array; nested hits are
+ * spliced by walking `MediaPart.path`). Everything else the detector reports
+ * (`data_uri_string`, `image_indicator`) is combo-filter material only —
+ * extracting it would desync the positional description consumption in
+ * visionBridge (descriptions would shift onto the wrong images).
  */
 const REPLACEABLE_IMAGE_SHAPES: ReadonlySet<MediaPart["shape"]> = new Set([
   "image_url",
@@ -200,18 +208,22 @@ const REPLACEABLE_IMAGE_SHAPES: ReadonlySet<MediaPart["shape"]> = new Set([
 export function extractImageParts(messages: RequestMessage[]): ImagePart[] {
   // Delegates to the unified detector (open-sse/utils/mediaParts.ts) so the
   // guardrail and the combo compatibility filter share one source of truth.
-  // Extraction is ALLOWLISTED to top-level (non-nested) parts whose shape
-  // replaceImageParts can splice back — the extract↔replace contract: every
-  // extracted part MUST be replaceable, in the same order, or the positional
-  // descriptions shift onto the wrong images.
+  // Extraction is shaped-allowlisted and covers BOTH top-level parts and
+  // nested hits (image inside a container part, e.g. Claude Code's tool_result
+  // content array) whose shape replaceImageParts can splice back — the
+  // extract↔replace contract: every extracted part MUST be replaceable, in the
+  // same order, or the positional descriptions shift onto the wrong images.
+  // Nested hits carry `path` so the splice can walk the container; top-level
+  // hits rely on messageIndex/partIndex alone.
   return detectMediaParts(messages)
-    .filter((p) => p.kind === "image" && !p.nested && REPLACEABLE_IMAGE_SHAPES.has(p.shape))
+    .filter((p) => p.kind === "image" && REPLACEABLE_IMAGE_SHAPES.has(p.shape))
     .map((p) => ({
       messageIndex: p.messageIndex,
       partIndex: p.partIndex,
       imageUrl: p.ref,
       imageType:
         p.shape === "image_base64" ? "image" : p.shape === "image_source_url" ? "url" : "image_url",
+      ...(p.nested ? { path: p.path } : {}),
     }));
 }
 
@@ -239,7 +251,12 @@ export async function ensureBase64ImagesForClaudeWire(
   fetchImpl: typeof fetch = VISION_BRIDGE_UA_FETCH
 ): Promise<RequestBody> {
   if (!isClaudeWireFormatModel(model)) return body;
-  const parts = extractImageParts(body.messages as RequestMessage[]);
+  // The splice below re-walks top-level content parts and swaps
+  // image_url/image fields by sequential index. Nested hits now carry
+  // `path` (extractImageParts emits them); this loop only handles top-level
+  // image_url/image parts, so skip nested hits to keep the index map aligned
+  // (a nested hit interleaved with top-level hits would desync the map).
+  const parts = extractImageParts(body.messages as RequestMessage[]).filter((p) => !p.path);
   if (parts.length === 0) return body;
 
   const resolved = await Promise.all(
@@ -891,10 +908,6 @@ export interface RequestBody {
   [key: string]: unknown;
 }
 
-/**
- * Replace image content parts with text descriptions.
- * Concatenates descriptions with labels: "[Image 1]: ..."
- */
 export function replaceImageParts(
   body: RequestBody,
   // #4012: a `null` entry means the describe call failed for that image — keep
@@ -918,46 +931,61 @@ export function replaceImageParts(
     return result;
   }
 
+  // Splice via the unified detector so nested images (image inside a
+  // tool_result's content array, etc.) are replaced in the SAME order the
+  // guardrail extracted them (extract↔replace contract). Nested hits carry
+  // `path`, which the splice walks; top-level hits swap their content slot.
+  // `input_image` (Responses API) is read through a widened type but MUST be
+  // replaceable — extractImageParts allowlists it, and every extracted part
+  // needs a matching splice here.
   const replacementTextType: "text" | "input_text" = usesResponsesInput ? "input_text" : "text";
+  const mediaParts = detectMediaParts(requestMessages).filter(
+    (p) => p.kind === "image" && REPLACEABLE_IMAGE_SHAPES.has(p.shape)
+  );
 
   let descriptionIndex = 0;
-
-  for (let msgIdx = 0; msgIdx < requestMessages.length; msgIdx++) {
-    const message = requestMessages[msgIdx];
-    if (!message || !Array.isArray(message.content)) {
+  for (const part of mediaParts) {
+    const description =
+      descriptionIndex < descriptions.length ? descriptions[descriptionIndex++] : null;
+    if (description == null) {
+      // #4012: describe failed for this image — preserve the original image
+      // so a vision-capable upstream can still process it.
       continue;
     }
 
-    const newContent: RequestContentPart[] = [];
+    const message = requestMessages[part.messageIndex];
+    if (!message || !Array.isArray(message.content)) continue;
 
-    for (const part of message.content) {
-      // `input_image` (Responses API) is read through a widened type: it is
-      // not part of the historical RequestContentPart union but MUST be
-      // replaceable — extractImageParts allowlists it, and every extracted
-      // part needs a matching splice here (extract↔replace contract).
-      const partType = (part as { type?: string } | null | undefined)?.type;
-      if (partType === "image_url" || partType === "image" || partType === "input_image") {
-        if (descriptionIndex < descriptions.length) {
-          const description = descriptions[descriptionIndex];
-          descriptionIndex++;
-          if (description == null) {
-            // #4012: describe failed for this image — preserve the original
-            // image so a vision-capable upstream can still process it.
-            newContent.push(part as RequestContentPart);
-          } else {
-            newContent.push({
-              type: replacementTextType,
-              text: description,
-            } as RequestContentPart);
-          }
-        }
-      } else {
-        newContent.push(part as RequestContentPart);
-      }
+    const path = part.path;
+    if (!path || path.length === 0) {
+      // Top-level part: swap the content slot itself with a text part.
+      (message.content as unknown[])[part.partIndex] = {
+        type: replacementTextType,
+        text: description,
+      };
+    } else {
+      // Nested hit: walk the container part to the media object and splice it.
+      const container = message.content[part.partIndex] as Record<string, unknown>;
+      replaceObjectAtPath(container, path, {
+        type: replacementTextType,
+        text: description,
+      });
     }
-
-    message.content = newContent;
   }
 
   return result;
+}
+
+function replaceObjectAtPath(
+  container: Record<string, unknown>,
+  path: (string | number)[],
+  replacement: Record<string, unknown>
+): void {
+  let node: unknown = container;
+  for (let i = 0; i < path.length - 1; i++) {
+    const next = (node as Record<string, unknown> | null | undefined)?.[path[i] as string];
+    if (next == null || typeof next !== "object") return;
+    node = next;
+  }
+  (node as Record<string, unknown>)[path[path.length - 1] as string] = replacement;
 }
