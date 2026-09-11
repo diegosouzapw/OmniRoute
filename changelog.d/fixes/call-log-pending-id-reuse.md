@@ -1,0 +1,1 @@
+- **fix(usage):** combo fallback no longer drops the second attempt's call log when dashboard pending tracking reuses the same request id (`UNIQUE constraint failed: call_logs.id`)

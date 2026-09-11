@@ -14,7 +14,7 @@ const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-attempt-logging-
 process.env.DATA_DIR = testDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
-const { getCallLogById } = await import("../../src/lib/usage/callLogs.ts");
+const { getCallLogById, waitForCallLogSaves } = await import("../../src/lib/usage/callLogs.ts");
 const { persistAttemptLogs } = await import("../../open-sse/handlers/chatCore/attemptLogging.ts");
 const { getAuditLog } = await import("../../src/lib/compliance/index.ts");
 
@@ -194,4 +194,31 @@ test("unique tool_calls do not write provider.spec_violation audit", () => {
     requestId: "skill-spec-clean-1",
   });
   assert.equal(rows.length, 0);
+});
+
+test("two persistAttemptLogs with the same pendingRequestId both land in call_logs", async () => {
+  const pendingId = "attempt-reuse-pending-1";
+  const correlationId = "corr-reuse-pending-1";
+  persistAttemptLogs(
+    { status: 502, error: "first target boom" },
+    baseCtx({ pendingRequestId: pendingId, correlationId, comboStepId: "step-1" }),
+  );
+  persistAttemptLogs(
+    { status: 200, tokens: { input: 3, output: 4 } },
+    baseCtx({ pendingRequestId: pendingId, correlationId, comboStepId: "step-2" }),
+  );
+  assert.equal(await waitForCallLogSaves(5_000), true);
+  const db = coreDb.getDbInstance();
+  const rows = db
+    .prepare(
+      "SELECT id, status, combo_step_id FROM call_logs WHERE correlation_id = ? ORDER BY rowid",
+    )
+    .all(correlationId) as Array<{ id: string; status: number; combo_step_id: string | null }>;
+  assert.equal(rows.length, 2, "second combo attempt must not be swallowed by UNIQUE(id)");
+  assert.equal(rows[0]?.status, 502);
+  assert.equal(rows[1]?.status, 200);
+  assert.equal(rows[0]?.id, pendingId);
+  assert.notEqual(rows[1]?.id, pendingId);
+  assert.equal(rows[0]?.combo_step_id, "step-1");
+  assert.equal(rows[1]?.combo_step_id, "step-2");
 });
