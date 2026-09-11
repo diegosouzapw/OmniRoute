@@ -18,6 +18,7 @@ import fs from "fs";
 import { resolveWritableDataDir, getLegacyDotDataDir } from "../dataPaths";
 import { isNextBuildPhase } from "../buildPhase";
 import { runMigrations } from "./migrationRunner";
+import { pruneManagedDbBackups } from "./backupRetention";
 import { runDbHealthCheck } from "./healthCheck";
 import { resetAllDbModuleState } from "./stateReset";
 import { parseStoredPayload } from "../logPayloads";
@@ -860,6 +861,10 @@ function createManagedDbBackup(db: SqliteDatabase, reason: string): boolean {
 
     db.exec(`VACUUM INTO '${escapedBackupPath}'`);
     console.log(`[DB] Backup created (${reason}): ${backupPath}`);
+    // Unlike backup.ts's backupDbFile(), this path had no retention call at all: a
+    // periodic health-check backup running every few minutes with no pruning grew
+    // db_backups/ unbounded (observed: 570 GB / 60 files against a small live database).
+    pruneManagedDbBackups(db, backupDir, `[DB (${reason})]`);
     return true;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);

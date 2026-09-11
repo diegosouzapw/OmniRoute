@@ -17,9 +17,12 @@ import { resetAllDbModuleState } from "./stateReset";
 import {
   MAX_DB_BACKUPS,
   DEFAULT_DB_BACKUP_RETENTION_DAYS,
+  DB_BACKUP_MAX_FILES_KEY,
+  DB_BACKUP_RETENTION_DAYS_KEY,
   parsePositiveInt,
   parseNonNegativeInt,
   pruneBackupDirectory,
+  readStoredDbBackupSetting,
 } from "./backupRetention";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
@@ -38,22 +41,6 @@ const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
 // `databaseSettings.backup.keepLastNBackups` (default 5) so existing installs keep the
 // historical default of 20 until an operator explicitly changes it here.
 const DB_BACKUP_SETTINGS_NAMESPACE = "dbBackup";
-const DB_BACKUP_MAX_FILES_KEY = "maxFiles";
-const DB_BACKUP_RETENTION_DAYS_KEY = "retentionDays";
-
-function getStoredDbBackupInteger(key: string, options: { min: number }): number | undefined {
-  try {
-    const db = getDbInstance();
-    const row = db
-      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
-      .get(DB_BACKUP_SETTINGS_NAMESPACE, key) as { value?: string } | undefined;
-    if (!row?.value) return undefined;
-    const parsed = JSON.parse(row.value);
-    return Number.isInteger(parsed) && parsed >= options.min ? parsed : undefined;
-  } catch {
-    return undefined;
-  }
-}
 
 function setStoredDbBackupInteger(key: string, value: number, options: { min: number }): void {
   if (!Number.isInteger(value) || value < options.min) return;
@@ -75,7 +62,7 @@ export function getDbBackupMaxFiles() {
   if (process.env.DB_BACKUP_MAX_FILES) {
     return parsePositiveInt(process.env.DB_BACKUP_MAX_FILES, MAX_DB_BACKUPS);
   }
-  return getStoredDbBackupInteger(DB_BACKUP_MAX_FILES_KEY, { min: 1 }) ?? MAX_DB_BACKUPS;
+  return readStoredDbBackupSetting(getDbInstance(), DB_BACKUP_MAX_FILES_KEY, 1) ?? MAX_DB_BACKUPS;
 }
 
 /** Persist the operator-chosen age-based backup retention window. */
@@ -92,7 +79,7 @@ export function getDbBackupRetentionDays() {
     );
   }
   return (
-    getStoredDbBackupInteger(DB_BACKUP_RETENTION_DAYS_KEY, { min: 0 }) ??
+    readStoredDbBackupSetting(getDbInstance(), DB_BACKUP_RETENTION_DAYS_KEY, 0) ??
     DEFAULT_DB_BACKUP_RETENTION_DAYS
   );
 }
