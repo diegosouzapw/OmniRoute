@@ -2,6 +2,7 @@
  * quota-weighted: skip empty accounts, weighted-draw the rest.
  * Spec: _tasks/superpowers/specs/2026-09-04-quota-weighted-routing-design.md
  */
+import { resolveProviderId } from "../../../src/shared/constants/providers.ts";
 import test, { after, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -14,16 +15,15 @@ const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const dbCore = await import("../../../src/lib/db/core.ts");
+const { invalidateDbCache } = await import("../../../src/lib/db/readCache.ts");
 const quotaCache = await import("../../../src/domain/quotaCache.ts");
 const { getResetAwareRemainingPercent, resolveResetAwareConfig, scoreResetAwareQuota } =
   await import("../../../open-sse/services/combo/quotaScoring.ts");
 const { registerQuotaFetcher } = await import("../../../open-sse/services/quotaPreflight.ts");
-const { convertUsageToQuotaInfo } = await import("../../../open-sse/services/genericQuotaFetcher.ts");
-const {
-  expandTargetsByQuotaAwareConnections,
-  orderTargetsByQuotaWeighted,
-  pickWeightedIndex,
-} = await import("../../../open-sse/services/combo/quotaStrategies.ts");
+const { convertUsageToQuotaInfo } =
+  await import("../../../open-sse/services/genericQuotaFetcher.ts");
+const { expandTargetsByQuotaAwareConnections, orderTargetsByQuotaWeighted, pickWeightedIndex } =
+  await import("../../../open-sse/services/combo/quotaStrategies.ts");
 const { getCircuitBreaker, resetAllCircuitBreakers } =
   await import("../../../src/shared/utils/circuitBreaker.ts");
 const { applyStrategyOrdering } =
@@ -44,9 +44,7 @@ const { HANDLED_COMBO_STRATEGIES } =
   await import("../../../open-sse/services/combo/strategyDispatch.ts");
 const { comboStrategySchema } = await import("../../../src/shared/validation/schemas.ts");
 const { _setSecureRandomFloatSource } = await import("../../../src/shared/utils/secureRandom.ts");
-const { getQuotaFetchScope } = await import(
-  "../../../open-sse/services/antigravityQuotaFamily.ts"
-);
+const { getQuotaFetchScope } = await import("../../../open-sse/services/antigravityQuotaFamily.ts");
 
 after(() => {
   dbCore.resetDbInstance();
@@ -88,7 +86,18 @@ function quotaAt(percentUsed: number, extra: Record<string, unknown> = {}) {
   };
 }
 
+function seedConnection(provider: string, connectionId: string) {
+  dbCore
+    .getDbInstance()
+    .prepare(
+      "INSERT OR IGNORE INTO provider_connections (id, provider, is_active, test_status, created_at, updated_at) VALUES (?, ?, 1, 'active', '2026-09-09T00:00:00Z', '2026-09-09T00:00:00Z')"
+    )
+    .run(connectionId, resolveProviderId(provider));
+  invalidateDbCache("connections");
+}
+
 function makeTarget(provider: string, connectionId: string, model = "gemini-3.8-flash-high") {
+  seedConnection(provider, connectionId);
   return {
     kind: "model" as const,
     stepId: `step-${connectionId}`,
@@ -133,7 +142,7 @@ test("getResetAwareRemainingPercent: missing windows fall back to overall percen
   assert.equal(getResetAwareRemainingPercent({ percentUsed: 0.7 }), 30);
 });
 
-test("dual: default expand drops 0.5% agy via 99% kick; skipExhaustionFilter keeps it", async () => {
+test("dual: default expansion and skipExhaustionFilter preserve positive quota", async () => {
   const provider = "agy";
   const low = `low-${randomUUID()}`;
   const healthy = `ok-${randomUUID()}`;
@@ -152,8 +161,8 @@ test("dual: default expand drops 0.5% agy via 99% kick; skipExhaustionFilter kee
   );
   assert.equal(
     dropped.expandedTargets.some((t) => t.connectionId === low),
-    false,
-    "0.5% remaining must be treated as exhausted by the 99% dashboard kick"
+    true,
+    "positive remaining quota must not trigger automatic exhaustion"
   );
   assert.equal(
     dropped.expandedTargets.some((t) => t.connectionId === healthy),
@@ -211,7 +220,10 @@ test("A/B isolation: 7 hard-empty + 2 at 0.5% + 1 at 40%, floor=1", async () => 
     low
   );
   for (const id of dead) {
-    assert.equal(ordered.some((t) => t.connectionId === id), false);
+    assert.equal(
+      ordered.some((t) => t.connectionId === id),
+      false
+    );
   }
 });
 
@@ -231,8 +243,16 @@ test("7 empty + 3 healthy → length 3, no hard-empty", async () => {
     null
   );
   assert.equal(ordered.length, 3);
-  for (const id of dead) assert.equal(ordered.some((t) => t.connectionId === id), false);
-  for (const id of ok) assert.equal(ordered.some((t) => t.connectionId === id), true);
+  for (const id of dead)
+    assert.equal(
+      ordered.some((t) => t.connectionId === id),
+      false
+    );
+  for (const id of ok)
+    assert.equal(
+      ordered.some((t) => t.connectionId === id),
+      true
+    );
 });
 
 test("pickWeightedIndex skips non-positive weights", () => {
@@ -580,6 +600,7 @@ test("applyStrategyOrdering(quota-weighted) uses the orderer", async () => {
 const pipelineLog = { info() {}, warn() {}, error() {}, debug() {} };
 
 function pinComboModels(provider, model, connectionIds) {
+  connectionIds.forEach((id) => seedConnection(provider, id));
   return connectionIds.map((connectionId, index) => ({
     kind: "model",
     provider,
@@ -857,8 +878,16 @@ test("three hard-empty of ten never win the first draw", async () => {
   );
   assert.equal(ordered.length, 7);
   assert.equal(dead.includes(ordered[0]?.connectionId ?? ""), false);
-  for (const id of dead) assert.equal(ordered.some((t) => t.connectionId === id), false);
-  for (const id of ok) assert.equal(ordered.some((t) => t.connectionId === id), true);
+  for (const id of dead)
+    assert.equal(
+      ordered.some((t) => t.connectionId === id),
+      false
+    );
+  for (const id of ok)
+    assert.equal(
+      ordered.some((t) => t.connectionId === id),
+      true
+    );
 });
 
 test("quota-weighted Gemini keeps the account when only Claude weekly is empty", async () => {
@@ -1059,7 +1088,11 @@ test("quota-share sticky pin transfers the inflight slot to the pinned account",
   if ("earlyResponse" in result) return;
   assert.equal(result.sticky.stuck, true);
   assert.equal(result.orderedTargets[0]?.connectionId, pinned);
-  assert.equal(getInflight(drawn), 0, "drawn account must drop the slot after stickiness moves [0]");
+  assert.equal(
+    getInflight(drawn),
+    0,
+    "drawn account must drop the slot after stickiness moves [0]"
+  );
   assert.equal(getInflight(pinned), 1, "pinned account must hold the transferred slot");
   result.quotaShareRelease?.();
   assert.equal(getInflight(pinned), 0);

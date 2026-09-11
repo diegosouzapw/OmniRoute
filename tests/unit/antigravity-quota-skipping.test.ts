@@ -137,7 +137,7 @@ test("isQuotaExhaustedForRequest scopes gemini exhaustion to the requested model
   );
 });
 
-test("isQuotaExhaustedForRequest treats near-zero remaining as exhausted at default threshold", () => {
+test("isQuotaExhaustedForRequest keeps reported positive remaining available", () => {
   const connectionId = "conn-near-zero-test";
   quotaCache.setQuotaCache(connectionId, "antigravity", {
     "gemini-3.7-flash-medium": { remainingPercentage: 0.00000167, resetAt: null },
@@ -149,8 +149,8 @@ test("isQuotaExhaustedForRequest treats near-zero remaining as exhausted at defa
       "antigravity",
       "antigravity/gemini-3.7-flash-medium"
     ),
-    true,
-    "effectively-zero remaining should count as exhausted"
+    false,
+    "positive quota is not exhaustion; explicit usage cutoffs are evaluated separately"
   );
 });
 

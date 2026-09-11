@@ -1,18 +1,17 @@
 /**
  * Stateful + async reset-aware / reset-window quota strategies for combo routing.
  *
- * Holds the two mutable module-level caches that back reset-aware routing
- * (`resetAwareConnectionCache` for per-provider active connections and
- * `resetAwareQuotaCache` for per-connection quota snapshots), plus the helpers
+ * Holds the per-connection quota snapshot cache and helpers
  * that read/write them and the strategy orderers. Extracted byte-identically
  * from combo.ts (QG v2 Fase 9 T5 D7b) — the larger, stateful half of the
  * reset-aware quota block. The pure scoring/window-math half lives in
  * ./quotaScoring.ts and is imported here.
  *
- * State cohesion: `resetAwareConnectionCache`, `resetAwareQuotaCache`, and
+ * State cohesion: `resetAwareQuotaCache` and
  * `MAX_RESET_AWARE_CACHE` MUST remain single instances defined once here,
- * alongside their only readers/writers (getQuotaAwareConnectionsForTarget,
- * fetchResetAwareQuotaWithCache) — never duplicate a Map.
+ * alongside their only readers/writers (`fetchResetAwareQuotaWithCache`).
+ * Connection lists go through `getCachedProviderConnections` (5s TTL,
+ * invalidated on connection writes). Do not add a second connection cache.
  *
  * Cross-module state: the tie-band round-robin in orderTargetsByResetAwareQuota
  * and orderTargetsByResetWindow shares the same rrCounters Map from ./rrState.ts
@@ -52,16 +51,11 @@ import { preferAntigravityConnectionsWithStoredProject } from "../antigravityPro
 import { getQuotaFetchScope } from "../antigravityQuotaFamily.ts";
 import { isQuotaExhaustedForRequest } from "../../../src/domain/quotaCache.ts";
 
-const RESET_AWARE_CONNECTION_CACHE_TTL_MS = 30_000;
 const RESET_AWARE_QUOTA_FETCH_CONCURRENCY = 5;
 const HEADROOM_SATURATION_FETCH_CONCURRENCY = 5;
 
 const MAX_RESET_AWARE_CACHE = 200;
 
-const resetAwareConnectionCache = new Map<
-  string,
-  { fetchedAt: number; connections: Array<Record<string, unknown>> }
->();
 const resetAwareQuotaCache = new Map<
   string,
   { fetchedAt: number; quota: unknown; refreshPromise: Promise<unknown> | null }
@@ -77,12 +71,6 @@ async function getQuotaAwareConnectionsForTarget(
   const provider = getResetAwareProvider(target);
   if (!provider || !getQuotaFetcher(provider)) return [];
   if (!connectionCache.has(provider)) {
-    const cached = resetAwareConnectionCache.get(provider);
-    if (cached && Date.now() - cached.fetchedAt < RESET_AWARE_CONNECTION_CACHE_TTL_MS) {
-      connectionCache.set(provider, cached.connections);
-      return cached.connections;
-    }
-
     if (!connectionLoadPromises.has(provider)) {
       connectionLoadPromises.set(
         provider,
@@ -90,22 +78,17 @@ async function getQuotaAwareConnectionsForTarget(
           try {
             const connections = await getCachedProviderConnections({ provider, isActive: true });
             let activeConnections = Array.isArray(connections)
-              ? (connections as Array<Record<string, unknown>>)
+              ? (connections as Array<Record<string, unknown>>).filter(
+                  (connection) =>
+                    connection.isActive !== false &&
+                    String(connection.testStatus || "")
+                      .trim()
+                      .toLowerCase() !== "banned"
+                )
               : [];
             if (provider === "antigravity" || provider === "agy") {
               activeConnections = preferAntigravityConnectionsWithStoredProject(activeConnections);
             }
-            if (
-              !resetAwareConnectionCache.has(provider) &&
-              resetAwareConnectionCache.size >= MAX_RESET_AWARE_CACHE
-            ) {
-              const oldest = resetAwareConnectionCache.keys().next().value;
-              if (oldest !== undefined) resetAwareConnectionCache.delete(oldest);
-            }
-            resetAwareConnectionCache.set(provider, {
-              connections: activeConnections,
-              fetchedAt: Date.now(),
-            });
             return activeConnections;
           } catch (error) {
             log.warn?.("COMBO", "Reset-aware failed to load quota-aware connections.", {
@@ -212,6 +195,8 @@ export async function expandTargetsByQuotaAwareConnections(
       apiKeyAllowedConnectionIds
     );
     if (connectionIds.length === 0) {
+      const provider = getResetAwareProvider(target);
+      if (provider && getQuotaFetcher(provider)) continue;
       if (
         unrestrictedConnectionIds.length > 0 &&
         normalizeConnectionIds(apiKeyAllowedConnectionIds)
@@ -225,6 +210,7 @@ export async function expandTargetsByQuotaAwareConnections(
     for (const connectionId of connectionIds) {
       const provider = getResetAwareProvider(target);
       const connection = connectionById.get(connectionId);
+      if (provider && getQuotaFetcher(provider) && connection?.provider !== provider) continue;
       if (
         connection &&
         typeof connection.rateLimitedUntil === "string" &&
@@ -750,14 +736,15 @@ function sortByScoreThenIndex(a: QuotaWeightedScored, b: QuotaWeightedScored): n
   return a.index - b.index;
 }
 
-function resolveQuotaWeightedFloor(configSource: Record<string, unknown> | null | undefined): number {
+function resolveQuotaWeightedFloor(
+  configSource: Record<string, unknown> | null | undefined
+): number {
   // Number(null) and Number("") are both 0, so an unset or blank key would
   // switch the floor off instead of taking the default. Only a value that is
   // actually a number, or a non-empty numeric string, gets to move it.
   const configured = configSource?.quotaWeightedFloorPercent;
   const raw =
-    typeof configured === "number" ||
-    (typeof configured === "string" && configured.trim() !== "")
+    typeof configured === "number" || (typeof configured === "string" && configured.trim() !== "")
       ? Number(configured)
       : Number.NaN;
   return Number.isFinite(raw) ? Math.max(0, Math.min(100, raw)) : 1;
@@ -800,10 +787,11 @@ export async function orderTargetsByQuotaWeighted(
 
   const eligible = scoredTargets.filter((entry) => entry.remainingPercent > 0);
   const floor = resolveQuotaWeightedFloor(configSource);
-  const poolA =
-    floor === 0 ? eligible : eligible.filter((entry) => entry.remainingPercent > floor);
+  const poolA = floor === 0 ? eligible : eligible.filter((entry) => entry.remainingPercent > floor);
   const poolB =
-    floor === 0 ? [] : eligible.filter((entry) => entry.remainingPercent > 0 && entry.remainingPercent <= floor);
+    floor === 0
+      ? []
+      : eligible.filter((entry) => entry.remainingPercent > 0 && entry.remainingPercent <= floor);
   const selected = poolA.length > 0 ? poolA : poolB;
   if (selected.length === 0) return [];
 

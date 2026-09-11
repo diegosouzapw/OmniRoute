@@ -304,8 +304,8 @@ function isAntigravityQuotaExhausted(
     matchingWindows.length > 0 &&
     matchingWindows.every(
       (windowName) =>
-        getQuotaWindowStatus(connectionId, windowName, DEFAULT_QUOTA_THRESHOLD_PERCENT)
-          ?.reachedThreshold
+        // Automatic exhaustion is not the operator's optional usage cutoff.
+        getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
     )
   );
 }
