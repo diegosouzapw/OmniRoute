@@ -1,0 +1,1 @@
+- fix(oauth): kimi-coding/github device-flow `pollToken` no longer rejects with `TypeError: Body is unusable` when the token endpoint returns a non-JSON error page (CDN/anti-bot/proxy interstitial) — the body is now read once and parsed, preserving the graceful `invalid_response` fallback instead of a generic 500 (#13046 — thanks @ysntony)

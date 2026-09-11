@@ -38,11 +38,14 @@ export const github = {
       }),
     });
 
+    // Read the body once: after a failed response.json() the stream is already
+    // consumed, so a fallback response.text() would throw "Body is unusable"
+    // and reject pollToken instead of surfacing the upstream error page.
+    const text = await response.text();
     let data;
     try {
-      data = await response.json();
-    } catch (e) {
-      const text = await response.text();
+      data = JSON.parse(text);
+    } catch {
       data = { error: "invalid_response", error_description: text };
     }
 
