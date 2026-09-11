@@ -1,0 +1,1 @@
+- **fix(sse):** chat admission PSI uses the container cgroup `memory.pressure` file instead of host-wide `/proc/pressure/memory`, so a swapping host no longer 503s an idle Docker/cgroup OmniRoute with `resource_pressure`; the host file remains the fallback when the cgroup sample is missing
