@@ -198,6 +198,7 @@ export interface UseProviderConnectionsReturn {
   handleToggleRateLimit: (connectionId: string, enabled: boolean) => Promise<void>;
   handleToggleQuotaVisibility: (connectionId: string, visible: boolean) => Promise<void>;
   handleToggleClaudeExtraUsage: (connectionId: string, enabled: boolean) => Promise<void>;
+  handleToggleCodexPaidCredits: (connectionId: string, enabled: boolean) => Promise<void>;
   handleToggleCodexLimit: (connectionId: string, field: string, enabled: boolean) => Promise<void>;
   handleToggleCliproxyapiMode: (connectionId: string, enabled: boolean) => Promise<void>;
   handleSetUpstreamProxyMode: (
@@ -512,6 +513,67 @@ export function useProviderConnections(
           "failedUpdateClaudeExtraUsagePolicy",
           "Failed to update Claude extra-usage policy"
         )
+      );
+    }
+  };
+
+  const handleToggleCodexPaidCredits = async (connectionId: string, enabled: boolean) => {
+    try {
+      const target = connections.find((connection) => connection.id === connectionId);
+      if (!target) return;
+
+      const providerSpecificData =
+        target.providerSpecificData && typeof target.providerSpecificData === "object"
+          ? target.providerSpecificData
+          : {};
+
+      const res = await fetch(`/api/providers/${connectionId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerSpecificData: { ...providerSpecificData, allowPaidCredits: enabled },
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        notify.error(
+          data.error ||
+            providerText(
+              t,
+              "failedUpdateCodexPaidCredits",
+              "Failed to update Codex paid-credit policy"
+            )
+        );
+        return;
+      }
+
+      setConnections((prev) =>
+        prev.map((connection) =>
+          connection.id === connectionId
+            ? {
+                ...connection,
+                providerSpecificData: {
+                  ...(connection.providerSpecificData || {}),
+                  allowPaidCredits: enabled,
+                },
+              }
+            : connection
+        )
+      );
+      notify.success(
+        enabled
+          ? providerText(
+              t,
+              "codexPaidCreditsEnabled",
+              "Codex paid credits enabled (additional charges may apply)"
+            )
+          : providerText(t, "codexPaidCreditsDisabled", "Codex paid credits disabled")
+      );
+    } catch (error) {
+      console.error("Error toggling Codex paid-credit policy:", error);
+      notify.error(
+        providerText(t, "failedUpdateCodexPaidCredits", "Failed to update Codex paid-credit policy")
       );
     }
   };
@@ -1115,6 +1177,7 @@ export function useProviderConnections(
     handleToggleRateLimit,
     handleToggleQuotaVisibility,
     handleToggleClaudeExtraUsage,
+    handleToggleCodexPaidCredits,
     handleToggleCodexLimit,
     handleToggleCliproxyapiMode,
     handleSetUpstreamProxyMode,

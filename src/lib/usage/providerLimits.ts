@@ -904,6 +904,7 @@ export async function fetchAndPersistProviderLimits(
       quotas: previous.quotas,
       plan: previous.plan ?? usage.plan ?? null,
       bankedResetCredits: previous.bankedResetCredits,
+      paidCredits: previous.paidCredits,
       billing: previous.billing,
       message: null,
       _stale: true,

@@ -155,6 +155,7 @@ export default function EditConnectionModal({
       provider === "claude"
         ? isClaudeExtraUsageBlockEnabled(provider, connectionProviderSpecificData)
         : false,
+    allowPaidCredits: connectionProviderSpecificData?.allowPaidCredits === true,
     passthroughModels: connectionProviderSpecificData?.passthroughModels === true,
     disableCooling: connectionProviderSpecificData?.disableCooling === true,
     importFreeModelsOnly: connectionProviderSpecificData?.importFreeModelsOnly === true,
@@ -398,6 +399,7 @@ export default function EditConnectionModal({
           effectiveProvider,
           connection.providerSpecificData
         ),
+        allowPaidCredits: connection.providerSpecificData?.allowPaidCredits === true,
         passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
         disableCooling: connection?.providerSpecificData?.disableCooling === true,
         importFreeModelsOnly: connection?.providerSpecificData?.importFreeModelsOnly === true,
@@ -698,6 +700,7 @@ export default function EditConnectionModal({
           updates.providerSpecificData.blockExtraUsage = formData.blockExtraUsage;
         }
         if (isCodex) {
+          updates.providerSpecificData.allowPaidCredits = formData.allowPaidCredits;
           updates.providerSpecificData.requestDefaults = {
             reasoningEffort: formData.codexReasoningEffort,
             ...(formData.codexServiceTier !== "default"
@@ -846,6 +849,16 @@ export default function EditConnectionModal({
               onChange={(checked) => setFormData({ ...formData, blockExtraUsage: checked })}
               label={t("blockClaudeExtraUsageLabel")}
               description={t("blockClaudeExtraUsageDescription")}
+            />
+          </div>
+        )}
+        {isCodex && (
+          <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
+            <Toggle
+              checked={formData.allowPaidCredits}
+              onChange={(checked) => setFormData({ ...formData, allowPaidCredits: checked })}
+              label={t("allowCodexPaidCreditsLabel")}
+              description={t("allowCodexPaidCreditsDescription")}
             />
           </div>
         )}

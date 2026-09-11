@@ -209,6 +209,9 @@ export function normalizeProviderSpecificData(
   if ("blockExtraUsage" in normalized && typeof normalized.blockExtraUsage !== "boolean") {
     delete normalized.blockExtraUsage;
   }
+  if ("allowPaidCredits" in normalized && typeof normalized.allowPaidCredits !== "boolean") {
+    delete normalized.allowPaidCredits;
+  }
 
   // #2997: per-connection transient-cooldown opt-out — only persist a real boolean.
   if ("disableCooling" in normalized && typeof normalized.disableCooling !== "boolean") {

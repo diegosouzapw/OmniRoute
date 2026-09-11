@@ -62,7 +62,7 @@ export async function getCodexUsage(
 
     const data = await response.json();
 
-    const { rateLimit, quotas, bankedResetCredits, rateLimitReachedType } =
+    const { rateLimit, quotas, bankedResetCredits, rateLimitReachedType, paidCredits } =
       buildCodexUsageQuotas(data);
 
     return {
@@ -72,6 +72,7 @@ export async function getCodexUsage(
       // Banked reset credits (display-only, eligibility-gated — issue #5199).
       // Absent for most accounts; never throws when the upstream omits it.
       ...(bankedResetCredits !== undefined ? { bankedResetCredits } : {}),
+      ...(paidCredits ? { paidCredits } : {}),
       ...(rateLimitReachedType !== undefined ? { rateLimitReachedType } : {}),
     };
   } catch (error) {
