@@ -79,6 +79,29 @@ function appendReasoningContent(current: unknown, next: string): string {
   return existing ? `${existing}\n\n${next}` : next;
 }
 
+function normalizeRoleBasedToolCalls(toolCalls: unknown): JsonRecord[] {
+  if (!Array.isArray(toolCalls)) return [];
+
+  return toolCalls
+    .map((toolCallValue) => {
+      const toolCall = toRecord(toolCallValue);
+      const fn = toRecord(toolCall.function);
+      const name = toString(fn.name).trim();
+      const id = toString(toolCall.id).trim();
+      if (!name || !id) return null;
+      return {
+        id,
+        type: "function",
+        function: {
+          name,
+          arguments:
+            typeof fn.arguments === "string" ? fn.arguments : JSON.stringify(fn.arguments ?? {}),
+        },
+      };
+    })
+    .filter((toolCall): toolCall is JsonRecord => toolCall !== null);
+}
+
 /**
  * Convert OpenAI Responses API request to OpenAI Chat Completions format
  */
@@ -252,6 +275,15 @@ export function openaiResponsesToOpenAIRequest(
         pendingToolResults = [];
       }
 
+      if (toString(item.role) === "tool") {
+        messages.push({
+          role: "tool",
+          tool_call_id: toString(item.tool_call_id),
+          content: toolOutputContentToString(item.content),
+        });
+        continue;
+      }
+
       // Convert content: input_text -> text, output_text -> text
       const content = Array.isArray(item.content)
         ? item.content.map((contentValue) => {
@@ -288,7 +320,17 @@ export function openaiResponsesToOpenAIRequest(
         : item.content;
 
       if (role === "assistant") {
-        if (!currentAssistantMsg) {
+        const roleBasedToolCalls = normalizeRoleBasedToolCalls(item.tool_calls);
+        if (roleBasedToolCalls.length > 0) {
+          if (currentAssistantMsg) {
+            messages.push(currentAssistantMsg);
+          }
+          currentAssistantMsg = {
+            role,
+            content,
+            tool_calls: roleBasedToolCalls,
+          };
+        } else if (!currentAssistantMsg) {
           currentAssistantMsg = { role, content };
         } else if (currentAssistantMsg.content == null && content != null) {
           currentAssistantMsg.content = content;
