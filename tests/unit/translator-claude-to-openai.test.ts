@@ -475,3 +475,14 @@ test("Claude -> OpenAI handles redacted thinking, empty arrays and unknown block
   });
   assert.equal(result.messages.length, 2);
 });
+
+test("Claude -> OpenAI keeps tool_choice none instead of widening it to auto", () => {
+  const body = (toolChoice: unknown) => ({
+    messages: [{ role: "user", content: [{ type: "text", text: "Just answer in text" }] }],
+    tools: [{ name: "weather", description: "Weather", input_schema: { type: "object" } }],
+    tool_choice: toolChoice,
+  });
+
+  assert.equal(claudeToOpenAIRequest("gpt-4o", body({ type: "none" }), false).tool_choice, "none");
+  assert.equal(claudeToOpenAIRequest("gpt-4o", body({ type: "auto" }), false).tool_choice, "auto");
+});
