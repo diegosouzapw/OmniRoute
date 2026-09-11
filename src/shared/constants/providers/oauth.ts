@@ -44,9 +44,9 @@ export const OAUTH_PROVIDERS = {
     textIcon: "OF",
     website: "https://openference.com",
     hasFree: true,
-    freeNote: "Free plan: 3-day trial with open-source models — no credit card required",
+    freeNote: "Free tier: Free forever with Qwen3.8 27b and Llama 3.2 3B — no credit card required",
     authHint:
-      "Sign in with your Openference account to route requests through api.openference.com. An active plan is required for inference — OAuth may authenticate but return 402 without one.",
+      "Sign in with your Openference account to route requests through api.openference.com. Permanent free access to Qwen3.8 27b and Llama 3.2 3B with no credit card required.",
   },
   "grok-cli": {
     id: "grok-cli",

@@ -14,5 +14,9 @@ export const openference_apiProvider: RegistryEntry = buildOpenAiCompatibleRegis
   baseUrl: "https://api.openference.com/v1/chat/completions",
   responsesBaseUrl: "https://api.openference.com/v1/responses",
   passthroughModels: true,
-  models: [{ id: "GLM-5.2", name: "GLM 5.2", contextLength: 850000 }],
+  models: [
+    { id: "GLM-5.2", name: "GLM 5.2", contextLength: 850000 },
+    { id: "Qwen3.8 27b", name: "Qwen3.8 27B", contextLength: 262144 },
+    { id: "Llama 3.2 3B", name: "Llama 3.2 3B", contextLength: 131072 },
+  ],
 });
