@@ -1063,6 +1063,7 @@ async function handleChatImplementation(
         resolvedModel,
         {
           sessionKey: sessionAffinityKey,
+          preferredConnectionIds: apiKeyInfo?.preferredConnections ?? null,
           ...(target?.allowRateLimitedConnection ? { allowRateLimitedConnections: true } : {}),
           ...(target?.connectionId ? { forcedConnectionId: target.connectionId } : {}),
           ...(bypassProviderQuotaPolicy ? { bypassQuotaPolicy: true } : {}),
@@ -1657,6 +1658,7 @@ async function handleSingleModelChat(
               model,
               {
                 sessionKey: occupancySessionKey,
+                preferredConnectionIds: apiKeyInfo?.preferredConnections ?? null,
                 reserveOAuthSession: true,
                 excludeConnectionIds: Array.from(excludedConnectionIds),
                 ...(runtimeOptions.allowRateLimitedConnection

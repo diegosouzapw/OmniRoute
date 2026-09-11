@@ -9,6 +9,7 @@ export const API_KEY_COLUMN_FALLBACKS = [
   { name: "allowed_combos", definition: "allowed_combos TEXT" },
   { name: "no_log", definition: "no_log INTEGER NOT NULL DEFAULT 0" },
   { name: "allowed_connections", definition: "allowed_connections TEXT" },
+  { name: "preferred_connections", definition: "preferred_connections TEXT" },
   { name: "auto_resolve", definition: "auto_resolve INTEGER NOT NULL DEFAULT 0" },
   { name: "is_active", definition: "is_active INTEGER NOT NULL DEFAULT 1" },
   { name: "access_schedule", definition: "access_schedule TEXT" },
