@@ -7,6 +7,7 @@ import { authorizeWebSocketHandshake, extractWsTokenFromRequest } from "@/lib/ws
 import { getModelInfo } from "@/sse/services/model";
 import { resolveCcDiscoveryAliasStrip } from "@/lib/ccDiscoveryAliasResolve";
 import { getProviderCredentialsWithQuotaPreflight } from "@/sse/services/auth";
+import { acquireCodexWsLease, releaseCodexWsLease } from "@/sse/services/codexWsLease";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { checkAndRefreshToken } from "@/sse/services/tokenRefresh";
 import { resolveCodexWsModelInfo } from "./modelResolution";
@@ -372,28 +373,58 @@ async function resolveCodexCredentials(
   model: string,
   allowedConnections: string[] | null
 ) {
-  const credentials = await getProviderCredentialsWithQuotaPreflight(
-    provider,
-    null,
-    allowedConnections,
-    model
-  );
-  if (!credentials || "allRateLimited" in credentials) {
-    return {
-      error: jsonError(
-        503,
-        "codex_credentials_unavailable",
-        "No available Codex OAuth connection for Responses WebSocket"
-      ),
-    };
+  const excludedConnectionIds: string[] = [];
+  let credentials: Awaited<ReturnType<typeof getProviderCredentialsWithQuotaPreflight>> = null;
+
+  // A saturated account is excluded and another eligible account is selected;
+  // never queue a Responses WS session behind an existing tool turn — a queued
+  // session times out client-side as 499/502.
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    credentials = await getProviderCredentialsWithQuotaPreflight(
+      provider,
+      null,
+      allowedConnections,
+      model,
+      { excludeConnectionIds: excludedConnectionIds }
+    );
+    if (!credentials || "allRateLimited" in credentials || !credentials.connectionId) break;
+
+    const leaseId = await acquireCodexWsLease(credentials.connectionId, credentials.maxConcurrent);
+    if (!leaseId) {
+      excludedConnectionIds.push(credentials.connectionId);
+      continue;
+    }
+
+    let refreshed: Awaited<ReturnType<typeof checkAndRefreshToken>>;
+    try {
+      refreshed = await checkAndRefreshToken(provider, credentials);
+    } catch (error) {
+      releaseCodexWsLease(leaseId);
+      return {
+        error: jsonError(
+          502,
+          "codex_ws_prepare_failed",
+          sanitizeErrorMessage(error instanceof Error ? error.message : String(error))
+        ),
+      };
+    }
+
+    if (!refreshed?.accessToken) {
+      releaseCodexWsLease(leaseId);
+      return {
+        error: jsonError(401, "codex_oauth_token_missing", "Codex OAuth access token is missing"),
+      };
+    }
+    return { credentials: refreshed, leaseId };
   }
-  const refreshed = await checkAndRefreshToken(provider, credentials);
-  if (!refreshed?.accessToken) {
-    return {
-      error: jsonError(401, "codex_oauth_token_missing", "Codex OAuth access token is missing"),
-    };
-  }
-  return { credentials: refreshed };
+
+  return {
+    error: jsonError(
+      503,
+      "codex_credentials_unavailable",
+      "No available Codex OAuth connection for Responses WebSocket"
+    ),
+  };
 }
 
 async function resolveCodexRequestContext(body: JsonRecord) {
@@ -483,19 +514,31 @@ async function resolveCodexUpstreamContext(
   if (credentialResult.error) return credentialResult;
   let reasoningDecision = context.decision;
   if (!reasoningDecision) {
-    reasoningDecision = await resolveReasoningRoutingRule({
-      sourceModel: context.intent.model,
-      sourceModelAliases: context.sourceModels.aliases,
-      sourceEffort: context.intent.sourceEffort,
-      hasReasoningSignal: context.intent.hasReasoningSignal,
-      hasThinkingBudget: context.intent.hasThinkingBudget,
-      apiKeyId: context.metadata?.id ?? null,
-      connectionId: credentialResult.credentials.connectionId,
-      requestTags: context.routingTags.tags,
-      connectionOnly: true,
-      capabilityModel: `codex/${model}`,
-    });
+    try {
+      reasoningDecision = await resolveReasoningRoutingRule({
+        sourceModel: context.intent.model,
+        sourceModelAliases: context.sourceModels.aliases,
+        sourceEffort: context.intent.sourceEffort,
+        hasReasoningSignal: context.intent.hasReasoningSignal,
+        hasThinkingBudget: context.intent.hasThinkingBudget,
+        apiKeyId: context.metadata?.id ?? null,
+        connectionId: credentialResult.credentials.connectionId,
+        requestTags: context.routingTags.tags,
+        connectionOnly: true,
+        capabilityModel: `codex/${model}`,
+      });
+    } catch (error) {
+      releaseCodexWsLease(credentialResult.leaseId);
+      return {
+        error: jsonError(
+          502,
+          "codex_ws_prepare_failed",
+          sanitizeErrorMessage(error instanceof Error ? error.message : String(error))
+        ),
+      };
+    }
     if (reasoningDecision?.capability === "unsupported") {
+      releaseCodexWsLease(credentialResult.leaseId);
       return {
         error: jsonError(
           400,
@@ -510,6 +553,7 @@ async function resolveCodexUpstreamContext(
     provider,
     model,
     credentials: credentialResult.credentials,
+    leaseId: credentialResult.leaseId,
     reasoningDecision,
   };
 }
@@ -537,51 +581,82 @@ async function prepare(body: JsonRecord) {
       );
     }
   }
+
   const upstream = await resolveCodexUpstreamContext(context);
   if ("error" in upstream) return upstream.error;
-  const { responseBody, metadata, provider, model, credentials: refreshedCredentials } = upstream;
-  const reasoningDecision = upstream.reasoningDecision;
-
-  let responseBodyWithMemory = await maybeInjectResponsesWsMemory(responseBody, metadata);
-  let reasoningRouting: JsonRecord | null = null;
-  if (reasoningDecision) {
-    const withDirective = attachReasoningRuleDirective(responseBodyWithMemory, reasoningDecision);
-    reasoningRouting = isRecord(withDirective._omnirouteReasoningRouteTrace)
-      ? withDirective._omnirouteReasoningRouteTrace
-      : null;
-    responseBodyWithMemory = applyReasoningRuleDirective(withDirective) as JsonRecord;
-    delete responseBodyWithMemory._omnirouteReasoningRouteTrace;
-  }
-  // #8052: the WS bridge previously skipped the whole prompt-compression pipeline that the
-  // HTTP/SSE path (chatCore.ts) runs on every request — wire the same core pipeline in here,
-  // per logical turn, before handing off to the executor.
-  responseBodyWithMemory = await applyResponsesWsCompression(responseBodyWithMemory, {
+  const {
+    responseBody,
+    metadata,
     provider,
     model,
-    requestId: randomUUID(),
-  });
-  const credentialsWithFingerprint = withCodexFingerprintCredentials(
-    refreshedCredentials,
-    context.clientHeaders,
-    responseBodyWithMemory
-  );
-  const transformed = (await executor.transformRequest(
-    model,
-    responseBodyWithMemory,
-    true,
-    credentialsWithFingerprint
-  )) as JsonRecord;
-  transformed.model = model;
-  delete transformed.stream;
-  delete transformed.stream_options;
+    credentials: refreshedCredentials,
+    leaseId,
+  } = upstream;
+  const reasoningDecision = upstream.reasoningDecision;
 
-  const headers = normalizeUpstreamHeaders(executor.buildHeaders(credentialsWithFingerprint, true));
+  let responseBodyWithMemory: JsonRecord;
+  let reasoningRouting: JsonRecord | null = null;
+  let transformed: JsonRecord;
+  let credentialsWithFingerprint: typeof refreshedCredentials;
+  try {
+    responseBodyWithMemory = await maybeInjectResponsesWsMemory(responseBody, metadata);
+    if (reasoningDecision) {
+      const withDirective = attachReasoningRuleDirective(responseBodyWithMemory, reasoningDecision);
+      reasoningRouting = isRecord(withDirective._omnirouteReasoningRouteTrace)
+        ? withDirective._omnirouteReasoningRouteTrace
+        : null;
+      responseBodyWithMemory = applyReasoningRuleDirective(withDirective) as JsonRecord;
+      delete responseBodyWithMemory._omnirouteReasoningRouteTrace;
+    }
+    // #8052: the WS bridge previously skipped the whole prompt-compression pipeline that the
+    // HTTP/SSE path (chatCore.ts) runs on every request — wire the same core pipeline in here,
+    // per logical turn, before handing off to the executor.
+    responseBodyWithMemory = await applyResponsesWsCompression(responseBodyWithMemory, {
+      provider,
+      model,
+      requestId: randomUUID(),
+    });
+    credentialsWithFingerprint = withCodexFingerprintCredentials(
+      refreshedCredentials,
+      context.clientHeaders,
+      responseBodyWithMemory
+    );
+    transformed = (await executor.transformRequest(
+      model,
+      responseBodyWithMemory,
+      true,
+      credentialsWithFingerprint
+    )) as JsonRecord;
+    transformed.model = model;
+    delete transformed.stream;
+    delete transformed.stream_options;
+  } catch (error) {
+    releaseCodexWsLease(leaseId);
+    return jsonError(
+      502,
+      "codex_ws_prepare_failed",
+      sanitizeErrorMessage(error instanceof Error ? error.message : String(error))
+    );
+  }
 
-  // #5611: apply the configured Global/provider proxy to the upstream Codex
-  // Responses WebSocket too. The downstream client→OmniRoute hop works, but the
-  // upstream wreq-js.websocket() connect previously ignored the Proxy Registry,
-  // so a no-direct-egress container failed with a DNS lookup error.
-  const proxy = await resolveCodexProxy(provider);
+  let headers: Record<string, string>;
+  let proxy: string | undefined;
+  try {
+    headers = normalizeUpstreamHeaders(executor.buildHeaders(credentialsWithFingerprint, true));
+
+    // #5611: apply the configured Global/provider proxy to the upstream Codex
+    // Responses WebSocket too. The downstream client→OmniRoute hop works, but the
+    // upstream wreq-js.websocket() connect previously ignored the Proxy Registry,
+    // so a no-direct-egress container failed with a DNS lookup error.
+    proxy = await resolveCodexProxy(provider);
+  } catch (error) {
+    releaseCodexWsLease(leaseId);
+    return jsonError(
+      502,
+      "codex_ws_prepare_failed",
+      sanitizeErrorMessage(error instanceof Error ? error.message : String(error))
+    );
+  }
 
   return NextResponse.json({
     ok: true,
@@ -593,6 +668,7 @@ async function prepare(body: JsonRecord) {
     browser: "chrome_142",
     os: "windows",
     connectionId: refreshedCredentials.connectionId,
+    leaseId,
     provider,
     account: refreshedCredentials.email || null,
     model,
@@ -627,6 +703,12 @@ export async function POST(request: Request) {
   }
   if (action === "prepare") {
     return prepare(body);
+  }
+  if (action === "release") {
+    return NextResponse.json({
+      ok: true,
+      released: releaseCodexWsLease(toStringOrNull(body.leaseId)),
+    });
   }
   if (action === "log") {
     try {
