@@ -18,6 +18,7 @@
 import {
   classifyErrorText,
   hasPerModelQuota,
+  hasPerModelFailureScope,
   isProviderExhaustedReason,
 } from "../accountFallback.ts";
 import {
@@ -408,7 +409,12 @@ function markConnectionLevelExhaustion(
     // must NOT exhaust the connection — other models on the same connection may still succeed.
     // Other connection-level statuses (408/502/503/504/524) indicate the connection itself is
     // bad, so they correctly exhaust even for per-model-quota providers.
-    (result.status === 500 && hasPerModelQuota(provider, rawModel))
+    (result.status === 500 && hasPerModelQuota(provider, rawModel)) ||
+    // #12334: a 404 names one model the account cannot serve, never a bad connection.
+    // On a provider that multiplexes models behind a single credential — a Claude OAuth
+    // subscription serving Fable 5, Opus 5/4.8/4.7/4.6, Sonnet and Haiku — exhausting the
+    // connection here stopped a priority combo at its first step.
+    (result.status === 404 && hasPerModelFailureScope(provider, rawModel))
   ) {
     return;
   }

@@ -70,6 +70,7 @@ import {
   getModelLockoutInfo,
   lockModel,
   hasPerModelQuota,
+  hasPerModelFailureScope,
   getRuntimeProviderProfile,
   recordModelLockoutFailure,
   retryHintBypassesMaxCooldownMs,
@@ -2724,7 +2725,6 @@ export async function markAccountUnavailable(
     // per-model lockout branches (per-model quota 403/404, codex scope) are left
     // as-is — extending disableCooling to model lockout is a follow-up.
     const disableCooling = connProviderSpecificData.disableCooling === true;
-
     const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
 
     // #10334 — agentrouter EXCLUSIVE: the matched provider rule declared scope
@@ -2849,7 +2849,7 @@ export async function markAccountUnavailable(
     const isNvidiaModelGone = provider === "nvidia" && status === 410;
     const modelLockoutOptions = { maxCooldownMs: effectiveProviderProfile?.maxCooldownMs };
     if (
-      isPerModelQuotaProvider &&
+      hasPerModelFailureScope(provider, model, connectionPassthroughModels, status) &&
       provider &&
       provider !== "codex" &&
       model &&
