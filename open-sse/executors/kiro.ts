@@ -252,6 +252,43 @@ export { kiroRuntimeHost };
 const KIRO_ENDPOINT_FALLBACK_STATUSES = new Set([401, 403, 404]);
 
 /**
+ * The branded `runtime.*.kiro.dev` gateway (tried first for any auth method
+ * other than api_key/idc/external_idp — see `isCodeWhispererOnly` below)
+ * enforces a `profileArn` even for connections that legitimately have none —
+ * Builder ID and other no-entitlement Kiro accounts, which the raw
+ * CodeWhisperer/Amazon Q host serves normally.
+ *
+ * Verified live (2026-09-10): the identical access token + request body gets
+ *   400 {"message":"profileArn is required for this request.","reason":null}
+ * from `runtime.us-east-1.kiro.dev`, and a normal streaming
+ * `generateAssistantResponse` from `codewhisperer.us-east-1.amazonaws.com` —
+ * confirmed both against a live Builder ID kiro-cli session and against the
+ * production accounts that were surfacing this 400 to end users.
+ *
+ * A plain 400 is deliberately excluded from KIRO_ENDPOINT_FALLBACK_STATUSES
+ * above (a malformed request body cannot be fixed by resending it to another
+ * host), so this exact, narrowly-matched message gets its own fallback
+ * trigger instead of widening 400 fallback in general.
+ */
+const KIRO_PROFILE_ARN_REQUIRED_MESSAGE = "profileArn is required for this request";
+
+/**
+ * Whether `response` is the branded gateway's profileArn-required rejection
+ * described above. Reads a clone of the body so the original response stream
+ * is left untouched for the caller (the success path, and the final
+ * not-ok-and-no-more-candidates path, both still need an unconsumed body).
+ */
+async function isBrandedGatewayProfileArnRejection(response: Response): Promise<boolean> {
+  if (response.status !== 400) return false;
+  try {
+    const text = await response.clone().text();
+    return text.includes(KIRO_PROFILE_ARN_REQUIRED_MESSAGE);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * KiroExecutor - Executor for Kiro AI (AWS CodeWhisperer)
  * Uses AWS CodeWhisperer streaming API with AWS EventStream binary format
  */
@@ -379,9 +416,11 @@ export class KiroExecutor extends BaseExecutor {
         signal,
       });
       const hasFallback = i + 1 < candidateUrls.length;
-      if (response.ok || !hasFallback || !KIRO_ENDPOINT_FALLBACK_STATUSES.has(response.status)) {
-        break;
-      }
+      if (response.ok || !hasFallback) break;
+      const shouldFallback =
+        KIRO_ENDPOINT_FALLBACK_STATUSES.has(response.status) ||
+        (await isBrandedGatewayProfileArnRejection(response));
+      if (!shouldFallback) break;
     }
 
     if (!response.ok) {
