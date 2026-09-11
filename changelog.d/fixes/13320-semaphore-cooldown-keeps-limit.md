@@ -1,0 +1,1 @@
+- **fix(sse):** A transient error on a round-robin combo target no longer resets its concurrency limit to 3, so a target capped at 1 is not sent three queued requests at once when its cooldown ends ([#13320](https://github.com/diegosouzapw/OmniRoute/pull/13320))
