@@ -20,6 +20,7 @@ import { CONTEXT_OVERFLOW_PATTERNS, MODEL_ACCESS_DENIED_PATTERNS } from "../acco
 import { isResourceNotFoundResponse } from "../errorClassifier.ts";
 import { getTrustedLocalRateLimitResponse } from "../rateLimitManager/errors.ts";
 import type { ResolvedComboTarget } from "./types.ts";
+import type { ComboErrorEntry } from "./comboErrorAggregation.ts";
 
 // Status codes that should mark round-robin target semaphores as cooling down.
 export const TRANSIENT_FOR_SEMAPHORE = [429, 502, 503, 504];
@@ -106,6 +107,29 @@ export const MAX_GLOBAL_ATTEMPTS = 30;
 // but never above this cap — an unbounded attempt budget is the same runaway
 // background-request DoS risk that motivated MAX_COMBO_DEPTH_HARD_CAP.
 export const MAX_GLOBAL_ATTEMPTS_HARD_CAP = 200;
+
+// A malformed/unsupported request shape (e.g. an incompatible tool-call
+// history for a provider's translation layer) fails the SAME way against
+// every fallback target, since it's a property of the request, not of any
+// one provider. Once this many *consecutive* targets have failed with the
+// identical model-shape error (same kind, status, and message), retrying the
+// remaining fallbacks — or the whole set again — cannot succeed either; it
+// only burns MAX_GLOBAL_ATTEMPTS and wall-clock time. See combo.ts's
+// `comboRequestMalformed` handling.
+export const IDENTICAL_MODEL_ERROR_STREAK = 3;
+
+export function hasIdenticalModelErrorStreak(
+  comboErrors: ReadonlyArray<ComboErrorEntry>,
+  streak: number = IDENTICAL_MODEL_ERROR_STREAK
+): boolean {
+  if (comboErrors.length < streak) return false;
+  const tail = comboErrors.slice(-streak);
+  const [first, ...rest] = tail;
+  if (first.kind !== "model") return false;
+  return rest.every(
+    (e) => e.kind === first.kind && e.status === first.status && e.error === first.error
+  );
+}
 
 /**
  * Clamp an operator-configured combo nesting depth (config.maxComboDepth) to a
