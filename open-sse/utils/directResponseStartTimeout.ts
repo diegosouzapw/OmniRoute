@@ -61,16 +61,29 @@ export async function directFetchWithBoundedResponseStart(
 ): Promise<Response> {
   if (!timeoutMs || timeoutMs <= 0) return fetchImpl(input, options);
   const attemptController = new AbortController();
-  const timer = setTimeout(
-    () => attemptController.abort(createDirectResponseStartTimeout(timeoutMs)),
-    timeoutMs
-  );
+  // #12861: guards a narrow but real race between the timer macrotask and the
+  // fetch promise settling. If `fetchImpl` has already resolved/rejected by
+  // the time this timer fires, aborting now delivers the abort reason to a
+  // promise nobody is awaiting anymore — Node promotes that to an
+  // unhandledRejection -> uncaughtException and kills the process. Once the
+  // attempt has settled, the timer becomes a no-op instead: the caller
+  // already has its answer, and there's nothing left to abort for.
+  let settled = false;
+  const timer = setTimeout(() => {
+    if (settled) return;
+    attemptController.abort(createDirectResponseStartTimeout(timeoutMs));
+  }, timeoutMs);
   timer.unref?.();
   try {
-    return await fetchImpl(input, {
+    const response = await fetchImpl(input, {
       ...options,
       signal: mergeAbortSignals(options.signal, attemptController.signal),
     });
+    settled = true;
+    return response;
+  } catch (err) {
+    settled = true;
+    throw err;
   } finally {
     clearTimeout(timer);
   }

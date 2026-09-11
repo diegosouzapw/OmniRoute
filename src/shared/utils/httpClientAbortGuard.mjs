@@ -1,7 +1,8 @@
 "use strict";
 
 /**
- * HTTP client-abort crash guard (#fix-dev-server-aborted).
+ * HTTP client-abort / recoverable-upstream-timeout crash guard
+ * (#fix-dev-server-aborted, #12861).
  *
  * Node's http.Server turns an 'error' event on an IncomingMessage/ServerResponse
  * into an uncaughtException (and therefore a process exit) WHENEVER the emitter
@@ -16,14 +17,21 @@
  * connections + a live WebSocket; stray client-side socket closes during
  * navigation/HMR were taking the dev server down.
  *
+ * A second, unrelated category was added for #12861: `directFetchWithBoundedResponseStart`'s
+ * response-start timeout (`DIRECT_RESPONSE_START_TIMEOUT`) is a *recoverable*
+ * signal `proxyFetch.ts` already retries on a fresh socket — but a narrow
+ * timer/promise-settlement race can still deliver its abort reason to a
+ * promise nobody is awaiting anymore, which otherwise kills the whole process
+ * over a single upstream stall that the retry path was built to handle.
+ *
  * Two layers:
  *   1. `attachRequestStreamGuards(req, res)` — per-request listeners that absorb
  *      client-abort errors so they never bubble to the process level. Call it
  *      inside every `http.createServer((req, res) => …)` request listener.
  *   2. `installProcessCrashGuard()` — a last-resort safety net on
  *      `process.on('uncaughtException' | 'unhandledRejection')` that swallows
- *      the same benign client-abort errors but otherwise preserves the existing
- *      crash semantics (so genuine bugs still surface). Idempotent.
+ *      the same benign errors but otherwise preserves the existing crash
+ *      semantics (so genuine bugs still surface). Idempotent.
  *
  * Kept as a `.mjs` module (no build step) so it is importable both from the
  * Node-only dev server (`scripts/dev/run-next.mjs`) and from the TypeScript
@@ -64,8 +72,31 @@ export function isClientAbortError(err) {
 }
 
 /**
+ * #12861: a recoverable upstream-fetch timeout that `proxyFetch.ts` already
+ * retries on a fresh socket (see `open-sse/utils/directResponseStartTimeout.ts`).
+ * A narrow timer/promise-settlement race can still deliver its abort reason to
+ * a promise nobody is awaiting anymore, which otherwise surfaces here as an
+ * unhandledRejection/uncaughtException — even though the retry path already
+ * handles this exact condition and normally logs it as a plain 504.
+ *
+ * Kept as a bare string-code check (no import of the `.ts` source of truth)
+ * because this file has to stay build-free/plain-JS-loadable — see the module
+ * docstring. `DIRECT_RESPONSE_START_TIMEOUT_CODE` in
+ * `open-sse/utils/directResponseStartTimeout.ts` is the canonical definition;
+ * keep this string literal in sync with it.
+ *
+ * @param {unknown} err
+ * @returns {boolean}
+ */
+export function isRecoverableUpstreamTimeoutError(err) {
+  if (!err || typeof err !== "object") return false;
+  return /** @type {NodeJS.ErrnoException} */ (err).code === "DIRECT_RESPONSE_START_TIMEOUT";
+}
+
+/**
  * Decide whether a process-level uncaughtException/unhandledRejection should be
- * swallowed (benign client-abort) or allowed to surface (genuine bug).
+ * swallowed (benign client-abort, or a recoverable upstream timeout that a
+ * retry path already handles — #12861) or allowed to surface (genuine bug).
  *
  * Pure + exported so it can be unit-tested without poking process listeners.
  *
@@ -75,7 +106,7 @@ export function isClientAbortError(err) {
  * @returns {boolean} true => swallow (log only), false => re-throw / let crash.
  */
 export function shouldSwallowUncaught(err, origin) {
-  if (!isClientAbortError(err)) return false;
+  if (!isClientAbortError(err) && !isRecoverableUpstreamTimeoutError(err)) return false;
   // Only swallow when the origin matches what the guard installed for. If some
   // other subsystem raised it (e.g. a deliberate `throw` in a domain), keep the
   // existing crash semantics.
@@ -131,7 +162,11 @@ export function installProcessCrashGuard(log) {
 
   process.on("uncaughtException", (err, origin) => {
     if (shouldSwallowUncaught(err, origin)) {
-      logger("warn", "[server] swallowed client-abort uncaughtException:", err?.message ?? err);
+      logger(
+        "warn",
+        "[server] swallowed benign uncaughtException:",
+        err?.code ?? err?.message ?? err
+      );
       return;
     }
     throw err;
@@ -141,8 +176,8 @@ export function installProcessCrashGuard(log) {
     if (shouldSwallowUncaught(reason, "unhandledRejection")) {
       logger(
         "warn",
-        "[server] swallowed client-abort unhandledRejection:",
-        reason?.message ?? reason
+        "[server] swallowed benign unhandledRejection:",
+        reason?.code ?? reason?.message ?? reason
       );
       return;
     }

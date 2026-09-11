@@ -9,6 +9,17 @@ import headResponseGuard from "./head-response-guard.cjs";
 import { resolveTlsOptions, createServerListener } from "./tls-options.mjs";
 import { getMainServerTimeoutConfig } from "./main-server-timeouts.mjs";
 import { createSystemdNotifier } from "./systemd-notify.mjs";
+import { installProcessCrashGuard } from "./httpClientAbortGuard.mjs";
+
+// Safety net (#12861): this is the actual production entry point (see the
+// keepAliveTimeout comment below for why `run-next.mjs`-only fixes don't
+// reach real installs). Without this, a client abort OR a recoverable
+// upstream-fetch timeout that a retry path already handles (see
+// open-sse/utils/directResponseStartTimeout.ts) can surface as an
+// unhandledRejection -> uncaughtException and take the whole server down —
+// exactly the asymmetry `run-next.mjs` already closed for dev. Benign errors
+// are swallowed and logged; genuine bugs still crash loudly.
+installProcessCrashGuard();
 
 // systemd sd_notify (Type=notify / WatchdogSec=): this process is the one
 // whose event loop can freeze (cold /v1/models rebuild), so it must own the
