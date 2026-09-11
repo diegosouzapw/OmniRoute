@@ -83,11 +83,61 @@ const STREAM_TIMESTAMP_PREFIX = /\[\d{2}:\d{2}:\d{2}\.\d{3}\] /g;
 type StreamSegment =
   { type: "text"; value: string } | { type: "json"; value: unknown; raw: string };
 
+// Gemini's own stream-chunk capture concatenates multiple complete JSON
+// objects back-to-back with no separator between them ("}{"), unlike the
+// SSE blank-line-per-event framing every other provider's capture uses
+// here. A `data:` payload can therefore hold several complete top-level
+// JSON values, not one -- JSON.parse correctly rejects the whole thing
+// ("Unexpected non-whitespace character after JSON") and used to make the
+// entire payload fall back to plain text. Recover by scanning bracket/
+// string depth to split the payload into individual JSON values instead of
+// assuming exactly one JSON.parse per payload; each recovered value renders
+// as its own collapsible node.
+export function splitConcatenatedJsonValues(payload: string): unknown[] | null {
+  const values: unknown[] = [];
+  let i = 0;
+  const len = payload.length;
+  while (i < len) {
+    while (i < len && /\s/.test(payload[i])) i++;
+    if (i >= len) break;
+    const start = i;
+    if (payload[i] !== "{" && payload[i] !== "[") return null; // not a bare-value stream
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    for (; i < len; i++) {
+      const ch = payload[i];
+      if (inString) {
+        if (escaped) escaped = false;
+        else if (ch === "\\") escaped = true;
+        else if (ch === '"') inString = false;
+        continue;
+      }
+      if (ch === '"') inString = true;
+      else if (ch === "{" || ch === "[") depth++;
+      else if (ch === "}" || ch === "]") {
+        depth--;
+        if (depth === 0) {
+          i++;
+          break;
+        }
+      }
+    }
+    if (depth !== 0) return null; // unterminated -- a genuinely incomplete capture, not this case
+    try {
+      values.push(JSON.parse(payload.slice(start, i)));
+    } catch {
+      return null;
+    }
+  }
+  return values.length > 1 ? values : null;
+}
+
 // Splits a raw joined SSE capture into renderable segments: each `data:`
 // line that parses as JSON becomes its own segment (rendered as a
 // collapsible tree), everything else (comments, keep-alives, [DONE],
 // non-JSON payloads) stays as plain text, byte-identical to the raw capture.
-function parseStreamIntoSegments(joined: string): StreamSegment[] {
+export function parseStreamIntoSegments(joined: string): StreamSegment[] {
   const text = joined.replace(STREAM_TIMESTAMP_PREFIX, "");
   const events = text.split(/(?<=\n\n)/); // keep event boundaries, preserve exact text
   const segments: StreamSegment[] = [];
@@ -105,7 +155,12 @@ function parseStreamIntoSegments(joined: string): StreamSegment[] {
     try {
       segments.push({ type: "json", value: JSON.parse(payload), raw: event });
     } catch {
-      segments.push({ type: "text", value: event });
+      const values = splitConcatenatedJsonValues(payload);
+      if (values) {
+        for (const value of values) segments.push({ type: "json", value, raw: event });
+      } else {
+        segments.push({ type: "text", value: event });
+      }
     }
   }
   return segments;
@@ -121,6 +176,17 @@ function StreamSection({ title, sectionId, json, onCopy }) {
       return v == null ? true : v === "1";
     } catch {
       return true;
+    }
+  });
+  // Default to the rendered/parsed view (segments below) -- raw is an
+  // explicit opt-in for inspecting exactly what was captured on the wire,
+  // timestamp markers and all, when the rendered tree hides something the
+  // parser got wrong (e.g. a chunk-boundary split like this PR fixes).
+  const [showRaw, setShowRaw] = useState(() => {
+    try {
+      return localStorage.getItem("pref:stream:raw") === "1";
+    } catch {
+      return false;
     }
   });
   const ref = useRef(null);
@@ -157,6 +223,14 @@ function StreamSection({ title, sectionId, json, onCopy }) {
     } catch {}
   };
 
+  const toggleRaw = () => {
+    const next = !showRaw;
+    setShowRaw(next);
+    try {
+      localStorage.setItem("pref:stream:raw", next ? "1" : "0");
+    } catch {}
+  };
+
   useTimestampTitles(ref, open);
 
   return (
@@ -178,6 +252,15 @@ function StreamSection({ title, sectionId, json, onCopy }) {
         </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={toggleRaw}
+            title={showRaw ? t("rawViewOn") : t("rawViewOff")}
+            aria-label={showRaw ? t("rawViewOn") : t("rawViewOff")}
+            className={`p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors ${showRaw ? "text-primary" : ""}`}
+            aria-pressed={showRaw}
+          >
+            <span className="material-symbols-outlined text-[18px]">code</span>
+          </button>
+          <button
             onClick={toggleAutoscroll}
             title={autoscroll ? t("autoscrollOn") : t("autoscrollOff")}
             className={`p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors ${autoscroll ? "text-primary" : ""}`}
@@ -195,7 +278,7 @@ function StreamSection({ title, sectionId, json, onCopy }) {
             </span>
             {copied ? t("copied") : t("copy")}
           </button>
-          {segments.some((s) => s.type === "json") && (
+          {!showRaw && segments.some((s) => s.type === "json") && (
             <JsonTreeExpandControls sectionId={resolvedSectionId} />
           )}
         </div>
@@ -205,21 +288,25 @@ function StreamSection({ title, sectionId, json, onCopy }) {
           ref={ref}
           className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-150 overflow-y-auto leading-relaxed"
         >
-          {segments.map((segment, i) =>
-            segment.type === "json" ? (
-              <div key={i} className="my-1">
-                <JsonView
-                  src={segment.value}
-                  dark={isDark}
-                  collapsed={expandLevel}
-                  customizeNode={timestampMarkerCustomizeNode}
-                  displaySize
-                />
-              </div>
-            ) : (
-              <span key={i} className="whitespace-pre-wrap break-words">
-                {segment.value}
-              </span>
+          {showRaw ? (
+            <pre className="whitespace-pre-wrap break-words">{json}</pre>
+          ) : (
+            segments.map((segment, i) =>
+              segment.type === "json" ? (
+                <div key={i} className="my-1">
+                  <JsonView
+                    src={segment.value}
+                    dark={isDark}
+                    collapsed={expandLevel}
+                    customizeNode={timestampMarkerCustomizeNode}
+                    displaySize
+                  />
+                </div>
+              ) : (
+                <span key={i} className="whitespace-pre-wrap break-words">
+                  {segment.value}
+                </span>
+              )
             )
           )}
         </div>

@@ -11341,6 +11341,8 @@
       "copy": "Copy",
       "autoscrollOn": "Autoscroll: on",
       "autoscrollOff": "Autoscroll: off",
+      "rawViewOn": "Raw view: on",
+      "rawViewOff": "Raw view: off",
       "collapseAllLevels": "Collapse all",
       "collapseOneLevel": "Collapse one level",
       "currentExpandLevel": "Current expand level",
