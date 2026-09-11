@@ -176,6 +176,7 @@ describe("claudeIdentity — selectBetaFlags", () => {
     };
     const flags = mod.selectBetaFlags(body, "claude-opus-4");
     assert.ok(flags.includes("context-1m-2025-08-07"));
+    assert.ok(flags.includes("mid-conversation-system-2026-04-07"));
   });
 
   it("omits the legacy context-1m beta for Opus 5", () => {
@@ -194,6 +195,19 @@ describe("claudeIdentity — selectBetaFlags", () => {
     };
     const flags = mod.selectBetaFlags(body, "claude-sonnet-4");
     assert.ok(!flags.includes("context-1m"));
+    assert.ok(!flags.includes("mid-conversation-system"));
+  });
+
+  it("includes mid-conversation-system without context-1m for Fable", () => {
+    const body = {
+      system: "test",
+      tools: [{ name: "test_tool" }],
+    };
+    for (const model of ["claude-fable-5", "claude-fable-5-1"]) {
+      const flags = mod.selectBetaFlags(body, model);
+      assert.ok(flags.includes("mid-conversation-system-2026-04-07"));
+      assert.ok(!flags.includes("context-1m"));
+    }
   });
 });
 
