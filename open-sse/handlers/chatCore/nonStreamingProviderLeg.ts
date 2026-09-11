@@ -87,6 +87,7 @@ export interface ProviderLegInput {
   effectiveModel?: string;
   translatedBody?: Record<string, unknown>;
   toolNameMap?: Map<string, string> | null;
+  customToolNames?: ReadonlySet<string>;
   requestToolIdentityMap?: Map<string, { namespace?: string; name: string }> | null;
   reasoningCacheScope?: string | null;
   clientHeaders?: Headers | Record<string, unknown> | null;
@@ -283,6 +284,7 @@ function finishOk(
     historyMessages: (input.translatedBody as { messages?: unknown[] } | null | undefined)
       ?.messages,
     responseToolNameMap,
+    customToolNames: input.customToolNames,
     requestToolIdentityMap: input.requestToolIdentityMap ?? null,
     reasoningCacheScope: input.reasoningCacheScope ?? null,
     clientHeaders: input.clientHeaders ?? null,

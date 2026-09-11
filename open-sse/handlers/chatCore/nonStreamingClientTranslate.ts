@@ -54,6 +54,7 @@ export function translateNonStreamingClientResponse(
     model,
     requestBody,
     responseToolNameMap,
+    customToolNames,
     requestToolIdentityMap,
     reasoningCacheScope,
     clientHeaders,
@@ -120,15 +121,41 @@ export function translateNonStreamingClientResponse(
   } catch {
     // Cache capture is non-critical — never block the response
   }
-
   // ── Sanitize response for SDK compatibility ────────────────────────────────
   if (clientResponseFormat === FORMATS.OPENAI_RESPONSES) {
     translatedResponse = sanitizeResponsesApiResponse(translatedResponse);
-    // Restore {namespace, name} on function_call items for round-trip closure (#7936)
-    const responseOutput = translatedResponse?.output;
-    if (requestToolIdentityMap && Array.isArray(responseOutput)) {
-      for (const item of responseOutput) {
-        if (item?.type !== "function_call") continue;
+    const sanitizedOutput = translatedResponse?.output;
+    if (customToolNames && Array.isArray(sanitizedOutput)) {
+      for (const item of sanitizedOutput) {
+        if (item?.type !== "function_call" || !customToolNames.has(item.name)) continue;
+
+        let rawInput = item.arguments;
+        if (typeof item.arguments === "string") {
+          try {
+            const parsed = JSON.parse(item.arguments);
+            if (parsed && typeof parsed.input === "string") rawInput = parsed.input;
+          } catch {
+            // Non-JSON arguments are already the best available raw input.
+          }
+        } else if (
+          item.arguments &&
+          typeof item.arguments === "object" &&
+          typeof item.arguments.input === "string"
+        ) {
+          rawInput = item.arguments.input;
+        }
+
+        item.type = "custom_tool_call";
+        item.input = typeof rawInput === "string" ? rawInput : JSON.stringify(rawInput ?? "");
+        item.status ??= "completed";
+        delete item.arguments;
+      }
+    }
+
+    // Restore {namespace, name} only after custom classification, which uses wire names.
+    if (requestToolIdentityMap && Array.isArray(sanitizedOutput)) {
+      for (const item of sanitizedOutput) {
+        if (item?.type !== "function_call" && item?.type !== "custom_tool_call") continue;
         const identity = requestToolIdentityMap.get(item.name);
         if (identity) {
           item.namespace = identity.namespace;

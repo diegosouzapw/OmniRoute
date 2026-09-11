@@ -270,6 +270,94 @@ test("Responses API format: sanitizeResponsesApiResponse is applied", () => {
   assert.equal(output[0]?.name, "get_weather", "#7936 restore original name");
 });
 
+test("Responses API format: restores non-stream custom tool calls before namespace identity", () => {
+  const input = baseInput({
+    responsePayloadFormat: FORMATS.OPENAI_RESPONSES,
+    clientResponseFormat: FORMATS.OPENAI_RESPONSES,
+    sourceFormat: FORMATS.OPENAI_RESPONSES,
+    responseBody: {
+      id: "resp_custom",
+      object: "response",
+      status: "completed",
+      output: [
+        {
+          id: "fc_call_1",
+          type: "function_call",
+          call_id: "call_1",
+          name: "functions__exec",
+          arguments: '{"input":"printf \'nonstream-ok\\\\n\'"}',
+        },
+      ],
+      usage: { input_tokens: 10, output_tokens: 5, total_tokens: 15 },
+    },
+    customToolNames: new Set(["functions__exec"]),
+    requestToolIdentityMap: new Map([
+      ["functions__exec", { namespace: "functions", name: "exec" }],
+    ]),
+  });
+
+  const result = translateNonStreamingClientResponse(input);
+  const output = result.response.output as Array<Record<string, unknown>>;
+  assert.deepEqual(output[0], {
+    id: "fc_call_1",
+    type: "custom_tool_call",
+    call_id: "call_1",
+    name: "exec",
+    input: "printf 'nonstream-ok\\n'",
+    status: "completed",
+    namespace: "functions",
+  });
+});
+
+test("Responses API format: classifies custom calls synthesized from Kiro chat output", () => {
+  const input = baseInput({
+    responsePayloadFormat: "kiro",
+    clientResponseFormat: FORMATS.OPENAI_RESPONSES,
+    sourceFormat: FORMATS.OPENAI_RESPONSES,
+    responseBody: {
+      id: "chatcmpl_custom",
+      object: "chat.completion",
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: "assistant",
+            content: null,
+            tool_calls: [
+              {
+                id: "call_kiro_1",
+                type: "function",
+                function: {
+                  name: "functions__exec",
+                  arguments: '{"input":"printf \'kiro-nonstream-ok\\\\n\'"}',
+                },
+              },
+            ],
+          },
+          finish_reason: "tool_calls",
+        },
+      ],
+      usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+    },
+    customToolNames: new Set(["functions__exec"]),
+    requestToolIdentityMap: new Map([
+      ["functions__exec", { namespace: "functions", name: "exec" }],
+    ]),
+  });
+
+  const result = translateNonStreamingClientResponse(input);
+  const output = result.response.output as Array<Record<string, unknown>>;
+  assert.deepEqual(output[0], {
+    id: "fc_call_kiro_1",
+    type: "custom_tool_call",
+    call_id: "call_kiro_1",
+    name: "exec",
+    input: "printf 'kiro-nonstream-ok\\n'",
+    status: "completed",
+    namespace: "functions",
+  });
+});
+
 test("empty content response: passthrough without crash", () => {
   const input = baseInput({
     responseBody: {},
