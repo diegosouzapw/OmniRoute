@@ -186,7 +186,10 @@ export function acquire(
  * @param {number} cooldownMs - How long to block (milliseconds)
  */
 export function markRateLimited(modelStr: string, cooldownMs: number): void {
-  const gate = getGate(modelStr);
+  // Keep the limit the gate was acquired with. getGate() writes its argument into
+  // gate.max, so the bare default here would reset a configured limit to 3 and the
+  // post-cooldown drain would release that many queued requests at once.
+  const gate = getGate(modelStr, gates.get(modelStr)?.max);
   gate.rateLimitedUntil = Date.now() + cooldownMs;
 
   // Schedule drain after cooldown expires
