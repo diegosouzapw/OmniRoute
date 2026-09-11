@@ -158,4 +158,53 @@ describe("compression worker execution", () => {
     assert.equal(ticked, true);
     await jobs;
   });
+
+  it("terminates the worker after run() completes (no leak)", async () => {
+    // Fix for #13091: the previous code path removed the worker slot from the
+    // Set but never called worker.terminate() on the idle-eviction path. With
+    // the fix, remove() always terminates, so the worker's 'exit' event must
+    // fire when the slot is removed — even on the run-completion path.
+    const pool = new CompressionWorkerPool({ size: 1, timeoutMs: 5_000, idleMs: 60_000 });
+    const exited: number[] = [];
+    try {
+      // Listen on a placeholder worker first to capture the thread ref.
+      // Warm up the pool so a worker is actually created and then immediately
+      // removed (run() -> finish() -> remove() -> terminate()).
+      const exitPromise = new Promise<number>((resolve) => {
+        const arm = () => {
+          const active = (pool as unknown as {
+            __getActiveWorkersForTests(): Set<{ on: (ev: string, cb: (code: number | null) => void) => void }>;
+          }).__getActiveWorkersForTests();
+          if (active.size === 1) {
+            const [worker] = active;
+            worker.on("exit", (code) => { exited.push(code ?? -1); resolve(code ?? -1); });
+            return true;
+          }
+          return false;
+        };
+        if (!arm()) {
+          // Active set might be 0 if removal happened before our listener — wait
+          const t = setInterval(() => { if (arm()) clearInterval(t); }, 5);
+        }
+      });
+
+      await pool.run(body, "stacked", { config });
+      await exitPromise;
+
+      assert.equal(
+        exited.length,
+        1,
+        "worker should fire 'exit' after finish() calls terminate()"
+      );
+      assert.equal(
+        (pool as unknown as {
+          __getActiveWorkersForTests(): Set<unknown>;
+        }).__getActiveWorkersForTests().size,
+        0,
+        "run() should leave the pool empty (no leak)"
+      );
+    } finally {
+      await pool.close();
+    }
+  });
 });
