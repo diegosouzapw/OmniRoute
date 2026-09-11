@@ -144,6 +144,37 @@ test("computeFingerprintHash: identical apiKeyId/model/toolNames produce the sam
   assert.equal(a, b);
 });
 
+test("resolveConversationId: disabled tracking skips database access and message parsing", async () => {
+  const { getDbInstance } = await import("../../src/lib/db/core.ts");
+  const db = getDbInstance();
+  const previous = process.env.OMNIROUTE_DISABLE_CONVERSATION_TRACKING;
+  const prepare = test.mock.method(db, "prepare", () => {
+    throw new Error("disabled tracking must not access SQLite");
+  });
+  process.env.OMNIROUTE_DISABLE_CONVERSATION_TRACKING = "1";
+  try {
+    for (const clientSessionIdHeader of [null, "explicit-session"]) {
+      const result = await resolveConversationId({
+        body: {
+          get messages() {
+            throw new Error("disabled tracking must not parse messages");
+          },
+        },
+        model: "test-model",
+        apiKeyId: "test-key",
+        clientSessionIdHeader,
+        correlationId: "disabled-tracking",
+      });
+      assert.deepEqual(result, { conversationId: null, isNewConversation: false });
+    }
+    assert.equal(prepare.mock.callCount(), 0);
+  } finally {
+    prepare.mock.restore();
+    if (previous === undefined) delete process.env.OMNIROUTE_DISABLE_CONVERSATION_TRACKING;
+    else process.env.OMNIROUTE_DISABLE_CONVERSATION_TRACKING = previous;
+  }
+});
+
 test("resolveConversationId: exact-match continuation reuses the same id", async () => {
   const apiKeyId = "key-exact";
   const turn1 = await resolveConversationId({

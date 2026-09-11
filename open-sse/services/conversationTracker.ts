@@ -77,7 +77,7 @@ export interface ResolveConversationIdInput {
 }
 
 export interface ResolveConversationIdResult {
-  conversationId: string;
+  conversationId: string | null;
   isNewConversation: boolean;
 }
 
@@ -459,6 +459,10 @@ const MAX_STORED_ID_LENGTH = 128;
 export async function resolveConversationId(
   input: ResolveConversationIdInput
 ): Promise<ResolveConversationIdResult> {
+  if (process.env.OMNIROUTE_DISABLE_CONVERSATION_TRACKING === "1") {
+    return { conversationId: null, isNewConversation: false };
+  }
+
   // Client override wins outright — deterministic, zero heuristic risk.
   // Same header feature #8249 already reads (chatCore.ts); we don't invent a
   // new prefix so the existing header's contract/format stays unchanged.
