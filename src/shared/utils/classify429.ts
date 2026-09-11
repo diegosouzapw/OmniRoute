@@ -99,6 +99,24 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /organization TPD rate limit/i,
   /\bTPD rate limit\b/i,
   /insufficient balance/i,
+
+  // Chinese (zh-CN) quota-exhaustion phrasing (Issue #13194). Providers:
+  // z.ai/GLM (5-hour and daily windows), Moonshot/Kimi, DashScope/Qwen,
+  // MiniMax. Live body: "已达到 5 小时的使用上限。您的限额将在
+  // 2026-09-10 19:01:19 重置。" Every pattern above is English-only, so the
+  // body fell through to the "rate_limit" default and the gateway scheduled a
+  // 6-60s cooldown against a window the upstream had declared as ~49 minutes —
+  // retrying a dead model on every request instead of failing over.
+  //
+  // Kept to phrases that name a cap or an exhausted balance: the transient
+  // Chinese phrasing "请求过于频繁，请稍后重试。" ("too many requests, retry
+  // later") contains none of them and must stay a rate_limit, or every
+  // per-minute throttle would take the long quota bucket.
+  /限额将在.*重置/, // "quota will reset at <time>" — z.ai/GLM 5-hour window
+  /使用上限/, // "usage cap reached" — z.ai/GLM
+  /调用上限/, // "call cap reached" — MiniMax daily window
+  /额度已用尽/, // "balance used up" — Moonshot/Kimi
+  /额度已用完/, // "balance used up" — DashScope/Qwen
 ];
 
 /**
