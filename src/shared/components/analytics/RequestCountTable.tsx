@@ -92,7 +92,10 @@ export default function RequestCountTable({
               <td className="px-4 py-2.5 text-right font-mono font-semibold">
                 {fmtFull(row.requests)}
               </td>
-              <td className="px-4 py-2.5 text-right font-mono text-text-muted">
+              <td
+                className="px-4 py-2.5 text-right font-mono text-text-muted"
+                title={fmtFull(row.totalTokens)}
+              >
                 {fmt(row.totalTokens)}
               </td>
             </tr>
