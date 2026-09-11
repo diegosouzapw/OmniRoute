@@ -1,0 +1,3 @@
+cargo::rustc-check-cfg=cfg(libpulp_const)
+cargo:rustc-cfg=libpulp_const
+cargo::rerun-if-changed=build.rs

@@ -4,6 +4,7 @@
 
 import { getDbInstance } from "../db/core";
 import { upsertSemanticMemoryPoint, deleteSemanticMemoryPoint } from "./qdrant";
+import { upsertTurbovecPoint, deleteTurbovecPoint } from "./turbovec";
 import { Memory, MemoryType } from "./types";
 import { logger } from "../../../open-sse/utils/logger.ts";
 import { sanitizeErrorMessage } from "../../../open-sse/utils/error.ts";
@@ -264,6 +265,13 @@ export async function createMemory(
       })
       .catch((e) => log.warn?.("qdrant.upsert.error", { id: existing.id, error: String(e) }));
 
+      // Turbovec parallel upsert
+      getMemorySettings().then(settings => {
+        if (settings.vectorStore === "turbovec") {
+          upsertTurbovecPoint(existing.id, new Float32Array(embedding)).catch(e => log.warn("memory.turbovec.upsert.error", { id: existing.id, error: String(e) }));
+        }
+      });
+
     return updatedMemory;
   }
 
@@ -337,6 +345,13 @@ export async function createMemory(
         log.warn?.("qdrant.upsert.fail", { id, error: r.error });
     })
     .catch((e) => log.warn?.("qdrant.upsert.error", { id, error: String(e) }));
+
+    // Turbovec parallel upsert
+    getMemorySettings().then(settings => {
+      if (settings.vectorStore === "turbovec") {
+        upsertTurbovecPoint(id, new Float32Array(embedding)).catch(e => log.warn("memory.turbovec.upsert.error", { id, error: String(e) }));
+      }
+    });
 
   return createdMemory;
 }
@@ -469,6 +484,16 @@ export async function deleteMemory(id: string): Promise<boolean> {
       error: sanitizeErrorMessage(e instanceof Error ? e.message : String(e)),
     })
   );
+
+  // Turbovec parallel delete
+  try {
+    const settings = await getMemorySettings();
+    if (settings.vectorStore === "turbovec") {
+      await deleteTurbovecPoint(id);
+    }
+  } catch (e) {
+    log.warn("memory.turbovec.delete.error", { error: String(e) });
+  }
 
   // 3. Delete from SQLite
   const db = getDbInstance();

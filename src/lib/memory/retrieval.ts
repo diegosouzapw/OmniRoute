@@ -9,6 +9,7 @@ import { getMemorySettings } from "./settings";
 import { recordMemoryAccess } from "./store";
 import { stats as embeddingCacheStats } from "./embedding/cache";
 import { getQdrantConfig, checkQdrantHealth, searchSemanticMemory } from "./qdrant";
+import { searchTurbovecMemory } from "./turbovec";
 import type { MemoryEngineStatus } from "@/shared/schemas/memory";
 import { supportsFts5 } from "../db/migrationRunner";
 import type { SqliteAdapter } from "../db/adapters/types";
@@ -1009,7 +1010,7 @@ export async function engineStatus(): Promise<MemoryEngineStatus> {
 
   // Vector store
   const vec = getVectorStore();
-  let vecBackend: "sqlite-vec" | "qdrant" | "none" = "none";
+  let vecBackend: "sqlite-vec" | "qdrant" | "turbovec" | "none" = "none";
   let vecAvailable = false;
   let vecRowCount = 0;
   let vecNeedsReindex = 0;
@@ -1053,6 +1054,10 @@ export async function engineStatus(): Promise<MemoryEngineStatus> {
         vecBackend = "qdrant";
         vecAvailable = true;
         vecReason = `Qdrant configured at ${qdrantCfg.host}:${qdrantCfg.port}`;
+      } else if (settings.vectorStore === "turbovec") {
+        vecBackend = "turbovec";
+        vecAvailable = true;
+        vecReason = "Turbovec configured and running";
       }
     }
   } catch (err: unknown) {

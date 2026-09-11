@@ -47,7 +47,7 @@ export const MemorySettingsExtendedSchema = z
     staticEnabled: z.boolean().optional(),
     rerankEnabled: z.boolean().optional(),
     rerankProviderModel: z.string().nullable().optional(),
-    vectorStore: z.enum(["sqlite-vec", "qdrant", "auto"]).optional(),
+    vectorStore: z.enum(["sqlite-vec", "qdrant", "turbovec", "auto"]).optional(),
     // Phase 1-2: MemoryBackend provider pattern
     primaryBackend: z.string().optional(),
     fallbackBackends: z.array(z.string()).optional(),
@@ -125,7 +125,7 @@ export const MemoryEngineStatusSchema = z.object({
     cacheStats: z.object({ hits: z.number(), misses: z.number(), size: z.number() }),
   }),
   vectorStore: z.object({
-    backend: z.enum(["sqlite-vec", "qdrant", "none"]),
+    backend: z.enum(["sqlite-vec", "qdrant", "turbovec", "none"]),
     available: z.boolean(),
     rowCount: z.number(),
     needsReindex: z.number(),
