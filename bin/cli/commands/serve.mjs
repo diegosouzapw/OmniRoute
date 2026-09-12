@@ -4,7 +4,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { platform, totalmem } from "node:os";
 import { t } from "../i18n.mjs";
-import { writePidFile, cleanupPidFile, waitForServer } from "../utils/pid.mjs";
+import { writePidFile, cleanupPidFile, waitForServer, resolveReadyTimeoutMs } from "../utils/pid.mjs";
 import {
   ServerSupervisor,
   detectMitmCrash,
@@ -58,6 +58,11 @@ export function registerServe(program) {
     .option("--max-restarts <n>", t("serve.max_restarts"), parseInt, 2)
     .option("--tray", t("serve.tray") || "Start in the system tray (desktop only)")
     .option("--no-tray", t("serve.no_tray") || "Disable system tray icon")
+    .option(
+      "--ready-timeout <ms>",
+      t("serve.ready_timeout") ||
+        "Readiness probe timeout in ms (also OMNIROUTE_READY_TIMEOUT_MS, default 60000)"
+    )
     .option(
       "--tls-cert <path>",
       t("serve.tls_cert") ||
@@ -452,7 +457,8 @@ async function runWithSupervisor(
   });
 
   if (!showLog) {
-    waitForServer(dashboardPort, 60000).then(async (up) => {
+    const readyTimeoutMs = resolveReadyTimeoutMs({ timeoutMs: opts.readyTimeout });
+    waitForServer(dashboardPort, readyTimeoutMs).then(async (up) => {
       if (up) {
         if (useTray) {
           const trayReady = await maybeStartTray(dashboardPort, apiPort, supervisor);
@@ -489,9 +495,14 @@ async function runWithSupervisor(
 // reachable directly while the CLI still looks hung). Surface a clear diagnostic
 // plus whatever stdout/stderr the child buffered instead of going silent.
 export function reportReadinessTimeout(dashboardPort, supervisor) {
+  const readyTimeoutMs = resolveReadyTimeoutMs();
+  const seconds = Math.round(readyTimeoutMs / 1000);
   console.error(
-    `\n\x1b[33m⚠ Server did not respond within 60s.\x1b[0m It may still be starting, or may` +
+    `\n\x1b[33m⚠ Server did not respond within ${seconds}s.\x1b[0m It may still be starting, or may` +
       ` have failed silently.`
+  );
+  console.error(
+    `  Tip:  set OMNIROUTE_READY_TIMEOUT_MS=${readyTimeoutMs * 2} or --ready-timeout ${readyTimeoutMs * 2} for slower cold starts.`
   );
   console.error(`  Try:  curl -I http://localhost:${dashboardPort}/api/monitoring/health`);
   console.error(`  Or:   rerun with \x1b[36m--log\x1b[0m to see live server output.\n`);

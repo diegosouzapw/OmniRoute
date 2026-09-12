@@ -66,13 +66,30 @@ export function sleep(ms) {
 // #2460: Default raised from 15s to 60s so Windows users (slower Next.js
 // cold start due to filesystem watchers, antivirus, etc.) get a working
 // "server ready" signal instead of a phantom timeout while the server is
-// still booting. TCP fallback marks the server as ready when the port
+// still booting. #13369: Made configurable via OMNIROUTE_READY_TIMEOUT_MS
+// so operators on slow cold starts (e.g. 6+ min Windows boots) can raise
+// the budget instead of hitting the warning on every start.
+//
+// TCP fallback marks the server as ready when the port
 // has been listening for >= 3s consecutively AND the health route is
 // actively rejecting/resetting connections fast (route not mounted yet,
 // but the HTTP server is clearly alive and responsive) — never for a
 // socket that merely accepts TCP and then hangs without ever completing
 // a single request (#6800: that's a still-booting/CPU-bound process, not
 // a "route not mounted" gap, and must NOT be reported as ready).
+const DEFAULT_READY_TIMEOUT_MS = 60_000;
+
+export function resolveReadyTimeoutMs(overrides = {}) {
+  if (typeof overrides.timeoutMs === "number" && overrides.timeoutMs > 0) {
+    return overrides.timeoutMs;
+  }
+  const envValue = Number.parseInt(
+    process.env.OMNIROUTE_READY_TIMEOUT_MS || "",
+    10
+  );
+  return Number.isFinite(envValue) && envValue > 0 ? envValue : DEFAULT_READY_TIMEOUT_MS;
+}
+
 export async function waitForServer(port, timeout = 60000) {
   const start = Date.now();
   let tcpListeningSince = null;
