@@ -133,6 +133,9 @@ const eslintConfig = [
       "electron/**",
       // Docs
       "docs/**",
+      // VitePress vendored dependency cache (auto-generated; not source)
+      "docs-site/.vitepress/cache/**",
+      "docs-site/.vitepress/dist/**",
       // Open-SSE compiled/bundled output
       "open-sse/mcp-server/dist/**",
       // Playwright test output

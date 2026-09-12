@@ -29,6 +29,11 @@
       "count": 2
     }
   },
+  "open-sse/executors/perplexity-web.ts": {
+    "parse-error": {
+      "count": 1
+    }
+  },
   "open-sse/executors/pollinations.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 7
@@ -87,6 +92,9 @@
   "open-sse/mcp-server/server.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
+    },
+    "no-restricted-syntax": {
+      "count": 1
     }
   },
   "open-sse/mcp-server/tools/gamificationTools.ts": {
@@ -99,14 +107,47 @@
       "count": 1
     }
   },
+  "open-sse/services/agentrouterQuotaFetcher.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "open-sse/services/bailianQuotaFetcher.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
   "open-sse/services/batchProcessor.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 17
+    },
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "open-sse/services/batchProcessor/retryPolicy.ts": {
+    "no-restricted-syntax": {
+      "count": 1
     }
   },
   "open-sse/services/claudeWebAutoRefresh.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
+    }
+  },
+  "open-sse/services/codexQuotaFetcher.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "open-sse/services/codexUsageQuotas.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "open-sse/services/combo/__tests__/targetExhaustion.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 11
     }
   },
   "open-sse/services/compression/engines/headroom/gcf/scalar.ts": {
@@ -124,9 +165,34 @@
       "count": 1
     }
   },
+  "open-sse/services/crofUsageFetcher.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "open-sse/services/deepseekQuotaFetcher.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "open-sse/services/genericQuotaFetcher.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
   "open-sse/services/inAppLoginService.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
+    }
+  },
+  "open-sse/services/opencodeOllamaUsage.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "open-sse/services/opencodeQuotaFetcher.ts": {
+    "no-restricted-syntax": {
+      "count": 1
     }
   },
   "open-sse/services/taskAwareRouter.ts": {
@@ -144,9 +210,19 @@
       "count": 2
     }
   },
+  "open-sse/services/v0QuotaFetcher.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
   "open-sse/utils/setupPolyfill.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 5
+    }
+  },
+  "open-sse/utils/streamPayloadCollector.ts": {
+    "no-restricted-syntax": {
+      "count": 1
     }
   },
   "src/app/(dashboard)/dashboard/HomePageClient.tsx": {
@@ -184,7 +260,22 @@
       "count": 1
     }
   },
+  "src/app/(dashboard)/dashboard/settings/components/MitmProxyTab.tsx": {
+    "@next/next/no-html-link-for-pages": {
+      "count": 1
+    }
+  },
+  "src/app/(dashboard)/dashboard/settings/components/ProviderAccountRoutingCard.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    }
+  },
   "src/app/(dashboard)/dashboard/settings/components/SessionInfoCard.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    }
+  },
+  "src/app/(dashboard)/dashboard/settings/components/proxy/FreePoolTab.tsx": {
     "react-hooks/exhaustive-deps": {
       "count": 1
     }
@@ -207,6 +298,81 @@
   "src/hooks/useLiveDashboard.ts": {
     "react-hooks/exhaustive-deps": {
       "count": 2
+    }
+  },
+  "src/lib/db/domainState.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/db/prompts.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/db/providers/lazyConnectionView.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/db/tokenLimits.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/monitoring/providerHealthAutopilot.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/monitoring/providerHealthMatrix.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/semanticCache.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/usage/apiKeySelfService.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/usage/apiKeyUsageLimits.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/usage/callLogs/format.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/usage/costCalculator.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/usage/internalUsageCommand.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/usage/providerWindowCosts.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/usage/routeExplain.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/usage/usageHistory/helpers.ts": {
+    "no-restricted-syntax": {
+      "count": 1
     }
   },
   "src/shared/components/CursorAuthModal.tsx": {
@@ -232,6 +398,16 @@
   "src/shared/components/Sidebar.tsx": {
     "@next/next/no-img-element": {
       "count": 1
+    }
+  },
+  "src/shared/contracts/quota.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "tests/a11y/baseline.spec.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
     }
   },
   "tests/e2e/api.spec.ts": {
@@ -999,6 +1175,16 @@
       "count": 4
     }
   },
+  "tests/unit/combos-routes-regression.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 11
+    }
+  },
+  "tests/unit/combos-routes.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 11
+    }
+  },
   "tests/unit/command-code-maxtokens-negative-5166.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
@@ -1402,6 +1588,11 @@
   "tests/unit/inspector-agent-bridge-hook.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
+    }
+  },
+  "tests/unit/journey-manifest-provenance.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
     }
   },
   "tests/unit/kiro-tool-args-streaming.test.ts": {
@@ -1869,6 +2060,11 @@
       "count": 9
     }
   },
+  "tests/unit/save-call-log-persistence.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 7
+    }
+  },
   "tests/unit/schema-coercion.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 12
@@ -2207,6 +2403,11 @@
   "tests/unit/vscode-token-routes.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 76
+    }
+  },
+  "tests/unit/web-cookie-providers-new.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 6
     }
   },
   "tests/unit/web-runtime-env.test.ts": {
