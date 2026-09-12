@@ -1,4 +1,4 @@
-﻿---
+---
 title: "Browser Session Sync Extension"
 version: 3.8.51
 lastUpdated: 2026-09-09
@@ -35,10 +35,10 @@ The [OmniRoute Session Sync](https://github.com/avichal15/omniroute-session-sync
 
 ## Capabilities
 
-- **Automatic Cookie Detection:** Listens to `chrome.cookies.onChanged` across configured provider domains with per-provider debouncing.
+- **Automatic Cookie Detection:** Listens to `chrome.cookies.onChanged` across configured provider domains with per-provider debouncing (including Qwen's apex `qwen.ai` domain and legacy hosts).
 - **Chunked Token Reassembly:** Handles multi-part session cookies (such as ChatGPT's numeric token chunks) in sequence.
 - **Single Connection Mapping:** You choose the exact connection ID each browser provider updates. Other accounts and official API providers remain unaffected.
-- **Embedded Hosting:** The bridge can run directly inside OmniRoute's Node.js server via an `--import` preload, binding both ports (20128 and 20129) under a single process.
+- **Supervised Sidecar Runtime:** The local bridge runs on port 20129 as an independent, supervised sidecar process alongside OmniRoute (port 20128). This decouples bridge liveness from OmniRoute's event loop, so pending browser session updates remain queued and retry automatically if OmniRoute is restarting.
 - **Priority Fallback Combos:** Easily creates or updates a `browser-sessions` combo containing up to eight browser models ordered by priority.
 
 ---
@@ -100,7 +100,7 @@ npm run status
 1. Open Chrome and navigate to `chrome://extensions`.
 2. Enable **Developer mode** in the top right.
 3. Click **Load unpacked** and select the `extension/` folder from the `omniroute-session-sync` directory.
-4. Verify that **OmniRoute Session Sync** (v2.0.0) is listed.
+4. Verify that **OmniRoute Session Sync** (v2.0.1) is listed.
 
 ### Step 4: Pair and Map Connections
 

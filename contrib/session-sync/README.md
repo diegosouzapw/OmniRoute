@@ -1,4 +1,4 @@
-﻿# OmniRoute Session Sync (Chrome Extension & Local Bridge)
+# OmniRoute Session Sync (Chrome Extension & Local Bridge)
 
 An automated companion extension and local loopback bridge that synchronizes web browser session cookies directly into OmniRoute for web-based model providers.
 
@@ -13,8 +13,9 @@ OmniRoute supports several web-interface provider adapters (such as ChatGPT Web,
 During normal browsing, web cookies expire or rotate periodically. When a session changes, OmniRoute requests fail until you manually inspect browser dev tools, copy the new Cookie header, and paste it into OmniRoute's provider settings.
 
 Session Sync automates this update path locally:
-- The unpacked Chrome extension detects cookie changes for mapped provider domains.
+- The unpacked Chrome extension detects cookie changes for mapped provider domains (including Qwen apex and subdomain hosts).
 - A local loopback bridge authenticates the change using an origin-bound bearer token.
+- The bridge runs as an independent supervised sidecar process on port 20129, keeping browser sessions queued for automatic retry whenever OmniRoute is recovering or restarting.
 - The bridge calls OmniRoute's existing `PUT /api/providers/:id` management API to save the fresh cookie directly into OmniRoute's encrypted database.
 - OmniRoute's priority combos (`browser-sessions`) continue routing inference without interruption.
 
