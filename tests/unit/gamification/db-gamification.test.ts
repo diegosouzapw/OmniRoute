@@ -58,7 +58,7 @@ describe("DB Gamification — addXp level computation", () => {
   });
 });
 
-describe("DB Gamification — xp_action_counts cache (migration 174)", () => {
+describe("DB Gamification — xp_action_counts cache (migration 177)", () => {
   it("increments xp_action_counts on addXp and reads it back via getActionCountByType", () => {
     const testKey = `test-cache-inc-${Date.now()}`;
     const db = getDbInstance();
