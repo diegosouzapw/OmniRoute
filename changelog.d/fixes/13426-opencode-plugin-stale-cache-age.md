@@ -1,0 +1,1 @@
+- **fix(opencode-plugin):** The stale disk-cache fallback warning now reports the snapshot's age (`using stale disk cache (N models, age 168h)`), matching the existing warm-startup log. Previously a week-old catalog was indistinguishable from a five-minute-old one, so silent model drift went unnoticed. (#13426)

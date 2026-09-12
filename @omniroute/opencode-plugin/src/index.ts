@@ -5518,9 +5518,17 @@ export function createOmniRouteConfigHook(
         if (modelsFetchThrew && wantDiskCache && !warmSnapshot) {
           const snapshot = await diskSnapshotReader(resolved.providerId, snapshotFingerprint);
           if (snapshot && snapshot.rawModels.length > 0) {
+            // Report snapshot age like the warm-startup path already does:
+            // "stale" alone reads as a transient blip, so a week-old catalog
+            // is indistinguishable from a five-minute-old one.
+            const snapshotAge = snapshot.writtenAt;
+            const snapshotAgeLabel =
+              typeof snapshotAge === "number"
+                ? `${Math.round((Date.now() - snapshotAge) / 3_600_000)}h`
+                : "unknown";
             logAt(
               "warn",
-              `config shim: /v1/models unreachable; using stale disk cache (${snapshot.rawModels.length} models)`
+              `config shim: /v1/models unreachable; using stale disk cache (${snapshot.rawModels.length} models, age ${snapshotAgeLabel})`
             );
             localRawModels = snapshot.rawModels;
             localRawCombos = snapshot.rawCombos;
