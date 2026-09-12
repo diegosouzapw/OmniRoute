@@ -28,29 +28,8 @@ export type CompressionWorkerMessage =
   | { id: number; type: "result"; result: CompressionResult }
   | { id: number; type: "error"; error: string };
 
-function isPlainObject(value: object): value is Record<string, unknown> {
-  const prototype = Object.getPrototypeOf(value);
-  return prototype === Object.prototype || prototype === null;
-}
-export function isStrictlySerializable(value: unknown, seen = new Set<object>()): boolean {
-  if (
-    value === null ||
-    typeof value === "string" ||
-    typeof value === "boolean" ||
-    typeof value === "number"
-  ) {
-    return typeof value !== "number" || Number.isFinite(value);
-  }
-  if (typeof value !== "object" || seen.has(value)) return false;
-  seen.add(value);
-  if (Array.isArray(value)) return value.every((entry) => isStrictlySerializable(entry, seen));
-  if (!isPlainObject(value)) return false;
-  return Object.values(value).every((entry) => isStrictlySerializable(entry, seen));
-}
-
 const WORKER_STACK_ENGINES = new Set(["caveman", "rtk", "standard"]);
 export function isCompressionWorkerEligible(
-  body: Record<string, unknown>,
   mode: CompressionMode,
   options?: CompressionWorkerOptions
 ): boolean {
@@ -67,5 +46,5 @@ export function isCompressionWorkerEligible(
       return false;
     }
   }
-  return isStrictlySerializable({ body, mode, ...(options ? { options } : {}) });
+  return true;
 }

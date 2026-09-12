@@ -537,12 +537,13 @@ async function runCompressionAsync(
       }
     : undefined;
   const { isCompressionWorkerEligible } = await import("./compressionWorkerProtocol.ts");
-  if (isCompressionWorkerEligible(body, mode, workerOptions)) {
+  if (isCompressionWorkerEligible(mode, workerOptions)) {
     try {
       const { runCompressionInWorker } = await import("./compressionWorkerPool.ts");
       return await runCompressionInWorker(body, mode, workerOptions, options?.onEngineStep);
     } catch {
-      return { body, compressed: false, stats: null };
+      // Worker failed (timeout, postMessage rejection, etc.) — fall through to inline
+      // compression so the request is still compressed rather than shipped raw.
     }
   }
   if (
