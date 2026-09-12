@@ -1,4 +1,5 @@
 "use client";
+import { filterUnavailableModelRows } from "@/lib/providers/mergeProviderModelListing";
 /**
  * PassthroughModelsSection — Issue #3501 Phase 1e
  *
@@ -50,6 +51,7 @@ export interface PassthroughModelsSectionProps {
   modelAliases: Record<string, string>;
   catalogModels?: CompatModelRow[];
   availableModels?: CompatModelRow[];
+  syncedCatalogAuthoritative?: boolean;
   customModels?: CompatModelRow[];
   description: string;
   inputLabel: string;
@@ -95,6 +97,7 @@ export default function PassthroughModelsSection({
   modelAliases,
   catalogModels = [],
   availableModels = [],
+  syncedCatalogAuthoritative = false,
   customModels = [],
   description,
   inputLabel,
@@ -302,9 +305,15 @@ export default function PassthroughModelsSection({
       seenModelIds.add(modelId);
     }
 
-    return rows;
+    return filterUnavailableModelRows(
+      rows,
+      availableModels,
+      customModels,
+      syncedCatalogAuthoritative
+    );
   }, [
     availableModels,
+    syncedCatalogAuthoritative,
     catalogModels,
     customModelMap,
     customModels,
