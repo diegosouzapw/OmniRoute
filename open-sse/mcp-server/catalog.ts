@@ -13,6 +13,7 @@ type McpCatalogResponse = {
     status: McpCatalogStatus;
     thinkingEffort?: string;
     pricing?: unknown;
+    context_length?: number;
   }>;
   source: string;
   warning?: string;
@@ -137,6 +138,9 @@ function normalizeProviderModelRecord(
   const model = toRecord(rawModel);
   const id = toString(model.id, "");
 
+  const contextLength =
+    typeof model.context_length === "number" ? model.context_length : undefined;
+
   return {
     id,
     provider: toString(model.owned_by, toString(model.provider, fallbackProvider)),
@@ -144,6 +148,7 @@ function normalizeProviderModelRecord(
     status: normalizeCatalogStatus(model, source, warning),
     ...(thinkingEffort ? { thinkingEffort } : {}),
     pricing: model.pricing,
+    ...(contextLength ? { context_length: contextLength } : {}),
   };
 }
 
