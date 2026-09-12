@@ -66,7 +66,11 @@ import {
   MAX_SHORT_RETRY_HINT_MS,
 } from "./retryAfterJson.ts";
 import { isMoonshotAccountBalanceExhausted } from "./usage/moonshotOpenPlatform.ts";
-import { isTpdRateLimit, resolveTpdCooldownMs } from "./dailyQuotaReset.ts";
+import {
+  isTpdRateLimit,
+  resolveTpdCooldownMs,
+  nextConfiguredResetMs,
+} from "./dailyQuotaReset.ts";
 
 // Pre-compiled regex constants for hot-path retry parsing (avoid per-call compilation)
 const RETRY_AFTER_RE = /retry\s+after\s+(\d+)\s*s/i;
@@ -839,6 +843,11 @@ export function recordModelLockoutFailure(
     maxCooldownMs?: number;
     scope?: "exact" | "quota_family";
     /**
+     * Operator daily-reset clock for quota_exhausted without an explicit
+     * cooldown. Absent or invalid falls back to the legacy host-midnight estimate.
+     */
+    dailyReset?: { timezone?: unknown; hour?: unknown; nowMs?: unknown } | null;
+    /**
      * #6863 vs #7940: set true only when `exactCooldownMs` came from an actual
      * authoritative upstream signal: Retry-After/X-RateLimit-Reset headers or
      * google.rpc.RetryInfo. Generic JSON and prose-derived reset text are useful
@@ -857,10 +866,18 @@ export function recordModelLockoutFailure(
   const now = Date.now();
   cleanupModelLockKey(key, now);
 
-  // For daily quota exhaustion (quota_exhausted), set cooldown until tomorrow 00:00
+  // For daily quota exhaustion (quota_exhausted), lock until provider midnight
+  // when the operator clock is configured, else legacy host midnight.
   // Use exactCooldownMs to bypass exponential backoff, ensuring precise lock until midnight
   if (reason === "quota_exhausted" && typeof options.exactCooldownMs !== "number") {
-    options = { ...options, exactCooldownMs: getMsUntilTomorrow() };
+    const dr = options.dailyReset;
+    const drNow =
+      typeof dr?.nowMs === "number" && Number.isFinite(dr.nowMs) ? dr.nowMs : now;
+    const tzMs = nextConfiguredResetMs(dr?.timezone, dr?.hour, drNow);
+    options = {
+      ...options,
+      exactCooldownMs: tzMs !== null ? tzMs : getMsUntilTomorrow(),
+    };
   }
 
   const resetAfterMs = getFailureWindowMs(profile);
@@ -1998,7 +2015,14 @@ export function checkFallbackError(
           };
         }
       } else {
-        const msUntilTomorrow = getMsUntilTomorrow();
+        // Operator clock first (DST-correct via nextConfiguredResetMs); legacy
+        // host-midnight estimate when unconfigured — behavior unchanged then.
+        const drNow =
+          typeof dailyReset?.nowMs === "number" && Number.isFinite(dailyReset.nowMs)
+            ? dailyReset.nowMs
+            : Date.now();
+        const tzMs = nextConfiguredResetMs(dailyReset?.timezone, dailyReset?.hour, drNow);
+        const msUntilTomorrow = tzMs !== null ? tzMs : getMsUntilTomorrow();
         // Cap at 24 hours to handle timezone edge cases
         const cooldownMs = Math.min(msUntilTomorrow, 24 * 60 * 60 * 1000);
         return {

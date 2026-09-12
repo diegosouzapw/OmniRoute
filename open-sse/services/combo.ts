@@ -144,6 +144,7 @@ import { expandTargetsByFingerprints } from "./combo/fingerprintExpansion.ts";
 import { resolveComboTargetPipeline } from "./combo/targetResolution.ts";
 import { dispatchWithCooldownRetry } from "./combo/comboAttemptLoop.ts";
 import { evaluateExecuteTargetGates } from "./combo/executeTargetGates.ts";
+import { resolveComboDailyResetClock } from "./combo/comboDailyResetClock.ts";
 import { executeTargetAttempt } from "./combo/executeTargetAttempt.ts";
 import type {
   AttemptLoopDeps,
@@ -1032,6 +1033,9 @@ async function handleComboChatInner({
     universalHandoffConfig,
     relayOptions,
     relayConfig,
+    // One cached clock lookup per dispatch; attempt paths read it
+    // synchronously via dailyResetForProvider (null-safe when unconfigured).
+    dailyResetClock: await resolveComboDailyResetClock(),
   };
 
   const extra = {

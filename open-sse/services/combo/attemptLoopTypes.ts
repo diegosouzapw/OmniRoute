@@ -105,6 +105,12 @@ export type AttemptLoopDeps = {
   universalHandoffConfig?: UniversalHandoffConfig;
   relayOptions?: { sessionId?: string | null } | null;
   relayConfig?: ContextRelayConfig | null;
+  /**
+   * Operator daily-reset clock keyed by provider id/prefix, resolved once
+   * per combo dispatch in combo.ts. Absent (single-model call sites that never
+   * build AttemptLoopDeps, tests) means legacy host-midnight in the callees.
+   */
+  dailyResetClock?: Record<string, { timezone?: unknown; hour?: unknown }> | null;
 };
 
 export type GateDecision =
