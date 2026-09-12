@@ -153,12 +153,12 @@ omniroute resilience profile
 omniroute resilience show
 ```
 
-### `resilience set`
+### `resilience set <name>`
 
 **Example:**
 
 ```bash
-omniroute resilience set
+omniroute resilience set <name>
 ```
 
 ### `resilience config`

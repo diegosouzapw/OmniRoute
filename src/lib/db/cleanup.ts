@@ -16,6 +16,7 @@ import {
   tableExists,
   type DeleteByPeriodTarget,
 } from "./cleanup/usagePurge";
+import { ensureCompressionRunTelemetryTable } from "./compressionRunTelemetry";
 
 interface CleanupResult {
   deleted: number;
@@ -380,6 +381,7 @@ export async function cleanupXpAuditLog(): Promise<CleanupResult> {
  */
 export async function cleanupCompressionRunTelemetry(): Promise<CleanupResult> {
   const db = getDbInstance();
+  ensureCompressionRunTelemetryTable();
   const retention = getRetentionSettings();
 
   const retentionDays = retention.compressionRunTelemetry;
@@ -666,6 +668,7 @@ export async function resetUsageHistory(period: string): Promise<ResetUsageHisto
   }
 
   const db = getDbInstance();
+  ensureCompressionRunTelemetryTable();
   const result: ResetUsageHistoryResult = {
     deleted: 0,
     deletedUsageHistory: 0,

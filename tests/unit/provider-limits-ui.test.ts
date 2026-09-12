@@ -425,3 +425,38 @@ test("provider quota auto-refresh settings are accepted by the settings schema",
 
   assert.equal(result.success, true);
 });
+
+test("grok-cli banked reset credits parse as an integer reset-credit counter including zero", () => {
+  const parsed = providerLimitUtils.parseQuotaData("grok-cli", {
+    quotas: {
+      weekly: { used: 37.25, total: 100, remainingPercentage: 62.75, isPercentageOnly: true },
+    },
+    bankedResetCredits: 0,
+  }) as ParsedQuota[];
+  const resetCredits = parsed.find((quota) => quota.name === "banked_reset_credits");
+  assert.ok(resetCredits);
+  assert.equal(resetCredits.isResetCredits, true);
+  assert.equal(resetCredits.creditCount, 0);
+});
+
+test("grok-cli omits the reset-credit row when bankedResetCredits is absent", () => {
+  const parsed = providerLimitUtils.parseQuotaData("grok-cli", {
+    quotas: {
+      weekly: { used: 37.25, total: 100, remainingPercentage: 62.75 },
+    },
+  }) as ParsedQuota[];
+  assert.equal(
+    parsed.some((quota) => quota.name === "banked_reset_credits"),
+    false
+  );
+});
+
+test("grok-cli exposes the redeem button when banked reset credits are present", () => {
+  const parsed = providerLimitUtils.parseQuotaData("grok-cli", {
+    quotas: { weekly: { used: 0, total: 100, remainingPercentage: 100 } },
+    bankedResetCredits: 2,
+  });
+  assert.equal(providerLimitUtils.computeCanRedeemResetCredit("grok-cli", parsed), true);
+  assert.equal(providerLimitUtils.computeCanRedeemResetCredit("codex", parsed), true);
+  assert.equal(providerLimitUtils.computeCanRedeemResetCredit("claude", parsed), false);
+});

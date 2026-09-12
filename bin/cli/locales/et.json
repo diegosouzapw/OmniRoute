@@ -1,0 +1,1329 @@
+{
+  "common": {
+    "error": "Viga: {message}",
+    "serverOffline": "OmniRoute server on offline. Käivita see käsuga: omniroute serve",
+    "authRequired": "Autentimine on nõutav. Määra OMNIROUTE_API_KEY või käivita: omniroute setup",
+    "rateLimited": "Kiiruspiirang on ületatud. Proovi uuesti {seconds}s pärast.",
+    "timeout": "Päring aegus {ms}ms pärast.",
+    "success": "Valmis.",
+    "yes": "jah",
+    "no": "ei",
+    "confirm": "Oled kindel? (jah/ei)",
+    "dryRun": "[testkäivitus] tehakse {action}",
+    "cancelled": "Tühistatud.",
+    "jsonOpt": "Väljund JSON-formaadis",
+    "yesOpt": "Jäta kinnitusküsimus vahele"
+  },
+  "setup": {
+    "title": "OmniRoute seadistus",
+    "passwordPrompt": "Administraatori parool",
+    "providerPrompt": "Vaikepakkuja (jäta tühjaks, et vahele jätta)",
+    "done": "Seadistamine on lõpetatud",
+    "passwordSet": "Administraatori parool on seadistatud",
+    "providerSet": "Pakkuja on seadistatud: {name}",
+    "testingProvider": "Testitakse pakkuja ühendust: {name}",
+    "testPassed": "Pakkuja test läbis edukalt",
+    "testFailed": "Pakkuja test ebaõnnestus: {error}",
+    "loginEnabled": "Sisselogimine: lubatud (parool on uuendatud)",
+    "loginDisabled": "Sisselogimine: keelatud",
+    "providerInfo": "Pakkuja: {info}",
+    "opencode": "Installi ja seadista OpenCode'i jaoks kaasas olev @omniroute/opencode-plugin"
+  },
+  "doctor": {
+    "title": "OmniRoute Doctor",
+    "dbOk": "Andmebaas: korras ({path})",
+    "dbMissing": "Andmebaas: pole lähtestatud — käivita `omniroute setup`",
+    "portOk": "Port {port}: saadaval",
+    "portConflict": "Port {port}: on teise protsessi kasutuses",
+    "encryptionOk": "Krüpteerimisvõti: seadistatud",
+    "encryptionMissing": "Krüpteerimisvõti puudub — käivita `omniroute setup`",
+    "allGood": "Kõik kontrollid läbiti edukalt.",
+    "warnings": "{count} hoiatus(t) — vaata ülalt."
+  },
+  "providers": {
+    "title": "Pakkujad",
+    "noProviders": "Ühtegi pakkujat ei ole seadistatud. Käivita: omniroute setup",
+    "testing": "Testitakse {name}...",
+    "available": "{count} pakkuja(t) saadaval",
+    "connected": "Ühendatud",
+    "disconnected": "Ühendus katkestatud",
+    "validationFailed": "Kinnitamine ebaõnnestus: {error}",
+    "metrics": {
+      "description": "Kuva pakkuja jõudlusmõõdikud (latentsus, õnnestumise määr, hind)",
+      "provider": "Filtreeri pakkuja ID järgi",
+      "connection_id": "Filtreeri ühenduse ID järgi",
+      "period": "Ajaperiood: 1h|6h|24h|7d|30d (vaikimisi: 24h)",
+      "metric": "Keskendu konkreetsele mõõdikuväljale",
+      "sort": "Sordi välja järgi (kahanevalt)",
+      "limit": "Maksimaalne ridade arv (vaikimisi: 50)",
+      "watch": "Värskenda iga 5 sekundi järel (elava vaate režiim)",
+      "compare": "Komadega eraldatud pakkuja ID-d kõrvutamiseks"
+    },
+    "metric_single": {
+      "description": "Hangi üksik mõõdikuväärtus konkreetse ühenduse jaoks"
+    },
+    "rotate": {
+      "description": "Vaheta pakkuja ühenduse ülemvoolu API-võti",
+      "newKeyOpt": "Uus API-võtme väärtus (vältida: eelista --from-env)",
+      "fromEnvOpt": "Loe uus võti keskkonnamuutujast VAR",
+      "oauthOpt": "Käivita selle asemel OAuth taasautentimise voog",
+      "skipTestOpt": "Jäta vahetusjärgne ühenduvustest vahele",
+      "dryRunOpt": "Näita, mida muudetaks, ilma salvestamata",
+      "confirmPrompt": "Vahetada API-võti ühenduse \"{name}\" ({id}) jaoks? [y/N]",
+      "dryRunResult": "[katseajam] Vahetataks võtit \"{name}\" ({id}) jaoks. Muudatusi ei tehtud.",
+      "oauthHint": "OAuth-ühendus — käivita: omniroute oauth {provider}",
+      "envVarEmpty": "Keskkonnamuutuja {var} ei ole määratud või on tühi.",
+      "success": "Võti vahetatud \"{name}\" jaoks. Käivita `providers test {id}`, et kontrollida.",
+      "testPassed": "Vahetusjärgne test õnnestus.",
+      "testFailed": "Vahetusjärgne test ebaõnnestus: {error}"
+    },
+    "status": {
+      "description": "Kuva kõikide pakkuja ühenduste võtme tervis (vanus, kehtivusaeg, jahtumisperiood)",
+      "providerOpt": "Filtreeri pakkuja nime järgi",
+      "header": "ID         Pakkuja       Nimi                     Kehtivuse olek  Testi olek  Jahtumisperiood kuni",
+      "noData": "Pakkuja ühenduse andmed puuduvad.",
+      "requiresServer": "providers status eeldab, et OmniRoute server töötab."
+    }
+  },
+  "keys": {
+    "title": "API-võtmed",
+    "addDescription": "Lisa või värskenda pakkuja API-võtit",
+    "listDescription": "Loetle kõik konfigureeritud API-võtmed",
+    "removeDescription": "Eemalda pakkuja API-võti",
+    "regenerateDescription": "Genereeri OmniRoute API-võti uuesti",
+    "revokeDescription": "Tühista OmniRoute API-võti",
+    "revealDescription": "Näita API-võtme peidetut väärtust",
+    "usageDescription": "Kuva API-võtme viimatine kasutus",
+    "usageLimitOpt": "Viimaste päringute arv",
+    "rotateDescription": "Genereeri uus võti ja tühista vana",
+    "graceOpt": "Ajapikendus (ms) enne vana võtme kehtetuks tunnistamist",
+    "stdinOpt": "Loe API-võti standardsisendist, mitte argumendist",
+    "added": "Võti lisatud teenusepakkujale {provider}.",
+    "removed": "Võti eemaldatud.",
+    "listed": "{count} võti(t).",
+    "noKeys": "Võtmeid ei ole seadistatud.",
+    "noUsage": "Kasutusandmeid ei leitud.",
+    "confirmRemove": "Eemaldada võti {id}?",
+    "confirmRegenerate": "Regenereerida võti {id}?",
+    "confirmRevoke": "Tühistada võti {id}?",
+    "confirmRotate": "Rotida võti {id}? (vana võti muutub kehtetuks pärast ajapikendust)",
+    "regenerated": "Regenereeritud. Uus võti: {key}",
+    "revoked": "Võti {id} tühistatud.",
+    "rotated": "Võti {id} roteeritud. Uue võtme ID: {newId}",
+    "revealWarning": "⚠  See kuvab täieliku, maskeerimata võtme. Veendu, et ekraan ei ole avalikult nähtav.",
+    "providerRequired": "Teenusepakkuja on kohustuslik.",
+    "keyRequired": "API-võti on kohustuslik.",
+    "stdinEmpty": "Standardsisendi kaudu API-võtit ei edastatud.",
+    "unknownProvider": "Tundmatu teenusepakkuja: {provider}",
+    "policy": {
+      "title": "Võtme reeglistik",
+      "showDescription": "Näita võtme kiiruse/kulu reeglistikku",
+      "setDescription": "Määra võtme kiiruse/kulu reeglistik",
+      "rateLimitOpt": "Maksimaalne päringute arv minutis",
+      "maxCostOpt": "Maksimaalne kulu päevas (USD)",
+      "allowedModelsOpt": "Komadega eraldatud lubatud mudelite loend",
+      "nothingToSet": "Reeglistiku välju ei esitatud. Kasuta --rate-limit, --max-cost või --allowed-models.",
+      "updated": "Reeglistik on uuendatud."
+    },
+    "expiration": {
+      "title": "Võtme kehtivusaeg",
+      "listDescription": "Kuva peagi aeguvad võtmed",
+      "daysOpt": "Näita võtmeid, mis aeguvad N päeva jooksul",
+      "none": "Ühtegi võtit ei aegu {days} päeva jooksul.",
+      "listTitle": "Võtmed, mis aeguvad {days} päeva jooksul:"
+    }
+  },
+  "authExport": {
+    "description": "Ekspordi DEKRÜPTEERITUD teenusepakkuja mandaadid (ainult kohalik, väljund selgtekstina)",
+    "idOpt": "Ekspordi ainult ühendus, mis vastab sellele id-le/nimele/teenusepakkujale",
+    "formatOpt": "Väljundvorming: json või env",
+    "outOpt": "Kirjuta väljund faili, mitte standardväljundisse (kirjutatakse õigustega 0600)",
+    "forceOpt": "Kinnita, et mõistad, et see kuvab/kirjutab selgtekstilised saladused",
+    "warning": "⚠ See kuvab/kirjutab DEKRÜPTEERITUD selgtekstilised API-võtmed ja OAuth-load. Veendu, et su ekraan, shelli ajalugu ja väljundfailid jäävad privaatseks.",
+    "confirmHeading": "⚠ HOIATUS: see ekspordib DEKRÜPTEERITUD teenusepakkuja mandaadid selgtekstina",
+    "confirmBody": "See käsklus dekrüpteerib ja kuvab/kirjutab valitud ühenduse/ühenduste apiKey, accessToken, refreshToken ja\nidToken väärtused. Käsitle väljundit saladusena.",
+    "confirmFooter": "Kinnitamiseks käivita:\n  omniroute auth export --force",
+    "missingKey": "STORAGE_ENCRYPTION_KEY on vajalik mandaatide eksportimiseks.",
+    "notFound": "Ühendust ei leitud: {id}",
+    "invalidFormat": "Sobimatu vorming: {format}. Kasuta json või env."
+  },
+  "stream": {
+    "description": "Voogesita vestlusvastus SSE inspekteerimisrežiimidega",
+    "file": "Loe päring failist",
+    "stdin": "Loe päring stdin-ist",
+    "model": "Mudeli ID (vaikimisi: auto)",
+    "system": "Süsteemipäring",
+    "combo": "Sunni kasutada konkreetset kombot nime alusel",
+    "max_tokens": "Vastuse maksimaalne tokenite arv",
+    "responses_api": "Kasuta /v1/responses asemel /v1/chat/completions",
+    "raw": "Väljasta toorest SSE ridu vastuvõetud kujul",
+    "debug": "Väljasta tükkide ajastuse info stderr-i",
+    "save": "Salvesta kõik SSE sündmused .jsonl faili",
+    "error": {
+      "empty_prompt": "Viga: päring on kohustuslik (positsiooniargument, --file või --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Kasutuse analüütika, eelarved, kvoodid ja logid",
+    "analytics": {
+      "description": "Kuva koondatud kasutuse analüütika",
+      "period": "Ajavahemik: 1d|7d|30d|90d|ytd|all (vaikimisi: 30d)",
+      "provider": "Filtreeri teenusepakkuja ID järgi"
+    },
+    "budget": {
+      "description": "Halda kuluüelarveid",
+      "set": {
+        "scope": "Eelarve ulatus (vaikimisi: global)",
+        "period": "Eelarve periood: daily|weekly|monthly (vaikimisi: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Kuva teenusepakkuja kvoodi kasutus",
+      "provider": "Filtreeri teenusepakkuja ID järgi",
+      "check": "Kuva, kas kvoot on uue päringu jaoks saadaval"
+    },
+    "logs": {
+      "description": "Kuva päringute väljakutsete logid",
+      "limit": "Tagastatavate logikirjete arv (vaikimisi: 100)",
+      "search": "Otsingupäring logide filtreerimiseks",
+      "since": "Tagasta logid alates sellest ajahetkest",
+      "follow": "Jälgi pidevalt uusi logikirjeid",
+      "api_key": "Filtreeri logisid API võtme järgi"
+    },
+    "utilization": {
+      "description": "Kuva API võtme kasutusmõõdikud",
+      "api_key": "Filtreeri API võtme järgi"
+    },
+    "history": {
+      "description": "Kuva päringute ajalugu",
+      "limit": "Ajaloo kirjete arv (vaikimisi: 100)"
+    },
+    "proxy_logs": {
+      "description": "Kuva proxy tasemel päringulogid",
+      "limit": "Proxy logikirjete arv (vaikimisi: 100)"
+    }
+  },
+  "cost": {
+    "description": "Kuva kuluaruanne jaotusega teenusepakkuja, mudeli, kombo või API võtme kaupa",
+    "period": "Ajavahemik: 1d|7d|30d|90d|ytd|all (vaikimisi: 30d)",
+    "since": "Alguskuupäev (ISO formaadis, nt 2026-01-01) — tühistab --period",
+    "until": "Lõppkuupäev (ISO formaadis)",
+    "group_by": "Grupeeri tulemused: provider|model|api-key|combo|day (vaikimisi: provider)",
+    "api_key_filter": "Filtreeri konkreetse API-võtme järgi",
+    "limit": "Kuvatavate ridade maksimaalne arv (vaikimisi: 100)"
+  },
+  "simulate": {
+    "description": "Ruteerimise proovikäivitus (dry-run) — näitab, milliseid pakkujaid valitaks, ilma ülemvoolu poole pöördumata",
+    "file": "Laadi täielik päringu keha JSON-failist",
+    "model": "Mudeli ID (vaikimisi: auto)",
+    "combo": "Sunni konkreetne kombo nime alusel",
+    "reasoning": "Arutlustaseme jõupingutus (low|medium|high)",
+    "thinking": "Laiendatud mõtlemise tunnuste eelarve",
+    "explain": "Trüki tagavaravariantide puu ja kulude vahemik stderr-i",
+    "noCombo": "Sobivat kombot ei leitud. Loo see käsuga: omniroute combo create"
+  },
+  "chat": {
+    "description": "Saada OmniRoute'ile ühekordne vestlusteade",
+    "file": "Loe vestlusteade failist",
+    "stdin": "Loe vestlusteade stdin-ist",
+    "system": "Süsteemi vestlusteade",
+    "model": "Mudeli ID (vaikimisi: auto)",
+    "max_tokens": "Vastuse maksimaalne tunnuste arv",
+    "temperature": "Valimi temperatuur (0–2)",
+    "top_p": "Top-p tuumavalim",
+    "reasoning_effort": "Arutlustaseme jõupingutus (low|medium|high)",
+    "thinking_budget": "Laiendatud mõtlemise tunnuste eelarve",
+    "combo": "Sunni konkreetne kombo nime alusel",
+    "responses_api": "Kasuta /v1/responses asemel /v1/chat/completions",
+    "stream": "Voogesita vastust järk-järgult",
+    "no_history": "Ära salvesta ~/.omniroute/cli-history.jsonl faili",
+    "error": {
+      "empty_prompt": "Viga: vestlusteade on kohustuslik (positsiooniargument, --file või --stdin)"
+    }
+  },
+  "serve": {
+    "description": "Käivita OmniRoute'i server (vaiketoiming)",
+    "starting": "OmniRoute'i serveri käivitamine pordil {port}...",
+    "ready": "Valmis aadressil http://localhost:{port}",
+    "stopping": "Serveri peatamine (PID {pid})...",
+    "stopped": "Server on peatatud.",
+    "notRunning": "Server ei tööta.",
+    "port": "Kuulatav port (vaikimisi: 20128)",
+    "no_open": "Ära ava veebilehitsejat automaatselt",
+    "daemon": "Käivita server taustaprotsessina",
+    "log": "Kuva serveri logid otse",
+    "no_recovery": "Keela automaatne taaskäivitus krahhi korral (silumisrežiim)",
+    "max_restarts": "Maksimaalne krahhijärgsete taaskäivituste arv 30 sekundi jooksul enne alla andmist (vaikimisi: 2)",
+    "tray": "Käivita süsteemisalves (ainult töölaual, valikuline)",
+    "no_tray": "Keela süsteemisalve ikoon",
+    "tls_cert": "TLS-sertifikaadi (PEM) tee HTTPS-i teenindamiseks (ka OMNIROUTE_TLS_CERT)",
+    "tls_key": "TLS privaatvõtme (PEM) tee HTTPS-i teenindamiseks (ka OMNIROUTE_TLS_KEY)"
+  },
+  "backup": {
+    "title": "Varukoopia",
+    "description": "Loo OmniRoute andmete varukoopia",
+    "creating": "Varukoopia loomine...",
+    "done": "Varukoopia salvestatud asukohta {path}",
+    "noFiles": "Varundamiseks ei leitud faile (andmebaas ei ole initsialiseeritud)",
+    "failed": "Varundamine ebaõnnestus: {error}",
+    "restoring": "Taastamine asukohast {path}...",
+    "restored": "Taastamine on lõpetatud.",
+    "restoreDescription": "Taasta varukoopiast",
+    "listTitle": "Saadaolevad varukoopiad",
+    "noBackups": "Varukoopiaid ei leitud.",
+    "notFound": "Varukoopiat ei leitud: {name}",
+    "confirmRestore": "Kirjutada praegused andmed üle varukoopiaga ajast {ts}?",
+    "createDescription": "Loo OmniRoute andmete varukoopia",
+    "nameOpt": "Kohandatud varukoopia nimi",
+    "cloudOpt": "Laadi varukoopia pilvesalvestusse",
+    "encryptOpt": "Krüpteeri varukoopia AES-256-GCM-iga",
+    "keyFileOpt": "Krüpteerimise salafraasi sisaldava faili tee",
+    "excludeOpt": "Jäta välja mustrile vastavad failid (korratav)",
+    "retentionOpt": "Säilita ainult viimased N varukoopiat",
+    "passphrasePrompt": "Krüpteerimise salafraas:",
+    "noPassphrase": "Krüpteeritud varukoopia jaoks on vajalik salafraas.",
+    "cloudFailed": "Hoiatus: pilvesalvestusse üleslaadimine ebaõnnestus. Kohalik varukoopia salvestati.",
+    "cloudUploaded": "Pilve varukoopia üles laaditud: {url}",
+    "auto": {
+      "title": "Varundamise ajakava",
+      "enableDescription": "Luba ajastatud automaatsed varukoopiad",
+      "disableDescription": "Keela ajastatud automaatsed varukoopiad",
+      "statusDescription": "Näita praegust varundamise ajakava olekut",
+      "cronOpt": "Cron-avaldis ajakava jaoks (vaikimisi: iga päev kell 3:00)",
+      "enabled": "Automaatne varundamine on lubatud (cron: {cron}).",
+      "hint": "Ajakava loetakse käivitamisel omniroute serve käsu poolt.",
+      "disabled": "Automaatne varundamine on keelatud.",
+      "notConfigured": "Varundamise ajakava ei ole seadistatud."
+    }
+  },
+  "health": {
+    "description": "Kontrolli serveri tervist ja komponentide olekut",
+    "noServer": "Server ei tööta. Käivita käsuga: omniroute serve",
+    "title": "Tervis",
+    "status": "Olek: {status}",
+    "uptime": "Töökestus: {uptime}",
+    "requests": "Päringud (24h): {count}",
+    "cost": "Kulu (24h): ${cost}"
+  },
+  "quota": {
+    "description": "Kuva teenusepakkuja kvoodi kasutus",
+    "noServer": "Server ei tööta. Käivita käsuga: omniroute serve",
+    "noData": "Kvoodi andmed puuduvad."
+  },
+  "cache": {
+    "description": "Halda vastuste vahemälu",
+    "noServer": "Server ei tööta. Käivita käsuga: omniroute serve",
+    "cleared": "Vahemälu tühjendatud.",
+    "clearFailed": "Vahemälu tühjendamine ebaõnnestus."
+  },
+  "redis": {
+    "description": "Käivita ühe klikiga kohalik Redis konteiner (Podman või Docker) OmniRoute'i vahemälu ja kvoodi jälgimise jaoks"
+  },
+  "test": {
+    "description": "Testi teenusepakkuja ühendust",
+    "noServer": "Server ei tööta. Käivita käsuga: omniroute serve",
+    "testing": "Testimine: {provider} / {model}...",
+    "passed": "Ühendus õnnestus!",
+    "failed": "Ühendus ebaõnnestus: {error}",
+    "allProvidersOpt": "Testi kõiki seadistatud teenusepakkujaid",
+    "latencyOpt": "Kuva latentsuse mõõtmised (keskmine/min/max ms)",
+    "repeatOpt": "Korda testi N korda ja koonda tulemused",
+    "compareOpt": "Komadega eraldatud mudelid võrdlemiseks (nt gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Salvesta tulemused JSON-faili",
+    "saved": "Tulemused salvestatud: {path}",
+    "compareTitle": "Mudelite võrdlus",
+    "compareMinTwo": "Vajalik on vähemalt kaks mudelit --compare jaoks (komadega eraldatud)",
+    "noProviders": "Teenusepakkujaid ei ole seadistatud. Lisa üks käsuga: omniroute keys add"
+  },
+  "update": {
+    "checking": "Uuenduste kontrollimine...",
+    "upToDate": "Juba ajakohane ({version}).",
+    "available": "Uuendus saadaval: {current} → {latest}",
+    "installing": "Paigaldamine: {latest}...",
+    "done": "Uuendatud versioonile {latest}. Rakendamiseks taaskäivita server."
+  },
+  "mcp": {
+    "title": "MCP server",
+    "running": "MCP server töötab ({transport})",
+    "stopped": "MCP server peatatud.",
+    "restarted": "MCP server taaskäivitatud.",
+    "call": {
+      "description": "Käivita MCP tööriist otse",
+      "args": "JSON argumentide objekt (otseselt sisestatud)",
+      "args_file": "Tee JSON argumentide failini",
+      "stream": "Kasuta voogesituse lõpp-punkti (/api/mcp/stream)",
+      "scope": "Vajalik õigusulatus (korratav, nt read:health)"
+    },
+    "scopes": {
+      "description": "Kuva saadaolevad MCP-ulatused",
+      "tool": "Kuva konkreetse tööriista jaoks vajalikud ulatused"
+    },
+    "tools": {
+      "description": "Uuri MCP tööriistu",
+      "list": {
+        "description": "Kuva kõik MCP tööriistad",
+        "scope": "Filtreeri ulatuse järgi"
+      },
+      "info": {
+        "description": "Kuva MCP tööriista metaandmed"
+      },
+      "schema": {
+        "description": "Kuva MCP tööriista sisend-/väljund-JSON-skeem",
+        "io": "Skeemi tüüp: input|output (vaikimisi: input)"
+      }
+    },
+    "audit": {
+      "description": "MCP auditilogi (alias käsule audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "Kuva agendikaardil saadaolevad A2A oskused"
+    },
+    "invoke": {
+      "description": "Käivita A2A oskus ja tagasta ülesande ID",
+      "input": "JSON-sisendobjekt",
+      "input_file": "JSON-sisendfaili tee",
+      "wait": "Oota enne tagastamist ülesande valmimist",
+      "timeout": "Valmimise ootamise ajapiirang millisekundites (vaikimisi: 60000)"
+    },
+    "tasks": {
+      "description": "Halda A2A ülesandeid",
+      "list": {
+        "status": "Filtreeri oleku järgi",
+        "skill": "Filtreeri oskuse ID järgi"
+      },
+      "watch": {
+        "description": "Küsi perioodiliselt ülesande olekut kuni valmimiseni"
+      },
+      "stream": {
+        "description": "Voogesita ülesande täitmissündmusi SSE kaudu"
+      },
+      "logs": {
+        "description": "Kuva ülesande sõnumid ja artefaktid"
+      }
+    }
+  },
+  "policy": {
+    "description": "Halda OmniRoute'i autoriseerimispoliitikaid",
+    "list": {
+      "description": "Kuva poliitikad",
+      "kind": "Filtreeri liigi järgi (allow|deny|rate-limit|cost-cap)",
+      "scope": "Filtreeri ulatuse järgi (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Hangi poliitika andmed ID järgi"
+    },
+    "create": {
+      "description": "Loo poliitika JSON-failist",
+      "file": "Poliitika JSON-faili tee"
+    },
+    "update": {
+      "description": "Uuenda poliitikat JSON-failist",
+      "file": "Poliitika JSON-faili tee"
+    },
+    "delete": {
+      "description": "Kustuta poliitika ID järgi",
+      "yes": "Jäta kinnitusküsimus vahele"
+    },
+    "evaluate": {
+      "description": "Poliitika hindamise testkäivitus (väljumiskood 0=lubatud, 4=keelatud)",
+      "api_key": "Hindamiseks kasutatav API-võti",
+      "action": "Kontrollitav toiming (nt chat, embed, admin)",
+      "resource": "Ressursi tee või identifikaator",
+      "context": "Täiendav kontekst JSON-objektina"
+    },
+    "export": {
+      "description": "Ekspordi kõik poliitikad JSON-faili"
+    },
+    "import": {
+      "description": "Impordi poliitikad JSON-failist",
+      "overwrite": "Kirjuta üle samas ID-ga olemasolevad poliitikad"
+    }
+  },
+  "compression": {
+    "description": "Konfigureeri ja kontrolli OmniRoute'i tihenduskonveierit",
+    "status": {
+      "description": "Kuva praegune tihenduse olek ja seaded"
+    },
+    "configure": {
+      "description": "Konfigureeri tihenduse seaded",
+      "engine": "Tihendusmootor (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Caveman agressiivsus 0.0–1.0",
+      "rtk_budget": "RTK tokenite eelarve",
+      "language_pack": "Aktiveeritav keelepakett"
+    },
+    "engine": {
+      "description": "Kuva või määra aktiivne tihendusmootor"
+    },
+    "combos": {
+      "description": "Halda tihenduse kombinatsioonide statistikat"
+    },
+    "rules": {
+      "description": "Halda tihendusreegleid",
+      "add": {
+        "pattern": "Sobitatav muster (regex või field:pattern)",
+        "action": "Tegevus: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Kuva saadaolevad tihenduse keelepaketid"
+    },
+    "preview": {
+      "description": "Eelvaata tihendamise mõju päringule",
+      "file": "Tee päringu JSON-failini"
+    }
+  },
+  "tunnel": {
+    "title": "Tunnelid",
+    "listDescription": "Kuva aktiivsed tunnelid",
+    "createDescription": "Loo tunnel",
+    "created": "Tunnel loodud: {url}",
+    "stopped": "Tunnel peatatud.",
+    "confirmStop": "Peata tunnel {id}?",
+    "stopDescription": "Peata tunnel",
+    "statusDescription": "Kuva tunneli detailne olek",
+    "logsDescription": "Kuva tunneli logid",
+    "infoDescription": "Kuva tunneli konfiguratsiooni üksikasjad",
+    "rotateDescription": "Genereeri uus tunneli URL",
+    "tailOpt": "Kuvatavate logiridade arv",
+    "typeRequired": "Tunneli tüüp on kohustuslik.",
+    "noLogs": "Logid puuduvad.",
+    "notAvailable": "Tunneli teave pole saadaval.",
+    "noTunnels": "Aktiivseid tunneleid ei ole.",
+    "infoTitle": "Tunneli teave: {type}",
+    "rotated": "Tunneli URL vahetatud: {url}",
+    "confirmRotate": "Vaheta tunneli {type} URL? (genereeritakse uus URL)"
+  },
+  "stop": {
+    "description": "Peata OmniRoute server",
+    "stopping": "Serveri peatamine (PID {pid})...",
+    "stopped": "Server on peatatud.",
+    "notRunning": "Ühtegi serverit ei töötle.",
+    "portFallback": "PID-faili ei leitud, proovitakse peatada pordi järgi..."
+  },
+  "restart": {
+    "description": "Taaskäivita OmniRoute server",
+    "restarting": "OmniRoute serveri taaskäivitamine..."
+  },
+  "dashboard": {
+    "description": "Ava OmniRoute'i töölaud brauseris",
+    "opening": "Töölaua avamine aadressil {url}",
+    "urlOnly": "Prindi töölaua URL brauserit avamata",
+    "tui": "Ava interaktiivne TUI töölaud (terminali kasutajaliides, 7 vahekaarti)"
+  },
+  "models": {
+    "description": "Loetle saadaolevad mudelid (vajab serverit)",
+    "search": "Filtreeri mudeleid ID, nime, pakkuja või kirjelduse alusel",
+    "noServer": "Server ei tööta. Käivita käsuga: omniroute serve",
+    "noModels": "Mudeleid ei leitud."
+  },
+  "audit": {
+    "description": "Juurdepääs vastavus- ja MCP auditilogidele",
+    "source": "Logi allikas: all|compliance|mcp (vaikimisi: all)",
+    "since": "Tagasta kirjed alates sellest ajahetkest (ISO 8601)",
+    "until": "Tagasta kirjed kuni selle ajahetkeni (ISO 8601)",
+    "tail": {
+      "description": "Näita hiljutisi auditilogi kirjeid",
+      "follow": "Jälgi pidevalt uusi kirjeid (2s intervall)",
+      "limit": "Maksimaalne näidatavate kirjete arv (vaikimisi: 100)"
+    },
+    "search": {
+      "description": "Otsi auditilogi kirjeid märksõna alusel",
+      "limit": "Maksimaalne tulemuste arv (vaikimisi: 200)",
+      "actor": "Filtreeri toimija ID alusel",
+      "action": "Filtreeri tegevuse nime alusel"
+    },
+    "export": {
+      "description": "Ekspordi auditilogi faili",
+      "format": "Väljundvorming: jsonl|csv (vaikimisi: jsonl)"
+    },
+    "stats": {
+      "description": "Näita auditilogi statistikat",
+      "period": "Ajaperiood: 1d|7d|30d (vaikimisi: 7d)"
+    },
+    "get": {
+      "description": "Hangi üksik auditilogi kirje ID alusel"
+    }
+  },
+  "skills": {
+    "description": "Halda OmniRoute'i oskusi (sandbox, sisseehitatud, kohandatud, hübriid, skillssh)",
+    "list": {
+      "description": "Loetle installitud oskused",
+      "type": "Filtreeri tüübi alusel (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Näita ainult lubatud oskusi",
+      "disabled": "Näita ainult keelatud oskusi",
+      "api_key": "Filtreeri API võtme alusel"
+    },
+    "get": {
+      "description": "Hangi oskuse üksikasjad ID alusel"
+    },
+    "install": {
+      "description": "Installi oskus failist või URList",
+      "from_file": "Oskuse JSON-määratlusfaili tee",
+      "from_url": "Kaugoskuse määratluse URL",
+      "type": "Oskuse tüüp (sandbox|custom|hybrid)",
+      "enable": "Luba oskus pärast installimist"
+    },
+    "enable": {
+      "description": "Luba oskus ID alusel"
+    },
+    "disable": {
+      "description": "Keela oskus ID alusel",
+      "yes": "Jäta kinnitusküsimus vahele"
+    },
+    "delete": {
+      "description": "Kustuta oskus ID järgi",
+      "yes": "Jäta kinnitusküsimus vahele"
+    },
+    "execute": {
+      "description": "Käivita oskus ID järgi",
+      "input": "JSON sisendobjekt",
+      "input_file": "Tee JSON-sisendfailile",
+      "timeout": "Käivitamise ajalimiit ms-des (vaikeväärtus: 30000)"
+    },
+    "executions": {
+      "description": "Kuva oskuste käivitamiste ajalugu",
+      "skill": "Filtreeri oskuse ID järgi",
+      "limit": "Maksimaalne tulemuste arv (vaikeväärtus: 50)",
+      "status": "Filtreeri staatuse järgi (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Halda SSH kaudu paigaldatud oskusi"
+    },
+    "marketplace": {
+      "description": "Sirvi ja paigalda oskusi turuplatsilt"
+    },
+    "mp": {
+      "search": {
+        "description": "Otsi turuplatsi pakette",
+        "category": "Filtreeri kategooria järgi",
+        "tag": "Filtreeri märksõna järgi",
+        "limit": "Maksimaalne tulemuste arv (vaikeväärtus: 30)",
+        "sort": "Sorteeri: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Kuva paketi üksikasjad ja readme"
+      },
+      "install": {
+        "description": "Paigalda turuplatsi pakett",
+        "version": "Paketi versioon (vaikeväärtus: latest)",
+        "enable": "Aktiveeri pärast paigaldamist",
+        "yes": "Jäta kinnitusküsimus vahele"
+      },
+      "categories": {
+        "description": "Kuva turuplatsi kategooriad"
+      },
+      "featured": {
+        "description": "Kuva esiletõstetud turuplatsi paketid"
+      }
+    }
+  },
+  "memory": {
+    "description": "Halda OmniRoute'i vestlusmälu (FTS5 + vektor)",
+    "search": {
+      "description": "Otsi mälukirjeid semantilise päringu järgi",
+      "type": "Filtreeri mälu tüübi järgi (user|feedback|project|reference)",
+      "limit": "Maksimaalne tulemuste arv (vaikeväärtus: 20)",
+      "api_key": "Filtreeri API võtme järgi",
+      "token_budget": "Piira tulemuste tokenite üldarvu"
+    },
+    "add": {
+      "description": "Lisa uus mälukirje",
+      "content": "Mälu tekstiline sisu",
+      "file": "Loe sisu failist",
+      "type": "Mälu tüüp (vaikeväärtus: user)",
+      "metadata": "JSON metaandmete objekt",
+      "api_key": "Seosta API võtmega"
+    },
+    "clear": {
+      "description": "Kustuta filtritele vastavad mälukirjed",
+      "type": "Filtreeri tüübi järgi",
+      "older": "Kustuta kirjed, mis on vanemad kui määratud aeg (30d, 6m, 1y)",
+      "api_key": "Filtreeri API võtme järgi",
+      "yes": "Jäta kinnitusküsimus vahele"
+    },
+    "list": {
+      "description": "Loetle mäluandmed ilma otsingu järjestuseta",
+      "type": "Filtreeri tüübi alusel",
+      "limit": "Maksimaalne tulemuste arv (vaikimisi: 100)",
+      "api_key": "Filtreeri API-võtme alusel"
+    },
+    "get": {
+      "description": "Hangi üksik mäluandme kirje ID järgi"
+    },
+    "delete": {
+      "description": "Kustuta mäluandme kirje ID järgi",
+      "yes": "Jäta kinnitusküsimus vahele"
+    },
+    "health": {
+      "description": "Kuva mälu allsüsteemi olek (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "Halda OAuth-teenusepakkujate ühendusi",
+    "providers": {
+      "description": "Loetle OAuth-i toetavad teenusepakkujad ja nende voo tüübid"
+    },
+    "start": {
+      "description": "Käivita teenusepakkuja OAuth-autoriseerimisvoog",
+      "provider": "Teenusepakkuja ID (gemini, copilot, cursor, …)",
+      "no_browser": "Kuva ainult URL — ära ava brauserit",
+      "import_system": "Impordi mandaadid automaatselt kohalikust süsteemikonfiguratsioonist",
+      "social": "Sotsiaalse sisselogimise teenusepakkuja (google|github) — kohustuslik kiro puhul",
+      "timeout": "Autoriseerimise ootamise aegumine millisekundites (vaikimisi: 300000)"
+    },
+    "status": {
+      "description": "Loetle aktiivsed OAuth-ühendused",
+      "provider": "Filtreeri teenusepakkuja ID alusel"
+    },
+    "revoke": {
+      "description": "Tühista OAuth-ühendus",
+      "provider": "Tühistatava teenusepakkuja ID",
+      "connection_id": "Tühista konkreetne ühendus ID järgi",
+      "yes": "Jäta kinnitusküsimus vahele"
+    }
+  },
+  "cloud": {
+    "description": "Halda pilve AI-agentide ülesandeid (codex, devin, jules)",
+    "agents": {
+      "description": "Loetle saadaolevad pilveagendid"
+    },
+    "agent": {
+      "description": "Halda {agent} pilveagendi ülesandeid",
+      "auth": {
+        "description": "Autoriseeri {agent} OAuth kaudu"
+      }
+    },
+    "task": {
+      "description": "Halda pilveagendi ülesandeid",
+      "create": {
+        "description": "Loo uus agendi ülesanne",
+        "title": "Ülesande pealkiri (vaikimisi vihje esimesed 80 tähemärki)",
+        "prompt": "Ülesande vihje tekst",
+        "prompt_file": "Loe vihje failist",
+        "repo": "Ülesande jaoks kloonitava hoidla URL",
+        "branch": "Kasutatava haru nimi",
+        "metadata": "JSON-metaandmete objekt"
+      },
+      "list": {
+        "description": "Loetle agendi ülesanded",
+        "status": "Filtreeri oleku alusel (running|completed|failed|cancelled)",
+        "limit": "Maksimaalne tulemuste arv (vaikimisi: 50)"
+      },
+      "get": {
+        "description": "Hangi ülesande üksikasjad ID järgi"
+      },
+      "status": {
+        "description": "Kuva ülesande olek (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Tühista käimasolev ülesanne",
+        "yes": "Jäta kinnitusküsimus vahele"
+      },
+      "approve": {
+        "description": "Kinnita agendi plaan täitmise alustamiseks"
+      },
+      "message": {
+        "description": "Saada sõnum käimasolevale ülesandele"
+      }
+    },
+    "sources": {
+      "description": "Kuva ülesande loodud lähtefailide loend"
+    }
+  },
+  "eval": {
+    "description": "Halda hindamiskomplekte ja käitamisi",
+    "suites": {
+      "description": "Halda hindamiskomplekte",
+      "list": {
+        "description": "Kuva hindamiskomplektide loend"
+      },
+      "get": {
+        "description": "Hangi hindamiskomplekti üksikasjad ID järgi"
+      },
+      "create": {
+        "description": "Loo hindamiskomplekt JSON-failist",
+        "file": "Komplekti definitsiooni JSON-faili asukoht"
+      }
+    },
+    "run": {
+      "description": "Käivita hindamiskomplekti käitus",
+      "model": "Hinnatava mudeli ID (vaikimisi: automaatne)",
+      "combo": "Sunni konkreetne kombinatsioon nime järgi",
+      "concurrency": "Samaaegsete näidiste arv (vaikimisi: 4)",
+      "tag": "Märgista see käitus hilisema filtreerimise jaoks",
+      "watch": "Jälgi käituse edenemist kuni valmimiseni"
+    },
+    "list": {
+      "description": "Kuva hindamiskäituste loend",
+      "suite": "Filtreeri komplekti ID järgi",
+      "status": "Filtreeri oleku järgi",
+      "since": "Tagasta käitused alates sellest ajatempist",
+      "limit": "Maksimaalne tulemuste arv (vaikimisi: 50)"
+    },
+    "get": {
+      "description": "Hangi hindamiskäituse üksikasjad ID järgi"
+    },
+    "results": {
+      "description": "Kuva hindamiskäituse näidiste tulemused",
+      "failed": "Kuva ainult ebaõnnestunud näidised"
+    },
+    "cancel": {
+      "description": "Tühista käimasolev hindamine",
+      "yes": "Jäta kinnitusküsimus vahele"
+    },
+    "scorecard": {
+      "description": "Kuva lõpetatud hindamiskäituse tulemuskaart"
+    }
+  },
+  "webhooks": {
+    "description": "Halda OmniRoute veebihaake",
+    "events": {
+      "description": "Kuva kõikide saadaolevate veebihaagi sündmuste tüüpide loend"
+    },
+    "list": {
+      "description": "Kuva seadistatud veebihaakide loend"
+    },
+    "get": {
+      "description": "Hangi veebihaagi üksikasjad ID järgi"
+    },
+    "add": {
+      "description": "Registreeri uus veebihaak",
+      "url": "Sihtkoha URL",
+      "events": "Komadega eraldatud sündmuste tüüpide loend",
+      "secret": "HMAC allkirjastamise saladus",
+      "header": "Lisapäis kuju key=value (korratav)",
+      "no_enabled": "Loo veebihaak keelatud olekus"
+    },
+    "update": {
+      "description": "Uuenda olemasolevat veebihaaki",
+      "enabled": "Määra lubatud olek (true|false)"
+    },
+    "remove": {
+      "description": "Kustuta veebihaak",
+      "yes": "Jäta kinnitusküsimus vahele"
+    },
+    "test": {
+      "description": "Saada veebihaagile testsündmus",
+      "event": "Simuleeritav sündmuse tüüp (vaikimisi: request.completed)"
+    }
+  },
+  "program": {
+    "description": "OmniRoute — nutikas AI ruuter automaatse tõrketaluvusega",
+    "version": "Prindi versioon ja väljume",
+    "output": "Väljundvorming (table, json, jsonl, csv)",
+    "quiet": "Peida ebaolulised väljundid",
+    "no_color": "Keela värviline väljund",
+    "timeout": "HTTP päringu ajalõpp millisekundites",
+    "api_key": "OmniRoute serveri API võti",
+    "base_url": "OmniRoute serveri baas-URL",
+    "context": "Selle käsu jaoks kasutatav serveri kontekst/profiil",
+    "lang": "Määra CLI kuvamiskeel (tühistab OMNIROUTE_LANG)"
+  },
+  "files": {
+    "description": "Failide haldamine (üleslaadimine, loend, hankimine, allalaadimine, kustutamine)",
+    "list": {
+      "purpose": "Filtreeri otstarbe järgi",
+      "limit": "Maksimaalne tulemuste arv"
+    },
+    "get": {
+      "description": "Hangi faili metaandmed"
+    },
+    "upload": {
+      "description": "Laadi fail üles",
+      "purpose": "Faili otstarve (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Laadi faili sisu alla",
+      "out": "Salvesta asukohta (vaikimisi: stdout)"
+    },
+    "delete": {
+      "yes": "Jäta kinnitus vahele"
+    }
+  },
+  "batches": {
+    "description": "Halda OpenAI-ühilduvaid partiitöid",
+    "list": {
+      "status": "Filtreeri oleku järgi",
+      "limit": "Maksimaalne tulemuste arv"
+    },
+    "create": {
+      "description": "Loo partiitöö",
+      "inputFile": "Sisendfaili ID",
+      "endpoint": "Sihtpunkt (endpoint)",
+      "window": "Lõpetamise ajaaken",
+      "metadata": "Lisa metaandmete võti=väärtus"
+    },
+    "submit": {
+      "description": "Laadi üles JSONL fail ja loo partii",
+      "jsonl": "JSONL faili asukoht",
+      "endpoint": "Sihtpunkt (endpoint)",
+      "wait": "Oota lõpetamist"
+    },
+    "cancel": {
+      "yes": "Jäta kinnitus vahele"
+    },
+    "wait": {
+      "timeout": "Ajalõpp millisekundites"
+    },
+    "output": {
+      "out": "Salvesta väljund asukohta"
+    },
+    "errors": {
+      "out": "Salvesta vead asukohta"
+    }
+  },
+  "translator": {
+    "description": "Teisenda päringu kehad LLM-vormingute vahel",
+    "detect": {
+      "description": "Tuvasta sisu vorming"
+    },
+    "translate": {
+      "description": "Teisenda sisu ühest vormingust teise"
+    },
+    "send": {
+      "description": "Tõlgi ja edasta upstream-teenusele"
+    },
+    "stream": {
+      "description": "Voogedasta ja tõlgi päringu sisu"
+    },
+    "from": "Lähtevorming (openai|anthropic|gemini|cohere)",
+    "to": "Sihtvorming (openai|anthropic|gemini|cohere)",
+    "file": "Tee päringu sisu JSON-failini",
+    "out": "Salvesta väljund faili",
+    "model": "Tühista mudel",
+    "history": {
+      "limit": "Maksimaalne tulemuste arv"
+    }
+  },
+  "pricing": {
+    "description": "Halda mudelite hinnaandmeid",
+    "sync": {
+      "description": "Sünkroonib hinnad upstream-allikatest",
+      "provider": "Filtreeri pakkuja järgi",
+      "force": "Sunni sünkroonimine"
+    },
+    "list": {
+      "provider": "Filtreeri pakkuja järgi",
+      "model": "Filtreeri mudeli järgi",
+      "limit": "Maksimaalne tulemuste arv"
+    },
+    "defaults": {
+      "description": "Halda vaikimisi hindu",
+      "input": "Sisendi maksumus 1M tokeni kohta (USD)",
+      "output": "Väljundi maksumus 1M tokeni kohta (USD)",
+      "cacheRead": "Vahemälust lugemise maksumus 1M tokeni kohta (USD)",
+      "cacheWrite": "Vahemällu kirjutamise maksumus 1M tokeni kohta (USD)"
+    },
+    "diff": {
+      "description": "Näita erinevust upstream-hindadest",
+      "model": "Filtreeri mudeli järgi"
+    }
+  },
+  "radar": {
+    "description": "Uuri ja sünkroonib kohalikku Radar-kataloogi vooge",
+    "status": "Näita kohalikke Radar-seadeid ja voo vahemälu olekut",
+    "sync": "Sünkroonib kataloogi, suunamised, pakkumised ja Intel kohaliku serveri kaudu"
+  },
+  "resilience": {
+    "description": "Uuri ja halda vastupidavusmehhanisme",
+    "status": {
+      "provider": "Filtreeri pakkuja järgi"
+    },
+    "breakers": {
+      "provider": "Filtreeri pakkuja järgi"
+    },
+    "cooldowns": {
+      "provider": "Filtreeri pakkuja järgi",
+      "connectionId": "Filtreeri ühenduse ID järgi"
+    },
+    "lockouts": {
+      "provider": "Filtreeri pakkuja järgi",
+      "model": "Filtreeri mudeli järgi"
+    },
+    "reset": {
+      "description": "Lähtesta katkestaja/jahtumisaja olek",
+      "provider": "Lähtestatav pakkuja",
+      "connectionId": "Lähtestatav ühenduse ID",
+      "model": "Lähtesta mudeli lukustus",
+      "allCooldowns": "Lähtesta kõik pakkuja jahtumisajad",
+      "yes": "Jäta kinnitus vahele"
+    },
+    "profile": {
+      "description": "Halda vastupidavusprofiili",
+      "name": "Profiili nimi"
+    },
+    "config": {
+      "description": "Halda vastupidavuse seadistust",
+      "threshold": "Vea lävend",
+      "resetTimeout": "Lähtestamise ajalõpp millisekundites",
+      "baseCooldown": "Baasjahtumisaeg millisekundites"
+    }
+  },
+  "nodes": {
+    "description": "Halda pakkuja sõlmi (lõpp-punkte)",
+    "list": {
+      "provider": "Filtreeri pakkuja järgi",
+      "enabled": "Näita ainult lubatud sõlmi"
+    },
+    "add": {
+      "provider": "Pakkuja nimi",
+      "baseUrl": "Sõlme baas-URL",
+      "name": "Sõlme nimi",
+      "weight": "Koormuse jaotuse kaal",
+      "region": "Piirkonna märgend",
+      "authHeader": "Kohandatud autentimispäis (võti=väärtus)"
+    },
+    "update": {
+      "baseUrl": "Uus baas-URL",
+      "name": "Uus nimi",
+      "weight": "Uus kaal",
+      "region": "Uus piirkond",
+      "enabled": "Luba või keela (true|false)"
+    },
+    "remove": {
+      "yes": "Jäta kinnitus vahele"
+    },
+    "validate": {
+      "baseUrl": "Kontrollitav URL",
+      "provider": "Pakkuja, mille alusel kontrollida"
+    },
+    "test": {
+      "description": "Saada sõlmele testpäring"
+    },
+    "metrics": {
+      "description": "Näita sõlme mõõdikuid",
+      "period": "Ajavahemik (nt 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Konfigureeri kontekstitöötluse konveier (Caveman, RTK)",
+    "analytics": {
+      "period": "Ajavahemik (nt 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Halda Caveman kontekstikompressorit",
+      "config": {
+        "description": "Näita või uuenda Caveman seadistust",
+        "aggressiveness": "Agressiivsus 0.0–1.0",
+        "maxShrinkPct": "Maksimaalne kahandusprotsent",
+        "preserveTags": "Komadega eraldatud säilitatavad märgendid"
+      }
+    },
+    "rtk": {
+      "description": "Halda RTK kontekstioptimeerijat",
+      "config": {
+        "description": "Näita või uuenda RTK seadistust",
+        "tokenBudget": "RTK märgi-eelarve (token budget)",
+        "reservePct": "Reservi protsent"
+      },
+      "filters": {
+        "description": "Halda RTK filtreid",
+        "pattern": "Filtri muster (regex)",
+        "priority": "Filtri prioriteet (vaikimisi: 100)",
+        "action": "Filtri toiming: drop|shrink|replace",
+        "yes": "Jäta kinnitus vahele"
+      },
+      "test": {
+        "file": "Päringu JSON-faili tee"
+      }
+    },
+    "combos": {
+      "description": "Kontekstitundlike komboderi haldamine"
+    }
+  },
+  "sessions": {
+    "description": "Aktiivsete seansside vaatamine ja haldamine",
+    "list": {
+      "user": "Filtreeri kasutaja järgi",
+      "kind": "Filtreeri tüübi järgi (dashboard|api-key|mcp|a2a)",
+      "active": "Näita ainult aktiivseid seansse",
+      "limit": "Maksimaalne tulemuste arv (vaikimisi: 100)"
+    },
+    "expire": {
+      "yes": "Jäta kinnitus vahele"
+    },
+    "expireAll": {
+      "user": "Kasutaja, kelle seansid aeguma määrata",
+      "yes": "Jäta kinnitus vahele"
+    }
+  },
+  "tags": {
+    "description": "Ressursisiltide haldamine",
+    "add": {
+      "color": "Sildi värv (kuueteistkümnendkood või nimi)",
+      "description": "Sildi kirjeldus"
+    },
+    "remove": {
+      "yes": "Jäta kinnitus vahele"
+    },
+    "assign": {
+      "tag": "Sildi nimi",
+      "to": "Sihtressurss kujul tüüp:id (nt provider:openai)"
+    },
+    "unassign": {
+      "tag": "Sildi nimi",
+      "from": "Lähteressurss kujul tüüp:id"
+    }
+  },
+  "openapi": {
+    "description": "OmniRoute OpenAPI spetsifikatsiooni vaatamine ja testimine",
+    "dump": {
+      "description": "OpenAPI spetsifikatsiooni väljastamine standardväljundisse või faili",
+      "format": "Väljundvorming: yaml|json (vaikimisi: yaml)",
+      "out": "Salvesta faili teele"
+    },
+    "validate": {
+      "description": "OpenAPI spetsifikatsiooni valideerimine"
+    },
+    "try": {
+      "description": "API lõpp-punkti testimine spetsifikatsiooni kaudu",
+      "method": "HTTP meetod (vaikimisi: GET)",
+      "body": "Päringu keha JSON-faili tee",
+      "query": "Päringuparameeter kujul võti=väärtus (korratav)",
+      "header": "Päis kujul võti=väärtus (korratav)"
+    },
+    "endpoints": {
+      "description": "Kõigi API lõpp-punktide loend",
+      "search": "Filtreeri tee või kokkuvõtte järgi"
+    },
+    "paths": {
+      "description": "Kõigi API teede loend"
+    }
+  },
+  "combo": {
+    "title": "Kombod",
+    "switched": "Aktiivne kombo: {name}",
+    "created": "Kombo loodud: {name}",
+    "deleted": "Kombo kustutatud: {name}",
+    "noCombos": "Kombosid ei ole seadistatud.",
+    "confirmDelete": "Kustutada kombo {name}?",
+    "suggest": {
+      "description": "Soovita AI-hindamise põhjal ülesande jaoks parim kombo",
+      "task": "Ülesande kirjeldus",
+      "maxCost": "Maksimaalne kulu päringu kohta USD-s",
+      "maxLatencyMs": "Maksimaalne latentsus millisekundites",
+      "weights": "JSON-vormingus skoorimiskaalud, nt {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Kuvatavate parimate kandidaatide arv (vaikimisi: 5)",
+      "explain": "Kuva põhjendus stderr-is",
+      "switch": "Aktiveeri parim komboarvestus"
+    }
+  },
+  "oneproxy": {
+    "description": "Halda OneProxy ülemvoolu puuli",
+    "stats": {
+      "provider": "Filtreeri teenusepakkuja järgi",
+      "period": "Ajaperiood (vaikimisi: 24h)"
+    },
+    "fetch": {
+      "description": "Hangi puulist proksisid",
+      "count": "Hangitavate proksite arv (vaikimisi: 1)",
+      "type": "Proksi tüüp: http|socks5 (vaikimisi: http)"
+    },
+    "rotate": {
+      "description": "Sunni proksi rotatsiooni",
+      "provider": "Teenusepakkuja, kelle jaoks rotatsiooni läbi viia",
+      "connectionId": "Konkreetne ühenduse ID, mida rotatsiooni viia"
+    },
+    "config": {
+      "description": "Kuva või uuenda OneProxy seadeid",
+      "enabled": "Luba proksipuul (true|false)",
+      "poolSize": "Puuli suurus",
+      "providerSource": "Proksiteenuse pakkuja URL",
+      "rotationPolicy": "Rotatsiooni reegel: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Kuva praegune proksipuul koos meetrikatega"
+    }
+  },
+  "open": {
+    "description": "Ava veebibrauseris konkreetne OmniRoute juhtpaneeli leht",
+    "url": "Kuva ainult URL, ära ava brauserit"
+  },
+  "telemetry": {
+    "description": "Pöördu koondatud telemeetriaandmete poole",
+    "summary": {
+      "description": "Kuva koondatud telemeetria kokkuvõte",
+      "period": "Ajaperiood: 24h|7d|30d (vaikimisi: 24h)",
+      "compareTo": "Võrdle eelmise perioodiga"
+    },
+    "export": {
+      "description": "Ekspordi telemeetriasündmused JSONL-formaati",
+      "out": "Väljundfaili asukoht (vaikimisi: telemetry.jsonl)",
+      "period": "Ajaperiood ekspordi jaoks (vaikimisi: 7d)"
+    }
+  },
+  "sync": {
+    "description": "Sünkroonib seadeid OmniRoute'i eksemplaride vahel",
+    "push": {
+      "description": "Saada seaded pilve või kaugeksemplari",
+      "target": "Sihtkoht (cloud või context:nimi)",
+      "bundle": "Sünkroonitavad komplekti osad",
+      "dryRun": "Eelvaade rakendamata muudatustega"
+    },
+    "pull": {
+      "description": "Tõmba seaded pilvest või kaugallikast",
+      "source": "Allikas (cloud või context:nimi)",
+      "merge": "Ühenda olemasolevate seadetega",
+      "replace": "Asenda olemasolevad seaded",
+      "dryRun": "Eelvaade rakendamata"
+    },
+    "diff": {
+      "source": "Lähtekontekst",
+      "target": "Sihtkontekst"
+    },
+    "bundle": {
+      "description": "Ekspordi seadistus paketifailina",
+      "include": "Kaasatavad osad (komadega eraldatud)"
+    },
+    "import": {
+      "description": "Impordi paketifail",
+      "dryRun": "Valideeri rakendamata"
+    },
+    "initialize": {
+      "fromCloud": "Lähtesta pilvevarukoopiast"
+    },
+    "tokens": {
+      "description": "Halda sünkroonimistoken'eid",
+      "create": {
+        "name": "Tokeni nimi",
+        "scope": "Tokeni ulatus",
+        "ttl": "Tokeni eluiga (nt 30d)"
+      },
+      "revoke": {
+        "yes": "Jäta kinnitus vahele"
+      }
+    },
+    "resolve": {
+      "description": "Lahenda sünkroonimiskonfliktid interaktiivselt"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Halda serverikontekste/profiile (lisa, kasuta, loetle, näita, eemalda, nimeta ümber, ekspordi, impordi)"
+    },
+    "lang": {
+      "description": "Halda CLI kuvamiskeelt",
+      "getDescription": "Näita praegu aktiivset keelekoodi",
+      "setDescription": "Määra kuvamiskeel ja salvesta see seadistusse",
+      "listDescription": "Loetle kõik saadaolevad keeled",
+      "listTitle": "Saadaolevad keeled",
+      "current": "Keel: {code} ({name})",
+      "saved": "Keeleks on määratud {code} ({name}).",
+      "noCode": "Vajalik on keelekood. Käivita 'omniroute config lang list', et näha saadaolevaid koode.",
+      "unknown": "Tundmatu keelekood: {code}. Käivita 'omniroute config lang list', et näha saadaolevaid koode.",
+      "alreadySet": "Keeleks on juba määratud {code}.",
+      "envHint": "Nõuanne: võid ka määrata OMNIROUTE_LANG={code} oma keskkonnas."
+    }
+  },
+  "completion": {
+    "description": "Genereeri või paigalda shelli täiendusskriptid",
+    "zsh": "Trüki zsh täiendusskript",
+    "bash": "Trüki bash täiendusskript",
+    "fish": "Trüki fish täiendusskript",
+    "install": "Paigalda täiendusskript globaalselt tuvastatud shellile",
+    "refresh": "Värskenda kombinatsioonide/pakkujate/mudelite vahemälu"
+  },
+  "logs": {
+    "description": "Voogesita või ekspordi päringulogid",
+    "follow": "Voogesita logisid reaalajas",
+    "filter": "Filtreeri tasemete järgi (error,warn,info) — komadega eraldatud",
+    "lines": "Toodavate ridade arv",
+    "timeout": "Ühenduse aegumine millisekundites",
+    "baseUrl": "OmniRoute API baas-URL",
+    "requestId": "Filtreeri päringu ID järgi",
+    "apiKey": "Filtreeri API võtme järgi",
+    "combo": "Filtreeri combo nime järgi",
+    "status": "Filtreeri HTTP olekukoodi järgi",
+    "durationMin": "Minimaalne päringu kestus millisekundites",
+    "durationMax": "Maksimaalne päringu kestus millisekundites",
+    "export": "Salvesta logid faili (json/jsonl/csv)",
+    "exported": "Logid salvestatud asukohta {path}",
+    "stopped": "Logivoog peatatud.",
+    "streamError": "Logivoo viga: {message}"
+  },
+  "tray": {
+    "description": "Juhi süsteemisalve ikooni",
+    "show": "Näita süsteemisalve ikooni (kui server töötab lipuga --tray)",
+    "hide": "Peida süsteemisalve ikoon",
+    "quit": "Sulge OmniRoute süsteemisalve kaudu"
+  },
+  "autostart": {
+    "description": "Halda OmniRoute automaatkäivitust arvuti käivitumisel (Linux: systemd kasutajateenus)",
+    "enable": "Luba automaatkäivitus arvuti käivitumisel",
+    "disable": "Keela automaatkäivitus arvuti käivitumisel",
+    "toggle": "Lülita automaatkäivitus arvuti käivitumisel sisse/välja",
+    "status": "Näita automaatkäivituse olekut"
+  },
+  "runtime": {
+    "description": "Halda natiivseid käitusaja sõltuvusi",
+    "check": "Kontrolli natiivsete sõltuvuste olekut käitusaja kaustas",
+    "repair": "Installi natiivsed sõltuvused käitusaja kausta uuesti",
+    "repair_force": "Sunni uuesti installimist ka juhul, kui sõltuvused on kehtivad",
+    "clean": "Eemalda käitusaja kaust (vabastab kettaruumi)",
+    "clean_yes": "Jäta kinnitus vahele"
+  },
+  "repl": {
+    "description": "Interaktiivne mitmekäiguline REPL koos LLM-iga",
+    "model": "Kasutatav mudel (vaikimisi: automaatne)",
+    "combo": "Kasutatav combo nimi",
+    "system": "Süsteemi juhis (system prompt)",
+    "resume": "Jätka salvestatud seanssi nime järgi"
+  },
+  "plugin": {
+    "description": "Halda CLI pluginaid (omniroute-cmd-*)",
+    "list": "Kuva installitud pluginad",
+    "install": "Installi plugin npm-ist või kohalikust asukohast",
+    "remove": "Eemalda installitud plugin",
+    "info": "Kuva installitud plugina üksikasjad",
+    "search": "Otsi npm registrist saadaolevaid pluginaid",
+    "update": "Uuenda installitud plugina(id)",
+    "scaffold": "Loo uue plugina põhistruktuur"
+  },
+  "launch": {
+    "description": "Käivita Claude Code, mis suunatakse OmniRoute'i (kohalik või kaug, koos lipuga --profile)",
+    "token": "Token, mille Claude klient peaks saatma (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute ei ole aadressil {port} kättesaadav. Käivita see käsuga 'omniroute serve'.",
+    "notFound": "'claude' CLI-d ei leitud PATH-ist."
+  },
+  "run": {
+    "description": "Käivita toetatud CLI sihtmärk OmniRoute'i kaudu"
+  },
+  "setupClaude": {
+    "description": "Genereeri ~/.claude/profiles Claude Code profiilid OmniRoute'i mudelikataloogist"
+  },
+  "connect": {
+    "description": "Ühendu kaugserveriga OmniRoute ja lülitu kaugrežiimi"
+  },
+  "tokens": {
+    "description": "Halda ulatusega CLI juurdepääsutokeneid (kaugrežiim)"
+  },
+  "configure": {
+    "description": "Vali pakkuja+mudel aktiivselt serverilt ja konfigureeri toetatud kohalik CLI"
+  },
+  "launchCodex": {
+    "description": "Käivita Codex CLI, mis on suunatud OmniRoute'ile (kohalik või kaug-VPS)"
+  },
+  "setupCodex": {
+    "description": "Genereeri ~/.codex profiilifailid OmniRoute'i reaalajas mudelikataloogist"
+  },
+  "packs": {
+    "description": "Halda valikulisi käitusaja pakke (ML / brauseri automatiseerimine)",
+    "listDescription": "Kuva valikulised pakid ja nende installiolek",
+    "installDescription": "Installi valikuline pakk kataloogi DATA_DIR",
+    "verifyDescription": "Kontrolli installitud pakke tarnitud kontrollsummade indeksi järgi",
+    "removeDescription": "Eemalda installitud valikuline pakk",
+    "sourceOpt": "Kataloog, mis sisaldab pakkide sisu ja pakkide indeksit",
+    "warnNoIndex": "optional-packs.index.json ei leitud — installimine/kontrollimine ei ole selles väljavõttes saadaval (töölauapaketid sisaldavad seda)",
+    "errUnknown": "tundmatu pakk: {name}",
+    "errNoIndex": "pakkide indeksit ei leitud; edasta --source <kataloog>, mis sisaldab paki sisu (töölauapaketid sisaldavad seda rakenduse kõrval)",
+    "installed": "pakk \"{name}\" on installitud ja kontrollitud asukohas {dir}",
+    "restartHint": "taaskäivita OmniRoute server (või töölauarakendus), et käitusaeg paki üles korjaks",
+    "removed": "pakk \"{name}\" on eemaldatud",
+    "notInstalled": "pakki \"{name}\" ei olnud installitud",
+    "verifyOk": "kõik installitud pakid on kontrollitud",
+    "verifyFailed": "{count} paki(t) ei läbinud kontrolli",
+    "noneInstalled": "valikulisi pakke ei ole installitud"
+  }
+}

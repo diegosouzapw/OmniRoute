@@ -27,10 +27,18 @@
 // (providers / MCP tools / routing strategies / free-tier pools).
 
 import fs from "node:fs";
-import { spawnSync } from "node:child_process";
+import { spawnSync as _spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+let _spawnSyncImpl = _spawnSync;
+export function __setSpawnSyncForTest(fn) {
+  _spawnSyncImpl = fn;
+}
+export function __resetSpawnSyncForTest() {
+  _spawnSyncImpl = _spawnSync;
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..", "..");
@@ -141,7 +149,8 @@ export function countLocales() {
 
 // PURE: tally STRICT vs SOFT drift for a list of checks, given a content lookup.
 // `getContent(file) -> string | null`. A check whose `actual` is 0 is skipped (the
-// source count could not be determined). Returns { strict, soft, lines }.
+// source count could not be determined). `actual==="ERR"` is a STRICT failure, not a skip.
+// Returns { strict, soft, lines }.
 export function tallyDrift(checks, getContent) {
   let strict = 0;
   let soft = 0;
@@ -149,7 +158,22 @@ export function tallyDrift(checks, getContent) {
   for (const c of checks) {
     const tier = c.strict ? "STRICT" : "soft";
     lines.push(`\n• ${c.label}: ${c.actual} (real) [${tier}]`);
-    if (!c.actual) {
+    if (c.actual === "ERR") {
+      if (c.validate) {
+        const v = c.validate("", `code facts:${c.actual}`);
+        lines.push(`  ${v.ok ? "✓" : c.strict ? "✗" : "⚠"} ${c.label} — ${v.detail}`);
+        if (!v.ok) {
+          if (c.strict) strict++;
+          else soft++;
+        }
+      } else {
+        lines.push(`  ${c.strict ? "✗" : "⚠"} ${c.label} — readCodeFacts unavailable`);
+        if (c.strict) strict++;
+        else soft++;
+      }
+      continue;
+    }
+    if (c.actual === 0 || c.actual === "0") {
       lines.push(`  ⚠ could not determine ${c.docKey} count from source — skipping`);
       continue;
     }
@@ -178,13 +202,35 @@ export function tallyDrift(checks, getContent) {
   return { strict, soft, lines };
 }
 
+// Lightweight literal claim helper — checks that the expected string appears in the file.
+function makeLiteralClaimValidator(expected, opts) {
+  return (content) =>
+    content.includes(String(expected))
+      ? { ok: true, detail: `literal "${expected}" present — ${opts?.what ?? "literal"}` }
+      : {
+          ok: false,
+          detail: `expected literal "${expected}" not found — ${opts?.what ?? "literal"}`,
+        };
+}
+
 // Reads every code-derived fact in ONE tsx subprocess — the same functions the app
 // serves at runtime, never a hardcoded copy. DATA_DIR is redirected to a throwaway dir
 // so importing the MCP tool modules cannot touch the operator's real SQLite file.
-// Returns null when tsx is unavailable so the gate degrades to a skip, not a false red.
+// Returns null when tsx is unavailable — caller must treat it as a failing check, not a skip.
 function readCodeFacts() {
   const script = [
     'import {computeFreeModelTotals,FREE_MODEL_BUDGETS} from "./open-sse/config/freeModelCatalog.ts";',
+    'import {FREE_TIER_PROVIDER_SET} from "./open-sse/config/freeTierProviders.ts";',
+    'import {generateProviderPluginManifest} from "./open-sse/config/providerPluginManifestRegistry.ts";',
+    'import {REGISTRY} from "./open-sse/config/providers/index.ts";',
+    'import fs2 from "node:fs";',
+    'import path2 from "node:path";',
+    'const __rtxt=fs2.readFileSync(path2.join(process.cwd(),"src/lib/freeProviderRankings.ts"),"utf8");',
+    'const __dtxt=fs2.readFileSync(path2.join(process.cwd(),"open-sse/config/freeModelCatalog.data.ts"),"utf8");',
+    'const __itxt=fs2.readFileSync(path2.join(process.cwd(),"src/lib/combos/intelligentRouting.ts"),"utf8");',
+    'const __cat=__dtxt.match(/FREE_CATALOG_CURATED_AT\\s*=\\s*"([^"]+)"/)?.[1]??null;',
+    'const __sb=(__rtxt.match(/sortBy\\?\\s*:\\s*"elo"\\s*\\|\\s*"reliability"/)?"reliability":null);',
+    'const __ik=__itxt.match(/DEFAULT_INTELLIGENT_WEIGHTS[^=]*=\\s*\\{([\\s\\S]*?)\\n\\};/)?.[1]?.split("\\n").filter(l=>l.includes(":")).length??0;',
     'import {MODE_PACKS} from "./open-sse/services/autoCombo/modePacks.ts";',
     'import {ENGINE_IDS} from "./open-sse/services/compression/engineCatalog.ts";',
     'import {CLI_TOOLS} from "./src/shared/constants/cliTools.ts";',
@@ -230,13 +276,16 @@ function readCodeFacts() {
     "freePools:t.poolCount,engines:ENGINE_IDS.length,",
     "cliTotal:cli.length,cliCode:by('code'),cliAgent:by('agent'),",
     "mcpTools:countUniqueMcpTools(cols),mcpScopes:sc.size,providers:pids.size,freeForever:ff.size,",
-    "modePacks:Object.keys(MODE_PACKS),",
+    "modePacks:Object.keys(MODE_PACKS),catalogDate:__cat,sortBy:__sb,intelligentKeys:__ik,",
     "hardStop:FREE_MODEL_BUDGETS.filter(e=>e.hardStopGuaranteed===true).length,",
-    "trainsOnPrompts:FREE_MODEL_BUDGETS.filter(e=>e.trainsOnPrompts===true).length}));",
+    "trainsOnPrompts:FREE_MODEL_BUDGETS.filter(e=>e.trainsOnPrompts===true).length,",
+    "freeTierCount:FREE_TIER_PROVIDER_SET.size,",
+    "freeTierReg:FREE_TIER_PROVIDER_SET.size-[...FREE_TIER_PROVIDER_SET].filter(x=>!(x in REGISTRY)).length,",
+    'manifestFreeTier:generateProviderPluginManifest().providers.filter(p=>p.capabilities.includes("free-tier")).length}));',
   ].join("");
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "docs-counts-"));
   try {
-    const r = spawnSync(process.execPath, ["--import", "tsx/esm", "-e", script], {
+    const r = _spawnSyncImpl(process.execPath, ["--import", "tsx/esm", "-e", script], {
       cwd: ROOT,
       encoding: "utf8",
       timeout: 180000,
@@ -544,10 +593,14 @@ export function buildChecks() {
         return [
           {
             label: "Code-derived counts",
-            actual: 0,
+            actual: "ERR",
             docKey: "code facts",
-            strict: false,
+            strict: true,
             files: [],
+            validate: () => ({
+              ok: false,
+              detail: "readCodeFacts unavailable — tsx/spawnSync failed",
+            }),
           },
         ];
       const claim = (expected, what, opts, files) => ({
@@ -609,12 +662,45 @@ export function buildChecks() {
           validate: makeModePackNamesValidator(packs),
         },
         {
+          // Every pack must pin `quality` explicitly (6 pins, 0.02/0.03) so
+          // no pack silently inherits a future DEFAULT. Validates live code,
+          // not docs — the gate loops `files` content through `validate`.
+          label: "mode packs pin quality explicitly (live code)",
+          actual: 6,
+          docKey: "packs quality pins",
+          strict: true,
+          files: ["open-sse/services/autoCombo/modePacks.ts"],
+          validate: (content) => {
+            const pins = (content.match(/^\s*quality:\s*0\.0\d,?\s*$/gm) ?? []).length;
+            return pins >= 6
+              ? { ok: true, detail: `${pins} quality pins` }
+              : { ok: false, detail: `only ${pins} quality pins — every pack must pin quality` };
+          },
+        },
+        {
           label: "Provider reference total (doc vs live modules)",
           actual: f.providers,
           docKey: "providers (live)",
           strict: true,
           files: ["docs/reference/PROVIDER_REFERENCE.md"],
           validate: makeProviderReferenceValidator(f.providers),
+        },
+        // Gate: manifest emission vs catalogue intersection. Both numbers are
+        // live code facts from the same spawnSync computeur. The catalogue can
+        // name providers the registry does not serve yet (arcee-ai at
+        // 9d1a896c6), so the leaf raw size is informational — the gate
+        // compares the intersected count, never the raw size, and the script
+        // itself always exists so tallyDrift runs validate (skips null only).
+        {
+          label: "Manifest free-tier capability count (live code)",
+          actual: f.manifestFreeTier,
+          docKey: "free-tier capability",
+          strict: true,
+          files: ["scripts/check/check-docs-counts-sync.mjs"],
+          validate: () => ({
+            ok: f.manifestFreeTier === f.freeTierReg,
+            detail: `manifest ${f.manifestFreeTier} vs leaf∩registry ${f.freeTierReg} (leaf ${f.freeTierCount})`,
+          }),
         },
         {
           label: "SVG canonical numbers (live code)",
@@ -722,17 +808,82 @@ export function buildChecks() {
           f.trainsOnPrompts,
           "training-disclosure entries",
           {
-            // `requireClaim`: this page is the one place that states the number,
-            // so a reworded or deleted sentence must fail rather than pass as
-            // "no claim in this file" — otherwise the gate is one edit from silent.
             requireClaim: true,
             pattern:
               /(\d+) entr(?:y|ies) (?:that )?(?:carry|carries) a (?:prompt-)?training disclosure/gi,
           },
           ["docs/reference/FREE_TIERS.md"]
         ),
+        {
+          label: "Free provider rankings sortBy (live code)",
+          actual: f.sortBy ?? "reliability",
+          docKey: "rankings sortBy",
+          strict: true,
+          files: ["src/lib/freeProviderRankings.ts", "src/app/api/free-provider-rankings/route.ts"],
+          validate: (content) => {
+            // Disjunctive: the gate loops over two files with different shapes —
+            // freeProviderRankings.ts carries the union + branch, route.ts the z.enum.
+            const hasUnion = /sortBy\?\s*:\s*"elo"\s*\|\s*"reliability"/.test(content);
+            const hasReliabilityBranch =
+              /sortBy\s*===\s*"reliability"|sortBy\s*!==\s*"reliability"/.test(content);
+            const hasZEnum = /z\.enum\(\["elo",\s*"reliability"\]\)/.test(content);
+            return (hasUnion && hasReliabilityBranch) || hasZEnum
+              ? { ok: true, detail: "union+branch (rankings) or z.enum (route) present" }
+              : { ok: false, detail: "ELO-only regression: union+branch and z.enum both missing" };
+          },
+        },
+        {
+          label: "FREE_CATALOG_CURATED_AT (live code)",
+          actual: f.catalogDate ?? 0,
+          docKey: "FREE_CATALOG_CURATED_AT",
+          strict: false,
+          files: ["open-sse/config/freeModelCatalog.data.ts"],
+          validate: makeLiteralClaimValidator(f.catalogDate, { what: "FREE_CATALOG_CURATED_AT" }),
+        },
+        // Duplicate coverage with combo-scoring-weights-schema-coverage.test.ts — soft gate only.
+        {
+          label: "INTELLIGENT vs DEFAULT (live code)",
+          actual: f.intelligentKeys ?? 16,
+          docKey: "INTELLIGENT vs DEFAULT",
+          strict: false,
+          files: ["src/lib/combos/intelligentRouting.ts", "open-sse/services/autoCombo/scoring.ts"],
+          validate: (content) =>
+            content.includes("DEFAULT_INTELLIGENT_WEIGHTS") || content.includes("DEFAULT_WEIGHTS")
+              ? {
+                  ok: true,
+                  detail:
+                    "weight constant present (strict coverage in combo-scoring-weights-schema-coverage:66)",
+                }
+              : { ok: false, detail: "no weight constant found" },
+        },
       ];
     })(),
+    {
+      label: "ToS caution (16) (live docs)",
+      actual: 16,
+      docKey: "ToS caution (16)",
+      strict: false,
+      files: ["docs/reference/FREE_TIERS.md"],
+      validate: makeNumberClaimValidator(16, {
+        what: "ToS caution (16)",
+        pattern: /Caution[^\n]*\(\s*(16)\s*\)/gi,
+        requireClaim: true,
+      }),
+    },
+    {
+      label: "quality neutral prose (live docs)",
+      actual: "quality neutral 0.5",
+      docKey: "quality neutral",
+      strict: false,
+      files: ["docs/routing/AUTO-COMBO.md"],
+      validate: (content) =>
+        /quality.*neutral.*0\.5/is.test(content)
+          ? { ok: true, detail: "quality neutral 0.5 mentioned" }
+          : {
+              ok: false,
+              detail: "quality neutral 0.5 not found — prose must carry quality neutral 0.5",
+            },
+    },
     {
       label: "Executors count",
       actual: countFiles("open-sse/executors"),

@@ -18,6 +18,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { OrchestrationDrawer } from "../drawer/OrchestrationDrawer";
+import { CompareRunsPanel } from "./CompareRunsPanel";
 import { orchStateColor, type OrchNode, type OrchState } from "../model/orchestrationTypes";
 import {
   buildHistoryGrid,
@@ -202,6 +203,33 @@ function PresetButtons({
   );
 }
 
+/** Compare-mode toggle, rendered next to the preset buttons — presentation only. Its label
+ * flips between `compareMode` ("Compare runs") and `compareExit` ("Exit compare mode") so the
+ * accessible name itself communicates the current state, same idiom as `sourceCollapse` /
+ * `sourceExpand` elsewhere in this tab family. */
+function CompareToggle({
+  compareMode,
+  t,
+  onToggle,
+}: {
+  compareMode: boolean;
+  t: ReturnType<typeof useTranslations>;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={compareMode}
+      className={`px-2 py-1 text-xs rounded border ${
+        compareMode ? "border-primary bg-primary/10 font-medium" : "border-border text-muted"
+      }`}
+      onClick={onToggle}
+    >
+      {compareMode ? t("compareExit") : t("compareMode")}
+    </button>
+  );
+}
+
 /** Alert rows for history sources that failed to fetch — presentation only. */
 function FailedSourcesList({
   failedSources,
@@ -222,18 +250,30 @@ function FailedSourcesList({
 }
 
 /** The Airflow-grid table itself — header row of bucket labels + one row per identity with
- * state-colored cell dots. Presentation only; clicking a dot calls `onSelectItem`. Extracted so
- * `HistoryTab` stays under the max-lines ratchet. */
+ * state-colored cell dots. Presentation only.
+ *
+ * `compareMode === false` (default): clicking a dot calls `onSelectItem`, opening the drawer —
+ * unchanged from before compare mode existed.
+ * `compareMode === true`: clicking a dot calls `onToggleSelect` instead (mark/unmark, never
+ * opens the drawer); `selectedIds` drives the highlight + `aria-pressed` on the dot itself.
+ *
+ * Extracted so `HistoryTab` stays under the max-lines ratchet. */
 function HistoryGridTable({
   grid,
   preset,
   t,
+  compareMode,
+  selectedIds,
   onSelectItem,
+  onToggleSelect,
 }: {
   grid: HistoryGrid;
   preset: Preset;
   t: ReturnType<typeof useTranslations>;
+  compareMode: boolean;
+  selectedIds: ReadonlySet<string>;
   onSelectItem: (item: HistoryItem) => void;
+  onToggleSelect: (item: HistoryItem) => void;
 }) {
   return (
     // Kept mounted (with the previous range's rows) while `isLoading` is true for a refetch —
@@ -272,15 +312,19 @@ function HistoryGridTable({
                       const meta = `${item.label} · ${formatDuration(item.durationMs)} · ${t(
                         STATE_KEY[item.state]
                       )}`;
+                      const isSelected = compareMode && selectedIds.has(item.id);
                       return (
                         <button
                           key={item.id}
                           type="button"
-                          className="w-3 h-3 rounded-sm motion-reduce:transition-none"
+                          className={`w-3 h-3 rounded-sm motion-reduce:transition-none${
+                            isSelected ? " ring-2 ring-offset-1 ring-primary" : ""
+                          }`}
                           style={{ backgroundColor: orchStateColor(item.state) }}
                           title={meta}
                           aria-label={meta}
-                          onClick={() => onSelectItem(item)}
+                          aria-pressed={compareMode ? isSelected : undefined}
+                          onClick={() => (compareMode ? onToggleSelect(item) : onSelectItem(item))}
                         />
                       );
                     })}
@@ -293,6 +337,47 @@ function HistoryGridTable({
       </table>
     </div>
   );
+}
+
+/** Loading indicator + "no rows" empty state. Mutually exclusive by construction (the empty
+ * message only ever renders once loading has finished), same as the two conditionals this
+ * replaces. Extracted only to keep `HistoryTab` under the max-lines-per-function ratchet. */
+function HistoryStatusRows({
+  isLoading,
+  hasNoRows,
+  t,
+  tCommon,
+}: {
+  isLoading: boolean;
+  hasNoRows: boolean;
+  t: ReturnType<typeof useTranslations>;
+  tCommon: ReturnType<typeof useTranslations>;
+}) {
+  return (
+    <>
+      {isLoading && (
+        <div role="status" aria-live="polite" className="text-xs text-muted">
+          {tCommon("loading")}
+        </div>
+      )}
+      {hasNoRows && !isLoading && <div className="text-xs text-muted p-4">{t("historyEmpty")}</div>}
+    </>
+  );
+}
+
+/** Re-samples `nowMs` from inside a real event-driven callback (never during render — the
+ * `nowMs` note on `HistoryTab` explains why) so the drawer's `onActionDone` refetches the grid
+ * over a new range without closing the drawer: the drawer renders its own success toast right
+ * after calling `onActionDone`, so unmounting here would throw the confirmation away and the
+ * operator would see a repeat/cancel silently do nothing. The updater only ever picks the larger
+ * of the sampled clock and `prev + 1`, so the range always changes (and the refetch always
+ * happens) even when two samples land in the same millisecond. Extracted only to keep
+ * `HistoryTab` under the max-lines-per-function ratchet — no behavior change. */
+function refreshNowMsOnActionDone(setNowMs: (updater: (prev: number) => number) => void) {
+  return () => {
+    const sampled = Date.now();
+    setNowMs((prev) => (sampled > prev ? sampled : prev + 1));
+  };
 }
 
 export function HistoryTab() {
@@ -309,6 +394,11 @@ export function HistoryTab() {
   // `Date.now()` from a lazy initializer or from inside a nested async/timer callback.
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [selected, setSelected] = useState<OrchNode | null>(null);
+  // Compare mode: LOCAL tab state only (not `?node=`/URL, not global state) — Task A3 consumes
+  // both `compareMode` and `compareSelected` to render the comparison panel. A queue of at most
+  // 2 items; the oldest is dropped once a 3rd (different) item is selected.
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareSelected, setCompareSelected] = useState<HistoryItem[]>([]);
 
   const range = useMemo(() => historyRangeFromPreset(preset, nowMs), [preset, nowMs]);
   const { items, failedSources, isLoading } = useHistoryData(range);
@@ -316,52 +406,83 @@ export function HistoryTab() {
     () => buildHistoryGrid(items, range, BUCKET_COUNT[preset]),
     [items, range, preset]
   );
+  const compareSelectedIds = useMemo(
+    () => new Set(compareSelected.map((item) => item.id)),
+    [compareSelected]
+  );
 
+  // Review finding (Minor #3): a preset change re-samples the range, so a pick made under the
+  // old range can fall outside the new one — the grid drops its ring (the item's cell may not
+  // even be rendered any more) while the compare panel keeps comparing the stale snapshot
+  // captured at click time. Clearing the queue here is safe unconditionally: outside compare
+  // mode it is already empty (see `onToggleCompareMode`), and inside compare mode the operator
+  // is left free to pick a fresh pair against the new range.
   const onSelectPreset = (p: Preset) => {
     setPreset(p);
     setNowMs(Date.now());
+    setCompareSelected([]);
   };
   const onSelectItem = (item: HistoryItem) => setSelected(nodeFromHistoryItem(item));
+  // Leaving compare mode clears the selection; entering it starts from an empty queue too, so
+  // resetting unconditionally on every toggle is safe in both directions.
+  const onToggleCompareMode = () => {
+    setCompareMode((prev) => !prev);
+    setCompareSelected([]);
+  };
+  // Click marks/unmarks a cell. A 3rd distinct selection drops the oldest (queue of 2, FIFO).
+  const onToggleCompareSelect = (item: HistoryItem) => {
+    setCompareSelected((prev) => {
+      if (prev.some((i) => i.id === item.id)) return prev.filter((i) => i.id !== item.id);
+      const next = [...prev, item];
+      return next.length > 2 ? next.slice(next.length - 2) : next;
+    });
+  };
 
   return (
     <div className="flex flex-col h-full min-h-0 gap-2">
       <div className="flex items-center gap-2 flex-wrap">
         <PresetButtons preset={preset} t={t} onSelect={onSelectPreset} />
+        <CompareToggle compareMode={compareMode} t={t} onToggle={onToggleCompareMode} />
+        {compareMode && <span className="text-[10px] text-muted">{t("compareHint")}</span>}
         <span className="text-[10px] text-muted">{t("historyConductorNote")}</span>
       </div>
 
       <FailedSourcesList failedSources={failedSources} t={t} />
 
-      {isLoading && (
-        <div role="status" aria-live="polite" className="text-xs text-muted">
-          {tCommon("loading")}
-        </div>
-      )}
-
-      {grid.rows.length === 0 && !isLoading && (
-        <div className="text-xs text-muted p-4">{t("historyEmpty")}</div>
-      )}
+      <HistoryStatusRows
+        isLoading={isLoading}
+        hasNoRows={grid.rows.length === 0}
+        t={t}
+        tCommon={tCommon}
+      />
 
       {grid.rows.length > 0 && (
-        <HistoryGridTable grid={grid} preset={preset} t={t} onSelectItem={onSelectItem} />
+        <HistoryGridTable
+          grid={grid}
+          preset={preset}
+          t={t}
+          compareMode={compareMode}
+          selectedIds={compareSelectedIds}
+          onSelectItem={onSelectItem}
+          onToggleSelect={onToggleCompareSelect}
+        />
       )}
 
-      {/* `onActionDone` must NOT close the drawer: the drawer renders its own success toast
-          right after calling it, so unmounting here threw the confirmation away and the
-          operator saw a repeat/cancel silently do nothing. Re-sampling `nowMs` instead
-          keeps the drawer mounted (the toast lands) and refreshes the grid through the new
-          range — the same "refetch, don't close" contract `OrchestrationPageClient` uses.
-          `Date.now()` is sampled inside a real event-driven callback, never during render
-          (see the `nowMs` note above), and the updater is pure — it only picks the larger of
-          the sampled clock and `prev + 1`, so the range always changes (and the refetch
-          always happens) even when two samples land in the same millisecond. */}
+      {/* Task A3's side-by-side comparison panel — mounted once `compareSelected` reaches its
+          2-item queue (Task A2). `onClose` clears the selection (not `compareMode` itself) so
+          the operator lands back on the grid, still in compare mode, ready to pick a new pair. */}
+      {compareMode && compareSelected.length === 2 && (
+        <CompareRunsPanel
+          left={compareSelected[0]}
+          right={compareSelected[1]}
+          onClose={() => setCompareSelected([])}
+        />
+      )}
+
       <OrchestrationDrawer
         node={selected}
         onClose={() => setSelected(null)}
-        onActionDone={() => {
-          const sampled = Date.now();
-          setNowMs((prev) => (sampled > prev ? sampled : prev + 1));
-        }}
+        onActionDone={refreshNowMsOnActionDone(setNowMs)}
       />
     </div>
   );

@@ -1,0 +1,1 @@
+- **fix(skills):** The CLI registry parser now reads positionals declared with `.addArgument()`, not only those written inline in `.command()`. `tunnel create [type]` was being published as `tunnel create`, so the agent-skills sync gate reported drift on every branch and regenerating would have deleted the argument.

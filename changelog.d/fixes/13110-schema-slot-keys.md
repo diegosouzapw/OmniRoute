@@ -1,0 +1,1 @@
+- **fix(translator):** `contentSchema` and `unevaluatedItems` are now treated as subschema positions by the tool-schema sanitizer, so a truncation placeholder in either is replaced with a permissive schema instead of being forwarded as a string ([#13110](https://github.com/diegosouzapw/OmniRoute/pull/13110))

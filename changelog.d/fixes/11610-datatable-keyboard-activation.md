@@ -1,1 +1,0 @@
-- **fix(dashboard):** Enable Enter and Space activation for clickable data-table rows without hijacking nested controls ([#11610](https://github.com/diegosouzapw/OmniRoute/pull/11610)) — thanks @pacocartones

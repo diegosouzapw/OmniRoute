@@ -213,7 +213,7 @@ export function CompressionCockpit({ run: runProp }: CompressionCockpitProps) {
           <span className="text-[11px] text-muted">
             {fmt(run.originalTokens)} → {fmt(run.compressedTokens)} {t("tokenShort")}
           </span>
-          <span className="text-xs font-bold" style={{ color: "#22c55e" }}>
+          <span className="text-xs font-bold" style={{ color: "var(--orch-status-success)" }}>
             −{run.savingsPercent.toFixed(1)}%
           </span>
           {isComplete && view === "canvas" && (

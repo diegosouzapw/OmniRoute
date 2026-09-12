@@ -132,6 +132,16 @@ are not presented as launchable targets.
 > There is also a richer plugin integration — `omniroute setup opencode` — which
 > installs `@omniroute/opencode-plugin`. They are different commands; the table
 > above documents `setup-opencode`.
+>
+> The plugin comes in two packages, one per OpenCode major, because the two
+> loaders expect different entrypoints:
+> `@omniroute/opencode-plugin` for OpenCode v1 and
+> `@omniroute/opencode-plugin-v2` for OpenCode v2. The v2 package is new
+> (`0.1.0`) and follows a host contract that is still moving, so it reads the
+> shape OpenCode seeds into the catalog draft rather than assuming one. Install
+> it by adding a `plugins` entry to `opencode.json`; `omniroute setup opencode`
+> still installs the v1 package. Options and the credential lookup order are in
+> the package README.
 
 ---
 

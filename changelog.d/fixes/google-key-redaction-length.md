@@ -1,0 +1,1 @@
+- Redact Google API keys of any length in error bodies: the pattern required exactly 39 characters, so shorter or longer `AIza…` credentials passed through unredacted.

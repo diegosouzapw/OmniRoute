@@ -885,24 +885,28 @@ export function compactStructuredStreamPayload(payload: unknown): unknown {
   };
 }
 
-// Live incident (2026-09-02): a reasoning-heavy response streams reasoning
-// token-by-token as hundreds to thousands of tiny SSE deltas BEFORE the real
-// output/tool_calls ever arrive. At the old defaults (200 events / 48KB) the
-// cap was routinely exhausted during the reasoning phase alone, dropping the
-// completion event entirely -- measured live: ~22% of a sample of recent
-// successful responses hit this. For a caller with no `format` (no live
-// reducer -- see the CollectorOptions.format doc comment), the logged
-// summary is reconstructed from getEvents() (open-sse/utils/stream.ts), so a
+// Live incident (2026-09-02, recurred 2026-09-04): a reasoning-heavy response
+// streams reasoning token-by-token as hundreds to thousands of tiny SSE
+// deltas BEFORE the real output/tool_calls ever arrive. At the old defaults
+// (200 events / 48KB) the cap was routinely exhausted during the reasoning
+// phase alone, dropping the completion event entirely -- measured live:
+// ~22% of a sample of recent successful responses hit this. For a caller
+// that reconstructs its logged summary from getEvents() after the fact
+// (open-sse/utils/stream.ts's buildStreamSummaryFromEvents(collector.getEvents(),
+// ...) pattern) instead of reading getSummary()'s always-live reducer, a
 // dropped completion event produced a served-successfully response logged
 // with status "in_progress" and empty output -- which
 // src/lib/db/responsesContinuationStore.ts then had nothing real to
 // reconstruct a later continuation turn from (see its own fail-closed fix,
-// 2026-09-02). Raising the cap doesn't eliminate the class of bug for an
-// arbitrarily long stream, but it removes it as a routine, everyday failure;
-// the format-driven live reducer (used by providerPayloadCollector, an
-// analogous prior fix) is the cap-independent fix and remains the deeper
-// follow-up for a caller that still wants build()'s summary correct beyond
-// any fixed cap.
+// 2026-09-02), and which /dashboard/conversations had no way to distinguish
+// from a genuinely healthy conversation (see its own "stalled" badge,
+// 2026-09-04). Raising the cap alone doesn't eliminate the class of bug for
+// an arbitrarily long stream, only makes it less routine; the actual
+// cap-independent fix is for every caller to read getSummary() (fed live on
+// every push(), see below) instead of re-deriving from getEvents() -- both
+// stream.ts collector instances (provider and client payload, passthrough
+// and translate mode, all four OPENAI_RESPONSES-shaped build() call sites)
+// now do this consistently.
 export function createStructuredSSECollector(options: CollectorOptions = {}) {
   const { maxEvents = 2000, maxBytes = 524288, stage, format, fallbackModel } = options;
   const events: StructuredSSEEvent[] = [];
@@ -952,9 +956,9 @@ export function createStructuredSSECollector(options: CollectorOptions = {}) {
     // payload (see CollectorOptions.format) — unlike
     // buildStreamSummaryFromEvents(getEvents(), ...), this is correct even
     // once the collector has truncated its retained event array. Returns
-    // undefined if no format was configured (e.g. the client-response
-    // collector, which builds its summary from independently-accumulated
-    // response state instead).
+    // undefined if no format was configured (e.g. a caller that never needs
+    // a reconstructed summary at all and only reads getEvents()/build()'s
+    // raw event log).
     getSummary(): unknown {
       return reducer?.finalize();
     },

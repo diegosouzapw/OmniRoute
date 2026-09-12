@@ -189,3 +189,63 @@ test("SECTIONS maps every dir to a real living-section heading in the fixture", 
     assert.ok(CHANGELOG_FIXTURE.includes(heading), `fixture must contain ${heading}`);
   }
 });
+
+test("insertBullets with a version anchors on THAT section even when [Unreleased] has the same heading", () => {
+  const withUnreleasedHeading = `# Changelog
+
+## [Unreleased]
+
+### ✨ New Features
+
+- **unreleased**: leftover from an older cycle (#9)
+
+## [3.8.47] — TBD
+
+### ✨ New Features
+
+- **existing feature**: already here (#1 — thanks @a)
+
+### 🐛 Bug Fixes
+
+- **fix(x):** existing fix (#2 — thanks @b)
+
+## [3.8.46] - 2026-07-04
+
+### ✨ New Features
+
+- **old feature**: shipped (#0)
+`;
+  const out = insertBullets(
+    withUnreleasedHeading,
+    { features: [{ text: "- **new**: landed (#4)" }] },
+    "3.8.47"
+  );
+  const unreleased = out.slice(out.indexOf("## [Unreleased]"), out.indexOf("## [3.8.47]"));
+  const living = out.slice(out.indexOf("## [3.8.47]"), out.indexOf("## [3.8.46]"));
+  assert.ok(!unreleased.includes("landed (#4)"), "must not land under [Unreleased]");
+  assert.ok(
+    living.includes("- **existing feature**: already here (#1 — thanks @a)\n- **new**: landed (#4)")
+  );
+  assert.throws(
+    () => insertBullets(withUnreleasedHeading, { features: [{ text: "- x" }] }, "9.9.9"),
+    /section "## \[9\.9\.9\]" not found/
+  );
+});
+
+test("aggregate reads the living version from package.json and lands fragments under it", () => {
+  const root = makeRoot({
+    fragments: { "features/9-new.md": "- **new**: from a fragment (#9)\n" },
+  });
+  writeFileSync(join(root, "package.json"), JSON.stringify({ version: "3.8.47" }));
+  const before = readFileSync(join(root, "CHANGELOG.md"), "utf8");
+  const withHeading = before.replace(
+    "## [Unreleased]\n",
+    "## [Unreleased]\n\n### ✨ New Features\n\n- stale (#8)\n"
+  );
+  writeFileSync(join(root, "CHANGELOG.md"), withHeading);
+  aggregate({ root });
+  const after = readFileSync(join(root, "CHANGELOG.md"), "utf8");
+  const unreleased = after.slice(after.indexOf("## [Unreleased]"), after.indexOf("## [3.8.47]"));
+  assert.ok(!unreleased.includes("from a fragment (#9)"));
+  assert.ok(after.slice(after.indexOf("## [3.8.47]")).includes("from a fragment (#9)"));
+});

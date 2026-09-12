@@ -39,6 +39,7 @@ import {
   type CodexPersistedQuotaState,
 } from "@omniroute/open-sse/services/codexAccount/index.ts";
 import { selectAntigravityQuotaWindowNames } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
+import { isClaudeExtraUsageAllowed } from "@/lib/providers/claudeExtraUsage";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -52,6 +53,8 @@ interface QuotaInfo {
   // percentage; `false` means "unknown", so callers must not treat the
   // defaulted-to-0 `remainingPercentage` as genuine exhaustion.
   fractionReported?: boolean;
+  displayName?: string;
+  windowSeconds?: number | null;
 }
 
 interface QuotaCacheEntry {
@@ -69,6 +72,8 @@ interface QuotaWindowStatus {
   usedPercentage: number;
   resetAt: string | null;
   reachedThreshold: boolean;
+  displayName?: string;
+  windowSeconds?: number | null;
 }
 
 export interface QuotaWindowObservation {
@@ -249,6 +254,12 @@ function normalizeQuotas(rawQuotas: Record<string, any>): Record<string, QuotaIn
   const result: Record<string, QuotaInfo> = {};
   for (const [key, q] of Object.entries(rawQuotas)) {
     if (q && typeof q === "object") {
+      const windowSeconds =
+        typeof q.windowSeconds === "number" && Number.isFinite(q.windowSeconds)
+          ? q.windowSeconds
+          : typeof q.window_seconds === "number" && Number.isFinite(q.window_seconds)
+            ? q.window_seconds
+            : null;
       result[key] = {
         remainingPercentage:
           safePercentage(q.remainingPercentage) ??
@@ -257,6 +268,10 @@ function normalizeQuotas(rawQuotas: Record<string, any>): Record<string, QuotaIn
         // #10095 — thread through the "did upstream actually report this
         // window's fraction" signal (see UsageQuota in usage/quota.ts).
         fractionReported: q.fractionReported === false ? false : undefined,
+        ...(typeof q.displayName === "string" && q.displayName.trim()
+          ? { displayName: q.displayName.trim() }
+          : {}),
+        ...(windowSeconds != null ? { windowSeconds } : {}),
       };
     }
   }
@@ -407,8 +422,10 @@ function isStandardQuotaExhausted(entry: QuotaCacheEntry, now: number): boolean 
 export function isQuotaExhaustedForRequest(
   connectionId: string,
   provider: string,
-  requestedModel: string | null = null
+  requestedModel: string | null = null,
+  providerSpecificData?: unknown
 ): boolean {
+  if (isClaudeExtraUsageAllowed(provider, providerSpecificData)) return false;
   const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return false;
 
@@ -639,6 +656,8 @@ export function getQuotaWindowStatus(
         : remainingPercentage <= 0
           ? true
           : usedPercentage >= thresholdPercent,
+    ...(window.displayName ? { displayName: window.displayName } : {}),
+    ...(window.windowSeconds != null ? { windowSeconds: window.windowSeconds } : {}),
   };
 }
 

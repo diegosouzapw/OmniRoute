@@ -445,12 +445,18 @@ export async function validateOpenAICompatibleProvider({ apiKey, providerSpecifi
     }
 
     // Endpoint responded and auth seems valid, but quota is exhausted/rate-limited.
-    if (modelsRes.status === 429) {
+    // A 402 here is a catalog/upstream quota signal, not proof the credential is
+    // dead — openai-compatible gateways multiplex many models behind one key.
+    if (modelsRes.status === 429 || modelsRes.status === 402) {
       return {
         valid: true,
         error: null,
         method: "models_endpoint",
-        warning: "Rate limited, but credentials are valid",
+        statusCode: modelsRes.status,
+        warning:
+          modelsRes.status === 402
+            ? "A catalog/upstream quota 402 is not a connection-wide credential failure"
+            : "Rate limited, but credentials are valid",
       };
     }
   } catch {
@@ -506,6 +512,18 @@ export async function validateOpenAICompatibleProvider({ apiKey, providerSpecifi
         error: null,
         method: "chat_completions",
         warning: "Rate limited, but credentials are valid",
+      };
+    }
+
+    // Representative-model 402: this one upstream is out of credit. The key
+    // still authenticated — do not fail the whole openai-compatible connection.
+    if (chatRes.status === 402) {
+      return {
+        valid: true,
+        error: null,
+        method: "chat_completions",
+        statusCode: 402,
+        warning: `Model ${testModelId} returned 402 (per-model quota); credentials remain valid`,
       };
     }
 

@@ -194,6 +194,7 @@ export const codex = {
     }
 
     const providerSpecificData = {
+      autoSync: true,
       workspaceId,
       workspacePlanType: planType,
       // Also store the full authInfo for future reference
