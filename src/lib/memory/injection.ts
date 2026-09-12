@@ -170,6 +170,16 @@ function injectSystemFirst(
     const merged: ChatMessage = { ...first, content: `${memoryText}\n${first.content}` };
     return { ...request, messages: [merged, ...messages.slice(1)] };
   }
+  // #13425: Anthropic-shaped bodies carry the system prompt in the top-level
+  // `system` field, not in messages[0]. Unshifting a `{role:"system"}` at
+  // messages[0] triggers a 400 ("use the top-level 'system' parameter").
+  // Merge the memory text into the top-level field instead.
+  if (typeof request.system === "string") {
+    return { ...request, system: `${memoryText}\n${request.system}` };
+  }
+  if (Array.isArray(request.system)) {
+    return { ...request, system: [{ type: "text", text: memoryText }, ...request.system] };
+  }
   const memorySystemMessage: ChatMessage = { role: "system", content: memoryText };
   return { ...request, messages: [memorySystemMessage, ...messages] };
 }
@@ -279,6 +289,17 @@ export function injectMemory(
     !endsWithServerToolResult(messages[cacheSafeIndex - 1])
   ) {
     return injectSystemFirst(request, messages, memoryText, memories.length);
+  }
+
+  // #13425: Anthropic-shaped bodies carry the system prompt in the top-level
+  // `system` field, not in messages[0]. If supportsSystem is true and the
+  // request already has a top-level `system` field, merge memory there instead
+  // of prepending a `{role:"system"}` at messages[0] — Anthropic rejects that.
+  if (supportsSystem && (typeof request.system === "string" || Array.isArray(request.system))) {
+    if (typeof request.system === "string") {
+      return { ...request, system: `${memoryText}\n${request.system}` };
+    }
+    return { ...request, system: [{ type: "text", text: memoryText }, ...request.system] };
   }
 
   // Strategy 1 (system): prepend before existing system messages, preserving the
