@@ -117,6 +117,17 @@ describe("injectMemory — GLM providers use user role (#1701)", () => {
     injectMemory(baseRequest, testMemories, "glm");
     assert.equal(baseRequest.messages.length, original.messages.length);
   });
+
+  it("should never populate a top-level system field for GLM even when one exists (#13425)", () => {
+    const reqWithSystem: ChatRequest = {
+      ...baseRequest,
+      system: "Existing GLM system text",
+    };
+    const result = injectMemory(reqWithSystem, testMemories, "glm");
+    assert.equal(result.system, "Existing GLM system text");
+    assert.equal(result.messages[0].role, "user");
+    assert.ok(result.messages[0].content.includes("Memory context:"));
+  });
 });
 
 // ── normalizeSystemRole — GLM model names ──────────────────────────────────────

@@ -180,3 +180,61 @@ describe("injectMemory cache-safe positioning — Claude-family server-tool-resu
     assert.equal(out.messages[4].content, "turn 2 question");
   });
 });
+
+/**
+ * #13425: an Anthropic-shaped body carries its system prompt in the top-level `system`
+ * field, never as a `messages[]` entry — `messages[]` may only contain `user`/`assistant`
+ * turns. Unshifting a `role: "system"` message at index 0 on such a body is rejected by
+ * Anthropic with HTTP 400. These tests pin the fix: memory merges into the top-level
+ * `system` field when one exists, leaving `messages[]` untouched.
+ */
+describe("injectMemory top-level system field placement (#13425)", () => {
+  it("merges memory into a string top-level `system` field instead of unshifting messages[0]", () => {
+    const req: ChatRequest = {
+      model: "anthropic/claude-sonnet-4-6",
+      system: "TOP LEVEL SYS",
+      messages: [{ role: "user", content: "turn 1 question" }],
+    };
+    const out = injectMemory(req, [mem("dark mode")], "anthropic");
+
+    assert.equal(out.system, "Memory context: dark mode\nTOP LEVEL SYS");
+    assert.equal(out.messages.length, 1);
+    assert.equal(out.messages[0].role, "user");
+    assert.equal(out.messages[0].content, "turn 1 question");
+  });
+
+  it("appends a text block onto an array-shaped top-level `system` field", () => {
+    const req: ChatRequest = {
+      model: "anthropic/claude-sonnet-4-6",
+      system: [{ type: "text", text: "TOP LEVEL SYS BLOCK" }],
+      messages: [{ role: "user", content: "turn 1 question" }],
+    };
+    const out = injectMemory(req, [mem("dark mode")], "anthropic");
+
+    assert.deepEqual(out.system, [
+      { type: "text", text: "TOP LEVEL SYS BLOCK" },
+      { type: "text", text: "Memory context: dark mode" },
+    ]);
+    assert.equal(out.messages.length, 1);
+    assert.equal(out.messages[0].role, "user");
+  });
+
+  it("merges into the top-level `system` field via the #11290 Claude-family cache-safe fallback", () => {
+    const req: ChatRequest = {
+      model: "anthropic/claude-opus-5",
+      system: "TOP LEVEL SYS",
+      messages: [
+        { role: "user", content: "turn 1 question" },
+        { role: "assistant", content: "turn 1 answer" },
+        { role: "user", content: "turn 2 question" },
+      ],
+    };
+    const out = injectMemory(req, [mem("dark mode")], "anthropic", { cacheSafe: true });
+
+    // No messages[]-splice: falls back through injectSystemFirst into the top-level field.
+    assert.equal(out.messages.length, 3);
+    assert.equal(out.system, "Memory context: dark mode\nTOP LEVEL SYS");
+    assert.equal(out.messages[0].role, "user");
+    assert.equal(out.messages[0].content, "turn 1 question");
+  });
+});
