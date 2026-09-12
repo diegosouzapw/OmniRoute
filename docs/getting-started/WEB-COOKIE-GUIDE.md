@@ -161,7 +161,7 @@ Recopy the credentials from a fresh network request after successfully opening a
 
 Web Cookie providers use your existing browser session.
 
-If your browser session expires or you sign out, you must copy a new set of credentials.
+If your browser session expires or you sign out, you must copy a new set of credentials. To automate cookie renewal for supported web providers, see the [Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md) companion tool.
 
 ---
 
