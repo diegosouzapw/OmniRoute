@@ -27,8 +27,25 @@ jobs:
           allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, Unlicense, 0BSD, CC0-1.0, BlueOak-1.0.0, MPL-2.0, Zlib, Unicode-3.0, Apache-2.0 WITH LLVM-exception
           # Sonar's pinned GitHub Action is LGPL-3.0. Exempt only this immutable
           # action dependency; LGPL remains denied for every package and action.
+          # sharp@^0.35 ships prebuilt libvips binaries under LGPL-3.0-or-later.
+          # The LGPL packages are @img/sharp-libvips-* and @img/sharp-wasm32
+          # (bundled dependencies), not the sharp wrapper itself. Exempt the
+          # @img/sharp-* scope so all platform binary packages are covered.
+          # A future sharp upgrade re-triggers this gate for deliberate review.
           allow-dependencies-licenses: >-
             pkg:githubactions/SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f,
             pkg:cargo/brotli-decompressor@5.0.3,
             pkg:cargo/dbus@0.9.12,
-            pkg:cargo/libdbus-sys@0.2.7
+            pkg:cargo/libdbus-sys@0.2.7,
+            pkg:npm/@img/sharp-darwin-arm64@0.35.4,
+            pkg:npm/@img/sharp-darwin-x64@0.35.4,
+            pkg:npm/@img/sharp-linux-arm64@0.35.4,
+            pkg:npm/@img/sharp-linux-s390x@0.35.4,
+            pkg:npm/@img/sharp-linux-x64@0.35.4,
+            pkg:npm/@img/sharp-libvips-darwin-arm64@0.4.0,
+            pkg:npm/@img/sharp-libvips-darwin-x64@0.4.0,
+            pkg:npm/@img/sharp-libvips-linux-arm64@0.4.0,
+            pkg:npm/@img/sharp-libvips-linux-s390x@0.4.0,
+            pkg:npm/@img/sharp-libvips-linux-x64@0.4.0,
+            pkg:npm/@img/sharp-wasm32@0.35.4,
+            pkg:npm/sharp@0.35.4
