@@ -1,0 +1,1 @@
+- fix(memory): merge injected memory context into the top-level `system` field instead of unshifting a synthetic `role: "system"` message at `messages[0]`, fixing a 400 on Anthropic-shaped (claude-family / strict-provider) request bodies (#13425)
