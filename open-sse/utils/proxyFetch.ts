@@ -84,12 +84,33 @@ function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";
 }
 
+function isGroqTlsFingerprintHost(url: string | null | undefined): boolean {
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host === "api.groq.com" || host.endsWith(".groq.com");
+  } catch {
+    return /(?:^|[./])api\.groq\.com(?:[:/?]|$)/i.test(String(url));
+  }
+}
+
+function isGroqTlsFingerprintProvider(
+  provider: string | null | undefined
+): boolean {
+  const normalized = provider?.trim().toLowerCase();
+  return normalized === "groq";
+}
+
 function tlsFingerprintProviderAllowed(
   provider: string | null | undefined,
-  proxied: boolean
+  proxied: boolean,
+  url?: string | null
 ): boolean {
+  if (isGroqTlsFingerprintProvider(provider) || isGroqTlsFingerprintHost(url)) {
+    return false;
+  }
   const configured = process.env.TLS_FINGERPRINT_PROVIDERS?.trim();
-  // Preserve the legacy direct-only opt-in. The new proxied transport requires
+  // Preserve legacy direct-only opt-in. The new proxied transport requires
   // an explicit allowlist so enabling TLS cannot silently change proxy traffic.
   if (!configured) return !proxied;
   if (!provider) return false;
@@ -792,7 +813,7 @@ async function patchedFetch(
     if (
       isTlsFingerprintEnabled() &&
       activeTlsClient.available &&
-      tlsFingerprintProviderAllowed(tlsStore?.provider, false) &&
+      tlsFingerprintProviderAllowed(tlsStore?.provider, false, targetUrl) &&
       isTlsRequestEligible(input, options)
     ) {
       try {
@@ -1084,7 +1105,7 @@ async function patchedFetch(
     typeof tlsStore?.sessionScope === "string" &&
     tlsStore.sessionScope.trim().length > 0 &&
     activeTlsClient.available &&
-    tlsFingerprintProviderAllowed(tlsStore?.provider, true) &&
+    tlsFingerprintProviderAllowed(tlsStore?.provider, true, targetUrl) &&
     isTlsRequestEligible(input, options) &&
     isWreqProxySupported(proxyUrl)
   ) {

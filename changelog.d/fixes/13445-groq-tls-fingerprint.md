@@ -1,0 +1,1 @@
+- **fix(network):** skip Chrome TLS impersonation for Groq (`api.groq.com`); Cloudflare 1010s that JA3 while native undici reaches the API ([#13445](https://github.com/diegosouzapw/OmniRoute/pull/13445)) (#13225)
