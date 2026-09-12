@@ -129,6 +129,16 @@ test("stripUnsupportedParams: drops reasoning for nvidia z-ai/glm-5.2", () => {
   assert.equal(body.model, "z-ai/glm-5.2", "model must not be touched");
 });
 
+test("stripUnsupportedParams: drops thinking for mistral zai-glm-5-2", () => {
+  const body: Record<string, unknown> = {
+    thinking: { type: "enabled", budget_tokens: 10240 },
+    reasoning: { effort: "high" },
+  };
+  stripUnsupportedParams("mistral", "zai-glm-5-2", body);
+  assert.equal(body.thinking, undefined);
+  assert.equal(body.reasoning, undefined);
+});
+
 test("stripUnsupportedParams: nvidia z-ai/glm-5.1 keeps reasoning (rule is 5.2-only)", () => {
   const body: Record<string, unknown> = {
     model: "z-ai/glm-5.1",
