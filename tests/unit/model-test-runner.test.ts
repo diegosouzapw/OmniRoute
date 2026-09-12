@@ -75,6 +75,7 @@ test("detectTestKind defaults to a plain chat test for ordinary models", () => {
     isEmbedding: false,
     isAudioTranscription: false,
     isResponses: false,
+    isNonChatGeneration: false,
   });
 });
 
@@ -97,6 +98,7 @@ test("detectTestKind detects rerank by id and by metadata, and rerank wins over 
     isEmbedding: false,
     isAudioTranscription: false,
     isResponses: false,
+    isNonChatGeneration: false,
   });
   // apiFormat metadata drives detection even when the id is opaque
   assert.equal(detectTestKind("vendor/opaque-model", { apiFormat: "rerank" }).isRerank, true);
@@ -119,6 +121,7 @@ test("detectTestKind detects audio transcription from metadata, and it wins over
     isEmbedding: false,
     isAudioTranscription: true,
     isResponses: false,
+    isNonChatGeneration: false,
   });
   assert.equal(
     detectTestKind("vendor/opaque-model", { supportedEndpoints: ["audio-transcriptions"] })
@@ -156,6 +159,7 @@ test("detectTestKind falls back to the provider node's configured apiType", () =
     isEmbedding: false,
     isAudioTranscription: false,
     isResponses: false,
+    isNonChatGeneration: false,
   });
 
   // Per-model metadata still wins when present.
