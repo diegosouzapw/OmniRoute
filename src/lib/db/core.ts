@@ -16,6 +16,13 @@ import path from "path";
 import { retryProbeIfTransient } from "./probeUtils";
 import fs from "fs";
 import { resolveWritableDataDir, getLegacyDotDataDir } from "../dataPaths";
+import {
+  MAX_DB_BACKUPS,
+  DEFAULT_DB_BACKUP_RETENTION_DAYS,
+  parsePositiveInt,
+  parseNonNegativeInt,
+  pruneBackupDirectory,
+} from "./backupRetention";
 import { isNextBuildPhase } from "../buildPhase";
 import { runMigrations } from "./migrationRunner";
 import { runDbHealthCheck } from "./healthCheck";
@@ -883,6 +890,22 @@ function createManagedDbBackup(db: SqliteDatabase, reason: string): boolean {
 
     db.exec(`VACUUM INTO '${escapedBackupPath}'`);
     console.log(`[DB] Backup created (${reason}): ${backupPath}`);
+
+    // Prune old backups to prevent the directory from growing without bound.
+    // This mirrors the post-backup pruning in backup.ts but avoids a circular
+    // dependency by importing directly from backupRetention.ts.
+    try {
+      const maxFiles = process.env.DB_BACKUP_MAX_FILES
+        ? parsePositiveInt(process.env.DB_BACKUP_MAX_FILES, MAX_DB_BACKUPS)
+        : MAX_DB_BACKUPS;
+      const retentionDays = process.env.DB_BACKUP_RETENTION_DAYS
+        ? parseNonNegativeInt(process.env.DB_BACKUP_RETENTION_DAYS, DEFAULT_DB_BACKUP_RETENTION_DAYS)
+        : DEFAULT_DB_BACKUP_RETENTION_DAYS;
+      pruneBackupDirectory({ backupDir, maxFiles, retentionDays });
+    } catch {
+      // Retention is best-effort; never let a pruning failure obscure the backup result.
+    }
+
     return true;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
