@@ -515,15 +515,7 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     headers: { "Content-Type": "application/json" },
     buildHeaders: (token) => ({
       "Content-Type": "application/json",
-      // Parse semicolon-separated cookie pairs instead of using an unbounded
-      // regex on credential-derived input (TS regex rule: no unbounded matches).
-      Authorization: `Bearer ${
-        token
-          .split(";")
-          .map((p: string) => p.trim())
-          .find((p: string) => p.startsWith("token="))
-          ?.slice(6) || token
-      }`,
+      Authorization: `Bearer ${token.match(/(?:^|;\s*)token=([^;]+)/)?.[1]?.trim() || token}`,
     }),
     parseResponse: (data) => {
       const innerData = data?.data?.data || data?.data || [];
