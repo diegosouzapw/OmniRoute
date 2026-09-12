@@ -45,13 +45,16 @@ const REASONING_REPLAY_PROVIDERS = new Set([
   // 400s with "Param Incorrect: The reasoning_content in the thinking mode
   // must be passed back to the API."
   "xiaomi-mimo",
+  // Command Code serves upstream DeepSeek models (e.g.
+  // command-code/deepseek-v4.1-flash) and requires reasoning replay.
+  "command-code",
 ]);
 
 const REASONING_REPLAY_MODEL_PATTERNS = [
   /deepseek-r1/i,
   /deepseek-reasoner/i,
   /deepseek-chat/i,
-  /deepseek[-/]v4[-.](flash|pro)(-free)?/i,
+  /deepseek[-/]v4(?:[-.]1)?[-.](flash|pro)(-free)?/i,
   /zen\/deepseek-v4/i,
   // Match native kimi-kN and namespaced kimi/kN families without treating
   // generic aliases such as kimi-latest as strict thinking models.
@@ -64,7 +67,7 @@ const REASONING_REPLAY_MODEL_PATTERNS = [
   /^mimo[-.]?v\d/i,
 ];
 
-const DEEPSEEK_V4_MODEL_PATTERN = /deepseek[-/]v4[-.](flash|pro)/i;
+const DEEPSEEK_V4_MODEL_PATTERN = /deepseek[-/]v4(?:[-.]1)?[-.](flash|pro)/i;
 const K3_REASONING_REPLAY_MODEL_PATTERN = /(?:^|\/)(?:kimi-)?k3(?:$|-)/i;
 const NATIVE_K27_REASONING_REPLAY_MODEL_PATTERN = /(?:^|\/)kimi-k2\.7-code(?:$|-)/i;
 
