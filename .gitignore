@@ -203,6 +203,10 @@ scripts/i18n/_pending-keys.json
 # Fumadocs generated source
 .source/
 
+# VitePress build artifacts (docs-site/)
+docs-site/.vitepress/dist/
+docs-site/.vitepress/cache/
+
 # AI agent local settings and configs
 .agents/
 .antigravitycli/
