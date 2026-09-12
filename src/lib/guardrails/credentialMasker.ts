@@ -1,6 +1,7 @@
 import { CREDENTIAL_PATTERNS } from "@omniroute/open-sse/utils/credentialPatterns.ts";
 import { getSettings } from "@/lib/db/settings";
 import { BaseGuardrail, type GuardrailContext, type GuardrailResult } from "./base";
+import { credentialImageField } from "./credentialImageFields";
 
 export { CREDENTIAL_PATTERNS };
 export type { CredentialPattern } from "@omniroute/open-sse/utils/credentialPatterns.ts";
@@ -51,7 +52,9 @@ function redactHeaderValue(value: string): string {
 function walkValue(
   value: unknown,
   detections: Array<{ type: string; count: number }>,
-  seen = new WeakSet<object>()
+  seen = new WeakSet<object>(),
+  parentKey?: string,
+  parentType?: unknown
 ): { modified: boolean; value: unknown } {
   if (typeof value === "string") {
     const r = redactCredentials(value);
@@ -76,6 +79,8 @@ function walkValue(
     if (prototype !== null && prototype !== Object.prototype) return { modified: false, value };
     seen.add(value);
     const entries = Object.entries(value as JsonRecord);
+    const record = value as JsonRecord;
+    const imageField = credentialImageField(record, parentKey, parentType);
     let next: JsonRecord | null = null;
     for (let index = 0; index < entries.length; index++) {
       const [key, entryValue] = entries[index];
@@ -83,7 +88,9 @@ function walkValue(
       const redactedHeader = structuredHeader ? redactHeaderValue(entryValue) : null;
       const r = structuredHeader
         ? { modified: redactedHeader !== entryValue, value: redactedHeader }
-        : walkValue(entryValue, detections, seen);
+        : key === imageField
+          ? { modified: false, value: entryValue }
+          : walkValue(entryValue, detections, seen, key, record.type);
       if (structuredHeader && r.modified) detections.push({ type: "auth_header", count: 1 });
       if (r.modified && !next) {
         next = Object.create(prototype) as JsonRecord;

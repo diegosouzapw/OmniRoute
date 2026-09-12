@@ -667,10 +667,22 @@ to the upstream provider or back to the client.
   disabled unless `settings.credentialRedactionEnabled === true` **or**
   `CREDENTIAL_REDACTION_ENABLED=true`. With it off, the guardrail is a no-op —
   it never blocks and never rewrites.
-- `redactCredentials()` walks the full payload/response tree (`walkValue()`,
+- The guardrail walks the payload/response tree (`walkValue()`,
   prototype-pollution-safe, cycle-safe via `WeakSet`) and replaces matches with
   a `[REDACTED:<type>]` placeholder, cloning only the branches that actually
   changed.
+- Recognized image transport fields preserve valid base64 byte-for-byte: Chat
+  `image_url.url`, Responses `input_image.image_url`, Claude base64 image
+  `source.data`, and Gemini `inlineData.data` / `inline_data.data` with image MIME
+  types. This is transport recognition, not image decoding or secret detection
+  inside images. Neighboring text, structured authorization fields, remote URLs,
+  malformed encodings, and generic fields remain scanned. The standalone
+  `redactCredentials()` text helper has no media exemption.
+- Disabling `credentialRedactionEnabled` globally can temporarily unblock an
+  affected session, provided the environment flag is not forcing it on, but also
+  disables credential masking for unrelated requests and responses. It is not
+  the recommended permanent remedy; prefer the image-integrity fix and restore
+  protection after validating the corrected deployment.
 - `CREDENTIAL_PATTERNS` covers LLM provider keys (OpenAI, OpenAI-proj,
   Anthropic, Google, Hugging Face, Replicate), VCS/SaaS tokens (GitHub, Slack,
   Linear, Notion, npm, Postman, Discord), payment keys (Stripe, Square), cloud
@@ -683,7 +695,8 @@ to the upstream provider or back to the client.
 - The guardrail never blocks; it only rewrites (`modifiedPayload` /
   `modifiedResponse`) and annotates (`meta.credentialsRedacted`, `meta.count`).
 
-Regression guard: `tests/unit/credential-masker-guardrail.test.ts`.
+Regression guards: `tests/unit/credential-masker-guardrail.test.ts` and
+`tests/unit/credential-masker-image-integrity.test.ts`.
 
 ## Base Contract (`base.ts`)
 
