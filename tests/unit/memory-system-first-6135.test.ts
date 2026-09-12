@@ -109,6 +109,21 @@ describe("injectMemory system-must-be-first (#6135)", () => {
     );
   });
 
+  // #13425: a body carrying BOTH a leading system message and a top-level
+  // `system` field must receive memory exactly once. The leading system message
+  // wins; the top-level field is left untouched (no double injection).
+  it("injects only once when a leading system message and a top-level system field coexist", () => {
+    const req = { ...multiTurn(), system: "TOP LEVEL SYSTEM" } as ChatRequest & { system: string };
+    const out = injectMemory(req, [mem("dark mode")], "xiaomi-mimo", {
+      cacheSafe: true,
+    }) as ChatRequest & { system: string };
+    assert.equal(out.messages[0].role, "system");
+    assert.ok(out.messages[0].content.includes("Memory context"));
+    assert.ok(out.messages[0].content.includes("SYSTEM PROMPT"));
+    assert.equal(out.system, "TOP LEVEL SYSTEM");
+    assert.equal(out.messages.filter((m) => m.role === "system").length, 1);
+  });
+
   it("regression: a NON-flagged provider keeps the existing cache-safe placement", () => {
     const req = multiTurn();
     // #11290/#11303 added a Claude-family-specific reroute to injectSystemFirst()
