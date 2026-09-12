@@ -1,0 +1,1 @@
+- **fix(memory):** stop FTS5 rewrite on access-count updates; rebuild the index on cleanup so leftover tombstones shrink (#13326).

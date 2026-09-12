@@ -63,7 +63,7 @@ describe("migrationRunner/constants — exact small-table snapshots", () => {
 
   it("OPTIONAL_FTS5_MIGRATION_VERSIONS is exactly {022, 023}", () => {
     assert.ok(OPTIONAL_FTS5_MIGRATION_VERSIONS instanceof Set);
-    assert.deepEqual([...OPTIONAL_FTS5_MIGRATION_VERSIONS].sort(), ["022", "023"]);
+    assert.deepEqual([...OPTIONAL_FTS5_MIGRATION_VERSIONS].sort(), ["022", "023", "176"]);
   });
 });
 
