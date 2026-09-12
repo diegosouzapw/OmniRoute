@@ -1,0 +1,1 @@
+- fix(dashboard): surface a visible error when Compression Studio's combined preview run fails (#12061)

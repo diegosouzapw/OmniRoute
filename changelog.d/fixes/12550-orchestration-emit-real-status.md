@@ -1,0 +1,1 @@
+- **fix(orchestration):** `updateCloudAgentTask` now publishes the task's real `status` on `agent.task.updated` when an update only touches `result`, `activities` or `error`, instead of the fabricated `"updated"` state, and stays silent when no row matched the id (#12550 — thanks @pacocartones)

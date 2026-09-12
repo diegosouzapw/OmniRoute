@@ -1,0 +1,1 @@
+- **fix(api):** thread `X-OmniRoute-Fallback-Attempts` through combo chat completions so streaming and non-streaming responses report how many prior legs were attempted ([#13038](https://github.com/diegosouzapw/OmniRoute/pull/13038))

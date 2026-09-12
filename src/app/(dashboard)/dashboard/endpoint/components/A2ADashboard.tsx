@@ -201,6 +201,7 @@ export default function A2ADashboardPage() {
       const response = await fetch("/a2a", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({
           jsonrpc: "2.0",
           id: "dashboard-send",
@@ -234,6 +235,7 @@ export default function A2ADashboardPage() {
       const response = await fetch("/a2a", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({
           jsonrpc: "2.0",
           id: "dashboard-stream",

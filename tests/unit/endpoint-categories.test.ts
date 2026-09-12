@@ -104,6 +104,18 @@ test("resolveEndpointCategory: maps /v1/agents/tasks to 'agents'", () => {
   assert.equal(resolveEndpointCategory("/v1/agents/tasks"), "agents");
 });
 
+test("resolveEndpointCategory: maps /v1/speech-to-text to 'elevenlabs'", () => {
+  assert.equal(resolveEndpointCategory("/v1/speech-to-text"), "elevenlabs");
+});
+
+test("resolveEndpointCategory: maps /v1/text-to-speech/voice_123 to 'elevenlabs'", () => {
+  assert.equal(resolveEndpointCategory("/v1/text-to-speech/voice_123"), "elevenlabs");
+});
+
+test("resolveEndpointCategory: maps /v1/voices to 'elevenlabs'", () => {
+  assert.equal(resolveEndpointCategory("/v1/voices"), "elevenlabs");
+});
+
 test("resolveEndpointCategory: returns null for unknown path", () => {
   assert.equal(resolveEndpointCategory("/v1/unknown"), null);
 });

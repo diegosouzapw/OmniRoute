@@ -2,6 +2,7 @@
  * quota-weighted: skip empty accounts, weighted-draw the rest.
  * Spec: _tasks/superpowers/specs/2026-09-04-quota-weighted-routing-design.md
  */
+import { resolveProviderId } from "../../../src/shared/constants/providers.ts";
 import test, { after, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -14,16 +15,15 @@ const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const dbCore = await import("../../../src/lib/db/core.ts");
+const { invalidateDbCache } = await import("../../../src/lib/db/readCache.ts");
 const quotaCache = await import("../../../src/domain/quotaCache.ts");
 const { getResetAwareRemainingPercent, resolveResetAwareConfig, scoreResetAwareQuota } =
   await import("../../../open-sse/services/combo/quotaScoring.ts");
 const { registerQuotaFetcher } = await import("../../../open-sse/services/quotaPreflight.ts");
-const { convertUsageToQuotaInfo } = await import("../../../open-sse/services/genericQuotaFetcher.ts");
-const {
-  expandTargetsByQuotaAwareConnections,
-  orderTargetsByQuotaWeighted,
-  pickWeightedIndex,
-} = await import("../../../open-sse/services/combo/quotaStrategies.ts");
+const { convertUsageToQuotaInfo } =
+  await import("../../../open-sse/services/genericQuotaFetcher.ts");
+const { expandTargetsByQuotaAwareConnections, orderTargetsByQuotaWeighted, pickWeightedIndex } =
+  await import("../../../open-sse/services/combo/quotaStrategies.ts");
 const { getCircuitBreaker, resetAllCircuitBreakers } =
   await import("../../../src/shared/utils/circuitBreaker.ts");
 const { applyStrategyOrdering } =
@@ -44,9 +44,7 @@ const { HANDLED_COMBO_STRATEGIES } =
   await import("../../../open-sse/services/combo/strategyDispatch.ts");
 const { comboStrategySchema } = await import("../../../src/shared/validation/schemas.ts");
 const { _setSecureRandomFloatSource } = await import("../../../src/shared/utils/secureRandom.ts");
-const { getQuotaFetchScope } = await import(
-  "../../../open-sse/services/antigravityQuotaFamily.ts"
-);
+const { getQuotaFetchScope } = await import("../../../open-sse/services/antigravityQuotaFamily.ts");
 
 after(() => {
   dbCore.resetDbInstance();
@@ -66,12 +64,29 @@ afterEach(() => {
   __setStickinessQuotaCheckerForTests(null);
 });
 
-// Pinned once, not per call. Reset pressure is part of the quota score, so two peers
-// meant to tie were getting resetAt values a millisecond apart whenever the clock
-// ticked between their fetcher invocations. That epsilon broke the tie and flipped
-// their order in roughly one run out of five.
+// scoreQuotaWindow computes reset pressure as `resetAt - Date.now()`
+// (open-sse/services/combo/quotaScoring.ts:298), so a score is a function of the
+// wall clock at the instant it is taken. Two accounts with identical quota scored a
+// millisecond apart therefore do NOT tie, and sortByScoreThenIndex never reaches its
+// index fallback — the peers swap places. Freezing only the fixture's resetAt does not
+// help; the live half of the subtraction is the one that moves.
+//
+// withFrozenClock pins Date.now for the duration of one ordering call, which makes the
+// score a pure function of the quota again. Restores in a finally so the surrounding
+// tests keep the real clock.
 const CLOCK_BASE = Date.now();
 const iso = (ms = 86_400_000) => new Date(CLOCK_BASE + ms).toISOString();
+
+async function withFrozenClock<T>(fn: () => Promise<T>): Promise<T> {
+  const realNow = Date.now;
+  const frozen = realNow();
+  Date.now = () => frozen;
+  try {
+    return await fn();
+  } finally {
+    Date.now = realNow;
+  }
+}
 
 function quotaAt(percentUsed: number, extra: Record<string, unknown> = {}) {
   // Far-future resets keep reset-pressure near 0 so score tracks remaining.
@@ -88,7 +103,18 @@ function quotaAt(percentUsed: number, extra: Record<string, unknown> = {}) {
   };
 }
 
+function seedConnection(provider: string, connectionId: string) {
+  dbCore
+    .getDbInstance()
+    .prepare(
+      "INSERT OR IGNORE INTO provider_connections (id, provider, is_active, test_status, created_at, updated_at) VALUES (?, ?, 1, 'active', '2026-09-09T00:00:00Z', '2026-09-09T00:00:00Z')"
+    )
+    .run(connectionId, resolveProviderId(provider));
+  invalidateDbCache("connections");
+}
+
 function makeTarget(provider: string, connectionId: string, model = "gemini-3.8-flash-high") {
+  seedConnection(provider, connectionId);
   return {
     kind: "model" as const,
     stepId: `step-${connectionId}`,
@@ -133,7 +159,7 @@ test("getResetAwareRemainingPercent: missing windows fall back to overall percen
   assert.equal(getResetAwareRemainingPercent({ percentUsed: 0.7 }), 30);
 });
 
-test("dual: default expand drops 0.5% agy via 99% kick; skipExhaustionFilter keeps it", async () => {
+test("dual: default expansion and skipExhaustionFilter preserve positive quota", async () => {
   const provider = "agy";
   const low = `low-${randomUUID()}`;
   const healthy = `ok-${randomUUID()}`;
@@ -152,8 +178,8 @@ test("dual: default expand drops 0.5% agy via 99% kick; skipExhaustionFilter kee
   );
   assert.equal(
     dropped.expandedTargets.some((t) => t.connectionId === low),
-    false,
-    "0.5% remaining must be treated as exhausted by the 99% dashboard kick"
+    true,
+    "positive remaining quota must not trigger automatic exhaustion"
   );
   assert.equal(
     dropped.expandedTargets.some((t) => t.connectionId === healthy),
@@ -196,12 +222,14 @@ test("A/B isolation: 7 hard-empty + 2 at 0.5% + 1 at 40%, floor=1", async () => 
   const targets = ids.map((id) => makeTarget(provider, id));
 
   _setSecureRandomFloatSource(() => 0);
-  const ordered = await orderTargetsByQuotaWeighted(
-    targets,
-    "ab-iso",
-    { quotaWeightedFloorPercent: 1 },
-    { warn() {} },
-    null
+  const ordered = await withFrozenClock(() =>
+    orderTargetsByQuotaWeighted(
+      targets,
+      "ab-iso",
+      { quotaWeightedFloorPercent: 1 },
+      { warn() {} },
+      null
+    )
   );
 
   assert.equal(ordered[0]?.connectionId, healthy);
@@ -211,7 +239,10 @@ test("A/B isolation: 7 hard-empty + 2 at 0.5% + 1 at 40%, floor=1", async () => 
     low
   );
   for (const id of dead) {
-    assert.equal(ordered.some((t) => t.connectionId === id), false);
+    assert.equal(
+      ordered.some((t) => t.connectionId === id),
+      false
+    );
   }
 });
 
@@ -231,8 +262,16 @@ test("7 empty + 3 healthy → length 3, no hard-empty", async () => {
     null
   );
   assert.equal(ordered.length, 3);
-  for (const id of dead) assert.equal(ordered.some((t) => t.connectionId === id), false);
-  for (const id of ok) assert.equal(ordered.some((t) => t.connectionId === id), true);
+  for (const id of dead)
+    assert.equal(
+      ordered.some((t) => t.connectionId === id),
+      false
+    );
+  for (const id of ok)
+    assert.equal(
+      ordered.some((t) => t.connectionId === id),
+      true
+    );
 });
 
 test("pickWeightedIndex skips non-positive weights", () => {
@@ -283,21 +322,24 @@ test("tail is unused selected-pool by score desc then B", async () => {
   };
   registerQuotaFetcher(provider, async (id) => quotaAt(table[id]));
   const targets = [a30, a20, a10, b08, b04].map((id) => makeTarget(provider, id));
-  const cfg = resolveResetAwareConfig({});
-  const s20 = scoreResetAwareQuota(quotaAt(0.8), cfg).score;
-  const s30 = scoreResetAwareQuota(quotaAt(0.7), cfg).score;
-  const s10 = scoreResetAwareQuota(quotaAt(0.9), cfg).score;
-  assert.ok(s30 > s20 && s20 > s10);
-  const sumA = s30 + s20 + s10;
-  const float = (s30 + s20 / 2) / sumA;
-  _setSecureRandomFloatSource(() => float);
-  const ordered = await orderTargetsByQuotaWeighted(
-    targets,
-    "tail",
-    { quotaWeightedFloorPercent: 1 },
-    { warn() {} },
-    null
-  );
+  // Same frozen clock for the boundary and for the draw it steers.
+  const ordered = await withFrozenClock(async () => {
+    const cfg = resolveResetAwareConfig({});
+    const s20 = scoreResetAwareQuota(quotaAt(0.8), cfg).score;
+    const s30 = scoreResetAwareQuota(quotaAt(0.7), cfg).score;
+    const s10 = scoreResetAwareQuota(quotaAt(0.9), cfg).score;
+    assert.ok(s30 > s20 && s20 > s10);
+    const sumA = s30 + s20 + s10;
+    const float = (s30 + s20 / 2) / sumA;
+    _setSecureRandomFloatSource(() => float);
+    return orderTargetsByQuotaWeighted(
+      targets,
+      "tail",
+      { quotaWeightedFloorPercent: 1 },
+      { warn() {} },
+      null
+    );
+  });
   assert.deepEqual(
     ordered.map((t) => t.connectionId),
     [a20, a30, a10, b08, b04]
@@ -323,19 +365,24 @@ test("floor=0 puts 0.5% in the main pool", async () => {
     true
   );
   _clearInflightForTest();
-  const cfg = resolveResetAwareConfig({});
-  const sOk = scoreResetAwareQuota(quotaAt(0.6), cfg).score;
-  const sLow = scoreResetAwareQuota(quotaAt(0.995), cfg).score;
-  // Pool keeps expand order, not score order. r = sOk is the half-open
-  // boundary after the healthy slot, so the leftover 0.5% account leads.
-  _setSecureRandomFloatSource(() => sOk / (sOk + sLow));
-  const lowFirst = await orderTargetsByQuotaWeighted(
-    [makeTarget(provider, ok), makeTarget(provider, low)],
-    "f0-first",
-    { quotaWeightedFloorPercent: 0 },
-    { warn() {} },
-    null
-  );
+  // The boundary is derived from scores taken here and then handed to an ordering call
+  // that scores again. Both halves must see the same clock or the half-open boundary
+  // lands on the wrong side of the draw.
+  const lowFirst = await withFrozenClock(async () => {
+    const cfg = resolveResetAwareConfig({});
+    const sOk = scoreResetAwareQuota(quotaAt(0.6), cfg).score;
+    const sLow = scoreResetAwareQuota(quotaAt(0.995), cfg).score;
+    // Pool keeps expand order, not score order. r = sOk is the half-open
+    // boundary after the healthy slot, so the leftover 0.5% account leads.
+    _setSecureRandomFloatSource(() => sOk / (sOk + sLow));
+    return orderTargetsByQuotaWeighted(
+      [makeTarget(provider, ok), makeTarget(provider, low)],
+      "f0-first",
+      { quotaWeightedFloorPercent: 0 },
+      { warn() {} },
+      null
+    );
+  });
   assert.equal(lowFirst[0]?.connectionId, low);
 });
 
@@ -580,6 +627,7 @@ test("applyStrategyOrdering(quota-weighted) uses the orderer", async () => {
 const pipelineLog = { info() {}, warn() {}, error() {}, debug() {} };
 
 function pinComboModels(provider, model, connectionIds) {
+  connectionIds.forEach((id) => seedConnection(provider, id));
   return connectionIds.map((connectionId, index) => ({
     kind: "model",
     provider,
@@ -857,8 +905,16 @@ test("three hard-empty of ten never win the first draw", async () => {
   );
   assert.equal(ordered.length, 7);
   assert.equal(dead.includes(ordered[0]?.connectionId ?? ""), false);
-  for (const id of dead) assert.equal(ordered.some((t) => t.connectionId === id), false);
-  for (const id of ok) assert.equal(ordered.some((t) => t.connectionId === id), true);
+  for (const id of dead)
+    assert.equal(
+      ordered.some((t) => t.connectionId === id),
+      false
+    );
+  for (const id of ok)
+    assert.equal(
+      ordered.some((t) => t.connectionId === id),
+      true
+    );
 });
 
 test("quota-weighted Gemini keeps the account when only Claude weekly is empty", async () => {
@@ -914,20 +970,37 @@ test("orderer half-open boundary: 0.66 stays on A1, 0.67 flips to A2", async () 
   const a1 = `a1-${randomUUID()}`;
   const a2 = `a2-${randomUUID()}`;
   registerQuotaFetcher(provider, async (id) => (id === a1 ? quotaAt(0.2) : quotaAt(0.6)));
-  const cfg = resolveResetAwareConfig({});
-  const s1 = scoreResetAwareQuota(quotaAt(0.2), cfg).score;
-  const s2 = scoreResetAwareQuota(quotaAt(0.6), cfg).score;
-  assert.ok(s1 > s2);
-  const sum = s1 + s2;
   const targets = [makeTarget(provider, a1), makeTarget(provider, a2)];
+  // A half-open boundary compared against scores taken at a different instant is a
+  // coin flip; both sides need the same frozen clock.
+  const { stay, flip } = await withFrozenClock(async () => {
+    const cfg = resolveResetAwareConfig({});
+    const s1 = scoreResetAwareQuota(quotaAt(0.2), cfg).score;
+    const s2 = scoreResetAwareQuota(quotaAt(0.6), cfg).score;
+    assert.ok(s1 > s2);
+    const sum = s1 + s2;
 
-  _setSecureRandomFloatSource(() => (s1 - 0.01) / sum);
-  const stay = await orderTargetsByQuotaWeighted(targets, "bound-stay", {}, { warn() {} }, null);
+    _setSecureRandomFloatSource(() => (s1 - 0.01) / sum);
+    const stayResult = await orderTargetsByQuotaWeighted(
+      targets,
+      "bound-stay",
+      {},
+      { warn() {} },
+      null
+    );
+
+    _clearInflightForTest();
+    _setSecureRandomFloatSource(() => s1 / sum);
+    const flipResult = await orderTargetsByQuotaWeighted(
+      targets,
+      "bound-flip",
+      {},
+      { warn() {} },
+      null
+    );
+    return { stay: stayResult, flip: flipResult };
+  });
   assert.equal(stay[0]?.connectionId, a1);
-
-  _clearInflightForTest();
-  _setSecureRandomFloatSource(() => s1 / sum);
-  const flip = await orderTargetsByQuotaWeighted(targets, "bound-flip", {}, { warn() {} }, null);
   assert.equal(flip[0]?.connectionId, a2);
 });
 
@@ -1059,7 +1132,11 @@ test("quota-share sticky pin transfers the inflight slot to the pinned account",
   if ("earlyResponse" in result) return;
   assert.equal(result.sticky.stuck, true);
   assert.equal(result.orderedTargets[0]?.connectionId, pinned);
-  assert.equal(getInflight(drawn), 0, "drawn account must drop the slot after stickiness moves [0]");
+  assert.equal(
+    getInflight(drawn),
+    0,
+    "drawn account must drop the slot after stickiness moves [0]"
+  );
   assert.equal(getInflight(pinned), 1, "pinned account must hold the transferred slot");
   result.quotaShareRelease?.();
   assert.equal(getInflight(pinned), 0);

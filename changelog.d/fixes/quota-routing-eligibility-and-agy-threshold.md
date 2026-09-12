@@ -1,0 +1,1 @@
+- **fix(combo):** quota-aware expansion drops banned, inactive, missing, and wrong-provider connections before quota fetch or model dispatch; pins and allowlists stay selectors, not a bypass. Antigravity automatic exhaustion now requires a reported zero remaining, so a positive balance below 1% stays eligible.

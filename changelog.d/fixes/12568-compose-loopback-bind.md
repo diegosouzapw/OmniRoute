@@ -1,0 +1,1 @@
+- fix(docker): default docker-compose app ports (dashboard/API/live-WS) to loopback instead of `0.0.0.0`, closing the anonymous `/v1` LAN/WAN exposure gap left open by `REQUIRE_API_KEY=false` (#12568)

@@ -33,7 +33,12 @@ import {
   waitForCooldownAwareRetry,
 } from "../../../src/sse/services/cooldownAwareRetry.ts";
 import { toRetryAfterDisplayValue } from "./validateQuality.ts";
-import { finalizeComboTrace, finishComboTrace } from "./decisionTrace.ts";
+import {
+  finalizeComboTrace,
+  finishComboTrace,
+  getComboTrace,
+  summarizeSkippedTargets,
+} from "./decisionTrace.ts";
 import { isRetryAfterEligibleStatus } from "./unavailableRetryGate.ts";
 import { withQuotaExhaustionClassification } from "./quotaExhaustion.ts";
 import {
@@ -133,6 +138,16 @@ export async function dispatchWithCooldownRetry(opts: {
         attemptOrder: state.comboAttemptOrder,
         terminalReason,
         recovery: buildRecoveryHint(terminalReason, retryAfterSeconds),
+        // #12659: surface per-target skip reasons (e.g. persisted_cooldown)
+        // that `excluded` above never captures — only worth the trace lookup
+        // on the diagnostic-heavy terminal reason.
+        skippedTargets:
+          terminalReason === "all_targets_skipped"
+            ? summarizeSkippedTargets(getComboTrace(deps.traceInvocationId)).map((g) => ({
+                reason: g.reason,
+                targets: g.targets,
+              }))
+            : undefined,
       });
 
       let globalResolve: ((res: Response) => void) | null = null;

@@ -1,0 +1,1 @@
+- **docs(reference):** bring the `FEATURE_FLAGS.md` catalog back to 1:1 with `featureFlagDefinitions.ts` — 20 missing flags added, the two `*_BLOCK_THRESHOLD` env-only knobs moved out of the flag tables, category/total counts and the Live WS port corrected, guarded by a static test (#12552 — thanks @pacocartones)

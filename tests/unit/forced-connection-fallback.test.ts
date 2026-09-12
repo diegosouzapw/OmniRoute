@@ -112,6 +112,10 @@ test("BUG CASE: forced connection deactivated (missing from active pool) is dete
   );
 });
 
+test("recoverable inactive pin is not missing-from-pool once in connections", () => {
+  assert.equal(isForcedConnectionMissingFromPool("c1", new Set(), [{ id: "c1" }]), false);
+});
+
 test("EXISTING BEHAVIOR: forced connection already excluded after a failed attempt is NOT missing-from-pool", () => {
   // The account is still present in the (active) pool — it 429'd and the retry loop
   // added it to excludedConnectionIds. This must keep going through

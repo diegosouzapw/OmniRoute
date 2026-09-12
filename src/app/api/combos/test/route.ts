@@ -5,10 +5,14 @@ import { getComboByName, getCombos } from "@/lib/db/combos";
 import { pickApiKeyForInternalUse } from "@/lib/db/apiKeys";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
+import type { ResolvedComboTarget } from "@omniroute/open-sse/services/combo/types.ts";
 import { testComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+
+export const COMBO_TEST_TIMEOUT_MS = 60_000;
+export const COMBO_TEST_TOTAL_TIMEOUT_MS = 180_000;
 
 async function getInternalApiKey(): Promise<string | null> {
   // Combo health-check probes hit /v1/chat/completions, which enforces
@@ -17,7 +21,24 @@ async function getInternalApiKey(): Promise<string | null> {
   return pickApiKeyForInternalUse("combo-health-check");
 }
 
-function buildComboTestResult(target, partial = {}) {
+type ComboTestResult = {
+  model: string;
+  provider: string;
+  stepId: string;
+  executionKey: string;
+  connectionId: string | null;
+  label: string | null;
+  status?: string;
+  error?: string;
+  statusCode?: number;
+  latencyMs?: number;
+  responseText?: string;
+};
+
+function buildComboTestResult(
+  target: ResolvedComboTarget,
+  partial: Partial<ComboTestResult> = {}
+): ComboTestResult {
   return {
     model: target.modelStr,
     provider: target.provider,
@@ -29,7 +50,11 @@ function buildComboTestResult(target, partial = {}) {
   };
 }
 
-async function testComboTarget(target, baseInternalUrl, internalApiKey: string | null) {
+async function testComboTarget(
+  target: ResolvedComboTarget,
+  baseInternalUrl: string,
+  internalApiKey: string | null
+) {
   const startTime = Date.now();
   try {
     // Issue #2359: combo entries with a malformed/missing modelStr surfaced
@@ -53,7 +78,7 @@ async function testComboTarget(target, baseInternalUrl, internalApiKey: string |
     const testBody = buildComboTestRequestBody(modelStr, isEmbedding);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000);
+    const timeout = setTimeout(() => controller.abort(), COMBO_TEST_TIMEOUT_MS);
 
     let res;
     try {
@@ -117,7 +142,10 @@ async function testComboTarget(target, baseInternalUrl, internalApiKey: string |
     const latencyMs = Date.now() - startTime;
     return buildComboTestResult(target, {
       status: "error",
-      error: error.name === "AbortError" ? "Timeout (20s)" : sanitizeErrorMessage(error.message),
+      error:
+        error.name === "AbortError"
+          ? `Timeout (${COMBO_TEST_TIMEOUT_MS / 1000}s)`
+          : sanitizeErrorMessage(error.message),
       latencyMs,
     });
   }
@@ -168,9 +196,21 @@ export async function POST(request) {
 
     const baseInternalUrl = getInternalBaseUrl();
     const internalApiKey = await getInternalApiKey();
-    const results = await Promise.all(
-      targets.map((target) => testComboTarget(target, baseInternalUrl, internalApiKey))
-    );
+    const results: ComboTestResult[] = [];
+    const loopStarted = Date.now();
+    for (const target of targets) {
+      if (Date.now() - loopStarted >= COMBO_TEST_TOTAL_TIMEOUT_MS) {
+        results.push(
+          buildComboTestResult(target, {
+            status: "error",
+            error: `Timeout (${COMBO_TEST_TOTAL_TIMEOUT_MS / 1000}s total)`,
+            latencyMs: 0,
+          })
+        );
+        continue;
+      }
+      results.push(await testComboTarget(target, baseInternalUrl, internalApiKey));
+    }
     const resolvedResult = results.find((result) => result.status === "ok") || null;
     const resolvedBy = resolvedResult?.model || null;
 

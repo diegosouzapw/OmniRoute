@@ -1824,6 +1824,9 @@
     "recentRequestsModel": "Modelis",
     "recentRequestsTokens": "Iekšā / Ārā",
     "recentRequestsWhen": "Kad",
+    "topologyLegendActive": "Aktīvs",
+    "topologyLegendRecent": "Nesenie",
+    "topologyLegendError": "Kļūda",
     "downloadDmg": "Lejupielādēt DMG (macOS)",
     "downloadDmgDescription": "Ir pieejama jauna OmniRoute galddatora lietotnes versija. Lūdzu, lejupielādējiet un instalējiet macOS DMG instalatoru, lai atjauninātu (pašreizējā: v{version}).",
     "downloadExe": "Lejupielādēt EXE (Windows)",
@@ -8642,7 +8645,9 @@
     "languagePacksList": "Valodas pakas: {packs}",
     "dragToReorder": "Velciet, lai pārkārtotu soli",
     "engine": "Dzinējs",
-    "intensity": "Intensitāte"
+    "intensity": "Intensitāte",
+    "activeProfileMasterSwitchOffWarning": "__MISSING__:The active profile below will not run until the master \"Prompt Compression\" switch is turned on.",
+    "activeProfileMasterSwitchOffCta": "__MISSING__:Turn it on in Settings"
   },
   "compressionStudio": {
     "noRun": "Nav pieejama saspiešanas izpilde.",
@@ -8671,6 +8676,7 @@
     "run": "Izpildīt",
     "laneRejected": "noraidīts: {reason}",
     "error": "kļūda",
+    "combinedError": "__MISSING__:Combined pipeline preview failed: {reason}",
     "combinedFlow": "Apvienotā plūsma",
     "eachLayer": "Katrs slānis atsevišķi",
     "diff": "Atšķirība",
@@ -14004,7 +14010,18 @@
     "actionDone": "Darbība izpildīta",
     "actionFailed": "Darbība neizdevās: {error}",
     "detailFailed": "Neizdevās ielādēt detalizētu informāciju: {error}",
-    "mirroredInA2A": "Atspoguļots A2A"
+    "mirroredInA2A": "Atspoguļots A2A",
+    "compareMode": "Salīdzināt izpildes",
+    "compareExit": "Iziet no salīdzināšanas režīma",
+    "compareHint": "Atlasiet divas izpildes salīdzināšanai",
+    "compareTitle": "Salīdzinājums",
+    "compareDetailFailed": "Neizdevās ielādēt šīs izpildes informāciju",
+    "compareDifferentIdentity": "Dažādi avoti vai prasmes — atšķirības ir informatīvas",
+    "compareDuration": "Ilgums",
+    "compareCost": "Izmaksas",
+    "compareEvents": "Notikumi",
+    "compareDeltaLegend": "Δ labā − kreisā",
+    "noMatches": "Neviena izpilde neatbilst šiem filtriem"
   },
   "cliproxyProviderExposure": {
     "title": "Pakalpojumu sniedzēju eksponēšana",

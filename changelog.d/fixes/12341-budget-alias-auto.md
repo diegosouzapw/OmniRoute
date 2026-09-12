@@ -1,0 +1,1 @@
+- fix(usage): fail closed on API-key budget enforcement when a provider's `auto` routing alias has no pricing row, instead of silently counting it as $0 (#12341)

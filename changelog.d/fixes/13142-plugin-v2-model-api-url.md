@@ -1,0 +1,1 @@
+- **fix(opencode):** both OpenCode plugins now reject a gateway address typed without `http://` at configuration time, instead of publishing every model with an api url no client can call, and the v2 plugin no longer publishes a model card whose api url is blank or relative ([#13142](https://github.com/diegosouzapw/OmniRoute/pull/13142)) — thanks @maxmad64bis

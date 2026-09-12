@@ -1,0 +1,1 @@
+- fix(providers): route opencode-go/gpt-5.6-luna to /responses instead of /chat/completions (#12196)

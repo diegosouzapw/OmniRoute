@@ -115,8 +115,12 @@ export function assertLocalAcpUrl(url: string): void {
   }
 }
 
-function isIsolatedHome(value: string): boolean {
-  return value === "/home/bridge" || value.includes("/.sandbox/");
+// Accepts `/home/bridge` or any path with a `.sandbox` directory segment. Windows hosts
+// hand in backslash paths (`C:\Users\...\.sandbox\home`), which used to fail closed
+// unconditionally because the separator never matched (#12405).
+export function isIsolatedDevinHome(value: string): boolean {
+  const normalized = value.replace(/\\/g, "/");
+  return normalized === "/home/bridge" || normalized.includes("/.sandbox/");
 }
 
 export function buildDevinChildEnv(
@@ -124,7 +128,7 @@ export function buildDevinChildEnv(
   source: NodeJS.ProcessEnv = process.env
 ): NodeJS.ProcessEnv {
   const home = source.DEVIN_AGENTIC_HOME?.trim() || "";
-  if (!home || !path.isAbsolute(home) || !isIsolatedHome(home)) {
+  if (!home || !path.isAbsolute(home) || !isIsolatedDevinHome(home)) {
     throw new DevinAgenticBridgeError(
       "DEVIN_AGENTIC_HOME must be an absolute path inside the bridge sandbox",
       "unsafe_devin_home",

@@ -1,0 +1,1 @@
+- **fix(i18n):** the home "Recent Requests" panel and the Provider Topology legend are now translated instead of rendering English copies on non-English dashboards; the legend reads its own `home.topologyLegend*` labels with consistent casing rather than borrowing the memory-settings "Recent" and analytics "Error" strings (#12551 — thanks @pacocartones).

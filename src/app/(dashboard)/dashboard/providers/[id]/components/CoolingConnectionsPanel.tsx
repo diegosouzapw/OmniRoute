@@ -56,6 +56,19 @@ function isCoolingNow(connection: ConnectionRowConnection, now: number): boolean
   return Number.isFinite(until) && until > now;
 }
 
+/** Visible last-error text (truncated) plus the full string for the tooltip. */
+function coolingRecordedError(connection: ConnectionRowConnection): {
+  display: string;
+  title: string;
+} | null {
+  const raw = typeof connection.lastError === "string" ? connection.lastError.trim() : "";
+  if (!raw) return null;
+  return {
+    display: raw.length > 160 ? `${raw.slice(0, 157)}...` : raw,
+    title: raw,
+  };
+}
+
 interface ClearCooldownButtonProps {
   /** Row's connection id — without one there is nothing to PUT, so no button. */
   readonly connectionId: string | undefined;
@@ -126,7 +139,7 @@ export default function CoolingConnectionsPanel(props: CoolingConnectionsPanelPr
         {providerText(
           t,
           "coolingConnectionsDescription",
-          "These connections returned a 429 (rate-limit) on their last request. OmniRoute will skip them until the timer expires — no manual disable required."
+          "These connections are cooling after their last request. OmniRoute will skip them until the timer expires — no manual disable required."
         )}
       </p>
       <ul className="space-y-1">
@@ -139,13 +152,25 @@ export default function CoolingConnectionsPanel(props: CoolingConnectionsPanelPr
             (c.id
               ? `${providerText(t, "connectionFallback", "connection")} ${c.id.slice(0, 8)}`
               : providerText(t, "connectionFallback", "connection"));
+          const recorded = coolingRecordedError(c);
           const clearing = clearingCooldownId != null && clearingCooldownId === c.id;
           return (
             <li
               key={c.id ?? label}
               className="flex items-center justify-between gap-2 rounded border border-amber-500/30 bg-background/40 px-3 py-2 text-sm"
             >
-              <span className="font-medium">{label}</span>
+              <span className="min-w-0">
+                <span className="font-medium">{label}</span>
+                {recorded ? (
+                  <span
+                    className="mt-0.5 block truncate text-xs text-muted-foreground"
+                    data-testid="cooling-last-error"
+                    title={recorded.title}
+                  >
+                    {recorded.display}
+                  </span>
+                ) : null}
+              </span>
               <span className="flex items-center gap-2">
                 <span
                   className="font-mono text-xs text-amber-700 dark:text-amber-300"

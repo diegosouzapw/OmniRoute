@@ -4,6 +4,25 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+type ComboTestResult = {
+  label?: string;
+  status?: string;
+  statusCode?: number;
+  responseText?: string;
+  error?: string;
+  connectionId?: string | null;
+  executionKey?: string | null;
+};
+type ComboTestBody = {
+  model?: string;
+  resolvedBy?: string | null;
+  resolvedByExecutionKey?: string | null;
+  resolvedByTarget?: { connectionId?: string | null } | null;
+  results: ComboTestResult[];
+};
+type ErrorMessageBody = { error: { message: string } };
+type ErrorStringBody = { error: string };
+
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-test-route-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "combo-test-route-secret";
@@ -82,12 +101,12 @@ test("combo test route validates request payloads and combo existence", async ()
       body: JSON.stringify({ comboName: "" }),
     })
   );
-  const invalidBody = (await invalidBodyResponse.json()) as any;
+  const invalidBody = (await invalidBodyResponse.json()) as ErrorMessageBody;
   assert.equal(invalidBodyResponse.status, 400);
   assert.equal(invalidBody.error.message, "Invalid request");
 
   const missingResponse = await route.POST(makeRequest("missing-combo"));
-  const missingBody = (await missingResponse.json()) as any;
+  const missingBody = (await missingResponse.json()) as ErrorStringBody;
   assert.equal(missingResponse.status, 404);
   assert.equal(missingBody.error, "Combo not found");
 });
@@ -96,8 +115,6 @@ test("combo test route marks a model healthy only when it returns assistant text
   await createTestCombo();
 
   const fetchCalls = [];
-  const originalRandom = Math.random;
-  let callCount = 0;
   globalThis.fetch = async (url, init = {}) => {
     fetchCalls.push({ url: String(url), init });
     return new Response(
@@ -118,17 +135,8 @@ test("combo test route marks a model healthy only when it returns assistant text
     );
   };
 
-  let response;
-  try {
-    Math.random = () => {
-      callCount += 1;
-      return callCount === 1 ? 0.4680222223 : 0.2677;
-    };
-    response = await route.POST(makeRequest());
-  } finally {
-    Math.random = originalRandom;
-  }
-  const body = (await response.json()) as any;
+  const response = await route.POST(makeRequest());
+  const body = (await response.json()) as ComboTestBody;
   const forwardedBody = JSON.parse(fetchCalls[0].init.body);
 
   assert.equal(response.status, 200);
@@ -138,11 +146,8 @@ test("combo test route marks a model healthy only when it returns assistant text
   assert.equal(fetchCalls[0].init.headers["X-OmniRoute-No-Cache"], "true");
   assert.match(fetchCalls[0].init.headers["X-Request-Id"], /^combo-test-/);
   assert.equal(forwardedBody.model, "openrouter/openai/gpt-5.4");
-  assert.equal(
-    forwardedBody.messages[0].content,
-    "Calculate 52122+34093, and reply with the result only."
-  );
-  assert.equal(forwardedBody.max_tokens, 2048);
+  assert.equal(forwardedBody.messages[0].content, "Reply with exactly: pong");
+  assert.equal(forwardedBody.max_tokens, 64);
   assert.equal("temperature" in forwardedBody, false);
   assert.equal(body.resolvedBy, "openrouter/openai/gpt-5.4");
   assert.equal(body.results[0].status, "ok");
@@ -171,7 +176,7 @@ test("combo test route treats empty successful responses as failures", async () 
     );
 
   const response = await route.POST(makeRequest());
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as ComboTestBody;
 
   assert.equal(response.status, 200);
   assert.equal(body.resolvedBy, null);
@@ -211,7 +216,7 @@ test("combo test route accepts reasoning-only completions as healthy smoke-test 
     );
 
   const response = await route.POST(makeRequest());
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as ComboTestBody;
 
   assert.equal(response.status, 200);
   assert.equal(body.resolvedBy, "openrouter/openai/gpt-5.4");
@@ -236,7 +241,7 @@ test("combo test route surfaces provider errors instead of downgrading them to r
     );
 
   const response = await route.POST(makeRequest());
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as ComboTestBody;
 
   assert.equal(response.status, 200);
   assert.equal(body.resolvedBy, null);
@@ -246,55 +251,38 @@ test("combo test route surfaces provider errors instead of downgrading them to r
   assert.equal("probeMethod" in body.results[0], false);
 });
 
-test("combo test route launches model probes concurrently while preserving combo order", async () => {
+test("combo test route probes combo steps sequentially while preserving combo order", async () => {
   await createTestCombo(["provider/first", "provider/second", "provider/third"]);
 
   const fetchCalls = [];
-  const resolvers = [];
-  globalThis.fetch = (url, init = {}) =>
-    new Promise((resolve) => {
-      fetchCalls.push({ url: String(url), init });
-      resolvers.push(resolve);
-    });
-
-  const responsePromise = route.POST(makeRequest());
-  await new Promise((resolve) => setTimeout(resolve, 0));
-
-  assert.equal(fetchCalls.length, 3);
-  assert.deepEqual(
-    fetchCalls.map(({ init }) => JSON.parse(init.body).model),
-    ["provider/first", "provider/second", "provider/third"]
-  );
-
-  resolvers[2](
-    new Response(
+  let inFlight = 0;
+  let maxInFlight = 0;
+  globalThis.fetch = async (url, init: RequestInit = {}) => {
+    inFlight += 1;
+    maxInFlight = Math.max(maxInFlight, inFlight);
+    fetchCalls.push({ url: String(url), init });
+    const model = JSON.parse(String(init.body)).model as string;
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    inFlight -= 1;
+    const text = model.split("/")[1].toUpperCase();
+    return new Response(
       JSON.stringify({
-        choices: [{ message: { role: "assistant", content: "THIRD" } }],
+        choices: [{ message: { role: "assistant", content: text } }],
       }),
       { status: 200, headers: { "content-type": "application/json" } }
-    )
-  );
-  resolvers[1](
-    new Response(
-      JSON.stringify({
-        choices: [{ message: { role: "assistant", content: "SECOND" } }],
-      }),
-      { status: 200, headers: { "content-type": "application/json" } }
-    )
-  );
-  resolvers[0](
-    new Response(
-      JSON.stringify({
-        choices: [{ message: { role: "assistant", content: "FIRST" } }],
-      }),
-      { status: 200, headers: { "content-type": "application/json" } }
-    )
-  );
+    );
+  };
 
-  const response = await responsePromise;
-  const body = (await response.json()) as any;
+  const response = await route.POST(makeRequest());
+  const body = (await response.json()) as ComboTestBody;
 
   assert.equal(response.status, 200);
+  assert.equal(maxInFlight, 1);
+  assert.equal(fetchCalls.length, 3);
+  assert.deepEqual(
+    fetchCalls.map(({ init }) => JSON.parse(String(init.body)).model),
+    ["provider/first", "provider/second", "provider/third"]
+  );
   assert.equal(body.resolvedBy, "provider/first");
   assert.deepEqual(
     body.results.map((result) => ({
@@ -351,7 +339,7 @@ test("combo test route preserves structured step metadata for repeated model/acc
   };
 
   const response = await route.POST(makeRequest());
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as ComboTestBody;
 
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 2);
@@ -374,7 +362,7 @@ test("combo test route rejects empty combos and ignores forwarded origins for in
   await createTestCombo([]);
 
   const emptyResponse = await route.POST(makeRequest());
-  const emptyBody = (await emptyResponse.json()) as any;
+  const emptyBody = (await emptyResponse.json()) as ErrorStringBody;
   assert.equal(emptyResponse.status, 400);
   assert.equal(emptyBody.error, "Combo has no models");
 
@@ -434,7 +422,7 @@ test("combo test route handles upstream timeouts and non-JSON error bodies", asy
   };
 
   const response = await route.POST(makeRequest());
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as ComboTestBody;
 
   assert.equal(response.status, 200);
   assert.equal(body.resolvedBy, null);
@@ -449,7 +437,7 @@ test("combo test route handles upstream timeouts and non-JSON error bodies", asy
       {
         model: "provider/timeout",
         status: "error",
-        error: "Timeout (20s)",
+        error: "Timeout (60s)",
         statusCode: null,
       },
       {
@@ -460,4 +448,35 @@ test("combo test route handles upstream timeouts and non-JSON error bodies", asy
       },
     ]
   );
+});
+
+test("combo test route stops probing once the total budget is spent", async () => {
+  await createTestCombo(["provider/first", "provider/second", "provider/third"]);
+
+  const probed: string[] = [];
+  const realNow = Date.now;
+  let clock = realNow();
+  Date.now = () => clock;
+
+  globalThis.fetch = async (_url, init: RequestInit = {}) => {
+    probed.push(JSON.parse(String(init.body)).model);
+    clock += route.COMBO_TEST_TOTAL_TIMEOUT_MS;
+    return new Response(JSON.stringify({ error: { message: "boom" } }), {
+      status: 502,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  try {
+    const response = await route.POST(makeRequest());
+    const body = (await response.json()) as ComboTestBody;
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(probed, ["provider/first"]);
+    assert.equal(body.results.length, 3);
+    assert.equal(body.results[1].error, "Timeout (180s total)");
+    assert.equal(body.results[2].error, "Timeout (180s total)");
+  } finally {
+    Date.now = realNow;
+  }
 });

@@ -21,6 +21,7 @@ const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
 const { skillExecutor } = await import("../../src/lib/skills/executor.ts");
 const { encodeSkillToolName } = await import("../../src/lib/skills/injection.ts");
 const { handleChat } = await import("../../src/sse/handlers/chat.ts");
+const providerNodeRoute = await import("../../src/app/api/provider-nodes/[id]/route.ts");
 const { initTranslators } = await import("../../open-sse/translator/index.ts");
 const { clearInflight } = await import("../../open-sse/services/requestDedup.ts");
 const { setCliCompatProviders } = await import("../../open-sse/config/cliFingerprints.ts");
@@ -548,6 +549,93 @@ test("chat pipeline handles OpenAI passthrough with valid API key auth", async (
   assert.equal(fetchCalls[0].headers.Authorization, "Bearer sk-openai-primary");
   assert.equal(fetchCalls[0].body.messages[0].content, "Hello OpenAI");
   assert.equal(json.choices[0].message.content, "OpenAI passthrough");
+});
+
+test("#11884 chat pipeline sends a custom node's edited Chat API type upstream", async () => {
+  // Mirror POST /api/provider-nodes: the generated node id embeds the API type chosen at
+  // creation time, so a node created as Responses keeps "responses" in its id forever.
+  const providerId = "openai-compatible-responses-11884";
+  const prefix = "edited-node-11884";
+  const baseUrl = "https://edited-node-11884.example.invalid/v1";
+  const nodeName = "Edited node 11884";
+  await providersDb.createProviderNode({
+    id: providerId,
+    type: "openai-compatible",
+    name: nodeName,
+    prefix,
+    apiType: "responses",
+    baseUrl,
+  });
+  await seedConnection(providerId, {
+    apiKey: "sk-edited-node-11884",
+    providerSpecificData: { baseUrl, apiType: "responses" },
+  });
+
+  // The operator edits the node from Responses to Chat through the real route, which also
+  // rewrites the connection's saved apiType.
+  const editResponse = await providerNodeRoute.PUT(
+    new Request(`http://localhost/api/provider-nodes/${providerId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: nodeName, prefix, apiType: "chat", baseUrl }),
+    }),
+    { params: Promise.resolve({ id: providerId }) }
+  );
+  assert.equal(editResponse.status, 200);
+  const [connection] = (await providersDb.getProviderConnections({
+    provider: providerId,
+  })) as Array<{
+    providerSpecificData?: { apiType?: unknown };
+  }>;
+  assert.equal(connection?.providerSpecificData?.apiType, "chat");
+
+  const apiKey = await seedApiKey();
+  const fetchCalls: FetchCall[] = [];
+  globalThis.fetch = async (url, init: RequestInit = {}) => {
+    const call: FetchCall = {
+      url: String(url),
+      method: init.method || "GET",
+      headers: toPlainHeaders(init.headers),
+      body: init.body ? JSON.parse(String(init.body)) : null,
+    };
+    fetchCalls.push(call);
+    if (!call.url.startsWith(baseUrl)) {
+      throw new Error(`unexpected upstream call: ${call.method} ${call.url}`);
+    }
+    return buildOpenAIResponse("Edited node reply", "edited-model");
+  };
+
+  const response = await handleChat(
+    buildRequest({
+      authKey: apiKey.key,
+      body: {
+        model: `${prefix}/edited-model`,
+        stream: false,
+        messages: [{ role: "user", content: "Hello edited node" }],
+      },
+    })
+  );
+
+  const json = (await response.json()) as { choices: Array<{ message: { content: string } }> };
+  assert.ok(fetchCalls.length >= 1, "expected an upstream request");
+  const upstream = fetchCalls[0];
+  assert.equal(upstream.method, "POST");
+  assert.equal(upstream.url, `${baseUrl}/chat/completions`);
+  assert.equal(upstream.headers.Authorization, "Bearer sk-edited-node-11884");
+  assert.deepEqual(
+    upstream.body.messages,
+    [{ role: "user", content: "Hello edited node" }],
+    "the saved Chat API type must produce a Chat Completions body"
+  );
+  assert.equal(
+    upstream.body.input,
+    undefined,
+    "the stale Responses API type from the node id must not shape the upstream body"
+  );
+  assert.equal(upstream.body.model, "edited-model");
+  assert.equal(fetchCalls.length, 1, "exactly one upstream request");
+  assert.equal(response.status, 200);
+  assert.equal(json.choices[0].message.content, "Edited node reply");
 });
 
 test("chat pipeline persists Codex responses cache and reasoning tokens to call logs", async () => {

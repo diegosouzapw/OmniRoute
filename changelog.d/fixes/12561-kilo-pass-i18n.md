@@ -1,0 +1,1 @@
+- **fix(i18n):** backfill missing `usage.kiloPass*` strings in 39 locales and restore `featureFlagOmnirouteDisableThinkingLevelVariantsDescription` in `pt.json` ([#12561](https://github.com/diegosouzapw/OmniRoute/issues/12561)) — thanks @HouMinXi

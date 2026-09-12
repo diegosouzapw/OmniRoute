@@ -412,6 +412,17 @@ export async function PATCH(request) {
       );
     }
 
+    // #12172: optional modality scope (e.g. "chat", "images") so hiding a model on one
+    // registry surface does not also hide an identically-ID'd model on another one.
+    // Omitted = legacy "hide everywhere" behavior, unchanged for existing callers.
+    if (typeof body.modality !== "undefined" && typeof body.modality !== "string") {
+      return Response.json(
+        { error: { message: "modality must be a string when provided", type: "validation_error" } },
+        { status: 400 }
+      );
+    }
+    const modality = typeof body.modality === "string" && body.modality ? body.modality : undefined;
+
     const modelIds = normalizeRequestedModelIds(searchParams, body);
     if (modelIds.length === 0) {
       return Response.json(
@@ -428,7 +439,7 @@ export async function PATCH(request) {
     for (const modelId of modelIds) {
       const updatedModel = await updateCustomModel(provider, modelId, { isHidden: body.isHidden });
       if (!updatedModel) {
-        mergeModelCompatOverride(provider, modelId, { isHidden: body.isHidden });
+        mergeModelCompatOverride(provider, modelId, { isHidden: body.isHidden, modality });
       }
     }
 

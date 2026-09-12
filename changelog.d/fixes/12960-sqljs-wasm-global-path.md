@@ -1,0 +1,1 @@
+- **fix(db):** resolve `sql-wasm.wasm` across global npm install and hoisted layouts, ensuring OmniRoute can boot cleanly on Node 24 when native `better-sqlite3` is uncompiled.

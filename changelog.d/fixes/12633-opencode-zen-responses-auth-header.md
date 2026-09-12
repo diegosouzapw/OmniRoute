@@ -1,0 +1,1 @@
+- fix(providers): send `x-api-key` instead of `Authorization: Bearer` for OpenCode Zen's `/v1/responses` endpoint (Muse Spark Contributor models), fixing a 401 on OmniRoute's auth header (#12633)

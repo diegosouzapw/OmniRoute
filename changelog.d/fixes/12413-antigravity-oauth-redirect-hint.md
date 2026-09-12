@@ -1,0 +1,1 @@
+- fix(oauth): warn before the dead localhost:8080 redirect in antigravity/gemini `oauth start` (#12413)

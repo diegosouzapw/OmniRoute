@@ -63,6 +63,12 @@ export const GEMINI_UNSUPPORTED_SCHEMA_KEYS = new Set([
   // it, rejecting the whole request with "Unknown name \"uniqueItems\"".
   // Upstream 9router already strips it alongside `contains` for the same error.
   "uniqueItems",
+  // #12509: JSON-Schema-2020-12 tuple keyword. Claude Code's built-in tools
+  // describe `[start_line, end_line]` ranges with it (nested under `items`),
+  // and Gemini's schema parser rejects the whole tool list with
+  // "Unknown name \"prefixItems\" ... Cannot find field". ensureArrayItems
+  // below still guarantees an `items` schema for the tuple-typed array.
+  "prefixItems",
   // Complex schema keywords (handled by flattenAnyOfOneOf/mergeAllOf)
   "anyOf",
   "oneOf",

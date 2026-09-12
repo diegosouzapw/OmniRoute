@@ -87,3 +87,16 @@ test("compression meta present → compression header set to that value", () => 
   );
   assert.ok(Object.values(h).includes("engine:x; source=header"));
 });
+
+test("forwards fallbackAttempts into the non-streaming meta payload", () => {
+  const { deps, metaCalls } = makeDeps();
+  buildNonStreamingResponseHeaders(baseArgs({ fallbackAttempts: 3 }), deps);
+  assert.equal(metaCalls.length, 1);
+  assert.equal(metaCalls[0].meta.fallbackAttempts, 3);
+});
+
+test("omitted fallbackAttempts does not invent a count", () => {
+  const { deps, metaCalls } = makeDeps();
+  buildNonStreamingResponseHeaders(baseArgs(), deps);
+  assert.equal("fallbackAttempts" in metaCalls[0].meta, false);
+});

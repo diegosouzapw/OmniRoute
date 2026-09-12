@@ -1,9 +1,8 @@
 type JsonRecord = Record<string, unknown>;
 
-const COMBO_TEST_MAX_TOKENS = 2048;
+const COMBO_TEST_MAX_TOKENS = 64;
 const STREAMING_MODEL_TEST_MAX_TOKENS = 64;
-const COMBO_TEST_OPERAND_MIN = 10000;
-const COMBO_TEST_OPERAND_RANGE = 90000;
+const COMBO_TEST_PROMPT = "Reply with exactly: pong";
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -108,15 +107,8 @@ function hasReasoningOnlyCompletion(body: JsonRecord): boolean {
   });
 }
 
-function getRandomFiveDigitNumber() {
-  return COMBO_TEST_OPERAND_MIN + Math.floor(Math.random() * COMBO_TEST_OPERAND_RANGE);
-}
-
 export function buildComboTestPrompt() {
-  const left = getRandomFiveDigitNumber();
-  const right = getRandomFiveDigitNumber();
-
-  return `Calculate ${left}+${right}, and reply with the result only.`;
+  return COMBO_TEST_PROMPT;
 }
 
 export function buildComboTestRequestBody(
@@ -133,11 +125,9 @@ export function buildComboTestRequestBody(
 
   return {
     model: modelStr,
-    // Randomize the arithmetic prompt so upstream providers are less likely to
-    // satisfy the smoke test with cached completions.
     messages: [{ role: "user", content: buildComboTestPrompt() }],
-    // Give reasoning-heavy models enough headroom to finish the request and
-    // still emit a visible answer without immediate truncation.
+    // Keep the smoke probe short so reasoning-heavy models do not burn the
+    // health-check budget on arithmetic.
     max_tokens:
       options.maxTokens ??
       (options.stream ? STREAMING_MODEL_TEST_MAX_TOKENS : COMBO_TEST_MAX_TOKENS),

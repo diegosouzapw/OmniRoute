@@ -1,0 +1,1 @@
+- **fix(config):** Persist deletions of built-in background-degradation entries — when a stored settings record exists its `degradationMap` is now authoritative instead of being merged under the defaults, so an entry the user removed in the dashboard no longer reappears on the next apply or restart ([#12424](https://github.com/diegosouzapw/OmniRoute/issues/12424))

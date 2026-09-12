@@ -379,16 +379,13 @@ export default function EditConnectionModal({
         quotaPerUnit: existingQuotaPerUnit,
         glmOrganizationId: existingGlmOrganizationId,
         glmProjectId: existingGlmProjectId,
-        // Console-session credentials are stripped from API responses
-        // (sanitizeProviderSpecificDataForResponse), so there is nothing to
-        // round-trip: start empty and let "blank keeps the stored value" hold —
-        // the quota-scraping assign skips empty fields and the PUT merge
-        // preserves keys the payload does not carry.
+        // Console-session credentials stripped in responses; blank preserves stored values.
         ollamaCloudUsageCookie: "",
         alibabaConsoleCookie: "",
         qwenCloudCookie: "",
         qwenCloudSecToken: "",
         alibabaConsoleSecToken: "",
+        volcConsoleCookie: "",
         ccCompatibleContext1m: ccRequestDefaults.context1m,
         ccCompatibleRedactThinking: ccRequestDefaults.redactThinking,
         ccCompatibleSummarizeThinking: ccRequestDefaults.summarizeThinking,

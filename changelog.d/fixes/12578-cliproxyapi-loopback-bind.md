@@ -1,0 +1,1 @@
+- fix(docker): scope the cliproxyapi/qdrant/bifrost sidecars to loopback by default and forward `CLIPROXYAPI_MANAGEMENT_KEY` into the cliproxyapi container so its management API is not left both unauthenticated and LAN-published (#12578)

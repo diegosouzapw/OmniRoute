@@ -44,7 +44,7 @@ behavior you changed.
 - Executor/translator selection, OAuth or API-key configuration, dashboard assets, and generated
   provider reference when applicable.
 - Public credentials must use `resolvePublicCred()`; error responses must use the shared sanitized
-  error helpers. See [Public Credentials](../security/PUBLIC_CREDS.md) and
+  error helpers. See `docs/security/PUBLIC_CREDS.md` (git; not compiled into `/docs`) and
   [Error Sanitization](../security/ERROR_SANITIZATION.md).
 
 **Focused loop**

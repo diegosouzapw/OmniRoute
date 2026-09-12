@@ -1,3 +1,4 @@
+import fs from "fs";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 import { isNextBuildPhase } from "../buildPhase";
 import type { SqliteAdapter } from "./adapters/types";
@@ -36,9 +37,12 @@ export interface WalMaintenanceState {
 const isCloud = typeof globalThis.caches === "object" && globalThis.caches !== null;
 
 const DEFAULT_WAL_TRUNCATE_INTERVAL_MS = 6 * 60 * 60 * 1000;
+const DEFAULT_WAL_PASSIVE_INTERVAL_MS = 5 * 60 * 1000;
+const DEFAULT_WAL_GUARD_MAX_BYTES = 256 * 1024 * 1024;
 const RETRY_DELAY_MS = 60_000;
 
 let walTimer: NodeJS.Timeout | null = null;
+let walPassiveTimer: NodeJS.Timeout | null = null;
 let retryTimer: NodeJS.Timeout | null = null;
 let ticks = 0;
 let busyStreak = 0;
@@ -133,6 +137,41 @@ export function getWalMaintenanceIntervalMs(env: NodeJS.ProcessEnv = process.env
   return DEFAULT_WAL_TRUNCATE_INTERVAL_MS;
 }
 
+export function getWalPassiveIntervalMs(env: NodeJS.ProcessEnv = process.env): number {
+  const rawValue = env.OMNIROUTE_WAL_PASSIVE_INTERVAL_MS;
+  if (typeof rawValue === "string" && rawValue.trim().length > 0) {
+    const parsed = Number(rawValue);
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      return parsed;
+    }
+  }
+  return DEFAULT_WAL_PASSIVE_INTERVAL_MS;
+}
+
+export function getWalGuardMaxBytes(env: NodeJS.ProcessEnv = process.env): number {
+  const rawValue = env.OMNIROUTE_WAL_GUARD_MAX_MB;
+  if (typeof rawValue === "string" && rawValue.trim().length > 0) {
+    const parsed = Number(rawValue);
+    if (Number.isFinite(parsed) && parsed >= 1) {
+      return Math.floor(parsed) * 1024 * 1024;
+    }
+  }
+  return DEFAULT_WAL_GUARD_MAX_BYTES;
+}
+
+function getWalFileSizeBytes(sqliteFile: string | null): number | null {
+  if (!sqliteFile) return null;
+  try {
+    return fs.statSync(`${sqliteFile}-wal`).size;
+  } catch {
+    return null;
+  }
+}
+
+function formatWalMb(bytes: number | null): string {
+  return bytes == null ? "null" : String(Math.round(bytes / (1024 * 1024)));
+}
+
 export function logCheckpointOutcome(
   outcome: WalCheckpointOutcome,
   mode: WalCheckpointMode,
@@ -178,6 +217,57 @@ function schedulePassiveRetry(db: SqliteAdapter): void {
   retryTimer.unref?.();
 }
 
+function startWalPassiveScheduler(
+  db: SqliteAdapter,
+  sqliteFile: string | null,
+  env: NodeJS.ProcessEnv
+): void {
+  if (walPassiveTimer) {
+    clearInterval(walPassiveTimer);
+    walPassiveTimer = null;
+  }
+  if (sqliteFile === null || isCloud || isNextBuildPhase() || isAutomatedTestProcess()) return;
+  const intervalMs = getWalPassiveIntervalMs(env);
+  if (intervalMs <= 0) return;
+  walPassiveTimer = setInterval(() => {
+    try {
+      if (!db.open) return;
+      const walBeforeBytes = getWalFileSizeBytes(sqliteFile);
+      const stats = runCheckpointNow(db, "PASSIVE", {
+        sqliteFile,
+        isCloud,
+        isBuildPhase: isNextBuildPhase(),
+      });
+      if (stats.skipped) return;
+      if (stats.busy || (stats.checkpointedFrames ?? 0) > 0) {
+        console.log(
+          `[DB] WAL passive checkpoint (busy=${stats.busy ? 1 : 0} logFrames=${stats.logFrames} ` +
+            `checkpointedFrames=${stats.checkpointedFrames} walMb=${formatWalMb(walBeforeBytes)})`
+        );
+      }
+      const guardMaxBytes = getWalGuardMaxBytes(env);
+      if (walBeforeBytes != null && walBeforeBytes > guardMaxBytes) {
+        const startedAtMs = Date.now();
+        const truncateStats = runCheckpointNow(db, "TRUNCATE", {
+          sqliteFile,
+          isCloud,
+          isBuildPhase: isNextBuildPhase(),
+        });
+        console.log(
+          `[DB] WAL above guard (${formatWalMb(walBeforeBytes)}MB > ${Math.floor(guardMaxBytes / (1024 * 1024))}MB); ` +
+            `ran TRUNCATE in ${Date.now() - startedAtMs}ms ` +
+            `(walMbAfter=${formatWalMb(getWalFileSizeBytes(sqliteFile))} busy=${truncateStats.busy ? 1 : 0} ` +
+            `checkpointedFrames=${truncateStats.checkpointedFrames})`
+        );
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn("[DB] WAL passive checkpoint failed:", message);
+    }
+  }, intervalMs);
+  walPassiveTimer.unref?.();
+}
+
 export function startWalMaintenance(
   db: SqliteAdapter,
   sqliteFile: string | null,
@@ -186,10 +276,15 @@ export function startWalMaintenance(
   stopWalMaintenance();
   if (sqliteFile === null || isCloud || isNextBuildPhase() || isAutomatedTestProcess()) return;
   const intervalMs = getWalMaintenanceIntervalMs(env);
-  if (intervalMs <= 0) return;
+  if (intervalMs <= 0) {
+    startWalPassiveScheduler(db, sqliteFile, env);
+    return;
+  }
   walTimer = setInterval(() => {
     try {
       if (!db.open) return;
+      const walBeforeBytes = getWalFileSizeBytes(sqliteFile);
+      const startedAtMs = Date.now();
       const outcome = runCheckpointNow(db, "TRUNCATE");
       if (outcome.skipped) return;
       ticks++;
@@ -199,6 +294,11 @@ export function startWalMaintenance(
         schedulePassiveRetry(db);
       } else if (outcome.ok) {
         recordOk();
+        console.log(
+          `[DB] Periodic SQLite WAL checkpoint completed (TRUNCATE) in ${Date.now() - startedAtMs}ms ` +
+            `(walMbBefore=${formatWalMb(walBeforeBytes)} walMbAfter=${formatWalMb(getWalFileSizeBytes(sqliteFile))} ` +
+            `busy=${outcome.busy ? 1 : 0} logFrames=${outcome.logFrames} checkpointedFrames=${outcome.checkpointedFrames})`
+        );
       } else {
         logCheckpointOutcome(outcome, "TRUNCATE", busyStreak);
       }
@@ -207,12 +307,17 @@ export function startWalMaintenance(
     }
   }, intervalMs);
   walTimer.unref?.();
+  startWalPassiveScheduler(db, sqliteFile, env);
 }
 
 export function stopWalMaintenance(): void {
   if (walTimer) {
     clearInterval(walTimer);
     walTimer = null;
+  }
+  if (walPassiveTimer) {
+    clearInterval(walPassiveTimer);
+    walPassiveTimer = null;
   }
   if (retryTimer) {
     clearTimeout(retryTimer);

@@ -20,6 +20,7 @@ const { handleImageGeneration } = await import("../../open-sse/handlers/imageGen
 const { handleVideoGeneration } = await import("../../open-sse/handlers/videoGeneration.ts");
 const { resolveChatCoreTargetFormat } =
   await import("../../open-sse/handlers/chatCore/targetFormat.ts");
+const { resolveModelAlias } = await import("../../open-sse/services/modelDeprecation.ts");
 const dbCore = await import("../../src/lib/db/core.ts");
 
 test.after(() => {
@@ -28,6 +29,8 @@ test.after(() => {
 });
 
 const AGNES_CHAT_URL = "https://apihub.agnes-ai.com/v1/chat/completions";
+const AGNES_MODELS_URL = "https://apihub.agnes-ai.com/v1/models";
+const AGNES_CN_BASE_URL = "https://api.agnes-ai.cn/v1";
 
 test("agnes is registered as an API-key provider with complete metadata", () => {
   const entry = APIKEY_PROVIDERS.agnes;
@@ -72,19 +75,12 @@ test("agnes routes Chat Completions clients through its OpenAI chat upstream", (
   );
 });
 
-test("agnes ships the current public chat models with correct capabilities", () => {
+test("agnes ships the current public chat models with the correct capabilities", () => {
   const entry = providerRegistry.agnes;
   assert.deepEqual(
     entry.models.map((model) => model.id),
-    ["agnes-1.5-flash", "agnes-2.0-flash", "agnes-2.5-flash"]
+    ["agnes-2.0-flash", "agnes-2.5-flash", "agnes-3.0-flash"]
   );
-
-  const flash15 = entry.models.find((m) => m.id === "agnes-1.5-flash");
-  assert.ok(flash15, "agnes-1.5-flash must be defined");
-  assert.equal(flash15.contextLength, 262144);
-  assert.equal(flash15.maxOutputTokens, 65536);
-  assert.equal(flash15.supportsVision, true);
-  assert.equal(flash15.toolCalling, true);
 
   const flash20 = entry.models.find((m) => m.id === "agnes-2.0-flash");
   assert.ok(flash20, "agnes-2.0-flash must be defined");
@@ -98,12 +94,59 @@ test("agnes ships the current public chat models with correct capabilities", () 
   assert.ok(flash25, "agnes-2.5-flash must be defined");
   assert.equal(flash25.contextLength, 524288);
   assert.equal(flash25.maxOutputTokens, 65536);
+
+  const flash30 = entry.models.find((m) => m.id === "agnes-3.0-flash");
+  assert.ok(flash30, "agnes-3.0-flash must be defined");
+  assert.equal(flash30.contextLength, 524288);
+  assert.equal(flash30.maxOutputTokens, 65536);
+  assert.equal(flash30.supportsReasoning, true);
+  assert.equal(flash30.supportsVision, true);
+  assert.equal(flash30.toolCalling, true);
+  assert.equal(flash30.interleavedField, "reasoning_content");
 });
+
+test("agnes registry advertises the live OpenAI-style /models endpoint", () => {
+  const entry = providerRegistry.agnes;
+  assert.equal(entry.modelsUrl, AGNES_MODELS_URL);
+});
+
+test("agnes is classified for live OpenAI-style /models discovery", async () => {
+  const { isNamedOpenAIStyleProvider } = await import(
+    "../../src/app/api/providers/[id]/models/discovery/providerSets.ts"
+  );
+  assert.equal(isNamedOpenAIStyleProvider("agnes"), true);
+});
+
+test("agnes honors per-connection CN base URL override", () => {
+  const url = new DefaultExecutor("agnes").buildUrl("agnes-3.0-flash", true, 0, {
+    providerSpecificData: { baseUrl: AGNES_CN_BASE_URL },
+  });
+  assert.equal(url, `${AGNES_CN_BASE_URL}/chat/completions`);
+});
+
+test("agnes base-URL field is always-on so CN keys can point at api.agnes-ai.cn", async () => {
+  const helpers = await import(
+    "../../src/app/(dashboard)/dashboard/providers/[id]/providerPageHelpers.ts"
+  );
+  assert.equal(helpers.isBaseUrlConfigurableProvider("agnes"), true);
+  assert.equal(helpers.getProviderBaseUrlDefault("agnes"), "https://apihub.agnes-ai.com/v1");
+  assert.equal(helpers.getProviderBaseUrlPlaceholder("agnes"), AGNES_CN_BASE_URL);
+});
+
+test("agnes-1.5-flash is retired and forwards to agnes-3.0-flash", () => {
+  const entry = providerRegistry.agnes;
+  assert.equal(
+    entry.models.some((model) => model.id === "agnes-1.5-flash"),
+    false
+  );
+  assert.equal(resolveModelAlias("agnes-1.5-flash", "agnes"), "agnes-3.0-flash");
+});
+
 test("agnes free catalog exposes the current free chat models through one shared pool", () => {
   const rows = FREE_MODEL_BUDGETS.filter((model) => model.provider === "agnes");
   assert.deepEqual(
     rows.map((model) => model.modelId),
-    ["agnes-1.5-flash", "agnes-2.0-flash", "agnes-2.5-flash"]
+    ["agnes-2.0-flash", "agnes-2.5-flash", "agnes-3.0-flash"]
   );
   assert.ok(rows.every((model) => model.poolKey === "agnes-free"));
 });
@@ -123,22 +166,19 @@ test("agnes has no collision with zenmux-free sapiens-ai prefixed models", (t) =
   }
 });
 
-test("agnes registers Image 2.1 Flash on the current image-generation contract", () => {
+test("agnes registers Image 2.x Flash models on the current image-generation contract", () => {
   const entry = IMAGE_PROVIDERS.agnes;
   assert.ok(entry, "IMAGE_PROVIDERS.agnes must be defined");
   assert.equal(entry.baseUrl, "https://apihub.agnes-ai.com/v1/images/generations");
   assert.equal(entry.authHeader, "bearer");
   assert.equal(entry.format, "agnes-image");
   assert.deepEqual(entry.supportedSizes, ["1K", "2K", "3K", "4K"]);
-  assert.deepEqual(entry.models, [
-    {
-      id: "agnes-image-2.1-flash",
-      name: "Agnes Image 2.1 Flash",
-      inputModalities: ["text", "image"],
-      description: "Agnes text-to-image, image-to-image, and multi-image composition model",
-    },
-  ]);
+  assert.deepEqual(
+    entry.models.map((model) => model.id),
+    ["agnes-image-2.0-flash", "agnes-image-2.1-flash", "agnes-image-2.5-flash"]
+  );
   assert.ok(getAllImageModels().some((model) => model.id === "agnes/agnes-image-2.1-flash"));
+  assert.ok(getAllImageModels().some((model) => model.id === "agnes/agnes-image-2.5-flash"));
 });
 
 test("agnes Image 2.1 maps standard image inputs into extra_body", async () => {
@@ -212,19 +252,24 @@ test("agnes Image 2.1 requires the current size parameter", async () => {
   assert.equal(result.error, "Size is required for Agnes Image 2.1 Flash");
 });
 
-test("agnes registers Video V2.0 on the current video_id job contract", () => {
+test("agnes registers Video V2.0 and Video 2.5 on the current job contracts", () => {
   const entry = VIDEO_PROVIDERS.agnes;
   assert.ok(entry, "VIDEO_PROVIDERS.agnes must be defined");
   assert.equal(entry.baseUrl, "https://apihub.agnes-ai.com");
   assert.equal(entry.statusUrl, "https://apihub.agnes-ai.com/agnesapi");
   assert.equal(entry.authHeader, "bearer");
   assert.equal(entry.format, "agnes-video-job");
-  assert.deepEqual(entry.models, [{ id: "agnes-video-v2.0", name: "Agnes Video V2.0" }]);
+  assert.deepEqual(
+    entry.models.map((model) => model.id),
+    ["agnes-video-v2.0", "agnes-video-2.5-flash", "agnes-video-2.5"]
+  );
   assert.equal(VIDEO_PROVIDER_IDS.has("agnes"), true);
   assert.ok(getAllVideoModels().some((model) => model.id === "agnes/agnes-video-v2.0"));
+  assert.ok(getAllVideoModels().some((model) => model.id === "agnes/agnes-video-2.5-flash"));
+  assert.ok(getAllVideoModels().some((model) => model.id === "agnes/agnes-video-2.5"));
 });
 
-test("agnes Video V2.0 submits with Bearer auth and polls by video_id", async () => {
+test("agnes Video V2.0 submits with Bearer auth and polls by video_id and model_name", async () => {
   const originalFetch = globalThis.fetch;
   const originalSetTimeout = globalThis.setTimeout;
   const calls: Array<{
@@ -309,13 +354,88 @@ test("agnes Video V2.0 submits with Bearer auth and polls by video_id", async ()
       },
     });
     assert.deepEqual(calls[1], {
-      url: "https://apihub.agnes-ai.com/agnesapi?video_id=video-123",
+      url: "https://apihub.agnes-ai.com/agnesapi?video_id=video-123&model_name=agnes-video-v2.0",
       method: "GET",
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer agnes-key",
       },
     });
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("agnes Video 2.5-flash submits Bearer auth and polls /v1/videos/{id}", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+  const calls: Array<{
+    url: string;
+    method: string;
+    headers: Record<string, string>;
+    body?: Record<string, unknown>;
+  }> = [];
+
+  globalThis.setTimeout = ((callback: (...args: unknown[]) => void, _ms?: number, ...args) => {
+    callback(...args);
+    return 0;
+  }) as typeof setTimeout;
+  globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+    const call = {
+      url: String(url),
+      method: init?.method || "GET",
+      headers: (init?.headers || {}) as Record<string, string>,
+      ...(init?.body ? { body: JSON.parse(String(init.body)) as Record<string, unknown> } : {}),
+    };
+    calls.push(call);
+
+    if (call.method === "POST") {
+      return new Response(
+        JSON.stringify({
+          id: "task_nEV6cJjyzWnix1g1O9QHjnHzTstegDGM",
+          status: "queued",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+    return new Response(
+      JSON.stringify({
+        id: "task_nEV6cJjyzWnix1g1O9QHjnHzTstegDGM",
+        status: "completed",
+        url: "https://platform-outputs.agnes-ai.space/video-25.mp4",
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  }) as typeof fetch;
+
+  try {
+    const result = await handleVideoGeneration({
+      body: {
+        model: "agnes/agnes-video-2.5-flash",
+        prompt: "a red ball rolling on a white floor",
+        seconds: "4",
+        mode: "text",
+        size: "720P",
+        aspect_ratio: "16:9",
+      },
+      credentials: { apiKey: "agnes-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(result.data.data[0].url, "https://platform-outputs.agnes-ai.space/video-25.mp4");
+    assert.equal(calls.length, 2);
+    assert.equal(calls[0].url, "https://apihub.agnes-ai.com/v1/videos");
+    assert.equal(calls[0].method, "POST");
+    assert.equal(calls[0].body?.model, "agnes-video-2.5-flash");
+    assert.equal(calls[0].body?.seconds, "4");
+    assert.equal(calls[0].body?.mode, "text");
+    assert.equal(
+      calls[1].url,
+      "https://apihub.agnes-ai.com/v1/videos/task_nEV6cJjyzWnix1g1O9QHjnHzTstegDGM"
+    );
+    assert.equal(calls[1].method, "GET");
   } finally {
     globalThis.fetch = originalFetch;
     globalThis.setTimeout = originalSetTimeout;

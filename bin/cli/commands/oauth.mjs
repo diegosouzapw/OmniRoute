@@ -54,6 +54,34 @@ async function openBrowser(url) {
   }
 }
 
+// Mirrors src/lib/oauth/providers.ts::isLoopbackHostname — used here to detect
+// when the redirect_uri the server resolved (and the authorize URL now
+// advertises) points at a loopback address the CLI never binds a listener on
+// (issue #12413). Returns false on an unparseable URI rather than throwing.
+function isLoopbackHost(uri) {
+  try {
+    return /^(localhost|127\.0\.0\.1|\[::1\]|::1)$/i.test(new URL(uri).hostname);
+  } catch {
+    return false;
+  }
+}
+
+function printLoopbackRedirectWarning(providerId, redirectUri) {
+  process.stdout.write(
+    `Note: the authorize URL below advertises ${redirectUri}, but this CLI does not\n` +
+      "listen on that port. Right after you approve, the browser is expected to\n" +
+      "show a connection error (e.g. \"This site can't be reached\" / \n" +
+      "ERR_CONNECTION_REFUSED) — that is normal, not a failure. Copy the full URL\n" +
+      "from the address bar anyway and paste it below.\n"
+  );
+  if (providerId === "antigravity") {
+    process.stdout.write(
+      "Tip: `omniroute login antigravity` captures the code automatically and\n" +
+        "avoids that error page entirely.\n"
+    );
+  }
+}
+
 function targetApiOptions(opts = {}) {
   return {
     baseUrl: opts.baseUrl,
@@ -109,6 +137,10 @@ async function runBrowserFlow(def, opts) {
   }
   const { codeVerifier, state, redirectUri: returnedRedirectUri } = start;
   const finalRedirectUri = returnedRedirectUri || redirectUri;
+
+  if (finalRedirectUri && isLoopbackHost(finalRedirectUri)) {
+    printLoopbackRedirectWarning(def.id, finalRedirectUri);
+  }
 
   process.stdout.write(`\nOpen this URL to authorize:\n  ${url}\n\n`);
   if (opts.browser !== false) await openBrowser(url);

@@ -302,7 +302,7 @@ test("model sync route reports invalid JSON /models responses without losing ups
   assert.equal(body.upstreamStatus, 200);
   assert.equal(logs.length, 1);
   assert.equal(logs[0].status, 200);
-  assert.equal(logs[0].error, "Invalid JSON response from /models");
+  assert.equal(logs[0].error, "Invalid JSON response from <path>");
 });
 
 test("model sync route preserves previously synced models when the upstream omits the models list", async () => {

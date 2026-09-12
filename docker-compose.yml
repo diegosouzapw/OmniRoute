@@ -37,9 +37,9 @@ x-common: &common
     - PORT=${PORT:-20128}
     - DASHBOARD_PORT=${DASHBOARD_PORT:-20128}
     - API_PORT=${API_PORT:-20129}
-    - API_HOST=${API_HOST:-0.0.0.0}
+    - API_HOST=${API_HOST:-127.0.0.1}
     - LIVE_WS_PORT=${LIVE_WS_PORT:-20132}
-    - LIVE_WS_HOST=${LIVE_WS_HOST:-0.0.0.0}
+    - LIVE_WS_HOST=${LIVE_WS_HOST:-127.0.0.1}
     - LIVE_WS_ALLOWED_ORIGINS=${LIVE_WS_ALLOWED_ORIGINS:-http://localhost:20128,http://127.0.0.1:20128}
     - REDIS_URL=${REDIS_URL:-redis://redis:6379}
     - NODE_OPTIONS=--max-old-space-size=2048
@@ -99,9 +99,14 @@ services:
         OMNIROUTE_BASE_PATH: ${OMNIROUTE_BASE_PATH:-}
     image: omniroute:base
     ports:
-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
-      - "${API_PORT:-20129}:${API_PORT:-20129}"
-      - "${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
+      # Loopback-only by default (#12568): with REQUIRE_API_KEY=false shipping
+      # as the .env.example default, an unqualified publish spec here binds
+      # 0.0.0.0 and exposes the anonymous /v1 LLM proxy on every LAN/WAN
+      # interface. Set APP_BIND_HOST=0.0.0.0 only once you've confirmed
+      # REQUIRE_API_KEY=true or an upstream reverse proxy enforces its own auth.
+      - "${APP_BIND_HOST:-127.0.0.1}:${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${API_PORT:-20129}:${API_PORT:-20129}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
     profiles:
       - base
 
@@ -126,17 +131,17 @@ services:
       - PORT=${PORT:-20128}
       - DASHBOARD_PORT=${DASHBOARD_PORT:-20128}
       - API_PORT=${API_PORT:-20129}
-      - API_HOST=${API_HOST:-0.0.0.0}
+      - API_HOST=${API_HOST:-127.0.0.1}
       - LIVE_WS_PORT=${LIVE_WS_PORT:-20132}
-      - LIVE_WS_HOST=${LIVE_WS_HOST:-0.0.0.0}
+      - LIVE_WS_HOST=${LIVE_WS_HOST:-127.0.0.1}
       - LIVE_WS_ALLOWED_ORIGINS=${LIVE_WS_ALLOWED_ORIGINS:-http://localhost:20128,http://127.0.0.1:20128}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - OMNIROUTE_BASE_PATH=${OMNIROUTE_BASE_PATH:-}
       - CHATGPT_WEB_CODEX_CDP_URL=http://chatgpt-web-codex-browser:9223
     ports:
-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
-      - "${API_PORT:-20129}:${API_PORT:-20129}"
-      - "${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${API_PORT:-20129}:${API_PORT:-20129}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
     profiles:
       - web
 
@@ -165,9 +170,9 @@ services:
         OMNIROUTE_BASE_PATH: ${OMNIROUTE_BASE_PATH:-}
     image: omniroute:cli
     ports:
-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
-      - "${API_PORT:-20129}:${API_PORT:-20129}"
-      - "${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${API_PORT:-20129}:${API_PORT:-20129}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
     volumes:
       - ./data:/app/data
       # SECURITY: mounting the host Docker socket gives this container full
@@ -194,17 +199,17 @@ services:
         OMNIROUTE_BASE_PATH: ${OMNIROUTE_BASE_PATH:-}
     image: omniroute:base
     ports:
-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
-      - "${API_PORT:-20129}:${API_PORT:-20129}"
-      - "${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${API_PORT:-20129}:${API_PORT:-20129}"
+      - "${APP_BIND_HOST:-127.0.0.1}:${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
     environment:
       - DATA_DIR=/app/data
       - PORT=${PORT:-20128}
       - DASHBOARD_PORT=${DASHBOARD_PORT:-20128}
       - API_PORT=${API_PORT:-20129}
-      - API_HOST=${API_HOST:-0.0.0.0}
+      - API_HOST=${API_HOST:-127.0.0.1}
       - LIVE_WS_PORT=${LIVE_WS_PORT:-20132}
-      - LIVE_WS_HOST=${LIVE_WS_HOST:-0.0.0.0}
+      - LIVE_WS_HOST=${LIVE_WS_HOST:-127.0.0.1}
       - LIVE_WS_ALLOWED_ORIGINS=${LIVE_WS_ALLOWED_ORIGINS:-http://localhost:20128,http://127.0.0.1:20128}
       - CLI_MODE=host
       - CLI_EXTRA_PATHS=/host-local/bin:/host-node/bin
@@ -243,8 +248,8 @@ services:
     container_name: omniroute-qdrant
     restart: unless-stopped
     ports:
-      - "${QDRANT_PORT:-6333}:6333"
-      - "${QDRANT_GRPC_PORT:-6334}:6334"
+      - "${QDRANT_BIND_HOST:-127.0.0.1}:${QDRANT_PORT:-6333}:6333"
+      - "${QDRANT_BIND_HOST:-127.0.0.1}:${QDRANT_GRPC_PORT:-6334}:6334"
     volumes:
       - qdrant-data:/qdrant/storage
     environment:
@@ -271,7 +276,7 @@ services:
     container_name: omniroute-bifrost
     restart: unless-stopped
     ports:
-      - "${BIFROST_PORT:-8080}:8080"
+      - "${BIFROST_BIND_HOST:-127.0.0.1}:${BIFROST_PORT:-8080}:8080"
     volumes:
       - bifrost-data:/data
     environment:
@@ -294,12 +299,22 @@ services:
     image: docker.io/eceasy/cli-proxy-api:v6.9.7
     restart: unless-stopped
     ports:
-      - "${CLIPROXYAPI_PORT:-8317}:${CLIPROXYAPI_PORT:-8317}"
+      # Loopback-only by default: this sidecar's data volume
+      # (cliproxiapi-data:/root/.cli-proxy-api) holds provider OAuth/API
+      # credentials, and the pinned image only reads api-keys from a mounted
+      # config.yaml (not env vars), so an unqualified "8317:8317" publish spec
+      # would put a credential-bearing service with no compose-configured
+      # data-plane auth on every LAN interface. Same reasoning as Redis above.
+      - "${CLIPROXY_BIND_HOST:-127.0.0.1}:${CLIPROXYAPI_PORT:-8317}:${CLIPROXYAPI_PORT:-8317}"
     volumes:
       - cliproxyapi-data:/root/.cli-proxy-api
     environment:
       - PORT=${CLIPROXYAPI_PORT:-8317}
       - HOST=0.0.0.0
+      # Forwards to the one auth-related env var the pinned binary actually
+      # reads (MANAGEMENT_PASSWORD) — secures the management API only; the
+      # data-plane completions endpoints have no env-based override upstream.
+      - MANAGEMENT_PASSWORD=${CLIPROXYAPI_MANAGEMENT_KEY:-}
     healthcheck:
       test:
         ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:${CLIPROXYAPI_PORT:-8317}/v1/models"]

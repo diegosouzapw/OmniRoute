@@ -50,13 +50,14 @@ export function clearCompletedDetails() {
   completedDetails.clear();
 }
 
+function isUnset(value: unknown): boolean {
+  return value === undefined || value === null;
+}
+
 export function maybeEnrichCompletedDetail(updated: PendingRequestDetail, connectionId: string) {
   void (async () => {
     try {
-      const missingProvider =
-        updated.providerResponse === undefined || updated.providerResponse === null;
-      const missingClient = updated.clientResponse === undefined || updated.clientResponse === null;
-      if (!missingProvider && !missingClient) return;
+      if (!isUnset(updated.providerResponse) && !isUnset(updated.clientResponse)) return;
 
       const db = getDbInstance();
       const sinceIso = new Date(Date.now() - 30_000).toISOString();
@@ -67,24 +68,32 @@ export function maybeEnrichCompletedDetail(updated: PendingRequestDetail, connec
         .all(connectionId, updated.model, sinceIso) as Array<{ artifact_relpath: string | null }>;
       for (const row of rows) {
         if (!row.artifact_relpath) continue;
-        const { readCallArtifact } = await import("./callLogArtifacts");
+        const { readCallArtifact, isSizeLimitOmissionMarker } = await import("./callLogArtifacts");
         const art = readCallArtifact(row.artifact_relpath);
         if (art.state !== "ready" || !art.artifact) continue;
         const pipeline = art.artifact.pipeline as
           | { providerResponse?: unknown; clientResponse?: unknown }
           | undefined;
-        if (missingProvider && pipeline?.providerResponse) {
+        // pipeline.* first: it is the translated payload of one specific side.
+        // `responseBody` is a single coarse value handed to both sides, so it
+        // may only fill a side still empty AFTER the pipeline had its turn --
+        // testing emptiness once before the loop let it overwrite the payload
+        // just recovered, showing a provider payload as the client response.
+        if (isUnset(updated.providerResponse) && pipeline?.providerResponse) {
           updated.providerResponse = pipeline.providerResponse;
         }
-        if (missingClient && pipeline?.clientResponse) {
+        if (isUnset(updated.clientResponse) && pipeline?.clientResponse) {
           updated.clientResponse = pipeline.clientResponse;
         }
-        if (
-          (missingProvider && art.artifact.responseBody) ||
-          (missingClient && art.artifact.responseBody)
-        ) {
-          if (missingProvider) updated.providerResponse = art.artifact.responseBody;
-          if (missingClient) updated.clientResponse = art.artifact.responseBody;
+        // A size-limited artifact stores an omission marker string in place of
+        // the body. It is truthy, so recovering it here overwrites a real
+        // payload with "[omitted: ...]".
+        const responseBody = isSizeLimitOmissionMarker(art.artifact.responseBody)
+          ? null
+          : art.artifact.responseBody;
+        if (responseBody) {
+          if (isUnset(updated.providerResponse)) updated.providerResponse = responseBody;
+          if (isUnset(updated.clientResponse)) updated.clientResponse = responseBody;
         }
         if (updated.providerResponse || updated.clientResponse) {
           if (completedDetails.has(updated.id)) storeCompletedDetail(updated);

@@ -689,7 +689,13 @@ function sanitizeErrorMessageWithStackPolicy(
   // Raw URI credentials must be projected before the path tokenizer consumes
   // the URI tail; Windows path evidence still stays intact until after this
   // credential-only pass and is redacted before escape normalization.
-  str = redactKnownCredentialPatterns(redactSensitiveUrlCredentials(stripStackTail(str)));
+  // Labeled assignments (access_token=…, api_key=…) are projected here too, for
+  // the same reason as raw URI credentials: the path tokenizer would otherwise
+  // absorb "…/client.ts:44:9 access_token=secret" whole and the public message
+  // would lose the credential marker along with the path.
+  str = redactLabeledCredentialAssignments(
+    redactKnownCredentialPatterns(redactSensitiveUrlCredentials(stripStackTail(str)))
+  );
   str = redactErrorPaths(str);
   str = redactSensitiveErrorText(str);
   str = truncateSanitizedErrorText(str);

@@ -1,8 +1,9 @@
-import { jwtVerify, SignJWT } from "jose";
+import { SignJWT } from "jose";
 import { NextResponse, type NextRequest } from "next/server";
 import { getCachedSettings } from "../../lib/db/readCache";
 import { isDraining } from "../../lib/gracefulShutdown";
 import { checkBodySize, getBodySizeLimit } from "../../shared/middleware/bodySizeGuard";
+import { verifyDashboardSessionToken } from "@/shared/utils/dashboardSessionToken";
 import { generateRequestId } from "../../shared/utils/requestId";
 import { applyCorsHeaders } from "../cors/origins";
 import { validateBrowserMutationOrigin } from "../origin/publicOrigin";
@@ -153,7 +154,13 @@ async function refreshDashboardSessionIfNeeded(
   if (!token) return;
 
   try {
-    const { payload } = await jwtVerify(token, secret);
+    const payload = await verifyDashboardSessionToken(token, secret);
+    if (!payload) {
+      // Not a dashboard session (foreign/expired/claim-less token): drop it so a
+      // Cursor CLI token can never ride along as the cookie (#13298).
+      response.cookies.delete("auth_token");
+      return;
+    }
     const exp = typeof payload.exp === "number" ? payload.exp : null;
     if (!exp) return;
 

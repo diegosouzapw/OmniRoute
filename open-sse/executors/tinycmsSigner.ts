@@ -467,13 +467,21 @@ let wasmInitialized = false;
 export async function initTinyCmsWasm() {
   if (wasmInitialized) return;
   // Install the DOM shims the wasm-bindgen glue expects before instantiating
-  // the module (see setupDomMocks() above). Left installed for the process
-  // lifetime — generateSecurePayload() keeps calling into the same canvas
-  // shims on every invocation, not just at init.
-  setupDomMocks();
-  const wasmBuffer = Buffer.from(WASM_BASE64, 'base64');
-  await __wbg_init(wasmBuffer);
-  wasmInitialized = true;
+  // the module (see setupDomMocks() above), and restore them right after —
+  // scoped to just this init call instead of the process lifetime. This
+  // process runs the Next.js dashboard SSR too (npm-global install), so
+  // leaving global.window/document installed here would poison every later
+  // SSR render (#12072). generateSecurePayload() below re-installs its own
+  // shims around each call, since the wasm-bindgen glue reaches back into
+  // document.createElement/getContext on every invocation, not just at init.
+  const restore = setupDomMocks();
+  try {
+    const wasmBuffer = Buffer.from(WASM_BASE64, 'base64');
+    await __wbg_init(wasmBuffer);
+    wasmInitialized = true;
+  } finally {
+    restore();
+  }
 }
 
 // Add type bindings
@@ -501,5 +509,15 @@ export function generateSecurePayload(
   client_ip: string,
   difficulty: number
 ): SecurePayload {
-  return generate_secure_payload(username, timestamp, nonce_js, challenge, client_ip, difficulty) as SecurePayload;
+  // Scope the DOM shims to just this synchronous call (install -> use ->
+  // restore) instead of relying on whatever initTinyCmsWasm() left behind
+  // — that call now restores its own shims immediately, and this is fully
+  // synchronous (no await between install and restore), so nothing else on
+  // Node's single-threaded event loop can observe the shim in between.
+  const restore = setupDomMocks();
+  try {
+    return generate_secure_payload(username, timestamp, nonce_js, challenge, client_ip, difficulty) as SecurePayload;
+  } finally {
+    restore();
+  }
 }

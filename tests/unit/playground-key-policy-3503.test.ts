@@ -32,7 +32,7 @@ const KEY_SECRET = created.key;
 
 async function sessionCookie(): Promise<string> {
   const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-  const jwt = await new SignJWT({ sub: "admin" })
+  const jwt = await new SignJWT({ authenticated: true, sub: "admin" })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("1h")
     .sign(secret);

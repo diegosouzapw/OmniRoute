@@ -1,0 +1,1 @@
+- fix(cli): setup-opencode no longer sends an active context's management token to `/v1/models` when `--api-key`/`OMNIROUTE_API_KEY` is supplied — an explicit flag or the env var now always outranks the context's token, and the flag itself is no longer swallowed by the parent program's global `--api-key` option (#12783)

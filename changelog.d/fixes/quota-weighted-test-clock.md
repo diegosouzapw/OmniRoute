@@ -1,0 +1,1 @@
+- Fix an intermittent failure in the quota-weighted routing test suite: scores are a function of `Date.now()`, so peers with identical quota scored microseconds apart never tied and swapped order.

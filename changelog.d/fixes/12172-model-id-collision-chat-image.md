@@ -1,0 +1,1 @@
+- fix(db): scope model visibility overrides by modality so hiding a Chat model no longer hides an identically-ID'd Image/Embeddings/etc. model (#12172)

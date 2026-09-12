@@ -948,8 +948,11 @@ export default function ApiManagerPageClient() {
   }, [modelsByProvider, debouncedSearchModel]);
 
   if (loading) {
+    // The skeleton cards are aria-hidden, so without this status wrapper the page
+    // has no accessible content at all until /api/keys settles (#12066).
     return (
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-8" role="status" aria-live="polite" aria-busy="true">
+        <span className="sr-only">{tc("loading")}</span>
         <CardSkeleton />
         <CardSkeleton />
       </div>

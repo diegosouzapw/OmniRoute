@@ -20,6 +20,8 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
  *   scope          — optional, default "marscode-us"
  *   tenant         — optional, default "marscode"
  *   region         — optional, default "US-East"
+ *   userRegion     — optional, default "US" (x-user-region header; real value for non-US accounts)
+ *   userTimezone   — optional, forwarded as x-trae-user-timezone when present
  */
 async function requireOAuthImportAuth(request: Request) {
   // GHSA-mg76: importing a provider connection is a state-mutating admin action;
@@ -51,7 +53,17 @@ export async function POST(request: Request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { accessToken, webId, bizUserId, userUniqueId, scope, tenant, region } = validation.data;
+    const {
+      accessToken,
+      webId,
+      bizUserId,
+      userUniqueId,
+      scope,
+      tenant,
+      region,
+      userRegion,
+      userTimezone,
+    } = validation.data;
 
     const connection: any = await createProviderConnection({
       provider: "trae",
@@ -71,7 +83,12 @@ export async function POST(request: Request) {
         aiRegion: region || "US-East",
         appLanguage: "en",
         appVersion: "1.0.0.1229",
-        userRegion: "US",
+        // "US" stays the best-effort default so existing imports that omit
+        // userRegion keep behaving as before; a real account region (e.g.
+        // "SG") must be user-supplied — it is not a universal replacement
+        // default (#12190).
+        userRegion: userRegion || "US",
+        ...(userTimezone ? { userTimezone } : {}),
         userIdentity: "Free",
         authMethod: "imported",
       },
@@ -125,6 +142,18 @@ export async function GET(request: Request) {
       { name: "scope", label: "Scope", description: "default: marscode-us", type: "text" },
       { name: "tenant", label: "Tenant", description: "default: marscode", type: "text" },
       { name: "region", label: "Region", description: "default: US-East", type: "text" },
+      {
+        name: "userRegion",
+        label: "User Region",
+        description: "x-user-region header, e.g. 'SG'. default: US",
+        type: "text",
+      },
+      {
+        name: "userTimezone",
+        label: "User Timezone",
+        description: "x-trae-user-timezone header, e.g. 'America/Recife'. optional",
+        type: "text",
+      },
     ],
   });
 }

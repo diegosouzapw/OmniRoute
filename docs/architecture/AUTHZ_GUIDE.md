@@ -35,6 +35,14 @@ For dashboard pages and admin operations.
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
+A cookie is a session only when the JWT verifies **and** carries `authenticated: true`
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Every
+consumer of the cookie (route guard, authz pipeline refresh, WebSocket handshake, live
+server, `/api/settings/require-login`, `/api/auth/status`) goes through that helper.
+Other JWTs signed with `JWT_SECRET` exist — the Cursor CLI passthrough mints
+`iss "omniroute" / aud "cursor-cli"` tokens for key holders — and are never sessions
+(#13298).
+
 Verified by `isDashboardSessionAuthenticated()` in `src/shared/utils/apiAuth.ts`. The pipeline auto-refreshes the JWT when it has fewer than 7 days left in its 30-day lifetime.
 
 Some management routes accept **either** mode: cookie OR `Bearer <key>` when the API key has the `manage` (or `admin`) scope. This is what enables the "configurable via API calls" workflow added in v3.8.

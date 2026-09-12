@@ -1824,6 +1824,9 @@
     "recentRequestsModel": "Модел",
     "recentRequestsTokens": "Улаз / Излаз",
     "recentRequestsWhen": "Када",
+    "topologyLegendActive": "Активно",
+    "topologyLegendRecent": "Недавно",
+    "topologyLegendError": "Грешка",
     "downloadDmg": "Преузми DMG (macOS)",
     "downloadDmgDescription": "Доступна је нова верзија OmniRoute десктоп апликације. Молимо преузмите и инсталирајте macOS DMG инсталер да бисте ажурирали (тренутно: v{version}).",
     "downloadExe": "Преузми EXE (Windows)",
@@ -8642,7 +8645,9 @@
     "languagePacksList": "Језички пакети: {packs}",
     "dragToReorder": "Превуците да преместите корак",
     "engine": "Механизам",
-    "intensity": "Интензитет"
+    "intensity": "Интензитет",
+    "activeProfileMasterSwitchOffWarning": "__MISSING__:The active profile below will not run until the master \"Prompt Compression\" switch is turned on.",
+    "activeProfileMasterSwitchOffCta": "__MISSING__:Turn it on in Settings"
   },
   "compressionStudio": {
     "noRun": "Нема доступног извршавања компресије.",
@@ -8671,6 +8676,7 @@
     "run": "Покрени",
     "laneRejected": "одбијено: {reason}",
     "error": "грешка",
+    "combinedError": "__MISSING__:Combined pipeline preview failed: {reason}",
     "combinedFlow": "Комбиновани ток",
     "eachLayer": "Сваки слој посебно",
     "diff": "Разлика",
@@ -14004,7 +14010,18 @@
     "actionDone": "Радња примењена",
     "actionFailed": "Радња није успела: {error}",
     "detailFailed": "Учитавање детаља није успело: {error}",
-    "mirroredInA2A": "Одражено у A2A"
+    "mirroredInA2A": "Одражено у A2A",
+    "compareMode": "Упореди извршавања",
+    "compareExit": "Изађи из режима поређења",
+    "compareHint": "Изаберите два извршавања за поређење",
+    "compareTitle": "Поређење",
+    "compareDetailFailed": "Није могуће учитати детаље овог извршавања",
+    "compareDifferentIdentity": "Различити извори или вештине — разлике су информативне",
+    "compareDuration": "Трајање",
+    "compareCost": "Трошак",
+    "compareEvents": "Догађаји",
+    "compareDeltaLegend": "Δ десно − лево",
+    "noMatches": "Ниједно извршавање не одговара овим филтерима"
   },
   "cliproxyProviderExposure": {
     "title": "Изложеност провајдера",

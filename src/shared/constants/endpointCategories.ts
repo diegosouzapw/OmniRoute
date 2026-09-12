@@ -49,6 +49,12 @@ export const ENDPOINT_CATEGORIES: readonly EndpointCategory[] = [
     prefixes: ["/v1/audio"],
   },
   {
+    id: "elevenlabs",
+    label: "ElevenLabs Voice",
+    description: "Native ElevenLabs speech-to-text, text-to-speech and voices",
+    prefixes: ["/v1/speech-to-text", "/v1/text-to-speech", "/v1/voices"],
+  },
+  {
     id: "video",
     label: "Video",
     description: "Video generation",

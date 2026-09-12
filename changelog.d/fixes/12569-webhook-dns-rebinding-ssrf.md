@@ -1,0 +1,1 @@
+- fix(api): close DNS-rebinding SSRF gap in webhook outbound-URL guard (#12569)

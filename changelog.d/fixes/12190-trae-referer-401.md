@@ -1,0 +1,1 @@
+- fix(providers): refresh Trae's stale Referer/Origin and forward user timezone so imported connections stop failing with 401 (#12190)

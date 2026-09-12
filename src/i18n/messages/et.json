@@ -1824,6 +1824,9 @@
     "recentRequestsModel": "Mudel",
     "recentRequestsTokens": "Sisend / väljund",
     "recentRequestsWhen": "Millal",
+    "topologyLegendActive": "Aktiivne",
+    "topologyLegendRecent": "Hiljutine",
+    "topologyLegendError": "Viga",
     "downloadDmg": "Laadi alla DMG (macOS)",
     "downloadDmgDescription": "Saadaval on OmniRoute’i töölauarakenduse uus versioon. Värskendamiseks laadige alla ja installige macOS-i DMG-paigaldusprogramm (praegune: v{version}).",
     "downloadExe": "Laadi alla EXE (Windows)",
@@ -8642,7 +8645,9 @@
     "languagePacksList": "Keelepaketid: {packs}",
     "dragToReorder": "Lohistage etapi järjekorra muutmiseks",
     "engine": "Mootor",
-    "intensity": "Intensiivsus"
+    "intensity": "Intensiivsus",
+    "activeProfileMasterSwitchOffWarning": "__MISSING__:The active profile below will not run until the master \"Prompt Compression\" switch is turned on.",
+    "activeProfileMasterSwitchOffCta": "__MISSING__:Turn it on in Settings"
   },
   "compressionStudio": {
     "noRun": "Ühtegi tihenduskäivitust pole saadaval.",
@@ -8671,6 +8676,7 @@
     "run": "Käivita",
     "laneRejected": "tagasi lükatud: {reason}",
     "error": "viga",
+    "combinedError": "__MISSING__:Combined pipeline preview failed: {reason}",
     "combinedFlow": "Kombineeritud voog",
     "eachLayer": "Iga kiht eraldi",
     "diff": "Erinevus",
@@ -14004,7 +14010,18 @@
     "actionDone": "Toiming rakendatud",
     "actionFailed": "Toiming nurjus: {error}",
     "detailFailed": "Üksikasjade laadimine nurjus: {error}",
-    "mirroredInA2A": "Peegeldatud A2A-s"
+    "mirroredInA2A": "Peegeldatud A2A-s",
+    "compareMode": "Võrdle käivitusi",
+    "compareExit": "Välju võrdlusrežiimist",
+    "compareHint": "Valige võrdlemiseks kaks käivitust",
+    "compareTitle": "Võrdlus",
+    "compareDetailFailed": "Selle käivituse üksikasju ei õnnestunud laadida",
+    "compareDifferentIdentity": "Erinevad allikad või oskused — erinevused on informatiivsed",
+    "compareDuration": "Kestus",
+    "compareCost": "Maksumus",
+    "compareEvents": "Sündmused",
+    "compareDeltaLegend": "Δ parem − vasak",
+    "noMatches": "Ükski käivitus ei vasta neile filtritele"
   },
   "cliproxyProviderExposure": {
     "title": "Teenusepakkuja nähtavus",

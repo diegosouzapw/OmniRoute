@@ -545,6 +545,84 @@ export function saveModelsDevCapabilities(data: CapabilitiesByProvider): void {
 }
 
 /**
+ * Insert-or-replace one provider's capability rows without wiping the table.
+ * Used by the OpenRouter live catalog walk so architecture.input_modalities
+ * survive into the next combo LCD (#12613).
+ */
+export function upsertSyncedCapabilities(
+  provider: string,
+  models: Record<string, ModelCapabilityEntry>
+): void {
+  if (!provider || Object.keys(models).length === 0) return;
+  const db = getDbInstance();
+  ensureCapabilitiesTable();
+  const insert = db.prepare(`
+    INSERT INTO model_capabilities (
+      provider, model_id, tool_call, reasoning, attachment, structured_output,
+      temperature, modalities_input, modalities_output, knowledge_cutoff,
+      release_date, last_updated, status, family, open_weights,
+      limit_context, limit_input, limit_output, interleaved_field, last_synced
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(provider, model_id) DO UPDATE SET
+      tool_call=excluded.tool_call,
+      reasoning=excluded.reasoning,
+      attachment=excluded.attachment,
+      structured_output=excluded.structured_output,
+      temperature=excluded.temperature,
+      modalities_input=excluded.modalities_input,
+      modalities_output=excluded.modalities_output,
+      knowledge_cutoff=excluded.knowledge_cutoff,
+      release_date=excluded.release_date,
+      last_updated=excluded.last_updated,
+      status=excluded.status,
+      family=excluded.family,
+      open_weights=excluded.open_weights,
+      limit_context=excluded.limit_context,
+      limit_input=excluded.limit_input,
+      limit_output=excluded.limit_output,
+      interleaved_field=excluded.interleaved_field,
+      last_synced=excluded.last_synced
+  `);
+  const now = new Date().toISOString();
+  let changed = false;
+  const tx = db.transaction(() => {
+    for (const [modelId, cap] of Object.entries(models)) {
+      const info = insert.run(
+        provider,
+        modelId,
+        cap.tool_call === null ? null : cap.tool_call ? 1 : 0,
+        cap.reasoning === null ? null : cap.reasoning ? 1 : 0,
+        cap.attachment === null ? null : cap.attachment ? 1 : 0,
+        cap.structured_output === null ? null : cap.structured_output ? 1 : 0,
+        cap.temperature === null ? null : cap.temperature ? 1 : 0,
+        cap.modalities_input,
+        cap.modalities_output,
+        cap.knowledge_cutoff,
+        cap.release_date,
+        cap.last_updated,
+        cap.status,
+        cap.family,
+        cap.open_weights === null ? null : cap.open_weights ? 1 : 0,
+        cap.limit_context,
+        cap.limit_input,
+        cap.limit_output,
+        cap.interleaved_field,
+        now
+      );
+      if (info.changes > 0) changed = true;
+    }
+  });
+  tx();
+  if (cachedCapabilities) {
+    cachedCapabilities[provider] = {
+      ...(cachedCapabilities[provider] || {}),
+      ...models,
+    };
+  }
+  if (changed) invalidateDbCache("model-capabilities");
+}
+
+/**
  * Clear all synced capability data.
  */
 export function clearModelsDevCapabilities(): void {

@@ -308,13 +308,19 @@ export const providerModelMutationSchema = z.object({
     .optional(),
   // #9820: optional async video-generation job preset for a custom
   // OpenAI-compatible provider whose /videos surface is a submit→poll API
-  // (agnes-video-job, muapi-video-job, sora-job). Persisted on the custom model
+  // (agnes-video-job, agnes-video-2.5-job, muapi-video-job, sora-job). Persisted on the custom model
   // row; the /v1/videos/generations handler branches on it between the
   // synchronous OpenAI-compatible path and the job/poll path. `"openai-video"`
   // is a legacy no-op value that keeps the sync handler selected.
   generationConfig: z
     .object({
-      preset: z.enum(["agnes-video-job", "muapi-video-job", "sora-job", "openai-video"]),
+      preset: z.enum([
+        "agnes-video-job",
+        "agnes-video-2.5-job",
+        "muapi-video-job",
+        "sora-job",
+        "openai-video",
+      ]),
     })
     .optional(),
 });

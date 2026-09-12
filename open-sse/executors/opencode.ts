@@ -29,7 +29,15 @@ import {
   extractChatcmplId,
 } from "./accountRotation.ts";
 import { isOpencodeGeoBlocked, proxyKeyOf } from "./opencodeGeoBlock.ts";
+import { isRetriableUpstreamFailure } from "./opencodeTransientFailure.ts";
 import { isNetworkRotationSharedEgressGuardEnabled } from "@/shared/utils/featureFlags";
+
+/**
+ * The main OpenCode Zen host, shared by the `opencode` and `opencode-zen`
+ * registry entries. Used to scope the `x-api-key` auth override (#12633) away
+ * from `opencode-go`, which serves a different upstream (`.../zen/go/v1`).
+ */
+const ZEN_BASE_URL = "https://opencode.ai/zen/v1";
 
 /**
  * Per-account proxy configuration, persisted by NoAuthAccountCard under
@@ -504,6 +512,10 @@ export class OpencodeExecutor extends BaseExecutor {
 
       this.syncAccountsFromCredentials(input.credentials);
       const { log } = input;
+      // Request-scoped attribution prefix for rotation logs: message head,
+      // empty when absent (never n/a/none/fabricated). The existing motif
+      // stays byte-identical after the prefix.
+      const cid = input.correlationId ? `correlationId=${input.correlationId} ` : "";
 
       const hasProxies = this.accounts.some((a) => a.proxy !== null);
       // Fast path: no multi-account proxy wiring configured → original behavior,
@@ -533,7 +545,7 @@ export class OpencodeExecutor extends BaseExecutor {
               const chatcmplId = extractChatcmplId(bodyText);
               log?.warn?.(
                 "OPENCODE",
-                `upstream empty rejection on direct account (${chatcmplId}), retrying once…`
+                `${cid}upstream empty rejection on direct account (${chatcmplId}), retrying once…`
               );
               return this.normalizeMuseSparkResponse(input, await super.execute(input));
             }
@@ -567,8 +579,9 @@ export class OpencodeExecutor extends BaseExecutor {
       // through the accounts is the retry). Avoids an unbounded loop on a
       // persistently malformed upstream.
       const emptyRejectionBudget = this.accounts.length === 1 ? 1 : 0;
-      // 403-geo tried set: proxy keys already proven geo-blocked for this
-      // request's model. Request-local only — nothing persists past execute().
+      // Tried set: proxy keys already proven unusable for this request's
+      // model (geo-blocked, or transient 5xx). Request-local only — nothing
+      // persists past execute().
       const geoTriedProxyKeys = new Set<string>();
       let directTried = false;
 
@@ -594,15 +607,19 @@ export class OpencodeExecutor extends BaseExecutor {
         }
         const lastStatus = lastResult !== null ? lastResult.response.status : null;
         const lastWasGeo = lastStatus === 403 || lastStatus === 451;
+        const lastWasTransient = lastStatus !== null && lastStatus >= 500 && lastStatus < 600;
+        const isMonoRetryOwed = this.accounts.length === 1 && lastWasTransient;
         if (
+          !isMonoRetryOwed &&
           lastResult !== null &&
           geoTriedProxyKeys.size > 0 &&
           !isProxiedCandidate(account) &&
           !(account.proxy === null && !directTried)
         ) {
           // Geo exhaustion (last was 403/451) → surface as-is, no success mark.
+          // Transient exhaustion (last was 5xx) → same: surface last as-is.
           // Any other last status (e.g. 429 after 403s) → skip without a call.
-          if (lastWasGeo) break;
+          if (lastWasGeo || lastWasTransient) break;
           continue;
         }
         // Commit the last-resort direct attempt so a later exclusion breaks
@@ -614,7 +631,7 @@ export class OpencodeExecutor extends BaseExecutor {
         if (sharedEgressGuardEnabled && sharedEgressDown && !account.proxy) {
           log?.warn?.(
             "OPENCODE",
-            `skipping account ${masked} (no dedicated proxy, shared egress already down this request)`
+            `${cid}skipping account ${masked} (no dedicated proxy, shared egress already down this request)`
           );
           continue;
         }
@@ -625,7 +642,7 @@ export class OpencodeExecutor extends BaseExecutor {
         // Token stays masked — never log the full account id.
         log?.info?.(
           "OPENCODE",
-          `dispatch via account ${masked} (idx ${attempt + 1}/${this.accounts.length})` +
+          `${cid}dispatch via account ${masked} (idx ${attempt + 1}/${this.accounts.length})` +
             (account.proxy
               ? ` through proxy ${account.proxy.host}:${account.proxy.port}`
               : " direct")
@@ -657,20 +674,20 @@ export class OpencodeExecutor extends BaseExecutor {
               lastSharedEgressError = err;
               log?.warn?.(
                 "OPENCODE",
-                `network error on account ${masked} (no dedicated proxy, shared egress), cooldown applied — trying next available account… (${reason})`
+                `${cid}network error on account ${masked} (no dedicated proxy, shared egress), cooldown applied — trying next available account… (${reason})`
               );
               continue;
             }
             log?.warn?.(
               "OPENCODE",
-              `network error on account ${masked} (no dedicated proxy, shared egress) — not rotating (${reason})`
+              `${cid}network error on account ${masked} (no dedicated proxy, shared egress) — not rotating (${reason})`
             );
             throw err;
           }
           this.markCooldown(account);
           log?.warn?.(
             "OPENCODE",
-            `network error on account ${masked}, rotating to next… (${reason})`
+            `${cid}network error on account ${masked}, rotating to next… (${reason})`
           );
           continue;
         }
@@ -679,7 +696,28 @@ export class OpencodeExecutor extends BaseExecutor {
         const status = result.response.status;
         if (status === 429) {
           this.markCooldown(account);
-          log?.warn?.("OPENCODE", `Rate limited (429) on account ${masked}, rotating to next…`);
+          log?.warn?.(
+            "OPENCODE",
+            `${cid}Rate limited (429) on account ${masked}, rotating to next…`
+          );
+          continue;
+        }
+
+        if (isRetriableUpstreamFailure(status)) {
+          const key = proxyKeyOf(account.proxy);
+          if (key !== null) geoTriedProxyKeys.add(key);
+          else directTried = true;
+          log?.warn?.(
+            "OPENCODE",
+            `${cid}transient upstream ${status} on account ${masked} (proxy ${key ?? "direct"}), rotating to next…`
+          );
+          // Deliberately a separate branch from the 400-empty arm below,
+          // not one merged `if`: this arm never touches the body, the 400
+          // arm must clone-read it. Both share the predicate + tried-set.
+          // Single proxied account: one retry via the existing budget (a
+          // proxy-less single account takes the fast path, never the loop).
+          // Transient is not deterministic like geo: upstream may recover.
+          // No 0-retry guard here (it stays geo-only).
           continue;
         }
 
@@ -696,7 +734,7 @@ export class OpencodeExecutor extends BaseExecutor {
             else directTried = true;
             log?.warn?.(
               "OPENCODE",
-              `geo-blocked on account ${masked} (proxy ${key ?? "direct"}), rotating to next…`
+              `${cid}geo-blocked on account ${masked} (proxy ${key ?? "direct"}), rotating to next…`
             );
             // Single account with a proxy: 0 retries (same egress = dead latency).
             // (The fast path above already covers single-without-proxy; here length===1 WITH proxy.)
@@ -719,11 +757,11 @@ export class OpencodeExecutor extends BaseExecutor {
           } catch {
             log?.debug?.("OPENCODE", "body read failed on empty rejection check");
           }
-          if (bodyText !== null && isEmptyUpstreamRejection(400, bodyText)) {
+          if (bodyText !== null && isRetriableUpstreamFailure(400, bodyText)) {
             const chatcmplId = extractChatcmplId(bodyText);
             log?.warn?.(
               "OPENCODE",
-              `upstream empty rejection on account ${masked} (${chatcmplId}), rotating to next…`
+              `${cid}upstream empty rejection on account ${masked} (${chatcmplId}), rotating to next…`
             );
             continue;
           }
@@ -776,6 +814,20 @@ export class OpencodeExecutor extends BaseExecutor {
     }
   }
 
+  /**
+   * #12633: OpenCode Zen's `/v1/responses` endpoint (reached when
+   * `_requestFormat === "openai-responses"`, e.g. Muse Spark Contributor
+   * models) requires `x-api-key`, not `Authorization: Bearer` — unlike the
+   * default `/chat/completions` endpoint on the same host, which accepts
+   * Bearer. Scoped by baseUrl (not provider id/alias) so this only applies to
+   * the main Zen host (`opencode` / `opencode-zen`, both `https://opencode.ai/zen/v1`)
+   * and never to opencode-go, which serves Responses-format models from a
+   * different upstream (`https://opencode.ai/zen/go/v1`) that expects Bearer.
+   */
+  private usesZenApiKeyAuth(): boolean {
+    return this._requestFormat === "openai-responses" && this.config?.baseUrl === ZEN_BASE_URL;
+  }
+
   buildHeaders(
     credentials: ProviderCredentials | null,
     stream = true,
@@ -792,7 +844,7 @@ export class OpencodeExecutor extends BaseExecutor {
       : undefined;
 
     if (key) {
-      if (this._requestFormat === "claude") {
+      if (this._requestFormat === "claude" || this.usesZenApiKeyAuth()) {
         headers["x-api-key"] = key;
       } else {
         headers["Authorization"] = `Bearer ${key}`;

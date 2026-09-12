@@ -707,7 +707,10 @@ export default function ModelCompatPopover({
                       </div>
                       <button
                         type="button"
-                        disabled={disabled || headerRows.length <= 1}
+                        disabled={
+                          disabled ||
+                          (headerRows.length <= 1 && !row.name.trim() && !row.value.trim())
+                        }
                         onClick={() => removeHeaderRow(row.id)}
                         title={t("compatUpstreamRemoveRow")}
                         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border/80 text-text-muted hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-text-muted transition-colors"

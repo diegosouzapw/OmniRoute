@@ -10,6 +10,7 @@ import type {
   OmniRouteRawCombo,
   OmniRouteRawModelEntry,
 } from "./shared/index.js";
+import { isHttpUrl } from "./shared/index.js";
 
 export const DEFAULT_MODEL_CACHE_TTL_MS = 300_000 as const;
 
@@ -34,8 +35,9 @@ export const SNAPSHOT_FORMAT_VERSION = 2 as const;
 
 /**
  * A raw snapshot entry is stale when it cannot be mapped to a publishable
- * model: no string `id` (unroutable) or a pre-mapped `api` block without a
- * valid `npm` package (the runner would reject it as `Unsupported package`).
+ * model: no string `id` (unroutable), or a pre-mapped `api` block missing a
+ * valid `npm` package (the runner would reject it as `Unsupported package`)
+ * or a usable `url` (the host would reach the AI SDK with no baseURL).
  * Plain `/v1/models` entries carry no `api` block -- it is synthesized at
  * publish time -- so only a present-but-invalid block drops the entry.
  */
@@ -47,7 +49,11 @@ export function isStaleSnapshotModel(entry: unknown): boolean {
   if (api === undefined) return false;
   if (!api || typeof api !== "object") return true;
   const npm = (api as { npm?: unknown }).npm;
-  return typeof npm !== "string" || npm.length === 0;
+  if (typeof npm !== "string" || npm.length === 0) return true;
+  // Same requirement as `npm`, and the same predicate the options schema
+  // applies to `baseURL`: a pre-mapped block without a callable `url` publishes
+  // a model the host cannot route -- see `legacyApiToInfoApi`.
+  return !isHttpUrl((api as { url?: unknown }).url);
 }
 
 interface DiskSnapshotV2 {
@@ -145,7 +151,7 @@ export async function readDiskSnapshot(
       (entry) => !isStaleSnapshotModel(entry)
     );
     if (stale > 0) {
-      logger?.warn(`[omniroute-v2] dropping ${stale} stale snapshot entries without api block`);
+      logger?.warn(`[omniroute-v2] dropping ${stale} stale snapshot entries with an unusable api block`);
     }
     if (models.length === 0) return undefined;
     return {

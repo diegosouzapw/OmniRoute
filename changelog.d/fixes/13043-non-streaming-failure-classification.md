@@ -1,0 +1,1 @@
+- Restore provider failure classification and credential refresh on non-streaming requests: classify non-2xx failures to lock models on per-model quota exhaustion, update connection rate limits from headers and body, and pass credential refresh handlers to pipeline execution so 401 tokens can be refreshed and retried (#13043).

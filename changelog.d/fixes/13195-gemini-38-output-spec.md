@@ -1,0 +1,1 @@
+- **fix(models):** give discoverable Gemini 3.8 Flash ids their own 65536 output spec so Antigravity no longer clamps them to 16384 ([#13195](https://github.com/diegosouzapw/OmniRoute/pull/13195)) — thanks @HouMinXi

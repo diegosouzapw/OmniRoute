@@ -127,3 +127,38 @@ test("a throwing dep is swallowed (fail-open, non-critical)", () => {
   });
   assert.doesNotThrow(() => storeStreamingSemanticCacheResponse(baseArgs(), deps));
 });
+
+// #12734: tool_choice/tools/response_format must reach generateSignature so a cached
+// tool_calls streaming response cannot be replayed under a stricter tool policy.
+test("signature is called with tool_choice/tools/response_format from body (#12734)", () => {
+  let captured: unknown[] = [];
+  const { deps } = makeDeps({
+    generateSignature: (...a: unknown[]) => {
+      captured = a;
+      return "sig";
+    },
+  });
+  const tools = [{ type: "function", function: { name: "get_weather" } }];
+  storeStreamingSemanticCacheResponse(
+    baseArgs({
+      body: {
+        messages: [{ role: "user", content: "hi" }],
+        temperature: 0,
+        top_p: 1,
+        tool_choice: "none",
+        tools,
+        response_format: { type: "json_object" },
+      },
+    }),
+    deps
+  );
+  // args: (model, messages ?? input, temperature, top_p, apiKeyId, constraints)
+  const constraints = captured[5] as {
+    toolChoice: unknown;
+    tools: unknown;
+    responseFormat: unknown;
+  };
+  assert.equal(constraints.toolChoice, "none");
+  assert.deepEqual(constraints.tools, tools);
+  assert.deepEqual(constraints.responseFormat, { type: "json_object" });
+});

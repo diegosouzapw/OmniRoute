@@ -1,3 +1,4 @@
+import { CODEBUDDY_CN_USER_AGENT } from "@/lib/oauth/constants/oauth";
 import type { RegistryEntry } from "../../shared.ts";
 
 /**
@@ -20,7 +21,7 @@ export const codebuddy_cnProvider: RegistryEntry = {
   authType: "oauth",
   authHeader: "bearer",
   headers: {
-    "User-Agent": "CLI/2.108.1 CodeBuddy/2.108.1",
+    "User-Agent": CODEBUDDY_CN_USER_AGENT,
     "X-Product": "SaaS",
     "X-IDE-Type": "CLI",
     "X-IDE-Name": "CLI",

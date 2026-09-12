@@ -1,0 +1,1 @@
+- fix(db): scope local-provider apiKey dedup to matching base URL so LM Studio/Ollama-style connections support multiple accounts (#12173)

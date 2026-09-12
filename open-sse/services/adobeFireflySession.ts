@@ -13,8 +13,9 @@
  */
 
 import { createHash, randomUUID } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { ensureSecureDir, writeSecureFile } from "../utils/secureFileWrite.ts";
 import {
   AdobeFireflyError,
   buildAdobeArpSessionId,
@@ -147,7 +148,7 @@ function dataDir(): string {
 function sessionFilePath(fingerprint: string): string {
   const dir = join(dataDir(), SESSION_DIR_NAME);
   try {
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    ensureSecureDir(dir);
   } catch {
     /* ignore */
   }
@@ -232,7 +233,7 @@ export function markAdobeFireflyArpSuccess(fingerprint: string, arpSessionId: st
         const obj = JSON.parse(readFileSync(path, "utf8")) as AdobeFireflySession;
         obj.arpSessionId = arp;
         obj.updatedAt = Date.now();
-        writeFileSync(path, JSON.stringify(obj, null, 2), "utf8");
+        writeSecureFile(path, JSON.stringify(obj, null, 2));
         sessionCache.set(fp, { ...obj, fingerprint: fp });
       }
     } catch {
@@ -455,7 +456,7 @@ function saveDiskSession(session: AdobeFireflySession): void {
   if (!diskSessionsEnabled()) return;
   try {
     const path = sessionFilePath(session.fingerprint);
-    writeFileSync(path, JSON.stringify(session, null, 2), "utf8");
+    writeSecureFile(path, JSON.stringify(session, null, 2));
   } catch {
     /* best-effort */
   }

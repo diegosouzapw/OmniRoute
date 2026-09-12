@@ -160,7 +160,7 @@ export function isRecoverableCooldownConnection(
  * Pure — `nowMs` and `reprobeMs` are injected so callers/tests control the clock.
  */
 
-const EXPIRED_REPROBE_BLOCKLIST = new Set([
+export const EXPIRED_REPROBE_BLOCKLIST = new Set([
   "account_deactivated",
   "invalid_grant",
   "unrecoverable_refresh_error",

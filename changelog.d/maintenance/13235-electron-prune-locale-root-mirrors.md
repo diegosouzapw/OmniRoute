@@ -1,0 +1,1 @@
+- **chore(electron):** the desktop bundle no longer ships the root-level files of every translated docs mirror (`README.md`, `llm.txt`, `CLAUDE.md`, `GEMINI.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`) — the packaged app only reads `docs/i18n/<locale>/docs/**`, which stays. Saves ~11 MB on top of the translated CHANGELOGs already pruned. (#0000)

@@ -3,6 +3,7 @@
  * Pure data; merged by default-pricing.ts via spread (god-file decomposition; semantic split).
  */
 import {
+  GPT_6_ASTRA_PRICING,
   CLAUDE_FABLE_5_1_PRICING,
   CLAUDE_OPUS_5_PRICING,
   GEMINI_3_7_FLASH_PROMO_PRICING,
@@ -18,6 +19,10 @@ const ANTIGRAVITY_GEMINI_3_7_PRICING = {
   "gemini-3.7-flash-medium": GEMINI_3_7_FLASH_PROMO_PRICING,
   "gemini-3.7-flash-high": GEMINI_3_7_FLASH_PROMO_PRICING,
 };
+
+// Codex Standard: 250 / 25 / 1250 credits per MTok, at 25 credits per USD.
+// https://developers.openai.com/codex/pricing
+const GPT_6_ASTRA_CODEX_PRICING = GPT_6_ASTRA_PRICING;
 
 export const DEFAULT_PRICING_OAUTH = {
   cc: {
@@ -88,6 +93,13 @@ export const DEFAULT_PRICING_OAUTH = {
     },
   },
   cx: {
+    "gpt-6-astra": GPT_6_ASTRA_CODEX_PRICING,
+    "gpt-6-astra-ultra": GPT_6_ASTRA_CODEX_PRICING,
+    "gpt-6-astra-max": GPT_6_ASTRA_CODEX_PRICING,
+    "gpt-6-astra-xhigh": GPT_6_ASTRA_CODEX_PRICING,
+    "gpt-6-astra-high": GPT_6_ASTRA_CODEX_PRICING,
+    "gpt-6-astra-medium": GPT_6_ASTRA_CODEX_PRICING,
+    "gpt-6-astra-low": GPT_6_ASTRA_CODEX_PRICING,
     "codex-auto-review": GPT_5_5_PRICING,
     // Codex uses credits per 1M tokens. OmniRoute stores the dollar-equivalent
     // values below at the documented conversion of 25 credits per USD.

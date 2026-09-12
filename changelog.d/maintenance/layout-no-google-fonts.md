@@ -1,0 +1,1 @@
+- **build:** root layout no longer loads Inter from `next/font/google`, so a production image build does not need fonts.googleapis.com ([#13026](https://github.com/diegosouzapw/OmniRoute/pull/13026))

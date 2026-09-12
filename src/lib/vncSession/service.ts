@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { chmodSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
@@ -17,6 +17,8 @@ export interface VncSession {
   containerName: string;
   profileDir: string;
   cdpPort: number;
+  /** Shared secret the CDP bridge (docker/vnc-browser/chromium/cdp-bridge.py) requires (#12571). */
+  cdpToken: string;
   vncPort: number;
   url: string;
   status: VncSessionStatus;
@@ -138,6 +140,67 @@ function createProfileDir(connectionId: string, sessionId: string): string {
   return profileDir;
 }
 
+let networkEnsured = false;
+
+/**
+ * Creates the dedicated browser-login bridge network (#12571) if it does not
+ * already exist. Idempotent: `docker network create` failing because the
+ * network is already there is not an error.
+ */
+async function ensureNetwork(): Promise<void> {
+  if (networkEnsured) return;
+  const result = await docker(["network", "create", VNC_CONFIG.network], { timeoutMs: 15_000 });
+  if (result.code !== 0 && !/already exists/i.test(result.err)) {
+    throw new Error(result.err.trim() || `Could not create Docker network ${VNC_CONFIG.network}`);
+  }
+  networkEnsured = true;
+}
+
+/**
+ * Builds the `docker run` argument array for a browser-login container.
+ * Pulled out as a pure function so the security-relevant shape (dedicated
+ * network + CDP_BRIDGE_TOKEN, #12571) is directly testable without spawning
+ * Docker or touching the DB.
+ */
+export function buildRunArgs(params: {
+  containerName: string;
+  sessionId: string;
+  connectionId: string;
+  profileDir: string;
+  chromeCli: string;
+  cdpToken: string;
+}): string[] {
+  return [
+    "run",
+    "-d",
+    "--name",
+    params.containerName,
+    "--restart",
+    "no",
+    "--network",
+    VNC_CONFIG.network,
+    "--label",
+    `${LABEL}=true`,
+    "--label",
+    `${LABEL}.session-id=${params.sessionId}`,
+    "--label",
+    `${LABEL}.connection-id=${params.connectionId}`,
+    "--shm-size",
+    "1gb",
+    "-p",
+    `127.0.0.1::${VNC_CONFIG.containerVncPort}`,
+    "-p",
+    `127.0.0.1::${VNC_CONFIG.containerCdpPort}`,
+    "-v",
+    `${params.profileDir}:${VNC_CONFIG.containerProfileDir}`,
+    "-e",
+    `CHROME_CLI=${params.chromeCli}`,
+    "-e",
+    `CDP_BRIDGE_TOKEN=${params.cdpToken}`,
+    VNC_CONFIG.image,
+  ];
+}
+
 async function publishedPort(containerName: string, containerPort: number): Promise<number> {
   const result = await docker(["port", containerName, `${containerPort}/tcp`], {
     timeoutMs: 10_000,
@@ -176,6 +239,7 @@ export async function startSession(connectionId: string): Promise<VncSession> {
   const sessionId = randomUUID();
   const containerName = sessionKey(sessionId);
   const profileDir = createProfileDir(connectionId, sessionId);
+  const cdpToken = randomBytes(24).toString("hex");
   const state: VncSession = {
     sessionId,
     connectionId,
@@ -183,6 +247,7 @@ export async function startSession(connectionId: string): Promise<VncSession> {
     containerName,
     profileDir,
     cdpPort: 0,
+    cdpToken,
     vncPort: 0,
     url: provider.url,
     status: "starting",
@@ -193,33 +258,10 @@ export async function startSession(connectionId: string): Promise<VncSession> {
   SESSIONS.set(sessionId, state);
 
   try {
+    await ensureNetwork();
     const chromeCli = `${VNC_CONFIG.chromiumArgs} ${provider.url}`;
     const result = await docker(
-      [
-        "run",
-        "-d",
-        "--name",
-        containerName,
-        "--restart",
-        "no",
-        "--label",
-        `${LABEL}=true`,
-        "--label",
-        `${LABEL}.session-id=${sessionId}`,
-        "--label",
-        `${LABEL}.connection-id=${connectionId}`,
-        "--shm-size",
-        "1gb",
-        "-p",
-        `127.0.0.1::${VNC_CONFIG.containerVncPort}`,
-        "-p",
-        `127.0.0.1::${VNC_CONFIG.containerCdpPort}`,
-        "-v",
-        `${profileDir}:${VNC_CONFIG.containerProfileDir}`,
-        "-e",
-        `CHROME_CLI=${chromeCli}`,
-        VNC_CONFIG.image,
-      ],
+      buildRunArgs({ containerName, sessionId, connectionId, profileDir, chromeCli, cdpToken }),
       { timeoutMs: 120_000 }
     );
     if (result.code !== 0) {
@@ -234,7 +276,7 @@ export async function startSession(connectionId: string): Promise<VncSession> {
 
     state.vncPort = await publishedPort(containerName, VNC_CONFIG.containerVncPort);
     state.cdpPort = await publishedPort(containerName, VNC_CONFIG.containerCdpPort);
-    await waitForCdpReady(state.cdpPort, VNC_CONFIG.browserReadyTimeoutMs);
+    await waitForCdpReady(state.cdpPort, VNC_CONFIG.browserReadyTimeoutMs, state.cdpToken);
 
     state.status = "running";
     scheduleIdleSweep();
@@ -275,7 +317,8 @@ export async function harvestSession(
     const harvest = await harvestFromContainer(
       session.cdpPort,
       provider,
-      VNC_CONFIG.harvestTimeoutMs
+      VNC_CONFIG.harvestTimeoutMs,
+      session.cdpToken
     );
     session.lastHarvestAt = Date.now();
     if (!harvest.hasCredential) {

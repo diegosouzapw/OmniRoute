@@ -54,6 +54,8 @@ export async function POST(request: Request) {
         deletedRoutingDecisions: result.deletedRoutingDecisions,
         deletedQuotaConsumption: result.deletedQuotaConsumption,
         deletedTokenLedger: result.deletedTokenLedger,
+        deletedConversationTurnNodes: result.deletedConversationTurnNodes,
+        deletedAgenticConversations: result.deletedAgenticConversations,
         errors: result.errors,
       },
       { status: result.errors > 0 ? 500 : 200 }

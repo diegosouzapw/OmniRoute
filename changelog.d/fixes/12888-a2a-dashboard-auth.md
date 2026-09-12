@@ -1,0 +1,1 @@
+- fix(a2a): accept the dashboard's own session cookie on /a2a so "Run message/send" no longer fails with "Unauthorized: missing or invalid API key" (#12888)

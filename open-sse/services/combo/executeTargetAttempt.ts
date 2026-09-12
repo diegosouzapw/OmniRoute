@@ -78,6 +78,7 @@ import {
   isQuotaExhaustionResponse,
   recordQuotaExhaustionClassification,
 } from "./quotaExhaustion.ts";
+import { markAccountExhaustedFromCredits } from "../../../src/domain/quotaCache.ts";
 import { classifyComboOutcome, redactConnectionLabel } from "./comboErrorAggregation.ts";
 import { readConnectionForCooldownGate } from "./executeTargetGates.ts";
 import {
@@ -994,6 +995,12 @@ export async function executeTargetAttempt(opts: {
 
     const quotaExhausted = await isQuotaExhaustionResponse(result, provider, rawModel, profile);
     recordQuotaExhaustionClassification(result, quotaExhausted);
+    // Balance exhaustion is upstream truth about credits, and it outranks the
+    // stored snapshot — which can be hours stale and still claim headroom. Mark
+    // it so the next quota-weighted draw stops picking this connection.
+    if (quotaExhausted && result.status === 402 && targetWithConnection.connectionId && provider) {
+      markAccountExhaustedFromCredits(targetWithConnection.connectionId, provider);
+    }
     state.observeFailure(quotaExhausted, target.executionKey);
 
     // Check if this is a transient error worth retrying on same model.

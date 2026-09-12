@@ -1,0 +1,1 @@
+- **fix(catalog):** degrade unknown combo targets instead of dropping LCD modalities, and persist OpenRouter `architecture.input_modalities` into the capability snapshot ([#12613](https://github.com/diegosouzapw/OmniRoute/issues/12613))

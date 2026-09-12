@@ -77,16 +77,36 @@ function normalizeOllamaCloudCookie(value: string): string {
     : trimmed;
 }
 
+function clampPercent(pct: number): number | null {
+  return Number.isFinite(pct) && pct >= 0 && pct <= 100 ? pct : null;
+}
+
+function extractAriaLabelPercent(tagHeader: string): number | null {
+  const directMatch = tagHeader.match(/(\d+(?:\.\d+)?)%\s*used/);
+  if (directMatch) return clampPercent(toNumber(directMatch[1], Number.NaN));
+  const ratioMatch = tagHeader.match(/\$\s*([0-9.]+)\s*of\s*\$\s*([0-9.]+)\s*used/i);
+  if (!ratioMatch) return null;
+  const used = toNumber(ratioMatch[1], Number.NaN);
+  const total = toNumber(ratioMatch[2], Number.NaN);
+  if (!Number.isFinite(used) || !Number.isFinite(total) || total <= 0) return null;
+  return clampPercent((used / total) * 100);
+}
+
+function extractWidthStylePercent(html: string): number | null {
+  const styleMatches = html.matchAll(/style="([^"]*)"/g);
+  for (const match of styleMatches) {
+    const pct = toNumber(match[1].match(/(?:^|;)\s*width\s*:\s*([0-9.]+)%/)?.[1], Number.NaN);
+    const clamped = clampPercent(pct);
+    if (clamped !== null) return clamped;
+  }
+  return null;
+}
+
 function extractOllamaUsagePercent(trackHtml: string): number | null {
   const tagHeader = trackHtml.match(/^[^>]*/)?.[0] ?? "";
-  const ariaMatch = tagHeader.match(/(\d+(?:\.\d+)?)%\s*used/);
-  if (ariaMatch) {
-    const pct = toNumber(ariaMatch[1], Number.NaN);
-    if (Number.isFinite(pct) && pct >= 0 && pct <= 100) return pct;
-  }
-  const style = tagHeader.match(/style="([^"]*)"/)?.[1] ?? "";
-  const pct = toNumber(style.match(/(?:^|;)\s*width\s*:\s*([0-9.]+)%/)?.[1], Number.NaN);
-  return Number.isFinite(pct) && pct >= 0 && pct <= 100 ? pct : null;
+  const ariaPercent = extractAriaLabelPercent(tagHeader);
+  if (ariaPercent !== null) return ariaPercent;
+  return extractWidthStylePercent(trackHtml);
 }
 
 function parseOllamaCloudSettingsHtml(html: string): OllamaCloudUsage | null {

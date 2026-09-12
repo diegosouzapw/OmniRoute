@@ -1,0 +1,1 @@
+- fix(sse): add first-byte watchdog to the TLS-fingerprint transport so a stalled wreq body falls back instead of hanging for minutes (#12656)

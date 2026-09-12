@@ -22,6 +22,9 @@ type CacheBody = {
   input?: unknown;
   temperature?: number;
   top_p?: number;
+  tool_choice?: unknown;
+  tools?: unknown;
+  response_format?: unknown;
 };
 
 type UsageLike = { prompt_tokens?: number; completion_tokens?: number } | null | undefined;
@@ -65,7 +68,12 @@ export function storeSemanticCacheResponse(
     args.body.messages ?? args.body.input,
     args.body.temperature,
     args.body.top_p,
-    args.apiKeyId ?? undefined
+    args.apiKeyId ?? undefined,
+    {
+      toolChoice: args.body.tool_choice,
+      tools: args.body.tools,
+      responseFormat: args.body.response_format,
+    }
   );
   const tokensSaved = args.usage?.prompt_tokens + args.usage?.completion_tokens || 0;
   deps.setCachedResponse(signature, args.model, args.translatedResponse, tokensSaved);

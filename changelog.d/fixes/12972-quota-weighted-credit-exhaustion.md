@@ -1,0 +1,1 @@
+- **fix(combo):** quota-weighted routing stops drawing on an out-of-credit connection — a 402 now invalidates the stored quota snapshot instead of leaving its stale remaining percentage in place, and a snapshot older than 10 minutes no longer counts as confident headroom for the primary pool ([#12972](https://github.com/diegosouzapw/OmniRoute/pull/12972)) — thanks @HouMinXi

@@ -244,6 +244,10 @@ export const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   // the existing override affordance for these two ids.
   "kimi",
   "moonshot",
+  // Agnes CN-region keys (agnes-ai.cn) use a separate host from
+  // the international apihub.agnes-ai.com default. Same always-on field as
+  // #7447 Kimi/Moonshot so Add-connection can point at api.agnes-ai.cn.
+  "agnes",
 ]);
 
 export const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
@@ -261,6 +265,7 @@ export const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   // before; a CN-region user overrides it (see placeholder hint below).
   kimi: "https://api.moonshot.ai/v1",
   moonshot: "https://api.moonshot.ai/v1",
+  agnes: "https://apihub.agnes-ai.com/v1",
 };
 
 export function getLocalProviderMetadata(providerId?: string | null) {
@@ -372,6 +377,8 @@ export function getProviderBaseUrlPlaceholder(providerId?: string | null) {
       // #7447 — surfaces the CN-region alternative host as the placeholder
       // example (mirrors the siliconflow.com/siliconflow.cn pattern above).
       return "https://api.moonshot.cn/v1";
+    case "agnes":
+      return "https://api.agnes-ai.cn/v1";
     default:
       return "";
   }

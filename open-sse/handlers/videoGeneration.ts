@@ -195,10 +195,13 @@ export async function handleVideoGeneration({ body, credentials, log, resolvedPr
       log,
     });
   }
-  if (getVideoJobPreset(providerConfig.format)) {
+  const modelJobPreset = providerConfig.models.find((entry) => entry.id === model)?.jobPreset;
+  const jobPresetName =
+    typeof modelJobPreset === "string" && modelJobPreset ? modelJobPreset : providerConfig.format;
+  if (getVideoJobPreset(jobPresetName)) {
     return handleVideoJobGeneration({
       model,
-      presetName: providerConfig.format,
+      presetName: jobPresetName,
       body,
       credentials,
       log,

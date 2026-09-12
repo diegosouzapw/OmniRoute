@@ -62,28 +62,33 @@ const LEAKS = [
     message:
       "ENOENT: no such file or directory, open '/home/operator/.omniroute/data/tunnels.json'",
     secrets: ["/home/operator", "tunnels.json"],
+    sharedSanitizerCovers: true,
   },
   {
     label: "binary path (no extension)",
     message: "spawn /usr/local/bin/cloudflared ENOENT",
     secrets: ["/usr/local/bin/cloudflared"],
+    sharedSanitizerCovers: true,
   },
   {
     label: "tailscale auth key",
     message: "tailscale up failed: invalid key tskey-auth-kMn3Qz7RtY-9fVbXsPq2LdWc",
     secrets: ["tskey-auth-kMn3Qz7RtY-9fVbXsPq2LdWc"],
+    sharedSanitizerCovers: false,
   },
   {
     label: "daemon state path",
     message:
       "Command failed: /opt/omniroute/bin/tailscaled --state=/var/lib/tailscale/tailscaled.state",
     secrets: ["/opt/omniroute/bin/tailscaled", "/var/lib/tailscale"],
+    sharedSanitizerCovers: true,
   },
   {
     label: "windows config path",
     message:
       "listen EADDRINUSE: address already in use 0.0.0.0:41641 (config C:\\Users\\operator\\AppData\\omniroute\\ngrok.yml)",
     secrets: ["C:\\Users\\operator", "ngrok.yml"],
+    sharedSanitizerCovers: true,
   },
 ] as const;
 
@@ -101,18 +106,30 @@ async function withSilencedConsoleError<T>(fn: () => T | Promise<T>): Promise<[T
   }
 }
 
-// ── Why a dedicated module: sanitizeErrorMessage does not cover these ───────
+// ── Why a dedicated module: sanitizeErrorMessage does not cover all of these ─
 
-test("sanitizeErrorMessage alone leaves every tunnel leak shape intact", () => {
+test("sanitizeErrorMessage covers the path shapes and still misses the auth key", () => {
+  // #12506 taught the shared sanitizer to redact filesystem paths, so the four
+  // path-shaped leaks below are handled upstream now — a real improvement, and
+  // the reason this test no longer claims "every shape survives". The tailscale
+  // auth key is not path-shaped and is still echoed verbatim, which is why the
+  // routes must keep going through publicSafeTunnelError rather than trusting
+  // the shared sanitizer. Flip an entry's `sharedSanitizerCovers` the day that
+  // changes; never relax the public-body assertions below it.
   for (const leak of LEAKS) {
     const out = sanitizeErrorMessage(leak.message);
     const stillLeaks = leak.secrets.some((s) => out.includes(s));
-    assert.ok(
+    assert.equal(
       stillLeaks,
-      `${leak.label}: sanitizeErrorMessage unexpectedly covers this now — if the ` +
-        `shared sanitizer grew to handle it, simplify publicSafeTunnelError accordingly. Got: ${out}`
+      !leak.sharedSanitizerCovers,
+      `${leak.label}: shared-sanitizer coverage changed — expected ` +
+        `${leak.sharedSanitizerCovers ? "covered" : "still leaking"}, got: ${out}`
     );
   }
+  assert.ok(
+    LEAKS.some((leak) => !leak.sharedSanitizerCovers),
+    "publicSafeTunnelError would be redundant if the shared sanitizer covered every shape"
+  );
 });
 
 // ── The public-safe contract ───────────────────────────────────────────────

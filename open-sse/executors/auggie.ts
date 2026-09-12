@@ -294,6 +294,24 @@ function isEnoentLike(message: string): boolean {
   return message.includes("ENOENT") || message.includes("not found");
 }
 
+// Windows cmd.exe and POSIX shells never raise a Node `spawn` 'error' event for a
+// missing binary when `shell: true` is used (see buildAuggieSpawnOptions) — they
+// report it as a normal non-zero exit with the "not found" text on stderr instead.
+// Recognize that shape too so the `close` handlers give the same actionable
+// cliNotFoundMessage() as the `error` handlers already do. See #12645.
+const CLI_NOT_FOUND_STDERR_PATTERNS = [
+  /is not recognized as an internal or external command/i,
+  /command not found/i,
+  // dash/POSIX `sh` shells report a missing executable as `<name>: not found`
+  // (no literal "command"), e.g. "sh: 1: auggie: not found".
+  /:\s*not found\s*$/im,
+  /No such file or directory/i,
+];
+
+function isCliNotFoundText(stderrTail: string): boolean {
+  return CLI_NOT_FOUND_STDERR_PATTERNS.some((pattern) => pattern.test(stderrTail));
+}
+
 export type AuggieCliVersionCheck = { ok: boolean; version?: string; error?: string };
 
 /**
@@ -580,9 +598,11 @@ export class AuggieExecutor extends BaseExecutor {
           if (finished) return;
           if (code !== 0) {
             emitError(
-              sanitizeErrorMessage(
-                `Auggie CLI exited with code ${code}${stderrTail ? `: ${stderrTail}` : ""}`
-              )
+              isCliNotFoundText(stderrTail)
+                ? cliNotFoundMessage(auggieBin)
+                : sanitizeErrorMessage(
+                    `Auggie CLI exited with code ${code}${stderrTail ? `: ${stderrTail}` : ""}`
+                  )
             );
             return;
           }
@@ -664,9 +684,11 @@ export class AuggieExecutor extends BaseExecutor {
         if (code !== 0) {
           settle(
             buildAuggieErrorResponse(
-              sanitizeErrorMessage(
-                `Auggie CLI exited with code ${code}${stderrTail ? `: ${stderrTail}` : ""}`
-              )
+              isCliNotFoundText(stderrTail)
+                ? cliNotFoundMessage(auggieBin)
+                : sanitizeErrorMessage(
+                    `Auggie CLI exited with code ${code}${stderrTail ? `: ${stderrTail}` : ""}`
+                  )
             )
           );
           return;

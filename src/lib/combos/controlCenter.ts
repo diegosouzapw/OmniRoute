@@ -1,4 +1,6 @@
 import { normalizeComboModels, type ComboStep } from "./steps";
+import { resolveComboTargetModelStr } from "../../../open-sse/services/combo/opencodeTargetAlias.ts";
+import { resolveProviderAlias } from "../../../open-sse/services/model.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -108,9 +110,15 @@ function toString(value: unknown): string | null {
 
 function providerFromModel(model: string | null | undefined): string | null {
   if (!model) return null;
-  const slashIndex = model.indexOf("/");
+  // #11912: resolve through the same "opencode" -> "oc" combo-target alias
+  // treatment (and then the general alias table) that target resolution
+  // applies before dispatch, so this label matches what actually executed
+  // upstream instead of a raw, un-aliased prefix slice.
+  const normalized = resolveComboTargetModelStr(model);
+  const slashIndex = normalized.indexOf("/");
   if (slashIndex <= 0) return null;
-  return model.slice(0, slashIndex);
+  const prefix = normalized.slice(0, slashIndex);
+  return resolveProviderAlias(prefix) || prefix;
 }
 
 function normalizeSuccessRate(value: unknown): number {

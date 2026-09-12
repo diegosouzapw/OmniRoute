@@ -1,0 +1,1 @@
+- fix(sse): cap HuggingChat NDJSON body size and bound the read loop with the fetch timeout so a stalled or hostile upstream cannot buffer unbounded memory (#12577)

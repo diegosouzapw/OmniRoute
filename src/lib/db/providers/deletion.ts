@@ -19,6 +19,7 @@ import {
 import { invalidateDbCache } from "../readCache";
 import { invalidateReasoningRoutingRuleCache } from "../reasoningRoutingRules";
 import { bumpProxyConfigGeneration } from "../settings";
+import { deleteSyncedAvailableModelsForProvider } from "../models";
 import { toRecord } from "./columns";
 
 interface StatementLike<TRow = unknown> {
@@ -189,6 +190,12 @@ export async function deleteProviderConnectionsByProvider(providerId: string) {
   backupDbFile("pre-write");
   invalidateDbCache("connections");
   invalidateReasoningRoutingRuleCache();
+  bumpProxyConfigGeneration();
+  try {
+    await deleteSyncedAvailableModelsForProvider(providerId);
+  } catch {
+    // Rows are already gone. Do not turn a leftover purge into a 500.
+  }
   return result.changes;
 }
 

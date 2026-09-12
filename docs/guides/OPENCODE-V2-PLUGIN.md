@@ -77,7 +77,7 @@ naming the endpoint and what was lost — so a degraded picker is never a myster
 | Key                              | Default                                        | Notes                                                                                                  |
 | -------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | `providerId`                     | `"omniroute"`                                  | Provider id, integration id, and the prefix models appear under                                        |
-| `baseURL`                        | required                                       | Gateway root; the `/v1` suffix is added where needed                                                   |
+| `baseURL`                        | required                                       | Gateway root, `http(s)` only; the `/v1` suffix is added where needed                                   |
 | `apiKey`                         | connected credential, then `OMNIROUTE_API_KEY` | Chat key for `/v1/*`                                                                                   |
 | `managementReadToken`            | falls back to `apiKey`                         | Key for `/api/*` — usually **not** the same one                                                        |
 | `displayName`                    | `"OmniRoute"`                                  | Provider name in the picker                                                                            |

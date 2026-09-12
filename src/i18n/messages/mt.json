@@ -1824,6 +1824,9 @@
     "recentRequestsModel": "Mudell",
     "recentRequestsTokens": "Dħul / Ħruġ",
     "recentRequestsWhen": "Meta",
+    "topologyLegendActive": "Attiv",
+    "topologyLegendRecent": "Riċenti",
+    "topologyLegendError": "Żball",
     "downloadDmg": "Niżżel id-DMG (macOS)",
     "downloadDmgDescription": "Verżjoni ġdida tal-app tad-desktop OmniRoute hija disponibbli. Jekk jogħġbok niżżel u installa l-installatur DMG għal macOS biex taġġorna (attwali: v{version}).",
     "downloadExe": "Niżżel l-EXE (Windows)",
@@ -8642,7 +8645,9 @@
     "languagePacksList": "Pakketti tal-lingwa: {packs}",
     "dragToReorder": "Iddreggja biex tibdel l-ordni tal-pass",
     "engine": "Magna",
-    "intensity": "Intensità"
+    "intensity": "Intensità",
+    "activeProfileMasterSwitchOffWarning": "__MISSING__:The active profile below will not run until the master \"Prompt Compression\" switch is turned on.",
+    "activeProfileMasterSwitchOffCta": "__MISSING__:Turn it on in Settings"
   },
   "compressionStudio": {
     "noRun": "Ebda eżekuzzjoni tal-kompressjoni mhi disponibbli.",
@@ -8671,6 +8676,7 @@
     "run": "Ħaddem",
     "laneRejected": "irrifjutat: {reason}",
     "error": "żball",
+    "combinedError": "__MISSING__:Combined pipeline preview failed: {reason}",
     "combinedFlow": "Fluss ikkombinat",
     "eachLayer": "Kull saff separatament",
     "diff": "Differenza",
@@ -14004,7 +14010,18 @@
     "actionDone": "Azzjoni applikata",
     "actionFailed": "L-azzjoni falliet: {error}",
     "detailFailed": "Ma rnexxiex jittella' d-dettalji: {error}",
-    "mirroredInA2A": "Rifless f'A2A"
+    "mirroredInA2A": "Rifless f'A2A",
+    "compareMode": "Qabbel it-tħaddim",
+    "compareExit": "Oħroġ mill-modalità ta’ tqabbil",
+    "compareHint": "Agħżel żewġ tħaddimiet biex tqabbel",
+    "compareTitle": "Tqabbil",
+    "compareDetailFailed": "Ma setgħux jitniżżlu d-dettalji ta’ dan it-tħaddim",
+    "compareDifferentIdentity": "Sorsi jew ħiliet differenti — id-differenzi huma informattivi",
+    "compareDuration": "Tul",
+    "compareCost": "Spiża",
+    "compareEvents": "Avvenimenti",
+    "compareDeltaLegend": "Δ lemin − xellug",
+    "noMatches": "L-ebda tħaddim ma jaqbel ma’ dawn il-filtri"
   },
   "cliproxyProviderExposure": {
     "title": "Espożizzjoni tal-Fornitur",

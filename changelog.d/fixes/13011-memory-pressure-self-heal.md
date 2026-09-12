@@ -1,0 +1,1 @@
+- **fix(db):** add an opt-in self-restart circuit for sustained critical memory pressure, gate post-cleanup VACUUM behind a minimum freed-rows threshold, and checkpoint the SQLite WAL every 5 minutes with a size guard that escalates to TRUNCATE, so a growing WAL can no longer stall the event loop into a full outage.

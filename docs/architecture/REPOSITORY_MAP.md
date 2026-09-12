@@ -418,7 +418,7 @@ open-sse/
 | `REASONING_REPLAY.md`      | Hybrid memory/SQLite cache for `reasoning_content`                   |
 | `AUTHZ_GUIDE.md`           | Authorization pipeline (`classify` → `policies` → `enforce`)         |
 | `RESILIENCE_GUIDE.md`      | Circuit breaker + cooldown + model lockout                           |
-| `STEALTH_GUIDE.md`         | TLS fingerprinting (JA3/JA4), Claude Code CCH, MITM cert             |
+| `docs/security/STEALTH_GUIDE.md` (git only)         | TLS fingerprinting (JA3/JA4), Claude Code CCH, MITM cert             |
 | `AUTO-COMBO.md`            | Auto Combo engine (16-factor scoring, 6 mode packs, virtual factory) |
 
 ### Compression

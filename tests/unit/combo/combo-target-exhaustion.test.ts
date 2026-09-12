@@ -36,6 +36,7 @@ const baseOpts = {
   rawModel: "m1",
   isTokenLimitBreach: false,
   allAccountsRateLimited: false,
+  requestScopedFailure: false,
   log,
   tag: "COMBO",
   exhaustedLogLevel: "info" as const,
@@ -682,6 +683,61 @@ test("sibling connection on the same provider is NOT skipped after a different c
   // The failing connection itself IS marked.
   assert.ok(s.exhaustedConnections.has(`${failingTarget.provider}:${failingTarget.connectionId}`));
 });
+
+test("grok-cli 402 marks only the empty connection, not the whole provider", () => {
+  const s = sets();
+  const empty = target({
+    provider: "grok-cli",
+    connectionId: "qq-empty",
+    modelStr: "grok-cli/grok-4.6",
+  });
+  const sibling = target({
+    provider: "grok-cli",
+    connectionId: "hotmail-live",
+    modelStr: "grok-cli/grok-4.6",
+  });
+
+  const exhausted = applyComboTargetExhaustion(empty, {
+    ...baseOpts,
+    result: { status: 402 },
+    fallbackResult: { creditsExhausted: true, reason: "quota_exhausted" },
+    errorText: "Grok Build usage balance exhausted",
+    rawModel: "grok-4.6",
+    sets: s,
+  });
+
+  assert.equal(exhausted, true);
+  assert.ok(s.exhaustedConnections.has("grok-cli:qq-empty"));
+  assert.equal(
+    s.exhaustedProviders.has("grok-cli"),
+    false,
+    "sibling grok-cli accounts still have weekly credits"
+  );
+  assert.equal(s.exhaustedConnections.has("grok-cli:hotmail-live"), false);
+  void sibling;
+});
+
+for (const provider of ["grok-web", "xai-oauth"] as const) {
+  test(`${provider} 402 with empty body marks only that connection`, () => {
+    const s = sets();
+    const empty = target({
+      provider,
+      connectionId: "empty",
+      modelStr: `${provider}/m`,
+    });
+    const exhausted = applyComboTargetExhaustion(empty, {
+      ...baseOpts,
+      result: { status: 402 },
+      fallbackResult: {},
+      errorText: "",
+      rawModel: "m",
+      sets: s,
+    });
+    assert.equal(exhausted, true);
+    assert.ok(s.exhaustedConnections.has(`${provider}:empty`));
+    assert.equal(s.exhaustedProviders.has(provider), false);
+  });
+}
 
 test("401 carrying a real fingerprint signal still marks auth-level (exemption is 403-only)", () => {
   // Round 4 finding: Cloudflare 1010 is a 403-only CDN signal. A 401 invalid-credential

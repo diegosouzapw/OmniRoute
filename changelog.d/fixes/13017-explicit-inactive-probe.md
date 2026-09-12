@@ -1,0 +1,1 @@
+- **fix(auth):** an explicit connection pin may probe a quota-disabled row once and re-enable it on success ([#12874](https://github.com/diegosouzapw/OmniRoute/issues/12874)) ([#13017](https://github.com/diegosouzapw/OmniRoute/pull/13017))

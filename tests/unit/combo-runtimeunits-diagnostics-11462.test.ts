@@ -8,7 +8,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { executeRuntimeUnitCombo } from "../../open-sse/services/combo/runtimeUnits.ts";
-import type { ResolvedComboUnit, ComboNestingContext } from "../../open-sse/services/combo/types.ts";
+import type {
+  ResolvedComboUnit,
+  ComboNestingContext,
+} from "../../open-sse/services/combo/types.ts";
 
 function noopLog() {
   return { info: () => {}, warn: () => {}, error: () => {}, debug: () => {} };
@@ -86,3 +89,71 @@ test(
     assert.equal(body.diagnostics?.terminalReason, "max_attempts_exceeded");
   }
 );
+
+test("nested runtime-unit dispatch stamps fallbackAttempts from the unit index", async () => {
+  const units: ResolvedComboUnit[] = [
+    {
+      kind: "model",
+      stepId: "step-a",
+      executionKey: "a",
+      modelStr: "openai/ru-a",
+      provider: "openai",
+      providerId: null,
+      connectionId: null,
+      weight: 1,
+      label: null,
+    },
+    {
+      kind: "model",
+      stepId: "step-b",
+      executionKey: "b",
+      modelStr: "anthropic/ru-b",
+      provider: "anthropic",
+      providerId: null,
+      connectionId: null,
+      weight: 1,
+      label: null,
+    },
+  ];
+  const nesting: ComboNestingContext = {
+    depth: 0,
+    maxDepth: 5,
+    visitedComboNames: [],
+    rootComboName: "ru-fallback-12339",
+    attemptBudget: { count: 0, limit: 8 },
+  };
+  const seen: Array<{ model: string; fallbackAttempts?: number }> = [];
+  const ok = () =>
+    new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  await executeRuntimeUnitCombo({
+    body: { messages: [{ role: "user", content: "hi" }] },
+    combo: { name: "ru-fallback-12339", strategy: "pipeline" },
+    strategy: "pipeline",
+    units,
+    handleSingleModel: async (_body, modelStr, target) => {
+      seen.push({
+        model: modelStr,
+        fallbackAttempts: (target as { fallbackAttempts?: number } | undefined)?.fallbackAttempts,
+      });
+      if (modelStr === "openai/ru-a") {
+        return new Response(JSON.stringify({ error: { message: "upstream 500" } }), {
+          status: 500,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return ok();
+    },
+    log: noopLog() as never,
+    config: { maxRetries: 0, retryDelayMs: 0 },
+    allCombos: [],
+    nesting,
+    baseOptions: {} as never,
+    runCombo: async () => failResponse(),
+  });
+  assert.equal(seen.length, 2);
+  assert.equal(seen[0].fallbackAttempts, 0);
+  assert.equal(seen[1].fallbackAttempts, 1);
+});

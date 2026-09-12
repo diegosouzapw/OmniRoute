@@ -1,0 +1,1 @@
+- **fix(vision):** Custom Models with "Vision capable" checked no longer have image requests swapped to `glm/glm-4.6v` when the client sends the advertised alias (`vllm/path/...`) or the bare path-shaped id — Vision Bridge now matches the stored override for all three id forms ([#12758](https://github.com/diegosouzapw/OmniRoute/issues/12758))

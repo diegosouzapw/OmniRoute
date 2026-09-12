@@ -14,6 +14,8 @@
  * packs, "Bonus Pack N" for bonus packs (soonest-expiring first).
  */
 
+import { CODEBUDDY_CN_USER_AGENT } from "@/lib/oauth/constants/oauth";
+
 const USAGE_URL = "https://copilot.tencent.com/v2/billing/meter/get-user-resource";
 
 interface TencentAccount {
@@ -130,7 +132,7 @@ export async function getCodeBuddyCnUsage(
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
         Accept: "application/json",
-        "User-Agent": "CLI/2.108.1 CodeBuddy/2.108.1",
+        "User-Agent": CODEBUDDY_CN_USER_AGENT,
         "X-Product": "SaaS",
         "X-IDE-Type": "CLI",
         "X-IDE-Name": "CLI",

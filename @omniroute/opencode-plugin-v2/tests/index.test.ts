@@ -6,6 +6,33 @@ interface CapturedCall {
   kind: "catalog" | "integration";
 }
 
+/**
+ * Wait until `read()` stops changing, then return the settled value.
+ *
+ * The plugin's optional tier lands asynchronously after a publish. Waiting for
+ * it with a fixed `sleep(5)` raced the work: under load the tier arrived after
+ * the sleep, so the *next* assertion counted its reload and read 2 where it
+ * expected 1. Polling until the value holds steady for a few consecutive turns
+ * ties the wait to the work instead of to the clock.
+ */
+async function settle<T>(read: () => T, quietTurns = 3, timeoutMs = 5000): Promise<T> {
+  const { setTimeout: sleep } = await import("node:timers/promises");
+  const deadline = Date.now() + timeoutMs;
+  let last = read();
+  let stable = 0;
+  while (stable < quietTurns && Date.now() < deadline) {
+    await sleep(5);
+    const current = read();
+    if (current === last) {
+      stable += 1;
+    } else {
+      last = current;
+      stable = 0;
+    }
+  }
+  return last;
+}
+
 interface FakeCtx {
   options: Record<string, unknown>;
   catalog: {
@@ -163,7 +190,6 @@ describe("plugin-v2 entrypoint", () => {
     const { mkdtempSync } = await import("node:fs");
     const { tmpdir } = await import("node:os");
     const { join } = await import("node:path");
-    const { setTimeout: sleep } = await import("node:timers/promises");
     const dir = mkdtempSync(join(tmpdir(), "omniroute-lazy-"));
     const prevDataDir = process.env.OPENCODE_DATA_DIR;
     process.env.OPENCODE_DATA_DIR = dir;
@@ -222,16 +248,15 @@ describe("plugin-v2 entrypoint", () => {
       await cb(draft);
       assert.equal(reloads, 0, "the first publish sets the baseline, it does not reload");
       assert.equal(modelsCall, 1);
-      await sleep(5);
       // The optional tier lands after that first publish and brings combos and
       // the overlay with it — one reload, so the picker shows them without
       // waiting for the next refresh.
-      const afterFirstUpgrade = reloads;
+      const afterFirstUpgrade = await settle(() => reloads);
       assert.ok(afterFirstUpgrade <= 1, `at most one reload for the first upgrade, got ${reloads}`);
       await cb(draft);
       assert.equal(reloads, afterFirstUpgrade + 1, "a new model id reloads once");
       assert.equal(modelsCall, 2);
-      await sleep(5);
+      await settle(() => reloads);
       await cb(draft);
       assert.equal(reloads, afterFirstUpgrade + 1, "an identical run never reloads");
       assert.equal(modelsCall, 3);

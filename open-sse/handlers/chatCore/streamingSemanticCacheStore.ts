@@ -23,6 +23,9 @@ type CacheBody = {
   input?: unknown;
   temperature?: number;
   top_p?: number;
+  tool_choice?: unknown;
+  tools?: unknown;
+  response_format?: unknown;
 };
 
 export interface StreamingSemanticCacheStoreDeps {
@@ -69,7 +72,12 @@ function writeStreamingCacheEntry(
       args.body.messages ?? args.body.input,
       args.body.temperature,
       args.body.top_p,
-      args.apiKeyId ?? undefined
+      args.apiKeyId ?? undefined,
+      {
+        toolChoice: args.body.tool_choice,
+        tools: args.body.tools,
+        responseFormat: args.body.response_format,
+      }
     );
     const tokensSaved = streamTokensSaved(args.streamUsage);
     deps.setCachedResponse(sig, args.model, cleanBody, tokensSaved);

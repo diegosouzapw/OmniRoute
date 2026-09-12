@@ -435,6 +435,9 @@ export async function runNonStreamingProviderLeg(
               { passthrough: input.sourceFormat === "claude" }
             ),
             response: outcome.result.response,
+            rawMessage: outcome.result.rawMessage || outcome.result.error,
+            upstreamErrorBody: outcome.result.upstreamErrorBody,
+            upstreamHeaders: outcome.result.upstreamHeaders ?? outcome.result.response?.headers,
           },
           receipt,
           usage: outcome.providerUsage,
@@ -758,6 +761,9 @@ export async function runNonStreamingProviderLeg(
       upstreamErrorType,
       { passthrough: sourceFormat === FORMATS.CLAUDE }
     );
+    errorResult.rawMessage = message;
+    errorResult.upstreamHeaders = providerResponse.headers;
+    errorResult.upstreamErrorBody = parsedErrorBody;
     return {
       kind: "error",
       result: errorResult as ChatCoreErrorResult,

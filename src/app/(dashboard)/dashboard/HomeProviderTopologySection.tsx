@@ -29,9 +29,6 @@ export function HomeProviderTopologySection({
   enabled?: boolean;
 }) {
   const t = useTranslations("home");
-  const tCommon = useTranslations("common");
-  const tSettings = useTranslations("settings");
-  const tAnalytics = useTranslations("analytics");
   // #4596: gate the live-WS connection so it only opens while the topology
   // section is actually shown on the home page.
   const { activeRequests: liveActiveRequests } = useLiveRequests({ enabled });
@@ -50,15 +47,15 @@ export function HomeProviderTopologySection({
         <div className="flex items-center gap-3 text-[11px] text-text-muted">
           <span className="flex items-center gap-1.5">
             <span className="size-2 rounded-full bg-green-500" />
-            {tCommon("active")}
+            {t("topologyLegendActive")}
           </span>
           <span className="flex items-center gap-1.5">
             <span className="size-2 rounded-full bg-amber-500" />
-            {tSettings("recent")}
+            {t("topologyLegendRecent")}
           </span>
           <span className="flex items-center gap-1.5">
             <span className="size-2 rounded-full bg-red-500" />
-            {tAnalytics("modelStatusError")}
+            {t("topologyLegendError")}
           </span>
         </div>
       </div>

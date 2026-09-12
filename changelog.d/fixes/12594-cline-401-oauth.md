@@ -1,0 +1,1 @@
+- Cline 401 bodies that say "re-authenticate your Cline account" classify as a refreshable OAuth token, not a terminal expired key. The cooling panel no longer labels every cooldown as a 429; it shows the recorded last error instead. (#12594)

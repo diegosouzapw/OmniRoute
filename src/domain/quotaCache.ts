@@ -304,8 +304,8 @@ function isAntigravityQuotaExhausted(
     matchingWindows.length > 0 &&
     matchingWindows.every(
       (windowName) =>
-        getQuotaWindowStatus(connectionId, windowName, DEFAULT_QUOTA_THRESHOLD_PERCENT)
-          ?.reachedThreshold
+        // Automatic exhaustion is not the operator's optional usage cutoff.
+        getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
     )
   );
 }
@@ -681,6 +681,45 @@ export function getQuotaWindowObservation(
     resetAt: status.resetAt,
     observedAt: Number.isFinite(observedDate.getTime()) ? observedDate.toISOString() : null,
   };
+}
+
+/**
+ * Mark an account as out of credits from a 402-class response.
+ *
+ * Upstream refusing the request for balance is authoritative: it outranks
+ * whatever remaining percentage the last snapshot happened to hold, which may
+ * be hours old. Without this, a connection that answered 402 keeps its stale
+ * non-zero remaining and the next quota-weighted draw can pick it again.
+ *
+ * The entry is kept (never deactivated or deleted) — credits come back, and a
+ * later successful refresh or window reset clears the flag through the same
+ * paths that clear a 429 mark.
+ */
+export function markAccountExhaustedFromCredits(connectionId: string, provider: string) {
+  markAccountExhaustedFrom429(connectionId, provider);
+}
+
+/**
+ * Remaining headroom the quota-weighted strategy should credit this connection
+ * with, as a percentage. Returns 0 once the connection is known exhausted so a
+ * 402-marked account cannot be weighted back into the draw.
+ */
+export function getQuotaWeightedRemainingPercent(connectionId: string): number | null {
+  const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
+  if (!entry) return null;
+  if (isAccountQuotaExhausted(connectionId)) return 0;
+
+  const remaining = Object.values(entry.quotas)
+    .filter((quota) => quota.fractionReported !== false)
+    .map((quota) => clampPercent(quota.remainingPercentage));
+  if (remaining.length === 0) return null;
+  return Math.min(...remaining);
+}
+
+/** Epoch-ms of the observation backing this connection's snapshot, if any. */
+export function getQuotaSnapshotFetchedAt(connectionId: string): number | null {
+  const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
+  return entry ? entry.fetchedAt : null;
 }
 
 /**

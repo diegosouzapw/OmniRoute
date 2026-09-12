@@ -1,0 +1,1 @@
+- fix(dashboard): surface an authentication-required banner instead of silently blanking database settings for a guest session (#12709)

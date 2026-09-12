@@ -1824,6 +1824,9 @@
     "recentRequestsModel": "Μοντέλο",
     "recentRequestsTokens": "Είσοδος / Έξοδος",
     "recentRequestsWhen": "Πότε",
+    "topologyLegendActive": "Ενεργό",
+    "topologyLegendRecent": "Πρόσφατα",
+    "topologyLegendError": "Σφάλμα",
     "downloadDmg": "Λήψη DMG (macOS)",
     "downloadDmgDescription": "Διατίθεται νέα έκδοση της εφαρμογής OmniRoute για επιτραπέζιους υπολογιστές. Παρακαλούμε κατεβάστε και εγκαταστήστε το πρόγραμμα εγκατάστασης DMG για macOS για να ενημερωθείτε (τρέχουσα: v{version}).",
     "downloadExe": "Λήψη EXE (Windows)",
@@ -8642,7 +8645,9 @@
     "languagePacksList": "Πακέτα γλώσσας: {packs}",
     "dragToReorder": "Σύρετε για αναδιάταξη βήματος",
     "engine": "Μηχανή",
-    "intensity": "Ένταση"
+    "intensity": "Ένταση",
+    "activeProfileMasterSwitchOffWarning": "__MISSING__:The active profile below will not run until the master \"Prompt Compression\" switch is turned on.",
+    "activeProfileMasterSwitchOffCta": "__MISSING__:Turn it on in Settings"
   },
   "compressionStudio": {
     "noRun": "Δεν υπάρχει διαθέσιμη εκτέλεση συμπίεσης.",
@@ -8671,6 +8676,7 @@
     "run": "Εκτέλεση",
     "laneRejected": "απορρίφθηκε: {reason}",
     "error": "σφάλμα",
+    "combinedError": "__MISSING__:Combined pipeline preview failed: {reason}",
     "combinedFlow": "Συνδυασμένη ροή",
     "eachLayer": "Κάθε επίπεδο ξεχωριστά",
     "diff": "Διαφορά",
@@ -14004,7 +14010,18 @@
     "actionDone": "Η ενέργεια εφαρμόστηκε",
     "actionFailed": "Αποτυχία ενέργειας: {error}",
     "detailFailed": "Αποτυχία φόρτωσης λεπτομερειών: {error}",
-    "mirroredInA2A": "Αντικατοπτρίστηκε στο A2A"
+    "mirroredInA2A": "Αντικατοπτρίστηκε στο A2A",
+    "compareMode": "Σύγκριση εκτελέσεων",
+    "compareExit": "Έξοδος από τη σύγκριση",
+    "compareHint": "Επιλέξτε δύο εκτελέσεις για σύγκριση",
+    "compareTitle": "Σύγκριση",
+    "compareDetailFailed": "Δεν ήταν δυνατή η φόρτωση των λεπτομερειών αυτής της εκτέλεσης",
+    "compareDifferentIdentity": "Διαφορετικές πηγές ή δεξιότητες — οι διαφορές είναι ενημερωτικές",
+    "compareDuration": "Διάρκεια",
+    "compareCost": "Κόστος",
+    "compareEvents": "Συμβάντα",
+    "compareDeltaLegend": "Δ δεξιά − αριστερά",
+    "noMatches": "Καμία εκτέλεση δεν ταιριάζει με αυτά τα φίλτρα"
   },
   "cliproxyProviderExposure": {
     "title": "Έκθεση Παρόχου",

@@ -114,10 +114,35 @@ export type ModelCompatOverride = {
   compatByProtocol?: CompatByProtocolMap;
   upstreamHeaders?: Record<string, string>;
   isHidden?: boolean;
+  /**
+   * #12172: per-modality visibility override, keyed by endpoint/modality id
+   * (e.g. "chat", "images", "embeddings", ...). A key present here always wins
+   * over the legacy top-level `isHidden` for that specific modality — this is
+   * what lets an operator hide a model from Chat without also suppressing an
+   * identically-ID'd model in the Image (or any other) registry. A modality
+   * with no entry here falls back to `isHidden` (the pre-#12172 "hide
+   * everywhere" behavior), so existing rows keep working unchanged.
+   */
+  hiddenModalities?: Record<string, boolean>;
   apiFormat?: string;
   targetFormat?: string;
   supportsVision?: boolean;
 };
+
+/**
+ * Resolve whether an override hides its model for a given modality.
+ * Precedence: an explicit `hiddenModalities[modality]` entry always wins;
+ * otherwise fall back to the legacy all-modalities `isHidden` flag.
+ */
+export function isOverrideHiddenForModality(
+  override: Pick<ModelCompatOverride, "isHidden" | "hiddenModalities"> | null | undefined,
+  modality: string
+): boolean {
+  if (!override) return false;
+  const scoped = override.hiddenModalities?.[modality];
+  if (scoped !== undefined) return Boolean(scoped);
+  return Boolean(override.isHidden);
+}
 
 export function readCompatList(providerId: string): ModelCompatOverride[] {
   const db = getDbInstance();
@@ -171,6 +196,13 @@ export type ModelCompatPatch = {
   /** Replace top-level extra headers for override-only rows; omit to leave unchanged. */
   upstreamHeaders?: Record<string, string> | null;
   isHidden?: boolean | null;
+  /**
+   * #12172: when set alongside `isHidden`, scopes the write to that one
+   * modality (see {@link ModelCompatOverride.hiddenModalities}) instead of
+   * the legacy all-modalities flag. `isHidden: null` with a `modality` clears
+   * just that modality's override (reverting it to inherit the legacy flag).
+   */
+  modality?: string | null;
   apiFormat?: string | null;
   targetFormat?: string | null;
   supportsVision?: boolean | null;
@@ -230,7 +262,17 @@ export function mergeModelCompatOverride(
   const hasVideoUrlFlag = Object.prototype.hasOwnProperty.call(next, "preserveVideoUrl");
   const hasTopUpstream = next.upstreamHeaders && Object.keys(next.upstreamHeaders).length > 0;
   if ("isHidden" in patch) {
-    if (patch.isHidden === null) {
+    const modality = typeof patch.modality === "string" && patch.modality ? patch.modality : null;
+    if (modality) {
+      const hiddenModalities = { ...(next.hiddenModalities || {}) };
+      if (patch.isHidden === null) {
+        delete hiddenModalities[modality];
+      } else {
+        hiddenModalities[modality] = Boolean(patch.isHidden);
+      }
+      if (Object.keys(hiddenModalities).length > 0) next.hiddenModalities = hiddenModalities;
+      else delete next.hiddenModalities;
+    } else if (patch.isHidden === null) {
       delete next.isHidden;
     } else {
       next.isHidden = Boolean(patch.isHidden);
@@ -257,7 +299,9 @@ export function mergeModelCompatOverride(
       next.supportsVision = Boolean(patch.supportsVision);
     }
   }
-  const hasHiddenFlag = Object.prototype.hasOwnProperty.call(next, "isHidden");
+  const hasHiddenFlag =
+    Object.prototype.hasOwnProperty.call(next, "isHidden") ||
+    (!!next.hiddenModalities && Object.keys(next.hiddenModalities).length > 0);
   const hasApiFormat = Object.prototype.hasOwnProperty.call(next, "apiFormat");
   const hasTargetFormat = Object.prototype.hasOwnProperty.call(next, "targetFormat");
   const hasVisionFlag = Object.prototype.hasOwnProperty.call(next, "supportsVision");

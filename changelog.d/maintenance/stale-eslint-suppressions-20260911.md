@@ -1,0 +1,1 @@
+- **chore(quality):** drop two ESLint suppression entries whose violations no longer exist, so `eslint --suppressions-location` stops rejecting every commit that touches the surrounding files

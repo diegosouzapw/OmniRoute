@@ -24,6 +24,9 @@ const { getCircuitBreaker, resetAllCircuitBreakers, STATE } =
   await import("../../src/shared/utils/circuitBreaker.ts");
 // DATA_DIR must be fixed before these modules load; keep this test seam dynamic.
 const { setTlsClientForTest } = await import("../../open-sse/utils/proxyFetch.ts");
+const { resolveChatCoreTargetFormat } =
+  await import("../../open-sse/handlers/chatCore/targetFormat.ts");
+const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 
 type ApiErrorJson = {
   error?: {
@@ -257,6 +260,59 @@ test("resolveModelOrError honors a custom-model targetFormat override even when 
   assert.equal(result.provider, "vertex");
   assert.equal(result.model, "claude-sonnet-4-6");
   assert.equal(result.targetFormat, "claude");
+});
+
+test("#11884 configured Chat API type wins after custom-node model resolution", async () => {
+  const provider = "openai-compatible-responses-11884";
+  const prefix = "custom-chat-11884";
+  const model = "chat-only-model";
+
+  await providersDb.createProviderNode({
+    id: provider,
+    type: "openai-compatible",
+    name: "Custom Chat 11884",
+    prefix,
+    apiType: "chat",
+    baseUrl: "https://chat-only.example.invalid/v1",
+  });
+  const connection = await seedConnection(provider, {
+    providerSpecificData: { apiType: "chat" },
+  });
+  const modelsDb = await import("../../src/lib/db/models.ts");
+  await modelsDb.addCustomModel(provider, model, "Chat-only model", "manual", "chat-completions", [
+    "chat",
+  ]);
+
+  const firstResolution = await resolveModelOrError(
+    `${prefix}/${model}`,
+    { model: `${prefix}/${model}`, messages: [{ role: "user", content: "hello" }] },
+    "/v1/chat/completions"
+  );
+  assert.equal(firstResolution.error, undefined);
+
+  // Before #11884's fix the resolver exposed only its credential-blind effective
+  // targetFormat, so the dispatcher necessarily forwarded that value as though it
+  // were a model override. The fixed contract exposes the explicit model override
+  // separately; keep the fallback here so this regression test still exercises the
+  // broken production path when run against the parent revision.
+  const forwardedModelOverride =
+    "customModelTargetFormat" in firstResolution
+      ? firstResolution.customModelTargetFormat
+      : firstResolution.targetFormat;
+  const finalResolution = resolveChatCoreTargetFormat({
+    provider: firstResolution.provider,
+    resolvedModel: firstResolution.model,
+    apiFormat: firstResolution.apiFormat,
+    sourceFormat: firstResolution.sourceFormat,
+    customModelTargetFormat: forwardedModelOverride,
+    providerSpecificData: connection.providerSpecificData,
+  });
+
+  assert.equal(
+    finalResolution.targetFormat,
+    FORMATS.OPENAI,
+    "the stored Chat API type must not be shadowed by a stale Responses fallback"
+  );
 });
 
 test("checkPipelineGates blocks providers with an open circuit breaker", async () => {

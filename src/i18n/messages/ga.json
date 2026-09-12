@@ -1824,6 +1824,9 @@
     "recentRequestsModel": "Samhail",
     "recentRequestsTokens": "Isteach / Amach",
     "recentRequestsWhen": "Cathain",
+    "topologyLegendActive": "Gníomhach",
+    "topologyLegendRecent": "Le déanaí",
+    "topologyLegendError": "Earráid",
     "downloadDmg": "Íoslódáil DMG (macOS)",
     "downloadDmgDescription": "Tá leagan nua den fheidhmchlár deisce OmniRoute ar fáil. Íoslódáil agus suiteáil an suiteálaí DMG macOS le nuashonrú (reatha: v{version}).",
     "downloadExe": "Íoslódáil EXE (Windows)",
@@ -8642,7 +8645,9 @@
     "languagePacksList": "Pacáistí teanga: {packs}",
     "dragToReorder": "Tarraing chun céim a atheagrú",
     "engine": "Inneall",
-    "intensity": "Déine"
+    "intensity": "Déine",
+    "activeProfileMasterSwitchOffWarning": "__MISSING__:The active profile below will not run until the master \"Prompt Compression\" switch is turned on.",
+    "activeProfileMasterSwitchOffCta": "__MISSING__:Turn it on in Settings"
   },
   "compressionStudio": {
     "noRun": "Níl aon rith comhbhrú ar fáil.",
@@ -8671,6 +8676,7 @@
     "run": "Rith",
     "laneRejected": "diútaíodh: {reason}",
     "error": "earráid",
+    "combinedError": "__MISSING__:Combined pipeline preview failed: {reason}",
     "combinedFlow": "Sruth comhcheangailte",
     "eachLayer": "Gach sraith ina n-aonar",
     "diff": "Difríocht",
@@ -14004,7 +14010,18 @@
     "actionDone": "Gníomh curtha i bhfeidhm",
     "actionFailed": "Theip ar an ngníomh: {error}",
     "detailFailed": "Theip ar lódáil sonraí: {error}",
-    "mirroredInA2A": "Scáththa in A2A"
+    "mirroredInA2A": "Scáththa in A2A",
+    "compareMode": "Cuir rití i gcomparáid",
+    "compareExit": "Scoir den mhód comparáide",
+    "compareHint": "Roghnaigh dhá rith le cur i gcomparáid",
+    "compareTitle": "Comparáid",
+    "compareDetailFailed": "Níorbh fhéidir sonraí an rith seo a lódáil",
+    "compareDifferentIdentity": "Foinsí nó scileanna éagsúla — is eolas amháin iad na difríochtaí",
+    "compareDuration": "Fad",
+    "compareCost": "Costas",
+    "compareEvents": "Imeachtaí",
+    "compareDeltaLegend": "Δ ar dheis − ar chlé",
+    "noMatches": "Níl aon rith ag teacht leis na scagairí seo"
   },
   "cliproxyProviderExposure": {
     "title": "Nochtadh Soláthraí",

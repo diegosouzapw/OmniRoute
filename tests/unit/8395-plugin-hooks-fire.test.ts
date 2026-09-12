@@ -128,9 +128,7 @@ test("chatCore.ts calls runPluginOnResponseHook from both the non-streaming and 
     "utf-8"
   );
 
-  const nonStreamingReturnIndex = source.indexOf(
-    "buildNonStreamingJsonResponse(translatedResponse"
-  );
+  const nonStreamingReturnIndex = source.indexOf("maybeWrapForcedNonStreamingResponsesJson({");
   const hookCallNeedle = "await runPluginOnResponseHook({";
   const hookCallIndex = source.indexOf(hookCallNeedle);
   const secondHookCallIndex = source.indexOf(hookCallNeedle, hookCallIndex + 1);
@@ -153,6 +151,6 @@ test("chatCore.ts calls runPluginOnResponseHook from both the non-streaming and 
   assert.ok(
     hookCallIndex < nonStreamingReturnIndex,
     "the non-streaming branch must call runPluginOnResponseHook BEFORE returning " +
-      "buildNonStreamingJsonResponse(...), not skip it"
+      "maybeWrapForcedNonStreamingResponsesJson(...), not skip it"
   );
 });

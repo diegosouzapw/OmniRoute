@@ -154,7 +154,7 @@ test("GET history owner-scoping: an API-key caller sees only its own + ownerless
   const ownerAReq = new Request("http://localhost/api/a2a/tasks/history", {
     headers: AUTH_HEADERS,
   });
-  const ownerA = resolveA2AOwner(ownerAReq as never);
+  const ownerA = await resolveA2AOwner(ownerAReq as never);
   assert.ok(ownerA, "the shared key resolves to a stable owner hash");
 
   seedRow({ id: "owned-by-a", apiKeyId: ownerA ?? null, createdAt: "2026-01-01T00:00:00.000Z" });

@@ -91,6 +91,11 @@ export function intersectStringArrays(arrays: string[][]): string[] {
   });
 }
 
+/** LCD over known arrays only. Empty/unknown entries degrade instead of wiping. */
+export function intersectKnownStringArrays(arrays: string[][]): string[] {
+  return intersectStringArrays(arrays.filter((values) => values.length > 0));
+}
+
 export function minKnownNumber(values: Array<number | undefined>): number | undefined {
   const knownValues = values.filter(isPositiveFiniteNumber);
   if (knownValues.length === 0) return undefined;

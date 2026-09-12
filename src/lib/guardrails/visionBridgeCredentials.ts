@@ -7,6 +7,7 @@
 
 import { resolveProviderId } from "@/shared/constants/providers";
 import { isNoAuthProviderKey } from "@/shared/utils/noAuthProviders";
+import { SYNTHETIC_NOAUTH_CONNECTION_ID } from "@omniroute/open-sse/services/autoCombo/resilienceCandidateFilter.ts";
 
 /**
  * True when a provider connection can actually authenticate upstream.
@@ -115,6 +116,54 @@ export async function hasUsableCredentialsForModel(model: string): Promise<boole
       return !connections.some((c: any) => hasTerminalConnectionStatus(c));
     }
     return connections.some((c: any) => isProviderConnectionUsable(c));
+  } catch {
+    return null;
+  }
+}
+
+/** A minimal reference to a usable provider connection, for per-connection lockout checks. */
+export interface UsableConnectionRef {
+  id: string;
+}
+
+/**
+ * Resolve the individual usable connections for `model`'s provider (#12111).
+ *
+ * `hasUsableCredentialsForModel` collapses this same data to a single
+ * boolean, which is enough to know a provider is reachable at all but not
+ * enough to know whether one *specific* model is servable: `isModelLocked`
+ * (open-sse/services/accountFallback.ts) is scoped per provider+connection+
+ * model, so callers that need to exclude a locked model must check it
+ * against each connection that could actually serve it — dropping the model
+ * only when every one of those connections has it locked (mirrors
+ * `isConnectionEligibleForModel` in
+ * open-sse/services/autoCombo/resilienceCandidateFilter.ts).
+ *
+ * Returns `null` on the same indeterminate cases as
+ * `hasUsableCredentialsForModel` (credential store unavailable) so callers
+ * can fail open identically. No-auth providers with no stored connection row
+ * resolve to the synthetic "noauth" connection id, matching the id
+ * `lockModel`/`isModelLocked` use for those providers elsewhere in the
+ * resilience layer.
+ */
+export async function getUsableConnectionsForModel(
+  model: string
+): Promise<UsableConnectionRef[] | null> {
+  const rawProvider = typeof model === "string" ? model.split("/")[0]?.trim() : "";
+  if (!rawProvider) return null;
+  const provider = resolveProviderId(rawProvider);
+  const isNoAuth = isNoAuthProviderKey(rawProvider, provider);
+  try {
+    const { getProviderConnections } = await loadProvidersModule();
+    const connections = await getProviderConnections({ provider, isActive: true });
+    if (!Array.isArray(connections)) return null;
+    if (connections.length === 0) {
+      return isNoAuth ? [{ id: SYNTHETIC_NOAUTH_CONNECTION_ID }] : [];
+    }
+    const usable = isNoAuth
+      ? connections.filter((c: any) => !hasTerminalConnectionStatus(c))
+      : connections.filter((c: any) => isProviderConnectionUsable(c));
+    return usable.map((c: any) => ({ id: String(c.id) }));
   } catch {
     return null;
   }

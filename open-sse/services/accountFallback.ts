@@ -16,6 +16,7 @@ import {
   isNimFunctionDegraded,
 } from "../config/errorConfig.ts";
 import {
+  getOpencodeModelUnavailableMatch,
   getProviderErrorRuleMatch,
   resolveRuleMatchBody,
   honorsRuleLockScope,
@@ -98,6 +99,7 @@ export { MODEL_LOCKOUT_EVICTION_CAP } from "./accountFallback/lockoutEviction.ts
 import { capScaledCooldownMs } from "./accountFallback/cooldownCap.ts";
 import { resolveApiKeyForbiddenFallback } from "./accountFallback/nonRetryableUpstream.ts";
 import * as exactModelLock from "./accountFallback/exactModelLock.ts";
+import { isCreditsExhaustedWithSharedWallet } from "./accountFallback/sharedWalletCredits.ts";
 export type ProviderProfile = {
   baseCooldownMs: number;
   useUpstreamRetryHints: boolean;
@@ -261,6 +263,7 @@ export const OAUTH_INVALID_TOKEN_SIGNALS = [
   "login cookie",
   "valid authentication credential",
   "invalid credentials",
+  "re-authenticate your cline account",
 ];
 
 // A model that upstream has permanently retired — Gemini's deprecated-model 404
@@ -373,7 +376,7 @@ export const MODEL_ACCESS_DENIED_PATTERNS = [
   /\bunsupported\s+model\b/i,
   /\baccess.*denied.*model\b/i,
   /\bmodel.*access.*denied\b/i,
-  /\bplease select a different model\b/i,
+  /\bplease select a different model\b/i, /\bunknown\s+provider\s+for\s+model\b/i,
   // "...access to the requested model" / "model ... access" — bounded lookahead
   // (no nested quantifiers) so it stays ReDoS-safe while requiring BOTH an
   // access/permission word and "model" so a pure auth error never matches.
@@ -413,7 +416,7 @@ const PROVIDER_MODEL_UNSUPPORTED_PATTERNS = [
   /\bmodel\b[\s\S]{0,80}?\b(?:does\s+not\s+support|doesn't\s+support|unsupported)\b/i,
   /\b(?:does\s+not\s+support|doesn't\s+support|unsupported)\b[\s\S]{0,80}?\bmodel\b/i,
   /\bunsupported\s+model\b/i,
-  /\bplease select a different model\b/i,
+  /\bplease select a different model\b/i, /\bunknown\s+provider\s+for\s+model\b/i,
 ];
 
 /**
@@ -484,8 +487,7 @@ export function isAccountDeactivated(errorText: string): boolean {
  * T10: Returns true if response body indicates credits/quota are permanently exhausted.
  */
 export function isCreditsExhausted(errorText: string): boolean {
-  const lower = String(errorText || "").toLowerCase();
-  return CREDITS_EXHAUSTED_SIGNALS.some((sig) => lower.includes(sig));
+  return isCreditsExhaustedWithSharedWallet(errorText, CREDITS_EXHAUSTED_SIGNALS);
 }
 
 /**
@@ -1792,6 +1794,18 @@ export function checkFallbackError(
     return profile?.useUpstreamRetryHints ? detectRetryHint() : null;
   }
 
+  function ruleScopedResult(match: NonNullable<ReturnType<typeof getProviderErrorRuleMatch>>) {
+    const scaled = getScaledBaseCooldown(match.reason as RateLimitReasonValue, backoffLevel);
+    return {
+      shouldFallback: true,
+      cooldownMs: match.cooldownMs ?? scaled.cooldownMs,
+      baseCooldownMs: match.cooldownMs ?? scaled.baseCooldownMs,
+      configuredCooldownMs: match.cooldownMs,
+      newBackoffLevel: match.cooldownMs !== undefined ? 0 : scaled.newBackoffLevel,
+      reason: match.reason,
+      ruleScope: match.scope,
+    };
+  }
   function getScaledBaseCooldown(reason: RateLimitReasonValue, level = backoffLevel) {
     void reason;
     const baseCooldownMs =
@@ -2065,22 +2079,7 @@ export function checkFallbackError(
         headers,
         resolveRuleMatchBody(provider, structuredError ?? null, errorStr)
       );
-      if (forbiddenMatch) {
-        const scaled = getScaledBaseCooldown(
-          forbiddenMatch.reason as RateLimitReasonValue,
-          backoffLevel
-        );
-        const ruleCooldownMs = forbiddenMatch.cooldownMs;
-        return {
-          shouldFallback: true,
-          cooldownMs: ruleCooldownMs ?? scaled.cooldownMs,
-          baseCooldownMs: ruleCooldownMs ?? scaled.baseCooldownMs,
-          configuredCooldownMs: ruleCooldownMs,
-          newBackoffLevel: ruleCooldownMs !== undefined ? 0 : scaled.newBackoffLevel,
-          reason: forbiddenMatch.reason,
-          ruleScope: forbiddenMatch.scope,
-        };
-      }
+      if (forbiddenMatch) return ruleScopedResult(forbiddenMatch);
     }
 
     if (
@@ -2199,6 +2198,8 @@ export function checkFallbackError(
 
   // 400 — context overflow / malformed request / model access denied
   if (status === HTTP_STATUS.BAD_REQUEST) {
+    const modelUnavailable = getOpencodeModelUnavailableMatch(provider, status, headers, errorStr);
+    if (modelUnavailable) return ruleScopedResult(modelUnavailable);
     // Check structured error codes first (more reliable, no false positives)
     // OpenAI:  error.code === "model_not_found"
     // Anthropic: error.type === "not_found_error" / "permission_error"
@@ -2321,7 +2322,8 @@ export function formatRetryAfter(
   rateLimitedUntil: string | number | Date | null | undefined
 ): string {
   if (!rateLimitedUntil) return "";
-  const diffMs = new Date(rateLimitedUntil).getTime() - Date.now();
+  const diffMs = cooldownUntilMs(rateLimitedUntil) - Date.now();
+  if (!Number.isFinite(diffMs)) return "";
   if (diffMs <= 0) return "reset after 0s";
   const totalSec = Math.ceil(diffMs / 1000);
   const h = Math.floor(totalSec / 3600);

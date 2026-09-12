@@ -1,0 +1,1 @@
+- fix(cli): run the Node.js runtime compatibility guard before the heavy `tsx/esm` + Commander import chain so an unsupported runtime gets a clear message instead of a raw `Invalid regular expression flags` crash (#12296)

@@ -286,7 +286,6 @@ export function transformOpenAISSEToGeminiSSE(upstreamResponse: Response, model:
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
-      "Access-Control-Allow-Origin": "*",
     },
   });
 }
@@ -348,7 +347,7 @@ export async function convertOpenAIResponseToGemini(
       { error: { message: sanitizeErrorMessage(err), code: response.status } },
       {
         status: response.status,
-        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
@@ -356,7 +355,7 @@ export async function convertOpenAIResponseToGemini(
   // Already Gemini-shape (some upstreams may pre-translate) — pass through.
   if (body.candidates) {
     return Response.json(body, {
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      headers: { "Content-Type": "application/json" },
     });
   }
 
@@ -364,14 +363,14 @@ export async function convertOpenAIResponseToGemini(
   if (body.error) {
     return Response.json(body, {
       status: response.status,
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      headers: { "Content-Type": "application/json" },
     });
   }
 
   const choice = body.choices?.[0];
   if (!choice || !choice.message) {
     return Response.json(body, {
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      headers: { "Content-Type": "application/json" },
     });
   }
 
@@ -426,6 +425,6 @@ export async function convertOpenAIResponseToGemini(
   }
 
   return Response.json(geminiResponse, {
-    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+    headers: { "Content-Type": "application/json" },
   });
 }

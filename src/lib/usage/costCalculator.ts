@@ -101,6 +101,8 @@ export function getCodexFastCostMultiplier(
 
   const modelKey = stripCodexEffortSuffix(normalizeModelName(String(model || "")).toLowerCase());
   const compactModelKey = modelKey.replace(/-/g, "");
+  // Codex Astra Fast is 2.5x Standard (https://developers.openai.com/codex/pricing).
+  if (modelKey === "gpt-6-astra" || compactModelKey === "gpt6astra") return 2.5;
   if (
     /^gpt-5\.6-(?:sol|terra|luna)$/.test(modelKey) ||
     /^gpt5\.6(?:sol|terra|luna)$/.test(compactModelKey)
@@ -173,18 +175,31 @@ export function computeCostFromPricing(
   return cost * getCodexFastCostMultiplier(options.provider, options.model, options.serviceTier);
 }
 
-export async function calculateCost(
+/**
+ * Result of a cost calculation that also reports whether the number is backed by
+ * a real pricing row. Budget-enforcement callers (#12341) must be able to tell
+ * "$0, priced" (a genuinely free/flat-rate model) apart from "$0, unpriced" (no
+ * pricing row was ever found — e.g. a routing alias like `auto`) so they can fail
+ * closed on the latter instead of letting it silently pass a hard budget cap.
+ */
+export interface CostCalculationResult {
+  costUsd: number;
+  /** false when no pricing row (direct, normalized, or codex-effortless) was found. */
+  priced: boolean;
+}
+
+export async function calculateCostDetailed(
   provider: string,
   model: string,
   tokens: Record<string, number | undefined> | null | undefined,
   options: CostCalculationOptions = {}
-): Promise<number> {
-  if (!tokens || !provider || !model) return 0;
+): Promise<CostCalculationResult> {
+  if (!tokens || !provider || !model) return { costUsd: 0, priced: true };
 
   // Short-circuit before any pricing DB lookup when an exact, provider-reported
   // cost is present (currently xAI's `cost_in_usd_ticks` — see extractExactCostUsd).
   const exactCostUsd = extractExactCostUsd(tokens);
-  if (exactCostUsd !== null) return exactCostUsd;
+  if (exactCostUsd !== null) return { costUsd: exactCostUsd, priced: true };
 
   try {
     const { getPricingForModel } = await import("@/lib/db/settings");
@@ -204,21 +219,35 @@ export async function calculateCost(
         }
       }
     }
-    if (!pricing) return 0;
+    // No pricing row anywhere — this is the #12341 case (e.g. a provider's own
+    // routing alias such as "auto" that has no catalog price). Report it as
+    // unpriced rather than a bare $0 so budget enforcement can fail closed.
+    if (!pricing) return { costUsd: 0, priced: false };
 
     const pricingRecord =
       pricing && typeof pricing === "object" && !Array.isArray(pricing)
         ? (pricing as Record<string, unknown>)
         : {};
-    return computeCostFromPricing(pricingRecord, tokens, {
+    const costUsd = computeCostFromPricing(pricingRecord, tokens, {
       provider,
       model,
       ...options,
     });
+    return { costUsd, priced: true };
   } catch (error) {
     console.error("Error calculating cost:", error);
-    return 0;
+    return { costUsd: 0, priced: false };
   }
+}
+
+export async function calculateCost(
+  provider: string,
+  model: string,
+  tokens: Record<string, number | undefined> | null | undefined,
+  options: CostCalculationOptions = {}
+): Promise<number> {
+  const result = await calculateCostDetailed(provider, model, tokens, options);
+  return result.costUsd;
 }
 
 type ModalPricing = Record<string, unknown>;

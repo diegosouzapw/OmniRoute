@@ -487,8 +487,8 @@ export async function handleRoundRobinCombo({
       const allowRateLimitedConnection =
         Boolean(provider && provider !== "unknown") && transientRateLimitedProviders.has(provider);
       const targetForAttempt = allowRateLimitedConnection
-        ? { ...target, allowRateLimitedConnection: true }
-        : target;
+        ? { ...target, allowRateLimitedConnection: true, fallbackAttempts: offset }
+        : { ...target, fallbackAttempts: offset };
 
       // Pre-check availability
       if (isModelAvailable) {

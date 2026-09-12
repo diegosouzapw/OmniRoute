@@ -1,0 +1,1 @@
+- fix(sse): require Responses-shaped body before native OpenAI-compatible passthrough (#12129)

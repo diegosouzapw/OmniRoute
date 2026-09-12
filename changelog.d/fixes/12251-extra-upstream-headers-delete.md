@@ -1,0 +1,1 @@
+- fix(dashboard): allow deleting the last extra-upstream-header row even when invalid (#12251)

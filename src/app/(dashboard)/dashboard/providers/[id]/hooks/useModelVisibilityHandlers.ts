@@ -212,7 +212,10 @@ export function useModelVisibilityHandlers({
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isHidden: hidden }),
+          // #12172: this page manages only Chat models — scope the hide/unhide to
+          // "chat" so it never suppresses an identically-ID'd model registered
+          // under a different modality's registry (e.g. Image).
+          body: JSON.stringify({ isHidden: hidden, modality: "chat" }),
         }
       );
       if (!res.ok) {
@@ -239,7 +242,8 @@ export function useModelVisibilityHandlers({
       const res = await fetch(`/api/provider-models?provider=${encodeURIComponent(providerKey)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isHidden: hidden, modelIds }),
+        // #12172: same "chat"-only scoping as the single-model toggle above.
+        body: JSON.stringify({ isHidden: hidden, modelIds, modality: "chat" }),
       });
       if (!res.ok) {
         const detail = await res.text().catch(() => "");

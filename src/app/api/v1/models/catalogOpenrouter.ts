@@ -44,3 +44,45 @@ export function getOpenRouterDisplayName(model: {
   const name = model.name || model.id || "OpenRouter model";
   return isOpenRouterFreeModel(model) && !/\bgr[aá]tis\b/i.test(name) ? `${name} (Grátis)` : name;
 }
+
+export function openRouterCapabilityEntry(
+  model: {
+    id?: string;
+    context_length?: number;
+    top_provider?: { max_completion_tokens?: number };
+  },
+  inputModalities: string[],
+  outputModalities: string[],
+  capabilities: Record<string, boolean>
+) {
+  if (inputModalities.length === 0 && outputModalities.length === 0) return null;
+  return {
+    tool_call: capabilities.tool_calling === true,
+    reasoning: capabilities.reasoning === true,
+    attachment: null,
+    structured_output: capabilities.structured_output === true,
+    temperature: null,
+    modalities_input: JSON.stringify(inputModalities),
+    modalities_output: JSON.stringify(outputModalities),
+    knowledge_cutoff: null,
+    release_date: null,
+    last_updated: null,
+    status: null,
+    family: null,
+    open_weights: null,
+    limit_context:
+      typeof model.context_length === "number" &&
+      Number.isFinite(model.context_length) &&
+      model.context_length > 0
+        ? model.context_length
+        : null,
+    limit_input: null,
+    limit_output:
+      typeof model.top_provider?.max_completion_tokens === "number" &&
+      Number.isFinite(model.top_provider.max_completion_tokens) &&
+      model.top_provider.max_completion_tokens > 0
+        ? model.top_provider.max_completion_tokens
+        : null,
+    interleaved_field: null,
+  };
+}

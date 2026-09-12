@@ -1,0 +1,1 @@
+- fix(sse): register Arcee AI in the executor provider registry so requests reach api.arcee.ai instead of silently falling back to OpenAI (#12784)

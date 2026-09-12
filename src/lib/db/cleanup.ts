@@ -13,6 +13,7 @@ import {
   deleteAllFromTable,
   deleteCallLogArtifacts,
   deleteFromTableBefore,
+  deleteFromTableBeforeInBatches,
   tableExists,
   type DeleteByPeriodTarget,
 } from "./cleanup/usagePurge";
@@ -431,6 +432,103 @@ export async function cleanupCcrBlocks(): Promise<CleanupResult> {
 }
 
 /**
+ * Clean up conversation_turn_nodes older than the call-log retention window (#12453).
+ *
+ * The nodes are identity-only: the transcript view resolves each turn's display
+ * content from the call_logs row `last_correlation_id` points at. Once
+ * cleanupCallLogs purges that row the node can never render again, so the two
+ * tables share the dashboard database setting `retention.callLogs` instead of
+ * a knob of their own; `CALL_LOG_RETENTION_DAYS` configures the separate
+ * compliance cleanup path and does not override this window. Deleting an old
+ * node only affects reconnect anchors: a conversation resumed after the window
+ * mints a new id, which is already the documented anchor-miss behavior of
+ * resolveConversationId. `last_seen_at` has no index (migration 156), so
+ * each DELETE is a table scan. Bounded batches yield between writes so an
+ * existing large table cannot park the event loop for the whole cleanup pass.
+ */
+export async function cleanupConversationTurnNodes(): Promise<CleanupResult> {
+  const retention = getRetentionSettings();
+
+  const retentionDays = retention.callLogs;
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+  const cutoffISO = cutoffDate.toISOString();
+
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+
+  try {
+    result.deleted = await deleteFromTableBeforeInBatches(
+      { table: "conversation_turn_nodes", column: "last_seen_at", cutoff: "iso" },
+      cutoffISO
+    );
+
+    console.log(
+      `[Cleanup] Deleted ${result.deleted} conversation_turn_nodes older than ${retentionDays} days`
+    );
+  } catch (err: unknown) {
+    console.error("[Cleanup] Error cleaning conversation_turn_nodes:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
+/**
+ * Sweep agentic_conversations left without any conversation_turn_nodes (#12453).
+ *
+ * Runs after cleanupConversationTurnNodes so a root whose whole chain just
+ * expired goes in the same pass. The indexed `last_seen_at` predicate bounds
+ * the NOT EXISTS probe to roots that are already past the retention window.
+ * Deletion is batched for the same event-loop fairness guarantee as the
+ * preceding node cleanup.
+ */
+export async function cleanupAgenticConversations(): Promise<CleanupResult> {
+  const db = getDbInstance();
+  const retention = getRetentionSettings();
+
+  const retentionDays = retention.callLogs;
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+  const cutoffISO = cutoffDate.toISOString();
+
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+
+  try {
+    if (!tableExists("agentic_conversations") || !tableExists("conversation_turn_nodes")) {
+      return result;
+    }
+
+    const stmt = db.prepare(
+      `DELETE FROM agentic_conversations
+       WHERE rowid IN (
+         SELECT rowid FROM agentic_conversations
+         WHERE last_seen_at < ?
+           AND NOT EXISTS (
+             SELECT 1 FROM conversation_turn_nodes n
+             WHERE n.conversation_id = agentic_conversations.id
+           )
+         LIMIT 10000
+       )`
+    );
+    while (true) {
+      const batch = stmt.run(cutoffISO).changes;
+      result.deleted += batch;
+      if (batch < 10_000) break;
+      await new Promise<void>((resolve) => setImmediate(resolve));
+    }
+
+    console.log(
+      `[Cleanup] Deleted ${result.deleted} orphaned agentic_conversations older than ${retentionDays} days`
+    );
+  } catch (err: unknown) {
+    console.error("[Cleanup] Error cleaning agentic_conversations:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
+/**
  * Run all cleanup functions if auto-cleanup is enabled.
  */
 export async function runAutoCleanup(): Promise<{
@@ -463,6 +561,8 @@ export async function runAutoCleanup(): Promise<{
     compressionRunTelemetry: await cleanupCompressionRunTelemetry(),
     proxyLogs: await cleanupProxyLogs(),
     ccrBlocks: await cleanupCcrBlocks(),
+    conversationTurnNodes: await cleanupConversationTurnNodes(),
+    agenticConversations: await cleanupAgenticConversations(),
   };
 
   const totalDeleted = Object.values(results).reduce((sum, r) => sum + r.deleted, 0);
@@ -588,6 +688,8 @@ export interface ResetUsageHistoryResult extends CleanupResult {
   deletedRoutingDecisions: number;
   deletedQuotaConsumption: number;
   deletedTokenLedger: number;
+  deletedConversationTurnNodes: number;
+  deletedAgenticConversations: number;
 }
 
 function isResetUsageHistoryPeriod(period: string): period is ResetUsageHistoryPeriod {
@@ -604,10 +706,13 @@ function isResetUsageHistoryPeriod(period: string): period is ResetUsageHistoryP
  * first, since the whole point is to wipe the data the user selected.
  *
  * @param period - One of {@link RESET_USAGE_HISTORY_PERIODS}. `"all"` wipes
- *   every row in all three tables; any other value deletes rows strictly
- *   older than `now - period`. Throws on an invalid period.
+ *   every reset target, including conversation identity metadata; any other
+ *   value deletes only time-scoped usage/log rows older than `now - period`.
+ *   Throws on an invalid period.
  */
-const RESET_TARGETS: Array<DeleteByPeriodTarget & { resultKey: keyof ResetUsageHistoryResult }> = [
+const RESET_TARGETS: Array<
+  DeleteByPeriodTarget & { resultKey: keyof ResetUsageHistoryResult; allOnly?: boolean }
+> = [
   { table: "usage_history", column: "timestamp", cutoff: "iso", resultKey: "deletedUsageHistory" },
   {
     table: "daily_usage_summary",
@@ -660,6 +765,20 @@ const RESET_TARGETS: Array<DeleteByPeriodTarget & { resultKey: keyof ResetUsageH
     resultKey: "deletedQuotaConsumption",
   },
   { table: "token_ledger", column: "created_at", cutoff: "iso", resultKey: "deletedTokenLedger" },
+  {
+    table: "conversation_turn_nodes",
+    column: "last_seen_at",
+    cutoff: "iso",
+    resultKey: "deletedConversationTurnNodes",
+    allOnly: true,
+  },
+  {
+    table: "agentic_conversations",
+    column: "last_seen_at",
+    cutoff: "iso",
+    resultKey: "deletedAgenticConversations",
+    allOnly: true,
+  },
 ];
 
 export async function resetUsageHistory(period: string): Promise<ResetUsageHistoryResult> {
@@ -684,6 +803,8 @@ export async function resetUsageHistory(period: string): Promise<ResetUsageHisto
     deletedRoutingDecisions: 0,
     deletedQuotaConsumption: 0,
     deletedTokenLedger: 0,
+    deletedConversationTurnNodes: 0,
+    deletedAgenticConversations: 0,
     deletedArtifacts: 0,
     errors: 0,
   };
@@ -702,6 +823,7 @@ export async function resetUsageHistory(period: string): Promise<ResetUsageHisto
       const cutoffIso = new Date(Date.now() - RESET_USAGE_HISTORY_PERIOD_MS[period]).toISOString();
       artifactsToDelete = collectCallLogArtifactsBefore(cutoffIso);
       for (const target of RESET_TARGETS) {
+        if (target.allOnly) continue;
         (result[target.resultKey] as number) = deleteFromTableBefore(target, cutoffIso);
       }
     });
@@ -766,6 +888,59 @@ export async function cleanupProxyLogs(): Promise<CleanupResult> {
 const CLEANUP_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
 let _cleanupSchedulerTimer: ReturnType<typeof setInterval> | null = null;
 
+const VACUUM_MIN_DELETED_ROWS_DEFAULT = 1000;
+
+export function getVacuumMinDeletedRows(): number {
+  const raw = process.env.OMNIROUTE_VACUUM_MIN_DELETED_ROWS;
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    const parsed = Number(raw);
+    // 0 is valid and means "always VACUUM after a cleanup that freed any rows".
+    if (Number.isFinite(parsed) && parsed >= 0) return Math.floor(parsed);
+  }
+  return VACUUM_MIN_DELETED_ROWS_DEFAULT;
+}
+
+/**
+ * VACUUM rewrites the entire database file (a multi-GB DB produces a
+ * multi-GB WAL and a matching page-cache/I/O burst on the host). Running it
+ * after a cleanup that only freed a handful of rows buys no space and pays
+ * the full rewrite cost, so tiny cleanups skip it; the scheduled VACUUM
+ * (#4437) and large cleanups still reclaim space.
+ */
+export function shouldVacuumAfterCleanup(
+  totalDeleted: number,
+  minRows: number = getVacuumMinDeletedRows()
+): boolean {
+  return totalDeleted > 0 && totalDeleted >= minRows;
+}
+
+/**
+ * Runs the post-cleanup VACUUM only when the cleanup freed enough rows to
+ * justify a full-database rewrite. Returns true when VACUUM ran.
+ */
+export async function vacuumAfterCleanup(
+  totalDeleted: number,
+  exec: (sql: string) => void,
+  log: (message: string) => void = (m) => console.log(m),
+  logError: (message: string, error: unknown) => void = (m, e) => console.error(m, e)
+): Promise<boolean> {
+  if (totalDeleted <= 0) return false;
+  const minRows = getVacuumMinDeletedRows();
+  if (!shouldVacuumAfterCleanup(totalDeleted, minRows)) {
+    log(`[Cleanup] Freed ${totalDeleted} rows; skipping VACUUM (below ${minRows}-row threshold).`);
+    return false;
+  }
+  log(`[Cleanup] Running VACUUM to reclaim ${totalDeleted} freed rows...`);
+  try {
+    exec("VACUUM");
+    log("[Cleanup] VACUUM completed after cleanup.");
+    return true;
+  } catch (vacErr) {
+    logError("[Cleanup] VACUUM after cleanup failed:", vacErr);
+    return false;
+  }
+}
+
 /**
  * Start the background cleanup scheduler. Runs cleanup on startup
  * and then every 6 hours. Runs VACUUM after deletes to reclaim disk space.
@@ -784,14 +959,8 @@ export function startCleanupScheduler(): void {
       const proxyResult = await cleanupProxyLogs();
       const totalDeleted = result.totalDeleted + proxyResult.deleted;
       if (totalDeleted > 0) {
-        console.log(`[Cleanup] Startup cleanup freed ${totalDeleted} rows. Running VACUUM...`);
-        try {
-          const db = getDbInstance();
-          db.exec("VACUUM");
-          console.log("[Cleanup] VACUUM completed after startup cleanup.");
-        } catch (vacErr) {
-          console.error("[Cleanup] VACUUM after cleanup failed:", vacErr);
-        }
+        console.log(`[Cleanup] Startup cleanup freed ${totalDeleted} rows.`);
+        await vacuumAfterCleanup(totalDeleted, (sql) => getDbInstance().exec(sql));
       }
     } catch (err) {
       console.error("[Cleanup] Startup cleanup failed:", err);
@@ -805,14 +974,8 @@ export function startCleanupScheduler(): void {
       const proxyResult = await cleanupProxyLogs();
       const totalDeleted = result.totalDeleted + proxyResult.deleted;
       if (totalDeleted > 0) {
-        console.log(`[Cleanup] Periodic cleanup freed ${totalDeleted} rows. Running VACUUM...`);
-        try {
-          const db = getDbInstance();
-          db.exec("VACUUM");
-          console.log("[Cleanup] VACUUM completed after periodic cleanup.");
-        } catch (vacErr) {
-          console.error("[Cleanup] VACUUM after cleanup failed:", vacErr);
-        }
+        console.log(`[Cleanup] Periodic cleanup freed ${totalDeleted} rows.`);
+        await vacuumAfterCleanup(totalDeleted, (sql) => getDbInstance().exec(sql));
       }
     } catch (err) {
       console.error("[Cleanup] Periodic cleanup failed:", err);

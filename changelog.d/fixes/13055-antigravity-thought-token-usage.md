@@ -1,0 +1,1 @@
+- **fix(antigravity):** Preserve upstream thought-token usage in normalized completion and reasoning token counts ([#13055](https://github.com/diegosouzapw/OmniRoute/pull/13055)) — thanks @pacocartones

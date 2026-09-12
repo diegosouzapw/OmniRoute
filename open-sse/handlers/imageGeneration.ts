@@ -2778,6 +2778,40 @@ export function saveImageSuccessResult({
   };
 }
 
+/**
+ * Render an arbitrary `error` value as a call-log string.
+ *
+ * `saveImageErrorResult` takes `error: unknown`, and the Codex fan-out forwards
+ * whatever `sanitizeImageProviderError()` produced — i.e. the output of
+ * `sanitizeUpstreamDetails()`, which builds every object with
+ * `Object.create(null)` on purpose (#12506) so a hostile upstream key such as
+ * `__proto__` or `constructor` can never reach a real prototype. That object
+ * therefore has NO `toString`/`Symbol.toPrimitive`, so a bare `String(value)`
+ * throws `TypeError: Cannot convert object to primitive value` and turned every
+ * Codex image failure into an unhandled crash instead of the sanitized error.
+ * The null prototype is the correct behavior at the source, so the sink is what
+ * has to be total: serialize objects structurally (the same way the Antigravity
+ * branch already logs its sanitized payload) and keep `String()` semantics for
+ * everything else.
+ */
+function stringifyImageErrorForLog(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (value instanceof Error) return `${value.name}: ${value.message}`;
+  if (value !== null && typeof value === "object") {
+    try {
+      const serialized = JSON.stringify(value);
+      if (typeof serialized === "string") return serialized;
+    } catch {
+      // Circular graph or a throwing toJSON — fall through to String().
+    }
+  }
+  try {
+    return String(value);
+  } catch {
+    return "[unserializable error]";
+  }
+}
+
 export function saveImageErrorResult({
   provider,
   model,
@@ -2810,7 +2844,7 @@ export function saveImageErrorResult({
     model: `${provider}/${model}`,
     provider,
     duration: Date.now() - startTime,
-    error: typeof error === "string" ? error.slice(0, 500) : String(error).slice(0, 500),
+    error: stringifyImageErrorForLog(error).slice(0, 500),
     requestBody,
   }).catch(() => {});
 

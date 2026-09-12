@@ -494,7 +494,7 @@ the global circuit breaker / connection cooldown / model lockout layers:
 - Claude Code obfuscation: `open-sse/services/claudeCodeObfuscation.ts`
 
 For the full stealth playbook and operational guidance, see
-[`docs/security/STEALTH_GUIDE.md`](../security/STEALTH_GUIDE.md).
+`docs/security/STEALTH_GUIDE.md` (git; not compiled into `/docs`).
 
 ### H. Webhooks, Reasoning Cache, Read Cache
 

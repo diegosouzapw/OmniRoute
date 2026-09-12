@@ -6,7 +6,8 @@
 
 import crypto from "crypto";
 import { encrypt, decrypt } from "./db/encryption";
-import { parseAndValidateWebhookUrl } from "@/shared/network/outboundUrlGuardPolicy";
+import { OutboundUrlGuardError } from "@/shared/network/outboundUrlGuard";
+import { fetchWebhookUrl, type WebhookFetchOptions } from "@/shared/network/webhookFetch";
 import type { WebhookEvent } from "./webhooks/eventDescriptions";
 
 export type { WebhookEvent };
@@ -16,6 +17,10 @@ export interface WebhookPayload {
   timestamp: string;
   data: Record<string, any>;
 }
+
+/** DNS-resolve/fetch overrides — production callers never pass these; tests inject a fake
+ * resolver and/or fetch to avoid real network access (#12569). */
+export type WebhookDeliveryOptions = Pick<WebhookFetchOptions, "lookup" | "fetchImpl">;
 
 function signPayload(payload: string, secret: string): string {
   return `sha256=${crypto.createHmac("sha256", secret).update(payload).digest("hex")}`;
@@ -38,21 +43,24 @@ export function decryptMetadata(encrypted: string | null): Record<string, string
 
 async function deliverRaw(
   url: string,
-  body: Record<string, unknown>
+  body: Record<string, unknown>,
+  options?: WebhookDeliveryOptions
 ): Promise<{ success: boolean; status: number; latencyMs: number; error?: string }> {
   const start = Date.now();
   try {
-    parseAndValidateWebhookUrl(url);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10_000);
     try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "User-Agent": "OmniRoute-Webhook/1.0" },
-        body: JSON.stringify(body),
-        signal: controller.signal,
-      });
-      return { success: res.ok, status: res.status, latencyMs: Date.now() - start };
+      const { response } = await fetchWebhookUrl(
+        url,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "User-Agent": "OmniRoute-Webhook/1.0" },
+          body: JSON.stringify(body),
+        },
+        { ...options, signal: controller.signal }
+      );
+      return { success: response.ok, status: response.status, latencyMs: Date.now() - start };
     } finally {
       // Always clear the abort timer — on a non-timeout fetch error the previous code skipped
       // clearTimeout, leaving a dangling 10s timer (and AbortController) per failed call.
@@ -72,13 +80,9 @@ export async function deliverWebhook(
   url: string,
   payload: WebhookPayload,
   secret?: string | null,
-  maxRetries = 3
+  maxRetries = 3,
+  options?: WebhookDeliveryOptions
 ): Promise<{ success: boolean; status: number; error?: string }> {
-  try {
-    parseAndValidateWebhookUrl(url);
-  } catch (error: any) {
-    return { success: false, status: 0, error: error.message || "Blocked outbound URL" };
-  }
   const body = JSON.stringify(payload);
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -96,29 +100,31 @@ export async function deliverWebhook(
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10_000);
 
-      let res: Response;
+      let response: Response;
       try {
-        res = await fetch(url, {
-          method: "POST",
-          headers,
-          body,
-          signal: controller.signal,
-        });
+        ({ response } = await fetchWebhookUrl(
+          url,
+          { method: "POST", headers, body },
+          { ...options, signal: controller.signal }
+        ));
       } finally {
         // Clear the abort timer on every path — a non-timeout fetch error previously skipped
         // clearTimeout, leaking a dangling 10s timer + AbortController per failed attempt.
         clearTimeout(timeoutId);
       }
 
-      if (res.ok || res.status < 500) {
-        return { success: res.ok, status: res.status };
+      if (response.ok || response.status < 500) {
+        return { success: response.ok, status: response.status };
       }
 
       if (attempt < maxRetries) {
         await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 1000));
       }
     } catch (error: any) {
-      if (attempt === maxRetries) {
+      // A blocked outbound URL (private/metadata resolved address, or a redirect hop that
+      // resolved to one) is never transient — fail closed immediately instead of burning
+      // retries/backoff on something that will keep resolving the same way.
+      if (attempt === maxRetries || error instanceof OutboundUrlGuardError) {
         return { success: false, status: 0, error: error.message || "Network error" };
       }
       await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 1000));

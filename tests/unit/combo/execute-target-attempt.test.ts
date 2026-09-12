@@ -286,3 +286,70 @@ test("body-specific 400 surfaces via {ok,response} not null", async () => {
   assert.equal(result?.ok, false);
   assert.equal(result?.response?.status, 400);
 });
+
+test("spreads stamped fallbackAttempts onto the handleSingleModel target", async () => {
+  const { executeTargetAttempt } =
+    await import("../../../open-sse/services/combo/executeTargetAttempt.ts");
+  let seen: unknown;
+  const target = {
+    ...modelTarget({ connectionId: "c1" }),
+    fallbackAttempts: 2,
+  } as ResolvedComboTarget & { fallbackAttempts: number };
+  const deps = baseDeps({
+    maxRetries: 0,
+    handleSingleModelWithTimeout: async (_body, _model, dispatched) => {
+      seen = dispatched;
+      return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    },
+  });
+  const state = emptyState({
+    orderedTargets: [target],
+    abortControllers: new Map([[0, new AbortController()]]),
+  });
+  const result = await executeTargetAttempt({
+    index: 0,
+    state,
+    deps,
+    targetForAttempt: target,
+    profile: {},
+    protectedPriorityTarget: false,
+  });
+  assert.equal(result?.ok, true);
+  assert.equal((seen as { fallbackAttempts?: number } | undefined)?.fallbackAttempts, 2);
+});
+
+test("injection: dropping fallbackAttempts from the dispatch target goes red", async () => {
+  const { executeTargetAttempt } =
+    await import("../../../open-sse/services/combo/executeTargetAttempt.ts");
+  let seen: unknown;
+  const target = {
+    ...modelTarget({ connectionId: "c1" }),
+    fallbackAttempts: 2,
+  } as ResolvedComboTarget & { fallbackAttempts: number };
+  const deps = baseDeps({
+    maxRetries: 0,
+    handleSingleModelWithTimeout: async (_body, _model, dispatched) => {
+      seen = dispatched;
+      return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    },
+  });
+  const state = emptyState({
+    orderedTargets: [target],
+    abortControllers: new Map([[0, new AbortController()]]),
+  });
+  await executeTargetAttempt({
+    index: 0,
+    state,
+    deps,
+    targetForAttempt: target,
+    profile: {},
+    protectedPriorityTarget: false,
+  });
+  assert.equal(Object.prototype.hasOwnProperty.call(seen as object, "fallbackAttempts"), true);
+});

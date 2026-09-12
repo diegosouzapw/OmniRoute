@@ -3,6 +3,7 @@ import { type HostContract, detectHostContract, emitsLegacyFields } from "./comp
 import type { Model as LegacyModelV2 } from "@opencode-ai/sdk/v2";
 import type { ModelV2Info, ProviderV2Info } from "@opencode-ai/sdk/v2/types";
 import {
+  isHttpUrl,
   type ApiFormatV2,
   type LogLevel,
   type Logger,
@@ -140,6 +141,15 @@ export function legacyApiToInfoApi(api: LegacyModelV2["api"]): ModelV2Info["api"
   if (!api || typeof api.npm !== "string" || api.npm.length === 0) {
     throw new Error(
       "[omniroute-v2] refusing to publish a model without an api block (missing api.npm)"
+    );
+  }
+  // The host reads `api.url` in `prepareOptions` and never falls back to the
+  // provider's own, so a model published without one reaches the AI SDK with no
+  // baseURL and fails at call time with a bare `Invalid URL` — no request on the
+  // wire, nothing in the gateway logs, no model named.
+  if (!isHttpUrl(api.url)) {
+    throw new Error(
+      "[omniroute-v2] refusing to publish a model whose api block carries no http(s) url"
     );
   }
   return { id: api.id, type: "aisdk", package: api.npm, url: api.url };

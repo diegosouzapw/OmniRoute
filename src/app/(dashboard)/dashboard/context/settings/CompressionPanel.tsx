@@ -24,7 +24,10 @@ import {
   OUTPUT_STYLE_IDS,
   outputStyleMeta,
 } from "../../../../../../open-sse/services/compression/outputStyles/catalog.ts";
-import { deriveDefaultPlan } from "../../../../../../open-sse/services/compression/deriveDefaultPlan.ts";
+import {
+  deriveEffectivePreviewPlan,
+  type NamedCombos,
+} from "../../../../../../open-sse/services/compression/deriveEffectivePreviewPlan.ts";
 import EngineGuidanceDetail from "./EngineGuidanceDetail";
 import {
   DEFAULT_CONTEXT_BUDGET,
@@ -208,6 +211,9 @@ export default function CompressionPanel() {
   const uiLang = (useLocale() || "en").split("-")[0];
   const [config, setConfig] = useState<CompressionConfig>(DEFAULT_CONFIG);
   const [mcpAccessibility, setMcpAccessibility] = useState(true);
+  // Named-combo pipelines (id -> steps), so the "Effective pipeline" preview below can match
+  // what a live request actually runs when an active profile is selected (#12063).
+  const [namedCombos, setNamedCombos] = useState<NamedCombos>({});
   // #7530 — per-engine expandable guidance (tradeoffs/lossy/cache-impact); collapsed by
   // default so the grid stays scannable.
   const [expandedGuidance, setExpandedGuidance] = useState<Record<string, boolean>>({});
@@ -246,6 +252,16 @@ export default function CompressionPanel() {
       .then((r) => (r.ok ? r.json() : null))
       .then((data: { enabled?: boolean } | null) => {
         if (data && typeof data.enabled === "boolean") setMcpAccessibility(data.enabled);
+      })
+      .catch(() => {});
+
+    fetch("/api/context/combos")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { combos?: Array<{ id: string; pipeline: NamedCombos[string] }> } | null) => {
+        const combos = Array.isArray(data?.combos) ? data.combos : [];
+        const map: NamedCombos = {};
+        for (const combo of combos) map[combo.id] = combo.pipeline;
+        setNamedCombos(map);
       })
       .catch(() => {});
   }, []);
@@ -356,7 +372,7 @@ export default function CompressionPanel() {
     }
   };
 
-  const derived = deriveDefaultPlan(config.engines, config.enabled);
+  const derived = deriveEffectivePreviewPlan(config, namedCombos);
   const derivedText =
     derived.mode === "off"
       ? t("compressionDerivedOff")

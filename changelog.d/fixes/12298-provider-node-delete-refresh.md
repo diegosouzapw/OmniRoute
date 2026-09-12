@@ -1,0 +1,1 @@
+- fix(dashboard): refresh the providers list after deleting a compatible provider node (#12298)

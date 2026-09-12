@@ -1,6 +1,5 @@
 import { isIP } from "node:net";
 import dns from "node:dns";
-import { Agent, fetch as undiciFetch } from "undici";
 import {
   type OutboundUrlGuardMode,
   isPrivateHost,
@@ -9,6 +8,13 @@ import {
   parseOutboundUrl,
 } from "@/shared/network/outboundUrlGuard";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuardPolicy";
+// #12569: `createPinnedFetch` now lives in the shared `dnsPinnedFetch.ts` module so the
+// webhook outbound-URL guard can reuse the exact same connection-pinning mechanism instead of
+// duplicating it. Re-exported here for backward compatibility with existing importers of
+// `@/shared/network/remoteImageFetch`.
+import { createPinnedFetch } from "@/shared/network/dnsPinnedFetch";
+
+export { createPinnedFetch };
 
 const DEFAULT_MAX_REMOTE_IMAGE_BYTES = 20 * 1024 * 1024;
 const DEFAULT_MAX_REDIRECTS = 3;
@@ -94,48 +100,6 @@ async function assertHostnameResolvesPublic(
     }
   }
   return resolved;
-}
-/**
- * Build a `fetch` bound to a single already-DNS-validated address, ignoring
- * whatever the hostname resolves to at connect time. Exported for direct
- * testing: this is the mechanism that closes the DNS-rebinding TOCTOU gap
- * (GHSA-cmhj-wh2f-9cgx) — a second, real DNS lookup at connect time could
- * otherwise return a different (possibly private) address than the one
- * `assertHostnameResolvesPublic` validated.
- */
-export function createPinnedFetch(address: string, family: number): typeof fetch {
-  const dispatcher = new Agent({
-    connect: {
-      // Node's `net.connect`/`tls.connect` invoke a custom `lookup` in one of
-      // two incompatible shapes depending on `options.all`: modern Node
-      // (autoSelectFamily / Happy Eyeballs, on by default since Node 18)
-      // calls `lookup(hostname, { all: true, ... }, callback)` and requires
-      // `callback(err, addresses[])` — an array of `{ address, family }`.
-      // Only when `all` is falsy does it accept the single-address form
-      // `callback(err, address, family)`. Handling only the single-address
-      // form here (as an earlier draft did) throws `ERR_INVALID_IP_ADDRESS`
-      // for every real request once autoSelectFamily kicks in, silently
-      // breaking every pinned fetch — verified by
-      // `tests/unit/remote-image-fetch-pin-dns-connection.test.ts`.
-      lookup: (_hostname, options, callback) => {
-        if (options && typeof options === "object" && "all" in options && options.all) {
-          callback(null, [{ address, family }]);
-          return;
-        }
-        callback(null, address, family);
-      },
-    },
-  });
-  return (async (input, init) => {
-    try {
-      return (await undiciFetch(input as string | URL, {
-        ...(init as Parameters<typeof undiciFetch>[1]),
-        dispatcher,
-      })) as unknown as Response;
-    } finally {
-      await dispatcher.close();
-    }
-  }) as typeof fetch;
 }
 function combineSignals(signal: AbortSignal | undefined, timeoutMs: number) {
   const timeoutSignal = AbortSignal.timeout(timeoutMs);

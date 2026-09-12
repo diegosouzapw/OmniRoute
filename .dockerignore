@@ -73,6 +73,11 @@ docs/i18n/**
 # so without this rule these land in /app/docs and become readable through the
 # dashboard's Docs viewer at runtime.
 docs/superpowers/**
+# Operator-internal security writeups: git only, not the image or /docs catalog.
+docs/security/STEALTH_GUIDE.md
+docs/security/SOCKET_DEV_FINDINGS.md
+docs/security/MITM-TPROXY-DECRYPT.md
+docs/security/PUBLIC_CREDS.md
 docs/diagrams/**/*.png
 docs/diagrams/**/*.jpg
 docs/diagrams/**/*.jpeg

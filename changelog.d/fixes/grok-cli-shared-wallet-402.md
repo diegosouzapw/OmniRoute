@@ -1,0 +1,1 @@
+- **fix(grok-cli):** a 402 "Grok Build usage balance exhausted" parks that Grok login as out of credit (Grok Build CLI, grok.com cookie, and xAI OAuth share the weekly pool). Combo routing then tries the next login instead of locking the model for every account in the pool

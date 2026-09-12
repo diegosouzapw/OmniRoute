@@ -1,0 +1,1 @@
+- **fix(rerank):** clamp Voyage `top_k` to the documents actually sent after empty-string filtering, and honor `return_documents: false` in the NVIDIA response adapter (#12523 — thanks @pacocartones)

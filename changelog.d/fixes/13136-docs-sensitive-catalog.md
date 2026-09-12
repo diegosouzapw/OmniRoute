@@ -1,0 +1,1 @@
+- **fix(docs):** drop TLS-impersonation, MITM-decrypt, supply-chain attestation, and XOR-mask writeups from the public `/docs` catalog and Docker image. Files stay in git for engineers; operators who need them open the repo, not the website.

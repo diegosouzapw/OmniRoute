@@ -12,6 +12,8 @@ import { getQdrantConfig, checkQdrantHealth, searchSemanticMemory } from "./qdra
 import type { MemoryEngineStatus } from "@/shared/schemas/memory";
 import { supportsFts5 } from "../db/migrationRunner";
 import type { SqliteAdapter } from "../db/adapters/types";
+import { pickApiKeyForInternalUse } from "../db/apiKeys";
+import { getRuntimePorts } from "../runtime/ports";
 import {
   estimateTokens,
   parseMetadata,
@@ -143,16 +145,29 @@ function buildFtsRows(apiKeyId: string, config: FtsColConfig): MemoryRow[] {
   }
 }
 
-// Loopback rerank URL — localhost only, never routed over the network.
-// nosemgrep: javascript.lang.security.audit.non-literal-regexp.non-literal-regexp
-const RERANK_LOOPBACK_URL = "http://127.0.0.1:20128/v1/rerank";
+// Loopback rerank URL — localhost only, never routed over the network. The port is
+// derived from the same runtime source every other internal self-call uses
+// (getRuntimePorts()/process.env.PORT — see src/lib/runtime/ports.ts), never hardcoded,
+// so this keeps working when an operator overrides PORT/API_PORT (#12745).
+function getRerankLoopbackUrl(): string {
+  const { apiPort } = getRuntimePorts();
+  // nosemgrep: javascript.lang.security.audit.non-literal-regexp.non-literal-regexp
+  return `http://127.0.0.1:${apiPort}/v1/rerank`;
+}
 
 /**
  * Apply reranking via /v1/rerank (loopback-only) if rerankEnabled + rerankProviderModel is set.
  * Returns reordered array (or original order on any error — rerank failure never fails retrieval).
  *
- * Security note: the URL is a hardcoded loopback address (127.0.0.1:20128) — it never
- * carries sensitive data over a network link. HTTP is safe for loopback-only IPC.
+ * Auth note (#12745): /v1/rerank is a CLIENT_API route gated by clientApiPolicy — with
+ * REQUIRE_API_KEY=true an unauthenticated loopback call gets 401'd by the same policy
+ * that protects it from the outside, and this call used to send no credential at all,
+ * silently degrading retrieval to unranked order. Attach a real, DB-backed API key
+ * (the same internal-probe selector already used by combo-health-check / cloud-sync-verify,
+ * see pickApiKeyForInternalUse()) as a Bearer token instead of exempting the route.
+ *
+ * Security note: the URL is a loopback address (127.0.0.1) — it never carries sensitive
+ * data over a network link. HTTP is safe for loopback-only IPC.
  * nosemgrep: javascript.lang.security.detect-non-literal-url
  */
 async function applyRerank<T extends { memory: Memory; score: number }>(
@@ -171,10 +186,14 @@ async function applyRerank<T extends { memory: Memory; score: number }>(
       top_n: items.length,
     };
 
-    const res = await fetch(RERANK_LOOPBACK_URL, {
+    const internalKey = await pickApiKeyForInternalUse("internal-probe");
+    const headers: Record<string, string> = { "content-type": "application/json" };
+    if (internalKey) headers.authorization = `Bearer ${internalKey}`;
+
+    const res = await fetch(getRerankLoopbackUrl(), {
       // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers,
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(5000),
     });

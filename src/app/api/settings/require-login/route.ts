@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { getSettings, updateSettings } from "@/lib/db/settings";
 import {
@@ -8,23 +7,19 @@ import {
   hashManagementPassword,
 } from "@/lib/auth/managementPassword";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+import {
+  getDashboardJwtSecret,
+  verifyDashboardSessionToken,
+} from "@/shared/utils/dashboardSessionToken";
 import { getNodeRuntimeSupport } from "@/shared/utils/nodeRuntimeSupport.ts";
 import { updateRequireLoginSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-
-function getJwtSecret(): Uint8Array | null {
-  const secret = process.env.JWT_SECRET?.trim();
-  return secret ? new TextEncoder().encode(secret) : null;
-}
 
 async function checkSessionAuthenticated(): Promise<boolean> {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
-    const secret = getJwtSecret();
-    if (!token || !secret) return false;
-    await jwtVerify(token, secret);
-    return true;
+    return (await verifyDashboardSessionToken(token, getDashboardJwtSecret())) !== null;
   } catch {
     return false;
   }

@@ -1,0 +1,1 @@
+- **fix(dashboard):** leftover catalog-removed provider rows (gemini-cli) can be listed and purged from the providers page ([#13067](https://github.com/diegosouzapw/OmniRoute/issues/13067)) ([#13197](https://github.com/diegosouzapw/OmniRoute/pull/13197))

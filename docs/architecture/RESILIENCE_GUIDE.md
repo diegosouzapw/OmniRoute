@@ -628,7 +628,7 @@ rate limit is the same signal as an exhausted quota. Honest limits:
 
 ## TLS Fingerprinting & Stealth
 
-Provider-specific stealth (JA3/JA4, CCH, obfuscation) is separately documented — see [STEALTH_GUIDE.md](../security/STEALTH_GUIDE.md).
+Provider-specific stealth (JA3/JA4, CCH, obfuscation) is separately documented — see `docs/security/STEALTH_GUIDE.md` (git; not compiled into `/docs`).
 
 ---
 

@@ -585,3 +585,38 @@ test("codebuddy-cn is treated as a managed dual-auth provider (oauth + apikey ac
     "codebuddy-cn must be admitted by the dual-auth gate"
   );
 });
+
+test("#12702: codebuddy-cn presents the same CLI/CodeBuddy version across OAuth, chat and usage calls", async () => {
+  // A mismatched version string across a single account's auth vs. chat calls is exactly the
+  // kind of internally-inconsistent client fingerprint Tencent's WAF flags as anomalous
+  // (code 11128 "request illegal" / "blocked by security policy"). All three surfaces must
+  // read from the same CODEBUDDY_CN_USER_AGENT constant so they can never drift apart again.
+  const oauthUserAgent = CODEBUDDY_CN_CONFIG.userAgent;
+  const chatUserAgent = REGISTRY["codebuddy-cn"].headers?.["User-Agent"];
+  assert.equal(
+    oauthUserAgent,
+    chatUserAgent,
+    `codebuddy-cn OAuth User-Agent (${oauthUserAgent}) must match the chat User-Agent (${chatUserAgent})`
+  );
+
+  const { CODEBUDDY_CN_USER_AGENT } = await import("../../src/lib/oauth/constants/oauth.ts");
+  assert.equal(oauthUserAgent, CODEBUDDY_CN_USER_AGENT);
+
+  const origFetch = globalThis.fetch;
+  let capturedUserAgent: string | undefined;
+  globalThis.fetch = (async (_url: unknown, init?: RequestInit) => {
+    capturedUserAgent = (init?.headers as Record<string, string> | undefined)?.["User-Agent"];
+    return new Response(JSON.stringify({}), { status: 200 });
+  }) as typeof fetch;
+  try {
+    const { getCodeBuddyCnUsage } = await import("../../open-sse/services/usage/codebuddy-cn.ts");
+    await getCodeBuddyCnUsage("ACCESS_TOKEN", undefined, undefined);
+    assert.equal(
+      capturedUserAgent,
+      CODEBUDDY_CN_USER_AGENT,
+      "codebuddy-cn usage/quota User-Agent must match the shared constant"
+    );
+  } finally {
+    globalThis.fetch = origFetch;
+  }
+});

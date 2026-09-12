@@ -121,11 +121,41 @@ const VIDEO_JOB_PRESETS: Record<string, VideoJobPreset> = {
       }),
     },
     taskIdPath: "video_id",
-    poll: { pathTemplate: "/agnesapi?video_id={taskId}" },
+    poll: { pathTemplate: "/agnesapi?video_id={taskId}&model_name={model}" },
     statusPath: "status",
     statusDone: ["completed"],
     statusFailed: ["failed"],
     resultPath: "metadata.url",
+    maxPolls: 60,
+    pollIntervalMs: 2000,
+  },
+  "agnes-video-2.5-job": {
+    id: "agnes-video-2.5-job",
+    displayName: "Agnes Video 2.5",
+    authHeaderName: "Authorization",
+    authScheme: "bearer",
+    // Wiki 2026-09-09 + live probe: POST /v1/videos returns `id`, poll GET /v1/videos/{id}, result `url`.
+    // seconds is a string. Do not reuse agnes-video-job (video_id + /agnesapi).
+    baseUrlFallback: "https://apihub.agnes-ai.com",
+    submit: {
+      method: "POST",
+      path: "/v1/videos",
+      buildBody: ({ model, prompt, extras }) => {
+        const seconds = extras.seconds;
+        return {
+          model,
+          prompt,
+          ...extras,
+          ...(typeof seconds === "number" ? { seconds: String(seconds) } : {}),
+        };
+      },
+    },
+    taskIdPath: "id",
+    poll: { pathTemplate: "/v1/videos/{taskId}" },
+    statusPath: "status",
+    statusDone: ["completed"],
+    statusFailed: ["failed"],
+    resultPath: "url",
     maxPolls: 60,
     pollIntervalMs: 2000,
   },
@@ -273,7 +303,9 @@ export async function handleVideoJobGeneration({
 
   for (let attempt = 1; attempt <= maxPolls; attempt += 1) {
     await sleep(pollInterval);
-    const pollUrl = `${baseUrl}${preset.poll.pathTemplate.replace("{taskId}", encodeURIComponent(taskId))}`;
+    const pollUrl = `${baseUrl}${preset.poll.pathTemplate
+      .replace("{taskId}", encodeURIComponent(taskId))
+      .replace("{model}", encodeURIComponent(model))}`;
     const pollResult = await fetchJson(pollUrl, {
       method: "GET",
       headers: buildJobHeaders(preset, credentials),

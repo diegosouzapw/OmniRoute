@@ -29,7 +29,13 @@ export async function checkSemanticCache({
   semanticCacheEnabled: boolean;
   // Only the fields this read path actually touches are named; everything else
   // on the request body stays `unknown` via the index signature.
-  body: Record<string, unknown> & { temperature?: number; top_p?: number };
+  body: Record<string, unknown> & {
+    temperature?: number;
+    top_p?: number;
+    tool_choice?: unknown;
+    tools?: unknown;
+    response_format?: unknown;
+  };
   clientRawRequest: { headers?: unknown } | null;
   model: string;
   provider: string;
@@ -51,7 +57,8 @@ export async function checkSemanticCache({
       body.messages ?? body.input,
       body.temperature,
       body.top_p,
-      apiKeyId ?? undefined
+      apiKeyId ?? undefined,
+      { toolChoice: body.tool_choice, tools: body.tools, responseFormat: body.response_format }
     );
     const cached = getCachedResponse(signature);
     if (cached) {

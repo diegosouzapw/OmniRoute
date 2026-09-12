@@ -19,7 +19,10 @@ test("buildOmniRouteResponseMetaHeaders emits X-OmniRoute-Decision for a combo s
     model: "gpt-4o",
     latencyMs: 42,
   });
-  assert.equal(headers["X-OmniRoute-Decision"], "strategy=priority; provider=openai; latency_ms=42");
+  assert.equal(
+    headers["X-OmniRoute-Decision"],
+    "strategy=priority; provider=openai; latency_ms=42"
+  );
 });
 
 test("strategy: single (non-combo request) still emits the header", () => {
@@ -28,7 +31,10 @@ test("strategy: single (non-combo request) still emits the header", () => {
     provider: "anthropic",
     latencyMs: 10,
   });
-  assert.equal(headers["X-OmniRoute-Decision"], "strategy=single; provider=anthropic; latency_ms=10");
+  assert.equal(
+    headers["X-OmniRoute-Decision"],
+    "strategy=single; provider=anthropic; latency_ms=10"
+  );
 });
 
 test("omitted strategy AND provider -> header absent entirely", () => {
@@ -70,5 +76,55 @@ test("buildNonStreamingResponseHeaders falls back to strategy=single when comboS
     requestId: "req-2",
     comboStrategy: null,
   });
-  assert.match(headers["X-OmniRoute-Decision"], /^strategy=single; provider=openai; latency_ms=\d+$/);
+  assert.match(
+    headers["X-OmniRoute-Decision"],
+    /^strategy=single; provider=openai; latency_ms=\d+$/
+  );
+});
+
+test("assembleStreamingResponseHeaders emits X-OmniRoute-Fallback-Attempts when count > 0", () => {
+  const headers = assembleStreamingResponseHeaders({
+    providerHeaders: new Headers(),
+    provider: "openai",
+    model: "gpt-4o",
+    pendingRequestId: "req-3",
+    comboStrategy: "priority",
+    fallbackAttempts: 2,
+  });
+  assert.equal(headers["X-OmniRoute-Fallback-Attempts"], "2");
+});
+
+test("buildNonStreamingResponseHeaders emits X-OmniRoute-Fallback-Attempts when count > 0", () => {
+  const headers = buildNonStreamingResponseHeaders({
+    provider: "openai",
+    model: "gpt-4o",
+    startTime: Date.now(),
+    responseUsage: null,
+    estimatedCost: 0,
+    requestId: "req-4",
+    comboStrategy: "priority",
+    fallbackAttempts: 1,
+  });
+  assert.equal(headers["X-OmniRoute-Fallback-Attempts"], "1");
+});
+
+test("builders omit X-OmniRoute-Fallback-Attempts when count is 0", () => {
+  const streaming = assembleStreamingResponseHeaders({
+    providerHeaders: new Headers(),
+    provider: "openai",
+    model: "gpt-4o",
+    pendingRequestId: "req-5",
+    fallbackAttempts: 0,
+  });
+  const nonStreaming = buildNonStreamingResponseHeaders({
+    provider: "openai",
+    model: "gpt-4o",
+    startTime: Date.now(),
+    responseUsage: null,
+    estimatedCost: 0,
+    requestId: "req-6",
+    fallbackAttempts: 0,
+  });
+  assert.equal(streaming["X-OmniRoute-Fallback-Attempts"], undefined);
+  assert.equal(nonStreaming["X-OmniRoute-Fallback-Attempts"], undefined);
 });

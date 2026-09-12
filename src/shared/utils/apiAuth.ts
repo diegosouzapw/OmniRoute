@@ -7,10 +7,10 @@
  * @module shared/utils/apiAuth
  */
 
-import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { getSettings } from "@/lib/db/settings";
 import { isPublicApiRoute } from "@/shared/constants/publicApiRoutes";
+import { verifyDashboardSessionToken } from "@/shared/utils/dashboardSessionToken";
 import { extractApiKey } from "@/sse/services/auth";
 
 type RequestLike = {
@@ -247,13 +247,7 @@ export async function isDashboardSessionAuthenticated(
 
   if (!token) return false;
 
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    await jwtVerify(token, secret);
-    return true;
-  } catch {
-    return false;
-  }
+  return (await verifyDashboardSessionToken(token)) !== null;
 }
 
 // ──────────────── Auth Verification ────────────────

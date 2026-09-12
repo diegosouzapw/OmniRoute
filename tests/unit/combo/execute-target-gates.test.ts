@@ -156,3 +156,69 @@ test("protected priority non-quota skip returns 503 response not null", async ()
     assert.equal(decision.result?.response?.status, 503);
   }
 });
+
+test("proceed stamps fallbackAttempts from the ordered-target index", async () => {
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+  const first = modelTarget({ executionKey: "ek-0", stepId: "s0" });
+  const second = modelTarget({ executionKey: "ek-1", stepId: "s1" });
+  const state = emptyState({
+    orderedTargets: [first, second],
+    abortControllers: new Map([
+      [0, new AbortController()],
+      [1, new AbortController()],
+    ]),
+  });
+  const firstDecision = await evaluateExecuteTargetGates({
+    index: 0,
+    state,
+    deps: baseDeps(),
+  });
+  const secondDecision = await evaluateExecuteTargetGates({
+    index: 1,
+    state,
+    deps: baseDeps(),
+  });
+  assert.equal(firstDecision.kind, "proceed");
+  assert.equal(secondDecision.kind, "proceed");
+  if (firstDecision.kind === "proceed") {
+    assert.equal(
+      (firstDecision.targetForAttempt as ResolvedComboTarget & { fallbackAttempts?: number })
+        .fallbackAttempts,
+      0
+    );
+  }
+  if (secondDecision.kind === "proceed") {
+    assert.equal(
+      (secondDecision.targetForAttempt as ResolvedComboTarget & { fallbackAttempts?: number })
+        .fallbackAttempts,
+      1
+    );
+  }
+});
+
+test("injection: dropping fallbackAttempts from targetForAttempt goes red", async () => {
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+  const first = modelTarget({ executionKey: "ek-0", stepId: "s0" });
+  const second = modelTarget({ executionKey: "ek-1", stepId: "s1" });
+  const state = emptyState({
+    orderedTargets: [first, second],
+    abortControllers: new Map([
+      [0, new AbortController()],
+      [1, new AbortController()],
+    ]),
+  });
+  const decision = await evaluateExecuteTargetGates({
+    index: 1,
+    state,
+    deps: baseDeps(),
+  });
+  assert.equal(decision.kind, "proceed");
+  if (decision.kind === "proceed") {
+    assert.equal(
+      Object.prototype.hasOwnProperty.call(decision.targetForAttempt, "fallbackAttempts"),
+      true
+    );
+  }
+});

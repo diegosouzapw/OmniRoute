@@ -50,6 +50,34 @@ if (isVersionFastPath(process.argv)) {
   process.exit(0);
 }
 
+// Detect an unsupported Node.js runtime BEFORE the heavy `tsx/esm` import and
+// Commander's ~70-command registration chain run. That chain pulls in `ora` ->
+// the hoisted `string-width` package, whose module contains top-level ES2024
+// Unicode-set (`v` flag) regex literals. On a Node/V8 build that predates
+// `v`-flag support, those literals fail to even *parse*, throwing a bare
+// `SyntaxError: Invalid regular expression flags` deep inside a transitive
+// dependency instead of an actionable message (#12296). Skip this for the
+// same read-only invocations `shouldProvisionStorageKey` already exempts
+// (`--help`/`-h`, `help`/`completion`) — those still need the full command
+// registry to render their output, so an incompatible runtime crashing there
+// is a separate, pre-existing limitation this fix does not attempt to solve.
+if (shouldProvisionStorageKey(process.argv)) {
+  const nodeSupport = getNodeRuntimeSupport();
+  if (!nodeSupport.nodeCompatible) {
+    const runtimeWarning = getNodeRuntimeWarning() || "Unsupported Node.js runtime detected.";
+    console.error(
+      `\x1b[31m✖ Node.js ${nodeSupport.nodeVersion} is not supported.\x1b[0m\n` +
+        `  ${runtimeWarning}\n` +
+        `  Supported runtimes: ${nodeSupport.supportedDisplay}\n` +
+        `  Recommended: Node.js ${nodeSupport.recommendedVersion}\n` +
+        `  If you installed OmniRoute globally, run \`node -v\` and confirm \`omniroute\` is not resolving to\n` +
+        `  a stale/distro-packaged \`nodejs\` binary (e.g. /usr/bin/node) instead of the version you expect —\n` +
+        `  that mismatch is the most common cause even when package.json's engines range is correct.`
+    );
+    process.exit(1);
+  }
+}
+
 // MCP stdio transport uses stdout exclusively for JSON-RPC messages. Redirect
 // console.log/warn to stderr before anything else runs — including the tsx/esm and
 // polyfill imports below, since those (and their transitive module graphs, e.g. DB

@@ -1808,6 +1808,9 @@
     "healthMonitor": "Trình theo dõi tình trạng",
     "reportIssue": "Báo cáo sự cố",
     "activeError": "{active} đang hoạt động · {errors} lỗi",
+    "topologyLegendActive": "Đang hoạt động",
+    "topologyLegendRecent": "Gần đây",
+    "topologyLegendError": "Lỗi",
     "oauthLabel": "OAuth",
     "apiKeyLabel": "Khóa API",
     "requestsShort": "{count} yêu cầu",
@@ -6432,7 +6435,7 @@
     "commandCodeStartFailed": "Không thể bắt đầu xác thực Command Code",
     "connectionDeleted": "Đã xóa kết nối",
     "connectionFallback": "kết nối",
-    "coolingConnectionsDescription": "Các kết nối này trả về 429 (giới hạn tốc độ) trong yêu cầu gần nhất. OmniRoute sẽ bỏ qua chúng cho đến khi bộ hẹn giờ hết hạn — không cần tắt thủ công.",
+    "coolingConnectionsDescription": "Các kết nối này đang nguội sau yêu cầu gần nhất. OmniRoute sẽ bỏ qua chúng đến khi hết giờ — không cần tắt thủ công.",
     "coolingConnectionsTitle": "Các kết nối đang tạm làm mát ({count})",
     "failedDeleteAlias": "Không thể xóa alias",
     "failedDeleteConnection": "Không thể xóa kết nối",
@@ -8671,7 +8674,9 @@
     "languagePacksList": "Gói ngôn ngữ: {packs}",
     "dragToReorder": "Kéo để sắp xếp lại bước",
     "engine": "Bộ máy",
-    "intensity": "Cường độ"
+    "intensity": "Cường độ",
+    "activeProfileMasterSwitchOffWarning": "__MISSING__:The active profile below will not run until the master \"Prompt Compression\" switch is turned on.",
+    "activeProfileMasterSwitchOffCta": "__MISSING__:Turn it on in Settings"
   },
   "compressionStudio": {
     "noRun": "Chưa có lượt nén nào.",
@@ -8700,6 +8705,7 @@
     "run": "Chạy",
     "laneRejected": "bị từ chối: {reason}",
     "error": "lỗi",
+    "combinedError": "__MISSING__:Combined pipeline preview failed: {reason}",
     "combinedFlow": "Luồng kết hợp",
     "eachLayer": "Từng lớp riêng biệt",
     "diff": "Khác biệt",

@@ -4,6 +4,11 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, Button, Badge, ConfirmModal } from "@/shared/components";
 import { useLocale, useTranslations } from "next-intl";
 import DatabaseBackupRetentionCard from "./DatabaseBackupRetentionCard";
+import {
+  fetchDatabaseSettingsData,
+  isAuthRequiredResponse,
+  AuthRequiredBanner,
+} from "./systemStorageAuth";
 
 // Whitelist mirrored from src/lib/db/cleanup.ts::RESET_USAGE_HISTORY_PERIODS.
 const RESET_USAGE_PERIOD_VALUES = [
@@ -27,16 +32,6 @@ async function fetchStorageHealthData() {
     console.error("Failed to fetch storage health:", err);
     return null;
   }
-}
-
-async function fetchDatabaseSettingsData() {
-  try {
-    const res = await fetch("/api/settings/database");
-    if (res.ok) return await res.json();
-  } catch (err) {
-    console.error("Failed to load database settings:", err);
-  }
-  return null;
 }
 
 export default function SystemStorageTab() {
@@ -108,6 +103,7 @@ export default function SystemStorageTab() {
   // Database settings state (tasks 23-26)
   const [dbSettings, setDbSettings] = useState<any>(null);
   const [dbSettingsLoading, setDbSettingsLoading] = useState(true);
+  const [dbSettingsAuthRequired, setDbSettingsAuthRequired] = useState(false);
   const [dbSettingsSaving, setDbSettingsSaving] = useState(false);
   const [dbStatsRefreshing, setDbStatsRefreshing] = useState(false);
 
@@ -137,8 +133,9 @@ export default function SystemStorageTab() {
     applyStorageHealth(await fetchStorageHealthData());
   };
 
-  const applyDatabaseSettings = useCallback((data) => {
-    if (data) setDbSettings(data);
+  const applyDatabaseSettings = useCallback((result: { data: any; authRequired: boolean }) => {
+    if (result.data) setDbSettings(result.data);
+    setDbSettingsAuthRequired(result.authRequired);
     setDbSettingsLoading(false);
   }, []);
 
@@ -589,6 +586,8 @@ export default function SystemStorageTab() {
           });
           await loadStorageHealth();
           if (backupsExpanded) await loadBackups();
+        } else if (isAuthRequiredResponse(res.status, data)) {
+          setImportStatus({ type: "error", message: t("jsonImportAuthRequired") });
         } else {
           setImportStatus({ type: "error", message: data.error || t("jsonImportFailed") });
         }
@@ -1290,6 +1289,7 @@ export default function SystemStorageTab() {
         </div>
       </div>
 
+      {dbSettingsAuthRequired && !dbSettingsLoading && <AuthRequiredBanner t={t} />}
       {renderDatabaseStatistics()}
 
       <div className="pt-3 border-t border-border/50 mb-4">

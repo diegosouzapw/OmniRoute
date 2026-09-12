@@ -250,6 +250,16 @@ export const opencode_goProvider: RegistryEntry = {
       supportedThinkingEfforts: ["none", "low", "high", "max"],
       targetFormat: "openai-responses",
     },
+    // #12196: the Go upstream serves this model only on /responses —
+    // /chat/completions 500s for it. github already declares the same model
+    // id with targetFormat:"openai-responses" (see github/index.ts).
+    {
+      id: "gpt-5.6-luna",
+      name: "GPT-5.6 Luna",
+      supportsReasoning: true,
+      targetFormat: "openai-responses",
+      maxOutputTokens: 128000,
+    },
     // Console Go free GLM-tier model (live-verified 2026-08-23): the upstream
     // rejects every reasoning_effort outside {low, high, max} whenever tools
     // are present — "[1210] This model always engages in thinking and cannot

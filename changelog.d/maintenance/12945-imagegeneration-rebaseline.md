@@ -1,0 +1,1 @@
+- **chore(quality):** raise the `imageGeneration.ts` file-size ceiling for the image-only-model guard that clears the #12945 base-red

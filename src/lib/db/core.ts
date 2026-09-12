@@ -519,6 +519,29 @@ const SCHEMA_SQL = `
   CREATE INDEX IF NOT EXISTS idx_quota_snapshots_created_at ON quota_snapshots(created_at);
 `;
 
+// `CREATE TABLE IF NOT EXISTS` is a no-op against a legacy database that already owns the
+// table with an older column set — but the `CREATE INDEX` statements that follow it are
+// not: they still reference columns the ensure*Columns() healers have yet to backfill, so
+// running the whole schema in one exec aborts startup with "no such column". That is how
+// the composite idx_cl_request_provider index (#12832) broke booting on a pre-007
+// `call_logs` lineage. Split the inline schema so the boot order can be: create tables →
+// heal legacy columns → create indexes.
+function splitSchemaStatements(schemaSql: string): { tables: string; indexes: string } {
+  const tables: string[] = [];
+  const indexes: string[] = [];
+  for (const rawStatement of schemaSql.split(";")) {
+    const statement = rawStatement.trim();
+    if (!statement) continue;
+    // Classify on the first SQL keyword, ignoring any leading `--` comment lines.
+    const sql = statement.replace(/^(?:[ \t]*--[^\n]*\n)+/, "").trimStart();
+    (/^CREATE\s+(?:UNIQUE\s+)?INDEX\b/i.test(sql) ? indexes : tables).push(`${statement};`);
+  }
+  return { tables: tables.join("\n"), indexes: indexes.join("\n") };
+}
+
+const { tables: SCHEMA_TABLES_SQL, indexes: SCHEMA_INDEXES_SQL } =
+  splitSchemaStatements(SCHEMA_SQL);
+
 // ──────────────── Singleton DB Instance ────────────────
 // Use globalThis to survive Next.js dev HMR module re-evaluation.
 // Module-level `let` resets on every webpack recompile, causing connection leaks.
@@ -1268,11 +1291,15 @@ export function getDbInstance(): SqliteDatabase {
     db.pragma("synchronous = NORMAL");
     db.pragma(`cache_size = -${DEFAULT_DATABASE_SETTINGS.optimization.cacheSize}`);
     db.pragma("temp_store = MEMORY");
-    if (hasTable(db, "call_logs")) ensureCallLogsColumns(db);
-    db.exec(SCHEMA_SQL);
+    // Tables first, then the legacy-column healers, and only then the indexes: an upgraded
+    // database can already own call_logs/usage_history/provider_connections with an older
+    // column set, where the CREATE TABLE is a no-op but the indexes still reference columns
+    // the healers below are the ones adding.
+    db.exec(SCHEMA_TABLES_SQL);
     ensureProviderConnectionsColumns(db);
     ensureUsageHistoryColumns(db);
     ensureCallLogsColumns(db);
+    db.exec(SCHEMA_INDEXES_SQL);
 
     // ── Versioned Migrations ──
     // Auto-seed 001 as applied (the inline SCHEMA_SQL already created these tables)

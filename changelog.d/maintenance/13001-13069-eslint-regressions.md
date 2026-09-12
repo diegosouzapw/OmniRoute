@@ -1,0 +1,1 @@
+- **chore(quality):** type the combo-test route's JSON response bodies instead of casting them to `any`, drop the now-empty suppression entry, and remove the `hasPerModelQuota` import `chatCore.ts` stopped using when the failure-classification helper was extracted

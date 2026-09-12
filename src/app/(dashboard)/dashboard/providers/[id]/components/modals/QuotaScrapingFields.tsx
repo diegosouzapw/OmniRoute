@@ -8,6 +8,7 @@ import {
   assignQuotaScrapingProviderData,
   EMPTY_QUOTA_SCRAPING_FIELDS,
   QWEN_TOKEN_PLAN_PROVIDERS,
+  VOLCENGINE_PLAN_PROVIDERS,
   type QuotaScrapingFieldValues,
 } from "./quotaScrapingFieldValues";
 
@@ -140,6 +141,34 @@ export default function QuotaScrapingFields({
             t,
             "qwenCloudSecTokenHint",
             "Optional — resolved automatically from the dashboard. Set it only if quota sync reports a permission error."
+          )}
+          autoComplete="off"
+          spellCheck={false}
+          autoCapitalize="off"
+        />
+      </div>
+    );
+  }
+
+  if (VOLCENGINE_PLAN_PROVIDERS.has(provider ?? "")) {
+    return (
+      <div className="flex flex-col gap-3 rounded-lg border border-border/50 bg-surface/20 p-4">
+        <Input
+          label={providerText(t, "volcConsoleCookieLabel", "Volcano Engine console cookie")}
+          name="volcConsoleCookie"
+          type="password"
+          value={values.volcConsoleCookie}
+          onChange={(e) => onChange({ volcConsoleCookie: e.target.value })}
+          placeholder="session=...; AccountID=..."
+          hint={providerText(
+            t,
+            "volcConsoleCookieHint",
+            editMode
+              ? "Leave blank to keep the stored cookie. To rotate, paste the updated cookie string from console.volcengine.com."
+              : "Required for Volcano Ark Plan quota -- the inference API key cannot read it. " +
+                  "How to get it: log in to console.volcengine.com, open Developer Tools (F12), " +
+                  "run document.cookie (or inspect Network headers), and paste the cookie string here. " +
+                  "It expires with your browser session; re-paste when quota reports an expired session."
           )}
           autoComplete="off"
           spellCheck={false}

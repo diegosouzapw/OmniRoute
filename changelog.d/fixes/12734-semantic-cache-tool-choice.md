@@ -1,0 +1,1 @@
+- fix(cache): fold tool_choice/tools/response_format into the semantic cache signature so a cached tool_calls response can no longer be replayed for a request whose tool policy forbids it (#12734)

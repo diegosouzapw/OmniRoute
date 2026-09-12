@@ -44,6 +44,8 @@ export interface ChatCoreErrorResult {
   retryAfterMs?: number;
   originalError?: unknown;
   rawMessage?: string;
+  upstreamHeaders?: Headers;
+  upstreamErrorBody?: unknown;
 }
 
 export type NonStreamingProviderLegResult =

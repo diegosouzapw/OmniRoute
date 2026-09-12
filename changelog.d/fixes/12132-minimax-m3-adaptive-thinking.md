@@ -1,0 +1,1 @@
+- fix(providers): minimax-m3 now collapses manual thinking.type:"enabled" to adaptive, preventing upstream 400 (2013) (#12132)

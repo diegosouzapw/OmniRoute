@@ -50,8 +50,8 @@ export function imageUrlToText(value: unknown): string {
   return toString(record.url);
 }
 
-const CODEX_GPT_5_6_MODEL_PATTERN =
-  /^gpt-5\.6-(?:sol|terra|luna)(?:-(?:none|low|medium|high|xhigh|max|ultra))?$/;
+const CODEX_MAX_EFFORT_MODEL_PATTERN =
+  /^(?:gpt-5\.6-(?:sol|terra|luna)|gpt-6-astra)(?:-(?:none|low|medium|high|xhigh|max|ultra))?$/;
 const KIRO_GPT_5_6_MODEL_PATTERN =
   /^(?:kiro|kr)\/gpt-5\.6-(?:sol|terra|luna)(?:-(?:none|low|medium|high|xhigh|max))?$/;
 
@@ -61,7 +61,7 @@ function supportsNativeMaxReasoningEffort(model: unknown): boolean {
     .toLowerCase()
     .replace(/^(?:codex|cx)\//, "");
   return (
-    CODEX_GPT_5_6_MODEL_PATTERN.test(normalizedModel) ||
+    CODEX_MAX_EFFORT_MODEL_PATTERN.test(normalizedModel) ||
     KIRO_GPT_5_6_MODEL_PATTERN.test(toString(model).trim().toLowerCase())
   );
 }

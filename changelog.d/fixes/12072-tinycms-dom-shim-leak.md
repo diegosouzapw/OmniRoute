@@ -1,0 +1,1 @@
+- fix(providers): scope TinyCMS Web signer's DOM shims to each call instead of leaking them for the process lifetime, and surface a clean HTTP status on a non-JSON interception-toggles error (#12072)

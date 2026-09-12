@@ -1,5 +1,10 @@
 // Pure JSONL stream translation (HuggingChat NDJSON -> OpenAI SSE). Verbatim from huggingchat.ts.
 
+import { HUGGINGCHAT_MAX_BODY_BYTES } from "../../config/constants.ts";
+
+const MAX_BODY_EXCEEDED_MESSAGE =
+  "HuggingChat response exceeded the maximum supported size before completing";
+
 export class HuggingChatStreamError extends Error {
   constructor(message: string) {
     super(message);
@@ -74,15 +79,23 @@ export async function* streamJsonlToOpenAi(
   id: string,
   created: number,
   signal?: AbortSignal | null,
-  cancellationSignal?: AbortSignal | null
+  cancellationSignal?: AbortSignal | null,
+  maxBytes: number = HUGGINGCHAT_MAX_BODY_BYTES
 ): AsyncGenerator<string> {
   const reader = body.getReader();
   const unbindReaderCancellation = bindReaderCancellation(reader, cancellationSignal);
+  // Also bind the plain `signal` so an already-in-flight `reader.read()` unblocks the
+  // instant it aborts, instead of only being noticed the next time the loop polls
+  // `signal?.aborted` (#12577 — a stalled upstream can otherwise leave the read
+  // suspended forever even once a caller-supplied timeout signal has fired).
+  const unbindSignalCancellation = bindReaderCancellation(reader, signal);
   const decoder = new TextDecoder();
   let buffer = "";
   let emittedRole = false;
   let fullText = "";
   let finished = false;
+  let totalBytes = 0;
+  let exceededCap = false;
 
   try {
     while (true) {
@@ -90,6 +103,13 @@ export async function* streamJsonlToOpenAi(
 
       const { value, done } = await reader.read();
       if (done) break;
+
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        exceededCap = true;
+        cancelReader(reader);
+        break;
+      }
 
       buffer += decoder.decode(value, { stream: true });
 
@@ -163,7 +183,7 @@ export async function* streamJsonlToOpenAi(
       if (finished) break;
     }
 
-    if (!finished && buffer.trim()) {
+    if (!finished && !exceededCap && buffer.trim()) {
       const parsed = parseJsonlLine(buffer.trim());
       if (parsed.error) {
         throw new HuggingChatStreamError(parsed.error);
@@ -190,7 +210,24 @@ export async function* streamJsonlToOpenAi(
     }
   } finally {
     unbindReaderCancellation();
+    unbindSignalCancellation();
     reader.releaseLock();
+  }
+
+  if (exceededCap) {
+    yield sseChunk({
+      id,
+      object: "chat.completion.chunk",
+      created,
+      model,
+      error: {
+        message: MAX_BODY_EXCEEDED_MESSAGE,
+        type: "upstream_error",
+        code: "huggingchat_payload_too_large",
+      },
+    });
+    yield "data: [DONE]\n\n";
+    return;
   }
 
   if (!signal?.aborted && !cancellationSignal?.aborted) {
@@ -209,12 +246,19 @@ export async function* streamJsonlToOpenAi(
 
 export async function readJsonlResponse(
   body: ReadableStream<Uint8Array>,
-  signal?: AbortSignal | null
+  signal?: AbortSignal | null,
+  maxBytes: number = HUGGINGCHAT_MAX_BODY_BYTES
 ): Promise<string> {
   const reader = body.getReader();
+  // Bind the signal so an already-in-flight `reader.read()` unblocks the instant it
+  // aborts, instead of only being noticed the next time the loop polls `signal?.aborted`
+  // (#12577 — a stalled upstream can otherwise leave the read suspended forever even
+  // once a caller-supplied timeout signal has fired).
+  const unbindSignalCancellation = bindReaderCancellation(reader, signal);
   const decoder = new TextDecoder();
   let buffer = "";
   let fullText = "";
+  let totalBytes = 0;
 
   try {
     while (true) {
@@ -222,6 +266,12 @@ export async function readJsonlResponse(
 
       const { value, done } = await reader.read();
       if (done) break;
+
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        cancelReader(reader);
+        throw new HuggingChatStreamError(MAX_BODY_EXCEEDED_MESSAGE);
+      }
 
       buffer += decoder.decode(value, { stream: true });
 
@@ -249,6 +299,7 @@ export async function readJsonlResponse(
       if (parsed.error) throw new HuggingChatStreamError(parsed.error);
     }
   } finally {
+    unbindSignalCancellation();
     reader.releaseLock();
   }
 

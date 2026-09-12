@@ -1,0 +1,1 @@
+- **fix(api-manager):** Expose an accessible loading status while API keys are fetched instead of an empty accessibility tree (#12541 — thanks @pacocartones)

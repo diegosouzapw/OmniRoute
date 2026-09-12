@@ -1,0 +1,1 @@
+- fix(providers): stop devin-cli spawn error from double-closing the SSE controller (#12517)

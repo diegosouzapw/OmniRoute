@@ -1,0 +1,1 @@
+- **feat(sse):** Codex and OpenAI catalogs list GPT-6 Astra with effort aliases (`-low` through `-ultra`); Codex CLI identity pins `@openai/codex@0.153.4` in lockstep with the image ([#13026](https://github.com/diegosouzapw/OmniRoute/pull/13026))

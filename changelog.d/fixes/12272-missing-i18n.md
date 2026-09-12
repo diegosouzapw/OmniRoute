@@ -1,0 +1,1 @@
+- **fix(i18n):** translate pre-existing `__MISSING__:` keys for `combo.sort`, `requestLogger.detail` expand/collapse, `common.profile`, and `settings.resilienceCredentialHealth*` across 39 locales ([#12272](https://github.com/diegosouzapw/OmniRoute/issues/12272))

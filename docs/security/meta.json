@@ -2,18 +2,14 @@
   "title": "Security",
   "pages": [
     "GUARDRAILS",
-    "PUBLIC_CREDS",
     "ERROR_SANITIZATION",
     "ROUTE_GUARD_TIERS",
     "BAN_DETECTION",
     "AGENTROUTER_WAF",
     "CORS",
-    "STEALTH_GUIDE",
     "EGRESS_POLICY",
-    "MITM-TPROXY-DECRYPT",
     "SUPPLY_CHAIN",
     "COMPLIANCE",
-    "SOCKET_DEV_FINDINGS",
     "CLI_TOKEN"
   ]
 }
