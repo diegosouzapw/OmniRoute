@@ -28,7 +28,7 @@ export interface ChatMessage {
 export interface ChatRequest {
   model: string;
   messages: ChatMessage[];
-  system?: string;
+  system?: string | unknown[];
   temperature?: number;
   max_tokens?: number;
   stream?: boolean;
@@ -154,9 +154,39 @@ export interface InjectMemoryOptions {
 }
 
 /**
+ * #13425: merge memory text into the request's TOP-LEVEL `system` field instead of
+ * unshifting a `role: "system"` entry into `messages[]`. An Anthropic-shaped body
+ * carries its system prompt in this field — `messages[]` may only contain `user`/
+ * `assistant` turns — so adding a system-role message there lands invalid alongside
+ * an existing `system` field. Mirrors the existing merge pattern for a top-level
+ * `system` array (open-sse/translator/request/openai-to-claude.ts:489-505,
+ * `[...body.system, systemBlock]`): string fields get the memory text prepended,
+ * block-array fields get a new text block appended so any leading `cache_control`
+ * breakpoint on the first block stays first. Returns null when there is no
+ * top-level `system` field, so the caller falls back to its existing
+ * messages[]-based placement.
+ */
+function mergeIntoTopLevelSystem(
+  request: ChatRequest,
+  messages: ChatMessage[],
+  memoryText: string
+): ChatRequest | null {
+  const { system } = request;
+  if (typeof system === "string") {
+    const merged = system.length > 0 ? `${memoryText}\n${system}` : memoryText;
+    return { ...request, messages, system: merged };
+  }
+  if (Array.isArray(system)) {
+    return { ...request, messages, system: [...system, { type: "text", text: memoryText }] };
+  }
+  return null;
+}
+
+/**
  * #6135: place the memory as a leading system message for providers that reject
  * a non-first system role — merging into an existing index-0 system message when
- * present, else prepending. Split out of injectMemory to keep it flat.
+ * present, else merging into a top-level `system` field (#13425), else prepending
+ * a new system message. Split out of injectMemory to keep it flat.
  */
 function injectSystemFirst(
   request: ChatRequest,
@@ -164,12 +194,22 @@ function injectSystemFirst(
   memoryText: string,
   count: number
 ): ChatRequest {
-  log.info("memory.injection.injected", { count, strategy: "system-first", model: request.model });
   const first = messages[0];
   if (first && first.role === "system") {
+    log.info("memory.injection.injected", { count, strategy: "system-first", model: request.model });
     const merged: ChatMessage = { ...first, content: `${memoryText}\n${first.content}` };
     return { ...request, messages: [merged, ...messages.slice(1)] };
   }
+  const mergedTopLevel = mergeIntoTopLevelSystem(request, messages, memoryText);
+  if (mergedTopLevel) {
+    log.info("memory.injection.injected", {
+      count,
+      strategy: "system-first-top-level",
+      model: request.model,
+    });
+    return mergedTopLevel;
+  }
+  log.info("memory.injection.injected", { count, strategy: "system-first", model: request.model });
   const memorySystemMessage: ChatMessage = { role: "system", content: memoryText };
   return { ...request, messages: [memorySystemMessage, ...messages] };
 }
@@ -213,8 +253,10 @@ function endsWithServerToolResult(message: ChatMessage | undefined): boolean {
 
 /**
  * Place a memory message at the #3890 cache-safe anchor (just before the last
- * user turn) when one exists, else prepend it. Shared by the system and user
- * injection strategies to keep injectMemory flat.
+ * user turn) when one exists, else merge into a top-level `system` field when
+ * present (#13425), else prepend it. Shared by the system and user injection
+ * strategies to keep injectMemory flat. The top-level-system guard only applies
+ * to the system-role strategy — GLM's user-role fallback never touches `system`.
  */
 function placeMessage(
   request: ChatRequest,
@@ -226,6 +268,10 @@ function placeMessage(
     const next = [...messages];
     next.splice(cacheSafeIndex, 0, msg);
     return { ...request, messages: next };
+  }
+  if (msg.role === "system") {
+    const mergedTopLevel = mergeIntoTopLevelSystem(request, messages, msg.content);
+    if (mergedTopLevel) return mergedTopLevel;
   }
   return { ...request, messages: [msg, ...messages] };
 }
