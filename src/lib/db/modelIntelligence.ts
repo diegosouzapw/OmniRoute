@@ -42,7 +42,10 @@ function rowToEntry(row: Record<string, unknown>): ModelIntelligenceEntry {
 
 // ──────────────── CRUD ────────────────
 
-export function getModelIntelligence(model: string, category: string): ModelIntelligenceEntry | null {
+export function getModelIntelligence(
+  model: string,
+  category: string
+): ModelIntelligenceEntry | null {
   const db = getDbInstance();
   const row = db
     .prepare(
@@ -119,17 +122,13 @@ export function deleteExpiredIntelligence(source?: string): number {
   }
 
   const where = conditions.join(" AND ");
-  const result = db
-    .prepare(`DELETE FROM model_intelligence WHERE ${where}`)
-    .run(...params);
+  const result = db.prepare(`DELETE FROM model_intelligence WHERE ${where}`).run(...params);
   return result.changes ?? 0;
 }
 
 export function deleteModelIntelligenceBySource(source: string): number {
   const db = getDbInstance();
-  const result = db
-    .prepare(`DELETE FROM model_intelligence WHERE source = ?`)
-    .run(source);
+  const result = db.prepare(`DELETE FROM model_intelligence WHERE source = ?`).run(source);
   return result.changes ?? 0;
 }
 
@@ -158,7 +157,9 @@ export function listModelIntelligence(filters?: {
   return rows.map(rowToEntry);
 }
 
-export function bulkUpsertModelIntelligence(entries: Array<Omit<ModelIntelligenceEntry, "syncedAt">>): number {
+export function bulkUpsertModelIntelligence(
+  entries: Array<Omit<ModelIntelligenceEntry, "syncedAt">>
+): number {
   if (entries.length === 0) return 0;
 
   const db = getDbInstance();
@@ -194,6 +195,69 @@ export function getResolvedTaskFitness(model: string, category: string): number 
 }
 
 /**
+ * Latest synced_at for a source, as an ISO string (or null when the source
+ * has no rows). Backs the arenaEloSync freshness guard: a non-empty dataset
+ * synced within the sync interval does not need re-fetching.
+ */
+export function getLatestSyncedAt(source: string): string | null {
+  const db = getDbInstance();
+  const row = db
+    .prepare(`SELECT MAX(synced_at) as latest FROM model_intelligence WHERE source = ?`)
+    .get(source) as { latest: string | null } | undefined;
+  return row?.latest ?? null;
+}
+
+/**
+ * Atomically replace a source's dataset: upsert every refreshed entry and
+ * prune rows for that source that are not in the refreshed set — one
+ * transaction, so a crash mid-refresh can never leave a half-replaced table.
+ *
+ * This is the safe replacement for the old delete-expired-then-upsert flow,
+ * which lost data when a fetch failed after the delete (remediation 2026-09-12).
+ */
+export function applyArenaEloRefresh(
+  entries: Array<Omit<ModelIntelligenceEntry, "syncedAt">>,
+  source = "arena_elo"
+): { upserted: number; pruned: number } {
+  const db = getDbInstance();
+  const upsertStmt = db.prepare(
+    `INSERT OR REPLACE INTO model_intelligence
+       (model, source, category, score, elo_raw, confidence, synced_at, expires_at)
+     VALUES (?, ?, ?, ?, ?, ?, datetime('now'), ?)`
+  );
+
+  const refresh = db.transaction(() => {
+    let upserted = 0;
+    for (const entry of entries) {
+      upsertStmt.run(
+        entry.model,
+        entry.source,
+        entry.category,
+        entry.score,
+        entry.eloRaw ?? null,
+        entry.confidence ?? null,
+        entry.expiresAt ?? null
+      );
+      upserted++;
+    }
+    // Membership prune via a JSON array of "model\0category" pair keys:
+    // correct for composite keys (a plain NOT IN over model names is not).
+    const refreshedPairs = JSON.stringify(entries.map((e) => `${e.model}\u0000${e.category}`));
+    const pruneByPair = db.prepare(
+      `DELETE FROM model_intelligence
+       WHERE source = ?
+         AND model || char(0) || category NOT IN (
+           SELECT value FROM json_each(?)
+         )`
+    );
+    const pruneResult = pruneByPair.run(source, refreshedPairs);
+    return { upserted, pruned: pruneResult.changes ?? 0 };
+  });
+
+  return refresh();
+}
+
+/**
  * Write a user_override entry for a model × category combination.
  * Used by taskFitness.ts resolution chain as Layer 1 (highest priority).
  *
@@ -201,11 +265,7 @@ export function getResolvedTaskFitness(model: string, category: string): number 
  * @param category - Task category
  * @param score - Fitness score [0..1]
  */
-export function setUserFitnessOverrideEntry(
-  model: string,
-  category: string,
-  score: number,
-): void {
+export function setUserFitnessOverrideEntry(model: string, category: string, score: number): void {
   upsertModelIntelligence({
     model: model.toLowerCase(),
     source: "user_override",
@@ -224,9 +284,6 @@ export function setUserFitnessOverrideEntry(
  * @param category - Task category
  * @returns true if an entry was deleted
  */
-export function deleteUserFitnessOverrideEntry(
-  model: string,
-  category: string,
-): boolean {
+export function deleteUserFitnessOverrideEntry(model: string, category: string): boolean {
   return deleteModelIntelligence(model.toLowerCase(), "user_override", category.toLowerCase());
 }
