@@ -6,11 +6,12 @@ import { dirname, join } from "node:path";
 
 /**
  * GLM's translateSseResponse used to pass a 16th positional (65536) to
- * createSSETransformStreamWithLogger. The helper only has 15 parameters
- * (last is requestToolIdentityMap) — tsc reports TS2554 and the number
- * never reached TransformStream.
+ * createSSETransformStreamWithLogger. #12925 legitimised the buffer-size
+ * argument as a named constant (GLM_STREAM_BUFFER_BYTES), so the call now
+ * ends with that constant instead of suppressThinkClose.
  *
- * Guard the call site in source: no 65536, last arg is suppressThinkClose.
+ * Guard the call site in source: no hardcoded 65536 literal, last arg is
+ * GLM_STREAM_BUFFER_BYTES (the named constant introduced by #12925).
  */
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -47,5 +48,5 @@ test("GLM translateSseResponse does not pass a 16th positional to the stream hel
   assert.ok(callAt >= 0);
   const call = extractParens(body, callAt + "createSSETransformStreamWithLogger".length);
   assert.equal(/65536/.test(call), false, `dead 16th arg still present:\n${call}`);
-  assert.match(call, /suppressThinkClose\s*\)\s*$/);
+  assert.match(call, /GLM_STREAM_BUFFER_BYTES\s*\)\s*$/, "call should end with GLM_STREAM_BUFFER_BYTES, not a hardcoded literal");
 });
