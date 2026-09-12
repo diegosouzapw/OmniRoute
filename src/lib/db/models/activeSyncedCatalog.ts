@@ -184,10 +184,12 @@ async function unionCustomModels(
  */
 async function loadConnectionCatalog(storedProviderId: string): Promise<SyncedAvailableModel[]> {
   const [connections, modelsByConnection] = await Promise.all([
-    getRawProviderConnections({ provider: storedProviderId, isActive: true }, undefined, undefined, [
-      "id",
-      "provider",
-    ]),
+    getRawProviderConnections(
+      { provider: storedProviderId, isActive: true },
+      undefined,
+      undefined,
+      ["id", "provider"]
+    ),
     getSyncedAvailableModelsByConnection(storedProviderId),
   ]);
 
@@ -199,7 +201,11 @@ async function loadConnectionCatalog(storedProviderId: string): Promise<SyncedAv
   return collectModelsForConnections(modelsByConnection, activeConnectionIds);
 }
 
-export async function getActiveSyncedCatalog(providerId: string): Promise<ActiveSyncedCatalog> {
+/** Set includeCustomModels=false for consumers that overlay custom rows separately. */
+export async function getActiveSyncedCatalog(
+  providerId: string,
+  includeCustomModels = true
+): Promise<ActiveSyncedCatalog> {
   const storedProviderId = resolveStoredProviderId(providerId);
   if (!storedProviderId) {
     return { authoritative: false, models: [] };
@@ -210,9 +216,10 @@ export async function getActiveSyncedCatalog(providerId: string): Promise<Active
     const siblingCatalogs = await Promise.all(lookupIds.map(loadConnectionCatalog));
     // #12866 unions the agy/antigravity sibling catalogs; #12934 then overlays the
     // picker-added customModels so dispatch admits the same rows the picker REST shows.
+    const discovered = unionModels(siblingCatalogs);
     const models = enrichCursorCatalog(
       storedProviderId,
-      await unionCustomModels(storedProviderId, unionModels(siblingCatalogs))
+      includeCustomModels ? await unionCustomModels(storedProviderId, discovered) : discovered
     );
     if (models.length > 0) {
       return {
@@ -237,7 +244,12 @@ export async function getActiveSyncedCatalog(providerId: string): Promise<Active
       authoritative: false,
       models: enrichCursorCatalog(
         storedProviderId,
-        await unionCustomModels(storedProviderId, await getSyncedAvailableModels(storedProviderId))
+        includeCustomModels
+          ? await unionCustomModels(
+              storedProviderId,
+              await getSyncedAvailableModels(storedProviderId)
+            )
+          : await getSyncedAvailableModels(storedProviderId)
       ),
     };
   } catch {

@@ -150,6 +150,9 @@ export function useModelImportHandlers({
         return;
       }
       const fetchedModels = data.models || [];
+      // Discovery persists its result even when no new models need importing.
+      // Refresh the active listing so removals take effect without a page reload.
+      await fetchProviderModelMeta();
       const importWarning = extractImportWarning(data);
       if (fetchedModels.length === 0) {
         setImportProgress((prev) => ({
@@ -305,6 +308,8 @@ export function useModelImportHandlers({
       if (!response.ok) {
         throw new Error(data.error || t("failedImportModels"));
       }
+      await fetchProviderModelMeta();
+      await fetchAliases();
 
       if (data.freeFilterEmpty) {
         setImportProgress((prev) => ({
