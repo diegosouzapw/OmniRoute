@@ -1,0 +1,1 @@
+- **fix(guardrails):** Preserve valid base64 image transport bytes during credential masking without exempting neighboring text or authorization fields, preventing continued image-bearing sessions from failing upstream validation ([#13468](https://github.com/diegosouzapw/OmniRoute/pull/13468)) — thanks @marcelokarval
