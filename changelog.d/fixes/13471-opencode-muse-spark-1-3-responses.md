@@ -1,0 +1,1 @@
+- **fix(providers):** Muse Spark 1.3 works on OpenCode Zen, OpenCode and OpenCode Go instead of failing with a 500, and gets its real 1M context window ([#13471](https://github.com/diegosouzapw/OmniRoute/pull/13471)) — thanks @maxmad64bis (with thanks to @bacnh85, @shermzy and @atakhadiviom for #12675, #12973 and #13111)
