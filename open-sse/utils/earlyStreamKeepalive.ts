@@ -89,6 +89,53 @@ export const OPENAI_RESPONSES_ERROR_FRAME = ENCODER.encode(
   })}\n\n`
 );
 
+/**
+ * Wrap an upstream error body in the Responses API error shape so that
+ * Responses clients (Codex CLI, openai-responses SDK) can dispatch on the
+ * top-level `type` field and surface the failure reason instead of reporting
+ * a disconnected stream.
+ *
+ * If the body is already in Responses format (has `type:"error"`), it is
+ * returned unchanged.  If parsing fails, a minimal Responses error is returned.
+ *
+ * @see https://github.com/diegosouzapw/OmniRoute/issues/13431
+ */
+function responsesErrorFromUpstream(body: string): string {
+  try {
+    const parsed = JSON.parse(body);
+    // Already in Responses format — pass through.
+    if (parsed && typeof parsed === "object" && parsed.type === "error") {
+      return body;
+    }
+    // Chat Completions format: {"error":{"message":"...","type":"...","code":"..."},...}
+    const errObj = parsed?.error;
+    if (errObj && typeof errObj === "object") {
+      return JSON.stringify({
+        type: "error",
+        code: errObj.code ?? null,
+        message: errObj.message ?? "Upstream stream failed before completion.",
+        param: errObj.param ?? null,
+      });
+    }
+    // Unknown object shape — use raw body wrapped in Responses envelope.
+    return JSON.stringify({
+      type: "error",
+      code: null,
+      message: typeof parsed?.message === "string"
+        ? parsed.message
+        : "Upstream stream failed before completion.",
+      param: null,
+    });
+  } catch {
+    return JSON.stringify({
+      type: "error",
+      code: null,
+      message: "Upstream stream failed before completion.",
+      param: null,
+    });
+  }
+}
+
 export type EarlyStreamKeepaliveOptions = {
   /** Wait this long for the handler before committing to a keepalive stream. */
   thresholdMs?: number;
@@ -173,6 +220,13 @@ export async function withEarlyStreamKeepalive(
   // Responses) — derived from errorFrame itself so the dynamic real-upstream-body case
   // below stays consistent with the static default-message case without a second option.
   const errorFrameUsesNamedEvent = new TextDecoder().decode(errorFrame).startsWith("event:");
+  // True when the caller is the Responses API route — upstream error bodies
+  // must be re-framed as Responses events ({"type":"error",...}) instead of
+  // forwarded as Chat Completions error objects ({"error":{...}}).  (#13431)
+  const isResponsesApi =
+    !errorFrameUsesNamedEvent &&
+    errorFrame.length === OPENAI_RESPONSES_ERROR_FRAME.length &&
+    errorFrame.every((b, i) => b === OPENAI_RESPONSES_ERROR_FRAME[i]);
   const correlationId = options.correlationId;
   const frameDecoder = correlationId ? new TextDecoder() : null;
   // Records every direct-to-client write EXCEPT the forwarded real response
@@ -320,9 +374,17 @@ export async function withEarlyStreamKeepalive(
             // change. Frame the (already-sanitized) body as an in-band error event
             // instead of forwarding raw JSON, which would be malformed SSE.
             const text = response.body ? await response.text().catch(() => "") : "";
-            const dataLine =
+            let dataLine =
               text.trim() ||
               JSON.stringify({ error: { message: "stream_error", type: "stream_error" } });
+            // Responses API clients dispatch on the "type" field inside each data
+            // payload (not an SSE event: field). When the upstream returns a Chat
+            // Completions-shaped error ({"error":{...}}), re-frame it as a proper
+            // Responses error event so clients can surface the failure reason instead
+            // of reporting a disconnected stream.  (#13431)
+            if (isResponsesApi) {
+              dataLine = responsesErrorFromUpstream(dataLine);
+            }
             const framed = errorFrameUsesNamedEvent
               ? `event: error\ndata: ${dataLine}\n\n`
               : `data: ${dataLine}\n\n`;
