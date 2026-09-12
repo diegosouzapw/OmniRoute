@@ -275,7 +275,7 @@ importers:
         version: 7.6.13
       '@types/bun':
         specifier: latest
-        version: 1.4.0
+        version: 1.4.2
       '@types/node':
         specifier: ^26.0.0
         version: 26.1.1
@@ -368,7 +368,7 @@ importers:
         version: 3.9.6
       promptfoo:
         specifier: ^0.121.18
-        version: 0.121.19(@aws-sdk/credential-provider-node@3.972.72)(@smithy/signature-v4@5.6.10)(@swc/helpers@0.5.23)(@types/better-sqlite3@7.6.13)(@types/json-schema@7.0.15)(@types/node@26.1.1)(babel-plugin-macros@3.1.0)(better-sqlite3@13.0.3)(bun-types@1.4.0)(debug@4.3.4(supports-color@10.2.2))(pg@8.22.0)(playwright-core@1.62.0)(socks@2.8.9)(sql.js@1.14.1)(supports-color@10.2.2)
+        version: 0.121.19(@aws-sdk/credential-provider-node@3.972.72)(@smithy/signature-v4@5.6.10)(@swc/helpers@0.5.23)(@types/better-sqlite3@7.6.13)(@types/json-schema@7.0.15)(@types/node@26.1.1)(babel-plugin-macros@3.1.0)(better-sqlite3@13.0.3)(bun-types@1.4.2)(debug@4.3.4(supports-color@10.2.2))(pg@8.22.0)(playwright-core@1.62.0)(socks@2.8.9)(sql.js@1.14.1)(supports-color@10.2.2)
       size-limit:
         specifier: ^12.1.0
         version: 12.1.0(jiti@2.7.0)
@@ -5265,8 +5265,8 @@ packages:
   '@types/better-sqlite3@7.6.13':
     resolution: {integrity: sha512-NMv9ASNARoKksWtsq/SHakpYAYnhBrQgGD8zkLYk/jaK8jUGn08CfEdTRgYhMypUQAfzSP8W6gNLe0q19/t4VA==}
 
-  '@types/bun@1.4.0':
-    resolution: {integrity: sha512-K+lZULY23vRgK/CfTjFIV+tyifaNdSMlPh9j+6mQ/cLfpOznLyAuzgV/JQysyECpkBQLVMSyvjlr2fBUSA9wFQ==}
+  '@types/bun@1.4.2':
+    resolution: {integrity: sha512-GimotNn7+ZV0uVArItBbriZsR1oNf0+WTzPkdcFrzShI7k2norL0uzEaJT8T33dWr7O/c9ZDuAFQrctKCi72oQ==}
 
   '@types/cacheable-request@6.0.3':
     resolution: {integrity: sha512-IQ3EbTzGxIigb1I3qPZc1rWJnH0BmSKv5QYTalEwweFvyBDLSAe24zP0le/hyi7ecGfZVlIVAg4BZqb8WBwKqw==}
@@ -6441,8 +6441,8 @@ packages:
     resolution: {integrity: sha512-zhaCDicdLuWN5UbN5IMnFqNMhNfo919sH85y2/ea+5Yg9TsTkeZxpL+JLbp6cgYFS4sRLp3YV4S6yDuqVWHYOw==}
     engines: {node: '>=6'}
 
-  bun-types@1.4.0:
-    resolution: {integrity: sha512-iIKw23BspnQQYd3prITOBxeUsxBHnwzX6YJfGMuNOZzeNcMmVqzIIVGRm1l69ogaPQmb4wB6BN8mA5bE9YuC5Q==}
+  bun-types@1.4.2:
+    resolution: {integrity: sha512-bxV1FgK7yBIzjRe5zBozIM4Bem11ZJcCXSrjWRG3YWLt8yFDePu4cLjpebO8OvPeIE9trbyPF4fuj3Cia4Fj3w==}
 
   bun@1.3.10:
     resolution: {integrity: sha512-S/CXaXXIyA4CMjdMkYQ4T2YMqnAn4s0ysD3mlsY4bUiOCqGlv28zck4Wd4H4kpvbekx15S9mUeLQ7Uxd0tYTLA==}
@@ -13962,10 +13962,10 @@ snapshots:
       '@babel/helper-compilation-targets': 7.29.7
       '@babel/helper-module-transforms': 7.29.7(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2)
       '@babel/helpers': 7.29.7
-      '@babel/parser': 7.29.7
+      '@babel/parser': 7.29.8
       '@babel/template': 7.29.7
       '@babel/traverse': 7.29.7(supports-color@10.2.2)
-      '@babel/types': 7.29.7
+      '@babel/types': 7.29.8
       '@jridgewell/remapping': 2.3.5
       convert-source-map: 2.0.0
       debug: 4.4.3(supports-color@10.2.2)
@@ -13977,8 +13977,8 @@ snapshots:
 
   '@babel/generator@7.29.7':
     dependencies:
-      '@babel/parser': 7.29.7
-      '@babel/types': 7.29.7
+      '@babel/parser': 7.29.8
+      '@babel/types': 7.29.8
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
       jsesc: 3.1.0
@@ -14020,7 +14020,7 @@ snapshots:
   '@babel/helper-module-imports@7.29.7(supports-color@10.2.2)':
     dependencies:
       '@babel/traverse': 7.29.7(supports-color@10.2.2)
-      '@babel/types': 7.29.7
+      '@babel/types': 7.29.8
     transitivePeerDependencies:
       - supports-color
 
@@ -14064,7 +14064,7 @@ snapshots:
   '@babel/helpers@7.29.7':
     dependencies:
       '@babel/template': 7.29.7
-      '@babel/types': 7.29.7
+      '@babel/types': 7.29.8
 
   '@babel/parser@7.29.7':
     dependencies:
@@ -14151,17 +14151,17 @@ snapshots:
   '@babel/template@7.29.7':
     dependencies:
       '@babel/code-frame': 7.29.7
-      '@babel/parser': 7.29.7
-      '@babel/types': 7.29.7
+      '@babel/parser': 7.29.8
+      '@babel/types': 7.29.8
 
   '@babel/traverse@7.29.7(supports-color@10.2.2)':
     dependencies:
       '@babel/code-frame': 7.29.7
       '@babel/generator': 7.29.7
       '@babel/helper-globals': 7.29.7
-      '@babel/parser': 7.29.7
+      '@babel/parser': 7.29.8
       '@babel/template': 7.29.7
-      '@babel/types': 7.29.7
+      '@babel/types': 7.29.8
       debug: 4.4.3(supports-color@10.2.2)
     transitivePeerDependencies:
       - supports-color
@@ -18202,9 +18202,9 @@ snapshots:
     dependencies:
       '@types/node': 26.1.1
 
-  '@types/bun@1.4.0':
+  '@types/bun@1.4.2':
     dependencies:
-      bun-types: 1.4.0
+      bun-types: 1.4.2
 
   '@types/cacheable-request@6.0.3':
     dependencies:
@@ -19534,7 +19534,7 @@ snapshots:
 
   builtin-modules@3.3.0: {}
 
-  bun-types@1.4.0:
+  bun-types@1.4.2:
     dependencies:
       '@types/node': 26.1.1
 
@@ -20368,13 +20368,13 @@ snapshots:
       typescript: 5.9.3
       yargs: 18.0.0
 
-  drizzle-orm@0.45.2(@libsql/client@0.17.4)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(better-sqlite3@13.0.3)(bun-types@1.4.0)(pg@8.22.0)(sql.js@1.14.1):
+  drizzle-orm@0.45.2(@libsql/client@0.17.4)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(better-sqlite3@13.0.3)(bun-types@1.4.2)(pg@8.22.0)(sql.js@1.14.1):
     optionalDependencies:
       '@libsql/client': 0.17.4
       '@opentelemetry/api': 1.9.1
       '@types/better-sqlite3': 7.6.13
       better-sqlite3: 13.0.3
-      bun-types: 1.4.0
+      bun-types: 1.4.2
       pg: 8.22.0
       sql.js: 1.14.1
 
@@ -24901,7 +24901,7 @@ snapshots:
     dependencies:
       asap: 2.0.6
 
-  promptfoo@0.121.19(@aws-sdk/credential-provider-node@3.972.72)(@smithy/signature-v4@5.6.10)(@swc/helpers@0.5.23)(@types/better-sqlite3@7.6.13)(@types/json-schema@7.0.15)(@types/node@26.1.1)(babel-plugin-macros@3.1.0)(better-sqlite3@13.0.3)(bun-types@1.4.0)(debug@4.3.4(supports-color@10.2.2))(pg@8.22.0)(playwright-core@1.62.0)(socks@2.8.9)(sql.js@1.14.1)(supports-color@10.2.2):
+  promptfoo@0.121.19(@aws-sdk/credential-provider-node@3.972.72)(@smithy/signature-v4@5.6.10)(@swc/helpers@0.5.23)(@types/better-sqlite3@7.6.13)(@types/json-schema@7.0.15)(@types/node@26.1.1)(babel-plugin-macros@3.1.0)(better-sqlite3@13.0.3)(bun-types@1.4.2)(debug@4.3.4(supports-color@10.2.2))(pg@8.22.0)(playwright-core@1.62.0)(socks@2.8.9)(sql.js@1.14.1)(supports-color@10.2.2):
     dependencies:
       '@anthropic-ai/sdk': 0.110.0(zod@4.4.3)
       '@apidevtools/json-schema-ref-parser': 15.5.0(@types/json-schema@7.0.15)
@@ -24939,7 +24939,7 @@ snapshots:
       debounce: 3.0.0
       dedent: 1.7.2(babel-plugin-macros@3.1.0)
       dotenv: 17.4.2
-      drizzle-orm: 0.45.2(@libsql/client@0.17.4)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(better-sqlite3@13.0.3)(bun-types@1.4.0)(pg@8.22.0)(sql.js@1.14.1)
+      drizzle-orm: 0.45.2(@libsql/client@0.17.4)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(better-sqlite3@13.0.3)(bun-types@1.4.2)(pg@8.22.0)(sql.js@1.14.1)
       execa: 9.6.1
       express: 5.2.1(supports-color@10.2.2)
       exsolve: 1.1.0
