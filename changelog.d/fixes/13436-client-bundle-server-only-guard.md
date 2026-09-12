@@ -1,0 +1,1 @@
+- **fix(build):** the production build no longer breaks when a client component reaches a server-only module, and the client-bundle guard now discovers server-only modules instead of matching a fixed list ([#13436](https://github.com/diegosouzapw/OmniRoute/pull/13436)) — thanks @maxmad64bis
