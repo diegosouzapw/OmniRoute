@@ -114,11 +114,11 @@ export async function executeTargetAttempt(opts: {
   const fallbackDelayMs = resolveDelayMs(deps.config.fallbackDelayMs, 0);
   const universalHandoffConfig = deps.universalHandoffConfig ?? DEFAULT_UNIVERSAL_HANDOFF_CONFIG;
 
-  const stopProtectedPriorityTarget = (message: string) => {
+  const stopProtectedPriorityTarget = (message: string, status: 502 | 503 = 502) => {
     state.observeFailure(false, target.executionKey);
     deps.clearStaleLKGP(deps.combo.name, target.executionKey, deps.combo.id, deps.log, "COMBO");
     return protectedPriorityTarget
-      ? { ok: false as const, response: errorResponse(503, message) }
+      ? { ok: false as const, response: errorResponse(status, message) }
       : null;
   };
 
@@ -194,6 +194,10 @@ export async function executeTargetAttempt(opts: {
             decision: "skipped_before_dispatch",
             reason: "predictive_ttft",
           });
+          // Infra stop stays 502. The aggregated retry-after decoration
+          // (unavailableRetryGate, #8486) only applies to 429/503 terminal
+          // statuses — a pre-dispatch skip leaves earliestRetryAfter null, so
+          // nothing is lost by not joining that allow-list.
           return stopProtectedPriorityTarget(`Predictive latency check rejected ${modelStr}`);
         }
       }
