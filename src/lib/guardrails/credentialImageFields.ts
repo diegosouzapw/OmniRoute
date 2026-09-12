@@ -23,6 +23,14 @@ function isImageDataUrl(value: unknown): boolean {
   );
 }
 
+function isInlineImageData(record: Record<string, unknown>, parentKey?: string): boolean {
+  return (
+    ((parentKey === "inlineData" && isImageMime(record.mimeType)) ||
+      (parentKey === "inline_data" && isImageMime(record.mime_type))) &&
+    isBase64(record.data)
+  );
+}
+
 /** Exempt only the exact binary field of a recognized image part, never its siblings. */
 export function credentialImageField(
   record: Record<string, unknown>,
@@ -40,11 +48,6 @@ export function credentialImageField(
     isBase64(record.data)
   )
     return "data";
-  if (
-    ((parentKey === "inlineData" && isImageMime(record.mimeType)) ||
-      (parentKey === "inline_data" && isImageMime(record.mime_type))) &&
-    isBase64(record.data)
-  )
-    return "data";
+  if (isInlineImageData(record, parentKey)) return "data";
   return undefined;
 }
