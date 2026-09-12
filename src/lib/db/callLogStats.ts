@@ -1,4 +1,5 @@
 import { getDbInstance } from "./core";
+import { ERROR_TYPE_CONTRACT } from "@omniroute/open-sse/services/errorClassifier.ts";
 
 /**
  * Aggregation queries over `call_logs` extracted from route handlers.
@@ -296,6 +297,15 @@ export function getFallbackStats(
  *                      named params as the usage_history queries.
  * @param params      - Named params object (string values).
  */
+
+// ERROR_TYPE_CUTOVER_ISO — seule source du cutover (Q-PR3a) : date de la
+// migration 158 that added error_type. See the constant, no hardcoded literal.
+export const ERROR_TYPE_CUTOVER_ISO = "2026-08-20";
+
+const ERROR_TYPE_VOCAB_SQL = (ERROR_TYPE_CONTRACT as readonly string[])
+  .map((v) => `'${v.replace(/'/g, "''")}'`)
+  .join(", ");
+
 export function getErrorTypeBreakdown(
   whereClause: string,
   params: Record<string, string>
@@ -305,9 +315,9 @@ export function getErrorTypeBreakdown(
     .prepare(
       `
       SELECT
-        -- '2026-08-20' = commit 4c15c05f9 that added error_type (migration 158).
+        -- ERROR_TYPE_CUTOVER_ISO (migration 158) — see the constant, no hardcoded literal.
         -- Lower bound, not exact: late upgraders have post-cutoff rows with NULL values.
-        CASE WHEN error_type IS NULL AND timestamp < '2026-08-20' THEN 'pre_migration' WHEN error_type IS NULL THEN 'unclassified' ELSE error_type END AS errorType,
+        CASE WHEN error_type IS NULL AND timestamp < '${ERROR_TYPE_CUTOVER_ISO}' THEN 'pre_migration' WHEN error_type IS NULL THEN 'unclassified' WHEN error_type NOT IN (${ERROR_TYPE_VOCAB_SQL}) THEN 'unclassified' ELSE error_type END AS errorType,
         COUNT(*) AS count
       FROM call_logs
       ${whereClause} ${whereClause ? "AND" : "WHERE"} (status >= 400 OR error_summary IS NOT NULL)
