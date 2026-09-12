@@ -19,48 +19,26 @@ const { getNextFamilyFallback } = await import("../../open-sse/services/modelFam
 // under ANY notation (hyphen, dot, or a dated-snapshot id with the date
 // suffix stripped) instead of returning it unfiltered.
 //
-// Fixture note: #10952 later added claude-opus-4.6 to the github registry, so
-// the provably-absent tier used by the fixture moved to claude-opus-4-6-thinking
-// (the ladder's first candidate after 4.6 — still absent from the catalog).
-
-test("#8134: github claude-opus fallback chain never returns an unsupported tier (claude-opus-4-6-thinking)", () => {
+// The curated catalog retired Opus 4.7/4.6/4.5. The ladder must now skip
+// those tiers and land on the still-supported Sonnet 5.
+test("#8134: github fallback skips retired Opus tiers and reaches Sonnet 5", () => {
   const github = getRegistryEntry("github");
-  assert.ok(github, "expected the github registry entry to resolve");
+  assert.ok(github);
   const githubIds = new Set(github.models.map((m) => m.id));
-  // Fixture assumption: #10952 added claude-opus-4.6 to the github registry, so
-  // the original absent-tier role moved to the 4.6-thinking variant, which the
-  // catalog still does NOT carry under any notation.
-  assert.ok(
-    !githubIds.has("claude-opus-4-6-thinking") && !githubIds.has("claude-opus-4.6-thinking"),
-    "fixture assumption broken: github registry now has a 4.6-thinking tier"
-  );
-
-  // Ladder reality: 4.8 -> 4.7 -> 4.6 -> [4-6-thinking (absent), 4-5-20251101,
-  // sonnet-5]. The absent 4-6-thinking must be SKIPPED — the third hop resolves
-  // to the dated 4.5 snapshot's undated catalog entry, never to 4-6-thinking.
-  const tried = new Set(["github/claude-opus-4.8"]);
-  const hops: string[] = [];
-  let current = "github/claude-opus-4.8";
-  for (let hop = 0; hop < 3; hop++) {
-    const next = getNextFamilyFallback(current, tried);
-    assert.ok(next, `hop ${hop + 1}: family must not be silently exhausted`);
-    const bareId = next!.replace(/^github\//, "");
-    assert.ok(
-      githubIds.has(bareId),
-      `hop ${hop + 1}: "${next}" is not in github's registered model catalog: ${[...githubIds].join(", ")}`
-    );
-    assert.notEqual(bareId, "claude-opus-4-6-thinking");
-    assert.notEqual(bareId, "claude-opus-4.6-thinking");
-    tried.add(next!);
-    hops.push(next!);
-    current = next!;
+  for (const id of [
+    "claude-opus-4.7",
+    "claude-opus-4.6",
+    "claude-opus-4.5",
+    "claude-opus-4-6-thinking",
+  ]) {
+    assert.equal(githubIds.has(id), false);
   }
-  // The skip specifically fired: the ladder walks the catalogued tiers in
-  // order — 4.7, then 4.6 — before jumping past the absent 4-6-thinking tier
-  // straight to the dated 4.5 snapshot's undated catalog entry.
-  assert.equal(hops[0].replace(/^github\//, ""), "claude-opus-4.7", "first hop must be 4.7");
-  assert.equal(hops[1].replace(/^github\//, ""), "claude-opus-4.6", "second hop must be 4.6");
-  assert.equal(hops[2].replace(/^github\//, ""), "claude-opus-4.5");
+  const current = "github/claude-opus-4.8";
+  const tried = new Set([current]);
+  const next = getNextFamilyFallback(current, tried);
+  assert.equal(next, "github/claude-sonnet-5");
+  tried.add(next!);
+  assert.equal(getNextFamilyFallback(next!, tried), null);
 });
 
 test("#8134: getNextFamilyFallback never returns a candidate absent from the resolved provider's catalog", () => {

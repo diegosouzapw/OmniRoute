@@ -3,7 +3,7 @@
 // refresh this so the fingerprint OpenAI sees from the OAuth/Responses face
 // matches the real client version. Overridable per-deployment via
 // CODEX_CLIENT_VERSION.
-export const DEFAULT_CODEX_CLIENT_VERSION = "0.153.4";
+export const DEFAULT_CODEX_CLIENT_VERSION = "0.154.0";
 export const CODEX_CLI_RS_ORIGINATOR = "codex_cli_rs";
 
 export function getCodexCliRsHeaders(

@@ -1311,16 +1311,16 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.153.4 (<OS>; <ARCH>)",
-        "Version": "0.153.4",
+        "User-Agent": "codex-cli/0.154.0 (<OS>; <ARCH>)",
+        "Version": "0.154.0",
         "X-Codex-Beta-Features": "responses_websockets"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.153.4 (<OS>; <ARCH>)",
-        "Version": "0.153.4",
+        "User-Agent": "codex-cli/0.154.0 (<OS>; <ARCH>)",
+        "Version": "0.154.0",
         "X-Codex-Beta-Features": "responses_websockets"
       },
       "oauth": {
@@ -1328,8 +1328,8 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.153.4 (<OS>; <ARCH>)",
-        "Version": "0.153.4",
+        "User-Agent": "codex-cli/0.154.0 (<OS>; <ARCH>)",
+        "Version": "0.154.0",
         "X-Codex-Beta-Features": "responses_websockets"
       }
     },
@@ -1998,6 +1998,29 @@
     "url": {
       "nonStream": "https://api.electronhub.ai/v1/chat/completions",
       "stream": "https://api.electronhub.ai/v1/chat/completions"
+    }
+  },
+  "eurouter": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.eurouter.ai/v1/chat/completions",
+      "stream": "https://api.eurouter.ai/v1/chat/completions"
     }
   },
   "factory": {
@@ -2742,6 +2765,29 @@
     "url": {
       "nonStream": "https://api.z.ai/api/coding/paas/v4/chat/completions",
       "stream": "https://api.z.ai/api/coding/paas/v4/chat/completions"
+    }
+  },
+  "greenpt": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.greenpt.ai/v1/chat/completions",
+      "stream": "https://api.greenpt.ai/v1/chat/completions"
     }
   },
   "grok-cli": {

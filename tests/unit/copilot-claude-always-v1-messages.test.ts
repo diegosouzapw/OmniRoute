@@ -31,8 +31,8 @@ test("github.com: a custom 'anthropic/claude' style id routes to /v1/messages", 
 
 test("github.com: non-claude ids are unaffected (gpt -> /responses, plain -> /chat/completions)", () => {
   const executor = new GithubExecutor();
-  assert.match(executor.buildUrl("gpt-5.4", true), /\/responses$/);
-  assert.match(executor.buildUrl("gpt-4o-mini", true), /\/chat\/completions$/);
+  assert.match(executor.buildUrl("gpt-6-astra", true), /\/responses$/);
+  assert.match(executor.buildUrl("gemini-3.8-flash", true), /\/chat\/completions$/);
 });
 
 test("GHE: Claude models route to the dynamic per-connection /v1/messages host", () => {
