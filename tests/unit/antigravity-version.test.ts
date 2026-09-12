@@ -25,7 +25,7 @@ test("IDE and CLI start with independent captured fallback versions", () => {
   assert.equal(getCachedAntigravityIdeVersion(), ANTIGRAVITY_IDE_FALLBACK_VERSION);
   assert.equal(getCachedAntigravityCliVersion(), ANTIGRAVITY_CLI_FALLBACK_VERSION);
   assert.equal(ANTIGRAVITY_IDE_FALLBACK_VERSION, "2.1.1");
-  assert.equal(ANTIGRAVITY_CLI_FALLBACK_VERSION, "1.1.5");
+  assert.equal(ANTIGRAVITY_CLI_FALLBACK_VERSION, "1.2.0");
 });
 
 test("IDE resolver reads the official updater feed and caches only the IDE version", async () => {
@@ -46,7 +46,7 @@ test("IDE resolver reads the official updater feed and caches only the IDE versi
     "https://antigravity-auto-updater-974169037036.us-central1.run.app/releases"
   );
   assert.equal(getCachedAntigravityIdeVersion(), "2.2.0");
-  assert.equal(getCachedAntigravityCliVersion(), "1.1.5");
+  assert.equal(getCachedAntigravityCliVersion(), "1.2.0");
 });
 
 test("IDE resolver selects the newest feed entry and never falls below its version floor", async () => {

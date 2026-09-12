@@ -389,7 +389,7 @@ export async function importManagedModels({
 
     // #11824/#11651: `syncedIds` is a UNION across every connection of this provider
     // (getSyncedAvailableModels), so an identity mapping derived above can route a
-    // display id to the literal tier-suffixed upstream id (e.g. "gemini-3.7-flash-high")
+    // display id to the literal tier-suffixed upstream id (e.g. "gemini-3.8-flash-high")
     // just because ONE connected account's own discovery happens to list it directly.
     // Google's Cloud Code Assist backend only allows those tier-suffixed ids on
     // accounts/projects it specifically provisioned for them — every other account can
@@ -400,7 +400,7 @@ export async function importManagedModels({
     // table already knows only has a safe "-tiered" target to always resolve there,
     // regardless of what any single connection's discovery reported.
     for (const [displayId, safeTarget] of Object.entries(ANTIGRAVITY_MODEL_ALIASES)) {
-      if (safeTarget === "gemini-3.7-flash-tiered") {
+      if (displayId !== safeTarget && safeTarget.endsWith("-tiered")) {
         mappings[displayId] = `antigravity/${safeTarget}`;
       }
     }

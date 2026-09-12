@@ -118,18 +118,18 @@
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "antigravity/cli/1.1.5 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
+        "User-Agent": "antigravity/cli/1.2.0 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "antigravity/cli/1.1.5 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
+        "User-Agent": "antigravity/cli/1.2.0 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "antigravity/cli/1.1.5 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
+        "User-Agent": "antigravity/cli/1.2.0 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
       }
     },
     "url": {
