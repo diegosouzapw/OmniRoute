@@ -68,6 +68,12 @@ export function registerServe(program) {
       t("serve.tls_key") ||
         "Path to the TLS private key (PEM) to serve HTTPS (also OMNIROUTE_TLS_KEY)"
     )
+    .option(
+      "--ready-timeout <ms>",
+      t("serve.ready_timeout") ||
+        "Maximum milliseconds to wait for server readiness (also OMNIROUTE_READY_TIMEOUT_MS)",
+      parseInt
+    )
     .action(async (opts) => {
       await runServe(opts);
     });
@@ -98,6 +104,23 @@ export function maybeReportInstrumentationHookFailure(text) {
 /** Test-only reset for the once-per-process hint guard. */
 export function resetInstrumentationFailureHintForTests() {
   instrumentationFailureHintPrinted = false;
+}
+
+/**
+ * Resolves server readiness timeout in ms from opts or OMNIROUTE_READY_TIMEOUT_MS,
+ * defaulting to 60000ms.
+ *
+ * @param {Record<string, any>} [opts]
+ * @returns {number}
+ */
+export function resolveReadyTimeout(opts = {}) {
+  if (opts.readyTimeout !== undefined && opts.readyTimeout !== null) {
+    const parsed = Number.parseInt(String(opts.readyTimeout), 10);
+    if (!Number.isNaN(parsed) && parsed > 0) return parsed;
+  }
+  const envVal = Number.parseInt(process.env.OMNIROUTE_READY_TIMEOUT_MS || "", 10);
+  if (!Number.isNaN(envVal) && envVal > 0) return envVal;
+  return 60000;
 }
 
 export async function runServe(opts = {}) {
@@ -452,7 +475,8 @@ async function runWithSupervisor(
   });
 
   if (!showLog) {
-    waitForServer(dashboardPort, 60000).then(async (up) => {
+    const readyTimeout = resolveReadyTimeout(opts);
+    waitForServer(dashboardPort, readyTimeout).then(async (up) => {
       if (up) {
         if (useTray) {
           const trayReady = await maybeStartTray(dashboardPort, apiPort, supervisor);
@@ -476,7 +500,7 @@ async function runWithSupervisor(
         }
         onReady(dashboardPort, apiPort, noOpen, startedAt);
       } else {
-        reportReadinessTimeout(dashboardPort, supervisor);
+        reportReadinessTimeout(dashboardPort, supervisor, readyTimeout);
       }
     });
   }
@@ -488,9 +512,10 @@ async function runWithSupervisor(
 // stuck (issue reports show the server sometimes actually comes up later, or is
 // reachable directly while the CLI still looks hung). Surface a clear diagnostic
 // plus whatever stdout/stderr the child buffered instead of going silent.
-export function reportReadinessTimeout(dashboardPort, supervisor) {
+export function reportReadinessTimeout(dashboardPort, supervisor, timeoutMs = 60000) {
+  const seconds = Math.max(1, Math.round(timeoutMs / 1000));
   console.error(
-    `\n\x1b[33m⚠ Server did not respond within 60s.\x1b[0m It may still be starting, or may` +
+    `\n\x1b[33m⚠ Server did not respond within ${seconds}s.\x1b[0m It may still be starting, or may` +
       ` have failed silently.`
   );
   console.error(`  Try:  curl -I http://localhost:${dashboardPort}/api/monitoring/health`);

@@ -72,8 +72,12 @@ export function sleep(ms) {
 // but the HTTP server is clearly alive and responsive) — never for a
 // socket that merely accepts TCP and then hangs without ever completing
 // a single request (#6800: that's a still-booting/CPU-bound process, not
-// a "route not mounted" gap, and must NOT be reported as ready).
-export async function waitForServer(port, timeout = 60000) {
+// #13369: readiness timeout is configurable via OMNIROUTE_READY_TIMEOUT_MS,
+// preserving the 60000 default.
+export async function waitForServer(
+  port,
+  timeout = Number.parseInt(process.env.OMNIROUTE_READY_TIMEOUT_MS || "", 10) || 60000
+) {
   const start = Date.now();
   let tcpListeningSince = null;
   while (Date.now() - start < timeout) {
