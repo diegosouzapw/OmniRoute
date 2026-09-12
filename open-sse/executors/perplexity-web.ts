@@ -202,48 +202,6 @@ async function* readPplxSseEvents(
   }
 }
 
-// ─── OpenAI → Perplexity translation ────────────────────────────────────────
-
-interface ParsedMessages {
-  systemMsg: string;
-  history: Array<{ role: string; content: string }>;
-  currentMsg: string;
-}
-
-function parseOpenAIMessages(messages: Array<Record<string, unknown>>): ParsedMessages {
-  let systemMsg = "";
-  const history: Array<{ role: string; content: string }> = [];
-
-  for (const msg of messages) {
-    let role = String(msg.role || "user");
-    if (role === "developer") role = "system";
-
-    let content = "";
-    if (typeof msg.content === "string") {
-      content = msg.content;
-    } else if (Array.isArray(msg.content)) {
-      content = (msg.content as Array<Record<string, unknown>>)
-        .filter((c) => c.type === "text")
-        .map((c) => String(c.text || ""))
-        .join(" ");
-    }
-    if (!content.trim()) continue;
-
-    if (role === "system") {
-      systemMsg += content + "\n";
-    } else if (role === "user" || role === "assistant") {
-      history.push({ role, content });
-    }
-  }
-
-  let currentMsg = "";
-  if (history.length > 0 && history[history.length - 1].role === "user") {
-    currentMsg = history.pop()!.content;
-  }
-
-  return { systemMsg, history, currentMsg };
-}
-
 // ─── Content extraction ─────────────────────────────────────────────────────
 
 interface ContentChunk {
