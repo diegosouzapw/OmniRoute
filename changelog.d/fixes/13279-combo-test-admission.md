@@ -1,0 +1,1 @@
+- **fix(combos):** testing a combo aborts in-flight probes when the client disconnects instead of probing on after the dashboard navigates away ([#13279](https://github.com/diegosouzapw/OmniRoute/pull/13279)) — thanks @maxmad64bis
