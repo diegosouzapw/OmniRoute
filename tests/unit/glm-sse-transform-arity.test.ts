@@ -47,5 +47,11 @@ test("GLM translateSseResponse does not pass a 16th positional to the stream hel
   assert.ok(callAt >= 0);
   const call = extractParens(body, callAt + "createSSETransformStreamWithLogger".length);
   assert.equal(/65536/.test(call), false, `dead 16th arg still present:\n${call}`);
-  assert.match(call, /suppressThinkClose\s*\)\s*$/);
+  // #12770 originally pinned suppressThinkClose as the final arg to guard
+  // against accidental 16th positionals.  #12925 legitimately added trailing
+  // args (including GLM_STREAM_BUFFER_BYTES as the buffer-size parameter), so
+  // we only verify suppressThinkClose is still present and that the named
+  // constant GLM_STREAM_BUFFER_BYTES appears as the last argument.
+  assert.match(call, /suppressThinkClose/, "suppressThinkClose must be passed");
+  assert.match(call, /GLM_STREAM_BUFFER_BYTES\s*\)\s*$/);
 });
