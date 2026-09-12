@@ -119,6 +119,25 @@ test("mapQoderModelToLevel maps static models to qodercli levels", () => {
   assert.equal(mapQoderModelToLevel(""), null);
 });
 
+test("Qoder catalog models resolve to explicit CLI levels with provider prefixes", () => {
+  const expected = {
+    "qwen3.8-max-preview": "qmodel_preview",
+    "qwen3.7-max": "qmodel_latest",
+    "qwen3.7-plus": "qmodel",
+    "kimi-k3": "kmodel_latest",
+    "kimi-k2.7-code": "kmodel",
+    "glm-5.2": "gm51model",
+    "deepseek-v4-pro": "dmodel",
+    "deepseek-v4-flash": "dfmodel",
+    "minimax-m3": "mmodel",
+  };
+  for (const [model, level] of Object.entries(expected)) {
+    assert.equal(mapQoderModelToLevel(model), level);
+    assert.equal(mapQoderModelToLevel(`qoder/${model}`), level);
+    assert.equal(mapQoderModelToLevel(level), level);
+  }
+});
+
 test("getStaticQoderModels exposes the current nine-model Qoder catalog", () => {
   const models = getStaticQoderModels();
   const ids = models.map((model) => model.id);

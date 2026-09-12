@@ -8,6 +8,7 @@ import {
   type StaticProviderCatalogCategory,
 } from "@/lib/providers/catalog";
 import {
+  getProviderConnectionFamilyIds,
   isClaudeCodeCompatibleProvider,
   supportsApiKeyOnFreeProvider,
 } from "@/shared/constants/providers";
@@ -102,6 +103,14 @@ export function shouldShowProviderSection(
 }
 
 type ProviderRecord<TProvider = Record<string, unknown>> = Record<string, TProvider>;
+
+export function connectionBelongsToProviderPage(
+  connectionProvider: string | null | undefined,
+  providerId: string
+): boolean {
+  if (!connectionProvider) return false;
+  return getProviderConnectionFamilyIds(providerId).includes(connectionProvider);
+}
 
 /**
  * Whether a provider connection should be counted on a provider card rendered in
@@ -440,7 +449,7 @@ const PROVIDER_PAGE_FETCH_TIMEOUT_MS = 20_000;
  * page paints from whatever data arrived (matching the fast `/api/providers`).
  */
 export async function loadProviderPageData(
-  fetchImpl: typeof fetch = (globalThis.fetch as typeof fetch),
+  fetchImpl: typeof fetch = globalThis.fetch as typeof fetch,
   timeoutMs: number = PROVIDER_PAGE_FETCH_TIMEOUT_MS
 ): Promise<ProviderPageData> {
   const safeJson = async (url: string, init?: RequestInit): Promise<any | null> => {

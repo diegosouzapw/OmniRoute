@@ -180,7 +180,7 @@ export async function createConnectionFromAuthFile(
   parsed: ParsedCodexAuth,
   options: CreateConnectionOptions
 ): Promise<{ connection: JsonRecord; created: boolean }> {
-  const existing = await findExistingCodexConnection(parsed.accountId, parsed.userId);
+  const existing = await findExistingCodexConnection(parsed.accountId, parsed.userId, parsed.email);
 
   if (existing) {
     if (!options.overwriteExisting) {
@@ -257,32 +257,10 @@ export async function createConnectionFromAuthFile(
   return { connection, created: true };
 }
 
-// Dedup key is the workspace/account id AND the per-user id. Two distinct users in the
-// same workspace share an accountId but have different userIds, so they must NOT collide
-// (#6301). Backward-compat: connections imported before the chatgptUserId field existed
-// carry no stored userId — when NONE of the workspace matches has a stored userId we fall
-// back to the legacy accountId-only match so genuinely-same accounts still dedup.
-// From the connections already matched on workspace/account id, pick the one that
-// belongs to the incoming user. A different user in the same workspace is NOT a
-// duplicate — but only refuse to dedup when some stored connection actually records a
-// (different) userId; if none do, they are legacy records and we dedup with the first.
-function pickCodexConnectionForUser(
-  workspaceMatches: JsonRecord[],
-  userId: string
-): JsonRecord | null {
-  const exact = workspaceMatches.find(
-    (c) => toNonEmptyString(toRecord(c.providerSpecificData).chatgptUserId) === userId
-  );
-  if (exact) return exact;
-  const anyHasStoredUserId = workspaceMatches.some(
-    (c) => toNonEmptyString(toRecord(c.providerSpecificData).chatgptUserId) !== null
-  );
-  return anyHasStoredUserId ? null : workspaceMatches[0];
-}
-
 async function findExistingCodexConnection(
   accountId: string,
-  userId: string | null
+  userId: string | null,
+  email: string | null
 ): Promise<JsonRecord | null> {
   const connections = await getProviderConnections({ provider: "codex" });
   const workspaceMatches = (connections as JsonRecord[]).filter(
@@ -291,5 +269,5 @@ async function findExistingCodexConnection(
   if (workspaceMatches.length === 0) return null;
   // No incoming userId → legacy accountId-only dedup with the first workspace match.
   if (!userId) return workspaceMatches[0];
-  return pickCodexConnectionForUser(workspaceMatches, userId);
+  return pickCodexConnectionForUser(workspaceMatches, userId, email);
 }

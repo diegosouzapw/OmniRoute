@@ -519,34 +519,6 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
       });
     }, [sortedLogs]);
 
-    // Group by correlationId: mark retries as children so they render indented
-    // under the first request in each group. Compute group health:
-    //   "healed"  — at least one failure followed by a success
-    //   "failed"  — all attempts failed
-    //   null      — single request or all succeeded
-    const groupedLogs = useMemo(() => {
-      const cidGroups = new Map();
-      for (const log of sortedLogs) {
-        const cid = log.correlationId;
-        if (cid) {
-          if (!cidGroups.has(cid)) cidGroups.set(cid, []);
-          cidGroups.get(cid).push(log);
-        }
-      }
-      return sortedLogs.map((log) => {
-        const cid = log.correlationId;
-        if (!cid) return { ...log, isRetry: false, groupSize: 1, groupStatus: null };
-        const group = cidGroups.get(cid);
-        if (!group || group.length <= 1)
-          return { ...log, isRetry: false, groupSize: 1, groupStatus: null };
-        const isFirst = group[0].id === log.id;
-        const hasFailure = group.some((g) => g.status >= 400 || g.active);
-        const hasSuccess = group.some((g) => g.status >= 200 && g.status < 300);
-        const groupStatus = hasFailure && hasSuccess ? "healed" : hasFailure ? "failed" : null;
-        return { ...log, isRetry: !isFirst, groupSize: group.length, groupStatus };
-      });
-    }, [sortedLogs]);
-
     // Fetch log detail from the persisted call-log endpoint. If a deep-linked
     // request is still being finalized, keep the modal open and poll this same
     // endpoint until the row appears.

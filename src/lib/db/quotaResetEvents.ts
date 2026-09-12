@@ -36,6 +36,11 @@ interface QuotaSnapshotObservationRow {
   remainingPercentage: number | null;
 }
 
+export interface ProviderQuotaWindowStart {
+  windowStartIso: string;
+  source: "recorded_reset_event";
+}
+
 function toNumberOrNull(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string" && value.trim()) {
@@ -203,4 +208,13 @@ export function getProviderQuotaWindowStartIso(
     if (error instanceof Error && error.message.includes("no such table")) return null;
     throw error;
   }
+}
+
+export function getProviderQuotaWindowStart(
+  connectionId: string,
+  targetResetAtIso: string,
+  nowMs = Date.now()
+): ProviderQuotaWindowStart | null {
+  const windowStartIso = getProviderQuotaWindowStartIso(connectionId, targetResetAtIso, nowMs);
+  return windowStartIso ? { windowStartIso, source: "recorded_reset_event" } : null;
 }

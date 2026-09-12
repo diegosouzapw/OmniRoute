@@ -63,6 +63,7 @@ import { getCursorUsage } from "./usage/cursor.ts";
 import { getKimiUsage } from "./usage/kimi.ts";
 import { getClaudePlanLabel } from "./usage/claude.ts";
 import { getKiroUsage } from "./usage/kiro.ts";
+import { getXaiOauthUsage } from "./usage/xaiOauth.ts";
 // Re-exported para os testes kiro-* (importam de services/usage).
 export { buildKiroUsageResult, discoverKiroProfileArn } from "./usage/kiro.ts";
 
@@ -574,6 +575,8 @@ export const USAGE_FETCHER_PROVIDERS = [
   "opencode-zen",
   "xiaomi-mimo",
   "xai",
+  "xai-oauth",
+  "xao",
   "vertex",
   "vertex-partner",
   "codebuddy-cn",
@@ -666,6 +669,9 @@ export async function getUsageForProvider(
       return await getXiaomiMimoUsage(id || "");
     case "xai":
       return await getXaiUsage(id || "");
+    case "xai-oauth":
+    case "xao":
+      return await getXaiOauthUsage(id || "", accessToken, connection);
     case "codebuddy-cn":
       return await getCodeBuddyCnUsage(accessToken, apiKey, providerSpecificData);
     case "promptql":
@@ -1335,6 +1341,7 @@ export const __testing = {
   getMiniMaxUsage,
   getXiaomiMimoUsage,
   getXaiUsage,
+  getXaiOauthUsage,
   getVertexUsage,
   getMiniMaxAuthErrorMessage,
   getMiniMaxErrorSummary,

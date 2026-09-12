@@ -1,7 +1,11 @@
 import { randomUUID } from "crypto";
 import { resolveChatRequestBody } from "./requestBody";
 import { normalizeReasoningRequest } from "@/shared/reasoning/effortStandardization";
-import { resolveRoutingModel } from "./resolveRoutingModel";
+import { resolveRoutingModel, RoutingModelOps } from "./resolveRoutingModel";
+import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
+import { resolveCcDiscoveryAliasStrip } from "@/lib/ccDiscoveryAliasResolve";
+import { getImageModelEntry } from "@omniroute/open-sse/config/imageRegistry.ts";
+import { resolveDispatchClientRawRequest } from "./chat/clientRawRequest";
 import {
   getProviderCredentialsWithQuotaPreflight,
   markAccountUnavailable,
@@ -1005,7 +1009,7 @@ async function handleSingleModelChat(
       allCombos: [],
       relayOptions: undefined,
       signal: request?.signal ?? null,
-      correlationId: reqId,
+      correlationId: runtimeOptions.correlationId ?? null,
     });
   }
 

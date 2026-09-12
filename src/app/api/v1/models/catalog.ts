@@ -101,22 +101,6 @@ export {
 } from "./catalogCache";
 export type { CachedCatalog } from "./catalogCache";
 
-interface CustomModelEntry {
-  id?: string;
-  name?: string;
-  source?: string;
-  apiFormat?: string;
-  supportedEndpoints?: string[];
-  inputTokenLimit?: number;
-  isHidden?: boolean;
-  // User-set "vision-capable" flag (persisted by addCustomModel / replaceCustomModels
-  // in src/lib/db/models.ts). Surfaced into `/v1/models` via
-  // getCustomVisionCapabilityFields so user-added vision models appear with
-  // `capabilities.vision: true` even when their id does not match the
-  // conservative isVisionModelId heuristic.
-  supportsVision?: boolean;
-}
-
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
   cc: "claude",
@@ -129,218 +113,6 @@ const FALLBACK_ALIAS_TO_PROVIDER = {
   kr: "kiro",
   qw: "qwen",
 };
-
-type ComboCatalogTarget = {
-  modelStr?: string;
-  provider?: string | null;
-};
-
-type ComboTargetCatalogMetadata = {
-  contextLength?: number;
-  maxInputTokens?: number;
-  maxOutputTokens?: number;
-  inputModalities?: string[];
-  outputModalities?: string[];
-  capabilities: Record<string, boolean>;
-};
-
-function isPositiveFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value) && value > 0;
-}
-
-function parseJsonStringArray(value: unknown): string[] {
-  if (typeof value !== "string" || value.trim().length === 0) return [];
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string" && entry.length > 0)
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function maybeOmitCatalogModelName<T extends Record<string, unknown>>(
-  model: T,
-  includeNames: boolean
-): T | Omit<T, "name"> {
-  if (includeNames || !Object.prototype.hasOwnProperty.call(model, "name")) return model;
-
-  const { name: omittedName, ...nextModel } = model;
-  void omittedName;
-  return nextModel;
-}
-
-function intersectStringArrays(arrays: string[][]): string[] {
-  if (arrays.length === 0 || arrays.some((values) => values.length === 0)) return [];
-  const [first, ...rest] = arrays;
-  return first.filter((value, index) => {
-    if (first.indexOf(value) !== index) return false;
-    return rest.every((values) => values.includes(value));
-  });
-}
-
-function minKnownNumber(values: Array<number | undefined>): number | undefined {
-  const knownValues = values.filter(isPositiveFiniteNumber);
-  if (knownValues.length === 0) return undefined;
-  return Math.min(...knownValues);
-}
-
-// Vision detection is centralized in `@/shared/constants/visionModels` (#4072) so
-// this listing path, the routing fallback, and lite compression share one verdict.
-// Re-exported for callers/tests that imported it from here.
-export { isVisionModelId };
-
-function getVisionCapabilityFields(modelId: string) {
-  if (!isVisionModelId(modelId)) return null;
-  return {
-    capabilities: { vision: true },
-    input_modalities: ["text", "image"],
-    output_modalities: ["text"],
-  };
-}
-
-/**
- * Vision-capability fields for a user-added custom chat model. Honours an
- * explicit `supportsVision` flag on the saved entry (the dashboard "vision-
- * capable" toggle) IN ADDITION TO the conservative id-based heuristic used by
- * built-in models. Without this, a user who registered e.g. `my-vision-llm`
- * and ticked vision saw no `capabilities.vision` in `/v1/models`, so the LLM
- * selector and downstream routing treated the model as text-only.
- *
- * Port of upstream decolua/9router 5e5e78d3. Conservative: an explicit
- * `supportsVision === false` wins so users can downgrade a mis-classified
- * model (same anti-FP discipline as #4071 / #4072).
- */
-export function getCustomVisionCapabilityFields(
-  entry: { supportsVision?: boolean } | null | undefined,
-  ...candidateIds: Array<string | null | undefined>
-): {
-  capabilities: { vision: true };
-  input_modalities: string[];
-  output_modalities: string[];
-} | null {
-  if (entry && entry.supportsVision === false) return null;
-  if (entry && entry.supportsVision === true) {
-    return {
-      capabilities: { vision: true },
-      input_modalities: ["text", "image"],
-      output_modalities: ["text"],
-    };
-  }
-  for (const id of candidateIds) {
-    if (typeof id === "string" && id) {
-      const fields = getVisionCapabilityFields(id);
-      if (fields) return fields;
-    }
-  }
-  return null;
-}
-
-function qualifyOpenRouterModelId(modelId: string): string {
-  return modelId.startsWith("openrouter/") ? modelId : `openrouter/${modelId}`;
-}
-
-function normalizeOpenRouterModalities(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.filter((entry): entry is string => typeof entry === "string" && entry.length > 0)
-    : [];
-}
-
-function getOpenRouterModelType(inputModalities: string[], outputModalities: string[]) {
-  if (outputModalities.includes("image")) return "image";
-  if (outputModalities.includes("audio")) return "audio";
-  if (outputModalities.includes("video")) return "video";
-  if (outputModalities.includes("embedding")) return "embedding";
-  return "chat";
-}
-
-function isZeroPrice(value: unknown) {
-  if (typeof value === "number") return value === 0;
-  if (typeof value !== "string") return false;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed === 0;
-}
-
-function isOpenRouterFreeModel(model: {
-  id?: string;
-  pricing?: { prompt?: string; completion?: string };
-}) {
-  if (typeof model.id === "string" && model.id.endsWith(":free")) return true;
-  return isZeroPrice(model.pricing?.prompt) && isZeroPrice(model.pricing?.completion);
-}
-
-function getOpenRouterDisplayName(model: {
-  id?: string;
-  name?: string;
-  pricing?: { prompt?: string; completion?: string };
-}) {
-  const name = model.name || model.id || "OpenRouter model";
-  return isOpenRouterFreeModel(model) && !/\bgr[aá]tis\b/i.test(name) ? `${name} (Grátis)` : name;
-}
-
-async function validateCatalogApiKey(apiKey: string): Promise<boolean> {
-  const { validateApiKey } = await import("@/lib/db/apiKeys");
-  return validateApiKey(apiKey);
-}
-
-async function getModelCatalogAuthRejection(
-  request: Request,
-  settings: Record<string, any>,
-  headers: Record<string, string>
-): Promise<Response | null> {
-  if (settings.requireAuthForModels !== true || !(await isAuthRequired(request))) return null;
-
-  const apiKey = extractApiKey(request);
-  if (apiKey) {
-    if (await validateCatalogApiKey(apiKey)) return null;
-    return Response.json(
-      {
-        error: {
-          message: "Invalid API key",
-          type: "invalid_api_key",
-          code: "invalid_api_key",
-        },
-      },
-      {
-        status: 401,
-        headers,
-      }
-    );
-  }
-
-  if (await isDashboardSessionAuthenticated(request)) return null;
-
-  return Response.json(
-    {
-      error: {
-        message: "Authentication required",
-        type: "invalid_api_key",
-        code: "invalid_api_key",
-      },
-    },
-    {
-      status: 401,
-      headers,
-    }
-  );
-}
-
-/**
- * Detect the Codex CLI's model-catalog refresh client. Codex sends an `originator` header
- * of `codex_exec` (codex exec) / `codex_cli_rs` (interactive TUI) — see openai/codex
- * login/src/auth/default_client.rs DEFAULT_ORIGINATOR — and a matching `codex_*`
- * User-Agent on its `GET /v1/models?client_version=...` catalog refresh. We only augment
- * the response shape for these clients so every other OpenAI consumer keeps the
- * byte-identical `{object,data}` payload.
- */
-function isCodexModelCatalogClient(request: Request): boolean {
-  const headers = request.headers;
-  const originator = headers.get("originator")?.toLowerCase() ?? "";
-  if (originator.startsWith("codex")) return true;
-  const userAgent = headers.get("user-agent")?.toLowerCase() ?? "";
-  return userAgent.startsWith("codex");
-}
 
 /**
  * Build unified OpenAI-compatible model catalog response.
@@ -1410,8 +1182,9 @@ async function buildUnifiedModelsResponseCore(
           ) {
             continue;
           }
-          const visionFields =
-            modelType === "chat" ? getCustomVisionCapabilityFields(model, aliasId, modelId) : null;
+          const visionFields = !modelType
+            ? getCustomVisionCapabilityFields(model, aliasId, modelId)
+            : null;
 
           if (includeAlias) {
             models.push({
@@ -1441,10 +1214,9 @@ async function buildUnifiedModelsResponseCore(
           if (includeCanonical && canonicalProviderId !== alias && !prefix && !isNoAuthProvider) {
             const providerPrefixedId = `${canonicalProviderId}/${modelId}`;
             if (models.some((m) => m.id === providerPrefixedId)) continue;
-            const providerVisionFields =
-              modelType === "chat"
-                ? getCustomVisionCapabilityFields(model, providerPrefixedId, modelId)
-                : null;
+            const providerVisionFields = !modelType
+              ? getCustomVisionCapabilityFields(model, providerPrefixedId, modelId)
+              : null;
             models.push({
               id: providerPrefixedId,
               object: "model",

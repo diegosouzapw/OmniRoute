@@ -12,11 +12,12 @@ import { tlsFetchClaude } from "../services/claudeTlsClient.ts";
 import { getCfClearanceToken } from "../services/claudeTurnstileSolver.ts";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { randomUUID } from "crypto";
-import { sanitizeErrorMessage } from "../utils/error.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
 import { tryBackedChat } from "../services/browserBackedChat.ts";
 import { BaseExecutor, mergeAbortSignals, type ExecuteInput } from "./base.ts";
 import {
   type ClaudeWebRequestPayload,
+  validateClaudeWebRequest,
   transformToClaude,
   transformFromClaude,
 } from "./claude-web/payload.ts";
@@ -26,7 +27,15 @@ import {
   type ClaudeWebTransportRequest,
   type ClaudeWebTransportResult,
 } from "./claude-web/browserTransport.ts";
-import { sendClaudeWebDirect } from "./claude-web/transport.ts";
+import { isClaudeWebChallenge, sendClaudeWebDirect } from "./claude-web/transport.ts";
+import type { ProviderCredentials } from "./base.ts";
+import {
+  commitClaudeWebTurn,
+  invalidateClaudeWebTurn,
+  prepareClaudeWebTurn,
+  type PreparedClaudeWebTurn,
+} from "./claude-web/session.ts";
+import { createClaudeWebResponse } from "./claude-web/stream.ts";
 
 const CLAUDE_WEB_API_BASE = "https://claude.ai/api";
 const CLAUDE_WEB_ORGS_URL = `${CLAUDE_WEB_API_BASE}/organizations`;
@@ -64,6 +73,20 @@ function readCredentialString(credentials: unknown, key: string): string | undef
 }
 
 // ─── Helper Functions ───────────────────────────────────────────────────────
+
+function readClaudeWebCookie(credentials: unknown): string {
+  return (
+    readCredentialString(credentials, "cookie") ?? readCredentialString(credentials, "apiKey") ?? ""
+  );
+}
+
+function readClaudeWebDeviceId(credentials: unknown): string | undefined {
+  return readCredentialString(credentials, "deviceId");
+}
+
+function readClaudeWebOrganizationId(credentials: unknown): string | undefined {
+  return readCredentialString(credentials, "orgId");
+}
 
 function normalizeClaudeSessionCookie(rawValue: string): string {
   return normalizeSessionCookieHeader(rawValue, CLAUDE_SESSION_COOKIE_NAME);

@@ -132,6 +132,7 @@ test("backward-compat: legacy connection without stored userId still dedups by a
     accessToken: "at-legacy",
     refreshToken: "rt-legacy",
     idToken: "id-legacy",
+    email: "legacy@example.com",
     isActive: true,
     testStatus: "active",
     providerSpecificData: {

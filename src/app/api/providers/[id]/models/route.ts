@@ -443,6 +443,7 @@ type ProviderModelsConfigEntry = {
   authPrefix?: string;
   authQuery?: string;
   body?: unknown;
+  buildHeaders?: (token: string, connection?: any) => Record<string, string>;
   parseResponse: (data: any) => any;
 };
 
@@ -506,6 +507,33 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
           owned_by: item.owned_by || "qwen",
         }))
         .filter((m: any) => m.id);
+    },
+  },
+  "zai-web": {
+    url: "https://chat.z.ai/api/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    buildHeaders: (token) => ({
+      "Content-Type": "application/json",
+      // Parse semicolon-separated cookie pairs instead of using an unbounded
+      // regex on credential-derived input (TS regex rule: no unbounded matches).
+      Authorization: `Bearer ${
+        token
+          .split(";")
+          .map((p: string) => p.trim())
+          .find((p: string) => p.startsWith("token="))
+          ?.slice(6) || token
+      }`,
+    }),
+    parseResponse: (data) => {
+      const innerData = data?.data?.data || data?.data || [];
+      return (Array.isArray(innerData) ? innerData : [])
+        .map((item: any) => ({
+          id: item.id || item.name,
+          name: item.name || item.id,
+          owned_by: item.owned_by || "zai-web",
+        }))
+        .filter((model: any) => model.id);
     },
   },
   antigravity: {

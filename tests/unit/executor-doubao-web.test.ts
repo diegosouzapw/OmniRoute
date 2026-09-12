@@ -211,6 +211,30 @@ describe("DoubaoWebExecutor", () => {
     assert.match(text, /s_v_web_id|fp=verify/);
   });
 
+  it("streams Dola text events as OpenAI deltas with one completion marker", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () =>
+      new Response(
+        `event: STREAM_MSG_NOTIFY\ndata: ${JSON.stringify({ content: { content_block: [{ content: { text_block: { text: "Hello from Dola" } } }] } })}\n\n`,
+        { headers: { "Content-Type": "text/event-stream" } }
+      )) as typeof fetch;
+    try {
+      const result = await new mod.DoubaoWebExecutor().execute({
+        model: "dola-speed",
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: true,
+        credentials: { apiKey: "sessionid=sid; ttwid=tt; s_v_web_id=verify_abc" },
+        signal: null,
+      });
+      assert.equal(result.response.status, 200);
+      const text = await result.response.text();
+      assert.match(text, /Hello from Dola/);
+      assert.equal(text.split("data: [DONE]").length - 1, 1);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   it("classifies Dola busy SSE text as a rate limit error", async () => {
     const originalFetch = globalThis.fetch;
     globalThis.fetch = (async () =>

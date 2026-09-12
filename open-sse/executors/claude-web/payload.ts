@@ -5,6 +5,20 @@ import { randomUUID } from "crypto";
 // Default model when not specified
 export const DEFAULT_CLAUDE_MODEL = "claude-sonnet-4-6";
 
+export type ClaudeWebOperation = "completion" | "retry_completion";
+
+export interface ClaudeWebTurnFields {
+  operation: ClaudeWebOperation;
+  prompt: string;
+  timezone: string;
+  locale: string;
+  parentMessageUuid?: string;
+  humanMessageUuid?: string;
+  assistantMessageUuid: string;
+  isNewConversation: boolean;
+  toolStates?: unknown[];
+}
+
 export interface ClaudeWebRequestPayload {
   prompt: string;
   model: string;
@@ -29,16 +43,18 @@ export interface ClaudeWebRequestPayload {
     type?: string;
   }>;
   turn_message_uuids: {
-    human_message_uuid: string;
+    human_message_uuid?: string;
     assistant_message_uuid: string;
   };
+  parent_message_uuid?: string;
   attachments: unknown[];
   effort: string;
   files: unknown[];
   sync_sources: unknown[];
   rendering_mode: string;
   thinking_mode: string;
-  create_conversation_params: {
+  tool_states?: unknown[];
+  create_conversation_params?: {
     name: string;
     model: string;
     include_conversation_preferences: boolean;
@@ -66,6 +82,34 @@ export interface ClaudeWebStreamChunk {
   [key: string]: unknown;
 }
 
+type ClaudeWebTool = ClaudeWebRequestPayload["tools"][number];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function transformOpenAiTool(candidate: unknown): ClaudeWebTool | null {
+  if (!isRecord(candidate) || candidate.type !== "function" || !isRecord(candidate.function)) {
+    return null;
+  }
+
+  const definition = candidate.function;
+  if (typeof definition.name !== "string" || !definition.name.trim()) return null;
+
+  const description =
+    typeof definition.description === "string" && definition.description.trim()
+      ? definition.description
+      : undefined;
+  const schemaCandidate = definition.parameters ?? definition.input_schema;
+  const inputSchema = isRecord(schemaCandidate) ? schemaCandidate : undefined;
+
+  return {
+    name: definition.name.trim(),
+    ...(description ? { description } : {}),
+    ...(inputSchema ? { input_schema: inputSchema } : {}),
+  };
+}
+
 /**
  * Generate UUIDs for turn message tracking
  */
@@ -77,61 +121,22 @@ export function generateMessageUUIDs() {
 }
 
 /**
- * Get default tool definitions for Claude Web API
+ * Convert caller-provided OpenAI function tools to Claude Web tool definitions.
+ *
+ * Claude's own browser tools are account- and rollout-dependent. Inventing a
+ * static list makes the request diverge from the authenticated UI, so only
+ * explicit, structurally valid caller tools are forwarded here.
  */
-export function getDefaultTools(): ClaudeWebRequestPayload["tools"] {
-  return [
-    {
-      name: "show_widget",
-      description: "Display interactive widgets and visualizations",
-      input_schema: {
-        type: "object",
-        properties: {
-          widget_type: {
-            type: "string",
-            description: "Type of widget to display",
-          },
-        },
-      },
-      integration_name: "visualize",
-      is_mcp_app: true,
-    },
-    {
-      name: "read_me",
-      description: "Read and reference documents",
-      input_schema: {
-        type: "object",
-        properties: {
-          file_path: {
-            type: "string",
-            description: "Path to the file to read",
-          },
-        },
-      },
-      integration_name: "visualize",
-      is_mcp_app: false,
-    },
-    {
-      type: "web_search_v0",
-      name: "web_search",
-    },
-    {
-      type: "artifacts_v0",
-      name: "artifacts",
-    },
-    {
-      type: "repl_v0",
-      name: "repl",
-    },
-    { type: "widget", name: "weather_fetch" },
-    { type: "widget", name: "recipe_display_v0" },
-    { type: "widget", name: "places_map_display_v0" },
-    { type: "widget", name: "message_compose_v1" },
-    { type: "widget", name: "ask_user_input_v0" },
-    { type: "widget", name: "recommend_claude_apps" },
-    { type: "widget", name: "places_search" },
-    { type: "widget", name: "fetch_sports_data" },
-  ];
+export function transformOpenAiTools(tools: unknown): ClaudeWebRequestPayload["tools"] {
+  if (!Array.isArray(tools)) return [];
+
+  const transformed: ClaudeWebRequestPayload["tools"] = [];
+  for (const candidate of tools) {
+    const transformedTool = transformOpenAiTool(candidate);
+    if (transformedTool) transformed.push(transformedTool);
+  }
+
+  return transformed;
 }
 
 /**
@@ -153,64 +158,226 @@ export function getDefaultPersonalizedStyle(): ClaudeWebRequestPayload["personal
 }
 
 /**
- * Transform OpenAI format to Claude Web format
+ * Detect whether an OpenAI-shape request body signals a desire for
+ * reasoning / extended thinking — a top-level `reasoning_effort` string,
+ * a Responses-API-style `reasoning.effort`, or a native Claude
+ * `thinking: { type: "enabled" }` passthrough. Mirrors the same
+ * effort-extraction shape used by `sanitizeReasoningEffortForProvider`
+ * (open-sse/executors/base/reasoningEffort.ts) so a client already setting
+ * reasoning_effort for other providers gets the same signal here.
+ *
+ * Before this, `transformToClaude` hardcoded `thinking_mode: "off"` —
+ * Claude Web could never be asked for extended thinking, and any
+ * `thinking_delta` reasoning the upstream might otherwise emit was moot
+ * because it was never requested in the first place (#6662).
  */
-export function transformToClaude(
-  body: Record<string, unknown>,
-  model: string
-): ClaudeWebRequestPayload {
-  const messages = Array.isArray(body.messages) ? body.messages : [];
+export function wantsExtendedThinking(body: Record<string, unknown>): boolean {
+  return resolveClaudeWebReasoningEffort(body) !== null;
+}
 
-  // Extract the last user message as the prompt
-  let prompt = "";
+/**
+ * Validate the OpenAI-format request body before transformation.
+ * Catches malformed payloads early so transformToClaude() only sees
+ * shape-conformant input.
+ */
+export function validateClaudeWebRequest(body: Record<string, unknown>): void {
+  if (!body || typeof body !== "object") {
+    throw new Error("Request body must be a JSON object");
+  }
+  const messages = body.messages;
+  if (!Array.isArray(messages) || messages.length === 0) {
+    throw new Error("Request must include a non-empty messages array");
+  }
   for (const msg of messages) {
-    if (typeof msg === "object" && msg !== null) {
-      const message = msg as Record<string, unknown>;
-      if (message.role === "user") {
-        prompt = String(message.content || "");
-      }
+    if (!msg || typeof msg !== "object") {
+      throw new Error("Each message must be a JSON object");
+    }
+    const role = (msg as Record<string, unknown>).role;
+    if (role !== "user" && role !== "assistant" && role !== "system" && role !== "tool") {
+      throw new Error(`Invalid message role: ${role}`);
     }
   }
+}
 
-  if (!prompt.trim()) {
-    throw new Error("No user message found in request");
+const CLAUDE_WEB_REASONING_EFFORTS = ["low", "medium", "high", "xhigh", "max"] as const;
+const CLAUDE_WEB_OPUS_5_MODEL = "claude-opus-5";
+
+/**
+ * Resolve the caller's explicit reasoning level into the effort values
+ * accepted by Claude Web. An explicit `none` disables thinking, while a
+ * native `thinking: { type: "enabled" }` request uses the existing low
+ * default when no graduated effort was supplied.
+ */
+export function resolveClaudeWebReasoningEffort(
+  body: Record<string, unknown>
+): (typeof CLAUDE_WEB_REASONING_EFFORTS)[number] | null {
+  const reasoning =
+    body.reasoning && typeof body.reasoning === "object" && !Array.isArray(body.reasoning)
+      ? (body.reasoning as Record<string, unknown>)
+      : null;
+  const effort = body.reasoning_effort ?? reasoning?.effort;
+  if (typeof effort === "string" && effort.trim()) {
+    const normalized = effort.trim().toLowerCase();
+    if (normalized === "none") return null;
+    if ((CLAUDE_WEB_REASONING_EFFORTS as readonly string[]).includes(normalized)) {
+      return normalized as (typeof CLAUDE_WEB_REASONING_EFFORTS)[number];
+    }
   }
+  const thinking = body.thinking;
+  if (thinking && typeof thinking === "object" && !Array.isArray(thinking)) {
+    if ((thinking as Record<string, unknown>).type === "enabled") return "low";
+  }
+  return null;
+}
 
+function contentPartText(part: unknown): string {
+  if (!isRecord(part)) return "";
+  return typeof part.text === "string" ? part.text : "";
+}
+
+function messageText(content: unknown): string {
+  if (typeof content === "string") return content;
+  if (!Array.isArray(content)) return "";
+  return content.map(contentPartText).filter(Boolean).join("\n");
+}
+
+function buildPromptFromMessages(messages: unknown[]): string {
+  const parts: string[] = [];
+  for (const candidate of messages) {
+    if (!isRecord(candidate)) continue;
+    const role = candidate.role;
+    const text = messageText(candidate.content);
+    if (!text) continue;
+    if (role === "user" || role === "tool") {
+      parts.push(text);
+    }
+  }
+  return parts.join("\n\n");
+}
+
+function latestUserPrompt(messages: unknown[]): string {
+  let prompt = "";
+  for (const candidate of messages) {
+    if (!isRecord(candidate) || candidate.role !== "user") continue;
+    prompt = messageText(candidate.content);
+  }
+  return prompt;
+}
+
+function defaultTurn(prompt: string): ClaudeWebTurnFields {
+  const messageUuids = generateMessageUUIDs();
   return {
+    operation: "completion",
     prompt,
-    model: model || DEFAULT_CLAUDE_MODEL,
-    timezone: "Asia/Jakarta",
-    personalized_styles: getDefaultPersonalizedStyle(),
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
     locale: "en-US",
-    tools: getDefaultTools(),
-    turn_message_uuids: generateMessageUUIDs(),
+    humanMessageUuid: messageUuids.human_message_uuid,
+    assistantMessageUuid: messageUuids.assistant_message_uuid,
+    isNewConversation: true,
+  };
+}
+
+function createConversationParams(model: string) {
+  return {
+    name: "",
+    model,
+    include_conversation_preferences: true,
+    paprika_mode: null,
+    compass_mode: null,
+    is_temporary: false,
+    enabled_imagine: true,
+    tool_search_mode: "auto",
+  };
+}
+
+function resolveClaudeWebThinkingMode(
+  model: string,
+  reasoningEffort: ReturnType<typeof resolveClaudeWebReasoningEffort>
+): { effort: string; thinkingMode: string } {
+  if (model.trim().toLowerCase() === CLAUDE_WEB_OPUS_5_MODEL) {
+    return { effort: reasoningEffort ?? "high", thinkingMode: "auto" };
+  }
+  if (reasoningEffort) {
+    return { effort: reasoningEffort, thinkingMode: "extended" };
+  }
+  return { effort: "low", thinkingMode: "off" };
+}
+
+function buildClaudeWebPayload(
+  body: Record<string, unknown>,
+  model: string,
+  reasoningEffort: ReturnType<typeof resolveClaudeWebReasoningEffort>,
+  turn: ClaudeWebTurnFields
+): ClaudeWebRequestPayload {
+  const thinking = resolveClaudeWebThinkingMode(model, reasoningEffort);
+  return {
+    prompt: turn.prompt,
+    model,
+    timezone: turn.timezone,
+    personalized_styles: getDefaultPersonalizedStyle(),
+    locale: turn.locale,
+    tools: transformOpenAiTools(body.tools),
+    turn_message_uuids: {
+      ...(turn.humanMessageUuid ? { human_message_uuid: turn.humanMessageUuid } : {}),
+      assistant_message_uuid: turn.assistantMessageUuid,
+    },
+    ...(turn.parentMessageUuid ? { parent_message_uuid: turn.parentMessageUuid } : {}),
     attachments: [],
-    effort: "low",
+    effort: thinking.effort,
     files: [],
     sync_sources: [],
     rendering_mode: "messages",
-    thinking_mode: "off",
-    create_conversation_params: {
-      name: "",
-      model: model || DEFAULT_CLAUDE_MODEL,
-      include_conversation_preferences: true,
-      paprika_mode: null,
-      compass_mode: null,
-      is_temporary: false,
-      enabled_imagine: true,
-      tool_search_mode: "auto",
-    },
+    thinking_mode: thinking.thinkingMode,
+    ...(turn.toolStates ? { tool_states: turn.toolStates } : {}),
+    ...(turn.isNewConversation
+      ? { create_conversation_params: createConversationParams(model) }
+      : {}),
   };
 }
 
 /**
- * Transform Claude Web response to OpenAI format
+ * Transform OpenAI format to Claude Web format
+ */
+export function transformToClaude(
+  body: Record<string, unknown>,
+  model: string,
+  turn?: ClaudeWebTurnFields
+): ClaudeWebRequestPayload {
+  // Validate before transformation to catch malformed payloads early
+  validateClaudeWebRequest(body);
+
+  const messages = Array.isArray(body.messages) ? body.messages : [];
+  const reasoningEffort = resolveClaudeWebReasoningEffort(body);
+  const resolvedModel = model || DEFAULT_CLAUDE_MODEL;
+  const prompt = turn?.prompt ?? (buildPromptFromMessages(messages) || latestUserPrompt(messages));
+  const resolvedTurn = turn ?? defaultTurn(prompt);
+
+  if (resolvedTurn.operation === "completion" && !resolvedTurn.prompt.trim()) {
+    throw new Error("No user message found in request");
+  }
+
+  return buildClaudeWebPayload(body, resolvedModel, reasoningEffort, resolvedTurn);
+}
+
+/**
+ * Transform Claude Web response to OpenAI format.
+ *
+ * `kind` selects which delta field carries `claudeContent`: `"content"`
+ * (default, preserves the original call sites) or `"reasoning"` — the
+ * latter maps Claude's `thinking_delta` text onto `delta.reasoning_content`,
+ * the same field the real-Anthropic-API translator uses
+ * (open-sse/translator/response/claude-to-openai.ts) so downstream clients
+ * (Claude Code, Cursor, etc.) render it as the thinking panel instead of
+ * silently dropping it (#6662).
  */
 export function transformFromClaude(
   claudeContent: string,
   model: string,
-  stopReason?: string
+  stopReason?: string,
+  kind: "content" | "reasoning" = "content"
 ): Record<string, unknown> {
+  const delta: Record<string, string> =
+    kind === "reasoning" ? { reasoning_content: claudeContent } : { content: claudeContent };
   return {
     id: `chatcmpl-${Date.now()}`,
     object: "chat.completion.chunk",
@@ -219,9 +386,7 @@ export function transformFromClaude(
     choices: [
       {
         index: 0,
-        delta: {
-          content: claudeContent,
-        },
+        delta,
         finish_reason: stopReason === "end_turn" ? "stop" : null,
         logprobs: null,
       },

@@ -14,6 +14,34 @@ const { DEFAULT_THINKING_CLAUDE_SIGNATURE } =
 const { getModelsByProviderId, supportsXHighEffort } =
   await import("../../open-sse/config/providerModels.ts");
 
+test("OpenAI -> Claude sanitizes tool result IDs before enforcing adjacency", () => {
+  const result = openaiToClaudeRequest(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "Run search" },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            { id: "call:123", type: "function", function: { name: "search", arguments: "{}" } },
+          ],
+        },
+        { role: "tool", tool_call_id: "call:123", content: "Found" },
+      ],
+    },
+    false
+  );
+  const assistant = result.messages.find((message) => message.role === "assistant");
+  const toolUse = assistant.content.find((block) => block.type === "tool_use");
+  const toolResult = result.messages
+    .flatMap((message) => message.content)
+    .find((block) => block.type === "tool_result");
+  assert.equal(toolUse.id, "call_123");
+  assert.equal(toolResult.tool_use_id, toolUse.id);
+  assert.equal(toolResult.content, "Found");
+});
+
 function getClaudeEffortFixtures() {
   const claudeModels = getModelsByProviderId("claude");
   const xhighModel = claudeModels.find((model) => supportsXHighEffort("claude", model.id));

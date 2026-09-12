@@ -15,7 +15,7 @@ const LEAF = join(EXE, "claude-web/payload.ts");
 
 test("leaf hosts the payload builders/transforms and does not import the host", () => {
   const src = readFileSync(LEAF, "utf8");
-  for (const sym of ["transformToClaude", "transformFromClaude", "getDefaultTools"]) {
+  for (const sym of ["transformToClaude", "transformFromClaude", "transformOpenAiTools"]) {
     assert.match(src, new RegExp(`export function ${sym}\\b`));
   }
   assert.match(src, /export interface ClaudeWebRequestPayload\b/);

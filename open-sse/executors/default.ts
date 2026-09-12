@@ -102,62 +102,6 @@ function applyCustomHeaders(headers: Record<string, string>, rawCustomHeaders: u
   }
 }
 
-function normalizeBailianMessagesUrl(baseUrl) {
-  const normalized = normalizeBaseUrl(baseUrl).replace(/\?beta=true$/, "");
-  const messagesUrl = normalized.endsWith("/messages") ? normalized : `${normalized}/messages`;
-  return messagesUrl;
-}
-
-function normalizeDataRobotChatUrl(baseUrl) {
-  return buildDataRobotChatUrl(baseUrl);
-}
-
-function normalizeAzureAiChatUrl(baseUrl: string, apiType: "chat" | "responses" = "chat") {
-  return buildAzureAiChatUrl(baseUrl, apiType);
-}
-
-function normalizeWatsonxChatUrl(baseUrl: string) {
-  return buildWatsonxChatUrl(baseUrl);
-}
-
-function normalizeOciChatUrl(baseUrl: string, apiType: "chat" | "responses" = "chat") {
-  return buildOciChatUrl(baseUrl, apiType);
-}
-
-function normalizeSapChatUrl(baseUrl) {
-  return buildSapChatUrl(baseUrl);
-}
-
-function normalizeXiaomiMimoChatUrl(baseUrl) {
-  const normalized = normalizeBaseUrl(baseUrl).replace(/\/chat\/completions$/, "");
-  return `${normalized}/chat/completions`;
-}
-
-function normalizeOpenAIChatUrl(baseUrl) {
-  const normalized = normalizeBaseUrl(baseUrl);
-  if (
-    normalized.endsWith("/chat/completions") ||
-    normalized.endsWith("/responses") ||
-    normalized.endsWith("/chat")
-  ) {
-    return normalized;
-  }
-  if (normalized.endsWith("/v1")) {
-    return `${normalized}/chat/completions`;
-  }
-  // Assume OpenAI-compatible /v1/chat/completions path structure
-  // when the base URL is a bare hostname or custom path (e.g. llama.cpp, vLLM, LM Studio).
-  return `${normalized}/v1/chat/completions`;
-}
-
-function getOpenRouterConnectionPreset(
-  providerSpecificData?: Record<string, unknown> | null
-): string | null {
-  const preset =
-    typeof providerSpecificData?.preset === "string" ? providerSpecificData.preset.trim() : "";
-  return preset || null;
-}
-
 export class DefaultExecutor extends BaseExecutor {
   constructor(provider) {
     super(provider, PROVIDERS[provider] || PROVIDERS.openai);
@@ -286,7 +230,8 @@ export class DefaultExecutor extends BaseExecutor {
         const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeSapChatUrl(baseUrl);
       }
-      case "xiaomi-mimo": {
+      case "xiaomi-mimo":
+      case "xiaomi-mimo-token-plan": {
         const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeXiaomiMimoChatUrl(baseUrl);
       }
@@ -513,7 +458,8 @@ export class DefaultExecutor extends BaseExecutor {
           // An alternate protocol selected on the connection carries its own auth
           // scheme (e.g. claude uses x-api-key where openai uses bearer).
           const entry = getRegistryEntry(this.provider);
-          const authHeader = entry?.authHeader || "bearer";
+          const alternate = this.resolveAlternate(credentials);
+          const authHeader = alternate?.authHeader || entry?.authHeader || "bearer";
           const token = effectiveKey || credentials.accessToken || entry?.anonymousApiKey;
           if (token) {
             if (authHeader === "x-api-key") {
