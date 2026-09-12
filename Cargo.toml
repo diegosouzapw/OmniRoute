@@ -47,6 +47,12 @@ hyper-util = "0.1"
 tower = "0.5"
 tower-http = "0.6"
 
+# Use pheno-otel from PhenoObservability v0.1.0 (ADR-037 substrate).
+# Git + tag + subdirectory form pins the crate to a known-good release
+# so all consumers across the pheno-* fleet see the same OTLP wire-format
+# export surface. See https://github.com/KooshaPari/PhenoObservability/releases/tag/v0.1.0
+pheno-otel = { git = "https://github.com/KooshaPari/PhenoObservability", tag = "v0.1.0", subdirectory = "pheno-otel" }
+
 [profile.release]
 opt-level = "z"
 lto = true

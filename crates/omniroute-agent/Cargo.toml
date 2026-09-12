@@ -34,6 +34,9 @@ anyhow = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 
+# OTLP export substrate (PhenoObservability pheno-otel v0.1.0)
+pheno-otel = { workspace = true }
+
 # CLI args
 clap = { workspace = true }
 
