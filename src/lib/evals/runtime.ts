@@ -195,6 +195,11 @@ async function executeEvalCase(
   const model = resolveCaseModel(evalCase, target);
   const headers = new Headers({
     "Content-Type": "application/json",
+    // #13139 — Eval cases must measure the model, not injected context.
+    // Disable output-style injection (persona system messages) and memory
+    // injection (retrieved context + memory_* tools) so grading is clean.
+    "x-omniroute-compression": "off",
+    "x-omniroute-no-memory": "true",
   });
 
   if (apiKey) {
