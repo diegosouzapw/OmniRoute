@@ -31,6 +31,11 @@ import {
 import { isOpencodeGeoBlocked, proxyKeyOf } from "./opencodeGeoBlock.ts";
 import { isRetriableUpstreamFailure } from "./opencodeTransientFailure.ts";
 import { isNetworkRotationSharedEgressGuardEnabled } from "@/shared/utils/featureFlags";
+import { getResponsesFirstByteTimeoutMs } from "@/shared/utils/runtimeTimeouts";
+import {
+  guardResponsesStreamFirstByte,
+  isResponsesFirstByteTimeout,
+} from "../utils/firstByteWatchdog.ts";
 
 /**
  * The main OpenCode Zen host, shared by the `opencode` and `opencode-zen`
@@ -352,6 +357,25 @@ export class OpencodeExecutor extends BaseExecutor {
   }
 
   /**
+   * A streamed Responses reply opens with `response.created` before any generation, so a 2xx
+   * Responses stream that stays silent past the window is stalled, not thinking. Chat Completions
+   * streams are left alone: gateways may legitimately hold them until the answer is ready.
+   * Throws a RESPONSES_FIRST_BYTE_TIMEOUT error that the rotation loop treats like a network error.
+   */
+  private async guardResponsesFirstByte<T extends { response: Response }>(
+    input: ExecuteInput,
+    result: T
+  ): Promise<T> {
+    if (!input.stream || this._requestFormat !== "openai-responses") return result;
+    const { response } = result;
+    if (!response.ok || !response.body) return result;
+    const timeoutMs = getResponsesFirstByteTimeoutMs();
+    if (timeoutMs <= 0) return result;
+    const guarded = await guardResponsesStreamFirstByte(response, timeoutMs, input.signal);
+    return { ...result, response: guarded };
+  }
+
+  /**
    * Rewrite muse-spark's bogus `finish_reason:"length"` (see the
    * normalizeMuseSparkFinishReason note) to `"stop"` on both streaming and
    * non-streaming success responses. Non-muse-spark models pass through
@@ -530,9 +554,12 @@ export class OpencodeExecutor extends BaseExecutor {
         // Only pin direct egress when no such context exists; otherwise let the
         // ambient proxy stand instead of clobbering it with the direct sentinel.
         const dispatch = () => super.execute(input);
-        const single = (await (hasAmbientProxyContext()
-          ? dispatch()
-          : runWithDirectFetchContext(dispatch))) as HttpExecuteResult;
+        const single = await this.guardResponsesFirstByte(
+          input,
+          (await (hasAmbientProxyContext()
+            ? dispatch()
+            : runWithDirectFetchContext(dispatch))) as HttpExecuteResult
+        );
         if (single.response.status === 400) {
           let bodyText: string | null = null;
           try {
@@ -547,7 +574,13 @@ export class OpencodeExecutor extends BaseExecutor {
                 "OPENCODE",
                 `${cid}upstream empty rejection on direct account (${chatcmplId}), retrying once…`
               );
-              return this.normalizeMuseSparkResponse(input, await super.execute(input));
+              return this.normalizeMuseSparkResponse(
+                input,
+                await this.guardResponsesFirstByte(
+                  input,
+                  (await super.execute(input)) as HttpExecuteResult
+                )
+              );
             }
             log?.debug?.(
               "OPENCODE",
@@ -584,6 +617,9 @@ export class OpencodeExecutor extends BaseExecutor {
       // persists past execute().
       const geoTriedProxyKeys = new Set<string>();
       let directTried = false;
+      // A Responses stream that stalls before its first byte gets one rotation; a second stall
+      // means the upstream itself is wedged, so fail fast instead of walking every account.
+      let stalledAttempts = 0;
 
       for (let attempt = 0; attempt < this.accounts.length + emptyRejectionBudget; attempt++) {
         const isProxiedCandidate = (a: OpencodeAccountState): boolean => {
@@ -656,11 +692,22 @@ export class OpencodeExecutor extends BaseExecutor {
           // super.execute() here always dispatches the HTTP path (opencode is an
           // OpenAI-compatible API, never the web/scraping bare-Response arm) —
           // see base.ts:290-294.
-          result = (await runWithProxyContext(account.proxy, () =>
-            super.execute({ ...input, skipUpstreamRetry: true })
-          )) as HttpExecuteResult;
+          result = await this.guardResponsesFirstByte(
+            input,
+            (await runWithProxyContext(account.proxy, () =>
+              super.execute({ ...input, skipUpstreamRetry: true })
+            )) as HttpExecuteResult
+          );
         } catch (err) {
           const reason = err instanceof Error ? err.message : String(err);
+          if (isResponsesFirstByteTimeout(err) && ++stalledAttempts > 1) {
+            this.markCooldown(account);
+            log?.warn?.(
+              "OPENCODE",
+              `${cid}Responses stream stalled again on account ${masked}, not rotating further (${reason})`
+            );
+            throw err;
+          }
           // A network exception (timeout, connection refused/reset) is only
           // account-scoped when this account has its OWN egress (a configured
           // proxy) — that's the case a dead/unreachable proxy justifies rotating
@@ -786,7 +833,14 @@ export class OpencodeExecutor extends BaseExecutor {
       }
 
       // All accounts returned 429 (or errored) — surface the last response.
-      return this.normalizeMuseSparkResponse(input, lastResult ?? (await super.execute(input)));
+      return this.normalizeMuseSparkResponse(
+        input,
+        lastResult ??
+          (await this.guardResponsesFirstByte(
+            input,
+            (await super.execute(input)) as HttpExecuteResult
+          ))
+      );
     } finally {
       this._requestFormat = null;
     }
