@@ -26,9 +26,11 @@ export interface TransientRetryOptions {
   maxAttempts?: number;
   baseMs?: number;
   capMs?: number;
-  sleep?: (ms: number) => Promise<void>;
+  /** Source label propagated to onRetry for observability (e.g. "global-fallback"). */
+  source?: string;
+  sleep?: (ms: number, signal?: AbortSignal) => Promise<void>;
   signal?: AbortSignal;
-  onRetry?: (info: { attempt: number; delayMs: number; status?: number; error?: unknown }) => void;
+  onRetry?: (info: { attempt: number; delayMs: number; status?: number; error?: unknown; source?: string }) => void;
 }
 
 export interface ResponseLike {
@@ -37,7 +39,22 @@ export interface ResponseLike {
   body: unknown;
 }
 
-const DEFAULT_SLEEP = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+const DEFAULT_SLEEP = (ms: number, signal?: AbortSignal): Promise<void> =>
+  new Promise<void>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(Object.assign(new Error("aborted"), { name: "AbortError" }));
+      return;
+    }
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    const onAbort = (): void => {
+      clearTimeout(timer);
+      reject(Object.assign(new Error("aborted"), { name: "AbortError" }));
+    };
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
 
 /**
  * Run an action that returns a ResponseLike or throws. Retries while the response
@@ -55,9 +72,20 @@ export async function runWithTransientBackendRetry<T extends ResponseLike>(
   const sleep = options.sleep ?? DEFAULT_SLEEP;
   const signal = options.signal;
   const onRetry = options.onRetry;
+  const source = options.source;
 
   let prev = baseMs;
   let lastResult: T | undefined;
+
+  // Decorrelated jitter (AWS pattern): temp = min(cap, random(base, prev*3)); prev = temp.
+  // See https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/ — "full jitter"
+  // variant of decorrelated jitter produces lower contention under thundering-herd conditions
+  // than naive exponential backoff with constant jitter.
+  const decorrelatedDelay = (): number => {
+    const upper = Math.max(baseMs, prev * 3);
+    const candidate = baseMs + Math.floor(Math.random() * (upper - baseMs + 1));
+    return Math.min(capMs, candidate);
+  };
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     if (signal?.aborted) {
@@ -70,18 +98,18 @@ export async function runWithTransientBackendRetry<T extends ResponseLike>(
       if (!isResponseStatusRetryable(result.status)) return result;
       // Exhausted: return the last result rather than throwing
       if (attempt >= maxAttempts) return result;
-      const delayMs = Math.min(capMs, baseMs + Math.floor(Math.random() * prev * 2));
-      onRetry?.({ attempt, delayMs, status: result.status });
-      await sleep(delayMs);
+      const delayMs = decorrelatedDelay();
+      onRetry?.({ attempt, delayMs, status: result.status, source });
+      await sleep(delayMs, signal);
       prev = delayMs;
     } catch (error) {
       if (signal?.aborted) {
         throw error;
       }
       if (attempt >= maxAttempts) throw error;
-      const delayMs = Math.min(capMs, baseMs + Math.floor(Math.random() * prev * 2));
-      onRetry?.({ attempt, delayMs, error });
-      await sleep(delayMs);
+      const delayMs = decorrelatedDelay();
+      onRetry?.({ attempt, delayMs, error, source });
+      await sleep(delayMs, signal);
       prev = delayMs;
     }
   }

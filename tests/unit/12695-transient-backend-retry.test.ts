@@ -2,7 +2,7 @@ import { isResponseStatusRetryable, runWithTransientBackendRetry, TRANSIENT_BACK
 import assert from "node:assert/strict";
 import test from "node:test";
 
-const sleepImpl = async (_ms: number): Promise<void> => {
+const sleepImpl = async (_ms: number, _signal?: AbortSignal): Promise<void> => {
   // no-op
 };
 
@@ -93,4 +93,58 @@ test("transientBackendRetry: honours AbortSignal mid-flight", async () => {
   setTimeout(() => ac.abort(), 10);
   await assert.rejects(promise, /aborted|cancelled/i);
   assert.ok(calls >= 1, "should have called the action at least once before abort");
+});
+
+test("transientBackendRetry: default sleep respects AbortSignal without custom sleep", async () => {
+  const ac = new AbortController();
+  let calls = 0;
+  const promise = runWithTransientBackendRetry(
+    async () => {
+      calls++;
+      return { ok: false, status: 503, body: null };
+    },
+    { maxAttempts: 5, baseMs: 50, capMs: 100, signal: ac.signal }
+  );
+  // Abort during the first sleep — should reject quickly, not after 50-100ms
+  setTimeout(() => ac.abort(), 10);
+  const start = Date.now();
+  await assert.rejects(promise, /aborted/i);
+  const elapsed = Date.now() - start;
+  assert.ok(elapsed < 80, `should abort quickly (elapsed ${elapsed}ms), not wait for the full sleep`);
+  assert.ok(calls >= 1);
+});
+
+test("transientBackendRetry: onRetry receives source label", async () => {
+  let calls = 0;
+  const retries: Array<{ attempt: number; status?: number; source?: string }> = [];
+  await runWithTransientBackendRetry(
+    async () => {
+      calls++;
+      if (calls < 2) return { ok: false, status: 503, body: null };
+      return { ok: true, status: 200, body: "ok" };
+    },
+    {
+      sleep: sleepImpl,
+      maxAttempts: 3,
+      baseMs: 1,
+      capMs: 4,
+      source: "global-fallback",
+      onRetry: (info) => { retries.push(info); },
+    }
+  );
+  assert.equal(retries.length, 1);
+  assert.equal(retries[0].source, "global-fallback");
+  assert.equal(retries[0].status, 503);
+});
+
+test("transientBackendRetry: decorrelated jitter is bounded by capMs", async () => {
+  let calls = 0;
+  await runWithTransientBackendRetry(
+    async () => {
+      calls++;
+      return { ok: false, status: 503, body: null };
+    },
+    { sleep: sleepImpl, maxAttempts: 5, baseMs: 1, capMs: 4 }
+  );
+  assert.equal(calls, 5);
 });
