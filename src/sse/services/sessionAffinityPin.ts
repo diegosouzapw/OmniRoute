@@ -73,6 +73,99 @@ export function formatSessionKeyForLog(sessionKey: string): string {
   return `${sessionKey.slice(0, 18)}...`;
 }
 
+const SESSION_HASH_TEXT_LIMIT = 4096;
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function extractTextForSessionHash(value: unknown): string | null {
+  if (typeof value === "string") return value;
+
+  if (Array.isArray(value)) {
+    const parts: string[] = [];
+    let totalLen = 0;
+    for (const item of value) {
+      if (totalLen >= SESSION_HASH_TEXT_LIMIT) break;
+      let text: string | null = null;
+      if (typeof item === "string") {
+        text = item;
+      } else {
+        const record = asRecord(item);
+        if (typeof record.text === "string") text = record.text;
+        else if (typeof record.content === "string") text = record.content;
+      }
+      if (text) {
+        parts.push(text);
+        totalLen += text.length;
+      }
+    }
+    return parts.length > 0 ? parts.join("\n").slice(0, SESSION_HASH_TEXT_LIMIT) : null;
+  }
+
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    if (typeof record.text === "string" && record.text.trim().length > 0) {
+      return record.text.slice(0, SESSION_HASH_TEXT_LIMIT);
+    }
+    if (typeof record.content === "string" && record.content.trim().length > 0) {
+      return record.content.slice(0, SESSION_HASH_TEXT_LIMIT);
+    }
+    if (typeof record.prompt === "string" && record.prompt.trim().length > 0) {
+      return record.prompt.slice(0, SESSION_HASH_TEXT_LIMIT);
+    }
+    if (Array.isArray(record.parts)) {
+      return extractTextForSessionHash(record.parts);
+    }
+  }
+
+  return null;
+}
+
+export function extractSessionAffinityInputText(body: unknown): string | null {
+  const record = asRecord(body);
+
+  if (record.input !== undefined) {
+    if (typeof record.input === "string") {
+      return record.input.slice(0, SESSION_HASH_TEXT_LIMIT);
+    }
+    if (Array.isArray(record.input)) {
+      for (const item of record.input) {
+        const itemRecord = asRecord(item);
+        const text = extractTextForSessionHash(itemRecord.content ?? item);
+        if (text?.trim()) return text;
+      }
+    }
+    const text = extractTextForSessionHash(record.input);
+    if (text?.trim()) return text;
+  }
+
+  if (Array.isArray(record.messages)) {
+    const userMessage = record.messages.find((message) => asRecord(message).role === "user");
+    const firstMessage = userMessage ?? record.messages[0];
+    const text = extractTextForSessionHash(asRecord(firstMessage).content ?? firstMessage);
+    if (text?.trim()) return text;
+  }
+
+  if (Array.isArray(record.contents)) {
+    const userContent = record.contents.find((content) => asRecord(content).role === "user");
+    const firstContent = userContent ?? record.contents[0];
+    const text = extractTextForSessionHash(asRecord(firstContent).parts ?? firstContent);
+    if (text?.trim()) return text;
+  }
+
+  for (const field of ["prompt", "query", "instruction"] as const) {
+    const text = record[field];
+    if (typeof text === "string" && text.trim().length > 0) {
+      return text.slice(0, SESSION_HASH_TEXT_LIMIT);
+    }
+  }
+
+  return null;
+}
+
 function compareLruConnections(a: SessionAffinityConnection, b: SessionAffinityConnection): number {
   if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
   if (!a.lastUsedAt) return -1;

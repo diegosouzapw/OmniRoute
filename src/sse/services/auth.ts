@@ -121,6 +121,7 @@ import {
 import { isFreeModel } from "@/shared/utils/freeModels";
 import {
   applySessionAffinityPin,
+  extractSessionAffinityInputText,
   formatSessionKeyForLog,
   resolveForcedConnectionForCredentialPool,
   resolveSessionAffinityTtlMs,
@@ -202,8 +203,10 @@ const NON_RETRYABLE_MODEL_LOCKOUT_REASONS = new Set(["not_found", "not_found_loc
 // this base. Real upstream Retry-After hints still win — they flow through
 // `exactCooldownMs` (usedUpstreamRetryHint), not this base. (#5222)
 const ANTIGRAVITY_FAMILY_INFERRED_BASE_COOLDOWN_MS = 30_000;
-function asRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
 }
 function toStringOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
@@ -223,47 +226,6 @@ function normalizeSessionKey(value: unknown, prefix: string): string | null {
     return `${prefix}:${trimmed}`;
   }
   return `${prefix}:sha256:${createHash("sha256").update(trimmed).digest("hex")}`;
-}
-function extractTextForSessionHash(value: unknown): string | null {
-  if (typeof value === "string") return value;
-  if (Array.isArray(value)) {
-    const parts = value
-      .map((item) => {
-        if (typeof item === "string") return item;
-        const record = asRecord(item);
-        if (typeof record.text === "string") return record.text;
-        if (typeof record.content === "string") return record.content;
-        return null;
-      })
-      .filter(Boolean) as string[];
-    return parts.length > 0 ? parts.join("\n") : JSON.stringify(value);
-  }
-  if (value && typeof value === "object") return JSON.stringify(value);
-  return null;
-}
-function getFirstInputText(body: unknown): string | null {
-  const record = asRecord(body);
-  if (record.input !== undefined) {
-    if (typeof record.input === "string") return record.input;
-    if (Array.isArray(record.input)) {
-      for (const item of record.input) {
-        const itemRecord = asRecord(item);
-        const text = extractTextForSessionHash(itemRecord.content ?? item);
-        if (text && text.trim().length > 0) return text;
-      }
-    }
-    const text = extractTextForSessionHash(record.input);
-    if (text && text.trim().length > 0) return text;
-  }
-
-  if (Array.isArray(record.messages)) {
-    const userMessage = record.messages.find((message) => asRecord(message).role === "user");
-    const firstMessage = userMessage ?? record.messages[0];
-    const text = extractTextForSessionHash(asRecord(firstMessage).content ?? firstMessage);
-    if (text && text.trim().length > 0) return text;
-  }
-
-  return null;
 }
 export function extractSessionAffinityKey(
   body: unknown,
@@ -287,9 +249,9 @@ export function extractSessionAffinityKey(
     normalizeSessionKey(record.prompt_cache_key, "prompt-cache");
   if (explicitKey) return explicitKey;
 
-  const inputText = getFirstInputText(body);
+  const inputText = extractSessionAffinityInputText(body);
   if (!inputText || inputText.trim().length === 0) return null;
-  return `input:sha256:${createHash("sha256").update(inputText.slice(0, 4096)).digest("hex")}`;
+  return `input:sha256:${createHash("sha256").update(inputText).digest("hex")}`;
 }
 function getCodexLimitPolicy(providerSpecificData: JsonRecord): {
   use5h: boolean;
