@@ -42,6 +42,17 @@ const UNRECOVERABLE_OAUTH_ERROR_CODES = new Set([
 ]);
 
 /**
+ * Matches a known unrecoverable code EMBEDDED in a human-readable message, on
+ * word boundaries (`_` counts as a word char, so `xinvalid_grant` never hits).
+ * Alternation is safe against overlap because every candidate is delimited on
+ * both sides. Built once — the code set is a module constant.
+ */
+const EMBEDDED_OAUTH_ERROR_CODE_RE = new RegExp(
+  `(?<![0-9a-z_])(${Array.from(UNRECOVERABLE_OAUTH_ERROR_CODES).join("|")})(?![0-9a-z_])`,
+  "i"
+);
+
+/**
  * Extract a canonical OAuth error code from a refresh-endpoint error body of
  * ANY shape. Production proxies/MITMs deliver the same `invalid_grant` 400 in
  * several shapes — a plain object `{error:"invalid_grant"}`, a nested
@@ -51,10 +62,24 @@ const UNRECOVERABLE_OAUTH_ERROR_CODES = new Set([
  * so the others returned `null` → the HealthCheck refresh loop (root cause of
  * the 1352× claude/aa5dd5cf invalidation storm).
  *
+ * Some providers do not return the code bare at all, but as the tail of a
+ * sentence: Cline answers a dead refresh_token with
+ * `{"error":"failed to refresh token: invalid_grant"}`. That is neither an
+ * exact code nor a `"error":"<code>"` field pair, so it used to return `null`
+ * and a permanently dead token was classified as a TRANSIENT failure — the
+ * unrecoverable branch in `tokenHealthCheck` (its `credentialsChangedSinceSweep`
+ * race guard, the "please re-authenticate" message, and the dead-token clear for
+ * rotating providers) never ran, so the token was retried forever and every
+ * request routed to that connection 401'd with no actionable signal.
+ *
  * Returns the matched code (only if it is in UNRECOVERABLE_OAUTH_ERROR_CODES)
- * or null. Never matches loosely — a known code is accepted only when it is a
- * bare code string or the value of an `"error"`/`"error_code"` field, so a 502
- * HTML page or a `server_error` body never becomes a false positive.
+ * or null. Matching stays conservative: a known code is accepted only as a bare
+ * code string, as the value of an `"error"`/`"error_code"` field, or as a
+ * word-delimited token inside such a value — so a `server_error` body or a 502
+ * HTML page still classifies as null. The deliberate trade-off is that a
+ * message which merely MENTIONS a dead-token code is treated as unrecoverable;
+ * that fails safe, because the alternative is an unbounded retry loop that
+ * burns a rotating provider's refresh tokens.
  */
 export function extractOAuthErrorCode(raw: unknown, depth = 0): string | null {
   if (raw == null || depth > 6) return null;
@@ -76,6 +101,10 @@ export function extractOAuthErrorCode(raw: unknown, depth = 0): string | null {
     // field inside otherwise-unparsed text. Scoped to avoid false positives.
     const m = s.match(/"error(?:_code)?"\s*:\s*"([a-z_]+)"/i);
     if (m && UNRECOVERABLE_OAUTH_ERROR_CODES.has(m[1])) return m[1];
+    // Last resort: the code carried inside a message rather than returned bare
+    // (Cline: "failed to refresh token: invalid_grant").
+    const embedded = s.match(EMBEDDED_OAUTH_ERROR_CODE_RE);
+    if (embedded) return embedded[1].toLowerCase();
     return null;
   }
 

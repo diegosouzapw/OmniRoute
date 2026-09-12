@@ -62,7 +62,7 @@ test("extractOAuthErrorCode: bare string code 'invalid_grant'", () => {
   assert.equal(extractOAuthErrorCode("invalid_grant"), "invalid_grant");
 });
 
-test("extractOAuthErrorCode: JSON string body '{\"error\":\"invalid_grant\"}'", () => {
+test('extractOAuthErrorCode: JSON string body \'{"error":"invalid_grant"}\'', () => {
   assert.equal(extractOAuthErrorCode('{"error": "invalid_grant"}'), "invalid_grant");
 });
 
@@ -92,11 +92,49 @@ test("extractOAuthErrorCode: transient errors are NOT misclassified (no false po
   assert.equal(extractOAuthErrorCode(undefined), null);
 });
 
+// ── code EMBEDDED in a message, not returned bare ───────────────────────────
+// Cline's refresh endpoint answers a dead refresh_token with
+//   400 {"data":"","error":"failed to refresh token: invalid_grant","success":false}
+// The code is the tail of a sentence, so the exact-match Set lookup and the
+// `"error":"<code>"` field scan both miss it. It classified as null → TRANSIENT
+// → the connection was retried forever instead of prompting a re-auth.
+
+test("extractOAuthErrorCode: code embedded in a message (the Cline production body)", () => {
+  assert.equal(
+    extractOAuthErrorCode({ error: "failed to refresh token: invalid_grant" }),
+    "invalid_grant"
+  );
+  // Same body as the raw text the catch branch forwards.
+  assert.equal(
+    extractOAuthErrorCode(
+      '{"data":"","error":"failed to refresh token: invalid_grant","success":false}'
+    ),
+    "invalid_grant"
+  );
+});
+
+test("extractOAuthErrorCode: embedded match is word-delimited (no substring false positives)", () => {
+  // `_` is a word character, so a code glued to other identifier chars must NOT match.
+  assert.equal(extractOAuthErrorCode({ error: "xinvalid_grant" }), null);
+  assert.equal(extractOAuthErrorCode({ error: "invalid_grantx" }), null);
+  assert.equal(extractOAuthErrorCode({ error: "my_invalid_grant_flag" }), null);
+  // A transient message that happens to contain no known code stays transient.
+  assert.equal(extractOAuthErrorCode({ error: "upstream timed out after 30s" }), null);
+  // Punctuation and whitespace ARE valid delimiters.
+  assert.equal(extractOAuthErrorCode({ error: "token rejected (invalid_grant)" }), "invalid_grant");
+});
+
 // ── refreshClaudeOAuthToken: every shape → unrecoverable sentinel ────────────
 
 const SENTINEL_SHAPES: Array<{ name: string; body: string; ct?: string }> = [
-  { name: "canonical object", body: '{"error": "invalid_grant", "error_description": "Refresh token not found or invalid"}' },
-  { name: "double-encoded JSON string", body: JSON.stringify('{"error": "invalid_grant", "error_description": "x"}') },
+  {
+    name: "canonical object",
+    body: '{"error": "invalid_grant", "error_description": "Refresh token not found or invalid"}',
+  },
+  {
+    name: "double-encoded JSON string",
+    body: JSON.stringify('{"error": "invalid_grant", "error_description": "x"}'),
+  },
   { name: "bare string code", body: '"invalid_grant"' },
   { name: "nested error.code", body: '{"error": {"code": "invalid_grant", "message": "x"}}' },
   { name: "json served as text/plain", body: '{"error": "invalid_grant"}', ct: "text/plain" },
@@ -105,7 +143,8 @@ const SENTINEL_SHAPES: Array<{ name: string; body: string; ct?: string }> = [
 for (const shape of SENTINEL_SHAPES) {
   test(`refreshClaudeOAuthToken → unrecoverable sentinel for shape: ${shape.name}`, async () => {
     await withMockedFetch(
-      (async () => rawResponse(shape.body, 400, shape.ct ?? "application/json")) as unknown as typeof fetch,
+      (async () =>
+        rawResponse(shape.body, 400, shape.ct ?? "application/json")) as unknown as typeof fetch,
       async () => {
         const result = await refreshClaudeOAuthToken("dead-refresh-token");
         assert.ok(
@@ -123,14 +162,19 @@ test("refreshClaudeOAuthToken: transient 500 server_error stays null (NOT unreco
     (async () => rawResponse('{"error": "server_error"}', 500)) as unknown as typeof fetch,
     async () => {
       const result = await refreshClaudeOAuthToken("token");
-      assert.equal(result, null, "transient errors must remain recoverable (null), not deactivate the account");
+      assert.equal(
+        result,
+        null,
+        "transient errors must remain recoverable (null), not deactivate the account"
+      );
     }
   );
 });
 
 test("refreshClaudeOAuthToken: 502 HTML gateway error stays null", async () => {
   await withMockedFetch(
-    (async () => rawResponse("<html>502 Bad Gateway</html>", 502, "text/html")) as unknown as typeof fetch,
+    (async () =>
+      rawResponse("<html>502 Bad Gateway</html>", 502, "text/html")) as unknown as typeof fetch,
     async () => {
       const result = await refreshClaudeOAuthToken("token");
       assert.equal(result, null);
@@ -178,3 +222,23 @@ for (const r of FRAGILE_REFRESHERS) {
     );
   });
 }
+
+// Cline's REAL production 400 body — the code arrives inside a sentence, so
+// before the embedded-code scan this returned null and the HealthCheck treated a
+// permanently consumed refresh_token as a retryable blip.
+test("refreshClineToken: the verbatim production body yields an unrecoverable sentinel", async () => {
+  await withMockedFetch(
+    (async () =>
+      rawResponse(
+        '{"data":"","error":"failed to refresh token: invalid_grant","success":false}\n',
+        400
+      )) as unknown as typeof fetch,
+    async () => {
+      const result = await refreshClineToken("consumed-token");
+      assert.ok(
+        isUnrecoverableRefreshError(result),
+        `expected unrecoverable sentinel, got ${JSON.stringify(result)}`
+      );
+    }
+  );
+});
