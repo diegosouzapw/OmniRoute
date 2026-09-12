@@ -48,7 +48,6 @@ const LEGACY_REMOVED_COMBO_CONFIG_KEYS = Object.freeze([
   "handoffProviders",
   "maxComboDepth",
   "manifestRouting",
-  "complexityAwareRouting",
   "pipeline_enabled",
   "pipelineConcurrency",
   "shadowRouting",

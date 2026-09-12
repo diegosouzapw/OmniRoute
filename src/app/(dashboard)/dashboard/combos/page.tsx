@@ -200,7 +200,6 @@ const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
   "handoffProviders",
   "maxComboDepth",
   "manifestRouting",
-  "complexityAwareRouting",
   "pipeline_enabled",
   "pipelineConcurrency",
   "shadowRouting",
