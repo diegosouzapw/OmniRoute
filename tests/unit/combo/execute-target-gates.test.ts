@@ -134,7 +134,7 @@ test("quota cutoff skipped for strategy auto", async () => {
   assert.equal(decision.kind, "proceed");
 });
 
-test("protected priority non-quota skip returns 503 response not null", async () => {
+test("protected priority non-quota skip returns 502 response not null", async () => {
   const { evaluateExecuteTargetGates } =
     await import("../../../open-sse/services/combo/executeTargetGates.ts");
   const target = modelTarget({
@@ -153,7 +153,122 @@ test("protected priority non-quota skip returns 503 response not null", async ()
   assert.equal(decision.kind, "skip");
   if (decision.kind === "skip") {
     assert.equal(decision.result?.ok, false);
+    assert.equal(decision.result?.response?.status, 502);
+  }
+});
+
+test("protected priority circuit-open stop returns 502 not 503", async () => {
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+  const { getCircuitBreaker, STATE } = await import(
+    "../../../src/shared/utils/circuitBreaker.ts"
+  );
+  const provider = `protected-gates-test-${Date.now()}`;
+  const cb = getCircuitBreaker(provider, { failureThreshold: 1, resetTimeout: 60_000 });
+  cb._onFailure("transient");
+  assert.equal(cb.getStatus().state, STATE.OPEN);
+  try {
+    const target = modelTarget({
+      provider,
+      modelStr: `${provider}/gpt-4o-mini`,
+      connectionId: "c1",
+      fallbackOnlyOnQuotaExhaustion: true,
+    });
+    const state = emptyState({ orderedTargets: [target] });
+    const decision = await evaluateExecuteTargetGates({
+      index: 0,
+      state,
+      deps: baseDeps({ strategy: "priority" }),
+    });
+    assert.equal(decision.kind, "skip");
+    if (decision.kind === "skip") {
+      assert.equal(decision.result?.ok, false);
+      assert.equal(decision.result?.response?.status, 502);
+    }
+  } finally {
+    cb.reset();
+  }
+});
+
+test("protected priority provider-exhaustion stop keeps 503", async () => {
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+  const target = modelTarget({
+    connectionId: "c1",
+    fallbackOnlyOnQuotaExhaustion: true,
+  });
+  const state = emptyState({
+    orderedTargets: [target],
+    exhaustedProviders: new Set(["openai"]),
+  });
+  const decision = await evaluateExecuteTargetGates({
+    index: 0,
+    state,
+    deps: baseDeps({ strategy: "priority" }),
+  });
+  assert.equal(decision.kind, "skip");
+  if (decision.kind === "skip") {
+    assert.equal(decision.result?.ok, false);
     assert.equal(decision.result?.response?.status, 503);
+  }
+});
+
+test("protected priority connection-exhaustion stop returns 502", async () => {
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+  const target = modelTarget({
+    connectionId: "c1",
+    fallbackOnlyOnQuotaExhaustion: true,
+  });
+  const state = emptyState({
+    orderedTargets: [target],
+    exhaustedConnections: new Set(["openai:c1"]),
+  });
+  const decision = await evaluateExecuteTargetGates({
+    index: 0,
+    state,
+    deps: baseDeps({ strategy: "priority" }),
+  });
+  assert.equal(decision.kind, "skip");
+  if (decision.kind === "skip") {
+    assert.equal(decision.result?.ok, false);
+    assert.equal(decision.result?.response?.status, 502);
+  }
+});
+
+test("protected priority circuit-open 502 carries no retry-after suffix", async () => {
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+  const { getCircuitBreaker, STATE } = await import(
+    "../../../src/shared/utils/circuitBreaker.ts"
+  );
+  const provider = `protected-retry-test-${Date.now()}`;
+  const cb = getCircuitBreaker(provider, { failureThreshold: 1, resetTimeout: 60_000 });
+  cb._onFailure("transient");
+  assert.equal(cb.getStatus().state, STATE.OPEN);
+  try {
+    const target = modelTarget({
+      provider,
+      modelStr: `${provider}/gpt-4o-mini`,
+      connectionId: "c1",
+      fallbackOnlyOnQuotaExhaustion: true,
+    });
+    const state = emptyState({ orderedTargets: [target] });
+    const decision = await evaluateExecuteTargetGates({
+      index: 0,
+      state,
+      deps: baseDeps({ strategy: "priority" }),
+    });
+    assert.equal(decision.kind, "skip");
+    if (decision.kind === "skip" && decision.result && !decision.result.ok) {
+      const body = (await decision.result.response.json()) as {
+        error?: { message?: string };
+      };
+      assert.doesNotMatch(body.error?.message ?? "", /reset after/i);
+      assert.equal(decision.result.response.headers.get("retry-after"), null);
+    }
+  } finally {
+    cb.reset();
   }
 });
 

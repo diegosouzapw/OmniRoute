@@ -1,0 +1,1 @@
+- **fix(combo):** return 502 instead of 503 for non-quota protected-priority stops, so quota backoff stops firing on infrastructure causes ([#13439](https://github.com/diegosouzapw/OmniRoute/pull/13439)) — thanks @maxmad64bis

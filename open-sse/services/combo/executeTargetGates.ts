@@ -58,11 +58,11 @@ export async function evaluateExecuteTargetGates(opts: {
   const protectedPriorityTarget =
     deps.strategy === "priority" && target.fallbackOnlyOnQuotaExhaustion === true;
 
-  const stopProtectedPriorityTarget = (message: string) => {
+  const stopProtectedPriorityTarget = (message: string, status: 502 | 503 = 502) => {
     state.observeFailure(false, target.executionKey);
     deps.clearStaleLKGP(deps.combo.name, target.executionKey, deps.combo.id, deps.log, "COMBO");
     return protectedPriorityTarget
-      ? { ok: false as const, response: errorResponse(503, message) }
+      ? { ok: false as const, response: errorResponse(status, message) }
       : null;
   };
 
@@ -171,9 +171,14 @@ export async function evaluateExecuteTargetGates(opts: {
       reason: "request_exhaustion",
     });
     bumpFallback();
+    const isProviderQuotaExhaustion =
+      !!provider && state.exhaustedProviders.has(provider);
     return {
       kind: "skip",
-      result: stopProtectedPriorityTarget(`Target ${modelStr} is unavailable`),
+      result: stopProtectedPriorityTarget(
+        `Target ${modelStr} is unavailable`,
+        isProviderQuotaExhaustion ? 503 : 502
+      ),
     };
   }
 
