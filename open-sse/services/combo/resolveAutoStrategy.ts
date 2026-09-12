@@ -63,7 +63,7 @@ export interface ResolveAutoStrategyDeps {
   body: Record<string, unknown>;
   combo: ComboLike;
   settings: Record<string, unknown> | null | undefined;
-  config: { complexityAwareRouting?: boolean; compatFilterFailOpen?: boolean };
+  config: { compatFilterFailOpen?: boolean };
   relayOptions?: {
     bypassProviderQuotaPolicy?: boolean;
     sessionId?: string | null;
@@ -368,17 +368,18 @@ export async function resolveAutoStrategyOrder(
       selectionReason = `score=${selection.score.toFixed(3)}${selection.isExploration ? " (exploration)" : ""}`;
     }
 
-    // Complexity-aware routing (2026, opt-in): classify the request's
-    // difficulty and feed a tier hint into scoring so tierAffinity /
-    // specificityMatch favor candidates whose tier matches the request.
-    const autoManifestHint: RoutingHint | null =
-      config.complexityAwareRouting === true
-        ? buildComplexityRoutingHint(
-            eligibleTargets.filter((t) => t.kind === "model"),
-            body,
-            log
-          )
-        : null;
+    // Complexity-aware routing: classify the request's difficulty and feed a
+    // tier hint into scoring so tierAffinity / specificityMatch favor
+    // candidates whose tier matches the request.  Always-on since #13386 —
+    // the former opt-in gate (config.complexityAwareRouting) was orphaned by
+    // migration 103 which stripped it as a legacy key, leaving the feature
+    // permanently disabled.  The classification is lightweight (regex-only,
+    // no LLM call) so always running it has negligible cost.
+    const autoManifestHint: RoutingHint | null = buildComplexityRoutingHint(
+      eligibleTargets.filter((t) => t.kind === "model"),
+      body,
+      log
+    );
 
     const scoredTargets = scoreAutoTargets(
       eligibleTargets,
