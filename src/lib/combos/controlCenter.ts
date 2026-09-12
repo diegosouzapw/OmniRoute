@@ -1,6 +1,6 @@
 import { normalizeComboModels, type ComboStep } from "./steps";
 import { resolveComboTargetModelStr } from "../../../open-sse/services/combo/opencodeTargetAlias.ts";
-import { resolveProviderAlias } from "../../../open-sse/services/model.ts";
+import { resolveProviderAlias } from "../../../open-sse/services/providerAlias.ts";
 
 type JsonRecord = Record<string, unknown>;
 

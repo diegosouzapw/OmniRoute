@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import fs from "node:fs";
 import path from "node:path";
+import { builtinModules } from "node:module";
 import { fileURLToPath } from "node:url";
 
 /**
@@ -26,6 +27,13 @@ import { fileURLToPath } from "node:url";
  *  - **Dynamic `import()` is not followed.** It does not actually break a bundle edge (that was
  *    tried for #10692 and failed), but it does move the module into a chunk the browser only
  *    fetches on demand, which is a legitimate boundary for a lazily-used server path.
+ *
+ * A reached module counts as server-only when it statically imports a Node builtin the
+ * production bundler cannot resolve for the browser. The pinned list below (the original
+ * #10692 chain) stays explicit so it keeps failing loudly even if the discovery logic
+ * changes; everything else is found by walking the graph and checking each visited file
+ * for a builtin import. `crypto` is excluded on purpose: webpack ships a browser polyfill
+ * for it, so flagging it would cry wolf the same way counting `import type` did.
  */
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -38,6 +46,13 @@ const SERVER_ONLY = new Set([
   "open-sse/utils/proxyFetch.ts",
   "open-sse/utils/tlsClient.ts",
 ]);
+
+/** Node builtins webpack refuses in a browser bundle. `crypto` is tolerated (polyfilled). */
+const BROWSER_FORBIDDEN_BUILTINS = new Set(
+  builtinModules
+    .map((name) => name.replace(/^node:/, ""))
+    .filter((bare) => bare !== "crypto" && !bare.startsWith("_")),
+);
 
 /**
  * Non-`"use client"` entry points that still end up in a client bundle because client
@@ -60,6 +75,9 @@ function resolveSpecifier(fromFile: string, specifier: string): string | null {
   } else if (specifier.startsWith("@omniroute/open-sse")) {
     const rest = specifier.slice("@omniroute/open-sse".length).replace(/^\//, "");
     base = path.join(REPO_ROOT, "open-sse", rest);
+  } else if (specifier.startsWith("@omniroute/browser-pool")) {
+    const rest = specifier.slice("@omniroute/browser-pool".length).replace(/^\//, "");
+    base = path.join(REPO_ROOT, "packages/browser-pool/src", rest);
   } else if (specifier.startsWith("@/")) {
     base = path.join(REPO_ROOT, "src", specifier.slice(2));
   } else {
@@ -118,29 +136,43 @@ function staticSpecifiers(source: string): string[] {
 }
 
 const specifierCache = new Map<string, string[]>();
-function edgesOf(file: string): string[] {
+function specifiersOf(file: string): string[] {
   const cached = specifierCache.get(file);
   if (cached) return cached;
   const absolute = path.join(REPO_ROOT, file);
-  let edges: string[] = [];
+  let specs: string[] = [];
   if (fs.existsSync(absolute)) {
-    edges = staticSpecifiers(fs.readFileSync(absolute, "utf8"))
-      .map((specifier) => resolveSpecifier(file, specifier))
-      .filter((resolved): resolved is string => resolved !== null);
+    specs = staticSpecifiers(fs.readFileSync(absolute, "utf8"));
   }
-  specifierCache.set(file, edges);
-  return edges;
+  specifierCache.set(file, specs);
+  return specs;
+}
+function edgesOf(file: string): string[] {
+  return specifiersOf(file)
+    .map((specifier) => resolveSpecifier(file, specifier))
+    .filter((resolved): resolved is string => resolved !== null);
+}
+
+/** True when the file itself statically imports a builtin the browser bundle rejects. */
+function isDiscoveredServerOnly(file: string): boolean {
+  return specifiersOf(file).some((specifier) => {
+    const bare = specifier.replace(/^node:/, "");
+    return BROWSER_FORBIDDEN_BUILTINS.has(bare) || BROWSER_FORBIDDEN_BUILTINS.has(specifier);
+  });
 }
 
 /** BFS over static imports; returns the first path reaching a server-only module. */
 function findServerOnlyPath(entry: string): string[] | null {
   const seen = new Set<string>([entry]);
+  if (SERVER_ONLY.has(entry) || isDiscoveredServerOnly(entry)) return [entry];
   const queue: Array<string[]> = [[entry]];
   while (queue.length > 0) {
     const trail = queue.shift()!;
     for (const resolved of edgesOf(trail[trail.length - 1])) {
       if (seen.has(resolved)) continue;
-      if (SERVER_ONLY.has(resolved)) return [...trail, resolved];
+      if (SERVER_ONLY.has(resolved) || isDiscoveredServerOnly(resolved)) {
+        return [...trail, resolved];
+      }
       seen.add(resolved);
       queue.push([...trail, resolved]);
     }
