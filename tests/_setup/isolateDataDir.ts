@@ -47,6 +47,14 @@ if (!process.env.DATA_DIR) {
 // installCert/uninstallCert/installTproxyCa/uninstallTproxyCa no-op under this.
 process.env.OMNIROUTE_SKIP_SYSTEM_TRUST = "1";
 
+// Browser-spawn guard: the Adobe Firefly session warm (adobeFireflySession.ts)
+// spawns the SYSTEM Chrome with --remote-debugging-port whenever a test reaches it
+// without a valid user JWT — which any mocked-fetch test does by construction.
+// Per-call-site allowBrowserRefresh/tryBrowser flags are not enough: the warm is also
+// reachable indirectly via client/handler paths, so the guard must be global.
+// ||= (not =) so a browser-path integration test can still opt back in.
+process.env.ADOBE_FIREFLY_BROWSER_REFRESH ||= "0";
+
 // DNS-write guard: the suite must NEVER mutate /etc/hosts. Tests that exercise
 // the real MITM path call addDNSEntries(); this env var makes it a no-op.
 process.env.OMNIROUTE_SKIP_DNS_WRITE = "1";

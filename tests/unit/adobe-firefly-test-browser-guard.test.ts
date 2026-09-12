@@ -9,9 +9,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { spawnSync } from "node:child_process";
 import { adobeFireflyBrowserEnabled } from "../../open-sse/services/adobeFireflySession.ts";
 
 test("test setup disables Adobe Firefly browser warm", () => {
@@ -28,17 +26,31 @@ test("test setup disables Adobe Firefly browser warm", () => {
   );
 });
 
-test("isolateDataDir sets the browser guard with ||= so integration tests can opt in", () => {
-  const setupPath = join(
-    dirname(fileURLToPath(import.meta.url)),
-    "..",
-    "_setup",
-    "isolateDataDir.ts"
+/**
+ * Behavioral check of the ||= semantics, in a fresh process (this test's own env was
+ * already written by the setup, so the guard can't be re-observed in-process):
+ *   - with the var unset, the setup fills in "0" (browser disabled by default);
+ *   - with the var preset to "1", the setup leaves it alone — a browser-path
+ *     integration test can still opt back in.
+ */
+function runSetupWithEnv(value: string | undefined): string {
+  const env = { ...process.env } as Record<string, string | undefined>;
+  if (value === undefined) delete env.ADOBE_FIREFLY_BROWSER_REFRESH;
+  else env.ADOBE_FIREFLY_BROWSER_REFRESH = value;
+  const res = spawnSync(
+    process.execPath,
+    [
+      "--import", "tsx/esm",
+      "--import", "./tests/_setup/isolateDataDir.ts",
+      "-e", "process.stdout.write(String(process.env.ADOBE_FIREFLY_BROWSER_REFRESH))",
+    ],
+    { env, encoding: "utf8" }
   );
-  const source = readFileSync(setupPath, "utf8");
-  assert.match(
-    source,
-    /process\.env\.ADOBE_FIREFLY_BROWSER_REFRESH \|\|= "0";/,
-    "the guard must use ||= (not =) so a browser-path integration test can still opt back in"
-  );
+  assert.equal(res.status, 0, `setup subprocess failed: ${res.stderr}`);
+  return res.stdout;
+}
+
+test("setup disables the browser by default but preserves an explicit opt-in", () => {
+  assert.equal(runSetupWithEnv(undefined), "0", "unset must become 0 (browser off)");
+  assert.equal(runSetupWithEnv("1"), "1", "preset 1 must survive (integration tests can opt in)");
 });
