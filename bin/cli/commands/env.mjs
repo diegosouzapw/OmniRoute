@@ -13,6 +13,7 @@ const OMNIROUTE_ENV_VARS = [
   "OMNIROUTE_API_KEY",
   "OMNIROUTE_BASE_URL",
   "OMNIROUTE_HTTP_TIMEOUT_MS",
+  "OMNIROUTE_READY_TIMEOUT_MS",
 ];
 
 const ENV_DEFAULTS = {
@@ -20,6 +21,7 @@ const ENV_DEFAULTS = {
   DASHBOARD_PORT: "20128",
   DATA_DIR: "~/.omniroute",
   NODE_ENV: "production",
+  OMNIROUTE_READY_TIMEOUT_MS: "60000",
 };
 
 export function registerEnv(program) {

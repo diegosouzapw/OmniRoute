@@ -98,6 +98,7 @@ The warnings come from stale peer-dependency ranges in third-party packages Omni
 | Docker `curl: (56) Recv failure: Connection reset by peer` | Your Docker port bind may be landing on IPv6. Use `-p 127.0.0.1:20128:20128` to force IPv4, or test with `curl -4`. See [Docker IPv6](#docker-ipv6) below |
 | Antivirus quarantines `README.md`                          | False positive — see [Antivirus false positives](#antivirus-false-positives) below                                                                        |
 | Kaspersky flags the Desktop app as a Trojan                | Behavioral false positive on the unsigned installer — see [Antivirus false positives](#antivirus-false-positives) below                                   |
+| "Server did not respond within 60s" on slow boot           | Set `OMNIROUTE_READY_TIMEOUT_MS=180000` (or `omniroute serve --ready-timeout 180000`) to raise the readiness budget for slow cold starts (e.g. on Windows with antivirus or heavy schema migrations) |
 
 ---
 
