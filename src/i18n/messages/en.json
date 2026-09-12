@@ -5856,10 +5856,6 @@
     "apiKeyWarningAlertTitle": "API Key Warning",
     "googlePseInfo": "Google Pse Info",
     "antigravityProjectIdHint": "Optional override for Antigravity Cloud Code requests. Leave blank to use the project discovered during Google OAuth.",
-    "antigravityClientProfileLabel": "Client profile",
-    "antigravityClientProfileHint": "Choose which Antigravity client identity OmniRoute presents to the API.",
-    "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileCli": "CLI",
     "codexFastTierActiveChip": "Codex Fast tier is active",
     "tierFast": "Fast",
     "antigravityProjectIdLabel": "Google Cloud Project ID",
@@ -6303,8 +6299,7 @@
       "mixedbread": "Create embeddings with the Mixedbread API.",
       "segmind": "Generate images and videos with Segmind's hosted models.",
       "amazon-q": "Uses the same AWS Builder ID or imported refresh-token flow as Kiro, but keeps Amazon Q connections separate.",
-      "antigravity": "Connect Antigravity with the existing OAuth flow.",
-      "agy": "Import your Antigravity CLI (`agy`) login (paste/upload its token file), auto-detect a local CLI login, or sign in with Google. Shares the Antigravity backend (incl. Claude models).",
+      "antigravity": "Import your Antigravity CLI (`agy`) login (paste/upload its token file), auto-detect a local CLI login, or sign in with Google. Uses the same Cloud Code backend (incl. Claude models).",
       "claude": "Connect Claude Code with the existing OAuth flow.",
       "cline": "Connect Cline with the existing OAuth flow.",
       "cursor": "Connect Cursor IDE with the existing OAuth flow.",
@@ -6473,8 +6468,7 @@
     "rerankEndpoint": "Rerank",
     "savedModelEndpointSettings": "Saved model endpoint settings",
     "searchByModelAria": "Search by model",
-    "selectSupportedEndpoint": "Select at least one supported endpoint",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "selectSupportedEndpoint": "Select at least one supported endpoint"
   },
   "settings": {
     "title": "Settings",

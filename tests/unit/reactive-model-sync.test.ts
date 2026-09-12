@@ -46,14 +46,13 @@ test("allowed provider triggers a discovery sync with the right arguments", asyn
   assert.equal(typeof calls[0].baseUrl, "string");
 });
 
-test("agy provider id is also allowed and normalized", async () => {
+test("the removed agy provider id never triggers a sync", async () => {
   __resetReactiveModelSyncForTests();
   const calls = installCountingSync();
 
-  assert.equal(maybeTriggerReactiveModelSync("AGY ", "conn-bbb-222"), true);
+  assert.equal(maybeTriggerReactiveModelSync("AGY ", "conn-bbb-222"), false);
   await flushMicrotasks();
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0].provider, "agy");
+  assert.equal(calls.length, 0);
 });
 
 test("providers without discovery support never trigger", async () => {
@@ -156,7 +155,7 @@ test("test 13: claude/codex/github do not trigger reactive sync", () => {
 test("test 13: antigravity executor still calls maybeTriggerReactiveModelSync", () => {
   const src = fs.readFileSync(
     path.join(process.cwd(), "open-sse/executors/antigravity/executeAttempt.ts"),
-    "utf8",
+    "utf8"
   );
   assert.match(src, /maybeTriggerReactiveModelSync\(\s*provider,\s*credentials\.connectionId\s*\)/);
 });
@@ -164,13 +163,13 @@ test("test 13: antigravity executor still calls maybeTriggerReactiveModelSync", 
 test("test 14: claude live non-200 uses catalog fallback, not empty 502", () => {
   const src = fs.readFileSync(
     path.join(process.cwd(), "src/app/api/providers/[id]/models/route.ts"),
-    "utf8",
+    "utf8"
   );
   // Task 2 deleted the claude static early return. Claude is a
   // PROVIDER_MODELS_CONFIG live provider and must land in generic live.
   assert.doesNotMatch(
     src,
-    /if\s*\(\s*provider\s*===\s*"claude"\s*\)[\s\S]{0,400}getStaticModelsForProvider\(\s*"claude"/,
+    /if\s*\(\s*provider\s*===\s*"claude"\s*\)[\s\S]{0,400}getStaticModelsForProvider\(\s*"claude"/
   );
   const assembleIdx = src.lastIndexOf("assembleProviderModelsHeaders");
   assert.ok(assembleIdx >= 0, "generic live must assemble provider-models headers");
@@ -178,10 +177,7 @@ test("test 14: claude live non-200 uses catalog fallback, not empty 502", () => 
   // Generic live 401/non-200: warning + cached/local catalog, not a 502 empty body.
   assert.match(
     tail,
-    /if\s*\(\s*!response\.ok\s*\)[\s\S]{0,400}buildDiscoveryFallbackResponse\(\s*\)/,
+    /if\s*\(\s*!response\.ok\s*\)[\s\S]{0,400}buildDiscoveryFallbackResponse\(\s*\)/
   );
-  assert.doesNotMatch(
-    tail,
-    /if\s*\(\s*!response\.ok\s*\)[\s\S]{0,500}status:\s*502/,
-  );
+  assert.doesNotMatch(tail, /if\s*\(\s*!response\.ok\s*\)[\s\S]{0,500}status:\s*502/);
 });

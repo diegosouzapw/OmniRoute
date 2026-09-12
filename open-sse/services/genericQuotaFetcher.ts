@@ -319,7 +319,7 @@ export function convertUsageToQuotaInfo(
  *   - Antigravity: requested-family model quota → window5h; matching family weekly quota → window7d
  */
 function isAntigravityProvider(provider: string | null | undefined): boolean {
-  return provider === "antigravity" || provider === "agy";
+  return provider === "antigravity";
 }
 
 function antigravityWeeklyWindowMatchesFamily(

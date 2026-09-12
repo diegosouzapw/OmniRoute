@@ -9,7 +9,6 @@ export const ACCOUNT_LIVE_PROVIDER_IDS = [
   "codex",
   "github",
   "ghe-copilot",
-  "agy",
   "antigravity",
   "gemini",
   "cursor",

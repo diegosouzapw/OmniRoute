@@ -2,7 +2,6 @@ import {
   isUserCallableAntigravityModelId,
   toClientAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
-import { isDiscoverableAgyModelId } from "@omniroute/open-sse/config/agyModels.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -13,13 +12,12 @@ export function isRecord(value: unknown): value is JsonRecord {
 export function isUsageQuotaKeyAllowed(provider: string, quotaKey: string): boolean {
   if (quotaKey === "credits" || quotaKey === "models") return true;
   if (provider === "antigravity") return isUserCallableAntigravityModelId(quotaKey);
-  if (provider === "agy") return isDiscoverableAgyModelId(quotaKey);
   return true;
 }
 
 export function normalizeUsageQuotaKey(provider: string, quotaKey: string): string | null {
   if (quotaKey === "credits" || quotaKey === "models") return quotaKey;
-  if (provider === "antigravity" || provider === "agy") {
+  if (provider === "antigravity") {
     const clientKey = toClientAntigravityModelId(quotaKey);
     return isUsageQuotaKeyAllowed(provider, clientKey) ? clientKey : null;
   }
@@ -64,7 +62,7 @@ export function normalizeUsageQuotasForProvider(
 }
 
 export function sanitizeUsageQuotasForProvider(provider: string, usage: JsonRecord): JsonRecord {
-  if (provider !== "antigravity" && provider !== "agy") return usage;
+  if (provider !== "antigravity") return usage;
   if (!isRecord(usage.quotas)) return usage;
 
   const sanitizedQuotas = normalizeUsageQuotasForProvider(provider, usage.quotas);

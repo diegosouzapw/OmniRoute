@@ -23,7 +23,6 @@ const PROVIDERS = providersModule.default;
 const { resolveBrowserOAuthRedirectUri } = oauthHelpersModule;
 const {
   ANTIGRAVITY_CONFIG,
-  AGY_CONFIG,
   CLAUDE_CONFIG,
   CLINE_CONFIG,
   CODEX_CONFIG,
@@ -46,7 +45,9 @@ const {
   OPENFERENCE_CONFIG,
   ZED_HOSTED_CONFIG,
 } = oauthModule;
-const { getAntigravityLoadCodeAssistMetadata } = antigravityHeadersModule;
+const { getAntigravityLoadCodeAssistMetadata, antigravityCliUserAgent } = antigravityHeadersModule;
+const { clearAntigravityVersionCaches, seedAntigravityCliVersionCache } =
+  await import("../../open-sse/services/antigravityVersion.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -54,7 +55,6 @@ const EXPECTED_PROVIDER_KEYS = [
   "claude",
   "codex",
   "antigravity",
-  "agy",
   "qoder",
   "kimi-coding",
   "github",
@@ -88,7 +88,6 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   claude: CLAUDE_CONFIG,
   codex: CODEX_CONFIG,
   antigravity: ANTIGRAVITY_CONFIG,
-  agy: AGY_CONFIG,
   qoder: QODER_CONFIG,
   "kimi-coding": KIMI_CODING_CONFIG,
   github: GITHUB_CONFIG,
@@ -125,7 +124,6 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   claude: ["authorizeUrl", "tokenUrl", "redirectUri", "scopes", "clientId"],
   codex: ["authorizeUrl", "tokenUrl", "scope", "clientId"],
   antigravity: ["authorizeUrl", "tokenUrl", "userInfoUrl", "scopes", "clientId"],
-  agy: ["authorizeUrl", "tokenUrl", "userInfoUrl", "scopes", "clientId"],
   qoder: ["extraParams"],
   "kimi-coding": ["deviceCodeUrl", "tokenUrl", "clientId"],
   github: ["deviceCodeUrl", "tokenUrl", "userInfoUrl", "copilotTokenUrl", "clientId"],
@@ -219,6 +217,7 @@ function useFetchSequence(sequence) {
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
+  clearAntigravityVersionCaches();
 });
 
 test.after(() => {
@@ -556,17 +555,15 @@ test("Cline decodes embedded callback payloads without using the network", async
 });
 
 test("Antigravity runs mocked browser OAuth exchanges and post-exchange enrichment", async () => {
+  seedAntigravityCliVersionCache("2.1.1");
   useFetchSequence([
     jsonResponse({ access_token: "anti-access", refresh_token: "anti-refresh", expires_in: 7200 }),
     jsonResponse({ email: "anti@example.com" }),
     (_url, init: any = {}) => {
       assert.equal(init.method, "POST");
       assert.equal(init.headers.Authorization, "Bearer anti-access");
-      assert.match(
-        init.headers["User-Agent"],
-        /^antigravity\/2\.1\.1 [^ ]+\/[^ ]+ google-api-nodejs-client\/10\.3\.0$/
-      );
-      assert.equal(init.headers["X-Goog-Api-Client"], "gl-node/22.21.1");
+      assert.equal(init.headers["User-Agent"], antigravityCliUserAgent("2.1.1"));
+      assert.equal(init.headers["X-Goog-Api-Client"], undefined);
       assert.deepEqual(
         JSON.parse(String(init.body)).metadata,
         getAntigravityLoadCodeAssistMetadata()
@@ -580,11 +577,8 @@ test("Antigravity runs mocked browser OAuth exchanges and post-exchange enrichme
     (_url, init: any = {}) => {
       assert.equal(init.method, "POST");
       assert.equal(init.headers.Authorization, "Bearer anti-access");
-      assert.match(
-        init.headers["User-Agent"],
-        /^antigravity\/2\.1\.1 [^ ]+\/[^ ]+ google-api-nodejs-client\/10\.3\.0$/
-      );
-      assert.equal(init.headers["X-Goog-Api-Client"], "gl-node/22.21.1");
+      assert.equal(init.headers["User-Agent"], antigravityCliUserAgent("2.1.1"));
+      assert.equal(init.headers["X-Goog-Api-Client"], undefined);
       assert.deepEqual(
         JSON.parse(String(init.body)).metadata,
         getAntigravityLoadCodeAssistMetadata()
@@ -616,7 +610,11 @@ test("Antigravity runs mocked browser OAuth exchanges and post-exchange enrichme
   // no longer updates the returned projectId synchronously — matching the 9router web
   // flow, which also returns the loadCodeAssist project id.
   assert.equal(antigravityMapped.projectId, "anti-project");
-  assert.equal(antigravityMapped.providerSpecificData.clientProfile, "ide");
+  assert.equal(
+    antigravityMapped.providerSpecificData.clientProfile,
+    undefined,
+    "the consolidated provider stores no per-connection client profile (CLI-only identity)"
+  );
 });
 
 test("Qoder enabled mode exchanges tokens and loads profile metadata through mocked endpoints", async () => {

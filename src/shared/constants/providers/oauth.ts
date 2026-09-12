@@ -71,21 +71,6 @@ export const OAUTH_PROVIDERS = {
     riskNoticeVariant: "oauth",
     hasFree: true,
   },
-  agy: {
-    id: "agy",
-    serviceKinds: ["llm"],
-    alias: "agy",
-    name: "Antigravity CLI",
-    icon: "terminal",
-    color: "#F59E0B",
-    textIcon: "AGY",
-    website: "https://antigravity.google",
-    subscriptionRisk: true,
-    riskNoticeVariant: "oauth",
-    hasFree: true,
-    authHint:
-      "Import your Antigravity CLI (`agy`) login (paste/upload its token file), auto-detect a local CLI login, or sign in with Google. Shares the Antigravity backend (incl. Claude models).",
-  },
   kiro: {
     id: "kiro",
     serviceKinds: ["llm"],
@@ -125,12 +110,17 @@ export const OAUTH_PROVIDERS = {
   antigravity: {
     id: "antigravity",
     serviceKinds: ["llm"],
-    alias: undefined,
+    alias: "agy",
     name: "Antigravity",
-    icon: "rocket_launch",
+    icon: "terminal",
     color: "#F59E0B",
+    textIcon: "AGY",
+    website: "https://antigravity.google",
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
+    hasFree: true,
+    authHint:
+      "Import your Antigravity CLI (`agy`) login (paste/upload its token file), auto-detect a local CLI login, or sign in with Google. Uses the same Cloud Code backend (incl. Claude models).",
   },
   codex: {
     id: "codex",

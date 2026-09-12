@@ -615,7 +615,7 @@ export function shouldDeferAntigravityQuotaStateToCaller(
   hasCallerOwner: boolean
 ): boolean {
   const canonicalProvider = getCanonicalLockProvider(provider);
-  return hasCallerOwner && (canonicalProvider === "antigravity" || canonicalProvider === "agy");
+  return hasCallerOwner && (canonicalProvider === "antigravity");
 }
 
 export async function recordCoreOwnedAntigravityQuotaState({
@@ -955,7 +955,7 @@ export function hasPerModelQuota(
   if (getCanonicalLockProvider(canonicalId) === "antigravity") return true;
   if (getCanonicalLockProvider(canonicalId) === "codex") return true;
   if (canonicalId === "gemini" || canonicalId === "github") return true;
-  if (canonicalId === "antigravity" || canonicalId === "agy") return true;
+  if (canonicalId === "antigravity") return true;
   if (getPassthroughProviders().has(canonicalId)) return true;
   // #11071: getPassthroughProviders() reads the open-sse REGISTRY. A provider can declare
   // passthroughModels:true in the SHARED registry (src/shared/constants/providers/) and be

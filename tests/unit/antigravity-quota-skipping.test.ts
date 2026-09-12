@@ -15,13 +15,13 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-test("isQuotaExhaustedForRequest isolates Claude and Gemini quota families for antigravity & agy", () => {
+test("isQuotaExhaustedForRequest isolates Claude and Gemini quota families for antigravity", () => {
   const connectionId = "conn-antigravity-test";
 
   // Simulate Claude Opus being exhausted, while Gemini is NOT.
   quotaCache.setQuotaCache(connectionId, "antigravity", {
     "claude-opus-4-6-thinking": { remainingPercentage: 0, resetAt: null },
-    "gemini-3.7-flash-high": { remainingPercentage: 100, resetAt: null },
+    "gemini-3.8-flash-high": { remainingPercentage: 100, resetAt: null },
   });
 
   // Verify that Claude models are considered exhausted.
@@ -49,7 +49,7 @@ test("isQuotaExhaustedForRequest isolates Claude and Gemini quota families for a
     quotaCache.isQuotaExhaustedForRequest(
       connectionId,
       "antigravity",
-      "antigravity/gemini-3.7-flash-high"
+      "antigravity/gemini-3.8-flash-high"
     ),
     false,
     "Gemini Flash should NOT be exhausted"
@@ -64,22 +64,21 @@ test("isQuotaExhaustedForRequest isolates Claude and Gemini quota families for a
     "Gemini Pro should share Gemini family quota and NOT be exhausted"
   );
 
-  // Test that 'agy' spelling behaves the exact same way.
-  const connectionIdAgy = "conn-agy-test";
-  quotaCache.setQuotaCache(connectionIdAgy, "agy", {
+  // The removed agy provider id must not map onto the Antigravity quota family.
+  const connectionIdLegacy = "conn-agy-test";
+  quotaCache.setQuotaCache(connectionIdLegacy, "agy", {
     "claude-opus-4-6-thinking": { remainingPercentage: 0, resetAt: null },
-    "gemini-3.7-flash-high": { remainingPercentage: 100, resetAt: null },
+    "gemini-3.8-flash-high": { remainingPercentage: 100, resetAt: null },
   });
 
   assert.equal(
-    quotaCache.isQuotaExhaustedForRequest(connectionIdAgy, "agy", "agy/claude-opus-4-6-thinking"),
-    true,
-    "Claude Opus under 'agy' should be exhausted"
-  );
-  assert.equal(
-    quotaCache.isQuotaExhaustedForRequest(connectionIdAgy, "agy", "agy/gemini-3.7-flash-high"),
+    quotaCache.isQuotaExhaustedForRequest(
+      connectionIdLegacy,
+      "agy",
+      "agy/claude-opus-4-6-thinking"
+    ),
     false,
-    "Gemini Flash under 'agy' should NOT be exhausted"
+    "the removed agy provider is not family-scoped anymore"
   );
 
   // Test that unknown models (family 'other') preserve exact-model scoping.
@@ -112,7 +111,7 @@ test("isQuotaExhaustedForRequest isolates Claude and Gemini quota families for a
 test("isQuotaExhaustedForRequest scopes gemini exhaustion to the requested model, not sibling models", () => {
   const connectionId = "conn-gemini-sibling-test";
   quotaCache.setQuotaCache(connectionId, "antigravity", {
-    "gemini-3.7-flash-medium": { remainingPercentage: 0, resetAt: null },
+    "gemini-3.8-flash-medium": { remainingPercentage: 0, resetAt: null },
     "gemini-pro-agent": { remainingPercentage: 100, resetAt: null },
     gemini_weekly: { remainingPercentage: 0, resetAt: null },
   });
@@ -121,7 +120,7 @@ test("isQuotaExhaustedForRequest scopes gemini exhaustion to the requested model
     quotaCache.isQuotaExhaustedForRequest(
       connectionId,
       "antigravity",
-      "antigravity/gemini-3.7-flash-medium"
+      "antigravity/gemini-3.8-flash-medium"
     ),
     true,
     "gemini-3.7 at 0% should be exhausted even when gemini-pro-agent still has quota"
@@ -140,14 +139,14 @@ test("isQuotaExhaustedForRequest scopes gemini exhaustion to the requested model
 test("isQuotaExhaustedForRequest keeps reported positive remaining available", () => {
   const connectionId = "conn-near-zero-test";
   quotaCache.setQuotaCache(connectionId, "antigravity", {
-    "gemini-3.7-flash-medium": { remainingPercentage: 0.00000167, resetAt: null },
+    "gemini-3.8-flash-medium": { remainingPercentage: 0.00000167, resetAt: null },
   });
 
   assert.equal(
     quotaCache.isQuotaExhaustedForRequest(
       connectionId,
       "antigravity",
-      "antigravity/gemini-3.7-flash-medium"
+      "antigravity/gemini-3.8-flash-medium"
     ),
     false,
     "positive quota is not exhaustion; explicit usage cutoffs are evaluated separately"

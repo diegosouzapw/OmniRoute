@@ -34,7 +34,11 @@ describe("Antigravity account quota-family cooldown", () => {
     expect(getQuotaScopedModelForProvider("antigravity", "gemini-3.7-flash-medium")).toBe(
       "family:gemini"
     );
-    expect(getQuotaScopedModelForProvider("agy", "gemini-3.7-flash-medium")).toBe("family:gemini");
+    // The legacy `agy` provider id was consolidated into `antigravity` and no
+    // longer receives family-scoped lock keys (stored rows migrate on startup).
+    expect(getQuotaScopedModelForProvider("agy", "gemini-3.7-flash-medium")).toBe(
+      "gemini-3.7-flash-medium"
+    );
     expect(getQuotaScopedModelForProvider(provider, "gemini-3.7-flash-low")).toBe("family:gemini");
     expect(getQuotaScopedModelForProvider(provider, "claude-sonnet-4")).toBe("family:claude");
     expect(getQuotaScopedModelForProvider(provider, "unknown-model")).toBe("unknown-model");

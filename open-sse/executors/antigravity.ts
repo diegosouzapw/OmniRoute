@@ -9,8 +9,8 @@ import {
 import { PROVIDERS, OAUTH_ENDPOINTS, HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { scrubProxyAndFingerprintHeaders } from "../services/antigravityHeaderScrub.ts";
 import {
+  antigravityCliUserAgent,
   getAntigravityContentHeaders,
-  getAntigravityOAuthUserAgent,
 } from "../services/antigravityHeaders.ts";
 import { classify429, decide429, type Decision } from "../services/antigravity429Engine.ts";
 import {
@@ -578,9 +578,8 @@ export class AntigravityExecutor extends BaseExecutor {
   }
 
   buildHeaders(credentials: AntigravityCredentials, _stream = true): Record<string, string> {
-    const clientProfile = getAntigravityClientProfile(credentials);
     const raw = {
-      ...getAntigravityContentHeaders(clientProfile, credentials.accessToken),
+      ...getAntigravityContentHeaders(credentials.accessToken),
       Accept: "text/event-stream",
     };
     // Scrub proxy/fingerprint headers that reveal non-native traffic
@@ -862,7 +861,7 @@ export class AntigravityExecutor extends BaseExecutor {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           Accept: "application/json",
-          "User-Agent": getAntigravityOAuthUserAgent(getAntigravityClientProfile(credentials)),
+          "User-Agent": antigravityCliUserAgent(),
         },
         body: new URLSearchParams(bodyParams),
       });

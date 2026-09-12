@@ -10,7 +10,7 @@ import { FORMATS } from "../../open-sse/translator/formats.ts";
 
 test("antigravity reasoning capabilities: Gemini and Claude models support reasoning", () => {
   const geminiModels = [
-    "antigravity/gemini-3.7-flash-high",
+    "antigravity/gemini-3.8-flash-high",
     "antigravity/gemini-pro-agent",
     "antigravity/gemini-3.1-pro-low",
     "antigravity/claude-sonnet-4-6",

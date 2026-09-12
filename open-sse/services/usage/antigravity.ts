@@ -20,7 +20,6 @@ import {
   isDiscoverableAntigravityModelId,
   toClientAntigravityQuotaModelId,
 } from "../../config/antigravityModelAliases.ts";
-import { isDiscoverableAgyModelId } from "../../config/agyModels.ts";
 import { getDbInstance } from "@/lib/db/core";
 import {
   applyAntigravityClientProfileHeaders,
@@ -113,7 +112,7 @@ const ANTIGRAVITY_LOCAL_USAGE_TOKENS_PER_UNIT = 1000;
 // with the provider-limits cache sanitizer. (#3821-review LEDGER-5)
 
 function getAntigravityLocalUsageUnits(
-  provider: "antigravity" | "agy",
+  provider: "antigravity",
   connectionId: string | undefined,
   modelId: string,
   resetAt: string | null
@@ -156,7 +155,7 @@ function getAntigravityLocalUsageUnits(
 
 function applyLocalUsageFallback(
   quota: UsageQuota,
-  provider: "antigravity" | "agy",
+  provider: "antigravity",
   connectionId: string | undefined,
   modelId: string
 ): UsageQuota {
@@ -187,7 +186,7 @@ function buildAntigravityUsageCacheKey(
 async function fetchAntigravityAvailableModelsCached(
   accessToken: string,
   projectId?: string | null,
-  clientProfile: AntigravityClientProfile = "ide",
+  clientProfile: AntigravityClientProfile = "cli",
   options: AntigravityUsageOptions = {}
 ): Promise<unknown> {
   if (!accessToken) throw new Error("Access token is required");
@@ -213,7 +212,7 @@ async function fetchAntigravityAvailableModelsCached(
       try {
         response = await fetch(quotaApiUrl, {
           method: "POST",
-          headers: getAntigravityContentHeaders(clientProfile, accessToken),
+          headers: getAntigravityContentHeaders(accessToken),
           body: JSON.stringify(projectId ? { project: projectId } : {}),
           signal: AbortSignal.timeout(10000),
         });
@@ -252,7 +251,7 @@ async function fetchAntigravityAvailableModelsCached(
 async function fetchAntigravityUserQuotaCached(
   accessToken: string,
   projectId?: string | null,
-  clientProfile: AntigravityClientProfile = "ide",
+  clientProfile: AntigravityClientProfile = "cli",
   options: AntigravityUsageOptions = {}
 ): Promise<unknown | null> {
   if (!accessToken || !projectId) return null;
@@ -275,7 +274,7 @@ async function fetchAntigravityUserQuotaCached(
       for (const baseUrl of ANTIGRAVITY_RUNTIME_BASE_URLS) {
         const response = await fetch(`${baseUrl}/v1internal:retrieveUserQuota`, {
           method: "POST",
-          headers: getAntigravityContentHeaders(clientProfile, accessToken),
+          headers: getAntigravityContentHeaders(accessToken),
           body: JSON.stringify({ project: projectId }),
           signal: AbortSignal.timeout(10000),
         });
@@ -558,7 +557,7 @@ async function probeAntigravityCreditBalanceUncached(
  * models that have no retrieveUserQuota entry (for example Claude/GPT OSS buckets).
  */
 export async function getAntigravityUsage(
-  provider: "antigravity" | "agy",
+  provider: "antigravity",
   accessToken?: string,
   providerSpecificData?: JsonRecord,
   connectionProjectId?: string,
@@ -644,9 +643,7 @@ export async function getAntigravityUsage(
       if (
         !modelKey ||
         info.isInternal === true ||
-        !(provider === "agy"
-          ? isDiscoverableAgyModelId(modelKey)
-          : isDiscoverableAntigravityModelId(modelKey)) ||
+        !isDiscoverableAntigravityModelId(modelKey) ||
         Object.keys(quotaInfo).length === 0
       ) {
         continue;
@@ -697,9 +694,7 @@ export async function getAntigravityUsage(
     for (const [modelKey, bucket] of userQuotaEntries) {
       if (
         quotas[modelKey] ||
-        !(provider === "agy"
-          ? isDiscoverableAgyModelId(modelKey)
-          : isDiscoverableAntigravityModelId(modelKey))
+        !isDiscoverableAntigravityModelId(modelKey)
       ) {
         continue;
       }
@@ -757,8 +752,7 @@ async function getAntigravitySubscriptionInfoCached(
   providerSpecificData?: JsonRecord,
   options: AntigravityUsageOptions = {}
 ): Promise<unknown> {
-  const profile = getAntigravityClientProfile({ providerSpecificData });
-  const cacheKey = `${accessToken.substring(0, 16)}:${profile}`;
+  const cacheKey = `${accessToken.substring(0, 16)}:cli`;
 
   if (options.forceRefresh) {
     _antigravitySubCache.delete(cacheKey);
@@ -782,13 +776,12 @@ async function getAntigravitySubscriptionInfoCached(
  */
 async function getAntigravitySubscriptionInfo(
   accessToken: string,
-  providerSpecificData?: JsonRecord
+  _providerSpecificData?: JsonRecord
 ): Promise<unknown | null> {
   try {
-    const profile = getAntigravityClientProfile({ providerSpecificData });
     const response = await fetch(ANTIGRAVITY_CONFIG.loadProjectApiUrl, {
       method: "POST",
-      headers: getAntigravityContentHeaders(profile, accessToken),
+      headers: getAntigravityContentHeaders(accessToken),
       body: JSON.stringify({ metadata: getAntigravityLoadCodeAssistMetadata() }),
     });
 

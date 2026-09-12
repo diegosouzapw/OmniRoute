@@ -5,9 +5,10 @@
  * be re-frozen by hand (Gemini 3.7 Flash tiers existed upstream while the
  * catalog still stopped at 3.6, leaving /v1/models blind to them). Discovery
  * and the 24h model-sync scheduler already exist — the missing piece was the
- * opt-in trigger. New agy/antigravity connections now ship with
- * providerSpecificData.autoSync = true so live discovery lands in the synced
- * catalog automatically; an explicit operator choice must survive re-import.
+ * opt-in trigger. New antigravity connections (browser OAuth or imported
+ * `agy` CLI token) now ship with providerSpecificData.autoSync = true so live
+ * discovery lands in the synced catalog automatically; an explicit operator
+ * choice must survive re-import.
  */
 
 import test from "node:test";
@@ -21,9 +22,7 @@ type Row = Record<string, unknown>;
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-agy-autosync-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const { agy } = await import("../../src/lib/oauth/providers/agy.ts");
 const { antigravity } = await import("../../src/lib/oauth/providers/antigravity.ts");
-const providers = { agy, antigravity };
 const { createConnectionFromAgyToken } = await import("../../src/lib/oauth/utils/agyAuthImport.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const core = await import("../../src/lib/db/core.ts");
@@ -58,20 +57,18 @@ function enrichedAuth(overrides: Partial<Row> = {}): Row {
 }
 
 async function findRowByEmail(email: string): Promise<Row | undefined> {
-  const rows = (await providersDb.getProviderConnections({ provider: "agy" })) as Row[];
+  const rows = (await providersDb.getProviderConnections({ provider: "antigravity" })) as Row[];
   return rows.find((row) => row.email === email);
 }
 
-test("agy OAuth mapTokens defaults providerSpecificData.autoSync to true", () => {
-  const mapped = providers.agy.mapTokens(TOKENS, POST_EXCHANGE) as Row;
-  assert.equal(asRecord(mapped.providerSpecificData).autoSync, true);
-  assert.equal(asRecord(mapped.providerSpecificData).clientProfile, "cli");
-});
-
 test("antigravity OAuth mapTokens defaults providerSpecificData.autoSync to true", () => {
-  const mapped = providers.antigravity.mapTokens(TOKENS, POST_EXCHANGE) as Row;
+  const mapped = antigravity.mapTokens(TOKENS, POST_EXCHANGE) as Row;
   assert.equal(asRecord(mapped.providerSpecificData).autoSync, true);
-  assert.equal(asRecord(mapped.providerSpecificData).clientProfile, "ide");
+  assert.equal(
+    asRecord(mapped.providerSpecificData).clientProfile,
+    undefined,
+    "no per-connection client profile is stored — the consolidated identity is always CLI"
+  );
 });
 
 test("new agy CLI token import persists autoSync: true", async () => {
@@ -82,7 +79,7 @@ test("new agy CLI token import persists autoSync: true", async () => {
     {}
   );
   assert.equal(created, true);
-  const row = (await providersDb.getProviderConnections({ provider: "agy" })) as Row[];
+  const row = (await providersDb.getProviderConnections({ provider: "antigravity" })) as Row[];
   const match = row.find((candidate) => candidate.id === (connection as Row).id);
   assert.equal(asRecord(match?.providerSpecificData).autoSync, true);
 });

@@ -20,7 +20,6 @@
 // Providers that support usage/quota API
 export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   "antigravity",
-  "agy",
   "kiro",
   "amazon-q",
   "github",

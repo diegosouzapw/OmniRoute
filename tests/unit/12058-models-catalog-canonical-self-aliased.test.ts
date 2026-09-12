@@ -1,8 +1,8 @@
 /**
  * Regression test for #12058 — `MODELS_CATALOG_PREFIX_MODE=canonical` (or
  * `?prefix=canonical`) dropped every chat row of a *self-aliased* provider: a
- * registry entry whose `alias` is undefined (`antigravity`) or equal to its own id
- * (`agy`, and most built-in providers).
+ * registry entry whose `alias` is undefined or equal to its own id (`synthetic`,
+ * `anthropic`, `groq`, and most built-in providers).
  *
  * Root cause: every emission loop in `catalog.ts` pushes the `alias/model` row only
  * when `includeAlias` is set and the `canonicalProviderId/model` row only when
@@ -15,6 +15,10 @@
  * Fix: treat the alias row as the canonical row whenever the two ids coincide, in
  * the static, synced, custom and alias-backed loops alike. `alias` and `dual` modes
  * already emitted that single row, so their output must not change.
+ *
+ * Note on `antigravity`: the `agy` provider was consolidated into it, so its registry
+ * entry now carries `alias: "agy"` and it is no longer self-aliased — the static loop
+ * covers it through the regular alias/canonical pair instead (asserted below).
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -34,10 +38,13 @@ const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 type CatalogRow = { id: string; parent: string | null; root: string | null };
 type PrefixMode = "alias" | "canonical" | "dual";
 
-// Both ship this id in their curated static catalog (ANTIGRAVITY_PUBLIC_MODELS /
-// AGY_PUBLIC_MODELS). `antigravity` has `alias: undefined`, `agy` has `alias: "agy"`.
-const SELF_ALIASED_PROVIDERS = ["antigravity", "agy"] as const;
-const STATIC_MODEL_ID = "gemini-3.7-flash-high";
+// Self-aliased providers (`alias` undefined or equal to their own id) whose
+// curated static catalog is exercised by the static loop. `antigravity` used to
+// be one of them; it now carries `alias: "agy"` (see the dedicated assertion).
+const SELF_ALIASED_PROVIDERS = [
+  { id: "synthetic", modelId: "hf:openai/gpt-oss-120b" },
+  { id: "anthropic", modelId: "claude-opus-4.7" },
+] as const;
 
 // A self-aliased api-key provider used to exercise the synced / custom /
 // alias-backed loops, which carry the same guard as the static loop.
@@ -52,6 +59,10 @@ const ALIAS_BACKED_MODEL_ID = "probe-alias-backed-12058";
 // mode gating must stay exactly as it was.
 const CONTROL_ALIAS_ID = "cc/claude-sonnet-4-6";
 const CONTROL_CANONICAL_ID = "claude/claude-sonnet-4-6";
+
+// Consolidated provider: `agy` is only an alias now, so the pair must split by mode.
+const ANTIGRAVITY_ALIAS_ID = "agy/gemini-3.8-flash-high";
+const ANTIGRAVITY_CANONICAL_ID = "antigravity/gemini-3.8-flash-high";
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -74,8 +85,9 @@ async function seedOauthConnection(provider: string) {
 }
 
 async function seedCatalog() {
-  for (const provider of SELF_ALIASED_PROVIDERS) await seedOauthConnection(provider);
+  for (const provider of SELF_ALIASED_PROVIDERS) await seedOauthConnection(provider.id);
   await seedOauthConnection("claude");
+  await seedOauthConnection("antigravity");
 
   const connection = await providersDb.createProviderConnection({
     provider: SYNCED_PROVIDER,
@@ -144,16 +156,16 @@ test("#12058 canonical mode lists the curated models of self-aliased providers o
   const rows = await getRows("canonical");
 
   for (const provider of SELF_ALIASED_PROVIDERS) {
-    const row = assertExactlyOnce(rows, `${provider}/${STATIC_MODEL_ID}`, "canonical");
+    const row = assertExactlyOnce(rows, `${provider.id}/${provider.modelId}`, "canonical");
     // The single surviving row is the head of its chain: no parent to point at.
-    assert.equal(row.parent, null, `${provider}: the canonical row must not carry a parent`);
-    assert.equal(row.root, STATIC_MODEL_ID, `${provider}: root must be the bare model id`);
+    assert.equal(row.parent, null, `${provider.id}: the canonical row must not carry a parent`);
+    assert.equal(row.root, provider.modelId, `${provider.id}: root must be the bare model id`);
 
     // Anti-vacuity: the whole curated chat catalog is back, not just the sampled id.
-    const listed = idsWithPrefix(rows, provider);
+    const listed = idsWithPrefix(rows, provider.id);
     assert.ok(
       listed.length >= 5,
-      `${provider}: expected the curated catalog in canonical mode, got ${JSON.stringify(listed)}`
+      `${provider.id}: expected the curated catalog in canonical mode, got ${JSON.stringify(listed)}`
     );
   }
 
@@ -199,7 +211,7 @@ test("#12058 self-aliased providers emit the same single id set in every mode; a
   }
 
   // A self-aliased provider has exactly one id form, so all three modes must agree.
-  for (const provider of [...SELF_ALIASED_PROVIDERS, SYNCED_PROVIDER]) {
+  for (const provider of [...SELF_ALIASED_PROVIDERS.map((entry) => entry.id), SYNCED_PROVIDER]) {
     const aliasIds = idsWithPrefix(byMode.alias, provider).sort();
     assert.ok(aliasIds.length > 0, `${provider}: alias mode must list the provider at all`);
     assert.deepEqual(
@@ -221,4 +233,16 @@ test("#12058 self-aliased providers emit the same single id set in every mode; a
   assert.equal(aliasIds.has(CONTROL_CANONICAL_ID), false, "alias mode suppresses the claude/ row");
   assert.ok(dualIds.has(CONTROL_ALIAS_ID), "dual mode keeps the cc/ row");
   assert.ok(dualIds.has(CONTROL_CANONICAL_ID), "dual mode keeps the claude/ row");
+
+  // The consolidated antigravity provider presents its registry alias `agy` in
+  // alias mode and its canonical id in canonical mode; dual carries both.
+  assert.ok(aliasIds.has(ANTIGRAVITY_ALIAS_ID), "alias mode keeps the agy/ row");
+  assert.equal(
+    aliasIds.has(ANTIGRAVITY_CANONICAL_ID),
+    false,
+    "alias mode suppresses the canonical antigravity/ row"
+  );
+  assert.ok(byMode.canonical.some((row) => row.id === ANTIGRAVITY_CANONICAL_ID));
+  assert.ok(dualIds.has(ANTIGRAVITY_ALIAS_ID), "dual mode keeps the agy/ row");
+  assert.ok(dualIds.has(ANTIGRAVITY_CANONICAL_ID), "dual mode keeps the antigravity/ row");
 });

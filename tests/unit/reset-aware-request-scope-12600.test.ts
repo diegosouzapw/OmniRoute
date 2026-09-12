@@ -58,8 +58,8 @@ const usage = {
 
 test("reset-aware Gemini scoring ignores depleted Claude family quota", () => {
   const quota = convertUsageToQuotaInfo(usage, {
-    provider: "agy",
-    requestedModel: "agy/gemini-3.7-flash-high",
+    provider: "antigravity",
+    requestedModel: "antigravity/gemini-3.7-flash-high",
   });
 
   assert.ok(quota);
@@ -77,7 +77,7 @@ test("reset-aware Gemini scoring ignores depleted Claude family quota", () => {
 test("opposite-family-only telemetry fails open as unknown", () => {
   const gemini = convertUsageToQuotaInfo(
     { quotas: { claude_gpt_weekly: usage.quotas.claude_gpt_weekly } },
-    { provider: "agy", requestedModel: "gemini-3.7-flash-high" }
+    { provider: "antigravity", requestedModel: "gemini-3.7-flash-high" }
   );
   const claude = convertUsageToQuotaInfo(
     { quotas: { gemini_weekly: usage.quotas.gemini_weekly } },
@@ -109,7 +109,7 @@ test("Claude family excludes unknown weekly buckets", () => {
         unrelated_weekly: usage.quotas.unrelated_weekly,
       },
     },
-    { provider: "agy", requestedModel: "claude-opus-4-6-thinking" }
+    { provider: "antigravity", requestedModel: "claude-opus-4-6-thinking" }
   );
 
   assert.ok(quota);
@@ -128,13 +128,16 @@ test("unscoped provider-limits conversion retains conservative global windows", 
 });
 
 test("reset-aware fetch scope is family-wide for Antigravity and * otherwise", () => {
-  assert.equal(getQuotaFetchScope("agy", "gemini-3.7-flash-high"), "family:gemini");
+  assert.equal(getQuotaFetchScope("antigravity", "gemini-3.7-flash-high"), "family:gemini");
   assert.equal(getQuotaFetchScope("antigravity", "claude-opus-4-6-thinking"), "family:claude");
   assert.equal(getQuotaFetchScope("codex", "gpt-5"), "*");
 });
 
 test("buildAutoCandidates uses the shared Antigravity fetch-scope helper", () => {
-  const combo = fs.readFileSync(new URL("../../open-sse/services/combo.ts", import.meta.url), "utf8");
+  const combo = fs.readFileSync(
+    new URL("../../open-sse/services/combo.ts", import.meta.url),
+    "utf8"
+  );
   const strategies = fs.readFileSync(
     new URL("../../open-sse/services/combo/quotaStrategies.ts", import.meta.url),
     "utf8"
@@ -162,8 +165,8 @@ test("fetchGenericQuota scopes Gemini windows and still catalogs sibling familie
   });
 
   const quota = await fetchGenericQuota("conn-gemini", {
-    provider: "agy",
-    requestedModel: "agy/gemini-3.7-flash-high",
+    provider: "antigravity",
+    requestedModel: "antigravity/gemini-3.7-flash-high",
   });
 
   assert.ok(quota);
@@ -171,7 +174,7 @@ test("fetchGenericQuota scopes Gemini windows and still catalogs sibling familie
   assert.equal(quota.limitReached, false);
   assert.equal(quota.windows?.claude_gpt_weekly, undefined);
   assert.equal(quota.windows?.["claude-opus-4-6-thinking"], undefined);
-  const windows = getQuotaWindows("agy");
+  const windows = getQuotaWindows("antigravity");
   assert.equal(windows.includes("claude_gpt_weekly"), true);
   assert.equal(windows.includes("gemini_weekly"), true);
   assert.equal(fetches, 1);
@@ -186,29 +189,29 @@ test("invalidateGenericQuotaCache clears every family-scoped entry for a connect
 
   const connectionId = "conn-both-families";
   await fetchGenericQuota(connectionId, {
-    provider: "agy",
+    provider: "antigravity",
     requestedModel: "gemini-3.7-flash-high",
   });
   await fetchGenericQuota(connectionId, {
-    provider: "agy",
+    provider: "antigravity",
     requestedModel: "claude-opus-4-6-thinking",
   });
   assert.equal(fetches, 2);
 
   await fetchGenericQuota(connectionId, {
-    provider: "agy",
+    provider: "antigravity",
     requestedModel: "gemini-3.7-flash-high",
   });
   assert.equal(fetches, 2);
 
-  invalidateGenericQuotaCache("agy", connectionId);
+  invalidateGenericQuotaCache("antigravity", connectionId);
 
   await fetchGenericQuota(connectionId, {
-    provider: "agy",
+    provider: "antigravity",
     requestedModel: "gemini-3.7-flash-high",
   });
   await fetchGenericQuota(connectionId, {
-    provider: "agy",
+    provider: "antigravity",
     requestedModel: "claude-opus-4-6-thinking",
   });
   assert.equal(fetches, 4);

@@ -16,7 +16,7 @@
 import { getAllActiveSyncedModels } from "@/lib/db/models/activeSyncedCatalog";
 
 /** Providers whose synced catalogs participate in auto-alias derivation. */
-const AUTO_ALIAS_FAMILY_PROVIDERS = ["agy", "antigravity"] as const;
+const AUTO_ALIAS_FAMILY_PROVIDERS = ["antigravity"] as const;
 
 /** Preferred default tier when a bare base name is aliased onto a group. */
 const TIER_PREFERENCE = ["-high", "-medium", "-low"] as const;

@@ -468,7 +468,7 @@ function parseProviderQuotas(providerId: string, data: any) {
   if (looksLikeMoonshotBalance(data)) return parseMoonshotBalance(data);
   if (providerId === "github") return parseGithub(data);
   if (["glm", "glm-cn", "glmt", "opencode-go"].includes(providerId)) return parseGlmFamily(data);
-  if (providerId === "antigravity" || providerId === "agy") return parseAntigravity(data);
+  if (providerId === "antigravity") return parseAntigravity(data);
   if (providerId === "codex") return parseCodex(data);
   if (providerId === "claude") return parseClaude(data);
   if (providerId === "deepseek") return parseDeepseek(data);

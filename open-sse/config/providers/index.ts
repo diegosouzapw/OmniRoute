@@ -138,7 +138,6 @@ import { gitlawbProvider } from "./registry/gitlawb/index.ts";
 import { liquidProvider } from "./registry/liquid/index.ts";
 import { arceeAiProvider } from "./registry/arcee-ai/index.ts";
 import { deepinfraProvider } from "./registry/deepinfra/index.ts";
-import { agyProvider } from "./registry/agy/index.ts";
 import { agnesProvider } from "./registry/agnes/index.ts";
 import { aihordeProvider } from "./registry/aihorde/index.ts";
 import { ainativeProvider } from "./registry/ainative/index.ts";
@@ -412,7 +411,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   liquid: liquidProvider,
   "arcee-ai": arceeAiProvider,
   deepinfra: deepinfraProvider,
-  agy: agyProvider,
   agnes: agnesProvider,
   aihorde: aihordeProvider,
   ainative: ainativeProvider,

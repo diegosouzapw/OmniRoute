@@ -22,7 +22,6 @@ import {
   ANTIGRAVITY_REVERSE_MODEL_ALIASES,
   isDiscoverableAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
-import { isDiscoverableAgyModelId } from "@omniroute/open-sse/config/agyModels.ts";
 import { filterChatSelectableModels } from "@omniroute/open-sse/services/modelEndpointPolicy.ts";
 import { filterSelectableModels } from "@omniroute/open-sse/services/modelLifecycle.ts";
 import { isSelfHostedChatProvider } from "@/shared/constants/providers";
@@ -257,15 +256,13 @@ export async function importManagedModels({
     previousSyncedAvailableModelsInput ??
     (await getSyncedAvailableModelsForConnection(providerId, connectionId));
   const normalizedDiscoveredModels = normalizeDiscoveredModels(fetchedModels, providerId);
-  // Gemini 3.5 Flash elimination (ddf1bb760, carried from #11259): antigravity/
-  // agy discovery is restricted to each family's discoverable ids BEFORE any
+  // Gemini 3.5 Flash elimination (ddf1bb760, carried from #11259): antigravity
+  // discovery is restricted to the family's discoverable ids BEFORE any
   // chat-selection filtering.
   const providerFilteredModels =
     providerId === "antigravity"
       ? normalizedDiscoveredModels.filter((model) => isDiscoverableAntigravityModelId(model.id))
-      : providerId === "agy"
-        ? normalizedDiscoveredModels.filter((model) => isDiscoverableAgyModelId(model.id))
-        : normalizedDiscoveredModels;
+      : normalizedDiscoveredModels;
   // #11088 (option 1): self-hosted providers keep their non-chat models — chat
   // filtering happens at read time (resolveLocalSyncedEndpointRoute). Every other
   // provider keeps the import-time chat filter: the read-time path is gated on
@@ -389,7 +386,7 @@ export async function importManagedModels({
 
     // #11824/#11651: `syncedIds` is a UNION across every connection of this provider
     // (getSyncedAvailableModels), so an identity mapping derived above can route a
-    // display id to the literal tier-suffixed upstream id (e.g. "gemini-3.7-flash-high")
+    // display id to the literal tier-suffixed upstream id (e.g. "gemini-3.8-flash-high")
     // just because ONE connected account's own discovery happens to list it directly.
     // Google's Cloud Code Assist backend only allows those tier-suffixed ids on
     // accounts/projects it specifically provisioned for them — every other account can
@@ -400,7 +397,7 @@ export async function importManagedModels({
     // table already knows only has a safe "-tiered" target to always resolve there,
     // regardless of what any single connection's discovery reported.
     for (const [displayId, safeTarget] of Object.entries(ANTIGRAVITY_MODEL_ALIASES)) {
-      if (safeTarget === "gemini-3.7-flash-tiered") {
+      if (displayId !== safeTarget && safeTarget.endsWith("-tiered")) {
         mappings[displayId] = `antigravity/${safeTarget}`;
       }
     }

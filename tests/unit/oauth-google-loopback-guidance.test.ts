@@ -49,17 +49,17 @@ test("antigravity gets the local login helper as the recommended path", () => {
   );
 });
 
-test("agy gets NO helper command — the CLI only mints antigravity blobs", () => {
+test("the removed agy id gets NO helper command and no paste route", () => {
   // bin/cli/commands/login.mjs pins PROVIDER = "antigravity", and
   // parsePastedCredentials() rejects a blob whose provider !== the route provider.
-  // Offering `omniroute login antigravity` on the agy dialog would send the operator
-  // to a blob that is guaranteed to be refused.
+  // The agy provider was consolidated, so its dialog and paste route are gone.
   const hint = buildGoogleLoopbackHint("agy", LAN);
 
   assert.equal(hint.helperCommand, null);
-  // ...but agy IS still allowed to paste a blob, so the tunnel path must stay.
-  assert.ok(PASTE_CREDENTIAL_PROVIDERS.has("agy"));
+  assert.equal(PASTE_CREDENTIAL_PROVIDERS.has("agy"), false);
+  // The tunnel path is provider-agnostic and must stay computable.
   assert.equal(hint.tunnelCommand, "ssh -L 20128:127.0.0.1:20128 <user>@192.168.0.15");
+  assert.ok(PASTE_CREDENTIAL_PROVIDERS.has("antigravity"));
 });
 
 test("an empty location.port resolves from the protocol", () => {

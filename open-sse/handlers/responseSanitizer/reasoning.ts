@@ -118,7 +118,6 @@ export function normalizeReasoningRouteId(value: unknown): string {
 export function isAntigravityReasoningRoute(providerId: string, modelId: string): boolean {
   return (
     providerId.includes("antigravity") ||
-    providerId === "agy" ||
     modelId.includes("antigravity/") ||
     modelId.startsWith("agy/")
   );

@@ -103,7 +103,7 @@ export async function POST(request: Request) {
       ipAddress: auditContext.ipAddress || undefined,
       requestId: auditContext.requestId,
       metadata: {
-        provider: "agy",
+        provider: "antigravity",
         created,
         source: "apply-local",
         email: enriched.email || email,

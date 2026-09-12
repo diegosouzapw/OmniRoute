@@ -13,7 +13,6 @@
 import { claude } from "./claude";
 import { codex } from "./codex";
 import { antigravity } from "./antigravity";
-import { agy } from "./agy";
 import { qoder } from "./qoder";
 import { kimiCoding } from "./kimi-coding";
 import { github } from "./github";
@@ -36,7 +35,6 @@ export const PROVIDERS = {
   claude,
   codex,
   antigravity,
-  agy,
   qoder,
   "kimi-coding": kimiCoding,
   github,

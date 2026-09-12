@@ -21,7 +21,7 @@ export type AntigravityDegradedProjectState = {
 };
 
 /** Providers whose Cloud Code projectId is expected at connect time. */
-const PROJECT_EXPECTED_PROVIDERS = new Set(["antigravity", "agy"]);
+const PROJECT_EXPECTED_PROVIDERS = new Set(["antigravity"]);
 
 const BYOP_WARNING =
   "Connected, but Google did not assign a Cloud Code project to this account (BYOP). " +

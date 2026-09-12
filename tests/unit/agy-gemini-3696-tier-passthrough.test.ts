@@ -14,13 +14,13 @@ test("(#3696) resolveAntigravityModelId passes gemini-3.1-pro-low through unchan
   assert.equal(resolveAntigravityModelId("gemini-3.1-pro-low"), "gemini-3.1-pro-low");
 });
 
-test("(#3696) non-tiered ANTIGRAVITY_PUBLIC_MODELS entries resolve to distinct upstream ids", () => {
+test("(#3696) non-Flash ANTIGRAVITY_PUBLIC_MODELS entries resolve to distinct upstream ids", () => {
   const seen = new Map<string, string>();
   const collisions: string[] = [];
   for (const model of ANTIGRAVITY_PUBLIC_MODELS) {
-    // Gemini 3.7 Flash tiers intentionally share the upstream `gemini-3.7-flash-tiered`
+    // Gemini 3.8 Flash tiers intentionally share the upstream `gemini-3.8-flash-tiered`
     // endpoint with different reasoning token budgets.
-    if (model.id.startsWith("gemini-3.7-flash")) continue;
+    if (model.id.startsWith("gemini-3.8-flash")) continue;
     const upstream = resolveAntigravityModelId(model.id);
     if (seen.has(upstream)) {
       collisions.push(`${model.id} and ${seen.get(upstream)} both resolve to "${upstream}"`);

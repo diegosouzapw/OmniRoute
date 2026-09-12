@@ -24,11 +24,17 @@ process.env.API_KEY_SECRET = "test-ag-weekly-secret";
 const core = await import("../../src/lib/db/core.ts");
 const { parseAntigravityWeeklyQuotas } =
   await import("../../open-sse/services/usage/antigravityWeeklyQuota.ts");
+const { clearAntigravityVersionCaches, seedAntigravityCliVersionCache } =
+  await import("../../open-sse/services/antigravityVersion.ts");
 // Load usage.ts up-front (its index.ts proxyFetch patch runs at module eval) before mocks.
 const usageModule = await import("../../open-sse/services/usage.ts");
 const { getUsageForProvider } = usageModule;
 
 const originalFetch = globalThis.fetch;
+
+test.afterEach(() => {
+  clearAntigravityVersionCaches();
+});
 
 test.after(() => {
   globalThis.fetch = originalFetch;
@@ -142,11 +148,12 @@ test("parseAntigravityWeeklyQuotas returns {} for missing/malformed data (best-e
 
 test("getUsageForProvider(antigravity) merges weekly quotas with the selected CLI identity", async () => {
   core.resetDbInstance();
+  seedAntigravityCliVersionCache("1.2.0");
 
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = requestUrl(input);
     const headers = new Headers(init?.headers);
-    assert.match(headers.get("User-Agent") ?? "", /^antigravity\/cli\/1\.1\.5 /);
+    assert.match(headers.get("User-Agent") ?? "", /^antigravity\/cli\/1\.2\.0 /);
     assert.equal(headers.get("X-Goog-Api-Client"), null);
 
     if (url.includes("retrieveUserQuotaSummary")) {
@@ -176,7 +183,7 @@ test("getUsageForProvider(antigravity) merges weekly quotas with the selected CL
         json: async () => ({
           buckets: [
             {
-              modelId: "gemini-3.7-flash-high",
+              modelId: "gemini-3.8-flash-high",
               remainingFraction: 0.4,
               resetTime: RESET_IN_2_HOURS,
             },
@@ -190,7 +197,7 @@ test("getUsageForProvider(antigravity) merges weekly quotas with the selected CL
       ok: true,
       json: async () => ({
         models: {
-          "gemini-3.7-flash-high": {
+          "gemini-3.8-flash-high": {
             quotaInfo: { remainingFraction: 1.0, resetTime: RESET_IN_2_HOURS },
           },
         },
@@ -211,8 +218,8 @@ test("getUsageForProvider(antigravity) merges weekly quotas with the selected CL
   const quotas = (result as UsageResult).quotas;
 
   // Existing per-model 5h quota is untouched.
-  assert.ok(quotas["gemini-3.7-flash-high"], "per-model 5h quota still present");
-  assert.equal(quotas["gemini-3.7-flash-high"].quotaSource, "retrieveUserQuota");
+  assert.ok(quotas["gemini-3.8-flash-high"], "per-model 5h quota still present");
+  assert.equal(quotas["gemini-3.8-flash-high"].quotaSource, "retrieveUserQuota");
 
   // New weekly group quota is merged in alongside it.
   assert.ok(quotas.gemini_weekly, "weekly group quota merged in");
@@ -235,7 +242,7 @@ test("getUsageForProvider(antigravity) is unaffected when retrieveUserQuotaSumma
       ok: true,
       json: async () => ({
         models: {
-          "gemini-3.7-flash-high": {
+          "gemini-3.8-flash-high": {
             quotaInfo: { remainingFraction: 1.0, resetTime: RESET_IN_2_HOURS },
           },
         },
@@ -253,6 +260,6 @@ test("getUsageForProvider(antigravity) is unaffected when retrieveUserQuotaSumma
 
   const result = await getUsageForProvider(connection, { forceRefresh: true });
   const quotas = (result as UsageResult).quotas;
-  assert.ok(quotas["gemini-3.7-flash-high"], "per-model quota still present without weekly data");
+  assert.ok(quotas["gemini-3.8-flash-high"], "per-model quota still present without weekly data");
   assert.equal(quotas.gemini_weekly, undefined, "no weekly key when the RPC is unavailable");
 });

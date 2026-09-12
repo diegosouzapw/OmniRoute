@@ -128,8 +128,8 @@ function makeTarget(provider: string, connectionId: string, model = "gemini-3.8-
   };
 }
 
-function seedAgyCache(connectionId: string, remainingPercentage: number) {
-  quotaCache.setQuotaCache(connectionId, "agy", {
+function seedQuotaCache(connectionId: string, remainingPercentage: number) {
+  quotaCache.setQuotaCache(connectionId, "antigravity", {
     "gemini-3.8-flash-high": { remainingPercentage, resetAt: iso() },
     gemini_weekly: { remainingPercentage, resetAt: iso() },
   });
@@ -160,14 +160,14 @@ test("getResetAwareRemainingPercent: missing windows fall back to overall percen
 });
 
 test("dual: default expansion and skipExhaustionFilter preserve positive quota", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const low = `low-${randomUUID()}`;
   const healthy = `ok-${randomUUID()}`;
   registerQuotaFetcher(provider, async (connectionId) =>
     connectionId === low ? quotaAt(0.995) : quotaAt(0.6)
   );
-  seedAgyCache(low, 0.5);
-  seedAgyCache(healthy, 40);
+  seedQuotaCache(low, 0.5);
+  seedQuotaCache(healthy, 40);
 
   const targets = [makeTarget(provider, low), makeTarget(provider, healthy)];
   const dropped = await expandTargetsByQuotaAwareConnections(
@@ -209,7 +209,7 @@ test("empty targets → []", async () => {
 });
 
 test("A/B isolation: 7 hard-empty + 2 at 0.5% + 1 at 40%, floor=1", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   registerQuotaFetcher(provider, async (connectionId) => {
     if (connectionId.startsWith("dead-")) return quotaAt(1, { limitReached: true });
     if (connectionId.startsWith("low-")) return quotaAt(0.995);
@@ -247,7 +247,7 @@ test("A/B isolation: 7 hard-empty + 2 at 0.5% + 1 at 40%, floor=1", async () => 
 });
 
 test("7 empty + 3 healthy → length 3, no hard-empty", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   registerQuotaFetcher(provider, async (connectionId) =>
     connectionId.startsWith("dead-") ? quotaAt(1, { limitReached: true }) : quotaAt(0.2)
   );
@@ -288,7 +288,7 @@ test("pickWeightedIndex half-open boundary acc > r", () => {
 });
 
 test("weighted draw float 0 hits first pool member, ~1 hits last", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const a1 = `a1-${randomUUID()}`;
   const a2 = `a2-${randomUUID()}`;
   registerQuotaFetcher(provider, async (connectionId) =>
@@ -307,7 +307,7 @@ test("weighted draw float 0 hits first pool member, ~1 hits last", async () => {
 });
 
 test("tail is unused selected-pool by score desc then B", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const a30 = `a30-${randomUUID()}`;
   const a20 = `a20-${randomUUID()}`;
   const a10 = `a10-${randomUUID()}`;
@@ -347,7 +347,7 @@ test("tail is unused selected-pool by score desc then B", async () => {
 });
 
 test("floor=0 puts 0.5% in the main pool", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const low = `low-${randomUUID()}`;
   const ok = `ok-${randomUUID()}`;
   registerQuotaFetcher(provider, async (id) => (id === low ? quotaAt(0.995) : quotaAt(0.6)));
@@ -387,7 +387,7 @@ test("floor=0 puts 0.5% in the main pool", async () => {
 });
 
 test("only two 0.5% accounts still serve, never 404", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const low = [`low-${randomUUID()}`, `low-${randomUUID()}`];
   registerQuotaFetcher(provider, async () => quotaAt(0.995));
   const targets = low.map((id) => makeTarget(provider, id));
@@ -402,7 +402,7 @@ test("only two 0.5% accounts still serve, never 404", async () => {
 });
 
 test("pinned hard-empty connection stays dropped", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const dead = `dead-${randomUUID()}`;
   registerQuotaFetcher(provider, async () => quotaAt(1, { limitReached: true }));
   const ordered = await orderTargetsByQuotaWeighted(
@@ -416,7 +416,7 @@ test("pinned hard-empty connection stays dropped", async () => {
 });
 
 test("family filter: gemini request ignores Claude-empty windows", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const conn = `fam-${randomUUID()}`;
   assert.equal(getQuotaFetchScope(provider, "agy/gemini-3.8-flash-high"), "family:gemini");
   registerQuotaFetcher(provider, async (_id, connection) => {
@@ -446,7 +446,7 @@ test("family filter: gemini request ignores Claude-empty windows", async () => {
 });
 
 test("missing snapshot stays in A at score 0.5", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const conn = `miss-${randomUUID()}`;
   registerQuotaFetcher(provider, async () => null);
   _setSecureRandomFloatSource(() => 0);
@@ -491,7 +491,7 @@ test("OPEN breaker targets are dropped; all OPEN → []", async () => {
 });
 
 test("floor NaN/undefined → 1; -1 → 0; 101 → 100", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const low = `low-${randomUUID()}`;
   const ok = `ok-${randomUUID()}`;
   registerQuotaFetcher(provider, async (id) => (id === low ? quotaAt(0.995) : quotaAt(0.6)));
@@ -557,7 +557,7 @@ test("floor NaN/undefined → 1; -1 → 0; 101 → 100", async () => {
 });
 
 test("pinned connectionId outside apiKeyAllowedConnectionIds is dropped", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const pinned = `pin-${randomUUID()}`;
   const other = `oth-${randomUUID()}`;
   registerQuotaFetcher(provider, async () => quotaAt(0.2));
@@ -572,7 +572,7 @@ test("pinned connectionId outside apiKeyAllowedConnectionIds is dropped", async 
 });
 
 test("floor=100 puts remaining in (0,100] into B", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const low = `low-${randomUUID()}`;
   const ok = `ok-${randomUUID()}`;
   registerQuotaFetcher(provider, async (id) => (id === low ? quotaAt(0.995) : quotaAt(0.6)));
@@ -601,7 +601,7 @@ test("comboStrategySchema and HANDLED accept quota-weighted", () => {
 });
 
 test("applyStrategyOrdering(quota-weighted) uses the orderer", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const ok = `ok-${randomUUID()}`;
   const dead = `dead-${randomUUID()}`;
   registerQuotaFetcher(provider, async (id) =>
@@ -645,7 +645,7 @@ function healthyStickiness() {
 }
 
 test("in-flight load on the higher-score account flips the 0.4 draw to the idle twin", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const busy = `busy-${randomUUID()}`;
   const idle = `idle-${randomUUID()}`;
   registerQuotaFetcher(provider, async () => quotaAt(0.2));
@@ -662,7 +662,7 @@ test("in-flight load on the higher-score account flips the 0.4 draw to the idle 
 });
 
 test("applyStrategyOrdering(quota-weighted) reserves the draw; pipeline keeps it when stickiness does not move", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const model = "gemini-3.8-flash-high";
   const busy = `busy-${randomUUID()}`;
   const idle = `idle-${randomUUID()}`;
@@ -723,7 +723,7 @@ test("applyStrategyOrdering(quota-weighted) reserves the draw; pipeline keeps it
 });
 
 test("sticky pin keeps the old account as [0] even when in-flight would flip the draw", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const model = "gemini-3.8-flash-high";
   const busy = `busy-${randomUUID()}`;
   const idle = `idle-${randomUUID()}`;
@@ -773,7 +773,7 @@ test("sticky pin keeps the old account as [0] even when in-flight would flip the
 });
 
 test("hard-empty sticky account is dropped; pipeline reserves the live draw", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const model = "gemini-3.8-flash-high";
   const dead = `dead-${randomUUID()}`;
   const ok = `ok-${randomUUID()}`;
@@ -823,7 +823,7 @@ test("hard-empty sticky account is dropped; pipeline reserves the live draw", as
 });
 
 test("disableSessionStickiness on the live pipeline re-draws past a leftover sticky pin", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const model = "gemini-3.8-flash-high";
   const busy = `busy-${randomUUID()}`;
   const idle = `idle-${randomUUID()}`;
@@ -871,7 +871,7 @@ test("disableSessionStickiness on the live pipeline re-draws past a leftover sti
 });
 
 test("ten equal-score pinned Gemini accounts: in-flight on the first flips a mid-band draw", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const ids = Array.from({ length: 10 }, () => `g-${randomUUID()}`);
   const targets = ids.map((id) => makeTarget(provider, id));
   registerQuotaFetcher(provider, async () => quotaAt(0.25));
@@ -889,7 +889,7 @@ test("ten equal-score pinned Gemini accounts: in-flight on the first flips a mid
 });
 
 test("three hard-empty of ten never win the first draw", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const dead = Array.from({ length: 3 }, () => `dead-${randomUUID()}`);
   const ok = Array.from({ length: 7 }, () => `ok-${randomUUID()}`);
   registerQuotaFetcher(provider, async (id) =>
@@ -918,7 +918,7 @@ test("three hard-empty of ten never win the first draw", async () => {
 });
 
 test("quota-weighted Gemini keeps the account when only Claude weekly is empty", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const conn = `mix-${randomUUID()}`;
   const resetAt5h = iso(5 * 3600_000);
   const resetAt7d = iso(7 * 86_400_000);
@@ -966,7 +966,7 @@ test("quota-weighted Gemini keeps the account when only Claude weekly is empty",
 });
 
 test("orderer half-open boundary: 0.66 stays on A1, 0.67 flips to A2", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const a1 = `a1-${randomUUID()}`;
   const a2 = `a2-${randomUUID()}`;
   registerQuotaFetcher(provider, async (id) => (id === a1 ? quotaAt(0.2) : quotaAt(0.6)));
@@ -1005,7 +1005,7 @@ test("orderer half-open boundary: 0.66 stays on A1, 0.67 flips to A2", async () 
 });
 
 test("p2c ordering does not drop hard-empty the way quota-weighted does", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const dead = `dead-${randomUUID()}`;
   const ok = `ok-${randomUUID()}`;
   registerQuotaFetcher(provider, async (id) =>
@@ -1045,7 +1045,7 @@ test("p2c ordering does not drop hard-empty the way quota-weighted does", async 
 });
 
 test("two pipelines starting together do not both land on the same idle account", async () => {
-  const provider = "agy";
+  const provider = "antigravity";
   const model = "gemini-3.8-flash-high";
   const first = `first-${randomUUID()}`;
   const second = `second-${randomUUID()}`;

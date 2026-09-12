@@ -5,20 +5,25 @@ const usageModule = await import("../../open-sse/services/usage.ts");
 const providerLimitUtils =
   await import("../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils.tsx");
 
-test("agy is registered for the background usage fetcher", () => {
+test("antigravity is registered for the background usage fetcher", () => {
   assert.ok(
+    usageModule.USAGE_FETCHER_PROVIDERS.includes("antigravity"),
+    "antigravity should be fetched by the generic quota refresher"
+  );
+  assert.equal(
     usageModule.USAGE_FETCHER_PROVIDERS.includes("agy"),
-    "agy should be fetched by the generic quota refresher"
+    false,
+    "the consolidated agy provider must not remain a separate fetcher entry"
   );
 });
 
-test("getUsageForProvider routes agy through the Antigravity usage implementation", async () => {
+test("getUsageForProvider routes antigravity through the Antigravity usage implementation", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
     new Response(
       JSON.stringify({
         models: {
-          "gemini-3.7-flash-high": {
+          "gemini-3.8-flash-high": {
             quotaInfo: {
               remainingFraction: 0.75,
               resetTime: "2026-06-06T00:00:00Z",
@@ -32,8 +37,8 @@ test("getUsageForProvider routes agy through the Antigravity usage implementatio
   try {
     const result = await usageModule.getUsageForProvider(
       {
-        id: "agy-test-conn",
-        provider: "agy",
+        id: "antigravity-test-conn",
+        provider: "antigravity",
         accessToken: "fake-token",
         providerSpecificData: {},
       },
@@ -43,29 +48,29 @@ test("getUsageForProvider routes agy through the Antigravity usage implementatio
     assert.ok(result && typeof result === "object");
     assert.notEqual(
       (result as { message?: string }).message,
-      "Usage API not implemented for agy",
-      "agy must not fall through to the unsupported-provider branch"
+      "Usage API not implemented for antigravity",
+      "antigravity must not fall through to the unsupported-provider branch"
     );
-    assert.ok("quotas" in result, "agy should return quota data when upstream responds");
+    assert.ok("quotas" in result, "antigravity should return quota data when upstream responds");
 
-    const quota = (result as { quotas: Record<string, any> }).quotas["gemini-3.7-flash-high"];
-    assert.ok(quota, "should expose the upstream agy per-model quota");
+    const quota = (result as { quotas: Record<string, any> }).quotas["gemini-3.8-flash-high"];
+    assert.ok(quota, "should expose the upstream antigravity per-model quota");
     assert.equal(quota.remainingPercentage, 75);
     assert.equal(
       (result as { quotas: Record<string, any> }).quotas["gemini-3.5-flash-high"],
       undefined,
-      "agy quota should not expose retired friendly IDs"
+      "antigravity quota should not expose retired friendly IDs"
     );
   } finally {
     globalThis.fetch = originalFetch;
   }
 });
 
-test("parseQuotaData treats agy quota payloads like Antigravity", () => {
-  const parsed = providerLimitUtils.parseQuotaData("agy", {
+test("parseQuotaData treats antigravity quota payloads like Antigravity", () => {
+  const parsed = providerLimitUtils.parseQuotaData("antigravity", {
     quotas: {
       credits: { remaining: 42 },
-      "gemini-3.7-flash-high": {
+      "gemini-3.8-flash-high": {
         used: 250,
         total: 1000,
         remainingPercentage: 75,
@@ -83,7 +88,7 @@ test("parseQuotaData treats agy quota payloads like Antigravity", () => {
   assert.ok(credits, "credits quota should be rendered");
   assert.equal(credits.isCredits, true);
 
-  const modelQuota = parsed.find((quota: any) => quota.name === "gemini-3.7-flash-high");
+  const modelQuota = parsed.find((quota: any) => quota.name === "gemini-3.8-flash-high");
   assert.ok(modelQuota, "model quota should be rendered");
   assert.equal(modelQuota.remainingPercentage, 75);
 });

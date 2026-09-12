@@ -109,11 +109,11 @@ type LoadCodeAssistResult = { projectId: string | null; tierId: string };
 async function tryLoadCodeAssist(
   accessToken: string,
   fetchImpl: FetchLike,
-  clientProfile: AntigravityClientProfile,
+  _clientProfile: AntigravityClientProfile,
   signal?: AbortSignal
 ): Promise<LoadCodeAssistResult> {
   const urls = getAntigravityLoadCodeAssistUrls();
-  const headers = getAntigravityContentHeaders(clientProfile, accessToken);
+  const headers = getAntigravityContentHeaders(accessToken);
 
   for (let i = 0; i < urls.length; i++) {
     const url = urls[i];
@@ -201,12 +201,12 @@ function extractProjectIdFromOnboardResponse(data: Record<string, unknown> | nul
 async function tryOnboardUser(
   accessToken: string,
   fetchImpl: FetchLike,
-  clientProfile: AntigravityClientProfile,
+  _clientProfile: AntigravityClientProfile,
   tierId: string,
   signal?: AbortSignal
 ): Promise<AntigravityOnboardStatus> {
   const urls = getAntigravityOnboardUrls();
-  const headers = getAntigravityContentHeaders(clientProfile, accessToken);
+  const headers = getAntigravityContentHeaders(accessToken);
   const body = JSON.stringify({
     tier_id: tierId,
     metadata: getAntigravityLoadCodeAssistMetadata(),
@@ -327,7 +327,7 @@ function isOnboardOnBackoff(key: string): boolean {
 export async function ensureAntigravityProjectAssigned(
   accessToken: string,
   fetchImpl: FetchLike = fetch,
-  clientProfile: AntigravityClientProfile = "ide",
+  clientProfile: AntigravityClientProfile = "cli",
   signal?: AbortSignal
 ): Promise<string | undefined> {
   const cacheKey = getProjectCacheKey(accessToken, clientProfile);
@@ -432,7 +432,7 @@ export function clearAntigravityOnboardBackoff(key?: string): void {
 /** Exported for tests — inspect cache state. */
 export function getAntigravityProjectFromCache(
   accessToken: string,
-  clientProfile: AntigravityClientProfile = "ide"
+  clientProfile: AntigravityClientProfile = "cli"
 ): string | undefined {
   return projectCache.get(getProjectCacheKey(accessToken, clientProfile));
 }

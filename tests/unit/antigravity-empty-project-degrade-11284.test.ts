@@ -31,9 +31,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
-const { persistOAuthConnection, buildOAuthConnectionCreatePayload } = await import(
-  "../../src/lib/oauth/connectionPersistence.ts"
-);
+const { persistOAuthConnection, buildOAuthConnectionCreatePayload } =
+  await import("../../src/lib/oauth/connectionPersistence.ts");
 const { createConnectionFromAgyToken } = await import("../../src/lib/oauth/utils/agyAuthImport.ts");
 
 test.after(() => {
@@ -41,21 +40,23 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-test("gate degrades agy/antigravity when projectId is empty even without outcome flag", () => {
-  for (const provider of ["agy", "antigravity"]) {
-    const degraded = antigravityDegradedProjectState(provider, {
-      projectId: "",
-      providerSpecificData: { projectId: "", tier: "legacy-tier" },
-    });
-    assert.ok(degraded, `${provider}: empty projectId must degrade`);
-    assert.equal(degraded.testStatus, "degraded");
-    assert.equal(degraded.errorCode, "missing_project_id");
-    assert.equal(degraded.lastErrorType, "oauth_missing_project_id");
-  }
+test("gate degrades antigravity when projectId is empty even without outcome flag", () => {
+  const degraded = antigravityDegradedProjectState("antigravity", {
+    projectId: "",
+    providerSpecificData: { projectId: "", tier: "legacy-tier" },
+  });
+  assert.ok(degraded, "empty projectId must degrade");
+  assert.equal(degraded.testStatus, "degraded");
+  assert.equal(degraded.errorCode, "missing_project_id");
+  assert.equal(degraded.lastErrorType, "oauth_missing_project_id");
+});
+
+test("gate ignores the removed agy provider id", () => {
+  assert.equal(antigravityDegradedProjectState("agy", { projectId: "" }), null);
 });
 
 test("gate degrades when only providerSpecificData.projectId is empty", () => {
-  const degraded = antigravityDegradedProjectState("agy", {
+  const degraded = antigravityDegradedProjectState("antigravity", {
     providerSpecificData: { projectId: "   ", clientProfile: "cli" },
   });
   assert.ok(degraded, "whitespace projectId is empty");
@@ -64,7 +65,7 @@ test("gate degrades when only providerSpecificData.projectId is empty", () => {
 
 test("gate stays null for a real Cloud Code projectId", () => {
   assert.equal(
-    antigravityDegradedProjectState("agy", {
+    antigravityDegradedProjectState("antigravity", {
       projectId: "dotted-relic-q6pck",
       providerSpecificData: { projectId: "dotted-relic-q6pck", tier: "g1-pro-tier" },
     }),
@@ -74,7 +75,7 @@ test("gate stays null for a real Cloud Code projectId", () => {
 
 test("gate stays healthy when projectId is present even if discovery_failed", () => {
   assert.equal(
-    antigravityDegradedProjectState("agy", {
+    antigravityDegradedProjectState("antigravity", {
       projectId: "aicode-consumers-xyz",
       projectDiscoveryOutcome: "discovery_failed",
     }),
@@ -95,15 +96,15 @@ test("antigravityPersistStatus wins over stale error fields in a spread payload"
   assert.equal(merged.lastErrorType, null);
   assert.equal(merged.lastError, null);
 
-  const degraded = antigravityDegradedProjectState("agy", { projectId: "" });
+  const degraded = antigravityDegradedProjectState("antigravity", { projectId: "" });
   assert.ok(degraded);
   const down = { testStatus: "active", ...antigravityPersistStatus(degraded) };
   assert.equal(down.testStatus, "degraded");
   assert.equal(down.errorCode, "missing_project_id");
 });
 
-test("persistOAuthConnection does not save agy with empty projectId as active", async () => {
-  const connection = await persistOAuthConnection("agy", {
+test("persistOAuthConnection does not save antigravity with empty projectId as active", async () => {
+  const connection = await persistOAuthConnection("antigravity", {
     email: "empty-project@example.test",
     accessToken: "agy-access-token-fixture",
     refreshToken: "agy-refresh-token-fixture",
@@ -115,11 +116,15 @@ test("persistOAuthConnection does not save agy with empty projectId as active", 
   assert.equal(stored?.testStatus, "degraded");
   assert.equal(stored?.errorCode, "missing_project_id");
   assert.equal(stored?.lastErrorType, "oauth_missing_project_id");
-  assert.equal(stored?.isActive, true, "refresh token stays stored; request-time bootstrap can heal");
+  assert.equal(
+    stored?.isActive,
+    true,
+    "refresh token stays stored; request-time bootstrap can heal"
+  );
 });
 
 test("persistOAuthConnection clears stale degrade fields once projectId appears", async () => {
-  const first = await persistOAuthConnection("agy", {
+  const first = await persistOAuthConnection("antigravity", {
     email: "heal-project@example.test",
     accessToken: "agy-access-token-fixture",
     refreshToken: "agy-refresh-token-fixture",
@@ -130,7 +135,7 @@ test("persistOAuthConnection clears stale degrade fields once projectId appears"
   assert.equal(first.testStatus, "degraded");
   assert.equal(first.errorCode, "missing_project_id");
 
-  const healed = await persistOAuthConnection("agy", {
+  const healed = await persistOAuthConnection("antigravity", {
     email: "heal-project@example.test",
     accessToken: "agy-access-token-fixture-2",
     refreshToken: "agy-refresh-token-fixture",
@@ -151,7 +156,7 @@ test("persistOAuthConnection clears stale degrade fields once projectId appears"
 });
 
 test("persistOAuthConnection keeps a discovered projectId active", async () => {
-  const connection = await persistOAuthConnection("agy", {
+  const connection = await persistOAuthConnection("antigravity", {
     email: "has-project@example.test",
     accessToken: "agy-access-token-fixture",
     refreshToken: "agy-refresh-token-fixture",
@@ -212,7 +217,7 @@ test("agy CLI import with a projectId stays active (#9204 reactivation still wor
 
 test("healthy create payload sets error fields to null, not omitted", () => {
   const payload = buildOAuthConnectionCreatePayload(
-    "agy",
+    "antigravity",
     { email: "create-null@example.test", accessToken: "t", refreshToken: "r" },
     null,
     null
@@ -226,7 +231,7 @@ test("healthy create payload sets error fields to null, not omitted", () => {
 
 test("createProviderConnection upsert clears stale degrade fields from payload nulls", async () => {
   const first = await providersDb.createProviderConnection({
-    provider: "agy",
+    provider: "antigravity",
     authType: "oauth",
     email: "create-upsert@example.test",
     accessToken: "agy-access-token-fixture",
@@ -240,7 +245,7 @@ test("createProviderConnection upsert clears stale degrade fields from payload n
   assert.equal(first?.errorCode, "missing_project_id");
 
   await providersDb.createProviderConnection({
-    provider: "agy",
+    provider: "antigravity",
     authType: "oauth",
     email: "create-upsert@example.test",
     accessToken: "agy-access-token-fixture-2",

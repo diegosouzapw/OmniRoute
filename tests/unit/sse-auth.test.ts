@@ -1180,14 +1180,12 @@ test("getProviderCredentials resolves the nvidia special alias pool", async () =
   assert.equal(selected.connectionId, connection.id);
 });
 
-test("getProviderCredentials resolves the antigravity / agy alias pool", async () => {
-  const connection = await seedConnection("agy", {
-    name: "antigravity-alias-connection",
-  });
-
+test("getProviderCredentials resolves the consolidated antigravity pool for both spellings", async () => {
+  const connection = await seedConnection("antigravity", { name: "antigravity-connection" });
   const selected = await auth.getProviderCredentials("antigravity");
-
   assert.equal(selected.connectionId, connection.id);
+  const legacy = await auth.getProviderCredentials("agy");
+  assert.equal(legacy.connectionId, connection.id);
 });
 
 test("getProviderCredentials shares one Jina token across foundation, reader, and search", async () => {

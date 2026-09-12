@@ -436,11 +436,16 @@ test("reset-aware strategy avoids accounts near 5h exhaustion", async (t) => {
   assert.equal(await selectedConnectionFor(combo), healthy5h.id);
 });
 
-test("Antigravity aliases share one family-scoped cache key", () => {
-  assert.equal(getQuotaScopedModelForProvider("agy", "gemini-3.7-flash-high"), "family:gemini");
+test("Antigravity family-scoped cache keys are owned by the consolidated provider", () => {
   assert.equal(
     getQuotaScopedModelForProvider("antigravity", "gemini-3.7-flash-high"),
     "family:gemini"
+  );
+  // The removed `agy` id is not a routable provider anymore; a stray caller must
+  // not silently get the Antigravity family scope through it.
+  assert.equal(
+    getQuotaScopedModelForProvider("agy", "gemini-3.7-flash-high"),
+    "gemini-3.7-flash-high"
   );
 });
 

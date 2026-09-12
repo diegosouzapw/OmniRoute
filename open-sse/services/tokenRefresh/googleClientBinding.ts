@@ -28,7 +28,7 @@ export type GoogleOauthClientMarker = "builtin" | `custom:${string}` | undefined
 
 function builtinClientFor(provider: string) {
   if (provider === "gemini") return BUILTIN_GEMINI_CLIENT;
-  if (provider === "antigravity" || provider === "agy") return BUILTIN_ANTIGRAVITY_CLIENT;
+  if (provider === "antigravity") return BUILTIN_ANTIGRAVITY_CLIENT;
   // Unknown Google-family provider: no embedded client exists to fall back
   // to. The antigravity client would mint Google 401s for tokens it never
   // issued, so refuse loudly instead of guessing.

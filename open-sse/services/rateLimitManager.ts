@@ -497,7 +497,7 @@ function getLimiterKey(provider, connectionId, model = null) {
   if (provider === "codex" && model) {
     return `${provider}:${getCodexRateLimitKey(connectionId, model)}`;
   }
-  if ((provider === "antigravity" || provider === "agy") && model) {
+  if ((provider === "antigravity") && model) {
     const family = getAntigravityQuotaFamily(model);
     const scope = family === "other" ? model : family;
     return `${provider}:${connectionId}:${scope}`;

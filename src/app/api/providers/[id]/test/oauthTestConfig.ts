@@ -1,10 +1,9 @@
 import { buildGitLabOAuthEndpoints, resolveGitLabOAuthBaseUrl } from "@/lib/oauth/gitlab";
 import { ANTIGRAVITY_RUNTIME_BASE_URLS } from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
-import { getAntigravityClientProfile } from "@omniroute/open-sse/services/antigravityClientProfile.ts";
 import { isGeoBlockedError } from "@omniroute/open-sse/services/errorClassifier.ts";
 
-// Real model-surface probe for antigravity/agy. The previous probe only hit the
+// Real model-surface probe for antigravity. The previous probe only hit the
 // OAuth userinfo endpoint, which is NOT geo-restricted — so "Test Connection"
 // stayed green while every model call failed with "User location is not
 // supported for the API use." Probe the actual Cloud Code model endpoint
@@ -15,10 +14,9 @@ import { isGeoBlockedError } from "@omniroute/open-sse/services/errorClassifier.
 // Mirrors AntigravityExecutor.buildUrl/buildHeaders so the probe exercises the
 // exact same surface as real requests.
 function buildAntigravityProbe(
-  connection: { providerSpecificData?: unknown },
+  _connection: { providerSpecificData?: unknown },
   accessToken: string
 ) {
-  const profile = getAntigravityClientProfile(connection as never);
   return {
     url: `${ANTIGRAVITY_RUNTIME_BASE_URLS[0]}/v1internal:streamGenerateContent?alt=sse`,
     method: "POST",
@@ -26,7 +24,7 @@ function buildAntigravityProbe(
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
       Accept: "text/event-stream",
-      ...getAntigravityContentHeaders(profile, accessToken),
+      ...getAntigravityContentHeaders(accessToken),
     },
     body: JSON.stringify({
       contents: [{ role: "user", parts: [{ text: "ping" }] }],

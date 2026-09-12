@@ -121,7 +121,6 @@ export async function getUsageForProvider(
     case "github":
       return await getGitHubUsage(accessToken, providerSpecificData);
     case "antigravity":
-    case "agy":
       return await getAntigravityUsage(
         provider,
         accessToken,

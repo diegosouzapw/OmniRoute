@@ -11,7 +11,7 @@ import { generatePKCE, generateState } from "./utils/pkce";
 import { PROVIDERS } from "./providers/index";
 import { resolvePublicCred } from "@omniroute/open-sse/utils/publicCreds.ts";
 
-const GOOGLE_BROWSER_PROVIDERS = new Set(["antigravity", "agy"]);
+const GOOGLE_BROWSER_PROVIDERS = new Set(["antigravity"]);
 
 type OAuthRedirectEnv = Record<string, string | undefined>;
 
@@ -29,7 +29,7 @@ function hasCustomGoogleOAuthCredentials(
   providerName: string,
   env: OAuthRedirectEnv | null | undefined = process.env
 ): boolean {
-  if (providerName === "antigravity" || providerName === "agy") {
+  if (providerName === "antigravity") {
     // `agy` reuses the antigravity OAuth client + env overrides.
     const clientId = env?.ANTIGRAVITY_OAUTH_CLIENT_ID;
     const clientSecret = env?.ANTIGRAVITY_OAUTH_CLIENT_SECRET;

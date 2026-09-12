@@ -1,5 +1,4 @@
 import { getAntigravityContentHeaders } from "../services/antigravityHeaders.ts";
-import type { AntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
 
 // GitHub Copilot request identity. Ported to match the GitHub Copilot CLI
 // (`copilot` npm package) wire identity that Hermes captured live, NOT the
@@ -196,14 +195,12 @@ export function getQoderDashscopeCompatHeaders(): Record<string, string> {
   };
 }
 
-export function getAntigravityUserAgent(profile: AntigravityClientProfile = "ide"): string {
-  return getAntigravityContentHeaders(profile)["User-Agent"];
+export function getAntigravityUserAgent(): string {
+  return getAntigravityContentHeaders()["User-Agent"];
 }
 
-export function getAntigravityProviderHeaders(
-  profile: AntigravityClientProfile = "ide"
-): Record<string, string> {
-  return getAntigravityContentHeaders(profile);
+export function getAntigravityProviderHeaders(): Record<string, string> {
+  return getAntigravityContentHeaders();
 }
 
 export function getKiroServiceHeaders(

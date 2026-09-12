@@ -62,7 +62,7 @@ function buildCacheKey(
 export async function fetchAntigravityUserQuotaSummaryCached(
   accessToken: string,
   projectId?: string | null,
-  clientProfile: AntigravityClientProfile = "ide",
+  clientProfile: AntigravityClientProfile = "cli",
   options: AntigravityWeeklyQuotaOptions = {}
 ): Promise<unknown | null> {
   if (!accessToken || !projectId) return null;
@@ -87,7 +87,7 @@ export async function fetchAntigravityUserQuotaSummaryCached(
           `${baseUrl}/v1internal:retrieveUserQuotaSummary`,
           {
             method: "POST",
-            headers: getAntigravityContentHeaders(clientProfile, accessToken),
+            headers: getAntigravityContentHeaders(accessToken),
             body: JSON.stringify({ project: projectId }),
             signal: AbortSignal.timeout(10000),
           }
@@ -196,7 +196,7 @@ function parseGroupWeeklyQuota(group: JsonRecord): { key: string; quota: UsageQu
 export async function fetchAndParseAntigravityWeeklyQuotas(
   accessToken: string,
   projectId: string | undefined | null,
-  clientProfile: AntigravityClientProfile = "ide",
+  clientProfile: AntigravityClientProfile = "cli",
   options: AntigravityWeeklyQuotaOptions = {}
 ): Promise<Record<string, UsageQuota>> {
   const data = await fetchAntigravityUserQuotaSummaryCached(

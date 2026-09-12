@@ -11,10 +11,6 @@ import {
   isDiscoverableAntigravityModelId,
   toClientAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
-import {
-  getClientVisibleAgyModelName,
-  isDiscoverableAgyModelId,
-} from "@omniroute/open-sse/config/agyModels.ts";
 import { normalizeAntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
 import { ensureAntigravityProjectAssigned } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
 import { persistDiscoveredAntigravityProjectId } from "@omniroute/open-sse/services/antigravityProjectPersist.ts";
@@ -110,23 +106,18 @@ export function normalizeAntigravityModelsResponse(data: unknown): AntigravityDi
     .filter((value): value is AntigravityDiscoveryModel => Boolean(value));
 }
 
-export function filterUserCallableAntigravityModels(
-  models: AntigravityDiscoveryModel[],
-  provider: "antigravity" | "agy" = "antigravity"
-) {
+export function filterUserCallableAntigravityModels(models: AntigravityDiscoveryModel[]) {
   return models.filter(
-    (model) =>
-      model.isInternal !== true &&
-      (provider === "agy"
-        ? isDiscoverableAgyModelId(model.id)
-        : isDiscoverableAntigravityModelId(model.id))
+    (model) => model.isInternal !== true && isDiscoverableAntigravityModelId(model.id)
   );
 }
 
-export function mapAntigravityModelForClient(
-  model: { id: string; name: string; inputTokenLimit?: number; outputTokenLimit?: number },
-  provider: "antigravity" | "agy" = "antigravity"
-): {
+export function mapAntigravityModelForClient(model: {
+  id: string;
+  name: string;
+  inputTokenLimit?: number;
+  outputTokenLimit?: number;
+}): {
   id: string;
   name: string;
   inputTokenLimit?: number;
@@ -135,10 +126,7 @@ export function mapAntigravityModelForClient(
   const clientId = toClientAntigravityModelId(model.id);
   return {
     id: clientId,
-    name:
-      provider === "agy"
-        ? getClientVisibleAgyModelName(clientId, model.name)
-        : getClientVisibleAntigravityModelName(clientId, model.name),
+    name: getClientVisibleAntigravityModelName(clientId, model.name),
     ...(typeof model.inputTokenLimit === "number"
       ? { inputTokenLimit: model.inputTokenLimit }
       : {}),
@@ -152,13 +140,12 @@ export async function fetchAntigravityDiscoveryModelsCached(
   accessToken: string,
   connectionId: string,
   proxy: unknown,
-  providerSpecificData?: unknown,
-  provider: "antigravity" | "agy" = "antigravity"
+  providerSpecificData?: unknown
 ): Promise<
   Array<{ id: string; name: string; inputTokenLimit?: number; outputTokenLimit?: number }>
 > {
   const profile = normalizeAntigravityClientProfile(asRecord(providerSpecificData).clientProfile);
-  const cacheKey = `${provider}:${connectionId}:${accessToken.substring(0, 16)}:${profile}`;
+  const cacheKey = `${connectionId}:${accessToken.substring(0, 16)}:${profile}`;
   const inflight = antigravityDiscoveryInflight.get(cacheKey);
   if (inflight) return inflight;
 
@@ -185,28 +172,27 @@ export async function fetchAntigravityDiscoveryModelsCached(
           guard: getProviderOutboundGuard(),
           proxyConfig: proxy,
           method: "POST",
-          headers: getAntigravityContentHeaders(profile, accessToken),
+          headers: getAntigravityContentHeaders(accessToken),
           body: JSON.stringify({}),
         });
 
         if (!response.ok) {
           const errorText = await response.text();
           console.warn(
-            `[models] ${provider} discovery failed at ${discoveryUrl} (${response.status}): ${errorText}`
+            `[models] antigravity discovery failed at ${discoveryUrl} (${response.status}): ${errorText}`
           );
           continue;
         }
 
         const models = filterUserCallableAntigravityModels(
-          normalizeAntigravityModelsResponse(await response.json()),
-          provider
-        ).map((model) => mapAntigravityModelForClient(model, provider));
+          normalizeAntigravityModelsResponse(await response.json())
+        ).map((model) => mapAntigravityModelForClient(model));
         if (models.length > 0) {
           return models;
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[models] ${provider} discovery threw for ${discoveryUrl}: ${message}`);
+        console.warn(`[models] antigravity discovery threw for ${discoveryUrl}: ${message}`);
       }
     }
 

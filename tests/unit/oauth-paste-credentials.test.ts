@@ -19,9 +19,13 @@ import {
 
 const tokens = { access_token: "ya29.x", refresh_token: "1//r", expires_in: 3599 };
 
-test("allowlist contains antigravity and its agy alias, not codex", () => {
+test("allowlist contains only the consolidated antigravity provider, not codex", () => {
   assert.ok(PASTE_CREDENTIAL_PROVIDERS.has("antigravity"));
-  assert.ok(PASTE_CREDENTIAL_PROVIDERS.has("agy"));
+  assert.equal(
+    PASTE_CREDENTIAL_PROVIDERS.has("agy"),
+    false,
+    "the consolidated agy provider must not keep a separate paste route"
+  );
   assert.ok(!PASTE_CREDENTIAL_PROVIDERS.has("codex"), "codex uses its own device-complete path");
 });
 
@@ -38,9 +42,14 @@ test("rejects a provider not on the allowlist", () => {
 });
 
 test("rejects a blob whose embedded provider does not match the route provider", () => {
-  // Blob minted for antigravity, replayed against the agy route → must reject.
+  // Blob minted for another provider, replayed against the antigravity route.
+  const blob = encodeCredentialBlob({ provider: "codex", tokens });
+  assert.throws(() => parsePastedCredentials("antigravity", blob), /match|mismatch|provider/i);
+});
+
+test("rejects the removed agy route", () => {
   const blob = encodeCredentialBlob({ provider: "antigravity", tokens });
-  assert.throws(() => parsePastedCredentials("agy", blob), /match|mismatch|provider/i);
+  assert.throws(() => parsePastedCredentials("agy", blob), /not supported|allowlist|supported/i);
 });
 
 test("propagates codec validation errors (e.g. missing access_token)", () => {

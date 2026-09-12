@@ -96,7 +96,7 @@ function getSoonestResetMs(quotas: any[] | undefined): number {
 function shouldAutoRefreshQuota(provider: string, cached: any): boolean {
   const quotas = cached?.quotas;
   if (!Array.isArray(quotas) || quotas.length === 0) return true;
-  if (provider !== "antigravity" && provider !== "agy") return false;
+  if (provider !== "antigravity") return false;
 
   return quotas.some(
     (q: any) =>

@@ -6,13 +6,16 @@ const modalPath =
   "src/app/(dashboard)/dashboard/providers/[id]/components/modals/EditConnectionModal.tsx";
 const source = readFileSync(modalPath, "utf8");
 
-describe("agy Project ID UI support", () => {
-  it("declares a single Antigravity-family provider gate", () => {
+describe("Antigravity Project ID UI support", () => {
+  it("declares a single consolidated Antigravity provider gate", () => {
     assert.ok(
-      source.includes(
-        'const isAntigravityFamily = provider === "antigravity" || provider === "agy";'
-      ),
-      "isAntigravityFamily must include antigravity and agy without a separate Google Project ID gate"
+      source.includes('const isAntigravityFamily = provider === "antigravity";'),
+      "isAntigravityFamily must target the consolidated antigravity provider"
+    );
+    assert.equal(
+      source.includes('provider === "agy"'),
+      false,
+      "the removed agy provider must not have its own UI branch"
     );
   });
 
@@ -27,18 +30,23 @@ describe("agy Project ID UI support", () => {
     );
   });
 
-  it("uses isAntigravityFamily for antigravityClientProfile UI", () => {
-    assert.ok(
-      source.includes("{isAntigravityFamily && (\n          <div") &&
-        source.includes('label={t("antigravityClientProfileLabel")}'),
-      "client profile Select must render for isAntigravityFamily"
+  it("no longer renders a client-profile selector (CLI-only identity)", () => {
+    assert.equal(
+      source.includes("antigravityClientProfileLabel"),
+      false,
+      "the IDE/CLI profile selector was removed when the provider was consolidated"
+    );
+    assert.equal(
+      source.includes("ANTIGRAVITY_CLIENT_PROFILE_OPTIONS"),
+      false,
+      "profile option constants were removed with the CLI-only identity"
     );
   });
 
-  it("uses isAntigravityFamily for client profile save", () => {
+  it("uses isAntigravityFamily for the Antigravity-family save path", () => {
     assert.ok(
       source.includes("if (isAntigravityFamily) {"),
-      "client profile save must use isAntigravityFamily"
+      "the Antigravity save path must use isAntigravityFamily"
     );
   });
 });

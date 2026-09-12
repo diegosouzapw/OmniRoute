@@ -4,10 +4,9 @@ import assert from "node:assert/strict";
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
 import { setCliCompatProviders } from "../../open-sse/config/cliFingerprints.ts";
 import { scrubProxyAndFingerprintHeaders } from "../../open-sse/services/antigravityHeaderScrub.ts";
-import { antigravityIdeUserAgent } from "../../open-sse/services/antigravityHeaders.ts";
+import { antigravityCliUserAgent } from "../../open-sse/services/antigravityHeaders.ts";
 import {
   clearAntigravityVersionCaches,
-  seedAntigravityIdeVersionCache,
   seedAntigravityCliVersionCache,
 } from "../../open-sse/services/antigravityVersion.ts";
 import { clearAntigravityProjectCache } from "../../open-sse/services/antigravityProjectBootstrap.ts";
@@ -81,12 +80,12 @@ test("AntigravityExecutor.buildUrl always targets the streaming endpoint", () =>
 
 test("AntigravityExecutor.buildHeaders includes native headers without OmniRoute internals", () => {
   const executor = new AntigravityExecutor();
-  seedAntigravityIdeVersionCache("2.1.1");
+  seedAntigravityCliVersionCache("2.1.1");
   const headers = executor.buildHeaders({ accessToken: "ag-token" }, false);
 
   assert.equal(headers.Authorization, "Bearer ag-token");
   assert.equal(headers.Accept, "text/event-stream");
-  assert.equal(headers["User-Agent"], antigravityIdeUserAgent("2.1.1"));
+  assert.equal(headers["User-Agent"], antigravityCliUserAgent("2.1.1"));
   assert.equal(headers["X-OmniRoute-Source"], undefined);
 });
 
@@ -244,7 +243,7 @@ test("AntigravityExecutor.transformRequest returns a structured error response w
 // auto-discover it via loadCodeAssist instead of hard-failing.
 test("AntigravityExecutor.transformRequest auto-discovers a missing projectId via loadCodeAssist (#2334)", async () => {
   clearAntigravityProjectCache();
-  seedAntigravityIdeVersionCache("2.1.1");
+  seedAntigravityCliVersionCache("2.1.1");
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
   let loadCodeAssistCalled = false;
@@ -288,7 +287,7 @@ test("AntigravityExecutor.transformRequest auto-discovers a missing projectId vi
 // prompt the user to enter a GCP Project ID.
 test("AntigravityExecutor.transformRequest fast-422s with GCP_PROJECT_REQUIRED when loadCodeAssist finds no project (#8491)", async () => {
   clearAntigravityProjectCache();
-  seedAntigravityIdeVersionCache("2.1.1");
+  seedAntigravityCliVersionCache("2.1.1");
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
 
@@ -544,7 +543,7 @@ test("AntigravityExecutor.collectStreamToResponse converts textual tool call SSE
 
   const result = await executor.collectStreamToResponse(
     response,
-    "gemini-3.7-flash-low",
+    "gemini-3.8-flash-low",
     "https://example.com",
     { Authorization: "Bearer ag-token" },
     { request: {} }
@@ -834,7 +833,7 @@ test("AntigravityExecutor.refreshCredentials skips discovery when access_token i
 test("AntigravityExecutor.execute embeds retryAfterMs when the upstream asks for a long wait", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
-  seedAntigravityIdeVersionCache("2.1.1");
+  seedAntigravityCliVersionCache("2.1.1");
 
   globalThis.fetch = async () =>
     new Response(
@@ -871,7 +870,7 @@ test("AntigravityExecutor.execute bounds a persistent short-retry 429 instead of
   const originalFetch = globalThis.fetch;
   const originalSetTimeout = globalThis.setTimeout;
   const calls: string[] = [];
-  seedAntigravityIdeVersionCache("2.1.1");
+  seedAntigravityCliVersionCache("2.1.1");
 
   // "rate limited" with no parseable retry hint classifies as rate_limited →
   // decide429 returns short_cooldown_switch_auth (60s default). Since #9351 the
@@ -918,7 +917,6 @@ test("AntigravityExecutor.execute bounds a persistent short-retry 429 instead of
 
 test("AntigravityExecutor.execute aborts during project bootstrap without starting runtime fetch", async () => {
   clearAntigravityProjectCache();
-  seedAntigravityIdeVersionCache("2026.04.17-test");
   seedAntigravityCliVersionCache("2026.04.17-test");
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
@@ -963,7 +961,7 @@ test("AntigravityExecutor.execute tags pre-response stalls with a fallbackable t
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
   const originalSetTimeout = globalThis.setTimeout;
-  seedAntigravityIdeVersionCache("2.1.1");
+  seedAntigravityCliVersionCache("2.1.1");
 
   globalThis.fetch = async (_url, init) => {
     await new Promise((_resolve, reject) => {
@@ -1011,7 +1009,7 @@ test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async (
   let fetchBody: Record<string, unknown> | null = null;
   let prepared: unknown = null;
   let preparedBeforeFetch = false;
-  seedAntigravityIdeVersionCache("2.1.1");
+  seedAntigravityCliVersionCache("2.1.1");
   setCliCompatProviders(["antigravity"]);
 
   globalThis.fetch = async (_url, init) => {
@@ -1020,7 +1018,7 @@ test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async (
     const parsedBody = JSON.parse(String(init?.body));
     fetchBody = parsedBody;
 
-    assert.equal(headers["User-Agent"], antigravityIdeUserAgent("2.1.1"));
+    assert.equal(headers["User-Agent"], antigravityCliUserAgent("2.1.1"));
     assert.equal(headers["x-client-name"], undefined);
     assert.equal(headers["x-client-version"], undefined);
     assert.equal(headers["x-goog-user-project"], "project-1");

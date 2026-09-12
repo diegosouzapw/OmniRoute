@@ -10,10 +10,7 @@ import {
   isClaudeCodeCompatibleProvider,
   providerAllowsOptionalApiKey,
 } from "@/shared/constants/providers";
-import {
-  ANTIGRAVITY_CLIENT_PROFILE_OPTIONS,
-  normalizeAntigravityClientProfileSetting,
-} from "@/shared/constants/antigravityClientProfile";
+import { normalizeAntigravityClientProfileSetting } from "@/shared/constants/antigravityClientProfile";
 import { parseExtraApiKeys } from "@/shared/utils/parseApiKeys";
 import { providerHasFreeModels } from "@/shared/utils/freeModels";
 import { maskEmail } from "@/shared/utils/maskEmail";
@@ -225,7 +222,7 @@ export default function EditConnectionModal({
         formData.targetFormat === "openai-responses"));
   const isCustomResponsesConnection = isResponsesConnection && !isCodex && provider !== "openai";
   const isClaude = provider === "claude";
-  const isAntigravityFamily = provider === "antigravity" || provider === "agy";
+  const isAntigravityFamily = provider === "antigravity";
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = provider === "google-pse-search";
@@ -897,18 +894,6 @@ export default function EditConnectionModal({
         />
         {isAntigravityFamily && (
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
-            <Select
-              label={t("antigravityClientProfileLabel")}
-              value={formData.antigravityClientProfile}
-              options={ANTIGRAVITY_CLIENT_PROFILE_OPTIONS.map((option) => ({
-                value: option.value,
-                label: t(option.labelKey),
-              }))}
-              onChange={(e) =>
-                setFormData({ ...formData, antigravityClientProfile: e.target.value })
-              }
-              hint={t("antigravityClientProfileHint")}
-            />
             <Input
               label={t("antigravityProjectIdLabel")}
               value={formData.cloudCodeProjectId}

@@ -26,10 +26,18 @@ import {
   getAntigravityLoadCodeAssistUrls,
   ANTIGRAVITY_REQUIRES_MANUAL_PROJECT,
 } from "../../open-sse/services/antigravityProjectBootstrap.ts";
+import {
+  clearAntigravityVersionCaches,
+  seedAntigravityCliVersionCache,
+} from "../../open-sse/services/antigravityVersion.ts";
 
 // Reset the module-level memoization cache between tests.
 beforeEach(() => {
   clearAntigravityProjectCache();
+});
+
+test.afterEach(() => {
+  clearAntigravityVersionCaches();
 });
 
 describe("ensureAntigravityProjectAssigned", () => {
@@ -130,6 +138,7 @@ describe("ensureAntigravityProjectAssigned", () => {
 
   test("uses the official CLI content headers when requested", async () => {
     let capturedHeaders: Headers | null = null;
+    seedAntigravityCliVersionCache("1.2.0");
 
     const mockFetch = async (_url: string, init?: RequestInit): Promise<Response> => {
       capturedHeaders = new Headers(init?.headers);
@@ -143,22 +152,27 @@ describe("ensureAntigravityProjectAssigned", () => {
 
     assert.match(
       capturedHeaders?.get("User-Agent") || "",
-      /^antigravity\/cli\/1\.1\.5 \(aidev_client; os_type=.+; arch=.+; auth_method=consumer\)$/
+      /^antigravity\/cli\/1\.2\.0 \(aidev_client; os_type=.+; arch=.+; auth_method=consumer\)$/
     );
     assert.equal(capturedHeaders?.get("X-Goog-Api-Client"), null);
     assert.equal(capturedHeaders?.get("Client-Metadata"), null);
   });
 
-  test("uses the official IDE native content headers by default", async () => {
+  test("uses the official CLI content headers by default (no IDE identity remains)", async () => {
     let capturedHeaders: Headers | null = null;
+    seedAntigravityCliVersionCache("1.2.0");
     const mockFetch = async (_url: string, init?: RequestInit): Promise<Response> => {
       capturedHeaders = new Headers(init?.headers);
-      return Response.json({ cloudaicompanionProject: "proj-ide" });
+      return Response.json({ cloudaicompanionProject: "proj-cli-default" });
     };
 
-    await ensureAntigravityProjectAssigned("ide-token", mockFetch);
+    await ensureAntigravityProjectAssigned("cli-default-token", mockFetch);
 
-    assert.match(capturedHeaders?.get("User-Agent") || "", /^antigravity\/ide\/2\.1\.1 /);
+    assert.match(
+      capturedHeaders?.get("User-Agent") || "",
+      /^antigravity\/cli\/1\.2\.0 \(aidev_client; os_type=.+; arch=.+; auth_method=consumer\)$/
+    );
+    assert.doesNotMatch(capturedHeaders?.get("User-Agent") || "", /antigravity\/ide\//);
     assert.equal(capturedHeaders?.get("X-Goog-Api-Client"), null);
     assert.equal(capturedHeaders?.get("Client-Metadata"), null);
   });

@@ -71,7 +71,7 @@ export async function POST(request: Request) {
         ipAddress: auditContext.ipAddress || undefined,
         requestId: auditContext.requestId,
         metadata: {
-          provider: "agy",
+          provider: "antigravity",
           email: enriched.email || e.email,
           bulkIndex: i,
         },
@@ -88,13 +88,13 @@ export async function POST(request: Request) {
   logAuditEvent({
     action: "provider.credentials.bulk_imported",
     actor: "admin",
-    target: "agy",
+    target: "antigravity",
     resourceType: "provider_credentials",
     status: errors.length === entries.length ? "failure" : "success",
     ipAddress: auditContext.ipAddress || undefined,
     requestId: auditContext.requestId,
     metadata: {
-      provider: "agy",
+      provider: "antigravity",
       total: entries.length,
       success: created.length,
       failed: errors.length,

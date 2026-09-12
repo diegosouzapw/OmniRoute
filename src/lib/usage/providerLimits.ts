@@ -126,7 +126,7 @@ export function notifyProviderUsageRecorded(
   provider: string | null | undefined,
   connectionId: string | null | undefined
 ): void {
-  if ((provider !== "antigravity" && provider !== "agy") || !connectionId) return;
+  if ((provider !== "antigravity") || !connectionId) return;
   scheduleProviderLimitsPostUsageRefresh(connectionId);
 }
 
@@ -139,7 +139,7 @@ function hasRetrieveUserQuotaSource(
   provider: string,
   cache: ProviderLimitsCacheEntry | undefined
 ): boolean {
-  if (provider !== "antigravity" && provider !== "agy") return true;
+  if (provider !== "antigravity") return true;
   if (!cache?.quotas) return false;
   return Object.values(cache.quotas).some((quota) => {
     if (!isRecord(quota)) return false;
@@ -152,7 +152,7 @@ function sanitizeProviderLimitsCacheForConnection(
   entry: ProviderLimitsCacheEntry | null
 ): ProviderLimitsCacheEntry | null {
   if (!connection || !entry || !entry.quotas) return entry;
-  if (connection.provider !== "antigravity" && connection.provider !== "agy") return entry;
+  if (connection.provider !== "antigravity") return entry;
 
   const sanitizedQuotas = normalizeUsageQuotasForProvider(connection.provider, entry.quotas);
   return sanitizedQuotas === entry.quotas ? entry : { ...entry, quotas: sanitizedQuotas };
@@ -163,7 +163,7 @@ function shouldRefreshProviderLimitsCache(
   cache: ProviderLimitsCacheEntry | undefined
 ): boolean {
   if (!cache?.quotas) return true;
-  if (connection.provider !== "antigravity" && connection.provider !== "agy") return false;
+  if (connection.provider !== "antigravity") return false;
 
   return (
     !hasRetrieveUserQuotaSource(connection.provider, cache) ||
@@ -534,7 +534,7 @@ async function syncAntigravitySubscriptionIfNeeded(
   connection: ProviderConnectionLike,
   usage: JsonRecord
 ): Promise<ProviderConnectionLike> {
-  if (connection.provider !== "antigravity" && connection.provider !== "agy") return connection;
+  if (connection.provider !== "antigravity") return connection;
 
   const subscriptionInfo = usage.subscriptionInfo;
   if (!subscriptionInfo) return connection;
@@ -696,7 +696,7 @@ export async function getSanitizedCachedProviderLimitsMap(): Promise<
     })) as unknown as ProviderConnectionLike[]),
     ...((await getProviderConnections({
       isActive: true,
-      provider: "agy",
+      provider: "antigravity",
     })) as unknown as ProviderConnectionLike[]),
   ];
   if (sanitizableConnections.length === 0) {

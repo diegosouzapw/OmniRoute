@@ -1,12 +1,9 @@
-const ANTIGRAVITY_IDE_RELEASE_FEED_URL =
-  "https://antigravity-auto-updater-974169037036.us-central1.run.app/releases";
 const ANTIGRAVITY_CLI_RELEASE_URL =
   "https://api.github.com/repos/google-antigravity/antigravity-cli/releases/latest";
 
 export const ANTIGRAVITY_VERSION_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 export const ANTIGRAVITY_VERSION_FETCH_TIMEOUT_MS = 5_000;
-export const ANTIGRAVITY_IDE_FALLBACK_VERSION = "2.1.1";
-export const ANTIGRAVITY_CLI_FALLBACK_VERSION = "1.1.5";
+export const ANTIGRAVITY_CLI_FALLBACK_VERSION = "1.2.0";
 
 type VersionCache = {
   fetchedAt: number;
@@ -21,7 +18,6 @@ type ProductVersionState = {
 type FetchLike = typeof fetch;
 type VersionParser = (payload: unknown) => string | null;
 
-const ideState: ProductVersionState = { cache: null, inFlight: null };
 const cliState: ProductVersionState = { cache: null, inFlight: null };
 
 function normalizeVersion(value: unknown): string | null {
@@ -71,11 +67,6 @@ async function fetchJsonWithTimeout(fetchImpl: FetchLike, url: string): Promise<
   } finally {
     clearTimeout(timeoutId);
   }
-}
-
-function parseIdeReleaseFeed(payload: unknown): string | null {
-  if (!Array.isArray(payload)) return null;
-  return pickNewestVersion(...payload.map((entry) => (entry as { version?: unknown })?.version));
 }
 
 function parseCliRelease(payload: unknown): string | null {
@@ -135,16 +126,6 @@ function seedVersionCache(state: ProductVersionState, version: string, fetchedAt
   state.cache = { fetchedAt, version: normalized };
 }
 
-export function resolveAntigravityIdeVersion(fetchImpl: FetchLike = fetch): Promise<string> {
-  return resolveProductVersion(
-    ideState,
-    ANTIGRAVITY_IDE_FALLBACK_VERSION,
-    ANTIGRAVITY_IDE_RELEASE_FEED_URL,
-    parseIdeReleaseFeed,
-    fetchImpl
-  );
-}
-
 export function resolveAntigravityCliVersion(fetchImpl: FetchLike = fetch): Promise<string> {
   return resolveProductVersion(
     cliState,
@@ -155,16 +136,8 @@ export function resolveAntigravityCliVersion(fetchImpl: FetchLike = fetch): Prom
   );
 }
 
-export function getCachedAntigravityIdeVersion(): string {
-  return ideState.cache?.version ?? ANTIGRAVITY_IDE_FALLBACK_VERSION;
-}
-
 export function getCachedAntigravityCliVersion(): string {
   return cliState.cache?.version ?? ANTIGRAVITY_CLI_FALLBACK_VERSION;
-}
-
-export function seedAntigravityIdeVersionCache(version: string, fetchedAt = Date.now()): void {
-  seedVersionCache(ideState, version, fetchedAt);
 }
 
 export function seedAntigravityCliVersionCache(version: string, fetchedAt = Date.now()): void {
@@ -172,8 +145,6 @@ export function seedAntigravityCliVersionCache(version: string, fetchedAt = Date
 }
 
 export function clearAntigravityVersionCaches(): void {
-  ideState.cache = null;
-  ideState.inFlight = null;
   cliState.cache = null;
   cliState.inFlight = null;
 }

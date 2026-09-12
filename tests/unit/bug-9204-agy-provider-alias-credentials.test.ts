@@ -32,7 +32,7 @@ test("#9204: an Antigravity CLI login is eligible for an agy model request", asy
     { overwriteExisting: true }
   );
 
-  assert.equal(connection.provider, "agy");
+  assert.equal(connection.provider, "antigravity");
   assert.equal(connection.isActive, true);
   assert.equal(connection.testStatus, "active");
 

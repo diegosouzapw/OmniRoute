@@ -433,7 +433,7 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
   antigravity: {
     url: getAntigravityModelsDiscoveryUrls()[0],
     method: "POST",
-    headers: getAntigravityContentHeaders("ide"),
+    headers: getAntigravityContentHeaders(),
     authHeader: "Authorization",
     authPrefix: "Bearer ",
     body: {},

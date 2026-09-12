@@ -38,7 +38,6 @@ export const SUPPORTED_WIZARD_OAUTH_PROVIDER_IDS = new Set([
   "claude",
   "codex",
   "antigravity",
-  "agy",
   "kimi-coding",
   "github",
   "gitlab-duo",

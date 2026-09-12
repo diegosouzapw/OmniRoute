@@ -101,7 +101,7 @@ async function getQuotaAwareConnectionsForTarget(
                       .toLowerCase() !== "banned"
                 )
               : [];
-            if (provider === "antigravity" || provider === "agy") {
+            if (provider === "antigravity") {
               activeConnections = preferAntigravityConnectionsWithStoredProject(activeConnections);
             }
             return activeConnections;

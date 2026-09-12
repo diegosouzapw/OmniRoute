@@ -7,9 +7,18 @@ import {
   resolvePublicCred,
 } from "../../shared.ts";
 
+/**
+ * Antigravity (CLI identity) — consolidated provider.
+ *
+ * The `agy` provider was merged into this entry: both clients authenticate
+ * against the same Google consumer-OAuth client and share the same Cloud Code
+ * backend, model catalog, and quota family. OmniRoute now presents only the
+ * official CLI identity (see open-sse/services/antigravityHeaders.ts) and
+ * accepts both the browser OAuth flow and imported `agy` token files.
+ */
 export const antigravityProvider: RegistryEntry = {
   id: "antigravity",
-  alias: undefined,
+  alias: "agy",
   format: "antigravity",
   executor: "antigravity",
   baseUrls: [...ANTIGRAVITY_RUNTIME_BASE_URLS],

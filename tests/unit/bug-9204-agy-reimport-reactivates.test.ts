@@ -18,7 +18,7 @@ test.after(() => {
 
 test("#9204: reimporting an inactive Antigravity CLI account reactivates it", async () => {
   const existing = await providersDb.createProviderConnection({
-    provider: "agy",
+    provider: "antigravity",
     authType: "oauth",
     email: "reporter@example.test",
     accessToken: "stale-access-token",
@@ -62,7 +62,10 @@ test("#9204: reimporting an inactive Antigravity CLI account reactivates it", as
     "CLI import must not keep a leftover custom OAuth client marker"
   );
 
-  const active = await providersDb.getProviderConnections({ provider: "agy", isActive: true });
+  const active = await providersDb.getProviderConnections({
+    provider: "antigravity",
+    isActive: true,
+  });
   assert.deepEqual(
     active.map((connection) => connection.id),
     [existing.id]

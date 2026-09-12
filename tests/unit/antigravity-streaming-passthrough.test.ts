@@ -10,7 +10,6 @@ import {
 } from "../../open-sse/executors/antigravity.ts";
 import {
   clearAntigravityVersionCaches,
-  seedAntigravityIdeVersionCache,
   seedAntigravityCliVersionCache,
 } from "../../open-sse/services/antigravityVersion.ts";
 
@@ -36,7 +35,6 @@ test("AntigravityExecutor.execute auto-retries short 429 responses and collects 
   const originalFetch = globalThis.fetch;
   const originalSetTimeout = globalThis.setTimeout;
   const calls = [];
-  seedAntigravityIdeVersionCache("2026.04.17-test");
   seedAntigravityCliVersionCache("2026.04.17-test");
 
   globalThis.fetch = async (url) => {

@@ -436,7 +436,7 @@ export function isQuotaExhaustedForRequest(
     return false;
   }
 
-  if (provider === "antigravity" || provider === "agy") {
+  if (provider === "antigravity") {
     return isAntigravityQuotaExhausted(connectionId, entry, requestedModel);
   }
 

@@ -14,23 +14,22 @@ import { getAntigravityEnvelopeUserAgent } from "../../open-sse/services/antigra
 import {
   clearAntigravityVersionCaches,
   seedAntigravityCliVersionCache,
-  seedAntigravityIdeVersionCache,
 } from "../../open-sse/services/antigravityVersion.ts";
 
 test.afterEach(() => {
   clearAntigravityVersionCaches();
 });
 
-test("normalizeAntigravityClientProfile maps persisted legacy profiles to CLI", () => {
+test("normalizeAntigravityClientProfile maps every legacy value to CLI", () => {
   assert.equal(normalizeAntigravityClientProfile("cli"), "cli");
   assert.equal(normalizeAntigravityClientProfile("CLI"), "cli");
-  assert.equal(normalizeAntigravityClientProfile("ide"), "ide");
-  assert.equal(normalizeAntigravityClientProfile(undefined), "ide");
-  assert.equal(normalizeAntigravityClientProfile(null), "ide");
+  assert.equal(normalizeAntigravityClientProfile("ide"), "cli");
+  assert.equal(normalizeAntigravityClientProfile(undefined), "cli");
+  assert.equal(normalizeAntigravityClientProfile(null), "cli");
   assert.equal(normalizeAntigravityClientProfile("harness"), "cli");
   assert.equal(normalizeAntigravityClientProfile("sdk"), "cli");
-  assert.equal(normalizeAntigravityClientProfile(""), "ide");
-  assert.equal(normalizeAntigravityClientProfile(42), "ide");
+  assert.equal(normalizeAntigravityClientProfile(""), "cli");
+  assert.equal(normalizeAntigravityClientProfile(42), "cli");
 });
 
 function validateClientProfile(value: unknown): string[] {
@@ -43,8 +42,9 @@ function validateClientProfile(value: unknown): string[] {
   return messages;
 }
 
-test("provider-specific validation rejects legacy Antigravity client profiles", () => {
+test("provider-specific validation accepts the current and legacy Antigravity profiles", () => {
   assert.deepEqual(validateClientProfile("ide"), []);
+  assert.deepEqual(validateClientProfile("cli"), []);
   assert.deepEqual(validateClientProfile("CLI"), []);
   assert.deepEqual(validateClientProfile(undefined), []);
   assert.deepEqual(validateClientProfile(null), []);
@@ -56,12 +56,16 @@ test("provider-specific validation rejects legacy Antigravity client profiles", 
   }
 });
 
-test("getAntigravityClientProfile preserves legacy CLI identity for persisted values", () => {
+test("getAntigravityClientProfile always resolves to the consolidated CLI identity", () => {
   assert.equal(
     getAntigravityClientProfile({ providerSpecificData: { clientProfile: "cli" } }),
     "cli"
   );
-  assert.equal(getAntigravityClientProfile({ providerSpecificData: {} }), "ide");
+  assert.equal(getAntigravityClientProfile({ providerSpecificData: {} }), "cli");
+  assert.equal(
+    getAntigravityClientProfile({ providerSpecificData: { clientProfile: "ide" } }),
+    "cli"
+  );
   assert.equal(
     getAntigravityClientProfile({ providerSpecificData: { clientProfile: "harness" } }),
     "cli"
@@ -102,22 +106,16 @@ function applyProfile(profile: AntigravityClientProfile): Record<string, string>
   return headers;
 }
 
-test("content header application emits IDE and CLI identities and strips fake headers", () => {
-  seedAntigravityIdeVersionCache("2.1.1");
-  seedAntigravityCliVersionCache("1.1.1");
+test("content header application emits the CLI identity and strips fake headers", () => {
+  seedAntigravityCliVersionCache("1.2.0");
 
-  const ideHeaders = applyProfile("ide");
   const cliHeaders = applyProfile("cli");
 
-  assert.match(ideHeaders["User-Agent"], /^antigravity\/ide\/2\.1\.1 /);
-  assert.match(ideHeaders["User-Agent"], / darwin\/arm64$| windows\/amd64$| linux\/[^ ]+$/);
   assert.match(
     cliHeaders["User-Agent"],
-    /^antigravity\/cli\/1\.1\.1 \(aidev_client; os_type=.+; arch=.+; auth_method=consumer\)$/
+    /^antigravity\/cli\/1\.2\.0 \(aidev_client; os_type=.+; arch=.+; auth_method=consumer\)$/
   );
-  assertIdentityHeadersAbsent(ideHeaders);
   assertIdentityHeadersAbsent(cliHeaders);
-  assert.equal(ideHeaders["x-goog-user-project"], "project-1");
   assert.equal(cliHeaders["x-goog-user-project"], "project-1");
 });
 

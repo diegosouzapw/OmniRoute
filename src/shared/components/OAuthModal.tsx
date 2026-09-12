@@ -30,7 +30,7 @@ import {
 
 export { formatDeviceCodeRemaining } from "./OAuthModalPanels";
 
-const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy"]);
+const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity"]);
 
 /** Providers that use a local callback server on a random port (PKCE browser flow). */
 const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex", "xai-oauth", "grok-cli"]);
