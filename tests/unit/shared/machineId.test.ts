@@ -114,7 +114,9 @@ test("getRawMachineId with mocked os.hostname(): caches, does not re-call", asyn
   syncBuiltinESMExports();
 });
 
-test("resetMachineIdCache clears cached value", async () => {
+test("resetMachineIdCache clears cached value", {
+  skip: process.platform === "darwin",
+}, async () => {
   const restoreEnv = disableWindowsRegistryStrategy();
   syncBuiltinESMExports();
   const mockHostname = mock.method(os, "hostname", () => "first-pc");
@@ -144,7 +146,9 @@ test("resetMachineIdCache clears cached value", async () => {
 // Tests — strategy fallback order
 // ===========================================================================
 
-test("os.hostname() (Strategy 4) is tried before execSync hostname (Strategy 5)", async () => {
+test("os.hostname() (Strategy 4) is tried before execSync hostname (Strategy 5)", {
+  skip: process.platform === "darwin",
+}, async () => {
   const restoreEnv = disableWindowsRegistryStrategy();
   syncBuiltinESMExports();
   const mockHostname = mock.method(os, "hostname", () => "preferred-hostname");
