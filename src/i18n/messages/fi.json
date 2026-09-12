@@ -6118,6 +6118,7 @@
       "agentrouter": "Hanki 200 $ ilmaista saldoa osoitteesta https://agentrouter.org/register — luottokorttia ei vaadita.",
       "unorouter": "Luo API-avain osoitteessa https://unorouter.ai, ja liitä se sitten tänne Bearer-tokenina.",
       "agnes": "Hanki API-avain osoitteesta agnes-ai.com",
+      "agnes-cn": "Connect Agnes AI (China) with an API key issued for api.agnes-ai.cn. Keys from apihub.agnes-ai.com will not work.",
       "aimlapi": "Ilmaisversio keskeytetty (2026) — AI/ML API on nyt vain käytön mukaan laskutettava (vähintään 20 $ lisäys); ei toistuvia ilmaissaldoja.",
       "ai21": "10 $ kokeilusaldona rekisteröitymisen yhteydessä (voimassa 3 kuukautta), luottokorttia ei vaadita",
       "alibaba": "Yhdistä Alibaba API-avaimella.",

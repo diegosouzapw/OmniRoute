@@ -6118,6 +6118,7 @@
       "agentrouter": "Pata salio la bure la $200 kwenye https://agentrouter.org/register — hakuna kadi ya mkopo inayohitajika.",
       "unorouter": "Unda ufunguo wa API kwenye https://unorouter.ai, kisha ubandike hapa kama token ya Bearer.",
       "agnes": "Pata ufunguo wa API kwenye agnes-ai.com",
+      "agnes-cn": "Connect Agnes AI (China) with an API key issued for api.agnes-ai.cn. Keys from apihub.agnes-ai.com will not work.",
       "aimlapi": "Kiwango cha bure kimesitishwa (2026) — AI/ML API sasa ni ya kulipia kadri unavyotumia pekee (kiwango cha chini cha kuongeza salio ni $20); hakuna salio la bure linalojirudia.",
       "ai21": "Salio la majaribio la $10 wakati wa kujisajili (halali kwa miezi 3), hakuna kadi ya mkopo inayohitajika",
       "alibaba": "Unganisha Alibaba kwa ufunguo wa API.",

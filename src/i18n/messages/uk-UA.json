@@ -6118,6 +6118,7 @@
       "agentrouter": "Отримайте $200 безкоштовних кредитів на https://agentrouter.org/register — кредитна картка не потрібна.",
       "unorouter": "Створіть API-ключ на https://unorouter.ai, а потім вставте його сюди як токен Bearer.",
       "agnes": "Отримайте ключ API на agnes-ai.com",
+      "agnes-cn": "Connect Agnes AI (China) with an API key issued for api.agnes-ai.cn. Keys from apihub.agnes-ai.com will not work.",
       "aimlapi": "Безкоштовний тариф призупинено (2026) — AI/ML API тепер працює лише за моделлю pay-as-you-go (мін. поповнення $20); без регулярних безкоштовних кредитів.",
       "ai21": "$10 пробних кредитів під час реєстрації (дійсні 3 місяці), кредитна картка не потрібна",
       "alibaba": "Підключіть Alibaba за допомогою ключа API.",

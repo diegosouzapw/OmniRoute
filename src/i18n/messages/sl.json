@@ -6112,6 +6112,7 @@
       "agentrouter": "Pridobite $200 brezplačnega dobroimetja na https://agentrouter.org/register — kreditna kartica ni potrebna.",
       "unorouter": "Ustvarite ključ API na https://unorouter.ai in ga nato prilepite sem kot žeton Bearer.",
       "agnes": "Pridobite ključ API na agnes-ai.com",
+      "agnes-cn": "Connect Agnes AI (China) with an API key issued for api.agnes-ai.cn. Keys from apihub.agnes-ai.com will not work.",
       "aimlapi": "Brezplačna raven je začasno ustavljena (2026) — API za AI/ML je zdaj na voljo samo po modelu plačila glede na porabo (najmanjše dobroimetje $20); brez ponavljajočega se brezplačnega dobroimetja.",
       "ai21": "$10 preizkusnega dobroimetja ob registraciji (velja 3 mesece), kreditna kartica ni potrebna",
       "alibaba": "Povežite Alibaba s ključem API.",

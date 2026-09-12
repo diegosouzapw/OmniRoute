@@ -6118,6 +6118,7 @@
       "agentrouter": "Szerezzen 200 $ ingyenes kreditet a https://agentrouter.org/register oldalon — bankkártya nem szükséges.",
       "unorouter": "Hozzon létre egy API kulcsot a https://unorouter.ai oldalon, majd illessze be ide Bearer tokenként.",
       "agnes": "Szerezzen API-kulcsot az agnes-ai.com oldalon",
+      "agnes-cn": "Connect Agnes AI (China) with an API key issued for api.agnes-ai.cn. Keys from apihub.agnes-ai.com will not work.",
       "aimlapi": "Ingyenes csomag szüneteltetve (2026) — az AI/ML API mostantól csak használatalapú (min. 20 $ feltöltés); nincsenek ismétlődő ingyenes kreditek.",
       "ai21": "10 $ próbakredit regisztrációkor (3 hónapig érvényes), bankkártya nem szükséges",
       "alibaba": "Csatlakoztassa az Alibaba szolgáltatást egy API-kulccsal.",

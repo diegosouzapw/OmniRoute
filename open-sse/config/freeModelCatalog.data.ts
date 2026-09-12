@@ -22,7 +22,7 @@ import type { FreeModelBudget } from "./freeModelCatalog.ts";
  * rewrites file timestamps on every deploy, which would report a months-old
  * catalog as "updated today". Bump this whenever the entries below change.
  */
-export const FREE_CATALOG_CURATED_AT = "2026-09-09";
+export const FREE_CATALOG_CURATED_AT = "2026-09-12";
 
 export const FREE_MODEL_BUDGETS: FreeModelBudget[] = [
   { provider: "agentrouter", modelId: "claude-opus-4-8", displayName: "Claude Opus 4.8", monthlyTokens: 0, creditTokens: 200000000, freeType: "one-time-initial", poolKey: "agentrouter", tos: "caution" },
@@ -463,6 +463,9 @@ export const FREE_MODEL_BUDGETS: FreeModelBudget[] = [
   { provider: "agnes", modelId: "agnes-2.0-flash", displayName: "Agnes 2.0 Flash", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "agnes-free", tos: "ok" },
   { provider: "agnes", modelId: "agnes-2.5-flash", displayName: "Agnes 2.5 Flash", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "agnes-free", tos: "ok" },
   { provider: "agnes", modelId: "agnes-3.0-flash", displayName: "Agnes 3.0 Flash", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "agnes-free", tos: "ok" },
+  { provider: "agnes-cn", modelId: "agnes-2.0-flash", displayName: "Agnes 2.0 Flash", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "agnes-cn-free", tos: "ok" },
+  { provider: "agnes-cn", modelId: "agnes-2.5-flash", displayName: "Agnes 2.5 Flash", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "agnes-cn-free", tos: "ok" },
+  { provider: "agnes-cn", modelId: "agnes-3.0-flash", displayName: "Agnes 3.0 Flash", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "agnes-cn-free", tos: "ok" },
   { provider: "glm", modelId: "glm-4.7-flash", displayName: "GLM-4.7-Flash", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "zhipu-flash-free", tos: "ok" },
   { provider: "glm", modelId: "glm-4.5-flash", displayName: "GLM-4.5-Flash", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "zhipu-flash-free", tos: "ok" },
   { provider: "navy", modelId: "shared-pool", displayName: "NavyAI free pool (150K tokens/day, shared)", monthlyTokens: 4500000, creditTokens: 0, freeType: "recurring-daily", poolKey: "navy-free", tos: "ok" },

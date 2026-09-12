@@ -6118,6 +6118,7 @@
       "agentrouter": "在 https://agentrouter.org/register 获取 $200 免费额度 — 无需信用卡。",
       "unorouter": "在 https://unorouter.ai 创建一个 API 密钥，然后将其作为 Bearer 令牌粘贴到这里。",
       "agnes": "在 agnes-ai.com 获取 API 密钥",
+      "agnes-cn": "使用中国站（api.agnes-ai.cn）签发的 API 密钥连接 Agnes。国际站（apihub.agnes-ai.com）的密钥不能用。",
       "aimlapi": "免费层已暂停 (2026) — AI/ML API 现在仅支持按需付费（最低充值 $20）；无循环免费额度。",
       "ai21": "注册即送 $10 体验额度（有效期 3 个月），无需信用卡",
       "alibaba": "使用 API 密钥连接阿里巴巴。",

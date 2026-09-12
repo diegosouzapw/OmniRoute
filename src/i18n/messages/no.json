@@ -6118,6 +6118,7 @@
       "agentrouter": "Få $200 i gratis kreditter på https://agentrouter.org/register — ingen kredittkort kreves.",
       "unorouter": "Opprett en API-nøkkel på https://unorouter.ai, og lim den deretter inn her som en Bearer-token.",
       "agnes": "Få API-nøkkel på agnes-ai.com",
+      "agnes-cn": "Connect Agnes AI (China) with an API key issued for api.agnes-ai.cn. Keys from apihub.agnes-ai.com will not work.",
       "aimlapi": "Gratisnivå satt på pause (2026) — AI/ML API er nå kun forbruksbasert (min. $20 påfylling); ingen gjentakende gratis kreditter.",
       "ai21": "$10 i prøvekreditter ved registrering (gyldig i 3 måneder), ingen kredittkort kreves",
       "alibaba": "Koble til Alibaba med en API-nøkkel.",

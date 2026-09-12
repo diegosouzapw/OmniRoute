@@ -6112,6 +6112,7 @@
       "agentrouter": "Iegūstiet 200 USD bezmaksas kredītus https://agentrouter.org/register — kredītkarte nav nepieciešama.",
       "unorouter": "Izveidojiet API atslēgu https://unorouter.ai un pēc tam ielīmējiet to šeit kā Bearer tokenu.",
       "agnes": "Iegūstiet API atslēgu agnes-ai.com",
+      "agnes-cn": "Connect Agnes AI (China) with an API key issued for api.agnes-ai.cn. Keys from apihub.agnes-ai.com will not work.",
       "aimlapi": "Bezmaksas plāns pauzēts (2026) — AI/ML API tagad ir tikai maksas pēc lietojuma (min. iemaksa 20 USD); atkārtoti bezmaksas kredīti nav pieejami.",
       "ai21": "10 USD izmēģinājuma kredīti pēc reģistrācijas (derīgi 3 mēnešus), kredītkarte nav nepieciešama",
       "alibaba": "Savienojiet Alibaba ar API atslēgu.",

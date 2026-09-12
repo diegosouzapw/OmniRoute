@@ -6121,6 +6121,7 @@
       "agentrouter": "Get $200 free credits at https://agentrouter.org/register — no credit card required.",
       "unorouter": "Create an API key at https://unorouter.ai, then paste it here as a Bearer token.",
       "agnes": "Get API key at agnes-ai.com",
+      "agnes-cn": "Connect Agnes AI (China) with an API key issued for api.agnes-ai.cn. Keys from apihub.agnes-ai.com will not work.",
       "aimlapi": "Free tier paused (2026) — AI/ML API is now pay-as-you-go only (min $20 top-up); no recurring free credits.",
       "ai21": "$10 trial credits on signup (valid 3 months), no credit card required",
       "alibaba": "Connect Alibaba with an API key.",

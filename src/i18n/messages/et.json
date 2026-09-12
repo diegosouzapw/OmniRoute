@@ -6112,6 +6112,7 @@
       "agentrouter": "Saa $200 tasuta krediiti aadressilt https://agentrouter.org/register — krediitkaarti pole vaja.",
       "unorouter": "Loo API-võti aadressil https://unorouter.ai ja kleebi see seejärel siia Bearer-tokenina.",
       "agnes": "Hangi API-võti aadressilt agnes-ai.com",
+      "agnes-cn": "Connect Agnes AI (China) with an API key issued for api.agnes-ai.cn. Keys from apihub.agnes-ai.com will not work.",
       "aimlapi": "Tasuta pakett on peatatud (2026) — AI/ML API on nüüd ainult kasutuspõhise hinnastusega (minimaalne sissemakse $20); korduvaid tasuta krediite pole.",
       "ai21": "Registreerumisel $10 proovikrediiti (kehtib 3 kuud), krediitkaarti pole vaja",
       "alibaba": "Ühenda Alibaba API-võtmega.",

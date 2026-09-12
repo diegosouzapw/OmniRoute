@@ -6112,6 +6112,7 @@
       "agentrouter": "Nabavi $200 besplatnih kredita na https://agentrouter.org/register — nije potrebna kreditna kartica.",
       "unorouter": "Stvori API ključ na https://unorouter.ai, zatim ga ovdje zalijepi kao Bearer token.",
       "agnes": "Nabavi API ključ na agnes-ai.com",
+      "agnes-cn": "Connect Agnes AI (China) with an API key issued for api.agnes-ai.cn. Keys from apihub.agnes-ai.com will not work.",
       "aimlapi": "Besplatna razina pauzirana (2026.) — AI/ML API sada je isključivo prema potrošnji (minimalna uplata $20); nema redovnih besplatnih kredita.",
       "ai21": "$10 probnih kredita pri registraciji (vrijedi 3 mjeseca), nije potrebna kreditna kartica",
       "alibaba": "Poveži Alibaba s API ključem.",

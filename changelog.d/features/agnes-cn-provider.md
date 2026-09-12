@@ -1,0 +1,1 @@
+- feat(providers): **Added Agnes AI (China) as `agnes-cn` pointed at `https://api.agnes-ai.cn/v1`. Keys issued for `apihub.agnes-ai.com` stay on the existing `agnes` card. Live `/v1/models` on that host lists `agnes-3.0-flash` (same id as intl); the CN seed matches 2.0/2.5/3.0 and not retired 1.5.**

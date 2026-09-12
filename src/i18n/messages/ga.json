@@ -6112,6 +6112,7 @@
       "agentrouter": "Faigh $200 creidmheasanna saor in aisce ag https://agentrouter.org/register — ní gá cárta creidmheasa.",
       "unorouter": "Cruthaigh eochair API ag https://unorouter.ai, ansin greamaigh anseo é mar chomhartha Bearer.",
       "agnes": "Faigh eochair API ag agnes-ai.com",
+      "agnes-cn": "Connect Agnes AI (China) with an API key issued for api.agnes-ai.cn. Keys from apihub.agnes-ai.com will not work.",
       "aimlapi": "Sraith saor in aisce ar sos (2026) — níl AI/ML API ar fáil anois ach ar bhonn íoc-mar-a-úsáide (íosmhéid $20 d'athlíonadh); níl aon chreidmheasanna saor in aisce athfhillteacha.",
       "ai21": "Creidmheasanna trialach $10 ar chlárú (bailí ar feadh 3 mhí), ní gá cárta creidmheasa.",
       "alibaba": "Ceangail Alibaba le heochair API.",
