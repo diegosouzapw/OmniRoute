@@ -736,6 +736,7 @@ REQUEST_TIMEOUT_MS (global override)
 │   ├─→ FETCH_BODY_TIMEOUT_MS (inherits from FETCH_TIMEOUT_MS)
 │   ├─→ TLS_CLIENT_TIMEOUT_MS (inherits from FETCH_TIMEOUT_MS)
 │   │   └── TLS_FIRST_BYTE_WATCHDOG_MS (independent, default: 10000)
+│   ├── RESPONSES_FIRST_BYTE_TIMEOUT_MS (independent, default: 15000)
 │   ├── FETCH_CONNECT_TIMEOUT_MS (independent, default: 30000)
 │   └── FETCH_KEEPALIVE_TIMEOUT_MS (independent, default: 4000)
 ├─→ STREAM_IDLE_TIMEOUT_MS (inherits from REQUEST_TIMEOUT_MS, default: 600000)
@@ -774,6 +775,7 @@ REQUEST_TIMEOUT_MS (global override)
 | `FETCH_KEEPALIVE_TIMEOUT_MS`              | `4000`               | Keep-alive socket idle timeout.                                                                                                                                 |
 | `TLS_CLIENT_TIMEOUT_MS`                   | = `FETCH_TIMEOUT_MS` | TLS fingerprint proxy (wreq-js) timeout.                                                                                                                        |
 | `TLS_FIRST_BYTE_WATCHDOG_MS`              | `10000`              | Bounds time-to-first-byte on the wreq-js TLS-fingerprint transport's body specifically; `TLS_CLIENT_TIMEOUT_MS` alone cannot catch a stalled body since it resolves as soon as headers arrive (#12656). A timeout cancels the wreq reader and falls back to the direct/proxy dispatcher; `0` disables the watchdog. |
+| `RESPONSES_FIRST_BYTE_TIMEOUT_MS`         | `15000`              | For executors that rotate accounts (OpenCode), bounds the wait for the first body byte of a streamed Responses reply after its headers, subject to any shorter fetch-start deadline. A Responses stream opens with `response.created`, so silence past this window is a stall: the account is cooled down and the request moves on once; a second stall fails fast. `0` disables it. |
 | `API_BRIDGE_PROXY_TIMEOUT_MS`             | `30000`              | Proxy hop timeout for `/v1` bridge requests.                                                                                                                    |
 | `FIRECRAWL_BASE_URL`                      | `https://api.firecrawl.dev` | Point the Firecrawl web-fetch executor at a self-hosted instance (API key optional off-cloud).                                                          |
 | `FIRECRAWL_TIMEOUT_MS`                    | `30000`              | Per-request timeout for the Firecrawl web-fetch executor.                                                                                                       |

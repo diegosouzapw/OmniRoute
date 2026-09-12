@@ -43,6 +43,11 @@ export const DEFAULT_STREAM_DISCONNECT_GRACE_PERIOD_MS = 10_000;
 // wreq body falls back fast instead of riding the 10-minute ceiling. Set to
 // 0 to disable the watchdog entirely.
 export const DEFAULT_TLS_FIRST_BYTE_WATCHDOG_MS = 10_000;
+// A streamed Responses request opens with a lifecycle event (response.created) before any
+// generation, so a 2xx Responses stream that stays silent past this window is stalled rather than
+// thinking. Executors that can rotate accounts use it to move on instead of waiting for the
+// readiness timeout. Set to 0 to disable.
+export const DEFAULT_RESPONSES_FIRST_BYTE_TIMEOUT_MS = 15_000;
 
 function hasEnvValue(env: EnvSource, name: string): boolean {
   const raw = env[name];
@@ -228,6 +233,18 @@ export function getTlsFirstByteWatchdogMs(
     allowZero: true,
     logger,
   });
+}
+
+export function getResponsesFirstByteTimeoutMs(
+  env: EnvSource = process.env,
+  logger?: TimeoutLogger
+): number {
+  return readTimeoutMs(
+    env,
+    "RESPONSES_FIRST_BYTE_TIMEOUT_MS",
+    DEFAULT_RESPONSES_FIRST_BYTE_TIMEOUT_MS,
+    { allowZero: true, logger }
+  );
 }
 
 export function getApiBridgeTimeoutConfig(
