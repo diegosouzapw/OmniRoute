@@ -196,3 +196,17 @@ test("injectSystemPrompt: claude-shaped body keeps prompt out of messages[0] (#1
   assert.ok(String(result.system).includes("PRE"));
   assert.ok(String(result.system).includes("SUF"));
 });
+
+test("injectSystemPrompt: malformed null system still receives the prompt (#12584)", () => {
+  setSystemPromptConfig({ enabled: true, prefixPrompt: "PRE", suffixPrompt: "SUF" });
+  const body = {
+    system: null,
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = injectSystemPrompt(body);
+  assert.equal(typeof result.system, "string", "null system is normalized, not skipped");
+  assert.ok(String(result.system).includes("PRE"), "prefix is not silently dropped");
+  assert.ok(String(result.system).includes("SUF"), "suffix is not silently dropped");
+  assert.equal(result.messages.length, 1, "prompt does not leak into messages");
+  assert.equal(result.messages[0].role, "user");
+});

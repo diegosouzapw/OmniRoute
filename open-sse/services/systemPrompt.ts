@@ -133,6 +133,9 @@ export function injectSystemPrompt<T>(body: T): T {
 
   // Claude format (system field)
   if (result.system !== undefined) {
+    // #12584: a malformed non-string/non-array `system` (e.g. `null`) must not
+    // silently swallow the prompt — normalize before the format branch.
+    if (typeof result.system !== "string" && !Array.isArray(result.system)) result.system = "";
     if (typeof result.system === "string") {
       let sys = result.system;
       if (prefix) sys = prefix + "\n\n" + sys;
@@ -195,6 +198,9 @@ export function injectCustomSystemPrompt(body: Record<string, unknown>, prompt: 
 
   // Claude direct system field
   if (result.system !== undefined) {
+    // #12584: a malformed non-string/non-array `system` (e.g. `null`) must not
+    // silently swallow the prompt — normalize before the format branch.
+    if (typeof result.system !== "string" && !Array.isArray(result.system)) result.system = "";
     if (typeof result.system === "string") {
       result.system = result.system ? result.system + "\n\n" + prompt : prompt;
     } else if (Array.isArray(result.system)) {
