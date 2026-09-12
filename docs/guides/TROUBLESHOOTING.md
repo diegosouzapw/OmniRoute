@@ -739,6 +739,33 @@ Issues specific to the v3.8.0 release and their current workarounds. If a fix la
 
 ---
 
+## Slow Startup / Readiness Timeout
+
+If the CLI prints `⚠ Server did not respond within 60s` but the server is
+actually working, the readiness probe budget is too short for your environment.
+
+This commonly happens on Windows (antivirus, filesystem watchers) or containers
+with heavy startup workloads.
+
+**Fix — raise the budget:**
+
+```bash
+# Via env var (persists across starts):
+export OMNIROUTE_READY_TIMEOUT_MS=180000   # 3 minutes
+omniroute serve
+
+# Via CLI flag (one-off):
+omniroute serve --ready-timeout 180000
+```
+
+The default is 60 000 ms (60 s). The warning is informational only; the server
+continues starting in the background and will be reachable once boot completes.
+
+See [`docs/reference/ENVIRONMENT.md`](../reference/ENVIRONMENT.md) for full
+details on `OMNIROUTE_READY_TIMEOUT_MS`.
+
+---
+
 ## Still Stuck?
 
 - **GitHub Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
