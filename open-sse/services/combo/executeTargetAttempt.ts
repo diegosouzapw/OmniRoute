@@ -91,6 +91,7 @@ import type { AttemptLoopDeps, AttemptLoopState, ExecuteTargetResult } from "./a
 import type { ComboDiagnostics } from "../../utils/error.ts";
 import type { ComboErrorBody, ComboRetryAfter, ResolvedComboTarget } from "./types.ts";
 import type { ResponseValidationConfig } from "./responseValidation.ts";
+import { dailyResetForProvider } from "./comboDailyResetClock.ts";
 
 export async function executeTargetAttempt(opts: {
   index: number;
@@ -835,7 +836,9 @@ export async function executeTargetAttempt(opts: {
       provider,
       result.headers,
       profile,
-      structuredError
+      structuredError,
+      null,
+      dailyResetForProvider(deps.dailyResetClock ?? null, provider)
     );
     const { cooldownMs } = fallbackResult;
     // #6863: a parsed upstream quota reset (e.g. Antigravity "Resets in 92h27m28s")
@@ -1078,6 +1081,8 @@ export async function executeTargetAttempt(opts: {
               maxCooldownMs: mlSettings.maxCooldownMs,
               // Preserve authoritative structured/header resets; clamp body prose.
               exactCooldownIsUpstreamReset: lockoutHintVerified,
+              // Without an explicit cooldown, quota_exhausted resolves the operator clock.
+              dailyReset: dailyResetForProvider(deps.dailyResetClock ?? null, provider),
             }
           );
           lockoutRecorded = true;
@@ -1155,6 +1160,8 @@ export async function executeTargetAttempt(opts: {
             maxCooldownMs: mlSettings.maxCooldownMs,
             // Preserve authoritative structured/header resets; clamp body prose.
             exactCooldownIsUpstreamReset: lockoutHintVerified,
+            // Same operator-clock threading as the retry-path lockout above.
+            dailyReset: dailyResetForProvider(deps.dailyResetClock ?? null, provider),
           }
         );
       }

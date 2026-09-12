@@ -1,0 +1,1 @@
+- **fix(resilience):** daily-quota lockouts honor the provider's configured reset time instead of server midnight ([#13440](https://github.com/diegosouzapw/OmniRoute/pull/13440)) — thanks @maxmad64bis
