@@ -8,6 +8,7 @@
  */
 
 import { getDbInstance } from "../db/core";
+import { resolveProviderId } from "@/shared/constants/providers";
 import { protectPayloadForLog } from "../logPayloads";
 import {
   asRecord,
@@ -639,10 +640,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
         )
         .get(
           timestamp,
-          entry.provider || null,
-          entry.model || null,
-          entry.connectionId || null,
-          entry.apiKeyId || null,
+          resolveProviderId(entry.provider) || null,
           tokensInput,
           tokensOutput
         ) as { id: number; endpoint: string | null } | undefined;
@@ -666,7 +664,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
       ).run(
-        entry.provider || null,
+        resolveProviderId(entry.provider) || null,
         entry.model || null,
         entry.connectionId || null,
         entry.apiKeyId || null,
