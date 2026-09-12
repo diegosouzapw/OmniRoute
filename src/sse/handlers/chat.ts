@@ -62,7 +62,7 @@ import {
 } from "@omniroute/open-sse/config/providerModels.ts";
 import { getPassthroughProviders } from "@omniroute/open-sse/config/providerRegistry.ts";
 import * as log from "../utils/logger";
-import { runWithTransientBackendRetry } from "../../open-sse/services/transientBackendRetry";
+import { runWithTransientBackendRetry } from "@omniroute/open-sse/services/transientBackendRetry";
 import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { createHookContext, runHooks, initPreRequestRegistry } from "@/lib/middleware/registry";
 import { rejectPeerRequest } from "@/shared/resilience/peerRouting";
