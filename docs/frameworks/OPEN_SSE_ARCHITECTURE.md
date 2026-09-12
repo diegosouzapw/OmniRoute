@@ -487,7 +487,7 @@ This handles:
 
 | File                          | Purpose                                           |
 | ----------------------------- | ------------------------------------------------- |
-| `providerRegistry.ts`         | Chat-model registry over the 352-provider catalog |
+| `providerRegistry.ts`         | Chat-model registry over the 356-provider catalog |
 | `providerModels.ts`           | Model aliases, format mapping                     |
 | `constants.ts`                | Timeouts, limits, status codes                    |
 | `defaultThinkingSignature.ts` | Default Claude thinking signature                 |

@@ -96,7 +96,7 @@ See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.y
 
 # OmniRoute
 
-Local/remote AI gateway exposing OpenAI-compatible REST. One key, 327 providers,
+Local/remote AI gateway exposing OpenAI-compatible REST. One key, 356 providers,
 auto-fallback, RTK token saver, MCP server, A2A agents.
 
 ## Setup

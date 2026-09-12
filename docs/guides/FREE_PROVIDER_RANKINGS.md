@@ -15,7 +15,7 @@ lastUpdated: 2026-08-02
 
 ## What It Is
 
-OmniRoute registers 329 providers, including 155 catalog entries marked **free/no-auth**
+OmniRoute registers 356 providers, including 155 catalog entries marked **free/no-auth**
 (no-auth,
 free-tier OAuth, or free-tier API key — see the
 [Free Tiers Guide](../getting-started/FREE-TIERS-GUIDE.md) and the full
