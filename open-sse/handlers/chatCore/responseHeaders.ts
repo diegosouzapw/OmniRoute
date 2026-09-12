@@ -272,7 +272,7 @@ export function buildStreamingResponseHeaders(
 
   const responseHeaders: Record<string, string> = {
     ...Object.fromEntries(forwardedHeaders),
-    "Content-Type": "text/event-stream",
+    "Content-Type": "text/event-stream; charset=utf-8",
     "Cache-Control": "no-cache, no-transform",
     Connection: "keep-alive",
     "X-Accel-Buffering": "no",
