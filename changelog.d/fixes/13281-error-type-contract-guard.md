@@ -1,0 +1,1 @@
+- **fix(call-logs):** the call-log write point clamps out-of-vocabulary error families to `unknown` instead of persisting free text ([#13281](https://github.com/diegosouzapw/OmniRoute/pull/13281))

@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { getDbInstance } from "../../src/lib/db/core.ts";
 import { classifyCallLogError } from "../../src/lib/usage/callLogs/format.ts";
 import { saveCallLog } from "../../src/lib/usage/callLogs.ts";
@@ -10,11 +11,12 @@ import {
   PROVIDER_ERROR_TYPES,
 } from "../../open-sse/services/errorClassifier.ts";
 
-test("call_logs table has error_type column", () => {
-  const db = getDbInstance();
-  const columns = db.prepare("PRAGMA table_info(call_logs)").all() as { name: string }[];
-  const colNames = columns.map((c) => c.name);
-  assert.ok(colNames.includes("error_type"), "call_logs should have error_type column");
+test("SCHEMA_SQL mirrors error_type column for fresh installs", () => {
+  const src = fs.readFileSync("src/lib/db/core.ts", "utf8");
+  assert.ok(
+    src.includes("error_type TEXT DEFAULT NULL"),
+    "SCHEMA_SQL should mirror the 158 ADD COLUMN for fresh installs"
+  );
 });
 
 test("classifyCallLogError maps status+body to the provider error family", () => {
@@ -245,4 +247,83 @@ test("cutover boundary: pre_migration only before ERROR_TYPE_CUTOVER_ISO", () =>
   const byType = Object.fromEntries(rows.map((r) => [r.errorType, r.count]));
   assert.equal(byType["pre_migration"], 1);
   db.prepare("DELETE FROM call_logs WHERE id IN ('hx-b1','hx-b2')").run();
+});
+
+test("migration 177 file was evaluated and dropped: EXPLAIN shows no index use for the CASE query", () => {
+  // Exit-hatch record: the exact getErrorTypeBreakdown query groups by a
+  // CASE expression, and the planner keeps SCAN + TEMP B-TREE with or without a
+  // bare-column index on error_type (verified 10k-row scratch DB, before/after
+  // identical). No 177 file ships; the zod write-point guard below is the payload.
+  const src = fs.readFileSync("src/lib/db/core.ts", "utf8");
+  assert.ok(
+    !src.includes("idx_cl_error_type"),
+    "no idx_cl_error_type remnants should remain after the exit hatch"
+  );
+});
+
+test("getErrorTypeBreakdown buckets group correctly (no index payload after exit hatch)", async () => {
+  const db = getDbInstance();
+  const stamp = Date.now();
+  const ids = [`test-idx-q-${stamp}`, `test-idx-s-${stamp}`, `test-idx-ok-${stamp}`];
+  await saveCallLog({
+    id: ids[0],
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 402,
+    error: "exceeded your current quota",
+    model: "m",
+    provider: "p",
+    duration: 1,
+    tokens: { in: 1, out: 1 },
+  });
+  await saveCallLog({
+    id: ids[1],
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 500,
+    error: "Internal Server Error",
+    model: "m",
+    provider: "p",
+    duration: 1,
+    tokens: { in: 1, out: 1 },
+  });
+  await saveCallLog({
+    id: ids[2],
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 200,
+    model: "m",
+    provider: "p",
+    duration: 1,
+    tokens: { in: 1, out: 1 },
+  });
+  const whereClause = `WHERE id IN (${ids.map((_, i) => `@id${i}`).join(", ")})`;
+  const params = Object.fromEntries(ids.map((id, i) => [`id${i}`, id]));
+  const breakdown = getErrorTypeBreakdown(whereClause, params);
+  assert.deepEqual(breakdown, [
+    { errorType: "quota_exhausted", count: 1 },
+    { errorType: "server_error", count: 1 },
+  ]);
+  ids.forEach((id) => db.prepare("DELETE FROM call_logs WHERE id = ?").run(id));
+});
+
+test("saveCallLog clamps out-of-vocabulary error_type to unknown, keeps null success", async () => {
+  const db = getDbInstance();
+  const id = `test-errtype-clamp-${Date.now()}`;
+  await saveCallLog({
+    id,
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 403,
+    error: "some other 403 body",
+    model: "m",
+    provider: "test-provider",
+    duration: 1,
+    tokens: { in: 1, out: 1 },
+  });
+  const row = db.prepare("SELECT error_type FROM call_logs WHERE id = ?").get(id) as {
+    error_type: string | null;
+  };
+  assert.equal(row.error_type, "unknown");
+  db.prepare("DELETE FROM call_logs WHERE id = ?").run(id);
 });

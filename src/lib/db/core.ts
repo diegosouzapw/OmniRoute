@@ -403,7 +403,8 @@ const SCHEMA_SQL = `
     has_response_body INTEGER DEFAULT 0,
     has_pipeline_details INTEGER DEFAULT 0,
     request_summary TEXT,
-    correlation_id TEXT
+    correlation_id TEXT,
+    error_type TEXT DEFAULT NULL
   );
   CREATE INDEX IF NOT EXISTS idx_cl_timestamp ON call_logs(timestamp);
   CREATE INDEX IF NOT EXISTS idx_cl_status ON call_logs(status);
