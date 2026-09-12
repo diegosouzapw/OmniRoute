@@ -436,7 +436,6 @@ export const FREE_MODEL_BUDGETS: FreeModelBudget[] = [
   { provider: "t3-web", modelId: "qwen3-32b", displayName: "Qwen3 32B (via t3.chat)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-daily", poolKey: "t3-web", tos: "avoid" },
   { provider: "t3-web", modelId: "kimi-k2", displayName: "Kimi K2 (via t3.chat)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-daily", poolKey: "t3-web", tos: "avoid" },
   { provider: "tencent", modelId: "hunyuan-pro", displayName: "Hunyuan Pro", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "tencent", tos: "caution" },
-  { provider: "together", modelId: "together-signup-credit", displayName: "Together — $25 signup credit (any model)", monthlyTokens: 0, creditTokens: 25000000, freeType: "one-time-initial", poolKey: "together-signup", tos: "caution" },
   { provider: "uncloseai", modelId: "adamo1139/Hermes-3-Llama-3.1-8B-FP8-Dynamic", displayName: "Hermes 3 Llama 3.1 8B (🆓 Free)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "uncloseai", tos: "caution" },
   { provider: "uncloseai", modelId: "qwen3.6:27b", displayName: "Qwen3 Coder 27B (🆓 Free)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "uncloseai", tos: "caution" },
   { provider: "uncloseai", modelId: "gemma4:31b", displayName: "Gemma 4 31B (🆓 Free)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "uncloseai", tos: "caution" },
