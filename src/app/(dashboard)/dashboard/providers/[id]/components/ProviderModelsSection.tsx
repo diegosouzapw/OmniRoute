@@ -49,6 +49,7 @@ export interface ProviderModelsSectionProps {
   modelMeta: { customModels: any[]; modelCompatOverrides?: any[] };
   modelAliases: Record<string, string>;
   syncedAvailableModels: any[];
+  syncedCatalogAuthoritative?: boolean;
   compatibleFallbackModels: any[];
 
   // Clipboard
@@ -130,6 +131,7 @@ export default function ProviderModelsSection({
   modelMeta,
   modelAliases,
   syncedAvailableModels,
+  syncedCatalogAuthoritative = false,
   compatibleFallbackModels,
   copied,
   onCopy,
@@ -268,6 +270,7 @@ export default function ProviderModelsSection({
           providerDisplayAlias={providerDisplayAlias}
           modelAliases={modelAliases}
           availableModels={syncedAvailableModels}
+          syncedCatalogAuthoritative={syncedCatalogAuthoritative}
           customModels={modelMeta.customModels}
           fallbackModels={compatibleFallbackModels}
           description={description}
@@ -348,6 +351,7 @@ export default function ProviderModelsSection({
           providerAlias={providerAlias}
           modelAliases={modelAliases}
           catalogModels={models}
+          syncedCatalogAuthoritative={syncedCatalogAuthoritative}
           availableModels={syncedAvailableModels}
           customModels={modelMeta.customModels}
           description={passthroughDescription}

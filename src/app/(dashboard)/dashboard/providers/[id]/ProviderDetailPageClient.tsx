@@ -772,6 +772,7 @@ export default function ProviderDetailPageClient() {
             modelMeta={modelMeta}
             modelAliases={modelAliases}
             syncedAvailableModels={syncedAvailableModels}
+            syncedCatalogAuthoritative={syncedCatalogAuthoritative}
             compatibleFallbackModels={compatibleFallbackModels}
             copied={copied}
             onCopy={copy}

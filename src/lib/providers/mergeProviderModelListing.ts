@@ -18,6 +18,21 @@ export type ProviderListingModel = {
   [key: string]: unknown;
 };
 
+/** Apply the same membership rule to compatible/passthrough rows, including alias-only rows. */
+export function filterUnavailableModelRows<T extends { modelId: string }>(
+  rows: T[],
+  syncedModels: Array<{ id?: string }>,
+  customModels: Array<{ id?: string; source?: string }>,
+  authoritative: boolean
+): T[] {
+  if (!authoritative) return rows;
+  const allowed = new Set([
+    ...syncedModels.map((model) => model.id),
+    ...customModels.filter((model) => model.source !== "imported").map((model) => model.id),
+  ]);
+  return rows.filter((row) => allowed.has(row.modelId));
+}
+
 export type MergeProviderModelListingInput = {
   providerId: string;
   registryModels: Array<{ id: string; name?: string }>;

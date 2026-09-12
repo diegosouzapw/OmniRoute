@@ -1,6 +1,25 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mergeProviderModelListing } from "../../src/lib/providers/mergeProviderModelListing.ts";
+import {
+  mergeProviderModelListing,
+  filterUnavailableModelRows,
+} from "../../src/lib/providers/mergeProviderModelListing.ts";
+
+test("OpenRouter and compatible/passthrough aliases cannot resurrect unavailable models", () => {
+  const rows = ["live", "retired-fallback", "retired-alias", "manual", "old-import"].map(
+    (modelId) => ({ modelId })
+  );
+  const live = [{ id: "live" }];
+  const custom = [
+    { id: "manual", source: "custom" },
+    { id: "old-import", source: "imported" },
+  ];
+  assert.deepEqual(
+    filterUnavailableModelRows(rows, live, custom, true).map((row) => row.modelId),
+    ["live", "manual"]
+  );
+  assert.deepEqual(filterUnavailableModelRows(rows, live, custom, false), rows);
+});
 
 const input = {
   providerId: "nvidia",
