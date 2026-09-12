@@ -1,0 +1,1 @@
+- **fix(db):** give `conversation_turn_nodes` its own 1-day retention instead of sharing `callLogs`, and sweep orphaned `agentic_conversations` after the nodes expire (#12453).
