@@ -1,0 +1,17 @@
+.git
+**/.git
+.vscode
+**/.vscode
+data
+logs
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+*.md
+docs
+tests
+.gitignore
+.dockerignore
