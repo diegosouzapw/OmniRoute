@@ -155,8 +155,15 @@ export function removeRedundantContent(
       continue;
     }
     const contentStr = typeof msg.content === "string" ? msg.content : JSON.stringify(msg.content);
+    // #13429: Never collapse consecutive tool messages — even when their
+    // content is byte-identical (e.g. two empty strings), they carry
+    // distinct tool_call_id values. Dropping one orphans an assistant
+    // tool_call entry and triggers a 400 "insufficient tool messages"
+    // from strict upstream validators (DeepSeek-class endpoints).
     if (
       i > 0 &&
+      msg.role !== "tool" &&
+      body.messages[i - 1].role !== "tool" &&
       body.messages[i - 1].role === msg.role &&
       typeof body.messages[i - 1].content === "string" &&
       body.messages[i - 1].content === contentStr
