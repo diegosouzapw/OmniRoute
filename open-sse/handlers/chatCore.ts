@@ -77,7 +77,11 @@ import {
   isStripReasoningRequested,
 } from "./chatCore/headers.ts";
 import { markCodexScopeRateLimited } from "./chatCore/codexFailover.ts";
-import { getCodexClientSessionId, isCodexOriginatedHeaders, isClaudeCodeOriginatedHeaders } from "../config/codexIdentity.ts";
+import {
+  getCodexClientSessionId,
+  isCodexOriginatedHeaders,
+  isClaudeCodeOriginatedHeaders,
+} from "../config/codexIdentity.ts";
 import {
   noteCodexTurnStateProvenance,
   readCodexTurnStateHeader,
@@ -187,6 +191,11 @@ import {
 import { shouldUseMidConversationSystem } from "../executors/claudeIdentity.ts";
 import { normalizeClaudeHaikuConstraints } from "../services/claudeHaikuConstraints.ts";
 import { applyDefaultReasoningEffort } from "../services/defaultReasoningEffort.ts";
+import {
+  applyAdaptiveEffort,
+  hasExplicitReasoningField,
+  isAdaptiveEffort,
+} from "../services/adaptiveEffort.ts";
 import { echoModelInObject } from "../services/responseModelEcho.ts";
 import {
   stripGpt5SamplingWhenReasoning,
@@ -1117,6 +1126,13 @@ export async function handleChatCore({
   const thinkingMarkerHeader = getHeaderValueCaseInsensitive(
     clientRawRequest?.headers ?? null,
     THINKING_MARKER_HEADER
+  );
+  // Adaptive-effort per-request opt-in (#6057-style request control): the
+  // client explicitly asks the gateway to size the thinking budget. Header
+  // wins over the model's static defaultReasoningEffort when both are "auto".
+  const adaptiveEffortHeader = getHeaderValueCaseInsensitive(
+    clientRawRequest?.headers ?? null,
+    "x-omniroute-effort"
   );
 
   const explicitStreamAlias = resolveExplicitStreamAlias(body);
@@ -2708,6 +2724,29 @@ export async function handleChatCore({
         (modelInfo as { resolvedThinkingEffort?: string })?.resolvedThinkingEffort,
         (modelInfo as { defaultThinkingEffort?: string })?.defaultThinkingEffort
       );
+    }
+    // Adaptive effort (gateway counterpart of hermes-agent#109044): when the
+    // request carries NO reasoning field and either the X-OmniRoute-Effort
+    // header or the model's defaultReasoningEffort opts into "auto", resolve
+    // a concrete level from turn-scoped request-shape signals (stateless
+    // per-turn pin — see services/adaptiveEffort.ts). Runs on the pre-
+    // translation body so source-format differences are handled by the
+    // existing translators, and AFTER applyDefaultReasoningEffort so its
+    // explicit-value precedence and alias-suffix priority are preserved.
+    if (!hasExplicitReasoningField(translatedBody)) {
+      // Lever A: #6879 above may have just injected the literal "auto" from
+      // ModelSpec.defaultReasoningEffort — that is an opt-in marker, not a
+      // wire value. Resolve it (and the header) to a concrete level.
+      const modelDefaultAuto = translatedBody.reasoning_effort === "auto";
+      if (modelDefaultAuto || isAdaptiveEffort(adaptiveEffortHeader)) {
+        const stripped = modelDefaultAuto ? { ...translatedBody } : translatedBody;
+        if (modelDefaultAuto) delete (stripped as Record<string, unknown>).reasoning_effort;
+        translatedBody = applyAdaptiveEffort(stripped, {
+          messages: body?.messages,
+          headerEffort: adaptiveEffortHeader,
+          modelDefaultEffort: modelDefaultAuto ? "auto" : null,
+        });
+      }
     }
   }
 
