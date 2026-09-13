@@ -23,17 +23,38 @@ export interface CredentialRedactionResult {
 
 export function redactCredentials(text: string): CredentialRedactionResult {
   if (typeof text !== "string" || !text) return { text, detections: [], modified: false };
-  let result = text;
+
+  // #13462: data: URIs carry base64-encoded binary (images, audio, etc.) whose
+  // encoding can randomly collide with credential regex patterns — e.g. the
+  // Google AIza pattern matching inside a PNG's base64 stream.  Temporarily
+  // replace the base64 payload with a placeholder, redact the remaining text,
+  // then restore the original payload.
+  const DATA_URI_RE = /((?:data:[^;]+;base64,)[A-Za-z0-9+/=%]+)/g;
+  const dataUriBodies: string[] = [];
+  let prepared = text.replace(DATA_URI_RE, (_match, _body: string, offset: number) => {
+    // capture the full match including the data:…;base64, prefix
+    const full = text.slice(offset, offset + _match.length);
+    const idx = dataUriBodies.length;
+    dataUriBodies.push(full);
+    return `__DATA_URI_${idx}__`;
+  });
+
   const detections: Array<{ type: string; count: number }> = [];
   for (const p of CREDENTIAL_PATTERNS) {
     p.regex.lastIndex = 0;
-    const matches = result.match(p.regex);
+    const matches = prepared.match(p.regex);
     if (matches && matches.length > 0) {
-      result = result.replace(p.regex, p.replacement);
+      prepared = prepared.replace(p.regex, p.replacement);
       detections.push({ type: p.name, count: matches.length });
     }
   }
-  return { text: result, detections, modified: result !== text };
+
+  // Restore original data: URI payloads (unmodified)
+  if (dataUriBodies.length > 0) {
+    prepared = prepared.replace(/__DATA_URI_(\d+)__/g, (_m, idx: string) => dataUriBodies[Number(idx)]);
+  }
+
+  return { text: prepared, detections, modified: prepared !== text };
 }
 
 type JsonRecord = Record<string, unknown>;
