@@ -8,17 +8,33 @@
  * disk-cached installer scrape (stale-while-revalidate) → pin.
  */
 
-import {
-  existsSync,
-  lstatSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  realpathSync,
-  writeFileSync,
-} from "node:fs";
-import { homedir } from "node:os";
-import { join } from "node:path";
+let nodeFs: typeof import("fs") | null = null;
+let nodeOs: typeof import("os") | null = null;
+let nodePath: typeof import("path") | null = null;
+
+try {
+  if (typeof window === "undefined") {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    nodeFs = require("fs");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    nodeOs = require("os");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    nodePath = require("path");
+  }
+} catch {
+  /* Browser environment */
+}
+
+const existsSync = (p: string) => nodeFs?.existsSync(p) ?? false;
+const lstatSync = (p: string) => nodeFs?.lstatSync(p);
+const mkdirSync = (p: string, opts?: { recursive?: boolean }) => nodeFs?.mkdirSync(p, opts);
+const readFileSync = (p: string, enc: string) => nodeFs?.readFileSync(p, enc as BufferEncoding);
+const readdirSync = (p: string) => nodeFs?.readdirSync(p) ?? [];
+const realpathSync = (p: string) => nodeFs?.realpathSync(p) ?? p;
+const writeFileSync = (p: string, data: string) => nodeFs?.writeFileSync(p, data);
+
+const homedir = () => nodeOs?.homedir() ?? "";
+const join = (...args: string[]) => nodePath?.join(...args) ?? args.join("/");
 
 /**
  * Pinned Agent CLI build id used when no local install is found (typical
@@ -68,7 +84,7 @@ export function newestVersionInDir(versionsDir: string): string | null {
       if (!isCursorAgentCliVersionId(name)) continue;
       try {
         const st = lstatSync(join(versionsDir, name));
-        if (!st.isDirectory()) continue;
+        if (!st || !st.isDirectory()) continue;
         const mtimeMs = st.mtimeMs;
         if (
           !newest ||
@@ -98,7 +114,7 @@ function versionFromShim(shimPath: string): string | null {
 }
 
 function defaultVersionsDir(home: string): string {
-  if (process.platform === "win32") {
+  if (typeof process !== "undefined" && process.platform === "win32") {
     const localAppData = process.env.LOCALAPPDATA || join(home, "AppData", "Local");
     return join(localAppData, "cursor-agent", "versions");
   }
@@ -116,7 +132,7 @@ export function detectCursorAgentCliVersionFromFs(home: string = homedir()): str
     if (fromShim) return fromShim;
   }
 
-  const dataDir = process.env.CURSOR_DATA_DIR;
+  const dataDir = typeof process !== "undefined" ? process.env.CURSOR_DATA_DIR : undefined;
   const versionsDir = dataDir ? join(dataDir, "versions") : defaultVersionsDir(home);
   return newestVersionInDir(versionsDir);
 }
@@ -125,7 +141,7 @@ type DiskVersionCache = { version: string; fetchedAt: number };
 
 function resolveCacheDir(): string {
   if (cacheDirOverride) return cacheDirOverride;
-  const dataDir = process.env.DATA_DIR?.trim();
+  const dataDir = typeof process !== "undefined" ? process.env.DATA_DIR?.trim() : undefined;
   if (dataDir) return join(dataDir, "cache");
   return join(homedir(), ".omniroute", "cache");
 }
@@ -143,7 +159,7 @@ export function extractVersionIdFromInstallerScript(script: string): string | nu
 
 function readDiskVersionCache(): DiskVersionCache | null {
   try {
-    const raw = JSON.parse(readFileSync(versionCachePath(), "utf8")) as Record<string, unknown>;
+    const raw = JSON.parse(readFileSync(versionCachePath(), "utf8") as string) as Record<string, unknown>;
     if (typeof raw.version !== "string" || !isCursorAgentCliVersionId(raw.version)) return null;
     if (typeof raw.fetchedAt !== "number" || !Number.isFinite(raw.fetchedAt)) return null;
     return { version: raw.version, fetchedAt: raw.fetchedAt };
@@ -201,14 +217,14 @@ export function getCursorAgentCliVersion(): string {
     return cachedVersion;
   }
 
-  const fromEnv = process.env.CURSOR_AGENT_CLI_VERSION?.trim();
+  const fromEnv = typeof process !== "undefined" ? process.env.CURSOR_AGENT_CLI_VERSION?.trim() : undefined;
   if (fromEnv && isCursorAgentCliVersionId(fromEnv)) {
     cachedVersion = fromEnv;
     cachedAt = now;
     return cachedVersion;
   }
 
-  const home = process.env.HOME || process.env.USERPROFILE || homedir();
+  const home = (typeof process !== "undefined" ? (process.env.HOME || process.env.USERPROFILE) : undefined) || homedir();
   const fromFs = detectCursorAgentCliVersionFromFs(home);
   if (fromFs) {
     cachedVersion = fromFs;
