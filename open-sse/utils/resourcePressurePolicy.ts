@@ -70,11 +70,19 @@ export type ResourcePressureThresholds = {
   heapAbsoluteThresholdMb: number | null;
 };
 
+// #13124: PSI-based pressure detection can be disabled via env var on
+// memory-constrained hosts where host-wide PSI spikes are not indicative
+// of OmniRoute's own pressure. When disabled, PSI thresholds are set to
+// 100 (the maximum) so they never trigger.
+const PSI_DISABLED =
+  process.env.OMNIROUTE_PRESSURE_PSI_DISABLED === "1" ||
+  process.env.OMNIROUTE_PRESSURE_PSI_DISABLED === "true";
+
 export const DEFAULT_RESOURCE_PRESSURE_THRESHOLDS: ResourcePressureThresholds = {
   highRatio: 0.85,
   criticalRatio: 0.92,
   recoveryRatio: 0.75,
-  // Bumped 50% (20/40/10 -> 30/60/15): /proc/pressure/memory reflects
+  // Bumped 50% (20/40/10 -> 30/60/10): /proc/pressure/memory reflects
   // HOST-wide PSI, not this process's own cgroup pressure (confirmed by
   // comparing /proc/pressure/memory against /sys/fs/cgroup/memory.pressure
   // from inside a running container -- the two differ). On a shared host
@@ -83,9 +91,9 @@ export const DEFAULT_RESOURCE_PRESSURE_THRESHOLDS: ResourcePressureThresholds = 
   // usage stayed trivial. The ratio-based thresholds above stay untouched
   // -- they're this process's own real OOM safety margin and unaffected by
   // noisy neighbors.
-  highPsiAvg10: 30,
-  criticalPsiAvg10: 60,
-  recoveryPsiAvg10: 15,
+  highPsiAvg10: PSI_DISABLED ? 99 : 30,
+  criticalPsiAvg10: PSI_DISABLED ? 100 : 60,
+  recoveryPsiAvg10: PSI_DISABLED ? 98 : 15,
   sustainedSamplesHigh: 2,
   sustainedSamplesCritical: 2,
   // PSI's own avg10 is a kernel-computed 10s rolling average, so it already

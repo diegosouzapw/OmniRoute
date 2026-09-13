@@ -456,7 +456,10 @@
       "esbuild",
       "omniroute",
       "sharp"
-    ]
+    ],
+    "overrides": {
+      "postcss": ">=8.5.23"
+    }
   },
   "allowScripts": {
     "better-sqlite3": true,
