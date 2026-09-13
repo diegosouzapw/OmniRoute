@@ -4658,7 +4658,14 @@ export const defaultDiskSnapshotWriter: OmniRouteDiskSnapshotWriter = async (
   }
 };
 
-/** Best-effort disk read. Returns `undefined` when missing/corrupt/unreadable. */
+/**
+ * Maximum age (ms) for a disk snapshot to be considered usable.
+ * Default: 7 days. Override via OMNIROUTE_DISK_CACHE_MAX_AGE_MS env var.
+ */
+const DISK_CACHE_MAX_AGE_MS =
+  Number(process.env.OMNIROUTE_DISK_CACHE_MAX_AGE_MS) || 7 * 24 * 60 * 60 * 1000;
+
+/** Best-effort disk read. Returns `undefined` when missing/corrupt/unreadable/too-old. */
 export const defaultDiskSnapshotReader: OmniRouteDiskSnapshotReader = async (
   providerId,
   identityFingerprint
@@ -4672,6 +4679,14 @@ export const defaultDiskSnapshotReader: OmniRouteDiskSnapshotReader = async (
       parsed.v !== 2 ||
       typeof parsed.identityFingerprint !== "string" ||
       parsed.identityFingerprint !== identityFingerprint
+    ) {
+      return undefined;
+    }
+    // Reject snapshots older than the max age to prevent serving a stale
+    // catalog indefinitely when the live endpoint is unreachable. (#13390)
+    if (
+      typeof parsed.writtenAt === "number" &&
+      Date.now() - parsed.writtenAt > DISK_CACHE_MAX_AGE_MS
     ) {
       return undefined;
     }
