@@ -467,7 +467,7 @@ export class ZedHostedExecutor extends BaseExecutor {
       thread_id: bodyRecord.thread_id || (credentials as Record<string, unknown>)?._clientSessionId,
       prompt_id: bodyRecord.prompt_id,
       provider,
-      model,
+      model: bareModel,
       provider_request: providerRequest,
     };
 
@@ -496,7 +496,7 @@ export class ZedHostedExecutor extends BaseExecutor {
     const suppressThinkClose = resolveZedSuppressThinkClose(clientHeaders, clientResponseFormat);
 
     const wrapped = response.ok
-      ? wrapZedCompletionStream(response, provider, model, { suppressThinkClose })
+      ? wrapZedCompletionStream(response, provider, bareModel, { suppressThinkClose })
       : response;
     return {
       response: wrapped,

@@ -99,6 +99,17 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /organization TPD rate limit/i,
   /\bTPD rate limit\b/i,
   /insufficient balance/i,
+
+  // #13194 — CJK providers (z.ai/GLM, Kimi, Qwen, MiniMax) return Chinese
+  // quota-exhaustion messages that none of the English patterns above match.
+  // Without these, the gateway misclassifies them as transient rate_limit
+  // and retries a dead model every 60s instead of failing over.
+  /使用上限/,
+  /额度已用尽/,
+  /额度已用完/,
+  /调用上限/,
+  /已达上限/,
+  /余额不足/,
 ];
 
 /**
@@ -166,6 +177,13 @@ const TERMINAL_QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /organization TPD rate limit/i,
   /\bTPD rate limit\b/i,
   /insufficient balance/i,
+  // #13194 — CJK equivalents for terminal quota signals.
+  /使用上限/,
+  /额度已用尽/,
+  /额度已用完/,
+  /调用上限/,
+  /已达上限/,
+  /余额不足/,
 ];
 
 /**
