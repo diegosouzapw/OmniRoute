@@ -166,11 +166,17 @@ test("random strategy always returns a member of the alive set", async () => {
   await proxiesDb.setScopeRotationStrategy("provider", "mistral", "random");
 
   const aliveHosts = new Set([a.host, b.host, c.host]);
+  const seen = new Set<string>();
   for (let i = 0; i < 30; i++) {
     const r = await proxiesDb.resolveProxyForScopeFromRegistry("provider", "mistral");
     const host = (r as { proxy: { host: string } }).proxy.host;
     assert.ok(aliveHosts.has(host), `random pick ${host} must be an alive pool member`);
+    seen.add(host);
   }
+  // The random strategy uses crypto.randomInt (not Math.random — CodeQL js/insecure-randomness).
+  // Over 30 picks from a 3-member alive pool it must vary, not stick on one member
+  // (P(all 30 identical) ≈ (1/3)^29 ≈ 0). Guards that randomInt selection is uniform-ish.
+  assert.ok(seen.size >= 2, `random strategy must vary its pick (saw only: ${[...seen].join(", ")})`);
 });
 
 test("setScopeRotationStrategy round-trips via getScopeRotationStrategy", async () => {
