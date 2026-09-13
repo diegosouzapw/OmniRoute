@@ -155,8 +155,11 @@ export function evaluateCase(evalCase: any, actualOutput: string) {
         }
         const regex =
           expectedValue instanceof RegExp
-            ? new RegExp(expectedValue.source, expectedValue.flags.replace(/[gy]/g, ""))
-            : new RegExp(expectedValue);
+            ? new RegExp(
+                expectedValue.source,
+                (expectedValue.flags.replace(/[gy]/g, "") + "s").split("").sort().join("")
+              )
+            : new RegExp(expectedValue, "s");
         if (regex.source.length > 512) {
           passed = false;
           details.error = "Regex pattern too large for safe evaluation.";

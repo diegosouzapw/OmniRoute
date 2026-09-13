@@ -254,6 +254,30 @@ test("G7: benign regex still evaluates normally", () => {
   assert.equal(result.passed, true);
 });
 
+
+test("G7: regex with dotAll matches multiline answers", () => {
+  const result = evaluateCase(
+    {
+      id: "dotall-test",
+      name: "dotall-test",
+      expected: { strategy: "regex", value: "hello.*world" },
+    },
+    "hello\nworld"
+  );
+  assert.equal(result.passed, true, "dotAll regex should match across newlines");
+});
+
+test("G7: RegExp object with dotAll flag works correctly", () => {
+  const result = evaluateCase(
+    {
+      id: "dotall-regex-obj",
+      name: "dotall-regex-obj",
+      expected: { strategy: "regex", value: /hello.*world/ },
+    },
+    "hello\nworld"
+  );
+  assert.equal(result.passed, true, "RegExp with dotAll should match across newlines");
+});
 // ── G8: autoRefreshDaemon logs network errors per provider ──────────────────
 test("G8: autoRefreshDaemon logs network errors instead of swallowing them", async () => {
   const { autoRefreshDaemon } = await import("../../open-sse/services/autoRefreshDaemon.ts");
