@@ -7,19 +7,10 @@ import { v4 as uuidv4 } from "uuid";
 import { isCommonChatGptWebRetiredProviderId } from "@/shared/constants/chatgptWebRetirement";
 import { getDbInstance, rowToCamel, cleanNulls } from "./core";
 import { backupDbFile } from "./backup";
-import {
-  encryptConnectionFields,
-  decryptConnectionFields,
-  migrateLegacyEncryptedString,
-} from "./encryption";
+import { encryptConnectionFields, decryptConnectionFields } from "./encryption";
 import { createLazyRowProxy } from "./providers/lazyConnectionView";
 import { invalidateDbCache, getCachedRawProviderConnections } from "./readCache";
 import { reorderConnections } from "./providers/deletion";
-import {
-  removeConnectionHealth,
-  removeConnectionIndex,
-} from "@omniroute/open-sse/services/apiKeyRotator.ts";
-import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { withDerivedCookieExpiry } from "@/shared/utils/webCookieExpiry";
 import { WEB_COOKIE_PROVIDERS } from "@/shared/constants/providers";

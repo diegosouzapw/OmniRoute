@@ -204,6 +204,43 @@ function leaseMismatch(model: string, connectionId: string): ProviderExecutionOu
   };
 }
 
+type UpstreamErrorFields = {
+  message: string;
+  body: unknown;
+  upstreamCode: string | undefined;
+  upstreamType: string | undefined;
+};
+
+async function readUpstreamError(attempt: ChatCoreExecutorResult): Promise<UpstreamErrorFields> {
+  let message = attempt.response.statusText || "upstream error";
+  let body: unknown = attempt.transformedBody;
+  let upstreamCode: string | undefined;
+  let upstreamType: string | undefined;
+  try {
+    // clone() is the drain. sendProviderAttempt must not cancel() a streaming
+    // non-2xx body before we get here (BYOP 422 / Codex 429 Retry-After).
+    const text = await attempt.response.clone().text();
+    try {
+      body = JSON.parse(text);
+      const err = (body as { error?: { message?: unknown; code?: unknown; type?: unknown } } | null)
+        ?.error;
+      if (err && typeof err.message === "string" && err.message) message = err.message;
+      if (typeof err?.code === "string" && err.code.trim()) upstreamCode = err.code.trim();
+      if (typeof err?.type === "string" && err.type.trim()) upstreamType = err.type.trim();
+    } catch {
+      // Non-JSON upstream body (plain-text 429, HTML error page). parseUpstreamError
+      // on the pre-pipeline path we replaced surfaces that raw text as the message;
+      // collapsing to statusText ("upstream error") hides what the provider said.
+      // buildErrorBody()/sanitizeErrorMessage() still sanitize and truncate before
+      // it reaches any response body (Hard Rule #12).
+      if (text.trim()) message = text;
+    }
+  } catch {
+    // Body unreadable (already consumed); keep statusText.
+  }
+  return { message, body, upstreamCode, upstreamType };
+}
+
 async function toOutcome(
   attempt: ChatCoreExecutorResult,
   model: string,
@@ -222,45 +259,20 @@ async function toOutcome(
       connectionId,
     };
   }
-  let message = attempt.response.statusText || "upstream error";
-  let body: unknown = attempt.transformedBody;
-  let upstreamCode: string | undefined;
-  let upstreamType: string | undefined;
-  try {
-    // clone() is the drain. sendProviderAttempt must not cancel() a streaming
-    // non-2xx body before we get here (BYOP 422 / Codex 429 Retry-After).
-    const text = await attempt.response.clone().text();
-    try {
-      body = JSON.parse(text);
-      const err = (body as { error?: { message?: unknown; code?: unknown; type?: unknown } } | null)
-        ?.error;
-      if (err && typeof err.message === "string" && err.message) message = err.message;
-      if (typeof err?.code === "string" && err.code.trim()) upstreamCode = err.code.trim();
-      if (typeof err?.type === "string" && err.type.trim()) upstreamType = err.type.trim();
-    } catch {
-      // Non-JSON upstream body (plain-text 429, HTML error page). parseUpstreamError
-      // — the pre-pipeline path this replaced — surfaces the raw text as the message;
-      // collapsing it to statusText ("upstream error") hides what the provider said.
-      // buildErrorBody()/sanitizeErrorMessage() still sanitize and truncate it before
-      // it reaches any response body (Hard Rule #12).
-      if (text.trim()) message = text;
-    }
-  } catch {
-    // Body unreadable (already consumed) — keep statusText.
-  }
+  const parsed = await readUpstreamError(attempt);
   const restatement = applyStatusRestatement({
     provider,
     status,
-    message,
-    body,
+    message: parsed.message,
+    body: parsed.body,
     retryAfterMs: null,
   });
   const result = createErrorResult(
     restatement.status,
-    message,
+    parsed.message,
     restatement.retryAfterMs,
-    upstreamCode,
-    upstreamType
+    parsed.upstreamCode,
+    parsed.upstreamType
   );
   return {
     kind: "error",
@@ -271,8 +283,8 @@ async function toOutcome(
       error: result.error,
       errorCode: result.errorCode,
       errorType: result.errorType,
-      rawMessage: message,
-      upstreamErrorBody: body,
+      rawMessage: parsed.message,
+      upstreamErrorBody: parsed.body,
       upstreamHeaders: attempt.response.headers,
     },
     providerUsage: null,

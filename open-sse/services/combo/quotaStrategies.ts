@@ -225,8 +225,7 @@ export async function expandTargetsByQuotaAwareConnections(
     for (const connectionId of connectionIds) {
       const provider = getResetAwareProvider(target);
       const connection = connectionById.get(connectionId);
-      if (provider && getQuotaFetcher(provider) && connection && connection.provider !== provider)
-        continue;
+      if (provider && getQuotaFetcher(provider) && connection?.provider !== provider) continue;
       if (
         connection &&
         typeof connection.rateLimitedUntil === "string" &&
