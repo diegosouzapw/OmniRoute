@@ -3,7 +3,8 @@
 import { useTranslations } from "next-intl";
 
 import { useState, useEffect } from "react";
-import { Button, Input } from "@/shared/components";
+import Button from "@/shared/components/Button";
+import Input from "@/shared/components/Input";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -21,7 +22,12 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const raf = requestAnimationFrame(() => setMounted(true));
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
     async function checkAuth() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -32,6 +38,8 @@ export default function LoginPage() {
           signal: controller.signal,
         });
         clearTimeout(timeoutId);
+
+        if (!isMounted) return;
 
         if (res.ok) {
           const data = await res.json();
@@ -51,8 +59,9 @@ export default function LoginPage() {
           setOidcEnabled(false);
           setOidcDisablePasswordLogin(false);
         }
-      } catch (err) {
+      } catch (_err) {
         clearTimeout(timeoutId);
+        if (!isMounted) return;
         setHasPassword(true);
         setSetupComplete(true);
         setOidcEnabled(false);
@@ -60,6 +69,9 @@ export default function LoginPage() {
       }
     }
     checkAuth();
+    return () => {
+      isMounted = false;
+    };
   }, [router]);
 
   const handleLogin = async (e) => {
@@ -86,7 +98,7 @@ export default function LoginPage() {
         }
         setError(data.error || t("invalidPassword"));
       }
-    } catch (err) {
+    } catch (_err) {
       setError(t("errorOccurredRetry"));
     } finally {
       setLoading(false);

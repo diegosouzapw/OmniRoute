@@ -1,0 +1,1 @@
+- **fix(dashboard):** resolve Next 16 Webpack `node:fs` scheme imports and login page unmounted state warning

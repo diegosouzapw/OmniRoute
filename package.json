@@ -372,7 +372,7 @@
   "optionalDependencies": {
     "@atjsh/llmlingua-2": "3.0.0",
     "@huggingface/transformers": "^4.2.0",
-    "better-sqlite3": "^13.0.2",
+    "better-sqlite3": "^13.0.3",
     "js-tiktoken": "^1.0.20",
     "keytar": "^7.9.0",
     "onnxruntime-node": "1.24.3",
@@ -465,7 +465,12 @@
     "@parcel/watcher": true,
     "keytar": true,
     "protobufjs": true,
-    "unrs-resolver": true
+    "unrs-resolver": true,
+    "@playwright/browser-chromium": true,
+    "bun": true,
+    "libxmljs2": true,
+    "onnxruntime-node": true,
+    "opencode-ai": true
   },
   "overrides": {
     "browserslist": "^4.28.8",
