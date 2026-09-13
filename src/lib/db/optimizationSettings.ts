@@ -244,11 +244,12 @@ export function applyDatabaseOptimizationSettingsForDb(
 
 export function applyStoredDatabaseOptimizationSettings(db: SqliteDatabase): void {
   const settings = readDatabaseOptimizationSettings(db);
-  // Startup can happen concurrently in test workers and clustered hosts. Only
-  // restore connection-local settings here; page_size/auto_vacuum require VACUUM
-  // and are applied synchronously when the Storage settings are saved.
+  // When optimizeOnStartup is enabled, apply persistent pragmas (auto_vacuum,
+  // page_size) that require VACUUM.  This is safe on single-instance deploys;
+  // clustered hosts and test workers should set optimizeOnStartup=false and
+  // manage the VACUUM externally to avoid contention.
   applyDatabaseOptimizationSettingsForDb(db, settings, {
-    applyPersistent: false,
+    applyPersistent: settings.optimizeOnStartup,
   });
 }
 
