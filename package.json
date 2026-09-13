@@ -394,7 +394,14 @@
       "esbuild",
       "omniroute",
       "sharp"
-    ]
+    ],
+    "overrides": {
+      "sharp": ">=0.35.4",
+      "adm-zip": ">=0.6.0",
+      "dompurify": ">=3.4.14",
+      "qs": ">=6.16.0",
+      "extract-zip": ">=2.0.1"
+    }
   },
   "overrides": {
     "browserslist": "^4.28.8",

@@ -151,7 +151,11 @@ export function compressToolResults(body: ChatBody): {
   applied: boolean;
 } {
   if (!body.messages) return { body, applied: false };
-  const MAX_TOOL_LENGTH = 2000;
+  // #13178: configurable via OMNIROUTE_LITE_MAX_TOOL_LENGTH env var (default 2000).
+  const MAX_TOOL_LENGTH = (() => {
+    const n = Number(process.env.OMNIROUTE_LITE_MAX_TOOL_LENGTH);
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : 2000;
+  })();
   let applied = false;
   const messages = body.messages.map((msg) => {
     if (msg.role !== "tool" || typeof msg.content !== "string") return msg;
