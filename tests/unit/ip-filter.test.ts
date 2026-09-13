@@ -77,6 +77,18 @@ test("whitelist: CIDR match", () => {
   assert.equal(checkIP("11.0.0.1").allowed, false);
 });
 
+test("whitelist: empty whitelist allows all IPs (admin can still reach dashboard)", () => {
+  configureIPFilter({ enabled: true, mode: "whitelist", whitelist: [] });
+  assert.equal(checkIP("1.2.3.4").allowed, true);
+  assert.equal(checkIP("5.6.7.8").allowed, true);
+});
+
+test("whitelist: non-empty whitelist blocks unlisted IPs", () => {
+  configureIPFilter({ enabled: true, mode: "whitelist", whitelist: ["1.2.3.4"] });
+  assert.equal(checkIP("1.2.3.4").allowed, true);
+  assert.equal(checkIP("5.6.7.8").allowed, false);
+});
+
 // ─── Whitelist Priority Mode ────────────────────────────────────────────────
 
 test("whitelist-priority: whitelist overrides blacklist", () => {
