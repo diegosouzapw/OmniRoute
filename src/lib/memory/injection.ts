@@ -165,6 +165,14 @@ function injectSystemFirst(
   count: number
 ): ChatRequest {
   log.info("memory.injection.injected", { count, strategy: "system-first", model: request.model });
+
+  // #13425: When the body carries a top-level `system` field (Anthropic-shaped
+  // requests), merge memory text into it instead of unshifting a role:"system"
+  // message at messages[0] — Anthropic rejects a system role at index 0.
+  if (typeof request.system === "string" && request.system.length > 0) {
+    return { ...request, system: `${memoryText}\n${request.system}` };
+  }
+
   const first = messages[0];
   if (first && first.role === "system") {
     const merged: ChatMessage = { ...first, content: `${memoryText}\n${first.content}` };
