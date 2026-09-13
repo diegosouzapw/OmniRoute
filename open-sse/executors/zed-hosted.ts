@@ -92,7 +92,13 @@ function buildProviderRequest(
     return openaiToClaudeRequest(model, body, true);
   }
   if (provider === ZED_PROVIDER.google) {
-    return openaiToGeminiRequest(model, body as Record<string, unknown>, true, credentials);
+    const geminiReq = openaiToGeminiRequest(
+      model,
+      body as Record<string, unknown>,
+      true,
+      credentials
+    ) as Record<string, unknown>;
+    return normalizeForZedProxy(geminiReq);
   }
   if (provider === ZED_PROVIDER.openai) {
     return openaiToOpenAIResponsesRequest(model, body, true, credentials);
@@ -122,6 +128,34 @@ function convertProviderEvent(
   if (provider === ZED_PROVIDER.google) return geminiToOpenAIResponse(event, state);
   if (provider === ZED_PROVIDER.openai) return openaiResponsesToOpenAIResponse(event, state);
   return event;
+}
+
+function normalizeForZedProxy(req: Record<string, unknown>): Record<string, unknown> {
+  // Zed's Google proxy (crates/google_ai/src/google_ai.rs) uses BLOCK_* enum
+  // variants instead of Google's raw "OFF".  Map the threshold so the request
+  // is accepted.  See #13363.
+  if (Array.isArray(req.safetySettings)) {
+    req.safetySettings = req.safetySettings.map(
+      (s: Record<string, unknown>) =>
+        s.threshold === "OFF" ? { ...s, threshold: "BLOCK_NONE" } : s
+    );
+  }
+
+  // Zed's FunctionCallingMode is lowercase (auto/any/none) — the uppercase
+  // VALIDATED/AUTO/NONE/ANY from the OpenAI→Gemini translator must be
+  // lowercased.  See #13363.
+  const tc = req.toolConfig as Record<string, unknown> | undefined;
+  if (tc && typeof tc === "object") {
+    const fcc = tc.functionCallingConfig as Record<string, unknown> | undefined;
+    if (fcc && typeof fcc === "object" && typeof fcc.mode === "string") {
+      const mode = fcc.mode;
+      if (mode === "VALIDATED" || mode === "AUTO") fcc.mode = "auto";
+      else if (mode === "ANY") fcc.mode = "any";
+      else if (mode === "NONE") fcc.mode = "none";
+    }
+  }
+
+  return req;
 }
 
 const MAX_ZED_FAILURE_MESSAGE_LENGTH = 512;
