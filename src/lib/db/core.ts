@@ -883,6 +883,15 @@ function createManagedDbBackup(db: SqliteDatabase, reason: string): boolean {
 
     db.exec(`VACUUM INTO '${escapedBackupPath}'`);
     console.log(`[DB] Backup created (${reason}): ${backupPath}`);
+
+    // #13308: prune old backups after creating a new one so db_backups/ does not
+    // grow without bound. The health-check-repair path creates a snapshot on every
+    // startup even for a healthy database, and without pruning each restart adds a
+    // full-sized copy. Dynamic import avoids a circular dependency with backup.ts.
+    import("./backup")
+      .then(({ cleanupDbBackups }) => cleanupDbBackups({ backupDir }))
+      .catch(() => {});
+
     return true;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
