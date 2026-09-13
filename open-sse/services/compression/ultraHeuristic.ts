@@ -19,18 +19,12 @@ export const STOPWORDS = new Set([
   "have",
   "has",
   "had",
-  "do",
-  "does",
-  "did",
   "will",
   "would",
   "could",
-  "should",
   "may",
   "might",
   "shall",
-  "can",
-  "need",
   "dare",
   "ought",
   "used",
@@ -59,7 +53,6 @@ export const STOPWORDS = new Set([
   "and",
   "but",
   "or",
-  "nor",
   "for",
   "yet",
   "so",
@@ -88,8 +81,6 @@ export const STOPWORDS = new Set([
   "even",
   "still",
   "already",
-  "always",
-  "never",
   "often",
   "usually",
   "sometimes",
@@ -97,8 +88,26 @@ export const STOPWORDS = new Set([
   "there",
 ]);
 
+// #13454: Polarity / modality words that carry the constraint of an instruction.
+// Dropping them inverts meaning ("never delete" → "delete"), which is worse
+// than not compressing at all.  Scored 1.0 like FORCE_PRESERVE_RE tokens.
+export const POLARITY_WORDS = new Set([
+  "never", "always", "no", "not", "nor",
+  "do", "does", "did", "don't", "doesn't", "didn't",
+  "should", "shouldn't",
+  "can", "cannot", "can't",
+  "must", "mustn't",
+  "need", "needs", "needed",
+  "shall", "shallnot",
+  "won't", "wouldn't", "couldn't", "maynot", "mightnot",
+]);
+
 /** Regex for tokens that must never be pruned */
 export const FORCE_PRESERVE_RE = /\d|https?:\/\/|[._\/\\]|Error:|Exception:|```/i;
+
+// #13454: Combined polarity + force-preserve check.  Called before the STOPWORDS
+// lookup so polarity words always score 1.0 regardless of length.
+const POLARITY_RE = /^(?:never|always|no|not|nor|do(?:es(?:n't)?|n't)?|did(?:n't)?|should(?:n't)?|can(?:not|'t)?|must(?:n't)?|ne(?:ed(?:s|ed)?|n't)|shall(?:not)?|won't|wouldn't|couldn't|shouldn't|didn't|doesn't|don't|can't|mustn't|needn't|isn't|aren't|wasn't|weren't|hasn't|haven't|hadn't)$/i;
 
 /**
  * Score a single token (word/symbol) for information value.
@@ -106,6 +115,9 @@ export const FORCE_PRESERVE_RE = /\d|https?:\/\/|[._\/\\]|Error:|Exception:|```/
  */
 export function scoreToken(token: string): number {
   if (FORCE_PRESERVE_RE.test(token)) return 1.0;
+  // #13454: polarity / modality words must never be pruned — dropping them
+  // inverts the instruction ("never delete" → "delete").
+  if (POLARITY_RE.test(token)) return 1.0;
   const lower = token.toLowerCase();
   if (STOPWORDS.has(lower)) return 0.1;
   if (token.length <= 2) return 0.2;
@@ -152,6 +164,8 @@ export function pruneByScore(text: string, keepRate = 0.5, minScore = 0.3): stri
       return keep ? t : "";
     })
     .join("")
-    .replace(/\s{2,}/g, " ")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/ \n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
