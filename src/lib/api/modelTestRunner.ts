@@ -158,6 +158,8 @@ async function findProviderNodeApiType(providerId: string): Promise<string | und
   }
 }
 
+const NON_CHAT_GENERATION_ENDPOINTS = new Set(["images", "image", "music", "video", "audio"]);
+
 export function buildInternalChatRequest(
   testBody: Record<string, unknown>,
   signal: AbortSignal,
@@ -306,7 +308,15 @@ export function detectTestKind(modelStr: string, customModel: any, nodeApiType?:
     (apiFormat === "responses" ||
       nodeType === "responses" ||
       supportedEndpoints.includes("responses"));
-  return { isRerank, isEmbedding, isAudioTranscription, isResponses };
+  // #13376: image/music/video/audio generation models are not chat-testable.
+  // Dispatching them as chatCompletion burns billable generations for no useful
+  // health signal.  Detect via supportedEndpoints or apiFormat.
+  const isNonChatGeneration =
+    !isRerank &&
+    !isEmbedding &&
+    (supportedEndpoints.some((ep: string) => NON_CHAT_GENERATION_ENDPOINTS.has(ep)) ||
+      ["image-generation", "music-generation", "video-generation", "audio-generation"].includes(apiFormat));
+  return { isRerank, isEmbedding, isAudioTranscription, isResponses, isNonChatGeneration };
 }
 
 /**
@@ -465,11 +475,24 @@ export async function runSingleModelTest(
     findCustomModelMetadata(providerId, fullModelStr),
     findProviderNodeApiType(providerId),
   ]);
-  const { isRerank, isEmbedding, isAudioTranscription, isResponses } = detectTestKind(
+  const { isRerank, isEmbedding, isAudioTranscription, isResponses, isNonChatGeneration } = detectTestKind(
     fullModelStr,
     customModel,
     nodeApiType
   );
+
+  // #13376: image/music/video/audio generation models are not chat-testable.
+  // Dispatching them as chatCompletion burns billable generations for no useful
+  // health signal.  Return immediately so the batch loop skips them.
+  if (isNonChatGeneration) {
+    return {
+      modelId: fullModelStr,
+      status: "error",
+      latencyMs: 0,
+      httpStatus: 400,
+      error: "Skipped: image/music/video/audio generation model (not chat-testable)",
+    };
+  }
 
   const testBody = isRerank
     ? {
