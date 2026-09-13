@@ -1956,18 +1956,16 @@ export function checkFallbackError(
       }
     }
 
-    // T10 (sub2api #1169) + #8247: credits/quota exhausted; *-compatible-* nicknames stay model-scoped
+    // T10 (sub2api #1169) + #8247: credits/quota exhausted; per-model-quota providers stay model-scoped
     // unless the body is an account-level Open Platform empty wallet.
-    if (
-      shouldUseQuotaSignal &&
-      isCreditsExhausted(errorStr) &&
-      (!isCompatibleProvider(provider) || isMoonshotAccountBalanceExhausted(errorStr))
-    ) {
+    if (shouldUseQuotaSignal && isCreditsExhausted(errorStr)) {
       return {
         shouldFallback: true,
         cooldownMs: COOLDOWN_MS.paymentRequired ?? 3600 * 1000, // 1h cooldown
         reason: RateLimitReason.QUOTA_EXHAUSTED,
-        creditsExhausted: true,
+        ...(!hasPerModelQuota(provider, _model) || isMoonshotAccountBalanceExhausted(errorStr)
+          ? { creditsExhausted: true }
+          : {}),
       };
     }
 
