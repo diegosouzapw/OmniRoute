@@ -56,6 +56,13 @@ export interface RegistryModel {
   liveCatalogIds?: readonly string[];
   toolCalling?: boolean;
   supportsReasoning?: boolean;
+  /**
+   * Model reasons unconditionally (always-on reasoning). When true,
+   * ensureThinkingBudget treats it as implicit reasoning opt-in so a tiny
+   * caller max_tokens gets the 4096 floor even without explicit thinking
+   * settings (#13198).
+   */
+  alwaysReasons?: boolean;
   supportedThinkingEfforts?: readonly string[];
   supportsVision?: boolean;
   supportsAudio?: boolean;

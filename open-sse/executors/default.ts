@@ -1076,7 +1076,8 @@ export class DefaultExecutor extends BaseExecutor {
     const reasoningEnabled =
       thinking?.type === "enabled" ||
       (typeof effort === "string" && effort !== "none" && effort !== "off") ||
-      effort === true;
+      effort === true ||
+      modelEntry.alwaysReasons === true;
     if (!reasoningEnabled) return body;
 
     const MIN_TOKENS = 4096;
