@@ -95,7 +95,13 @@ function buildProviderRequest(
     return openaiToGeminiRequest(model, body as Record<string, unknown>, true, credentials);
   }
   if (provider === ZED_PROVIDER.openai) {
-    return openaiToOpenAIResponsesRequest(model, body, true, credentials);
+    const responsesReq = openaiToOpenAIResponsesRequest(
+      model,
+      body,
+      true,
+      credentials
+    ) as Record<string, unknown>;
+    return normalizeForZedProxy(responsesReq);
   }
   return {
     ...(body as Record<string, unknown>),
@@ -122,6 +128,49 @@ function convertProviderEvent(
   if (provider === ZED_PROVIDER.google) return geminiToOpenAIResponse(event, state);
   if (provider === ZED_PROVIDER.openai) return openaiResponsesToOpenAIResponse(event, state);
   return event;
+}
+
+function normalizeForZedProxy(req: Record<string, unknown>): Record<string, unknown> {
+  // Zed's Google proxy (crates/google_ai/src/google_ai.rs) uses BLOCK_* enum
+  // variants instead of Google's raw "OFF".  Map the threshold so the request
+  // is accepted.  See #13363.
+  if (Array.isArray(req.safetySettings)) {
+    req.safetySettings = req.safetySettings.map(
+      (s: Record<string, unknown>) =>
+        s.threshold === "OFF" ? { ...s, threshold: "BLOCK_NONE" } : s
+    );
+  }
+
+  // Zed's FunctionCallingMode is lowercase (auto/any/none) — the uppercase
+  // VALIDATED / AUTO / NONE / ANY from the OpenAI→Gemini translator must be
+  // lowercased.  See #13363.
+  const tc = req.toolConfig as Record<string, unknown> | undefined;
+  if (tc && typeof tc === "object") {
+    const fcc = tc.functionCallingConfig as Record<string, unknown> | undefined;
+    if (fcc && typeof fcc === "object" && typeof fcc.mode === "string") {
+      const mode = fcc.mode;
+      if (mode === "VALIDATED" || mode === "AUTO") fcc.mode = "auto";
+      else if (mode === "ANY") fcc.mode = "any";
+      else if (mode === "NONE") fcc.mode = "none";
+    }
+  }
+
+  // Zed's OpenAI proxy (crates/open_ai/src/open_ai.rs) only accepts
+  // User / Assistant / System / Tool roles — not "developer".  Map any
+  // developer-role input items to system so the request is accepted.  See #13362.
+  if (Array.isArray(req.input)) {
+    for (const item of req.input) {
+      if (
+        item &&
+        typeof item === "object" &&
+        (item as Record<string, unknown>).role === "developer"
+      ) {
+        (item as Record<string, unknown>).role = "system";
+      }
+    }
+  }
+
+  return req;
 }
 
 const MAX_ZED_FAILURE_MESSAGE_LENGTH = 512;
