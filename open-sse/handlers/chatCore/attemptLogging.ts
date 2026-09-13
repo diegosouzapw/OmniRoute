@@ -169,8 +169,13 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     }
   }
 
+  // #13481: Each combo attempt must get its own log id. Previously all attempts
+  // shared `pendingRequestId`, so the successful member's insert hit the UNIQUE
+  // constraint and was silently dropped — only failed steps appeared in the dashboard.
+  // `traceId` is unique per attempt (emitted in `request.started`) and pairs with
+  // the lifecycle events; `pendingRequestId` stays in `correlationId` for grouping.
   saveCallLog({
-    id: pendingRequestId,
+    id: traceId,
     method: "POST",
     path: clientRawRequest?.endpoint || "/v1/chat/completions",
     status,
