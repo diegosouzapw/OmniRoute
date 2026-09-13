@@ -1006,6 +1006,20 @@ export async function getProviderCredentials(
     ];
     if (providerMaps.some((map) => map[resolvedId]?.noAuth)) {
       if (await isNoAuthProviderBlockedBySettings(resolvedId)) return null;
+      // #13483: Check model lockout for the synthetic noauth connection.
+      // Previously, noauth providers returned early without consulting model
+      // lockouts, so a model_capacity lockout was recorded but never enforced —
+      // every request retried the same locked model, paying a wasted round-trip.
+      if (requestedModel && isModelLocked(resolvedId, SYNTHETIC_NOAUTH_CONNECTION_ID, requestedModel)) {
+        const lockout = getModelLockoutInfo(resolvedId, SYNTHETIC_NOAUTH_CONNECTION_ID, requestedModel);
+        log.info(
+          "AUTH",
+          `${resolvedId}:${SYNTHETIC_NOAUTH_CONNECTION_ID} model lockout active for ${requestedModel}` +
+          (lockout ? ` — expires ${lockout.expiresAt}, reason=${lockout.reason}` : "")
+        );
+        return null;
+      }
+
       // #3061: there is only one synthetic "noauth" connection for a no-auth
       // provider. If the caller already tried and excluded it (account-fallback
       // after a persistent upstream error), do NOT hand it back — that would let
