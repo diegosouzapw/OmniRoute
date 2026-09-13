@@ -48,4 +48,5 @@ export const HARDCODED_MODELS_CONFIG_IDS: ReadonlySet<string> = new Set([
   "thebai",
   "together",
   "xai",
+  "xai-oauth",
 ]);
