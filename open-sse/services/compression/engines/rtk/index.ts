@@ -309,7 +309,13 @@ export function processRtkText(
     }
   }
 
-  const deduped = deduplicateRepeatedLines(result, { threshold: config.deduplicateThreshold });
+  // #13388: skip dedup for non-shell tool results (file reads, grep, glob, etc.)
+  // where repeated structural lines are semantically meaningful. Also skip when
+  // the content is a document-like read to avoid false-positive dedup on code files.
+  const shouldSkipDedup = options.skipFilters || isDocumentLikeRead;
+  const deduped = shouldSkipDedup
+    ? { text: result, collapsed: 0 }
+    : deduplicateRepeatedLines(result, { threshold: config.deduplicateThreshold });
   if (deduped.collapsed > 0) {
     result = deduped.text;
     techniquesUsed.push("rtk-dedup");
@@ -336,9 +342,10 @@ export function processRtkText(
       return [];
     }
   });
-  // #4559: skip the generic line/char hard-cap for document/file reads (see
-  // isDocumentLikeRead above) so the middle of a code/prose read is not dropped.
-  const truncated = isDocumentLikeRead
+  // #4559/#13388: skip the generic line/char hard-cap for document/file reads and
+  // non-shell tool results so the middle of a code/prose read is not dropped.
+  const shouldSkipTruncation = options.skipFilters || isDocumentLikeRead;
+  const truncated = shouldSkipTruncation
     ? { text: result, truncated: false, droppedLines: 0 }
     : smartTruncate(result, {
         maxLines: effectiveMaxLines(config.maxLinesPerResult, config.intensity),
