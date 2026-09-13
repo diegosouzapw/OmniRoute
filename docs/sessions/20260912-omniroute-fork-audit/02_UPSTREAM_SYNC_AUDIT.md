@@ -1,52 +1,114 @@
-# OmniRoute Fork Audit -- Upstream Sync Analysis
+# Upstream Sync Audit
 
-> **Date**: 2026-09-12
-> **Fork**: KooshaPari/OmniRoute @ main (3.8.49-koosha.0)
-> **Upstream**: diegosouzapw/OmniRoute @ v3.8.51
-> **Commits behind**: 4,606 (total) / 88 (since fork closeout June 24)
+**Date:** 2026-09-12
+**Fork:** KooshaPari/OmniRoute (main)
+**Upstream:** diegosouzapw/OmniRoute
+**Range:** v3.8.43 (fork base) -> v3.8.50 (latest upstream release)
+**Commits:** 41 upstream commits, 48 fork commits
+**Strategy:** Cherry-pick selective (no merge/rebase due to no common ancestor)
 
 ---
 
-## 1. Upstream Releases Since Fork Point (v3.8.43)
+## Key Findings
 
-| Release | Key Changes |
-|---|---|
-| v3.8.44 | Provider fixes, CI improvements |
-| v3.8.45 | Release pipeline fixes |
-| v3.8.46 | crypto.randomInt for proxy (CodeQL fix) |
-| v3.8.47 | Release pipeline, Docker fixes |
-| v3.8.49 | cliproxy provider exposure controls, adm-zip security bump |
-| v3.8.50 | Major: 10 changelog fragments, install/upgrade schema convergence |
-| v3.8.51 | Current upstream HEAD |
+### No Common Ancestor
 
-## 2. Security Changes (Already Applied in Fork)
+The fork was re-uploaded (not forked via GitHub), so `git merge-base` finds nothing.
+Cherry-pick is the only viable sync strategy.
 
-| Dependency | Fork Version | Upstream Fix | Status |
-|---|---|---|---|
-| adm-zip | ^0.6.0 | >=0.6.0 | **ALREADY PATCHED** |
-| nanoid | ^3.3.17 | ^3.3.17 | **ALREADY PATCHED** |
-| dompurify | ^3.4.14 | ^3.4.13 | **ALREADY PATCHED** |
+### Tags Present
 
-## 3. Security Changes NOT Yet Pulled
+- v3.8.43 (fork base)
+- v3.8.44 through v3.8.50 (upstream releases)
+- v3.9.0 (latest upstream)
+- No v3.8.51 exists
 
-| Commit | Subject | Priority |
-|---|---|---|
-| `cba636b9f0` | crypto.randomUUID for ID generation | P1 -- savepoint names still use Math.random |
-| `1eae976b28` | crypto.randomInt for proxy rotation | P1 -- CodeQL fix |
-| `a3ca33fa64` | Claude mid-conversation system message fix | P2 |
+### Fork Divergence
 
-## 4. Critical Bug Fixes NOT Yet Pulled
+The fork has 48 commits on main covering:
+- Pluggable auth provider system
+- Bifrost relay architecture
+- CI pipeline customization
+- Fork identity and branding
+- Various custom fixes (compression, GLM tests, etc.)
 
-| Commit | Subject |
-|---|---|
-| `0ce21232db` | DB schema convergence (ENOSPC fix) |
-| `65e81158ab` | Ollama routing by capability |
-| `c68cda7dfb` | Shared passthrough providers |
+---
 
-## 5. Recommended Sync Strategy
+## Commit Classification (v3.8.43 -> v3.8.50)
 
-1. **Phase 1 (This week)**: Cherry-pick 3-4 critical bug fixes
-2. **Phase 2 (This month)**: Evaluate remaining 80+ commits for relevance
-3. **Phase 3 (Ongoing)**: Establish monthly sync cadence
+### Security Fixes (5 commits)
 
-**Rule**: Cherry-pick selectively, NEVER merge or rebase.
+| Commit | Message | Action |
+|--------|---------|--------|
+| `1eae976b28` | crypto.randomInt for proxy rotation (CodeQL #698/#699) | **CHERRY-PICKED** (ecc525e) |
+| `698b6eb00d` | adm-zip bump + exact host matching | DEFER to npm audit |
+| `026e1cadaa` | nanoid, dompurify bump | DEFER to npm audit |
+| `b090b601a5` | nanoid, dompurify bump (2nd) | DEFER to npm audit |
+| `153f453b0b` | 13 Dependabot + audit cleanup | DEFER to npm audit |
+
+### Critical Bug Fixes (3 commits)
+
+| Commit | Message | Action |
+|--------|---------|--------|
+| `ca23eed77c` | memoize getModelsDevPricing | MANUAL ADAPTATION NEEDED |
+| `5f0a394091` | Hide excluded models from catalog | ALREADY IN FORK |
+| `65e81158ab` | ollama capability routing | SKIP (5094 files; squash) |
+
+### Proxy/Transport (1 commit)
+
+| Commit | Message | Action |
+|--------|---------|--------|
+| `9cd18bf9a1` | force CONNECT tunnel for proxy | MANUAL ADAPTATION NEEDED |
+
+### Deps/Build/CI (8 commits)
+
+| Commit | Message | Action |
+|--------|---------|--------|
+| Various | Dependabot bumps, electron bump, devDeps | DEFER / SKIP |
+
+### Release/CI Infrastructure (11 commits)
+
+| Commit | Message | Action |
+|--------|---------|--------|
+| Various | Release commits, Mergify, CI fixes | SKIP |
+
+### Other (13 commits)
+
+| Commit | Message | Action |
+|--------|---------|--------|
+| Various | Docs, tests, .gitignore hardening | DEFER / SKIP |
+
+---
+
+## Risk Assessment
+
+### Low Risk (Safe to Cherry-Pick)
+
+- `1eae976b28` - crypto.randomInt: Only 2 code files touched
+- `5f0a394091` - catalog exclusion: 1 file, 17 lines (already in fork)
+
+### Medium Risk (Manual Adaptation)
+
+- `ca23eed77c` - memoize pricing: Fork has own caching; needs integration review
+- `9cd18bf9a1` - proxy CONNECT: Fork has modified proxyDispatcher.ts
+
+### High Risk (Skip or Defer)
+
+- `65e81158ab` - ollama routing: 5094 files; entire codebase squash
+- All release commits: Bundle many changes; apply individually instead
+- All Dependabot commits: Handle via `npm audit fix`
+
+---
+
+## Execution Status
+
+See `05_CHERRY_PICK_PLAN.md` for detailed execution tracking.
+
+---
+
+## Files in This Session
+
+- `03_BRANCH_EVAL_REPORT.md` - Branch deletion safety evaluation
+- `04_BIFROST_UPSTREAM_HEALTH.md` - Bifrost relay health assessment
+- `05_CHERRY_PICK_PLAN.md` - Detailed cherry-pick execution plan
+- `06_CI_DRIFT_AUDIT.md` - CI pipeline drift analysis
