@@ -1,0 +1,1 @@
+- **fix(ci):** clear two `release/v3.8.51` release-green HARD failures: drop `any` on `upsertConnection` tests, regenerate provider catalog to 358 ([#12732](https://github.com/diegosouzapw/OmniRoute/issues/12732))

@@ -7,19 +7,10 @@ import { v4 as uuidv4 } from "uuid";
 import { isCommonChatGptWebRetiredProviderId } from "@/shared/constants/chatgptWebRetirement";
 import { getDbInstance, rowToCamel, cleanNulls } from "./core";
 import { backupDbFile } from "./backup";
-import {
-  encryptConnectionFields,
-  decryptConnectionFields,
-  migrateLegacyEncryptedString,
-} from "./encryption";
+import { encryptConnectionFields, decryptConnectionFields } from "./encryption";
 import { createLazyRowProxy } from "./providers/lazyConnectionView";
 import { invalidateDbCache, getCachedRawProviderConnections } from "./readCache";
 import { reorderConnections } from "./providers/deletion";
-import {
-  removeConnectionHealth,
-  removeConnectionIndex,
-} from "@omniroute/open-sse/services/apiKeyRotator.ts";
-import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { withDerivedCookieExpiry } from "@/shared/utils/webCookieExpiry";
 import { WEB_COOKIE_PROVIDERS } from "@/shared/constants/providers";
@@ -330,32 +321,7 @@ export async function getRawProviderConnections(
   });
 }
 
-export function getProviderConnectionsCount(filter: JsonRecord = {}): number {
-  const db = getDbInstance() as unknown as DbLike;
-  let sql = "SELECT count(*) as cnt FROM provider_connections";
-  const conditions: string[] = [];
-  const params: Record<string, unknown> = {};
-
-  if (filter.provider) {
-    conditions.push("provider = @provider");
-    params.provider = filter.provider;
-  }
-  if (filter.isActive !== undefined) {
-    conditions.push("is_active = @isActive");
-    params.isActive = filter.isActive ? 1 : 0;
-  }
-  if (filter.authType) {
-    conditions.push("auth_type = @authType");
-    params.authType = filter.authType;
-  }
-
-  if (conditions.length > 0) {
-    sql += " WHERE " + conditions.join(" AND ");
-  }
-
-  const row = db.prepare(sql).get(params) as { cnt: number };
-  return row.cnt;
-}
+export { getProviderConnectionsCount } from "./providers/count";
 
 export async function getProviderConnectionById(id: string) {
   const db = getDbInstance() as unknown as DbLike;

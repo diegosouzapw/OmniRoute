@@ -394,9 +394,12 @@ test("stream request finalization never warns with a raw error object", () => {
 
 test("chatCore provider-failure writes use the projected persistent message", () => {
   const source = fs.readFileSync(path.join(REPO_ROOT, "open-sse/handlers/chatCore.ts"), "utf8");
-  const failureStart = source.indexOf("providerFailure: if (!providerResponse.ok)");
-  const failureEnd = source.indexOf("// Non-streaming response", failureStart);
-  assert.ok(failureStart >= 0 && failureEnd > failureStart, "providerFailure block must exist");
+  const failureStart = source.indexOf("const applyProviderFailureClassification");
+  const failureEnd = source.indexOf("providerFailure:", failureStart);
+  assert.ok(
+    failureStart > 0 && failureEnd > failureStart,
+    "applyProviderFailureClassification block must exist"
+  );
   const failureBlock = source.slice(failureStart, failureEnd);
 
   assert.doesNotMatch(failureBlock, /lastError:\s*message\b/);

@@ -261,6 +261,9 @@ describe("Mode pack ranking gates (cold/warm/health)", () => {
   }
   it("cold pool ranking unchanged (reliability 1, quality 0.5 neutrals)", () => {
     const a: ProviderCandidate = {
+      provider: "probe-1",
+      model: "probe-model-1",
+      errorRate: 0,
       circuitBreakerState: "CLOSED",
       failureRate: undefined,
       quality: undefined,
@@ -272,6 +275,9 @@ describe("Mode pack ranking gates (cold/warm/health)", () => {
       latencyStdDev: 10,
     };
     const b: ProviderCandidate = {
+      provider: "probe-2",
+      model: "probe-model-2",
+      errorRate: 0,
       circuitBreakerState: "CLOSED",
       failureRate: undefined,
       quality: undefined,
@@ -287,6 +293,9 @@ describe("Mode pack ranking gates (cold/warm/health)", () => {
   });
   it("warm reliability 0.01 vs 0.4 flips winner at health tie", () => {
     const highFail: ProviderCandidate = {
+      provider: "probe-3",
+      model: "probe-model-3",
+      errorRate: 0,
       circuitBreakerState: "CLOSED",
       failureRate: 0.4,
       quality: 0.5,
@@ -298,6 +307,9 @@ describe("Mode pack ranking gates (cold/warm/health)", () => {
       latencyStdDev: 10,
     };
     const lowFail: ProviderCandidate = {
+      provider: "probe-4",
+      model: "probe-model-4",
+      errorRate: 0,
       circuitBreakerState: "CLOSED",
       failureRate: 0.01,
       quality: 0.5,
@@ -313,6 +325,9 @@ describe("Mode pack ranking gates (cold/warm/health)", () => {
   });
   it("boundedRate NaN yields reliability 1", () => {
     const c: ProviderCandidate = {
+      provider: "probe-5",
+      model: "probe-model-5",
+      errorRate: 0,
       circuitBreakerState: "CLOSED",
       failureRate: NaN,
       quotaRemaining: 50,
@@ -327,6 +342,9 @@ describe("Mode pack ranking gates (cold/warm/health)", () => {
   });
   it("health CLOSED vs HALF_OPEN still outweighs reliability gap", () => {
     const healthyHighFail: ProviderCandidate = {
+      provider: "probe-6",
+      model: "probe-model-6",
+      errorRate: 0,
       circuitBreakerState: "CLOSED",
       failureRate: 0.4,
       quality: 0.5,
@@ -338,6 +356,9 @@ describe("Mode pack ranking gates (cold/warm/health)", () => {
       latencyStdDev: 10,
     };
     const halfOpenLowFail: ProviderCandidate = {
+      provider: "probe-7",
+      model: "probe-model-7",
+      errorRate: 0,
       circuitBreakerState: "HALF_OPEN",
       failureRate: 0.01,
       quality: 0.5,

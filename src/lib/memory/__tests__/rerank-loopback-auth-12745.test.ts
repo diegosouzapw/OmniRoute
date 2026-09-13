@@ -27,7 +27,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 process.env.VECTOR_STORE_DISABLE_VEC = "true";
 
-const INTERNAL_KEY = "sk-internal-test-key-12745";
+const INTERNAL_KEY = "omniroute-internal-rerank-loopback-12745";
 
 vi.mock("../settings", () => ({
   getMemorySettings: async () => ({

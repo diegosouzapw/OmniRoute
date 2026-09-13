@@ -10,9 +10,8 @@ import assert from "node:assert/strict";
  * same defect register one rule array — no pipeline changes.
  */
 
-const { applyStatusRestatement, statusRestatementRegistry } = await import(
-  "../../open-sse/config/upstreamStatusRestatement.ts"
-);
+const { applyStatusRestatement, statusRestatementRegistry } =
+  await import("../../open-sse/config/upstreamStatusRestatement.ts");
 
 test("R1: agentrouter 403 + 用户额度不足 → 429 with synthetic Retry-After", () => {
   const out = applyStatusRestatement({
@@ -119,8 +118,12 @@ test("R10: chatCore wires applyStatusRestatement into the providerFailure block"
     "utf8"
   );
   assert.match(src, /applyStatusRestatement\(/, "chatCore must call applyStatusRestatement");
-  const hookIndex = src.indexOf("applyStatusRestatement(");
-  const classifyIndex = src.indexOf("classifyProviderError(statusCode");
-  assert.ok(hookIndex > -1 && classifyIndex > -1 && hookIndex < classifyIndex,
-    "restatement must run BEFORE classifyProviderError so fallback sees the corrected status");
+  const failIdx = src.indexOf("providerFailure");
+  assert.ok(failIdx >= 0, "providerFailure block present");
+  const restatementInFail = src.indexOf("applyStatusRestatement(", failIdx);
+  const classifyHelper = src.indexOf("applyProviderFailureClassification(", failIdx);
+  assert.ok(
+    restatementInFail >= 0 && classifyHelper > restatementInFail,
+    "streaming error path restates status before applyProviderFailureClassification"
+  );
 });
