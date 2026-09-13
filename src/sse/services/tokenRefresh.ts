@@ -2,7 +2,7 @@
 import * as log from "../utils/logger";
 import { updateProviderConnection } from "@/lib/db/providers";
 import { resolveProxyForConnection } from "@/lib/db/settings";
-import { resolveProxyForProvider } from "@/lib/db/proxies";
+import { resolveProxyForProvider, hasBlockingProxyAssignment } from "@/lib/db/proxies";
 import {
   TOKEN_EXPIRY_BUFFER_MS as BUFFER_MS,
   getRefreshLeadMs as _getRefreshLeadMs,
@@ -29,11 +29,28 @@ import {
 
 export const TOKEN_EXPIRY_BUFFER_MS = BUFFER_MS;
 
+const PROXY_FAIL_OPEN =
+  (process.env.PROXY_FAIL_OPEN ?? "").trim().toLowerCase() === "true";
+
 async function resolveProxyForCredentials(provider: string, credentials?: any) {
   if (credentials?.connectionId) {
     const resolved = await resolveProxyForConnection(credentials.connectionId);
     if (resolved?.proxy) {
       return resolved.proxy;
+    }
+    // #13470: If the connection had a proxy assignment but the pool is dead,
+    // the refresh should not silently egress on the host IP. Consult the
+    // PROXY_FAIL_OPEN flag that governs this decision.
+    if (hasBlockingProxyAssignment(credentials.connectionId, provider)) {
+      if (!PROXY_FAIL_OPEN) {
+        throw new Error(
+          "PROXY_ASSIGNED_UNAVAILABLE: assigned proxy pool is dead and direct refresh is not allowed (PROXY_FAIL_OPEN is not set)"
+        );
+      }
+      log.warn(
+        "TOKEN_REFRESH",
+        `PROXY_FAIL_OPEN=true: proxy pool dead for ${provider}, allowing direct refresh`
+      );
     }
   }
 
