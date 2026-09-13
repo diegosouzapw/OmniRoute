@@ -27,7 +27,9 @@ type CodexRotationEnvelope = {
 };
 
 function baseCtx(overrides: Record<string, unknown> = {}) {
+  const pendingRequestId = (overrides.pendingRequestId as string) ?? "default-pending-request-id";
   return {
+    traceId: pendingRequestId,
     provider: "openai",
     connectionId: "conn-1",
     model: "gpt-x",
@@ -135,4 +137,43 @@ test("connectionId falls back to credentials.connectionId when null, and error i
   assert.equal(row.connectionId, "cred-conn");
   assert.equal(row.status, 502);
   assert.match(String(row.error ?? ""), /upstream boom/);
+});
+
+// #13481: Combo attempts must use traceId as the log id, not pendingRequestId.
+// When a combo fails over, each attempt has a unique traceId but shares the
+// same pendingRequestId. Using pendingRequestId as the log id caused a UNIQUE
+// constraint violation — only the first (failed) attempt was logged.
+test("combo attempt uses traceId as the log id, not pendingRequestId", async () => {
+  const traceId = "combo-trace-attempt-2";
+  const pendingRequestId = "combo-shared-request-id";
+  persistAttemptLogs(
+    { status: 200, tokens: { input: 10, output: 20 } },
+    baseCtx({
+      traceId,
+      pendingRequestId,
+      comboName: "my-combo",
+      comboStepId: "my-combo-model-2",
+    })
+  );
+  // The row should be findable by traceId (the unique per-attempt id)
+  const row = await pollForCallLog(traceId);
+  assert.ok(row, "call log row should be persisted with traceId as id");
+  assert.equal(row.status, 200);
+  assert.equal(row.comboStepId, "my-combo-model-2");
+
+  // A second attempt with the same pendingRequestId but different traceId should
+  // NOT fail with UNIQUE constraint
+  const traceId2 = "combo-trace-attempt-3";
+  persistAttemptLogs(
+    { status: 200, tokens: { input: 30, output: 40 } },
+    baseCtx({
+      traceId: traceId2,
+      pendingRequestId,
+      comboName: "my-combo",
+      comboStepId: "my-combo-model-3",
+    })
+  );
+  const row2 = await pollForCallLog(traceId2);
+  assert.ok(row2, "second combo attempt should also be persisted");
+  assert.equal(row2.comboStepId, "my-combo-model-3");
 });
