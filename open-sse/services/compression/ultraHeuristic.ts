@@ -3,6 +3,10 @@
  *
  * Scores tokens by information density and prunes low-value tokens
  * to achieve a target compression rate.
+ *
+ * #13454: Polarity/modality words (never, always, no, not, must, etc.) must
+ * NOT be prunable — dropping them flips the meaning of the sentence.
+ * "must never be deleted" → "must deleted" is worse than no compression.
  */
 
 export const STOPWORDS = new Set([
@@ -19,18 +23,17 @@ export const STOPWORDS = new Set([
   "have",
   "has",
   "had",
-  "do",
-  "does",
-  "did",
+  // #13454: "do/does/did" removed — carry polarity in imperatives
+  // ("do not push") and negations ("don't"). Dropping them flips
+  // instruction meaning.
   "will",
   "would",
   "could",
-  "should",
+  // #13454: "should" removed — modality word in instructions.
   "may",
   "might",
   "shall",
-  "can",
-  "need",
+  // #13454: "can/need" removed — modal auxiliaries in instructions.
   "dare",
   "ought",
   "used",
@@ -59,7 +62,7 @@ export const STOPWORDS = new Set([
   "and",
   "but",
   "or",
-  "nor",
+  // #13454: "nor" removed — negation word.
   "for",
   "yet",
   "so",
@@ -88,8 +91,8 @@ export const STOPWORDS = new Set([
   "even",
   "still",
   "already",
-  "always",
-  "never",
+  // #13454: "always/never" removed — polarity words, highest-value tokens
+  // in instructions. "never" → score 0.1 was the root cause of #13454.
   "often",
   "usually",
   "sometimes",
@@ -100,6 +103,20 @@ export const STOPWORDS = new Set([
 /** Regex for tokens that must never be pruned */
 export const FORCE_PRESERVE_RE = /\d|https?:\/\/|[._\/\\]|Error:|Exception:|```/i;
 
+// #13454: Polarity, modality, and negation words that must never be pruned.
+// Dropping these flips the meaning of the sentence they appear in.
+const POLARITY_WORDS = new Set([
+  "never", "always", "no", "not", "nor",
+  "must", "shall", "shall not",
+  "do", "does", "did",
+  "don't", "doesn't", "didn't",
+  "can", "cannot", "can't",
+  "should", "shouldn't",
+  "need", "needs", "mustn't",
+  "won't", "wouldn't",
+  "could", "couldn't",
+]);
+
 /**
  * Score a single token (word/symbol) for information value.
  * Returns 0.0 (prune candidate) to 1.0 (must keep).
@@ -107,6 +124,8 @@ export const FORCE_PRESERVE_RE = /\d|https?:\/\/|[._\/\\]|Error:|Exception:|```/
 export function scoreToken(token: string): number {
   if (FORCE_PRESERVE_RE.test(token)) return 1.0;
   const lower = token.toLowerCase();
+  // #13454: polarity words always score 1.0 — never prunable
+  if (POLARITY_WORDS.has(lower)) return 1.0;
   if (STOPWORDS.has(lower)) return 0.1;
   if (token.length <= 2) return 0.2;
   if (/^[A-Z]/.test(token)) return 0.8; // proper nouns / identifiers
@@ -152,6 +171,8 @@ export function pruneByScore(text: string, keepRate = 0.5, minScore = 0.3): stri
       return keep ? t : "";
     })
     .join("")
-    .replace(/\s{2,}/g, " ")
+    // #13454: Only collapse spaces/tabs, NOT newlines.
+    // Collapsing newlines destroys bullet lists, headings, and code fences.
+    .replace(/[ \t]{2,}/g, " ")
     .trim();
 }
