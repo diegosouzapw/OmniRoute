@@ -49,10 +49,32 @@ function buildAppliedRulesSummary(
 function truncateToolList(
   bodyToSend: Body,
   provider: string | null | undefined,
+  bypassDefaultToolLimit: boolean,
   log?: LoggerLike
 ): Body {
+  if (!Array.isArray(bodyToSend.tools)) return bodyToSend;
+
+  // #13190: Check bypass first — an operator's explicit override should take
+  // precedence over any detected provider limit.
+  if (bypassDefaultToolLimit === true) return bodyToSend;
+
+  const knownLimit = getKnownToolLimit(provider);
+  if (knownLimit !== null) {
+    if (bodyToSend.tools.length > knownLimit) {
+      const originalCount = bodyToSend.tools.length;
+      const truncatedTools = bodyToSend.tools.slice(0, knownLimit);
+      bodyToSend = { ...bodyToSend, tools: truncatedTools };
+      log?.debug?.(
+        "TOOL_LIMIT",
+        `Truncated ${originalCount} tools to ${knownLimit} for ${provider}`
+      );
+    }
+    return bodyToSend;
+  }
+
   const effectiveToolLimit = getEffectiveToolLimit(provider);
-  if (Array.isArray(bodyToSend.tools) && bodyToSend.tools.length > effectiveToolLimit) {
+  if (bodyToSend.tools.length > effectiveToolLimit) {
+    const originalCount = bodyToSend.tools.length;
     const truncatedTools = bodyToSend.tools.slice(0, effectiveToolLimit);
     bodyToSend = { ...bodyToSend, tools: truncatedTools };
     log?.debug?.(
