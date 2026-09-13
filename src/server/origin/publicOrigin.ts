@@ -3,10 +3,7 @@ import { PEER_IP_HEADER } from "@/server/authz/headers";
 import { resolveStampedPeer } from "@/server/authz/peerStamp";
 
 export type PublicOriginSource =
-  | "configured"
-  | "trusted-forwarded"
-  | "request-url"
-  | "direct-local-host";
+  "configured" | "trusted-forwarded" | "request-url" | "direct-local-host";
 
 export interface PublicOriginCandidate {
   origin: string;
@@ -200,7 +197,7 @@ function directLocalHostOrigin(request: Request): string | null {
   if (classifyHostLocality(peer) === "remote") return null;
 
   const rawHost = trustsForwardedHeaders(request)
-    ? firstHeaderValue(request.headers.get("x-forwarded-host")) ?? request.headers.get("host")
+    ? (firstHeaderValue(request.headers.get("x-forwarded-host")) ?? request.headers.get("host"))
     : request.headers.get("host");
   const host = sanitizeForwardedHost(rawHost);
   if (!host) return null;
@@ -246,7 +243,8 @@ export function resolvePublicOrigin(request: Request): PublicOriginCandidate {
   const requestOrigin = requestUrlOrigin(request);
   if (requestOrigin) return { origin: requestOrigin, source: "request-url" };
 
-  return { origin: "http://localhost:20128", source: "request-url" };
+  const defaultPort = process.env.PORT || process.env.DASHBOARD_PORT || "20128";
+  return { origin: `http://localhost:${defaultPort}`, source: "request-url" };
 }
 
 export function validateBrowserMutationOrigin(request: Request): BrowserMutationOriginVerdict {

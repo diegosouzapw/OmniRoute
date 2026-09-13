@@ -119,7 +119,7 @@
     "lint:json": "node scripts/quality/run-eslint-json.mjs",
     "lint:md": "npx --yes markdownlint-cli2 \"docs/**/*.md\" \"*.md\" \"!docs/i18n\" \"!docs/research\"",
     "lint:prose": "vale docs",
-    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:20128 && cd electron && npm run dev\"",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:${PORT:-20128} && cd electron && npm run dev\"",
     "electron:build": "npm run build && cd electron && npm run build",
     "electron:build:win": "npm run build && cd electron && npm run build:win",
     "electron:build:mac": "npm run build && cd electron && npm run build:mac",

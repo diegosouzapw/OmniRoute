@@ -168,7 +168,9 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   const [ngrokToken, setNgrokToken] = useState("");
   const [showNgrokTunnel, setShowNgrokTunnel] = useState(true);
   const [expandedTunnel, setExpandedTunnel] = useState<string | null>(null);
-  const [localApiUrl, setLocalApiUrl] = useState("http://localhost:20128/v1");
+  const [localApiUrl, setLocalApiUrl] = useState(
+    typeof window !== "undefined" ? `${window.location.origin}/v1` : "http://localhost:20128/v1"
+  );
   const [lanUrls, setLanUrls] = useState<string[]>([]);
   const [tailscaleIpUrl, setTailscaleIpUrl] = useState<string | null>(null);
   const [activeEndpointTab, setActiveEndpointTab] = useState<EndpointTab>("apis");

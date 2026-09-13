@@ -66,6 +66,18 @@ describe("buildAllowedOrigins", () => {
     // Defaults remain.
     assert.equal(out.has("http://localhost:20128"), true);
   });
+
+  it("includes dynamic loopback origins when custom PORT is configured", () => {
+    const env = {
+      ...EMPTY_ENV,
+      PORT: "37128",
+    };
+    const out = buildAllowedOrigins(env);
+    assert.equal(out.has("http://localhost:37128"), true);
+    assert.equal(out.has("http://127.0.0.1:37128"), true);
+    assert.equal(out.has("http://[::1]:37128"), true);
+    assert.equal(out.has("http://localhost:20128"), true);
+  });
 });
 
 describe("buildAllowedHosts", () => {
@@ -148,6 +160,11 @@ describe("isOriginAllowed", () => {
   it("accepts a Tailscale Origin matched by host:port when LIVE_WS_ALLOWED_HOSTS is set", () => {
     const env = { ...EMPTY_ENV, LIVE_WS_ALLOWED_HOSTS: "100.96.135.160:20128" };
     assert.equal(isOriginAllowed("http://100.96.135.160:20128", env), true);
+  });
+
+  it("does not treat a wildcard host as an allow-all origin policy", () => {
+    const env = { ...EMPTY_ENV, LIVE_WS_ALLOWED_HOSTS: "*" };
+    assert.equal(isOriginAllowed("http://100.90.139.116:37128", env), false);
   });
 
   it("does NOT accept a Tailscale Origin when LIVE_WS_ALLOWED_HOSTS is unset", () => {
