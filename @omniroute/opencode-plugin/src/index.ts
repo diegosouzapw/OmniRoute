@@ -5518,9 +5518,20 @@ export function createOmniRouteConfigHook(
         if (modelsFetchThrew && wantDiskCache && !warmSnapshot) {
           const snapshot = await diskSnapshotReader(resolved.providerId, snapshotFingerprint);
           if (snapshot && snapshot.rawModels.length > 0) {
+            // #13390: include cache age in log message so staleness is self-diagnosing.
+            // A few minutes stale is routine; days stale warrants investigation.
+            const cacheAgeMs = typeof snapshot.writtenAt === "number" ? Date.now() - snapshot.writtenAt : 0;
+            const cacheAgeHuman = cacheAgeMs > 0
+              ? cacheAgeMs < 3_600_000
+                ? `${Math.round(cacheAgeMs / 60_000)}m`
+                : cacheAgeMs < 86_400_000
+                  ? `${Math.round(cacheAgeMs / 3_600_000)}h`
+                  : `${Math.round(cacheAgeMs / 86_400_000)}d`
+              : "age unknown";
+            const logLevel = cacheAgeMs > 86_400_000 ? "error" : "warn";
             logAt(
-              "warn",
-              `config shim: /v1/models unreachable; using stale disk cache (${snapshot.rawModels.length} models)`
+              logLevel,
+              `config shim: /v1/models unreachable; using stale disk cache from ${new Date(snapshot.writtenAt ?? 0).toISOString().slice(0, 10)} (${cacheAgeHuman} old, ${snapshot.rawModels.length} models)`
             );
             localRawModels = snapshot.rawModels;
             localRawCombos = snapshot.rawCombos;
