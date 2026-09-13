@@ -128,3 +128,32 @@ test("buildCallLogListRows: dedupes completed in-memory entries already persiste
   // persisted row wins (no `completed` flag)
   assert.equal(rows[0].completed, undefined);
 });
+
+test("buildCallLogListRows: dedupes active in-memory entries already persisted to the DB", () => {
+  // Regression: a retried request persists each failed attempt under its
+  // pendingRequestId while the request is still in-flight (still present in
+  // pendingDetails). Without dedupe the merged list contains the same id
+  // twice and dashboard lists keyed by row id throw React duplicate-key
+  // errors (observed live as `1789286297728-784125` during parallel calls).
+  const now = 5_000_000;
+  const rows = buildCallLogListRows({
+    logs: [{ id: "dup-active-1", timestamp: new Date(now - 1_000).toISOString() }],
+    connections: [],
+    pendingDetails: [
+      {
+        id: "dup-active-1",
+        startedAt: now - 3_000,
+        provider: "lmarena",
+        model: "amazon.nova-pro-v1:0",
+        connectionId: "conn-1",
+      },
+    ],
+    completedDetails: [],
+    now,
+  });
+
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].id, "dup-active-1");
+  // persisted row wins (no `active` flag)
+  assert.equal(rows[0].active, undefined);
+});

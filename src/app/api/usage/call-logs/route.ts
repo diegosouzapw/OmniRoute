@@ -112,6 +112,12 @@ export function buildCallLogListRows({
   const persistedIds = new Set(logs.map((log: any) => log.id).filter(Boolean));
 
   for (const detail of pendingDetails) {
+    // A retried request persists each failed attempt under its pendingRequestId
+    // while still in-flight (still present in pendingDetails). Prefer the
+    // persisted row (it carries the attempt outcome) so the merged list never
+    // contains the same id twice — dashboard lists keyed by row id throw React
+    // duplicate-key errors otherwise. Mirrors the completed-entry guard below.
+    if (persistedIds.has(detail.id)) continue;
     activeEntries.push({
       id: detail.id,
       timestamp: new Date(detail.startedAt).toISOString(),
