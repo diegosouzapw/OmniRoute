@@ -16,7 +16,10 @@ export async function GET(request: Request) {
   if (authError) return authError;
 
   const { searchParams } = new URL(request.url);
-  const baseUrl = searchParams.get("baseUrl") || "http://localhost:20128/v1";
+  const defaultPort = process.env.API_PORT || process.env.PORT || 20128;
+  const defaultBaseUrl =
+    process.env.OMNIROUTE_BASE_URL || process.env.BASE_URL || `http://localhost:${defaultPort}/v1`;
+  const baseUrl = searchParams.get("baseUrl") || defaultBaseUrl;
   const apiKey = searchParams.get("apiKey") || "";
 
   if (!apiKey) {
@@ -46,9 +49,14 @@ export async function POST(request: Request) {
       );
     }
     const { toolId, baseUrl, apiKey, model } = parsed.data;
+    const defaultPort = process.env.API_PORT || process.env.PORT || 20128;
+    const defaultBaseUrl =
+      process.env.OMNIROUTE_BASE_URL ||
+      process.env.BASE_URL ||
+      `http://localhost:${defaultPort}/v1`;
 
     const result = await generateConfig(toolId, {
-      baseUrl: baseUrl || "http://localhost:20128/v1",
+      baseUrl: baseUrl || defaultBaseUrl,
       apiKey,
       model,
     });

@@ -42,7 +42,7 @@ const MITM_IDLE_TIMEOUT_MS =
 const ROUTER_BASE_URL = (
   process.env.OMNIROUTE_BASE_URL ||
   process.env.BASE_URL ||
-  "http://localhost:20128"
+  `http://localhost:${process.env.API_PORT || process.env.PORT || 20128}`
 )
   .trim()
   .replace(/\/+$/, "");
