@@ -125,7 +125,13 @@ export function extractPreservedBlocks(
     },
   ];
 
-  for (const { pattern, kind } of [...builtIns, ...compileUserPatterns(options.preservePatterns)]) {
+  // #13457: User patterns MUST run before built-ins.  Built-ins replace content
+  // with sentinels; if they run first, a user pattern whose match spans a
+  // sentinel-bearing region hits the `includes(SENTINEL_PREFIX)` guard and is
+  // silently skipped -- the operator's preservation rule is ignored with no
+  // warning.  Running user patterns first lets them claim the full region,
+  // and built-ins then skip the sentinel placeholders harmlessly.
+  for (const { pattern, kind } of [...compileUserPatterns(options.preservePatterns), ...builtIns]) {
     result = replacePattern(result, ensureGlobal(pattern), kind, addBlock);
   }
 
