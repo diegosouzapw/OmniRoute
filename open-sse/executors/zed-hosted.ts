@@ -92,10 +92,38 @@ function buildProviderRequest(
     return openaiToClaudeRequest(model, body, true);
   }
   if (provider === ZED_PROVIDER.google) {
-    return openaiToGeminiRequest(model, body as Record<string, unknown>, true, credentials);
+    const request = openaiToGeminiRequest(
+      model,
+      body as Record<string, unknown>,
+      true,
+      credentials
+    );
+    // Zed's Google proxy enum only accepts BLOCK_NONE, not Google's "OFF" (#13363)
+    if (request && typeof request === "object" && Array.isArray((request as any).safetySettings)) {
+      for (const s of (request as any).safetySettings) {
+        if (s.threshold === "OFF") s.threshold = "BLOCK_NONE";
+      }
+    }
+    // Zed's FunctionCallingMode is lowercase auto/any/none, not VALIDATED/AUTO (#13363)
+    const toolConfig = (request as any)?.toolConfig?.functionCallingConfig;
+    if (toolConfig) {
+      const mode = String(toolConfig.mode || "").toUpperCase();
+      if (mode === "VALIDATED" || mode === "AUTO") toolConfig.mode = "auto";
+      else if (mode === "ANY") toolConfig.mode = "any";
+      else if (mode === "NONE") toolConfig.mode = "none";
+    }
+    return request;
   }
   if (provider === ZED_PROVIDER.openai) {
-    return openaiToOpenAIResponsesRequest(model, body, true, credentials);
+    const request = openaiToOpenAIResponsesRequest(model, body, true, credentials);
+    // Zed's OpenAI proxy Role enum only has user/assistant/system/tool, not
+    // "developer" (#13362). Map developer-role input items back to system.
+    if (request && typeof request === "object" && Array.isArray((request as any).input)) {
+      for (const item of (request as any).input) {
+        if (item.role === "developer") item.role = "system";
+      }
+    }
+    return request;
   }
   return {
     ...(body as Record<string, unknown>),
