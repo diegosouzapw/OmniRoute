@@ -33,6 +33,11 @@ export const GEMINI_UNSUPPORTED_SCHEMA_KEYS = new Set([
   // upstream 400s and wrong-tool semantics (decolua/9router#1368).
   "minItems",
   "maxItems",
+  // JSON-Schema 2020-12 tuple-array keywords not recognized by Gemini's
+  // OpenAPI 3.0-style function_declarations.  Leaving them in triggers a
+  // hard 400 ("Unknown name \"prefixItems\"").  See #13464.
+  "prefixItems",
+  "additionalItems",
   "format",
   // Claude rejects these in VALIDATED mode
   "default",
