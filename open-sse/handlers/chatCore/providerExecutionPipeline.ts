@@ -224,14 +224,19 @@ async function toOutcome(
   }
   let message = attempt.response.statusText || "upstream error";
   let body: unknown = attempt.transformedBody;
+  let upstreamCode: string | undefined;
+  let upstreamType: string | undefined;
   try {
     // clone() is the drain. sendProviderAttempt must not cancel() a streaming
     // non-2xx body before we get here (BYOP 422 / Codex 429 Retry-After).
     const text = await attempt.response.clone().text();
     try {
       body = JSON.parse(text);
-      const err = (body as { error?: { message?: unknown } } | null)?.error;
+      const err = (body as { error?: { message?: unknown; code?: unknown; type?: unknown } } | null)
+        ?.error;
       if (err && typeof err.message === "string" && err.message) message = err.message;
+      if (typeof err?.code === "string" && err.code.trim()) upstreamCode = err.code.trim();
+      if (typeof err?.type === "string" && err.type.trim()) upstreamType = err.type.trim();
     } catch {
       // Non-JSON upstream body (plain-text 429, HTML error page). parseUpstreamError
       // — the pre-pipeline path this replaced — surfaces the raw text as the message;
@@ -250,7 +255,13 @@ async function toOutcome(
     body,
     retryAfterMs: null,
   });
-  const result = createErrorResult(restatement.status, message, restatement.retryAfterMs);
+  const result = createErrorResult(
+    restatement.status,
+    message,
+    restatement.retryAfterMs,
+    upstreamCode,
+    upstreamType
+  );
   return {
     kind: "error",
     result: {

@@ -20,11 +20,8 @@ import {
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-/**
- * Pinned Agent CLI build id used when no local install is found (typical
- * headless OmniRoute). Bump when refreshing Cursor CLI impersonation.
- */
-export const CURSOR_AGENT_CLI_VERSION = "2026.07.08-0c04a8a";
+import { CURSOR_AGENT_CLI_VERSION } from "./cursorAgentCliVersionPin.ts";
+export { CURSOR_AGENT_CLI_VERSION };
 
 const VERSION_ID_RE = /^\d{4}\.\d{2}\.\d{2}-[0-9a-f]+$/;
 const CACHE_TTL_MS = 60 * 60 * 1000;

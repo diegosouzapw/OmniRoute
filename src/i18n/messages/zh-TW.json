@@ -8121,7 +8121,7 @@
     "resilienceCredentialHealthScope": "所有啟用的 API 金鑰與 OAuth 連線",
     "resilienceCredentialHealthTrigger": "依固定節奏定期執行",
     "resilienceCredentialHealthEffect": "探測每條連線的憑證並標為正常/錯誤；失敗的連線採指數退避",
-    "resilienceCredentialHealthDesc": "背景掃描：呼叫供應商以驗證每條啟用連線的憑證。設為 0 則完全關閉。各連線編輯對話框裡的健康檢查值一律覆寫此全域預設。",
+    "resilienceCredentialHealthDesc": "背景掃描：呼叫提供者以驗證每條啟用連線的憑證。設為 0 則完全關閉。各連線編輯對話框裡的健康檢查值一律覆寫此全域預設。",
     "resilienceCredentialHealthInterval": "全域檢查間隔",
     "resilienceCredentialHealthEveryMinutes": "每 {minutes} 分鐘",
     "resilienceCredentialHealthHint": "0 關閉背景掃描（最長 1440 分鐘 = 24 小時）。帶有自身健康檢查值的連線忽略此全域預設；某連線設為 0 時即使全域掃描開啟也會略過它。",
@@ -13017,11 +13017,11 @@
       "label": "排序方式",
       "method": {
         "manual": "手動",
-        "provider": "供應商",
+        "provider": "提供者",
         "score": "評分（免費模型）",
         "name": "名稱"
       },
-      "scoreHint": "依評分排序只對免費供應商生效，其餘維持原位。"
+      "scoreHint": "依評分排序只對免費提供者生效，其餘維持原位。"
     }
   },
   "comboControl": {
