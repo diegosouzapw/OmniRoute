@@ -54,6 +54,9 @@ function walkValue(
   seen = new WeakSet<object>()
 ): { modified: boolean; value: unknown } {
   if (typeof value === "string") {
+    // #13462: Skip redaction for base64-encoded image data URLs — applying
+    // credential regexes to binary transport data corrupts valid base64.
+    if (isImageDataUrl(value)) return { modified: false, value };
     const r = redactCredentials(value);
     if (r.detections.length) detections.push(...r.detections);
     return { modified: r.modified, value: r.text };
@@ -98,6 +101,16 @@ function walkValue(
     return { modified: next !== null, value: next ?? value };
   }
   return { modified: false, value };
+}
+
+/**
+ * Check if a string is a base64-encoded image data URL that should not be
+ * subject to text-pattern redaction.  Applying credential regexes to binary
+ * transport data causes false-positive corruption of valid base64 content.
+ */
+function isImageDataUrl(value: string): boolean {
+  // Match data URLs with image MIME types (data:image/png;base64,... etc.)
+  return /^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(value);
 }
 
 /** Walk request payloads without changing safe values. */
