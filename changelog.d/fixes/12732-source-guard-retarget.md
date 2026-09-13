@@ -1,0 +1,1 @@
+- **fix(ci):** retarget source-guard tests onto live extract sites; keep Antigravity 422 `error.code` through the provider pipeline; keep reset-aware combo pins when the connection row is missing; split the Cursor CLI version pin out of `node:fs` so the provider-detail client stays browser-safe ([#12732](https://github.com/diegosouzapw/OmniRoute/issues/12732))
