@@ -1,9 +1,35 @@
 # OmniRoute — Plan (v8 → v9)
 
 > **Status**: Living plan, Q3 2026 → Q4 2026.
-> **Last updated**: 2026-06-18.
+> **Last updated**: 2026-09-12 (fork audit -- reality check added).
+> **Original last updated**: 2026-06-18.
 > **Refresh cadence**: weekly, owned by core team.
 > **Supersedes**: PLAN.md v1–v7 (decomposition-era plan at `docs/archive/PLAN-v1.md`).
+
+---
+
+## 0. Reality Check (2026-09-12)
+
+**This plan was last updated 86 days ago. This section provides current ground truth.**
+
+| Original Plan Item | Actual Status | Notes |
+|---|---|---|
+| v8 spec finalization | PARTIAL | SPEC.md exists but stale |
+| Bifrost Tier-1 integration | **9/9 SHIPPED** | Rearchitected to relay/supervisor pattern |
+| pheno-otel integration | **SHIPPED** | PR #732 merged Sept 12 |
+| CI hardening | PARTIAL | Many workflows, drift from upstream |
+| Upstream sync | **SEVERELY LAGGING** | 4,606 commits behind |
+| Branch cleanup | **DONE** | 103 -> 5 local branches |
+
+**Critical**: Bifrost 90-day decision deadline is Sept 17.
+See `docs/sessions/20260912-omniroute-fork-audit/01_BIFROST_DECISION_BRIEF.md`.
+
+| Metric | Plan (June 18) | Actual (Sept 12) | Delta |
+|---|---|---|---|
+| Providers | 232 | 237 | +5 |
+| MCP tools | 87 | 104 | +17 |
+| DB modules | 83 | 124 | +41 |
+| DB migrations | 97 | 159 | +62 |
 
 ---
 
