@@ -7,5 +7,4 @@
  * defaults to the same-origin so that the BFF is assumed to be co-located
  * with the SvelteKit server.
  */
-export const bffApiUrl: string =
-	import.meta.env.VITE_BFF_API_URL ?? '';
+export const bffApiUrl: string = import.meta.env.VITE_BFF_API_URL ?? "";
