@@ -10,44 +10,56 @@ import { getStaticModelsForProvider } from "../../src/lib/providers/staticModels
 
 test("#6142: devin cloud-agent validator is wired into the SPECIALTY_VALIDATORS dispatcher", async () => {
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = (async () =>
-    new Response("{}", { status: 401 })) as unknown as typeof fetch;
+  // #devin-cli-key: the 401 path falls back to probing the local Devin CLI.
+  // Point CLI_DEVIN_BIN at a nonexistent binary so the fallback fails
+  // deterministically regardless of the host machine's devin install.
+  const originalBin = process.env.CLI_DEVIN_BIN;
+  process.env.CLI_DEVIN_BIN = "/nonexistent/devin-for-tests";
+  globalThis.fetch = (async () => new Response("{}", { status: 401 })) as unknown as typeof fetch;
   try {
     const result = await validateProviderApiKey({
       provider: "devin",
-      apiKey: "cog_bad_key",
+      apiKey: "k",
     });
     assert.equal(result.valid, false);
     assert.equal(result.error, "Invalid API key");
     assert.notEqual(result.unsupported, true);
   } finally {
     globalThis.fetch = originalFetch;
+    if (originalBin === undefined) delete process.env.CLI_DEVIN_BIN;
+    else process.env.CLI_DEVIN_BIN = originalBin;
   }
 });
 
 test("#6142: validateDevinCloudAgentProvider maps 401 to Invalid API key", async () => {
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = (async () =>
-    new Response("{}", { status: 401 })) as unknown as typeof fetch;
+  const originalBin = process.env.CLI_DEVIN_BIN;
+  process.env.CLI_DEVIN_BIN = "/nonexistent/devin-for-tests";
+  globalThis.fetch = (async () => new Response("{}", { status: 401 })) as unknown as typeof fetch;
   try {
-    const result = await validateDevinCloudAgentProvider({ apiKey: "bad-key" });
+    const result = await validateDevinCloudAgentProvider({ apiKey: "k" });
     assert.equal(result.valid, false);
     assert.equal(result.error, "Invalid API key");
   } finally {
     globalThis.fetch = originalFetch;
+    if (originalBin === undefined) delete process.env.CLI_DEVIN_BIN;
+    else process.env.CLI_DEVIN_BIN = originalBin;
   }
 });
 
 test("#6142: validateDevinCloudAgentProvider maps 403 to Invalid API key", async () => {
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = (async () =>
-    new Response("{}", { status: 403 })) as unknown as typeof fetch;
+  const originalBin = process.env.CLI_DEVIN_BIN;
+  process.env.CLI_DEVIN_BIN = "/nonexistent/devin-for-tests";
+  globalThis.fetch = (async () => new Response("{}", { status: 403 })) as unknown as typeof fetch;
   try {
-    const result = await validateDevinCloudAgentProvider({ apiKey: "bad-key" });
+    const result = await validateDevinCloudAgentProvider({ apiKey: "k" });
     assert.equal(result.valid, false);
     assert.equal(result.error, "Invalid API key");
   } finally {
     globalThis.fetch = originalFetch;
+    if (originalBin === undefined) delete process.env.CLI_DEVIN_BIN;
+    else process.env.CLI_DEVIN_BIN = originalBin;
   }
 });
 
