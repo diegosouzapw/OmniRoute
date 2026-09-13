@@ -28,7 +28,12 @@ import {
   isEmptyUpstreamRejection,
   extractChatcmplId,
 } from "./accountRotation.ts";
-import { isOpencodeGeoBlocked, proxyKeyOf } from "./opencodeGeoBlock.ts";
+import {
+  isOpencodeGeoBlocked,
+  isOpencodeUserBlocked,
+  hasOpencodeUserBlockedSignal,
+  proxyKeyOf,
+} from "./opencodeGeoBlock.ts";
 import { isRetriableUpstreamFailure } from "./opencodeTransientFailure.ts";
 import { isNetworkRotationSharedEgressGuardEnabled } from "@/shared/utils/featureFlags";
 
@@ -579,8 +584,8 @@ export class OpencodeExecutor extends BaseExecutor {
       // through the accounts is the retry). Avoids an unbounded loop on a
       // persistently malformed upstream.
       const emptyRejectionBudget = this.accounts.length === 1 ? 1 : 0;
-      // Tried set: proxy keys already proven unusable for this request's
-      // model (geo-blocked, or transient 5xx). Request-local only — nothing
+      // Tried set: proxy keys already proven unusable for this request
+      // (geo-blocked, user_blocked, or transient 5xx). Request-local only — nothing
       // persists past execute().
       const geoTriedProxyKeys = new Set<string>();
       let directTried = false;
@@ -728,18 +733,37 @@ export class OpencodeExecutor extends BaseExecutor {
           } catch {
             log?.debug?.("OPENCODE", "body read failed on geo-block check");
           }
-          if (bodyText !== null && isOpencodeGeoBlocked(status, bodyText)) {
+          const isGeo = bodyText !== null && isOpencodeGeoBlocked(status, bodyText);
+          const isUserBlocked =
+            !isGeo && bodyText !== null && isOpencodeUserBlocked(status, bodyText);
+          if (isGeo || isUserBlocked) {
             const key = proxyKeyOf(account.proxy);
             if (key !== null) geoTriedProxyKeys.add(key);
             else directTried = true;
             log?.warn?.(
               "OPENCODE",
-              `${cid}geo-blocked on account ${masked} (proxy ${key ?? "direct"}), rotating to next…`
+              `${cid}${isGeo ? "geo-blocked" : "user-blocked"} on account ${masked} (proxy ${key ?? "direct"}), rotating to next…`
             );
             // Single account with a proxy: 0 retries (same egress = dead latency).
             // (The fast path above already covers single-without-proxy; here length===1 WITH proxy.)
             if (this.accounts.length === 1) return result;
             continue;
+          }
+          // A 451 carrying the user_blocked signal is an egress refusal, never a
+          // success: pass it through explicitly without markSuccess (the fall
+          // through below would mark one).
+          if (
+            status === 451 &&
+            !isGeo &&
+            bodyText !== null &&
+            hasOpencodeUserBlockedSignal(bodyText)
+          ) {
+            const key = proxyKeyOf(account.proxy);
+            log?.warn?.(
+              "OPENCODE",
+              `${cid}user-blocked on account ${masked} (proxy ${key ?? "direct"}), passing through without success mark…`
+            );
+            return result;
           }
         }
 

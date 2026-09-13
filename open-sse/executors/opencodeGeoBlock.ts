@@ -11,6 +11,12 @@
 // (2026-09-07 — app.log: "This model is not available in your country.");
 // siblings cover the same class, not the single incident. No bare "in your
 // country/region": location text without the full prefix is not a geo signal.
+// `user_blocked` refusal (observed 2026-09-13 — upstream 403:
+// "Upstream request failed: [user_blocked] Your access has been restricted
+// due to repeated policy violations."): an egress-scoped refusal like the geo
+// class above, so rotation reuses the same tried-set. Literal exact token only;
+// `user-blocked` / `user blocked` are unobserved phrasings (fail closed).
+const USER_BLOCKED_SIGNAL = "user_blocked";
 const GEO_SIGNALS = [
   "not available in your country",
   "not available in your region",
@@ -47,6 +53,17 @@ export function isOpencodeGeoBlocked(status: number, bodyText: string): boolean 
   const lower = text.toLowerCase();
   if (REGION_ERROR_REGEX.test(text)) return true;
   return GEO_SIGNALS.some((signal) => lower.includes(signal));
+}
+
+export function hasOpencodeUserBlockedSignal(bodyText: string | null): boolean {
+  const text = String(bodyText || "");
+  if (isFingerprintRejection(text)) return false;
+  return text.toLowerCase().includes(USER_BLOCKED_SIGNAL);
+}
+
+export function isOpencodeUserBlocked(status: number, bodyText: string | null): boolean {
+  if (status !== 403) return false;
+  return hasOpencodeUserBlockedSignal(bodyText);
 }
 
 export function proxyKeyOf(proxy: { host: string; port: number } | null): string | null {

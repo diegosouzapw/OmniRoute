@@ -1,0 +1,1 @@
+- **fix(sse):** rotate opencode accounts on 403 user_blocked egress rejection ([#13498](https://github.com/diegosouzapw/OmniRoute/pull/13498)) — thanks @maxmad64bis
