@@ -26,6 +26,7 @@ Cherry-pick is the only viable sync strategy.
 ### Fork Divergence
 
 The fork has 48 commits on main covering:
+
 - Pluggable auth provider system
 - Bifrost relay architecture
 - CI pipeline customization
@@ -38,44 +39,44 @@ The fork has 48 commits on main covering:
 
 ### Security Fixes (5 commits)
 
-| Commit | Message | Action |
-|--------|---------|--------|
+| Commit       | Message                                                | Action                      |
+| ------------ | ------------------------------------------------------ | --------------------------- |
 | `1eae976b28` | crypto.randomInt for proxy rotation (CodeQL #698/#699) | **CHERRY-PICKED** (ecc525e) |
-| `698b6eb00d` | adm-zip bump + exact host matching | DEFER to npm audit |
-| `026e1cadaa` | nanoid, dompurify bump | DEFER to npm audit |
-| `b090b601a5` | nanoid, dompurify bump (2nd) | DEFER to npm audit |
-| `153f453b0b` | 13 Dependabot + audit cleanup | DEFER to npm audit |
+| `698b6eb00d` | adm-zip bump + exact host matching                     | DEFER to npm audit          |
+| `026e1cadaa` | nanoid, dompurify bump                                 | DEFER to npm audit          |
+| `b090b601a5` | nanoid, dompurify bump (2nd)                           | DEFER to npm audit          |
+| `153f453b0b` | 13 Dependabot + audit cleanup                          | DEFER to npm audit          |
 
 ### Critical Bug Fixes (3 commits)
 
-| Commit | Message | Action |
-|--------|---------|--------|
-| `ca23eed77c` | memoize getModelsDevPricing | MANUAL ADAPTATION NEEDED |
-| `5f0a394091` | Hide excluded models from catalog | ALREADY IN FORK |
-| `65e81158ab` | ollama capability routing | SKIP (5094 files; squash) |
+| Commit       | Message                           | Action                    |
+| ------------ | --------------------------------- | ------------------------- |
+| `ca23eed77c` | memoize getModelsDevPricing       | MANUAL ADAPTATION NEEDED  |
+| `5f0a394091` | Hide excluded models from catalog | ALREADY IN FORK           |
+| `65e81158ab` | ollama capability routing         | SKIP (5094 files; squash) |
 
 ### Proxy/Transport (1 commit)
 
-| Commit | Message | Action |
-|--------|---------|--------|
+| Commit       | Message                        | Action                   |
+| ------------ | ------------------------------ | ------------------------ |
 | `9cd18bf9a1` | force CONNECT tunnel for proxy | MANUAL ADAPTATION NEEDED |
 
 ### Deps/Build/CI (8 commits)
 
-| Commit | Message | Action |
-|--------|---------|--------|
+| Commit  | Message                                  | Action       |
+| ------- | ---------------------------------------- | ------------ |
 | Various | Dependabot bumps, electron bump, devDeps | DEFER / SKIP |
 
 ### Release/CI Infrastructure (11 commits)
 
-| Commit | Message | Action |
-|--------|---------|--------|
-| Various | Release commits, Mergify, CI fixes | SKIP |
+| Commit  | Message                            | Action |
+| ------- | ---------------------------------- | ------ |
+| Various | Release commits, Mergify, CI fixes | SKIP   |
 
 ### Other (13 commits)
 
-| Commit | Message | Action |
-|--------|---------|--------|
+| Commit  | Message                           | Action       |
+| ------- | --------------------------------- | ------------ |
 | Various | Docs, tests, .gitignore hardening | DEFER / SKIP |
 
 ---
