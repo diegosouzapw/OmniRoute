@@ -141,6 +141,13 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
       "refusal",
       "name",
       "event",
+      // #13488: OpenRouter chunks carry provider metadata and
+      // reasoning_details that must not be fed through the PII
+      // content buffer — they scramble the assistant text.
+      "provider",
+      "reasoning_details",
+      "format",
+      "native_finish_reason",
     ];
 
     // 1. Claude format

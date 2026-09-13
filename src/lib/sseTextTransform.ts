@@ -151,6 +151,13 @@ export function createSseTextTransform(
             "refusal",
             "name",
             "event",
+            // #13488: OpenRouter chunks carry provider metadata and
+            // reasoning_details that must not be fed through the PII
+            // content buffer — they scramble the assistant text.
+            "provider",
+            "reasoning_details",
+            "format",
+            "native_finish_reason",
           ];
 
           // Recursively sanitize all string properties (except system metadata)
