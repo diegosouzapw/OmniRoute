@@ -14,30 +14,31 @@ Bifrost is a **very actively maintained, commercially-backed open-source project
 
 ## Metrics
 
-| Metric | Value | Assessment |
-|--------|-------|------------|
-| **Last commit** | 2026-09-12T20:24:58Z (today) | Excellent -- commits within hours |
-| **Latest release** | v2.1.1 (2026-09-09) | 3 days ago, very fresh |
-| **Release cadence** | Coordinated multi-plugin releases | Automated, professional |
-| **Open issues** | 996 (includes PRs) | High volume but expected for popular project |
-| **Closed issues** | >7,000+ (based on issue #7116) | Strong resolution rate |
-| **Total commits** | 7,056 | High velocity (est. ~13 commits/day over 18 months) |
-| **Stars** | 8,003 | Strong community adoption |
-| **Forks** | 1,200 | Active fork ecosystem |
-| **Contributors** | 50+ (est. from commit diversity) | Multi-contributor, not bus-factor-1 |
-| **Primary contributor** | akshaydeo (2,205 commits) | Founder/maintainer is very active |
-| **Other active contributors** | Constantine3, Huang-404-Q, Adarsh-jaiss, impoilure, michaeldunn9 | Healthy contributor base |
-| **License** | Apache-2.0 | Permissive, enterprise-friendly |
-| **Language** | Go | Matches OmniRoute sidecar needs |
-| **Repo created** | 2025-03-19 | ~18 months old, mature |
-| **Default branch** | `dev` | Active development branch |
-| **Security tooling** | Snyk + SECURITY.md + .snyk policy | Responsible security posture |
+| Metric                        | Value                                                            | Assessment                                          |
+| ----------------------------- | ---------------------------------------------------------------- | --------------------------------------------------- |
+| **Last commit**               | 2026-09-12T20:24:58Z (today)                                     | Excellent -- commits within hours                   |
+| **Latest release**            | v2.1.1 (2026-09-09)                                              | 3 days ago, very fresh                              |
+| **Release cadence**           | Coordinated multi-plugin releases                                | Automated, professional                             |
+| **Open issues**               | 996 (includes PRs)                                               | High volume but expected for popular project        |
+| **Closed issues**             | >7,000+ (based on issue #7116)                                   | Strong resolution rate                              |
+| **Total commits**             | 7,056                                                            | High velocity (est. ~13 commits/day over 18 months) |
+| **Stars**                     | 8,003                                                            | Strong community adoption                           |
+| **Forks**                     | 1,200                                                            | Active fork ecosystem                               |
+| **Contributors**              | 50+ (est. from commit diversity)                                 | Multi-contributor, not bus-factor-1                 |
+| **Primary contributor**       | akshaydeo (2,205 commits)                                        | Founder/maintainer is very active                   |
+| **Other active contributors** | Constantine3, Huang-404-Q, Adarsh-jaiss, impoilure, michaeldunn9 | Healthy contributor base                            |
+| **License**                   | Apache-2.0                                                       | Permissive, enterprise-friendly                     |
+| **Language**                  | Go                                                               | Matches OmniRoute sidecar needs                     |
+| **Repo created**              | 2025-03-19                                                       | ~18 months old, mature                              |
+| **Default branch**            | `dev`                                                            | Active development branch                           |
+| **Security tooling**          | Snyk + SECURITY.md + .snyk policy                                | Responsible security posture                        |
 
 ---
 
 ## Release Details
 
 ### Latest Release: Bifrost HTTP v2.1.1
+
 - **Published:** 2026-09-09T11:55:31Z
 - **Core version:** v1.8.6
 - **Framework version:** v1.6.2
@@ -47,6 +48,7 @@ Bifrost is a **very actively maintained, commercially-backed open-source project
 - **Plugin releases (8):** telemetry, semanticcache, routing, prompts, otel, modelcatalogresolver, mocker, maxim, logging -- all coordinated on same date
 
 ### Release Process
+
 - Automated multi-component release with version file tracking
 - Coordinated core/framework/plugin versioning
 - Docker images published: `maximhq/bifrost:v2.1.1` and `:latest`
@@ -57,6 +59,7 @@ Bifrost is a **very actively maintained, commercially-backed open-source project
 ## Security Advisories
 
 ### GHSA-w98g-5w9p-p3rc: SSRF Deny-List Incomplete
+
 - **Severity:** High
 - **Published:** 2026-07-21
 - **Affected:** `core <= 1.5.15`
@@ -66,6 +69,7 @@ Bifrost is a **very actively maintained, commercially-backed open-source project
 - **CWE:** CWE-918 (Server-Side Request Forgery)
 
 ### Other Advisories
+
 - No additional public security advisories found.
 
 ---
@@ -90,18 +94,21 @@ Bifrost is a **very actively maintained, commercially-backed open-source project
 ## Contributor Activity Analysis
 
 ### Commit Frequency
+
 - **7,056 commits** in ~18 months = ~13 commits/day average
 - **Recent activity (Sep 12, 2026):** Multiple commits from 3+ different authors
 - All recent commits are GPG-signed
 - Commit messages follow conventional commits format with PR references
 
 ### Issue Management
+
 - Issues use structured labels: `[Bug]`, `[Feature]`, `Status: Open`
 - Active bug reporting from community members (Adarsh-jaiss filed 5+ detailed bugs in Sep 7-8)
 - Bug reports include reproduction steps and analysis
 - Issue creation is restricted (maintainer-controlled), reducing noise
 
 ### Code Quality Indicators
+
 - CodeRabbit integration for automated review
 - Snyk security scanning
 - Pre-commit hooks configured
@@ -147,6 +154,7 @@ Bifrost is a **very actively maintained, commercially-backed open-source project
 6. **Go-native** -- No FFI/interop overhead; direct import as sidecar
 
 **Conditions for continued health:**
+
 - Monitor release cadence (should remain weekly+)
 - Track security advisories (subscribe to repo notifications)
 - Pin to specific versions (not `latest`) in production
@@ -157,12 +165,12 @@ Bifrost is a **very actively maintained, commercially-backed open-source project
 
 ## Appendix: Key URLs
 
-| Resource | URL |
-|----------|-----|
-| Repository | https://github.com/maximhq/bifrost |
-| Releases | https://github.com/maximhq/bifrost/releases |
+| Resource            | URL                                                    |
+| ------------------- | ------------------------------------------------------ |
+| Repository          | https://github.com/maximhq/bifrost                     |
+| Releases            | https://github.com/maximhq/bifrost/releases            |
 | Security Advisories | https://github.com/maximhq/bifrost/security/advisories |
-| Documentation | https://docs.getbifrost.ai |
-| Enterprise | https://www.getmaxim.ai/bifrost/enterprise |
-| NPM Package | https://www.npmjs.com/package/@maximhq/bifrost |
-| Docker Hub | https://hub.docker.com/r/maximhq/bifrost |
+| Documentation       | https://docs.getbifrost.ai                             |
+| Enterprise          | https://www.getmaxim.ai/bifrost/enterprise             |
+| NPM Package         | https://www.npmjs.com/package/@maximhq/bifrost         |
+| Docker Hub          | https://hub.docker.com/r/maximhq/bifrost               |

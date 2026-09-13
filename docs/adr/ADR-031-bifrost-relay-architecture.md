@@ -111,6 +111,7 @@ Request → Node.js (auth + rate limit + injection guard + model allowlist)
 ```
 
 This boundary is explicit in the route contract:
+
 - `src/app/api/v1/relay/chat/completions/bifrost/route.ts` — the Go sidecar proxy route.
   Handles auth, rate limiting, injection guard, model allowlist, then forwards to
   `BIFROST_BASE_URL/v1/chat/completions`.
