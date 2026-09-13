@@ -58,6 +58,10 @@ function truncateToolList(
 ): Body {
   if (!Array.isArray(bodyToSend.tools)) return bodyToSend;
 
+  // #13190: Check bypass first — an operator's explicit override should take
+  // precedence over any detected provider limit.
+  if (bypassDefaultToolLimit === true) return bodyToSend;
+
   const knownLimit = getKnownToolLimit(provider);
   if (knownLimit !== null) {
     if (bodyToSend.tools.length > knownLimit) {
@@ -71,8 +75,6 @@ function truncateToolList(
     }
     return bodyToSend;
   }
-
-  if (bypassDefaultToolLimit === true) return bodyToSend;
 
   const effectiveToolLimit = getEffectiveToolLimit(provider);
   if (bodyToSend.tools.length > effectiveToolLimit) {
