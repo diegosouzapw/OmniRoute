@@ -241,6 +241,7 @@ export function runSuite(
 
     if (metrics?.error && !result.error) {
       result.error = metrics.error;
+      result.passed = false; // #13137 — an upstream failure must not grade as passed
     }
 
     return result;
