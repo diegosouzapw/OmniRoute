@@ -20,6 +20,7 @@
 import { getDbInstance } from "./db/core";
 import { invalidateDbCache } from "./db/readCache";
 import { backupDbFile } from "./db/backup";
+import { registerDbStateResetter } from "./db/stateReset";
 import { createLogger } from "@/shared/utils/logger";
 
 import {
@@ -197,9 +198,31 @@ function mapCapabilityRecord(record: Record<string, unknown>): ModelCapabilityEn
 }
 
 /**
+ * Process-local memo for models.dev pricing.
+ *
+ * `resolveCatalogPricing` used to call `getModelsDevPricing()` once per model
+ * while building `/v1/models` (~10k+ times). Each call re-ran the full SQL scan
+ * and `JSON.parse`d every pricing row, pegging the event loop for minutes
+ * (see #9685 / #10052). Memoize until the next save/clear write.
+ */
+let modelsDevPricingCache: PricingByProvider | null = null;
+
+function invalidateModelsDevPricingCache(): void {
+  modelsDevPricingCache = null;
+}
+
+// Register cache invalidation with DB state reset system so resetDbInstance() clears the memo.
+registerDbStateResetter(invalidateModelsDevPricingCache);
+
+/**
  * Read synced pricing from `models_dev_pricing` namespace.
+ * Results are memoized until `saveModelsDevPricing` / `clearModelsDevPricing`.
  */
 export function getModelsDevPricing(): PricingByProvider {
+  if (modelsDevPricingCache) {
+    return modelsDevPricingCache;
+  }
+
   const db = getDbInstance();
   const rows = db
     .prepare("SELECT key, value FROM key_value WHERE namespace = 'models_dev_pricing'")
@@ -216,6 +239,7 @@ export function getModelsDevPricing(): PricingByProvider {
       log.warn({ provider: key }, "models-dev-sync: corrupted pricing data, skipping");
     }
   }
+  modelsDevPricingCache = synced;
   return synced;
 }
 
@@ -236,6 +260,7 @@ export function saveModelsDevPricing(data: PricingByProvider): void {
   });
   tx();
   backupDbFile("pre-write");
+  invalidateModelsDevPricingCache();
   invalidateDbCache("pricing");
 }
 
@@ -246,6 +271,7 @@ export function clearModelsDevPricing(): void {
   const db = getDbInstance();
   db.prepare("DELETE FROM key_value WHERE namespace = 'models_dev_pricing'").run();
   backupDbFile("pre-write");
+  invalidateModelsDevPricingCache();
   invalidateDbCache("pricing");
 }
 
