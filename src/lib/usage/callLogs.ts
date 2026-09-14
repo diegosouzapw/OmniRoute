@@ -130,11 +130,6 @@ type LegacyInlineRow = {
   error: string | null;
 };
 
-type DeleteResult = {
-  deletedRows: number;
-  deletedArtifacts: number;
-};
-
 let logIdCounter = 0;
 
 function generateLogId() {
@@ -574,7 +569,7 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         logEntry,
         protectedRequestBody,
         protectedResponseBody,
-        protectedError,
+        entry.error ?? protectedError,
         protectedPipelinePayloads
       );
       const artifactResult = await writeCallArtifactAsync(artifact);

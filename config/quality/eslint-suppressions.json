@@ -14,21 +14,6 @@
       "count": 8
     }
   },
-  "open-sse/config/providers/registry/bailian-coding-plan/index.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "open-sse/config/providers/registry/claude/index.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 7
-    }
-  },
-  "open-sse/config/providers/registry/vertex/index.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "open-sse/config/providers/shared.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1524,11 +1509,6 @@
       "count": 1
     }
   },
-  "src/lib/db/providers.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 4
-    }
-  },
   "src/lib/db/providers/lazyConnectionView.ts": {
     "no-restricted-syntax": {
       "count": 1
@@ -1799,11 +1779,6 @@
   },
   "src/lib/usage/apiKeyUsageLimits.ts": {
     "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/lib/usage/callLogs.ts": {
-    "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
   },
@@ -3341,11 +3316,6 @@
   "tests/unit/combo-sessionless-pin-3825.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 17
-    }
-  },
-  "tests/unit/combo-strategies.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
     }
   },
   "tests/unit/combo-strategy-fallbacks.test.ts": {

@@ -9,10 +9,7 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import {
-  createResourcePressureRuntime,
-  type ResourcePressureRuntime,
-} from "../../open-sse/utils/resourcePressure.ts";
+import { createResourcePressureRuntime } from "../../open-sse/utils/resourcePressure.ts";
 import type { ResourceSignals } from "../../open-sse/utils/resourcePressurePolicy.ts";
 
 const MiB = 1024 ** 2;

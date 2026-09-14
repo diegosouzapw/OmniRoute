@@ -9,7 +9,7 @@ export const vertexProvider: RegistryEntry = {
   // URL uses {project_id} and {region} from providerSpecificData — handled by custom executor or fallback
   // Default to us-central1 / generic endpoint; users configure project via providerSpecificData
   baseUrl: "https://us-central1-aiplatform.googleapis.com/v1/projects",
-  urlBuilder: (base, model, stream) => {
+  urlBuilder: (_base, model, stream) => {
     // Full URL: {base}/{project}/locations/{region}/publishers/google/models/{model}:{action}
     // For a generic fallback, we build a Gemini-compatible URL
     // The actual project/region are configured via providerSpecificData in the DB connection

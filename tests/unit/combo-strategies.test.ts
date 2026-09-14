@@ -21,7 +21,6 @@ const { getQuotaScopedModelForProvider } =
   await import("../../open-sse/services/antigravityQuotaFamily.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
-const { recordComboRequest } = await import("../../open-sse/services/comboMetrics.ts");
 const { saveModelsDevCapabilities } = await import("../../src/lib/modelsDevSync.ts");
 
 after(() => {
@@ -144,7 +143,7 @@ function installCodexQuotaMock(quotasByToken: Record<string, unknown>) {
   };
 }
 
-function resetAwareCombo(
+async function resetAwareCombo(
   name: string,
   connections: Array<{ id: string; token: string }>,
   config: Record<string, unknown> = {}
@@ -152,6 +151,15 @@ function resetAwareCombo(
   registerCodexQuotaFetcher();
 
   for (const connection of connections) {
+    const row = await providersDb.createProviderConnection({
+      provider: "codex",
+      authType: "oauth",
+      name: connection.id,
+      accessToken: connection.token,
+      isActive: true,
+      providerSpecificData: {},
+    });
+    connection.id = String(row.id);
     invalidateCodexQuotaCache(connection.id);
     registerCodexConnection(connection.id, { accessToken: connection.token });
   }
@@ -169,6 +177,21 @@ function resetAwareCombo(
       id: `${name}-${index}`,
     })),
   };
+}
+
+async function persistGenericConnections(provider: string, count: number) {
+  const ids: string[] = [];
+  for (let i = 0; i < count; i += 1) {
+    const row = await providersDb.createProviderConnection({
+      provider,
+      authType: "apikey",
+      name: `${provider}-${i}-${randomUUID()}`,
+      apiKey: `test-key-${i}`,
+      isActive: true,
+    });
+    ids.push(String(row.id));
+  }
+  return ids;
 }
 
 async function selectedConnectionFor(
@@ -284,7 +307,7 @@ test("reset-aware strategy prefers lower weekly remaining quota when reset is mu
     })
   );
 
-  const combo = resetAwareCombo(`reset-aware-soon-${randomUUID()}`, [soon, later]);
+  const combo = await resetAwareCombo(`reset-aware-soon-${randomUUID()}`, [soon, later]);
 
   assert.equal(await selectedConnectionFor(combo), soon.id);
 });
@@ -326,7 +349,7 @@ test("reset-aware strategy aggressively spends quota that resets soon", async (t
     })
   );
 
-  const combo = resetAwareCombo(`reset-aware-pressure-${randomUUID()}`, [
+  const combo = await resetAwareCombo(`reset-aware-pressure-${randomUUID()}`, [
     team,
     fullLater,
     soonLow,
@@ -363,7 +386,7 @@ test("reset-aware strategy prioritizes soon-reset weekly quota over empty later 
     })
   );
 
-  const combo = resetAwareCombo(`reset-aware-weekly-pressure-${randomUUID()}`, [
+  const combo = await resetAwareCombo(`reset-aware-weekly-pressure-${randomUUID()}`, [
     emptyLater,
     fullerSoon,
   ]);
@@ -397,7 +420,7 @@ test("reset-aware strategy keeps 5h reset pressure softer than weekly pressure",
     })
   );
 
-  const combo = resetAwareCombo(`reset-aware-session-pressure-${randomUUID()}`, [
+  const combo = await resetAwareCombo(`reset-aware-session-pressure-${randomUUID()}`, [
     fullerSoon,
     emptyLater,
   ]);
@@ -431,7 +454,10 @@ test("reset-aware strategy avoids accounts near 5h exhaustion", async (t) => {
     })
   );
 
-  const combo = resetAwareCombo(`reset-aware-guard-${randomUUID()}`, [exhausted5h, healthy5h]);
+  const combo = await resetAwareCombo(`reset-aware-guard-${randomUUID()}`, [
+    exhausted5h,
+    healthy5h,
+  ]);
 
   assert.equal(await selectedConnectionFor(combo), healthy5h.id);
 });
@@ -446,8 +472,7 @@ test("Antigravity aliases share one family-scoped cache key", () => {
 
 test("reset-aware strategy rotates similar scores with round-robin tie breaking", async () => {
   const provider = `tie-provider-${randomUUID()}`;
-  const first = `first-${randomUUID()}`;
-  const second = `second-${randomUUID()}`;
+  const [first, second] = await persistGenericConnections(provider, 2);
   const quota = {
     used: 50,
     total: 100,
@@ -483,8 +508,7 @@ test("reset-aware strategy rotates similar scores with round-robin tie breaking"
 
 test("reset-aware strategy uses registered quota fetchers for non-Codex providers", async () => {
   const provider = `quota-provider-${randomUUID()}`;
-  const soon = `soon-${randomUUID()}`;
-  const later = `later-${randomUUID()}`;
+  const [soon, later] = await persistGenericConnections(provider, 2);
   const resetAtSoon = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
   const resetAtLater = new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString();
 
@@ -516,7 +540,7 @@ test("reset-aware strategy uses registered quota fetchers for non-Codex provider
 
 test("reset-aware strategy deduplicates quota fetches for repeated connection targets", async () => {
   const provider = `dedupe-provider-${randomUUID()}`;
-  const connectionId = `shared-${randomUUID()}`;
+  const [connectionId] = await persistGenericConnections(provider, 1);
   let fetchCount = 0;
 
   registerQuotaFetcher(provider, async (id) => {
@@ -549,8 +573,7 @@ test("reset-aware strategy deduplicates quota fetches for repeated connection ta
 
 test("reset-aware quota SWR serves stale ordering while refreshing in background", async () => {
   const provider = `swr-provider-${randomUUID()}`;
-  const cachedFirst = `cached-first-${randomUUID()}`;
-  const cachedSecond = `cached-second-${randomUUID()}`;
+  const [cachedFirst, cachedSecond] = await persistGenericConnections(provider, 2);
   const fetchCounts = new Map<string, number>();
 
   registerQuotaFetcher(provider, async (connectionId) => {
@@ -649,8 +672,7 @@ test("reset-aware strategy respects API-key allowed connections during expansion
 
 test("reset-aware strategy parses numeric reset timestamps from quota telemetry", async () => {
   const provider = `timestamp-provider-${randomUUID()}`;
-  const soon = `timestamp-soon-${randomUUID()}`;
-  const later = `timestamp-later-${randomUUID()}`;
+  const [soon, later] = await persistGenericConnections(provider, 2);
   const soonResetSeconds = Math.floor((Date.now() + 24 * 3600 * 1000) / 1000);
   const laterResetMs = Date.now() + 5 * 24 * 3600 * 1000;
 
@@ -679,8 +701,7 @@ test("reset-aware strategy parses numeric reset timestamps from quota telemetry"
 
 test("reset-aware strategy scores provider-specific weekly windows when available", async () => {
   const provider = `weekly-provider-${randomUUID()}`;
-  const soon = `weekly-soon-${randomUUID()}`;
-  const later = `weekly-later-${randomUUID()}`;
+  const [soon, later] = await persistGenericConnections(provider, 2);
   const resetAtSoon = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
   const resetAtLater = new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString();
 

@@ -7745,6 +7745,10 @@
     "legacyJsonImportSuccess": "Đã nhập JSON kiểu cũ thành công!",
     "jsonImportFailed": "Không thể nhập JSON",
     "jsonImportError": "Đã xảy ra lỗi khi nhập JSON",
+    "jsonImportAuthRequired": "Cần xác thực để nhập cấu hình JSON kiểu cũ. Vui lòng đăng nhập hoặc hoàn tất thiết lập trước.",
+    "databaseSettingsAuthRequiredTitle": "Cần xác thực",
+    "databaseSettingsAuthRequiredBody": "Cài đặt cơ sở dữ liệu và nhập JSON chỉ dành cho quản trị viên đã xác thực. Đăng nhập hoặc hoàn tất thiết lập để xem hoặc chỉnh sửa.",
+    "databaseSettingsAuthRequiredCta": "Đăng nhập",
     "storagePurgeData": "Xóa sạch dữ liệu",
     "storagePurgeDataDesc": "Xóa ngay lập tức tất cả các bản ghi mà không áp dụng kiểm tra thời gian lưu trữ. Hãy thận trọng khi sử dụng.",
     "storageRetentionCleanup": "Cài đặt thời hạn lưu giữ",
@@ -8675,8 +8679,8 @@
     "dragToReorder": "Kéo để sắp xếp lại bước",
     "engine": "Bộ máy",
     "intensity": "Cường độ",
-    "activeProfileMasterSwitchOffWarning": "__MISSING__:The active profile below will not run until the master \"Prompt Compression\" switch is turned on.",
-    "activeProfileMasterSwitchOffCta": "__MISSING__:Turn it on in Settings"
+    "activeProfileMasterSwitchOffWarning": "Hồ sơ đang dùng bên dưới sẽ không chạy cho đến khi công tắc chính \"Prompt Compression\" được bật.",
+    "activeProfileMasterSwitchOffCta": "Bật trong Cài đặt"
   },
   "compressionStudio": {
     "noRun": "Chưa có lượt nén nào.",
@@ -8705,7 +8709,7 @@
     "run": "Chạy",
     "laneRejected": "bị từ chối: {reason}",
     "error": "lỗi",
-    "combinedError": "__MISSING__:Combined pipeline preview failed: {reason}",
+    "combinedError": "Xem trước pipeline kết hợp thất bại: {reason}",
     "combinedFlow": "Luồng kết hợp",
     "eachLayer": "Từng lớp riêng biệt",
     "diff": "Khác biệt",

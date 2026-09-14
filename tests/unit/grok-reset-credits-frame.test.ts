@@ -5,8 +5,8 @@ import {
   encodeRedeemResetRequest,
 } from "../../open-sse/services/grokResetCreditsFrame.ts";
 
-const GRANTED = 1786560540;
-const EXPIRES = 1789238940;
+const GRANTED = Math.floor(Date.now() / 1000) - 30 * 24 * 3600;
+const EXPIRES = Math.floor(Date.now() / 1000) + 30 * 24 * 3600;
 const TOKEN_ID = "test-token-id"; // 13 bytes
 
 function encodeVarint(value: number): Buffer {
@@ -170,7 +170,10 @@ test("live nested fields 10/20/30 are not malformed", () => {
 });
 
 test("live nested field-30 expiry still drops expired cards", () => {
-  const expired = encodeLengthDelimited(10, encodeLiveToken("test-token-ex", GRANTED, 1_700_000_000));
+  const expired = encodeLengthDelimited(
+    10,
+    encodeLiveToken("test-token-ex", GRANTED, 1_700_000_000)
+  );
   const live = encodeLengthDelimited(10, encodeLiveToken(TOKEN_ID, GRANTED, EXPIRES));
   const decoded = decodeGrokResetCreditsFrame(
     Buffer.concat([frameData(Buffer.concat([expired, live])), frameTrailer()])

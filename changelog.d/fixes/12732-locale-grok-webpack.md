@@ -1,0 +1,1 @@
+- **fix(ci):** backfill four settings auth keys across 50 locales; translate leftover Vietnamese `__MISSING__` markers; keep Grok reset-credit fixtures unexpired relative to now; treat `tlsFirstByteWatchdog.ts` as a webpack sibling external ([#12732](https://github.com/diegosouzapw/OmniRoute/issues/12732))

@@ -67,6 +67,9 @@ function encodeLengthDelimited(fieldNumber: number, body: Buffer): Buffer {
   return Buffer.concat([encodeTag(fieldNumber, 2), encodeVarint(body.length), body]);
 }
 
+const GRANTED = Math.floor(Date.now() / 1000) - 30 * 24 * 3600;
+const EXPIRES = Math.floor(Date.now() / 1000) + 30 * 24 * 3600;
+
 function encodeVarintField(fieldNumber: number, value: number): Buffer {
   return Buffer.concat([encodeTag(fieldNumber, 0), encodeVarint(value)]);
 }
@@ -74,8 +77,8 @@ function encodeVarintField(fieldNumber: number, value: number): Buffer {
 function oneResetTokenResponse(): Response {
   const token = Buffer.concat([
     encodeLengthDelimited(1, Buffer.from("test-token-id", "utf8")),
-    encodeVarintField(2, 1786560540),
-    encodeVarintField(3, 1789238940),
+    encodeVarintField(2, GRANTED),
+    encodeVarintField(3, EXPIRES),
   ]);
   const payload = encodeLengthDelimited(10, token);
   const trailer = Buffer.from("grpc-status:0\r\n", "utf8");
@@ -90,8 +93,8 @@ function liveResetTokenResponse(): Response {
   const timestamp = (unixSeconds: number) => encodeVarintField(1, unixSeconds);
   const token = Buffer.concat([
     encodeLengthDelimited(10, Buffer.from("test-token-id", "utf8")),
-    encodeLengthDelimited(20, timestamp(1786560540)),
-    encodeLengthDelimited(30, timestamp(1789238940)),
+    encodeLengthDelimited(20, timestamp(GRANTED)),
+    encodeLengthDelimited(30, timestamp(EXPIRES)),
   ]);
   const payload = encodeLengthDelimited(10, token);
   const trailer = Buffer.from("grpc-status:0\r\n", "utf8");

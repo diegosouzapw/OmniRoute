@@ -7,7 +7,7 @@
 import { isRetiredGitHubCopilotModelId } from "@omniroute/open-sse/config/providers/registry/github/retiredModels.ts";
 
 import { getDbInstance } from "./core";
-import { getProviderConnectionsCount } from "./providers";
+import { getProviderConnectionsCount } from "./providers/count";
 import { type JsonRecord, getKeyValue } from "./models/shared";
 import {
   normalizeSyncedAvailableModels,
@@ -953,8 +953,7 @@ export function getHiddenModelsByProvider(modality: string = "chat"): Map<string
                   {
                     isHidden: Boolean(record.isHidden),
                     hiddenModalities: record.hiddenModalities as
-                      | Record<string, boolean>
-                      | undefined,
+                      Record<string, boolean> | undefined,
                   },
                   modality
                 )

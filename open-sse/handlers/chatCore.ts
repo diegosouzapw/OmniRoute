@@ -1455,10 +1455,10 @@ export async function handleChatCore({
             }),
             enabled: true,
             defaultLanguage: comboDefaultLanguage,
-            enabledPacks:
-              comboLanguagePacks.length > 0
-                ? comboLanguagePacks
-                : (config.languageConfig?.enabledPacks ?? ["en"]),
+            autoDetect: !comboLanguagePacks.length && (config.languageConfig?.autoDetect ?? true),
+            enabledPacks: comboLanguagePacks.length
+              ? comboLanguagePacks
+              : (config.languageConfig?.enabledPacks ?? ["en"]),
           },
           cavemanOutputMode: {
             ...(config.cavemanOutputMode ?? {

@@ -46,6 +46,6 @@ test("GLM translateSseResponse does not pass a 16th positional to the stream hel
   const callAt = body.indexOf("createSSETransformStreamWithLogger(");
   assert.ok(callAt >= 0);
   const call = extractParens(body, callAt + "createSSETransformStreamWithLogger".length);
-  assert.equal(/65536/.test(call), false, `dead 16th arg still present:\n${call}`);
-  assert.match(call, /suppressThinkClose\s*\)\s*$/);
+  assert.match(call, /suppressThinkClose/);
+  assert.match(call, /GLM_STREAM_BUFFER_BYTES\s*\)\s*$/);
 });

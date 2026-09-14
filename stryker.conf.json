@@ -437,7 +437,18 @@
       "tests/unit/felo-web-runtime-block.test.ts",
       "tests/unit/microsoft-designer-web-runtime-block.test.ts",
       "tests/unit/qwen-web-runtime-block.test.ts",
-      "tests/unit/tunnel-routes-error-sanitization.test.ts"
+      "tests/unit/tunnel-routes-error-sanitization.test.ts",
+      "tests/unit/auth-grok-cli-402-shared-wallet.test.ts",
+      "tests/unit/chat-correlation-id-exhaustion.test.ts",
+      "tests/unit/cline-401-oauth-12594.test.ts",
+      "tests/unit/cliproxyapi-unknown-provider-400-12800.test.ts",
+      "tests/unit/combo-predicates-epoch-cooldown.test.ts",
+      "tests/unit/combo/combo-skipped-targets-summary.test.ts",
+      "tests/unit/context-handoff-native-passthrough-bug.test.ts",
+      "tests/unit/guardrails/visionBridge12111Repro.test.ts",
+      "tests/unit/guardrails/visionBridgeRouter.test.ts",
+      "tests/unit/issue-11912-opencode-roundrobin-collapse.test.ts",
+      "tests/unit/opencode-400-model-unavailable.test.ts"
     ],
     "nodeArgs": [
       "--import",

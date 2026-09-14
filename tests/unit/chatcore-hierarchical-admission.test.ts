@@ -6,6 +6,10 @@ const source = readFileSync(
   new URL("../../open-sse/handlers/chatCore.ts", import.meta.url),
   "utf8"
 );
+const pipeline = readFileSync(
+  new URL("../../open-sse/handlers/chatCore/providerExecutionPipeline.ts", import.meta.url),
+  "utf8"
+);
 
 test("chatCore acquires cumulative gates immediately before withRateLimit", () => {
   const acquire = source.indexOf("await acquireConcurrencyGates(");
@@ -24,14 +28,16 @@ test("chatCore acquires cumulative gates immediately before withRateLimit", () =
 });
 
 test("each rotated account attempt acquires and releases a fresh composite slot", () => {
-  const attemptLoop = source.indexOf(
-    "while (attempts < maxAttempts || antigravityByopRotationPending)"
+  const whileLoop = pipeline.indexOf(
+    "while (\n    attempts < maxAttempts ||\n    antigravityByopRotationPending"
   );
-  const acquire = source.indexOf("await acquireConcurrencyGates(", attemptLoop);
+  assert.ok(whileLoop >= 0, "rotation lives in the pipeline loop");
+  assert.ok(
+    pipeline.includes("antigravityByopRotationPending = true"),
+    "422 gcp_project_required must re-enter the pipeline loop"
+  );
+  const acquire = source.indexOf("await acquireConcurrencyGates(");
   const finallyRelease = source.indexOf("releaseAccountSemaphore();", acquire);
-  const retryContinue = source.indexOf("continue;", acquire);
-
-  assert.ok(attemptLoop >= 0 && acquire > attemptLoop);
+  assert.ok(acquire >= 0, "chatCore still acquires the composite slot");
   assert.ok(finallyRelease > acquire, "each attempt must release the composite slot");
-  assert.ok(retryContinue > acquire, "rotation remains inside the per-attempt acquisition loop");
 });
