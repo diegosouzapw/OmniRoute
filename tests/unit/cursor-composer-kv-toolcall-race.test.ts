@@ -89,7 +89,7 @@ test("tryScan: kv_after_text must not settle away a same-buffer exec_mcp (compos
         clientPlatform: undefined,
         todoHistory: undefined,
         signal?: AbortSignal
-      ) => Promise<{ leftoverBytes: Buffer }>;
+      ) => Promise<void>;
     }
   ).driveH2;
 
@@ -116,7 +116,7 @@ test("tryScan: kv_after_text must not settle away a same-buffer exec_mcp (compos
   assert.equal(ctx.toolCalls.length, 1, "tool call after kv checkpoint must be surfaced");
   assert.equal(ctx.toolCalls[0] instanceof Object, true);
   assert.equal(ctx.endReason, "tool_calls", "turn must upgrade to tool_calls");
-  assert.equal(result.leftoverBytes.length, 0, "no bytes may be spliced off as leftover");
+  assert.equal(result, undefined, "settles void like upstream onEnd");
 });
 
 test("tryScan: plain chat (kv checkpoint, clean buffer end) still settles on kv_after_text", async () => {
@@ -133,7 +133,7 @@ test("tryScan: plain chat (kv checkpoint, clean buffer end) still settles on kv_
         clientPlatform: undefined,
         todoHistory: undefined,
         signal?: AbortSignal
-      ) => Promise<{ leftoverBytes: Buffer }>;
+      ) => Promise<void>;
     }
   ).driveH2;
 
@@ -147,5 +147,5 @@ test("tryScan: plain chat (kv checkpoint, clean buffer end) still settles on kv_
   ]);
   assert.equal(ctx.endReason, "kv_after_text");
   assert.equal(ctx.toolCalls.length, 0);
-  assert.equal(result.leftoverBytes.length, 0);
+  assert.equal(result, undefined);
 });
