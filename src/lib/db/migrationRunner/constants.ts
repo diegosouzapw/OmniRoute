@@ -211,6 +211,13 @@ export const RENAMED_MIGRATION_COMPATIBILITY = [
     toVersion: "101",
     toName: "api_key_usage_limits",
   },
+  {
+    fromVersion: "176",
+    fromName: "memory_fts_skip_access_updates",
+    toVersion: "177",
+    toName: "memory_fts_skip_access_updates",
+  },
+
 ] as const;
 
 export const LEGACY_VERSION_SLOT_MIGRATIONS = [
@@ -257,4 +264,4 @@ export const PHYSICAL_SCHEMA_SENTINELS = [
 ] as const;
 
 export const INITIAL_SCHEMA_SENTINELS = ["provider_connections", "combos", "call_logs"] as const;
-export const OPTIONAL_FTS5_MIGRATION_VERSIONS = new Set(["022", "023"]);
+export const OPTIONAL_FTS5_MIGRATION_VERSIONS = new Set(["022", "023", "177"]);
