@@ -4,7 +4,7 @@ export const POSTGRES_BOOTSTRAP_LOCK_KEY = 7211001;
 
 const TS_FORMAT = "YYYY-MM-DD HH24:MI:SS";
 
-function baseTimestampFunctions(): string {
+function julianTimestampFunctions(): string {
   return `
 CREATE OR REPLACE FUNCTION omniroute_julian_to_ts(jd double precision) RETURNS timestamp LANGUAGE sql IMMUTABLE AS $f$
   SELECT (to_timestamp((jd - 2440587.5) * 86400) AT TIME ZONE 'utc')
@@ -18,7 +18,11 @@ CREATE OR REPLACE FUNCTION omniroute_numeric_ts(v double precision, mods text[])
     ELSE omniroute_julian_to_ts(v)
   END
 $f$;
+`;
+}
 
+function parseTimestampFunction(): string {
+  return `
 CREATE OR REPLACE FUNCTION omniroute_parse_ts(v text, mods text[]) RETURNS timestamp LANGUAGE plpgsql STABLE AS $f$
 DECLARE s text;
 BEGIN
@@ -34,7 +38,11 @@ BEGIN
   END;
 END
 $f$;
+`;
+}
 
+function applyModifiersFunction(): string {
+  return `
 CREATE OR REPLACE FUNCTION omniroute_apply_modifiers(ts timestamp, mods text[]) RETURNS timestamp LANGUAGE plpgsql IMMUTABLE AS $f$
 DECLARE
   m text;
@@ -69,7 +77,11 @@ BEGIN
   RETURN result;
 END
 $f$;
+`;
+}
 
+function resolveTimestampFunctions(): string {
+  return `
 CREATE OR REPLACE FUNCTION omniroute_resolve_ts(base text, mods text[]) RETURNS timestamp LANGUAGE sql STABLE AS $f$
   SELECT omniroute_apply_modifiers(omniroute_parse_ts(base, mods), mods)
 $f$;
@@ -77,7 +89,11 @@ $f$;
 CREATE OR REPLACE FUNCTION omniroute_resolve_ts(base double precision, mods text[]) RETURNS timestamp LANGUAGE sql STABLE AS $f$
   SELECT omniroute_apply_modifiers(omniroute_numeric_ts(base, mods), mods)
 $f$;
+`;
+}
 
+function formatTimestampFunction(): string {
+  return `
 CREATE OR REPLACE FUNCTION omniroute_format_ts(fmt text, ts timestamp) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $f$
 DECLARE
   result text := '';
@@ -127,6 +143,16 @@ BEGIN
 END
 $f$;
 `;
+}
+
+function baseTimestampFunctions(): string {
+  return [
+    julianTimestampFunctions(),
+    parseTimestampFunction(),
+    applyModifiersFunction(),
+    resolveTimestampFunctions(),
+    formatTimestampFunction(),
+  ].join("");
 }
 
 function dateFunctionOverloads(name: string, format: string): string {
@@ -188,7 +214,7 @@ $f$;
 `;
 }
 
-function jsonFunctions(): string {
+function jsonParsingFunctions(): string {
   return `
 CREATE OR REPLACE FUNCTION omniroute_try_jsonb(j text) RETURNS jsonb LANGUAGE plpgsql IMMUTABLE AS $f$
 BEGIN
@@ -230,7 +256,11 @@ CREATE OR REPLACE FUNCTION omniroute_jsonb_to_sqlite(v jsonb) RETURNS text LANGU
     ELSE v::text
   END
 $f$;
+`;
+}
 
+function jsonReadFunctions(): string {
+  return `
 CREATE OR REPLACE FUNCTION omniroute_json_extract(j text, p text) RETURNS text LANGUAGE sql IMMUTABLE AS $f$
   SELECT omniroute_jsonb_to_sqlite(omniroute_try_jsonb(j) #> omniroute_json_path(p))
 $f$;
@@ -268,7 +298,11 @@ $f$;
 CREATE OR REPLACE FUNCTION omniroute_json_array_length(j text, p text) RETURNS bigint LANGUAGE sql IMMUTABLE AS $f$
   SELECT CASE WHEN jsonb_typeof(omniroute_try_jsonb(j) #> omniroute_json_path(p)) = 'array' THEN jsonb_array_length(omniroute_try_jsonb(j) #> omniroute_json_path(p)) ELSE 0 END
 $f$;
+`;
+}
 
+function jsonMutationFunctions(): string {
+  return `
 CREATE OR REPLACE FUNCTION omniroute_json_value(v text) RETURNS jsonb LANGUAGE sql IMMUTABLE AS $f$ SELECT to_jsonb(v) $f$;
 CREATE OR REPLACE FUNCTION omniroute_json_value(v bigint) RETURNS jsonb LANGUAGE sql IMMUTABLE AS $f$ SELECT to_jsonb(v) $f$;
 CREATE OR REPLACE FUNCTION omniroute_json_value(v double precision) RETURNS jsonb LANGUAGE sql IMMUTABLE AS $f$ SELECT to_jsonb(v) $f$;
@@ -323,7 +357,11 @@ BEGIN
   RETURN doc::text;
 END
 $f$;
+`;
+}
 
+function jsonEachFunction(): string {
+  return `
 CREATE OR REPLACE FUNCTION omniroute_json_each(j text) RETURNS TABLE(key text, value text, type text) LANGUAGE plpgsql IMMUTABLE AS $f$
 DECLARE
   doc jsonb := omniroute_try_jsonb(j);
@@ -338,6 +376,15 @@ BEGIN
 END
 $f$;
 `;
+}
+
+function jsonFunctions(): string {
+  return [
+    jsonParsingFunctions(),
+    jsonReadFunctions(),
+    jsonMutationFunctions(),
+    jsonEachFunction(),
+  ].join("");
 }
 
 function jsonEachOverloads(): string {

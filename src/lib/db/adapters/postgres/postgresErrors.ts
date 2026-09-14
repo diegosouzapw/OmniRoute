@@ -69,40 +69,50 @@ function keyColumns(detail: string | null): string | null {
     : null;
 }
 
+type MessageBuilder = (payload: WorkerErrorPayload) => string;
+
+function uniqueConstraintMessage({ detail, table, constraint }: WorkerErrorPayload): string {
+  const columns = keyColumns(detail);
+  const qualified = columns
+    ? columns
+        .split(", ")
+        .map((c) => `${table ?? ""}.${c}`)
+        .join(", ")
+    : (constraint ?? "");
+  return `UNIQUE constraint failed: ${qualified}`;
+}
+
+function lockedMessage({ message }: WorkerErrorPayload): string {
+  return `database is locked (${message})`;
+}
+
+const MESSAGE_BUILDERS: ReadonlyMap<string, MessageBuilder> = new Map<string, MessageBuilder>([
+  [
+    "42P01",
+    ({ message, table }) =>
+      `no such table: ${quotedName(message, "relation") ?? table ?? "unknown"}`,
+  ],
+  [
+    "42703",
+    ({ message, column }) =>
+      `no such column: ${quotedName(message, "column") ?? column ?? "unknown"}`,
+  ],
+  ["23505", uniqueConstraintMessage],
+  ["23502", ({ table, column }) => `NOT NULL constraint failed: ${table ?? ""}.${column ?? ""}`],
+  ["23514", ({ constraint }) => `CHECK constraint failed: ${constraint ?? ""}`],
+  ["23503", () => "FOREIGN KEY constraint failed"],
+  ["42P07", ({ message }) => `table ${quotedName(message, "relation") ?? ""} already exists`],
+  [
+    "42701",
+    ({ message, column }) =>
+      `duplicate column name: ${quotedName(message, "column") ?? column ?? ""}`,
+  ],
+  ["40P01", lockedMessage],
+  ["55P03", lockedMessage],
+  ["40001", lockedMessage],
+]);
+
 export function toSqliteStyleMessage(payload: WorkerErrorPayload): string {
-  const { code, message, detail, table, column, constraint } = payload;
-  switch (code) {
-    case "42P01":
-      return `no such table: ${quotedName(message, "relation") ?? table ?? "unknown"}`;
-    case "42703": {
-      const name = quotedName(message, "column") ?? column ?? "unknown";
-      return `no such column: ${name}`;
-    }
-    case "23505": {
-      const columns = keyColumns(detail);
-      const qualified = columns
-        ? columns
-            .split(", ")
-            .map((c) => `${table ?? ""}.${c}`)
-            .join(", ")
-        : (constraint ?? "");
-      return `UNIQUE constraint failed: ${qualified}`;
-    }
-    case "23502":
-      return `NOT NULL constraint failed: ${table ?? ""}.${column ?? ""}`;
-    case "23514":
-      return `CHECK constraint failed: ${constraint ?? ""}`;
-    case "23503":
-      return `FOREIGN KEY constraint failed`;
-    case "42P07":
-      return `table ${quotedName(message, "relation") ?? ""} already exists`;
-    case "42701":
-      return `duplicate column name: ${quotedName(message, "column") ?? column ?? ""}`;
-    case "40P01":
-    case "55P03":
-    case "40001":
-      return `database is locked (${message})`;
-    default:
-      return message;
-  }
+  const build = payload.code === null ? undefined : MESSAGE_BUILDERS.get(payload.code);
+  return build ? build(payload) : payload.message;
 }

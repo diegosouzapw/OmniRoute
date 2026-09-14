@@ -24,7 +24,18 @@ export interface ImportOptions {
   log?: (message: string) => void;
 }
 
+type Logger = (message: string) => void;
+
+interface ImportContext {
+  source: SqliteAdapter;
+  target: SqliteAdapter;
+  dryRun: boolean;
+  batchSize: number;
+  log: Logger;
+}
+
 const IMPORT_MARKER_KEY = "postgres_import_completed_at";
+const DEFAULT_BATCH_SIZE = 500;
 const SKIPPED_TABLES = new Set([
   "_omniroute_migrations",
   "sqlite_sequence",
@@ -106,42 +117,61 @@ function listColumns(db: SqliteAdapter, table: string): string[] {
   return listColumnInfo(db, table).map((row) => row.name);
 }
 
+function buildAddColumnStatement(
+  table: string,
+  column: ColumnInfo,
+  targetHasRows: boolean
+): string {
+  const type = column.type && column.type.trim() ? column.type.trim() : "TEXT";
+  const parts = [`ALTER TABLE ${quote(table)} ADD COLUMN ${quote(column.name)} ${type}`];
+  if (column.dflt_value !== null && column.dflt_value !== undefined)
+    parts.push(`DEFAULT ${column.dflt_value}`);
+  if (column.notnull && !targetHasRows && column.dflt_value !== null) parts.push("NOT NULL");
+  return parts.join(" ");
+}
+
+function tryAddColumn(
+  target: SqliteAdapter,
+  table: string,
+  column: ColumnInfo,
+  targetHasRows: boolean,
+  log: Logger
+): boolean {
+  try {
+    target.exec(buildAddColumnStatement(table, column, targetHasRows));
+    return true;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    log(
+      `[DB] import: could not add ${table}.${column.name} on PostgreSQL (${message}); its values are skipped`
+    );
+    return false;
+  }
+}
+
 function addMissingColumns(
   target: SqliteAdapter,
   table: string,
   sourceColumns: ColumnInfo[],
   targetColumns: string[],
   targetHasRows: boolean,
-  log: (message: string) => void
+  log: Logger
 ): string[] {
   const present = new Set(targetColumns.map((c) => c.toLowerCase()));
-  const added: string[] = [];
-  for (const column of sourceColumns) {
-    if (present.has(column.name.toLowerCase()) || column.name.toLowerCase() === ROWID_COLUMN)
-      continue;
-    const type = column.type && column.type.trim() ? column.type.trim() : "TEXT";
-    const parts = [`ALTER TABLE ${quote(table)} ADD COLUMN ${quote(column.name)} ${type}`];
-    if (column.dflt_value !== null && column.dflt_value !== undefined)
-      parts.push(`DEFAULT ${column.dflt_value}`);
-    if (column.notnull && !targetHasRows && column.dflt_value !== null) parts.push("NOT NULL");
-    try {
-      target.exec(parts.join(" "));
-      added.push(column.name);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      log(
-        `[DB] import: could not add ${table}.${column.name} on PostgreSQL (${message}); its values are skipped`
-      );
-    }
-  }
-  return added;
+  return sourceColumns
+    .filter(
+      (column) =>
+        !present.has(column.name.toLowerCase()) && column.name.toLowerCase() !== ROWID_COLUMN
+    )
+    .filter((column) => tryAddColumn(target, table, column, targetHasRows, log))
+    .map((column) => column.name);
 }
 
 function createMissingTable(
   source: SqliteAdapter,
   target: SqliteAdapter,
   table: string,
-  log: (message: string) => void
+  log: Logger
 ): string[] {
   const row = source
     .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?")
@@ -230,94 +260,148 @@ function chunkSize(columnCount: number, requested: number): number {
   return Math.max(1, Math.min(requested, maxRowsByParams));
 }
 
-export function importSqliteIntoPostgres(
-  target: SqliteAdapter,
-  sqliteFile: string,
-  options: ImportOptions = {}
-): ImportReport {
-  const log = options.log ?? ((message: string) => console.log(message));
-  const started = Date.now();
+function openSource(target: SqliteAdapter, sqliteFile: string): SqliteAdapter {
   if (target.driver !== "postgres")
     throw new Error("[DB] importSqliteIntoPostgres requires a PostgreSQL target adapter");
   if (!fs.existsSync(sqliteFile)) throw new Error(`[DB] SQLite source not found: ${sqliteFile}`);
   const source = tryOpenSync(sqliteFile, { readonly: true, fileMustExist: true });
   if (!source)
     throw new Error("[DB] No synchronous SQLite driver is available to read the source database");
+  return source;
+}
+
+function resolveTargetColumns(ctx: ImportContext, table: string): string[] {
+  const columns = listColumns(ctx.target, table);
+  if (columns.length || ctx.dryRun) return columns;
+  return createMissingTable(ctx.source, ctx.target, table, ctx.log);
+}
+
+function ensureSourceColumnsOnTarget(
+  ctx: ImportContext,
+  table: string,
+  sourceInfo: ColumnInfo[],
+  targetColumns: string[]
+): void {
+  if (ctx.dryRun) return;
+  const targetHasRows = countRows(ctx.target, table) > 0;
+  const added = addMissingColumns(
+    ctx.target,
+    table,
+    sourceInfo,
+    targetColumns,
+    targetHasRows,
+    ctx.log
+  );
+  if (added.length === 0) return;
+  targetColumns.push(...added);
+  ctx.log(`[DB] import: added ${table} columns missing on PostgreSQL: ${added.join(", ")}`);
+}
+
+function splitSharedColumns(
+  sourceColumns: string[],
+  targetColumns: string[]
+): { columns: string[]; skippedColumns: string[] } {
+  const targetSet = new Set(targetColumns.map((c) => c.toLowerCase()));
+  return {
+    columns: sourceColumns.filter(
+      (c) => targetSet.has(c.toLowerCase()) && c.toLowerCase() !== ROWID_COLUMN
+    ),
+    skippedColumns: sourceColumns.filter((c) => !targetSet.has(c.toLowerCase())),
+  };
+}
+
+function copyTableRows(
+  ctx: ImportContext,
+  table: string,
+  columns: string[],
+  sourceRows: number
+): number {
+  const useRowid = !isWithoutRowid(ctx.source, table);
+  const size = chunkSize(columns.length, ctx.batchSize);
+  let importedRows = 0;
+  ctx.target.transaction(() => {
+    for (let offset = 0; offset < sourceRows; offset += size) {
+      const rows = readBatch(ctx.source, table, columns, offset, size, useRowid);
+      if (rows.length === 0) break;
+      importedRows += insertBatch(ctx.target, table, columns, rows);
+    }
+    resetIdentitySequences(ctx.target, table, columns);
+  })();
+  return importedRows;
+}
+
+function logTableResult(log: Logger, entry: ImportTableReport): void {
+  const skipped = entry.skippedColumns.length
+    ? ` skipped_columns=${entry.skippedColumns.join(",")}`
+    : "";
+  log(
+    `[DB] import: ${entry.table} source=${entry.sourceRows} imported=${entry.importedRows} target=${entry.targetRows}${skipped}`
+  );
+}
+
+function skipTable(ctx: ImportContext, report: ImportReport, table: string, reason: string): void {
+  report.skippedTables.push(table);
+  ctx.log(`[DB] import: skipping ${table} (${reason})`);
+}
+
+function importTable(ctx: ImportContext, report: ImportReport, table: string): void {
+  const targetColumns = resolveTargetColumns(ctx, table);
+  if (targetColumns.length === 0) {
+    skipTable(ctx, report, table, "no such table on PostgreSQL");
+    return;
+  }
+  const sourceInfo = listColumnInfo(ctx.source, table);
+  ensureSourceColumnsOnTarget(ctx, table, sourceInfo, targetColumns);
+  const { columns, skippedColumns } = splitSharedColumns(
+    sourceInfo.map((column) => column.name),
+    targetColumns
+  );
+  if (columns.length === 0) {
+    skipTable(ctx, report, table, "no shared columns");
+    return;
+  }
+  const sourceRows = countRows(ctx.source, table);
+  const shouldCopy = !ctx.dryRun && sourceRows > 0;
+  const entry: ImportTableReport = {
+    table,
+    sourceRows,
+    importedRows: shouldCopy ? copyTableRows(ctx, table, columns, sourceRows) : 0,
+    targetRows: ctx.dryRun ? 0 : countRows(ctx.target, table),
+    skippedColumns,
+  };
+  report.tables.push(entry);
+  logTableResult(ctx.log, entry);
+}
+
+function writeImportMarker(target: SqliteAdapter, sqliteFile: string, tableCount: number): void {
+  target
+    .prepare("INSERT OR REPLACE INTO db_meta (key, value) VALUES (?, ?)")
+    .run(
+      IMPORT_MARKER_KEY,
+      JSON.stringify({ at: new Date().toISOString(), sqliteFile, tables: tableCount })
+    );
+}
+
+export function importSqliteIntoPostgres(
+  target: SqliteAdapter,
+  sqliteFile: string,
+  options: ImportOptions = {}
+): ImportReport {
+  const started = Date.now();
+  const source = openSource(target, sqliteFile);
+  const ctx: ImportContext = {
+    source,
+    target,
+    dryRun: Boolean(options.dryRun),
+    batchSize: options.batchSize ?? DEFAULT_BATCH_SIZE,
+    log: options.log ?? ((message: string) => console.log(message)),
+  };
   const report: ImportReport = { sqliteFile, tables: [], skippedTables: [], durationMs: 0 };
   try {
     for (const table of orderTablesByForeignKeys(target, listSourceTables(source))) {
-      let targetColumns = listColumns(target, table);
-      if (targetColumns.length === 0 && !options.dryRun) {
-        targetColumns = createMissingTable(source, target, table, log);
-      }
-      if (targetColumns.length === 0) {
-        report.skippedTables.push(table);
-        log(`[DB] import: skipping ${table} (no such table on PostgreSQL)`);
-        continue;
-      }
-      const sourceInfo = listColumnInfo(source, table);
-      const sourceColumns = sourceInfo.map((column) => column.name);
-      if (!options.dryRun) {
-        const targetHasRows = countRows(target, table) > 0;
-        const added = addMissingColumns(
-          target,
-          table,
-          sourceInfo,
-          targetColumns,
-          targetHasRows,
-          log
-        );
-        if (added.length) {
-          targetColumns.push(...added);
-          log(`[DB] import: added ${table} columns missing on PostgreSQL: ${added.join(", ")}`);
-        }
-      }
-      const targetSet = new Set(targetColumns.map((c) => c.toLowerCase()));
-      const columns = sourceColumns.filter(
-        (c) => targetSet.has(c.toLowerCase()) && c.toLowerCase() !== ROWID_COLUMN
-      );
-      const skippedColumns = sourceColumns.filter((c) => !targetSet.has(c.toLowerCase()));
-      const sourceRows = countRows(source, table);
-      const entry: ImportTableReport = {
-        table,
-        sourceRows,
-        importedRows: 0,
-        targetRows: 0,
-        skippedColumns,
-      };
-      if (columns.length === 0) {
-        report.skippedTables.push(table);
-        log(`[DB] import: skipping ${table} (no shared columns)`);
-        continue;
-      }
-      if (!options.dryRun && sourceRows > 0) {
-        const useRowid = !isWithoutRowid(source, table);
-        const size = chunkSize(columns.length, options.batchSize ?? 500);
-        target.transaction(() => {
-          for (let offset = 0; offset < sourceRows; offset += size) {
-            const rows = readBatch(source, table, columns, offset, size, useRowid);
-            if (rows.length === 0) break;
-            entry.importedRows += insertBatch(target, table, columns, rows);
-          }
-          resetIdentitySequences(target, table, columns);
-        })();
-      }
-      entry.targetRows = options.dryRun ? 0 : countRows(target, table);
-      report.tables.push(entry);
-      log(
-        `[DB] import: ${table} source=${sourceRows} imported=${entry.importedRows} target=${entry.targetRows}${
-          skippedColumns.length ? ` skipped_columns=${skippedColumns.join(",")}` : ""
-        }`
-      );
+      importTable(ctx, report, table);
     }
-    if (!options.dryRun) {
-      target
-        .prepare("INSERT OR REPLACE INTO db_meta (key, value) VALUES (?, ?)")
-        .run(
-          IMPORT_MARKER_KEY,
-          JSON.stringify({ at: new Date().toISOString(), sqliteFile, tables: report.tables.length })
-        );
-    }
+    if (!ctx.dryRun) writeImportMarker(target, sqliteFile, report.tables.length);
   } finally {
     try {
       source.close();

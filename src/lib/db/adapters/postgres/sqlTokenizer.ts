@@ -5,139 +5,187 @@ export interface Token {
   value: string;
 }
 
+interface Scan {
+  token: Token | null;
+  end: number;
+}
+
+type Scanner = (sql: string, i: number) => Scan | null;
+
+interface SplitState {
+  statements: string[];
+  current: string;
+  inTrigger: boolean;
+  triggerDepth: number;
+  caseDepth: number;
+}
+
 const WORD_START = /[A-Za-z_À-￿]/;
 const WORD_CHAR = /[A-Za-z0-9_À-￿]/;
 const DIGIT = /[0-9]/;
+const HEX_DIGIT = /[0-9a-fA-F]/;
+const ASCII_WORD_START = /[A-Za-z_]/;
+const ASCII_WORD_CHAR = /[A-Za-z0-9_]/;
+const CREATE_TRIGGER_PREFIX = /CREATE\s+(TEMP\s+|TEMPORARY\s+)?$/i;
+const WS_CHARS = new Set([" ", "\t", "\n", "\r"]);
 const MULTI_CHAR_OPS = ["<>", "!=", "<=", ">=", "==", "||", "->>", "->", "<<", ">>", "::"];
 
 export function tokenize(sql: string): Token[] {
   const tokens: Token[] = [];
   let i = 0;
-  const n = sql.length;
-  while (i < n) {
-    const ch = sql[i];
-    if (ch === " " || ch === "\t" || ch === "\n" || ch === "\r") {
-      let j = i;
-      while (j < n && (sql[j] === " " || sql[j] === "\t" || sql[j] === "\n" || sql[j] === "\r"))
-        j++;
-      tokens.push({ type: "ws", value: sql.slice(i, j) });
-      i = j;
-      continue;
-    }
-    if (ch === "-" && sql[i + 1] === "-") {
-      let j = i + 2;
-      while (j < n && sql[j] !== "\n") j++;
-      pushWs(tokens, " ");
-      i = j;
-      continue;
-    }
-    if (ch === "/" && sql[i + 1] === "*") {
-      const end = sql.indexOf("*/", i + 2);
-      i = end === -1 ? n : end + 2;
-      pushWs(tokens, " ");
-      continue;
-    }
-    if (ch === "'") {
-      let j = i + 1;
-      while (j < n) {
-        if (sql[j] === "'") {
-          if (sql[j + 1] === "'") {
-            j += 2;
-            continue;
-          }
-          break;
-        }
-        j++;
-      }
-      tokens.push({ type: "string", value: sql.slice(i, Math.min(j + 1, n)) });
-      i = j + 1;
-      continue;
-    }
-    if ((ch === "x" || ch === "X") && sql[i + 1] === "'") {
-      const end = sql.indexOf("'", i + 2);
-      const stop = end === -1 ? n : end;
-      tokens.push({ type: "blob", value: sql.slice(i + 2, stop) });
-      i = stop + 1;
-      continue;
-    }
-    if (ch === '"' || ch === "`" || ch === "[") {
-      const close = ch === "[" ? "]" : ch;
-      let j = i + 1;
-      let name = "";
-      while (j < n) {
-        if (sql[j] === close) {
-          if (close !== "]" && sql[j + 1] === close) {
-            name += close;
-            j += 2;
-            continue;
-          }
-          break;
-        }
-        name += sql[j];
-        j++;
-      }
-      tokens.push({ type: "qident", value: name });
-      i = j + 1;
-      continue;
-    }
-    if (ch === "?") {
-      let j = i + 1;
-      while (j < n && DIGIT.test(sql[j])) j++;
-      tokens.push({ type: "param", value: sql.slice(i, j) });
-      i = j;
-      continue;
-    }
-    if ((ch === "@" || ch === ":" || ch === "$") && i + 1 < n && WORD_START.test(sql[i + 1])) {
-      if (ch === ":" && sql[i - 1] === ":") {
-        tokens.push({ type: "op", value: ch });
-        i++;
-        continue;
-      }
-      let j = i + 1;
-      while (j < n && WORD_CHAR.test(sql[j])) j++;
-      tokens.push({ type: "param", value: sql.slice(i, j) });
-      i = j;
-      continue;
-    }
-    if (DIGIT.test(ch) || (ch === "." && DIGIT.test(sql[i + 1] ?? ""))) {
-      let j = i;
-      if (ch === "0" && (sql[i + 1] === "x" || sql[i + 1] === "X")) {
-        j = i + 2;
-        while (j < n && /[0-9a-fA-F]/.test(sql[j])) j++;
-        tokens.push({ type: "number", value: String(parseInt(sql.slice(i + 2, j), 16)) });
-        i = j;
-        continue;
-      }
-      while (j < n && (DIGIT.test(sql[j]) || sql[j] === ".")) j++;
-      if (j < n && (sql[j] === "e" || sql[j] === "E")) {
-        let k = j + 1;
-        if (sql[k] === "+" || sql[k] === "-") k++;
-        if (DIGIT.test(sql[k] ?? "")) {
-          while (k < n && DIGIT.test(sql[k])) k++;
-          j = k;
-        }
-      }
-      tokens.push({ type: "number", value: sql.slice(i, j) });
-      i = j;
-      continue;
-    }
-    if (WORD_START.test(ch)) {
-      let j = i + 1;
-      while (j < n && WORD_CHAR.test(sql[j])) j++;
-      tokens.push({ type: "word", value: sql.slice(i, j) });
-      i = j;
-      continue;
-    }
-    const multi = MULTI_CHAR_OPS.find((op) => sql.startsWith(op, i));
-    if (multi) {
-      tokens.push({ type: "op", value: multi });
-      i += multi.length;
-      continue;
-    }
-    tokens.push({ type: "op", value: ch });
-    i++;
+  while (i < sql.length) {
+    const scan = scanToken(sql, i);
+    if (scan.token) tokens.push(scan.token);
+    else pushWs(tokens, " ");
+    i = scan.end;
   }
   return tokens;
+}
+
+const SCANNERS: Scanner[] = [
+  scanWhitespace,
+  scanLineComment,
+  scanBlockComment,
+  scanString,
+  scanBlob,
+  scanQuotedIdentifier,
+  scanPositionalParam,
+  scanNamedParam,
+  scanNumber,
+  scanWord,
+];
+
+function scanToken(sql: string, i: number): Scan {
+  for (const scanner of SCANNERS) {
+    const scan = scanner(sql, i);
+    if (scan) return scan;
+  }
+  return scanOperator(sql, i);
+}
+
+function scanWhile(sql: string, from: number, test: (ch: string) => boolean): number {
+  let j = from;
+  while (j < sql.length && test(sql[j])) j++;
+  return j;
+}
+
+function skipPast(sql: string, needle: string, from: number): number {
+  const end = sql.indexOf(needle, from);
+  return end === -1 ? sql.length : end + needle.length;
+}
+
+function stringEnd(sql: string, open: number): number {
+  let j = open + 1;
+  while (j < sql.length) {
+    if (sql[j] !== "'") {
+      j++;
+      continue;
+    }
+    if (sql[j + 1] !== "'") return j;
+    j += 2;
+  }
+  return j;
+}
+
+function scanWhitespace(sql: string, i: number): Scan | null {
+  if (!WS_CHARS.has(sql[i])) return null;
+  const end = scanWhile(sql, i, (ch) => WS_CHARS.has(ch));
+  return { token: { type: "ws", value: sql.slice(i, end) }, end };
+}
+
+function scanLineComment(sql: string, i: number): Scan | null {
+  if (!sql.startsWith("--", i)) return null;
+  return { token: null, end: scanWhile(sql, i + 2, (ch) => ch !== "\n") };
+}
+
+function scanBlockComment(sql: string, i: number): Scan | null {
+  if (!sql.startsWith("/*", i)) return null;
+  return { token: null, end: skipPast(sql, "*/", i + 2) };
+}
+
+function scanString(sql: string, i: number): Scan | null {
+  if (sql[i] !== "'") return null;
+  const j = stringEnd(sql, i);
+  return {
+    token: { type: "string", value: sql.slice(i, Math.min(j + 1, sql.length)) },
+    end: j + 1,
+  };
+}
+
+function scanBlob(sql: string, i: number): Scan | null {
+  const ch = sql[i];
+  if ((ch !== "x" && ch !== "X") || sql[i + 1] !== "'") return null;
+  const end = sql.indexOf("'", i + 2);
+  const stop = end === -1 ? sql.length : end;
+  return { token: { type: "blob", value: sql.slice(i + 2, stop) }, end: stop + 1 };
+}
+
+function scanQuotedIdentifier(sql: string, i: number): Scan | null {
+  const ch = sql[i];
+  if (ch !== '"' && ch !== "`" && ch !== "[") return null;
+  const close = ch === "[" ? "]" : ch;
+  let j = i + 1;
+  let name = "";
+  while (j < sql.length) {
+    if (sql[j] !== close) {
+      name += sql[j];
+      j++;
+      continue;
+    }
+    if (close === "]" || sql[j + 1] !== close) break;
+    name += close;
+    j += 2;
+  }
+  return { token: { type: "qident", value: name }, end: j + 1 };
+}
+
+function scanPositionalParam(sql: string, i: number): Scan | null {
+  if (sql[i] !== "?") return null;
+  const end = scanWhile(sql, i + 1, (ch) => DIGIT.test(ch));
+  return { token: { type: "param", value: sql.slice(i, end) }, end };
+}
+
+function scanNamedParam(sql: string, i: number): Scan | null {
+  const ch = sql[i];
+  if (ch !== "@" && ch !== ":" && ch !== "$") return null;
+  if (i + 1 >= sql.length || !WORD_START.test(sql[i + 1])) return null;
+  if (ch === ":" && sql[i - 1] === ":") return { token: op(ch), end: i + 1 };
+  const end = scanWhile(sql, i + 1, (c) => WORD_CHAR.test(c));
+  return { token: { type: "param", value: sql.slice(i, end) }, end };
+}
+
+function scanNumber(sql: string, i: number): Scan | null {
+  const ch = sql[i];
+  if (!DIGIT.test(ch) && !(ch === "." && DIGIT.test(sql[i + 1] ?? ""))) return null;
+  if (ch === "0" && (sql[i + 1] === "x" || sql[i + 1] === "X")) return scanHexNumber(sql, i);
+  const mantissaEnd = scanWhile(sql, i, (c) => DIGIT.test(c) || c === ".");
+  const end = scanExponent(sql, mantissaEnd);
+  return { token: { type: "number", value: sql.slice(i, end) }, end };
+}
+
+function scanHexNumber(sql: string, i: number): Scan {
+  const end = scanWhile(sql, i + 2, (c) => HEX_DIGIT.test(c));
+  return { token: { type: "number", value: String(parseInt(sql.slice(i + 2, end), 16)) }, end };
+}
+
+function scanExponent(sql: string, j: number): number {
+  if (j >= sql.length || (sql[j] !== "e" && sql[j] !== "E")) return j;
+  let k = j + 1;
+  if (sql[k] === "+" || sql[k] === "-") k++;
+  if (!DIGIT.test(sql[k] ?? "")) return j;
+  return scanWhile(sql, k, (c) => DIGIT.test(c));
+}
+
+function scanWord(sql: string, i: number): Scan | null {
+  if (!WORD_START.test(sql[i])) return null;
+  const end = scanWhile(sql, i + 1, (c) => WORD_CHAR.test(c));
+  return { token: { type: "word", value: sql.slice(i, end) }, end };
+}
+
+function scanOperator(sql: string, i: number): Scan {
+  const multi = MULTI_CHAR_OPS.find((candidate) => sql.startsWith(candidate, i));
+  const value = multi ?? sql[i];
+  return { token: op(value), end: i + value.length };
 }
 
 function pushWs(tokens: Token[], value: string): void {
@@ -281,82 +329,81 @@ export function identifierName(token: Token): string | null {
 }
 
 export function splitStatements(sql: string): string[] {
-  const statements: string[] = [];
-  let current = "";
+  const state: SplitState = {
+    statements: [],
+    current: "",
+    inTrigger: false,
+    triggerDepth: 0,
+    caseDepth: 0,
+  };
   let i = 0;
-  const n = sql.length;
-  let triggerDepth = 0;
-  let inTrigger = false;
-  let caseDepth = 0;
-  while (i < n) {
-    const ch = sql[i];
-    if (ch === "-" && sql[i + 1] === "-") {
-      const end = sql.indexOf("\n", i);
-      i = end === -1 ? n : end;
-      current += " ";
-      continue;
-    }
-    if (ch === "/" && sql[i + 1] === "*") {
-      const end = sql.indexOf("*/", i + 2);
-      i = end === -1 ? n : end + 2;
-      current += " ";
-      continue;
-    }
-    if (ch === "'") {
-      let j = i + 1;
-      while (j < n) {
-        if (sql[j] === "'") {
-          if (sql[j + 1] === "'") {
-            j += 2;
-            continue;
-          }
-          break;
-        }
-        j++;
-      }
-      current += sql.slice(i, j + 1);
-      i = j + 1;
-      continue;
-    }
-    if (ch === '"' || ch === "`") {
-      const end = sql.indexOf(ch, i + 1);
-      const stop = end === -1 ? n : end;
-      current += sql.slice(i, stop + 1);
-      i = stop + 1;
-      continue;
-    }
-    if (/[A-Za-z_]/.test(ch)) {
-      let j = i;
-      while (j < n && /[A-Za-z0-9_]/.test(sql[j])) j++;
-      const wordText = sql.slice(i, j);
-      const upper = wordText.toUpperCase();
-      if (upper === "TRIGGER" && /CREATE\s+(TEMP\s+|TEMPORARY\s+)?$/i.test(current))
-        inTrigger = true;
-      if (upper === "CASE") caseDepth++;
-      if (upper === "END") {
-        if (caseDepth > 0) caseDepth--;
-        else if (inTrigger && triggerDepth > 0) triggerDepth--;
-      }
-      if (upper === "BEGIN" && inTrigger) triggerDepth++;
-      current += wordText;
-      i = j;
-      continue;
-    }
-    if (ch === ";") {
-      if (inTrigger && triggerDepth > 0) {
-        current += ch;
-        i++;
-        continue;
-      }
-      if (current.trim()) statements.push(current.trim());
-      current = "";
-      inTrigger = false;
-      i++;
-      continue;
-    }
-    current += ch;
-    i++;
+  while (i < sql.length) i = consumeStatementChunk(sql, i, state);
+  flushStatement(state);
+  return state.statements;
+}
+
+function consumeStatementChunk(sql: string, i: number, state: SplitState): number {
+  const ch = sql[i];
+  if (sql.startsWith("--", i)) {
+    state.current += " ";
+    const end = sql.indexOf("\n", i);
+    return end === -1 ? sql.length : end;
   }
-  if (current.trim()) statements.push(current.trim());
-  return statements;
+  if (sql.startsWith("/*", i)) {
+    state.current += " ";
+    return skipPast(sql, "*/", i + 2);
+  }
+  if (ch === "'") {
+    const end = stringEnd(sql, i) + 1;
+    state.current += sql.slice(i, end);
+    return end;
+  }
+  if (ch === '"' || ch === "`") return consumeQuotedIdentifier(sql, i, state);
+  if (ASCII_WORD_START.test(ch)) return consumeKeyword(sql, i, state);
+  if (ch === ";") return consumeSemicolon(i, state);
+  state.current += ch;
+  return i + 1;
+}
+
+function consumeQuotedIdentifier(sql: string, i: number, state: SplitState): number {
+  const end = sql.indexOf(sql[i], i + 1);
+  const stop = end === -1 ? sql.length : end;
+  state.current += sql.slice(i, stop + 1);
+  return stop + 1;
+}
+
+function consumeKeyword(sql: string, i: number, state: SplitState): number {
+  const end = scanWhile(sql, i, (c) => ASCII_WORD_CHAR.test(c));
+  const wordText = sql.slice(i, end);
+  trackBlockDepth(state, wordText.toUpperCase());
+  state.current += wordText;
+  return end;
+}
+
+function trackBlockDepth(state: SplitState, upper: string): void {
+  if (upper === "TRIGGER" && CREATE_TRIGGER_PREFIX.test(state.current)) state.inTrigger = true;
+  if (upper === "CASE") state.caseDepth++;
+  if (upper === "END") closeBlock(state);
+  if (upper === "BEGIN" && state.inTrigger) state.triggerDepth++;
+}
+
+function closeBlock(state: SplitState): void {
+  if (state.caseDepth > 0) state.caseDepth--;
+  else if (state.inTrigger && state.triggerDepth > 0) state.triggerDepth--;
+}
+
+function consumeSemicolon(i: number, state: SplitState): number {
+  if (state.inTrigger && state.triggerDepth > 0) {
+    state.current += ";";
+    return i + 1;
+  }
+  flushStatement(state);
+  state.inTrigger = false;
+  return i + 1;
+}
+
+function flushStatement(state: SplitState): void {
+  const text = state.current.trim();
+  if (text) state.statements.push(text);
+  state.current = "";
 }
