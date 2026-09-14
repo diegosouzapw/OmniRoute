@@ -142,6 +142,15 @@ function generateLogId() {
   return `${Date.now()}-${logIdCounter}`;
 }
 
+function isCallLogIdUniqueConstraint(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const code = String((err as { code?: unknown }).code ?? "");
+  const msg = String((err as { message?: unknown }).message ?? "");
+  if (/SQLITE_CONSTRAINT_PRIMARYKEY/i.test(code)) return true;
+  if (/SQLITE_CONSTRAINT_UNIQUE/i.test(code)) return true;
+  return /UNIQUE constraint failed:\s*call_logs\.id/i.test(msg);
+}
+
 async function resolveAccountName(connectionId: string | null | undefined) {
   let account = connectionId ? connectionId.slice(0, 8) : "-";
 
@@ -508,7 +517,7 @@ async function saveCallLogOperation(entry: any): Promise<void> {
     const tokensReasoning = getReasoningTokensOrNull(entry.tokens);
     const reasoningObservation = resolveReasoningObservation(tokensReasoning, entry.responseBody);
     const errorType = classifyCallLogError(entry.status, entry.error, entry.provider);
-    const logEntry = {
+    let logEntry = {
       id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : generateLogId(),
       timestamp: typeof entry.timestamp === "string" ? entry.timestamp : new Date().toISOString(),
       method: entry.method || "POST",
@@ -589,7 +598,7 @@ async function saveCallLogOperation(entry: any): Promise<void> {
     }
 
     const db = getDbInstance();
-    db.prepare(
+    const insertCallLog = db.prepare(
       `
       INSERT INTO call_logs (
         id, timestamp, method, path, status, model, requested_model, provider,
@@ -616,7 +625,8 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         @videoContentRemoved
       )
     `
-    ).run({
+    );
+    const callLogRow = {
       ...logEntry,
       errorSummary: toStoredErrorSummary(protectedError),
       detailState,
@@ -627,7 +637,18 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       hasResponseBody: protectedResponseBody !== null ? 1 : 0,
       hasPipelineDetails: protectedPipelinePayloads ? 1 : 0,
       requestSummary,
-    });
+    };
+    try {
+      insertCallLog.run(callLogRow);
+    } catch (insertError) {
+      // Combo fallback reuses the dashboard pending id across targets
+      // (usageHistory.ts). persistAttemptLogs then writes that id into
+      // call_logs; a second INSERT must not drop the winning attempt.
+      if (!isCallLogIdUniqueConstraint(insertError)) throw insertError;
+      logEntry = { ...logEntry, id: generateLogId() };
+      insertCallLog.run({ ...callLogRow, id: logEntry.id });
+    }
+
 
     if (detailState === "ready" && typeof logEntry.responseId === "string") {
       // The durable row is now authoritative; drop the bridge entry instead
